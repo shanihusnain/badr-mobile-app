@@ -116,11 +116,11 @@ export default function LoginScreen() {
                             keyboardType="email-address"
                           />
                         </View>
-                        {errors.email && (
+                        {errors.email?.message ? (
                           <Text style={styles.errorText}>
                             {errors.email.message}
                           </Text>
-                        )}
+                        ) : null}
                       </View>
                     )}
                   />
@@ -151,9 +151,13 @@ export default function LoginScreen() {
                             <Text style={styles.eyeIcon}>👁️</Text>
                           </TouchableOpacity>
                         </View>
-                        {value &&
-                        value.length > 0 &&
-                        passwordValidationMessages.length > 0 ? (
+                        {errors.password?.message && !value ? (
+                          <Text style={styles.errorText}>
+                            {errors.password.message}
+                          </Text>
+                        ) : value &&
+                          value.length > 0 &&
+                          passwordValidationMessages.length > 0 ? (
                           <View style={styles.validationContainer}>
                             <Text style={styles.validationText}>
                               {passwordValidationMessages.join(" • ")}

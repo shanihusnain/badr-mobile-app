@@ -1,39 +1,50 @@
 import PrimaryButton from "@/components/atoms/Primary-button";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Keyboard,
-  KeyboardAvoidingView,
   Platform,
   Text,
   TextInput,
+  TouchableOpacity,
   TouchableWithoutFeedback,
   View,
 } from "react-native";
 
+import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-
 import Backbutton from "../../../components/atoms/Backbutton";
 import createStyles from "./style";
 
 export default function OtpScreen() {
   const styles = createStyles();
+  const router = useRouter();
 
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+
   const inputRefs = useRef<(TextInput | null)[]>([]);
-  console.log("OTP State:", otp);
+
+  useEffect(() => {
+    const show = Keyboard.addListener("keyboardDidShow", () =>
+      setKeyboardVisible(true),
+    );
+    const hide = Keyboard.addListener("keyboardDidHide", () =>
+      setKeyboardVisible(false),
+    );
+
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, []);
 
   const handleOtpChange = (value: string, index: number) => {
-    // Only allow single digit
-    if (value.length > 1) {
-      value = value.slice(-1);
-    }
+    if (value.length > 1) value = value.slice(-1);
 
-    // Update OTP array
     const newOtp = [...otp];
     newOtp[index] = value;
     setOtp(newOtp);
 
-    // Move to next input if digit is entered
     if (value && index < 5) {
       inputRefs.current[index + 1]?.focus();
     }
@@ -45,64 +56,70 @@ export default function OtpScreen() {
     }
   };
 
+  const handleResend = () => {
+    console.log("Resend OTP clicked");
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={{ flex: 1 }}>
-          {/* Header */}
+          {/* HEADER */}
           <View style={styles.header}>
             <Backbutton />
-
             <Text style={styles.title}>SIGNUP</Text>
-
             <View style={styles.placeholder} />
           </View>
 
-          {/* Spacer */}
-          <View style={styles.spacer} />
-
-          {/* Keyboard Handling */}
-          <KeyboardAvoidingView
-            style={styles.keyboardAvoidingView}
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-            keyboardVerticalOffset={0}
+          {/* BOTTOM SHEET */}
+          <View
+            style={[
+              styles.bottomSheet,
+              keyboardVisible && {
+                marginBottom: Platform.OS === "ios" ? 260 : 180,
+              },
+            ]}
           >
-            {/* Bottom Sheet */}
-            <View style={styles.bottomSheet}>
-              <View style={styles.scrollContent}>
-                {/* Top Content */}
-                <View>
-                  <View style={styles.formWrapper}>
-                    {/* OTP Boxes */}
-                    <View style={styles.otpContainer}>
-                      {otp.map((digit, index) => (
-                        <TextInput
-                          key={index}
-                          ref={(ref) => (inputRefs.current[index] = ref)}
-                          style={styles.otpBox}
-                          value={digit}
-                          onChangeText={(value) =>
-                            handleOtpChange(value, index)
-                          }
-                          onKeyPress={(e) => handleKeyPress(e, index)}
-                          keyboardType="numeric"
-                          maxLength={1}
-                        />
-                      ))}
-                    </View>
-                  </View>
-                </View>
+            {/* INFO TEXT */}
+            <Text style={styles.otpInfoText}>
+              Enter the 6-digit OTP sent to your email so we can{"\n"}
+              activate your account.
+            </Text>
 
-                {/* Bottom Section */}
-                <View style={styles.buttonWrapper}>
-                  <PrimaryButton
-                    text="ACTIVATE"
-                    onPress={() => {}}
-                  />
-                </View>
-              </View>
+            {/* OTP BOXES */}
+            <View style={styles.otpContainer}>
+              {otp.map((digit, index) => (
+                <TextInput
+                  key={index}
+                  ref={(ref) => {
+                    inputRefs.current[index] = ref;
+                  }}
+                  style={styles.otpBox}
+                  value={digit}
+                  onChangeText={(value) => handleOtpChange(value, index)}
+                  onKeyPress={(e) => handleKeyPress(e, index)}
+                  keyboardType="number-pad"
+                  maxLength={1}
+                />
+              ))}
             </View>
-          </KeyboardAvoidingView>
+
+            {/* RESEND (FIXED ALIGNMENT) */}
+            <View style={styles.resendContainer}>
+              <TouchableOpacity onPress={handleResend}>
+                <Text style={styles.resendAction}>Resend</Text>
+              </TouchableOpacity>
+              <Text style={styles.resendText}>OTP Code</Text>
+            </View>
+
+            {/* BUTTON */}
+            <View style={styles.buttonWrapper}>
+              <PrimaryButton
+                text="ACTIVATE"
+                onPress={() => router.push("/paymentMethod")}
+              />
+            </View>
+          </View>
         </View>
       </TouchableWithoutFeedback>
     </SafeAreaView>
