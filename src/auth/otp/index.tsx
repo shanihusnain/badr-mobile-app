@@ -20,6 +20,7 @@ export default function OtpScreen() {
 
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const inputRefs = useRef<(TextInput | null)[]>([]);
+  console.log("OTP State:", otp);
 
   const handleOtpChange = (value: string, index: number) => {
     // Only allow single digit
