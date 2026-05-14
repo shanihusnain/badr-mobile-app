@@ -1,54 +1,47 @@
 import PrimaryButton from "@/components/atoms/Primary-button";
 import CustomTextInput from "@/components/atoms/CustomTextInput";
-import { useValidations } from "@/src/validations/useValidations";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React from "react";
 import { useForm } from "react-hook-form";
 import {
   Keyboard,
   KeyboardAvoidingView,
   Platform,
   Text,
-  TouchableOpacity,
   TouchableWithoutFeedback,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { z } from "zod";
 
-import Backbutton from "../../../components/atoms/Backbutton";
 import { styles } from "./style";
 
-export default function LoginScreen() {
+const forgotPasswordSchema = z.object({
+  email: z.string().min(1, "Input missing").email("Invalid email"),
+});
+
+export default function ForgotPasswordScreen() {
   const router = useRouter();
-  const { loginSchema } = useValidations();
 
   const {
     control,
     handleSubmit,
     formState: { errors },
   } = useForm({
-    resolver: zodResolver(loginSchema),
-    mode: "onChange",
-    reValidateMode: "onChange",
+    resolver: zodResolver(forgotPasswordSchema),
     defaultValues: {
       email: "",
-      password: "",
     },
   });
 
-  const [showPassword, setShowPassword] = useState(false);
+  const onSubmit = (data: z.infer<typeof forgotPasswordSchema>) => {
+    console.log("Forgot password data", data);
 
-  const handleTogglePassword = () =>
-    setShowPassword((prev) => !prev);
-
-  const handleForgotPassword = () => {
-    router.push("/forgotpassword");
-  };
-
-  const onSubmit = (data: z.infer<typeof loginSchema>) => {
-    // handle login
+    router.push({
+      pathname: "./verifyemail/[fromsignup]",
+      params: { fromsignup: "false" },
+    });
   };
 
   return (
@@ -62,6 +55,14 @@ export default function LoginScreen() {
           >
             <View style={styles.bottomSheet}>
               <View style={styles.bottomSheetContent}>
+                <View style={styles.messageContainer}>
+                  <Text style={styles.messageText}>
+                    Enter the email address linked to your account.
+                    We'll send you a 6-digit code to reset your
+                    password.
+                  </Text>
+                </View>
+
                 <View style={styles.formWrapper}>
                   <CustomTextInput
                     placeholder="Email Address"
@@ -73,44 +74,13 @@ export default function LoginScreen() {
                         : []
                     }
                   />
-
-                  <CustomTextInput
-                    placeholder="Password"
-                    control={control}
-                    name="password"
-                    showEye
-                    secureTextEntry={!showPassword}
-                    onToggleEye={handleTogglePassword}
-                    errors={
-                      errors.password?.message
-                        ? [errors.password.message]
-                        : []
-                    }
-                  />
-
-                  <TouchableOpacity
-                    style={styles.forgotPasswordContainer}
-                    onPress={handleForgotPassword}
-                  >
-                    <Text style={styles.forgotPasswordText}>
-                      Forgot Password?
-                    </Text>
-                  </TouchableOpacity>
                 </View>
 
                 <View style={styles.buttonWrapper}>
                   <PrimaryButton
-                    text="LOG IN"
+                    text="SEND"
                     onPress={handleSubmit(onSubmit)}
                   />
-
-                  <View style={styles.orloginContainer}>
-                    <View style={styles.line} />
-                    <Text style={styles.orloginText}>
-                      Or login with
-                    </Text>
-                    <View style={styles.line} />
-                  </View>
                 </View>
               </View>
             </View>

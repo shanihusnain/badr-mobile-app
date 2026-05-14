@@ -1,107 +1,170 @@
 import PrimaryButton from "@/components/atoms/Primary-button";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Keyboard,
-  KeyboardAvoidingView,
   Platform,
   Text,
   TextInput,
+  TouchableOpacity,
   TouchableWithoutFeedback,
   View,
 } from "react-native";
 
+import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-
 import Backbutton from "../../../components/atoms/Backbutton";
-import createStyles from "./style";
+import { styles } from "./style";
 
 export default function OtpScreen() {
-  const styles = createStyles();
+  const router = useRouter();
+  const params = useLocalSearchParams<{ fromsignup?: string }>();
+
+  const [buttonText, setButtonText] = useState("Verify");
+  console.log("OTP Screen params:", params);
 
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+
   const inputRefs = useRef<(TextInput | null)[]>([]);
 
-  const handleOtpChange = (value: string, index: number) => {
-    // Only allow single digit
-    if (value.length > 1) {
-      value = value.slice(-1);
-    }
+  useEffect(() => {
+    const show = Keyboard.addListener("keyboardDidShow", () =>
+      setKeyboardVisible(true)
+    );
 
-    // Update OTP array
+    const hide = Keyboard.addListener("keyboardDidHide", () =>
+      setKeyboardVisible(false)
+    );
+
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, []);
+
+  const handleOtpChange = (value: string, index: number) => {
+    if (value.length > 1) value = value.slice(-1);
+
     const newOtp = [...otp];
     newOtp[index] = value;
     setOtp(newOtp);
 
-    // Move to next input if digit is entered
     if (value && index < 5) {
       inputRefs.current[index + 1]?.focus();
     }
   };
 
   const handleKeyPress = (e: any, index: number) => {
-    if (e.nativeEvent.key === "Backspace" && !otp[index] && index > 0) {
+    if (
+      e.nativeEvent.key === "Backspace" &&
+      !otp[index] &&
+      index > 0
+    ) {
       inputRefs.current[index - 1]?.focus();
     }
   };
 
+  const handleResend = () => {
+    console.log("Resend OTP clicked");
+  };
+
+  const getBtnTitle = () => {
+    return params?.fromsignup === "true"
+      ? "ACTIVATE"
+      : "VERIFY";
+  };
+
+  const getDescriptionText = () => {
+    return params?.fromsignup === "true"
+      ? "Enter the 6-digit OTP sent to your email so we can\nactivate your account."
+      : "Enter the 6-digit OTP sent to your email so we can\nverify it's you.";
+  };
+
+  const navigationBasedOnParams = () => {
+    if (params?.fromsignup === "true") {
+      router.push("/paymentMethod");
+    } else {
+      router.push("/confirmpassword");
+    }
+  };
+
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    if (params?.fromsignup === "true") {
+      navigation.setOptions({
+        title: "VERIFY EMAIL",
+      });
+    } else {
+      navigation.setOptions({
+        title: "FORGOT PASSWORD",
+      });
+    }
+  }, [navigation, params?.fromsignup]);
+
   return (
     <SafeAreaView style={styles.container}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={{ flex: 1 }}>
-          {/* Header */}
-          <View style={styles.header}>
-            <Backbutton />
-
-            <Text style={styles.title}>SIGNUP</Text>
-
-            <View style={styles.placeholder} />
-          </View>
-
-          {/* Spacer */}
-          <View style={styles.spacer} />
-
-          {/* Keyboard Handling */}
-          <KeyboardAvoidingView
-            style={styles.keyboardAvoidingView}
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-            keyboardVerticalOffset={0}
+        <View style={styles.contentView}>
+          <View
+            style={[
+              styles.bottomSheet,
+              keyboardVisible && {
+                marginBottom:
+                  Platform.OS === "ios" ? 260 : 180,
+              },
+            ]}
           >
-            {/* Bottom Sheet */}
-            <View style={styles.bottomSheet}>
-              <View style={styles.scrollContent}>
-                {/* Top Content */}
-                <View>
-                  <View style={styles.formWrapper}>
-                    {/* OTP Boxes */}
-                    <View style={styles.otpContainer}>
-                      {otp.map((digit, index) => (
-                        <TextInput
-                          key={index}
-                          ref={(ref) => (inputRefs.current[index] = ref)}
-                          style={styles.otpBox}
-                          value={digit}
-                          onChangeText={(value) =>
-                            handleOtpChange(value, index)
-                          }
-                          onKeyPress={(e) => handleKeyPress(e, index)}
-                          keyboardType="numeric"
-                          maxLength={1}
-                        />
-                      ))}
-                    </View>
-                  </View>
-                </View>
+            <Text style={styles.otpInfoText}>
+              {getDescriptionText()}
+            </Text>
 
-                {/* Bottom Section */}
-                <View style={styles.buttonWrapper}>
-                  <PrimaryButton
-                    text="ACTIVATE"
-                    onPress={() => {}}
-                  />
-                </View>
-              </View>
+            <View style={styles.otpContainer}>
+              {otp.map((digit, index) => (
+                <TextInput
+                  key={index}
+                  ref={(ref) => {
+                    inputRefs.current[index] = ref;
+                  }}
+                  style={styles.otpBox}
+                  value={digit}
+                  onChangeText={(value) =>
+                    handleOtpChange(value, index)
+                  }
+                  onKeyPress={(e) =>
+                    handleKeyPress(e, index)
+                  }
+                  keyboardType="number-pad"
+                  maxLength={1}
+                />
+              ))}
             </View>
-          </KeyboardAvoidingView>
+
+            <View style={styles.resendContainer}>
+              <TouchableOpacity onPress={handleResend}>
+                <Text
+                  style={[
+                    styles.resendAction,
+                    params?.fromsignup !== "true" &&
+                      styles.resendActionUnderline,
+                  ]}
+                >
+                  Resend
+                </Text>
+              </TouchableOpacity>
+
+              <Text style={styles.resendText}>
+                OTP Code
+              </Text>
+            </View>
+
+            <View style={styles.buttonWrapper}>
+              <PrimaryButton
+                text={getBtnTitle()}
+                onPress={navigationBasedOnParams}
+              />
+            </View>
+          </View>
         </View>
       </TouchableWithoutFeedback>
     </SafeAreaView>
