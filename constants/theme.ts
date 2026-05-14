@@ -21,7 +21,12 @@ export const Colors = {
     white: "#FFFFFF",
     greybuttonBackground: "#213144",
     grey: "#A0A0A0",
-    placeholder:"#8A8A8A",
+    placeholder: "#8A8A8A",
+    calendarBg: "#2F4054",
+    calendarTodayBg: "#A0A0A057",
+    ringRamadan: "#B7977E",
+    ringDawood: "#439CB8",
+    ringMonThu: "#61C8A6",
   },
   dark: {
     text: "#ECEDEE",

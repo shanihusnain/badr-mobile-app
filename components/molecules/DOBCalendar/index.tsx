@@ -1,0 +1,400 @@
+/**
+ * DOBCalendar — reusable Date-of-Birth picker component.
+ * Layout: dropdown header (month/year) → nav row (← range →) → CalendarGrid → OK / Cancel
+ */
+
+import { Colors } from "@/constants/theme";
+import { useRef, useState } from "react";
+import {
+  FlatList,
+  LayoutRectangle,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { fonts } from "@/assets/fonts";
+import { CalendarGrid } from "@/components/molecules/CalendarGrid";
+
+// ── Constants ─────────────────────────────────────────────────────────────────
+
+const MONTHS = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
+const CURRENT_YEAR = new Date().getFullYear();
+const YEARS = Array.from({ length: 100 }, (_, i) => String(CURRENT_YEAR - i));
+
+type DropdownType = "month" | "year" | null;
+
+// ── Props ──────────────────────────────────────────────────────────────────────
+
+interface DOBCalendarProps {
+  /** Called with the selected date string (YYYY-MM-DD) when OK is pressed. */
+  onSave?: (date: string) => void;
+  /** Called when Cancel is pressed. */
+  onCancel?: () => void;
+}
+
+// ── Component ─────────────────────────────────────────────────────────────────
+
+export const DOBCalendar = ({ onSave, onCancel }: DOBCalendarProps) => {
+  const today = new Date();
+
+  const [currentMonth, setCurrentMonth] = useState(today.getMonth());
+  const [currentYear, setCurrentYear] = useState(today.getFullYear());
+  const [selectedDate, setSelectedDate] = useState<string | undefined>(
+    undefined,
+  );
+  const [openDropdown, setOpenDropdown] = useState<DropdownType>(null);
+  const [dropdownAnchor, setDropdownAnchor] = useState<LayoutRectangle | null>(
+    null,
+  );
+
+  const monthBtnRef = useRef<View>(null);
+  const yearBtnRef = useRef<View>(null);
+  const rootRef = useRef<View>(null);
+
+  const currentDate = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-01`;
+
+  // ── Dropdown helpers ────────────────────────────────────────────────────────
+
+  const openPicker = (
+    type: DropdownType,
+    ref: React.RefObject<View | null>,
+  ) => {
+    if (openDropdown === type) {
+      setOpenDropdown(null);
+      return;
+    }
+    ref.current?.measureLayout(
+      rootRef.current as any,
+      (x, y, width, height) => {
+        setDropdownAnchor({ x, y, width, height });
+        setOpenDropdown(type);
+      },
+      () => {},
+    );
+  };
+
+  const selectMonth = (index: number) => {
+    setCurrentMonth(index);
+    setOpenDropdown(null);
+  };
+  const selectYear = (year: string) => {
+    setCurrentYear(Number(year));
+    setOpenDropdown(null);
+  };
+  const dropdownData = openDropdown === "month" ? MONTHS : YEARS;
+
+  // ── Month navigation ────────────────────────────────────────────────────────
+
+  const goToPrevMonth = () => {
+    if (currentMonth === 0) {
+      setCurrentMonth(11);
+      setCurrentYear((y) => y - 1);
+    } else setCurrentMonth((m) => m - 1);
+  };
+  const goToNextMonth = () => {
+    if (currentMonth === 11) {
+      setCurrentMonth(0);
+      setCurrentYear((y) => y + 1);
+    } else setCurrentMonth((m) => m + 1);
+  };
+
+  const firstDay = new Date(currentYear, currentMonth, 1);
+  const lastDay = new Date(currentYear, currentMonth + 1, 0);
+  const fmt = (d: Date) =>
+    d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  const rangeLabel = `${fmt(firstDay)} - ${fmt(lastDay)}, ${currentYear}`;
+
+  // ── OK / Cancel ─────────────────────────────────────────────────────────────
+
+  const handleOk = () => {
+    if (selectedDate) onSave?.(selectedDate);
+  };
+  const handleCancel = () => {
+    setSelectedDate(undefined);
+    onCancel?.();
+  };
+
+  // ── Render ──────────────────────────────────────────────────────────────────
+
+  return (
+    <View ref={rootRef} style={styles.wrapper}>
+      {/* ── Dropdown header ── */}
+      <View style={styles.topBar}>
+        <View style={styles.header}>
+          <View ref={monthBtnRef} collapsable={false}>
+            <TouchableOpacity
+              style={styles.dropdownButton}
+              onPress={() => openPicker("month", monthBtnRef)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.dropdownButtonText}>
+                {MONTHS[currentMonth]}
+              </Text>
+              <Text style={styles.caret}>
+                {openDropdown === "month" ? "▲" : "▼"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <View ref={yearBtnRef} collapsable={false}>
+            <TouchableOpacity
+              style={styles.dropdownButton}
+              onPress={() => openPicker("year", yearBtnRef)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.dropdownButtonText}>{currentYear}</Text>
+              <Text style={styles.caret}>
+                {openDropdown === "year" ? "▲" : "▼"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+
+      {/* ── Nav row ── */}
+      <View style={styles.navRow}>
+        <TouchableOpacity
+          onPress={goToPrevMonth}
+          style={styles.navArrow}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.navArrowText}>{"‹"}</Text>
+        </TouchableOpacity>
+        <Text style={styles.navLabel}>{rangeLabel}</Text>
+        <TouchableOpacity
+          onPress={goToNextMonth}
+          style={styles.navArrow}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.navArrowText}>{"›"}</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* ── Calendar grid ── */}
+      <CalendarGrid
+        mode="dob"
+        currentDate={currentDate}
+        selectedDate={selectedDate}
+        onDayPress={setSelectedDate}
+      />
+
+      {/* ── Footer: OK / Cancel ── */}
+      <View style={styles.footer}>
+        <View style={styles.actionRow}>
+          <TouchableOpacity
+            style={[
+              styles.okBtn,
+              !selectedDate && styles.cancelBtnDisabled,
+              {
+                borderWidth: !selectedDate ? 0 : 1,
+              },
+            ]}
+            onPress={handleOk}
+            activeOpacity={0.7}
+            disabled={!selectedDate}
+          >
+            <Text style={styles.okText}>OK</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.cancelBtn, !selectedDate && styles.okBtnDisabled]}
+            onPress={handleCancel}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.cancelText}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* ── Dropdown overlay ── */}
+      {openDropdown !== null && dropdownAnchor !== null && (
+        <>
+          <TouchableOpacity
+            style={StyleSheet.absoluteFillObject}
+            onPress={() => setOpenDropdown(null)}
+            activeOpacity={1}
+          />
+          <View
+            style={[
+              styles.dropdownList,
+              {
+                top: dropdownAnchor.y + dropdownAnchor.height + 4,
+                left: dropdownAnchor.x,
+                width: dropdownAnchor.width,
+              },
+            ]}
+          >
+            <FlatList
+              data={dropdownData}
+              keyExtractor={(item) => item}
+              showsVerticalScrollIndicator
+              scrollEnabled
+              keyboardShouldPersistTaps="handled"
+              renderItem={({ item, index }) => {
+                const isSelected =
+                  openDropdown === "month"
+                    ? index === currentMonth
+                    : item === String(currentYear);
+                return (
+                  <TouchableOpacity
+                    style={[
+                      styles.listItem,
+                      isSelected && styles.listItemSelected,
+                    ]}
+                    onPress={() =>
+                      openDropdown === "month"
+                        ? selectMonth(index)
+                        : selectYear(item)
+                    }
+                    activeOpacity={0.7}
+                  >
+                    <Text
+                      style={[
+                        styles.listItemText,
+                        isSelected && styles.listItemTextSelected,
+                      ]}
+                    >
+                      {item}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              }}
+            />
+          </View>
+        </>
+      )}
+    </View>
+  );
+};
+
+export default DOBCalendar;
+
+// ── Styles ────────────────────────────────────────────────────────────────────
+
+const styles = StyleSheet.create({
+  wrapper: { marginBottom: 8 },
+
+  topBar: {
+    backgroundColor: Colors.light.calendarBg,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    zIndex: 20,
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 12,
+  },
+  dropdownButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 6,
+    backgroundColor: Colors.light.greybuttonBackground,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 8,
+    minWidth: 130,
+  },
+  dropdownButtonText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: Colors.light.white,
+  },
+  caret: { fontSize: 10, color: Colors.light.white },
+
+  navRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: Colors.light.calendarBg,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  navArrow: { paddingHorizontal: 12, paddingVertical: 4 },
+  navArrowText: { fontSize: 24, color: Colors.light.white, lineHeight: 28 },
+  navLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: Colors.light.white,
+    fontFamily: fonts.primary.semiBold,
+  },
+
+  footer: {
+    backgroundColor: Colors.light.calendarBg,
+    borderBottomLeftRadius: 12,
+    borderBottomRightRadius: 12,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 16,
+  },
+  actionRow: {
+    flexDirection: "row",
+
+    gap: 12,
+    alignSelf: "center",
+  },
+  cancelBtn: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+  },
+  cancelText: {
+    color: Colors.light.white,
+    fontSize: 14,
+    fontFamily: fonts.primary.semiBold,
+  },
+  okBtn: {
+    paddingHorizontal: 28,
+    paddingVertical: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.light.green,
+  },
+  cancelBtnDisabled: { opacity: 0.4 },
+
+  okBtnDisabled: { opacity: 0.4 },
+  okText: {
+    color: Colors.light.white,
+    fontSize: 14,
+    fontWeight: "700",
+    fontFamily: fonts.primary.bold,
+  },
+
+  dropdownList: {
+    position: "absolute",
+    zIndex: 999,
+    elevation: 16,
+    height: 500,
+    backgroundColor: Colors.light.greybuttonBackground,
+    borderRadius: 10,
+    paddingVertical: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+  },
+  listItem: { paddingHorizontal: 16, paddingVertical: 11 },
+  listItemSelected: {},
+  listItemText: { fontSize: 14, color: Colors.light.white },
+  listItemTextSelected: {
+    color: Colors.light.green,
+    fontWeight: "700",
+    fontFamily: fonts.primary.bold,
+  },
+});
