@@ -7,9 +7,10 @@ import BackButton from "./atoms/Backbutton";
 
 interface HeaderProps {
   title: string;
+  backgroundColor?: string;
 }
 
-const Header: React.FC<HeaderProps> = ({ title }) => {
+const Header: React.FC<HeaderProps> = ({ title, backgroundColor }) => {
   return (
     <View
       style={{
@@ -20,7 +21,7 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
         paddingHorizontal: 16,
         paddingTop: hp(7),
         paddingBottom: hp(2.5),
-        backgroundColor: Colors.light.blackBackground,
+        backgroundColor: backgroundColor ?? Colors.light.blackBackground,
       }}
     >
       <BackButton />

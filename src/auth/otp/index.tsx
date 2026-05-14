@@ -10,14 +10,17 @@ import {
   View,
 } from "react-native";
 
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Backbutton from "../../../components/atoms/Backbutton";
-import createStyles from "./style";
+import { styles } from "./style";
 
 export default function OtpScreen() {
-  const styles = createStyles();
   const router = useRouter();
+  const params = useLocalSearchParams<{ fromsignup?: string }>();
+
+  const [buttonText, setButtonText] = useState("Verify");
+  console.log("OTP Screen params:", params);
 
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
@@ -26,10 +29,11 @@ export default function OtpScreen() {
 
   useEffect(() => {
     const show = Keyboard.addListener("keyboardDidShow", () =>
-      setKeyboardVisible(true),
+      setKeyboardVisible(true)
     );
+
     const hide = Keyboard.addListener("keyboardDidHide", () =>
-      setKeyboardVisible(false),
+      setKeyboardVisible(false)
     );
 
     return () => {
@@ -51,7 +55,11 @@ export default function OtpScreen() {
   };
 
   const handleKeyPress = (e: any, index: number) => {
-    if (e.nativeEvent.key === "Backspace" && !otp[index] && index > 0) {
+    if (
+      e.nativeEvent.key === "Backspace" &&
+      !otp[index] &&
+      index > 0
+    ) {
       inputRefs.current[index - 1]?.focus();
     }
   };
@@ -60,33 +68,57 @@ export default function OtpScreen() {
     console.log("Resend OTP clicked");
   };
 
+  const getBtnTitle = () => {
+    return params?.fromsignup === "true"
+      ? "ACTIVATE"
+      : "VERIFY";
+  };
+
+  const getDescriptionText = () => {
+    return params?.fromsignup === "true"
+      ? "Enter the 6-digit OTP sent to your email so we can\nactivate your account."
+      : "Enter the 6-digit OTP sent to your email so we can\nverify it's you.";
+  };
+
+  const navigationBasedOnParams = () => {
+    if (params?.fromsignup === "true") {
+      router.push("/paymentMethod");
+    } else {
+      router.push("/confirmpassword");
+    }
+  };
+
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    if (params?.fromsignup === "true") {
+      navigation.setOptions({
+        title: "VERIFY EMAIL",
+      });
+    } else {
+      navigation.setOptions({
+        title: "FORGOT PASSWORD",
+      });
+    }
+  }, [navigation, params?.fromsignup]);
+
   return (
     <SafeAreaView style={styles.container}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={{ flex: 1 }}>
-          {/* HEADER */}
-          <View style={styles.header}>
-            <Backbutton />
-            <Text style={styles.title}>SIGNUP</Text>
-            <View style={styles.placeholder} />
-          </View>
-
-          {/* BOTTOM SHEET */}
+        <View style={styles.contentView}>
           <View
             style={[
               styles.bottomSheet,
               keyboardVisible && {
-                marginBottom: Platform.OS === "ios" ? 260 : 180,
+                marginBottom:
+                  Platform.OS === "ios" ? 260 : 180,
               },
             ]}
           >
-            {/* INFO TEXT */}
             <Text style={styles.otpInfoText}>
-              Enter the 6-digit OTP sent to your email so we can{"\n"}
-              activate your account.
+              {getDescriptionText()}
             </Text>
 
-            {/* OTP BOXES */}
             <View style={styles.otpContainer}>
               {otp.map((digit, index) => (
                 <TextInput
@@ -96,27 +128,40 @@ export default function OtpScreen() {
                   }}
                   style={styles.otpBox}
                   value={digit}
-                  onChangeText={(value) => handleOtpChange(value, index)}
-                  onKeyPress={(e) => handleKeyPress(e, index)}
+                  onChangeText={(value) =>
+                    handleOtpChange(value, index)
+                  }
+                  onKeyPress={(e) =>
+                    handleKeyPress(e, index)
+                  }
                   keyboardType="number-pad"
                   maxLength={1}
                 />
               ))}
             </View>
 
-            {/* RESEND (FIXED ALIGNMENT) */}
             <View style={styles.resendContainer}>
               <TouchableOpacity onPress={handleResend}>
-                <Text style={styles.resendAction}>Resend</Text>
+                <Text
+                  style={[
+                    styles.resendAction,
+                    params?.fromsignup !== "true" &&
+                      styles.resendActionUnderline,
+                  ]}
+                >
+                  Resend
+                </Text>
               </TouchableOpacity>
-              <Text style={styles.resendText}>OTP Code</Text>
+
+              <Text style={styles.resendText}>
+                OTP Code
+              </Text>
             </View>
 
-            {/* BUTTON */}
             <View style={styles.buttonWrapper}>
               <PrimaryButton
-                text="ACTIVATE"
-                onPress={() => router.push("/paymentMethod")}
+                text={getBtnTitle()}
+                onPress={navigationBasedOnParams}
               />
             </View>
           </View>

@@ -4,113 +4,119 @@ import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 import { fonts } from "../../../assets/fonts";
 import { Colors } from "../../../constants/theme";
 
-const createStyles = () =>
-  StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: Colors.light.buttonBackground,
-    },
+export const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: Colors.light.buttonBackground,
+  },
 
-    header: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      paddingHorizontal: 20,
-      paddingTop: hp(2),
-      paddingBottom: hp(2),
-    },
+  contentView: {
+    flex: 1,
+  },
 
-    title: {
-      color: Colors.light.white,
-      fontFamily: fonts.primary.semiBold,
-      fontSize: 14,
-      flex: 1,
-      textAlign: "center",
-    },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingTop: hp(2),
+    paddingBottom: hp(2),
+  },
 
-    placeholder: {
-      width: 40,
-    },
+  title: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.semiBold,
+    fontSize: 14,
+    flex: 1,
+    textAlign: "center",
+  },
 
-    bottomSheet: {
-      position: "absolute",
-      bottom: 0,
-      width: "100%",
-      height: hp(45),
-      backgroundColor: Colors.light.blackBackground,
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
+  placeholder: {
+    width: 40,
+  },
 
-      alignItems: "center",
-      justifyContent: "flex-start",
-      paddingHorizontal: 20,
-      paddingTop: hp(4),
-    },
+  bottomSheet: {
+    position: "absolute",
+    bottom: 0,
+    width: "100%",
+    height: hp(45),
+    backgroundColor: Colors.light.blackBackground,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
 
-    otpInfoText: {
-      color: Colors.light.white,
-      fontSize: 13,
-      fontFamily: fonts.primary.regular,
-      lineHeight: 18,
-      opacity: 0.8,
+    alignItems: "center",
+    justifyContent: "flex-start",
+    paddingHorizontal: 20,
+    paddingTop: hp(4),
+  },
 
-      textAlign: "left",
-      alignSelf: "flex-start",
-      width: "100%",
+  otpInfoText: {
+    color: Colors.light.white,
+    fontSize: 13,
+    fontFamily: fonts.primary.regular,
+    lineHeight: 18,
+    opacity: 0.8,
 
-      marginBottom: hp(1.5),
-    },
+    textAlign: "left",
+    alignSelf: "flex-start",
+    width: "100%",
 
-    otpContainer: {
-      flexDirection: "row",
-      justifyContent: "center",
-      gap: 12,
-      marginTop: hp(2),
-      marginBottom: hp(1),
-    },
+    marginBottom: hp(1.5),
+  },
 
-    otpBox: {
-      width: 45,
-      height: 45,
-      borderRadius: 8,
-      backgroundColor: Colors.light.buttonBackground,
+  otpContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 12,
+    marginTop: hp(2),
+    marginBottom: hp(1),
+  },
 
-      textAlign: "center",
-      fontSize: 18,
-      color: Colors.light.white,
+  otpBox: {
+    width: 45,
+    height: 45,
+    borderRadius: 8,
+    backgroundColor: Colors.light.buttonBackground,
 
-      padding: 0,
-      includeFontPadding: false,
-      textAlignVertical: "center",
-    },
+    textAlign: "center",
+    fontSize: 18,
+    color: Colors.light.white,
 
-    resendContainer: {
-      width: "100%",
-      flexDirection: "row",
-      justifyContent: "center",
-      alignItems: "center",
-      marginTop: hp(1),
-      marginBottom: hp(2),
-    },
+    padding: 0,
+    includeFontPadding: false,
+    textAlignVertical: "center",
+  },
 
-    resendText: {
-      color: Colors.light.white,
-      fontSize: 14,
-      fontFamily: fonts.primary.regular,
-      lineHeight: 18,
-      marginLeft: 5,
-    },
+  resendContainer: {
+    width: "100%",
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: hp(1),
+    marginBottom: hp(2),
+  },
 
-    resendAction: {
-      color: Colors.light.green,
-      fontSize: 14,
-      fontFamily: fonts.primary.semiBold,
-    },
+  resendText: {
+    color: Colors.light.white,
+    fontSize: 14,
+    fontFamily: fonts.primary.regular,
+    lineHeight: 18,
+    marginLeft: 5,
+  },
 
-    buttonWrapper: {
-      width: "90%",
-      marginTop: hp(2),
-    },
-  });
+  resendAction: {
+    color: Colors.light.green,
+    fontSize: 14,
+    fontFamily: fonts.primary.semiBold,
+  },
 
-export default createStyles;
+  resendActionUnderline: {
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.light.green,
+  },
+
+  buttonWrapper: {
+    width: "90%",
+    marginTop: hp(2),
+  },
+});

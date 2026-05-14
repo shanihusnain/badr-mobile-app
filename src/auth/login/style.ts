@@ -4,186 +4,186 @@ import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 import { fonts } from "../../../assets/fonts";
 import { Colors } from "../../../constants/theme";
 
-const createStyles = () =>
-  StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: Colors.light.buttonBackground,
-    },
+export const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: Colors.light.buttonBackground,
+  },
 
-    header: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      paddingHorizontal: 20,
-      paddingTop: hp(2),
-      paddingBottom: hp(2),
-    },
+  contentView: {
+    flex: 1,
+  },
 
-    title: {
-      color: Colors.light.white,
-      fontFamily: fonts.primary.semiBold,
-      fontSize: 14,
-      fontWeight: "600",
-      textAlign: "center",
-      flex: 1,
-      lineHeight: 18,
-    },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingTop: hp(2),
+    paddingBottom: hp(2),
+  },
 
-    placeholder: {
-      width: 40,
-    },
+  title: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.semiBold,
+    fontSize: 14,
+    fontWeight: "600",
+    textAlign: "center",
+    flex: 1,
+    lineHeight: 18,
+  },
 
-    keyboardAvoidingView: {
-      flex: 1,
-      justifyContent: "flex-end",
-    },
+  placeholder: {
+    width: 40,
+  },
 
-    bottomSheet: {
-      height: hp(45),
-      backgroundColor: Colors.light.blackBackground,
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
-      overflow: "hidden",
-    },
+  keyboardAvoidingView: {
+    flex: 1,
+    justifyContent: "flex-end",
+  },
 
-    bottomSheetContent: {
-      flex: 1,
-      justifyContent: "space-between",
-      paddingHorizontal: 20,
-      paddingTop: hp(2),
-      paddingBottom: hp(3),
-    },
+  bottomSheet: {
+    height: hp(55),
+    backgroundColor: Colors.light.blackBackground,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    overflow: "hidden",
+  },
 
-    formWrapper: {
-      alignItems: "center",
-      width: "100%",
-    },
+  bottomSheetContent: {
+    flex: 1,
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingTop: hp(2),
+    paddingBottom: hp(3),
+  },
 
-    emailContainer: {
-      backgroundColor: Colors.light.buttonBackground,
-      borderRadius: 8,
-      paddingHorizontal: 12,
-      paddingVertical: 8,
-      width: "100%",
-      minHeight: hp(6),
-      marginTop: hp(2),
-      flexDirection: "row",
-      alignItems: "center",
-    },
+  formWrapper: {
+    alignItems: "center",
+    width: "100%",
+  },
 
-    passwordContainer: {
-      backgroundColor: Colors.light.buttonBackground,
-      borderRadius: 8,
-      paddingHorizontal: 12,
-      paddingVertical: 8,
-      width: "100%",
-      minHeight: hp(6),
-      marginTop: hp(2),
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-    },
+  emailContainer: {
+    backgroundColor: Colors.light.buttonBackground,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    width: "100%",
+    minHeight: hp(6),
+    marginTop: hp(2),
+    flexDirection: "row",
+    alignItems: "center",
+  },
 
-    input: {
-      flex: 1,
-      color: Colors.light.white,
-      fontFamily: fonts.primary.semiBold,
-      fontSize: 12,
-      paddingVertical: 4,
-    },
+  passwordContainer: {
+    backgroundColor: Colors.light.buttonBackground,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    width: "100%",
+    minHeight: hp(6),
+    marginTop: hp(2),
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
 
-    passwordInput: {
-      flex: 1,
-      color: Colors.light.white,
-      fontFamily: fonts.primary.semiBold,
-      fontSize: 12,
-      paddingVertical: 4,
-    },
+  input: {
+    flex: 1,
+    color: Colors.light.white,
+    fontFamily: fonts.primary.semiBold,
+    fontSize: 12,
+    paddingVertical: 4,
+  },
 
-    eyeIcon: {
-      fontSize: 16,
-      color: Colors.light.white,
-      marginLeft: 10,
-    },
+  passwordInput: {
+    flex: 1,
+    color: Colors.light.white,
+    fontFamily: fonts.primary.semiBold,
+    fontSize: 12,
+    paddingVertical: 4,
+  },
 
-    errorText: {
-      color: Colors.light.red,
-      fontFamily: fonts.primary.semiBold,
-      fontSize: 11,
-      marginTop: hp(1),
-      alignSelf: "flex-start",
-    },
+  eyeIcon: {
+    fontSize: 16,
+    color: Colors.light.white,
+    marginLeft: 10,
+  },
 
-    validationContainer: {
-      marginTop: hp(1),
-      flexDirection: "row",
-      flexWrap: "wrap",
-    },
+  errorText: {
+    color: Colors.light.red,
+    fontFamily: fonts.primary.semiBold,
+    fontSize: 11,
+    marginTop: hp(1),
+    alignSelf: "flex-start",
+  },
 
-    validationText: {
-      fontFamily: fonts.primary.semiBold,
-      fontSize: 10,
-      color: Colors.light.red,
-    },
+  validationContainer: {
+    marginTop: hp(1),
+    flexDirection: "row",
+    flexWrap: "wrap",
+  },
 
-    forgotPasswordContainer: {
-      width: "100%",
-      alignItems: "flex-end",
-      marginTop: hp(1.5),
-    },
+  validationText: {
+    fontFamily: fonts.primary.semiBold,
+    fontSize: 10,
+    color: Colors.light.red,
+  },
 
-    forgotPasswordText: {
-      color: Colors.light.white,
-      fontSize: 12,
-      fontFamily: fonts.primary.regular,
-      lineHeight: 14,
-    },
+  forgotPasswordContainer: {
+    alignSelf: "flex-end",
+    marginTop: hp(1.5),
+  },
 
-    buttonWrapper: {
-      marginTop: hp(4),
-      width: "100%",
-      marginBottom: hp(1),
-    },
+  forgotPasswordText: {
+    color: Colors.light.white,
+    fontSize: 12,
+    fontFamily: fonts.primary.regular,
+    lineHeight: 14,
+  },
 
-    primaryButton: {
-      width: "90%",
-      minHeight: 40,
-      borderRadius: 6,
-      paddingTop: 10,
-      paddingBottom: 10,
-      paddingHorizontal: 8,
-      justifyContent: "center",
-      alignItems: "center",
-      backgroundColor: Colors.light.green,
-      borderWidth: 1.5,
-      borderColor: Colors.light.green,
-      marginBottom: 10,
-      alignSelf: "center",
-    },
+  buttonWrapper: {
+    marginTop: hp(4),
+    width: "100%",
+    marginBottom: hp(18),
+  },
 
-    orloginContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      width: "100%",
-      marginTop: hp(2),
-      marginBottom: hp(3),
-    },
+  primaryButton: {
+    width: "90%",
+    minHeight: 40,
+    borderRadius: 6,
+    paddingTop: 10,
+    paddingBottom: 10,
+    paddingHorizontal: 8,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: Colors.light.green,
+    borderWidth: 1.5,
+    borderColor: Colors.light.green,
+    marginBottom: 10,
+    alignSelf: "center",
+  },
 
-    line: {
-      flex: 1,
-      height: 1,
-      backgroundColor: Colors.light.white,
-      opacity: 0.3,
-    },
+  orloginContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
+    marginTop: hp(7),
+    marginBottom: hp(3),
+  },
 
-    orloginText: {
-      color: Colors.light.white,
-      fontSize: 12,
-      fontFamily: fonts.primary.regular,
-      marginHorizontal: 10,
-    },
-  });
+  line: {
+    flex: 1,
+    height: 1,
+    backgroundColor: Colors.light.white,
+    opacity: 0.3,
+  },
 
-export default createStyles;
+  orloginText: {
+    color: Colors.light.white,
+    fontSize: 12,
+    fontFamily: fonts.primary.regular,
+    marginHorizontal: 10,
+  },
+});

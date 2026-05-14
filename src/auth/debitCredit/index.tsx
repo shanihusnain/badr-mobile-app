@@ -16,6 +16,14 @@ export default function DebitCreditScreen() {
   const [cvv, setCvv] = useState("");
   const [userName, setUserName] = useState("");
   const [saveCard, setSaveCard] = useState(false);
+
+  const handlePayNow = () => {
+    // Add payment action here
+  };
+
+  const handleCancelPayment = () => {
+    // Add cancel action here
+  };
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -115,17 +123,13 @@ export default function DebitCreditScreen() {
         </View>
         <View style={styles.actionButtonsWrapper}>
           <PrimaryButton
-            text="Pay Now"
-            onPress={() => {
-              // Add payment action here
-            }}
+            text="PAY NOW"
+            onPress={handlePayNow}
             style={styles.primaryActionButton}
           />
           <SecondaryButton
-            text="Cancel Payment"
-            onPress={() => {
-              // Add cancel action here
-            }}
+            text="CANCEL PAYMENT"
+            onPress={handleCancelPayment}
             style={styles.cancelButton}
             textStyle={styles.cancelButtonText}
           />

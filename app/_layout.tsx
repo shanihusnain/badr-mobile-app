@@ -15,6 +15,7 @@ import { fontAssets } from "@/assets/fonts";
 import Header from "@/components/Header";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { store } from "@/src/store/store";
+import { Colors } from "@/constants/theme";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 export const unstable_settings = {
@@ -45,8 +46,30 @@ export default function RootLayout() {
             <Stack.Screen name="welcome" options={{ headerShown: false }} />
             <Stack.Screen name="intro" options={{ headerShown: false }} />
             <Stack.Screen name="free_trial" options={{ headerShown: false }} />
-            <Stack.Screen name="login" options={{ headerShown: false }} />
-            <Stack.Screen name="otp" options={{ headerShown: false }} />
+            <Stack.Screen name="login" options={{ headerShown: true
+              , header: () => (
+                <Header
+                  title="LOGIN"
+                  backgroundColor={Colors.light.buttonBackground}
+                />
+              )
+             }} />
+            <Stack.Screen
+              name="verifyemail/[fromsignup]"
+              options ={{
+                headerShown: true,
+            header: ({options} :{options:any}) => (
+                  <Header
+                    title={options?.title}
+                    backgroundColor={Colors.light.buttonBackground}
+                  />
+                ),
+              }}
+            />
+            <Stack.Screen name="forgotpassword" options={{ headerShown: true, header: () => (
+              <Header title="FORGOT PASSWORD"
+              backgroundColor={Colors.light.buttonBackground} 
+            /> )}} />
             <Stack.Screen
               name="createaccount"
               options={{
@@ -59,6 +82,13 @@ export default function RootLayout() {
               options={{
                 headerShown: true,
                 header: () => <Header title="" />,
+              }}
+            />
+            <Stack.Screen
+              name="confirmpassword"
+              options={{
+                headerShown: true,
+                header: () => <Header title="FORGOT PASSWORD" backgroundColor={Colors.light.buttonBackground} />,
               }}
             />
             <Stack.Screen

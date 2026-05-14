@@ -62,7 +62,11 @@ export const usePaymentMethodProps = () => {
         : styles.greyButton;
     }
   };
-
+  const paymentMethods = [
+    { title: "Debit / Credit Card", onPress: handleDebitCreditPress, style: undefined },
+    { title: "Google Pay", onPress: undefined, style: styles.cardSpacing },
+    { title: "Apple Pay", onPress: undefined, style: styles.cardSpacing },
+  ];
   return {
     selectedPlan,
     activeSlide,
@@ -76,5 +80,6 @@ export const usePaymentMethodProps = () => {
     handleDebitCreditPress,
     getTabButtonStyle,
     setSelectedPlan,
+    paymentMethods,
   };
 };

@@ -1,5 +1,5 @@
 import React from "react";
-import { Text, View } from "react-native";
+import { FlatList, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import PrimaryButton from "../../../components/atoms/Primary-button";
 import GreyButton from "../../../components/atoms/greyButton";
@@ -18,22 +18,31 @@ export default function PaymentMethodScreen() {
     handleSelectOther,
     handleDebitCreditPress,
     getTabButtonStyle,
+    paymentMethods,
   } = usePaymentMethodProps();
+
+  const renderPaymentCard = ({ item }: { item: { title: string; onPress?: () => void; style?: any } }) => (
+    <PaymentMethodCard
+      title={item.title}
+      onPress={item.onPress}
+      style={item.style}
+    />
+  );
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        //make component of it
+     
         <Text style={styles.text}>We're Not Charging You Yet</Text>
-        //make component of it
+      
         <Text style={styles.subtitletext}>
           A valid payment method is required to start your free trial. You can
           change plans or cancel anytime.
         </Text>
-        //make component of it
+        
         <Text style={styles.undertext}>
           First 2 months free, then just $10.99/month. Cancel anytime.
         </Text>
-        //make component of it
+        
         <View style={styles.buttonRow}>
           <PrimaryButton
             text="Monthly Plan"
@@ -57,17 +66,12 @@ export default function PaymentMethodScreen() {
               />
             </View>
           ) : (
-            <>
-              <PaymentMethodCard
-                title="Debit / Credit Card"
-                onPress={handleDebitCreditPress}
-              />
-              <PaymentMethodCard
-                title="Google Pay"
-                style={styles.cardSpacing}
-              />
-              <PaymentMethodCard title="Apple Pay" style={styles.cardSpacing} />
-            </>
+            <FlatList
+              data={paymentMethods}
+              renderItem={renderPaymentCard}
+              keyExtractor={(item, index) => index.toString()}
+              showsVerticalScrollIndicator={false}
+            />
           )}
         </View>
       </View>
