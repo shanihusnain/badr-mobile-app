@@ -14,15 +14,14 @@ export const RenderItem = ({
 const styles = StyleSheet.create({
   pointText: {
     width: 307,
-    height: 40,
-    color: Colors.light.white,
+    color: Colors.dark.text,
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
     fontSize: hp(1.8),
-    lineHeight: 12,
+    lineHeight: 20,
     letterSpacing: 0.1,
     textAlign: "left",
     opacity: 1,
-    marginTop: 20,
+    marginTop: 16,
   },
 });

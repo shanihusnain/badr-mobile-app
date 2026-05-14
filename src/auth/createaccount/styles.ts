@@ -304,6 +304,7 @@ const createStyles = () =>
       fontFamily: fonts.primary.semiBold,
       fontSize: 12,
     },
+    btnWrapper:{ width: 333, marginTop: hp(3) }
   });
 
 export default createStyles;

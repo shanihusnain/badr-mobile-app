@@ -5,13 +5,16 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { GreenTextButton } from "../../../components/atoms/GreenTextButton";
 import { Colors } from "../../../constants/theme";
 import { RenderItem } from "./components/RenderItem";
-import createStyles from "./styles";
+import { styles } from "./styles";
 import { useFreeTrialProps } from "./useFreeTrialProps";
 
 export default function FreeTrialScreen() {
-  const styles = createStyles();
   const router = useRouter();
   const { texts } = useFreeTrialProps();
+
+  const handleStartFreeTrial = () => {
+    router.push("/createaccount");
+  };
 
   const renderItem = ({
     item,
@@ -20,30 +23,32 @@ export default function FreeTrialScreen() {
       title: string;
     };
   }) => <RenderItem item={item} />;
+
   const renderHeader = () => {
     return (
       <>
-        <Text style={styles.titleText}>GET YOUR 2-MONTH FREE TRIAL</Text>
+        <Text style={styles.titleText}>
+          GET YOUR 2-MONTH FREE TRIAL
+        </Text>
 
         <View style={styles.secondaryTextWrapper}>
           <View style={styles.greenLine} />
-          <Text style={styles.secondarytext}>WHAT’S INCLUDED?</Text>
+          <Text style={styles.secondarytext}>
+            WHAT’S INCLUDED?
+          </Text>
         </View>
+
         <Text style={styles.subtitletext}>
-          With your Badr membership, you unlock features designed to support
-          your journey towards becoming a better Muslim.
+          With your Badr membership, you unlock features designed
+          to support your journey towards becoming a better Muslim.
         </Text>
       </>
     );
   };
+
   return (
     <SafeAreaView
-      style={{
-        flex: 1,
-        backgroundColor: Colors.light.blackBackground,
-        paddingHorizontal: 20,
-        paddingTop: 20,
-      }}
+      style={styles.safeAreaContainer}
       edges={["top", "bottom", "left", "right"]}
     >
       <FlatList
@@ -52,10 +57,11 @@ export default function FreeTrialScreen() {
         renderItem={renderItem}
         ListHeaderComponent={renderHeader}
       />
-      <View style={{ paddingHorizontal: 16, paddingBottom: 24 }}>
+
+      <View style={styles.buttonContainer}>
         <GreenTextButton
           title="START YOUR FREE TRIAL"
-          onPress={() => router.push("/createaccount")}
+          onPress={handleStartFreeTrial}
         />
       </View>
     </SafeAreaView>

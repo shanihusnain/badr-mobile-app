@@ -1,0 +1,163 @@
+import { fonts } from "@/assets/fonts";
+import { Colors } from "@/constants/theme";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import React, {  useState } from "react";
+import { Controller } from "react-hook-form";
+import {
+  Platform,
+  StyleSheet,
+  Text,
+  TextStyle,
+  TouchableOpacity,
+  View,
+  ViewStyle,
+} from "react-native";
+import { heightPercentageToDP as hp } from "react-native-responsive-screen";
+
+interface CustomDatePickerProps {
+  label?: string;
+  placeholder: string;
+  control: any;
+  name: string;
+  errors?: string[];
+  containerStyle?: ViewStyle;
+  labelStyle?: TextStyle;
+  textStyle?: TextStyle;
+  minimumDate?: Date;
+  maximumDate?: Date;
+}
+
+const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
+  label,
+  placeholder,
+  control,
+  name,
+  errors = [],
+  containerStyle,
+  labelStyle,
+  textStyle,
+  minimumDate,
+  maximumDate,
+}) => {
+  const [show, setShow] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const formatDate = (date: Date): string => {
+    const day = date.getDate().toString().padStart(2, "0");
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
+  const parseDate = (value: string): Date => {
+    if (!value) return new Date();
+    const [day, month, year] = value.split("/").map(Number);
+    return new Date(year, month - 1, day);
+  };
+
+  return (
+    <Controller
+      control={control}
+      name={name}
+      render={({ field: { onChange, value } }) => (
+        <View style={styles.wrapper}>
+          {label ? (
+            <Text style={[styles.label, labelStyle]}>{label}</Text>
+          ) : null}
+
+          <TouchableOpacity
+            style={[styles.container, containerStyle]}
+            onPress={() => setShow(true)}
+            activeOpacity={0.8}
+          >
+            <Text
+              style={[
+                styles.text,
+                textStyle,
+                !value && { color: Colors.light.icon },
+              ]}
+            >
+              {value || placeholder}
+            </Text>
+            <Text style={styles.calendarIcon}>📅</Text>
+          </TouchableOpacity>
+
+          {errors.length > 0 && (
+            <View style={{ marginTop: 5 }}>
+              {errors.map((error, index) => (
+                <Text key={index} style={styles.errorText}>
+                  {error}
+                </Text>
+              ))}
+            </View>
+          )}
+          {show && (
+            <DateTimePicker
+              value={parseDate(value)}
+              mode="date"
+              display={Platform.OS === "ios" ? "spinner" : "default"}
+              minimumDate={minimumDate}
+              maximumDate={maximumDate ?? new Date()}
+              onChange={(event, selectedDate) => {
+                if (Platform.OS === "ios") {
+                  if (event.type === "set" && selectedDate) {
+                    onChange(formatDate(selectedDate));
+                  }
+                  setShow(event.type === "set");
+                } else {
+                  if (event.type === "set" && selectedDate) {
+                    onChange(formatDate(selectedDate));
+                  }
+                  setShow(false);
+                }
+              }}
+            />
+          )}
+        </View>
+      )}
+    />
+  );
+};
+
+const styles = StyleSheet.create({
+  wrapper: {
+    width: "100%",
+  },
+  label: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.semiBold,
+    fontSize: 12,
+    marginTop: hp(2),
+    alignSelf: "flex-start",
+  },
+  container: {
+    backgroundColor: Colors.light.buttonBackground,
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 15,
+    marginTop: hp(1),
+    width: "100%",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  text: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.semiBold,
+    fontSize: 12,
+    flex: 1,
+  },
+  calendarIcon: {
+    fontSize: 16,
+  },
+  webWrapper: {
+    width: "100%",
+    marginTop: hp(1),
+  },
+  errorText: {
+    color: "red",
+    fontSize: 12,
+  },
+});
+
+export default CustomDatePicker;
+
