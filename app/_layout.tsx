@@ -46,19 +46,23 @@ export default function RootLayout() {
             <Stack.Screen name="welcome" options={{ headerShown: false }} />
             <Stack.Screen name="intro" options={{ headerShown: false }} />
             <Stack.Screen name="free_trial" options={{ headerShown: false }} />
-            <Stack.Screen name="login" options={{ headerShown: true
-              , header: () => (
-                <Header
-                  title="LOGIN"
-                  backgroundColor={Colors.light.buttonBackground}
-                />
-              )
-             }} />
+            <Stack.Screen
+              name="login"
+              options={{
+                headerShown: true,
+                header: () => (
+                  <Header
+                    title="LOGIN"
+                    backgroundColor={Colors.light.buttonBackground}
+                  />
+                ),
+              }}
+            />
             <Stack.Screen
               name="verifyemail/[fromsignup]"
-              options ={{
+              options={{
                 headerShown: true,
-            header: ({options} :{options:any}) => (
+                header: ({ options }: { options: any }) => (
                   <Header
                     title={options?.title}
                     backgroundColor={Colors.light.buttonBackground}
@@ -66,10 +70,18 @@ export default function RootLayout() {
                 ),
               }}
             />
-            <Stack.Screen name="forgotpassword" options={{ headerShown: true, header: () => (
-              <Header title="FORGOT PASSWORD"
-              backgroundColor={Colors.light.buttonBackground} 
-            /> )}} />
+            <Stack.Screen
+              name="forgotpassword"
+              options={{
+                headerShown: true,
+                header: () => (
+                  <Header
+                    title="FORGOT PASSWORD"
+                    backgroundColor={Colors.light.buttonBackground}
+                  />
+                ),
+              }}
+            />
             <Stack.Screen
               name="createaccount"
               options={{
@@ -88,7 +100,12 @@ export default function RootLayout() {
               name="confirmpassword"
               options={{
                 headerShown: true,
-                header: () => <Header title="FORGOT PASSWORD" backgroundColor={Colors.light.buttonBackground} />,
+                header: () => (
+                  <Header
+                    title="FORGOT PASSWORD"
+                    backgroundColor={Colors.light.buttonBackground}
+                  />
+                ),
               }}
             />
             <Stack.Screen

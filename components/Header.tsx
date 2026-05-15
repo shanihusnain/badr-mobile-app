@@ -4,6 +4,7 @@ import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 import { fonts } from "../assets/fonts";
 import { Colors } from "../constants/theme";
 import BackButton from "./atoms/Backbutton";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface HeaderProps {
   title: string;
@@ -11,6 +12,7 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ title, backgroundColor }) => {
+  const insets = useSafeAreaInsets();
   return (
     <View
       style={{
@@ -19,8 +21,8 @@ const Header: React.FC<HeaderProps> = ({ title, backgroundColor }) => {
         alignItems: "center",
         justifyContent: "space-between",
         paddingHorizontal: 16,
-        paddingTop: hp(7),
-        paddingBottom: hp(2.5),
+        paddingTop: insets.top + 10,
+        // paddingBottom: hp(1),
         backgroundColor: backgroundColor ?? Colors.light.blackBackground,
       }}
     >

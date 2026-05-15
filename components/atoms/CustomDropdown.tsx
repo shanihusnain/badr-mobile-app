@@ -65,7 +65,7 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
           if (value === undefined || value === null || value === "")
             return placeholder;
           const found = options.find((opt) =>
-            typeof opt === "string" ? opt === value : opt.value === value
+            typeof opt === "string" ? opt === value : opt.value === value,
           );
           if (!found) return value;
           return typeof found === "string" ? found : found.label;
@@ -78,7 +78,11 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
             ) : null}
 
             <TouchableOpacity
-              style={[styles.trigger, isOpen && styles.triggerOpen, containerStyle]}
+              style={[
+                styles.trigger,
+                isOpen && styles.triggerOpen,
+                containerStyle,
+              ]}
               onPress={() => setIsOpen((prev) => !prev)}
               activeOpacity={0.8}
             >
@@ -150,7 +154,7 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
   },
   trigger: {
-    backgroundColor: Colors.light.buttonBackground,
+    backgroundColor: Colors.light.calendarBg,
     borderRadius: 16,
     paddingHorizontal: 12,
     paddingVertical: 15,
@@ -175,7 +179,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   menu: {
-    backgroundColor: Colors.light.buttonBackground,
+    backgroundColor: Colors.light.calendarBg,
     borderRadius: 16,
     borderWidth: 1,
     //borderColor: Colors.light.border,

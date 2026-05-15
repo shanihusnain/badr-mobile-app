@@ -1,7 +1,7 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import React, {  useState } from "react";
+import React, { useState } from "react";
 import { Controller } from "react-hook-form";
 import {
   Platform,
@@ -13,6 +13,8 @@ import {
   ViewStyle,
 } from "react-native";
 import { heightPercentageToDP as hp } from "react-native-responsive-screen";
+import DOBCalendar from "../molecules/DOBCalendar";
+import { TopSpace } from "./TopSpace";
 
 interface CustomDatePickerProps {
   label?: string;
@@ -40,7 +42,7 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
   maximumDate,
 }) => {
   const [show, setShow] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | null | string>("");
   const formatDate = (date: Date): string => {
     const day = date.getDate().toString().padStart(2, "0");
     const month = (date.getMonth() + 1).toString().padStart(2, "0");
@@ -65,8 +67,17 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
           ) : null}
 
           <TouchableOpacity
-            style={[styles.container, containerStyle]}
-            onPress={() => setShow(true)}
+            style={[
+              styles.container,
+              containerStyle,
+              {
+                borderColor: show
+                  ? Colors.light.green
+                  : Colors.light.calendarBg,
+                borderWidth: 1,
+              },
+            ]}
+            onPress={() => setShow(!show)}
             activeOpacity={0.8}
           >
             <Text
@@ -91,26 +102,17 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
             </View>
           )}
           {show && (
-            <DateTimePicker
-              value={parseDate(value)}
-              mode="date"
-              display={Platform.OS === "ios" ? "spinner" : "default"}
-              minimumDate={minimumDate}
-              maximumDate={maximumDate ?? new Date()}
-              onChange={(event, selectedDate) => {
-                if (Platform.OS === "ios") {
-                  if (event.type === "set" && selectedDate) {
-                    onChange(formatDate(selectedDate));
-                  }
-                  setShow(event.type === "set");
-                } else {
-                  if (event.type === "set" && selectedDate) {
-                    onChange(formatDate(selectedDate));
-                  }
+            <>
+              <TopSpace top={8} />
+              <DOBCalendar
+                onSave={(data) => {
+                  console.log("the data from dob calendar", data);
+                  setSelectedDate(data);
+                  onChange(data);
                   setShow(false);
-                }
-              }}
-            />
+                }}
+              />
+            </>
           )}
         </View>
       )}
@@ -130,7 +132,7 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
   },
   container: {
-    backgroundColor: Colors.light.buttonBackground,
+    backgroundColor: Colors.light.calendarBg,
     borderRadius: 16,
     paddingHorizontal: 12,
     paddingVertical: 15,
@@ -160,4 +162,3 @@ const styles = StyleSheet.create({
 });
 
 export default CustomDatePicker;
-

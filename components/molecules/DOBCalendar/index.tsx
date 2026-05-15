@@ -6,8 +6,8 @@
 import { Colors } from "@/constants/theme";
 import { useRef, useState } from "react";
 import {
-  FlatList,
   LayoutRectangle,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -236,20 +236,22 @@ export const DOBCalendar = ({ onSave, onCancel }: DOBCalendarProps) => {
                 width: dropdownAnchor.width,
               },
             ]}
+            onStartShouldSetResponder={() => true}
+            onMoveShouldSetResponder={() => true}
           >
-            <FlatList
-              data={dropdownData}
-              keyExtractor={(item) => item}
+            <ScrollView
               showsVerticalScrollIndicator
-              scrollEnabled
               keyboardShouldPersistTaps="handled"
-              renderItem={({ item, index }) => {
+              nestedScrollEnabled
+            >
+              {dropdownData.map((item, index) => {
                 const isSelected =
                   openDropdown === "month"
                     ? index === currentMonth
                     : item === String(currentYear);
                 return (
                   <TouchableOpacity
+                    key={item}
                     style={[
                       styles.listItem,
                       isSelected && styles.listItemSelected,
@@ -271,8 +273,8 @@ export const DOBCalendar = ({ onSave, onCancel }: DOBCalendarProps) => {
                     </Text>
                   </TouchableOpacity>
                 );
-              }}
-            />
+              })}
+            </ScrollView>
           </View>
         </>
       )}

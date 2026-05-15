@@ -70,7 +70,15 @@ export const CalendarGrid = ({
   const windowEnd = windowStart ? windowStart.clone().add(27, "days") : null;
 
   return (
-    <View style={styles.wrapper}>
+    <View
+      style={[
+        styles.wrapper,
+        {
+          borderBottomLeftRadius: mode === "dob" ? 0 : 12,
+          borderBottomRightRadius: mode === "dob" ? 0 : 12,
+        },
+      ]}
+    >
       <Calendar
         key={currentDate}
         current={currentDate}

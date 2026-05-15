@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "expo-router";
 import React from "react";
-import {  useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { Platform, View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -45,8 +45,8 @@ export default function CreateAccountScreen() {
 
   const onSubmit = (data: z.infer<typeof createAccountSchema>) => {
     router.push({
-        pathname:"./verifyemail/[fromsignup]",
-        params:{fromsignup:"true"}
+      pathname: "./verifyemail/[fromsignup]",
+      params: { fromsignup: "true" },
     });
   };
   return (
@@ -111,7 +111,7 @@ export default function CreateAccountScreen() {
           name="gender"
         />
 
-        <CustomDatePicker 
+        <CustomDatePicker
           label="Date Of Birth"
           placeholder="Enter Date Of Birth"
           control={control}

@@ -17,7 +17,7 @@ const createStyles = () =>
 
     scrollContainer: {
       flexGrow: 1,
-      paddingTop: hp(2),
+      // paddingTop: hp(2),
       alignItems: "center",
       paddingBottom: 24,
     },
@@ -236,14 +236,7 @@ const createStyles = () =>
       alignSelf: "flex-start",
       marginRight: 14,
     },
-    countryContainer: {
-      backgroundColor: Colors.light.buttonBackground,
-      borderRadius: 16,
-      paddingHorizontal: 12,
-      paddingVertical: 15,
-      width: 333,
-      marginTop: hp(1),
-    },
+    countryContainer: {},
 
     countryText: {
       color: Colors.light.white,
@@ -259,14 +252,7 @@ const createStyles = () =>
       alignSelf: "flex-start",
       marginRight: 14,
     },
-    dateviewContainer: {
-      backgroundColor: Colors.light.buttonBackground,
-      borderRadius: 16,
-      paddingHorizontal: 12,
-      paddingVertical: 15,
-      width: 333,
-      marginTop: hp(1),
-    },
+    dateviewContainer: {},
 
     dateviewText: {
       color: Colors.light.white,
@@ -290,21 +276,14 @@ const createStyles = () =>
       alignSelf: "flex-start",
       marginRight: 14,
     },
-    weekContainer: {
-      backgroundColor: Colors.light.buttonBackground,
-      borderRadius: 16,
-      paddingHorizontal: 12,
-      paddingVertical: 15,
-      width: 333,
-      marginTop: hp(1),
-    },
+    weekContainer: {},
 
     weekText: {
       color: Colors.light.white,
       fontFamily: fonts.primary.semiBold,
       fontSize: 12,
     },
-    btnWrapper:{ width: 333, marginTop: hp(3) }
+    btnWrapper: { width: 333, marginTop: hp(3) },
   });
 
 export default createStyles;
