@@ -6,11 +6,12 @@
 import { Colors } from "@/constants/theme";
 import { useRef, useState } from "react";
 import {
-  LayoutRectangle,
+  Modal,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from "react-native";
 import { fonts } from "@/assets/fonts";
@@ -58,9 +59,12 @@ export const DOBCalendar = ({ onSave, onCancel }: DOBCalendarProps) => {
     undefined,
   );
   const [openDropdown, setOpenDropdown] = useState<DropdownType>(null);
-  const [dropdownAnchor, setDropdownAnchor] = useState<LayoutRectangle | null>(
-    null,
-  );
+  const [dropdownAnchor, setDropdownAnchor] = useState<{
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } | null>(null);
 
   const monthBtnRef = useRef<View>(null);
   const yearBtnRef = useRef<View>(null);
@@ -78,14 +82,10 @@ export const DOBCalendar = ({ onSave, onCancel }: DOBCalendarProps) => {
       setOpenDropdown(null);
       return;
     }
-    ref.current?.measureLayout(
-      rootRef.current as any,
-      (x, y, width, height) => {
-        setDropdownAnchor({ x, y, width, height });
-        setOpenDropdown(type);
-      },
-      () => {},
-    );
+    ref.current?.measure((x, y, width, height, pageX, pageY) => {
+      setDropdownAnchor({ x: pageX, y: pageY, width, height });
+      setOpenDropdown(type);
+    });
   };
 
   const selectMonth = (index: number) => {
@@ -132,7 +132,7 @@ export const DOBCalendar = ({ onSave, onCancel }: DOBCalendarProps) => {
   // ── Render ──────────────────────────────────────────────────────────────────
 
   return (
-    <View ref={rootRef} style={styles.wrapper}>
+    <View style={styles.wrapper}>
       {/* ── Dropdown header ── */}
       <View style={styles.topBar}>
         <View style={styles.header}>
@@ -219,14 +219,18 @@ export const DOBCalendar = ({ onSave, onCancel }: DOBCalendarProps) => {
         </View>
       </View>
 
-      {/* ── Dropdown overlay ── */}
-      {openDropdown !== null && dropdownAnchor !== null && (
-        <>
-          <TouchableOpacity
-            style={StyleSheet.absoluteFillObject}
-            onPress={() => setOpenDropdown(null)}
-            activeOpacity={1}
-          />
+      {/* ── Dropdown modal ── */}
+      <Modal
+        visible={openDropdown !== null && dropdownAnchor !== null}
+        transparent
+        animationType="none"
+        onRequestClose={() => setOpenDropdown(null)}
+      >
+        <TouchableWithoutFeedback onPress={() => setOpenDropdown(null)}>
+          <View style={StyleSheet.absoluteFillObject} />
+        </TouchableWithoutFeedback>
+
+        {dropdownAnchor !== null && (
           <View
             style={[
               styles.dropdownList,
@@ -236,8 +240,6 @@ export const DOBCalendar = ({ onSave, onCancel }: DOBCalendarProps) => {
                 width: dropdownAnchor.width,
               },
             ]}
-            onStartShouldSetResponder={() => true}
-            onMoveShouldSetResponder={() => true}
           >
             <ScrollView
               showsVerticalScrollIndicator
@@ -276,8 +278,8 @@ export const DOBCalendar = ({ onSave, onCancel }: DOBCalendarProps) => {
               })}
             </ScrollView>
           </View>
-        </>
-      )}
+        )}
+      </Modal>
     </View>
   );
 };
