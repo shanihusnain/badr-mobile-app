@@ -1,14 +1,14 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "expo-router";
-import React from "react";
+import React, { useState } from "react";
 import {  useForm } from "react-hook-form";
-import { Platform, View } from "react-native";
+import { Platform, Text, TouchableOpacity, View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { z } from "zod";
 import createStyles from "./styles";
 import CustomDropdown from "@/components/atoms/CustomDropdown";
-import CustomDatePicker from "@/components/atoms/CustomDatePicker";
+import DOBCalendar from "@/components/molecules/DOBCalendar";
 import CustomTextInput from "@/components/atoms/CustomTextInput";
 import { useValidations } from "@/src/validations/useValidations";
 import { useCreateAccountProps } from "./useCreateAccountProps";
@@ -35,6 +35,7 @@ export default function CreateAccountScreen() {
     control,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(createAccountSchema),
@@ -42,6 +43,9 @@ export default function CreateAccountScreen() {
     reValidateMode: "onChange",
     defaultValues,
   });
+
+  const [showDOBPicker, setShowDOBPicker] = useState(false);
+  const dobValue = watch("dob");
 
   const onSubmit = (data: z.infer<typeof createAccountSchema>) => {
     router.push({
@@ -111,13 +115,31 @@ export default function CreateAccountScreen() {
           name="gender"
         />
 
-        <CustomDatePicker 
-          label="Date Of Birth"
-          placeholder="Enter Date Of Birth"
-          control={control}
-          name="dob"
-          errors={errors.dob?.message ? [errors.dob.message] : []}
-        />
+        <Text style={styles.doblabel}>Date Of Birth</Text>
+        <TouchableOpacity
+          style={styles.dobContainer}
+          onPress={() => setShowDOBPicker(true)}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.dobText}>
+            {dobValue || "Select your date of birth"}
+          </Text>
+          <Text style={styles.dobIcon}>📅</Text>
+        </TouchableOpacity>
+
+        {showDOBPicker && (
+          <DOBCalendar
+            onSave={(date) => {
+              setValue("dob", date);
+              setShowDOBPicker(false);
+            }}
+            onCancel={() => setShowDOBPicker(false)}
+          />
+        )}
+
+        {errors.dob?.message && (
+          <Text style={styles.errorText}>{errors.dob?.message}</Text>
+        )}
 
         <CustomDropdown
           label="Country"

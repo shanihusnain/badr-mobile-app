@@ -220,12 +220,21 @@ const createStyles = () =>
       paddingVertical: 15,
       width: 333,
       marginTop: hp(1),
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
     },
 
     dobText: {
       color: Colors.light.white,
       fontFamily: fonts.primary.semiBold,
       fontSize: 12,
+      flex: 1,
+    },
+    dobIcon: {
+      color: Colors.light.white,
+      fontSize: 18,
+      marginLeft: 12,
     },
 
     countrylabel: {
@@ -303,6 +312,12 @@ const createStyles = () =>
       color: Colors.light.white,
       fontFamily: fonts.primary.semiBold,
       fontSize: 12,
+    },
+    errorText: {
+      color: "red",
+      fontSize: 12,
+      marginTop: 5,
+      alignSelf: "flex-start",
     },
     btnWrapper:{ width: 333, marginTop: hp(3) }
   });
