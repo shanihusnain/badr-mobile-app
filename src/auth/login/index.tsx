@@ -40,14 +40,14 @@ export default function LoginScreen() {
 
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleTogglePassword = () =>
-    setShowPassword((prev) => !prev);
+  const handleTogglePassword = () => setShowPassword((prev) => !prev);
 
   const handleForgotPassword = () => {
     router.push("/forgotpassword");
   };
 
   const onSubmit = (data: z.infer<typeof loginSchema>) => {
+    router.replace("/(private)/setpersonalizedgoals");
     // handle login
   };
 
@@ -67,11 +67,7 @@ export default function LoginScreen() {
                     placeholder="Email Address"
                     control={control}
                     name="email"
-                    errors={
-                      errors.email?.message
-                        ? [errors.email.message]
-                        : []
-                    }
+                    errors={errors.email?.message ? [errors.email.message] : []}
                   />
 
                   <CustomTextInput
@@ -82,9 +78,7 @@ export default function LoginScreen() {
                     secureTextEntry={!showPassword}
                     onToggleEye={handleTogglePassword}
                     errors={
-                      errors.password?.message
-                        ? [errors.password.message]
-                        : []
+                      errors.password?.message ? [errors.password.message] : []
                     }
                   />
 
@@ -106,9 +100,7 @@ export default function LoginScreen() {
 
                   <View style={styles.orloginContainer}>
                     <View style={styles.line} />
-                    <Text style={styles.orloginText}>
-                      Or login with
-                    </Text>
+                    <Text style={styles.orloginText}>Or login with</Text>
                     <View style={styles.line} />
                   </View>
                 </View>
