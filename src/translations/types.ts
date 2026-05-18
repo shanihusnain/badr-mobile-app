@@ -5,6 +5,7 @@ export interface TranslationKeys {
     days: string;
     overallProgress: string;
     watchTutorial: string;
+    tutorial: string;
   };
   welcomeScreen: {
     welcomeText: string;

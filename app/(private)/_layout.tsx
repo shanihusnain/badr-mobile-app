@@ -1,11 +1,28 @@
 import { Stack } from "expo-router";
+import { Colors } from "@/constants/theme";
+import { fonts } from "@/assets/fonts";
 
 export default function PrivateLayout() {
   return (
-    <Stack>
+    <Stack
+      screenOptions={{
+        headerStyle: { backgroundColor: Colors.light.blackBackground },
+        headerTintColor: Colors.light.white,
+        headerTitleStyle: {
+          fontFamily: fonts.primary.semiBold,
+          fontSize: 16,
+          color: Colors.light.white,
+        },
+        headerShadowVisible: false,
+      }}
+    >
       <Stack.Screen
         name="setpersonalizedgoals/index"
-        options={{ headerShown: false }}
+        options={{ headerShown: true, title: "" }}
+      />
+      <Stack.Screen
+        name="monthlygoalplanner"
+        options={{ headerShown: true, title: "MONTHLY GOAL PLANNER" }}
       />
     </Stack>
   );

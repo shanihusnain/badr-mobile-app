@@ -9,6 +9,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import "react-native-reanimated";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Provider } from "react-redux";
 
 import { fontAssets } from "@/assets/fonts";
@@ -40,92 +41,97 @@ export default function RootLayout() {
   if (!loaded && !error) return null;
 
   return (
-    <Provider store={store}>
-      <SafeAreaProvider>
-        <ThemeProvider
-          value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-        >
-          <Stack>
-            <Stack.Screen name="welcome" options={{ headerShown: false }} />
-            <Stack.Screen name="intro" options={{ headerShown: false }} />
-            <Stack.Screen name="free_trial" options={{ headerShown: false }} />
-            <Stack.Screen
-              name="login"
-              options={{
-                headerShown: true,
-                header: () => (
-                  <Header
-                    title={t("loginScreen.title").toUpperCase()}
-                    backgroundColor={Colors.light.buttonBackground}
-                  />
-                ),
-              }}
-            />
-            <Stack.Screen
-              name="verifyemail/[fromsignup]"
-              options={{
-                headerShown: true,
-                header: ({ options }: { options: any }) => (
-                  <Header
-                    title={options?.title}
-                    backgroundColor={Colors.light.buttonBackground}
-                  />
-                ),
-              }}
-            />
-            <Stack.Screen
-              name="forgotpassword"
-              options={{
-                headerShown: true,
-                header: () => (
-                  <Header
-                    title={t("forgotPasswordScreen.title").toUpperCase()}
-                    backgroundColor={Colors.light.buttonBackground}
-                  />
-                ),
-              }}
-            />
-            <Stack.Screen
-              name="createaccount"
-              options={{
-                headerShown: true,
-                header: () => <Header title={t("createAccountScreen.createAccountBtn")} />,
-              }}
-            />
-            <Stack.Screen
-              name="paymentMethod"
-              options={{
-                headerShown: true,
-                header: () => <Header title="" />,
-              }}
-            />
-            <Stack.Screen
-              name="confirmpassword"
-              options={{
-                headerShown: true,
-                header: () => (
-                  <Header
-                    title={t("forgotPasswordScreen.title").toUpperCase()}
-                    backgroundColor={Colors.light.buttonBackground}
-                  />
-                ),
-              }}
-            />
-            <Stack.Screen
-              name="debitCredit"
-              options={{
-                headerShown: false,
-              }}
-            />
-            <Stack.Screen
-              name="modal"
-              options={{ presentation: "modal", title: "Modal" }}
-            />
-            <Stack.Screen name="(private)" options={{ headerShown: false }} />
-          </Stack>
-          <StatusBar style="light" />
-        </ThemeProvider>
-      </SafeAreaProvider>
-    </Provider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <Provider store={store}>
+        <SafeAreaProvider>
+          <ThemeProvider
+            value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+          >
+            <Stack>
+              <Stack.Screen name="welcome" options={{ headerShown: false }} />
+              <Stack.Screen name="intro" options={{ headerShown: false }} />
+              <Stack.Screen
+                name="free_trial"
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="login"
+                options={{
+                  headerShown: true,
+                  header: () => (
+                    <Header
+                      title="LOGIN"
+                      backgroundColor={Colors.light.buttonBackground}
+                    />
+                  ),
+                }}
+              />
+              <Stack.Screen
+                name="verifyemail/[fromsignup]"
+                options={{
+                  headerShown: true,
+                  header: ({ options }: { options: any }) => (
+                    <Header
+                      title={options?.title}
+                      backgroundColor={Colors.light.buttonBackground}
+                    />
+                  ),
+                }}
+              />
+              <Stack.Screen
+                name="forgotpassword"
+                options={{
+                  headerShown: true,
+                  header: () => (
+                    <Header
+                      title="FORGOT PASSWORD"
+                      backgroundColor={Colors.light.buttonBackground}
+                    />
+                  ),
+                }}
+              />
+              <Stack.Screen
+                name="createaccount"
+                options={{
+                  headerShown: true,
+                  header: () => <Header title="CREATE ACCOUNT" />,
+                }}
+              />
+              <Stack.Screen
+                name="paymentMethod"
+                options={{
+                  headerShown: true,
+                  header: () => <Header title="" />,
+                }}
+              />
+              <Stack.Screen
+                name="confirmpassword"
+                options={{
+                  headerShown: true,
+                  header: () => (
+                    <Header
+                      title="FORGOT PASSWORD"
+                      backgroundColor={Colors.light.buttonBackground}
+                    />
+                  ),
+                }}
+              />
+              <Stack.Screen
+                name="debitCredit"
+                options={{
+                  headerShown: false,
+                }}
+              />
+              <Stack.Screen
+                name="modal"
+                options={{ presentation: "modal", title: "Modal" }}
+              />
+              <Stack.Screen name="(private)" options={{ headerShown: false }} />
+            </Stack>
+            <StatusBar style="light" />
+          </ThemeProvider>
+        </SafeAreaProvider>
+      </Provider>
+    </GestureHandlerRootView>
   );
 }
