@@ -1,0 +1,17 @@
+{
+  "SetGoals": {
+    "Setyourperosnalizedgoals": "SET YOUR PERSONALIZED IBADAT GOALS",
+    "howItWorks": "HOW DOES IT WORK?",
+    "daysLeft": "Days Left",
+    "days": "Days",
+    "overall progress": "Overall Progress",
+    "watchTutorial": "WATCH TUTORIAL",
+    "skip": "Skip",
+    "setPersonalizedDescription": "Select from a wide range of options for your monthly ibadat goals and watch your progress illuminate, transforming from new moon to a glowing moon.\n\nOur goal setting feature helps you become your best self as a Muslim-thoughtfully designed to keep your connection with Allah (SWT) strong amid life's demands and wordly pursuits."
+  },
+  "welcomeScreen": {
+    "welcomeText": "Your Daily Companion to help you set, track, and elevate your spiritual goals as a Muslim.",
+    "loginBtnText": "LOGIN",
+    "createAccountBtnText": "CREATE ACCOUNT"
+  }
+}
