@@ -28,6 +28,7 @@ export const Colors = {
     ringDawood: "#439CB8",
     ringMonThu: "#61C8A6",
     subtext: "#999999",
+    dullWhite: "#D7D7D7",
   },
   dark: {
     text: "#ECEDEE",
@@ -41,6 +42,7 @@ export const Colors = {
     overlayMask: "rgba(0, 0, 0, 0.35)",
     buttonBackground: "#36454F",
     greybuttonBackground: "#213144",
+    dullWhite: "#D7D7D7",
   },
 };
 
