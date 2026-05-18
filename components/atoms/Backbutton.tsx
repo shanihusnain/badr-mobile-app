@@ -3,9 +3,12 @@ import { useRouter } from "expo-router";
 import React from "react";
 import { StyleSheet, TouchableOpacity } from "react-native";
 import { Colors } from "../../constants/theme";
+import { useTranslation } from "react-i18next";
 
 export default function BackButton() {
   const router = useRouter();
+  const { i18n } = useTranslation();
+  const isRtl = i18n.language === "ar";
 
   const styles = StyleSheet.create({
     backButtonContainer: {
@@ -23,7 +26,11 @@ export default function BackButton() {
       style={styles.backButtonContainer}
       onPress={() => router.back()}
     >
-      <Feather name="chevron-left" size={24} color={Colors.light.white} />
+      <Feather
+        name={isRtl ? "chevron-right" : "chevron-left"}
+        size={24}
+        color={Colors.light.white}
+      />
     </TouchableOpacity>
   );
 }

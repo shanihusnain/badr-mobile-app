@@ -7,10 +7,12 @@ import { Colors } from "../../../constants/theme";
 import { RenderItem } from "./components/RenderItem";
 import { styles } from "./styles";
 import { useFreeTrialProps } from "./useFreeTrialProps";
+import { useTranslation } from "react-i18next";
 
 export default function FreeTrialScreen() {
   const router = useRouter();
   const { texts } = useFreeTrialProps();
+  const { t } = useTranslation();
 
   const handleStartFreeTrial = () => {
     router.push("/createaccount");
@@ -28,19 +30,18 @@ export default function FreeTrialScreen() {
     return (
       <>
         <Text style={styles.titleText}>
-          GET YOUR 2-MONTH FREE TRIAL
+          {t("freeTrialScreen.title")}
         </Text>
 
         <View style={styles.secondaryTextWrapper}>
           <View style={styles.greenLine} />
           <Text style={styles.secondarytext}>
-            WHAT’S INCLUDED?
+            {t("freeTrialScreen.whatsIncluded")}
           </Text>
         </View>
 
         <Text style={styles.subtitletext}>
-          With your Badr membership, you unlock features designed
-          to support your journey towards becoming a better Muslim.
+          {t("freeTrialScreen.subtitle")}
         </Text>
       </>
     );
@@ -60,7 +61,7 @@ export default function FreeTrialScreen() {
 
       <View style={styles.buttonContainer}>
         <GreenTextButton
-          title="START YOUR FREE TRIAL"
+          title={t("freeTrialScreen.startTrialBtn")}
           onPress={handleStartFreeTrial}
         />
       </View>

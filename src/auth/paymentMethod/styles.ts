@@ -134,10 +134,9 @@ export const styles = StyleSheet.create({
     backgroundColor: Colors.light.buttonBackground,
     borderRadius: 12,
     paddingHorizontal: 20,
-    paddingVertical: 24,
+    paddingVertical: 20,
     justifyContent: "flex-start",
-    minHeight: 340,
-    maxHeight: 330,
+    minHeight: 410,
     alignItems: "flex-start",
   },
 

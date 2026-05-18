@@ -19,6 +19,7 @@ import { store } from "@/src/store/store";
 import { Colors } from "@/constants/theme";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import "@/i18next/i18next";
+import { useTranslation } from "react-i18next";
 
 export const unstable_settings = {
   anchor: "welcome",
@@ -27,6 +28,7 @@ export const unstable_settings = {
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme();
   const [loaded, error] = useFonts(fontAssets);
 

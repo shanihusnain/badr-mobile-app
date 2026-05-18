@@ -1,5 +1,6 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
+import SimpleLineIcons from "@expo/vector-icons/SimpleLineIcons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import React, { useState } from "react";
 import { Controller } from "react-hook-form";
@@ -89,7 +90,7 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
             >
               {value || placeholder}
             </Text>
-            <Text style={styles.calendarIcon}>📅</Text>
+            <SimpleLineIcons name="calendar" size={16} color={Colors.light.white} />
           </TouchableOpacity>
 
           {errors.length > 0 && (
@@ -122,7 +123,7 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
 
 const styles = StyleSheet.create({
   wrapper: {
-    width: "100%",
+    width: "98%",
   },
   label: {
     color: Colors.light.white,
@@ -133,9 +134,9 @@ const styles = StyleSheet.create({
   },
   container: {
     backgroundColor: Colors.light.calendarBg,
-    borderRadius: 16,
+    borderRadius: 6,
     paddingHorizontal: 12,
-    paddingVertical: 15,
+    height: 48,
     marginTop: hp(1),
     width: "100%",
     flexDirection: "row",

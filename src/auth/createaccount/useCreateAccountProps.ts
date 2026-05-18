@@ -1,13 +1,27 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 export const useCreateAccountProps = () => {
+  const { t } = useTranslation();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const genders = ["Male", "Female"];
-  const countries = ["Pakistan", "Saudi Arabia"];
-  const calendarView = ["Gregorian View", "Hijri View"];
-  const weekDays = ["Friday & Saturday", "Saturday & Sunday"];
+  const genders = [
+    { label: t("createAccountScreen.male"), value: "Male" },
+    { label: t("createAccountScreen.female"), value: "Female" },
+  ];
+  const countries = [
+    { label: t("createAccountScreen.pakistan"), value: "Pakistan" },
+    { label: t("createAccountScreen.saudiArabia"), value: "Saudi Arabia" },
+  ];
+  const calendarView = [
+    { label: t("createAccountScreen.gregorianView"), value: "Gregorian View" },
+    { label: t("createAccountScreen.hijriView"), value: "Hijri View" },
+  ];
+  const weekDays = [
+    { label: t("createAccountScreen.friSat"), value: "Friday & Saturday" },
+    { label: t("createAccountScreen.satSun"), value: "Saturday & Sunday" },
+  ];
 
   const defaultValues = {
     name: "",
