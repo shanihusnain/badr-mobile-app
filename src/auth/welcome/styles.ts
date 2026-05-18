@@ -28,12 +28,13 @@ export const styles = StyleSheet.create({
   },
 
   heroText: {
-    fontSize: hp(3.8),
+    fontSize: 30,
     fontFamily: fonts.primary.heavy,
     color: Colors.light.background,
     textAlign: "left",
-    lineHeight: hp(4.5),
+    //lineHeight: hp(4.5),
     flex: 1,
+    fontWeight: "800",
   },
 
   buttonGroup: {

@@ -25,7 +25,7 @@ export const styles = StyleSheet.create({
 
   title: {
     color: Colors.light.white,
-    fontFamily: fonts.primary.semiBold,
+    fontFamily: fonts.primary.regular,
     fontSize: 14,
     flex: 1,
     textAlign: "center",
@@ -76,7 +76,7 @@ export const styles = StyleSheet.create({
     width: 45,
     height: 45,
     borderRadius: 8,
-    backgroundColor: Colors.light.buttonBackground,
+    backgroundColor: Colors.light.greybuttonBackground,
 
     textAlign: "center",
     fontSize: 18,
@@ -104,6 +104,15 @@ export const styles = StyleSheet.create({
     marginLeft: 5,
   },
 
+  resendTimer: {
+    color: Colors.light.white,
+    fontSize: 16,
+    fontFamily: fonts.primary.regular,
+    lineHeight: 16,
+   // marginTop: hp(0),
+    alignSelf: "center",
+  },
+
   resendAction: {
     color: Colors.light.green,
     fontSize: 14,
@@ -116,7 +125,7 @@ export const styles = StyleSheet.create({
   },
 
   buttonWrapper: {
-    width: "90%",
+    width: "105%",
     marginTop: hp(2),
   },
 });

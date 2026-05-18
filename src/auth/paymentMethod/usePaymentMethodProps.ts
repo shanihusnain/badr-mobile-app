@@ -13,29 +13,36 @@ export const usePaymentMethodProps = () => {
     {
       id: 0,
       title: "3-Month Plan",
-      price: "$9.99 / mo after",
+      price: "$9.99 / month after",
       subtitle: "$0 for 2 months",
+      description: "Save 9%",
+      description1: "Billed every 3 months",
       buttonText: "GET BADR 3-MONTH PLAN",
+      fulldescription: "$0 for 2 months, then $29.99 every 3 months after. If you've already used your free trial before, billing begins immediately."
     },
     {
       id: 1,
       title: "6-Month Plan",
-      price: "$12.99/mo",
-      subtitle: "Most popular",
+      price: "$9.17 / month after",
+      subtitle: "$0 for 2 months ",
+      description: "Save 17%",
+      description1: "Billed every 6 months",
       buttonText: "GET BADR 6-MONTH PLAN",
+      fulldescription: "$0 for 2 months, then $54.99 every 3 months after. If you've already used your free trial before, billing begins immediately."
     },
     {
       id: 2,
       title: "Annual Plan",
-      price: "$19.99/mo",
-      subtitle: "Best value",
-      secondarySubtitle: "$19.99 / mo after",
+      price: "$8.33 / month after",
+      subtitle: "$0 for 2 months ",
+      description: "save 24%",
+      description1: "Billed yearly",
       buttonText: "GET BADR ANNUAL PLAN",
+      fulldescription: "$0 for 2 months, then $99.99 every 3 months after. If you've already used your free trial before, billing begins immediately."
     },
   ];
 
-  const handleSlideChange = (event: any) => {
-    const index = Math.round(event.nativeEvent.contentOffset.x / width);
+  const handleSlideChange = (index: number) => {
     setActiveSlide(index);
   };
 

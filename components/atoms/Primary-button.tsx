@@ -38,7 +38,7 @@ export default function PrimaryButton({
       fontFamily: fonts.primary.medium,
       fontWeight: "500",
       fontSize: 14,
-      lineHeight: 20,
+      lineHeight: 18,
       letterSpacing: 0,
     },
   });

@@ -28,7 +28,7 @@ const createStyles = () =>
     },
 
     userNameLabel: {
-      color: Colors.light.white,
+      color: Colors.light.grey,
       fontFamily: fonts.primary.semiBold,
       fontSize: 12,
       marginTop: hp(2),
@@ -38,7 +38,7 @@ const createStyles = () =>
     },
 
     nameContainer: {
-      backgroundColor: Colors.light.buttonBackground,
+      backgroundColor: Colors.light.greybuttonBackground,
       borderRadius: 28,
       paddingHorizontal: 12,
       paddingVertical: 3,
@@ -53,7 +53,7 @@ const createStyles = () =>
     },
 
     passwordLabel: {
-      color: Colors.light.white,
+      color: Colors.light.grey,
       fontFamily: fonts.primary.semiBold,
       fontSize: 12,
       marginTop: hp(2),
@@ -63,7 +63,7 @@ const createStyles = () =>
     },
 
     passwordContainer: {
-      backgroundColor: Colors.light.buttonBackground,
+      backgroundColor: Colors.light.greybuttonBackground,
       borderRadius: 16,
       paddingHorizontal: 12,
       paddingVertical: 3,
@@ -100,7 +100,7 @@ const createStyles = () =>
     },
 
     confirmpasswordContainer: {
-      backgroundColor: Colors.light.buttonBackground,
+      backgroundColor: Colors.light.greybuttonBackground,
       borderRadius: 16,
       paddingHorizontal: 12,
       paddingVertical: 3,
@@ -125,7 +125,7 @@ const createStyles = () =>
     },
 
     emailaddressContainer: {
-      backgroundColor: Colors.light.buttonBackground,
+      backgroundColor: Colors.light.greybuttonBackground,
       borderRadius: 16,
       paddingHorizontal: 12,
       paddingVertical: 3,
@@ -150,7 +150,7 @@ const createStyles = () =>
     },
 
     genderContainer: {
-      backgroundColor: Colors.light.buttonBackground,
+      backgroundColor: Colors.light.greybuttonBackground,
       borderRadius: 16,
       paddingHorizontal: 12,
       paddingVertical: 15,
@@ -166,7 +166,7 @@ const createStyles = () =>
 
     dropdown: {
       width: 333,
-      backgroundColor: Colors.light.buttonBackground,
+      backgroundColor: Colors.light.greybuttonBackground,
       borderRadius: 16,
       marginTop: 6,
       paddingVertical: 5,
@@ -214,7 +214,7 @@ const createStyles = () =>
     },
 
     dobContainer: {
-      backgroundColor: Colors.light.buttonBackground,
+      backgroundColor: Colors.light.greybuttonBackground,
       borderRadius: 16,
       paddingHorizontal: 12,
       paddingVertical: 15,
@@ -236,7 +236,9 @@ const createStyles = () =>
       alignSelf: "flex-start",
       marginRight: 14,
     },
-    countryContainer: {},
+    countryContainer: {
+      backgroundColor: Colors.light.greybuttonBackground,
+    },
 
     countryText: {
       color: Colors.light.white,
@@ -252,7 +254,9 @@ const createStyles = () =>
       alignSelf: "flex-start",
       marginRight: 14,
     },
-    dateviewContainer: {},
+    dateviewContainer: {
+      backgroundColor: Colors.light.greybuttonBackground,
+    },
 
     dateviewText: {
       color: Colors.light.white,
@@ -276,7 +280,9 @@ const createStyles = () =>
       alignSelf: "flex-start",
       marginRight: 14,
     },
-    weekContainer: {},
+    weekContainer: {
+      backgroundColor: Colors.light.greybuttonBackground,
+    },
 
     weekText: {
       color: Colors.light.white,

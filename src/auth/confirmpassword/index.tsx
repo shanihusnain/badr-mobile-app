@@ -58,7 +58,7 @@ export default function ConfirmPasswordScreen() {
                 <View style={styles.formWrapper}>
                   <CustomTextInput
                     //label="Password"
-                    placeholder="Enter password"
+                    placeholder="New Password"
                     control={control}
                     name="password"
                     showEye
@@ -68,7 +68,7 @@ export default function ConfirmPasswordScreen() {
                   />
                   <CustomTextInput
                     //label="Confirm Password"
-                    placeholder="Enter password"
+                    placeholder="Confirm Password"
                     control={control}
                     name="confirmPassword"
                     showEye

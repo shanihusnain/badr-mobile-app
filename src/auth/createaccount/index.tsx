@@ -10,6 +10,7 @@ import createStyles from "./styles";
 import CustomDropdown from "@/components/atoms/CustomDropdown";
 import CustomDatePicker from "@/components/atoms/CustomDatePicker";
 import CustomTextInput from "@/components/atoms/CustomTextInput";
+import { Colors } from "@/constants/theme";
 import { useValidations } from "@/src/validations/useValidations";
 import { useCreateAccountProps } from "./useCreateAccountProps";
 import PrimaryButton from "@/components/atoms/Primary-button";
@@ -61,7 +62,8 @@ export default function CreateAccountScreen() {
         keyboardOpeningTime={0}
       >
         <CustomTextInput
-          label="User name"
+          label="Username"
+          labelStyle={{ color: Colors.light.grey }}
           placeholder="Enter user name"
           value={defaultValues.name}
           errors={errors.name?.message ? [errors.name.message] : []}
@@ -70,6 +72,7 @@ export default function CreateAccountScreen() {
         />
         <CustomTextInput
           label="Password"
+          labelStyle={{ color: Colors.light.grey }}
           placeholder="Enter password"
           value={defaultValues.password}
           errors={errors.password?.message ? [errors.password.message] : []}
@@ -81,6 +84,7 @@ export default function CreateAccountScreen() {
         />
         <CustomTextInput
           label="Confirm Password"
+          labelStyle={{ color: Colors.light.grey }}
           placeholder="Enter password"
           value={defaultValues.confirmPassword}
           errors={
@@ -96,6 +100,7 @@ export default function CreateAccountScreen() {
         />
         <CustomTextInput
           label="Email Address"
+          labelStyle={{ color: Colors.light.grey }}
           placeholder="Enter email address"
           value={defaultValues.email}
           errors={errors.email?.message ? [errors.email.message] : []}
@@ -104,6 +109,7 @@ export default function CreateAccountScreen() {
         />
         <CustomDropdown
           label="Gender"
+          labelStyle={{ color: Colors.light.grey }}
           placeholder="Enter Gender"
           options={genders}
           errors={errors.gender?.message ? [errors.gender.message] : []}
@@ -113,6 +119,7 @@ export default function CreateAccountScreen() {
 
         <CustomDatePicker
           label="Date Of Birth"
+          labelStyle={{ color: Colors.light.grey }}
           placeholder="Enter Date Of Birth"
           control={control}
           name="dob"
@@ -121,10 +128,10 @@ export default function CreateAccountScreen() {
 
         <CustomDropdown
           label="Country"
+          labelStyle={{ color: Colors.light.grey }}
           placeholder="Country"
           options={countries}
           errors={errors.country?.message ? [errors.country.message] : []}
-          labelStyle={styles.countrylabel}
           containerStyle={styles.countryContainer}
           selectedTextStyle={styles.countryText}
           control={control}
@@ -133,10 +140,10 @@ export default function CreateAccountScreen() {
 
         <CustomDropdown
           label="Your Preferred Date View"
+          labelStyle={{ color: Colors.light.grey }}
           placeholder="Select Date View"
           options={calendarView}
           errors={errors.dateView?.message ? [errors.dateView.message] : []}
-          labelStyle={styles.dateviewLabel}
           containerStyle={styles.dateviewContainer}
           selectedTextStyle={styles.dateviewText}
           control={control}
@@ -144,11 +151,11 @@ export default function CreateAccountScreen() {
         />
 
         <CustomDropdown
-          label="Week Days"
+          label="Your Weekend Days"
+          labelStyle={{ color: Colors.light.grey }}
           placeholder="Select Week Days"
           options={weekDays}
           errors={errors.week?.message ? [errors.week.message] : []}
-          labelStyle={styles.weeklabel}
           containerStyle={styles.weekContainer}
           selectedTextStyle={styles.weekText}
           control={control}

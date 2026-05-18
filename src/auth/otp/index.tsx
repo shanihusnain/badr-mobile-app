@@ -24,6 +24,7 @@ export default function OtpScreen() {
 
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const [timer, setTimer] = useState(60);
 
   const inputRefs = useRef<(TextInput | null)[]>([]);
 
@@ -66,7 +67,18 @@ export default function OtpScreen() {
 
   const handleResend = () => {
     console.log("Resend OTP clicked");
+    setTimer(60);
   };
+
+  useEffect(() => {
+    if (timer <= 0) return;
+
+    const interval = setInterval(() => {
+      setTimer((prev) => Math.max(prev - 1, 0));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [timer]);
 
   const getBtnTitle = () => {
     return params?.fromsignup === "true"
@@ -145,8 +157,7 @@ export default function OtpScreen() {
                 <Text
                   style={[
                     styles.resendAction,
-                    params?.fromsignup !== "true" &&
-                      styles.resendActionUnderline,
+                    styles.resendActionUnderline,
                   ]}
                 >
                   Resend
@@ -157,6 +168,10 @@ export default function OtpScreen() {
                 OTP Code
               </Text>
             </View>
+
+            <Text style={styles.resendTimer}>
+              {`00:${timer.toString().padStart(2, "0")}`}
+            </Text>
 
             <View style={styles.buttonWrapper}>
               <PrimaryButton

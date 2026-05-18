@@ -27,6 +27,7 @@ export const Colors = {
     ringRamadan: "#B7977E",
     ringDawood: "#439CB8",
     ringMonThu: "#61C8A6",
+    subtext: "#999999",
   },
   dark: {
     text: "#ECEDEE",
