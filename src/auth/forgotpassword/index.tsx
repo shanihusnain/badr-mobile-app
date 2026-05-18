@@ -58,8 +58,7 @@ export default function ForgotPasswordScreen() {
                 <View style={styles.messageContainer}>
                   <Text style={styles.messageText}>
                     Enter the email address linked to your account.
-                    We'll send you a 6-digit code to reset your
-                    password.
+                    {'\n'}We'll send you a 6-digit code to reset your password.
                   </Text>
                 </View>
 

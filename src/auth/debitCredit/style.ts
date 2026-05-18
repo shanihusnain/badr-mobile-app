@@ -121,6 +121,8 @@ export const styles = StyleSheet.create({
     height: 20,
     marginRight: 10,
     borderRadius: 4,
+    backgroundColor: "#213144",
+    borderWidth: 0,
   },
   checkboxLabel: {
     color: Colors.light.grey,
@@ -134,14 +136,15 @@ export const styles = StyleSheet.create({
     marginBottom: hp(2),
   },
   primaryActionButton: {
-    width: "100%",
+    width: "93%",
     alignSelf: "center",
   },
   cancelButton: {
     backgroundColor: "transparent",
     borderWidth: 1.5,
     borderColor: Colors.light.green,
-    width: "100%",
+    width: "93%",
+    alignSelf: "center",
     marginTop: hp(0),
     paddingVertical: 8,
     borderRadius: 6,

@@ -15,7 +15,7 @@ const createStyles = () =>
     },
 
     bottomSheet: {
-      height: hp(55),
+      height: hp(50),
       backgroundColor: Colors.light.blackBackground,
       borderTopLeftRadius: 20,
       borderTopRightRadius: 20,
@@ -26,7 +26,7 @@ const createStyles = () =>
       flex: 1,
       justifyContent: "space-between",
       paddingHorizontal: 20,
-      paddingTop: hp(2),
+      paddingTop: hp(3),
       paddingBottom: hp(3),
     },
 

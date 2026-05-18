@@ -43,7 +43,7 @@ export const styles = StyleSheet.create({
   },
 
   bottomSheet: {
-    height: hp(55),
+    height: hp(50),
     backgroundColor: Colors.light.blackBackground,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
@@ -66,7 +66,7 @@ export const styles = StyleSheet.create({
   messageText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: 14,
+    fontSize: 13,
     lineHeight: 18,
     textAlign: "left",
   },
@@ -85,7 +85,7 @@ export const styles = StyleSheet.create({
 
   primaryButton: {
     width: "90%",
-    minHeight: 40,
+    //minHeight: 40,
     borderRadius: 10,
     paddingTop: 10,
     paddingBottom: 10,

@@ -19,6 +19,7 @@ export default function PaymentMethodScreen() {
     handleDebitCreditPress,
     getTabButtonStyle,
     paymentMethods,
+    width,
   } = usePaymentMethodProps();
 
   const renderPaymentCard = ({ item }: { item: { title: string; onPress?: () => void; style?: any } }) => (
@@ -58,13 +59,28 @@ export default function PaymentMethodScreen() {
         <Text style={styles.underbuttontext}>Choose Payment Method</Text>
         <View style={styles.formWrapper}>
           {selectedPlan === "other" ? (
-            <View style={styles.cardContainer}>
-              <CustomSlider
-                slides={slides}
-                activeSlide={activeSlide}
-                onSlideChange={handleSlideChange}
-              />
-            </View>
+            <>
+              <View style={[styles.cardContainer, { width: Math.min(width - 50, 343) }] }>
+                <CustomSlider
+                  slides={slides}
+                  activeSlide={activeSlide}
+                  slideWidth={Math.min(width - 50, 343)}
+                  onSlideChange={handleSlideChange}
+                />
+              </View>
+              <View style={styles.paginationContainer}>
+                {slides.map((slide) => (
+                  <View
+                    key={slide.id}
+                    style={
+                      activeSlide === slide.id
+                        ? [styles.paginationDot, styles.activeDot]
+                        : styles.paginationDot
+                    }
+                  />
+                ))}
+              </View>
+            </>
           ) : (
             <FlatList
               data={paymentMethods}

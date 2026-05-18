@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import { ScrollView, Text, View, useWindowDimensions } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import PrimaryButton from "../../../../components/atoms/Primary-button";
 import { styles } from "../styles";
 
@@ -8,24 +8,27 @@ interface Slide {
   title: string;
   price: string;
   subtitle: string;
+  description?: string;
+  description1?: string;
   secondarySubtitle?: string;
   buttonText?: string;
+  fulldescription?: string;
 }
 
 interface CustomSliderProps {
   slides: Slide[];
   activeSlide: number;
-  onSlideChange: (event: any) => void;
+  slideWidth: number;
+  onSlideChange: (index: number) => void;
 }
 
 const CustomSlider: React.FC<CustomSliderProps> = ({
   slides,
   activeSlide,
+  slideWidth,
   onSlideChange,
 }) => {
-  const { width } = useWindowDimensions();
   const scrollRef = useRef<ScrollView>(null);
-  const slideWidth = Math.min(width - 60, 296);
 
   return (
     <View style={styles.sliderWrapper}>
@@ -34,7 +37,14 @@ const CustomSlider: React.FC<CustomSliderProps> = ({
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
-        onMomentumScrollEnd={onSlideChange}
+        snapToInterval={slideWidth}
+        decelerationRate="fast"
+        onMomentumScrollEnd={(event) => {
+          const index = Math.round(
+            event.nativeEvent.contentOffset.x / slideWidth,
+          );
+          onSlideChange(index);
+        }}
         contentContainerStyle={styles.sliderContent}
       >
         {slides.map((slide) => (
@@ -50,6 +60,18 @@ const CustomSlider: React.FC<CustomSliderProps> = ({
               </Text>
             ) : null}
             <Text style={styles.slidePrice}>{slide.price}</Text>
+            {slide.description ? (
+              <Text style={styles.slideDescription}>
+                <Text style={styles.descriptionBullet}>• </Text>
+                {slide.description}
+              </Text>
+            ) : null}
+            {slide.description1 ? (
+              <Text style={styles.slideDescription1}>
+                <Text style={styles.descriptionBullet}>• </Text>
+                {slide.description1}
+              </Text>
+            ) : null}
             <PrimaryButton
               text={slide.buttonText ?? "GET BADR 3-MONTH PLAN"}
               onPress={() => {
@@ -57,21 +79,14 @@ const CustomSlider: React.FC<CustomSliderProps> = ({
               }}
               style={styles.slideButton}
             />
+            {slide.fulldescription ? (
+              <Text style={styles.slideFullDescription}>
+                {slide.fulldescription}
+              </Text>
+            ) : null}
           </View>
         ))}
       </ScrollView>
-      <View style={styles.paginationContainer}>
-        {slides.map((slide) => (
-          <View
-            key={slide.id}
-            style={
-              activeSlide === slide.id
-                ? [styles.paginationDot, styles.activeDot]
-                : styles.paginationDot
-            }
-          />
-        ))}
-      </View>
     </View>
   );
 };

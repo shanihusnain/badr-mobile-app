@@ -43,7 +43,7 @@ export const styles = StyleSheet.create({
   },
 
   bottomSheet: {
-    height: hp(55),
+    height: hp(50),
     backgroundColor: Colors.light.blackBackground,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
@@ -169,8 +169,8 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     width: "100%",
-    marginTop: hp(7),
-    marginBottom: hp(3),
+    marginTop: hp(5),
+    //marginBottom: hp(7),
   },
 
   line: {

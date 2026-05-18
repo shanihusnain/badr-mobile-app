@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
   },
   inputWrapper: {
     backgroundColor: Colors.light.calendarBg,
-    borderRadius: 16,
+    borderRadius: 7,
     paddingHorizontal: 12,
     paddingVertical: 3,
     marginTop: hp(1),
