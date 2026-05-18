@@ -17,12 +17,13 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { z } from "zod";
 
-import Backbutton from "../../../components/atoms/Backbutton";
 import { styles } from "./style";
+import { useTranslation } from "react-i18next";
 
 export default function LoginScreen() {
   const router = useRouter();
   const { loginSchema } = useValidations();
+  const { t } = useTranslation();
 
   const {
     control,
@@ -60,18 +61,20 @@ export default function LoginScreen() {
             behavior={Platform.OS === "ios" ? "padding" : "height"}
             keyboardVerticalOffset={0}
           >
+
+            
             <View style={styles.bottomSheet}>
               <View style={styles.bottomSheetContent}>
                 <View style={styles.formWrapper}>
                   <CustomTextInput
-                    placeholder="Email Address"
+                    placeholder={t("loginScreen.emailPlaceholder")}
                     control={control}
                     name="email"
                     errors={errors.email?.message ? [errors.email.message] : []}
                   />
 
                   <CustomTextInput
-                    placeholder="Password"
+                    placeholder={t("loginScreen.passwordPlaceholder")}
                     control={control}
                     name="password"
                     showEye
@@ -87,20 +90,20 @@ export default function LoginScreen() {
                     onPress={handleForgotPassword}
                   >
                     <Text style={styles.forgotPasswordText}>
-                      Forgot Password?
+                      {t("loginScreen.forgotPassword")}
                     </Text>
                   </TouchableOpacity>
                 </View>
 
                 <View style={styles.buttonWrapper}>
                   <PrimaryButton
-                    text="LOG IN"
+                    text={t("loginScreen.loginBtnText")}
                     onPress={handleSubmit(onSubmit)}
                   />
 
                   <View style={styles.orloginContainer}>
                     <View style={styles.line} />
-                    <Text style={styles.orloginText}>Or login with</Text>
+                    <Text style={styles.orloginText}>{t("loginScreen.orLoginWith")}</Text>
                     <View style={styles.line} />
                   </View>
                 </View>

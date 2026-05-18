@@ -4,11 +4,13 @@ import React from "react";
 import { Pressable, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { styles } from "./styles";
+import { useTranslation } from "react-i18next";
 
 const backgroundImage = require("../../../assets/images/react-logo.png");
 
 export default function IntroScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
 
   const handlePress = () => {
     router.push("/free_trial");
@@ -24,13 +26,11 @@ export default function IntroScreen() {
         />
 
         <Text style={styles.introText}>
-          Embark on your journey to become a better Muslim with Badar
+          {t("introScreen.introText")}
         </Text>
 
         <Text style={styles.subtitleText}>
-          Set ibadat goal, track progress in real-time, and elevate
-          your journey as a devoted Muslim with a reflective journal
-          and enriching experiences islamic content
+          {t("introScreen.subtitleText")}
         </Text>
       </SafeAreaView>
     </Pressable>

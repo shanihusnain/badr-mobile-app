@@ -2,8 +2,10 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { useWindowDimensions } from "react-native";
 import { styles } from "./styles";
+import { useTranslation } from "react-i18next";
 
 export const usePaymentMethodProps = () => {
+  const { t } = useTranslation();
   const [selectedPlan, setSelectedPlan] = useState("monthly");
   const [activeSlide, setActiveSlide] = useState(0);
   const { width } = useWindowDimensions();
@@ -12,33 +14,33 @@ export const usePaymentMethodProps = () => {
   const slides = [
     {
       id: 0,
-      title: "3-Month Plan",
-      price: "$9.99 / month after",
-      subtitle: "$0 for 2 months",
-      description: "Save 9%",
-      description1: "Billed every 3 months",
-      buttonText: "GET BADR 3-MONTH PLAN",
-      fulldescription: "$0 for 2 months, then $29.99 every 3 months after. If you've already used your free trial before, billing begins immediately."
+      title: t("paymentMethodScreen.plan3Month"),
+      price: t("paymentMethodScreen.price3Month"),
+      subtitle: t("paymentMethodScreen.subtitle3Month"),
+      description: t("paymentMethodScreen.save3Month"),
+      description1: t("paymentMethodScreen.billing3Month"),
+      buttonText: t("paymentMethodScreen.btn3Month"),
+      fulldescription: t("paymentMethodScreen.desc3Month")
     },
     {
       id: 1,
-      title: "6-Month Plan",
-      price: "$9.17 / month after",
-      subtitle: "$0 for 2 months ",
-      description: "Save 17%",
-      description1: "Billed every 6 months",
-      buttonText: "GET BADR 6-MONTH PLAN",
-      fulldescription: "$0 for 2 months, then $54.99 every 3 months after. If you've already used your free trial before, billing begins immediately."
+      title: t("paymentMethodScreen.plan6Month"),
+      price: t("paymentMethodScreen.price6Month"),
+      subtitle: t("paymentMethodScreen.subtitle6Month"),
+      description: t("paymentMethodScreen.save6Month"),
+      description1: t("paymentMethodScreen.billing6Month"),
+      buttonText: t("paymentMethodScreen.btn6Month"),
+      fulldescription: t("paymentMethodScreen.desc6Month")
     },
     {
       id: 2,
-      title: "Annual Plan",
-      price: "$8.33 / month after",
-      subtitle: "$0 for 2 months ",
-      description: "save 24%",
-      description1: "Billed yearly",
-      buttonText: "GET BADR ANNUAL PLAN",
-      fulldescription: "$0 for 2 months, then $99.99 every 3 months after. If you've already used your free trial before, billing begins immediately."
+      title: t("paymentMethodScreen.planAnnual"),
+      price: t("paymentMethodScreen.priceAnnual"),
+      subtitle: t("paymentMethodScreen.subtitleAnnual"),
+      description: t("paymentMethodScreen.saveAnnual"),
+      description1: t("paymentMethodScreen.billingAnnual"),
+      buttonText: t("paymentMethodScreen.btnAnnual"),
+      fulldescription: t("paymentMethodScreen.descAnnual")
     },
   ];
 
@@ -70,9 +72,9 @@ export const usePaymentMethodProps = () => {
     }
   };
   const paymentMethods = [
-    { title: "Debit / Credit Card", onPress: handleDebitCreditPress, style: undefined },
-    { title: "Google Pay", onPress: undefined, style: styles.cardSpacing },
-    { title: "Apple Pay", onPress: undefined, style: styles.cardSpacing },
+    { title: t("paymentMethodScreen.debitCreditCard"), onPress: handleDebitCreditPress, style: undefined },
+    { title: t("paymentMethodScreen.googlePay"), onPress: undefined, style: styles.cardSpacing },
+    { title: t("paymentMethodScreen.applePay"), onPress: undefined, style: styles.cardSpacing },
   ];
   return {
     selectedPlan,

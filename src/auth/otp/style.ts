@@ -128,4 +128,11 @@ export const styles = StyleSheet.create({
     width: "105%",
     marginTop: hp(2),
   },
+  errorText: {
+    color: Colors.light.red,
+    fontFamily: fonts.primary.semiBold,
+    fontSize: 12,
+    marginTop: hp(0.5),
+    alignSelf: "flex-start",
+  },
 });

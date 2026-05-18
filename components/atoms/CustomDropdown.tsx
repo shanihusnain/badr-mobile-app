@@ -144,7 +144,7 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
 
 const styles = StyleSheet.create({
   wrapper: {
-    width: "100%",
+    width: "98%",
   },
   label: {
     color: Colors.light.white,
@@ -155,9 +155,9 @@ const styles = StyleSheet.create({
   },
   trigger: {
     backgroundColor: Colors.light.calendarBg,
-    borderRadius: 16,
+    borderRadius: 6,
     paddingHorizontal: 12,
-    paddingVertical: 15,
+    height: 48,
     width: "100%",
     marginTop: hp(1),
     flexDirection: "row",
@@ -180,8 +180,8 @@ const styles = StyleSheet.create({
   },
   menu: {
     backgroundColor: Colors.light.calendarBg,
-    borderRadius: 16,
-    borderWidth: 1,
+    borderRadius: 6,
+    //borderWidth: 1,
     //borderColor: Colors.light.border,
     marginTop: 6,
     paddingVertical: 5,

@@ -16,13 +16,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { z } from "zod";
 
 import { styles } from "./style";
-
-const forgotPasswordSchema = z.object({
-  email: z.string().min(1, "Input missing").email("Invalid email"),
-});
+import { useTranslation } from "react-i18next";
+import { useValidations } from "@/src/validations/useValidations";
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
+  const { forgotPasswordSchema } = useValidations();
 
   const {
     control,
@@ -57,14 +57,13 @@ export default function ForgotPasswordScreen() {
               <View style={styles.bottomSheetContent}>
                 <View style={styles.messageContainer}>
                   <Text style={styles.messageText}>
-                    Enter the email address linked to your account.
-                    {'\n'}We'll send you a 6-digit code to reset your password.
+                    {t("forgotPasswordScreen.description")}
                   </Text>
                 </View>
 
                 <View style={styles.formWrapper}>
                   <CustomTextInput
-                    placeholder="Email Address"
+                    placeholder={t("forgotPasswordScreen.emailPlaceholder")}
                     control={control}
                     name="email"
                     errors={
@@ -77,7 +76,7 @@ export default function ForgotPasswordScreen() {
 
                 <View style={styles.buttonWrapper}>
                   <PrimaryButton
-                    text="SEND"
+                    text={t("forgotPasswordScreen.sendInstructionsBtn")}
                     onPress={handleSubmit(onSubmit)}
                   />
                 </View>

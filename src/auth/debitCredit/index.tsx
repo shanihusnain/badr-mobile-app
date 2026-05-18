@@ -9,7 +9,9 @@ import SecondaryButton from "../../../components/atoms/Secondary-button";
 import GreyButton from "../../../components/atoms/greyButton";
 import { Colors } from "../../../constants/theme";
 import { styles } from "./style";
+import { useTranslation } from "react-i18next";
 export default function DebitCreditScreen() {
+  const { t } = useTranslation();
   const [selectedPlan, setSelectedPlan] = useState("monthly");
   const [cardNumber, setCardNumber] = useState("");
   const [cardDate, setCardDate] = useState("");
@@ -28,7 +30,7 @@ export default function DebitCreditScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Backbutton />
-        <Text style={styles.title}>DEBIT / CREDIT CARD</Text>
+        <Text style={styles.title}>{t("debitCreditScreen.header")}</Text>
         <View style={styles.placeholder} />
       </View>
       <KeyboardAwareScrollView
@@ -38,7 +40,7 @@ export default function DebitCreditScreen() {
       >
         <View style={styles.buttonRow}>
           <PrimaryButton
-            text="Debit Card"
+            text={t("debitCreditScreen.debitCardTab")}
             onPress={() => setSelectedPlan("monthly")}
             style={
               selectedPlan === "monthly"
@@ -47,7 +49,7 @@ export default function DebitCreditScreen() {
             }
           />
           <GreyButton
-            text="Credit Card"
+            text={t("debitCreditScreen.creditCardTab")}
             onPress={() => setSelectedPlan("other")}
             style={
               selectedPlan === "other"
@@ -57,11 +59,11 @@ export default function DebitCreditScreen() {
           />
         </View>
         <View style={styles.cardNumberWrapper}>
-          <Text style={styles.cardNumberLabel}>Card Number</Text>
+          <Text style={styles.cardNumberLabel}>{t("debitCreditScreen.cardNumberLabel")}</Text>
           <View style={styles.cardNumberContainer}>
             <TextInput
               style={styles.cardNumberInput}
-              placeholder="Enter card number"
+              placeholder={t("debitCreditScreen.cardNumberPlaceholder")}
               placeholderTextColor={Colors.light.placeholder}
               value={cardNumber}
               onChangeText={setCardNumber}
@@ -71,11 +73,11 @@ export default function DebitCreditScreen() {
         </View>
         <View style={styles.cardDetailsRow}>
           <View style={styles.cardDetailWrapper}>
-            <Text style={styles.cardDetailLabel}>Card Date</Text>
+            <Text style={styles.cardDetailLabel}>{t("debitCreditScreen.cardDateLabel")}</Text>
             <View style={styles.cardDetailContainer}>
               <TextInput
                 style={styles.cardDetailInput}
-                placeholder="MM/YY"
+                placeholder={t("debitCreditScreen.cardDatePlaceholder")}
                 placeholderTextColor={Colors.light.placeholder}
                 value={cardDate}
                 onChangeText={setCardDate}
@@ -84,11 +86,11 @@ export default function DebitCreditScreen() {
             </View>
           </View>
           <View style={styles.cardDetailWrapper}>
-            <Text style={styles.cardDetailLabel}>CVV</Text>
+            <Text style={styles.cardDetailLabel}>{t("debitCreditScreen.cvvLabel")}</Text>
             <View style={styles.cardDetailContainer}>
               <TextInput
                 style={styles.cardDetailInput}
-                placeholder="123"
+                placeholder={t("debitCreditScreen.cvvPlaceholder")}
                 placeholderTextColor={Colors.light.placeholder}
                 value={cvv}
                 onChangeText={setCvv}
@@ -99,11 +101,11 @@ export default function DebitCreditScreen() {
           </View>
         </View>
         <View style={styles.userNameWrapper}>
-          <Text style={styles.userNameLabel}>Name</Text>
+          <Text style={styles.userNameLabel}>{t("debitCreditScreen.nameLabel")}</Text>
           <View style={styles.userNameContainer}>
             <TextInput
               style={styles.userNameInput}
-              placeholder="Enter name"
+              placeholder={t("debitCreditScreen.namePlaceholder")}
               placeholderTextColor={Colors.light.placeholder}
               value={userName}
               onChangeText={setUserName}
@@ -118,17 +120,17 @@ export default function DebitCreditScreen() {
             style={styles.checkbox}
           />
           <Text style={styles.checkboxLabel}>
-            Save card for future checkouts
+            {t("debitCreditScreen.saveCardLabel")}
           </Text>
         </View>
         <View style={styles.actionButtonsWrapper}>
           <PrimaryButton
-            text="PAY NOW"
+            text={t("debitCreditScreen.payNowBtn")}
             onPress={handlePayNow}
             style={styles.primaryActionButton}
           />
           <SecondaryButton
-            text="CANCEL PAYMENT"
+            text={t("debitCreditScreen.cancelPaymentBtn")}
             onPress={handleCancelPayment}
             style={styles.cancelButton}
             textStyle={styles.cancelButtonText}

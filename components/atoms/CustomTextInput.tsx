@@ -12,6 +12,8 @@ import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 import { Controller } from "react-hook-form";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
+import { useTranslation } from "react-i18next";
+import AntDesign from "@expo/vector-icons/AntDesign";
 interface CustomTextInputProps {
   label?: string;
   placeholder: string;
@@ -45,6 +47,9 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
   control,
   name,
 }) => {
+  const { i18n } = useTranslation();
+  const isRtl = i18n.language === "ar";
+
   return (
     <Controller
       name={name}
@@ -59,7 +64,8 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
               <TextInput
                 style={[
                   styles.input,
-                  //inputStyle,
+                  { textAlign: isRtl ? "right" : "left" },
+                  secureTextEntry && { fontFamily: undefined }
                 ]}
                 placeholder={placeholder}
                 placeholderTextColor={Colors.light.icon}
@@ -70,9 +76,11 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
             </View>
             {showEye && onToggleEye && (
               <TouchableOpacity onPress={onToggleEye}>
-                <Text style={{ fontSize: 16, color: Colors.light.white }}>
-                  👁️
-                </Text>
+                <AntDesign
+                  name={secureTextEntry ? "eye-invisible" : "eye"}
+                  size={20}
+                  color={Colors.light.white}
+                />
               </TouchableOpacity>
             )}
           </View>
@@ -106,15 +114,17 @@ const styles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
     fontSize: 12,
+    padding: 0,
+    includeFontPadding: false,
   },
   flex1: {
     flex: 1,
   },
   inputWrapper: {
     backgroundColor: Colors.light.calendarBg,
-    borderRadius: 7,
+    borderRadius: 6,
     paddingHorizontal: 12,
-    paddingVertical: 3,
+    height: 48,
     marginTop: hp(1),
     flexDirection: "row",
     alignItems: "center",

@@ -14,10 +14,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { z } from "zod";
 import createStyles from "./style";
 import { useValidations } from "@/src/validations/useValidations";
+import { useTranslation } from "react-i18next";
 
 export default function ConfirmPasswordScreen() {
   const styles = createStyles();
   const { confirmPasswordSchema } = useValidations();
+  const { t } = useTranslation();
 
   const {
     control,
@@ -58,7 +60,7 @@ export default function ConfirmPasswordScreen() {
                 <View style={styles.formWrapper}>
                   <CustomTextInput
                     //label="Password"
-                    placeholder="New Password"
+                    placeholder={t("confirmPasswordScreen.newPasswordPlaceholder")}
                     control={control}
                     name="password"
                     showEye
@@ -68,7 +70,7 @@ export default function ConfirmPasswordScreen() {
                   />
                   <CustomTextInput
                     //label="Confirm Password"
-                    placeholder="Confirm Password"
+                    placeholder={t("confirmPasswordScreen.confirmPasswordPlaceholder")}
                     control={control}
                     name="confirmPassword"
                     showEye
@@ -83,7 +85,7 @@ export default function ConfirmPasswordScreen() {
                 </View>
                 <View style={styles.buttonWrapper}>
                   <PrimaryButton
-                    text="UPDATE PASSWORD"
+                    text={t("confirmPasswordScreen.updatePasswordBtn")}
                     onPress={handleSubmit(onUpdatePassword)}
                   />
                 </View>

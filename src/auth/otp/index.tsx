@@ -14,10 +14,12 @@ import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Backbutton from "../../../components/atoms/Backbutton";
 import { styles } from "./style";
+import { useTranslation } from "react-i18next";
 
 export default function OtpScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ fromsignup?: string }>();
+  const { t } = useTranslation();
 
   const [buttonText, setButtonText] = useState("Verify");
   console.log("OTP Screen params:", params);
@@ -25,6 +27,7 @@ export default function OtpScreen() {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [timer, setTimer] = useState(60);
+  const [error, setError] = useState<string | null>(null);
 
   const inputRefs = useRef<(TextInput | null)[]>([]);
 
@@ -49,6 +52,7 @@ export default function OtpScreen() {
     const newOtp = [...otp];
     newOtp[index] = value;
     setOtp(newOtp);
+    setError(null);
 
     if (value && index < 5) {
       inputRefs.current[index + 1]?.focus();
@@ -82,17 +86,23 @@ export default function OtpScreen() {
 
   const getBtnTitle = () => {
     return params?.fromsignup === "true"
-      ? "ACTIVATE"
-      : "VERIFY";
+      ? t("otpScreen.activateBtn")
+      : t("otpScreen.verifyBtn");
   };
 
   const getDescriptionText = () => {
     return params?.fromsignup === "true"
-      ? "Enter the 6-digit OTP sent to your email so we can\nactivate your account."
-      : "Enter the 6-digit OTP sent to your email so we can\nverify it's you.";
+      ? t("otpScreen.activateDescription")
+      : t("otpScreen.verifyDescription");
   };
 
   const navigationBasedOnParams = () => {
+    const isComplete = otp.every((digit) => digit !== "");
+    if (!isComplete) {
+      setError(t("validations.inputMissing"));
+      return;
+    }
+    setError(null);
     if (params?.fromsignup === "true") {
       router.push("/paymentMethod");
     } else {
@@ -105,14 +115,14 @@ export default function OtpScreen() {
   useEffect(() => {
     if (params?.fromsignup === "true") {
       navigation.setOptions({
-        title: "VERIFY EMAIL",
+        title: t("otpScreen.verifyEmailTitle"),
       });
     } else {
       navigation.setOptions({
-        title: "FORGOT PASSWORD",
+        title: t("otpScreen.forgotPasswordTitle"),
       });
     }
-  }, [navigation, params?.fromsignup]);
+  }, [navigation, params?.fromsignup, t]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -152,6 +162,10 @@ export default function OtpScreen() {
               ))}
             </View>
 
+            {error && (
+              <Text style={styles.errorText}>{error}</Text>
+            )}
+
             <View style={styles.resendContainer}>
               <TouchableOpacity onPress={handleResend}>
                 <Text
@@ -160,12 +174,12 @@ export default function OtpScreen() {
                     styles.resendActionUnderline,
                   ]}
                 >
-                  Resend
+                  {t("otpScreen.resend")}
                 </Text>
               </TouchableOpacity>
 
               <Text style={styles.resendText}>
-                OTP Code
+                {t("otpScreen.otpCode")}
               </Text>
             </View>
 

@@ -1,28 +1,26 @@
+import { useTranslation } from "react-i18next";
+
 export const useFreeTrialProps = () => {
+  const { t } = useTranslation();
+
   const texts = [
     {
-      title:
-        "Monthly goal setting and tracking to enrich your journey with personalized insights.",
+      title: t("freeTrialScreen.feature1"),
     },
     {
-      title:
-        "A journal feature focused on character development, helping you be mindful of your behaviors aligned with Islamic values.",
+      title: t("freeTrialScreen.feature2"),
     },
     {
-      title:
-        "Customized notifications to help you stay on track by setting reminders and schedules.",
+      title: t("freeTrialScreen.feature3"),
     },
     {
-      title:
-        "A private community to connect with friends and family, share progress, and provide mutual support.",
+      title: t("freeTrialScreen.feature4"),
     },
     {
-      title:
-        "Rich Islamic content to support your spiritual journey, including articles, podcasts, and videos.",
+      title: t("freeTrialScreen.feature5"),
     },
     {
-      title:
-        "Monthly achievement reports, illuminating your progress and fostering continuous growth.",
+      title: t("freeTrialScreen.feature6"),
     },
   ];
   return {

@@ -18,6 +18,7 @@ import { store } from "@/src/store/store";
 import { Colors } from "@/constants/theme";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import "@/i18next/i18next";
+import { useTranslation } from "react-i18next";
 
 export const unstable_settings = {
   anchor: "welcome",
@@ -26,6 +27,7 @@ export const unstable_settings = {
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme();
   const [loaded, error] = useFonts(fontAssets);
 
@@ -53,7 +55,7 @@ export default function RootLayout() {
                 headerShown: true,
                 header: () => (
                   <Header
-                    title="LOGIN"
+                    title={t("loginScreen.title").toUpperCase()}
                     backgroundColor={Colors.light.buttonBackground}
                   />
                 ),
@@ -77,7 +79,7 @@ export default function RootLayout() {
                 headerShown: true,
                 header: () => (
                   <Header
-                    title="FORGOT PASSWORD"
+                    title={t("forgotPasswordScreen.title").toUpperCase()}
                     backgroundColor={Colors.light.buttonBackground}
                   />
                 ),
@@ -87,7 +89,7 @@ export default function RootLayout() {
               name="createaccount"
               options={{
                 headerShown: true,
-                header: () => <Header title="CREATE ACCOUNT" />,
+                header: () => <Header title={t("createAccountScreen.createAccountBtn")} />,
               }}
             />
             <Stack.Screen
@@ -103,7 +105,7 @@ export default function RootLayout() {
                 headerShown: true,
                 header: () => (
                   <Header
-                    title="FORGOT PASSWORD"
+                    title={t("forgotPasswordScreen.title").toUpperCase()}
                     backgroundColor={Colors.light.buttonBackground}
                   />
                 ),

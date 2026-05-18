@@ -1,68 +1,70 @@
 import z from "zod";
+import { useTranslation } from "react-i18next";
 import ForgotPasswordScreen from "../auth/forgotpassword";
 
 export const useValidations = () => {
+  const { t } = useTranslation();
   const createAccountSchema = z
     .object({
-      name: z.string().min(1, "Input missing"),
+      name: z.string().min(1, t("validations.inputMissing")),
       password: z
         .string()
-        .min(1, "Input missing")
-        .min(8, "Password must be at least 8 characters")
-        .regex(/[A-Z]/, "Must contain uppercase")
-        .regex(/[a-z]/, "Must contain lowercase")
-        .regex(/[0-9]/, "Must contain number")
+        .min(1, t("validations.inputMissing"))
+        .min(8, t("validations.passwordMin"))
+        .regex(/[A-Z]/, t("validations.mustContainUppercase"))
+        .regex(/[a-z]/, t("validations.mustContainLowercase"))
+        .regex(/[0-9]/, t("validations.mustContainNumber"))
         .regex(
           /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/,
-          "Must contain special character",
+          t("validations.mustContainSpecialChar"),
         ),
-      confirmPassword: z.string().min(1, "Input missing"),
-      email: z.string().min(1, "Input missing").email("Invalid email"),
-      gender: z.string().min(1, "Input missing"),
-      dob: z.string().min(1, "Input missing"),
-      country: z.string().min(1, "Input missing"),
-      dateView: z.string().min(1, "Input missing"),
-      week: z.string().min(1, "Input missing"),
+      confirmPassword: z.string().min(1, t("validations.inputMissing")),
+      email: z.string().min(1, t("validations.inputMissing")).email(t("validations.invalidEmail")),
+      gender: z.string().min(1, t("validations.inputMissing")),
+      dob: z.string().min(1, t("validations.inputMissing")),
+      country: z.string().min(1, t("validations.inputMissing")),
+      dateView: z.string().min(1, t("validations.inputMissing")),
+      week: z.string().min(1, t("validations.inputMissing")),
     })
     .refine((data) => data.password === data.confirmPassword, {
-      message: "Passwords don't match",
+      message: t("validations.passwordsDontMatch"),
       path: ["confirmPassword"],
     });
   const loginSchema = z.object({
-    email: z.string().min(1, "Input missing").email("Invalid email"),
+    email: z.string().min(1, t("validations.inputMissing")).email(t("validations.invalidEmail")),
     password: z
       .string()
-      .min(1, "Input missing")
-      .min(8, "Password must be at least 8 characters")
-      .regex(/[A-Z]/, "Must contain uppercase")
-      .regex(/[a-z]/, "Must contain lowercase")
-      .regex(/[0-9]/, "Must contain number")
+      .min(1, t("validations.inputMissing"))
+      .min(8, t("validations.passwordMin"))
+      .regex(/[A-Z]/, t("validations.mustContainUppercase"))
+      .regex(/[a-z]/, t("validations.mustContainLowercase"))
+      .regex(/[0-9]/, t("validations.mustContainNumber"))
       .regex(
         /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/,
-        "Must contain special character",
+        t("validations.mustContainSpecialChar"),
       ),
   });
   const forgotPasswordSchema = z.object({
-    email: z.string().min(1, "Input missing").email("Invalid email"),
+    email: z.string().min(1, t("validations.inputMissing")).email(t("validations.invalidEmail")),
   });
 
   const confirmPasswordSchema = z
     .object({
       password: z
         .string()
-        .min(1, "Input missing")
-        .min(8, "Password must be at least 8 characters")
-        .regex(/[A-Z]/, "Must contain uppercase")
-        .regex(/[a-z]/, "Must contain lowercase")
-        .regex(/[0-9]/, "Must contain number")
+        .min(1, t("validations.inputMissing"))
+        .min(8, t("validations.passwordMin"))
+        .regex(/[A-Z]/, t("validations.mustContainUppercase"))
+        .regex(/[a-z]/, t("validations.mustContainLowercase"))
+        .regex(/[0-9]/, t("validations.mustContainNumber"))
         .regex(
           /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/,
-          "Must contain special character",
+          t("validations.mustContainSpecialChar"),
         ),
-      confirmPassword: z.string().min(1, "Input missing"),
+      confirmPassword: z.string().min(1, t("validations.inputMissing")),
     })
     .refine((data) => data.password === data.confirmPassword, {
-      message: "Passwords don't match",
+      message: t("validations.passwordsDontMatch"),
       path: ["confirmPassword"],
     });
   return {

@@ -1,8 +1,10 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "expo-router";
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Platform, View } from "react-native";
+import { Platform, View, Image, TouchableOpacity } from "react-native";
+import * as ImagePicker from "expo-image-picker";
+import AntDesign from "@expo/vector-icons/AntDesign";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { z } from "zod";
@@ -14,11 +16,13 @@ import { Colors } from "@/constants/theme";
 import { useValidations } from "@/src/validations/useValidations";
 import { useCreateAccountProps } from "./useCreateAccountProps";
 import PrimaryButton from "@/components/atoms/Primary-button";
+import { useTranslation } from "react-i18next";
 
 export default function CreateAccountScreen() {
   const styles = createStyles();
   const router = useRouter();
   const { createAccountSchema } = useValidations();
+  const { t } = useTranslation();
 
   const {
     genders,
@@ -44,6 +48,20 @@ export default function CreateAccountScreen() {
     defaultValues,
   });
 
+  const [image, setImage] = useState<string | null>(null);
+
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setImage(result.assets[0].uri);
+    }
+  };
+
   const onSubmit = (data: z.infer<typeof createAccountSchema>) => {
     router.push({
       pathname: "./verifyemail/[fromsignup]",
@@ -53,6 +71,7 @@ export default function CreateAccountScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAwareScrollView
+        style={{ width: "100%" }}
         contentContainerStyle={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
         enableOnAndroid
@@ -61,19 +80,30 @@ export default function CreateAccountScreen() {
         extraScrollHeight={Platform.OS === "ios" ? 20 : 100}
         keyboardOpeningTime={0}
       >
+        <TouchableOpacity style={styles.avatarContainer} onPress={pickImage} activeOpacity={0.8}>
+          {image ? (
+            <Image source={{ uri: image }} style={styles.avatarImage} />
+          ) : (
+            <AntDesign name="user" size={40} color={Colors.light.white} />
+          )}
+          <View style={styles.cameraIconContainer}>
+            <AntDesign name="camera" size={14} color={Colors.light.white} />
+          </View>
+        </TouchableOpacity>
+
         <CustomTextInput
-          label="Username"
+          label={t("createAccountScreen.usernameLabel")}
           labelStyle={{ color: Colors.light.grey }}
-          placeholder="Enter user name"
+          placeholder={t("createAccountScreen.usernamePlaceholder")}
           value={defaultValues.name}
           errors={errors.name?.message ? [errors.name.message] : []}
           control={control}
           name="name"
         />
         <CustomTextInput
-          label="Password"
+          label={t("createAccountScreen.passwordLabel")}
           labelStyle={{ color: Colors.light.grey }}
-          placeholder="Enter password"
+          placeholder={t("createAccountScreen.passwordPlaceholder")}
           value={defaultValues.password}
           errors={errors.password?.message ? [errors.password.message] : []}
           control={control}
@@ -83,9 +113,9 @@ export default function CreateAccountScreen() {
           onToggleEye={onPasswordToggle}
         />
         <CustomTextInput
-          label="Confirm Password"
+          label={t("createAccountScreen.confirmPasswordLabel")}
           labelStyle={{ color: Colors.light.grey }}
-          placeholder="Enter password"
+          placeholder={t("createAccountScreen.confirmPasswordPlaceholder")}
           value={defaultValues.confirmPassword}
           errors={
             errors.confirmPassword?.message
@@ -99,18 +129,18 @@ export default function CreateAccountScreen() {
           onToggleEye={onConfirmPasswordToggle}
         />
         <CustomTextInput
-          label="Email Address"
+          label={t("createAccountScreen.emailLabel")}
           labelStyle={{ color: Colors.light.grey }}
-          placeholder="Enter email address"
+          placeholder={t("createAccountScreen.emailPlaceholder")}
           value={defaultValues.email}
           errors={errors.email?.message ? [errors.email.message] : []}
           control={control}
           name="email"
         />
         <CustomDropdown
-          label="Gender"
+          label={t("createAccountScreen.genderLabel")}
           labelStyle={{ color: Colors.light.grey }}
-          placeholder="Enter Gender"
+          placeholder={t("createAccountScreen.genderPlaceholder")}
           options={genders}
           errors={errors.gender?.message ? [errors.gender.message] : []}
           control={control}
@@ -118,18 +148,18 @@ export default function CreateAccountScreen() {
         />
 
         <CustomDatePicker
-          label="Date Of Birth"
+          label={t("createAccountScreen.dobLabel")}
           labelStyle={{ color: Colors.light.grey }}
-          placeholder="Enter Date Of Birth"
+          placeholder={t("createAccountScreen.dobPlaceholder")}
           control={control}
           name="dob"
           errors={errors.dob?.message ? [errors.dob.message] : []}
         />
 
         <CustomDropdown
-          label="Country"
+          label={t("createAccountScreen.countryLabel")}
           labelStyle={{ color: Colors.light.grey }}
-          placeholder="Country"
+          placeholder={t("createAccountScreen.countryPlaceholder")}
           options={countries}
           errors={errors.country?.message ? [errors.country.message] : []}
           containerStyle={styles.countryContainer}
@@ -139,9 +169,9 @@ export default function CreateAccountScreen() {
         />
 
         <CustomDropdown
-          label="Your Preferred Date View"
+          label={t("createAccountScreen.dateViewLabel")}
           labelStyle={{ color: Colors.light.grey }}
-          placeholder="Select Date View"
+          placeholder={t("createAccountScreen.dateViewPlaceholder")}
           options={calendarView}
           errors={errors.dateView?.message ? [errors.dateView.message] : []}
           containerStyle={styles.dateviewContainer}
@@ -151,9 +181,9 @@ export default function CreateAccountScreen() {
         />
 
         <CustomDropdown
-          label="Your Weekend Days"
+          label={t("createAccountScreen.weekendDaysLabel")}
           labelStyle={{ color: Colors.light.grey }}
-          placeholder="Select Week Days"
+          placeholder={t("createAccountScreen.weekendDaysPlaceholder")}
           options={weekDays}
           errors={errors.week?.message ? [errors.week.message] : []}
           containerStyle={styles.weekContainer}
@@ -163,7 +193,7 @@ export default function CreateAccountScreen() {
         />
         <View style={styles.btnWrapper}>
           <PrimaryButton
-            text="CREATE ACCOUNT"
+            text={t("createAccountScreen.createAccountBtn")}
             onPress={handleSubmit(onSubmit)}
           />
         </View>
