@@ -1,6 +1,7 @@
 import { Colors } from "@/constants/theme";
 import { useState } from "react";
 import { StyleSheet, useWindowDimensions, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import Carousel from "react-native-reanimated-carousel";
 import { GoalCard, type GoalCardData } from "./GoalCard";
 
@@ -28,6 +29,8 @@ export const GoalCardCarousel = ({ data }: Props) => {
   const cardWidth = windowWidth - SCREEN_H_PADDING * 2;
   const containerHeight = CARD_HEIGHT + STACK_OFFSET_Y * PEEK_VISIBLE;
 
+  const { i18n } = useTranslation();
+  const isRtl = i18n.language === "ar";
   const [activeIndex, setActiveIndex] = useState(0);
 
   return (
@@ -47,7 +50,7 @@ export const GoalCardCarousel = ({ data }: Props) => {
       />
 
       {/* Dot indicators */}
-      <View style={styles.dotsRow}>
+      <View style={[styles.dotsRow, { flexDirection: isRtl ? "row-reverse" : "row" }]}>
         {data.map((_, i) => (
           <View
             key={i}

@@ -33,7 +33,7 @@ export const GoalProgressCard = ({
       <Text style={styles.currentDayText}>
         {currentDay}
         <Text style={styles.daysLeftText}>
-          {`/${totalDays} ${t("SetGoals.daysLeft")}`}
+          {`/${totalDays} ${t("setpersonalizedgoals.daysLeft")}`}
         </Text>
       </Text>
 
@@ -45,12 +45,12 @@ export const GoalProgressCard = ({
       {/* ── Stats row ── */}
       <View style={[globalStyles.rowCenter, styles.statsRow]}>
         <View style={styles.statItem}>
-          <Text style={styles.statLabel}>{t("SetGoals.days")}</Text>
+          <Text style={styles.statLabel}>{t("setpersonalizedgoals.days")}</Text>
           <Text style={styles.statValue}>{lastActiveDays}</Text>
         </View>
 
         <View style={styles.statItem}>
-          <Text style={styles.statLabel}>{t("SetGoals.overall progress")}</Text>
+          <Text style={styles.statLabel}>{t("setpersonalizedgoals.overall progress")}</Text>
           <Text style={styles.statValue}>{`${overallProgress}%`}</Text>
         </View>
       </View>

@@ -9,9 +9,10 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 interface HeaderProps {
   title: string;
   backgroundColor?: string;
+  onBackPress?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ title, backgroundColor }) => {
+const Header: React.FC<HeaderProps> = ({ title, backgroundColor, onBackPress }) => {
   const insets = useSafeAreaInsets();
   return (
     <View
@@ -26,7 +27,7 @@ const Header: React.FC<HeaderProps> = ({ title, backgroundColor }) => {
         backgroundColor: backgroundColor ?? Colors.light.blackBackground,
       }}
     >
-      <BackButton />
+      <BackButton onPress={onBackPress} />
       {title ? (
         <Text
           style={{

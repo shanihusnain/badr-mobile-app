@@ -5,7 +5,11 @@ import { StyleSheet, TouchableOpacity } from "react-native";
 import { Colors } from "../../constants/theme";
 import { useTranslation } from "react-i18next";
 
-export default function BackButton() {
+interface BackButtonProps {
+  onPress?: () => void;
+}
+
+export default function BackButton({ onPress }: BackButtonProps) {
   const router = useRouter();
   const { i18n } = useTranslation();
   const isRtl = i18n.language === "ar";
@@ -24,7 +28,7 @@ export default function BackButton() {
   return (
     <TouchableOpacity
       style={styles.backButtonContainer}
-      onPress={() => router.back()}
+      onPress={onPress ?? (() => router.back())}
     >
       <Feather
         name={isRtl ? "chevron-right" : "chevron-left"}

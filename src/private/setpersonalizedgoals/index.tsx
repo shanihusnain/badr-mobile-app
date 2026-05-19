@@ -19,18 +19,20 @@ import {
 } from "react-native";
 import { useCallback, useEffect, useState } from "react";
 import { router, useNavigation } from "expo-router";
-import { GreenTextButton } from "@/components/atoms/GreenTextButton";
+import PrimaryButton from "@/components/atoms/Primary-button";
 import { FrameIndicator } from "./components/FrameIndicator";
 import { GoalProgressCard } from "./components/GoalProgressCard";
 import { TutorialVideoPlayer } from "./components/TutorialVideoPlayer";
 import { styles } from "./styles";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/theme";
+import Header from "@/components/Header";
 
 export const SetPersonalizedGoalsScreen = () => {
   const { t, i18n } = useTranslation();
   const navigation = useNavigation();
   const currentLanguage = i18n.language as SupportedLanguage;
+  const isRtl = i18n.language === "ar";
 
   const handleLanguageChange = useCallback(
     (lang: SupportedLanguage) => {
@@ -65,20 +67,22 @@ export const SetPersonalizedGoalsScreen = () => {
   useEffect(() => {
     if (activeFrame === 2) {
       navigation.setOptions({
-        title: t("SetGoals.tutorial"),
-        headerTitleAlign: "center",
-        headerLeft: () => (
-          <Pressable onPress={() => setActiveFrame(1)} hitSlop={8}>
-            <Ionicons name="arrow-back" size={22} color={Colors.light.white} />
-          </Pressable>
+        headerShown: true,
+        header: () => (
+          <Header
+            title={t("setpersonalizedgoals.tutorial")}
+            onBackPress={() => setActiveFrame(1)}
+          />
         ),
       });
     } else {
       navigation.setOptions({
-        title: t("SetGoals.Setyourperosnalizedgoals"),
-        headerTitleAlign: "left",
-        headerLeft: () => null,
-        headerBackVisible: false,
+        headerShown: true,
+        header: () => (
+          <Header
+            title={t("setpersonalizedgoals.Setyourperosnalizedgoals")}
+          />
+        ),
       });
     }
   }, [activeFrame, navigation, t]);
@@ -96,7 +100,7 @@ export const SetPersonalizedGoalsScreen = () => {
       {activeFrame === 1 && (
         <View style={globalStyles.rowCenter}>
           <GreenDash />
-          <Text style={styles.howItWorksText}>{t("SetGoals.howItWorks")}</Text>
+          <Text style={styles.howItWorksText}>{t("setpersonalizedgoals.howItWorks")}</Text>
         </View>
       )}
       <FrameIndicator total={2} active={activeFrame} />
@@ -112,16 +116,18 @@ export const SetPersonalizedGoalsScreen = () => {
         <>
           <TopSpace top={16} />
           <Text style={styles.descriptionText}>
-            {t("SetGoals.setPersonalizedDescription")}
+            {t("setpersonalizedgoals.setPersonalizedDescription")}
           </Text>
         </>
       )}
       {activeFrame === 2 && <TutorialVideoPlayer onSkip={handleSkipTutorial} />}
       {/* ── Language Switcher (dummy) ── */}
-      <GreenTextButton
-        title="WATCH OUR TUTORIAL"
-        onPress={onWatchTutorialPress}
-      />
+      {activeFrame === 1 && (
+        <PrimaryButton
+          text={t("setpersonalizedgoals.watchTutorial")}
+          onPress={onWatchTutorialPress}
+        />
+      )}
       <TopSpace top={32} />
       <View style={styles.languageRow}>
         {SUPPORTED_LANGUAGES.map((lang) => {

@@ -35,7 +35,7 @@ export const TutorialVideoPlayer = ({
         allowsPictureInPicture
       />
       <Pressable style={styles.skipBtn} onPress={onSkip}>
-        <Text style={styles.skipText}>{t("SetGoals.skip")}</Text>
+        <Text style={styles.skipText}>{t("setpersonalizedgoals.skip")}</Text>
       </Pressable>
     </View>
   );
