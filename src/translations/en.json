@@ -1,5 +1,5 @@
 {
-  "SetGoals": {
+  "setpersonalizedgoals": {
     "Setyourperosnalizedgoals": "SET YOUR PERSONALIZED IBADAT GOALS",
     "howItWorks": "HOW DOES IT WORK?",
     "daysLeft": "Days Left",
@@ -148,5 +148,39 @@
     "mustContainSpecialChar": "Must contain special character",
     "invalidEmail": "Invalid email",
     "passwordsDontMatch": "Passwords don't match"
+  },
+  "monthlyGoalPlanner": {
+    "title": "MONTHLY GOAL PLANNER",
+    "heading": "LET'S BEGIN SETTING YOUR MONTHLY GOALS!",
+    "subheading": "Now that you've learned how the goal-setting feature works, here's a summary before you get started.",
+    "summaryText1": "Choose when your ",
+    "summaryTextBold1": "4-week goal cycle ",
+    "summaryText2": "begins, ",
+    "summaryTextBold2": "set goals ",
+    "summaryText3": "across 4 categories, then ",
+    "summaryTextBold3": "review and confirm ",
+    "summaryText4": "your plan!",
+    "card1Title": "Reflect and Set Goals",
+    "card1Desc": "Dedicate 20-30 minutes to choose ibadat practices that align with your aspirations. Cherish this time as a chance to deepen your connection with Allah (SWT) and set meaningful intentions.",
+    "card2Title": "Review Options Before Choosing",
+    "card2Desc": "Before adding a goal to your plan, tap each option to learn more. This helps you understand its purpose and importance, so you can choose goals that align with your spiritual priorities.",
+    "card3Title": "Save and Resume Anytime",
+    "card3Desc": "Select and save goals individually, giving you the freedom to pause and return anytime. With progress saved, you can explore options at your own pace for a stress-free, thoughtful experience.",
+    "card4Title": "Confirm Goals and Begin Your 4-Week Cycle",
+    "card4Desc": "After selecting goals, confirm them to start your 4-week cycle the next day. You'll have the entire 4 weeks to achieve them, helping you track progress and build consistency.",
+    "card5Title": "Stay Committed to Your Plan",
+    "card5Desc": "Once confirmed, goals can't be edited and remain locked for 4 weeks, promoting commitment to your targets and supporting a mindful, fulfilling spiritual routine.",
+    "card6Title": "Plan Ahead for Smooth Transitions",
+    "card6Desc": "Set new goals as your 4-week cycle nears its end. Don't worry-we'll send a reminder! If you don't update them, your current goals will automatically renew for another 4 weeks.",
+    "step1Title": "Select Cycle Start Date",
+    "step2Title": "Category 1 Prayer Goals",
+    "step2Category": "Category 1",
+    "step3Title": "Category 2 Quran Goals",
+    "step3Category": "Category 2",
+    "step4Title": "Category 3 Fasting Goals",
+    "step4Category": "Category 3",
+    "step5Title": "Category 4 Sadaqah Goals",
+    "step5Category": "Category 4",
+    "step6Title": "Review and Confirm"
   }
 }
