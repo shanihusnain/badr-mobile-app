@@ -1,17 +1,19 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
 import React from "react";
-import { Pressable, PressableProps, StyleSheet, Text } from "react-native";
+import { Pressable, PressableProps, StyleSheet, Text, StyleProp, TextStyle } from "react-native";
 
 interface PrimaryButtonProps extends PressableProps {
   text: string;
   onPress: () => void;
+  textStyle?: StyleProp<TextStyle>;
 }
 
 export default function PrimaryButton({
   text,
   onPress,
   style,
+  textStyle,
   ...props
 }: PrimaryButtonProps) {
   const styles = StyleSheet.create({
@@ -53,7 +55,7 @@ export default function PrimaryButton({
       onPress={onPress}
       {...props}
     >
-      <Text style={styles.buttonText}>{text}</Text>
+      <Text style={[styles.buttonText, textStyle]}>{text}</Text>
     </Pressable>
   );
 }

@@ -29,6 +29,7 @@ export const Colors = {
     ringMonThu: "#61C8A6",
     subtext: "#999999",
     dullWhite: "#D7D7D7",
+    darkgrey: "#203043",
   },
   dark: {
     text: "#ECEDEE",
