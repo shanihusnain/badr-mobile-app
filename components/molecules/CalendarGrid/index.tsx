@@ -47,8 +47,10 @@ export type CalendarGridProps = {
   dawoodStartDay?: 1 | 2;
   /** Called when the user taps a day cell. */
   onDayPress?: (dateString: string) => void;
-  /** DOB mode: the currently selected date string. */
+  /** DOB / cycle mode: the currently selected (start) date string. */
   selectedDate?: string;
+  /** Cycle mode: the end date of the 28-day range (highlighted with a green ring). */
+  endDate?: string;
 };
 
 // ── Ring colour constants are defined in constants/theme.ts ──────────────────
@@ -62,6 +64,7 @@ export const CalendarGrid = ({
   dawoodStartDay = 1,
   onDayPress,
   selectedDate,
+  endDate,
 }: CalendarGridProps) => {
   const markedSet = new Set(markedDates);
 
@@ -112,6 +115,7 @@ export const CalendarGrid = ({
           const hijriDay = moment(ds, "YYYY-MM-DD").iDate();
           const isToday = ds === moment().format("YYYY-MM-DD");
           const isSelected = ds === selectedDate;
+          const isEndDate = !!endDate && ds === endDate;
           const dayOfWeek = new Date(ds).getDay(); // 0=Sun 1=Mon … 4=Thu
 
           // ── Per-mode styles ───────────────────────────────────────────────
@@ -125,7 +129,7 @@ export const CalendarGrid = ({
           //     cellBg = { backgroundColor: Colors.light.calendarTodayBg };
 
           switch (mode) {
-            // ── Date of Birth ───────────────────────────────────────────────
+            // ── Date of Birth / Cycle Start ─────────────────────────────────
             case "dob": {
               if (isSelected) {
                 cellBg = { backgroundColor: Colors.light.calendarTodayBg };

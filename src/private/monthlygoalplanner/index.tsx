@@ -1,19 +1,19 @@
-import { fonts } from "@/assets/fonts";
 import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { Colors } from "@/constants/theme";
-import { router, useNavigation } from "expo-router";
+import { useNavigation } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useCallback, useEffect } from "react";
-import { FlatList, StyleSheet, Text, View } from "react-native";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { FlatList, Pressable, Text, View } from "react-native";
 import Header from "@/components/Header";
 import type { GoalCardData } from "./components/GoalCard";
 import { GoalCardCarousel } from "./components/GoalCardCarousel";
 import { GoalPlannerSummary } from "./components/GoalPlannerSummary";
 import { styles } from "./styles";
 import { useTranslation } from "react-i18next";
-
-// ── Static data — defined outside component to avoid recreation on every render ──
+import BottomSheet from "@gorhom/bottom-sheet";
+import { GoalPlannerSheet } from "./components/GoalPlannerSheet";
+import type { Tab } from "./components/GoalPlannerSheet";
 
 type StepItem = {
   id: number;
@@ -24,8 +24,14 @@ type StepItem = {
 
 // ── Sub-components ──
 
-const StepRow = ({ item }: { item: StepItem }) => (
-  <View style={styles.stepRow}>
+const StepRow = ({
+  item,
+  onPress,
+}: {
+  item: StepItem;
+  onPress: (id: number) => void;
+}) => (
+  <Pressable style={styles.stepRow} onPress={() => onPress(item.id)}>
     <View style={styles.stepRowLeft}>
       {item.category && (
         <View style={styles.categoryBadge}>
@@ -34,23 +40,51 @@ const StepRow = ({ item }: { item: StepItem }) => (
       )}
       <Text style={styles.stepTitle}>{item.title}</Text>
     </View>
-    {item.status === "completed" && (
+    {item.status === "completed" ? (
       <Ionicons
         name="checkmark-circle-outline"
         size={24}
         color={Colors.light.white}
       />
+    ) : (
+      <Ionicons name="chevron-forward" size={20} color={Colors.light.grey} />
     )}
-  </View>
+  </Pressable>
 );
+
 const keyExtractor = (item: StepItem) => String(item.id);
-const renderItem = ({ item }: { item: StepItem }) => <StepRow item={item} />;
 const ItemSeparator = () => <TopSpace top={12} />;
 
 export const MonthlyGoalPlannerScreen = () => {
-  const { t, i18n } = useTranslation();
-  const isRtl = i18n.language === "ar";
+  const { t } = useTranslation();
   const navigation = useNavigation();
+
+  const bottomSheetRef = useRef<BottomSheet>(null);
+  const [selectedTab, setSelectedTab] = useState<Tab>("cycle");
+
+  // Map each step id to its corresponding sheet tab
+  const STEP_TAB_MAP: Record<number, Tab> = {
+    1: "cycle",
+    2: "prayer",
+    3: "quran",
+    4: "fasting",
+    5: "sadaqah",
+    6: "review",
+  };
+
+  const handleStepPress = useCallback((stepId: number) => {
+    setSelectedTab(STEP_TAB_MAP[stepId] ?? "cycle");
+    bottomSheetRef.current?.expand();
+  }, []);
+
+  const handleSheetClose = useCallback(() => {}, []);
+
+  const renderItem = useCallback(
+    ({ item }: { item: StepItem }) => (
+      <StepRow item={item} onPress={handleStepPress} />
+    ),
+    [handleStepPress],
+  );
 
   const goalCards: GoalCardData[] = [
     {
@@ -117,38 +151,41 @@ export const MonthlyGoalPlannerScreen = () => {
   useEffect(() => {
     navigation.setOptions({
       headerShown: true,
-      header: () => (
-        <Header
-          title={t("monthlyGoalPlanner.title")}
-        />
-      ),
+      header: () => <Header title={t("monthlyGoalPlanner.title")} />,
     });
   }, [navigation, t]);
 
   return (
-    <BlackScreenWrapper>
-      <FlatList
-        data={steps}
-        keyExtractor={keyExtractor}
-        renderItem={renderItem}
-        ItemSeparatorComponent={ItemSeparator}
-        style={styles.stepsList}
-        contentContainerStyle={styles.stepsContent}
-        ListHeaderComponent={
-          <>
-            <Text style={styles.heading}>
-              {t("monthlyGoalPlanner.heading")}
-            </Text>
-            <TopSpace top={16} />
-            <Text style={styles.subheading}>
-              {t("monthlyGoalPlanner.subheading")}
-            </Text>
-            <TopSpace top={24} />
-            <GoalCardCarousel data={goalCards} />
-            <GoalPlannerSummary />
-          </>
-        }
+    <View style={{ flex: 1 }}>
+      <BlackScreenWrapper>
+        <FlatList
+          data={steps}
+          keyExtractor={keyExtractor}
+          renderItem={renderItem}
+          ItemSeparatorComponent={ItemSeparator}
+          style={styles.stepsList}
+          contentContainerStyle={styles.stepsContent}
+          ListHeaderComponent={
+            <>
+              <Text style={styles.heading}>
+                {t("monthlyGoalPlanner.heading")}
+              </Text>
+              <TopSpace top={16} />
+              <Text style={styles.subheading}>
+                {t("monthlyGoalPlanner.subheading")}
+              </Text>
+              <TopSpace top={24} />
+              <GoalCardCarousel data={goalCards} />
+              <GoalPlannerSummary />
+            </>
+          }
+        />
+      </BlackScreenWrapper>
+      <GoalPlannerSheet
+        ref={bottomSheetRef}
+        onClose={handleSheetClose}
+        initialTab={selectedTab}
       />
-    </BlackScreenWrapper>
+    </View>
   );
 };
