@@ -48,7 +48,7 @@ export default function LoginScreen() {
   };
 
   const onSubmit = (data: z.infer<typeof loginSchema>) => {
-    router.replace("/(private)/setpersonalizedgoals");
+    router.replace("/setpersonalizedgoals");
     // handle login
   };
 
