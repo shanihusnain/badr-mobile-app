@@ -29,6 +29,8 @@ export const Colors = {
     ringMonThu: "#61C8A6",
     subtext: "#999999",
     dullWhite: "#D7D7D7",
+    unselectedSwtchTrack: "#919EAB",
+    dullWhiteOpacity: "rgba(255, 255, 255, 0.1)",
   },
   dark: {
     text: "#ECEDEE",

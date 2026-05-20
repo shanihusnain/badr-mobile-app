@@ -27,7 +27,7 @@ export default function PrimaryButton({
       backgroundColor: Colors.light.green,
       //borderWidth: 1.5,
       borderColor: Colors.light.green,
-      marginBottom: 10,
+      // marginBottom: 10,
       alignSelf: "center",
     },
     buttonPressed: {

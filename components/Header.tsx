@@ -10,9 +10,15 @@ interface HeaderProps {
   title: string;
   backgroundColor?: string;
   onBackPress?: () => void;
+  arrowBg?: string;
 }
 
-const Header: React.FC<HeaderProps> = ({ title, backgroundColor, onBackPress }) => {
+const Header: React.FC<HeaderProps> = ({
+  title,
+  backgroundColor,
+  onBackPress,
+  arrowBg,
+}) => {
   const insets = useSafeAreaInsets();
   return (
     <View
@@ -27,7 +33,10 @@ const Header: React.FC<HeaderProps> = ({ title, backgroundColor, onBackPress }) 
         backgroundColor: backgroundColor ?? Colors.light.blackBackground,
       }}
     >
-      <BackButton onPress={onBackPress} />
+      <BackButton
+        onPress={onBackPress}
+        bgcolor={arrowBg ? arrowBg : Colors.light.buttonBackground}
+      />
       {title ? (
         <Text
           style={{

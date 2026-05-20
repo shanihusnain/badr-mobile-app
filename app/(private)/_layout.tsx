@@ -24,6 +24,10 @@ export default function PrivateLayout() {
         name="monthlygoalplanner"
         options={{ headerShown: true, title: "MONTHLY GOAL PLANNER" }}
       />
+      <Stack.Screen
+        name="goaldescriptiondetails/[goal]"
+        options={{ headerShown: true, title: "" }}
+      />
     </Stack>
   );
 }

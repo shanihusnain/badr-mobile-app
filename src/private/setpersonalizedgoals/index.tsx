@@ -9,14 +9,7 @@ import {
   type SupportedLanguage,
 } from "@/i18next/i18next";
 import { useTranslation } from "react-i18next";
-import {
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  Alert,
-  Pressable,
-} from "react-native";
+import { Text, TouchableOpacity, View, Alert } from "react-native";
 import { useCallback, useEffect, useState } from "react";
 import { router, useNavigation } from "expo-router";
 import PrimaryButton from "@/components/atoms/Primary-button";
@@ -24,15 +17,14 @@ import { FrameIndicator } from "./components/FrameIndicator";
 import { GoalProgressCard } from "./components/GoalProgressCard";
 import { TutorialVideoPlayer } from "./components/TutorialVideoPlayer";
 import { styles } from "./styles";
-import { Ionicons } from "@expo/vector-icons";
-import { Colors } from "@/constants/theme";
 import Header from "@/components/Header";
 
 export const SetPersonalizedGoalsScreen = () => {
   const { t, i18n } = useTranslation();
   const navigation = useNavigation();
   const currentLanguage = i18n.language as SupportedLanguage;
-  const isRtl = i18n.language === "ar";
+
+  const [activeFrame, setActiveFrame] = useState(1);
 
   const handleLanguageChange = useCallback(
     (lang: SupportedLanguage) => {
@@ -58,11 +50,8 @@ export const SetPersonalizedGoalsScreen = () => {
         changeLanguage(lang);
       }
     },
-
     [currentLanguage],
   );
-
-  const [activeFrame, setActiveFrame] = useState(1);
 
   useEffect(() => {
     if (activeFrame === 2) {
@@ -79,9 +68,7 @@ export const SetPersonalizedGoalsScreen = () => {
       navigation.setOptions({
         headerShown: true,
         header: () => (
-          <Header
-            title={t("setpersonalizedgoals.Setyourperosnalizedgoals")}
-          />
+          <Header title={t("setpersonalizedgoals.Setyourperosnalizedgoals")} />
         ),
       });
     }
@@ -94,13 +81,16 @@ export const SetPersonalizedGoalsScreen = () => {
   const handleSkipTutorial = useCallback(() => {
     router.push("/monthlygoalplanner");
   }, []);
+
   return (
     <BlackScreenWrapper>
       {/* ── Frame 1 sub-header ── */}
       {activeFrame === 1 && (
         <View style={globalStyles.rowCenter}>
           <GreenDash />
-          <Text style={styles.howItWorksText}>{t("setpersonalizedgoals.howItWorks")}</Text>
+          <Text style={styles.howItWorksText}>
+            {t("setpersonalizedgoals.howItWorks")}
+          </Text>
         </View>
       )}
       <FrameIndicator total={2} active={activeFrame} />

@@ -7,27 +7,20 @@ import { useTranslation } from "react-i18next";
 
 interface BackButtonProps {
   onPress?: () => void;
+  bgcolor?: string;
 }
 
-export default function BackButton({ onPress }: BackButtonProps) {
+export default function BackButton({ onPress, bgcolor }: BackButtonProps) {
   const router = useRouter();
   const { i18n } = useTranslation();
   const isRtl = i18n.language === "ar";
 
-  const styles = StyleSheet.create({
-    backButtonContainer: {
-      width: 30,
-      height: 30,
-      borderRadius: 15,
-      backgroundColor: Colors.light.buttonBackground,
-      justifyContent: "center",
-      alignItems: "center",
-    },
-  });
-
   return (
     <TouchableOpacity
-      style={styles.backButtonContainer}
+      style={[
+        styles.backButtonContainer,
+        bgcolor ? { backgroundColor: bgcolor } : {},
+      ]}
       onPress={onPress ?? (() => router.back())}
     >
       <Feather
@@ -38,3 +31,13 @@ export default function BackButton({ onPress }: BackButtonProps) {
     </TouchableOpacity>
   );
 }
+const styles = StyleSheet.create({
+  backButtonContainer: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: Colors.light.buttonBackground,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+});
