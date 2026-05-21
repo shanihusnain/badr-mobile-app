@@ -5,8 +5,9 @@ import { TopSpace } from "@/components/atoms/TopSpace";
 import { Colors } from "@/constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 import moment from "moment-hijri";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useTranslation } from "react-i18next";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -49,10 +50,41 @@ type Props = {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export const CycleStartTab = ({ onCommit }: Props) => {
+  const { t, i18n } = useTranslation();
   const [cycleStartDate, setCycleStartDate] = useState<string | null>(null);
   const [calMonth, setCalMonth] = useState(() =>
     moment().startOf("month").format("YYYY-MM-DD"),
   );
+
+  const localizedMonths = useMemo(() => [
+    t("monthlyGoalPlanner.months.jan"),
+    t("monthlyGoalPlanner.months.feb"),
+    t("monthlyGoalPlanner.months.mar"),
+    t("monthlyGoalPlanner.months.apr"),
+    t("monthlyGoalPlanner.months.may"),
+    t("monthlyGoalPlanner.months.jun"),
+    t("monthlyGoalPlanner.months.jul"),
+    t("monthlyGoalPlanner.months.aug"),
+    t("monthlyGoalPlanner.months.sep"),
+    t("monthlyGoalPlanner.months.oct"),
+    t("monthlyGoalPlanner.months.nov"),
+    t("monthlyGoalPlanner.months.dec"),
+  ], [t]);
+
+  const localizedHijriMonths = useMemo(() => [
+    t("monthlyGoalPlanner.hijriMonthsShort.muh"),
+    t("monthlyGoalPlanner.hijriMonthsShort.saf"),
+    t("monthlyGoalPlanner.hijriMonthsShort.rabI"),
+    t("monthlyGoalPlanner.hijriMonthsShort.rabII"),
+    t("monthlyGoalPlanner.hijriMonthsShort.jumI"),
+    t("monthlyGoalPlanner.hijriMonthsShort.jumII"),
+    t("monthlyGoalPlanner.hijriMonthsShort.raj"),
+    t("monthlyGoalPlanner.hijriMonthsShort.sha"),
+    t("monthlyGoalPlanner.hijriMonthsShort.ram"),
+    t("monthlyGoalPlanner.hijriMonthsShort.shaw"),
+    t("monthlyGoalPlanner.hijriMonthsShort.dhulQ"),
+    t("monthlyGoalPlanner.hijriMonthsShort.dhulH"),
+  ], [t]);
 
   // ── Handlers ────────────────────────────────────────────────────────────────
 
@@ -78,23 +110,23 @@ export const CycleStartTab = ({ onCommit }: Props) => {
   // ── Derived values ──────────────────────────────────────────────────────────
 
   const calMonthMoment = moment(calMonth, "YYYY-MM-DD");
-  const monthLabel = `${MONTHS[calMonthMoment.month()]} ${calMonthMoment.year()}`;
+  const monthLabel = `${localizedMonths[calMonthMoment.month()]} ${calMonthMoment.year()}`;
 
   const cycleEndDate = cycleStartDate
     ? moment(cycleStartDate, "YYYY-MM-DD").add(27, "days")
     : null;
 
   const cycleStartFormatted = cycleStartDate
-    ? moment(cycleStartDate, "YYYY-MM-DD").format("MMM D")
+    ? moment(cycleStartDate, "YYYY-MM-DD").locale(i18n.language).format(i18n.language === "ar" ? "D MMMM" : "MMM D")
     : null;
 
   const cycleEndFormatted = cycleEndDate
-    ? cycleEndDate.format("MMM D, YYYY")
+    ? cycleEndDate.locale(i18n.language).format(i18n.language === "ar" ? "D MMMM, YYYY" : "MMM D, YYYY")
     : null;
 
   const cycleRangeLabel =
     cycleStartDate && cycleEndDate
-      ? `${moment(cycleStartDate, "YYYY-MM-DD").format("MMM D").toUpperCase()} – ${cycleEndDate.format("MMM D, YYYY").toUpperCase()}`
+      ? `${moment(cycleStartDate, "YYYY-MM-DD").locale(i18n.language).format(i18n.language === "ar" ? "D MMMM" : "MMM D").toUpperCase()} – ${cycleEndDate.locale(i18n.language).format(i18n.language === "ar" ? "D MMMM, YYYY" : "MMM D, YYYY").toUpperCase()}`
       : null;
 
   const hijriRangeLabel = (() => {
@@ -103,11 +135,11 @@ export const CycleStartTab = ({ onCommit }: Props) => {
     const endH = cycleEndDate;
     const startMonthNum = startH.iMonth();
     const endMonthNum = endH.iMonth();
-    const startLabel = `${HIJRI_MONTHS_SHORT[startMonthNum]} ${startH.iYear()}`;
+    const startLabel = `${localizedHijriMonths[startMonthNum]} ${startH.iYear()}`;
     const endLabel =
       startMonthNum === endMonthNum && startH.iYear() === endH.iYear()
         ? ""
-        : ` · ${HIJRI_MONTHS_SHORT[endMonthNum]} ${endH.iYear()}`;
+        : ` · ${localizedHijriMonths[endMonthNum]} ${endH.iYear()}`;
     return `${startLabel}${endLabel}`;
   })();
 
@@ -115,9 +147,8 @@ export const CycleStartTab = ({ onCommit }: Props) => {
 
   return (
     <>
-      <Text style={styles.description}>
-        Choose the day you'd like to begin your commitment. You'll have 4 weeks
-        (28 days) from the date to complete your goals.
+      <Text style={[styles.description, i18n.language === "ar" && { textAlign: "right" }]}>
+        {t("monthlyGoalPlanner.cycleStartDescription")}
       </Text>
       <TopSpace top={10} />
 
@@ -172,10 +203,10 @@ export const CycleStartTab = ({ onCommit }: Props) => {
       {/* ── Cycle info footer — visible only after a date is selected ── */}
       {cycleStartDate && (
         <View style={styles.footer}>
-          <Text style={styles.infoText}>
-            {"Your 28-day goal cycle will run from "}
+          <Text style={[styles.infoText, i18n.language === "ar" && { textAlign: "right" }]}>
+            {t("monthlyGoalPlanner.cycleStartFooterStart")}
             <Text style={styles.infoHighlight}>{cycleStartFormatted}</Text>
-            {" to "}
+            {t("monthlyGoalPlanner.cycleStartFooterEnd")}
             <Text style={styles.infoHighlight}>{cycleEndFormatted}</Text>
           </Text>
         </View>
@@ -183,7 +214,7 @@ export const CycleStartTab = ({ onCommit }: Props) => {
 
       <TopSpace top={10} />
       <PrimaryButton
-        text={"COMMIT"}
+        text={t("monthlyGoalPlanner.commit")}
         onPress={() => {
           if (cycleStartDate && cycleEndDate) {
             onCommit?.(cycleStartDate, cycleEndDate.format("YYYY-MM-DD"));

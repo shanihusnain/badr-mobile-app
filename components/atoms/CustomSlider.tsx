@@ -1,8 +1,10 @@
-import Slider from "@react-native-community/slider";
 import React, { useEffect, useRef, useState } from "react";
 import { Dimensions, StyleSheet, Text, View } from "react-native";
 import { Colors } from "../../constants/theme";
 import { useLocaleNumber } from "../../hooks/useLocaleNumber";
+
+import { GestureDetector, Gesture } from "react-native-gesture-handler";
+import Animated, { runOnJS, useSharedValue } from "react-native-reanimated";
 
 type CustomSliderProps = {
   maxDays?: number;
@@ -35,8 +37,10 @@ export default function CustomSlider({
   }, []);
 
   useEffect(() => {
-    setDays(initialDays);
-    setContinuousVal(initialDays);
+    if (initialDays !== days) {
+      setDays(initialDays);
+      setContinuousVal(initialDays);
+    }
   }, [initialDays]);
 
   const onLayout = (event: any) => {
@@ -56,8 +60,8 @@ export default function CustomSlider({
   const ringSize = baseRingSize * scale;
   const thumbSize = baseThumbSize * scale;
 
-  // The native slider track padding scales with the slider itself.
-  const paddingX = 16 * scale;
+  // Native slider track padding (do not scale native element to preserve touch bounds)
+  const paddingX = 16;
   const trackOverlayWidth = width - paddingX * 2;
 
   // Use the continuous float value to calculate percentage for 60fps smooth tracking
@@ -72,6 +76,8 @@ export default function CustomSlider({
   // Left offset of the custom unified pointer thumb
   const thumbLeft = paddingX + progressWidth - thumbSize / 2;
 
+  const startX = useSharedValue(0);
+
   const handleChange = (val: number) => {
     if (isMounted.current) {
       setContinuousVal(val);
@@ -83,9 +89,34 @@ export default function CustomSlider({
     }
   };
 
-  // To prevent the scaled slider from overflowing the container, we set its style width
-  // to (100 / scale)% and then scale it up by `scale` factor.
-  const sliderWidthPercent = `${100 / scale}%` as any;
+  const panGesture = Gesture.Pan()
+    .runOnJS(true)
+    .activeOffsetX([-5, 5])
+    .onStart((event) => {
+      const currentPercent = (continuousVal - 1) / (maxDays - 1);
+      startX.value = currentPercent * trackOverlayWidth;
+    })
+    .onUpdate((event) => {
+      const newX = startX.value + event.translationX;
+      const clampedX = Math.max(0, Math.min(newX, trackOverlayWidth));
+      const currentPercent = clampedX / trackOverlayWidth;
+      const newVal = 1 + currentPercent * (maxDays - 1);
+      handleChange(newVal);
+    });
+
+  const tapGesture = Gesture.Tap()
+    .runOnJS(true)
+    .onEnd((event) => {
+      const tapX = event.x - paddingX;
+      const clampedX = Math.max(0, Math.min(tapX, trackOverlayWidth));
+      const currentPercent = clampedX / trackOverlayWidth;
+      const newVal = 1 + currentPercent * (maxDays - 1);
+      handleChange(newVal);
+    });
+
+  const composedGesture = Gesture.Exclusive(panGesture, tapGesture);
+
+  // Native slider uses 100% width. Scaling the visual elements only, to preserve hit bounds.
 
   return (
     <View style={styles.container} onLayout={onLayout}>
@@ -128,23 +159,17 @@ export default function CustomSlider({
           />
         </View>
 
-        {/* Scaled Native Slider (Thumb is set to transparent, acts as gesture interceptor) */}
-        <Slider
-          style={[
-            styles.slider,
-            {
-              width: sliderWidthPercent,
-              transform: [{ scale }],
-            },
-          ]}
-          minimumValue={1}
-          maximumValue={maxDays}
-          value={continuousVal} // Bind to continuous value for fluid continuous thumb dragging
-          onValueChange={handleChange}
-          minimumTrackTintColor="#00000000" // Transparent to show our custom track
-          maximumTrackTintColor="#00000000" // Transparent to show our track
-          thumbTintColor="#00000000" // 👈 Transparent thumb so we can overlay our own custom fixed thumb!
-        />
+        {/* Transparent Interactive Drag Area wrapped in GestureDetector */}
+        <GestureDetector gesture={composedGesture}>
+          <Animated.View
+            style={[
+              styles.slider,
+              {
+                width: "100%",
+              },
+            ]}
+          />
+        </GestureDetector>
 
         {/* Custom Unified Pointer Thumb Overlay (Static Centering Guaranteed!) */}
         <View
