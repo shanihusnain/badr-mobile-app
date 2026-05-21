@@ -7,6 +7,7 @@ import BottomSheet, {
 import { forwardRef, useCallback, useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import type { BottomSheetDefaultBackdropProps } from "@gorhom/bottom-sheet/lib/typescript/components/bottomSheetBackdrop/types";
+import { useTranslation } from "react-i18next";
 
 export type StepSheetData = {
   id: number;
@@ -23,6 +24,8 @@ type Props = {
 
 export const StepBottomSheet = forwardRef<BottomSheet, Props>(
   ({ data, onClose }, ref) => {
+    const { t, i18n } = useTranslation();
+    const isRtl = i18n.language === "ar";
     const snapPoints = useMemo(() => ["45%", "90%"], []);
 
     const renderBackdrop = useCallback(
@@ -55,20 +58,20 @@ export const StepBottomSheet = forwardRef<BottomSheet, Props>(
           {data && (
             <>
               {data.category && (
-                <View style={styles.badge}>
+                <View style={[styles.badge, isRtl && { alignSelf: "flex-end" }]}>
                   <Text style={styles.badgeText}>{data.category}</Text>
                 </View>
               )}
-              <Text style={styles.title}>{data.title}</Text>
-              <Text style={styles.description}>{data.description}</Text>
+              <Text style={[styles.title, isRtl && { textAlign: "right" }]}>{data.title}</Text>
+              <Text style={[styles.description, isRtl && { textAlign: "right" }]}>{data.description}</Text>
               <View style={styles.divider} />
-              <Text style={styles.sectionLabel}>Steps</Text>
+              <Text style={[styles.sectionLabel, isRtl && { textAlign: "right" }]}>{t("monthlyGoalPlanner.stepsLabel")}</Text>
               {data.instructions.map((step, i) => (
-                <View key={i} style={styles.stepRow}>
+                <View key={i} style={[styles.stepRow, isRtl && { flexDirection: "row-reverse" }]}>
                   <View style={styles.stepNumber}>
                     <Text style={styles.stepNumberText}>{i + 1}</Text>
                   </View>
-                  <Text style={styles.stepText}>{step}</Text>
+                  <Text style={[styles.stepText, isRtl && { textAlign: "right" }]}>{step}</Text>
                 </View>
               ))}
             </>

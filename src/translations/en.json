@@ -181,7 +181,51 @@
     "step4Category": "Category 3",
     "step5Title": "Category 4 Sadaqah Goals",
     "step5Category": "Category 4",
-    "step6Title": "Review and Confirm"
+    "step6Title": "Review and Confirm",
+    "readMore": "read more",
+    "stepsLabel": "Steps",
+    "commit": "COMMIT",
+    "cycleStartDescription": "Choose the day you'd like to begin your commitment. You'll have 4 weeks (28 days) from the date to complete your goals.",
+    "cycleStartFooterStart": "Your 28-day goal cycle will run from ",
+    "cycleStartFooterEnd": " to ",
+    "tabCycle": "Select Cycle Start Date",
+    "tabPrayer": "Prayer Goals",
+    "tabQuran": "Quran Goals",
+    "tabFasting": "Fasting Goals",
+    "tabSadaqah": "Sadaqah Goals",
+    "tabReview": "Review & Confirm",
+    "tabChipCategory1": "Category 1",
+    "tabChipCategory2": "Category 2",
+    "tabChipCategory3": "Category 3",
+    "tabChipCategory4": "Category 4",
+    "months": {
+      "jan": "January",
+      "feb": "February",
+      "mar": "March",
+      "apr": "April",
+      "may": "May",
+      "jun": "June",
+      "jul": "July",
+      "aug": "August",
+      "sep": "September",
+      "oct": "October",
+      "nov": "November",
+      "dec": "December"
+    },
+    "hijriMonthsShort": {
+      "muh": "Muh.",
+      "saf": "Saf.",
+      "rabI": "Rab. I",
+      "rabII": "Rab. II",
+      "jumI": "Jum. I",
+      "jumII": "Jum. II",
+      "raj": "Raj.",
+      "sha": "Sha.",
+      "ram": "Ram.",
+      "shaw": "Shaw.",
+      "dhulQ": "Dhul Q.",
+      "dhulH": "Dhul H."
+    }
   },
   "prayerGoals": {
     "tahiyaWuduTitle": "Set your target number of Tahiyyat Al-Wudhu this month",
@@ -239,5 +283,298 @@
     "oneRakahOption": "One 2-rak'ah prayer",
     "twoRakahOption": "Two 2-rak'ah prayer",
     "sunnahSuffix": " Sunnah Rawatib prayers"
+  },
+  "goalsData": {
+    "tahayyat-ul-wudhu": {
+      "title": "TAHIYYAT-UL-WUDHU",
+      "description": "A two-rak'ah Sunnah prayer performed right after completing wudhu. It serves to honor the purification process and prepare us for further prayer",
+      "heroTitle": "A Small Deed that Earns a Massive Reward",
+      "navTitle": "Tahiyyat Al-Wudhu",
+      "steps": [
+        "Step 1: Perform Wudhu (Ablution) - Ensure you have completed your Wudhu before starting the prayer.",
+        "Step 2: Find a Clean and Quiet Place - Choose a clean and quiet place to perform the prayer, preferably facing the Qibla.",
+        "Step 3: Make the Intention (Niyyah) - Formulate the intention in your heart to perform two rak'ahs of Tahiyyat Al-Wudhu.",
+        "Step 4: Perform Two Rak'ahs - Pray two normal rak'ahs of prayer, reciting Surah Al-Fatihah and another surah in each rak'ah.",
+        "Step 5: Conclude with Salam - End the prayer with the salam to the right and then to the left."
+      ]
+    },
+    "fiveDailyPrayers": {
+      "title": "The 5 Daily Prayers",
+      "description": "The five obligatory prayers, most beloved to Allah, structure our day when prayed on time, instilling discipline and deepening our gratitude",
+      "heroTitle": "The Pillar of Faith and Key to Paradise",
+      "navTitle": "The 5 Daily Prayers",
+      "steps": [
+        "Step 1: Be Mindful of the Time - Know the exact window of each obligatory prayer (Fajr, Dhuhr, Asr, Maghrib, Isha).",
+        "Step 2: Attain State of Purity - Perform proper Wudhu (or Ghusl if required) prior to the prayer.",
+        "Step 3: Face the Qibla - Align yourself towards the Holy Kaaba in Makkah.",
+        "Step 4: Perform the Prayer with Khushu - Pray with complete focus, humility, and tranquility.",
+        "Step 5: Keep Consistency - Track and commit to completing all five daily prayers on time every single day."
+      ]
+    },
+    "sunnahRawatib": {
+      "title": "Sunnah Rawatib",
+      "description": "Aligns with the Prophet's (PBUH) sunnah and provides opportunities to compensate any shortcomings in obligatory prayers",
+      "heroTitle": "Building a House in Paradise",
+      "navTitle": "Sunnah Rawatib",
+      "steps": [
+        "Step 1: Learn the Rawatib Prayers - The 12 rak'ahs: 2 before Fajr, 4 before Dhuhr, 2 after Dhuhr, 2 after Maghrib, and 2 after Isha.",
+        "Step 2: Pray Before/After Obligatory prayers - Offer these Sunnah prayers immediately before or after their respective Fard prayers.",
+        "Step 3: Maintain Focus - Give these voluntary prayers the same devotion and respect as obligatory ones.",
+        "Step 4: Track Progress - Strive to complete all 12 rak'ahs daily to unlock the promised reward."
+      ]
+    },
+    "thayyat-ul-masjid": {
+      "title": "THAYYAT-UL-MASJID",
+      "description": "A two-rak’ah prayer performed upon entering the mosque, honoring its sanctity and seeking Allah’s blessings, guidance, and mercy",
+      "heroTitle": "Greeting the House of Allah",
+      "navTitle": "Tahiyyat Al-Masjid",
+      "steps": [
+        "Step 1: Enter the Mosque with Respect - Step in with your right foot first, reciting the invocation for entering the mosque.",
+        "Step 2: Form Intention (Niyyah) - Intend to pray two rak'ahs greeting the mosque before sitting down.",
+        "Step 3: Perform Two Rak'ahs - Pray the two rak'ahs with focus and tranquility.",
+        "Step 4: Complete Before Sitting - Ensure you pray these two rak'ahs immediately upon entering before you sit down."
+      ]
+    },
+    "missedPastPrayers": {
+      "title": "Missed Past Prayers",
+      "description": "Many of us have neglected obligatory prayers for weeks, months, or even years. Fulfilling these overdue prayers is a testament to our renewed commitment to Allah",
+      "heroTitle": "Fulfilling Your Sacred Debts",
+      "navTitle": "Missed Past Prayers",
+      "steps": [
+        "Step 1: Calculate Your Overdue Prayers - Make an honest estimate of the number of missed prayers you need to make up (Qada).",
+        "Step 2: Establish a Feasible Schedule - Plan to pray one or two make-up prayers alongside every current obligatory prayer daily.",
+        "Step 3: Remain Patient and Consistent - Compounding consistency over time is the best path to clear your spiritual debt.",
+        "Step 4: Keep Track of Your Progress - Log each completed Qada prayer to stay motivated and witness your progress."
+      ]
+    },
+    "duhaPrayer": {
+      "title": "Duha Prayer",
+      "description": "It is performed in sets of 2 rak'ahs anytime from approximately 15-20 minutes after sunrise until about 10-15 minutes before the Dhuhr prayer",
+      "heroTitle": "The Prayer of the Repentant and Charity for Joints",
+      "navTitle": "Duha Prayer",
+      "steps": [
+        "Step 1: Wait for Sunrise - Allow 15-20 minutes to pass after sunrise before commencing the Duha prayer.",
+        "Step 2: Choose Rak'ahs - You can pray from 2 to 8 rak'ahs, in sets of two.",
+        "Step 3: Focus on Sincerity - Make the Niyyah in your heart to pray the Duha prayer.",
+        "Step 4: Complete Before Dhuhr - Complete your prayer before the sun reaches its zenith (about 10-15 minutes before Dhuhr)."
+      ]
+    },
+    "tawbaPrayer": {
+      "title": "Tawba Prayer",
+      "description": "Also known as the repentance prayer in English, the Tawbah prayer is a sincere 2 rak'ah prayer to seek forgiveness from Allah for our sins",
+      "heroTitle": "A Sincere Return to Allah's Mercy",
+      "navTitle": "Tawbah Prayer",
+      "steps": [
+        "Step 1: Perform Wudhu Beautifully - Wash yourself thoroughly, paying attention to the Sunnah steps of Wudhu.",
+        "Step 2: Make Sincere Intention - Deeply intend to seek Allah's forgiveness for your errors.",
+        "Step 3: Pray Two Rak'ahs - Pray two rak'ahs with absolute humility and focus.",
+        "Step 4: Beseech Allah's Forgiveness - In sujud or after salam, sincerely ask Allah to pardon you, promising to stay away from the sin."
+      ]
+    },
+    "istikharah": {
+      "title": "Istikharah Prayer",
+      "description": "A two rak'ah prayer performed to seek guidance from Allah when faced with a decision. It helps us make choices that align with our faith and best interests",
+      "heroTitle": "Seeking Divine Counsel and Wisdom",
+      "navTitle": "Istikharah Prayer",
+      "steps": [
+        "Step 1: Identify Your Dilemma - Have a specific decision or choice in mind.",
+        "Step 2: Pray Two Rak'ahs - Pray two voluntary non-obligatory rak'ahs.",
+        "Step 3: Recite the Istikharah Du'a - Recite the beautiful prophetic supplication after completing the prayer.",
+        "Step 4: Trust in Allah's Decree - Move forward with the best option, trusting that Allah will guide you to what is beneficial."
+      ]
+    },
+    "shukrPrayer": {
+      "title": "Shukr Prayer",
+      "description": "The Gratitude Prayer (Shukr) is a 2-rak'ah act of thanks to Allah for His countless blessings. It fosters positivity by inspiring recognition of His generosity",
+      "heroTitle": "Illuminating Your Days with Gratitude",
+      "navTitle": "Shukr Prayer",
+      "steps": [
+        "Step 1: Reflect on Blessings - Think about the specific blessing or overall goodness Allah has gifted you.",
+        "Step 2: Form Intention (Niyyah) - Intend to pray two rak'ahs purely in gratitude (Shukr) to Allah.",
+        "Step 3: Pray Two Rak'ahs - Perform two rak'ahs of voluntary prayer.",
+        "Step 4: Offer Heartfelt Praises - Spend time in prostration or after Salam praising and thanking Allah."
+      ]
+    },
+    "qiyamalLail": {
+      "title": "Qiyam al-Lail",
+      "description": "Night prayers, performed between Isha and Fajr, are most beloved after obligatory prayers, fostering spiritual growth and inviting Allah’s mercy and blessings",
+      "heroTitle": "The Secret Light in the Darkness of Night",
+      "navTitle": "Qiyam Al-Layl",
+      "steps": [
+        "Step 1: Pray After Isha - You can pray Qiyam anytime between the conclusion of Isha prayer and the dawn of Fajr.",
+        "Step 2: Choose Your Style - Commit to every night or keep it flexible based on your weekly routine.",
+        "Step 3: Stand in Devotion - Pray sets of 2 rak'ahs. Recite the Quran slowly and thoughtfully.",
+        "Step 4: Track Tahajjud - Optionally wake up in the last third of the night for Tahajjud to seek the ultimate virtuous time.",
+        "Step 5: Conclude with Witr - Conclude your night prayers with one or three rak'ahs of Witr."
+      ]
+    },
+    "quran-listening": {
+      "title": "Quran Listening",
+      "description": "Listening to the Quran brings tranquility, shields from evil, alleviates stress, enhances recitation, and refines tajweed skills, fostering spiritual growth",
+      "heroTitle": "Opening the Heart to Divine Melody",
+      "navTitle": "Quran Listening",
+      "steps": [
+        "Step 1: Eliminate Distractions - Find a quiet spot and put away devices or background noises.",
+        "Step 2: Select a Beautiful Recitation - Pick a Qari whose voice moves your heart and helps you focus.",
+        "Step 3: Listen with Humility and Silence - Follow the instruction in the Quran: 'When the Quran is recited, listen to it and be silent that you may receive mercy.'",
+        "Step 4: Contemplate the Meanings - Follow along with translation if available, allowing the verses to soothe your mind."
+      ]
+    },
+    "quran-recitation": {
+      "title": "Quran Recitation",
+      "description": "Reciting the Quran multiplies rewards, refines pronunciation, deepens understanding, and softens hearts, fostering a profound connection with Allah",
+      "heroTitle": "The Prophet's Legacy and Spiritual Nourishment",
+      "navTitle": "Quran Recitation",
+      "steps": [
+        "Step 1: Clear Your Intentions - Recite purely for the sake of Allah and to earn His pleasure.",
+        "Step 2: Start with Isti'adhah and Basmalah - Seek refuge in Allah from Satan and begin in His name.",
+        "Step 3: Recite with Tartee - Recite in a measured, calm pace, not rushing through the words.",
+        "Step 4: Commit to a Daily Portion - Strive to recite at least one page or a few verses daily to stay connected."
+      ]
+    },
+    "quran-memorization": {
+      "title": "Quran Memorization",
+      "description": "Every word we memorize elevates our rank in Paradise, grants intercession for others, sharpens the mind, and enhances comprehension of the Quran",
+      "heroTitle": "Carrying the Divine Word in Your Chest",
+      "navTitle": "Quran Memorization",
+      "steps": [
+        "Step 1: Choose a Small Portion - Start with small sections, e.g., one verse or a short surah.",
+        "Step 2: Understand the Meaning - Read the translation and simple Tafsir first to aid memory.",
+        "Step 3: Repeat Meticulously - Recite the same verse repeatedly until you can recall it smoothly without looking.",
+        "Step 4: Revise regularly - Constantly review previously memorized verses to keep them fresh."
+      ]
+    },
+    "qauran-tajweed": {
+      "title": "QURAN TAJWEED",
+      "description": "Tajweed perfects Quranic recitation as revealed to the Prophet (PBUH), preserving its authentic pronunciation, rhythm, and melody while deepening understanding",
+      "heroTitle": "Beautifying Your Recitation as Revealed",
+      "navTitle": "Quran Tajweed",
+      "steps": [
+        "Step 1: Learn the Basic Rules - Start with clear rules like Noon Sakinah, Meem Sakinah, and letters of prolongation (Madd).",
+        "Step 2: Listen to Expert Reciters - Listen to standard recitations (like Sheikh Al-Husary) to mimic proper articulation.",
+        "Step 3: Practice with a Teacher - Correct your mistakes by reciting to a qualified teacher whenever possible.",
+        "Step 4: Apply Tajweed to Daily Recitation - Consciously apply the rules to every verse you recite in your daily prayers."
+      ]
+    },
+    "missed-fasts": {
+      "title": "Missed Ramadan Fasts",
+      "description": "Fulfilling missed obligatory fasts is a duty that reflects devotion, demonstrates discipline, and upholds our commitment to Allah’s commands",
+      "heroTitle": "Upholding Your Ramadan Commitments",
+      "navTitle": "Missed Ramadan Fasts",
+      "steps": [
+        "Step 1: Count Your Missed Days - List down the number of obligatory Ramadan fasts you missed due to travel, illness, or other valid reasons.",
+        "Step 2: Set the Intention - Formulate the intention (Niyyah) to make up a missed Ramadan fast before dawn.",
+        "Step 3: Observe the Fast - Abstain from food, drink, and invalidators from dawn to sunset.",
+        "Step 4: Mark Your Completion - Break your fast with dates or water, and log it to track your remaining makeup days."
+      ]
+    },
+    "dawood-fasts": {
+      "title": "The Fast of Prophet Dawood",
+      "description": "These fasts are observed by fasting every other day, reflecting Prophet Dawood's (PBUH) devotion and resilience, and serving as a model of piety",
+      "heroTitle": "The Most Beloved Fasting to Allah",
+      "navTitle": "Prophet Dawood's Fast",
+      "steps": [
+        "Step 1: Understand the Routine - Fast one day and eat the next, consistently alternating.",
+        "Step 2: Form Sincere Niyyah - Make the intention for the Sunnah fast prior to dawn.",
+        "Step 3: Maintain Strength and Health - Ensure your nutrition on non-fasting days supports this high level of spiritual endurance.",
+        "Step 4: Keep Consistency - Maintain the alternate-day cycle for the duration of your goal period."
+      ]
+    },
+    "monday-and-thursday-fasts": {
+      "title": "Monday & Thursday Fasts",
+      "description": "These fasts follow the Prophet's (PBUH) Sunnah, deepen devotion to Allah, promote well-being, and offer profound spiritual purification and self-discipline",
+      "heroTitle": "Following the Beautiful Sunnah",
+      "navTitle": "Mon & Thu Fasts",
+      "steps": [
+        "Step 1: Pick the Days - Identify Mondays and Thursdays in your calendar.",
+        "Step 2: Set Niyyah - Make your intention to observe the Sunnah fast before Fajr.",
+        "Step 3: Practice Gratitude - Remember that deeds are presented to Allah on these days, and fasting is a beautiful state to be in.",
+        "Step 4: Share the Joy - Break your fast with family or friends to foster a warm Islamic environment."
+      ]
+    },
+    "white-days-fasts": {
+      "title": "White Days Fasts",
+      "description": "Fasting on the 13th, 14th, and 15th of each Islamic month deepens connection with Allah, nurtures discipline, and inspires profound spiritual growth and self-reflection",
+      "heroTitle": "Radiant Days of Spiritual Growth",
+      "navTitle": "White Days Fasts",
+      "steps": [
+        "Step 1: Track the Hijri Calendar - Find the 13th, 14th, and 15th days of the current Islamic month.",
+        "Step 2: Intend the Fast - Formulate intention for these Sunnah (Ayyam al-Beed) fasts.",
+        "Step 3: Abstain and Purify - Fast faithfully during these three consecutive days.",
+        "Step 4: Reflect on Rewards - Fasting these three days earns the reward of fasting the entire month."
+      ]
+    },
+    "missed-zakat": {
+      "title": "Missed Zakat",
+      "description": "Fulfilling missed Zakat is a sacred obligation that purifies wealth, restores social equity, and reaffirms a believer’s responsibility to support society’s welfare",
+      "heroTitle": "Purifying Your Wealth and Heart",
+      "navTitle": "Missed Zakat",
+      "steps": [
+        "Step 1: Assess Missed Years - Estimate the years or amounts of obligatory Zakat you neglected to pay.",
+        "Step 2: Calculate the Dues - Calculate 2.5% of your qualifying surplus wealth for each missed year.",
+        "Step 3: Direct to Eligible Recipients - Ensure the funds are distributed to the eight categories specified in the Quran.",
+        "Step 4: Complete Promptly - Pay off your outstanding Zakat to fulfill this crucial pillar of Islam."
+      ]
+    },
+    "kafarah-for-breaking-fasts": {
+      "title": "Kafarah for Breaking Fasts",
+      "description": "A form of sadaqah to atone for broken fasts or oaths, requiring feeding or clothing those in need as prescribed",
+      "heroTitle": "Atonement and Redirection",
+      "navTitle": "Kafarah Fasts/Oaths",
+      "steps": [
+        "Step 1: Determine the Atonement Required - Consult scholars to identify your specific Kafarah (e.g., feeding 60 poor people or fasting for 60 days).",
+        "Step 2: Prepare the Charity - Calculate the cost of meals or clothing if feeding/clothing is your assigned atonement.",
+        "Step 3: Distribute Sincerely - Hand over the food or clothing to deserving, needy recipients.",
+        "Step 4: Seek Forgiveness - Combine your material atonement with a sincere repentance to Allah."
+      ]
+    },
+    "fidya": {
+      "title": "Fidya",
+      "description": "A form of sadaqah that allows those unable to fast due to illness or age to stay spiritually connected by feeding one person per missed fast day",
+      "heroTitle": "Charity of the Excused Fast",
+      "navTitle": "Fidya",
+      "steps": [
+        "Step 1: Count Missed Ramadan Days - Track each day of fasting missed due to persistent illness, old age, or pregnancy.",
+        "Step 2: Calculate the Cost - Standard Fidya is feeding one needy person two meals (or equivalent cost) per missed day.",
+        "Step 3: Partner with Charities - Route your Fidya through reliable channels to reach those in need.",
+        "Step 4: Keep Record - Track your payments to ensure every missed fast is fully accounted for."
+      ]
+    },
+    "lilah-donations": {
+      "title": "Lilah Donations",
+      "description": "Lillah, derived from the Arabic term 'for Allah', is a pure form of sadaqah driven by a sincere desire to please Allah, fostering devotion and selflessness among Muslims",
+      "heroTitle": "Giving Purely for the Sake of Allah",
+      "navTitle": "Lilah Donations",
+      "steps": [
+        "Step 1: Purify Your Intention - Ensure your donation is purely to seek Allah's pleasure, completely free from vanity.",
+        "Step 2: Find Deserving Causes - Look for mosques, Islamic centers, or humanitarian funds requiring support.",
+        "Step 3: Donate Secretly - Whenever possible, give your donation secretly to safeguard your sincerity.",
+        "Step 4: Make Supplication - Ask Allah to accept this small token and to bless your remaining wealth."
+      ]
+    },
+    "volunteering-services": {
+      "title": "Volunteering Services",
+      "description": "As Muslims, offering our time and skills without expecting any compensation is a noble act and a profound expression of faith, bringing us closer to Allah",
+      "heroTitle": "Serving Creation to Please the Creator",
+      "navTitle": "Volunteering",
+      "steps": [
+        "Step 1: Identify Your Talents - Think about how your skills (teaching, cooking, organizing, coding) can benefit the community.",
+        "Step 2: Dedicate Free Time - Set aside a few hours in your month specifically for voluntary services.",
+        "Step 3: Help Local Organizations - Offer your time to local mosques, charity drives, soup kitchens, or youth clubs.",
+        "Step 4: Practice Kindness - Treat everyone you serve with the utmost respect, smile, and warm manners."
+      ]
+    },
+    "sadaqah-jariyah": {
+      "title": "Sadaqah Jariyah",
+      "description": "This form of Sadaqah is the most rewarding—it’s the gift that keeps giving, offering endless blessings and rewards in this life and the hereafter",
+      "heroTitle": "The Gift that Keeps Giving Beyond Life",
+      "navTitle": "Sadaqah Jariyah",
+      "steps": [
+        "Step 1: Choose a Long-Term Project - Select projects like water wells, planting trees, building mosques, or sponsoring Islamic education.",
+        "Step 2: Commit Funds - Dedicate a portion of your wealth to contribute to these high-impact projects.",
+        "Step 3: Involve Family - Partner with relatives or friends to sponsor projects together.",
+        "Step 4: Make Du'a for Continuity - Supplicate that this project remains operational, continuously benefiting others and storing rewards for your hereafter."
+      ]
+    }
   }
 }

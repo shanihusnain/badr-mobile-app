@@ -22,11 +22,22 @@ import type { BottomSheetDefaultBackdropProps } from "@gorhom/bottom-sheet/lib/t
 import { useSharedValue } from "react-native-reanimated";
 import { GoalCardWithDescriptionAndOptionToSelectGoal } from "./GoalCardWithDescriptionAndOptionToSelectGoal";
 import { CycleStartTab } from "./CycleStartTab";
+import { useTranslation } from "react-i18next";
 import { DawoodCalendar } from "@/components/molecules/DawoodCalendar";
 import { MonThuCalendar } from "@/components/molecules/MonThuCalendar";
 import { WhiteDaysCalendar } from "@/components/molecules/WhiteDaysCalendar";
 import { router } from "expo-router";
 import { TopSpace } from "@/components/atoms/TopSpace";
+import TahiyatWuduGoalSelection from "@/components/molecules/TahiyatWuduGoalSelection";
+import DailyPrayerGoalSelection from "@/components/molecules/DailyPrayerGoalSelection";
+import SunnahRawatibGoalSelection from "@/components/molecules/SunnahRawatibGoalSelection";
+import TahiyyatMasjidGoalSelection from "@/components/molecules/TahiyyatMasjidGoalSelection";
+import MissedPrayerGoalSelection from "@/components/molecules/MissedPrayerGoalSelection";
+import DuhaPrayerGoalSelection from "@/components/molecules/DuhaPrayerGoalSelection";
+import TawbahPrayerGoalSelection from "@/components/molecules/TawbahPrayerGoalSelection";
+import IstikharaPrayerGoalSelection from "@/components/molecules/IstikharaPrayerGoalSelection";
+import ShukarPrayerGoalSelection from "@/components/molecules/ShukarPrayerGoalSelection";
+import QiyamalLaylGoalSelection from "@/components/molecules/QiyamalLaylGoalSelection";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -71,7 +82,22 @@ type Props = {
 
 export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
   ({ onClose, initialTab }, ref) => {
+    const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState<Tab>(initialTab ?? "cycle");
+    const [selectedGoals, setSelectedGoals] = useState<Record<string, boolean>>({});
+
+    const handleGoalToggle = useCallback((goalId: string, isSelected: boolean) => {
+      setSelectedGoals((prev) => ({ ...prev, [goalId]: isSelected }));
+    }, []);
+
+    const localizedTabs = useMemo(() => [
+      { id: "cycle" as Tab, label: t("monthlyGoalPlanner.tabCycle") },
+      { id: "prayer" as Tab, label: t("monthlyGoalPlanner.tabPrayer"), chip: t("monthlyGoalPlanner.tabChipCategory1") },
+      { id: "quran" as Tab, label: t("monthlyGoalPlanner.tabQuran"), chip: t("monthlyGoalPlanner.tabChipCategory2") },
+      { id: "fasting" as Tab, label: t("monthlyGoalPlanner.tabFasting"), chip: t("monthlyGoalPlanner.tabChipCategory3") },
+      { id: "sadaqah" as Tab, label: t("monthlyGoalPlanner.tabSadaqah"), chip: t("monthlyGoalPlanner.tabChipCategory4") },
+      { id: "review" as Tab, label: t("monthlyGoalPlanner.tabReview") },
+    ], [t]);
 
     // Sync tab when sheet is opened with a different initialTab
     useEffect(() => {
@@ -291,7 +317,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
           style={styles.tabBar}
           contentContainerStyle={styles.tabBarContent}
         >
-          {TABS.map((tab) => {
+          {localizedTabs.map((tab) => {
             const isActive = activeTab === tab.id;
             const hasChip = !!tab.chip;
             return (
@@ -348,75 +374,106 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
 
           {activeTab === "prayer" &&
             prayersData.map((prayer) => (
-              <>
+              <View key={prayer.id}>
                 <GoalCardWithDescriptionAndOptionToSelectGoal
-                  initialValue={prayer.isSelected}
-                  title={prayer.title.toUpperCase()}
+                  initialValue={selectedGoals[prayer.id] ?? prayer.isSelected}
+                  title={t(`goalsData.${prayer.id}.title`).toUpperCase()}
                   handleSeeMorePRess={() =>
                     router.push({
                       pathname: "/(private)/goaldescriptiondetails/[goal]",
                       params: { goal: prayer.id },
                     })
                   }
-                  description={prayer.description}
+                  description={t(`goalsData.${prayer.id}.description`)}
                   onSwicthPress={onSwicthChange.bind(null, prayer.id)}
+                  onToggle={(val) => handleGoalToggle(prayer.id, val)}
                 />
+                {prayer.id === "tahayyat-ul-wudhu" && selectedGoals[prayer.id] && (
+                  <TahiyatWuduGoalSelection />
+                )}
+                {prayer.id === "fiveDailyPrayers" && selectedGoals[prayer.id] && (
+                  <DailyPrayerGoalSelection />
+                )}
+                {prayer.id === "sunnahRawatib" && selectedGoals[prayer.id] && (
+                  <SunnahRawatibGoalSelection />
+                )}
+                {prayer.id === "thayyat-ul-masjid" && selectedGoals[prayer.id] && (
+                  <TahiyyatMasjidGoalSelection />
+                )}
+                {prayer.id === "missedPastPrayers" && selectedGoals[prayer.id] && (
+                  <MissedPrayerGoalSelection />
+                )}
+                {prayer.id === "duhaPrayer" && selectedGoals[prayer.id] && (
+                  <DuhaPrayerGoalSelection />
+                )}
+                {prayer.id === "tawbaPrayer" && selectedGoals[prayer.id] && (
+                  <TawbahPrayerGoalSelection />
+                )}
+                {prayer.id === "istikharah" && selectedGoals[prayer.id] && (
+                  <IstikharaPrayerGoalSelection />
+                )}
+                {prayer.id === "shukrPrayer" && selectedGoals[prayer.id] && (
+                  <ShukarPrayerGoalSelection />
+                )}
+                {prayer.id === "qiyamalLail" && selectedGoals[prayer.id] && (
+                  <QiyamalLaylGoalSelection />
+                )}
                 <TopSpace top={10} />
-              </>
+              </View>
             ))}
           {activeTab === "quran" &&
             QuranData.map((quran) => (
-              <>
+              <View key={quran.id}>
                 <GoalCardWithDescriptionAndOptionToSelectGoal
                   initialValue={quran.isSelected}
-                  title={quran.title.toUpperCase()}
+                  title={t(`goalsData.${quran.id}.title`).toUpperCase()}
                   handleSeeMorePRess={() =>
                     router.push({
                       pathname: "/(private)/goaldescriptiondetails/[goal]",
                       params: { goal: quran.id },
                     })
                   }
-                  description={quran.description}
+                  description={t(`goalsData.${quran.id}.description`)}
                   onSwicthPress={onSwicthChange.bind(null, quran.id)}
                 />
                 <TopSpace top={10} />
-              </>
+              </View>
             ))}
           {activeTab === "fasting" &&
             fastingData.map((fasting) => (
-              <>
+              <View key={fasting.id}>
                 <GoalCardWithDescriptionAndOptionToSelectGoal
                   initialValue={fasting.isSelected}
-                  title={fasting.title.toUpperCase()}
+                  title={t(`goalsData.${fasting.id}.title`).toUpperCase()}
                   handleSeeMorePRess={() =>
                     router.push({
                       pathname: "/(private)/goaldescriptiondetails/[goal]",
                       params: { goal: fasting.id },
                     })
                   }
-                  description={fasting.description}
+                  description={t(`goalsData.${fasting.id}.description`)}
                   onSwicthPress={onSwicthChange.bind(null, fasting.id)}
                 />
                 <TopSpace top={10} />
-              </>
+              </View>
             ))}
           {activeTab === "sadaqah" &&
             sadaqahData.map((sadaqah) => (
-              <>
+              <View key={sadaqah.id}>
                 <GoalCardWithDescriptionAndOptionToSelectGoal
                   initialValue={sadaqah.isSelected}
-                  title={sadaqah.title.toUpperCase()}
+                  title={t(`goalsData.${sadaqah.id}.title`).toUpperCase()}
                   handleSeeMorePRess={() =>
                     router.push({
                       pathname: "/(private)/goaldescriptiondetails/[goal]",
                       params: { goal: sadaqah.id },
                     })
                   }
-                  description={sadaqah.description}
+                  description={t(`goalsData.${sadaqah.id}.description`)}
                   onSwicthPress={onSwicthChange.bind(null, sadaqah.id)}
                 />
                 <TopSpace top={10} />
-              </>
+              </View>
             ))}
           {/* {activeTab === "review" && <ReviewCalendar />} */}
         </BottomSheetScrollView>

@@ -4,9 +4,10 @@ import { SwitchButton } from "@/components/atoms/SwitchButton";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { Colors } from "@/constants/theme";
 import { ImageBackground } from "expo-image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useSharedValue } from "react-native-reanimated";
+import { useTranslation } from "react-i18next";
 
 export const GoalCardWithDescriptionAndOptionToSelectGoal = ({
   initialValue = false,
@@ -23,14 +24,28 @@ export const GoalCardWithDescriptionAndOptionToSelectGoal = ({
   onToggle?: (value: boolean) => void;
   onSwicthPress?: () => void;
 }) => {
+  const { t, i18n } = useTranslation();
+  const isRtl = i18n.language === "ar";
   const isOn = useSharedValue(initialValue);
   const [isDescExpanded, setIsDescExpanded] = useState(false);
   const DESCRIPTION_MAX_LINES = 3;
 
+  useEffect(() => {
+    if (isOn.value !== initialValue) {
+      isOn.value = initialValue;
+    }
+  }, [initialValue]);
+
   const handleSwitchPress = () => {
-    isOn.value = !isOn.value;
-    onToggle?.(!isOn.value);
-    onSwicthPress?.();
+    const newValue = !isOn.value;
+    isOn.value = newValue;
+    
+    // Defer the heavy parent state updates slightly to allow the switch's local
+    // animation to start and run with absolute fluidity on the UI thread first.
+    setTimeout(() => {
+      onToggle?.(newValue);
+      onSwicthPress?.();
+    }, 50);
   };
 
   return (
@@ -39,23 +54,23 @@ export const GoalCardWithDescriptionAndOptionToSelectGoal = ({
         <SwitchButton
           value={isOn}
           onPress={handleSwitchPress}
-          style={styles.switch}
+          style={[styles.switch, isRtl && { alignSelf: "flex-start" }]}
         />
       </ImageBackground>
       <TopSpace top={12} />
-      <Text style={styles.title}>{title}</Text>
+      <Text style={[styles.title, isRtl && { textAlign: "right" }]}>{title}</Text>
       <TopSpace top={12} />
       <Text
         numberOfLines={isDescExpanded ? undefined : DESCRIPTION_MAX_LINES}
-        style={styles.description}
+        style={[styles.description, isRtl && { textAlign: "right" }]}
       >
         {description}
       </Text>
       <TopSpace top={2} />
       <Pressable onPress={handleSeeMorePRess}>
-        <Text style={styles.seeMoreText}>
+        <Text style={[styles.seeMoreText, isRtl && { textAlign: "right" }]}>
           <Text style={{ color: Colors.light.white }}>... {}</Text>
-          {"read more"}
+          {t("monthlyGoalPlanner.readMore")}
         </Text>
       </Pressable>
     </View>
