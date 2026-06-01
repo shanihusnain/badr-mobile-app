@@ -14,18 +14,20 @@ import CustomSlider from "../atoms/CustomSlider";
 import PrimaryButton from "../atoms/Primary-button";
 import { useTranslation } from "react-i18next";
 import { useLocaleNumber } from "../../hooks/useLocaleNumber";
+import { globalStyles } from "@/src/globalstyles/globalstyles";
 import { GoalSelectionOpenCloseButton } from "./GoalSelectionOpenCloseButton";
 import { Divider } from "../atoms/Divider";
 
 
-export default function DailyPrayerGoalSelection() {
+export default function CongregationalPrayerGoalSelection() {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
   const [fajr, setFajr] = useState(28);
-  const [dhuhr, setDhuhr] = useState(28);
+  const [dhuhr, setDhuhr] = useState(24);
   const [asar, setAsar] = useState(28);
   const [maghrib, setMaghrib] = useState(28);
   const [isha, setIsha] = useState(28);
+  const [jumuah, setJumuah] = useState(4);
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleDropdown = () => {
@@ -34,27 +36,39 @@ export default function DailyPrayerGoalSelection() {
   };
 
   const handleSave = () => {
-    console.log("Saved target Daily Prayers:", {
+    console.log("Saved target Congregation Prayers:", {
       fajr,
       dhuhr,
       asar,
       maghrib,
       isha,
+      jumuah,
     });
   };
 
-  const totalPrayers = fajr + dhuhr + asar + maghrib + isha;
+  const totalPrayers = fajr + dhuhr + asar + maghrib + isha + jumuah;
 
   return (
-    <View style={styles.container}>
- 
+    <View style={globalStyles.goalSelectionWrapper}>
+      {/* <TouchableOpacity style={styles.headerRow} onPress={toggleDropdown} activeOpacity={0.7}>
+        <Text style={styles.titleText}>
+          {t("prayerGoals.congregationTitle")}
+        </Text>
+        <Feather
+          name={isOpen ? "chevron-up" : "chevron-down"}
+          size={24}
+          color={Colors.light.white}
+          style={styles.icon}
+        />
+      </TouchableOpacity> */}
       <GoalSelectionOpenCloseButton
-        title={t("prayerGoals.dailyPrayersTitle")}
         isOpen={isOpen}
+        title={t("prayerGoals.congregationTitle")}
         toggleDropdown={toggleDropdown}
       />
 
-      {isOpen && <Divider />}
+      {/* {isOpen && <View style={styles.divider} />} */}
+      {isOpen && <Divider/>}
 
       {isOpen && (
         <View style={styles.expandedContent}>
@@ -72,7 +86,7 @@ export default function DailyPrayerGoalSelection() {
           <View style={styles.sliderGroup}>
             <Text style={styles.sliderHeading}>{t("prayerGoals.dhuhr")}</Text>
             <CustomSlider
-              maxDays={28}
+              maxDays={24}
               initialDays={dhuhr}
               onChange={(val) => setDhuhr(val)}
             />
@@ -108,10 +122,20 @@ export default function DailyPrayerGoalSelection() {
             />
           </View>
 
+          {/* Jumu'ah Prayer */}
+          <View style={styles.sliderGroup}>
+            <Text style={styles.sliderHeading}>{t("prayerGoals.jumuah")}</Text>
+            <CustomSlider
+              maxDays={4}
+              initialDays={jumuah}
+              onChange={(val) => setJumuah(val)}
+            />
+          </View>
+
           <Text style={styles.valueText}>
             {formatNumber(totalPrayers)}
             <Text style={styles.whiteText}>
-              {t("prayerGoals.dailyPrayersSuffix")}
+              {t("prayerGoals.congregationSuffix")}
             </Text>
           </Text>
 
@@ -145,13 +169,24 @@ const styles = StyleSheet.create({
     padding: 16,
     marginVertical: 10,
   },
-
-  divider: {
-    height: 1,
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
-    width: "100%",
-    marginTop: 12,
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
+  titleText: {
+    flex: 1,
+    color: Colors.light.white,
+    fontFamily: fonts.primary.medium,
+    fontSize: 14,
+    fontWeight: "500",
+    lineHeight: 20,
+    marginRight: 8,
+  },
+  icon: {
+    marginLeft: 4,
+  },
+
   expandedContent: {
     marginTop: 16,
     alignItems: "center",

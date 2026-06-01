@@ -32,6 +32,7 @@ export const Colors = {
     darkgrey: "#203043",
     unselectedSwtchTrack: "#919EAB",
     dullWhiteOpacity: "rgba(255, 255, 255, 0.1)",
+    divider: "rgba(255, 255, 255, 0.08)"
   },
   dark: {
     text: "#ECEDEE",
