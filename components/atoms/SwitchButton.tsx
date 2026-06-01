@@ -13,21 +13,24 @@ import { useTranslation } from "react-i18next";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
+type SwitchSize = "default" | "small";
+
 interface SwitchProps {
   value: SharedValue<boolean>;
   onPress: () => void;
   style?: object;
   duration?: number;
   trackColors?: { on: string; off: string };
+  size?: SwitchSize;
 }
 
-// ── Dimensions ────────────────────────────────────────────────────────────────
-
-const TRACK_WIDTH = 50;
-const TRACK_HEIGHT = 20;
-const THUMB_SIZE = 28;
-const THUMB_OFFSET = (THUMB_SIZE - TRACK_HEIGHT) / 2;
-const TRAVEL = TRACK_WIDTH - THUMB_SIZE;
+const SWITCH_DIMENSIONS: Record<
+  SwitchSize,
+  { trackWidth: number; trackHeight: number; thumbSize: number }
+> = {
+  default: { trackWidth: 50, trackHeight: 20, thumbSize: 28 },
+  small: { trackWidth: 38, trackHeight: 14, thumbSize: 20 },
+};
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
@@ -40,9 +43,13 @@ export const SwitchButton = ({
     on: Colors.light.green,
     off: Colors.light.unselectedSwtchTrack,
   },
+  size = "default",
 }: SwitchProps) => {
   const { i18n } = useTranslation();
   const isRtl = i18n.language === "ar";
+  const { trackWidth, trackHeight, thumbSize } = SWITCH_DIMENSIONS[size];
+  const thumbOffset = (thumbSize - trackHeight) / 2;
+  const travel = trackWidth - thumbSize;
 
   // Smooth 0 → 1 progress driven by the boolean shared value
   const progress = useDerivedValue(() =>
@@ -60,7 +67,7 @@ export const SwitchButton = ({
   const thumbAnimatedStyle = useAnimatedStyle(() => {
     // In RTL, the track's default layout places the thumb on the physical right (start).
     // A negative translateX moves it to the left (ON state).
-    const translateAmount = isRtl ? -TRAVEL : TRAVEL;
+    const translateAmount = isRtl ? -travel : travel;
     return {
       transform: [
         { translateX: interpolate(progress.value, [0, 1], [0, translateAmount]) },
@@ -70,8 +77,30 @@ export const SwitchButton = ({
 
   return (
     <Pressable onPress={onPress}>
-      <Animated.View style={[styles.track, style, trackAnimatedStyle]}>
-        <Animated.View style={[styles.thumb, thumbAnimatedStyle]} />
+      <Animated.View
+        style={[
+          styles.track,
+          {
+            width: trackWidth,
+            height: trackHeight,
+            borderRadius: trackHeight / 2,
+          },
+          style,
+          trackAnimatedStyle,
+        ]}
+      >
+        <Animated.View
+          style={[
+            styles.thumb,
+            {
+              width: thumbSize,
+              height: thumbSize,
+              borderRadius: thumbSize / 2,
+              top: -thumbOffset,
+            },
+            thumbAnimatedStyle,
+          ]}
+        />
       </Animated.View>
     </Pressable>
   );
@@ -81,21 +110,12 @@ export const SwitchButton = ({
 
 const styles = StyleSheet.create({
   track: {
-    width: TRACK_WIDTH,
-    height: TRACK_HEIGHT,
-    borderRadius: TRACK_HEIGHT / 2,
     justifyContent: "center",
-    // overflow visible so thumb can protrude
     overflow: "visible",
   },
   thumb: {
-    width: THUMB_SIZE,
-    height: THUMB_SIZE,
-    borderRadius: THUMB_SIZE / 2,
     backgroundColor: Colors.light.white,
     position: "absolute",
-    top: -THUMB_OFFSET,
-    // Shadow for depth
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,

@@ -101,11 +101,15 @@ export default function LoginScreen() {
                     onPress={handleSubmit(onSubmit)}
                   />
 
-                  <View style={styles.orloginContainer}>
+                  <TouchableOpacity
+                    style={styles.orloginContainer}
+                    onPress={() => router.push("/dummy")}
+                    activeOpacity={0.7}
+                  >
                     <View style={styles.line} />
                     <Text style={styles.orloginText}>{t("loginScreen.orLoginWith")}</Text>
                     <View style={styles.line} />
-                  </View>
+                  </TouchableOpacity>
                 </View>
               </View>
             </View>

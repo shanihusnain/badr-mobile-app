@@ -24,12 +24,26 @@ import { CalendarCountAndRamadanText } from "@/components/atoms/CalendarCountAnd
 type RamadanCalendarProps = {
   /** Called with the final list of selected missed-fast dates when user taps Save. */
   onSave?: (missedDates: string[]) => void;
+  onDatesChange?: (dates: string[]) => void;
+  selectedDates?: string[];
+  hideFooter?: boolean;
+  hideLegend?: boolean;
+  hideDateLabel?: boolean;
 };
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export const RamadanCalendar = ({ onSave }: RamadanCalendarProps) => {
-  const [missedDates, setMissedDates] = useState<string[]>([]);
+export const RamadanCalendar = ({
+  onSave,
+  onDatesChange,
+  selectedDates,
+  hideFooter = false,
+  hideLegend = false,
+  hideDateLabel = false,
+}: RamadanCalendarProps) => {
+  const [internalMissedDates, setInternalMissedDates] = useState<string[]>([]);
+  const isControlled = selectedDates !== undefined;
+  const missedDates = isControlled ? selectedDates : internalMissedDates;
 
   // 28-day window starting from today
   const startDate = moment().format("YYYY-MM-DD");
@@ -40,14 +54,48 @@ export const RamadanCalendar = ({ onSave }: RamadanCalendarProps) => {
   const endMoment = moment(endDate, "YYYY-MM-DD");
   const rangeLabel = `${startMoment.format("MMM D")} - ${endMoment.format("MMM D")}, ${startMoment.year()}`;
 
+  // Calculate Islamic date range label
+  const HIJRI_MONTHS_SHORT = [
+    "Muh.",
+    "Saf.",
+    "Rab. I",
+    "Rab. II",
+    "Jum. I",
+    "Jum. II",
+    "Raj.",
+    "Sha.",
+    "Ram.",
+    "Shaw.",
+    "Dhul Q.",
+    "Dhul H.",
+  ];
+  const startHijriMonth = HIJRI_MONTHS_SHORT[startMoment.iMonth()];
+  const endHijriMonth = HIJRI_MONTHS_SHORT[endMoment.iMonth()];
+  const startHijriYear = startMoment.iYear();
+  const endHijriYear = endMoment.iYear();
+
+  let islamicRangeLabel = "";
+  if (startMoment.iMonth() === endMoment.iMonth() && startHijriYear === endHijriYear) {
+    islamicRangeLabel = `${startHijriMonth} ${startHijriYear}`;
+  } else if (startHijriYear === endHijriYear) {
+    islamicRangeLabel = `${startHijriMonth} - ${endHijriMonth} ${startHijriYear}`;
+  } else {
+    islamicRangeLabel = `${startHijriMonth} ${startHijriYear} - ${endHijriMonth} ${endHijriYear}`;
+  }
+
   // The calendar displays the month that contains the start of the window
   const currentDate = startMoment.startOf("month").format("YYYY-MM-DD");
 
   // Tap toggles a date in/out of missedDates
   const toggleDate = (ds: string) => {
-    setMissedDates((prev) =>
-      prev.includes(ds) ? prev.filter((d) => d !== ds) : [...prev, ds],
-    );
+    const nextDates = missedDates.includes(ds)
+      ? missedDates.filter((d) => d !== ds)
+      : [...missedDates, ds];
+
+    if (!isControlled) {
+      setInternalMissedDates(nextDates);
+    }
+    onDatesChange?.(nextDates);
   };
 
   const handleSave = () => {
@@ -59,17 +107,22 @@ export const RamadanCalendar = ({ onSave }: RamadanCalendarProps) => {
   return (
     <View style={styles.wrapper}>
       {/* ── Legend — calendarBg top bar ── */}
-      <View style={styles.topBar}>
-        <View style={styles.legendRow}>
-          <View style={styles.legendRing} />
-          <Text style={styles.legendText}>MISSED RAMADAN FASTS</Text>
+      {!hideLegend && (
+        <View style={styles.topBar}>
+          <View style={styles.legendRow}>
+            <View style={styles.legendRing} />
+            <Text style={styles.legendText}>MISSED RAMADAN FASTS</Text>
+          </View>
         </View>
-      </View>
+      )}
 
       {/* ── Date range label ── */}
-      <View style={styles.dateLabel}>
-        <Text style={styles.dateLabelText}>{rangeLabel}</Text>
-      </View>
+      {!hideDateLabel && (
+        <View style={styles.dateLabel}>
+          <Text style={styles.dateLabelText}>{rangeLabel}</Text>
+          <Text style={styles.islamicDateText}>{islamicRangeLabel}</Text>
+        </View>
+      )}
 
       {/* ── Calendar ── */}
       <CalendarGrid
@@ -80,30 +133,32 @@ export const RamadanCalendar = ({ onSave }: RamadanCalendarProps) => {
       />
 
       {/* ── Footer — calendarBg bottom bar ── */}
-      <View style={styles.footer}>
-        <Text style={styles.description}>
-          Tap on the dates when you missed your Ramadan fast. These will be
-          added to your fasting schedule.
-        </Text>
-        <TopSpace top={16} />
+      {!hideFooter && (
+        <View style={styles.footer}>
+          <Text style={styles.description}>
+            Tap on the dates when you missed your Ramadan fast. These will be
+            added to your fasting schedule.
+          </Text>
+          <TopSpace top={16} />
 
-        <CalendarCountAndRamadanText
-          fastCount={missedDates.length}
-          countColor={Colors.light.ringRamadan}
-          title="Missed Ramadan Fasts"
-        />
-        <TouchableOpacity
-          style={[
-            styles.saveBtn,
-            missedDates.length === 0 && styles.saveBtnDisabled,
-          ]}
-          onPress={handleSave}
-          activeOpacity={0.8}
-          disabled={missedDates.length === 0}
-        >
-          <Text style={styles.saveBtnText}>Save</Text>
-        </TouchableOpacity>
-      </View>
+          <CalendarCountAndRamadanText
+            fastCount={missedDates.length}
+            countColor={Colors.light.ringRamadan}
+            title="Missed Ramadan Fasts"
+          />
+          <TouchableOpacity
+            style={[
+              styles.saveBtn,
+              missedDates.length === 0 && styles.saveBtnDisabled,
+            ]}
+            onPress={handleSave}
+            activeOpacity={0.8}
+            disabled={missedDates.length === 0}
+          >
+            <Text style={styles.saveBtnText}>Save</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 };
@@ -113,7 +168,7 @@ export default RamadanCalendar;
 // ── Styles ────────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  wrapper: { marginBottom: 8 },
+  wrapper: { marginBottom: 0 },
 
   // ── Top bar (legend) — calendarBg rounded top ────────
   topBar: {
@@ -157,6 +212,13 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
+  },
+  islamicDateText: {
+    fontSize: 12,
+    fontWeight: "400",
+    color: Colors.light.grey,
+    fontFamily: fonts.primary.regular,
+    marginTop: 4,
   },
 
   // ── Footer — calendarBg rounded bottom ───────────────

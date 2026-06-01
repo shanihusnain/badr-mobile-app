@@ -46,17 +46,17 @@ export default function TahiyatWuduGoalSelection() {
             initialDays={sliderValue}
             onChange={(val) => setSliderValue(val)}
           />
-          
+
           <Text style={styles.valueText}>
             {formatNumber(sliderValue)}
             <Text style={styles.whiteText}>{t("prayerGoals.tahiyaWuduSuffix")}</Text>
           </Text>
 
           <View style={styles.buttonContainer}>
-            <PrimaryButton 
-              text={t("prayerGoals.save")} 
-              onPress={handleSave} 
-              style={styles.saveButton} 
+            <PrimaryButton
+              text={t("prayerGoals.save")}
+              onPress={handleSave}
+              style={styles.saveButton}
               textStyle={styles.saveButtonText}
             />
           </View>
@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
   },
   saveButtonText: {
     fontSize: 16,
-      fontWeight: "500",
-      fontFamily: fonts.primary.medium,
+    fontWeight: "500",
+    fontFamily: fonts.primary.medium,
   },
 });

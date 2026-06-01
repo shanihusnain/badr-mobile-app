@@ -38,6 +38,10 @@ import TawbahPrayerGoalSelection from "@/components/molecules/TawbahPrayerGoalSe
 import IstikharaPrayerGoalSelection from "@/components/molecules/IstikharaPrayerGoalSelection";
 import ShukarPrayerGoalSelection from "@/components/molecules/ShukarPrayerGoalSelection";
 import QiyamalLaylGoalSelection from "@/components/molecules/QiyamalLaylGoalSelection";
+import MissedRamadanFastGoalSelection from "@/components/molecules/MissedRamadanFastGoalSelection";
+import ProphetDawoodFastGoalSelection from "@/components/molecules/ProphetDawoodFastGoalSelection";
+import MondayThursdayFastGoalSelection from "@/components/molecules/MondayThursdayFastGoalSelection";
+import WhiteDaysFastGoalSelection from "@/components/molecules/WhiteDaysFastGoalSelection";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -443,7 +447,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
             fastingData.map((fasting) => (
               <View key={fasting.id}>
                 <GoalCardWithDescriptionAndOptionToSelectGoal
-                  initialValue={fasting.isSelected}
+                  initialValue={selectedGoals[fasting.id] ?? fasting.isSelected}
                   title={t(`goalsData.${fasting.id}.title`).toUpperCase()}
                   handleSeeMorePRess={() =>
                     router.push({
@@ -453,7 +457,20 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
                   }
                   description={t(`goalsData.${fasting.id}.description`)}
                   onSwicthPress={onSwicthChange.bind(null, fasting.id)}
+                  onToggle={(val) => handleGoalToggle(fasting.id, val)}
                 />
+                {fasting.id === "missed-fasts" && selectedGoals[fasting.id] && (
+                  <MissedRamadanFastGoalSelection />
+                )}
+                {fasting.id === "dawood-fasts" && selectedGoals[fasting.id] && (
+                  <ProphetDawoodFastGoalSelection />
+                )}
+                {fasting.id === "monday-and-thursday-fasts" && selectedGoals[fasting.id] && (
+                  <MondayThursdayFastGoalSelection />
+                )}
+                {fasting.id === "white-days-fasts" && selectedGoals[fasting.id] && (
+                  <WhiteDaysFastGoalSelection />
+                )}
                 <TopSpace top={10} />
               </View>
             ))}

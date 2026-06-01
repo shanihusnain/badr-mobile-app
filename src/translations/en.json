@@ -273,6 +273,7 @@
     "maghrib": "Maghrib",
     "isha": "Isha",
     "jumuah": "Jumu'ah Prayer",
+    "dhuhrFridayNote": "(Dhuhr prayers on Fridays are not included here; they are incorporated below with the Jumu'ah prayer)",
     "sunnahTitle": "Commit to praying all Sunnah Rawatib prayers this month",
     "beforeFajrHeading": "Before Fajr (One 2-rak'ah prayer)",
     "beforeDhuhrHeading": "Before Dhuhr (Two 2-rak'ah prayers)",
@@ -287,293 +288,2397 @@
   "goalsData": {
     "tahayyat-ul-wudhu": {
       "title": "TAHIYYAT-UL-WUDHU",
-      "description": "A two-rak'ah Sunnah prayer performed right after completing wudhu. It serves to honor the purification process and prepare us for further prayer",
+      "description": "Tahiyyat Al-Wudhu (Ablution Prayer) is a two-rak'ah Sunnah prayer performed right after completing Wudhu. It serves to purify us from sins and prepare us for further prayer.",
       "heroTitle": "A Small Deed that Earns a Massive Reward",
       "navTitle": "Tahiyyat Al-Wudhu",
-      "steps": [
-        "Step 1: Perform Wudhu (Ablution) - Ensure you have completed your Wudhu before starting the prayer.",
-        "Step 2: Find a Clean and Quiet Place - Choose a clean and quiet place to perform the prayer, preferably facing the Qibla.",
-        "Step 3: Make the Intention (Niyyah) - Formulate the intention in your heart to perform two rak'ahs of Tahiyyat Al-Wudhu.",
-        "Step 4: Perform Two Rak'ahs - Pray two normal rak'ahs of prayer, reciting Surah Al-Fatihah and another surah in each rak'ah.",
-        "Step 5: Conclude with Salam - End the prayer with the salam to the right and then to the left."
+      "hadithIntro": "Uthman ibn Affan (RA) narrates a profound hadith emphasizing the virtues of performing wudhu and following it with two rak'ahs of prayer:",
+      "benefitsIntro": "Engaging in this practice offers profound benefits:",
+      "benefits": [
+        {
+          "heading": "Spiritual Readiness",
+          "description": "Cultivates mindfulness and focus for future prayers."
+        },
+        {
+          "heading": "Purification",
+          "description": "Cleanses the mind and heart of distractions."
+        },
+        {
+          "heading": "Intention Setting",
+          "description": "Aligns actions with devotion and fosters spiritual awareness."
+        },
+        {
+          "heading": "Connection with Allah",
+          "description": "Deepens the bond with Allah, bringing peace and tranquillity."
+        }
+      ],
+      "steps": [],
+      "readMore": [
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Engaging in this practice offers profound benefits:"
+            },
+            {
+              "type": "benefit",
+              "heading": "Spiritual Readiness",
+              "description": "Cultivates mindfulness and focus for future prayers."
+            },
+            {
+              "type": "benefit",
+              "heading": "Purification",
+              "description": "Cleanses the mind and heart of distractions."
+            },
+            {
+              "type": "benefit",
+              "heading": "Intention Setting",
+              "description": "Aligns actions with devotion and fosters spiritual awareness."
+            },
+            {
+              "type": "benefit",
+              "heading": "Connection with Allah",
+              "description": "Deepens the bond with Allah, bringing peace and tranquillity."
+            }
+          ]
+        },
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Uthman ibn Affan (RA) narrates a profound hadith emphasizing the virtues of performing wudhu and following it with two rak'ahs of prayer:"
+            },
+            {
+              "type": "text",
+              "style": "hadithQuoteLead",
+              "content": "\"Whoever performs Wudhu like this wudhu of mine and then offers two "
+            },
+            {
+              "type": "text",
+              "style": "hadithQuoteLight",
+              "content": "rak'ahs of prayer without distraction, all past sins will be forgiven."
+            },
+            {
+              "type": "text",
+              "style": "wuduBody",
+              "content": "This hadith emphasizes that a proper, mindful wudhu—even if already in a state of purity—followed by two undistracted rak'ahs with sincere intention, leads to Allah's forgiveness."
+            },
+            {
+              "type": "text",
+              "style": "wuduBodySpaced",
+              "content": "On one occasion, during the time of Fajr prayer, the Prophet (PBUH) said to Bilal (RA):"
+            },
+            {
+              "type": "text",
+              "style": "bilalQuote",
+              "content": "\"O Bilal, tell me of the most hopeful deed you practiced in Islam. I heard the scuffle"
+            },
+            {
+              "type": "text",
+              "style": "bilalQuoteLight",
+              "content": "of your sandals before me in Paradise.\""
+            },
+            {
+              "type": "replyWithQuote",
+              "prefix": "Bilal (RA) replied:",
+              "quote": "\"I do not perform ablution by day or night but that I pray along with it as much as Allah has decreed me to pray.\""
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "This beautiful exchange highlights the virtue of remaining in a state of purity and consistently offering voluntary prayers after wudhu, a practice that brought Bilal (RA) the glad tidings of Paradise."
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "May Allah grant us the ability to revive this beautiful Sunnah, seeking His forgiveness and acceptance with every sincere act."
+            }
+          ]
+        }
       ]
     },
     "fiveDailyPrayers": {
-      "title": "The 5 Daily Prayers",
-      "description": "The five obligatory prayers, most beloved to Allah, structure our day when prayed on time, instilling discipline and deepening our gratitude",
-      "heroTitle": "The Pillar of Faith and Key to Paradise",
-      "navTitle": "The 5 Daily Prayers",
-      "steps": [
-        "Step 1: Be Mindful of the Time - Know the exact window of each obligatory prayer (Fajr, Dhuhr, Asr, Maghrib, Isha).",
-        "Step 2: Attain State of Purity - Perform proper Wudhu (or Ghusl if required) prior to the prayer.",
-        "Step 3: Face the Qibla - Align yourself towards the Holy Kaaba in Makkah.",
-        "Step 4: Perform the Prayer with Khushu - Pray with complete focus, humility, and tranquility.",
-        "Step 5: Keep Consistency - Track and commit to completing all five daily prayers on time every single day."
+      "title": "The 5 DAilY FARD PRAYERS",
+      "description": "The obligatory five daily prayers provide frequent opportunities to express gratitude, seek forgiveness, and remind us of our faith and submission to Allah.",
+      "heroTitle": "The Pinnacle of Divine Connection",
+      "navTitle": "The 5 DAilY FARD PRAYERS",
+      "benefitsIntro": "The five daily prayers, Islam's second pillar, forge a profound connection with Allah, centering life on His remembrance. They anchor a Muslim's day, instilling discipline, devotion, and harmony through their timely observance:",
+      "steps": [],
+      "readMore": [
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "body",
+              "content": "The five daily prayers, Islam's second pillar, forge a profound connection with Allah, centering life on His remembrance. They anchor a Muslim's day, instilling discipline, devotion, and harmony through their timely observance:"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Fajr, performed at dawn, starts the day with a reminder of Allah's greatness."
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Dhuhr, performed after midday, provides a break from worldly activities to refocus on our Creator."
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Asr, in the afternoon, serves as a spiritual anchor to maintain our consciousness of Allah."
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Maghrib, at sunset, allows us to reflect on the day's blessings."
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Isha, in the evening, concludes the day with a peaceful connection to Allah, ensuring we end the day in His remembrance"
+            }
+          ]
+        },
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "body",
+              "content": "The significance of prayer is beautifully emphasized in a hadith of the Prophet (PBUH):"
+            },
+            {
+              "type": "text",
+              "style": "quoteItalic",
+              "content": "\"The first matter that the slave will be brought to account for on the Day of judgement is the prayer. If it is sound, then the rest of his deeds will be sound. And if it is incomplete, then the rest of his deeds will be incomplete.\""
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "An incomplete prayer, such as rushing through it, lacking focus, or failing to meet its essential requirements, highlights the need for sincerity and mindfulness to ensure its acceptance."
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Ultimately, the five daily prayers offer a sanctuary of peace in a chaotic world. They remind us that while daily life is transient, our relationship with the Almighty is constant, enduring, and the source of true success."
+            }
+          ]
+        },
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "sectionHeading",
+              "content": "Unity in Worship, Greater Rewards"
+            },
+            {
+              "type": "text",
+              "style": "bodyTight",
+              "content": "Praying the five daily prayers in congregation holds immense spiritual rewards and a special place in Islam, particularly for men, for whom it is highly recommended. Standing shoulder to shoulder with fellow worshippers amplifies the reward of prayer, strengthens faith, and fosters unity. It eliminates distinctions of status, creating a sense of collective purpose and mutual support. This shared act of devotion unites us in seeking Allah's pleasure, reinforcing the values of brotherhood and solidarity."
+            },
+            {
+              "type": "text",
+              "style": "bodyTight",
+              "content": "As Abdullah bin Umar (RA) narrated, the Prophet (PBUH) said:"
+            },
+            {
+              "type": "text",
+              "style": "quoteItalic",
+              "content": "\"The reward for praying in congregation is twenty-seven times greater than praying alone\""
+            },
+            {
+              "type": "text",
+              "style": "bodyZero",
+              "content": "The Prophet (PBUH) also said:"
+            },
+            {
+              "type": "text",
+              "style": "quoteItalic",
+              "content": "\"Praying Isha in congregation equals half the night in prayer, and praying Isha and Fajr in congregation equals the entire night in prayer.\""
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Another profound benefit of congregational prayer is the opportunity for the erasure of sins. Abu Huraira (RA) narrated that the Prophet (PBUH) said:"
+            },
+            {
+              "type": "text",
+              "style": "quoteItalic",
+              "content": "\"Whoever purifies himself in his house and then walks to one of the houses of Allah to perform an obligatory act of worship, each of his steps will erase a sin and the other will elevate his rank.\""
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "In Islam, men are strongly encouraged to pray in congregation at the mosque to foster unity, discipline, and a sense of community. Women, while equally rewarded for their prayers, are encouraged to pray at home, as it is more rewarding and ensures greater privacy and modesty. The Prophet (PBUH) said:"
+            },
+            {
+              "type": "text",
+              "style": "quoteItalic",
+              "content": "\"Do not prevent your women from visiting the mosque; but their houses are better for them (for praying).\""
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "In essence, praying in congregation not only amplifies rewards but also purifies the heart, strengthens communal ties, and deepens our connection with Allah."
+            }
+          ]
+        }
       ]
     },
     "sunnahRawatib": {
-      "title": "Sunnah Rawatib",
-      "description": "Aligns with the Prophet's (PBUH) sunnah and provides opportunities to compensate any shortcomings in obligatory prayers",
-      "heroTitle": "Building a House in Paradise",
-      "navTitle": "Sunnah Rawatib",
-      "steps": [
-        "Step 1: Learn the Rawatib Prayers - The 12 rak'ahs: 2 before Fajr, 4 before Dhuhr, 2 after Dhuhr, 2 after Maghrib, and 2 after Isha.",
-        "Step 2: Pray Before/After Obligatory prayers - Offer these Sunnah prayers immediately before or after their respective Fard prayers.",
-        "Step 3: Maintain Focus - Give these voluntary prayers the same devotion and respect as obligatory ones.",
-        "Step 4: Track Progress - Strive to complete all 12 rak'ahs daily to unlock the promised reward."
+      "title": "SUNNAH RAWATIB",
+      "description": "Performing Sunnah Rawatib prayers draws us closer to Allah. They serve as a spiritual safety net, compensating for any unintentional errors or deficiencies in obligatory prayers.",
+      "heroTitle": "Build Your Home in Jannah!",
+      "navTitle": "SUNNAH RAWATIB",
+      "steps": [],
+      "readMore": [
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "sectionHeading",
+              "content": "Introduction & Guide"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Sunnah Rawatib prayers are voluntary acts of worship that follow the Sunnah of the Prophet (PBUH) and are an essential part of our Islamic practice. They provide us with a structured way to deepen our spiritual connection with Allah, enriching our faith and devotion. Additionally, they help compensate for any unintentional mistakes or shortcomings in our obligatory prayers, ensuring that our worship is more complete and rewarding."
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "The Prophet (PBUH) stated:"
+            },
+            {
+              "type": "text",
+              "style": "quoteMediumItalic",
+              "content": "\"Allah will build a house in Paradise for whoever is consistent in praying 12 rak'ahs of Sunnah prayers.\""
+            },
+            {
+              "type": "text",
+              "style": "bodyTight",
+              "content": "The 12 rak'ahs are prayed in pairs of two rak'ahs, making them six prayers in total, each concluded with tasleem. These voluntary prayer prayers are observed within the time frame of each obligatory prayer, starting after its call to prayer and completed before the next prayer's call begins. The breakdown is as follows:"
+            },
+            {
+              "type": "prayerSection",
+              "heading": "Fajr Prayer",
+              "description": "Start with one prayer (2 rak'ahs) of Sunnah prayer performed after the call to prayer for Fajr, followed by the obligatory Fajr prayer."
+            },
+            {
+              "type": "prayerSection",
+              "heading": "Dhuhr Prayer",
+              "description": "Start with two Sunnah prayers (2 rak'ahs each) after the call to prayer for Dhuhr. After completing the obligatory Dhuhr prayer, perform one Sunnah prayer (2 rak'ahs)."
+            },
+            {
+              "type": "prayerSection",
+              "heading": "Maghrib Prayer",
+              "description": "First, perform the obligatory Maghrib prayer after the call to prayer for Maghrib. Then, follow it with one Sunnah prayer (2 rak'ahs)."
+            },
+            {
+              "type": "prayerSection",
+              "heading": "Isha Prayer",
+              "description": "Perform the obligatory Isha prayer after the call to prayer for Isha. Then, follow it with one Sunnah prayer (2 rak'ahs)."
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Additionally, one may choose to pray two Sunnah prayers after Dhuhr instead of one (i.e., 4 rak'ahs instead of 2), as well as one or two Sunnah prayers before Asr (i.e., 2 or 4 rak'ahs)."
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "While this practice exceeds the typical 12 rak'ah prescribed in the above hadith and common practice, it highlights the flexibility in the practice of Sunnah Rawatib as an opportunity to deepen our connection with Allah and reinforce the spiritual benefits and divine protection associated with them. As the Prophet (PBUH) said:"
+            },
+            {
+              "type": "text",
+              "style": "quoteMediumItalic",
+              "content": "\"Whoever prays four rak'ah before Dhuhr and four after, the fire will not touch him.\""
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Furthermore, Ibn Umar reported the Prophet (PBUH) said:"
+            },
+            {
+              "type": "text",
+              "style": "quoteMediumItalic",
+              "content": "\u201cMay Allah have mercy on a person who prays four rak\u2019ah before the Asr prayer.\u201d"
+            }
+          ]
+        },
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "tableGuide",
+              "content": "To help you choose the option that works best for you, we've provided a detailed table below, outlining the number of rak'ahs and their respective timings for all the options mentioned above."
+            },
+            {
+              "type": "text",
+              "style": "tableGuide",
+              "content": "Remember, it is crucial to perform all Sunnah prayers within the time frame of each obligatory prayer, starting after its call to prayer and completed before the next prayer's call begins, as they cannot be made up once missed."
+            }
+          ]
+        }
       ]
     },
     "thayyat-ul-masjid": {
-      "title": "THAYYAT-UL-MASJID",
-      "description": "A two-rak’ah prayer performed upon entering the mosque, honoring its sanctity and seeking Allah’s blessings, guidance, and mercy",
-      "heroTitle": "Greeting the House of Allah",
+      "title": "TAHIYYAT AL-MASJID",
+      "description": "Tahiyyat Al-Masjid is a two-rak’ah prayer performed upon entering the mosque, honoring its sanctity and seeking Allah’s blessings and mercy.",
+      "heroTitle": "Honoring the House of Allah",
       "navTitle": "Tahiyyat Al-Masjid",
-      "steps": [
-        "Step 1: Enter the Mosque with Respect - Step in with your right foot first, reciting the invocation for entering the mosque.",
-        "Step 2: Form Intention (Niyyah) - Intend to pray two rak'ahs greeting the mosque before sitting down.",
-        "Step 3: Perform Two Rak'ahs - Pray the two rak'ahs with focus and tranquility.",
-        "Step 4: Complete Before Sitting - Ensure you pray these two rak'ahs immediately upon entering before you sit down."
+      "readMore": [
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "tableGuide",
+              "content": "Upon entering a mosque, a believer steps into a sanctuary dedicated to the worship of Allah. To honor the sanctity of this space, Islam prescribes a special voluntary prayer known as Tahiyyat Al-Masjid (Greeting of the Mosque). This two-rak'ah prayer serves not only as a mark of respect for the House of Allah but also as a spiritual preparation for the obligatory prayers that follow."
+            },
+            {
+              "type": "text",
+              "style": "tableGuide",
+              "content": "The significance of Tahiyyat Al-Masjid is rooted in the guidance of the Prophet (PBUH). Abu Qatadah (RA) narrated that the Prophet (PBUH) said:"
+            },
+            {
+              "type": "text",
+              "style": "quoteMediumItalic",
+              "content": "\"When one of you enters the mosque, let him not sit until he prays two rak'ahs.\""
+            },
+            {
+              "type": "text",
+              "style": "tableGuide",
+              "content": "This act of worship shifts a believer's focus from the worldly to the spiritual. By performing this prayer, one disconnects from the noise of daily life and attunes the heart to a state of humility and devotion. It is a moment to pause, seek Allah's mercy, and mentally prepare for the congregation."
+            }
+          ]
+        }
       ]
     },
     "missedPastPrayers": {
-      "title": "Missed Past Prayers",
-      "description": "Many of us have neglected obligatory prayers for weeks, months, or even years. Fulfilling these overdue prayers is a testament to our renewed commitment to Allah",
-      "heroTitle": "Fulfilling Your Sacred Debts",
-      "navTitle": "Missed Past Prayers",
-      "steps": [
-        "Step 1: Calculate Your Overdue Prayers - Make an honest estimate of the number of missed prayers you need to make up (Qada).",
-        "Step 2: Establish a Feasible Schedule - Plan to pray one or two make-up prayers alongside every current obligatory prayer daily.",
-        "Step 3: Remain Patient and Consistent - Compounding consistency over time is the best path to clear your spiritual debt.",
-        "Step 4: Keep Track of Your Progress - Log each completed Qada prayer to stay motivated and witness your progress."
+      "title": "MISSED PAST PRAYERS",
+      "description": "Many of us have neglected obligatory prayers for weeks, months, or even years. Fulfilling these overdue prayers is a testament to our renewed commitment to Allah.",
+      "heroTitle": "Renew & Deepen Your Connection with Allah",
+      "navTitle": "MISSED PAST PRAYERS",
+      "steps": [],
+      "readMore": [
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "bodyZero",
+              "content": "Obligatory prayers, the second pillar of Islam, are the foundation of our faith and spiritual framework, shaping our lives and strengthening our bond with Allah."
+            },
+            {
+              "type": "text",
+              "style": "bodyZero",
+              "content": "While some of us may have neglected this duty in the past, acknowledging these shortcomings offers us an opportunity to fulfill this obligation and draw closer to Allah. It is never too late to address missed prayers, renew our commitment, and seek His pleasure through sincere effort."
+            }
+          ]
+        },
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "bodyZero",
+              "content": "There is a difference of opinion among scholars regarding missed prayers. Some scholars hold that sincere repentance (tawbah) suffices for missed prayers, emphasizing Allah's vast mercy. However, as obligatory prayers are deeply beloved to Allah and a cornerstone of worship, many scholars recommend making them up as a sign of devotion and commitment. For those who choose this path, two approaches are outlined:"
+            },
+            {
+              "type": "prayerSection",
+              "heading": "Praying Alongside Current Obligations:",
+              "description": "Perform each missed prayer in order, pairing them with your current prayers (e.g., pray a missed Fajr before the current Fajr) until the backlog is cleared."
+            },
+            {
+              "type": "prayerSection",
+              "heading": "Praying Whenever Possible:",
+              "description": "Dedicate time throughout the day to perform missed prayers in order (e.g., Fajr, Dhuhr, Asr, Maghrib, Isha) as your schedule allows, without waiting for specific prayer times."
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Both methods require repentance, sincerity, consistency, and a commitment to fulfilling this obligation. By taking these steps, you can renew your devotion and strengthen your spiritual foundation."
+            }
+          ]
+        }
       ]
     },
     "duhaPrayer": {
-      "title": "Duha Prayer",
-      "description": "It is performed in sets of 2 rak'ahs anytime from approximately 15-20 minutes after sunrise until about 10-15 minutes before the Dhuhr prayer",
-      "heroTitle": "The Prayer of the Repentant and Charity for Joints",
-      "navTitle": "Duha Prayer",
+      "title": "DUHA",
+      "description": "Duha prayer, also known as the repentant or Awabeen in Arabic, is performed in sets of 2 rak'ahs anytime 15-20 minutes after sunrise until 10-15 minutes before Dhuhr.",
+      "heroTitle": "Spiritual Elevation & Physical Charity",
+      "navTitle": "DUHA",
       "steps": [
         "Step 1: Wait for Sunrise - Allow 15-20 minutes to pass after sunrise before commencing the Duha prayer.",
         "Step 2: Choose Rak'ahs - You can pray from 2 to 8 rak'ahs, in sets of two.",
         "Step 3: Focus on Sincerity - Make the Niyyah in your heart to pray the Duha prayer.",
         "Step 4: Complete Before Dhuhr - Complete your prayer before the sun reaches its zenith (about 10-15 minutes before Dhuhr)."
+      ],
+      "readMore": [
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "body",
+              "content": "The word Duha in Arabic translates to \"forenoon\" or \"morning light.\" It refers to the time of day when the sun has risen above the horizon and its light spreads brightly across the sky."
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Duha prayer is a significant prayer that holds a special place in the hearts of many Muslims seeking spiritual fulfillment and a closer connection to Allah. It was narrated by Abu Hurayrah (RA) that the Prophet (PBUH) said:"
+            },
+            {
+              "type": "text",
+              "style": "quoteItalic",
+              "content": "\"None is diligent in establishing Duha prayer except one who is oft-repentant\" (awwāb), and it is for the oft-repentant."
+            },
+            {
+              "type": "text",
+              "style": "tableGuide",
+              "content": "The term 'awwāb' refers to someone who frequently turns back to Allah in repentance and devotion. This narration emphasizes that those who habitually perform the Duha prayer are often individuals who are deeply connected to Allah, consistently seeking His forgiveness and striving to maintain a close relationship with Him. The Prophet (PBUH) highlights the special connection between the Duha prayer and the quality of being 'awwāb,' encouraging Muslims to adopt this beautiful act of worship as part of their spiritual routine.\n\nThe importance of the Duha prayer is further highlighted in a hadith narrated by Abu Dharr (RA), where the Prophet (PBUH) stated:"
+            },
+            {
+              "type": "text",
+              "style": "quoteItalic",
+              "content": "\"In the morning, charity is due from every joint of your body. Every tasbeeh (saying 'SubhanAllah') is charity. Every tahmeed (saying 'Alhamdulillah') is charity. Every tahleelah (saying 'La ilaha illallah') is charity. Every takbeer (saying 'Allahu Akbar') is charity. Enjoining good is charity. Forbidding evil is charity. And performing two rak’ahs of Duha suffices all of this.\""
+            }
+          ]
+        },
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "sectionHeading",
+              "content": "Duha: The \"Forenoon Tahajjud\""
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "While the Quran does not directly mention the Duha prayer, Surah Al-Duha The Duha prayer is often referred to as the \"Forenoon Tahajjud\" because, like Tahajjud, it is a voluntary act of worship performed during a quiet and serene time, fostering a deep spiritual connection with Allah.\n\nWhile Tahajjud is prayed in the stillness of the night, Duha is offered in the calm of the forenoon, after the sun has risen. Both prayers are acts of devotion that reflect gratitude, repentance, and a yearning for closeness to Allah, making them spiritually enriching and beloved forms of worship."
+            }
+          ]
+        }
       ]
     },
     "tawbaPrayer": {
-      "title": "Tawba Prayer",
-      "description": "Also known as the repentance prayer in English, the Tawbah prayer is a sincere 2 rak'ah prayer to seek forgiveness from Allah for our sins",
-      "heroTitle": "A Sincere Return to Allah's Mercy",
-      "navTitle": "Tawbah Prayer",
+      "title": "TAWBAH PRAYER",
+      "description": "The Tawbah prayer, or the Prayer of Repentance, is a rewarding 2-rakah voluntary prayer for seeking Allah's forgiveness and repentance for any sins, whether minor or major, old or new.",
+      "heroTitle": "Embracing the Power of Repentance",
+      "navTitle": "AL-TAWBAH",
       "steps": [
         "Step 1: Perform Wudhu Beautifully - Wash yourself thoroughly, paying attention to the Sunnah steps of Wudhu.",
         "Step 2: Make Sincere Intention - Deeply intend to seek Allah's forgiveness for your errors.",
         "Step 3: Pray Two Rak'ahs - Pray two rak'ahs with absolute humility and focus.",
         "Step 4: Beseech Allah's Forgiveness - In sujud or after salam, sincerely ask Allah to pardon you, promising to stay away from the sin."
+      ],
+      "readMore": [
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "body",
+              "content": "The Tawbah prayer holds a vital place in our spiritual journey as a Muslim, as it provides means to purify our heart and seek closeness to Allah through genuine remorse and a commitment to reform."
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "The significance of this prayer is underscored by a hadith narrated by Abu Bakr (RA), where the Prophet (PBUH) said:"
+            },
+            {
+              "type": "text",
+              "style": "quoteItalic",
+              "content": "\"There is no one who commits a sin, then purifies himself well, stands and prays two rak'ahs, and then asks Allah for forgiveness, but Allah will forgive him.\""
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "This narration highlights the mercy of Allah and the power of sincere repentance in erasing sins and renewing one's faith, encouraging us to constantly turn back to Allah and seek His forgiveness."
+            }
+          ]
+        },
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "sectionHeading",
+              "content": "Aligning with Divine Guidance"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "While the Quran does talk about the consequences of sins, it also emphasizes that Allah's mercy is far greater than His punishment. This balance shows that while we are held accountable for our actions, Allah is always ready to forgive those who sincerely repent."
+            },
+            {
+              "type": "text",
+              "style": "quoteSemibold",
+              "content": "Surah Al-Tawbah (9:104) states: \"Do they not know that Allah accepts repentance from His servants and receives charities, and that Allah is the Accepting of repentance, the Merciful?\""
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Furthermore, Surah Al-Furqan (25:70) highlights the transformative power of repentance:"
+            },
+            {
+              "type": "text",
+              "style": "quoteSemibold",
+              "content": "\"Except for those who repent, believe and do righteous work. For them Allah will replace their evil deeds with good. And ever is Allah Forgiving and Merciful.\""
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Additionally, Surah Az-Zumar (39:53) emphasizes that Allah's mercy is vast and all-encompassing, encouraging all sinners, regardless of the magnitude of their sins, to repent sincerely:"
+            },
+            {
+              "type": "text",
+              "style": "quoteSemibold",
+              "content": "\"Say, 'O My servants who have transgressed against themselves [by sinning], do not despair of the mercy of Allah. Indeed, Allah forgives all sins. Indeed, it is He who is the Forgiving, the Merciful.\""
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "By integrating the Tawbah prayer into our lives, we seize the opportunity to truly demonstrate our remorse by prostrating in repentance. This act conveys the depth of our sincerity and humility before Allah, drawing us closer to Him and renewing our commitment to His commands."
+            }
+          ]
+        }
       ]
     },
     "istikharah": {
-      "title": "Istikharah Prayer",
-      "description": "A two rak'ah prayer performed to seek guidance from Allah when faced with a decision. It helps us make choices that align with our faith and best interests",
-      "heroTitle": "Seeking Divine Counsel and Wisdom",
-      "navTitle": "Istikharah Prayer",
+      "title": "ISTIKHARAH PRAYER",
+      "description": "The Istikhara prayer is a two rak'ah prayer for divine guidance when making a decision, fostering reliance on Allah and promoting peace of mind.",
+      "heroTitle": "Seeking Divine Guidance in Decision-Making",
+      "navTitle": "ISTIKHARAH",
       "steps": [
         "Step 1: Identify Your Dilemma - Have a specific decision or choice in mind.",
         "Step 2: Pray Two Rak'ahs - Pray two voluntary non-obligatory rak'ahs.",
         "Step 3: Recite the Istikharah Du'a - Recite the beautiful prophetic supplication after completing the prayer.",
         "Step 4: Trust in Allah's Decree - Move forward with the best option, trusting that Allah will guide you to what is beneficial."
+      ],
+      "readMore": [
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "sectionHeading",
+              "content": "When to Pray Istikhara"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "The Istikhara prayer, deeply rooted in the teachings of Prophet Muhammad (PBUH), serves as a special means for Muslims to seek divine guidance in decision-making. This practice is complemented by \"istishara,\" the consultation with righteous and trusted individuals who can aid in making informed decisions, reflecting the Prophet's approach with his companions such as Abu Bakr (RA) and Umar (RA)."
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Although commonly linked to major decisions like choosing a career, proceeding with a marriage proposal, or purchasing a home, istikhara extends beyond these to encompass everyday choices. It is a spiritual act of entrusting one's decisions to Allah, fostering confidence and clarity in both major and minor matters."
+            }
+          ]
+        },
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "sectionHeading",
+              "content": "How to Perform Istikhara"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "To perform Istikhara, one begins with a voluntary prayer consisting of two rak'ahs, like any other voluntary prayer. However, what sets Istikhara apart is the specific du'a (supplication) recited afterward, seeking Allah's guidance after making personal efforts and consulting others. It is common, and recommended by some scholars, to recite Surah Al-Kafirun in the first rak'ah and Surah Al-Ikhlas in the second, due to their virtues."
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "These two rak'ahs can be seamlessly integrated into daily sunnah prayers, such as those before Fajr or after Maghrib, or they can be additional prayers."
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Many find peace in offering these extra rak'ahs at night, after Isha, as part of their night prayers, benefiting from the calm of the late night hours. Others might choose to pray at a different time, such as before a significant event like a job interview, finding comfort in seeking Allah's guidance just before facing a decision."
+            }
+          ]
+        },
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "sectionHeading",
+              "content": "The Istikhara Du’a"
+            },
+            {
+              "type": "text",
+              "style": "tableGuide",
+              "align": "right",
+              "content": "اللَّهُمَّ إِنِّي أَسْتَخِيرُكَ بِعِلْمِكَ وَأَسْتَقْدِرُكَ بِقُدْرَتِكَ، وَأَسْأَلُكَ مِنْ فَضْلِكَ الْعَظِيمِ، فَإِنَّكَ تَقْدِرُ وَلاَ أَقْدِرُ وَتَعْلَمُ وَلاَ أَعْلَمُ وَأَنْتَ عَلاَّمُ الْغُيُوبِ اللَّهُمَّ إِنْ كُنْتَ تَعْلَمُ أَنَّ هَذَا الأَمْرَ خَيْرٌ لِي فِي دِينِي وَمَعَاشِي وَعَاقِبَةِ أَمْرِي فَاقْدُرْهُ لِي وَيَسِّرْهُ لِي ثُمَّ بَارِكْ لِي فِيهِ وَإِنْ كُنْتَ تَعْلَمُ أَنَّ هَذَا الأَمْرَ شَرٌّ لِي فِي دِينِي وَمَعَاشِي وَعَاقِبَةِ أَمْرِي فَاصْرِفْهُ عَنِّي وَاصْرِفْنِي عَنْهُ، وَاقْدُرْ لِي الْخَيْرَ حَيْثُ كَانَ ثُمَّ أَرْضِنِي بِهِ."
+            },
+            {
+              "type": "boldPrefixText",
+              "prefix": "Transliteration:",
+              "style": "body",
+              "content": "Allahumma inni astakheeruka bi’ilmika, wa astaqdiruka biqudratika, wa as’aluka min fadhlikal-‘azeem. Fa’innaka taqdiru wa laaqdir, wa ta’lamu wa la a’lam, wa anta ‘allaamul-ghuyoob. \n\nAllahumma in kunta ta’lamu anna haadhal-amra khayrun li fi deeni wa ma’aashi wa ‘aaqibati amri (or: ‘aajili amri wa aajilihi) faqdirhu li wa yassirhu li thumma baarik li fihi. Wa in kunta ta’lamu anna haadhal-amra sharrun li fi deeni wa ma’aashi wa ‘aaqibati amri (or: ‘aajili amri wa aajilihi) fasrifhu ‘anni wasrifni ‘anhu, waqdir li al-khayra haythu kaana thumma ardini."
+            },
+            {
+              "type": "boldPrefixText",
+              "prefix": "Translation:",
+              "style": "body",
+              "content": "O Allah, I seek Your guidance (in making a choice) by virtue of Your knowledge, and I seek ability by virtue of Your power, and I ask You of Your great bounty. You have power, and I do not. You know, and I know not, and You are the Knower of the unseen. \n\nO Allah, if You know that this matter [mention the thing to be decided] is good for me in my religion, my livelihood, my worldly affairs, and in the hereafter then decree it for me, make it easy for me, and bless it for me. And if You know that this matter is bad for me in my religion, my livelihood, my worldly affairs, and in the hereafter then turn it away from me and turn me away from it, and decree for me the good wherever it may be and make me content with it (Bukhari)."
+            }
+          ]
+        }
       ]
     },
     "shukrPrayer": {
-      "title": "Shukr Prayer",
-      "description": "The Gratitude Prayer (Shukr) is a 2-rak'ah act of thanks to Allah for His countless blessings. It fosters positivity by inspiring recognition of His generosity",
-      "heroTitle": "Illuminating Your Days with Gratitude",
-      "navTitle": "Shukr Prayer",
-      "steps": [
-        "Step 1: Reflect on Blessings - Think about the specific blessing or overall goodness Allah has gifted you.",
-        "Step 2: Form Intention (Niyyah) - Intend to pray two rak'ahs purely in gratitude (Shukr) to Allah.",
-        "Step 3: Pray Two Rak'ahs - Perform two rak'ahs of voluntary prayer.",
-        "Step 4: Offer Heartfelt Praises - Spend time in prostration or after Salam praising and thanking Allah."
+      "title": "SHUKR PRAYER",
+      "description": "Al-Shukr prayer is a two rak'ah prayer of gratitude, fostering humility and appreciation for Allah's countless blessings, strengthening our faith.",
+      "heroTitle": "Gratitude in Devotion",
+      "navTitle": "SHUKR",
+      "readMore": [
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "sectionHeading",
+              "content": "Embracing the Essence of Al-Shukr Prayer"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "In Islam, gratitude is a profound spiritual practice, with Al-Shukr prayer serving as a powerful symbol of appreciation. The Prophet Muhammad (PBUH) referred to prayer as 'shukr,' highlighting its role in expressing gratitude.\n\nAnas ibn Malik (may Allah be pleased with him) narrated that the Prophet (PBUH) would perform two rak'ahs during moments of thankfulness, expressing his gratitude through prayer."
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Moreover, the Prophet (PBUH) encourages us to consistently recognize blessings in all circumstances. According to a narration by Ibn Abbas, the Prophet (PBUH) stated:"
+            },
+            {
+              "type": "text",
+              "style": "quoteMediumItalic",
+              "content": "\"Indeed, the first to be called to Paradise are those who praise Allah in prosperity and adversity.\""
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "This hadith illustrates the deep connection between gratitude and divine reward, urging Muslims to continuously thank Allah, appreciating blessings in both comfort and difficulty."
+            }
+          ]
+        },
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "sectionHeading",
+              "content": "The Unique Practice of Sujood Al-Shukr"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Incorporating Al-Shukr prayer into daily life is a powerful way to express gratitude to Allah for His countless blessings. Among these practices, Sujood Al-Shukr, or the Prostration of Gratitude, holds special significance. It is performed to immediately thank Allah for a specific blessing or relief from hardship, such as the birth of a child, recovery from illness, success, or averting a disaster.\n\nThis single prostration requires no Wudhu, facing the Qibla, or specific recitations. One simply prostrates, praises Allah—often saying, \"Subhana Rabbiyal A'la\" (Glory is to my Lord, the Most High)—and expresses heartfelt gratitude.\n\nSujood Al-Shukr beautifully reminds us to acknowledge Allah’s mercy and blessings, fostering a deeper connection with Him and a profound sense of appreciation."
+            }
+          ]
+        },
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "sectionHeading",
+              "content": "Quranic Insights on Gratitude"
+            },
+            {
+              "type": "boldPrefixText",
+              "prefix": "Surah Al-Baqarah (2:152):",
+              "content": "The Quran emphasizes gratitude in numerous verses. In this verse, Allah says:",
+              "style": "body"
+            },
+            {
+              "type": "text",
+              "style": "quoteSemibold",
+              "content": "“So remember Me; I will remember you. And be grateful to Me and do not deny me.\""
+            },
+            {
+              "type": "boldPrefixText",
+              "prefix": "Surah An-Nahl (16:18):",
+              "content": "Similarly, this verse reminds us:",
+              "style": "body"
+            },
+            {
+              "type": "text",
+              "style": "quoteSemibold",
+              "content": "“If you tried to count Allah's blessings, you could never enumerate them. Indeed, Allah is Forgiving and Merciful.”"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "These verses underscore the significance of gratitude in Islam and the immense rewards for those who are thankful."
+            }
+          ]
+        },
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Practices like the Shukr prayer and Sujood Al-Shukr deepen our spiritual connection, fostering mindfulness and appreciation. By integrating them into our lives, we strengthen our bond with Allah, find peace in faith, and remain grounded amidst life’s challenges."
+            }
+          ]
+        }
       ]
     },
     "qiyamalLail": {
-      "title": "Qiyam al-Lail",
-      "description": "Night prayers, performed between Isha and Fajr, are most beloved after obligatory prayers, fostering spiritual growth and inviting Allah’s mercy and blessings",
-      "heroTitle": "The Secret Light in the Darkness of Night",
-      "navTitle": "Qiyam Al-Layl",
-      "steps": [
-        "Step 1: Pray After Isha - You can pray Qiyam anytime between the conclusion of Isha prayer and the dawn of Fajr.",
-        "Step 2: Choose Your Style - Commit to every night or keep it flexible based on your weekly routine.",
-        "Step 3: Stand in Devotion - Pray sets of 2 rak'ahs. Recite the Quran slowly and thoughtfully.",
-        "Step 4: Track Tahajjud - Optionally wake up in the last third of the night for Tahajjud to seek the ultimate virtuous time.",
-        "Step 5: Conclude with Witr - Conclude your night prayers with one or three rak'ahs of Witr."
+      "title": "QIYAM AL-LAYL",
+      "description": "Qiyam Al-Layl, the night prayer, is performed anytime between Isha and Fajr. This sacred time fosters spiritual elevation, bringing Allah's blessings, forgiveness, and answered prayers.",
+      "heroTitle": "Illuminating the Heart, Mind, and Soul",
+      "navTitle": "QIYAM AL-LAYL",
+      "steps": [],
+      "readMore": [
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "sectionHeading",
+              "content": "Introduction to Qiyam Al-Layl"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Qiyam Al-Layl is a profound act of devotion that transforms our spiritual path as Muslims."
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "It symbolizes our complete submission to Allah and reflects a deep commitment to draw closer to Him."
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Rooted in the teachings of the Prophet Muhammad (PBUH), this prayer holds immense significance. As narrated by Abu Huraira (RA), the Prophet (PBUH) said:"
+            },
+            {
+              "type": "text",
+              "style": "quoteItalic",
+              "content": "\"The best prayer after the obligatory prayers is the prayer at night.\" (Muslim)"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "In another hadith narrated by Abu Umamah Al-Bahili (RA), the Prophet (PBUH) also said:"
+            },
+            {
+              "type": "text",
+              "style": "quoteItalic",
+              "content": "\"You must perform the night prayer, for it is the habit of the righteous who came before you. It brings you closer to your Lord, expiates your evil deeds, and prevents you from sinning.\""
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "These powerful sayings emphasize the spiritual richness of Qiyam Al-Layl. It is a sacred time where we can pour our hearts out in sincere supplication, confident that our prayers will be met with unparalleled compassion."
+            }
+          ]
+        },
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "sectionHeading",
+              "content": "Tahajjud: The Pinnacle of Qiyam Al-Layl"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "One form of Qiyam Al-Layl that holds immense spiritual significance is Tahajjud, often regarded as the crown jewel of night prayers. Observed in the final third of the night after a brief sleep following Isha, it reflects profound devotion and longing for closeness to Allah."
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Rising from the comfort of one's bed to worship in solitude embodies a sincere commitment, driven by hope for Allah's mercy and fear of His displeasure, as beautifully described in Surah Al-Sajdah (32:16):"
+            },
+            {
+              "type": "text",
+              "style": "quoteSemibold",
+              "content": "\"Their sides part from their beds; they call upon their Lord in fear and hope.\""
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "In a hadith narrated by Abu Huraira (RA), the Prophet Muhammad (PBUH) said:"
+            },
+            {
+              "type": "text",
+              "style": "quoteItalic",
+              "content": "\"Every night, during the last third, our Lord descends to the lowest heaven, saying: 'Who will call upon Me, that I may answer him? Who will ask of Me, that I may give him? Who will seek My forgiveness, that I may forgive him?'\""
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "This profound hadith beautifully encapsulates the unmatched blessings of the last third of the night. It reminds us of Allah's immense mercy and His eagerness to accept our prayers, grant our requests, and forgive our shortcomings."
+            }
+          ]
+        }
       ]
     },
     "quran-listening": {
-      "title": "Quran Listening",
-      "description": "Listening to the Quran brings tranquility, shields from evil, alleviates stress, enhances recitation, and refines tajweed skills, fostering spiritual growth",
-      "heroTitle": "Opening the Heart to Divine Melody",
-      "navTitle": "Quran Listening",
-      "steps": [
-        "Step 1: Eliminate Distractions - Find a quiet spot and put away devices or background noises.",
-        "Step 2: Select a Beautiful Recitation - Pick a Qari whose voice moves your heart and helps you focus.",
-        "Step 3: Listen with Humility and Silence - Follow the instruction in the Quran: 'When the Quran is recited, listen to it and be silent that you may receive mercy.'",
-        "Step 4: Contemplate the Meanings - Follow along with translation if available, allowing the verses to soothe your mind."
+      "title": "QURAN LISTENING",
+      "description": "Listening to the Quran engages the heart, mind, and soul, offering guidance, comfort, and spiritual growth while deepening one’s connection with Allah.",
+      "heroTitle": "The Heart's Harmony",
+      "navTitle": "QURAN LISTENING",
+      "readMore": [
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "sectionHeading",
+              "content": "The Spiritual Essence of Quranic Listening"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Listening attentively to the Quran immerses us in its profound wisdom, transforming our understanding and deepening our connection with Allah. This engagement not only enriches our spiritual journey but also instills tranquility and resilience."
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "The soothing rhythm of its recitation creates a sanctuary, dissolving stress and bringing clarity, even in life’s most challenging moments."
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "As a form of remembrance (dhikr), listening to the Quran rekindles the soul's purpose and strengthens its connection to Allah. It serves as a powerful reminder to not be consumed by worldly pursuits, urging us to integrate the Quran into our daily lives through regular  reflection on its teachings."
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "This practice draws us closer to Allah, while also offering the chance to learn and appreciate Tajweed—the art of correct pronunciation and recitation—further deepening our engagement with the Quran."
+            }
+          ]
+        },
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "sectionHeading",
+              "content": "Quranic Verses & Hadith on the Importance of Quranic Listening"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "In **Surah Az-Zumar (39:23)**, Allah describes the Quran as **\"the best of discourses\"** (Ahsan al-Hadith), highlighting its unparalleled beauty, wisdom, and ability to guide and inspire those who listen attentively."
+            },
+            {
+              "type": "text",
+              "style": "tableGuide",
+              "content": "Allah also commands in **Surah Al-A'raf (7:204)**:"
+            },
+            {
+              "type": "text",
+              "style": "quoteSemibold",
+              "content": "\"So when the Quran is recited, then listen to it and pay attention that you may receive mercy.\""
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "This verse underscores the importance of active engagement and attentiveness to fully benefit from the divine mercy embedded in the Quran’s recitation."
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "The Prophet (PBUH) also emphasized the virtues of listening to the Quran. In a hadith narrated by Abdullah ibn Mas'ud (RA), the Prophet (PBUH) said:"
+            },
+            {
+              "type": "text",
+              "style": "tableGuide",
+              "content": "\"Recite the Quran to me.\" When Abdullah expressed surprise, the Prophet (PBUH) replied: *\"I love to hear it from others.\"*"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "These Quranic verses and hadith remind us of the profound spiritual enrichment that comes from listening to the Quran. By integrating this practice into our lives, we can draw closer to Allah, nurture our faith, and prioritize listening to what really uplifts our hearts and souls."
+            }
+          ]
+        }
       ]
     },
     "quran-recitation": {
-      "title": "Quran Recitation",
-      "description": "Reciting the Quran multiplies rewards, refines pronunciation, deepens understanding, and softens hearts, fostering a profound connection with Allah",
-      "heroTitle": "The Prophet's Legacy and Spiritual Nourishment",
-      "navTitle": "Quran Recitation",
-      "steps": [
-        "Step 1: Clear Your Intentions - Recite purely for the sake of Allah and to earn His pleasure.",
-        "Step 2: Start with Isti'adhah and Basmalah - Seek refuge in Allah from Satan and begin in His name.",
-        "Step 3: Recite with Tartee - Recite in a measured, calm pace, not rushing through the words.",
-        "Step 4: Commit to a Daily Portion - Strive to recite at least one page or a few verses daily to stay connected."
+      "title": "QURAN RECITATION",
+      "description": "Reciting the Quran fortifies our bond with Allah, enhances understanding of His words, softens hearts, provides protection, and bestows multiplied rewards",
+      "heroTitle": "The Path of Illumination",
+      "navTitle": "QURAN RECITATION",
+      "readMore": [
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "sectionHeading",
+              "content": "The Spiritual Depth of Quranic Recitation"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "The act of reciting the Quran is a profound means of drawing closer to Allah, transforming the heart and mind."
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Reciting the Quran is not just about reading; it is a meditative act that engages the entire being. The rhythm and cadence of its verses bring tranquility, allowing us to reflect deeply on their meanings."
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "This practice becomes a source of comfort and direction, especially in challenging times, reinforcing our faith and commitment to Allah's guidance. Each word spoken aloud resonates with divine significance, enriching the soul and guiding us on our spiritual journey."
+            }
+          ]
+        },
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "sectionHeading",
+              "content": "Quranic Verses & Hadiths on the Significance of Recitation"
+            },
+            {
+              "type": "text",
+              "style": "prayerHeading",
+              "content": "Quranic Verses"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "In Surah Al-Baqarah (2:121), Allah describes those who recite the Quran with true recitation as being among the rightly guided:"
+            },
+            {
+              "type": "boldPrefixText",
+              "prefix": "Surah Al-Baqarah (2:121):",
+              "content": "",
+              "style": "body"
+            },
+            {
+              "type": "text",
+              "style": "quoteSemibold",
+              "content": "\"Those to whom We have given the Book recite it with its true recital. They are the ones who believe in it.\""
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "This verse is a reminder that true believers are distinguished by their devoted recitation and engagement with the Quran, urging us to immerse ourselves in its teachings with heartfelt sincerity."
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Furthering this call to mindful engagement, Allah advises us in Surah Al-Muzzammil (73:4):"
+            },
+            {
+              "type": "boldPrefixText",
+              "prefix": "Surah Al-Muzzammil (73:4):",
+              "content": "",
+              "style": "body"
+            },
+            {
+              "type": "text",
+              "style": "quoteSemibold",
+              "content": "\"Recite the Quran with measured recitation.\""
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "This verse encourages us to approach our recitation slowly, clearly, and with reflection. This method involves distinct pronunciation of letters, observing pauses at the end of verses, and pondering meanings to facilitate connection and understanding.\n\nMoreover, we learn from Surah Al-Isra (17:82) that the Quran opens our hearts to its healing power and divine mercy, providing comfort and guidance amidst life's trials:"
+            },
+            {
+              "type": "boldPrefixText",
+              "prefix": "Surah Al-Isra (17:82):",
+              "content": "",
+              "style": "body"
+            },
+            {
+              "type": "text",
+              "style": "quoteSemibold",
+              "content": "\"And We send down of the Quran that which is healing and mercy for the believers.\""
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Lastly, Surah Al-Furqan (25:30) offers a heartfelt plea from the Prophet (PBUH) about those who abandoned the Quran, reflecting his deep concern for those who neglect its guidance:"
+            },
+            {
+              "type": "boldPrefixText",
+              "prefix": "Surah Al-Furqan (25:30):",
+              "content": "",
+              "style": "body"
+            },
+            {
+              "type": "text",
+              "style": "quoteSemibold",
+              "content": "\"O my Lord, indeed my people have taken this Quran as [a thing] abandoned.\""
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "These verses inspire a deeper connection with the Quran, unlocking guidance, healing, and mercy through heartfelt recitation and reflection, drawing us closer to our Creator."
+            },
+            {
+              "type": "text",
+              "style": "prayerHeading",
+              "content": "Hadiths"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "In a narration by Abu Musa Al-Ash'ari (RA), the Prophet (PBUH) compares a believer who recites the Quran to a citron, which is both delightful in taste and aroma:"
+            },
+            {
+              "type": "text",
+              "style": "quoteItalic",
+              "content": "\"The example of a believer who recites the Quran is that of a citron which tastes good and smells good.\""
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Numerous other hadiths emphasize the virtues of Quranic recitation, suggesting deep insights into its transformative power:"
+            },
+            {
+              "type": "text",
+              "style": "quoteItalic",
+              "content": "\"Do not make your houses like graves. Satan runs away from the house in which Surah Al-Baqarah is recited.\""
+            },
+            {
+              "type": "text",
+              "style": "quoteMediumItalic",
+              "content": "\"The best among you are those who learn the Quran and teach it.\""
+            },
+            {
+              "type": "text",
+              "style": "quoteItalic",
+              "content": "\"Whoever recites a letter from the Book of Allah, he will be credited with a good deed, and a good deed gets a ten-fold reward.\""
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Collectively, these teachings highlight the profound significance of Quranic recitation, encouraging a sincere and reflective relationship with the Quran."
+            }
+          ]
+        }
       ]
     },
     "quran-memorization": {
-      "title": "Quran Memorization",
-      "description": "Every word we memorize elevates our rank in Paradise, grants intercession for others, sharpens the mind, and enhances comprehension of the Quran",
-      "heroTitle": "Carrying the Divine Word in Your Chest",
-      "navTitle": "Quran Memorization",
-      "steps": [
-        "Step 1: Choose a Small Portion - Start with small sections, e.g., one verse or a short surah.",
-        "Step 2: Understand the Meaning - Read the translation and simple Tafsir first to aid memory.",
-        "Step 3: Repeat Meticulously - Recite the same verse repeatedly until you can recall it smoothly without looking.",
-        "Step 4: Revise regularly - Constantly review previously memorized verses to keep them fresh."
+      "title": "QURAN MEMORIZATION",
+      "description": "Memorizing the Quran strengthens our bond with Allah, deepens understanding of His teachings, boosts memory, and offers comfort and guidance in all life aspects.",
+      "heroTitle": "A Journey of Spiritual Transformation",
+      "navTitle": "QURAN MEMORIZATION",
+   
+      "readMore": [
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "sectionHeading",
+              "content": "The Spiritual Depth of Quranic Memorization"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Memorizing the Quran is a transformative journey that draws us closer to Allah. This discipline goes beyond mere memorization; it is a profound spiritual commitment engaging the heart, mind, and soul. Internalizing its verses fosters peace and introspection, encouraging deep reflection on their meanings."
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "It acts as a shield against spiritual neglect, building a resilient faith that nurtures the internalization of its values and cultivates a lifestyle aligned with Islamic principles."
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "This journey becomes a wellspring of hope and guidance, especially in moments of difficulty, reinforcing our faith in Allah's wisdom. Each verse committed to memory carries divine significance, enriching the soul and illuminating our spiritual path."
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "It also enhances cognitive abilities, as it requires focus, repetition, and discipline, which can sharpen the mind and improve memory retention."
+            }
+          ]
+        },
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "sectionHeading",
+              "content": "Quranic Verses & Hadiths on the Significance of Quran Memorization"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "In Surah Al-Qamar (54:17), Allah highlights the accessibility and importance of Quran, stating:"
+            },
+            {
+              "type": "boldPrefixText",
+              "prefix": "Surah Al-Qamar (54:17):",
+              "content": "",
+              "style": "body"
+            },
+            {
+              "type": "text",
+              "style": "quoteSemibold",
+              "content": "\"And We have certainly made the Quran easy to remember. So is there anyone who will be mindful?\""
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "This verse serves as a divine invitation, urging us to engage with the Quran deeply and commit its teachings to memory. Surah Al-Baqarah (2:185) further underscores the Quran's role as a beacon of guidance:"
+            },
+            {
+              "type": "boldPrefixText",
+              "prefix": "Surah Al-Baqarah (2:185):",
+              "content": "",
+              "style": "body"
+            },
+            {
+              "type": "text",
+              "style": "quoteSemibold",
+              "content": "\"The month of Ramadan is that in which the Quran was revealed, a guidance for the people.\""
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Building on this foundation, the Prophet (PBUH) emphasized the profound value of memorization through his teachings. In a Hadith narrated by Abdullah ibn Amr (RA), he stated:"
+            },
+            {
+              "type": "text",
+              "style": "quoteMediumItalic",
+              "content": "\"It will be said to the companion of the Quran: 'Read, and ascend, and recite as you used to recite in the [previous] world, for your status will be according to the last verse that you recite.\""
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "This highlights the eternal rewards awaiting those who internalize and live by the Quran's teachings. Moreover, in another narration by Aisha (RA), the Prophet (PBUH) said:"
+            },
+            {
+              "type": "text",
+              "style": "quoteMediumItalic",
+              "content": "\"The one who is proficient in the recitation of the Quran will be with the noble and righteous scribes.\""
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "These teachings collectively emphasize the immense rewards and blessings of memorizing and living by the Quran, inspiring us to commit its verses to heart."
+            }
+          ]
+        }
       ]
     },
     "qauran-tajweed": {
       "title": "QURAN TAJWEED",
-      "description": "Tajweed perfects Quranic recitation as revealed to the Prophet (PBUH), preserving its authentic pronunciation, rhythm, and melody while deepening understanding",
-      "heroTitle": "Beautifying Your Recitation as Revealed",
-      "navTitle": "Quran Tajweed",
-      "steps": [
-        "Step 1: Learn the Basic Rules - Start with clear rules like Noon Sakinah, Meem Sakinah, and letters of prolongation (Madd).",
-        "Step 2: Listen to Expert Reciters - Listen to standard recitations (like Sheikh Al-Husary) to mimic proper articulation.",
-        "Step 3: Practice with a Teacher - Correct your mistakes by reciting to a qualified teacher whenever possible.",
-        "Step 4: Apply Tajweed to Daily Recitation - Consciously apply the rules to every verse you recite in your daily prayers."
+      "description": "Tajweed helps us internalize Allah's words, allowing them to resonate deeply within us, and deepens our appreciation of their beauty and eloquence.",
+      "heroTitle": "Mastering the Art of Divine Recitation",
+      "navTitle": "QURAN TAJWEED",
+    
+      "readMore": [
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "sectionHeading",
+              "content": "The Spiritual Depth of Tajweed"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Practicing Tajweed is a journey that elevates us as Muslims. It goes beyond mere recitation; it is a profound commitment that engages the heart, mind, and spirit."
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "It safeguards against mispronunciation, preserving the Quran as it was revealed to the Prophet (PBUH) and nurturing a deep appreciation for its divine rhythm and harmony."
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "This practice becomes a source of inspiration and guidance, reinforcing our faith in Allah's wisdom. Each recited verse with proper Tajweed carries divine resonance, enriching the soul and illuminating our spiritual journey."
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Scholars affirm that learning Tajweed enhances cognitive abilities, as it requires concentration, practice, and discipline, which can refine focus and promote mindfulness."
+            }
+          ]
+        },
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "sectionHeading",
+              "content": "Quranic Verses & Hadiths on the Significance of Quran Tajweed"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "In Surah Al-Qamar (54:17), Allah instructs:"
+            },
+            {
+              "type": "boldPrefixText",
+              "prefix": "Surah Al-Qacar (54:17):",
+              "content": "",
+              "style": "body"
+            },
+            {
+              "type": "text",
+              "style": "quoteSemibold",
+              "content": "\"And recite the Quran with measured recitation.\""
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "This verse emphasizes the importance of proper Tajweed, highlighting the need for precision in recitation to foster a deeper connection with the Quran.\n\nIn Surah Al-Furqan (25:32), Allah says:"
+            },
+            {
+              "type": "boldPrefixText",
+              "prefix": "Surah Al-Furqan (25:32):",
+              "content": "",
+              "style": "body"
+            },
+            {
+              "type": "text",
+              "style": "quoteSemibold",
+              "content": "\"...at once?' Thus [it is] that We may strengthen thereby your heart. And We have spaced it distinctly.\""
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "This verse highlights the wisdom behind the gradual revelation of the Quran, allowing it to be understood, implemented, and preserved with care—qualities that Tajweed embodies through its meticulous attention to detail.\n\nMoreover, the Prophet (PBUH) underscored the value of Tajweed. In a Hadith, he stated:"
+            },
+            {
+              "type": "text",
+              "style": "quoteMediumItalic",
+              "content": "\"Beautify the Quran with your voices.\""
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "This Hadith highlights the value of Tajweed in enhancing the beauty of recitation, making it a means of spiritual elevation. He further stated:"
+            },
+            {
+              "type": "text",
+              "style": "quoteItalic",
+              "content": "\"The best among you are those who learn the Quran and teach it.\""
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "These teachings highlight the immense rewards and blessings of learning the Quran, inspiring us to perfect its recitation. With dedication and practice, Tajweed becomes a pathway to spiritual growth, allowing the Quran's meanings to deeply resonate."
+            }
+          ]
+        }
       ]
     },
     "missed-fasts": {
-      "title": "Missed Ramadan Fasts",
-      "description": "Fulfilling missed obligatory fasts is a duty that reflects devotion, demonstrates discipline, and upholds our commitment to Allah’s commands",
-      "heroTitle": "Upholding Your Ramadan Commitments",
-      "navTitle": "Missed Ramadan Fasts",
+      "title": "MISSED RAMADAN FASTS",
+      "description": "By making up missed fasts, we honor our religious duty, reinforce our faith, nurture spiritual resilience, and deepen our connection with Allah.",
+      "heroTitle": "Fulfilling obligations for spiritual growth",
+      "navTitle": "MISSED RAMADAN FASTS",
       "steps": [
         "Step 1: Count Your Missed Days - List down the number of obligatory Ramadan fasts you missed due to travel, illness, or other valid reasons.",
         "Step 2: Set the Intention - Formulate the intention (Niyyah) to make up a missed Ramadan fast before dawn.",
         "Step 3: Observe the Fast - Abstain from food, drink, and invalidators from dawn to sunset.",
         "Step 4: Mark Your Completion - Break your fast with dates or water, and log it to track your remaining makeup days."
+      ],
+      "readMore": [
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "sectionHeading",
+              "content": "Aligning with Divine Guidance"
+            },
+            {
+              "type": "text",
+              "style": "tableGuide",
+              "content": "Fasting is a profound spiritual journey that nurtures the soul while fostering self-discipline, empathy, and spiritual growth. It reminds us to cherish overlooked blessings, avoid excess, and detach from worldly desires.\n\nFasting also encourages patience and resilience, prompting reflection on our purpose, cleansing of material attachments, and renewal of our commitment to spiritual and ethical values. Through this mindful practice, we draw closer to Allah, cultivating gratitude and humility."
+            }
+          ]
+        },
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "sectionHeading",
+              "content": "How to Make Up Missed Fasts"
+            },
+            {
+              "type": "boldPrefixText",
+              "prefix": "Surah Al-Baqarah (2:185):",
+              "content": "Life’s unpredictability can sometimes interrupt the sacred practice of fasting, leading to missed fasts due to illness, travel, or other valid reasons. In His infinite wisdom, Allah provides guidance:",
+              "style": "body"
+            },
+            {
+              "type": "text",
+              "style": "quoteSemibold",
+              "content": "“And whoever is ill or on a journey, the same number of days which one did not observe fasts must be made up from other days.”"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "This verse beautifully balances spiritual commitment with compassion, reminding us that while the obligation remains, Islam accommodates life’s challenges.\n\nThe primary method of making up missed fasts is to fast an equivalent number of days before the next Ramadan. Aisha (RA) narrated that women were required to make up missed fasts but not prayers, reflecting Islam’s merciful approach to obligations. Each day of fasting becomes a renewal of the spiritual growth experienced during Ramadan, fostering a deeper connection with Allah."
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "The Prophet (PBUH) described fasting as a shield, stating:"
+            },
+            {
+              "type": "text",
+              "style": "quoteMediumItalic",
+              "content": "\"Fasting is a shield against the Fire like the shield of any one of you in battle.\""
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Furthermore, in a Hadith Qudsi, Allah says:"
+            },
+            {
+              "type": "text",
+              "style": "quoteSemibold",
+              "content": "\"Every deed of the son of Adam is for him except fasting; it is for Me, and I shall reward for it.”"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "This profound statement underscores the unique and intimate nature of fasting. Unlike other deeds, fasting is a personal commitment, hidden from others and free from recognition. It is an act of pure sincerity, performed solely for Allah’s pleasure, with a reward known and bestowed only by Him."
+            }
+          ]
+        },
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "sectionHeading",
+              "content": "Fidya and Kaffarah: Making Amends for Missed Fasts"
+            },
+            {
+              "type": "text",
+              "style": "bodyTight",
+              "content": "Intentionally missing a fast without a valid reason is a serious matter in Islam, requiring sincere repentance and corrective action. For such cases, kaffarah is prescribed as expiation, involving fasting two consecutive months or feeding sixty needy people. This approach serves as both personal atonement and a means of benefiting the community.\n\nFor those unable to fast due to valid, permanent reasons such as chronic illness, fidya is prescribed. This involves feeding a needy person for each missed fast, reflecting Islam’s compassion and focus on social welfare.\n\nThese acts of redemption—kaffarah for intentional violations and fidya for valid exemptions—highlight the balance between accountability and mercy in Islam. By fulfilling these obligations with sincerity, we seek Allah’s forgiveness, foster personal growth, and strengthen the bonds of the Muslim ummah."
+            }
+          ]
+        }
       ]
     },
     "dawood-fasts": {
-      "title": "The Fast of Prophet Dawood",
-      "description": "These fasts are observed by fasting every other day, reflecting Prophet Dawood's (PBUH) devotion and resilience, and serving as a model of piety",
-      "heroTitle": "The Most Beloved Fasting to Allah",
-      "navTitle": "Prophet Dawood's Fast",
-      "steps": [
-        "Step 1: Understand the Routine - Fast one day and eat the next, consistently alternating.",
-        "Step 2: Form Sincere Niyyah - Make the intention for the Sunnah fast prior to dawn.",
-        "Step 3: Maintain Strength and Health - Ensure your nutrition on non-fasting days supports this high level of spiritual endurance.",
-        "Step 4: Keep Consistency - Maintain the alternate-day cycle for the duration of your goal period."
+      "title": "THE FAST OF PROPHET DAWOOD",
+      "description": "The fast of Dawood (PBUH), observed everyother day, exemplifies devotion, patience, and resilience, serving as a timeless model of piety for Muslims.",
+      "heroTitle": "A Testament to Devotion & Spiritual Resilience",
+      "navTitle": "THE FAST OF PROPHET DAWOOD (DAVID)",
+      "readMore": [
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "sectionHeading",
+              "content": "The Significance of Dawood's Fasts"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Prophet Dawood’s (PBUH) fasting is highly esteemed in Islam, valued for its spiritual discipline and ability to strengthen one’s connection with Allah, serving as a profound example of devotion. The Prophet (PBUH) emphasized its significance by stating:"
+            },
+            {
+              "type": "text",
+              "style": "quoteItalic",
+              "content": "\"The most beloved fasting to Allah is the fasting of Dawood; he would fast one day and break it the next.\""
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Engaging in Dawood's fasts offers a multitude of benefits, enhancing both spiritual and personal growth:"
+            },
+            {
+              "type": "boldPrefixText",
+              "prefix": "Connection with Allah:",
+              "content": "Deepens our bond with Allah and nurtures faith, fostering a profound spiritual connection through consistent devotion and worship.",
+              "style": "body"
+            },
+            {
+              "type": "boldPrefixText",
+              "prefix": "Fulfilling a Sunnah:",
+              "content": "Revives a Sunnah of the Prophet, grounding the practice in tradition and offering an additional layer of spiritual fulfillment.",
+              "style": "body"
+            },
+            {
+              "type": "boldPrefixText",
+              "prefix": "Spiritual Resilience:",
+              "content": "Strengthens commitment and steadfastness, ensuring devotion remains central while purifying the heart and sharpening focus.",
+              "style": "body"
+            },
+            {
+              "type": "boldPrefixText",
+              "prefix": "Mindfulness:",
+              "content": "Encourages awareness of actions and thoughts, fostering mindfulness and self-reflection while renewing spiritual focus.",
+              "style": "body"
+            },
+            {
+              "type": "boldPrefixText",
+              "prefix": "Gratitude:",
+              "content": "Inspires reflection and gratitude for blessings, cultivating a positive outlook and reinforcing a thankful heart.",
+              "style": "body"
+            },
+            {
+              "type": "boldPrefixText",
+              "prefix": "Mental Fortitude:",
+              "content": "Builds self-control and willpower, fostering a mindset of dedication that extends to all aspects of life.",
+              "style": "body"
+            },
+            {
+              "type": "boldPrefixText",
+              "prefix": "Physical Detoxification:",
+              "content": "Supports body cleansing and detoxification, promoting health, vitality, and a robust, energetic lifestyle.",
+              "style": "body"
+            },
+            {
+              "type": "boldPrefixText",
+              "prefix": "Personal Development:",
+              "content": "Encourages time management and planning, helping to maintain a stable, balanced, and organized life.",
+              "style": "body"
+            },
+            {
+              "type": "boldPrefixText",
+              "prefix": "Balance in Life:",
+              "content": "Highlights the importance of harmony, promoting consistency and balance across all aspects of life.",
+              "style": "body"
+            },
+            {
+              "type": "text",
+              "style": "tableGuide",
+              "content": "Through these multifaceted benefits, Dawood's fasts represent a perfect harmony of devotion, discipline, and growth, offering a transformative path for Muslims striving to enrich their spiritual journey."
+            }
+          ]
+        }
       ]
     },
     "monday-and-thursday-fasts": {
-      "title": "Monday & Thursday Fasts",
-      "description": "These fasts follow the Prophet's (PBUH) Sunnah, deepen devotion to Allah, promote well-being, and offer profound spiritual purification and self-discipline",
-      "heroTitle": "Following the Beautiful Sunnah",
-      "navTitle": "Mon & Thu Fasts",
-      "steps": [
-        "Step 1: Pick the Days - Identify Mondays and Thursdays in your calendar.",
-        "Step 2: Set Niyyah - Make your intention to observe the Sunnah fast before Fajr.",
-        "Step 3: Practice Gratitude - Remember that deeds are presented to Allah on these days, and fasting is a beautiful state to be in.",
-        "Step 4: Share the Joy - Break your fast with family or friends to foster a warm Islamic environment."
+      "title": "MONDAYS & THURSDAYS FASTS",
+      "description": "Fasting on Mondays and Thursdays, a Sunnah of the Prophet (PBUH), offers structured opportunities to foster spiritual growth and deepen our connection with Allah.",
+      "heroTitle": "Spiritual Strength & Consistent Devotion",
+      "navTitle": "MONDAYS & THURSDAYS FASTS",
+      "readMore": [
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "sectionHeading",
+              "content": "Importance of Monday & Thursday Fasts"
+            },
+            {
+              "type": "text",
+              "style": "bodyZero",
+              "content": "As believers, we are reminded of the importance of accountability and self-reflection in our spiritual journey. Fasting on Mondays and Thursdays embodies this principle, as the Prophet (PBUH) said:"
+            },
+            {
+              "type": "text",
+              "style": "quoteItalic",
+              "content": "\"Deeds are presented on Mondays and Thursdays, so I love that my deeds be presented while I am fasting\""
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "This practice aligns with the divine review of deeds, offering a unique opportunity for repentance and the pursuit of Allah's favor. Regular fasting on these days not only brings immense spiritual rewards but also fosters a deeper connection with our Creator.\n\nOver time, as we embrace this routine, fasting transitions from a challenge to a cherished act of devotion. The initial difficulties fade, replaced by a profound sense of ease, commitment, and spiritual fulfillment.\n\nAt its core, fasting is an act of purification—a deliberate effort to cleanse the soul from worldly distractions and redirect the heart toward Allah. The Quran beautifully captures this transformative essence:"
+            },
+            {
+              "type": "boldPrefixText",
+              "prefix": "Surah Al-Baqarah (2:183):",
+              "content": "",
+              "style": "body"
+            },
+            {
+              "type": "text",
+              "style": "quoteSemibold",
+              "content": "\"O you who have believed, decreed upon you is fasting as it was decreed upon those before you that you may become righteous.\""
+            },
+            {
+              "type": "boldPrefixText",
+              "prefix": "Surah Al-Baqarah (2:184):",
+              "content": "Further reinforcing this:",
+              "style": "body"
+            },
+            {
+              "type": "text",
+              "style": "quoteSemibold",
+              "content": "\"And if you fast, it is better for you, if you only knew.\""
+            }
+          ]
+        },
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "body",
+              "content": "The following are key spiritual benefits of fasting on Mondays & Thursdays:"
+            },
+            {
+              "type": "boldPrefixText",
+              "prefix": "Cultivation of Habitual Worship:",
+              "content": "Develops spiritual discipline, making other fasting days—like Ramadan—easier and more spiritually enriching.",
+              "style": "body"
+            },
+            {
+              "type": "boldPrefixText",
+              "prefix": "Purification of the Heart:",
+              "content": "Cleanses the heart, removing worldly distractions and removing worldly distractions and fostering a soul deeply connected to the divine.",
+              "style": "body"
+            },
+            {
+              "type": "boldPrefixText",
+              "prefix": "Increased Remembrance of Allah:",
+              "content": "Aligns the mind and heart with Allah, encouraging a constant state of worship and reflection.",
+              "style": "body"
+            },
+            {
+              "type": "boldPrefixText",
+              "prefix": "Growth in Patience & Resilience:",
+              "content": "Builds patience and resilience, enabling us to face life’s challenges with unwavering strength.",
+              "style": "body"
+            },
+            {
+              "type": "boldPrefixText",
+              "prefix": "Encouragement of Good Deeds:",
+              "content": "Inspires acts of kindness and charity, strengthening community bonds and fostering unity.",
+              "style": "body"
+            },
+            {
+              "type": "text",
+              "style": "bodyZero",
+              "content": "By fasting on Mondays and Thursdays, Muslims fulfill a Sunnah while cultivating spiritual resilience, purifying the heart, and deepening their remembrance of Allah, reaping countless spiritual and physical rewards."
+            }
+          ]
+        }
       ]
     },
     "white-days-fasts": {
-      "title": "White Days Fasts",
-      "description": "Fasting on the 13th, 14th, and 15th of each Islamic month deepens connection with Allah, nurtures discipline, and inspires profound spiritual growth and self-reflection",
-      "heroTitle": "Radiant Days of Spiritual Growth",
-      "navTitle": "White Days Fasts",
-      "steps": [
-        "Step 1: Track the Hijri Calendar - Find the 13th, 14th, and 15th days of the current Islamic month.",
-        "Step 2: Intend the Fast - Formulate intention for these Sunnah (Ayyam al-Beed) fasts.",
-        "Step 3: Abstain and Purify - Fast faithfully during these three consecutive days.",
-        "Step 4: Reflect on Rewards - Fasting these three days earns the reward of fasting the entire month."
+      "title": "WHITE DAYS FASTS",
+      "description": "Fasting on the White Days, the 13th, 14th, and 15th of each Islamic month, strengthens your connection with Allah, fosters discipline, and cultivates deep spiritual growth.",
+      "heroTitle": "Aligning with Celestial Harmony",
+      "navTitle": "WHITE DAYS FASTS",
+      "readMore": [
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "sectionHeading",
+              "content": "Spiritual Importance of Fasting on the White Days"
+            },
+            {
+              "type": "text",
+              "style": "bodyMediumTight",
+              "content": "Fasting on the White Days is a Sunnah of Prophet (PBUH) that nurtures faith , detachment from worldly desires, and a closer connection to Allah. This practice harmonizes spiritual and physical benefits with the lunar cycle."
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Abu Hurairah (RA) narrated that the Prophet (PBUH) said:"
+            },
+            {
+              "type": "text",
+              "style": "quoteMediumItalic",
+              "content": "\"If you fast three days of the month, then fast the 13th, 14th, and 15th.\""
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "The Prophet (PBUH) further emphasized the significance of fasting three days each month, stating:"
+            },
+            {
+              "type": "text",
+              "style": "quoteMediumItalic",
+              "content": "\"Fasting three days of each month is like fasting for a lifetime.\""
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "This profound statement highlights the immense spiritual rewards and the unique status of this practice in Islam. Ibn Abbas (RA), a close companion of the Prophet (PBUH), also narrated:"
+            },
+            {
+              "type": "text",
+              "style": "quoteMediumItalic",
+              "content": "\"The Messenger of Allah never missed fasting the white days, whether at home or on a journey.\""
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "In a Hadith Qudsi, Allah Himself declares:"
+            },
+            {
+              "type": "text",
+              "style": "quoteSemibold",
+              "content": "\"Every good deed of Adam’s son is for him except fasting; it is for Me, and I shall reward for it.\""
+            },
+            {
+              "type": "text",
+              "style": "bodyZero",
+              "content": "These teachings collectively underscore the transformative power of fasting during these luminous days. They invite Muslims to embrace this sacred practice as a means of spiritual elevation, self-purification, and a deeper closeness to Allah."
+            }
+          ]
+        },
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "sectionHeading",
+              "content": "Quranic Insights on the Moon"
+            },
+            {
+              "type": "boldSuffixText",
+              "content": "Fasting during the White Days connects believers to the moon’s radiant phases, symbolizing reflection and spiritual awakening. The Quran beautifully highlights the moon’s significance in",
+              "suffix": "Surah Yunus (10:5):",
+              "style": "bodyMediumTight"
+            },
+            {
+              "type": "text",
+              "style": "quoteSemibold",
+              "content": "\"It is He who made the sun a shining light and the moon a reflected light, and determined phases for it so that you may know the number of years and the calculation of time. Allah created this with truth. He explains the signs for people who understand.\""
+            },
+            {
+              "type": "text",
+              "style": "tableGuide",
+              "content": "This verse emphasizes Allah’s wisdom in creating the sun and moon with distinct roles, guiding humanity in timekeeping and reflection."
+            },
+            {
+              "type": "boldPrefixText",
+              "prefix": "Surah Al-Baqarah (2:189):",
+              "content": "Allah says:",
+              "style": "body"
+            },
+            {
+              "type": "text",
+              "style": "quoteSemibold",
+              "content": "\"They ask you about the new moons. Say, 'They are measurements of time for the people and for Hajj.'\""
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "This verse highlights the moon’s role in organizing religious observances like Ramadan and Hajj, underscoring its importance in Islamic life."
+            },
+            {
+              "type": "boldPrefixText",
+              "prefix": "Surah Al-Qamar (54:1):",
+              "content": "Finally, states:",
+              "style": "body"
+            },
+            {
+              "type": "text",
+              "style": "quoteSemibold",
+              "content": "\"The Hour has come near, and the moon has split [in two].\""
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "This verse refers to the miraculous splitting of the moon during the Prophet’s time, serving as a sign of Allah’s power and a reminder of the Day of Judgment."
+            },
+            {
+              "type": "text",
+              "style": "bodyMediumTight",
+              "content": "By linking fasting on the White Days with these Quranic insights, we are encouraged to view the moon as a divine symbol, enhancing spiritual growth and deepening their connection with Allah."
+            },
+            {
+              "type": "text",
+              "style": "bodyMediumTight",
+              "content": "This practice aligns with the celestial rhythm ordained by Allah, fostering worship and introspection."
+            }
+          ]
+        }
       ]
     },
     "missed-zakat": {
-      "title": "Missed Zakat",
-      "description": "Fulfilling missed Zakat is a sacred obligation that purifies wealth, restores social equity, and reaffirms a believer’s responsibility to support society’s welfare",
-      "heroTitle": "Purifying Your Wealth and Heart",
-      "navTitle": "Missed Zakat",
-      "steps": [
-        "Step 1: Assess Missed Years - Estimate the years or amounts of obligatory Zakat you neglected to pay.",
-        "Step 2: Calculate the Dues - Calculate 2.5% of your qualifying surplus wealth for each missed year.",
-        "Step 3: Direct to Eligible Recipients - Ensure the funds are distributed to the eight categories specified in the Quran.",
-        "Step 4: Complete Promptly - Pay off your outstanding Zakat to fulfill this crucial pillar of Islam."
+      "title": "MISSED ZAKAT",
+      "description": "Zakat, one of the Five Pillars of Islam, is a sacred obligation that purifies wealth and ensures social equity, emphasizing the responsibility of every believer to contribute to the welfare of society.",
+      "heroTitle": "A Path to Redemption & Social Justice",
+      "navTitle": "MISSED ZAKAT",
+      "readMore": [
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "sectionHeading",
+              "content": "The Spiritual and Social Impact of Zakat"
+            },
+            {
+              "type": "text",
+              "style": "prayerHeading",
+              "content": "Divine Command and Accountability"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Zakat, a fundamental pillar of Islam, is ordained by Allah as a sacred obligation for every believer. Far beyond a financial duty, it is an act of worship symbolizing submission to divine will. The Quran highlights Zakat's role in purifying wealth and fulfilling one's accountability to Allah:"
+            },
+            {
+              "type": "text",
+              "style": "quoteSemibold",
+              "content": "\"And establish prayer and give Zakat, and whatever good you put forward for yourselves – you will find it with Allah. Indeed, Allah of what you do, is Seeing.\" (Surah Al-Baqarah, 2:110)"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "This verse reminds believers that Zakat is not merely optional—it is a divine command, ensuring wealth is utilized responsibly and serves the greater good."
+            },
+            {
+              "type": "text",
+              "style": "prayerHeading",
+              "content": "Empathy and Social Responsibility"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "At its core, Zakat is a profound expression of empathy and social responsibility. It is designed to bridge the gap between the wealthy and the less fortunate, fostering a sense of unity and care within the community. The Quran highlights the duty of the affluent to support those in need:"
+            },
+            {
+              "type": "text",
+              "style": "quoteSemibold",
+              "content": "\"And those within whose wealth is a known right for the petitioner and the deprived.\" (Surah Al-Ma'arij, 70:24-25)"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "This verse underscores the idea that wealth is not meant to be hoarded but shared. Zakat ensures that the vulnerable are cared for, creating a society where compassion and generosity are central values."
+            },
+            {
+              "type": "text",
+              "style": "prayerHeading",
+              "content": "A Path to Redemption"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "For those who have delayed or missed their Zakat payments, Islam offers a path to redemption. Believers are encouraged to calculate and fulfill their missed obligations as soon as possible, seeking forgiveness from Allah for any negligence. The Quran reassures believers of Allah's mercy:"
+            },
+            {
+              "type": "text",
+              "style": "quoteSemibold",
+              "content": "\"But whoever repents after his wrongdoing and reforms, indeed, Allah will turn to him in forgiveness. Indeed, Allah is Forgiving and Merciful.\" (Surah Al-Ma'idah, 5:39)"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "This path to redemption reflects the balance of accountability and mercy in Islam, encouraging us to rectify our shortcomings and renew our commitment to fulfilling this sacred duty."
+            }
+          ]
+        },
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "sectionHeading",
+              "content": "Practical Steps to Make Up Missed Zakat"
+            },
+            {
+              "type": "boldPrefixText",
+              "prefix": "Calculate Missed Zakat:",
+              "content": "Review past years and calculate the Zakat due on your wealth for each year missed.",
+              "style": "body"
+            },
+            {
+              "type": "boldPrefixText",
+              "prefix": "Pay It Promptly:",
+              "content": "Distribute the calculated amount to eligible recipients, such as the poor, orphans, and those in need.",
+              "style": "body"
+            },
+            {
+              "type": "boldPrefixText",
+              "prefix": "Seek Forgiveness:",
+              "content": "Repent sincerely for the delay and resolve to fulfill Zakat obligations on time in the future.",
+              "style": "body"
+            }
+          ]
+        }
       ]
     },
     "kafarah-for-breaking-fasts": {
-      "title": "Kafarah for Breaking Fasts",
-      "description": "A form of sadaqah to atone for broken fasts or oaths, requiring feeding or clothing those in need as prescribed",
-      "heroTitle": "Atonement and Redirection",
-      "navTitle": "Kafarah Fasts/Oaths",
-      "steps": [
-        "Step 1: Determine the Atonement Required - Consult scholars to identify your specific Kafarah (e.g., feeding 60 poor people or fasting for 60 days).",
-        "Step 2: Prepare the Charity - Calculate the cost of meals or clothing if feeding/clothing is your assigned atonement.",
-        "Step 3: Distribute Sincerely - Hand over the food or clothing to deserving, needy recipients.",
-        "Step 4: Seek Forgiveness - Combine your material atonement with a sincere repentance to Allah."
+      "title": "KAFFARAH FOR BREAKING FASTS OR OATHS",
+      "description": "Kaffarah for breaking fasts or oaths is a sadaqah to atone for breaking them without a valid reason, requiring feeding 10 people per broken oath and 60 people per broken fast.",
+      "heroTitle": "A Path to Atonement & Community Care",
+      "navTitle": "KAFFARAH FOR BREAKING FASTS OR OATHS",
+      "readMore": [
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "sectionHeading",
+              "content": "The Spiritual Benefits of Kaffarah"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Embracing Kaffarah transforms one's spiritual journey, fostering profound personal growth and cultivating deep communal harmony that extends far beyond oneself."
+            },
+            {
+              "type": "text",
+              "style": "prayerHeading",
+              "content": "Divine Invitation and Forgiveness"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Kaffarah is a sacred call to return to Allah, turning missteps into milestones of devotion. Through sincere repentance and feeding the needy, it purifies the soul, seeking Allah's mercy and deepening our connection with Him. The Quran beautifully states:"
+            },
+            {
+              "type": "text",
+              "style": "quoteSemibold",
+              "content": "\"And whoever does evil or wrongs themselves but afterwards seeks Allah's forgiveness, they will find Allah Oft-Forgiving, Most Merciful\" (Surah An-Nisa, 4:110)."
+            },
+            {
+              "type": "text",
+              "style": "prayerHeading",
+              "content": "Inner Peace and Clarity"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Engaging in Kaffarah brings peace and clarity, lifting guilt's burden and unlocking the healing power of repentance. This spiritual act realigns us with Islam's core values, renewing purpose and inner tranquility."
+            },
+            {
+              "type": "text",
+              "style": "prayerHeading",
+              "content": "Strengthening Faith"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Fulfilling Kaffarah reflects our commitment to rectifying actions and strengthening spiritual discipline. This devotion affirms our faith, deepens our bond with Allah, and fortifies our resolve to uphold righteousness."
+            },
+            {
+              "type": "text",
+              "style": "prayerHeading",
+              "content": "Empathy and Compassion"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Kaffarah extends beyond personal atonement, uplifting society by aiding the needy and less fortunate. These acts inspire empathy, foster generosity, and strengthen communal bonds, reminding us of our duty to support one another."
+            }
+          ]
+        },
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "sectionHeading",
+              "content": "Kaffarah: Breaking an Oath vs. Breaking a Fast"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "The Quran and Hadith provide distinct guidance on Kaffarah for breaking an oath and for breaking a fast, ensuring clarity in addressing these separate scenarios."
+            },
+            {
+              "type": "text",
+              "style": "sectionHeading",
+              "content": "Breaking an Oath"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "The Quran in Surah Al-Ma'idah (5:89) outlines the expiation for breaking an oath:"
+            },
+            {
+              "type": "text",
+              "style": "quoteSemibold",
+              "content": "\"Allah will not call you to account for what is unintentional in your oaths, but He will call you to account for what you have made deliberately. For its expiation, feed ten poor persons, clothe them, or give a slave their freedom. If that is beyond your means, fast for three days.\""
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "This verse emphasizes accountability for deliberate oaths while offering a path for redemption through acts of charity or fasting, reflecting Allah's mercy and justice."
+            },
+            {
+              "type": "text",
+              "style": "sectionHeading",
+              "content": "Breaking a Fast"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "For intentionally breaking a fast during Ramadan, a Hadith narrated by Abu Huraira (RA) provides clear guidance. A man came to the Prophet (PBUH) and said:"
+            },
+            {
+              "type": "text",
+              "style": "quoteItalic",
+              "content": "\"O Messenger of Allah, I am ruined!\" The Prophet (PBUH) asked, \"What has ruined you?\" The man replied, \"I had marital relations with my wife during Ramadan while fasting.\""
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "The Prophet (PBUH) responded:"
+            },
+            {
+              "type": "text",
+              "style": "quoteItalic",
+              "content": "\"Can you free a slave?\" The man replied, \"No.\" The Prophet (PBUH) then asked, \"Can you fast for two consecutive months?\" The man replied, \"No.\" The Prophet (PBUH) asked, \"Can you feed sixty needy people?\" The man replied, \"No.\""
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "The Hadith continues with the Prophet (PBUH) later providing the man with dates to distribute as charity, and when the man confessed that no one in his town was poorer than him, the Prophet (PBUH) allowed him to keep the dates for his family.\n\nThis Hadith, recorded in Sahih al-Bukhari and Sahih Muslim, highlights the gravity of intentionally breaking a fast and the prescribed means of atonement:\n\n• Freeing a slave\n• Fasting for two consecutive months, or\n• Feeding sixty needy people"
+            }
+          ]
+        },
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "body",
+              "content": "In summary, Kaffarah for fasts and oaths acts as a bridge to spiritual renewal and community harmony by transforming personal atonement into acts of empathy and generosity."
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "By aligning with divine directives, we experience profound spiritual growth and contribute to societal upliftment, fostering a cycle of forgiveness, personal clarity, and communal support."
+            }
+          ]
+        }
       ]
     },
     "fidya": {
-      "title": "Fidya",
-      "description": "A form of sadaqah that allows those unable to fast due to illness or age to stay spiritually connected by feeding one person per missed fast day",
-      "heroTitle": "Charity of the Excused Fast",
-      "navTitle": "Fidya",
-      "steps": [
-        "Step 1: Count Missed Ramadan Days - Track each day of fasting missed due to persistent illness, old age, or pregnancy.",
-        "Step 2: Calculate the Cost - Standard Fidya is feeding one needy person two meals (or equivalent cost) per missed day.",
-        "Step 3: Partner with Charities - Route your Fidya through reliable channels to reach those in need.",
-        "Step 4: Keep Record - Track your payments to ensure every missed fast is fully accounted for."
+      "title": "FIDYA",
+      "description": "Fidya allows those unable to fast due to illness or age to stay spiritually connected by feeding one person per missed fast day, maintaining their worship and compassion.",
+      "heroTitle": "Bridging Faith with Communal Empathy",
+      "navTitle": "FIDYA",
+  
+      "readMore": [
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "sectionHeading",
+              "content": "The Spiritual Benefits of Fidya"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "By fulfilling the obligation of Fidya, we embark on a journey of spiritual growth, enhancing both personal and communal well-being:"
+            },
+            {
+              "type": "text",
+              "style": "prayerHeading",
+              "content": "Divine Mercy and Forgiveness"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Fidya offers a chance to seek Allah's mercy and forgiveness, expressing faith through kindness. By aiding the less fortunate, it reflects Allah's compassion and transcends physical limitations."
+            },
+            {
+              "type": "text",
+              "style": "prayerHeading",
+              "content": "Cultivating Inner Peace"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Fidya brings inner peace, enabling those unable to fast to fulfill their duties and find solace. It nurtures tranquility, aligns with Islamic values, and fosters clarity through Allah's forgiveness."
+            },
+            {
+              "type": "text",
+              "style": "prayerHeading",
+              "content": "Strengthening Faith"
+            },
+            {
+              "type": "text",
+              "style": "bodyTight",
+              "content": "Giving Fidya strengthens faith and devotion, reflecting commitment to religious obligations. It reinforces the connection with Allah, fostering resilience through charitable acts despite limitations."
+            },
+            {
+              "type": "text",
+              "style": "prayerHeading",
+              "content": "Building Compassion"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Fidya transcends personal atonement, aiding the needy and fostering empathy. It inspires community support, creating a cycle of generosity and gratitude."
+            }
+          ]
+        },
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Supporting Hadith & Quranic References"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "The concept of Fidya is rooted in the Quran and supported by the practices of the Prophet (PBUH) and his companions. In Surah Al-Baqarah (2:184), Allah says:"
+            },
+            {
+              "type": "boldPrefixText",
+              "prefix": "Surah Al-Baqarah (2:184):",
+              "content": "And [for] those who can fast with difficulty, there is a ransom: the feeding of a poor person each day.",
+              "style": "body"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "This verse establishes the provision for those unable to fast due to valid reasons, such as illness or old age."
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "The practice of Fidya is further exemplified by the companions of the Prophet (PBUH). Anas ibn Malik (RA), when he became old and unable to fast, would feed thirty poor people on the last day of Ramadan, providing each with bread and meat as compensation for the days he could not fast."
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "The Prophet Muhammad (PBUH) also emphasized the importance of charity and caring for others, saying:"
+            },
+            {
+              "type": "text",
+              "style": "quoteMediumItalic",
+              "content": "Feed the hungry, visit the sick, and free the captives."
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "In conclusion, Fidya serves as a crucial bridge between individual spiritual renewal and community harmony, transforming personal limitations into acts of empathy and generosity."
+            }
+          ]
+        }
       ]
     },
     "lilah-donations": {
-      "title": "Lilah Donations",
-      "description": "Lillah, derived from the Arabic term 'for Allah', is a pure form of sadaqah driven by a sincere desire to please Allah, fostering devotion and selflessness among Muslims",
-      "heroTitle": "Giving Purely for the Sake of Allah",
-      "navTitle": "Lilah Donations",
-      "steps": [
-        "Step 1: Purify Your Intention - Ensure your donation is purely to seek Allah's pleasure, completely free from vanity.",
-        "Step 2: Find Deserving Causes - Look for mosques, Islamic centers, or humanitarian funds requiring support.",
-        "Step 3: Donate Secretly - Whenever possible, give your donation secretly to safeguard your sincerity.",
-        "Step 4: Make Supplication - Ask Allah to accept this small token and to bless your remaining wealth."
+      "title": "LILLAH DONATIONS",
+      "description": "Lillah, derived from the Arabic term 'for Allah', The Quran also emphasizes this in Surah Al-Insan (76:8):is a pure form of sadaqah driven by a sincere desire to please Allah, fostering devotion and selflessness among Muslims.",
+      "heroTitle": "A Pure Act of Sadaqah for Allah's Sake",
+      "navTitle": "LILLAH DONATIONS",
+      "readMore": [
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "sectionHeading",
+              "content": "The Essence of Lillah Donations"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Lillah donations embody unconditional giving, fostering selflessness and devotion. Unlike atonement-based charity such as Kaffarah, or obligatory acts like Fidya or Zakat, Lillah reflects a pure intent to please Allah. It enriches both the giver and the recipient spiritually."
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "The Quran beautifully highlights this in Surah Al-Baqarah (2:261):"
+            },
+            {
+              "type": "boldPrefixText",
+              "prefix": "Surah Al-Baqarah (2:261):",
+              "content": "The example of those who spend their wealth in the way of Allah is like a seed of grain that sprouts seven ears; in every ear, there are a hundred grains. And Allah multiplies for whom He wills. And Allah is all-Encompassing and Knowing.",
+              "style": "body"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Further emphasizing selflessness, Surah Al-Insan (76:8-9) states:"
+            },
+            {
+              "type": "boldPrefixText",
+              "prefix": "Surah Al-Insan (76:8-9):",
+              "content": "And they give food in spite of love for it to the needy, the orphan, and the captive, [saying], 'We feed you only for the countenance of Allah. We wish not from you reward or gratitude.",
+              "style": "body"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "This highlights the purity of Lillah donations, as it is performed solely for Allah's pleasure, without seeking recognition or thanks."
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Additionally, the verse from Surah Al-Baqarah (2:262) reminds us:"
+            },
+            {
+              "type": "boldPrefixText",
+              "prefix": "Surah Al-Baqarah (2:262):",
+              "content": "Those who spend their wealth in the cause of Allah and then do not follow up what they have spent with reminders [of it] or [other] injury will have their reward with their Lord, and there will be no fear concerning them, nor will they grieve.",
+              "style": "body"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "This verse emphasizes that those who give solely for Allah's sake, without seeking recognition or causing harm, are promised Allah's reward and abundant divine blessings."
+            }
+          ]
+        },
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "sectionHeading",
+              "content": "Spiritual and Communal Benefits"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Lillah donations inspire generosity, gratitude, and humility, encouraging Muslims to uplift their communities and support those in need. Their impact extends far beyond the act of giving:"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "For the giver: It nurtures empathy and reinforces their role as stewards of the community.\n\nFor the recipient: It offers relief, dignity, and a sense of belonging.\n\nThis pure form of sadaqah allows resources to flow within the community without the burden of repayment, fostering a culture of care and solidarity. As the Prophet (PBUH) said:"
+            },
+            {
+              "type": "text",
+              "style": "quoteMediumItalic",
+              "content": "Charity does not decrease wealth."
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "The Quran also emphasizes this in Surah Al-Insan (76:8):"
+            },
+            {
+              "type": "boldPrefixText",
+              "prefix": "Surah Al-Insan (76:8):",
+              "content": "And they give food, in spite of love for it, to the needy, the orphan, and the captive.",
+              "style": "body"
+            },
+            {
+              "type": "text",
+              "style": "bodyZero",
+              "content": "Through Lillah, we create a ripple effect of compassion, ensuring that kindness and support remain at the heart of our communities."
+            }
+          ]
+        }
       ]
     },
     "volunteering-services": {
-      "title": "Volunteering Services",
-      "description": "As Muslims, offering our time and skills without expecting any compensation is a noble act and a profound expression of faith, bringing us closer to Allah",
-      "heroTitle": "Serving Creation to Please the Creator",
-      "navTitle": "Volunteering",
-      "steps": [
-        "Step 1: Identify Your Talents - Think about how your skills (teaching, cooking, organizing, coding) can benefit the community.",
-        "Step 2: Dedicate Free Time - Set aside a few hours in your month specifically for voluntary services.",
-        "Step 3: Help Local Organizations - Offer your time to local mosques, charity drives, soup kitchens, or youth clubs.",
-        "Step 4: Practice Kindness - Treat everyone you serve with the utmost respect, smile, and warm manners."
+      "title": "VOLUNTEERING SERVICES",
+      "description": "As Muslims, offering our time and skills without expecting any compensation is a noble act and a profound expression of faith, bringing us closer to Allah.",
+      "heroTitle": "Offering Our Time & Skills to Help Others",
+      "navTitle": "VOLUNTEERING SERVICES",
+      "readMore": [
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "sectionHeading",
+              "content": "The Spiritual Benefits of Volunteering"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Engaging in volunteer work offers profound spiritual benefits and positively impacts society. It embodies core Islamic values of compassion, generosity, and community spirit. By offering time and skills, we cultivate humility, empathy, and gratitude—qualities that enhance character and faith"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Volunteering is a path to righteousness, cleansing hearts of greed and selfishness.\nThe Prophet (PBUH) said:"
+            },
+            {
+              "type": "text",
+              "style": "quoteMediumItalic",
+              "content": "\"The best of people are those who are most beneficial to people.\""
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Furthermore, the Prophet (PBUH) stated:"
+            },
+            {
+              "type": "text",
+              "style": "quoteItalic",
+              "content": "\"Whoever relieves a Muslim of a burden from the burdens of the world, Allah will relieve him of a burden from the burdens on the Day of Judgment.\""
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Furthermore, the Prophet (PBUH) stated:\n\nThese teachings show how service fosters growth, empathy, and stronger, inclusive communities."
+            }
+          ]
+        },
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "sectionHeading",
+              "content": "Practical Ways to Volunteer"
+            },
+            {
+              "type": "text",
+              "style": "bodyMediumTight",
+              "content": "Muslims are encouraged to volunteer individually or through communities, reflecting faith and Islamic values. Here are inspiring ways to contribute:"
+            },
+            {
+              "type": "text",
+              "style": "prayerHeading",
+              "content": "Community Clean-up Drives"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Participating in clean-up efforts reflects Islamic stewardship, fostering unity and shared responsibility to protect Allah's creation."
+            },
+            {
+              "type": "text",
+              "style": "prayerHeading",
+              "content": "Charity Events"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Supporting events for causes like poverty, hunger, or medical aid embodies Islamic values of generosity and compassion, fostering community bonding and a culture of giving."
+            },
+            {
+              "type": "text",
+              "style": "prayerHeading",
+              "content": "Educational Contributions"
+            },
+            {
+              "type": "text",
+              "style": "tableGuide",
+              "content": "Volunteering in education promotes literacy and aligns with Islam's emphasis on seeking knowledge as worship. Contributions can include teaching, event management, or logistics."
+            },
+            {
+              "type": "text",
+              "style": "prayerHeading",
+              "content": "Hospital Visits"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Visiting hospital patients reflects Islamic teachings of mercy and support, offering comfort, hope, and emotional relief while fostering empathy and human connection."
+            }
+          ]
+        }
       ]
     },
     "sadaqah-jariyah": {
-      "title": "Sadaqah Jariyah",
-      "description": "This form of Sadaqah is the most rewarding—it’s the gift that keeps giving, offering endless blessings and rewards in this life and the hereafter",
-      "heroTitle": "The Gift that Keeps Giving Beyond Life",
-      "navTitle": "Sadaqah Jariyah",
-      "steps": [
-        "Step 1: Choose a Long-Term Project - Select projects like water wells, planting trees, building mosques, or sponsoring Islamic education.",
-        "Step 2: Commit Funds - Dedicate a portion of your wealth to contribute to these high-impact projects.",
-        "Step 3: Involve Family - Partner with relatives or friends to sponsor projects together.",
-        "Step 4: Make Du'a for Continuity - Supplicate that this project remains operational, continuously benefiting others and storing rewards for your hereafter."
+      "title": "SADAQAH JARIYAH",
+      "description": "Sadaqah Jariyah is a key Islamic practice that seeks Allah's mercy and offers continuous benefits, providing ongoing rewards for the donor in this life and the afterlife.",
+      "heroTitle": "A Path to Eternal Blessings & Remembrance",
+      "navTitle": "SADAQAH JARIYAH",
+    
+      "readMore": [
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "sectionHeading",
+              "content": "Spiritual Significance and Benefits"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "In Islam, Sadaqah Jariyah represents a noble act of continuous charity that benefits both the donor and others long after the act is performed. It enriches lives with compassion and faith, creating an enduring legacy of good deeds."
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "The Prophet (PBUH) emphasized its lasting impact:"
+            },
+            {
+              "type": "text",
+              "style": "quoteMediumItalic",
+              "content": "When a person dies, their deeds come to an end except for three things: Sadaqah Jariyah, knowledge which is beneficial, or a virtuous descendant who prays for them."
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "This Hadith highlights the perpetual rewards of Sadaqah Jariyah, which continue to benefit the donor even after their passing."
+            }
+          ]
+        },
+        {
+          "items": [
+            {
+              "type": "text",
+              "style": "sectionHeading",
+              "content": "Ways to Engage in Sadaqah Jariyah"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Here are impactful ways to participate in Sadaqah Jariyah and create a lasting legacy:"
+            },
+            {
+              "type": "text",
+              "style": "prayerHeading",
+              "content": "Building Water Wells"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Providing clean water improves health and quality of life, offering continuous rewards as long as the well is in use."
+            },
+            {
+              "type": "text",
+              "style": "prayerHeading",
+              "content": "Sponsoring Orphans"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Supporting orphans with education and resources secures their future and uplifts communities."
+            },
+            {
+              "type": "text",
+              "style": "prayerHeading",
+              "content": "Educational Contributions"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Establishing schools, scholarships, or funding Quranic education spreads knowledge and benefits generations."
+            },
+            {
+              "type": "text",
+              "style": "prayerHeading",
+              "content": "Building Mosques"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Constructing mosques creates spaces for worship and spiritual growth, ensuring ongoing blessings."
+            },
+            {
+              "type": "text",
+              "style": "prayerHeading",
+              "content": "Donating Religious Materials"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Providing Qurans, dua books, or prayer mats ensures continuous rewards each time they are used."
+            },
+            {
+              "type": "text",
+              "style": "prayerHeading",
+              "content": "Planting Trees"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Trees offer environmental benefits and sustain life, serving as a lasting tribute."
+            },
+            {
+              "type": "text",
+              "style": "prayerHeading",
+              "content": "Community Development Projects"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Contributing to infrastructure like roads, bridges, or healthcare facilities enhances community well-being."
+            },
+            {
+              "type": "text",
+              "style": "prayerHeading",
+              "content": "Supporting Medical Aid"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Funding hospitals or treatments provides critical care to those in need, alleviating suffering."
+            },
+            {
+              "type": "text",
+              "style": "prayerHeading",
+              "content": "Providing Clothing"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "Donating modest clothing upholds dignity, fosters solidarity, and reflects Islamic values."
+            }
+          ]
+        }
       ]
     }
   }

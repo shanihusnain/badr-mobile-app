@@ -23,16 +23,47 @@ import { CalendarCountAndRamadanText } from "@/components/atoms/CalendarCountAnd
 type WhiteDaysCalendarProps = {
   missedRamadanDates?: string[];
   onSave?: (count: number) => void;
+  hideFooter?: boolean;
 };
 
 export const WhiteDaysCalendar = ({
   missedRamadanDates = [],
   onSave,
+  hideFooter = false,
 }: WhiteDaysCalendarProps) => {
   const startMoment = moment();
   const endMoment = moment().add(27, "days");
   const rangeLabel = `${startMoment.format("MMM D")} - ${endMoment.format("MMM D")}, ${startMoment.year()}`;
   const currentDate = startMoment.clone().startOf("month").format("YYYY-MM-DD");
+
+  // Calculate Islamic date range label
+  const HIJRI_MONTHS_SHORT = [
+    "Muh.",
+    "Saf.",
+    "Rab. I",
+    "Rab. II",
+    "Jum. I",
+    "Jum. II",
+    "Raj.",
+    "Sha.",
+    "Ram.",
+    "Shaw.",
+    "Dhul Q.",
+    "Dhul H.",
+  ];
+  const startMonth = HIJRI_MONTHS_SHORT[startMoment.iMonth()];
+  const endMonth = HIJRI_MONTHS_SHORT[endMoment.iMonth()];
+  const startYear = startMoment.iYear();
+  const endYear = endMoment.iYear();
+
+  let islamicRangeLabel = "";
+  if (startMoment.iMonth() === endMoment.iMonth() && startYear === endYear) {
+    islamicRangeLabel = `${startMonth} ${startYear}`;
+  } else if (startYear === endYear) {
+    islamicRangeLabel = `${startMonth} - ${endMonth} ${startYear}`;
+  } else {
+    islamicRangeLabel = `${startMonth} ${startYear} - ${endMonth} ${endYear}`;
+  }
 
   // Count white days (Hijri 13/14/15) in the 28-day window
   const whiteDayCount = Array.from({ length: 28 }, (_, i) => {
@@ -44,36 +75,34 @@ export const WhiteDaysCalendar = ({
     <View style={styles.wrapper}>
       {/* ── Legend — calendarBg top bar ── */}
       <View style={styles.topBar}>
-        <View style={styles.legendRow}>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 6,
-            }}
-          >
-            <View
-              style={[
-                styles.legendRing,
-                { borderColor: Colors.light.ringRamadan },
-              ]}
-            />
-            <Text style={[styles.legendText]}>MISSED RAMADAN</Text>
+        <View style={styles.legendContainer}>
+          <View style={styles.legendRow}>
+            <View style={styles.legendItem}>
+              <View
+                style={[
+                  styles.legendRing,
+                  { borderColor: Colors.light.ringRamadan },
+                ]}
+              />
+              <Text style={styles.legendText} numberOfLines={1}>MISSED RAMADAN</Text>
+            </View>
+            <View style={styles.legendItem}>
+              <View
+                style={[
+                  styles.legendRing,
+                  { borderColor: Colors.light.ringMonThu },
+                ]}
+              />
+              <Text style={styles.legendText} numberOfLines={1}>MONDAYS & THURSDAYS</Text>
+            </View>
           </View>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-            <View
-              style={[
-                styles.legendRing,
-                { borderColor: Colors.light.ringMonThu },
-              ]}
-            />
-            <Text style={[styles.legendText]}>MONDAYS & THURSDAYS</Text>
-          </View>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-            <View
-              style={[styles.legendRing, { borderColor: Colors.light.white }]}
-            />
-            <Text style={[styles.legendText]}>WHITE DAYS</Text>
+          <View style={[styles.legendRow, { marginTop: 6 }]}>
+            <View style={styles.legendItem}>
+              <View
+                style={[styles.legendRing, { borderColor: Colors.light.white }]}
+              />
+              <Text style={styles.legendText} numberOfLines={1}>WHITE DAYS</Text>
+            </View>
           </View>
         </View>
       </View>
@@ -81,6 +110,7 @@ export const WhiteDaysCalendar = ({
       {/* ── Date range label ── */}
       <View style={styles.dateLabel}>
         <Text style={styles.dateLabelText}>{rangeLabel}</Text>
+        <Text style={styles.islamicDateText}>{islamicRangeLabel}</Text>
       </View>
 
       {/* ── Calendar ── */}
@@ -90,28 +120,28 @@ export const WhiteDaysCalendar = ({
         markedDates={missedRamadanDates}
       />
 
-      {/* ── Footer — calendarBg bottom bar ── */}
-      <View style={styles.footer}>
-        <Text style={styles.description}>
-          The White Days are the 13th, 14th and 15th of each Islamic month. All
-          other days are dimmed. Missed Ramadan and Mon/Thu fasts are shown with
-          their respective colours.
-        </Text>
-        {/* <Text style={styles.count}>{whiteDayCount} White Days Fasts</Text> */}
-        <TopSpace top={16} />
-        <CalendarCountAndRamadanText
-          fastCount={whiteDayCount}
-          countColor={Colors.light.white}
-          title="White Days Fasts"
-        />
-        <TouchableOpacity
-          style={styles.saveBtn}
-          onPress={() => onSave?.(whiteDayCount)}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.saveBtnText}>Save</Text>
-        </TouchableOpacity>
-      </View>
+      {!hideFooter && (
+        <View style={styles.footer}>
+          <Text style={styles.description}>
+            The White Days are the 13th, 14th and 15th of each Islamic month. All
+            other days are dimmed. Missed Ramadan and Mon/Thu fasts are shown with
+            their respective colours.
+          </Text>
+          <TopSpace top={16} />
+          <CalendarCountAndRamadanText
+            fastCount={whiteDayCount}
+            countColor={Colors.light.white}
+            title="White Days Fasts"
+          />
+          <TouchableOpacity
+            style={styles.saveBtn}
+            onPress={() => onSave?.(whiteDayCount)}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.saveBtnText}>Save</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 };
@@ -119,7 +149,7 @@ export const WhiteDaysCalendar = ({
 export default WhiteDaysCalendar;
 
 const styles = StyleSheet.create({
-  wrapper: { marginBottom: 8 },
+  wrapper: { marginBottom: 0 },
 
   topBar: {
     backgroundColor: Colors.light.calendarBg,
@@ -129,10 +159,17 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
 
+  legendContainer: {
+    width: "100%",
+  },
   legendRow: {
     flexDirection: "row",
     alignItems: "center",
-    flexWrap: "wrap",
+    gap: 12,
+  },
+  legendItem: {
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
   },
   legendRing: {
@@ -142,10 +179,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   legendText: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: "400",
     fontFamily: fonts.primary.regular,
-    letterSpacing: 0.5,
+    letterSpacing: 0.1,
     color: Colors.light.grey,
   },
 
@@ -159,6 +196,13 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
+  },
+  islamicDateText: {
+    fontSize: 12,
+    fontWeight: "400",
+    color: Colors.light.grey,
+    fontFamily: fonts.primary.regular,
+    marginTop: 4,
   },
 
   footer: {

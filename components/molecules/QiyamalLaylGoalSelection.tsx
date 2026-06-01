@@ -131,16 +131,18 @@ export default function QiyamalLaylGoalSelection() {
 
                     {/* Result / Save area */}
                     <View style={styles.resultContainer}>
-                        <Text style={styles.valueText}>
-                            {formatNumber(sliderValue)}
-                            <Text style={styles.whiteText}>
-                                {sliderValue === 1 ? t("prayerGoals.rakahPrayer") : t("prayerGoals.rakahPrayers")}
-                                {commitment === "every_night" ? t("prayerGoals.and28Witr") : t("prayerGoals.plusWitrFlexible")}
+                        <View style={styles.resultTextColumn}>
+                            <Text style={styles.valueLine}>
+                                <Text style={styles.valueNumber}>{formatNumber(sliderValue)}</Text>
+                                <Text style={styles.valueSuffix}>
+                                    {sliderValue === 1 ? t("prayerGoals.rakahPrayer") : t("prayerGoals.rakahPrayers")}
+                                    {commitment === "every_night" ? t("prayerGoals.and28Witr") : t("prayerGoals.plusWitrFlexible")}
+                                </Text>
                             </Text>
-                        </Text>
-                        <Text style={styles.witrDescription}>
-                            {t("prayerGoals.witrDesc")}
-                        </Text>
+                            <Text style={styles.witrDescription}>
+                                {t("prayerGoals.witrDesc")}
+                            </Text>
+                        </View>
                         <View style={styles.buttonContainer}>
                             <PrimaryButton
                                 text={t("prayerGoals.save")}
@@ -214,7 +216,7 @@ const styles = StyleSheet.create({
         marginBottom: 10,
     },
     sliderContainer: {
-        marginTop: -9,
+        marginTop: 4,
         marginBottom: -13,
     },
     radioRow: {
@@ -261,7 +263,7 @@ const styles = StyleSheet.create({
     },
     radioOptionCol: {
         flexDirection: "row",
-        alignItems: "flex-start",
+        alignItems: "center",
         width: "100%",
     },
     radioOuterCol: {
@@ -274,7 +276,6 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         marginRight: 8,
-        marginTop: 3,
     },
     radioInnerCol: {
         width: 10,
@@ -298,27 +299,38 @@ const styles = StyleSheet.create({
     },
     resultContainer: {
         width: "100%",
-        alignItems: "center",
+        alignItems: "flex-start",
         marginTop: 20,
     },
-    valueText: {
+    resultTextColumn: {
+        width: "100%",
+        alignItems: "flex-start",
+        paddingLeft: 22,
+    },
+    valueLine: {
+        marginBottom: 8,
+        textAlign: "left",
+        alignSelf: "flex-start",
+    },
+    valueNumber: {
         color: Colors.light.green,
         fontFamily: fonts.primary.medium,
         fontSize: 18,
         fontWeight: "500",
-        marginBottom: 8,
-        textAlign: "center",
     },
-    whiteText: {
+    valueSuffix: {
         color: Colors.light.white,
+        fontFamily: fonts.primary.medium,
+        fontSize: 17,
+        fontWeight: "500",
     },
     witrDescription: {
         color: Colors.light.grey,
         fontFamily: fonts.primary.regular,
         fontSize: 12,
         lineHeight: 18,
-        textAlign: "center",
-        paddingHorizontal: 10,
+        textAlign: "left",
+        alignSelf: "flex-start",
         marginBottom: 20,
     },
     buttonContainer: {

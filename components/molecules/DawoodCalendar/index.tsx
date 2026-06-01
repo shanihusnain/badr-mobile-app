@@ -37,6 +37,35 @@ export const DawoodCalendar = ({ onSave }: DawoodCalendarProps) => {
   const rangeLabel = `${startMoment.format("MMM D")} - ${endMoment.format("MMM D")}, ${startMoment.year()}`;
   const currentDate = startMoment.clone().startOf("month").format("YYYY-MM-DD");
 
+  // Calculate Islamic date range label
+  const HIJRI_MONTHS_SHORT = [
+    "Muh.",
+    "Saf.",
+    "Rab. I",
+    "Rab. II",
+    "Jum. I",
+    "Jum. II",
+    "Raj.",
+    "Sha.",
+    "Ram.",
+    "Shaw.",
+    "Dhul Q.",
+    "Dhul H.",
+  ];
+  const startMonth = HIJRI_MONTHS_SHORT[startMoment.iMonth()];
+  const endMonth = HIJRI_MONTHS_SHORT[endMoment.iMonth()];
+  const startYear = startMoment.iYear();
+  const endYear = endMoment.iYear();
+
+  let islamicRangeLabel = "";
+  if (startMoment.iMonth() === endMoment.iMonth() && startYear === endYear) {
+    islamicRangeLabel = `${startMonth} ${startYear}`;
+  } else if (startYear === endYear) {
+    islamicRangeLabel = `${startMonth} - ${endMonth} ${startYear}`;
+  } else {
+    islamicRangeLabel = `${startMonth} ${startYear} - ${endMonth} ${endYear}`;
+  }
+
   // Count fast days in the 28-day window
   const fastCount = Array.from({ length: 28 }, (_, i) => i).filter((i) =>
     dawoodStartDay === 1 ? i % 2 === 0 : i % 2 === 1,
@@ -73,6 +102,7 @@ export const DawoodCalendar = ({ onSave }: DawoodCalendarProps) => {
       {/* ── Date range label ── */}
       <View style={styles.dateLabel}>
         <Text style={styles.dateLabelText}>{rangeLabel}</Text>
+        <Text style={styles.islamicDateText}>{islamicRangeLabel}</Text>
       </View>
 
       {/* ── Calendar ── */}
@@ -163,6 +193,13 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
+  },
+  islamicDateText: {
+    fontSize: 12,
+    fontWeight: "400",
+    color: Colors.light.grey,
+    fontFamily: fonts.primary.regular,
+    marginTop: 4,
   },
 
   description: {

@@ -60,9 +60,12 @@ export default function CustomSlider({
   const ringSize = baseRingSize * scale;
   const thumbSize = baseThumbSize * scale;
 
-  // Native slider track padding (do not scale native element to preserve touch bounds)
-  const paddingX = 16;
+  // Horizontal inset — shorter track + room for count badge at min/max
+  const paddingX = 20;
   const trackOverlayWidth = width - paddingX * 2;
+  const badgeWidth = 32;
+  const badgeHalf = badgeWidth / 2;
+  const badgeEdgeInset = 4;
 
   // Use the continuous float value to calculate percentage for 60fps smooth tracking
   const percent = (continuousVal - 1) / (maxDays - 1);
@@ -70,10 +73,12 @@ export default function CustomSlider({
   // Progress width and badge offset track the thumb's dynamic position perfectly and smoothly
   const progressWidth = percent * trackOverlayWidth;
 
-  // Center the badge exactly over the custom pointer thumb center
-  const badgeLeft = paddingX + progressWidth - 16;
+  const rawBadgeLeft = paddingX + progressWidth - badgeHalf;
+  const badgeLeft = Math.max(
+    badgeEdgeInset,
+    Math.min(rawBadgeLeft, width - badgeWidth - badgeEdgeInset),
+  );
 
-  // Left offset of the custom unified pointer thumb
   const thumbLeft = paddingX + progressWidth - thumbSize / 2;
 
   const startX = useSharedValue(0);
@@ -210,7 +215,7 @@ export default function CustomSlider({
 
 const styles = StyleSheet.create({
   container: {
-    width: "115%",
+    width: "112%",
     marginVertical: 12,
     alignSelf: "center",
   },
@@ -231,7 +236,7 @@ const styles = StyleSheet.create({
   },
 
   badge: {
-    width: 25,
+    width: 21,
     height: 20,
     borderRadius: 4,
     backgroundColor: Colors.light.darkgrey,
