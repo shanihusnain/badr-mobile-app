@@ -1,5 +1,12 @@
 import React, { useState } from "react";
-import { StyleSheet, Text, View, TouchableOpacity, LayoutAnimation, Platform } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  LayoutAnimation,
+  Platform,
+} from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
@@ -7,6 +14,9 @@ import CustomSlider from "@/components/atoms/CustomSlider";
 import PrimaryButton from "@/components/atoms/Primary-button";
 import { useTranslation } from "react-i18next";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
+import { globalStyles } from "@/src/globalstyles/globalstyles";
+import { GoalSelectionOpenCloseButton } from "./GoalSelectionOpenCloseButton";
+import { Divider } from "../atoms/Divider";
 
 export default function SunnahRawatibGoalSelection() {
   const { t } = useTranslation();
@@ -18,7 +28,9 @@ export default function SunnahRawatibGoalSelection() {
   const [afterMaghrib, setAfterMaghrib] = useState(28);
   const [afterIsha, setAfterIsha] = useState(28);
   const [afterDuhrOption, setAfterDuhrOption] = useState<"one" | "two">("two");
-  const [beforeAsarOption, setBeforeAsarOption] = useState<"one" | "two">("two");
+  const [beforeAsarOption, setBeforeAsarOption] = useState<"one" | "two">(
+    "two",
+  );
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleDropdown = () => {
@@ -53,29 +65,31 @@ export default function SunnahRawatibGoalSelection() {
     });
   };
 
-  const totalPrayers = beforeFajar + beforeDuhr + afterDuhr + beforeAsar + afterMaghrib + afterIsha;
+  const totalPrayers =
+    beforeFajar +
+    beforeDuhr +
+    afterDuhr +
+    beforeAsar +
+    afterMaghrib +
+    afterIsha;
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity style={styles.headerRow} onPress={toggleDropdown} activeOpacity={0.7}>
-        <Text style={styles.titleText}>
-          {t("prayerGoals.sunnahTitle")}
-        </Text>
-        <Feather
-          name={isOpen ? "chevron-up" : "chevron-down"}
-          size={24}
-          color={Colors.light.white}
-          style={styles.icon}
-        />
-      </TouchableOpacity>
+    <View style={globalStyles.goalSelectionWrapper}>
+      <GoalSelectionOpenCloseButton
+        isOpen={isOpen}
+        title={t("prayerGoals.sunnahTitle")}
+        toggleDropdown={toggleDropdown}
+      />
 
-      {isOpen && <View style={styles.divider} />}
+      {isOpen && <Divider />}
 
       {isOpen && (
         <View style={styles.expandedContent}>
           {/* Before Fajar */}
           <View style={styles.sliderGroup}>
-            <Text style={styles.sliderHeading}>{t("prayerGoals.beforeFajrHeading")} </Text>
+            <Text style={styles.sliderHeading}>
+              {t("prayerGoals.beforeFajrHeading")}{" "}
+            </Text>
             <CustomSlider
               maxDays={28}
               initialDays={beforeFajar}
@@ -85,7 +99,9 @@ export default function SunnahRawatibGoalSelection() {
 
           {/* Before Duhr */}
           <View style={styles.sliderGroup}>
-            <Text style={styles.sliderHeading}>{t("prayerGoals.beforeDhuhrHeading")} </Text>
+            <Text style={styles.sliderHeading}>
+              {t("prayerGoals.beforeDhuhrHeading")}{" "}
+            </Text>
             <CustomSlider
               maxDays={56}
               initialDays={beforeDuhr}
@@ -95,7 +111,9 @@ export default function SunnahRawatibGoalSelection() {
 
           {/* After Duhr */}
           <View style={styles.sliderGroup}>
-            <Text style={styles.sliderHeading}>{t("prayerGoals.afterDhuhrHeading")}</Text>
+            <Text style={styles.sliderHeading}>
+              {t("prayerGoals.afterDhuhrHeading")}
+            </Text>
             <View style={styles.radioRow}>
               <TouchableOpacity
                 style={styles.radioOption}
@@ -103,9 +121,13 @@ export default function SunnahRawatibGoalSelection() {
                 activeOpacity={0.7}
               >
                 <View style={styles.radioOuter}>
-                  {afterDuhrOption === "one" && <View style={styles.radioInner} />}
+                  {afterDuhrOption === "one" && (
+                    <View style={styles.radioInner} />
+                  )}
                 </View>
-                <Text style={styles.radioText}>{t("prayerGoals.oneRakahOption")}</Text>
+                <Text style={styles.radioText}>
+                  {t("prayerGoals.oneRakahOption")}
+                </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -114,9 +136,13 @@ export default function SunnahRawatibGoalSelection() {
                 activeOpacity={0.7}
               >
                 <View style={styles.radioOuter}>
-                  {afterDuhrOption === "two" && <View style={styles.radioInner} />}
+                  {afterDuhrOption === "two" && (
+                    <View style={styles.radioInner} />
+                  )}
                 </View>
-                <Text style={styles.radioText}>{t("prayerGoals.twoRakahOption")}</Text>
+                <Text style={styles.radioText}>
+                  {t("prayerGoals.twoRakahOption")}
+                </Text>
               </TouchableOpacity>
             </View>
             <CustomSlider
@@ -128,7 +154,9 @@ export default function SunnahRawatibGoalSelection() {
 
           {/* Before Asar */}
           <View style={styles.sliderGroup}>
-            <Text style={styles.sliderHeading}>{t("prayerGoals.beforeAsrHeading")}</Text>
+            <Text style={styles.sliderHeading}>
+              {t("prayerGoals.beforeAsrHeading")}
+            </Text>
             <View style={styles.radioRow}>
               <TouchableOpacity
                 style={styles.radioOption}
@@ -136,9 +164,13 @@ export default function SunnahRawatibGoalSelection() {
                 activeOpacity={0.7}
               >
                 <View style={styles.radioOuter}>
-                  {beforeAsarOption === "one" && <View style={styles.radioInner} />}
+                  {beforeAsarOption === "one" && (
+                    <View style={styles.radioInner} />
+                  )}
                 </View>
-                <Text style={styles.radioText}>{t("prayerGoals.oneRakahOption")}</Text>
+                <Text style={styles.radioText}>
+                  {t("prayerGoals.oneRakahOption")}
+                </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -147,9 +179,13 @@ export default function SunnahRawatibGoalSelection() {
                 activeOpacity={0.7}
               >
                 <View style={styles.radioOuter}>
-                  {beforeAsarOption === "two" && <View style={styles.radioInner} />}
+                  {beforeAsarOption === "two" && (
+                    <View style={styles.radioInner} />
+                  )}
                 </View>
-                <Text style={styles.radioText}>{t("prayerGoals.twoRakahOption")}</Text>
+                <Text style={styles.radioText}>
+                  {t("prayerGoals.twoRakahOption")}
+                </Text>
               </TouchableOpacity>
             </View>
             <CustomSlider
@@ -161,7 +197,9 @@ export default function SunnahRawatibGoalSelection() {
 
           {/* After Maghrib */}
           <View style={styles.sliderGroup}>
-            <Text style={styles.sliderHeading}>{t("prayerGoals.afterMaghribHeading")}</Text>
+            <Text style={styles.sliderHeading}>
+              {t("prayerGoals.afterMaghribHeading")}
+            </Text>
             <CustomSlider
               maxDays={28}
               initialDays={afterMaghrib}
@@ -171,24 +209,28 @@ export default function SunnahRawatibGoalSelection() {
 
           {/* After Isha */}
           <View style={styles.sliderGroup}>
-            <Text style={styles.sliderHeading}>{t("prayerGoals.afterIshaHeading")}</Text>
+            <Text style={styles.sliderHeading}>
+              {t("prayerGoals.afterIshaHeading")}
+            </Text>
             <CustomSlider
               maxDays={28}
               initialDays={afterIsha}
               onChange={(val) => setAfterIsha(val)}
             />
           </View>
-          
+
           <Text style={styles.valueText}>
             {formatNumber(totalPrayers)}
-            <Text style={styles.whiteText}>{t("prayerGoals.sunnahSuffix")}</Text>
+            <Text style={styles.whiteText}>
+              {t("prayerGoals.sunnahSuffix")}
+            </Text>
           </Text>
 
           <View style={styles.buttonContainer}>
-            <PrimaryButton 
-              text={t("prayerGoals.save")} 
-              onPress={handleSave} 
-              style={styles.saveButton} 
+            <PrimaryButton
+              text={t("prayerGoals.save")}
+              onPress={handleSave}
+              style={styles.saveButton}
               textStyle={styles.saveButtonText}
             />
           </View>
@@ -199,30 +241,6 @@ export default function SunnahRawatibGoalSelection() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    width: "100%",
-    backgroundColor: Colors.light.calendarBg,
-    borderRadius: 12,
-    padding: 16,
-    marginVertical: 10,
-  },
-  headerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  titleText: {
-    flex: 1,
-    color: Colors.light.white,
-    fontFamily: fonts.primary.medium,
-    fontSize: 14,
-    fontWeight: "500",
-    lineHeight: 20,
-    marginRight: 8,
-  },
-  icon: {
-    marginLeft: 4,
-  },
   expandedContent: {
     marginTop: 16,
     alignItems: "center",
@@ -241,12 +259,7 @@ const styles = StyleSheet.create({
     textAlign: "left",
     marginBottom: 4,
   },
-  divider: {
-    height: 1,
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
-    width: "100%",
-    marginTop: 12,
-  },
+  
   radioRow: {
     flexDirection: "row",
     alignItems: "center",

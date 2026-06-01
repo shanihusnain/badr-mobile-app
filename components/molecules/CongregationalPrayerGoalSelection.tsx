@@ -1,5 +1,12 @@
 import React, { useState } from "react";
-import { StyleSheet, Text, View, TouchableOpacity, LayoutAnimation, Platform } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  LayoutAnimation,
+  Platform,
+} from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { Colors } from "../../constants/theme";
 import { fonts } from "../../assets/fonts";
@@ -7,6 +14,9 @@ import CustomSlider from "../atoms/CustomSlider";
 import PrimaryButton from "../atoms/Primary-button";
 import { useTranslation } from "react-i18next";
 import { useLocaleNumber } from "../../hooks/useLocaleNumber";
+import { globalStyles } from "@/src/globalstyles/globalstyles";
+import { GoalSelectionOpenCloseButton } from "./GoalSelectionOpenCloseButton";
+import { Divider } from "../atoms/Divider";
 
 export default function CongregationalPrayerGoalSelection() {
   const { t } = useTranslation();
@@ -38,8 +48,8 @@ export default function CongregationalPrayerGoalSelection() {
   const totalPrayers = fajr + dhuhr + asar + maghrib + isha + jumuah;
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity style={styles.headerRow} onPress={toggleDropdown} activeOpacity={0.7}>
+    <View style={globalStyles.goalSelectionWrapper}>
+      {/* <TouchableOpacity style={styles.headerRow} onPress={toggleDropdown} activeOpacity={0.7}>
         <Text style={styles.titleText}>
           {t("prayerGoals.congregationTitle")}
         </Text>
@@ -49,9 +59,15 @@ export default function CongregationalPrayerGoalSelection() {
           color={Colors.light.white}
           style={styles.icon}
         />
-      </TouchableOpacity>
+      </TouchableOpacity> */}
+      <GoalSelectionOpenCloseButton
+        isOpen={isOpen}
+        title={t("prayerGoals.congregationTitle")}
+        toggleDropdown={toggleDropdown}
+      />
 
-      {isOpen && <View style={styles.divider} />}
+      {/* {isOpen && <View style={styles.divider} />} */}
+      {isOpen && <Divider/>}
 
       {isOpen && (
         <View style={styles.expandedContent}>
@@ -114,10 +130,12 @@ export default function CongregationalPrayerGoalSelection() {
               onChange={(val) => setJumuah(val)}
             />
           </View>
-          
+
           <Text style={styles.valueText}>
             {formatNumber(totalPrayers)}
-            <Text style={styles.whiteText}>{t("prayerGoals.congregationSuffix")}</Text>
+            <Text style={styles.whiteText}>
+              {t("prayerGoals.congregationSuffix")}
+            </Text>
           </Text>
 
           <Text style={styles.trackText}>
@@ -129,10 +147,10 @@ export default function CongregationalPrayerGoalSelection() {
           </Text>
 
           <View style={styles.buttonContainer}>
-            <PrimaryButton 
-              text={t("prayerGoals.save")} 
-              onPress={handleSave} 
-              style={styles.saveButton} 
+            <PrimaryButton
+              text={t("prayerGoals.save")}
+              onPress={handleSave}
+              style={styles.saveButton}
               textStyle={styles.saveButtonText}
             />
           </View>
@@ -167,12 +185,7 @@ const styles = StyleSheet.create({
   icon: {
     marginLeft: 4,
   },
-  divider: {
-    height: 1,
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
-    width: "100%",
-    marginTop: 12,
-  },
+
   expandedContent: {
     marginTop: 16,
     alignItems: "center",
