@@ -10,6 +10,8 @@ import {
   View,
   ViewStyle,
 } from "react-native";
+// Use gesture-handler ScrollView for better nested scrolling inside FlatList / BottomSheet
+import { ScrollView } from "react-native-gesture-handler";
 import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 
 interface Option {
@@ -31,6 +33,7 @@ interface CustomDropdownProps {
   control: any;
   name: string;
   onSelect?: (value: any) => void;
+  borderColor?: string;
 }
 
 const CustomDropdown: React.FC<CustomDropdownProps> = ({
@@ -47,6 +50,7 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
   control,
   name,
   onSelect,
+  borderColor,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -82,6 +86,10 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
                 styles.trigger,
                 isOpen && styles.triggerOpen,
                 containerStyle,
+                {
+                  borderColor: borderColor ?? borderColor,
+                  borderWidth: borderColor ? 1 : 0,
+                },
               ]}
               onPress={() => setIsOpen((prev) => !prev)}
               activeOpacity={0.8}
@@ -99,7 +107,19 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
             </TouchableOpacity>
 
             {isOpen && (
-              <View style={[styles.menu, menuStyle]}>
+              <ScrollView
+                // allow inner scroll when inside another scrollable parent
+                nestedScrollEnabled={true}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={true}
+                style={[
+                  styles.menu,
+                  menuStyle,
+                  {
+                    maxHeight: 300,
+                  },
+                ]}
+              >
                 {options.map((item, index) => {
                   const itemLabel =
                     typeof item === "string" ? item : item.label;
@@ -123,7 +143,7 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
                     </TouchableOpacity>
                   );
                 })}
-              </View>
+              </ScrollView>
             )}
 
             {errors.length > 0 && (
@@ -183,9 +203,8 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     //borderWidth: 1,
     //borderColor: Colors.light.border,
-    marginTop: 6,
+    marginTop: 10,
     paddingVertical: 5,
-    width: "100%",
   },
   option: {
     flexDirection: "row",

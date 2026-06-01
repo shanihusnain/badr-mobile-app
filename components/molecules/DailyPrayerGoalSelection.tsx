@@ -17,7 +17,6 @@ import { useLocaleNumber } from "../../hooks/useLocaleNumber";
 import { GoalSelectionOpenCloseButton } from "./GoalSelectionOpenCloseButton";
 import { Divider } from "../atoms/Divider";
 
-
 export default function DailyPrayerGoalSelection() {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();

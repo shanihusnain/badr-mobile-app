@@ -18,7 +18,6 @@ import { globalStyles } from "@/src/globalstyles/globalstyles";
 import { GoalSelectionOpenCloseButton } from "./GoalSelectionOpenCloseButton";
 import { Divider } from "../atoms/Divider";
 
-
 export default function QiyamalLaylGoalSelection() {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
