@@ -14,6 +14,7 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
+import moment from "moment-hijri";
 import { fonts } from "@/assets/fonts";
 import { CalendarGrid } from "@/components/molecules/CalendarGrid";
 
@@ -119,6 +120,26 @@ export const DOBCalendar = ({ onSave, onCancel }: DOBCalendarProps) => {
     d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   const rangeLabel = `${fmt(firstDay)} - ${fmt(lastDay)}, ${currentYear}`;
 
+  // Calculate Islamic date for the current month
+  const HIJRI_MONTHS_SHORT = [
+    "Muh.",
+    "Saf.",
+    "Rab. I",
+    "Rab. II",
+    "Jum. I",
+    "Jum. II",
+    "Raj.",
+    "Sha.",
+    "Ram.",
+    "Shaw.",
+    "Dhul Q.",
+    "Dhul H.",
+  ];
+  const monthMoment = moment(`${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-01`, "YYYY-MM-DD");
+  const hijriMonth = HIJRI_MONTHS_SHORT[monthMoment.iMonth()];
+  const hijriYear = monthMoment.iYear();
+  const islamicDateLabel = `${hijriMonth} ${hijriYear}`;
+
   // ── OK / Cancel ─────────────────────────────────────────────────────────────
 
   const handleOk = () => {
@@ -174,7 +195,10 @@ export const DOBCalendar = ({ onSave, onCancel }: DOBCalendarProps) => {
         >
           <Text style={styles.navArrowText}>{"‹"}</Text>
         </TouchableOpacity>
-        <Text style={styles.navLabel}>{rangeLabel}</Text>
+        <View style={styles.navLabelContainer}>
+          <Text style={styles.navLabel}>{rangeLabel}</Text>
+          <Text style={styles.islamicDateText}>{islamicDateLabel}</Text>
+        </View>
         <TouchableOpacity
           onPress={goToNextMonth}
           style={styles.navArrow}
@@ -333,11 +357,21 @@ const styles = StyleSheet.create({
   },
   navArrow: { paddingHorizontal: 12, paddingVertical: 4 },
   navArrowText: { fontSize: 24, color: Colors.light.white, lineHeight: 28 },
+  navLabelContainer: {
+    alignItems: "center",
+  },
   navLabel: {
     fontSize: 14,
     fontWeight: "600",
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
+  },
+  islamicDateText: {
+    fontSize: 12,
+    fontWeight: "400",
+    color: Colors.light.grey,
+    fontFamily: fonts.primary.regular,
+    marginTop: 4,
   },
 
   footer: {

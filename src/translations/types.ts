@@ -73,5 +73,52 @@ export interface TranslationKeys {
     verifyBtnText: string;
     resendCodeText: string;
   };
+  goalsData: Record<string, GoalInfo>;
+}
 
+export type GoalReadMoreTextStyle =
+  | "body"
+  | "bodyTight"
+  | "bodyMediumTight"
+  | "bodyZero"
+  | "tableGuide"
+  | "sectionHeading"
+  | "prayerHeading"
+  | "quoteItalic"
+  | "quoteSemibold"
+  | "quoteMediumItalic"
+  | "hadithQuoteLead"
+  | "hadithQuoteLight"
+  | "wuduBody"
+  | "wuduBodySpaced"
+  | "bilalQuote"
+  | "bilalQuoteLight";
+
+export type GoalReadMoreItem =
+  | { type: "text"; content: string; style: GoalReadMoreTextStyle; align?: "left" | "right" | "center" }
+  | { type: "prayerSection"; heading: string; description: string }
+  | { type: "benefit"; heading: string; description: string }
+  | { type: "replyWithQuote"; prefix: string; quote: string }
+  | { type: "boldPrefixText"; prefix: string; content: string; style: GoalReadMoreTextStyle; align?: "left" | "right" | "center" }
+  | { type: "boldSuffixText"; suffix: string; content: string; style: GoalReadMoreTextStyle; align?: "left" | "right" | "center" };
+
+export type GoalReadMoreContainer = {
+  items: GoalReadMoreItem[];
+};
+
+export type GoalBenefitItem = {
+  heading: string;
+  description: string;
+};
+
+export interface GoalInfo {
+  title?: string;
+  description?: string;
+  heroTitle?: string;
+  navTitle?: string;
+  steps?: string[];
+  hadithIntro?: string;
+  benefitsIntro?: string;
+  benefits?: GoalBenefitItem[];
+  readMore?: GoalReadMoreContainer[];
 }

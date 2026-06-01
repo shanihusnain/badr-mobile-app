@@ -12,13 +12,11 @@
  */
 
 import { Colors } from "@/constants/theme";
-import { useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useState, useEffect } from "react";
+import { StyleSheet, Text, TouchableOpacity, View, ViewStyle } from "react-native";
 import moment from "moment-hijri";
 import { fonts } from "@/assets/fonts";
 import { CalendarGrid } from "@/components/molecules/CalendarGrid";
-import { TopSpace } from "@/components/atoms/TopSpace";
-import { CalendarCountAndRamadanText } from "@/components/atoms/CalendarCountAndRamadanText";
 
 type MonThuCalendarProps = {
   /** Pre-existing missed Ramadan dates to overlay on the calendar. */
@@ -35,11 +33,45 @@ export const MonThuCalendar = ({
   const rangeLabel = `${startMoment.format("MMM D")} - ${endMoment.format("MMM D")}, ${startMoment.year()}`;
   const currentDate = startMoment.clone().startOf("month").format("YYYY-MM-DD");
 
+  // Calculate Islamic date range label
+  const HIJRI_MONTHS_SHORT = [
+    "Muh.",
+    "Saf.",
+    "Rab. I",
+    "Rab. II",
+    "Jum. I",
+    "Jum. II",
+    "Raj.",
+    "Sha.",
+    "Ram.",
+    "Shaw.",
+    "Dhul Q.",
+    "Dhul H.",
+  ];
+  const startMonth = HIJRI_MONTHS_SHORT[startMoment.iMonth()];
+  const endMonth = HIJRI_MONTHS_SHORT[endMoment.iMonth()];
+  const startYear = startMoment.iYear();
+  const endYear = endMoment.iYear();
+
+  let islamicRangeLabel = "";
+  if (startMoment.iMonth() === endMoment.iMonth() && startYear === endYear) {
+    islamicRangeLabel = `${startMonth} ${startYear}`;
+  } else if (startYear === endYear) {
+    islamicRangeLabel = `${startMonth} - ${endMonth} ${startYear}`;
+  } else {
+    islamicRangeLabel = `${startMonth} ${startYear} - ${endMonth} ${endYear}`;
+  }
+
   // Count Mon/Thu in window
   const monThuCount = Array.from({ length: 28 }, (_, i) => {
     const dow = moment().add(i, "days").day(); // 0=Sun 1=Mon … 4=Thu
     return dow === 1 || dow === 4;
   }).filter(Boolean).length;
+
+  // Call onSave callback with count
+  useEffect(() => {
+    onSave?.(monThuCount);
+  }, [monThuCount, onSave]);
 
   return (
     <View style={styles.wrapper}>
@@ -52,16 +84,16 @@ export const MonThuCalendar = ({
               { borderColor: Colors.light.ringRamadan },
             ]}
           />
-          <Text style={[styles.legendText, { color: Colors.light.grey }]}>
+          <Text style={[styles.legendText, { color: Colors.light.grey }]} numberOfLines={1}>
             MISSED RAMADAN FASTS
           </Text>
           <View
             style={[
               styles.legendRing,
-              { borderColor: Colors.light.ringMonThu, marginLeft: 12 },
+              { borderColor: Colors.light.ringMonThu },
             ]}
           />
-          <Text style={[styles.legendText, { color: Colors.light.grey }]}>
+          <Text style={[styles.legendText, { color: Colors.light.grey }]} numberOfLines={1}>
             MONDAYS & THURSDAYS
           </Text>
         </View>
@@ -70,6 +102,7 @@ export const MonThuCalendar = ({
       {/* ── Date range label ── */}
       <View style={styles.dateLabel}>
         <Text style={styles.dateLabelText}>{rangeLabel}</Text>
+        <Text style={styles.islamicDateText}>{islamicRangeLabel}</Text>
       </View>
 
       {/* ── Calendar ── */}
@@ -78,27 +111,6 @@ export const MonThuCalendar = ({
         currentDate={currentDate}
         markedDates={missedRamadanDates}
       />
-
-      {/* ── Footer — calendarBg bottom bar ── */}
-      <View style={styles.footer}>
-        <Text style={styles.description}>
-          Monday and Thursday fasts are highlighted. Any missed Ramadan fasts
-          are shown with an orange ring.
-        </Text>
-        <TopSpace top={16} />
-        <CalendarCountAndRamadanText
-          fastCount={monThuCount}
-          countColor={Colors.light.ringMonThu}
-          title="Monday & Thursday Fasts"
-        />
-        <TouchableOpacity
-          style={styles.saveBtn}
-          onPress={() => onSave?.(monThuCount)}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.saveBtnText}>Save</Text>
-        </TouchableOpacity>
-      </View>
     </View>
   );
 };
@@ -106,20 +118,19 @@ export const MonThuCalendar = ({
 export default MonThuCalendar;
 
 const styles = StyleSheet.create({
-  wrapper: { marginBottom: 8 },
+  wrapper: { marginBottom: 0 },
 
   topBar: {
     backgroundColor: Colors.light.calendarBg,
     borderTopLeftRadius: 12,
     borderTopRightRadius: 12,
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     paddingVertical: 12,
   },
 
   legendRow: {
     flexDirection: "row",
     alignItems: "center",
-    flexWrap: "wrap",
     gap: 6,
   },
   legendRing: {
@@ -129,10 +140,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   legendText: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: "400",
     fontFamily: fonts.primary.regular,
-    letterSpacing: 0.4,
+    letterSpacing: 0.1,
   },
 
   dateLabel: {
@@ -146,39 +157,12 @@ const styles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
   },
-
-  footer: {
-    backgroundColor: Colors.light.calendarBg,
-    borderBottomLeftRadius: 12,
-    borderBottomRightRadius: 12,
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 20,
-  },
-  description: {
-    fontSize: 13,
+  islamicDateText: {
+    fontSize: 12,
+    fontWeight: "400",
     color: Colors.light.grey,
-    lineHeight: 20,
     fontFamily: fonts.primary.regular,
+    marginTop: 4,
   },
-  count: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: Colors.light.white,
-    marginTop: 12,
-    fontFamily: fonts.primary.bold,
-  },
-  saveBtn: {
-    marginTop: 20,
-    backgroundColor: Colors.light.green,
-    borderRadius: 12,
-    paddingVertical: 14,
-    alignItems: "center",
-  },
-  saveBtnText: {
-    color: Colors.light.white,
-    fontSize: 16,
-    fontWeight: "700",
-    fontFamily: fonts.primary.bold,
-  },
+
 });
