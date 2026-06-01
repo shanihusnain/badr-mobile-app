@@ -1,31 +1,17 @@
-/**
- * GoalPlannerSheet
- *
- * Bottom sheet with 5 tabs:
- *   1. Cycle Start  — date-picker to choose the 28-day cycle start date
- *   2. Ramadan      — RamadanCalendar
- *   3. Dawood       — DawoodCalendar
- *   4. Mon & Thu    — MonThuCalendar
- *   5. White Days   — WhiteDaysCalendar
- */
-
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
 import BottomSheet, {
   BottomSheetScrollView,
   BottomSheetBackdrop,
+  BottomSheetFlatList,
 } from "@gorhom/bottom-sheet";
 import { ScrollView as RNScrollView } from "react-native-gesture-handler";
 import { forwardRef, useCallback, useEffect, useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import type { BottomSheetDefaultBackdropProps } from "@gorhom/bottom-sheet/lib/typescript/components/bottomSheetBackdrop/types";
-import { useSharedValue } from "react-native-reanimated";
 import { GoalCardWithDescriptionAndOptionToSelectGoal } from "./GoalCardWithDescriptionAndOptionToSelectGoal";
 import { CycleStartTab } from "./CycleStartTab";
 import { useTranslation } from "react-i18next";
-import { DawoodCalendar } from "@/components/molecules/DawoodCalendar";
-import { MonThuCalendar } from "@/components/molecules/MonThuCalendar";
-import { WhiteDaysCalendar } from "@/components/molecules/WhiteDaysCalendar";
 import { router } from "expo-router";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import TahiyatWuduGoalSelection from "@/components/molecules/TahiyatWuduGoalSelection";
@@ -38,6 +24,12 @@ import TawbahPrayerGoalSelection from "@/components/molecules/TawbahPrayerGoalSe
 import IstikharaPrayerGoalSelection from "@/components/molecules/IstikharaPrayerGoalSelection";
 import ShukarPrayerGoalSelection from "@/components/molecules/ShukarPrayerGoalSelection";
 import QiyamalLaylGoalSelection from "@/components/molecules/QiyamalLaylGoalSelection";
+import { useForm } from "react-hook-form";
+import { MissedZakats } from "@/components/molecules/SadaqahGoalSelectionComponents/MissedZakats";
+import { KafarahForBreakingFastsOrOAthSelector } from "@/components/molecules/SadaqahGoalSelectionComponents/KafarahForBreakingFastsOrOAthSelector";
+import { FidyaSelector } from "@/components/molecules/SadaqahGoalSelectionComponents/FidyaSelector";
+import { QuranTimeSelection } from "@/components/molecules/QuranTimeSelection";
+import { QuranRecitationGoalSelection } from "@/components/molecules/QuranRecitaitonSelectorComponents/QuranRecitationGoalSelection";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -84,27 +76,69 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
   ({ onClose, initialTab }, ref) => {
     const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState<Tab>(initialTab ?? "cycle");
-    const [selectedGoals, setSelectedGoals] = useState<Record<string, boolean>>({});
+    const [selectedGoals, setSelectedGoals] = useState<Record<string, boolean>>(
+      {},
+    );
+    console.log("the seletced goals", selectedGoals);
+    const [kafarahMeals, setKafarahMeals] = useState<number>(0);
+    const [kafarahCloths, setKafarahCloths] = useState<number>(0);
+    const [volunteeringHours, setVolunteeringHours] = useState<number>(0);
+    const [missedZakatAmount, setMissedZakatAmount] = useState<number>(0);
+    const [fidyaMeals, setFidyaMeals] = useState<number>(0);
+    const [lillahAmount, setLillahAmount] = useState<number>(0);
+    const [sadaqahJariyahAmount, setSadaqahJariyahAmount] = useState<number>(0);
+    // lifted Quran metrics collected from children
+    const [quranMetrics, setQuranMetrics] = useState<Record<string, any>>({});
+    const { watch, handleSubmit, control } = useForm({
+      defaultValues: {
+        missedZakat: "",
+        kafarahForBreakingFasts: "",
+        lillahDonation: "",
+        sadaqahJariyah: "",
+      },
+      mode: "onChange",
+    });
+    const handleGoalToggle = useCallback(
+      (goalId: string, isSelected: boolean) => {
+        setSelectedGoals((prev) => ({ ...prev, [goalId]: isSelected }));
+      },
+      [],
+    );
 
-    const handleGoalToggle = useCallback((goalId: string, isSelected: boolean) => {
-      setSelectedGoals((prev) => ({ ...prev, [goalId]: isSelected }));
-    }, []);
-
-    const localizedTabs = useMemo(() => [
-      { id: "cycle" as Tab, label: t("monthlyGoalPlanner.tabCycle") },
-      { id: "prayer" as Tab, label: t("monthlyGoalPlanner.tabPrayer"), chip: t("monthlyGoalPlanner.tabChipCategory1") },
-      { id: "quran" as Tab, label: t("monthlyGoalPlanner.tabQuran"), chip: t("monthlyGoalPlanner.tabChipCategory2") },
-      { id: "fasting" as Tab, label: t("monthlyGoalPlanner.tabFasting"), chip: t("monthlyGoalPlanner.tabChipCategory3") },
-      { id: "sadaqah" as Tab, label: t("monthlyGoalPlanner.tabSadaqah"), chip: t("monthlyGoalPlanner.tabChipCategory4") },
-      { id: "review" as Tab, label: t("monthlyGoalPlanner.tabReview") },
-    ], [t]);
+    const localizedTabs = useMemo(
+      () => [
+        { id: "cycle" as Tab, label: t("monthlyGoalPlanner.tabCycle") },
+        {
+          id: "prayer" as Tab,
+          label: t("monthlyGoalPlanner.tabPrayer"),
+          chip: t("monthlyGoalPlanner.tabChipCategory1"),
+        },
+        {
+          id: "quran" as Tab,
+          label: t("monthlyGoalPlanner.tabQuran"),
+          chip: t("monthlyGoalPlanner.tabChipCategory2"),
+        },
+        {
+          id: "fasting" as Tab,
+          label: t("monthlyGoalPlanner.tabFasting"),
+          chip: t("monthlyGoalPlanner.tabChipCategory3"),
+        },
+        {
+          id: "sadaqah" as Tab,
+          label: t("monthlyGoalPlanner.tabSadaqah"),
+          chip: t("monthlyGoalPlanner.tabChipCategory4"),
+        },
+        { id: "review" as Tab, label: t("monthlyGoalPlanner.tabReview") },
+      ],
+      [t],
+    );
 
     // Sync tab when sheet is opened with a different initialTab
     useEffect(() => {
       if (initialTab) setActiveTab(initialTab);
     }, [initialTab]);
 
-    const snapPoints = useMemo(() => ["80%", "95%"], []);
+    const snapPoints = useMemo(() => ["10%", "45%", "95%"], []);
 
     const renderBackdrop = useCallback(
       (props: BottomSheetDefaultBackdropProps) => (
@@ -213,7 +247,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
         isSelected: false,
       },
       {
-        id: "qauran-tajweed",
+        id: "quran-tajweed",
         title: "QURAN TAJWEED",
         description:
           "Tajweed perfects Quranic recitation as revealed to the Prophet (PBUH), preserving its authentic pronunciation, rhythm, and melody while deepening understanding",
@@ -299,6 +333,24 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
     const onSwicthChange = useCallback((prayerId: string) => {
       console.log("toggled prayer with id:", prayerId);
     }, []);
+    // Build a simple data array for the active tab. Use any[] to avoid complex typing across different data shapes
+    const tabData: any[] = useMemo(() => {
+      switch (activeTab) {
+        case "cycle":
+          return [];
+        case "prayer":
+          return prayersData;
+        case "quran":
+          return QuranData;
+        case "fasting":
+          return fastingData;
+        case "sadaqah":
+          return sadaqahData;
+        default:
+          return [];
+      }
+    }, [activeTab, prayersData, QuranData, fastingData, sadaqahData]);
+
     return (
       <BottomSheet
         ref={ref}
@@ -310,7 +362,6 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
         backgroundStyle={styles.sheetBg}
         handleIndicatorStyle={styles.handle}
       >
-        {/* ── Tab bar ── */}
         <RNScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -363,120 +414,310 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
           })}
         </RNScrollView>
 
-        {/* ── Divider ── */}
-
         {/* ── Tab content ── */}
-        <BottomSheetScrollView
+        <BottomSheetFlatList
+          data={tabData}
+          keyExtractor={(item: any) => String(item.id)}
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
-        >
-          {activeTab === "cycle" && <CycleStartTab />}
+          ListHeaderComponent={
+            activeTab === "cycle" ? CycleStartTab : undefined
+          }
+          ListFooterComponent={() => (
+            <View style={{ paddingVertical: 20 }}>
+              <Pressable
+                style={styles.commitBtn}
+                onPress={() => {
+                  // gather payload for future API integration
+                  const payload = {
+                    selectedGoals,
+                    sadaqah: {
+                      missedZakatAmount,
+                      kafarahMeals,
+                      kafarahCloths,
+                      fidyaMeals,
+                      lillahAmount,
+                      sadaqahJariyahAmount,
+                      volunteeringHours,
+                    },
+                    quran: quranMetrics,
+                  };
+                  console.log("======================>>>>>>>>>>>>>>>");
+                  console.log(
+                    "Commit payload:",
+                    JSON.stringify(payload, null, 2),
+                  );
+                  console.log("======================>>>>>>>>>>>>>>>");
 
-          {activeTab === "prayer" &&
-            prayersData.map((prayer) => (
-              <View key={prayer.id}>
-                <GoalCardWithDescriptionAndOptionToSelectGoal
-                  initialValue={selectedGoals[prayer.id] ?? prayer.isSelected}
-                  title={t(`goalsData.${prayer.id}.title`).toUpperCase()}
-                  handleSeeMorePRess={() =>
-                    router.push({
-                      pathname: "/(private)/goaldescriptiondetails/[goal]",
-                      params: { goal: prayer.id },
-                    })
-                  }
-                  description={t(`goalsData.${prayer.id}.description`)}
-                  onSwicthPress={onSwicthChange.bind(null, prayer.id)}
-                  onToggle={(val) => handleGoalToggle(prayer.id, val)}
-                />
-                {prayer.id === "tahayyat-ul-wudhu" && selectedGoals[prayer.id] && (
-                  <TahiyatWuduGoalSelection />
-                )}
-                {prayer.id === "fiveDailyPrayers" && selectedGoals[prayer.id] && (
-                  <DailyPrayerGoalSelection />
-                )}
-                {prayer.id === "sunnahRawatib" && selectedGoals[prayer.id] && (
-                  <SunnahRawatibGoalSelection />
-                )}
-                {prayer.id === "thayyat-ul-masjid" && selectedGoals[prayer.id] && (
-                  <TahiyyatMasjidGoalSelection />
-                )}
-                {prayer.id === "missedPastPrayers" && selectedGoals[prayer.id] && (
-                  <MissedPrayerGoalSelection />
-                )}
-                {prayer.id === "duhaPrayer" && selectedGoals[prayer.id] && (
-                  <DuhaPrayerGoalSelection />
-                )}
-                {prayer.id === "tawbaPrayer" && selectedGoals[prayer.id] && (
-                  <TawbahPrayerGoalSelection />
-                )}
-                {prayer.id === "istikharah" && selectedGoals[prayer.id] && (
-                  <IstikharaPrayerGoalSelection />
-                )}
-                {prayer.id === "shukrPrayer" && selectedGoals[prayer.id] && (
-                  <ShukarPrayerGoalSelection />
-                )}
-                {prayer.id === "qiyamalLail" && selectedGoals[prayer.id] && (
-                  <QiyamalLaylGoalSelection />
-                )}
-                <TopSpace top={10} />
-              </View>
-            ))}
-          {activeTab === "quran" &&
-            QuranData.map((quran) => (
-              <View key={quran.id}>
-                <GoalCardWithDescriptionAndOptionToSelectGoal
-                  initialValue={quran.isSelected}
-                  title={t(`goalsData.${quran.id}.title`).toUpperCase()}
-                  handleSeeMorePRess={() =>
-                    router.push({
-                      pathname: "/(private)/goaldescriptiondetails/[goal]",
-                      params: { goal: quran.id },
-                    })
-                  }
-                  description={t(`goalsData.${quran.id}.description`)}
-                  onSwicthPress={onSwicthChange.bind(null, quran.id)}
-                />
-                <TopSpace top={10} />
-              </View>
-            ))}
-          {activeTab === "fasting" &&
-            fastingData.map((fasting) => (
-              <View key={fasting.id}>
-                <GoalCardWithDescriptionAndOptionToSelectGoal
-                  initialValue={fasting.isSelected}
-                  title={t(`goalsData.${fasting.id}.title`).toUpperCase()}
-                  handleSeeMorePRess={() =>
-                    router.push({
-                      pathname: "/(private)/goaldescriptiondetails/[goal]",
-                      params: { goal: fasting.id },
-                    })
-                  }
-                  description={t(`goalsData.${fasting.id}.description`)}
-                  onSwicthPress={onSwicthChange.bind(null, fasting.id)}
-                />
-                <TopSpace top={10} />
-              </View>
-            ))}
-          {activeTab === "sadaqah" &&
-            sadaqahData.map((sadaqah) => (
-              <View key={sadaqah.id}>
-                <GoalCardWithDescriptionAndOptionToSelectGoal
-                  initialValue={sadaqah.isSelected}
-                  title={t(`goalsData.${sadaqah.id}.title`).toUpperCase()}
-                  handleSeeMorePRess={() =>
-                    router.push({
-                      pathname: "/(private)/goaldescriptiondetails/[goal]",
-                      params: { goal: sadaqah.id },
-                    })
-                  }
-                  description={t(`goalsData.${sadaqah.id}.description`)}
-                  onSwicthPress={onSwicthChange.bind(null, sadaqah.id)}
-                />
-                <TopSpace top={10} />
-              </View>
-            ))}
-          {/* {activeTab === "review" && <ReviewCalendar />} */}
-        </BottomSheetScrollView>
+                  // TODO: call API with payload
+                }}
+              >
+                <Text style={styles.commitBtnText}>
+                  {t("monthlyGoalPlanner.commit")}
+                </Text>
+              </Pressable>
+            </View>
+          )}
+          renderItem={({ item }: { item: any }) => {
+            if (activeTab === "prayer") {
+              const prayer = item;
+              return (
+                <View key={prayer.id}>
+                  <GoalCardWithDescriptionAndOptionToSelectGoal
+                    initialValue={selectedGoals[prayer.id] ?? prayer.isSelected}
+                    title={t(`goalsData.${prayer.id}.title`).toUpperCase()}
+                    handleSeeMorePRess={() =>
+                      router.push({
+                        pathname: "/(private)/goaldescriptiondetails/[goal]",
+                        params: { goal: prayer.id },
+                      })
+                    }
+                    description={t(`goalsData.${prayer.id}.description`)}
+                    onSwicthPress={onSwicthChange.bind(null, prayer.id)}
+                    onToggle={(val) => handleGoalToggle(prayer.id, val)}
+                  />
+                  {prayer.id === "tahayyat-ul-wudhu" &&
+                    selectedGoals[prayer.id] && <TahiyatWuduGoalSelection />}
+                  {prayer.id === "fiveDailyPrayers" &&
+                    selectedGoals[prayer.id] && <DailyPrayerGoalSelection />}
+                  {prayer.id === "sunnahRawatib" &&
+                    selectedGoals[prayer.id] && <SunnahRawatibGoalSelection />}
+                  {prayer.id === "thayyat-ul-masjid" &&
+                    selectedGoals[prayer.id] && <TahiyyatMasjidGoalSelection />}
+                  {prayer.id === "missedPastPrayers" &&
+                    selectedGoals[prayer.id] && <MissedPrayerGoalSelection />}
+                  {prayer.id === "duhaPrayer" && selectedGoals[prayer.id] && (
+                    <DuhaPrayerGoalSelection />
+                  )}
+                  {prayer.id === "tawbaPrayer" && selectedGoals[prayer.id] && (
+                    <TawbahPrayerGoalSelection />
+                  )}
+                  {prayer.id === "istikharah" && selectedGoals[prayer.id] && (
+                    <IstikharaPrayerGoalSelection />
+                  )}
+                  {prayer.id === "shukrPrayer" && selectedGoals[prayer.id] && (
+                    <ShukarPrayerGoalSelection />
+                  )}
+                  {prayer.id === "qiyamalLail" && selectedGoals[prayer.id] && (
+                    <QiyamalLaylGoalSelection />
+                  )}
+                  <TopSpace top={10} />
+                </View>
+              );
+            }
+
+            if (activeTab === "quran") {
+              const quran = item;
+              return (
+                <View key={quran.id}>
+                  <GoalCardWithDescriptionAndOptionToSelectGoal
+                    initialValue={quran.isSelected}
+                    title={t(`goalsData.${quran.id}.title`).toUpperCase()}
+                    handleSeeMorePRess={() =>
+                      router.push({
+                        pathname: "/(private)/goaldescriptiondetails/[goal]",
+                        params: { goal: quran.id },
+                      })
+                    }
+                    description={t(`goalsData.${quran.id}.description`)}
+                    onToggle={(val) => handleGoalToggle(quran.id, val)}
+                    onSwicthPress={onSwicthChange.bind(null, quran.id)}
+                  />
+                  {quran.id === "quran-listening" &&
+                    selectedGoals[quran.id] && (
+                      <QuranTimeSelection
+                        title="Select number of hours"
+                        description="hours of Quran listening"
+                      />
+                    )}
+                  {quran.id === "quran-tajweed" && selectedGoals[quran.id] && (
+                    <QuranTimeSelection
+                      title="Select number of hours"
+                      description="hours of Quran tajweed"
+                    />
+                  )}
+                  {quran.id === "quran-recitation" &&
+                    selectedGoals[quran.id] && (
+                      <QuranRecitationGoalSelection
+                        title="Select tracking metric and target"
+                        onMetricsChange={(payload) => {
+                          // store latest metric data by metric name
+                          setQuranMetrics((prev) => ({
+                            ...prev,
+                            [payload.metric]: payload.value,
+                          }));
+                        }}
+                        variant="others"
+                      />
+                    )}
+
+                  {quran.id === "quran-memorization" &&
+                    selectedGoals[quran.id] && (
+                      <QuranRecitationGoalSelection
+                        title="Select tracking metric and target"
+                        onMetricsChange={(payload) => {
+                          // store latest metric data by metric name
+                          setQuranMetrics((prev) => ({
+                            ...prev,
+                            [payload.metric]: payload.value,
+                          }));
+                        }}
+                        variant="memorization"
+                      />
+                    )}
+                  <TopSpace top={10} />
+                </View>
+              );
+            }
+
+            if (activeTab === "fasting") {
+              const fasting = item;
+              return (
+                <View key={fasting.id}>
+                  <GoalCardWithDescriptionAndOptionToSelectGoal
+                    initialValue={fasting.isSelected}
+                    title={t(`goalsData.${fasting.id}.title`).toUpperCase()}
+                    handleSeeMorePRess={() =>
+                      router.push({
+                        pathname: "/(private)/goaldescriptiondetails/[goal]",
+                        params: { goal: fasting.id },
+                      })
+                    }
+                    description={t(`goalsData.${fasting.id}.description`)}
+                    onSwicthPress={onSwicthChange.bind(null, fasting.id)}
+                  />
+                  <TopSpace top={10} />
+                </View>
+              );
+            }
+
+            if (activeTab === "sadaqah") {
+              const sadaqah = item;
+              return (
+                <View key={sadaqah.id}>
+                  <GoalCardWithDescriptionAndOptionToSelectGoal
+                    initialValue={sadaqah.isSelected}
+                    title={t(`goalsData.${sadaqah.id}.title`).toUpperCase()}
+                    handleSeeMorePRess={() =>
+                      router.push({
+                        pathname: "/(private)/goaldescriptiondetails/[goal]",
+                        params: { goal: sadaqah.id },
+                      })
+                    }
+                    description={t(`goalsData.${sadaqah.id}.description`)}
+                    onSwicthPress={onSwicthChange.bind(null, sadaqah.id)}
+                    onToggle={(val) => handleGoalToggle(sadaqah.id, val)}
+                  />
+
+                  {sadaqah.id === "missed-zakat" &&
+                    selectedGoals[sadaqah.id] && (
+                      <MissedZakats
+                        count={missedZakatAmount}
+                        setCount={setMissedZakatAmount}
+                        control={control}
+                        name="missedZakat"
+                        handleDecrease={() => {
+                          setMissedZakatAmount((prev) => Math.max(0, prev - 1));
+                        }}
+                        handleIncrease={() => {
+                          setMissedZakatAmount((prev) => prev + 1);
+                        }}
+                        countTitle="Amount"
+                      />
+                    )}
+
+                  {sadaqah.id === "kafarah-for-breaking-fasts" &&
+                    selectedGoals[sadaqah.id] && (
+                      <KafarahForBreakingFastsOrOAthSelector
+                        mealCount={kafarahMeals}
+                        setMealCount={setKafarahMeals}
+                        clothCount={kafarahCloths}
+                        setClothCount={setKafarahCloths}
+                        handleMealDecrease={() => {
+                          setKafarahMeals((prev) => Math.max(0, prev - 1));
+                        }}
+                        handleMealIncrease={() => {
+                          setKafarahMeals((prev) => prev + 1);
+                        }}
+                        handleClothDecrease={() => {
+                          setKafarahCloths((prev) => Math.max(0, prev - 1));
+                        }}
+                        handleClothIncrease={() => {
+                          setKafarahCloths((prev) => prev + 1);
+                        }}
+                      />
+                    )}
+                  {sadaqah.id === "fidya" && selectedGoals[sadaqah.id] && (
+                    <FidyaSelector
+                      count={fidyaMeals}
+                      setCount={setFidyaMeals}
+                      handleDecrease={() => {
+                        setFidyaMeals((prev) => Math.max(0, prev - 1));
+                      }}
+                      handleIncrease={() => {
+                        setFidyaMeals((prev) => prev + 1);
+                      }}
+                      title="Select target number of meals you aim to provide for people in need"
+                    />
+                  )}
+
+                  {sadaqah.id === "lilah-donations" &&
+                    selectedGoals[sadaqah.id] && (
+                      <MissedZakats
+                        count={lillahAmount}
+                        setCount={setLillahAmount}
+                        control={control}
+                        name="lillahDonation"
+                        handleDecrease={() => {
+                          setLillahAmount((prev) => Math.max(0, prev - 1));
+                        }}
+                        handleIncrease={() => {
+                          setLillahAmount((prev) => prev + 1);
+                        }}
+                        countTitle="Amount"
+                      />
+                    )}
+
+                  {sadaqah.id === "volunteering-services" &&
+                    selectedGoals[sadaqah.id] && (
+                      <FidyaSelector
+                        count={volunteeringHours}
+                        setCount={setVolunteeringHours}
+                        handleDecrease={() => {
+                          setVolunteeringHours((prev) => Math.max(0, prev - 1));
+                        }}
+                        handleIncrease={() => {
+                          setVolunteeringHours((prev) => prev + 1);
+                        }}
+                        title="Select target for this month"
+                      />
+                    )}
+                  {sadaqah.id === "sadaqah-jariyah" &&
+                    selectedGoals[sadaqah.id] && (
+                      <MissedZakats
+                        count={sadaqahJariyahAmount}
+                        setCount={setSadaqahJariyahAmount}
+                        control={control}
+                        name="sadaqahJariyah"
+                        handleDecrease={() => {
+                          setSadaqahJariyahAmount((prev) =>
+                            Math.max(0, prev - 1),
+                          );
+                        }}
+                        handleIncrease={() => {
+                          setSadaqahJariyahAmount((prev) => prev + 1);
+                        }}
+                        countTitle="Amount"
+                      />
+                    )}
+
+                  <TopSpace top={10} />
+                </View>
+              );
+            }
+            return null;
+          }}
+        />
       </BottomSheet>
     );
   },
