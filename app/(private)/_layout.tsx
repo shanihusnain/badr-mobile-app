@@ -28,20 +28,14 @@ export default function PrivateLayout() {
         name="goaldescriptiondetails/[goal]"
         options={{ headerShown: true, title: "" }}
       />
+      <Stack.Screen name="streakcounter" options={{ headerShown: false }} />
       <Stack.Screen
-        name="streakcounter"
-        options={{ headerShown: false }}
-      />\
-      <Stack.Screen
-                name="home"
-                options={{
-                  headerShown: false
-                }}
-              />
-      <Stack.Screen
-        name="menstruationlog"
-        options={{ headerShown: false }}
+        name="home"
+        options={{
+          headerShown: false,
+        }}
       />
+      <Stack.Screen name="menstruationlog" options={{ headerShown: false }} />
     </Stack>
   );
 }
