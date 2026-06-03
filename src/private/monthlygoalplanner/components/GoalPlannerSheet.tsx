@@ -450,6 +450,10 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
                   console.log("======================>>>>>>>>>>>>>>>");
 
                   // TODO: call API with payload
+                  // Navigate to home screen
+                  router.push({
+                    pathname: "/home",
+                  });
                 }}
               >
                 <Text style={styles.commitBtnText}>
