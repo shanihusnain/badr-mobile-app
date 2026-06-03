@@ -39,7 +39,7 @@ export default function PrimaryButton({
 }
 const styles = StyleSheet.create({
   button: {
-    width: "90%",
+    width: "100%",
     minHeight: 40,
     borderRadius: 6,
     paddingTop: 10,
@@ -51,7 +51,6 @@ const styles = StyleSheet.create({
     //borderWidth: 1.5,
     borderColor: Colors.light.green,
     // marginBottom: 10,
-    alignSelf: "center",
   },
   buttonPressed: {
     opacity: 0.8,

@@ -1,7 +1,6 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
 import BottomSheet, {
-  BottomSheetScrollView,
   BottomSheetBackdrop,
   BottomSheetFlatList,
 } from "@gorhom/bottom-sheet";
@@ -30,6 +29,15 @@ import { KafarahForBreakingFastsOrOAthSelector } from "@/components/molecules/Sa
 import { FidyaSelector } from "@/components/molecules/SadaqahGoalSelectionComponents/FidyaSelector";
 import { QuranTimeSelection } from "@/components/molecules/QuranTimeSelection";
 import { QuranRecitationGoalSelection } from "@/components/molecules/QuranRecitaitonSelectorComponents/QuranRecitationGoalSelection";
+import MissedRamadanFastGoalSelection from "@/components/molecules/MissedRamadanFastGoalSelection";
+import ProphetDawoodFastGoalSelection from "@/components/molecules/ProphetDawoodFastGoalSelection";
+import WhiteDaysFastGoalSelection from "@/components/molecules/WhiteDaysFastGoalSelection";
+import MondayThursdayFastGoalSelection from "@/components/molecules/MondayThursdayFastGoalSelection";
+import { Feather } from "@expo/vector-icons";
+import { Divider } from "@/components/atoms/Divider";
+import { opacity } from "react-native-reanimated/lib/typescript/Colors";
+import { ReviewGoalBtn } from "./ReviewGoalBtn";
+import { ReviewGoalCard } from "./ReviewGoalCard";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -79,7 +87,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
     const [selectedGoals, setSelectedGoals] = useState<Record<string, boolean>>(
       {},
     );
-    console.log("the seletced goals", selectedGoals);
+
     const [kafarahMeals, setKafarahMeals] = useState<number>(0);
     const [kafarahCloths, setKafarahCloths] = useState<number>(0);
     const [volunteeringHours, setVolunteeringHours] = useState<number>(0);
@@ -89,6 +97,11 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
     const [sadaqahJariyahAmount, setSadaqahJariyahAmount] = useState<number>(0);
     // lifted Quran metrics collected from children
     const [quranMetrics, setQuranMetrics] = useState<Record<string, any>>({});
+    // lifted fasting metrics collected from children
+    const [fastingMetrics, setFastingMetrics] = useState<Record<string, any>>(
+      {},
+    );
+    console.log("teh quran mertics are", quranMetrics);
     const { watch, handleSubmit, control } = useForm({
       defaultValues: {
         missedZakat: "",
@@ -98,13 +111,28 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
       },
       mode: "onChange",
     });
+
+    const [reviewExpanded, setReviewExpanded] = useState<string>("");
+    const handleReviewItemPress = useCallback(
+      (itemOrName: any) => {
+        const name =
+          typeof itemOrName === "string" ? itemOrName : itemOrName?.name;
+        if (reviewExpanded === name) {
+          setReviewExpanded("");
+        } else {
+          setReviewExpanded(name);
+        }
+      },
+      [reviewExpanded],
+    );
     const handleGoalToggle = useCallback(
       (goalId: string, isSelected: boolean) => {
         setSelectedGoals((prev) => ({ ...prev, [goalId]: isSelected }));
       },
       [],
     );
-
+    const [editingGoal, setEditingGoal] = useState<string | null>("");
+    console.log("the editing goal is", editingGoal);
     const localizedTabs = useMemo(
       () => [
         { id: "cycle" as Tab, label: t("monthlyGoalPlanner.tabCycle") },
@@ -132,13 +160,249 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
       ],
       [t],
     );
+    const reviewBtnData = [
+      {
+        id: 1,
+        name: "prayerGoals",
+        label: "Prayer Goals",
+        appliedGoals: [
+          {
+            id: 1,
+            title: "tahayyat-ul-wuddu",
+            label: "Tahayyat Al-Wudhu",
+            totalValue: 25,
+          },
+          {
+            id: 2,
+            title: "five-daily-prayers",
+            label: "The Five Daily Prayers",
+            totalValue: 140,
+            selectedGoals: [
+              {
+                id: 1,
+                name: "fajr",
+                label: "Fajr",
+                value: 25,
+              },
+              {
+                id: 2,
+                name: "dhuhr",
+                label: "Dhuhr",
+                value: 25,
+              },
+              {
+                id: 3,
+                name: "asr",
+                label: "Asr",
+                value: 25,
+              },
+              {
+                id: 4,
+                name: "maghrib",
+                label: "Maghrib",
+                value: 25,
+              },
+              {
+                id: 5,
+                name: "isha",
+                label: "Isha",
+                value: 25,
+              },
+            ],
+          },
 
+          {
+            id: 3,
+            title: "sunnah-rawatib",
+            label: "Sunnah Rawatib",
+            totalValue: 152,
+            selectedGoals: [
+              {
+                id: 1,
+                name: "before-fajr",
+                label: "Before Fajr (2 rak’ah)",
+                value: 25,
+              },
+              {
+                id: 2,
+                name: "before-dhuhr",
+                label: "Before Dhuhr (4 rak’ah)",
+                value: 25,
+              },
+              {
+                id: 3,
+                name: "after-dhuhr",
+                label: "After Dhuhr (4 rak’ah)",
+                value: 25,
+              },
+              {
+                id: 4,
+                name: "before-asr",
+                label: "Before Asr (4 rak’ah)",
+                value: 25,
+              },
+
+              {
+                id: 5,
+                name: "after-maghrib",
+                label: "After Maghrib (2 rak’ah)",
+                value: 25,
+              },
+              {
+                id: 6,
+                name: "after-isha",
+                label: "After Isha (2 rak’ah)",
+                value: 25,
+              },
+            ],
+          },
+          {
+            id: 4,
+            title: "tahayyat-ul-masjid",
+            label: "Tahayyat Al-Masjid",
+            totalValue: 25,
+          },
+          {
+            id: 5,
+            title: "missed-past-prayers",
+            label: "Missed Past Prayers",
+            totalValue: 10,
+          },
+          { id: 6, title: "duha-prayer", label: "Duha", totalValue: 10 },
+          {
+            id: 7,
+            title: "tawba-prayer",
+            label: "Tawba",
+            totalValue: 10,
+          },
+          {
+            id: 8,
+            title: "istikhara-prayer",
+            label: "Istikhara",
+            totalValue: 20,
+          },
+          {
+            id: 9,
+            title: "shukr-prayer",
+            label: "Shukr",
+            totalValue: 30,
+          },
+          {
+            id: 10,
+            title: "qiyal-al-lail-prayer",
+            label: "Qiyal Al-Lail",
+            totalValue: 20,
+            selectedGoals: [
+              {
+                id: 1,
+                name: "2-rakah-prayer",
+                label: "2 rak'ah prayer",
+                value: 25,
+              },
+              {
+                id: 2,
+                name: "witr-prayer",
+                label: "Witr Prayer for each night",
+                value: 25,
+              },
+            ],
+          },
+        ],
+      },
+      {
+        id: 2,
+        name: "quranGoals",
+        label: "Quran Goals",
+        appliedGoals: [
+          {
+            id: 1,
+            title: "quran-listening",
+            label: "Quran Listening",
+            totalValue: 30,
+          },
+          {
+            id: 2,
+            title: "quran-recitation-by-surah",
+            label: "Quran Recitation (by Surah)",
+            totalValue: 50,
+          },
+          {
+            id: 3,
+            title: "quran-recitation-by-completion",
+            label: "Quran Recitation (by Completion)",
+            totalValue: 50,
+          },
+          {
+            id: 4,
+            title: "quran-recitation-by-juz",
+            label: "Quran Recitation (by Juz)",
+            totalValue: 50,
+          },
+          {
+            id: 5,
+            title: "quran-memorization-by-juz",
+            label: "Quran Memorization (by Juz)",
+            totalValue: 40,
+          },
+          {
+            id: 6,
+            title: "quran-memorization-by-hizb",
+            label: "Quran Memorization (by Hizb)",
+            totalValue: 40,
+          },
+          {
+            id: 7,
+            title: "quran-memorization-by-surah",
+            label: "Quran Memorization (by Surah)",
+            totalValue: 40,
+          },
+          {
+            id: 8,
+            title: "quran-tajweed",
+            label: "Quran Tajweed",
+            totalValue: 20,
+          },
+        ],
+      },
+      {
+        id: 3,
+        name: "fastingGoals",
+        label: "Fasting Goals",
+        appliedGoals: [
+          {
+            id: 1,
+            title: "missed-fasts",
+            label: "Missed Ramadan Fasts",
+            totalValue: 20,
+          },
+          {
+            id: 2,
+            title: "dawood-fasts",
+            label: "Prophet Dawood Fast (every other day)",
+            totalValue: 15,
+          },
+          {
+            id: 3,
+            title: "monday-and-thursday-fasts",
+            label: "Monday & Thursday Fasts",
+            totalValue: 15,
+          },
+          {
+            id: 4,
+            title: "white-days-fasts",
+            label: "White Days Fasts",
+            totalValue: 10,
+          },
+        ],
+      },
+      { id: 4, name: "sadaqahGoals", label: "Sadaqah Goals" },
+    ];
     // Sync tab when sheet is opened with a different initialTab
     useEffect(() => {
       if (initialTab) setActiveTab(initialTab);
     }, [initialTab]);
 
-    const snapPoints = useMemo(() => ["10%", "45%", "95%"], []);
+    const snapPoints = useMemo(() => ["20%", "45%", "95%"], []);
 
     const renderBackdrop = useCallback(
       (props: BottomSheetDefaultBackdropProps) => (
@@ -331,7 +595,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
     ];
     // ── Render ───────────────────────────────────────────────────────────────
     const onSwicthChange = useCallback((prayerId: string) => {
-      console.log("toggled prayer with id:", prayerId);
+      // console.log("toggled prayer with id:", prayerId);
     }, []);
     // Build a simple data array for the active tab. Use any[] to avoid complex typing across different data shapes
     const tabData: any[] = useMemo(() => {
@@ -346,10 +610,297 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
           return fastingData;
         case "sadaqah":
           return sadaqahData;
+        case "review":
+          return reviewBtnData;
         default:
           return [];
       }
     }, [activeTab, prayersData, QuranData, fastingData, sadaqahData]);
+
+    // Render the appropriate editor/selection component for a goal when it's being edited
+    const renderGoalEditor = (goal: any) => {
+      if (!goal) return null;
+      const key = goal.title;
+      switch (key) {
+        case "tahayyat-ul-wuddu":
+          return (
+            <TahiyatWuduGoalSelection
+              onSave={(value) => {
+                console.log("Saved target Tahiyyat Al-Wudhu:", value);
+                setEditingGoal(null);
+              }}
+            />
+          );
+        case "quran-listening":
+          return (
+            <QuranTimeSelection
+              title="Select number of hours"
+              description="hours of Quran listening"
+              onSave={(hours: number) => {
+                setQuranMetrics((prev) => ({ ...prev, listeningHours: hours }));
+                setEditingGoal(null);
+              }}
+            />
+          );
+        case "quran-tajweed":
+          return (
+            <QuranTimeSelection
+              title="Select number of hours"
+              description="hours of Quran tajweed"
+              onSave={(hours: number) => {
+                setQuranMetrics((prev) => ({ ...prev, tajweedHours: hours }));
+                setEditingGoal(null);
+              }}
+            />
+          );
+        case "quran-recitation-by-surah":
+          return (
+            <QuranRecitationGoalSelection
+              title="Recitation — by Surah"
+              initialMetric="surah"
+              allowedMetrics={["surah"]}
+              openOnMount
+              onMetricsChange={(payload) => {
+                setQuranMetrics((prev) => ({
+                  ...prev,
+                  [payload.metric]: payload.value,
+                }));
+              }}
+              variant="others"
+              onSave={() => {
+                setEditingGoal(null);
+              }}
+            />
+          );
+        case "quran-recitation-by-completion":
+          return (
+            <QuranRecitationGoalSelection
+              title="Recitation — by Completion"
+              initialMetric="completion"
+              allowedMetrics={["completion"]}
+              openOnMount
+              onMetricsChange={(payload) => {
+                setQuranMetrics((prev) => ({
+                  ...prev,
+                  [payload.metric]: payload.value,
+                }));
+              }}
+              variant="others"
+              onSave={() => {
+                setEditingGoal(null);
+              }}
+            />
+          );
+        case "quran-recitation-by-juz":
+          return (
+            <QuranRecitationGoalSelection
+              title="Recitation — by Juz"
+              initialMetric="juz"
+              allowedMetrics={["juz"]}
+              openOnMount
+              onMetricsChange={(payload) => {
+                setQuranMetrics((prev) => ({
+                  ...prev,
+                  [payload.metric]: payload.value,
+                }));
+              }}
+              variant="others"
+              onSave={() => {
+                setEditingGoal(null);
+              }}
+            />
+          );
+        case "quran-memorization-by-juz":
+          return (
+            <QuranRecitationGoalSelection
+              title="Memorization — by Juz"
+              initialMetric="juz"
+              allowedMetrics={["juz"]}
+              openOnMount
+              onMetricsChange={(payload) => {
+                setQuranMetrics((prev) => ({
+                  ...prev,
+                  [payload.metric]: payload.value,
+                }));
+              }}
+              variant="memorization"
+              onSave={() => {
+                setEditingGoal(null);
+              }}
+            />
+          );
+        case "quran-memorization-by-hizb":
+          return (
+            <QuranRecitationGoalSelection
+              title="Memorization — by Hizb"
+              initialMetric="hizb"
+              allowedMetrics={["hizb"]}
+              openOnMount
+              onMetricsChange={(payload) => {
+                setQuranMetrics((prev) => ({
+                  ...prev,
+                  [payload.metric]: payload.value,
+                }));
+              }}
+              variant="memorization"
+              onSave={() => {
+                setEditingGoal(null);
+              }}
+            />
+          );
+        case "quran-memorization-by-surah":
+          return (
+            <QuranRecitationGoalSelection
+              title="Memorization — by Surah"
+              initialMetric="surah"
+              allowedMetrics={["surah"]}
+              openOnMount
+              onMetricsChange={(payload) => {
+                setQuranMetrics((prev) => ({
+                  ...prev,
+                  [payload.metric]: payload.value,
+                }));
+              }}
+              variant="memorization"
+              onSave={() => {
+                setEditingGoal(null);
+              }}
+            />
+          );
+        case "missed-fasts":
+          return (
+            <MissedRamadanFastGoalSelection
+            // this component manages its own selected dates; provide onSave via prop if needed
+            />
+          );
+        case "dawood-fasts":
+          return <ProphetDawoodFastGoalSelection />;
+        case "monday-and-thursday-fasts":
+          return <MondayThursdayFastGoalSelection />;
+        case "white-days-fasts":
+          return <WhiteDaysFastGoalSelection />;
+        case "five-daily-prayers":
+          return (
+            <DailyPrayerGoalSelection
+              onSave={(fajr, dhuhr, asar, maghrib, isha) => {
+                console.log("Saving daily five prayers with value", {
+                  fajr,
+                  dhuhr,
+                  asar,
+                  maghrib,
+                  isha,
+                });
+                setEditingGoal(null);
+              }}
+            />
+          );
+        case "sunnah-rawatib":
+          return (
+            <SunnahRawatibGoalSelection
+              onSave={(
+                beforeFajr,
+                beforeDuhr,
+                afterDuhr,
+                beforeAsr,
+                afterMaghrib,
+                afterIsha,
+              ) => {
+                console.log(
+                  "saving subbah rawatib with",
+                  beforeFajr,
+                  beforeDuhr,
+                  afterDuhr,
+                  beforeAsr,
+                  afterMaghrib,
+                  afterIsha,
+                );
+                setEditingGoal(null);
+              }}
+            />
+          );
+        case "tahayyat-ul-masjid":
+          return (
+            <TahiyyatMasjidGoalSelection
+              onSave={(value) => {
+                console.log(value);
+                setEditingGoal(null);
+              }}
+            />
+          );
+        case "missed-past-prayers":
+          return (
+            <MissedPrayerGoalSelection
+              onSave={(value) => {
+                console.log(value);
+                setEditingGoal(null);
+              }}
+            />
+          );
+        case "duha-prayer":
+          return (
+            <DuhaPrayerGoalSelection
+              onSave={(value) => {
+                console.log(value);
+                setEditingGoal(null);
+              }}
+            />
+          );
+        case "tawba-prayer":
+          return (
+            <TawbahPrayerGoalSelection
+              onSave={(value) => {
+                console.log(value);
+                setEditingGoal(null);
+              }}
+            />
+          );
+        case "istikhara-prayer":
+          return (
+            <IstikharaPrayerGoalSelection
+              onSave={(value) => {
+                console.log(value);
+                setEditingGoal(null);
+              }}
+            />
+          );
+        case "shukr-prayer":
+          return (
+            <ShukarPrayerGoalSelection
+              onSave={(value) => {
+                console.log(value);
+                setEditingGoal(null);
+              }}
+            />
+          );
+        case "qiyal-al-lail-prayer":
+          return (
+            <QiyamalLaylGoalSelection
+              onSave={(payload: {
+                commitment: "every_night" | "flexible";
+                twoRakahPrayers: number;
+                witrPrayers: number;
+                trackTahajjud: "yes" | "no";
+              }) => {
+                const {
+                  commitment,
+                  twoRakahPrayers,
+                  witrPrayers,
+                  trackTahajjud,
+                } = payload;
+                console.log("Saving Qiyam Al-Lail goal with values:", {
+                  commitment,
+                  twoRakahPrayers,
+                  witrPrayers,
+                  trackTahajjud,
+                });
+                setEditingGoal(null);
+              }}
+            />
+          );
+        default:
+          return null;
+      }
+    };
 
     return (
       <BottomSheet
@@ -424,7 +975,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
             activeTab === "cycle" ? CycleStartTab : undefined
           }
           ListFooterComponent={() => (
-            <View style={{ paddingVertical: 20 }}>
+            <View style={styles.footerContainer}>
               <Pressable
                 style={styles.commitBtn}
                 onPress={() => {
@@ -442,12 +993,12 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
                     },
                     quran: quranMetrics,
                   };
-                  console.log("======================>>>>>>>>>>>>>>>");
-                  console.log(
-                    "Commit payload:",
-                    JSON.stringify(payload, null, 2),
-                  );
-                  console.log("======================>>>>>>>>>>>>>>>");
+                  // console.log("======================>>>>>>>>>>>>>>>");
+                  // console.log(
+                  //   "Commit payload:",
+                  //   JSON.stringify(payload, null, 2),
+                  // );
+                  // console.log("======================>>>>>>>>>>>>>>>");
 
                   // TODO: call API with payload
                 }}
@@ -715,6 +1266,51 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
                 </View>
               );
             }
+            if (activeTab === "review") {
+              const reviewItem = item;
+              return (
+                <>
+                  <ReviewGoalBtn
+                    reviewItem={reviewItem}
+                    reviewExpanded={reviewExpanded}
+                    handleReviewItemPress={() =>
+                      handleReviewItemPress(reviewItem)
+                    }
+                  />
+
+                  {reviewExpanded === reviewItem?.name && (
+                    <>
+                      {reviewItem?.appliedGoals?.map((goal: any) => {
+                        const isEditing = editingGoal === goal.title;
+                        return (
+                          <View key={goal.id}>
+                            <ReviewGoalCard
+                              goal={goal}
+                              handleEditPress={() => {
+                                console.log(
+                                  "editing goal with id:",
+                                  goal.title,
+                                );
+                                setEditingGoal(goal.title);
+                                setReviewExpanded(reviewItem?.name);
+                              }}
+                            />
+
+                            {isEditing && (
+                              <View style={{ marginTop: 8 }}>
+                                {renderGoalEditor(goal)}
+                              </View>
+                            )}
+                          </View>
+                        );
+                      })}
+
+                      <TopSpace top={10} />
+                    </>
+                  )}
+                </>
+              );
+            }
             return null;
           }}
         />
@@ -736,8 +1332,9 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.blackBackground,
   },
   handle: {
-    backgroundColor: Colors.light.grey,
-    width: 40,
+    backgroundColor: Colors.light.white,
+    width: 100,
+    opacity: 0.5,
   },
   // ── Tab bar
   tabBar: {
@@ -894,5 +1491,9 @@ const styles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
+  },
+  // ── Footer & Review styles
+  footerContainer: {
+    paddingVertical: 20,
   },
 });

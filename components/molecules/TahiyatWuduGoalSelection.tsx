@@ -18,7 +18,11 @@ import { globalStyles } from "@/src/globalstyles/globalstyles";
 import { GoalSelectionOpenCloseButton } from "./GoalSelectionOpenCloseButton";
 import { Divider } from "../atoms/Divider";
 
-export default function TahiyatWuduGoalSelection() {
+export default function TahiyatWuduGoalSelection({
+  onSave,
+}: {
+  onSave?: (value: number) => void;
+}) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
   const [sliderValue, setSliderValue] = useState(25);
@@ -31,6 +35,9 @@ export default function TahiyatWuduGoalSelection() {
 
   const handleSave = () => {
     console.log("Saved target Tahiyyat Al-Wudhu:", sliderValue);
+    if (onSave) {
+      onSave(sliderValue);
+    }
   };
 
   return (

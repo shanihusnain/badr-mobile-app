@@ -18,7 +18,11 @@ import { globalStyles } from "@/src/globalstyles/globalstyles";
 import { GoalSelectionOpenCloseButton } from "./GoalSelectionOpenCloseButton";
 import { Divider } from "../atoms/Divider";
 
-export default function ShukarPrayerGoalSelection() {
+export default function ShukarPrayerGoalSelection({
+  onSave,
+}: {
+  onSave?: (value: number) => void;
+}) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
   const [sliderValue, setSliderValue] = useState(25);
@@ -31,6 +35,9 @@ export default function ShukarPrayerGoalSelection() {
 
   const handleSave = () => {
     console.log("Saved target Shukar Prayers:", sliderValue);
+    if (onSave) {
+      onSave(sliderValue);
+    }
   };
 
   return (

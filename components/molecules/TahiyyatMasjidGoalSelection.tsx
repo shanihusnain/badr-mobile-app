@@ -18,7 +18,11 @@ import { globalStyles } from "@/src/globalstyles/globalstyles";
 import { GoalSelectionOpenCloseButton } from "./GoalSelectionOpenCloseButton";
 import { Divider } from "../atoms/Divider";
 
-export default function TahiyyatMasjidGoalSelection() {
+export default function TahiyyatMasjidGoalSelection({
+  onSave,
+}: {
+  onSave?: (value: number) => void;
+}) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
   const [sliderValue, setSliderValue] = useState(140);
@@ -31,6 +35,9 @@ export default function TahiyyatMasjidGoalSelection() {
 
   const handleSave = () => {
     console.log("Saved target Tahiyyat Al-Masjid:", sliderValue);
+    if (onSave) {
+      onSave(sliderValue);
+    }
   };
 
   return (

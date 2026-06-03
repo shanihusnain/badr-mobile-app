@@ -18,7 +18,11 @@ import { globalStyles } from "@/src/globalstyles/globalstyles";
 import { GoalSelectionOpenCloseButton } from "./GoalSelectionOpenCloseButton";
 import { Divider } from "../atoms/Divider";
 
-export default function DuhaPrayerGoalSelection() {
+export default function DuhaPrayerGoalSelection({
+  onSave,
+}: {
+  onSave?: (value: number) => void;
+}) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
   const [sliderValue, setSliderValue] = useState(40);
@@ -31,6 +35,9 @@ export default function DuhaPrayerGoalSelection() {
 
   const handleSave = () => {
     console.log("Saved target Duha Prayers:", sliderValue);
+    if (onSave) {
+      onSave(sliderValue);
+    }
   };
 
   return (

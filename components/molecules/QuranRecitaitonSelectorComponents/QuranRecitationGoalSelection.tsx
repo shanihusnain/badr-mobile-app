@@ -17,20 +17,28 @@ export const QuranRecitationGoalSelection = ({
   title,
   onMetricsChange,
   variant,
+  onSave,
+  initialMetric,
+  allowedMetrics,
+  openOnMount,
 }: {
   title: string;
   onMetricsChange?: (payload: { metric: string; value: any }) => void;
   variant?: "memorization" | "others";
+  onSave?: () => void;
+  initialMetric?: "surah" | "juz" | "completion" | "hizb";
+  allowedMetrics?: Array<"surah" | "juz" | "completion" | "hizb">;
+  openOnMount?: boolean;
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(!!openOnMount);
   const handleToggleDropdown = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setIsOpen(!isOpen);
   };
 
   const [selectedMetric, setSelectedMetric] = useState<
-    "surah" | "juz" | "completion" | "hizb"
-  >();
+    "surah" | "juz" | "completion" | "hizb" | undefined
+  >(initialMetric);
   interface IItem {
     id: number;
     name: "surah" | "juz" | "completion" | "hizb";
@@ -39,8 +47,8 @@ export const QuranRecitationGoalSelection = ({
   const memorizationMetrices = [
     {
       id: 1,
-      name: "surah",
-      title: "Surah",
+      name: "juz",
+      title: "Juz",
     },
     {
       id: 2,
@@ -49,11 +57,11 @@ export const QuranRecitationGoalSelection = ({
     },
     {
       id: 3,
-      name: "juz",
-      title: "Juz",
+      name: "surah",
+      title: "Surah",
     },
   ];
-
+  // For recitation we prefer showing Surah, Completion (Khatma), then Juz
   const otherMetrices = [
     {
       id: 1,
@@ -62,28 +70,36 @@ export const QuranRecitationGoalSelection = ({
     },
     {
       id: 2,
-      name: "juz",
-      title: "Juz",
-    },
-    {
-      id: 3,
-      name: "hizb",
-      title: "Hizb",
-    },
-    {
-      id: 4,
       name: "completion",
       title: "Completion (Khatma)",
     },
+    {
+      id: 3,
+      name: "juz",
+      title: "Juz",
+    },
   ];
   const metricesDecider = () => {
-    return variant === "memorization" ? memorizationMetrices : otherMetrices;
+    const list =
+      variant === "memorization" ? memorizationMetrices : otherMetrices;
+    if (!allowedMetrics || allowedMetrics.length === 0) return list;
+    return list.filter((m) =>
+      // m.name is a string in the inferred type; cast to the specific union so includes check types correctly
+      allowedMetrics.includes(
+        m.name as "surah" | "juz" | "completion" | "hizb",
+      ),
+    );
   };
 
   const handlePressMetrix = (item: IItem) => {
     console.log("Selected metric:", item.name);
     setSelectedMetric(item.name);
   };
+
+  // If allowedMetrics contains only one option and no initialMetric provided, auto-select it
+  if (!selectedMetric && allowedMetrics && allowedMetrics.length === 1) {
+    setSelectedMetric(allowedMetrics[0]);
+  }
   return (
     <View style={styles.wrapper}>
       <GoalSelectionOpenCloseButton
@@ -111,8 +127,11 @@ export const QuranRecitationGoalSelection = ({
       <TopSpace top={16} />
       <PrimaryButton
         text="Save"
+        style={{
+          width: "100%",
+        }}
         onPress={() => {
-          // Handle save selection logic here
+          if (onSave) onSave();
         }}
       />
     </View>

@@ -1,13 +1,6 @@
 import React, { useState } from "react";
-import {
-  StyleSheet,
-  Text,
-  View,
-  TouchableOpacity,
-  LayoutAnimation,
-  Platform,
-} from "react-native";
-import { Feather } from "@expo/vector-icons";
+import { StyleSheet, Text, View, LayoutAnimation } from "react-native";
+
 import { Colors } from "../../constants/theme";
 import { fonts } from "../../assets/fonts";
 import CustomSlider from "../atoms/CustomSlider";
@@ -18,7 +11,11 @@ import { globalStyles } from "@/src/globalstyles/globalstyles";
 import { GoalSelectionOpenCloseButton } from "./GoalSelectionOpenCloseButton";
 import { Divider } from "../atoms/Divider";
 
-export default function IstikharaPrayerGoalSelection() {
+export default function IstikharaPrayerGoalSelection({
+  onSave,
+}: {
+  onSave?: (value: number) => void;
+}) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
   const [sliderValue, setSliderValue] = useState(25);
@@ -31,6 +28,9 @@ export default function IstikharaPrayerGoalSelection() {
 
   const handleSave = () => {
     console.log("Saved target Istikhara Prayers:", sliderValue);
+    if (onSave) {
+      onSave(sliderValue);
+    }
   };
 
   return (

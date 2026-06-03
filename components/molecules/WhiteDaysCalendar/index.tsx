@@ -84,7 +84,9 @@ export const WhiteDaysCalendar = ({
                   { borderColor: Colors.light.ringRamadan },
                 ]}
               />
-              <Text style={styles.legendText} numberOfLines={1}>MISSED RAMADAN</Text>
+              <Text style={styles.legendText} numberOfLines={1}>
+                MISSED RAMADAN
+              </Text>
             </View>
             <View style={styles.legendItem}>
               <View
@@ -93,7 +95,9 @@ export const WhiteDaysCalendar = ({
                   { borderColor: Colors.light.ringMonThu },
                 ]}
               />
-              <Text style={styles.legendText} numberOfLines={1}>MONDAYS & THURSDAYS</Text>
+              <Text style={styles.legendText} numberOfLines={1}>
+                MONDAYS & THURSDAYS
+              </Text>
             </View>
           </View>
           <View style={[styles.legendRow, { marginTop: 6 }]}>
@@ -101,7 +105,9 @@ export const WhiteDaysCalendar = ({
               <View
                 style={[styles.legendRing, { borderColor: Colors.light.white }]}
               />
-              <Text style={styles.legendText} numberOfLines={1}>WHITE DAYS</Text>
+              <Text style={styles.legendText} numberOfLines={1}>
+                WHITE DAYS
+              </Text>
             </View>
           </View>
         </View>
@@ -123,9 +129,9 @@ export const WhiteDaysCalendar = ({
       {!hideFooter && (
         <View style={styles.footer}>
           <Text style={styles.description}>
-            The White Days are the 13th, 14th and 15th of each Islamic month. All
-            other days are dimmed. Missed Ramadan and Mon/Thu fasts are shown with
-            their respective colours.
+            The White Days are the 13th, 14th and 15th of each Islamic month.
+            All other days are dimmed. Missed Ramadan and Mon/Thu fasts are
+            shown with their respective colours.
           </Text>
           <TopSpace top={16} />
           <CalendarCountAndRamadanText

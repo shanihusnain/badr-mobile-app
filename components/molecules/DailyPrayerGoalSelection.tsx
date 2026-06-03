@@ -17,7 +17,17 @@ import { useLocaleNumber } from "../../hooks/useLocaleNumber";
 import { GoalSelectionOpenCloseButton } from "./GoalSelectionOpenCloseButton";
 import { Divider } from "../atoms/Divider";
 
-export default function DailyPrayerGoalSelection() {
+export default function DailyPrayerGoalSelection({
+  onSave,
+}: {
+  onSave?: (
+    fajr: number,
+    dhuhr: number,
+    asar: number,
+    maghrib: number,
+    isha: number,
+  ) => void;
+}) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
   const [fajr, setFajr] = useState(28);
@@ -40,13 +50,15 @@ export default function DailyPrayerGoalSelection() {
       maghrib,
       isha,
     });
+    if (onSave) {
+      onSave(fajr, dhuhr, asar, maghrib, isha);
+    }
   };
 
   const totalPrayers = fajr + dhuhr + asar + maghrib + isha;
 
   return (
     <View style={styles.container}>
- 
       <GoalSelectionOpenCloseButton
         title={t("prayerGoals.dailyPrayersTitle")}
         isOpen={isOpen}

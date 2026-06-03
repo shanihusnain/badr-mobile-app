@@ -18,7 +18,16 @@ import { globalStyles } from "@/src/globalstyles/globalstyles";
 import { GoalSelectionOpenCloseButton } from "./GoalSelectionOpenCloseButton";
 import { Divider } from "../atoms/Divider";
 
-export default function QiyamalLaylGoalSelection() {
+export default function QiyamalLaylGoalSelection({
+  onSave,
+}: {
+  onSave?: (value: {
+    commitment: "every_night" | "flexible";
+    twoRakahPrayers: number;
+    witrPrayers: number;
+    trackTahajjud: "yes" | "no";
+  }) => void;
+}) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
   const [isOpen, setIsOpen] = useState(false);
@@ -36,10 +45,18 @@ export default function QiyamalLaylGoalSelection() {
   const handleSave = () => {
     console.log("Saved target Qiyam Al-Layl:", {
       commitment,
-      twoRakAhPrayers: sliderValue,
+      twoRakahPrayers: sliderValue,
       witrPrayers: 28,
       trackTahajjud,
     });
+    if (onSave) {
+      onSave({
+        commitment,
+        twoRakahPrayers: sliderValue,
+        witrPrayers: 28,
+        trackTahajjud,
+      });
+    }
   };
 
   return (

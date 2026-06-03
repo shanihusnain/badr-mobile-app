@@ -13,7 +13,13 @@
 
 import { Colors } from "@/constants/theme";
 import { useState, useEffect } from "react";
-import { StyleSheet, Text, TouchableOpacity, View, ViewStyle } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  ViewStyle,
+} from "react-native";
 import moment from "moment-hijri";
 import { fonts } from "@/assets/fonts";
 import { CalendarGrid } from "@/components/molecules/CalendarGrid";
@@ -21,7 +27,8 @@ import { CalendarGrid } from "@/components/molecules/CalendarGrid";
 type MonThuCalendarProps = {
   /** Pre-existing missed Ramadan dates to overlay on the calendar. */
   missedRamadanDates?: string[];
-  onSave?: (count: number) => void;
+  /** Called when user selection changes — returns array of selected date strings (YYYY-MM-DD). */
+  onSave?: (selectedDates: string[]) => void;
 };
 
 export const MonThuCalendar = ({
@@ -69,9 +76,18 @@ export const MonThuCalendar = ({
   }).filter(Boolean).length;
 
   // Call onSave callback with count
+  // Manage selected Mon/Thu dates locally; parent can supply missedRamadanDates but selected
+  // mon/thu days are chosen by tapping the calendar. Keep a set of selected date strings.
+  const [selectedDates, setSelectedDates] = useState<Set<string>>(new Set());
+
   useEffect(() => {
-    onSave?.(monThuCount);
-  }, [monThuCount, onSave]);
+    // report selected date array to parent whenever it changes
+    // NOTE: intentionally omitting `onSave` from deps because parent often
+    // provides an inline handler which would trigger a render loop. We only
+    // want to call the most recent handler when `selectedDates` changes.
+    onSave?.(Array.from(selectedDates));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedDates]);
 
   return (
     <View style={styles.wrapper}>
@@ -84,7 +100,10 @@ export const MonThuCalendar = ({
               { borderColor: Colors.light.ringRamadan },
             ]}
           />
-          <Text style={[styles.legendText, { color: Colors.light.grey }]} numberOfLines={1}>
+          <Text
+            style={[styles.legendText, { color: Colors.light.grey }]}
+            numberOfLines={1}
+          >
             MISSED RAMADAN FASTS
           </Text>
           <View
@@ -93,7 +112,10 @@ export const MonThuCalendar = ({
               { borderColor: Colors.light.ringMonThu },
             ]}
           />
-          <Text style={[styles.legendText, { color: Colors.light.grey }]} numberOfLines={1}>
+          <Text
+            style={[styles.legendText, { color: Colors.light.grey }]}
+            numberOfLines={1}
+          >
             MONDAYS & THURSDAYS
           </Text>
         </View>
@@ -110,6 +132,17 @@ export const MonThuCalendar = ({
         mode="mon_thu"
         currentDate={currentDate}
         markedDates={missedRamadanDates}
+        onDayPress={(ds) => {
+          // toggle only mon/thursday days
+          const dow = new Date(ds).getDay();
+          if (dow !== 1 && dow !== 4) return;
+          setSelectedDates((prev) => {
+            const next = new Set(Array.from(prev));
+            if (next.has(ds)) next.delete(ds);
+            else next.add(ds);
+            return next;
+          });
+        }}
       />
     </View>
   );
@@ -164,5 +197,4 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.regular,
     marginTop: 4,
   },
-
 });

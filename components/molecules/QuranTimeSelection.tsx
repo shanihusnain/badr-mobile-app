@@ -12,13 +12,16 @@ import { TopSpace } from "../atoms/TopSpace";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import { useState } from "react";
+import PrimaryButton from "@/components/atoms/Primary-button";
 
 export const QuranTimeSelection = ({
   title,
   description,
+  onSave,
 }: {
   title: string;
   description: string;
+  onSave?: (hours: number) => void;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState<string>("");
@@ -34,7 +37,7 @@ export const QuranTimeSelection = ({
         toggleDropdown={toggleDropdown}
       />
       {isOpen && (
-        <View>
+        <View style={styles.openContent}>
           <Divider />
           <TopSpace top={16} />
           <Text style={styles.header}>Enter upto 280 hours.</Text>
@@ -71,6 +74,17 @@ export const QuranTimeSelection = ({
 
             <Text style={styles.descriptionText}>{description}</Text>
           </View>
+          <TopSpace top={16} />
+
+          <PrimaryButton
+            text="Save"
+            onPress={() => {
+              const hours = parseInt(inputValue || "0", 10) || 0;
+              if (onSave) onSave(hours);
+              setIsOpen(false);
+            }}
+            style={{ width: "100%" }}
+          />
         </View>
       )}
     </View>
@@ -109,6 +123,9 @@ const styles = StyleSheet.create({
   container: {
     ...globalStyles.goalSelectionWrapper,
     alignItems: "flex-start",
+  },
+  openContent: {
+    width: "100%",
   },
   textInput: {
     borderWidth: 1,

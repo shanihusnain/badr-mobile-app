@@ -18,7 +18,11 @@ import { globalStyles } from "@/src/globalstyles/globalstyles";
 import { GoalSelectionOpenCloseButton } from "./GoalSelectionOpenCloseButton";
 import { Divider } from "../atoms/Divider";
 
-export default function MissedPrayerGoalSelection() {
+export default function MissedPrayerGoalSelection({
+  onSave,
+}: {
+  onSave?: (value: number) => void;
+}) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
   const [sliderValue, setSliderValue] = useState(3);
@@ -36,6 +40,9 @@ export default function MissedPrayerGoalSelection() {
       "prayers:",
       sliderValue * 5,
     );
+    if (onSave) {
+      onSave(sliderValue * 5);
+    }
   };
 
   return (

@@ -18,7 +18,18 @@ import { globalStyles } from "@/src/globalstyles/globalstyles";
 import { GoalSelectionOpenCloseButton } from "./GoalSelectionOpenCloseButton";
 import { Divider } from "../atoms/Divider";
 
-export default function SunnahRawatibGoalSelection() {
+export default function SunnahRawatibGoalSelection({
+  onSave,
+}: {
+  onSave?: (
+    beforeFajar: number,
+    beforeDuhr: number,
+    afterDuhr: number,
+    beforeAsar: number,
+    afterMaghrib: number,
+    afterIsha: number,
+  ) => void;
+}) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
   const [beforeFajar, setBeforeFajar] = useState(28);
@@ -63,6 +74,16 @@ export default function SunnahRawatibGoalSelection() {
       afterMaghrib,
       afterIsha,
     });
+    if (onSave) {
+      onSave(
+        beforeFajar,
+        beforeDuhr,
+        afterDuhr,
+        beforeAsar,
+        afterMaghrib,
+        afterIsha,
+      );
+    }
   };
 
   const totalPrayers =
@@ -259,7 +280,7 @@ const styles = StyleSheet.create({
     textAlign: "left",
     marginBottom: 4,
   },
-  
+
   radioRow: {
     flexDirection: "row",
     alignItems: "center",

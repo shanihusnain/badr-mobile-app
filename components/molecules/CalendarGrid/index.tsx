@@ -214,7 +214,8 @@ export const CalendarGrid = ({
             }
           }
 
-          const isTappable = mode === "dob" || mode === "ramadan";
+          const isTappable =
+            mode === "dob" || mode === "ramadan" || mode === "mon_thu";
 
           return (
             <TouchableOpacity
