@@ -617,6 +617,17 @@
               "type": "text",
               "style": "tableGuide",
               "content": "Remember, it is crucial to perform all Sunnah prayers within the time frame of each obligatory prayer, starting after its call to prayer and completed before the next prayer's call begins, as they cannot be made up once missed."
+            },
+            {
+              "type": "table",
+              "headers": ["PRAYER", "SUNNAH\n(Before)", "FARD", "SUNNAH\n(After)"],
+              "rows": [
+                ["FAJR", "2", "2", "-"],
+                ["DHUHR", "2+2", "4", "2 or 4"],
+                ["ASR", "2 or 4", "4", "-"],
+                ["MAGHRIB", "-", "3", "2"],
+                ["ISHA", "-", "4", "2"]
+              ]
             }
           ]
         }

@@ -208,6 +208,72 @@ const renderReadMoreItem = (
     );
   }
 
+  if (item.type === "table") {
+    const headers = item.headers || [];
+    const rows = item.rows || [];
+    return (
+      <View
+        key={`table-${index}`}
+        style={[
+          readMoreStyles.tableContainer,
+          index > 0 ? readMoreStyles.blockSpacing : null,
+        ]}
+      >
+        {/* Header Row */}
+        <View style={readMoreStyles.tableHeaderRow}>
+          {headers.map((header: string, hIdx: number) => {
+            const parts = header.split("\n");
+            return (
+              <View
+                key={`th-${hIdx}`}
+                style={[
+                  readMoreStyles.tableHeaderCell,
+                  hIdx < headers.length - 1 ? readMoreStyles.borderRightWhite : null,
+                ]}
+              >
+                <Text style={readMoreStyles.tableHeaderText}>{parts[0]}</Text>
+                {parts.length > 1 && (
+                  <Text style={readMoreStyles.tableHeaderSubText}>{parts[1]}</Text>
+                )}
+              </View>
+            );
+          })}
+        </View>
+
+        {/* Data Rows */}
+        {rows.map((row: string[], rIdx: number) => (
+          <View
+            key={`tr-${rIdx}`}
+            style={[
+              readMoreStyles.tableRow,
+              rIdx < rows.length - 1 ? readMoreStyles.borderBottomWhite : null,
+            ]}
+          >
+            {row.map((cell: string, cIdx: number) => (
+              <View
+                key={`td-${cIdx}`}
+                style={[
+                  readMoreStyles.tableCell,
+                  cIdx < row.length - 1 ? readMoreStyles.borderRightWhite : null,
+                ]}
+              >
+                <Text
+                  style={
+                    cIdx === 0
+                      ? readMoreStyles.tableCellTextWord
+                      : readMoreStyles.tableCellTextCount
+                  }
+                >
+                  {cell}
+                </Text>
+              </View>
+            ))}
+          </View>
+        ))}
+      </View>
+    );
+  }
+
   const usesQuoteSpacing =
     item.style === "quoteItalic" ||
     item.style === "quoteSemibold" ||
@@ -530,6 +596,78 @@ const createReadMoreStyles = () =>
     },
     prayerDescription: {
       marginTop: 0,
+    },
+    tableContainer: {
+      width: "100%",
+      borderWidth: 1,
+      borderColor: Colors.light.white,
+      borderRadius: 1,
+      overflow: "hidden",
+      marginTop: 12,
+    },
+    tableHeaderRow: {
+      flexDirection: "row",
+      //backgroundColor: "rgba(255, 255, 255, 0.08)",
+      borderBottomWidth: 1,
+      borderColor: Colors.light.white,
+    },
+    tableHeaderCell: {
+      flex: 1,
+      paddingVertical: 10,
+      paddingHorizontal: 4,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    tableHeaderText: {
+      color: Colors.light.white,
+      fontFamily: fonts.primary.semiBold,
+      fontWeight: "600",
+      fontSize: 10,
+      textAlign: "center",
+      lineHeight: 12,
+    },
+    tableHeaderSubText: {
+      color: Colors.light.white,
+      fontFamily: fonts.primary.regular,
+      fontWeight: "400",
+      fontSize: 8,
+      textAlign: "center",
+      lineHeight: 10,
+      marginTop: 2,
+    },
+    tableRow: {
+      flexDirection: "row",
+    },
+    tableCell: {
+      flex: 1,
+      paddingVertical: 10,
+      paddingHorizontal: 4,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    tableCellTextWord: {
+      color: Colors.light.white,
+      fontFamily: fonts.primary.semiBold,
+      fontWeight: "600",
+      fontSize: 10,
+      textAlign: "center",
+      lineHeight: 12,
+    },
+    tableCellTextCount: {
+      color: Colors.light.white,
+      fontFamily: fonts.primary.semiBold,
+      fontWeight: "600",
+      fontSize: 12,
+      textAlign: "center",
+      lineHeight: 14,
+    },
+    borderRightWhite: {
+      borderRightWidth: 1,
+      borderColor: Colors.light.white,
+    },
+    borderBottomWhite: {
+      borderBottomWidth: 1,
+      borderColor: Colors.light.white,
     },
   });
 

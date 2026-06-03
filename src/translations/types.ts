@@ -100,7 +100,8 @@ export type GoalReadMoreItem =
   | { type: "benefit"; heading: string; description: string }
   | { type: "replyWithQuote"; prefix: string; quote: string }
   | { type: "boldPrefixText"; prefix: string; content: string; style: GoalReadMoreTextStyle; align?: "left" | "right" | "center" }
-  | { type: "boldSuffixText"; suffix: string; content: string; style: GoalReadMoreTextStyle; align?: "left" | "right" | "center" };
+  | { type: "boldSuffixText"; suffix: string; content: string; style: GoalReadMoreTextStyle; align?: "left" | "right" | "center" }
+  | { type: "table"; headers: string[]; rows: string[][] };
 
 export type GoalReadMoreContainer = {
   items: GoalReadMoreItem[];

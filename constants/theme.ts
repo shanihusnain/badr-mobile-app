@@ -33,6 +33,12 @@ export const Colors = {
     unselectedSwtchTrack: "#919EAB",
     dullWhiteOpacity: "rgba(255, 255, 255, 0.1)",
     divider: "rgba(255, 255, 255, 0.08)",
+    seagreen: "#00EAD2",
+    greybuttonversion: "#53566052",
+    graylightshade: "#8B8B8B",
+
+
+
   },
   dark: {
     text: "#ECEDEE",
