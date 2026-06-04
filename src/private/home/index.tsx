@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import Entypo from "@expo/vector-icons/Entypo";
 import { Colors } from "@/constants/theme";
 import createStyles from "./styles";
 import { TaperedCircleBorder } from "@/components/atoms/TaperedCircleBorder";
@@ -27,6 +28,7 @@ export default function HomeScreen() {
   const CARD_WIDTH = Dimensions.get("window").width - 32;
   const [showPrayerCard, setShowPrayerCard] = useState(true);
   const [activeInspirationIndex, setActiveInspirationIndex] = useState(0);
+  const [selectedCategory, setSelectedCategory] = useState("All");
   const namazBottomSheetRef = useRef<BottomSheet>(null);
   const router = useRouter();
 
@@ -258,6 +260,213 @@ export default function HomeScreen() {
             </View>
             <Text style={styles.menstruationText}>LOG MENSTRUATION</Text>
           </View>
+        </TouchableOpacity>
+
+        {/* Customize Your Journal Container */}
+        <View style={styles.journalContainer}>
+          <Text style={styles.journalTitle}>Customize Your Journal</Text>
+          <Text style={styles.journalDescription}>
+            Choose from over 100 behaviors to track daily, fostering growth in your character and helping you become your best self.
+          </Text>
+          <TouchableOpacity style={styles.getStartedButton}>
+            <Text style={styles.getStartedText}>GET STARTED</Text>
+            <Entypo name="chevron-right" size={24} color={Colors.light.green} />
+          </TouchableOpacity>
+        </View>
+
+        {/* My Dashboard Section */}
+        <View style={styles.dashboardSection}>
+          <Text style={styles.dashboardText}>My Dashboard</Text>
+          <View style={styles.customizeContainer}>
+            <Text style={styles.customizeText}>CUSTOMIZE</Text>
+          </View>
+        </View>
+
+        {/* Category Filter Section */}
+        <View style={styles.categoryFilterSection}>
+          <TouchableOpacity
+            style={[styles.categoryFilterItem, selectedCategory === "All" && styles.categoryFilterItemActive]}
+            onPress={() => setSelectedCategory("All")}
+          >
+            <Text style={[styles.categoryFilterText, selectedCategory === "All" && styles.categoryFilterTextActive]}>All</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.categoryFilterItemWide, selectedCategory === "Prayer" && styles.categoryFilterItemActive]}
+            onPress={() => setSelectedCategory("Prayer")}
+          >
+            <Text style={[styles.categoryFilterText, selectedCategory === "Prayer" && styles.categoryFilterTextActive]}>Prayer</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.categoryFilterItemWide, selectedCategory === "Quran" && styles.categoryFilterItemActive]}
+            onPress={() => setSelectedCategory("Quran")}
+          >
+            <Text style={[styles.categoryFilterText, selectedCategory === "Quran" && styles.categoryFilterTextActive]}>Quran</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.categoryFilterItemWide, selectedCategory === "Fasting" && styles.categoryFilterItemActive]}
+            onPress={() => setSelectedCategory("Fasting")}
+          >
+            <Text style={[styles.categoryFilterText, selectedCategory === "Fasting" && styles.categoryFilterTextActive]}>Fasting</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.categoryFilterItemWide, selectedCategory === "Sadaqah" && styles.categoryFilterItemActive]}
+            onPress={() => setSelectedCategory("Sadaqah")}
+          >
+            <Text style={[styles.categoryFilterText, selectedCategory === "Sadaqah" && styles.categoryFilterTextActive]}>Sadaqah</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Tahiyyat Al-Wudhu Container */}
+        {(selectedCategory === "All" || selectedCategory === "Prayer") && (
+          <View style={styles.tahiyyatContainer}>
+            <View style={styles.tahiyyatLeft}>
+              <Text style={styles.tahiyyatTitle}>TAHIYYAT AL-WUDHU</Text>
+              <Text style={styles.tahiyyatSubtitle}>
+                <Text style={styles.tahiyyatNumber}>0</Text>
+                <Text style={styles.tahiyyatDivider}>/25 prayers</Text>
+              </Text>
+            </View>
+            <View style={styles.tahiyyatCircleWrapper}>
+              <TaperedCircleBorder borderColor={Colors.light.calendarBg} size={48}>
+                <View style={styles.circleTextContainer}>
+                  <Text style={styles.circleMainText}>0</Text>
+                  <Text style={styles.circlePercentText}>%</Text>
+                </View>
+              </TaperedCircleBorder>
+            </View>
+          </View>
+        )}
+
+        {/* Sunnah Rawatib Container */}
+        {(selectedCategory === "All" || selectedCategory === "Prayer") && (
+          <View style={styles.tahiyyatContainer}>
+            <View style={styles.tahiyyatLeft}>
+              <Text style={styles.tahiyyatTitle}>SUNNAH RAWATIB</Text>
+              <Text style={styles.tahiyyatSubtitle}>
+                <Text style={styles.tahiyyatNumber}>0</Text>
+                <Text style={styles.tahiyyatDivider}>/252</Text>
+              </Text>
+            </View>
+            <View style={styles.tahiyyatCircleWrapper}>
+              <TaperedCircleBorder borderColor={Colors.light.calendarBg} size={48}>
+                <View style={styles.circleTextContainer}>
+                  <Text style={styles.circleMainText}>0</Text>
+                  <Text style={styles.circlePercentText}>%</Text>
+                </View>
+              </TaperedCircleBorder>
+            </View>
+          </View>
+        )}
+
+        {/* Tahiyyat Al-Masjid Container */}
+        {(selectedCategory === "All" || selectedCategory === "Prayer") && (
+          <View style={styles.tahiyyatContainer}>
+            <View style={styles.tahiyyatLeft}>
+              <Text style={styles.tahiyyatTitle}>TAHIYYAT AL-MASJID</Text>
+              <Text style={styles.tahiyyatSubtitle}>
+                <Text style={styles.tahiyyatNumber}>0</Text>
+                <Text style={styles.tahiyyatDivider}>/47</Text>
+              </Text>
+            </View>
+            <View style={styles.tahiyyatCircleWrapper}>
+              <TaperedCircleBorder borderColor={Colors.light.calendarBg} size={48}>
+                <View style={styles.circleTextContainer}>
+                  <Text style={styles.circleMainText}>0</Text>
+                  <Text style={styles.circlePercentText}>%</Text>
+                </View>
+              </TaperedCircleBorder>
+            </View>
+          </View>
+        )}
+
+        {/* Qiyam Al-Layl Container */}
+        {(selectedCategory === "All" || selectedCategory === "Prayer") && (
+          <View style={styles.tahiyyatContainer}>
+            <View style={styles.tahiyyatLeft}>
+              <Text style={styles.tahiyyatTitle}>QIYAM AL-LAYL</Text>
+              <Text style={styles.tahiyyatSubtitle}>
+                <Text style={styles.tahiyyatNumber}>0</Text>
+                <Text style={styles.tahiyyatDivider}>/23</Text>
+              </Text>
+            </View>
+            <View style={styles.tahiyyatCircleWrapper}>
+              <TaperedCircleBorder borderColor={Colors.light.calendarBg} size={48}>
+                <View style={styles.circleTextContainer}>
+                  <Text style={styles.circleMainText}>0</Text>
+                  <Text style={styles.circlePercentText}>%</Text>
+                </View>
+              </TaperedCircleBorder>
+            </View>
+          </View>
+        )}
+
+        {/* Missed Past Prayers Container */}
+        {(selectedCategory === "All" || selectedCategory === "Prayer") && (
+          <View style={styles.tahiyyatContainer}>
+            <View style={styles.tahiyyatLeft}>
+              <Text style={styles.tahiyyatTitle}>MISSED PAST PRAYERS</Text>
+              <Text style={styles.tahiyyatSubtitle}>
+                <Text style={styles.tahiyyatNumber}>0</Text>
+                <Text style={styles.tahiyyatDivider}>/17</Text>
+              </Text>
+            </View>
+            <View style={styles.tahiyyatCircleWrapper}>
+              <TaperedCircleBorder borderColor={Colors.light.calendarBg} size={48}>
+                <View style={styles.circleTextContainer}>
+                  <Text style={styles.circleMainText}>0</Text>
+                  <Text style={styles.circlePercentText}>%</Text>
+                </View>
+              </TaperedCircleBorder>
+            </View>
+          </View>
+        )}
+
+        {/* Quran Recitation Container */}
+        {(selectedCategory === "All" || selectedCategory === "Quran") && (
+          <View style={styles.tahiyyatContainer}>
+            <View style={styles.tahiyyatLeft}>
+              <Text style={styles.tahiyyatTitle}>QURAN RECITATION (BY COMPLETION)</Text>
+              <Text style={styles.tahiyyatSubtitle}>
+                <Text style={styles.tahiyyatNumber}>0</Text>
+                <Text style={styles.tahiyyatDivider}>/3</Text>
+              </Text>
+            </View>
+            <View style={styles.tahiyyatCircleWrapper}>
+              <TaperedCircleBorder borderColor={Colors.light.calendarBg} size={48}>
+                <View style={styles.circleTextContainer}>
+                  <Text style={styles.circleMainText}>0</Text>
+                  <Text style={styles.circlePercentText}>%</Text>
+                </View>
+              </TaperedCircleBorder>
+            </View>
+          </View>
+        )}
+
+        {/* Sadaqah Jariyah Container */}
+        {(selectedCategory === "All" || selectedCategory === "Sadaqah") && (
+          <View style={styles.tahiyyatContainer}>
+            <View style={styles.tahiyyatLeft}>
+              <Text style={styles.tahiyyatTitle}>SADAQAH JARIYAH</Text>
+              <Text style={styles.tahiyyatSubtitle}>
+                <Text style={styles.tahiyyatNumber}>$0</Text>
+                <Text style={styles.tahiyyatDivider}>/$1,000</Text>
+              </Text>
+            </View>
+            <View style={styles.tahiyyatCircleWrapper}>
+              <TaperedCircleBorder borderColor={Colors.light.calendarBg} size={48}>
+                <View style={styles.circleTextContainer}>
+                  <Text style={styles.circleMainText}>0</Text>
+                  <Text style={styles.circlePercentText}>%</Text>
+                </View>
+              </TaperedCircleBorder>
+            </View>
+          </View>
+        )}
+
+        {/* Show More Button */}
+        <TouchableOpacity style={styles.showMoreButton}>
+          <Text style={styles.showMoreText}>Show More</Text>
+          <Entypo name="chevron-down" size={24} color="white" />
         </TouchableOpacity>
       </ScrollView>
       
