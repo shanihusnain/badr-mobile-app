@@ -4,30 +4,97 @@ import { Colors } from "@/constants/theme";
 import { Feather } from "@expo/vector-icons";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-export const ReviewGoalCard = ({
-  goal,
-  handleEditPress,
-}: {
+type Props = {
   goal: any;
   handleEditPress: (goal: any) => void;
-}) => {
+};
+
+const looksLikeCurrency = (v: any) =>
+  typeof v === "string" && /[^0-9\s,\.\-]/.test(v);
+
+export default function ReviewGoalCard({ goal, handleEditPress }: Props) {
+  const selected = goal?.selectedGoals ?? [];
+  const firstSelected = selected.length > 0 ? selected[0] : null;
+
+  const renderChipUnitAndValue = (unitText: string, rightValue: string) => (
+    <View style={styles.chipRow}>
+      <View style={styles.chip}>
+        <Text style={styles.chipText}>{unitText}</Text>
+      </View>
+      <Text style={styles.appliedGoalValueText}>{rightValue}</Text>
+    </View>
+  );
+
+  const key = goal?.title;
+
+  const rightNode = (() => {
+    // Currency-only goals: show currency symbol + amount, no chip
+    if (
+      key === "missed-zakat" ||
+      key === "lillah-donations" ||
+      key === "sadaqah-jariyah"
+    ) {
+      if (firstSelected && looksLikeCurrency(firstSelected.value))
+        return (
+          <Text style={styles.appliedGoalValueText}>
+            {String(firstSelected.value)}
+          </Text>
+        );
+      return (
+        <Text
+          style={styles.appliedGoalValueText}
+        >{`$ ${String(goal?.totalValue ?? "")}`}</Text>
+      );
+    }
+
+    // Unit chips (chip contains unit text only; numeric value shown outside)
+    if (key === "kafarah-for-breaking-fasts")
+      return renderChipUnitAndValue("items", String(goal?.totalValue ?? 0));
+    if (key === "fidya")
+      return renderChipUnitAndValue("meals", String(goal?.totalValue ?? 0));
+    if (key === "volunteering-services")
+      return renderChipUnitAndValue("hours", String(goal?.totalValue ?? 0));
+
+    // Quran or other goals: if there's a selected entry, prefer that
+    if (firstSelected) {
+      if (looksLikeCurrency(firstSelected.value))
+        return (
+          <Text style={styles.appliedGoalValueText}>
+            {String(firstSelected.value)}
+          </Text>
+        );
+      return renderChipUnitAndValue(
+        String(firstSelected.label ?? ""),
+        String(firstSelected.value ?? ""),
+      );
+    }
+
+    // Fallback
+    return (
+      <Text style={styles.appliedGoalValueText}>
+        {String(goal?.totalValue ?? "")}
+      </Text>
+    );
+  })();
+
   return (
-    <View key={goal.id}>
-      <View style={styles.appliedGoalContainer} key={goal.id}>
+    <View>
+      <View style={styles.appliedGoalContainer}>
         <View style={styles.appliedGoalRow}>
           <View style={styles.appliedGoalLeftGroup}>
             <Text style={styles.appliedGoalTitleText}>{goal?.label}</Text>
-            <Pressable onPress={handleEditPress}>
+            <Pressable onPress={() => handleEditPress(goal)}>
               <Feather name="edit-2" size={14} color="white" />
             </Pressable>
           </View>
-          <Text style={styles.appliedGoalValueText}>{goal?.totalValue}</Text>
+          <Text>{goal?.value}</Text>
         </View>
 
-        {goal?.selectedGoals && goal?.selectedGoals.length > 0 && <Divider />}
-        {goal.selectedGoals &&
-          goal.selectedGoals.length > 0 &&
-          goal?.selectedGoals.map((subGoal: any, subIdx: number) => (
+        {selected && selected.length > 0 && <Divider />}
+
+        {selected &&
+          selected.length > 0 &&
+          selected.map((subGoal: any, subIdx: number) => (
             <View
               key={
                 subGoal?.id != null
@@ -45,7 +112,8 @@ export const ReviewGoalCard = ({
       </View>
     </View>
   );
-};
+}
+
 const styles = StyleSheet.create({
   appliedGoalContainer: {
     marginTop: 10,
@@ -100,5 +168,23 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
     opacity: 0.8,
+  },
+  chipRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  chip: {
+    backgroundColor: "#374556",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  chipText: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.semiBold,
+    fontSize: 12,
   },
 });

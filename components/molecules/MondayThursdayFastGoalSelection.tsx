@@ -15,7 +15,11 @@ import { useLocaleNumber } from "../../hooks/useLocaleNumber";
 import { MonThuCalendar } from "./MonThuCalendar";
 import { TopSpace } from "../atoms/TopSpace";
 
-export default function MondayThursdayFastGoalSelection() {
+export default function MondayThursdayFastGoalSelection({
+  onSave,
+}: {
+  onSave?: (selectedDates: string[]) => void;
+}) {
   const formatNumber = useLocaleNumber();
   const [missedRamadanDates, setMissedRamadanDates] = useState<string[]>([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -28,10 +32,12 @@ export default function MondayThursdayFastGoalSelection() {
   };
 
   const handleSave = () => {
+    // notify parent of selected dates and also log locally
     console.log(
       "Saved Monday & Thursday fasts with selected dates:",
       selectedMonThuDates,
     );
+    onSave?.(selectedMonThuDates);
   };
 
   return (

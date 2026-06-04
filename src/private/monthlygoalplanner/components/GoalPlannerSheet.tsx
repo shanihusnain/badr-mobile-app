@@ -13,6 +13,7 @@ import { CycleStartTab } from "./CycleStartTab";
 import { useTranslation } from "react-i18next";
 import { router } from "expo-router";
 import { TopSpace } from "@/components/atoms/TopSpace";
+import PrimaryButton from "@/components/atoms/Primary-button";
 import TahiyatWuduGoalSelection from "@/components/molecules/TahiyatWuduGoalSelection";
 import DailyPrayerGoalSelection from "@/components/molecules/DailyPrayerGoalSelection";
 import SunnahRawatibGoalSelection from "@/components/molecules/SunnahRawatibGoalSelection";
@@ -33,11 +34,9 @@ import MissedRamadanFastGoalSelection from "@/components/molecules/MissedRamadan
 import ProphetDawoodFastGoalSelection from "@/components/molecules/ProphetDawoodFastGoalSelection";
 import WhiteDaysFastGoalSelection from "@/components/molecules/WhiteDaysFastGoalSelection";
 import MondayThursdayFastGoalSelection from "@/components/molecules/MondayThursdayFastGoalSelection";
-import { Feather } from "@expo/vector-icons";
-import { Divider } from "@/components/atoms/Divider";
-import { opacity } from "react-native-reanimated/lib/typescript/Colors";
+
 import { ReviewGoalBtn } from "./ReviewGoalBtn";
-import { ReviewGoalCard } from "./ReviewGoalCard";
+import ReviewGoalCard from "./ReviewGoalCard";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -99,6 +98,10 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
     const [quranMetrics, setQuranMetrics] = useState<Record<string, any>>({});
     // lifted fasting metrics collected from children
     const [fastingMetrics, setFastingMetrics] = useState<Record<string, any>>(
+      {},
+    );
+    // lifted sadaqah metrics collected from children
+    const [sadaqahMetrics, setSadaqahMetrics] = useState<Record<string, any>>(
       {},
     );
     console.log("teh quran mertics are", quranMetrics);
@@ -374,28 +377,138 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
             title: "missed-fasts",
             label: "Missed Ramadan Fasts",
             totalValue: 20,
+            selectedGoals: [
+              {
+                id: 1,
+                name: "ramadan-missed-1",
+                label: "Ramadan 10th",
+                value: "1445 / Apr 11, 2024",
+              },
+              {
+                id: 2,
+                name: "ramadan-missed-2",
+                label: "Ramadan 12th",
+                value: "1445 / Apr 13, 2024",
+              },
+            ],
           },
           {
             id: 2,
             title: "dawood-fasts",
             label: "Prophet Dawood Fast (every other day)",
             totalValue: 15,
+            selectedGoals: [
+              {
+                id: 1,
+                name: "dawood-1",
+                label: "Mon",
+                value: "01 Oct, 2024",
+              },
+              {
+                id: 2,
+                name: "dawood-2",
+                label: "Wed",
+                value: "03 Oct, 2024",
+              },
+            ],
           },
           {
             id: 3,
             title: "monday-and-thursday-fasts",
             label: "Monday & Thursday Fasts",
             totalValue: 15,
+            selectedGoals: [
+              {
+                id: 1,
+                name: "monthu-1",
+                label: "Monday",
+                value: "28th Jum-I, 1445 / Nov 30, 2024",
+              },
+              {
+                id: 2,
+                name: "monthu-2",
+                label: "Thursday",
+                value: "03rd Jum-II, 1445 / Dec 03, 2024",
+              },
+            ],
           },
           {
             id: 4,
             title: "white-days-fasts",
             label: "White Days Fasts",
             totalValue: 10,
+            selectedGoals: [
+              {
+                id: 1,
+                name: "white-13",
+                label: "13th (White Day)",
+                value: "Shawwal 13, 1445 / Jun 15, 2024",
+              },
+              {
+                id: 2,
+                name: "white-14",
+                label: "14th (White Day)",
+                value: "Shawwal 14, 1445 / Jun 16, 2024",
+              },
+              {
+                id: 3,
+                name: "white-15",
+                label: "15th (White Day)",
+                value: "Shawwal 15, 1445 / Jun 17, 2024",
+              },
+            ],
           },
         ],
       },
-      { id: 4, name: "sadaqahGoals", label: "Sadaqah Goals" },
+      {
+        id: 4,
+        name: "sadaqahGoals",
+        label: "Sadaqah Goals",
+        appliedGoals: [
+          {
+            id: 1,
+            title: "missed-zakat",
+            label: "Missed Zakat",
+            totalValue: 0,
+            selectedGoals: [],
+          },
+          {
+            id: 2,
+            title: "kafarah-for-breaking-fasts",
+            label: "Kafarah for Breaking Fasts",
+            totalValue: 0,
+            selectedGoals: [],
+          },
+          {
+            id: 3,
+            title: "fidya",
+            label: "Fidya",
+            totalValue: 0,
+            selectedGoals: [],
+          },
+          {
+            id: 4,
+            title: "lilah-donations",
+            label: "Lilah Donations",
+            totalValue: 0,
+            selectedGoals: [],
+          },
+          {
+            id: 5,
+            title: "volunteering-services",
+            label: "Volunteering Services",
+            totalValue: 0,
+            selectedGoals: [],
+          },
+          {
+            id: 6,
+            title: "sadaqah-jariyah",
+            label: "Sadaqah Jariyah",
+            totalValue: 0,
+            selectedGoals: [],
+          },
+        ],
+      },
     ];
     // Sync tab when sheet is opened with a different initialTab
     useEffect(() => {
@@ -638,6 +751,11 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
               description="hours of Quran listening"
               onSave={(hours: number) => {
                 setQuranMetrics((prev) => ({ ...prev, listeningHours: hours }));
+                setQuranMetrics((prev) => ({
+                  ...prev,
+                  listeningHours: hours,
+                  [key]: [{ id: 1, label: "Hours", value: `${hours} hrs` }],
+                }));
                 setEditingGoal(null);
               }}
             />
@@ -649,6 +767,11 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
               description="hours of Quran tajweed"
               onSave={(hours: number) => {
                 setQuranMetrics((prev) => ({ ...prev, tajweedHours: hours }));
+                setQuranMetrics((prev) => ({
+                  ...prev,
+                  tajweedHours: hours,
+                  [key]: [{ id: 1, label: "Hours", value: `${hours} hrs` }],
+                }));
                 setEditingGoal(null);
               }}
             />
@@ -668,6 +791,16 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
               }}
               variant="others"
               onSave={() => {
+                setQuranMetrics((prev) => ({
+                  ...prev,
+                  [key]: [
+                    {
+                      id: 1,
+                      label: "Surah",
+                      value: String(prev?.surah ?? ""),
+                    },
+                  ],
+                }));
                 setEditingGoal(null);
               }}
             />
@@ -687,6 +820,16 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
               }}
               variant="others"
               onSave={() => {
+                setQuranMetrics((prev) => ({
+                  ...prev,
+                  [key]: [
+                    {
+                      id: 1,
+                      label: "Completion",
+                      value: String(prev?.completion ?? ""),
+                    },
+                  ],
+                }));
                 setEditingGoal(null);
               }}
             />
@@ -706,6 +849,12 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
               }}
               variant="others"
               onSave={() => {
+                setQuranMetrics((prev) => ({
+                  ...prev,
+                  [key]: [
+                    { id: 1, label: "Juz", value: String(prev?.juz ?? "") },
+                  ],
+                }));
                 setEditingGoal(null);
               }}
             />
@@ -725,6 +874,12 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
               }}
               variant="memorization"
               onSave={() => {
+                setQuranMetrics((prev) => ({
+                  ...prev,
+                  [key]: [
+                    { id: 1, label: "Juz", value: String(prev?.juz ?? "") },
+                  ],
+                }));
                 setEditingGoal(null);
               }}
             />
@@ -744,6 +899,12 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
               }}
               variant="memorization"
               onSave={() => {
+                setQuranMetrics((prev) => ({
+                  ...prev,
+                  [key]: [
+                    { id: 1, label: "Hizb", value: String(prev?.hizb ?? "") },
+                  ],
+                }));
                 setEditingGoal(null);
               }}
             />
@@ -763,6 +924,12 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
               }}
               variant="memorization"
               onSave={() => {
+                setQuranMetrics((prev) => ({
+                  ...prev,
+                  [key]: [
+                    { id: 1, label: "Surah", value: String(prev?.surah ?? "") },
+                  ],
+                }));
                 setEditingGoal(null);
               }}
             />
@@ -776,9 +943,237 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
         case "dawood-fasts":
           return <ProphetDawoodFastGoalSelection />;
         case "monday-and-thursday-fasts":
-          return <MondayThursdayFastGoalSelection />;
+          return (
+            <MondayThursdayFastGoalSelection
+              onSave={(selectedDates: string[]) => {
+                // format and store in fastingMetrics under this goal key
+                const formatted = selectedDates.map((ds, idx) => {
+                  const m = new Date(ds);
+                  const weekday = m.toLocaleDateString(undefined, {
+                    weekday: "long",
+                  });
+                  const gregorian = m.toLocaleDateString(undefined, {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                  });
+                  // hijri part (approx): use moment-hijri to format
+                  let hijriLabel = gregorian;
+                  try {
+                    // eslint-disable-next-line @typescript-eslint/no-var-requires
+                    const moment = require("moment-hijri");
+                    const hijriParts = moment(ds).format("iD iMMM, iYYYY");
+                    hijriLabel = `${hijriParts}`;
+                  } catch (e) {
+                    // ignore
+                  }
+                  // store weekday as label and detailed date as value so ReviewGoalCard shows them left/right
+                  return {
+                    id: idx + 1,
+                    label: weekday,
+                    value: `${hijriLabel} / ${gregorian}`,
+                  };
+                });
+                setFastingMetrics((prev) => ({
+                  ...prev,
+                  [goal.title]: formatted,
+                }));
+                setEditingGoal(null);
+              }}
+            />
+          );
         case "white-days-fasts":
           return <WhiteDaysFastGoalSelection />;
+        // ── Sadaqah editors
+        case "missed-zakat":
+          return (
+            <View>
+              <MissedZakats
+                count={missedZakatAmount}
+                setCount={setMissedZakatAmount}
+                control={control}
+                name="missedZakat"
+                handleDecrease={() =>
+                  setMissedZakatAmount((prev) => Math.max(0, prev - 1))
+                }
+                handleIncrease={() => setMissedZakatAmount((prev) => prev + 1)}
+                countTitle="Amount"
+              />
+              <TopSpace top={12} />
+              <PrimaryButton
+                text="Save"
+                onPress={() => {
+                  // persist into sadaqahMetrics as a single row
+                  setSadaqahMetrics((prev) => ({
+                    ...prev,
+                    [goal.title]: [
+                      {
+                        id: 1,
+                        label: "Amount",
+                        value: String(missedZakatAmount),
+                      },
+                    ],
+                  }));
+                  setEditingGoal(null);
+                }}
+              />
+            </View>
+          );
+        case "kafarah-for-breaking-fasts":
+          return (
+            <View>
+              <KafarahForBreakingFastsOrOAthSelector
+                mealCount={kafarahMeals}
+                setMealCount={setKafarahMeals}
+                clothCount={kafarahCloths}
+                setClothCount={setKafarahCloths}
+                handleMealDecrease={() =>
+                  setKafarahMeals((prev) => Math.max(0, prev - 1))
+                }
+                handleMealIncrease={() => setKafarahMeals((prev) => prev + 1)}
+                handleClothDecrease={() =>
+                  setKafarahCloths((prev) => Math.max(0, prev - 1))
+                }
+                handleClothIncrease={() => setKafarahCloths((prev) => prev + 1)}
+              />
+              <TopSpace top={12} />
+              <PrimaryButton
+                text="Save"
+                onPress={() => {
+                  setSadaqahMetrics((prev) => ({
+                    ...prev,
+                    [goal.title]: [
+                      { id: 1, label: "Meals", value: String(kafarahMeals) },
+                      { id: 2, label: "Cloths", value: String(kafarahCloths) },
+                    ],
+                  }));
+                  setEditingGoal(null);
+                }}
+              />
+            </View>
+          );
+        case "fidya":
+          return (
+            <View>
+              <FidyaSelector
+                count={fidyaMeals}
+                setCount={setFidyaMeals}
+                handleDecrease={() =>
+                  setFidyaMeals((prev) => Math.max(0, prev - 1))
+                }
+                handleIncrease={() => setFidyaMeals((prev) => prev + 1)}
+                title="Select target number of meals you aim to provide for people in need"
+              />
+              <TopSpace top={12} />
+              <PrimaryButton
+                text="Save"
+                onPress={() => {
+                  setSadaqahMetrics((prev) => ({
+                    ...prev,
+                    [goal.title]: [
+                      { id: 1, label: "Meals", value: String(fidyaMeals) },
+                    ],
+                  }));
+                  setEditingGoal(null);
+                }}
+              />
+            </View>
+          );
+        case "lilah-donations":
+          return (
+            <View>
+              <MissedZakats
+                count={lillahAmount}
+                setCount={setLillahAmount}
+                control={control}
+                name="lillahDonation"
+                handleDecrease={() =>
+                  setLillahAmount((prev) => Math.max(0, prev - 1))
+                }
+                handleIncrease={() => setLillahAmount((prev) => prev + 1)}
+                countTitle="Amount"
+              />
+              <TopSpace top={12} />
+              <PrimaryButton
+                text="Save"
+                onPress={() => {
+                  setSadaqahMetrics((prev) => ({
+                    ...prev,
+                    [goal.title]: [
+                      { id: 1, label: "Amount", value: String(lillahAmount) },
+                    ],
+                  }));
+                  setEditingGoal(null);
+                }}
+              />
+            </View>
+          );
+        case "volunteering-services":
+          return (
+            <View>
+              <FidyaSelector
+                count={volunteeringHours}
+                setCount={setVolunteeringHours}
+                handleDecrease={() =>
+                  setVolunteeringHours((prev) => Math.max(0, prev - 1))
+                }
+                handleIncrease={() => setVolunteeringHours((prev) => prev + 1)}
+                title="Select target for this month"
+              />
+              <TopSpace top={12} />
+              <PrimaryButton
+                text="Save"
+                onPress={() => {
+                  setSadaqahMetrics((prev) => ({
+                    ...prev,
+                    [goal.title]: [
+                      {
+                        id: 1,
+                        label: "Hours",
+                        value: String(volunteeringHours),
+                      },
+                    ],
+                  }));
+                  setEditingGoal(null);
+                }}
+              />
+            </View>
+          );
+        case "sadaqah-jariyah":
+          return (
+            <View>
+              <MissedZakats
+                count={sadaqahJariyahAmount}
+                setCount={setSadaqahJariyahAmount}
+                control={control}
+                name="sadaqahJariyah"
+                handleDecrease={() =>
+                  setSadaqahJariyahAmount((prev) => Math.max(0, prev - 1))
+                }
+                handleIncrease={() =>
+                  setSadaqahJariyahAmount((prev) => prev + 1)
+                }
+                countTitle="Amount"
+              />
+              <TopSpace top={12} />
+              <PrimaryButton
+                text="Save"
+                onPress={() => {
+                  setSadaqahMetrics((prev) => ({
+                    ...prev,
+                    [goal.title]: [
+                      {
+                        id: 1,
+                        label: "Amount",
+                        value: String(sadaqahJariyahAmount),
+                      },
+                    ],
+                  }));
+                  setEditingGoal(null);
+                }}
+              />
+            </View>
+          );
         case "five-daily-prayers":
           return (
             <DailyPrayerGoalSelection
@@ -1286,10 +1681,32 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
                     <>
                       {reviewItem?.appliedGoals?.map((goal: any) => {
                         const isEditing = editingGoal === goal.title;
+                        // merge any saved metrics (fasting, sadaqah) into selectedGoals
+                        const fastingSelected =
+                          fastingMetrics?.[goal.title] ?? [];
+                        const sadaqahSelected =
+                          sadaqahMetrics?.[goal.title] ?? [];
+                        const quranSelected = quranMetrics?.[goal.title] ?? [];
+                        const baseSelected = goal.selectedGoals ?? [];
+                        const mergedSelected = [
+                          ...baseSelected,
+                          ...fastingSelected,
+                          ...sadaqahSelected,
+                          ...quranSelected,
+                        ].map((entry: any, i: number) => ({
+                          // reassign a stable unique id per merged array index to avoid duplicate keys
+                          id: i + 1,
+                          name: entry?.name ?? `item-${i + 1}`,
+                          label: entry?.label ?? "",
+                          value: entry?.value ?? "",
+                        }));
+                        const goalWithSelected = mergedSelected.length
+                          ? { ...goal, selectedGoals: mergedSelected }
+                          : goal;
                         return (
                           <View key={goal.id}>
                             <ReviewGoalCard
-                              goal={goal}
+                              goal={goalWithSelected}
                               handleEditPress={() => {
                                 console.log(
                                   "editing goal with id:",

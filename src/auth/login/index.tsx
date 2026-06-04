@@ -103,7 +103,7 @@ export default function LoginScreen() {
 
                   <TouchableOpacity
                     style={styles.orloginContainer}
-                    onPress={() => router.push("/dummy")}
+                    onPress={() => router.push("/dummy" as any)}
                     activeOpacity={0.7}
                   >
                     <View style={styles.line} />
