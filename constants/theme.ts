@@ -36,7 +36,7 @@ export const Colors = {
     seagreen: "#00EAD2",
     greybuttonversion: "#53566052",
     graylightshade: "#8B8B8B",
-
+    lightgreen: "rgba(29, 191, 115, 0.1)"
 
 
   },
