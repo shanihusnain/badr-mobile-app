@@ -61,8 +61,6 @@ export default function LoginScreen() {
             behavior={Platform.OS === "ios" ? "padding" : "height"}
             keyboardVerticalOffset={0}
           >
-
-            
             <View style={styles.bottomSheet}>
               <View style={styles.bottomSheetContent}>
                 <View style={styles.formWrapper}>
@@ -107,7 +105,9 @@ export default function LoginScreen() {
                     activeOpacity={0.7}
                   >
                     <View style={styles.line} />
-                    <Text style={styles.orloginText}>{t("loginScreen.orLoginWith")}</Text>
+                    <Text style={styles.orloginText}>
+                      {t("loginScreen.orLoginWith")}
+                    </Text>
                     <View style={styles.line} />
                   </TouchableOpacity>
                 </View>
