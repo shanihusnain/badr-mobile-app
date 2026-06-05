@@ -36,9 +36,15 @@ export const Colors = {
     seagreen: "#00EAD2",
     greybuttonversion: "#53566052",
     graylightshade: "#8B8B8B",
-    lightgreen: "rgba(29, 191, 115, 0.1)"
-
-
+    lightgreen: "rgba(29, 191, 115, 0.1)",
+    golden: "#FFAA00",
+    goldenBright: "#FFD56B",
+    goldenDeep: "#C9A227",
+    goldenGlow: "rgba(255, 213, 107, 0.55)",
+    ringPrayer: "#5B9FD4",
+    ringQuran: "#8B7CF6",
+    ringFasting: "#FFFFFF",
+    ringSadaqah: "#FFAA00",
   },
   dark: {
     text: "#ECEDEE",

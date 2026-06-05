@@ -7,646 +7,695 @@ import { fonts } from "../../../assets/fonts";
 import { Colors } from "../../../constants/theme";
 
 const CARD_WIDTH = Dimensions.get("window").width - 32;
+export const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: Colors.light.blackBackground,
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    overflow: "visible",
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    // paddingTop: hp(8),
+    // paddingBottom: hp(4),
+  },
 
-const createStyles = () =>
-  StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: Colors.light.blackBackground,
-      paddingHorizontal: 16,
-      paddingBottom: 12,
-    },
-    scrollContainer: {
-      flexGrow: 1,
-      paddingTop: hp(8),
-      paddingBottom: hp(4),
-    },
+  // Top Section
+  topSection: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: hp(3),
+    paddingHorizontal: wp(2),
+  },
 
-    // Top Section
-    topSection: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      marginBottom: hp(3),
-      paddingHorizontal: wp(2),
-    },
+  // Avatar Container (Circular, No Edit Button)
+  avatarContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 35,
+    backgroundColor: Colors.light.calendarBg,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: Colors.light.white,
+  },
 
-    // Avatar Container (Circular, No Edit Button)
-    avatarContainer: {
-      width: 40,
-      height: 40,
-      borderRadius: 35,
-      backgroundColor: Colors.light.calendarBg,
-      justifyContent: "center",
-      alignItems: "center",
-      borderWidth: 2,
-      borderColor: Colors.light.white,
-    },
+  // Streak Counter Box
+  streakBox: {
+    width: 65,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: Colors.light.calendarBg,
+    justifyContent: "center",
+    alignItems: "center",
+    //borderWidth: 1.5,
+    // borderColor: Colors.light.green,
+  },
 
-    // Streak Counter Box
-    streakBox: {
-      width: 65,
-      height: 40,
-      borderRadius: 12,
-      backgroundColor: Colors.light.calendarBg,
-      justifyContent: "center",
-      alignItems: "center",
-      //borderWidth: 1.5,
-      // borderColor: Colors.light.green,
-    },
+  streakText: {
+    color: Colors.light.white,
+    fontSize: 16,
+    fontFamily: fonts.primary.bold,
+  },
 
-    streakText: {
-      color: Colors.light.white,
-      fontSize: 16,
-      fontFamily: fonts.primary.bold,
-    },
+  // Badr Text (Center)
+  badrText: {
+    color: Colors.light.grey,
+    fontSize: 24,
+    fontFamily: fonts.primary.semiBold,
+    textAlign: "center",
+    marginBottom: hp(3),
+    marginTop: hp(1),
+  },
 
-    // Badr Text (Center)
-    badrText: {
-      color: Colors.light.grey,
-      fontSize: 24,
-      fontFamily: fonts.primary.semiBold,
-      textAlign: "center",
-      marginBottom: hp(3),
-      marginTop: hp(1),
-    },
+  // Prayer Card Wrapper
+  prayerCardWrapper: {
+    position: "relative",
+    marginBottom: hp(3),
+  },
 
-    // Prayer Card Wrapper
-    prayerCardWrapper: {
-      position: "relative",
-      marginBottom: hp(3),
-    },
+  // Close Button
+  closeButton: {
+    position: "absolute",
+    top: 6,
+    right: 8,
+    zIndex: 10,
+    padding: 8,
+  },
 
-    // Close Button
-    closeButton: {
-      position: "absolute",
-      top: 6,
-      right: 8,
-      zIndex: 10,
-      padding: 8,
-    },
+  // Prayer Card Container
+  prayerCardContainer: {
+    backgroundColor: Colors.light.calendarBg,
+    borderRadius: 16,
+    padding: wp(5),
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    //borderWidth: 1,
+    //borderColor: Colors.light.green,
+    //minHeight: 120,
+  },
 
-    // Prayer Card Container
-    prayerCardContainer: {
-      backgroundColor: Colors.light.calendarBg,
-      borderRadius: 16,
-      padding: wp(5),
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      //borderWidth: 1,
-      //borderColor: Colors.light.green,
-      //minHeight: 120,
-    },
+  // Left Side - Prayer Details
+  prayerDetailsLeft: {
+    flex: 1,
+    justifyContent: "center",
+  },
 
-    // Left Side - Prayer Details
-    prayerDetailsLeft: {
-      flex: 1,
-      justifyContent: "center",
-    },
+  upcomingText: {
+    color: Colors.light.white,
+    fontSize: 12,
+    fontFamily: fonts.primary.regular,
+    marginBottom: hp(1),
+    fontWeight: "400",
+  },
 
-    upcomingText: {
-      color: Colors.light.white,
-      fontSize: 12,
-      fontFamily: fonts.primary.regular,
-      marginBottom: hp(1),
-      fontWeight: "400",
-    },
+  prayerNameText: {
+    color: Colors.light.white,
+    fontSize: 20,
+    fontFamily: fonts.primary.bold,
+    marginBottom: hp(0.8),
+  },
 
-    prayerNameText: {
-      color: Colors.light.white,
-      fontSize: 20,
-      fontFamily: fonts.primary.bold,
-      marginBottom: hp(0.8),
-    },
+  timeText: {
+    color: Colors.light.white,
+    fontSize: 12,
+    fontFamily: fonts.primary.regular,
+  },
 
-    timeText: {
-      color: Colors.light.white,
-      fontSize: 12,
-      fontFamily: fonts.primary.regular,
-    },
+  // Right Side - Date
+  dateRight: {
+    justifyContent: "center",
+    alignItems: "flex-end",
+    paddingLeft: wp(3),
+  },
 
-    // Right Side - Date
-    dateRight: {
-      justifyContent: "center",
-      alignItems: "flex-end",
-      paddingLeft: wp(3),
-    },
+  dateText: {
+    color: Colors.light.white,
+    fontSize: 12,
+    fontFamily: fonts.primary.regular,
+    textAlign: "right",
+    lineHeight: 18,
+  },
 
-    dateText: {
-      color: Colors.light.white,
-      fontSize: 12,
-      fontFamily: fonts.primary.regular,
-      textAlign: "right",
-      lineHeight: 18,
-    },
+  // Collapsed sticky category header (parallax)
+  collapsedHeader: {
+    position: "absolute",
+    top: 10,
+    left: 0,
+    right: 0,
+    zIndex: 50,
+    backgroundColor: Colors.light.blackBackground,
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 10,
+  },
+  collapsedRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 10,
+  },
+  collapsedItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  collapsedLabel: {
+    color: Colors.light.white,
+    fontSize: 10,
+    fontFamily: fonts.primary.semiBold,
+    marginLeft: 10,
+    fontWeight: "600",
+  },
 
-    // Categories Section
-    categoriesContainer: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      gap: wp(2),
-      marginTop: hp(2),
-    },
+  // Categories Section
+  categoriesContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: wp(2),
+    marginTop: hp(2),
+  },
 
-    categoryItemWrapper: {
-      flex: 1,
-      alignItems: "center",
-    },
+  categoryItemWrapper: {
+    flex: 1,
+    alignItems: "center",
+    overflow: "visible",
+  },
 
-    // Category Circle
-    categoryCircle: {
-      width: 70,
-      height: 70,
-      borderRadius: 35,
-      backgroundColor: Colors.light.blackBackground,
-      borderWidth: 2,
-      borderColor: Colors.light.calendarBg,
-      justifyContent: "center",
-      alignItems: "center",
-      marginBottom: hp(1.2),
-    },
+  // Category Circle
+  categoryCircle: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: Colors.light.blackBackground,
+    borderWidth: 2,
+    borderColor: Colors.light.calendarBg,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: hp(1.2),
+  },
 
-    percentageText: {
-      color: Colors.light.white,
-      fontSize: 16,
-      fontFamily: fonts.primary.bold,
-    },
+  percentageText: {
+    color: Colors.light.white,
+    fontSize: 16,
+    fontFamily: fonts.primary.bold,
+  },
 
-    // Category Label with Arrow
-    categoryLabelWrapper: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      gap: 4,
-    },
+  // Category Label with Arrow
+  categoryLabelWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 4,
+  },
 
-    categoryLabel: {
-      color: Colors.light.white,
-      fontSize: 11,
-      fontFamily: fonts.primary.semiBold,
-      textAlign: "center",
-    },
+  categoryLabel: {
+    color: Colors.light.white,
+    fontSize: 11,
+    fontFamily: fonts.primary.semiBold,
+    textAlign: "center",
+  },
 
-    // Containers Section
-    containersSection: {
-      marginTop: hp(3),
-      marginBottom: hp(2),
-      alignItems: "center",
-      justifyContent: "center",
-      width: "100%",
-    },
+  // Containers Section
+  containersSection: {
+    marginTop: hp(3),
+    marginBottom: hp(2),
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
+  },
 
-    horizontalScrollContainer: {
-      gap: 16,
-    },
+  horizontalScrollContainer: {
+    gap: 16,
+  },
 
-    // Scrollable Card (No 3D Effect)
-    scrollableCard: {
-      width: CARD_WIDTH,
-      backgroundColor: Colors.light.greybuttonBackground,
-      borderRadius: 16,
-      padding: wp(5),
-    },
+  // Scrollable Card (No 3D Effect)
+  scrollableCard: {
+    width: CARD_WIDTH,
+    backgroundColor: Colors.light.greybuttonBackground,
+    borderRadius: 16,
+    padding: wp(5),
+  },
 
-    // Green Circle Indicator
+  // Green Circle Indicator
 
-    // Container Title
-    containerTitle: {
-      color: Colors.light.white,
-      fontSize: 16,
-      fontFamily: fonts.primary.semiBold,
-      fontWeight: "600",
-      marginBottom: hp(1.2),
-      lineHeight: 20,
-    },
+  // Container Title
+  containerTitle: {
+    color: Colors.light.white,
+    fontSize: 16,
+    fontFamily: fonts.primary.semiBold,
+    fontWeight: "600",
+    marginBottom: hp(1.2),
+    lineHeight: 20,
+  },
 
-    // Content Wrapper
-    contentWrapper: {
-      flexDirection: "row",
-      flexWrap: "wrap",
-    },
+  // Content Wrapper
+  contentWrapper: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+  },
 
-    // Container Content (Regular Text)
-    containerContent: {
-      color: Colors.light.white,
-      fontSize: 14,
-      fontFamily: fonts.primary.regular,
-      fontWeight: "400",
-      lineHeight: 19,
-      letterSpacing: 0,
-    },
+  // Container Content (Regular Text)
+  containerContent: {
+    color: Colors.light.white,
+    fontSize: 14,
+    fontFamily: fonts.primary.regular,
+    fontWeight: "400",
+    lineHeight: 19,
+    letterSpacing: 0,
+  },
 
-    // Highlighted Text (Medium Weight)
-    highlightedText: {
-      color: Colors.light.white,
-      fontSize: 14,
-      fontFamily: fonts.primary.medium,
-      fontWeight: "500",
-      lineHeight: 19,
-      letterSpacing: 0,
-    },
-    // Days Left Container
-    daysLeftContainer: {
-      width: CARD_WIDTH,
-      backgroundColor: Colors.light.greybuttonBackground,
-      borderRadius: 16,
-      padding: wp(5),
-      marginTop: 16,
-      alignItems: "center",
-    },
+  // Highlighted Text (Medium Weight)
+  highlightedText: {
+    color: Colors.light.white,
+    fontSize: 14,
+    fontFamily: fonts.primary.medium,
+    fontWeight: "500",
+    lineHeight: 19,
+    letterSpacing: 0,
+  },
+  // Days Left Container
+  daysLeftContainer: {
+    width: CARD_WIDTH,
+    backgroundColor: Colors.light.greybuttonBackground,
+    borderRadius: 16,
+    padding: wp(5),
+    marginTop: 16,
+    alignItems: "center",
+  },
 
-    // Days Header Wrapper
-    daysHeaderWrapper: {
-      flexDirection: "row",
-      alignItems: "center",
-      marginBottom: hp(2),
-    },
+  // Days Header Wrapper
+  daysHeaderWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: hp(2),
+  },
 
-    // Days Number Bold (First 28)
-    daysNumberBold: {
-      color: Colors.light.white,
-      fontSize: 16,
-      fontFamily: fonts.primary.bold,
-      fontWeight: "600",
-      marginRight: 2,
-    },
+  // Days Number Bold (First 28)
+  daysNumberBold: {
+    color: Colors.light.white,
+    fontSize: 16,
+    fontFamily: fonts.primary.bold,
+    fontWeight: "600",
+    marginRight: 2,
+  },
 
-    // Days Number Regular (/28 days left)
-    daysNumberRegular: {
-      color: Colors.light.white,
-      fontSize: 16,
-      fontFamily: fonts.primary.regular,
-      fontWeight: "400",
-    },
+  // Days Number Regular (/28 days left)
+  daysNumberRegular: {
+    color: Colors.light.white,
+    fontSize: 16,
+    fontFamily: fonts.primary.regular,
+    fontWeight: "400",
+  },
 
-    // Large Circle (Moon)
-    largeCircle: {
-      width: 220,
-      height: 220,
-      borderRadius: 115,
-      backgroundColor: "#000000",
-      marginVertical: hp(2),
-    },
+  // Large Circle (Moon)
+  largeCircle: {
+    width: 220,
+    height: 220,
+    borderRadius: 115,
+    backgroundColor: "#000000",
+    marginVertical: hp(2),
+  },
 
-    // Bottom Info Wrapper
-    bottomInfoWrapper: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "flex-end",
-      width: "100%",
-      marginTop: hp(2),
-    },
+  // Bottom Info Wrapper
+  bottomInfoWrapper: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-end",
+    width: "100%",
+    marginTop: hp(2),
+  },
 
-    // Bottom Left Section
-    bottomLeftSection: {
-      alignItems: "flex-start",
-    },
+  // Bottom Left Section
+  bottomLeftSection: {
+    alignItems: "flex-start",
+  },
 
-    // Bottom Right Section
-    bottomRightSection: {
-      alignItems: "center",
-    },
+  // Bottom Right Section
+  bottomRightSection: {
+    alignItems: "center",
+  },
 
-    // Bottom Label
-    bottomLabel: {
-      color: Colors.light.grey,
-      fontSize: 12,
-      fontFamily: fonts.primary.regular,
-      fontWeight: "400",
-      marginBottom: hp(0.5),
-    },
+  // Bottom Label
+  bottomLabel: {
+    color: Colors.light.grey,
+    fontSize: 12,
+    fontFamily: fonts.primary.regular,
+    fontWeight: "400",
+    marginBottom: hp(0.5),
+  },
 
-    // Bottom Value
-    bottomValue: {
-      color: Colors.light.grey,
-      fontSize: 18,
-      fontFamily: fonts.primary.bold,
-      fontWeight: "600",
-    },
+  // Bottom Value
+  bottomValue: {
+    color: Colors.light.grey,
+    fontSize: 18,
+    fontFamily: fonts.primary.bold,
+    fontWeight: "600",
+  },
 
-    // ── Inspiration Cards Section ──────────────────────────────────────────────
+  // ── Inspiration Cards Section ──────────────────────────────────────────────
 
-    inspirationSection: {
-      marginTop: 16,
-      marginBottom: 16,
-      //width: "100%",
-      alignItems: "center",
-      justifyContent: "center",
-    },
+  inspirationSection: {
+    marginTop: 16,
+    marginBottom: 16,
+    //width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+  },
 
-    inspirationScrollContainer: {
-      gap: 16,
-    },
+  inspirationScrollContainer: {
+    gap: 16,
+  },
 
-    inspirationCard: {
-      width: CARD_WIDTH,
-      height: 130,
-      backgroundColor: Colors.light.greybuttonBackground,
-      borderRadius: 16,
-      padding: 16,
-      justifyContent: "flex-start",
-    },
+  inspirationCard: {
+    width: CARD_WIDTH,
+    height: 130,
+    backgroundColor: Colors.light.greybuttonBackground,
+    borderRadius: 16,
+    padding: 16,
+    justifyContent: "flex-start",
+  },
 
+  // Card Title — SF Pro Medium 18px, small-caps effect via letterSpacing + textTransform
+  inspirationTitle: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.medium,
+    fontWeight: "500",
+    fontSize: 18,
+    lineHeight: 20,
+    letterSpacing: 0,
+    textTransform: "uppercase",
+    marginBottom: 6,
+  },
 
+  // Quote text — SF Pro Semibold 14px
+  inspirationQuote: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.semiBold,
+    fontWeight: "600",
+    fontSize: 14,
+    lineHeight: 20,
+    letterSpacing: -0.1,
+    flexShrink: 1,
+  },
 
-    // Card Title — SF Pro Medium 18px, small-caps effect via letterSpacing + textTransform
-    inspirationTitle: {
-      color: Colors.light.white,
-      fontFamily: fonts.primary.medium,
-      fontWeight: "500",
-      fontSize: 18,
-      lineHeight: 20,
-      letterSpacing: 0,
-      textTransform: "uppercase",
-      marginBottom: 6,
-    },
+  // Reference — SF Pro MediumItalic 14px
+  inspirationReference: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.mediumItalic,
+    fontWeight: "500",
+    fontStyle: "italic",
+    fontSize: 14,
+    lineHeight: 20,
+    letterSpacing: -0.1,
+  },
 
-    // Quote text — SF Pro Semibold 14px
-    inspirationQuote: {
-      color: Colors.light.white,
-      fontFamily: fonts.primary.semiBold,
-      fontWeight: "600",
-      fontSize: 14,
-      lineHeight: 20,
-      letterSpacing: -0.1,
-      flexShrink: 1,
-    },
+  // Pagination dots
+  inspirationDots: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 6,
+    marginTop: 10,
+  },
 
-    // Reference — SF Pro MediumItalic 14px
-    inspirationReference: {
-      color: Colors.light.white,
-      fontFamily: fonts.primary.mediumItalic,
-      fontWeight: "500",
-      fontStyle: "italic",
-      fontSize: 14,
-      lineHeight: 20,
-      letterSpacing: -0.1,
-    },
+  inspirationDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Colors.light.grey,
+  },
 
-    // Pagination dots
-    inspirationDots: {
-      flexDirection: "row",
-      justifyContent: "center",
-      alignItems: "center",
-      gap: 6,
-      marginTop: 10,
-    },
-
-    inspirationDot: {
-      width: 6,
-      height: 6,
-      borderRadius: 3,
-      backgroundColor: Colors.light.grey,
-    },
-
-    inspirationDotActive: {
-      backgroundColor: Colors.light.green,
-      width: 7,
-      borderRadius: 3,
-    },
-    // Log Menstruation Container Styles
-    menstruationContainer: {
-      width: 320,
-      height: 40,
-      borderRadius: 12,
-      backgroundColor: Colors.light.lightgreen, // Green color with 0.1 opacity (10%)
-      alignSelf: "center",
-      justifyContent: "center",
-      alignItems: "center",
-      marginTop: 16,
-      marginBottom: 8,
-    },
-    menstruationInner: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      gap: 8,
-    },
-    greenPlusCircle: {
-      width: 22,
-      height: 22,
-      borderRadius: 11,
-      backgroundColor: Colors.light.green,
-      justifyContent: "center",
-      alignItems: "center",
-      borderWidth: 1.5,
-      borderColor: Colors.light.green,
-    },
-    menstruationText: {
-      fontFamily: fonts.primary.bold || "SF Pro Text",
-      fontWeight: "700",
-      fontSize: 13,
-      color: Colors.light.green,
-      letterSpacing: 0.5,
-    },
-    // Customize Your Journal Container
-    journalContainer: {
-      width: CARD_WIDTH,
-      height: 150,
-      backgroundColor: Colors.light.greybuttonBackground,
-      borderRadius: 16,
-      padding: 16,
-      alignSelf: "center",
-      marginTop: 16,
-      marginBottom: 8,
-      gap: 10,
-    },
-    journalTitle: {
-      fontFamily: fonts.primary.semiBold || "SF Pro Text",
-      fontWeight: "600",
-      fontSize: 16,
-      lineHeight: 20,
-      letterSpacing: 0,
-      color: Colors.light.white,
-    },
-    journalDescription: {
-      fontFamily: fonts.primary.regular || "SF Pro Text",
-      fontWeight: "400",
-      fontSize: 13,
-      lineHeight: 18,
-      letterSpacing: 0.1,
-      color: Colors.light.white,
-    },
-    getStartedButton: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 8,
-      alignSelf: "flex-start",
-    },
-    getStartedText: {
-      fontFamily: fonts.primary.semiBold || "SF Pro Text",
-      fontWeight: "600",
-      fontSize: 13,
-      lineHeight: 18,
-      letterSpacing: 0,
-      color: Colors.light.green,
-      textTransform: "uppercase",
-    },
-    // My Dashboard Section
-    dashboardSection: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      width: CARD_WIDTH,
-      alignSelf: "center",
-      marginTop: 16,
-      marginBottom: 8,
-    },
-    dashboardText: {
-      fontFamily: fonts.primary.medium || "SF Pro Text",
-      fontWeight: "500",
-      fontSize: 18,
-      lineHeight: 20,
-      letterSpacing: 0,
-      color: Colors.light.white,
-    },
-    customizeContainer: {
-      width: 110,
-      height: 24,
-      backgroundColor: Colors.light.lightgreen, // Green color with 0.1 opacity (10%)
-      borderRadius: 4,
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    customizeText: {
-      fontFamily: fonts.primary.semiBold || "SF Pro Text",
-      fontWeight: "600",
-      fontSize: 14,
-      lineHeight: 14,
-      letterSpacing: 0,
-      color: Colors.light.green,
-      textAlign: "right",
-      textTransform: "uppercase",
-      fontVariant: ["small-caps"],
-    },
-    // Category Filter Section
-    categoryFilterSection: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 6,
-      width: CARD_WIDTH,
-      alignSelf: "center",
-      marginTop: 8,
-      marginBottom: 8,
-    },
-    categoryFilterItem: {
-      height: 28,
-      borderRadius: 6,
-      backgroundColor: Colors.light.greybuttonBackground,
-      justifyContent: "center",
-      alignItems: "center",
-      paddingHorizontal: 8,
-      paddingVertical: 5,
-    },
-    categoryFilterItemWide: {
-      height: 28,
-      borderRadius: 6,
-      backgroundColor: Colors.light.greybuttonBackground,
-      justifyContent: "center",
-      alignItems: "center",
-      paddingHorizontal: 8,
-      paddingVertical: 5,
-    },
-    categoryFilterItemActive: {
-      backgroundColor: Colors.light.green,
-    },
-    categoryFilterText: {
-      fontFamily: fonts.primary.medium || "SF Pro Text",
-      fontWeight: "500",
-      fontSize: 14,
-      lineHeight: 18,
-      letterSpacing: 0,
-      color: Colors.light.white,
-      textAlign: "center",
-    },
-    categoryFilterTextActive: {
-      color: Colors.light.white,
-    },
-    // Tahiyyat Al-Wudhu Container
-    tahiyyatContainer: {
-      width: 328,
-      height: 72,
-      backgroundColor: Colors.light.greybuttonBackground,
-      borderRadius: 11,
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      alignSelf: "center",
-      marginTop: 16,
-      marginBottom: 8,
-    },
-    tahiyyatLeft: {
-      flex: 1,
-      gap: 4,
-    },
-    tahiyyatTitle: {
-      fontFamily: fonts.primary.semiBold || "SF Pro Text",
-      fontWeight: "600",
-      fontSize: 15,
-      lineHeight: 18,
-      letterSpacing: 0,
-      color: Colors.light.white,
-      fontVariant: ["small-caps"],
-    },
-    tahiyyatSubtitle: {
-      fontFamily: fonts.primary.semiBold || "SF Pro Text",
-      fontWeight: "600",
-      fontSize: 14,
-      lineHeight: 14,
-      letterSpacing: 0,
-    },
-    tahiyyatNumber: {
-      color: Colors.light.white,
-    },
-    tahiyyatDivider: {
-      color: Colors.light.grey,
-    },
-    tahiyyatCircleWrapper: {
-      marginTop: 8,
-    },
-    circleTextContainer: {
-      flexDirection: "row",
-      alignItems: "baseline",
-    },
-    circleMainText: {
-      fontFamily: fonts.primary.medium || "SF Pro Text",
-      fontWeight: "500",
-      fontSize: 12,
-      lineHeight: 12,
-      letterSpacing: 0,
-      color: Colors.light.white,
-      textAlign: "center",
-    },
-    circlePercentText: {
-      fontFamily: fonts.primary.medium || "SF Pro Text",
-      fontWeight: "500",
-      fontSize: 7,
-      lineHeight: 7,
-      letterSpacing: 0,
-      color: Colors.light.white,
-    },
-    // Show More Button
-    showMoreButton: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      gap: 8,
-      marginTop: 16,
-      marginBottom: 8,
-    },
-    showMoreText: {
-      fontFamily: fonts.primary.semiBold || "SF Pro Text",
-      fontWeight: "600",
-      fontSize: 14,
-      lineHeight: 14,
-      letterSpacing: 0,
-      color: Colors.light.white,
-      textTransform: "uppercase",
-      fontVariant: ["small-caps"],
-    },
-  });
-
-export default createStyles;
+  inspirationDotActive: {
+    backgroundColor: Colors.light.green,
+    width: 7,
+    borderRadius: 3,
+  },
+  // Log Menstruation Container Styles
+  menstruationContainer: {
+    width: 320,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: Colors.light.lightgreen, // Green color with 0.1 opacity (10%)
+    alignSelf: "center",
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  menstruationInner: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  greenPlusCircle: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: Colors.light.green,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1.5,
+    borderColor: Colors.light.green,
+  },
+  menstruationText: {
+    fontFamily: fonts.primary.bold || "SF Pro Text",
+    fontWeight: "700",
+    fontSize: 13,
+    color: Colors.light.green,
+    letterSpacing: 0.5,
+  },
+  // Customize Your Journal Container
+  journalContainer: {
+    width: CARD_WIDTH,
+    height: 150,
+    backgroundColor: Colors.light.greybuttonBackground,
+    borderRadius: 16,
+    padding: 16,
+    alignSelf: "center",
+    marginTop: 16,
+    marginBottom: 8,
+    gap: 10,
+  },
+  journalTitle: {
+    fontFamily: fonts.primary.semiBold || "SF Pro Text",
+    fontWeight: "600",
+    fontSize: 16,
+    lineHeight: 20,
+    letterSpacing: 0,
+    color: Colors.light.white,
+  },
+  journalDescription: {
+    fontFamily: fonts.primary.regular || "SF Pro Text",
+    fontWeight: "400",
+    fontSize: 13,
+    lineHeight: 18,
+    letterSpacing: 0.1,
+    color: Colors.light.white,
+  },
+  getStartedButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    alignSelf: "flex-start",
+  },
+  getStartedText: {
+    fontFamily: fonts.primary.semiBold || "SF Pro Text",
+    fontWeight: "600",
+    fontSize: 13,
+    lineHeight: 18,
+    letterSpacing: 0,
+    color: Colors.light.green,
+    textTransform: "uppercase",
+  },
+  // My Dashboard Section
+  dashboardSection: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: CARD_WIDTH,
+    alignSelf: "center",
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  dashboardText: {
+    fontFamily: fonts.primary.medium || "SF Pro Text",
+    fontWeight: "500",
+    fontSize: 18,
+    lineHeight: 20,
+    letterSpacing: 0,
+    color: Colors.light.white,
+  },
+  customizeContainer: {
+    width: 110,
+    height: 24,
+    backgroundColor: Colors.light.lightgreen, // Green color with 0.1 opacity (10%)
+    borderRadius: 4,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  customizeText: {
+    fontFamily: fonts.primary.semiBold || "SF Pro Text",
+    fontWeight: "600",
+    fontSize: 14,
+    lineHeight: 14,
+    letterSpacing: 0,
+    color: Colors.light.green,
+    textAlign: "right",
+    textTransform: "uppercase",
+    fontVariant: ["small-caps"],
+  },
+  // Category Filter Section
+  categoryFilterScroll: {
+    marginTop: 8,
+    marginBottom: 8,
+  },
+  categoryFilterContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingRight: 16,
+  },
+  categoryFilterItem: {
+    height: 28,
+    borderRadius: 6,
+    backgroundColor: Colors.light.greybuttonBackground,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    flexShrink: 0,
+  },
+  categoryFilterItemWide: {
+    height: 28,
+    borderRadius: 6,
+    backgroundColor: Colors.light.greybuttonBackground,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    flexShrink: 0,
+  },
+  categoryFilterItemActive: {
+    backgroundColor: Colors.light.green,
+  },
+  categoryFilterText: {
+    fontFamily: fonts.primary.medium || "SF Pro Text",
+    fontWeight: "500",
+    fontSize: 14,
+    lineHeight: 18,
+    letterSpacing: 0,
+    color: Colors.light.white,
+    textAlign: "center",
+  },
+  categoryFilterTextActive: {
+    color: Colors.light.white,
+  },
+  // Tahiyyat Al-Wudhu Container
+  tahiyyatContainer: {
+    backgroundColor: Colors.light.greybuttonBackground,
+    borderRadius: 11,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    alignSelf: "center",
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  tahiyyatLeft: {
+    flex: 1,
+    gap: 4,
+    width: "50%",
+  },
+  tahiyyatTitle: {
+    fontFamily: fonts.primary.semiBold,
+    fontWeight: "600",
+    fontSize: 15,
+    lineHeight: 18,
+    letterSpacing: 0,
+    color: Colors.light.white,
+    fontVariant: ["small-caps"],
+    width: "96%",
+  },
+  tahiyyatSubtitle: {
+    fontFamily: fonts.primary.semiBold,
+    fontWeight: "600",
+    fontSize: 14,
+    lineHeight: 14,
+    letterSpacing: 0,
+  },
+  tahiyyatNumber: {
+    color: Colors.light.white,
+  },
+  tahiyyatDivider: {
+    color: Colors.light.grey,
+  },
+  tahiyyatCircleWrapper: {
+    marginTop: 8,
+  },
+  circleTextContainer: {
+    flexDirection: "row",
+    alignItems: "baseline",
+  },
+  circleMainText: {
+    fontFamily: fonts.primary.medium,
+    fontWeight: "500",
+    fontSize: 12,
+    lineHeight: 12,
+    letterSpacing: 0,
+    color: Colors.light.white,
+    textAlign: "center",
+  },
+  circlePercentText: {
+    fontFamily: fonts.primary.medium,
+    fontWeight: "500",
+    fontSize: 7,
+    lineHeight: 7,
+    letterSpacing: 0,
+    color: Colors.light.white,
+  },
+  // Show More Button
+  showMoreButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  showMoreText: {
+    fontFamily: fonts.primary.semiBold,
+    fontWeight: "600",
+    fontSize: 14,
+    lineHeight: 14,
+    letterSpacing: 0,
+    color: Colors.light.white,
+    textTransform: "uppercase",
+    fontVariant: ["small-caps"],
+  },
+  goldenFab: {
+    position: "absolute",
+    right: 20,
+    zIndex: 1000,
+    overflow: "visible",
+  },
+  goldenFabInner: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  goldenFabPlus: {
+    fontSize: 38,
+    fontWeight: "300",
+    color: Colors.light.white,
+    lineHeight: 30,
+  },
+});
