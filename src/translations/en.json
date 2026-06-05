@@ -225,6 +225,90 @@
       "shaw": "Shaw.",
       "dhulQ": "Dhul Q.",
       "dhulH": "Dhul H."
+    },
+    "save": "Save",
+    "amount": "Amount",
+    "meals": "Meals",
+    "cloths": "Cloths",
+    "hours": "Hours",
+    "selectNumHours": "Select number of hours",
+    "hoursQuranListening": "hours of Quran listening",
+    "hoursQuranTajweed": "hours of Quran tajweed",
+    "recitationBySurah": "Recitation — by Surah",
+    "recitationByCompletion": "Recitation — by Completion",
+    "recitationByJuz": "Recitation — by Juz",
+    "memorizationByJuz": "Memorization — by Juz",
+    "memorizationByHizb": "Memorization — by Hizb",
+    "memorizationBySurah": "Memorization — by Surah",
+    "fidyaMealsTitle": "Select target number of meals you aim to provide for people in need",
+    "volunteeringMonthTitle": "Select target for this month",
+    "selectTrackingMetric": "Select tracking metric and target",
+    "items": "items",
+    "meals": "meals",
+    "hours": "hours",
+    "reviewLabels": {
+      "tahayyatWudu": "Tahiyyat Al-Wudhu",
+      "fiveDailyPrayers": "The Five Daily Prayers",
+      "sunnahRawatib": "Sunnah Rawatib",
+      "tahayyatMasjid": "Tahiyyat Al-Masjid",
+      "missedPastPrayers": "Missed Past Prayers",
+      "duha": "Duha",
+      "tawba": "Tawba",
+      "istikhara": "Istikhara",
+      "shukr": "Shukr",
+      "qiyalAlLail": "Qiyal Al-Lail",
+      "quranListening": "Quran Listening",
+      "quranRecitationSurah": "Quran Recitation (by Surah)",
+      "quranRecitationCompletion": "Quran Recitation (by Completion)",
+      "quranRecitationJuz": "Quran Recitation (by Juz)",
+      "quranMemorizationJuz": "Quran Memorization (by Juz)",
+      "quranMemorizationHizb": "Quran Memorization (by Hizb)",
+      "quranMemorizationSurah": "Quran Memorization (by Surah)",
+      "quranTajweed": "Quran Tajweed",
+      "missedFasts": "Missed Ramadan Fasts",
+      "dawoodFasts": "Prophet Dawood Fast (every other day)",
+      "mondayThursdayFasts": "Monday & Thursday Fasts",
+      "whiteDaysFasts": "White Days Fasts",
+      "missedZakat": "Missed Zakat",
+      "kafarahBreakingFasts": "Kafarah for Breaking Fasts",
+      "fidya": "Fidya",
+      "lilahDonations": "Lilah Donations",
+      "volunteeringServices": "Volunteering Services",
+      "sadaqahJariyah": "Sadaqah Jariyah",
+      "ramadanMissed1": "Ramadan 10th",
+      "ramadanMissed2": "Ramadan 12th",
+      "mon": "Mon",
+      "wed": "Wed",
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday",
+      "saturday": "Saturday",
+      "sunday": "Sunday",
+      "white13": "13th (White Day)",
+      "white14": "14th (White Day)",
+      "white15": "15th (White Day)",
+      "juz": "Juz",
+      "hizb": "Hizb",
+      "surah": "Surah",
+      "completion": "Completion"
+    },
+    "save": "Save",
+    "quranMetrics": {
+      "completionKhatma": "Completion (Khatma)",
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "enterUpToTimes": "Enter up to {{max}} times {{frequency}}",
+      "timesFrequency": "times {{frequency}}",
+      "recitationsCount": "{{count}} recitations",
+      "recitationsFormula": "{{times}} x {{multiplier}} = {{total}} recitations",
+      "juzRangeHint": "Enter numbers between 1-30. 'To Juz' must be greater than or equal to 'From Juz.'",
+      "fromJuz": "From Juz",
+      "toJuz": "to Juz",
+      "totalJuz": "(a total of {{total}} juz)",
+      "enterUpToCompletions": "Enter up to 28 Completions.",
+      "fullCompletions": "Full completion(s) of the Quran"
     }
   },
   "prayerGoals": {
@@ -602,7 +686,7 @@
             {
               "type": "text",
               "style": "quoteMediumItalic",
-              "content": "\u201cMay Allah have mercy on a person who prays four rak\u2019ah before the Asr prayer.\u201d"
+              "content": "“May Allah have mercy on a person who prays four rak’ah before the Asr prayer.”"
             }
           ]
         },
@@ -620,13 +704,43 @@
             },
             {
               "type": "table",
-              "headers": ["PRAYER", "SUNNAH\n(Before)", "FARD", "SUNNAH\n(After)"],
+              "headers": [
+                "PRAYER",
+                "SUNNAH\n(Before)",
+                "FARD",
+                "SUNNAH\n(After)"
+              ],
               "rows": [
-                ["FAJR", "2", "2", "-"],
-                ["DHUHR", "2+2", "4", "2 or 4"],
-                ["ASR", "2 or 4", "4", "-"],
-                ["MAGHRIB", "-", "3", "2"],
-                ["ISHA", "-", "4", "2"]
+                [
+                  "FAJR",
+                  "2",
+                  "2",
+                  "-"
+                ],
+                [
+                  "DHUHR",
+                  "2+2",
+                  "4",
+                  "2 or 4"
+                ],
+                [
+                  "ASR",
+                  "2 or 4",
+                  "4",
+                  "-"
+                ],
+                [
+                  "MAGHRIB",
+                  "-",
+                  "3",
+                  "2"
+                ],
+                [
+                  "ISHA",
+                  "-",
+                  "4",
+                  "2"
+                ]
               ]
             }
           ]
@@ -1369,7 +1483,6 @@
       "description": "Memorizing the Quran strengthens our bond with Allah, deepens understanding of His teachings, boosts memory, and offers comfort and guidance in all life aspects.",
       "heroTitle": "A Journey of Spiritual Transformation",
       "navTitle": "QURAN MEMORIZATION",
-   
       "readMore": [
         {
           "items": [
@@ -1473,7 +1586,6 @@
       "description": "Tajweed helps us internalize Allah's words, allowing them to resonate deeply within us, and deepens our appreciation of their beauty and eloquence.",
       "heroTitle": "Mastering the Art of Divine Recitation",
       "navTitle": "QURAN TAJWEED",
-    
       "readMore": [
         {
           "items": [
@@ -2241,7 +2353,6 @@
       "description": "Fidya allows those unable to fast due to illness or age to stay spiritually connected by feeding one person per missed fast day, maintaining their worship and compassion.",
       "heroTitle": "Bridging Faith with Communal Empathy",
       "navTitle": "FIDYA",
-  
       "readMore": [
         {
           "items": [
@@ -2555,7 +2666,6 @@
       "description": "Sadaqah Jariyah is a key Islamic practice that seeks Allah's mercy and offers continuous benefits, providing ongoing rewards for the donor in this life and the afterlife.",
       "heroTitle": "A Path to Eternal Blessings & Remembrance",
       "navTitle": "SADAQAH JARIYAH",
-    
       "readMore": [
         {
           "items": [
@@ -2692,5 +2802,128 @@
         }
       ]
     }
+  },
+  "homeScreen": {
+    "upcoming": "Upcoming",
+    "juneDate": "June 1, 2026",
+    "prayers": "PRAYERS",
+    "quran": "QURAN",
+    "fasting": "FASTING",
+    "sadaqah": "SADAQAH",
+    "welcomeTitle": "Welcome to Badr, {{name}}!",
+    "welcomeContent": "Your 28-day goal cycle is set to begin tomorrow at Fajr. Get ready to track your prayer, Quran, fasting, and sadaqah goals. May Allah (SWT) make it easy and rewarding for you!",
+    "welcomeHighlightCycle": "28-day goal cycle",
+    "welcomeHighlightTomorrow": "tomorrow",
+    "welcomeHighlightFajr": "Fajr",
+    "trackProgressTitle": "Track Your Progress",
+    "trackProgressContent": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "dailyLightTitle": "Daily Light from the Quran",
+    "dailyLightQuote": "\"Indeed, it is We who guide whom We will to our ways.\"",
+    "dailyLightRef": "(Surah Al-Ankabut, 29:69)",
+    "hadithTitle": "Hadith of the Day",
+    "hadithQuote": "\"The best of you are those who learn the Quran and teach it.\"",
+    "hadithRef": "(Sahih Al-Bukhari)",
+    "reflectionTitle": "Reflection & Gratitude",
+    "reflectionQuote": "\"And if you should count the favors of Allah, you could not enumerate them.\"",
+    "reflectionRef": "(Surah Ibrahim, 14:34)",
+    "logMenstruation": "LOG MENSTRUATION",
+    "customizeJournalTitle": "Customize Your Journal",
+    "customizeJournalDesc": "Choose from over 100 behaviors to track daily, fostering growth in your character and helping you become your best self.",
+    "getStarted": "GET STARTED",
+    "myDashboard": "My Dashboard",
+    "customize": "CUSTOMIZE",
+    "filterAll": "All",
+    "filterPrayer": "Prayer",
+    "filterQuran": "Quran",
+    "filterFasting": "Fasting",
+    "filterSadaqah": "Sadaqah",
+    "tahiyyatAlWudhu": "TAHIYYAT AL-WUDHU",
+    "sunnahRawatib": "SUNNAH RAWATIB",
+    "tahiyyatAlMasjid": "TAHIYYAT AL-MASJID",
+    "qiyamAlLayl": "QIYAM AL-LAYL",
+    "missedPastPrayers": "MISSED PAST PRAYERS",
+    "alShukar": "AL-SHUKAR",
+    "quranRecitation": "QURAN RECITATION (BY COMPLETION)",
+    "sadaqahJariyah": "SADAQAH JARIYAH",
+    "missedRamadanFasts": "MISSED RAMADAN FASTS",
+    "fastsProphetDawood": "THE FASTS OF PROPHET DAWOOD (A.S)",
+    "mondayThursdayFasts": "MONDAY & THURSDAY FASTS",
+    "whiteDaysFast": "WHITE DAYS FAST",
+    "prayersCount": "/{{count}} prayers",
+    "countSuffix": "/{{count}}",
+    "sadaqahAmount": "/${{amount}}",
+    "showLess": "Show Less",
+    "showMore": "Show More"
+  },
+  "daysTracker": {
+    "daysLeft": "/{{total}} days left",
+    "day": "Day",
+    "overallProgress": "Overall Progress",
+    "committedGoals": "You've committed to working on \n{{count}} goals!",
+    "welcomeJourney": "You're all set—your journey toward deeper connection and growth starts soon. As you begin tracking, your moon will fill with light—reflecting every step you take toward growth, connection, and ihsān."
+  },
+  "namazGoalBottomSheet": {
+    "dateRange": "NOV 29 - DEC 26, 2024",
+    "notStarted": "NOT STARTED",
+    "inProgress": "IN PROGRESS",
+    "completed": "COMPLETED",
+    "goalsCount": "{{count}} Goals",
+    "goalsCountOne": "1 Goal"
+  },
+  "menstruationLog": {
+    "title": "LOG MENSTRUATION",
+    "infoText": "Log your menstruation period to update your goals. Exempt acts of worship will be automatically adjusted, ensuring your progress stays accurate and fair.",
+    "periodHeader": "YOUR MENSTRUATION PERIOD",
+    "imMenstruating": "I'M MENSTRUATING",
+    "imStillMenstruating": "I'M STILL MENSTRUATING",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "today": "Today",
+    "save": "SAVE",
+    "startQuestionToday": "When did it start today?",
+    "startQuestionDate": "When did it start {{date}}?",
+    "endQuestionToday": "When did it end today?",
+    "endQuestionDate": "When did it end {{date}}?",
+    "beforeFajr": "Before Fajr",
+    "beforeDuhr": "Before Dhuhr",
+    "beforeAsr": "Before Asr",
+    "beforeMaghrib": "Before Maghrib",
+    "beforeIsha": "Before Isha",
+    "islamicMonthNames": [
+      "Muh.",
+      "Saf.",
+      "Rab. I",
+      "Rab. II",
+      "Jum. I",
+      "Jum. II",
+      "Raj.",
+      "Sha.",
+      "Ram.",
+      "Shaw.",
+      "Dhu al-Qa.",
+      "Dhu al-Hi."
+    ]
+  },
+  "streakCounter": {
+    "title": "DAY STREAK",
+    "startedDate": "Jul 8, 2026",
+    "streakStarted": "Streak started",
+    "topPercentage": "Top 30%",
+    "badr": "badr",
+    "maxStreak": "Max streak",
+    "thisWeek": "THIS WEEK",
+    "moreDays": "{{count}} more days",
+    "unlockMilestone": "to unlock your\nnext milestone.",
+    "consistencyHeader": "Stay Consistent for Long-Term Barakah",
+    "consistencyBody": "Your daily commitment to logging on Badr is more than a routine—it’s a step toward spiritual growth, bringing you closer to your goals, strengthening worship, and deepening your connection with Allah.",
+    "weekDays": [
+      "Sun",
+      "Mon",
+      "Tue",
+      "Wed",
+      "Thu",
+      "Fri",
+      "Sat"
+    ]
   }
 }

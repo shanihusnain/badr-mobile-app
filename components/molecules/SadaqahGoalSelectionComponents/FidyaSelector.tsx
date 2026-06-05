@@ -5,6 +5,7 @@ import { Counter } from "../Counter";
 import { useState } from "react";
 import { Divider } from "@/components/atoms/Divider";
 import { TopSpace } from "@/components/atoms/TopSpace";
+import { useTranslation } from "react-i18next";
 
 export const FidyaSelector = ({
   count,
@@ -21,6 +22,7 @@ export const FidyaSelector = ({
   title: string;
   countTitle?: string;
 }) => {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const toggleDropdown = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -42,7 +44,7 @@ export const FidyaSelector = ({
             setCount={setCount}
             handleDecrease={handleDecrease}
             handleIncrease={handleIncrease}
-            countTitle={countTitle ?? "Meal(s)"}
+            countTitle={countTitle ?? t("monthlyGoalPlanner.meals")}
             width={"50%"}
           />
         </>

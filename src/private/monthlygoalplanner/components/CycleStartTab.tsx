@@ -8,6 +8,7 @@ import moment from "moment-hijri";
 import { useCallback, useMemo, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useTranslation } from "react-i18next";
+import { localizeNumber } from "@/src/utils/localizeNumbers";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -110,23 +111,33 @@ export const CycleStartTab = ({ onCommit }: Props) => {
   // ── Derived values ──────────────────────────────────────────────────────────
 
   const calMonthMoment = moment(calMonth, "YYYY-MM-DD");
-  const monthLabel = `${localizedMonths[calMonthMoment.month()]} ${calMonthMoment.year()}`;
+  const monthLabel = `${localizedMonths[calMonthMoment.month()]} ${localizeNumber(calMonthMoment.year(), i18n.language)}`;
 
   const cycleEndDate = cycleStartDate
     ? moment(cycleStartDate, "YYYY-MM-DD").add(27, "days")
     : null;
 
   const cycleStartFormatted = cycleStartDate
-    ? moment(cycleStartDate, "YYYY-MM-DD").locale(i18n.language).format(i18n.language === "ar" ? "D MMMM" : "MMM D")
+    ? (() => {
+        const fmt = moment(cycleStartDate, "YYYY-MM-DD").locale(i18n.language).format(i18n.language === "ar" ? "D MMMM" : "MMM D");
+        return localizeNumber(fmt, i18n.language);
+      })()
     : null;
 
   const cycleEndFormatted = cycleEndDate
-    ? cycleEndDate.locale(i18n.language).format(i18n.language === "ar" ? "D MMMM, YYYY" : "MMM D, YYYY")
+    ? (() => {
+        const fmt = cycleEndDate.locale(i18n.language).format(i18n.language === "ar" ? "D MMMM, YYYY" : "MMM D, YYYY");
+        return localizeNumber(fmt, i18n.language);
+      })()
     : null;
 
   const cycleRangeLabel =
     cycleStartDate && cycleEndDate
-      ? `${moment(cycleStartDate, "YYYY-MM-DD").locale(i18n.language).format(i18n.language === "ar" ? "D MMMM" : "MMM D").toUpperCase()} – ${cycleEndDate.locale(i18n.language).format(i18n.language === "ar" ? "D MMMM, YYYY" : "MMM D, YYYY").toUpperCase()}`
+      ? (() => {
+          const startFmt = moment(cycleStartDate, "YYYY-MM-DD").locale(i18n.language).format(i18n.language === "ar" ? "D MMMM" : "MMM D").toUpperCase();
+          const endFmt = cycleEndDate.locale(i18n.language).format(i18n.language === "ar" ? "D MMMM, YYYY" : "MMM D, YYYY").toUpperCase();
+          return localizeNumber(`${startFmt} – ${endFmt}`, i18n.language);
+        })()
       : null;
 
   const hijriRangeLabel = (() => {
@@ -135,11 +146,11 @@ export const CycleStartTab = ({ onCommit }: Props) => {
     const endH = cycleEndDate;
     const startMonthNum = startH.iMonth();
     const endMonthNum = endH.iMonth();
-    const startLabel = `${localizedHijriMonths[startMonthNum]} ${startH.iYear()}`;
+    const startLabel = `${localizedHijriMonths[startMonthNum]} ${localizeNumber(startH.iYear(), i18n.language)}`;
     const endLabel =
       startMonthNum === endMonthNum && startH.iYear() === endH.iYear()
         ? ""
-        : ` · ${localizedHijriMonths[endMonthNum]} ${endH.iYear()}`;
+        : ` · ${localizedHijriMonths[endMonthNum]} ${localizeNumber(endH.iYear(), i18n.language)}`;
     return `${startLabel}${endLabel}`;
   })();
 
@@ -161,7 +172,7 @@ export const CycleStartTab = ({ onCommit }: Props) => {
             activeOpacity={0.7}
           >
             <Ionicons
-              name="chevron-back"
+              name={i18n.language === "ar" ? "chevron-forward" : "chevron-back"}
               size={20}
               color={Colors.light.white}
             />
@@ -184,7 +195,7 @@ export const CycleStartTab = ({ onCommit }: Props) => {
             activeOpacity={0.7}
           >
             <Ionicons
-              name="chevron-forward"
+              name={i18n.language === "ar" ? "chevron-back" : "chevron-forward"}
               size={20}
               color={Colors.light.white}
             />

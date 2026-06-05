@@ -12,6 +12,7 @@ import { Divider } from "../../atoms/Divider";
 import { TopSpace } from "../../atoms/TopSpace";
 import { MetricSelectionComponent } from "./MetricSelectionComponent";
 import PrimaryButton from "@/components/atoms/Primary-button";
+import { useTranslation } from "react-i18next";
 
 export const QuranRecitationGoalSelection = ({
   title,
@@ -30,6 +31,7 @@ export const QuranRecitationGoalSelection = ({
   allowedMetrics?: Array<"surah" | "juz" | "completion" | "hizb">;
   openOnMount?: boolean;
 }) => {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(!!openOnMount);
   const handleToggleDropdown = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -47,36 +49,36 @@ export const QuranRecitationGoalSelection = ({
   const memorizationMetrices = [
     {
       id: 1,
-      name: "juz",
-      title: "Juz",
+      name: "juz" as const,
+      title: t("monthlyGoalPlanner.reviewLabels.juz"),
     },
     {
       id: 2,
-      name: "hizb",
-      title: "Hizb",
+      name: "hizb" as const,
+      title: t("monthlyGoalPlanner.reviewLabels.hizb"),
     },
     {
       id: 3,
-      name: "surah",
-      title: "Surah",
+      name: "surah" as const,
+      title: t("monthlyGoalPlanner.reviewLabels.surah"),
     },
   ];
   // For recitation we prefer showing Surah, Completion (Khatma), then Juz
   const otherMetrices = [
     {
       id: 1,
-      name: "surah",
-      title: "Surah",
+      name: "surah" as const,
+      title: t("monthlyGoalPlanner.reviewLabels.surah"),
     },
     {
       id: 2,
-      name: "completion",
-      title: "Completion (Khatma)",
+      name: "completion" as const,
+      title: t("monthlyGoalPlanner.quranMetrics.completionKhatma"),
     },
     {
       id: 3,
-      name: "juz",
-      title: "Juz",
+      name: "juz" as const,
+      title: t("monthlyGoalPlanner.reviewLabels.juz"),
     },
   ];
   const metricesDecider = () => {
@@ -126,7 +128,7 @@ export const QuranRecitationGoalSelection = ({
       )}
       <TopSpace top={16} />
       <PrimaryButton
-        text="Save"
+        text={t("monthlyGoalPlanner.save")}
         style={{
           width: "100%",
         }}

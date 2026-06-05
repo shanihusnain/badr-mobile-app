@@ -6,6 +6,8 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import { useTranslation } from "react-i18next";
+import { localizeNumber } from "@/src/utils/localizeNumbers";
 
 interface DaysTrackerContainerProps {
   isBottomSheetView?: boolean;
@@ -14,12 +16,16 @@ interface DaysTrackerContainerProps {
 export const DaysTrackerContainer: React.FC<DaysTrackerContainerProps> = ({
   isBottomSheetView = false,
 }) => {
+  const { t, i18n } = useTranslation();
+  const lng = i18n.language;
+  const localizedTotal = localizeNumber("28", lng);
+
   return (
     <View style={[styles.daysLeftContainer, isBottomSheetView && styles.daysLeftContainerSheet]}>
       {/* Header: Days Left */}
       <View style={styles.daysHeaderWrapper}>
-        <Text style={styles.daysNumberBold}>28</Text>
-        <Text style={styles.daysNumberRegular}>/28 days left</Text>
+        <Text style={styles.daysNumberBold}>{localizedTotal}</Text>
+        <Text style={styles.daysNumberRegular}>{t("daysTracker.daysLeft", { total: localizedTotal })}</Text>
       </View>
 
       {/* Large Moon Circle */}
@@ -29,14 +35,14 @@ export const DaysTrackerContainer: React.FC<DaysTrackerContainerProps> = ({
       <View style={styles.bottomInfoWrapper}>
         {/* Bottom Left - Day */}
         <View style={styles.bottomLeftSection}>
-          <Text style={styles.bottomLabel}>Day</Text>
-          <Text style={styles.bottomValue}>0</Text>
+          <Text style={styles.bottomLabel}>{t("daysTracker.day")}</Text>
+          <Text style={styles.bottomValue}>{localizeNumber("0", lng)}</Text>
         </View>
 
         {/* Bottom Right - Overall Progress */}
         <View style={styles.bottomRightSection}>
-          <Text style={styles.bottomLabel}>Overall Progress</Text>
-          <Text style={styles.bottomValue}>     0%</Text>
+          <Text style={styles.bottomLabel}>{t("daysTracker.overallProgress")}</Text>
+          <Text style={styles.bottomValue}>     {localizeNumber("0", lng)}%</Text>
         </View>
       </View>
 
@@ -44,11 +50,11 @@ export const DaysTrackerContainer: React.FC<DaysTrackerContainerProps> = ({
       {isBottomSheetView && (
         <View style={styles.additionalTextSection}>
           <Text style={styles.textBlock1}>
-            {"You've committed to working on \n28 goals!"}
+            {t("daysTracker.committedGoals", { count: localizedTotal })}
           </Text>
           
           <Text style={styles.textBlock2}>
-            {"You're all set—your journey toward deeper connection and growth starts soon. As you begin tracking, your moon will fill with light—reflecting every step you take toward growth, connection, and ihsān."}
+            {t("daysTracker.welcomeJourney")}
           </Text>
         </View>
       )}

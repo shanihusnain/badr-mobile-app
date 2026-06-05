@@ -167,48 +167,48 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
       {
         id: 1,
         name: "prayerGoals",
-        label: "Prayer Goals",
+        label: t("monthlyGoalPlanner.tabPrayer"),
         appliedGoals: [
           {
             id: 1,
             title: "tahayyat-ul-wuddu",
-            label: "Tahayyat Al-Wudhu",
+            label: t("monthlyGoalPlanner.reviewLabels.tahayyatWudu"),
             totalValue: 25,
           },
           {
             id: 2,
             title: "five-daily-prayers",
-            label: "The Five Daily Prayers",
+            label: t("monthlyGoalPlanner.reviewLabels.fiveDailyPrayers"),
             totalValue: 140,
             selectedGoals: [
               {
                 id: 1,
                 name: "fajr",
-                label: "Fajr",
+                label: t("prayerGoals.fajr"),
                 value: 25,
               },
               {
                 id: 2,
                 name: "dhuhr",
-                label: "Dhuhr",
+                label: t("prayerGoals.dhuhr"),
                 value: 25,
               },
               {
                 id: 3,
                 name: "asr",
-                label: "Asr",
+                label: t("prayerGoals.asr"),
                 value: 25,
               },
               {
                 id: 4,
                 name: "maghrib",
-                label: "Maghrib",
+                label: t("prayerGoals.maghrib"),
                 value: 25,
               },
               {
                 id: 5,
                 name: "isha",
-                label: "Isha",
+                label: t("prayerGoals.isha"),
                 value: 25,
               },
             ],
@@ -217,44 +217,44 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
           {
             id: 3,
             title: "sunnah-rawatib",
-            label: "Sunnah Rawatib",
+            label: t("monthlyGoalPlanner.reviewLabels.sunnahRawatib"),
             totalValue: 152,
             selectedGoals: [
               {
                 id: 1,
                 name: "before-fajr",
-                label: "Before Fajr (2 rak’ah)",
+                label: t("prayerGoals.beforeFajrHeading"),
                 value: 25,
               },
               {
                 id: 2,
                 name: "before-dhuhr",
-                label: "Before Dhuhr (4 rak’ah)",
+                label: t("prayerGoals.beforeDhuhrHeading"),
                 value: 25,
               },
               {
                 id: 3,
                 name: "after-dhuhr",
-                label: "After Dhuhr (4 rak’ah)",
+                label: t("prayerGoals.afterDhuhrHeading"),
                 value: 25,
               },
               {
                 id: 4,
                 name: "before-asr",
-                label: "Before Asr (4 rak’ah)",
+                label: t("prayerGoals.beforeAsrHeading"),
                 value: 25,
               },
 
               {
                 id: 5,
                 name: "after-maghrib",
-                label: "After Maghrib (2 rak’ah)",
+                label: t("prayerGoals.afterMaghribHeading"),
                 value: 25,
               },
               {
                 id: 6,
                 name: "after-isha",
-                label: "After Isha (2 rak’ah)",
+                label: t("prayerGoals.afterIshaHeading"),
                 value: 25,
               },
             ],
@@ -262,50 +262,50 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
           {
             id: 4,
             title: "tahayyat-ul-masjid",
-            label: "Tahayyat Al-Masjid",
+            label: t("monthlyGoalPlanner.reviewLabels.tahayyatMasjid"),
             totalValue: 25,
           },
           {
             id: 5,
             title: "missed-past-prayers",
-            label: "Missed Past Prayers",
+            label: t("monthlyGoalPlanner.reviewLabels.missedPastPrayers"),
             totalValue: 10,
           },
-          { id: 6, title: "duha-prayer", label: "Duha", totalValue: 10 },
+          { id: 6, title: "duha-prayer", label: t("monthlyGoalPlanner.reviewLabels.duha"), totalValue: 10 },
           {
             id: 7,
             title: "tawba-prayer",
-            label: "Tawba",
+            label: t("monthlyGoalPlanner.reviewLabels.tawba"),
             totalValue: 10,
           },
           {
             id: 8,
             title: "istikhara-prayer",
-            label: "Istikhara",
+            label: t("monthlyGoalPlanner.reviewLabels.istikhara"),
             totalValue: 20,
           },
           {
             id: 9,
             title: "shukr-prayer",
-            label: "Shukr",
+            label: t("monthlyGoalPlanner.reviewLabels.shukr"),
             totalValue: 30,
           },
           {
             id: 10,
             title: "qiyal-al-lail-prayer",
-            label: "Qiyal Al-Lail",
+            label: t("monthlyGoalPlanner.reviewLabels.qiyalAlLail"),
             totalValue: 20,
             selectedGoals: [
               {
                 id: 1,
                 name: "2-rakah-prayer",
-                label: "2 rak'ah prayer",
+                label: t("prayerGoals.rakahPrayer").trim(),
                 value: 25,
               },
               {
                 id: 2,
                 name: "witr-prayer",
-                label: "Witr Prayer for each night",
+                label: t("prayerGoals.witrDesc"),
                 value: 25,
               },
             ],
@@ -315,54 +315,54 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
       {
         id: 2,
         name: "quranGoals",
-        label: "Quran Goals",
+        label: t("monthlyGoalPlanner.tabQuran"),
         appliedGoals: [
           {
             id: 1,
             title: "quran-listening",
-            label: "Quran Listening",
+            label: t("monthlyGoalPlanner.reviewLabels.quranListening"),
             totalValue: 30,
           },
           {
             id: 2,
             title: "quran-recitation-by-surah",
-            label: "Quran Recitation (by Surah)",
+            label: t("monthlyGoalPlanner.reviewLabels.quranRecitationSurah"),
             totalValue: 50,
           },
           {
             id: 3,
             title: "quran-recitation-by-completion",
-            label: "Quran Recitation (by Completion)",
+            label: t("monthlyGoalPlanner.reviewLabels.quranRecitationCompletion"),
             totalValue: 50,
           },
           {
             id: 4,
             title: "quran-recitation-by-juz",
-            label: "Quran Recitation (by Juz)",
+            label: t("monthlyGoalPlanner.reviewLabels.quranRecitationJuz"),
             totalValue: 50,
           },
           {
             id: 5,
             title: "quran-memorization-by-juz",
-            label: "Quran Memorization (by Juz)",
+            label: t("monthlyGoalPlanner.reviewLabels.quranMemorizationJuz"),
             totalValue: 40,
           },
           {
             id: 6,
             title: "quran-memorization-by-hizb",
-            label: "Quran Memorization (by Hizb)",
+            label: t("monthlyGoalPlanner.reviewLabels.quranMemorizationHizb"),
             totalValue: 40,
           },
           {
             id: 7,
             title: "quran-memorization-by-surah",
-            label: "Quran Memorization (by Surah)",
+            label: t("monthlyGoalPlanner.reviewLabels.quranMemorizationSurah"),
             totalValue: 40,
           },
           {
             id: 8,
             title: "quran-tajweed",
-            label: "Quran Tajweed",
+            label: t("monthlyGoalPlanner.reviewLabels.quranTajweed"),
             totalValue: 20,
           },
         ],
@@ -370,24 +370,24 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
       {
         id: 3,
         name: "fastingGoals",
-        label: "Fasting Goals",
+        label: t("monthlyGoalPlanner.tabFasting"),
         appliedGoals: [
           {
             id: 1,
             title: "missed-fasts",
-            label: "Missed Ramadan Fasts",
+            label: t("monthlyGoalPlanner.reviewLabels.missedFasts"),
             totalValue: 20,
             selectedGoals: [
               {
                 id: 1,
                 name: "ramadan-missed-1",
-                label: "Ramadan 10th",
+                label: t("monthlyGoalPlanner.reviewLabels.ramadanMissed1"),
                 value: "1445 / Apr 11, 2024",
               },
               {
                 id: 2,
                 name: "ramadan-missed-2",
-                label: "Ramadan 12th",
+                label: t("monthlyGoalPlanner.reviewLabels.ramadanMissed2"),
                 value: "1445 / Apr 13, 2024",
               },
             ],
@@ -395,19 +395,19 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
           {
             id: 2,
             title: "dawood-fasts",
-            label: "Prophet Dawood Fast (every other day)",
+            label: t("monthlyGoalPlanner.reviewLabels.dawoodFasts"),
             totalValue: 15,
             selectedGoals: [
               {
                 id: 1,
                 name: "dawood-1",
-                label: "Mon",
+                label: t("monthlyGoalPlanner.reviewLabels.mon"),
                 value: "01 Oct, 2024",
               },
               {
                 id: 2,
                 name: "dawood-2",
-                label: "Wed",
+                label: t("monthlyGoalPlanner.reviewLabels.wed"),
                 value: "03 Oct, 2024",
               },
             ],
@@ -415,19 +415,19 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
           {
             id: 3,
             title: "monday-and-thursday-fasts",
-            label: "Monday & Thursday Fasts",
+            label: t("monthlyGoalPlanner.reviewLabels.mondayThursdayFasts"),
             totalValue: 15,
             selectedGoals: [
               {
                 id: 1,
                 name: "monthu-1",
-                label: "Monday",
+                label: t("monthlyGoalPlanner.reviewLabels.monday"),
                 value: "28th Jum-I, 1445 / Nov 30, 2024",
               },
               {
                 id: 2,
                 name: "monthu-2",
-                label: "Thursday",
+                label: t("monthlyGoalPlanner.reviewLabels.thursday"),
                 value: "03rd Jum-II, 1445 / Dec 03, 2024",
               },
             ],
@@ -435,25 +435,25 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
           {
             id: 4,
             title: "white-days-fasts",
-            label: "White Days Fasts",
+            label: t("monthlyGoalPlanner.reviewLabels.whiteDaysFasts"),
             totalValue: 10,
             selectedGoals: [
               {
                 id: 1,
                 name: "white-13",
-                label: "13th (White Day)",
+                label: t("monthlyGoalPlanner.reviewLabels.white13"),
                 value: "Shawwal 13, 1445 / Jun 15, 2024",
               },
               {
                 id: 2,
                 name: "white-14",
-                label: "14th (White Day)",
+                label: t("monthlyGoalPlanner.reviewLabels.white14"),
                 value: "Shawwal 14, 1445 / Jun 16, 2024",
               },
               {
                 id: 3,
                 name: "white-15",
-                label: "15th (White Day)",
+                label: t("monthlyGoalPlanner.reviewLabels.white15"),
                 value: "Shawwal 15, 1445 / Jun 17, 2024",
               },
             ],
@@ -463,47 +463,47 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
       {
         id: 4,
         name: "sadaqahGoals",
-        label: "Sadaqah Goals",
+        label: t("monthlyGoalPlanner.tabSadaqah"),
         appliedGoals: [
           {
             id: 1,
             title: "missed-zakat",
-            label: "Missed Zakat",
+            label: t("monthlyGoalPlanner.reviewLabels.missedZakat"),
             totalValue: 0,
             selectedGoals: [],
           },
           {
             id: 2,
             title: "kafarah-for-breaking-fasts",
-            label: "Kafarah for Breaking Fasts",
+            label: t("monthlyGoalPlanner.reviewLabels.kafarahBreakingFasts"),
             totalValue: 0,
             selectedGoals: [],
           },
           {
             id: 3,
             title: "fidya",
-            label: "Fidya",
+            label: t("monthlyGoalPlanner.reviewLabels.fidya"),
             totalValue: 0,
             selectedGoals: [],
           },
           {
             id: 4,
             title: "lilah-donations",
-            label: "Lilah Donations",
+            label: t("monthlyGoalPlanner.reviewLabels.lilahDonations"),
             totalValue: 0,
             selectedGoals: [],
           },
           {
             id: 5,
             title: "volunteering-services",
-            label: "Volunteering Services",
+            label: t("monthlyGoalPlanner.reviewLabels.volunteeringServices"),
             totalValue: 0,
             selectedGoals: [],
           },
           {
             id: 6,
             title: "sadaqah-jariyah",
-            label: "Sadaqah Jariyah",
+            label: t("monthlyGoalPlanner.reviewLabels.sadaqahJariyah"),
             totalValue: 0,
             selectedGoals: [],
           },
@@ -747,8 +747,8 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
         case "quran-listening":
           return (
             <QuranTimeSelection
-              title="Select number of hours"
-              description="hours of Quran listening"
+              title={t("monthlyGoalPlanner.selectNumHours")}
+              description={t("monthlyGoalPlanner.hoursQuranListening")}
               onSave={(hours: number) => {
                 setQuranMetrics((prev) => ({ ...prev, listeningHours: hours }));
                 setQuranMetrics((prev) => ({
@@ -763,8 +763,8 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
         case "quran-tajweed":
           return (
             <QuranTimeSelection
-              title="Select number of hours"
-              description="hours of Quran tajweed"
+              title={t("monthlyGoalPlanner.selectNumHours")}
+              description={t("monthlyGoalPlanner.hoursQuranTajweed")}
               onSave={(hours: number) => {
                 setQuranMetrics((prev) => ({ ...prev, tajweedHours: hours }));
                 setQuranMetrics((prev) => ({
@@ -779,7 +779,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
         case "quran-recitation-by-surah":
           return (
             <QuranRecitationGoalSelection
-              title="Recitation — by Surah"
+              title={t("monthlyGoalPlanner.recitationBySurah")}
               initialMetric="surah"
               allowedMetrics={["surah"]}
               openOnMount
@@ -808,7 +808,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
         case "quran-recitation-by-completion":
           return (
             <QuranRecitationGoalSelection
-              title="Recitation — by Completion"
+              title={t("monthlyGoalPlanner.recitationByCompletion")}
               initialMetric="completion"
               allowedMetrics={["completion"]}
               openOnMount
@@ -837,7 +837,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
         case "quran-recitation-by-juz":
           return (
             <QuranRecitationGoalSelection
-              title="Recitation — by Juz"
+              title={t("monthlyGoalPlanner.recitationByJuz")}
               initialMetric="juz"
               allowedMetrics={["juz"]}
               openOnMount
@@ -862,7 +862,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
         case "quran-memorization-by-juz":
           return (
             <QuranRecitationGoalSelection
-              title="Memorization — by Juz"
+              title={t("monthlyGoalPlanner.memorizationByJuz")}
               initialMetric="juz"
               allowedMetrics={["juz"]}
               openOnMount
@@ -887,7 +887,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
         case "quran-memorization-by-hizb":
           return (
             <QuranRecitationGoalSelection
-              title="Memorization — by Hizb"
+              title={t("monthlyGoalPlanner.memorizationByHizb")}
               initialMetric="hizb"
               allowedMetrics={["hizb"]}
               openOnMount
@@ -912,7 +912,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
         case "quran-memorization-by-surah":
           return (
             <QuranRecitationGoalSelection
-              title="Memorization — by Surah"
+              title={t("monthlyGoalPlanner.memorizationBySurah")}
               initialMetric="surah"
               allowedMetrics={["surah"]}
               openOnMount
@@ -997,11 +997,11 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
                   setMissedZakatAmount((prev) => Math.max(0, prev - 1))
                 }
                 handleIncrease={() => setMissedZakatAmount((prev) => prev + 1)}
-                countTitle="Amount"
+                countTitle={t("monthlyGoalPlanner.amount")}
               />
               <TopSpace top={12} />
               <PrimaryButton
-                text="Save"
+                text={t("monthlyGoalPlanner.save")}
                 onPress={() => {
                   // persist into sadaqahMetrics as a single row
                   setSadaqahMetrics((prev) => ({
@@ -1009,7 +1009,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
                     [goal.title]: [
                       {
                         id: 1,
-                        label: "Amount",
+                        label: t("monthlyGoalPlanner.amount"),
                         value: String(missedZakatAmount),
                       },
                     ],
@@ -1038,13 +1038,13 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
               />
               <TopSpace top={12} />
               <PrimaryButton
-                text="Save"
+                text={t("monthlyGoalPlanner.save")}
                 onPress={() => {
                   setSadaqahMetrics((prev) => ({
                     ...prev,
                     [goal.title]: [
-                      { id: 1, label: "Meals", value: String(kafarahMeals) },
-                      { id: 2, label: "Cloths", value: String(kafarahCloths) },
+                      { id: 1, label: t("monthlyGoalPlanner.meals"), value: String(kafarahMeals) },
+                      { id: 2, label: t("monthlyGoalPlanner.cloths"), value: String(kafarahCloths) },
                     ],
                   }));
                   setEditingGoal(null);
@@ -1062,16 +1062,16 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
                   setFidyaMeals((prev) => Math.max(0, prev - 1))
                 }
                 handleIncrease={() => setFidyaMeals((prev) => prev + 1)}
-                title="Select target number of meals you aim to provide for people in need"
+                title={t("monthlyGoalPlanner.fidyaMealsTitle")}
               />
               <TopSpace top={12} />
               <PrimaryButton
-                text="Save"
+                text={t("monthlyGoalPlanner.save")}
                 onPress={() => {
                   setSadaqahMetrics((prev) => ({
                     ...prev,
                     [goal.title]: [
-                      { id: 1, label: "Meals", value: String(fidyaMeals) },
+                      { id: 1, label: t("monthlyGoalPlanner.meals"), value: String(fidyaMeals) },
                     ],
                   }));
                   setEditingGoal(null);
@@ -1091,16 +1091,16 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
                   setLillahAmount((prev) => Math.max(0, prev - 1))
                 }
                 handleIncrease={() => setLillahAmount((prev) => prev + 1)}
-                countTitle="Amount"
+                countTitle={t("monthlyGoalPlanner.amount")}
               />
               <TopSpace top={12} />
               <PrimaryButton
-                text="Save"
+                text={t("monthlyGoalPlanner.save")}
                 onPress={() => {
                   setSadaqahMetrics((prev) => ({
                     ...prev,
                     [goal.title]: [
-                      { id: 1, label: "Amount", value: String(lillahAmount) },
+                      { id: 1, label: t("monthlyGoalPlanner.amount"), value: String(lillahAmount) },
                     ],
                   }));
                   setEditingGoal(null);
@@ -1118,18 +1118,18 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
                   setVolunteeringHours((prev) => Math.max(0, prev - 1))
                 }
                 handleIncrease={() => setVolunteeringHours((prev) => prev + 1)}
-                title="Select target for this month"
+                title={t("monthlyGoalPlanner.volunteeringMonthTitle")}
               />
               <TopSpace top={12} />
               <PrimaryButton
-                text="Save"
+                text={t("monthlyGoalPlanner.save")}
                 onPress={() => {
                   setSadaqahMetrics((prev) => ({
                     ...prev,
                     [goal.title]: [
                       {
                         id: 1,
-                        label: "Hours",
+                        label: t("monthlyGoalPlanner.hours"),
                         value: String(volunteeringHours),
                       },
                     ],
@@ -1153,18 +1153,18 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
                 handleIncrease={() =>
                   setSadaqahJariyahAmount((prev) => prev + 1)
                 }
-                countTitle="Amount"
+                countTitle={t("monthlyGoalPlanner.amount")}
               />
               <TopSpace top={12} />
               <PrimaryButton
-                text="Save"
+                text={t("monthlyGoalPlanner.save")}
                 onPress={() => {
                   setSadaqahMetrics((prev) => ({
                     ...prev,
                     [goal.title]: [
                       {
                         id: 1,
-                        label: "Amount",
+                        label: t("monthlyGoalPlanner.amount"),
                         value: String(sadaqahJariyahAmount),
                       },
                     ],
@@ -1476,20 +1476,20 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
                   {quran.id === "quran-listening" &&
                     selectedGoals[quran.id] && (
                       <QuranTimeSelection
-                        title="Select number of hours"
-                        description="hours of Quran listening"
+                        title={t("monthlyGoalPlanner.selectNumHours")}
+                        description={t("monthlyGoalPlanner.hoursQuranListening")}
                       />
                     )}
                   {quran.id === "quran-tajweed" && selectedGoals[quran.id] && (
                     <QuranTimeSelection
-                      title="Select number of hours"
-                      description="hours of Quran tajweed"
+                      title={t("monthlyGoalPlanner.selectNumHours")}
+                      description={t("monthlyGoalPlanner.hoursQuranTajweed")}
                     />
                   )}
                   {quran.id === "quran-recitation" &&
                     selectedGoals[quran.id] && (
                       <QuranRecitationGoalSelection
-                        title="Select tracking metric and target"
+                        title={t("monthlyGoalPlanner.selectTrackingMetric")}
                         onMetricsChange={(payload) => {
                           // store latest metric data by metric name
                           setQuranMetrics((prev) => ({
@@ -1504,7 +1504,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
                   {quran.id === "quran-memorization" &&
                     selectedGoals[quran.id] && (
                       <QuranRecitationGoalSelection
-                        title="Select tracking metric and target"
+                        title={t("monthlyGoalPlanner.selectTrackingMetric")}
                         onMetricsChange={(payload) => {
                           // store latest metric data by metric name
                           setQuranMetrics((prev) => ({
@@ -1572,7 +1572,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
                         handleIncrease={() => {
                           setMissedZakatAmount((prev) => prev + 1);
                         }}
-                        countTitle="Amount"
+                        countTitle={t("monthlyGoalPlanner.amount")}
                       />
                     )}
 
@@ -1607,7 +1607,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
                       handleIncrease={() => {
                         setFidyaMeals((prev) => prev + 1);
                       }}
-                      title="Select target number of meals you aim to provide for people in need"
+                      title={t("monthlyGoalPlanner.fidyaMealsTitle")}
                     />
                   )}
 
@@ -1624,7 +1624,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
                         handleIncrease={() => {
                           setLillahAmount((prev) => prev + 1);
                         }}
-                        countTitle="Amount"
+                        countTitle={t("monthlyGoalPlanner.amount")}
                       />
                     )}
 
@@ -1639,7 +1639,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
                         handleIncrease={() => {
                           setVolunteeringHours((prev) => prev + 1);
                         }}
-                        title="Select target for this month"
+                        title={t("monthlyGoalPlanner.volunteeringMonthTitle")}
                       />
                     )}
                   {sadaqah.id === "sadaqah-jariyah" &&
@@ -1657,7 +1657,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
                         handleIncrease={() => {
                           setSadaqahJariyahAmount((prev) => prev + 1);
                         }}
-                        countTitle="Amount"
+                        countTitle={t("monthlyGoalPlanner.amount")}
                       />
                     )}
 

@@ -7,6 +7,8 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import { useTranslation } from "react-i18next";
+import { localizeNumber } from "@/src/utils/localizeNumbers";
 
 interface GoalDetailsCardProps {
   title: string;
@@ -20,11 +22,30 @@ interface GoalDetailsCardProps {
 export const GoalDetailsCard: React.FC<GoalDetailsCardProps> = ({
   title,
   percentage,
-  goalsCount = "11 Goals",
+  goalsCount,
   notStarted = "11",
   inProgress = "0",
   completed = "0",
 }) => {
+  const { t, i18n } = useTranslation();
+  const lng = i18n.language;
+
+  // Localize statistic numbers
+  const localizedNotStarted = localizeNumber(notStarted, lng);
+  const localizedInProgress = localizeNumber(inProgress, lng);
+  const localizedCompleted = localizeNumber(completed, lng);
+
+  // Localize percentage numbers (e.g., "0%" -> "٠%")
+  const localizedPercentage = percentage.replace(/[0-9]+/g, (match) => localizeNumber(match, lng));
+
+  // Determine goalsCount text (e.g., "11 Goals" -> "١١ أهداف")
+  let displayGoalsCount = "";
+  if (goalsCount) {
+    displayGoalsCount = goalsCount.replace(/[0-9]+/g, (match) => localizeNumber(match, lng));
+  } else {
+    displayGoalsCount = t("namazGoalBottomSheet.goalsCount", { count: localizeNumber("11", lng) });
+  }
+
   return (
     <View style={styles.card}>
       {/* Header Text */}
@@ -34,8 +55,8 @@ export const GoalDetailsCard: React.FC<GoalDetailsCardProps> = ({
       <View style={styles.circleContainer}>
         <TaperedCircleBorder size={220} borderColor={Colors.light.calendarBg}>
           <View style={styles.stackedTextContainer}>
-            <Text style={styles.topText}>{goalsCount}</Text>
-            <Text style={styles.bottomText}>{percentage}</Text>
+            <Text style={styles.topText}>{displayGoalsCount}</Text>
+            <Text style={styles.bottomText}>{localizedPercentage}</Text>
           </View>
         </TaperedCircleBorder>
       </View>
@@ -44,20 +65,20 @@ export const GoalDetailsCard: React.FC<GoalDetailsCardProps> = ({
       <View style={styles.footerRow}>
         {/* Column 1: Left */}
         <View style={styles.column}>
-          <Text style={styles.columnLabel}>NOT STARTED</Text>
-          <Text style={styles.columnValue}>{notStarted}</Text>
+          <Text style={styles.columnLabel}>{t("namazGoalBottomSheet.notStarted")}</Text>
+          <Text style={styles.columnValue}>{localizedNotStarted}</Text>
         </View>
 
         {/* Column 2: Center */}
         <View style={styles.column}>
-          <Text style={styles.columnLabel}>IN PROGRESS</Text>
-          <Text style={[styles.columnValue, { color: Colors.light.ringMonThu }]}>{inProgress}</Text>
+          <Text style={styles.columnLabel}>{t("namazGoalBottomSheet.inProgress")}</Text>
+          <Text style={[styles.columnValue, { color: Colors.light.ringMonThu }]}>{localizedInProgress}</Text>
         </View>
 
         {/* Column 3: Right */}
         <View style={styles.column}>
-          <Text style={styles.columnLabel}>COMPLETED</Text>
-          <Text style={[styles.columnValue, { color: Colors.light.green }]}>{completed}</Text>
+          <Text style={styles.columnLabel}>{t("namazGoalBottomSheet.completed")}</Text>
+          <Text style={[styles.columnValue, { color: Colors.light.green }]}>{localizedCompleted}</Text>
         </View>
       </View>
     </View>

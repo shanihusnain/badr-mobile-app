@@ -6,6 +6,7 @@ import { Colors } from "@/constants/theme";
 import { useState } from "react";
 import { GoalSelectionOpenCloseButton } from "../GoalSelectionOpenCloseButton";
 import { globalStyles } from "@/src/globalstyles/globalstyles";
+import { useTranslation } from "react-i18next";
 
 export const MissedZakats = ({
   control,
@@ -24,6 +25,7 @@ export const MissedZakats = ({
   handleDecrease: () => void;
   handleIncrease: () => void;
 }) => {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const toggleDropdown = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -32,7 +34,7 @@ export const MissedZakats = ({
   return (
     <View style={globalStyles.goalSelectionWrapper}>
       <GoalSelectionOpenCloseButton
-        title={"Select target for this month"}
+        title={t("monthlyGoalPlanner.volunteeringMonthTitle")}
         isOpen={isOpen}
         toggleDropdown={toggleDropdown}
       />
