@@ -2,127 +2,224 @@ import React, { useState, useRef } from "react";
 import {
   View,
   Text,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
   Dimensions,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  Animated,
+  type LayoutChangeEvent,
 } from "react-native";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Entypo from "@expo/vector-icons/Entypo";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "@/constants/theme";
-import createStyles from "./styles";
-import { TaperedCircleBorder } from "@/components/atoms/TaperedCircleBorder";
-import { ContainerCarousel } from "./components/ContainerCarousel";
+import {
+  TaperedCircleBorder,
+  parsePercent,
+} from "@/components/atoms/TaperedCircleBorder";
+import { SwipeCardDeck } from "./components/SwipeCardDeck";
 import BottomSheet from "@gorhom/bottom-sheet";
 import { DaysTrackerContainer } from "@/components/molecules/DaysTrackerContainer";
 import { NamazGoalBottomSheet } from "@/components/molecules/NamazGoalBottomSheet";
 import { useRouter } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { TopSpace } from "@/components/atoms/TopSpace";
+import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
+import { styles } from "./styles";
 
-import Ionicons from "@expo/vector-icons/Ionicons";
+type TextPart = { text: string; highlighted: boolean };
+
+type CategoryItem = {
+  title: string;
+  percentage: string;
+  progressColor: string;
+};
+
+type InspirationCard = {
+  id: number;
+  title: string;
+  quote: string;
+  reference: string;
+};
+
+const SCREEN_CARD_WIDTH = Dimensions.get("window").width - 32;
+
+const GOAL_CATEGORIES: CategoryItem[] = [
+  { title: "PRAYERS", percentage: "0", progressColor: Colors.light.ringPrayer },
+  { title: "QURAN", percentage: "40", progressColor: Colors.light.ringQuran },
+  {
+    title: "FASTING",
+    percentage: "65",
+    progressColor: Colors.light.ringFasting,
+  },
+  {
+    title: "SADAQAH",
+    percentage: "85",
+    progressColor: Colors.light.ringSadaqah,
+  },
+];
+
+const WELCOME_CARDS = [
+  {
+    id: 1,
+    title: "Welcome to Badr, Layla!",
+    content:
+      "Your 28-day goal cycle is set to begin tomorrow at Fajr. Get ready to track your prayer, Quran, fasting, and sadaqah goals. May Allah (SWT) make it easy and rewarding for you!",
+    highlightedTexts: ["28-day goal cycle", "tomorrow", "Fajr"],
+  },
+  {
+    id: 2,
+    title: "Track Your Progress",
+    content:
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    highlightedTexts: [],
+  },
+];
+
+const INSPIRATION_CARDS: InspirationCard[] = [
+  {
+    id: 1,
+    title: "Daily Light from the Quran",
+    quote: '"Indeed, it is We who guide whom We will to our ways."',
+    reference: "(Surah Al-Ankabut, 29:69)",
+  },
+  {
+    id: 2,
+    title: "Hadith of the Day",
+    quote: '"The best of you are those who learn the Quran and teach it."',
+    reference: "(Sahih Al-Bukhari)",
+  },
+  {
+    id: 3,
+    title: "Reflection & Gratitude",
+    quote:
+      '"And if you should count the favors of Allah, you could not enumerate them."',
+    reference: "(Surah Ibrahim, 14:34)",
+  },
+];
+
+function buildTextParts(text: string, highlightedTexts: string[]): TextPart[] {
+  const parts: TextPart[] = [];
+  let lastIndex = 0;
+
+  highlightedTexts.forEach((highlighted) => {
+    const index = text.indexOf(highlighted, lastIndex);
+    if (index !== -1) {
+      if (index > lastIndex) {
+        parts.push({
+          text: text.substring(lastIndex, index),
+          highlighted: false,
+        });
+      }
+      parts.push({ text: highlighted, highlighted: true });
+      lastIndex = index + highlighted.length;
+    }
+  });
+
+  if (lastIndex < text.length) {
+    parts.push({ text: text.substring(lastIndex), highlighted: false });
+  }
+
+  return parts.length > 0 ? parts : [{ text, highlighted: false }];
+}
 
 export default function HomeScreen() {
-  const styles = createStyles();
-  const CARD_WIDTH = Dimensions.get("window").width - 32;
-  const [showPrayerCard, setShowPrayerCard] = useState(true);
-  const [activeInspirationIndex, setActiveInspirationIndex] = useState(0);
-  const [selectedCategory, setSelectedCategory] = useState("All");
-  const namazBottomSheetRef = useRef<BottomSheet>(null);
+  const safeAreaInsets = useSafeAreaInsets();
   const router = useRouter();
+  const namazBottomSheetRef = useRef<BottomSheet>(null);
 
-  const categories = [
-    { title: "PRAYERS", percentage: "0%" },
-    { title: "QURAN", percentage: "0%" },
-    { title: "FASTING", percentage: "0%" },
-    { title: "SADAQAH", percentage: "0%" },
-  ];
+  const [isPrayerCardVisible, setIsPrayerCardVisible] = useState(true);
+  const [activeInspirationIndex, setActiveInspirationIndex] = useState(0);
+  const [selectedDashboardCategory, setSelectedDashboardCategory] =
+    useState("All");
+  const [scrollCollapseThreshold, setScrollCollapseThreshold] = useState(260);
 
-  const containerData = [
-    {
-      id: 1,
-      title: "Welcome to Badr, Layla!",
-      content:
-        "Your 28-day goal cycle is set to begin tomorrow at Fajr. Get ready to track your prayer, Quran, fasting, and sadaqah goals. May Allah (SWT) make it easy and rewarding for you!",
-      highlightedTexts: ["28-day goal cycle", "tomorrow", "Fajr"],
-    },
-    {
-      id: 2,
-      title: "Track Your Progress",
-      content:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
-      highlightedTexts: [],
-    },
-  ];
+  const scrollY = useRef(new Animated.Value(0)).current;
 
-  const inspirationCards = [
-    {
-      id: 1,
-      title: "Daily Light from the Quran",
-      quote: '"Indeed, it is We who guide whom We will to our ways."',
-      reference: "(Surah Al-Ankabut, 29:69)",
-    },
-    {
-      id: 2,
-      title: "Hadith of the Day",
-      quote: '"The best of you are those who learn the Quran and teach it."',
-      reference: "(Sahih Al-Bukhari)",
-    },
-    {
-      id: 3,
-      title: "Reflection & Gratitude",
-      quote: '"And if you should count the favors of Allah, you could not enumerate them."',
-      reference: "(Surah Ibrahim, 14:34)",
-    },
-  ];
+  const quranCategory = GOAL_CATEGORIES.find((c) => c.title === "QURAN");
 
-  const renderTextWithHighlight = (text: string, highlightedTexts: string[]) => {
-    let parts: any[] = [];
-    let lastIndex = 0;
+  const stickyHeaderOpacity = scrollY.interpolate({
+    inputRange: [scrollCollapseThreshold - 50, scrollCollapseThreshold],
+    outputRange: [0, 1],
+    extrapolate: "clamp",
+  });
+  const stickyHeaderTranslateY = scrollY.interpolate({
+    inputRange: [scrollCollapseThreshold - 50, scrollCollapseThreshold],
+    outputRange: [-14, 0],
+    extrapolate: "clamp",
+  });
+  const categorySectionOpacity = scrollY.interpolate({
+    inputRange: [scrollCollapseThreshold - 60, scrollCollapseThreshold - 10],
+    outputRange: [1, 0],
+    extrapolate: "clamp",
+  });
 
-    highlightedTexts.forEach((highlightedText) => {
-      const index = text.indexOf(highlightedText, lastIndex);
-      if (index !== -1) {
-        if (index > lastIndex) {
-          parts.push({
-            text: text.substring(lastIndex, index),
-            highlighted: false,
-          });
-        }
-        parts.push({
-          text: highlightedText,
-          highlighted: true,
-        });
-        lastIndex = index + highlightedText.length;
-      }
-    });
+  const handleCategoriesLayout = (e: LayoutChangeEvent) => {
+    const { y, height } = e.nativeEvent.layout;
+    setScrollCollapseThreshold(Math.max(80, y + height * 0.6));
+  };
 
-    if (lastIndex < text.length) {
-      parts.push({
-        text: text.substring(lastIndex),
-        highlighted: false,
-      });
-    }
-
-    return parts.length > 0 ? parts : [{ text, highlighted: false }];
+  const handleInspirationScroll = (
+    e: NativeSyntheticEvent<NativeScrollEvent>,
+  ) => {
+    const idx = Math.round(
+      e.nativeEvent.contentOffset.x / (SCREEN_CARD_WIDTH + 16),
+    );
+    setActiveInspirationIndex(idx);
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView
+    <BlackScreenWrapper>
+      {/* Sticky collapsed category bar (fades in as big rings scroll away) */}
+      <Animated.View
+        pointerEvents="box-none"
+        style={[
+          styles.collapsedHeader,
+          {
+            paddingTop: safeAreaInsets.top + 10,
+            opacity: stickyHeaderOpacity,
+            transform: [{ translateY: stickyHeaderTranslateY }],
+          },
+        ]}
+      >
+        <View style={styles.collapsedRow}>
+          {GOAL_CATEGORIES.map((category) => (
+            <TouchableOpacity
+              key={`sticky-${category.title}`}
+              style={styles.collapsedItem}
+              activeOpacity={0.7}
+            >
+              <TaperedCircleBorder
+                percentage={category.percentage}
+                progressColor={category.progressColor}
+                borderColor={Colors.light.calendarBg}
+                size={16}
+              >
+                <View />
+              </TaperedCircleBorder>
+              <Text style={styles.collapsedLabel}>{category.title}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </Animated.View>
+
+      <Animated.ScrollView
         style={{ width: "100%" }}
         contentContainerStyle={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
+        scrollEventThrottle={16}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true },
+        )}
       >
-        {/* Top Section with Avatar and Streak Box */}
+        {/* Avatar + Streak row */}
         <View style={styles.topSection}>
-          {/* Circular Avatar - No Image (Fixed) */}
           <View style={styles.avatarContainer}>
             <AntDesign size={40} color={Colors.light.white} />
           </View>
-
-          {/* Streak Counter Box */}
           <TouchableOpacity
             activeOpacity={0.7}
             onPress={() => router.push("/streakcounter")}
@@ -133,26 +230,21 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Prayer Card Container */}
-        {showPrayerCard && (
+        {/* Upcoming prayer card */}
+        {isPrayerCardVisible && (
           <View style={styles.prayerCardWrapper}>
-            {/* Close Button */}
             <TouchableOpacity
               style={styles.closeButton}
-              onPress={() => setShowPrayerCard(false)}
+              onPress={() => setIsPrayerCardVisible(false)}
             >
               <AntDesign name="close" size={20} color={Colors.light.white} />
             </TouchableOpacity>
-
             <View style={styles.prayerCardContainer}>
-              {/* Left Side - Prayer Details */}
               <View style={styles.prayerDetailsLeft}>
                 <Text style={styles.upcomingText}>Upcoming</Text>
                 <Text style={styles.prayerNameText}>ASR</Text>
                 <Text style={styles.timeText}>3:53 PM</Text>
               </View>
-
-              {/* Right Side - Date */}
               <View style={styles.dateRight}>
                 <Text style={styles.dateText}>June 1, 2026</Text>
               </View>
@@ -160,16 +252,23 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* Categories Section */}
-        <View style={styles.categoriesContainer}>
-          {categories.map((category, index) => (
-            <View key={index} style={styles.categoryItemWrapper}>
-              {/* Circle with Percentage */}
+        {/* Goal category rings */}
+        <Animated.View
+          onLayout={handleCategoriesLayout}
+          style={[
+            styles.categoriesContainer,
+            { opacity: categorySectionOpacity },
+          ]}
+        >
+          {GOAL_CATEGORIES.map((category) => (
+            <View key={category.title} style={styles.categoryItemWrapper}>
               <TaperedCircleBorder
                 percentage={category.percentage}
                 borderColor={Colors.light.calendarBg}
+                progressColor={category.progressColor}
+                size={50}
               />
-              {/* Label with Arrow */}
+              <TopSpace top={16} />
               <View style={styles.categoryLabelWrapper}>
                 <Text style={styles.categoryLabel}>{category.title}</Text>
                 <MaterialIcons
@@ -180,49 +279,43 @@ export default function HomeScreen() {
               </View>
             </View>
           ))}
-        </View>
+        </Animated.View>
 
-        {/* Scrollable Containers Section */}
+        {/* Welcome / info card deck */}
         <View style={styles.containersSection}>
-          <ContainerCarousel
-            data={containerData}
-            renderTextWithHighlight={renderTextWithHighlight}
+          <SwipeCardDeck
+            data={WELCOME_CARDS}
+            renderTextWithHighlight={buildTextParts}
           />
         </View>
 
-        {/* Clickable Days Left Container */}
+        {/* Days tracker */}
         <TouchableOpacity
           activeOpacity={0.85}
           onPress={() => namazBottomSheetRef.current?.expand()}
-          style={{ width: CARD_WIDTH, alignSelf: "center", marginTop: 16 }}
+          style={{
+            width: SCREEN_CARD_WIDTH,
+            alignSelf: "center",
+            marginTop: 16,
+          }}
         >
           <DaysTrackerContainer isBottomSheetView={false} />
         </TouchableOpacity>
 
-        {/* Inspiration Cards Section */}
+        {/* Inspiration cards */}
         <View style={styles.inspirationSection}>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            snapToInterval={CARD_WIDTH + 16}
+            snapToInterval={SCREEN_CARD_WIDTH + 16}
             decelerationRate="fast"
             contentContainerStyle={styles.inspirationScrollContainer}
-            onScroll={(e: NativeSyntheticEvent<NativeScrollEvent>) => {
-              const idx = Math.round(
-                e.nativeEvent.contentOffset.x / (CARD_WIDTH + 16)
-              );
-              setActiveInspirationIndex(idx);
-            }}
+            onScroll={handleInspirationScroll}
             scrollEventThrottle={16}
           >
-            {inspirationCards.map((card) => (
+            {INSPIRATION_CARDS.map((card) => (
               <View key={card.id} style={styles.inspirationCard}>
-                {/* Green toggle circle indicator */}
-
-                {/* Card Title */}
                 <Text style={styles.inspirationTitle}>{card.title}</Text>
-
-                {/* Quote */}
                 <Text style={styles.inspirationQuote}>
                   {card.quote}{" "}
                   <Text style={styles.inspirationReference}>
@@ -232,10 +325,8 @@ export default function HomeScreen() {
               </View>
             ))}
           </ScrollView>
-
-          {/* Dot indicators */}
           <View style={styles.inspirationDots}>
-            {inspirationCards.map((card, i) => (
+            {INSPIRATION_CARDS.map((card, i) => (
               <View
                 key={card.id}
                 style={[
@@ -247,14 +338,18 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Log Menstruation Container */}
+        {/* Log menstruation */}
         <TouchableOpacity
           activeOpacity={0.8}
           style={styles.menstruationContainer}
-          onPress={() => router.push("/menstruationlog")}
+          onPress={() =>
+            router.push({
+              pathname: "/menstruationlog",
+              params: { cycleStartDate: "2026-05-08" },
+            })
+          }
         >
           <View style={styles.menstruationInner}>
-            {/* Custom green circle icon with white plus sign */}
             <View style={styles.greenPlusCircle}>
               <Ionicons name="add" size={16} color="white" />
             </View>
@@ -262,11 +357,12 @@ export default function HomeScreen() {
           </View>
         </TouchableOpacity>
 
-        {/* Customize Your Journal Container */}
+        {/* Customize journal */}
         <View style={styles.journalContainer}>
           <Text style={styles.journalTitle}>Customize Your Journal</Text>
           <Text style={styles.journalDescription}>
-            Choose from over 100 behaviors to track daily, fostering growth in your character and helping you become your best self.
+            Choose from over 100 behaviors to track daily, fostering growth in
+            your character and helping you become your best self.
           </Text>
           <TouchableOpacity style={styles.getStartedButton}>
             <Text style={styles.getStartedText}>GET STARTED</Text>
@@ -274,7 +370,7 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* My Dashboard Section */}
+        {/* My Dashboard */}
         <View style={styles.dashboardSection}>
           <Text style={styles.dashboardText}>My Dashboard</Text>
           <View style={styles.customizeContainer}>
@@ -282,159 +378,109 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Category Filter Section */}
-        <View style={styles.categoryFilterSection}>
-          <TouchableOpacity
-            style={[styles.categoryFilterItem, selectedCategory === "All" && styles.categoryFilterItemActive]}
-            onPress={() => setSelectedCategory("All")}
-          >
-            <Text style={[styles.categoryFilterText, selectedCategory === "All" && styles.categoryFilterTextActive]}>All</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.categoryFilterItemWide, selectedCategory === "Prayer" && styles.categoryFilterItemActive]}
-            onPress={() => setSelectedCategory("Prayer")}
-          >
-            <Text style={[styles.categoryFilterText, selectedCategory === "Prayer" && styles.categoryFilterTextActive]}>Prayer</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.categoryFilterItemWide, selectedCategory === "Quran" && styles.categoryFilterItemActive]}
-            onPress={() => setSelectedCategory("Quran")}
-          >
-            <Text style={[styles.categoryFilterText, selectedCategory === "Quran" && styles.categoryFilterTextActive]}>Quran</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.categoryFilterItemWide, selectedCategory === "Fasting" && styles.categoryFilterItemActive]}
-            onPress={() => setSelectedCategory("Fasting")}
-          >
-            <Text style={[styles.categoryFilterText, selectedCategory === "Fasting" && styles.categoryFilterTextActive]}>Fasting</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.categoryFilterItemWide, selectedCategory === "Sadaqah" && styles.categoryFilterItemActive]}
-            onPress={() => setSelectedCategory("Sadaqah")}
-          >
-            <Text style={[styles.categoryFilterText, selectedCategory === "Sadaqah" && styles.categoryFilterTextActive]}>Sadaqah</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Tahiyyat Al-Wudhu Container */}
-        {(selectedCategory === "All" || selectedCategory === "Prayer") && (
-          <View style={styles.tahiyyatContainer}>
-            <View style={styles.tahiyyatLeft}>
-              <Text style={styles.tahiyyatTitle}>TAHIYYAT AL-WUDHU</Text>
-              <Text style={styles.tahiyyatSubtitle}>
-                <Text style={styles.tahiyyatNumber}>0</Text>
-                <Text style={styles.tahiyyatDivider}>/25 prayers</Text>
+        {/* Dashboard category filter */}
+        <ScrollView
+          horizontal
+          style={styles.categoryFilterScroll}
+          contentContainerStyle={styles.categoryFilterContent}
+          showsHorizontalScrollIndicator={false}
+          nestedScrollEnabled
+          scrollEventThrottle={16}
+        >
+          {(
+            [
+              "All",
+              "Prayer",
+              "Quran",
+              "Fasting",
+              "Sadaqah",
+              "Time Spent",
+            ] as const
+          ).map((label) => (
+            <TouchableOpacity
+              key={label}
+              style={[
+                label === "All"
+                  ? styles.categoryFilterItem
+                  : styles.categoryFilterItemWide,
+                selectedDashboardCategory === label &&
+                  styles.categoryFilterItemActive,
+              ]}
+              onPress={() => setSelectedDashboardCategory(label)}
+            >
+              <Text
+                style={[
+                  styles.categoryFilterText,
+                  selectedDashboardCategory === label &&
+                    styles.categoryFilterTextActive,
+                ]}
+              >
+                {label}
               </Text>
-            </View>
-            <View style={styles.tahiyyatCircleWrapper}>
-              <TaperedCircleBorder borderColor={Colors.light.calendarBg} size={48}>
-                <View style={styles.circleTextContainer}>
-                  <Text style={styles.circleMainText}>0</Text>
-                  <Text style={styles.circlePercentText}>%</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        {/* Prayer sub-goals */}
+        {(selectedDashboardCategory === "All" ||
+          selectedDashboardCategory === "Prayer") && (
+          <>
+            {[
+              { title: "TAHIYYAT AL-WUDHU", divider: "/25 prayers" },
+              { title: "SUNNAH RAWATIB", divider: "/252" },
+              { title: "TAHIYYAT AL-MASJID", divider: "/47" },
+              { title: "QIYAM AL-LAYL", divider: "/23" },
+              { title: "MISSED PAST PRAYERS", divider: "/17" },
+            ].map((row) => (
+              <View key={row.title} style={styles.tahiyyatContainer}>
+                <View style={styles.tahiyyatLeft}>
+                  <Text style={styles.tahiyyatTitle}>{row.title}</Text>
+                  <Text style={styles.tahiyyatSubtitle}>
+                    <Text style={styles.tahiyyatNumber}>0</Text>
+                    <Text style={styles.tahiyyatDivider}>{row.divider}</Text>
+                  </Text>
                 </View>
-              </TaperedCircleBorder>
-            </View>
-          </View>
+                <View style={styles.tahiyyatCircleWrapper}>
+                  <TaperedCircleBorder
+                    borderColor={Colors.light.calendarBg}
+                    size={48}
+                  >
+                    <View style={styles.circleTextContainer}>
+                      <Text style={styles.circleMainText}>0</Text>
+                      <Text style={styles.circlePercentText}>%</Text>
+                    </View>
+                  </TaperedCircleBorder>
+                  <TopSpace top={8} />
+                </View>
+              </View>
+            ))}
+          </>
         )}
 
-        {/* Sunnah Rawatib Container */}
-        {(selectedCategory === "All" || selectedCategory === "Prayer") && (
+        {/* Quran sub-goals */}
+        {(selectedDashboardCategory === "All" ||
+          selectedDashboardCategory === "Quran") && (
           <View style={styles.tahiyyatContainer}>
             <View style={styles.tahiyyatLeft}>
-              <Text style={styles.tahiyyatTitle}>SUNNAH RAWATIB</Text>
-              <Text style={styles.tahiyyatSubtitle}>
-                <Text style={styles.tahiyyatNumber}>0</Text>
-                <Text style={styles.tahiyyatDivider}>/252</Text>
+              <Text style={styles.tahiyyatTitle}>
+                QURAN RECITATION (BY COMPLETION)
               </Text>
-            </View>
-            <View style={styles.tahiyyatCircleWrapper}>
-              <TaperedCircleBorder borderColor={Colors.light.calendarBg} size={48}>
-                <View style={styles.circleTextContainer}>
-                  <Text style={styles.circleMainText}>0</Text>
-                  <Text style={styles.circlePercentText}>%</Text>
-                </View>
-              </TaperedCircleBorder>
-            </View>
-          </View>
-        )}
-
-        {/* Tahiyyat Al-Masjid Container */}
-        {(selectedCategory === "All" || selectedCategory === "Prayer") && (
-          <View style={styles.tahiyyatContainer}>
-            <View style={styles.tahiyyatLeft}>
-              <Text style={styles.tahiyyatTitle}>TAHIYYAT AL-MASJID</Text>
-              <Text style={styles.tahiyyatSubtitle}>
-                <Text style={styles.tahiyyatNumber}>0</Text>
-                <Text style={styles.tahiyyatDivider}>/47</Text>
-              </Text>
-            </View>
-            <View style={styles.tahiyyatCircleWrapper}>
-              <TaperedCircleBorder borderColor={Colors.light.calendarBg} size={48}>
-                <View style={styles.circleTextContainer}>
-                  <Text style={styles.circleMainText}>0</Text>
-                  <Text style={styles.circlePercentText}>%</Text>
-                </View>
-              </TaperedCircleBorder>
-            </View>
-          </View>
-        )}
-
-        {/* Qiyam Al-Layl Container */}
-        {(selectedCategory === "All" || selectedCategory === "Prayer") && (
-          <View style={styles.tahiyyatContainer}>
-            <View style={styles.tahiyyatLeft}>
-              <Text style={styles.tahiyyatTitle}>QIYAM AL-LAYL</Text>
-              <Text style={styles.tahiyyatSubtitle}>
-                <Text style={styles.tahiyyatNumber}>0</Text>
-                <Text style={styles.tahiyyatDivider}>/23</Text>
-              </Text>
-            </View>
-            <View style={styles.tahiyyatCircleWrapper}>
-              <TaperedCircleBorder borderColor={Colors.light.calendarBg} size={48}>
-                <View style={styles.circleTextContainer}>
-                  <Text style={styles.circleMainText}>0</Text>
-                  <Text style={styles.circlePercentText}>%</Text>
-                </View>
-              </TaperedCircleBorder>
-            </View>
-          </View>
-        )}
-
-        {/* Missed Past Prayers Container */}
-        {(selectedCategory === "All" || selectedCategory === "Prayer") && (
-          <View style={styles.tahiyyatContainer}>
-            <View style={styles.tahiyyatLeft}>
-              <Text style={styles.tahiyyatTitle}>MISSED PAST PRAYERS</Text>
-              <Text style={styles.tahiyyatSubtitle}>
-                <Text style={styles.tahiyyatNumber}>0</Text>
-                <Text style={styles.tahiyyatDivider}>/17</Text>
-              </Text>
-            </View>
-            <View style={styles.tahiyyatCircleWrapper}>
-              <TaperedCircleBorder borderColor={Colors.light.calendarBg} size={48}>
-                <View style={styles.circleTextContainer}>
-                  <Text style={styles.circleMainText}>0</Text>
-                  <Text style={styles.circlePercentText}>%</Text>
-                </View>
-              </TaperedCircleBorder>
-            </View>
-          </View>
-        )}
-
-        {/* Quran Recitation Container */}
-        {(selectedCategory === "All" || selectedCategory === "Quran") && (
-          <View style={styles.tahiyyatContainer}>
-            <View style={styles.tahiyyatLeft}>
-              <Text style={styles.tahiyyatTitle}>QURAN RECITATION (BY COMPLETION)</Text>
               <Text style={styles.tahiyyatSubtitle}>
                 <Text style={styles.tahiyyatNumber}>0</Text>
                 <Text style={styles.tahiyyatDivider}>/3</Text>
               </Text>
             </View>
             <View style={styles.tahiyyatCircleWrapper}>
-              <TaperedCircleBorder borderColor={Colors.light.calendarBg} size={48}>
+              <TaperedCircleBorder
+                percentage={quranCategory?.percentage}
+                progressColor={quranCategory?.progressColor}
+                borderColor={Colors.light.calendarBg}
+                size={48}
+              >
                 <View style={styles.circleTextContainer}>
-                  <Text style={styles.circleMainText}>0</Text>
+                  <Text style={styles.circleMainText}>
+                    {parsePercent(quranCategory?.percentage)}
+                  </Text>
                   <Text style={styles.circlePercentText}>%</Text>
                 </View>
               </TaperedCircleBorder>
@@ -442,8 +488,9 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* Sadaqah Jariyah Container */}
-        {(selectedCategory === "All" || selectedCategory === "Sadaqah") && (
+        {/* Sadaqah sub-goals */}
+        {(selectedDashboardCategory === "All" ||
+          selectedDashboardCategory === "Sadaqah") && (
           <View style={styles.tahiyyatContainer}>
             <View style={styles.tahiyyatLeft}>
               <Text style={styles.tahiyyatTitle}>SADAQAH JARIYAH</Text>
@@ -453,7 +500,10 @@ export default function HomeScreen() {
               </Text>
             </View>
             <View style={styles.tahiyyatCircleWrapper}>
-              <TaperedCircleBorder borderColor={Colors.light.calendarBg} size={48}>
+              <TaperedCircleBorder
+                borderColor={Colors.light.calendarBg}
+                size={48}
+              >
                 <View style={styles.circleTextContainer}>
                   <Text style={styles.circleMainText}>0</Text>
                   <Text style={styles.circlePercentText}>%</Text>
@@ -463,18 +513,22 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* Show More Button */}
         <TouchableOpacity style={styles.showMoreButton}>
           <Text style={styles.showMoreText}>Show More</Text>
           <Entypo name="chevron-down" size={24} color="white" />
         </TouchableOpacity>
-      </ScrollView>
-      
-      {/* Namaz Goal Details Bottom Sheet */}
-      <NamazGoalBottomSheet
-        ref={namazBottomSheetRef}
-        onClose={() => {}}
-      />
-    </SafeAreaView>
+      </Animated.ScrollView>
+
+      <NamazGoalBottomSheet ref={namazBottomSheetRef} onClose={() => {}} />
+
+      {/* Golden action FAB */}
+      <View style={[styles.goldenFab, { bottom: safeAreaInsets.bottom + 20 }]}>
+        <TaperedCircleBorder variant="golden" size={30}>
+          <View style={styles.goldenFabInner}>
+            <Text style={styles.goldenFabPlus}>+</Text>
+          </View>
+        </TaperedCircleBorder>
+      </View>
+    </BlackScreenWrapper>
   );
 }
