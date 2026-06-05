@@ -4,6 +4,8 @@ import { Colors } from "@/constants/theme";
 import { Feather } from "@expo/vector-icons";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
+import { useTranslation } from "react-i18next";
+
 type Props = {
   goal: any;
   handleEditPress: (goal: any) => void;
@@ -13,6 +15,7 @@ const looksLikeCurrency = (v: any) =>
   typeof v === "string" && /[^0-9\s,\.\-]/.test(v);
 
 export default function ReviewGoalCard({ goal, handleEditPress }: Props) {
+  const { t } = useTranslation();
   const selected = goal?.selectedGoals ?? [];
   const firstSelected = selected.length > 0 ? selected[0] : null;
 
@@ -49,11 +52,11 @@ export default function ReviewGoalCard({ goal, handleEditPress }: Props) {
 
     // Unit chips (chip contains unit text only; numeric value shown outside)
     if (key === "kafarah-for-breaking-fasts")
-      return renderChipUnitAndValue("items", String(goal?.totalValue ?? 0));
+      return renderChipUnitAndValue(t("monthlyGoalPlanner.items"), String(goal?.totalValue ?? 0));
     if (key === "fidya")
-      return renderChipUnitAndValue("meals", String(goal?.totalValue ?? 0));
+      return renderChipUnitAndValue(t("monthlyGoalPlanner.meals"), String(goal?.totalValue ?? 0));
     if (key === "volunteering-services")
-      return renderChipUnitAndValue("hours", String(goal?.totalValue ?? 0));
+      return renderChipUnitAndValue(t("monthlyGoalPlanner.hours"), String(goal?.totalValue ?? 0));
 
     // Quran or other goals: if there's a selected entry, prefer that
     if (firstSelected) {
@@ -104,7 +107,31 @@ export default function ReviewGoalCard({ goal, handleEditPress }: Props) {
               style={styles.subGoalWrapper}
             >
               <View style={styles.subGoalRow}>
-                <Text style={styles.subGoalText}>{subGoal?.label}</Text>
+                <Text style={styles.subGoalText}>
+                  {(() => {
+                    const cleanLabel = String(subGoal?.label ?? "");
+                    // Translate common days of the week dynamically
+                    if (cleanLabel.toLowerCase() === "monday") return t("monthlyGoalPlanner.reviewLabels.monday");
+                    if (cleanLabel.toLowerCase() === "tuesday") return t("monthlyGoalPlanner.reviewLabels.tuesday", "Tuesday");
+                    if (cleanLabel.toLowerCase() === "wednesday") return t("monthlyGoalPlanner.reviewLabels.wednesday", "Wednesday");
+                    if (cleanLabel.toLowerCase() === "thursday") return t("monthlyGoalPlanner.reviewLabels.thursday");
+                    if (cleanLabel.toLowerCase() === "friday") return t("monthlyGoalPlanner.reviewLabels.friday", "Friday");
+                    if (cleanLabel.toLowerCase() === "saturday") return t("monthlyGoalPlanner.reviewLabels.saturday", "Saturday");
+                    if (cleanLabel.toLowerCase() === "sunday") return t("monthlyGoalPlanner.reviewLabels.sunday", "Sunday");
+                    if (cleanLabel.toLowerCase() === "mon") return t("monthlyGoalPlanner.reviewLabels.mon");
+                    if (cleanLabel.toLowerCase() === "wed") return t("monthlyGoalPlanner.reviewLabels.wed");
+                    if (cleanLabel.toLowerCase() === "juz") return t("monthlyGoalPlanner.reviewLabels.juz");
+                    if (cleanLabel.toLowerCase() === "hizb") return t("monthlyGoalPlanner.reviewLabels.hizb");
+                    if (cleanLabel.toLowerCase() === "surah") return t("monthlyGoalPlanner.reviewLabels.surah");
+                    if (cleanLabel.toLowerCase() === "completion") return t("monthlyGoalPlanner.reviewLabels.completion");
+                    if (cleanLabel.toLowerCase() === "amount") return t("monthlyGoalPlanner.amount");
+                    if (cleanLabel.toLowerCase() === "meals") return t("monthlyGoalPlanner.meals");
+                    if (cleanLabel.toLowerCase() === "cloths") return t("monthlyGoalPlanner.cloths");
+                    if (cleanLabel.toLowerCase() === "hours") return t("monthlyGoalPlanner.hours");
+                    
+                    return cleanLabel;
+                  })()}
+                </Text>
                 <Text style={styles.subGoalValueText}>{subGoal?.value}</Text>
               </View>
             </View>

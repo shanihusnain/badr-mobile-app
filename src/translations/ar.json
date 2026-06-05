@@ -225,6 +225,90 @@
       "shaw": "شوال",
       "dhulQ": "ذو القعدة",
       "dhulH": "ذو الحجة"
+    },
+    "save": "حفظ",
+    "amount": "المبلغ",
+    "meals": "الوجبات",
+    "cloths": "الملابس",
+    "hours": "الساعات",
+    "selectNumHours": "حدد عدد الساعات",
+    "hoursQuranListening": "ساعات الاستماع للقرآن",
+    "hoursQuranTajweed": "ساعات تجويد القرآن",
+    "recitationBySurah": "التلاوة — بالسورة",
+    "recitationByCompletion": "التلاوة — بالختمة",
+    "recitationByJuz": "التلاوة — بالجزء",
+    "memorizationByJuz": "الحفظ — بالجزء",
+    "memorizationByHizb": "الحفظ — بالحزب",
+    "memorizationBySurah": "الحفظ — بالسورة",
+    "fidyaMealsTitle": "حدد العدد المستهدف من الوجبات التي تهدف إلى تقديمها للمحتاجين",
+    "volunteeringMonthTitle": "حدد هدفك لهذا الشهر",
+    "selectTrackingMetric": "حدد مقياس التتبع والهدف",
+    "items": "عناصر",
+    "meals": "وجبات",
+    "hours": "ساعات",
+    "reviewLabels": {
+      "tahayyatWudu": "تحية الوضوء",
+      "fiveDailyPrayers": "الصلوات الخمس المفروضة",
+      "sunnahRawatib": "السنن الرواتب",
+      "tahayyatMasjid": "تحية المسجد",
+      "missedPastPrayers": "الصلوات الفائتة السابقة",
+      "duha": "الضحى",
+      "tawba": "التوبة",
+      "istikhara": "الاستخارة",
+      "shukr": "الشكر",
+      "qiyalAlLail": "قيام الليل",
+      "quranListening": "الاستماع للقرآن",
+      "quranRecitationSurah": "تلاوة القرآن (بالسورة)",
+      "quranRecitationCompletion": "تلاوة القرآن (بالختمة)",
+      "quranRecitationJuz": "تلاوة القرآن (بالجزء)",
+      "quranMemorizationJuz": "حفظ القرآن (بالجزء)",
+      "quranMemorizationHizb": "حفظ القرآن (بالحزب)",
+      "quranMemorizationSurah": "حفظ القرآن (بالسورة)",
+      "quranTajweed": "تجويد القرآن",
+      "missedFasts": "قضاء صيام رمضان الفائت",
+      "dawoodFasts": "صيام نبي الله داود (صيام يوم وإفطار يوم)",
+      "mondayThursdayFasts": "صيام الإثنين والخميس",
+      "whiteDaysFasts": "صيام الأيام البيض",
+      "missedZakat": "الزكاة الفائتة",
+      "kafarahBreakingFasts": "كفارة إفطار الصيام",
+      "fidya": "الفدية",
+      "lilahDonations": "تبرعات لله",
+      "volunteeringServices": "العمل التطوعي",
+      "sadaqahJariyah": "الصدقة الجارية",
+      "ramadanMissed1": "١٠ رمضان",
+      "ramadanMissed2": "١٢ رمضان",
+      "mon": "الإثنين",
+      "wed": "الأربعاء",
+      "monday": "الإثنين",
+      "tuesday": "الثلاثاء",
+      "wednesday": "الأربعاء",
+      "thursday": "الخميس",
+      "friday": "الجمعة",
+      "saturday": "السبت",
+      "sunday": "الأحد",
+      "white13": "١٣ (الأيام البيض)",
+      "white14": "١٤ (الأيام البيض)",
+      "white15": "١٥ (الأيام البيض)",
+      "juz": "جزء",
+      "hizb": "حزب",
+      "surah": "سورة",
+      "completion": "ختمة"
+    },
+    "save": "حفظ",
+    "quranMetrics": {
+      "completionKhatma": "الختمة (خاتمة)",
+      "daily": "يوميًا",
+      "weekly": "أسبوعيًا",
+      "enterUpToTimes": "أدخل ما يصل إلى {{max}} مرات {{frequency}}",
+      "timesFrequency": "مرات {{frequency}}",
+      "recitationsCount": "{{count}} تلاوات",
+      "recitationsFormula": "{{times}} × {{multiplier}} = {{total}} تلاوة",
+      "juzRangeHint": "أدخل أرقامًا بين ١-٣٠. يجب أن يكون 'إلى جزء' أكبر من أو يساوي 'من جزء'.",
+      "fromJuz": "من جزء",
+      "toJuz": "إلى جزء",
+      "totalJuz": "(إجمالي {{total}} أجزاء)",
+      "enterUpToCompletions": "أدخل ما يصل إلى ٢٨ ختمة.",
+      "fullCompletions": "ختمة (ختمات) كاملة للقرآن"
     }
   },
   "prayerGoals": {
@@ -620,13 +704,43 @@
             },
             {
               "type": "table",
-              "headers": ["الصلاة", "السنة\n(قبل)", "الفرض", "السنة\n(بعد)"],
+              "headers": [
+                "الصلاة",
+                "السنة\n(قبل)",
+                "الفرض",
+                "السنة\n(بعد)"
+              ],
               "rows": [
-                ["الفجر", "٢", "٢", "-"],
-                ["الظهر", "٢+٢", "٤", "٢ أو ٤"],
-                ["العصر", "٢ أو ٤", "٤", "-"],
-                ["المغرب", "-", "٣", "٢"],
-                ["العشاء", "-", "٤", "٢"]
+                [
+                  "الفجر",
+                  "٢",
+                  "٢",
+                  "-"
+                ],
+                [
+                  "الظهر",
+                  "٢+٢",
+                  "٤",
+                  "٢ أو ٤"
+                ],
+                [
+                  "العصر",
+                  "٢ أو ٤",
+                  "٤",
+                  "-"
+                ],
+                [
+                  "المغرب",
+                  "-",
+                  "٣",
+                  "٢"
+                ],
+                [
+                  "العشاء",
+                  "-",
+                  "٤",
+                  "٢"
+                ]
               ]
             }
           ]
@@ -898,7 +1012,12 @@
             {
               "type": "text",
               "style": "body",
-              "content": "يمكن دمج هاتين الركعتين بسلاسة في صلوات السنة اليومية، مثل تلك قبل الفجر أو بعد المغرب، أو يمكن أن تكون صلوات إضافية. يجد الكثيرون السلام في تقديم هذه الركعات الإضافية ليلاً، بعد العشاء، كجزء من صلواتهم الليلية، مستفيدين من هدوء ساعات الليل المتأخرة. قد يختار آخرون الصلاة في وقت مختلف، مثل قبل حدث مهم مثل مقابلة عمل، يجدون الراحة في طلب هداية الله قبل مواجهة قرار."
+              "content": "يمكن دمج هاتين الركعتين بسلاسة في صلوات السنة اليومية، مثل تلك قبل الفجر أو بعد المغرب، أو يمكن أن تكون صلوات إضافية."
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "يجد الكثيرون السلام في تقديم هذه الركعات الإضافية ليلاً، بعد العشاء، كجزء من صلواتهم الليلية، مستفيدين من هدوء ساعات الليل المتأخرة. قد يختار آخرون الصلاة في وقت مختلف، مثل قبل حدث مهم مثل مقابلة عمل، يجدون الراحة في طلب هداية الله قبل مواجهة قرار."
             }
           ]
         },
@@ -1487,7 +1606,7 @@
         }
       ]
     },
-    "qauran-tajweed": {
+    "quran-tajweed": {
       "title": "تجويد القرآن الكريم",
       "description": "التجويد يزين تلاوة القرآن ويؤديها كما أُنزلت على النبي صلى الله عليه وسلم، محافظاً على مخارج الحروف، الإيقاع، واللحن مع تعميق التدبر",
       "heroTitle": "تحسين التلاوة وتجميلها كما أُنزلت",
@@ -2750,5 +2869,128 @@
         }
       ]
     }
+  },
+  "homeScreen": {
+    "upcoming": "القادمة",
+    "juneDate": "١ يونيو، ٢٠٢٦",
+    "prayers": "الصلوات",
+    "quran": "القرآن",
+    "fasting": "الصيام",
+    "sadaqah": "الصدقة",
+    "welcomeTitle": "مرحبًا بك في بدر، {{name}}!",
+    "welcomeContent": "تبدأ دورة أهدافك التي تستمر ٢٨ يومًا غدًا عند صلاة الفجر. استعد لتتبع أهداف الصلاة والقرآن والصيام والصدقة. يسر الله لك وبارك في جهودك!",
+    "welcomeHighlightCycle": "دورة أهدافك التي تستمر ٢٨ يومًا",
+    "welcomeHighlightTomorrow": "غدًا",
+    "welcomeHighlightFajr": "صلاة الفجر",
+    "trackProgressTitle": "تتبع تقدمك",
+    "trackProgressContent": "لوريم إيبسوم دولار سيت أميت، كونسيكتيتور أديبايسينغ إيليت. سيد دو إيوسمود تيمبور إنسيديدونت يوت لابوري إت دولوري ماغنا أليكا.",
+    "dailyLightTitle": "نور يومي من القرآن الكريم",
+    "dailyLightQuote": "\"والذين جاهدوا فينا لنهدينهم سبلنا\"",
+    "dailyLightRef": "(سورة العنكبوت، 29:69)",
+    "hadithTitle": "حديث اليوم",
+    "hadithQuote": "\"خيركم من تعلم القرآن وعلمه\"",
+    "hadithRef": "(صحيح البخاري)",
+    "reflectionTitle": "تفكر وامتنان",
+    "reflectionQuote": "\"وإن تعدوا نعمة الله لا تحصوها\"",
+    "reflectionRef": "(سورة إبراهيم، 14:34)",
+    "logMenstruation": "تسجيل الدورة الشهرية",
+    "customizeJournalTitle": "خصص دفتر يومياتك",
+    "customizeJournalDesc": "اختر من بين أكثر من ١٠٠ سلوك لتتبعها يوميًا، مما يعزز نمو شخصيتك ويساعدك لتصبح أفضل نسخة من نفسك.",
+    "getStarted": "ابدأ الآن",
+    "myDashboard": "لوحة التحكم الخاصة بي",
+    "customize": "تخصيص",
+    "filterAll": "الكل",
+    "filterPrayer": "الصلاة",
+    "filterQuran": "القرآن",
+    "filterFasting": "الصيام",
+    "filterSadaqah": "الصدقة",
+    "tahiyyatAlWudhu": "تحية الوضوء",
+    "sunnahRawatib": "السنن الرواتب",
+    "tahiyyatAlMasjid": "تحية المسجد",
+    "qiyamAlLayl": "قيام الليل",
+    "missedPastPrayers": "الصلوات الفائتة السابقة",
+    "alShukar": "صلاة الشكر",
+    "quranRecitation": "تلاوة القرآن (بالختم)",
+    "sadaqahJariyah": "الصدقة الجارية",
+    "missedRamadanFasts": "قضاء صيام رمضان",
+    "fastsProphetDawood": "صيام نبي الله داود (ع)",
+    "mondayThursdayFasts": "صيام الاثنين والخميس",
+    "whiteDaysFast": "صيام الأيام البيض",
+    "prayersCount": "/{{count}} صلاة",
+    "countSuffix": "/{{count}}",
+    "sadaqahAmount": "/${{amount}}",
+    "showLess": "عرض أقل",
+    "showMore": "عرض المزيد"
+  },
+  "daysTracker": {
+    "daysLeft": "/{{total}} يوماً متبقية",
+    "day": "اليوم",
+    "overallProgress": "التقدم العام",
+    "committedGoals": "لقد التزمت بالعمل على\n{{count}} من الأهداف!",
+    "welcomeJourney": "أنت جاهز تمامًا — ستبدأ قريبًا رحلتك نحو اتصال أعمق ونمو روحي. عندما تبدأ في التتبع، سيمتلئ قمرك بالضوء — مما يعكس كل خطوة تخطوها نحو النمو والاتصال والإحسان."
+  },
+  "namazGoalBottomSheet": {
+    "dateRange": "٢٩ نوفمبر - ٢٦ ديسمبر، ٢٠٢٤",
+    "notStarted": "لم تبدأ",
+    "inProgress": "قيد التنفيذ",
+    "completed": "مكتملة",
+    "goalsCount": "{{count}} أهداف",
+    "goalsCountOne": "هدف واحد"
+  },
+  "menstruationLog": {
+    "title": "تسجيل الدورة الشهرية",
+    "infoText": "سجّلي فترة الدورة الشهرية لتحديث أهدافك. سيتم تعديل العبادات المعفاة تلقائيًا، مما يضمن دقة تقدمك وعدالته.",
+    "periodHeader": "فترة الدورة الشهرية الخاصة بك",
+    "imMenstruating": "أنا في فترة الدورة الشهرية",
+    "imStillMenstruating": "ما زلت في فترة الدورة الشهرية",
+    "startDate": "تاريخ البدء",
+    "endDate": "تاريخ الانتهاء",
+    "today": "اليوم",
+    "save": "حفظ",
+    "startQuestionToday": "متى بدأت اليوم؟",
+    "startQuestionDate": "متى بدأت في {{date}}؟",
+    "endQuestionToday": "متى انتهت اليوم؟",
+    "endQuestionDate": "متى انتهت في {{date}}؟",
+    "beforeFajr": "قبل الفجر",
+    "beforeDuhr": "قبل الظهر",
+    "beforeAsr": "قبل العصر",
+    "beforeMaghrib": "قبل المغرب",
+    "beforeIsha": "قبل العشاء",
+    "islamicMonthNames": [
+      "محرم",
+      "صفر",
+      "ربيع الأول",
+      "ربيع الآخر",
+      "جمادى الأولى",
+      "جمادى الآخرة",
+      "رجب",
+      "شعبان",
+      "رمضان",
+      "شوال",
+      "ذو القعدة",
+      "ذو الحجة"
+    ]
+  },
+  "streakCounter": {
+    "title": "سلسلة الأيام",
+    "startedDate": "٨ يوليو، ٢٠٢٦",
+    "streakStarted": "بدأت السلسلة",
+    "topPercentage": "أفضل ٣٠٪",
+    "badr": "بدر",
+    "maxStreak": "أطول سلسلة",
+    "thisWeek": "هذا الأسبوع",
+    "moreDays": "تبقت {{count}} أيام",
+    "unlockMilestone": "لفتح إنجازك\nالتالي.",
+    "consistencyHeader": "حافظ على الاستمرارية لبركة طويلة الأمد",
+    "consistencyBody": "إن التزامك اليومي بالتسجيل في بدر ليس مجرد روتين، بل هو خطوة نحو النمو الروحاني، يقربك من أهدافك، ويقوي عبادتك، ويعمق صلتك بالله.",
+    "weekDays": [
+      "الأحد",
+      "الاثنين",
+      "الثلاثاء",
+      "الأربعاء",
+      "الخميس",
+      "الجمعة",
+      "السبت"
+    ]
   }
 }

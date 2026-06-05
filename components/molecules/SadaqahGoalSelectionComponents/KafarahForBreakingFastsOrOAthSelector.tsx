@@ -6,6 +6,7 @@ import { set } from "zod";
 import { Divider } from "@/components/atoms/Divider";
 import { useState } from "react";
 import { TopSpace } from "@/components/atoms/TopSpace";
+import { useTranslation } from "react-i18next";
 
 export const KafarahForBreakingFastsOrOAthSelector = ({
   mealCount,
@@ -26,6 +27,7 @@ export const KafarahForBreakingFastsOrOAthSelector = ({
   handleClothDecrease: () => void;
   handleClothIncrease: () => void;
 }) => {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const toggleDropdown = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -35,7 +37,7 @@ export const KafarahForBreakingFastsOrOAthSelector = ({
     <View style={[globalStyles.goalSelectionWrapper]}>
       <GoalSelectionOpenCloseButton
         isOpen={isOpen}
-        title={"Kafarah for breaking fasts or oaths"}
+        title={t("monthlyGoalPlanner.reviewLabels.kafarahBreakingFasts")}
         toggleDropdown={toggleDropdown}
       />
       {isOpen && (
@@ -54,7 +56,7 @@ export const KafarahForBreakingFastsOrOAthSelector = ({
               setCount={setMealCount}
               handleDecrease={handleMealDecrease}
               handleIncrease={handleMealIncrease}
-              countTitle="Meal(s)"
+              countTitle={t("monthlyGoalPlanner.meals")}
               width={"50%"}
             />
 
@@ -63,7 +65,7 @@ export const KafarahForBreakingFastsOrOAthSelector = ({
               setCount={setClothCount}
               handleDecrease={handleClothDecrease}
               handleIncrease={handleClothIncrease}
-              countTitle="Cloth(s)"
+              countTitle={t("monthlyGoalPlanner.cloths")}
               width={"50%"}
             />
           </View>

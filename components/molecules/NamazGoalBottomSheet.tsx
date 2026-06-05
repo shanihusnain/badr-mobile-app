@@ -10,6 +10,7 @@ import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import { DaysTrackerContainer } from "./DaysTrackerContainer";
 import { GoalDetailsCard } from "./PrayersGoalDetailsCard";
+import { useTranslation } from "react-i18next";
 
 type Props = {
   onClose: () => void;
@@ -17,6 +18,7 @@ type Props = {
 
 export const NamazGoalBottomSheet = forwardRef<BottomSheet, Props>(
   ({ onClose }, ref) => {
+    const { t, i18n } = useTranslation();
     const snapPoints = useMemo(() => ["50%", "92%"], []);
 
     const renderBackdrop = useCallback(
@@ -49,13 +51,13 @@ export const NamazGoalBottomSheet = forwardRef<BottomSheet, Props>(
           {/* Date Range Header with Navigation Arrows */}
           <View style={styles.dateHeaderContainer}>
             <Ionicons
-              name="chevron-back-outline"
+              name={i18n.language === "ar" ? "chevron-forward-outline" : "chevron-back-outline"}
               size={24}
               color={Colors.light.white}
             />
-            <Text style={styles.dateText}>NOV 29 - DEC 26, 2024</Text>
+            <Text style={styles.dateText}>{t("namazGoalBottomSheet.dateRange")}</Text>
             <Ionicons
-              name="chevron-forward-outline"
+              name={i18n.language === "ar" ? "chevron-back-outline" : "chevron-forward-outline"}
               size={24}
               color={Colors.light.white}
             />
@@ -65,10 +67,10 @@ export const NamazGoalBottomSheet = forwardRef<BottomSheet, Props>(
           <DaysTrackerContainer isBottomSheetView={true} />
 
           {/* 2. Secondary Containers: Custom Goal Details Cards */}
-          <GoalDetailsCard title="PRAYERS" percentage="0%" />
-          <GoalDetailsCard title="QURAN" percentage="0%" />
-          <GoalDetailsCard title="FASTING" percentage="0%" />
-          <GoalDetailsCard title="SADAQAH" percentage="0%" />
+          <GoalDetailsCard title={t("homeScreen.prayers")} percentage="0%" />
+          <GoalDetailsCard title={t("homeScreen.quran")} percentage="0%" />
+          <GoalDetailsCard title={t("homeScreen.fasting")} percentage="0%" />
+          <GoalDetailsCard title={t("homeScreen.sadaqah")} percentage="0%" />
         </BottomSheetScrollView>
       </BottomSheet>
     );

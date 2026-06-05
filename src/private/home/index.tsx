@@ -2,8 +2,8 @@ import React, { useState, useRef } from "react";
 import {
   View,
   Text,
-  SafeAreaView,
   ScrollView,
+  SafeAreaView,
   TouchableOpacity,
   Dimensions,
   NativeScrollEvent,
@@ -20,38 +20,45 @@ import BottomSheet from "@gorhom/bottom-sheet";
 import { DaysTrackerContainer } from "@/components/molecules/DaysTrackerContainer";
 import { NamazGoalBottomSheet } from "@/components/molecules/NamazGoalBottomSheet";
 import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
+import { localizeNumber } from "@/src/utils/localizeNumbers";
 
 import Ionicons from "@expo/vector-icons/Ionicons";
 
 export default function HomeScreen() {
+  const { t, i18n } = useTranslation();
+  const lng = i18n.language;
   const styles = createStyles();
   const CARD_WIDTH = Dimensions.get("window").width - 32;
   const [showPrayerCard, setShowPrayerCard] = useState(true);
   const [activeInspirationIndex, setActiveInspirationIndex] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [showMoreExpanded, setShowMoreExpanded] = useState(false);
   const namazBottomSheetRef = useRef<BottomSheet>(null);
   const router = useRouter();
 
   const categories = [
-    { title: "PRAYERS", percentage: "0%" },
-    { title: "QURAN", percentage: "0%" },
-    { title: "FASTING", percentage: "0%" },
-    { title: "SADAQAH", percentage: "0%" },
+    { title: t("homeScreen.prayers"), percentage: localizeNumber("0", lng) + "%" },
+    { title: t("homeScreen.quran"), percentage: localizeNumber("0", lng) + "%" },
+    { title: t("homeScreen.fasting"), percentage: localizeNumber("0", lng) + "%" },
+    { title: t("homeScreen.sadaqah"), percentage: localizeNumber("0", lng) + "%" },
   ];
 
-  const containerData = [
+  const greetingcard = [
     {
       id: 1,
-      title: "Welcome to Badr, Layla!",
-      content:
-        "Your 28-day goal cycle is set to begin tomorrow at Fajr. Get ready to track your prayer, Quran, fasting, and sadaqah goals. May Allah (SWT) make it easy and rewarding for you!",
-      highlightedTexts: ["28-day goal cycle", "tomorrow", "Fajr"],
+      title: t("homeScreen.welcomeTitle", { name: "Layla" }),
+      content: t("homeScreen.welcomeContent"),
+      highlightedTexts: [
+        t("homeScreen.welcomeHighlightCycle"),
+        t("homeScreen.welcomeHighlightTomorrow"),
+        t("homeScreen.welcomeHighlightFajr"),
+      ],
     },
     {
       id: 2,
-      title: "Track Your Progress",
-      content:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+      title: t("homeScreen.trackProgressTitle"),
+      content: t("homeScreen.trackProgressContent"),
       highlightedTexts: [],
     },
   ];
@@ -59,21 +66,21 @@ export default function HomeScreen() {
   const inspirationCards = [
     {
       id: 1,
-      title: "Daily Light from the Quran",
-      quote: '"Indeed, it is We who guide whom We will to our ways."',
-      reference: "(Surah Al-Ankabut, 29:69)",
+      title: t("homeScreen.dailyLightTitle"),
+      quote: t("homeScreen.dailyLightQuote"),
+      reference: t("homeScreen.dailyLightRef"),
     },
     {
       id: 2,
-      title: "Hadith of the Day",
-      quote: '"The best of you are those who learn the Quran and teach it."',
-      reference: "(Sahih Al-Bukhari)",
+      title: t("homeScreen.hadithTitle"),
+      quote: t("homeScreen.hadithQuote"),
+      reference: t("homeScreen.hadithRef"),
     },
     {
       id: 3,
-      title: "Reflection & Gratitude",
-      quote: '"And if you should count the favors of Allah, you could not enumerate them."',
-      reference: "(Surah Ibrahim, 14:34)",
+      title: t("homeScreen.reflectionTitle"),
+      quote: t("homeScreen.reflectionQuote"),
+      reference: t("homeScreen.reflectionRef"),
     },
   ];
 
@@ -82,6 +89,7 @@ export default function HomeScreen() {
     let lastIndex = 0;
 
     highlightedTexts.forEach((highlightedText) => {
+      if (!highlightedText) return;
       const index = text.indexOf(highlightedText, lastIndex);
       if (index !== -1) {
         if (index > lastIndex) {
@@ -128,7 +136,7 @@ export default function HomeScreen() {
             onPress={() => router.push("/streakcounter")}
           >
             <View style={styles.streakBox}>
-              <Text style={styles.streakText}>0</Text>
+              <Text style={styles.streakText}>{localizeNumber("0", lng)}</Text>
             </View>
           </TouchableOpacity>
         </View>
@@ -147,14 +155,14 @@ export default function HomeScreen() {
             <View style={styles.prayerCardContainer}>
               {/* Left Side - Prayer Details */}
               <View style={styles.prayerDetailsLeft}>
-                <Text style={styles.upcomingText}>Upcoming</Text>
-                <Text style={styles.prayerNameText}>ASR</Text>
-                <Text style={styles.timeText}>3:53 PM</Text>
+                <Text style={styles.upcomingText}>{t("homeScreen.upcoming")}</Text>
+                <Text style={styles.prayerNameText}>{t("prayerGoals.asr").toUpperCase()}</Text>
+                <Text style={styles.timeText}>{localizeNumber("3:53 PM", lng)}</Text>
               </View>
 
               {/* Right Side - Date */}
               <View style={styles.dateRight}>
-                <Text style={styles.dateText}>June 1, 2026</Text>
+                <Text style={styles.dateText}>{t("homeScreen.juneDate")}</Text>
               </View>
             </View>
           </View>
@@ -185,7 +193,7 @@ export default function HomeScreen() {
         {/* Scrollable Containers Section */}
         <View style={styles.containersSection}>
           <ContainerCarousel
-            data={containerData}
+            data={greetingcard}
             renderTextWithHighlight={renderTextWithHighlight}
           />
         </View>
@@ -258,27 +266,27 @@ export default function HomeScreen() {
             <View style={styles.greenPlusCircle}>
               <Ionicons name="add" size={16} color="white" />
             </View>
-            <Text style={styles.menstruationText}>LOG MENSTRUATION</Text>
+            <Text style={styles.menstruationText}>{t("homeScreen.logMenstruation")}</Text>
           </View>
         </TouchableOpacity>
 
         {/* Customize Your Journal Container */}
         <View style={styles.journalContainer}>
-          <Text style={styles.journalTitle}>Customize Your Journal</Text>
+          <Text style={styles.journalTitle}>{t("homeScreen.customizeJournalTitle")}</Text>
           <Text style={styles.journalDescription}>
-            Choose from over 100 behaviors to track daily, fostering growth in your character and helping you become your best self.
+            {t("homeScreen.customizeJournalDesc")}
           </Text>
           <TouchableOpacity style={styles.getStartedButton}>
-            <Text style={styles.getStartedText}>GET STARTED</Text>
+            <Text style={styles.getStartedText}>{t("homeScreen.getStarted")}</Text>
             <Entypo name="chevron-right" size={24} color={Colors.light.green} />
           </TouchableOpacity>
         </View>
 
         {/* My Dashboard Section */}
         <View style={styles.dashboardSection}>
-          <Text style={styles.dashboardText}>My Dashboard</Text>
+          <Text style={styles.dashboardText}>{t("homeScreen.myDashboard")}</Text>
           <View style={styles.customizeContainer}>
-            <Text style={styles.customizeText}>CUSTOMIZE</Text>
+            <Text style={styles.customizeText}>{t("homeScreen.customize")}</Text>
           </View>
         </View>
 
@@ -288,31 +296,31 @@ export default function HomeScreen() {
             style={[styles.categoryFilterItem, selectedCategory === "All" && styles.categoryFilterItemActive]}
             onPress={() => setSelectedCategory("All")}
           >
-            <Text style={[styles.categoryFilterText, selectedCategory === "All" && styles.categoryFilterTextActive]}>All</Text>
+            <Text style={[styles.categoryFilterText, selectedCategory === "All" && styles.categoryFilterTextActive]}>{t("homeScreen.filterAll")}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.categoryFilterItemWide, selectedCategory === "Prayer" && styles.categoryFilterItemActive]}
             onPress={() => setSelectedCategory("Prayer")}
           >
-            <Text style={[styles.categoryFilterText, selectedCategory === "Prayer" && styles.categoryFilterTextActive]}>Prayer</Text>
+            <Text style={[styles.categoryFilterText, selectedCategory === "Prayer" && styles.categoryFilterTextActive]}>{t("homeScreen.filterPrayer")}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.categoryFilterItemWide, selectedCategory === "Quran" && styles.categoryFilterItemActive]}
             onPress={() => setSelectedCategory("Quran")}
           >
-            <Text style={[styles.categoryFilterText, selectedCategory === "Quran" && styles.categoryFilterTextActive]}>Quran</Text>
+            <Text style={[styles.categoryFilterText, selectedCategory === "Quran" && styles.categoryFilterTextActive]}>{t("homeScreen.filterQuran")}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.categoryFilterItemWide, selectedCategory === "Fasting" && styles.categoryFilterItemActive]}
             onPress={() => setSelectedCategory("Fasting")}
           >
-            <Text style={[styles.categoryFilterText, selectedCategory === "Fasting" && styles.categoryFilterTextActive]}>Fasting</Text>
+            <Text style={[styles.categoryFilterText, selectedCategory === "Fasting" && styles.categoryFilterTextActive]}>{t("homeScreen.filterFasting")}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.categoryFilterItemWide, selectedCategory === "Sadaqah" && styles.categoryFilterItemActive]}
             onPress={() => setSelectedCategory("Sadaqah")}
           >
-            <Text style={[styles.categoryFilterText, selectedCategory === "Sadaqah" && styles.categoryFilterTextActive]}>Sadaqah</Text>
+            <Text style={[styles.categoryFilterText, selectedCategory === "Sadaqah" && styles.categoryFilterTextActive]}>{t("homeScreen.filterSadaqah")}</Text>
           </TouchableOpacity>
         </View>
 
@@ -320,16 +328,16 @@ export default function HomeScreen() {
         {(selectedCategory === "All" || selectedCategory === "Prayer") && (
           <View style={styles.tahiyyatContainer}>
             <View style={styles.tahiyyatLeft}>
-              <Text style={styles.tahiyyatTitle}>TAHIYYAT AL-WUDHU</Text>
+              <Text style={styles.tahiyyatTitle}>{t("homeScreen.tahiyyatAlWudhu")}</Text>
               <Text style={styles.tahiyyatSubtitle}>
-                <Text style={styles.tahiyyatNumber}>0</Text>
-                <Text style={styles.tahiyyatDivider}>/25 prayers</Text>
+                <Text style={styles.tahiyyatNumber}>{localizeNumber("0", lng)}</Text>
+                <Text style={styles.tahiyyatDivider}>{t("homeScreen.prayersCount", { count: localizeNumber("25", lng) })}</Text>
               </Text>
             </View>
             <View style={styles.tahiyyatCircleWrapper}>
               <TaperedCircleBorder borderColor={Colors.light.calendarBg} size={48}>
                 <View style={styles.circleTextContainer}>
-                  <Text style={styles.circleMainText}>0</Text>
+                  <Text style={styles.circleMainText}>{localizeNumber("0", lng)}</Text>
                   <Text style={styles.circlePercentText}>%</Text>
                 </View>
               </TaperedCircleBorder>
@@ -341,16 +349,16 @@ export default function HomeScreen() {
         {(selectedCategory === "All" || selectedCategory === "Prayer") && (
           <View style={styles.tahiyyatContainer}>
             <View style={styles.tahiyyatLeft}>
-              <Text style={styles.tahiyyatTitle}>SUNNAH RAWATIB</Text>
+              <Text style={styles.tahiyyatTitle}>{t("homeScreen.sunnahRawatib")}</Text>
               <Text style={styles.tahiyyatSubtitle}>
-                <Text style={styles.tahiyyatNumber}>0</Text>
-                <Text style={styles.tahiyyatDivider}>/252</Text>
+                <Text style={styles.tahiyyatNumber}>{localizeNumber("0", lng)}</Text>
+                <Text style={styles.tahiyyatDivider}>{t("homeScreen.countSuffix", { count: localizeNumber("252", lng) })}</Text>
               </Text>
             </View>
             <View style={styles.tahiyyatCircleWrapper}>
               <TaperedCircleBorder borderColor={Colors.light.calendarBg} size={48}>
                 <View style={styles.circleTextContainer}>
-                  <Text style={styles.circleMainText}>0</Text>
+                  <Text style={styles.circleMainText}>{localizeNumber("0", lng)}</Text>
                   <Text style={styles.circlePercentText}>%</Text>
                 </View>
               </TaperedCircleBorder>
@@ -362,16 +370,16 @@ export default function HomeScreen() {
         {(selectedCategory === "All" || selectedCategory === "Prayer") && (
           <View style={styles.tahiyyatContainer}>
             <View style={styles.tahiyyatLeft}>
-              <Text style={styles.tahiyyatTitle}>TAHIYYAT AL-MASJID</Text>
+              <Text style={styles.tahiyyatTitle}>{t("homeScreen.tahiyyatAlMasjid")}</Text>
               <Text style={styles.tahiyyatSubtitle}>
-                <Text style={styles.tahiyyatNumber}>0</Text>
-                <Text style={styles.tahiyyatDivider}>/47</Text>
+                <Text style={styles.tahiyyatNumber}>{localizeNumber("0", lng)}</Text>
+                <Text style={styles.tahiyyatDivider}>{t("homeScreen.countSuffix", { count: localizeNumber("47", lng) })}</Text>
               </Text>
             </View>
             <View style={styles.tahiyyatCircleWrapper}>
               <TaperedCircleBorder borderColor={Colors.light.calendarBg} size={48}>
                 <View style={styles.circleTextContainer}>
-                  <Text style={styles.circleMainText}>0</Text>
+                  <Text style={styles.circleMainText}>{localizeNumber("0", lng)}</Text>
                   <Text style={styles.circlePercentText}>%</Text>
                 </View>
               </TaperedCircleBorder>
@@ -383,16 +391,16 @@ export default function HomeScreen() {
         {(selectedCategory === "All" || selectedCategory === "Prayer") && (
           <View style={styles.tahiyyatContainer}>
             <View style={styles.tahiyyatLeft}>
-              <Text style={styles.tahiyyatTitle}>QIYAM AL-LAYL</Text>
+              <Text style={styles.tahiyyatTitle}>{t("homeScreen.qiyamAlLayl")}</Text>
               <Text style={styles.tahiyyatSubtitle}>
-                <Text style={styles.tahiyyatNumber}>0</Text>
-                <Text style={styles.tahiyyatDivider}>/23</Text>
+                <Text style={styles.tahiyyatNumber}>{localizeNumber("0", lng)}</Text>
+                <Text style={styles.tahiyyatDivider}>{t("homeScreen.countSuffix", { count: localizeNumber("23", lng) })}</Text>
               </Text>
             </View>
             <View style={styles.tahiyyatCircleWrapper}>
               <TaperedCircleBorder borderColor={Colors.light.calendarBg} size={48}>
                 <View style={styles.circleTextContainer}>
-                  <Text style={styles.circleMainText}>0</Text>
+                  <Text style={styles.circleMainText}>{localizeNumber("0", lng)}</Text>
                   <Text style={styles.circlePercentText}>%</Text>
                 </View>
               </TaperedCircleBorder>
@@ -404,16 +412,37 @@ export default function HomeScreen() {
         {(selectedCategory === "All" || selectedCategory === "Prayer") && (
           <View style={styles.tahiyyatContainer}>
             <View style={styles.tahiyyatLeft}>
-              <Text style={styles.tahiyyatTitle}>MISSED PAST PRAYERS</Text>
+              <Text style={styles.tahiyyatTitle}>{t("homeScreen.missedPastPrayers")}</Text>
               <Text style={styles.tahiyyatSubtitle}>
-                <Text style={styles.tahiyyatNumber}>0</Text>
-                <Text style={styles.tahiyyatDivider}>/17</Text>
+                <Text style={styles.tahiyyatNumber}>{localizeNumber("0", lng)}</Text>
+                <Text style={styles.tahiyyatDivider}>{t("homeScreen.countSuffix", { count: localizeNumber("17", lng) })}</Text>
               </Text>
             </View>
             <View style={styles.tahiyyatCircleWrapper}>
               <TaperedCircleBorder borderColor={Colors.light.calendarBg} size={48}>
                 <View style={styles.circleTextContainer}>
-                  <Text style={styles.circleMainText}>0</Text>
+                  <Text style={styles.circleMainText}>{localizeNumber("0", lng)}</Text>
+                  <Text style={styles.circlePercentText}>%</Text>
+                </View>
+              </TaperedCircleBorder>
+            </View>
+          </View>
+        )}
+
+        {/* Al-Shukar Container */}
+        {(selectedCategory === "All" || selectedCategory === "Prayer") && (
+          <View style={styles.tahiyyatContainer}>
+            <View style={styles.tahiyyatLeft}>
+              <Text style={styles.tahiyyatTitle}>{t("homeScreen.alShukar")}</Text>
+              <Text style={styles.tahiyyatSubtitle}>
+                <Text style={styles.tahiyyatNumber}>{localizeNumber("0", lng)}</Text>
+                <Text style={styles.tahiyyatDivider}>{t("homeScreen.countSuffix", { count: localizeNumber("12", lng) })}</Text>
+              </Text>
+            </View>
+            <View style={styles.tahiyyatCircleWrapper}>
+              <TaperedCircleBorder borderColor={Colors.light.calendarBg} size={48}>
+                <View style={styles.circleTextContainer}>
+                  <Text style={styles.circleMainText}>{localizeNumber("0", lng)}</Text>
                   <Text style={styles.circlePercentText}>%</Text>
                 </View>
               </TaperedCircleBorder>
@@ -425,16 +454,16 @@ export default function HomeScreen() {
         {(selectedCategory === "All" || selectedCategory === "Quran") && (
           <View style={styles.tahiyyatContainer}>
             <View style={styles.tahiyyatLeft}>
-              <Text style={styles.tahiyyatTitle}>QURAN RECITATION (BY COMPLETION)</Text>
+              <Text style={styles.tahiyyatTitle}>{t("homeScreen.quranRecitation")}</Text>
               <Text style={styles.tahiyyatSubtitle}>
-                <Text style={styles.tahiyyatNumber}>0</Text>
-                <Text style={styles.tahiyyatDivider}>/3</Text>
+                <Text style={styles.tahiyyatNumber}>{localizeNumber("0", lng)}</Text>
+                <Text style={styles.tahiyyatDivider}>{t("homeScreen.countSuffix", { count: localizeNumber("3", lng) })}</Text>
               </Text>
             </View>
             <View style={styles.tahiyyatCircleWrapper}>
               <TaperedCircleBorder borderColor={Colors.light.calendarBg} size={48}>
                 <View style={styles.circleTextContainer}>
-                  <Text style={styles.circleMainText}>0</Text>
+                  <Text style={styles.circleMainText}>{localizeNumber("0", lng)}</Text>
                   <Text style={styles.circlePercentText}>%</Text>
                 </View>
               </TaperedCircleBorder>
@@ -446,16 +475,100 @@ export default function HomeScreen() {
         {(selectedCategory === "All" || selectedCategory === "Sadaqah") && (
           <View style={styles.tahiyyatContainer}>
             <View style={styles.tahiyyatLeft}>
-              <Text style={styles.tahiyyatTitle}>SADAQAH JARIYAH</Text>
+              <Text style={styles.tahiyyatTitle}>{t("homeScreen.sadaqahJariyah")}</Text>
               <Text style={styles.tahiyyatSubtitle}>
-                <Text style={styles.tahiyyatNumber}>$0</Text>
-                <Text style={styles.tahiyyatDivider}>/$1,000</Text>
+                <Text style={styles.tahiyyatNumber}>{lng === "ar" ? "٠$" : "$0"}</Text>
+                <Text style={styles.tahiyyatDivider}>{t("homeScreen.sadaqahAmount", { amount: localizeNumber("1,000", lng) })}</Text>
               </Text>
             </View>
             <View style={styles.tahiyyatCircleWrapper}>
               <TaperedCircleBorder borderColor={Colors.light.calendarBg} size={48}>
                 <View style={styles.circleTextContainer}>
-                  <Text style={styles.circleMainText}>0</Text>
+                  <Text style={styles.circleMainText}>{localizeNumber("0", lng)}</Text>
+                  <Text style={styles.circlePercentText}>%</Text>
+                </View>
+              </TaperedCircleBorder>
+            </View>
+          </View>
+        )}
+
+        {/* Missed Ramadan Fasts Container */}
+        {(selectedCategory === "Fasting" || (selectedCategory === "All" && showMoreExpanded)) && (
+          <View style={styles.tahiyyatContainer}>
+            <View style={styles.tahiyyatLeft}>
+              <Text style={styles.tahiyyatTitle}>{t("homeScreen.missedRamadanFasts")}</Text>
+              <Text style={styles.tahiyyatSubtitle}>
+                <Text style={styles.tahiyyatNumber}>{localizeNumber("0", lng)}</Text>
+                <Text style={styles.tahiyyatDivider}>{t("homeScreen.countSuffix", { count: localizeNumber("7", lng) })}</Text>
+              </Text>
+            </View>
+            <View style={styles.tahiyyatCircleWrapper}>
+              <TaperedCircleBorder borderColor={Colors.light.calendarBg} size={48}>
+                <View style={styles.circleTextContainer}>
+                  <Text style={styles.circleMainText}>{localizeNumber("0", lng)}</Text>
+                  <Text style={styles.circlePercentText}>%</Text>
+                </View>
+              </TaperedCircleBorder>
+            </View>
+          </View>
+        )}
+
+        {/* The Fasts of Prophet Dawood Container */}
+        {(selectedCategory === "Fasting" || (selectedCategory === "All" && showMoreExpanded)) && (
+          <View style={styles.tahiyyatContainer}>
+            <View style={styles.tahiyyatLeft}>
+              <Text style={styles.tahiyyatTitle}>{t("homeScreen.fastsProphetDawood")}</Text>
+              <Text style={styles.tahiyyatSubtitle}>
+                <Text style={styles.tahiyyatNumber}>{localizeNumber("0", lng)}</Text>
+                <Text style={styles.tahiyyatDivider}>{t("homeScreen.countSuffix", { count: localizeNumber("14", lng) })}</Text>
+              </Text>
+            </View>
+            <View style={styles.tahiyyatCircleWrapper}>
+              <TaperedCircleBorder borderColor={Colors.light.calendarBg} size={48}>
+                <View style={styles.circleTextContainer}>
+                  <Text style={styles.circleMainText}>{localizeNumber("0", lng)}</Text>
+                  <Text style={styles.circlePercentText}>%</Text>
+                </View>
+              </TaperedCircleBorder>
+            </View>
+          </View>
+        )}
+
+        {/* Monday & Thursday Fasts Container */}
+        {(selectedCategory === "Fasting" || (selectedCategory === "All" && showMoreExpanded)) && (
+          <View style={styles.tahiyyatContainer}>
+            <View style={styles.tahiyyatLeft}>
+              <Text style={styles.tahiyyatTitle}>{t("homeScreen.mondayThursdayFasts")}</Text>
+              <Text style={styles.tahiyyatSubtitle}>
+                <Text style={styles.tahiyyatNumber}>{localizeNumber("0", lng)}</Text>
+                <Text style={styles.tahiyyatDivider}>{t("homeScreen.countSuffix", { count: localizeNumber("4", lng) })}</Text>
+              </Text>
+            </View>
+            <View style={styles.tahiyyatCircleWrapper}>
+              <TaperedCircleBorder borderColor={Colors.light.calendarBg} size={48}>
+                <View style={styles.circleTextContainer}>
+                  <Text style={styles.circleMainText}>{localizeNumber("0", lng)}</Text>
+                  <Text style={styles.circlePercentText}>%</Text>
+                </View>
+              </TaperedCircleBorder>
+            </View>
+          </View>
+        )}
+
+        {/* White Days Fast Container */}
+        {(selectedCategory === "Fasting" || (selectedCategory === "All" && showMoreExpanded)) && (
+          <View style={styles.tahiyyatContainer}>
+            <View style={styles.tahiyyatLeft}>
+              <Text style={styles.tahiyyatTitle}>{t("homeScreen.whiteDaysFast")}</Text>
+              <Text style={styles.tahiyyatSubtitle}>
+                <Text style={styles.tahiyyatNumber}>{localizeNumber("0", lng)}</Text>
+                <Text style={styles.tahiyyatDivider}>{t("homeScreen.countSuffix", { count: localizeNumber("3", lng) })}</Text>
+              </Text>
+            </View>
+            <View style={styles.tahiyyatCircleWrapper}>
+              <TaperedCircleBorder borderColor={Colors.light.calendarBg} size={48}>
+                <View style={styles.circleTextContainer}>
+                  <Text style={styles.circleMainText}>{localizeNumber("0", lng)}</Text>
                   <Text style={styles.circlePercentText}>%</Text>
                 </View>
               </TaperedCircleBorder>
@@ -464,10 +577,12 @@ export default function HomeScreen() {
         )}
 
         {/* Show More Button */}
-        <TouchableOpacity style={styles.showMoreButton}>
-          <Text style={styles.showMoreText}>Show More</Text>
-          <Entypo name="chevron-down" size={24} color="white" />
-        </TouchableOpacity>
+        {selectedCategory === "All" && (
+          <TouchableOpacity style={styles.showMoreButton} onPress={() => setShowMoreExpanded(!showMoreExpanded)}>
+            <Text style={styles.showMoreText}>{showMoreExpanded ? t("homeScreen.showLess") : t("homeScreen.showMore")}</Text>
+            <Entypo name={showMoreExpanded ? "chevron-up" : "chevron-down"} size={24} color="white" />
+          </TouchableOpacity>
+        )}
       </ScrollView>
       
       {/* Namaz Goal Details Bottom Sheet */}

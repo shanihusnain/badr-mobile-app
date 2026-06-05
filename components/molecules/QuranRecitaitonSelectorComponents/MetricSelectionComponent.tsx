@@ -14,6 +14,7 @@ import {
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { opacity } from "react-native-reanimated/lib/typescript/Colors";
+import { useTranslation } from "react-i18next";
 
 export const MetricSelectionComponent = ({
   item,
@@ -30,6 +31,7 @@ export const MetricSelectionComponent = ({
   selectedMetric: "surah" | "juz" | "completion" | "hizb" | undefined;
   onMetricChange?: (payload: { metric: string; value: any }) => void;
 }) => {
+  const { t } = useTranslation();
   const [selectedSurahs, setSelectedSurahs] = useState<number[]>([]);
   const [selectedHizbs, setSelectedHizbs] = useState<number[]>([]);
   // NOTE: hizb should be single-select. We'll store a single selected id (or undefined)
@@ -290,7 +292,7 @@ export const MetricSelectionComponent = ({
                       >
                         {isDaily && <View style={styles.radioInner} />}
                       </Pressable>
-                      <Text style={styles.radioLabel}>Daily</Text>
+                      <Text style={styles.radioLabel}>{t("monthlyGoalPlanner.quranMetrics.daily")}</Text>
 
                       <Pressable
                         onPress={() =>
@@ -303,7 +305,7 @@ export const MetricSelectionComponent = ({
                       >
                         {!isDaily && <View style={styles.radioInner} />}
                       </Pressable>
-                      <Text style={styles.radioLabel}>Weekly</Text>
+                      <Text style={styles.radioLabel}>{t("monthlyGoalPlanner.quranMetrics.weekly")}</Text>
                     </View>
 
                     <View style={{ height: 12 }} />
@@ -322,7 +324,12 @@ export const MetricSelectionComponent = ({
                           opacity: 0.8,
                         }}
                       >
-                        {`Enter up to ${maxTimes} times ${isDaily ? "daily" : "weekly"}`}
+                        {t("monthlyGoalPlanner.quranMetrics.enterUpToTimes", {
+                          max: maxTimes,
+                          frequency: isDaily
+                            ? t("monthlyGoalPlanner.quranMetrics.daily")
+                            : t("monthlyGoalPlanner.quranMetrics.weekly"),
+                        })}
                       </Text>
                       <Pressable
                         onPress={() => {
@@ -374,7 +381,11 @@ export const MetricSelectionComponent = ({
                       />
                       <Text
                         style={{ color: Colors.light.white }}
-                      >{`times ${isDaily ? "daily" : "weekly"}`}</Text>
+                      >{t("monthlyGoalPlanner.quranMetrics.timesFrequency", {
+                        frequency: isDaily
+                          ? t("monthlyGoalPlanner.quranMetrics.daily")
+                          : t("monthlyGoalPlanner.quranMetrics.weekly"),
+                      })}</Text>
                     </View>
 
                     <View style={{ height: 12 }} />
@@ -382,10 +393,14 @@ export const MetricSelectionComponent = ({
                     <View>
                       <Text
                         style={{ color: Colors.light.white }}
-                      >{`${timesValue || 0} recitations`}</Text>
+                      >{t("monthlyGoalPlanner.quranMetrics.recitationsCount", { count: timesValue || 0 })}</Text>
                       <Text
                         style={{ color: Colors.light.white }}
-                      >{`${timesValue || 0} x ${multiplier} = ${total} recitations`}</Text>
+                      >{t("monthlyGoalPlanner.quranMetrics.recitationsFormula", {
+                        times: timesValue || 0,
+                        multiplier,
+                        total,
+                      })}</Text>
                     </View>
                   </View>
                 )}
@@ -413,8 +428,7 @@ export const MetricSelectionComponent = ({
                 opacity: 0.8,
               }}
             >
-              Enter numbers between 1-30. 'To Juz' must be greater than or equal
-              to 'From Juz.'
+              {t("monthlyGoalPlanner.quranMetrics.juzRangeHint")}
             </Text>
             <Pressable>
               <FontAwesome
@@ -441,7 +455,7 @@ export const MetricSelectionComponent = ({
                 color: Colors.light.white,
               }}
             >
-              From Juz
+              {t("monthlyGoalPlanner.quranMetrics.fromJuz")}
             </Text>
             <TextInput
               value={juzStart !== undefined ? String(juzStart) : ""}
@@ -491,7 +505,7 @@ export const MetricSelectionComponent = ({
                 color: Colors.light.white,
               }}
             >
-              to Juz
+              {t("monthlyGoalPlanner.quranMetrics.toJuz")}
             </Text>
             <TextInput
               value={juzEndText}
@@ -535,9 +549,9 @@ export const MetricSelectionComponent = ({
           >
             {(() => {
               if (displayJuzStart === undefined || displayJuzEnd === undefined)
-                return "(a total of 0 juz)";
+                return t("monthlyGoalPlanner.quranMetrics.totalJuz", { total: 0 });
               const total = Math.max(0, displayJuzEnd - displayJuzStart + 1);
-              return `(a total of ${total} juz)`;
+              return t("monthlyGoalPlanner.quranMetrics.totalJuz", { total });
             })()}
           </Text>
           <TopSpace top={16} />
@@ -564,7 +578,7 @@ export const MetricSelectionComponent = ({
                 opacity: 0.8,
               }}
             >
-              Enter up to 28 Completions.
+              {t("monthlyGoalPlanner.quranMetrics.enterUpToCompletions")}
             </Text>
             <Pressable>
               <FontAwesome
@@ -617,7 +631,7 @@ export const MetricSelectionComponent = ({
                 color: Colors.light.white,
               }}
             >
-              Full completion(s) of the Quran
+              {t("monthlyGoalPlanner.quranMetrics.fullCompletions")}
             </Text>
           </View>
           <TopSpace top={16} />

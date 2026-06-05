@@ -9,8 +9,10 @@ import { SwitchButton } from "@/components/atoms/SwitchButton";
 import { Colors } from "@/constants/theme";
 import createStyles from "./style";
 import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
+import { useTranslation } from "react-i18next";
 
 export default function MenstruationLog() {
+  const { t } = useTranslation();
   const styles = createStyles();
   const router = useRouter();
   const isMenstruating = useSharedValue(false);
@@ -37,20 +39,18 @@ export default function MenstruationLog() {
   // Derived display texts for the buttons
   const todayButtonLabel = dateExplicitlyPicked
     ? moment(selectedDate, "YYYY-MM-DD").format("MMM DD")
-    : "Today";
+    : t("menstruationLog.today");
 
   const endDateButtonLabel = endDateExplicitlyPicked
     ? moment(selectedEndDate, "YYYY-MM-DD").format("MMM DD")
-    : "Today";
+    : t("menstruationLog.today");
 
   // Calendar display strings
   const startMoment = moment(selectedDate, "YYYY-MM-DD");
   const endMoment = startMoment.clone().add(27, "days");
   const gregorianRange = `${startMoment.format("MMM DD").toUpperCase()} - ${endMoment.format("MMM DD, YYYY").toUpperCase()}`;
-  const islamicMonthNames = [
-    "Muh.", "Saf.", "Rab. I", "Rab. II", "Jum. I", "Jum. II",
-    "Raj.", "Sha.", "Ram.", "Shaw.", "Dhu al-Qa.", "Dhu al-Hi.",
-  ];
+  
+  const islamicMonthNames = t("menstruationLog.islamicMonthNames", { returnObjects: true }) as string[];
   const islamicRange = `${islamicMonthNames[startMoment.iMonth()]} - ${islamicMonthNames[endMoment.iMonth()]} ${startMoment.iYear()}`;
 
   const handleTodayPress = () => {
@@ -95,12 +95,20 @@ export default function MenstruationLog() {
 
   // Format question texts: replace 'today' with selected date if explicitly picked
   const startQuestionText = dateExplicitlyPicked
-    ? `When did it start ${moment(selectedDate, "YYYY-MM-DD").format("MMM D")}?`
-    : "When did it start today?";
+    ? t("menstruationLog.startQuestionDate", { date: moment(selectedDate, "YYYY-MM-DD").format("MMM D") })
+    : t("menstruationLog.startQuestionToday");
 
   const endQuestionText = endDateExplicitlyPicked
-    ? `When did it end ${moment(selectedEndDate, "YYYY-MM-DD").format("MMM D")}?`
-    : "When did it end today?";
+    ? t("menstruationLog.endQuestionDate", { date: moment(selectedEndDate, "YYYY-MM-DD").format("MMM D") })
+    : t("menstruationLog.endQuestionToday");
+
+  const timeOptions = [
+    { key: "Before Fajr", label: t("menstruationLog.beforeFajr") },
+    { key: "Before Duhr", label: t("menstruationLog.beforeDuhr") },
+    { key: "Before Asr", label: t("menstruationLog.beforeAsr") },
+    { key: "Before Maghrib", label: t("menstruationLog.beforeMaghrib") },
+    { key: "Before Isha", label: t("menstruationLog.beforeIsha") }
+  ];
 
   return (
     <SafeAreaView style={styles.container}>
@@ -114,27 +122,27 @@ export default function MenstruationLog() {
           <View style={styles.headerLeft}>
             <BackButton onPress={() => router.back()} />
           </View>
-          <Text style={styles.headerTitle}>LOG MENSTRUATION</Text>
+          <Text style={styles.headerTitle}>{t("menstruationLog.title")}</Text>
           <View style={styles.headerRight} />
         </View>
 
         {/* Info Container */}
         <View style={styles.infoContainer}>
           <Text style={styles.infoText}>
-            Log your menstruation period to update your goals. Exempt acts of worship will be automatically adjusted, ensuring your progress stays accurate and fair.
+            {t("menstruationLog.infoText")}
           </Text>
         </View>
 
         {/* Your Menstruation Period Section */}
         <View style={styles.periodHeaderContainer}>
-          <Text style={styles.periodHeaderText}>YOUR MENSTRUATION PERIOD</Text>
+          <Text style={styles.periodHeaderText}>{t("menstruationLog.periodHeader")}</Text>
           <View style={styles.periodHeaderLine} />
         </View>
 
         {/* I'M MENSTRUATING Section */}
         <View style={styles.menstruatingContainer}>
           <Text style={[styles.menstruatingText, { color: menstruating ? Colors.light.white : Colors.light.subtext }]}>
-            I'M MENSTRUATING
+            {t("menstruationLog.imMenstruating")}
           </Text>
           <SwitchButton
             value={isMenstruating}
@@ -166,7 +174,7 @@ export default function MenstruationLog() {
         {/* Start Date Section */}
         <View style={styles.startDateContainer}>
           <Text style={[styles.startDateText, { color: menstruating ? Colors.light.white : Colors.light.subtext }]}>
-            Start Date
+            {t("menstruationLog.startDate")}
           </Text>
           <TouchableOpacity
             onPress={handleTodayPress}
@@ -211,19 +219,19 @@ export default function MenstruationLog() {
           <View style={styles.startTimesContainer}>
             <Text style={styles.startTimeQuestionText}>{startQuestionText}</Text>
             <View style={styles.radioOptionsList}>
-              {["Before Fajr", "Before Duhr", "Before Asr", "Before Maghrib", "Before Isha"].map((time) => {
-                const isSelected = selectedStartTime === time;
+              {timeOptions.map((time) => {
+                const isSelected = selectedStartTime === time.key;
                 return (
                   <TouchableOpacity
-                    key={time}
+                    key={time.key}
                     style={styles.radioOption}
-                    onPress={() => setSelectedStartTime(time)}
+                    onPress={() => setSelectedStartTime(time.key)}
                     activeOpacity={0.7}
                   >
                     <View style={styles.radioOuter}>
                       {isSelected && <View style={styles.radioInner} />}
                     </View>
-                    <Text style={styles.radioText}>{time}</Text>
+                    <Text style={styles.radioText}>{time.label}</Text>
                   </TouchableOpacity>
                 );
               })}
@@ -254,7 +262,7 @@ export default function MenstruationLog() {
         {/* I'M STILL MENSTRUATING Section */}
         <View style={styles.menstruatingContainer}>
           <Text style={[styles.menstruatingText, { color: menstruating ? Colors.light.white : Colors.light.subtext }]}>
-            I'M STILL MENSTRUATING
+            {t("menstruationLog.imStillMenstruating")}
           </Text>
           <SwitchButton
             value={isStillMenstruating}
@@ -278,7 +286,7 @@ export default function MenstruationLog() {
         {/* End Date Section */}
         <View style={styles.startDateContainer}>
           <Text style={[styles.startDateText, { color: isEndDateActive ? Colors.light.white : Colors.light.subtext }]}>
-            End Date
+            {t("menstruationLog.endDate")}
           </Text>
           <TouchableOpacity
             onPress={handleEndDatePress}
@@ -323,19 +331,19 @@ export default function MenstruationLog() {
           <View style={styles.startTimesContainer}>
             <Text style={styles.startTimeQuestionText}>{endQuestionText}</Text>
             <View style={styles.radioOptionsList}>
-              {["Before Fajr", "Before Duhr", "Before Asr", "Before Maghrib", "Before Isha"].map((time) => {
-                const isSelected = selectedEndTime === time;
+              {timeOptions.map((time) => {
+                const isSelected = selectedEndTime === time.key;
                 return (
                   <TouchableOpacity
-                    key={time}
+                    key={time.key}
                     style={styles.radioOption}
-                    onPress={() => setSelectedEndTime(time)}
+                    onPress={() => setSelectedEndTime(time.key)}
                     activeOpacity={0.7}
                   >
                     <View style={styles.radioOuter}>
                       {isSelected && <View style={styles.radioInner} />}
                     </View>
-                    <Text style={styles.radioText}>{time}</Text>
+                    <Text style={styles.radioText}>{time.label}</Text>
                   </TouchableOpacity>
                 );
               })}
@@ -352,7 +360,7 @@ export default function MenstruationLog() {
             router.back();
           }}
         >
-          <Text style={styles.saveButtonText}>SAVE</Text>
+          <Text style={styles.saveButtonText}>{t("menstruationLog.save")}</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
