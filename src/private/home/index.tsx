@@ -20,10 +20,15 @@ import {
   parsePercent,
 } from "@/components/atoms/TaperedCircleBorder";
 import { SwipeCardDeck } from "./components/SwipeCardDeck";
+import { DailyProgressBottomSheet } from "./components/DailyProgressBottomSheet";
 import BottomSheet from "@gorhom/bottom-sheet";
 import { DaysTrackerContainer } from "@/components/molecules/DaysTrackerContainer";
 import { NamazGoalBottomSheet } from "@/components/molecules/NamazGoalBottomSheet";
+
+import { BottomSheetWrapper } from "@/components/molecules/BottomSheetWrapper";
+
 import { DashboardCustomizeBottomSheet } from "./components/DashboardCustomizeBottomSheet";
+
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { TopSpace } from "@/components/atoms/TopSpace";
@@ -130,6 +135,7 @@ export default function HomeScreen() {
   const safeAreaInsets = useSafeAreaInsets();
   const router = useRouter();
   const namazBottomSheetRef = useRef<BottomSheet>(null);
+  const goldenBottomSheetRef = useRef<BottomSheet>(null);
   const dashboardSheetRef = useRef<BottomSheet>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -524,17 +530,22 @@ export default function HomeScreen() {
           }}
         />
 
-        {/* Golden action FAB */}
-        <View
-          style={[styles.goldenFab, { bottom: safeAreaInsets.bottom + 20 }]}
-        >
-          <TaperedCircleBorder variant="golden" size={30}>
-            <View style={styles.goldenFabInner}>
-              <Text style={styles.goldenFabPlus}>+</Text>
-            </View>
-          </TaperedCircleBorder>
-        </View>
-      </BlackScreenWrapper>
-    </View>
+      <BottomSheetWrapper ref={goldenBottomSheetRef} snapPoints={["50%", "92%"]}>
+        <DailyProgressBottomSheet onClose={() => goldenBottomSheetRef.current?.close()} />
+      </BottomSheetWrapper>
+
+      {/* Golden action FAB */}
+      <TouchableOpacity
+        activeOpacity={0.8}
+        onPress={() => goldenBottomSheetRef.current?.expand()}
+        style={[styles.goldenFab, { bottom: safeAreaInsets.bottom + 20 }]}
+      >
+        <TaperedCircleBorder variant="golden" size={30}>
+          <View style={styles.goldenFabInner}>
+            <Text style={styles.goldenFabPlus}>+</Text>
+          </View>
+        </TaperedCircleBorder>
+      </TouchableOpacity>
+    </BlackScreenWrapper>
   );
 }

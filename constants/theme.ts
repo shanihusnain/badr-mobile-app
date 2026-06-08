@@ -45,6 +45,7 @@ export const Colors = {
     ringQuran: "#8B7CF6",
     ringFasting: "#FFFFFF",
     ringSadaqah: "#FFAA00",
+    selectcategory: "#425060",
   },
   dark: {
     text: "#ECEDEE",
