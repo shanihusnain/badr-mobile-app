@@ -45,6 +45,9 @@ export const Colors = {
     ringQuran: "#8B7CF6",
     ringFasting: "#FFFFFF",
     ringSadaqah: "#FFAA00",
+    dayProgressCardBg: "#364556",
+    dullestWhite: "rgba(255, 255, 255, 0.1)",
+    progressBarEmpty: "#374556",
   },
   dark: {
     text: "#ECEDEE",

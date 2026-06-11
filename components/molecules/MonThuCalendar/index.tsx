@@ -29,11 +29,21 @@ type MonThuCalendarProps = {
   missedRamadanDates?: string[];
   /** Called when user selection changes — returns array of selected date strings (YYYY-MM-DD). */
   onSave?: (selectedDates: string[]) => void;
+  hideFooter?: boolean;
+  hideLegend?: boolean;
+  hideDateLabel?: boolean;
+  readOnly?: boolean;
+  bgColor?: string;
 };
 
 export const MonThuCalendar = ({
   missedRamadanDates = [],
   onSave,
+  hideFooter = false,
+  hideLegend = false,
+  hideDateLabel = false,
+  readOnly = false,
+  bgColor = Colors.light.calendarBg,
 }: MonThuCalendarProps) => {
   const startMoment = moment();
   const endMoment = moment().add(27, "days");
@@ -92,57 +102,77 @@ export const MonThuCalendar = ({
   return (
     <View style={styles.wrapper}>
       {/* ── Legend — calendarBg top bar ── */}
-      <View style={styles.topBar}>
-        <View style={styles.legendRow}>
-          <View
-            style={[
-              styles.legendRing,
-              { borderColor: Colors.light.ringRamadan },
-            ]}
-          />
-          <Text
-            style={[styles.legendText, { color: Colors.light.grey }]}
-            numberOfLines={1}
-          >
-            MISSED RAMADAN FASTS
-          </Text>
-          <View
-            style={[
-              styles.legendRing,
-              { borderColor: Colors.light.ringMonThu },
-            ]}
-          />
-          <Text
-            style={[styles.legendText, { color: Colors.light.grey }]}
-            numberOfLines={1}
-          >
-            MONDAYS & THURSDAYS
-          </Text>
+      {!hideLegend && (
+        <View
+          style={[
+            styles.topBar,
+            hideDateLabel && {
+              borderTopLeftRadius: 12,
+              borderTopRightRadius: 12,
+            },
+          ]}
+        >
+          <View style={styles.legendRow}>
+            <View
+              style={[
+                styles.legendRing,
+                { borderColor: Colors.light.ringRamadan },
+              ]}
+            />
+            <Text
+              style={[styles.legendText, { color: Colors.light.grey }]}
+              numberOfLines={1}
+            >
+              MISSED RAMADAN FASTS
+            </Text>
+            <View
+              style={[
+                styles.legendRing,
+                { borderColor: Colors.light.ringMonThu },
+              ]}
+            />
+            <Text
+              style={[styles.legendText, { color: Colors.light.grey }]}
+              numberOfLines={1}
+            >
+              MONDAYS & THURSDAYS
+            </Text>
+          </View>
         </View>
-      </View>
+      )}
 
       {/* ── Date range label ── */}
-      <View style={styles.dateLabel}>
-        <Text style={styles.dateLabelText}>{rangeLabel}</Text>
-        <Text style={styles.islamicDateText}>{islamicRangeLabel}</Text>
-      </View>
+      {!hideDateLabel && (
+        <View
+          style={[
+            styles.dateLabel,
+            hideLegend && { borderTopLeftRadius: 12, borderTopRightRadius: 12 },
+          ]}
+        >
+          <Text style={styles.dateLabelText}>{rangeLabel}</Text>
+          <Text style={styles.islamicDateText}>{islamicRangeLabel}</Text>
+        </View>
+      )}
 
       {/* ── Calendar ── */}
       <CalendarGrid
         mode="mon_thu"
         currentDate={currentDate}
         markedDates={missedRamadanDates}
-        onDayPress={(ds) => {
-          // toggle only mon/thursday days
-          const dow = new Date(ds).getDay();
-          if (dow !== 1 && dow !== 4) return;
-          setSelectedDates((prev) => {
-            const next = new Set(Array.from(prev));
-            if (next.has(ds)) next.delete(ds);
-            else next.add(ds);
-            return next;
-          });
-        }}
+        onDayPress={
+          readOnly
+            ? undefined
+            : (ds) => {
+                const dow = new Date(ds).getDay();
+                if (dow !== 1 && dow !== 4) return;
+                setSelectedDates((prev) => {
+                  const next = new Set(Array.from(prev));
+                  if (next.has(ds)) next.delete(ds);
+                  else next.add(ds);
+                  return next;
+                });
+              }
+        }
       />
     </View>
   );
@@ -169,7 +199,7 @@ const styles = StyleSheet.create({
   legendRing: {
     width: 10,
     height: 10,
-    borderRadius: 10,
+    borderRadius: 5,
     borderWidth: 1,
   },
   legendText: {

@@ -38,6 +38,7 @@ export type DashboardCustomizeSettings = {
 type Props = {
   onClose: () => void;
   onSave?: (settings: DashboardCustomizeSettings) => void;
+  onChange?: (index: number) => void;
 };
 
 type DashboardCategory =
@@ -249,7 +250,7 @@ function CategoryTabsScroll({
 }
 
 export const DashboardCustomizeBottomSheet = forwardRef<BottomSheet, Props>(
-  function DashboardCustomizeBottomSheet({ onClose, onSave }, ref) {
+  function DashboardCustomizeBottomSheet({ onClose, onSave, onChange }, ref) {
     const safeAreaInsets = useSafeAreaInsets();
     const [selectedDashboardCategory, setSelectedDashboardCategory] =
       useState<string>("All");
@@ -397,7 +398,6 @@ export const DashboardCustomizeBottomSheet = forwardRef<BottomSheet, Props>(
                     styles.listItem,
                     styles.addListItem,
                     isSelected && styles.addListItemSelected,
-                    { paddingVertical: 20 },
                   ]}
                   onPress={() => handleToggleAddItem(item)}
                 >
@@ -442,8 +442,10 @@ export const DashboardCustomizeBottomSheet = forwardRef<BottomSheet, Props>(
         ref={ref}
         snapPoints={["50%", "92%"]}
         onClose={onClose}
+        onChange={onChange}
         scrollable={false}
         footerComponent={renderFooter}
+        bgColor={Colors.light.blackBackground}
       >
         <BottomSheetFlatList
           ref={listRef}
@@ -524,7 +526,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     backgroundColor: Colors.light.greybuttonBackground,
-    paddingVertical: 12,
+    paddingVertical: 20,
   },
   addListItemSelected: {},
   addActionCircle: {

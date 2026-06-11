@@ -2,32 +2,46 @@ import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
 import React from "react";
 import {
-    Pressable,
-    PressableProps,
-    StyleSheet,
-    Text,
-    TextStyle,
+  Pressable,
+  PressableProps,
+  StyleSheet,
+  Text,
+  TextStyle,
 } from "react-native";
 
 interface SecondaryButtonProps extends PressableProps {
   text: string;
   onPress: () => void;
   textStyle?: TextStyle;
+  variant?: "white" | "green";
 }
 
 export default function SecondaryButton({
   text,
   onPress,
   textStyle,
+  variant = "white",
   ...props
 }: SecondaryButtonProps) {
   return (
     <Pressable
-      style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
+      style={({ pressed }) => [
+        styles.button,
+        pressed && styles.buttonPressed,
+        variant === "white" ? styles.buttonWhite : styles.buttonGreen,
+      ]}
       onPress={onPress}
       {...props}
     >
-      <Text style={[styles.buttonText, textStyle]}>{text}</Text>
+      <Text
+        style={[
+          styles.buttonText,
+          textStyle,
+          variant === "white" ? styles.buttonWhiteText : styles.buttonGreenText,
+        ]}
+      >
+        {text}
+      </Text>
     </Pressable>
   );
 }
@@ -57,5 +71,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 20,
     letterSpacing: 0,
+  },
+  buttonWhite: {
+    borderColor: Colors.light.background,
+  },
+  buttonGreen: {
+    borderColor: Colors.light.green,
+  },
+  buttonWhiteText: {
+    color: Colors.light.background,
+  },
+  buttonGreenText: {
+    color: Colors.light.green,
   },
 });

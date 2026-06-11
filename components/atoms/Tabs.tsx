@@ -7,10 +7,12 @@ export const Tabs = ({
   label,
   onPress,
   selectedTab,
+  bgColor,
 }: {
   label: string;
   onPress: () => void;
   selectedTab: string;
+  bgColor?: string;
 }) => {
   const isSelected = selectedTab === label;
   return (
@@ -21,6 +23,11 @@ export const Tabs = ({
           ? styles.categoryFilterItem
           : styles.categoryFilterItemWide,
         isSelected && styles.categoryFilterItemActive,
+        {
+          backgroundColor: isSelected
+            ? Colors.light.green
+            : (bgColor ?? Colors.light.greybuttonBackground),
+        },
       ]}
       onPress={onPress}
     >
@@ -37,7 +44,6 @@ export const Tabs = ({
 };
 const styles = StyleSheet.create({
   categoryFilterItem: {
-    height: 28,
     borderRadius: 6,
     backgroundColor: Colors.light.greybuttonBackground,
     justifyContent: "center",
@@ -47,7 +53,6 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   categoryFilterItemWide: {
-    height: 28,
     borderRadius: 6,
     backgroundColor: Colors.light.greybuttonBackground,
     justifyContent: "center",

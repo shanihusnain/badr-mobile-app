@@ -24,12 +24,18 @@ type WhiteDaysCalendarProps = {
   missedRamadanDates?: string[];
   onSave?: (count: number) => void;
   hideFooter?: boolean;
+  hideLegend?: boolean;
+  hideDateLabel?: boolean;
+  dimInactiveDays?: boolean;
 };
 
 export const WhiteDaysCalendar = ({
   missedRamadanDates = [],
   onSave,
   hideFooter = false,
+  hideLegend = false,
+  hideDateLabel = false,
+  dimInactiveDays = true,
 }: WhiteDaysCalendarProps) => {
   const startMoment = moment();
   const endMoment = moment().add(27, "days");
@@ -74,6 +80,7 @@ export const WhiteDaysCalendar = ({
   return (
     <View style={styles.wrapper}>
       {/* ── Legend — calendarBg top bar ── */}
+      {!hideLegend && (
       <View style={styles.topBar}>
         <View style={styles.legendContainer}>
           <View style={styles.legendRow}>
@@ -112,18 +119,22 @@ export const WhiteDaysCalendar = ({
           </View>
         </View>
       </View>
+      )}
 
       {/* ── Date range label ── */}
+      {!hideDateLabel && (
       <View style={styles.dateLabel}>
         <Text style={styles.dateLabelText}>{rangeLabel}</Text>
         <Text style={styles.islamicDateText}>{islamicRangeLabel}</Text>
       </View>
+      )}
 
       {/* ── Calendar ── */}
       <CalendarGrid
         mode="white_days"
         currentDate={currentDate}
         markedDates={missedRamadanDates}
+        dimInactiveDays={dimInactiveDays}
       />
 
       {!hideFooter && (
@@ -181,7 +192,7 @@ const styles = StyleSheet.create({
   legendRing: {
     width: 10,
     height: 10,
-    borderRadius: 10,
+    borderRadius: 5,
     borderWidth: 1,
   },
   legendText: {
