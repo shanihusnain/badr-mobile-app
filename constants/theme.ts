@@ -46,6 +46,11 @@ export const Colors = {
     ringFasting: "#FFFFFF",
     ringSadaqah: "#FFAA00",
     selectcategory: "#425060",
+    lightpurple:"#CBD3FF",
+    darkblue: "#3448FF",
+    lightblue: "#00B0E8",
+    yellow: "#E0A739",
+
   },
   dark: {
     text: "#ECEDEE",

@@ -14,6 +14,7 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Entypo from "@expo/vector-icons/Entypo";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Colors } from "@/constants/theme";
 import {
   TaperedCircleBorder,
@@ -146,6 +147,27 @@ export default function HomeScreen() {
   const [scrollCollapseThreshold, setScrollCollapseThreshold] = useState(260);
 
   const scrollY = useRef(new Animated.Value(0)).current;
+
+  const [isFabMenuOpen, setIsFabMenuOpen] = useState(false);
+  const fabAnimation = useRef(new Animated.Value(0)).current;
+
+  const toggleFabMenu = () => {
+    const toValue = isFabMenuOpen ? 0 : 1;
+    Animated.spring(fabAnimation, {
+      toValue,
+      friction: 6,
+      tension: 40,
+      useNativeDriver: true,
+    }).start();
+    setIsFabMenuOpen(!isFabMenuOpen);
+  };
+
+  const fabTranslateY = fabAnimation.interpolate({
+    inputRange: [0, 1],
+    outputRange: [30, 0],
+  });
+
+  const fabMenuOpacity = fabAnimation;
 
   const quranCategory = GOAL_CATEGORIES.find((c) => c.title === "QURAN");
 
@@ -427,94 +449,94 @@ export default function HomeScreen() {
           {/* Prayer sub-goals */}
           {(selectedDashboardCategory === "All" ||
             selectedDashboardCategory === "Prayer") && (
-            <>
-              {[
-                { title: "TAHIYYAT AL-WUDHU", divider: "/25 prayers" },
-                { title: "SUNNAH RAWATIB", divider: "/252" },
-                { title: "TAHIYYAT AL-MASJID", divider: "/47" },
-                { title: "QIYAM AL-LAYL", divider: "/23" },
-                { title: "MISSED PAST PRAYERS", divider: "/17" },
-              ].map((row) => (
-                <View key={row.title} style={styles.tahiyyatContainer}>
-                  <View style={styles.tahiyyatLeft}>
-                    <Text style={styles.tahiyyatTitle}>{row.title}</Text>
-                    <Text style={styles.tahiyyatSubtitle}>
-                      <Text style={styles.tahiyyatNumber}>0</Text>
-                      <Text style={styles.tahiyyatDivider}>{row.divider}</Text>
-                    </Text>
+              <>
+                {[
+                  { title: "TAHIYYAT AL-WUDHU", divider: "/25 prayers" },
+                  { title: "SUNNAH RAWATIB", divider: "/252" },
+                  { title: "TAHIYYAT AL-MASJID", divider: "/47" },
+                  { title: "QIYAM AL-LAYL", divider: "/23" },
+                  { title: "MISSED PAST PRAYERS", divider: "/17" },
+                ].map((row) => (
+                  <View key={row.title} style={styles.tahiyyatContainer}>
+                    <View style={styles.tahiyyatLeft}>
+                      <Text style={styles.tahiyyatTitle}>{row.title}</Text>
+                      <Text style={styles.tahiyyatSubtitle}>
+                        <Text style={styles.tahiyyatNumber}>0</Text>
+                        <Text style={styles.tahiyyatDivider}>{row.divider}</Text>
+                      </Text>
+                    </View>
+                    <View style={styles.tahiyyatCircleWrapper}>
+                      <TaperedCircleBorder
+                        borderColor={Colors.light.calendarBg}
+                        size={48}
+                      >
+                        <View style={styles.circleTextContainer}>
+                          <Text style={styles.circleMainText}>0</Text>
+                          <Text style={styles.circlePercentText}>%</Text>
+                        </View>
+                      </TaperedCircleBorder>
+                      <TopSpace top={8} />
+                    </View>
                   </View>
-                  <View style={styles.tahiyyatCircleWrapper}>
-                    <TaperedCircleBorder
-                      borderColor={Colors.light.calendarBg}
-                      size={48}
-                    >
-                      <View style={styles.circleTextContainer}>
-                        <Text style={styles.circleMainText}>0</Text>
-                        <Text style={styles.circlePercentText}>%</Text>
-                      </View>
-                    </TaperedCircleBorder>
-                    <TopSpace top={8} />
-                  </View>
-                </View>
-              ))}
-            </>
-          )}
+                ))}
+              </>
+            )}
 
           {/* Quran sub-goals */}
           {(selectedDashboardCategory === "All" ||
             selectedDashboardCategory === "Quran") && (
-            <View style={styles.tahiyyatContainer}>
-              <View style={styles.tahiyyatLeft}>
-                <Text style={styles.tahiyyatTitle}>
-                  QURAN RECITATION (BY COMPLETION)
-                </Text>
-                <Text style={styles.tahiyyatSubtitle}>
-                  <Text style={styles.tahiyyatNumber}>0</Text>
-                  <Text style={styles.tahiyyatDivider}>/3</Text>
-                </Text>
+              <View style={styles.tahiyyatContainer}>
+                <View style={styles.tahiyyatLeft}>
+                  <Text style={styles.tahiyyatTitle}>
+                    QURAN RECITATION (BY COMPLETION)
+                  </Text>
+                  <Text style={styles.tahiyyatSubtitle}>
+                    <Text style={styles.tahiyyatNumber}>0</Text>
+                    <Text style={styles.tahiyyatDivider}>/3</Text>
+                  </Text>
+                </View>
+                <View style={styles.tahiyyatCircleWrapper}>
+                  <TaperedCircleBorder
+                    percentage={quranCategory?.percentage}
+                    progressColor={quranCategory?.progressColor}
+                    borderColor={Colors.light.calendarBg}
+                    size={48}
+                  >
+                    <View style={styles.circleTextContainer}>
+                      <Text style={styles.circleMainText}>
+                        {parsePercent(quranCategory?.percentage)}
+                      </Text>
+                      <Text style={styles.circlePercentText}>%</Text>
+                    </View>
+                  </TaperedCircleBorder>
+                </View>
               </View>
-              <View style={styles.tahiyyatCircleWrapper}>
-                <TaperedCircleBorder
-                  percentage={quranCategory?.percentage}
-                  progressColor={quranCategory?.progressColor}
-                  borderColor={Colors.light.calendarBg}
-                  size={48}
-                >
-                  <View style={styles.circleTextContainer}>
-                    <Text style={styles.circleMainText}>
-                      {parsePercent(quranCategory?.percentage)}
-                    </Text>
-                    <Text style={styles.circlePercentText}>%</Text>
-                  </View>
-                </TaperedCircleBorder>
-              </View>
-            </View>
-          )}
+            )}
 
           {/* Sadaqah sub-goals */}
           {(selectedDashboardCategory === "All" ||
             selectedDashboardCategory === "Sadaqah") && (
-            <View style={styles.tahiyyatContainer}>
-              <View style={styles.tahiyyatLeft}>
-                <Text style={styles.tahiyyatTitle}>SADAQAH JARIYAH</Text>
-                <Text style={styles.tahiyyatSubtitle}>
-                  <Text style={styles.tahiyyatNumber}>$0</Text>
-                  <Text style={styles.tahiyyatDivider}>/$1,000</Text>
-                </Text>
+              <View style={styles.tahiyyatContainer}>
+                <View style={styles.tahiyyatLeft}>
+                  <Text style={styles.tahiyyatTitle}>SADAQAH JARIYAH</Text>
+                  <Text style={styles.tahiyyatSubtitle}>
+                    <Text style={styles.tahiyyatNumber}>$0</Text>
+                    <Text style={styles.tahiyyatDivider}>/$1,000</Text>
+                  </Text>
+                </View>
+                <View style={styles.tahiyyatCircleWrapper}>
+                  <TaperedCircleBorder
+                    borderColor={Colors.light.calendarBg}
+                    size={48}
+                  >
+                    <View style={styles.circleTextContainer}>
+                      <Text style={styles.circleMainText}>0</Text>
+                      <Text style={styles.circlePercentText}>%</Text>
+                    </View>
+                  </TaperedCircleBorder>
+                </View>
               </View>
-              <View style={styles.tahiyyatCircleWrapper}>
-                <TaperedCircleBorder
-                  borderColor={Colors.light.calendarBg}
-                  size={48}
-                >
-                  <View style={styles.circleTextContainer}>
-                    <Text style={styles.circleMainText}>0</Text>
-                    <Text style={styles.circlePercentText}>%</Text>
-                  </View>
-                </TaperedCircleBorder>
-              </View>
-            </View>
-          )}
+            )}
 
           <TouchableOpacity style={styles.showMoreButton}>
             <Text style={styles.showMoreText}>Show More</Text>
@@ -522,7 +544,7 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </Animated.ScrollView>
 
-        <NamazGoalBottomSheet ref={namazBottomSheetRef} onClose={() => {}} />
+        <NamazGoalBottomSheet ref={namazBottomSheetRef} onClose={() => { }} />
         <DashboardCustomizeBottomSheet
           ref={dashboardSheetRef}
           onClose={() => {
@@ -530,22 +552,93 @@ export default function HomeScreen() {
           }}
         />
 
-      <BottomSheetWrapper ref={goldenBottomSheetRef} snapPoints={["50%", "92%"]}>
-        <DailyProgressBottomSheet onClose={() => goldenBottomSheetRef.current?.close()} />
-      </BottomSheetWrapper>
+        <BottomSheetWrapper ref={goldenBottomSheetRef} snapPoints={["50%", "92%"]}>
+          <DailyProgressBottomSheet onClose={() => goldenBottomSheetRef.current?.close()} />
+        </BottomSheetWrapper>
 
-      {/* Golden action FAB */}
-      <TouchableOpacity
-        activeOpacity={0.8}
-        onPress={() => goldenBottomSheetRef.current?.expand()}
-        style={[styles.goldenFab, { bottom: safeAreaInsets.bottom + 20 }]}
-      >
-        <TaperedCircleBorder variant="golden" size={30}>
-          <View style={styles.goldenFabInner}>
-            <Text style={styles.goldenFabPlus}>+</Text>
-          </View>
-        </TaperedCircleBorder>
-      </TouchableOpacity>
-    </BlackScreenWrapper>
+        {/* Backdrop overlay */}
+        {isFabMenuOpen && (
+          <TouchableOpacity
+            style={styles.backdrop}
+            activeOpacity={1}
+            onPress={toggleFabMenu}
+          />
+        )}
+
+        {/* Speed Dial Menu Container */}
+        {isFabMenuOpen && (
+          <Animated.View
+            style={[
+              styles.fabMenuContainer,
+              {
+                bottom: safeAreaInsets.bottom + 80,
+                opacity: fabMenuOpacity,
+                transform: [{ translateY: fabTranslateY }],
+              },
+            ]}
+          >
+            {/* Set Next Month's Goals */}
+            <TouchableOpacity
+              style={styles.fabOptionRow}
+              activeOpacity={0.8}
+              onPress={() => {
+                toggleFabMenu();
+                // Action for Set Next Month's Goals
+              }}
+            >
+              <Text style={styles.fabOptionLabel}>SET NEXT MONTH'S GOALS</Text>
+              <View style={styles.fabOptionIconContainer}>
+                <MaterialCommunityIcons name="target" size={22} color="white" />
+              </View>
+            </TouchableOpacity>
+
+            {/* Complete Your Journal */}
+            <TouchableOpacity
+              style={styles.fabOptionRow}
+              activeOpacity={0.8}
+              onPress={() => {
+                toggleFabMenu();
+                // Action for Complete Your Journal
+              }}
+            >
+              <Text style={styles.fabOptionLabel}>COMPLETE YOUR JOURNAL</Text>
+              <View style={styles.fabOptionIconContainer}>
+                <MaterialCommunityIcons name="book-open-outline" size={22} color="white" />
+              </View>
+            </TouchableOpacity>
+
+            {/* Add Daily Progress */}
+            <TouchableOpacity
+              style={styles.fabOptionRow}
+              activeOpacity={0.8}
+              onPress={() => {
+                toggleFabMenu();
+                goldenBottomSheetRef.current?.expand();
+              }}
+            >
+              <Text style={styles.fabOptionLabel}>ADD DAILY PROGRESS</Text>
+              <View style={styles.fabOptionIconContainer}>
+                <Ionicons name="add" size={24} color="white" />
+              </View>
+            </TouchableOpacity>
+          </Animated.View>
+        )}
+
+        {/* Golden action FAB */}
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={toggleFabMenu}
+          style={[styles.goldenFab, { bottom: safeAreaInsets.bottom + 20 }]}
+        >
+          <TaperedCircleBorder variant="golden" size={30}>
+            <View style={styles.goldenFabInner}>
+              <Text style={styles.goldenFabPlus}>
+                {isFabMenuOpen ? "−" : "+"}
+              </Text>
+            </View>
+          </TaperedCircleBorder>
+        </TouchableOpacity>
+      </BlackScreenWrapper>
+    </View>
   );
 }

@@ -36,6 +36,14 @@ export default function PrivateLayout() {
         }}
       />
       <Stack.Screen name="menstruationlog" options={{ headerShown: false }} />
+      <Stack.Screen
+        name="GoalProgressLoggingScreen/[goalId]"
+        options={{
+          headerShown: false,
+          title: "GOAL PROGRESS",
+          headerBackTitle: "Back",
+        }}
+      />
     </Stack>
   );
 }
