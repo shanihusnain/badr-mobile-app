@@ -7,6 +7,8 @@ import { fonts } from "../../../assets/fonts";
 import { Colors } from "../../../constants/theme";
 
 const CARD_WIDTH = Dimensions.get("window").width - 32;
+const FASTING_LEGEND_TEXT_WIDTH = (Dimensions.get("window").width - 120) / 2;
+
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -17,8 +19,8 @@ export const styles = StyleSheet.create({
   },
   scrollContainer: {
     flexGrow: 1,
-    // paddingTop: hp(8),
-    // paddingBottom: hp(4),
+
+    paddingBottom: hp(4),
   },
 
   // Top Section
@@ -436,8 +438,6 @@ export const styles = StyleSheet.create({
   },
   // Log Menstruation Container Styles
   menstruationContainer: {
-    width: 320,
-    height: 40,
     borderRadius: 12,
     backgroundColor: Colors.light.lightgreen, // Green color with 0.1 opacity (10%)
     alignSelf: "center",
@@ -445,6 +445,11 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 16,
     marginBottom: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    flexDirection: "row",
+    gap: 8,
+    width: "100%",
   },
   menstruationInner: {
     flexDirection: "row",
@@ -531,12 +536,13 @@ export const styles = StyleSheet.create({
     color: Colors.light.white,
   },
   customizeContainer: {
-    width: 110,
-    height: 24,
     backgroundColor: Colors.light.lightgreen, // Green color with 0.1 opacity (10%)
     borderRadius: 4,
     justifyContent: "center",
     alignItems: "center",
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    flexDirection: "row",
   },
   customizeText: {
     fontFamily: fonts.primary.semiBold || "SF Pro Text",
@@ -660,6 +666,312 @@ export const styles = StyleSheet.create({
     letterSpacing: 0,
     color: Colors.light.white,
   },
+  // Today's Goals Progress
+  todayGoalsProgressSection: {
+    backgroundColor: Colors.light.darkgrey,
+    borderRadius: 10,
+    paddingHorizontal: 13,
+    paddingVertical: 20,
+  },
+  todayGoalsProgressTitle: {
+    fontFamily: fonts.primary.semiBold,
+    fontWeight: "600",
+    fontSize: 14,
+    color: Colors.light.white,
+  },
+  dayProgressCard: {
+    backgroundColor: Colors.light.dayProgressCardBg,
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 7,
+    marginBottom: 10,
+  },
+  dayProgressCardSwipeChild: {
+    marginBottom: 0,
+  },
+  todayProgressSwipeWrapper: {
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+  todayProgressSwipeContent: {
+    paddingVertical: 0,
+    backgroundColor: "transparent",
+    borderRadius: 10,
+  },
+  fastingCalendarSection: {
+    width: "100%",
+    backgroundColor: Colors.light.greybuttonBackground,
+    borderRadius: 10,
+    marginTop: 16,
+    paddingVertical: 17,
+    paddingHorizontal: 12,
+  },
+  fastingInfoBanner: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 10,
+    backgroundColor: Colors.light.dullestWhite,
+    paddingVertical: 17,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+  },
+  fastingInfoBannerText: {
+    flex: 1,
+    flexShrink: 1,
+    minWidth: 0,
+    color: Colors.light.white,
+    fontFamily: fonts.primary.regular,
+    fontWeight: "400",
+    fontSize: 14,
+  },
+  fastingInfoBannerClose: {
+    flexShrink: 0,
+    paddingTop: 1,
+  },
+  fastingCalendarTabsScroll: {
+    marginTop: 16,
+    marginBottom: 0,
+  },
+  fastingGoalTotalCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: Colors.light.blackBackground,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  fastingGoalTotalCardCompleted: {
+    backgroundColor: Colors.light.dullestWhite,
+  },
+  fastingGoalTotalLabel: {
+    color: Colors.light.grey,
+    fontFamily: fonts.primary.semiBold,
+    fontSize: 14,
+    fontWeight: "600",
+    flex: 1,
+  },
+  fastingGoalTotalValueRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  fastingGoalTotalValue: {
+    fontWeight: "600",
+    fontSize: 22,
+    fontFamily: fonts.primary.semiBold,
+    color: Colors.light.white,
+  },
+  fastingGoalTotalValueCompleted: {
+    color: Colors.light.green,
+  },
+  fastingGoalTotalBadge: {
+    padding: 4,
+    borderRadius: 4,
+    backgroundColor: Colors.light.dullestWhite,
+  },
+  fastingGoalTotalBadgeCompleted: {
+    backgroundColor: Colors.light.lightgreen,
+  },
+  fastingGoalTotalBadgeText: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.regular,
+    fontSize: 9,
+    fontWeight: "400",
+  },
+  fastingGoalTotalBadgeTextCompleted: {
+    color: Colors.light.green,
+  },
+  fastingCycleDatesContainer: {},
+  fastingCycleGregorianDate: {
+    fontWeight: "500",
+    fontSize: 14,
+    fontFamily: fonts.primary.medium,
+    color: Colors.light.white,
+    textAlign: "center",
+  },
+  fastingCycleIslamicDate: {
+    fontWeight: "400",
+    fontSize: 12,
+    fontFamily: fonts.primary.regular,
+    color: Colors.light.grey,
+    textAlign: "center",
+    marginTop: 4,
+  },
+  fastingLegendCard: {
+    width: "100%",
+    overflow: "hidden",
+    backgroundColor: Colors.light.dullestWhite,
+    borderRadius: 10,
+    padding: 12,
+    paddingTop: 8,
+  },
+  fastingLegendCardClose: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    zIndex: 1,
+  },
+  fastingLegendCardContent: {
+    paddingRight: 20,
+  },
+  fastingLegendLayout: {
+    gap: 12,
+  },
+  fastingLegendRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  fastingLegendRowCentered: {
+    alignItems: "center",
+  },
+  fastingLegendColumn: {
+    flex: 1,
+    minWidth: 0,
+  },
+  fastingLegendItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    width: "100%",
+  },
+  fastingLegendItemFixed: {
+    flex: 1,
+    flexBasis: 0,
+    minWidth: 0,
+  },
+  fastingLegendTextWrap: {
+    flex: 1,
+    minWidth: 0,
+  },
+  fastingLegendTextWrapFixed: {
+    width: FASTING_LEGEND_TEXT_WIDTH,
+  },
+  fastingLegendText: {
+    fontWeight: "500",
+    fontSize: 10,
+    lineHeight: 14,
+    fontFamily: fonts.primary.medium,
+    color: Colors.light.grey,
+  },
+  fastingLegendRing: {
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  },
+  fastingLegendRingDot: {},
+  fastingProgressLegendRow: {
+    width: "100%",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  fastingCategoryLegend: {
+    width: "100%",
+    backgroundColor: Colors.light.calendarBg,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    gap: 8,
+  },
+  fastingCategoryLegendRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 12,
+  },
+  fastingCategoryLegendItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  fastingCategoryLegendLabel: {
+    fontSize: 9,
+    fontWeight: "400",
+    fontFamily: fonts.primary.regular,
+    letterSpacing: 0.1,
+    color: Colors.light.grey,
+  },
+  fastingCalendarWrapper: {
+    borderRadius: 12,
+    overflow: "hidden",
+  },
+  dayProgressHeaderRow: {
+    flexDirection: "row",
+    gap: 10,
+    alignItems: "center",
+  },
+  dayProgressTimeBadgeWrapper: {
+    paddingVertical: 10,
+    paddingHorizontal: 4,
+  },
+  dayProgressTimeBadge: {
+    fontFamily: fonts.primary.semiBold,
+    fontSize: 15,
+    color: Colors.light.white,
+    backgroundColor: Colors.light.green,
+    borderRadius: 6,
+    padding: 8,
+    fontWeight: "600",
+  },
+  dayProgressGoalTitle: {
+    flex: 1,
+    fontFamily: fonts.primary.semiBold,
+    fontSize: 15,
+    color: Colors.light.white,
+    fontWeight: "600",
+  },
+  dayProgressGoalTitleFull: {
+    paddingVertical: 10,
+    paddingHorizontal: 4,
+  },
+  dayProgressDetailRow: {
+    flexDirection: "row",
+    gap: 10,
+    alignItems: "center",
+  },
+  dayProgressDescription: {
+    flex: 1,
+    fontFamily: fonts.primary.semiBold,
+    fontSize: 15,
+    color: Colors.light.white,
+    fontWeight: "600",
+  },
+  dayProgressDescriptionFull: {
+    flex: 1,
+  },
+  dayProgressDurationRow: {
+    flexDirection: "row",
+    gap: 4,
+    alignItems: "center",
+  },
+  dayProgressTimesColumn: {
+    gap: 12,
+  },
+  dayProgressTimePlaceholder: {
+    height: 13,
+  },
+  dayProgressMutedTime: {
+    color: Colors.light.grey,
+    fontFamily: fonts.primary.medium,
+    fontSize: 11,
+    fontWeight: "500",
+  },
+  dayProgressTimeline: {
+    alignItems: "center",
+  },
+  dayProgressTimelineDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: Colors.light.white,
+  },
+  dayProgressTimelineLine: {
+    width: 1,
+    height: 30,
+    backgroundColor: Colors.light.green,
+  },
   // Show More Button
   showMoreButton: {
     flexDirection: "row",
@@ -735,5 +1047,301 @@ export const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+  // Time Spent Overview
+  timeSpentContainer: {
+    backgroundColor: Colors.light.dullestWhite,
+    borderRadius: 10,
+    padding: 10,
+  },
+  timeSpentHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  timeSpentTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    flex: 1,
+  },
+  timeSpentTitle: {
+    color: Colors.light.white,
+    fontSize: 16,
+    fontFamily: fonts.primary.semiBold,
+    fontWeight: "600",
+  },
+  timeSpentPercentRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  timeSpentPercentText: {
+    fontFamily: fonts.primary.semiBold,
+    fontSize: 16,
+    fontWeight: "600",
+    color: Colors.light.white,
+  },
+  timeSpentPeriodToggle: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 4,
+    backgroundColor: Colors.light.blackBackground,
+    borderRadius: 6,
+    justifyContent: "center",
+  },
+  timeSpentPeriodButton: {
+    borderRadius: 6,
+    paddingHorizontal: 40,
+    paddingVertical: 8,
+  },
+  timeSpentPeriodButtonSelected: {
+    backgroundColor: Colors.light.greybuttonBackground,
+  },
+  timeSpentPeriodButtonUnselected: {
+    backgroundColor: Colors.light.blackBackground,
+  },
+  timeSpentPeriodButtonText: {
+    fontFamily: fonts.primary.medium,
+    fontSize: 14,
+    fontWeight: "500",
+  },
+  timeSpentPeriodButtonTextSelected: {
+    color: Colors.light.green,
+  },
+  timeSpentPeriodButtonTextUnselected: {
+    color: Colors.light.grey,
+  },
+  timeSpentNavRowContainer: {
+    flexDirection: "row",
+    alignItems: "stretch",
+    justifyContent: "space-between",
+    gap: 10,
+    marginTop: 12,
+  },
+  timeSpentNavSection: {
+    flex: 1,
+    minWidth: 0,
+    alignItems: "flex-end",
+    gap: 8,
+  },
+  timeSpentNavSectionExpanded: {
+    flex: 1,
+    width: "100%",
+  },
+  timeSpentNavRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  timeSpentNavLabel: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.medium,
+    fontSize: 14,
+  },
+  timeSpentTotalBlock: {
+    alignSelf: "flex-end",
+  },
+  timeSpentTotalCaption: {
+    color: Colors.light.grey,
+    fontFamily: fonts.primary.medium,
+    fontSize: 14,
+    fontWeight: "500",
+    marginTop: 2,
+  },
+  timeSpentTotalValue: {
+    color: Colors.light.green,
+    fontFamily: fonts.primary.semiBold,
+    fontSize: 24,
+    fontWeight: "600",
+  },
+  timeSpentChartSection: {
+    marginTop: 6,
+  },
+  timeSpentChartHint: {
+    flex: 1,
+    maxWidth: "50%",
+    minWidth: 148,
+    justifyContent: "flex-end",
+    alignSelf: "stretch",
+  },
+  timeSpentChartHintBubble: {
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    backgroundColor: Colors.light.dullestWhite,
+    alignItems: "center",
+    gap: 8,
+  },
+  timeSpentChartHintText: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.medium,
+    fontSize: 11,
+    fontWeight: "500",
+    lineHeight: 15,
+    textAlign: "center",
+  },
+  timeSpentChartHintAction: {
+    color: Colors.light.green,
+    fontFamily: fonts.primary.medium,
+    fontSize: 11,
+    fontWeight: "500",
+    textAlign: "center",
+  },
+  timeSpentChartHintPointerRow: {
+    alignItems: "center",
+  },
+  timeSpentChartHintPointer: {
+    width: 0,
+    height: 0,
+    marginTop: -1,
+    borderLeftWidth: 7,
+    borderRightWidth: 7,
+    borderTopWidth: 8,
+    borderLeftColor: "transparent",
+    borderRightColor: "transparent",
+    borderTopColor: Colors.light.dullestWhite,
+  },
+  timeSpentChartContainer: {
+    height: 220,
+    position: "relative",
+  },
+  timeSpentChartTouchLayer: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    zIndex: 1,
+  },
+  timeSpentXAxisContainerWeek: {
+    height: 36,
+    position: "relative",
+  },
+  timeSpentXAxisContainerMonth: {
+    height: 20,
+    position: "relative",
+  },
+  timeSpentXAxisLabelPosition: {
+    position: "absolute",
+    alignItems: "center",
+  },
+  timeSpentXAxisLabelDimmed: {
+    opacity: 0.25,
+  },
+  timeSpentXAxisDayLabel: {
+    color: Colors.light.grey,
+    fontFamily: fonts.primary.medium,
+    fontSize: 11,
+  },
+  timeSpentXAxisDateLabelWeek: {
+    color: Colors.light.grey,
+    fontFamily: fonts.primary.medium,
+    fontSize: 11,
+    marginTop: 2,
+    textAlign: "center",
+  },
+  timeSpentXAxisDateLabelMonth: {
+    color: Colors.light.grey,
+    fontFamily: fonts.primary.medium,
+    fontSize: 10,
+    textAlign: "center",
+  },
+  timeSpentXAxisDayLabelSelected: {
+    color: Colors.light.white,
+    fontWeight: "600",
+  },
+  timeSpentXAxisDateLabelWeekSelected: {
+    color: Colors.light.green,
+  },
+  timeSpentXAxisDateLabelMonthSelected: {
+    color: Colors.light.green,
+    fontWeight: "600",
+  },
+  timeSpentDisclaimerRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 8,
+    marginTop: 12,
+  },
+  timeSpentDisclaimerIcon: {
+    marginTop: 2,
+  },
+  timeSpentDisclaimerText: {
+    flex: 1,
+    color: Colors.light.grey,
+    fontFamily: fonts.primary.regular,
+    fontSize: 12,
+    lineHeight: 16,
+  },
+  timeSpentCategoryList: {
+    gap: 16,
+  },
+  timeSpentCategoryRowHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  timeSpentCategoryLabel: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.bold,
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  timeSpentCategoryTimeBadge: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 1,
+    paddingHorizontal: 10,
+    borderRadius: 4,
+    backgroundColor: Colors.light.white,
+  },
+  timeSpentCategoryTimeBadgeText: {
+    color: Colors.light.green,
+    fontWeight: "500",
+    fontSize: 13,
+    fontFamily: fonts.primary.medium,
+  },
+  timeSpentCategoryProgressTrack: {
+    width: "100%",
+    height: 10,
+    borderRadius: 4,
+    backgroundColor: Colors.light.progressBarEmpty,
+    overflow: "hidden",
+    flexDirection: "row",
+  },
+  timeSpentCategoryProgressFill: {
+    height: "100%",
+    borderRadius: 4,
+    backgroundColor: Colors.light.green,
+    minWidth: 0,
+  },
+  fastingLegendItemUnsetWidth: {
+    width: undefined,
+  },
+  timeSpentDetailPercentRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  timeSpentDetailSummaryBox: {
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    backgroundColor: Colors.light.dullestWhite,
+  },
+  timeSpentDetailSummaryText: {
+    color: Colors.light.grey,
+    fontFamily: fonts.primary.medium,
+    fontSize: 12,
+    fontWeight: "500",
+    lineHeight: 18,
+  },
+  timeSpentDetailTabsScroll: {
+    flexGrow: 0,
+  },
+  timeSpentDetailTabsContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
   },
 });

@@ -1,7 +1,12 @@
 import { Colors } from "@/constants/theme";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useCallback, useEffect } from "react";
-import { LayoutChangeEvent, StyleSheet, View } from "react-native";
+import {
+  LayoutChangeEvent,
+  StyleProp,
+  StyleSheet,
+  ViewStyle,
+} from "react-native";
 import {
   Gesture,
   GestureDetector,
@@ -30,6 +35,8 @@ type SwipeToDeleteRowProps = {
   onSwipeOpen: (id: string | null) => void;
   openRowId: string | null;
   children: React.ReactNode;
+  wrapperStyle?: StyleProp<ViewStyle>;
+  contentStyle?: StyleProp<ViewStyle>;
 };
 
 export function SwipeToDeleteRow({
@@ -38,6 +45,8 @@ export function SwipeToDeleteRow({
   onSwipeOpen,
   openRowId,
   children,
+  wrapperStyle,
+  contentStyle,
 }: SwipeToDeleteRowProps) {
   const translateX = useSharedValue(0);
   const startX = useSharedValue(0);
@@ -156,7 +165,7 @@ export function SwipeToDeleteRow({
   }, [openRowId, rowId, translateX]);
 
   return (
-    <Animated.View style={[containerStyle, styles.itemContainer]}>
+    <Animated.View style={[containerStyle, styles.itemContainer, wrapperStyle]}>
       <Animated.View style={[styles.deleteAction, deleteActionStyle]}>
         <Pressable style={styles.deletePressable} onPress={handleTrashPress}>
           <Feather name="trash" size={24} color={Colors.light.white} />
@@ -165,7 +174,7 @@ export function SwipeToDeleteRow({
 
       <GestureDetector gesture={panGesture}>
         <Animated.View
-          style={[cardStyle, styles.card]}
+          style={[cardStyle, styles.card, contentStyle]}
           onLayout={handleLayout}
         >
           {children}

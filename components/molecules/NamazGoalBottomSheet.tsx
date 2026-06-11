@@ -14,10 +14,11 @@ import { useTranslation } from "react-i18next";
 
 type Props = {
   onClose: () => void;
+  onChange?: (index: number) => void;
 };
 
 export const NamazGoalBottomSheet = forwardRef<BottomSheet, Props>(
-  ({ onClose }, ref) => {
+  ({ onClose, onChange }, ref) => {
     const { t, i18n } = useTranslation();
     const snapPoints = useMemo(() => ["50%", "92%"], []);
 
@@ -40,6 +41,7 @@ export const NamazGoalBottomSheet = forwardRef<BottomSheet, Props>(
         snapPoints={snapPoints}
         enablePanDownToClose
         onClose={onClose}
+        onChange={onChange}
         backdropComponent={renderBackdrop}
         backgroundStyle={styles.sheetBackground}
         handleIndicatorStyle={styles.handle}

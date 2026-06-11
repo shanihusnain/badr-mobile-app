@@ -27,10 +27,23 @@ import { CalendarCountAndRamadanText } from "@/components/atoms/CalendarCountAnd
 
 type DawoodCalendarProps = {
   onSave?: (startDay: 1 | 2) => void;
+  dawoodStartDay?: 1 | 2;
+  hideFooter?: boolean;
+  hideDateLabel?: boolean;
+  hideRadio?: boolean;
 };
 
-export const DawoodCalendar = ({ onSave }: DawoodCalendarProps) => {
-  const [dawoodStartDay, setDawoodStartDay] = useState<1 | 2>(1);
+export const DawoodCalendar = ({
+  onSave,
+  dawoodStartDay: dawoodStartDayProp,
+  hideFooter = false,
+  hideDateLabel = false,
+  hideRadio = false,
+}: DawoodCalendarProps) => {
+  const [dawoodStartDay, setDawoodStartDay] = useState<1 | 2>(
+    dawoodStartDayProp ?? 1,
+  );
+  const activeDawoodStartDay = dawoodStartDayProp ?? dawoodStartDay;
 
   const startMoment = moment();
   const endMoment = moment().add(27, "days");
@@ -68,51 +81,61 @@ export const DawoodCalendar = ({ onSave }: DawoodCalendarProps) => {
 
   // Count fast days in the 28-day window
   const fastCount = Array.from({ length: 28 }, (_, i) => i).filter((i) =>
-    dawoodStartDay === 1 ? i % 2 === 0 : i % 2 === 1,
+    activeDawoodStartDay === 1 ? i % 2 === 0 : i % 2 === 1,
   ).length;
 
   return (
     <View style={styles.wrapper}>
       {/* ── Radio buttons — inside calendarBg header ── */}
-      <View style={styles.topBar}>
-        <View style={styles.radioRow}>
-          {([1, 2] as const).map((day) => (
-            <TouchableOpacity
-              key={day}
-              style={styles.radioItem}
-              onPress={() => setDawoodStartDay(day)}
-              activeOpacity={0.7}
-            >
-              <View
-                style={[
-                  styles.radioOuter,
-                  //   dawoodStartDay === day && styles.radioOuterActive,
-                ]}
+      {!hideRadio && (
+        <View style={styles.topBar}>
+          <View style={styles.radioRow}>
+            {([1, 2] as const).map((day) => (
+              <TouchableOpacity
+                key={day}
+                style={styles.radioItem}
+                onPress={() => setDawoodStartDay(day)}
+                activeOpacity={0.7}
               >
-                {dawoodStartDay === day && <View style={styles.radioInner} />}
-              </View>
-              <Text style={styles.radioLabel}>
-                {day === 1 ? "Start from 1st day" : "Start from 2nd day"}
-              </Text>
-            </TouchableOpacity>
-          ))}
+                <View style={[styles.radioOuter]}>
+                  {activeDawoodStartDay === day && (
+                    <View style={styles.radioInner} />
+                  )}
+                </View>
+                <Text style={styles.radioLabel}>
+                  {day === 1 ? "Start from 1st day" : "Start from 2nd day"}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
-      </View>
+      )}
 
       {/* ── Date range label ── */}
-      <View style={styles.dateLabel}>
-        <Text style={styles.dateLabelText}>{rangeLabel}</Text>
-        <Text style={styles.islamicDateText}>{islamicRangeLabel}</Text>
-      </View>
+      {!hideDateLabel && (
+        <View
+          style={[
+            styles.dateLabel,
+            hideRadio && {
+              borderTopLeftRadius: 12,
+              borderTopRightRadius: 12,
+            },
+          ]}
+        >
+          <Text style={styles.dateLabelText}>{rangeLabel}</Text>
+          <Text style={styles.islamicDateText}>{islamicRangeLabel}</Text>
+        </View>
+      )}
 
       {/* ── Calendar ── */}
       <CalendarGrid
         mode="dawood"
         currentDate={currentDate}
-        dawoodStartDay={dawoodStartDay}
+        dawoodStartDay={activeDawoodStartDay}
       />
 
       {/* ── Footer (same calendarBg — feels like calendar body extension) ── */}
+      {!hideFooter && (
       <View style={styles.footer}>
         <Text style={styles.description}>
           Prophet Dawood (AS) used to fast every other day. Choose whether your
@@ -133,6 +156,7 @@ export const DawoodCalendar = ({ onSave }: DawoodCalendarProps) => {
           <Text style={styles.saveBtnText}>Save</Text>
         </TouchableOpacity>
       </View>
+      )}
     </View>
   );
 };

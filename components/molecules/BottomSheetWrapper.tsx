@@ -12,14 +12,24 @@ type Props = {
   children: React.ReactNode;
   snapPoints?: string[];
   onClose?: () => void;
+  onChange?: (index: number) => void;
   /** When false, children render directly (e.g. BottomSheetFlatList). Default: true */
   scrollable?: boolean;
   footerComponent?: React.FC<BottomSheetFooterProps>;
+  bgColor?: string;
 };
 
 export const BottomSheetWrapper = forwardRef<BottomSheet, Props>(
   function BottomSheetWrapper(
-    { children, snapPoints, onClose, scrollable = true, footerComponent },
+    {
+      children,
+      snapPoints,
+      onClose,
+      onChange,
+      scrollable = true,
+      footerComponent,
+      bgColor,
+    },
     ref,
   ) {
     const resolvedSnapPoints = useMemo(
@@ -46,9 +56,12 @@ export const BottomSheetWrapper = forwardRef<BottomSheet, Props>(
         snapPoints={resolvedSnapPoints}
         enablePanDownToClose
         onClose={onClose}
+        onChange={onChange}
         footerComponent={footerComponent}
         backdropComponent={renderBackdrop}
-        backgroundStyle={styles.sheetBackground}
+        backgroundStyle={
+          bgColor ? { backgroundColor: bgColor } : styles.sheetBackground
+        }
         handleIndicatorStyle={styles.handle}
       >
         {scrollable ? (
@@ -68,7 +81,7 @@ export const BottomSheetWrapper = forwardRef<BottomSheet, Props>(
 
 const styles = StyleSheet.create({
   sheetBackground: {
-    backgroundColor: Colors.light.blackBackground,
+    backgroundColor: Colors.light.greybuttonBackground,
   },
   handle: {
     backgroundColor: Colors.light.grey,

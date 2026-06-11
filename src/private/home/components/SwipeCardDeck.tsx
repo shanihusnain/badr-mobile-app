@@ -113,11 +113,7 @@ const DeckSwipeCard = ({
   return (
     <GestureDetector gesture={panGesture}>
       <Animated.View
-        style={[
-          styles.cardWrapper,
-          { width: cardWidth, height: CARD_HEIGHT },
-          cardAnimatedStyle,
-        ]}
+        style={[styles.cardWrapper, { width: cardWidth }, cardAnimatedStyle]}
       >
         <ContainerCard
           item={item}
@@ -195,6 +191,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 0,
     left: 0,
+    height: CARD_HEIGHT,
   },
   remainingBadge: {
     position: "absolute",

@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
   legendRing: {
     width: 10,
     height: 10,
-    borderRadius: 10,
+    borderRadius: 5,
     borderWidth: 1,
     borderColor: Colors.light.ringRamadan,
   },
