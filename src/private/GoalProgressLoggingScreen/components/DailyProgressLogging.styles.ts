@@ -5,21 +5,35 @@ import { fonts } from "@/assets/fonts";
 export const styles = StyleSheet.create({
   backdrop: {
     position: "absolute",
-    top: -2000,
-    bottom: -1000,
-    left: -100,
-    right: -100,
-    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    top: -3000,
+    bottom: -3000,
+    left: -1000,
+    right: -1000,
+    backgroundColor: Colors.light.overlayBlackColor,
     zIndex: 90,
   },
   section: {
     width: "100%",
     paddingHorizontal: 16,
     marginTop: 8,
+    overflow: "visible",
   },
   activeSection: {
     zIndex: 100,
     position: "relative",
+    overflow: "visible",
+  },
+  cardAnchor: {
+    width: "80%",
+    alignSelf: "flex-start",
+    minHeight: 155,
+    position: "relative",
+    zIndex: 101,
+    overflow: "visible",
+  },
+  flowCardLayer: {
+    position: "relative",
+    zIndex: 101,
   },
   cancelButton: {
     position: "absolute",
@@ -48,9 +62,7 @@ export const styles = StyleSheet.create({
     padding: 14,
     minHeight: 155,
     position: "relative",
-    width: "80%",
-    alignSelf: "flex-start",
-
+    width: "100%",
   },
   badge: {
     alignSelf: "flex-start",
@@ -134,6 +146,11 @@ export const styles = StyleSheet.create({
     width: "80%",
     alignSelf: "flex-start",
     marginLeft: -8,
+  },
+  inPlaceFlowCard: {
+    width: "100%",
+    marginLeft: 0,
+    alignSelf: "stretch",
   },
   flowHeader: {
     flexDirection: "row",
@@ -384,19 +401,5 @@ export const styles = StyleSheet.create({
     fontSize: 16,
     marginLeft: 4,
     marginRight: 12,
-  },
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.6)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalContentContainer: {
-    width: "100%",
-    alignItems: "center",
-  },
-  modalCardWrapper: {
-    width: "100%",
-    position: "relative",
   },
 });

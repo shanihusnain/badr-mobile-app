@@ -1,10 +1,5 @@
-import React, { useCallback, useMemo, useState, useRef } from "react";
-import {
-  Text,
-  TouchableOpacity,
-  View,
-  Modal,
-} from "react-native";
+import React, { useCallback, useMemo, useState } from "react";
+import { Text, TouchableOpacity, View, Pressable } from "react-native";
 import { useTranslation } from "react-i18next";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -57,7 +52,10 @@ const PRAYER_ICONS: Record<
 
 const toDateString = (date: Date) => moment(date).format("YYYY-MM-DD");
 
-export default function DailyProgressLogging({ goalData, onLogComplete }: Props) {
+export default function DailyProgressLogging({
+  goalData,
+  onLogComplete,
+}: Props) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
   const config = useMemo(
@@ -81,9 +79,6 @@ export default function DailyProgressLogging({ goalData, onLogComplete }: Props)
   };
 
   const categoryColor = getCategoryColor(goalData.category);
-
-  const summaryCardRef = useRef<View>(null);
-  const [cardLayout, setCardLayout] = useState({ top: 0, left: 0, width: 0 });
 
   const [flowMode, setFlowMode] = useState<FlowMode>("collapsed");
   const [stepIndex, setStepIndex] = useState(0);
@@ -117,10 +112,7 @@ export default function DailyProgressLogging({ goalData, onLogComplete }: Props)
   };
 
   const openFlow = () => {
-    summaryCardRef.current?.measure((_x, _y, _w, _h, pageX, pageY) => {
-      setCardLayout({ top: pageY, left: pageX, width: _w });
-      setFlowMode("active");
-    });
+    setFlowMode("active");
   };
 
   const resetFlow = useCallback(() => {
@@ -203,11 +195,7 @@ export default function DailyProgressLogging({ goalData, onLogComplete }: Props)
       case "congregation":
         return {
           icon: (
-            <FontAwesome6
-              name="mosque"
-              size={13}
-              color={Colors.light.white}
-            />
+            <FontAwesome6 name="mosque" size={13} color={Colors.light.white} />
           ),
           label: t("progressLogging.prayedInMosque"),
         };
@@ -248,9 +236,7 @@ export default function DailyProgressLogging({ goalData, onLogComplete }: Props)
 
   const getCongregationLabel = useCallback(
     (option: CongregationOption) =>
-      option === "yes"
-        ? t("progressLogging.yes")
-        : t("progressLogging.no"),
+      option === "yes" ? t("progressLogging.yes") : t("progressLogging.no"),
     [t],
   );
 
@@ -336,80 +322,71 @@ export default function DailyProgressLogging({ goalData, onLogComplete }: Props)
   const header = getStepHeader(currentStep);
 
   return (
-    <View style={styles.section}>
+    <View
+      style={[styles.section, flowMode === "active" && styles.activeSection]}
+    >
       <Text style={styles.sectionTitle}>{t("progressLogging.myProgress")}</Text>
-      <View ref={summaryCardRef} style={styles.summaryCard}>
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>
-            {t("progressLogging.inProgress")}
-          </Text>
-        </View>
 
-        <View style={styles.summaryBody}>
-          <View style={styles.summaryIconCircle}>
-            <FontAwesome6
-              name="person-praying"
-              size={18}
-              color={Colors.light.white}
-            />
-          </View>
-          <View style={styles.summaryTextBlock}>
-            <Text style={styles.summaryTitle}>
-              {t(config.summaryTitleKey, { defaultValue: goalData.title })}
-            </Text>
-            <Text style={styles.summarySubtext}>
-              <Text style={styles.summarySubtextRegular}>
-                ({t("progressLogging.total")}
-              </Text>
-              <Text style={styles.summarySubtextBold}>
-                {" "}{formatNumber(config.totalCount)}{" "}
-              </Text>
-              <Text style={styles.summarySubtextRegular}>
-                {t(config.totalUnitKey)})
-              </Text>
-            </Text>
-          </View>
-        </View>
+      <View style={styles.cardAnchor}>
+        {flowMode === "active" && (
+          <Pressable style={styles.backdrop} onPress={resetFlow} />
+        )}
 
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={openFlow}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="add" size={22} color={Colors.light.white} />
-        </TouchableOpacity>
-      </View>
-
-      {/* Modal for Active Flow */}
-      <Modal
-        visible={flowMode === "active"}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={resetFlow}
-      >
-        <TouchableOpacity
-          style={styles.modalBackdrop}
-          activeOpacity={1}
-          onPress={resetFlow}
-        >
+        {flowMode === "active" && (
           <TouchableOpacity
-            activeOpacity={1}
-            style={{
-              position: "absolute",
-              top: cardLayout.top - 34,
-              left: cardLayout.left + 8,
-              width: cardLayout.width,
-            }}
+            style={styles.cancelButton}
+            onPress={resetFlow}
+            activeOpacity={0.8}
           >
-            {/* Cancel button positioned above/right of the card */}
+            <Ionicons name="close" size={20} color={Colors.light.white} />
+          </TouchableOpacity>
+        )}
+
+        {flowMode === "collapsed" ? (
+          <View style={styles.summaryCard}>
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>
+                {t("progressLogging.inProgress")}
+              </Text>
+            </View>
+
+            <View style={styles.summaryBody}>
+              <View style={styles.summaryIconCircle}>
+                <FontAwesome6
+                  name="person-praying"
+                  size={18}
+                  color={Colors.light.white}
+                />
+              </View>
+              <View style={styles.summaryTextBlock}>
+                <Text style={styles.summaryTitle}>
+                  {t(config.summaryTitleKey, { defaultValue: goalData.title })}
+                </Text>
+                <Text style={styles.summarySubtext}>
+                  <Text style={styles.summarySubtextRegular}>
+                    ({t("progressLogging.total")}
+                  </Text>
+                  <Text style={styles.summarySubtextBold}>
+                    {" "}
+                    {formatNumber(config.totalCount)}{" "}
+                  </Text>
+                  <Text style={styles.summarySubtextRegular}>
+                    {t(config.totalUnitKey)})
+                  </Text>
+                </Text>
+              </View>
+            </View>
+
             <TouchableOpacity
-              style={styles.cancelButton}
-              onPress={resetFlow}
+              style={styles.addButton}
+              onPress={openFlow}
               activeOpacity={0.8}
             >
-              <Ionicons name="close" size={20} color={Colors.light.white} />
+              <Ionicons name="add" size={22} color={Colors.light.white} />
             </TouchableOpacity>
-
+          </View>
+        ) : (
+          <View style={styles.flowCardLayer}>
             <FlowCard
               headerIcon={header.icon}
               headerLabel={header.label}
@@ -418,13 +395,13 @@ export default function DailyProgressLogging({ goalData, onLogComplete }: Props)
               onConfirm={handleConfirm}
               canGoForward={!isLastStep}
               styles={styles}
-              style={{ width: "100%" }}
+              style={styles.inPlaceFlowCard}
             >
               {renderStepContent(currentStep)}
             </FlowCard>
-          </TouchableOpacity>
-        </TouchableOpacity>
-      </Modal>
+          </View>
+        )}
+      </View>
     </View>
   );
 }

@@ -62,11 +62,6 @@ export const GoalProgressLoggingScreen = ({
 
   return (
     <View style={styles.container}>
-      <Header
-        title={goalData.title.toUpperCase()}
-        onBackPress={() => router.back()}
-      />
-
       <View style={styles.scrollContent}>
         <View style={styles.goalInfoContainer}>
           <TaperedCircleBorder
@@ -76,9 +71,7 @@ export const GoalProgressLoggingScreen = ({
             size={174}
           >
             <View style={styles.largeCircleInner}>
-              <Text style={styles.circleGoalText}>
-                Goal: {cleanLabel}
-              </Text>
+              <Text style={styles.circleGoalText}>Goal: {cleanLabel}</Text>
               <View style={styles.circlePercentRow}>
                 <Text style={styles.circlePercentNumber}>{percentageNum}</Text>
                 <Text style={styles.circlePercentSymbol}>%</Text>
@@ -111,4 +104,3 @@ export const GoalProgressLoggingScreen = ({
     </View>
   );
 };
-

@@ -1,6 +1,8 @@
 import { Stack } from "expo-router";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
+import Header from "@/components/Header";
+import { getGoalById } from "@/src/private/home/components/goalsData";
 
 export default function PrivateLayout() {
   return (
@@ -37,11 +39,17 @@ export default function PrivateLayout() {
       />
       <Stack.Screen name="menstruationlog" options={{ headerShown: false }} />
       <Stack.Screen
-        name="GoalProgressLoggingScreen/[goalId]"
+        name="goalprogressloggingscreen/[goalId]"
         options={{
-          headerShown: false,
+          headerShown: true,
           title: "GOAL PROGRESS",
           headerBackTitle: "Back",
+          header: ({ route }) => {
+            const goalData = getGoalById((route?.params as any)?.goalId);
+
+            const title = goalData?.title?.toUpperCase();
+            return <Header title={title ?? ""} />;
+          },
         }}
       />
     </Stack>

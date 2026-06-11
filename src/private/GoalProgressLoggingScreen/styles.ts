@@ -6,6 +6,7 @@ export const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.light.blackBackground,
+    overflow: "visible",
   },
   emptyState: {
     alignItems: "center",
@@ -21,6 +22,8 @@ export const styles = StyleSheet.create({
 
   scrollContent: {
     paddingBottom: 32,
+    marginTop: 20,
+    overflow: "visible",
   },
   goalInfoContainer: {
     alignItems: "center",
