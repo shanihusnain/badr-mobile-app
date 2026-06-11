@@ -1010,6 +1010,43 @@ export const styles = StyleSheet.create({
     color: Colors.light.white,
     lineHeight: 30,
   },
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    zIndex: 998,
+  },
+  fabMenuContainer: {
+    position: "absolute",
+    right: 20,
+    zIndex: 999,
+    alignItems: "flex-end",
+    gap: 16,
+  },
+  fabOptionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  fabOptionLabel: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.semiBold || "SF Pro Text",
+    fontWeight: "600",
+    fontSize: 14,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  fabOptionIconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "#2C3539",
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   // Time Spent Overview
   timeSpentContainer: {
     backgroundColor: Colors.light.dullestWhite,

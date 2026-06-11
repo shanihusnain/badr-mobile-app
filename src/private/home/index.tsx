@@ -20,6 +20,7 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Entypo from "@expo/vector-icons/Entypo";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Colors } from "@/constants/theme";
 import { TaperedCircleBorder } from "@/components/atoms/TaperedCircleBorder";
 import { SwipeCardDeck } from "./components/SwipeCardDeck";
@@ -194,6 +195,26 @@ export default function HomeScreen() {
   const openBottomSheetsRef = useRef(new Set<string>());
   const scrollY = useRef(new Animated.Value(0)).current;
 
+  const [isFabMenuOpen, setIsFabMenuOpen] = useState(false);
+  const fabAnimation = useRef(new Animated.Value(0)).current;
+
+  const toggleFabMenu = () => {
+    const toValue = isFabMenuOpen ? 0 : 1;
+    Animated.spring(fabAnimation, {
+      toValue,
+      friction: 6,
+      tension: 40,
+      useNativeDriver: true,
+    }).start();
+    setIsFabMenuOpen(!isFabMenuOpen);
+  };
+
+  const fabTranslateY = fabAnimation.interpolate({
+    inputRange: [0, 1],
+    outputRange: [30, 0],
+  });
+
+  const fabMenuOpacity = fabAnimation;
   const handleBottomSheetChange = useCallback(
     (sheetId: string, index: number) => {
       if (index === -1) {
@@ -724,30 +745,93 @@ export default function HomeScreen() {
           onChange={(index) => handleBottomSheetChange("dashboard", index)}
         />
 
-      <BottomSheetWrapper
-        ref={goldenBottomSheetRef}
-        snapPoints={["50%", "92%"]}
-        onClose={() => goldenBottomSheetRef.current?.close()}
-        onChange={(index) => handleBottomSheetChange("dailyProgress", index)}
-      >
-        <DailyProgressBottomSheet
-          onClose={() => goldenBottomSheetRef.current?.close()}
-        />
-      </BottomSheetWrapper>
+        <BottomSheetWrapper ref={goldenBottomSheetRef} snapPoints={["50%", "92%"]}>
+          <DailyProgressBottomSheet onClose={() => goldenBottomSheetRef.current?.close()} />
+        </BottomSheetWrapper>
 
-      {/* Golden action FAB */}
-      <TouchableOpacity
-        activeOpacity={0.8}
-        onPress={() => goldenBottomSheetRef.current?.expand()}
-        style={[styles.goldenFab, { bottom: safeAreaInsets.bottom + 20 }]}
-      >
-        <TaperedCircleBorder variant="golden" size={30}>
-          <View style={styles.goldenFabInner}>
-            <Text style={styles.goldenFabPlus}>+</Text>
-          </View>
-        </TaperedCircleBorder>
-      </TouchableOpacity>
-    </BlackScreenWrapper>
+        {/* Backdrop overlay */}
+        {isFabMenuOpen && (
+          <TouchableOpacity
+            style={styles.backdrop}
+            activeOpacity={1}
+            onPress={toggleFabMenu}
+          />
+        )}
+
+        {/* Speed Dial Menu Container */}
+        {isFabMenuOpen && (
+          <Animated.View
+            style={[
+              styles.fabMenuContainer,
+              {
+                bottom: safeAreaInsets.bottom + 80,
+                opacity: fabMenuOpacity,
+                transform: [{ translateY: fabTranslateY }],
+              },
+            ]}
+          >
+            {/* Set Next Month's Goals */}
+            <TouchableOpacity
+              style={styles.fabOptionRow}
+              activeOpacity={0.8}
+              onPress={() => {
+                toggleFabMenu();
+                // Action for Set Next Month's Goals
+              }}
+            >
+              <Text style={styles.fabOptionLabel}>SET NEXT MONTH'S GOALS</Text>
+              <View style={styles.fabOptionIconContainer}>
+                <MaterialCommunityIcons name="target" size={22} color="white" />
+              </View>
+            </TouchableOpacity>
+
+            {/* Complete Your Journal */}
+            <TouchableOpacity
+              style={styles.fabOptionRow}
+              activeOpacity={0.8}
+              onPress={() => {
+                toggleFabMenu();
+                // Action for Complete Your Journal
+              }}
+            >
+              <Text style={styles.fabOptionLabel}>COMPLETE YOUR JOURNAL</Text>
+              <View style={styles.fabOptionIconContainer}>
+                <MaterialCommunityIcons name="book-open-outline" size={22} color="white" />
+              </View>
+            </TouchableOpacity>
+
+            {/* Add Daily Progress */}
+            <TouchableOpacity
+              style={styles.fabOptionRow}
+              activeOpacity={0.8}
+              onPress={() => {
+                toggleFabMenu();
+                goldenBottomSheetRef.current?.expand();
+              }}
+            >
+              <Text style={styles.fabOptionLabel}>ADD DAILY PROGRESS</Text>
+              <View style={styles.fabOptionIconContainer}>
+                <Ionicons name="add" size={24} color="white" />
+              </View>
+            </TouchableOpacity>
+          </Animated.View>
+        )}
+
+        {/* Golden action FAB */}
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={toggleFabMenu}
+          style={[styles.goldenFab, { bottom: safeAreaInsets.bottom + 20 }]}
+        >
+          <TaperedCircleBorder variant="golden" size={30}>
+            <View style={styles.goldenFabInner}>
+              <Text style={styles.goldenFabPlus}>
+                {isFabMenuOpen ? "−" : "+"}
+              </Text>
+            </View>
+          </TaperedCircleBorder>
+        </TouchableOpacity>
+      </BlackScreenWrapper>
     </View>
   );
 }

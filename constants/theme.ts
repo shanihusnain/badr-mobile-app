@@ -49,6 +49,11 @@ export const Colors = {
     dullestWhite: "rgba(255, 255, 255, 0.1)",
     progressBarEmpty: "#374556",
     selectcategory: "#425060",
+    lightpurple:"#CBD3FF",
+    darkblue: "#3448FF",
+    lightblue: "#00B0E8",
+    yellow: "#E0A739",
+
   },
   dark: {
     text: "#ECEDEE",

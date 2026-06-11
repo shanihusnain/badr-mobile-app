@@ -5,60 +5,16 @@ import { fonts } from "@/assets/fonts";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { useRouter } from "expo-router";
 import { IbadahsProgressCard } from "./IbadahsProgressCard";
 import { DetailedIbadahsProgressCard } from "./DetailedIbadahsProgressCards";
+import { getGoalsByCategory } from "./goalsData";
 import BackButton from "@/components/atoms/Backbutton";
 
 type ViewType = "main" | "categories" | "detail";
 
 type Props = {
     onClose?: () => void;
-};
-
-// Sub-goal data per category
-const PRAYER_GOALS = [
-    { id: "tahiyyat", title: "Tahiyyat Al-Wudhu", count: "10", label: "/25 prayers", percentage: "40%", progressColor: Colors.light.ringPrayer, titleFontSize: 15 },
-    { id: "tahiyyatMasjid", title: "Tahiyyat Al-Masjid\nPrayer", count: "12", label: "/47 prayers", percentage: "25%", progressColor: Colors.light.ringPrayer, titleFontSize: 15 },
-    { id: "tawbah", title: "Tawbah Prayer", count: "4", label: "/10 prayers", percentage: "40%", progressColor: Colors.light.ringPrayer },
-    { id: "istikhara", title: "Istikhara Prayer", count: "2", label: "/9 prayers", percentage: "22%", progressColor: Colors.light.ringPrayer },
-    { id: "shukr", title: "Shukr Prayer", count: "3", label: "/8 prayers", percentage: "37%", progressColor: Colors.light.ringPrayer },
-    { id: "sunnah", title: "Sunnah Rawatib", count: "5", label: "/12 prayers", percentage: "42%", progressColor: Colors.light.ringPrayer },
-    { id: "duha", title: "Duha Prayer", count: "11", label: "/22 prayers", percentage: "50%", progressColor: Colors.light.ringPrayer },
-    { id: "qiyam", title: "Qiyam Al-Layl", count: "3", label: "/10 prayers", percentage: "30%", progressColor: Colors.light.ringPrayer },
-    { id: "missed", title: "Missed Past Prayers", count: "2", label: "/17 prayers", percentage: "12%", progressColor: Colors.light.ringPrayer },
-    { id: "fiveDailyPrayers", title: "The Five Daily Prayers", count: "3", label: "/28 days", percentage: "11%", progressColor: Colors.light.ringPrayer, titleFontSize: 14.5 },
-];
-
-const QURAN_GOALS = [
-    { id: "recitation", title: "Quran Recitation", count: "3", label: "/10 pages", percentage: "30%", progressColor: Colors.light.ringQuran },
-    { id: "memorisation", title: "Quran Memorisation", count: "1", label: "/5 pages", percentage: "20%", progressColor: Colors.light.ringQuran },
-    { id: "listening", title: "Quran Listening", count: "5", label: "/10 pages", percentage: "50%", progressColor: Colors.light.ringQuran },
-    { id: "Tajweed", title: "Quran Tajweed", count: "8", label: "/12", percentage: "66%", progressColor: Colors.light.ringQuran }
-
-];
-
-const FASTING_GOALS = [
-    { id: "ramadan", title: "Ramadan Fasts", count: "20", label: "/30 days", percentage: "67%", progressColor: Colors.light.green },
-    { id: "whiteDays", title: "White Days Fasts", count: "2", label: "/3 days", percentage: "67%", progressColor: Colors.light.green },
-    { id: "mondayThursday", title: "Monday & Thursday\nFasts", count: "3", label: "/8 days", percentage: "38%", progressColor: Colors.light.green },
-    { id: "Dawwod(AS)", title: "Prophet Dawwod(AS)\nFasts", count: "13", label: "/14 days", percentage: "93%", progressColor: Colors.light.green },
-];
-
-const SADAQAH_GOALS = [
-    { id: "sadaqahJariyah", title: "Sadaqah Jariyah", count: "$200", label: "/$1000", percentage: "20%", progressColor: Colors.light.ringSadaqah },
-    { id: "daily", title: "Daily Charity", count: "12", label: "/28 days", percentage: "43%", progressColor: Colors.light.ringSadaqah },
-    { id: "zakat", title: "Missed zakat", count: "16", label: "/28 days", percentage: "60", progressColor: Colors.light.ringSadaqah },
-    { id: "kafarah", title: "Kaffarah for breaking\nFasts or Oaths", count: "1", label: "/2 days", percentage: "50", progressColor: Colors.light.ringSadaqah, titleFontSize: 14 },
-    { id: "fidya", title: "Fidya", count: "$12", label: "/$30", percentage: "44%", progressColor: Colors.light.ringSadaqah },
-    { id: "Lillah", title: "Lillah Donation", count: "$50", label: "/$100", percentage: "50%", progressColor: Colors.light.ringSadaqah },
-    { id: "volunteering", title: "Volunteering\nServices", count: "2", label: "/4", percentage: "50%", progressColor: Colors.light.ringQuran },
-];
-
-const CATEGORY_GOALS: Record<string, typeof PRAYER_GOALS> = {
-    PRAYER: PRAYER_GOALS,
-    QURAN: QURAN_GOALS,
-    FASTING: FASTING_GOALS,
-    SADAQAH: SADAQAH_GOALS,
 };
 
 const CATEGORY_TITLES: Record<string, string> = {
@@ -76,6 +32,7 @@ const CATEGORY_ICON_COLOR: Record<string, string> = {
 };
 
 export const DailyProgressBottomSheet = ({ onClose }: Props) => {
+    const router = useRouter();
     const [currentView, setCurrentView] = useState<ViewType>("main");
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [selectedCard, setSelectedCard] = useState<string | null>(null);
@@ -100,21 +57,32 @@ export const DailyProgressBottomSheet = ({ onClose }: Props) => {
         setCurrentView("detail");
     };
 
-    const getTitle = () => {
+    const handleGoalPress = (goalId: string) => {
+        router.push({
+            pathname: "/GoalProgressLoggingScreen/[goalId]" as any,
+            params: { goalId },
+        });
+        onClose?.();
+    };
+
+    const getTitle = (): string => {
         if (currentView === "main") return "LOG DAILY PROGRESS";
         if (currentView === "categories") return "SELECT CATEGORY";
-        if (currentView === "detail" && selectedCategory) return CATEGORY_TITLES[selectedCategory];
+        if (currentView === "detail" && selectedCategory)
+            return CATEGORY_TITLES[selectedCategory];
         return "";
     };
 
     return (
         <View style={styles.container}>
+            {/* ── Header ── */}
             <View style={styles.headerRow}>
                 <BackButton onPress={handleBack} />
                 <Text style={styles.sheetTitle}>{getTitle()}</Text>
                 <View style={styles.headerSpacer} />
             </View>
 
+            {/* ── Main view ── */}
             {currentView === "main" && (
                 <View style={styles.mainViewContainer}>
                     <TouchableOpacity
@@ -133,6 +101,7 @@ export const DailyProgressBottomSheet = ({ onClose }: Props) => {
                 </View>
             )}
 
+            {/* ── Categories view ── */}
             {currentView === "categories" && (
                 <View style={styles.listContainer}>
                     <IbadahsProgressCard
@@ -178,9 +147,12 @@ export const DailyProgressBottomSheet = ({ onClose }: Props) => {
                 </View>
             )}
 
+            {/* ── Detail view ── */}
             {currentView === "detail" && selectedCategory && (
                 <View style={styles.listContainer}>
-                    {CATEGORY_GOALS[selectedCategory].map((goal) => (
+                    {getGoalsByCategory(
+                        selectedCategory as "PRAYER" | "QURAN" | "FASTING" | "SADAQAH"
+                    ).map((goal) => (
                         <DetailedIbadahsProgressCard
                             key={goal.id}
                             title={goal.title}
@@ -197,7 +169,10 @@ export const DailyProgressBottomSheet = ({ onClose }: Props) => {
                             percentage={goal.percentage}
                             progressColor={goal.progressColor}
                             isSelected={selectedDetailCard === goal.id}
-                            onPress={() => setSelectedDetailCard(goal.id)}
+                            onPress={() => {
+                                setSelectedDetailCard(goal.id);
+                                handleGoalPress(goal.id);
+                            }}
                             titleFontSize={goal.titleFontSize}
                         />
                     ))}
@@ -217,9 +192,7 @@ const styles = StyleSheet.create({
         justifyContent: "space-between",
         marginBottom: 28,
     },
-    headerSpacer: {
-        width: 30,
-    },
+    headerSpacer: { width: 30 },
     sheetTitle: {
         color: Colors.light.white,
         fontSize: 14,
@@ -229,9 +202,7 @@ const styles = StyleSheet.create({
         flex: 1,
         letterSpacing: 0.5,
     },
-    mainViewContainer: {
-        paddingBottom: 20,
-    },
+    mainViewContainer: { paddingBottom: 20 },
     mainCard: {
         flexDirection: "row",
         alignItems: "center",
@@ -241,10 +212,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         paddingVertical: 18,
     },
-    mainCardLeft: {
-        flexDirection: "row",
-        alignItems: "center",
-    },
+    mainCardLeft: { flexDirection: "row", alignItems: "center" },
     gridIconWrapper: {
         width: 40,
         height: 40,
@@ -260,7 +228,5 @@ const styles = StyleSheet.create({
         fontSize: 15,
         marginLeft: 14,
     },
-    listContainer: {
-        paddingBottom: 20,
-    },
+    listContainer: { paddingBottom: 20 },
 });
