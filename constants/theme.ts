@@ -48,6 +48,7 @@ export const Colors = {
     dayProgressCardBg: "#364556",
     dullestWhite: "rgba(255, 255, 255, 0.1)",
     progressBarEmpty: "#374556",
+    selectcategory: "#425060",
   },
   dark: {
     text: "#ECEDEE",
