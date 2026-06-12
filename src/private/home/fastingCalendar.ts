@@ -9,7 +9,6 @@ export const FASTING_CALENDAR_FILTER_TABS = [
 ] as const;
 export type FastingCalendarFilterTab =
   (typeof FASTING_CALENDAR_FILTER_TABS)[number];
-export const FastingCalendarTabs = ["Planned", "Planned vs. Progress"];
 
 const HIJRI_MONTHS_SHORT = [
   "Muh.",

@@ -2890,6 +2890,33 @@
     "committedGoals": "You've committed to working on \n{{count}} goals!",
     "welcomeJourney": "You're all set—your journey toward deeper connection and growth starts soon. As you begin tracking, your moon will fill with light—reflecting every step you take toward growth, connection, and ihsān."
   },
+  "goalProgressOverview": {
+    "userName": "User",
+    "goalsCount": "{{count}} Goals",
+    "categoryPrayer": "prayer",
+    "categoryQuran": "Quran",
+    "categoryFasting": "fasting",
+    "categorySadaqah": "sadaqah",
+    "notFound": "Goal category not found",
+    "tiers": {
+      "complete": {
+        "title": "Unwavering dedication!",
+        "description": "Tabarak Allah, you've achieved 100% of your {{count}} {{category}} goals this month! May Allah accept it from you and bless you with continued sincerity and steadfastness."
+      },
+      "outstanding": {
+        "title": "Masha Allah, Outstanding Progress",
+        "description": "You've achieved {{percentage}}% of your {{count}} {{category}} goals! Keep going and complete them for the sake of Allah. May He accept and reward your effort abundantly."
+      },
+      "strong": {
+        "title": "Strong Commitment",
+        "description": "You've achieved {{percentage}}% of your {{count}} {{category}} goals. Alhamdulillah for your progress so far! Keep your intention strong and stay consistent. May Allah grant you steadfastness and bless your journey."
+      },
+      "promising": {
+        "title": "Promising Start",
+        "description": "You've completed {{percentage}}% of your {{count}} {{category}} goals this month. Stay motivated and keep your intention for Allah's sake. May He guide and bless your effort."
+      }
+    }
+  },
   "namazGoalBottomSheet": {
     "dateRange": "NOV 29 - DEC 26, 2024",
     "notStarted": "NOT STARTED",

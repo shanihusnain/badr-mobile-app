@@ -55,13 +55,9 @@ import {
 } from "./todayGoalsProgress";
 import { fonts } from "@/assets/fonts";
 import {
-  FASTING_CALENDAR_FILTER_TABS,
-  FastingCalendarTabs,
-  type FastingCalendarFilterTab,
-} from "./fastingCalendar";
-import { FastingCalendarTrack } from "./components/FastingCalendarTrack";
-import { FastingGoalTotalCard } from "./components/FastingGoalTotalCard";
-import { PLANNED_FASTS } from "./plannedFasts";
+  FastingOverviewCalendarSection,
+  HOME_FASTING_TRACK_TABS,
+} from "./components/FastingOverviewCalendarSection";
 import { TimeSpentOverview } from "./components/TimeSpentOverview";
 import { TimeSpentBottomSheet } from "./components/TimeSpentBottomSheet";
 type TextPart = { text: string; highlighted: boolean };
@@ -173,8 +169,6 @@ export default function HomeScreen() {
   const [activeInspirationIndex, setActiveInspirationIndex] = useState(0);
   const [selectedDashboardCategory, setSelectedDashboardCategory] =
     useState("All");
-  const [fastingCalendarSelectedTab, setFastingCalendarSelectedTab] =
-    useState<FastingCalendarFilterTab>("All");
   const [selectedDayTab, setSelectedDayTab] = useState("All");
   const [todayGoalsProgress, setTodayGoalsProgress] =
     useState<TodayGoalProgressEntry[]>(TODAY_GOALS_PROGRESS);
@@ -182,14 +176,7 @@ export default function HomeScreen() {
   const [openTodayProgressRowId, setOpenTodayProgressRowId] = useState<
     string | null
   >(null);
-  const [fastCalendarSelectedTrack, setFastingCalendarSelectedTrack] =
-    useState("Planned");
-  const [showFastingLegendCard, setShowFastingLegendCard] = useState(true);
   const [scrollCollapseThreshold, setScrollCollapseThreshold] = useState(260);
-
-  useEffect(() => {
-    setShowFastingLegendCard(true);
-  }, [fastCalendarSelectedTrack]);
   const [showDailyProgress, setShowDailyProgress] = useState(false);
   const [isAnyBottomSheetOpen, setIsAnyBottomSheetOpen] = useState(false);
   const openBottomSheetsRef = useRef(new Set<string>());
@@ -643,82 +630,7 @@ export default function HomeScreen() {
             <Text style={styles.showMoreText}>Show More</Text>
             <Entypo name="chevron-down" size={24} color="white" />
           </TouchableOpacity>
-          <View style={styles.fastingCalendarSection}>
-            <Text style={styles.dashboardText}>YOUR FASTING CALENDAR</Text>
-            <TopSpace top={16} />
-            <View style={styles.fastingInfoBanner}>
-              <Text style={styles.fastingInfoBannerText}>
-                Stay on top of your monthly fasting goals — view your planned
-                fasts, track completed days, and see what’s skipped or
-                remaining.
-              </Text>
-              <TouchableOpacity
-                style={styles.fastingInfoBannerClose}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="close" size={18} color={Colors.light.white} />
-              </TouchableOpacity>
-            </View>
-            <ScrollView
-              horizontal
-              style={styles.fastingCalendarTabsScroll}
-              contentContainerStyle={styles.categoryFilterContent}
-              showsHorizontalScrollIndicator={false}
-              nestedScrollEnabled
-              scrollEventThrottle={16}
-            >
-              {FASTING_CALENDAR_FILTER_TABS.map((label) => (
-                <Tabs
-                  key={label}
-                  label={label}
-                  onPress={() => setFastingCalendarSelectedTab(label)}
-                  selectedTab={fastingCalendarSelectedTab}
-                  bgColor={Colors.light.blackBackground}
-                />
-              ))}
-            </ScrollView>
-            <TopSpace top={16} />
-            <FastingGoalTotalCard
-              label="GOAL TOTAL"
-              count={PLANNED_FASTS.goalTotal}
-            />
-            <TopSpace top={16} />
-            <ScrollView
-              horizontal
-              style={styles.fastingCalendarTabsScroll}
-              contentContainerStyle={styles.categoryFilterContent}
-              showsHorizontalScrollIndicator={false}
-              nestedScrollEnabled
-              scrollEventThrottle={16}
-            >
-              {FastingCalendarTabs.map((label) => (
-                <Tabs
-                  key={label}
-                  label={label}
-                  onPress={() => setFastingCalendarSelectedTrack(label)}
-                  selectedTab={fastCalendarSelectedTrack}
-                  bgColor={Colors.light.blackBackground}
-                />
-              ))}
-            </ScrollView>
-            {fastCalendarSelectedTrack === "Planned" && (
-              <FastingCalendarTrack
-                variant="planned"
-                filterTab={fastingCalendarSelectedTab}
-                showLegendCard={showFastingLegendCard}
-                onCloseLegendCard={() => setShowFastingLegendCard(false)}
-              />
-            )}
-            {fastCalendarSelectedTrack === "Planned vs. Progress" && (
-              <FastingCalendarTrack
-                variant="progress"
-                filterTab={fastingCalendarSelectedTab}
-                showLegendCard={showFastingLegendCard}
-                onCloseLegendCard={() => setShowFastingLegendCard(false)}
-              />
-            )}
-          </View>
+          <FastingOverviewCalendarSection trackTabs={HOME_FASTING_TRACK_TABS} />
           <TopSpace top={16} />
           <TimeSpentOverview
             onExpandPress={() => timeSpentSheetRef.current?.expand()}
@@ -745,8 +657,13 @@ export default function HomeScreen() {
           onChange={(index) => handleBottomSheetChange("dashboard", index)}
         />
 
-        <BottomSheetWrapper ref={goldenBottomSheetRef} snapPoints={["50%", "92%"]} bgColor={Colors.light.blackBackground}>
-          <DailyProgressBottomSheet onClose={() => goldenBottomSheetRef.current?.close()} />
+        <BottomSheetWrapper
+          ref={goldenBottomSheetRef}
+          snapPoints={["50%", "92%"]}
+        >
+          <DailyProgressBottomSheet
+            onClose={() => goldenBottomSheetRef.current?.close()}
+          />
         </BottomSheetWrapper>
 
         {/* Backdrop overlay */}
@@ -796,7 +713,11 @@ export default function HomeScreen() {
             >
               <Text style={styles.fabOptionLabel}>COMPLETE YOUR JOURNAL</Text>
               <View style={styles.fabOptionIconContainer}>
-                <MaterialCommunityIcons name="book-open-outline" size={22} color="white" />
+                <MaterialCommunityIcons
+                  name="book-open-outline"
+                  size={22}
+                  color="white"
+                />
               </View>
             </TouchableOpacity>
 

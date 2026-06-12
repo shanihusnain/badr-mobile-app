@@ -5,11 +5,11 @@ import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import {
   NativeScrollEvent,
   NativeSyntheticEvent,
+  ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
-import { ScrollView } from "react-native-gesture-handler";
 
 const ITEM_HEIGHT = 44;
 const VISIBLE_ITEMS = 5;
@@ -82,31 +82,28 @@ export function InlineDateWheelPicker({
   const scrollRef = useRef<ScrollView>(null);
   const lastEmitted = useRef<string | null>(null);
   const didInitialScroll = useRef(false);
+  const isSettling = useRef(false);
 
   const todayString = useMemo(() => toDateString(new Date()), []);
 
-  const minDate = useMemo(() => {
-    if (minimumDate) {
-      return new Date(
-        minimumDate.getFullYear(),
-        minimumDate.getMonth(),
-        minimumDate.getDate(),
-      );
-    }
-    const d = new Date(maximumDate);
-    d.setDate(d.getDate() - DAYS_BACK);
-    return d;
-  }, [minimumDate, maximumDate]);
+  const maximumDateKey = toDateString(maximumDate);
+  const minimumDateKey = minimumDate ? toDateString(minimumDate) : null;
 
-  const maxDate = useMemo(
-    () =>
-      new Date(
-        maximumDate.getFullYear(),
-        maximumDate.getMonth(),
-        maximumDate.getDate(),
-      ),
-    [maximumDate],
-  );
+  const minDate = useMemo(() => {
+    if (minimumDateKey) {
+      const [y, m, d] = minimumDateKey.split("-").map(Number);
+      return new Date(y, m - 1, d);
+    }
+    const [y, m, d] = maximumDateKey.split("-").map(Number);
+    const date = new Date(y, m - 1, d);
+    date.setDate(date.getDate() - DAYS_BACK);
+    return date;
+  }, [minimumDateKey, maximumDateKey]);
+
+  const maxDate = useMemo(() => {
+    const [y, m, d] = maximumDateKey.split("-").map(Number);
+    return new Date(y, m - 1, d);
+  }, [maximumDateKey]);
 
   const items = useMemo(
     () => buildDateItems(minDate, maxDate, todayString),
@@ -138,20 +135,48 @@ export function InlineDateWheelPicker({
     return () => clearTimeout(timer);
   }, [selectedIndex, scrollToIndex, value]);
 
-  const handleScrollEnd = useCallback(
-    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      const offsetY = event.nativeEvent.contentOffset.y;
+  const settleScroll = useCallback(
+    (offsetY: number) => {
+      if (isSettling.current) return;
+
       const index = Math.min(
         items.length - 1,
         Math.max(0, Math.round(offsetY / ITEM_HEIGHT)),
       );
+      const targetY = index * ITEM_HEIGHT;
       const item = items[index];
-      if (item && item.dateString !== value) {
-        lastEmitted.current = item.dateString;
+      if (!item) return;
+
+      if (Math.abs(offsetY - targetY) > 0.5) {
+        isSettling.current = true;
+        scrollRef.current?.scrollTo({ y: targetY, animated: false });
+        requestAnimationFrame(() => {
+          isSettling.current = false;
+        });
+      }
+
+      lastEmitted.current = item.dateString;
+      if (item.dateString !== value) {
         onChange(item.dateString);
       }
     },
     [items, onChange, value],
+  );
+
+  const handleScrollEndDrag = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const velocityY = event.nativeEvent.velocity?.y ?? 0;
+      if (Math.abs(velocityY) > 0.05) return;
+      settleScroll(event.nativeEvent.contentOffset.y);
+    },
+    [settleScroll],
+  );
+
+  const handleMomentumScrollEnd = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      settleScroll(event.nativeEvent.contentOffset.y);
+    },
+    [settleScroll],
   );
 
   return (
@@ -172,18 +197,14 @@ export function InlineDateWheelPicker({
           didInitialScroll.current = true;
           scrollToIndex(selectedIndex, false);
         }}
-        onMomentumScrollEnd={handleScrollEnd}
+        onScrollEndDrag={handleScrollEndDrag}
+        onMomentumScrollEnd={handleMomentumScrollEnd}
       >
         {items.map((item) => {
           const isSelected = item.dateString === value;
           return (
             <View key={item.key} style={styles.itemRow}>
-              <View
-                style={[
-                  styles.itemInner,
-                  isSelected && styles.itemInnerSelected,
-                ]}
-              >
+              <View style={styles.itemInner}>
                 <Text
                   style={[
                     styles.itemText,
@@ -197,8 +218,11 @@ export function InlineDateWheelPicker({
           );
         })}
       </ScrollView>
-      {/* <View style={[styles.fade, styles.fadeTop]} pointerEvents="none" /> */}
-      {/* <View style={[styles.fade, styles.fadeBottom]} pointerEvents="none" /> */}
+      <View style={styles.selectionBar} pointerEvents="none">
+        <View style={styles.selectionBarInner} />
+      </View>
+      <View style={[styles.fade, styles.fadeTop]} pointerEvents="none" />
+      <View style={[styles.fade, styles.fadeBottom]} pointerEvents="none" />
     </View>
   );
 }
@@ -210,12 +234,30 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginHorizontal: 16,
     overflow: "hidden",
+    position: "relative",
   },
   scroll: {
     flex: 1,
   },
   scrollContent: {
     paddingVertical: EDGE_PADDING,
+  },
+  selectionBar: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: EDGE_PADDING,
+    height: ITEM_HEIGHT,
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 1,
+  },
+  selectionBarInner: {
+    alignSelf: "stretch",
+    height: ITEM_HEIGHT - 8,
+    marginHorizontal: 0,
+    borderRadius: 6,
+    backgroundColor: Colors.light.dullWhiteOpacity,
   },
   itemRow: {
     height: ITEM_HEIGHT,
@@ -227,15 +269,7 @@ const styles = StyleSheet.create({
     height: ITEM_HEIGHT - 8,
     justifyContent: "center",
     alignItems: "center",
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: "transparent",
     paddingHorizontal: 16,
-  },
-  itemInnerSelected: {
-    // borderColor: Colors.light.tint,
-    backgroundColor: Colors.light.dullWhiteOpacity,
-    width: "100%",
   },
   itemText: {
     fontFamily: fonts.primary.medium || "SF Pro Text",

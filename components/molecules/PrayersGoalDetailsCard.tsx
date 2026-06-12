@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, Pressable } from "react-native";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import { TaperedCircleBorder } from "../atoms/TaperedCircleBorder";
@@ -13,19 +13,23 @@ import { localizeNumber } from "@/src/utils/localizeNumbers";
 interface GoalDetailsCardProps {
   title: string;
   percentage: string;
+  progressColor: string;
   goalsCount?: string;
   notStarted?: string;
   inProgress?: string;
   completed?: string;
+  onPress?: () => void;
 }
 
 export const GoalDetailsCard: React.FC<GoalDetailsCardProps> = ({
   title,
   percentage,
+  progressColor,
   goalsCount,
   notStarted = "11",
   inProgress = "0",
   completed = "0",
+  onPress,
 }) => {
   const { t, i18n } = useTranslation();
   const lng = i18n.language;
@@ -36,24 +40,35 @@ export const GoalDetailsCard: React.FC<GoalDetailsCardProps> = ({
   const localizedCompleted = localizeNumber(completed, lng);
 
   // Localize percentage numbers (e.g., "0%" -> "٠%")
-  const localizedPercentage = percentage.replace(/[0-9]+/g, (match) => localizeNumber(match, lng));
+  const localizedPercentage = percentage.replace(/[0-9]+/g, (match) =>
+    localizeNumber(match, lng),
+  );
 
   // Determine goalsCount text (e.g., "11 Goals" -> "١١ أهداف")
   let displayGoalsCount = "";
   if (goalsCount) {
-    displayGoalsCount = goalsCount.replace(/[0-9]+/g, (match) => localizeNumber(match, lng));
+    displayGoalsCount = goalsCount.replace(/[0-9]+/g, (match) =>
+      localizeNumber(match, lng),
+    );
   } else {
-    displayGoalsCount = t("namazGoalBottomSheet.goalsCount", { count: localizeNumber("11", lng) });
+    displayGoalsCount = t("namazGoalBottomSheet.goalsCount", {
+      count: localizeNumber("11", lng),
+    });
   }
 
   return (
-    <View style={styles.card}>
+    <Pressable style={styles.card} onPress={onPress}>
       {/* Header Text */}
       <Text style={styles.headerText}>{title}</Text>
 
       {/* Center Visual: Scaled-up Tapered Progress Circle */}
       <View style={styles.circleContainer}>
-        <TaperedCircleBorder size={220} borderColor={Colors.light.calendarBg}>
+        <TaperedCircleBorder
+          size={220}
+          percentage={percentage}
+          progressColor={progressColor}
+          borderColor={Colors.light.calendarBg}
+        >
           <View style={styles.stackedTextContainer}>
             <Text style={styles.topText}>{displayGoalsCount}</Text>
             <Text style={styles.bottomText}>{localizedPercentage}</Text>
@@ -65,23 +80,35 @@ export const GoalDetailsCard: React.FC<GoalDetailsCardProps> = ({
       <View style={styles.footerRow}>
         {/* Column 1: Left */}
         <View style={styles.column}>
-          <Text style={styles.columnLabel}>{t("namazGoalBottomSheet.notStarted")}</Text>
+          <Text style={styles.columnLabel}>
+            {t("namazGoalBottomSheet.notStarted")}
+          </Text>
           <Text style={styles.columnValue}>{localizedNotStarted}</Text>
         </View>
 
         {/* Column 2: Center */}
         <View style={styles.column}>
-          <Text style={styles.columnLabel}>{t("namazGoalBottomSheet.inProgress")}</Text>
-          <Text style={[styles.columnValue, { color: Colors.light.ringMonThu }]}>{localizedInProgress}</Text>
+          <Text style={styles.columnLabel}>
+            {t("namazGoalBottomSheet.inProgress")}
+          </Text>
+          <Text
+            style={[styles.columnValue, { color: Colors.light.ringMonThu }]}
+          >
+            {localizedInProgress}
+          </Text>
         </View>
 
         {/* Column 3: Right */}
         <View style={styles.column}>
-          <Text style={styles.columnLabel}>{t("namazGoalBottomSheet.completed")}</Text>
-          <Text style={[styles.columnValue, { color: Colors.light.green }]}>{localizedCompleted}</Text>
+          <Text style={styles.columnLabel}>
+            {t("namazGoalBottomSheet.completed")}
+          </Text>
+          <Text style={[styles.columnValue, { color: Colors.light.green }]}>
+            {localizedCompleted}
+          </Text>
         </View>
       </View>
-    </View>
+    </Pressable>
   );
 };
 

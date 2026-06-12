@@ -24,7 +24,6 @@ import {
   ViewStyle,
   TextStyle,
 } from "react-native";
-import { Calendar, DateData } from "react-native-calendars";
 import moment from "moment-hijri";
 import { fonts } from "@/assets/fonts";
 import { FontAwesome } from "@expo/vector-icons";
@@ -94,6 +93,10 @@ export type CalendarGridProps = {
   selectedDate?: string;
   /** Cycle mode: the end date of the 28-day range (highlighted with a green ring). */
   endDate?: string;
+  /** DOB mode: earliest selectable date (YYYY-MM-DD). */
+  minDate?: string;
+  /** DOB mode: latest selectable date (YYYY-MM-DD). */
+  maxDate?: string;
   bgColor?: string;
 };
 
@@ -129,28 +132,24 @@ function buildCycleWeeks(
   return weeks;
 }
 
-const CALENDAR_THEME = {
-  calendarBackground: Colors.light.calendarBg,
-  dayTextColor: Colors.light.white,
-  textDisabledColor: Colors.light.grey,
-  monthTextColor: Colors.light.white,
-  textSectionTitleColor: Colors.light.white,
-  todayTextColor: Colors.light.green,
-  selectedDayBackgroundColor: Colors.light.green,
-  selectedDayTextColor: Colors.light.white,
-  // Collapse extra spacing between weekday headers and date rows.
-  "stylesheet.calendar.header": {
-    dayHeader: {
-      marginBottom: 0,
-    },
-  },
-  "stylesheet.calendar.main": {
-    week: {
-      marginTop: 0,
-      marginBottom: 0,
-    },
-  },
-} as object;
+function buildMonthWeeks(monthDate: string): string[][] {
+  const monthStart = moment(monthDate, "YYYY-MM-DD").startOf("month");
+  const monthEnd = monthStart.clone().endOf("month");
+  const cursor = monthStart.clone().startOf("week");
+  const gridEnd = monthEnd.clone().endOf("week");
+  const weeks: string[][] = [];
+
+  while (cursor.isSameOrBefore(gridEnd, "day")) {
+    const week: string[] = [];
+    for (let i = 0; i < 7; i++) {
+      week.push(cursor.format("YYYY-MM-DD"));
+      cursor.add(1, "day");
+    }
+    weeks.push(week);
+  }
+
+  return weeks;
+}
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
@@ -168,6 +167,8 @@ export const CalendarGrid = ({
   onDayPress,
   selectedDate,
   endDate,
+  minDate,
+  maxDate,
   bgColor,
 }: CalendarGridProps) => {
   const markedSet = new Set(markedDates);
@@ -192,6 +193,25 @@ export const CalendarGrid = ({
 
   const cycleWeeks =
     windowStart && windowEnd ? buildCycleWeeks(windowStart, windowEnd) : null;
+  const monthWeeks = mode === "dob" ? buildMonthWeeks(currentDate) : null;
+  const gridWeeks: (string | null)[][] | null = cycleWeeks ?? monthWeeks ?? null;
+
+  const displayedMonth = moment(currentDate, "YYYY-MM-DD");
+
+  const isDobDateDisabled = (ds: string) => {
+    if (mode !== "dob") return false;
+    const day = moment(ds, "YYYY-MM-DD");
+    if (!day.isSame(displayedMonth, "month")) return true;
+    if (minDate && day.isBefore(minDate, "day")) return true;
+    if (maxDate && day.isAfter(maxDate, "day")) return true;
+    return false;
+  };
+
+  const isInSelectedRange = (ds: string) => {
+    if (!selectedDate || !endDate) return false;
+    const day = moment(ds, "YYYY-MM-DD");
+    return day.isAfter(selectedDate, "day") && day.isBefore(endDate, "day");
+  };
 
   const renderDayCell = (ds: string, dayNumber: number) => {
     // ── Shared values ─────────────────────────────────────────────────
@@ -200,6 +220,8 @@ export const CalendarGrid = ({
     const isSelected = ds === selectedDate;
     const isEndDate = !!endDate && ds === endDate;
     const dayOfWeek = new Date(ds).getDay(); // 0=Sun 1=Mon … 4=Thu
+    const isDisabledDobDate = isDobDateDisabled(ds);
+    const isInRange = isInSelectedRange(ds);
 
     // ── Per-mode styles ───────────────────────────────────────────────
     let cellBg: ViewStyle = {};
@@ -217,11 +239,23 @@ export const CalendarGrid = ({
     switch (mode) {
       // ── Date of Birth / Cycle Start ─────────────────────────────────
       case "dob": {
-        if (isSelected) {
+        if (isDisabledDobDate) {
+          cellOpacity = 0.35;
+          textStyle = { color: Colors.light.grey };
+        } else if (isSelected) {
           cellBg = { backgroundColor: Colors.light.calendarTodayBg };
           textStyle = { color: Colors.light.white };
+        } else if (isEndDate) {
+          circleStyle = {
+            borderWidth: 1.2,
+            borderColor: Colors.light.green,
+          };
+          textStyle = { color: Colors.light.green };
+        } else if (isInRange) {
+          cellBg = { backgroundColor: Colors.light.lightgreen };
+          textStyle = { color: Colors.light.white };
         } else if (isToday) {
-          // textStyle = { color: Colors.light.green };
+          textStyle = { color: Colors.light.green };
         }
         break;
       }
@@ -343,7 +377,8 @@ export const CalendarGrid = ({
     }
 
     const isTappable =
-      mode === "dob" || mode === "ramadan" || mode === "mon_thu";
+      (mode === "dob" || mode === "ramadan" || mode === "mon_thu") &&
+      !isDisabledDobDate;
 
     return (
       <TouchableOpacity
@@ -388,11 +423,6 @@ export const CalendarGrid = ({
     );
   };
 
-  const renderDay = ({ date }: { date?: DateData }) => {
-    if (!date) return null;
-    return renderDayCell(date.dateString, date.day);
-  };
-
   return (
     <View
       style={[
@@ -403,7 +433,7 @@ export const CalendarGrid = ({
         },
       ]}
     >
-      {cycleWeeks ? (
+      {gridWeeks ? (
         <View
           style={[
             styles.cycleGrid,
@@ -419,7 +449,7 @@ export const CalendarGrid = ({
               </Text>
             ))}
           </View>
-          {cycleWeeks.map((week, weekIndex) => (
+          {gridWeeks.map((week, weekIndex) => (
             <View key={`week-${weekIndex}`} style={styles.weekRow}>
               {week.map((dateString, dayIndex) => (
                 <View
@@ -439,19 +469,7 @@ export const CalendarGrid = ({
             </View>
           ))}
         </View>
-      ) : (
-        <Calendar
-          key={currentDate}
-          current={currentDate}
-          hideArrows
-          renderHeader={() => null}
-          markingType="custom"
-          markedDates={{}}
-          style={styles.calendar}
-          theme={CALENDAR_THEME}
-          dayComponent={renderDay}
-        />
-      )}
+      ) : null}
     </View>
   );
 };
@@ -463,10 +481,6 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 12,
     borderBottomRightRadius: 12,
     overflow: "hidden",
-  },
-  calendar: {
-    paddingTop: 0,
-    paddingBottom: 0,
   },
   cycleGrid: {
     backgroundColor: Colors.light.calendarBg,

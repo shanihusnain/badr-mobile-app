@@ -14,6 +14,7 @@ import {
   ViewStyle,
 } from "react-native";
 import { heightPercentageToDP as hp } from "react-native-responsive-screen";
+import moment from "moment-hijri";
 import DOBCalendar from "../molecules/DOBCalendar";
 import { TopSpace } from "./TopSpace";
 
@@ -49,6 +50,14 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
     const month = (date.getMonth() + 1).toString().padStart(2, "0");
     const year = date.getFullYear();
     return `${day}/${month}/${year}`;
+  };
+
+  const formatStoredDate = (value: string): string => {
+    if (!value) return "";
+    if (value.includes("/")) return value;
+    const parsed = moment(value, "YYYY-MM-DD", true);
+    if (!parsed.isValid()) return value;
+    return formatDate(parsed.toDate());
   };
 
   const parseDate = (value: string): Date => {
@@ -88,7 +97,7 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
                 !value && { color: Colors.light.icon },
               ]}
             >
-              {value || placeholder}
+              {value ? formatStoredDate(String(value)) : placeholder}
             </Text>
             <SimpleLineIcons name="calendar" size={16} color={Colors.light.white} />
           </TouchableOpacity>
@@ -107,11 +116,11 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
               <TopSpace top={8} />
               <DOBCalendar
                 onSave={(data) => {
-                  console.log("the data from dob calendar", data);
                   setSelectedDate(data);
                   onChange(data);
                   setShow(false);
                 }}
+                onCancel={() => setShow(false)}
               />
             </>
           )}
