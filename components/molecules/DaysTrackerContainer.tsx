@@ -21,11 +21,18 @@ export const DaysTrackerContainer: React.FC<DaysTrackerContainerProps> = ({
   const localizedTotal = localizeNumber("28", lng);
 
   return (
-    <View style={[styles.daysLeftContainer, isBottomSheetView && styles.daysLeftContainerSheet]}>
+    <View
+      style={[
+        styles.daysLeftContainer,
+        isBottomSheetView && styles.daysLeftContainerSheet,
+      ]}
+    >
       {/* Header: Days Left */}
       <View style={styles.daysHeaderWrapper}>
         <Text style={styles.daysNumberBold}>{localizedTotal}</Text>
-        <Text style={styles.daysNumberRegular}>{t("daysTracker.daysLeft", { total: localizedTotal })}</Text>
+        <Text style={styles.daysNumberRegular}>
+          {t("daysTracker.daysLeft", { total: localizedTotal })}
+        </Text>
       </View>
 
       {/* Large Moon Circle */}
@@ -41,8 +48,10 @@ export const DaysTrackerContainer: React.FC<DaysTrackerContainerProps> = ({
 
         {/* Bottom Right - Overall Progress */}
         <View style={styles.bottomRightSection}>
-          <Text style={styles.bottomLabel}>{t("daysTracker.overallProgress")}</Text>
-          <Text style={styles.bottomValue}>     {localizeNumber("0", lng)}%</Text>
+          <Text style={styles.bottomLabel}>
+            {t("daysTracker.overallProgress")}
+          </Text>
+          <Text style={styles.bottomValue}> {localizeNumber("0", lng)}%</Text>
         </View>
       </View>
 
@@ -52,7 +61,7 @@ export const DaysTrackerContainer: React.FC<DaysTrackerContainerProps> = ({
           <Text style={styles.textBlock1}>
             {t("daysTracker.committedGoals", { count: localizedTotal })}
           </Text>
-          
+
           <Text style={styles.textBlock2}>
             {t("daysTracker.welcomeJourney")}
           </Text>

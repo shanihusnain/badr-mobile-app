@@ -80,7 +80,11 @@ export default function CreateAccountScreen() {
         extraScrollHeight={Platform.OS === "ios" ? 20 : 100}
         keyboardOpeningTime={0}
       >
-        <TouchableOpacity style={styles.avatarContainer} onPress={pickImage} activeOpacity={0.8}>
+        <TouchableOpacity
+          style={styles.avatarContainer}
+          onPress={pickImage}
+          activeOpacity={0.8}
+        >
           {image ? (
             <Image source={{ uri: image }} style={styles.avatarImage} />
           ) : (

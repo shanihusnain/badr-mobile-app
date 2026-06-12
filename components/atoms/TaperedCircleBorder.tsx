@@ -32,11 +32,11 @@ const GLOW_PAD = 16;
 
 /** Soft, generous colored bloom (blurred) — Figma neon look. */
 const GLOW_LAYERS = [
-  { widthAdd: 11, opacity: 0.12 },
-  { widthAdd: 6.5, opacity: 0.22 },
-  { widthAdd: 3, opacity: 0.42 },
+  { widthAdd: 3, opacity: 0.1 },
+  { widthAdd: 1, opacity: 0.15 },
+  { widthAdd: 0.5, opacity: 0.3 },
 ] as const;
-const GLOW_BLUR_STD = 3;
+const GLOW_BLUR_STD = 2;
 
 export function parsePercent(value?: string | number): number {
   const n = Number.parseInt(String(value ?? "0").replace("%", ""), 10);

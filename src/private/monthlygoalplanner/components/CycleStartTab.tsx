@@ -208,6 +208,7 @@ export const CycleStartTab = ({ onCommit }: Props) => {
         mode="dob"
         currentDate={calMonth}
         selectedDate={cycleStartDate ?? undefined}
+        endDate={cycleEndDate?.format("YYYY-MM-DD")}
         onDayPress={handleDayPress}
       />
 
