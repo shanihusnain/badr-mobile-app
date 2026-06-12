@@ -72,6 +72,15 @@ export const DOBCalendar = ({ onSave, onCancel }: DOBCalendarProps) => {
   const rootRef = useRef<View>(null);
 
   const currentDate = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-01`;
+  const todayString = moment().format("YYYY-MM-DD");
+
+  const handleDayPress = (dateString: string) => {
+    setSelectedDate(dateString);
+    const picked = moment(dateString, "YYYY-MM-DD");
+    setCurrentMonth(picked.month());
+    setCurrentYear(picked.year());
+    setOpenDropdown(null);
+  };
 
   // ── Dropdown helpers ────────────────────────────────────────────────────────
 
@@ -213,7 +222,8 @@ export const DOBCalendar = ({ onSave, onCancel }: DOBCalendarProps) => {
         mode="dob"
         currentDate={currentDate}
         selectedDate={selectedDate}
-        onDayPress={setSelectedDate}
+        maxDate={todayString}
+        onDayPress={handleDayPress}
       />
 
       {/* ── Footer: OK / Cancel ── */}

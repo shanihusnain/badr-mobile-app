@@ -11,6 +11,15 @@ import { fonts } from "@/assets/fonts";
 import { DaysTrackerContainer } from "./DaysTrackerContainer";
 import { GoalDetailsCard } from "./PrayersGoalDetailsCard";
 import { useTranslation } from "react-i18next";
+import { router } from "expo-router";
+import { getCategoryProgressOverview } from "@/src/private/goalprogressoverview/goalCategoryOverview";
+
+const GOAL_CATEGORIES = [
+  { slug: "prayer", titleKey: "homeScreen.prayers" },
+  { slug: "quran", titleKey: "homeScreen.quran" },
+  { slug: "fasting", titleKey: "homeScreen.fasting" },
+  { slug: "sadaqah", titleKey: "homeScreen.sadaqah" },
+] as const;
 
 type Props = {
   onClose: () => void;
@@ -53,13 +62,23 @@ export const NamazGoalBottomSheet = forwardRef<BottomSheet, Props>(
           {/* Date Range Header with Navigation Arrows */}
           <View style={styles.dateHeaderContainer}>
             <Ionicons
-              name={i18n.language === "ar" ? "chevron-forward-outline" : "chevron-back-outline"}
+              name={
+                i18n.language === "ar"
+                  ? "chevron-forward-outline"
+                  : "chevron-back-outline"
+              }
               size={24}
               color={Colors.light.white}
             />
-            <Text style={styles.dateText}>{t("namazGoalBottomSheet.dateRange")}</Text>
+            <Text style={styles.dateText}>
+              {t("namazGoalBottomSheet.dateRange")}
+            </Text>
             <Ionicons
-              name={i18n.language === "ar" ? "chevron-back-outline" : "chevron-forward-outline"}
+              name={
+                i18n.language === "ar"
+                  ? "chevron-back-outline"
+                  : "chevron-forward-outline"
+              }
               size={24}
               color={Colors.light.white}
             />
@@ -69,10 +88,31 @@ export const NamazGoalBottomSheet = forwardRef<BottomSheet, Props>(
           <DaysTrackerContainer isBottomSheetView={true} />
 
           {/* 2. Secondary Containers: Custom Goal Details Cards */}
-          <GoalDetailsCard title={t("homeScreen.prayers")} percentage="0%" />
-          <GoalDetailsCard title={t("homeScreen.quran")} percentage="0%" />
-          <GoalDetailsCard title={t("homeScreen.fasting")} percentage="0%" />
-          <GoalDetailsCard title={t("homeScreen.sadaqah")} percentage="0%" />
+          {GOAL_CATEGORIES.map(({ slug, titleKey }) => {
+            const overview = getCategoryProgressOverview(slug);
+            if (!overview) return null;
+
+            return (
+              <GoalDetailsCard
+                key={slug}
+                title={t(titleKey)}
+                percentage={`${overview.averagePercentage}%`}
+                progressColor={overview.progressColor}
+                goalsCount={t("namazGoalBottomSheet.goalsCount", {
+                  count: overview.goalsCount,
+                })}
+                notStarted={String(overview.notStarted)}
+                inProgress={String(overview.inProgress)}
+                completed={String(overview.completed)}
+                onPress={() =>
+                  router.push({
+                    pathname: "/goalprogressoverview/[goal]",
+                    params: { goal: slug },
+                  })
+                }
+              />
+            );
+          })}
         </BottomSheetScrollView>
       </BottomSheet>
     );

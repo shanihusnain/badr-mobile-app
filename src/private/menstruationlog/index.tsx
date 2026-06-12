@@ -139,14 +139,6 @@ export default function MenstruationLog({
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.headerRow}>
-          <View style={styles.headerLeft}>
-            <BackButton onPress={() => router.back()} />
-          </View>
-          <Text style={styles.headerTitle}>LOG MENSTRUATION</Text>
-          <View style={styles.headerRight} />
-        </View>
-
         <View style={styles.infoContainer}>
           <Text style={styles.infoText}>
             Log your menstruation period to update your goals. Exempt acts of

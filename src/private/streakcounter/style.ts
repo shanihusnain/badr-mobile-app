@@ -14,38 +14,7 @@ const createStyles = () =>
       paddingHorizontal: 16,
     },
     // Header Row
-    headerRow: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      marginTop: hp(5),
-      paddingHorizontal: 4,
-      height: 50,
-      width: "100%",
-    },
-    headerLeft: {
-      width: 40,
-      alignItems: "flex-start",
-    },
-    headerTitle: {
-      fontFamily: fonts.primary.semiBold,
-      fontWeight: "600",
-      fontSize: 16,
-      color: Colors.light.white,
-      textAlign: "center",
-    },
-    headerRight: {
-      width: 40,
-      alignItems: "flex-end",
-    },
-    infoIconContainer: {
-      width: 30,
-      height: 30,
-      borderRadius: 15,
-      backgroundColor: Colors.light.calendarBg,
-      justifyContent: "center",
-      alignItems: "center",
-    },
+
     // Hero Section
     heroSection: {
       justifyContent: "center",
@@ -195,7 +164,7 @@ const createStyles = () =>
     },
     progressLineBg: {
       width: 190, // Extended width of the line from 150 to 190
-      height: 5,  // Slightly thicker
+      height: 5, // Slightly thicker
       backgroundColor: "rgba(255, 255, 255, 0.2)",
       borderRadius: 12,
       marginBottom: 8,
