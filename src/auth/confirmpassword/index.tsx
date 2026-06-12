@@ -9,17 +9,24 @@ import {
   Platform,
   TouchableWithoutFeedback,
   View,
+  Text,
+  Animated,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { z } from "zod";
 import createStyles from "./style";
 import { useValidations } from "@/src/validations/useValidations";
 import { useTranslation } from "react-i18next";
+import { Colors } from "@/constants/theme";
+import { fonts } from "@/assets/fonts";
+import AntDesign from "@expo/vector-icons/AntDesign";
+import { useRouter } from "expo-router";
 
 export default function ConfirmPasswordScreen() {
   const styles = createStyles();
   const { confirmPasswordSchema } = useValidations();
   const { t } = useTranslation();
+  const router = useRouter();
 
   const {
     control,
@@ -37,12 +44,17 @@ export default function ConfirmPasswordScreen() {
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   const onPasswordToggle = () => setShowPassword((prev) => !prev);
   const onConfirmPasswordToggle = () => setShowConfirmPassword((prev) => !prev);
 
   const onUpdatePassword = (data: z.infer<typeof confirmPasswordSchema>) => {
-    // handle update password
+    setIsSuccess(true);
+    setTimeout(() => {
+      setIsSuccess(false);
+      router.push("/login");
+    }, 3000);
   };
 
   return (
@@ -59,7 +71,6 @@ export default function ConfirmPasswordScreen() {
               <View style={styles.bottomSheetContent}>
                 <View style={styles.formWrapper}>
                   <CustomTextInput
-                    //label="Password"
                     placeholder={t("confirmPasswordScreen.newPasswordPlaceholder")}
                     control={control}
                     name="password"
@@ -69,7 +80,6 @@ export default function ConfirmPasswordScreen() {
                     errors={errors.password?.message ? [errors.password.message] : []}
                   />
                   <CustomTextInput
-                    //label="Confirm Password"
                     placeholder={t("confirmPasswordScreen.confirmPasswordPlaceholder")}
                     control={control}
                     name="confirmPassword"
@@ -84,10 +94,48 @@ export default function ConfirmPasswordScreen() {
                   />
                 </View>
                 <View style={styles.buttonWrapper}>
-                  <PrimaryButton
-                    text={t("confirmPasswordScreen.updatePasswordBtn")}
-                    onPress={handleSubmit(onUpdatePassword)}
-                  />
+                  {isSuccess ? (
+                    <View
+                      style={{
+                        width: "80%",
+                        minHeight: 40,
+                        borderRadius: 6,
+                        paddingVertical: 1,
+                        paddingHorizontal: 8,
+                        flexDirection: "row",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        alignSelf: "center",
+                        gap: 8,
+                        backgroundColor: Colors.light.darkgrey,
+                        //borderWidth: 1.5,
+                        //borderColor: Colors.light.green,
+                      }}
+                    >
+                      <AntDesign
+                        name="check-circle"
+                        size={18}
+                        color={Colors.light.green}
+                      />
+                      <Text
+                        style={{
+                          color: Colors.light.white,
+                          fontFamily: fonts.primary.medium,
+                          fontWeight: "500",
+                          fontSize: 16,
+                          lineHeight: 20,
+                        }}
+                      >
+                        PASSWORD UPDATED!
+                      </Text>
+                    </View>
+                  ) : (
+                    <PrimaryButton
+                      text={t("confirmPasswordScreen.updatePasswordBtn")}
+                      onPress={handleSubmit(onUpdatePassword)}
+                    
+                    />
+                  )}
                 </View>
               </View>
             </View>

@@ -2,7 +2,6 @@ import React from "react";
 import { FlatList, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import PrimaryButton from "../../../components/atoms/Primary-button";
-import GreyButton from "../../../components/atoms/greyButton";
 import CustomSlider from "./components/CustomSlider";
 import PaymentMethodCard from "./components/PaymentMethodCard";
 import { usePaymentMethodProps } from "./usePaymentMethodProps";
@@ -35,30 +34,32 @@ export default function PaymentMethodScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-     
+
         <Text style={styles.text}>{t("paymentMethodScreen.header")}</Text>
-      
+
         <Text style={styles.subtitletext}>
           {t("paymentMethodScreen.subtitle")}
         </Text>
-        
+
         <Text style={styles.undertext}>
           {t("paymentMethodScreen.trialPricingNote")}
         </Text>
-        
+
         <View style={styles.buttonRow}>
           <PrimaryButton
             text={t("paymentMethodScreen.monthlyPlanTab")}
             onPress={handleSelectMonthly}
             style={getTabButtonStyle("monthly")}
           />
-          <GreyButton
+          <PrimaryButton
             text={t("paymentMethodScreen.otherPlansTab")}
             onPress={handleSelectOther}
             style={getTabButtonStyle("other")}
           />
         </View>
-        <Text style={styles.underbuttontext}>{t("paymentMethodScreen.choosePaymentMethod")}</Text>
+        {selectedPlan === "monthly" && (
+          <Text style={styles.underbuttontext}>{t("paymentMethodScreen.choosePaymentMethod")}</Text>
+        )}
         <View style={styles.formWrapper}>
           {selectedPlan === "other" ? (
             <>

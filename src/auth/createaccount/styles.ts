@@ -23,8 +23,6 @@ const createStyles = () =>
       alignItems: "center",
       marginTop: hp(0),
       marginBottom: hp(1),
-      borderWidth: 2,
-      borderColor: Colors.light.green,
       position: "relative",
     },
     avatarImage: {

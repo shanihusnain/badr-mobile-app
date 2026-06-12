@@ -84,11 +84,10 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
             <TouchableOpacity
               style={[
                 styles.trigger,
-                isOpen && styles.triggerOpen,
                 containerStyle,
                 {
-                  borderColor: borderColor ?? borderColor,
-                  borderWidth: borderColor ? 1 : 0,
+                  borderColor: isOpen ? Colors.light.green : "transparent",
+                  borderWidth: isOpen ? 1 : 0,
                 },
               ]}
               onPress={() => setIsOpen((prev) => !prev)}

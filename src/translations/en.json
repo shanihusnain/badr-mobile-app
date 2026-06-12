@@ -18,7 +18,7 @@
   "loginScreen": {
     "title": "Login",
     "forgotPassword": "Forgot Password?",
-    "loginBtnText": "LOGIN",
+    "loginBtnText": "LOG IN",
     "signUpText": "Sign Up",
     "emailPlaceholder": "Email Address",
     "passwordPlaceholder": "Password",
@@ -26,7 +26,7 @@
   },
   "forgotPasswordScreen": {
     "title": "Forgot Password",
-    "description": "Enter your email address to receive password reset instructions.",
+    "description": "Enter the email address linked to your account. We'll send you a 6-digit code to reset your password.",
     "emailPlaceholder": "Email Address",
     "sendInstructionsBtn": "Send",
     "backToLoginText": "Back to Login"

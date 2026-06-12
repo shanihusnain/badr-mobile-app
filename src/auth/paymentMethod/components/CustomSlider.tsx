@@ -78,6 +78,7 @@ const CustomSlider: React.FC<CustomSliderProps> = ({
                 // Add action here if needed later
               }}
               style={styles.slideButton}
+              textStyle={styles.slideButtonText}
             />
             {slide.fulldescription ? (
               <Text style={styles.slideFullDescription}>
