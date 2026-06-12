@@ -1,2 +1,2 @@
-import StreakCounter from "../../src/private/streakcounter";
+import StreakCounter from "../../src/screens/private/streakcounter";
 export default StreakCounter;

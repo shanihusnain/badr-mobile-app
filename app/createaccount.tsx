@@ -1,2 +1,2 @@
-import CreateAccountScreen from "../src/auth/createaccount";
+import CreateAccountScreen from "@/src/screens/auth/createaccount";
 export default CreateAccountScreen;

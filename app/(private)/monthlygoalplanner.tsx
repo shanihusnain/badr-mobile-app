@@ -1,2 +1,2 @@
-import { MonthlyGoalPlannerScreen } from "@/src/private/monthlygoalplanner";
+import { MonthlyGoalPlannerScreen } from "@/src/screens/private/monthlygoalplanner";
 export default MonthlyGoalPlannerScreen;

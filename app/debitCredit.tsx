@@ -1,2 +1,2 @@
-import DebitCreditScreen from "../src/auth/debitCredit";
+import DebitCreditScreen from "@/src/screens/auth/debitCredit";
 export default DebitCreditScreen;

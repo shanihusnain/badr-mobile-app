@@ -1,2 +1,2 @@
-import { SetPersonalizedGoalsScreen } from "@/src/private/setpersonalizedgoals";
+import { SetPersonalizedGoalsScreen } from "@/src/screens/private/setpersonalizedgoals";
 export default SetPersonalizedGoalsScreen;

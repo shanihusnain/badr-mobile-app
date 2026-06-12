@@ -1,3 +1,3 @@
-import ConfirmPasswordScreen from "../src/auth/confirmpassword";
+import ConfirmPasswordScreen from "@/src/screens/auth/confirmpassword";
 
 export default ConfirmPasswordScreen;

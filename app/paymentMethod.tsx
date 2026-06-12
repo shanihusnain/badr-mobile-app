@@ -1,2 +1,2 @@
-import PaymentMethodScreen from "@/src/auth/paymentMethod";
+import PaymentMethodScreen from "@/src/screens/auth/paymentMethod";
 export default PaymentMethodScreen;

@@ -1,4 +1,4 @@
-import { GoalDescriptionDetails } from "@/src/private/goalDescriptionDetails";
+import { GoalDescriptionDetails } from "@/src/screens/private/goaldescriptiondetails";
 import { useLocalSearchParams } from "expo-router";
 import React from "react";
 import { Text, View } from "react-native";
