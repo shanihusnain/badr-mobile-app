@@ -35,14 +35,14 @@ export const DaysTrackerContainer: React.FC<DaysTrackerContainerProps> = ({
       <View style={styles.bottomInfoWrapper}>
         {/* Bottom Left - Day */}
         <View style={styles.bottomLeftSection}>
-          <Text style={styles.bottomLabel}>{t("daysTracker.day")}</Text>
-          <Text style={styles.bottomValue}>{localizeNumber("0", lng)}</Text>
+          <Text style={[styles.bottomLabel, { fontSize: 14, fontFamily: fonts.primary.medium, fontWeight: "500", color: Colors.light.dullWhite }]}>{t("daysTracker.day")}</Text>
+          <Text style={[styles.bottomValue, { color: Colors.light.white, fontFamily: fonts.primary.bold, fontWeight: "600", fontSize: 18 }]}>{localizeNumber("3", lng)}</Text>
         </View>
 
         {/* Bottom Right - Overall Progress */}
         <View style={styles.bottomRightSection}>
-          <Text style={styles.bottomLabel}>{t("daysTracker.overallProgress")}</Text>
-          <Text style={styles.bottomValue}>     {localizeNumber("0", lng)}%</Text>
+          <Text style={[styles.bottomLabel, { fontSize: 14, fontFamily: fonts.primary.medium, fontWeight: "500", color: Colors.light.dullWhite }]}>{t("daysTracker.overallProgress")}</Text>
+          <Text style={[styles.bottomValue, { color: "#00B0E8", fontFamily: fonts.primary.bold, fontWeight: "600", fontSize: 18 }]}>     {localizeNumber("19", lng)}%</Text>
         </View>
       </View>
 
@@ -52,7 +52,7 @@ export const DaysTrackerContainer: React.FC<DaysTrackerContainerProps> = ({
           <Text style={styles.textBlock1}>
             {t("daysTracker.committedGoals", { count: localizedTotal })}
           </Text>
-          
+
           <Text style={styles.textBlock2}>
             {t("daysTracker.welcomeJourney")}
           </Text>

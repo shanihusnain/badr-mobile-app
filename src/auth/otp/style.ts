@@ -56,25 +56,23 @@ export const styles = StyleSheet.create({
     fontFamily: fonts.primary.regular,
     lineHeight: 18,
     opacity: 0.8,
-
     textAlign: "left",
     alignSelf: "flex-start",
     width: "100%",
-
-    marginBottom: hp(1.5),
+   marginBottom: hp(1.5),
   },
 
   otpContainer: {
     flexDirection: "row",
     justifyContent: "center",
-    gap: 12,
+    gap: 7.5,
     marginTop: hp(2),
     marginBottom: hp(1),
   },
 
   otpBox: {
-    width: 45,
-    height: 45,
+    width: 50,
+    height: 50,
     borderRadius: 8,
     backgroundColor: Colors.light.greybuttonBackground,
 
@@ -125,7 +123,7 @@ export const styles = StyleSheet.create({
   },
 
   buttonWrapper: {
-    width: "105%",
+    width: "95%",
     marginTop: hp(2),
   },
   errorText: {

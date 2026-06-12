@@ -71,10 +71,11 @@ export const IbadahsProgressCard = ({
 
 const styles = StyleSheet.create({
     cardContainer: {
+        width: "100%",
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
-        backgroundColor: Colors.light.calendarBg,
+        backgroundColor: Colors.light.greybuttonBackground,
         borderRadius: 12,
         borderWidth: 1,
         paddingHorizontal: 16,

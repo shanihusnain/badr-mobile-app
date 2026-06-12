@@ -78,6 +78,7 @@ export default function ForgotPasswordScreen() {
                   <PrimaryButton
                     text={t("forgotPasswordScreen.sendInstructionsBtn")}
                     onPress={handleSubmit(onSubmit)}
+                    style={styles.primaryButton}
                   />
                 </View>
               </View>

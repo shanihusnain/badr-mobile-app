@@ -67,8 +67,8 @@ export const usePaymentMethodProps = () => {
         : [styles.planButton, styles.unselectedPlanButton];
     } else {
       return selectedPlan === "other"
-        ? [styles.greyButton, styles.selectedGreyButton]
-        : styles.greyButton;
+        ? styles.planButton
+        : [styles.planButton, styles.unselectedPlanButton];
     }
   };
   const paymentMethods = [

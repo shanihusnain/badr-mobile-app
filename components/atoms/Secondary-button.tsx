@@ -48,7 +48,7 @@ export default function SecondaryButton({
 
 const styles = StyleSheet.create({
   button: {
-    width: "90%",
+    width: "100%",
     minHeight: 40,
     borderRadius: 6,
     paddingTop: 10,
@@ -68,8 +68,8 @@ const styles = StyleSheet.create({
     color: Colors.light.background,
     fontFamily: fonts.primary.regular,
     fontWeight: "500",
-    fontSize: 16,
-    lineHeight: 20,
+    fontSize: 14,
+    lineHeight: 18,
     letterSpacing: 0,
   },
   buttonWhite: {

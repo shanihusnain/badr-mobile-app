@@ -27,6 +27,7 @@ export const styles = StyleSheet.create({
     textAlign: "left",
     fontFamily: fonts.primary.bold,
     fontWeight: "600",
+    marginTop: hp(2),
   },
   subtitletext: {
     color: Colors.light.subtext,
@@ -34,7 +35,7 @@ export const styles = StyleSheet.create({
     textAlign: "left",
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
-    marginTop: hp(2),
+    marginTop: hp(1),
   },
 
   undertext: {
@@ -43,7 +44,7 @@ export const styles = StyleSheet.create({
     textAlign: "left",
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
-    marginTop: hp(2),
+    marginTop: hp(1),
   },
 
   buttonRow: {
@@ -53,7 +54,7 @@ export const styles = StyleSheet.create({
   },
 
   planButton: {
-    width: 108,
+    width: 135,
     height: 28,
     borderRadius: 6,
     paddingTop: 5,
@@ -68,13 +69,14 @@ export const styles = StyleSheet.create({
   },
 
   greyButton: {
-    width: 136,
-    height: 28,
+    width: 135,
+    height: 24,
     borderRadius: 6,
     paddingTop: 5,
     paddingBottom: 5,
     paddingHorizontal: 10,
     backgroundColor: Colors.light.buttonBackground,
+    marginTop: 2,
     //borderColor: Colors.light.border,
     //borderWidth: 1,
   },
@@ -131,12 +133,11 @@ export const styles = StyleSheet.create({
   },
 
   slideCard: {
-    backgroundColor: Colors.light.buttonBackground,
+    backgroundColor: Colors.light.greybuttonBackground,
     borderRadius: 12,
     paddingHorizontal: 20,
     paddingVertical: 20,
     justifyContent: "flex-start",
-    minHeight: 410,
     alignItems: "flex-start",
   },
 
@@ -200,10 +201,20 @@ export const styles = StyleSheet.create({
   },
 
   slideButton: {
-    width: "100%",
-    marginTop: hp(3),
+    width: "80%",
+    minHeight: 30,
+    paddingTop: 6,
+    paddingBottom: 6,
+    marginTop: hp(1),
     alignSelf: "center",
     paddingHorizontal: 10,
+  },
+
+  slideButtonText: {
+    fontSize: 14,
+    fontFamily: fonts.primary.medium,
+    fontWeight: "500",
+    lineHeight: 18,
   },
 
   paginationContainer: {

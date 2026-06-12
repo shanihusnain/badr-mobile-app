@@ -233,10 +233,10 @@ export default function HomeScreen() {
     const goals = DASHBOARD_SUB_GOALS.map((goal) =>
       goal.id === "quran-recitation"
         ? {
-            ...goal,
-            percentage: quranCategory?.percentage ?? goal.percentage,
-            progressColor: quranCategory?.progressColor ?? goal.progressColor,
-          }
+          ...goal,
+          percentage: quranCategory?.percentage ?? goal.percentage,
+          progressColor: quranCategory?.progressColor ?? goal.progressColor,
+        }
         : goal,
     );
 
@@ -727,7 +727,7 @@ export default function HomeScreen() {
 
         <NamazGoalBottomSheet
           ref={namazBottomSheetRef}
-          onClose={() => {}}
+          onClose={() => { }}
           onChange={(index) => handleBottomSheetChange("namaz", index)}
         />
         <TimeSpentBottomSheet
@@ -745,7 +745,7 @@ export default function HomeScreen() {
           onChange={(index) => handleBottomSheetChange("dashboard", index)}
         />
 
-        <BottomSheetWrapper ref={goldenBottomSheetRef} snapPoints={["50%", "92%"]}>
+        <BottomSheetWrapper ref={goldenBottomSheetRef} snapPoints={["50%", "92%"]} bgColor={Colors.light.blackBackground}>
           <DailyProgressBottomSheet onClose={() => goldenBottomSheetRef.current?.close()} />
         </BottomSheetWrapper>
 

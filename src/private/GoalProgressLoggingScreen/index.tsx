@@ -4,7 +4,6 @@ import { TaperedCircleBorder } from "@/components/atoms/TaperedCircleBorder";
 import { Colors } from "@/constants/theme";
 import { getGoalById, GoalId } from "../home/components/goalsData";
 import { styles } from "./styles";
-import Header from "@/components/Header";
 import { useRouter } from "expo-router";
 import DailyProgressLogging from "./components/DailyProgressLogging";
 import { WeeklyProgressDashboard } from "@/components/molecules/WeeklyProgressDashboard";

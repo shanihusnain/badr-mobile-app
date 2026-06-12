@@ -25,7 +25,7 @@ const createStyles = () =>
     bottomSheetContent: {
       flex: 1,
       justifyContent: "space-between",
-      paddingHorizontal: 20,
+      paddingHorizontal: 10,
       paddingTop: hp(3),
       paddingBottom: hp(3),
     },
@@ -37,12 +37,14 @@ const createStyles = () =>
     formWrapper: {
       alignItems: "center",
       width: "100%",
+      paddingHorizontal: 0,
     },
 
     buttonWrapper: {
       marginTop: hp(4),
       width: "100%",
       marginBottom: hp(18),
+      alignItems: "center",
     },
   });
 

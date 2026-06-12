@@ -1371,8 +1371,8 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
           }
           ListFooterComponent={() => (
             <View style={styles.footerContainer}>
-              <Pressable
-                style={styles.commitBtn}
+              <PrimaryButton
+                text={t("monthlyGoalPlanner.commit")}
                 onPress={() => {
                   // gather payload for future API integration
                   const payload = {
@@ -1401,11 +1401,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
                     pathname: "/home",
                   });
                 }}
-              >
-                <Text style={styles.commitBtnText}>
-                  {t("monthlyGoalPlanner.commit")}
-                </Text>
-              </Pressable>
+              />
             </View>
           )}
           renderItem={({ item }: { item: any }) => {
@@ -1886,20 +1882,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 14,
     paddingBottom: 20,
-  },
-  commitBtn: {
-    marginTop: 20,
-    backgroundColor: Colors.light.green,
-    borderRadius: 12,
-    paddingVertical: 14,
-    alignItems: "center",
-  },
-  commitBtnText: {
-    color: Colors.light.white,
-    fontSize: 16,
-    fontWeight: "700",
-    fontFamily: fonts.primary.bold,
-    letterSpacing: 1,
   },
   cycleInfoText: {
     color: Colors.light.dullWhite,

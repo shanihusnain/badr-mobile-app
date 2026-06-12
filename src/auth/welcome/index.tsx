@@ -35,6 +35,7 @@ export default function WelcomeScreen() {
         <PrimaryButton
           text={t("welcomeScreen.loginBtnText")}
           onPress={handleLogin}
+          style={{ marginBottom: 9 }}
         />
 
         <SecondaryButton
