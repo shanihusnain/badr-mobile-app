@@ -1,4 +1,4 @@
-import MenstruationLog from "../../src/private/menstruationlog";
+import MenstruationLog from "../../src/screens/private/menstruationlog";
 import { useLocalSearchParams } from "expo-router";
 
 /**

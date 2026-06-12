@@ -1,4 +1,4 @@
-import { GoalProgressLoggingScreen } from "@/src/private/GoalProgressLoggingScreen";
+import { GoalProgressLoggingScreen } from "@/src/screens/private/goalprogressloggingscreen";
 import { useLocalSearchParams } from "expo-router";
 import React from "react";
 import { Text, View } from "react-native";

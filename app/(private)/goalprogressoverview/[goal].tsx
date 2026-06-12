@@ -1,4 +1,4 @@
-import { GoalProgressOverView } from "@/src/private/goalprogressoverview";
+import { GoalProgressOverView } from "@/src/screens/private/goalprogressoverview";
 import { useLocalSearchParams } from "expo-router";
 
 export default function GoalProgressOverViewScreen() {

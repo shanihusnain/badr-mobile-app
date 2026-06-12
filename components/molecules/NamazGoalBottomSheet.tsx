@@ -12,7 +12,7 @@ import { DaysTrackerContainer } from "./DaysTrackerContainer";
 import { GoalDetailsCard } from "./PrayersGoalDetailsCard";
 import { useTranslation } from "react-i18next";
 import { router } from "expo-router";
-import { getCategoryProgressOverview } from "@/src/private/goalprogressoverview/goalCategoryOverview";
+import { getCategoryProgressOverview } from "@/src/screens/private/goalprogressoverview/goalCategoryOverview";
 
 const GOAL_CATEGORIES = [
   { slug: "prayer", titleKey: "homeScreen.prayers" },

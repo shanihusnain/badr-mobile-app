@@ -1,3 +1,3 @@
-import OtpScreen from "@/src/auth/otp";
+import OtpScreen from "@/src/screens/auth/otp";
 
 export default OtpScreen;

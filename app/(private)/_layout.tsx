@@ -2,7 +2,7 @@ import { Stack } from "expo-router";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import Header from "@/components/Header";
-import { getGoalById } from "@/src/private/home/components/goalsData";
+import { getGoalById } from "@/src/screens/private/home/components/goalsData";
 import { HeaderWithInfoIcon } from "@/components/atoms/HeaderWithInfoIcon";
 import { useTranslation } from "react-i18next";
 

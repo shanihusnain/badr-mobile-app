@@ -1,2 +1,2 @@
-import IntroScreen from '@/src/auth/intro';
+import IntroScreen from "@/src/screens/auth/intro";
 export default IntroScreen;
