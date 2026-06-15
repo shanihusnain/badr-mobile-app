@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text } from "react-native";
+import { View, Text, ScrollView } from "react-native";
 import { TaperedCircleBorder } from "@/components/atoms/TaperedCircleBorder";
 import { Colors } from "@/constants/theme";
 import { getGoalById, GoalId } from "../home/components/goalsData";
@@ -10,6 +10,10 @@ import { useTranslation } from "react-i18next";
 import { WeeklyProgressDashboard } from "@/components/molecules/WeeklyProgressDashboard";
 import { PrayerProgressTrackerRing } from "@/components/molecules/PrayerProgressTrackerRing";
 import type { DayProgress } from "@/components/molecules/WeeklyProgressDashboard";
+import { LoggingFlowSlot } from "./components/LoggingFlowSlot";
+import type { ProgressLogEntry } from "./types";
+import { WeeklyProgressSection } from "./components/WeeklyProgressSection";
+import { PastAchievementsSection } from "./components/PastAchievementsSection";
 
 interface GoalProgressLoggingScreenProps {
   goalId: string;
@@ -62,8 +66,12 @@ export const GoalProgressLoggingScreen = ({
   const categoryColor = getCategoryColor(goalData.category);
 
   return (
-    <View style={styles.container}>
-      <View style={styles.scrollContent}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.scrollContent}
+      showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
+    >
         <View style={styles.goalInfoContainer}>
           <TaperedCircleBorder
             percentage={goalData.percentage}
@@ -81,27 +89,21 @@ export const GoalProgressLoggingScreen = ({
           </TaperedCircleBorder>
         </View>
 
-        <DailyProgressLogging
+        <LoggingFlowSlot
           goalData={goalData}
-          onLogComplete={(entry) => {
+          onLogComplete={(entry: ProgressLogEntry) => {
             console.log("Logged progress:", entry);
           }}
         />
 
         {/* Weekly progress dashboard — always visible, never hidden by modal */}
         <View style={styles.weeklyDashboardWrapper}>
-          <WeeklyProgressDashboard
-            renderRing={(day: DayProgress, size: number) => (
-              <PrayerProgressTrackerRing
-                statuses={day.statuses}
-                isMenstruating={day.isMenstruating}
-                size={size}
-                strokeWidth={2.5}
-              />
-            )}
-          />
+          <WeeklyProgressSection goalData={goalData} />
         </View>
-      </View>
-    </View>
+
+        <View style={styles.weeklyDashboardWrapper}>
+          <PastAchievementsSection goalData={goalData} />
+        </View>
+      </ScrollView>
   );
 };

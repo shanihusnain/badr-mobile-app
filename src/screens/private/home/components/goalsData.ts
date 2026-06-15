@@ -195,25 +195,25 @@ export const GOALS_DATA: Record<GoalId, GoalData> = {
     id: "quran-listening",
     category: "QURAN",
     title: "Quran Listening",
-    count: "5",
-    label: "/10 pages",
-    percentage: "50%",
+    count: "9",
+    label: "/60 hours",
+    percentage: "15%",
     progressColor: Colors.light.ringQuran,
     description:
       "Listening to the Quran allows us to absorb its meanings and feel the beauty of the Divine Word deeply.",
-    previousProgress: "5/10 pages completed",
+    previousProgress: "9/60 hours completed",
   },
   "quran-Tajweed": {
     id: "quran-Tajweed",
     category: "QURAN",
     title: "Quran Tajweed",
-    count: "8",
-    label: "/12",
-    percentage: "66%",
+    count: "9",
+    label: "/60 hours",
+    percentage: "15%",
     progressColor: Colors.light.ringQuran,
     description:
       "Tajweed perfects Quranic recitation as revealed to the Prophet (PBUH), preserving its authentic pronunciation and rhythm.",
-    previousProgress: "8/12 lessons completed",
+    previousProgress: "9/60 hours completed",
   },
 
   // Fasting Goals
