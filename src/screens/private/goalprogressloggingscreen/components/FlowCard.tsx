@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, ViewStyle } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { Colors } from "@/constants/theme";
+import { useTranslation } from "react-i18next";
 
 type FlowCardProps = {
   headerIcon: React.ReactNode;
@@ -27,6 +28,7 @@ export const FlowCard: React.FC<FlowCardProps> = ({
   styles,
   style,
 }) => {
+  const { i18n } = useTranslation();
   const iconColorsDecider = () =>
     canGoForward ? Colors.light.white : Colors.light.subtext;
   const forwardBtnStyleDecider = () => {
@@ -49,7 +51,7 @@ export const FlowCard: React.FC<FlowCardProps> = ({
             activeOpacity={0.8}
           >
             <FontAwesome
-              name="chevron-left"
+              name={i18n.language === "ar" ? "chevron-right" : "chevron-left"}
               size={12}
               color={Colors.light.white}
             />
@@ -60,7 +62,7 @@ export const FlowCard: React.FC<FlowCardProps> = ({
             disabled={!canGoForward}
             activeOpacity={0.8}
           >
-            <FontAwesome name="chevron-right" size={12} color={iconColorsDecider()} />
+            <FontAwesome name={i18n.language === "ar" ? "chevron-left" : "chevron-right"} size={12} color={iconColorsDecider()} />
           </TouchableOpacity>
         </View>
 

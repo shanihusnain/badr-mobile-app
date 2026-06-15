@@ -60,6 +60,7 @@ import {
 } from "./components/FastingOverviewCalendarSection";
 import { TimeSpentOverview } from "./components/TimeSpentOverview";
 import { TimeSpentBottomSheet } from "./components/TimeSpentBottomSheet";
+import { useTypedTranslation } from "@/i18next/useTypedTranslation";
 type TextPart = { text: string; highlighted: boolean };
 
 type CategoryItem = {
@@ -156,9 +157,34 @@ function buildTextParts(text: string, highlightedTexts: string[]): TextPart[] {
   return parts.length > 0 ? parts : [{ text, highlighted: false }];
 }
 
+// Helper function to map category title to translation key
+function getCategoryTranslationKey(title: string): any {
+  const keyMap: Record<string, string> = {
+    "PRAYERS": "homeScreen.prayers",
+    "QURAN": "homeScreen.quran",
+    "FASTING": "homeScreen.fasting",
+    "SADAQAH": "homeScreen.sadaqah",
+  };
+  return keyMap[title] || title;
+}
+
+// Helper function to map filter tab to translation key
+function getFilterTabTranslationKey(tab: string): any {
+  const keyMap: Record<string, string> = {
+    "All": "homeScreen.filterAll",
+    "Prayer": "homeScreen.filterPrayer",
+    "Quran": "homeScreen.filterQuran",
+    "Fasting": "homeScreen.filterFasting",
+    "Sadaqah": "homeScreen.filterSadaqah",
+    "Time Spent": "homeScreen.filterTimeSpent",
+  };
+  return keyMap[tab] || tab;
+}
+
 export default function HomeScreen() {
   const safeAreaInsets = useSafeAreaInsets();
   const router = useRouter();
+  const { t, i18n } = useTypedTranslation();
   const namazBottomSheetRef = useRef<BottomSheet>(null);
   const goldenBottomSheetRef = useRef<BottomSheet>(null);
   const dashboardSheetRef = useRef<BottomSheet>(null);
@@ -184,6 +210,48 @@ export default function HomeScreen() {
 
   const [isFabMenuOpen, setIsFabMenuOpen] = useState(false);
   const fabAnimation = useRef(new Animated.Value(0)).current;
+
+  // Create translated welcome cards
+  const translatedWelcomeCards = useMemo(() => [
+    {
+      id: 1,
+      title: t("homeScreen.welcomeTitle").replace("{{name}}", "Layla"),
+      content: t("homeScreen.welcomeContent"),
+      highlightedTexts: [
+        t("homeScreen.welcomeHighlightCycle"),
+        t("homeScreen.welcomeHighlightTomorrow"),
+        t("homeScreen.welcomeHighlightFajr"),
+      ],
+    },
+    {
+      id: 2,
+      title: t("homeScreen.trackProgressTitle"),
+      content: t("homeScreen.trackProgressContent"),
+      highlightedTexts: [],
+    },
+  ], [t]);
+
+  // Create translated inspiration cards
+  const translatedInspirationCards = useMemo(() => [
+    {
+      id: 1,
+      title: t("homeScreen.dailyLightTitle"),
+      quote: t("homeScreen.dailyLightQuote"),
+      reference: t("homeScreen.dailyLightRef"),
+    },
+    {
+      id: 2,
+      title: t("homeScreen.hadithTitle"),
+      quote: t("homeScreen.hadithQuote"),
+      reference: t("homeScreen.hadithRef"),
+    },
+    {
+      id: 3,
+      title: t("homeScreen.reflectionTitle"),
+      quote: t("homeScreen.reflectionQuote"),
+      reference: t("homeScreen.reflectionRef"),
+    },
+  ], [t]);
 
   const toggleFabMenu = () => {
     const toValue = isFabMenuOpen ? 0 : 1;
@@ -327,7 +395,7 @@ export default function HomeScreen() {
                   >
                     <View />
                   </TaperedCircleBorder>
-                  <Text style={styles.collapsedLabel}>{category.title}</Text>
+                  <Text style={styles.collapsedLabel}>{t(getCategoryTranslationKey(category.title))}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -370,12 +438,12 @@ export default function HomeScreen() {
               </TouchableOpacity>
               <View style={styles.prayerCardContainer}>
                 <View style={styles.prayerDetailsLeft}>
-                  <Text style={styles.upcomingText}>Upcoming</Text>
-                  <Text style={styles.prayerNameText}>ASR</Text>
-                  <Text style={styles.timeText}>3:53 PM</Text>
+                  <Text style={styles.upcomingText}>{t("homeScreen.upcoming")}</Text>
+                  <Text style={styles.prayerNameText}>{t("homeScreen.asrPrayer")}</Text>
+                  <Text style={styles.timeText}>{t("homeScreen.asrTime")}</Text>
                 </View>
                 <View style={styles.dateRight}>
-                  <Text style={styles.dateText}>June 1, 2026</Text>
+                  <Text style={styles.dateText}>{t("homeScreen.juneDate")}</Text>
                 </View>
               </View>
             </View>
@@ -399,9 +467,9 @@ export default function HomeScreen() {
                 />
                 <TopSpace top={16} />
                 <View style={styles.categoryLabelWrapper}>
-                  <Text style={styles.categoryLabel}>{category.title}</Text>
+                  <Text style={styles.categoryLabel}>{t(getCategoryTranslationKey(category.title))}</Text>
                   <MaterialIcons
-                    name="chevron-right"
+                    name={i18n.language === "ar" ? "chevron-left" : "chevron-right"}
                     size={16}
                     color={Colors.light.white}
                   />
@@ -413,7 +481,7 @@ export default function HomeScreen() {
           {/* Welcome / info card deck */}
           <View style={styles.containersSection}>
             <SwipeCardDeck
-              data={WELCOME_CARDS}
+              data={translatedWelcomeCards}
               renderTextWithHighlight={buildTextParts}
             />
           </View>
@@ -442,7 +510,7 @@ export default function HomeScreen() {
               onScroll={handleInspirationScroll}
               scrollEventThrottle={16}
             >
-              {INSPIRATION_CARDS.map((card) => (
+              {translatedInspirationCards.map((card) => (
                 <View key={card.id} style={styles.inspirationCard}>
                   <Text style={styles.inspirationTitle}>{card.title}</Text>
                   <Text style={styles.inspirationQuote}>
@@ -455,7 +523,7 @@ export default function HomeScreen() {
               ))}
             </ScrollView>
             <View style={styles.inspirationDots}>
-              {INSPIRATION_CARDS.map((card, i) => (
+              {translatedInspirationCards.map((card, i) => (
                 <View
                   key={card.id}
                   style={[
@@ -482,21 +550,20 @@ export default function HomeScreen() {
               <View style={styles.greenPlusCircle}>
                 <Ionicons name="add" size={16} color="white" />
               </View>
-              <Text style={styles.menstruationText}>LOG MENSTRUATION</Text>
+              <Text style={styles.menstruationText}>{t("homeScreen.logMenstruation")}</Text>
             </View>
           </TouchableOpacity>
 
           {/* Customize journal */}
           <View style={styles.journalContainer}>
-            <Text style={styles.journalTitle}>Customize Your Journal</Text>
+            <Text style={styles.journalTitle}>{t("homeScreen.customizeJournalTitle")}</Text>
             <Text style={styles.journalDescription}>
-              Choose from over 100 behaviors to track daily, fostering growth in
-              your character and helping you become your best self.
+              {t("homeScreen.customizeJournalDesc")}
             </Text>
             <TouchableOpacity style={styles.getStartedButton}>
-              <Text style={styles.getStartedText}>GET STARTED</Text>
+              <Text style={styles.getStartedText}>{t("homeScreen.getStarted")}</Text>
               <Entypo
-                name="chevron-right"
+                name={i18n.language === "ar" ? "chevron-left" : "chevron-right"}
                 size={24}
                 color={Colors.light.green}
               />
@@ -505,14 +572,14 @@ export default function HomeScreen() {
           {/* My Day */}
 
           <View style={[styles.dashboardSection]}>
-            <Text style={styles.dashboardText}>My Day</Text>
+            <Text style={styles.dashboardText}>{t("homeScreen.myDay")}</Text>
             <TouchableOpacity
               activeOpacity={0.7}
               style={[styles.customizeContainer, { gap: 8 }]}
               onPress={handleShowHideTodayProgress}
             >
               <Text style={styles.customizeText}>
-                {showDailyProgress ? "HIDE" : "SHOW"}
+                {showDailyProgress ? t("homeScreen.hide") : t("homeScreen.show")}
               </Text>
               {showDailyProgress ? (
                 <AntDesign
@@ -538,9 +605,9 @@ export default function HomeScreen() {
                 {DASHBOARD_FILTER_TABS.map((label) => (
                   <Tabs
                     key={label}
-                    label={label}
+                    label={t(getFilterTabTranslationKey(label))}
                     onPress={() => setSelectedDayTab(label)}
-                    selectedTab={selectedDayTab}
+                    selectedTab={t(getFilterTabTranslationKey(selectedDayTab))}
                   />
                 ))}
               </ScrollView>
@@ -548,7 +615,7 @@ export default function HomeScreen() {
 
               <View style={styles.todayGoalsProgressSection}>
                 <Text style={styles.todayGoalsProgressTitle}>
-                  TODAY'S GOALS PROGRESS
+                  {t("homeScreen.todayGoalsProgress")}
                 </Text>
                 <TopSpace top={24} />
                 {displayedTodayGoalsProgress.map((entry) => (
@@ -574,7 +641,7 @@ export default function HomeScreen() {
                       }
                     >
                       <Text style={styles.showMoreText}>
-                        {isTodayProgressExpanded ? "Show Less" : "Show More"}
+                        {isTodayProgressExpanded ? t("homeScreen.showLess") : t("homeScreen.showMore")}
                       </Text>
                       <Entypo
                         name={
@@ -593,13 +660,13 @@ export default function HomeScreen() {
           )}
           {/* My Dashboard */}
           <View style={styles.dashboardSection}>
-            <Text style={styles.dashboardText}>My Dashboard</Text>
+            <Text style={styles.dashboardText}>{t("homeScreen.myDashboard")}</Text>
             <TouchableOpacity
               activeOpacity={0.7}
               style={styles.customizeContainer}
               onPress={() => dashboardSheetRef.current?.expand()}
             >
-              <Text style={styles.customizeText}>CUSTOMIZE</Text>
+              <Text style={styles.customizeText}>{t("homeScreen.customize")}</Text>
             </TouchableOpacity>
           </View>
 
@@ -615,9 +682,9 @@ export default function HomeScreen() {
             {DASHBOARD_FILTER_TABS.map((label) => (
               <Tabs
                 key={label}
-                label={label}
+                label={t(getFilterTabTranslationKey(label))}
                 onPress={() => setSelectedDashboardCategory(label)}
-                selectedTab={selectedDashboardCategory}
+                selectedTab={t(getFilterTabTranslationKey(selectedDashboardCategory))}
               />
             ))}
           </ScrollView>
@@ -627,7 +694,7 @@ export default function HomeScreen() {
           ))}
 
           <TouchableOpacity style={styles.showMoreButton}>
-            <Text style={styles.showMoreText}>Show More</Text>
+            <Text style={styles.showMoreText}>{t("homeScreen.showMore")}</Text>
             <Entypo name="chevron-down" size={24} color="white" />
           </TouchableOpacity>
           <FastingOverviewCalendarSection trackTabs={HOME_FASTING_TRACK_TABS} />
@@ -660,6 +727,7 @@ export default function HomeScreen() {
         <BottomSheetWrapper
           ref={goldenBottomSheetRef}
           snapPoints={["50%", "92%"]}
+          bgColor={Colors.light.blackBackground}
         >
           <DailyProgressBottomSheet
             onClose={() => goldenBottomSheetRef.current?.close()}
@@ -696,7 +764,7 @@ export default function HomeScreen() {
                 // Action for Set Next Month's Goals
               }}
             >
-              <Text style={styles.fabOptionLabel}>SET NEXT MONTH'S GOALS</Text>
+              <Text style={styles.fabOptionLabel}>{t("homeScreen.setNextMonthsGoals")}</Text>
               <View style={styles.fabOptionIconContainer}>
                 <MaterialCommunityIcons name="target" size={22} color="white" />
               </View>
@@ -711,7 +779,7 @@ export default function HomeScreen() {
                 // Action for Complete Your Journal
               }}
             >
-              <Text style={styles.fabOptionLabel}>COMPLETE YOUR JOURNAL</Text>
+              <Text style={styles.fabOptionLabel}>{t("homeScreen.completeYourJournal")}</Text>
               <View style={styles.fabOptionIconContainer}>
                 <MaterialCommunityIcons
                   name="book-open-outline"
@@ -730,7 +798,7 @@ export default function HomeScreen() {
                 goldenBottomSheetRef.current?.expand();
               }}
             >
-              <Text style={styles.fabOptionLabel}>ADD DAILY PROGRESS</Text>
+              <Text style={styles.fabOptionLabel}>{t("homeScreen.addDailyProgress")}</Text>
               <View style={styles.fabOptionIconContainer}>
                 <Ionicons name="add" size={24} color="white" />
               </View>

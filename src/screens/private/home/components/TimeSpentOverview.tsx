@@ -3,6 +3,7 @@ import { Colors } from "@/constants/theme";
 import { AntDesign, Entypo } from "@expo/vector-icons";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Pressable, Text, View } from "react-native";
+import { useTypedTranslation } from "@/i18next/useTypedTranslation";
 import {
   buildCategoryBreakdown,
   buildCycleWeeklyChartData,
@@ -19,6 +20,7 @@ type Props = {
 };
 
 export function TimeSpentOverview({ onExpandPress }: Props) {
+  const { t, i18n } = useTypedTranslation();
   const [selectedPeriod, setSelectedPeriod] = useState<"week" | "month">(
     "week",
   );
@@ -106,14 +108,14 @@ export function TimeSpentOverview({ onExpandPress }: Props) {
       <View style={styles.timeSpentHeaderRow}>
         <View style={styles.timeSpentTitleRow}>
           <AntDesign name="clock-circle" size={24} color={Colors.light.white} />
-          <Text style={styles.timeSpentTitle}>Time Spent</Text>
+          <Text style={styles.timeSpentTitle}>{t("homeScreen.timeSpent")}</Text>
         </View>
         <Pressable
           onPress={onExpandPress}
           disabled={!onExpandPress}
           hitSlop={8}
         >
-          <Entypo name="chevron-right" size={24} color={Colors.light.white} />
+          <Entypo name={i18n.language === "ar" ? "chevron-left" : "chevron-right"} size={24} color={Colors.light.white} />
         </Pressable>
       </View>
       <TopSpace top={16} />
@@ -142,7 +144,7 @@ export function TimeSpentOverview({ onExpandPress }: Props) {
                       : styles.timeSpentPeriodButtonTextUnselected,
                   ]}
                 >
-                  {period === "week" ? "W" : "M"}
+                  {period === "week" ? t("homeScreen.timeSpent_toggle_W") : t("homeScreen.timeSpent_toggle_M")}
                 </Text>
               </Pressable>
             );
@@ -154,13 +156,13 @@ export function TimeSpentOverview({ onExpandPress }: Props) {
           <View style={styles.timeSpentChartHint}>
             <View style={styles.timeSpentChartHintBubble}>
               <Text style={styles.timeSpentChartHintText}>
-                Tap on a bar to view more insights.
+                {t("homeScreen.tapBarHint")}
               </Text>
               <Pressable
                 onPress={() => setHintDismissed(true)}
                 hitSlop={8}
               >
-                <Text style={styles.timeSpentChartHintAction}>Ok, got it!</Text>
+                <Text style={styles.timeSpentChartHintAction}>{t("homeScreen.okGotIt")}</Text>
               </Pressable>
             </View>
             <View style={styles.timeSpentChartHintPointerRow}>
@@ -176,15 +178,15 @@ export function TimeSpentOverview({ onExpandPress }: Props) {
         >
           <View style={styles.timeSpentNavRow}>
             <Pressable onPress={onPreviousPeriod} hitSlop={8}>
-              <Entypo name="chevron-left" size={18} color={Colors.light.white} />
+              <Entypo name={i18n.language === "ar" ? "chevron-right" : "chevron-left"} size={18} color={Colors.light.white} />
             </Pressable>
             <Text style={styles.timeSpentNavLabel}>{periodRangeLabel}</Text>
             <Pressable onPress={onNextPeriod} hitSlop={8}>
-              <Entypo name="chevron-right" size={18} color={Colors.light.white} />
+              <Entypo name={i18n.language === "ar" ? "chevron-left" : "chevron-right"} size={18} color={Colors.light.white} />
             </Pressable>
           </View>
           <View style={styles.timeSpentTotalBlock}>
-            <Text style={styles.timeSpentTotalCaption}>TIME SPENT</Text>
+            <Text style={styles.timeSpentTotalCaption}>{t("homeScreen.timeSpentTitle")}</Text>
             <Text style={styles.timeSpentTotalValue}>
               {formatTotalTime(displayHours)}
             </Text>
@@ -210,8 +212,7 @@ export function TimeSpentOverview({ onExpandPress }: Props) {
           style={styles.timeSpentDisclaimerIcon}
         />
         <Text style={styles.timeSpentDisclaimerText}>
-          Time Spent may be inaccurate if time wasn&apos;t logged for each
-          progress entry of your goal.
+          {t("homeScreen.timeSpentDisclaimer")}
         </Text>
       </View>
       <TopSpace top={24} />

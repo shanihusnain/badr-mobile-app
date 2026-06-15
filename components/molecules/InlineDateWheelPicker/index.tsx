@@ -1,7 +1,10 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
 import moment from "moment";
+import "moment/locale/ar";
+moment.locale("en");
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import {
   NativeScrollEvent,
   NativeSyntheticEvent,
@@ -37,16 +40,18 @@ function toDateString(date: Date): string {
   return `${y}-${m}-${d}`;
 }
 
-function formatWheelLabel(date: Date, todayString: string): string {
+function formatWheelLabel(date: Date, todayString: string, todayLabel: string, locale: string): string {
   const ds = toDateString(date);
-  if (ds === todayString) return "Today";
-  return moment(date).format("ddd MMM D");
+  if (ds === todayString) return todayLabel;
+  return moment(date).locale(locale).format("ddd MMM D");
 }
 
 function buildDateItems(
   minimumDate: Date,
   maximumDate: Date,
   todayString: string,
+  todayLabel: string,
+  locale: string,
 ): DateWheelItem[] {
   const items: DateWheelItem[] = [];
   const cursor = new Date(
@@ -65,7 +70,7 @@ function buildDateItems(
     items.push({
       key: dateString,
       dateString,
-      label: formatWheelLabel(cursor, todayString),
+      label: formatWheelLabel(cursor, todayString, todayLabel, locale),
     });
     cursor.setDate(cursor.getDate() + 1);
   }
@@ -80,6 +85,9 @@ export function InlineDateWheelPicker({
   minimumDate,
 }: InlineDateWheelPickerProps) {
   const scrollRef = useRef<ScrollView>(null);
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language === "ar" ? "ar" : "en";
+  const todayLabel = t("homeScreen.menstruationLog_today");
   const lastEmitted = useRef<string | null>(null);
   const didInitialScroll = useRef(false);
   const isSettling = useRef(false);
@@ -106,8 +114,8 @@ export function InlineDateWheelPicker({
   }, [maximumDateKey]);
 
   const items = useMemo(
-    () => buildDateItems(minDate, maxDate, todayString),
-    [minDate, maxDate, todayString],
+    () => buildDateItems(minDate, maxDate, todayString, todayLabel, locale),
+    [minDate, maxDate, todayString, todayLabel, locale],
   );
 
   const selectedIndex = useMemo(() => {

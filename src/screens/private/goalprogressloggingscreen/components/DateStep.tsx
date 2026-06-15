@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "@/constants/theme";
+import { useTranslation } from "react-i18next";
 
 interface DateStepProps {
   dateLabel: string;
@@ -18,6 +19,7 @@ export const DateStep: React.FC<DateStepProps> = ({
   onShiftDate,
   styles,
 }) => {
+  const { i18n } = useTranslation();
   const handleShiftPrev = React.useCallback(() => {
     onShiftDate(-1);
   }, [onShiftDate]);
@@ -33,7 +35,7 @@ export const DateStep: React.FC<DateStepProps> = ({
         hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
       >
         <Ionicons
-          name="chevron-back"
+          name={i18n.language === "ar" ? "chevron-forward" : "chevron-back"}
           size={32}
           color={Colors.light.white}
         />
@@ -45,7 +47,7 @@ export const DateStep: React.FC<DateStepProps> = ({
         hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
       >
         <Ionicons
-          name="chevron-forward"
+          name={i18n.language === "ar" ? "chevron-back" : "chevron-forward"}
           size={32}
           color={
             selectedDate >= todayString

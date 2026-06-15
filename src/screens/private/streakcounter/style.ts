@@ -86,17 +86,17 @@ const createStyles = () =>
       backgroundColor: "rgba(255, 255, 255, 0.1)",
     },
     thisWeekContainer: {
-      width: 343,
+      //width: 100,
       height: 110,
-      marginTop: 20, // positioned under the stats grid
+      //marginTop: 20, // positioned under the stats grid
       alignSelf: "center",
       backgroundColor: Colors.light.greybuttonversion,
-      borderRadius: 16,
+      borderRadius: 12,
       padding: 16,
       opacity: 1,
     },
     thisWeekHeader: {
-      fontFamily: "SF Pro Text",
+      fontFamily: fonts.primary.medium,
       fontWeight: "500",
       fontSize: 14,
       lineHeight: 14, // 100% line-height
@@ -112,9 +112,9 @@ const createStyles = () =>
       width: "100%",
     },
     dayText: {
-      fontFamily: "SF Pro Text",
-      fontWeight: "500",
-      fontSize: 14,
+      fontFamily: fonts.primary.semiBold,
+      fontWeight: "600",
+      fontSize: 11,
       lineHeight: 14,
       letterSpacing: 0,
       fontVariant: ["small-caps"],
@@ -122,12 +122,12 @@ const createStyles = () =>
     },
     // Milestone Container (Same size: width: 343, height: 110)
     milestoneContainer: {
-      width: 343,
+      //width: 343,
       height: 110,
       marginTop: 16,
       alignSelf: "center",
       backgroundColor: Colors.light.greybuttonversion,
-      borderRadius: 16,
+      borderRadius: 12,
       paddingHorizontal: 12,
       paddingVertical: 14,
       flexDirection: "row",
@@ -187,32 +187,41 @@ const createStyles = () =>
     },
     // Consistency Container (Same size: width: 343, height: 110 or flexible based on padding, but user asked for "same size container" - let's make it 343 width and well-padded, or height 110 with scroll/exact sizing. Let's make it highly premium)
     consistencyContainer: {
-      width: 343,
+      //width: 343,
       minHeight: 110,
       marginTop: 16,
       alignSelf: "center",
       backgroundColor: Colors.light.greybuttonversion,
-      borderRadius: 16,
+      borderRadius: 12,
       padding: 14,
       opacity: 1,
     },
     consistencyHeader: {
-      fontFamily: "SF Pro Text",
+      fontFamily: fonts.primary.semiBold,
       fontWeight: "600",
-      fontSize: 16,
+      fontSize: 15,
       lineHeight: 20,
       letterSpacing: 0,
       color: Colors.light.white,
       marginBottom: 6,
     },
     consistencyBody: {
-      fontFamily: "SF Pro Text",
+      fontFamily: fonts.primary.regular,
       fontWeight: "400",
       fontSize: 14,
       lineHeight: 18,
       letterSpacing: 0.1,
       color: Colors.light.grey,
       textAlignVertical: "bottom", // vertical-align: bottom
+    },
+    badrText: {
+      fontFamily: fonts.primary.bold,
+      fontWeight: "600",
+      fontSize: 14,
+      lineHeight: 18,
+      letterSpacing: 0.1,
+      color: Colors.light.grey,
+      textAlignVertical: "bottom",
     },
   });
 

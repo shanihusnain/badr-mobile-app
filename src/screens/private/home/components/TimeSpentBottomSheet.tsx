@@ -1,5 +1,6 @@
 import React, { forwardRef, useCallback } from "react";
 import { StyleSheet, Text, View } from "react-native";
+import { useTypedTranslation } from "@/i18next/useTypedTranslation";
 import BottomSheet, {
   BottomSheetFooter,
   type BottomSheetFooterProps,
@@ -23,12 +24,13 @@ type Props = {
 export const TimeSpentBottomSheet = forwardRef<BottomSheet, Props>(
   function TimeSpentBottomSheet({ onClose, onChange }, ref) {
     const safeAreaInsets = useSafeAreaInsets();
+    const { t } = useTypedTranslation();
 
     const renderFooter = useCallback(
       (props: BottomSheetFooterProps) => (
         <BottomSheetFooter {...props} bottomInset={safeAreaInsets.bottom}>
           <View style={styles.footer}>
-            <SecondaryButton text="CLOSE" onPress={onClose} variant="green" />
+            <SecondaryButton text={t("homeScreen.closeBtn")} onPress={onClose} variant="green" />
           </View>
         </BottomSheetFooter>
       ),
@@ -47,7 +49,7 @@ export const TimeSpentBottomSheet = forwardRef<BottomSheet, Props>(
           <Pressable style={styles.closeButton} onPress={onClose} hitSlop={8}>
             <Ionicons name="close" size={24} color={Colors.light.white} />
           </Pressable>
-          <Text style={styles.headerTitle}>TIME SPENT</Text>
+          <Text style={styles.headerTitle}>{t("homeScreen.timeSpentTitle")}</Text>
           <View style={styles.headerSpacer} />
         </View>
         <TopSpace top={8} />

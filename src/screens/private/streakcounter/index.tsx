@@ -110,7 +110,9 @@ export default function StreakCounter() {
             {t("streakCounter.consistencyHeader")}
           </Text>
           <Text style={styles.consistencyBody}>
-            {t("streakCounter.consistencyBody")}
+            Your daily commitment to logging on{" "}
+            <Text style={styles.badrText}>Badr</Text>
+            {" "}is more than a routine—it's a step toward spiritual growth, bringing you closer to your goals, strengthening worship, and deepening your connection with Allah.
           </Text>
         </View>
       </ScrollView>

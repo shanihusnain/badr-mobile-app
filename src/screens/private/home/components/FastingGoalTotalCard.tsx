@@ -1,4 +1,5 @@
 import { Text, View } from "react-native";
+import { useTypedTranslation } from "@/i18next/useTypedTranslation";
 import { styles } from "../styles";
 
 type FastingGoalTotalCardProps = {
@@ -12,7 +13,10 @@ export function FastingGoalTotalCard({
   count,
   variant = "default",
 }: FastingGoalTotalCardProps) {
+  const { t } = useTypedTranslation();
   const isCompleted = variant === "completed";
+  
+  const translatedLabel = label === "COMPLETED" ? t("homeScreen.fastingCalendar_completed") : label;
 
   return (
     <View
@@ -21,7 +25,7 @@ export function FastingGoalTotalCard({
         isCompleted && styles.fastingGoalTotalCardCompleted,
       ]}
     >
-      <Text style={styles.fastingGoalTotalLabel}>{label}</Text>
+      <Text style={styles.fastingGoalTotalLabel}>{translatedLabel}</Text>
       <View style={styles.fastingGoalTotalValueRow}>
         <Text
           style={[
@@ -43,7 +47,7 @@ export function FastingGoalTotalCard({
               isCompleted && styles.fastingGoalTotalBadgeTextCompleted,
             ]}
           >
-            fasts
+            {t("homeScreen.fastingCalendar_fasts")}
           </Text>
         </View>
       </View>

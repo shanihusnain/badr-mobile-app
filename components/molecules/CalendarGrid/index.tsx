@@ -27,6 +27,7 @@ import {
 import moment from "moment-hijri";
 import { fonts } from "@/assets/fonts";
 import { FontAwesome } from "@expo/vector-icons";
+import { useTypedTranslation } from "@/i18next/useTypedTranslation";
 
 const RING_SIZE = 36;
 const COMPLETED_DOT_SIZE = 30;
@@ -102,7 +103,15 @@ export type CalendarGridProps = {
 
 // ── Ring colour constants are defined in constants/theme.ts ──────────────────
 
-const WEEKDAY_LABELS = ["S", "M", "T", "W", "T", "F", "S"];
+const WEEKDAY_KEYS = [
+  "homeScreen.calendar_weekday_sun",
+  "homeScreen.calendar_weekday_mon",
+  "homeScreen.calendar_weekday_tue",
+  "homeScreen.calendar_weekday_wed",
+  "homeScreen.calendar_weekday_thu",
+  "homeScreen.calendar_weekday_fri",
+  "homeScreen.calendar_weekday_sat",
+] as const;
 
 function buildCycleWeeks(
   windowStart: moment.Moment,
@@ -171,6 +180,7 @@ export const CalendarGrid = ({
   maxDate,
   bgColor,
 }: CalendarGridProps) => {
+  const { t } = useTypedTranslation();
   const markedSet = new Set(markedDates);
   const monThuSet = new Set(monThuDates);
   const whiteDaySet = new Set(whiteDayDates);
@@ -443,9 +453,9 @@ export const CalendarGrid = ({
           ]}
         >
           <View style={styles.weekdayHeader}>
-            {WEEKDAY_LABELS.map((label, index) => (
-              <Text key={`${label}-${index}`} style={styles.weekdayLabel}>
-                {label}
+            {WEEKDAY_KEYS.map((key, index) => (
+              <Text key={`${key}-${index}`} style={styles.weekdayLabel}>
+                {t(key as any)}
               </Text>
             ))}
           </View>

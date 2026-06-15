@@ -5,6 +5,11 @@ import { Colors } from "@/constants/theme";
 import { getGoalById, GoalId } from "../home/components/goalsData";
 import { styles } from "./styles";
 import { useRouter } from "expo-router";
+import DailyProgressLogging from "./components/DailyProgressLogging";
+import { useTranslation } from "react-i18next";
+import { WeeklyProgressDashboard } from "@/components/molecules/WeeklyProgressDashboard";
+import { PrayerProgressTrackerRing } from "@/components/molecules/PrayerProgressTrackerRing";
+import type { DayProgress } from "@/components/molecules/WeeklyProgressDashboard";
 import { LoggingFlowSlot } from "./components/LoggingFlowSlot";
 import type { ProgressLogEntry } from "./types";
 import { WeeklyProgressSection } from "./components/WeeklyProgressSection";
@@ -18,6 +23,7 @@ export const GoalProgressLoggingScreen = ({
   goalId: goalIdParam,
 }: GoalProgressLoggingScreenProps) => {
   const router = useRouter();
+  const { t } = useTranslation();
 
   // Extract and validate goalId
   const goalId = (goalIdParam || "") as GoalId;
@@ -74,7 +80,7 @@ export const GoalProgressLoggingScreen = ({
             size={174}
           >
             <View style={styles.largeCircleInner}>
-              <Text style={styles.circleGoalText}>Goal: {cleanLabel}</Text>
+              <Text style={styles.circleGoalText}>{t("homeScreen.weeklyProgress_goalLabel", { label: cleanLabel })}</Text>
               <View style={styles.circlePercentRow}>
                 <Text style={styles.circlePercentNumber}>{percentageNum}</Text>
                 <Text style={styles.circlePercentSymbol}>%</Text>

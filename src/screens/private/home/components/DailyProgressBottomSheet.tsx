@@ -10,18 +10,12 @@ import { IbadahsProgressCard } from "./IbadahsProgressCard";
 import { DetailedIbadahsProgressCard } from "./DetailedIbadahsProgressCards";
 import { getGoalsByCategory } from "./goalsData";
 import BackButton from "@/components/atoms/Backbutton";
+import { useTypedTranslation } from "@/i18next/useTypedTranslation";
 
 type ViewType = "main" | "categories" | "detail";
 
 type Props = {
   onClose?: () => void;
-};
-
-const CATEGORY_TITLES: Record<string, string> = {
-  PRAYER: "SELECT PRAYER GOAL",
-  QURAN: "SELECT QURAN GOAL",
-  FASTING: "SELECT FASTING GOAL",
-  SADAQAH: "SELECT SADAQAH GOAL",
 };
 
 const CATEGORY_ICON_COLOR: Record<string, string> = {
@@ -33,16 +27,19 @@ const CATEGORY_ICON_COLOR: Record<string, string> = {
 
 export const DailyProgressBottomSheet = ({ onClose }: Props) => {
   const router = useRouter();
+  const { t, i18n } = useTypedTranslation();
   const [currentView, setCurrentView] = useState<ViewType>("main");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const [selectedDetailCard, setSelectedDetailCard] = useState<string | null>(
     null,
   );
+
   const categories = [
     {
-      title: "PRAYER",
-      subtitle: "10 goals",
+      key: "PRAYER",
+      title: t("homeScreen.prayerCategory"),
+      subtitle: t("homeScreen.prayer10Goals"),
       icon: (
         <FontAwesome6
           name="person-praying"
@@ -55,16 +52,18 @@ export const DailyProgressBottomSheet = ({ onClose }: Props) => {
       progressColor: Colors.light.ringPrayer,
     },
     {
-      title: "QURAN",
-      subtitle: "4 goals",
+      key: "QURAN",
+      title: t("homeScreen.quranCategory"),
+      subtitle: t("homeScreen.quran4Goals"),
       icon: <Ionicons name="book" size={20} color={Colors.light.white} />,
       iconBgColor: Colors.light.ringQuran + "33",
       percentage: "40%",
       progressColor: Colors.light.ringQuran,
     },
     {
-      title: "FASTING",
-      subtitle: "4 goals",
+      key: "FASTING",
+      title: t("homeScreen.fastingCategory"),
+      subtitle: t("homeScreen.fasting4Goals"),
       icon: (
         <MaterialCommunityIcons
           name="food-off"
@@ -77,8 +76,9 @@ export const DailyProgressBottomSheet = ({ onClose }: Props) => {
       progressColor: Colors.light.green,
     },
     {
-      title: "SADAQAH",
-      subtitle: "6 goal",
+      key: "SADAQAH",
+      title: t("homeScreen.sadaqahCategory"),
+      subtitle: t("homeScreen.sadaqah6Goals"),
       icon: (
         <FontAwesome6
           name="hand-holding-heart"
@@ -91,6 +91,17 @@ export const DailyProgressBottomSheet = ({ onClose }: Props) => {
       progressColor: Colors.light.ringSadaqah,
     },
   ];
+
+  const getCategoryTitle = (category: string): string => {
+    const map: Record<string, string> = {
+      PRAYER: t("homeScreen.selectPrayerGoal"),
+      QURAN: t("homeScreen.selectQuranGoal"),
+      FASTING: t("homeScreen.selectFastingGoal"),
+      SADAQAH: t("homeScreen.selectSadaqahGoal"),
+    };
+    return map[category] ?? "";
+  };
+
   const handleBack = () => {
     if (currentView === "detail") {
       setCurrentView("categories");
@@ -104,9 +115,9 @@ export const DailyProgressBottomSheet = ({ onClose }: Props) => {
     }
   };
 
-  const handleCategoryPress = (category: string) => {
-    setSelectedCard(category);
-    setSelectedCategory(category);
+  const handleCategoryPress = (categoryKey: string) => {
+    setSelectedCard(categoryKey);
+    setSelectedCategory(categoryKey);
     setCurrentView("detail");
   };
 
@@ -119,10 +130,10 @@ export const DailyProgressBottomSheet = ({ onClose }: Props) => {
   };
 
   const getTitle = (): string => {
-    if (currentView === "main") return "LOG DAILY PROGRESS";
-    if (currentView === "categories") return "SELECT CATEGORY";
+    if (currentView === "main") return t("homeScreen.logDailyProgress");
+    if (currentView === "categories") return t("homeScreen.selectCategory");
     if (currentView === "detail" && selectedCategory)
-      return CATEGORY_TITLES[selectedCategory];
+      return getCategoryTitle(selectedCategory);
     return "";
   };
 
@@ -147,10 +158,12 @@ export const DailyProgressBottomSheet = ({ onClose }: Props) => {
               <View style={styles.gridIconWrapper}>
                 <Ionicons name="grid" size={18} color={Colors.light.white} />
               </View>
-              <Text style={styles.mainCardTitle}>SELECT CATEGORY</Text>
+              <Text style={styles.mainCardTitle}>
+                {t("homeScreen.selectCategory")}
+              </Text>
             </View>
             <Ionicons
-              name="chevron-forward"
+              name={i18n.language === "ar" ? "chevron-back" : "chevron-forward"}
               size={20}
               color={Colors.light.white}
             />
@@ -163,15 +176,15 @@ export const DailyProgressBottomSheet = ({ onClose }: Props) => {
         <View style={styles.listContainer}>
           {categories.map((category) => (
             <IbadahsProgressCard
-              key={category.title}
+              key={category.key}
               title={category.title}
               subtitle={category.subtitle}
               icon={category.icon}
               iconBgColor={category.iconBgColor}
               percentage={category.percentage}
               progressColor={category.progressColor}
-              isSelected={selectedCard === category.title}
-              onPress={() => handleCategoryPress(category.title)}
+              isSelected={selectedCard === category.key}
+              onPress={() => handleCategoryPress(category.key)}
             />
           ))}
         </View>
