@@ -1,4 +1,5 @@
 import moment from "moment-hijri";
+import i18next from "i18next";
 
 export type TimeSpentPeriod = "week" | "month";
 export type TimeSpentTab = "All" | "Prayer" | "Quran" | "Fasting" | "Sadaqah";
@@ -99,14 +100,18 @@ export function formatHoursToTimeLabel(hours: number): string {
   const totalMinutes = Math.round(hours * 60);
   const h = Math.floor(totalMinutes / 60);
   const m = totalMinutes % 60;
-  return `${h}:${String(m).padStart(2, "0")}`;
+  const hourLabel = i18next.t("homeScreen.timeSpent_hour_abbr") || "h";
+  const minLabel = i18next.t("homeScreen.timeSpent_min_abbr") || "m";
+  return `${h}${hourLabel} ${String(m).padStart(2, "0")}${minLabel}`;
 }
 
 export function formatTotalTime(hours: number): string {
   const totalMinutes = Math.round(hours * 60);
   const h = Math.floor(totalMinutes / 60);
   const m = totalMinutes % 60;
-  return `${h}h ${m}m`;
+  const hourLabel = i18next.t("homeScreen.timeSpent_hour_abbr") || "h";
+  const minLabel = i18next.t("homeScreen.timeSpent_min_abbr") || "m";
+  return `${h}${hourLabel} ${m}${minLabel}`;
 }
 
 function formatWeekRangeLabel(
@@ -156,9 +161,11 @@ export function buildWeeklyChartData(
         ? FIGMA_WEEK_HOURS[index]
         : MONTHLY_HOUR_SAMPLES[index % MONTHLY_HOUR_SAMPLES.length];
 
+    const translatedDayLabel = i18next.t(`homeScreen.timeSpent_day_${dayLabel.toLowerCase()}`) || dayLabel;
+
     return {
-      xLabel: dayLabel,
-      dayLabel,
+      xLabel: translatedDayLabel,
+      dayLabel: translatedDayLabel,
       dateLabel: date.format("D"),
       hours: baseHours * scale,
     };

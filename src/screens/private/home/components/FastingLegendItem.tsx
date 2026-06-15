@@ -1,4 +1,5 @@
 import { Text, View } from "react-native";
+import { useTypedTranslation } from "@/i18next/useTypedTranslation";
 import type { FastingLegendEntry } from "../fastingLegend";
 import { styles } from "../styles";
 import { FastingLegendRing } from "./FastingLegendRing";
@@ -14,7 +15,25 @@ export function FastingLegendItem({
   completed = false,
   fixedWidth = false,
 }: FastingLegendItemProps) {
-  const label = completed ? entry.completedLabel : entry.plannedLabel;
+  const { t } = useTypedTranslation();
+  const rawLabel = completed ? entry.completedLabel : entry.plannedLabel;
+  
+  function getFastingLegendTranslationKey(label: string): any {
+    const map: Record<string, string> = {
+      "MISSED RAMADAN": "homeScreen.fastingLegend_missedRamadan",
+      "MONDAYS & THURSDAYS": "homeScreen.fastingLegend_monThu",
+      "WHITE DAYS": "homeScreen.fastingLegend_whiteDays",
+      "PLANNED MISSED RAMADAN FAST": "homeScreen.fastingLegend_plannedMissedRamadan",
+      "COMPLETED MISSED RAMADAN FAST": "homeScreen.fastingLegend_completedMissedRamadan",
+      "PLANNED MON & THU FAST": "homeScreen.fastingLegend_plannedMonThu",
+      "COMPLETED MON & THU FAST": "homeScreen.fastingLegend_completedMonThu",
+      "PLANNED WHITE DAYS": "homeScreen.fastingLegend_plannedWhiteDays",
+      "COMPLETED WHITE DAYS": "homeScreen.fastingLegend_completedWhiteDays",
+    };
+    return map[label] || label;
+  }
+  
+  const label = t(getFastingLegendTranslationKey(rawLabel));
 
   return (
     <View

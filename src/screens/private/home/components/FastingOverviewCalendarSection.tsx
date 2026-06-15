@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { useTypedTranslation } from "@/i18next/useTypedTranslation";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Tabs } from "@/components/atoms/Tabs";
 import { TopSpace } from "@/components/atoms/TopSpace";
@@ -28,6 +29,23 @@ export const OVERVIEW_FASTING_TRACK_TABS: FastingTrackTab[] = [
   { label: "Progress", variant: "progress" },
 ];
 
+function getFastingTrackTabTranslationKey(label: string): any {
+  if (label === "Planned") return "homeScreen.fastingTabPlanned";
+  if (label === "Planned vs. Progress" || label === "Progress") return "homeScreen.fastingTabProgress";
+  return label;
+}
+
+function getFastingFilterTranslationKey(label: string): any {
+  const map: Record<string, string> = {
+    "All": "homeScreen.fastingFilter_All",
+    "Missed Ramadan Fasts": "homeScreen.fastingFilter_MissedRamadanFasts",
+    "Monday & Thursday Fasts": "homeScreen.fastingFilter_MondayThursdayFasts",
+    "Dawood Fasts": "homeScreen.fastingFilter_DawoodFasts",
+    "White Days Fasts": "homeScreen.fastingFilter_WhiteDaysFasts",
+  };
+  return map[label] ?? label;
+}
+
 type Props = {
   trackTabs: FastingTrackTab[];
   title?: string;
@@ -36,9 +54,11 @@ type Props = {
 
 export function FastingOverviewCalendarSection({
   trackTabs,
-  title = "YOUR FASTING CALENDAR",
+  title,
   showInfoBanner = true,
 }: Props) {
+  const { t } = useTypedTranslation();
+  const resolvedTitle = title ?? t("homeScreen.yourFastingCalendar");
   const [filterTab, setFilterTab] =
     useState<FastingCalendarFilterTab>("All");
   const [selectedTrackLabel, setSelectedTrackLabel] = useState(
@@ -59,13 +79,12 @@ export function FastingOverviewCalendarSection({
 
   return (
     <View style={styles.fastingCalendarSection}>
-      <Text style={styles.dashboardText}>{title}</Text>
+      <Text style={styles.dashboardText}>{resolvedTitle}</Text>
       <TopSpace top={16} />
       {showInfoBannerVisible ? (
         <View style={styles.fastingInfoBanner}>
           <Text style={styles.fastingInfoBannerText}>
-            Stay on top of your monthly fasting goals — view your planned fasts,
-            track completed days, and see what’s skipped or remaining.
+            {t("homeScreen.fastingInfoBanner")}
           </Text>
           <TouchableOpacity
             style={styles.fastingInfoBannerClose}
@@ -88,15 +107,15 @@ export function FastingOverviewCalendarSection({
         {FASTING_CALENDAR_FILTER_TABS.map((label) => (
           <Tabs
             key={label}
-            label={label}
+            label={t(getFastingFilterTranslationKey(label))}
             onPress={() => setFilterTab(label)}
-            selectedTab={filterTab}
+            selectedTab={t(getFastingFilterTranslationKey(filterTab))}
             bgColor={Colors.light.blackBackground}
           />
         ))}
       </ScrollView>
       <TopSpace top={16} />
-      <FastingGoalTotalCard label="GOAL TOTAL" count={PLANNED_FASTS.goalTotal} />
+      <FastingGoalTotalCard label={t("homeScreen.fastingGoalTotal")} count={PLANNED_FASTS.goalTotal} />
       <TopSpace top={16} />
       <ScrollView
         horizontal
@@ -109,9 +128,9 @@ export function FastingOverviewCalendarSection({
         {trackTabs.map(({ label }) => (
           <Tabs
             key={label}
-            label={label}
+            label={t(getFastingTrackTabTranslationKey(label))}
             onPress={() => setSelectedTrackLabel(label)}
-            selectedTab={selectedTrackLabel}
+            selectedTab={t(getFastingTrackTabTranslationKey(selectedTrackLabel))}
             bgColor={Colors.light.blackBackground}
           />
         ))}

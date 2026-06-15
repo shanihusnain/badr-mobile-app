@@ -7,6 +7,7 @@ import React, {
   useState,
 } from "react";
 import { StyleSheet, Text, View } from "react-native";
+import { useTypedTranslation } from "@/i18next/useTypedTranslation";
 import BottomSheet, {
   BottomSheetFlatList,
   BottomSheetFooter,
@@ -24,6 +25,7 @@ import { Entypo, MaterialIcons } from "@expo/vector-icons";
 import PrimaryButton from "@/components/atoms/Primary-button";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { TopSpace } from "@/components/atoms/TopSpace";
+import i18next from "i18next";
 
 export type { DashboardCategory };
 
@@ -226,6 +228,20 @@ function CategoryTabsScroll({
   onSelectTab,
   keyPrefix,
 }: CategoryTabsScrollProps) {
+  const { t } = useTypedTranslation();
+  
+  function getFilterTabTranslationKey(tab: string): any {
+    const keyMap: Record<string, string> = {
+      "All": "homeScreen.filterAll",
+      "Prayer": "homeScreen.filterPrayer",
+      "Quran": "homeScreen.filterQuran",
+      "Fasting": "homeScreen.filterFasting",
+      "Sadaqah": "homeScreen.filterSadaqah",
+      "Time Spent": "homeScreen.filterTimeSpent",
+    };
+    return keyMap[tab] || tab;
+  }
+
   return (
     <ScrollView
       horizontal
@@ -240,9 +256,9 @@ function CategoryTabsScroll({
       {CATEGORY_TABS.map((label) => (
         <Tabs
           key={`${keyPrefix}-${label}`}
-          label={label}
+          label={t(getFilterTabTranslationKey(label))}
           onPress={() => onSelectTab(label)}
-          selectedTab={selectedTab}
+          selectedTab={t(getFilterTabTranslationKey(selectedTab))}
         />
       ))}
     </ScrollView>
@@ -252,6 +268,7 @@ function CategoryTabsScroll({
 export const DashboardCustomizeBottomSheet = forwardRef<BottomSheet, Props>(
   function DashboardCustomizeBottomSheet({ onClose, onSave, onChange }, ref) {
     const safeAreaInsets = useSafeAreaInsets();
+    const { t } = useTypedTranslation();
     const [selectedDashboardCategory, setSelectedDashboardCategory] =
       useState<string>("All");
     const [selectedAddCategory, setSelectedAddCategory] =
@@ -334,6 +351,10 @@ export const DashboardCustomizeBottomSheet = forwardRef<BottomSheet, Props>(
     const renderDashboardItem = useCallback(
       ({ item }: { item: DashboardItem }) => {
         const rowId = getDashboardItemKey(item);
+        const keyBase = item.title.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+        const titleKey = `homeScreen.dashboardItem_${keyBase}_title` as any;
+        const translatedTitle = t(titleKey) === titleKey ? item.title : t(titleKey);
+
         return (
           <View style={styles.rowWrapper}>
             <SwipeToDeleteRow
@@ -343,7 +364,7 @@ export const DashboardCustomizeBottomSheet = forwardRef<BottomSheet, Props>(
               openRowId={openRowId}
             >
               <View style={styles.swipeListItemContent}>
-                <Text style={styles.listItemTitle}>{item.title}</Text>
+                <Text style={styles.listItemTitle}>{translatedTitle}</Text>
               </View>
             </SwipeToDeleteRow>
           </View>
@@ -359,7 +380,7 @@ export const DashboardCustomizeBottomSheet = forwardRef<BottomSheet, Props>(
             <Pressable style={styles.closeButton} onPress={onClose}>
               <Ionicons name="close" size={24} color={Colors.light.white} />
             </Pressable>
-            <Text style={styles.headerTitle}>CUSTOMIZE DASHBOARD</Text>
+            <Text style={styles.headerTitle}>{t("homeScreen.customizeDashboard")}</Text>
             <View style={styles.headerSpacer} />
           </View>
           <TopSpace top={16} />
@@ -378,7 +399,7 @@ export const DashboardCustomizeBottomSheet = forwardRef<BottomSheet, Props>(
       () => (
         <View style={styles.addSection}>
           <View style={styles.addSectionDividerRow}>
-            <Text style={styles.addSectionLabel}>ADD TO DASHBOARD</Text>
+            <Text style={styles.addSectionLabel}>{t("homeScreen.addToDashboard")}</Text>
             <View style={styles.addSectionDividerLine} />
           </View>
           <TopSpace top={16} />
@@ -391,6 +412,11 @@ export const DashboardCustomizeBottomSheet = forwardRef<BottomSheet, Props>(
           {addToDashboardItems.map((item) => {
             const itemKey = getDashboardItemKey(item);
             const isSelected = selectedAddItemKey === itemKey;
+            
+            const keyBase = item.title.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+            const titleKey = `homeScreen.dashboardItem_${keyBase}_title` as any;
+            const translatedTitle = t(titleKey) === titleKey ? item.title : t(titleKey);
+
             return (
               <View key={itemKey} style={styles.rowWrapper}>
                 <Pressable
@@ -401,7 +427,7 @@ export const DashboardCustomizeBottomSheet = forwardRef<BottomSheet, Props>(
                   ]}
                   onPress={() => handleToggleAddItem(item)}
                 >
-                  <Text style={styles.listItemTitle}>{item.title}</Text>
+                  <Text style={styles.listItemTitle}>{translatedTitle}</Text>
                   <View
                     style={
                       isSelected

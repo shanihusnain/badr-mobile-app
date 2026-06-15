@@ -7,9 +7,10 @@ import {
   View,
   ViewStyle,
 } from "react-native";
-import { Calendar, DateData } from "react-native-calendars";
+import { Calendar, DateData, LocaleConfig } from "react-native-calendars";
 import moment from "moment-hijri";
 import { fonts } from "@/assets/fonts";
+import { useTranslation } from "react-i18next";
 
 export type MenstruationCalendarProps = {
   currentDate: string;
@@ -25,14 +26,33 @@ export const MenstruationCalendar = ({
   isMenstruating,
 }: MenstruationCalendarProps) => {
   const today = moment().format("YYYY-MM-DD");
+  const { i18n } = useTranslation();
+  const isArabic = i18n.language === "ar";
   // When switch is OFF, always lock selection to today
   const effectiveSelected = isMenstruating ? (selectedDate ?? today) : today;
   const textColor = isMenstruating ? Colors.light.white : Colors.light.subtext;
 
+  React.useEffect(() => {
+    if (isArabic) {
+      if (!LocaleConfig.locales["ar"]) {
+        LocaleConfig.locales["ar"] = {
+          monthNames: ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"],
+          monthNamesShort: ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"],
+          dayNames: ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"],
+          dayNamesShort: ["أحد", "إثن", "ثلا", "أرب", "خمي", "جمع", "سبت"],
+          today: "اليوم"
+        };
+      }
+      LocaleConfig.defaultLocale = "ar";
+    } else {
+      LocaleConfig.defaultLocale = "en";
+    }
+  }, [isArabic]);
+
   return (
     <View style={styles.wrapper}>
       <Calendar
-        key={`${currentDate}-${isMenstruating}-${effectiveSelected}`}
+        key={`${currentDate}-${isMenstruating}-${effectiveSelected}-${i18n.language}`}
         current={currentDate}
         hideArrows
         renderHeader={() => null}

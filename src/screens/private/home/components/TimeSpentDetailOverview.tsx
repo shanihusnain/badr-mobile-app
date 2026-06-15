@@ -4,6 +4,7 @@ import { Colors } from "@/constants/theme";
 import { AntDesign, Entypo } from "@expo/vector-icons";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
+import { useTypedTranslation } from "@/i18next/useTypedTranslation";
 import {
   TIME_SPENT_TABS,
   buildCategoryBreakdown,
@@ -20,6 +21,7 @@ import { TimeSpentCategoryRow } from "./TimeSpentCategoryRow";
 import { TimeSpentChartBlock } from "./TimeSpentChartBlock";
 
 export function TimeSpentDetailOverview() {
+  const { t, i18n } = useTypedTranslation();
   const [selectedTab, setSelectedTab] = useState<TimeSpentTab>("All");
   const [selectedPeriod, setSelectedPeriod] = useState<TimeSpentPeriod>("week");
   const [weekOffset, setWeekOffset] = useState(0);
@@ -64,10 +66,13 @@ export function TimeSpentDetailOverview() {
     [selectedPeriod, weekOffset, cycleOffset],
   );
 
-  const summaryText = useMemo(
-    () => getSummaryText(selectedPeriod, totalHours),
-    [selectedPeriod, totalHours],
-  );
+  const summaryText = useMemo(() => {
+    const formatted = formatTotalTime(totalHours);
+    if (selectedPeriod === "week") {
+      return t("homeScreen.timeSpentWeekSummary").replace("{{time}}", formatted);
+    }
+    return t("homeScreen.timeSpentMonthSummary").replace("{{time}}", formatted);
+  }, [selectedPeriod, totalHours, t]);
 
   const yMax =
     selectedPeriod === "week"
@@ -129,7 +134,7 @@ export function TimeSpentDetailOverview() {
                       : styles.timeSpentPeriodButtonTextUnselected,
                   ]}
                 >
-                  {period === "week" ? "W" : "M"}
+                  {period === "week" ? t("homeScreen.timeSpent_toggle_W") : t("homeScreen.timeSpent_toggle_M")}
                 </Text>
               </Pressable>
             );
@@ -149,15 +154,24 @@ export function TimeSpentDetailOverview() {
         contentContainerStyle={styles.timeSpentDetailTabsContent}
         showsHorizontalScrollIndicator={false}
       >
-        {TIME_SPENT_TABS.map((tab) => (
-          <Tabs
-            key={tab}
-            label={tab}
-            selectedTab={selectedTab}
-            onPress={() => setSelectedTab(tab)}
-            bgColor={Colors.light.blackBackground}
-          />
-        ))}
+        {TIME_SPENT_TABS.map((tab) => {
+          let translatedTabLabel = tab;
+          if (tab === "All") translatedTabLabel = t("homeScreen.filterAll");
+          else if (tab === "Prayer") translatedTabLabel = t("homeScreen.filterPrayer");
+          else if (tab === "Quran") translatedTabLabel = t("homeScreen.filterQuran");
+          else if (tab === "Fasting") translatedTabLabel = t("homeScreen.filterFasting");
+          else if (tab === "Sadaqah") translatedTabLabel = t("homeScreen.filterSadaqah");
+
+          return (
+            <Tabs
+              key={tab}
+              label={translatedTabLabel}
+              selectedTab={selectedTab === tab ? translatedTabLabel : selectedTab}
+              onPress={() => setSelectedTab(tab)}
+              bgColor={Colors.light.blackBackground}
+            />
+          );
+        })}
       </ScrollView>
 
       <TopSpace top={16} />
@@ -171,7 +185,7 @@ export function TimeSpentDetailOverview() {
           <View style={styles.timeSpentNavRow}>
             <Pressable onPress={onPreviousPeriod} hitSlop={8}>
               <Entypo
-                name="chevron-left"
+                name={i18n.language === "ar" ? "chevron-right" : "chevron-left"}
                 size={18}
                 color={Colors.light.white}
               />
@@ -179,14 +193,14 @@ export function TimeSpentDetailOverview() {
             <Text style={styles.timeSpentNavLabel}>{periodRangeLabel}</Text>
             <Pressable onPress={onNextPeriod} hitSlop={8}>
               <Entypo
-                name="chevron-right"
+                name={i18n.language === "ar" ? "chevron-left" : "chevron-right"}
                 size={18}
                 color={Colors.light.white}
               />
             </Pressable>
           </View>
           <View style={styles.timeSpentTotalBlock}>
-            <Text style={styles.timeSpentTotalCaption}>TIME SPENT</Text>
+            <Text style={styles.timeSpentTotalCaption}>{t("homeScreen.timeSpentTitle")}</Text>
             <Text style={styles.timeSpentTotalValue}>
               {formatTotalTime(displayHours)}
             </Text>
@@ -212,8 +226,7 @@ export function TimeSpentDetailOverview() {
           style={styles.timeSpentDisclaimerIcon}
         />
         <Text style={styles.timeSpentDisclaimerText}>
-          Time Spent may be inaccurate if time wasn&apos;t logged for each
-          progress entry of your goal.
+          {t("homeScreen.timeSpentDisclaimer")}
         </Text>
       </View>
 

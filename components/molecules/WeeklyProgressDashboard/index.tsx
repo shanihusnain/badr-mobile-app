@@ -10,6 +10,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Colors } from "@/constants/theme";
 import { PrayerStatus } from "@/components/molecules/PrayerProgressTrackerRing";
+import { useTranslation } from "react-i18next";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -62,6 +63,16 @@ const DUMMY_WEEK: DayProgress[] = [
     { day: "Sat", statuses: ["none", "none", "none", "none", "none"] },
 ];
 
+const DAY_TRANSLATION_KEYS: Record<string, string> = {
+    Sun: "homeScreen.weeklyProgress_daySun",
+    Mon: "homeScreen.weeklyProgress_dayMon",
+    Tue: "homeScreen.weeklyProgress_dayTue",
+    Wed: "homeScreen.weeklyProgress_dayWed",
+    Thu: "homeScreen.weeklyProgress_dayThu",
+    Fri: "homeScreen.weeklyProgress_dayFri",
+    Sat: "homeScreen.weeklyProgress_daySat",
+};
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 // Card outer padding (left+right): wrapperPadding(4*2) + cardPadding(8*2)
@@ -83,6 +94,7 @@ export const WeeklyProgressDashboard: React.FC<WeeklyProgressDashboardProps> = (
     renderRing,
 }) => {
     const { width: screenWidth } = useWindowDimensions();
+    const { t, i18n } = useTranslation();
 
     // Dynamically compute ring size so all 7 columns fit inside the card
     const availableWidth = screenWidth - TOTAL_HORIZONTAL_PADDING;
@@ -110,17 +122,17 @@ export const WeeklyProgressDashboard: React.FC<WeeklyProgressDashboardProps> = (
                         size={18}
                         color={Colors.light.seagreen}
                     />
-                    <Text style={styles.weekFractionText}>{weekFraction} WEEKS</Text>
+                    <Text style={styles.weekFractionText}>{weekFraction} {t("homeScreen.weeklyProgress_weeks")}</Text>
                 </View>
 
                 {/* Week range navigation */}
                 <View style={styles.headerNav}>
                     <TouchableOpacity onPress={onPrevWeek} activeOpacity={0.7} style={styles.navBtn}>
-                        <Ionicons name="chevron-back" size={16} color={Colors.light.dullWhite} />
+                        <Ionicons name={i18n.language === "ar" ? "chevron-forward" : "chevron-back"} size={16} color={Colors.light.dullWhite} />
                     </TouchableOpacity>
                     <Text style={styles.weekRangeText}>{weekRangeLabel}</Text>
                     <TouchableOpacity onPress={onNextWeek} activeOpacity={0.7} style={styles.navBtn}>
-                        <Ionicons name="chevron-forward" size={16} color={Colors.light.dullWhite} />
+                        <Ionicons name={i18n.language === "ar" ? "chevron-back" : "chevron-forward"} size={16} color={Colors.light.dullWhite} />
                     </TouchableOpacity>
                 </View>
             </View>
@@ -141,7 +153,7 @@ export const WeeklyProgressDashboard: React.FC<WeeklyProgressDashboardProps> = (
                                 {renderRing(day, ringSize)}
                             </View>
                             <Text style={[styles.dayLabel, isActive && styles.dayLabelActive]}>
-                                {day.day}
+                                {t((DAY_TRANSLATION_KEYS[day.day] ?? "homeScreen.weeklyProgress_daySun") as any)}
                             </Text>
                         </TouchableOpacity>
                     );
@@ -160,7 +172,7 @@ export const WeeklyProgressDashboard: React.FC<WeeklyProgressDashboardProps> = (
                 />
                 <Text style={styles.statsText}>
                     <Text style={styles.statsCount}>{onTimePrayersCount}</Text>
-                    {" "}on-time prayers this week
+                    {" "}{t("homeScreen.weeklyProgress_onTimePrayers")}
                 </Text>
             </View>
 
@@ -169,7 +181,7 @@ export const WeeklyProgressDashboard: React.FC<WeeklyProgressDashboardProps> = (
                 {/* Streak */}
                 <View style={styles.streakBadge}>
                     <Ionicons name="flash" size={13} color={Colors.light.green} />
-                    <Text style={styles.streakText}>{streakDays}-day streak</Text>
+                    <Text style={styles.streakText}>{t("homeScreen.weeklyProgress_dayStreak", { count: streakDays })}</Text>
                 </View>
 
                 {/* Quote */}

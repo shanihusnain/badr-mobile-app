@@ -3,7 +3,9 @@ import { View, Text, TouchableOpacity } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 import { useRouter } from "expo-router";
 import { useSharedValue } from "react-native-reanimated";
-import moment from "moment-hijri";
+import moment from "moment";
+import "moment-hijri";
+moment.locale("en");
 import { MenstruationCalendar } from "@/components/molecules/MenstruationCalendar";
 import InlineDateWheelPicker from "@/components/molecules/InlineDateWheelPicker";
 import BackButton from "@/components/atoms/Backbutton";
@@ -12,6 +14,7 @@ import { Colors } from "@/constants/theme";
 import styles from "./style";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
+import { useTypedTranslation } from "@/i18next/useTypedTranslation";
 
 function toDateString(date: Date): string {
   const y = date.getFullYear();
@@ -34,6 +37,9 @@ export default function MenstruationLog({
   cycleStartDate,
 }: MenstruationLogProps) {
   const router = useRouter();
+  const { t } = useTypedTranslation();
+  const { i18n } = useTypedTranslation();
+  const locale = i18n.language === "ar" ? "ar" : "en";
   const isMenstruating = useSharedValue(false);
   const isStillMenstruating = useSharedValue(false);
   const [menstruating, setMenstruating] = useState(false);
@@ -70,30 +76,30 @@ export default function MenstruationLog({
 
   const todayButtonLabel =
     selectedDate === todayString
-      ? "Today"
-      : moment(selectedDate, "YYYY-MM-DD").format("MMM DD");
+      ? t("homeScreen.menstruationLog_today")
+      : moment(selectedDate, "YYYY-MM-DD").locale(locale).format("MMM DD");
 
   const endDateButtonLabel =
     selectedEndDate === todayString
-      ? "Today"
-      : moment(selectedEndDate, "YYYY-MM-DD").format("MMM DD");
+      ? t("homeScreen.menstruationLog_today")
+      : moment(selectedEndDate, "YYYY-MM-DD").locale(locale).format("MMM DD");
 
-  const startMoment = moment(selectedDate, "YYYY-MM-DD");
-  const endMoment = startMoment.clone().add(27, "days");
+  const startMoment = moment(selectedDate, "YYYY-MM-DD").locale(locale);
+  const endMoment = startMoment.clone().add(27, "days").locale(locale);
   const gregorianRange = `${startMoment.format("MMM DD").toUpperCase()} - ${endMoment.format("MMM DD, YYYY").toUpperCase()}`;
   const islamicMonthNames = [
-    "Muh.",
-    "Saf.",
-    "Rab. I",
-    "Rab. II",
-    "Jum. I",
-    "Jum. II",
-    "Raj.",
-    "Sha.",
-    "Ram.",
-    "Shaw.",
-    "Dhu al-Qa.",
-    "Dhu al-Hi.",
+    t("homeScreen.islamicMonth_muharram"),
+    t("homeScreen.islamicMonth_safar"),
+    t("homeScreen.islamicMonth_rabiI"),
+    t("homeScreen.islamicMonth_rabiII"),
+    t("homeScreen.islamicMonth_jumadaI"),
+    t("homeScreen.islamicMonth_jumadaII"),
+    t("homeScreen.islamicMonth_rajab"),
+    t("homeScreen.islamicMonth_shaban"),
+    t("homeScreen.islamicMonth_ramadan"),
+    t("homeScreen.islamicMonth_shawwal"),
+    t("homeScreen.islamicMonth_dhuAlQa"),
+    t("homeScreen.islamicMonth_dhuAlHi"),
   ];
   const islamicRange = `${islamicMonthNames[startMoment.iMonth()]} - ${islamicMonthNames[endMoment.iMonth()]} ${startMoment.iYear()}`;
 
@@ -125,12 +131,12 @@ export default function MenstruationLog({
   const endDateMinimum = moment(selectedDate, "YYYY-MM-DD").toDate();
 
   const startQuestionText = dateExplicitlyPicked
-    ? `When did it start ${moment(selectedDate, "YYYY-MM-DD").format("MMM D")}?`
-    : "When did it start today?";
+    ? t("homeScreen.menstruationLog_whenDidItStart", { date: moment(selectedDate, "YYYY-MM-DD").locale(locale).format("MMM D") })
+    : t("homeScreen.menstruationLog_whenDidItStartToday");
 
   const endQuestionText = endDateExplicitlyPicked
-    ? `When did it end ${moment(selectedEndDate, "YYYY-MM-DD").format("MMM D")}?`
-    : "When did it end today?";
+    ? t("homeScreen.menstruationLog_whenDidItEnd", { date: moment(selectedEndDate, "YYYY-MM-DD").locale(locale).format("MMM D") })
+    : t("homeScreen.menstruationLog_whenDidItEndToday");
 
   return (
     <BlackScreenWrapper>
@@ -141,14 +147,12 @@ export default function MenstruationLog({
       >
         <View style={styles.infoContainer}>
           <Text style={styles.infoText}>
-            Log your menstruation period to update your goals. Exempt acts of
-            worship will be automatically adjusted, ensuring your progress stays
-            accurate and fair.
+            {t("homeScreen.menstruationLog_infoText")}
           </Text>
         </View>
 
         <View style={styles.periodHeaderContainer}>
-          <Text style={styles.periodHeaderText}>YOUR MENSTRUATION PERIOD</Text>
+          <Text style={styles.periodHeaderText}>{t("homeScreen.menstruationLog_headerText")}</Text>
           <View style={styles.periodHeaderLine} />
         </View>
 
@@ -161,7 +165,7 @@ export default function MenstruationLog({
               },
             ]}
           >
-            I'M MENSTRUATING
+            {t("homeScreen.menstruationLog_imMenstruating")}
           </Text>
           <SwitchButton
             value={isMenstruating}
@@ -193,7 +197,7 @@ export default function MenstruationLog({
               },
             ]}
           >
-            Start Date
+            {t("homeScreen.menstruationLog_startDate")}
           </Text>
           <TouchableOpacity
             onPress={handleTodayPress}
@@ -237,24 +241,24 @@ export default function MenstruationLog({
             </Text>
             <View style={styles.radioOptionsList}>
               {[
-                "Before Fajr",
-                "Before Duhr",
-                "Before Asr",
-                "Before Maghrib",
-                "Before Isha",
-              ].map((time) => {
-                const isSelected = selectedStartTime === time;
+                { label: "Before Fajr", transKey: "homeScreen.menstruationLog_beforeFajr" },
+                { label: "Before Duhr", transKey: "homeScreen.menstruationLog_beforeDuhr" },
+                { label: "Before Asr", transKey: "homeScreen.menstruationLog_beforeAsr" },
+                { label: "Before Maghrib", transKey: "homeScreen.menstruationLog_beforeMaghrib" },
+                { label: "Before Isha", transKey: "homeScreen.menstruationLog_beforeIsha" },
+              ].map((timeOption) => {
+                const isSelected = selectedStartTime === timeOption.label;
                 return (
                   <TouchableOpacity
-                    key={time}
+                    key={timeOption.label}
                     style={styles.radioOption}
-                    onPress={() => setSelectedStartTime(time)}
+                    onPress={() => setSelectedStartTime(timeOption.label)}
                     activeOpacity={0.7}
                   >
                     <View style={styles.radioOuter}>
                       {isSelected && <View style={styles.radioInner} />}
                     </View>
-                    <Text style={styles.radioText}>{time}</Text>
+                    <Text style={styles.radioText}>{t(timeOption.transKey as any)}</Text>
                   </TouchableOpacity>
                 );
               })}
@@ -313,7 +317,7 @@ export default function MenstruationLog({
               },
             ]}
           >
-            I'M STILL MENSTRUATING
+            {t("homeScreen.menstruationLog_imStillMenstruating")}
           </Text>
           <SwitchButton
             value={isStillMenstruating}
@@ -342,7 +346,7 @@ export default function MenstruationLog({
               },
             ]}
           >
-            End Date
+            {t("homeScreen.menstruationLog_endDate")}
           </Text>
           <TouchableOpacity
             onPress={handleEndDatePress}
@@ -384,24 +388,24 @@ export default function MenstruationLog({
             <Text style={styles.startTimeQuestionText}>{endQuestionText}</Text>
             <View style={styles.radioOptionsList}>
               {[
-                "Before Fajr",
-                "Before Duhr",
-                "Before Asr",
-                "Before Maghrib",
-                "Before Isha",
-              ].map((time) => {
-                const isSelected = selectedEndTime === time;
+                { label: "Before Fajr", transKey: "homeScreen.menstruationLog_beforeFajr" },
+                { label: "Before Duhr", transKey: "homeScreen.menstruationLog_beforeDuhr" },
+                { label: "Before Asr", transKey: "homeScreen.menstruationLog_beforeAsr" },
+                { label: "Before Maghrib", transKey: "homeScreen.menstruationLog_beforeMaghrib" },
+                { label: "Before Isha", transKey: "homeScreen.menstruationLog_beforeIsha" },
+              ].map((timeOption) => {
+                const isSelected = selectedEndTime === timeOption.label;
                 return (
                   <TouchableOpacity
-                    key={time}
+                    key={timeOption.label}
                     style={styles.radioOption}
-                    onPress={() => setSelectedEndTime(time)}
+                    onPress={() => setSelectedEndTime(timeOption.label)}
                     activeOpacity={0.7}
                   >
                     <View style={styles.radioOuter}>
                       {isSelected && <View style={styles.radioInner} />}
                     </View>
-                    <Text style={styles.radioText}>{time}</Text>
+                    <Text style={styles.radioText}>{t(timeOption.transKey as any)}</Text>
                   </TouchableOpacity>
                 );
               })}
@@ -416,7 +420,7 @@ export default function MenstruationLog({
             router.back();
           }}
         >
-          <Text style={styles.saveButtonText}>SAVE</Text>
+          <Text style={styles.saveButtonText}>{t("homeScreen.menstruationLog_save")}</Text>
         </TouchableOpacity>
       </ScrollView>
     </BlackScreenWrapper>
