@@ -17,6 +17,7 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 16,
     marginTop: 8,
     overflow: "visible",
+    flexGrow: 1,
   },
   activeSection: {
     zIndex: 100,

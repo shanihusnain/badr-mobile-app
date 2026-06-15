@@ -200,6 +200,7 @@ export const DailyProgressBottomSheet = ({ onClose }: Props) => {
               progressColor={goal.progressColor}
               isSelected={selectedDetailCard === goal.id}
               onPress={() => {
+                console.log("goal.id", goal.id);
                 setSelectedDetailCard(goal.id);
                 handleGoalPress(goal.id);
               }}
