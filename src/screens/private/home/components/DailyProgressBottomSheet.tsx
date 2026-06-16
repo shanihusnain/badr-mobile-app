@@ -60,6 +60,7 @@ export const DailyProgressBottomSheet = ({ onClose }: Props) => {
       percentage: "40%",
       progressColor: Colors.light.ringQuran,
     },
+
     {
       key: "FASTING",
       title: t("homeScreen.fastingCategory"),

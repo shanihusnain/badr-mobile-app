@@ -425,7 +425,26 @@
     "streakDays": "{{count}} days",
     "daysLabel": "days",
     "goal": "GOAL",
-    "defaultGoal": "Goal Progress"
+    "defaultGoal": "Goal Progress",
+    "recitationGoalTitleDaily": "{{quantity}} recitations of {{surah}} daily",
+    "recitationGoalTitleWeekly": "{{quantity}} recitations of {{surah}} weekly",
+    "recitationFrequencyDaily": "daily",
+    "recitationFrequencyWeekly": "weekly",
+    "unitRecitations": "recitations",
+    "selectRecitationCount": "How many recitations did you complete?",
+    "recitationMaxLabel": "Max: {{max}}",
+    "recitationProgressLabel": "Rec {{current}} of {{total}}",
+    "enterTimeSpentRecitation": "Recitation {{number}} — Enter time spent.",
+    "recitationCountOption_one": "{{count}} time",
+    "recitationCountOption_other": "{{count}} times",
+    "surahNameLabel": "Surah {{name}}",
+    "surahTimesDaily": "{{count}} times daily",
+    "surahTimesWeekly": "{{count}} times weekly",
+    "surahTotalRecitations": "(Total {{total}} recitations)",
+    "surahStatusNotStarted": "Not Started",
+    "surahStatusInProgress": "In Progress",
+    "surahStatusAchieved": "{{percent}}% Achieved",
+    "logProgress": "Log Progress"
   },
   "goalsData": {
     "tahayyat-ul-wudhu": {
@@ -769,36 +788,11 @@
                 "SUNNAH\n(After)"
               ],
               "rows": [
-                [
-                  "FAJR",
-                  "2",
-                  "2",
-                  "-"
-                ],
-                [
-                  "DHUHR",
-                  "2+2",
-                  "4",
-                  "2 or 4"
-                ],
-                [
-                  "ASR",
-                  "2 or 4",
-                  "4",
-                  "-"
-                ],
-                [
-                  "MAGHRIB",
-                  "-",
-                  "3",
-                  "2"
-                ],
-                [
-                  "ISHA",
-                  "-",
-                  "4",
-                  "2"
-                ]
+                ["FAJR", "2", "2", "-"],
+                ["DHUHR", "2+2", "4", "2 or 4"],
+                ["ASR", "2 or 4", "4", "-"],
+                ["MAGHRIB", "-", "3", "2"],
+                ["ISHA", "-", "4", "2"]
               ]
             }
           ]
@@ -3010,15 +3004,7 @@
     "unlockMilestone": "to unlock your\nnext milestone.",
     "consistencyHeader": "Stay Consistent for Long-Term Barakah",
     "consistencyBody": "Your daily commitment to logging on Badr is more than a routine—it’s a step toward spiritual growth, bringing you closer to your goals, strengthening worship, and deepening your connection with Allah.",
-    "weekDays": [
-      "Sun",
-      "Mon",
-      "Tue",
-      "Wed",
-      "Thu",
-      "Fri",
-      "Sat"
-    ]
+    "weekDays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
   },
   "homeScreen": {
     "upcoming": "Upcoming",

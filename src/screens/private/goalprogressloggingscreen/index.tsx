@@ -27,8 +27,9 @@ export const GoalProgressLoggingScreen = ({
 
   // Extract and validate goalId
   const goalId = (goalIdParam || "") as GoalId;
+  console.log("goalId", goalId);
   const goalData = getGoalById(goalId);
-
+  console.log("goalData", goalData);
   if (!goalData) {
     return (
       <View style={styles.container}>
@@ -64,6 +65,7 @@ export const GoalProgressLoggingScreen = ({
   };
 
   const categoryColor = getCategoryColor(goalData.category);
+  console.log("categoryColor", getCategoryColor(goalData.category));
 
   return (
     <ScrollView
@@ -72,38 +74,40 @@ export const GoalProgressLoggingScreen = ({
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
     >
-        <View style={styles.goalInfoContainer}>
-          <TaperedCircleBorder
-            percentage={goalData.percentage}
-            progressColor={categoryColor}
-            borderColor={Colors.light.dullWhiteOpacity}
-            size={174}
-          >
-            <View style={styles.largeCircleInner}>
-              <Text style={styles.circleGoalText}>{t("homeScreen.weeklyProgress_goalLabel", { label: cleanLabel })}</Text>
-              <View style={styles.circlePercentRow}>
-                <Text style={styles.circlePercentNumber}>{percentageNum}</Text>
-                <Text style={styles.circlePercentSymbol}>%</Text>
-              </View>
+      <View style={styles.goalInfoContainer}>
+        <TaperedCircleBorder
+          percentage={goalData.percentage}
+          progressColor={categoryColor}
+          borderColor={Colors.light.dullWhiteOpacity}
+          size={174}
+        >
+          <View style={styles.largeCircleInner}>
+            <Text style={styles.circleGoalText}>
+              {t("homeScreen.weeklyProgress_goalLabel", { label: cleanLabel })}
+            </Text>
+            <View style={styles.circlePercentRow}>
+              <Text style={styles.circlePercentNumber}>{percentageNum}</Text>
+              <Text style={styles.circlePercentSymbol}>%</Text>
             </View>
-          </TaperedCircleBorder>
-        </View>
+          </View>
+        </TaperedCircleBorder>
+      </View>
 
-        <LoggingFlowSlot
-          goalData={goalData}
-          onLogComplete={(entry: ProgressLogEntry) => {
-            console.log("Logged progress:", entry);
-          }}
-        />
+      <LoggingFlowSlot
+        goalData={goalData}
+        onLogComplete={(entry: ProgressLogEntry) => {
+          console.log("Logged progress:", entry);
+        }}
+      />
 
-        {/* Weekly progress dashboard — always visible, never hidden by modal */}
-        <View style={styles.weeklyDashboardWrapper}>
-          <WeeklyProgressSection goalData={goalData} />
-        </View>
+      {/* Weekly progress dashboard — always visible, never hidden by modal */}
+      <View style={styles.weeklyDashboardWrapper}>
+        <WeeklyProgressSection goalData={goalData} />
+      </View>
 
-        <View style={styles.weeklyDashboardWrapper}>
-          <PastAchievementsSection goalData={goalData} />
-        </View>
-      </ScrollView>
+      <View style={styles.weeklyDashboardWrapper}>
+        <PastAchievementsSection goalData={goalData} />
+      </View>
+    </ScrollView>
   );
 };
