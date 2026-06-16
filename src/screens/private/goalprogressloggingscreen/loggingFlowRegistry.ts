@@ -29,6 +29,9 @@ const FLOW_TEMPLATE_BY_GOAL: Partial<Record<GoalId, LoggingFlowTemplate>> = {
   "quran-listening": "quran-hours",
   "quran-Tajweed": "quran-hours",
   "quran-recitationBySurah": "quran-recitation",
+  "prayer-tahiyyat": "tahiyat-ul-wudhu",
+  "prayer-missed": "missed-prayers",
+  "prayer-tahiyyatMasjid": "tahiyat-al-masjid",
 };
 
 export function getLoggingFlowTemplate(goalId: GoalId): LoggingFlowTemplate {
