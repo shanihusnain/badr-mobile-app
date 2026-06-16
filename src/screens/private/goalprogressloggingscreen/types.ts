@@ -1,6 +1,6 @@
 import { GoalId } from "../home/components/goalsData";
 
-export type LoggingFlowTemplate = "prayer-session" | "quran-hours";
+export type LoggingFlowTemplate = "prayer-session" | "quran-hours" | "tahiyat-ul-wudhu" | "missed-prayers" | "tahiyat-al-masjid";
 
 export type QuranHoursGoalId = "quran-listening" | "quran-Tajweed";
 

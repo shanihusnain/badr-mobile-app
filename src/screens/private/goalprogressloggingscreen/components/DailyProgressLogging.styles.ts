@@ -215,7 +215,7 @@ export const styles = StyleSheet.create({
     backgroundColor: Colors.light.white + "26",
     alignItems: "center",
     justifyContent: "center",
-    transform: [{ translateY: -10 }],
+    //transform: [{ translateY: -0 }],
   },
   dateRow: {
     flexDirection: "row",
