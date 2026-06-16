@@ -58,7 +58,7 @@ export const GOALS_DATA: Record<GoalId, GoalData> = {
   "prayer-tahiyyatMasjid": {
     id: "prayer-tahiyyatMasjid",
     category: "PRAYER",
-    title: "Tahiyyat Al-Masjid\nPrayer",
+    title: "Tahiyyat Al-Masjid",
     count: "12",
     label: "/47 prayers",
     percentage: "25%",
