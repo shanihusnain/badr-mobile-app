@@ -29,6 +29,21 @@ export function LoggingFlowSlot({ goalData, onLogComplete }: Props) {
   if (template === "quran-recitation") {
     return (
       <SurahRecitationLoggingSection
+        goalData={goalData}
+        onLogComplete={onLogComplete}
+      />
+    );
+  }
+
+  if (template === "quran-recitationBySurah") {
+    return (
+      <SurahRecitationLoggingSection
+        goalData={goalData}
+        onLogComplete={onLogComplete}
+      />
+    );
+  }
+
   if (template === "tahiyat-ul-wudhu") {
     return (
       <TahiyatUlWudhuLoggingFlow

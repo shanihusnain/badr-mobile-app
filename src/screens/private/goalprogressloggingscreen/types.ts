@@ -6,7 +6,6 @@ import type {
   SurahRecitationGoalId,
 } from "./quranRecitationTarget";
 
-
 export type LoggingFlowTemplate =
   | "prayer-session"
   | "quran-hours"
@@ -14,14 +13,15 @@ export type LoggingFlowTemplate =
   | "quran-recitationBySurah"
   | "quran-recitationByCompletion"
   | "quran-recitationByJuz"
- "tahiyat-ul-wudhu" | "missed-prayers" | "tahiyat-al-masjid";
+  | "tahiyat-ul-wudhu"
+  | "missed-prayers"
+  | "tahiyat-al-masjid";
 
 export type {
   QuranRecitationGoalId,
   RecitationFrequency,
   SurahRecitationGoalId,
 };
-
 
 export type QuranHoursGoalId = "quran-listening" | "quran-Tajweed";
 
