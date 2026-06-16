@@ -11,7 +11,9 @@ export type GoalId =
   | "prayer-qiyam"
   | "prayer-missed"
   | "prayer-fiveDailyPrayers"
-  | "quran-recitation"
+  | "quran-recitationBySurah"
+  | "quran-recitationByCompletion"
+  | "quran-recitationByJuz"
   | "quran-memorisation"
   | "quran-listening"
   | "quran-Tajweed"
@@ -167,18 +169,44 @@ export const GOALS_DATA: Record<GoalId, GoalData> = {
   },
 
   // Quran Goals
-  "quran-recitation": {
-    id: "quran-recitation",
+
+  "quran-recitationBySurah": {
+    id: "quran-recitationBySurah",
     category: "QURAN",
-    title: "Quran Recitation",
+    title: "Quran Recitation By Surah",
+    count: "3",
+    label: "/10 surahs",
+    percentage: "30%",
+    progressColor: Colors.light.ringQuran,
+    description:
+      "Quran recitation by surah helps us focus on specific surahs and improve our recitation skills.",
+    previousProgress: "3/10 surahs completed",
+  },
+  "quran-recitationByCompletion": {
+    id: "quran-recitationByCompletion",
+    category: "QURAN",
+    title: "Quran Recitation By Completion",
     count: "3",
     label: "/10 pages",
     percentage: "30%",
     progressColor: Colors.light.ringQuran,
     description:
-      "Regular Quran recitation keeps the Quran alive in our hearts. Each recitation is a dialogue with the Divine Word.",
+      "Quran recitation by completion helps us focus on specific pages and improve our recitation skills.",
     previousProgress: "3/10 pages completed",
   },
+  "quran-recitationByJuz": {
+    id: "quran-recitationByJuz",
+    category: "QURAN",
+    title: "Quran Recitation By Juz",
+    count: "3",
+    label: "/10 pages",
+    percentage: "30%",
+    progressColor: Colors.light.ringQuran,
+    description:
+      "Quran recitation by juz helps us focus on specific juzs and improve our recitation skills.",
+    previousProgress: "3/10 juzs completed",
+  },
+
   "quran-memorisation": {
     id: "quran-memorisation",
     category: "QURAN",
@@ -365,7 +393,7 @@ export const getGoalById = (goalId: GoalId): GoalData | null => {
  * Get all goals for a specific category
  */
 export const getGoalsByCategory = (
-  category: "PRAYER" | "QURAN" | "FASTING" | "SADAQAH"
+  category: "PRAYER" | "QURAN" | "FASTING" | "SADAQAH",
 ): GoalData[] => {
   return Object.values(GOALS_DATA).filter((goal) => goal.category === category);
 };

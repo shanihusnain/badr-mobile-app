@@ -212,7 +212,6 @@ export default function QuranHoursLoggingFlow({
 
   return (
     <ScrollView
-      showsVerticalScrollIndicator={false}
       contentContainerStyle={[
         styles.section,
         flowMode === "active" && styles.activeSection,

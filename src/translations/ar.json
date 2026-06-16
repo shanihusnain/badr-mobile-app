@@ -425,7 +425,26 @@
     "streakDays": "{{count}} أيام",
     "daysLabel": "أيام",
     "goal": "الهدف",
-    "defaultGoal": "تقدم الهدف"
+    "defaultGoal": "تقدم الهدف",
+    "recitationGoalTitleDaily": "{{quantity}} تلاوات من {{surah}} يوميًا",
+    "recitationGoalTitleWeekly": "{{quantity}} تلاوات من {{surah}} أسبوعيًا",
+    "recitationFrequencyDaily": "يوميًا",
+    "recitationFrequencyWeekly": "أسبوعيًا",
+    "unitRecitations": "تلاوات",
+    "selectRecitationCount": "كم مرة تلوت؟",
+    "recitationMaxLabel": "الحد الأقصى: {{max}}",
+    "recitationProgressLabel": "التلاوة {{current}} من {{total}}",
+    "enterTimeSpentRecitation": "التلاوة {{number}} — أدخل الوقت المستغرق.",
+    "recitationCountOption_one": "{{count}} مرة",
+    "recitationCountOption_other": "{{count}} مرات",
+    "surahNameLabel": "سورة {{name}}",
+    "surahTimesDaily": "{{count}} مرات يوميًا",
+    "surahTimesWeekly": "{{count}} مرات أسبوعيًا",
+    "surahTotalRecitations": "(المجموع {{total}} تلاوة)",
+    "surahStatusNotStarted": "لم يبدأ",
+    "surahStatusInProgress": "قيد التقدم",
+    "surahStatusAchieved": "أُنجز {{percent}}%",
+    "logProgress": "تسجيل التقدم"
   },
   "goalsData": {
     "tahayyat-ul-wudhu": {

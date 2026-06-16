@@ -1,6 +1,24 @@
 import { GoalId } from "../home/components/goalsData";
+import type {
+  QuranRecitationGoalId,
+  QuranRecitationTargetConfig,
+  RecitationFrequency,
+  SurahRecitationGoalId,
+} from "./quranRecitationTarget";
 
-export type LoggingFlowTemplate = "prayer-session" | "quran-hours";
+export type LoggingFlowTemplate =
+  | "prayer-session"
+  | "quran-hours"
+  | "quran-recitation"
+  | "quran-recitationBySurah"
+  | "quran-recitationByCompletion"
+  | "quran-recitationByJuz";
+
+export type {
+  QuranRecitationGoalId,
+  RecitationFrequency,
+  SurahRecitationGoalId,
+};
 
 export type QuranHoursGoalId = "quran-listening" | "quran-Tajweed";
 
@@ -14,7 +32,25 @@ export type QuranHoursLogEntry = {
   durationLabel: string;
 };
 
-export type ProgressLogEntry = QuranHoursLogEntry | Record<string, unknown>;
+export type QuranRecitationLogEntry = {
+  type: "quran-recitation";
+  goalId: QuranRecitationGoalId;
+  date: string;
+  startTime: string;
+  recitationCount: number;
+  hours: number;
+  minutes: number;
+  durationLabel: string;
+  recitationDurations: Array<{ hours: number; minutes: number }>;
+  frequency: RecitationFrequency;
+  targetQuantity: number;
+  surahName: string;
+};
+
+export type ProgressLogEntry =
+  | QuranHoursLogEntry
+  | QuranRecitationLogEntry
+  | Record<string, unknown>;
 
 export type QuranHoursFlowConfig = {
   summaryTitleKey: string;
@@ -28,5 +64,17 @@ export type QuranHoursFlowDefinition = {
   config: QuranHoursFlowConfig;
 };
 
-export const isQuranHoursGoalId = (goalId: GoalId): goalId is QuranHoursGoalId =>
+export const isQuranHoursGoalId = (
+  goalId: GoalId,
+): goalId is QuranHoursGoalId =>
   goalId === "quran-listening" || goalId === "quran-Tajweed";
+
+export type QuranRecitationFlowConfig = QuranRecitationTargetConfig & {
+  cycleTotal: number;
+};
+
+export type QuranRecitationFlowDefinition = {
+  template: "quran-recitation";
+  goalId: SurahRecitationGoalId;
+  config: QuranRecitationFlowConfig;
+};
