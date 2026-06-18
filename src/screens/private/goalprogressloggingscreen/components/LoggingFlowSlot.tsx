@@ -9,6 +9,12 @@ import { CompletionRecitationLoggingSection } from "./CompletionRecitationLoggin
 import TahiyatUlWudhuLoggingFlow from "../flows/TahiyatUlWudhuLoggingFlow";
 import MissedPrayersLoggingFlow from "../flows/MissedPrayersLoggingFlow";
 import TahiyatAlMasjidLoggingFlow from "../flows/TahiyatAlMasjidLoggingFlow";
+import DuhaPrayerLoggingFlow from "../flows/DuhaPrayerLoggingFlow";
+import TawbahPrayerLoggingFlow from "../flows/TawbahPrayerLoggingFlow";
+import IstikharaPrayerLoggingFlow from "../flows/IstikharaPrayerLoggingFlow";
+import ShukrPrayerLoggingFlow from "../flows/ShukrPrayerLoggingFlow";
+import QiyamLoggingFlow from "../flows/QiyamLoggingFlow";
+import SunnahRawatibLoggingFlow from "../flows/SunnahRawatibLoggingFlow";
 
 type Props = {
   goalData: GoalData;
@@ -68,6 +74,42 @@ export function LoggingFlowSlot({ goalData, onLogComplete }: Props) {
         goalData={goalData}
         onLogComplete={onLogComplete}
       />
+    );
+  }
+
+  if (template === "duha-prayer") {
+    return (
+      <DuhaPrayerLoggingFlow goalData={goalData} onLogComplete={onLogComplete} />
+    );
+  }
+
+  if (template === "tawbah-prayer") {
+    return (
+      <TawbahPrayerLoggingFlow goalData={goalData} onLogComplete={onLogComplete} />
+    );
+  }
+
+  if (template === "istikhara-prayer") {
+    return (
+      <IstikharaPrayerLoggingFlow goalData={goalData} onLogComplete={onLogComplete} />
+    );
+  }
+
+  if (template === "shukr-prayer") {
+    return (
+      <ShukrPrayerLoggingFlow goalData={goalData} onLogComplete={onLogComplete} />
+    );
+  }
+
+  if (template === "qiyam-al-layl") {
+    return (
+      <QiyamLoggingFlow goalData={goalData} onLogComplete={onLogComplete} />
+    );
+  }
+
+  if (template === "sunnah-rawatib") {
+    return (
+      <SunnahRawatibLoggingFlow goalData={goalData} onLogComplete={onLogComplete} />
     );
   }
 

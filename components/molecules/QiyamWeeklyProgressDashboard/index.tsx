@@ -12,15 +12,23 @@ import { useTranslation } from "react-i18next";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 
-export type TahiyatUlWudhuDayProgress = {
+export type QiyamDayProgress = {
   day: string;
   isLogged?: boolean;
   prayersLogged: number;
   isBestDay?: boolean;
+  isMenstruation?: boolean;
+  isFuture?: boolean;
+  isMissedStrict?: boolean;
+  isMissedFlexible?: boolean;
+  
+  loggedTime?: "after-isha" | "before-fajr" | "both";
+  gender?: "male" | "female";
+  isWitrPending?: boolean;
 };
 
-export type TahiyatUlWudhuWeeklyProgressDashboardProps = {
-  weekDays: TahiyatUlWudhuDayProgress[];
+export type QiyamWeeklyProgressDashboardProps = {
+  weekDays: QiyamDayProgress[];
   weekRangeLabel?: string;
   weekFraction?: string;
   totalPrayersThisWeek?: number;
@@ -37,63 +45,102 @@ const CARD_HORIZONTAL_PADDING = 16;
 const WRAPPER_WIDTH_RATIO = 0.92;
 const RING_SIZE_MAX = 34;
 
-type DayRingProps = {
+type DayIconProps = {
+  day: QiyamDayProgress;
   size: number;
-  hasLog: boolean;
-  isBestDay: boolean;
-  isSelected: boolean;
 };
 
-function TahiyatUlWudhuDayRing({
-  size,
-  hasLog,
-  isBestDay,
-  isSelected,
-}: DayRingProps) {
-  return (
-    <View
-      style={[
-        styles.ringOuter,
-        {
-          width: size + 10,
-          height: size + 16,
-          borderRadius: 8,
-        },
-        isSelected && styles.ringOuterSelected,
-      ]}
-    >
-      <View
-        style={[
-          styles.ringInner,
-          {
-            width: size,
-            height: size,
-            borderRadius: size / 2,
-          },
-          hasLog ? styles.ringInnerLogged : styles.ringInnerEmpty,
-        ]}
-      >
-        {isBestDay && (
-          <Ionicons name="star" size={18} color={Colors.light.yellow} />
-        )}
+function QiyamDayIcon({ day, size }: DayIconProps) {
+  const innerSizeStyle = {
+    width: size,
+    height: size,
+    borderRadius: size / 2,
+    justifyContent: "center" as const,
+    alignItems: "center" as const,
+  };
+
+  if (day.isMenstruation) {
+    return (
+      <View style={[innerSizeStyle, styles.ringMenstruation]} />
+    );
+  }
+
+  if (day.isFuture) {
+    return (
+      <View style={[innerSizeStyle, styles.ringFuture]} />
+    );
+  }
+
+  if (day.isMissedStrict) {
+    return (
+      <View style={[innerSizeStyle, styles.ringMissedStrict]} />
+    );
+  }
+
+  if (day.isMissedFlexible) {
+    return (
+      <View style={[innerSizeStyle, styles.ringMissedFlexible]} />
+    );
+  }
+
+  if (day.isLogged || day.loggedTime) {
+    const isWitrPending = day.isWitrPending;
+    return (
+      <View style={[
+        innerSizeStyle,
+        styles.ringLogged,
+        isWitrPending && styles.ringWitrPending
+      ]}>
+        {renderLoggedIcon(day)}
       </View>
-    </View>
+    );
+  }
+
+  return (
+    <View style={[innerSizeStyle, styles.ringEmpty]} />
   );
 }
 
-export function TahiyatUlWudhuWeeklyProgressDashboard({
+function renderLoggedIcon(day: QiyamDayProgress) {
+  const iconColor = Colors.light.white;
+  const iconSize = 14;
+
+  const moonIcon = <MaterialCommunityIcons name="star-crescent" size={iconSize} color={iconColor} />;
+  const malePrayIcon = <MaterialCommunityIcons name="human-handsdown" size={iconSize} color={iconColor} />;
+  const femalePrayIcon = <MaterialCommunityIcons name="human-female" size={iconSize} color={iconColor} />; // Alternative: just use prayer beads or something if needed, but human-female provides distinction. Actually, if they are the same in the library, we can just use "pray" or "human-handsdown" for both if gender specific doesn't exist, but we have "human-female" as a fallback. Let's use human-handsdown for both if no female specific praying exists, or human-female for female. Let's use human-handsdown as it represents praying best.
+
+  const prayingIcon = day.gender === "female" ? femalePrayIcon : malePrayIcon;
+
+  if (day.loggedTime === "after-isha") {
+    return moonIcon;
+  }
+  if (day.loggedTime === "before-fajr") {
+    return prayingIcon;
+  }
+  if (day.loggedTime === "both") {
+    return (
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <MaterialCommunityIcons name="star-crescent" size={10} color={iconColor} style={{ marginRight: -2 }} />
+        <MaterialCommunityIcons name={day.gender === "female" ? "human-female" : "human-handsdown"} size={10} color={iconColor} />
+      </View>
+    );
+  }
+  return null;
+}
+
+export function QiyamWeeklyProgressDashboard({
   weekDays,
   weekRangeLabel = "Nov 29 — Dec 5",
   weekFraction = "1/4",
-  totalPrayersThisWeek = 0,
-  streakDays = 0,
-  motivationalQuote = "",
+  totalPrayersThisWeek = 8,
+  streakDays = 7,
+  motivationalQuote = "Your Qiyam prayer is a beautiful act. May Allah reward you.",
   selectedDayIndex = 6,
-  statsIcon = "rug", // or similar suitable icon
+  statsIcon = "rug",
   onDayPress,
   onPrevWeek,
   onNextWeek,
-}: TahiyatUlWudhuWeeklyProgressDashboardProps) {
+}: QiyamWeeklyProgressDashboardProps) {
   const { t } = useTranslation();
   const { width: screenWidth } = useWindowDimensions();
 
@@ -157,7 +204,6 @@ export function TahiyatUlWudhuWeeklyProgressDashboard({
       <View style={styles.daysRow}>
         {weekDays.map((day, index) => {
           const isSelected = index === activeDayIndex;
-          const hasLog = day.prayersLogged > 0 || !!day.isLogged;
 
           return (
             <TouchableOpacity
@@ -167,12 +213,7 @@ export function TahiyatUlWudhuWeeklyProgressDashboard({
               activeOpacity={0.75}
             >
               <View style={[styles.dayItemWrapper, isSelected && styles.dayItemSelected]}>
-                <TahiyatUlWudhuDayRing
-                  size={ringSize}
-                  hasLog={hasLog}
-                  isBestDay={!!day.isBestDay}
-                  isSelected={isSelected}
-                />
+                <QiyamDayIcon day={day} size={ringSize} />
 
                 <Text
                   style={[
@@ -184,19 +225,17 @@ export function TahiyatUlWudhuWeeklyProgressDashboard({
                 </Text>
 
                 <View style={styles.durationSlot}>
-                  <Text
-                    style={[
-                      {
-                        color: day.isBestDay
-                          ? Colors.light.green
-                          : Colors.light.grey,
-                      },
-                      styles.durationText,
-                    ]}
-                    numberOfLines={1}
-                  >
-                    {day.isBestDay ? day.prayersLogged.toString() : (day.prayersLogged > 0 ? day.prayersLogged.toString() : "")}
-                  </Text>
+                  {!day.isMenstruation && !day.isFuture && !day.isMissedStrict && !day.isMissedFlexible && (
+                    <Text
+                      style={[
+                        day.isBestDay ? styles.durationTextBest : styles.durationTextNormal,
+                        styles.durationText,
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {day.isBestDay ? day.prayersLogged.toString() : (day.prayersLogged > 0 ? day.prayersLogged.toString() : "")}
+                    </Text>
+                  )}
                 </View>
               </View>
             </TouchableOpacity>
@@ -214,7 +253,7 @@ export function TahiyatUlWudhuWeeklyProgressDashboard({
           <Text style={styles.statsCount}>
             {totalPrayersThisWeek}
           </Text>
-          {" prayers this week"}
+          {totalPrayersThisWeek === 1 ? " total prayer this week" : " total prayers this week"}
         </Text>
       </View>
 
@@ -232,7 +271,7 @@ export function TahiyatUlWudhuWeeklyProgressDashboard({
             size={14}
             color={Colors.light.seagreen}
           />
-          <Text style={styles.quoteText}>{motivationalQuote || "Masha'Allah, may Allah always fill your heart with His love and light!"}</Text>
+          <Text style={styles.quoteText}>{motivationalQuote}</Text>
         </View>
       </View>
     </View>
@@ -292,12 +331,39 @@ const styles = StyleSheet.create({
   },
   dayItemWrapper: {
     alignItems: "center",
-    paddingVertical: 4,
-    paddingHorizontal: 2,
+    paddingVertical: 12, // Increased padding to make a distinct box
+    paddingHorizontal: 4,
     borderRadius: 8,
   },
   dayItemSelected: {
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
+    backgroundColor: Colors.light.dayProgressCardBg,
+  },
+  ringInnerMenstruation: {
+    backgroundColor: Colors.light.red,
+  },
+  ringMenstruation: {
+    backgroundColor: Colors.light.red,
+  },
+  ringFuture: {
+    backgroundColor: "transparent",
+    borderWidth: 1,
+    borderColor: Colors.light.selectcategory,
+  },
+  ringMissedStrict: {
+    backgroundColor: Colors.light.golden, // Orange equivalent
+  },
+  ringMissedFlexible: {
+    backgroundColor: Colors.light.selectcategory, // Grey equivalent
+  },
+  ringLogged: {
+    backgroundColor: Colors.light.green,
+  },
+  ringWitrPending: {
+    borderWidth: 2,
+    borderColor: Colors.light.yellow,
+  },
+  ringEmpty: {
+    backgroundColor: Colors.light.dullWhiteOpacity,
   },
   bestDayLabel: {
     color: Colors.light.green,
@@ -305,35 +371,14 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontFamily: fonts.primary.bold,
     textAlign: "center",
-    marginTop: 4,
-  },
-  ringOuter: {
-    alignItems: "center",
-    justifyContent: "center",
-    borderColor: "transparent",
-  },
-  ringOuterSelected: {
-    // No outer border needed based on the design, it uses background instead
-  },
-  ringInner: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  ringInnerLogged: {
-    backgroundColor: Colors.light.green,
-  },
-  ringInnerMenstruation: {
-    backgroundColor: Colors.light.red,
-  },
-  ringInnerEmpty: {
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    marginTop: 8,
   },
   dayLabel: {
     color: Colors.light.subtext,
     fontSize: 10,
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
-    marginTop: 4,
+    marginTop: 8,
     textAlign: "center",
   },
   durationSlot: {
@@ -341,12 +386,19 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     width: "100%",
+    marginTop: 2,
   },
   durationText: {
     fontSize: 11,
     fontWeight: "700",
     fontFamily: fonts.primary.bold,
     textAlign: "center",
+  },
+  durationTextBest: {
+    color: Colors.light.green,
+  },
+  durationTextNormal: {
+    color: Colors.light.grey,
   },
   statsRow: {
     flexDirection: "row",
@@ -386,11 +438,10 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.medium,
   },
   quoteBlock: {
-    flex: 1,
     flexDirection: "row",
     alignItems: "flex-start",
     gap: 4,
-    minWidth: 0,
+    flex: 1,
   },
   quoteText: {
     flex: 1,

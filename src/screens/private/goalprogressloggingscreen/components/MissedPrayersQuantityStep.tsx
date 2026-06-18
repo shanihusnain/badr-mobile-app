@@ -59,7 +59,7 @@ const PrayerItem = React.memo(({
       >
         <MaterialCommunityIcons
           name={PRAYER_ICONS[prayer]}
-          size={18}
+          size={15}
           color={hasQuantity ? categoryColor : Colors.light.white}
         />
       </View>
@@ -96,13 +96,12 @@ const localStyles = StyleSheet.create({
   prayerGrid: {
     flexDirection: "row",
     justifyContent: "center",
-    gap: 6,
+    gap: 4,
     width: "100%",
-    paddingHorizontal: 8,
   },
   prayerColumn: {
     alignItems: "center",
-    gap: 6,
+    gap: 3,
   },
   prayerLabel: {
     color: Colors.light.white,
@@ -111,8 +110,8 @@ const localStyles = StyleSheet.create({
     fontWeight: "600",
   },
   prayerIconBox: {
-    width: 44,
-    height: 26,
+    width: 36,
+    height: 24,
     borderRadius: 4,
     alignItems: "center",
     justifyContent: "center",

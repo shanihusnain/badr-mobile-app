@@ -86,7 +86,7 @@ export default function MissedPrayersLoggingFlow({
   };
 
   const badgeStatus = getBadgeStatus();
-  const isCompleted = hasLogged && MOCK_PERCENTAGE >= 100;
+  const isCompleted = hasLogged;
 
   const todayString = toDateString(new Date());
   const currentStep = STEPS[stepIndex];
@@ -250,19 +250,16 @@ export default function MissedPrayersLoggingFlow({
 
         {flowMode === "collapsed" ? (
           <View style={localStyles.summaryCard}>
-            <View style={localStyles.badgeRow}>
-                <View style={[localStyles.badge, badgeStatus.type === "completed" ? localStyles.badgeCompleted : localStyles.badgeInProgress]}>
-                  <Text style={[localStyles.badgeText, badgeStatus.type === "completed" ? localStyles.badgeTextCompleted : localStyles.badgeTextInProgress]}>
-                      {badgeStatus.text}
-                  </Text>
-                </View>
-            </View>
-
             <View style={localStyles.summaryBody}>
               <View style={localStyles.summaryIconCircle}>
                  <MaterialCommunityIcons name="calendar-remove" size={18} color={Colors.light.white} />
               </View>
               <View style={localStyles.titleContainer}>
+                <View style={[localStyles.badge, badgeStatus.type === "completed" ? localStyles.badgeCompleted : localStyles.badgeInProgress, { alignSelf: "flex-start", marginBottom: 4 }]}>
+                  <Text style={[localStyles.badgeText, badgeStatus.type === "completed" ? localStyles.badgeTextCompleted : localStyles.badgeTextInProgress]}>
+                    {badgeStatus.text}
+                  </Text>
+                </View>
                 <Text style={localStyles.summaryTitle}>
                   {mockTitle}
                 </Text>
@@ -276,7 +273,7 @@ export default function MissedPrayersLoggingFlow({
                 {isCompleted ? (
                     <TouchableOpacity style={localStyles.insightsBtn}>
                         <Text style={localStyles.insightsText}>VIEW INSIGHTS</Text>
-                        <Ionicons name="chevron-forward" size={16} color={Colors.light.white} />
+                        <Ionicons name="chevron-forward" size={22} color={Colors.light.white} />
                     </TouchableOpacity>
                 ) : <View style={localStyles.spacer} />}
 
@@ -316,6 +313,8 @@ const localStyles = StyleSheet.create({
     borderRadius: 14,
     padding: 16,
     gap: 12,
+    height: 145,
+    justifyContent: 'space-between',
   },
   badge: {
     paddingHorizontal: 8,
@@ -362,6 +361,8 @@ const localStyles = StyleSheet.create({
     fontFamily: fonts.primary.semiBold,
     fontSize: 14,
     fontWeight: "600",
+    lineHeight: 18,
+    letterSpacing: 0,
   },
   summarySubtitle: {
     color: Colors.light.white,
@@ -384,11 +385,12 @@ const localStyles = StyleSheet.create({
     alignItems: "center",
     gap: 4,
     paddingBottom: 4,
+    transform: [{ translateY: -4 }],
   },
   insightsText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.bold,
-    fontSize: 11,
+    fontSize: 16,
     fontWeight: "700",
   },
   addButton: {
@@ -399,9 +401,11 @@ const localStyles = StyleSheet.create({
     borderColor: Colors.light.white,
     alignItems: "center",
     justifyContent: "center",
+    transform: [{ translateY: -4 }],
   },
   badgeRow: {
     flexDirection: "row",
+    marginLeft: 14,
   },
   spacer: {
     flex: 1,

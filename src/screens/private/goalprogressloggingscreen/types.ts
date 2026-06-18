@@ -13,7 +13,13 @@ export type LoggingFlowTemplate =
   | "quran-completion"
   | "tahiyat-ul-wudhu"
   | "missed-prayers"
-  | "tahiyat-al-masjid";
+  | "tahiyat-al-masjid"
+  | "duha-prayer"
+  | "tawbah-prayer"
+  | "istikhara-prayer"
+  | "shukr-prayer"
+  | "qiyam-al-layl"
+  | "sunnah-rawatib";
 
 export type {
   QuranRecitationGoalId,

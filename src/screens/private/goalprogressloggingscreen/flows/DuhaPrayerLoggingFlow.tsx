@@ -13,15 +13,15 @@ import moment from "moment-hijri";
 import { Colors } from "@/constants/theme";
 import { GoalData } from "../../home/components/goalsData";
 import { DateStep } from "../components/DateStep";
-import { OptionSelectStep } from "../components/OptionSelectStep";
+import { PrayerQuantityInputStep } from "../components/PrayerQuantityInputStep";
 import { StartTimeStep, DurationStep } from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
 import { styles as commonStyles } from "../components/DailyProgressLogging.styles";
 import { fonts } from "@/assets/fonts";
 import type { ProgressLogEntry } from "../types";
 
-type TahiyatAlMasjidStepId = "date" | "prayer-right-after" | "start-time" | "time-spent";
-const STEPS: TahiyatAlMasjidStepId[] = ["date", "prayer-right-after", "start-time", "time-spent"];
+type DuhaPrayerStepId = "date" | "prayers-quantity" | "start-time" | "time-spent";
+const STEPS: DuhaPrayerStepId[] = ["date", "prayers-quantity", "start-time", "time-spent"];
 
 type Props = {
   goalData: GoalData;
@@ -32,9 +32,7 @@ type FlowMode = "collapsed" | "active";
 
 const toDateString = (date: Date) => moment(date).format("YYYY-MM-DD");
 
-const getLabelIdentity = (o: string) => o;
-
-export default function TahiyatAlMasjidLoggingFlow({
+export default function DuhaPrayerLoggingFlow({
   goalData,
   onLogComplete,
 }: Props) {
@@ -43,25 +41,20 @@ export default function TahiyatAlMasjidLoggingFlow({
   const [flowMode, setFlowMode] = useState<FlowMode>("collapsed");
   const [stepIndex, setStepIndex] = useState(0);
 
-  // Step 1: Date
   const [selectedDate, setSelectedDate] = useState(toDateString(new Date()));
-  // Step 2: Did you pray right after entering the mosque?
-  const [prayedRightAfter, setPrayedRightAfter] = useState<"Yes" | "No">("Yes");
-  // Step 3: Start Time
+  const [prayersCount, setPrayersCount] = useState("2");
+
   const [startHour, setStartHour] = useState("06");
   const [startMinute, setStartMinute] = useState("15");
   const [startPeriod, setStartPeriod] = useState<"am" | "pm">("am");
   const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
-  // Step 4: Time Spent
+
   const [durationHours, setDurationHours] = useState("0");
   const [durationMinutes, setDurationMinutes] = useState("10");
 
-  // MOCK DATA — fixed until backend is connected
-  const MOCK_PERCENTAGE = 58;
-  const totalPrayersRequired = 100;
-  const mockTitle = `${totalPrayersRequired} 2-Rak'ah Tahiyyat Al-Masjid Prayers`;
-
-  // hasLogged: false = show "In Progress", true = show fixed percentage
+  const MOCK_PERCENTAGE = 40;
+  const totalPrayersRequired = 40;
+  const mockTitle = `${totalPrayersRequired} 2-Rak'ah Duha Prayers`;
   const [hasLogged, setHasLogged] = useState(false);
 
   const getBadgeStatus = () => {
@@ -94,7 +87,7 @@ export default function TahiyatAlMasjidLoggingFlow({
     setFlowMode("collapsed");
     setStepIndex(0);
     setSelectedDate(toDateString(new Date()));
-    setPrayedRightAfter("Yes");
+    setPrayersCount("2");
     setStartHour("06");
     setStartMinute("15");
     setStartPeriod("am");
@@ -106,10 +99,10 @@ export default function TahiyatAlMasjidLoggingFlow({
   const handleConfirm = () => {
     setHasLogged(true);
     onLogComplete?.({
-      type: "tahiyat-al-masjid",
+      type: "duha-prayer",
       goalId: goalData.id,
       date: selectedDate,
-      prayedRightAfter,
+      prayersCount,
       startTime: `${startHour}:${startMinute} ${startPeriod}`,
       durationHours,
       durationMinutes,
@@ -118,47 +111,32 @@ export default function TahiyatAlMasjidLoggingFlow({
   };
 
   const handleBack = () => {
-    if (stepIndex === 0) {
-      resetFlow();
-      return;
-    }
-    setStepIndex((index) => index - 1);
+    if (stepIndex === 0) { resetFlow(); return; }
+    setStepIndex((i) => i - 1);
   };
 
   const handleForward = () => {
-    if (!isLastStep) setStepIndex((index) => index + 1);
+    if (!isLastStep) setStepIndex((i) => i + 1);
   };
 
   const handleOpenFlow = useCallback(() => {
     setFlowMode("active");
   }, []);
 
-  const getStepHeader = (step: TahiyatAlMasjidStepId) => {
+  const getStepHeader = (step: DuhaPrayerStepId) => {
     switch (step) {
       case "date":
-        return {
-          icon: <Ionicons name="calendar-outline" size={15} color={Colors.light.white} />,
-          label: "Which day are you logging for?",
-        };
-      case "prayer-right-after":
-        return {
-          icon: <MaterialCommunityIcons name="rug" size={15} color={Colors.light.white} />, // Prayer rug icon
-          label: "Did you pray right after entering the mosque?",
-        };
+        return { icon: <Ionicons name="calendar-outline" size={15} color={Colors.light.white} />, label: "Which day are you logging for?" };
+      case "prayers-quantity":
+        return { icon: <MaterialCommunityIcons name="weather-partly-cloudy" size={16} color={Colors.light.white} />, label: "How many 2-rak'ah prayers did you pray?" };
       case "start-time":
-        return {
-          icon: <Ionicons name="time-outline" size={15} color={Colors.light.white} />,
-          label: "Enter start time.",
-        };
+        return { icon: <Ionicons name="time-outline" size={15} color={Colors.light.white} />, label: "Enter start time." };
       case "time-spent":
-        return {
-          icon: <Ionicons name="timer-outline" size={15} color={Colors.light.white} />,
-          label: "Enter time spent.",
-        };
+        return { icon: <Ionicons name="timer-outline" size={15} color={Colors.light.white} />, label: "Enter time spent." };
     }
   };
 
-  const renderStepContent = (step: TahiyatAlMasjidStepId) => {
+  const renderStepContent = (step: DuhaPrayerStepId) => {
     switch (step) {
       case "date":
         return (
@@ -170,14 +148,11 @@ export default function TahiyatAlMasjidLoggingFlow({
             styles={commonStyles}
           />
         );
-      case "prayer-right-after":
+      case "prayers-quantity":
         return (
-          <OptionSelectStep<"Yes" | "No">
-            options={["Yes", "No"]}
-            selectedValue={prayedRightAfter}
-            onSelectValue={setPrayedRightAfter}
-            getLabel={getLabelIdentity}
-            radioInnerColor={Colors.light.white}
+          <PrayerQuantityInputStep
+            quantity={prayersCount}
+            setQuantity={setPrayersCount}
             styles={commonStyles}
           />
         );
@@ -219,11 +194,7 @@ export default function TahiyatAlMasjidLoggingFlow({
           <Pressable style={commonStyles.backdrop} onPress={resetFlow} />
         )}
         {flowMode === "active" && (
-          <TouchableOpacity
-            style={commonStyles.cancelButton}
-            onPress={resetFlow}
-            activeOpacity={0.8}
-          >
+          <TouchableOpacity style={commonStyles.cancelButton} onPress={resetFlow} activeOpacity={0.8}>
             <Ionicons name="close" size={20} color={Colors.light.white} />
           </TouchableOpacity>
         )}
@@ -232,7 +203,7 @@ export default function TahiyatAlMasjidLoggingFlow({
           <View style={localStyles.summaryCard}>
             <View style={localStyles.summaryBody}>
               <View style={localStyles.summaryIconCircle}>
-                <MaterialCommunityIcons name="mosque" size={26} color={Colors.light.white} />
+                <MaterialCommunityIcons name="weather-partly-cloudy" size={20} color={Colors.light.white} />
               </View>
               <View style={{ flex: 1, gap: 4 }}>
                 <View style={[localStyles.badge, badgeStatus.type === "completed" ? localStyles.badgeCompleted : localStyles.badgeInProgress, { alignSelf: "flex-start" }]}>
@@ -254,11 +225,7 @@ export default function TahiyatAlMasjidLoggingFlow({
                 </TouchableOpacity>
               ) : <View style={localStyles.spacer} />}
 
-              <TouchableOpacity
-                style={localStyles.addButton}
-                onPress={handleOpenFlow}
-                activeOpacity={0.8}
-              >
+              <TouchableOpacity style={localStyles.addButton} onPress={handleOpenFlow} activeOpacity={0.8}>
                 <Ionicons name="add" size={22} color={Colors.light.white} />
               </TouchableOpacity>
             </View>
@@ -285,14 +252,7 @@ export default function TahiyatAlMasjidLoggingFlow({
 }
 
 const localStyles = StyleSheet.create({
-  summaryCard: {
-    backgroundColor: Colors.light.green,
-    borderRadius: 14,
-    padding: 16,
-    gap: 12,
-    height: 145,
-    justifyContent: 'space-between',
-  },
+  summaryCard: { backgroundColor: Colors.light.green, borderRadius: 14, padding: 16, gap: 12, height: 145, justifyContent: 'space-between' },
   badge: {
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -321,10 +281,10 @@ const localStyles = StyleSheet.create({
     gap: 12,
   },
   summaryIconCircle: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    backgroundColor: Colors.light.blackBackground, // Dark grey background
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.light.blackBackground,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -348,7 +308,6 @@ const localStyles = StyleSheet.create({
     alignItems: "center",
     gap: 4,
     paddingBottom: 4,
-    transform: [{ translateY: -8 }],
   },
   insightsText: {
     color: Colors.light.white,
@@ -364,7 +323,6 @@ const localStyles = StyleSheet.create({
     borderColor: Colors.light.white,
     alignItems: "center",
     justifyContent: "center",
-    transform: [{ translateY: -8 }],
   },
   badgeRow: {
     flexDirection: "row",
