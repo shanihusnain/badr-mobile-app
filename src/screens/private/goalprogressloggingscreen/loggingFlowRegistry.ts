@@ -1,13 +1,18 @@
-import { convertTabPropsToOptions } from "expo-router/build/native-tabs/NativeTabTrigger";
 import { GoalId } from "../home/components/goalsData";
+import {
+  getCompletionRecitationProgress,
+  getCurrentCompletionNumber,
+} from "./quranRecitationCompletionData";
 import {
   getQuranRecitationTargetConfig,
   getRecitationCycleTotal,
   isSurahRecitationGoalId,
 } from "./quranRecitationTarget";
 import {
+  isCompletionGoalId,
   isQuranHoursGoalId,
   LoggingFlowTemplate,
+  QuranCompletionFlowDefinition,
   QuranHoursFlowDefinition,
   QuranRecitationFlowDefinition,
 } from "./types";
@@ -28,7 +33,9 @@ const QURAN_HOURS_FLOW_CONFIG = {
 const FLOW_TEMPLATE_BY_GOAL: Partial<Record<GoalId, LoggingFlowTemplate>> = {
   "quran-listening": "quran-hours",
   "quran-Tajweed": "quran-hours",
-  "quran-recitationBySurah": "quran-recitation",
+  "quran-recitationBySurah-daily": "quran-recitation",
+  "quran-recitationBySurah-weekly": "quran-recitation",
+  "quran-recitationByCompletion": "quran-completion",
   "prayer-tahiyyat": "tahiyat-ul-wudhu",
   "prayer-missed": "missed-prayers",
   "prayer-tahiyyatMasjid": "tahiyat-al-masjid",
@@ -63,6 +70,24 @@ export function getQuranRecitationFlowDefinition(
     config: {
       ...target,
       cycleTotal: getRecitationCycleTotal(target.frequency, target.quantity),
+    },
+  };
+}
+
+export function getQuranCompletionFlowDefinition(
+  goalId: GoalId,
+): QuranCompletionFlowDefinition | null {
+  if (!isCompletionGoalId(goalId)) return null;
+
+  const progress = getCompletionRecitationProgress();
+
+  return {
+    template: "quran-completion",
+    goalId,
+    config: {
+      targetCompletions: progress.targetCompletions,
+      completedCompletions: progress.completedCompletions,
+      currentCompletion: getCurrentCompletionNumber(progress),
     },
   };
 }

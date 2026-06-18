@@ -70,7 +70,7 @@ export function deriveSurahRecitationStatus(
 const MOCK_SURAH_GOALS: SurahRecitationGoal[] = [
   buildGoal("surah-al-mulk", "Al-Mulk", "daily", 2, 0, "not-started"),
   buildGoal("surah-al-baqarah", "Al-Baqarah", "daily", 2, 14, "achieved", 25),
-  buildGoal("surah-ya-sin", "Ya-Sin", "weekly", 3, 4, "in-progress"),
+  buildGoal("surah-ya-sin", "Ya-Sin", "weekly", 3, 5, "in-progress"),
   buildGoal("surah-al-kahf", "Al-Kahf", "daily", 1, 18, "achieved", 64),
 ];
 

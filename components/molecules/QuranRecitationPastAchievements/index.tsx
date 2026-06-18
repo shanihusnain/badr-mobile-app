@@ -5,8 +5,9 @@ import {
   StyleSheet,
   TouchableOpacity,
   Pressable,
-  useWindowDimensions,
+  ScrollView,
   FlatList,
+  useWindowDimensions,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
@@ -15,22 +16,29 @@ import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import {
-  formatGoalHoursLabel,
-  getQuranHoursPastAchievement,
-  type PastAchievementPeriod,
-} from "@/src/screens/private/goalprogressloggingscreen/quranHoursPastAchievementData";
-import type { QuranHoursGoalId } from "@/src/screens/private/goalprogressloggingscreen/types";
-import { INCOMPLETE_BAR_COLOR } from "./pastAchievementStyles";
-import { QuranHoursPastAchievementChartBlock } from "./QuranHoursPastAchievementChartBlock";
-import { TopSpace } from "@/components/atoms/TopSpace";
+  applyRecitationAnalyticsView,
+  formatGoalRecitationsLabel,
+  formatRecitationTimeSpentLabel,
+  getPastAchievementSurahFilters,
+  getQuranRecitationPastAchievement,
+  getQuranRecitationPastAchievementSlice,
+  getTotalTimeSpentMinutes,
+  type RecitationAnalyticsView,
+  type SurahFilterId,
+} from "@/src/screens/private/goalprogressloggingscreen/quranRecitationPastAchievementData";
+import type { PastAchievementPeriod } from "@/src/screens/private/goalprogressloggingscreen/quranHoursPastAchievementData";
+import type { SurahRecitationGoalId } from "@/src/screens/private/goalprogressloggingscreen/quranRecitationTarget";
+import { INCOMPLETE_BAR_COLOR } from "../QuranHoursPastAchievements/pastAchievementStyles";
+import { QuranHoursPastAchievementChartBlock } from "../QuranHoursPastAchievements/QuranHoursPastAchievementChartBlock";
 import {
   getGoalById,
-  GoalData,
+  type GoalData,
 } from "@/src/screens/private/home/components/goalsData";
+import { TopSpace } from "@/components/atoms/TopSpace";
 import { Image } from "expo-image";
 
 type Props = {
-  goalId: QuranHoursGoalId;
+  goalId: SurahRecitationGoalId;
 };
 
 const PERIODS: PastAchievementPeriod[] = [
@@ -38,65 +46,123 @@ const PERIODS: PastAchievementPeriod[] = [
   "threeMonths",
   "sixMonths",
 ];
-const STUDY_CARD_WIDTH_RATIO = 0.42;
-const STUDY_CARD_GAP = 10;
+
 const PERIOD_LABEL_KEYS: Record<PastAchievementPeriod, string> = {
   monthly: "progressLogging.periodMonthly",
   threeMonths: "progressLogging.periodThreeMonths",
   sixMonths: "progressLogging.periodSixMonths",
 };
-type StudyMaterialItem = NonNullable<GoalData["studyMaterial"]>[number];
-const GOAL_SUMMARY_KEY: Record<QuranHoursGoalId, string> = {
-  "quran-listening": "progressLogging.achievementSummaryListening",
-  "quran-Tajweed": "progressLogging.achievementSummaryTajweed",
+
+const GOAL_SUMMARY_KEY = "progressLogging.achievementSummaryRecitationSurah";
+
+const ANALYTICS_VIEWS: RecitationAnalyticsView[] = [
+  "completedVsIncomplete",
+  "completedVsTimeSpent",
+];
+
+const ANALYTICS_VIEW_LABEL_KEYS: Record<RecitationAnalyticsView, string> = {
+  completedVsIncomplete: "progressLogging.analyticsCompletedVsIncomplete",
+  completedVsTimeSpent: "progressLogging.analyticsCompletedVsTimeSpent",
 };
 
-export function QuranHoursPastAchievements({ goalId }: Props) {
+type StudyMaterialItem = NonNullable<GoalData["studyMaterial"]>[number];
+
+const STUDY_CARD_WIDTH_RATIO = 0.42;
+const STUDY_CARD_GAP = 10;
+
+const STUDY_TYPE_ICONS: Record<
+  StudyMaterialItem["type"],
+  keyof typeof MaterialCommunityIcons.glyphMap
+> = {
+  video: "play-circle-outline",
+  podcast: "podcast",
+  article: "file-document-outline",
+};
+
+export function QuranRecitationPastAchievements({ goalId }: Props) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
-  const [period, setPeriod] = useState<PastAchievementPeriod>("monthly");
-  const [selectedBarIndex, setSelectedBarIndex] = useState<number | null>(null);
-  const [hintDismissed, setHintDismissed] = useState(false);
   const { width: screenWidth } = useWindowDimensions();
   const studyCardWidth = screenWidth * STUDY_CARD_WIDTH_RATIO;
+  const [period, setPeriod] = useState<PastAchievementPeriod>("monthly");
+  const [selectedSurahId, setSelectedSurahId] = useState<SurahFilterId>("all");
+  const [analyticsView, setAnalyticsView] = useState<RecitationAnalyticsView>(
+    "completedVsIncomplete",
+  );
   const goalData = getGoalById(goalId);
   const studyMaterial = goalData?.studyMaterial ?? [];
+  const [selectedBarIndex, setSelectedBarIndex] = useState<number | null>(null);
+  const [hintDismissed, setHintDismissed] = useState(false);
+
+  const surahFilters = useMemo(
+    () => getPastAchievementSurahFilters(goalId),
+    [goalId],
+  );
+
+  const baseAchievement = useMemo(
+    () => getQuranRecitationPastAchievement(goalId, period, selectedSurahId),
+    [goalId, period, selectedSurahId],
+  );
+
+  const periodSlice = useMemo(
+    () =>
+      getQuranRecitationPastAchievementSlice(goalId, period, selectedSurahId),
+    [goalId, period, selectedSurahId],
+  );
+
+  const timeSpentByPeriod = useMemo(
+    () =>
+      periodSlice.chartPeriods.map((periodItem) => periodItem.timeSpentMinutes),
+    [periodSlice],
+  );
+
   const achievement = useMemo(
-    () => getQuranHoursPastAchievement(goalId, period),
-    [goalId, period],
+    () =>
+      applyRecitationAnalyticsView(
+        baseAchievement,
+        timeSpentByPeriod,
+        analyticsView,
+      ),
+    [analyticsView, baseAchievement, timeSpentByPeriod],
+  );
+
+  const totalTimeSpentMinutes = useMemo(
+    () => getTotalTimeSpentMinutes(timeSpentByPeriod),
+    [timeSpentByPeriod],
   );
 
   useEffect(() => {
     setSelectedBarIndex(null);
     setHintDismissed(false);
-  }, [period, goalId]);
+  }, [period, goalId, selectedSurahId, analyticsView]);
 
   const handleBarPress = useCallback((index: number) => {
     setHintDismissed(true);
     setSelectedBarIndex((current) => (current === index ? null : index));
   }, []);
 
-  const selectedWeek =
-    selectedBarIndex !== null ? achievement.chartData[selectedBarIndex] : null;
+  const selectedBaseWeek =
+    selectedBarIndex !== null
+      ? baseAchievement.chartData[selectedBarIndex]
+      : null;
 
-  const displayCompletedHours =
-    selectedWeek?.completedHours ?? achievement.completedHours;
-  const displayIncompleteHours =
-    selectedWeek?.incompleteHours ?? achievement.incompleteHours;
-  const displayGoalHours = selectedWeek
-    ? selectedWeek.completedHours + selectedWeek.incompleteHours
-    : achievement.goalHours;
+  const displayBaseCompleted =
+    selectedBaseWeek?.completedHours ?? baseAchievement.completedHours;
+  const displayBaseIncomplete =
+    selectedBaseWeek?.incompleteHours ?? baseAchievement.incompleteHours;
 
-  const goalProgressPercent =
-    displayGoalHours > 0
-      ? Math.min(100, (displayCompletedHours / displayGoalHours) * 100)
-      : 0;
+  const selectedPeriodTimeSpentMinutes =
+    selectedBarIndex !== null
+      ? (timeSpentByPeriod[selectedBarIndex] ?? 0)
+      : totalTimeSpentMinutes;
 
   const showChartHint = !hintDismissed && selectedBarIndex === null;
+
   const studyMaterialKeyExtractor = useCallback(
     (item: StudyMaterialItem) => String(item.id),
     [],
   );
+
   const renderStudyMaterialItem = useCallback(
     ({ item }: { item: StudyMaterialItem }) => (
       <View style={[styles.studyCard, { width: studyCardWidth }]}>
@@ -135,6 +201,7 @@ export function QuranHoursPastAchievements({ goalId }: Props) {
     () => <View style={{ width: STUDY_CARD_GAP }} />,
     [],
   );
+
   return (
     <View style={styles.section}>
       <View style={styles.card}>
@@ -226,11 +293,43 @@ export function QuranHoursPastAchievements({ goalId }: Props) {
         </View>
 
         <Text style={styles.summaryText}>
-          {t(GOAL_SUMMARY_KEY[goalId], {
-            percent: formatNumber(achievement.achievementPercent),
-            delta: formatNumber(achievement.previousPeriodDeltaPercent),
+          {t(GOAL_SUMMARY_KEY, {
+            percent: formatNumber(baseAchievement.achievementPercent),
+            delta: formatNumber(baseAchievement.previousPeriodDeltaPercent),
           })}
         </Text>
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.surahTabsRow}
+        >
+          {surahFilters.map((surah) => {
+            const isActive = selectedSurahId === surah.id;
+            return (
+              <Pressable
+                key={surah.id}
+                onPress={() => setSelectedSurahId(surah.id)}
+                style={[
+                  styles.surahTab,
+                  isActive ? styles.surahTabActive : styles.surahTabInactive,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.surahTabText,
+                    isActive && styles.surahTabTextActive,
+                  ]}
+                  numberOfLines={1}
+                >
+                  {surah.id === "all"
+                    ? t("progressLogging.surahFilterAll")
+                    : surah.surahName}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
 
         <View style={styles.goalHeader}>
           <Text style={styles.goalLabel}>{t("progressLogging.goal")}</Text>
@@ -242,14 +341,42 @@ export function QuranHoursPastAchievements({ goalId }: Props) {
             }}
           >
             <Text style={styles.goalPillValue}>
-              {formatNumber(achievement.goalHours)}{" "}
+              {formatNumber(baseAchievement.goalHours)}{" "}
             </Text>
             <View style={styles.goalPill}>
               <Text style={styles.goalPillText}>
-                {t("progressLogging.unitHours")}
+                {t("progressLogging.unitRecitations")}
               </Text>
             </View>
           </View>
+        </View>
+
+        <View style={styles.analyticsToggle}>
+          {ANALYTICS_VIEWS.map((view) => {
+            const isActive = analyticsView === view;
+            return (
+              <Pressable
+                key={view}
+                onPress={() => setAnalyticsView(view)}
+                style={[
+                  styles.analyticsButton,
+                  isActive
+                    ? styles.analyticsButtonActive
+                    : styles.analyticsButtonInactive,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.analyticsButtonText,
+                    isActive && styles.analyticsButtonTextActive,
+                  ]}
+                  numberOfLines={1}
+                >
+                  {t(ANALYTICS_VIEW_LABEL_KEYS[view])}
+                </Text>
+              </Pressable>
+            );
+          })}
         </View>
 
         <View style={styles.statsRow}>
@@ -258,28 +385,28 @@ export function QuranHoursPastAchievements({ goalId }: Props) {
               {t("progressLogging.completed")}
             </Text>
             <Text style={styles.statValueCompleted}>
-              {formatGoalHoursLabel(displayCompletedHours)}
+              {formatGoalRecitationsLabel(displayBaseCompleted)}
             </Text>
           </View>
           <View style={styles.statColumn}>
             <Text style={styles.statLabel}>
-              {t("progressLogging.incomplete")}
+              {analyticsView === "completedVsTimeSpent"
+                ? t("progressLogging.timeSpentLabel")
+                : t("progressLogging.incomplete")}
             </Text>
-            <Text style={styles.statValueIncomplete}>
-              {formatGoalHoursLabel(displayIncompleteHours)}
+            <Text
+              style={
+                analyticsView === "completedVsTimeSpent"
+                  ? styles.statValueTimeSpent
+                  : styles.statValueIncomplete
+              }
+            >
+              {analyticsView === "completedVsTimeSpent"
+                ? formatRecitationTimeSpentLabel(selectedPeriodTimeSpentMinutes)
+                : formatGoalRecitationsLabel(displayBaseIncomplete)}
             </Text>
           </View>
         </View>
-
-        {/* <View style={styles.goalProgressTrack}> */}
-        {/* <View
-            style={[
-              styles.goalProgressCompleted,
-              { width: `${goalProgressPercent}%` },
-            ]}
-          /> */}
-        {/* </View> */}
-
         <View
           onStartShouldSetResponder={() => true}
           onMoveShouldSetResponder={() => false}
@@ -288,7 +415,7 @@ export function QuranHoursPastAchievements({ goalId }: Props) {
             chartData={achievement.chartData}
             selectedBarIndex={selectedBarIndex}
             onBarPress={handleBarPress}
-            chartKey={`${goalId}-${period}`}
+            chartKey={`${goalId}-${period}-${selectedSurahId}-${analyticsView}`}
             yMax={achievement.yMax}
             yTicks={achievement.yTicks}
             showHint={showChartHint}
@@ -297,10 +424,10 @@ export function QuranHoursPastAchievements({ goalId }: Props) {
             hintActionText={t("progressLogging.okGotIt")}
             pageCount={achievement.pageCount}
             activePageIndex={selectedBarIndex ?? achievement.activePageIndex}
+            formatBarValue={formatGoalRecitationsLabel}
           />
         </View>
       </View>
-
       {studyMaterial.length > 0 ? (
         <>
           <TopSpace top={16} />
@@ -473,6 +600,68 @@ const styles = StyleSheet.create({
     lineHeight: 17,
     textAlign: "center",
   },
+  surahTabsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingVertical: 2,
+  },
+  surahTab: {
+    borderRadius: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: Colors.light.blackBackground,
+  },
+  surahTabActive: {
+    backgroundColor: Colors.light.green,
+    borderWidth: 1,
+    borderColor: Colors.light.green,
+  },
+  surahTabInactive: {
+    backgroundColor: Colors.light.blackBackground,
+  },
+  surahTabText: {
+    color: Colors.light.grey,
+    fontSize: 11,
+    fontFamily: fonts.primary.medium,
+    fontWeight: "500",
+  },
+  surahTabTextActive: {
+    color: Colors.light.white,
+    fontWeight: "600",
+  },
+  analyticsToggle: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 3,
+    backgroundColor: Colors.light.greybuttonBackground,
+    borderRadius: 6,
+    gap: 4,
+  },
+  analyticsButton: {
+    flex: 1,
+    borderRadius: 5,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    alignItems: "center",
+  },
+  analyticsButtonActive: {
+    backgroundColor: Colors.light.green,
+  },
+  analyticsButtonInactive: {
+    backgroundColor: Colors.light.blackBackground,
+  },
+  analyticsButtonText: {
+    color: Colors.light.grey,
+    fontSize: 10,
+    fontFamily: fonts.primary.medium,
+    fontWeight: "500",
+    textAlign: "center",
+  },
+  analyticsButtonTextActive: {
+    color: Colors.light.white,
+    fontWeight: "600",
+  },
   goalHeader: {
     flexDirection: "row",
     alignItems: "center",
@@ -494,15 +683,15 @@ const styles = StyleSheet.create({
   goalPill: {
     backgroundColor: Colors.light.calendarBg,
     borderRadius: 8,
-    paddingHorizontal: 2,
+    paddingHorizontal: 4,
     paddingVertical: 5,
   },
   goalPillText: {
     color: Colors.light.white,
-    fontSize: 12,
-    fontFamily: fonts.primary.semiBold,
-    fontWeight: "600",
-    opacity: 0.8,
+    fontSize: 10,
+    fontFamily: fonts.primary.regular,
+    fontWeight: "400",
+    opacity: 0.6,
   },
   goalPillValue: {
     color: Colors.light.white,
@@ -537,6 +726,12 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.semiBold,
     fontWeight: "700",
   },
+  statValueTimeSpent: {
+    color: Colors.light.white,
+    fontSize: 22,
+    fontFamily: fonts.primary.semiBold,
+    fontWeight: "700",
+  },
   goalProgressTrack: {
     height: 10,
     borderRadius: 5,
@@ -547,6 +742,14 @@ const styles = StyleSheet.create({
     height: "100%",
     borderRadius: 5,
     backgroundColor: Colors.light.green,
+  },
+  insightsTitle: {
+    color: Colors.light.white,
+    fontSize: 16,
+    fontFamily: fonts.primary.semiBold,
+    fontWeight: "500",
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
   },
   studyListContent: {
     paddingRight: 4,
@@ -586,13 +789,5 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
     lineHeight: 16,
-  },
-  insightsTitle: {
-    color: Colors.light.white,
-    fontSize: 16,
-    fontFamily: fonts.primary.semiBold,
-    fontWeight: "500",
-    letterSpacing: 0.5,
-    textTransform: "uppercase",
   },
 });

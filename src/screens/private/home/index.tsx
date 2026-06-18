@@ -160,10 +160,10 @@ function buildTextParts(text: string, highlightedTexts: string[]): TextPart[] {
 // Helper function to map category title to translation key
 function getCategoryTranslationKey(title: string): any {
   const keyMap: Record<string, string> = {
-    "PRAYERS": "homeScreen.prayers",
-    "QURAN": "homeScreen.quran",
-    "FASTING": "homeScreen.fasting",
-    "SADAQAH": "homeScreen.sadaqah",
+    PRAYERS: "homeScreen.prayers",
+    QURAN: "homeScreen.quran",
+    FASTING: "homeScreen.fasting",
+    SADAQAH: "homeScreen.sadaqah",
   };
   return keyMap[title] || title;
 }
@@ -171,11 +171,11 @@ function getCategoryTranslationKey(title: string): any {
 // Helper function to map filter tab to translation key
 function getFilterTabTranslationKey(tab: string): any {
   const keyMap: Record<string, string> = {
-    "All": "homeScreen.filterAll",
-    "Prayer": "homeScreen.filterPrayer",
-    "Quran": "homeScreen.filterQuran",
-    "Fasting": "homeScreen.filterFasting",
-    "Sadaqah": "homeScreen.filterSadaqah",
+    All: "homeScreen.filterAll",
+    Prayer: "homeScreen.filterPrayer",
+    Quran: "homeScreen.filterQuran",
+    Fasting: "homeScreen.filterFasting",
+    Sadaqah: "homeScreen.filterSadaqah",
     "Time Spent": "homeScreen.filterTimeSpent",
   };
   return keyMap[tab] || tab;
@@ -212,46 +212,52 @@ export default function HomeScreen() {
   const fabAnimation = useRef(new Animated.Value(0)).current;
 
   // Create translated welcome cards
-  const translatedWelcomeCards = useMemo(() => [
-    {
-      id: 1,
-      title: t("homeScreen.welcomeTitle").replace("{{name}}", "Layla"),
-      content: t("homeScreen.welcomeContent"),
-      highlightedTexts: [
-        t("homeScreen.welcomeHighlightCycle"),
-        t("homeScreen.welcomeHighlightTomorrow"),
-        t("homeScreen.welcomeHighlightFajr"),
-      ],
-    },
-    {
-      id: 2,
-      title: t("homeScreen.trackProgressTitle"),
-      content: t("homeScreen.trackProgressContent"),
-      highlightedTexts: [],
-    },
-  ], [t]);
+  const translatedWelcomeCards = useMemo(
+    () => [
+      {
+        id: 1,
+        title: t("homeScreen.welcomeTitle").replace("{{name}}", "Layla"),
+        content: t("homeScreen.welcomeContent"),
+        highlightedTexts: [
+          t("homeScreen.welcomeHighlightCycle"),
+          t("homeScreen.welcomeHighlightTomorrow"),
+          t("homeScreen.welcomeHighlightFajr"),
+        ],
+      },
+      {
+        id: 2,
+        title: t("homeScreen.trackProgressTitle"),
+        content: t("homeScreen.trackProgressContent"),
+        highlightedTexts: [],
+      },
+    ],
+    [t],
+  );
 
   // Create translated inspiration cards
-  const translatedInspirationCards = useMemo(() => [
-    {
-      id: 1,
-      title: t("homeScreen.dailyLightTitle"),
-      quote: t("homeScreen.dailyLightQuote"),
-      reference: t("homeScreen.dailyLightRef"),
-    },
-    {
-      id: 2,
-      title: t("homeScreen.hadithTitle"),
-      quote: t("homeScreen.hadithQuote"),
-      reference: t("homeScreen.hadithRef"),
-    },
-    {
-      id: 3,
-      title: t("homeScreen.reflectionTitle"),
-      quote: t("homeScreen.reflectionQuote"),
-      reference: t("homeScreen.reflectionRef"),
-    },
-  ], [t]);
+  const translatedInspirationCards = useMemo(
+    () => [
+      {
+        id: 1,
+        title: t("homeScreen.dailyLightTitle"),
+        quote: t("homeScreen.dailyLightQuote"),
+        reference: t("homeScreen.dailyLightRef"),
+      },
+      {
+        id: 2,
+        title: t("homeScreen.hadithTitle"),
+        quote: t("homeScreen.hadithQuote"),
+        reference: t("homeScreen.hadithRef"),
+      },
+      {
+        id: 3,
+        title: t("homeScreen.reflectionTitle"),
+        quote: t("homeScreen.reflectionQuote"),
+        reference: t("homeScreen.reflectionRef"),
+      },
+    ],
+    [t],
+  );
 
   const toggleFabMenu = () => {
     const toValue = isFabMenuOpen ? 0 : 1;
@@ -288,10 +294,10 @@ export default function HomeScreen() {
     const goals = DASHBOARD_SUB_GOALS.map((goal) =>
       goal.id === "quran-recitation"
         ? {
-          ...goal,
-          percentage: quranCategory?.percentage ?? goal.percentage,
-          progressColor: quranCategory?.progressColor ?? goal.progressColor,
-        }
+            ...goal,
+            percentage: quranCategory?.percentage ?? goal.percentage,
+            progressColor: quranCategory?.progressColor ?? goal.progressColor,
+          }
         : goal,
     );
 
@@ -395,7 +401,9 @@ export default function HomeScreen() {
                   >
                     <View />
                   </TaperedCircleBorder>
-                  <Text style={styles.collapsedLabel}>{t(getCategoryTranslationKey(category.title))}</Text>
+                  <Text style={styles.collapsedLabel}>
+                    {t(getCategoryTranslationKey(category.title))}
+                  </Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -438,12 +446,18 @@ export default function HomeScreen() {
               </TouchableOpacity>
               <View style={styles.prayerCardContainer}>
                 <View style={styles.prayerDetailsLeft}>
-                  <Text style={styles.upcomingText}>{t("homeScreen.upcoming")}</Text>
-                  <Text style={styles.prayerNameText}>{t("homeScreen.asrPrayer")}</Text>
+                  <Text style={styles.upcomingText}>
+                    {t("homeScreen.upcoming")}
+                  </Text>
+                  <Text style={styles.prayerNameText}>
+                    {t("homeScreen.asrPrayer")}
+                  </Text>
                   <Text style={styles.timeText}>{t("homeScreen.asrTime")}</Text>
                 </View>
                 <View style={styles.dateRight}>
-                  <Text style={styles.dateText}>{t("homeScreen.juneDate")}</Text>
+                  <Text style={styles.dateText}>
+                    {t("homeScreen.juneDate")}
+                  </Text>
                 </View>
               </View>
             </View>
@@ -467,9 +481,13 @@ export default function HomeScreen() {
                 />
                 <TopSpace top={16} />
                 <View style={styles.categoryLabelWrapper}>
-                  <Text style={styles.categoryLabel}>{t(getCategoryTranslationKey(category.title))}</Text>
+                  <Text style={styles.categoryLabel}>
+                    {t(getCategoryTranslationKey(category.title))}
+                  </Text>
                   <MaterialIcons
-                    name={i18n.language === "ar" ? "chevron-left" : "chevron-right"}
+                    name={
+                      i18n.language === "ar" ? "chevron-left" : "chevron-right"
+                    }
                     size={16}
                     color={Colors.light.white}
                   />
@@ -550,18 +568,24 @@ export default function HomeScreen() {
               <View style={styles.greenPlusCircle}>
                 <Ionicons name="add" size={16} color="white" />
               </View>
-              <Text style={styles.menstruationText}>{t("homeScreen.logMenstruation")}</Text>
+              <Text style={styles.menstruationText}>
+                {t("homeScreen.logMenstruation")}
+              </Text>
             </View>
           </TouchableOpacity>
 
           {/* Customize journal */}
           <View style={styles.journalContainer}>
-            <Text style={styles.journalTitle}>{t("homeScreen.customizeJournalTitle")}</Text>
+            <Text style={styles.journalTitle}>
+              {t("homeScreen.customizeJournalTitle")}
+            </Text>
             <Text style={styles.journalDescription}>
               {t("homeScreen.customizeJournalDesc")}
             </Text>
             <TouchableOpacity style={styles.getStartedButton}>
-              <Text style={styles.getStartedText}>{t("homeScreen.getStarted")}</Text>
+              <Text style={styles.getStartedText}>
+                {t("homeScreen.getStarted")}
+              </Text>
               <Entypo
                 name={i18n.language === "ar" ? "chevron-left" : "chevron-right"}
                 size={24}
@@ -579,7 +603,9 @@ export default function HomeScreen() {
               onPress={handleShowHideTodayProgress}
             >
               <Text style={styles.customizeText}>
-                {showDailyProgress ? t("homeScreen.hide") : t("homeScreen.show")}
+                {showDailyProgress
+                  ? t("homeScreen.hide")
+                  : t("homeScreen.show")}
               </Text>
               {showDailyProgress ? (
                 <AntDesign
@@ -641,7 +667,9 @@ export default function HomeScreen() {
                       }
                     >
                       <Text style={styles.showMoreText}>
-                        {isTodayProgressExpanded ? t("homeScreen.showLess") : t("homeScreen.showMore")}
+                        {isTodayProgressExpanded
+                          ? t("homeScreen.showLess")
+                          : t("homeScreen.showMore")}
                       </Text>
                       <Entypo
                         name={
@@ -660,13 +688,17 @@ export default function HomeScreen() {
           )}
           {/* My Dashboard */}
           <View style={styles.dashboardSection}>
-            <Text style={styles.dashboardText}>{t("homeScreen.myDashboard")}</Text>
+            <Text style={styles.dashboardText}>
+              {t("homeScreen.myDashboard")}
+            </Text>
             <TouchableOpacity
               activeOpacity={0.7}
               style={styles.customizeContainer}
               onPress={() => dashboardSheetRef.current?.expand()}
             >
-              <Text style={styles.customizeText}>{t("homeScreen.customize")}</Text>
+              <Text style={styles.customizeText}>
+                {t("homeScreen.customize")}
+              </Text>
             </TouchableOpacity>
           </View>
 
@@ -684,7 +716,9 @@ export default function HomeScreen() {
                 key={label}
                 label={t(getFilterTabTranslationKey(label))}
                 onPress={() => setSelectedDashboardCategory(label)}
-                selectedTab={t(getFilterTabTranslationKey(selectedDashboardCategory))}
+                selectedTab={t(
+                  getFilterTabTranslationKey(selectedDashboardCategory),
+                )}
               />
             ))}
           </ScrollView>
@@ -706,7 +740,7 @@ export default function HomeScreen() {
 
         <NamazGoalBottomSheet
           ref={namazBottomSheetRef}
-          onClose={() => { }}
+          onClose={() => {}}
           onChange={(index) => handleBottomSheetChange("namaz", index)}
         />
         <TimeSpentBottomSheet
@@ -764,7 +798,9 @@ export default function HomeScreen() {
                 // Action for Set Next Month's Goals
               }}
             >
-              <Text style={styles.fabOptionLabel}>{t("homeScreen.setNextMonthsGoals")}</Text>
+              <Text style={styles.fabOptionLabel}>
+                {t("homeScreen.setNextMonthsGoals")}
+              </Text>
               <View style={styles.fabOptionIconContainer}>
                 <MaterialCommunityIcons name="target" size={22} color="white" />
               </View>
@@ -779,7 +815,9 @@ export default function HomeScreen() {
                 // Action for Complete Your Journal
               }}
             >
-              <Text style={styles.fabOptionLabel}>{t("homeScreen.completeYourJournal")}</Text>
+              <Text style={styles.fabOptionLabel}>
+                {t("homeScreen.completeYourJournal")}
+              </Text>
               <View style={styles.fabOptionIconContainer}>
                 <MaterialCommunityIcons
                   name="book-open-outline"
@@ -798,7 +836,9 @@ export default function HomeScreen() {
                 goldenBottomSheetRef.current?.expand();
               }}
             >
-              <Text style={styles.fabOptionLabel}>{t("homeScreen.addDailyProgress")}</Text>
+              <Text style={styles.fabOptionLabel}>
+                {t("homeScreen.addDailyProgress")}
+              </Text>
               <View style={styles.fabOptionIconContainer}>
                 <Ionicons name="add" size={24} color="white" />
               </View>

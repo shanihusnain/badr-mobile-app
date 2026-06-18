@@ -8,7 +8,11 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useRouter } from "expo-router";
 import { IbadahsProgressCard } from "./IbadahsProgressCard";
 import { DetailedIbadahsProgressCard } from "./DetailedIbadahsProgressCards";
-import { getGoalsByCategory } from "./goalsData";
+import {
+  getResolvedGoalsByCategory,
+  type GoalData,
+  type GoalId,
+} from "./goalsData";
 import BackButton from "@/components/atoms/Backbutton";
 import { useTypedTranslation } from "@/i18next/useTypedTranslation";
 
@@ -24,6 +28,39 @@ const CATEGORY_ICON_COLOR: Record<string, string> = {
   FASTING: Colors.light.green,
   SADAQAH: Colors.light.ringSadaqah,
 };
+
+function getCategoryGoalIcon(category: string, color: string) {
+  switch (category) {
+    case "QURAN":
+      return <Ionicons name="book" size={18} color={color} />;
+    case "FASTING":
+      return (
+        <MaterialCommunityIcons name="food-off" size={18} color={color} />
+      );
+    case "SADAQAH":
+      return (
+        <FontAwesome6 name="hand-holding-heart" size={16} color={color} />
+      );
+    case "PRAYER":
+    default:
+      return (
+        <FontAwesome6 name="person-praying" size={18} color={color} />
+      );
+  }
+}
+
+function getGoalDisplayTitle(
+  goal: GoalData,
+  t: ReturnType<typeof useTypedTranslation>["t"],
+): string {
+  if (goal.id === "quran-recitationBySurah-daily") {
+    return t("homeScreen.quranRecitationBySurahDaily");
+  }
+  if (goal.id === "quran-recitationBySurah-weekly") {
+    return t("homeScreen.quranRecitationBySurahWeekly");
+  }
+  return goal.title;
+}
 
 export const DailyProgressBottomSheet = ({ onClose }: Props) => {
   const router = useRouter();
@@ -54,13 +91,12 @@ export const DailyProgressBottomSheet = ({ onClose }: Props) => {
     {
       key: "QURAN",
       title: t("homeScreen.quranCategory"),
-      subtitle: t("homeScreen.quran4Goals"),
+      subtitle: t("homeScreen.quran7Goals"),
       icon: <Ionicons name="book" size={20} color={Colors.light.white} />,
       iconBgColor: Colors.light.ringQuran + "33",
       percentage: "40%",
       progressColor: Colors.light.ringQuran,
     },
-
     {
       key: "FASTING",
       title: t("homeScreen.fastingCategory"),
@@ -122,7 +158,7 @@ export const DailyProgressBottomSheet = ({ onClose }: Props) => {
     setCurrentView("detail");
   };
 
-  const handleGoalPress = (goalId: string) => {
+  const handleGoalPress = (goalId: GoalId) => {
     router.push({
       pathname: "/goalprogressloggingscreen/[goalId]" as any,
       params: { goalId },
@@ -140,14 +176,12 @@ export const DailyProgressBottomSheet = ({ onClose }: Props) => {
 
   return (
     <View style={styles.container}>
-      {/* ── Header ── */}
       <View style={styles.headerRow}>
         <BackButton onPress={handleBack} />
         <Text style={styles.sheetTitle}>{getTitle()}</Text>
         <View style={styles.headerSpacer} />
       </View>
 
-      {/* ── Main view ── */}
       {currentView === "main" && (
         <View style={styles.mainViewContainer}>
           <TouchableOpacity
@@ -172,7 +206,6 @@ export const DailyProgressBottomSheet = ({ onClose }: Props) => {
         </View>
       )}
 
-      {/* ── Categories view ── */}
       {currentView === "categories" && (
         <View style={styles.listContainer}>
           {categories.map((category) => (
@@ -191,30 +224,25 @@ export const DailyProgressBottomSheet = ({ onClose }: Props) => {
         </View>
       )}
 
-      {/* ── Detail view ── */}
       {currentView === "detail" && selectedCategory && (
         <View style={styles.listContainer}>
-          {getGoalsByCategory(
+          {getResolvedGoalsByCategory(
             selectedCategory as "PRAYER" | "QURAN" | "FASTING" | "SADAQAH",
           ).map((goal) => (
             <DetailedIbadahsProgressCard
               key={goal.id}
-              title={goal.title}
+              title={getGoalDisplayTitle(goal, t)}
               subtitleCount={goal.count}
               subtitleLabel={goal.label}
-              icon={
-                <FontAwesome6
-                  name="person-praying"
-                  size={18}
-                  color={CATEGORY_ICON_COLOR[selectedCategory]}
-                />
-              }
+              icon={getCategoryGoalIcon(
+                selectedCategory,
+                CATEGORY_ICON_COLOR[selectedCategory],
+              )}
               iconBgColor={CATEGORY_ICON_COLOR[selectedCategory] + "22"}
               percentage={goal.percentage}
               progressColor={goal.progressColor}
               isSelected={selectedDetailCard === goal.id}
               onPress={() => {
-                console.log("goal.id", goal.id);
                 setSelectedDetailCard(goal.id);
                 handleGoalPress(goal.id);
               }}

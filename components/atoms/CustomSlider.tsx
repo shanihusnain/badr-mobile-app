@@ -5,12 +5,14 @@ import { useLocaleNumber } from "../../hooks/useLocaleNumber";
 
 import { GestureDetector, Gesture } from "react-native-gesture-handler";
 import Animated, { runOnJS, useSharedValue } from "react-native-reanimated";
+import { EvilIcons } from "@expo/vector-icons";
 
 type CustomSliderProps = {
   maxDays?: number;
   initialDays?: number;
   scale?: number; // Uniform scale factor for track thickness & pointer size
   onChange?: (days: number) => void;
+  locked?: boolean;
 };
 
 export default function CustomSlider({
@@ -18,12 +20,13 @@ export default function CustomSlider({
   initialDays = 14,
   scale = 1.2, // Default premium 1.2x scale (smaller, highly elegant)
   onChange,
+  locked = false,
 }: CustomSliderProps) {
   const formatNumber = useLocaleNumber();
   const [days, setDays] = useState(initialDays);
   // Track continuous float values for smooth tracking during drags
   const [continuousVal, setContinuousVal] = useState(initialDays);
-  
+
   // Dynamically track container width for perfect responsive alignment
   const [width, setWidth] = useState(Dimensions.get("window").width - 40);
 
@@ -84,17 +87,18 @@ export default function CustomSlider({
   const startX = useSharedValue(0);
 
   const handleChange = (val: number) => {
-    if (isMounted.current) {
-      setContinuousVal(val);
-      const roundedDays = Math.round(val);
-      if (roundedDays !== days) {
-        setDays(roundedDays);
-        onChange?.(roundedDays);
-      }
+    if (locked || !isMounted.current) return;
+
+    setContinuousVal(val);
+    const roundedDays = Math.round(val);
+    if (roundedDays !== days) {
+      setDays(roundedDays);
+      onChange?.(roundedDays);
     }
   };
 
   const panGesture = Gesture.Pan()
+    .enabled(!locked)
     .runOnJS(true)
     .activeOffsetX([-5, 5])
     .onStart((event) => {
@@ -110,6 +114,7 @@ export default function CustomSlider({
     });
 
   const tapGesture = Gesture.Tap()
+    .enabled(!locked)
     .runOnJS(true)
     .onEnd((event) => {
       const tapX = event.x - paddingX;
@@ -156,6 +161,9 @@ export default function CustomSlider({
             style={[
               styles.customProgressTrack,
               {
+                opacity: locked ? 0.4 : 1,
+              },
+              {
                 width: progressWidth,
                 height: trackHeight,
                 borderRadius: trackHeight / 2,
@@ -165,21 +173,29 @@ export default function CustomSlider({
         </View>
 
         {/* Transparent Interactive Drag Area wrapped in GestureDetector */}
-        <GestureDetector gesture={composedGesture}>
-          <Animated.View
-            style={[
-              styles.slider,
-              {
-                width: "100%",
-              },
-            ]}
+        {locked ? (
+          <View
+            style={[styles.slider, { width: "100%" }]}
+            pointerEvents="none"
           />
-        </GestureDetector>
+        ) : (
+          <GestureDetector gesture={composedGesture}>
+            <Animated.View
+              style={[
+                styles.slider,
+                {
+                  width: "100%",
+                },
+              ]}
+            />
+          </GestureDetector>
+        )}
 
         {/* Custom Unified Pointer Thumb Overlay (Static Centering Guaranteed!) */}
         <View
           style={[
             styles.customThumb,
+
             {
               left: thumbLeft,
               width: thumbSize,
@@ -191,22 +207,26 @@ export default function CustomSlider({
           pointerEvents="none"
         >
           {/* Hollow Green Circle inside Center - Flexbox guarantees it is perfectly locked & static */}
-          <View
-            style={{
-              width: ringSize,
-              height: ringSize,
-              borderRadius: ringSize / 2,
-              borderWidth: 1.1 * scale, // Super-thin, extremely elegant ring border thickness
-              borderColor: Colors.light.green,
-              backgroundColor: Colors.light.white,
-              // Bolder, highly visible shadow under the inner green ring for dramatic depth
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.45,
-              shadowRadius: 2.5,
-              elevation: 4,
-            }}
-          />
+          {locked ? (
+            <EvilIcons name="lock" size={15} color={Colors.light.green} />
+          ) : (
+            <View
+              style={{
+                width: ringSize,
+                height: ringSize,
+                borderRadius: ringSize / 2,
+                borderWidth: 1.1 * scale, // Super-thin, extremely elegant ring border thickness
+                borderColor: Colors.light.green,
+                backgroundColor: Colors.light.white,
+                // Bolder, highly visible shadow under the inner green ring for dramatic depth
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.45,
+                shadowRadius: 2.5,
+                elevation: 4,
+              }}
+            />
+          )}
         </View>
       </View>
     </View>

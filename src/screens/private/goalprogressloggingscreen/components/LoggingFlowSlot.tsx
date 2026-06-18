@@ -5,6 +5,7 @@ import type { ProgressLogEntry } from "../types";
 import DailyProgressLogging from "./DailyProgressLogging";
 import QuranHoursLoggingFlow from "../flows/QuranHoursLoggingFlow";
 import { SurahRecitationLoggingSection } from "./SurahRecitationLoggingSection";
+import { CompletionRecitationLoggingSection } from "./CompletionRecitationLoggingSection";
 import TahiyatUlWudhuLoggingFlow from "../flows/TahiyatUlWudhuLoggingFlow";
 import MissedPrayersLoggingFlow from "../flows/MissedPrayersLoggingFlow";
 import TahiyatAlMasjidLoggingFlow from "../flows/TahiyatAlMasjidLoggingFlow";
@@ -16,7 +17,6 @@ type Props = {
 
 export function LoggingFlowSlot({ goalData, onLogComplete }: Props) {
   const template = getLoggingFlowTemplate(goalData.id);
-  console.log("template", template);
   if (template === "quran-hours") {
     return (
       <QuranHoursLoggingFlow
@@ -35,9 +35,9 @@ export function LoggingFlowSlot({ goalData, onLogComplete }: Props) {
     );
   }
 
-  if (template === "quran-recitationBySurah") {
+  if (template === "quran-completion") {
     return (
-      <SurahRecitationLoggingSection
+      <CompletionRecitationLoggingSection
         goalData={goalData}
         onLogComplete={onLogComplete}
       />

@@ -65,3 +65,31 @@ export const surahGoalStyles = StyleSheet.create({
     opacity: 0.95,
   },
 });
+
+export const weeklySurahProgressStyles = StyleSheet.create({
+  card: {
+    borderRadius: 12,
+    paddingVertical: 4,
+  },
+  cardActive: {},
+  cardInactive: {},
+  daysRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+  },
+  dayColumn: {
+    flex: 1,
+    alignItems: "center",
+    minWidth: 0,
+    paddingVertical: 4,
+    borderRadius: 10,
+  },
+  dayLabel: {
+    color: Colors.light.subtext,
+    fontSize: 10,
+    fontWeight: "600",
+    fontFamily: fonts.primary.semiBold,
+    marginTop: 4,
+    textAlign: "center",
+  },
+});

@@ -93,8 +93,10 @@ const styles = StyleSheet.create({
   },
   leftSection: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     flex: 1,
+    minWidth: 0,
+    marginRight: 12,
   },
   iconWrapper: {
     width: 40,
@@ -103,8 +105,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginRight: 12,
+    marginTop: 2,
   },
   textWrapper: {
+    flex: 1,
+    minWidth: 0,
     justifyContent: "center",
   },
   title: {
@@ -114,6 +119,8 @@ const styles = StyleSheet.create({
     fontSize: 15,
     textTransform: "uppercase",
     marginBottom: 2,
+    flexShrink: 1,
+    lineHeight: 20,
   },
   subtitle: {
     flexDirection: "row",
@@ -131,9 +138,10 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   rightSection: {
+    flexShrink: 0,
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 12,
+    alignSelf: "center",
   },
   percentTextContainer: {
     flexDirection: "row",

@@ -19,8 +19,8 @@ export const pastAchievementStyles = StyleSheet.create({
     position: "relative",
   },
   chartHintOverlay: {
-    left: 20,
-    bottom: 200,
+    left: 60,
+    bottom: 260,
     width: "52%",
     maxWidth: 176,
     zIndex: 3,
@@ -29,11 +29,10 @@ export const pastAchievementStyles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 14,
     paddingHorizontal: 14,
-    backgroundColor: "rgba(38, 46, 58, 0.96)",
+
     alignItems: "center",
     gap: 10,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.08)",
+    backgroundColor: Colors.light.calendarBg,
   },
   chartHintText: {
     color: Colors.light.white,
@@ -59,12 +58,14 @@ export const pastAchievementStyles = StyleSheet.create({
   chartHintPointer: {
     width: 0,
     height: 0,
-    borderTopWidth: 7,
-    borderBottomWidth: 7,
-    borderLeftWidth: 8,
-    borderTopColor: "transparent",
-    borderBottomColor: "transparent",
-    borderLeftColor: "rgba(38, 46, 58, 0.96)",
+    marginTop: -1,
+    borderLeftWidth: 7,
+    borderRightWidth: 7,
+    borderTopWidth: 8,
+    borderLeftColor: "transparent",
+    borderRightColor: "transparent",
+    alignSelf: "center",
+    borderTopColor: Colors.light.calendarBg,
   },
   barHitArea: {
     position: "absolute",
@@ -111,24 +112,5 @@ export const pastAchievementStyles = StyleSheet.create({
   },
   barValueLabelSelected: {
     fontWeight: "700",
-  },
-  paginationRow: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    gap: 6,
-    marginTop: 10,
-  },
-  paginationDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: Colors.light.calendarBg,
-  },
-  paginationDotActive: {
-    backgroundColor: Colors.light.green,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
   },
 });

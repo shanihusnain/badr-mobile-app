@@ -1,4 +1,5 @@
 import { Colors } from "@/constants/theme";
+import { getSurahRecitationGoals } from "@/src/screens/private/goalprogressloggingscreen/quranRecitationSurahGoals";
 
 export type GoalId =
   | "prayer-tahiyyat"
@@ -11,7 +12,8 @@ export type GoalId =
   | "prayer-qiyam"
   | "prayer-missed"
   | "prayer-fiveDailyPrayers"
-  | "quran-recitationBySurah"
+  | "quran-recitationBySurah-daily"
+  | "quran-recitationBySurah-weekly"
   | "quran-recitationByCompletion"
   | "quran-recitationByJuz"
   | "quran-memorisation"
@@ -40,6 +42,12 @@ export interface GoalData {
   titleFontSize?: number;
   description: string;
   previousProgress: string;
+  studyMaterial?: {
+    id: number;
+    thumbnail: string;
+    type: "video" | "podcast" | "article";
+    description: string;
+  }[];
 }
 
 export const GOALS_DATA: Record<GoalId, GoalData> = {
@@ -170,17 +178,68 @@ export const GOALS_DATA: Record<GoalId, GoalData> = {
 
   // Quran Goals
 
-  "quran-recitationBySurah": {
-    id: "quran-recitationBySurah",
+  "quran-recitationBySurah-daily": {
+    id: "quran-recitationBySurah-daily",
     category: "QURAN",
-    title: "Quran Recitation By Surah",
-    count: "3",
-    label: "/10 surahs",
-    percentage: "30%",
+    title: "Quran Recitation By Surah (Daily)",
+    count: "32",
+    label: "/140 recitations",
+    percentage: "23%",
+    progressColor: Colors.light.ringQuran,
+    description: "Track daily surah recitation goals across a 28-day cycle.",
+    previousProgress: "32/140 recitations completed",
+    studyMaterial: [
+      {
+        id: 1,
+        thumbnail: "https://via.placeholder.com/150",
+        type: "video",
+        description: "Exploring Scholarly Views on Making Up  Tajweed Lessons",
+      },
+      {
+        id: 2,
+        thumbnail: "https://via.placeholder.com/150",
+        type: "podcast",
+        description: "How to make up  with missed Khatm-e-Quran",
+      },
+      {
+        id: 3,
+        thumbnail: "https://via.placeholder.com/150",
+        type: "video",
+        description: "10 Ways to increase Your Dhikr with Omar  Sulieman",
+      },
+    ],
+  },
+  "quran-recitationBySurah-weekly": {
+    id: "quran-recitationBySurah-weekly",
+    category: "QURAN",
+    title: "Quran Recitation By Surah (Weekly)",
+    count: "5",
+    label: "/12 recitations",
+    percentage: "42%",
     progressColor: Colors.light.ringQuran,
     description:
-      "Quran recitation by surah helps us focus on specific surahs and improve our recitation skills.",
-    previousProgress: "3/10 surahs completed",
+      "Track weekly surah recitation goals across a 28-day cycle (4 weeks).",
+    previousProgress: "5/12 recitations completed",
+    studyMaterial: [
+      {
+        id: 1,
+        thumbnail: "https://via.placeholder.com/150",
+        type: "video",
+        description: "Exploring Scholarly Views on Making Up  Tajweed Lessons",
+      },
+      {
+        id: 2,
+        thumbnail: "https://via.placeholder.com/150",
+        type: "podcast",
+        description: "How to make up  with missed Khatm-e-Quran",
+      },
+      {
+        id: 3,
+        thumbnail: "https://via.placeholder.com/150",
+        type: "video",
+        description: "10 Ways to increase Your Dhikr with Omar  Sulieman",
+      },
+    ],
   },
   "quran-recitationByCompletion": {
     id: "quran-recitationByCompletion",
@@ -193,6 +252,26 @@ export const GOALS_DATA: Record<GoalId, GoalData> = {
     description:
       "Quran recitation by completion helps us focus on specific pages and improve our recitation skills.",
     previousProgress: "3/10 pages completed",
+    studyMaterial: [
+      {
+        id: 1,
+        thumbnail: "https://via.placeholder.com/150",
+        type: "video",
+        description: "Exploring Scholarly Views on Making Up  Tajweed Lessons",
+      },
+      {
+        id: 2,
+        thumbnail: "https://via.placeholder.com/150",
+        type: "podcast",
+        description: "How to make up  with missed Khatm-e-Quran",
+      },
+      {
+        id: 3,
+        thumbnail: "https://via.placeholder.com/150",
+        type: "video",
+        description: "10 Ways to increase Your Dhikr with Omar  Sulieman",
+      },
+    ],
   },
   "quran-recitationByJuz": {
     id: "quran-recitationByJuz",
@@ -205,6 +284,26 @@ export const GOALS_DATA: Record<GoalId, GoalData> = {
     description:
       "Quran recitation by juz helps us focus on specific juzs and improve our recitation skills.",
     previousProgress: "3/10 juzs completed",
+    studyMaterial: [
+      {
+        id: 1,
+        thumbnail: "https://via.placeholder.com/150",
+        type: "video",
+        description: "Exploring Scholarly Views on Making Up  Tajweed Lessons",
+      },
+      {
+        id: 2,
+        thumbnail: "https://via.placeholder.com/150",
+        type: "podcast",
+        description: "How to make up  with missed Khatm-e-Quran",
+      },
+      {
+        id: 3,
+        thumbnail: "https://via.placeholder.com/150",
+        type: "video",
+        description: "10 Ways to increase Your Dhikr with Omar  Sulieman",
+      },
+    ],
   },
 
   "quran-memorisation": {
@@ -230,6 +329,26 @@ export const GOALS_DATA: Record<GoalId, GoalData> = {
     description:
       "Listening to the Quran allows us to absorb its meanings and feel the beauty of the Divine Word deeply.",
     previousProgress: "9/60 hours completed",
+    studyMaterial: [
+      {
+        id: 1,
+        thumbnail: "https://via.placeholder.com/150",
+        type: "video",
+        description: "Exploring Scholarly Views on Making Up  Tajweed Lessons",
+      },
+      {
+        id: 2,
+        thumbnail: "https://via.placeholder.com/150",
+        type: "podcast",
+        description: "How to make up  with missed Khatm-e-Quran",
+      },
+      {
+        id: 3,
+        thumbnail: "https://via.placeholder.com/150",
+        type: "video",
+        description: "10 Ways to increase Your Dhikr with Omar  Sulieman",
+      },
+    ],
   },
   "quran-Tajweed": {
     id: "quran-Tajweed",
@@ -242,6 +361,26 @@ export const GOALS_DATA: Record<GoalId, GoalData> = {
     description:
       "Tajweed perfects Quranic recitation as revealed to the Prophet (PBUH), preserving its authentic pronunciation and rhythm.",
     previousProgress: "9/60 hours completed",
+    studyMaterial: [
+      {
+        id: 1,
+        thumbnail: "https://via.placeholder.com/150",
+        type: "video",
+        description: "Exploring Scholarly Views on Making Up  Tajweed Lessons",
+      },
+      {
+        id: 2,
+        thumbnail: "https://via.placeholder.com/150",
+        type: "podcast",
+        description: "How to make up  with missed Khatm-e-Quran",
+      },
+      {
+        id: 3,
+        thumbnail: "https://via.placeholder.com/150",
+        type: "video",
+        description: "10 Ways to increase Your Dhikr with Omar  Sulieman",
+      },
+    ],
   },
 
   // Fasting Goals
@@ -389,6 +528,62 @@ export const getGoalById = (goalId: GoalId): GoalData | null => {
   return GOALS_DATA[goalId] || null;
 };
 
+function getSurahRecitationAggregateProgress(frequency: "daily" | "weekly") {
+  const goals = getSurahRecitationGoals().filter(
+    (goal) => goal.frequency === frequency,
+  );
+  const totalCompleted = goals.reduce(
+    (sum, goal) => sum + goal.loggedRecitations,
+    0,
+  );
+  const totalTarget = goals.reduce((sum, goal) => sum + goal.cycleTotal, 0);
+  const percent =
+    totalTarget > 0
+      ? Math.min(100, Math.round((totalCompleted / totalTarget) * 100))
+      : 0;
+
+  return { totalCompleted, totalTarget, percent };
+}
+
+/**
+ * Resolves live progress values for goals backed by logging mock data.
+ */
+export function resolveGoalDisplayData(goal: GoalData): GoalData {
+  if (goal.id === "quran-recitationBySurah-daily") {
+    const { totalCompleted, totalTarget, percent } =
+      getSurahRecitationAggregateProgress("daily");
+
+    return {
+      ...goal,
+      count: String(totalCompleted),
+      label: `/${totalTarget} recitations`,
+      percentage: `${percent}%`,
+      previousProgress: `${totalCompleted}/${totalTarget} recitations completed`,
+    };
+  }
+
+  if (goal.id === "quran-recitationBySurah-weekly") {
+    const { totalCompleted, totalTarget, percent } =
+      getSurahRecitationAggregateProgress("weekly");
+
+    return {
+      ...goal,
+      count: String(totalCompleted),
+      label: `/${totalTarget} recitations`,
+      percentage: `${percent}%`,
+      previousProgress: `${totalCompleted}/${totalTarget} recitations completed`,
+    };
+  }
+
+  return goal;
+}
+
+export function getResolvedGoalById(goalId: GoalId): GoalData | null {
+  const goal = getGoalById(goalId);
+  if (!goal) return null;
+  return resolveGoalDisplayData(goal);
+}
+
 /**
  * Get all goals for a specific category
  */
@@ -397,3 +592,28 @@ export const getGoalsByCategory = (
 ): GoalData[] => {
   return Object.values(GOALS_DATA).filter((goal) => goal.category === category);
 };
+
+export function getResolvedGoalsByCategory(
+  category: "PRAYER" | "QURAN" | "FASTING" | "SADAQAH",
+): GoalData[] {
+  const goals = getGoalsByCategory(category).map(resolveGoalDisplayData);
+
+  if (category !== "QURAN") {
+    return goals;
+  }
+
+  const priority: GoalId[] = [
+    "quran-recitationBySurah-daily",
+    "quran-recitationBySurah-weekly",
+  ];
+
+  return [...goals].sort((left, right) => {
+    const leftIndex = priority.indexOf(left.id);
+    const rightIndex = priority.indexOf(right.id);
+
+    if (leftIndex === -1 && rightIndex === -1) return 0;
+    if (leftIndex === -1) return 1;
+    if (rightIndex === -1) return -1;
+    return leftIndex - rightIndex;
+  });
+}
