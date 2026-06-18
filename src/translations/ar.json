@@ -481,7 +481,17 @@
     "periodComparisonIncrease": "أكثر",
     "periodComparisonDecrease": "أقل",
     "completionRowTitle": "الختمة {{number}}",
-    "juzProgressLabel": "{{completed}}/{{total}} جزء"
+    "juzProgressLabel": "{{completed}}/{{total}} جزء",
+    "juzCardTitle": "{{completed}}/{{target}} جزء مكتمل",
+    "juzGoalTitle": "{{completed}}/{{target}} جزء — تلاوة القرآن بالجزء",
+    "unitJuz": "جزء",
+    "juzLoggedThisWeek": "أجزاء مسجّلة هذا الأسبوع",
+    "quranJuzWeekQuote": "كل جزء تتلوه يبني الاستمرار—جزءًا تلو الآخر.",
+    "juzFilterAll": "الكل",
+    "juzFilterTab": "جزء {{number}}",
+    "juzRowTitle": "جزء {{number}}",
+    "ayatProgressLabel": "{{completed}}/{{total}} آية",
+    "achievementSummaryRecitationJuz": "في الفترة الماضية، حققت {{percent}}% من هدف التلاوة بالجزء — {{delta}}% {{direction}} من الفترة السابقة."
   },
   "goalsData": {
     "tahayyat-ul-wudhu": {

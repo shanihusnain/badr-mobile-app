@@ -481,7 +481,17 @@
     "periodComparisonIncrease": "more",
     "periodComparisonDecrease": "less",
     "completionRowTitle": "Completion {{number}}",
-    "juzProgressLabel": "{{completed}}/{{total}} Juz"
+    "juzProgressLabel": "{{completed}}/{{total}} Juz",
+    "juzCardTitle": "{{completed}}/{{target}} Juz completed",
+    "juzGoalTitle": "{{completed}}/{{target}} Juz — Quran Recitation by Juz",
+    "unitJuz": "juz",
+    "juzLoggedThisWeek": "juz logged this week",
+    "quranJuzWeekQuote": "Each juz you recite builds consistency—one portion at a time.",
+    "juzFilterAll": "All",
+    "juzFilterTab": "Juz {{number}}",
+    "juzRowTitle": "Juz {{number}}",
+    "ayatProgressLabel": "{{completed}}/{{total}} Ayat",
+    "achievementSummaryRecitationJuz": "Last period, you achieved {{percent}}% of your juz recitation goal — {{delta}}% {{direction}} than the previous period."
   },
   "goalsData": {
     "tahayyat-ul-wudhu": {

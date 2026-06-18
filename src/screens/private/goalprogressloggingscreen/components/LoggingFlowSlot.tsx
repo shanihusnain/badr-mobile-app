@@ -6,6 +6,7 @@ import DailyProgressLogging from "./DailyProgressLogging";
 import QuranHoursLoggingFlow from "../flows/QuranHoursLoggingFlow";
 import { SurahRecitationLoggingSection } from "./SurahRecitationLoggingSection";
 import { CompletionRecitationLoggingSection } from "./CompletionRecitationLoggingSection";
+import { JuzRecitationLoggingSection } from "./JuzRecitationLoggingSection";
 import TahiyatUlWudhuLoggingFlow from "../flows/TahiyatUlWudhuLoggingFlow";
 import MissedPrayersLoggingFlow from "../flows/MissedPrayersLoggingFlow";
 import TahiyatAlMasjidLoggingFlow from "../flows/TahiyatAlMasjidLoggingFlow";
@@ -44,6 +45,15 @@ export function LoggingFlowSlot({ goalData, onLogComplete }: Props) {
   if (template === "quran-completion") {
     return (
       <CompletionRecitationLoggingSection
+        goalData={goalData}
+        onLogComplete={onLogComplete}
+      />
+    );
+  }
+
+  if (template === "quran-juz") {
+    return (
+      <JuzRecitationLoggingSection
         goalData={goalData}
         onLogComplete={onLogComplete}
       />

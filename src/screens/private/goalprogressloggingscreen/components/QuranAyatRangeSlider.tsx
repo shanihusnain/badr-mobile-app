@@ -15,6 +15,7 @@ type Props = {
   juz: number;
   startAyat: number;
   endAyat: number;
+  minStartAyat?: number;
   onChangeStartAyat: (value: number) => void;
   onChangeEndAyat: (value: number) => void;
   styles: Record<string, object>;
@@ -30,6 +31,7 @@ export function QuranAyatRangeSlider({
   juz,
   startAyat,
   endAyat,
+  minStartAyat = 1,
   onChangeStartAyat,
   onChangeEndAyat,
 }: Props) {
@@ -40,7 +42,11 @@ export function QuranAyatRangeSlider({
   const [width, setWidth] = useState(0);
 
   const maxAyat = Math.max(getJuzVerseCountFromMap(juz), 1);
-  const safeStart = Math.min(Math.max(startAyat, 1), maxAyat);
+  const safeMinStart = Math.min(
+    Math.max(Math.round(minStartAyat), 1),
+    maxAyat,
+  );
+  const safeStart = Math.min(Math.max(startAyat, safeMinStart), maxAyat);
   const safeEnd = Math.min(Math.max(endAyat, safeStart), maxAyat);
 
   useEffect(() => {
@@ -54,19 +60,19 @@ export function QuranAyatRangeSlider({
 
   const valueToX = useCallback(
     (value: number) => {
-      if (maxAyat <= 1) return 0;
-      return ((value - 1) / (maxAyat - 1)) * trackWidth;
+      if (maxAyat <= safeMinStart) return 0;
+      return ((value - safeMinStart) / (maxAyat - safeMinStart)) * trackWidth;
     },
-    [maxAyat, trackWidth],
+    [maxAyat, safeMinStart, trackWidth],
   );
 
   const xToValue = useCallback(
     (x: number) => {
-      if (maxAyat <= 1) return 1;
+      if (maxAyat <= safeMinStart) return safeMinStart;
       const percent = Math.max(0, Math.min(x / trackWidth, 1));
-      return Math.round(1 + percent * (maxAyat - 1));
+      return Math.round(safeMinStart + percent * (maxAyat - safeMinStart));
     },
-    [maxAyat, trackWidth],
+    [maxAyat, safeMinStart, trackWidth],
   );
 
   const startX = valueToX(safeStart);
@@ -117,10 +123,13 @@ export function QuranAyatRangeSlider({
             0,
             Math.min(dragOriginX.current + event.translationX, trackWidth),
           );
-          const nextValue = Math.min(xToValue(nextX), safeEnd);
+          const nextValue = Math.min(
+            Math.max(xToValue(nextX), safeMinStart),
+            safeEnd,
+          );
           onChangeStartAyat(nextValue);
         }),
-    [onChangeStartAyat, safeEnd, startX, trackWidth, xToValue],
+    [onChangeStartAyat, safeEnd, safeMinStart, startX, trackWidth, xToValue],
   );
 
   const endPan = useMemo(

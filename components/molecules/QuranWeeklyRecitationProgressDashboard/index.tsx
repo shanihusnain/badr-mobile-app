@@ -31,7 +31,7 @@ export type QuranWeeklyRecitationProgressDashboardProps = {
   weekRecitationTarget?: number;
   streakDays?: number;
   motivationalQuote?: string;
-  visualizationMode?: "daily" | "weekly" | "completion";
+  visualizationMode?: "daily" | "weekly" | "completion" | "juz";
   weeklySurahItems?: WeeklySurahDashboardItem[];
   completionWeekDays?: QuranCompletionDayProgress[];
   completionTarget?: number;
@@ -72,6 +72,8 @@ export function QuranWeeklyRecitationProgressDashboard({
     visualizationMode === "weekly" && weeklySurahItems.length > 0;
   const isCompletionMode =
     visualizationMode === "completion" && completionWeekDays.length > 0;
+  const isJuzMode = visualizationMode === "juz" && completionWeekDays.length > 0;
+  const isCompletionStyleMode = isCompletionMode || isJuzMode;
   console.log(
     "isWeeklySurahMode inside the quran weekly recitation progress dashboard",
     isWeeklySurahMode,
@@ -99,7 +101,7 @@ export function QuranWeeklyRecitationProgressDashboard({
   const defaultSelectedIndex =
     selectedDayIndex ??
     Math.max(
-      (isCompletionMode ? completionWeekDays : weekDays).findIndex(
+      (isCompletionStyleMode ? completionWeekDays : weekDays).findIndex(
         (day) => day.dayType === "today",
       ),
       0,
@@ -112,19 +114,21 @@ export function QuranWeeklyRecitationProgressDashboard({
     onDayPress?.(index);
   };
 
-  const periodRecitationTarget = isCompletionMode
+  const periodRecitationTarget = isCompletionStyleMode
     ? completionTarget
     : isWeeklySurahMode
       ? (activeWeeklySurah?.weeklyTarget ?? weekRecitationTarget ?? dailyTarget)
       : (weekRecitationTarget ?? dailyTarget * 7);
-  const displayTotalRecitations = isCompletionMode
+  const displayTotalRecitations = isCompletionStyleMode
     ? completionsLoggedThisWeek
     : isWeeklySurahMode
       ? (activeWeeklySurah?.completedThisWeek ?? totalRecitationsThisWeek)
       : totalRecitationsThisWeek;
-  const statsLabelKey = isCompletionMode
-    ? "progressLogging.completionsThisWeek"
-    : "progressLogging.totalRecitationsThisWeek";
+  const statsLabelKey = isJuzMode
+    ? "progressLogging.juzLoggedThisWeek"
+    : isCompletionMode
+      ? "progressLogging.completionsThisWeek"
+      : "progressLogging.totalRecitationsThisWeek";
 
   return (
     <View style={styles.card}>
@@ -175,7 +179,7 @@ export function QuranWeeklyRecitationProgressDashboard({
           activeSurahId={activeSurahId}
           onActiveSurahChange={setActiveSurahId}
         />
-      ) : isCompletionMode ? (
+      ) : isCompletionStyleMode ? (
         <View style={styles.daysRow}>
           {completionWeekDays.map((day, index) => {
             const isSelected = index === activeDayIndex;
@@ -202,7 +206,9 @@ export function QuranWeeklyRecitationProgressDashboard({
                   numberOfLines={1}
                 >
                   {day.hasActivity && day.completionNumber
-                    ? `C${day.completionNumber}`
+                    ? isJuzMode
+                      ? `J${day.completionNumber}`
+                      : `C${day.completionNumber}`
                     : day.day}
                 </Text>
 

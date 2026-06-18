@@ -11,8 +11,8 @@ import { TawbahPrayerWeeklyProgressDashboard } from "@/components/molecules/Tawb
 import { IstikharaPrayerWeeklyProgressDashboard } from "@/components/molecules/IstikharaPrayerWeeklyProgressDashboard";
 import { ShukrPrayerWeeklyProgressDashboard } from "@/components/molecules/ShukrPrayerWeeklyProgressDashboard";
 import { QiyamWeeklyProgressDashboard } from "@/components/molecules/QiyamWeeklyProgressDashboard";
-import { SunnahRawatibWeeklyProgressDashboard } from "@/components/molecules/SunnahRawatibWeeklyProgressDashboard";
-import { SunnahPrayerConfig, SunnahDayData } from "@/components/molecules/SunnahRawatibDayRing";
+import { SunnahRawatibWeeklyProgressDashboard, type SunnahRawatibDayProgress } from "@/components/molecules/SunnahRawatibWeeklyProgressDashboard";
+import { SunnahPrayerConfig } from "@/components/molecules/SunnahRawatibDayRing";
 import { PrayerProgressTrackerRing } from "@/components/molecules/PrayerProgressTrackerRing";
 import type { DayProgress } from "@/components/molecules/WeeklyProgressDashboard";
 import { GoalData } from "../../home/components/goalsData";
@@ -34,6 +34,12 @@ import {
   getQuranCompletionCycleSummary,
   getQuranCompletionWeekSummary,
 } from "../quranRecitationCompletionWeeklyData";
+import {
+  canNavigateJuzWeek,
+  clampJuzWeekIndex,
+  getQuranJuzCycleSummary,
+  getQuranJuzWeekSummary,
+} from "../quranRecitationJuzWeeklyData";
 import { isQuranHoursGoalId } from "../types";
 import {
   getSurahRecitationCycleMode,
@@ -67,6 +73,11 @@ export function WeeklyProgressSection({ goalData }: Props) {
     return getQuranCompletionCycleSummary();
   }, [template]);
 
+  const juzCycle = useMemo(() => {
+    if (template !== "quran-juz") return null;
+    return getQuranJuzCycleSummary();
+  }, [template]);
+
   const [weekIndex, setWeekIndex] = useState(0);
 
   useEffect(() => {
@@ -81,6 +92,12 @@ export function WeeklyProgressSection({ goalData }: Props) {
     }
   }, [completionCycle, goalData.id]);
 
+  useEffect(() => {
+    if (juzCycle) {
+      setWeekIndex(juzCycle.activeWeekIndex);
+    }
+  }, [juzCycle, goalData.id]);
+
   const quranRecitationWeek = useMemo(() => {
     if (!recitationCycle) return null;
     return cycleSummaryToWeekSummary(recitationCycle, weekIndex);
@@ -91,6 +108,11 @@ export function WeeklyProgressSection({ goalData }: Props) {
     return getQuranCompletionWeekSummary(weekIndex);
   }, [completionCycle, weekIndex]);
 
+  const quranJuzWeek = useMemo(() => {
+    if (!juzCycle) return null;
+    return getQuranJuzWeekSummary(weekIndex);
+  }, [juzCycle, weekIndex]);
+
   const weeklySurahItems = useMemo(() => {
     if (!recitationCycle || recitationCycle.type !== "weekly") return [];
     return getWeeklySurahDashboardItems(weekIndex);
@@ -98,6 +120,14 @@ export function WeeklyProgressSection({ goalData }: Props) {
 
   const isWeeklySurahDashboard =
     quranRecitationWeek?.frequency === "weekly" && weeklySurahItems.length > 0;
+
+  const handleJuzPrevWeek = useCallback(() => {
+    setWeekIndex((current) => clampJuzWeekIndex(current - 1));
+  }, []);
+
+  const handleJuzNextWeek = useCallback(() => {
+    setWeekIndex((current) => clampJuzWeekIndex(current + 1));
+  }, []);
 
   const handleCompletionPrevWeek = useCallback(() => {
     setWeekIndex((current) => clampCompletionWeekIndex(current - 1));
@@ -138,6 +168,28 @@ export function WeeklyProgressSection({ goalData }: Props) {
         streakDays={quranWeek.streakDays}
         motivationalQuote={t(quranWeek.motivationalQuoteKey)}
         statsIcon={statsIcon}
+      />
+    );
+  }
+
+  if (template === "quran-juz" && quranJuzWeek && juzCycle) {
+    return (
+      <QuranWeeklyRecitationProgressDashboard
+        weekDays={[]}
+        weekRangeLabel={quranJuzWeek.weekRangeLabel}
+        weekFraction={quranJuzWeek.weekFraction}
+        visualizationMode="juz"
+        completionWeekDays={quranJuzWeek.weekDays}
+        completionTarget={quranJuzWeek.targetCompletions}
+        completionsLoggedThisWeek={quranJuzWeek.completionsLoggedThisWeek}
+        streakDays={quranJuzWeek.streakDays}
+        motivationalQuote={t(quranJuzWeek.motivationalQuoteKey)}
+        onPrevWeek={
+          canNavigateJuzWeek(weekIndex, "prev") ? handleJuzPrevWeek : undefined
+        }
+        onNextWeek={
+          canNavigateJuzWeek(weekIndex, "next") ? handleJuzNextWeek : undefined
+        }
       />
     );
   }
@@ -434,7 +486,7 @@ export function WeeklyProgressSection({ goalData }: Props) {
       { id: "after_maghrib", weight: 1 },
       { id: "after_isha", weight: 1 },
     ];
-    const mockWeekDays: SunnahDayData[] = [
+    const mockWeekDays: SunnahRawatibDayProgress[] = [
       { day: "Sun", data: { goal: mockGoal, logged: { before_fajr: 1, before_dhuhr: 2, after_dhuhr: 2, before_asr: 0, after_maghrib: 1, after_isha: 0 } } },
       { day: "Mon", data: { goal: mockGoal, logged: { before_fajr: 1, before_dhuhr: 2, after_dhuhr: 2, before_asr: 2, after_maghrib: 1, after_isha: 0 } } },
       { day: "Tue", data: { goal: mockGoal, logged: { before_fajr: 1, before_dhuhr: 2, after_dhuhr: 2, before_asr: 2, after_maghrib: 1, after_isha: 1 } } },

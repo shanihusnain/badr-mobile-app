@@ -11,6 +11,7 @@ export type LoggingFlowTemplate =
   | "quran-hours"
   | "quran-recitation"
   | "quran-completion"
+  | "quran-juz"
   | "tahiyat-ul-wudhu"
   | "missed-prayers"
   | "tahiyat-al-masjid"
@@ -71,10 +72,27 @@ export type QuranCompletionLogEntry = {
   targetCompletions: number;
 };
 
+export type JuzRecitationGoalId = "quran-recitationByJuz";
+
+export type QuranJuzLogEntry = {
+  type: "quran-juz";
+  goalId: JuzRecitationGoalId;
+  date: string;
+  startTime: string;
+  completionType: "full" | "partial" | "both";
+  fullJuzRange: { startJuz: number; endJuz: number } | null;
+  partialJuz: number | null;
+  ayatRange: { startAyat: number; endAyat: number } | null;
+  fullTimeSpentMinutes: number | null;
+  partialTimeSpentMinutes: number | null;
+  targetJuzCount: number;
+};
+
 export type ProgressLogEntry =
   | QuranHoursLogEntry
   | QuranRecitationLogEntry
   | QuranCompletionLogEntry
+  | QuranJuzLogEntry
   | Record<string, unknown>;
 
 export type QuranHoursFlowConfig = {
@@ -116,6 +134,22 @@ export type QuranCompletionFlowDefinition = {
   config: QuranCompletionFlowConfig;
 };
 
+export type QuranJuzFlowConfig = {
+  targetJuzCount: number;
+  completedJuzCount: number;
+  targetJuzRange: { startJuz: number; endJuz: number };
+};
+
+export type QuranJuzFlowDefinition = {
+  template: "quran-juz";
+  goalId: JuzRecitationGoalId;
+  config: QuranJuzFlowConfig;
+};
+
 export const isCompletionGoalId = (
   goalId: GoalId,
 ): goalId is CompletionGoalId => goalId === "quran-recitationByCompletion";
+
+export const isJuzRecitationGoalId = (
+  goalId: GoalId,
+): goalId is JuzRecitationGoalId => goalId === "quran-recitationByJuz";

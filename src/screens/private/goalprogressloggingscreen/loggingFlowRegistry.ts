@@ -3,6 +3,7 @@ import {
   getCompletionRecitationProgress,
   getCurrentCompletionNumber,
 } from "./quranRecitationCompletionData";
+import { getJuzRecitationProgress } from "./quranRecitationJuzData";
 import {
   getQuranRecitationTargetConfig,
   getRecitationCycleTotal,
@@ -10,10 +11,12 @@ import {
 } from "./quranRecitationTarget";
 import {
   isCompletionGoalId,
+  isJuzRecitationGoalId,
   isQuranHoursGoalId,
   LoggingFlowTemplate,
   QuranCompletionFlowDefinition,
   QuranHoursFlowDefinition,
+  QuranJuzFlowDefinition,
   QuranRecitationFlowDefinition,
 } from "./types";
 
@@ -36,6 +39,7 @@ const FLOW_TEMPLATE_BY_GOAL: Partial<Record<GoalId, LoggingFlowTemplate>> = {
   "quran-recitationBySurah-daily": "quran-recitation",
   "quran-recitationBySurah-weekly": "quran-recitation",
   "quran-recitationByCompletion": "quran-completion",
+  "quran-recitationByJuz": "quran-juz",
   "prayer-tahiyyat": "tahiyat-ul-wudhu",
   "prayer-missed": "missed-prayers",
   "prayer-tahiyyatMasjid": "tahiyat-al-masjid",
@@ -94,6 +98,24 @@ export function getQuranCompletionFlowDefinition(
       targetCompletions: progress.targetCompletions,
       completedCompletions: progress.completedCompletions,
       currentCompletion: getCurrentCompletionNumber(progress),
+    },
+  };
+}
+
+export function getQuranJuzFlowDefinition(
+  goalId: GoalId,
+): QuranJuzFlowDefinition | null {
+  if (!isJuzRecitationGoalId(goalId)) return null;
+
+  const progress = getJuzRecitationProgress();
+
+  return {
+    template: "quran-juz",
+    goalId,
+    config: {
+      targetJuzCount: progress.targetJuzCount,
+      completedJuzCount: progress.completedJuzCount,
+      targetJuzRange: progress.targetJuzRange,
     },
   };
 }
