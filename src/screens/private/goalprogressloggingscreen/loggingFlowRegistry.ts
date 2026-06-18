@@ -32,6 +32,12 @@ const FLOW_TEMPLATE_BY_GOAL: Partial<Record<GoalId, LoggingFlowTemplate>> = {
   "prayer-tahiyyat": "tahiyat-ul-wudhu",
   "prayer-missed": "missed-prayers",
   "prayer-tahiyyatMasjid": "tahiyat-al-masjid",
+  "prayer-duha": "duha-prayer",
+  "prayer-tawbah": "tawbah-prayer",
+  "prayer-istikhara": "istikhara-prayer",
+  "prayer-shukr": "shukr-prayer",
+  "prayer-qiyam": "qiyam-al-layl",
+  "prayer-sunnah": "sunnah-rawatib",
 };
 
 export function getLoggingFlowTemplate(goalId: GoalId): LoggingFlowTemplate {

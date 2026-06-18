@@ -68,7 +68,7 @@ export default function TahiyatUlWudhuLoggingFlow({
   };
 
   const badgeStatus = getBadgeStatus();
-  const isCompleted = hasLogged && MOCK_PERCENTAGE >= 100;
+  const isCompleted = hasLogged;
 
   const todayString = toDateString(new Date());
   const currentStep = STEPS[stepIndex];
@@ -229,28 +229,27 @@ export default function TahiyatUlWudhuLoggingFlow({
 
         {flowMode === "collapsed" ? (
           <View style={localStyles.summaryCard}>
-            <View style={localStyles.badgeRow}>
-              <View style={[localStyles.badge, badgeStatus.type === "completed" ? localStyles.badgeCompleted : localStyles.badgeInProgress]}>
-                <Text style={[localStyles.badgeText, badgeStatus.type === "completed" ? localStyles.badgeTextCompleted : localStyles.badgeTextInProgress]}>
-                  {badgeStatus.text}
-                </Text>
-              </View>
-            </View>
-
             <View style={localStyles.summaryBody}>
               <View style={localStyles.summaryIconCircle}>
                 <Ionicons name="water" size={18} color={Colors.light.white} />
               </View>
-              <Text style={localStyles.summaryTitle}>
-                {mockTitle}
-              </Text>
+              <View style={{ flex: 1, gap: 4 }}>
+                <View style={[localStyles.badge, badgeStatus.type === "completed" ? localStyles.badgeCompleted : localStyles.badgeInProgress, { alignSelf: "flex-start" }]}>
+                  <Text style={[localStyles.badgeText, badgeStatus.type === "completed" ? localStyles.badgeTextCompleted : localStyles.badgeTextInProgress]}>
+                    {badgeStatus.text}
+                  </Text>
+                </View>
+                <Text style={[localStyles.summaryTitle, { flex: undefined }]}>
+                  {mockTitle}
+                </Text>
+              </View>
             </View>
 
             <View style={localStyles.footerRow}>
               {isCompleted ? (
                 <TouchableOpacity style={localStyles.insightsBtn}>
                   <Text style={localStyles.insightsText}>VIEW INSIGHTS</Text>
-                  <Ionicons name="chevron-forward" size={16} color={Colors.light.white} />
+                  <Ionicons name="chevron-forward" size={22} color={Colors.light.white} />
                 </TouchableOpacity>
               ) : <View style={localStyles.spacer} />}
 
@@ -290,6 +289,8 @@ const localStyles = StyleSheet.create({
     borderRadius: 14,
     padding: 16,
     gap: 12,
+    height: 145,
+    justifyContent: 'space-between',
   },
   badge: {
     paddingHorizontal: 8,
@@ -333,6 +334,8 @@ const localStyles = StyleSheet.create({
     fontFamily: fonts.primary.semiBold,
     fontSize: 14,
     fontWeight: "600",
+    lineHeight: 18,
+    letterSpacing: 0,
     flex: 1,
   },
   footerRow: {
@@ -350,7 +353,7 @@ const localStyles = StyleSheet.create({
   insightsText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.bold,
-    fontSize: 11,
+    fontSize: 16,
     fontWeight: "700",
   },
   addButton: {
@@ -364,6 +367,7 @@ const localStyles = StyleSheet.create({
   },
   badgeRow: {
     flexDirection: "row",
+    marginLeft: 14,
   },
   spacer: {
     flex: 1,

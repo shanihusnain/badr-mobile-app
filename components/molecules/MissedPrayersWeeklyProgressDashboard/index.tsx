@@ -322,6 +322,9 @@ const styles = StyleSheet.create({
   ringInnerLogged: {
     backgroundColor: Colors.light.green,
   },
+  ringInnerMenstruation: {
+    backgroundColor: Colors.light.red,
+  },
   ringInnerEmpty: {
     backgroundColor: "rgba(255, 255, 255, 0.1)",
   },

@@ -12,15 +12,18 @@ import { useTranslation } from "react-i18next";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 
-export type TahiyatUlWudhuDayProgress = {
+export type TawbahPrayerDayProgress = {
   day: string;
   isLogged?: boolean;
   prayersLogged: number;
   isBestDay?: boolean;
+  isMenstruation?: boolean;
+  isFuture?: boolean;
+  isBlurDay?: boolean;
 };
 
-export type TahiyatUlWudhuWeeklyProgressDashboardProps = {
-  weekDays: TahiyatUlWudhuDayProgress[];
+export type TawbahPrayerWeeklyProgressDashboardProps = {
+  weekDays: TawbahPrayerDayProgress[];
   weekRangeLabel?: string;
   weekFraction?: string;
   totalPrayersThisWeek?: number;
@@ -39,61 +42,66 @@ const RING_SIZE_MAX = 34;
 
 type DayRingProps = {
   size: number;
-  hasLog: boolean;
-  isBestDay: boolean;
+  day: TawbahPrayerDayProgress;
   isSelected: boolean;
 };
 
-function TahiyatUlWudhuDayRing({
+function TawbahPrayerDayRing({
   size,
-  hasLog,
-  isBestDay,
+  day,
   isSelected,
 }: DayRingProps) {
+  const hasLog = day.prayersLogged > 0 || !!day.isLogged;
+
+  const innerSizeStyle = {
+    width: size,
+    height: size,
+    borderRadius: size / 2,
+  };
+
+  const renderInner = () => {
+    if (day.isMenstruation) {
+      return <View style={[innerSizeStyle, styles.ringInner, styles.ringInnerMenstruation]} />;
+    }
+    if (hasLog) {
+      return (
+        <View style={[innerSizeStyle, styles.ringInner, styles.ringInnerLogged]}>
+          {day.isBestDay && (
+            <Ionicons name="star" size={16} color={Colors.light.yellow} />
+          )}
+        </View>
+      );
+    }
+    return <View style={[innerSizeStyle, styles.ringInner, styles.ringInnerEmpty]} />;
+  };
+
   return (
     <View
       style={[
         styles.ringOuter,
-        {
-          width: size + 10,
-          height: size + 16,
-          borderRadius: 8,
-        },
+        { width: size + 10, height: size + 16, borderRadius: 8 },
         isSelected && styles.ringOuterSelected,
+        day.isBlurDay && styles.ringOuterBlur,
       ]}
     >
-      <View
-        style={[
-          styles.ringInner,
-          {
-            width: size,
-            height: size,
-            borderRadius: size / 2,
-          },
-          hasLog ? styles.ringInnerLogged : styles.ringInnerEmpty,
-        ]}
-      >
-        {isBestDay && (
-          <Ionicons name="star" size={18} color={Colors.light.yellow} />
-        )}
-      </View>
+      {renderInner()}
     </View>
   );
 }
 
-export function TahiyatUlWudhuWeeklyProgressDashboard({
+export function TawbahPrayerWeeklyProgressDashboard({
   weekDays,
   weekRangeLabel = "Nov 29 — Dec 5",
   weekFraction = "1/4",
-  totalPrayersThisWeek = 0,
-  streakDays = 0,
-  motivationalQuote = "",
-  selectedDayIndex = 6,
-  statsIcon = "rug", // or similar suitable icon
+  totalPrayersThisWeek = 3,
+  streakDays = 1,
+  motivationalQuote = "May Allah accept your prayer and fill your heart with contentment.",
+  selectedDayIndex = 4,
+  statsIcon = "rug",
   onDayPress,
   onPrevWeek,
   onNextWeek,
-}: TahiyatUlWudhuWeeklyProgressDashboardProps) {
+}: TawbahPrayerWeeklyProgressDashboardProps) {
   const { t } = useTranslation();
   const { width: screenWidth } = useWindowDimensions();
 
@@ -167,10 +175,9 @@ export function TahiyatUlWudhuWeeklyProgressDashboard({
               activeOpacity={0.75}
             >
               <View style={[styles.dayItemWrapper, isSelected && styles.dayItemSelected]}>
-                <TahiyatUlWudhuDayRing
+                <TawbahPrayerDayRing
                   size={ringSize}
-                  hasLog={hasLog}
-                  isBestDay={!!day.isBestDay}
+                  day={day}
                   isSelected={isSelected}
                 />
 
@@ -186,11 +193,7 @@ export function TahiyatUlWudhuWeeklyProgressDashboard({
                 <View style={styles.durationSlot}>
                   <Text
                     style={[
-                      {
-                        color: day.isBestDay
-                          ? Colors.light.green
-                          : Colors.light.grey,
-                      },
+                      day.isBestDay ? styles.durationTextBest : styles.durationTextNormal,
                       styles.durationText,
                     ]}
                     numberOfLines={1}
@@ -214,7 +217,7 @@ export function TahiyatUlWudhuWeeklyProgressDashboard({
           <Text style={styles.statsCount}>
             {totalPrayersThisWeek}
           </Text>
-          {" prayers this week"}
+          {" total prayers this week"}
         </Text>
       </View>
 
@@ -232,7 +235,7 @@ export function TahiyatUlWudhuWeeklyProgressDashboard({
             size={14}
             color={Colors.light.seagreen}
           />
-          <Text style={styles.quoteText}>{motivationalQuote || "Masha'Allah, may Allah always fill your heart with His love and light!"}</Text>
+          <Text style={styles.quoteText}>{motivationalQuote}</Text>
         </View>
       </View>
     </View>
@@ -297,7 +300,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   dayItemSelected: {
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
+    backgroundColor: Colors.light.divider,
   },
   bestDayLabel: {
     color: Colors.light.green,
@@ -322,11 +325,14 @@ const styles = StyleSheet.create({
   ringInnerLogged: {
     backgroundColor: Colors.light.green,
   },
+  ringInnerEmpty: {
+    backgroundColor: Colors.light.dullWhiteOpacity,
+  },
   ringInnerMenstruation: {
     backgroundColor: Colors.light.red,
   },
-  ringInnerEmpty: {
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
+  ringOuterBlur: {
+    opacity: 0.3,
   },
   dayLabel: {
     color: Colors.light.subtext,
@@ -347,6 +353,12 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontFamily: fonts.primary.bold,
     textAlign: "center",
+  },
+  durationTextBest: {
+    color: Colors.light.green,
+  },
+  durationTextNormal: {
+    color: Colors.light.grey,
   },
   statsRow: {
     flexDirection: "row",
@@ -386,11 +398,10 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.medium,
   },
   quoteBlock: {
-    flex: 1,
     flexDirection: "row",
     alignItems: "flex-start",
     gap: 4,
-    minWidth: 0,
+    flex: 1,
   },
   quoteText: {
     flex: 1,

@@ -341,9 +341,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.dullWhiteOpacity,
   },
   ringInnerMenstruation: {
-    backgroundColor: "transparent",
-    borderWidth: 3,
-    borderColor: Colors.light.red,
+    backgroundColor: Colors.light.red,
   },
   dayLabel: {
     color: Colors.light.subtext,

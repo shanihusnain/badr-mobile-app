@@ -41,6 +41,7 @@ export const Colors = {
     goldenBright: "#FFD56B",
     goldenDeep: "#C9A227",
     goldenGlow: "rgba(255, 213, 107, 0.55)",
+    ringTrackEmpty: "rgba(255, 255, 255, 0.2)",
     ringPrayer: "#5B9FD4",
     ringQuran: "#8B7CF6",
     ringFasting: "#FFFFFF",

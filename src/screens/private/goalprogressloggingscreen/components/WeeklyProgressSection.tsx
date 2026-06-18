@@ -5,6 +5,13 @@ import { QuranHoursWeeklyProgressDashboard } from "@/components/molecules/QuranH
 import { TahiyatUlWudhuWeeklyProgressDashboard } from "@/components/molecules/TahiyatUlWudhuWeeklyProgressDashboard";
 import { MissedPrayersWeeklyProgressDashboard } from "@/components/molecules/MissedPrayersWeeklyProgressDashboard";
 import { TahiyatAlMasjidWeeklyProgressDashboard } from "@/components/molecules/TahiyatAlMasjidWeeklyProgressDashboard";
+import { DuhaPrayerWeeklyProgressDashboard } from "@/components/molecules/DuhaPrayerWeeklyProgressDashboard";
+import { TawbahPrayerWeeklyProgressDashboard } from "@/components/molecules/TawbahPrayerWeeklyProgressDashboard";
+import { IstikharaPrayerWeeklyProgressDashboard } from "@/components/molecules/IstikharaPrayerWeeklyProgressDashboard";
+import { ShukrPrayerWeeklyProgressDashboard } from "@/components/molecules/ShukrPrayerWeeklyProgressDashboard";
+import { QiyamWeeklyProgressDashboard } from "@/components/molecules/QiyamWeeklyProgressDashboard";
+import { SunnahRawatibWeeklyProgressDashboard } from "@/components/molecules/SunnahRawatibWeeklyProgressDashboard";
+import { SunnahPrayerConfig, SunnahDayData } from "@/components/molecules/SunnahRawatibDayRing";
 import { PrayerProgressTrackerRing } from "@/components/molecules/PrayerProgressTrackerRing";
 import type { DayProgress } from "@/components/molecules/WeeklyProgressDashboard";
 import { GoalData } from "../../home/components/goalsData";
@@ -130,6 +137,176 @@ export function WeeklyProgressSection({ goalData }: Props) {
         weekFraction={mockWeek.weekFraction}
         totalPrayersThisWeek={mockWeek.totalPrayersThisWeek}
         streakDays={mockWeek.streakDays}
+      />
+    );
+  }
+
+  if (template === "duha-prayer") {
+    const mockWeek = {
+      weekDays: [
+        { day: "Sun", prayersLogged: 2, isLogged: true },
+        { day: "Mon", prayersLogged: 4, isLogged: true, isBestDay: true },
+        { day: "Tue", prayersLogged: 2, isLogged: true },
+        { day: "Wed", prayersLogged: 0, isLogged: false },
+        { day: "Thu", prayersLogged: 0, isLogged: false },
+        { day: "Fri", prayersLogged: 2, isLogged: true },
+        { day: "Sat", prayersLogged: 2, isLogged: true },
+      ],
+      weekRangeLabel: "Nov 29 — Dec 5",
+      weekFraction: "1/4",
+      totalPrayersThisWeek: 12,
+      streakDays: 2,
+    };
+    return (
+      <DuhaPrayerWeeklyProgressDashboard
+        weekDays={mockWeek.weekDays}
+        weekRangeLabel={mockWeek.weekRangeLabel}
+        weekFraction={mockWeek.weekFraction}
+        totalPrayersThisWeek={mockWeek.totalPrayersThisWeek}
+        streakDays={mockWeek.streakDays}
+        statsIcon="weather-partly-cloudy"
+      />
+    );
+  }
+
+  if (template === "tawbah-prayer") {
+    const mockWeek = {
+      weekDays: [
+        { day: "Sun", prayersLogged: 1, isLogged: true },
+        { day: "Mon", prayersLogged: 2, isLogged: true, isBestDay: true },
+        { day: "Tue", prayersLogged: 1, isLogged: true },
+        { day: "Wed", prayersLogged: 0, isLogged: false },
+        { day: "Thu", prayersLogged: 1, isLogged: true },
+        { day: "Fri", prayersLogged: 1, isLogged: true },
+        { day: "Sat", prayersLogged: 1, isLogged: true },
+      ],
+      weekRangeLabel: "Nov 29 — Dec 5",
+      weekFraction: "1/4",
+      totalPrayersThisWeek: 7,
+      streakDays: 3,
+    };
+    return (
+      <TawbahPrayerWeeklyProgressDashboard
+        weekDays={mockWeek.weekDays}
+        weekRangeLabel={mockWeek.weekRangeLabel}
+        weekFraction={mockWeek.weekFraction}
+        totalPrayersThisWeek={mockWeek.totalPrayersThisWeek}
+        streakDays={mockWeek.streakDays}
+        statsIcon="hand-heart"
+      />
+    );
+  }
+
+  if (template === "istikhara-prayer") {
+    const mockWeek = {
+      weekDays: [
+        { day: "Sun", prayersLogged: 1, isLogged: true },
+        { day: "Mon", prayersLogged: 0, isLogged: false },
+        { day: "Tue", prayersLogged: 1, isLogged: true },
+        { day: "Wed", prayersLogged: 1, isLogged: true },
+        { day: "Thu", prayersLogged: 0, isLogged: false },
+        { day: "Fri", prayersLogged: 1, isLogged: true, isBestDay: true },
+        { day: "Sat", prayersLogged: 1, isLogged: true },
+      ],
+      weekRangeLabel: "Nov 29 — Dec 5",
+      weekFraction: "1/4",
+      totalPrayersThisWeek: 5,
+      streakDays: 3,
+    };
+    return (
+      <IstikharaPrayerWeeklyProgressDashboard
+        weekDays={mockWeek.weekDays}
+        weekRangeLabel={mockWeek.weekRangeLabel}
+        weekFraction={mockWeek.weekFraction}
+        totalPrayersThisWeek={mockWeek.totalPrayersThisWeek}
+        streakDays={mockWeek.streakDays}
+        statsIcon="star-crescent"
+      />
+    );
+  }
+
+  if (template === "shukr-prayer") {
+    const mockWeek = {
+      weekDays: [
+        { day: "Sun", prayersLogged: 2, isLogged: true },
+        { day: "Mon", prayersLogged: 2, isLogged: true, isBestDay: true },
+        { day: "Tue", prayersLogged: 1, isLogged: true },
+        { day: "Wed", prayersLogged: 2, isLogged: true },
+        { day: "Thu", prayersLogged: 0, isLogged: false },
+        { day: "Fri", prayersLogged: 2, isLogged: true },
+        { day: "Sat", prayersLogged: 2, isLogged: true },
+      ],
+      weekRangeLabel: "Nov 29 — Dec 5",
+      weekFraction: "2/4",
+      totalPrayersThisWeek: 11,
+      streakDays: 4,
+    };
+    return (
+      <ShukrPrayerWeeklyProgressDashboard
+        weekDays={mockWeek.weekDays}
+        weekRangeLabel={mockWeek.weekRangeLabel}
+        weekFraction={mockWeek.weekFraction}
+        totalPrayersThisWeek={mockWeek.totalPrayersThisWeek}
+        streakDays={mockWeek.streakDays}
+        statsIcon="heart"
+      />
+    );
+  }
+
+  if (template === "qiyam-al-layl") {
+    const mockWeek = {
+      weekDays: [
+        { day: "Sun", prayersLogged: 4, isLogged: true, loggedTime: "after-isha" as const },
+        { day: "Mon", prayersLogged: 8, isLogged: true, isBestDay: true, loggedTime: "both" as const },
+        { day: "Tue", prayersLogged: 4, isLogged: true, loggedTime: "before-fajr" as const },
+        { day: "Wed", prayersLogged: 0, isMissedStrict: true },
+        { day: "Thu", prayersLogged: 4, isLogged: true, loggedTime: "after-isha" as const },
+        { day: "Fri", prayersLogged: 4, isLogged: true, loggedTime: "after-isha" as const },
+        { day: "Sat", prayersLogged: 4, isLogged: true, loggedTime: "after-isha" as const },
+      ],
+      weekRangeLabel: "Nov 29 — Dec 5",
+      weekFraction: "2/4",
+      totalPrayersThisWeek: 28,
+      streakDays: 5,
+    };
+    return (
+      <QiyamWeeklyProgressDashboard
+        weekDays={mockWeek.weekDays}
+        weekRangeLabel={mockWeek.weekRangeLabel}
+        weekFraction={mockWeek.weekFraction}
+        totalPrayersThisWeek={mockWeek.totalPrayersThisWeek}
+        streakDays={mockWeek.streakDays}
+        statsIcon="rug"
+      />
+    );
+  }
+
+  if (template === "sunnah-rawatib") {
+    const mockGoal: SunnahPrayerConfig[] = [
+      { id: "before_fajr", weight: 1 },
+      { id: "before_dhuhr", weight: 2 },
+      { id: "after_dhuhr", weight: 2 },
+      { id: "before_asr", weight: 2 },
+      { id: "after_maghrib", weight: 1 },
+      { id: "after_isha", weight: 1 },
+    ];
+    const mockWeekDays: SunnahDayData[] = [
+      { day: "Sun", data: { goal: mockGoal, logged: { before_fajr: 1, before_dhuhr: 2, after_dhuhr: 2, before_asr: 0, after_maghrib: 1, after_isha: 0 } } },
+      { day: "Mon", data: { goal: mockGoal, logged: { before_fajr: 1, before_dhuhr: 2, after_dhuhr: 2, before_asr: 2, after_maghrib: 1, after_isha: 0 } } },
+      { day: "Tue", data: { goal: mockGoal, logged: { before_fajr: 1, before_dhuhr: 2, after_dhuhr: 2, before_asr: 2, after_maghrib: 1, after_isha: 1 } } },
+      { day: "Wed", data: { goal: mockGoal, logged: { before_fajr: 1, before_dhuhr: 2, after_dhuhr: 2, before_asr: 2, after_maghrib: 1, after_isha: 1 } } },
+      { day: "Thu", data: { goal: mockGoal, logged: { before_fajr: 1, before_dhuhr: 2, after_dhuhr: 2, before_asr: 2, after_maghrib: 1, after_isha: 0 } } },
+      { day: "Fri", data: { goal: mockGoal, logged: { before_fajr: 1, before_dhuhr: 2, after_dhuhr: 2, before_asr: 2, after_maghrib: 1, after_isha: 1 } } },
+      { day: "Sat", data: { goal: mockGoal, logged: { before_fajr: 0, before_dhuhr: 2, after_dhuhr: 1, before_asr: 1, after_maghrib: 1 } } },
+    ];
+    return (
+      <SunnahRawatibWeeklyProgressDashboard
+        weekDays={mockWeekDays}
+        weekRangeLabel="Nov 29 — Dec 5"
+        weekFraction="1/4"
+        totalPrayersThisWeek={55}
+        streakDays={2}
+        selectedDayIndex={6}
       />
     );
   }
