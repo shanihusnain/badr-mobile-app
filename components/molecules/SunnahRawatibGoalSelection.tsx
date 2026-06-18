@@ -48,20 +48,25 @@ export default function SunnahRawatibGoalSelection({
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setIsOpen(!isOpen);
   };
-
+  console.log("the prayer after dhuhur state is", afterDuhr);
   const handleAfterDuhrOptionChange = (option: "one" | "two") => {
     setAfterDuhrOption(option);
+
     const maxVal = option === "one" ? 28 : 56;
-    if (afterDuhr > maxVal) {
-      setAfterDuhr(maxVal);
+    if (option === "one") {
+      setAfterDuhr(28);
+    } else {
+      setAfterDuhr(56);
     }
   };
 
   const handleBeforeAsarOptionChange = (option: "one" | "two") => {
     setBeforeAsarOption(option);
     const maxVal = option === "one" ? 28 : 56;
-    if (beforeAsar > maxVal) {
-      setBeforeAsar(maxVal);
+    if (option === "one") {
+      setBeforeAsar(28);
+    } else {
+      setBeforeAsar(56);
     }
   };
 
@@ -115,6 +120,7 @@ export default function SunnahRawatibGoalSelection({
               maxDays={28}
               initialDays={beforeFajar}
               onChange={(val) => setBeforeFajar(val)}
+              locked={true}
             />
           </View>
 
@@ -127,6 +133,7 @@ export default function SunnahRawatibGoalSelection({
               maxDays={56}
               initialDays={beforeDuhr}
               onChange={(val) => setBeforeDuhr(val)}
+              locked={true}
             />
           </View>
 
@@ -170,6 +177,7 @@ export default function SunnahRawatibGoalSelection({
               maxDays={afterDuhrOption === "one" ? 28 : 56}
               initialDays={afterDuhr}
               onChange={(val) => setAfterDuhr(val)}
+              locked={true}
             />
           </View>
 
@@ -213,6 +221,7 @@ export default function SunnahRawatibGoalSelection({
               maxDays={beforeAsarOption === "one" ? 28 : 56}
               initialDays={beforeAsar}
               onChange={(val) => setBeforeAsar(val)}
+              locked={true}
             />
           </View>
 
@@ -225,6 +234,7 @@ export default function SunnahRawatibGoalSelection({
               maxDays={28}
               initialDays={afterMaghrib}
               onChange={(val) => setAfterMaghrib(val)}
+              locked={true}
             />
           </View>
 
@@ -237,6 +247,7 @@ export default function SunnahRawatibGoalSelection({
               maxDays={28}
               initialDays={afterIsha}
               onChange={(val) => setAfterIsha(val)}
+              locked={true}
             />
           </View>
 

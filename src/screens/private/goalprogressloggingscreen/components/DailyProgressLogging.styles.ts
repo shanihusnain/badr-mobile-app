@@ -406,11 +406,11 @@ export const styles = StyleSheet.create({
   recitationCounterRow: {
     alignItems: "center",
     justifyContent: "center",
-    width: "100%",
     borderWidth: 1,
     borderColor: Colors.light.white,
-    paddingVertical: 12,
-    paddingHorizontal: 12,
+    paddingVertical: 2,
+    paddingHorizontal: 6,
+    borderRadius: 12,
   },
   recitationCounterControls: {
     flexDirection: "row",

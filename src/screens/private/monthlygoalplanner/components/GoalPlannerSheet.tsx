@@ -1177,13 +1177,23 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
         case "five-daily-prayers":
           return (
             <DailyPrayerGoalSelection
-              onSave={(fajr, dhuhr, asar, maghrib, isha) => {
+              onSave={(
+                fajr,
+                dhuhr,
+                asar,
+                maghrib,
+                isha,
+                jumuah,
+                trackCongregation,
+              ) => {
                 console.log("Saving daily five prayers with value", {
                   fajr,
                   dhuhr,
                   asar,
                   maghrib,
                   isha,
+                  jumuah,
+                  trackCongregation,
                 });
                 setEditingGoal(null);
               }}

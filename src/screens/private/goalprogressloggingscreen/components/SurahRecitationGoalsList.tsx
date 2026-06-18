@@ -6,6 +6,7 @@ import {
   type ViewToken,
 } from "react-native";
 import { GoalData } from "../../home/components/goalsData";
+import { isSurahRecitationGoalId, getSurahRecitationCycleMode } from "../quranRecitationTarget";
 import {
   getSurahRecitationGoals,
   type SurahRecitationGoal,
@@ -30,7 +31,15 @@ export function SurahRecitationGoalsList({
   onLogComplete,
 }: Props) {
   const { width: screenWidth } = useWindowDimensions();
-  const goals = useMemo(() => getSurahRecitationGoals(), []);
+  const goals = useMemo(() => {
+    const allGoals = getSurahRecitationGoals();
+    if (!isSurahRecitationGoalId(goalData.id)) {
+      return allGoals;
+    }
+
+    const frequency = getSurahRecitationCycleMode(goalData.id);
+    return allGoals.filter((goal) => goal.frequency === frequency);
+  }, [goalData.id]);
   const cardWidth = screenWidth * CARD_WIDTH_RATIO;
   const [activeGoalId, setActiveGoalId] = useState(goals[0]?.id ?? "");
 

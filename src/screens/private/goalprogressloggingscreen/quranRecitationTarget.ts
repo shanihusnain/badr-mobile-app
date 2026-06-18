@@ -3,11 +3,14 @@ import { GoalId } from "../home/components/goalsData";
 export type RecitationFrequency = "daily" | "weekly";
 
 export type QuranRecitationGoalId =
-  | "quran-recitationBySurah"
+  | "quran-recitationBySurah-daily"
+  | "quran-recitationBySurah-weekly"
   | "quran-recitationByCompletion"
   | "quran-recitationByJuz";
 
-export type SurahRecitationGoalId = "quran-recitationBySurah";
+export type SurahRecitationGoalId =
+  | "quran-recitationBySurah-daily"
+  | "quran-recitationBySurah-weekly";
 
 export type QuranRecitationTargetConfig = {
   surahName: string;
@@ -38,12 +41,21 @@ const DEFAULT_TARGET: QuranRecitationTargetConfig = {
 
 export const isSurahRecitationGoalId = (
   goalId: GoalId,
-): goalId is SurahRecitationGoalId => goalId === "quran-recitationBySurah";
+): goalId is SurahRecitationGoalId =>
+  goalId === "quran-recitationBySurah-daily" ||
+  goalId === "quran-recitationBySurah-weekly";
+
+export function getSurahRecitationCycleMode(
+  goalId: SurahRecitationGoalId,
+): RecitationFrequency {
+  return goalId === "quran-recitationBySurah-weekly" ? "weekly" : "daily";
+}
 
 export const isQuranRecitationGoalId = (
   goalId: GoalId,
 ): goalId is QuranRecitationGoalId =>
-  goalId === "quran-recitationBySurah" ||
+  goalId === "quran-recitationBySurah-daily" ||
+  goalId === "quran-recitationBySurah-weekly" ||
   goalId === "quran-recitationByCompletion" ||
   goalId === "quran-recitationByJuz";
 

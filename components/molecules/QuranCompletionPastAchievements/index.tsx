@@ -5,8 +5,8 @@ import {
   StyleSheet,
   TouchableOpacity,
   Pressable,
-  useWindowDimensions,
   FlatList,
+  useWindowDimensions,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
@@ -15,22 +15,31 @@ import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import {
-  formatGoalHoursLabel,
-  getQuranHoursPastAchievement,
-  type PastAchievementPeriod,
-} from "@/src/screens/private/goalprogressloggingscreen/quranHoursPastAchievementData";
-import type { QuranHoursGoalId } from "@/src/screens/private/goalprogressloggingscreen/types";
-import { INCOMPLETE_BAR_COLOR } from "./pastAchievementStyles";
-import { QuranHoursPastAchievementChartBlock } from "./QuranHoursPastAchievementChartBlock";
-import { TopSpace } from "@/components/atoms/TopSpace";
+  applyCompletionAnalyticsView,
+  formatCompletionCountLabel,
+  formatCompletionTimeSpentLabel,
+  formatJuzRangeLabel,
+  getCompletionJuzProgressPercent,
+  getCompletionTimeSpentByPeriod,
+  getQuranCompletionPastAchievement,
+  getQuranCompletionPastAchievementSlice,
+  getTotalCompletionTimeSpentMinutes,
+  type CompletionAnalyticsView,
+  type CompletionPastAchievementRecord,
+} from "@/src/screens/private/goalprogressloggingscreen/quranRecitationCompletionPastAchievementData";
+import type { PastAchievementPeriod } from "@/src/screens/private/goalprogressloggingscreen/quranHoursPastAchievementData";
+import type { CompletionGoalId } from "@/src/screens/private/goalprogressloggingscreen/types";
+import { INCOMPLETE_BAR_COLOR } from "../QuranHoursPastAchievements/pastAchievementStyles";
+import { QuranHoursPastAchievementChartBlock } from "../QuranHoursPastAchievements/QuranHoursPastAchievementChartBlock";
 import {
   getGoalById,
-  GoalData,
+  type GoalData,
 } from "@/src/screens/private/home/components/goalsData";
+import { TopSpace } from "@/components/atoms/TopSpace";
 import { Image } from "expo-image";
 
 type Props = {
-  goalId: QuranHoursGoalId;
+  goalId: CompletionGoalId;
 };
 
 const PERIODS: PastAchievementPeriod[] = [
@@ -38,65 +47,166 @@ const PERIODS: PastAchievementPeriod[] = [
   "threeMonths",
   "sixMonths",
 ];
-const STUDY_CARD_WIDTH_RATIO = 0.42;
-const STUDY_CARD_GAP = 10;
+
 const PERIOD_LABEL_KEYS: Record<PastAchievementPeriod, string> = {
   monthly: "progressLogging.periodMonthly",
   threeMonths: "progressLogging.periodThreeMonths",
   sixMonths: "progressLogging.periodSixMonths",
 };
-type StudyMaterialItem = NonNullable<GoalData["studyMaterial"]>[number];
-const GOAL_SUMMARY_KEY: Record<QuranHoursGoalId, string> = {
-  "quran-listening": "progressLogging.achievementSummaryListening",
-  "quran-Tajweed": "progressLogging.achievementSummaryTajweed",
+
+const GOAL_SUMMARY_KEY =
+  "progressLogging.achievementSummaryRecitationCompletion";
+
+const ANALYTICS_VIEWS: CompletionAnalyticsView[] = [
+  "completedVsIncomplete",
+  "completedVsTimeSpent",
+];
+
+const ANALYTICS_VIEW_LABEL_KEYS: Record<CompletionAnalyticsView, string> = {
+  completedVsIncomplete: "progressLogging.analyticsCompletedVsIncomplete",
+  completedVsTimeSpent: "progressLogging.analyticsCompletedVsTimeSpent",
 };
 
-export function QuranHoursPastAchievements({ goalId }: Props) {
+type StudyMaterialItem = NonNullable<GoalData["studyMaterial"]>[number];
+
+const STUDY_CARD_WIDTH_RATIO = 0.42;
+const STUDY_CARD_GAP = 10;
+
+export function QuranCompletionPastAchievements({ goalId }: Props) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
-  const [period, setPeriod] = useState<PastAchievementPeriod>("monthly");
-  const [selectedBarIndex, setSelectedBarIndex] = useState<number | null>(null);
-  const [hintDismissed, setHintDismissed] = useState(false);
   const { width: screenWidth } = useWindowDimensions();
   const studyCardWidth = screenWidth * STUDY_CARD_WIDTH_RATIO;
+  const [period, setPeriod] = useState<PastAchievementPeriod>("monthly");
+  const [analyticsView, setAnalyticsView] = useState<CompletionAnalyticsView>(
+    "completedVsIncomplete",
+  );
   const goalData = getGoalById(goalId);
   const studyMaterial = goalData?.studyMaterial ?? [];
+  const [selectedBarIndex, setSelectedBarIndex] = useState<number | null>(null);
+  const [hintDismissed, setHintDismissed] = useState(false);
+
+  const periodSlice = useMemo(
+    () => getQuranCompletionPastAchievementSlice(period),
+    [period],
+  );
+
+  const baseAchievement = useMemo(
+    () => getQuranCompletionPastAchievement(period),
+    [period],
+  );
+
+  const timeSpentByPeriod = useMemo(
+    () => getCompletionTimeSpentByPeriod(periodSlice),
+    [periodSlice],
+  );
+
   const achievement = useMemo(
-    () => getQuranHoursPastAchievement(goalId, period),
-    [goalId, period],
+    () =>
+      applyCompletionAnalyticsView(baseAchievement, periodSlice, analyticsView),
+    [analyticsView, baseAchievement, periodSlice],
+  );
+
+  const totalTimeSpentMinutes = useMemo(
+    () => getTotalCompletionTimeSpentMinutes(timeSpentByPeriod),
+    [timeSpentByPeriod],
   );
 
   useEffect(() => {
     setSelectedBarIndex(null);
     setHintDismissed(false);
-  }, [period, goalId]);
+  }, [period, goalId, analyticsView]);
 
   const handleBarPress = useCallback((index: number) => {
     setHintDismissed(true);
     setSelectedBarIndex((current) => (current === index ? null : index));
   }, []);
 
-  const selectedWeek =
-    selectedBarIndex !== null ? achievement.chartData[selectedBarIndex] : null;
+  const selectedBaseWeek =
+    selectedBarIndex !== null
+      ? baseAchievement.chartData[selectedBarIndex]
+      : null;
 
-  const displayCompletedHours =
-    selectedWeek?.completedHours ?? achievement.completedHours;
-  const displayIncompleteHours =
-    selectedWeek?.incompleteHours ?? achievement.incompleteHours;
-  const displayGoalHours = selectedWeek
-    ? selectedWeek.completedHours + selectedWeek.incompleteHours
-    : achievement.goalHours;
+  const displayBaseCompleted =
+    selectedBaseWeek?.completedHours ?? baseAchievement.completedHours;
+  const displayBaseIncomplete =
+    selectedBaseWeek?.incompleteHours ?? baseAchievement.incompleteHours;
 
-  const goalProgressPercent =
-    displayGoalHours > 0
-      ? Math.min(100, (displayCompletedHours / displayGoalHours) * 100)
-      : 0;
+  const selectedPeriodTimeSpentMinutes =
+    selectedBarIndex !== null
+      ? (timeSpentByPeriod[selectedBarIndex] ?? 0)
+      : totalTimeSpentMinutes;
 
   const showChartHint = !hintDismissed && selectedBarIndex === null;
+  const deltaIsPositive = baseAchievement.previousPeriodDeltaPercent >= 0;
+
+  const renderCompletionRow = (item: CompletionPastAchievementRecord) => {
+    const progressPercent = getCompletionJuzProgressPercent(
+      item.completedJuzCount,
+      item.totalJuzCount,
+    );
+    const isCompleted = item.status === "completed";
+
+    return (
+      <View
+        key={`completion-${item.completionNumber}`}
+        style={styles.completionRow}
+      >
+        <View style={styles.completionRowHeader}>
+          <Text style={styles.completionRowTitle}>
+            {t("progressLogging.completionRowTitle", {
+              number: formatNumber(item.completionNumber),
+            })}
+          </Text>
+          <Text style={styles.completionRowJuz}>
+            {formatJuzRangeLabel(item.startJuz, item.endJuz)}
+          </Text>
+          <View
+            style={[
+              styles.statusChip,
+              isCompleted
+                ? styles.statusChipCompleted
+                : styles.statusChipIncomplete,
+            ]}
+          >
+            <Text
+              style={[
+                styles.statusChipText,
+                isCompleted
+                  ? styles.statusChipTextCompleted
+                  : styles.statusChipTextIncomplete,
+              ]}
+            >
+              {isCompleted
+                ? t("progressLogging.completed")
+                : t("progressLogging.incomplete")}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.goalProgressTrack}>
+          <View
+            style={[
+              styles.goalProgressCompleted,
+              { width: `${progressPercent}%` },
+            ]}
+          />
+        </View>
+        <Text style={styles.juzProgressLabel}>
+          {t("progressLogging.juzProgressLabel", {
+            completed: formatNumber(item.completedJuzCount),
+            total: formatNumber(item.totalJuzCount),
+          })}
+        </Text>
+      </View>
+    );
+  };
+
   const studyMaterialKeyExtractor = useCallback(
     (item: StudyMaterialItem) => String(item.id),
     [],
   );
+
   const renderStudyMaterialItem = useCallback(
     ({ item }: { item: StudyMaterialItem }) => (
       <View style={[styles.studyCard, { width: studyCardWidth }]}>
@@ -107,14 +217,7 @@ export function QuranHoursPastAchievements({ goalId }: Props) {
             contentFit="cover"
           />
           <View style={styles.studyTypeBadge}>
-            <Text
-              style={{
-                color: Colors.light.white,
-                fontSize: 10,
-                fontFamily: fonts.primary.medium,
-                fontWeight: "500",
-              }}
-            >
+            <Text style={styles.studyTypeBadgeText}>
               {item.type === "video"
                 ? "VIDEO"
                 : item.type === "podcast"
@@ -135,6 +238,7 @@ export function QuranHoursPastAchievements({ goalId }: Props) {
     () => <View style={{ width: STUDY_CARD_GAP }} />,
     [],
   );
+
   return (
     <View style={styles.section}>
       <View style={styles.card}>
@@ -148,14 +252,9 @@ export function QuranHoursPastAchievements({ goalId }: Props) {
             {t("progressLogging.pastGoalAchievements")}
           </Text>
         </View>
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <View style={[styles.achievementBlock]}>
+
+        <View style={styles.topRow}>
+          <View style={styles.achievementBlock}>
             <Text style={styles.achievementCaption}>
               {t("progressLogging.achievementsLabel")}
             </Text>
@@ -165,16 +264,18 @@ export function QuranHoursPastAchievements({ goalId }: Props) {
             </Text>
             <View style={styles.deltaBadge}>
               <Ionicons
-                name="arrow-down"
+                name={deltaIsPositive ? "arrow-up" : "arrow-down"}
                 size={11}
                 color={Colors.light.green}
               />
               <Text style={styles.deltaText}>
-                {formatNumber(achievement.previousPeriodDeltaPercent)}%{" "}
+                {deltaIsPositive ? "+" : ""}
+                {formatNumber(baseAchievement.previousPeriodDeltaPercent)}%{" "}
                 {t("progressLogging.previousMonth")}
               </Text>
             </View>
           </View>
+
           <View style={styles.periodNavRow}>
             <View style={styles.periodToggle}>
               {PERIODS.map((item) => {
@@ -226,30 +327,57 @@ export function QuranHoursPastAchievements({ goalId }: Props) {
         </View>
 
         <Text style={styles.summaryText}>
-          {t(GOAL_SUMMARY_KEY[goalId], {
-            percent: formatNumber(achievement.achievementPercent),
-            delta: formatNumber(achievement.previousPeriodDeltaPercent),
+          {t(GOAL_SUMMARY_KEY, {
+            percent: formatNumber(baseAchievement.achievementPercent),
+            delta: formatNumber(
+              Math.abs(baseAchievement.previousPeriodDeltaPercent),
+            ),
+            direction: deltaIsPositive
+              ? t("progressLogging.periodComparisonIncrease")
+              : t("progressLogging.periodComparisonDecrease"),
           })}
         </Text>
 
         <View style={styles.goalHeader}>
           <Text style={styles.goalLabel}>{t("progressLogging.goal")}</Text>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 6,
-            }}
-          >
+          <View style={styles.goalValueRow}>
             <Text style={styles.goalPillValue}>
-              {formatNumber(achievement.goalHours)}{" "}
+              {formatNumber(periodSlice.targetCompletions)}{" "}
             </Text>
             <View style={styles.goalPill}>
               <Text style={styles.goalPillText}>
-                {t("progressLogging.unitHours")}
+                {t("progressLogging.unitCompletions")}
               </Text>
             </View>
           </View>
+        </View>
+
+        <View style={styles.analyticsToggle}>
+          {ANALYTICS_VIEWS.map((view) => {
+            const isActive = analyticsView === view;
+            return (
+              <Pressable
+                key={view}
+                onPress={() => setAnalyticsView(view)}
+                style={[
+                  styles.analyticsButton,
+                  isActive
+                    ? styles.analyticsButtonActive
+                    : styles.analyticsButtonInactive,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.analyticsButtonText,
+                    isActive && styles.analyticsButtonTextActive,
+                  ]}
+                  numberOfLines={1}
+                >
+                  {t(ANALYTICS_VIEW_LABEL_KEYS[view])}
+                </Text>
+              </Pressable>
+            );
+          })}
         </View>
 
         <View style={styles.statsRow}>
@@ -258,27 +386,28 @@ export function QuranHoursPastAchievements({ goalId }: Props) {
               {t("progressLogging.completed")}
             </Text>
             <Text style={styles.statValueCompleted}>
-              {formatGoalHoursLabel(displayCompletedHours)}
+              {formatCompletionCountLabel(displayBaseCompleted)}
             </Text>
           </View>
           <View style={styles.statColumn}>
             <Text style={styles.statLabel}>
-              {t("progressLogging.incomplete")}
+              {analyticsView === "completedVsTimeSpent"
+                ? t("progressLogging.timeSpentLabel")
+                : t("progressLogging.incomplete")}
             </Text>
-            <Text style={styles.statValueIncomplete}>
-              {formatGoalHoursLabel(displayIncompleteHours)}
+            <Text
+              style={
+                analyticsView === "completedVsTimeSpent"
+                  ? styles.statValueTimeSpent
+                  : styles.statValueIncomplete
+              }
+            >
+              {analyticsView === "completedVsTimeSpent"
+                ? formatCompletionTimeSpentLabel(selectedPeriodTimeSpentMinutes)
+                : formatCompletionCountLabel(displayBaseIncomplete)}
             </Text>
           </View>
         </View>
-
-        {/* <View style={styles.goalProgressTrack}> */}
-        {/* <View
-            style={[
-              styles.goalProgressCompleted,
-              { width: `${goalProgressPercent}%` },
-            ]}
-          /> */}
-        {/* </View> */}
 
         <View
           onStartShouldSetResponder={() => true}
@@ -288,7 +417,7 @@ export function QuranHoursPastAchievements({ goalId }: Props) {
             chartData={achievement.chartData}
             selectedBarIndex={selectedBarIndex}
             onBarPress={handleBarPress}
-            chartKey={`${goalId}-${period}`}
+            chartKey={`${goalId}-${period}-${analyticsView}`}
             yMax={achievement.yMax}
             yTicks={achievement.yTicks}
             showHint={showChartHint}
@@ -297,30 +426,23 @@ export function QuranHoursPastAchievements({ goalId }: Props) {
             hintActionText={t("progressLogging.okGotIt")}
             pageCount={achievement.pageCount}
             activePageIndex={selectedBarIndex ?? achievement.activePageIndex}
+            formatBarValue={formatCompletionCountLabel}
           />
         </View>
+
+        {/* <View style={styles.completionRowsSection}>
+          {periodSlice.completions.map(renderCompletionRow)}
+        </View> */}
       </View>
 
       {studyMaterial.length > 0 ? (
         <>
           <TopSpace top={16} />
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
+          <View style={styles.studyHeaderRow}>
             <Text style={styles.insightsTitle}>
               {t("progressLogging.studyMaterial")}
             </Text>
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 4,
-              }}
-            >
+            <View style={styles.studySeeAllRow}>
               <Text style={styles.insightsTitle}>See All</Text>
               <MaterialCommunityIcons
                 name="chevron-right"
@@ -373,6 +495,11 @@ const styles = StyleSheet.create({
     letterSpacing: 0.4,
     textTransform: "uppercase",
     flexShrink: 1,
+  },
+  topRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   achievementBlock: {
     alignItems: "flex-start",
@@ -491,24 +618,61 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     textTransform: "uppercase",
   },
+  goalValueRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
   goalPill: {
     backgroundColor: Colors.light.calendarBg,
     borderRadius: 8,
-    paddingHorizontal: 2,
+    paddingHorizontal: 4,
     paddingVertical: 5,
   },
   goalPillText: {
     color: Colors.light.white,
-    fontSize: 12,
-    fontFamily: fonts.primary.semiBold,
-    fontWeight: "600",
-    opacity: 0.8,
+    fontSize: 10,
+    fontFamily: fonts.primary.regular,
+    fontWeight: "400",
+    opacity: 0.6,
   },
   goalPillValue: {
     color: Colors.light.white,
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
     fontSize: 22,
+  },
+  analyticsToggle: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 3,
+    backgroundColor: Colors.light.greybuttonBackground,
+    borderRadius: 6,
+    gap: 4,
+  },
+  analyticsButton: {
+    flex: 1,
+    borderRadius: 5,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    alignItems: "center",
+  },
+  analyticsButtonActive: {
+    backgroundColor: Colors.light.green,
+  },
+  analyticsButtonInactive: {
+    backgroundColor: Colors.light.blackBackground,
+  },
+  analyticsButtonText: {
+    color: Colors.light.grey,
+    fontSize: 10,
+    fontFamily: fonts.primary.medium,
+    fontWeight: "500",
+    textAlign: "center",
+  },
+  analyticsButtonTextActive: {
+    color: Colors.light.white,
+    fontWeight: "600",
   },
   statsRow: {
     flexDirection: "row",
@@ -537,6 +701,60 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.semiBold,
     fontWeight: "700",
   },
+  statValueTimeSpent: {
+    color: Colors.light.white,
+    fontSize: 22,
+    fontFamily: fonts.primary.semiBold,
+    fontWeight: "700",
+  },
+  completionRowsSection: {
+    gap: 14,
+    marginTop: 4,
+  },
+  completionRow: {
+    gap: 8,
+  },
+  completionRowHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  completionRowTitle: {
+    color: Colors.light.white,
+    fontSize: 12,
+    fontFamily: fonts.primary.semiBold,
+    fontWeight: "600",
+    flexShrink: 0,
+  },
+  completionRowJuz: {
+    color: Colors.light.subtext,
+    fontSize: 11,
+    fontFamily: fonts.primary.regular,
+    flex: 1,
+  },
+  statusChip: {
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    flexShrink: 0,
+  },
+  statusChipCompleted: {
+    backgroundColor: Colors.light.lightgreen,
+  },
+  statusChipIncomplete: {
+    backgroundColor: Colors.light.calendarBg,
+  },
+  statusChipText: {
+    fontSize: 10,
+    fontFamily: fonts.primary.semiBold,
+    fontWeight: "600",
+  },
+  statusChipTextCompleted: {
+    color: Colors.light.green,
+  },
+  statusChipTextIncomplete: {
+    color: Colors.light.yellow,
+  },
   goalProgressTrack: {
     height: 10,
     borderRadius: 5,
@@ -547,6 +765,30 @@ const styles = StyleSheet.create({
     height: "100%",
     borderRadius: 5,
     backgroundColor: Colors.light.green,
+  },
+  juzProgressLabel: {
+    color: Colors.light.subtext,
+    fontSize: 11,
+    fontFamily: fonts.primary.regular,
+    fontWeight: "400",
+  },
+  insightsTitle: {
+    color: Colors.light.white,
+    fontSize: 16,
+    fontFamily: fonts.primary.semiBold,
+    fontWeight: "500",
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+  },
+  studyHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  studySeeAllRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
   },
   studyListContent: {
     paddingRight: 4,
@@ -580,19 +822,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  studyTypeBadgeText: {
+    color: Colors.light.white,
+    fontSize: 10,
+    fontFamily: fonts.primary.medium,
+    fontWeight: "500",
+  },
   studyDescription: {
     color: Colors.light.white,
     fontSize: 12,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
     lineHeight: 16,
-  },
-  insightsTitle: {
-    color: Colors.light.white,
-    fontSize: 16,
-    fontFamily: fonts.primary.semiBold,
-    fontWeight: "500",
-    letterSpacing: 0.5,
-    textTransform: "uppercase",
   },
 });

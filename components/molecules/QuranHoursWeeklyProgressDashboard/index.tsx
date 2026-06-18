@@ -96,7 +96,20 @@ export function QuranHoursWeeklyProgressDashboard({
 }: QuranHoursWeeklyProgressDashboardProps) {
   const { t } = useTranslation();
   const { width: screenWidth } = useWindowDimensions();
-
+  console.log(
+    "chekcing props of quran hours weekly progress dashboard",
+    weekDays,
+    weekRangeLabel,
+    weekFraction,
+    totalMinutesThisWeek,
+    streakDays,
+    motivationalQuote,
+    selectedDayIndex,
+    statsIcon,
+    onDayPress,
+    onPrevWeek,
+    onNextWeek,
+  );
   const availableWidth =
     screenWidth * WRAPPER_WIDTH_RATIO - CARD_HORIZONTAL_PADDING;
   const ringSize = Math.min(

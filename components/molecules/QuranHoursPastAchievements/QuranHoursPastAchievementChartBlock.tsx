@@ -17,7 +17,7 @@ import {
 
 const DIMMED_BAR_OPACITY = 0.22;
 const BAR_HIT_WIDTH = 44;
-const BAR_CORNER_RADIUS = 10;
+const BAR_CORNER_RADIUS = 2;
 
 function getInnerPadding(barCount: number): number {
   if (barCount <= 3) return 0.48;
@@ -37,7 +37,10 @@ function getClampedLabelLeft(
   plotLeft: number,
   plotRight: number,
 ): number {
-  return Math.max(plotLeft, Math.min(x - labelWidth / 2, plotRight - labelWidth));
+  return Math.max(
+    plotLeft,
+    Math.min(x - labelWidth / 2, plotRight - labelWidth),
+  );
 }
 
 function getBarOpacity(
@@ -202,6 +205,7 @@ type BarValueLabelsProps = {
   selectedBarIndex: number | null;
   chartBounds: ChartBounds;
   yMax: number;
+  formatBarValue?: (value: number) => string;
 };
 
 function BarValueLabels({
@@ -210,41 +214,31 @@ function BarValueLabels({
   selectedBarIndex,
   chartBounds,
   yMax,
+  formatBarValue = formatHoursToTimeLabel,
 }: BarValueLabelsProps) {
+  if (selectedBarIndex === null) return null;
+
+  const item = chartData[selectedBarIndex];
+  const x = barCenterXs[selectedBarIndex];
+  if (!item || x == null) return null;
+
   const chartHeight = chartBounds.bottom - chartBounds.top;
+  const barTop =
+    chartBounds.bottom - (item.stackTotalHours / yMax) * chartHeight - 20;
 
   return (
-    <>
-      {chartData.map((item, index) => {
-        const x = barCenterXs[index];
-        if (x == null) return null;
-
-        const isSelected = selectedBarIndex === index;
-        const isDimmed =
-          selectedBarIndex !== null && selectedBarIndex !== index;
-        const barTop =
-          chartBounds.bottom -
-          (item.stackTotalHours / yMax) * chartHeight -
-          20;
-
-        return (
-          <Text
-            key={`bar-value-${item.xLabel}`}
-            style={[
-              styles.barValueLabel,
-              {
-                left: x,
-                top: Math.max(chartBounds.top, barTop),
-              },
-              isDimmed && styles.barValueLabelDimmed,
-              isSelected && styles.barValueLabelSelected,
-            ]}
-          >
-            {formatHoursToTimeLabel(item.hours)}
-          </Text>
-        );
-      })}
-    </>
+    <Text
+      style={[
+        styles.barValueLabel,
+        styles.barValueLabelSelected,
+        {
+          left: x,
+          top: Math.max(chartBounds.top, barTop),
+        },
+      ]}
+    >
+      {formatBarValue(item.hours)}
+    </Text>
   );
 }
 
@@ -261,6 +255,7 @@ type QuranHoursPastAchievementChartBlockProps = {
   hintActionText: string;
   pageCount: number;
   activePageIndex: number;
+  formatBarValue?: (value: number) => string;
 };
 
 export function QuranHoursPastAchievementChartBlock({
@@ -276,6 +271,7 @@ export function QuranHoursPastAchievementChartBlock({
   hintActionText,
   pageCount,
   activePageIndex,
+  formatBarValue,
 }: QuranHoursPastAchievementChartBlockProps) {
   const [barCenterXs, setBarCenterXs] = useState<number[]>([]);
   const [chartBounds, setChartBounds] = useState<ChartBounds | null>(null);
@@ -372,6 +368,7 @@ export function QuranHoursPastAchievementChartBlock({
               selectedBarIndex={selectedBarIndex}
               chartBounds={chartBounds}
               yMax={yMax}
+              formatBarValue={formatBarValue}
             />
           ) : null}
         </View>
@@ -384,9 +381,11 @@ export function QuranHoursPastAchievementChartBlock({
                 <Text style={styles.chartHintAction}>{hintActionText}</Text>
               </Pressable>
             </View>
-            <View style={styles.chartHintPointerRow} pointerEvents="none">
-              <View style={styles.chartHintPointer} />
-            </View>
+            <View
+              style={styles.chartHintPointerRow}
+              pointerEvents="none"
+            ></View>
+            <View style={styles.chartHintPointer} />
           </View>
         ) : null}
       </View>
@@ -399,7 +398,7 @@ export function QuranHoursPastAchievementChartBlock({
         plotRight={plotRight}
       />
 
-      <View style={styles.paginationRow}>
+      {/* <View style={styles.paginationRow}>
         {Array.from({ length: pageCount }, (_, index) => (
           <View
             key={`page-dot-${index}`}
@@ -409,7 +408,7 @@ export function QuranHoursPastAchievementChartBlock({
             ]}
           />
         ))}
-      </View>
+      </View> */}
     </View>
   );
 }

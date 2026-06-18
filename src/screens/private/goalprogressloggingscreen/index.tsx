@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, ScrollView } from "react-native";
 import { TaperedCircleBorder } from "@/components/atoms/TaperedCircleBorder";
 import { Colors } from "@/constants/theme";
-import { getGoalById, GoalId } from "../home/components/goalsData";
+import { getResolvedGoalById, GoalId } from "../home/components/goalsData";
 import { styles } from "./styles";
 import { useRouter } from "expo-router";
 import DailyProgressLogging from "./components/DailyProgressLogging";
@@ -28,7 +28,7 @@ export const GoalProgressLoggingScreen = ({
   // Extract and validate goalId
   const goalId = (goalIdParam || "") as GoalId;
   console.log("goalId", goalId);
-  const goalData = getGoalById(goalId);
+  const goalData = getResolvedGoalById(goalId);
   console.log("goalData", goalData);
   if (!goalData) {
     return (

@@ -403,6 +403,8 @@
     "unitHoursShort": "س",
     "bestDay": "أفضل يوم!",
     "totalHoursThisWeek": "إجمالي هذا الأسبوع",
+    "totalRecitationsThisWeek": "تلاوات هذا الأسبوع",
+    "quranRecitationSurahWeekQuote": "كل تلاوة تقربك من كلام الله — آيةً بآية.",
     "dayStreak": "سلسلة {{count}} أيام",
     "quranListeningWeekQuote": "الاستماع إلى القرآن يحوّل لحظات الفراغ إلى عبادة.",
     "quranTajweedWeekQuote": "إتقان التجويد يُكرّم القرآن كما أُنزل—ساعة تلو الأخرى.",
@@ -416,8 +418,13 @@
     "achievementsLabel": "الإنجازات",
     "achievementSummaryListening": "في الشهر الماضي، حققت {{percent}}% من هدف الاستماع — أقل بـ {{delta}}% من الشهر السابق.",
     "achievementSummaryTajweed": "في الشهر الماضي، حققت {{percent}}% من هدف التجويد — أقل بـ {{delta}}% من الشهر السابق.",
+    "achievementSummaryRecitationSurah": "في الشهر الماضي، حققت {{percent}}% من هدف تلاوة السور — أقل بـ {{delta}}% من الشهر السابق.",
     "completed": "مكتمل",
     "incomplete": "غير مكتمل",
+    "surahFilterAll": "الكل",
+    "analyticsCompletedVsIncomplete": "المكتمل مقابل غير المكتمل",
+    "analyticsCompletedVsTimeSpent": "المكتمل مقابل الوقت",
+    "timeSpentLabel": "الوقت المستغرق",
     "keyInsights": "رؤى رئيسية",
     "completedIn": "أُنجز في",
     "longestStreak": "أطول سلسلة",
@@ -444,7 +451,37 @@
     "surahStatusNotStarted": "لم يبدأ",
     "surahStatusInProgress": "قيد التقدم",
     "surahStatusAchieved": "أُنجز {{percent}}%",
-    "logProgress": "تسجيل التقدم"
+    "logProgress": "تسجيل التقدم",
+    "studyMaterial": "تعرف على المزيد",
+    "completionGoalTitle": "{{target}} ختمات قرآن — أنت الآن على C{{current}}",
+    "completionCardTitle": "{{target}} ختمات قرآن كاملة",
+    "completionCardCurrent": "أنت على C{{completion}}",
+    "completionCardComplete": "تم تسجيل جميع الختمات لهذه الدورة",
+    "completionCardProgress": "{{completed}}/{{target}} ختمات مسجّلة",
+    "completionStatusInProgress": "C{{current}} من {{target}}",
+    "completionStatusComplete": "اكتمل الهدف",
+    "unitCompletions": "ختمات",
+    "completionTypeTitle": "اختر نوع الإتمام.",
+    "completionCurrentStep": "أنت على C{{completion}}",
+    "completionType_full": "كامل",
+    "completionType_partial": "جزئي",
+    "completionType_both": "كلاهما",
+    "selectFullJuz": "اختر الجزء المكتمل بالكامل.",
+    "selectPartialJuz": "اختر الجزء المكتمل جزئياً.",
+    "selectAyatRange": "اختر نطاق الآيات.",
+    "enterTimeSpentFullJuz": "أدخل الوقت المستغرق للجزء المكتمل بالكامل.",
+    "enterTimeSpentPartialJuz": "أدخل الوقت المستغرق للجزء الجزئي.",
+    "startAyat": "آية البداية",
+    "endAyat": "آية النهاية",
+    "ayatRangeSummary": "الآيات {{start}}–{{end}} من {{max}}",
+    "totalVersesCompleted": "إجمالي الآيات المكتملة: {{completed}}/{{total}} ({{percent}}%)",
+    "completionsThisWeek": "ختمات هذا الأسبوع",
+    "quranCompletionWeekQuote": "كل جزء مكتمل يقربك من ختم القرآن—ختمة تلو الأخرى.",
+    "achievementSummaryRecitationCompletion": "في الفترة الماضية، حققت {{percent}}% من هدف الختم — {{delta}}% {{direction}} من الفترة السابقة.",
+    "periodComparisonIncrease": "أكثر",
+    "periodComparisonDecrease": "أقل",
+    "completionRowTitle": "الختمة {{number}}",
+    "juzProgressLabel": "{{completed}}/{{total}} جزء"
   },
   "goalsData": {
     "tahayyat-ul-wudhu": {
@@ -781,43 +818,13 @@
             },
             {
               "type": "table",
-              "headers": [
-                "الصلاة",
-                "السنة\n(قبل)",
-                "الفرض",
-                "السنة\n(بعد)"
-              ],
+              "headers": ["الصلاة", "السنة\n(قبل)", "الفرض", "السنة\n(بعد)"],
               "rows": [
-                [
-                  "الفجر",
-                  "٢",
-                  "٢",
-                  "-"
-                ],
-                [
-                  "الظهر",
-                  "٢+٢",
-                  "٤",
-                  "٢ أو ٤"
-                ],
-                [
-                  "العصر",
-                  "٢ أو ٤",
-                  "٤",
-                  "-"
-                ],
-                [
-                  "المغرب",
-                  "-",
-                  "٣",
-                  "٢"
-                ],
-                [
-                  "العشاء",
-                  "-",
-                  "٤",
-                  "٢"
-                ]
+                ["الفجر", "٢", "٢", "-"],
+                ["الظهر", "٢+٢", "٤", "٢ أو ٤"],
+                ["العصر", "٢ أو ٤", "٤", "-"],
+                ["المغرب", "-", "٣", "٢"],
+                ["العشاء", "-", "٤", "٢"]
               ]
             }
           ]
@@ -3020,6 +3027,10 @@
     "sadaqahCategory": "الصدقة",
     "prayer10Goals": "١٠ أهداف",
     "quran4Goals": "٤ أهداف",
+    "quran7Goals": "٧ أهداف",
+    "quran5Goals": "٥ أهداف",
+    "quranRecitationBySurahDaily": "تلاوة القرآن بالسورة (يوميًا)",
+    "quranRecitationBySurahWeekly": "تلاوة القرآن بالسورة (أسبوعيًا)",
     "fasting4Goals": "٤ أهداف",
     "sadaqah6Goals": "٦ أهداف",
     "yourFastingCalendar": "تقويم صيامك",

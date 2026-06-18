@@ -10,9 +10,7 @@ export type LoggingFlowTemplate =
   | "prayer-session"
   | "quran-hours"
   | "quran-recitation"
-  | "quran-recitationBySurah"
-  | "quran-recitationByCompletion"
-  | "quran-recitationByJuz"
+  | "quran-completion"
   | "tahiyat-ul-wudhu"
   | "missed-prayers"
   | "tahiyat-al-masjid";
@@ -50,9 +48,27 @@ export type QuranRecitationLogEntry = {
   surahName: string;
 };
 
+export type CompletionGoalId = "quran-recitationByCompletion";
+
+export type QuranCompletionLogEntry = {
+  type: "quran-completion";
+  goalId: CompletionGoalId;
+  date: string;
+  startTime: string;
+  completionNumber: number;
+  completionType: "full" | "partial" | "both";
+  fullJuzRange: { startJuz: number; endJuz: number } | null;
+  partialJuz: number | null;
+  ayatRange: { startAyat: number; endAyat: number } | null;
+  fullTimeSpentMinutes: number | null;
+  partialTimeSpentMinutes: number | null;
+  targetCompletions: number;
+};
+
 export type ProgressLogEntry =
   | QuranHoursLogEntry
   | QuranRecitationLogEntry
+  | QuranCompletionLogEntry
   | Record<string, unknown>;
 
 export type QuranHoursFlowConfig = {
@@ -81,3 +97,19 @@ export type QuranRecitationFlowDefinition = {
   goalId: SurahRecitationGoalId;
   config: QuranRecitationFlowConfig;
 };
+
+export type QuranCompletionFlowConfig = {
+  targetCompletions: number;
+  completedCompletions: number;
+  currentCompletion: number | null;
+};
+
+export type QuranCompletionFlowDefinition = {
+  template: "quran-completion";
+  goalId: CompletionGoalId;
+  config: QuranCompletionFlowConfig;
+};
+
+export const isCompletionGoalId = (
+  goalId: GoalId,
+): goalId is CompletionGoalId => goalId === "quran-recitationByCompletion";

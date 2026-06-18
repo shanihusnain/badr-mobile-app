@@ -17,7 +17,7 @@ export function SurahRecitationLoggingSection({
 }: Props) {
   const { t } = useTranslation();
   const [activeFlowGoalId, setActiveFlowGoalId] = useState<string | null>(null);
-
+  console.log("goalData inside the surah recitation logging section", goalData);
   const handleStartFlow = useCallback((goalId: string) => {
     setActiveFlowGoalId(goalId);
   }, []);
