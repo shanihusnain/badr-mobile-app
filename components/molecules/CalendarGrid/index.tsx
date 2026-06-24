@@ -63,7 +63,8 @@ export type CalendarMode =
   | "mon_thu"
   | "white_days"
   | "planned_all"
-  | "planned_progress";
+  | "planned_progress"
+  | "missed_ramadan_achievement";
 
 export type CalendarGridProps = {
   mode: CalendarMode;
@@ -78,6 +79,10 @@ export type CalendarGridProps = {
   windowEndDate?: string;
   /** Dates to highlight as missed Ramadan fasts (used in ramadan / mon_thu / white_days). */
   markedDates?: string[];
+  /** Missed Ramadan achievement: solid markers for completed fasts. */
+  completedFastDates?: string[];
+  /** Missed Ramadan achievement: outlined markers for incomplete planned fasts. */
+  incompletePlannedFastDates?: string[];
   /** Planned Mon/Thu fast dates (planned_all mode). */
   monThuDates?: string[];
   /** Planned White Day fast dates (planned_all mode). */
@@ -168,6 +173,8 @@ export const CalendarGrid = ({
   windowStartDate,
   windowEndDate,
   markedDates = [],
+  completedFastDates = [],
+  incompletePlannedFastDates = [],
   monThuDates = [],
   whiteDayDates = [],
   plannedFastMarkers = [],
@@ -182,6 +189,8 @@ export const CalendarGrid = ({
 }: CalendarGridProps) => {
   const { t } = useTypedTranslation();
   const markedSet = new Set(markedDates);
+  const completedFastSet = new Set(completedFastDates);
+  const incompletePlannedFastSet = new Set(incompletePlannedFastDates);
   const monThuSet = new Set(monThuDates);
   const whiteDaySet = new Set(whiteDayDates);
   const plannedFastMarkerMap = new Map(
@@ -361,6 +370,26 @@ export const CalendarGrid = ({
             borderColor: Colors.light.white,
           };
           textStyle = { color: Colors.light.white };
+        }
+        break;
+      }
+
+      // ── Missed Ramadan past achievements ───────────────────────────────
+      case "missed_ramadan_achievement": {
+        if (completedFastSet.has(ds)) {
+          markerColor = Colors.light.ringRamadan;
+          circleStyle = {
+            borderWidth: 1.2,
+            borderColor: Colors.light.ringRamadan,
+          };
+          showCompletedDot = true;
+          textStyle = { color: Colors.light.blackBackground };
+        } else if (incompletePlannedFastSet.has(ds)) {
+          circleStyle = {
+            borderWidth: 1.2,
+            borderColor: Colors.light.ringRamadan,
+          };
+          textStyle = { color: Colors.light.ringRamadan };
         }
         break;
       }

@@ -2,6 +2,8 @@ import { StyleSheet } from "react-native";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 
+export const FLOW_CARD_HEIGHT = 145;
+
 export const styles = StyleSheet.create({
   backdrop: {
     position: "absolute",
@@ -143,7 +145,7 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 8,
     paddingBottom: 6,
-    height: 145,
+    height: FLOW_CARD_HEIGHT,
     width: "80%",
     alignSelf: "flex-start",
     marginLeft: -8,
@@ -151,7 +153,14 @@ export const styles = StyleSheet.create({
   inPlaceFlowCard: {
     width: "100%",
     marginLeft: 0,
-    alignSelf: "stretch",
+    height: FLOW_CARD_HEIGHT,
+  },
+  flowContentAyahRange: {
+    justifyContent: "flex-start",
+    paddingTop: 0,
+    paddingBottom: 0,
+    marginBottom: 0,
+    overflow: "visible",
   },
   flowHeader: {
     flexDirection: "row",
@@ -340,6 +349,58 @@ export const styles = StyleSheet.create({
   },
   dropdownWrapper: {
     position: "relative",
+  },
+  flowDropdownWrapper: {
+    position: "relative",
+    width: "100%",
+  },
+  flowDropdownSelector: {
+    borderWidth: 1.5,
+    borderColor: Colors.light.dullWhiteOpacity,
+    borderRadius: 6,
+    minHeight: 32,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: "100%",
+    gap: 8,
+  },
+  flowDropdownValue: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.medium,
+    fontWeight: "500",
+    fontSize: 13,
+    flex: 1,
+  },
+  flowDropdownPlaceholder: {
+    color: Colors.light.subtext,
+  },
+  flowDropdownMenu: {
+    position: "absolute",
+    top: "100%",
+    left: 0,
+    right: 0,
+    backgroundColor: Colors.light.blackBackground,
+    borderRadius: 6,
+    marginTop: 4,
+    paddingVertical: 8,
+    paddingHorizontal: 6,
+    zIndex: 999,
+    maxHeight: 140,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  flowDropdownOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 4,
   },
   periodSelector: {
     borderWidth: 1.5,

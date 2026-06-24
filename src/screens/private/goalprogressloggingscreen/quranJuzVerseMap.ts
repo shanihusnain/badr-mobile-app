@@ -126,6 +126,50 @@ function getJuzVerses(juz: number): VerseRef[] {
   return verses;
 }
 
+export function formatJuzVerseRefLabel(verse: VerseRef): string {
+  return `${getSurahName(verse.surah)} ${verse.surah}:${verse.ayah}`;
+}
+
+export type JuzVerseMetadata = {
+  juzNumber: number;
+  startSurahName: string;
+  startSurahNumber: number;
+  startAyah: number;
+  endSurahName: string;
+  endSurahNumber: number;
+  endAyah: number;
+  totalVerses: number;
+  startLabel: string;
+  endLabel: string;
+  rangeLabel: string;
+};
+
+export function getJuzVerseMetadata(juz: number): JuzVerseMetadata {
+  const verses = getJuzVerses(juz);
+  const first = verses[0] ?? { surah: 1, ayah: 1 };
+  const last = verses[verses.length - 1] ?? first;
+  const startLabel = formatJuzVerseRefLabel(first);
+  const endLabel = formatJuzVerseRefLabel(last);
+
+  return {
+    juzNumber: juz,
+    startSurahName: getSurahName(first.surah),
+    startSurahNumber: first.surah,
+    startAyah: first.ayah,
+    endSurahName: getSurahName(last.surah),
+    endSurahNumber: last.surah,
+    endAyah: last.ayah,
+    totalVerses: verses.length,
+    startLabel,
+    endLabel,
+    rangeLabel: `${startLabel} – ${endLabel}`,
+  };
+}
+
+export function getJuzRangeLabel(juz: number): string {
+  return getJuzVerseMetadata(juz).rangeLabel;
+}
+
 export function formatJuzVerseLabel(juz: number, position: number): string {
   const verses = getJuzVerses(juz);
   const index = Math.min(Math.max(position, 1), verses.length) - 1;
@@ -138,7 +182,7 @@ export function getJuzEndLabel(juz: number): string {
   const verses = getJuzVerses(juz);
   const last = verses[verses.length - 1];
   if (!last) return "";
-  return `${getSurahName(last.surah)}:${last.ayah}`;
+  return formatJuzVerseRefLabel(last);
 }
 
 export function getJuzVerseCountFromMap(juz: number): number {

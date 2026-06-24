@@ -5,6 +5,7 @@ import { GoalData } from "../../home/components/goalsData";
 import type { QuranRecitationLogEntry } from "../types";
 import { styles } from "./DailyProgressLogging.styles";
 import { SurahRecitationGoalsList } from "./SurahRecitationGoalsList";
+import { useOptionalRecitationSurahContext } from "../recitationSurahContext";
 
 type Props = {
   goalData: GoalData;
@@ -16,6 +17,7 @@ export function SurahRecitationLoggingSection({
   onLogComplete,
 }: Props) {
   const { t } = useTranslation();
+  const recitationContext = useOptionalRecitationSurahContext();
   const [activeFlowGoalId, setActiveFlowGoalId] = useState<string | null>(null);
   console.log("goalData inside the surah recitation logging section", goalData);
   const handleStartFlow = useCallback((goalId: string) => {
@@ -25,6 +27,14 @@ export function SurahRecitationLoggingSection({
   const handleFlowClose = useCallback(() => {
     setActiveFlowGoalId(null);
   }, []);
+
+  const handleLogComplete = useCallback(
+    (entry: QuranRecitationLogEntry) => {
+      recitationContext?.bumpRefresh();
+      onLogComplete?.(entry);
+    },
+    [onLogComplete, recitationContext],
+  );
 
   return (
     <View
@@ -40,7 +50,7 @@ export function SurahRecitationLoggingSection({
           activeFlowGoalId={activeFlowGoalId}
           onStartFlow={handleStartFlow}
           onFlowClose={handleFlowClose}
-          onLogComplete={onLogComplete}
+          onLogComplete={handleLogComplete}
         />
       </View>
     </View>

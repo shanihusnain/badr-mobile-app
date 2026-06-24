@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, TouchableOpacity, ViewStyle } from "react-native";
+import { View, Text, TouchableOpacity, ViewStyle, StyleProp } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { Colors } from "@/constants/theme";
@@ -13,8 +13,10 @@ type FlowCardProps = {
   onForward: () => void;
   onConfirm: () => void;
   canGoForward: boolean;
+  canConfirm?: boolean;
   styles: any;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
+  contentStyle?: StyleProp<ViewStyle>;
 };
 
 export const FlowCard: React.FC<FlowCardProps> = ({
@@ -25,8 +27,10 @@ export const FlowCard: React.FC<FlowCardProps> = ({
   onForward,
   onConfirm,
   canGoForward,
+  canConfirm = true,
   styles,
   style,
+  contentStyle,
 }) => {
   const { i18n } = useTranslation();
   const iconColorsDecider = () =>
@@ -41,7 +45,7 @@ export const FlowCard: React.FC<FlowCardProps> = ({
         <Text style={styles.flowHeaderText}>{headerLabel}</Text>
       </View>
 
-      <View style={styles.flowContent}>{children}</View>
+      <View style={[styles.flowContent, contentStyle]}>{children}</View>
 
       <View style={styles.flowFooter}>
         <View style={styles.navGroup}>
@@ -67,11 +71,19 @@ export const FlowCard: React.FC<FlowCardProps> = ({
         </View>
 
         <TouchableOpacity
-          style={styles.confirmButton}
+          style={[
+            styles.confirmButton,
+            !canConfirm && styles.navButtonDisabled,
+          ]}
           onPress={onConfirm}
+          disabled={!canConfirm}
           activeOpacity={0.8}
         >
-          <Ionicons name="checkmark" size={18} color={Colors.light.white} />
+          <Ionicons
+            name="checkmark"
+            size={18}
+            color={canConfirm ? Colors.light.white : Colors.light.subtext}
+          />
         </TouchableOpacity>
       </View>
     </View>

@@ -3,18 +3,30 @@ import { GoalData } from "../../home/components/goalsData";
 import { getLoggingFlowTemplate } from "../loggingFlowRegistry";
 import { isQuranHoursGoalId } from "../types";
 import { isSurahRecitationGoalId } from "../quranRecitationTarget";
+import { isSurahMemorisationGoalId } from "../quranMemorisationTarget";
+import { isHizbMemorisationGoalId } from "../quranMemorisationHizbTarget";
+import { isJuzMemorisationGoalId } from "../quranMemorisationJuzTarget";
 import { QuranHoursPastAchievements } from "@/components/molecules/QuranHoursPastAchievements";
 import { QuranRecitationPastAchievements } from "@/components/molecules/QuranRecitationPastAchievements";
+import { QuranMemorisationPastAchievements } from "@/components/molecules/QuranMemorisationPastAchievements";
+import { QuranMemorisationJuzPastAchievements } from "@/components/molecules/QuranMemorisationJuzPastAchievements";
 import { QuranCompletionPastAchievements } from "@/components/molecules/QuranCompletionPastAchievements";
 import { QuranJuzPastAchievements } from "@/components/molecules/QuranJuzPastAchievements";
+import { MissedRamadanFastsPastAchievements } from "@/components/molecules/MissedRamadanFastsPastAchievements";
 import { isCompletionGoalId, isJuzRecitationGoalId } from "../types";
+import { isMissedRamadanFastsGoalId } from "../missedRamadanFastsTarget";
 
 type Props = {
   goalData: GoalData;
+  refreshKey?: number;
 };
 
-export function PastAchievementsSection({ goalData }: Props) {
+export function PastAchievementsSection({ goalData, refreshKey = 0 }: Props) {
   const template = getLoggingFlowTemplate(goalData.id);
+
+  if (template === "missed-ramadan-fasts" && isMissedRamadanFastsGoalId(goalData.id)) {
+    return <MissedRamadanFastsPastAchievements refreshKey={refreshKey} />;
+  }
 
   if (template === "quran-completion" && isCompletionGoalId(goalData.id)) {
     return <QuranCompletionPastAchievements goalId={goalData.id} />;
@@ -26,6 +38,18 @@ export function PastAchievementsSection({ goalData }: Props) {
 
   if (template === "quran-recitation" && isSurahRecitationGoalId(goalData.id)) {
     return <QuranRecitationPastAchievements goalId={goalData.id} />;
+  }
+
+  if (template === "quran-memorisation" && isSurahMemorisationGoalId(goalData.id)) {
+    return <QuranMemorisationPastAchievements goalId={goalData.id} />;
+  }
+
+  if (template === "quran-memorisation" && isHizbMemorisationGoalId(goalData.id)) {
+    return <QuranMemorisationPastAchievements goalId={goalData.id} />;
+  }
+
+  if (template === "quran-memorisation" && isJuzMemorisationGoalId(goalData.id)) {
+    return <QuranMemorisationJuzPastAchievements goalId={goalData.id} />;
   }
 
   if (template === "quran-hours" && isQuranHoursGoalId(goalData.id)) {

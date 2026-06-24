@@ -1,5 +1,17 @@
 import { GoalId } from "../home/components/goalsData";
 import type {
+  QuranMemorisationTargetConfig,
+  SurahMemorisationGoalId,
+} from "./quranMemorisationTarget";
+import type {
+  HizbMemorisationGoalId,
+  QuranMemorisationHizbTargetConfig,
+} from "./quranMemorisationHizbTarget";
+import type {
+  JuzMemorisationGoalId,
+  QuranMemorisationJuzTargetConfig,
+} from "./quranMemorisationJuzTarget";
+import type {
   QuranRecitationGoalId,
   QuranRecitationTargetConfig,
   RecitationFrequency,
@@ -10,6 +22,7 @@ export type LoggingFlowTemplate =
   | "prayer-session"
   | "quran-hours"
   | "quran-recitation"
+  | "quran-memorisation"
   | "quran-completion"
   | "quran-juz"
   | "tahiyat-ul-wudhu"
@@ -20,13 +33,26 @@ export type LoggingFlowTemplate =
   | "istikhara-prayer"
   | "shukr-prayer"
   | "qiyam-al-layl"
-  | "sunnah-rawatib";
+  | "sunnah-rawatib"
+  | "missed-ramadan-fasts";
 
 export type {
   QuranRecitationGoalId,
   RecitationFrequency,
   SurahRecitationGoalId,
 };
+
+export type {
+  SurahMemorisationGoalId,
+} from "./quranMemorisationTarget";
+
+export type {
+  HizbMemorisationGoalId,
+} from "./quranMemorisationHizbTarget";
+
+export type {
+  JuzMemorisationGoalId,
+} from "./quranMemorisationJuzTarget";
 
 export type QuranHoursGoalId = "quran-listening" | "quran-Tajweed";
 
@@ -54,6 +80,76 @@ export type QuranRecitationLogEntry = {
   targetQuantity: number;
   surahName: string;
 };
+
+export type QuranMemorisationSurahLogEntry = {
+  type: "quran-memorisation";
+  goalType: "memorization";
+  trackingType: "surah";
+  goalId: SurahMemorisationGoalId;
+  surahId: string;
+  surahName: string;
+  totalAyahs: number;
+  date: string;
+  startTime: string;
+  startAyah: number;
+  endAyah: number;
+  ayahsMemorizedToday: number;
+  hours: number;
+  minutes: number;
+  durationLabel: string;
+  memorizedAyahs: number;
+  progressPercentage: number;
+  completed: boolean;
+};
+
+export type QuranMemorisationHizbLogEntry = {
+  type: "quran-memorisation";
+  goalType: "memorization";
+  trackingType: "hizb";
+  goalId: HizbMemorisationGoalId;
+  hizbId: string;
+  hizbName: string;
+  totalAyahs: number;
+  date: string;
+  startTime: string;
+  startAyah: number;
+  endAyah: number;
+  ayahsMemorizedToday: number;
+  hours: number;
+  minutes: number;
+  durationLabel: string;
+  memorizedAyahs: number;
+  progressPercentage: number;
+  completed: boolean;
+};
+
+export type QuranMemorisationJuzLogEntry = {
+  type: "quran-memorisation";
+  goalType: "memorization";
+  trackingType: "juz";
+  goalId: JuzMemorisationGoalId;
+  juzId: string;
+  juzName: string;
+  juzNumber: number;
+  totalAyahs: number;
+  date: string;
+  startTime: string;
+  startAyah: number;
+  endAyah: number;
+  ayahsMemorizedToday: number;
+  timeSpentMinutes: number;
+  hours: number;
+  minutes: number;
+  durationLabel: string;
+  memorizedAyahs: number;
+  progressPercentage: number;
+  completed: boolean;
+};
+
+export type QuranMemorisationLogEntry =
+  | QuranMemorisationSurahLogEntry
+  | QuranMemorisationHizbLogEntry
+  | QuranMemorisationJuzLogEntry;
 
 export type CompletionGoalId = "quran-recitationByCompletion";
 
@@ -88,11 +184,33 @@ export type QuranJuzLogEntry = {
   targetJuzCount: number;
 };
 
+export type MissedRamadanFastsLogEntry = {
+  type: "missed-ramadan-fasts";
+  goalId: "fasting-ramadan";
+  logType: "completed_planned" | "completed_early" | "made_up_skipped";
+  date: string;
+  completed: boolean;
+  startTime: string;
+  endTime: string;
+  plannedFastDate?: string;
+  actualCompletedDate?: string;
+  completedDate?: string;
+  plannedDate?: string;
+  reconciledFromPlannedDate?: string;
+  goalTarget: number;
+  completedCount: number;
+  remainingCount: number;
+  goalCompleted: boolean;
+  wasPlanned: boolean;
+};
+
 export type ProgressLogEntry =
   | QuranHoursLogEntry
   | QuranRecitationLogEntry
+  | QuranMemorisationLogEntry
   | QuranCompletionLogEntry
   | QuranJuzLogEntry
+  | MissedRamadanFastsLogEntry
   | Record<string, unknown>;
 
 export type QuranHoursFlowConfig = {
@@ -120,6 +238,30 @@ export type QuranRecitationFlowDefinition = {
   template: "quran-recitation";
   goalId: SurahRecitationGoalId;
   config: QuranRecitationFlowConfig;
+};
+
+export type QuranMemorisationFlowConfig = QuranMemorisationTargetConfig;
+
+export type QuranMemorisationFlowDefinition = {
+  template: "quran-memorisation";
+  goalId: SurahMemorisationGoalId;
+  config: QuranMemorisationFlowConfig;
+};
+
+export type QuranMemorisationHizbFlowConfig = QuranMemorisationHizbTargetConfig;
+
+export type QuranMemorisationHizbFlowDefinition = {
+  template: "quran-memorisation";
+  goalId: HizbMemorisationGoalId;
+  config: QuranMemorisationHizbFlowConfig;
+};
+
+export type QuranMemorisationJuzFlowConfig = QuranMemorisationJuzTargetConfig;
+
+export type QuranMemorisationJuzFlowDefinition = {
+  template: "quran-memorisation";
+  goalId: JuzMemorisationGoalId;
+  config: QuranMemorisationJuzFlowConfig;
 };
 
 export type QuranCompletionFlowConfig = {

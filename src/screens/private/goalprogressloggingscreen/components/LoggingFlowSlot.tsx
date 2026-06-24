@@ -5,6 +5,12 @@ import type { ProgressLogEntry } from "../types";
 import DailyProgressLogging from "./DailyProgressLogging";
 import QuranHoursLoggingFlow from "../flows/QuranHoursLoggingFlow";
 import { SurahRecitationLoggingSection } from "./SurahRecitationLoggingSection";
+import { SurahMemorisationLoggingSection } from "./SurahMemorisationLoggingSection";
+import { HizbMemorisationLoggingSection } from "./HizbMemorisationLoggingSection";
+import { JuzMemorisationLoggingSection } from "./JuzMemorisationLoggingSection";
+import { isHizbMemorisationGoalId } from "../quranMemorisationHizbTarget";
+import { isJuzMemorisationGoalId } from "../quranMemorisationJuzTarget";
+import { isSurahMemorisationGoalId } from "../quranMemorisationTarget";
 import { CompletionRecitationLoggingSection } from "./CompletionRecitationLoggingSection";
 import { JuzRecitationLoggingSection } from "./JuzRecitationLoggingSection";
 import TahiyatUlWudhuLoggingFlow from "../flows/TahiyatUlWudhuLoggingFlow";
@@ -16,13 +22,19 @@ import IstikharaPrayerLoggingFlow from "../flows/IstikharaPrayerLoggingFlow";
 import ShukrPrayerLoggingFlow from "../flows/ShukrPrayerLoggingFlow";
 import QiyamLoggingFlow from "../flows/QiyamLoggingFlow";
 import SunnahRawatibLoggingFlow from "../flows/SunnahRawatibLoggingFlow";
+import MissedRamadanFastsLoggingFlow from "../flows/MissedRamadanFastsLoggingFlow";
 
 type Props = {
   goalData: GoalData;
   onLogComplete?: (entry: ProgressLogEntry) => void;
+  onDropdownOpenChange?: (open: boolean) => void;
 };
 
-export function LoggingFlowSlot({ goalData, onLogComplete }: Props) {
+export function LoggingFlowSlot({
+  goalData,
+  onLogComplete,
+  onDropdownOpenChange,
+}: Props) {
   const template = getLoggingFlowTemplate(goalData.id);
   if (template === "quran-hours") {
     return (
@@ -36,6 +48,33 @@ export function LoggingFlowSlot({ goalData, onLogComplete }: Props) {
   if (template === "quran-recitation") {
     return (
       <SurahRecitationLoggingSection
+        goalData={goalData}
+        onLogComplete={onLogComplete}
+      />
+    );
+  }
+
+  if (template === "quran-memorisation" && isJuzMemorisationGoalId(goalData.id)) {
+    return (
+      <JuzMemorisationLoggingSection
+        goalData={goalData}
+        onLogComplete={onLogComplete}
+      />
+    );
+  }
+
+  if (template === "quran-memorisation" && isHizbMemorisationGoalId(goalData.id)) {
+    return (
+      <HizbMemorisationLoggingSection
+        goalData={goalData}
+        onLogComplete={onLogComplete}
+      />
+    );
+  }
+
+  if (template === "quran-memorisation" && isSurahMemorisationGoalId(goalData.id)) {
+    return (
+      <SurahMemorisationLoggingSection
         goalData={goalData}
         onLogComplete={onLogComplete}
       />
@@ -89,25 +128,37 @@ export function LoggingFlowSlot({ goalData, onLogComplete }: Props) {
 
   if (template === "duha-prayer") {
     return (
-      <DuhaPrayerLoggingFlow goalData={goalData} onLogComplete={onLogComplete} />
+      <DuhaPrayerLoggingFlow
+        goalData={goalData}
+        onLogComplete={onLogComplete}
+      />
     );
   }
 
   if (template === "tawbah-prayer") {
     return (
-      <TawbahPrayerLoggingFlow goalData={goalData} onLogComplete={onLogComplete} />
+      <TawbahPrayerLoggingFlow
+        goalData={goalData}
+        onLogComplete={onLogComplete}
+      />
     );
   }
 
   if (template === "istikhara-prayer") {
     return (
-      <IstikharaPrayerLoggingFlow goalData={goalData} onLogComplete={onLogComplete} />
+      <IstikharaPrayerLoggingFlow
+        goalData={goalData}
+        onLogComplete={onLogComplete}
+      />
     );
   }
 
   if (template === "shukr-prayer") {
     return (
-      <ShukrPrayerLoggingFlow goalData={goalData} onLogComplete={onLogComplete} />
+      <ShukrPrayerLoggingFlow
+        goalData={goalData}
+        onLogComplete={onLogComplete}
+      />
     );
   }
 
@@ -119,7 +170,20 @@ export function LoggingFlowSlot({ goalData, onLogComplete }: Props) {
 
   if (template === "sunnah-rawatib") {
     return (
-      <SunnahRawatibLoggingFlow goalData={goalData} onLogComplete={onLogComplete} />
+      <SunnahRawatibLoggingFlow
+        goalData={goalData}
+        onLogComplete={onLogComplete}
+      />
+    );
+  }
+
+  if (template === "missed-ramadan-fasts") {
+    return (
+      <MissedRamadanFastsLoggingFlow
+        goalData={goalData}
+        onLogComplete={onLogComplete}
+        onDropdownOpenChange={onDropdownOpenChange}
+      />
     );
   }
 

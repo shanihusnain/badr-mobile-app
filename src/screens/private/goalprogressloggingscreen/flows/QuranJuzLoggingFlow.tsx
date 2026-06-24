@@ -501,6 +501,7 @@ export default function QuranJuzLoggingFlow({
 
   const stepHeader = getStepHeader(currentStep);
   const showOverlay = flowMode === "active" && !suppressOverlay;
+  const isAyahRangeStep = currentStep === "ayatRange";
 
   const flowCard = (
     <View style={styles.flowCardLayer}>
@@ -513,6 +514,9 @@ export default function QuranJuzLoggingFlow({
         canGoForward={canGoForward}
         styles={styles}
         style={styles.inPlaceFlowCard}
+        contentStyle={
+          isAyahRangeStep ? styles.flowContentAyahRange : undefined
+        }
       >
         {renderStepContent(currentStep)}
       </FlowCard>

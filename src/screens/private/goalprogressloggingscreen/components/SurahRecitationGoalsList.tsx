@@ -14,6 +14,7 @@ import {
 import type { QuranRecitationLogEntry } from "../types";
 import { CARD_GAP, CARD_WIDTH_RATIO } from "./SurahRecitationGoals.styles";
 import { SurahRecitationGoalCard } from "./SurahRecitationGoalCard";
+import { useOptionalRecitationSurahContext } from "../recitationSurahContext";
 
 type Props = {
   goalData: GoalData;
@@ -31,6 +32,7 @@ export function SurahRecitationGoalsList({
   onLogComplete,
 }: Props) {
   const { width: screenWidth } = useWindowDimensions();
+  const recitationContext = useOptionalRecitationSurahContext();
   const goals = useMemo(() => {
     const allGoals = getSurahRecitationGoals();
     if (!isSurahRecitationGoalId(goalData.id)) {
@@ -41,7 +43,12 @@ export function SurahRecitationGoalsList({
     return allGoals.filter((goal) => goal.frequency === frequency);
   }, [goalData.id]);
   const cardWidth = screenWidth * CARD_WIDTH_RATIO;
-  const [activeGoalId, setActiveGoalId] = useState(goals[0]?.id ?? "");
+  const [activeGoalId, setActiveGoalId] = useState(
+    () => recitationContext?.activeSurahId ?? goals[0]?.id ?? "",
+  );
+
+  const setActiveSurahIdRef = useRef(recitationContext?.setActiveSurahId);
+  setActiveSurahIdRef.current = recitationContext?.setActiveSurahId;
 
   const onViewableItemsChanged = useRef(
     ({ viewableItems }: { viewableItems: ViewToken[] }) => {
@@ -49,6 +56,7 @@ export function SurahRecitationGoalsList({
       if (firstVisible?.item && typeof firstVisible.item === "object") {
         const goal = firstVisible.item as SurahRecitationGoal;
         setActiveGoalId(goal.id);
+        setActiveSurahIdRef.current?.(goal.id);
       }
     },
   ).current;

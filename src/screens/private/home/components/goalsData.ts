@@ -1,5 +1,13 @@
 import { Colors } from "@/constants/theme";
 import { getSurahRecitationGoals } from "@/src/screens/private/goalprogressloggingscreen/quranRecitationSurahGoals";
+import { getMemorisationAggregateProgress } from "@/src/screens/private/goalprogressloggingscreen/quranMemorisationSurahGoals";
+import { getHizbMemorisationAggregateProgress as getHizbMemorisationLiveProgress } from "@/src/screens/private/goalprogressloggingscreen/quranMemorisationHizbGoals";
+import { getJuzMemorisationAggregateProgress as getJuzMemorisationLiveProgress } from "@/src/screens/private/goalprogressloggingscreen/quranMemorisationJuzGoals";
+import {
+  getMissedRamadanFastCompletedCount,
+  getMissedRamadanFastCompletionPercent,
+  getMissedRamadanFastGoalTarget,
+} from "@/src/screens/private/goalprogressloggingscreen/missedRamadanFastsData";
 
 export type GoalId =
   | "prayer-tahiyyat"
@@ -16,7 +24,9 @@ export type GoalId =
   | "quran-recitationBySurah-weekly"
   | "quran-recitationByCompletion"
   | "quran-recitationByJuz"
-  | "quran-memorisation"
+  | "quran-memorisationBySurah"
+  | "quran-memorisationByHizb"
+  | "quran-memorisationByJuz"
   | "quran-listening"
   | "quran-Tajweed"
   | "fasting-ramadan"
@@ -42,6 +52,7 @@ export interface GoalData {
   titleFontSize?: number;
   description: string;
   previousProgress: string;
+  target?: number | string;
   studyMaterial?: {
     id: number;
     thumbnail: string;
@@ -306,17 +317,87 @@ export const GOALS_DATA: Record<GoalId, GoalData> = {
     ],
   },
 
-  "quran-memorisation": {
-    id: "quran-memorisation",
+  "quran-memorisationBySurah": {
+    id: "quran-memorisationBySurah",
     category: "QURAN",
-    title: "Quran Memorisation",
-    count: "1",
-    label: "/5 pages",
-    percentage: "20%",
+    title: "Quran Memorisation By Surah",
+    count: "77",
+    label: "/4 surahs",
+    percentage: "10%",
     progressColor: Colors.light.ringQuran,
+    target: "4 Surahs",
     description:
-      "Memorizing the Quran is a noble act that preserves the Word of Allah in the heart and mind for a lifetime.",
-    previousProgress: "1/5 pages completed",
+      "Track cumulative surah memorisation progress across your long-term journey.",
+    previousProgress: "77/782 ayahs memorized",
+    studyMaterial: [
+      {
+        id: 1,
+        thumbnail: "https://via.placeholder.com/150",
+        type: "video",
+        description: "Techniques for memorising long surahs effectively",
+      },
+      {
+        id: 2,
+        thumbnail: "https://via.placeholder.com/150",
+        type: "article",
+        description: "How to review memorised portions consistently",
+      },
+    ],
+  },
+
+  "quran-memorisationByJuz": {
+    id: "quran-memorisationByJuz",
+    category: "QURAN",
+    title: "Quran Memorisation By Juz",
+    count: "77",
+    label: "/4 juzs",
+    percentage: "10%",
+    progressColor: Colors.light.ringQuran,
+    target: "4 Juzs",
+    description:
+      "Track cumulative juz memorisation progress across your long-term journey.",
+    previousProgress: "77/782 ayahs memorized",
+    studyMaterial: [
+      {
+        id: 1,
+        thumbnail: "https://via.placeholder.com/150",
+        type: "video",
+        description: "Techniques for memorising long juzs effectively",
+      },
+      {
+        id: 2,
+        thumbnail: "https://via.placeholder.com/150",
+        type: "article",
+        description: "How to review memorised portions consistently",
+      },
+    ],
+  },
+  "quran-memorisationByHizb": {
+    id: "quran-memorisationByHizb",
+    category: "QURAN",
+    title: "Quran Memorisation By Hizb",
+    count: "77",
+    label: "/4 hizbs",
+    percentage: "10%",
+    progressColor: Colors.light.ringQuran,
+    target: "4 Hizbs",
+    description:
+      "Track cumulative hizb memorisation progress across your long-term journey.",
+    previousProgress: "77/782 ayahs memorized",
+    studyMaterial: [
+      {
+        id: 1,
+        thumbnail: "https://via.placeholder.com/150",
+        type: "video",
+        description: "Techniques for memorising long hizbs effectively",
+      },
+      {
+        id: 2,
+        thumbnail: "https://via.placeholder.com/150",
+        type: "article",
+        description: "How to review memorised portions consistently",
+      },
+    ],
   },
   "quran-listening": {
     id: "quran-listening",
@@ -387,14 +468,15 @@ export const GOALS_DATA: Record<GoalId, GoalData> = {
   "fasting-ramadan": {
     id: "fasting-ramadan",
     category: "FASTING",
-    title: "Ramadan Fasts",
-    count: "20",
-    label: "/30 days",
-    percentage: "67%",
-    progressColor: Colors.light.green,
+    title: "Missed Ramadan Fasts",
+    count: "0",
+    label: "/5 fasts",
+    target: 5,
+    percentage: "0%",
+    progressColor: Colors.light.ringRamadan,
     description:
-      "Ramadan fasting is a pillar of Islam that purifies the soul, builds discipline, and increases empathy for the needy.",
-    previousProgress: "20/30 days fasted",
+      "Make up missed Ramadan fasts at your own pace. Each completed fast brings you closer to fulfilling this obligation.",
+    previousProgress: "0/5 makeup fasts completed",
   },
   "fasting-whiteDays": {
     id: "fasting-whiteDays",
@@ -528,6 +610,39 @@ export const getGoalById = (goalId: GoalId): GoalData | null => {
   return GOALS_DATA[goalId] || null;
 };
 
+function getSurahMemorisationAggregateProgress() {
+  const { totalMemorized, totalAyahs, percent } =
+    getMemorisationAggregateProgress();
+
+  return {
+    totalMemorized,
+    totalTarget: totalAyahs,
+    percent,
+  };
+}
+
+function getHizbMemorisationDisplayProgress() {
+  const { totalMemorized, totalAyahs, percent } =
+    getHizbMemorisationLiveProgress();
+
+  return {
+    totalMemorized,
+    totalTarget: totalAyahs,
+    percent,
+  };
+}
+
+function getJuzMemorisationDisplayProgress() {
+  const { totalMemorized, totalAyahs, percent } =
+    getJuzMemorisationLiveProgress();
+
+  return {
+    totalMemorized,
+    totalTarget: totalAyahs,
+    percent,
+  };
+}
+
 function getSurahRecitationAggregateProgress(frequency: "daily" | "weekly") {
   const goals = getSurahRecitationGoals().filter(
     (goal) => goal.frequency === frequency,
@@ -549,6 +664,45 @@ function getSurahRecitationAggregateProgress(frequency: "daily" | "weekly") {
  * Resolves live progress values for goals backed by logging mock data.
  */
 export function resolveGoalDisplayData(goal: GoalData): GoalData {
+  if (goal.id === "quran-memorisationBySurah") {
+    const { totalMemorized, totalTarget, percent } =
+      getSurahMemorisationAggregateProgress();
+
+    return {
+      ...goal,
+      count: String(totalMemorized),
+      label: `/${totalTarget} Surahs`,
+      percentage: `${percent}%`,
+      previousProgress: `${totalMemorized}/${totalTarget} ayahs memorized`,
+    };
+  }
+
+  if (goal.id === "quran-memorisationByJuz") {
+    const { totalMemorized, totalTarget, percent } =
+      getJuzMemorisationDisplayProgress();
+
+    return {
+      ...goal,
+      count: String(totalMemorized),
+      label: `/${totalTarget} ayahs`,
+      percentage: `${percent}%`,
+      previousProgress: `${totalMemorized}/${totalTarget} ayahs memorized`,
+    };
+  }
+
+  if (goal.id === "quran-memorisationByHizb") {
+    const { totalMemorized, totalTarget, percent } =
+      getHizbMemorisationDisplayProgress();
+
+    return {
+      ...goal,
+      count: String(totalMemorized),
+      label: `/${totalTarget} ayahs`,
+      percentage: `${percent}%`,
+      previousProgress: `${totalMemorized}/${totalTarget} ayahs memorized`,
+    };
+  }
+
   if (goal.id === "quran-recitationBySurah-daily") {
     const { totalCompleted, totalTarget, percent } =
       getSurahRecitationAggregateProgress("daily");
@@ -572,6 +726,22 @@ export function resolveGoalDisplayData(goal: GoalData): GoalData {
       label: `/${totalTarget} recitations`,
       percentage: `${percent}%`,
       previousProgress: `${totalCompleted}/${totalTarget} recitations completed`,
+    };
+  }
+
+  if (goal.id === "fasting-ramadan") {
+    const completed = getMissedRamadanFastCompletedCount();
+    const target = getMissedRamadanFastGoalTarget();
+    const percent = getMissedRamadanFastCompletionPercent();
+
+    return {
+      ...goal,
+      count: String(completed),
+      label: `/${target} fasts`,
+      target,
+      percentage: `${percent}%`,
+      progressColor: Colors.light.ringRamadan,
+      previousProgress: `${completed}/${target} makeup fasts completed`,
     };
   }
 
@@ -605,6 +775,7 @@ export function getResolvedGoalsByCategory(
   const priority: GoalId[] = [
     "quran-recitationBySurah-daily",
     "quran-recitationBySurah-weekly",
+    "quran-memorisationBySurah",
   ];
 
   return [...goals].sort((left, right) => {

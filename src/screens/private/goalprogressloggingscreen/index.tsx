@@ -1,55 +1,76 @@
-import React from "react";
+import React, { useMemo, useState } from "react";
 import { View, Text, ScrollView } from "react-native";
-import { TaperedCircleBorder } from "@/components/atoms/TaperedCircleBorder";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import {
+  TaperedCircleBorder,
+  parsePercent,
+} from "@/components/atoms/TaperedCircleBorder";
 import { Colors } from "@/constants/theme";
 import { getResolvedGoalById, GoalId } from "../home/components/goalsData";
 import { styles } from "./styles";
 import { useRouter } from "expo-router";
-import DailyProgressLogging from "./components/DailyProgressLogging";
 import { useTranslation } from "react-i18next";
-import { WeeklyProgressDashboard } from "@/components/molecules/WeeklyProgressDashboard";
-import { PrayerProgressTrackerRing } from "@/components/molecules/PrayerProgressTrackerRing";
-import type { DayProgress } from "@/components/molecules/WeeklyProgressDashboard";
 import { LoggingFlowSlot } from "./components/LoggingFlowSlot";
+import { getLoggingFlowTemplate } from "./loggingFlowRegistry";
 import type { ProgressLogEntry } from "./types";
 import { WeeklyProgressSection } from "./components/WeeklyProgressSection";
 import { PastAchievementsSection } from "./components/PastAchievementsSection";
+import { MemorisationSurahProvider } from "./memorisationSurahContext";
+import { MemorisationHizbProvider } from "./memorisationHizbContext";
+import { MemorisationJuzProvider } from "./memorisationJuzContext";
+import { RecitationSurahProvider } from "./recitationSurahContext";
+import { isSurahRecitationGoalId } from "./quranRecitationTarget";
+import { isHizbMemorisationGoalId } from "./quranMemorisationHizbTarget";
+import { isJuzMemorisationGoalId } from "./quranMemorisationJuzTarget";
+import { isSurahMemorisationGoalId } from "./quranMemorisationTarget";
+import { isMissedRamadanFastsGoalId } from "./missedRamadanFastsTarget";
 
 interface GoalProgressLoggingScreenProps {
   goalId: string;
 }
 
-export const GoalProgressLoggingScreen = ({
-  goalId: goalIdParam,
-}: GoalProgressLoggingScreenProps) => {
-  const router = useRouter();
+function GoalProgressLoggingContent({
+  goalData,
+  goalId,
+  onDropdownOpenChange,
+}: {
+  goalData: NonNullable<ReturnType<typeof getResolvedGoalById>>;
+  goalId: GoalId;
+  onDropdownOpenChange?: (open: boolean) => void;
+}) {
   const { t } = useTranslation();
+  const [weeklyRefreshKey, setWeeklyRefreshKey] = useState(0);
+  const template = getLoggingFlowTemplate(goalId);
+  const liveGoalData = useMemo(
+    () => getResolvedGoalById(goalId) ?? goalData,
+    [goalData, goalId, weeklyRefreshKey],
+  );
+  const isSurahMemorisation =
+    template === "quran-memorisation" && isSurahMemorisationGoalId(goalId);
+  const isHizbMemorisation =
+    template === "quran-memorisation" && isHizbMemorisationGoalId(goalId);
+  const isJuzMemorisation =
+    template === "quran-memorisation" && isJuzMemorisationGoalId(goalId);
+  const isSurahRecitation =
+    template === "quran-recitation" && isSurahRecitationGoalId(goalId);
 
-  // Extract and validate goalId
-  const goalId = (goalIdParam || "") as GoalId;
-  console.log("goalId", goalId);
-  const goalData = getResolvedGoalById(goalId);
-  console.log("goalData", goalData);
-  if (!goalData) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.container}>
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyStateText}>
-              Goal data not found: {goalId}
-            </Text>
-          </View>
-        </View>
-      </View>
-    );
-  }
-
-  const percentageNum = goalData.percentage.replace("%", "");
-  const cleanLabel = goalData.label.startsWith("/")
-    ? goalData.label.substring(1)
-    : goalData.label;
+  const percentageNum = liveGoalData.percentage.replace("%", "");
+  const isGoalComplete = parsePercent(liveGoalData.percentage) >= 100;
+  const cleanLabel = liveGoalData.target
+    ? liveGoalData.target.toString()
+    : liveGoalData.label.startsWith("/")
+      ? liveGoalData.label.substring(1)
+      : liveGoalData.label;
+  const ringGoalLabel = isMissedRamadanFastsGoalId(goalId)
+    ? t("progressLogging.missedRamadanRingGoal", {
+        count: liveGoalData.target ?? cleanLabel,
+      })
+    : t("homeScreen.weeklyProgress_goalLabel", { label: cleanLabel });
 
   const getCategoryColor = (category: string): string => {
+    if (isMissedRamadanFastsGoalId(goalId)) {
+      return Colors.light.ringRamadan;
+    }
     switch (category) {
       case "PRAYER":
         return Colors.light.ringPrayer;
@@ -64,27 +85,24 @@ export const GoalProgressLoggingScreen = ({
     }
   };
 
-  const categoryColor = getCategoryColor(goalData.category);
-  console.log("categoryColor", getCategoryColor(goalData.category));
+  const categoryColor = getCategoryColor(liveGoalData.category);
 
-  return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.scrollContent}
-      showsVerticalScrollIndicator={false}
-      keyboardShouldPersistTaps="handled"
-    >
+  const scrollContent = (
+    <>
       <View style={styles.goalInfoContainer}>
+        {isGoalComplete ? (
+          <View style={styles.ringCheckmark}>
+            <Ionicons name="checkmark-circle" size={28} color={categoryColor} />
+          </View>
+        ) : null}
         <TaperedCircleBorder
-          percentage={goalData.percentage}
+          percentage={liveGoalData.percentage}
           progressColor={categoryColor}
           borderColor={Colors.light.dullWhiteOpacity}
           size={174}
         >
           <View style={styles.largeCircleInner}>
-            <Text style={styles.circleGoalText}>
-              {t("homeScreen.weeklyProgress_goalLabel", { label: cleanLabel })}
-            </Text>
+            <Text style={styles.circleGoalText}>{ringGoalLabel}</Text>
             <View style={styles.circlePercentRow}>
               <Text style={styles.circlePercentNumber}>{percentageNum}</Text>
               <Text style={styles.circlePercentSymbol}>%</Text>
@@ -94,20 +112,89 @@ export const GoalProgressLoggingScreen = ({
       </View>
 
       <LoggingFlowSlot
-        goalData={goalData}
+        goalData={liveGoalData}
+        onDropdownOpenChange={onDropdownOpenChange}
         onLogComplete={(entry: ProgressLogEntry) => {
           console.log("Logged progress:", entry);
+          setWeeklyRefreshKey((current) => current + 1);
         }}
       />
 
-      {/* Weekly progress dashboard — always visible, never hidden by modal */}
       <View style={styles.weeklyDashboardWrapper}>
-        <WeeklyProgressSection goalData={goalData} />
+        <WeeklyProgressSection
+          goalData={liveGoalData}
+          refreshKey={weeklyRefreshKey}
+        />
       </View>
 
       <View style={styles.weeklyDashboardWrapper}>
-        <PastAchievementsSection goalData={goalData} />
+        <PastAchievementsSection
+          goalData={liveGoalData}
+          refreshKey={weeklyRefreshKey}
+        />
       </View>
+    </>
+  );
+
+  if (isSurahMemorisation) {
+    return (
+      <MemorisationSurahProvider>{scrollContent}</MemorisationSurahProvider>
+    );
+  }
+
+  if (isHizbMemorisation) {
+    return <MemorisationHizbProvider>{scrollContent}</MemorisationHizbProvider>;
+  }
+
+  if (isJuzMemorisation) {
+    return <MemorisationJuzProvider>{scrollContent}</MemorisationJuzProvider>;
+  }
+
+  if (isSurahRecitation) {
+    return (
+      <RecitationSurahProvider goalId={goalId}>
+        {scrollContent}
+      </RecitationSurahProvider>
+    );
+  }
+
+  return scrollContent;
+}
+
+export const GoalProgressLoggingScreen = ({
+  goalId: goalIdParam,
+}: GoalProgressLoggingScreenProps) => {
+  const router = useRouter();
+  const goalId = (goalIdParam || "") as GoalId;
+  const goalData = getResolvedGoalById(goalId);
+  const [screenScrollEnabled, setScreenScrollEnabled] = useState(true);
+
+  if (!goalData) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyStateText}>
+            Goal data not found: {goalId}
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.scrollContent}
+      showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
+      scrollEnabled={screenScrollEnabled}
+      nestedScrollEnabled
+    >
+      <GoalProgressLoggingContent
+        goalData={goalData}
+        goalId={goalId}
+        onDropdownOpenChange={(open) => setScreenScrollEnabled(!open)}
+      />
     </ScrollView>
   );
 };

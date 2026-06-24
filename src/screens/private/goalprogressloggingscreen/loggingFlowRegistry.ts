@@ -5,6 +5,18 @@ import {
 } from "./quranRecitationCompletionData";
 import { getJuzRecitationProgress } from "./quranRecitationJuzData";
 import {
+  getQuranMemorisationTargetConfig,
+  isSurahMemorisationGoalId,
+} from "./quranMemorisationTarget";
+import {
+  getQuranMemorisationHizbTargetConfig,
+  isHizbMemorisationGoalId,
+} from "./quranMemorisationHizbTarget";
+import {
+  getQuranMemorisationJuzTargetConfig,
+  isJuzMemorisationGoalId,
+} from "./quranMemorisationJuzTarget";
+import {
   getQuranRecitationTargetConfig,
   getRecitationCycleTotal,
   isSurahRecitationGoalId,
@@ -17,6 +29,9 @@ import {
   QuranCompletionFlowDefinition,
   QuranHoursFlowDefinition,
   QuranJuzFlowDefinition,
+  QuranMemorisationFlowDefinition,
+  QuranMemorisationHizbFlowDefinition,
+  QuranMemorisationJuzFlowDefinition,
   QuranRecitationFlowDefinition,
 } from "./types";
 
@@ -38,6 +53,9 @@ const FLOW_TEMPLATE_BY_GOAL: Partial<Record<GoalId, LoggingFlowTemplate>> = {
   "quran-Tajweed": "quran-hours",
   "quran-recitationBySurah-daily": "quran-recitation",
   "quran-recitationBySurah-weekly": "quran-recitation",
+  "quran-memorisationBySurah": "quran-memorisation",
+  "quran-memorisationByHizb": "quran-memorisation",
+  "quran-memorisationByJuz": "quran-memorisation",
   "quran-recitationByCompletion": "quran-completion",
   "quran-recitationByJuz": "quran-juz",
   "prayer-tahiyyat": "tahiyat-ul-wudhu",
@@ -49,6 +67,7 @@ const FLOW_TEMPLATE_BY_GOAL: Partial<Record<GoalId, LoggingFlowTemplate>> = {
   "prayer-shukr": "shukr-prayer",
   "prayer-qiyam": "qiyam-al-layl",
   "prayer-sunnah": "sunnah-rawatib",
+  "fasting-ramadan": "missed-ramadan-fasts",
 };
 
 export function getLoggingFlowTemplate(goalId: GoalId): LoggingFlowTemplate {
@@ -81,6 +100,42 @@ export function getQuranRecitationFlowDefinition(
       ...target,
       cycleTotal: getRecitationCycleTotal(target.frequency, target.quantity),
     },
+  };
+}
+
+export function getQuranMemorisationFlowDefinition(
+  goalId: GoalId,
+): QuranMemorisationFlowDefinition | null {
+  if (!isSurahMemorisationGoalId(goalId)) return null;
+
+  return {
+    template: "quran-memorisation",
+    goalId,
+    config: getQuranMemorisationTargetConfig(goalId),
+  };
+}
+
+export function getQuranMemorisationHizbFlowDefinition(
+  goalId: GoalId,
+): QuranMemorisationHizbFlowDefinition | null {
+  if (!isHizbMemorisationGoalId(goalId)) return null;
+
+  return {
+    template: "quran-memorisation",
+    goalId,
+    config: getQuranMemorisationHizbTargetConfig(goalId),
+  };
+}
+
+export function getQuranMemorisationJuzFlowDefinition(
+  goalId: GoalId,
+): QuranMemorisationJuzFlowDefinition | null {
+  if (!isJuzMemorisationGoalId(goalId)) return null;
+
+  return {
+    template: "quran-memorisation",
+    goalId,
+    config: getQuranMemorisationJuzTargetConfig(goalId),
   };
 }
 
