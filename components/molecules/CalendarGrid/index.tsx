@@ -213,7 +213,8 @@ export const CalendarGrid = ({
   const cycleWeeks =
     windowStart && windowEnd ? buildCycleWeeks(windowStart, windowEnd) : null;
   const monthWeeks = mode === "dob" ? buildMonthWeeks(currentDate) : null;
-  const gridWeeks: (string | null)[][] | null = cycleWeeks ?? monthWeeks ?? null;
+  const gridWeeks: (string | null)[][] | null =
+    cycleWeeks ?? monthWeeks ?? null;
 
   const displayedMonth = moment(currentDate, "YYYY-MM-DD");
 
@@ -383,7 +384,7 @@ export const CalendarGrid = ({
             borderColor: Colors.light.ringRamadan,
           };
           showCompletedDot = true;
-          textStyle = { color: Colors.light.blackBackground };
+          textStyle = { color: Colors.light.white };
         } else if (incompletePlannedFastSet.has(ds)) {
           circleStyle = {
             borderWidth: 1.2,

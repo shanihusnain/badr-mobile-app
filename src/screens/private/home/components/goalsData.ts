@@ -477,6 +477,26 @@ export const GOALS_DATA: Record<GoalId, GoalData> = {
     description:
       "Make up missed Ramadan fasts at your own pace. Each completed fast brings you closer to fulfilling this obligation.",
     previousProgress: "0/5 makeup fasts completed",
+    studyMaterial: [
+      {
+        id: 1,
+        thumbnail: "https://via.placeholder.com/150",
+        type: "video",
+        description: "Exploring Scholarly Views on Making Up  Tajweed Lessons",
+      },
+      {
+        id: 2,
+        thumbnail: "https://via.placeholder.com/150",
+        type: "podcast",
+        description: "How to make up  with missed Khatm-e-Quran",
+      },
+      {
+        id: 3,
+        thumbnail: "https://via.placeholder.com/150",
+        type: "video",
+        description: "10 Ways to increase Your Dhikr with Omar  Sulieman",
+      },
+    ],
   },
   "fasting-whiteDays": {
     id: "fasting-whiteDays",
