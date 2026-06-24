@@ -136,7 +136,7 @@ export function QuranRecitationPastAchievements({ goalId }: Props) {
     setHintDismissed(false);
   }, [period, goalId, selectedSurahId, analyticsView]);
 
-  const handleBarPress = useCallback((index: number) => {
+  const handleBarPress = useCallback((index: number | null) => {
     setHintDismissed(true);
     setSelectedBarIndex((current) => (current === index ? null : index));
   }, []);

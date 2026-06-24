@@ -6,6 +6,7 @@ import { isSurahRecitationGoalId } from "../quranRecitationTarget";
 import { QuranHoursPastAchievements } from "@/components/molecules/QuranHoursPastAchievements";
 import { QuranRecitationPastAchievements } from "@/components/molecules/QuranRecitationPastAchievements";
 import { QuranCompletionPastAchievements } from "@/components/molecules/QuranCompletionPastAchievements";
+import { PrayerPastAchievements } from "@/components/molecules/PrayerPastAchievements";
 import { isCompletionGoalId } from "../types";
 
 type Props = {
@@ -14,6 +15,10 @@ type Props = {
 
 export function PastAchievementsSection({ goalData }: Props) {
   const template = getLoggingFlowTemplate(goalData.id);
+
+  if (goalData.category === "PRAYER") {
+    return <PrayerPastAchievements goalId={goalData.id} />;
+  }
 
   if (template === "quran-completion" && isCompletionGoalId(goalData.id)) {
     return <QuranCompletionPastAchievements goalId={goalData.id} />;

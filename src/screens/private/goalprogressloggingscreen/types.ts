@@ -19,7 +19,8 @@ export type LoggingFlowTemplate =
   | "istikhara-prayer"
   | "shukr-prayer"
   | "qiyam-al-layl"
-  | "sunnah-rawatib";
+  | "sunnah-rawatib"
+  | "missed-zakat";
 
 export type {
   QuranRecitationGoalId,

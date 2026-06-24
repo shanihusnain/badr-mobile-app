@@ -15,6 +15,7 @@ import IstikharaPrayerLoggingFlow from "../flows/IstikharaPrayerLoggingFlow";
 import ShukrPrayerLoggingFlow from "../flows/ShukrPrayerLoggingFlow";
 import QiyamLoggingFlow from "../flows/QiyamLoggingFlow";
 import SunnahRawatibLoggingFlow from "../flows/SunnahRawatibLoggingFlow";
+import MissedZakatLoggingFlow from "../flows/MissedZakatLoggingFlow";
 
 type Props = {
   goalData: GoalData;
@@ -110,6 +111,12 @@ export function LoggingFlowSlot({ goalData, onLogComplete }: Props) {
   if (template === "sunnah-rawatib") {
     return (
       <SunnahRawatibLoggingFlow goalData={goalData} onLogComplete={onLogComplete} />
+    );
+  }
+
+  if (template === "missed-zakat") {
+    return (
+      <MissedZakatLoggingFlow goalData={goalData} onLogComplete={onLogComplete} />
     );
   }
 

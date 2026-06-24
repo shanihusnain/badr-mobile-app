@@ -71,7 +71,7 @@ export function QuranHoursPastAchievements({ goalId }: Props) {
     setHintDismissed(false);
   }, [period, goalId]);
 
-  const handleBarPress = useCallback((index: number) => {
+  const handleBarPress = useCallback((index: number | null) => {
     setHintDismissed(true);
     setSelectedBarIndex((current) => (current === index ? null : index));
   }, []);
