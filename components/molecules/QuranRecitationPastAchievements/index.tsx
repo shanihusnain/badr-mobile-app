@@ -19,15 +19,14 @@ import {
   applyRecitationAnalyticsView,
   formatGoalRecitationsLabel,
   formatRecitationTimeSpentLabel,
-  getPastAchievementSurahFilters,
   getQuranRecitationPastAchievement,
   getQuranRecitationPastAchievementSlice,
   getTotalTimeSpentMinutes,
   type RecitationAnalyticsView,
-  type SurahFilterId,
 } from "@/src/screens/private/goalprogressloggingscreen/quranRecitationPastAchievementData";
 import type { PastAchievementPeriod } from "@/src/screens/private/goalprogressloggingscreen/quranHoursPastAchievementData";
 import type { SurahRecitationGoalId } from "@/src/screens/private/goalprogressloggingscreen/quranRecitationTarget";
+import { useRecitationSurahContext } from "@/src/screens/private/goalprogressloggingscreen/recitationSurahContext";
 import { INCOMPLETE_BAR_COLOR } from "../QuranHoursPastAchievements/pastAchievementStyles";
 import { QuranHoursPastAchievementChartBlock } from "../QuranHoursPastAchievements/QuranHoursPastAchievementChartBlock";
 import {
@@ -54,6 +53,7 @@ const PERIOD_LABEL_KEYS: Record<PastAchievementPeriod, string> = {
 };
 
 const GOAL_SUMMARY_KEY = "progressLogging.achievementSummaryRecitationSurah";
+const UNIT_LABEL_KEY = "progressLogging.unitRecitations";
 
 const ANALYTICS_VIEWS: RecitationAnalyticsView[] = [
   "completedVsIncomplete",
@@ -84,8 +84,8 @@ export function QuranRecitationPastAchievements({ goalId }: Props) {
   const formatNumber = useLocaleNumber();
   const { width: screenWidth } = useWindowDimensions();
   const studyCardWidth = screenWidth * STUDY_CARD_WIDTH_RATIO;
+  const { activeSurahId, refreshKey } = useRecitationSurahContext();
   const [period, setPeriod] = useState<PastAchievementPeriod>("monthly");
-  const [selectedSurahId, setSelectedSurahId] = useState<SurahFilterId>("all");
   const [analyticsView, setAnalyticsView] = useState<RecitationAnalyticsView>(
     "completedVsIncomplete",
   );
@@ -94,20 +94,18 @@ export function QuranRecitationPastAchievements({ goalId }: Props) {
   const [selectedBarIndex, setSelectedBarIndex] = useState<number | null>(null);
   const [hintDismissed, setHintDismissed] = useState(false);
 
-  const surahFilters = useMemo(
-    () => getPastAchievementSurahFilters(goalId),
-    [goalId],
-  );
+  const selectedSurahId = activeSurahId;
 
   const baseAchievement = useMemo(
-    () => getQuranRecitationPastAchievement(goalId, period, selectedSurahId),
-    [goalId, period, selectedSurahId],
+    () =>
+      getQuranRecitationPastAchievement(goalId, period, selectedSurahId),
+    [goalId, period, selectedSurahId, refreshKey],
   );
 
   const periodSlice = useMemo(
     () =>
       getQuranRecitationPastAchievementSlice(goalId, period, selectedSurahId),
-    [goalId, period, selectedSurahId],
+    [goalId, period, selectedSurahId, refreshKey],
   );
 
   const timeSpentByPeriod = useMemo(
@@ -299,38 +297,6 @@ export function QuranRecitationPastAchievements({ goalId }: Props) {
           })}
         </Text>
 
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.surahTabsRow}
-        >
-          {surahFilters.map((surah) => {
-            const isActive = selectedSurahId === surah.id;
-            return (
-              <Pressable
-                key={surah.id}
-                onPress={() => setSelectedSurahId(surah.id)}
-                style={[
-                  styles.surahTab,
-                  isActive ? styles.surahTabActive : styles.surahTabInactive,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.surahTabText,
-                    isActive && styles.surahTabTextActive,
-                  ]}
-                  numberOfLines={1}
-                >
-                  {surah.id === "all"
-                    ? t("progressLogging.surahFilterAll")
-                    : surah.surahName}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
-
         <View style={styles.goalHeader}>
           <Text style={styles.goalLabel}>{t("progressLogging.goal")}</Text>
           <View
@@ -345,7 +311,7 @@ export function QuranRecitationPastAchievements({ goalId }: Props) {
             </Text>
             <View style={styles.goalPill}>
               <Text style={styles.goalPillText}>
-                {t("progressLogging.unitRecitations")}
+                {t(UNIT_LABEL_KEY)}
               </Text>
             </View>
           </View>

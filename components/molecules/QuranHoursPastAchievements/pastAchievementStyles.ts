@@ -19,6 +19,7 @@ export const pastAchievementStyles = StyleSheet.create({
     position: "relative",
   },
   chartHintOverlay: {
+    position: "absolute",
     left: 60,
     bottom: 240,
     width: "45%",

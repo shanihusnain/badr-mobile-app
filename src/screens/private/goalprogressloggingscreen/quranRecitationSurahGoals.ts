@@ -78,6 +78,12 @@ export function getSurahRecitationGoals(): SurahRecitationGoal[] {
   return MOCK_SURAH_GOALS;
 }
 
+export function getSurahRecitationGoalsForFrequency(
+  frequency: RecitationFrequency,
+): SurahRecitationGoal[] {
+  return MOCK_SURAH_GOALS.filter((goal) => goal.frequency === frequency);
+}
+
 export function getSurahRecitationGoalById(
   id: string,
 ): SurahRecitationGoal | undefined {

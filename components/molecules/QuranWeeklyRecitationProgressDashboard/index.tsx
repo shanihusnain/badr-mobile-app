@@ -19,7 +19,7 @@ import type { QuranCompletionDayProgress } from "@/src/screens/private/goalprogr
 import { getRecitationDayRingSize } from "@/src/screens/private/goalprogressloggingscreen/quranRecitationWeeklyData";
 import { QuranRecitationDayRing } from "./QuranRecitationDayRing";
 import { QuranCompletionDayRing } from "./QuranCompletionDayRing";
-import { WeeklySurahProgressList } from "@/src/screens/private/goalprogressloggingscreen/components/WeeklySurahProgressList";
+import { QuranRecitationWeeklyDayCircle } from "./QuranRecitationWeeklyDayCircle";
 
 export type QuranWeeklyRecitationProgressDashboardProps = {
   weekDays: QuranRecitationDayProgress[];
@@ -31,7 +31,7 @@ export type QuranWeeklyRecitationProgressDashboardProps = {
   weekRecitationTarget?: number;
   streakDays?: number;
   motivationalQuote?: string;
-  visualizationMode?: "daily" | "weekly" | "completion";
+  visualizationMode?: "daily" | "weekly" | "completion" | "juz";
   weeklySurahItems?: WeeklySurahDashboardItem[];
   completionWeekDays?: QuranCompletionDayProgress[];
   completionTarget?: number;
@@ -40,6 +40,9 @@ export type QuranWeeklyRecitationProgressDashboardProps = {
   onDayPress?: (index: number) => void;
   onPrevWeek?: () => void;
   onNextWeek?: () => void;
+  selectedSurahId?: string;
+  surahContextLabel?: string;
+  lockSurahSelection?: boolean;
 };
 
 export function QuranWeeklyRecitationProgressDashboard({
@@ -60,24 +63,21 @@ export function QuranWeeklyRecitationProgressDashboard({
   onDayPress,
   onPrevWeek,
   onNextWeek,
+  selectedSurahId,
+  surahContextLabel,
+  lockSurahSelection = false,
 }: QuranWeeklyRecitationProgressDashboardProps) {
   const { t, i18n } = useTranslation();
-  console.log("quran recitation daily target", dailyTarget);
   const { width: screenWidth } = useWindowDimensions();
-  console.log(
-    "weekDays inside the quran weekly recitation progress dashboard",
-    weekDays,
-  );
   const isWeeklySurahMode =
     visualizationMode === "weekly" && weeklySurahItems.length > 0;
   const isCompletionMode =
     visualizationMode === "completion" && completionWeekDays.length > 0;
-  console.log(
-    "isWeeklySurahMode inside the quran weekly recitation progress dashboard",
-    isWeeklySurahMode,
-  );
+  const isJuzMode =
+    visualizationMode === "juz" && completionWeekDays.length > 0;
+  const isCompletionStyleMode = isCompletionMode || isJuzMode;
   const [activeSurahId, setActiveSurahId] = useState(
-    weeklySurahItems[0]?.surahId ?? "",
+    selectedSurahId ?? weeklySurahItems[0]?.surahId ?? "",
   );
 
   const activeWeeklySurah = useMemo(
@@ -89,17 +89,21 @@ export function QuranWeeklyRecitationProgressDashboard({
 
   useEffect(() => {
     if (!isWeeklySurahMode) return;
+    if (selectedSurahId) {
+      setActiveSurahId(selectedSurahId);
+      return;
+    }
     if (!weeklySurahItems.some((item) => item.surahId === activeSurahId)) {
       setActiveSurahId(weeklySurahItems[0]?.surahId ?? "");
     }
-  }, [activeSurahId, isWeeklySurahMode, weeklySurahItems]);
+  }, [activeSurahId, isWeeklySurahMode, selectedSurahId, weeklySurahItems]);
 
   const ringSize = getRecitationDayRingSize(screenWidth);
 
   const defaultSelectedIndex =
     selectedDayIndex ??
     Math.max(
-      (isCompletionMode ? completionWeekDays : weekDays).findIndex(
+      (isCompletionStyleMode ? completionWeekDays : weekDays).findIndex(
         (day) => day.dayType === "today",
       ),
       0,
@@ -112,19 +116,21 @@ export function QuranWeeklyRecitationProgressDashboard({
     onDayPress?.(index);
   };
 
-  const periodRecitationTarget = isCompletionMode
+  const periodRecitationTarget = isCompletionStyleMode
     ? completionTarget
     : isWeeklySurahMode
       ? (activeWeeklySurah?.weeklyTarget ?? weekRecitationTarget ?? dailyTarget)
       : (weekRecitationTarget ?? dailyTarget * 7);
-  const displayTotalRecitations = isCompletionMode
+  const displayTotalRecitations = isCompletionStyleMode
     ? completionsLoggedThisWeek
     : isWeeklySurahMode
       ? (activeWeeklySurah?.completedThisWeek ?? totalRecitationsThisWeek)
       : totalRecitationsThisWeek;
-  const statsLabelKey = isCompletionMode
-    ? "progressLogging.completionsThisWeek"
-    : "progressLogging.totalRecitationsThisWeek";
+  const statsLabelKey = isJuzMode
+    ? "progressLogging.juzLoggedThisWeek"
+    : isCompletionMode
+      ? "progressLogging.completionsThisWeek"
+      : "progressLogging.totalRecitationsThisWeek";
 
   return (
     <View style={styles.card}>
@@ -170,12 +176,23 @@ export function QuranWeeklyRecitationProgressDashboard({
       </View>
 
       {isWeeklySurahMode ? (
-        <WeeklySurahProgressList
-          surahItems={weeklySurahItems}
-          activeSurahId={activeSurahId}
-          onActiveSurahChange={setActiveSurahId}
-        />
-      ) : isCompletionMode ? (
+        <View style={styles.daysRow}>
+          {activeWeeklySurah?.weekDays.map((day, index) => (
+            <View
+              key={`${activeWeeklySurah.surahId}-${day.day}-${index}`}
+              style={styles.dayColumn}
+            >
+              <QuranRecitationWeeklyDayCircle
+                status={day.status}
+                size={ringSize}
+              />
+              <Text style={styles.dayLabel} numberOfLines={1}>
+                {day.day}
+              </Text>
+            </View>
+          ))}
+        </View>
+      ) : isCompletionStyleMode ? (
         <View style={styles.daysRow}>
           {completionWeekDays.map((day, index) => {
             const isSelected = index === activeDayIndex;
@@ -202,7 +219,9 @@ export function QuranWeeklyRecitationProgressDashboard({
                   numberOfLines={1}
                 >
                   {day.hasActivity && day.completionNumber
-                    ? `C${day.completionNumber}`
+                    ? isJuzMode
+                      ? `J${day.completionNumber}`
+                      : `C${day.completionNumber}`
                     : day.day}
                 </Text>
 
@@ -224,10 +243,6 @@ export function QuranWeeklyRecitationProgressDashboard({
         <View style={styles.daysRow}>
           {weekDays.map((day, index) => {
             const isSelected = index === activeDayIndex;
-            console.log(
-              "day inside the quran weekly recitation progress dashboard",
-              day,
-            );
             return (
               <TouchableOpacity
                 key={`${day.day}-${index}`}
@@ -282,6 +297,10 @@ export function QuranWeeklyRecitationProgressDashboard({
           {" " + t(statsLabelKey)}
         </Text>
       </View>
+
+      {surahContextLabel ? (
+        <Text style={styles.surahContextLabel}>{surahContextLabel}</Text>
+      ) : null}
 
       <View style={styles.footerRow}>
         <View style={styles.streakBadge}>
@@ -405,6 +424,13 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontSize: 28,
     fontFamily: fonts.primary.bold,
+  },
+  surahContextLabel: {
+    color: Colors.light.white,
+    fontSize: 13,
+    fontFamily: fonts.primary.semiBold,
+    fontWeight: "600",
+    textAlign: "center",
   },
   footerRow: {
     flexDirection: "row",

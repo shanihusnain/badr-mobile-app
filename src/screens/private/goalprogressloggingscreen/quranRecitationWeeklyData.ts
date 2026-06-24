@@ -4,7 +4,7 @@ import {
   WEEKLY_CYCLE_WEEKS,
   type SurahRecitationGoalId,
 } from "./quranRecitationTarget";
-import { getSurahRecitationGoals } from "./quranRecitationSurahGoals";
+import { getSurahRecitationGoals, getSurahRecitationGoalById } from "./quranRecitationSurahGoals";
 
 export type QuranRecitationDayType = "past" | "today" | "future";
 
@@ -455,6 +455,66 @@ export function getWeeklySurahDashboardItems(
         week,
       );
     });
+}
+
+export function getWeeklySurahDashboardItemForSurah(
+  surahId: string,
+  weekIndex: number,
+): WeeklySurahDashboardItem | undefined {
+  return getWeeklySurahDashboardItems(weekIndex).find(
+    (item) => item.surahId === surahId,
+  );
+}
+
+const DAILY_SURAH_WEEK_DATA: Record<string, RecitationCycleWeekRecord[]> = {
+  "surah-al-mulk": [
+    {
+      ...DAILY_CYCLE_WEEKS[0],
+      completed: 0,
+      streakDays: 0,
+      weekDays: DAILY_CYCLE_WEEKS[0].weekDays.map((day) => ({
+        ...day,
+        recitationsCompleted: 0,
+        isBestDay: false,
+      })),
+    },
+    ...DAILY_CYCLE_WEEKS.slice(1),
+  ],
+  "surah-al-baqarah": DAILY_CYCLE_WEEKS,
+  "surah-al-kahf": [
+    {
+      ...DAILY_CYCLE_WEEKS[0],
+      completed: 11,
+      streakDays: 4,
+      weekDays: [
+        { day: "Sun", recitationsCompleted: 2, dayType: "past", isBestDay: true },
+        { day: "Mon", recitationsCompleted: 2, dayType: "past" },
+        { day: "Tue", recitationsCompleted: 1, dayType: "past" },
+        { day: "Wed", recitationsCompleted: 2, dayType: "today" },
+        { day: "Thu", recitationsCompleted: 2, dayType: "future" },
+        { day: "Fri", recitationsCompleted: 1, dayType: "future" },
+        { day: "Sat", recitationsCompleted: 1, dayType: "future" },
+      ],
+    },
+    ...DAILY_CYCLE_WEEKS.slice(1),
+  ],
+};
+
+export function getDailySurahRecitationWeekSummary(
+  surahId: string,
+  cycle: DailySurahRecitationCycle,
+  weekIndex: number,
+): QuranRecitationWeekSummary {
+  const surahWeeks = DAILY_SURAH_WEEK_DATA[surahId] ?? cycle.weeks;
+  const clampedIndex = clampRecitationWeekIndex(weekIndex, cycle);
+  const week = surahWeeks[clampedIndex] ?? cycle.weeks[clampedIndex];
+  const goal = getSurahRecitationGoalById(surahId);
+
+  return cycleWeekToSummary(
+    week,
+    goal?.quantity ?? cycle.dailyTarget,
+    "daily",
+  );
 }
 
 function buildDailyCycle(dailyTarget: number): DailySurahRecitationCycle {
