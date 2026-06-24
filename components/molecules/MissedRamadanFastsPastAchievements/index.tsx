@@ -116,7 +116,7 @@ export function MissedRamadanFastsPastAchievements({ refreshKey = 0 }: Props) {
     setHintDismissed(false);
   }, [period, analyticsView, refreshKey]);
 
-  const handleBarPress = useCallback((index: number) => {
+  const handleBarPress = useCallback((index: number | null) => {
     setHintDismissed(true);
     setSelectedBarIndex((current) => (current === index ? null : index));
   }, []);
