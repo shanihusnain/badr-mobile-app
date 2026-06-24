@@ -117,7 +117,7 @@ export function QuranCompletionPastAchievements({ goalId }: Props) {
     setHintDismissed(false);
   }, [period, goalId, analyticsView]);
 
-  const handleBarPress = useCallback((index: number) => {
+  const handleBarPress = useCallback((index: number | null) => {
     setHintDismissed(true);
     setSelectedBarIndex((current) => (current === index ? null : index));
   }, []);

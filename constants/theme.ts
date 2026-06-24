@@ -55,7 +55,9 @@ export const Colors = {
     lightblue: "#00B0E8",
     yellow: "#E0A739",
     overlayBlackColor: "rgba(0, 0, 0, 0.6)",
-    lightgreenbadgecolor:  "#C1F0C1",
+    lightgreenbadgecolor: "#C1F0C1",
+    achievementbarblue: "#00E5FF",
+    barlinecolor: "#61C8A6"
   },
   dark: {
     text: "#ECEDEE",

@@ -12,11 +12,14 @@ import { TawbahPrayerWeeklyProgressDashboard } from "@/components/molecules/Tawb
 import { IstikharaPrayerWeeklyProgressDashboard } from "@/components/molecules/IstikharaPrayerWeeklyProgressDashboard";
 import { ShukrPrayerWeeklyProgressDashboard } from "@/components/molecules/ShukrPrayerWeeklyProgressDashboard";
 import { QiyamWeeklyProgressDashboard } from "@/components/molecules/QiyamWeeklyProgressDashboard";
+
+import { MissedZakatWeeklyProgressDashboard } from "@/components/molecules/MissedZakatWeeklyProgressDashboard";
+import { SunnahPrayerConfig, SunnahDayData } from "@/components/molecules/SunnahRawatibDayRing";
 import {
   SunnahRawatibWeeklyProgressDashboard,
   type SunnahRawatibDayProgress,
 } from "@/components/molecules/SunnahRawatibWeeklyProgressDashboard";
-import { SunnahPrayerConfig } from "@/components/molecules/SunnahRawatibDayRing";
+
 import { PrayerProgressTrackerRing } from "@/components/molecules/PrayerProgressTrackerRing";
 import type { DayProgress } from "@/components/molecules/WeeklyProgressDashboard";
 import { GoalData } from "../../home/components/goalsData";
@@ -994,6 +997,96 @@ export function WeeklyProgressSection({ goalData, refreshKey = 0 }: Props) {
         totalPrayersThisWeek={55}
         streakDays={2}
         selectedDayIndex={6}
+      />
+    );
+  }
+
+  if (template === "missed-zakat") {
+    const ZAKAT_WEEKS = [
+      {
+        weekRangeLabel: "Nov 29 — Dec 5",
+        weekFraction: "1/4",
+        totalSpent: 30,
+        streakDays: 3,
+        remainingAmount: 70,
+        selectedDayIndex: 3,
+        days: [
+          { day: "Sun", amountLogged: 0, isFuture: false },
+          { day: "Mon", amountLogged: 5, isFuture: false, isLogged: true },
+          { day: "Tue", amountLogged: 10, isFuture: false, isLogged: true },
+          { day: "Wed", amountLogged: 15, isFuture: false, isLogged: true, isBestDay: true },
+          { day: "Thu", amountLogged: 0, isFuture: true },
+          { day: "Fri", amountLogged: 0, isFuture: true },
+          { day: "Sat", amountLogged: 0, isFuture: true },
+        ],
+      },
+      {
+        weekRangeLabel: "Dec 6 — 12",
+        weekFraction: "2/4",
+        totalSpent: 30,
+        streakDays: 0,
+        remainingAmount: 40,
+        selectedDayIndex: 6,
+        days: [
+          { day: "Sun", amountLogged: 0, isFuture: false },
+          { day: "Mon", amountLogged: 0, isFuture: false },
+          { day: "Tue", amountLogged: 30, isFuture: false, isLogged: true, isBestDay: true },
+          { day: "Wed", amountLogged: 0, isFuture: false },
+          { day: "Thu", amountLogged: 0, isFuture: false },
+          { day: "Fri", amountLogged: 0, isFuture: false },
+          { day: "Sat", amountLogged: 0, isFuture: false },
+        ],
+      },
+      {
+        weekRangeLabel: "Dec 13 — 19",
+        weekFraction: "3/4",
+        totalSpent: 0,
+        streakDays: 0,
+        remainingAmount: 40,
+        selectedDayIndex: 0,
+        days: [
+          { day: "Sun", amountLogged: 0, isFuture: false },
+          { day: "Mon", amountLogged: 0, isFuture: false },
+          { day: "Tue", amountLogged: 0, isFuture: false },
+          { day: "Wed", amountLogged: 0, isFuture: false },
+          { day: "Thu", amountLogged: 0, isFuture: true },
+          { day: "Fri", amountLogged: 0, isFuture: true },
+          { day: "Sat", amountLogged: 0, isFuture: true },
+        ],
+      },
+      {
+        weekRangeLabel: "Dec 20 — 26",
+        weekFraction: "4/4",
+        totalSpent: 40,
+        streakDays: 5,
+        remainingAmount: 0,
+        selectedDayIndex: 4,
+        days: [
+          { day: "Sun", amountLogged: 10, isFuture: false, isLogged: true },
+          { day: "Mon", amountLogged: 10, isFuture: false, isLogged: true },
+          { day: "Tue", amountLogged: 10, isFuture: false, isLogged: true },
+          { day: "Wed", amountLogged: 5, isFuture: false, isLogged: true },
+          { day: "Thu", amountLogged: 5, isFuture: false, isLogged: true, isBestDay: true },
+          { day: "Fri", amountLogged: 0, isFuture: true },
+          { day: "Sat", amountLogged: 0, isFuture: true },
+        ],
+      },
+    ];
+
+    const [zakatWeekIndex, setZakatWeekIndex] = useState(0);
+    const zakatWeek = ZAKAT_WEEKS[zakatWeekIndex];
+
+    return (
+      <MissedZakatWeeklyProgressDashboard
+        weekDays={zakatWeek.days}
+        weekRangeLabel={zakatWeek.weekRangeLabel}
+        weekFraction={zakatWeek.weekFraction}
+        totalSpentThisWeek={zakatWeek.totalSpent}
+        streakDays={zakatWeek.streakDays}
+        remainingAmount={zakatWeek.remainingAmount}
+        selectedDayIndex={zakatWeek.selectedDayIndex}
+        onPrevWeek={() => setZakatWeekIndex((i) => Math.max(0, i - 1))}
+        onNextWeek={() => setZakatWeekIndex((i) => Math.min(ZAKAT_WEEKS.length - 1, i + 1))}
       />
     );
   }

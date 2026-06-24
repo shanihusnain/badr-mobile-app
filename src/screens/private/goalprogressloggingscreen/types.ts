@@ -34,6 +34,7 @@ export type LoggingFlowTemplate =
   | "shukr-prayer"
   | "qiyam-al-layl"
   | "sunnah-rawatib"
+  | "missed-zakat";
   | "missed-ramadan-fasts";
 
 export type {

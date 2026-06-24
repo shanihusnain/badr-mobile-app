@@ -11,10 +11,15 @@ import { QuranRecitationPastAchievements } from "@/components/molecules/QuranRec
 import { QuranMemorisationPastAchievements } from "@/components/molecules/QuranMemorisationPastAchievements";
 import { QuranMemorisationJuzPastAchievements } from "@/components/molecules/QuranMemorisationJuzPastAchievements";
 import { QuranCompletionPastAchievements } from "@/components/molecules/QuranCompletionPastAchievements";
+
+import { PrayerPastAchievements } from "@/components/molecules/PrayerPastAchievements";
+
+
 import { QuranJuzPastAchievements } from "@/components/molecules/QuranJuzPastAchievements";
 import { MissedRamadanFastsPastAchievements } from "@/components/molecules/MissedRamadanFastsPastAchievements";
 import { isCompletionGoalId, isJuzRecitationGoalId } from "../types";
 import { isMissedRamadanFastsGoalId } from "../missedRamadanFastsTarget";
+
 
 type Props = {
   goalData: GoalData;
@@ -24,6 +29,8 @@ type Props = {
 export function PastAchievementsSection({ goalData, refreshKey = 0 }: Props) {
   const template = getLoggingFlowTemplate(goalData.id);
 
+  if (goalData.category === "PRAYER") {
+    return <PrayerPastAchievements goalId={goalData.id} />;
   if (template === "missed-ramadan-fasts" && isMissedRamadanFastsGoalId(goalData.id)) {
     return <MissedRamadanFastsPastAchievements refreshKey={refreshKey} />;
   }

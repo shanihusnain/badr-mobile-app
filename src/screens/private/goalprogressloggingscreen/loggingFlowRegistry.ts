@@ -67,6 +67,7 @@ const FLOW_TEMPLATE_BY_GOAL: Partial<Record<GoalId, LoggingFlowTemplate>> = {
   "prayer-shukr": "shukr-prayer",
   "prayer-qiyam": "qiyam-al-layl",
   "prayer-sunnah": "sunnah-rawatib",
+  "sadaqah-zakat": "missed-zakat",
   "fasting-ramadan": "missed-ramadan-fasts",
 };
 

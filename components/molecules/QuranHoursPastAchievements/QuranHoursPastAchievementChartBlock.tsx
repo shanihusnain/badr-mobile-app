@@ -1,7 +1,8 @@
 import { Colors } from "@/constants/theme";
 import { formatHoursToTimeLabel } from "@/src/screens/private/home/timeSpentData";
 import type { QuranPastChartItem } from "@/src/screens/private/goalprogressloggingscreen/quranHoursPastAchievementData";
-import { useFont } from "@shopify/react-native-skia";
+import { useFont, Canvas, Path, Skia, Circle } from "@shopify/react-native-skia";
+import SecondaryButton from "@/components/atoms/Secondary-button";
 import { useCallback, useRef, useState } from "react";
 import { View, Text, Pressable } from "react-native";
 import {
@@ -147,6 +148,7 @@ type ChartStackedBarsProps = {
   chartBounds: ChartBounds;
   selectedBarIndex: number | null;
   barCount: number;
+  chartKey?: string;
   barColors?: [string, string];
 };
 
@@ -156,11 +158,31 @@ function ChartStackedBars({
   chartBounds,
   selectedBarIndex,
   barCount,
+  chartKey = "",
   barColors = [Colors.light.green, INCOMPLETE_BAR_COLOR],
 }: ChartStackedBarsProps) {
+  const isTimeSpentView = chartKey.includes("completedVsTimeSpent");
+  const isInMosqueView = chartKey.includes("inMosqueVsOutOfMosque");
+  const isQiyamGoal = chartKey.includes("prayer-qiyam");
+  const isCategoryView = chartKey.includes("completedByCategory");
+
+  let barColors = [Colors.light.green, INCOMPLETE_BAR_COLOR];
+  let barPoints = [completedPoints, incompletePoints];
+
+  if (isTimeSpentView || isCategoryView) {
+    barColors = [Colors.light.green, Colors.light.green];
+  } else if (isQiyamGoal) {
+    // Qiyam: green (completed) at bottom, gold (incomplete) on top — line tracks the border
+    barColors = [Colors.light.green, Colors.light.golden];
+  } else if (isInMosqueView) {
+    // Top segment (cyan) = In-Mosque (completed), Bottom segment (green) = Out-of-Mosque (incomplete)
+    barColors = [Colors.light.green, Colors.light.achievementbarblue];
+    barPoints = [incompletePoints, completedPoints];
+  }
+
   return (
     <StackedBar
-      points={[completedPoints, incompletePoints]}
+      points={barPoints}
       chartBounds={chartBounds}
       colors={barColors}
       barCount={barCount}
@@ -171,6 +193,83 @@ function ChartStackedBars({
         roundedCorners: getBarRoundedCorners(isBottom, isTop),
       })}
     />
+  );
+}
+
+type BarConnectorLineProps = {
+  barCenterXs: number[];
+  chartData: QuranPastChartItem[];
+  chartBounds: ChartBounds;
+  yMax: number;
+  selectedBarIndex: number | null;
+  canvasWidth: number;
+  canvasHeight: number;
+};
+
+function BarConnectorLine({
+  barCenterXs,
+  chartData,
+  chartBounds,
+  yMax,
+  selectedBarIndex,
+  canvasWidth,
+  canvasHeight,
+}: BarConnectorLineProps) {
+  if (barCenterXs.length < 1 || !chartBounds || canvasWidth <= 0) return null;
+
+  const chartHeight = chartBounds.bottom - chartBounds.top;
+  const LINE_COLOR = Colors.light.barlinecolor;
+  const DOT_RADIUS = 4;
+
+  // Collect (x, y) points — line tracks the middle of the completedHours level
+  const points: { x: number; y: number }[] = barCenterXs.map((x, i) => {
+    const item = chartData[i];
+    const value = item ? (item.completedHours ?? 0) : 0;
+    const y = chartBounds.bottom - ((value / 2) / yMax) * chartHeight;
+    return { x, y };
+  });
+
+  // Build a path connecting all points
+  const linePath = Skia.Path.Make();
+  points.forEach(({ x, y }, i) => {
+    if (i === 0) linePath.moveTo(x, y);
+    else linePath.lineTo(x, y);
+  });
+
+  return (
+    <Canvas
+      style={{
+        position: "absolute",
+        top: 0,
+        left: 0,
+        width: canvasWidth,
+        height: canvasHeight,
+        zIndex: 10,
+        pointerEvents: "none",
+      }}
+    >
+      {/* The connecting line */}
+      <Path
+        path={linePath}
+        color={LINE_COLOR}
+        style="stroke"
+        strokeWidth={1.5}
+        strokeCap="round"
+        strokeJoin="round"
+        opacity={selectedBarIndex !== null ? DIMMED_BAR_OPACITY : 1}
+      />
+      {/* Dot markers at each bar center */}
+      {points.map(({ x, y }, i) => (
+        <Circle
+          key={i}
+          cx={x}
+          cy={y}
+          r={DOT_RADIUS}
+          color={LINE_COLOR}
+          opacity={selectedBarIndex === null || selectedBarIndex === i ? 1 : DIMMED_BAR_OPACITY}
+        />
+      ))}
+    </Canvas>
   );
 }
 
@@ -250,7 +349,7 @@ function BarValueLabels({
 type QuranHoursPastAchievementChartBlockProps = {
   chartData: QuranPastChartItem[];
   selectedBarIndex: number | null;
-  onBarPress: (index: number) => void;
+  onBarPress: (index: number | null) => void;
   chartKey: string;
   yMax: number;
   yTicks: number[];
@@ -258,9 +357,12 @@ type QuranHoursPastAchievementChartBlockProps = {
   onDismissHint: () => void;
   hintText: string;
   hintActionText: string;
-  pageCount: number;
-  activePageIndex: number;
+  pageCount?: number;
+  activePageIndex?: number;
   formatBarValue?: (value: number) => string;
+  isPrayerGoal?: boolean;
+  showPagination?: boolean;
+  showBarLine?: boolean;
   barColors?: [string, string];
   valueLabelColor?: string;
 };
@@ -276,14 +378,19 @@ export function QuranHoursPastAchievementChartBlock({
   onDismissHint,
   hintText,
   hintActionText,
-  pageCount,
-  activePageIndex,
+  pageCount = 0,
+  activePageIndex = 0,
   formatBarValue,
+  isPrayerGoal = false,
+  showPagination = true,
+  showBarLine = false,
   barColors,
   valueLabelColor,
 }: QuranHoursPastAchievementChartBlockProps) {
   const [barCenterXs, setBarCenterXs] = useState<number[]>([]);
   const [chartBounds, setChartBounds] = useState<ChartBounds | null>(null);
+  const [chartContainerHeight, setChartContainerHeight] = useState(0);
+  const [chartWrapperSize, setChartWrapperSize] = useState({ width: 0, height: 0 });
   const barCenterXsRef = useRef<number[]>([]);
 
   const axisFont = useFont(
@@ -311,8 +418,19 @@ export function QuranHoursPastAchievementChartBlock({
 
   return (
     <View style={styles.chartSection}>
-      <View style={styles.chartWrapper}>
-        <View style={styles.chartContainer}>
+      <View
+        style={styles.chartWrapper}
+        onLayout={(e) => {
+          const { width, height } = e.nativeEvent.layout;
+          setChartWrapperSize((prev) =>
+            prev.width === width && prev.height === height ? prev : { width, height }
+          );
+        }}
+      >
+        <View
+            style={styles.chartContainer}
+            onLayout={(e) => setChartContainerHeight(e.nativeEvent.layout.height)}
+          >
           <CartesianChart
             key={chartKey}
             data={chartData}
@@ -346,9 +464,9 @@ export function QuranHoursPastAchievementChartBlock({
               queueMicrotask(() => {
                 setChartBounds((prev) =>
                   prev?.top === bounds.top &&
-                  prev?.bottom === bounds.bottom &&
-                  prev?.left === bounds.left &&
-                  prev?.right === bounds.right
+                    prev?.bottom === bounds.bottom &&
+                    prev?.left === bounds.left &&
+                    prev?.right === bounds.right
                     ? prev
                     : bounds,
                 );
@@ -361,6 +479,7 @@ export function QuranHoursPastAchievementChartBlock({
                   chartBounds={bounds}
                   selectedBarIndex={selectedBarIndex}
                   barCount={chartData.length}
+                  chartKey={chartKey}
                   barColors={barColors}
                 />
               );
@@ -383,6 +502,18 @@ export function QuranHoursPastAchievementChartBlock({
             />
           ) : null}
         </View>
+
+        {showBarLine && chartBounds && barCenterXs.length > 0 ? (
+          <BarConnectorLine
+            barCenterXs={barCenterXs}
+            chartData={chartData}
+            chartBounds={chartBounds}
+            yMax={yMax}
+            selectedBarIndex={selectedBarIndex}
+            canvasWidth={chartWrapperSize.width}
+            canvasHeight={chartWrapperSize.height}
+          />
+        ) : null}
 
         {showHint ? (
           <View style={styles.chartHintOverlay} pointerEvents="box-none">
@@ -409,17 +540,40 @@ export function QuranHoursPastAchievementChartBlock({
         plotRight={plotRight}
       />
 
-      {/* <View style={styles.paginationRow}>
-        {Array.from({ length: pageCount }, (_, index) => (
-          <View
-            key={`page-dot-${index}`}
-            style={[
-              styles.paginationDot,
-              index === activePageIndex && styles.paginationDotActive,
-            ]}
+      {showPagination && isPrayerGoal && selectedBarIndex !== null ? (
+        <View style={{ marginTop: 16, paddingHorizontal: 8 }}>
+          <View style={[styles.paginationRow, { marginBottom: 12 }]}>
+            {Array.from({ length: chartData.length }, (_, index) => (
+              <View
+                key={`page-dot-${index}`}
+                style={[
+                  styles.paginationDot,
+                  index === selectedBarIndex && styles.paginationDotActive,
+                ]}
+              />
+            ))}
+          </View>
+          <SecondaryButton
+            text="CLOSE"
+            variant="green"
+            onPress={() => onBarPress(null)}
           />
-        ))}
-      </View> */}
+        </View>
+      ) : null}
+
+      {showPagination && !isPrayerGoal ? (
+        <View style={styles.paginationRow}>
+          {Array.from({ length: pageCount }, (_, index) => (
+            <View
+              key={`page-dot-${index}`}
+              style={[
+                styles.paginationDot,
+                index === activePageIndex && styles.paginationDotActive,
+              ]}
+            />
+          ))}
+        </View>
+      ) : null}
     </View>
   );
 }

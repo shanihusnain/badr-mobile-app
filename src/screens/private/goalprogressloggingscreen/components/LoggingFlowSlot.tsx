@@ -22,6 +22,7 @@ import IstikharaPrayerLoggingFlow from "../flows/IstikharaPrayerLoggingFlow";
 import ShukrPrayerLoggingFlow from "../flows/ShukrPrayerLoggingFlow";
 import QiyamLoggingFlow from "../flows/QiyamLoggingFlow";
 import SunnahRawatibLoggingFlow from "../flows/SunnahRawatibLoggingFlow";
+import MissedZakatLoggingFlow from "../flows/MissedZakatLoggingFlow";
 import MissedRamadanFastsLoggingFlow from "../flows/MissedRamadanFastsLoggingFlow";
 
 type Props = {
@@ -184,6 +185,12 @@ export function LoggingFlowSlot({
         onLogComplete={onLogComplete}
         onDropdownOpenChange={onDropdownOpenChange}
       />
+    );
+  }
+
+  if (template === "missed-zakat") {
+    return (
+      <MissedZakatLoggingFlow goalData={goalData} onLogComplete={onLogComplete} />
     );
   }
 
