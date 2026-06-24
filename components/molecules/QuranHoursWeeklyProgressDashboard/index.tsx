@@ -182,7 +182,7 @@ export function QuranHoursWeeklyProgressDashboard({
           return (
             <TouchableOpacity
               key={`${day.day}-${index}`}
-              style={styles.dayColumn}
+              style={[styles.dayColumn, isSelected && styles.dayColumnActive]}
               onPress={handleDayPress(index)}
               activeOpacity={0.75}
             >
@@ -311,6 +311,11 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     minWidth: 0,
+    paddingVertical: 4,
+    borderRadius: 10,
+  },
+  dayColumnActive: {
+    backgroundColor: "rgba(255, 255, 255, 0.08)",
   },
   bestDayLabel: {
     color: Colors.light.green,

@@ -21,6 +21,7 @@ export const MetricSelectionComponent = ({
   handleMetricPress,
   selectedMetric,
   onMetricChange,
+  variant,
 }: {
   item: {
     id: number;
@@ -30,8 +31,11 @@ export const MetricSelectionComponent = ({
   handleMetricPress: () => void;
   selectedMetric: "surah" | "juz" | "completion" | "hizb" | undefined;
   onMetricChange?: (payload: { metric: string; value: any }) => void;
+  variant?: "memorization" | "others";
 }) => {
   const { t } = useTranslation();
+  const isMemorizationSurah =
+    variant === "memorization" && item.name === "surah";
   const [selectedSurahs, setSelectedSurahs] = useState<number[]>([]);
   const [selectedHizbs, setSelectedHizbs] = useState<number[]>([]);
   // NOTE: hizb should be single-select. We'll store a single selected id (or undefined)
@@ -151,7 +155,9 @@ export const MetricSelectionComponent = ({
     if (item.name === "surah") {
       onMetricChange({
         metric: "surah",
-        value: { selectedSurahs, surahSettings },
+        value: isMemorizationSurah
+          ? { selectedSurahs }
+          : { selectedSurahs, surahSettings },
       });
     }
     if (item.name === "juz") {
@@ -225,7 +231,9 @@ export const MetricSelectionComponent = ({
                 <Pressable
                   onPress={() => {
                     toggleSurah(s.id);
-                    if (!selectedSurahs.includes(s.id)) ensureSetting(s.id);
+                    if (!selectedSurahs.includes(s.id) && !isMemorizationSurah) {
+                      ensureSetting(s.id);
+                    }
                   }}
                   style={[styles.metrixWrapper]}
                 >
@@ -257,7 +265,7 @@ export const MetricSelectionComponent = ({
                       {s.surahTitle}
                     </Text>
                   </View>
-                  {checked && (
+                  {checked && !isMemorizationSurah && (
                     <MaterialCommunityIcons
                       name="chevron-up"
                       size={24}
@@ -266,7 +274,7 @@ export const MetricSelectionComponent = ({
                   )}
                 </Pressable>
 
-                {checked && (
+                {checked && !isMemorizationSurah && (
                   <View
                     style={{
                       paddingHorizontal: 8,

@@ -147,6 +147,7 @@ type ChartStackedBarsProps = {
   chartBounds: ChartBounds;
   selectedBarIndex: number | null;
   barCount: number;
+  barColors?: [string, string];
 };
 
 function ChartStackedBars({
@@ -155,12 +156,13 @@ function ChartStackedBars({
   chartBounds,
   selectedBarIndex,
   barCount,
+  barColors = [Colors.light.green, INCOMPLETE_BAR_COLOR],
 }: ChartStackedBarsProps) {
   return (
     <StackedBar
       points={[completedPoints, incompletePoints]}
       chartBounds={chartBounds}
-      colors={[Colors.light.green, INCOMPLETE_BAR_COLOR]}
+      colors={barColors}
       barCount={barCount}
       innerPadding={getInnerPadding(barCount)}
       barWidth={30}
@@ -206,6 +208,7 @@ type BarValueLabelsProps = {
   chartBounds: ChartBounds;
   yMax: number;
   formatBarValue?: (value: number) => string;
+  valueLabelColor?: string;
 };
 
 function BarValueLabels({
@@ -215,6 +218,7 @@ function BarValueLabels({
   chartBounds,
   yMax,
   formatBarValue = formatHoursToTimeLabel,
+  valueLabelColor,
 }: BarValueLabelsProps) {
   if (selectedBarIndex === null) return null;
 
@@ -231,6 +235,7 @@ function BarValueLabels({
       style={[
         styles.barValueLabel,
         styles.barValueLabelSelected,
+        valueLabelColor ? { color: valueLabelColor } : null,
         {
           left: x,
           top: Math.max(chartBounds.top, barTop),
@@ -256,6 +261,8 @@ type QuranHoursPastAchievementChartBlockProps = {
   pageCount: number;
   activePageIndex: number;
   formatBarValue?: (value: number) => string;
+  barColors?: [string, string];
+  valueLabelColor?: string;
 };
 
 export function QuranHoursPastAchievementChartBlock({
@@ -272,6 +279,8 @@ export function QuranHoursPastAchievementChartBlock({
   pageCount,
   activePageIndex,
   formatBarValue,
+  barColors,
+  valueLabelColor,
 }: QuranHoursPastAchievementChartBlockProps) {
   const [barCenterXs, setBarCenterXs] = useState<number[]>([]);
   const [chartBounds, setChartBounds] = useState<ChartBounds | null>(null);
@@ -352,6 +361,7 @@ export function QuranHoursPastAchievementChartBlock({
                   chartBounds={bounds}
                   selectedBarIndex={selectedBarIndex}
                   barCount={chartData.length}
+                  barColors={barColors}
                 />
               );
             }}
@@ -369,6 +379,7 @@ export function QuranHoursPastAchievementChartBlock({
               chartBounds={chartBounds}
               yMax={yMax}
               formatBarValue={formatBarValue}
+              valueLabelColor={valueLabelColor}
             />
           ) : null}
         </View>

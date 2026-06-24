@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { LayoutChangeEvent, StyleSheet, Text, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -15,21 +21,50 @@ type Props = {
   juz: number;
   startAyat: number;
   endAyat: number;
+  minStartAyat?: number;
+  verseCount?: number;
+  formatVerseLabel?: (ayat: number) => string;
   onChangeStartAyat: (value: number) => void;
   onChangeEndAyat: (value: number) => void;
   styles: Record<string, object>;
 };
 
-const PADDING_X = 8;
+type ActiveHandle = "start" | "end" | null;
+
 const THUMB_SIZE = 22;
+const THUMB_RADIUS = THUMB_SIZE / 2;
+/** Horizontal inset so thumbs stay fully visible at min/max. */
+const TRACK_HORIZONTAL_INSET = THUMB_RADIUS;
 const TRACK_HEIGHT = 8;
-const SLIDER_HEIGHT = 56;
+const LABEL_LINE_HEIGHT = 12;
+const LABEL_PADDING_V = 2;
+const LABEL_ROW_HEIGHT = LABEL_LINE_HEIGHT + LABEL_PADDING_V * 2;
+const LABEL_TO_TRACK_GAP = 5;
+const TRACK_CENTER_Y =
+  LABEL_ROW_HEIGHT + LABEL_TO_TRACK_GAP + THUMB_RADIUS;
+const SLIDER_HEIGHT = TRACK_CENTER_Y + THUMB_RADIUS;
 const LABEL_WIDTH = 88;
+const LABEL_TOP = 0;
+const THUMB_TOP = TRACK_CENTER_Y - THUMB_RADIUS;
+const TRACK_TOP = TRACK_CENTER_Y - TRACK_HEIGHT / 2;
+
+function getLabelLeft(handleX: number, containerWidth: number): number {
+  return Math.max(
+    0,
+    Math.min(
+      TRACK_HORIZONTAL_INSET + handleX - LABEL_WIDTH / 2,
+      containerWidth - LABEL_WIDTH,
+    ),
+  );
+}
 
 export function QuranAyatRangeSlider({
   juz,
   startAyat,
   endAyat,
+  minStartAyat = 1,
+  verseCount,
+  formatVerseLabel,
   onChangeStartAyat,
   onChangeEndAyat,
 }: Props) {
@@ -38,9 +73,11 @@ export function QuranAyatRangeSlider({
   const isMounted = useRef(true);
   const dragOriginX = useRef(0);
   const [width, setWidth] = useState(0);
+  const [activeHandle, setActiveHandle] = useState<ActiveHandle>(null);
 
-  const maxAyat = Math.max(getJuzVerseCountFromMap(juz), 1);
-  const safeStart = Math.min(Math.max(startAyat, 1), maxAyat);
+  const maxAyat = Math.max(verseCount ?? getJuzVerseCountFromMap(juz), 1);
+  const safeMinStart = Math.min(Math.max(Math.round(minStartAyat), 1), maxAyat);
+  const safeStart = Math.min(Math.max(startAyat, safeMinStart), maxAyat);
   const safeEnd = Math.min(Math.max(endAyat, safeStart), maxAyat);
 
   useEffect(() => {
@@ -50,51 +87,51 @@ export function QuranAyatRangeSlider({
     };
   }, []);
 
-  const trackWidth = Math.max(width - PADDING_X * 2, 1);
+  const trackWidth = Math.max(width - TRACK_HORIZONTAL_INSET * 2, 1);
 
   const valueToX = useCallback(
     (value: number) => {
-      if (maxAyat <= 1) return 0;
-      return ((value - 1) / (maxAyat - 1)) * trackWidth;
+      if (maxAyat <= safeMinStart) return 0;
+      return ((value - safeMinStart) / (maxAyat - safeMinStart)) * trackWidth;
     },
-    [maxAyat, trackWidth],
+    [maxAyat, safeMinStart, trackWidth],
   );
 
   const xToValue = useCallback(
     (x: number) => {
-      if (maxAyat <= 1) return 1;
+      if (maxAyat <= safeMinStart) return safeMinStart;
       const percent = Math.max(0, Math.min(x / trackWidth, 1));
-      return Math.round(1 + percent * (maxAyat - 1));
+      return Math.round(safeMinStart + percent * (maxAyat - safeMinStart));
     },
-    [maxAyat, trackWidth],
+    [maxAyat, safeMinStart, trackWidth],
   );
 
   const startX = valueToX(safeStart);
   const endX = valueToX(safeEnd);
 
-  const startThumbLeft = PADDING_X + startX - THUMB_SIZE / 2;
-  const endThumbLeft = PADDING_X + endX - THUMB_SIZE / 2;
+  const startThumbLeft = TRACK_HORIZONTAL_INSET + startX - THUMB_RADIUS;
+  const endThumbLeft = TRACK_HORIZONTAL_INSET + endX - THUMB_RADIUS;
 
-  const startLabelLeft = Math.max(
-    0,
-    Math.min(PADDING_X + startX - LABEL_WIDTH / 2, width - LABEL_WIDTH),
-  );
-  const endLabelLeft = Math.max(
-    0,
-    Math.min(PADDING_X + endX - LABEL_WIDTH / 2, width - LABEL_WIDTH),
-  );
+  const startLabelLeft = getLabelLeft(startX, width);
+  const endLabelLeft = getLabelLeft(endX, width);
 
   const completedCount = safeEnd - safeStart + 1;
   const percentCompleted =
     maxAyat > 0 ? Math.round((completedCount / maxAyat) * 100) : 0;
 
   const startLabel = useMemo(
-    () => formatJuzVerseLabel(juz, safeStart),
-    [juz, safeStart],
+    () =>
+      formatVerseLabel
+        ? formatVerseLabel(safeStart)
+        : formatJuzVerseLabel(juz, safeStart),
+    [formatVerseLabel, juz, safeStart],
   );
   const endLabel = useMemo(
-    () => formatJuzVerseLabel(juz, safeEnd),
-    [juz, safeEnd],
+    () =>
+      formatVerseLabel
+        ? formatVerseLabel(safeEnd)
+        : formatJuzVerseLabel(juz, safeEnd),
+    [formatVerseLabel, juz, safeEnd],
   );
 
   const onLayout = (event: LayoutChangeEvent) => {
@@ -109,6 +146,9 @@ export function QuranAyatRangeSlider({
       Gesture.Pan()
         .runOnJS(true)
         .activeOffsetX([-4, 4])
+        .onBegin(() => {
+          setActiveHandle("start");
+        })
         .onStart(() => {
           dragOriginX.current = startX;
         })
@@ -117,10 +157,16 @@ export function QuranAyatRangeSlider({
             0,
             Math.min(dragOriginX.current + event.translationX, trackWidth),
           );
-          const nextValue = Math.min(xToValue(nextX), safeEnd);
+          const nextValue = Math.min(
+            Math.max(xToValue(nextX), safeMinStart),
+            safeEnd,
+          );
           onChangeStartAyat(nextValue);
+        })
+        .onFinalize(() => {
+          setActiveHandle((current) => (current === "start" ? null : current));
         }),
-    [onChangeStartAyat, safeEnd, startX, trackWidth, xToValue],
+    [onChangeStartAyat, safeEnd, safeMinStart, startX, trackWidth, xToValue],
   );
 
   const endPan = useMemo(
@@ -128,6 +174,9 @@ export function QuranAyatRangeSlider({
       Gesture.Pan()
         .runOnJS(true)
         .activeOffsetX([-4, 4])
+        .onBegin(() => {
+          setActiveHandle("end");
+        })
         .onStart(() => {
           dragOriginX.current = endX;
         })
@@ -138,6 +187,9 @@ export function QuranAyatRangeSlider({
           );
           const nextValue = Math.max(xToValue(nextX), safeStart);
           onChangeEndAyat(nextValue);
+        })
+        .onFinalize(() => {
+          setActiveHandle((current) => (current === "end" ? null : current));
         }),
     [endX, onChangeEndAyat, safeStart, trackWidth, xToValue],
   );
@@ -145,35 +197,47 @@ export function QuranAyatRangeSlider({
   return (
     <View style={localStyles.root} onLayout={onLayout}>
       <View style={[localStyles.sliderArea, { height: SLIDER_HEIGHT }]}>
-        <View
-          style={[
-            localStyles.labelPill,
-            { left: startLabelLeft, width: LABEL_WIDTH },
-          ]}
-        >
-          <Text style={localStyles.labelText} numberOfLines={1}>
-            {startLabel}
-          </Text>
-        </View>
+        {activeHandle === "start" ? (
+          <View
+            style={[
+              localStyles.labelPill,
+              {
+                left: startLabelLeft,
+                width: LABEL_WIDTH,
+                top: LABEL_TOP,
+              },
+            ]}
+          >
+            <Text style={localStyles.labelText} numberOfLines={1}>
+              {startLabel}
+            </Text>
+          </View>
+        ) : null}
 
-        <View
-          style={[
-            localStyles.labelPill,
-            { left: endLabelLeft, width: LABEL_WIDTH },
-          ]}
-        >
-          <Text style={localStyles.labelText} numberOfLines={1}>
-            {endLabel}
-          </Text>
-        </View>
+        {activeHandle === "end" ? (
+          <View
+            style={[
+              localStyles.labelPill,
+              {
+                left: endLabelLeft,
+                width: LABEL_WIDTH,
+                top: LABEL_TOP,
+              },
+            ]}
+          >
+            <Text style={localStyles.labelText} numberOfLines={1}>
+              {endLabel}
+            </Text>
+          </View>
+        ) : null}
 
         <View
           style={[
             localStyles.track,
             {
-              left: PADDING_X,
-              right: PADDING_X,
-              top: SLIDER_HEIGHT / 2 - TRACK_HEIGHT / 2,
+              left: TRACK_HORIZONTAL_INSET,
+              right: TRACK_HORIZONTAL_INSET,
+              top: TRACK_TOP,
             },
           ]}
           pointerEvents="none"
@@ -195,7 +259,7 @@ export function QuranAyatRangeSlider({
               localStyles.thumb,
               {
                 left: startThumbLeft,
-                top: SLIDER_HEIGHT / 2 - THUMB_SIZE / 2,
+                top: THUMB_TOP,
               },
             ]}
           >
@@ -213,7 +277,7 @@ export function QuranAyatRangeSlider({
               localStyles.thumb,
               {
                 left: endThumbLeft,
-                top: SLIDER_HEIGHT / 2 - THUMB_SIZE / 2,
+                top: THUMB_TOP,
               },
             ]}
           >
@@ -240,28 +304,30 @@ export function QuranAyatRangeSlider({
 const localStyles = StyleSheet.create({
   root: {
     width: "100%",
+    overflow: "visible",
   },
   sliderArea: {
     position: "relative",
     width: "100%",
-    marginBottom: 6,
+    marginTop: 0,
+    overflow: "visible",
   },
   labelPill: {
     position: "absolute",
-    top: 0,
     backgroundColor: Colors.light.darkgrey,
     borderRadius: 4,
-    paddingHorizontal: 6,
-    paddingVertical: 4,
+    paddingHorizontal: 5,
+    paddingVertical: LABEL_PADDING_V,
     alignItems: "center",
     justifyContent: "center",
+    zIndex: 5,
   },
   labelText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
-    fontSize: 11,
-    lineHeight: 14,
+    fontSize: 10,
+    lineHeight: LABEL_LINE_HEIGHT,
     textAlign: "center",
   },
   track: {
@@ -292,9 +358,10 @@ const localStyles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: 10,
+    lineHeight: 12,
     textAlign: "center",
     opacity: 0.95,
+    marginTop: 2,
   },
 });

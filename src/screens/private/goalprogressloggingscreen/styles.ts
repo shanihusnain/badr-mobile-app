@@ -31,6 +31,12 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 10,
     paddingBottom: 16,
+    position: "relative",
+  },
+  ringCheckmark: {
+    position: "absolute",
+    top: 0,
+    zIndex: 3,
   },
   largeCircleInner: {
     alignItems: "center",

@@ -1,11 +1,5 @@
 import React, { useCallback, useMemo, useState } from "react";
-import {
-  Pressable,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Pressable, Text, TouchableOpacity, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
@@ -211,11 +205,8 @@ export default function QuranHoursLoggingFlow({
   const stepHeader = getStepHeader(currentStep);
 
   return (
-    <ScrollView
-      contentContainerStyle={[
-        styles.section,
-        flowMode === "active" && styles.activeSection,
-      ]}
+    <View
+      style={[styles.section, flowMode === "active" && styles.activeSection]}
     >
       <Text style={styles.sectionTitle}>{t("progressLogging.myProgress")}</Text>
       <View style={styles.cardAnchor}>
@@ -288,6 +279,6 @@ export default function QuranHoursLoggingFlow({
           </View>
         )}
       </View>
-    </ScrollView>
+    </View>
   );
 }

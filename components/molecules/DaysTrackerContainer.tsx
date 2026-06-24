@@ -8,17 +8,24 @@ import {
 } from "react-native-responsive-screen";
 import { useTranslation } from "react-i18next";
 import { localizeNumber } from "@/src/utils/localizeNumbers";
+import MoonProgress from "@/components/atoms/MoonProgress";
 
 interface DaysTrackerContainerProps {
   isBottomSheetView?: boolean;
 }
+
+const TOTAL_DAYS = 28;
+const CURRENT_DAY = 10;
+const OVERALL_PROGRESS = 100;
 
 export const DaysTrackerContainer: React.FC<DaysTrackerContainerProps> = ({
   isBottomSheetView = false,
 }) => {
   const { t, i18n } = useTranslation();
   const lng = i18n.language;
-  const localizedTotal = localizeNumber("28", lng);
+  const localizedTotal = localizeNumber(String(TOTAL_DAYS), lng);
+  const localizedDay = localizeNumber(String(CURRENT_DAY), lng);
+  const localizedProgress = localizeNumber(String(OVERALL_PROGRESS), lng);
 
   return (
     <View
@@ -36,14 +43,40 @@ export const DaysTrackerContainer: React.FC<DaysTrackerContainerProps> = ({
       </View>
 
       {/* Large Moon Circle */}
-      <View style={styles.largeCircle} />
+      <View style={styles.moonContainer}>
+        <MoonProgress progressPercent={OVERALL_PROGRESS} />
+      </View>
 
       {/* Bottom Section with Day and Progress */}
       <View style={styles.bottomInfoWrapper}>
         {/* Bottom Left - Day */}
         <View style={styles.bottomLeftSection}>
-          <Text style={[styles.bottomLabel, { fontSize: 14, fontFamily: fonts.primary.medium, fontWeight: "500", color: Colors.light.dullWhite }]}>{t("daysTracker.day")}</Text>
-          <Text style={[styles.bottomValue, { color: Colors.light.white, fontFamily: fonts.primary.bold, fontWeight: "600", fontSize: 18 }]}>{localizeNumber("3", lng)}</Text>
+          <Text
+            style={[
+              styles.bottomLabel,
+              {
+                fontSize: 14,
+                fontFamily: fonts.primary.medium,
+                fontWeight: "500",
+                color: Colors.light.dullWhite,
+              },
+            ]}
+          >
+            {t("daysTracker.day")}
+          </Text>
+          <Text
+            style={[
+              styles.bottomValue,
+              {
+                color: Colors.light.white,
+                fontFamily: fonts.primary.bold,
+                fontWeight: "600",
+                fontSize: 18,
+              },
+            ]}
+          >
+            {localizedDay}
+          </Text>
         </View>
 
         {/* Bottom Right - Overall Progress */}
@@ -51,7 +84,7 @@ export const DaysTrackerContainer: React.FC<DaysTrackerContainerProps> = ({
           <Text style={styles.bottomLabel}>
             {t("daysTracker.overallProgress")}
           </Text>
-          <Text style={styles.bottomValue}> {localizeNumber("0", lng)}%</Text>
+          <Text style={styles.bottomValue}> {localizedProgress}%</Text>
         </View>
       </View>
 
@@ -100,11 +133,11 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
   },
-  largeCircle: {
+  moonContainer: {
+    backgroundColor: Colors.light.greybuttonBackground,
     width: 220,
     height: 220,
     borderRadius: 110,
-    backgroundColor: "#000000",
     marginVertical: hp(2),
   },
   bottomInfoWrapper: {

@@ -121,6 +121,7 @@ export const QuranRecitationGoalSelection = ({
                 handleMetricPress={() => handlePressMetrix(item)}
                 selectedMetric={selectedMetric}
                 onMetricChange={onMetricsChange}
+                variant={variant}
               />
             );
           })}
