@@ -34,7 +34,7 @@ export type LoggingFlowTemplate =
   | "shukr-prayer"
   | "qiyam-al-layl"
   | "sunnah-rawatib"
-  | "missed-zakat";
+  | "missed-zakat"
   | "missed-ramadan-fasts";
 
 export type {
@@ -43,17 +43,11 @@ export type {
   SurahRecitationGoalId,
 };
 
-export type {
-  SurahMemorisationGoalId,
-} from "./quranMemorisationTarget";
+export type { SurahMemorisationGoalId } from "./quranMemorisationTarget";
 
-export type {
-  HizbMemorisationGoalId,
-} from "./quranMemorisationHizbTarget";
+export type { HizbMemorisationGoalId } from "./quranMemorisationHizbTarget";
 
-export type {
-  JuzMemorisationGoalId,
-} from "./quranMemorisationJuzTarget";
+export type { JuzMemorisationGoalId } from "./quranMemorisationJuzTarget";
 
 export type QuranHoursGoalId = "quran-listening" | "quran-Tajweed";
 

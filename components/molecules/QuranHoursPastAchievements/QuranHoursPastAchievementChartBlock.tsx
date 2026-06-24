@@ -1,7 +1,13 @@
 import { Colors } from "@/constants/theme";
 import { formatHoursToTimeLabel } from "@/src/screens/private/home/timeSpentData";
 import type { QuranPastChartItem } from "@/src/screens/private/goalprogressloggingscreen/quranHoursPastAchievementData";
-import { useFont, Canvas, Path, Skia, Circle } from "@shopify/react-native-skia";
+import {
+  useFont,
+  Canvas,
+  Path,
+  Skia,
+  Circle,
+} from "@shopify/react-native-skia";
 import SecondaryButton from "@/components/atoms/Secondary-button";
 import { useCallback, useRef, useState } from "react";
 import { View, Text, Pressable } from "react-native";
@@ -166,7 +172,6 @@ function ChartStackedBars({
   const isQiyamGoal = chartKey.includes("prayer-qiyam");
   const isCategoryView = chartKey.includes("completedByCategory");
 
-  let barColors = [Colors.light.green, INCOMPLETE_BAR_COLOR];
   let barPoints = [completedPoints, incompletePoints];
 
   if (isTimeSpentView || isCategoryView) {
@@ -225,7 +230,7 @@ function BarConnectorLine({
   const points: { x: number; y: number }[] = barCenterXs.map((x, i) => {
     const item = chartData[i];
     const value = item ? (item.completedHours ?? 0) : 0;
-    const y = chartBounds.bottom - ((value / 2) / yMax) * chartHeight;
+    const y = chartBounds.bottom - (value / 2 / yMax) * chartHeight;
     return { x, y };
   });
 
@@ -266,7 +271,11 @@ function BarConnectorLine({
           cy={y}
           r={DOT_RADIUS}
           color={LINE_COLOR}
-          opacity={selectedBarIndex === null || selectedBarIndex === i ? 1 : DIMMED_BAR_OPACITY}
+          opacity={
+            selectedBarIndex === null || selectedBarIndex === i
+              ? 1
+              : DIMMED_BAR_OPACITY
+          }
         />
       ))}
     </Canvas>
@@ -390,7 +399,10 @@ export function QuranHoursPastAchievementChartBlock({
   const [barCenterXs, setBarCenterXs] = useState<number[]>([]);
   const [chartBounds, setChartBounds] = useState<ChartBounds | null>(null);
   const [chartContainerHeight, setChartContainerHeight] = useState(0);
-  const [chartWrapperSize, setChartWrapperSize] = useState({ width: 0, height: 0 });
+  const [chartWrapperSize, setChartWrapperSize] = useState({
+    width: 0,
+    height: 0,
+  });
   const barCenterXsRef = useRef<number[]>([]);
 
   const axisFont = useFont(
@@ -423,14 +435,16 @@ export function QuranHoursPastAchievementChartBlock({
         onLayout={(e) => {
           const { width, height } = e.nativeEvent.layout;
           setChartWrapperSize((prev) =>
-            prev.width === width && prev.height === height ? prev : { width, height }
+            prev.width === width && prev.height === height
+              ? prev
+              : { width, height },
           );
         }}
       >
         <View
-            style={styles.chartContainer}
-            onLayout={(e) => setChartContainerHeight(e.nativeEvent.layout.height)}
-          >
+          style={styles.chartContainer}
+          onLayout={(e) => setChartContainerHeight(e.nativeEvent.layout.height)}
+        >
           <CartesianChart
             key={chartKey}
             data={chartData}
@@ -464,9 +478,9 @@ export function QuranHoursPastAchievementChartBlock({
               queueMicrotask(() => {
                 setChartBounds((prev) =>
                   prev?.top === bounds.top &&
-                    prev?.bottom === bounds.bottom &&
-                    prev?.left === bounds.left &&
-                    prev?.right === bounds.right
+                  prev?.bottom === bounds.bottom &&
+                  prev?.left === bounds.left &&
+                  prev?.right === bounds.right
                     ? prev
                     : bounds,
                 );

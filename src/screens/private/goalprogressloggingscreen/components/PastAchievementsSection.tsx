@@ -14,12 +14,10 @@ import { QuranCompletionPastAchievements } from "@/components/molecules/QuranCom
 
 import { PrayerPastAchievements } from "@/components/molecules/PrayerPastAchievements";
 
-
 import { QuranJuzPastAchievements } from "@/components/molecules/QuranJuzPastAchievements";
 import { MissedRamadanFastsPastAchievements } from "@/components/molecules/MissedRamadanFastsPastAchievements";
 import { isCompletionGoalId, isJuzRecitationGoalId } from "../types";
 import { isMissedRamadanFastsGoalId } from "../missedRamadanFastsTarget";
-
 
 type Props = {
   goalData: GoalData;
@@ -31,7 +29,11 @@ export function PastAchievementsSection({ goalData, refreshKey = 0 }: Props) {
 
   if (goalData.category === "PRAYER") {
     return <PrayerPastAchievements goalId={goalData.id} />;
-  if (template === "missed-ramadan-fasts" && isMissedRamadanFastsGoalId(goalData.id)) {
+  }
+  if (
+    template === "missed-ramadan-fasts" &&
+    isMissedRamadanFastsGoalId(goalData.id)
+  ) {
     return <MissedRamadanFastsPastAchievements refreshKey={refreshKey} />;
   }
 
@@ -47,15 +49,24 @@ export function PastAchievementsSection({ goalData, refreshKey = 0 }: Props) {
     return <QuranRecitationPastAchievements goalId={goalData.id} />;
   }
 
-  if (template === "quran-memorisation" && isSurahMemorisationGoalId(goalData.id)) {
+  if (
+    template === "quran-memorisation" &&
+    isSurahMemorisationGoalId(goalData.id)
+  ) {
     return <QuranMemorisationPastAchievements goalId={goalData.id} />;
   }
 
-  if (template === "quran-memorisation" && isHizbMemorisationGoalId(goalData.id)) {
+  if (
+    template === "quran-memorisation" &&
+    isHizbMemorisationGoalId(goalData.id)
+  ) {
     return <QuranMemorisationPastAchievements goalId={goalData.id} />;
   }
 
-  if (template === "quran-memorisation" && isJuzMemorisationGoalId(goalData.id)) {
+  if (
+    template === "quran-memorisation" &&
+    isJuzMemorisationGoalId(goalData.id)
+  ) {
     return <QuranMemorisationJuzPastAchievements goalId={goalData.id} />;
   }
 
