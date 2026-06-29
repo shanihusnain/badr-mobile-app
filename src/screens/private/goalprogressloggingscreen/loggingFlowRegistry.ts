@@ -69,6 +69,8 @@ const FLOW_TEMPLATE_BY_GOAL: Partial<Record<GoalId, LoggingFlowTemplate>> = {
   "prayer-sunnah": "sunnah-rawatib",
   "sadaqah-zakat": "missed-zakat",
   "fasting-ramadan": "missed-ramadan-fasts",
+  "fasting-mondayThursday": "monday-thursday-fasts",
+  "fasting-whiteDays": "white-days-fasts",
 };
 
 export function getLoggingFlowTemplate(goalId: GoalId): LoggingFlowTemplate {

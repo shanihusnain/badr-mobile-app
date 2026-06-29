@@ -64,7 +64,9 @@ export type CalendarMode =
   | "white_days"
   | "planned_all"
   | "planned_progress"
-  | "missed_ramadan_achievement";
+  | "missed_ramadan_achievement"
+  | "monday_thursday_achievement"
+  | "white_days_achievement";
 
 export type CalendarGridProps = {
   mode: CalendarMode;
@@ -83,6 +85,8 @@ export type CalendarGridProps = {
   completedFastDates?: string[];
   /** Missed Ramadan achievement: outlined markers for incomplete planned fasts. */
   incompletePlannedFastDates?: string[];
+  /** Monday & Thursday achievement: outlined markers for missed selected fasts. */
+  missedFastDates?: string[];
   /** Planned Mon/Thu fast dates (planned_all mode). */
   monThuDates?: string[];
   /** Planned White Day fast dates (planned_all mode). */
@@ -175,6 +179,7 @@ export const CalendarGrid = ({
   markedDates = [],
   completedFastDates = [],
   incompletePlannedFastDates = [],
+  missedFastDates = [],
   monThuDates = [],
   whiteDayDates = [],
   plannedFastMarkers = [],
@@ -191,6 +196,7 @@ export const CalendarGrid = ({
   const markedSet = new Set(markedDates);
   const completedFastSet = new Set(completedFastDates);
   const incompletePlannedFastSet = new Set(incompletePlannedFastDates);
+  const missedFastSet = new Set(missedFastDates);
   const monThuSet = new Set(monThuDates);
   const whiteDaySet = new Set(whiteDayDates);
   const plannedFastMarkerMap = new Map(
@@ -212,9 +218,12 @@ export const CalendarGrid = ({
 
   const cycleWeeks =
     windowStart && windowEnd ? buildCycleWeeks(windowStart, windowEnd) : null;
-  const monthWeeks = mode === "dob" ? buildMonthWeeks(currentDate) : null;
+  const monthWeeks =
+    mode === "dob" || mode === "white_days_achievement"
+      ? buildMonthWeeks(currentDate)
+      : null;
   const gridWeeks: (string | null)[][] | null =
-    cycleWeeks ?? monthWeeks ?? null;
+    monthWeeks ?? cycleWeeks ?? null;
 
   const displayedMonth = moment(currentDate, "YYYY-MM-DD");
 
@@ -395,6 +404,67 @@ export const CalendarGrid = ({
         break;
       }
 
+      // ── Monday & Thursday past achievements ────────────────────────────
+      case "monday_thursday_achievement": {
+        if (completedFastSet.has(ds)) {
+          markerColor = Colors.light.green;
+          circleStyle = {
+            borderWidth: 1.2,
+            borderColor: Colors.light.green,
+          };
+          showCompletedDot = true;
+          textStyle = { color: Colors.light.blackBackground };
+        } else if (missedFastSet.has(ds)) {
+          circleStyle = {
+            borderWidth: 1.2,
+            borderColor: Colors.light.green,
+          };
+          textStyle = { color: Colors.light.green };
+        }
+        break;
+      }
+
+      // ── White Days past achievements ─────────────────────────────────────
+      case "white_days_achievement": {
+        const dayMoment = moment(ds, "YYYY-MM-DD");
+        const isWhiteDay =
+          hijriDay === 13 || hijriDay === 14 || hijriDay === 15;
+
+        if (!dayMoment.isSame(displayedMonth, "month")) {
+          cellOpacity = 0.25;
+          break;
+        }
+
+        if (!isWhiteDay) {
+          cellOpacity = 0.3;
+          break;
+        }
+
+        if (completedFastSet.has(ds)) {
+          markerColor = Colors.light.white;
+          circleStyle = {
+            borderWidth: 1.5,
+            borderColor: "#000000",
+          };
+          showCompletedDot = true;
+          textStyle = { color: Colors.light.blackBackground };
+        } else if (missedFastSet.has(ds)) {
+          circleStyle = {
+            borderWidth: 1.2,
+            borderColor: Colors.light.white,
+          };
+          showMissedWarning = true;
+          textStyle = { color: Colors.light.white };
+        } else if (incompletePlannedFastSet.has(ds)) {
+          circleStyle = {
+            borderWidth: 1.2,
+            borderColor: Colors.light.white,
+          };
+          textStyle = { color: Colors.light.white };
+        }
+        break;
+      }
+
       // ── Dashboard: planned vs. progress fast states ────────────────
       case "planned_progress": {
         const marker = plannedFastMarkerMap.get(ds);
@@ -457,7 +527,9 @@ export const CalendarGrid = ({
               />
             ) : null}
           </View>
-          <Text style={styles.dayHijri}>{hijriDay}</Text>
+          {mode !== "white_days_achievement" ? (
+            <Text style={styles.dayHijri}>{hijriDay}</Text>
+          ) : null}
         </View>
       </TouchableOpacity>
     );

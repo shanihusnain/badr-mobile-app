@@ -24,6 +24,11 @@ import { isHizbMemorisationGoalId } from "./quranMemorisationHizbTarget";
 import { isJuzMemorisationGoalId } from "./quranMemorisationJuzTarget";
 import { isSurahMemorisationGoalId } from "./quranMemorisationTarget";
 import { isMissedRamadanFastsGoalId } from "./missedRamadanFastsTarget";
+import { isMondayThursdayFastsGoalId } from "./mondayThursdayFastsTarget";
+import {
+  getMondayThursdayFastGoalTarget,
+  getMondayThursdayFastRingSegments,
+} from "./mondayThursdayFastsData";
 
 interface GoalProgressLoggingScreenProps {
   goalId: string;
@@ -40,6 +45,7 @@ function GoalProgressLoggingContent({
 }) {
   const { t } = useTranslation();
   const [weeklyRefreshKey, setWeeklyRefreshKey] = useState(0);
+  const [weekViewPercent, setWeekViewPercent] = useState<number | null>(null);
   const template = getLoggingFlowTemplate(goalId);
   const liveGoalData = useMemo(
     () => getResolvedGoalById(goalId) ?? goalData,
@@ -54,8 +60,23 @@ function GoalProgressLoggingContent({
   const isSurahRecitation =
     template === "quran-recitation" && isSurahRecitationGoalId(goalId);
 
-  const percentageNum = liveGoalData.percentage.replace("%", "");
-  const isGoalComplete = parsePercent(liveGoalData.percentage) >= 100;
+  const isMondayThursdayFasts = isMondayThursdayFastsGoalId(goalId);
+  const displayPercentage =
+    isMondayThursdayFasts && weekViewPercent !== null
+      ? `${weekViewPercent}%`
+      : liveGoalData.percentage;
+  const mondayThursdayCompletedCount = useMemo(() => {
+    if (!isMondayThursdayFasts) return 0;
+    const total = getMondayThursdayFastGoalTarget();
+    const percent = parsePercent(displayPercentage);
+    return Math.min(total, Math.round((percent / 100) * total));
+  }, [isMondayThursdayFasts, displayPercentage, weeklyRefreshKey]);
+  const mondayThursdayRingSegments = useMemo(() => {
+    if (!isMondayThursdayFasts) return undefined;
+    return getMondayThursdayFastRingSegments(mondayThursdayCompletedCount);
+  }, [isMondayThursdayFasts, mondayThursdayCompletedCount]);
+  const percentageNum = displayPercentage.replace("%", "");
+  const isGoalComplete = parsePercent(displayPercentage) >= 100;
   const cleanLabel = liveGoalData.target
     ? liveGoalData.target.toString()
     : liveGoalData.label.startsWith("/")
@@ -65,12 +86,13 @@ function GoalProgressLoggingContent({
     ? t("progressLogging.missedRamadanRingGoal", {
         count: liveGoalData.target ?? cleanLabel,
       })
-    : t("homeScreen.weeklyProgress_goalLabel", { label: cleanLabel });
+    : isMondayThursdayFastsGoalId(goalId)
+      ? t("progressLogging.mondayThursdayRingGoal", {
+          count: liveGoalData.target ?? cleanLabel,
+        })
+      : t("homeScreen.weeklyProgress_goalLabel", { label: cleanLabel });
 
   const getCategoryColor = (category: string): string => {
-    if (isMissedRamadanFastsGoalId(goalId)) {
-      return Colors.light.ringRamadan;
-    }
     switch (category) {
       case "PRAYER":
         return Colors.light.ringPrayer;
@@ -96,7 +118,7 @@ function GoalProgressLoggingContent({
           </View>
         ) : null}
         <TaperedCircleBorder
-          percentage={liveGoalData.percentage}
+          percentage={displayPercentage}
           progressColor={categoryColor}
           borderColor={Colors.light.dullWhiteOpacity}
           size={174}
@@ -124,6 +146,9 @@ function GoalProgressLoggingContent({
         <WeeklyProgressSection
           goalData={liveGoalData}
           refreshKey={weeklyRefreshKey}
+          onWeekProgressPercentChange={
+            isMondayThursdayFasts ? setWeekViewPercent : undefined
+          }
         />
       </View>
 
