@@ -42,7 +42,7 @@ export type LoggingFlowTemplate =
   | "missed-zakat"
   | "missed-ramadan-fasts"
   | "kaffarah-fasts-oaths"
-  | "fidya";
+  | "fidya"
   | "monday-thursday-fasts"
   | "white-days-fasts";
 
