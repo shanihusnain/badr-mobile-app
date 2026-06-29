@@ -34,6 +34,7 @@ import MissedRamadanFastGoalSelection from "@/components/molecules/MissedRamadan
 import ProphetDawoodFastGoalSelection from "@/components/molecules/ProphetDawoodFastGoalSelection";
 import WhiteDaysFastGoalSelection from "@/components/molecules/WhiteDaysFastGoalSelection";
 import MondayThursdayFastGoalSelection from "@/components/molecules/MondayThursdayFastGoalSelection";
+import { setMondayThursdaySelectedGoalFasts } from "@/src/screens/private/goalprogressloggingscreen/mondayThursdayFastsData";
 
 import { ReviewGoalBtn } from "./ReviewGoalBtn";
 import ReviewGoalCard from "./ReviewGoalCard";
@@ -978,6 +979,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
                   ...prev,
                   [goal.title]: formatted,
                 }));
+                setMondayThursdaySelectedGoalFasts(selectedDates);
                 setEditingGoal(null);
               }}
             />

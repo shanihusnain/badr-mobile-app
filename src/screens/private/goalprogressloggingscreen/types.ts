@@ -35,7 +35,9 @@ export type LoggingFlowTemplate =
   | "qiyam-al-layl"
   | "sunnah-rawatib"
   | "missed-zakat"
-  | "missed-ramadan-fasts";
+  | "missed-ramadan-fasts"
+  | "monday-thursday-fasts"
+  | "white-days-fasts";
 
 export type {
   QuranRecitationGoalId,
@@ -199,6 +201,39 @@ export type MissedRamadanFastsLogEntry = {
   wasPlanned: boolean;
 };
 
+export type MondayThursdayFastsLogEntry = {
+  type: "monday-thursday-fasts";
+  goalId: "fasting-mondayThursday";
+  logType: "completed_planned" | "completed_early" | "made_up_skipped";
+  date: string;
+  completed: boolean;
+  startTime: string;
+  endTime: string;
+  plannedFastDate?: string;
+  actualCompletedDate?: string;
+  missedFastDate?: string;
+  plannedDate?: string;
+  reconciledFromPlannedDate?: string;
+  goalTarget: number;
+  completedCount: number;
+  remainingCount: number;
+  goalCompleted: boolean;
+  wasSelected: boolean;
+};
+
+export type WhiteDaysFastsLogEntry = {
+  type: "white-days-fasts";
+  goalId: "fasting-whiteDays";
+  date: string;
+  completed: boolean;
+  startTime: string;
+  endTime: string;
+  goalTarget: number;
+  completedCount: number;
+  remainingCount: number;
+  goalCompleted: boolean;
+};
+
 export type ProgressLogEntry =
   | QuranHoursLogEntry
   | QuranRecitationLogEntry
@@ -206,6 +241,8 @@ export type ProgressLogEntry =
   | QuranCompletionLogEntry
   | QuranJuzLogEntry
   | MissedRamadanFastsLogEntry
+  | MondayThursdayFastsLogEntry
+  | WhiteDaysFastsLogEntry
   | Record<string, unknown>;
 
 export type QuranHoursFlowConfig = {
