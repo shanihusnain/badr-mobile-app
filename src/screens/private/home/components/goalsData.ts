@@ -547,6 +547,11 @@ export const GOALS_DATA: Record<GoalId, GoalData> = {
     description:
       "Sadaqah Jariyah (ongoing charity) continues to benefit others and brings continuous rewards even after we pass away.",
     previousProgress: "$200/$1000 donated",
+    studyMaterial: [
+      { id: 1, thumbnail: "https://via.placeholder.com/150", type: "video", description: "The Endless Rewards of Sadaqah Jariyah" },
+      { id: 2, thumbnail: "https://via.placeholder.com/150", type: "article", description: "Top 5 Sadaqah Jariyah Projects to Support" },
+      { id: 3, thumbnail: "https://via.placeholder.com/150", type: "podcast", description: "Leaving a Legacy: How Ongoing Charity Impacts Your Akhirah" },
+    ],
   },
   "sadaqah-daily": {
     id: "sadaqah-daily",
@@ -571,6 +576,11 @@ export const GOALS_DATA: Record<GoalId, GoalData> = {
     description:
       "Zakat is one of the five pillars of Islam. Fulfilling zakat obligations purifies wealth and supports the community.",
     previousProgress: "16/28 days tracked",
+    studyMaterial: [
+      { id: 1, thumbnail: "https://via.placeholder.com/150", type: "video", description: "Understanding Zakat: The Third Pillar of Islam" },
+      { id: 2, thumbnail: "https://via.placeholder.com/150", type: "article", description: "How to Calculate Your Missed Zakat Payments" },
+      { id: 3, thumbnail: "https://via.placeholder.com/150", type: "podcast", description: "Sheikh Omar Suleiman on Zakat Al-Fitr vs Zakat Al-Mal" },
+    ],
   },
   "sadaqah-kafarah": {
     id: "sadaqah-kafarah",
@@ -584,18 +594,29 @@ export const GOALS_DATA: Record<GoalId, GoalData> = {
     description:
       "Kaffarah serves as expiation for breaking fasts or oaths, demonstrating repentance and commitment to fulfilling obligations.",
     previousProgress: "1/2 kaffarah paid",
+    studyMaterial: [
+      { id: 1, thumbnail: "https://via.placeholder.com/150", type: "video", description: "What is Kaffarah? A Complete Guide to Expiation in Islam" },
+      { id: 2, thumbnail: "https://via.placeholder.com/150", type: "article", description: "How to Give Kaffarah Meals: Step-by-Step" },
+      { id: 3, thumbnail: "https://via.placeholder.com/150", type: "podcast", description: "Breaking an Oath Unintentionally — Scholars Weigh In" },
+    ],
   },
   "sadaqah-fidya": {
     id: "sadaqah-fidya",
     category: "SADAQAH",
     title: "Fidya",
-    count: "$12",
-    label: "/$30",
-    percentage: "44%",
+    count: "2",
+    label: "/10 meals",
+    percentage: "20%",
+    target: "10 meals",
     progressColor: Colors.light.ringSadaqah,
     description:
       "Fidya is compensation paid for not being able to fast due to illness or age, supporting those in need while fulfilling religious duty.",
-    previousProgress: "$12/$30 paid",
+    previousProgress: "2/10 meals given",
+    studyMaterial: [
+      { id: 1, thumbnail: "https://via.placeholder.com/150", type: "video", description: "Fidya vs Kaffarah — What's the Difference?" },
+      { id: 2, thumbnail: "https://via.placeholder.com/150", type: "article", description: "Who Is Eligible for Fidya Instead of Fasting?" },
+      { id: 3, thumbnail: "https://via.placeholder.com/150", type: "podcast", description: "Ramadan for the Elderly: Fidya and Accepted Exemptions" },
+    ],
   },
   "sadaqah-Lillah": {
     id: "sadaqah-Lillah",
@@ -608,6 +629,11 @@ export const GOALS_DATA: Record<GoalId, GoalData> = {
     description:
       "Lillah donation is given purely for the sake of Allah without expectation. It purifies intention and strengthens faith.",
     previousProgress: "$50/$100 donated",
+    studyMaterial: [
+      { id: 1, thumbnail: "https://via.placeholder.com/150", type: "video", description: "Giving Lillah: Charity for the Sake of Allah Alone" },
+      { id: 2, thumbnail: "https://via.placeholder.com/150", type: "article", description: "The Spiritual Power of Anonymous Charity in Islam" },
+      { id: 3, thumbnail: "https://via.placeholder.com/150", type: "podcast", description: "How Small Donations Can Have Eternal Rewards" },
+    ],
   },
   "sadaqah-volunteering": {
     id: "sadaqah-volunteering",
@@ -620,6 +646,11 @@ export const GOALS_DATA: Record<GoalId, GoalData> = {
     description:
       "Volunteering time and skills is a form of sadaqah that directly benefits the community and demonstrates care.",
     previousProgress: "2/4 volunteer days completed",
+    studyMaterial: [
+      { id: 1, thumbnail: "https://via.placeholder.com/150", type: "video", description: "Volunteering as Sadaqah: How Your Time is an Act of Worship" },
+      { id: 2, thumbnail: "https://via.placeholder.com/150", type: "article", description: "Finding Volunteer Opportunities at Your Local Mosque" },
+      { id: 3, thumbnail: "https://via.placeholder.com/150", type: "podcast", description: "Community Service Stories: Muslims Who Give Back" },
+    ],
   },
 };
 
@@ -787,6 +818,10 @@ export function getResolvedGoalsByCategory(
   category: "PRAYER" | "QURAN" | "FASTING" | "SADAQAH",
 ): GoalData[] {
   const goals = getGoalsByCategory(category).map(resolveGoalDisplayData);
+
+  if (category === "SADAQAH") {
+    return goals.filter((goal) => goal.id !== "sadaqah-daily");
+  }
 
   if (category !== "QURAN") {
     return goals;

@@ -118,10 +118,13 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 4,
     marginTop: 4,
+  },
+  trendUp: {
+    backgroundColor: Colors.light.lightgreen,
+  },
+  trendDown: {
     backgroundColor: Colors.light.calendarBg,
   },
-  trendUp: {},
-  trendDown: {},
   trendText: {
     fontSize: 10,
     fontFamily: fonts.primary.medium,

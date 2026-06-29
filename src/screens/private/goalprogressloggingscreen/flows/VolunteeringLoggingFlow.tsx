@@ -1,60 +1,83 @@
-import React, { useCallback, useState } from "react";
-import {
-  Pressable,
-  Text,
-  TouchableOpacity,
-  View,
-  StyleSheet,
-} from "react-native";
+import React, { useState, useCallback } from "react";
+import { View, Text, TouchableOpacity, StyleSheet, Pressable } from "react-native";
 import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import moment from "moment-hijri";
+import moment from "moment";
 import { Colors } from "@/constants/theme";
-import { GoalData } from "../../home/components/goalsData";
-import { DateStep } from "../components/DateStep";
-import { FinancialInputStep } from "../components/FinancialInputStep";
-import { StartTimeStep, DurationStep } from "../components/TimePickerSteps";
-import { FlowCard } from "../components/FlowCard";
-import { styles as commonStyles } from "../components/DailyProgressLogging.styles";
 import { fonts } from "@/assets/fonts";
-import type { ProgressLogEntry } from "../types";
 
-type MissedZakatStepId = "date" | "financial-amount" | "start-time" | "time-spent";
-const STEPS: MissedZakatStepId[] = ["date", "financial-amount", "start-time", "time-spent"];
+import { FlowCard } from "../components/FlowCard";
+import { DateStep } from "../components/DateStep";
+import { VolunteeringCategoryStep } from "../components/VolunteeringCategoryStep";
+import { StartTimeStep, DurationStep } from "../components/TimePickerSteps";
+import { styles as commonStyles } from "../components/DailyProgressLogging.styles";
+import type { ProgressLogEntry } from "../types";
+type FlowMode = "collapsed" | "active";
+import { getResolvedGoalById } from "../../home/components/goalsData";
+import { VolunteeringCategoryId } from "../volunteeringCategories";
 
 type Props = {
-  goalData: GoalData;
+  goalData: NonNullable<ReturnType<typeof getResolvedGoalById>>;
   onLogComplete?: (entry: ProgressLogEntry) => void;
 };
 
-type FlowMode = "collapsed" | "active";
+const STEPS = ["date", "category", "start-time", "time-spent"] as const;
+type StepType = (typeof STEPS)[number];
+
+const getStepHeader = (step: StepType) => {
+  switch (step) {
+    case "date":
+      return {
+        label: "Which day are you logging for?",
+        icon: <MaterialCommunityIcons name="calendar-month-outline" size={14} color={Colors.light.green} />,
+      };
+    case "category":
+      return {
+        label: "Select how you volunteered.",
+        icon: <MaterialCommunityIcons name="hand-coin-outline" size={14} color={Colors.light.green} />,
+      };
+    case "start-time":
+      return {
+        label: "Enter start time.",
+        icon: <Ionicons name="time-outline" size={16} color={Colors.light.green} />,
+      };
+    case "time-spent":
+      return {
+        label: "Enter time spent.",
+        icon: <MaterialCommunityIcons name="history" size={16} color={Colors.light.green} />,
+      };
+  }
+};
 
 const toDateString = (date: Date) => moment(date).format("YYYY-MM-DD");
 
-export default function MissedZakatLoggingFlow({
-  goalData,
-  onLogComplete,
-}: Props) {
+// ─────────────────────────────────────────────────────────────────────────────
+export default function VolunteeringLoggingFlow({ goalData, onLogComplete }: Props) {
   const { t } = useTranslation();
 
   const [flowMode, setFlowMode] = useState<FlowMode>("collapsed");
   const [stepIndex, setStepIndex] = useState(0);
 
   const [selectedDate, setSelectedDate] = useState(toDateString(new Date()));
-  const [amount, setAmount] = useState("20");
+  const [selectedCategory, setSelectedCategory] = useState<VolunteeringCategoryId>("distributing-food");
 
   const [startHour, setStartHour] = useState("06");
   const [startMinute, setStartMinute] = useState("15");
   const [startPeriod, setStartPeriod] = useState<"am" | "pm">("am");
   const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
 
-  const [durationHours, setDurationHours] = useState("0");
-  const [durationMinutes, setDurationMinutes] = useState("10");
+  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
 
-  const MOCK_PERCENTAGE = 0;
-  const mockTitle = `$100 Toward Missed Zakat`;
+  const [durationHours, setDurationHours] = useState("0");
+  const [durationMinutes, setDurationMinutes] = useState("30");
+
   const [hasLogged, setHasLogged] = useState(false);
+
+  const goalTarget = goalData?.target ?? "4";
+  const MOCK_PERCENTAGE = goalData?.percentage ? parseFloat(goalData.percentage) : 50;
+
+  const mockTitle = `${goalTarget} Hours of\nVolunteering`;
 
   const getBadgeStatus = () => {
     if (!hasLogged) return { text: "In Progress", type: "in-progress" };
@@ -86,73 +109,64 @@ export default function MissedZakatLoggingFlow({
     setFlowMode("collapsed");
     setStepIndex(0);
     setSelectedDate(toDateString(new Date()));
-    setAmount("20");
+    setSelectedCategory("distributing-food");
     setStartHour("06");
     setStartMinute("15");
     setStartPeriod("am");
     setDurationHours("0");
-    setDurationMinutes("10");
+    setDurationMinutes("30");
     setIsPeriodDropdownOpen(false);
+    setIsCategoryDropdownOpen(false);
   }, []);
 
-  const handleConfirm = () => {
-    setHasLogged(true);
-    onLogComplete?.({
-      type: "missed-zakat" as any,
-      goalId: goalData.id,
-      date: selectedDate,
-      amount,
-      startTime: `${startHour}:${startMinute} ${startPeriod}`,
-      durationHours,
-      durationMinutes,
-    } as any);
-    resetFlow();
+  const handleOpenFlow = () => {
+    setFlowMode("active");
   };
 
   const handleBack = () => {
-    if (stepIndex === 0) { resetFlow(); return; }
-    setStepIndex((i) => i - 1);
+    if (stepIndex > 0) setStepIndex(stepIndex - 1);
   };
 
   const handleForward = () => {
-    if (!isLastStep) setStepIndex((i) => i + 1);
+    if (!isLastStep) setStepIndex(stepIndex + 1);
   };
 
-  const handleOpenFlow = useCallback(() => {
-    setFlowMode("active");
-  }, []);
+  const handleConfirm = () => {
+    setHasLogged(true);
+    setFlowMode("collapsed");
+    setStepIndex(0);
 
-  const getStepHeader = (step: MissedZakatStepId) => {
-    switch (step) {
-      case "date":
-        return { icon: <Ionicons name="calendar-outline" size={15} color={Colors.light.white} />, label: "Which day are you logging for?" };
-      case "financial-amount":
-        return { icon: <MaterialCommunityIcons name="cash" size={16} color={Colors.light.white} />, label: "How much did you fulfill?" };
-      case "start-time":
-        return { icon: <Ionicons name="time-outline" size={15} color={Colors.light.white} />, label: "Enter start time." };
-      case "time-spent":
-        return { icon: <Ionicons name="timer-outline" size={15} color={Colors.light.white} />, label: "Enter time spent." };
-    }
+    const durationMins =
+      parseInt(durationHours || "0", 10) * 60 + parseInt(durationMinutes || "0", 10);
+
+    onLogComplete?.({
+      date: selectedDate,
+      count: 1,
+      durationMinutes: durationMins,
+      timeOfDay: `${startHour}:${startMinute} ${startPeriod}`,
+      volunteeringCategory: selectedCategory,
+    } as any);
   };
 
-  const renderStepContent = (step: MissedZakatStepId) => {
+  const renderStepContent = (step: StepType) => {
     switch (step) {
       case "date":
         return (
           <DateStep
-            dateLabel={dateLabel}
             selectedDate={selectedDate}
             todayString={todayString}
             onShiftDate={shiftDate}
             styles={commonStyles}
+            dateLabel={dateLabel}
           />
         );
-      case "financial-amount":
+      case "category":
         return (
-          <FinancialInputStep
-            amount={amount}
-            setAmount={setAmount}
-            styles={commonStyles}
+          <VolunteeringCategoryStep
+            selectedCategory={selectedCategory}
+            onSelectCategory={setSelectedCategory}
+            isOpen={isCategoryDropdownOpen}
+            setIsOpen={setIsCategoryDropdownOpen}
           />
         );
       case "start-time":
@@ -201,16 +215,35 @@ export default function MissedZakatLoggingFlow({
         {flowMode === "collapsed" ? (
           <View style={localStyles.summaryCard}>
             <View style={localStyles.summaryBody}>
-              <View style={localStyles.summaryIconCircle}>
-                <MaterialCommunityIcons name="sack" size={20} color={Colors.light.white} />
+              <View style={[localStyles.summaryIconCircle]}>
+                <MaterialCommunityIcons
+                  name="hand-heart"
+                  size={22}
+                  color={Colors.light.white}
+                />
               </View>
               <View style={{ flex: 1, gap: 4 }}>
-                <View style={[localStyles.badge, badgeStatus.type === "completed" ? localStyles.badgeCompleted : localStyles.badgeInProgress, { alignSelf: "flex-start" }]}>
-                  <Text style={[localStyles.badgeText, badgeStatus.type === "completed" ? localStyles.badgeTextCompleted : localStyles.badgeTextInProgress]}>
+                <View
+                  style={[
+                    localStyles.badge,
+                    badgeStatus.type === "completed"
+                      ? localStyles.badgeCompleted
+                      : localStyles.badgeInProgress,
+                    { alignSelf: "flex-start" },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      localStyles.badgeText,
+                      badgeStatus.type === "completed"
+                        ? localStyles.badgeTextCompleted
+                        : localStyles.badgeTextInProgress,
+                    ]}
+                  >
                     {badgeStatus.text}
                   </Text>
                 </View>
-                <Text style={[localStyles.summaryTitle, { flex: undefined }]}>
+                <Text style={[localStyles.summaryTitle]}>
                   {mockTitle}
                 </Text>
               </View>
@@ -222,7 +255,9 @@ export default function MissedZakatLoggingFlow({
                   <Text style={localStyles.insightsText}>VIEW INSIGHTS</Text>
                   <Ionicons name="chevron-forward" size={22} color={Colors.light.white} />
                 </TouchableOpacity>
-              ) : <View style={localStyles.spacer} />}
+              ) : (
+                <View style={localStyles.spacer} />
+              )}
 
               <TouchableOpacity style={localStyles.addButton} onPress={handleOpenFlow} activeOpacity={0.8}>
                 <Ionicons name="add" size={22} color={Colors.light.white} />
@@ -239,7 +274,10 @@ export default function MissedZakatLoggingFlow({
               onConfirm={handleConfirm}
               canGoForward={!isLastStep}
               styles={commonStyles}
-              style={commonStyles.inPlaceFlowCard}
+              style={[
+                commonStyles.inPlaceFlowCard,
+                currentStep === "category" && isCategoryDropdownOpen ? { height: 210 } : {},
+              ]}
             >
               {renderStepContent(currentStep)}
             </FlowCard>
@@ -253,9 +291,9 @@ export default function MissedZakatLoggingFlow({
 const localStyles = StyleSheet.create({
   summaryCard: {
     backgroundColor: Colors.light.green,
-    borderRadius: 12,
+    borderRadius: 16,
     paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingVertical: 16,
     position: "relative",
     overflow: "hidden",
     height: 145,
@@ -269,28 +307,28 @@ const localStyles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: Colors.light.darkgrey,
     alignItems: "center",
     justifyContent: "center",
   },
   badge: {
-    borderRadius: 4,
     paddingHorizontal: 8,
     paddingVertical: 4,
+    borderRadius: 4,
   },
   badgeInProgress: {
-    backgroundColor: "rgba(255,255,255,0.7)",
+    backgroundColor: Colors.light.lightpurple,
   },
   badgeCompleted: {
-    backgroundColor: "rgba(255,255,255,0.7)",
+    backgroundColor: Colors.light.lightgreenbadgecolor,
   },
   badgeText: {
     fontFamily: fonts.primary.semiBold,
-    fontSize: 12,
-    letterSpacing: 0.5,
+    fontSize: 10,
+    fontWeight: "600",
   },
   badgeTextInProgress: {
-    color: Colors.light.lightblue,
+    color: Colors.light.darkblue,
   },
   badgeTextCompleted: {
     color: Colors.light.green,
@@ -298,13 +336,14 @@ const localStyles = StyleSheet.create({
   summaryTitle: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 15,
+    fontSize: 14,
   },
   footerRow: {
     flexDirection: "row",
+    alignItems: "center",
     justifyContent: "space-between",
-    alignItems: "flex-end",
-    marginTop: 16,
+    marginTop: "auto" as any,
+    paddingTop: 8,
   },
   insightsBtn: {
     flexDirection: "row",
@@ -313,20 +352,20 @@ const localStyles = StyleSheet.create({
   },
   insightsText: {
     color: Colors.light.white,
-    fontFamily: fonts.primary.bold,
-    fontSize: 11,
+    fontFamily: fonts.primary.semiBold,
+    fontSize: 13,
+    fontWeight: "700",
     letterSpacing: 0.5,
   },
+  spacer: { flex: 1 },
   addButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    borderWidth: 2,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 1.5,
     borderColor: Colors.light.white,
     alignItems: "center",
     justifyContent: "center",
-  },
-  spacer: {
-    flex: 1,
+    marginLeft: "auto" as any,
   },
 });
