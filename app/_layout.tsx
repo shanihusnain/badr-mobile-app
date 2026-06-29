@@ -48,6 +48,7 @@ export default function RootLayout() {
             value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
           >
             <Stack>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
               <Stack.Screen name="welcome" options={{ headerShown: false }} />
               <Stack.Screen name="intro" options={{ headerShown: false }} />
               <Stack.Screen
