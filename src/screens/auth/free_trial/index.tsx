@@ -15,7 +15,7 @@ export default function FreeTrialScreen() {
   const { t } = useTranslation();
 
   const handleStartFreeTrial = () => {
-    router.push("/createaccount");
+    router.push("/(auth)/createaccount");
   };
 
   const renderItem = ({

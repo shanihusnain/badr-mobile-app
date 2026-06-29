@@ -100,9 +100,9 @@ export default function OtpScreen() {
     }
     setError(null);
     if (params?.fromsignup === "true") {
-      router.push("/paymentMethod");
+      router.push("/(auth)/paymentMethod");
     } else {
-      router.push("/confirmpassword");
+      router.push("/(auth)/confirmpassword");
     }
   };
 

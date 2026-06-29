@@ -57,7 +57,7 @@ export const usePaymentMethodProps = () => {
   };
 
   const handleDebitCreditPress = () => {
-    router.push("/debitCredit");
+    router.push("/(auth)/debitCredit");
   };
 
   const getTabButtonStyle = (plan: string) => {

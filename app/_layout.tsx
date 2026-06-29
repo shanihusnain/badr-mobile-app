@@ -13,28 +13,25 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Provider } from "react-redux";
 
 import { fontAssets } from "@/assets/fonts";
-import Header from "@/components/Header";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { store } from "@/src/store/store";
-import { Colors } from "@/constants/theme";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { AuthProvider } from "@/provider/AuthProvider";
 import "@/i18next/i18next";
-import { useTranslation } from "react-i18next";
 
 export const unstable_settings = {
-  anchor: "welcome",
+  initialRouteName: "index",
 };
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const { t } = useTranslation();
   const colorScheme = useColorScheme();
   const [loaded, error] = useFonts(fontAssets);
 
   useEffect(() => {
     if (loaded || error) {
-      SplashScreen.hideAsync(); // ← hide splash once fonts ready
+      SplashScreen.hideAsync();
     }
   }, [loaded, error]);
 
@@ -43,96 +40,25 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <Provider store={store}>
-        <SafeAreaProvider>
-          <ThemeProvider
-            value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-          >
-            <Stack>
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="welcome" options={{ headerShown: false }} />
-              <Stack.Screen name="intro" options={{ headerShown: false }} />
-              <Stack.Screen
-                name="free_trial"
-                options={{ headerShown: false }}
-              />
-              <Stack.Screen
-                name="login"
-                options={{
-                  headerShown: true,
-                  header: () => (
-                    <Header
-                      title="LOGIN"
-                      backgroundColor={Colors.light.buttonBackground}
-                    />
-                  ),
-                }}
-              />
-              <Stack.Screen
-                name="verifyemail/[fromsignup]"
-                options={{
-                  headerShown: true,
-                  header: ({ options }: { options: any }) => (
-                    <Header
-                      title={options?.title}
-                      backgroundColor={Colors.light.buttonBackground}
-                    />
-                  ),
-                }}
-              />
-              <Stack.Screen
-                name="forgotpassword"
-                options={{
-                  headerShown: true,
-                  header: () => (
-                    <Header
-                      title="FORGOT PASSWORD"
-                      backgroundColor={Colors.light.buttonBackground}
-                    />
-                  ),
-                }}
-              />
-              <Stack.Screen
-                name="createaccount"
-                options={{
-                  headerShown: true,
-                  header: () => <Header title="CREATE ACCOUNT" />,
-                }}
-              />
-              <Stack.Screen
-                name="paymentMethod"
-                options={{
-                  headerShown: true,
-                  header: () => <Header title="" />,
-                }}
-              />
-              <Stack.Screen
-                name="confirmpassword"
-                options={{
-                  headerShown: true,
-                  header: () => (
-                    <Header
-                      title="FORGOT PASSWORD"
-                      backgroundColor={Colors.light.buttonBackground}
-                    />
-                  ),
-                }}
-              />
-
-              <Stack.Screen
-                name="debitCredit"
-                options={{
-                  headerShown: false,
-                }}
-              />
-              <Stack.Screen
-                name="modal"
-                options={{ presentation: "modal", title: "Modal" }}
-              />
-              <Stack.Screen name="(private)" options={{ headerShown: false }} />
-            </Stack>
-            <StatusBar style="light" />
-          </ThemeProvider>
-        </SafeAreaProvider>
+        <AuthProvider>
+          <SafeAreaProvider>
+            <ThemeProvider
+              value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+            >
+              <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="index" />
+                <Stack.Screen name="(tabs)" />
+                <Stack.Screen name="(auth)" />
+                <Stack.Screen name="(private)" />
+                <Stack.Screen
+                  name="modal"
+                  options={{ presentation: "modal", title: "Modal" }}
+                />
+              </Stack>
+              <StatusBar style="light" />
+            </ThemeProvider>
+          </SafeAreaProvider>
+        </AuthProvider>
       </Provider>
     </GestureHandlerRootView>
   );

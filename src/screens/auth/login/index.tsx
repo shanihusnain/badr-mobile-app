@@ -44,11 +44,11 @@ export default function LoginScreen() {
   const handleTogglePassword = () => setShowPassword((prev) => !prev);
 
   const handleForgotPassword = () => {
-    router.push("/forgotpassword");
+    router.push("/(auth)/forgotpassword");
   };
 
   const onSubmit = (data: z.infer<typeof loginSchema>) => {
-    router.replace("/setpersonalizedgoals");
+    router.replace("/(private)/setpersonalizedgoals");
     // handle login
   };
 

@@ -272,7 +272,12 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
             label: t("monthlyGoalPlanner.reviewLabels.missedPastPrayers"),
             totalValue: 10,
           },
-          { id: 6, title: "duha-prayer", label: t("monthlyGoalPlanner.reviewLabels.duha"), totalValue: 10 },
+          {
+            id: 6,
+            title: "duha-prayer",
+            label: t("monthlyGoalPlanner.reviewLabels.duha"),
+            totalValue: 10,
+          },
           {
             id: 7,
             title: "tawba-prayer",
@@ -333,7 +338,9 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
           {
             id: 3,
             title: "quran-recitation-by-completion",
-            label: t("monthlyGoalPlanner.reviewLabels.quranRecitationCompletion"),
+            label: t(
+              "monthlyGoalPlanner.reviewLabels.quranRecitationCompletion",
+            ),
             totalValue: 50,
           },
           {
@@ -1045,8 +1052,16 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
                   setSadaqahMetrics((prev) => ({
                     ...prev,
                     [goal.title]: [
-                      { id: 1, label: t("monthlyGoalPlanner.meals"), value: String(kafarahMeals) },
-                      { id: 2, label: t("monthlyGoalPlanner.cloths"), value: String(kafarahCloths) },
+                      {
+                        id: 1,
+                        label: t("monthlyGoalPlanner.meals"),
+                        value: String(kafarahMeals),
+                      },
+                      {
+                        id: 2,
+                        label: t("monthlyGoalPlanner.cloths"),
+                        value: String(kafarahCloths),
+                      },
                     ],
                   }));
                   setEditingGoal(null);
@@ -1073,7 +1088,11 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
                   setSadaqahMetrics((prev) => ({
                     ...prev,
                     [goal.title]: [
-                      { id: 1, label: t("monthlyGoalPlanner.meals"), value: String(fidyaMeals) },
+                      {
+                        id: 1,
+                        label: t("monthlyGoalPlanner.meals"),
+                        value: String(fidyaMeals),
+                      },
                     ],
                   }));
                   setEditingGoal(null);
@@ -1102,7 +1121,11 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
                   setSadaqahMetrics((prev) => ({
                     ...prev,
                     [goal.title]: [
-                      { id: 1, label: t("monthlyGoalPlanner.amount"), value: String(lillahAmount) },
+                      {
+                        id: 1,
+                        label: t("monthlyGoalPlanner.amount"),
+                        value: String(lillahAmount),
+                      },
                     ],
                   }));
                   setEditingGoal(null);
@@ -1409,8 +1432,9 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
 
                   // TODO: call API with payload
                   // Navigate to home screen
+                  console.log("payload", payload);
                   router.push({
-                    pathname: "/home",
+                    pathname: "/(tabs)",
                   });
                 }}
               />
@@ -1485,7 +1509,9 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
                     selectedGoals[quran.id] && (
                       <QuranTimeSelection
                         title={t("monthlyGoalPlanner.selectNumHours")}
-                        description={t("monthlyGoalPlanner.hoursQuranListening")}
+                        description={t(
+                          "monthlyGoalPlanner.hoursQuranListening",
+                        )}
                       />
                     )}
                   {quran.id === "quran-tajweed" && selectedGoals[quran.id] && (

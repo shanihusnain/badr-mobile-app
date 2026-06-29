@@ -14,11 +14,11 @@ export default function WelcomeScreen() {
   const router = useRouter();
 
   const handleLogin = () => {
-    router.push("/login");
+    router.push("/(auth)/login");
   };
 
   const handleCreateAccount = () => {
-    router.push("/intro");
+    router.push("/(auth)/intro");
   };
   const { t } = useTranslation();
   return (

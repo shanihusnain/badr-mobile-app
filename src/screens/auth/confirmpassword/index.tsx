@@ -53,7 +53,7 @@ export default function ConfirmPasswordScreen() {
     setIsSuccess(true);
     setTimeout(() => {
       setIsSuccess(false);
-      router.push("/login");
+      router.push("/(auth)/login");
     }, 3000);
   };
 

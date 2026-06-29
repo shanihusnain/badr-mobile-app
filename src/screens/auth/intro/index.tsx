@@ -13,7 +13,7 @@ export default function IntroScreen() {
   const { t } = useTranslation();
 
   const handlePress = () => {
-    router.push("/free_trial");
+    router.push("/(auth)/free_trial");
   };
 
   return (
