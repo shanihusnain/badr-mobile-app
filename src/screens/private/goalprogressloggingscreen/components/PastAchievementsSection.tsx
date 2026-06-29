@@ -17,8 +17,12 @@ import { SadaqahPastAchievements } from "@/components/molecules/SadaqahPastAchie
 
 import { QuranJuzPastAchievements } from "@/components/molecules/QuranJuzPastAchievements";
 import { MissedRamadanFastsPastAchievements } from "@/components/molecules/MissedRamadanFastsPastAchievements";
+import { MondayThursdayFastsPastAchievements } from "@/components/molecules/MondayThursdayFastsPastAchievements";
+import { WhiteDaysFastsPastAchievements } from "@/components/molecules/WhiteDaysFastsPastAchievements";
 import { isCompletionGoalId, isJuzRecitationGoalId } from "../types";
 import { isMissedRamadanFastsGoalId } from "../missedRamadanFastsTarget";
+import { isMondayThursdayFastsGoalId } from "../mondayThursdayFastsTarget";
+import { isWhiteDaysFastsGoalId } from "../whiteDaysFastsTarget";
 
 type Props = {
   goalData: GoalData;
@@ -40,6 +44,20 @@ export function PastAchievementsSection({ goalData, refreshKey = 0 }: Props) {
     isMissedRamadanFastsGoalId(goalData.id)
   ) {
     return <MissedRamadanFastsPastAchievements refreshKey={refreshKey} />;
+  }
+
+  if (
+    template === "monday-thursday-fasts" &&
+    isMondayThursdayFastsGoalId(goalData.id)
+  ) {
+    return <MondayThursdayFastsPastAchievements refreshKey={refreshKey} />;
+  }
+
+  if (
+    template === "white-days-fasts" &&
+    isWhiteDaysFastsGoalId(goalData.id)
+  ) {
+    return <WhiteDaysFastsPastAchievements refreshKey={refreshKey} />;
   }
 
   if (template === "quran-completion" && isCompletionGoalId(goalData.id)) {

@@ -8,6 +8,16 @@ import {
   getMissedRamadanFastCompletionPercent,
   getMissedRamadanFastGoalTarget,
 } from "@/src/screens/private/goalprogressloggingscreen/missedRamadanFastsData";
+import {
+  getMondayThursdayFastCompletedCount,
+  getMondayThursdayFastCompletionPercent,
+  getMondayThursdayFastGoalTarget,
+} from "@/src/screens/private/goalprogressloggingscreen/mondayThursdayFastsData";
+import {
+  getWhiteDaysFastCompletedCount,
+  getWhiteDaysFastCompletionPercent,
+  getWhiteDaysFastGoalTarget,
+} from "@/src/screens/private/goalprogressloggingscreen/whiteDaysFastsData";
 
 export type GoalId =
   | "prayer-tahiyyat"
@@ -502,13 +512,34 @@ export const GOALS_DATA: Record<GoalId, GoalData> = {
     id: "fasting-whiteDays",
     category: "FASTING",
     title: "White Days Fasts",
-    count: "2",
+    count: "0",
     label: "/3 days",
-    percentage: "67%",
+    percentage: "0%",
     progressColor: Colors.light.green,
+    target: 3,
     description:
       "The white days (13th, 14th, 15th) are blessed days for fasting and spiritual practice throughout the Islamic year.",
-    previousProgress: "2/3 days fasted",
+    previousProgress: "0/3 days fasted",
+    studyMaterial: [
+      {
+        id: 1,
+        thumbnail: "https://via.placeholder.com/150",
+        type: "video",
+        description: "The virtues of White Days fasting",
+      },
+      {
+        id: 2,
+        thumbnail: "https://via.placeholder.com/150",
+        type: "podcast",
+        description: "Why fasting the White Days matters",
+      },
+      {
+        id: 3,
+        thumbnail: "https://via.placeholder.com/150",
+        type: "article",
+        description: "Spiritual benefits of Sunnah fasting",
+      },
+    ],
   },
   "fasting-mondayThursday": {
     id: "fasting-mondayThursday",
@@ -793,6 +824,38 @@ export function resolveGoalDisplayData(goal: GoalData): GoalData {
       percentage: `${percent}%`,
       progressColor: Colors.light.ringRamadan,
       previousProgress: `${completed}/${target} makeup fasts completed`,
+    };
+  }
+
+  if (goal.id === "fasting-mondayThursday") {
+    const completed = getMondayThursdayFastCompletedCount();
+    const target = getMondayThursdayFastGoalTarget();
+    const percent = getMondayThursdayFastCompletionPercent();
+
+    return {
+      ...goal,
+      count: String(completed),
+      label: `/${target} fasts`,
+      target,
+      percentage: `${percent}%`,
+      progressColor: Colors.light.green,
+      previousProgress: `${completed}/${target} fasts completed`,
+    };
+  }
+
+  if (goal.id === "fasting-whiteDays") {
+    const completed = getWhiteDaysFastCompletedCount();
+    const target = getWhiteDaysFastGoalTarget();
+    const percent = getWhiteDaysFastCompletionPercent();
+
+    return {
+      ...goal,
+      count: String(completed),
+      label: `/${target} days`,
+      target,
+      percentage: `${percent}%`,
+      progressColor: Colors.light.green,
+      previousProgress: `${completed}/${target} days fasted`,
     };
   }
 

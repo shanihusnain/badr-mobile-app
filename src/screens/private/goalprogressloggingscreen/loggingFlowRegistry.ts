@@ -74,6 +74,8 @@ const FLOW_TEMPLATE_BY_GOAL: Partial<Record<GoalId, LoggingFlowTemplate>> = {
   "sadaqah-jariyah": "sadaqah-jariyah",
   "sadaqah-volunteering": "sadaqah-volunteering",
   "fasting-ramadan": "missed-ramadan-fasts",
+  "fasting-mondayThursday": "monday-thursday-fasts",
+  "fasting-whiteDays": "white-days-fasts",
 };
 
 export function getLoggingFlowTemplate(goalId: GoalId): LoggingFlowTemplate {

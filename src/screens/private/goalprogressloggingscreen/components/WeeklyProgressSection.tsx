@@ -7,6 +7,8 @@ import { TahiyatUlWudhuWeeklyProgressDashboard } from "@/components/molecules/Ta
 import { MissedPrayersWeeklyProgressDashboard } from "@/components/molecules/MissedPrayersWeeklyProgressDashboard";
 import { TahiyatAlMasjidWeeklyProgressDashboard } from "@/components/molecules/TahiyatAlMasjidWeeklyProgressDashboard";
 import { MissedRamadanFastsWeeklyProgressDashboard } from "@/components/molecules/MissedRamadanFastsWeeklyProgressDashboard";
+import { MondayThursdayFastsWeeklyProgressDashboard } from "@/components/molecules/MondayThursdayFastsWeeklyProgressDashboard";
+import { WhiteDaysFastsWeeklyProgressDashboard } from "@/components/molecules/WhiteDaysFastsWeeklyProgressDashboard";
 import { DuhaPrayerWeeklyProgressDashboard } from "@/components/molecules/DuhaPrayerWeeklyProgressDashboard";
 import { TawbahPrayerWeeklyProgressDashboard } from "@/components/molecules/TawbahPrayerWeeklyProgressDashboard";
 import { IstikharaPrayerWeeklyProgressDashboard } from "@/components/molecules/IstikharaPrayerWeeklyProgressDashboard";
@@ -92,13 +94,30 @@ import {
   getMissedRamadanFastCycleSummary,
   getMissedRamadanFastTodayIndexInWeek,
 } from "../missedRamadanFastsWeeklyData";
+import {
+  canNavigateMondayThursdayFastWeek,
+  clampMondayThursdayFastWeekIndex,
+  getMondayThursdayFastCycleSummary,
+  getMondayThursdayFastTodayIndexInWeek,
+} from "../mondayThursdayFastsWeeklyData";
+import {
+  canNavigateWhiteDaysFastWeek,
+  clampWhiteDaysFastWeekIndex,
+  getWhiteDaysFastCycleSummary,
+  getWhiteDaysFastTodayIndexInWeek,
+} from "../whiteDaysFastsWeeklyData";
 
 type Props = {
   goalData: GoalData;
   refreshKey?: number;
+  onWeekProgressPercentChange?: (percent: number | null) => void;
 };
 
-export function WeeklyProgressSection({ goalData, refreshKey = 0 }: Props) {
+export function WeeklyProgressSection({
+  goalData,
+  refreshKey = 0,
+  onWeekProgressPercentChange,
+}: Props) {
   const { t } = useTranslation();
   const template = getLoggingFlowTemplate(goalData.id);
   console.log("template", template);
@@ -201,6 +220,16 @@ export function WeeklyProgressSection({ goalData, refreshKey = 0 }: Props) {
     if (template !== "missed-ramadan-fasts") return null;
     return getMissedRamadanFastCycleSummary();
   }, [template, refreshKey]);
+
+  const mondayThursdayCycle = useMemo(() => {
+    if (template !== "monday-thursday-fasts") return null;
+    return getMondayThursdayFastCycleSummary();
+  }, [template, refreshKey]);
+
+  const whiteDaysCycle = useMemo(() => {
+    if (template !== "white-days-fasts") return null;
+    return getWhiteDaysFastCycleSummary();
+  }, [template, refreshKey]);
   useEffect(() => {
     if (recitationCycle) {
       setWeekIndex(recitationCycle.activeWeekIndex);
@@ -242,6 +271,18 @@ export function WeeklyProgressSection({ goalData, refreshKey = 0 }: Props) {
       setWeekIndex(missedRamadanCycle.activeWeekIndex);
     }
   }, [missedRamadanCycle, goalData.id, refreshKey]);
+
+  useEffect(() => {
+    if (mondayThursdayCycle) {
+      setWeekIndex(mondayThursdayCycle.activeWeekIndex);
+    }
+  }, [mondayThursdayCycle, goalData.id, refreshKey]);
+
+  useEffect(() => {
+    if (whiteDaysCycle) {
+      setWeekIndex(whiteDaysCycle.activeWeekIndex);
+    }
+  }, [whiteDaysCycle, goalData.id, refreshKey]);
 
   const quranRecitationWeek = useMemo(() => {
     if (!recitationCycle) return null;
@@ -322,6 +363,33 @@ export function WeeklyProgressSection({ goalData, refreshKey = 0 }: Props) {
     return missedRamadanCycle.weeks[clampMissedRamadanFastWeekIndex(weekIndex)];
   }, [missedRamadanCycle, weekIndex]);
 
+  const mondayThursdayWeek = useMemo(() => {
+    if (!mondayThursdayCycle) return null;
+    return mondayThursdayCycle.weeks[
+      clampMondayThursdayFastWeekIndex(weekIndex)
+    ];
+  }, [mondayThursdayCycle, weekIndex]);
+
+  const whiteDaysWeek = useMemo(() => {
+    if (!whiteDaysCycle) return null;
+    return whiteDaysCycle.weeks[clampWhiteDaysFastWeekIndex(weekIndex)];
+  }, [whiteDaysCycle, weekIndex]);
+
+  useEffect(() => {
+    if (template !== "monday-thursday-fasts") {
+      onWeekProgressPercentChange?.(null);
+      return;
+    }
+
+    onWeekProgressPercentChange?.(
+      mondayThursdayWeek?.cumulativeCompletionPercent ?? null,
+    );
+  }, [
+    template,
+    mondayThursdayWeek?.cumulativeCompletionPercent,
+    onWeekProgressPercentChange,
+  ]);
+
   const activeRecitationSurahName = useMemo(() => {
     if (!isSurahRecitationGoalId(goalData.id)) return undefined;
     const surahId = recitationContext?.activeSurahId;
@@ -392,6 +460,22 @@ export function WeeklyProgressSection({ goalData, refreshKey = 0 }: Props) {
 
   const handleMissedRamadanNextWeek = useCallback(() => {
     setWeekIndex((current) => clampMissedRamadanFastWeekIndex(current + 1));
+  }, []);
+
+  const handleMondayThursdayPrevWeek = useCallback(() => {
+    setWeekIndex((current) => clampMondayThursdayFastWeekIndex(current - 1));
+  }, []);
+
+  const handleMondayThursdayNextWeek = useCallback(() => {
+    setWeekIndex((current) => clampMondayThursdayFastWeekIndex(current + 1));
+  }, []);
+
+  const handleWhiteDaysPrevWeek = useCallback(() => {
+    setWeekIndex((current) => clampWhiteDaysFastWeekIndex(current - 1));
+  }, []);
+
+  const handleWhiteDaysNextWeek = useCallback(() => {
+    setWeekIndex((current) => clampWhiteDaysFastWeekIndex(current + 1));
   }, []);
 
   const quranFlow = getQuranHoursFlowDefinition(goalData.id);
@@ -622,6 +706,52 @@ export function WeeklyProgressSection({ goalData, refreshKey = 0 }: Props) {
         onNextWeek={
           canNavigateMissedRamadanFastWeek(weekIndex, "next")
             ? handleMissedRamadanNextWeek
+            : undefined
+        }
+      />
+    );
+  }
+
+  if (template === "monday-thursday-fasts" && mondayThursdayWeek) {
+    const mondayThursdayTodayIndex = getMondayThursdayFastTodayIndexInWeek(
+      mondayThursdayWeek.weekDays,
+    );
+
+    return (
+      <MondayThursdayFastsWeeklyProgressDashboard
+        weekSummary={mondayThursdayWeek}
+        selectedDayIndex={mondayThursdayTodayIndex}
+        onPrevWeek={
+          canNavigateMondayThursdayFastWeek(weekIndex, "prev")
+            ? handleMondayThursdayPrevWeek
+            : undefined
+        }
+        onNextWeek={
+          canNavigateMondayThursdayFastWeek(weekIndex, "next")
+            ? handleMondayThursdayNextWeek
+            : undefined
+        }
+      />
+    );
+  }
+
+  if (template === "white-days-fasts" && whiteDaysWeek) {
+    const whiteDaysTodayIndex = getWhiteDaysFastTodayIndexInWeek(
+      whiteDaysWeek.weekDays,
+    );
+
+    return (
+      <WhiteDaysFastsWeeklyProgressDashboard
+        weekSummary={whiteDaysWeek}
+        selectedDayIndex={whiteDaysTodayIndex}
+        onPrevWeek={
+          canNavigateWhiteDaysFastWeek(weekIndex, "prev")
+            ? handleWhiteDaysPrevWeek
+            : undefined
+        }
+        onNextWeek={
+          canNavigateWhiteDaysFastWeek(weekIndex, "next")
+            ? handleWhiteDaysNextWeek
             : undefined
         }
       />

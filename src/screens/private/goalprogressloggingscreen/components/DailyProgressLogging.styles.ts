@@ -38,6 +38,11 @@ export const styles = StyleSheet.create({
     position: "relative",
     zIndex: 101,
   },
+  flowCardLayerDropdownOpen: {
+    zIndex: 200,
+    elevation: 10,
+    overflow: "visible",
+  },
   cancelButton: {
     position: "absolute",
     right: -8,
@@ -149,11 +154,18 @@ export const styles = StyleSheet.create({
     width: "80%",
     alignSelf: "flex-start",
     marginLeft: -8,
+    overflow: "visible",
   },
   inPlaceFlowCard: {
     width: "100%",
     marginLeft: 0,
     height: FLOW_CARD_HEIGHT,
+    overflow: "visible",
+  },
+  flowCardDropdownOpen: {
+    overflow: "visible",
+    zIndex: 200,
+    elevation: 10,
   },
   flowContentAyahRange: {
     justifyContent: "flex-start",
@@ -189,6 +201,11 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
     minHeight: 40,
     marginBottom: 4,
+    overflow: "visible",
+  },
+  flowContentDropdownOpen: {
+    overflow: "visible",
+    zIndex: 30,
   },
   flowFooter: {
     flexDirection: "row",
@@ -388,7 +405,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 6,
     zIndex: 999,
-    maxHeight: 140,
+    maxHeight: 200,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
@@ -401,6 +418,7 @@ export const styles = StyleSheet.create({
     gap: 10,
     paddingVertical: 10,
     paddingHorizontal: 4,
+    width: "100%",
   },
   periodSelector: {
     borderWidth: 1.5,
@@ -461,6 +479,9 @@ export const styles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
     fontSize: 12,
+    lineHeight: 17,
+    flex: 1,
+    flexShrink: 1,
   },
   timeUnitLabel: {
     color: Colors.light.subtext,

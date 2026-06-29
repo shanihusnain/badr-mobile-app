@@ -11,11 +11,17 @@ import Svg, {
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 
+export type RingSegment = {
+  value: number;
+  color: string;
+};
+
 interface TaperedCircleBorderProps {
   percentage?: string;
   size?: number;
   borderColor?: string;
   progressColor?: string;
+  segments?: RingSegment[];
   children?: React.ReactNode;
   variant?: "default" | "golden";
   style?: ViewStyle;
@@ -56,11 +62,11 @@ function polarToCartesian(r: number, angleDeg: number) {
   return { x: CX + r * Math.cos(rad), y: CY + r * Math.sin(rad) };
 }
 
-/** Arc stroke path from top, clockwise, for `sweep` degrees. */
-function arcPath(r: number, sweepDeg: number): string {
+/** Arc stroke path clockwise from `startDeg` for `sweepDeg` degrees. */
+function arcPath(r: number, startDeg: number, sweepDeg: number): string {
   const clamped = Math.min(Math.max(sweepDeg, 0.01), 359.999);
-  const start = polarToCartesian(r, 0);
-  const end = polarToCartesian(r, clamped);
+  const start = polarToCartesian(r, startDeg);
+  const end = polarToCartesian(r, startDeg + clamped);
   const largeArc = clamped > 180 ? 1 : 0;
   return `M ${start.x} ${start.y} A ${r} ${r} 0 ${largeArc} 1 ${end.x} ${end.y}`;
 }
@@ -91,17 +97,94 @@ function GoldenNativeGlow({ size }: { size: number }) {
   );
 }
 
+function renderSegmentArc({
+  arcD,
+  color,
+  blurId,
+  glowStrength,
+  withGlow,
+  withHighlight,
+}: {
+  arcD: string;
+  color: string;
+  blurId: string;
+  glowStrength: number;
+  withGlow: boolean;
+  withHighlight: boolean;
+}) {
+  return (
+    <>
+      {withGlow ? (
+        <G filter={`url(#${blurId})`}>
+          {GLOW_LAYERS.map((layer, index) => (
+            <Path
+              key={`glow-${index}`}
+              d={arcD}
+              stroke={color}
+              strokeWidth={CORE_WIDTH + layer.widthAdd}
+              strokeLinecap="round"
+              fill="none"
+              opacity={Math.min(1, layer.opacity * glowStrength)}
+            />
+          ))}
+        </G>
+      ) : null}
+
+      <Path
+        d={arcD}
+        stroke={color}
+        strokeWidth={CORE_WIDTH}
+        strokeLinecap="round"
+        fill="none"
+      />
+
+      {withHighlight ? (
+        <Path
+          d={arcD}
+          stroke={Colors.light.white}
+          strokeWidth={CORE_WIDTH * 0.45}
+          strokeLinecap="round"
+          fill="none"
+          opacity={0.65}
+        />
+      ) : null}
+    </>
+  );
+}
+
+function buildSegmentArcs(segments: RingSegment[], segmentTotal: number) {
+  let priorSweep = 0;
+
+  return segments.flatMap((segment) => {
+    const segmentSweep = (segment.value / segmentTotal) * 360;
+    if (segmentSweep <= 0) return [];
+
+    const arc = {
+      arcD: arcPath(RADIUS, priorSweep, segmentSweep),
+      color: segment.color,
+      withGlow: segment.color === Colors.light.green && segment.value > 0,
+      withHighlight: segment.color === Colors.light.green && segment.value > 0,
+    };
+    priorSweep += segmentSweep;
+    return [arc];
+  });
+}
+
 export const TaperedCircleBorder: React.FC<TaperedCircleBorderProps> = ({
   percentage,
   size = 70,
   borderColor = Colors.light.calendarBg,
   progressColor,
+  segments,
   children,
   variant = "default",
   style,
 }) => {
   const isGolden = variant === "golden";
   const percent = parsePercent(percentage);
+  const segmentTotal =
+    segments?.reduce((sum, segment) => sum + segment.value, 0) ?? 0;
+  const useSegments = !isGolden && segmentTotal > 0;
   const slab = isGolden ? 3 : getGlowSlab(percent);
   const glowColor = isGolden ? FIGMA_GOLDEN : progressColor;
   const coreColor = isGolden ? Colors.light.white : progressColor;
@@ -117,7 +200,11 @@ export const TaperedCircleBorder: React.FC<TaperedCircleBorderProps> = ({
 
   const svgSize = size + GLOW_PAD * 2;
   const svgOffset = -GLOW_PAD;
-  const arcD = arcPath(RADIUS, sweep);
+  const arcD = arcPath(RADIUS, 0, sweep);
+  const segmentArcs =
+    useSegments && segments
+      ? buildSegmentArcs(segments, segmentTotal)
+      : [];
 
   return (
     <View style={[styles.wrapper, { width: size, height: size }, style]}>
@@ -135,8 +222,7 @@ export const TaperedCircleBorder: React.FC<TaperedCircleBorderProps> = ({
           </Filter>
         </Defs>
 
-        {/* Faint full track */}
-        {!isGolden && (
+        {!isGolden && !useSegments ? (
           <Circle
             cx={CX}
             cy={CY}
@@ -145,10 +231,24 @@ export const TaperedCircleBorder: React.FC<TaperedCircleBorderProps> = ({
             strokeWidth={TRACK_WIDTH}
             fill="none"
           />
-        )}
+        ) : null}
 
-        {/* Soft colored neon bloom */}
-        {hasGlow && (
+        {useSegments
+          ? segmentArcs.map((segment, index) => (
+              <G key={`segment-${index}`}>
+                {renderSegmentArc({
+                  arcD: segment.arcD,
+                  color: segment.color,
+                  blurId,
+                  glowStrength,
+                  withGlow: segment.withGlow && hasGlow,
+                  withHighlight: segment.withHighlight,
+                })}
+              </G>
+            ))
+          : null}
+
+        {!useSegments && hasGlow ? (
           <G filter={`url(#${blurId})`}>
             {GLOW_LAYERS.map((layer, index) => (
               <Path
@@ -162,10 +262,9 @@ export const TaperedCircleBorder: React.FC<TaperedCircleBorderProps> = ({
               />
             ))}
           </G>
-        )}
+        ) : null}
 
-        {/* Bright core */}
-        {showArc && (
+        {!useSegments && showArc ? (
           <Path
             d={arcD}
             stroke={coreColor}
@@ -173,10 +272,9 @@ export const TaperedCircleBorder: React.FC<TaperedCircleBorderProps> = ({
             strokeLinecap="round"
             fill="none"
           />
-        )}
+        ) : null}
 
-        {/* White-hot highlight along the core (neon center) */}
-        {showArc && !isGolden && (
+        {!useSegments && showArc && !isGolden ? (
           <Path
             d={arcD}
             stroke={Colors.light.white}
@@ -185,7 +283,7 @@ export const TaperedCircleBorder: React.FC<TaperedCircleBorderProps> = ({
             fill="none"
             opacity={0.65}
           />
-        )}
+        ) : null}
       </Svg>
 
       <View

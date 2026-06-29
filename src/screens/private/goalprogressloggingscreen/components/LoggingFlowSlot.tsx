@@ -29,6 +29,8 @@ import FidyaLoggingFlow from "../flows/FidyaLoggingFlow";
 import LillahLoggingFlow from "../flows/LillahLoggingFlow";
 import SadaqahJariyahLoggingFlow from "../flows/SadaqahJariyahLoggingFlow";
 import VolunteeringLoggingFlow from "../flows/VolunteeringLoggingFlow";
+import MondayThursdayFastsLoggingFlow from "../flows/MondayThursdayFastsLoggingFlow";
+import WhiteDaysFastsLoggingFlow from "../flows/WhiteDaysFastsLoggingFlow";
 
 type Props = {
   goalData: GoalData;
@@ -187,6 +189,26 @@ export function LoggingFlowSlot({
   if (template === "missed-ramadan-fasts") {
     return (
       <MissedRamadanFastsLoggingFlow
+        goalData={goalData}
+        onLogComplete={onLogComplete}
+        onDropdownOpenChange={onDropdownOpenChange}
+      />
+    );
+  }
+
+  if (template === "monday-thursday-fasts") {
+    return (
+      <MondayThursdayFastsLoggingFlow
+        goalData={goalData}
+        onLogComplete={onLogComplete}
+        onDropdownOpenChange={onDropdownOpenChange}
+      />
+    );
+  }
+
+  if (template === "white-days-fasts") {
+    return (
+      <WhiteDaysFastsLoggingFlow
         goalData={goalData}
         onLogComplete={onLogComplete}
         onDropdownOpenChange={onDropdownOpenChange}
