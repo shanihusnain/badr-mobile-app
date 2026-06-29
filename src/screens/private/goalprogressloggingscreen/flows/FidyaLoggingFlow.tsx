@@ -13,15 +13,28 @@ import moment from "moment-hijri";
 import { Colors } from "@/constants/theme";
 import { GoalData } from "../../home/components/goalsData";
 import { DateStep } from "../components/DateStep";
-import { FinancialInputStep } from "../components/FinancialInputStep";
+import { CounterStep } from "../components/CounterStep";
 import { StartTimeStep, DurationStep } from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
 import { styles as commonStyles } from "../components/DailyProgressLogging.styles";
 import { fonts } from "@/assets/fonts";
 import type { ProgressLogEntry } from "../types";
 
-type MissedZakatStepId = "date" | "financial-amount" | "start-time" | "time-spent";
-const STEPS: MissedZakatStepId[] = ["date", "financial-amount", "start-time", "time-spent"];
+// ─────────────────────────────────────────────────────────────────────────────
+// Types
+// ─────────────────────────────────────────────────────────────────────────────
+type FidyaStepId =
+  | "date"
+  | "count"
+  | "start-time"
+  | "time-spent";
+
+const STEPS: FidyaStepId[] = [
+  "date",
+  "count",
+  "start-time",
+  "time-spent",
+];
 
 type Props = {
   goalData: GoalData;
@@ -32,17 +45,17 @@ type FlowMode = "collapsed" | "active";
 
 const toDateString = (date: Date) => moment(date).format("YYYY-MM-DD");
 
-export default function MissedZakatLoggingFlow({
-  goalData,
-  onLogComplete,
-}: Props) {
+// ─────────────────────────────────────────────────────────────────────────────
+// Main Flow
+// ─────────────────────────────────────────────────────────────────────────────
+export default function FidyaLoggingFlow({ goalData, onLogComplete }: Props) {
   const { t } = useTranslation();
 
   const [flowMode, setFlowMode] = useState<FlowMode>("collapsed");
   const [stepIndex, setStepIndex] = useState(0);
 
   const [selectedDate, setSelectedDate] = useState(toDateString(new Date()));
-  const [amount, setAmount] = useState("20");
+  const [count, setCount] = useState("1");
 
   const [startHour, setStartHour] = useState("06");
   const [startMinute, setStartMinute] = useState("15");
@@ -52,9 +65,10 @@ export default function MissedZakatLoggingFlow({
   const [durationHours, setDurationHours] = useState("0");
   const [durationMinutes, setDurationMinutes] = useState("10");
 
-  const MOCK_PERCENTAGE = 0;
-  const mockTitle = `$100 Toward Missed Zakat`;
   const [hasLogged, setHasLogged] = useState(false);
+
+  const MOCK_PERCENTAGE = 0;
+  const mockTitle = "10 Meals for Those in Need";
 
   const getBadgeStatus = () => {
     if (!hasLogged) return { text: "In Progress", type: "in-progress" };
@@ -86,7 +100,7 @@ export default function MissedZakatLoggingFlow({
     setFlowMode("collapsed");
     setStepIndex(0);
     setSelectedDate(toDateString(new Date()));
-    setAmount("20");
+    setCount("1");
     setStartHour("06");
     setStartMinute("15");
     setStartPeriod("am");
@@ -98,10 +112,10 @@ export default function MissedZakatLoggingFlow({
   const handleConfirm = () => {
     setHasLogged(true);
     onLogComplete?.({
-      type: "missed-zakat" as any,
+      type: "fidya" as any,
       goalId: goalData.id,
       date: selectedDate,
-      amount,
+      count,
       startTime: `${startHour}:${startMinute} ${startPeriod}`,
       durationHours,
       durationMinutes,
@@ -122,20 +136,35 @@ export default function MissedZakatLoggingFlow({
     setFlowMode("active");
   }, []);
 
-  const getStepHeader = (step: MissedZakatStepId) => {
+  const getStepHeader = (step: FidyaStepId) => {
     switch (step) {
       case "date":
-        return { icon: <Ionicons name="calendar-outline" size={15} color={Colors.light.white} />, label: "Which day are you logging for?" };
-      case "financial-amount":
-        return { icon: <MaterialCommunityIcons name="cash" size={16} color={Colors.light.white} />, label: "How much did you fulfill?" };
+        return {
+          icon: <Ionicons name="calendar-outline" size={15} color={Colors.light.white} />,
+          label: "Which day are you logging for?",
+        };
+      case "count":
+        return {
+          icon: <MaterialCommunityIcons name="bowl-mix" size={16} color={Colors.light.white} />,
+          label: "How many meals were given?",
+        };
       case "start-time":
-        return { icon: <Ionicons name="time-outline" size={15} color={Colors.light.white} />, label: "Enter start time." };
+        return {
+          icon: <Ionicons name="time-outline" size={16} color={Colors.light.white} />,
+          label: "Enter start time.",
+        };
       case "time-spent":
-        return { icon: <Ionicons name="timer-outline" size={15} color={Colors.light.white} />, label: "Enter time spent." };
+        return {
+          icon: <Ionicons name="timer-outline" size={16} color={Colors.light.white} />,
+          label: "Enter time spent.",
+        };
     }
   };
 
-  const renderStepContent = (step: MissedZakatStepId) => {
+  const canProceed = true;
+  const canConfirm = true;
+
+  const renderStepContent = (step: FidyaStepId) => {
     switch (step) {
       case "date":
         return (
@@ -147,12 +176,13 @@ export default function MissedZakatLoggingFlow({
             styles={commonStyles}
           />
         );
-      case "financial-amount":
+      case "count":
         return (
-          <FinancialInputStep
-            amount={amount}
-            setAmount={setAmount}
-            styles={commonStyles}
+          <CounterStep
+            label={"Meals given"}
+            unit={"meal(s)"}
+            value={count}
+            onChangeText={setCount}
           />
         );
       case "start-time":
@@ -202,11 +232,26 @@ export default function MissedZakatLoggingFlow({
           <View style={localStyles.summaryCard}>
             <View style={localStyles.summaryBody}>
               <View style={localStyles.summaryIconCircle}>
-                <MaterialCommunityIcons name="sack" size={20} color={Colors.light.white} />
+                <MaterialCommunityIcons name="charity" size={20} color={Colors.light.white} />
               </View>
               <View style={{ flex: 1, gap: 4 }}>
-                <View style={[localStyles.badge, badgeStatus.type === "completed" ? localStyles.badgeCompleted : localStyles.badgeInProgress, { alignSelf: "flex-start" }]}>
-                  <Text style={[localStyles.badgeText, badgeStatus.type === "completed" ? localStyles.badgeTextCompleted : localStyles.badgeTextInProgress]}>
+                <View
+                  style={[
+                    localStyles.badge,
+                    badgeStatus.type === "completed"
+                      ? localStyles.badgeCompleted
+                      : localStyles.badgeInProgress,
+                    { alignSelf: "flex-start" },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      localStyles.badgeText,
+                      badgeStatus.type === "completed"
+                        ? localStyles.badgeTextCompleted
+                        : localStyles.badgeTextInProgress,
+                    ]}
+                  >
                     {badgeStatus.text}
                   </Text>
                 </View>
@@ -222,7 +267,9 @@ export default function MissedZakatLoggingFlow({
                   <Text style={localStyles.insightsText}>VIEW INSIGHTS</Text>
                   <Ionicons name="chevron-forward" size={22} color={Colors.light.white} />
                 </TouchableOpacity>
-              ) : <View style={localStyles.spacer} />}
+              ) : (
+                <View style={localStyles.spacer} />
+              )}
 
               <TouchableOpacity style={localStyles.addButton} onPress={handleOpenFlow} activeOpacity={0.8}>
                 <Ionicons name="add" size={22} color={Colors.light.white} />
@@ -237,7 +284,8 @@ export default function MissedZakatLoggingFlow({
               onBack={handleBack}
               onForward={handleForward}
               onConfirm={handleConfirm}
-              canGoForward={!isLastStep}
+              canGoForward={!isLastStep && canProceed}
+              canConfirm={canConfirm}
               styles={commonStyles}
               style={commonStyles.inPlaceFlowCard}
             >
@@ -253,44 +301,43 @@ export default function MissedZakatLoggingFlow({
 const localStyles = StyleSheet.create({
   summaryCard: {
     backgroundColor: Colors.light.green,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    position: "relative",
-    overflow: "hidden",
+    borderRadius: 14,
+    padding: 16,
+    gap: 12,
     height: 145,
+    justifyContent: "space-between",
   },
   summaryBody: {
     flexDirection: "row",
-    gap: 12,
     alignItems: "center",
+    gap: 12,
   },
   summaryIconCircle: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: Colors.light.darkgrey,
     alignItems: "center",
     justifyContent: "center",
   },
   badge: {
-    borderRadius: 4,
     paddingHorizontal: 8,
     paddingVertical: 4,
+    borderRadius: 4,
   },
   badgeInProgress: {
-    backgroundColor: "rgba(255,255,255,0.7)",
+    backgroundColor: Colors.light.lightpurple,
   },
   badgeCompleted: {
-    backgroundColor: "rgba(255,255,255,0.7)",
+    backgroundColor: Colors.light.lightgreenbadgecolor,
   },
   badgeText: {
     fontFamily: fonts.primary.semiBold,
-    fontSize: 12,
-    letterSpacing: 0.5,
+    fontSize: 10,
+    fontWeight: "600",
   },
   badgeTextInProgress: {
-    color: Colors.light.lightblue,
+    color: Colors.light.darkblue,
   },
   badgeTextCompleted: {
     color: Colors.light.green,
@@ -298,13 +345,14 @@ const localStyles = StyleSheet.create({
   summaryTitle: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 15,
+    fontSize: 16,
   },
   footerRow: {
     flexDirection: "row",
+    alignItems: "center",
     justifyContent: "space-between",
-    alignItems: "flex-end",
-    marginTop: 16,
+    marginTop: "auto" as any,
+    paddingTop: 8,
   },
   insightsBtn: {
     flexDirection: "row",
@@ -313,18 +361,20 @@ const localStyles = StyleSheet.create({
   },
   insightsText: {
     color: Colors.light.white,
-    fontFamily: fonts.primary.bold,
-    fontSize: 11,
+    fontFamily: fonts.primary.semiBold,
+    fontSize: 13,
+    fontWeight: "700",
     letterSpacing: 0.5,
   },
   addButton: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    borderWidth: 2,
+    borderWidth: 1.5,
     borderColor: Colors.light.white,
     alignItems: "center",
     justifyContent: "center",
+    marginLeft: "auto" as any,
   },
   spacer: {
     flex: 1,

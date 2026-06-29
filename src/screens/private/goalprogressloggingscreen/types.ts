@@ -21,6 +21,11 @@ import type {
 export type LoggingFlowTemplate =
   | "prayer-session"
   | "quran-hours"
+  | "sadaqah"
+  | "fidya"
+  | "lillah"
+  | "sadaqah-jariyah"
+  | "sadaqah-volunteering"
   | "quran-recitation"
   | "quran-memorisation"
   | "quran-completion"
@@ -36,6 +41,8 @@ export type LoggingFlowTemplate =
   | "sunnah-rawatib"
   | "missed-zakat"
   | "missed-ramadan-fasts"
+  | "kaffarah-fasts-oaths"
+  | "fidya";
   | "monday-thursday-fasts"
   | "white-days-fasts";
 

@@ -24,6 +24,11 @@ import QiyamLoggingFlow from "../flows/QiyamLoggingFlow";
 import SunnahRawatibLoggingFlow from "../flows/SunnahRawatibLoggingFlow";
 import MissedZakatLoggingFlow from "../flows/MissedZakatLoggingFlow";
 import MissedRamadanFastsLoggingFlow from "../flows/MissedRamadanFastsLoggingFlow";
+import KaffarahLoggingFlow from "../flows/KaffarahLoggingFlow";
+import FidyaLoggingFlow from "../flows/FidyaLoggingFlow";
+import LillahLoggingFlow from "../flows/LillahLoggingFlow";
+import SadaqahJariyahLoggingFlow from "../flows/SadaqahJariyahLoggingFlow";
+import VolunteeringLoggingFlow from "../flows/VolunteeringLoggingFlow";
 import MondayThursdayFastsLoggingFlow from "../flows/MondayThursdayFastsLoggingFlow";
 import WhiteDaysFastsLoggingFlow from "../flows/WhiteDaysFastsLoggingFlow";
 
@@ -39,6 +44,7 @@ export function LoggingFlowSlot({
   onDropdownOpenChange,
 }: Props) {
   const template = getLoggingFlowTemplate(goalData.id);
+
   if (template === "quran-hours") {
     return (
       <QuranHoursLoggingFlow
@@ -213,6 +219,42 @@ export function LoggingFlowSlot({
   if (template === "missed-zakat") {
     return (
       <MissedZakatLoggingFlow goalData={goalData} onLogComplete={onLogComplete} />
+    );
+  }
+
+  if (template === "kaffarah-fasts-oaths") {
+    return (
+      <KaffarahLoggingFlow goalData={goalData} onLogComplete={onLogComplete} />
+    );
+  }
+
+  if (template === "fidya") {
+    return (
+      <FidyaLoggingFlow goalData={goalData} onLogComplete={onLogComplete} />
+    );
+  }
+
+  if (template === "lillah") {
+    return (
+      <LillahLoggingFlow goalData={goalData} onLogComplete={onLogComplete} />
+    );
+  }
+
+  if (template === "sadaqah-jariyah") {
+    return (
+      <SadaqahJariyahLoggingFlow
+        goalData={goalData}
+        onLogComplete={onLogComplete}
+      />
+    );
+  }
+
+  if (template === "sadaqah-volunteering") {
+    return (
+      <VolunteeringLoggingFlow
+        goalData={goalData}
+        onLogComplete={onLogComplete}
+      />
     );
   }
 

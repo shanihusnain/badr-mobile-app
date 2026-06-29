@@ -13,6 +13,7 @@ import { QuranMemorisationJuzPastAchievements } from "@/components/molecules/Qur
 import { QuranCompletionPastAchievements } from "@/components/molecules/QuranCompletionPastAchievements";
 
 import { PrayerPastAchievements } from "@/components/molecules/PrayerPastAchievements";
+import { SadaqahPastAchievements } from "@/components/molecules/SadaqahPastAchievements";
 
 import { QuranJuzPastAchievements } from "@/components/molecules/QuranJuzPastAchievements";
 import { MissedRamadanFastsPastAchievements } from "@/components/molecules/MissedRamadanFastsPastAchievements";
@@ -33,6 +34,10 @@ export function PastAchievementsSection({ goalData, refreshKey = 0 }: Props) {
 
   if (goalData.category === "PRAYER") {
     return <PrayerPastAchievements goalId={goalData.id} />;
+  }
+
+  if (goalData.category === "SADAQAH") {
+    return <SadaqahPastAchievements goalId={goalData.id} />;
   }
   if (
     template === "missed-ramadan-fasts" &&

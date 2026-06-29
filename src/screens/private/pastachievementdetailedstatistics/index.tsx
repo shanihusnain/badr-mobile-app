@@ -7,7 +7,23 @@ type Props = {
     goalId: GoalId;
 };
 
+import { getGoalById } from "@/src/screens/private/home/components/goalsData";
+import { SadaqahPastAchievements } from "@/components/molecules/SadaqahPastAchievements";
+
 export default function PastAchievementDetailedStatisticsScreen({ goalId }: Props) {
+    const goalData = getGoalById(goalId);
+
+    if (!goalData) {
+        return null;
+    }
+
+    let content = null;
+    if (goalData.category === "PRAYER") {
+        content = <PrayerPastAchievements goalId={goalId} isDetailed={true} />;
+    } else if (goalData.category === "SADAQAH") {
+        content = <SadaqahPastAchievements goalId={goalId} isDetailed={true} />;
+    }
+
     return (
         <ScrollView
             style={styles.container}
@@ -15,7 +31,7 @@ export default function PastAchievementDetailedStatisticsScreen({ goalId }: Prop
             showsVerticalScrollIndicator={false}
         >
             <View style={styles.inner}>
-                <PrayerPastAchievements goalId={goalId} isDetailed={true} />
+                {content}
             </View>
         </ScrollView>
     );
