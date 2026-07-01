@@ -25,6 +25,7 @@ export const Colors = {
     grey: "#A0A0A0",
     placeholder: "#8A8A8A",
     calendarBg: "#2F4054",
+    gold: "#E8C37B",
     calendarTodayBg: "#A0A0A057",
     ringRamadan: "#B7977E",
     ringDawood: "#439CB8",
@@ -59,7 +60,9 @@ export const Colors = {
     overlayBlackColor: "rgba(0, 0, 0, 0.6)",
     lightgreenbadgecolor: "#C1F0C1",
     achievementbarblue: "#00E5FF",
-    barlinecolor: "#61C8A6"
+    barlinecolor: "#61C8A6",
+    moretabcolor: "#141414CC",
+    inactivegreen: "#1A4D3E"
   },
   dark: {
     text: "#ECEDEE",

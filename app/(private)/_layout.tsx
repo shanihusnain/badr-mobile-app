@@ -47,6 +47,102 @@ export default function PrivateLayout() {
         }}
       />
       <Stack.Screen
+        name="membershippaymentmethod"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="paymentsuccessscreen"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="giftnewmember"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="newmembercart"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="badarmembership"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="cancelmembershipconfirmation"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="changepassword"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="changepassword/index"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="changeemailid"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="editprofile"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="redeemgiftextension"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="myaccount"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="membershipextension"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="giftpersonaldetails"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="friendreferal"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="giftcurrentmember"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
         name="menstruationlog"
         options={{
           headerShown: true,
