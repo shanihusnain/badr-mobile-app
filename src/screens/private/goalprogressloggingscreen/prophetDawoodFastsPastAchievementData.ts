@@ -6,18 +6,38 @@ import type {
   QuranPastChartItem,
 } from "./quranHoursPastAchievementData";
 import {
-  getTodayDateString,
-  getWhiteDaysFastLogs,
-  isWhiteDaysFastCompletedDate,
-  normalizeDateString,
-  type WhiteDaysFastLog,
-} from "./whiteDaysFastsData";
+  getDawoodCycleHistory,
+  getProphetDawoodCycleRestartDate,
+  getProphetDawoodFastDayStateForDate,
+  type ProphetDawoodFastDayState,
+} from "./prophetDawoodFastsWeeklyData";
+import {
+  getProphetDawoodFastLogs,
+  isProphetDawoodFastCompletedDate,
+  type ProphetDawoodFastLog,
+} from "./prophetDawoodFastsData";
+import { getTodayDateString, normalizeDateString } from "./whiteDaysFastsData";
 
-export type WhiteDaysAnalyticsView =
+export type ProphetDawoodAnalyticsView =
   | "completedVsIncomplete"
   | "completedVsTime";
 
-export type WhiteDaysPeriodSlice = {
+export type DawoodFastAchievement = {
+  id: string;
+  date: string;
+  isTargetDay: boolean;
+  completed: boolean;
+  timeSpent: number;
+  cycleNumber: number;
+};
+
+export type DawoodFastSummary = {
+  totalCompleted: number;
+  totalIncomplete: number;
+  totalTimeSpent: number;
+};
+
+export type ProphetDawoodPeriodSlice = {
   chartPeriods: Array<{
     xLabel: string;
     dateLabel: string;
@@ -41,7 +61,26 @@ export type WhiteDaysPeriodSlice = {
   missedDates: string[];
   upcomingDates: string[];
   calendarMonthDate: string;
+  cycleRestartDate: string | null;
+  hasCycleReset: boolean;
+  trackedMonths: number;
+  cycleCount: number;
 };
+
+const HIJRI_MONTHS = [
+  "Muharram",
+  "Safar",
+  "Rabi I",
+  "Rabi II",
+  "Jumada I",
+  "Jumada II",
+  "Rajab",
+  "Sha'ban",
+  "Ramadan",
+  "Shawwal",
+  "Dhul Qadah",
+  "Dhul Hijjah",
+];
 
 function addDays(dateStr: string, days: number): string {
   const date = new Date(`${normalizeDateString(dateStr)}T12:00:00`);
@@ -114,34 +153,59 @@ function formatMonthBucketLabel(start: string, end: string): string {
   return `${startMonth} ${startDate.getDate()} – ${endMonth} ${endDate.getDate()}`;
 }
 
-function isWhiteDayDate(dateStr: string): boolean {
-  const hijriDay = moment(normalizeDateString(dateStr), "YYYY-MM-DD").iDate();
-  return hijriDay === 13 || hijriDay === 14 || hijriDay === 15;
+function isDawoodTargetState(state: ProphetDawoodFastDayState): boolean {
+  return (
+    state === "completed" ||
+    state === "missed" ||
+    state === "upcoming" ||
+    state === "today"
+  );
 }
 
-function getWhiteDayDatesInRange(start: string, end: string): string[] {
-  const dates: string[] = [];
+function classifyDawoodDatesInRange(
+  start: string,
+  end: string,
+  today: string = getTodayDateString(),
+): {
+  completed: string[];
+  missed: string[];
+  upcoming: string[];
+  targetCount: number;
+} {
+  const completed: string[] = [];
+  const missed: string[] = [];
+  const upcoming: string[] = [];
+  let targetCount = 0;
+
   let cursor = normalizeDateString(start);
   const normalizedEnd = normalizeDateString(end);
 
   while (cursor <= normalizedEnd) {
-    if (isWhiteDayDate(cursor)) {
-      dates.push(cursor);
+    const state = getProphetDawoodFastDayStateForDate(cursor, today);
+
+    if (isDawoodTargetState(state)) {
+      targetCount += 1;
+      if (state === "completed" || isProphetDawoodFastCompletedDate(cursor)) {
+        completed.push(cursor);
+      } else if (state === "missed") {
+        missed.push(cursor);
+      } else {
+        upcoming.push(cursor);
+      }
     }
+
     cursor = addDays(cursor, 1);
   }
 
-  return dates;
-}
-
-function countWhiteDaysInRange(start: string, end: string): number {
-  return getWhiteDayDatesInRange(start, end).length;
+  return { completed, missed, upcoming, targetCount };
 }
 
 function countCompletedInRange(start: string, end: string): number {
-  return getWhiteDayDatesInRange(start, end).filter((date) =>
-    isWhiteDaysFastCompletedDate(date),
-  ).length;
+  return classifyDawoodDatesInRange(start, end).completed.length;
+}
+
+function countTargetsInRange(start: string, end: string): number {
+  return classifyDawoodDatesInRange(start, end).targetCount;
 }
 
 function parseFastTimeLabel(value: string): number | null {
@@ -171,7 +235,7 @@ function parseFastTimeLabel(value: string): number | null {
   return hour24 * 60 + parsedMinute;
 }
 
-function getLogDurationMinutes(log: WhiteDaysFastLog): number {
+function getLogDurationMinutes(log: ProphetDawoodFastLog): number {
   if (!log.completed || !log.startTime || !log.endTime) return 0;
 
   const start = parseFastTimeLabel(log.startTime);
@@ -182,7 +246,7 @@ function getLogDurationMinutes(log: WhiteDaysFastLog): number {
 }
 
 function sumTimeSpentMinutesInRange(start: string, end: string): number {
-  return getWhiteDaysFastLogs()
+  return getProphetDawoodFastLogs()
     .filter((log) => {
       if (!log.completed) return false;
       const date = normalizeDateString(log.date);
@@ -191,36 +255,22 @@ function sumTimeSpentMinutesInRange(start: string, end: string): number {
     .reduce((sum, log) => sum + getLogDurationMinutes(log), 0);
 }
 
-function getCompletedDatesInRange(start: string, end: string): string[] {
-  return getWhiteDayDatesInRange(start, end).filter((date) =>
-    isWhiteDaysFastCompletedDate(date),
-  );
+function countCyclesInRange(start: string, end: string): number {
+  const history = getDawoodCycleHistory();
+
+  return history.segments.filter((segment) =>
+    segment.plannedDates.some(
+      (date) => date >= start && date <= end,
+    ),
+  ).length;
 }
 
-function getMissedDatesInRange(
-  start: string,
-  end: string,
-  today: string,
-): string[] {
-  const normalizedToday = normalizeDateString(today);
-  return getWhiteDayDatesInRange(start, end).filter((date) => {
-    const normalized = normalizeDateString(date);
-    return normalized < normalizedToday && !isWhiteDaysFastCompletedDate(date);
-  });
-}
-
-function getUpcomingDatesInRange(
-  start: string,
-  end: string,
-  today: string,
-): string[] {
-  const normalizedToday = normalizeDateString(today);
-  return getWhiteDayDatesInRange(start, end).filter((date) => {
-    const normalized = normalizeDateString(date);
-    return (
-      normalized >= normalizedToday && !isWhiteDaysFastCompletedDate(date)
-    );
-  });
+function countTrackedMonths(
+  chartPeriods: ProphetDawoodPeriodSlice["chartPeriods"],
+): number {
+  return chartPeriods.filter(
+    (period) => period.completed + period.incomplete > 0,
+  ).length;
 }
 
 function getPeriodMonthCount(period: PastAchievementPeriod): number {
@@ -232,14 +282,14 @@ function getPeriodMonthCount(period: PastAchievementPeriod): number {
 function buildMonthlyGregorianPeriods(
   monthCount: number,
   anchorDate: string,
-): WhiteDaysPeriodSlice["chartPeriods"] {
-  const periods: WhiteDaysPeriodSlice["chartPeriods"] = [];
+): ProphetDawoodPeriodSlice["chartPeriods"] {
+  const periods: ProphetDawoodPeriodSlice["chartPeriods"] = [];
   const endMonthStart = getMonthStart(anchorDate);
 
   for (let index = monthCount - 1; index >= 0; index -= 1) {
     const monthStart = shiftMonth(endMonthStart, -index);
     const monthEnd = getMonthEnd(monthStart);
-    const whiteDayCount = countWhiteDaysInRange(monthStart, monthEnd);
+    const target = countTargetsInRange(monthStart, monthEnd);
     const completed = countCompletedInRange(monthStart, monthEnd);
 
     periods.push({
@@ -248,7 +298,7 @@ function buildMonthlyGregorianPeriods(
       startDate: monthStart,
       endDate: monthEnd,
       completed,
-      incomplete: Math.max(0, whiteDayCount - completed),
+      incomplete: Math.max(0, target - completed),
       timeSpentMinutes: sumTimeSpentMinutesInRange(monthStart, monthEnd),
     });
   }
@@ -257,7 +307,7 @@ function buildMonthlyGregorianPeriods(
 }
 
 function resolveActivePageIndex(
-  chartPeriods: WhiteDaysPeriodSlice["chartPeriods"],
+  chartPeriods: ProphetDawoodPeriodSlice["chartPeriods"],
 ): number {
   const today = getTodayDateString();
 
@@ -276,11 +326,12 @@ function buildPeriodSlice(
   periodStart: string,
   periodEnd: string,
   dateRangeLabel: string,
-  chartPeriods: WhiteDaysPeriodSlice["chartPeriods"],
+  chartPeriods: ProphetDawoodPeriodSlice["chartPeriods"],
   calendarAnchorDate: string,
-): WhiteDaysPeriodSlice {
+): ProphetDawoodPeriodSlice {
   const monthCount = getPeriodMonthCount(period);
-  const targetFasts = countWhiteDaysInRange(periodStart, periodEnd);
+  const today = getTodayDateString();
+  const targetFasts = countTargetsInRange(periodStart, periodEnd);
   const completedFasts = countCompletedInRange(periodStart, periodEnd);
   const incompleteFasts = Math.max(0, targetFasts - completedFasts);
   const achievementPercent = Math.min(
@@ -290,7 +341,7 @@ function buildPeriodSlice(
 
   const previousPeriodStart = shiftMonth(periodStart, -monthCount);
   const previousPeriodEnd = addDays(periodStart, -1);
-  const previousTarget = countWhiteDaysInRange(
+  const previousTarget = countTargetsInRange(
     previousPeriodStart,
     previousPeriodEnd,
   );
@@ -304,7 +355,9 @@ function buildPeriodSlice(
 
   const monthStart = getMonthStart(calendarAnchorDate);
   const monthEnd = getMonthEnd(calendarAnchorDate);
-  const today = getTodayDateString();
+  const monthBuckets = classifyDawoodDatesInRange(monthStart, monthEnd, today);
+  const cycleRestartDate = getProphetDawoodCycleRestartDate();
+  const history = getDawoodCycleHistory();
 
   return {
     chartPeriods,
@@ -318,14 +371,18 @@ function buildPeriodSlice(
     periodEndDate: periodEnd,
     pageCount: chartPeriods.length,
     activePageIndex: resolveActivePageIndex(chartPeriods),
-    completedDates: getCompletedDatesInRange(monthStart, monthEnd),
-    missedDates: getMissedDatesInRange(monthStart, monthEnd, today),
-    upcomingDates: getUpcomingDatesInRange(monthStart, monthEnd, today),
+    completedDates: monthBuckets.completed,
+    missedDates: monthBuckets.missed,
+    upcomingDates: monthBuckets.upcoming,
     calendarMonthDate: monthStart,
+    cycleRestartDate,
+    hasCycleReset: history.hasMissedDawoodFast && cycleRestartDate !== null,
+    trackedMonths: countTrackedMonths(chartPeriods),
+    cycleCount: countCyclesInRange(periodStart, periodEnd),
   };
 }
 
-function buildMonthlySlice(anchorDate: string): WhiteDaysPeriodSlice {
+function buildMonthlySlice(anchorDate: string): ProphetDawoodPeriodSlice {
   const monthStart = getMonthStart(anchorDate);
   const monthEnd = getMonthEnd(anchorDate);
 
@@ -339,7 +396,7 @@ function buildMonthlySlice(anchorDate: string): WhiteDaysPeriodSlice {
   );
 }
 
-function buildThreeMonthSlice(anchorDate: string): WhiteDaysPeriodSlice {
+function buildThreeMonthSlice(anchorDate: string): ProphetDawoodPeriodSlice {
   const endMonthStart = getMonthStart(anchorDate);
   const startMonthStart = shiftMonth(endMonthStart, -2);
   const endMonthEnd = getMonthEnd(endMonthStart);
@@ -354,7 +411,7 @@ function buildThreeMonthSlice(anchorDate: string): WhiteDaysPeriodSlice {
   );
 }
 
-function buildSixMonthSlice(anchorDate: string): WhiteDaysPeriodSlice {
+function buildSixMonthSlice(anchorDate: string): ProphetDawoodPeriodSlice {
   const endMonthStart = getMonthStart(anchorDate);
   const startMonthStart = shiftMonth(endMonthStart, -5);
   const endMonthEnd = getMonthEnd(endMonthStart);
@@ -370,7 +427,7 @@ function buildSixMonthSlice(anchorDate: string): WhiteDaysPeriodSlice {
 }
 
 function buildPeriodBar(
-  period: WhiteDaysPeriodSlice["chartPeriods"][number],
+  period: ProphetDawoodPeriodSlice["chartPeriods"][number],
 ): QuranPastChartItem {
   const stackTotal = Math.max(
     period.completed + period.incomplete,
@@ -419,7 +476,7 @@ function computeTimeYAxis(chartData: QuranPastChartItem[]) {
 }
 
 function sliceToAchievement(
-  slice: WhiteDaysPeriodSlice,
+  slice: ProphetDawoodPeriodSlice,
 ): QuranHoursPastAchievement {
   const chartData = slice.chartPeriods.map(buildPeriodBar);
   const yAxis = computeYAxis(chartData);
@@ -443,39 +500,32 @@ function sliceToAchievement(
   };
 }
 
-export function getWhiteDaysFastsPastAchievementSlice(
+export function getProphetDawoodFastsPastAchievementSlice(
   period: PastAchievementPeriod,
   anchorDate: string = getTodayDateString(),
-): WhiteDaysPeriodSlice {
+): ProphetDawoodPeriodSlice {
   if (period === "monthly") return buildMonthlySlice(anchorDate);
   if (period === "threeMonths") return buildThreeMonthSlice(anchorDate);
   return buildSixMonthSlice(anchorDate);
 }
 
-export function getWhiteDaysFastsPastAchievement(
+export function getProphetDawoodFastsPastAchievement(
   period: PastAchievementPeriod,
   anchorDate: string = getTodayDateString(),
 ): QuranHoursPastAchievement {
   return sliceToAchievement(
-    getWhiteDaysFastsPastAchievementSlice(period, anchorDate),
+    getProphetDawoodFastsPastAchievementSlice(period, anchorDate),
   );
 }
 
-export function shiftWhiteDaysPastAchievementAnchor(
-  anchorDate: string,
-  direction: "prev" | "next",
-): string {
-  return shiftMonth(anchorDate, direction === "prev" ? -1 : 1);
-}
-
-export function formatWhiteDaysFastCountLabel(count: number): string {
+export function formatProphetDawoodFastCountLabel(count: number): string {
   return String(Math.round(count));
 }
 
-export function applyWhiteDaysAnalyticsView(
+export function applyProphetDawoodAnalyticsView(
   achievement: QuranHoursPastAchievement,
-  slice: WhiteDaysPeriodSlice,
-  view: WhiteDaysAnalyticsView,
+  slice: ProphetDawoodPeriodSlice,
+  view: ProphetDawoodAnalyticsView,
 ): QuranHoursPastAchievement {
   if (view === "completedVsIncomplete") {
     return achievement;
@@ -500,28 +550,41 @@ export function applyWhiteDaysAnalyticsView(
   };
 }
 
-export function getWhiteDaysTimeSpentByPeriod(
-  slice: WhiteDaysPeriodSlice,
+export function getProphetDawoodTimeSpentByPeriod(
+  slice: ProphetDawoodPeriodSlice,
 ): number[] {
   return slice.chartPeriods.map((period) => period.timeSpentMinutes);
 }
 
-export function getTotalWhiteDaysTimeSpentMinutes(
+export function getTotalProphetDawoodTimeSpentMinutes(
   timeSpentByPeriod: number[],
 ): number {
   return timeSpentByPeriod.reduce((sum, minutes) => sum + minutes, 0);
 }
 
-export function formatWhiteDaysFastTimeSpentLabel(totalMinutes: number): string {
+export function formatProphetDawoodFastTimeLabel(totalMinutes: number): string {
   return formatTotalTime(totalMinutes / 60);
 }
 
-export function formatWhiteDaysChartHoursLabel(hours: number): string {
+export function formatProphetDawoodChartHoursLabel(hours: number): string {
   if (hours <= 0) return "0h";
   return formatTotalTime(hours);
 }
 
-export function getWhiteDaysGoalTrackedMonths(
+export function formatDawoodAchievementHijriFooter(
+  start: string,
+  end: string,
+): string {
+  const startMoment = moment(normalizeDateString(start), "YYYY-MM-DD");
+  const endMoment = moment(normalizeDateString(end), "YYYY-MM-DD");
+  const gregorianLabel = `${startMoment.format("MMM D")} - ${endMoment.format("D")}, ${endMoment.year()}`;
+  const hijriStart = `${HIJRI_MONTHS[startMoment.iMonth()]} ${startMoment.iDate()}`;
+  const hijriEnd = `${HIJRI_MONTHS[endMoment.iMonth()]} ${endMoment.iDate()}, ${endMoment.iYear()} AH`;
+
+  return `${gregorianLabel} corresponds to ${hijriStart} to ${hijriEnd} in the Hijri calendar.`;
+}
+
+export function getProphetDawoodGoalTrackedMonths(
   period: PastAchievementPeriod,
 ): number {
   switch (period) {
@@ -534,26 +597,70 @@ export function getWhiteDaysGoalTrackedMonths(
   }
 }
 
-export function getTotalWhiteDaysFastsCompleted(
-  slice: WhiteDaysPeriodSlice,
+export function getTotalProphetDawoodFastsCompleted(
+  slice: ProphetDawoodPeriodSlice,
 ): number {
   return slice.completedFasts;
 }
 
-export function getWhiteDaysFastTimeSpentForDate(date: string): number {
+export function getProphetDawoodFastSummary(
+  slice: ProphetDawoodPeriodSlice,
+): DawoodFastSummary {
+  return {
+    totalCompleted: slice.completedFasts,
+    totalIncomplete: slice.incompleteFasts,
+    totalTimeSpent: slice.chartPeriods.reduce(
+      (sum, period) => sum + period.timeSpentMinutes,
+      0,
+    ),
+  };
+}
+
+export function getProphetDawoodFastTimeSpentForDate(date: string): number {
   const normalizedDate = normalizeDateString(date);
-  return getWhiteDaysFastLogs()
-    .filter((log) => normalizeDateString(log.date) === normalizedDate)
+  return getProphetDawoodFastLogs()
+    .filter(
+      (log) => log.completed && normalizeDateString(log.date) === normalizedDate,
+    )
     .reduce((sum, log) => sum + getLogDurationMinutes(log), 0);
 }
 
-export function isWhiteDaysFastCompletedOnDate(date: string): boolean {
-  return isWhiteDaysFastCompletedDate(date);
+export function isProphetDawoodFastCompletedOnDate(date: string): boolean {
+  return isProphetDawoodFastCompletedDate(normalizeDateString(date));
 }
 
-export function isWhiteDaysFastMissedOnDate(
+export function isProphetDawoodFastMissedOnDate(
   date: string,
-  slice: WhiteDaysPeriodSlice,
+  slice: ProphetDawoodPeriodSlice,
 ): boolean {
   return slice.missedDates.includes(normalizeDateString(date));
+}
+
+export function buildProphetDawoodAchievements(
+  slice: ProphetDawoodPeriodSlice,
+): DawoodFastAchievement[] {
+  const history = getDawoodCycleHistory();
+  const dates = new Set([
+    ...slice.completedDates,
+    ...slice.missedDates,
+    ...slice.upcomingDates,
+  ]);
+
+  const cycleByDate = new Map<string, number>();
+  history.segments.forEach((segment, index) => {
+    segment.plannedDates.forEach((plannedDate) => {
+      cycleByDate.set(normalizeDateString(plannedDate), index + 1);
+    });
+  });
+
+  return Array.from(dates)
+    .sort()
+    .map((date) => ({
+      id: date,
+      date,
+      isTargetDay: true,
+      completed: slice.completedDates.includes(date),
+      timeSpent: getProphetDawoodFastTimeSpentForDate(date),
+      cycleNumber: cycleByDate.get(date) ?? 1,
+    }));
 }

@@ -18,6 +18,11 @@ import {
   getWhiteDaysFastCompletionPercent,
   getWhiteDaysFastGoalTarget,
 } from "@/src/screens/private/goalprogressloggingscreen/whiteDaysFastsData";
+import {
+  getProphetDawoodFastCompletedCount,
+  getProphetDawoodFastCompletionPercent,
+  getProphetDawoodFastGoalTarget,
+} from "@/src/screens/private/goalprogressloggingscreen/prophetDawoodFastsData";
 
 export type GoalId =
   | "prayer-tahiyyat"
@@ -856,6 +861,22 @@ export function resolveGoalDisplayData(goal: GoalData): GoalData {
       percentage: `${percent}%`,
       progressColor: Colors.light.green,
       previousProgress: `${completed}/${target} days fasted`,
+    };
+  }
+
+  if (goal.id === "fasting-Dawwod") {
+    const completed = getProphetDawoodFastCompletedCount();
+    const target = getProphetDawoodFastGoalTarget();
+    const percent = getProphetDawoodFastCompletionPercent();
+
+    return {
+      ...goal,
+      count: String(completed),
+      label: `/${target} fasts`,
+      target,
+      percentage: `${percent}%`,
+      progressColor: Colors.light.ringDawood,
+      previousProgress: `${completed}/${target} fasts completed`,
     };
   }
 

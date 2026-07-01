@@ -44,7 +44,8 @@ export type LoggingFlowTemplate =
   | "kaffarah-fasts-oaths"
   | "fidya"
   | "monday-thursday-fasts"
-  | "white-days-fasts";
+  | "white-days-fasts"
+  | "prophet-dawood-fasts";
 
 export type {
   QuranRecitationGoalId,
@@ -241,6 +242,22 @@ export type WhiteDaysFastsLogEntry = {
   goalCompleted: boolean;
 };
 
+export type ProphetDawoodFastsLogEntry = {
+  type: "prophet-dawood-fasts";
+  goalType: "prophet_dawood";
+  goalId: "fasting-Dawwod";
+  plannedDate: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  cycleDay: number;
+  completed: boolean;
+  goalTarget: number;
+  completedCount: number;
+  remainingCount: number;
+  goalCompleted: boolean;
+};
+
 export type ProgressLogEntry =
   | QuranHoursLogEntry
   | QuranRecitationLogEntry
@@ -250,6 +267,7 @@ export type ProgressLogEntry =
   | MissedRamadanFastsLogEntry
   | MondayThursdayFastsLogEntry
   | WhiteDaysFastsLogEntry
+  | ProphetDawoodFastsLogEntry
   | Record<string, unknown>;
 
 export type QuranHoursFlowConfig = {

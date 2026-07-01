@@ -23,6 +23,7 @@ import { isCompletionGoalId, isJuzRecitationGoalId } from "../types";
 import { isMissedRamadanFastsGoalId } from "../missedRamadanFastsTarget";
 import { isMondayThursdayFastsGoalId } from "../mondayThursdayFastsTarget";
 import { isWhiteDaysFastsGoalId } from "../whiteDaysFastsTarget";
+import { isProphetDawoodFastsGoalId } from "../prophetDawoodFastsTarget";
 
 type Props = {
   goalData: GoalData;
@@ -58,6 +59,18 @@ export function PastAchievementsSection({ goalData, refreshKey = 0 }: Props) {
     isWhiteDaysFastsGoalId(goalData.id)
   ) {
     return <WhiteDaysFastsPastAchievements refreshKey={refreshKey} />;
+  }
+
+  if (
+    template === "prophet-dawood-fasts" &&
+    isProphetDawoodFastsGoalId(goalData.id)
+  ) {
+    return (
+      <MissedRamadanFastsPastAchievements
+        variant="prophetDawood"
+        refreshKey={refreshKey}
+      />
+    );
   }
 
   if (template === "quran-completion" && isCompletionGoalId(goalData.id)) {

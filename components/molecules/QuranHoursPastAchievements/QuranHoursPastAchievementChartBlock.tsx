@@ -22,7 +22,7 @@ import {
   pastAchievementStyles as styles,
 } from "./pastAchievementStyles";
 
-const DIMMED_BAR_OPACITY = 0.22;
+const DIMMED_BAR_OPACITY = 0.3;
 const BAR_HIT_WIDTH = 44;
 const BAR_CORNER_RADIUS = 2;
 
@@ -285,9 +285,14 @@ function BarConnectorLine({
 type BarHitAreasProps = {
   barCenterXs: number[];
   onBarPress: (index: number) => void;
+  selectedBarIndex: number | null;
 };
 
-function BarHitAreas({ barCenterXs, onBarPress }: BarHitAreasProps) {
+function BarHitAreas({
+  barCenterXs,
+  onBarPress,
+  selectedBarIndex,
+}: BarHitAreasProps) {
   return (
     <>
       {barCenterXs.map((x, index) => (
@@ -300,7 +305,12 @@ function BarHitAreas({ barCenterXs, onBarPress }: BarHitAreasProps) {
               width: BAR_HIT_WIDTH,
             },
           ]}
-          onPress={() => onBarPress(index)}
+          onPress={() => {
+            if (selectedBarIndex === index) {
+              return;
+            }
+            onBarPress(index);
+          }}
           accessibilityRole="button"
           accessibilityLabel={`Week ${index + 1}`}
         />
@@ -501,7 +511,11 @@ export function QuranHoursPastAchievementChartBlock({
           </CartesianChart>
 
           {barCenterXs.length > 0 ? (
-            <BarHitAreas barCenterXs={barCenterXs} onBarPress={onBarPress} />
+            <BarHitAreas
+              barCenterXs={barCenterXs}
+              onBarPress={(index) => onBarPress(index)}
+              selectedBarIndex={selectedBarIndex}
+            />
           ) : null}
 
           {chartBounds ? (

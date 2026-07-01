@@ -34,14 +34,19 @@ function getInitialSurahId(goalId: SurahRecitationGoalId): string {
 
 export function RecitationSurahProvider({
   goalId,
+  initialSurahId,
   children,
 }: {
   goalId: SurahRecitationGoalId;
+  initialSurahId?: string;
   children: React.ReactNode;
 }) {
-  const [activeSurahId, setActiveSurahId] = useState(() =>
-    getInitialSurahId(goalId),
-  );
+  const [activeSurahId, setActiveSurahId] = useState(() => {
+    if (initialSurahId) {
+      return initialSurahId;
+    }
+    return getInitialSurahId(goalId);
+  });
   const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {

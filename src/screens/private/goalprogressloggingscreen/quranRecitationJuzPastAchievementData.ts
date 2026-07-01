@@ -1,6 +1,10 @@
 import { formatTotalTime } from "@/src/screens/private/home/timeSpentData";
 import { getJuzRecitationProgress } from "./quranRecitationJuzData";
-import { getJuzVerseCountFromMap } from "./quranJuzVerseMap";
+import {
+  getJuzRangeLabel,
+  getJuzVerseCountFromMap,
+  getJuzVerseMetadata,
+} from "./quranJuzVerseMap";
 import type {
   PastAchievementPeriod,
   QuranHoursPastAchievement,
@@ -546,6 +550,196 @@ export function getJuzAyatProgressPercent(
 ): number {
   if (totalAyatCount <= 0) return 0;
   return Math.min(100, (completedAyatCount / totalAyatCount) * 100);
+}
+
+export type JuzAchievement = {
+  id: string;
+  juzNumber: number;
+  completedVerses: number;
+  totalVerses: number;
+  completedSessions: number;
+  incompleteSessions: number;
+  totalTimeSpent: number;
+  startAyah: string;
+  endAyah: string;
+};
+
+export type JuzAchievementSummary = {
+  achievements: JuzAchievement[];
+};
+
+export type JuzProgressRailRow = {
+  juzNumber: number | null;
+  title: string;
+  rangeLabel: string;
+  completedVerses: number;
+  totalVerses: number;
+  isCompleted: boolean;
+  timeSpentMinutes: number;
+};
+
+function countSessions(
+  chartPeriods: ChartPeriod[],
+  type: "completed" | "incomplete",
+): number {
+  return chartPeriods.filter((period) =>
+    type === "completed" ? period.completed > 0 : period.incomplete > 0,
+  ).length;
+}
+
+export function getJuzAchievements(slice: JuzPeriodSlice): JuzAchievement[] {
+  return slice.juzRecords.map((record) => {
+    const metadata = getJuzVerseMetadata(record.juzNumber);
+    const unit = slice.perJuz[record.juzNumber];
+
+    return {
+      id: `juz-${record.juzNumber}`,
+      juzNumber: record.juzNumber,
+      completedVerses: record.completedAyatCount,
+      totalVerses: record.totalAyatCount,
+      completedSessions: unit ? countSessions(unit.chartPeriods, "completed") : 0,
+      incompleteSessions: unit ? countSessions(unit.chartPeriods, "incomplete") : 0,
+      totalTimeSpent: record.timeSpentMinutes,
+      startAyah: metadata.startLabel,
+      endAyah: metadata.endLabel,
+    };
+  });
+}
+
+function getJuzVersesForPeriod(
+  unit: JuzUnitPeriodData,
+  periodIndex: number,
+): Pick<JuzProgressRailRow, "completedVerses" | "totalVerses" | "isCompleted"> {
+  const period = unit.chartPeriods[periodIndex];
+  const totalVerses = unit.totalAyatCount;
+
+  if (!period || (period.completed === 0 && period.incomplete === 0)) {
+    return { completedVerses: 0, totalVerses, isCompleted: false };
+  }
+
+  if (period.completed > 0) {
+    return {
+      completedVerses: totalVerses,
+      totalVerses,
+      isCompleted: true,
+    };
+  }
+
+  const activePeriodCount = unit.chartPeriods.filter(
+    (item) => item.completed > 0 || item.incomplete > 0,
+  ).length;
+  const completedVerses = Math.min(
+    totalVerses,
+    Math.max(
+      1,
+      Math.round(unit.completedAyatCount / Math.max(activePeriodCount, 1)),
+    ),
+  );
+
+  return {
+    completedVerses,
+    totalVerses,
+    isCompleted: completedVerses >= totalVerses,
+  };
+}
+
+function buildJuzProgressRailRowForUnit(
+  unit: JuzUnitPeriodData,
+  selectedBarIndex: number | null,
+): JuzProgressRailRow {
+  const juzNumber = unit.juzNumber;
+  const title = `Juz ${juzNumber}`;
+  const rangeLabel = getJuzRangeLabel(juzNumber);
+
+  if (selectedBarIndex !== null) {
+    const periodProgress = getJuzVersesForPeriod(unit, selectedBarIndex);
+    return {
+      juzNumber,
+      title,
+      rangeLabel,
+      ...periodProgress,
+      timeSpentMinutes:
+        unit.chartPeriods[selectedBarIndex]?.timeSpentMinutes ?? 0,
+    };
+  }
+
+  return {
+    juzNumber,
+    title,
+    rangeLabel,
+    completedVerses: unit.completedAyatCount,
+    totalVerses: unit.totalAyatCount,
+    isCompleted: unit.status === "completed",
+    timeSpentMinutes: unit.timeSpentMinutes,
+  };
+}
+
+function buildEmptyJuzProgressRailRow(juzNumber: number): JuzProgressRailRow {
+  const totalVerses = getJuzVerseCountFromMap(juzNumber);
+  return {
+    juzNumber,
+    title: `Juz ${juzNumber}`,
+    rangeLabel: getJuzRangeLabel(juzNumber),
+    completedVerses: 0,
+    totalVerses,
+    isCompleted: false,
+    timeSpentMinutes: 0,
+  };
+}
+
+export function getJuzProgressRailRows(
+  allSlice: JuzPeriodSlice,
+  filteredSlice: JuzPeriodSlice,
+  juzFilter: JuzFilterId,
+  selectedBarIndex: number | null,
+): JuzProgressRailRow[] {
+  if (juzFilter === "all") {
+    const rows: JuzProgressRailRow[] = [];
+
+    for (
+      let juz = allSlice.juzRange.startJuz;
+      juz <= allSlice.juzRange.endJuz;
+      juz += 1
+    ) {
+      const unit = allSlice.perJuz[juz];
+      rows.push(
+        unit
+          ? buildJuzProgressRailRowForUnit(unit, selectedBarIndex)
+          : buildEmptyJuzProgressRailRow(juz),
+      );
+    }
+
+    return rows;
+  }
+
+  const unit = filteredSlice.perJuz[juzFilter] ?? allSlice.perJuz[juzFilter];
+  if (!unit) {
+    return [];
+  }
+
+  return [buildJuzProgressRailRowForUnit(unit, selectedBarIndex)];
+}
+
+/** @deprecated Use getJuzProgressRailRows */
+export function getJuzProgressRailRow(
+  allSlice: JuzPeriodSlice,
+  filteredSlice: JuzPeriodSlice,
+  juzFilter: JuzFilterId,
+  selectedBarIndex: number | null,
+): JuzProgressRailRow | null {
+  const rows = getJuzProgressRailRows(
+    allSlice,
+    filteredSlice,
+    juzFilter,
+    selectedBarIndex,
+  );
+  return rows[0] ?? null;
+}
+
+export function formatJuzTimeSpentChip(totalMinutes: number): string {
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
 }
 
 export { MOTIVATIONAL_SUMMARY_KEY };

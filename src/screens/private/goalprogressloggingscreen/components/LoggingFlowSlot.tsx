@@ -31,6 +31,7 @@ import SadaqahJariyahLoggingFlow from "../flows/SadaqahJariyahLoggingFlow";
 import VolunteeringLoggingFlow from "../flows/VolunteeringLoggingFlow";
 import MondayThursdayFastsLoggingFlow from "../flows/MondayThursdayFastsLoggingFlow";
 import WhiteDaysFastsLoggingFlow from "../flows/WhiteDaysFastsLoggingFlow";
+import ProphetDawoodFastsLoggingFlow from "../flows/ProphetDawoodFastsLoggingFlow";
 
 type Props = {
   goalData: GoalData;
@@ -209,6 +210,16 @@ export function LoggingFlowSlot({
   if (template === "white-days-fasts") {
     return (
       <WhiteDaysFastsLoggingFlow
+        goalData={goalData}
+        onLogComplete={onLogComplete}
+        onDropdownOpenChange={onDropdownOpenChange}
+      />
+    );
+  }
+
+  if (template === "prophet-dawood-fasts") {
+    return (
+      <ProphetDawoodFastsLoggingFlow
         goalData={goalData}
         onLogComplete={onLogComplete}
         onDropdownOpenChange={onDropdownOpenChange}

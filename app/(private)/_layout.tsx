@@ -50,7 +50,9 @@ export default function PrivateLayout() {
         name="menstruationlog"
         options={{
           headerShown: true,
-          header: () => <Header title={t("homeScreen.menstruationLog_logMenstruation")} />,
+          header: () => (
+            <Header title={t("homeScreen.menstruationLog_logMenstruation")} />
+          ),
         }}
       />
       <Stack.Screen

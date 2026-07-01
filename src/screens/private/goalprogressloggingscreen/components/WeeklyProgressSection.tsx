@@ -9,6 +9,7 @@ import { TahiyatAlMasjidWeeklyProgressDashboard } from "@/components/molecules/T
 import { MissedRamadanFastsWeeklyProgressDashboard } from "@/components/molecules/MissedRamadanFastsWeeklyProgressDashboard";
 import { MondayThursdayFastsWeeklyProgressDashboard } from "@/components/molecules/MondayThursdayFastsWeeklyProgressDashboard";
 import { WhiteDaysFastsWeeklyProgressDashboard } from "@/components/molecules/WhiteDaysFastsWeeklyProgressDashboard";
+import { ProphetDawoodFastsWeeklyProgressDashboard } from "@/components/molecules/ProphetDawoodFastsWeeklyProgressDashboard";
 import { DuhaPrayerWeeklyProgressDashboard } from "@/components/molecules/DuhaPrayerWeeklyProgressDashboard";
 import { TawbahPrayerWeeklyProgressDashboard } from "@/components/molecules/TawbahPrayerWeeklyProgressDashboard";
 import { IstikharaPrayerWeeklyProgressDashboard } from "@/components/molecules/IstikharaPrayerWeeklyProgressDashboard";
@@ -106,6 +107,12 @@ import {
   getWhiteDaysFastCycleSummary,
   getWhiteDaysFastTodayIndexInWeek,
 } from "../whiteDaysFastsWeeklyData";
+import {
+  canNavigateProphetDawoodFastWeek,
+  clampProphetDawoodFastWeekIndex,
+  getProphetDawoodFastCycleSummary,
+  getProphetDawoodFastTodayIndexInWeek,
+} from "../prophetDawoodFastsWeeklyData";
 
 type Props = {
   goalData: GoalData;
@@ -230,6 +237,11 @@ export function WeeklyProgressSection({
     if (template !== "white-days-fasts") return null;
     return getWhiteDaysFastCycleSummary();
   }, [template, refreshKey]);
+
+  const prophetDawoodCycle = useMemo(() => {
+    if (template !== "prophet-dawood-fasts") return null;
+    return getProphetDawoodFastCycleSummary();
+  }, [template, refreshKey]);
   useEffect(() => {
     if (recitationCycle) {
       setWeekIndex(recitationCycle.activeWeekIndex);
@@ -283,6 +295,12 @@ export function WeeklyProgressSection({
       setWeekIndex(whiteDaysCycle.activeWeekIndex);
     }
   }, [whiteDaysCycle, goalData.id, refreshKey]);
+
+  useEffect(() => {
+    if (prophetDawoodCycle) {
+      setWeekIndex(prophetDawoodCycle.activeWeekIndex);
+    }
+  }, [prophetDawoodCycle, goalData.id, refreshKey]);
 
   const quranRecitationWeek = useMemo(() => {
     if (!recitationCycle) return null;
@@ -374,6 +392,13 @@ export function WeeklyProgressSection({
     if (!whiteDaysCycle) return null;
     return whiteDaysCycle.weeks[clampWhiteDaysFastWeekIndex(weekIndex)];
   }, [whiteDaysCycle, weekIndex]);
+
+  const prophetDawoodWeek = useMemo(() => {
+    if (!prophetDawoodCycle) return null;
+    return prophetDawoodCycle.weeks[
+      clampProphetDawoodFastWeekIndex(weekIndex)
+    ];
+  }, [prophetDawoodCycle, weekIndex]);
 
   useEffect(() => {
     if (template !== "monday-thursday-fasts") {
@@ -476,6 +501,14 @@ export function WeeklyProgressSection({
 
   const handleWhiteDaysNextWeek = useCallback(() => {
     setWeekIndex((current) => clampWhiteDaysFastWeekIndex(current + 1));
+  }, []);
+
+  const handleProphetDawoodPrevWeek = useCallback(() => {
+    setWeekIndex((current) => clampProphetDawoodFastWeekIndex(current - 1));
+  }, []);
+
+  const handleProphetDawoodNextWeek = useCallback(() => {
+    setWeekIndex((current) => clampProphetDawoodFastWeekIndex(current + 1));
   }, []);
 
   const quranFlow = getQuranHoursFlowDefinition(goalData.id);
@@ -752,6 +785,29 @@ export function WeeklyProgressSection({
         onNextWeek={
           canNavigateWhiteDaysFastWeek(weekIndex, "next")
             ? handleWhiteDaysNextWeek
+            : undefined
+        }
+      />
+    );
+  }
+
+  if (template === "prophet-dawood-fasts" && prophetDawoodWeek) {
+    const prophetDawoodTodayIndex = getProphetDawoodFastTodayIndexInWeek(
+      prophetDawoodWeek.weekDays,
+    );
+
+    return (
+      <ProphetDawoodFastsWeeklyProgressDashboard
+        weekSummary={prophetDawoodWeek}
+        selectedDayIndex={prophetDawoodTodayIndex}
+        onPrevWeek={
+          canNavigateProphetDawoodFastWeek(weekIndex, "prev")
+            ? handleProphetDawoodPrevWeek
+            : undefined
+        }
+        onNextWeek={
+          canNavigateProphetDawoodFastWeek(weekIndex, "next")
+            ? handleProphetDawoodNextWeek
             : undefined
         }
       />

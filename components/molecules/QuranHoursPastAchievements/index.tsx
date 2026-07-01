@@ -7,21 +7,30 @@ import {
   Pressable,
   useWindowDimensions,
   FlatList,
+  ScrollView,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import {
+  formatDuration,
   formatGoalHoursLabel,
+  getHoursGoalTrackedMonths,
   getQuranHoursPastAchievement,
+  hoursToMinutes,
+  toHoursPastAchievementSummary,
   type PastAchievementPeriod,
 } from "@/src/screens/private/goalprogressloggingscreen/quranHoursPastAchievementData";
 import type { QuranHoursGoalId } from "@/src/screens/private/goalprogressloggingscreen/types";
 import { INCOMPLETE_BAR_COLOR } from "./pastAchievementStyles";
 import { QuranHoursPastAchievementChartBlock } from "./QuranHoursPastAchievementChartBlock";
+import { GraphBarSelectionFooter } from "./GraphBarSelectionFooter";
+import { ListeningPastAchievementMetricsSection } from "./ListeningPastAchievementMetricsSection";
+import { InsightCard } from "../InsightCard";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import {
   getGoalById,
@@ -31,6 +40,8 @@ import { Image } from "expo-image";
 
 type Props = {
   goalId: QuranHoursGoalId;
+  isDetailed?: boolean;
+  initialPeriod?: PastAchievementPeriod;
 };
 
 const PERIODS: PastAchievementPeriod[] = [
@@ -45,16 +56,68 @@ const PERIOD_LABEL_KEYS: Record<PastAchievementPeriod, string> = {
   threeMonths: "progressLogging.periodThreeMonths",
   sixMonths: "progressLogging.periodSixMonths",
 };
+const PERIOD_DELTA_LABEL_KEYS: Record<PastAchievementPeriod, string> = {
+  monthly: "progressLogging.previousMonth",
+  threeMonths: "progressLogging.previousThreeMonths",
+  sixMonths: "progressLogging.previousSixMonths",
+};
 type StudyMaterialItem = NonNullable<GoalData["studyMaterial"]>[number];
 const GOAL_SUMMARY_KEY: Record<QuranHoursGoalId, string> = {
   "quran-listening": "progressLogging.achievementSummaryListening",
   "quran-Tajweed": "progressLogging.achievementSummaryTajweed",
 };
 
-export function QuranHoursPastAchievements({ goalId }: Props) {
+const DETAILED_SUMMARY_KEYS: Record<
+  QuranHoursGoalId,
+  Record<PastAchievementPeriod, string>
+> = {
+  "quran-listening": {
+    monthly: "progressLogging.listeningDetailedSummaryMonthly",
+    threeMonths: "progressLogging.listeningDetailedSummaryThreeMonths",
+    sixMonths: "progressLogging.listeningDetailedSummarySixMonths",
+  },
+  "quran-Tajweed": {
+    monthly: "progressLogging.tajweedDetailedSummaryMonthly",
+    threeMonths: "progressLogging.tajweedDetailedSummaryThreeMonths",
+    sixMonths: "progressLogging.tajweedDetailedSummarySixMonths",
+  },
+};
+
+const DETAILED_SUMMARY_WEEK_KEYS: Record<QuranHoursGoalId, string> = {
+  "quran-listening": "progressLogging.listeningDetailedSummaryWeek",
+  "quran-Tajweed": "progressLogging.tajweedDetailedSummaryWeek",
+};
+
+const DETAILED_SUMMARY_MONTH_BAR_KEYS: Record<QuranHoursGoalId, string> = {
+  "quran-listening": "progressLogging.listeningDetailedSummaryMonthBar",
+  "quran-Tajweed": "progressLogging.tajweedDetailedSummaryMonthBar",
+};
+
+const PERIOD_INSIGHT_SUBTITLE: Record<PastAchievementPeriod, string> = {
+  monthly: "VS. LAST MONTH",
+  threeMonths: "VS. LAST 3 MONTHS",
+  sixMonths: "VS. LAST 6 MONTHS",
+};
+
+const TOTAL_TIME_INSIGHT_TITLE_KEYS: Record<QuranHoursGoalId, string> = {
+  "quran-listening": "progressLogging.listeningInsightTotalListeningTime",
+  "quran-Tajweed": "progressLogging.tajweedInsightTotalTime",
+};
+
+const GOAL_TYPE_KEYS: Record<QuranHoursGoalId, string> = {
+  "quran-listening": "quran_listening",
+  "quran-Tajweed": "quran_tajweed",
+};
+
+export function QuranHoursPastAchievements({
+  goalId,
+  isDetailed = false,
+  initialPeriod = "monthly",
+}: Props) {
+  const router = useRouter();
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
-  const [period, setPeriod] = useState<PastAchievementPeriod>("monthly");
+  const [period, setPeriod] = useState<PastAchievementPeriod>(initialPeriod);
   const [selectedBarIndex, setSelectedBarIndex] = useState<number | null>(null);
   const [hintDismissed, setHintDismissed] = useState(false);
   const { width: screenWidth } = useWindowDimensions();
@@ -65,34 +128,156 @@ export function QuranHoursPastAchievements({ goalId }: Props) {
     () => getQuranHoursPastAchievement(goalId, period),
     [goalId, period],
   );
+  const hoursGoalSummary = useMemo(
+    () => toHoursPastAchievementSummary(achievement, period),
+    [achievement, period],
+  );
+  const goalTrackedMonths = useMemo(
+    () => getHoursGoalTrackedMonths(period, achievement),
+    [achievement, period],
+  );
 
   useEffect(() => {
     setSelectedBarIndex(null);
     setHintDismissed(false);
   }, [period, goalId]);
 
-  const handleBarPress = useCallback((index: number | null) => {
+  const handleBarPressCompact = useCallback((index: number | null) => {
     setHintDismissed(true);
     setSelectedBarIndex((current) => (current === index ? null : index));
   }, []);
 
+  const handleBarPressDetailed = useCallback((index: number | null) => {
+    setHintDismissed(true);
+    setSelectedBarIndex(index);
+  }, []);
+
+  const handleCloseBarSelection = useCallback(() => {
+    setSelectedBarIndex(null);
+  }, []);
+
+  const handleNavigateToDetailed = useCallback(() => {
+    router.push({
+      pathname: "/(private)/pastachievementdetailedstatistics",
+      params: {
+        goalId,
+        period,
+        goalType: GOAL_TYPE_KEYS[goalId],
+      },
+    });
+  }, [goalId, period, router]);
+
   const selectedWeek =
     selectedBarIndex !== null ? achievement.chartData[selectedBarIndex] : null;
+  const selectedPeriodAchievement =
+    selectedBarIndex !== null
+      ? hoursGoalSummary.achievements[selectedBarIndex]
+      : null;
 
   const displayCompletedHours =
     selectedWeek?.completedHours ?? achievement.completedHours;
   const displayIncompleteHours =
     selectedWeek?.incompleteHours ?? achievement.incompleteHours;
+  const displayCompletedMinutes =
+    selectedPeriodAchievement?.completedMinutes ??
+    hoursGoalSummary.totalCompletedMinutes;
+  const displayIncompleteMinutes =
+    selectedPeriodAchievement?.incompleteMinutes ??
+    hoursGoalSummary.totalIncompleteMinutes;
   const displayGoalHours = selectedWeek
     ? selectedWeek.completedHours + selectedWeek.incompleteHours
     : achievement.goalHours;
 
-  const goalProgressPercent =
-    displayGoalHours > 0
-      ? Math.min(100, (displayCompletedHours / displayGoalHours) * 100)
-      : 0;
+  const selectedBarGoalTotal = useMemo(() => {
+    if (selectedBarIndex === null) {
+      return 0;
+    }
 
-  const showChartHint = !hintDismissed && selectedBarIndex === null;
+    if (selectedWeek) {
+      return Math.max(
+        selectedWeek.stackTotalHours,
+        displayCompletedHours + displayIncompleteHours,
+        1,
+      );
+    }
+
+    return displayGoalHours;
+  }, [
+    displayCompletedHours,
+    displayIncompleteHours,
+    displayGoalHours,
+    selectedBarIndex,
+    selectedWeek,
+  ]);
+
+  const showChartHint =
+    isDetailed && !hintDismissed && selectedBarIndex === null;
+  const deltaIsPositive = achievement.previousPeriodDeltaPercent >= 0;
+
+  const renderDetailedSummary = () => {
+    if (selectedBarIndex !== null && selectedWeek && period === "monthly") {
+      const weeklyGoal = achievement.periodGoalHours;
+      const weekPercent = Math.min(
+        100,
+        Math.round(
+          (selectedWeek.completedHours / Math.max(weeklyGoal, 1)) * 100,
+        ),
+      );
+
+      return (
+        <Text style={styles.summaryTextDetailed}>
+          {t(DETAILED_SUMMARY_WEEK_KEYS[goalId], {
+            week: formatNumber(selectedBarIndex + 1),
+            completed: formatDuration(
+              hoursToMinutes(selectedWeek.completedHours),
+            ),
+            percent: formatNumber(weekPercent),
+          })}
+        </Text>
+      );
+    }
+
+    if (selectedBarIndex !== null && selectedWeek && period !== "monthly") {
+      const periodTotal =
+        selectedWeek.completedHours + selectedWeek.incompleteHours;
+      const monthPercent = Math.min(
+        100,
+        Math.round(
+          (selectedWeek.completedHours / Math.max(periodTotal, 1)) * 100,
+        ),
+      );
+
+      return (
+        <Text style={styles.summaryTextDetailed}>
+          {t(DETAILED_SUMMARY_MONTH_BAR_KEYS[goalId], {
+            range: selectedWeek.dateLabel,
+            completed: formatDuration(
+              hoursToMinutes(selectedWeek.completedHours),
+            ),
+            percent: formatNumber(monthPercent),
+          })}
+        </Text>
+      );
+    }
+
+    const summaryKey = DETAILED_SUMMARY_KEYS[goalId][period];
+
+    return (
+      <Text style={styles.summaryTextDetailed}>
+        {t(summaryKey, {
+          percent: formatNumber(achievement.achievementPercent),
+          goalTotal: formatGoalHoursLabel(achievement.goalHours),
+          completed: formatDuration(hoursGoalSummary.totalCompletedMinutes),
+          delta: formatNumber(Math.abs(achievement.previousPeriodDeltaPercent)),
+          direction: deltaIsPositive
+            ? t("progressLogging.periodComparisonIncrease")
+            : t("progressLogging.periodComparisonDecrease"),
+          range: achievement.dateRangeLabel,
+        })}
+      </Text>
+    );
+  };
+
   const studyMaterialKeyExtractor = useCallback(
     (item: StudyMaterialItem) => String(item.id),
     [],
@@ -135,43 +320,145 @@ export function QuranHoursPastAchievements({ goalId }: Props) {
     () => <View style={{ width: STUDY_CARD_GAP }} />,
     [],
   );
-  return (
-    <View style={styles.section}>
-      <View style={styles.card}>
-        <View style={styles.cardHeader}>
-          <MaterialCommunityIcons
-            name="trophy-outline"
-            size={16}
-            color={Colors.light.white}
-          />
-          <Text style={styles.sectionTitle}>
-            {t("progressLogging.pastGoalAchievements")}
+
+  const formatChartBarValue = useCallback(
+    (hours: number) => formatDuration(hoursToMinutes(hours)),
+    [],
+  );
+
+  const renderInsights = () => {
+    if (!isDetailed) {
+      return null;
+    }
+
+    const insightCards = [
+      {
+        iconName: "calendar-outline" as const,
+        title: t("progressLogging.recitationInsightGoalTracked"),
+        value: formatNumber(goalTrackedMonths),
+        subValue: t("progressLogging.recitationInsightMonths"),
+      },
+      {
+        iconName: "time-outline" as const,
+        title: t(TOTAL_TIME_INSIGHT_TITLE_KEYS[goalId]),
+        value: formatNumber(hoursGoalSummary.totalActiveHours),
+        subValue: t("progressLogging.listeningInsightActiveHrs"),
+      },
+    ];
+
+    return (
+      <View style={styles.insightsSection}>
+        <View style={styles.insightsHeader}>
+          <Text style={styles.insightsTitleLabel}>
+            {t("progressLogging.keyInsights")}
+          </Text>
+          <Text style={styles.insightsSubtitleLabel}>
+            {PERIOD_INSIGHT_SUBTITLE[period]}
           </Text>
         </View>
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.insightsScrollContent}
         >
+          {insightCards.map((card) => (
+            <InsightCard
+              key={card.title}
+              iconName={card.iconName}
+              title={card.title}
+              value={card.value}
+              subValue={card.subValue}
+              style={styles.insightCardFixed}
+            />
+          ))}
+        </ScrollView>
+      </View>
+    );
+  };
+
+  return (
+    <View style={[styles.section, isDetailed && styles.sectionDetailed]}>
+      <View style={styles.card}>
+        <View style={styles.cardHeaderBlock}>
+          <View style={styles.cardHeader}>
+            <MaterialCommunityIcons
+              name={isDetailed ? "trending-up" : "trophy-outline"}
+              size={isDetailed ? 19 : 16}
+              color={isDetailed ? Colors.light.subtext : Colors.light.white}
+            />
+            <Text
+              style={[
+                styles.sectionTitle,
+                isDetailed && styles.sectionTitleDetailed,
+              ]}
+            >
+              {t("progressLogging.pastGoalAchievements")}
+            </Text>
+            {!isDetailed ? (
+              <TouchableOpacity
+                onPress={handleNavigateToDetailed}
+                style={{ marginLeft: "auto", padding: 4 }}
+              >
+                <Ionicons
+                  name="chevron-forward"
+                  size={20}
+                  color={Colors.light.white}
+                />
+              </TouchableOpacity>
+            ) : null}
+          </View>
+        </View>
+
+        <View style={isDetailed ? styles.topRow : styles.compactTopRow}>
           <View style={[styles.achievementBlock]}>
-            <Text style={styles.achievementCaption}>
-              {t("progressLogging.achievementsLabel")}
+            <Text
+              style={[
+                styles.achievementCaption,
+                isDetailed && styles.achievementCaptionDetailed,
+              ]}
+            >
+              {isDetailed
+                ? t("progressLogging.achievementsLabel").toUpperCase()
+                : t("progressLogging.achievementsLabel")}
             </Text>
-            <Text style={styles.achievementPercent}>
+            <Text
+              style={[
+                styles.achievementPercent,
+                isDetailed && styles.achievementPercentDetailed,
+              ]}
+            >
               {formatNumber(achievement.achievementPercent)}
-              <Text style={styles.achievementPercentSymbol}>%</Text>
+              <Text
+                style={[
+                  styles.achievementPercentSymbol,
+                  isDetailed && styles.achievementPercentSymbolDetailed,
+                ]}
+              >
+                %
+              </Text>
             </Text>
-            <View style={styles.deltaBadge}>
+            <View
+              style={[
+                styles.deltaBadge,
+                !deltaIsPositive && styles.deltaBadgeNegative,
+              ]}
+            >
               <Ionicons
-                name="arrow-down"
+                name={deltaIsPositive ? "arrow-up" : "arrow-down"}
                 size={11}
-                color={Colors.light.green}
+                color={
+                  deltaIsPositive ? Colors.light.green : Colors.light.subtext
+                }
               />
-              <Text style={styles.deltaText}>
+              <Text
+                style={[
+                  styles.deltaText,
+                  !deltaIsPositive && styles.deltaTextNegative,
+                ]}
+              >
+                {deltaIsPositive ? "+" : ""}
                 {formatNumber(achievement.previousPeriodDeltaPercent)}%{" "}
-                {t("progressLogging.previousMonth")}
+                {t(PERIOD_DELTA_LABEL_KEYS[period])}
               </Text>
             </View>
           </View>
@@ -207,7 +494,7 @@ export function QuranHoursPastAchievements({ goalId }: Props) {
               <TouchableOpacity activeOpacity={0.7} style={styles.navBtn}>
                 <Ionicons
                   name="chevron-back"
-                  size={14}
+                  size={isDetailed ? 24 : 14}
                   color={Colors.light.dullWhite}
                 />
               </TouchableOpacity>
@@ -217,7 +504,7 @@ export function QuranHoursPastAchievements({ goalId }: Props) {
               <TouchableOpacity activeOpacity={0.7} style={styles.navBtn}>
                 <Ionicons
                   name="chevron-forward"
-                  size={14}
+                  size={isDetailed ? 24 : 14}
                   color={Colors.light.dullWhite}
                 />
               </TouchableOpacity>
@@ -225,70 +512,96 @@ export function QuranHoursPastAchievements({ goalId }: Props) {
           </View>
         </View>
 
-        <Text style={styles.summaryText}>
-          {t(GOAL_SUMMARY_KEY[goalId], {
-            percent: formatNumber(achievement.achievementPercent),
-            delta: formatNumber(achievement.previousPeriodDeltaPercent),
-          })}
-        </Text>
+        {isDetailed ? (
+          renderDetailedSummary()
+        ) : (
+          <Text style={styles.summaryText}>
+            {t(GOAL_SUMMARY_KEY[goalId], {
+              percent: formatNumber(achievement.achievementPercent),
+              delta: formatNumber(achievement.previousPeriodDeltaPercent),
+            })}
+          </Text>
+        )}
 
         <View style={styles.goalHeader}>
-          <Text style={styles.goalLabel}>{t("progressLogging.goal")}</Text>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 6,
-            }}
-          >
-            <Text style={styles.goalPillValue}>
-              {formatNumber(achievement.goalHours)}{" "}
-            </Text>
-            <View style={styles.goalPill}>
-              <Text style={styles.goalPillText}>
-                {t("progressLogging.unitHours")}
+          <Text style={styles.goalLabel}>
+            {isDetailed
+              ? t("progressLogging.recitationGoalTotalLabel")
+              : t("progressLogging.goal")}
+          </Text>
+          {isDetailed ? (
+            <View style={styles.goalValueRow}>
+              <View style={styles.goalValueBlock}>
+                <Text style={styles.goalPillValue}>
+                  {formatGoalHoursLabel(displayGoalHours)}
+                </Text>
+                <View style={styles.goalPill}>
+                  <Text style={styles.goalPillText}>
+                    {t("progressLogging.unitHours")}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          ) : (
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 6,
+              }}
+            >
+              <Text style={styles.goalPillValue}>
+                {formatNumber(achievement.goalHours)}{" "}
+              </Text>
+              <View style={styles.goalPill}>
+                <Text style={styles.goalPillText}>
+                  {t("progressLogging.unitHours")}
+                </Text>
+              </View>
+            </View>
+          )}
+        </View>
+
+        {isDetailed ? (
+          <ListeningPastAchievementMetricsSection
+            completedMinutes={displayCompletedMinutes}
+            incompleteMinutes={displayIncompleteMinutes}
+            formatDuration={formatDuration}
+            completedLabel={t("progressLogging.completed")}
+            incompleteLabel={t("progressLogging.incomplete")}
+          />
+        ) : (
+          <View style={styles.statsRow}>
+            <View style={styles.statColumn}>
+              <Text style={styles.statLabel}>
+                {t("progressLogging.completed")}
+              </Text>
+              <Text style={styles.statValueCompleted}>
+                {formatGoalHoursLabel(displayCompletedHours)}
+              </Text>
+            </View>
+            <View style={styles.statColumn}>
+              <Text style={styles.statLabel}>
+                {t("progressLogging.incomplete")}
+              </Text>
+              <Text style={styles.statValueIncomplete}>
+                {formatGoalHoursLabel(displayIncompleteHours)}
               </Text>
             </View>
           </View>
-        </View>
-
-        <View style={styles.statsRow}>
-          <View style={styles.statColumn}>
-            <Text style={styles.statLabel}>
-              {t("progressLogging.completed")}
-            </Text>
-            <Text style={styles.statValueCompleted}>
-              {formatGoalHoursLabel(displayCompletedHours)}
-            </Text>
-          </View>
-          <View style={styles.statColumn}>
-            <Text style={styles.statLabel}>
-              {t("progressLogging.incomplete")}
-            </Text>
-            <Text style={styles.statValueIncomplete}>
-              {formatGoalHoursLabel(displayIncompleteHours)}
-            </Text>
-          </View>
-        </View>
-
-        {/* <View style={styles.goalProgressTrack}> */}
-        {/* <View
-            style={[
-              styles.goalProgressCompleted,
-              { width: `${goalProgressPercent}%` },
-            ]}
-          /> */}
-        {/* </View> */}
+        )}
 
         <View
-          onStartShouldSetResponder={() => true}
+          onStartShouldSetResponder={() => isDetailed}
           onMoveShouldSetResponder={() => false}
         >
           <QuranHoursPastAchievementChartBlock
             chartData={achievement.chartData}
             selectedBarIndex={selectedBarIndex}
-            onBarPress={handleBarPress}
-            chartKey={`${goalId}-${period}`}
+            onBarPress={
+              isDetailed ? handleBarPressDetailed : handleBarPressCompact
+            }
+            chartKey={`${goalId}-${period}${isDetailed ? "-detailed" : ""}`}
             yMax={achievement.yMax}
             yTicks={achievement.yTicks}
             showHint={showChartHint}
@@ -297,11 +610,25 @@ export function QuranHoursPastAchievements({ goalId }: Props) {
             hintActionText={t("progressLogging.okGotIt")}
             pageCount={achievement.pageCount}
             activePageIndex={selectedBarIndex ?? achievement.activePageIndex}
+            formatBarValue={isDetailed ? formatChartBarValue : undefined}
+            showPagination={isDetailed}
+            barColors={[Colors.light.green, INCOMPLETE_BAR_COLOR]}
           />
         </View>
-      </View>
 
-      {studyMaterial.length > 0 ? (
+        {isDetailed ? (
+          <GraphBarSelectionFooter
+            visible={selectedBarIndex !== null}
+            completed={displayCompletedHours}
+            incomplete={displayIncompleteHours}
+            goalTotal={selectedBarGoalTotal}
+            onClose={handleCloseBarSelection}
+          />
+        ) : null}
+      </View>
+      {renderInsights()}
+
+      {studyMaterial.length > 0 && !isDetailed ? (
         <>
           <TopSpace top={16} />
           <View
@@ -352,6 +679,19 @@ const styles = StyleSheet.create({
   section: {
     marginTop: 20,
   },
+  sectionDetailed: {
+    marginTop: 0,
+  },
+  compactTopRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  topRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
   card: {
     borderRadius: 14,
     backgroundColor: Colors.light.greybuttonBackground,
@@ -359,6 +699,9 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 16,
     gap: 12,
+  },
+  cardHeaderBlock: {
+    gap: 4,
   },
   cardHeader: {
     flexDirection: "row",
@@ -374,6 +717,10 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     flexShrink: 1,
   },
+  sectionTitleDetailed: {
+    color: Colors.light.white,
+    fontSize: 13,
+  },
   achievementBlock: {
     alignItems: "flex-start",
     gap: 4,
@@ -384,6 +731,11 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
   },
+  achievementCaptionDetailed: {
+    fontSize: 11,
+    fontFamily: fonts.primary.heavy,
+    fontWeight: "800",
+  },
   achievementPercent: {
     color: Colors.light.white,
     fontSize: 40,
@@ -391,8 +743,18 @@ const styles = StyleSheet.create({
     fontWeight: "400",
     lineHeight: 44,
   },
+  achievementPercentDetailed: {
+    fontSize: 28,
+    fontFamily: fonts.primary.bold,
+    fontWeight: "700",
+    lineHeight: 28,
+    textTransform: "uppercase",
+  },
   achievementPercentSymbol: {
     fontSize: 22,
+  },
+  achievementPercentSymbolDetailed: {
+    fontSize: 16,
   },
   deltaBadge: {
     flexDirection: "row",
@@ -404,11 +766,17 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     marginTop: 2,
   },
+  deltaBadgeNegative: {
+    backgroundColor: Colors.light.dullWhiteOpacity,
+  },
   deltaText: {
     color: Colors.light.green,
     fontSize: 11,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
+  },
+  deltaTextNegative: {
+    color: Colors.light.subtext,
   },
   periodNavRow: {
     alignItems: "center",
@@ -473,6 +841,13 @@ const styles = StyleSheet.create({
     lineHeight: 17,
     textAlign: "center",
   },
+  summaryTextDetailed: {
+    color: Colors.light.grey,
+    fontSize: 12,
+    fontFamily: fonts.primary.regular,
+    lineHeight: 17,
+    textAlign: "center",
+  },
   goalHeader: {
     flexDirection: "row",
     alignItems: "center",
@@ -490,6 +865,16 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     letterSpacing: 0.5,
     textTransform: "uppercase",
+  },
+  goalValueRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  goalValueBlock: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
   },
   goalPill: {
     backgroundColor: Colors.light.calendarBg,
@@ -537,17 +922,6 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.semiBold,
     fontWeight: "700",
   },
-  goalProgressTrack: {
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: Colors.light.calendarBg,
-    overflow: "hidden",
-  },
-  goalProgressCompleted: {
-    height: "100%",
-    borderRadius: 5,
-    backgroundColor: Colors.light.green,
-  },
   studyListContent: {
     paddingRight: 4,
   },
@@ -594,5 +968,38 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     letterSpacing: 0.5,
     textTransform: "uppercase",
+  },
+  insightsSection: {
+    marginTop: 16,
+  },
+  insightsHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 12,
+  },
+  insightsTitleLabel: {
+    color: Colors.light.white,
+    fontSize: 11,
+    fontFamily: fonts.primary.semiBold,
+    fontWeight: "600",
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+  },
+  insightsSubtitleLabel: {
+    color: Colors.light.subtext,
+    fontSize: 10,
+    fontFamily: fonts.primary.semiBold,
+    fontWeight: "600",
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+  },
+  insightsScrollContent: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  insightCardFixed: {
+    width: 200,
+    minWidth: 160,
   },
 });
