@@ -1,15 +1,15 @@
 import { formatTotalTime } from "@/src/screens/private/home/timeSpentData";
 import {
-  getJuzMemorisationLogsForFilter,
-  type JuzMemorisationLogRecord,
-} from "./quranMemorisationJuzData";
+  getHizbMemorisationLogsForFilter,
+  type HizbMemorisationLogRecord,
+} from "./quranMemorisationHizbData";
 import {
-  getJuzMemorisationGoals,
-  getJuzMemorisationGoalsForFilter,
-  type JuzMemorisationGoal,
-  type MemorisationJuzFilterId,
-} from "./quranMemorisationJuzGoals";
-import { getJuzVerseCount } from "./quranMemorisationJuzVerse";
+  getHizbMemorisationGoals,
+  getHizbMemorisationGoalsForFilter,
+  type HizbMemorisationGoal,
+  type MemorisationHizbFilterId,
+} from "./quranMemorisationHizbGoals";
+import { getHizbVerseCount } from "./quranHizbVerseMap";
 import type {
   PastAchievementPeriod,
   QuranHoursPastAchievement,
@@ -17,36 +17,21 @@ import type {
 } from "./quranHoursPastAchievementData";
 import type { MemorisationAnalyticsView } from "./quranMemorisationSurahPastAchievementData";
 
-export type { MemorisationJuzFilterId, MemorisationAnalyticsView };
+export type { MemorisationHizbFilterId, MemorisationAnalyticsView };
 
-export type JuzMemorisationAnalyticsView = MemorisationAnalyticsView;
-
-export type JuzMemorisationPastAchievementFilter = {
-  id: MemorisationJuzFilterId;
-  label: string;
-  juzNumber: number;
+export type MemorisationHizbPastAchievementFilter = {
+  id: MemorisationHizbFilterId;
+  hizbName: string;
 };
 
-export type MemorizationJuzAchievement = {
+export type MemorizationHizbAchievement = {
   id: string;
-  juzNumber: number;
+  hizbNumber: number;
   memorizedAyahs: number;
   totalAyahs: number;
   totalTimeSpent: number;
   startAyah: string;
   endAyah: string;
-};
-
-export type JuzMemorisationPastAchievementRecord = {
-  juzNumber: number;
-  juzId: string;
-  juzName: string;
-  rangeLabel: string;
-  memorizedAyahs: number;
-  totalAyahs: number;
-  status: "completed" | "incomplete";
-  timeSpentMinutes: number;
-  progressPercent: number;
 };
 
 type ChartPeriod = {
@@ -57,10 +42,10 @@ type ChartPeriod = {
   timeSpentMinutes: number;
 };
 
-type JuzUnitPeriodData = {
-  juzNumber: number;
-  juzId: string;
-  juzName: string;
+export type MemorisationHizbUnitPeriodData = {
+  hizbId: string;
+  hizbNumber: number;
+  hizbName: string;
   rangeLabel: string;
   chartPeriods: ChartPeriod[];
   memorizedAyahs: number;
@@ -70,37 +55,30 @@ type JuzUnitPeriodData = {
   totalTimeSpentMinutes: number;
 };
 
-export type JuzMemorisationPeriodSlice = {
+export type MemorisationHizbPeriodSlice = {
   chartPeriods: ChartPeriod[];
-  juzFilter: MemorisationJuzFilterId;
-  targetJuzCount: number;
-  completedJuzCount: number;
-  memorizedAyahs: number;
   totalAyahs: number;
+  memorizedAyahs: number;
   remainingAyahs: number;
-  totalTimeSpentMinutes: number;
   achievementPercent: number;
   previousPeriodDeltaPercent: number;
   dateRangeLabel: string;
   pageCount: number;
   activePageIndex: number;
-  juzRecords: JuzMemorisationPastAchievementRecord[];
-  perJuz: Record<number, JuzUnitPeriodData>;
+  hizbRecords: MemorizationHizbAchievement[];
+  perHizb: Record<string, MemorisationHizbUnitPeriodData>;
 };
 
-export type MemorisationJuzProgressRailRow = {
-  juzId: string;
-  juzNumber: number;
-  juzName: string;
+export type MemorisationHizbProgressRailRow = {
+  hizbId: string;
+  hizbNumber: number;
+  hizbName: string;
   rangeLabel: string;
   completedVerses: number;
   totalVerses: number;
   isCompleted: boolean;
   timeSpentMinutes: number;
 };
-
-export const MEMORISATION_JUZ_SUMMARY_KEY =
-  "progressLogging.achievementSummaryMemorisationJuz";
 
 const THREE_MONTH_LABELS = [
   { xLabel: "m1", dateLabel: "Sep 1–30" },
@@ -117,6 +95,11 @@ const SIX_MONTH_LABELS = [
   { xLabel: "m6", dateLabel: "Nov" },
 ];
 
+function parseHizbNumber(hizbId: string): number {
+  const parsed = Number(hizbId.replace(/^hizb-/, ""));
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
 function parseRangeEnds(rangeLabel: string): { startAyah: string; endAyah: string } {
   const parts = rangeLabel.split("–").map((part) => part.trim());
   return {
@@ -131,15 +114,14 @@ function formatLogDate(date: string): string {
   return parsed.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-function logTimeSpentMinutes(log: JuzMemorisationLogRecord): number {
-  if (log.timeSpentMinutes > 0) return log.timeSpentMinutes;
+function logTimeSpentMinutes(log: HizbMemorisationLogRecord): number {
   const fromFields = (log.hours ?? 0) * 60 + (log.minutes ?? 0);
   if (fromFields > 0) return fromFields;
   return Math.max(15, log.ayahsMemorizedToday * 8);
 }
 
 function groupByProgressEvents(
-  logs: JuzMemorisationLogRecord[],
+  logs: HizbMemorisationLogRecord[],
   totalAyahs: number,
   monthFilter?: { year: number; month: number },
 ): ChartPeriod[] {
@@ -193,53 +175,51 @@ function groupByProgressEvents(
   });
 }
 
-function buildJuzUnitFromLogs(
-  goal: JuzMemorisationGoal,
-  logs: JuzMemorisationLogRecord[],
-): JuzUnitPeriodData {
-  const juzLogs = logs.filter((log) => log.juzId === goal.id);
+function buildHizbUnitFromLogs(
+  goal: HizbMemorisationGoal,
+  logs: HizbMemorisationLogRecord[],
+): MemorisationHizbUnitPeriodData {
+  const totalAyahs = goal.totalAyahs;
   const memorizedAyahs = goal.memorizedAyahs;
-  const remainingAyahs = Math.max(0, goal.totalAyahs - memorizedAyahs);
-  const chartPeriods = groupByProgressEvents(juzLogs, goal.totalAyahs, {
+  const remainingAyahs = Math.max(0, totalAyahs - memorizedAyahs);
+  const hizbLogs = logs.filter((log) => log.hizbId === goal.id);
+  const chartPeriods = groupByProgressEvents(hizbLogs, totalAyahs, {
     year: 2025,
     month: 10,
   });
+  const totalTimeSpentMinutes = hizbLogs.reduce(
+    (sum, log) => sum + logTimeSpentMinutes(log),
+    0,
+  );
 
   return {
-    juzNumber: goal.juzNumber,
-    juzId: goal.id,
-    juzName: goal.juzName,
+    hizbId: goal.id,
+    hizbNumber: parseHizbNumber(goal.id),
+    hizbName: goal.hizbName,
     rangeLabel: goal.rangeLabel,
     chartPeriods,
     memorizedAyahs,
-    totalAyahs: goal.totalAyahs,
+    totalAyahs,
     remainingAyahs,
-    status: memorizedAyahs >= goal.totalAyahs ? "completed" : "incomplete",
-    totalTimeSpentMinutes: juzLogs.reduce(
-      (sum, log) => sum + logTimeSpentMinutes(log),
-      0,
-    ),
+    status: memorizedAyahs >= totalAyahs ? "completed" : "incomplete",
+    totalTimeSpentMinutes,
   };
 }
 
-function unitToRecord(unit: JuzUnitPeriodData): JuzMemorisationPastAchievementRecord {
+function unitToRecord(unit: MemorisationHizbUnitPeriodData): MemorizationHizbAchievement {
+  const { startAyah, endAyah } = parseRangeEnds(unit.rangeLabel);
   return {
-    juzNumber: unit.juzNumber,
-    juzId: unit.juzId,
-    juzName: unit.juzName,
-    rangeLabel: unit.rangeLabel,
+    id: unit.hizbId,
+    hizbNumber: unit.hizbNumber,
     memorizedAyahs: unit.memorizedAyahs,
     totalAyahs: unit.totalAyahs,
-    status: unit.status,
-    timeSpentMinutes: unit.totalTimeSpentMinutes,
-    progressPercent:
-      unit.totalAyahs > 0
-        ? Math.min(100, (unit.memorizedAyahs / unit.totalAyahs) * 100)
-        : 0,
+    totalTimeSpent: unit.totalTimeSpentMinutes,
+    startAyah,
+    endAyah,
   };
 }
 
-function aggregateChartPeriods(units: JuzUnitPeriodData[]): ChartPeriod[] {
+function aggregateChartPeriods(units: MemorisationHizbUnitPeriodData[]): ChartPeriod[] {
   const periodCount = Math.max(
     ...units.map((unit) => unit.chartPeriods.length),
     1,
@@ -258,17 +238,11 @@ function aggregateChartPeriods(units: JuzUnitPeriodData[]): ChartPeriod[] {
       timeSpentMinutes += period.timeSpentMinutes;
     });
 
-    const labelPeriod =
-      units
-        .map((unit) => unit.chartPeriods[index])
-        .find((period) => period != null) ??
-      units
-        .map((unit) => unit.chartPeriods.at(-1))
-        .find((period) => period != null);
+    const first = units[0]?.chartPeriods[index] ?? units[0]?.chartPeriods[0];
 
     return {
-      xLabel: labelPeriod?.xLabel ?? `p${index + 1}`,
-      dateLabel: labelPeriod?.dateLabel ?? "",
+      xLabel: first?.xLabel ?? `p${index + 1}`,
+      dateLabel: first?.dateLabel ?? "",
       completed,
       incomplete,
       timeSpentMinutes,
@@ -277,72 +251,63 @@ function aggregateChartPeriods(units: JuzUnitPeriodData[]): ChartPeriod[] {
 }
 
 function buildSliceFromUnits(
-  units: JuzUnitPeriodData[],
-  meta: {
-    juzFilter: MemorisationJuzFilterId;
-    previousPeriodDeltaPercent: number;
-    dateRangeLabel: string;
-    pageCount: number;
-    activePageIndex: number;
-  },
-): JuzMemorisationPeriodSlice {
-  const memorizedAyahs = units.reduce((sum, unit) => sum + unit.memorizedAyahs, 0);
+  units: MemorisationHizbUnitPeriodData[],
+  meta: Omit<
+    MemorisationHizbPeriodSlice,
+    | "chartPeriods"
+    | "totalAyahs"
+    | "memorizedAyahs"
+    | "remainingAyahs"
+    | "achievementPercent"
+    | "hizbRecords"
+    | "perHizb"
+  >,
+): MemorisationHizbPeriodSlice {
+  const activeUnits = units.filter(
+    (unit) => unit.memorizedAyahs > 0 || unit.totalTimeSpentMinutes > 0,
+  );
   const totalAyahs = units.reduce((sum, unit) => sum + unit.totalAyahs, 0);
-  const completedJuzCount = units.filter((unit) => unit.status === "completed").length;
+  const memorizedAyahs = units.reduce((sum, unit) => sum + unit.memorizedAyahs, 0);
+  const remainingAyahs = Math.max(0, totalAyahs - memorizedAyahs);
 
   return {
+    ...meta,
     chartPeriods: aggregateChartPeriods(units),
-    juzFilter: meta.juzFilter,
-    targetJuzCount: units.length,
-    completedJuzCount,
-    memorizedAyahs,
     totalAyahs,
-    remainingAyahs: Math.max(0, totalAyahs - memorizedAyahs),
-    totalTimeSpentMinutes: units.reduce(
-      (sum, unit) => sum + unit.totalTimeSpentMinutes,
-      0,
-    ),
+    memorizedAyahs,
+    remainingAyahs,
     achievementPercent:
       totalAyahs > 0
         ? Math.min(100, Math.round((memorizedAyahs / totalAyahs) * 100))
         : 0,
-    previousPeriodDeltaPercent: meta.previousPeriodDeltaPercent,
-    dateRangeLabel: meta.dateRangeLabel,
-    pageCount: meta.pageCount,
-    activePageIndex: meta.activePageIndex,
-    juzRecords: units.map(unitToRecord),
-    perJuz: Object.fromEntries(units.map((unit) => [unit.juzNumber, unit])),
+    hizbRecords: activeUnits.map(unitToRecord),
+    perHizb: Object.fromEntries(units.map((unit) => [unit.hizbId, unit])),
   };
 }
 
-function buildMonthlyPerJuzData(): JuzUnitPeriodData[] {
-  const goals = getJuzMemorisationGoals();
-  const allLogs = getJuzMemorisationLogsForFilter("all");
-  return goals.map((goal) => buildJuzUnitFromLogs(goal, allLogs));
+function buildMonthlyPerHizbData(): MemorisationHizbUnitPeriodData[] {
+  const goals = getHizbMemorisationGoals();
+  const allLogs = getHizbMemorisationLogsForFilter("all");
+
+  return goals.map((goal) => buildHizbUnitFromLogs(goal, allLogs));
 }
 
-function buildMonthlySlice(): JuzMemorisationPeriodSlice {
-  const units = buildMonthlyPerJuzData();
-  const periodCount = Math.max(
-    ...units.map((unit) => unit.chartPeriods.length),
-    1,
-  );
-
+function buildMonthlySlice(): MemorisationHizbPeriodSlice {
+  const units = buildMonthlyPerHizbData();
   return buildSliceFromUnits(units, {
-    juzFilter: "all",
-    previousPeriodDeltaPercent: 12,
+    previousPeriodDeltaPercent: 10,
     dateRangeLabel: "Nov 1 — 30, 25",
-    pageCount: periodCount,
-    activePageIndex: Math.max(0, periodCount - 1),
+    pageCount: units[0]?.chartPeriods.length ?? 1,
+    activePageIndex: Math.max(0, (units[0]?.chartPeriods.length ?? 1) - 1),
   });
 }
 
 function scaleUnitToMonths(
-  unit: JuzUnitPeriodData,
+  unit: MemorisationHizbUnitPeriodData,
   labels: Array<{ xLabel: string; dateLabel: string }>,
   memorizedByMonth: number[],
   timeByMonth: number[],
-): JuzUnitPeriodData {
+): MemorisationHizbUnitPeriodData {
   const chartPeriods = labels.map((label, index) => {
     const memorized = Math.min(
       memorizedByMonth[index] ?? unit.memorizedAyahs,
@@ -357,16 +322,19 @@ function scaleUnitToMonths(
     };
   });
 
-  return { ...unit, chartPeriods };
+  return {
+    ...unit,
+    chartPeriods,
+  };
 }
 
-function scaleJuzSlice(
-  slice: JuzMemorisationPeriodSlice,
+function scaleMemorisationHizbSlice(
+  slice: MemorisationHizbPeriodSlice,
   period: PastAchievementPeriod,
-): JuzMemorisationPeriodSlice {
+): MemorisationHizbPeriodSlice {
   if (period === "monthly") return slice;
 
-  const units = Object.values(slice.perJuz);
+  const units = Object.values(slice.perHizb);
 
   if (period === "threeMonths") {
     const scaledUnits = units.map((unit) => {
@@ -388,8 +356,7 @@ function scaleJuzSlice(
     });
 
     return buildSliceFromUnits(scaledUnits, {
-      juzFilter: slice.juzFilter,
-      previousPeriodDeltaPercent: 8,
+      previousPeriodDeltaPercent: 7,
       dateRangeLabel: "Sep — Nov, 25",
       pageCount: 3,
       activePageIndex: 2,
@@ -406,97 +373,93 @@ function scaleJuzSlice(
     const timeIncrements = SIX_MONTH_LABELS.map((_, index) =>
       Math.round((unit.totalTimeSpentMinutes / 6) * (index + 1)),
     );
+
     return scaleUnitToMonths(unit, SIX_MONTH_LABELS, increments, timeIncrements);
   });
 
   return buildSliceFromUnits(scaledUnits, {
-    juzFilter: slice.juzFilter,
-    previousPeriodDeltaPercent: 5,
+    previousPeriodDeltaPercent: 4,
     dateRangeLabel: "Jun — Nov, 25",
     pageCount: 6,
     activePageIndex: 5,
   });
 }
 
-function filterJuzPeriodSlice(
-  slice: JuzMemorisationPeriodSlice,
-  juzFilter: MemorisationJuzFilterId,
-): JuzMemorisationPeriodSlice {
-  if (juzFilter === "all") return slice;
+function filterMemorisationHizbSlice(
+  slice: MemorisationHizbPeriodSlice,
+  hizbFilter: MemorisationHizbFilterId,
+): MemorisationHizbPeriodSlice {
+  if (hizbFilter === "all") return slice;
 
-  const goal = getJuzMemorisationGoals().find((item) => item.id === juzFilter);
-  const unit = goal ? slice.perJuz[goal.juzNumber] : undefined;
-
+  const unit = slice.perHizb[hizbFilter];
   if (!unit) {
-    const totalAyahs = goal ? goal.totalAyahs : getJuzVerseCount(juzFilter);
+    const totalAyahs = getHizbVerseCount(hizbFilter);
     return {
       ...slice,
-      juzFilter,
       chartPeriods: slice.chartPeriods.map((period) => ({
         ...period,
         completed: 0,
         incomplete: totalAyahs,
         timeSpentMinutes: 0,
       })),
-      targetJuzCount: 1,
-      completedJuzCount: 0,
-      memorizedAyahs: 0,
       totalAyahs,
+      memorizedAyahs: 0,
       remainingAyahs: totalAyahs,
-      totalTimeSpentMinutes: 0,
       achievementPercent: 0,
-      juzRecords: [],
+      hizbRecords: [],
     };
   }
 
+  const record = unitToRecord(unit);
   return {
     ...slice,
-    juzFilter,
     chartPeriods: unit.chartPeriods,
-    targetJuzCount: 1,
-    completedJuzCount: unit.status === "completed" ? 1 : 0,
-    memorizedAyahs: unit.memorizedAyahs,
     totalAyahs: unit.totalAyahs,
+    memorizedAyahs: unit.memorizedAyahs,
     remainingAyahs: unit.remainingAyahs,
-    totalTimeSpentMinutes: unit.totalTimeSpentMinutes,
     achievementPercent:
       unit.totalAyahs > 0
-        ? Math.min(100, Math.round((unit.memorizedAyahs / unit.totalAyahs) * 100))
+        ? Math.min(
+            100,
+            Math.round((unit.memorizedAyahs / unit.totalAyahs) * 100),
+          )
         : 0,
-    juzRecords: [unitToRecord(unit)],
+    hizbRecords:
+      unit.memorizedAyahs > 0 || unit.totalTimeSpentMinutes > 0 ? [record] : [],
   };
 }
 
-let cachedMonthlySlice: JuzMemorisationPeriodSlice | null = null;
+let cachedMonthlySlice: MemorisationHizbPeriodSlice | null = null;
 
-function getBaseMonthlySlice(): JuzMemorisationPeriodSlice {
+function getBaseMonthlySlice(): MemorisationHizbPeriodSlice {
   if (!cachedMonthlySlice) {
     cachedMonthlySlice = buildMonthlySlice();
   }
   return cachedMonthlySlice;
 }
 
-export function getJuzMemorisationPastAchievementFilters(): JuzMemorisationPastAchievementFilter[] {
-  const goals = getJuzMemorisationGoals();
+export function getMemorisationHizbPastAchievementFilters(): MemorisationHizbPastAchievementFilter[] {
+  const goals = getHizbMemorisationGoals();
   return [
-    { id: "all", label: "All", juzNumber: 0 },
+    { id: "all", hizbName: "All" },
     ...goals.map((goal) => ({
       id: goal.id,
-      label: goal.juzName,
-      juzNumber: goal.juzNumber,
+      hizbName: goal.hizbName,
     })),
   ];
 }
 
-export function getJuzMemorisationPastAchievementSlice(
+export function getQuranMemorisationHizbPastAchievementSlice(
   period: PastAchievementPeriod,
-  juzFilter: MemorisationJuzFilterId = "all",
-): JuzMemorisationPeriodSlice {
-  const scaled = scaleJuzSlice(getBaseMonthlySlice(), period);
-  return filterJuzPeriodSlice(scaled, juzFilter);
+  hizbFilter: MemorisationHizbFilterId = "all",
+): MemorisationHizbPeriodSlice {
+  const scaled = scaleMemorisationHizbSlice(getBaseMonthlySlice(), period);
+  return filterMemorisationHizbSlice(scaled, hizbFilter);
 }
 
-function buildChartFromSlice(slice: JuzMemorisationPeriodSlice): QuranPastChartItem[] {
+function buildChartFromSlice(
+  slice: MemorisationHizbPeriodSlice,
+): QuranPastChartItem[] {
   return slice.chartPeriods.map((period) => ({
     xLabel: period.xLabel,
     dateLabel: period.dateLabel,
@@ -518,10 +481,11 @@ function computeYAxis(chartData: QuranPastChartItem[]) {
   return { yMax, yTicks };
 }
 
-function sliceToAchievement(slice: JuzMemorisationPeriodSlice): QuranHoursPastAchievement {
+function sliceToAchievement(
+  slice: MemorisationHizbPeriodSlice,
+): QuranHoursPastAchievement {
   const chartData = buildChartFromSlice(slice);
   const yAxis = computeYAxis(chartData);
-  const pageCount = chartData.length;
 
   return {
     dateRangeLabel: slice.dateRangeLabel,
@@ -535,27 +499,26 @@ function sliceToAchievement(slice: JuzMemorisationPeriodSlice): QuranHoursPastAc
     activeDaysPrevious: 0,
     longestStreak: 0,
     longestStreakPrevious: 0,
-    pageCount,
-    activePageIndex: Math.min(
-      Math.max(slice.activePageIndex, 0),
-      Math.max(pageCount - 1, 0),
-    ),
+    pageCount: slice.pageCount,
+    activePageIndex: slice.activePageIndex,
     chartData,
     ...yAxis,
   };
 }
 
-export function getJuzMemorisationPastAchievement(
+export function getQuranMemorisationHizbPastAchievement(
   period: PastAchievementPeriod,
-  juzFilter: MemorisationJuzFilterId = "all",
+  hizbFilter: MemorisationHizbFilterId = "all",
 ): QuranHoursPastAchievement {
-  return sliceToAchievement(getJuzMemorisationPastAchievementSlice(period, juzFilter));
+  return sliceToAchievement(
+    getQuranMemorisationHizbPastAchievementSlice(period, hizbFilter),
+  );
 }
 
-export function applyJuzMemorisationAnalyticsView(
+export function applyMemorisationHizbAnalyticsView(
   achievement: QuranHoursPastAchievement,
-  slice: JuzMemorisationPeriodSlice,
-  view: JuzMemorisationAnalyticsView,
+  slice: MemorisationHizbPeriodSlice,
+  view: MemorisationAnalyticsView,
 ): QuranHoursPastAchievement {
   if (view === "completedVsIncomplete") {
     return achievement;
@@ -578,41 +541,33 @@ export function applyJuzMemorisationAnalyticsView(
   };
 }
 
-export function getJuzMemorisationTimeSpentByPeriod(
-  slice: JuzMemorisationPeriodSlice,
+export function getMemorisationHizbTimeSpentByPeriod(
+  slice: MemorisationHizbPeriodSlice,
 ): number[] {
   return slice.chartPeriods.map((period) => period.timeSpentMinutes);
 }
 
-export function getTotalJuzMemorisationTimeSpentMinutes(
+export function getTotalMemorisationHizbTimeSpentMinutes(
   timeSpentByPeriod: number[],
 ): number {
   return timeSpentByPeriod.reduce((sum, minutes) => sum + minutes, 0);
 }
 
-export function formatJuzMemorisationCountLabel(count: number): string {
+export function formatMemorisationHizbAyahCountLabel(count: number): string {
   return String(Math.round(count));
 }
 
-export function formatJuzMemorisationTimeSpentLabel(totalMinutes: number): string {
+export function formatMemorisationHizbTimeSpentLabel(totalMinutes: number): string {
   return formatTotalTime(totalMinutes / 60);
 }
 
-export function formatMemorisationJuzTimeSpentChip(totalMinutes: number): string {
+export function formatMemorisationHizbTimeSpentChip(totalMinutes: number): string {
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
   return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
 }
 
-export function getJuzMemorisationAyahProgressPercent(
-  memorizedAyahs: number,
-  totalAyahs: number,
-): number {
-  if (totalAyahs <= 0) return 0;
-  return Math.min(100, (memorizedAyahs / totalAyahs) * 100);
-}
-
-export function getMemorisationJuzGoalTrackedMonths(
+export function getMemorisationHizbGoalTrackedMonths(
   period: PastAchievementPeriod,
 ): number {
   switch (period) {
@@ -625,15 +580,17 @@ export function getMemorisationJuzGoalTrackedMonths(
   }
 }
 
-export function getTotalJuzMemorizedVerses(slice: JuzMemorisationPeriodSlice): number {
+export function getTotalHizbMemorizedVerses(
+  slice: MemorisationHizbPeriodSlice,
+): number {
   return slice.memorizedAyahs;
 }
 
 function getVersesForPeriod(
-  unit: JuzUnitPeriodData,
+  unit: MemorisationHizbUnitPeriodData,
   selectedBarIndex: number,
 ): Pick<
-  MemorisationJuzProgressRailRow,
+  MemorisationHizbProgressRailRow,
   "completedVerses" | "totalVerses" | "isCompleted"
 > {
   const period = unit.chartPeriods[selectedBarIndex];
@@ -653,9 +610,9 @@ function getVersesForPeriod(
 }
 
 function buildProgressRailRowForUnit(
-  unit: JuzUnitPeriodData,
+  unit: MemorisationHizbUnitPeriodData,
   selectedBarIndex: number | null,
-): MemorisationJuzProgressRailRow {
+): MemorisationHizbProgressRailRow {
   const progress =
     selectedBarIndex !== null
       ? getVersesForPeriod(unit, selectedBarIndex)
@@ -666,9 +623,9 @@ function buildProgressRailRowForUnit(
         };
 
   return {
-    juzId: unit.juzId,
-    juzNumber: unit.juzNumber,
-    juzName: unit.juzName,
+    hizbId: unit.hizbId,
+    hizbNumber: unit.hizbNumber,
+    hizbName: unit.hizbName,
     rangeLabel: unit.rangeLabel,
     ...progress,
     timeSpentMinutes:
@@ -678,11 +635,13 @@ function buildProgressRailRowForUnit(
   };
 }
 
-function buildEmptyProgressRailRow(goal: JuzMemorisationGoal): MemorisationJuzProgressRailRow {
+function buildEmptyProgressRailRow(
+  goal: HizbMemorisationGoal,
+): MemorisationHizbProgressRailRow {
   return {
-    juzId: goal.id,
-    juzNumber: goal.juzNumber,
-    juzName: goal.juzName,
+    hizbId: goal.id,
+    hizbNumber: parseHizbNumber(goal.id),
+    hizbName: goal.hizbName,
     rangeLabel: goal.rangeLabel,
     completedVerses: 0,
     totalVerses: goal.totalAyahs,
@@ -691,94 +650,36 @@ function buildEmptyProgressRailRow(goal: JuzMemorisationGoal): MemorisationJuzPr
   };
 }
 
-export function getMemorisationJuzProgressRailRows(
-  allSlice: JuzMemorisationPeriodSlice,
-  filteredSlice: JuzMemorisationPeriodSlice,
-  juzFilter: MemorisationJuzFilterId,
+export function getMemorisationHizbProgressRailRows(
+  allSlice: MemorisationHizbPeriodSlice,
+  filteredSlice: MemorisationHizbPeriodSlice,
+  hizbFilter: MemorisationHizbFilterId,
   selectedBarIndex: number | null,
-): MemorisationJuzProgressRailRow[] {
-  if (juzFilter === "all") {
-    return getJuzMemorisationGoals().map((goal) => {
-      const unit = allSlice.perJuz[goal.juzNumber];
+): MemorisationHizbProgressRailRow[] {
+  if (hizbFilter === "all") {
+    return getHizbMemorisationGoals().map((goal) => {
+      const unit = allSlice.perHizb[goal.id];
       return unit
         ? buildProgressRailRowForUnit(unit, selectedBarIndex)
         : buildEmptyProgressRailRow(goal);
     });
   }
 
-  const goal = getJuzMemorisationGoalsForFilter(juzFilter)[0];
-  const unit = goal ? filteredSlice.perJuz[goal.juzNumber] : undefined;
-  if (!unit || !goal) {
-    return goal ? [buildEmptyProgressRailRow(goal)] : [];
+  const unit =
+    filteredSlice.perHizb[hizbFilter] ?? allSlice.perHizb[hizbFilter];
+  if (!unit) {
+    const goal = getHizbMemorisationGoalsForFilter(hizbFilter)[0];
+    if (!goal) return [];
+    return [buildEmptyProgressRailRow(goal)];
   }
 
   return [buildProgressRailRowForUnit(unit, selectedBarIndex)];
 }
 
-export function hasMemorisationJuzPastAchievementLogs(
-  slice: JuzMemorisationPeriodSlice,
+export function hasMemorisationHizbPastAchievementLogs(
+  slice: MemorisationHizbPeriodSlice,
 ): boolean {
   return slice.chartPeriods.some(
     (period) => period.completed > 0 || period.timeSpentMinutes > 0,
   );
-}
-
-export function unitToMemorizationJuzAchievement(
-  unit: JuzUnitPeriodData,
-): MemorizationJuzAchievement {
-  const { startAyah, endAyah } = parseRangeEnds(unit.rangeLabel);
-  return {
-    id: unit.juzId,
-    juzNumber: unit.juzNumber,
-    memorizedAyahs: unit.memorizedAyahs,
-    totalAyahs: unit.totalAyahs,
-    totalTimeSpent: unit.totalTimeSpentMinutes,
-    startAyah,
-    endAyah,
-  };
-}
-
-export function invalidateJuzMemorisationPastAchievementCache(): void {
-  cachedMonthlySlice = null;
-}
-
-export type JuzMemorisationCompactPastAchievement = {
-  juzId: MemorisationJuzFilterId;
-  juzName: string;
-  totalAyahs: number;
-  memorizedAyahs: number;
-  remainingAyahs: number;
-  progressPercent: number;
-  completed: boolean;
-  chartData: QuranPastChartItem[];
-  yMax: number;
-  yTicks: number[];
-};
-
-export function getJuzMemorisationCompactPastAchievement(
-  juzFilter: MemorisationJuzFilterId = "all",
-): JuzMemorisationCompactPastAchievement {
-  const slice = getJuzMemorisationPastAchievementSlice("monthly", juzFilter);
-  const achievement = sliceToAchievement(slice);
-  const goals = getJuzMemorisationGoalsForFilter(juzFilter);
-  const juzName =
-    juzFilter === "all"
-      ? "All Juz"
-      : (goals[0]?.juzName ?? juzFilter);
-
-  return {
-    juzId: juzFilter,
-    juzName,
-    totalAyahs: slice.totalAyahs,
-    memorizedAyahs: slice.memorizedAyahs,
-    remainingAyahs: slice.remainingAyahs,
-    progressPercent: slice.achievementPercent,
-    completed:
-      juzFilter === "all"
-        ? goals.length > 0 && goals.every((goal) => goal.completed)
-        : (goals[0]?.completed ?? false),
-    chartData: achievement.chartData,
-    yMax: achievement.yMax,
-    yTicks: achievement.yTicks,
-  };
 }

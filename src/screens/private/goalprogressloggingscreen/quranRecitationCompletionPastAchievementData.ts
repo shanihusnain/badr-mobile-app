@@ -17,6 +17,8 @@ export type CompletionPastAchievementRecord = {
   endJuz: number;
   completedJuzCount: number;
   totalJuzCount: number;
+  completedVerses: number;
+  totalVerses: number;
   status: CompletionPastStatus;
   timeSpentMinutes: number;
 };
@@ -46,8 +48,36 @@ const CYCLE_WEEK_LABELS = [
   { xLabel: "w4", dateLabel: "Nov 22–28" },
 ];
 
+export const TOTAL_QURAN_VERSES = 6236;
+
+export function completionJuzCountToVerses(
+  completedJuzCount: number,
+  totalJuzCount: number,
+): number {
+  if (totalJuzCount <= 0) {
+    return 0;
+  }
+  if (completedJuzCount >= totalJuzCount) {
+    return TOTAL_QURAN_VERSES;
+  }
+  return Math.round((completedJuzCount / totalJuzCount) * TOTAL_QURAN_VERSES);
+}
+
+function buildCompletionRecord(
+  input: Omit<CompletionPastAchievementRecord, "completedVerses" | "totalVerses">,
+): CompletionPastAchievementRecord {
+  return {
+    ...input,
+    completedVerses: completionJuzCountToVerses(
+      input.completedJuzCount,
+      input.totalJuzCount,
+    ),
+    totalVerses: TOTAL_QURAN_VERSES,
+  };
+}
+
 const MONTHLY_COMPLETIONS: CompletionPastAchievementRecord[] = [
-  {
+  buildCompletionRecord({
     completionNumber: 1,
     startJuz: 1,
     endJuz: 30,
@@ -55,8 +85,8 @@ const MONTHLY_COMPLETIONS: CompletionPastAchievementRecord[] = [
     totalJuzCount: 30,
     status: "completed",
     timeSpentMinutes: 480,
-  },
-  {
+  }),
+  buildCompletionRecord({
     completionNumber: 2,
     startJuz: 1,
     endJuz: 30,
@@ -64,8 +94,8 @@ const MONTHLY_COMPLETIONS: CompletionPastAchievementRecord[] = [
     totalJuzCount: 30,
     status: "completed",
     timeSpentMinutes: 455,
-  },
-  {
+  }),
+  buildCompletionRecord({
     completionNumber: 3,
     startJuz: 1,
     endJuz: 30,
@@ -73,8 +103,8 @@ const MONTHLY_COMPLETIONS: CompletionPastAchievementRecord[] = [
     totalJuzCount: 30,
     status: "completed",
     timeSpentMinutes: 420,
-  },
-  {
+  }),
+  buildCompletionRecord({
     completionNumber: 4,
     startJuz: 1,
     endJuz: 30,
@@ -82,7 +112,7 @@ const MONTHLY_COMPLETIONS: CompletionPastAchievementRecord[] = [
     totalJuzCount: 30,
     status: "incomplete",
     timeSpentMinutes: 220,
-  },
+  }),
 ];
 
 const MONTHLY_SLICE: CompletionPeriodSlice = {
@@ -220,7 +250,11 @@ function scaleCompletionSlice(
       ],
       completions: slice.completions.map((item, index) =>
         index < 3
-          ? { ...item, status: "completed" as const, completedJuzCount: 30 }
+          ? buildCompletionRecord({
+              ...item,
+              status: "completed",
+              completedJuzCount: 30,
+            })
           : item,
       ),
     };
@@ -244,10 +278,26 @@ function scaleCompletionSlice(
       { xLabel: "m6", dateLabel: "Nov", completed: 3, incomplete: 1, timeSpentMinutes: 580 },
     ],
     completions: [
-      { ...MONTHLY_COMPLETIONS[0], completedJuzCount: 30, status: "completed" },
-      { ...MONTHLY_COMPLETIONS[1], completedJuzCount: 30, status: "completed" },
-      { ...MONTHLY_COMPLETIONS[2], completedJuzCount: 12, status: "incomplete" },
-      { ...MONTHLY_COMPLETIONS[3], completedJuzCount: 0, status: "incomplete" },
+      buildCompletionRecord({
+        ...MONTHLY_COMPLETIONS[0],
+        completedJuzCount: 30,
+        status: "completed",
+      }),
+      buildCompletionRecord({
+        ...MONTHLY_COMPLETIONS[1],
+        completedJuzCount: 30,
+        status: "completed",
+      }),
+      buildCompletionRecord({
+        ...MONTHLY_COMPLETIONS[2],
+        completedJuzCount: 12,
+        status: "incomplete",
+      }),
+      buildCompletionRecord({
+        ...MONTHLY_COMPLETIONS[3],
+        completedJuzCount: 0,
+        status: "incomplete",
+      }),
     ],
   };
 }
@@ -321,7 +371,7 @@ export function formatJuzRangeLabel(startJuz: number, endJuz: number): string {
   if (startJuz === endJuz) {
     return `Juz ${startJuz}`;
   }
-  return `Juz ${startJuz} - ${endJuz}`;
+  return `Juz ${startJuz} – ${endJuz}`;
 }
 
 export function getCompletionJuzProgressPercent(
@@ -330,4 +380,72 @@ export function getCompletionJuzProgressPercent(
 ): number {
   if (totalJuzCount <= 0) return 0;
   return Math.min(100, (completedJuzCount / totalJuzCount) * 100);
+}
+
+export type CompletionAchievement = {
+  id: string;
+  completionNumber: number;
+  completedVerses: number;
+  totalVerses: number;
+  completedSessions: number;
+  incompleteSessions: number;
+  totalTimeSpent: number;
+};
+
+export type CompletionProgressRailRow = {
+  completionNumber: number;
+  title: string;
+  rangeLabel: string;
+  completedVerses: number;
+  totalVerses: number;
+  isCompleted: boolean;
+  timeSpentMinutes: number;
+};
+
+function recordToProgressRailRow(
+  record: CompletionPastAchievementRecord,
+): CompletionProgressRailRow {
+  return {
+    completionNumber: record.completionNumber,
+    title: `Completion ${record.completionNumber}`,
+    rangeLabel: formatJuzRangeLabel(record.startJuz, record.endJuz),
+    completedVerses: record.completedVerses,
+    totalVerses: record.totalVerses,
+    isCompleted: record.status === "completed",
+    timeSpentMinutes: record.timeSpentMinutes,
+  };
+}
+
+export function getCompletionProgressRailRows(
+  slice: CompletionPeriodSlice,
+  selectedBarIndex: number | null,
+): CompletionProgressRailRow[] {
+  if (
+    selectedBarIndex !== null &&
+    slice.completions[selectedBarIndex] !== undefined
+  ) {
+    return [recordToProgressRailRow(slice.completions[selectedBarIndex])];
+  }
+
+  return slice.completions.map(recordToProgressRailRow);
+}
+
+export function getCompletionAchievements(
+  slice: CompletionPeriodSlice,
+): CompletionAchievement[] {
+  return slice.completions.map((record) => ({
+    id: `completion-${record.completionNumber}`,
+    completionNumber: record.completionNumber,
+    completedVerses: record.completedVerses,
+    totalVerses: record.totalVerses,
+    completedSessions: record.status === "completed" ? 1 : 0,
+    incompleteSessions: record.status === "completed" ? 0 : 1,
+    totalTimeSpent: record.timeSpentMinutes,
+  }));
+}
+
+export function formatCompletionTimeSpentChip(totalMinutes: number): string {
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
 }

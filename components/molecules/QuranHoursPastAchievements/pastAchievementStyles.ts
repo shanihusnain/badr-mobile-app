@@ -84,7 +84,7 @@ export const pastAchievementStyles = StyleSheet.create({
     alignItems: "center",
   },
   xAxisLabelDimmed: {
-    opacity: 0.25,
+    opacity: 0.3,
   },
   xAxisDateLabel: {
     color: Colors.light.grey,

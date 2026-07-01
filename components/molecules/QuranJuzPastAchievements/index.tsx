@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
@@ -18,9 +19,11 @@ import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import {
   applyJuzAnalyticsView,
   formatJuzCountLabel,
+  formatJuzTimeSpentChip,
   formatJuzTimeSpentLabel,
   getJuzAyatProgressPercent,
   getJuzPastAchievementFilters,
+  getJuzProgressRailRows,
   getJuzTimeSpentByPeriod,
   getQuranJuzPastAchievement,
   getQuranJuzPastAchievementSlice,
@@ -29,10 +32,15 @@ import {
   type JuzFilterId,
   type JuzPastAchievementRecord,
 } from "@/src/screens/private/goalprogressloggingscreen/quranRecitationJuzPastAchievementData";
+import { applyTimeSpentOnlyGreenChart } from "@/src/screens/private/goalprogressloggingscreen/quranRecitationPastAchievementData";
 import type { PastAchievementPeriod } from "@/src/screens/private/goalprogressloggingscreen/quranHoursPastAchievementData";
 import type { JuzRecitationGoalId } from "@/src/screens/private/goalprogressloggingscreen/types";
 import { INCOMPLETE_BAR_COLOR } from "../QuranHoursPastAchievements/pastAchievementStyles";
 import { QuranHoursPastAchievementChartBlock } from "../QuranHoursPastAchievements/QuranHoursPastAchievementChartBlock";
+import { GraphBarSelectionFooter } from "../QuranHoursPastAchievements/GraphBarSelectionFooter";
+import { RecitationPastAchievementProgressSection } from "../QuranHoursPastAchievements/RecitationPastAchievementProgressSection";
+import { RecitationJuzDetailCard } from "../QuranHoursPastAchievements/RecitationJuzDetailCard";
+import { InsightCard } from "../InsightCard";
 import {
   getGoalById,
   type GoalData,
@@ -40,8 +48,12 @@ import {
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { Image } from "expo-image";
 
-type Props = {
+export type QuranJuzPastAchievementsProps = {
   goalId: JuzRecitationGoalId;
+  isDetailed?: boolean;
+  initialPeriod?: PastAchievementPeriod;
+  initialAnalyticsView?: JuzAnalyticsView;
+  initialJuzFilter?: JuzFilterId;
 };
 
 const PERIODS: PastAchievementPeriod[] = [
@@ -73,16 +85,29 @@ type StudyMaterialItem = NonNullable<GoalData["studyMaterial"]>[number];
 const STUDY_CARD_WIDTH_RATIO = 0.42;
 const STUDY_CARD_GAP = 10;
 
-export function QuranJuzPastAchievements({ goalId }: Props) {
+const PERIOD_DELTA_LABEL_KEYS: Record<PastAchievementPeriod, string> = {
+  monthly: "progressLogging.previousMonth",
+  threeMonths: "progressLogging.previousThreeMonths",
+  sixMonths: "progressLogging.previousSixMonths",
+};
+
+export function QuranJuzPastAchievements({
+  goalId,
+  isDetailed = false,
+  initialPeriod = "monthly",
+  initialAnalyticsView = "completedVsIncomplete",
+  initialJuzFilter = "all",
+}: QuranJuzPastAchievementsProps) {
+  const router = useRouter();
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
   const { width: screenWidth } = useWindowDimensions();
   const studyCardWidth = screenWidth * STUDY_CARD_WIDTH_RATIO;
-  const [period, setPeriod] = useState<PastAchievementPeriod>("monthly");
+  const [period, setPeriod] = useState<PastAchievementPeriod>(initialPeriod);
   const [selectedJuzFilter, setSelectedJuzFilter] =
-    useState<JuzFilterId>("all");
+    useState<JuzFilterId>(initialJuzFilter);
   const [analyticsView, setAnalyticsView] = useState<JuzAnalyticsView>(
-    "completedVsIncomplete",
+    initialAnalyticsView,
   );
   const goalData = getGoalById(goalId);
   const studyMaterial = goalData?.studyMaterial ?? [];
@@ -91,10 +116,17 @@ export function QuranJuzPastAchievements({ goalId }: Props) {
 
   const juzFilters = useMemo(() => getJuzPastAchievementFilters(), []);
 
+  const allPeriodSlice = useMemo(
+    () => getQuranJuzPastAchievementSlice(period, "all"),
+    [period],
+  );
+
   const periodSlice = useMemo(
     () => getQuranJuzPastAchievementSlice(period, selectedJuzFilter),
     [period, selectedJuzFilter],
   );
+
+  const isJuzDrillDown = isDetailed && selectedJuzFilter !== "all";
 
   const baseAchievement = useMemo(
     () => getQuranJuzPastAchievement(period, selectedJuzFilter),
@@ -111,6 +143,27 @@ export function QuranJuzPastAchievements({ goalId }: Props) {
     [analyticsView, baseAchievement, periodSlice],
   );
 
+  const chartAchievement = useMemo(() => {
+    if (isDetailed && analyticsView === "completedVsTimeSpent") {
+      return applyTimeSpentOnlyGreenChart(baseAchievement, timeSpentByPeriod);
+    }
+    return achievement;
+  }, [
+    achievement,
+    analyticsView,
+    baseAchievement,
+    isDetailed,
+    timeSpentByPeriod,
+  ]);
+
+  const chartFormatBarValue = useMemo(() => {
+    if (isDetailed && analyticsView === "completedVsTimeSpent") {
+      return (hours: number) =>
+        formatJuzTimeSpentChip(Math.round(hours * 60));
+    }
+    return formatJuzCountLabel;
+  }, [analyticsView, isDetailed]);
+
   const totalTimeSpentMinutes = useMemo(
     () => getTotalJuzTimeSpentMinutes(timeSpentByPeriod),
     [timeSpentByPeriod],
@@ -121,10 +174,45 @@ export function QuranJuzPastAchievements({ goalId }: Props) {
     setHintDismissed(false);
   }, [period, goalId, selectedJuzFilter, analyticsView]);
 
-  const handleBarPress = useCallback((index: number) => {
+  const handleBarPressCompact = useCallback((index: number | null) => {
     setHintDismissed(true);
     setSelectedBarIndex((current) => (current === index ? null : index));
   }, []);
+
+  const handleBarPressDetailed = useCallback((index: number | null) => {
+    setHintDismissed(true);
+    setSelectedBarIndex(index);
+  }, []);
+
+  const handleCloseBarSelection = useCallback(() => {
+    setSelectedBarIndex(null);
+  }, []);
+
+  const juzDisplayName =
+    selectedJuzFilter === "all"
+      ? t("progressLogging.juzFilterAll")
+      : t("progressLogging.juzRowTitle", {
+          number: formatNumber(selectedJuzFilter),
+        });
+
+  const progressRailRows = useMemo(
+    () =>
+      isDetailed
+        ? getJuzProgressRailRows(
+            allPeriodSlice,
+            periodSlice,
+            selectedJuzFilter,
+            selectedBarIndex,
+          )
+        : [],
+    [
+      allPeriodSlice,
+      isDetailed,
+      periodSlice,
+      selectedBarIndex,
+      selectedJuzFilter,
+    ],
+  );
 
   const selectedBaseWeek =
     selectedBarIndex !== null
@@ -141,8 +229,240 @@ export function QuranJuzPastAchievements({ goalId }: Props) {
       ? (timeSpentByPeriod[selectedBarIndex] ?? 0)
       : totalTimeSpentMinutes;
 
-  const showChartHint = !hintDismissed && selectedBarIndex === null;
+  const selectedBarGoalTotal = useMemo(() => {
+    if (selectedBarIndex === null) {
+      return 0;
+    }
+
+    if (selectedBaseWeek) {
+      return Math.max(
+        selectedBaseWeek.stackTotalHours,
+        displayBaseCompleted + displayBaseIncomplete,
+        1,
+      );
+    }
+
+    return periodSlice.targetJuzCount;
+  }, [
+    displayBaseCompleted,
+    displayBaseIncomplete,
+    periodSlice.targetJuzCount,
+    selectedBarIndex,
+    selectedBaseWeek,
+  ]);
+
+  const displayGoalTotal = useMemo(() => {
+    if (isJuzDrillDown && period === "monthly" && selectedBarIndex !== null) {
+      return Math.max(
+        1,
+        Math.round(
+          periodSlice.targetJuzCount /
+            Math.max(periodSlice.chartPeriods.length, 1),
+        ),
+      );
+    }
+
+    return periodSlice.targetJuzCount;
+  }, [
+    isJuzDrillDown,
+    period,
+    periodSlice.chartPeriods.length,
+    periodSlice.targetJuzCount,
+    selectedBarIndex,
+  ]);
+
+  const handleNavigateToDetailed = useCallback(() => {
+    router.push({
+      pathname: "/(private)/pastachievementdetailedstatistics",
+      params: {
+        goalId,
+        period,
+        analyticsView,
+        goalCategory: "juz",
+        selectedJuzFilter: String(selectedJuzFilter),
+      },
+    });
+  }, [analyticsView, goalId, period, router, selectedJuzFilter]);
+
+  const renderInsights = () => {
+    if (!isDetailed) return null;
+
+    const selectedJuzRecord = periodSlice.juzRecords.find(
+      (record) =>
+        selectedJuzFilter === "all" || record.juzNumber === selectedJuzFilter,
+    );
+
+    return (
+      <View style={styles.insightsSection}>
+        <View style={styles.insightsHeader}>
+          <Text style={styles.insightsTitleLabel}>
+            {t("progressLogging.keyInsights")}
+          </Text>
+          <Text style={styles.insightsSubtitleLabel}>
+            {period === "monthly"
+              ? "VS. LAST MONTH"
+              : period === "threeMonths"
+                ? "VS. LAST 3 MONTHS"
+                : "VS. LAST 6 MONTHS"}
+          </Text>
+        </View>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.insightsScrollContent}
+        >
+          <InsightCard
+            iconName="calendar-outline"
+            title={t("progressLogging.completed")}
+            value={formatNumber(baseAchievement.completedHours)}
+            subValue={t("progressLogging.unitJuz")}
+            style={styles.insightCardFixed}
+          />
+          <InsightCard
+            iconName="book-outline"
+            title="AYAT RECITED"
+            value={formatNumber(selectedJuzRecord?.completedAyatCount ?? 0)}
+            subValue={`of ${formatNumber(selectedJuzRecord?.totalAyatCount ?? 0)}`}
+            style={styles.insightCardFixed}
+          />
+          <InsightCard
+            iconName="time-outline"
+            title={t("progressLogging.timeSpentLabel")}
+            value={formatJuzTimeSpentLabel(totalTimeSpentMinutes)}
+            style={styles.insightCardFixed}
+          />
+        </ScrollView>
+      </View>
+    );
+  };
+
+  const showChartHint =
+    isDetailed && !hintDismissed && selectedBarIndex === null;
   const deltaIsPositive = baseAchievement.previousPeriodDeltaPercent >= 0;
+
+  const renderDetailedSummary = () => {
+    if (
+      selectedBarIndex !== null &&
+      periodSlice.chartPeriods[selectedBarIndex] &&
+      period === "monthly"
+    ) {
+      const selectedPeriod = periodSlice.chartPeriods[selectedBarIndex];
+      const weeklyGoal = Math.max(
+        1,
+        Math.round(
+          periodSlice.targetJuzCount /
+            Math.max(periodSlice.chartPeriods.length, 1),
+        ),
+      );
+      const weekPercent = Math.min(
+        100,
+        Math.round((selectedPeriod.completed / weeklyGoal) * 100),
+      );
+
+      return (
+        <Text style={styles.summaryTextDetailed}>
+          {t("progressLogging.juzDetailedSummaryWeek", {
+            week: formatNumber(selectedBarIndex + 1),
+            juz: juzDisplayName,
+            percent: formatNumber(weekPercent),
+          })}
+        </Text>
+      );
+    }
+
+    if (
+      selectedBarIndex !== null &&
+      periodSlice.chartPeriods[selectedBarIndex] &&
+      period !== "monthly"
+    ) {
+      const selectedPeriod = periodSlice.chartPeriods[selectedBarIndex];
+      const monthPercent = Math.min(
+        100,
+        Math.round(
+          (selectedPeriod.completed /
+            Math.max(selectedPeriod.completed + selectedPeriod.incomplete, 1)) *
+            100,
+        ),
+      );
+
+      return (
+        <Text style={styles.summaryTextDetailed}>
+          {t("progressLogging.juzDetailedSummaryMonthBar", {
+            range: selectedPeriod.dateLabel,
+            juz: juzDisplayName,
+            percent: formatNumber(monthPercent),
+          })}
+        </Text>
+      );
+    }
+
+    const summaryKey =
+      period === "monthly"
+        ? "progressLogging.juzDetailedSummaryMonthly"
+        : period === "threeMonths"
+          ? "progressLogging.juzDetailedSummaryThreeMonths"
+          : "progressLogging.juzDetailedSummarySixMonths";
+
+    return (
+      <Text style={styles.summaryTextDetailed}>
+        {t(summaryKey, {
+          percent: formatNumber(periodSlice.achievementPercent),
+          goalTotal: formatNumber(periodSlice.targetJuzCount),
+          juz: juzDisplayName,
+          delta: formatNumber(
+            Math.abs(periodSlice.previousPeriodDeltaPercent),
+          ),
+          direction: deltaIsPositive
+            ? t("progressLogging.periodComparisonIncrease")
+            : t("progressLogging.periodComparisonDecrease"),
+        })}
+      </Text>
+    );
+  };
+
+  const renderJuzFilterTabs = () => {
+    if (!isDetailed) {
+      return null;
+    }
+
+    return (
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.juzTabsRowDetailed}
+      >
+        {juzFilters.map((juz) => {
+          const isActive = selectedJuzFilter === juz.id;
+
+          return (
+            <TouchableOpacity
+              key={String(juz.id)}
+              activeOpacity={0.7}
+              onPress={() => setSelectedJuzFilter(juz.id)}
+              style={[
+                styles.juzTabDetailed,
+                isActive ? styles.juzTabDetailedActive : styles.juzTabDetailedInactive,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.juzTabDetailedText,
+                  isActive && styles.juzTabDetailedTextActive,
+                ]}
+                numberOfLines={1}
+              >
+                {juz.id === "all"
+                  ? t("progressLogging.juzFilterAll")
+                  : t("progressLogging.juzFilterTab", {
+                      number: formatNumber(juz.id),
+                    })}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
+    );
+  };
 
   const renderJuzRow = (item: JuzPastAchievementRecord) => {
     const progressPercent = getJuzAyatProgressPercent(
@@ -238,38 +558,96 @@ export function QuranJuzPastAchievements({ goalId }: Props) {
   );
 
   return (
-    <View style={styles.section}>
+    <View style={[styles.section, isDetailed && styles.sectionDetailed]}>
       <View style={styles.card}>
-        <View style={styles.cardHeader}>
-          <MaterialCommunityIcons
-            name="trophy-outline"
-            size={16}
-            color={Colors.light.white}
-          />
-          <Text style={styles.sectionTitle}>
-            {t("progressLogging.pastGoalAchievements")}
-          </Text>
+        <View style={styles.cardHeaderBlock}>
+          <View style={styles.cardHeader}>
+            <MaterialCommunityIcons
+              name={isDetailed ? "trending-up" : "trophy-outline"}
+              size={isDetailed ? 19 : 16}
+              color={isDetailed ? Colors.light.subtext : Colors.light.white}
+            />
+            <Text
+              style={[
+                styles.sectionTitle,
+                isDetailed && styles.sectionTitleDetailed,
+              ]}
+            >
+              {t("progressLogging.pastGoalAchievements")}
+            </Text>
+            {!isDetailed ? (
+              <TouchableOpacity
+                onPress={handleNavigateToDetailed}
+                style={{ marginLeft: "auto", padding: 4 }}
+              >
+                <Ionicons
+                  name="chevron-forward"
+                  size={20}
+                  color={Colors.light.white}
+                />
+              </TouchableOpacity>
+            ) : null}
+          </View>
+          {isJuzDrillDown && analyticsView === "completedVsIncomplete" ? (
+            <Text style={styles.drillDownHeader}>
+              {t("progressLogging.juzDrillDownHeader", {
+                analytics: t(ANALYTICS_VIEW_LABEL_KEYS[analyticsView]),
+                juz: juzDisplayName,
+              })}
+            </Text>
+          ) : null}
         </View>
 
         <View style={styles.topRow}>
           <View style={styles.achievementBlock}>
-            <Text style={styles.achievementCaption}>
-              {t("progressLogging.achievementsLabel")}
+            <Text
+              style={[
+                styles.achievementCaption,
+                isDetailed && styles.achievementCaptionDetailed,
+              ]}
+            >
+              {isDetailed
+                ? t("progressLogging.achievementsLabel").toUpperCase()
+                : t("progressLogging.achievementsLabel")}
             </Text>
-            <Text style={styles.achievementPercent}>
+            <Text
+              style={[
+                styles.achievementPercent,
+                isDetailed && styles.achievementPercentDetailed,
+              ]}
+            >
               {formatNumber(achievement.achievementPercent)}
-              <Text style={styles.achievementPercentSymbol}>%</Text>
+              <Text
+                style={[
+                  styles.achievementPercentSymbol,
+                  isDetailed && styles.achievementPercentSymbolDetailed,
+                ]}
+              >
+                %
+              </Text>
             </Text>
-            <View style={styles.deltaBadge}>
+            <View
+              style={[
+                styles.deltaBadge,
+                !deltaIsPositive && styles.deltaBadgeNegative,
+              ]}
+            >
               <Ionicons
                 name={deltaIsPositive ? "arrow-up" : "arrow-down"}
                 size={11}
-                color={Colors.light.green}
+                color={
+                  deltaIsPositive ? Colors.light.green : Colors.light.subtext
+                }
               />
-              <Text style={styles.deltaText}>
+              <Text
+                style={[
+                  styles.deltaText,
+                  !deltaIsPositive && styles.deltaTextNegative,
+                ]}
+              >
                 {deltaIsPositive ? "+" : ""}
                 {formatNumber(baseAchievement.previousPeriodDeltaPercent)}%{" "}
-                {t("progressLogging.previousMonth")}
+                {t(PERIOD_DELTA_LABEL_KEYS[period])}
               </Text>
             </View>
           </View>
@@ -306,7 +684,7 @@ export function QuranJuzPastAchievements({ goalId }: Props) {
               <TouchableOpacity activeOpacity={0.7} style={styles.navBtn}>
                 <Ionicons
                   name="chevron-back"
-                  size={14}
+                  size={isDetailed ? 24 : 14}
                   color={Colors.light.dullWhite}
                 />
               </TouchableOpacity>
@@ -316,7 +694,7 @@ export function QuranJuzPastAchievements({ goalId }: Props) {
               <TouchableOpacity activeOpacity={0.7} style={styles.navBtn}>
                 <Ionicons
                   name="chevron-forward"
-                  size={14}
+                  size={isDetailed ? 24 : 14}
                   color={Colors.light.dullWhite}
                 />
               </TouchableOpacity>
@@ -324,57 +702,70 @@ export function QuranJuzPastAchievements({ goalId }: Props) {
           </View>
         </View>
 
-        <Text style={styles.summaryText}>
-          {t(GOAL_SUMMARY_KEY, {
-            percent: formatNumber(baseAchievement.achievementPercent),
-            delta: formatNumber(
-              Math.abs(baseAchievement.previousPeriodDeltaPercent),
-            ),
-            direction: deltaIsPositive
-              ? t("progressLogging.periodComparisonIncrease")
-              : t("progressLogging.periodComparisonDecrease"),
-          })}
-        </Text>
+        {isDetailed ? (
+          <>
+            {renderDetailedSummary()}
+            {renderJuzFilterTabs()}
+          </>
+        ) : (
+          <>
+            <Text style={styles.summaryText}>
+              {t(GOAL_SUMMARY_KEY, {
+                percent: formatNumber(baseAchievement.achievementPercent),
+                delta: formatNumber(
+                  Math.abs(baseAchievement.previousPeriodDeltaPercent),
+                ),
+                direction: deltaIsPositive
+                  ? t("progressLogging.periodComparisonIncrease")
+                  : t("progressLogging.periodComparisonDecrease"),
+              })}
+            </Text>
 
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.juzTabsRow}
-        >
-          {juzFilters.map((juz) => {
-            const isActive = selectedJuzFilter === juz.id;
-            return (
-              <Pressable
-                key={String(juz.id)}
-                onPress={() => setSelectedJuzFilter(juz.id)}
-                style={[
-                  styles.juzTab,
-                  isActive ? styles.juzTabActive : styles.juzTabInactive,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.juzTabText,
-                    isActive && styles.juzTabTextActive,
-                  ]}
-                  numberOfLines={1}
-                >
-                  {juz.id === "all"
-                    ? t("progressLogging.juzFilterAll")
-                    : t("progressLogging.juzFilterTab", {
-                        number: formatNumber(juz.id),
-                      })}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.juzTabsRow}
+            >
+              {juzFilters.map((juz) => {
+                const isActive = selectedJuzFilter === juz.id;
+                return (
+                  <Pressable
+                    key={String(juz.id)}
+                    onPress={() => setSelectedJuzFilter(juz.id)}
+                    style={[
+                      styles.juzTab,
+                      isActive ? styles.juzTabActive : styles.juzTabInactive,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.juzTabText,
+                        isActive && styles.juzTabTextActive,
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {juz.id === "all"
+                        ? t("progressLogging.juzFilterAll")
+                        : t("progressLogging.juzFilterTab", {
+                            number: formatNumber(juz.id),
+                          })}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          </>
+        )}
 
         <View style={styles.goalHeader}>
-          <Text style={styles.goalLabel}>{t("progressLogging.goal")}</Text>
+          <Text style={styles.goalLabel}>
+            {isDetailed
+              ? t("progressLogging.recitationGoalTotalLabel")
+              : t("progressLogging.goal")}
+          </Text>
           <View style={styles.goalValueRow}>
             <Text style={styles.goalPillValue}>
-              {formatNumber(periodSlice.targetJuzCount)}{" "}
+              {formatNumber(displayGoalTotal)}{" "}
             </Text>
             <View style={styles.goalPill}>
               <Text style={styles.goalPillText}>
@@ -412,62 +803,108 @@ export function QuranJuzPastAchievements({ goalId }: Props) {
           })}
         </View>
 
-        <View style={styles.statsRow}>
-          <View style={styles.statColumn}>
-            <Text style={styles.statLabel}>
-              {t("progressLogging.completed")}
-            </Text>
-            <Text style={styles.statValueCompleted}>
-              {formatJuzCountLabel(displayBaseCompleted)}
-            </Text>
+        {isDetailed ? (
+          <RecitationPastAchievementProgressSection
+            analyticsView={analyticsView}
+            completed={displayBaseCompleted}
+            incomplete={displayBaseIncomplete}
+            totalTimeMinutes={selectedPeriodTimeSpentMinutes}
+            longestStreak={0}
+            formatCount={formatJuzCountLabel}
+            formatTimeChip={formatJuzTimeSpentChip}
+            completedLabel={t("progressLogging.completed")}
+            incompleteLabel={t("progressLogging.incomplete")}
+            timeSpentLabel={t("progressLogging.timeSpentLabel")}
+            streakLabel={t("progressLogging.daysLabel")}
+            showStreak={false}
+          />
+        ) : (
+          <View style={styles.statsRow}>
+            <View style={styles.statColumn}>
+              <Text style={styles.statLabel}>
+                {t("progressLogging.completed")}
+              </Text>
+              <Text style={styles.statValueCompleted}>
+                {formatJuzCountLabel(displayBaseCompleted)}
+              </Text>
+            </View>
+            <View style={styles.statColumn}>
+              <Text style={styles.statLabel}>
+                {analyticsView === "completedVsTimeSpent"
+                  ? t("progressLogging.timeSpentLabel")
+                  : t("progressLogging.incomplete")}
+              </Text>
+              <Text
+                style={
+                  analyticsView === "completedVsTimeSpent"
+                    ? styles.statValueTimeSpent
+                    : styles.statValueIncomplete
+                }
+              >
+                {analyticsView === "completedVsTimeSpent"
+                  ? formatJuzTimeSpentLabel(selectedPeriodTimeSpentMinutes)
+                  : formatJuzCountLabel(displayBaseIncomplete)}
+              </Text>
+            </View>
           </View>
-          <View style={styles.statColumn}>
-            <Text style={styles.statLabel}>
-              {analyticsView === "completedVsTimeSpent"
-                ? t("progressLogging.timeSpentLabel")
-                : t("progressLogging.incomplete")}
-            </Text>
-            <Text
-              style={
-                analyticsView === "completedVsTimeSpent"
-                  ? styles.statValueTimeSpent
-                  : styles.statValueIncomplete
-              }
-            >
-              {analyticsView === "completedVsTimeSpent"
-                ? formatJuzTimeSpentLabel(selectedPeriodTimeSpentMinutes)
-                : formatJuzCountLabel(displayBaseIncomplete)}
-            </Text>
-          </View>
-        </View>
+        )}
 
         <View
-          onStartShouldSetResponder={() => true}
+          onStartShouldSetResponder={() => isDetailed}
           onMoveShouldSetResponder={() => false}
         >
           <QuranHoursPastAchievementChartBlock
-            chartData={achievement.chartData}
-            selectedBarIndex={selectedBarIndex}
-            onBarPress={handleBarPress}
+            chartData={chartAchievement.chartData}
+            selectedBarIndex={isDetailed ? selectedBarIndex : null}
+            onBarPress={
+              isDetailed ? handleBarPressDetailed : handleBarPressCompact
+            }
             chartKey={`${goalId}-${period}-${selectedJuzFilter}-${analyticsView}`}
-            yMax={achievement.yMax}
-            yTicks={achievement.yTicks}
+            yMax={chartAchievement.yMax}
+            yTicks={chartAchievement.yTicks}
             showHint={showChartHint}
             onDismissHint={() => setHintDismissed(true)}
             hintText={t("progressLogging.chartTapHint")}
             hintActionText={t("progressLogging.okGotIt")}
-            pageCount={achievement.pageCount}
-            activePageIndex={selectedBarIndex ?? achievement.activePageIndex}
-            formatBarValue={formatJuzCountLabel}
+            pageCount={chartAchievement.pageCount}
+            activePageIndex={selectedBarIndex ?? chartAchievement.activePageIndex}
+            formatBarValue={chartFormatBarValue}
+            showPagination={isDetailed}
+            barColors={
+              analyticsView === "completedVsTimeSpent"
+                ? [Colors.light.green, Colors.light.green]
+                : [Colors.light.green, Colors.light.warning]
+            }
           />
         </View>
 
-        {/* <View style={styles.juzRowsSection}>
-          {periodSlice.juzRecords.map(renderJuzRow)}
-        </View> */}
+        {isDetailed ? (
+          <GraphBarSelectionFooter
+            visible={selectedBarIndex !== null}
+            completed={displayBaseCompleted}
+            incomplete={displayBaseIncomplete}
+            goalTotal={selectedBarGoalTotal}
+            onClose={handleCloseBarSelection}
+          />
+        ) : null}
+
+        {isDetailed && progressRailRows.length > 0 ? (
+          <View style={styles.progressRailSection}>
+            {progressRailRows.map((row) => (
+              <RecitationJuzDetailCard
+                key={`juz-rail-${row.juzNumber}`}
+                row={row}
+                analyticsView={analyticsView}
+                formatTimeChip={formatJuzTimeSpentChip}
+              />
+            ))}
+          </View>
+        ) : null}
       </View>
 
-      {studyMaterial.length > 0 ? (
+      {renderInsights()}
+
+      {studyMaterial.length > 0 && !isDetailed ? (
         <>
           <TopSpace top={16} />
           <View style={styles.studyHeaderRow}>
@@ -506,6 +943,9 @@ const styles = StyleSheet.create({
   section: {
     marginTop: 20,
   },
+  sectionDetailed: {
+    marginTop: 0,
+  },
   card: {
     borderRadius: 14,
     backgroundColor: Colors.light.greybuttonBackground,
@@ -519,6 +959,63 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 6,
   },
+  cardHeaderBlock: {
+    gap: 4,
+  },
+  drillDownHeader: {
+    color: Colors.light.subtext,
+    fontSize: 10,
+    fontFamily: fonts.primary.semiBold,
+    fontWeight: "600",
+    letterSpacing: 0.6,
+    textTransform: "uppercase",
+  },
+  goalInfoLabel: {
+    color: Colors.light.white,
+    fontSize: 18,
+    fontFamily: fonts.primary.semiBold,
+    fontWeight: "600",
+  },
+  summaryBold: {
+    color: Colors.light.white,
+    fontSize: 14,
+    fontFamily: fonts.primary.bold,
+    fontWeight: "700",
+    lineHeight: 20,
+  },
+  insightsSection: {
+    marginTop: 16,
+  },
+  insightsHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 12,
+  },
+  insightsTitleLabel: {
+    color: Colors.light.white,
+    fontSize: 11,
+    fontFamily: fonts.primary.semiBold,
+    fontWeight: "600",
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+  },
+  insightsSubtitleLabel: {
+    color: Colors.light.subtext,
+    fontSize: 10,
+    fontFamily: fonts.primary.semiBold,
+    fontWeight: "600",
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+  },
+  insightsScrollContent: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  insightCardFixed: {
+    width: 160,
+    minWidth: 160,
+  },
   sectionTitle: {
     color: Colors.light.subtext,
     fontSize: 11,
@@ -527,6 +1024,10 @@ const styles = StyleSheet.create({
     letterSpacing: 0.4,
     textTransform: "uppercase",
     flexShrink: 1,
+  },
+  sectionTitleDetailed: {
+    color: Colors.light.white,
+    fontSize: 13,
   },
   topRow: {
     flexDirection: "row",
@@ -543,6 +1044,11 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
   },
+  achievementCaptionDetailed: {
+    fontSize: 11,
+    fontFamily: fonts.primary.heavy,
+    fontWeight: "800",
+  },
   achievementPercent: {
     color: Colors.light.white,
     fontSize: 40,
@@ -550,8 +1056,18 @@ const styles = StyleSheet.create({
     fontWeight: "400",
     lineHeight: 44,
   },
+  achievementPercentDetailed: {
+    fontSize: 28,
+    fontFamily: fonts.primary.bold,
+    fontWeight: "700",
+    lineHeight: 28,
+    textTransform: "uppercase",
+  },
   achievementPercentSymbol: {
     fontSize: 22,
+  },
+  achievementPercentSymbolDetailed: {
+    fontSize: 16,
   },
   deltaBadge: {
     flexDirection: "row",
@@ -563,11 +1079,17 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     marginTop: 2,
   },
+  deltaBadgeNegative: {
+    backgroundColor: Colors.light.dullWhiteOpacity,
+  },
   deltaText: {
     color: Colors.light.green,
     fontSize: 11,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
+  },
+  deltaTextNegative: {
+    color: Colors.light.subtext,
   },
   periodNavRow: {
     alignItems: "center",
@@ -631,6 +1153,43 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.regular,
     lineHeight: 17,
     textAlign: "center",
+  },
+  summaryTextDetailed: {
+    color: Colors.light.grey,
+    fontSize: 12,
+    fontFamily: fonts.primary.regular,
+    lineHeight: 17,
+    textAlign: "center",
+  },
+  juzTabsRowDetailed: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingVertical: 2,
+  },
+  juzTabDetailed: {
+    borderRadius: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: Colors.light.blackBackground,
+  },
+  juzTabDetailedActive: {
+    backgroundColor: Colors.light.green,
+    borderWidth: 1,
+    borderColor: Colors.light.green,
+  },
+  juzTabDetailedInactive: {
+    backgroundColor: Colors.light.blackBackground,
+  },
+  juzTabDetailedText: {
+    color: Colors.light.grey,
+    fontSize: 11,
+    fontFamily: fonts.primary.medium,
+    fontWeight: "500",
+  },
+  juzTabDetailedTextActive: {
+    color: Colors.light.white,
+    fontWeight: "600",
   },
   juzTabsRow: {
     flexDirection: "row",
@@ -768,6 +1327,10 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "700",
+  },
+  progressRailSection: {
+    gap: 14,
+    marginTop: 4,
   },
   juzRowsSection: {
     gap: 14,

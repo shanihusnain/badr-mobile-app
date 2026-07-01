@@ -9,7 +9,6 @@ import {
   getMondayThursdayFastProgress,
   getMondayThursdayFastStatus,
   getTodayDateString,
-  isMondayThursdayFastCompletedEarlyOnSelectedDate,
   isMondayThursdaySelectedGoalFast,
   normalizeDateString,
   type MondayThursdayFastLogRecord,
@@ -41,7 +40,23 @@ export type MondayThursdayPeriodSlice = {
   activePageIndex: number;
   completedDates: string[];
   missedDates: string[];
+  upcomingDates: string[];
   calendarMonthDate: string;
+};
+
+export type MondayThursdayAchievement = {
+  id: string;
+  date: string;
+  isPlannedFast: boolean;
+  completed: boolean;
+  timeSpent: number;
+  linkedPlannedFastId?: string;
+};
+
+export type MondayThursdaySummary = {
+  totalCompleted: number;
+  totalIncomplete: number;
+  totalTimeSpent: number;
 };
 
 function addDays(dateStr: string, days: number): string {
@@ -172,11 +187,11 @@ function getCompletedLogsInRange(
 }
 
 function countCompletedInRange(start: string, end: string): number {
-  const dates = new Set<string>();
-  for (const log of getCompletedLogsInRange(start, end)) {
-    dates.add(normalizeDateString(log.date));
-  }
-  return dates.size;
+  return getMondayThursdayFastProgress().selectedGoalFasts.filter((date) => {
+    const normalizedDate = normalizeDateString(date);
+    if (normalizedDate < start || normalizedDate > end) return false;
+    return getMondayThursdayFastStatus(normalizedDate) === "completed";
+  }).length;
 }
 
 function isMissedSelectedFastDate(date: string): boolean {
@@ -242,10 +257,35 @@ function getCompletedDatesInRange(start: string, end: string): string[] {
   for (const date of progress.selectedGoalFasts) {
     const normalizedDate = normalizeDateString(date);
     if (normalizedDate < start || normalizedDate > end) continue;
-    if (isMondayThursdayFastCompletedEarlyOnSelectedDate(normalizedDate)) {
+    if (getMondayThursdayFastStatus(normalizedDate) === "completed") {
+      dates.add(normalizedDate);
+    }
+  }
+
+  for (const log of progress.logs) {
+    if (!log.completed) continue;
+    if (log.logType !== "completed_early" && log.logType !== "made_up_skipped") {
       continue;
     }
-    if (getMondayThursdayFastStatus(normalizedDate) === "completed") {
+
+    const actualDate = normalizeDateString(log.date);
+    if (actualDate < start || actualDate > end) continue;
+    dates.add(actualDate);
+  }
+
+  return Array.from(dates).sort();
+}
+
+function getUpcomingDatesInRange(start: string, end: string): string[] {
+  const today = getTodayDateString();
+  const progress = getMondayThursdayFastProgress();
+  const dates = new Set<string>();
+
+  for (const date of progress.selectedGoalFasts) {
+    const normalizedDate = normalizeDateString(date);
+    if (normalizedDate < start || normalizedDate > end) continue;
+    if (normalizedDate < today) continue;
+    if (getMondayThursdayFastStatus(normalizedDate) === "planned") {
       dates.add(normalizedDate);
     }
   }
@@ -355,6 +395,7 @@ function buildPeriodSlice(
   periodEnd: string,
   dateRangeLabel: string,
   chartPeriods: MondayThursdayPeriodSlice["chartPeriods"],
+  calendarAnchorDate: string,
 ): MondayThursdayPeriodSlice {
   const targetFasts = getPeriodTargetFasts(periodStart, periodEnd);
   const completedFasts = countCompletedInRange(periodStart, periodEnd);
@@ -381,6 +422,9 @@ function buildPeriodSlice(
     (previousCompleted / Math.max(previousTarget, 1)) * 100,
   );
 
+  const monthStart = getMonthStart(calendarAnchorDate);
+  const monthEnd = getMonthEnd(calendarAnchorDate);
+
   return {
     chartPeriods,
     targetFasts,
@@ -393,9 +437,10 @@ function buildPeriodSlice(
     periodEndDate: periodEnd,
     pageCount: chartPeriods.length,
     activePageIndex: resolveActivePageIndex(chartPeriods),
-    completedDates: getCompletedDatesInRange(periodStart, periodEnd),
-    missedDates: getMissedDatesInRange(periodStart, periodEnd),
-    calendarMonthDate: getMonthStart(periodStart),
+    completedDates: getCompletedDatesInRange(monthStart, monthEnd),
+    missedDates: getMissedDatesInRange(monthStart, monthEnd),
+    upcomingDates: getUpcomingDatesInRange(monthStart, monthEnd),
+    calendarMonthDate: monthStart,
   };
 }
 
@@ -409,6 +454,7 @@ function buildMonthlySlice(anchorDate: string): MondayThursdayPeriodSlice {
     periodEnd,
     formatDateRangeLabel(periodStart, periodEnd),
     buildWeeklyPeriods(periodStart, periodEnd),
+    anchorDate,
   );
 }
 
@@ -423,6 +469,7 @@ function buildThreeMonthSlice(anchorDate: string): MondayThursdayPeriodSlice {
     periodEnd,
     formatMultiMonthRangeLabel(periodStart, periodEnd),
     chartPeriods,
+    anchorDate,
   );
 }
 
@@ -437,6 +484,7 @@ function buildSixMonthSlice(anchorDate: string): MondayThursdayPeriodSlice {
     periodEnd,
     formatMultiMonthRangeLabel(periodStart, periodEnd),
     chartPeriods,
+    anchorDate,
   );
 }
 
@@ -583,6 +631,117 @@ export function formatMondayThursdayFastTimeLabel(totalMinutes: number): string 
 export function formatMondayThursdayChartHoursLabel(hours: number): string {
   if (hours <= 0) return "0h";
   return formatTotalTime(hours);
+}
+
+export function getMondayThursdayGoalTrackedMonths(
+  period: PastAchievementPeriod,
+): number {
+  switch (period) {
+    case "monthly":
+      return 1;
+    case "threeMonths":
+      return 3;
+    case "sixMonths":
+      return 6;
+  }
+}
+
+export function getTotalMondayThursdayFastsCompleted(
+  slice: MondayThursdayPeriodSlice,
+): number {
+  return slice.completedFasts;
+}
+
+export function getMondayThursdaySummary(
+  slice: MondayThursdayPeriodSlice,
+): MondayThursdaySummary {
+  return {
+    totalCompleted: slice.completedFasts,
+    totalIncomplete: slice.incompleteFasts,
+    totalTimeSpent: slice.chartPeriods.reduce(
+      (sum, period) => sum + period.timeSpentMinutes,
+      0,
+    ),
+  };
+}
+
+export function getMondayThursdayFastTimeSpentForDate(date: string): number {
+  const normalizedDate = normalizeDateString(date);
+  return getMondayThursdayFastProgress().logs
+    .filter((log) => {
+      if (!log.completed) return false;
+      const linkedDate = normalizeDateString(
+        log.plannedDate ??
+          log.missedFastDate ??
+          log.reconciledFromPlannedDate ??
+          log.date,
+      );
+      return (
+        linkedDate === normalizedDate ||
+        normalizeDateString(log.date) === normalizedDate
+      );
+    })
+    .reduce((sum, log) => sum + getLogDurationMinutes(log), 0);
+}
+
+export function isMondayThursdayFastCompletedOnDate(date: string): boolean {
+  const normalizedDate = normalizeDateString(date);
+  const progress = getMondayThursdayFastProgress();
+
+  const completedOnActualDay = progress.logs.some(
+    (log) =>
+      log.completed && normalizeDateString(log.date) === normalizedDate,
+  );
+  if (completedOnActualDay) return true;
+
+  if (!isMondayThursdaySelectedGoalFast(normalizedDate)) return false;
+  return getMondayThursdayFastStatus(normalizedDate) === "completed";
+}
+
+export function isMondayThursdayFastMissedOnDate(
+  date: string,
+  slice: MondayThursdayPeriodSlice,
+): boolean {
+  return slice.missedDates.includes(normalizeDateString(date));
+}
+
+export function buildMondayThursdayAchievements(
+  slice: MondayThursdayPeriodSlice,
+): MondayThursdayAchievement[] {
+  const progress = getMondayThursdayFastProgress();
+  const dates = new Set([
+    ...slice.completedDates,
+    ...slice.missedDates,
+    ...slice.upcomingDates,
+  ]);
+
+  return Array.from(dates)
+    .sort()
+    .map((date) => ({
+      id: date,
+      date,
+      isPlannedFast:
+        isMondayThursdaySelectedGoalFast(date) ||
+        progress.logs.some(
+          (log) =>
+            log.completed &&
+            (log.logType === "completed_early" ||
+              log.logType === "made_up_skipped") &&
+            normalizeDateString(log.date) === date,
+        ),
+      completed: slice.completedDates.includes(date),
+      timeSpent: getMondayThursdayFastTimeSpentForDate(date),
+      linkedPlannedFastId: isMondayThursdaySelectedGoalFast(date)
+        ? date
+        : progress.logs.find(
+            (log) =>
+              log.completed && normalizeDateString(log.date) === date,
+          )?.reconciledFromPlannedDate ??
+          progress.logs.find(
+            (log) =>
+              log.completed && normalizeDateString(log.date) === date,
+          )?.plannedDate,
+    }));
 }
 
 /** @deprecated Use getMondayThursdayFastsPastAchievement(period) instead. */

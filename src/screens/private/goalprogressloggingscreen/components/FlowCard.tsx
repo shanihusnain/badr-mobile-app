@@ -1,5 +1,11 @@
 import React from "react";
-import { View, Text, TouchableOpacity, ViewStyle, StyleProp } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ViewStyle,
+  StyleProp,
+} from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { Colors } from "@/constants/theme";
@@ -37,7 +43,7 @@ export const FlowCard: React.FC<FlowCardProps> = ({
     canGoForward ? Colors.light.white : Colors.light.subtext;
   const forwardBtnStyleDecider = () => {
     return [styles.navButton, !canGoForward && styles.navButtonDisabled];
-  }
+  };
   return (
     <View style={[styles.flowCard, style]}>
       <View style={styles.flowHeader}>
@@ -66,7 +72,11 @@ export const FlowCard: React.FC<FlowCardProps> = ({
             disabled={!canGoForward}
             activeOpacity={0.8}
           >
-            <FontAwesome name={i18n.language === "ar" ? "chevron-left" : "chevron-right"} size={12} color={iconColorsDecider()} />
+            <FontAwesome
+              name={i18n.language === "ar" ? "chevron-left" : "chevron-right"}
+              size={12}
+              color={iconColorsDecider()}
+            />
           </TouchableOpacity>
         </View>
 

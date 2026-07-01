@@ -27,6 +27,7 @@ import {
 import moment from "moment-hijri";
 import { fonts } from "@/assets/fonts";
 import { FontAwesome } from "@expo/vector-icons";
+import Feather from "@expo/vector-icons/Feather";
 import { useTypedTranslation } from "@/i18next/useTypedTranslation";
 
 const RING_SIZE = 36;
@@ -66,7 +67,8 @@ export type CalendarMode =
   | "planned_progress"
   | "missed_ramadan_achievement"
   | "monday_thursday_achievement"
-  | "white_days_achievement";
+  | "white_days_achievement"
+  | "dawood_achievement";
 
 export type CalendarGridProps = {
   mode: CalendarMode;
@@ -107,6 +109,8 @@ export type CalendarGridProps = {
   minDate?: string;
   /** DOB mode: latest selectable date (YYYY-MM-DD). */
   maxDate?: string;
+  /** Prophet Dawood achievement: show cycle restart marker on this date. */
+  cycleRestartDate?: string | null;
   bgColor?: string;
 };
 
@@ -190,6 +194,7 @@ export const CalendarGrid = ({
   endDate,
   minDate,
   maxDate,
+  cycleRestartDate = null,
   bgColor,
 }: CalendarGridProps) => {
   const { t } = useTypedTranslation();
@@ -219,7 +224,10 @@ export const CalendarGrid = ({
   const cycleWeeks =
     windowStart && windowEnd ? buildCycleWeeks(windowStart, windowEnd) : null;
   const monthWeeks =
-    mode === "dob" || mode === "white_days_achievement"
+    mode === "dob" ||
+    mode === "white_days_achievement" ||
+    mode === "dawood_achievement" ||
+    mode === "monday_thursday_achievement"
       ? buildMonthWeeks(currentDate)
       : null;
   const gridWeeks: (string | null)[][] | null =
@@ -394,18 +402,42 @@ export const CalendarGrid = ({
           };
           showCompletedDot = true;
           textStyle = { color: Colors.light.white };
+        } else if (missedFastSet.has(ds)) {
+          circleStyle = {
+            borderWidth: 1.2,
+            borderColor: Colors.light.warning,
+          };
+          showMissedWarning = true;
+          textStyle = { color: Colors.light.warning };
         } else if (incompletePlannedFastSet.has(ds)) {
           circleStyle = {
             borderWidth: 1.2,
-            borderColor: Colors.light.ringRamadan,
+            borderColor: Colors.light.subtext,
+            backgroundColor: "transparent",
           };
-          textStyle = { color: Colors.light.ringRamadan };
+          textStyle = { color: Colors.light.white };
         }
         break;
       }
 
       // ── Monday & Thursday past achievements ────────────────────────────
       case "monday_thursday_achievement": {
+        const dayMoment = moment(ds, "YYYY-MM-DD");
+        const isPlanned =
+          completedFastSet.has(ds) ||
+          missedFastSet.has(ds) ||
+          incompletePlannedFastSet.has(ds);
+
+        if (!dayMoment.isSame(displayedMonth, "month")) {
+          cellOpacity = 0.25;
+          textStyle = { color: Colors.light.grey };
+          break;
+        }
+
+        if (!isPlanned) {
+          break;
+        }
+
         if (completedFastSet.has(ds)) {
           markerColor = Colors.light.green;
           circleStyle = {
@@ -417,8 +449,17 @@ export const CalendarGrid = ({
         } else if (missedFastSet.has(ds)) {
           circleStyle = {
             borderWidth: 1.2,
-            borderColor: Colors.light.green,
+            borderColor: Colors.light.warning,
           };
+          showMissedWarning = true;
+          textStyle = { color: Colors.light.warning };
+        } else if (incompletePlannedFastSet.has(ds)) {
+          circleStyle = {
+            borderWidth: 1.2,
+            borderColor: Colors.light.green,
+            backgroundColor: "transparent",
+          };
+          cellOpacity = 0.65;
           textStyle = { color: Colors.light.green };
         }
         break;
@@ -465,6 +506,50 @@ export const CalendarGrid = ({
         break;
       }
 
+      case "dawood_achievement": {
+        const dayMoment = moment(ds, "YYYY-MM-DD");
+        const isTarget =
+          completedFastSet.has(ds) ||
+          missedFastSet.has(ds) ||
+          incompletePlannedFastSet.has(ds);
+
+        if (!dayMoment.isSame(displayedMonth, "month")) {
+          cellOpacity = 0.25;
+          textStyle = { color: Colors.light.grey };
+          break;
+        }
+
+        if (!isTarget) {
+          break;
+        }
+
+        if (completedFastSet.has(ds)) {
+          markerColor = Colors.light.ringDawood;
+          circleStyle = {
+            borderWidth: 1.2,
+            borderColor: Colors.light.ringDawood,
+          };
+          showCompletedDot = true;
+          textStyle = { color: Colors.light.white };
+        } else if (missedFastSet.has(ds)) {
+          circleStyle = {
+            borderWidth: 1.2,
+            borderColor: Colors.light.warning,
+          };
+          showMissedWarning = true;
+          textStyle = { color: Colors.light.warning };
+        } else if (incompletePlannedFastSet.has(ds)) {
+          circleStyle = {
+            borderWidth: 1.2,
+            borderColor: Colors.light.ringDawood,
+            backgroundColor: "transparent",
+          };
+          cellOpacity = 0.65;
+          textStyle = { color: Colors.light.ringDawood };
+        }
+        break;
+      }
+
       // ── Dashboard: planned vs. progress fast states ────────────────
       case "planned_progress": {
         const marker = plannedFastMarkerMap.get(ds);
@@ -486,15 +571,30 @@ export const CalendarGrid = ({
       }
     }
 
+    const isAchievementMode =
+      mode === "missed_ramadan_achievement" ||
+      mode === "monday_thursday_achievement" ||
+      mode === "white_days_achievement" ||
+      mode === "dawood_achievement";
+
+    if (selectedDate && isAchievementMode && ds !== selectedDate) {
+      cellOpacity = Math.min(cellOpacity, 0.3);
+    }
+
+    if (selectedDate && isAchievementMode && ds === selectedDate) {
+      cellBg = { backgroundColor: Colors.light.calendarTodayBg };
+    }
+
     const isTappable =
       (mode === "dob" || mode === "ramadan" || mode === "mon_thu") &&
       !isDisabledDobDate;
+    const isAchievementTappable = isAchievementMode && Boolean(onDayPress);
 
     return (
       <TouchableOpacity
         onPress={() => onDayPress?.(ds)}
-        activeOpacity={isTappable ? 0.7 : 1}
-        disabled={!isTappable}
+        activeOpacity={isTappable || isAchievementTappable ? 0.7 : 1}
+        disabled={!isTappable && !isAchievementTappable}
         style={styles.dayPressable}
       >
         <View style={[styles.dayCell, cellBg, { opacity: cellOpacity }]}>
@@ -518,12 +618,30 @@ export const CalendarGrid = ({
                 {dayNumber}
               </Text>
             </View>
-            {showMissedWarning ? (
+            {showMissedWarning && mode === "dawood_achievement" ? (
+              <FontAwesome
+                name="warning"
+                size={10}
+                color={Colors.light.golden}
+                style={styles.dawoodMissedWarningOutside}
+              />
+            ) : null}
+            {showMissedWarning && mode !== "dawood_achievement" ? (
               <FontAwesome
                 name="warning"
                 size={14}
                 color={Colors.light.golden}
                 style={styles.missedWarningIcon}
+              />
+            ) : null}
+            {mode === "dawood_achievement" &&
+            cycleRestartDate &&
+            ds === cycleRestartDate ? (
+              <Feather
+                name="refresh-ccw"
+                size={12}
+                color={Colors.light.ringDawood}
+                style={styles.cycleRestartIcon}
               />
             ) : null}
           </View>
@@ -661,6 +779,18 @@ const styles = StyleSheet.create({
     bottom: -5,
     right: -12,
     zIndex: 3,
+  },
+  dawoodMissedWarningOutside: {
+    position: "absolute",
+    bottom: -2,
+    right: -8,
+    zIndex: 3,
+  },
+  cycleRestartIcon: {
+    position: "absolute",
+    bottom: -4,
+    right: -14,
+    zIndex: 4,
   },
   dayGregorian: {
     fontSize: 14,

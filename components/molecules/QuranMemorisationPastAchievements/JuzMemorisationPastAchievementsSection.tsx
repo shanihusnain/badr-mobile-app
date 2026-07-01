@@ -14,168 +14,133 @@ import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Colors } from "@/constants/theme";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
+import { formatMemorisationAyahLabel } from "@/src/screens/private/goalprogressloggingscreen/quranMemorisationPastAchievementData";
+import { getJuzMemorisationCompactPastAchievement } from "@/src/screens/private/goalprogressloggingscreen/quranMemorisationJuzPastAchievementData";
 import {
-  formatMemorisationAyahLabel,
-  getMemorisationPastAchievement,
-} from "@/src/screens/private/goalprogressloggingscreen/quranMemorisationPastAchievementData";
-import {
-  applyMemorisationAnalyticsView,
-  formatMemorisationAyahCountLabel,
-  formatMemorisationTimeSpentChip,
-  getMemorisationGoalTrackedMonths,
-  getMemorisationPastAchievementFilters,
-  getMemorisationProgressRailRows,
-  getMemorisationTimeSpentByPeriod,
-  getQuranMemorisationSurahPastAchievement,
-  getQuranMemorisationSurahPastAchievementSlice,
-  getTotalMemorisationTimeSpentMinutes,
-  getTotalMemorizedVerses,
-  hasMemorisationPastAchievementLogs,
-  type MemorisationAnalyticsView,
-  type MemorisationSurahFilterId,
-} from "@/src/screens/private/goalprogressloggingscreen/quranMemorisationSurahPastAchievementData";
+  applyJuzMemorisationAnalyticsView,
+  formatJuzMemorisationCountLabel,
+  formatMemorisationJuzTimeSpentChip,
+  getMemorisationJuzGoalTrackedMonths,
+  getJuzMemorisationPastAchievementFilters,
+  getMemorisationJuzProgressRailRows,
+  getJuzMemorisationTimeSpentByPeriod,
+  getJuzMemorisationPastAchievement,
+  getJuzMemorisationPastAchievementSlice,
+  getTotalJuzMemorizedVerses,
+  getTotalJuzMemorisationTimeSpentMinutes,
+  hasMemorisationJuzPastAchievementLogs,
+  type MemorisationJuzFilterId,
+} from "@/src/screens/private/goalprogressloggingscreen/quranMemorisationJuzPastAchievementData";
+import type { MemorisationAnalyticsView } from "@/src/screens/private/goalprogressloggingscreen/quranMemorisationSurahPastAchievementData";
 import { applyTimeSpentOnlyGreenChart } from "@/src/screens/private/goalprogressloggingscreen/quranRecitationPastAchievementData";
 import type { PastAchievementPeriod } from "@/src/screens/private/goalprogressloggingscreen/quranHoursPastAchievementData";
-import type {
-  HizbMemorisationGoalId,
-  SurahMemorisationGoalId,
-} from "@/src/screens/private/goalprogressloggingscreen/types";
-import { isHizbMemorisationGoalId } from "@/src/screens/private/goalprogressloggingscreen/quranMemorisationHizbTarget";
-import { isSurahMemorisationGoalId } from "@/src/screens/private/goalprogressloggingscreen/quranMemorisationTarget";
-import { useOptionalMemorisationSurahContext } from "@/src/screens/private/goalprogressloggingscreen/memorisationSurahContext";
+import type { JuzMemorisationGoalId } from "@/src/screens/private/goalprogressloggingscreen/types";
+import { useOptionalMemorisationJuzContext } from "@/src/screens/private/goalprogressloggingscreen/memorisationJuzContext";
 import { QuranHoursPastAchievementChartBlock } from "../QuranHoursPastAchievements/QuranHoursPastAchievementChartBlock";
 import { GraphBarSelectionFooter } from "../QuranHoursPastAchievements/GraphBarSelectionFooter";
 import { RecitationPastAchievementProgressSection } from "../QuranHoursPastAchievements/RecitationPastAchievementProgressSection";
-import { MemorisationSurahDetailCard } from "../QuranHoursPastAchievements/MemorisationSurahDetailCard";
-import { HizbMemorisationPastAchievements } from "./HizbMemorisationPastAchievementsSection";
-import { memorisationPastAchievementStyles as styles } from "./memorisationPastAchievementsStyles";
+import { MemorisationJuzDetailCard } from "../QuranHoursPastAchievements/MemorisationJuzDetailCard";
 import { InsightCard } from "../InsightCard";
 import { TopSpace } from "@/components/atoms/TopSpace";
-import {
-  getGoalById,
-  type GoalData,
-} from "@/src/screens/private/home/components/goalsData";
+import { getGoalById, type GoalData } from "@/src/screens/private/home/components/goalsData";
 import { Image } from "expo-image";
+import { memorisationPastAchievementStyles as styles } from "./memorisationPastAchievementsStyles";
 
-export type QuranMemorisationPastAchievementsProps = {
-  goalId: SurahMemorisationGoalId | HizbMemorisationGoalId;
-  isDetailed?: boolean;
-  initialPeriod?: PastAchievementPeriod;
-  initialAnalyticsView?: MemorisationAnalyticsView;
-  initialSurahId?: string;
-  initialHizbId?: string;
-};
-
-type Props = QuranMemorisationPastAchievementsProps;
-
-const PERIODS: PastAchievementPeriod[] = [
-  "monthly",
-  "threeMonths",
-  "sixMonths",
-];
-
+const PERIODS: PastAchievementPeriod[] = ["monthly", "threeMonths", "sixMonths"];
 const PERIOD_LABEL_KEYS: Record<PastAchievementPeriod, string> = {
   monthly: "progressLogging.periodMonthly",
   threeMonths: "progressLogging.periodThreeMonths",
   sixMonths: "progressLogging.periodSixMonths",
 };
-
-const ANALYTICS_VIEWS: MemorisationAnalyticsView[] = [
-  "completedVsIncomplete",
-  "completedVsTimeSpent",
-];
-
+const ANALYTICS_VIEWS: MemorisationAnalyticsView[] = ["completedVsIncomplete", "completedVsTimeSpent"];
 const ANALYTICS_VIEW_LABEL_KEYS: Record<MemorisationAnalyticsView, string> = {
   completedVsIncomplete: "progressLogging.analyticsCompletedVsIncomplete",
   completedVsTimeSpent: "progressLogging.analyticsCompletedVsTimeSpent",
 };
-
 const PERIOD_DELTA_LABEL_KEYS: Record<PastAchievementPeriod, string> = {
   monthly: "progressLogging.previousMonth",
   threeMonths: "progressLogging.previousThreeMonths",
   sixMonths: "progressLogging.previousSixMonths",
 };
-
 const STUDY_CARD_WIDTH_RATIO = 0.42;
 const STUDY_CARD_GAP = 10;
-
 type StudyMaterialItem = NonNullable<GoalData["studyMaterial"]>[number];
 
-function SurahMemorisationPastAchievements({
+export function JuzMemorisationPastAchievements({
   goalId,
   isDetailed = false,
   initialPeriod = "monthly",
   initialAnalyticsView = "completedVsIncomplete",
-  initialSurahId = "all",
+  initialJuzId = "all",
 }: {
-  goalId: SurahMemorisationGoalId;
+  goalId: JuzMemorisationGoalId;
   isDetailed?: boolean;
   initialPeriod?: PastAchievementPeriod;
   initialAnalyticsView?: MemorisationAnalyticsView;
-  initialSurahId?: string;
+  initialJuzId?: string;
 }) {
   const router = useRouter();
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
   const { width: screenWidth } = useWindowDimensions();
   const studyCardWidth = screenWidth * STUDY_CARD_WIDTH_RATIO;
-  const surahContext = useOptionalMemorisationSurahContext();
+  const juzContext = useOptionalMemorisationJuzContext();
   const [period, setPeriod] = useState<PastAchievementPeriod>(initialPeriod);
   const [analyticsView, setAnalyticsView] =
     useState<MemorisationAnalyticsView>(initialAnalyticsView);
-  const [detailedSurahFilter, setDetailedSurahFilter] =
-    useState<MemorisationSurahFilterId>(initialSurahId ?? "all");
+  const [detailedJuzFilter, setDetailedJuzFilter] =
+    useState<MemorisationJuzFilterId>(initialJuzId ?? "all");
   const [selectedBarIndex, setSelectedBarIndex] = useState<number | null>(null);
   const [hintDismissed, setHintDismissed] = useState(false);
   const goalData = getGoalById(goalId);
   const studyMaterial = goalData?.studyMaterial ?? [];
 
-  const surahFilters = useMemo(() => getMemorisationPastAchievementFilters(), []);
-  const selectedSurahId: MemorisationSurahFilterId = isDetailed
-    ? detailedSurahFilter
-    : (surahContext?.activeSurahId ?? "all");
-  const refreshKey = surahContext?.refreshKey ?? 0;
-  const isSurahDrillDown = isDetailed && selectedSurahId !== "all";
+  const juzFilters = useMemo(() => getJuzMemorisationPastAchievementFilters(), []);
+  const selectedJuzId: MemorisationJuzFilterId = isDetailed
+    ? detailedJuzFilter
+    : (juzContext?.activeJuzId ?? "all");
+  const refreshKey = juzContext?.refreshKey ?? 0;
+  const isJuzDrillDown = isDetailed && selectedJuzId !== "all";
 
-  const surahDisplayName =
-    surahFilters.find((filter) => filter.id === selectedSurahId)?.surahName ??
+  const juzDisplayName =
+    juzFilters.find((filter) => filter.id === selectedJuzId)?.label ??
     "";
 
   const allPeriodSlice = useMemo(
-    () => getQuranMemorisationSurahPastAchievementSlice(period, "all"),
+    () => getJuzMemorisationPastAchievementSlice(period, "all"),
     [period, refreshKey],
   );
 
   const periodSlice = useMemo(
     () =>
-      getQuranMemorisationSurahPastAchievementSlice(period, selectedSurahId),
-    [period, selectedSurahId, refreshKey],
+      getJuzMemorisationPastAchievementSlice(period, selectedJuzId),
+    [period, selectedJuzId, refreshKey],
   );
 
   const hasLogs = useMemo(
-    () => hasMemorisationPastAchievementLogs(periodSlice),
+    () => hasMemorisationJuzPastAchievementLogs(periodSlice),
     [periodSlice],
   );
 
   const baseAchievement = useMemo(
-    () => getQuranMemorisationSurahPastAchievement(period, selectedSurahId),
-    [period, selectedSurahId, refreshKey],
+    () => getJuzMemorisationPastAchievement(period, selectedJuzId),
+    [period, selectedJuzId, refreshKey],
   );
 
   const compactAchievement = useMemo(
-    () => getMemorisationPastAchievement(selectedSurahId),
-    [selectedSurahId, refreshKey],
+    () => getJuzMemorisationCompactPastAchievement(selectedJuzId),
+    [selectedJuzId, refreshKey],
   );
 
   const timeSpentByPeriod = useMemo(
-    () => getMemorisationTimeSpentByPeriod(periodSlice),
+    () => getJuzMemorisationTimeSpentByPeriod(periodSlice),
     [periodSlice],
   );
 
   const achievement = useMemo(
     () =>
       isDetailed
-        ? applyMemorisationAnalyticsView(
+        ? applyJuzMemorisationAnalyticsView(
             baseAchievement,
             periodSlice,
             analyticsView,
@@ -201,7 +166,7 @@ function SurahMemorisationPastAchievements({
   const chartFormatBarValue = useMemo(() => {
     if (isDetailed && analyticsView === "completedVsTimeSpent") {
       return (hours: number) =>
-        formatMemorisationTimeSpentChip(Math.round(hours * 60));
+        formatMemorisationJuzTimeSpentChip(Math.round(hours * 60));
     }
     return (value: number) =>
       t("progressLogging.memorisationAyahCount", {
@@ -210,20 +175,20 @@ function SurahMemorisationPastAchievements({
   }, [analyticsView, formatNumber, isDetailed, t]);
 
   const totalTimeSpentMinutes = useMemo(
-    () => getTotalMemorisationTimeSpentMinutes(timeSpentByPeriod),
+    () => getTotalJuzMemorisationTimeSpentMinutes(timeSpentByPeriod),
     [timeSpentByPeriod],
   );
 
-  const goalTrackedMonths = getMemorisationGoalTrackedMonths(period);
-  const totalMemorizedVerses = getTotalMemorizedVerses(periodSlice);
+  const goalTrackedMonths = getMemorisationJuzGoalTrackedMonths(period);
+  const totalMemorizedVerses = getTotalJuzMemorizedVerses(periodSlice);
 
   const progressRailRows = useMemo(
     () =>
       isDetailed
-        ? getMemorisationProgressRailRows(
+        ? getMemorisationJuzProgressRailRows(
             allPeriodSlice,
             periodSlice,
-            selectedSurahId,
+            selectedJuzId,
             selectedBarIndex,
           )
         : [],
@@ -232,7 +197,7 @@ function SurahMemorisationPastAchievements({
       isDetailed,
       periodSlice,
       selectedBarIndex,
-      selectedSurahId,
+      selectedJuzId,
     ],
   );
 
@@ -270,15 +235,15 @@ function SurahMemorisationPastAchievements({
   ]);
 
   useEffect(() => {
-    if (isDetailed && initialSurahId) {
-      setDetailedSurahFilter(initialSurahId);
+    if (isDetailed && initialJuzId) {
+      setDetailedJuzFilter(initialJuzId);
     }
-  }, [initialSurahId, isDetailed]);
+  }, [initialJuzId, isDetailed]);
 
   useEffect(() => {
     setSelectedBarIndex(null);
     setHintDismissed(false);
-  }, [period, goalId, selectedSurahId, analyticsView]);
+  }, [period, goalId, selectedJuzId, analyticsView]);
 
   const handleBarPressCompact = useCallback((index: number | null) => {
     setHintDismissed(true);
@@ -301,22 +266,22 @@ function SurahMemorisationPastAchievements({
         goalId,
         period,
         analyticsView,
-        goalCategory: "surah",
-        goalType: "quran_memorisation",
-        selectedSurahId:
-          selectedSurahId === "all" ? undefined : selectedSurahId,
+        goalCategory: "memorisation_juz",
+        goalType: "quran_memorisation_juz",
+        selectedMemorisationJuzFilter:
+          selectedJuzId === "all" ? undefined : selectedJuzId,
       },
     });
-  }, [analyticsView, goalId, period, router, selectedSurahId]);
+  }, [analyticsView, goalId, period, router, selectedJuzId]);
 
   const formatStatCount = (value: number) =>
-    formatMemorisationAyahCountLabel(value);
+    formatJuzMemorisationCountLabel(value);
 
   const showChartHint =
     isDetailed && !hintDismissed && selectedBarIndex === null;
   const deltaIsPositive = baseAchievement.previousPeriodDeltaPercent >= 0;
 
-  const renderSurahFilterTabs = () => {
+  const renderJuzFilterTabs = () => {
     if (!isDetailed) return null;
 
     return (
@@ -325,18 +290,18 @@ function SurahMemorisationPastAchievements({
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.surahTabsRow}
       >
-        {surahFilters.map((filter) => {
-          const isActive = selectedSurahId === filter.id;
+        {juzFilters.map((filter) => {
+          const isActive = selectedJuzId === filter.id;
           const label =
             filter.id === "all"
-              ? t("progressLogging.surahFilterAll")
-              : filter.surahName;
+              ? t("progressLogging.juzFilterAll")
+              : filter.label;
 
           return (
             <TouchableOpacity
               key={filter.id}
               activeOpacity={0.7}
-              onPress={() => setDetailedSurahFilter(filter.id)}
+              onPress={() => setDetailedJuzFilter(filter.id)}
               style={[
                 styles.surahTab,
                 isActive ? styles.surahTabActive : styles.surahTabInactive,
@@ -374,13 +339,13 @@ function SurahMemorisationPastAchievements({
 
       return (
         <Text style={styles.summaryTextDetailed}>
-          {t("progressLogging.memorisationDetailedSummaryBar", {
+          {t("progressLogging.memorisationJuzDetailedSummaryBar", {
             range: selectedPeriod.dateLabel,
             memorized: formatNumber(selectedPeriod.completed),
-            surah:
-              selectedSurahId === "all"
-                ? t("progressLogging.memorisationAllSurahsTitle")
-                : surahDisplayName,
+            juz:
+              selectedJuzId === "all"
+                ? t("progressLogging.memorisationAllJuzTitle")
+                : juzDisplayName,
             percent: formatNumber(percent),
           })}
         </Text>
@@ -389,10 +354,10 @@ function SurahMemorisationPastAchievements({
 
     const summaryKey =
       period === "monthly"
-        ? "progressLogging.memorisationDetailedSummaryMonthly"
+        ? "progressLogging.memorisationJuzDetailedSummaryMonthly"
         : period === "threeMonths"
-          ? "progressLogging.memorisationDetailedSummaryThreeMonths"
-          : "progressLogging.memorisationDetailedSummarySixMonths";
+          ? "progressLogging.memorisationJuzDetailedSummaryThreeMonths"
+          : "progressLogging.memorisationJuzDetailedSummarySixMonths";
 
     return (
       <Text style={styles.summaryTextDetailed}>
@@ -400,10 +365,10 @@ function SurahMemorisationPastAchievements({
           percent: formatNumber(periodSlice.achievementPercent),
           memorized: formatNumber(periodSlice.memorizedAyahs),
           total: formatNumber(periodSlice.totalAyahs),
-          surah:
-            selectedSurahId === "all"
-              ? t("progressLogging.memorisationAllSurahsTitle")
-              : surahDisplayName,
+          juz:
+            selectedJuzId === "all"
+              ? t("progressLogging.memorisationAllJuzTitle")
+              : juzDisplayName,
           delta: formatNumber(Math.abs(periodSlice.previousPeriodDeltaPercent)),
           direction: deltaIsPositive
             ? t("progressLogging.periodComparisonIncrease")
@@ -554,7 +519,7 @@ function SurahMemorisationPastAchievements({
             {t("progressLogging.memorisationCumulativeSummary", {
               memorized: formatNumber(compactAchievement.memorizedAyahs),
               total: formatNumber(compactAchievement.totalAyahs),
-              surah: compactAchievement.surahName,
+              surah: compactAchievement.juzName,
             })}
           </Text>
 
@@ -601,7 +566,7 @@ function SurahMemorisationPastAchievements({
               chartData={compactAchievement.chartData}
               selectedBarIndex={selectedBarIndex}
               onBarPress={handleBarPressCompact}
-              chartKey={`${goalId}-${selectedSurahId}-${refreshKey}`}
+              chartKey={`${goalId}-${selectedJuzId}-${refreshKey}`}
               yMax={compactAchievement.yMax}
               yTicks={compactAchievement.yTicks}
               showHint={compactChartHint}
@@ -656,11 +621,11 @@ function SurahMemorisationPastAchievements({
               {t("progressLogging.pastGoalAchievements")}
             </Text>
           </View>
-          {isSurahDrillDown && analyticsView === "completedVsIncomplete" ? (
+          {isJuzDrillDown && analyticsView === "completedVsIncomplete" ? (
             <Text style={styles.drillDownHeader}>
-              {t("progressLogging.memorisationDrillDownHeader", {
+              {t("progressLogging.memorisationJuzDrillDownHeader", {
                 analytics: t(ANALYTICS_VIEW_LABEL_KEYS[analyticsView]),
-                surah: surahDisplayName,
+                juz: juzDisplayName,
               })}
             </Text>
           ) : null}
@@ -762,7 +727,7 @@ function SurahMemorisationPastAchievements({
         </View>
 
         {renderDetailedSummary()}
-        {renderSurahFilterTabs()}
+        {renderJuzFilterTabs()}
 
         <View style={styles.goalHeader}>
           <Text style={styles.goalLabel}>
@@ -815,7 +780,7 @@ function SurahMemorisationPastAchievements({
           totalTimeMinutes={selectedPeriodTimeSpentMinutes}
           longestStreak={0}
           formatCount={formatStatCount}
-          formatTimeChip={formatMemorisationTimeSpentChip}
+          formatTimeChip={formatMemorisationJuzTimeSpentChip}
           completedLabel={t("progressLogging.completed")}
           incompleteLabel={t("progressLogging.incomplete")}
           timeSpentLabel={t("progressLogging.timeSpentLabel")}
@@ -823,10 +788,10 @@ function SurahMemorisationPastAchievements({
           showStreak={false}
         />
 
-        {isSurahDrillDown && !hasLogs ? (
+        {isJuzDrillDown && !hasLogs ? (
           <View style={styles.emptyStateInline}>
             <Text style={styles.emptyStateText}>
-              {t("progressLogging.memorisationNoDataForPeriod")}
+              {t("progressLogging.memorisationJuzNoDataForPeriod")}
             </Text>
           </View>
         ) : null}
@@ -839,7 +804,7 @@ function SurahMemorisationPastAchievements({
             chartData={chartAchievement?.chartData ?? []}
             selectedBarIndex={selectedBarIndex}
             onBarPress={handleBarPressDetailed}
-            chartKey={`${goalId}-${period}-${selectedSurahId}-${analyticsView}`}
+            chartKey={`${goalId}-${period}-${selectedJuzId}-${analyticsView}`}
             yMax={chartAchievement?.yMax ?? 10}
             yTicks={chartAchievement?.yTicks ?? [0, 5, 10]}
             showHint={showChartHint}
@@ -871,11 +836,11 @@ function SurahMemorisationPastAchievements({
         {progressRailRows.length > 0 ? (
           <View style={styles.progressRailSection}>
             {progressRailRows.map((row) => (
-              <MemorisationSurahDetailCard
-                key={`memorisation-rail-${row.surahId}`}
+              <MemorisationJuzDetailCard
+                key={`memorisation-juz-rail-${row.juzId}`}
                 row={row}
                 analyticsView={analyticsView}
-                formatTimeChip={formatMemorisationTimeSpentChip}
+                formatTimeChip={formatMemorisationJuzTimeSpentChip}
               />
             ))}
           </View>
@@ -885,39 +850,4 @@ function SurahMemorisationPastAchievements({
       {renderInsights()}
     </View>
   );
-}
-
-export function QuranMemorisationPastAchievements({
-  goalId,
-  isDetailed = false,
-  initialPeriod,
-  initialAnalyticsView,
-  initialSurahId,
-  initialHizbId,
-}: Props) {
-  if (isHizbMemorisationGoalId(goalId)) {
-    return (
-      <HizbMemorisationPastAchievements
-        goalId={goalId}
-        isDetailed={isDetailed}
-        initialPeriod={initialPeriod}
-        initialAnalyticsView={initialAnalyticsView}
-        initialHizbId={initialHizbId}
-      />
-    );
-  }
-
-  if (isSurahMemorisationGoalId(goalId)) {
-    return (
-      <SurahMemorisationPastAchievements
-        goalId={goalId}
-        isDetailed={isDetailed}
-        initialPeriod={initialPeriod}
-        initialAnalyticsView={initialAnalyticsView}
-        initialSurahId={initialSurahId}
-      />
-    );
-  }
-
-  return null;
 }

@@ -41,7 +41,22 @@ export type MissedRamadanPeriodSlice = {
   activePageIndex: number;
   completedDates: string[];
   incompletePlannedDates: string[];
+  skippedDates: string[];
+  upcomingDates: string[];
   calendarMonthDate: string;
+};
+
+export type MissedRamadanAchievement = {
+  id: string;
+  date: string;
+  completed: boolean;
+  timeSpent: number;
+};
+
+export type MissedRamadanSummary = {
+  totalCompleted: number;
+  totalIncomplete: number;
+  totalTimeSpent: number;
 };
 
 function addDays(dateStr: string, days: number): string {
@@ -262,6 +277,26 @@ function getIncompletePlannedDatesInRange(start: string, end: string): string[] 
   return Array.from(dates).sort();
 }
 
+function getSkippedDatesInRange(start: string, end: string): string[] {
+  return getIncompletePlannedDatesInRange(start, end);
+}
+
+function getUpcomingDatesInRange(start: string, end: string): string[] {
+  const today = getTodayDateString();
+  const progress = getMissedRamadanFastProgress();
+  const dates = new Set<string>();
+
+  for (const date of progress.plannedDates) {
+    const normalizedDate = normalizeDateString(date);
+    if (normalizedDate < start || normalizedDate > end) continue;
+    if (normalizedDate <= today) continue;
+    if (isMissedRamadanFastCompletedDate(normalizedDate)) continue;
+    dates.add(normalizedDate);
+  }
+
+  return Array.from(dates).sort();
+}
+
 function buildWeeklyPeriods(
   periodStart: string,
   periodEnd: string,
@@ -389,10 +424,9 @@ function buildPeriodSlice(
     pageCount: chartPeriods.length,
     activePageIndex: resolveActivePageIndex(chartPeriods),
     completedDates: getCompletedDatesInRange(periodStart, periodEnd),
-    incompletePlannedDates: getIncompletePlannedDatesInRange(
-      periodStart,
-      periodEnd,
-    ),
+    incompletePlannedDates: getSkippedDatesInRange(periodStart, periodEnd),
+    skippedDates: getSkippedDatesInRange(periodStart, periodEnd),
+    upcomingDates: getUpcomingDatesInRange(periodStart, periodEnd),
     calendarMonthDate: getMonthStart(periodStart),
   };
 }
@@ -581,6 +615,79 @@ export function formatMissedRamadanFastTimeLabel(totalMinutes: number): string {
 export function formatMissedRamadanChartHoursLabel(hours: number): string {
   if (hours <= 0) return "0h";
   return formatTotalTime(hours);
+}
+
+export function getMissedRamadanGoalTrackedMonths(
+  period: PastAchievementPeriod,
+): number {
+  switch (period) {
+    case "monthly":
+      return 1;
+    case "threeMonths":
+      return 3;
+    case "sixMonths":
+      return 6;
+  }
+}
+
+export function getTotalMissedRamadanFastsCompleted(
+  slice: MissedRamadanPeriodSlice,
+): number {
+  return slice.completedFasts;
+}
+
+export function getMissedRamadanSummary(
+  slice: MissedRamadanPeriodSlice,
+): MissedRamadanSummary {
+  return {
+    totalCompleted: slice.completedFasts,
+    totalIncomplete: slice.incompleteFasts,
+    totalTimeSpent: slice.chartPeriods.reduce(
+      (sum, period) => sum + period.timeSpentMinutes,
+      0,
+    ),
+  };
+}
+
+export function getMissedRamadanFastTimeSpentForDate(date: string): number {
+  const normalizedDate = normalizeDateString(date);
+  return getCompletedLogsInRange(normalizedDate, normalizedDate).reduce(
+    (sum, log) => sum + getLogDurationMinutes(log),
+    0,
+  );
+}
+
+export function isMissedRamadanFastCompletedOnDate(date: string): boolean {
+  return getCompletedDatesInRange(
+    normalizeDateString(date),
+    normalizeDateString(date),
+  ).includes(normalizeDateString(date));
+}
+
+export function isMissedRamadanFastSkippedOnDate(date: string): boolean {
+  return getSkippedDatesInRange(
+    normalizeDateString(date),
+    normalizeDateString(date),
+  ).includes(normalizeDateString(date));
+}
+
+export function buildMissedRamadanAchievements(
+  slice: MissedRamadanPeriodSlice,
+): MissedRamadanAchievement[] {
+  const dates = new Set([
+    ...slice.completedDates,
+    ...slice.skippedDates,
+    ...slice.upcomingDates,
+  ]);
+
+  return Array.from(dates)
+    .sort()
+    .map((date) => ({
+      id: date,
+      date,
+      completed: slice.completedDates.includes(date),
+      timeSpent: getMissedRamadanFastTimeSpentForDate(date),
+    }));
 }
 
 /** @deprecated Use getMissedRamadanFastsPastAchievement(period) instead. */

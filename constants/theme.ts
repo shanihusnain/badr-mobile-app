@@ -14,6 +14,8 @@ export const Colors = {
     border: "#E0E0E0",
     inputBackground: "#F9F9F9",
     green: greenColor,
+    ringSuccess: greenColor,
+    warning: "#FFAA00",
     red: redColor,
     overlayMask: "rgba(0, 0, 0, 0.35)",
     blackBackground: "#081A2F",

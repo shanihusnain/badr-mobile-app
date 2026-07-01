@@ -69,6 +69,42 @@ const completedWhiteDayDates = whiteDayDates
   .filter((date) => date < today)
   .slice(0, 0);
 
+function getDawoodDatesInCycle(
+  startDate: string,
+  dawoodStartDay: 1 | 2,
+): string[] {
+  const dates: string[] = [];
+
+  for (let index = 0; index < 28; index += 1) {
+    const cycleDay = index + 1;
+    const isFastDay =
+      dawoodStartDay === 1 ? cycleDay % 2 === 1 : cycleDay % 2 === 0;
+
+    if (isFastDay) {
+      dates.push(
+        moment(startDate, "YYYY-MM-DD").add(index, "days").format("YYYY-MM-DD"),
+      );
+    }
+  }
+
+  return dates;
+}
+
+const dawoodStartDay = 1 as const;
+const dawoodDates = getDawoodDatesInCycle(cycleStartDate, dawoodStartDay);
+
+const pastDawoodDates = dawoodDates.filter((date) => date < today);
+const missedDawoodDate = pastDawoodDates.at(-1);
+const completedBeforeMiss = pastDawoodDates.slice(0, -1);
+// After a miss, the user observes again — new cycle starts from that fast date.
+const restartDawoodDate = missedDawoodDate
+  ? dawoodDates.find((date) => date > missedDawoodDate && date <= today)
+  : undefined;
+const completedDawoodDates = [
+  ...completedBeforeMiss,
+  ...(restartDawoodDate ? [restartDawoodDate] : []),
+];
+
 function buildCategoryMarkers(
   dates: string[],
   category: FastingCategory,
@@ -154,13 +190,16 @@ export const PLANNED_FASTS = {
   missedRamadanDates,
   monThuDates,
   whiteDayDates,
-  dawoodStartDay: 1 as const,
+  dawoodDates,
+  dawoodStartDay,
   goalTotal: 10,
   completedCount:
     completedMissedRamadanDates.length +
     completedMonThuDates.length +
-    completedWhiteDayDates.length,
+    completedWhiteDayDates.length +
+    completedDawoodDates.length,
   completedMissedRamadanDates,
   completedMonThuDates,
   completedWhiteDayDates,
+  completedDawoodDates,
 };

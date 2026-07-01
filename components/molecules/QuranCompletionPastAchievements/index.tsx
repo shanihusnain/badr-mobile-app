@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
@@ -17,20 +18,23 @@ import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import {
   applyCompletionAnalyticsView,
   formatCompletionCountLabel,
+  formatCompletionTimeSpentChip,
   formatCompletionTimeSpentLabel,
-  formatJuzRangeLabel,
-  getCompletionJuzProgressPercent,
+  getCompletionProgressRailRows,
   getCompletionTimeSpentByPeriod,
   getQuranCompletionPastAchievement,
   getQuranCompletionPastAchievementSlice,
   getTotalCompletionTimeSpentMinutes,
   type CompletionAnalyticsView,
-  type CompletionPastAchievementRecord,
 } from "@/src/screens/private/goalprogressloggingscreen/quranRecitationCompletionPastAchievementData";
+import { applyTimeSpentOnlyGreenChart } from "@/src/screens/private/goalprogressloggingscreen/quranRecitationPastAchievementData";
 import type { PastAchievementPeriod } from "@/src/screens/private/goalprogressloggingscreen/quranHoursPastAchievementData";
 import type { CompletionGoalId } from "@/src/screens/private/goalprogressloggingscreen/types";
 import { INCOMPLETE_BAR_COLOR } from "../QuranHoursPastAchievements/pastAchievementStyles";
 import { QuranHoursPastAchievementChartBlock } from "../QuranHoursPastAchievements/QuranHoursPastAchievementChartBlock";
+import { GraphBarSelectionFooter } from "../QuranHoursPastAchievements/GraphBarSelectionFooter";
+import { RecitationPastAchievementProgressSection } from "../QuranHoursPastAchievements/RecitationPastAchievementProgressSection";
+import { RecitationCompletionDetailCard } from "../QuranHoursPastAchievements/RecitationCompletionDetailCard";
 import {
   getGoalById,
   type GoalData,
@@ -38,8 +42,11 @@ import {
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { Image } from "expo-image";
 
-type Props = {
+export type QuranCompletionPastAchievementsProps = {
   goalId: CompletionGoalId;
+  isDetailed?: boolean;
+  initialPeriod?: PastAchievementPeriod;
+  initialAnalyticsView?: CompletionAnalyticsView;
 };
 
 const PERIODS: PastAchievementPeriod[] = [
@@ -52,6 +59,12 @@ const PERIOD_LABEL_KEYS: Record<PastAchievementPeriod, string> = {
   monthly: "progressLogging.periodMonthly",
   threeMonths: "progressLogging.periodThreeMonths",
   sixMonths: "progressLogging.periodSixMonths",
+};
+
+const PERIOD_DELTA_LABEL_KEYS: Record<PastAchievementPeriod, string> = {
+  monthly: "progressLogging.previousMonth",
+  threeMonths: "progressLogging.previousThreeMonths",
+  sixMonths: "progressLogging.previousSixMonths",
 };
 
 const GOAL_SUMMARY_KEY =
@@ -72,14 +85,20 @@ type StudyMaterialItem = NonNullable<GoalData["studyMaterial"]>[number];
 const STUDY_CARD_WIDTH_RATIO = 0.42;
 const STUDY_CARD_GAP = 10;
 
-export function QuranCompletionPastAchievements({ goalId }: Props) {
+export function QuranCompletionPastAchievements({
+  goalId,
+  isDetailed = false,
+  initialPeriod = "monthly",
+  initialAnalyticsView = "completedVsIncomplete",
+}: QuranCompletionPastAchievementsProps) {
+  const router = useRouter();
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
   const { width: screenWidth } = useWindowDimensions();
   const studyCardWidth = screenWidth * STUDY_CARD_WIDTH_RATIO;
-  const [period, setPeriod] = useState<PastAchievementPeriod>("monthly");
+  const [period, setPeriod] = useState<PastAchievementPeriod>(initialPeriod);
   const [analyticsView, setAnalyticsView] = useState<CompletionAnalyticsView>(
-    "completedVsIncomplete",
+    initialAnalyticsView,
   );
   const goalData = getGoalById(goalId);
   const studyMaterial = goalData?.studyMaterial ?? [];
@@ -107,9 +126,38 @@ export function QuranCompletionPastAchievements({ goalId }: Props) {
     [analyticsView, baseAchievement, periodSlice],
   );
 
+  const chartAchievement = useMemo(() => {
+    if (isDetailed && analyticsView === "completedVsTimeSpent") {
+      return applyTimeSpentOnlyGreenChart(baseAchievement, timeSpentByPeriod);
+    }
+    return achievement;
+  }, [
+    achievement,
+    analyticsView,
+    baseAchievement,
+    isDetailed,
+    timeSpentByPeriod,
+  ]);
+
+  const chartFormatBarValue = useMemo(() => {
+    if (isDetailed && analyticsView === "completedVsTimeSpent") {
+      return (hours: number) =>
+        formatCompletionTimeSpentChip(Math.round(hours * 60));
+    }
+    return formatCompletionCountLabel;
+  }, [analyticsView, isDetailed]);
+
   const totalTimeSpentMinutes = useMemo(
     () => getTotalCompletionTimeSpentMinutes(timeSpentByPeriod),
     [timeSpentByPeriod],
+  );
+
+  const progressRailRows = useMemo(
+    () =>
+      isDetailed
+        ? getCompletionProgressRailRows(periodSlice, selectedBarIndex)
+        : [],
+    [isDetailed, periodSlice, selectedBarIndex],
   );
 
   useEffect(() => {
@@ -117,10 +165,31 @@ export function QuranCompletionPastAchievements({ goalId }: Props) {
     setHintDismissed(false);
   }, [period, goalId, analyticsView]);
 
-  const handleBarPress = useCallback((index: number | null) => {
+  const handleBarPressCompact = useCallback((index: number | null) => {
     setHintDismissed(true);
     setSelectedBarIndex((current) => (current === index ? null : index));
   }, []);
+
+  const handleBarPressDetailed = useCallback((index: number | null) => {
+    setHintDismissed(true);
+    setSelectedBarIndex(index);
+  }, []);
+
+  const handleCloseBarSelection = useCallback(() => {
+    setSelectedBarIndex(null);
+  }, []);
+
+  const handleNavigateToDetailed = useCallback(() => {
+    router.push({
+      pathname: "/(private)/pastachievementdetailedstatistics",
+      params: {
+        goalId,
+        period,
+        analyticsView,
+        goalCategory: "completion",
+      },
+    });
+  }, [analyticsView, goalId, period, router]);
 
   const selectedBaseWeek =
     selectedBarIndex !== null
@@ -137,68 +206,125 @@ export function QuranCompletionPastAchievements({ goalId }: Props) {
       ? (timeSpentByPeriod[selectedBarIndex] ?? 0)
       : totalTimeSpentMinutes;
 
-  const showChartHint = !hintDismissed && selectedBarIndex === null;
+  const selectedBarGoalTotal = useMemo(() => {
+    if (selectedBarIndex === null) {
+      return 0;
+    }
+
+    if (selectedBaseWeek) {
+      return Math.max(
+        selectedBaseWeek.stackTotalHours,
+        displayBaseCompleted + displayBaseIncomplete,
+        1,
+      );
+    }
+
+    return periodSlice.targetCompletions;
+  }, [
+    displayBaseCompleted,
+    displayBaseIncomplete,
+    periodSlice.targetCompletions,
+    selectedBarIndex,
+    selectedBaseWeek,
+  ]);
+
+  const displayGoalTotal = useMemo(() => {
+    if (period === "monthly" && selectedBarIndex !== null) {
+      return Math.max(
+        1,
+        Math.round(
+          periodSlice.targetCompletions /
+            Math.max(periodSlice.chartPeriods.length, 1),
+        ),
+      );
+    }
+
+    return periodSlice.targetCompletions;
+  }, [
+    period,
+    periodSlice.chartPeriods.length,
+    periodSlice.targetCompletions,
+    selectedBarIndex,
+  ]);
+
+  const showChartHint =
+    isDetailed && !hintDismissed && selectedBarIndex === null;
   const deltaIsPositive = baseAchievement.previousPeriodDeltaPercent >= 0;
 
-  const renderCompletionRow = (item: CompletionPastAchievementRecord) => {
-    const progressPercent = getCompletionJuzProgressPercent(
-      item.completedJuzCount,
-      item.totalJuzCount,
-    );
-    const isCompleted = item.status === "completed";
+  const renderDetailedSummary = () => {
+    if (
+      selectedBarIndex !== null &&
+      periodSlice.chartPeriods[selectedBarIndex] &&
+      period === "monthly"
+    ) {
+      const selectedPeriod = periodSlice.chartPeriods[selectedBarIndex];
+      const weeklyGoal = Math.max(
+        1,
+        Math.round(
+          periodSlice.targetCompletions /
+            Math.max(periodSlice.chartPeriods.length, 1),
+        ),
+      );
+      const weekPercent = Math.min(
+        100,
+        Math.round((selectedPeriod.completed / weeklyGoal) * 100),
+      );
 
-    return (
-      <View
-        key={`completion-${item.completionNumber}`}
-        style={styles.completionRow}
-      >
-        <View style={styles.completionRowHeader}>
-          <Text style={styles.completionRowTitle}>
-            {t("progressLogging.completionRowTitle", {
-              number: formatNumber(item.completionNumber),
-            })}
-          </Text>
-          <Text style={styles.completionRowJuz}>
-            {formatJuzRangeLabel(item.startJuz, item.endJuz)}
-          </Text>
-          <View
-            style={[
-              styles.statusChip,
-              isCompleted
-                ? styles.statusChipCompleted
-                : styles.statusChipIncomplete,
-            ]}
-          >
-            <Text
-              style={[
-                styles.statusChipText,
-                isCompleted
-                  ? styles.statusChipTextCompleted
-                  : styles.statusChipTextIncomplete,
-              ]}
-            >
-              {isCompleted
-                ? t("progressLogging.completed")
-                : t("progressLogging.incomplete")}
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.goalProgressTrack}>
-          <View
-            style={[
-              styles.goalProgressCompleted,
-              { width: `${progressPercent}%` },
-            ]}
-          />
-        </View>
-        <Text style={styles.juzProgressLabel}>
-          {t("progressLogging.juzProgressLabel", {
-            completed: formatNumber(item.completedJuzCount),
-            total: formatNumber(item.totalJuzCount),
+      return (
+        <Text style={styles.summaryTextDetailed}>
+          {t("progressLogging.completionDetailedSummaryWeek", {
+            week: formatNumber(selectedBarIndex + 1),
+            percent: formatNumber(weekPercent),
           })}
         </Text>
-      </View>
+      );
+    }
+
+    if (
+      selectedBarIndex !== null &&
+      periodSlice.chartPeriods[selectedBarIndex] &&
+      period !== "monthly"
+    ) {
+      const selectedPeriod = periodSlice.chartPeriods[selectedBarIndex];
+      const monthPercent = Math.min(
+        100,
+        Math.round(
+          (selectedPeriod.completed /
+            Math.max(selectedPeriod.completed + selectedPeriod.incomplete, 1)) *
+            100,
+        ),
+      );
+
+      return (
+        <Text style={styles.summaryTextDetailed}>
+          {t("progressLogging.completionDetailedSummaryMonthBar", {
+            range: selectedPeriod.dateLabel,
+            percent: formatNumber(monthPercent),
+          })}
+        </Text>
+      );
+    }
+
+    const summaryKey =
+      period === "monthly"
+        ? "progressLogging.completionDetailedSummaryMonthly"
+        : period === "threeMonths"
+          ? "progressLogging.completionDetailedSummaryThreeMonths"
+          : "progressLogging.completionDetailedSummarySixMonths";
+
+    return (
+      <Text style={styles.summaryTextDetailed}>
+        {t(summaryKey, {
+          percent: formatNumber(periodSlice.achievementPercent),
+          goalTotal: formatNumber(periodSlice.targetCompletions),
+          delta: formatNumber(
+            Math.abs(periodSlice.previousPeriodDeltaPercent),
+          ),
+          direction: deltaIsPositive
+            ? t("progressLogging.periodComparisonIncrease")
+            : t("progressLogging.periodComparisonDecrease"),
+        })}
+      </Text>
     );
   };
 
@@ -240,38 +366,88 @@ export function QuranCompletionPastAchievements({ goalId }: Props) {
   );
 
   return (
-    <View style={styles.section}>
+    <View style={[styles.section, isDetailed && styles.sectionDetailed]}>
       <View style={styles.card}>
-        <View style={styles.cardHeader}>
-          <MaterialCommunityIcons
-            name="trophy-outline"
-            size={16}
-            color={Colors.light.white}
-          />
-          <Text style={styles.sectionTitle}>
-            {t("progressLogging.pastGoalAchievements")}
-          </Text>
+        <View style={styles.cardHeaderBlock}>
+          <View style={styles.cardHeader}>
+            <MaterialCommunityIcons
+              name={isDetailed ? "trending-up" : "trophy-outline"}
+              size={isDetailed ? 19 : 16}
+              color={isDetailed ? Colors.light.subtext : Colors.light.white}
+            />
+            <Text
+              style={[
+                styles.sectionTitle,
+                isDetailed && styles.sectionTitleDetailed,
+              ]}
+            >
+              {t("progressLogging.pastGoalAchievements")}
+            </Text>
+            {!isDetailed ? (
+              <TouchableOpacity
+                onPress={handleNavigateToDetailed}
+                style={{ marginLeft: "auto", padding: 4 }}
+              >
+                <Ionicons
+                  name="chevron-forward"
+                  size={20}
+                  color={Colors.light.white}
+                />
+              </TouchableOpacity>
+            ) : null}
+          </View>
         </View>
 
         <View style={styles.topRow}>
           <View style={styles.achievementBlock}>
-            <Text style={styles.achievementCaption}>
-              {t("progressLogging.achievementsLabel")}
+            <Text
+              style={[
+                styles.achievementCaption,
+                isDetailed && styles.achievementCaptionDetailed,
+              ]}
+            >
+              {isDetailed
+                ? t("progressLogging.achievementsLabel").toUpperCase()
+                : t("progressLogging.achievementsLabel")}
             </Text>
-            <Text style={styles.achievementPercent}>
+            <Text
+              style={[
+                styles.achievementPercent,
+                isDetailed && styles.achievementPercentDetailed,
+              ]}
+            >
               {formatNumber(achievement.achievementPercent)}
-              <Text style={styles.achievementPercentSymbol}>%</Text>
+              <Text
+                style={[
+                  styles.achievementPercentSymbol,
+                  isDetailed && styles.achievementPercentSymbolDetailed,
+                ]}
+              >
+                %
+              </Text>
             </Text>
-            <View style={styles.deltaBadge}>
+            <View
+              style={[
+                styles.deltaBadge,
+                !deltaIsPositive && styles.deltaBadgeNegative,
+              ]}
+            >
               <Ionicons
                 name={deltaIsPositive ? "arrow-up" : "arrow-down"}
                 size={11}
-                color={Colors.light.green}
+                color={
+                  deltaIsPositive ? Colors.light.green : Colors.light.subtext
+                }
               />
-              <Text style={styles.deltaText}>
+              <Text
+                style={[
+                  styles.deltaText,
+                  !deltaIsPositive && styles.deltaTextNegative,
+                ]}
+              >
                 {deltaIsPositive ? "+" : ""}
                 {formatNumber(baseAchievement.previousPeriodDeltaPercent)}%{" "}
-                {t("progressLogging.previousMonth")}
+                {t(PERIOD_DELTA_LABEL_KEYS[period])}
               </Text>
             </View>
           </View>
@@ -308,7 +484,7 @@ export function QuranCompletionPastAchievements({ goalId }: Props) {
               <TouchableOpacity activeOpacity={0.7} style={styles.navBtn}>
                 <Ionicons
                   name="chevron-back"
-                  size={14}
+                  size={isDetailed ? 24 : 14}
                   color={Colors.light.dullWhite}
                 />
               </TouchableOpacity>
@@ -318,7 +494,7 @@ export function QuranCompletionPastAchievements({ goalId }: Props) {
               <TouchableOpacity activeOpacity={0.7} style={styles.navBtn}>
                 <Ionicons
                   name="chevron-forward"
-                  size={14}
+                  size={isDetailed ? 24 : 14}
                   color={Colors.light.dullWhite}
                 />
               </TouchableOpacity>
@@ -326,23 +502,31 @@ export function QuranCompletionPastAchievements({ goalId }: Props) {
           </View>
         </View>
 
-        <Text style={styles.summaryText}>
-          {t(GOAL_SUMMARY_KEY, {
-            percent: formatNumber(baseAchievement.achievementPercent),
-            delta: formatNumber(
-              Math.abs(baseAchievement.previousPeriodDeltaPercent),
-            ),
-            direction: deltaIsPositive
-              ? t("progressLogging.periodComparisonIncrease")
-              : t("progressLogging.periodComparisonDecrease"),
-          })}
-        </Text>
+        {isDetailed ? (
+          renderDetailedSummary()
+        ) : (
+          <Text style={styles.summaryText}>
+            {t(GOAL_SUMMARY_KEY, {
+              percent: formatNumber(baseAchievement.achievementPercent),
+              delta: formatNumber(
+                Math.abs(baseAchievement.previousPeriodDeltaPercent),
+              ),
+              direction: deltaIsPositive
+                ? t("progressLogging.periodComparisonIncrease")
+                : t("progressLogging.periodComparisonDecrease"),
+            })}
+          </Text>
+        )}
 
         <View style={styles.goalHeader}>
-          <Text style={styles.goalLabel}>{t("progressLogging.goal")}</Text>
+          <Text style={styles.goalLabel}>
+            {isDetailed
+              ? t("progressLogging.recitationGoalTotalLabel")
+              : t("progressLogging.goal")}
+          </Text>
           <View style={styles.goalValueRow}>
             <Text style={styles.goalPillValue}>
-              {formatNumber(periodSlice.targetCompletions)}{" "}
+              {formatNumber(displayGoalTotal)}{" "}
             </Text>
             <View style={styles.goalPill}>
               <Text style={styles.goalPillText}>
@@ -380,62 +564,108 @@ export function QuranCompletionPastAchievements({ goalId }: Props) {
           })}
         </View>
 
-        <View style={styles.statsRow}>
-          <View style={styles.statColumn}>
-            <Text style={styles.statLabel}>
-              {t("progressLogging.completed")}
-            </Text>
-            <Text style={styles.statValueCompleted}>
-              {formatCompletionCountLabel(displayBaseCompleted)}
-            </Text>
+        {isDetailed ? (
+          <RecitationPastAchievementProgressSection
+            analyticsView={analyticsView}
+            completed={displayBaseCompleted}
+            incomplete={displayBaseIncomplete}
+            totalTimeMinutes={selectedPeriodTimeSpentMinutes}
+            longestStreak={0}
+            formatCount={formatCompletionCountLabel}
+            formatTimeChip={formatCompletionTimeSpentChip}
+            completedLabel={t("progressLogging.completed")}
+            incompleteLabel={t("progressLogging.incomplete")}
+            timeSpentLabel={t("progressLogging.timeSpentLabel")}
+            streakLabel={t("progressLogging.daysLabel")}
+            showStreak={false}
+          />
+        ) : (
+          <View style={styles.statsRow}>
+            <View style={styles.statColumn}>
+              <Text style={styles.statLabel}>
+                {t("progressLogging.completed")}
+              </Text>
+              <Text style={styles.statValueCompleted}>
+                {formatCompletionCountLabel(displayBaseCompleted)}
+              </Text>
+            </View>
+            <View style={styles.statColumn}>
+              <Text style={styles.statLabel}>
+                {analyticsView === "completedVsTimeSpent"
+                  ? t("progressLogging.timeSpentLabel")
+                  : t("progressLogging.incomplete")}
+              </Text>
+              <Text
+                style={
+                  analyticsView === "completedVsTimeSpent"
+                    ? styles.statValueTimeSpent
+                    : styles.statValueIncomplete
+                }
+              >
+                {analyticsView === "completedVsTimeSpent"
+                  ? formatCompletionTimeSpentLabel(
+                      selectedPeriodTimeSpentMinutes,
+                    )
+                  : formatCompletionCountLabel(displayBaseIncomplete)}
+              </Text>
+            </View>
           </View>
-          <View style={styles.statColumn}>
-            <Text style={styles.statLabel}>
-              {analyticsView === "completedVsTimeSpent"
-                ? t("progressLogging.timeSpentLabel")
-                : t("progressLogging.incomplete")}
-            </Text>
-            <Text
-              style={
-                analyticsView === "completedVsTimeSpent"
-                  ? styles.statValueTimeSpent
-                  : styles.statValueIncomplete
-              }
-            >
-              {analyticsView === "completedVsTimeSpent"
-                ? formatCompletionTimeSpentLabel(selectedPeriodTimeSpentMinutes)
-                : formatCompletionCountLabel(displayBaseIncomplete)}
-            </Text>
-          </View>
-        </View>
+        )}
 
         <View
-          onStartShouldSetResponder={() => true}
+          onStartShouldSetResponder={() => isDetailed}
           onMoveShouldSetResponder={() => false}
         >
           <QuranHoursPastAchievementChartBlock
-            chartData={achievement.chartData}
-            selectedBarIndex={selectedBarIndex}
-            onBarPress={handleBarPress}
+            chartData={chartAchievement.chartData}
+            selectedBarIndex={isDetailed ? selectedBarIndex : null}
+            onBarPress={
+              isDetailed ? handleBarPressDetailed : handleBarPressCompact
+            }
             chartKey={`${goalId}-${period}-${analyticsView}`}
-            yMax={achievement.yMax}
-            yTicks={achievement.yTicks}
+            yMax={chartAchievement.yMax}
+            yTicks={chartAchievement.yTicks}
             showHint={showChartHint}
             onDismissHint={() => setHintDismissed(true)}
             hintText={t("progressLogging.chartTapHint")}
             hintActionText={t("progressLogging.okGotIt")}
-            pageCount={achievement.pageCount}
-            activePageIndex={selectedBarIndex ?? achievement.activePageIndex}
-            formatBarValue={formatCompletionCountLabel}
+            pageCount={chartAchievement.pageCount}
+            activePageIndex={selectedBarIndex ?? chartAchievement.activePageIndex}
+            formatBarValue={chartFormatBarValue}
+            showPagination={isDetailed}
+            barColors={
+              analyticsView === "completedVsTimeSpent"
+                ? [Colors.light.green, Colors.light.green]
+                : [Colors.light.green, Colors.light.warning]
+            }
           />
         </View>
 
-        {/* <View style={styles.completionRowsSection}>
-          {periodSlice.completions.map(renderCompletionRow)}
-        </View> */}
+        {isDetailed ? (
+          <GraphBarSelectionFooter
+            visible={selectedBarIndex !== null}
+            completed={displayBaseCompleted}
+            incomplete={displayBaseIncomplete}
+            goalTotal={selectedBarGoalTotal}
+            onClose={handleCloseBarSelection}
+          />
+        ) : null}
+
+        {isDetailed && progressRailRows.length > 0 ? (
+          <View style={styles.progressRailSection}>
+            {progressRailRows.map((row) => (
+              <RecitationCompletionDetailCard
+                key={`completion-rail-${row.completionNumber}`}
+                row={row}
+                analyticsView={analyticsView}
+                formatTimeChip={formatCompletionTimeSpentChip}
+              />
+            ))}
+          </View>
+        ) : null}
       </View>
 
-      {studyMaterial.length > 0 ? (
+      {studyMaterial.length > 0 && !isDetailed ? (
         <>
           <TopSpace top={16} />
           <View style={styles.studyHeaderRow}>
@@ -474,6 +704,9 @@ const styles = StyleSheet.create({
   section: {
     marginTop: 20,
   },
+  sectionDetailed: {
+    marginTop: 0,
+  },
   card: {
     borderRadius: 14,
     backgroundColor: Colors.light.greybuttonBackground,
@@ -481,6 +714,9 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 16,
     gap: 12,
+  },
+  cardHeaderBlock: {
+    gap: 4,
   },
   cardHeader: {
     flexDirection: "row",
@@ -495,6 +731,10 @@ const styles = StyleSheet.create({
     letterSpacing: 0.4,
     textTransform: "uppercase",
     flexShrink: 1,
+  },
+  sectionTitleDetailed: {
+    color: Colors.light.white,
+    fontSize: 13,
   },
   topRow: {
     flexDirection: "row",
@@ -511,6 +751,11 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
   },
+  achievementCaptionDetailed: {
+    fontSize: 11,
+    fontFamily: fonts.primary.heavy,
+    fontWeight: "800",
+  },
   achievementPercent: {
     color: Colors.light.white,
     fontSize: 40,
@@ -518,8 +763,18 @@ const styles = StyleSheet.create({
     fontWeight: "400",
     lineHeight: 44,
   },
+  achievementPercentDetailed: {
+    fontSize: 28,
+    fontFamily: fonts.primary.bold,
+    fontWeight: "700",
+    lineHeight: 28,
+    textTransform: "uppercase",
+  },
   achievementPercentSymbol: {
     fontSize: 22,
+  },
+  achievementPercentSymbolDetailed: {
+    fontSize: 16,
   },
   deltaBadge: {
     flexDirection: "row",
@@ -531,11 +786,17 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     marginTop: 2,
   },
+  deltaBadgeNegative: {
+    backgroundColor: Colors.light.dullWhiteOpacity,
+  },
   deltaText: {
     color: Colors.light.green,
     fontSize: 11,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
+  },
+  deltaTextNegative: {
+    color: Colors.light.subtext,
   },
   periodNavRow: {
     alignItems: "center",
@@ -594,6 +855,13 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   summaryText: {
+    color: Colors.light.grey,
+    fontSize: 12,
+    fontFamily: fonts.primary.regular,
+    lineHeight: 17,
+    textAlign: "center",
+  },
+  summaryTextDetailed: {
     color: Colors.light.grey,
     fontSize: 12,
     fontFamily: fonts.primary.regular,
@@ -707,70 +975,9 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.semiBold,
     fontWeight: "700",
   },
-  completionRowsSection: {
+  progressRailSection: {
     gap: 14,
     marginTop: 4,
-  },
-  completionRow: {
-    gap: 8,
-  },
-  completionRowHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  completionRowTitle: {
-    color: Colors.light.white,
-    fontSize: 12,
-    fontFamily: fonts.primary.semiBold,
-    fontWeight: "600",
-    flexShrink: 0,
-  },
-  completionRowJuz: {
-    color: Colors.light.subtext,
-    fontSize: 11,
-    fontFamily: fonts.primary.regular,
-    flex: 1,
-  },
-  statusChip: {
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    flexShrink: 0,
-  },
-  statusChipCompleted: {
-    backgroundColor: Colors.light.lightgreen,
-  },
-  statusChipIncomplete: {
-    backgroundColor: Colors.light.calendarBg,
-  },
-  statusChipText: {
-    fontSize: 10,
-    fontFamily: fonts.primary.semiBold,
-    fontWeight: "600",
-  },
-  statusChipTextCompleted: {
-    color: Colors.light.green,
-  },
-  statusChipTextIncomplete: {
-    color: Colors.light.yellow,
-  },
-  goalProgressTrack: {
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: Colors.light.calendarBg,
-    overflow: "hidden",
-  },
-  goalProgressCompleted: {
-    height: "100%",
-    borderRadius: 5,
-    backgroundColor: Colors.light.green,
-  },
-  juzProgressLabel: {
-    color: Colors.light.subtext,
-    fontSize: 11,
-    fontFamily: fonts.primary.regular,
-    fontWeight: "400",
   },
   insightsTitle: {
     color: Colors.light.white,
