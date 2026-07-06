@@ -244,8 +244,6 @@
     "volunteeringMonthTitle": "Select target for this month",
     "selectTrackingMetric": "Select tracking metric and target",
     "items": "items",
-    "meals": "meals",
-    "hours": "hours",
     "reviewLabels": {
       "tahayyatWudu": "Tahiyyat Al-Wudhu",
       "fiveDailyPrayers": "The Five Daily Prayers",
@@ -294,7 +292,6 @@
       "surah": "Surah",
       "completion": "Completion"
     },
-    "save": "Save",
     "quranMetrics": {
       "completionKhatma": "Completion (Khatma)",
       "daily": "Daily",
@@ -1113,11 +1110,36 @@
                 "SUNNAH\n(After)"
               ],
               "rows": [
-                ["FAJR", "2", "2", "-"],
-                ["DHUHR", "2+2", "4", "2 or 4"],
-                ["ASR", "2 or 4", "4", "-"],
-                ["MAGHRIB", "-", "3", "2"],
-                ["ISHA", "-", "4", "2"]
+                [
+                  "FAJR",
+                  "2",
+                  "2",
+                  "-"
+                ],
+                [
+                  "DHUHR",
+                  "2+2",
+                  "4",
+                  "2 or 4"
+                ],
+                [
+                  "ASR",
+                  "2 or 4",
+                  "4",
+                  "-"
+                ],
+                [
+                  "MAGHRIB",
+                  "-",
+                  "3",
+                  "2"
+                ],
+                [
+                  "ISHA",
+                  "-",
+                  "4",
+                  "2"
+                ]
               ]
             }
           ]
@@ -3184,157 +3206,6 @@
     "upcoming": "Upcoming",
     "juneDate": "June 1, 2026",
     "asrTime": "3:53 PM",
-    "asrPrayer": "ASR",
-    "prayers": "PRAYERS",
-    "quran": "QURAN",
-    "fasting": "FASTING",
-    "sadaqah": "SADAQAH",
-    "welcomeTitle": "Welcome to Badr, {{name}}!",
-    "welcomeContent": "Your 28-day goal cycle is set to begin tomorrow at Fajr. Get ready to track your prayer, Quran, fasting, and sadaqah goals. May Allah (SWT) make it easy and rewarding for you!",
-    "welcomeHighlightCycle": "28-day goal cycle",
-    "welcomeHighlightTomorrow": "tomorrow",
-    "welcomeHighlightFajr": "Fajr",
-    "trackProgressTitle": "Track Your Progress",
-    "trackProgressContent": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
-    "dailyLightTitle": "Daily Light from the Quran",
-    "dailyLightQuote": "\"Indeed, it is We who guide whom We will to our ways.\"",
-    "dailyLightRef": "(Surah Al-Ankabut, 29:69)",
-    "hadithTitle": "Hadith of the Day",
-    "hadithQuote": "\"The best of you are those who learn the Quran and teach it.\"",
-    "hadithRef": "(Sahih Al-Bukhari)",
-    "reflectionTitle": "Reflection & Gratitude",
-    "reflectionQuote": "\"And if you should count the favors of Allah, you could not enumerate them.\"",
-    "reflectionRef": "(Surah Ibrahim, 14:34)",
-    "logMenstruation": "LOG MENSTRUATION",
-    "customizeJournalTitle": "Customize Your Journal",
-    "customizeJournalDesc": "Choose from over 100 behaviors to track daily, fostering growth in your character and helping you become your best self.",
-    "getStarted": "GET STARTED",
-    "myDashboard": "My Dashboard",
-    "customize": "CUSTOMIZE",
-    "filterAll": "All",
-    "filterPrayer": "Prayer",
-    "filterQuran": "Quran",
-    "filterFasting": "Fasting",
-    "filterSadaqah": "Sadaqah",
-    "tahiyyatAlWudhu": "TAHIYYAT AL-WUDHU",
-    "sunnahRawatib": "SUNNAH RAWATIB",
-    "tahiyyatAlMasjid": "TAHIYYAT AL-MASJID",
-    "qiyamAlLayl": "QIYAM AL-LAYL",
-    "missedPastPrayers": "MISSED PAST PRAYERS",
-    "alShukar": "AL-SHUKAR",
-    "quranRecitation": "QURAN RECITATION (BY COMPLETION)",
-    "sadaqahJariyah": "SADAQAH JARIYAH",
-    "missedRamadanFasts": "MISSED RAMADAN FASTS",
-    "fastsProphetDawood": "THE FASTS OF PROPHET DAWOOD (A.S)",
-    "mondayThursdayFasts": "MONDAY & THURSDAY FASTS",
-    "whiteDaysFast": "WHITE DAYS FAST",
-    "prayersCount": "/{{count}} prayers",
-    "countSuffix": "/{{count}}",
-    "sadaqahAmount": "/${{amount}}",
-    "showLess": "Show Less",
-    "showMore": "Show More",
-    "myDay": "My Day",
-    "hide": "HIDE",
-    "show": "SHOW",
-    "setNextMonthsGoals": "SET NEXT MONTH'S GOALS",
-    "completeYourJournal": "COMPLETE YOUR JOURNAL",
-    "addDailyProgress": "ADD DAILY PROGRESS",
-    "todayGoalsProgress": "TODAY'S GOALS PROGRESS"
-  },
-  "daysTracker": {
-    "daysLeft": "/{{total}} days left",
-    "day": "Day",
-    "overallProgress": "Overall Progress",
-    "committedGoals": "You've committed to working on \n{{count}} goals!",
-    "welcomeJourney": "You're all set—your journey toward deeper connection and growth starts soon. As you begin tracking, your moon will fill with light—reflecting every step you take toward growth, connection, and ihsān."
-  },
-  "goalProgressOverview": {
-    "userName": "User",
-    "goalsCount": "{{count}} Goals",
-    "categoryPrayer": "prayer",
-    "categoryQuran": "Quran",
-    "categoryFasting": "fasting",
-    "categorySadaqah": "sadaqah",
-    "notFound": "Goal category not found",
-    "tiers": {
-      "complete": {
-        "title": "Unwavering dedication!",
-        "description": "Tabarak Allah, you've achieved 100% of your {{count}} {{category}} goals this month! May Allah accept it from you and bless you with continued sincerity and steadfastness."
-      },
-      "outstanding": {
-        "title": "Masha Allah, Outstanding Progress",
-        "description": "You've achieved {{percentage}}% of your {{count}} {{category}} goals! Keep going and complete them for the sake of Allah. May He accept and reward your effort abundantly."
-      },
-      "strong": {
-        "title": "Strong Commitment",
-        "description": "You've achieved {{percentage}}% of your {{count}} {{category}} goals. Alhamdulillah for your progress so far! Keep your intention strong and stay consistent. May Allah grant you steadfastness and bless your journey."
-      },
-      "promising": {
-        "title": "Promising Start",
-        "description": "You've completed {{percentage}}% of your {{count}} {{category}} goals this month. Stay motivated and keep your intention for Allah's sake. May He guide and bless your effort."
-      }
-    }
-  },
-  "namazGoalBottomSheet": {
-    "dateRange": "NOV 29 - DEC 26, 2024",
-    "notStarted": "NOT STARTED",
-    "inProgress": "IN PROGRESS",
-    "completed": "COMPLETED",
-    "goalsCount": "{{count}} Goals",
-    "goalsCountOne": "1 Goal"
-  },
-  "menstruationLog": {
-    "title": "LOG MENSTRUATION",
-    "infoText": "Log your menstruation period to update your goals. Exempt acts of worship will be automatically adjusted, ensuring your progress stays accurate and fair.",
-    "periodHeader": "YOUR MENSTRUATION PERIOD",
-    "imMenstruating": "I'M MENSTRUATING",
-    "imStillMenstruating": "I'M STILL MENSTRUATING",
-    "startDate": "Start Date",
-    "endDate": "End Date",
-    "today": "Today",
-    "save": "SAVE",
-    "startQuestionToday": "When did it start today?",
-    "startQuestionDate": "When did it start {{date}}?",
-    "endQuestionToday": "When did it end today?",
-    "endQuestionDate": "When did it end {{date}}?",
-    "beforeFajr": "Before Fajr",
-    "beforeDuhr": "Before Dhuhr",
-    "beforeAsr": "Before Asr",
-    "beforeMaghrib": "Before Maghrib",
-    "beforeIsha": "Before Isha",
-    "islamicMonthNames": [
-      "Muh.",
-      "Saf.",
-      "Rab. I",
-      "Rab. II",
-      "Jum. I",
-      "Jum. II",
-      "Raj.",
-      "Sha.",
-      "Ram.",
-      "Shaw.",
-      "Dhu al-Qa.",
-      "Dhu al-Hi."
-    ]
-  },
-  "streakCounter": {
-    "title": "DAY STREAK",
-    "startedDate": "Jul 8, 2026",
-    "streakStarted": "Streak started",
-    "topPercentage": "Top 30%",
-    "badr": "badr",
-    "maxStreak": "Max streak",
-    "thisWeek": "THIS WEEK",
-    "moreDays": "{{count}} more days",
-    "unlockMilestone": "to unlock your\nnext milestone.",
-    "consistencyHeader": "Stay Consistent for Long-Term Barakah",
-    "consistencyBody": "Your daily commitment to logging on Badr is more than a routine—it’s a step toward spiritual growth, bringing you closer to your goals, strengthening worship, and deepening your connection with Allah.",
-    "weekDays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
-  },
-  "homeScreen": {
-    "upcoming": "Upcoming",
-    "juneDate": "June 1, 2026",
-    "asrTime": "3:53 PM",
     "asrPrayer": "Asr",
     "prayers": "PRAYERS",
     "quran": "QURAN",
@@ -3470,7 +3341,7 @@
     "fastingLegend_plannedWhiteDays": "PLANNED WHITE DAYS",
     "fastingLegend_completedWhiteDays": "COMPLETED WHITE DAYS",
     "fastingCalendar_completed": "COMPLETED",
-    "fastingCalendar_fasts": "fasts",
+    "fastingCalendar_fasts": "FASTS",
     "calendar_weekday_sun": "S",
     "calendar_weekday_mon": "M",
     "calendar_weekday_tue": "T",
@@ -3556,39 +3427,108 @@
     "weeklyProgress_dayThu": "Thu",
     "weeklyProgress_dayFri": "Fri",
     "weeklyProgress_daySat": "Sat",
-    "fastingCalendar_fasts": "FASTS",
-    "fastingCalendar_completed": "COMPLETED",
-    "fastingCalendar_planned": "PLANNED",
-    "fastingTabPlanned": "Planned",
-    "fastingTabProgress": "Planned vs. Progress",
-    "yourFastingCalendar": "YOUR FASTING CALENDAR",
-    "fastingGoalTotal": "GOAL TOTAL",
-    "fastingInfoBanner": "To add or modify goals, visit the Goal Planner.",
-    "fastingFilter_All": "All",
-    "fastingFilter_MissedRamadanFasts": "Missed Ramadan Fasts",
-    "fastingFilter_MondayThursdayFasts": "Monday & Thursday Fasts",
-    "fastingFilter_DawoodFasts": "Dawood Fasts",
-    "fastingFilter_WhiteDaysFasts": "White Days Fasts",
-    "fastingLegend_missedRamadan": "MISSED RAMADAN",
-    "fastingLegend_monThu": "MONDAYS & THURSDAYS",
-    "fastingLegend_whiteDays": "WHITE DAYS",
-    "fastingLegend_plannedMissedRamadan": "PLANNED MISSED RAMADAN FAST",
-    "fastingLegend_completedMissedRamadan": "COMPLETED MISSED RAMADAN FAST",
-    "fastingLegend_plannedMonThu": "PLANNED MON & THU FAST",
-    "fastingLegend_completedMonThu": "COMPLETED MON & THU FAST",
-    "fastingLegend_plannedWhiteDays": "PLANNED WHITE DAYS",
-    "fastingLegend_completedWhiteDays": "COMPLETED WHITE DAYS",
-    "islamicMonth_muharram": "Muh.",
-    "islamicMonth_safar": "Saf.",
-    "islamicMonth_rabiAlAw": "Rab. I",
-    "islamicMonth_rabiAlTh": "Rab. II",
-    "islamicMonth_jumadaAlAw": "Jum. I",
-    "islamicMonth_jumadaAlTh": "Jum. II",
-    "islamicMonth_rajab": "Raj.",
-    "islamicMonth_shaban": "Sha.",
-    "islamicMonth_ramadan": "Ram.",
-    "islamicMonth_shawwal": "Shaw.",
-    "islamicMonth_dhuAlQa": "Dhul Q.",
-    "islamicMonth_dhuAlHi": "Dhul H."
+    "journalWeeklyTitle": "My Journal",
+    "journalBehaviorInsights": "Behavior Insights",
+    "journalWeeklyTotalEntries": " journal entries this week",
+    "journalWeeklyMotivation": "Reflect daily to nurture your character and stay mindful of your growth.",
+    "fastingCalendar_planned": "PLANNED"
+  },
+  "daysTracker": {
+    "daysLeft": "/{{total}} days left",
+    "day": "Day",
+    "overallProgress": "Overall Progress",
+    "committedGoals": "You've committed to working on \n{{count}} goals!",
+    "welcomeJourney": "You're all set—your journey toward deeper connection and growth starts soon. As you begin tracking, your moon will fill with light—reflecting every step you take toward growth, connection, and ihsān."
+  },
+  "goalProgressOverview": {
+    "userName": "User",
+    "goalsCount": "{{count}} Goals",
+    "categoryPrayer": "prayer",
+    "categoryQuran": "Quran",
+    "categoryFasting": "fasting",
+    "categorySadaqah": "sadaqah",
+    "notFound": "Goal category not found",
+    "tiers": {
+      "complete": {
+        "title": "Unwavering dedication!",
+        "description": "Tabarak Allah, you've achieved 100% of your {{count}} {{category}} goals this month! May Allah accept it from you and bless you with continued sincerity and steadfastness."
+      },
+      "outstanding": {
+        "title": "Masha Allah, Outstanding Progress",
+        "description": "You've achieved {{percentage}}% of your {{count}} {{category}} goals! Keep going and complete them for the sake of Allah. May He accept and reward your effort abundantly."
+      },
+      "strong": {
+        "title": "Strong Commitment",
+        "description": "You've achieved {{percentage}}% of your {{count}} {{category}} goals. Alhamdulillah for your progress so far! Keep your intention strong and stay consistent. May Allah grant you steadfastness and bless your journey."
+      },
+      "promising": {
+        "title": "Promising Start",
+        "description": "You've completed {{percentage}}% of your {{count}} {{category}} goals this month. Stay motivated and keep your intention for Allah's sake. May He guide and bless your effort."
+      }
+    }
+  },
+  "namazGoalBottomSheet": {
+    "dateRange": "NOV 29 - DEC 26, 2024",
+    "notStarted": "NOT STARTED",
+    "inProgress": "IN PROGRESS",
+    "completed": "COMPLETED",
+    "goalsCount": "{{count}} Goals",
+    "goalsCountOne": "1 Goal"
+  },
+  "menstruationLog": {
+    "title": "LOG MENSTRUATION",
+    "infoText": "Log your menstruation period to update your goals. Exempt acts of worship will be automatically adjusted, ensuring your progress stays accurate and fair.",
+    "periodHeader": "YOUR MENSTRUATION PERIOD",
+    "imMenstruating": "I'M MENSTRUATING",
+    "imStillMenstruating": "I'M STILL MENSTRUATING",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "today": "Today",
+    "save": "SAVE",
+    "startQuestionToday": "When did it start today?",
+    "startQuestionDate": "When did it start {{date}}?",
+    "endQuestionToday": "When did it end today?",
+    "endQuestionDate": "When did it end {{date}}?",
+    "beforeFajr": "Before Fajr",
+    "beforeDuhr": "Before Dhuhr",
+    "beforeAsr": "Before Asr",
+    "beforeMaghrib": "Before Maghrib",
+    "beforeIsha": "Before Isha",
+    "islamicMonthNames": [
+      "Muh.",
+      "Saf.",
+      "Rab. I",
+      "Rab. II",
+      "Jum. I",
+      "Jum. II",
+      "Raj.",
+      "Sha.",
+      "Ram.",
+      "Shaw.",
+      "Dhu al-Qa.",
+      "Dhu al-Hi."
+    ]
+  },
+  "streakCounter": {
+    "title": "DAY STREAK",
+    "startedDate": "Jul 8, 2026",
+    "streakStarted": "Streak started",
+    "topPercentage": "Top 30%",
+    "badr": "badr",
+    "maxStreak": "Max streak",
+    "thisWeek": "THIS WEEK",
+    "moreDays": "{{count}} more days",
+    "unlockMilestone": "to unlock your\nnext milestone.",
+    "consistencyHeader": "Stay Consistent for Long-Term Barakah",
+    "consistencyBody": "Your daily commitment to logging on Badr is more than a routine—it’s a step toward spiritual growth, bringing you closer to your goals, strengthening worship, and deepening your connection with Allah.",
+    "weekDays": [
+      "Sun",
+      "Mon",
+      "Tue",
+      "Wed",
+      "Thu",
+      "Fri",
+      "Sat"
+    ]
   }
 }

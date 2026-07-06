@@ -1,3 +1,4 @@
 import Icon from "./icon.png";
-
-export { Icon };
+import BeforeJournalCustomization from "./beforejournalcustomization.png";
+import TimelineImage from "./timelineimage.png";
+export { Icon, BeforeJournalCustomization, TimelineImage };

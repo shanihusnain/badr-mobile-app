@@ -1,11 +1,6 @@
 import React, { useEffect } from "react";
 import { StyleSheet, View } from "react-native";
-import {
-  Fit,
-  RiveView,
-  useRive,
-  useRiveFile,
-} from "@rive-app/react-native";
+import { Fit, RiveView, useRive, useRiveFile } from "@rive-app/react-native";
 
 type Props = {
   progressPercent: number;

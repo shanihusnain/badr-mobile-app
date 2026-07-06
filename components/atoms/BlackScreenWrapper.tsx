@@ -1,8 +1,17 @@
 import { Colors } from "@/constants/theme";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  type Edge,
+} from "react-native-safe-area-context";
 
-export const BlackScreenWrapper: React.FC<{ children: React.ReactNode }> = ({
+type BlackScreenWrapperProps = {
+  children?: React.ReactNode;
+  edges?: Edge[];
+};
+
+export const BlackScreenWrapper: React.FC<BlackScreenWrapperProps> = ({
   children,
+  edges = ["bottom", "left", "right", "top"],
 }) => {
   return (
     <SafeAreaView
@@ -11,7 +20,7 @@ export const BlackScreenWrapper: React.FC<{ children: React.ReactNode }> = ({
         backgroundColor: Colors.light.blackBackground,
         paddingHorizontal: 16,
       }}
-      edges={["bottom", "left", "right", "top"]}
+      edges={edges}
     >
       {children}
     </SafeAreaView>

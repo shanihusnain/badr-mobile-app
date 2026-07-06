@@ -1,19 +1,16 @@
-import {
-  DarkTheme,
-  DefaultTheme,
-  ThemeProvider,
-} from "@react-navigation/native";
+import { DarkTheme, ThemeProvider } from "@react-navigation/native";
+import { Colors } from "@/constants/theme";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
+import * as SystemUI from "expo-system-ui";
 import "react-native-reanimated";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Provider } from "react-redux";
 
 import { fontAssets } from "@/assets/fonts";
-import { useColorScheme } from "@/hooks/use-color-scheme";
 import { store } from "@/src/store/store";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AuthProvider } from "@/provider/AuthProvider";
@@ -23,10 +20,18 @@ export const unstable_settings = {
   initialRouteName: "index",
 };
 
+const AppTheme = {
+  ...DarkTheme,
+  colors: {
+    ...DarkTheme.colors,
+    background: Colors.light.blackBackground,
+    card: Colors.light.blackBackground,
+  },
+};
+
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
   const [loaded, error] = useFonts(fontAssets);
 
   useEffect(() => {
@@ -35,16 +40,19 @@ export default function RootLayout() {
     }
   }, [loaded, error]);
 
-  if (!loaded && !error) return null;
+  useEffect(() => {
+    SystemUI.setBackgroundColorAsync(Colors.light.blackBackground);
+  }, []);
 
+  if (!loaded && !error) return null;
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView
+      style={{ flex: 1, backgroundColor: Colors.light.blackBackground }}
+    >
       <Provider store={store}>
         <AuthProvider>
           <SafeAreaProvider>
-            <ThemeProvider
-              value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-            >
+            <ThemeProvider value={AppTheme}>
               <Stack screenOptions={{ headerShown: false }}>
                 <Stack.Screen name="index" />
                 <Stack.Screen name="(tabs)" />
@@ -55,7 +63,10 @@ export default function RootLayout() {
                   options={{ presentation: "modal", title: "Modal" }}
                 />
               </Stack>
-              <StatusBar style="light" />
+              <StatusBar
+                style="light"
+                backgroundColor={Colors.light.blackBackground}
+              />
             </ThemeProvider>
           </SafeAreaProvider>
         </AuthProvider>
