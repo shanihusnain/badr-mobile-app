@@ -5,72 +5,8 @@ import Header from "@/components/Header";
 import { getGoalById } from "@/src/screens/private/home/components/goalsData";
 import { HeaderWithInfoIcon } from "@/components/atoms/HeaderWithInfoIcon";
 import { useTranslation } from "react-i18next";
-import { Pressable, View, Text } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import { HeaderWithCrossTitleDynamicIcon } from "@/components/atoms/HeaderWithCrossTitleDynamicIcon";
 
-const CustomHeader = ({
-  title,
-  navigation,
-  letterSpacing = 0,
-  iconName = "x",
-}: {
-  title: string;
-  navigation: any;
-  letterSpacing?: number;
-  iconName?: keyof typeof Feather.glyphMap;
-}) => (
-  <View
-    style={{
-      height: 100,
-      flexDirection: "row",
-      alignItems: "center",
-      paddingTop: 40,
-      paddingHorizontal: 24,
-      backgroundColor: Colors.light.blackBackground,
-    }}
-  >
-    {/* Centered title */}
-    <View
-      style={{
-        position: "absolute",
-        left: 0,
-        right: 0,
-        top: 40,
-        bottom: 0,
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-      pointerEvents="none"
-    >
-      <Text
-        style={{
-          color: Colors.light.white,
-          fontFamily: fonts.primary.semiBold,
-          fontSize: 14,
-          letterSpacing: letterSpacing,
-        }}
-      >
-        {title}
-      </Text>
-    </View>
-
-    {/* Close button — sits on top of title via zIndex */}
-    <Pressable
-      style={{
-        width: 36,
-        height: 36,
-        borderRadius: 18,
-        backgroundColor: Colors.light.greybuttonBackground,
-        justifyContent: "center",
-        alignItems: "center",
-        zIndex: 10,
-      }}
-      onPress={() => navigation.goBack()}
-    >
-      <Feather name={iconName} size={20} color={Colors.light.white} />
-    </Pressable>
-  </View>
-);
 
 export default function PrivateLayout() {
   const { t } = useTranslation();
@@ -113,7 +49,7 @@ export default function PrivateLayout() {
         options={{
           headerShown: true,
           header: ({ navigation }) => (
-            <CustomHeader title="PAYMENT SUCCESSFUL" navigation={navigation} />
+            <HeaderWithCrossTitleDynamicIcon title="PAYMENT SUCCESSFUL" navigation={navigation} />
           ),
         }}
       />
@@ -123,7 +59,7 @@ export default function PrivateLayout() {
         options={{
           headerShown: true,
           header: ({ navigation }) => (
-            <CustomHeader title="CART" navigation={navigation} />
+            <HeaderWithCrossTitleDynamicIcon title="CART" navigation={navigation} />
           ),
         }}
       />
@@ -132,7 +68,7 @@ export default function PrivateLayout() {
         options={{
           headerShown: true,
           header: ({ navigation }) => (
-            <CustomHeader title="MY ACCOUNT" navigation={navigation} />
+            <HeaderWithCrossTitleDynamicIcon title="MY ACCOUNT" navigation={navigation} />
           ),
         }}
       />
@@ -146,7 +82,7 @@ export default function PrivateLayout() {
         options={{
           headerShown: true,
           header: ({ navigation }) => (
-            <CustomHeader title="MEMBERSHIP" navigation={navigation} />
+            <HeaderWithCrossTitleDynamicIcon title="MEMBERSHIP" navigation={navigation} />
           ),
         }}
       />
@@ -155,7 +91,7 @@ export default function PrivateLayout() {
         options={{
           headerShown: true,
           header: ({ navigation }) => (
-            <CustomHeader title="CHANGE PASSWORD" navigation={navigation} />
+            <HeaderWithCrossTitleDynamicIcon title="CHANGE PASSWORD" navigation={navigation} />
           ),
         }}
       />
@@ -164,7 +100,7 @@ export default function PrivateLayout() {
         options={{
           headerShown: true,
           header: ({ navigation }) => (
-            <CustomHeader title="CHANGE EMAIL ID" navigation={navigation} />
+            <HeaderWithCrossTitleDynamicIcon title="CHANGE EMAIL ID" navigation={navigation} />
           ),
         }}
       />
@@ -173,7 +109,7 @@ export default function PrivateLayout() {
         options={{
           headerShown: true,
           header: ({ navigation }) => (
-            <CustomHeader title="EDIT PROFILE" navigation={navigation} />
+            <HeaderWithCrossTitleDynamicIcon title="EDIT PROFILE" navigation={navigation} />
           ),
         }}
       />
@@ -182,7 +118,7 @@ export default function PrivateLayout() {
         options={{
           headerShown: true,
           header: ({ navigation }) => (
-            <CustomHeader title="REFER A FRIEND" navigation={navigation} letterSpacing={0} iconName="chevron-left" />
+            <HeaderWithCrossTitleDynamicIcon title="REFER A FRIEND" navigation={navigation} letterSpacing={0} iconName="chevron-left" />
           ),
         }}
       />
@@ -191,7 +127,7 @@ export default function PrivateLayout() {
         options={{
           headerShown: true,
           header: ({ navigation }) => (
-            <CustomHeader title="APP SETTINGS" navigation={navigation} />
+            <HeaderWithCrossTitleDynamicIcon title="APP SETTINGS" navigation={navigation} />
           ),
         }}
       />
@@ -200,7 +136,7 @@ export default function PrivateLayout() {
         options={{
           headerShown: true,
           header: ({ navigation }) => (
-            <CustomHeader title="AI SETTINGS" navigation={navigation} />
+            <HeaderWithCrossTitleDynamicIcon title="AI SETTINGS" navigation={navigation} />
           ),
         }}
       />
@@ -209,7 +145,7 @@ export default function PrivateLayout() {
         options={{
           headerShown: true,
           header: ({ navigation }) => (
-            <CustomHeader title="CALENDAR SETTINGS" navigation={navigation} />
+            <HeaderWithCrossTitleDynamicIcon title="CALENDAR SETTINGS" navigation={navigation} />
           ),
         }}
       />
@@ -218,7 +154,7 @@ export default function PrivateLayout() {
         options={{
           headerShown: true,
           header: ({ navigation }) => (
-            <CustomHeader title="EXPORT BADR DATA" navigation={navigation} />
+            <HeaderWithCrossTitleDynamicIcon title="EXPORT BADR DATA" navigation={navigation} />
           ),
         }}
       />
@@ -227,7 +163,7 @@ export default function PrivateLayout() {
         options={{
           headerShown: true,
           header: ({ navigation }) => (
-            <CustomHeader title="EXPORT BADR DATA" navigation={navigation} />
+            <HeaderWithCrossTitleDynamicIcon title="EXPORT BADR DATA" navigation={navigation} />
           ),
         }}
       />
@@ -236,30 +172,7 @@ export default function PrivateLayout() {
         options={{
           headerShown: true,
           header: ({ navigation }) => (
-            <View
-              style={{
-                height: 100,
-                flexDirection: "row",
-                alignItems: "flex-end",
-                paddingHorizontal: 24,
-                paddingBottom: 16,
-                backgroundColor: Colors.light.blackBackground,
-              }}
-            >
-              <Pressable
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 18,
-                  backgroundColor: Colors.light.greybuttonBackground,
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-                onPress={() => navigation.goBack()}
-              >
-                <Feather name="x" size={20} color={Colors.light.white} />
-              </Pressable>
-            </View>
+            <HeaderWithCrossTitleDynamicIcon title="" navigation={navigation} />
           ),
         }}
       />
@@ -305,7 +218,7 @@ export default function PrivateLayout() {
         options={{
           headerShown: true,
           header: ({ navigation }) => (
-            <CustomHeader title="STATUS INSIGHTS" navigation={navigation} />
+            <HeaderWithCrossTitleDynamicIcon title="STATUS INSIGHTS" navigation={navigation} />
           ),
         }}
       />
@@ -314,7 +227,7 @@ export default function PrivateLayout() {
         options={{
           headerShown: true,
           header: ({ navigation }) => (
-            <CustomHeader title="HIDE METRICS" navigation={navigation} />
+            <HeaderWithCrossTitleDynamicIcon title="HIDE METRICS" navigation={navigation} />
           ),
         }}
       />
@@ -323,7 +236,7 @@ export default function PrivateLayout() {
         options={{
           headerShown: true,
           header: ({ navigation }) => (
-            <CustomHeader title="PRIVACY" navigation={navigation} />
+            <HeaderWithCrossTitleDynamicIcon title="PRIVACY" navigation={navigation} />
           ),
         }}
       />
@@ -332,7 +245,7 @@ export default function PrivateLayout() {
         options={{
           headerShown: true,
           header: ({ navigation }) => (
-            <CustomHeader title="NOTIFICATIONS" navigation={navigation} />
+            <HeaderWithCrossTitleDynamicIcon title="NOTIFICATIONS" navigation={navigation} />
           ),
         }}
       />      <Stack.Screen
@@ -340,7 +253,7 @@ export default function PrivateLayout() {
         options={{
           headerShown: true,
           header: ({ navigation }) => (
-            <CustomHeader title="JOURNAL" navigation={navigation} />
+            <HeaderWithCrossTitleDynamicIcon title="JOURNAL" navigation={navigation} />
           ),
         }}
       />      <Stack.Screen name="about" options={{ headerShown: false }} />
@@ -349,7 +262,7 @@ export default function PrivateLayout() {
         options={{
           headerShown: true,
           header: ({ navigation }) => (
-            <CustomHeader title="HELP CENTRE" navigation={navigation} iconName="chevron-left" />
+            <HeaderWithCrossTitleDynamicIcon title="HELP CENTRE" navigation={navigation} iconName="chevron-left" />
           ),
         }}
       />
