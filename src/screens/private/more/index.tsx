@@ -80,9 +80,21 @@ export default function MoreScreen() {
         />
 
         <MoreSectionHeader title="ACCOUNT & SETTINGS" />
-        <MoreListItem title="MY ACCOUNT" icon="user" onPress={handleMyAccount} />
-        <MoreListItem title="APP SETTINGS" icon="sliders" onPress={handleAppSettings} />
-        <MoreListItem title="PRIVACY SETTINGS" icon="shield" onPress={handlePrivacySettings} />
+        <MoreListItem
+          title="MY ACCOUNT"
+          icon="user"
+          onPress={handleMyAccount}
+        />
+        <MoreListItem
+          title="APP SETTINGS"
+          icon="sliders"
+          onPress={handleAppSettings}
+        />
+        <MoreListItem
+          title="PRIVACY SETTINGS"
+          icon="shield"
+          onPress={handlePrivacySettings}
+        />
 
         <MoreSectionHeader title="SUPPORT" />
         <MoreListItem

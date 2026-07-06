@@ -3,6 +3,7 @@
 //B
 import { BirthIcon } from "./BirthIcon";
 import { BadarNameLogo } from "./BadarNameLogo";
+import { BellIcon } from "./BellIcon";
 //C
 import { CalendarIcon } from "./CalenderIcon";
 //D
@@ -108,6 +109,7 @@ import { WalletIcon } from "./WalletIcon";
 //Z
 
 export {
+  BellIcon,
   RedeemGiftIcon,
   ReferFriendTabIcon,
   PaymentIcon,

@@ -2,10 +2,19 @@ import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
 import { FontAwesome } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import BackButton from "./Backbutton";
+import { router } from "expo-router";
+import { BellIcon } from "@/assets/icons";
 
-export const HeaderWithImageTitleAndBell = () => {
+export const HeaderWithImageTitleAndBell = ({
+  title,
+  showBack,
+}: {
+  title?: string;
+  showBack?: boolean;
+}) => {
   const insets = useSafeAreaInsets();
 
   return (
@@ -24,16 +33,22 @@ export const HeaderWithImageTitleAndBell = () => {
           justifyContent: "space-between",
         }}
       >
-        <Pressable onPress={() => console.log("Image has been pressed")}>
-          <Image
-            source={require("@/assets/images/favicon.png")}
-            style={{
-              width: 30,
-              height: 30,
-              borderRadius: 30,
-            }}
-          />
-        </Pressable>
+        {showBack ? (
+          <View style={styles.headerLeft}>
+            <BackButton onPress={() => router.back()} />
+          </View>
+        ) : (
+          <Pressable onPress={() => console.log("Image has been pressed")}>
+            <Image
+              source={require("@/assets/images/favicon.png")}
+              style={{
+                width: 30,
+                height: 30,
+                borderRadius: 30,
+              }}
+            />
+          </Pressable>
+        )}
         <View
           style={{
             height: 4,
@@ -54,12 +69,18 @@ export const HeaderWithImageTitleAndBell = () => {
             fontWeight: "400",
           }}
         >
-          Plan
+          {title ? title.toUpperCase() : "Plan"}
         </Text>
         <Pressable onPress={() => console.log("Bell icon has been pressed")}>
-          <FontAwesome name="bell" size={20} color={Colors.light.white} />
+          <BellIcon width={23} height={26} color={Colors.light.white} />
         </Pressable>
       </View>
     </View>
   );
 };
+const styles = StyleSheet.create({
+  headerLeft: {
+    width: 40,
+    alignItems: "flex-start",
+  },
+});

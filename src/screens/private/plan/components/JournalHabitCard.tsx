@@ -6,12 +6,13 @@ import {
 } from "@/assets/icons";
 import { TaperedCircleBorder } from "@/components/atoms/TaperedCircleBorder";
 import { Colors } from "@/constants/theme";
-import { Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import type { PlanJournalHabit } from "../planJournalConsistencyMockData";
 import { planStyles as styles } from "../styles";
 
 type JournalHabitCardProps = {
   habit: PlanJournalHabit;
+  onPress: () => void;
 };
 
 function getHabitIcon(id: number) {
@@ -33,11 +34,11 @@ function getProgressColor(percent: number) {
   return Colors.light.green;
 }
 
-export function JournalHabitCard({ habit }: JournalHabitCardProps) {
+export function JournalHabitCard({ habit, onPress }: JournalHabitCardProps) {
   const percentLabel = habit.percent.toString() || "0";
 
   return (
-    <View style={styles.journalHabitCard}>
+    <Pressable style={styles.journalHabitCard} onPress={onPress}>
       <View style={styles.journalHabitRow}>
         <View style={styles.journalHabitIconWrap}>
           {getHabitIcon(habit.id)}
@@ -54,6 +55,6 @@ export function JournalHabitCard({ habit }: JournalHabitCardProps) {
           </View>
         </TaperedCircleBorder>
       </View>
-    </View>
+    </Pressable>
   );
 }
