@@ -7,7 +7,6 @@ import { BadarNameLogo } from "./BadarNameLogo";
 import { CalendarIcon } from "./CalenderIcon";
 //D
 import { DocumentIcon } from "./DocumentIcon";
-import { DocumentLockIcon } from "./DocumentLockIcon";
 import { DocumentSearchIcon } from "./DocumentSearchIcon";
 
 //E
@@ -108,12 +107,34 @@ import { WalletIcon } from "./WalletIcon";
 
 //Z
 
-
-export { RedeemGiftIcon, ReferFriendTabIcon, PaymentIcon, DocumentIcon, DocumentLockIcon, DocumentSearchIcon, CalendarIcon, MoonIcon, InBoxArrow, InsightIcon, JournalBookIcon, NotificationIcon, EyeIcon, FeelingSickIcon, MenstruatingIcon, TravelingIcon, BirthIcon, GaveBirthIcon, HeartBreakIcon, ExamIcon, WorkLoadIcon, WalletIcon, BadarNameLogo, ReferFriendIcon ,
- RecordIcon,
+export {
+  RedeemGiftIcon,
+  ReferFriendTabIcon,
+  PaymentIcon,
+  DocumentIcon,
+  DocumentLockIcon,
+  DocumentSearchIcon,
+  CalendarIcon,
+  MoonIcon,
+  InBoxArrow,
+  InsightIcon,
+  JournalBookIcon,
+  NotificationIcon,
+  EyeIcon,
+  FeelingSickIcon,
+  MenstruatingIcon,
+  TravelingIcon,
+  BirthIcon,
+  GaveBirthIcon,
+  HeartBreakIcon,
+  ExamIcon,
+  WorkLoadIcon,
+  WalletIcon,
+  BadarNameLogo,
+  ReferFriendIcon,
+  RecordIcon,
   FilterIcon,
   AchivementArrowIcon,
-  DocumentLockIcon,
   CresentAndStarIcon,
   ExclamationIconWithCircel,
   PersonalGrowthIcon,
@@ -130,5 +151,5 @@ export { RedeemGiftIcon, ReferFriendTabIcon, PaymentIcon, DocumentIcon, Document
   HelpingIcon,
   CheckBox,
   CrossBox,
-  PercentageIcon,};
-
+  PercentageIcon,
+};
