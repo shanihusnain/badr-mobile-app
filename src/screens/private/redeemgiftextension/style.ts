@@ -3,34 +3,21 @@ import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 
 export const redeemGiftStyles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: Colors.light.blackBackground,
-  },
   container: {
     flex: 1,
-    paddingHorizontal: 24,
+    //paddingHorizontal: 24,
   },
-  header: {
-    marginTop: 48,
-    marginBottom: 40,
-  },
-  closeButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: Colors.light.greybuttonversion,
+  iconContainer: {
+    width: 80,
+    height: 80,
+    marginBottom: 32,
     justifyContent: "center",
     alignItems: "center",
   },
   content: {
+    flex: 1,
     alignItems: "center",
-  },
-  logo: {
-    width: 80,
-    height: 80,
-    marginBottom: 32,
-    resizeMode: "contain",
+    justifyContent: "center",
   },
   title: {
     color: Colors.light.white,

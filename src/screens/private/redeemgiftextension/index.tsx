@@ -2,51 +2,35 @@ import React, { useState } from "react";
 import {
   View,
   Text,
-  SafeAreaView,
-  Pressable,
   TextInput,
-  Image,
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
-import { Feather } from "@expo/vector-icons";
 import { Colors } from "@/constants/theme";
 import { redeemGiftStyles as styles } from "./style";
-import { useRouter } from "expo-router";
 import PrimaryButton from "@/components/atoms/Primary-button";
+import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
+import { BadarNameLogo } from "@/assets/icons";
 
 export default function RedeemGiftExtensionScreen() {
-  const router = useRouter();
   const [code, setCode] = useState("");
-
-  const handleClose = () => {
-    router.back();
-  };
 
   const handleApply = () => {
     if (code.length > 0) {
-      // Implement redemption logic here
       console.log("Applying code:", code);
     }
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <BlackScreenWrapper>
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
-        <View style={styles.header}>
-          <Pressable style={styles.closeButton} onPress={handleClose}>
-            <Feather name="x" size={18} color={Colors.light.white} />
-          </Pressable>
-        </View>
-
         <View style={styles.content}>
-          <Image
-            source={require("@/assets/images/icon.png")}
-            style={styles.logo}
-          />
+          <View style={styles.iconContainer}>
+            <BadarNameLogo size={24} color={Colors.light.white} />
+          </View>
 
           <Text style={styles.title}>REDEEM GIFT EXTENSION</Text>
           <Text style={styles.subtitle}>
@@ -73,6 +57,6 @@ export default function RedeemGiftExtensionScreen() {
           />
         </View>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </BlackScreenWrapper>
   );
 }

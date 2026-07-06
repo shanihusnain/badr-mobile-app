@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Text, SafeAreaView } from "react-native";
+import { View, Text } from "react-native";
+import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
 import BackButton from "@/components/atoms/Backbutton";
 import PrimaryButton from "@/components/atoms/Primary-button";
 import { Colors } from "@/constants/theme";
@@ -14,7 +15,7 @@ export default function GiftNewMemberScreen() {
     };
 
     return (
-        <SafeAreaView style={styles.safeArea}>
+        <BlackScreenWrapper>
             <View style={styles.container}>
                 <View style={styles.header}>
                     <BackButton bgcolor={Colors.light.greybuttonversion} />
@@ -42,6 +43,6 @@ export default function GiftNewMemberScreen() {
                     <PrimaryButton text="NEXT" onPress={handleNext} />
                 </View>
             </View>
-        </SafeAreaView>
+        </BlackScreenWrapper>
     );
 }

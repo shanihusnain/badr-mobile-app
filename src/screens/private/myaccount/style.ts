@@ -9,7 +9,7 @@ export const myAccountStyles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    paddingHorizontal: 24,
+    //paddingHorizontal: 14,
   },
   header: {
     flexDirection: "row",
@@ -57,14 +57,11 @@ export const myAccountStyles = StyleSheet.create({
     paddingVertical: 12,
     marginBottom: 10,
   },
-  iconBox: {
-    width: 36,
-    height: 36,
-    borderRadius: 8,
-    backgroundColor: Colors.light.greybuttonversion,
+  listIconContainer: {
     justifyContent: "center",
     alignItems: "center",
     marginRight: 14,
+    width: 24,
   },
   listItemInfo: {
     flex: 1,

@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import {
   View,
   Text,
-  SafeAreaView,
   ScrollView,
   Pressable,
   TextInput,
@@ -10,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
+import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
 import { useForm } from "react-hook-form";
 import { Feather } from "@expo/vector-icons";
 import { Colors } from "@/constants/theme";
@@ -57,19 +57,13 @@ export default function EditProfileScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <BlackScreenWrapper>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
-        <View style={styles.header}>
-          <Pressable style={styles.backButton} onPress={handleBack}>
-            <Feather name="chevron-left" size={24} color={Colors.light.white} />
-          </Pressable>
-          <View style={styles.headerTitleContainer}>
-            <Text style={styles.headerTitle}>EDIT PROFILE</Text>
-          </View>
-        </View>
+        
+        
 
         <ScrollView
           contentContainerStyle={styles.scrollContent}
@@ -182,6 +176,6 @@ export default function EditProfileScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </BlackScreenWrapper>
   );
 }

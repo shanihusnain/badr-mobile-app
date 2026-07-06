@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Text, SafeAreaView } from "react-native";
+import { View, Text } from "react-native";
+import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
 import { Feather } from "@expo/vector-icons";
 import { Colors } from "@/constants/theme";
 import { cancelConfirmationStyles as styles } from "./style";
@@ -15,7 +16,7 @@ export default function CancelMembershipConfirmationScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <BlackScreenWrapper>
       <View style={styles.content}>
         <Text style={styles.title}>
           YOUR MEMBERSHIP CANCELLATION{"\n"}IS CONFIRMED
@@ -43,6 +44,6 @@ export default function CancelMembershipConfirmationScreen() {
       <View style={styles.bottomContainer}>
         <PrimaryButton text="BACK TO HOME" onPress={handleBackToHome} />
       </View>
-    </SafeAreaView>
+    </BlackScreenWrapper>
   );
 }

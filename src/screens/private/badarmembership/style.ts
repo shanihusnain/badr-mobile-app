@@ -37,7 +37,7 @@ export const badarMembershipStyles = StyleSheet.create({
         fontWeight: "600",
     },
     scrollContent: {
-        paddingHorizontal: 24,
+        //paddingHorizontal: 24,
         paddingBottom: 20,
     },
     sectionTitle: {

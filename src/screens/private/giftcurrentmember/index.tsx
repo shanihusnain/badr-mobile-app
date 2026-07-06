@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { View, Text, SafeAreaView, Pressable, TextInput, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
+import { View, Text, Pressable, TextInput, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
+import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
 import BackButton from "@/components/atoms/Backbutton";
 import PrimaryButton from "@/components/atoms/Primary-button";
 import SecondaryButton from "@/components/atoms/Secondary-button";
@@ -54,7 +55,7 @@ export default function GiftCurrentMemberScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <BlackScreenWrapper>
       <KeyboardAvoidingView 
         style={styles.flex1} 
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -239,6 +240,6 @@ export default function GiftCurrentMemberScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </BlackScreenWrapper>
   );
 }

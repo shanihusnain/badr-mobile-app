@@ -2,12 +2,12 @@ import React, { useState } from "react";
 import {
   View,
   Text,
-  SafeAreaView,
   Pressable,
   TextInput,
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
+import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
 import { Feather } from "@expo/vector-icons";
 import { Colors } from "@/constants/theme";
 import { changeEmailStyles as styles } from "./style";
@@ -29,20 +29,12 @@ export default function ChangeEmailIdScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <BlackScreenWrapper>
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
-        <View style={styles.header}>
-          <Pressable style={styles.backButton} onPress={handleBack}>
-            <Feather name="chevron-left" size={24} color={Colors.light.white} />
-          </Pressable>
-          <View style={styles.headerTitleContainer}>
-            <Text style={styles.headerTitle}>CHANGE EMAIL ID</Text>
-          </View>
-        </View>
-
+        
         <Text style={styles.sectionTitle}>EDIT EMAIL</Text>
 
         <Text style={styles.description}>
@@ -72,6 +64,6 @@ export default function ChangeEmailIdScreen() {
           />
         </View>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </BlackScreenWrapper>
   );
 }

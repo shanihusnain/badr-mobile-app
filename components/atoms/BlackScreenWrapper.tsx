@@ -11,7 +11,7 @@ export const BlackScreenWrapper: React.FC<{ children: React.ReactNode }> = ({
         backgroundColor: Colors.light.blackBackground,
         paddingHorizontal: 16,
       }}
-      edges={["bottom", "left", "right", "top"]}
+      edges={["bottom", "left", "right"]}
     >
       {children}
     </SafeAreaView>
