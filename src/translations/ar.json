@@ -244,8 +244,6 @@
     "volunteeringMonthTitle": "حدد هدفك لهذا الشهر",
     "selectTrackingMetric": "حدد مقياس التتبع والهدف",
     "items": "عناصر",
-    "meals": "وجبات",
-    "hours": "ساعات",
     "reviewLabels": {
       "tahayyatWudu": "تحية الوضوء",
       "fiveDailyPrayers": "الصلوات الخمس المفروضة",
@@ -294,7 +292,6 @@
       "surah": "سورة",
       "completion": "ختمة"
     },
-    "save": "حفظ",
     "quranMetrics": {
       "completionKhatma": "الختمة (خاتمة)",
       "daily": "يوميًا",
@@ -1106,13 +1103,43 @@
             },
             {
               "type": "table",
-              "headers": ["الصلاة", "السنة\n(قبل)", "الفرض", "السنة\n(بعد)"],
+              "headers": [
+                "الصلاة",
+                "السنة\n(قبل)",
+                "الفرض",
+                "السنة\n(بعد)"
+              ],
               "rows": [
-                ["الفجر", "٢", "٢", "-"],
-                ["الظهر", "٢+٢", "٤", "٢ أو ٤"],
-                ["العصر", "٢ أو ٤", "٤", "-"],
-                ["المغرب", "-", "٣", "٢"],
-                ["العشاء", "-", "٤", "٢"]
+                [
+                  "الفجر",
+                  "٢",
+                  "٢",
+                  "-"
+                ],
+                [
+                  "الظهر",
+                  "٢+٢",
+                  "٤",
+                  "٢ أو ٤"
+                ],
+                [
+                  "العصر",
+                  "٢ أو ٤",
+                  "٤",
+                  "-"
+                ],
+                [
+                  "المغرب",
+                  "-",
+                  "٣",
+                  "٢"
+                ],
+                [
+                  "العشاء",
+                  "-",
+                  "٤",
+                  "٢"
+                ]
               ]
             }
           ]
@@ -3482,40 +3509,11 @@
     "weeklyProgress_dayThu": "خمي",
     "weeklyProgress_dayFri": "جمع",
     "weeklyProgress_daySat": "سبت",
-    "fastingCalendar_fasts": "صيام",
-    "fastingCalendar_completed": "مكتمل",
-    "fastingCalendar_planned": "مخطط",
-    "fastingTabPlanned": "مخطط",
-    "fastingTabProgress": "المخطط مقابل التقدم",
-    "yourFastingCalendar": "تقويم الصيام الخاص بك",
-    "fastingGoalTotal": "إجمالي الهدف",
-    "fastingInfoBanner": "لإضافة أو تعديل الأهداف، قم بزيارة مخطط الأهداف.",
-    "fastingFilter_All": "الكل",
-    "fastingFilter_MissedRamadanFasts": "قضاء رمضان",
-    "fastingFilter_MondayThursdayFasts": "صيام الإثنين والخميس",
-    "fastingFilter_DawoodFasts": "صيام داود",
-    "fastingFilter_WhiteDaysFasts": "الأيام البيض",
-    "fastingLegend_missedRamadan": "قضاء رمضان",
-    "fastingLegend_monThu": "الإثنين والخميس",
-    "fastingLegend_whiteDays": "الأيام البيض",
-    "fastingLegend_plannedMissedRamadan": "صيام قضاء رمضان المخطط",
-    "fastingLegend_completedMissedRamadan": "صيام قضاء رمضان المكتمل",
-    "fastingLegend_plannedMonThu": "صيام الإثنين والخميس المخطط",
-    "fastingLegend_completedMonThu": "صيام الإثنين والخميس المكتمل",
-    "fastingLegend_plannedWhiteDays": "الأيام البيض المخططة",
-    "fastingLegend_completedWhiteDays": "الأيام البيض المكتملة",
-    "islamicMonth_muharram": "محرّم",
-    "islamicMonth_safar": "صفر",
-    "islamicMonth_rabiAlAw": "ربيع الأول",
-    "islamicMonth_rabiAlTh": "ربيع الآخر",
-    "islamicMonth_jumadaAlAw": "جمادى الأولى",
-    "islamicMonth_jumadaAlTh": "جمادى الآخرة",
-    "islamicMonth_rajab": "رجب",
-    "islamicMonth_shaban": "شعبان",
-    "islamicMonth_ramadan": "رمضان",
-    "islamicMonth_shawwal": "شوّال",
-    "islamicMonth_dhuAlQa": "ذو القعدة",
-    "islamicMonth_dhuAlHi": "ذو الحجة"
+    "journalWeeklyTitle": "يومياتي",
+    "journalBehaviorInsights": "رؤى السلوك",
+    "journalWeeklyTotalEntries": " إدخالات يومية هذا الأسبوع",
+    "journalWeeklyMotivation": "تأمل يوميًا لترعى شخصيتك وتبقى واعيًا بنموك.",
+    "fastingCalendar_planned": "مخطط"
   },
   "daysTracker": {
     "daysLeft": "/{{total}} يوماً متبقية",

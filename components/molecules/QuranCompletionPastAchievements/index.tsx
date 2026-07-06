@@ -5,8 +5,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   Pressable,
-  FlatList,
-  useWindowDimensions,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
@@ -37,10 +35,9 @@ import { RecitationPastAchievementProgressSection } from "../QuranHoursPastAchie
 import { RecitationCompletionDetailCard } from "../QuranHoursPastAchievements/RecitationCompletionDetailCard";
 import {
   getGoalById,
-  type GoalData,
 } from "@/src/screens/private/home/components/goalsData";
+import { PastAchievementStudyMaterial } from "@/components/molecules/PastAchievementStudyMaterial";
 import { TopSpace } from "@/components/atoms/TopSpace";
-import { Image } from "expo-image";
 
 export type QuranCompletionPastAchievementsProps = {
   goalId: CompletionGoalId;
@@ -80,11 +77,6 @@ const ANALYTICS_VIEW_LABEL_KEYS: Record<CompletionAnalyticsView, string> = {
   completedVsTimeSpent: "progressLogging.analyticsCompletedVsTimeSpent",
 };
 
-type StudyMaterialItem = NonNullable<GoalData["studyMaterial"]>[number];
-
-const STUDY_CARD_WIDTH_RATIO = 0.42;
-const STUDY_CARD_GAP = 10;
-
 export function QuranCompletionPastAchievements({
   goalId,
   isDetailed = false,
@@ -94,9 +86,7 @@ export function QuranCompletionPastAchievements({
   const router = useRouter();
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
-  const { width: screenWidth } = useWindowDimensions();
-  const studyCardWidth = screenWidth * STUDY_CARD_WIDTH_RATIO;
-  const [period, setPeriod] = useState<PastAchievementPeriod>(initialPeriod);
+const [period, setPeriod] = useState<PastAchievementPeriod>(initialPeriod);
   const [analyticsView, setAnalyticsView] = useState<CompletionAnalyticsView>(
     initialAnalyticsView,
   );
@@ -327,45 +317,7 @@ export function QuranCompletionPastAchievements({
       </Text>
     );
   };
-
-  const studyMaterialKeyExtractor = useCallback(
-    (item: StudyMaterialItem) => String(item.id),
-    [],
-  );
-
-  const renderStudyMaterialItem = useCallback(
-    ({ item }: { item: StudyMaterialItem }) => (
-      <View style={[styles.studyCard, { width: studyCardWidth }]}>
-        <View style={styles.studyThumbnailWrap}>
-          <Image
-            source={{ uri: item.thumbnail }}
-            style={styles.studyThumbnail}
-            contentFit="cover"
-          />
-          <View style={styles.studyTypeBadge}>
-            <Text style={styles.studyTypeBadgeText}>
-              {item.type === "video"
-                ? "VIDEO"
-                : item.type === "podcast"
-                  ? "PODCAST"
-                  : "ARTICLE"}
-            </Text>
-          </View>
-        </View>
-        <Text style={styles.studyDescription} numberOfLines={3}>
-          {item.description}
-        </Text>
-      </View>
-    ),
-    [studyCardWidth],
-  );
-
-  const studyItemSeparator = useCallback(
-    () => <View style={{ width: STUDY_CARD_GAP }} />,
-    [],
-  );
-
-  return (
+return (
     <View style={[styles.section, isDetailed && styles.sectionDetailed]}>
       <View style={styles.card}>
         <View style={styles.cardHeaderBlock}>
@@ -665,37 +617,7 @@ export function QuranCompletionPastAchievements({
         ) : null}
       </View>
 
-      {studyMaterial.length > 0 && !isDetailed ? (
-        <>
-          <TopSpace top={16} />
-          <View style={styles.studyHeaderRow}>
-            <Text style={styles.insightsTitle}>
-              {t("progressLogging.studyMaterial")}
-            </Text>
-            <View style={styles.studySeeAllRow}>
-              <Text style={styles.insightsTitle}>See All</Text>
-              <MaterialCommunityIcons
-                name="chevron-right"
-                size={16}
-                color={Colors.light.white}
-              />
-            </View>
-          </View>
-          <TopSpace top={16} />
-          <FlatList
-            horizontal
-            data={studyMaterial}
-            keyExtractor={studyMaterialKeyExtractor}
-            renderItem={renderStudyMaterialItem}
-            showsHorizontalScrollIndicator={false}
-            ItemSeparatorComponent={studyItemSeparator}
-            contentContainerStyle={styles.studyListContent}
-            decelerationRate="fast"
-            snapToInterval={studyCardWidth + STUDY_CARD_GAP}
-            snapToAlignment="start"
-          />
-        </>
-      ) : null}
+      <PastAchievementStudyMaterial items={studyMaterial} isDetailed={isDetailed} />
     </View>
   );
 }
@@ -986,60 +908,5 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     letterSpacing: 0.5,
     textTransform: "uppercase",
-  },
-  studyHeaderRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  studySeeAllRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  studyListContent: {
-    paddingRight: 4,
-  },
-  studyCard: {
-    padding: 8,
-    paddingBottom: 12,
-    backgroundColor: Colors.light.greybuttonBackground,
-    borderRadius: 8,
-    gap: 8,
-  },
-  studyThumbnailWrap: {
-    width: "100%",
-    aspectRatio: 1,
-    borderRadius: 6,
-    overflow: "hidden",
-    position: "relative",
-  },
-  studyThumbnail: {
-    width: "100%",
-    height: "100%",
-  },
-  studyTypeBadge: {
-    position: "absolute",
-    right: 0,
-    top: 6,
-    paddingHorizontal: 4,
-    paddingVertical: 2,
-    borderRadius: 10,
-    backgroundColor: Colors.light.greybuttonBackground,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  studyTypeBadgeText: {
-    color: Colors.light.white,
-    fontSize: 10,
-    fontFamily: fonts.primary.medium,
-    fontWeight: "500",
-  },
-  studyDescription: {
-    color: Colors.light.white,
-    fontSize: 12,
-    fontFamily: fonts.primary.medium,
-    fontWeight: "500",
-    lineHeight: 16,
   },
 });

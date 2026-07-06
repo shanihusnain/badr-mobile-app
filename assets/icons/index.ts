@@ -25,6 +25,35 @@ import { InsightIcon } from "./InsightIcon";
 
 //J
 import { JournalBookIcon } from "./JournalBookIcon";
+import { AchivementArrowIcon } from "./AchivementArrowIcon";
+//B
+
+//C
+import { CresentAndStarIcon } from "./CresentAndStarIcon";
+import { ConnectTabIcon } from "./ConnectTabIcon";
+import { CheckIcon } from "./CheckIcon";
+import { PlusAddIcon } from "./PlusAddIcon";
+import { CrossIcon } from "./CrossIcon";
+import { CheckBox } from "./CheckBox";
+import { CrossBox } from "./CrossBox";
+//D
+import { DocumentLockIcon } from "./DocumentLockIcon";
+
+//E
+import { ExclamationIconWithCircel } from "./ExclamationIconWithCircel";
+import { ExerciseIcon } from "./ExerciseIcon";
+//F
+import { FilterIcon } from "./FilterIcon";
+//G
+
+//H
+import { HomeBondIcon } from "./HomeBondIcon";
+import { HomeTabIcon } from "./HomeTabIcon";
+import { HelpingIcon } from "./HelpingIcon";
+//I
+
+//J
+
 //K
 
 //L
@@ -48,6 +77,24 @@ import { RedeemGiftIcon } from "./RedeemGiftIcon";
 
 //T
 import { TravelingIcon } from "./TravelingIcon";
+import { MoreTabIcon } from "./MoreTabIcon";
+//N
+
+//O
+
+//P
+import { PersonalGrowthIcon } from "./PersonalGrowthIcon";
+import { PlanTabIcon } from "./PlanTabIcon";
+import { PercentageIcon } from "./PercentageIcon";
+//Q
+
+//R
+import { RecordIcon } from "./RecordIcon";
+//S
+import { SocialResponsibilityIcon } from "./SocialResponsibilityIcon";
+
+//T
+
 //U
 
 //V
@@ -61,4 +108,27 @@ import { WalletIcon } from "./WalletIcon";
 
 //Z
 
-export { RedeemGiftIcon, ReferFriendTabIcon, PaymentIcon, DocumentIcon, DocumentLockIcon, DocumentSearchIcon, CalendarIcon, MoonIcon, InBoxArrow, InsightIcon, JournalBookIcon, NotificationIcon, EyeIcon, FeelingSickIcon, MenstruatingIcon, TravelingIcon, BirthIcon, GaveBirthIcon, HeartBreakIcon, ExamIcon, WorkLoadIcon, WalletIcon, BadarNameLogo, ReferFriendIcon };
+
+export { RedeemGiftIcon, ReferFriendTabIcon, PaymentIcon, DocumentIcon, DocumentLockIcon, DocumentSearchIcon, CalendarIcon, MoonIcon, InBoxArrow, InsightIcon, JournalBookIcon, NotificationIcon, EyeIcon, FeelingSickIcon, MenstruatingIcon, TravelingIcon, BirthIcon, GaveBirthIcon, HeartBreakIcon, ExamIcon, WorkLoadIcon, WalletIcon, BadarNameLogo, ReferFriendIcon ,
+ RecordIcon,
+  FilterIcon,
+  AchivementArrowIcon,
+  DocumentLockIcon,
+  CresentAndStarIcon,
+  ExclamationIconWithCircel,
+  PersonalGrowthIcon,
+  SocialResponsibilityIcon,
+  HomeBondIcon,
+  HomeTabIcon,
+  PlanTabIcon,
+  ConnectTabIcon,
+  MoreTabIcon,
+  CheckIcon,
+  PlusAddIcon,
+  CrossIcon,
+  ExerciseIcon,
+  HelpingIcon,
+  CheckBox,
+  CrossBox,
+  PercentageIcon,};
+

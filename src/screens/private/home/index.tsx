@@ -61,6 +61,8 @@ import { TimeSpentOverview } from "./components/TimeSpentOverview";
 import { TimeSpentBottomSheet } from "./components/TimeSpentBottomSheet";
 import { useTypedTranslation } from "@/i18next/useTypedTranslation";
 import { HomeFabSpeedDial } from "./components/HomeFabSpeedDial";
+import { JournalingHistoryWeekDashboard } from "./components/JournalingHistoryWeekDashboard";
+import { JournalingHistoryWeekDays } from "./journalingHistory";
 type TextPart = { text: string; highlighted: boolean };
 
 type CategoryItem = {
@@ -355,408 +357,401 @@ export default function HomeScreen() {
   };
 
   return (
-    <View style={{ flex: 1 }}>
-      <BlackScreenWrapper>
-        {/* Sticky collapsed category bar (fades in as big rings scroll away) */}
-        {!isAnyBottomSheetOpen ? (
-          <Animated.View
-            pointerEvents="box-none"
-            style={[
-              styles.collapsedHeader,
-              {
-                paddingTop: safeAreaInsets.top + 10,
-                opacity: stickyHeaderOpacity,
-                transform: [{ translateY: stickyHeaderTranslateY }],
-              },
-            ]}
-          >
-            <View style={styles.collapsedRow}>
-              {GOAL_CATEGORIES.map((category) => (
-                <TouchableOpacity
-                  key={`sticky-${category.title}`}
-                  style={styles.collapsedItem}
-                  activeOpacity={0.7}
-                >
-                  <TaperedCircleBorder
-                    percentage={category.percentage}
-                    progressColor={category.progressColor}
-                    borderColor={Colors.light.calendarBg}
-                    size={16}
-                  >
-                    <View />
-                  </TaperedCircleBorder>
-                  <Text style={styles.collapsedLabel}>
-                    {t(getCategoryTranslationKey(category.title))}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </Animated.View>
-        ) : null}
-
-        <Animated.ScrollView
-          style={{ width: "100%" }}
-          contentContainerStyle={styles.scrollContainer}
-          showsVerticalScrollIndicator={false}
-          scrollEventThrottle={16}
-          onScroll={Animated.event(
-            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-            { useNativeDriver: true },
-          )}
+    <BlackScreenWrapper edges={["top", "bottom"]}>
+      {/* Sticky collapsed category bar (fades in as big rings scroll away) */}
+      {!isAnyBottomSheetOpen ? (
+        <Animated.View
+          pointerEvents="box-none"
+          style={[
+            styles.collapsedHeader,
+            {
+              paddingTop: safeAreaInsets.top + 10,
+              opacity: stickyHeaderOpacity,
+              transform: [{ translateY: stickyHeaderTranslateY }],
+            },
+          ]}
         >
-          {/* Avatar + Streak row */}
-          <View style={styles.topSection}>
-            <View style={styles.avatarContainer}>
-              <AntDesign size={40} color={Colors.light.white} />
-            </View>
-            <TouchableOpacity
-              activeOpacity={0.7}
-              onPress={() => router.push("/streakcounter")}
-            >
-              <View style={styles.streakBox}>
-                <Text style={styles.streakText}>0</Text>
-              </View>
-            </TouchableOpacity>
-          </View>
-
-          {/* Upcoming prayer card */}
-          {isPrayerCardVisible && (
-            <View style={styles.prayerCardWrapper}>
-              <TouchableOpacity
-                style={styles.closeButton}
-                onPress={() => setIsPrayerCardVisible(false)}
-              >
-                <AntDesign name="close" size={20} color={Colors.light.white} />
-              </TouchableOpacity>
-              <View style={styles.prayerCardContainer}>
-                <View style={styles.prayerDetailsLeft}>
-                  <Text style={styles.upcomingText}>
-                    {t("homeScreen.upcoming")}
-                  </Text>
-                  <Text style={styles.prayerNameText}>
-                    {t("homeScreen.asrPrayer")}
-                  </Text>
-                  <Text style={styles.timeText}>{t("homeScreen.asrTime")}</Text>
-                </View>
-                <View style={styles.dateRight}>
-                  <Text style={styles.dateText}>
-                    {t("homeScreen.juneDate")}
-                  </Text>
-                </View>
-              </View>
-            </View>
-          )}
-
-          {/* Goal category rings */}
-          <Animated.View
-            onLayout={handleCategoriesLayout}
-            style={[
-              styles.categoriesContainer,
-              { opacity: categorySectionOpacity },
-            ]}
-          >
+          <View style={styles.collapsedRow}>
             {GOAL_CATEGORIES.map((category) => (
-              <View key={category.title} style={styles.categoryItemWrapper}>
+              <TouchableOpacity
+                key={`sticky-${category.title}`}
+                style={styles.collapsedItem}
+                activeOpacity={0.7}
+              >
                 <TaperedCircleBorder
                   percentage={category.percentage}
-                  borderColor={Colors.light.calendarBg}
                   progressColor={category.progressColor}
-                  size={50}
-                />
-                <TopSpace top={16} />
-                <View style={styles.categoryLabelWrapper}>
-                  <Text style={styles.categoryLabel}>
-                    {t(getCategoryTranslationKey(category.title))}
-                  </Text>
-                  <MaterialIcons
-                    name={
-                      i18n.language === "ar" ? "chevron-left" : "chevron-right"
-                    }
-                    size={16}
-                    color={Colors.light.white}
-                  />
-                </View>
-              </View>
-            ))}
-          </Animated.View>
-
-          {/* Welcome / info card deck */}
-          <View style={styles.containersSection}>
-            <SwipeCardDeck
-              data={translatedWelcomeCards}
-              renderTextWithHighlight={buildTextParts}
-            />
-          </View>
-
-          {/* Days tracker */}
-          <TouchableOpacity
-            activeOpacity={0.85}
-            onPress={() => namazBottomSheetRef.current?.expand()}
-            style={{
-              width: SCREEN_CARD_WIDTH,
-              alignSelf: "center",
-              marginTop: 16,
-            }}
-          >
-            <DaysTrackerContainer isBottomSheetView={false} />
-          </TouchableOpacity>
-
-          {/* Inspiration cards */}
-          <View style={styles.inspirationSection}>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              snapToInterval={SCREEN_CARD_WIDTH + 16}
-              decelerationRate="fast"
-              contentContainerStyle={styles.inspirationScrollContainer}
-              onScroll={handleInspirationScroll}
-              scrollEventThrottle={16}
-            >
-              {translatedInspirationCards.map((card) => (
-                <View key={card.id} style={styles.inspirationCard}>
-                  <Text style={styles.inspirationTitle}>{card.title}</Text>
-                  <Text style={styles.inspirationQuote}>
-                    {card.quote}{" "}
-                    <Text style={styles.inspirationReference}>
-                      {card.reference}
-                    </Text>
-                  </Text>
-                </View>
-              ))}
-            </ScrollView>
-            <View style={styles.inspirationDots}>
-              {translatedInspirationCards.map((card, i) => (
-                <View
-                  key={card.id}
-                  style={[
-                    styles.inspirationDot,
-                    i === activeInspirationIndex && styles.inspirationDotActive,
-                  ]}
-                />
-              ))}
-            </View>
-          </View>
-
-          {/* Log menstruation */}
-          <TouchableOpacity
-            activeOpacity={0.8}
-            style={styles.menstruationContainer}
-            onPress={() =>
-              router.push({
-                pathname: "/menstruationlog",
-                params: { cycleStartDate: "2026-05-08" },
-              })
-            }
-          >
-            <View style={styles.menstruationInner}>
-              <View style={styles.greenPlusCircle}>
-                <Ionicons name="add" size={16} color="white" />
-              </View>
-              <Text style={styles.menstruationText}>
-                {t("homeScreen.logMenstruation")}
-              </Text>
-            </View>
-          </TouchableOpacity>
-
-          {/* Customize journal */}
-          <View style={styles.journalContainer}>
-            <Text style={styles.journalTitle}>
-              {t("homeScreen.customizeJournalTitle")}
-            </Text>
-            <Text style={styles.journalDescription}>
-              {t("homeScreen.customizeJournalDesc")}
-            </Text>
-            <TouchableOpacity style={styles.getStartedButton}>
-              <Text style={styles.getStartedText}>
-                {t("homeScreen.getStarted")}
-              </Text>
-              <Entypo
-                name={i18n.language === "ar" ? "chevron-left" : "chevron-right"}
-                size={24}
-                color={Colors.light.green}
-              />
-            </TouchableOpacity>
-          </View>
-          {/* My Day */}
-
-          <View style={[styles.dashboardSection]}>
-            <Text style={styles.dashboardText}>{t("homeScreen.myDay")}</Text>
-            <TouchableOpacity
-              activeOpacity={0.7}
-              style={[styles.customizeContainer, { gap: 8 }]}
-              onPress={handleShowHideTodayProgress}
-            >
-              <Text style={styles.customizeText}>
-                {showDailyProgress
-                  ? t("homeScreen.hide")
-                  : t("homeScreen.show")}
-              </Text>
-              {showDailyProgress ? (
-                <AntDesign
-                  name="eye-invisible"
+                  borderColor={Colors.light.calendarBg}
                   size={16}
-                  color={Colors.light.green}
-                />
-              ) : (
-                <AntDesign name="eye" size={16} color={Colors.light.green} />
-              )}
-            </TouchableOpacity>
-          </View>
-          {showDailyProgress && (
-            <>
-              <ScrollView
-                horizontal
-                style={styles.categoryFilterScroll}
-                contentContainerStyle={styles.categoryFilterContent}
-                showsHorizontalScrollIndicator={false}
-                nestedScrollEnabled
-                scrollEventThrottle={16}
-              >
-                {DASHBOARD_FILTER_TABS.map((label) => (
-                  <Tabs
-                    key={label}
-                    label={t(getFilterTabTranslationKey(label))}
-                    onPress={() => setSelectedDayTab(label)}
-                    selectedTab={t(getFilterTabTranslationKey(selectedDayTab))}
-                  />
-                ))}
-              </ScrollView>
-              <TopSpace top={16} />
-
-              <View style={styles.todayGoalsProgressSection}>
-                <Text style={styles.todayGoalsProgressTitle}>
-                  {t("homeScreen.todayGoalsProgress")}
+                >
+                  <View />
+                </TaperedCircleBorder>
+                <Text style={styles.collapsedLabel}>
+                  {t(getCategoryTranslationKey(category.title))}
                 </Text>
-                <TopSpace top={24} />
-                {displayedTodayGoalsProgress.map((entry) => (
-                  <SwipeToDeleteRow
-                    key={entry.id}
-                    rowId={entry.id}
-                    onDelete={handleTodayProgressDelete}
-                    onSwipeOpen={handleTodayProgressSwipeOpen}
-                    openRowId={openTodayProgressRowId}
-                    wrapperStyle={styles.todayProgressSwipeWrapper}
-                    contentStyle={styles.todayProgressSwipeContent}
-                  >
-                    <TodayGoalProgressCard entry={entry} />
-                  </SwipeToDeleteRow>
-                ))}
-                {showTodayProgressToggle ? (
-                  <>
-                    <TopSpace top={10} />
-                    <TouchableOpacity
-                      style={styles.showMoreButton}
-                      onPress={() =>
-                        setIsTodayProgressExpanded((expanded) => !expanded)
-                      }
-                    >
-                      <Text style={styles.showMoreText}>
-                        {isTodayProgressExpanded
-                          ? t("homeScreen.showLess")
-                          : t("homeScreen.showMore")}
-                      </Text>
-                      <Entypo
-                        name={
-                          isTodayProgressExpanded
-                            ? "chevron-up"
-                            : "chevron-down"
-                        }
-                        size={24}
-                        color="white"
-                      />
-                    </TouchableOpacity>
-                  </>
-                ) : null}
-              </View>
-            </>
-          )}
-          {/* My Dashboard */}
-          <View style={styles.dashboardSection}>
-            <Text style={styles.dashboardText}>
-              {t("homeScreen.myDashboard")}
-            </Text>
-            <TouchableOpacity
-              activeOpacity={0.7}
-              style={styles.customizeContainer}
-              onPress={() => dashboardSheetRef.current?.expand()}
-            >
-              <Text style={styles.customizeText}>
-                {t("homeScreen.customize")}
-              </Text>
-            </TouchableOpacity>
+              </TouchableOpacity>
+            ))}
           </View>
+        </Animated.View>
+      ) : null}
 
-          {/* Dashboard category filter */}
+      <Animated.ScrollView
+        style={{ width: "100%" }}
+        contentContainerStyle={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}
+        scrollEventThrottle={16}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true },
+        )}
+      >
+        {/* Avatar + Streak row */}
+        <View style={styles.topSection}>
+          <View style={styles.avatarContainer}>
+            <AntDesign size={40} color={Colors.light.white} />
+          </View>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => router.push("/streakcounter")}
+          >
+            <View style={styles.streakBox}>
+              <Text style={styles.streakText}>0</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+
+        {/* Upcoming prayer card */}
+        {isPrayerCardVisible && (
+          <View style={styles.prayerCardWrapper}>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setIsPrayerCardVisible(false)}
+            >
+              <AntDesign name="close" size={20} color={Colors.light.white} />
+            </TouchableOpacity>
+            <View style={styles.prayerCardContainer}>
+              <View style={styles.prayerDetailsLeft}>
+                <Text style={styles.upcomingText}>
+                  {t("homeScreen.upcoming")}
+                </Text>
+                <Text style={styles.prayerNameText}>
+                  {t("homeScreen.asrPrayer")}
+                </Text>
+                <Text style={styles.timeText}>{t("homeScreen.asrTime")}</Text>
+              </View>
+              <View style={styles.dateRight}>
+                <Text style={styles.dateText}>{t("homeScreen.juneDate")}</Text>
+              </View>
+            </View>
+          </View>
+        )}
+
+        {/* Goal category rings */}
+        <Animated.View
+          onLayout={handleCategoriesLayout}
+          style={[
+            styles.categoriesContainer,
+            { opacity: categorySectionOpacity },
+          ]}
+        >
+          {GOAL_CATEGORIES.map((category) => (
+            <View key={category.title} style={styles.categoryItemWrapper}>
+              <TaperedCircleBorder
+                percentage={category.percentage}
+                borderColor={Colors.light.calendarBg}
+                progressColor={category.progressColor}
+                size={50}
+              />
+              <TopSpace top={16} />
+              <View style={styles.categoryLabelWrapper}>
+                <Text style={styles.categoryLabel}>
+                  {t(getCategoryTranslationKey(category.title))}
+                </Text>
+                <MaterialIcons
+                  name={
+                    i18n.language === "ar" ? "chevron-left" : "chevron-right"
+                  }
+                  size={16}
+                  color={Colors.light.white}
+                />
+              </View>
+            </View>
+          ))}
+        </Animated.View>
+
+        {/* Welcome / info card deck */}
+        <View style={styles.containersSection}>
+          <SwipeCardDeck
+            data={translatedWelcomeCards}
+            renderTextWithHighlight={buildTextParts}
+          />
+        </View>
+
+        {/* Days tracker */}
+        <TouchableOpacity
+          activeOpacity={0.85}
+          onPress={() => namazBottomSheetRef.current?.expand()}
+          style={{
+            width: SCREEN_CARD_WIDTH,
+            alignSelf: "center",
+            marginTop: 16,
+          }}
+        >
+          <DaysTrackerContainer isBottomSheetView={false} />
+        </TouchableOpacity>
+
+        {/* Inspiration cards */}
+        <View style={styles.inspirationSection}>
           <ScrollView
             horizontal
-            style={styles.categoryFilterScroll}
-            contentContainerStyle={styles.categoryFilterContent}
             showsHorizontalScrollIndicator={false}
-            nestedScrollEnabled
+            snapToInterval={SCREEN_CARD_WIDTH + 16}
+            decelerationRate="fast"
+            contentContainerStyle={styles.inspirationScrollContainer}
+            onScroll={handleInspirationScroll}
             scrollEventThrottle={16}
           >
-            {DASHBOARD_FILTER_TABS.map((label) => (
-              <Tabs
-                key={label}
-                label={t(getFilterTabTranslationKey(label))}
-                onPress={() => setSelectedDashboardCategory(label)}
-                selectedTab={t(
-                  getFilterTabTranslationKey(selectedDashboardCategory),
-                )}
-              />
+            {translatedInspirationCards.map((card) => (
+              <View key={card.id} style={styles.inspirationCard}>
+                <Text style={styles.inspirationTitle}>{card.title}</Text>
+                <Text style={styles.inspirationQuote}>
+                  {card.quote}{" "}
+                  <Text style={styles.inspirationReference}>
+                    {card.reference}
+                  </Text>
+                </Text>
+              </View>
             ))}
           </ScrollView>
+          <View style={styles.inspirationDots}>
+            {translatedInspirationCards.map((card, i) => (
+              <View
+                key={card.id}
+                style={[
+                  styles.inspirationDot,
+                  i === activeInspirationIndex && styles.inspirationDotActive,
+                ]}
+              />
+            ))}
+          </View>
+        </View>
 
-          {visibleDashboardSubGoals.map((goal) => (
-            <DashboardSubGoalRow key={goal.id} goal={goal} />
-          ))}
-
-          <TouchableOpacity style={styles.showMoreButton}>
-            <Text style={styles.showMoreText}>{t("homeScreen.showMore")}</Text>
-            <Entypo name="chevron-down" size={24} color="white" />
-          </TouchableOpacity>
-          <FastingOverviewCalendarSection trackTabs={HOME_FASTING_TRACK_TABS} />
-          <TopSpace top={16} />
-          <TimeSpentOverview
-            onExpandPress={() => timeSpentSheetRef.current?.expand()}
-          />
-        </Animated.ScrollView>
-
-        <NamazGoalBottomSheet
-          ref={namazBottomSheetRef}
-          onClose={() => {}}
-          onChange={(index) => handleBottomSheetChange("namaz", index)}
-        />
-        <TimeSpentBottomSheet
-          ref={timeSpentSheetRef}
-          onClose={() => {
-            timeSpentSheetRef.current?.close();
-          }}
-          onChange={(index) => handleBottomSheetChange("timeSpent", index)}
-        />
-        <DashboardCustomizeBottomSheet
-          ref={dashboardSheetRef}
-          onClose={() => {
-            dashboardSheetRef.current?.close();
-          }}
-          onChange={(index) => handleBottomSheetChange("dashboard", index)}
-        />
-
-        <BottomSheetWrapper
-          ref={goldenBottomSheetRef}
-          snapPoints={["50%", "92%"]}
-          bgColor={Colors.light.blackBackground}
+        {/* Log menstruation */}
+        <TouchableOpacity
+          activeOpacity={0.8}
+          style={styles.menstruationContainer}
+          onPress={() =>
+            router.push({
+              pathname: "/menstruationlog",
+              params: { cycleStartDate: "2026-05-08" },
+            })
+          }
         >
-          <DailyProgressBottomSheet
-            onClose={() => goldenBottomSheetRef.current?.close()}
-          />
-        </BottomSheetWrapper>
+          <View style={styles.menstruationInner}>
+            <View style={styles.greenPlusCircle}>
+              <Ionicons name="add" size={16} color="white" />
+            </View>
+            <Text style={styles.menstruationText}>
+              {t("homeScreen.logMenstruation")}
+            </Text>
+          </View>
+        </TouchableOpacity>
 
-        <HomeFabSpeedDial
-          bottomInset={safeAreaInsets.bottom}
-          onAddDailyProgress={handleAddDailyProgress}
+        {/* Customize journal */}
+        <View style={styles.journalContainer}>
+          <Text style={styles.journalTitle}>
+            {t("homeScreen.customizeJournalTitle")}
+          </Text>
+          <Text style={styles.journalDescription}>
+            {t("homeScreen.customizeJournalDesc")}
+          </Text>
+          <TouchableOpacity style={styles.getStartedButton}>
+            <Text style={styles.getStartedText}>
+              {t("homeScreen.getStarted")}
+            </Text>
+            <Entypo
+              name={i18n.language === "ar" ? "chevron-left" : "chevron-right"}
+              size={24}
+              color={Colors.light.green}
+            />
+          </TouchableOpacity>
+        </View>
+        {/* My Day */}
+
+        <View style={[styles.dashboardSection]}>
+          <Text style={styles.dashboardText}>{t("homeScreen.myDay")}</Text>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            style={[styles.customizeContainer, { gap: 8 }]}
+            onPress={handleShowHideTodayProgress}
+          >
+            <Text style={styles.customizeText}>
+              {showDailyProgress ? t("homeScreen.hide") : t("homeScreen.show")}
+            </Text>
+            {showDailyProgress ? (
+              <AntDesign
+                name="eye-invisible"
+                size={16}
+                color={Colors.light.green}
+              />
+            ) : (
+              <AntDesign name="eye" size={16} color={Colors.light.green} />
+            )}
+          </TouchableOpacity>
+        </View>
+        {showDailyProgress && (
+          <>
+            <ScrollView
+              horizontal
+              style={styles.categoryFilterScroll}
+              contentContainerStyle={styles.categoryFilterContent}
+              showsHorizontalScrollIndicator={false}
+              nestedScrollEnabled
+              scrollEventThrottle={16}
+            >
+              {DASHBOARD_FILTER_TABS.map((label) => (
+                <Tabs
+                  key={label}
+                  label={t(getFilterTabTranslationKey(label))}
+                  onPress={() => setSelectedDayTab(label)}
+                  selectedTab={t(getFilterTabTranslationKey(selectedDayTab))}
+                />
+              ))}
+            </ScrollView>
+            <TopSpace top={16} />
+
+            <View style={styles.todayGoalsProgressSection}>
+              <Text style={styles.todayGoalsProgressTitle}>
+                {t("homeScreen.todayGoalsProgress")}
+              </Text>
+              <TopSpace top={24} />
+              {displayedTodayGoalsProgress.map((entry) => (
+                <SwipeToDeleteRow
+                  key={entry.id}
+                  rowId={entry.id}
+                  onDelete={handleTodayProgressDelete}
+                  onSwipeOpen={handleTodayProgressSwipeOpen}
+                  openRowId={openTodayProgressRowId}
+                  wrapperStyle={styles.todayProgressSwipeWrapper}
+                  contentStyle={styles.todayProgressSwipeContent}
+                >
+                  <TodayGoalProgressCard entry={entry} />
+                </SwipeToDeleteRow>
+              ))}
+              {showTodayProgressToggle ? (
+                <>
+                  <TopSpace top={10} />
+                  <TouchableOpacity
+                    style={styles.showMoreButton}
+                    onPress={() =>
+                      setIsTodayProgressExpanded((expanded) => !expanded)
+                    }
+                  >
+                    <Text style={styles.showMoreText}>
+                      {isTodayProgressExpanded
+                        ? t("homeScreen.showLess")
+                        : t("homeScreen.showMore")}
+                    </Text>
+                    <Entypo
+                      name={
+                        isTodayProgressExpanded ? "chevron-up" : "chevron-down"
+                      }
+                      size={24}
+                      color="white"
+                    />
+                  </TouchableOpacity>
+                </>
+              ) : null}
+            </View>
+          </>
+        )}
+        <JournalingHistoryWeekDashboard weekDays={JournalingHistoryWeekDays} />
+        {/* My Dashboard */}
+        <View style={styles.dashboardSection}>
+          <Text style={styles.dashboardText}>
+            {t("homeScreen.myDashboard")}
+          </Text>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            style={styles.customizeContainer}
+            onPress={() => dashboardSheetRef.current?.expand()}
+          >
+            <Text style={styles.customizeText}>
+              {t("homeScreen.customize")}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Dashboard category filter */}
+        <ScrollView
+          horizontal
+          style={styles.categoryFilterScroll}
+          contentContainerStyle={styles.categoryFilterContent}
+          showsHorizontalScrollIndicator={false}
+          nestedScrollEnabled
+          scrollEventThrottle={16}
+        >
+          {DASHBOARD_FILTER_TABS.map((label) => (
+            <Tabs
+              key={label}
+              label={t(getFilterTabTranslationKey(label))}
+              onPress={() => setSelectedDashboardCategory(label)}
+              selectedTab={t(
+                getFilterTabTranslationKey(selectedDashboardCategory),
+              )}
+            />
+          ))}
+        </ScrollView>
+
+        {visibleDashboardSubGoals.map((goal) => (
+          <DashboardSubGoalRow key={goal.id} goal={goal} />
+        ))}
+
+        <TouchableOpacity style={styles.showMoreButton}>
+          <Text style={styles.showMoreText}>{t("homeScreen.showMore")}</Text>
+          <Entypo name="chevron-down" size={24} color="white" />
+        </TouchableOpacity>
+        <FastingOverviewCalendarSection trackTabs={HOME_FASTING_TRACK_TABS} />
+        <TopSpace top={16} />
+        <TimeSpentOverview
+          onExpandPress={() => timeSpentSheetRef.current?.expand()}
         />
-      </BlackScreenWrapper>
-    </View>
+      </Animated.ScrollView>
+
+      <NamazGoalBottomSheet
+        ref={namazBottomSheetRef}
+        onClose={() => {}}
+        onChange={(index) => handleBottomSheetChange("namaz", index)}
+      />
+      <TimeSpentBottomSheet
+        ref={timeSpentSheetRef}
+        onClose={() => {
+          timeSpentSheetRef.current?.close();
+        }}
+        onChange={(index) => handleBottomSheetChange("timeSpent", index)}
+      />
+      <DashboardCustomizeBottomSheet
+        ref={dashboardSheetRef}
+        onClose={() => {
+          dashboardSheetRef.current?.close();
+        }}
+        onChange={(index) => handleBottomSheetChange("dashboard", index)}
+      />
+
+      <BottomSheetWrapper
+        ref={goldenBottomSheetRef}
+        snapPoints={["50%", "92%"]}
+        bgColor={Colors.light.blackBackground}
+      >
+        <DailyProgressBottomSheet
+          onClose={() => goldenBottomSheetRef.current?.close()}
+        />
+      </BottomSheetWrapper>
+
+      <HomeFabSpeedDial
+        bottomInset={safeAreaInsets.bottom}
+        onAddDailyProgress={handleAddDailyProgress}
+      />
+    </BlackScreenWrapper>
   );
 }

@@ -5,8 +5,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   Pressable,
-  useWindowDimensions,
-  FlatList,
   ScrollView,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -58,20 +56,18 @@ import { TopSpace } from "@/components/atoms/TopSpace";
 import { FontAwesome } from "@expo/vector-icons";
 import Feather from "@expo/vector-icons/Feather";
 import { InsightCard } from "../InsightCard";
-import {
-  getGoalById,
-  GoalData,
-} from "@/src/screens/private/home/components/goalsData";
-import { Image } from "expo-image";
+import { getGoalById } from "@/src/screens/private/home/components/goalsData";
+import { PastAchievementStudyMaterial } from "@/components/molecules/PastAchievementStudyMaterial";
 
 type Props = {
   refreshKey?: number;
   variant?: "missedRamadan" | "prophetDawood";
   isDetailed?: boolean;
   initialPeriod?: PastAchievementPeriod;
-  initialAnalyticsView?: MissedRamadanAnalyticsView | ProphetDawoodAnalyticsView;
+  initialAnalyticsView?:
+    | MissedRamadanAnalyticsView
+    | ProphetDawoodAnalyticsView;
 };
-type StudyMaterialItem = NonNullable<GoalData["studyMaterial"]>[number];
 const PERIODS: PastAchievementPeriod[] = [
   "monthly",
   "threeMonths",
@@ -113,8 +109,6 @@ const DAWOOD_BAR_COLORS: [string, string] = [
   Colors.light.ringDawood,
   Colors.light.warning,
 ];
-const STUDY_CARD_WIDTH_RATIO = 0.42;
-const STUDY_CARD_GAP = 10;
 export function MissedRamadanFastsPastAchievements({
   refreshKey = 0,
   variant = "missedRamadan",
@@ -137,9 +131,9 @@ export function MissedRamadanFastsPastAchievements({
         : "completedVsIncomplete",
     );
   const [selectedBarIndex, setSelectedBarIndex] = useState<number | null>(null);
-  const [selectedCalendarDate, setSelectedCalendarDate] = useState<string | null>(
-    null,
-  );
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState<
+    string | null
+  >(null);
   const [hintDismissed, setHintDismissed] = useState(false);
   const goalData = getGoalById(isDawood ? "fasting-Dawwod" : "fasting-ramadan");
   const studyMaterial = goalData?.studyMaterial ?? [];
@@ -150,8 +144,6 @@ export function MissedRamadanFastsPastAchievements({
         : getMissedRamadanFastsPastAchievementSlice(period),
     [isDawood, period, refreshKey],
   );
-  const { width: screenWidth } = useWindowDimensions();
-  const studyCardWidth = screenWidth * STUDY_CARD_WIDTH_RATIO;
   const baseAchievement = useMemo(
     () =>
       isDawood
@@ -212,7 +204,9 @@ export function MissedRamadanFastsPastAchievements({
   );
 
   const dawoodPeriodSlice = isDawood
-    ? (periodSlice as ReturnType<typeof getProphetDawoodFastsPastAchievementSlice>)
+    ? (periodSlice as ReturnType<
+        typeof getProphetDawoodFastsPastAchievementSlice
+      >)
     : null;
 
   const goalTrackedMonths = isDawood
@@ -223,7 +217,9 @@ export function MissedRamadanFastsPastAchievements({
       ? getTotalProphetDawoodFastsCompleted(dawoodPeriodSlice)
       : 0
     : getTotalMissedRamadanFastsCompleted(
-        periodSlice as ReturnType<typeof getMissedRamadanFastsPastAchievementSlice>,
+        periodSlice as ReturnType<
+          typeof getMissedRamadanFastsPastAchievementSlice
+        >,
       );
 
   useEffect(() => {
@@ -275,39 +271,33 @@ export function MissedRamadanFastsPastAchievements({
       ? periodSlice.chartPeriods[selectedBarIndex]
       : null;
 
-  const displayCompleted =
-    selectedCalendarDate
-      ? isDawood
-        ? isProphetDawoodFastCompletedOnDate(selectedCalendarDate)
-          ? 1
-          : 0
-        : isMissedRamadanFastCompletedOnDate(selectedCalendarDate)
-          ? 1
-          : 0
-      : (selectedBasePeriod?.completed ?? periodSlice.completedFasts);
-  const displayIncomplete =
-    selectedCalendarDate
-      ? isDawood
-        ? dawoodPeriodSlice &&
-          isProphetDawoodFastMissedOnDate(
-            selectedCalendarDate,
-            dawoodPeriodSlice,
-          )
-          ? 1
-          : 0
-        : isMissedRamadanFastSkippedOnDate(selectedCalendarDate)
-          ? 1
-          : 0
-      : (selectedBasePeriod?.incomplete ?? periodSlice.incompleteFasts);
+  const displayCompleted = selectedCalendarDate
+    ? isDawood
+      ? isProphetDawoodFastCompletedOnDate(selectedCalendarDate)
+        ? 1
+        : 0
+      : isMissedRamadanFastCompletedOnDate(selectedCalendarDate)
+        ? 1
+        : 0
+    : (selectedBasePeriod?.completed ?? periodSlice.completedFasts);
+  const displayIncomplete = selectedCalendarDate
+    ? isDawood
+      ? dawoodPeriodSlice &&
+        isProphetDawoodFastMissedOnDate(selectedCalendarDate, dawoodPeriodSlice)
+        ? 1
+        : 0
+      : isMissedRamadanFastSkippedOnDate(selectedCalendarDate)
+        ? 1
+        : 0
+    : (selectedBasePeriod?.incomplete ?? periodSlice.incompleteFasts);
 
-  const selectedPeriodTimeSpentMinutes =
-    selectedCalendarDate
-      ? isDawood
-        ? getProphetDawoodFastTimeSpentForDate(selectedCalendarDate)
-        : getMissedRamadanFastTimeSpentForDate(selectedCalendarDate)
-      : selectedBarIndex !== null
-        ? (timeSpentByPeriod[selectedBarIndex] ?? 0)
-        : totalTimeSpentMinutes;
+  const selectedPeriodTimeSpentMinutes = selectedCalendarDate
+    ? isDawood
+      ? getProphetDawoodFastTimeSpentForDate(selectedCalendarDate)
+      : getMissedRamadanFastTimeSpentForDate(selectedCalendarDate)
+    : selectedBarIndex !== null
+      ? (timeSpentByPeriod[selectedBarIndex] ?? 0)
+      : totalTimeSpentMinutes;
 
   const showCalendar = isDetailed
     ? period === "monthly"
@@ -323,12 +313,7 @@ export function MissedRamadanFastsPastAchievements({
       return applyTimeSpentOnlyGreenChart(baseAchievement, timeSpentByPeriod);
     }
     return baseAchievement;
-  }, [
-    activeAnalyticsView,
-    baseAchievement,
-    showChart,
-    timeSpentByPeriod,
-  ]);
+  }, [activeAnalyticsView, baseAchievement, showChart, timeSpentByPeriod]);
 
   const selectedBarGoalTotal = useMemo(() => {
     if (selectedBarIndex === null) return 0;
@@ -348,7 +333,9 @@ export function MissedRamadanFastsPastAchievements({
   ]);
 
   const missedRamadanSlice = !isDawood
-    ? (periodSlice as ReturnType<typeof getMissedRamadanFastsPastAchievementSlice>)
+    ? (periodSlice as ReturnType<
+        typeof getMissedRamadanFastsPastAchievementSlice
+      >)
     : null;
 
   const renderFastingInsights = () => {
@@ -472,48 +459,6 @@ export function MissedRamadanFastsPastAchievements({
       ? formatMissedRamadanChartHoursLabel
       : formatMissedRamadanFastCountLabel;
 
-  const studyMaterialKeyExtractor = useCallback(
-    (item: StudyMaterialItem) => String(item.id),
-    [],
-  );
-  const renderStudyMaterialItem = useCallback(
-    ({ item }: { item: StudyMaterialItem }) => (
-      <View style={[styles.studyCard, { width: studyCardWidth }]}>
-        <View style={styles.studyThumbnailWrap}>
-          <Image
-            source={{ uri: item.thumbnail }}
-            style={styles.studyThumbnail}
-            contentFit="cover"
-          />
-          <View style={styles.studyTypeBadge}>
-            <Text
-              style={{
-                color: Colors.light.white,
-                fontSize: 10,
-                fontFamily: fonts.primary.medium,
-                fontWeight: "500",
-              }}
-            >
-              {item.type === "video"
-                ? "VIDEO"
-                : item.type === "podcast"
-                  ? "PODCAST"
-                  : "ARTICLE"}
-            </Text>
-          </View>
-        </View>
-        <Text style={styles.studyDescription} numberOfLines={3}>
-          {item.description}
-        </Text>
-      </View>
-    ),
-    [studyCardWidth],
-  );
-
-  const studyItemSeparator = useCallback(
-    () => <View style={{ width: STUDY_CARD_GAP }} />,
-    [],
-  );
   return (
     <View style={[styles.section, isDetailed && styles.sectionDetailed]}>
       <View style={styles.card}>
@@ -524,7 +469,10 @@ export function MissedRamadanFastsPastAchievements({
             color={isDetailed ? Colors.light.subtext : Colors.light.white}
           />
           <Text
-            style={[styles.sectionTitle, isDetailed && styles.sectionTitleDetailed]}
+            style={[
+              styles.sectionTitle,
+              isDetailed && styles.sectionTitleDetailed,
+            ]}
           >
             {t("progressLogging.pastGoalAchievements")}
           </Text>
@@ -952,49 +900,10 @@ export function MissedRamadanFastsPastAchievements({
         )}
       </View>
       {renderFastingInsights()}
-      {studyMaterial.length > 0 && !isDetailed ? (
-        <>
-          <TopSpace top={16} />
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <Text style={styles.insightsTitle}>
-              {t("progressLogging.studyMaterial")}
-            </Text>
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 4,
-              }}
-            >
-              <Text style={styles.insightsTitle}>See All</Text>
-              <MaterialCommunityIcons
-                name="chevron-right"
-                size={16}
-                color={Colors.light.white}
-              />
-            </View>
-          </View>
-          <TopSpace top={16} />
-          <FlatList
-            horizontal
-            data={studyMaterial}
-            keyExtractor={studyMaterialKeyExtractor}
-            renderItem={renderStudyMaterialItem}
-            showsHorizontalScrollIndicator={false}
-            ItemSeparatorComponent={studyItemSeparator}
-            contentContainerStyle={styles.studyListContent}
-            decelerationRate="fast"
-            snapToInterval={studyCardWidth + STUDY_CARD_GAP}
-            snapToAlignment="start"
-          />
-        </>
-      ) : null}
+      <PastAchievementStudyMaterial
+        items={studyMaterial}
+        isDetailed={isDetailed}
+      />
     </View>
   );
 }
@@ -1418,45 +1327,6 @@ const styles = StyleSheet.create({
   },
   insightCardFixed: {
     width: 168,
-  },
-  studyListContent: {
-    paddingRight: 4,
-  },
-  studyCard: {
-    padding: 8,
-    paddingBottom: 12,
-    backgroundColor: Colors.light.greybuttonBackground,
-    borderRadius: 8,
-    gap: 8,
-  },
-  studyThumbnailWrap: {
-    width: "100%",
-    aspectRatio: 1,
-    borderRadius: 6,
-    overflow: "hidden",
-    position: "relative",
-  },
-  studyThumbnail: {
-    width: "100%",
-    height: "100%",
-  },
-  studyTypeBadge: {
-    position: "absolute",
-    right: 0,
-    top: 6,
-    paddingHorizontal: 4,
-    paddingVertical: 2,
-    borderRadius: 10,
-    backgroundColor: Colors.light.greybuttonBackground,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  studyDescription: {
-    color: Colors.light.white,
-    fontSize: 12,
-    fontFamily: fonts.primary.medium,
-    fontWeight: "500",
-    lineHeight: 16,
   },
   insightsTitle: {
     color: Colors.light.white,
