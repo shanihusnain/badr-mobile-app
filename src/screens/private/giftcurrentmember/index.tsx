@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, Pressable, TextInput, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
 import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
-import BackButton from "@/components/atoms/Backbutton";
 import PrimaryButton from "@/components/atoms/Primary-button";
 import SecondaryButton from "@/components/atoms/Secondary-button";
 import { Colors } from "@/constants/theme";
@@ -62,13 +61,6 @@ export default function GiftCurrentMemberScreen() {
       >
         <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
           <View style={styles.container}>
-            <View style={styles.header}>
-              <BackButton 
-                bgcolor={Colors.light.greybuttonversion} 
-                onPress={step === 2 ? handleBack : undefined} 
-              />
-            </View>
-
             {step === 1 && (
               <>
                 <View style={styles.headerTitleContainer}>

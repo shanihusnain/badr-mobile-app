@@ -9,7 +9,6 @@ import {
   ScrollView,
 } from "react-native";
 import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
-import BackButton from "@/components/atoms/Backbutton";
 import PrimaryButton from "@/components/atoms/Primary-button";
 import { Colors } from "@/constants/theme";
 import { Feather } from "@expo/vector-icons";
@@ -76,10 +75,6 @@ export default function GiftPersonalDetailsScreen() {
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
-          <View style={styles.header}>
-            <BackButton bgcolor={Colors.light.greybuttonversion} />
-          </View>
-
           <View style={styles.iconContainer}>
             <View style={styles.iconBox}>
               <Feather name="gift" size={32} color={Colors.light.white} />

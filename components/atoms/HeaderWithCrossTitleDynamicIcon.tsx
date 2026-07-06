@@ -18,8 +18,7 @@ export const HeaderWithCrossTitleDynamicIcon = ({
   <View
     style={{
       height: 100,
-      flexDirection: "row",
-      alignItems: "center",
+      position: "relative",
       paddingTop: 40,
       paddingHorizontal: 24,
       backgroundColor: Colors.light.blackBackground,
@@ -50,9 +49,12 @@ export const HeaderWithCrossTitleDynamicIcon = ({
       </Text>
     </View>
 
-    {/* Close button — sits on top of title via zIndex */}
+    {/* Close button — fixed top-left position */}
     <Pressable
       style={{
+        position: "absolute",
+        left: 18,
+        top: 52,
         width: 36,
         height: 36,
         borderRadius: 18,

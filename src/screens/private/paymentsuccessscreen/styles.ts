@@ -9,8 +9,16 @@ export const paymentSuccessStyles = StyleSheet.create({
     },
     container: {
         flex: 1,
-        paddingHorizontal: 24,
+        //paddingHorizontal: 24,
         alignItems: "center",
+    },
+    titleText: {
+        marginTop: 70,
+        color: Colors.light.white,
+        fontFamily: fonts.primary.semiBold,
+        fontSize: 16,
+        letterSpacing: 1,
+        marginBottom: 10,
     },
     iconContainer: {
         alignItems: "center",

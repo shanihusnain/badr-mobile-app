@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { View, Text, SafeAreaView, Pressable } from "react-native";
-import BackButton from "@/components/atoms/Backbutton";
+import { View, Text, Pressable } from "react-native";
+import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
 import PrimaryButton from "@/components/atoms/Primary-button";
 import { Colors } from "@/constants/theme";
 import { membershipExtensionStyles as styles } from "./style";
@@ -45,15 +45,8 @@ export default function MembershipExtensionScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <BlackScreenWrapper>
       <View style={styles.container}>
-        <View style={styles.header}>
-          <BackButton bgcolor={Colors.light.greybuttonversion} />
-          <View style={styles.headerTitleContainer}>
-            <Text style={styles.headerTitle}>MEMBERSHIP EXTENSION</Text>
-          </View>
-        </View>
-
         <Text style={styles.subtitle}>
           Add extra months to your membership and lock{"\n"}in membership savings.
         </Text>
@@ -102,6 +95,6 @@ export default function MembershipExtensionScreen() {
           </Text>
         </View>
       </View>
-    </SafeAreaView>
+    </BlackScreenWrapper>
   );
 }

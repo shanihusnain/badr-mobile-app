@@ -18,6 +18,8 @@ export default function PaymentSuccessScreen() {
   return (
     <BlackScreenWrapper>
       <View style={styles.container}>
+        <Text style={styles.titleText}>PAYMENT SUCCESSFUL!</Text>
+
         <View style={styles.iconContainer}>
           {/* Custom Credit Card + Check Icon */}
           <View style={styles.cardIconContainer}>

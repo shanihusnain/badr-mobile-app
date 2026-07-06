@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import {
     View,
     Text,
-    SafeAreaView,
     Pressable,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
@@ -12,6 +11,7 @@ import { useRouter } from "expo-router";
 import PrimaryButton from "@/components/atoms/Primary-button";
 import SecondaryButton from "@/components/atoms/Secondary-button";
 import WarningModal from "@/components/atoms/WarningModal";
+import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
 
 type Plan = {
     id: string;
@@ -77,13 +77,7 @@ export default function ChangeMembershipScreen() {
             : "CHANGE TO MONTHLY PLAN";
 
     return (
-        <SafeAreaView style={styles.safeArea}>
-            <View style={styles.header}>
-                <Pressable style={styles.backButton} onPress={handleBack}>
-                    <Feather name="chevron-left" size={24} color={Colors.light.white} />
-                </Pressable>
-            </View>
-
+        <BlackScreenWrapper>
             <View style={styles.content}>
                 <Text style={styles.screenTitle}>CHANGE MEMBERSHIP</Text>
                 <Text style={styles.subtitle}>
@@ -144,6 +138,6 @@ export default function ChangeMembershipScreen() {
                 onSecondaryPress={() => setIsModalVisible(false)}
                 onBackdropPress={() => setIsModalVisible(false)}
             />
-        </SafeAreaView>
+        </BlackScreenWrapper>
     );
 }
