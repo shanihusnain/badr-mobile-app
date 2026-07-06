@@ -12,6 +12,36 @@ import moment from "moment-hijri";
 import { fonts } from "@/assets/fonts";
 import { useTranslation } from "react-i18next";
 
+// Ensure the Arabic locale definitions exist at module load time so
+// `react-native-calendars` doesn't attempt to read `dayNamesShort` from
+// an undefined locale when components render before React effects run.
+if (!LocaleConfig.locales) {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  LocaleConfig.locales = {};
+}
+if (!LocaleConfig.locales["ar"]) {
+  LocaleConfig.locales["ar"] = {
+    monthNames: ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"],
+    monthNamesShort: ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"],
+    dayNames: ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"],
+    dayNamesShort: ["أحد", "إثن", "ثلا", "أرب", "خمي", "جمع", "سبت"],
+    today: "اليوم",
+  };
+}
+
+// Ensure English locale is also present to avoid undefined access for the
+// default 'en' locale on initial renders.
+if (!LocaleConfig.locales["en"]) {
+  LocaleConfig.locales["en"] = {
+    monthNames: ["January","February","March","April","May","June","July","August","September","October","November","December"],
+    monthNamesShort: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
+    dayNames: ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],
+    dayNamesShort: ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],
+    today: "Today",
+  };
+}
+
 export type MenstruationCalendarProps = {
   currentDate: string;
   onDayPress?: (dateString: string) => void;
@@ -33,6 +63,13 @@ export const MenstruationCalendar = ({
   const textColor = isMenstruating ? Colors.light.white : Colors.light.subtext;
 
   React.useEffect(() => {
+    if (!LocaleConfig.locales) {
+      // Ensure locales object exists (defensive for environments where it's undefined)
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      LocaleConfig.locales = {};
+    }
+
     if (isArabic) {
       if (!LocaleConfig.locales["ar"]) {
         LocaleConfig.locales["ar"] = {

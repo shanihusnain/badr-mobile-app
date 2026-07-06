@@ -133,7 +133,7 @@ export default function ConfirmPasswordScreen() {
                     <PrimaryButton
                       text={t("confirmPasswordScreen.updatePasswordBtn")}
                       onPress={handleSubmit(onUpdatePassword)}
-                    
+
                     />
                   )}
                 </View>

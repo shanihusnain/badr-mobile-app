@@ -1,5 +1,6 @@
 import React from "react";
-import { View, ScrollView, Text, SafeAreaView } from "react-native";
+import { View, ScrollView, Text } from "react-native";
+import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
 import { useRouter } from "expo-router";
 import MoreCarousel from "./components/MoreCarousel";
 import MoreSectionHeader from "./components/MoreSectionHeader";
@@ -30,8 +31,24 @@ export default function MoreScreen() {
     router.push("/(private)/myaccount");
   };
 
+  const handleAppSettings = () => {
+    router.push("/(private)/appsetting");
+  };
+
+  const handlePrivacySettings = () => {
+    router.push("/(private)/privacysetting");
+  };
+
+  const handleMembershipServices = () => {
+    router.push("/(private)/helpcentre");
+  };
+
+  const handleAbout = () => {
+    router.push("/(private)/about");
+  };
+
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <BlackScreenWrapper>
       <ScrollView
         style={styles.container}
         showsVerticalScrollIndicator={false}
@@ -64,17 +81,18 @@ export default function MoreScreen() {
 
         <MoreSectionHeader title="ACCOUNT & SETTINGS" />
         <MoreListItem title="MY ACCOUNT" icon="user" onPress={handleMyAccount} />
-        <MoreListItem title="APP SETTINGS" icon="sliders" />
-        <MoreListItem title="PRIVACY SETTINGS" icon="shield" />
+        <MoreListItem title="APP SETTINGS" icon="sliders" onPress={handleAppSettings} />
+        <MoreListItem title="PRIVACY SETTINGS" icon="shield" onPress={handlePrivacySettings} />
 
         <MoreSectionHeader title="SUPPORT" />
         <MoreListItem
           title="MEMBERSHIP SERVICES"
           description="Get help or ask a question"
           icon="headphones"
+          onPress={handleMembershipServices}
         />
         <MoreListItem title="TUTORIAL" icon="play-circle" />
-        <MoreListItem title="ABOUT" icon="info" />
+        <MoreListItem title="ABOUT" icon="info" onPress={handleAbout} />
 
         <View style={styles.logoutContainer}>
           <SecondaryButton
@@ -87,6 +105,6 @@ export default function MoreScreen() {
           </Text>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </BlackScreenWrapper>
   );
 }

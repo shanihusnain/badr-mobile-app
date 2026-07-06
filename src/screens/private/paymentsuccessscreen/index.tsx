@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Text, SafeAreaView } from "react-native";
+import { View, Text } from "react-native";
+import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
 import PrimaryButton from "@/components/atoms/Primary-button";
 import { Colors } from "@/constants/theme";
 import { Feather } from "@expo/vector-icons";
@@ -15,74 +16,20 @@ export default function PaymentSuccessScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <BlackScreenWrapper>
       <View style={styles.container}>
-        <Text style={styles.title}>PAYMENT SUCCESSFUL!</Text>
-
         <View style={styles.iconContainer}>
           {/* Custom Credit Card + Check Icon */}
-          <View
-            style={{
-              width: 120,
-              height: 80,
-              borderWidth: 5,
-              borderColor: Colors.light.green,
-              borderRadius: 12,
-              position: "relative",
-            }}
-          >
+          <View style={styles.cardIconContainer}>
             {/* Magstripe */}
-            <View
-              style={{
-                height: 12,
-                backgroundColor: Colors.light.green,
-                marginTop: 14,
-              }}
-            />
+            <View style={styles.cardMagstripe} />
             {/* Card lines */}
-            <View
-              style={{
-                width: 50,
-                height: 5,
-                backgroundColor: Colors.light.green,
-                marginTop: 12,
-                marginLeft: 14,
-                borderRadius: 2,
-              }}
-            />
-            <View
-              style={{
-                width: 25,
-                height: 5,
-                backgroundColor: Colors.light.green,
-                marginTop: 6,
-                marginLeft: 14,
-                borderRadius: 2,
-              }}
-            />
+            <View style={styles.cardLine1} />
+            <View style={styles.cardLine2} />
 
             {/* Checkmark badge */}
-            <View
-              style={{
-                position: "absolute",
-                bottom: -20,
-                right: -20,
-                backgroundColor: Colors.light.blackBackground,
-                borderRadius: 30,
-                padding: 4,
-              }}
-            >
-              <View
-                style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: 22,
-                  borderWidth: 4,
-                  borderColor: Colors.light.green,
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
+            <View style={styles.checkmarkBadgeContainer}>
+              <View style={styles.checkmarkBadgeInner}>
                 <Feather name="check" size={24} color={Colors.light.green} />
               </View>
             </View>
@@ -106,6 +53,6 @@ export default function PaymentSuccessScreen() {
           <PrimaryButton text="BACK TO HOME" onPress={handleBackToHome} />
         </View>
       </View>
-    </SafeAreaView>
+    </BlackScreenWrapper>
   );
 }

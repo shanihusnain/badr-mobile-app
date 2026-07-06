@@ -5,6 +5,7 @@ import Header from "@/components/Header";
 import { getGoalById } from "@/src/screens/private/home/components/goalsData";
 import { HeaderWithInfoIcon } from "@/components/atoms/HeaderWithInfoIcon";
 import { useTranslation } from "react-i18next";
+import { HeaderWithCrossTitleDynamicIcon } from "@/components/atoms/HeaderWithCrossTitleDynamicIcon";
 import { ProtectedRoute } from "@/provider/ProtectedRoute";
 import { CrossHeader } from "@/components/atoms/CrossHeader";
 

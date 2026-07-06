@@ -2,10 +2,11 @@ import React, { useState } from "react";
 import {
     View,
     Text,
-    SafeAreaView,
+
     FlatList,
     Pressable,
 } from "react-native";
+import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
 import { Feather } from "@expo/vector-icons";
 import { Colors } from "@/constants/theme";
 import { badarMembershipStyles as styles } from "./style";
@@ -32,7 +33,7 @@ export default function BadarMembershipScreen() {
     };
 
     const handleChangeMembership = () => {
-        router.push("/(private)/membershipextension");
+        router.push("/(private)/changemembership");
     };
 
     const handleCancelMembership = () => {
@@ -145,15 +146,7 @@ export default function BadarMembershipScreen() {
     );
 
     return (
-        <SafeAreaView style={styles.safeArea}>
-            <View style={styles.header}>
-                <Pressable style={styles.backButton} onPress={handleBack}>
-                    <Feather name="chevron-left" size={24} color={Colors.light.white} />
-                </Pressable>
-                <View style={styles.headerTitleContainer}>
-                    <Text style={styles.headerTitle}>MEMBERSHIP</Text>
-                </View>
-            </View>
+        <BlackScreenWrapper>
 
             <FlatList
                 data={ACTION_ITEMS}
@@ -184,6 +177,6 @@ export default function BadarMembershipScreen() {
                 onPrimaryPress={handleKeepMembership}
                 onSecondaryPress={handleConfirmCancel}
             />
-        </SafeAreaView>
+        </BlackScreenWrapper>
     );
 }

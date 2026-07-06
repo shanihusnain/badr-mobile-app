@@ -2,13 +2,13 @@ import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
-  SafeAreaView,
   Pressable,
   TextInput,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
 } from "react-native";
+import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
 import BackButton from "@/components/atoms/Backbutton";
 import PrimaryButton from "@/components/atoms/Primary-button";
 import { Colors } from "@/constants/theme";
@@ -67,7 +67,7 @@ export default function GiftPersonalDetailsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <BlackScreenWrapper>
       <KeyboardAvoidingView
         style={styles.flex1}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -207,6 +207,6 @@ export default function GiftPersonalDetailsScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </BlackScreenWrapper>
   );
 }

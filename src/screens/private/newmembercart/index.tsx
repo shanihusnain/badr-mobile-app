@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { View, Text, SafeAreaView, Pressable } from "react-native";
-import BackButton from "@/components/atoms/Backbutton";
+import { View, Text, Pressable } from "react-native";
+import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
 import PrimaryButton from "@/components/atoms/Primary-button";
 import { Colors } from "@/constants/theme";
 import { Feather } from "@expo/vector-icons";
@@ -43,14 +43,8 @@ export default function NewMemberCartScreen() {
   const currentDiscount = (discountAmount * quantity).toFixed(2);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <BlackScreenWrapper>
       <View style={styles.container}>
-        <View style={styles.header}>
-          <BackButton bgcolor={Colors.light.greybuttonversion} />
-          <View style={styles.headerTitleContainer}>
-            <Text style={styles.headerTitle}>CART</Text>
-          </View>
-        </View>
 
         <View style={styles.cartItemContainer}>
           <View style={styles.appIconBox}>
@@ -108,6 +102,6 @@ export default function NewMemberCartScreen() {
           <PrimaryButton text="NEXT" onPress={handleNext} />
         </View>
       </View>
-    </SafeAreaView>
+    </BlackScreenWrapper>
   );
 }

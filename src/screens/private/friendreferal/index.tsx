@@ -1,10 +1,10 @@
 import React from "react";
-import { View, Text, SafeAreaView, Pressable, Share, Alert } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import { View, Text, Pressable, Share, Alert } from "react-native";
+import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
 import { Colors } from "@/constants/theme";
 import PrimaryButton from "@/components/atoms/Primary-button";
-import BackButton from "@/components/atoms/Backbutton";
 import { friendReferralStyles as styles } from "./style";
+import { ReferFriendIcon } from "@/assets/icons";
 
 export default function FriendReferralScreen() {
 
@@ -28,16 +28,13 @@ export default function FriendReferralScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <BlackScreenWrapper>
       <View style={styles.container}>
-        <View style={styles.header}>
-          <BackButton bgcolor={Colors.light.greybuttonversion} />
-          <Text style={styles.headerTitle}>REFER A FRIEND</Text>
-        </View>
+
 
         <View style={styles.contentContainer}>
           <View style={styles.iconContainer}>
-            <Feather name="award" size={48} color={Colors.light.dullWhite} />
+            <ReferFriendIcon size={34} color={Colors.light.dullWhite} />
           </View>
 
           <Text style={styles.title}>UNLOCK FREE MONTHS</Text>
@@ -52,6 +49,6 @@ export default function FriendReferralScreen() {
           </View>
         </View>
       </View>
-    </SafeAreaView>
+    </BlackScreenWrapper>
   );
 }

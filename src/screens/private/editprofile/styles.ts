@@ -37,7 +37,7 @@ export const editProfileStyles = StyleSheet.create({
         letterSpacing: 1,
     },
     scrollContent: {
-        paddingHorizontal: 24,
+        // paddingHorizontal: 24,
         paddingBottom: 40,
     },
     profileImageContainer: {

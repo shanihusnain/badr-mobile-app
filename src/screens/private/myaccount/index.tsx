@@ -1,14 +1,27 @@
 import React from "react";
-import { View, Text, SafeAreaView, Pressable, ScrollView } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import { View, Text, Pressable, ScrollView } from "react-native";
 import { Colors } from "@/constants/theme";
 import { myAccountStyles as styles } from "./style";
 import { useRouter } from "expo-router";
+import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
+import {
+  CalendarIcon,
+  PaymentIcon,
+  WalletIcon,
+  ReferFriendIcon,
+  JournalBookIcon,
+  InsightIcon,
+  InBoxArrow,
+  DocumentLockIcon,
+  ReferFriendTabIcon,
+  RedeemGiftIcon
+} from "@/assets/icons";
+import RedeemGiftExtensionRoute from "@/app/(private)/redeemgiftextension";
 
 type ListItem = {
   title: string;
   subtitle?: string;
-  icon: string;
+  icon: React.ReactNode;
   route?: string;
 };
 
@@ -16,31 +29,31 @@ const MEMBERSHIP_ITEMS: ListItem[] = [
   {
     title: "BADR MEMBERSHIP",
     subtitle: "Manage your membership",
-    icon: "moon",
+    icon: <InBoxArrow color={Colors.light.subtext} size={24} />,
     route: "/(private)/badarmembership",
   },
   {
     title: "MEMBERSHIP EXTENSIONS",
     subtitle: "Add months to your membership and save",
-    icon: "calendar",
+    icon: <CalendarIcon color={Colors.light.subtext} size={24} />,
     route: "/(private)/membershipextension",
   },
   {
     title: "PAYMENT METHOD",
     subtitle: "Visa ending in 0022",
-    icon: "credit-card",
+    icon: <PaymentIcon color={Colors.light.subtext} size={24} />,
     route: "/(private)/membershippaymentmethod",
   },
   {
     title: "REFER A FRIEND",
     subtitle: "Get one month free for each friend you refer",
-    icon: "users",
+    icon: <ReferFriendTabIcon color={Colors.light.dullWhite} size={24} />,
     route: "/(private)/friendreferal",
   },
   {
     title: "REDEEM GIFT EXTENSION",
     subtitle: "Apply your gift to your membership",
-    icon: "gift",
+    icon: <RedeemGiftIcon color={Colors.light.dullWhite} size={24} />,
     route: "/(private)/redeemgiftextension",
   },
 ];
@@ -48,18 +61,18 @@ const MEMBERSHIP_ITEMS: ListItem[] = [
 const PERSONAL_ITEMS: ListItem[] = [
   {
     title: "PROFILE INFORMATION",
-    icon: "user",
+    icon: <InsightIcon color={Colors.light.dullWhite} size={18} />,
     route: "/(private)/editprofile",
   },
   {
     title: "EMAIL",
     subtitle: "layla.najia@gmail.com",
-    icon: "mail",
+    icon: <InBoxArrow color={Colors.light.dullWhite} size={18} />,
     route: "/(private)/changeemailid",
   },
   {
     title: "CHANGE PASSWORD",
-    icon: "lock",
+    icon: <DocumentLockIcon color={Colors.light.dullWhite} size={18} />,
     route: "/(private)/changepassword",
   },
 ];
@@ -79,8 +92,8 @@ export default function MyAccountScreen() {
 
   const renderItem = (item: ListItem, index: number) => (
     <Pressable key={index} style={styles.listCard} onPress={() => handleItemPress(item)}>
-      <View style={styles.iconBox}>
-        <Feather name={item.icon as any} size={18} color={Colors.light.dullWhite} />
+      <View style={styles.listIconContainer}>
+        {item.icon}
       </View>
       <View style={styles.listItemInfo}>
         <Text style={styles.listItemTitle}>{item.title}</Text>
@@ -92,18 +105,9 @@ export default function MyAccountScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <BlackScreenWrapper>
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
         <View style={styles.container}>
-          <View style={styles.header}>
-            <Pressable style={styles.closeButton} onPress={handleClose}>
-              <Feather name="x" size={18} color={Colors.light.white} />
-            </Pressable>
-            <View style={styles.headerTitleContainer}>
-              <Text style={styles.headerTitle}>MY ACCOUNT</Text>
-            </View>
-          </View>
-
           <Text style={styles.sectionTitle}>MEMBERSHIP</Text>
           {MEMBERSHIP_ITEMS.map((item, index) => renderItem(item, index))}
 
@@ -111,6 +115,6 @@ export default function MyAccountScreen() {
           {PERSONAL_ITEMS.map((item, index) => renderItem(item, index + 100))}
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </BlackScreenWrapper>
   );
 }
