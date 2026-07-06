@@ -5,8 +5,6 @@ import {
   TouchableOpacity,
   Pressable,
   ScrollView,
-  FlatList,
-  useWindowDimensions,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
@@ -53,9 +51,8 @@ import { InsightCard } from "../InsightCard";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import {
   getGoalById,
-  type GoalData,
 } from "@/src/screens/private/home/components/goalsData";
-import { Image } from "expo-image";
+import { PastAchievementStudyMaterial } from "@/components/molecules/PastAchievementStudyMaterial";
 
 export type QuranMemorisationPastAchievementsProps = {
   goalId: SurahMemorisationGoalId | HizbMemorisationGoalId;
@@ -96,11 +93,6 @@ const PERIOD_DELTA_LABEL_KEYS: Record<PastAchievementPeriod, string> = {
   sixMonths: "progressLogging.previousSixMonths",
 };
 
-const STUDY_CARD_WIDTH_RATIO = 0.42;
-const STUDY_CARD_GAP = 10;
-
-type StudyMaterialItem = NonNullable<GoalData["studyMaterial"]>[number];
-
 function SurahMemorisationPastAchievements({
   goalId,
   isDetailed = false,
@@ -117,9 +109,7 @@ function SurahMemorisationPastAchievements({
   const router = useRouter();
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
-  const { width: screenWidth } = useWindowDimensions();
-  const studyCardWidth = screenWidth * STUDY_CARD_WIDTH_RATIO;
-  const surahContext = useOptionalMemorisationSurahContext();
+const surahContext = useOptionalMemorisationSurahContext();
   const [period, setPeriod] = useState<PastAchievementPeriod>(initialPeriod);
   const [analyticsView, setAnalyticsView] =
     useState<MemorisationAnalyticsView>(initialAnalyticsView);
@@ -453,45 +443,7 @@ function SurahMemorisationPastAchievements({
       </View>
     );
   };
-
-  const studyMaterialKeyExtractor = useCallback(
-    (item: StudyMaterialItem) => String(item.id),
-    [],
-  );
-
-  const renderStudyMaterialItem = useCallback(
-    ({ item }: { item: StudyMaterialItem }) => (
-      <View style={[styles.studyCard, { width: studyCardWidth }]}>
-        <View style={styles.studyThumbnailWrap}>
-          <Image
-            source={{ uri: item.thumbnail }}
-            style={styles.studyThumbnail}
-            contentFit="cover"
-          />
-          <View style={styles.studyTypeBadge}>
-            <Text style={styles.studyTypeBadgeText}>
-              {item.type === "video"
-                ? "VIDEO"
-                : item.type === "podcast"
-                  ? "PODCAST"
-                  : "ARTICLE"}
-            </Text>
-          </View>
-        </View>
-        <Text style={styles.studyDescription} numberOfLines={3}>
-          {item.description}
-        </Text>
-      </View>
-    ),
-    [studyCardWidth],
-  );
-
-  const studyItemSeparator = useCallback(
-    () => <View style={{ width: STUDY_CARD_GAP }} />,
-    [],
-  );
-
-  if (!isDetailed) {
+if (!isDetailed) {
     const selectedBar =
       selectedBarIndex !== null
         ? compactAchievement.chartData[selectedBarIndex]
@@ -615,29 +567,7 @@ function SurahMemorisationPastAchievements({
           </View>
         </View>
 
-        {studyMaterial.length > 0 ? (
-          <>
-            <TopSpace top={16} />
-            <View style={styles.studyHeaderRow}>
-              <Text style={styles.insightsTitle}>
-                {t("progressLogging.studyMaterial")}
-              </Text>
-            </View>
-            <TopSpace top={16} />
-            <FlatList
-              horizontal
-              data={studyMaterial}
-              keyExtractor={studyMaterialKeyExtractor}
-              renderItem={renderStudyMaterialItem}
-              showsHorizontalScrollIndicator={false}
-              ItemSeparatorComponent={studyItemSeparator}
-              contentContainerStyle={styles.studyListContent}
-              decelerationRate="fast"
-              snapToInterval={studyCardWidth + STUDY_CARD_GAP}
-              snapToAlignment="start"
-            />
-          </>
-        ) : null}
+        <PastAchievementStudyMaterial items={studyMaterial} showSeeAll={false} />
       </View>
     );
   }

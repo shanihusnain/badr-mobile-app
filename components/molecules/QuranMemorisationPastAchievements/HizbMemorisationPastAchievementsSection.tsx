@@ -5,8 +5,6 @@ import {
   TouchableOpacity,
   Pressable,
   ScrollView,
-  FlatList,
-  useWindowDimensions,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
@@ -43,8 +41,8 @@ import { RecitationPastAchievementProgressSection } from "../QuranHoursPastAchie
 import { MemorisationHizbDetailCard } from "../QuranHoursPastAchievements/MemorisationHizbDetailCard";
 import { InsightCard } from "../InsightCard";
 import { TopSpace } from "@/components/atoms/TopSpace";
-import { getGoalById, type GoalData } from "@/src/screens/private/home/components/goalsData";
-import { Image } from "expo-image";
+import { getGoalById } from "@/src/screens/private/home/components/goalsData";
+import { PastAchievementStudyMaterial } from "@/components/molecules/PastAchievementStudyMaterial";
 import { memorisationPastAchievementStyles as styles } from "./memorisationPastAchievementsStyles";
 
 const PERIODS: PastAchievementPeriod[] = ["monthly", "threeMonths", "sixMonths"];
@@ -63,10 +61,6 @@ const PERIOD_DELTA_LABEL_KEYS: Record<PastAchievementPeriod, string> = {
   threeMonths: "progressLogging.previousThreeMonths",
   sixMonths: "progressLogging.previousSixMonths",
 };
-const STUDY_CARD_WIDTH_RATIO = 0.42;
-const STUDY_CARD_GAP = 10;
-type StudyMaterialItem = NonNullable<GoalData["studyMaterial"]>[number];
-
 export function HizbMemorisationPastAchievements({
   goalId,
   isDetailed = false,
@@ -83,9 +77,7 @@ export function HizbMemorisationPastAchievements({
   const router = useRouter();
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
-  const { width: screenWidth } = useWindowDimensions();
-  const studyCardWidth = screenWidth * STUDY_CARD_WIDTH_RATIO;
-  const hizbContext = useOptionalMemorisationHizbContext();
+const hizbContext = useOptionalMemorisationHizbContext();
   const [period, setPeriod] = useState<PastAchievementPeriod>(initialPeriod);
   const [analyticsView, setAnalyticsView] =
     useState<MemorisationAnalyticsView>(initialAnalyticsView);
@@ -419,45 +411,7 @@ export function HizbMemorisationPastAchievements({
       </View>
     );
   };
-
-  const studyMaterialKeyExtractor = useCallback(
-    (item: StudyMaterialItem) => String(item.id),
-    [],
-  );
-
-  const renderStudyMaterialItem = useCallback(
-    ({ item }: { item: StudyMaterialItem }) => (
-      <View style={[styles.studyCard, { width: studyCardWidth }]}>
-        <View style={styles.studyThumbnailWrap}>
-          <Image
-            source={{ uri: item.thumbnail }}
-            style={styles.studyThumbnail}
-            contentFit="cover"
-          />
-          <View style={styles.studyTypeBadge}>
-            <Text style={styles.studyTypeBadgeText}>
-              {item.type === "video"
-                ? "VIDEO"
-                : item.type === "podcast"
-                  ? "PODCAST"
-                  : "ARTICLE"}
-            </Text>
-          </View>
-        </View>
-        <Text style={styles.studyDescription} numberOfLines={3}>
-          {item.description}
-        </Text>
-      </View>
-    ),
-    [studyCardWidth],
-  );
-
-  const studyItemSeparator = useCallback(
-    () => <View style={{ width: STUDY_CARD_GAP }} />,
-    [],
-  );
-
-  if (!isDetailed) {
+if (!isDetailed) {
     const selectedBar =
       selectedBarIndex !== null
         ? compactAchievement.chartData[selectedBarIndex]
@@ -582,29 +536,7 @@ export function HizbMemorisationPastAchievements({
           </View>
         </View>
 
-        {studyMaterial.length > 0 ? (
-          <>
-            <TopSpace top={16} />
-            <View style={styles.studyHeaderRow}>
-              <Text style={styles.insightsTitle}>
-                {t("progressLogging.studyMaterial")}
-              </Text>
-            </View>
-            <TopSpace top={16} />
-            <FlatList
-              horizontal
-              data={studyMaterial}
-              keyExtractor={studyMaterialKeyExtractor}
-              renderItem={renderStudyMaterialItem}
-              showsHorizontalScrollIndicator={false}
-              ItemSeparatorComponent={studyItemSeparator}
-              contentContainerStyle={styles.studyListContent}
-              decelerationRate="fast"
-              snapToInterval={studyCardWidth + STUDY_CARD_GAP}
-              snapToAlignment="start"
-            />
-          </>
-        ) : null}
+        <PastAchievementStudyMaterial items={studyMaterial} showSeeAll={false} />
       </View>
     );
   }

@@ -1,3 +1,5 @@
+import { loginSuccess, logout } from "@/src/store/authSlice";
+import { store } from "@/src/store/store";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, ReactNode, useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
@@ -35,7 +37,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (token) {
           setIsAuthenticated(true);
           if (userData) {
-            setUser(JSON.parse(userData));
+            const parsedUser = JSON.parse(userData);
+            setUser(parsedUser);
+            store.dispatch(
+              loginSuccess({ email: parsedUser.email ?? "" }),
+            );
+          } else {
+            store.dispatch(loginSuccess({ email: "" }));
           }
         }
       } catch (error) {
@@ -65,6 +73,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (userData) {
       await AsyncStorage.setItem(USER_DATA_KEY, JSON.stringify(userData));
       setUser(userData);
+      store.dispatch(loginSuccess({ email: userData.email ?? "" }));
+    } else {
+      store.dispatch(loginSuccess({ email: "" }));
     }
 
     setIsAuthenticated(true);
@@ -94,6 +105,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     await AsyncStorage.removeItem(USER_DATA_KEY);
     setIsAuthenticated(false);
     setUser(null);
+    store.dispatch(logout());
   };
 
   return (

@@ -2,16 +2,23 @@ import { Tabs } from "expo-router";
 import React from "react";
 
 import { HapticTab } from "@/components/haptic-tab";
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { FontAwesome6, Ionicons } from "@expo/vector-icons";
+import { HeaderWithImageTitleAndBell } from "@/components/atoms/HeaderWithImageTitleAndBell";
+import {
+  ConnectTabIcon,
+  HomeTabIcon,
+  MoreTabIcon,
+  PlanTabIcon,
+} from "@/assets/icons";
+import { ProtectedRoute } from "@/provider/ProtectedRoute";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
 
   return (
-    <Tabs
+    <ProtectedRoute>
+      <Tabs
       screenOptions={{
         tabBarActiveTintColor: Colors.light.green,
         headerShown: false,
@@ -20,6 +27,10 @@ export default function TabLayout() {
           backgroundColor: Colors.light.greybuttonBackground,
           borderTopWidth: 0,
         },
+        headerStyle: {
+          backgroundColor: Colors.light.blackBackground,
+        },
+        headerShadowVisible: false,
       }}
     >
       <Tabs.Screen
@@ -27,38 +38,34 @@ export default function TabLayout() {
         options={{
           title: "Home",
           headerShown: false,
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="house.fill" color={color} />
-          ),
+          tabBarIcon: ({ color }) => <HomeTabIcon size={21} color={color} />,
         }}
       />
       <Tabs.Screen
         name="plan"
         options={{
           title: "Plan",
-          tabBarIcon: ({ color }) => (
-            <FontAwesome6 name="puzzle-piece" size={24} color={color} />
-          ),
+          headerShown: true,
+          header: () => <HeaderWithImageTitleAndBell />,
+          tabBarIcon: ({ color }) => <PlanTabIcon size={20} color={color} />,
         }}
       />
       <Tabs.Screen
         name="connect"
         options={{
           title: "Connect",
-          tabBarIcon: ({ color }) => (
-            <FontAwesome6 name="people-group" size={24} color={color} />
-          ),
+          tabBarIcon: ({ color }) => <ConnectTabIcon size={20} color={color} />,
         }}
       />
       <Tabs.Screen
         name="(more)"
         options={{
           title: "More",
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="reorder-three" size={24} color={color} />
-          ),
+
+          tabBarIcon: ({ color }) => <MoreTabIcon size={20} color={color} />,
         }}
       />
     </Tabs>
+    </ProtectedRoute>
   );
 }

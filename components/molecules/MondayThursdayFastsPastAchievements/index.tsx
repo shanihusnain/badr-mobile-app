@@ -5,8 +5,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   Pressable,
-  useWindowDimensions,
-  FlatList,
   ScrollView,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -39,11 +37,8 @@ import { GraphBarSelectionFooter } from "../QuranHoursPastAchievements/GraphBarS
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { FontAwesome } from "@expo/vector-icons";
 import { InsightCard } from "../InsightCard";
-import {
-  getGoalById,
-  GoalData,
-} from "@/src/screens/private/home/components/goalsData";
-import { Image } from "expo-image";
+import { getGoalById } from "@/src/screens/private/home/components/goalsData";
+import { PastAchievementStudyMaterial } from "@/components/molecules/PastAchievementStudyMaterial";
 
 type Props = {
   refreshKey?: number;
@@ -51,7 +46,6 @@ type Props = {
   initialPeriod?: PastAchievementPeriod;
   initialAnalyticsView?: MondayThursdayAnalyticsView;
 };
-type StudyMaterialItem = NonNullable<GoalData["studyMaterial"]>[number];
 
 const PERIODS: PastAchievementPeriod[] = [
   "monthly",
@@ -85,9 +79,6 @@ const MON_THU_BAR_COLORS: [string, string] = [
   Colors.light.ringMonThu,
   Colors.light.warning,
 ];
-const STUDY_CARD_WIDTH_RATIO = 0.42;
-const STUDY_CARD_GAP = 10;
-
 export function MondayThursdayFastsPastAchievements({
   refreshKey = 0,
   isDetailed = false,
@@ -107,8 +98,6 @@ export function MondayThursdayFastsPastAchievements({
   const [hintDismissed, setHintDismissed] = useState(false);
   const goalData = getGoalById("fasting-mondayThursday");
   const studyMaterial = goalData?.studyMaterial ?? [];
-  const { width: screenWidth } = useWindowDimensions();
-  const studyCardWidth = screenWidth * STUDY_CARD_WIDTH_RATIO;
 
   const periodSlice = useMemo(
     () => getMondayThursdayFastsPastAchievementSlice(period),
@@ -302,49 +291,6 @@ export function MondayThursdayFastsPastAchievements({
       </View>
     );
   };
-
-  const studyMaterialKeyExtractor = useCallback(
-    (item: StudyMaterialItem) => String(item.id),
-    [],
-  );
-  const renderStudyMaterialItem = useCallback(
-    ({ item }: { item: StudyMaterialItem }) => (
-      <View style={[styles.studyCard, { width: studyCardWidth }]}>
-        <View style={styles.studyThumbnailWrap}>
-          <Image
-            source={{ uri: item.thumbnail }}
-            style={styles.studyThumbnail}
-            contentFit="cover"
-          />
-          <View style={styles.studyTypeBadge}>
-            <Text
-              style={{
-                color: Colors.light.white,
-                fontSize: 10,
-                fontFamily: fonts.primary.medium,
-                fontWeight: "500",
-              }}
-            >
-              {item.type === "video"
-                ? "VIDEO"
-                : item.type === "podcast"
-                  ? "PODCAST"
-                  : "ARTICLE"}
-            </Text>
-          </View>
-        </View>
-        <Text style={styles.studyDescription} numberOfLines={3}>
-          {item.description}
-        </Text>
-      </View>
-    ),
-    [studyCardWidth],
-  );
-
-  const studyItemSeparator = useCallback(
-    () => <View style={{ width: STUDY_CARD_GAP }} />,
-    [],
-  );
 
   return (
     <View style={[styles.section, isDetailed && styles.sectionDetailed]}>
@@ -675,49 +621,10 @@ export function MondayThursdayFastsPastAchievements({
         )}
       </View>
       {renderFastingInsights()}
-      {studyMaterial.length > 0 && !isDetailed ? (
-        <>
-          <TopSpace top={16} />
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <Text style={styles.insightsTitle}>
-              {t("progressLogging.studyMaterial")}
-            </Text>
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 4,
-              }}
-            >
-              <Text style={styles.insightsTitle}>See All</Text>
-              <MaterialCommunityIcons
-                name="chevron-right"
-                size={16}
-                color={Colors.light.white}
-              />
-            </View>
-          </View>
-          <TopSpace top={16} />
-          <FlatList
-            horizontal
-            data={studyMaterial}
-            keyExtractor={studyMaterialKeyExtractor}
-            renderItem={renderStudyMaterialItem}
-            showsHorizontalScrollIndicator={false}
-            ItemSeparatorComponent={studyItemSeparator}
-            contentContainerStyle={styles.studyListContent}
-            decelerationRate="fast"
-            snapToInterval={studyCardWidth + STUDY_CARD_GAP}
-            snapToAlignment="start"
-          />
-        </>
-      ) : null}
+      <PastAchievementStudyMaterial
+        items={studyMaterial}
+        isDetailed={isDetailed}
+      />
     </View>
   );
 }
@@ -1073,45 +980,6 @@ const styles = StyleSheet.create({
   },
   insightCardFixed: {
     width: 160,
-  },
-  studyListContent: {
-    paddingRight: 4,
-  },
-  studyCard: {
-    padding: 8,
-    paddingBottom: 12,
-    backgroundColor: Colors.light.greybuttonBackground,
-    borderRadius: 8,
-    gap: 8,
-  },
-  studyThumbnailWrap: {
-    width: "100%",
-    aspectRatio: 1,
-    borderRadius: 6,
-    overflow: "hidden",
-    position: "relative",
-  },
-  studyThumbnail: {
-    width: "100%",
-    height: "100%",
-  },
-  studyTypeBadge: {
-    position: "absolute",
-    right: 0,
-    top: 6,
-    paddingHorizontal: 4,
-    paddingVertical: 2,
-    borderRadius: 10,
-    backgroundColor: Colors.light.greybuttonBackground,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  studyDescription: {
-    color: Colors.light.white,
-    fontSize: 12,
-    fontFamily: fonts.primary.medium,
-    fontWeight: "500",
-    lineHeight: 16,
   },
   insightsTitle: {
     color: Colors.light.white,

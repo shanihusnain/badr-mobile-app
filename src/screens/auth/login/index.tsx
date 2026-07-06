@@ -19,9 +19,11 @@ import { z } from "zod";
 
 import { styles } from "./style";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "@/provider/useAuth";
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { signIn } = useAuth();
   const { loginSchema } = useValidations();
   const { t } = useTranslation();
 
@@ -47,9 +49,11 @@ export default function LoginScreen() {
     router.push("/(auth)/forgotpassword");
   };
 
-  const onSubmit = (data: z.infer<typeof loginSchema>) => {
+  const onSubmit = async (data: z.infer<typeof loginSchema>) => {
+    await signIn("mock-access-token", "mock-refresh-token", {
+      email: data.email,
+    });
     router.replace("/(private)/setpersonalizedgoals");
-    // handle login
   };
 
   return (

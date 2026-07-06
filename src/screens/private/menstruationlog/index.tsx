@@ -8,11 +8,9 @@ import "moment-hijri";
 moment.locale("en");
 import { MenstruationCalendar } from "@/components/molecules/MenstruationCalendar";
 import InlineDateWheelPicker from "@/components/molecules/InlineDateWheelPicker";
-import BackButton from "@/components/atoms/Backbutton";
 import { SwitchButton } from "@/components/atoms/SwitchButton";
 import { Colors } from "@/constants/theme";
 import styles from "./style";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
 import { useTypedTranslation } from "@/i18next/useTypedTranslation";
 
@@ -131,11 +129,17 @@ export default function MenstruationLog({
   const endDateMinimum = moment(selectedDate, "YYYY-MM-DD").toDate();
 
   const startQuestionText = dateExplicitlyPicked
-    ? t("homeScreen.menstruationLog_whenDidItStart", { date: moment(selectedDate, "YYYY-MM-DD").locale(locale).format("MMM D") })
+    ? t("homeScreen.menstruationLog_whenDidItStart", {
+        date: moment(selectedDate, "YYYY-MM-DD").locale(locale).format("MMM D"),
+      })
     : t("homeScreen.menstruationLog_whenDidItStartToday");
 
   const endQuestionText = endDateExplicitlyPicked
-    ? t("homeScreen.menstruationLog_whenDidItEnd", { date: moment(selectedEndDate, "YYYY-MM-DD").locale(locale).format("MMM D") })
+    ? t("homeScreen.menstruationLog_whenDidItEnd", {
+        date: moment(selectedEndDate, "YYYY-MM-DD")
+          .locale(locale)
+          .format("MMM D"),
+      })
     : t("homeScreen.menstruationLog_whenDidItEndToday");
 
   return (
@@ -152,7 +156,9 @@ export default function MenstruationLog({
         </View>
 
         <View style={styles.periodHeaderContainer}>
-          <Text style={styles.periodHeaderText}>{t("homeScreen.menstruationLog_headerText")}</Text>
+          <Text style={styles.periodHeaderText}>
+            {t("homeScreen.menstruationLog_headerText")}
+          </Text>
           <View style={styles.periodHeaderLine} />
         </View>
 
@@ -241,11 +247,26 @@ export default function MenstruationLog({
             </Text>
             <View style={styles.radioOptionsList}>
               {[
-                { label: "Before Fajr", transKey: "homeScreen.menstruationLog_beforeFajr" },
-                { label: "Before Duhr", transKey: "homeScreen.menstruationLog_beforeDuhr" },
-                { label: "Before Asr", transKey: "homeScreen.menstruationLog_beforeAsr" },
-                { label: "Before Maghrib", transKey: "homeScreen.menstruationLog_beforeMaghrib" },
-                { label: "Before Isha", transKey: "homeScreen.menstruationLog_beforeIsha" },
+                {
+                  label: "Before Fajr",
+                  transKey: "homeScreen.menstruationLog_beforeFajr",
+                },
+                {
+                  label: "Before Duhr",
+                  transKey: "homeScreen.menstruationLog_beforeDuhr",
+                },
+                {
+                  label: "Before Asr",
+                  transKey: "homeScreen.menstruationLog_beforeAsr",
+                },
+                {
+                  label: "Before Maghrib",
+                  transKey: "homeScreen.menstruationLog_beforeMaghrib",
+                },
+                {
+                  label: "Before Isha",
+                  transKey: "homeScreen.menstruationLog_beforeIsha",
+                },
               ].map((timeOption) => {
                 const isSelected = selectedStartTime === timeOption.label;
                 return (
@@ -258,7 +279,9 @@ export default function MenstruationLog({
                     <View style={styles.radioOuter}>
                       {isSelected && <View style={styles.radioInner} />}
                     </View>
-                    <Text style={styles.radioText}>{t(timeOption.transKey as any)}</Text>
+                    <Text style={styles.radioText}>
+                      {t(timeOption.transKey as any)}
+                    </Text>
                   </TouchableOpacity>
                 );
               })}
@@ -388,11 +411,26 @@ export default function MenstruationLog({
             <Text style={styles.startTimeQuestionText}>{endQuestionText}</Text>
             <View style={styles.radioOptionsList}>
               {[
-                { label: "Before Fajr", transKey: "homeScreen.menstruationLog_beforeFajr" },
-                { label: "Before Duhr", transKey: "homeScreen.menstruationLog_beforeDuhr" },
-                { label: "Before Asr", transKey: "homeScreen.menstruationLog_beforeAsr" },
-                { label: "Before Maghrib", transKey: "homeScreen.menstruationLog_beforeMaghrib" },
-                { label: "Before Isha", transKey: "homeScreen.menstruationLog_beforeIsha" },
+                {
+                  label: "Before Fajr",
+                  transKey: "homeScreen.menstruationLog_beforeFajr",
+                },
+                {
+                  label: "Before Duhr",
+                  transKey: "homeScreen.menstruationLog_beforeDuhr",
+                },
+                {
+                  label: "Before Asr",
+                  transKey: "homeScreen.menstruationLog_beforeAsr",
+                },
+                {
+                  label: "Before Maghrib",
+                  transKey: "homeScreen.menstruationLog_beforeMaghrib",
+                },
+                {
+                  label: "Before Isha",
+                  transKey: "homeScreen.menstruationLog_beforeIsha",
+                },
               ].map((timeOption) => {
                 const isSelected = selectedEndTime === timeOption.label;
                 return (
@@ -405,7 +443,9 @@ export default function MenstruationLog({
                     <View style={styles.radioOuter}>
                       {isSelected && <View style={styles.radioInner} />}
                     </View>
-                    <Text style={styles.radioText}>{t(timeOption.transKey as any)}</Text>
+                    <Text style={styles.radioText}>
+                      {t(timeOption.transKey as any)}
+                    </Text>
                   </TouchableOpacity>
                 );
               })}
@@ -420,7 +460,9 @@ export default function MenstruationLog({
             router.back();
           }}
         >
-          <Text style={styles.saveButtonText}>{t("homeScreen.menstruationLog_save")}</Text>
+          <Text style={styles.saveButtonText}>
+            {t("homeScreen.menstruationLog_save")}
+          </Text>
         </TouchableOpacity>
       </ScrollView>
     </BlackScreenWrapper>

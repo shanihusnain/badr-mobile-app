@@ -2,10 +2,12 @@ import { Stack } from "expo-router";
 
 import Header from "@/components/Header";
 import { Colors } from "@/constants/theme";
+import { PublicRoute } from "@/provider/PublicRoute";
 
 export default function AuthLayout() {
   return (
-    <Stack
+    <PublicRoute>
+      <Stack
       screenOptions={{
         headerShadowVisible: false,
       }}
@@ -77,5 +79,6 @@ export default function AuthLayout() {
       />
       <Stack.Screen name="debitCredit" options={{ headerShown: false }} />
     </Stack>
+    </PublicRoute>
   );
 }
