@@ -1,7 +1,13 @@
 import React, { useRef, useState } from "react";
 import {
-  View, Text, SafeAreaView, Pressable, TextInput,
-  KeyboardAvoidingView, Platform, ScrollView
+  View,
+  Text,
+  SafeAreaView,
+  Pressable,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
 } from "react-native";
 import BackButton from "@/components/atoms/Backbutton";
 import PrimaryButton from "@/components/atoms/Primary-button";
@@ -20,10 +26,15 @@ export default function MembershipPaymentMethodScreen() {
   const isSavedMode = params.mode === "saved";
 
   const quantityParam = parseInt(params.quantity as string, 10);
-  const quantity = isNaN(quantityParam) || quantityParam < 1 ? 1 : quantityParam;
+  const quantity =
+    isNaN(quantityParam) || quantityParam < 1 ? 1 : quantityParam;
 
-  const [cardMode, setCardMode] = useState<CardMode>(isSavedMode ? "saved" : "new");
-  const [selectedOption, setSelectedOption] = useState<CardMode>(isSavedMode ? "saved" : "new");
+  const [cardMode, setCardMode] = useState<CardMode>(
+    isSavedMode ? "saved" : "new",
+  );
+  const [selectedOption, setSelectedOption] = useState<CardMode>(
+    isSavedMode ? "saved" : "new",
+  );
   const [isCardSelected, setIsCardSelected] = useState(!isSavedMode); // Require selection if saved
 
   const [cardNumber, setCardNumber] = useState("");
@@ -44,19 +55,25 @@ export default function MembershipPaymentMethodScreen() {
 
   let basePrice = 29.99;
   if (params.plan === "3_months") basePrice = 33.15;
-  if (params.plan === "6_months") basePrice = 58.50;
+  if (params.plan === "6_months") basePrice = 58.5;
   if (params.plan === "12_months") basePrice = 99.99;
-  if (params.plan === "24_months") basePrice = 187.20;
+  if (params.plan === "24_months") basePrice = 187.2;
   if (params.plan === "1_month") basePrice = 9.99;
 
-  let subtotal = priceParam !== null ? priceParam * quantity : basePrice * quantity;
-  let discountAmount = discountApplied ? 10.00 : 0;
+  let subtotal =
+    priceParam !== null ? priceParam * quantity : basePrice * quantity;
+  let discountAmount = discountApplied ? 10.0 : 0;
   let totalDue = subtotal - discountAmount;
   if (totalDue < 0) totalDue = 0;
 
   const isFormValid = () => {
     if (cardMode === "saved") return isCardSelected;
-    return cardNumber.length > 14 && expiry.length >= 4 && cvc.length >= 3 && cardholderName.length > 0;
+    return (
+      cardNumber.length > 14 &&
+      expiry.length >= 4 &&
+      cvc.length >= 3 &&
+      cardholderName.length > 0
+    );
   };
 
   // Reactive boolean — recomputed on every render when inputs change
@@ -90,7 +107,10 @@ export default function MembershipPaymentMethodScreen() {
         style={styles.flex1}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
-        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
           <View style={styles.container}>
             <View style={styles.header}>
               <BackButton bgcolor={Colors.light.greybuttonversion} />
@@ -99,7 +119,9 @@ export default function MembershipPaymentMethodScreen() {
               </View>
             </View>
 
-            <Text style={styles.orderDetailsTitle}>Order details ({quantity})</Text>
+            <Text style={styles.orderDetailsTitle}>
+              Order details ({quantity})
+            </Text>
 
             {/* Add Promo Code */}
             {showPromoInput ? (
@@ -125,7 +147,10 @@ export default function MembershipPaymentMethodScreen() {
                 </Pressable>
               </View>
             ) : (
-              <Pressable style={styles.promoCodeRow} onPress={() => setShowPromoInput(true)}>
+              <Pressable
+                style={styles.promoCodeRow}
+                onPress={() => setShowPromoInput(true)}
+              >
                 <Text style={styles.promoCodeText}>Add Promo Code</Text>
               </Pressable>
             )}
@@ -141,7 +166,9 @@ export default function MembershipPaymentMethodScreen() {
             {discountApplied && (
               <View style={styles.rowItem}>
                 <Text style={styles.rowTextBold}>Discount</Text>
-                <Text style={[styles.rowTextBold, { color: Colors.light.green }]}>
+                <Text
+                  style={[styles.rowTextBold, { color: Colors.light.green }]}
+                >
                   -${discountAmount.toFixed(2)}
                 </Text>
               </View>
@@ -153,14 +180,24 @@ export default function MembershipPaymentMethodScreen() {
               <>
                 <View style={styles.sectionHeaderRow}>
                   <Text style={styles.sectionTitle}>Card Information</Text>
-                  <Pressable style={styles.scanCardContainer} onPress={handleOpenChangeSheet}>
+                  <Pressable
+                    style={styles.scanCardContainer}
+                    onPress={handleOpenChangeSheet}
+                  >
                     <Text style={styles.changeText}>CHANGE</Text>
-                    <Feather name="chevron-right" size={14} color={Colors.light.white} />
+                    <Feather
+                      name="chevron-right"
+                      size={14}
+                      color={Colors.light.white}
+                    />
                   </Pressable>
                 </View>
 
-                <Pressable 
-                  style={[styles.savedCardBox, isCardSelected && styles.savedCardBoxSelected]} 
+                <Pressable
+                  style={[
+                    styles.savedCardBox,
+                    isCardSelected && styles.savedCardBoxSelected,
+                  ]}
                   onPress={() => setIsCardSelected(true)}
                 >
                   <View style={styles.savedCardIconBox}>
@@ -170,11 +207,21 @@ export default function MembershipPaymentMethodScreen() {
                 </Pressable>
 
                 <View style={styles.cardBrandsRow}>
-                  <View style={[styles.brandIconBox, styles.brandVisa]}><Text style={styles.brandIconText}>VISA</Text></View>
-                  <View style={[styles.brandIconBox, styles.brandMC]}><Text style={styles.brandIconText}>MC</Text></View>
-                  <View style={[styles.brandIconBox, styles.brandDiners]}><Text style={styles.brandIconText}>D</Text></View>
-                  <View style={[styles.brandIconBox, styles.brandDiscover]}><Text style={styles.brandIconText}>DIS</Text></View>
-                  <View style={[styles.brandIconBox, styles.brandAmex]}><Text style={styles.brandIconText}>AMX</Text></View>
+                  <View style={[styles.brandIconBox, styles.brandVisa]}>
+                    <Text style={styles.brandIconText}>VISA</Text>
+                  </View>
+                  <View style={[styles.brandIconBox, styles.brandMC]}>
+                    <Text style={styles.brandIconText}>MC</Text>
+                  </View>
+                  <View style={[styles.brandIconBox, styles.brandDiners]}>
+                    <Text style={styles.brandIconText}>D</Text>
+                  </View>
+                  <View style={[styles.brandIconBox, styles.brandDiscover]}>
+                    <Text style={styles.brandIconText}>DIS</Text>
+                  </View>
+                  <View style={[styles.brandIconBox, styles.brandAmex]}>
+                    <Text style={styles.brandIconText}>AMX</Text>
+                  </View>
                 </View>
               </>
             ) : (
@@ -182,7 +229,11 @@ export default function MembershipPaymentMethodScreen() {
                 <View style={styles.sectionHeaderRow}>
                   <Text style={styles.sectionTitle}>Card Information</Text>
                   <Pressable style={styles.scanCardContainer}>
-                    <Feather name="camera" size={14} color={Colors.light.green} />
+                    <Feather
+                      name="camera"
+                      size={14}
+                      color={Colors.light.green}
+                    />
                     <Text style={styles.scanCardText}>Scan Card</Text>
                   </Pressable>
                 </View>
@@ -199,10 +250,18 @@ export default function MembershipPaymentMethodScreen() {
                       maxLength={19}
                     />
                     <View style={styles.cardIconsRow}>
-                      <View style={styles.cardIconBox}><Text style={styles.cardIconText}>VISA</Text></View>
-                      <View style={styles.cardIconBox}><Text style={styles.cardIconText}>MC</Text></View>
-                      <View style={styles.cardIconBox}><Text style={styles.cardIconText}>DIS</Text></View>
-                      <View style={styles.cardIconBox}><Text style={styles.cardIconText}>AMX</Text></View>
+                      <View style={styles.cardIconBox}>
+                        <Text style={styles.cardIconText}>VISA</Text>
+                      </View>
+                      <View style={styles.cardIconBox}>
+                        <Text style={styles.cardIconText}>MC</Text>
+                      </View>
+                      <View style={styles.cardIconBox}>
+                        <Text style={styles.cardIconText}>DIS</Text>
+                      </View>
+                      <View style={styles.cardIconBox}>
+                        <Text style={styles.cardIconText}>AMX</Text>
+                      </View>
                     </View>
                   </View>
                   <View style={styles.cardInputBottom}>
@@ -215,9 +274,15 @@ export default function MembershipPaymentMethodScreen() {
                         onChangeText={setExpiry}
                         maxLength={5}
                       />
-                      <Feather name="calendar" size={16} color={Colors.light.icon} />
+                      <Feather
+                        name="calendar"
+                        size={16}
+                        color={Colors.light.icon}
+                      />
                     </View>
-                    <View style={[styles.halfInputBox, styles.halfInputBoxRight]}>
+                    <View
+                      style={[styles.halfInputBox, styles.halfInputBoxRight]}
+                    >
                       <TextInput
                         style={styles.cardInput}
                         placeholder="xxx"
@@ -247,12 +312,30 @@ export default function MembershipPaymentMethodScreen() {
                     <Text style={{ fontSize: 16 }}>🇶🇦</Text>
                     <Text style={styles.dropdownText}>Qatar</Text>
                   </View>
-                  <Feather name="chevron-down" size={20} color={Colors.light.white} />
+                  <Feather
+                    name="chevron-down"
+                    size={20}
+                    color={Colors.light.white}
+                  />
                 </Pressable>
 
-                <Pressable style={styles.checkboxRow} onPress={() => setSavePayment(!savePayment)}>
-                  <View style={[styles.checkboxBox, savePayment && styles.checkboxBoxSelected]}>
-                    {savePayment && <Feather name="check" size={14} color={Colors.light.white} />}
+                <Pressable
+                  style={styles.checkboxRow}
+                  onPress={() => setSavePayment(!savePayment)}
+                >
+                  <View
+                    style={[
+                      styles.checkboxBox,
+                      savePayment && styles.checkboxBoxSelected,
+                    ]}
+                  >
+                    {savePayment && (
+                      <Feather
+                        name="check"
+                        size={14}
+                        color={Colors.light.white}
+                      />
+                    )}
                   </View>
                   <Text style={styles.checkboxText}>
                     Save payment details to Badr for future purchases
@@ -265,12 +348,18 @@ export default function MembershipPaymentMethodScreen() {
               <Text style={styles.termsText}>
                 By placing an order, you agree to the Badr{" "}
                 <Text style={styles.termsTextUnderline}>Terms of Use</Text> and{" "}
-                <Text style={styles.termsTextUnderline}>Privacy Policy</Text>. The pre-paid period begins once the giftee downloads the Badr app and starts their first monthly goal cycle.
+                <Text style={styles.termsTextUnderline}>Privacy Policy</Text>.
+                The pre-paid period begins once the giftee downloads the Badr
+                app and starts their first monthly goal cycle.
               </Text>
               <PrimaryButton
                 text="COMPLETE PURCHASE"
                 onPress={handleCompletePurchase}
-                style={isFormValid() ? styles.completeButtonActive : styles.completeButton}
+                style={
+                  isFormValid()
+                    ? styles.completeButtonActive
+                    : styles.completeButton
+                }
               />
             </View>
           </View>
@@ -287,7 +376,10 @@ export default function MembershipPaymentMethodScreen() {
 
         <Text style={styles.sheetSectionLabel}>Saved</Text>
         <Pressable
-          style={[styles.sheetCardRow, selectedOption === "saved" && styles.sheetCardRowSelected]}
+          style={[
+            styles.sheetCardRow,
+            selectedOption === "saved" && styles.sheetCardRowSelected,
+          ]}
           onPress={() => setSelectedOption("saved")}
         >
           <View style={styles.savedCardIconBox}>
@@ -298,7 +390,10 @@ export default function MembershipPaymentMethodScreen() {
 
         <Text style={styles.sheetSectionLabel}>New Payment Method</Text>
         <Pressable
-          style={[styles.sheetCardRow, selectedOption === "new" && styles.sheetCardRowSelected]}
+          style={[
+            styles.sheetCardRow,
+            selectedOption === "new" && styles.sheetCardRowSelected,
+          ]}
           onPress={() => setSelectedOption("new")}
         >
           <View style={styles.newCardIconBox}>
@@ -321,7 +416,11 @@ export default function MembershipPaymentMethodScreen() {
         <View style={styles.newCardSheetHeader}>
           <Pressable onPress={() => newCardSheetRef.current?.close()}>
             <View style={styles.backCircle}>
-              <Feather name="chevron-left" size={20} color={Colors.light.white} />
+              <Feather
+                name="chevron-left"
+                size={20}
+                color={Colors.light.white}
+              />
             </View>
           </Pressable>
           <Text style={styles.newCardSheetTitle}>Add New Card</Text>
@@ -347,10 +446,18 @@ export default function MembershipPaymentMethodScreen() {
               maxLength={19}
             />
             <View style={styles.cardIconsRow}>
-              <View style={styles.cardIconBox}><Text style={styles.cardIconText}>VISA</Text></View>
-              <View style={styles.cardIconBox}><Text style={styles.cardIconText}>MC</Text></View>
-              <View style={styles.cardIconBox}><Text style={styles.cardIconText}>DIS</Text></View>
-              <View style={styles.cardIconBox}><Text style={styles.cardIconText}>AMX</Text></View>
+              <View style={styles.cardIconBox}>
+                <Text style={styles.cardIconText}>VISA</Text>
+              </View>
+              <View style={styles.cardIconBox}>
+                <Text style={styles.cardIconText}>MC</Text>
+              </View>
+              <View style={styles.cardIconBox}>
+                <Text style={styles.cardIconText}>DIS</Text>
+              </View>
+              <View style={styles.cardIconBox}>
+                <Text style={styles.cardIconText}>AMX</Text>
+              </View>
             </View>
           </View>
           <View style={styles.cardInputBottom}>
@@ -398,9 +505,19 @@ export default function MembershipPaymentMethodScreen() {
           <Feather name="chevron-down" size={20} color={Colors.light.white} />
         </Pressable>
 
-        <Pressable style={styles.checkboxRow} onPress={() => setSavePayment(!savePayment)}>
-          <View style={[styles.checkboxBox, savePayment && styles.checkboxBoxSelected]}>
-            {savePayment && <Feather name="check" size={14} color={Colors.light.white} />}
+        <Pressable
+          style={styles.checkboxRow}
+          onPress={() => setSavePayment(!savePayment)}
+        >
+          <View
+            style={[
+              styles.checkboxBox,
+              savePayment && styles.checkboxBoxSelected,
+            ]}
+          >
+            {savePayment && (
+              <Feather name="check" size={14} color={Colors.light.white} />
+            )}
           </View>
           <Text style={styles.checkboxText}>
             Save payment details to Badr for future purchases

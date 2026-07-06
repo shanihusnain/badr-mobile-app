@@ -16,10 +16,35 @@ const PLANS: {
   perMonth: string;
   popular?: boolean;
 }[] = [
-  { id: "3_months", duration: "3 Months", save: "Save 15%", price: "$33.15", perMonth: "$11.05/MO" },
-  { id: "6_months", duration: "6 Months", save: "Save 25%", price: "$58.50", perMonth: "$9.75/MO" },
-  { id: "12_months", duration: "12 Months", save: "Save 36%", price: "$99.99", perMonth: "$8.33/MO", popular: true },
-  { id: "24_months", duration: "24 Months", save: "Save 40%", price: "$187.20", perMonth: "$7.80/MO" },
+  {
+    id: "3_months",
+    duration: "3 Months",
+    save: "Save 15%",
+    price: "$33.15",
+    perMonth: "$11.05/MO",
+  },
+  {
+    id: "6_months",
+    duration: "6 Months",
+    save: "Save 25%",
+    price: "$58.50",
+    perMonth: "$9.75/MO",
+  },
+  {
+    id: "12_months",
+    duration: "12 Months",
+    save: "Save 36%",
+    price: "$99.99",
+    perMonth: "$8.33/MO",
+    popular: true,
+  },
+  {
+    id: "24_months",
+    duration: "24 Months",
+    save: "Save 40%",
+    price: "$187.20",
+    perMonth: "$7.80/MO",
+  },
 ];
 
 export default function MembershipExtensionScreen() {
@@ -55,13 +80,17 @@ export default function MembershipExtensionScreen() {
         </View>
 
         <Text style={styles.subtitle}>
-          Add extra months to your membership and lock{"\n"}in membership savings.
+          Add extra months to your membership and lock{"\n"}in membership
+          savings.
         </Text>
 
         {PLANS.map((plan) => (
           <Pressable
             key={plan.id}
-            style={[styles.planCard, selectedPlan === plan.id && styles.planCardSelected]}
+            style={[
+              styles.planCard,
+              selectedPlan === plan.id && styles.planCardSelected,
+            ]}
             onPress={() => handlePlanSelect(plan.id)}
           >
             {plan.popular && (
@@ -95,10 +124,15 @@ export default function MembershipExtensionScreen() {
           <PrimaryButton
             text="CONTINUE"
             onPress={handleContinue}
-            style={selectedPlan ? undefined : { backgroundColor: Colors.light.inactivegreen }}
+            style={
+              selectedPlan
+                ? undefined
+                : { backgroundColor: Colors.light.inactivegreen }
+            }
           />
           <Text style={styles.disclaimer}>
-            Your membership will be renewed automatically{"\n"}at your current rate after prepaid period.
+            Your membership will be renewed automatically{"\n"}at your current
+            rate after prepaid period.
           </Text>
         </View>
       </View>

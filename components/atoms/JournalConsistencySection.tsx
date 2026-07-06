@@ -5,8 +5,8 @@ import { Pressable, Text, TouchableOpacity, View } from "react-native";
 import type {
   PlanJournalConsistencySnapshot,
   PlanJournalPeriod,
-} from "../planJournalConsistencyMockData";
-import { planStyles as styles } from "../styles";
+} from "../../src/screens/private/plan/planJournalConsistencyMockData";
+import { planStyles as styles } from "../../src/screens/private/plan/styles";
 import { router } from "expo-router";
 
 type JournalConsistencySectionProps = {

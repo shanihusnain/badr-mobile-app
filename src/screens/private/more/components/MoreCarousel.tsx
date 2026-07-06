@@ -14,12 +14,14 @@ type CarouselItem = {
 const CAROUSEL_DATA: CarouselItem[] = [
   {
     title: "EXTEND MEMBERSHIP",
-    description: "Save up to 15% per month by purchasing an extended pre-paid period.",
+    description:
+      "Save up to 15% per month by purchasing an extended pre-paid period.",
     route: "/(private)/membershipextension",
   },
   {
     title: "GIVE THE GIFT OF BADR",
-    description: "Get 1 month free when you give the gift of a Badr membership.",
+    description:
+      "Get 1 month free when you give the gift of a Badr membership.",
     route: "/(private)/giftnewmember",
   },
   {
@@ -70,7 +72,11 @@ export default function MoreCarousel() {
                   <Text style={styles.title}>{item.title}</Text>
                   <Text style={styles.description}>{item.description}</Text>
                 </View>
-                <Feather name="chevron-right" size={24} color={Colors.light.white} />
+                <Feather
+                  name="chevron-right"
+                  size={24}
+                  color={Colors.light.white}
+                />
               </View>
             </View>
           </Pressable>

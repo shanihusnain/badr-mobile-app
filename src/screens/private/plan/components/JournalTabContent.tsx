@@ -4,11 +4,12 @@ import type {
   PlanJournalConsistencySnapshot,
   PlanJournalPeriod,
 } from "../planJournalConsistencyMockData";
-import { JournalConsistencySection } from "./JournalConsistencySection";
+import { JournalConsistencySection } from "../../../../../components/atoms/JournalConsistencySection";
 import { JournalCustomizeCard } from "./JournalCustomizeCard";
 import { JournalHabitCard } from "./JournalHabitCard";
 import { PlanNotificationsCard } from "./PlanNotificationsCard";
 import { planStyles as styles } from "../styles";
+import { router } from "expo-router";
 
 const JOURNAL_BANNER_TEXT =
   "Gain insights from your daily journal entries to track your progress and celebrate your consistency. You can use these reflections to guide your growth.";
@@ -65,7 +66,13 @@ export function JournalTabContent({
       />
       <TopSpace top={20} />
       {activeSnapshot.journalingHabits?.map((habit) => (
-        <JournalHabitCard key={habit.id} habit={habit} />
+        <JournalHabitCard
+          key={habit.id}
+          habit={habit}
+          onPress={() => {
+            router.push(`/(tabs)/(plan)/journalinsight/${habit.id}`);
+          }}
+        />
       ))}
       <TopSpace top={20} />
       <PlanNotificationsCard

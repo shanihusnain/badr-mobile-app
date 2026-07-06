@@ -12,6 +12,25 @@ export type PlanJournalHabit = {
   percent: number;
 };
 
+export const PLAN_JOURNAL_HABIT_TITLES: Record<number, string> = {
+  1: "Religious Habits",
+  2: "Personal Growth",
+  3: "Social Responsibility",
+  4: "Home Bond",
+};
+
+export function getPlanJournalHabitTitleById(
+  id: number | string | undefined,
+): string {
+  const habitId = typeof id === "string" ? Number(id) : id;
+
+  if (!habitId || Number.isNaN(habitId)) {
+    return "Journal Insight";
+  }
+
+  return PLAN_JOURNAL_HABIT_TITLES[habitId] ?? "Journal Insight";
+}
+
 export type PlanJournalConsistencySnapshot = {
   dateRangeLabel: string;
   consistencyPercent: number;
