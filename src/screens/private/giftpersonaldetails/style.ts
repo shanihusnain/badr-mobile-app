@@ -11,7 +11,7 @@ export const giftPersonalDetailsStyles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 24,
+    //paddingHorizontal: 24,
     paddingBottom: 40,
     flexGrow: 1,
   },

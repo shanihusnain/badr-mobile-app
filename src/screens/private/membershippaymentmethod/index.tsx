@@ -9,7 +9,7 @@ import {
   Platform,
   ScrollView,
 } from "react-native";
-import BackButton from "@/components/atoms/Backbutton";
+import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
 import PrimaryButton from "@/components/atoms/Primary-button";
 import { Colors } from "@/constants/theme";
 import { Feather } from "@expo/vector-icons";
@@ -102,7 +102,7 @@ export default function MembershipPaymentMethodScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <BlackScreenWrapper>
       <KeyboardAvoidingView
         style={styles.flex1}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -112,12 +112,7 @@ export default function MembershipPaymentMethodScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.container}>
-            <View style={styles.header}>
-              <BackButton bgcolor={Colors.light.greybuttonversion} />
-              <View style={styles.headerTitleContainer}>
-                <Text style={styles.title}>PAYMENT METHOD</Text>
-              </View>
-            </View>
+            {/* Header provided by layout (HeaderWithCrossTitleDynamicIcon) */}
 
             <Text style={styles.orderDetailsTitle}>
               Order details ({quantity})
@@ -537,6 +532,6 @@ export default function MembershipPaymentMethodScreen() {
           />
         </View>
       </BottomSheetWrapper>
-    </SafeAreaView>
+    </BlackScreenWrapper>
   );
 }

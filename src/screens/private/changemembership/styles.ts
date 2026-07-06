@@ -39,7 +39,7 @@ export const changeMembershipStyles = StyleSheet.create({
     },
     content: {
         flex: 1,
-        paddingHorizontal: 24,
+        //paddingHorizontal: 24,
         paddingTop: 24,
     },
     screenTitle: {
@@ -121,7 +121,7 @@ export const changeMembershipStyles = StyleSheet.create({
         fontSize: 12,
     },
     bottomContainer: {
-        paddingHorizontal: 24,
+        //paddingHorizontal: 24,
         paddingBottom: 40,
         paddingTop: 16,
         gap: 12,
