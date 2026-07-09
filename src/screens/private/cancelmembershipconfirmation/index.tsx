@@ -23,7 +23,7 @@ export default function CancelMembershipConfirmationScreen() {
         </Text>
 
         <View style={styles.iconContainer}>
-          <Feather name="x" size={50} color={Colors.light.blackBackground} strokeWidth={3} />
+          <Feather name="x" size={90} color={Colors.light.blackBackground} strokeWidth={8} />
         </View>
 
         <Text style={styles.description}>

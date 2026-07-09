@@ -4,6 +4,7 @@ import {
   Text,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from "react-native";
 import { useForm } from "react-hook-form";
 import { Colors } from "@/constants/theme";
@@ -12,6 +13,7 @@ import PrimaryButton from "@/components/atoms/Primary-button";
 import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
 import { BadarNameLogo } from "@/assets/icons";
 import CustomTextInput from "@/components/atoms/CustomTextInput";
+import {moonimage} from "@/assets/images";
 
 export default function RedeemGiftExtensionScreen() {
   const { control, watch } = useForm({
@@ -36,6 +38,7 @@ export default function RedeemGiftExtensionScreen() {
       >
         <View style={styles.content}>
           <View style={styles.iconContainer}>
+            <Image source={moonimage} style={styles.moonimage} />
             <BadarNameLogo size={44} color={Colors.light.white} />
           </View>
 

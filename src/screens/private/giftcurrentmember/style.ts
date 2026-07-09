@@ -42,19 +42,9 @@ export const giftCurrentMemberStyles = StyleSheet.create({
     justifyContent: "center",
     marginVertical: 40,
   },
-  moonPlaceholder: {
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    backgroundColor: "#F4EBD0",
-    shadowColor: "#F4EBD0",
-    shadowOffset: {
-      width: 0,
-      height: 0,
-    },
-    shadowOpacity: 0.8,
-    shadowRadius: 40,
-    elevation: 20,
+  moonImage: {
+    width: 220,
+    height: 220,
   },
   optionsContainer: {
     flexDirection: "row",

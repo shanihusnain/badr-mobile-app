@@ -67,4 +67,8 @@ export const appSettingStyles = StyleSheet.create({
         fontSize: 12,
         // letterSpacing: 0.5,
     },
+    moonImage: {
+        width: 28,
+        height: 24,
+    },
 });

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, Pressable, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
+import { View, Text, Pressable, KeyboardAvoidingView, Platform, ScrollView, Image } from "react-native";
 import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
 import PrimaryButton from "@/components/atoms/Primary-button";
 import SecondaryButton from "@/components/atoms/Secondary-button";
@@ -14,6 +14,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useValidations } from "@/src/validations/useValidations";
 import { fonts } from "@/assets/fonts";
 import { TopSpace } from "@/components/atoms/TopSpace";
+import { moonimage } from "@/assets/images";
 
 type Plan = "1_month" | "3_months" | "6_months" | null;
 type DeliveryMethod = "recipient" | "me";
@@ -94,8 +95,7 @@ export default function GiftCurrentMemberScreen() {
                 </View>
 
                 <View style={styles.moonContainer}>
-                  {/* Placeholder for the moon image */}
-                  <View style={styles.moonPlaceholder} />
+                  <Image source={moonimage} style={styles.moonImage} resizeMode="contain" />
                 </View>
 
                 <View style={styles.optionsContainer}>
@@ -153,7 +153,7 @@ export default function GiftCurrentMemberScreen() {
                       name="recipientName"
                       inputStyle={styles.input}
                     />
-<TopSpace top={20} />
+                    <TopSpace top={20} />
 
                     <CustomTextInput
                       label="Email Address"
@@ -164,21 +164,21 @@ export default function GiftCurrentMemberScreen() {
                       keyboardType="email-address"
                       autoCapitalize="none"
                     />
-<TopSpace top={20} />
+                    <TopSpace top={20} />
                     <CustomTextInput
                       placeholder="Write a short message to make it special."
                       control={control}
                       name="personalMessage"
                       inputStyle={{
-                          color: Colors.light.white,
-   fontFamily: fonts.primary.medium,
-   fontSize: 14,
-  textAlignVertical: "top",
+                        color: Colors.light.white,
+                        fontFamily: fonts.primary.medium,
+                        fontSize: 14,
+                        textAlignVertical: "top",
                       }}
                       multiline
                       label="Personalized Message"
-                      containerStyle= {{
-                        marginBottom:30,
+                      containerStyle={{
+                        marginBottom: 30,
                         height: 300,
                       }}
                       numberOfLines={4}
@@ -191,6 +191,7 @@ export default function GiftCurrentMemberScreen() {
                   </>
                 ) : (
                   <>
+                    <TopSpace top={20} />
                     <CustomTextInput
                       label="Your Name"
                       placeholder="Layla Najia"
@@ -198,7 +199,7 @@ export default function GiftCurrentMemberScreen() {
                       name="yourName"
                       inputStyle={styles.input}
                     />
-
+                    <TopSpace top={20} />
                     <CustomTextInput
                       label="Email Address"
                       placeholder="layla.najia@gmail.com"

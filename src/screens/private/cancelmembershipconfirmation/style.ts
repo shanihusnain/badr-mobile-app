@@ -9,7 +9,7 @@ export const cancelConfirmationStyles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: 24,
+    //paddingHorizontal: 24,
     paddingTop: 80, // push content down
     alignItems: "center",
   },
@@ -52,7 +52,7 @@ export const cancelConfirmationStyles = StyleSheet.create({
     color: Colors.light.white,
   },
   bottomContainer: {
-    paddingHorizontal: 24,
+    //paddingHorizontal: 24,
     paddingBottom: 40,
     paddingTop: 20,
   },

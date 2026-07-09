@@ -5,6 +5,9 @@ import { fonts } from "@/assets/fonts";
 export const redeemGiftStyles = StyleSheet.create({
   container: {
     flex: 1,
+    
+    justifyContent: "flex-start",
+    //paddingHorizontal: 24,
     //paddingHorizontal: 24,
   },
   iconContainer: {
@@ -12,8 +15,13 @@ export const redeemGiftStyles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+  moonimage: {
+    width: 80,
+    height: 80,
+    marginBottom: 6,
+  },
   content: {
-    flex: 1,
+    // flex: 1,
     alignItems: "center",
     justifyContent: "center",
   },
