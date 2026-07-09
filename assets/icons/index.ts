@@ -79,7 +79,7 @@ import { ReferFriendIcon } from "./ReferFriendIcon";
 import { ReferFriendTabIcon } from "./ReferFriendTabIcon";
 import { RedeemGiftIcon } from "./RedeemGiftIcon";
 //S
-import {SettingIcon} from "./SettingIcon";
+import { SettingIcon } from "./SettingIcon";
 //T
 import { TravelingIcon } from "./TravelingIcon";
 import { MoreTabIcon } from "./MoreTabIcon";
@@ -169,6 +169,6 @@ export {
   PercentageIcon,
   ProfileInformationIcon,
   EmailIcon,
-  TutorialIcon
+  TutorialIcon,
   BulbIcon,
 };

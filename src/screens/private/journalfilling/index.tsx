@@ -23,11 +23,7 @@ import { JournalFillingTopGradient } from "./components/JournalFillingTopGradien
 import { JournalCalendarModal } from "./components/JournalCalendarModal";
 import { journalFillingStyles as styles } from "./styles";
 import { useJournalFillingProps } from "./useJournalFillingProps";
-import {
-  addDays,
-  parseDateKey,
-  toDateKey,
-} from "./journalFillingDateUtils";
+import { addDays, parseDateKey, toDateKey } from "./journalFillingDateUtils";
 
 export function JournalFillingScreen() {
   const navigation = useNavigation();

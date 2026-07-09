@@ -63,7 +63,7 @@ export const Colors = {
     barlinecolor: "#61C8A6",
     moretabcolor: "#141414CC",
     inactivegreen: "#1A4D3E",
-    redeemgiftbuttoncolor: "#8c94a1"
+    redeemgiftbuttoncolor: "#8c94a1",
     journalFillingGradientEdge: "#041014",
     journalFillingGradientGlow: "#0F4D45",
     journalFillingCapsuleBg: "rgba(255, 255, 255, 0.08)",
