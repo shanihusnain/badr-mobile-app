@@ -43,11 +43,10 @@ export const newMemberCartStyles = StyleSheet.create({
         alignItems: "center",
         marginRight: 16,
     },
-    appIconText: {
-        color: Colors.light.white,
-        fontFamily: fonts.primary.bold,
-        fontSize: 20,
-        marginTop: 4,
+    appIconImage: {
+        width: 48,
+        height: 48,
+        marginBottom: 3,
     },
     itemDetails: {
         flex: 1,

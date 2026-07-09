@@ -169,6 +169,6 @@ export {
   PercentageIcon,
   ProfileInformationIcon,
   EmailIcon,
-  TutorialIcon
+  TutorialIcon,
   BulbIcon,
 };

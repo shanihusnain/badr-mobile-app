@@ -8,6 +8,7 @@ import MoreListItem from "./components/MoreListItem";
 import SecondaryButton from "@/components/atoms/Secondary-button";
 import { Colors } from "@/constants/theme";
 import { moreScreenStyles as styles } from "./style";
+import { useAuth } from "@/provider/useAuth";
 import {
   ReferFriendTabIcon,
   RedeemGiftIcon,
@@ -24,9 +25,11 @@ import {
 
 export default function MoreScreen() {
   const router = useRouter();
+  const { signOut } = useAuth();
 
-  const handleLogout = () => {
-    // Handle logout logic here
+  const handleLogout = async () => {
+    await signOut();
+    router.replace("/(auth)/login");
   };
 
   const handleReferFriend = () => {

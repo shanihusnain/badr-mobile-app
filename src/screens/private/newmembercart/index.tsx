@@ -1,11 +1,13 @@
 import React, { useState } from "react";
-import { View, Text, Pressable } from "react-native";
+import { View, Text, Pressable, Image } from "react-native";
 import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
 import PrimaryButton from "@/components/atoms/Primary-button";
 import { Colors } from "@/constants/theme";
 import { Feather } from "@expo/vector-icons";
 import { newMemberCartStyles as styles } from "./style";
 import { useRouter } from "expo-router";
+import { moonimage } from "@/assets/images";
+import { BadarNameLogo } from "@/assets/icons";
 
 export default function NewMemberCartScreen() {
   const router = useRouter();
@@ -48,8 +50,8 @@ export default function NewMemberCartScreen() {
 
         <View style={styles.cartItemContainer}>
           <View style={styles.appIconBox}>
-            <Feather name="moon" size={28} color={Colors.light.gold} />
-            <Text style={styles.appIconText}>badr</Text>
+            <Image source={moonimage} style={styles.appIconImage} resizeMode="contain" />
+            <BadarNameLogo color={Colors.light.white} size={18} />
           </View>
           
           <View style={styles.itemDetails}>

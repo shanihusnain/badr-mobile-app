@@ -16,6 +16,7 @@ import { Colors } from "@/constants/theme";
 import { giftPersonalDetailsStyles as styles } from "./style";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { GiftIconWithMoon } from "@/assets/icons";
+import { TopSpace } from "@/components/atoms/TopSpace";
 
 type DeliveryMethod = "recipient" | "me";
 
@@ -126,9 +127,12 @@ export default function GiftPersonalDetailsScreen() {
             </Pressable>
           </View>
 
+
+
           {deliveryMethod === "me" ? (
             <View style={styles.recipientBlock}>
               <View style={styles.inputGroup}>
+                <TopSpace top={4} />
                 <CustomTextInput
                   label="Your Name"
                   labelStyle={styles.inputLabel}
@@ -138,7 +142,9 @@ export default function GiftPersonalDetailsScreen() {
                   onChangeText={setYourName}
                 />
               </View>
+              <TopSpace top={4} />
               <View style={styles.inputGroup}>
+
                 <CustomTextInput
                   label="Email Address"
                   labelStyle={styles.inputLabel}
@@ -159,6 +165,7 @@ export default function GiftPersonalDetailsScreen() {
                 )}
 
                 <View style={styles.inputGroup}>
+                  <TopSpace top={4} />
                   <CustomTextInput
                     label="Name"
                     labelStyle={styles.inputLabel}
@@ -170,6 +177,7 @@ export default function GiftPersonalDetailsScreen() {
                 </View>
 
                 <View style={styles.inputGroup}>
+                  <TopSpace top={4} />
                   <CustomTextInput
                     label="Email Address"
                     labelStyle={styles.inputLabel}
@@ -183,11 +191,16 @@ export default function GiftPersonalDetailsScreen() {
                 </View>
 
                 <View style={styles.inputGroup}>
+                  <TopSpace top={4} />
                   <CustomTextInput
                     label="Personalized Message"
                     labelStyle={styles.inputLabel}
-                    inputStyle={styles.textArea}
-                    containerStyle={{ height: 100 }}
+                    inputStyle={[styles.textArea,{
+                      height:"100%",
+                      width:"100%",
+                      padding:0
+                    }]}
+                    containerStyle={{height: 150}}
                     placeholder="Write a short message to make it special."
                     value={recipient.message}
                     onChangeText={(text) => updateRecipient(index, "message", text)}

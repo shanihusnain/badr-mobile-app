@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
 import PrimaryButton from "@/components/atoms/Primary-button";
+import CustomDropdown from "@/components/atoms/CustomDropdown";
 import { Colors } from "@/constants/theme";
 import { Feather } from "@expo/vector-icons";
 import { paymentStyles as styles } from "./style";
@@ -20,6 +21,12 @@ import PaymentMethodBottomSheet from "./components/PaymentMethodBottomSheet";
 import AddNewCardBottomSheet from "./components/AddNewCardBottomSheet";
 
 type CardMode = "saved" | "new";
+
+const countryOptions = [
+  { label: "Qatar", value: "Qatar", icon: "🇶🇦" },
+  { label: "United Arab Emirates", value: "United Arab Emirates", icon: "🇦🇪" },
+  { label: "Saudi Arabia", value: "Saudi Arabia", icon: "🇸🇦" },
+];
 
 export default function MembershipPaymentMethodScreen() {
   const router = useRouter();
@@ -42,6 +49,7 @@ export default function MembershipPaymentMethodScreen() {
   const [expiry, setExpiry] = useState("");
   const [cvc, setCvc] = useState("");
   const [cardholderName, setCardholderName] = useState("");
+  const [selectedCountry, setSelectedCountry] = useState("Qatar");
   const [savePayment, setSavePayment] = useState(false);
 
   const [showPromoInput, setShowPromoInput] = useState(false);
@@ -302,18 +310,16 @@ export default function MembershipPaymentMethodScreen() {
                   onChangeText={setCardholderName}
                 />
 
-                <Text style={styles.inputLabel}>Country</Text>
-                <Pressable style={styles.dropdownBox}>
-                  <View style={styles.dropdownLeft}>
-                    <Text style={{ fontSize: 16 }}>🇶🇦</Text>
-                    <Text style={styles.dropdownText}>Qatar</Text>
-                  </View>
-                  <Feather
-                    name="chevron-down"
-                    size={20}
-                    color={Colors.light.white}
-                  />
-                </Pressable>
+                <CustomDropdown
+                  label="Country"
+                  labelStyle={styles.inputLabel}
+                  placeholder="Select country"
+                  options={countryOptions}
+                  value={selectedCountry}
+                  onSelect={setSelectedCountry}
+                  containerStyle={styles.dropdownBox}
+                  selectedTextStyle={styles.dropdownText}
+                />
 
                 <Pressable
                   style={styles.checkboxRow}
