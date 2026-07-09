@@ -3612,5 +3612,17 @@
       "الجمعة",
       "السبت"
     ]
+  },
+  "journalFilling": {
+    "titleYesterday": "ماذا حدث أمس،\n{{name}}؟",
+    "titleOnDate": "ماذا حدث يوم {{weekday}}،\n{{month}} {{day}}؟",
+    "notesPlaceholder": "أضف ملاحظة...",
+    "saveJournal": "حفظ اليوميات",
+    "saveSuccess": "تم حفظ اليوميات بنجاح.",
+    "dismissDialogTitle": "تجاهل اليوميات",
+    "dismissDialogBody": "إكمال يومياتك يومياً يساعدك على العمل على أفضل نسخة من نفسك وتتبع تقدمك. تغيير \"نعم\" سيتجاهل بياناتك.",
+    "dismissDialogCheckbox": "لا تظهر هذه الرسالة مرة أخرى",
+    "dismissDialogComplete": "لا، أكمل اليوميات",
+    "dismissDialogDismiss": "نعم، تجاهل اليوميات"
   }
 }
