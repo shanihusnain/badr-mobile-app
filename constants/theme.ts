@@ -64,6 +64,11 @@ export const Colors = {
     moretabcolor: "#141414CC",
     inactivegreen: "#1A4D3E",
     redeemgiftbuttoncolor: "#8c94a1"
+    journalFillingGradientEdge: "#041014",
+    journalFillingGradientGlow: "#0F4D45",
+    journalFillingCapsuleBg: "rgba(255, 255, 255, 0.08)",
+    journalFillingCapsuleBorder: "rgba(255, 255, 255, 0.2)",
+    journalFillingCapsuleSelectedBg: "rgba(255, 255, 255, 0.16)",
   },
   dark: {
     text: "#ECEDEE",

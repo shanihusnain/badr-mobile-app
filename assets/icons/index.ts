@@ -4,6 +4,7 @@
 import { BirthIcon } from "./BirthIcon";
 import { BadarNameLogo } from "./BadarNameLogo";
 import { BellIcon } from "./BellIcon";
+import { BulbIcon } from "./BulbIcon";
 //C
 import { CalendarIcon } from "./CalenderIcon";
 //D
@@ -169,4 +170,5 @@ export {
   ProfileInformationIcon,
   EmailIcon,
   TutorialIcon
+  BulbIcon,
 };
