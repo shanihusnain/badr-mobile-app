@@ -1,10 +1,11 @@
 import { TaperedCircleBorder } from "@/components/atoms/TaperedCircleBorder";
 import { Colors } from "@/constants/theme";
 import type { PlanJournalPeriodId } from "@/src/screens/private/plan/planJournalConsistencyMockData";
-import { Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import type { JournalInsightBehavior } from "../journalInsightMockData";
 import { getJournalInsightProgressColor } from "../journalInsightProgress";
 import { journalInsightStyles as styles } from "../styles";
+import { router } from "expo-router";
 
 const PERIOD_RING_SIZE = 24;
 
@@ -37,7 +38,12 @@ export function JournalInsightBehaviorCard({
 
   if (isWeekly && behavior.weekDays) {
     return (
-      <View style={styles.behaviorCard}>
+      <Pressable
+        style={styles.behaviorCard}
+        onPress={() =>
+          router.push(`/behaviordescriptiondetails/${behavior.name}`)
+        }
+      >
         <Text style={styles.behaviorName}>{behavior.name}</Text>
         <Text style={styles.behaviorDescription}>{behavior.description}</Text>
         <View style={styles.weekDaysRow}>
@@ -49,7 +55,7 @@ export function JournalInsightBehaviorCard({
             </View>
           ))}
         </View>
-      </View>
+      </Pressable>
     );
   }
 

@@ -460,6 +460,12 @@ export default function PrivateLayout() {
             header: () => <JournalFillingHeader />,
           }}
         />
+        <Stack.Screen
+          name="behaviordescriptiondetails/[id]"
+          options={{
+            headerShown: false,
+          }}
+        />
       </Stack>
     </ProtectedRoute>
   );

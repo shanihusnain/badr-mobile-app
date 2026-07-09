@@ -1,6 +1,6 @@
 import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
 import { TopSpace } from "@/components/atoms/TopSpace";
-import { JournalConsistencySection } from "@/components/atoms/JournalConsistencySection";
+import { JournalConsistencySection } from "@/components/molecules/JournalConsistencySection";
 import { PastAchievementStudyMaterial } from "@/components/molecules/PastAchievementStudyMaterial";
 import { ScrollView } from "react-native";
 import { JournalInsightBehaviorCard } from "./components/JournalInsightBehaviorCard";
