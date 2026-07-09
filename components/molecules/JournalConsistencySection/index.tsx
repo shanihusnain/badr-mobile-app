@@ -1,15 +1,15 @@
 import { ExclamationIconWithCircel } from "@/assets/icons/ExclamationIconWithCircel";
 import { Colors } from "@/constants/theme";
-import { Ionicons } from "@expo/vector-icons";
-import { Pressable, Text, TouchableOpacity, View } from "react-native";
 import type {
   PlanJournalConsistencySnapshot,
   PlanJournalPeriod,
-} from "../../src/screens/private/plan/planJournalConsistencyMockData";
-import { planStyles as styles } from "../../src/screens/private/plan/styles";
+} from "@/src/screens/private/plan/planJournalConsistencyMockData";
+import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import { Pressable, Text, TouchableOpacity, View } from "react-native";
+import { journalConsistencySectionStyles as styles } from "./styles";
 
-type JournalConsistencySectionProps = {
+export type JournalConsistencySectionProps = {
   activeSnapshot: PlanJournalConsistencySnapshot;
   periods: PlanJournalPeriod[];
   period: PlanJournalPeriod;
@@ -19,6 +19,9 @@ type JournalConsistencySectionProps = {
   onSelectPeriod: (period: PlanJournalPeriod) => void;
   onPreviousPeriodRange: () => void;
   onNextPeriodRange: () => void;
+  periodLabelFormatter?: (period: PlanJournalPeriod) => string;
+  deltaLabelFormatter?: (period: PlanJournalPeriod) => string;
+  useAbsoluteDelta?: boolean;
 };
 
 export function JournalConsistencySection({
@@ -31,7 +34,17 @@ export function JournalConsistencySection({
   onSelectPeriod,
   onPreviousPeriodRange,
   onNextPeriodRange,
+  periodLabelFormatter,
+  deltaLabelFormatter,
+  useAbsoluteDelta = false,
 }: JournalConsistencySectionProps) {
+  const deltaValue = useAbsoluteDelta
+    ? Math.abs(activeSnapshot.previousPeriodDeltaPercent)
+    : activeSnapshot.previousPeriodDeltaPercent;
+  const formattedDeltaPrefix =
+    useAbsoluteDelta && !deltaIsPositive ? "" : deltaIsPositive ? "+" : "";
+  const deltaSuffix = deltaLabelFormatter?.(period) ?? period.deltaLabel;
+
   return (
     <View style={styles.topRow}>
       <View style={styles.achievementBlock}>
@@ -66,8 +79,8 @@ export function JournalConsistencySection({
             ]}
             numberOfLines={1}
           >
-            {deltaIsPositive ? "+" : ""}
-            {activeSnapshot.previousPeriodDeltaPercent}% {period.deltaLabel}
+            {formattedDeltaPrefix}
+            {deltaValue}% {deltaSuffix}
           </Text>
         </View>
       </View>
@@ -97,7 +110,7 @@ export function JournalConsistencySection({
                   adjustsFontSizeToFit
                   minimumFontScale={0.85}
                 >
-                  {item.label}
+                  {periodLabelFormatter?.(item) ?? item.label}
                 </Text>
               </Pressable>
             );

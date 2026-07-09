@@ -4,7 +4,7 @@ import type {
   PlanJournalConsistencySnapshot,
   PlanJournalPeriod,
 } from "../planJournalConsistencyMockData";
-import { JournalConsistencySection } from "../../../../../components/atoms/JournalConsistencySection";
+import { JournalConsistencySection } from "@/components/molecules/JournalConsistencySection";
 import { JournalCustomizeCard } from "./JournalCustomizeCard";
 import { JournalHabitCard } from "./JournalHabitCard";
 import { PlanNotificationsCard } from "./PlanNotificationsCard";

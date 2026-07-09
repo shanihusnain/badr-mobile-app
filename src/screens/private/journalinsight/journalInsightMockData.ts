@@ -1,6 +1,9 @@
 import type { StudyMaterialItem } from "@/components/molecules/PastAchievementStudyMaterial";
 import type { PlanJournalPeriodId } from "../plan/planJournalConsistencyMockData";
-import { getPlanJournalConsistencySnapshots } from "../plan/planJournalConsistencyMockData";
+import {
+  getPlanJournalConsistencySnapshots,
+  type PlanJournalConsistencySnapshot,
+} from "../plan/planJournalConsistencyMockData";
 import { getPeriodCountPercent } from "./journalInsightProgress";
 
 export type JournalInsightDayStatus =
@@ -675,4 +678,51 @@ export function getJournalInsightSnapshot(
   const safeIndex = Math.min(Math.max(index, 0), snapshots.length - 1);
 
   return snapshots[safeIndex];
+}
+
+export function findBehaviorTemplate(
+  behaviorName: string,
+): BehaviorTemplate | undefined {
+  for (const definition of Object.values(HABIT_INSIGHT_DEFINITIONS)) {
+    const behavior = definition.behaviors.find(
+      (item) => item.name === behaviorName,
+    );
+    if (behavior) return behavior;
+  }
+
+  return undefined;
+}
+
+function getWeekConsistencyPercent(
+  pattern: JournalInsightDayStatus[],
+): number {
+  const score = pattern.reduce((total, status) => {
+    if (status === "completed") return total + 1;
+    if (status === "partial") return total + 0.5;
+    return total;
+  }, 0);
+
+  return Math.round((score / 7) * 100);
+}
+
+export function getBehaviorConsistencyPercent(
+  behavior: BehaviorTemplate,
+  periodId: PlanJournalPeriodId,
+  snapshotIndex: number,
+): number {
+  if (periodId === 1) {
+    const pattern =
+      behavior.weekPatterns[snapshotIndex] ??
+      behavior.weekPatterns[behavior.weekPatterns.length - 1];
+
+    return getWeekConsistencyPercent(pattern);
+  }
+
+  const periodCount =
+    behavior.periodCounts[periodId][snapshotIndex] ??
+    behavior.periodCounts[periodId][
+      behavior.periodCounts[periodId].length - 1
+    ];
+
+  return getPeriodCountPercent(periodCount, periodId);
 }

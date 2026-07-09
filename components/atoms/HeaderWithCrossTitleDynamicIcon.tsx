@@ -9,11 +9,13 @@ export const HeaderWithCrossTitleDynamicIcon = ({
   navigation,
   letterSpacing = 0,
   iconName = "x",
+  bgcolor = Colors.light.blackBackground,
 }: {
   title: string;
   navigation: any;
   letterSpacing?: number;
   iconName?: keyof typeof Feather.glyphMap;
+  bgcolor?: string;
 }) => (
   <View
     style={{
@@ -21,7 +23,7 @@ export const HeaderWithCrossTitleDynamicIcon = ({
       position: "relative",
       paddingTop: 40,
       paddingHorizontal: 24,
-      backgroundColor: Colors.light.blackBackground,
+      backgroundColor: bgcolor ? bgcolor : Colors.light.blackBackground,
     }}
   >
     {/* Centered title */}

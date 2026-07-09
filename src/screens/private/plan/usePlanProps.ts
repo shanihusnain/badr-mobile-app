@@ -1,12 +1,11 @@
 import { StudyMaterialItem } from "@/components/molecules/PastAchievementStudyMaterial";
+import { useJournalConsistencySection } from "@/hooks/useJournalConsistencySection";
 import {
-  getPlanJournalConsistencySnapshot,
   getPlanJournalConsistencySnapshots,
   PLAN_JOURNAL_PERIODS,
-  PlanJournalPeriod,
 } from "./planJournalConsistencyMockData";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 export const usePlanProps = () => {
   const tabs = [
     {
@@ -61,35 +60,21 @@ export const usePlanProps = () => {
     },
   ];
   const [selectedTab, setSelectedTab] = useState<number>(tabs[0].id);
-  const [period, setPeriod] = useState<PlanJournalPeriod>(PERIODS[0]);
-  const [periodIndex, setPeriodIndex] = useState(0);
-
-  const periodSnapshots = useMemo(
-    () => getPlanJournalConsistencySnapshots(period.id),
-    [period.id],
+  const resolveSnapshots = useCallback(
+    (periodId: (typeof PLAN_JOURNAL_PERIODS)[number]["id"]) =>
+      getPlanJournalConsistencySnapshots(periodId),
+    [],
   );
-
-  const activeSnapshot = useMemo(
-    () => getPlanJournalConsistencySnapshot(period.id, periodIndex),
-    [period.id, periodIndex],
-  );
-  const deltaIsPositive = activeSnapshot.previousPeriodDeltaPercent >= 0;
-  const canGoToPreviousPeriod = periodIndex < periodSnapshots.length - 1;
-  const canGoToNextPeriod = periodIndex > 0;
-
-  useEffect(() => {
-    setPeriodIndex(0);
-  }, [period.id]);
-
-  const handlePreviousPeriodRange = () => {
-    if (!canGoToPreviousPeriod) return;
-    setPeriodIndex((current) => current + 1);
-  };
-
-  const handleNextPeriodRange = () => {
-    if (!canGoToNextPeriod) return;
-    setPeriodIndex((current) => current - 1);
-  };
+  const {
+    period,
+    setPeriod,
+    activeSnapshot,
+    deltaIsPositive,
+    canGoToPreviousPeriod,
+    canGoToNextPeriod,
+    handlePreviousPeriodRange,
+    handleNextPeriodRange,
+  } = useJournalConsistencySection(resolveSnapshots);
   return {
     tabs,
     PERIODS,
@@ -97,9 +82,6 @@ export const usePlanProps = () => {
     setSelectedTab,
     period,
     setPeriod,
-    periodIndex,
-    setPeriodIndex,
-    periodSnapshots,
     activeSnapshot,
     deltaIsPositive,
     canGoToPreviousPeriod,
