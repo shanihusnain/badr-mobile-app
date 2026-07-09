@@ -1,33 +1,41 @@
 import React, { useState } from "react";
 import {
     View,
-    Text,
-    Pressable,
-    TextInput,
     KeyboardAvoidingView,
     Platform,
 } from "react-native";
+import { useForm } from "react-hook-form";
 import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
-import { Feather } from "@expo/vector-icons";
 import { Colors } from "@/constants/theme";
 import { changePasswordStyles as styles } from "./style";
 import { useRouter } from "expo-router";
 import PrimaryButton from "@/components/atoms/Primary-button";
+import CustomTextInput from "@/components/atoms/CustomTextInput";
 
 export default function ChangePasswordScreen() {
     const router = useRouter();
-
-    const [currentPassword, setCurrentPassword] = useState("");
-    const [newPassword, setNewPassword] = useState("");
-    const [confirmPassword, setConfirmPassword] = useState("");
     const [showCurrent, setShowCurrent] = useState(false);
     const [showNew, setShowNew] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
 
+    const { control, watch } = useForm({
+        defaultValues: {
+            currentPassword: "",
+            newPassword: "",
+            confirmPassword: "",
+        },
+    });
+
+    const [currentPassword, newPassword, confirmPassword] = watch([
+        "currentPassword",
+        "newPassword",
+        "confirmPassword",
+    ]);
+
     const isFormComplete =
-        currentPassword.length > 0 &&
-        newPassword.length >= 12 &&
-        confirmPassword.length > 0 &&
+        (currentPassword ?? "").length > 0 &&
+        (newPassword ?? "").length >= 8 &&
+        (confirmPassword ?? "").length > 0 &&
         newPassword === confirmPassword;
 
     const handleBack = () => {
@@ -46,66 +54,48 @@ export default function ChangePasswordScreen() {
             >
                 
                 <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Current Password</Text>
-                    <View style={styles.inputBox}>
-                        <TextInput
-                            style={styles.inputText}
-                            placeholder="Enter your current password"
-                            placeholderTextColor={Colors.light.icon}
-                            value={currentPassword}
-                            onChangeText={setCurrentPassword}
-                            secureTextEntry={!showCurrent}
-                        />
-                        <Pressable style={styles.eyeButton} onPress={() => setShowCurrent(!showCurrent)}>
-                            <Feather
-                                name={showCurrent ? "eye" : "eye-off"}
-                                size={18}
-                                color={Colors.light.icon}
-                            />
-                        </Pressable>
-                    </View>
+                    <CustomTextInput
+                        label="Current Password"
+                        placeholder="Enter your current password"
+                        control={control}
+                        name="currentPassword"
+                        secureTextEntry={!showCurrent}
+                        showEye
+                        onToggleEye={() => setShowCurrent(!showCurrent)}
+                        containerStyle={styles.inputBox}
+                        inputStyle={styles.inputText}
+                        labelStyle={styles.label}
+                    />
                 </View>
 
                 <View style={styles.inputGroup}>
-                    <Text style={styles.label}>New Password</Text>
-                    <View style={styles.inputBox}>
-                        <TextInput
-                            style={styles.inputText}
-                            placeholder="Your password must be at least 12 characters"
-                            placeholderTextColor={Colors.light.icon}
-                            value={newPassword}
-                            onChangeText={setNewPassword}
-                            secureTextEntry={!showNew}
-                        />
-                        <Pressable style={styles.eyeButton} onPress={() => setShowNew(!showNew)}>
-                            <Feather
-                                name={showNew ? "eye" : "eye-off"}
-                                size={18}
-                                color={Colors.light.icon}
-                            />
-                        </Pressable>
-                    </View>
+                    <CustomTextInput
+                        label="New Password"
+                        placeholder="Your password must be at least 8 characters"
+                        control={control}
+                        name="newPassword"
+                        secureTextEntry={!showNew}
+                        showEye
+                        onToggleEye={() => setShowNew(!showNew)}
+                        containerStyle={styles.inputBox}
+                        inputStyle={styles.inputText}
+                        labelStyle={styles.label}
+                    />
                 </View>
 
                 <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Confirm Password</Text>
-                    <View style={styles.inputBox}>
-                        <TextInput
-                            style={styles.inputText}
-                            placeholder="Confirm your new password"
-                            placeholderTextColor={Colors.light.icon}
-                            value={confirmPassword}
-                            onChangeText={setConfirmPassword}
-                            secureTextEntry={!showConfirm}
-                        />
-                        <Pressable style={styles.eyeButton} onPress={() => setShowConfirm(!showConfirm)}>
-                            <Feather
-                                name={showConfirm ? "eye" : "eye-off"}
-                                size={18}
-                                color={Colors.light.icon}
-                            />
-                        </Pressable>
-                    </View>
+                    <CustomTextInput
+                        label="Confirm Password"
+                        placeholder="Confirm your new password"
+                        control={control}
+                        name="confirmPassword"
+                        secureTextEntry={!showConfirm}
+                        showEye
+                        onToggleEye={() => setShowConfirm(!showConfirm)}
+                        containerStyle={styles.inputBox}
+                        inputStyle={styles.inputText}
+                        labelStyle={styles.label}
+                    />
                 </View>
 
                 <View style={styles.bottomSection}>

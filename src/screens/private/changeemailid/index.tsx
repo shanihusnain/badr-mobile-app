@@ -1,23 +1,27 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   View,
   Text,
-  Pressable,
-  TextInput,
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
+import { useForm } from "react-hook-form";
 import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
-import { Feather } from "@expo/vector-icons";
 import { Colors } from "@/constants/theme";
 import { changeEmailStyles as styles } from "./style";
 import { useRouter } from "expo-router";
 import PrimaryButton from "@/components/atoms/Primary-button";
+import CustomTextInput from "@/components/atoms/CustomTextInput";
 
 export default function ChangeEmailIdScreen() {
   const router = useRouter();
-  const [email, setEmail] = useState("layla.najia@gmail.com");
+  const { control, watch } = useForm({
+    defaultValues: {
+      email: "layla.najia@gmail.com",
+    },
+  });
 
+  const email = watch("email") ?? "";
   const isEmailValid = email.trim().length > 0 && email.includes("@");
 
   const handleBack = () => {
@@ -43,13 +47,18 @@ export default function ChangeEmailIdScreen() {
           receive notifications.
         </Text>
 
-        <TextInput
-          style={styles.inputBox}
-          value={email}
-          onChangeText={setEmail}
+        <CustomTextInput
+          placeholder="Email Address"
+          control={control}
+          name="email"
           keyboardType="email-address"
           autoCapitalize="none"
-          placeholderTextColor={Colors.light.icon}
+          containerStyle={styles.inputBox}
+          inputStyle={{
+            color: Colors.light.white,
+            fontFamily: styles.inputBox.fontFamily,
+            fontSize: styles.inputBox.fontSize,
+          }}
         />
 
         <View style={styles.bottomSection}>

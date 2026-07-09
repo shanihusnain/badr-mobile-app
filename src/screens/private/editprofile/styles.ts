@@ -64,7 +64,7 @@ export const editProfileStyles = StyleSheet.create({
         borderColor: Colors.light.blackBackground,
     },
     inputGroup: {
-        marginBottom: 20,
+        marginBottom: 12,
     },
     label: {
         color: Colors.light.subtext,

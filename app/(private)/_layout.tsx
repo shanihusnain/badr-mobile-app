@@ -75,7 +75,14 @@ export default function PrivateLayout() {
         <Stack.Screen
           name="giftnewmember"
           options={{
-            headerShown: false,
+            headerShown: true,
+            header: ({ navigation }) => (
+              <HeaderWithCrossTitleDynamicIcon
+                title=""
+                navigation={navigation}
+                iconName="chevron-left"
+              />
+            ),
           }}
         />
         <Stack.Screen
@@ -129,7 +136,7 @@ export default function PrivateLayout() {
             headerShown: true,
             header: ({ navigation }) => (
               <HeaderWithCrossTitleDynamicIcon
-                title=""
+                title="CHANGE EMAIL ID"
                 navigation={navigation}
                 iconName="chevron-left"
               />
@@ -152,7 +159,14 @@ export default function PrivateLayout() {
         <Stack.Screen
           name="redeemgiftextension"
           options={{
-            headerShown: false,
+            headerShown: true,
+            header: ({ navigation }) => (
+              <HeaderWithCrossTitleDynamicIcon
+                title=""
+                navigation={navigation}
+                iconName="x"
+              />
+            ),
           }}
         />
         <Stack.Screen
@@ -162,6 +176,45 @@ export default function PrivateLayout() {
             header: ({ navigation }) => (
               <HeaderWithCrossTitleDynamicIcon
                 title="MY ACCOUNT"
+                navigation={navigation}
+                iconName="chevron-left"
+              />
+            ),
+          }}
+        />
+        <Stack.Screen
+          name="privacysetting"
+          options={{
+            headerShown: true,
+            header: ({ navigation }) => (
+              <HeaderWithCrossTitleDynamicIcon
+                title="PRIVACY SETTINGS"
+                navigation={navigation}
+                iconName="chevron-left"
+              />
+            ),
+          }}
+        />
+        <Stack.Screen
+          name="helpcentre"
+          options={{
+            headerShown: true,
+            header: ({ navigation }) => (
+              <HeaderWithCrossTitleDynamicIcon
+                title="HELP CENTRE"
+                navigation={navigation}
+                iconName="chevron-left"
+              />
+            ),
+          }}
+        />
+        <Stack.Screen
+          name="about"
+          options={{
+            headerShown: true,
+            header: ({ navigation }) => (
+              <HeaderWithCrossTitleDynamicIcon
+                title="ABOUT"
                 navigation={navigation}
                 iconName="chevron-left"
               />
@@ -223,7 +276,16 @@ export default function PrivateLayout() {
         <Stack.Screen
           name="friendreferal"
           options={{
-            headerShown: false,
+            headerTransparent: true,
+            headerStyle: { backgroundColor: "transparent" },
+            headerShown: true,
+            header: ({ navigation }) => (
+              <HeaderWithCrossTitleDynamicIcon
+                title="REFER A FRIEND"
+                navigation={navigation}
+                iconName="chevron-left"
+              />
+            ),
           }}
         />
         <Stack.Screen
@@ -266,6 +328,58 @@ export default function PrivateLayout() {
           }}
         />
         <Stack.Screen
+          name="notifications"
+          options={{
+            headerShown: true,
+            header: ({ navigation }) => (
+              <HeaderWithCrossTitleDynamicIcon
+                title="NOTIFICATIONS"
+                navigation={navigation}
+                iconName="chevron-left"
+              />
+            ),
+          }}
+        />
+        <Stack.Screen
+          name="journalappsetting"
+          options={{
+            headerShown: true,
+            header: ({ navigation }) => (
+              <HeaderWithCrossTitleDynamicIcon
+                title="JOURNAL"
+                navigation={navigation}
+                iconName="chevron-left"
+              />
+            ),
+          }}
+        />
+        <Stack.Screen
+          name="hidemetrics"
+          options={{
+            headerShown: true,
+            header: ({ navigation }) => (
+              <HeaderWithCrossTitleDynamicIcon
+                title="HIDE METRICS"
+                navigation={navigation}
+                iconName="chevron-left"
+              />
+            ),
+          }}
+        />
+        <Stack.Screen
+          name="statusinsights"
+          options={{
+            headerShown: true,
+            header: ({ navigation }) => (
+              <HeaderWithCrossTitleDynamicIcon
+                title="STATUS INSIGHTS"
+                navigation={navigation}
+                iconName="chevron-left"
+              />
+            ),
+          }}
+        />
+        <Stack.Screen
           name="artificialintelligencesetting"
           options={{
             headerShown: true,
@@ -284,7 +398,7 @@ export default function PrivateLayout() {
             headerShown: true,
             header: ({ navigation }) => (
               <HeaderWithCrossTitleDynamicIcon
-                title="EXPORT DATA"
+                title="EXPORT BADR DATA"
                 navigation={navigation}
                 iconName="chevron-left"
               />

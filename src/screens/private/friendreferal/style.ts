@@ -7,9 +7,12 @@ export const friendReferralStyles = StyleSheet.create({
         flex: 1,
         backgroundColor: Colors.light.blackBackground, // Dark background as requested instead of image
     },
+    fullScreen: {
+        flex: 1,
+    },
     container: {
         flex: 1,
-        //paddingHorizontal: 24,
+        paddingHorizontal: 16,
     },
     header: {
         flexDirection: "row",

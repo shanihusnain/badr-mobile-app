@@ -133,6 +133,7 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
 const styles = StyleSheet.create({
   wrapper: {
     width: "98%",
+    marginTop: 0,
   },
   label: {
     color: Colors.light.white,

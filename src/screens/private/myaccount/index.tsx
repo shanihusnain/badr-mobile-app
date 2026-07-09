@@ -4,6 +4,7 @@ import { Colors } from "@/constants/theme";
 import { myAccountStyles as styles } from "./style";
 import { useRouter } from "expo-router";
 import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
+import MyAccountListItem from "./components/MyAccountListItem";
 import {
   CalendarIcon,
   PaymentIcon,
@@ -14,7 +15,10 @@ import {
   InBoxArrow,
   DocumentLockIcon,
   ReferFriendTabIcon,
-  RedeemGiftIcon
+  RedeemGiftIcon,
+  ProfileInformationIcon,
+  EmailIcon,
+  ChangePasswordIcon
 } from "@/assets/icons";
 import RedeemGiftExtensionRoute from "@/app/(private)/redeemgiftextension";
 
@@ -47,13 +51,13 @@ const MEMBERSHIP_ITEMS: ListItem[] = [
   {
     title: "REFER A FRIEND",
     subtitle: "Get one month free for each friend you refer",
-    icon: <ReferFriendTabIcon color={Colors.light.dullWhite} size={24} />,
+    icon: <ReferFriendTabIcon color={Colors.light.subtext} size={24} />,
     route: "/(private)/friendreferal",
   },
   {
     title: "REDEEM GIFT EXTENSION",
     subtitle: "Apply your gift to your membership",
-    icon: <RedeemGiftIcon color={Colors.light.dullWhite} size={24} />,
+    icon: <RedeemGiftIcon color={Colors.light.subtext} size={24} />,
     route: "/(private)/redeemgiftextension",
   },
 ];
@@ -61,18 +65,18 @@ const MEMBERSHIP_ITEMS: ListItem[] = [
 const PERSONAL_ITEMS: ListItem[] = [
   {
     title: "PROFILE INFORMATION",
-    icon: <InsightIcon color={Colors.light.dullWhite} size={18} />,
+    icon: <ProfileInformationIcon Color={Colors.light.subtext} size={24} />,
     route: "/(private)/editprofile",
   },
   {
     title: "EMAIL",
     subtitle: "layla.najia@gmail.com",
-    icon: <InBoxArrow color={Colors.light.dullWhite} size={18} />,
+    icon: <EmailIcon color={Colors.light.subtext} size={24} />,
     route: "/(private)/changeemailid",
   },
   {
     title: "CHANGE PASSWORD",
-    icon: <DocumentLockIcon color={Colors.light.dullWhite} size={18} />,
+    icon: <ChangePasswordIcon color={Colors.light.subtext} size={24} />,
     route: "/(private)/changepassword",
   },
 ];
@@ -91,17 +95,13 @@ export default function MyAccountScreen() {
   };
 
   const renderItem = (item: ListItem, index: number) => (
-    <Pressable key={index} style={styles.listCard} onPress={() => handleItemPress(item)}>
-      <View style={styles.listIconContainer}>
-        {item.icon}
-      </View>
-      <View style={styles.listItemInfo}>
-        <Text style={styles.listItemTitle}>{item.title}</Text>
-        {item.subtitle && (
-          <Text style={styles.listItemSubtitle}>{item.subtitle}</Text>
-        )}
-      </View>
-    </Pressable>
+    <MyAccountListItem
+      key={index}
+      title={item.title}
+      subtitle={item.subtitle}
+      icon={item.icon}
+      onPress={() => handleItemPress(item)}
+    />
   );
 
   return (

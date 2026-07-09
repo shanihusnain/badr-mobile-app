@@ -1,23 +1,30 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   View,
   Text,
-  TextInput,
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
+import { useForm } from "react-hook-form";
 import { Colors } from "@/constants/theme";
 import { redeemGiftStyles as styles } from "./style";
 import PrimaryButton from "@/components/atoms/Primary-button";
 import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
 import { BadarNameLogo } from "@/assets/icons";
+import CustomTextInput from "@/components/atoms/CustomTextInput";
 
 export default function RedeemGiftExtensionScreen() {
-  const [code, setCode] = useState("");
+  const { control, watch } = useForm({
+    defaultValues: {
+      redemptionCode: "",
+    },
+  });
+
+  const code = watch("redemptionCode") ?? "";
 
   const handleApply = () => {
-    if (code.length > 0) {
-      console.log("Applying code:", code);
+    if (code.trim().length > 0) {
+      console.log("Applying code:", code.trim());
     }
   };
 
@@ -29,7 +36,7 @@ export default function RedeemGiftExtensionScreen() {
       >
         <View style={styles.content}>
           <View style={styles.iconContainer}>
-            <BadarNameLogo size={24} color={Colors.light.white} />
+            <BadarNameLogo size={44} color={Colors.light.white} />
           </View>
 
           <Text style={styles.title}>REDEEM GIFT EXTENSION</Text>
@@ -38,22 +45,23 @@ export default function RedeemGiftExtensionScreen() {
           </Text>
 
           <View style={styles.inputWrapper}>
-            <Text style={styles.inputLabel}>Add Redemption Code</Text>
-            <TextInput
-              style={styles.inputBox}
+            <CustomTextInput
+              label="Add Redemption Code"
               placeholder="Redemption Code"
-              placeholderTextColor={Colors.light.icon}
-              value={code}
-              onChangeText={setCode}
+              control={control}
+              name="redemptionCode"
               autoCapitalize="characters"
+              containerStyle={styles.inputBox}
+              inputStyle={styles.customInputStyle}
+              labelStyle={styles.customLabelStyle}
             />
           </View>
 
           <PrimaryButton
             text="APPLY TO ACCOUNT"
             onPress={handleApply}
-            style={code.length > 0 ? undefined : { backgroundColor: "#8c94a1" }}
-            textStyle={code.length === 0 ? { color: Colors.light.white } : undefined}
+            style={code.trim().length > 0 ? undefined : styles.inactiveButton}
+            textStyle={code.trim().length === 0 ? styles.inactiveButtonText : undefined}
           />
         </View>
       </KeyboardAvoidingView>

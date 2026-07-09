@@ -22,7 +22,7 @@ export const moreScreenStyles = StyleSheet.create({
     },
     logoutContainer: {
         marginTop: 32,
-        paddingHorizontal: 16,
+        //paddingHorizontal: 16,
         alignItems: "center",
     },
     versionText: {
@@ -41,26 +41,46 @@ export const moreCarouselStyles = StyleSheet.create({
         marginBottom: 24,
     },
     cardContainer: {
-        paddingHorizontal: 16,
+        //paddingHorizontal: 16,
         alignItems: "center",
     },
     card: {
         width: CARD_WIDTH,
-        height: 140,
-        backgroundColor: Colors.light.calendarBg,
+        height: 200, // Taller to fit both image and text
+        backgroundColor: Colors.light.blackBackground, // Dark background from reference
         borderRadius: 12,
-        justifyContent: "flex-end",
-        padding: 16,
         overflow: "hidden",
     },
+    cardImageContainer: {
+        width: "100%",
+        height: 125,
+        overflow: "hidden",
+    },
+    cardImage: {
+        width: "100%",
+        height: 185, // Taller than container
+        position: "absolute",
+        top: 0, // Anchors to the top, preventing the head from being cut off
+    },
+    bottomGradient: {
+        position: "absolute",
+        left: 0,
+        right: 0,
+        bottom: 0,
+        height: 15,
+    },
+
     cardContent: {
+        flex: 1,
         flexDirection: "row",
-        alignItems: "flex-end",
+        alignItems: "center",
         justifyContent: "space-between",
+        padding: 16,
+        marginTop: -25, // Pulls the text container up
+        zIndex: 10, // Ensures text stays on top
     },
     textContainer: {
         flex: 1,
-        paddingRight: 16,
     },
     title: {
         color: Colors.light.white,
@@ -79,7 +99,7 @@ export const moreCarouselStyles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "center",
         alignItems: "center",
-        marginTop: 16,
+        //marginTop: 19,
     },
     dot: {
         width: 6,
@@ -98,8 +118,8 @@ export const moreCarouselStyles = StyleSheet.create({
 // ─── MoreSectionHeader ────────────────────────────────────────────────────────
 export const moreSectionHeaderStyles = StyleSheet.create({
     container: {
-        paddingHorizontal: 16,
-        marginTop: 24,
+        //paddingHorizontal: 16,
+        marginTop: 20,
         marginBottom: 8,
     },
     title: {
@@ -113,7 +133,7 @@ export const moreSectionHeaderStyles = StyleSheet.create({
 // ─── MoreListItem ─────────────────────────────────────────────────────────────
 export const moreListItemStyles = StyleSheet.create({
     container: {
-        marginHorizontal: 16,
+        //marginHorizontal: 16,
         marginBottom: 8,
         borderRadius: 8,
         overflow: "hidden",

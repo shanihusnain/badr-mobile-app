@@ -7,7 +7,7 @@ import { Colors } from "@/constants/theme";
 
 export const ReferFriendIcon = ({
     size = 24,
-    color = Colors.light.dullWhite,
+    color = Colors.light.subtext,
 }: {
     size?: number;
     color?: string;

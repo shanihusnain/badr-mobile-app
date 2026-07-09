@@ -1,5 +1,7 @@
 import React from "react";
 import { View, Text } from "react-native";
+import { Image } from "expo-image";
+import iphoneIntroImage from "@/assets/images/iphoneintro.png"; // <-- Change this to your new image
 import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
 import BackButton from "@/components/atoms/Backbutton";
 import PrimaryButton from "@/components/atoms/Primary-button";
@@ -17,10 +19,6 @@ export default function GiftNewMemberScreen() {
   return (
     <BlackScreenWrapper>
       <View style={styles.container}>
-        <View style={styles.header}>
-          <BackButton bgcolor={Colors.light.greybuttonversion} />
-        </View>
-
         <View style={{ flex: 1, paddingBottom: 40 }}>
           <View style={styles.content}>
             <Text style={styles.title}>GIFT BADR</Text>
@@ -31,15 +29,14 @@ export default function GiftNewMemberScreen() {
 
             <Text style={styles.description}>
               Get them started with a prepaid one-year Badr membership. Help
-              them strengthen their worship, build better habits, and draw
-              closer to Allah—one day at a time.
+              them strengthen   their worship, build better habits, and draw closer to Allah—one day at a time.
             </Text>
 
-            <View style={styles.imagePlaceholder}>
-              <Text style={styles.imagePlaceholderText}>
-                Mobile Image Space
-              </Text>
-            </View>
+            <Image
+              source={iphoneIntroImage}
+              style={styles.imagePlaceholder}
+              contentFit="contain"
+            />
           </View>
         </View>
 

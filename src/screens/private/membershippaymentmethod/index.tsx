@@ -15,8 +15,9 @@ import { Colors } from "@/constants/theme";
 import { Feather } from "@expo/vector-icons";
 import { paymentStyles as styles } from "./style";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { BottomSheetWrapper } from "@/components/molecules/BottomSheetWrapper";
 import BottomSheet from "@gorhom/bottom-sheet";
+import PaymentMethodBottomSheet from "./components/PaymentMethodBottomSheet";
+import AddNewCardBottomSheet from "./components/AddNewCardBottomSheet";
 
 type CardMode = "saved" | "new";
 
@@ -361,177 +362,33 @@ export default function MembershipPaymentMethodScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* ── Bottom Sheet 1: Select Payment Method ── */}
-      <BottomSheetWrapper
-        ref={changeSheetRef}
-        snapPoints={["55%"]}
-        bgColor={Colors.light.blackBackground}
-      >
-        <Text style={styles.sheetTitle}>Select Payment Method</Text>
+      <PaymentMethodBottomSheet
+        changeSheetRef={changeSheetRef}
+        selectedOption={selectedOption}
+        setSelectedOption={setSelectedOption}
+        handleContinue={handleContinue}
+      />
 
-        <Text style={styles.sheetSectionLabel}>Saved</Text>
-        <Pressable
-          style={[
-            styles.sheetCardRow,
-            selectedOption === "saved" && styles.sheetCardRowSelected,
-          ]}
-          onPress={() => setSelectedOption("saved")}
-        >
-          <View style={styles.savedCardIconBox}>
-            <Text style={styles.savedCardIconText}>VISA</Text>
-          </View>
-          <Text style={styles.sheetCardText}>**** 0022</Text>
-        </Pressable>
-
-        <Text style={styles.sheetSectionLabel}>New Payment Method</Text>
-        <Pressable
-          style={[
-            styles.sheetCardRow,
-            selectedOption === "new" && styles.sheetCardRowSelected,
-          ]}
-          onPress={() => setSelectedOption("new")}
-        >
-          <View style={styles.newCardIconBox}>
-            <Feather name="credit-card" size={18} color={Colors.light.green} />
-          </View>
-          <Text style={styles.sheetCardText}>New Card</Text>
-        </Pressable>
-
-        <View style={styles.sheetButtonContainer}>
-          <PrimaryButton text="CONTINUE" onPress={handleContinue} />
-        </View>
-      </BottomSheetWrapper>
-
-      {/* ── Bottom Sheet 2: Add New Card ── */}
-      <BottomSheetWrapper
-        ref={newCardSheetRef}
-        snapPoints={["80%"]}
-        bgColor={Colors.light.blackBackground}
-      >
-        <View style={styles.newCardSheetHeader}>
-          <Pressable onPress={() => newCardSheetRef.current?.close()}>
-            <View style={styles.backCircle}>
-              <Feather
-                name="chevron-left"
-                size={20}
-                color={Colors.light.white}
-              />
-            </View>
-          </Pressable>
-          <Text style={styles.newCardSheetTitle}>Add New Card</Text>
-        </View>
-
-        <View style={styles.sectionHeaderRow}>
-          <Text style={styles.sectionTitle}>Card Information</Text>
-          <Pressable style={styles.scanCardContainer}>
-            <Feather name="camera" size={14} color={Colors.light.green} />
-            <Text style={styles.scanCardText}>Scan Card</Text>
-          </Pressable>
-        </View>
-
-        <View style={styles.cardInputContainer}>
-          <View style={styles.cardInputTop}>
-            <TextInput
-              style={styles.cardInput}
-              placeholder="Card Number"
-              placeholderTextColor={Colors.light.icon}
-              value={cardNumber}
-              onChangeText={setCardNumber}
-              keyboardType="numeric"
-              maxLength={19}
-            />
-            <View style={styles.cardIconsRow}>
-              <View style={styles.cardIconBox}>
-                <Text style={styles.cardIconText}>VISA</Text>
-              </View>
-              <View style={styles.cardIconBox}>
-                <Text style={styles.cardIconText}>MC</Text>
-              </View>
-              <View style={styles.cardIconBox}>
-                <Text style={styles.cardIconText}>DIS</Text>
-              </View>
-              <View style={styles.cardIconBox}>
-                <Text style={styles.cardIconText}>AMX</Text>
-              </View>
-            </View>
-          </View>
-          <View style={styles.cardInputBottom}>
-            <View style={styles.halfInputBox}>
-              <TextInput
-                style={styles.cardInput}
-                placeholder="MM/YY"
-                placeholderTextColor={Colors.light.icon}
-                value={expiry}
-                onChangeText={setExpiry}
-                maxLength={5}
-              />
-              <Feather name="calendar" size={16} color={Colors.light.icon} />
-            </View>
-            <View style={[styles.halfInputBox, styles.halfInputBoxRight]}>
-              <TextInput
-                style={styles.cardInput}
-                placeholder="xxx"
-                placeholderTextColor={Colors.light.icon}
-                value={cvc}
-                onChangeText={setCvc}
-                keyboardType="numeric"
-                maxLength={4}
-                secureTextEntry
-              />
-            </View>
-          </View>
-        </View>
-
-        <Text style={styles.inputLabel}>Cardholder Name</Text>
-        <TextInput
-          style={styles.inputBox}
-          placeholder="Cardholder Name"
-          placeholderTextColor={Colors.light.icon}
-          value={cardholderName}
-          onChangeText={setCardholderName}
-        />
-
-        <Text style={styles.inputLabel}>Country</Text>
-        <Pressable style={styles.dropdownBox}>
-          <View style={styles.dropdownLeft}>
-            <Text style={{ fontSize: 16 }}>🇶🇦</Text>
-            <Text style={styles.dropdownText}>Qatar</Text>
-          </View>
-          <Feather name="chevron-down" size={20} color={Colors.light.white} />
-        </Pressable>
-
-        <Pressable
-          style={styles.checkboxRow}
-          onPress={() => setSavePayment(!savePayment)}
-        >
-          <View
-            style={[
-              styles.checkboxBox,
-              savePayment && styles.checkboxBoxSelected,
-            ]}
-          >
-            {savePayment && (
-              <Feather name="check" size={14} color={Colors.light.white} />
-            )}
-          </View>
-          <Text style={styles.checkboxText}>
-            Save payment details to Badr for future purchases
-          </Text>
-        </Pressable>
-
-        <View style={styles.sheetButtonContainer}>
-          <PrimaryButton
-            text="CONTINUE"
-            onPress={() => {
-              if (newCardValid) {
-                setCardMode("new");
-                newCardSheetRef.current?.close();
-              }
-            }}
-            style={newCardValid ? undefined : styles.completeButton}
-          />
-        </View>
-      </BottomSheetWrapper>
+      <AddNewCardBottomSheet
+        newCardSheetRef={newCardSheetRef}
+        cardNumber={cardNumber}
+        setCardNumber={setCardNumber}
+        expiry={expiry}
+        setExpiry={setExpiry}
+        cvc={cvc}
+        setCvc={setCvc}
+        cardholderName={cardholderName}
+        setCardholderName={setCardholderName}
+        savePayment={savePayment}
+        setSavePayment={setSavePayment}
+        newCardValid={newCardValid}
+        handleContinue={() => {
+          if (newCardValid) {
+            setCardMode("new");
+            newCardSheetRef.current?.close();
+          }
+        }}
+      />
     </BlackScreenWrapper>
   );
 }

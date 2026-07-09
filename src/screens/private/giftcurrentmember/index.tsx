@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, Pressable, TextInput, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
+import { View, Text, Pressable, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
 import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
 import PrimaryButton from "@/components/atoms/Primary-button";
 import SecondaryButton from "@/components/atoms/Secondary-button";
@@ -7,19 +7,42 @@ import { Colors } from "@/constants/theme";
 import { Feather } from "@expo/vector-icons";
 import { giftCurrentMemberStyles as styles } from "./style";
 import { useRouter } from "expo-router";
+import PlanOptionCard from "./components/PlanOptionCard";
+import CustomTextInput from "@/components/atoms/CustomTextInput";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useValidations } from "@/src/validations/useValidations";
+import { fonts } from "@/assets/fonts";
+import { TopSpace } from "@/components/atoms/TopSpace";
 
 type Plan = "1_month" | "3_months" | "6_months" | null;
 type DeliveryMethod = "recipient" | "me";
+
+const PLAN_OPTIONS: { id: "1_month" | "3_months" | "6_months"; label: string; price: string }[] = [
+  { id: "1_month", label: "1 Month", price: "$9.99" },
+  { id: "3_months", label: "3 Months", price: "$29.99" },
+  { id: "6_months", label: "6 Months", price: "$54.99" },
+];
 
 export default function GiftCurrentMemberScreen() {
   const router = useRouter();
   const [step, setStep] = useState<1 | 2>(1);
   const [selectedPlan, setSelectedPlan] = useState<Plan>(null);
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>("recipient");
-  const [recipientName, setRecipientName] = useState("");
-  const [recipientEmail, setRecipientEmail] = useState("");
-  const [personalMessage, setPersonalMessage] = useState("");
-  const [yourName, setYourName] = useState("");
+  const { giftCurrentMemberSchema } = useValidations()
+  const { control, watch, handleSubmit } = useForm({
+    resolver: zodResolver(giftCurrentMemberSchema),
+    mode: "onChange",
+    reValidateMode: "onChange",
+    defaultValues: {
+      recipientName: "",
+      recipientEmail: "",
+      personalMessage: "",
+      yourName: "",
+    },
+
+  });
+  const { recipientName = "", recipientEmail = "", personalMessage = "", yourName = "" } = watch();
 
   const handleNext = () => {
     if (step === 1 && selectedPlan) {
@@ -55,8 +78,8 @@ export default function GiftCurrentMemberScreen() {
 
   return (
     <BlackScreenWrapper>
-      <KeyboardAvoidingView 
-        style={styles.flex1} 
+      <KeyboardAvoidingView
+        style={styles.flex1}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
         <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
@@ -76,38 +99,16 @@ export default function GiftCurrentMemberScreen() {
                 </View>
 
                 <View style={styles.optionsContainer}>
-                  <Pressable
-                    style={[
-                      styles.optionCard,
-                      selectedPlan === "1_month" && styles.optionCardSelected,
-                    ]}
-                    onPress={() => setSelectedPlan("1_month")}
-                  >
-                    <Text style={styles.optionDuration}>1 Month</Text>
-                    <Text style={styles.optionPrice}>$9.99</Text>
-                  </Pressable>
-
-                  <Pressable
-                    style={[
-                      styles.optionCard,
-                      selectedPlan === "3_months" && styles.optionCardSelected,
-                    ]}
-                    onPress={() => setSelectedPlan("3_months")}
-                  >
-                    <Text style={styles.optionDuration}>3 Months</Text>
-                    <Text style={styles.optionPrice}>$29.99</Text>
-                  </Pressable>
-
-                  <Pressable
-                    style={[
-                      styles.optionCard,
-                      selectedPlan === "6_months" && styles.optionCardSelected,
-                    ]}
-                    onPress={() => setSelectedPlan("6_months")}
-                  >
-                    <Text style={styles.optionDuration}>6 Months</Text>
-                    <Text style={styles.optionPrice}>$54.99</Text>
-                  </Pressable>
+                  {PLAN_OPTIONS.map((option) => (
+                    <PlanOptionCard
+                      key={option.id}
+                      id={option.id}
+                      label={option.label}
+                      price={option.price}
+                      selected={selectedPlan === option.id}
+                      onPress={() => setSelectedPlan(option.id)}
+                    />
+                  ))}
                 </View>
               </>
             )}
@@ -145,61 +146,65 @@ export default function GiftCurrentMemberScreen() {
 
                 {deliveryMethod === "recipient" ? (
                   <>
-                    <Text style={styles.inputLabel}>Name</Text>
-                    <TextInput
-                      style={styles.input}
+                    <CustomTextInput
+                      label="Name"
                       placeholder="Enter recipient name"
-                      placeholderTextColor={Colors.light.icon}
-                      value={recipientName}
-                      onChangeText={setRecipientName}
+                      control={control}
+                      name="recipientName"
+                      inputStyle={styles.input}
                     />
+<TopSpace top={20} />
 
-                    <Text style={styles.inputLabel}>Email Address</Text>
-                    <TextInput
-                      style={styles.input}
+                    <CustomTextInput
+                      label="Email Address"
                       placeholder="Enter recipient email address"
-                      placeholderTextColor={Colors.light.icon}
-                      value={recipientEmail}
-                      onChangeText={setRecipientEmail}
+                      control={control}
+                      name="recipientEmail"
+                      inputStyle={styles.input}
                       keyboardType="email-address"
                       autoCapitalize="none"
                     />
-
-                    <Text style={styles.inputLabel}>Personalized Message</Text>
-                    <View style={styles.multilineInputContainer}>
-                      <TextInput
-                        style={styles.multilineInputInner}
-                        placeholder="Write a short message to make it special."
-                        placeholderTextColor={Colors.light.icon}
-                        value={personalMessage}
-                        onChangeText={setPersonalMessage}
-                        multiline
-                      />
-                      <PrimaryButton
-                        text="NEXT"
-                        onPress={handleNext}
-                        style={isStep2Valid() ? undefined : styles.nextButtonInactiveGray}
-                      />
-                    </View>
+<TopSpace top={20} />
+                    <CustomTextInput
+                      placeholder="Write a short message to make it special."
+                      control={control}
+                      name="personalMessage"
+                      inputStyle={{
+                          color: Colors.light.white,
+   fontFamily: fonts.primary.medium,
+   fontSize: 14,
+  textAlignVertical: "top",
+                      }}
+                      multiline
+                      label="Personalized Message"
+                      containerStyle= {{
+                        marginBottom:30,
+                        height: 300,
+                      }}
+                      numberOfLines={4}
+                    />
+                    <PrimaryButton
+                      text="NEXT"
+                      onPress={handleSubmit(handleNext)}
+                      style={isStep2Valid() ? undefined : styles.nextButtonInactiveGray}
+                    />
                   </>
                 ) : (
                   <>
-                    <Text style={styles.inputLabel}>Your Name</Text>
-                    <TextInput
-                      style={styles.input}
+                    <CustomTextInput
+                      label="Your Name"
                       placeholder="Layla Najia"
-                      placeholderTextColor={Colors.light.icon}
-                      value={yourName}
-                      onChangeText={setYourName}
+                      control={control}
+                      name="yourName"
+                      inputStyle={styles.input}
                     />
 
-                    <Text style={styles.inputLabel}>Email Address</Text>
-                    <TextInput
-                      style={styles.input}
+                    <CustomTextInput
+                      label="Email Address"
                       placeholder="layla.najia@gmail.com"
-                      placeholderTextColor={Colors.light.icon}
-                      value={recipientEmail}
-                      onChangeText={setRecipientEmail}
+                      control={control}
+                      name="recipientEmail"
+                      inputStyle={styles.input}
                       keyboardType="email-address"
                       autoCapitalize="none"
                     />
