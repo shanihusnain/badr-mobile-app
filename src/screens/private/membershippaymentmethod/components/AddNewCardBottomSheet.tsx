@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, Pressable } from "react-native";
 import { Colors } from "@/constants/theme";
 import { Feather } from "@expo/vector-icons";
 import { BottomSheetWrapper } from "@/components/molecules/BottomSheetWrapper";
 import PrimaryButton from "@/components/atoms/Primary-button";
 import CustomTextInput from "@/components/atoms/CustomTextInput";
+import CustomDropdown from "@/components/atoms/CustomDropdown";
 import BottomSheet from "@gorhom/bottom-sheet";
 import { paymentStyles as styles } from "../style";
 
@@ -25,6 +26,11 @@ type AddNewCardBottomSheetProps = {
 };
 
 const cardBrandLabels = ["VISA", "MC", "DIS", "AMX"];
+const countryOptions = [
+  { label: "Qatar", value: "Qatar", icon: "🇶🇦" },
+  { label: "United Arab Emirates", value: "United Arab Emirates", icon: "🇦🇪" },
+  { label: "Saudi Arabia", value: "Saudi Arabia", icon: "🇸🇦" },
+];
 
 export default function AddNewCardBottomSheet({
   newCardSheetRef,
@@ -41,6 +47,8 @@ export default function AddNewCardBottomSheet({
   newCardValid,
   handleContinue,
 }: AddNewCardBottomSheetProps) {
+  const [selectedCountry, setSelectedCountry] = useState("Qatar");
+
   return (
     <BottomSheetWrapper
       ref={newCardSheetRef}
@@ -108,22 +116,25 @@ export default function AddNewCardBottomSheet({
         </View>
       </View>
 
-      <Text style={styles.inputLabel}>Cardholder Name</Text>
       <CustomTextInput
+        label="Cardholder Name"
         placeholder="Cardholder Name"
         value={cardholderName}
         onChangeText={setCardholderName}
         inputStyle={styles.inputBox}
+        labelStyle={styles.inputLabel}
       />
 
-      <Text style={styles.inputLabel}>Country</Text>
-      <Pressable style={styles.dropdownBox}>
-        <View style={styles.dropdownLeft}>
-          <Text style={{ fontSize: 16 }}>🇶🇦</Text>
-          <Text style={styles.dropdownText}>Qatar</Text>
-        </View>
-        <Feather name="chevron-down" size={20} color={Colors.light.white} />
-      </Pressable>
+      <CustomDropdown
+        label="Country"
+        labelStyle={styles.inputLabel}
+        placeholder="Select country"
+        options={countryOptions}
+        value={selectedCountry}
+        onSelect={setSelectedCountry}
+        containerStyle={styles.dropdownBox}
+        selectedTextStyle={styles.dropdownText}
+      />
 
       <Pressable
         style={styles.checkboxRow}

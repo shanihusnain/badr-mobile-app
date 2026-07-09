@@ -1,6 +1,6 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Controller } from "react-hook-form";
 import {
   StyleSheet,
@@ -17,6 +17,7 @@ import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 interface Option {
   label: string;
   value: string | number;
+  icon?: string;
 }
 
 interface CustomDropdownProps {
@@ -30,8 +31,9 @@ interface CustomDropdownProps {
   optionTextStyle?: TextStyle;
   selectedTextStyle?: TextStyle;
   errors?: string[];
-  control: any;
-  name: string;
+  control?: any;
+  name?: string;
+  value?: string | number;
   onSelect?: (value: any) => void;
   borderColor?: string;
 }
@@ -49,116 +51,143 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
   errors = [],
   control,
   name,
+  value: controlledValue,
   onSelect,
   borderColor,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [selectedValue, setSelectedValue] = useState<string | number | undefined>(controlledValue);
 
-  return (
-    <Controller
-      control={control}
-      name={name}
-      render={({ field: { onChange, value } }) => {
-        const handleSelect = (itemValue: any) => {
-          onChange(itemValue);
-          setIsOpen(false);
-          if (onSelect) onSelect(itemValue);
-        };
+  useEffect(() => {
+    if (controlledValue !== undefined) {
+      setSelectedValue(controlledValue);
+    }
+  }, [controlledValue]);
 
-        const getDisplayLabel = (): string => {
-          if (value === undefined || value === null || value === "")
-            return placeholder;
-          const found = options.find((opt) =>
-            typeof opt === "string" ? opt === value : opt.value === value,
-          );
-          if (!found) return value;
-          return typeof found === "string" ? found : found.label;
-        };
+  const renderDropdown = (
+    currentValue: string | number | undefined,
+    onChange?: (value: any) => void,
+  ) => {
+    const handleSelect = (itemValue: any) => {
+      if (onChange) onChange(itemValue);
+      else setSelectedValue(itemValue);
+      setIsOpen(false);
+      if (onSelect) onSelect(itemValue);
+    };
 
-        return (
-          <View style={styles.wrapper}>
-            {label ? (
-              <Text style={[styles.label, labelStyle]}>{label}</Text>
+    const getSelectedOption = () => {
+      return options.find((opt) =>
+        typeof opt === "string" ? opt === currentValue : opt.value === currentValue,
+      );
+    };
+
+    const selectedOption = getSelectedOption();
+
+    const getDisplayLabel = (): string => {
+      if (currentValue === undefined || currentValue === null || currentValue === "")
+        return placeholder;
+      if (!selectedOption) return String(currentValue);
+      return typeof selectedOption === "string" ? selectedOption : selectedOption.label;
+    };
+
+    return (
+      <View style={styles.wrapper}>
+        {label ? <Text style={[styles.label, labelStyle]}>{label}</Text> : null}
+
+        <TouchableOpacity
+          style={[
+            styles.trigger,
+            containerStyle,
+            {
+              borderColor: isOpen ? Colors.light.green : "transparent",
+              borderWidth: isOpen ? 1 : 0,
+            },
+          ]}
+          onPress={() => setIsOpen((prev) => !prev)}
+          activeOpacity={0.8}
+        >
+          <View style={styles.triggerContent}>
+            {selectedOption && typeof selectedOption !== "string" && selectedOption.icon ? (
+              <Text style={styles.optionIcon}>{selectedOption.icon}</Text>
             ) : null}
-
-            <TouchableOpacity
+            <Text
               style={[
-                styles.trigger,
-                containerStyle,
-                {
-                  borderColor: isOpen ? Colors.light.green : "transparent",
-                  borderWidth: isOpen ? 1 : 0,
-                },
+                styles.triggerText,
+                selectedTextStyle,
+                !currentValue && { color: Colors.light.icon },
               ]}
-              onPress={() => setIsOpen((prev) => !prev)}
-              activeOpacity={0.8}
             >
-              <Text
-                style={[
-                  styles.triggerText,
-                  selectedTextStyle,
-                  !value && { color: Colors.light.icon },
-                ]}
-              >
-                {getDisplayLabel()}
-              </Text>
-              <Text style={styles.icon}>{isOpen ? "▲" : "▼"}</Text>
-            </TouchableOpacity>
-
-            {isOpen && (
-              <ScrollView
-                // allow inner scroll when inside another scrollable parent
-                nestedScrollEnabled={true}
-                keyboardShouldPersistTaps="handled"
-                showsVerticalScrollIndicator={true}
-                style={[
-                  styles.menu,
-                  menuStyle,
-                  {
-                    maxHeight: 300,
-                  },
-                ]}
-              >
-                {options.map((item, index) => {
-                  const itemLabel =
-                    typeof item === "string" ? item : item.label;
-                  const itemValue =
-                    typeof item === "string" ? item : item.value;
-                  const isSelected = value === itemValue;
-
-                  return (
-                    <TouchableOpacity
-                      key={index}
-                      style={[styles.option, optionStyle]}
-                      onPress={() => handleSelect(itemValue)}
-                      activeOpacity={0.7}
-                    >
-                      <View style={styles.radioOuter}>
-                        {isSelected && <View style={styles.radioInner} />}
-                      </View>
-                      <Text style={[styles.optionText, optionTextStyle]}>
-                        {itemLabel}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
-            )}
-
-            {errors.length > 0 && (
-              <View style={{ marginTop: 5 }}>
-                {errors.map((error, index) => (
-                  <Text key={index} style={styles.errorText}>
-                    {error}
-                  </Text>
-                ))}
-              </View>
-            )}
+              {getDisplayLabel()}
+            </Text>
           </View>
-        );
-      }}
-    />
-  );
+          <Text style={styles.icon}>{isOpen ? "▲" : "▼"}</Text>
+        </TouchableOpacity>
+
+        {isOpen && (
+          <ScrollView
+            nestedScrollEnabled={true}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={true}
+            style={[
+              styles.menu,
+              menuStyle,
+              {
+                maxHeight: 300,
+              },
+            ]}
+          >
+            {options.map((item, index) => {
+              const itemLabel = typeof item === "string" ? item : item.label;
+              const itemValue = typeof item === "string" ? item : item.value;
+              const itemIcon = typeof item === "string" ? undefined : item.icon;
+              const isSelected = currentValue === itemValue;
+
+              return (
+                <TouchableOpacity
+                  key={index}
+                  style={[styles.option, optionStyle]}
+                  onPress={() => handleSelect(itemValue)}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.radioOuter}>
+                    {isSelected && <View style={styles.radioInner} />}
+                  </View>
+                  {itemIcon ? <Text style={styles.optionIcon}>{itemIcon}</Text> : null}
+                  <Text style={[styles.optionText, optionTextStyle]}>
+                    {itemLabel}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        )}
+
+        {errors.length > 0 && (
+          <View style={{ marginTop: 5 }}>
+            {errors.map((error, index) => (
+              <Text key={index} style={styles.errorText}>
+                {error}
+              </Text>
+            ))}
+          </View>
+        )}
+      </View>
+    );
+  };
+
+  if (control && name) {
+    return (
+      <Controller
+        control={control}
+        name={name}
+        render={({ field: { onChange, value } }) =>
+          renderDropdown(value, (itemValue) => onChange(itemValue))
+        }
+      />
+    );
+  }
+
+  return renderDropdown(selectedValue);
 };
 
 const styles = StyleSheet.create({
@@ -187,11 +216,20 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: Colors.light.green,
   },
+  triggerContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
   triggerText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
     fontSize: 12,
     flex: 1,
+  },
+  optionIcon: {
+    fontSize: 14,
+    marginRight: 6,
   },
   icon: {
     color: Colors.light.white,

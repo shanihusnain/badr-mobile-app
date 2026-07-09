@@ -7,7 +7,9 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Alert,
 } from "react-native";
+import CustomTextInput from "@/components/atoms/CustomTextInput";
 import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
 import PrimaryButton from "@/components/atoms/Primary-button";
 import { Colors } from "@/constants/theme";
@@ -59,10 +61,12 @@ export default function GiftPersonalDetailsScreen() {
   };
 
   const handleNext = () => {
-    router.push({
-      pathname: "/(private)/membershippaymentmethod",
-      params: { mode: "saved", quantity },
-    });
+    if (!isFormValid()) return;
+    try {
+      router.push(`/(private)/membershippaymentmethod?mode=saved&quantity=${quantity}` as any);
+    } catch (e: any) {
+      Alert.alert("Navigation Error", e.message || "Failed to navigate");
+    }
   };
 
   return (
@@ -125,21 +129,21 @@ export default function GiftPersonalDetailsScreen() {
           {deliveryMethod === "me" ? (
             <View style={styles.recipientBlock}>
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Your Name</Text>
-                <TextInput
-                  style={styles.input}
+                <CustomTextInput
+                  label="Your Name"
+                  labelStyle={styles.inputLabel}
+                  inputStyle={styles.input}
                   placeholder="Enter your name"
-                  placeholderTextColor={Colors.light.placeholder}
                   value={yourName}
                   onChangeText={setYourName}
                 />
               </View>
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Email Address</Text>
-                <TextInput
-                  style={styles.input}
+                <CustomTextInput
+                  label="Email Address"
+                  labelStyle={styles.inputLabel}
+                  inputStyle={styles.input}
                   placeholder="Enter your email address"
-                  placeholderTextColor={Colors.light.placeholder}
                   value={yourEmail}
                   onChangeText={setYourEmail}
                   keyboardType="email-address"
@@ -155,22 +159,22 @@ export default function GiftPersonalDetailsScreen() {
                 )}
 
                 <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>Name</Text>
-                  <TextInput
-                    style={styles.input}
+                  <CustomTextInput
+                    label="Name"
+                    labelStyle={styles.inputLabel}
+                    inputStyle={styles.input}
                     placeholder="Enter recipient name"
-                    placeholderTextColor={Colors.light.placeholder}
                     value={recipient.name}
                     onChangeText={(text) => updateRecipient(index, "name", text)}
                   />
                 </View>
 
                 <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>Email Address</Text>
-                  <TextInput
-                    style={styles.input}
+                  <CustomTextInput
+                    label="Email Address"
+                    labelStyle={styles.inputLabel}
+                    inputStyle={styles.input}
                     placeholder="Enter recipient email address"
-                    placeholderTextColor={Colors.light.placeholder}
                     value={recipient.email}
                     onChangeText={(text) => updateRecipient(index, "email", text)}
                     keyboardType="email-address"
@@ -179,11 +183,12 @@ export default function GiftPersonalDetailsScreen() {
                 </View>
 
                 <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>Personalized Message</Text>
-                  <TextInput
-                    style={styles.textArea}
+                  <CustomTextInput
+                    label="Personalized Message"
+                    labelStyle={styles.inputLabel}
+                    inputStyle={styles.textArea}
+                    containerStyle={{ height: 100 }}
                     placeholder="Write a short message to make it special."
-                    placeholderTextColor={Colors.light.placeholder}
                     value={recipient.message}
                     onChangeText={(text) => updateRecipient(index, "message", text)}
                     multiline
@@ -197,7 +202,7 @@ export default function GiftPersonalDetailsScreen() {
             <PrimaryButton
               text="NEXT"
               onPress={handleNext}
-              style={isFormValid() ? undefined : { backgroundColor: "#156345" }}
+              style={isFormValid() ? undefined : { backgroundColor: Colors.light.inactivegreen }}
             />
           </View>
         </ScrollView>
