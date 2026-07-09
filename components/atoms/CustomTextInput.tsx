@@ -36,6 +36,7 @@ interface CustomTextInputProps {
   maxLength?: number;
   editable?: boolean;
   selectTextOnFocus?: boolean;
+  numberOfLines?: number;
 }
 
 const CustomTextInput: React.FC<CustomTextInputProps> = ({
@@ -59,6 +60,7 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
   maxLength,
   editable,
   selectTextOnFocus,
+  numberOfLines,
 }) => {
   const { i18n } = useTranslation();
   const isRtl = i18n.language === "ar";
@@ -72,13 +74,14 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
           {label ? (
             <Text style={[styles.label, labelStyle]}>{label}</Text>
           ) : null}
-          <View style={[styles.inputWrapper, containerStyle]}>
+          <View style={[styles.inputWrapper, containerStyle, multiline && styles.multilineInputWrapper]}>
             <View style={styles.flex1}>
               <TextInput
                 style={[
                   styles.input,
                   { textAlign: isRtl ? "right" : "left" },
                   secureTextEntry && { fontFamily: undefined },
+                  multiline && styles.multilineTextInput,
                   inputStyle,
                 ]}
                 placeholder={placeholder}
@@ -92,6 +95,8 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
                 maxLength={maxLength}
                 editable={editable}
                 selectTextOnFocus={selectTextOnFocus}
+                numberOfLines={numberOfLines}
+                textAlignVertical={multiline ? "top" : "center"}
               />
             </View>
             {showEye && onToggleEye && (
@@ -149,6 +154,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+  },
+  multilineInputWrapper: {
+    alignItems: "flex-start",
+    justifyContent: "flex-start",
+    paddingVertical: hp(1.1),
+  },
+  multilineTextInput: {
+    textAlignVertical: "top",
+    paddingTop: hp(0.4),
+    paddingBottom: hp(0.4),
   },
   label: {
     color: Colors.light.white,

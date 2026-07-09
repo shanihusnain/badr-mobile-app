@@ -1,6 +1,6 @@
 import z from "zod";
 import { useTranslation } from "react-i18next";
-import ForgotPasswordScreen from "../auth/forgotpassword";
+
 
 export const useValidations = () => {
   const { t } = useTranslation();
@@ -44,6 +44,12 @@ export const useValidations = () => {
         t("validations.mustContainSpecialChar"),
       ),
   });
+    const giftCurrentMemberSchema = z.object({
+    recipientName: z.string().min(1, t("validations.inputMissing")),
+    recipientEmail: z.string().min(1, t("validations.inputMissing")).email(t("validations.invalidEmail")),
+    personalMessage: z.string().min(1, t("validations.inputMissing")),
+    yourName: z.string().min(1, t("validations.inputMissing")),
+  })
   const forgotPasswordSchema = z.object({
     email: z.string().min(1, t("validations.inputMissing")).email(t("validations.invalidEmail")),
   });
@@ -72,6 +78,6 @@ export const useValidations = () => {
     loginSchema,
     forgotPasswordSchema,
     confirmPasswordSchema,
-
+    giftCurrentMemberSchema,
   }
 }

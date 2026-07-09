@@ -10,6 +10,10 @@ import { useRouter } from "expo-router";
 import PlanOptionCard from "./components/PlanOptionCard";
 import CustomTextInput from "@/components/atoms/CustomTextInput";
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useValidations } from "@/src/validations/useValidations";
+import { fonts } from "@/assets/fonts";
+import { TopSpace } from "@/components/atoms/TopSpace";
 
 type Plan = "1_month" | "3_months" | "6_months" | null;
 type DeliveryMethod = "recipient" | "me";
@@ -25,13 +29,18 @@ export default function GiftCurrentMemberScreen() {
   const [step, setStep] = useState<1 | 2>(1);
   const [selectedPlan, setSelectedPlan] = useState<Plan>(null);
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>("recipient");
-  const { control, watch } = useForm({
+  const { giftCurrentMemberSchema } = useValidations()
+  const { control, watch, handleSubmit } = useForm({
+    resolver: zodResolver(giftCurrentMemberSchema),
+    mode: "onChange",
+    reValidateMode: "onChange",
     defaultValues: {
       recipientName: "",
       recipientEmail: "",
       personalMessage: "",
       yourName: "",
     },
+
   });
   const { recipientName = "", recipientEmail = "", personalMessage = "", yourName = "" } = watch();
 
@@ -69,8 +78,8 @@ export default function GiftCurrentMemberScreen() {
 
   return (
     <BlackScreenWrapper>
-      <KeyboardAvoidingView 
-        style={styles.flex1} 
+      <KeyboardAvoidingView
+        style={styles.flex1}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
         <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
@@ -144,6 +153,7 @@ export default function GiftCurrentMemberScreen() {
                       name="recipientName"
                       inputStyle={styles.input}
                     />
+<TopSpace top={20} />
 
                     <CustomTextInput
                       label="Email Address"
@@ -154,22 +164,30 @@ export default function GiftCurrentMemberScreen() {
                       keyboardType="email-address"
                       autoCapitalize="none"
                     />
-
-                    <Text style={styles.inputLabel}>Personalized Message</Text>
-                    <View style={styles.multilineInputContainer}>
-                      <CustomTextInput
-                        placeholder="Write a short message to make it special."
-                        control={control}
-                        name="personalMessage"
-                        inputStyle={styles.multilineInputInner}
-                        multiline
-                      />
-                      <PrimaryButton
-                        text="NEXT"
-                        onPress={handleNext}
-                        style={isStep2Valid() ? undefined : styles.nextButtonInactiveGray}
-                      />
-                    </View>
+<TopSpace top={20} />
+                    <CustomTextInput
+                      placeholder="Write a short message to make it special."
+                      control={control}
+                      name="personalMessage"
+                      inputStyle={{
+                          color: Colors.light.white,
+   fontFamily: fonts.primary.medium,
+   fontSize: 14,
+  textAlignVertical: "top",
+                      }}
+                      multiline
+                      label="Personalized Message"
+                      containerStyle= {{
+                        marginBottom:30,
+                        height: 300,
+                      }}
+                      numberOfLines={4}
+                    />
+                    <PrimaryButton
+                      text="NEXT"
+                      onPress={handleSubmit(handleNext)}
+                      style={isStep2Valid() ? undefined : styles.nextButtonInactiveGray}
+                    />
                   </>
                 ) : (
                   <>
