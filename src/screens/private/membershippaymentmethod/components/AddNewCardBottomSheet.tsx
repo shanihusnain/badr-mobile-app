@@ -1,9 +1,10 @@
 import React from "react";
-import { View, Text, Pressable, TextInput } from "react-native";
+import { View, Text, Pressable } from "react-native";
 import { Colors } from "@/constants/theme";
 import { Feather } from "@expo/vector-icons";
 import { BottomSheetWrapper } from "@/components/molecules/BottomSheetWrapper";
 import PrimaryButton from "@/components/atoms/Primary-button";
+import CustomTextInput from "@/components/atoms/CustomTextInput";
 import BottomSheet from "@gorhom/bottom-sheet";
 import { paymentStyles as styles } from "../style";
 
@@ -22,6 +23,8 @@ type AddNewCardBottomSheetProps = {
   newCardValid: boolean;
   handleContinue: () => void;
 };
+
+const cardBrandLabels = ["VISA", "MC", "DIS", "AMX"];
 
 export default function AddNewCardBottomSheet({
   newCardSheetRef,
@@ -63,65 +66,54 @@ export default function AddNewCardBottomSheet({
 
       <View style={styles.cardInputContainer}>
         <View style={styles.cardInputTop}>
-          <TextInput
-            style={styles.cardInput}
+          <CustomTextInput
             placeholder="Card Number"
-            placeholderTextColor={Colors.light.icon}
             value={cardNumber}
             onChangeText={setCardNumber}
             keyboardType="numeric"
             maxLength={19}
+            inputStyle={styles.cardInput}
           />
           <View style={styles.cardIconsRow}>
-            <View style={styles.cardIconBox}>
-              <Text style={styles.cardIconText}>VISA</Text>
-            </View>
-            <View style={styles.cardIconBox}>
-              <Text style={styles.cardIconText}>MC</Text>
-            </View>
-            <View style={styles.cardIconBox}>
-              <Text style={styles.cardIconText}>DIS</Text>
-            </View>
-            <View style={styles.cardIconBox}>
-              <Text style={styles.cardIconText}>AMX</Text>
-            </View>
+            {cardBrandLabels.map((brand) => (
+              <View key={brand} style={styles.cardIconBox}>
+                <Text style={styles.cardIconText}>{brand}</Text>
+              </View>
+            ))}
           </View>
         </View>
 
         <View style={styles.cardInputBottom}>
           <View style={styles.halfInputBox}>
-            <TextInput
-              style={styles.cardInput}
+            <CustomTextInput
               placeholder="MM/YY"
-              placeholderTextColor={Colors.light.icon}
               value={expiry}
               onChangeText={setExpiry}
               maxLength={5}
+              inputStyle={styles.cardInput}
             />
             <Feather name="calendar" size={16} color={Colors.light.icon} />
           </View>
           <View style={[styles.halfInputBox, styles.halfInputBoxRight]}>
-            <TextInput
-              style={styles.cardInput}
+            <CustomTextInput
               placeholder="xxx"
-              placeholderTextColor={Colors.light.icon}
               value={cvc}
               onChangeText={setCvc}
               keyboardType="numeric"
               maxLength={4}
               secureTextEntry
+              inputStyle={styles.cardInput}
             />
           </View>
         </View>
       </View>
 
       <Text style={styles.inputLabel}>Cardholder Name</Text>
-      <TextInput
-        style={styles.inputBox}
+      <CustomTextInput
         placeholder="Cardholder Name"
-        placeholderTextColor={Colors.light.icon}
         value={cardholderName}
         onChangeText={setCardholderName}
+        inputStyle={styles.inputBox}
       />
 
       <Text style={styles.inputLabel}>Country</Text>

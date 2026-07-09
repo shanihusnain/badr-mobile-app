@@ -19,7 +19,7 @@ interface CustomTextInputProps {
   label?: string;
   placeholder: string;
   value?: string;
-  // onChangeText: (text: string) => void;
+  onChangeText?: (text: string) => void;
   secureTextEntry?: boolean;
   showEye?: boolean;
   onToggleEye?: () => void;
@@ -28,8 +28,8 @@ interface CustomTextInputProps {
   containerStyle?: StyleProp<ViewStyle>;
   inputStyle?: StyleProp<TextStyle>;
   labelStyle?: StyleProp<TextStyle>;
-  control: any; // react-hook-form control
-  name: string; // name of the field for react-hook-form
+  control?: any; // optional for react-hook-form usage
+  name?: string; // optional for react-hook-form usage
   multiline?: boolean;
   keyboardType?: "default" | "email-address" | "numeric" | "phone-pad" | "number-pad" | "decimal-pad" | "visible-password" | "ascii-capable" | "name-phone-pad" | "twitter" | "web-search";
   autoCapitalize?: "none" | "sentences" | "words" | "characters";
@@ -43,7 +43,7 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
   label,
   placeholder,
   value,
-  // onChangeText,
+  onChangeText,
   secureTextEntry = false,
   showEye = false,
   onToggleEye,
@@ -65,60 +65,66 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
   const { i18n } = useTranslation();
   const isRtl = i18n.language === "ar";
 
-  return (
-    <Controller
-      name={name}
-      control={control}
-      render={({ field: { onChange, onBlur, value } }) => (
-        <View style={styles.wrapper}>
-          {label ? (
-            <Text style={[styles.label, labelStyle]}>{label}</Text>
-          ) : null}
-          <View style={[styles.inputWrapper, containerStyle, multiline && styles.multilineInputWrapper]}>
-            <View style={styles.flex1}>
-              <TextInput
-                style={[
-                  styles.input,
-                  { textAlign: isRtl ? "right" : "left" },
-                  secureTextEntry && { fontFamily: undefined },
-                  multiline && styles.multilineTextInput,
-                  inputStyle,
-                ]}
-                placeholder={placeholder}
-                placeholderTextColor={Colors.light.icon}
-                value={value}
-                onChangeText={onChange}
-                secureTextEntry={secureTextEntry}
-                multiline={multiline}
-                keyboardType={keyboardType}
-                autoCapitalize={autoCapitalize}
-                maxLength={maxLength}
-                editable={editable}
-                selectTextOnFocus={selectTextOnFocus}
-                numberOfLines={numberOfLines}
-                textAlignVertical={multiline ? "top" : "center"}
-              />
-            </View>
-            {showEye && onToggleEye && (
-              <TouchableOpacity onPress={onToggleEye}>
-                <AntDesign
-                  name={secureTextEntry ? "eye-invisible" : "eye"}
-                  size={20}
-                  color={Colors.light.white}
-                />
-              </TouchableOpacity>
-            )}
-          </View>
-          {errors.length > 0 && (
-            <Text style={styles.errorMsg}>{errors.join(", ")}</Text>
-          )}
-          {success.length > 0 && (
-            <Text style={styles.successMsg}>{success.join(", ")}</Text>
-          )}
+  const renderInput = (fieldValue?: string, fieldOnChange?: (value: string) => void) => (
+    <View style={styles.wrapper}>
+      {label ? (
+        <Text style={[styles.label, labelStyle]}>{label}</Text>
+      ) : null}
+      <View style={[styles.inputWrapper, containerStyle, multiline && styles.multilineInputWrapper]}>
+        <View style={styles.flex1}>
+          <TextInput
+            style={[
+              styles.input,
+              { textAlign: isRtl ? "right" : "left" },
+              secureTextEntry && { fontFamily: undefined },
+              multiline && styles.multilineTextInput,
+              inputStyle,
+            ]}
+            placeholder={placeholder}
+            placeholderTextColor={Colors.light.icon}
+            value={fieldValue ?? value ?? ""}
+            onChangeText={fieldOnChange ?? onChangeText}
+            secureTextEntry={secureTextEntry}
+            multiline={multiline}
+            keyboardType={keyboardType}
+            autoCapitalize={autoCapitalize}
+            maxLength={maxLength}
+            editable={editable}
+            selectTextOnFocus={selectTextOnFocus}
+            numberOfLines={numberOfLines}
+            textAlignVertical={multiline ? "top" : "center"}
+          />
         </View>
+        {showEye && onToggleEye && (
+          <TouchableOpacity onPress={onToggleEye}>
+            <AntDesign
+              name={secureTextEntry ? "eye-invisible" : "eye"}
+              size={20}
+              color={Colors.light.white}
+            />
+          </TouchableOpacity>
+        )}
+      </View>
+      {errors.length > 0 && (
+        <Text style={styles.errorMsg}>{errors.join(", ")}</Text>
       )}
-    />
+      {success.length > 0 && (
+        <Text style={styles.successMsg}>{success.join(", ")}</Text>
+      )}
+    </View>
   );
+
+  if (control && name) {
+    return (
+      <Controller
+        name={name}
+        control={control}
+        render={({ field: { onChange, value } }) => renderInput(value, onChange)}
+      />
+    );
+  }
+
+  return renderInput();
 };
 const styles = StyleSheet.create({
   successMsg: {
