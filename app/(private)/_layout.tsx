@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import { HeaderWithCrossTitleDynamicIcon } from "@/components/atoms/HeaderWithCrossTitleDynamicIcon";
 import { ProtectedRoute } from "@/provider/ProtectedRoute";
 import { CrossHeader } from "@/components/atoms/CrossHeader";
+import { JournalFillingHeader } from "@/components/atoms/JournalFillingHeader";
 
 export default function PrivateLayout() {
   const { t } = useTranslation();
@@ -193,6 +194,14 @@ export default function PrivateLayout() {
           options={{
             headerShown: true,
             header: () => <CrossHeader />,
+          }}
+        />
+        <Stack.Screen
+          name="journalfilling"
+          options={{
+            headerShown: true,
+            headerTransparent: true,
+            header: () => <JournalFillingHeader />,
           }}
         />
       </Stack>

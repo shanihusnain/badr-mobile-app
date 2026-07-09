@@ -3530,5 +3530,17 @@
       "Fri",
       "Sat"
     ]
+  },
+  "journalFilling": {
+    "titleYesterday": "What happened yesterday,\n{{name}}?",
+    "titleOnDate": "What happened on {{weekday}},\n{{month}} {{day}}?",
+    "notesPlaceholder": "Add a note...",
+    "saveJournal": "SAVE JOURNAL",
+    "saveSuccess": "Journal saved successfully.",
+    "dismissDialogTitle": "Dismiss Journal",
+    "dismissDialogBody": "Completing your journal daily helps you work on your best self and track your progress. Changing \"Yes\" will discard your data.",
+    "dismissDialogCheckbox": "Don't show this message again",
+    "dismissDialogComplete": "No, Complete Journal",
+    "dismissDialogDismiss": "Yes, Dismiss Journal"
   }
 }

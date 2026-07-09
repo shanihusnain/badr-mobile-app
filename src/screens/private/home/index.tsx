@@ -214,6 +214,27 @@ export default function HomeScreen() {
     goldenBottomSheetRef.current?.expand();
   }, []);
 
+  const handleCompleteJournal = useCallback(() => {
+    router.push("/(private)/journalfilling");
+  }, [router]);
+
+  const handleJournalDayPress = useCallback(
+    (index: number) => {
+      const day = JournalingHistoryWeekDays[index];
+      if (!day?.date) return;
+      router.push({
+        pathname: "/(private)/journalfilling",
+        params: { date: day.date },
+      });
+    },
+    [router],
+  );
+
+  const handleJournalBehaviorInsightsPress = useCallback(() => {
+    console.log("handleJournalBehaviorInsightsPress");
+    router.push("/(tabs)/(plan)");
+  }, [router]);
+
   // Create translated welcome cards
   const translatedWelcomeCards = useMemo(
     () => [
@@ -665,7 +686,11 @@ export default function HomeScreen() {
             </View>
           </>
         )}
-        <JournalingHistoryWeekDashboard weekDays={JournalingHistoryWeekDays} />
+        <JournalingHistoryWeekDashboard
+          weekDays={JournalingHistoryWeekDays}
+          onDayPress={handleJournalDayPress}
+          onBehaviorInsightsPress={handleJournalBehaviorInsightsPress}
+        />
         {/* My Dashboard */}
         <View style={styles.dashboardSection}>
           <Text style={styles.dashboardText}>
@@ -751,6 +776,7 @@ export default function HomeScreen() {
       <HomeFabSpeedDial
         bottomInset={safeAreaInsets.bottom}
         onAddDailyProgress={handleAddDailyProgress}
+        onCompleteJournal={handleCompleteJournal}
       />
     </BlackScreenWrapper>
   );
