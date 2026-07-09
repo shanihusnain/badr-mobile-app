@@ -4,11 +4,11 @@ import {
   Text,
   ScrollView,
   Pressable,
-  TextInput,
   Image,
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
+import * as ImagePicker from "expo-image-picker";
 import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
 import { useForm } from "react-hook-form";
 import { Feather } from "@expo/vector-icons";
@@ -17,38 +17,64 @@ import { editProfileStyles as styles } from "./styles";
 import { useRouter } from "expo-router";
 import PrimaryButton from "@/components/atoms/Primary-button";
 import CustomDropdown from "@/components/atoms/CustomDropdown";
+import CustomDatePicker from "@/components/atoms/CustomDatePicker";
+import CustomTextInput from "@/components/atoms/CustomTextInput";
 import { useCreateAccountProps } from "@/src/screens/auth/createaccount/useCreateAccountProps";
 
 export default function EditProfileScreen() {
   const router = useRouter();
-
-  const [username, setUsername] = useState("Layla9");
-  const [firstName, setFirstName] = useState("Layla");
-  const [lastName, setLastName] = useState("Najia");
-  const [email, setEmail] = useState("layla.najia@gmail.com");
-  const [dob, setDob] = useState("17/06/1984");
+  const [profileImage, setProfileImage] = useState<string | null>(null);
 
   const { genders, countries } = useCreateAccountProps();
   const { control, watch } = useForm({
     defaultValues: {
+      username: "Layla9",
+      firstName: "Layla",
+      lastName: "Najia",
+      email: "layla.najia@gmail.com",
+      dob: "17/06/1984",
       country: "Qatar",
       gender: "Female",
     },
   });
 
-  const watchedCountry = watch("country");
-  const watchedGender = watch("gender");
+  const [username, firstName, lastName, email, dob, watchedCountry, watchedGender] = watch([
+    "username",
+    "firstName",
+    "lastName",
+    "email",
+    "dob",
+    "country",
+    "gender",
+  ]);
+
+  const pickCameraImage = async () => {
+    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+    if (permissionResult.granted === false) {
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      setProfileImage(result.assets[0].uri);
+    }
+  };
 
   const handleBack = () => {
     router.back();
   };
 
   const isFormComplete =
-    username.trim().length > 0 &&
-    firstName.trim().length > 0 &&
-    lastName.trim().length > 0 &&
-    email.trim().length > 0 &&
-    dob.trim().length > 0 &&
+    (username ?? "").trim().length > 0 &&
+    (firstName ?? "").trim().length > 0 &&
+    (lastName ?? "").trim().length > 0 &&
+    (email ?? "").trim().length > 0 &&
+    (dob ?? "").trim().length > 0 &&
     (watchedCountry ?? "").trim().length > 0 &&
     (watchedGender ?? "").trim().length > 0;
 
@@ -71,76 +97,80 @@ export default function EditProfileScreen() {
         >
           <View style={styles.profileImageContainer}>
             <Image
-              source={require("@/assets/images/icon.png")} // Placeholder
+              source={
+                profileImage
+                  ? { uri: profileImage }
+                  : require("@/assets/images/icon.png")
+              }
               style={styles.profileImage}
             />
-            <Pressable style={styles.cameraButton}>
+            <Pressable style={styles.cameraButton} onPress={pickCameraImage}>
               <Feather name="camera" size={16} color={Colors.light.white} />
             </Pressable>
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Username</Text>
-            <View style={[styles.inputBox, styles.disabledInputBox]}>
-              <TextInput
-                style={[styles.inputText, styles.disabledInputText]}
-                value={username}
-                editable={false}
-                selectTextOnFocus={false}
-                placeholderTextColor={Colors.light.icon}
-              />
-            </View>
+            <CustomTextInput
+              label="Username"
+              placeholder="Username"
+              control={control}
+              name="username"
+              containerStyle={[styles.inputBox, styles.disabledInputBox]}
+              inputStyle={[styles.inputText, styles.disabledInputText]}
+              labelStyle={styles.label}
+              editable={false}
+              selectTextOnFocus={false}
+            />
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>First Name</Text>
-            <View style={styles.inputBox}>
-              <TextInput
-                style={styles.inputText}
-                value={firstName}
-                onChangeText={setFirstName}
-                placeholderTextColor={Colors.light.icon}
-              />
-            </View>
+            <CustomTextInput
+              label="First Name"
+              placeholder="First Name"
+              control={control}
+              name="firstName"
+              containerStyle={styles.inputBox}
+              inputStyle={styles.inputText}
+              labelStyle={styles.label}
+            />
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Last Name</Text>
-            <View style={styles.inputBox}>
-              <TextInput
-                style={styles.inputText}
-                value={lastName}
-                onChangeText={setLastName}
-                placeholderTextColor={Colors.light.icon}
-              />
-            </View>
+            <CustomTextInput
+              label="Last Name"
+              placeholder="Last Name"
+              control={control}
+              name="lastName"
+              containerStyle={styles.inputBox}
+              inputStyle={styles.inputText}
+              labelStyle={styles.label}
+            />
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Email Address</Text>
-            <View style={styles.inputBox}>
-              <TextInput
-                style={styles.inputText}
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                placeholderTextColor={Colors.light.icon}
-              />
-            </View>
+            <CustomTextInput
+              label="Email Address"
+              placeholder="Email Address"
+              control={control}
+              name="email"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              containerStyle={styles.inputBox}
+              inputStyle={styles.inputText}
+              labelStyle={styles.label}
+            />
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Date of Birth</Text>
-            <Pressable style={styles.inputBox}>
-              <Text style={styles.inputText}>{dob}</Text>
-              <Feather
-                name="calendar"
-                size={18}
-                color={Colors.light.icon}
-                style={styles.rightIcon}
-              />
-            </Pressable>
+            <CustomDatePicker
+              label="Date of Birth"
+              placeholder="Select your birth date"
+              control={control}
+              name="dob"
+              labelStyle={styles.label}
+              containerStyle={styles.inputBox}
+              textStyle={styles.inputText}
+            />
           </View>
 
           <View style={styles.inputGroup}>

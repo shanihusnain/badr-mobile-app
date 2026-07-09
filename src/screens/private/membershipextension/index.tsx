@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import { View, Text, Pressable } from "react-native";
+import { View, Text } from "react-native";
 import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
 import PrimaryButton from "@/components/atoms/Primary-button";
 import { Colors } from "@/constants/theme";
 import { membershipExtensionStyles as styles } from "./style";
 import { useRouter } from "expo-router";
+import MembershipPlanCard from "./components/MembershipPlanCard";
 
 type Plan = "3_months" | "6_months" | "12_months" | "24_months" | null;
 
@@ -73,44 +74,16 @@ export default function MembershipExtensionScreen() {
     <BlackScreenWrapper>
       <View style={styles.container}>
         <Text style={styles.subtitle}>
-          Add extra months to your membership and lock{"\n"}in membership
-          savings.
+          Add extra months to your membership and lock in membership savings.
         </Text>
 
         {PLANS.map((plan) => (
-          <Pressable
+          <MembershipPlanCard
             key={plan.id}
-            style={[
-              styles.planCard,
-              selectedPlan === plan.id && styles.planCardSelected,
-            ]}
+            plan={plan}
+            isSelected={selectedPlan === plan.id}
             onPress={() => handlePlanSelect(plan.id)}
-          >
-            {plan.popular && (
-              <View style={styles.popularBadge}>
-                <Text style={styles.popularBadgeText}>POPULAR</Text>
-              </View>
-            )}
-
-            <View
-              style={[
-                styles.radioCircle,
-                selectedPlan === plan.id && styles.radioCircleSelected,
-              ]}
-            >
-              {selectedPlan === plan.id && <View style={styles.radioInner} />}
-            </View>
-
-            <View style={styles.planInfo}>
-              <Text style={styles.planDuration}>{plan.duration}</Text>
-              <Text style={styles.planSave}>{plan.save}</Text>
-            </View>
-
-            <View style={styles.planPriceBlock}>
-              <Text style={styles.planPrice}>{plan.price}</Text>
-              <Text style={styles.planPerMonth}>{plan.perMonth}</Text>
-            </View>
-          </Pressable>
+          />
         ))}
 
         <View style={styles.bottomSection}>

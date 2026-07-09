@@ -9,11 +9,11 @@ export const giftNewMemberStyles = StyleSheet.create({
     },
     container: {
         flex: 1,
-       // paddingHorizontal: 24,
+        // paddingHorizontal: 24,
     },
     header: {
         marginTop: 40,
-        marginBottom: 40,
+        marginBottom: 22,
     },
     content: {
         alignItems: "center",
@@ -23,7 +23,7 @@ export const giftNewMemberStyles = StyleSheet.create({
         fontFamily: fonts.primary.medium,
         fontSize: 24,
         textTransform: "uppercase",
-        marginBottom: 20,
+        marginBottom: 14,
         //letterSpacing: 1,
     },
     subtitle: {
@@ -39,21 +39,13 @@ export const giftNewMemberStyles = StyleSheet.create({
         fontSize: 14,
         textAlign: "center",
         lineHeight: 22,
-        marginBottom: 40,
+        marginBottom: 10,
     },
     imagePlaceholder: {
         width: "100%",
-        height: 400,
-        backgroundColor: Colors.light.calendarBg,
-        borderRadius: 24,
-        borderWidth: 1,
-        borderColor: Colors.light.greybuttonversion,
+        height: 365,
         justifyContent: "center",
         alignItems: "center",
-    },
-    imagePlaceholderText: {
-        color: Colors.light.subtext,
-        fontFamily: fonts.primary.medium,
     },
     bottomSection: {
         marginTop: "auto",

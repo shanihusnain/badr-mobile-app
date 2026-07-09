@@ -5,6 +5,8 @@ import { Colors } from "@/constants/theme";
 import { helpCentreStyles as styles } from "./style";
 import PrimaryButton from "@/components/atoms/Primary-button";
 import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
+import QuestionAccordionItem from "./components/QuestionAccordionItem";
+
 
 type BoldTextProps = { children: string };
 
@@ -95,30 +97,15 @@ export default function HelpCentreScreen() {
 
                 <Text style={styles.sectionTitleUppercase}>COMMON QUESTIONS</Text>
 
-                {COMMON_QUESTIONS.map((item, index) => {
-                    const isExpanded = expandedIndex === index;
-                    return (
-                        <Pressable
-                            key={index}
-                            style={styles.questionItem}
-                            onPress={() => handleToggle(index)}
-                        >
-                            <View style={styles.questionRow}>
-                                <Text style={styles.questionText}>{item.question}</Text>
-                                <Feather
-                                    name={isExpanded ? "chevron-up" : "chevron-down"}
-                                    size={18}
-                                    color={Colors.light.white}
-                                />
-                            </View>
-                            {isExpanded && (
-                                <View style={styles.answerContainer}>
-                                    {item.answer}
-                                </View>
-                            )}
-                        </Pressable>
-                    );
-                })}
+                {COMMON_QUESTIONS.map((item, index) => (
+                    <QuestionAccordionItem
+                        key={item.question}
+                        question={item.question}
+                        answer={item.answer}
+                        isExpanded={expandedIndex === index}
+                        onPress={() => handleToggle(index)}
+                    />
+                ))}
 
                 <Text style={styles.sectionTitle}>Haven't found what you're looking for?</Text>
 

@@ -40,7 +40,6 @@ export const aboutStyles = StyleSheet.create({
     },
     content: {
         flex: 1,
-        paddingHorizontal: 24,
         paddingTop: 8,
     },
     listItem: {

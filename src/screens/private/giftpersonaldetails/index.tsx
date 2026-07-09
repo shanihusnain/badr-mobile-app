@@ -11,9 +11,9 @@ import {
 import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
 import PrimaryButton from "@/components/atoms/Primary-button";
 import { Colors } from "@/constants/theme";
-import { Feather } from "@expo/vector-icons";
 import { giftPersonalDetailsStyles as styles } from "./style";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { GiftIconWithMoon } from "@/assets/icons";
 
 type DeliveryMethod = "recipient" | "me";
 
@@ -32,7 +32,7 @@ export default function GiftPersonalDetailsScreen() {
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>("recipient");
   const [yourName, setYourName] = useState("");
   const [yourEmail, setYourEmail] = useState("");
-  
+
   const [recipients, setRecipients] = useState<Recipient[]>([]);
 
   useEffect(() => {
@@ -77,7 +77,7 @@ export default function GiftPersonalDetailsScreen() {
         >
           <View style={styles.iconContainer}>
             <View style={styles.iconBox}>
-              <Feather name="gift" size={32} color={Colors.light.white} />
+              <GiftIconWithMoon color={Colors.light.white} size={35} />
             </View>
           </View>
 
@@ -153,7 +153,7 @@ export default function GiftPersonalDetailsScreen() {
                 {quantity > 1 && (
                   <Text style={styles.recipientBlockTitle}>Recipient #{index + 1}</Text>
                 )}
-                
+
                 <View style={styles.inputGroup}>
                   <Text style={styles.inputLabel}>Name</Text>
                   <TextInput
@@ -164,7 +164,7 @@ export default function GiftPersonalDetailsScreen() {
                     onChangeText={(text) => updateRecipient(index, "name", text)}
                   />
                 </View>
-                
+
                 <View style={styles.inputGroup}>
                   <Text style={styles.inputLabel}>Email Address</Text>
                   <TextInput

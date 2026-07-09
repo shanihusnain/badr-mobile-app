@@ -1,10 +1,12 @@
 import React from "react";
-import { View, Text, Pressable, Share, Alert } from "react-native";
-import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
+import { View, Text, Share, Alert } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "@/constants/theme";
 import PrimaryButton from "@/components/atoms/Primary-button";
 import { friendReferralStyles as styles } from "./style";
 import { ReferFriendIcon } from "@/assets/icons";
+import { ImageBackground } from "expo-image";
+import referafriendbackgroundimage from "@/assets/images/referafriendbackgroungimage.png"; // <-- Change this to your background image
 
 export default function FriendReferralScreen() {
 
@@ -28,10 +30,12 @@ export default function FriendReferralScreen() {
   };
 
   return (
-    <BlackScreenWrapper>
-      <View style={styles.container}>
-
-
+    <ImageBackground
+      source={referafriendbackgroundimage}
+      style={styles.fullScreen}
+      contentFit="cover"
+    >
+      <SafeAreaView style={styles.container}>
         <View style={styles.contentContainer}>
           <View style={styles.iconContainer}>
             <ReferFriendIcon size={34} color={Colors.light.dullWhite} />
@@ -48,7 +52,7 @@ export default function FriendReferralScreen() {
             />
           </View>
         </View>
-      </View>
-    </BlackScreenWrapper>
+      </SafeAreaView>
+    </ImageBackground>
   );
 }

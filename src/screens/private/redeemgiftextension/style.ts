@@ -8,8 +8,6 @@ export const redeemGiftStyles = StyleSheet.create({
     //paddingHorizontal: 24,
   },
   iconContainer: {
-    width: 80,
-    height: 80,
     marginBottom: 32,
     justifyContent: "center",
     alignItems: "center",
@@ -53,6 +51,23 @@ export const redeemGiftStyles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
     fontSize: 14,
+  },
+  customInputStyle: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.regular,
+    fontSize: 14,
+  },
+  customLabelStyle: {
+    color: Colors.light.subtext,
+    fontFamily: fonts.primary.medium,
+    fontSize: 12,
+    marginBottom: 8,
+  },
+  inactiveButton: {
+    backgroundColor: Colors.light.redeemgiftbuttoncolor,
+  },
+  inactiveButtonText: {
+    color: Colors.light.white,
   },
   applyButton: {
     backgroundColor: "#8c94a1", // As shown in mockup (greyish blue)

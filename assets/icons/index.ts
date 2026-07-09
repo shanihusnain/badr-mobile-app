@@ -17,6 +17,7 @@ import { ExamIcon } from "./ExamIcon";
 import { FeelingSickIcon } from "./FeelingSickIcon";
 //G
 import { GaveBirthIcon } from "./GaveBirthIcon";
+import { GiftIcon } from "./GiftIcon";
 //H
 import { HeartBreakIcon } from "./HeartBreakIcon";
 //I
@@ -36,16 +37,18 @@ import { PlusAddIcon } from "./PlusAddIcon";
 import { CrossIcon } from "./CrossIcon";
 import { CheckBox } from "./CheckBox";
 import { CrossBox } from "./CrossBox";
+import { ChangePasswordIcon } from "./ChangePasswordIcon";
 //D
 import { DocumentLockIcon } from "./DocumentLockIcon";
 
 //E
 import { ExclamationIconWithCircel } from "./ExclamationIconWithCircel";
 import { ExerciseIcon } from "./ExerciseIcon";
+import { EmailIcon } from "./EmailIcon";
 //F
 import { FilterIcon } from "./FilterIcon";
 //G
-
+import { GiftIconWithMoon } from "./GiftIconWithMoon";
 //H
 import { HomeBondIcon } from "./HomeBondIcon";
 import { HomeTabIcon } from "./HomeTabIcon";
@@ -67,6 +70,7 @@ import { NotificationIcon } from "./NotificationIcon";
 
 //P
 import { PaymentIcon } from "./PaymentIcon";
+import { PrivacyIcon } from "./PrivacyIcon";
 //Q
 
 //R
@@ -74,7 +78,7 @@ import { ReferFriendIcon } from "./ReferFriendIcon";
 import { ReferFriendTabIcon } from "./ReferFriendTabIcon";
 import { RedeemGiftIcon } from "./RedeemGiftIcon";
 //S
-
+import {SettingIcon} from "./SettingIcon";
 //T
 import { TravelingIcon } from "./TravelingIcon";
 import { MoreTabIcon } from "./MoreTabIcon";
@@ -86,15 +90,17 @@ import { MoreTabIcon } from "./MoreTabIcon";
 import { PersonalGrowthIcon } from "./PersonalGrowthIcon";
 import { PlanTabIcon } from "./PlanTabIcon";
 import { PercentageIcon } from "./PercentageIcon";
+import { ProfileInformationIcon } from "./ProfileInformationIcon";
 //Q
 
 //R
 import { RecordIcon } from "./RecordIcon";
 //S
 import { SocialResponsibilityIcon } from "./SocialResponsibilityIcon";
+import { ServiceIcon } from "./ServiceIcon";
 
 //T
-
+import { TutorialIcon } from "./TutorialIcon";
 //U
 
 //V
@@ -109,9 +115,14 @@ import { WalletIcon } from "./WalletIcon";
 //Z
 
 export {
+  ChangePasswordIcon,
+  SettingIcon,
   BellIcon,
+  GiftIcon,
+  GiftIconWithMoon,
   RedeemGiftIcon,
   ReferFriendTabIcon,
+  PrivacyIcon,
   PaymentIcon,
   DocumentIcon,
   DocumentLockIcon,
@@ -153,5 +164,9 @@ export {
   HelpingIcon,
   CheckBox,
   CrossBox,
+  ServiceIcon,
   PercentageIcon,
+  ProfileInformationIcon,
+  EmailIcon,
+  TutorialIcon
 };

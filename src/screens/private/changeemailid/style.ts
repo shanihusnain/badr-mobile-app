@@ -9,7 +9,7 @@ export const changeEmailStyles = StyleSheet.create({
     },
     container: {
         flex: 1,
-        paddingHorizontal: 24,
+        //paddingHorizontal: 24,
     },
     header: {
         flexDirection: "row",

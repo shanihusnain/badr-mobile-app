@@ -1,11 +1,10 @@
 import React from "react";
-import { View, Text, Pressable, ScrollView } from "react-native";
+import { ScrollView } from "react-native";
 import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
-import { Feather } from "@expo/vector-icons";
 import { Colors } from "@/constants/theme";
 import { appSettingStyles as styles } from "./styles";
-import { useRouter } from "expo-router";
 import { CalendarIcon, InBoxArrow, JournalBookIcon, NotificationIcon, InsightIcon, EyeIcon } from "@/assets/icons";
+import SettingsListItem from "./components/SettingsListItem";
 
 type SettingItem = {
   id: string;
@@ -24,42 +23,11 @@ const SETTINGS: SettingItem[] = [
 ];
 
 export default function AppSettingScreen() {
-  const router = useRouter();
-
-  const handleBack = () => {
-    router.back();
-  };
-
   return (
     <BlackScreenWrapper>
       <ScrollView style={styles.content}>
         {SETTINGS.map((item) => (
-          <Pressable
-            key={item.id}
-            style={styles.listItem}
-            onPress={() => {
-              if (item.id === "calendar") {
-                router.push("/(private)/calendersettings");
-              } else if (item.id === "ai") {
-                router.push("/(private)/artificialintelligencesetting");
-              } else if (item.id === "data_export") {
-                router.push("/(private)/exportdata");
-              } else if (item.id === "journal") {
-                router.push("/(private)/journalappsetting");
-              } else if (item.id === "notifications") {
-                router.push("/(private)/notifications");
-              } else if (item.id === "status_insights") {
-                router.push("/(private)/statusinsights");
-              } else if (item.id === "hide_metrics") {
-                router.push("/(private)/hidemetrics");
-              }
-            }}
-          >
-            <View style={styles.listIconContainer}>
-              {item.icon}
-              <Text style={styles.listText}>{item.title}</Text>
-            </View>
-          </Pressable>
+          <SettingsListItem key={item.id} item={item} />
         ))}
       </ScrollView>
     </BlackScreenWrapper>

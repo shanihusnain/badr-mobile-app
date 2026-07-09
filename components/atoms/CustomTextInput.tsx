@@ -6,6 +6,7 @@ import {
   View,
   TextStyle,
   ViewStyle,
+  StyleProp,
   StyleSheet,
 } from "react-native";
 import { heightPercentageToDP as hp } from "react-native-responsive-screen";
@@ -24,11 +25,17 @@ interface CustomTextInputProps {
   onToggleEye?: () => void;
   errors?: string[];
   success?: string[];
-  containerStyle?: ViewStyle;
-  inputStyle?: ViewStyle;
-  labelStyle?: TextStyle;
+  containerStyle?: StyleProp<ViewStyle>;
+  inputStyle?: StyleProp<TextStyle>;
+  labelStyle?: StyleProp<TextStyle>;
   control: any; // react-hook-form control
   name: string; // name of the field for react-hook-form
+  multiline?: boolean;
+  keyboardType?: "default" | "email-address" | "numeric" | "phone-pad" | "number-pad" | "decimal-pad" | "visible-password" | "ascii-capable" | "name-phone-pad" | "twitter" | "web-search";
+  autoCapitalize?: "none" | "sentences" | "words" | "characters";
+  maxLength?: number;
+  editable?: boolean;
+  selectTextOnFocus?: boolean;
 }
 
 const CustomTextInput: React.FC<CustomTextInputProps> = ({
@@ -46,6 +53,12 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
   labelStyle,
   control,
   name,
+  multiline = false,
+  keyboardType = "default",
+  autoCapitalize = "sentences",
+  maxLength,
+  editable,
+  selectTextOnFocus,
 }) => {
   const { i18n } = useTranslation();
   const isRtl = i18n.language === "ar";
@@ -65,13 +78,20 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
                 style={[
                   styles.input,
                   { textAlign: isRtl ? "right" : "left" },
-                  secureTextEntry && { fontFamily: undefined }
+                  secureTextEntry && { fontFamily: undefined },
+                  inputStyle,
                 ]}
                 placeholder={placeholder}
                 placeholderTextColor={Colors.light.icon}
                 value={value}
                 onChangeText={onChange}
                 secureTextEntry={secureTextEntry}
+                multiline={multiline}
+                keyboardType={keyboardType}
+                autoCapitalize={autoCapitalize}
+                maxLength={maxLength}
+                editable={editable}
+                selectTextOnFocus={selectTextOnFocus}
               />
             </View>
             {showEye && onToggleEye && (
@@ -134,7 +154,7 @@ const styles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
     fontSize: 12,
-    marginTop: hp(2),
+    marginTop: 0,
     alignSelf: "flex-start",
     marginRight: 14,
   },

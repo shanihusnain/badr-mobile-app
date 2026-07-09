@@ -62,7 +62,8 @@ export const Colors = {
     achievementbarblue: "#00E5FF",
     barlinecolor: "#61C8A6",
     moretabcolor: "#141414CC",
-    inactivegreen: "#1A4D3E"
+    inactivegreen: "#1A4D3E",
+    redeemgiftbuttoncolor: "#8c94a1"
   },
   dark: {
     text: "#ECEDEE",
