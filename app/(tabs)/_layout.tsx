@@ -22,9 +22,14 @@ export default function TabLayout() {
           tabBarStyle: {
             backgroundColor: Colors.light.greybuttonBackground,
             borderTopWidth: 0,
+            elevation: 0,
+            shadowOpacity: 0,
+          },
+          tabBarItemStyle: {
+            paddingTop: 4,
           },
           headerStyle: {
-            backgroundColor: Colors.light.blackBackground,
+            backgroundColor: Colors.light.background,
           },
           headerShadowVisible: false,
         }}
@@ -46,7 +51,7 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="connect"
+          name="(connect)"
           options={{
             title: "Connect",
             tabBarIcon: ({ color }) => (

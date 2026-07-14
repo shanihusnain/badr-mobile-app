@@ -1,4 +1,5 @@
 //A
+import { AddIcon } from "./AddIcon";
 import { AllahNameIcon } from "./AllahNameIcon";
 //B
 import { BirthIcon } from "./BirthIcon";
@@ -11,6 +12,8 @@ import { ClockIcon } from "./ClockIcon";
 //D
 import { DocumentIcon } from "./DocumentIcon";
 import { DocumentSearchIcon } from "./DocumentSearchIcon";
+import { DotsWithCircle } from "./DotsWithcircle";
+
 import { DashBoardCalenderIcon } from "./DashBoardCalenderIcon";
 import { DashBoardHandHeartIcon } from "./DashBoardHandHeartIcon";
 import { DashBoardMealsIcon } from "./DashBoardMealsIcon";
@@ -57,6 +60,7 @@ import { DebtAssistanceIcon } from "./DebtAssistanceIcon";
 import { ExclamationIconWithCircel } from "./ExclamationIconWithCircel";
 import { ExerciseIcon } from "./ExerciseIcon";
 import { EmailIcon } from "./EmailIcon";
+import { EnterInviteCode } from "./EnterInviteCode";
 //F
 import { FilterIcon } from "./FilterIcon";
 import { FlashIcon } from "./FlashIcon";
@@ -67,6 +71,7 @@ import { GoatIcon } from "./GoatIcon";
 import { HomeBondIcon } from "./HomeBondIcon";
 import { HomeTabIcon } from "./HomeTabIcon";
 import { HelpingIcon } from "./HelpingIcon";
+import { HandIcon } from "./HandIcon";
 import { HeartOnHandIcon } from "./HeartOnHandIcon";
 import { HouseWithHeartIcon } from "./HouseWithHeartIcon";
 //I
@@ -87,6 +92,7 @@ import { NotificationIcon } from "./NotificationIcon";
 //P
 import { PaymentIcon } from "./PaymentIcon";
 import { PrivacyIcon } from "./PrivacyIcon";
+import { PencilIcon } from "./PencilIcon";
 //Q
 
 //R
@@ -113,12 +119,14 @@ import { ProfileInformationIcon } from "./ProfileInformationIcon";
 
 //R
 import { RecordIcon } from "./RecordIcon";
+import { ReferUserIcon } from "./ReferUserIcon";
 //S
 import { SocialResponsibilityIcon } from "./SocialResponsibilityIcon";
 import { ServiceIcon } from "./ServiceIcon";
 
 //T
 import { TutorialIcon } from "./TutorialIcon";
+import { ThreeDotsIcon } from "./ThreeDotsIcon";
 import { TimeSpentIcon } from "./TimeSpentIcon";
 //U
 
@@ -136,6 +144,7 @@ import { FlowCardShirtIcon } from "./FlowCardShirtIcon";
 //Z
 
 export {
+  AddIcon,
   AllahNameIcon,
   Volunteeringservicesheart,
   FlashIcon,
@@ -209,6 +218,12 @@ export {
   EmailIcon,
   TutorialIcon,
   BulbIcon,
+  ReferUserIcon,
+  EnterInviteCode,
+  ThreeDotsIcon,
+  HandIcon,
+  DotsWithCircle,
+  PencilIcon,
   FlowCardQardHassanIcon,
   FlowCardHandHeartIcon,
   FlowCardShirtIcon,
