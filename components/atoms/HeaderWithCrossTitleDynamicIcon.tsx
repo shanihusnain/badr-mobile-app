@@ -1,4 +1,4 @@
-import React from "react";
+import React, { type ReactNode } from "react";
 import { View, Text, Pressable } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { Colors } from "@/constants/theme";
@@ -10,19 +10,32 @@ export const HeaderWithCrossTitleDynamicIcon = ({
   letterSpacing = 0,
   iconName = "x",
   bgcolor = Colors.light.blackBackground,
+  secondTitle = "",
+  titleHighlight,
+  onBackPress,
+  rightIconName,
+  rightIcon,
+  onRightPress,
 }: {
   title: string;
   navigation: any;
   letterSpacing?: number;
   iconName?: keyof typeof Feather.glyphMap;
   bgcolor?: string;
+  secondTitle?: string;
+  /** Optional prefix rendered in green (e.g. "01") */
+  titleHighlight?: string;
+  onBackPress?: () => void;
+  rightIconName?: keyof typeof Feather.glyphMap;
+  /** Custom right icon node (takes precedence over rightIconName). */
+  rightIcon?: ReactNode;
+  onRightPress?: () => void;
 }) => (
   <View
     style={{
       height: 100,
       position: "relative",
       paddingTop: 40,
-      paddingHorizontal: 24,
       backgroundColor: bgcolor ? bgcolor : Colors.light.blackBackground,
     }}
   >
@@ -39,16 +52,35 @@ export const HeaderWithCrossTitleDynamicIcon = ({
       }}
       pointerEvents="none"
     >
-      <Text
-        style={{
-          color: Colors.light.white,
-          fontFamily: fonts.primary.semiBold,
-          fontSize: 14,
-          letterSpacing: letterSpacing,
-        }}
-      >
-        {title}
-      </Text>
+      {!!title || !!titleHighlight ? (
+        <Text
+          style={{
+            color: Colors.light.white,
+            fontFamily: fonts.primary.semiBold,
+            fontSize: 14,
+            letterSpacing: letterSpacing,
+          }}
+        >
+          {!!titleHighlight && (
+            <Text style={{ color: Colors.light.green }}>{titleHighlight} </Text>
+          )}
+          {title}
+        </Text>
+      ) : null}
+      {!!secondTitle && (
+        <Text
+          style={{
+            color: Colors.light.white,
+            fontFamily: fonts.primary.semiBold,
+            fontSize: 16,
+            letterSpacing: letterSpacing,
+            marginTop: 2,
+            textTransform: "uppercase",
+          }}
+        >
+          {secondTitle}
+        </Text>
+      )}
     </View>
 
     {/* Close button — fixed top-left position */}
@@ -65,9 +97,38 @@ export const HeaderWithCrossTitleDynamicIcon = ({
         alignItems: "center",
         zIndex: 10,
       }}
-      onPress={() => navigation.goBack()}
+      onPress={() => (onBackPress ? onBackPress() : navigation.goBack())}
     >
       <Feather name={iconName} size={20} color={Colors.light.white} />
     </Pressable>
+
+    {rightIcon || rightIconName ? (
+      <Pressable
+        style={{
+          position: "absolute",
+          right: 18,
+          top: 52,
+          width: 36,
+          height: 36,
+          borderRadius: 18,
+          backgroundColor: rightIcon
+            ? "transparent"
+            : Colors.light.greybuttonBackground,
+          justifyContent: "center",
+          alignItems: "center",
+          zIndex: 10,
+        }}
+        onPress={onRightPress}
+        hitSlop={8}
+      >
+        {rightIcon ?? (
+          <Feather
+            name={rightIconName!}
+            size={18}
+            color={Colors.light.white}
+          />
+        )}
+      </Pressable>
+    ) : null}
   </View>
 );

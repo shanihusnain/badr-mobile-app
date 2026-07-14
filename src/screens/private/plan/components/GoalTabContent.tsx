@@ -12,6 +12,7 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 import { PlanNotificationsCard } from "./PlanNotificationsCard";
 import { PlanSectionHeader } from "./PlanSectionHeader";
 import { planStyles as styles } from "../styles";
+import { router } from "expo-router";
 
 const GOAL_PROGRESS_TEXT =
   "You're on day 18 of your 28-day cycle, with a 66% achievement score. If you'd like, tap to explore a proposed plan to help complete your remaining goals.";
@@ -97,7 +98,7 @@ export function GoalTabContent({ studyMaterial }: GoalTabContentProps) {
         items={studyMaterial}
         title="Study Material"
         showSeeAll={true}
-        onSeeAllPress={() => {}}
+        onSeeAllPress={() => router.push("/(tabs)/(connect)/learnmorescreen")}
       />
     </ScrollView>
   );

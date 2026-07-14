@@ -5,6 +5,16 @@ import iphoneintro from "./iphoneintro.png";
 import moonimage from "./moonimage.png";
 import joinonlinecommunitycoursal from "./joinonlinecommunitycoursal.png";
 import giftofbadarcoursal from "./giftofbadarcoursal.png";
-
-export { Icon, BeforeJournalCustomization, TimelineImage, iphoneintro, moonimage, joinonlinecommunitycoursal, giftofbadarcoursal }; 
-
+import createTeamImage from "./createteamimage.png";
+import createTeamThreeAndFourImage from "./createteamstepthreeandfour.png";
+export {
+  Icon,
+  BeforeJournalCustomization,
+  TimelineImage,
+  iphoneintro,
+  moonimage,
+  joinonlinecommunitycoursal,
+  giftofbadarcoursal,
+  createTeamImage,
+  createTeamThreeAndFourImage,
+};

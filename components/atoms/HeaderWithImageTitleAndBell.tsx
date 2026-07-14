@@ -71,7 +71,7 @@ export const HeaderWithImageTitleAndBell = ({
         >
           {title ? title.toUpperCase() : "Plan"}
         </Text>
-        <Pressable onPress={() => console.log("Bell icon has been pressed")}>
+        <Pressable onPress={() => router.push("/notifications")}>
           <BellIcon width={23} height={26} color={Colors.light.white} />
         </Pressable>
       </View>

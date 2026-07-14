@@ -4,7 +4,6 @@ import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
 import { useRouter } from "expo-router";
 import MoreCarousel from "./components/MoreCarousel";
 import MoreSectionHeader from "./components/MoreSectionHeader";
-import MoreListItem from "./components/MoreListItem";
 import SecondaryButton from "@/components/atoms/Secondary-button";
 import { Colors } from "@/constants/theme";
 import { moreScreenStyles as styles } from "./style";
@@ -22,6 +21,7 @@ import {
   ServiceIcon,
   TutorialIcon,
 } from "@/assets/icons";
+import MoreActionButton from "@/components/atoms/MoreActionButton";
 
 export default function MoreScreen() {
   const router = useRouter();
@@ -71,7 +71,9 @@ export default function MoreScreen() {
       key: "refer_friend",
       title: "REFER A FRIEND",
       description: "Get one month free for each friend you refer",
-      icon: <ReferFriendTabIcon size={24} color={Colors.light.blackBackground} />,
+      icon: (
+        <ReferFriendTabIcon size={24} color={Colors.light.blackBackground} />
+      ),
       isHighlighted: true,
       onPress: handleReferFriend,
     },
@@ -93,9 +95,27 @@ export default function MoreScreen() {
       onPress: handleGiftCurrentMember,
     },
     { type: "section", key: "s_account", title: "ACCOUNT & SETTINGS" },
-    { type: "item", key: "my_account", title: "MY ACCOUNT", icon: <ProfileInformationIcon size={24} Color={Colors.light.subtext} />, onPress: handleMyAccount },
-    { type: "item", key: "app_settings", title: "APP SETTINGS", icon: <SettingIcon size={24} Color={Colors.light.subtext} />, onPress: handleAppSettings },
-    { type: "item", key: "privacy_settings", title: "PRIVACY SETTINGS", icon: <PrivacyIcon size={24} Color={Colors.light.subtext} />, onPress: handlePrivacySettings },
+    {
+      type: "item",
+      key: "my_account",
+      title: "MY ACCOUNT",
+      icon: <ProfileInformationIcon size={24} Color={Colors.light.subtext} />,
+      onPress: handleMyAccount,
+    },
+    {
+      type: "item",
+      key: "app_settings",
+      title: "APP SETTINGS",
+      icon: <SettingIcon size={24} Color={Colors.light.subtext} />,
+      onPress: handleAppSettings,
+    },
+    {
+      type: "item",
+      key: "privacy_settings",
+      title: "PRIVACY SETTINGS",
+      icon: <PrivacyIcon size={24} Color={Colors.light.subtext} />,
+      onPress: handlePrivacySettings,
+    },
     { type: "section", key: "s_support", title: "SUPPORT" },
     {
       type: "item",
@@ -105,14 +125,26 @@ export default function MoreScreen() {
       icon: <ServiceIcon size={24} />,
       onPress: handleMembershipServices,
     },
-    { type: "item", key: "tutorial", title: "TUTORIAL", icon: <TutorialIcon size={24} color={Colors.light.subtext} /> },
-    { type: "item", key: "about", title: "ABOUT", icon: <MoreTabIcon size={20} color={Colors.light.subtext} />, onPress: handleAbout },
+    {
+      type: "item",
+      key: "tutorial",
+      title: "TUTORIAL",
+      icon: <TutorialIcon size={24} color={Colors.light.subtext} />,
+    },
+    {
+      type: "item",
+      key: "about",
+      title: "ABOUT",
+      icon: <MoreTabIcon size={20} color={Colors.light.subtext} />,
+      onPress: handleAbout,
+    },
   ];
 
   const renderItem = ({ item }: { item: any }) => {
-    if (item.type === "section") return <MoreSectionHeader title={item.title} />;
+    if (item.type === "section")
+      return <MoreSectionHeader title={item.title} />;
     return (
-      <MoreListItem
+      <MoreActionButton
         title={item.title}
         description={item.description}
         icon={item.icon}

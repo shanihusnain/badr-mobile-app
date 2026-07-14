@@ -1,17 +1,17 @@
+import { useState } from "react";
 import { Redirect } from "expo-router";
 import { ActivityIndicator, View } from "react-native";
 
+import AnimatedSplash from "@/components/atoms/AnimatedSplash";
+import { Colors } from "@/constants/theme";
 import { useAuth } from "@/provider/useAuth";
 
 export default function Index() {
   const { isAuthenticated, isLoading } = useAuth();
+  const [splashDone, setSplashDone] = useState(false);
 
-  if (isLoading) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" />
-      </View>
-    );
+  if (!splashDone || isLoading) {
+    return <AnimatedSplash onFinish={() => setSplashDone(true)} />;
   }
 
   if (isAuthenticated) {

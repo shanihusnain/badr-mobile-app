@@ -1,5 +1,14 @@
 import React from "react";
-import { View, Text, StyleSheet, Modal, Pressable } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Modal,
+  Pressable,
+  StyleProp,
+  TextStyle,
+  ViewStyle,
+} from "react-native";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import SecondaryButton from "./Secondary-button";
@@ -7,12 +16,17 @@ import SecondaryButton from "./Secondary-button";
 type WarningModalProps = {
   visible: boolean;
   title: string;
-  message: React.ReactNode;
+  message?: React.ReactNode;
   primaryButtonText?: string;
   secondaryButtonText?: string;
   onPrimaryPress: () => void;
   onSecondaryPress: () => void;
   onBackdropPress?: () => void;
+  /** Optional overrides — defaults keep existing WarningModal look elsewhere. */
+  primaryButtonStyle?: StyleProp<ViewStyle>;
+  primaryButtonTextStyle?: StyleProp<TextStyle>;
+  secondaryButtonTextStyle?: StyleProp<TextStyle>;
+  primaryButtonVariant?: "white" | "green";
 };
 
 export default function WarningModal({
@@ -24,11 +38,17 @@ export default function WarningModal({
   onPrimaryPress,
   onSecondaryPress,
   onBackdropPress,
+  primaryButtonStyle,
+  primaryButtonTextStyle,
+  secondaryButtonTextStyle,
+  primaryButtonVariant = "green",
 }: WarningModalProps) {
   const handleBackdropPress = () => {
     if (onBackdropPress) onBackdropPress();
-    else onPrimaryPress(); // Default to primary (keep/cancel) action
+    else onPrimaryPress();
   };
+
+  const hasMessage = message != null && message !== "" && message !== false;
 
   return (
     <Modal
@@ -42,26 +62,34 @@ export default function WarningModal({
           style={styles.modalContainer}
           onPress={(e) => e.stopPropagation()}
         >
-          <Text style={styles.title}>{title}</Text>
-          <View style={styles.messageContainer}>
-            {typeof message === "string" ? (
-              <Text style={styles.message}>{message}</Text>
-            ) : (
-              message
-            )}
-          </View>
+          <Text style={[styles.title, !hasMessage && styles.titleOnly]}>
+            {title}
+          </Text>
+          {hasMessage ? (
+            <View style={styles.messageContainer}>
+              {typeof message === "string" ? (
+                <Text style={styles.message}>{message}</Text>
+              ) : (
+                message
+              )}
+            </View>
+          ) : null}
 
           <View style={styles.buttonContainer}>
             <SecondaryButton
               text={primaryButtonText}
               onPress={onPrimaryPress}
-              variant="green"
+              variant={primaryButtonVariant}
+              style={primaryButtonStyle}
+              textStyle={primaryButtonTextStyle}
             />
             <Pressable
               style={styles.secondaryButton}
               onPress={onSecondaryPress}
             >
-              <Text style={styles.secondaryButtonText}>
+              <Text
+                style={[styles.secondaryButtonText, secondaryButtonTextStyle]}
+              >
                 {secondaryButtonText}
               </Text>
             </Pressable>
@@ -96,6 +124,9 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     textTransform: "uppercase",
     lineHeight: 22,
+  },
+  titleOnly: {
+    marginBottom: 24,
   },
   messageContainer: {
     marginBottom: 24,

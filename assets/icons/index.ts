@@ -1,5 +1,5 @@
 //A
-
+import { AddIcon } from "./AddIcon";
 //B
 import { BirthIcon } from "./BirthIcon";
 import { BadarNameLogo } from "./BadarNameLogo";
@@ -10,6 +10,7 @@ import { CalendarIcon } from "./CalenderIcon";
 //D
 import { DocumentIcon } from "./DocumentIcon";
 import { DocumentSearchIcon } from "./DocumentSearchIcon";
+import { DotsWithCircle } from "./DotsWithcircle";
 
 //E
 import { EyeIcon } from "./EyeIcon";
@@ -46,6 +47,7 @@ import { DocumentLockIcon } from "./DocumentLockIcon";
 import { ExclamationIconWithCircel } from "./ExclamationIconWithCircel";
 import { ExerciseIcon } from "./ExerciseIcon";
 import { EmailIcon } from "./EmailIcon";
+import { EnterInviteCode } from "./EnterInviteCode";
 //F
 import { FilterIcon } from "./FilterIcon";
 //G
@@ -54,6 +56,7 @@ import { GiftIconWithMoon } from "./GiftIconWithMoon";
 import { HomeBondIcon } from "./HomeBondIcon";
 import { HomeTabIcon } from "./HomeTabIcon";
 import { HelpingIcon } from "./HelpingIcon";
+import { HandIcon } from "./HandIcon";
 //I
 
 //J
@@ -72,6 +75,7 @@ import { NotificationIcon } from "./NotificationIcon";
 //P
 import { PaymentIcon } from "./PaymentIcon";
 import { PrivacyIcon } from "./PrivacyIcon";
+import { PencilIcon } from "./PencilIcon";
 //Q
 
 //R
@@ -96,12 +100,14 @@ import { ProfileInformationIcon } from "./ProfileInformationIcon";
 
 //R
 import { RecordIcon } from "./RecordIcon";
+import { ReferUserIcon } from "./ReferUserIcon";
 //S
 import { SocialResponsibilityIcon } from "./SocialResponsibilityIcon";
 import { ServiceIcon } from "./ServiceIcon";
 
 //T
 import { TutorialIcon } from "./TutorialIcon";
+import { ThreeDotsIcon } from "./ThreeDotsIcon";
 //U
 
 //V
@@ -116,6 +122,7 @@ import { WalletIcon } from "./WalletIcon";
 //Z
 
 export {
+  AddIcon,
   ChangePasswordIcon,
   SettingIcon,
   BellIcon,
@@ -171,4 +178,10 @@ export {
   EmailIcon,
   TutorialIcon,
   BulbIcon,
+  ReferUserIcon,
+  EnterInviteCode,
+  ThreeDotsIcon,
+  HandIcon,
+  DotsWithCircle,
+  PencilIcon,
 };

@@ -1,0 +1,235 @@
+import { fonts } from "@/assets/fonts";
+import { Colors } from "@/constants/theme";
+import { StyleSheet } from "react-native";
+
+export const teamProfileStyles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: Colors.light.blackBackground,
+  },
+  flex: {
+    flex: 1,
+  },
+  banner: {
+    width: "100%",
+    height: 280,
+  },
+  bannerCompact: {
+    width: "100%",
+    height: 200,
+  },
+  bannerGradient: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  tabsRow: {
+    position: "absolute",
+    top: 108,
+    left: 16,
+    right: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 18,
+    zIndex: 2,
+  },
+  tab: {
+    paddingBottom: 8,
+    maxWidth: "48%",
+  },
+  tabActive: {
+    borderBottomWidth: 2,
+    borderBottomColor: Colors.light.green,
+  },
+  tabRankActive: {
+    maxWidth: "58%",
+  },
+  tabText: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.semiBold,
+    fontWeight: "600",
+    fontSize: 12,
+    textTransform: "uppercase",
+  },
+  tabTextRank: {
+    flexShrink: 1,
+  },
+  tabTextInactive: {
+    opacity: 0.85,
+  },
+  tabWithChevron: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  identityRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+    paddingHorizontal: 16,
+    marginTop: -40,
+    marginBottom: 24,
+  },
+  rankContentOffset: {
+    marginTop: -48,
+  },
+  dropdownLayer: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 20,
+  },
+  dropdownBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "transparent",
+  },
+  dropdownAnchor: {
+    position: "absolute",
+    top: 148,
+    left: 16,
+    right: 16,
+  },
+  dropdownContentSpacer: {
+    height: 220,
+  },
+  logo: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: Colors.light.darkgrey,
+    borderWidth: 2,
+    borderColor: Colors.light.blackBackground,
+  },
+  teamName: {
+    flex: 1,
+    color: Colors.light.white,
+    fontFamily: fonts.primary.semiBold,
+    fontWeight: "600",
+    fontSize: 18,
+  },
+  content: {
+    paddingHorizontal: 16,
+    paddingBottom: 40,
+  },
+  sectionLabel: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.semiBold,
+    fontWeight: "600",
+    fontSize: 12,
+    textTransform: "uppercase",
+    marginBottom: 10,
+  },
+  sectionSpacing: {
+    marginTop: 24,
+  },
+  addDescriptionButton: {
+    alignSelf: "flex-start",
+    backgroundColor: "transparent",
+    borderWidth: 1.5,
+    borderColor: Colors.light.green,
+    borderRadius: 6,
+    minHeight: 40,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+  },
+  addDescriptionText: {
+    color: Colors.light.green,
+    fontFamily: fonts.primary.medium,
+    fontWeight: "500",
+    fontSize: 13,
+    textTransform: "uppercase",
+  },
+  descriptionText: {
+    color: Colors.light.dullWhite,
+    fontFamily: fonts.primary.regular,
+    fontSize: 13,
+    lineHeight: 20,
+  },
+  addMembersRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginBottom: 14,
+  },
+  addMembersIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 1.5,
+    borderColor: Colors.light.green,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  addMembersText: {
+    color: Colors.light.green,
+    fontFamily: fonts.primary.semiBold,
+    fontWeight: "600",
+    fontSize: 13,
+    textTransform: "uppercase",
+  },
+  sheetContent: {
+    width: "100%",
+    gap: 4,
+    paddingBottom: 8,
+  },
+  inviteSection: {
+    marginBottom: 20,
+  },
+  inviteTitle: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.semiBold,
+    fontWeight: "600",
+    fontSize: 14,
+    textTransform: "uppercase",
+    marginBottom: 8,
+  },
+  inviteDescription: {
+    color: Colors.light.subtext,
+    fontFamily: fonts.primary.regular,
+    fontSize: 13,
+    lineHeight: 18,
+    marginBottom: 14,
+  },
+  codeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  codeBox: {
+    flex: 1,
+    minHeight: 44,
+    borderRadius: 8,
+    backgroundColor: Colors.light.greybuttonBackground,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 12,
+  },
+  codeText: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.semiBold,
+    fontWeight: "600",
+    fontSize: 14,
+    letterSpacing: 1,
+  },
+  copyButton: {
+    minHeight: 44,
+    minWidth: 72,
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: Colors.light.green,
+    borderStyle: "dashed",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 14,
+  },
+  copyButtonText: {
+    color: Colors.light.green,
+    fontFamily: fonts.primary.semiBold,
+    fontWeight: "600",
+    fontSize: 12,
+    textTransform: "uppercase",
+  },
+  inviteDivider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: Colors.light.darkgrey,
+    marginBottom: 20,
+  },
+});

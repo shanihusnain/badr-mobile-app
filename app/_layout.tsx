@@ -35,9 +35,15 @@ export default function RootLayout() {
   const [loaded, error] = useFonts(fontAssets);
 
   useEffect(() => {
-    if (loaded || error) {
+    if (!loaded && !error) return;
+
+    // AnimatedSplash hides the native splash when the .riv is ready.
+    // Fallback so we never stay stuck if the Rive screen fails to mount.
+    const fallback = setTimeout(() => {
       SplashScreen.hideAsync();
-    }
+    }, 4000);
+
+    return () => clearTimeout(fallback);
   }, [loaded, error]);
 
   useEffect(() => {

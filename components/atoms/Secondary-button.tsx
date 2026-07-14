@@ -6,29 +6,33 @@ import {
   PressableProps,
   StyleSheet,
   Text,
+  StyleProp,
   TextStyle,
+  ViewStyle,
 } from "react-native";
 
 interface SecondaryButtonProps extends PressableProps {
   text: string;
   onPress: () => void;
-  textStyle?: TextStyle;
+  textStyle?: StyleProp<TextStyle>;
   variant?: "white" | "green";
 }
 
 export default function SecondaryButton({
   text,
   onPress,
+  style,
   textStyle,
   variant = "white",
   ...props
 }: SecondaryButtonProps) {
   return (
     <Pressable
-      style={({ pressed }) => [
+      style={(state) => [
         styles.button,
-        pressed && styles.buttonPressed,
         variant === "white" ? styles.buttonWhite : styles.buttonGreen,
+        typeof style === "function" ? style(state) : style,
+        state.pressed && styles.buttonPressed,
       ]}
       onPress={onPress}
       {...props}
@@ -36,8 +40,8 @@ export default function SecondaryButton({
       <Text
         style={[
           styles.buttonText,
-          textStyle,
           variant === "white" ? styles.buttonWhiteText : styles.buttonGreenText,
+          textStyle,
         ]}
       >
         {text}
@@ -60,7 +64,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: Colors.light.background,
     alignSelf: "center",
-  },
+  } satisfies ViewStyle,
   buttonPressed: {
     opacity: 0.8,
   },

@@ -289,6 +289,53 @@ export default function PrivateLayout() {
           }}
         />
         <Stack.Screen
+          name="enterinvitecode"
+          options={{
+            headerShown: true,
+            headerTransparent: true,
+            headerStyle: { backgroundColor: "transparent" },
+            header: ({ navigation }) => (
+              <HeaderWithCrossTitleDynamicIcon
+                title="ENTER INVITE CODE"
+                navigation={navigation}
+                bgcolor="transparent"
+                iconName="chevron-left"
+              />
+            ),
+          }}
+        />
+        <Stack.Screen
+          name="jointeam"
+          options={{
+            headerShown: true,
+            headerTransparent: true,
+            headerStyle: { backgroundColor: "transparent" },
+            header: ({ navigation }) => (
+              <HeaderWithCrossTitleDynamicIcon
+                title=""
+                navigation={navigation}
+                bgcolor="transparent"
+                iconName="chevron-left"
+              />
+            ),
+          }}
+        />
+        <Stack.Screen
+          name="learnmore"
+          options={{
+            headerShown: true,
+            header: ({ navigation }) => (
+              <HeaderWithCrossTitleDynamicIcon
+                title="DISCOVER"
+                navigation={navigation}
+                iconName="chevron-left"
+                rightIconName="search"
+                onRightPress={() => console.log("Discover search")}
+              />
+            ),
+          }}
+        />
+        <Stack.Screen
           name="giftcurrentmember"
           options={{
             headerShown: true,
@@ -334,6 +381,19 @@ export default function PrivateLayout() {
             header: ({ navigation }) => (
               <HeaderWithCrossTitleDynamicIcon
                 title="NOTIFICATIONS"
+                navigation={navigation}
+                iconName="chevron-left"
+              />
+            ),
+          }}
+        />
+        <Stack.Screen
+          name="chatnotificationsettings"
+          options={{
+            headerShown: true,
+            header: ({ navigation }) => (
+              <HeaderWithCrossTitleDynamicIcon
+                title="NOTIFICATION SETTINGS"
                 navigation={navigation}
                 iconName="chevron-left"
               />
@@ -464,6 +524,56 @@ export default function PrivateLayout() {
           name="behaviordescriptiondetails/[id]"
           options={{
             headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="createteam"
+          options={{
+            headerShown: true,
+            headerTransparent: true,
+            headerStyle: { backgroundColor: "transparent" },
+            header: ({ navigation }) => (
+              <HeaderWithCrossTitleDynamicIcon
+                titleHighlight="01"
+                title="Create Team"
+                navigation={navigation}
+                bgcolor="transparent"
+                secondTitle="CHOOSE TEAM NAME"
+                iconName="chevron-left"
+              />
+            ),
+          }}
+        />
+        <Stack.Screen
+          name="teamprofile"
+          options={{
+            headerShown: true,
+            headerTransparent: true,
+            headerStyle: { backgroundColor: "transparent" },
+            header: ({ navigation }) => (
+              <HeaderWithCrossTitleDynamicIcon
+                title=""
+                navigation={navigation}
+                bgcolor="transparent"
+                iconName="chevron-left"
+              />
+            ),
+          }}
+        />
+        <Stack.Screen
+          name="manageteam"
+          options={{
+            headerShown: true,
+            headerTransparent: true,
+            headerStyle: { backgroundColor: "transparent" },
+            header: ({ navigation }) => (
+              <HeaderWithCrossTitleDynamicIcon
+                title="MANAGE TEAM"
+                navigation={navigation}
+                bgcolor="transparent"
+                iconName="chevron-left"
+              />
+            ),
           }}
         />
       </Stack>

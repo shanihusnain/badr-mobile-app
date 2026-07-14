@@ -3,6 +3,7 @@ import { TopSpace } from "@/components/atoms/TopSpace";
 import { Colors } from "@/constants/theme";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Image } from "expo-image";
+import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 import {
   ScrollView,
@@ -79,7 +80,9 @@ export function PastAchievementStudyMaterial({
   if (isDetailed || items.length === 0) {
     return null;
   }
-
+  const handleSeeAllPress = () => {
+    router.push("/(tabs)/(connect)/learnmorescreen");
+  };
   return (
     <View style={styles.container}>
       <TopSpace top={16} />
@@ -88,7 +91,7 @@ export function PastAchievementStudyMaterial({
         {showSeeAll ? (
           <TouchableOpacity
             style={styles.seeAllRow}
-            onPress={onSeeAllPress}
+            onPress={onSeeAllPress ?? handleSeeAllPress}
             activeOpacity={onSeeAllPress ? 0.7 : 1}
             disabled={!onSeeAllPress}
           >
