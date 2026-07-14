@@ -6,6 +6,7 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import moment from "moment";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
+import { AllahNameIcon } from "@/assets/icons/AllahNameIcon";
 
 import { FlowCard } from "../components/FlowCard";
 import { DateStep } from "../components/DateStep";
@@ -17,6 +18,11 @@ import type { ProgressLogEntry } from "../types";
 type FlowMode = "collapsed" | "active";
 import { getResolvedGoalById } from "../../home/components/goalsData";
 import { LillahCategoryId } from "../lillahCategories";
+import { HeartOnHandIcon } from "@/assets/icons/HeartOnHandIcon";
+import {FlowCardCallender} from "@/assets/icons/FlowCardCallender";
+import {FlowCardWalletIcon} from "@/assets/icons/FlowCardWalletIcon";
+import {FlowCardClockIcon} from "@/assets/icons/FlowCardClockIcon";
+import { TimeSpentIcon } from "@/assets/icons/TimeSpentIcon";
 
 type Props = {
   goalData: NonNullable<ReturnType<typeof getResolvedGoalById>>;
@@ -31,27 +37,27 @@ const getStepHeader = (step: StepType) => {
     case "date":
       return {
         label: "Which day are you logging for?",
-        icon: <MaterialCommunityIcons name="calendar-month-outline" size={14} color={Colors.light.green} />,
+        icon: <FlowCardCallender size={20} color={Colors.light.white} />,
       };
     case "category":
       return {
         label: "Select Your Lillah Contribution.",
-        icon: <MaterialCommunityIcons name="hand-heart" size={14} color={Colors.light.green} />,
+        icon: <HeartOnHandIcon size={20} Color={Colors.light.white} />,
       };
     case "amount":
       return {
         label: "How much did you spend?",
-        icon: <MaterialCommunityIcons name="cash-multiple" size={14} color={Colors.light.green} />,
+        icon: <FlowCardWalletIcon size={20} color={Colors.light.white} />,
       };
     case "start-time":
       return {
         label: "Enter start time.",
-        icon: <Ionicons name="time-outline" size={16} color={Colors.light.green} />,
+        icon: <FlowCardClockIcon size={20} color={Colors.light.white} />,
       };
     case "time-spent":
       return {
         label: "Enter time spent.",
-        icon: <MaterialCommunityIcons name="history" size={16} color={Colors.light.green} />,
+        icon: <TimeSpentIcon size={20} color={Colors.light.white} />,
       };
   }
 };
@@ -225,9 +231,7 @@ export default function LillahLoggingFlow({ goalData, onLogComplete }: Props) {
           <View style={localStyles.summaryCard}>
             <View style={localStyles.summaryBody}>
               <View style={[localStyles.summaryIconCircle]}>
-                <View style={{ width: 28, height: 28, borderRadius: 14, borderWidth: 1.5, borderColor: Colors.light.white, alignItems: 'center', justifyContent: 'center' }}>
-                  <Text style={{ color: Colors.light.white, fontSize: 12, fontFamily: fonts.primary.semiBold }}>ﷲ</Text>
-                </View>
+                <AllahNameIcon size={22} color={Colors.light.white} />
               </View>
               <View style={{ flex: 1, gap: 4 }}>
                 <View

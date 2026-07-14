@@ -1,5 +1,5 @@
 //A
-
+import { AllahNameIcon } from "./AllahNameIcon";
 //B
 import { BirthIcon } from "./BirthIcon";
 import { BadarNameLogo } from "./BadarNameLogo";
@@ -7,15 +7,25 @@ import { BellIcon } from "./BellIcon";
 import { BulbIcon } from "./BulbIcon";
 //C
 import { CalendarIcon } from "./CalenderIcon";
+import { ClockIcon } from "./ClockIcon";
 //D
 import { DocumentIcon } from "./DocumentIcon";
 import { DocumentSearchIcon } from "./DocumentSearchIcon";
-
+import { DashBoardCalenderIcon } from "./DashBoardCalenderIcon";
+import { DashBoardHandHeartIcon } from "./DashBoardHandHeartIcon";
+import { DashBoardMealsIcon } from "./DashBoardMealsIcon";
 //E
 import { EyeIcon } from "./EyeIcon";
 import { ExamIcon } from "./ExamIcon";
 //F
 import { FeelingSickIcon } from "./FeelingSickIcon";
+import { FlowCardCallender } from "./FlowCardCallender";
+import { FlowCardWalletIcon } from "./FlowCardWalletIcon";
+import { FlowCardClockIcon } from "./FlowCardClockIcon";
+import { FlowCardQardHassanIcon } from "./FlowCardQardHassanIcon";
+import { FlowCardFoodReliefIcon } from "./FlowCardFoodReleifIcon";
+import { FlowCardHandHeartIcon } from "./FlowCardHandHeartIcon";
+import {FlowCardZakatIcon} from "./FlowCardZakatIcon";
 //G
 import { GaveBirthIcon } from "./GaveBirthIcon";
 import { GiftIcon } from "./GiftIcon";
@@ -41,6 +51,7 @@ import { CrossBox } from "./CrossBox";
 import { ChangePasswordIcon } from "./ChangePasswordIcon";
 //D
 import { DocumentLockIcon } from "./DocumentLockIcon";
+import { DebtAssistanceIcon } from "./DebtAssistanceIcon";
 
 //E
 import { ExclamationIconWithCircel } from "./ExclamationIconWithCircel";
@@ -48,12 +59,16 @@ import { ExerciseIcon } from "./ExerciseIcon";
 import { EmailIcon } from "./EmailIcon";
 //F
 import { FilterIcon } from "./FilterIcon";
+import { FlashIcon } from "./FlashIcon";
 //G
 import { GiftIconWithMoon } from "./GiftIconWithMoon";
+import { GoatIcon } from "./GoatIcon";
 //H
 import { HomeBondIcon } from "./HomeBondIcon";
 import { HomeTabIcon } from "./HomeTabIcon";
 import { HelpingIcon } from "./HelpingIcon";
+import { HeartOnHandIcon } from "./HeartOnHandIcon";
+import { HouseWithHeartIcon } from "./HouseWithHeartIcon";
 //I
 
 //J
@@ -80,9 +95,11 @@ import { ReferFriendTabIcon } from "./ReferFriendTabIcon";
 import { RedeemGiftIcon } from "./RedeemGiftIcon";
 //S
 import { SettingIcon } from "./SettingIcon";
+import { ShootIcon } from "./ShootIcon";
 //T
 import { TravelingIcon } from "./TravelingIcon";
 import { MoreTabIcon } from "./MoreTabIcon";
+import { ThreeHeartIcon } from "./ThreeHeartIcon";
 //N
 
 //O
@@ -102,13 +119,16 @@ import { ServiceIcon } from "./ServiceIcon";
 
 //T
 import { TutorialIcon } from "./TutorialIcon";
+import { TimeSpentIcon } from "./TimeSpentIcon";
 //U
 
 //V
-
+import { Volunteeringservicesheart } from "./Volunteeringservicesheart";
 //W
 import { WorkLoadIcon } from "./WorkLoadIcon";
 import { WalletIcon } from "./WalletIcon";
+import { FlowCardShirtIcon } from "./FlowCardShirtIcon";
+
 //X
 
 //Y
@@ -116,7 +136,23 @@ import { WalletIcon } from "./WalletIcon";
 //Z
 
 export {
+  AllahNameIcon,
+  Volunteeringservicesheart,
+  FlashIcon,
+  FlowCardClockIcon,
+  ShootIcon,
+  TimeSpentIcon,
+  HeartOnHandIcon,
+  GoatIcon,
+  FlowCardFoodReliefIcon,
+  ClockIcon,
+  FlowCardCallender,
+  FlowCardWalletIcon,
+  ThreeHeartIcon,
   ChangePasswordIcon,
+  DashBoardCalenderIcon,
+  DashBoardHandHeartIcon,
+  DashBoardMealsIcon, 
   SettingIcon,
   BellIcon,
   GiftIcon,
@@ -132,9 +168,11 @@ export {
   MoonIcon,
   InBoxArrow,
   InsightIcon,
+  DebtAssistanceIcon,
   JournalBookIcon,
   NotificationIcon,
   EyeIcon,
+  HouseWithHeartIcon,
   FeelingSickIcon,
   MenstruatingIcon,
   TravelingIcon,
@@ -171,4 +209,8 @@ export {
   EmailIcon,
   TutorialIcon,
   BulbIcon,
+  FlowCardQardHassanIcon,
+  FlowCardHandHeartIcon,
+  FlowCardShirtIcon,
+  FlowCardZakatIcon,
 };

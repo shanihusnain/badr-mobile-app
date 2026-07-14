@@ -18,7 +18,13 @@ import { StartTimeStep, DurationStep } from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
 import { styles as commonStyles } from "../components/DailyProgressLogging.styles";
 import { fonts } from "@/assets/fonts";
+import { FlowCardCallender } from "@/assets/icons/FlowCardCallender";
+import { FlowCardHandHeartIcon } from "@/assets/icons/FlowCardHandHeartIcon";
+import { FlowCardFoodReliefIcon } from "@/assets/icons/FlowCardFoodReleifIcon";
+import { FlowCardShirtIcon } from "@/assets/icons/FlowCardShirtIcon";
 import type { ProgressLogEntry } from "../types";
+import { FlowCardClockIcon } from "@/assets/icons/FlowCardClockIcon";
+import { TimeSpentIcon } from "@/assets/icons/TimeSpentIcon";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -284,33 +290,37 @@ export default function KaffarahLoggingFlow({ goalData, onLogComplete }: Props) 
     switch (step) {
       case "date":
         return {
-          icon: <Ionicons name="calendar-outline" size={15} color={Colors.light.white} />,
+          icon: <FlowCardCallender size={16} color={Colors.light.white} />,
           label: "Which day are you logging for?",
         };
       case "reason":
         return {
-          icon: <MaterialCommunityIcons name="help-circle-outline" size={16} color={Colors.light.white} />,
+          icon: <FlowCardHandHeartIcon size={19} color={Colors.light.white} />,
           label: "Select the reason for kaffarah.",
         };
       case "sadaqah-type":
         return {
-          icon: <MaterialCommunityIcons name="hand-heart" size={16} color={Colors.light.white} />,
+          icon: <FlowCardFoodReliefIcon size={18} color={Colors.light.white} />,
           label: "Select the type of sadaqah.",
         };
       case "count":
         const isClothesHeader = reason === "broken-oath" && sadaqahType === "clothes";
         return {
-          icon: <MaterialCommunityIcons name={isClothesHeader ? "tshirt-crew" : "bowl-mix"} size={16} color={Colors.light.white} />,
+          icon: isClothesHeader ? (
+            <FlowCardShirtIcon size={20} color={Colors.light.white} />
+          ) : (
+            <FlowCardFoodReliefIcon size={20} color={Colors.light.white} />
+          ),
           label: isClothesHeader ? "How many pieces of clothing were given?" : "How many meals were given?",
         };
       case "start-time":
         return {
-          icon: <Ionicons name="time-outline" size={15} color={Colors.light.white} />,
+          icon: <FlowCardClockIcon size={20} color={Colors.light.white} />,
           label: "Enter start time.",
         };
       case "time-spent":
         return {
-          icon: <Ionicons name="timer-outline" size={15} color={Colors.light.white} />,
+          icon: <TimeSpentIcon size={20} color={Colors.light.white} />,
           label: "Enter time spent.",
         };
     }
@@ -389,7 +399,7 @@ export default function KaffarahLoggingFlow({ goalData, onLogComplete }: Props) 
           <View style={localStyles.summaryCard}>
             <View style={localStyles.summaryBody}>
               <View style={localStyles.summaryIconCircle}>
-                <MaterialCommunityIcons name="hand-heart" size={24} color={Colors.light.white} />
+                <FlowCardHandHeartIcon size={22} color={Colors.light.white} />
               </View>
               <View style={{ flex: 1, gap: 4 }}>
                 <View

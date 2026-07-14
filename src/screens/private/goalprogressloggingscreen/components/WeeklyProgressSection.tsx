@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { WeeklyProgressDashboard } from "@/components/molecules/WeeklyProgressDashboard";
 import { QuranHoursWeeklyProgressDashboard } from "@/components/molecules/QuranHoursWeeklyProgressDashboard";

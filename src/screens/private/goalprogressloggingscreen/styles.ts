@@ -76,4 +76,7 @@ export const styles = StyleSheet.create({
     paddingTop: 24,
     paddingBottom: 16,
   },
+  transparentBackground: {
+    backgroundColor: "transparent",
+  },
 });

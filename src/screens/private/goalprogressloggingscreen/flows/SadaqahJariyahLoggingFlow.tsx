@@ -19,9 +19,13 @@ import { SadaqahJariyahCategoryStep } from "../components/SadaqahJariyahCategory
 import { AmountStep } from "../components/AmountStep";
 import { StartTimeStep, DurationStep } from "../components/TimePickerSteps";
 import { styles as commonStyles } from "../components/DailyProgressLogging.styles";
+import { ThreeHeartIcon } from "@/assets/icons/ThreeHeartIcon";
+import { FlowCardCallender } from "@/assets/icons/FlowCardCallender";
 import type { ProgressLogEntry } from "../types";
 import { getResolvedGoalById } from "../../home/components/goalsData";
 import { SadaqahJariyahCategoryId } from "../sadaqahJariyahCategories";
+import { ClockIcon, WalletIcon } from "@/assets/icons";
+import { TimeSpentIcon } from "@/assets/icons/TimeSpentIcon";
 
 type FlowMode = "collapsed" | "active";
 
@@ -44,53 +48,30 @@ const getStepHeader = (step: StepType) => {
     case "date":
       return {
         label: "Which day are you logging for?",
-        icon: (
-          <MaterialCommunityIcons
-            name="calendar-month-outline"
-            size={14}
-            color={Colors.light.green}
-          />
-        ),
+        icon: <FlowCardCallender size={24} color={Colors.light.white} />,
       };
     case "category":
       return {
         label: "Select your sadaqah jariyah.",
-        icon: (
-          <MaterialCommunityIcons
-            name="hand-coin-outline"
-            size={14}
-            color={Colors.light.green}
-          />
-        ),
+        icon: <ThreeHeartIcon size={24} color={Colors.light.white} />,
       };
     case "amount":
       return {
         label: "How much did you spend?",
-        icon: (
-          <MaterialCommunityIcons
-            name="cash-multiple"
-            size={14}
-            color={Colors.light.green}
-          />
-        ),
+        icon: <WalletIcon size={24} color={Colors.light.white} />,
       };
     case "start-time":
       return {
         label: "Enter start time.",
         icon: (
-          <Ionicons name="time-outline" size={16} color={Colors.light.green} />
+          <ClockIcon size={20} color={Colors.light.white}
+          />
         ),
       };
     case "time-spent":
       return {
         label: "Enter time spent.",
-        icon: (
-          <MaterialCommunityIcons
-            name="history"
-            size={16}
-            color={Colors.light.green}
-          />
-        ),
+        icon: <TimeSpentIcon size={20} color={Colors.light.white} />,
       };
   }
 };
@@ -293,11 +274,7 @@ export default function SadaqahJariyahLoggingFlow({
             <View style={localStyles.summaryBody}>
               {/* Icon: tree / charity icon */}
               <View style={localStyles.summaryIconCircle}>
-                <MaterialCommunityIcons
-                  name="hand-coin-outline"
-                  size={22}
-                  color={Colors.light.white}
-                />
+                <ThreeHeartIcon size={24} color={Colors.light.white} />
               </View>
 
               <View style={{ flex: 1, gap: 4 }}>

@@ -10,6 +10,10 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
+import { DashBoardCalenderIcon } from "@/assets/icons/DashBoardCalenderIcon";
+import { DashBoardHandHeartIcon } from "@/assets/icons/DashBoardHandHeartIcon";
+import { FlashIcon, ShootIcon } from "@/assets/icons";
+import { StarSparkleIcon } from "@/assets/icons/StarSparkleIcon";
 
 export type MissedZakatDayProgress = {
   day: string;
@@ -61,13 +65,15 @@ function MissedZakatDayRing({
       return <View style={[innerSizeStyle, styles.ringInner, styles.ringInnerEmpty]} />;
     }
     if (hasLog) {
-      return (
-        <View style={[innerSizeStyle, styles.ringInner, styles.ringInnerLogged]}>
-          {day.isBestDay && (
-            <Ionicons name="sparkles" size={16} color={Colors.light.yellow} />
-          )}
-        </View>
-      );
+            return (
+              <View style={[innerSizeStyle, styles.ringInner, styles.ringInnerLogged]}>
+                {day.isBestDay && (
+                  <View style={styles.starAdjust}>
+                    <StarSparkleIcon size={Math.round(size * 1.2)} color={Colors.light.yellow} />
+                  </View>
+                )}
+              </View>
+            );
     }
     return <View style={[innerSizeStyle, styles.ringInner, styles.ringInnerEmptyFilled]} />;
   };
@@ -118,10 +124,9 @@ export function MissedZakatWeeklyProgressDashboard({
     <View style={styles.card}>
       <View style={styles.headerRow}>
         <View style={styles.headerLeft}>
-          <MaterialCommunityIcons
-            name="calendar-month-outline"
-            size={16}
-            color={Colors.light.seagreen}
+          <DashBoardCalenderIcon
+            size={19}
+            color={Colors.light.subtext}
           />
           <Text style={styles.weekFractionText} numberOfLines={1}>
             {weekFraction} WEEKS
@@ -203,8 +208,7 @@ export function MissedZakatWeeklyProgressDashboard({
       </View>
 
       <View style={styles.statsRow}>
-        <MaterialCommunityIcons
-          name="hand-heart"
+        <DashBoardHandHeartIcon
           size={24}
           color={Colors.light.lightblue}
         />
@@ -218,17 +222,16 @@ export function MissedZakatWeeklyProgressDashboard({
 
       <View style={styles.footerRow}>
         <View style={styles.streakBadge}>
-          <Ionicons name="flash" size={13} color={Colors.light.yellow} />
+          <FlashIcon size={13} color={Colors.light.yellow} />
           <Text style={styles.streakText}>
             {streakDays}-day streak
           </Text>
         </View>
 
         <View style={styles.quoteBlock}>
-          <MaterialCommunityIcons
-            name="target"
+          <ShootIcon
             size={14}
-            color={Colors.light.seagreen}
+            Color={Colors.light.seagreen}
           />
           <Text style={styles.quoteText}>
             Zakat is the right of the poor and the command of Allah—
@@ -335,6 +338,11 @@ const styles = StyleSheet.create({
   ringOuterBlur: {
     opacity: 0.3,
   },
+  starAdjust: {
+    transform: [{ translateY: 4 }],
+    alignItems: "center",
+    justifyContent: "center",
+  },
   dayLabel: {
     color: Colors.light.subtext,
     fontSize: 10,
@@ -389,8 +397,8 @@ const styles = StyleSheet.create({
   streakBadge: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
-    flexShrink: 0,
+    gap: 1,
+  
   },
   streakText: {
     color: Colors.light.white,
