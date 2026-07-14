@@ -18,7 +18,11 @@ import { StartTimeStep, DurationStep } from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
 import { styles as commonStyles } from "../components/DailyProgressLogging.styles";
 import { fonts } from "@/assets/fonts";
+import { DashBoardMealsIcon } from "@/assets/icons/DashBoardMealsIcon";
+import { FlowCardCallender } from "@/assets/icons/FlowCardCallender";
 import type { ProgressLogEntry } from "../types";
+import { FlowCardFoodReliefIcon, TimeSpentIcon } from "@/assets/icons";
+import { FlowCardClockIcon } from "@/assets/icons/FlowCardClockIcon";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -140,22 +144,22 @@ export default function FidyaLoggingFlow({ goalData, onLogComplete }: Props) {
     switch (step) {
       case "date":
         return {
-          icon: <Ionicons name="calendar-outline" size={15} color={Colors.light.white} />,
+          icon: <FlowCardCallender size={18} color={Colors.light.white} />,
           label: "Which day are you logging for?",
         };
       case "count":
         return {
-          icon: <MaterialCommunityIcons name="bowl-mix" size={16} color={Colors.light.white} />,
+          icon: <FlowCardFoodReliefIcon size={18} color={Colors.light.white} />,
           label: "How many meals were given?",
         };
       case "start-time":
         return {
-          icon: <Ionicons name="time-outline" size={16} color={Colors.light.white} />,
+          icon: <FlowCardClockIcon size={20} color={Colors.light.white} />,
           label: "Enter start time.",
         };
       case "time-spent":
         return {
-          icon: <Ionicons name="timer-outline" size={16} color={Colors.light.white} />,
+          icon: <TimeSpentIcon size={20} color={Colors.light.white} />,
           label: "Enter time spent.",
         };
     }
@@ -232,7 +236,7 @@ export default function FidyaLoggingFlow({ goalData, onLogComplete }: Props) {
           <View style={localStyles.summaryCard}>
             <View style={localStyles.summaryBody}>
               <View style={localStyles.summaryIconCircle}>
-                <MaterialCommunityIcons name="charity" size={20} color={Colors.light.white} />
+                <DashBoardMealsIcon size={18} color={Colors.light.white} />
               </View>
               <View style={{ flex: 1, gap: 4 }}>
                 <View

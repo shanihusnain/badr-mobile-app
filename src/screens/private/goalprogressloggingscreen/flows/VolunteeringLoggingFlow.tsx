@@ -3,6 +3,8 @@ import { View, Text, TouchableOpacity, StyleSheet, Pressable } from "react-nativ
 import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { FlowCardCallender } from "@/assets/icons/FlowCardCallender";
+import { ThreeHeartIcon } from "@/assets/icons/ThreeHeartIcon";
 import moment from "moment";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
@@ -16,6 +18,7 @@ import type { ProgressLogEntry } from "../types";
 type FlowMode = "collapsed" | "active";
 import { getResolvedGoalById } from "../../home/components/goalsData";
 import { VolunteeringCategoryId } from "../volunteeringCategories";
+import { Volunteeringservicesheart } from "@/assets/icons";
 
 type Props = {
   goalData: NonNullable<ReturnType<typeof getResolvedGoalById>>;
@@ -30,12 +33,12 @@ const getStepHeader = (step: StepType) => {
     case "date":
       return {
         label: "Which day are you logging for?",
-        icon: <MaterialCommunityIcons name="calendar-month-outline" size={14} color={Colors.light.green} />,
+        icon: <FlowCardCallender size={14} color={Colors.light.white} />,
       };
     case "category":
       return {
         label: "Select how you volunteered.",
-        icon: <MaterialCommunityIcons name="hand-coin-outline" size={14} color={Colors.light.green} />,
+        icon: <Volunteeringservicesheart size={20} colors={Colors.light.white} />,
       };
     case "start-time":
       return {
@@ -216,11 +219,7 @@ export default function VolunteeringLoggingFlow({ goalData, onLogComplete }: Pro
           <View style={localStyles.summaryCard}>
             <View style={localStyles.summaryBody}>
               <View style={[localStyles.summaryIconCircle]}>
-                <MaterialCommunityIcons
-                  name="hand-heart"
-                  size={22}
-                  color={Colors.light.white}
-                />
+                <ThreeHeartIcon color={Colors.light.white} size={24} />
               </View>
               <View style={{ flex: 1, gap: 4 }}>
                 <View

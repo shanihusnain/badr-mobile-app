@@ -7,14 +7,11 @@ import joinonlinecommunitycoursal from "./joinonlinecommunitycoursal.png";
 import giftofbadarcoursal from "./giftofbadarcoursal.png";
 import createTeamImage from "./createteamimage.png";
 import createTeamThreeAndFourImage from "./createteamstepthreeandfour.png";
-export {
-  Icon,
-  BeforeJournalCustomization,
-  TimelineImage,
-  iphoneintro,
-  moonimage,
-  joinonlinecommunitycoursal,
-  giftofbadarcoursal,
+
+import sadaqahjariyahimagebackground from "./sadaqahjariyahimagebackground.png";
+import Volunteeringservicesimagebackground from "./volunteeringservicesimagebackground.png";
+import lillahdonationsbackgroundimage from "./lillahdonationsbackgroundimage.png";
+export { Icon, BeforeJournalCustomization, TimelineImage, iphoneintro, moonimage, joinonlinecommunitycoursal, giftofbadarcoursal, sadaqahjariyahimagebackground, Volunteeringservicesimagebackground, lillahdonationsbackgroundimage ,
   createTeamImage,
-  createTeamThreeAndFourImage,
-};
+  createTeamThreeAndFourImage}; 
+

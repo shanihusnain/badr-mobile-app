@@ -10,6 +10,8 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
+import { FlashIcon } from "@/assets/icons/FlashIcon";
+import { DashBoardCalenderIcon, DashBoardHandHeartIcon, ShootIcon } from "@/assets/icons";
 
 export type FidyaDayProgress = {
   day: string;
@@ -123,10 +125,9 @@ export function FidyaWeeklyProgressDashboard({
     <View style={styles.card}>
       <View style={styles.headerRow}>
         <View style={styles.headerLeft}>
-          <MaterialCommunityIcons
-            name="calendar-month-outline"
-            size={16}
-            color={Colors.light.seagreen}
+          <DashBoardCalenderIcon
+            size={20}
+            color={Colors.light.subtext}
           />
           <Text style={styles.weekFractionText} numberOfLines={1}>
             {weekFraction} WEEKS
@@ -186,9 +187,8 @@ export function FidyaWeeklyProgressDashboard({
       </View>
 
       <View style={styles.statsRow}>
-        <MaterialCommunityIcons
-          name="hand-heart"
-          size={24}
+        <DashBoardHandHeartIcon
+          size={26}
           color={Colors.light.lightblue}
         />
         <Text style={styles.statsText} numberOfLines={1}>
@@ -199,15 +199,15 @@ export function FidyaWeeklyProgressDashboard({
 
       <View style={styles.footerRow}>
         <View style={styles.streakBadge}>
-          <Ionicons name="flash" size={13} color={Colors.light.yellow} />
+          <FlashIcon size={13} color={Colors.light.yellow} />
           <Text style={styles.streakText}>{streakDays}-day streak</Text>
         </View>
 
         <View style={styles.quoteBlock}>
-          <MaterialCommunityIcons
-            name="target"
+          <ShootIcon
+            
             size={14}
-            color={Colors.light.seagreen}
+            Color={Colors.light.seagreen}
           />
           <Text style={styles.quoteText}>{motivationalQuote}</Text>
         </View>
@@ -358,7 +358,7 @@ const styles = StyleSheet.create({
   streakBadge: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
+    gap: 2,
     flexShrink: 0,
   },
   streakText: {

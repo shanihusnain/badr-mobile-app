@@ -13,6 +13,7 @@ import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
+import { AchivementArrowIcon } from "@/assets/icons/AchivementArrowIcon";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import {
   applySadaqahAnalyticsView,
@@ -353,11 +354,7 @@ const baseAchievementRaw = useMemo(
       <View style={styles.card}>
         {/* ── Header row ── */}
         <View style={styles.cardHeader}>
-          <MaterialCommunityIcons
-            name="trending-up"
-            size={19}
-            color={Colors.light.subtext}
-          />
+          <AchivementArrowIcon />
           <Text style={styles.sectionTitle}>
             {t("progressLogging.pastGoalAchievements")}
           </Text>

@@ -10,6 +10,15 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
+import { DashBoardCalenderIcon } from "@/assets/icons/DashBoardCalenderIcon";
+import { ShootIcon } from "@/assets/icons/ShootIcon";
+import { GoatIcon } from "@/assets/icons/GoatIcon";
+import { HouseWithHeartIcon } from "@/assets/icons/HouseWithHeartIcon";
+import { DebtAssistanceIcon } from "@/assets/icons/DebtAssistanceIcon";
+import { FlowCardQardHassanIcon } from "@/assets/icons/FlowCardQardHassanIcon";
+import { FlowCardFoodReliefIcon } from "@/assets/icons/FlowCardFoodReleifIcon";
+import { DashBoardHandHeartIcon } from "@/assets/icons/DashBoardHandHeartIcon";
+import { FlashIcon } from "@/assets/icons/FlashIcon";
 import { LillahCategoryId, getLillahCategory } from "@/src/screens/private/goalprogressloggingscreen/lillahCategories";
 
 export type LillahDayProgress = {
@@ -66,6 +75,31 @@ function LillahDayRing({ size, day, isSelected }: DayRingProps) {
     if (hasLog) {
       const catDef = getLillahCategory(day.category!);
       const iconColor = day.isBestDay ? Colors.light.yellow : Colors.light.white;
+      const iconSize = size * 0.7;
+
+      const renderCategoryIcon = () => {
+        switch (day.category) {
+          case "qurbani":
+            return <GoatIcon size={iconSize} color={iconColor} />;
+          case "household-essentials":
+            return <HouseWithHeartIcon size={iconSize} color={iconColor} />;
+          case "debt-assistance":
+            return <DebtAssistanceIcon size={iconSize} color={iconColor} />;
+          case "qard-hassan":
+            return <FlowCardQardHassanIcon size={iconSize} color={iconColor} />;
+          case "food-relief":
+            return <FlowCardFoodReliefIcon size={iconSize} color={iconColor} />;
+          default:
+            return (
+              <MaterialCommunityIcons
+                name={catDef.icon as any}
+                size={iconSize}
+                color={iconColor}
+              />
+            );
+        }
+      };
+
       return (
         <View
           style={[
@@ -75,11 +109,7 @@ function LillahDayRing({ size, day, isSelected }: DayRingProps) {
             !day.isToday && !day.isBestDay && styles.ringInnerLoggedPast,
           ]}
         >
-          <MaterialCommunityIcons
-            name={catDef.icon as any}
-            size={size * 0.5}
-            color={iconColor}
-          />
+          {renderCategoryIcon()}
         </View>
       );
     }
@@ -132,11 +162,7 @@ export function LillahWeeklyProgressDashboard({
       {/* Header */}
       <View style={styles.headerRow}>
         <View style={styles.headerLeft}>
-          <MaterialCommunityIcons
-            name="calendar-month-outline"
-            size={16}
-            color={Colors.light.seagreen}
-          />
+          <DashBoardCalenderIcon size={20} color={Colors.light.subtext} />
           <Text style={styles.weekFractionText} numberOfLines={1}>
             {weekFraction} WEEKS
           </Text>
@@ -193,7 +219,7 @@ export function LillahWeeklyProgressDashboard({
 
       {/* Stats Row */}
       <View style={styles.statsRow}>
-        <MaterialCommunityIcons name="hand-heart" size={24} color={Colors.light.lightblue} />
+        <DashBoardHandHeartIcon size={24} color={Colors.light.lightblue} />
         <Text style={styles.statsText} numberOfLines={1}>
           <Text style={styles.statsCount}>${totalThisWeek}</Text>
           {" spent in total this week"}
@@ -203,11 +229,11 @@ export function LillahWeeklyProgressDashboard({
       {/* Footer Row */}
       <View style={styles.footerRow}>
         <View style={styles.streakBadge}>
-          <Ionicons name="flash" size={13} color={Colors.light.yellow} />
+          <FlashIcon size={13} color={Colors.light.yellow} />
           <Text style={styles.streakText}>{streakDays}-day streak</Text>
         </View>
         <View style={styles.quoteBlock}>
-          <MaterialCommunityIcons name="target" size={14} color={Colors.light.seagreen} />
+          <ShootIcon size={14} Color={Colors.light.seagreen} />
           <Text style={styles.quoteText}>{motivationalQuote}</Text>
         </View>
       </View>
@@ -359,7 +385,7 @@ const styles = StyleSheet.create({
   streakBadge: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
+    gap: 2,
     flexShrink: 0,
   },
   streakText: {

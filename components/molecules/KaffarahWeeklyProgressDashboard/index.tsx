@@ -10,6 +10,9 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
+import { FlowCardFoodReliefIcon } from "@/assets/icons/FlowCardFoodReleifIcon";
+import { FlowCardShirtIcon } from "@/assets/icons/FlowCardShirtIcon";
+import { DashBoardCalenderIcon, DashBoardHandHeartIcon, FlashIcon, ShootIcon } from "@/assets/icons";
 
 /**
  * Kaffarah category type:
@@ -80,8 +83,6 @@ function KaffarahDayRing({ size, day, isSelected }: DayRingProps) {
 
     // Logged day → green circle with icon
     if (hasLog) {
-      const iconName =
-        day.category === "clothes" ? "tshirt-crew" : "bowl-mix";
       const iconColor = day.isBestDay ? Colors.light.yellow : Colors.light.white;
       return (
         <View
@@ -92,7 +93,11 @@ function KaffarahDayRing({ size, day, isSelected }: DayRingProps) {
             !day.isToday && !day.isBestDay && styles.ringInnerLoggedPast,
           ]}
         >
-          <MaterialCommunityIcons name={iconName as any} size={size * 0.45} color={iconColor} />
+          {day.category === "clothes" ? (
+            <FlowCardShirtIcon size={size * 0.75} color={iconColor} />
+          ) : (
+            <FlowCardFoodReliefIcon size={size * 0.70} color={iconColor} />
+          )}
         </View>
       );
     }
@@ -151,10 +156,10 @@ export function KaffarahWeeklyProgressDashboard({
       {/* Header */}
       <View style={styles.headerRow}>
         <View style={styles.headerLeft}>
-          <MaterialCommunityIcons
-            name="calendar-month-outline"
-            size={16}
-            color={Colors.light.seagreen}
+          <DashBoardCalenderIcon
+            
+            size={20}
+            color={Colors.light.subtext}
           />
           <Text style={styles.weekFractionText} numberOfLines={1}>
             {weekFraction} WEEKS
@@ -216,8 +221,8 @@ export function KaffarahWeeklyProgressDashboard({
 
       {/* Stats Row */}
       <View style={styles.statsRow}>
-        <MaterialCommunityIcons
-          name="hand-heart"
+        <DashBoardHandHeartIcon
+      
           size={24}
           color={Colors.light.lightblue}
         />
@@ -230,15 +235,15 @@ export function KaffarahWeeklyProgressDashboard({
       {/* Footer Row */}
       <View style={styles.footerRow}>
         <View style={styles.streakBadge}>
-          <Ionicons name="flash" size={13} color={Colors.light.yellow} />
+          <FlashIcon  size={13} color={Colors.light.yellow} />
           <Text style={styles.streakText}>{streakDays}-day streak</Text>
         </View>
 
         <View style={styles.quoteBlock}>
-          <MaterialCommunityIcons
-            name="target"
+          <ShootIcon
+            
             size={14}
-            color={Colors.light.seagreen}
+            Color={Colors.light.seagreen}
           />
           <Text style={styles.quoteText}>{motivationalQuote}</Text>
         </View>
@@ -393,7 +398,7 @@ const styles = StyleSheet.create({
   streakBadge: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
+    gap: 1,
     flexShrink: 0,
   },
   streakText: {

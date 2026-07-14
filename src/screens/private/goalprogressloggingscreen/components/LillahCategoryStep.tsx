@@ -10,6 +10,11 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
+import { GoatIcon } from "@/assets/icons/GoatIcon";
+import { HouseWithHeartIcon } from "@/assets/icons/HouseWithHeartIcon";
+import { DebtAssistanceIcon } from "@/assets/icons/DebtAssistanceIcon";
+import { FlowCardQardHassanIcon } from "@/assets/icons/FlowCardQardHassanIcon";
+import { FlowCardFoodReliefIcon } from "@/assets/icons/FlowCardFoodReleifIcon";
 import {
   LillahCategoryId,
   LillahCategoryDef,
@@ -34,11 +39,23 @@ export function LillahCategoryStep({ selectedCategory, onSelectCategory }: Props
         onPress={() => setIsOpen((v) => !v)}
         activeOpacity={0.85}
       >
-        <MaterialCommunityIcons
-          name={selected.icon as any}
-          size={18}
-          color={Colors.light.white}
-        />
+        {selected.id === "qurbani" ? (
+          <GoatIcon size={20} color={Colors.light.white} />
+        ) : selected.id === "household-essentials" ? (
+          <HouseWithHeartIcon size={20} color={Colors.light.white} />
+        ) : selected.id === "debt-assistance" ? (
+          <DebtAssistanceIcon size={20} color={Colors.light.white} />
+        ) : selected.id === "qard-hassan" ? (
+          <FlowCardQardHassanIcon size={20} color={Colors.light.white} />
+        ) : selected.id === "food-relief" ? (
+          <FlowCardFoodReliefIcon size={20} color={Colors.light.white} />
+        ) : (
+          <MaterialCommunityIcons
+            name={selected.icon as any}
+            size={20}
+            color={Colors.light.white}
+          />
+        )}
         <Text style={styles.dropdownLabel} numberOfLines={1}>
           {selected.label}
         </Text>
@@ -77,12 +94,24 @@ export function LillahCategoryStep({ selectedCategory, onSelectCategory }: Props
                 </View>
 
                 {/* Icon */}
-                <View style={styles.catIconCircle}>
-                  <MaterialCommunityIcons
-                    name={cat.icon as any}
-                    size={14}
-                    color={Colors.light.white}
-                  />
+                <View style={styles.catIconCirclePlain}>
+                  {cat.id === "qurbani" ? (
+                    <GoatIcon size={20} color={Colors.light.white} />
+                  ) : cat.id === "household-essentials" ? (
+                    <HouseWithHeartIcon size={20} color={Colors.light.white} />
+                  ) : cat.id === "debt-assistance" ? (
+                    <DebtAssistanceIcon size={20} color={Colors.light.white} />
+                  ) : cat.id === "qard-hassan" ? (
+                    <FlowCardQardHassanIcon size={20} color={Colors.light.white} />
+                  ) : cat.id === "food-relief" ? (
+                    <FlowCardFoodReliefIcon size={20} color={Colors.light.white} />
+                  ) : (
+                    <MaterialCommunityIcons
+                      name={cat.icon as any}
+                      size={20}
+                      color={Colors.light.white}
+                    />
+                  )}
                 </View>
 
                 {/* Label */}
@@ -157,11 +186,9 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: Colors.light.green,
   },
-  catIconCircle: {
+  catIconCirclePlain: {
     width: 24,
     height: 24,
-    borderRadius: 12,
-    backgroundColor: Colors.light.green,
     alignItems: "center",
     justifyContent: "center",
   },
