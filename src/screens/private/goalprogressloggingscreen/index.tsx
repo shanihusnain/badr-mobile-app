@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { View, Text, ScrollView } from "react-native";
+import { View, Text, ScrollView, ImageBackground } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import {
   TaperedCircleBorder,
@@ -206,9 +206,34 @@ export const GoalProgressLoggingScreen = ({
     );
   }
 
-  return (
+  const template = getLoggingFlowTemplate(goalId);
+  const isSadaqahJariyah = template === "sadaqah-jariyah";
+  const isSadaqahVolunteering = template === "sadaqah-volunteering";
+  const isLillah = template === "lillah";
+  const isFidya = template === "fidya";
+  const isKaffarah = template === "kaffarah-fasts-oaths";
+  const isMissedZakat = template === "missed-zakat";
+
+  const shouldUseBackground =
+    isSadaqahJariyah || isSadaqahVolunteering || isLillah || isFidya || isKaffarah || isMissedZakat;
+
+  const backgroundSource = isSadaqahVolunteering
+    ? require("@/assets/images/volunteeringservicesimagebackground.png")
+    : isSadaqahJariyah
+    ? require("@/assets/images/sadaqahjariyahimagebackground.png")
+    : isLillah
+    ? require("@/assets/images/lillahdonationsbackgroundimage.png")
+    : isFidya
+    ? require("@/assets/images/fidyaimagebackground.png")
+    : isKaffarah
+    ? require("@/assets/images/kaffarahImagebackground.png")
+    : isMissedZakat
+    ? require("@/assets/images/zakatbackgroundimage.png")
+    : undefined;
+
+  const scrollView = (
     <ScrollView
-      style={styles.container}
+      style={[styles.container, shouldUseBackground && styles.transparentBackground]}
       contentContainerStyle={styles.scrollContent}
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
@@ -222,4 +247,18 @@ export const GoalProgressLoggingScreen = ({
       />
     </ScrollView>
   );
+
+  if (shouldUseBackground) {
+    return (
+      <ImageBackground
+        source={backgroundSource}
+        style={styles.container}
+        resizeMode="cover"
+      >
+        {scrollView}
+      </ImageBackground>
+    );
+  }
+
+  return scrollView;
 };

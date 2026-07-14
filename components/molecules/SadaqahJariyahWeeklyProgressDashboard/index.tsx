@@ -14,6 +14,8 @@ import {
   SadaqahJariyahCategoryId,
   getSadaqahJariyahCategory,
 } from "@/src/screens/private/goalprogressloggingscreen/sadaqahJariyahCategories";
+import { ShootIcon } from "@/assets/icons/ShootIcon";
+import { FlashIcon, CalendarIcon } from "@/assets/icons";
 
 export type SadaqahJariyahDayProgress = {
   day: string;
@@ -143,11 +145,7 @@ export function SadaqahJariyahWeeklyProgressDashboard({
       {/* Header */}
       <View style={styles.headerRow}>
         <View style={styles.headerLeft}>
-          <MaterialCommunityIcons
-            name="calendar-month-outline"
-            size={16}
-            color={Colors.light.seagreen}
-          />
+          <CalendarIcon size={24} color={Colors.light.subtext} />
           <Text style={styles.weekFractionText} numberOfLines={1}>
             {weekFraction} WEEKS
           </Text>
@@ -247,15 +245,13 @@ export function SadaqahJariyahWeeklyProgressDashboard({
       {/* Footer Row */}
       <View style={styles.footerRow}>
         <View style={styles.streakBadge}>
-          <Ionicons name="flash" size={13} color={Colors.light.yellow} />
+          <View style={styles.streakIconWrapper}>
+            <FlashIcon size={12} color={Colors.light.yellow} />
+          </View>
           <Text style={styles.streakText}>{streakDays}-day streak</Text>
         </View>
         <View style={styles.quoteBlock}>
-          <MaterialCommunityIcons
-            name="target"
-            size={14}
-            color={Colors.light.seagreen}
-          />
+          <ShootIcon size={14} Color={Colors.light.seagreen} />
           <Text style={styles.quoteText}>{motivationalQuote}</Text>
         </View>
       </View>
@@ -409,6 +405,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 4,
     flexShrink: 0,
+  },
+  streakIconWrapper: {
+    marginLeft: 4,
   },
   streakText: {
     color: Colors.light.white,

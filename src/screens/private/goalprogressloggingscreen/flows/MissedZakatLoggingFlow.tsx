@@ -18,7 +18,12 @@ import { StartTimeStep, DurationStep } from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
 import { styles as commonStyles } from "../components/DailyProgressLogging.styles";
 import { fonts } from "@/assets/fonts";
+import { FlowCardZakatIcon } from "@/assets/icons/FlowCardZakatIcon";
 import type { ProgressLogEntry } from "../types";
+import { FlowCardCallender } from "@/assets/icons";
+import { FlowCardWalletIcon } from "@/assets/icons/FlowCardWalletIcon";
+import { FlowCardClockIcon } from "@/assets/icons/FlowCardClockIcon";
+import { TimeSpentIcon } from "@/assets/icons";
 
 type MissedZakatStepId = "date" | "financial-amount" | "start-time" | "time-spent";
 const STEPS: MissedZakatStepId[] = ["date", "financial-amount", "start-time", "time-spent"];
@@ -125,13 +130,13 @@ export default function MissedZakatLoggingFlow({
   const getStepHeader = (step: MissedZakatStepId) => {
     switch (step) {
       case "date":
-        return { icon: <Ionicons name="calendar-outline" size={15} color={Colors.light.white} />, label: "Which day are you logging for?" };
+        return { icon: <FlowCardCallender size={20} color={Colors.light.white} />, label: "Which day are you logging for?" };
       case "financial-amount":
-        return { icon: <MaterialCommunityIcons name="cash" size={16} color={Colors.light.white} />, label: "How much did you fulfill?" };
+        return { icon: <FlowCardWalletIcon size={20} color={Colors.light.white} />, label: "How much did you fulfill?" };
       case "start-time":
-        return { icon: <Ionicons name="time-outline" size={15} color={Colors.light.white} />, label: "Enter start time." };
+        return { icon: <FlowCardClockIcon size={20} color={Colors.light.white} />, label: "Enter start time." };
       case "time-spent":
-        return { icon: <Ionicons name="timer-outline" size={15} color={Colors.light.white} />, label: "Enter time spent." };
+        return { icon: <TimeSpentIcon size={20} color={Colors.light.white} />, label: "Enter time spent." };
     }
   };
 
@@ -202,7 +207,7 @@ export default function MissedZakatLoggingFlow({
           <View style={localStyles.summaryCard}>
             <View style={localStyles.summaryBody}>
               <View style={localStyles.summaryIconCircle}>
-                <MaterialCommunityIcons name="sack" size={20} color={Colors.light.white} />
+                <FlowCardZakatIcon size={20} color={Colors.light.white} />
               </View>
               <View style={{ flex: 1, gap: 4 }}>
                 <View style={[localStyles.badge, badgeStatus.type === "completed" ? localStyles.badgeCompleted : localStyles.badgeInProgress, { alignSelf: "flex-start" }]}>

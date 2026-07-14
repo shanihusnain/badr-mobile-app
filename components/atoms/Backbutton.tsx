@@ -15,13 +15,27 @@ export default function BackButton({ onPress, bgcolor }: BackButtonProps) {
   const { i18n } = useTranslation();
   const isRtl = i18n.language === "ar";
 
+  const handlePress = () => {
+    if (onPress) {
+      onPress();
+      return;
+    }
+
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+
+    router.replace("/(auth)/welcome");
+  };
+
   return (
     <TouchableOpacity
       style={[
         styles.backButtonContainer,
         bgcolor ? { backgroundColor: bgcolor } : {},
       ]}
-      onPress={onPress ?? (() => router.back())}
+      onPress={handlePress}
     >
       <Feather
         name={isRtl ? "chevron-right" : "chevron-left"}
