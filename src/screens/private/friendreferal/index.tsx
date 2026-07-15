@@ -1,14 +1,34 @@
-import React from "react";
+import React, { useLayoutEffect } from "react";
 import { View, Text, Share, Alert } from "react-native";
+import { useNavigation } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "@/constants/theme";
 import PrimaryButton from "@/components/atoms/Primary-button";
+import { HeaderWithCrossTitleDynamicIcon } from "@/components/atoms/HeaderWithCrossTitleDynamicIcon";
 import { friendReferralStyles as styles } from "./style";
 import { ReferFriendIcon } from "@/assets/icons";
 import { ImageBackground } from "expo-image";
 import referafriendbackgroundimage from "@/assets/images/referafriendbackgroungimage.png"; // <-- Change this to your background image
 
 export default function FriendReferralScreen() {
+  const navigation = useNavigation();
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerShown: true,
+      header: () => (
+        <HeaderWithCrossTitleDynamicIcon
+          title="Refer a Friend"
+          titleHighlight=""
+          navigation={navigation}
+          bgcolor="transparent"
+          iconName="chevron-left"
+          leftButtonBackground="rgba(255,255,255,0.08)"
+          onBackPress={() => navigation.goBack()}
+        />
+      ),
+    });
+  }, [navigation]);
 
   const handleShare = async () => {
     try {

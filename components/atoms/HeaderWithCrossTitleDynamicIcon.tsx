@@ -16,6 +16,7 @@ export const HeaderWithCrossTitleDynamicIcon = ({
   rightIconName,
   rightIcon,
   onRightPress,
+  leftButtonBackground,
 }: {
   title: string;
   navigation: any;
@@ -30,13 +31,14 @@ export const HeaderWithCrossTitleDynamicIcon = ({
   /** Custom right icon node (takes precedence over rightIconName). */
   rightIcon?: ReactNode;
   onRightPress?: () => void;
+  leftButtonBackground?: string;
 }) => (
   <View
     style={{
       height: 100,
       position: "relative",
       paddingTop: 40,
-      backgroundColor: bgcolor ? bgcolor : Colors.light.blackBackground,
+      backgroundColor: bgcolor ?? Colors.light.blackBackground,
     }}
   >
     {/* Centered title */}
@@ -92,7 +94,7 @@ export const HeaderWithCrossTitleDynamicIcon = ({
         width: 36,
         height: 36,
         borderRadius: 18,
-        backgroundColor: Colors.light.greybuttonBackground,
+        backgroundColor: leftButtonBackground ?? Colors.light.greybuttonBackground,
         justifyContent: "center",
         alignItems: "center",
         zIndex: 10,
@@ -132,3 +134,5 @@ export const HeaderWithCrossTitleDynamicIcon = ({
     ) : null}
   </View>
 );
+
+export default HeaderWithCrossTitleDynamicIcon;

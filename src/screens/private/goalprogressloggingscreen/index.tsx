@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useLayoutEffect } from "react";
 import { View, Text, ScrollView, ImageBackground } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import {
@@ -8,7 +8,8 @@ import {
 import { Colors } from "@/constants/theme";
 import { getResolvedGoalById, GoalId } from "../home/components/goalsData";
 import { styles } from "./styles";
-import { useRouter } from "expo-router";
+import { useRouter, useNavigation } from "expo-router";
+import { HeaderWithCrossTitleDynamicIcon } from "@/components/atoms/HeaderWithCrossTitleDynamicIcon";
 import { useTranslation } from "react-i18next";
 import { LoggingFlowSlot } from "./components/LoggingFlowSlot";
 import { getLoggingFlowTemplate } from "./loggingFlowRegistry";
@@ -234,7 +235,7 @@ export const GoalProgressLoggingScreen = ({
   const scrollView = (
     <ScrollView
       style={[styles.container, shouldUseBackground && styles.transparentBackground]}
-      contentContainerStyle={styles.scrollContent}
+      contentContainerStyle={[styles.scrollContent, shouldUseBackground ? { paddingTop: 100 } : undefined]}
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
       scrollEnabled={screenScrollEnabled}
@@ -247,6 +248,28 @@ export const GoalProgressLoggingScreen = ({
       />
     </ScrollView>
   );
+
+  const navigation = useNavigation();
+
+  useLayoutEffect(() => {
+    if (shouldUseBackground) {
+      navigation.setOptions({
+        headerShown: true,
+        header: () => (
+          <HeaderWithCrossTitleDynamicIcon
+            title={goalData.title ?? goalData.label}
+            navigation={navigation}
+            bgcolor="transparent"
+            iconName="chevron-left"
+            leftButtonBackground="rgba(255,255,255,0.08)"
+            onBackPress={() => navigation.goBack()}
+          />
+        ),
+      });
+    } else {
+      navigation.setOptions({ headerShown: false });
+    }
+  }, [navigation, shouldUseBackground, goalData]);
 
   if (shouldUseBackground) {
     return (
