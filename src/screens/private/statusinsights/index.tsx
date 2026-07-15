@@ -98,7 +98,8 @@ export default function StatusInsightsScreen() {
                     <SwitchButton
                         value={statusInsightsEnabled}
                         onPress={handleToggleStatusInsights}
-                        trackColors={{ off: Colors.light.subtext, on: Colors.light.green }}
+                        trackColors={{ off: Colors.light.subtext, on: Colors.light.dullWhiteOpacity }}
+                        thumbColors={{ off: Colors.light.white, on: Colors.light.green }}
                         size="small"
                     />
                 </View>

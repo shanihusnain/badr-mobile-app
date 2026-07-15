@@ -21,19 +21,24 @@ export default function PrimaryButton({
   onPress,
   style,
   textStyle,
+  disabled,
   ...props
 }: PrimaryButtonProps) {
   return (
     <Pressable
       style={(state) => [
         styles.button,
+        disabled && styles.buttonDisabled,
         typeof style === "function" ? style(state) : style,
-        state.pressed && styles.buttonPressed,
+        state.pressed && !disabled && styles.buttonPressed,
       ]}
       onPress={onPress}
+      disabled={disabled}
       {...props}
     >
-      <Text style={[styles.buttonText, textStyle]}>{text}</Text>
+      <Text style={[styles.buttonText, disabled && styles.buttonTextDisabled, textStyle]}>
+        {text}
+      </Text>
     </Pressable>
   );
 }
@@ -55,6 +60,9 @@ const styles = StyleSheet.create({
   buttonPressed: {
     opacity: 0.8,
   },
+  buttonDisabled: {
+    opacity: 0.7,
+  },
   buttonText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
@@ -62,5 +70,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 18,
     letterSpacing: 0,
+  },
+  buttonTextDisabled: {
+    color: Colors.light.background,
   },
 });

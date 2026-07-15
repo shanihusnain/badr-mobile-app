@@ -8,6 +8,7 @@ moment.locale("en");
 import { MenstruationCalendar } from "@/components/molecules/MenstruationCalendar";
 import InlineDateWheelPicker from "@/components/molecules/InlineDateWheelPicker";
 import { SwitchButton } from "@/components/atoms/SwitchButton";
+import PrimaryButton from "@/components/atoms/Primary-button";
 import { Colors } from "@/constants/theme";
 import styles from "./style";
 import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
@@ -41,9 +42,8 @@ export default function MenstruationLog({
   const isStillMenstruating = useSharedValue(false);
   const [menstruating, setMenstruating] = useState(false);
   const [stillMenstruating, setStillMenstruating] = useState(false);
-  const [selectedStartTime, setSelectedStartTime] =
-    useState<string>("Before Fajr");
-  const [selectedEndTime, setSelectedEndTime] = useState<string>("Before Fajr");
+  const [selectedStartTime, setSelectedStartTime] = useState<string>("");
+  const [selectedEndTime, setSelectedEndTime] = useState<string>("");
 
   const today = new Date();
   const todayString = toDateString(today);
@@ -187,8 +187,14 @@ export default function MenstruationLog({
 
                 isStillMenstruating.value = false;
                 setStillMenstruating(false);
+
+                setSelectedStartTime("");
+                setSelectedEndTime("");
               }
             }}
+            trackColors={{ off: Colors.light.subtext, on: Colors.light.dullWhiteOpacity }}
+            thumbColors={{ off: Colors.light.white, on: Colors.light.green }}
+            size="small"
             style={styles.switchButton}
           />
         </View>
@@ -353,6 +359,9 @@ export default function MenstruationLog({
                 setSelectedEndDate(selectableMaxString);
               }
             }}
+            trackColors={{ off: Colors.light.subtext, on: Colors.light.dullWhiteOpacity }}
+            thumbColors={{ off: Colors.light.white, on: Colors.light.green }}
+            size="small"
             style={[styles.switchButton, !menstruating && { opacity: 0.4 }]}
           />
         </View>
@@ -452,17 +461,19 @@ export default function MenstruationLog({
           </View>
         )}
 
-        <TouchableOpacity
-          style={styles.saveButton}
-          activeOpacity={0.8}
+        <PrimaryButton
+          text={t("homeScreen.menstruationLog_save")}
           onPress={() => {
             router.back();
           }}
-        >
-          <Text style={styles.saveButtonText}>
-            {t("homeScreen.menstruationLog_save")}
-          </Text>
-        </TouchableOpacity>
+          disabled={!menstruating || selectedStartTime === ""}
+          style={({ pressed }) => [
+            { marginTop: 24 },
+            !menstruating || selectedStartTime === ""
+              ? { backgroundColor: Colors.light.greybuttonBackground, borderColor: Colors.light.greybuttonBackground }
+              : {},
+          ]}
+        />
       </ScrollView>
     </BlackScreenWrapper>
   );

@@ -21,6 +21,7 @@ interface SwitchProps {
   style?: object;
   duration?: number;
   trackColors?: { on: string; off: string };
+  thumbColors?: { on: string; off: string };
   size?: SwitchSize;
 }
 
@@ -42,6 +43,10 @@ export const SwitchButton = ({
   trackColors = {
     on: Colors.light.green,
     off: Colors.light.unselectedSwtchTrack,
+  },
+  thumbColors = {
+    on: Colors.light.white,
+    off: Colors.light.white,
   },
   size = "default",
 }: SwitchProps) => {
@@ -72,6 +77,11 @@ export const SwitchButton = ({
       transform: [
         { translateX: interpolate(progress.value, [0, 1], [0, translateAmount]) },
       ],
+      backgroundColor: interpolateColor(
+        progress.value,
+        [0, 1],
+        [thumbColors.off, thumbColors.on],
+      ),
     };
   });
 
@@ -114,9 +124,8 @@ const styles = StyleSheet.create({
     overflow: "visible",
   },
   thumb: {
-    backgroundColor: Colors.light.white,
     position: "absolute",
-    shadowColor: "#000",
+    shadowColor: Colors.light.blackBackground,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3,

@@ -461,13 +461,23 @@ export default function PrivateLayout() {
           name="goalprogressloggingscreen/[goalId]"
           options={{
             headerShown: true,
+            headerTransparent: true,
+            headerStyle: { backgroundColor: "transparent" },
             title: "GOAL PROGRESS",
             headerBackTitle: "Back",
-            header: ({ route }) => {
+            header: ({ route, navigation }) => {
               const goalData = getGoalById((route?.params as any)?.goalId);
 
-              const title = goalData?.title?.toUpperCase();
-              return <Header title={title ?? ""} />;
+              const title = goalData?.title?.toUpperCase() ?? "";
+              return (
+                <HeaderWithCrossTitleDynamicIcon
+                  title={title}
+                  navigation={navigation}
+                  iconName="chevron-left"
+                  bgcolor="transparent"
+                  leftButtonBackground="rgba(255,255,255,0.08)"
+                />
+              );
             },
           }}
         />

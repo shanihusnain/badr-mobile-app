@@ -20,7 +20,8 @@ export default function SettingCard({ title, description, value, onToggle }: Pro
         <SwitchButton
           value={value}
           onPress={onToggle}
-          trackColors={{ off: Colors.light.subtext, on: Colors.light.green }}
+          trackColors={{ off: Colors.light.subtext, on: Colors.light.dullWhiteOpacity }}
+          thumbColors={{ off: Colors.light.white, on: Colors.light.green }}
           size="small"
         />
       </View>
