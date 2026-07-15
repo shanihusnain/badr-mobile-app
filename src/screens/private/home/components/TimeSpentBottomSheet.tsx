@@ -26,16 +26,14 @@ export const TimeSpentBottomSheet = forwardRef<BottomSheet, Props>(
     const safeAreaInsets = useSafeAreaInsets();
     const { t } = useTypedTranslation();
 
-    const renderFooter = useCallback(
-      (props: BottomSheetFooterProps) => (
-        <BottomSheetFooter {...props} bottomInset={safeAreaInsets.bottom}>
-          <View style={styles.footer}>
-            <SecondaryButton text={t("homeScreen.closeBtn")} onPress={onClose} variant="green" />
-          </View>
-        </BottomSheetFooter>
-      ),
-      [onClose, safeAreaInsets.bottom],
-    );
+    // const renderFooter = useCallback(
+    //   (props: BottomSheetFooterProps) => (
+    //     <BottomSheetFooter {...props} bottomInset={safeAreaInsets.bottom}>
+
+    //     </BottomSheetFooter>
+    //   ),
+    //   [onClose, safeAreaInsets.bottom],
+    // );
 
     return (
       <BottomSheetWrapper
@@ -43,17 +41,26 @@ export const TimeSpentBottomSheet = forwardRef<BottomSheet, Props>(
         snapPoints={["92%"]}
         onClose={onClose}
         onChange={onChange}
-        footerComponent={renderFooter}
+        // footerComponent={renderFooter}
       >
         <View style={styles.header}>
           <Pressable style={styles.closeButton} onPress={onClose} hitSlop={8}>
             <Ionicons name="close" size={24} color={Colors.light.white} />
           </Pressable>
-          <Text style={styles.headerTitle}>{t("homeScreen.timeSpentTitle")}</Text>
+          <Text style={styles.headerTitle}>
+            {t("homeScreen.timeSpentTitle")}
+          </Text>
           <View style={styles.headerSpacer} />
         </View>
         <TopSpace top={8} />
         <TimeSpentDetailOverview />
+        <View style={styles.footer}>
+          <SecondaryButton
+            text={t("homeScreen.closeBtn")}
+            onPress={onClose}
+            variant="green"
+          />
+        </View>
       </BottomSheetWrapper>
     );
   },

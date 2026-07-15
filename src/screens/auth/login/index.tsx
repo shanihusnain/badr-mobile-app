@@ -20,6 +20,7 @@ import { z } from "zod";
 import { styles } from "./style";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/provider/useAuth";
+import { TopSpace } from "@/components/atoms/TopSpace";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -53,7 +54,7 @@ export default function LoginScreen() {
     await signIn("mock-access-token", "mock-refresh-token", {
       email: data.email,
     });
-    router.replace("/(private)/setpersonalizedgoals");
+    router.replace("/(private)/greetingsscreen");
   };
 
   return (
@@ -67,54 +68,50 @@ export default function LoginScreen() {
           >
             <View style={styles.bottomSheet}>
               <View style={styles.bottomSheetContent}>
-                <View style={styles.formWrapper}>
-                  <CustomTextInput
-                    placeholder={t("loginScreen.emailPlaceholder")}
-                    control={control}
-                    name="email"
-                    errors={errors.email?.message ? [errors.email.message] : []}
-                  />
+                <CustomTextInput
+                  placeholder={t("loginScreen.emailPlaceholder")}
+                  control={control}
+                  name="email"
+                  errors={errors.email?.message ? [errors.email.message] : []}
+                />
 
-                  <CustomTextInput
-                    placeholder={t("loginScreen.passwordPlaceholder")}
-                    control={control}
-                    name="password"
-                    showEye
-                    secureTextEntry={!showPassword}
-                    onToggleEye={handleTogglePassword}
-                    errors={
-                      errors.password?.message ? [errors.password.message] : []
-                    }
-                  />
+                <CustomTextInput
+                  placeholder={t("loginScreen.passwordPlaceholder")}
+                  control={control}
+                  name="password"
+                  showEye
+                  secureTextEntry={!showPassword}
+                  onToggleEye={handleTogglePassword}
+                  errors={
+                    errors.password?.message ? [errors.password.message] : []
+                  }
+                />
 
-                  <TouchableOpacity
-                    style={styles.forgotPasswordContainer}
-                    onPress={handleForgotPassword}
-                  >
-                    <Text style={styles.forgotPasswordText}>
-                      {t("loginScreen.forgotPassword")}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
+                <TouchableOpacity
+                  style={styles.forgotPasswordContainer}
+                  onPress={handleForgotPassword}
+                >
+                  <Text style={styles.forgotPasswordText}>
+                    {t("loginScreen.forgotPassword")}
+                  </Text>
+                </TouchableOpacity>
+                <TopSpace top={30} />
+                <PrimaryButton
+                  text={t("loginScreen.loginBtnText")}
+                  onPress={handleSubmit(onSubmit)}
+                />
 
-                <View style={styles.buttonWrapper}>
-                  <PrimaryButton
-                    text={t("loginScreen.loginBtnText")}
-                    onPress={handleSubmit(onSubmit)}
-                  />
-
-                  <TouchableOpacity
-                    style={styles.orloginContainer}
-                    onPress={() => router.push("/dummy" as any)}
-                    activeOpacity={0.7}
-                  >
-                    <View style={styles.line} />
-                    <Text style={styles.orloginText}>
-                      {t("loginScreen.orLoginWith")}
-                    </Text>
-                    <View style={styles.line} />
-                  </TouchableOpacity>
-                </View>
+                <TouchableOpacity
+                  style={styles.orloginContainer}
+                  onPress={() => router.push("/dummy" as any)}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.line} />
+                  <Text style={styles.orloginText}>
+                    {t("loginScreen.orLoginWith")}
+                  </Text>
+                  <View style={styles.line} />
+                </TouchableOpacity>
               </View>
             </View>
           </KeyboardAvoidingView>

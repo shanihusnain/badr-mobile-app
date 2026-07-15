@@ -3,9 +3,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export const ACCESS_TOKEN = "access_token";
 const getBaseUrl = () => {
-  return process.env.EXPO_PUBLIC_API_URL || "http://localhost:3000";
+  return process.env.EXPO_PUBLIC_API_URL;
 };
-
 const getAccessToken = async () => {
   try {
     const token = await AsyncStorage.getItem(ACCESS_TOKEN);

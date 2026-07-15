@@ -162,7 +162,7 @@ export default function MoreScreen() {
   );
 
   return (
-    <BlackScreenWrapper>
+    <BlackScreenWrapper edges={["top"]}>
       <FlatList
         data={DATA}
         keyExtractor={(item) => item.key}

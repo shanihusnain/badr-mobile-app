@@ -4,10 +4,15 @@ import {
   isHizbFullyMemorized,
 } from "./quranMemorisationHizbData";
 import {
-  getHizbDefinitions,
+  SELECTED_HIZB_GOALS,
+  getSelectedMemorisationHizbIds,
+} from "./quranMemorisationHizbSelection";
+import {
   getHizbDisplayName,
   getHizbVerseCount,
 } from "./quranHizbVerseMap";
+
+export { getSelectedMemorisationHizbIds };
 
 export type HizbMemorisationStatusKind =
   | "not-started"
@@ -27,8 +32,6 @@ export type HizbMemorisationGoal = {
 };
 
 export type MemorisationHizbFilterId = "all" | string;
-
-const SELECTED_HIZB_GOALS = getHizbDefinitions();
 
 function deriveHizbMemorisationStatus(
   memorizedAyahs: number,
@@ -71,10 +74,6 @@ function buildGoal(
       completed,
     ),
   };
-}
-
-export function getSelectedMemorisationHizbIds(): string[] {
-  return SELECTED_HIZB_GOALS.map((goal) => goal.id);
 }
 
 export function getHizbMemorisationGoals(): HizbMemorisationGoal[] {

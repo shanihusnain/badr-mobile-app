@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
     opacity: 0.8,
   },
   buttonText: {
-    color: Colors.light.background,
+    color: Colors.light.white,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
     fontSize: 14,

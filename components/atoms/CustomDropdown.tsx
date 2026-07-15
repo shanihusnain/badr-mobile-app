@@ -56,7 +56,9 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
   borderColor,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedValue, setSelectedValue] = useState<string | number | undefined>(controlledValue);
+  const [selectedValue, setSelectedValue] = useState<
+    string | number | undefined
+  >(controlledValue);
 
   useEffect(() => {
     if (controlledValue !== undefined) {
@@ -77,17 +79,25 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
 
     const getSelectedOption = () => {
       return options.find((opt) =>
-        typeof opt === "string" ? opt === currentValue : opt.value === currentValue,
+        typeof opt === "string"
+          ? opt === currentValue
+          : opt.value === currentValue,
       );
     };
 
     const selectedOption = getSelectedOption();
 
     const getDisplayLabel = (): string => {
-      if (currentValue === undefined || currentValue === null || currentValue === "")
+      if (
+        currentValue === undefined ||
+        currentValue === null ||
+        currentValue === ""
+      )
         return placeholder;
       if (!selectedOption) return String(currentValue);
-      return typeof selectedOption === "string" ? selectedOption : selectedOption.label;
+      return typeof selectedOption === "string"
+        ? selectedOption
+        : selectedOption.label;
     };
 
     return (
@@ -107,7 +117,9 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
           activeOpacity={0.8}
         >
           <View style={styles.triggerContent}>
-            {selectedOption && typeof selectedOption !== "string" && selectedOption.icon ? (
+            {selectedOption &&
+            typeof selectedOption !== "string" &&
+            selectedOption.icon ? (
               <Text style={styles.optionIcon}>{selectedOption.icon}</Text>
             ) : null}
             <Text
@@ -152,7 +164,9 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
                   <View style={styles.radioOuter}>
                     {isSelected && <View style={styles.radioInner} />}
                   </View>
-                  {itemIcon ? <Text style={styles.optionIcon}>{itemIcon}</Text> : null}
+                  {itemIcon ? (
+                    <Text style={styles.optionIcon}>{itemIcon}</Text>
+                  ) : null}
                   <Text style={[styles.optionText, optionTextStyle]}>
                     {itemLabel}
                   </Text>
@@ -207,7 +221,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     height: 48,
     width: "100%",
-    marginTop: 0,
+    marginTop: hp(1),
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",

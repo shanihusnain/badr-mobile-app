@@ -1,4 +1,5 @@
 import { fonts } from "@/assets/fonts";
+import MoonProgress from "@/components/atoms/MoonProgress";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { Colors } from "@/constants/theme";
 import { globalStyles } from "@/src/globalstyles/globalstyles";
@@ -40,7 +41,16 @@ export const GoalProgressCard = ({
       <TopSpace top={20} />
 
       {/* ── Image ── */}
-      <Image style={styles.image} source={image} />
+      <View
+        style={{
+          height: heightPercentageToDP(30),
+          width: "100%",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <MoonProgress progressPercent={overallProgress} />
+      </View>
 
       {/* ── Stats row ── */}
       <View style={[globalStyles.rowCenter, styles.statsRow]}>
@@ -50,7 +60,9 @@ export const GoalProgressCard = ({
         </View>
 
         <View style={styles.statItem}>
-          <Text style={styles.statLabel}>{t("setpersonalizedgoals.overall progress")}</Text>
+          <Text style={styles.statLabel}>
+            {t("setpersonalizedgoals.overall progress")}
+          </Text>
           <Text style={styles.statValue}>{`${overallProgress}%`}</Text>
         </View>
       </View>

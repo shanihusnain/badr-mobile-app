@@ -1,4 +1,4 @@
-import { getSelectedMemorisationSurahIds } from "./quranMemorisationSurahGoals";
+import { getSelectedMemorisationSurahIds } from "./quranMemorisationSurahSelection";
 import { getSurahVerseCount } from "./quranSurahVerseMap";
 
 export type SurahMemorisationLogRecord = {

@@ -36,7 +36,7 @@ export default function PlanScreen() {
   }, []);
 
   return (
-    <BlackScreenWrapper>
+    <BlackScreenWrapper edges={["top"]}>
       <PlanTabBar
         tabs={tabs}
         selectedTab={selectedTab}

@@ -17,6 +17,8 @@ import { useValidations } from "@/src/validations/useValidations";
 import { useCreateAccountProps } from "./useCreateAccountProps";
 import PrimaryButton from "@/components/atoms/Primary-button";
 import { useTranslation } from "react-i18next";
+import { TopSpace } from "@/components/atoms/TopSpace";
+import { ProfileInformationIcon, ReferUserIcon } from "@/assets/icons";
 
 export default function CreateAccountScreen() {
   const styles = createStyles();
@@ -88,7 +90,7 @@ export default function CreateAccountScreen() {
           {image ? (
             <Image source={{ uri: image }} style={styles.avatarImage} />
           ) : (
-            <AntDesign name="user" size={40} color={Colors.light.white} />
+            <ProfileInformationIcon Color={Colors.light.white} />
           )}
           <View style={styles.cameraIconContainer}>
             <AntDesign name="camera" size={14} color={Colors.light.white} />
@@ -104,6 +106,7 @@ export default function CreateAccountScreen() {
           control={control}
           name="name"
         />
+        <TopSpace top={16} />
         <CustomTextInput
           label={t("createAccountScreen.passwordLabel")}
           labelStyle={{ color: Colors.light.grey }}
@@ -116,6 +119,8 @@ export default function CreateAccountScreen() {
           secureTextEntry={!showPassword}
           onToggleEye={onPasswordToggle}
         />
+        <TopSpace top={16} />
+
         <CustomTextInput
           label={t("createAccountScreen.confirmPasswordLabel")}
           labelStyle={{ color: Colors.light.grey }}
@@ -132,6 +137,8 @@ export default function CreateAccountScreen() {
           secureTextEntry={!showConfirmPassword}
           onToggleEye={onConfirmPasswordToggle}
         />
+        <TopSpace top={16} />
+
         <CustomTextInput
           label={t("createAccountScreen.emailLabel")}
           labelStyle={{ color: Colors.light.grey }}
@@ -141,6 +148,8 @@ export default function CreateAccountScreen() {
           control={control}
           name="email"
         />
+        <TopSpace top={16} />
+
         <CustomDropdown
           label={t("createAccountScreen.genderLabel")}
           labelStyle={{ color: Colors.light.grey }}
@@ -159,6 +168,7 @@ export default function CreateAccountScreen() {
           name="dob"
           errors={errors.dob?.message ? [errors.dob.message] : []}
         />
+        <TopSpace top={16} />
 
         <CustomDropdown
           label={t("createAccountScreen.countryLabel")}
@@ -171,6 +181,7 @@ export default function CreateAccountScreen() {
           control={control}
           name="country"
         />
+        <TopSpace top={16} />
 
         <CustomDropdown
           label={t("createAccountScreen.dateViewLabel")}
@@ -183,6 +194,7 @@ export default function CreateAccountScreen() {
           control={control}
           name="dateView"
         />
+        <TopSpace top={16} />
 
         <CustomDropdown
           label={t("createAccountScreen.weekendDaysLabel")}
@@ -195,6 +207,8 @@ export default function CreateAccountScreen() {
           control={control}
           name="week"
         />
+        <TopSpace top={16} />
+
         <View style={styles.btnWrapper}>
           <PrimaryButton
             text={t("createAccountScreen.createAccountBtn")}

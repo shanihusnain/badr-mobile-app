@@ -222,7 +222,7 @@ export const ConnectHome = () => {
   );
 
   return (
-    <BlackScreenWrapper>
+    <BlackScreenWrapper edges={["top"]}>
       <FlatList
         data={sections}
         keyExtractor={(item) => item.id}

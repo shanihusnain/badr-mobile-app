@@ -47,12 +47,7 @@ export default function PrivateLayout() {
             ),
           }}
         />
-        <Stack.Screen
-          name="home"
-          options={{
-            headerShown: false,
-          }}
-        />
+
         <Stack.Screen
           name="membershippaymentmethod"
           options={{
@@ -117,19 +112,7 @@ export default function PrivateLayout() {
             ),
           }}
         />
-        <Stack.Screen
-          name="changepassword/index"
-          options={{
-            headerShown: true,
-            header: ({ navigation }) => (
-              <HeaderWithCrossTitleDynamicIcon
-                title="CHANGE PASSWORD"
-                navigation={navigation}
-                iconName="chevron-left"
-              />
-            ),
-          }}
-        />
+
         <Stack.Screen
           name="changeemailid"
           options={{
@@ -574,6 +557,12 @@ export default function PrivateLayout() {
                 iconName="chevron-left"
               />
             ),
+          }}
+        />
+        <Stack.Screen
+          name="greetingsscreen"
+          options={{
+            headerShown: false,
           }}
         />
       </Stack>

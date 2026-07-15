@@ -2,25 +2,16 @@ import React, { memo, useCallback, useEffect, useRef } from "react";
 import {
   Animated,
   LayoutAnimation,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
-  UIManager,
   View,
 } from "react-native";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import type { JournalDateCapsule } from "../types";
 import { CheckIcon } from "@/assets/icons";
-
-if (
-  Platform.OS === "android" &&
-  UIManager.setLayoutAnimationEnabledExperimental
-) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
 
 const CAPSULE_WIDTH = 52;
 const CAPSULE_GAP = 8;

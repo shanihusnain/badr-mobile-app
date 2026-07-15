@@ -4,10 +4,15 @@ import {
   isJuzFullyMemorized,
 } from "./quranMemorisationJuzData";
 import {
-  getJuzDefinitions,
+  SELECTED_JUZ_GOALS,
+  getSelectedMemorisationJuzIds,
+} from "./quranMemorisationJuzSelection";
+import {
   getJuzVerseCount,
   type JuzDefinition,
 } from "./quranMemorisationJuzVerse";
+
+export { getSelectedMemorisationJuzIds };
 
 export type JuzMemorisationStatusKind =
   | "not-started"
@@ -28,8 +33,6 @@ export type JuzMemorisationGoal = {
 };
 
 export type MemorisationJuzFilterId = "all" | string;
-
-const SELECTED_JUZ_GOALS = getJuzDefinitions();
 
 function deriveJuzMemorisationStatus(
   memorizedAyahs: number,
@@ -69,10 +72,6 @@ function buildGoal(definition: JuzDefinition): JuzMemorisationGoal {
       completed,
     ),
   };
-}
-
-export function getSelectedMemorisationJuzIds(): string[] {
-  return SELECTED_JUZ_GOALS.map((goal) => goal.id);
 }
 
 export function getJuzMemorisationGoals(): JuzMemorisationGoal[] {

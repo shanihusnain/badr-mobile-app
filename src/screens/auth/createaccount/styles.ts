@@ -12,7 +12,6 @@ const createStyles = () =>
       alignItems: "center",
       paddingHorizontal: 16,
       paddingBottom: 20,
-      paddingTop: hp(4),
     },
     avatarContainer: {
       width: 90,
@@ -319,7 +318,7 @@ const createStyles = () =>
       fontFamily: fonts.primary.semiBold,
       fontSize: 12,
     },
-    btnWrapper: { width: 333, marginTop: hp(3) },
+    btnWrapper: { width: 333, marginTop: hp(3), zIndex: 1000 },
   });
 
 export default createStyles;

@@ -31,7 +31,18 @@ interface CustomTextInputProps {
   control?: any; // optional for react-hook-form usage
   name?: string; // optional for react-hook-form usage
   multiline?: boolean;
-  keyboardType?: "default" | "email-address" | "numeric" | "phone-pad" | "number-pad" | "decimal-pad" | "visible-password" | "ascii-capable" | "name-phone-pad" | "twitter" | "web-search";
+  keyboardType?:
+    | "default"
+    | "email-address"
+    | "numeric"
+    | "phone-pad"
+    | "number-pad"
+    | "decimal-pad"
+    | "visible-password"
+    | "ascii-capable"
+    | "name-phone-pad"
+    | "twitter"
+    | "web-search";
   autoCapitalize?: "none" | "sentences" | "words" | "characters";
   maxLength?: number;
   editable?: boolean;
@@ -65,18 +76,25 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
   const { i18n } = useTranslation();
   const isRtl = i18n.language === "ar";
 
-  const renderInput = (fieldValue?: string, fieldOnChange?: (value: string) => void) => (
+  const renderInput = (
+    fieldValue?: string,
+    fieldOnChange?: (value: string) => void,
+  ) => (
     <View style={styles.wrapper}>
-      {label ? (
-        <Text style={[styles.label, labelStyle]}>{label}</Text>
-      ) : null}
-      <View style={[styles.inputWrapper, containerStyle, multiline && styles.multilineInputWrapper]}>
+      {label ? <Text style={[styles.label, labelStyle]}>{label}</Text> : null}
+      <View
+        style={[
+          styles.inputWrapper,
+          containerStyle,
+          multiline && styles.multilineInputWrapper,
+        ]}
+      >
         <View style={styles.flex1}>
           <TextInput
             style={[
               styles.input,
               { textAlign: isRtl ? "right" : "left" },
-              secureTextEntry && { fontFamily: undefined },
+              secureTextEntry && { fontFamily: fonts.primary.semiBold },
               multiline && styles.multilineTextInput,
               inputStyle,
             ]}
@@ -119,7 +137,9 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
       <Controller
         name={name}
         control={control}
-        render={({ field: { onChange, value } }) => renderInput(value, onChange)}
+        render={({ field: { onChange, value } }) =>
+          renderInput(value, onChange)
+        }
       />
     );
   }

@@ -1,4 +1,4 @@
-import { getSelectedMemorisationJuzIds } from "./quranMemorisationJuzGoals";
+import { getSelectedMemorisationJuzIds } from "./quranMemorisationJuzSelection";
 import { getJuzVerseCount } from "./quranMemorisationJuzVerse";
 
 export type JuzMemorisationLogRecord = {

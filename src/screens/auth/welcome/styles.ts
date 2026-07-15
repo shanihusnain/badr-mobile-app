@@ -11,7 +11,7 @@ export const styles = StyleSheet.create({
   },
 
   overlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: Colors.light.overlayMask,
   },
 
@@ -22,78 +22,14 @@ export const styles = StyleSheet.create({
     paddingBottom: 40,
   },
 
-  heroContainer: {
-    marginBottom: 24,
-    paddingHorizontal: 10,
-  },
-
   heroText: {
     fontSize: 30,
     fontFamily: fonts.primary.heavy,
-    color: Colors.light.background,
+    color: Colors.light.white,
     textAlign: "left",
-    //lineHeight: hp(4.5),
     flex: 1,
     fontWeight: "800",
-  },
-
-  buttonGroup: {
-    marginTop: 270,
-    gap: 16,
-    alignItems: "center",
-  },
-
-  primaryButton: {
-    width: "90%",
-    fontWeight: "500",
-    minHeight: 40,
-    borderRadius: 6,
-    paddingTop: 10,
-    paddingBottom: 10,
-    paddingHorizontal: 8,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: Colors.light.green,
-    borderWidth: 1.5,
-    borderColor: Colors.light.green,
-    marginBottom: 10,
-    alignSelf: "center",
-  },
-
-  secondaryButton: {
-    width: "90%",
-    minHeight: 40,
-    borderRadius: 6,
-    paddingTop: 10,
-    paddingBottom: 10,
-    paddingHorizontal: 8,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "transparent",
-    borderWidth: 1.5,
-    borderColor: Colors.light.background,
-    alignSelf: "center",
-  },
-
-  primaryButtonText: {
-    color: Colors.light.background,
-    fontFamily: fonts.primary.medium,
-    fontWeight: "500",
-    fontSize: 16,
-    lineHeight: 20,
-    letterSpacing: 0,
-  },
-
-  secondaryButtonText: {
-    color: Colors.light.background,
-    fontFamily: fonts.primary.regular,
-    fontWeight: "500",
-    fontSize: 16,
-    lineHeight: 20,
-    letterSpacing: 0,
-  },
-
-  buttonPressed: {
-    opacity: 0.8,
+    letterSpacing: 1,
+    lineHeight: 40,
   },
 });

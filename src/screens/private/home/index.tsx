@@ -378,7 +378,7 @@ export default function HomeScreen() {
   };
 
   return (
-    <BlackScreenWrapper edges={["top", "bottom"]}>
+    <BlackScreenWrapper edges={["top"]}>
       {/* Sticky collapsed category bar (fades in as big rings scroll away) */}
       {!isAnyBottomSheetOpen ? (
         <Animated.View
@@ -767,17 +767,20 @@ export default function HomeScreen() {
         ref={goldenBottomSheetRef}
         snapPoints={["50%", "92%"]}
         bgColor={Colors.light.blackBackground}
+        onChange={(index) => handleBottomSheetChange("dailyProgress", index)}
       >
         <DailyProgressBottomSheet
           onClose={() => goldenBottomSheetRef.current?.close()}
         />
       </BottomSheetWrapper>
 
-      <HomeFabSpeedDial
-        bottomInset={safeAreaInsets.bottom}
-        onAddDailyProgress={handleAddDailyProgress}
-        onCompleteJournal={handleCompleteJournal}
-      />
+      {!isAnyBottomSheetOpen ? (
+        <HomeFabSpeedDial
+          bottomInset={0}
+          onAddDailyProgress={handleAddDailyProgress}
+          onCompleteJournal={handleCompleteJournal}
+        />
+      ) : null}
     </BlackScreenWrapper>
   );
 }

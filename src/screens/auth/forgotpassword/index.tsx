@@ -66,11 +66,7 @@ export default function ForgotPasswordScreen() {
                     placeholder={t("forgotPasswordScreen.emailPlaceholder")}
                     control={control}
                     name="email"
-                    errors={
-                      errors.email?.message
-                        ? [errors.email.message]
-                        : []
-                    }
+                    errors={errors.email?.message ? [errors.email.message] : []}
                   />
                 </View>
 

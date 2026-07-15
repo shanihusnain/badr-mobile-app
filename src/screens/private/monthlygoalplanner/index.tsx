@@ -120,7 +120,7 @@ export const MonthlyGoalPlannerScreen = () => {
   ];
 
   const steps: StepItem[] = [
-    { id: 1, title: t("monthlyGoalPlanner.step1Title"), status: "completed" },
+    { id: 1, title: t("monthlyGoalPlanner.step1Title"), status: "pending" },
     {
       id: 2,
       title: t("monthlyGoalPlanner.step2Title"),

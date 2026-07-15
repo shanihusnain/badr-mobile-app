@@ -3,7 +3,13 @@ import {
   getSurahMemorisationProgressPercent,
   isSurahFullyMemorized,
 } from "./quranMemorisationSurahData";
+import {
+  SELECTED_SURAH_GOALS,
+  getSelectedMemorisationSurahIds,
+} from "./quranMemorisationSurahSelection";
 import { getSurahVerseCount } from "./quranSurahVerseMap";
+
+export { getSelectedMemorisationSurahIds };
 
 export type SurahMemorisationStatusKind =
   | "not-started"
@@ -21,13 +27,6 @@ export type SurahMemorisationGoal = {
 };
 
 export type MemorisationSurahFilterId = "all" | string;
-
-const SELECTED_SURAH_GOALS: Array<{ id: string; surahName: string }> = [
-  { id: "surah-al-baqarah", surahName: "Al-Baqarah" },
-  { id: "surah-aal-imran", surahName: "Aal-Imran" },
-  { id: "surah-an-nisa", surahName: "An-Nisa" },
-  { id: "surah-al-maidah", surahName: "Al-Ma'idah" },
-];
 
 function deriveSurahMemorisationStatus(
   memorizedAyahs: number,
@@ -64,10 +63,6 @@ function buildGoal(id: string, surahName: string): SurahMemorisationGoal {
       completed,
     ),
   };
-}
-
-export function getSelectedMemorisationSurahIds(): string[] {
-  return SELECTED_SURAH_GOALS.map((goal) => goal.id);
 }
 
 export function getSurahMemorisationGoals(): SurahMemorisationGoal[] {

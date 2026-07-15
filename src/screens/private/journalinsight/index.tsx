@@ -7,6 +7,7 @@ import { JournalInsightBehaviorCard } from "./components/JournalInsightBehaviorC
 import { JournalInsightSummaryCard } from "./components/JournalInsightSummaryCard";
 import { useJournalInsightProps } from "./useJournalInsightProps";
 import { journalInsightStyles as styles } from "./styles";
+import { router } from "expo-router";
 
 export const JornalInsight = ({ id }: { id: string }) => {
   const {
@@ -22,7 +23,7 @@ export const JornalInsight = ({ id }: { id: string }) => {
   } = useJournalInsightProps(id);
 
   return (
-    <BlackScreenWrapper>
+    <BlackScreenWrapper edges={["top"]}>
       <ScrollView
         style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
@@ -54,6 +55,9 @@ export const JornalInsight = ({ id }: { id: string }) => {
         <PastAchievementStudyMaterial
           items={activeSnapshot.studyMaterial}
           title="LEARN MORE"
+          onSeeAllPress={() => {
+            router.push("/(tabs)/(connect)/learnmorescreen");
+          }}
         />
       </ScrollView>
     </BlackScreenWrapper>

@@ -1,4 +1,4 @@
-import { getSelectedMemorisationHizbIds } from "./quranMemorisationHizbGoals";
+import { getSelectedMemorisationHizbIds } from "./quranMemorisationHizbSelection";
 import { getHizbVerseCount } from "./quranHizbVerseMap";
 
 export type HizbMemorisationLogRecord = {

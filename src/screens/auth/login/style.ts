@@ -51,82 +51,9 @@ export const styles = StyleSheet.create({
 
   bottomSheetContent: {
     flex: 1,
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingTop: hp(2),
     paddingBottom: hp(3),
-  },
-
-  formWrapper: {
-    alignItems: "center",
-    width: "100%",
-  },
-
-  emailContainer: {
-    backgroundColor: Colors.light.buttonBackground,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    width: "100%",
-    minHeight: hp(6),
-    marginTop: hp(2),
-    flexDirection: "row",
-    alignItems: "center",
-  },
-
-  passwordContainer: {
-    backgroundColor: Colors.light.buttonBackground,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    width: "100%",
-    minHeight: hp(6),
-    marginTop: hp(2),
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-
-  input: {
-    flex: 1,
-    color: Colors.light.white,
-    fontFamily: fonts.primary.semiBold,
-    fontSize: 12,
-    paddingVertical: 4,
-  },
-
-  passwordInput: {
-    flex: 1,
-    color: Colors.light.white,
-    fontFamily: fonts.primary.semiBold,
-    fontSize: 12,
-    paddingVertical: 4,
-  },
-
-  eyeIcon: {
-    fontSize: 16,
-    color: Colors.light.white,
-    marginLeft: 10,
-  },
-
-  errorText: {
-    color: Colors.light.red,
-    fontFamily: fonts.primary.semiBold,
-    fontSize: 11,
-    marginTop: hp(1),
-    alignSelf: "flex-start",
-  },
-
-  validationContainer: {
-    marginTop: hp(1),
-    flexDirection: "row",
-    flexWrap: "wrap",
-  },
-
-  validationText: {
-    fontFamily: fonts.primary.semiBold,
-    fontSize: 10,
-    color: Colors.light.red,
   },
 
   forgotPasswordContainer: {
@@ -139,12 +66,6 @@ export const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: fonts.primary.regular,
     lineHeight: 14,
-  },
-
-  buttonWrapper: {
-    marginTop: hp(4),
-    width: "100%",
-    marginBottom: hp(18),
   },
 
   primaryButton: {

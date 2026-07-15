@@ -54,17 +54,17 @@ export const styles = StyleSheet.create({
   },
 
   planButton: {
-    width: 135,
+    // width: 135,
     height: 28,
     borderRadius: 6,
-    paddingTop: 5,
-    paddingBottom: 5,
+
     paddingHorizontal: 10,
     marginRight: 10,
+    maxWidth: 150,
   },
 
   unselectedPlanButton: {
-    backgroundColor: Colors.light.buttonBackground,
+    backgroundColor: Colors.light.greybuttonBackground,
     borderColor: Colors.light.border,
   },
 
@@ -75,7 +75,7 @@ export const styles = StyleSheet.create({
     paddingTop: 5,
     paddingBottom: 5,
     paddingHorizontal: 10,
-    backgroundColor: Colors.light.buttonBackground,
+    backgroundColor: Colors.light.greybuttonBackground,
     marginTop: 2,
     //borderColor: Colors.light.border,
     //borderWidth: 1,
@@ -102,7 +102,7 @@ export const styles = StyleSheet.create({
   },
 
   cardContainer: {
-    backgroundColor: Colors.light.buttonBackground,
+    backgroundColor: Colors.light.greybuttonBackground,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 15,

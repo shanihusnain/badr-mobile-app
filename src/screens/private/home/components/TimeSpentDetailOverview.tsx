@@ -155,7 +155,7 @@ export function TimeSpentDetailOverview() {
         showsHorizontalScrollIndicator={false}
       >
         {TIME_SPENT_TABS.map((tab) => {
-          let translatedTabLabel = tab;
+          let translatedTabLabel: string = tab;
           if (tab === "All") translatedTabLabel = t("homeScreen.filterAll");
           else if (tab === "Prayer") translatedTabLabel = t("homeScreen.filterPrayer");
           else if (tab === "Quran") translatedTabLabel = t("homeScreen.filterQuran");

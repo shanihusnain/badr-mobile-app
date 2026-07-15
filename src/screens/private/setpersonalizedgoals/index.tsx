@@ -9,7 +9,7 @@ import {
   type SupportedLanguage,
 } from "@/i18next/i18next";
 import { useTranslation } from "react-i18next";
-import { Text, TouchableOpacity, View, Alert } from "react-native";
+import { Text, TouchableOpacity, View, Alert, Pressable } from "react-native";
 import { useCallback, useEffect, useState } from "react";
 import { router, useNavigation } from "expo-router";
 import PrimaryButton from "@/components/atoms/Primary-button";
@@ -18,6 +18,8 @@ import { GoalProgressCard } from "./components/GoalProgressCard";
 import { TutorialVideoPlayer } from "./components/TutorialVideoPlayer";
 import { styles } from "./styles";
 import Header from "@/components/Header";
+import { Colors } from "@/constants/theme";
+import { fonts } from "@/assets/fonts";
 
 export const SetPersonalizedGoalsScreen = () => {
   const { t, i18n } = useTranslation();
@@ -113,13 +115,30 @@ export const SetPersonalizedGoalsScreen = () => {
       {activeFrame === 2 && <TutorialVideoPlayer onSkip={handleSkipTutorial} />}
       {/* ── Language Switcher (dummy) ── */}
       {activeFrame === 1 && (
-        <PrimaryButton
-          text={t("setpersonalizedgoals.watchTutorial")}
-          onPress={onWatchTutorialPress}
-        />
+        <>
+          <TopSpace top={16} />
+          <Pressable
+            onPress={onWatchTutorialPress}
+            style={{
+              alignSelf: "center",
+              marginBottom: 16,
+            }}
+          >
+            <Text
+              style={{
+                fontWeight: "500",
+                fontFamily: fonts.primary.medium,
+                fontSize: 18,
+                color: Colors.light.green,
+              }}
+            >
+              WATCH OUR TUTORIAL
+            </Text>
+          </Pressable>
+        </>
       )}
       <TopSpace top={32} />
-      <View style={styles.languageRow}>
+      {/* <View style={styles.languageRow}>
         {SUPPORTED_LANGUAGES.map((lang) => {
           const isSelected = lang === currentLanguage;
           return (
@@ -137,7 +156,7 @@ export const SetPersonalizedGoalsScreen = () => {
             </TouchableOpacity>
           );
         })}
-      </View>
+      </View> */}
     </BlackScreenWrapper>
   );
 };
