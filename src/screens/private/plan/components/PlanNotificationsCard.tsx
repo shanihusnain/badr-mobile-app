@@ -5,6 +5,8 @@ import { Feather } from "@expo/vector-icons";
 import { ImageBackground } from "expo-image";
 import { Pressable, Text, View } from "react-native";
 import { planStyles as styles } from "../styles";
+import { JournalGetStartedImage } from "@/assets/images";
+import { router } from "expo-router";
 
 const DEFAULT_DESCRIPTION =
   "You're on day 18 of your 28-day cycle, with a 66% achievement score. If you'd like, tap to explore a proposed plan to help complete your remaining goals.";
@@ -41,8 +43,9 @@ export function PlanNotificationsCard({
 }: PlanNotificationsCardProps) {
   return (
     <ImageBackground
-      source={require("@/assets/images/icon.png")}
+      source={JournalGetStartedImage}
       style={styles.proposedPlanCard}
+      imageStyle={styles.proposedPlanCardImage}
       contentFit="cover"
     >
       <View style={styles.proposedPlanOverlay} />
@@ -55,7 +58,12 @@ export function PlanNotificationsCard({
           {showAction ? (
             <>
               <TopSpace top={12} />
-              <Pressable style={styles.proposedPlanAction}>
+              <Pressable
+                style={styles.proposedPlanAction}
+                onPress={() => {
+                  router.push("/notifications");
+                }}
+              >
                 <Text style={styles.proposedPlanActionText}>
                   {callToActionText}
                 </Text>

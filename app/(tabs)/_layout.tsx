@@ -54,6 +54,9 @@ export default function TabLayout() {
           name="(connect)"
           options={{
             title: "Connect",
+            // Leaving Connect (or opening it via deep link into learnmore) was
+            // leaving learnmorescreen on the nested stack. Reset to index on blur.
+            popToTopOnBlur: true,
             tabBarIcon: ({ color }) => (
               <ConnectTabIcon size={20} color={color} />
             ),

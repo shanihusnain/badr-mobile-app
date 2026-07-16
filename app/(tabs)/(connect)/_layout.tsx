@@ -10,6 +10,7 @@ export default function ConnectLayout() {
         headerStyle: { backgroundColor: Colors.light.blackBackground },
         headerShadowVisible: false,
       }}
+      initialRouteName="index"
     >
       <Stack.Screen
         name="index"

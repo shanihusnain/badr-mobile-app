@@ -56,7 +56,7 @@ export function GoalTabContent({ studyMaterial }: GoalTabContentProps) {
       <View style={styles.goalProgressCard}>
         <View style={styles.goalProgressRow}>
           <View style={styles.moonProgressWrap}>
-            {/* <MoonProgress progressPercent={66} /> */}
+            <MoonProgress progressPercent={66} />
           </View>
           <Text style={styles.goalProgressText}>{GOAL_PROGRESS_TEXT}</Text>
         </View>

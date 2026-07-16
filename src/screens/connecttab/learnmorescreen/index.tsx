@@ -121,14 +121,12 @@ export const LearnMoreScreen = () => {
 
   const ListFooter = (
     <View style={styles.footer}>
-      {isLoadingMore ? (
-        <ActivityIndicator color={Colors.light.green} />
-      ) : null}
+      {isLoadingMore ? <ActivityIndicator color={Colors.light.green} /> : null}
     </View>
   );
 
   return (
-    <BlackScreenWrapper edges={["bottom", "left", "right"]}>
+    <BlackScreenWrapper edges={["left", "right"]}>
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -148,9 +146,7 @@ export const LearnMoreScreen = () => {
             ) : (
               <View style={styles.emptyState}>
                 <Text style={styles.emptyText}>
-                  {searchQuery.trim()
-                    ? "No results found"
-                    : "No content found"}
+                  {searchQuery.trim() ? "No results found" : "No content found"}
                 </Text>
               </View>
             )

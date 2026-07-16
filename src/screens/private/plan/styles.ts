@@ -125,9 +125,12 @@ export const planStyles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 12,
   },
+  proposedPlanCardImage: {
+    borderRadius: 8,
+  },
   proposedPlanOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(8, 26, 47, 0.72)",
+    ...StyleSheet.absoluteFill,
+    borderRadius: 8,
   },
   proposedPlanContent: {
     flexDirection: "row",

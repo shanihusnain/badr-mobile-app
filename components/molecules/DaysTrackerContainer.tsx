@@ -44,7 +44,7 @@ export const DaysTrackerContainer: React.FC<DaysTrackerContainerProps> = ({
 
       {/* Large Moon Circle */}
       <View style={styles.moonContainer}>
-        {/* <MoonProgress progressPercent={OVERALL_PROGRESS} /> */}
+        <MoonProgress progressPercent={OVERALL_PROGRESS} />
       </View>
 
       {/* Bottom Section with Day and Progress */}

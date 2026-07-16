@@ -10,9 +10,9 @@ export default function Index() {
   const { isAuthenticated, isLoading } = useAuth();
   const [splashDone, setSplashDone] = useState(false);
 
-  // if (!splashDone || isLoading) {
-  //   return <AnimatedSplash onFinish={() => setSplashDone(true)} />;
-  // }
+  if (!splashDone || isLoading) {
+    return <AnimatedSplash onFinish={() => setSplashDone(true)} />;
+  }
 
   if (isAuthenticated) {
     return <Redirect href="/(tabs)" />;
