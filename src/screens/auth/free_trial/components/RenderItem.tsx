@@ -1,19 +1,40 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
-import { StyleSheet, Text } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { heightPercentageToDP as hp } from "react-native-responsive-screen";
+
 export const RenderItem = ({
   item,
 }: {
   item: {
     title: string;
+    icon: React.ReactNode;
   };
 }) => {
-  return <Text style={styles.pointText}>{item.title}</Text>;
+  return (
+    <View style={styles.row}>
+      <View style={styles.iconWrapper}>{item.icon}</View>
+      <Text style={styles.pointText}>{item.title}</Text>
+    </View>
+  );
 };
+
 const styles = StyleSheet.create({
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 16,
+  },
+  iconWrapper: {
+    width: 24,
+    height: 24,
+    marginRight: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: -20,
+  },
   pointText: {
-    width: 307,
+    flex: 1,
     color: Colors.dark.text,
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
@@ -22,6 +43,5 @@ const styles = StyleSheet.create({
     letterSpacing: 0.1,
     textAlign: "left",
     opacity: 1,
-    marginTop: 16,
   },
 });

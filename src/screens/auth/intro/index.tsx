@@ -6,7 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { styles } from "./styles";
 import { useTranslation } from "react-i18next";
 
-const backgroundImage = require("@/assets/images/react-logo.png");
+const backgroundImage = require("@/assets/images/introscreenimage.png");
 
 export default function IntroScreen() {
   const router = useRouter();

@@ -30,7 +30,7 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
     paddingHorizontal: 16,
     paddingTop: 10,
-    paddingBottom: 16,
+    paddingBottom: 4,
     position: "relative",
   },
   ringCheckmark: {
@@ -73,10 +73,16 @@ export const styles = StyleSheet.create({
   weeklyDashboardWrapper: {
     width: "92%",
     alignSelf: "center",
-    paddingTop: 24,
+    paddingTop: 12,
     paddingBottom: 16,
   },
   transparentBackground: {
     backgroundColor: "transparent",
+  },
+  backgroundImage: {
+    position: "absolute",
+    top: 0,
+    width: "100%",
+    height: 560,
   },
 });

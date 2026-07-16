@@ -10,9 +10,28 @@ export const styles = StyleSheet.create({
     height: "100%",
   },
 
+  safeArea: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+  },
+
   overlay: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: Colors.light.overlayMask,
+    //backgroundColor: Colors.light.overlayMask,
+  },
+
+  brandContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 24,
+    zIndex: 1,
+  },
+
+  moonImage: {
+    width: 80,
+    height: 80,
+    marginBottom: 28,
   },
 
   container: {
@@ -31,5 +50,6 @@ export const styles = StyleSheet.create({
     fontWeight: "800",
     letterSpacing: 1,
     lineHeight: 40,
+    zIndex: 1,
   },
 });

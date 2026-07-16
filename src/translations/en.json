@@ -140,7 +140,7 @@
     "descAnnual": "$0 for 2 months, then $99.99 every 3 months after. If you've already used your free trial before, billing begins immediately."
   },
   "validations": {
-    "inputMissing": "Input missing",
+    "inputMissing": "invalid input",
     "passwordMin": "Password must be at least 8 characters",
     "mustContainUppercase": "Must contain uppercase",
     "mustContainLowercase": "Must contain lowercase",

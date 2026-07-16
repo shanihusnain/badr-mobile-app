@@ -11,6 +11,7 @@ import BackButton from "@/components/atoms/Backbutton";
 import GreyButton from "@/components/atoms/greyButton";
 import { Colors } from "@/constants/theme";
 import SecondaryButton from "@/components/atoms/Secondary-button";
+import { TopSpace } from "@/components/atoms/TopSpace";
 export default function DebitCreditScreen() {
   const { t } = useTranslation();
   const [selectedPlan, setSelectedPlan] = useState("monthly");
@@ -133,11 +134,13 @@ export default function DebitCreditScreen() {
           </Text>
         </View>
         <View style={styles.actionButtonsWrapper}>
+          <TopSpace top={20} />
           <PrimaryButton
             text={t("debitCreditScreen.payNowBtn")}
             onPress={handlePayNow}
             style={styles.primaryActionButton}
           />
+            <TopSpace top={10} />
           <SecondaryButton
             text={t("debitCreditScreen.cancelPaymentBtn")}
             onPress={handleCancelPayment}

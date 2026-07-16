@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useLayoutEffect } from "react";
-import { View, Text, ScrollView, ImageBackground } from "react-native";
+import { View, Text, ScrollView, ImageBackground, Image } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import {
   TaperedCircleBorder,
@@ -25,6 +25,8 @@ import { isHizbMemorisationGoalId } from "./quranMemorisationHizbTarget";
 import { isJuzMemorisationGoalId } from "./quranMemorisationJuzTarget";
 import { isSurahMemorisationGoalId } from "./quranMemorisationTarget";
 import { isMissedRamadanFastsGoalId } from "./missedRamadanFastsTarget";
+import { isProphetDawoodFastsGoalId } from "./prophetDawoodFastsTarget";
+import { isWhiteDaysFastsGoalId } from "./whiteDaysFastsTarget";
 import { isMondayThursdayFastsGoalId } from "./mondayThursdayFastsTarget";
 import {
   getMondayThursdayFastGoalTarget,
@@ -85,12 +87,12 @@ function GoalProgressLoggingContent({
       : liveGoalData.label;
   const ringGoalLabel = isMissedRamadanFastsGoalId(goalId)
     ? t("progressLogging.missedRamadanRingGoal", {
-        count: liveGoalData.target ?? cleanLabel,
-      })
+      count: liveGoalData.target ?? cleanLabel,
+    })
     : isMondayThursdayFastsGoalId(goalId)
       ? t("progressLogging.mondayThursdayRingGoal", {
-          count: liveGoalData.target ?? cleanLabel,
-        })
+        count: liveGoalData.target ?? cleanLabel,
+      })
       : t("homeScreen.weeklyProgress_goalLabel", { label: cleanLabel });
 
   const getCategoryColor = (category: string): string => {
@@ -214,23 +216,33 @@ export const GoalProgressLoggingScreen = ({
   const isFidya = template === "fidya";
   const isKaffarah = template === "kaffarah-fasts-oaths";
   const isMissedZakat = template === "missed-zakat";
+  const isProphetDawood = isProphetDawoodFastsGoalId(goalId);
+  const isMissedRamadan = isMissedRamadanFastsGoalId(goalId);
+  const isWhiteDays = isWhiteDaysFastsGoalId(goalId);
+  const isMondayThursdayFasts = isMondayThursdayFastsGoalId(goalId);
 
   const shouldUseBackground =
-    isSadaqahJariyah || isSadaqahVolunteering || isLillah || isFidya || isKaffarah || isMissedZakat;
+    isSadaqahJariyah || isSadaqahVolunteering || isLillah || isFidya || isKaffarah || isMissedZakat || isProphetDawood || isMissedRamadan || isWhiteDays || isMondayThursdayFasts;
 
   const backgroundSource = isSadaqahVolunteering
     ? require("@/assets/images/volunteeringservicesimagebackground.png")
-    : isSadaqahJariyah
-    ? require("@/assets/images/sadaqahjariyahimagebackground.png")
-    : isLillah
-    ? require("@/assets/images/lillahdonationsbackgroundimage.png")
-    : isFidya
-    ? require("@/assets/images/fidyaimagebackground.png")
-    : isKaffarah
-    ? require("@/assets/images/kaffarahImagebackground.png")
-    : isMissedZakat
-    ? require("@/assets/images/zakatbackgroundimage.png")
-    : undefined;
+    : (isSadaqahJariyah || isProphetDawood)
+      ? require("@/assets/images/sadaqahjariyahimagebackground.png")
+      : isMissedRamadan
+        ? require("@/assets/images/missedramadanfastsbackgroundimage.png")
+        : isWhiteDays
+          ? require("@/assets/images/whitedaysfastsbackgroundimage.jpg")
+          : isMondayThursdayFasts
+            ? require("@/assets/images/mondays&thursdaysfastsbackgroundimage.jpg")
+            : isLillah
+          ? require("@/assets/images/lillahdonationsbackgroundimage.png")
+          : isFidya
+          ? require("@/assets/images/fidyaimagebackground.png")
+          : isKaffarah
+            ? require("@/assets/images/kaffarahImagebackground.png")
+            : isMissedZakat
+              ? require("@/assets/images/zakatbackgroundimage.png")
+              : undefined;
 
   const scrollView = (
     <ScrollView
@@ -241,6 +253,13 @@ export const GoalProgressLoggingScreen = ({
       scrollEnabled={screenScrollEnabled}
       nestedScrollEnabled
     >
+      {shouldUseBackground && backgroundSource && (
+        <Image
+          source={backgroundSource}
+          style={[styles.backgroundImage, { top: -100, height: 877 }]}
+          resizeMode="cover"
+        />
+      )}
       <GoalProgressLoggingContent
         goalData={goalData}
         goalId={goalId}
@@ -270,18 +289,6 @@ export const GoalProgressLoggingScreen = ({
       navigation.setOptions({ headerShown: false });
     }
   }, [navigation, shouldUseBackground, goalData]);
-
-  if (shouldUseBackground) {
-    return (
-      <ImageBackground
-        source={backgroundSource}
-        style={styles.container}
-        resizeMode="cover"
-      >
-        {scrollView}
-      </ImageBackground>
-    );
-  }
 
   return scrollView;
 };

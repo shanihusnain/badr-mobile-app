@@ -9,17 +9,17 @@ export const styles = StyleSheet.create({
 
   container: {
     flex: 1,
-    backgroundColor: Colors.dark.background,
-    // justifyContent: 'flex-end',
+    // backgroundColor: Colors.light.white,
+    justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 16,
-    paddingBottom: 20,
+    paddingBottom: 26,
   },
 
   image: {
-    width: 343,
-    height: 343,
-    flex: 1,
+    width: 349,
+    height: 349,
+    marginBottom: 12,
   },
 
   introText: {
@@ -33,7 +33,7 @@ export const styles = StyleSheet.create({
     letterSpacing: 0,
     textAlign: "center",
     opacity: 1,
-    marginTop: 130,
+    marginTop: 24,
   },
 
   subtitleText: {
@@ -47,6 +47,6 @@ export const styles = StyleSheet.create({
     letterSpacing: 0,
     textAlign: "center",
     opacity: 1,
-    marginTop: 16,
+    marginTop: 8,
   },
 });

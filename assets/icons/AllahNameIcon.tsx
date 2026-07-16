@@ -5,16 +5,16 @@ import { Colors } from "@/constants/theme"
 
 export const AllahNameIcon = ({
 
-   color = Colors.light.subtext,
-       size = 24,
+  color = Colors.light.subtext,
+  size = 24,
 
 
 
 
-} : {
+}: {
 
-color?: string;
-size?: number;
+  color?: string;
+  size?: number;
 
 
 }) => (

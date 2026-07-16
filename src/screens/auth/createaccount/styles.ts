@@ -318,7 +318,12 @@ const createStyles = () =>
       fontFamily: fonts.primary.semiBold,
       fontSize: 12,
     },
-    btnWrapper: { width: 333, marginTop: hp(3), zIndex: 1000 },
+    btnWrapper: {
+      width: "100%",
+      marginTop: hp(3),
+      zIndex: 1000,
+      borderRadius: 28,
+    },
   });
 
 export default createStyles;
