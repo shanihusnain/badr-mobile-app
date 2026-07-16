@@ -23,6 +23,7 @@ export default function FreeTrialScreen() {
   }: {
     item: {
       title: string;
+      icon: React.ReactNode;
     };
   }) => <RenderItem item={item} />;
 

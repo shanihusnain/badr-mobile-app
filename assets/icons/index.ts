@@ -64,6 +64,12 @@ import { EnterInviteCode } from "./EnterInviteCode";
 //F
 import { FilterIcon } from "./FilterIcon";
 import { FlashIcon } from "./FlashIcon";
+import { FreeTrialScreenBookIcon } from "./FreeTrialScreenBookIcon";
+import { FreeTrialScreenCommunityIcon } from "./FreeTrialScreenCommunityIcon";
+import { FreeTrialScreenHeadPhoneIcon } from "./FreeTrialScreenHeadPhoneIcon";
+import { FreeTrialScreenPaperIcon } from "./FreeTrialScreenPaperIcon";
+import { FreeTrialScreenShotIcon } from "./FreeTrialScreenShotIcon";
+import { FreeTrialScreenLoudSpeakerIcon } from "./FreeTrialScreenLoudSpeakerIcon";
 //G
 import { GiftIconWithMoon } from "./GiftIconWithMoon";
 import { GoatIcon } from "./GoatIcon";
@@ -144,6 +150,12 @@ import { FlowCardShirtIcon } from "./FlowCardShirtIcon";
 //Z
 
 export {
+  FreeTrialScreenBookIcon,
+  FreeTrialScreenCommunityIcon,
+  FreeTrialScreenHeadPhoneIcon,
+  FreeTrialScreenPaperIcon,
+  FreeTrialScreenShotIcon,
+  FreeTrialScreenLoudSpeakerIcon,
   AddIcon,
   AllahNameIcon,
   Volunteeringservicesheart,
