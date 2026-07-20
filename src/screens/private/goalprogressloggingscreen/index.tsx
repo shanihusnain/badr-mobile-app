@@ -235,14 +235,14 @@ export const GoalProgressLoggingScreen = ({
           : isMondayThursdayFasts
             ? require("@/assets/images/mondays&thursdaysfastsbackgroundimage.jpg")
             : isLillah
-          ? require("@/assets/images/lillahdonationsbackgroundimage.png")
-          : isFidya
-          ? require("@/assets/images/fidyaimagebackground.png")
-          : isKaffarah
-            ? require("@/assets/images/kaffarahImagebackground.png")
-            : isMissedZakat
-              ? require("@/assets/images/zakatbackgroundimage.png")
-              : undefined;
+              ? require("@/assets/images/lillahdonationsbackgroundimage.png")
+              : isFidya
+                ? require("@/assets/images/fidyaimagebackground.png")
+                : isKaffarah
+                  ? require("@/assets/images/kaffarahImagebackground.png")
+                  : isMissedZakat
+                    ? require("@/assets/images/zakatbackgroundimage.png")
+                    : undefined;
 
   const scrollView = (
     <ScrollView
@@ -256,7 +256,7 @@ export const GoalProgressLoggingScreen = ({
       {shouldUseBackground && backgroundSource && (
         <Image
           source={backgroundSource}
-          style={[styles.backgroundImage, { top: -100, height: 877 }]}
+          style={[styles.backgroundImage, { top: -90, height: 880 }]}
           resizeMode="cover"
         />
       )}

@@ -1,6 +1,7 @@
 import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
 import GoalDescriptionContent from "@/components/molecules/GoalDescriptionContent";
 import { useNavigation } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -13,7 +14,27 @@ import {
   ViewStyle,
 } from "react-native";
 import { HeaderWithImageAndDescription } from "@/components/atoms/HeaderWithImageAndDescription";
-import { Icon } from "@/assets/images";
+import {
+  Icon,
+  qiyamallayldetailimage,
+  fivedailyprayerbottomsheetimage,
+  duhaprayerdetailimage,
+  istikharaprayerdetailimage,
+  tawbahprayerdetailimage,
+  tahiyyatwudhudetailimage,
+  tahiyyatmasjiddetailimage,
+  sunnahrawatibdetailimage,
+  missedprayerdetailimage,
+  shukarprayerdetailimage
+} from "@/assets/images";
+import {
+  TahiyyatWudhuEyeIcon,
+  TahiyyatWudhuDropIcon,
+  TahiyyatWudhuShootIcon,
+  TahiyyatWudhuHeartIcon,
+  HadeethBookIcon,
+  StarSparkleIcon
+} from "@/assets/icons";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import {
@@ -122,22 +143,41 @@ const renderReadMoreItem = (
           index > 0 ? readMoreStyles.blockSpacing : null,
         ]}
       >
-        <Text style={[readMoreStyles.prayerHeading, { textAlign }]}>{item.heading}</Text>
-        <Text style={[readMoreStyles.body, readMoreStyles.prayerDescription, { textAlign }]}>
-          {item.description}
-        </Text>
+        <View style={{ flexDirection: "row", alignItems: "flex-start", width: "100%" }}>
+          <View style={{ marginRight: 8, marginTop: 1 }}>
+            <StarSparkleIcon color={Colors.light.white} size={24} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={[readMoreStyles.prayerHeading, { textAlign }]}>{item.heading}</Text>
+            <Text style={[readMoreStyles.body, readMoreStyles.prayerDescription, { textAlign }]}>
+              {item.description}
+            </Text>
+          </View>
+        </View>
       </View>
     );
   }
 
   if (item.type === "benefit") {
+    let BenefitIcon = null;
+    if (item.heading === "Spiritual Readiness") BenefitIcon = TahiyyatWudhuEyeIcon;
+    if (item.heading === "Purification") BenefitIcon = TahiyyatWudhuDropIcon;
+    if (item.heading === "Intention Setting") BenefitIcon = TahiyyatWudhuShootIcon;
+    if (item.heading === "Connection with Allah") BenefitIcon = TahiyyatWudhuHeartIcon;
+
     return (
       <View
         key={`benefit-${item.heading}-${index}`}
         style={[readMoreStyles.benefitSection, index > 0 ? readMoreStyles.blockSpacing : null]}
       >
-        <Text style={[readMoreStyles.benefitHeading, { textAlign }]}>{item.heading}</Text>
-        <Text style={[readMoreStyles.benefitDescription, { textAlign }]}>{item.description}</Text>
+        {BenefitIcon && (
+          <View style={{ marginTop: 2, marginRight: 12 }}>
+            <BenefitIcon />
+          </View>
+        )}
+        <View style={{ flex: 1 }}>
+          <Text style={[readMoreStyles.benefitHeading, { textAlign }]}>{item.heading}: <Text style={[readMoreStyles.benefitDescription, { textAlign }]}>{item.description}</Text></Text>
+        </View>
       </View>
     );
   }
@@ -279,15 +319,36 @@ const renderReadMoreItem = (
     item.style === "quoteSemibold" ||
     item.style === "quoteMediumItalic" ||
     item.style === "hadithQuoteLead" ||
-    item.style === "hadithQuoteLight";
-  const spacingStyle =
+    item.style === "hadithQuoteLight" ||
+    item.style === "bilalQuoteLight";
+
+  let spacingStyle: any =
     index > 0
       ? usesQuoteSpacing
         ? readMoreStyles.quoteSpacing
         : readMoreStyles.blockSpacing
       : undefined;
 
+  if (item.style === "bilalQuoteLight") {
+    spacingStyle = { marginTop: -2 };
+  }
+
   const itemTextAlign = item.align || textAlign;
+
+  if (item.style === "hadithQuoteLead" || item.style === "bilalQuote") {
+    return (
+      <View key={`text-${index}`} style={[{ flexDirection: "row", alignItems: "flex-start", width: "100%" }, spacingStyle]}>
+        <View style={{ marginRight: 12, marginTop: item.style === "bilalQuote" ? 14 : 4 }}>
+          <HadeethBookIcon />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={[getReadMoreTextStyle(item.style, readMoreStyles), { textAlign: itemTextAlign, width: undefined }]}>
+            {renderParsedContent(item.content)}
+          </Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <Text
@@ -329,44 +390,90 @@ export const GoalDescriptionDetails = ({ goal }: { goal: string }) => {
 
   const hasReadMoreContent = readMore.length > 0;
 
+  const insets = useSafeAreaInsets();
+
   useEffect(() => {
     navigation.setOptions({
-      headerShown: true,
-      header: () => (
-        <HeaderWithImageAndDescription
-          heroTitle={heroTitle}
-          navTitle={navTitle}
-          description={description}
-          imageSource={Icon}
-        />
-      ),
+      headerShown: false,
     });
-  }, [navigation, heroTitle, navTitle, description]);
+  }, [navigation]);
+
+  const getImageSource = () => {
+    if (goal === "qiyamalLail") return qiyamallayldetailimage;
+    if (goal === "fiveDailyPrayers") return fivedailyprayerbottomsheetimage;
+    if (goal === "duhaPrayer") return duhaprayerdetailimage;
+    if (goal === "istikharah") return istikharaprayerdetailimage;
+    if (goal === "tawbaPrayer") return tawbahprayerdetailimage;
+    if (goal === "tahayyat-ul-wudhu") return tahiyyatwudhudetailimage;
+    if (goal === "thayyat-ul-masjid") return tahiyyatmasjiddetailimage;
+    if (goal === "sunnahRawatib") return sunnahrawatibdetailimage;
+    if (goal === "missedPastPrayers") return missedprayerdetailimage;
+    if (goal === "shukrPrayer") return shukarprayerdetailimage;
+    return Icon;
+  };
+
+  const getImageHeight = () => {
+    if (goal === "qiyamalLail") return 380;
+    if (goal === "fiveDailyPrayers") return 380;
+    if (goal === "duhaPrayer") return 380;
+    if (goal === "istikharah") return 380;
+    if (goal === "tawbaPrayer") return 380;
+    if (goal === "tahayyat-ul-wudhu") return 380;
+    if (goal === "thayyat-ul-masjid") return 380;
+    if (goal === "sunnahRawatib") return 380;
+    if (goal === "missedPastPrayers") return 380;
+    if (goal === "shukrPrayer") return 380;
+    return undefined;
+  };
+
+  const renderHeader = () => (
+    <HeaderWithImageAndDescription
+      heroTitle={heroTitle}
+      navTitle={navTitle}
+      description={description}
+      imageSource={getImageSource()}
+      imageHeight={getImageHeight()}
+      onBackPress={() => navigation.goBack()}
+    />
+  );
 
   const renderReadMoreContent = () => (
     <ScrollView
-      contentContainerStyle={styles.scrollContent}
+      contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 50 }]}
       showsVerticalScrollIndicator={false}
+      bounces={false}
     >
-      {renderReadMoreContainers(readMore, textAlign, readMoreStyles)}
+      {renderHeader()}
+      <View style={{ paddingHorizontal: 16, paddingTop: 20 }}>
+        {renderReadMoreContainers(readMore, textAlign, readMoreStyles)}
+      </View>
     </ScrollView>
   );
 
   if (hasReadMoreContent) {
-    return <BlackScreenWrapper>{renderReadMoreContent()}</BlackScreenWrapper>;
+    return (
+      <View style={{ flex: 1, backgroundColor: Colors.light.blackBackground }}>
+        {renderReadMoreContent()}
+      </View>
+    );
   }
 
   return (
-    <BlackScreenWrapper>
+    <View style={{ flex: 1, backgroundColor: Colors.light.blackBackground }}>
       <FlatList
         data={steps}
         keyExtractor={(item, index) => String(index)}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 24 }]}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+        ListHeaderComponent={renderHeader()}
         renderItem={({ item }) => (
-          <GoalDescriptionContent lines={item.split("\n")} textAlign={textAlign} />
+          <View style={{ paddingHorizontal: 16 }}>
+            <GoalDescriptionContent lines={item.split("\n")} textAlign={textAlign} />
+          </View>
         )}
       />
-    </BlackScreenWrapper>
+    </View>
   );
 };
 
@@ -561,12 +668,14 @@ const createReadMoreStyles = () =>
     benefitSection: {
       width: "100%",
       alignSelf: "flex-start",
+      flexDirection: "row",
+      alignItems: "flex-start",
     },
     benefitHeading: {
       color: Colors.light.white,
       fontSize: 14,
-      fontFamily: fonts.primary.regular,
-      fontWeight: "400",
+      fontFamily: fonts.primary.semiBold,
+      fontWeight: "600",
       lineHeight: 22,
       alignSelf: "flex-start",
       marginBottom: 4,

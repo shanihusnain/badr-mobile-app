@@ -9,6 +9,9 @@ import {
 import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "@/constants/theme";
+import { FastingFlowCardProphetDawoodCalender } from "@/assets/icons/FastingFlowCardProphetDawoodCalender";
+import { FlowCardCallender } from "@/assets/icons/FlowCardCallender";
+import { TimeSpentIcon } from "@/assets/icons/TimeSpentIcon";
 import { GoalData } from "../../home/components/goalsData";
 import { FlowCard } from "../components/FlowCard";
 import { StartTimeStep } from "../components/TimePickerSteps";
@@ -148,8 +151,8 @@ export default function ProphetDawoodFastsLoggingFlow({
         selectedOptionIndex >= 0
           ? selectedOptionIndex
           : navigationOptions.findIndex(
-              (option) => option.date === getCurrentLoggableProphetDawoodFast(),
-            );
+            (option) => option.date === getCurrentLoggableProphetDawoodFast(),
+          );
       const resolvedIndex =
         currentIndex >= 0 ? currentIndex : navigationOptions.length - 1;
       const nextIndex = resolvedIndex + direction;
@@ -269,10 +272,10 @@ export default function ProphetDawoodFastsLoggingFlow({
 
   const getStepHeader = (step: ProphetDawoodFastsStepId) => {
     const calendarIcon = (
-      <Ionicons name="calendar-outline" size={15} color={Colors.light.white} />
+      <FlowCardCallender size={18} color={Colors.light.white} />
     );
     const timeIcon = (
-      <Ionicons name="time-outline" size={15} color={Colors.light.white} />
+      <TimeSpentIcon size={19} color={Colors.light.white} />
     );
 
     switch (step) {
@@ -397,8 +400,7 @@ export default function ProphetDawoodFastsLoggingFlow({
           <View style={localStyles.summaryCard}>
             <View style={localStyles.summaryBody}>
               <View style={localStyles.dawoodIconCircle}>
-                <Ionicons
-                  name="calendar-outline"
+                <FastingFlowCardProphetDawoodCalender
                   size={20}
                   color={Colors.light.white}
                 />

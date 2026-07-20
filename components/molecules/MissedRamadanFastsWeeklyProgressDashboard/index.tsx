@@ -11,6 +11,10 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTranslation } from "react-i18next";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
+import { FastingDashboardIcon } from "@/assets/icons/FastingDashboardIcon";
+import { DashBoardCalenderIcon } from "@/assets/icons/DashBoardCalenderIcon";
+import { FlashIcon } from "@/assets/icons/FlashIcon";
+import { ShootIcon } from "@/assets/icons/ShootIcon";
 import type { MissedRamadanFastWeekSummary } from "@/src/screens/private/goalprogressloggingscreen/missedRamadanFastsWeeklyData";
 import { getMissedRamadanFastTodayIndexInWeek } from "@/src/screens/private/goalprogressloggingscreen/missedRamadanFastsWeeklyData";
 import { MissedRamadanFastDayRing } from "./MissedRamadanFastDayRing";
@@ -19,7 +23,7 @@ import {
   missedRamadanDayLabelStyles,
   shouldShowTodayLabelBackground,
 } from "./missedRamadanFastDayStyles";
-
+//import { DashBoardCalenderIcon } from "@/assets/icons/DashBoardCalenderIcon";
 export type MissedRamadanFastsWeeklyProgressDashboardProps = {
   weekSummary: MissedRamadanFastWeekSummary;
   selectedDayIndex?: number | null;
@@ -87,10 +91,9 @@ export function MissedRamadanFastsWeeklyProgressDashboard({
     <View style={styles.card}>
       <View style={styles.headerRow}>
         <View style={styles.headerLeft}>
-          <MaterialCommunityIcons
-            name="calendar-month-outline"
-            size={16}
-            color={Colors.light.seagreen}
+          <DashBoardCalenderIcon
+            size={20}
+            color={Colors.light.subtext}
           />
           <Text style={styles.weekFractionText} numberOfLines={1}>
             {weekSummary.weekFraction} {t("homeScreen.weeklyProgress_weeks")}
@@ -144,7 +147,7 @@ export function MissedRamadanFastsWeeklyProgressDashboard({
                   style={[
                     missedRamadanDayLabelStyles.dayLabelWrapper,
                     shouldShowTodayLabelBackground(day) &&
-                      missedRamadanDayLabelStyles.dayLabelTodayBackground,
+                    missedRamadanDayLabelStyles.dayLabelTodayBackground,
                   ]}
                 >
                   <Text
@@ -162,12 +165,10 @@ export function MissedRamadanFastsWeeklyProgressDashboard({
           );
         })}
       </View>
-
       <View style={styles.statsRow}>
-        <MaterialCommunityIcons
-          name="moon-waning-crescent"
+        <FastingDashboardIcon
           size={22}
-          color={Colors.light.ringRamadan}
+          color={Colors.light.seagreen}
         />
         <Text style={styles.statsText} numberOfLines={1}>
           <Text style={styles.statsCount}>
@@ -179,7 +180,7 @@ export function MissedRamadanFastsWeeklyProgressDashboard({
 
       <View style={styles.footerRow}>
         <View style={styles.streakBadge}>
-          <Ionicons name="flash" size={13} color={Colors.light.ringRamadan} />
+          <FlashIcon size={13} color={Colors.light.ringRamadan} />
           <Text style={styles.streakText}>
             {t("progressLogging.missedRamadanWeeklyStreak", {
               count: weekSummary.streakDays,
@@ -199,10 +200,9 @@ export function MissedRamadanFastsWeeklyProgressDashboard({
         ) : null}
 
         <View style={styles.quoteBlock}>
-          <MaterialCommunityIcons
-            name="target"
+          <ShootIcon
             size={14}
-            color={Colors.light.seagreen}
+            Color={Colors.light.seagreen}
           />
           <Text style={styles.quoteText}>{weekSummary.motivationalQuote}</Text>
         </View>

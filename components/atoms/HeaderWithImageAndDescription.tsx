@@ -14,6 +14,7 @@ type Props = {
   description: string;
   imageSource?: ImageSource | any;
   onBackPress?: () => void;
+  imageHeight?: number;
 };
 
 export const HeaderWithImageAndDescription = ({
@@ -22,16 +23,18 @@ export const HeaderWithImageAndDescription = ({
   description,
   imageSource,
   onBackPress,
+  imageHeight = 360,
 }: Props) => {
   return (
     <ImageBackground
       source={imageSource}
-      style={styles.imageBackground}
+      style={[styles.imageBackground, { height: imageHeight }]}
       contentFit="cover"
     >
-      {/* Dark gradient overlay: light grey tint at top → blackBackground at bottom */}
+      {/* Dark gradient overlay: transparent top → blackBackground at bottom */}
       <LinearGradient
-        colors={["rgba(8, 26, 47, 0.35)", "#081A2F"]}
+        colors={["rgba(8, 26, 47, 0.1)", "rgba(8, 26, 47, 0.6)", "#081A2F"]}
+        locations={[0, 0.6, 1]}
         start={[0, 0]}
         end={[0, 1]}
         style={StyleSheet.absoluteFillObject}
@@ -62,7 +65,7 @@ const styles = StyleSheet.create({
   },
   textBlock: {
     paddingHorizontal: 16,
-    paddingBottom: 24,
+    paddingBottom: 6,
   },
   heroTitle: {
     color: Colors.light.white,

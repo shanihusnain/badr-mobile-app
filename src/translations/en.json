@@ -1166,7 +1166,7 @@
             },
             {
               "type": "text",
-              "style": "quoteMediumItalic",
+              "style": "hadithQuoteLead",
               "content": "\"When one of you enters the mosque, let him not sit until he prays two rak'ahs.\""
             },
             {

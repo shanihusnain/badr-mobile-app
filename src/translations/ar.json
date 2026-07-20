@@ -1167,7 +1167,7 @@
             },
             {
               "type": "text",
-              "style": "quoteMediumItalic",
+              "style": "hadithQuoteLead",
               "content": "\"إذا دخل أحدكم المسجد فلا يجلس حتى يصلي ركعتين.\""
             },
             {

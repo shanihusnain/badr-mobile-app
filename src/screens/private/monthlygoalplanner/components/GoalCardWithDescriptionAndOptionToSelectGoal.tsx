@@ -16,6 +16,7 @@ export const GoalCardWithDescriptionAndOptionToSelectGoal = ({
   handleSeeMorePRess,
   onToggle,
   onSwicthPress,
+  imageSource,
 }: {
   initialValue?: boolean;
   title: string;
@@ -23,6 +24,7 @@ export const GoalCardWithDescriptionAndOptionToSelectGoal = ({
   handleSeeMorePRess: () => void;
   onToggle?: (value: boolean) => void;
   onSwicthPress?: () => void;
+  imageSource?: any;
 }) => {
   const { t, i18n } = useTranslation();
   const isRtl = i18n.language === "ar";
@@ -50,11 +52,12 @@ export const GoalCardWithDescriptionAndOptionToSelectGoal = ({
 
   return (
     <View style={styles.conatiner}>
-      <ImageBackground style={styles.backgroundImage} source={Icon}>
+      <ImageBackground style={styles.backgroundImage} source={imageSource || Icon}>
         <SwitchButton
           value={isOn}
           onPress={handleSwitchPress}
           style={[styles.switch, isRtl && { alignSelf: "flex-start" }]}
+          size="small"
         />
       </ImageBackground>
       <TopSpace top={12} />

@@ -28,7 +28,11 @@ import { FlowCardClockIcon } from "./FlowCardClockIcon";
 import { FlowCardQardHassanIcon } from "./FlowCardQardHassanIcon";
 import { FlowCardFoodReliefIcon } from "./FlowCardFoodReleifIcon";
 import { FlowCardHandHeartIcon } from "./FlowCardHandHeartIcon";
-import {FlowCardZakatIcon} from "./FlowCardZakatIcon";
+import { FlowCardZakatIcon } from "./FlowCardZakatIcon";
+import { FastingFlowCardRamadanCalender } from "./FastingFlowCardRamadanCalender";
+import { FastingDashboardIcon } from "./FastingDashboardIcon";
+import { FastingFlowCardMondayFasts } from "./FastingFlowCardMondayFasts";
+import { FastingFlowCardProphetDawoodCalender } from "./FastingFlowCardProphetDawoodCalender";
 //G
 import { GaveBirthIcon } from "./GaveBirthIcon";
 import { GiftIcon } from "./GiftIcon";
@@ -80,6 +84,7 @@ import { HelpingIcon } from "./HelpingIcon";
 import { HandIcon } from "./HandIcon";
 import { HeartOnHandIcon } from "./HeartOnHandIcon";
 import { HouseWithHeartIcon } from "./HouseWithHeartIcon";
+import { HadeethBookIcon } from "./HadeethBookIcon";
 //I
 
 //J
@@ -138,6 +143,10 @@ import { TimeSpentIcon } from "./TimeSpentIcon";
 
 //V
 import { Volunteeringservicesheart } from "./Volunteeringservicesheart";
+import { TahiyyatWudhuDropIcon } from "./TahiyyatWudhuDropIcon";
+import { TahiyyatWudhuEyeIcon } from "./TahiyyatWudhuEyeIcon";
+import { TahiyyatWudhuHeartIcon } from "./TahiyyatWudhuHeartIcon";
+import { TahiyyatWudhuShootIcon } from "./TahiyyatWudhuShootIcon";
 //W
 import { WorkLoadIcon } from "./WorkLoadIcon";
 import { WalletIcon } from "./WalletIcon";
@@ -148,14 +157,15 @@ import { FlowCardShirtIcon } from "./FlowCardShirtIcon";
 //Y
 
 //Z
+import { StarSparkleIcon } from "./StarSparkleIcon";
 
 export {
-  FreeTrialScreenBookIcon,
-  FreeTrialScreenCommunityIcon,
-  FreeTrialScreenHeadPhoneIcon,
-  FreeTrialScreenPaperIcon,
-  FreeTrialScreenShotIcon,
-  FreeTrialScreenLoudSpeakerIcon,
+  StarSparkleIcon,
+  HadeethBookIcon,
+  TahiyyatWudhuDropIcon,
+  TahiyyatWudhuHeartIcon,
+  TahiyyatWudhuShootIcon,
+  TahiyyatWudhuEyeIcon,
   AddIcon,
   AllahNameIcon,
   Volunteeringservicesheart,
@@ -173,7 +183,7 @@ export {
   ChangePasswordIcon,
   DashBoardCalenderIcon,
   DashBoardHandHeartIcon,
-  DashBoardMealsIcon, 
+  DashBoardMealsIcon,
   SettingIcon,
   BellIcon,
   GiftIcon,
@@ -240,4 +250,14 @@ export {
   FlowCardHandHeartIcon,
   FlowCardShirtIcon,
   FlowCardZakatIcon,
+  FreeTrialScreenBookIcon,
+  FreeTrialScreenCommunityIcon,
+  FreeTrialScreenHeadPhoneIcon,
+  FreeTrialScreenPaperIcon,
+  FreeTrialScreenShotIcon,
+  FreeTrialScreenLoudSpeakerIcon,
+  FastingFlowCardRamadanCalender,
+  FastingDashboardIcon,
+  FastingFlowCardMondayFasts,
+  FastingFlowCardProphetDawoodCalender
 };

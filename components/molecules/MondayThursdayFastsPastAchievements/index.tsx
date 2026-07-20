@@ -14,6 +14,7 @@ import { useTranslation } from "react-i18next";
 import { CalendarGrid } from "@/components/molecules/CalendarGrid";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
+import { AchivementArrowIcon } from "@/assets/icons/AchivementArrowIcon";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import {
   formatMondayThursdayChartHoursLabel,
@@ -296,11 +297,7 @@ export function MondayThursdayFastsPastAchievements({
     <View style={[styles.section, isDetailed && styles.sectionDetailed]}>
       <View style={styles.card}>
         <View style={styles.cardHeader}>
-          <MaterialCommunityIcons
-            name={isDetailed ? "trending-up" : "trophy-outline"}
-            size={isDetailed ? 19 : 16}
-            color={isDetailed ? Colors.light.subtext : Colors.light.white}
-          />
+          <AchivementArrowIcon />
           <Text
             style={[styles.sectionTitle, isDetailed && styles.sectionTitleDetailed]}
           >
@@ -516,8 +513,8 @@ export function MondayThursdayFastsPastAchievements({
             >
               {analyticsView === "completedVsTime"
                 ? formatMondayThursdayFastTimeLabel(
-                    selectedPeriodTimeSpentMinutes,
-                  )
+                  selectedPeriodTimeSpentMinutes,
+                )
                 : formatMondayThursdayFastCountLabel(displayIncomplete)}
             </Text>
           </View>
@@ -734,14 +731,13 @@ const styles = StyleSheet.create({
     padding: 3,
     backgroundColor: Colors.light.blackBackground,
     borderRadius: 6,
-    flexShrink: 0,
   },
   periodButton: {
     borderRadius: 5,
-    paddingHorizontal: 23,
     paddingVertical: 6,
-    minWidth: 36,
+    width: 46,
     alignItems: "center",
+    justifyContent: "center",
   },
   periodButtonActive: {
     backgroundColor: Colors.light.greybuttonBackground,

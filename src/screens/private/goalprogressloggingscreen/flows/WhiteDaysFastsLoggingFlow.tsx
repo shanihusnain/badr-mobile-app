@@ -31,6 +31,8 @@ import {
 } from "../whiteDaysFastsData";
 import type { WhiteDaysFastsLogEntry } from "../types";
 import { WhiteDaysFastsInsightsModal } from "../components/WhiteDaysFastsInsightsModal";
+import { FlowCardCallender } from "@/assets/icons";
+import { TimeSpentIcon } from "@/assets/icons";
 
 type WhiteDaysFastsStepId = "selectPlannedFast" | "startTime" | "endTime";
 const STEPS: WhiteDaysFastsStepId[] = [
@@ -259,10 +261,10 @@ export default function WhiteDaysFastsLoggingFlow({
 
   const getStepHeader = (step: WhiteDaysFastsStepId) => {
     const calendarIcon = (
-      <Ionicons name="calendar-outline" size={15} color={Colors.light.white} />
+      <FlowCardCallender size={18} color={Colors.light.white} />
     );
     const timeIcon = (
-      <Ionicons name="time-outline" size={15} color={Colors.light.white} />
+      <TimeSpentIcon size={19} color={Colors.light.white} />
     );
 
     switch (step) {
