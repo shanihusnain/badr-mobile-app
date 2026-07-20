@@ -1,10 +1,11 @@
 import { DarkTheme, ThemeProvider } from "@react-navigation/native";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Colors } from "@/constants/theme";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import * as SystemUI from "expo-system-ui";
 import "react-native-reanimated";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -15,6 +16,8 @@ import { store } from "@/src/store/store";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AuthProvider } from "@/provider/AuthProvider";
 import "@/i18next/i18next";
+import Toast from "react-native-toast-message";
+import { toastConfig } from "@/src/config/toastConfig";
 
 export const unstable_settings = {
   initialRouteName: "index",
@@ -33,6 +36,7 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [loaded, error] = useFonts(fontAssets);
+  const [queryClient] = useState(() => new QueryClient());
 
   useEffect(() => {
     if (!loaded && !error) return;
@@ -55,28 +59,31 @@ export default function RootLayout() {
     <GestureHandlerRootView
       style={{ flex: 1, backgroundColor: Colors.light.blackBackground }}
     >
-      <Provider store={store}>
-        <AuthProvider>
-          <SafeAreaProvider>
-            <ThemeProvider value={AppTheme}>
-              <Stack screenOptions={{ headerShown: false }}>
-                <Stack.Screen name="index" />
-                <Stack.Screen name="(tabs)" />
-                <Stack.Screen name="(auth)" />
-                <Stack.Screen name="(private)" />
-                <Stack.Screen
-                  name="modal"
-                  options={{ presentation: "modal", title: "Modal" }}
+      <QueryClientProvider client={queryClient}>
+        <Provider store={store}>
+          <AuthProvider>
+            <SafeAreaProvider>
+              <ThemeProvider value={AppTheme}>
+                <Stack screenOptions={{ headerShown: false }}>
+                  <Stack.Screen name="index" />
+                  <Stack.Screen name="(tabs)" />
+                  <Stack.Screen name="(auth)" />
+                  <Stack.Screen name="(private)" />
+                  <Stack.Screen
+                    name="modal"
+                    options={{ presentation: "modal", title: "Modal" }}
+                  />
+                </Stack>
+                <StatusBar
+                  style="light"
+                  backgroundColor={Colors.light.blackBackground}
                 />
-              </Stack>
-              <StatusBar
-                style="light"
-                backgroundColor={Colors.light.blackBackground}
-              />
-            </ThemeProvider>
-          </SafeAreaProvider>
-        </AuthProvider>
-      </Provider>
+                <Toast config={toastConfig} />
+              </ThemeProvider>
+            </SafeAreaProvider>
+          </AuthProvider>
+        </Provider>
+      </QueryClientProvider>
     </GestureHandlerRootView>
   );
 }

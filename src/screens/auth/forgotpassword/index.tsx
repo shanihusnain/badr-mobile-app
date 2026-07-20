@@ -18,12 +18,16 @@ import { z } from "zod";
 import { styles } from "./style";
 import { useTranslation } from "react-i18next";
 import { useValidations } from "@/src/validations/useValidations";
+import { useForgotPassword } from "@/src/api/mutations/useForgotPassword";
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const { forgotPasswordSchema } = useValidations();
-
+  const {
+    mutateAsync: forgotPasswordMutation,
+    isPending: forgotPasswordLoading,
+  } = useForgotPassword();
   const {
     control,
     handleSubmit,
@@ -35,12 +39,14 @@ export default function ForgotPasswordScreen() {
     },
   });
 
-  const onSubmit = (data: z.infer<typeof forgotPasswordSchema>) => {
+  const onSubmit = async (data: z.infer<typeof forgotPasswordSchema>) => {
     console.log("Forgot password data", data);
+
+    await forgotPasswordMutation(data.email);
 
     router.push({
       pathname: "./verifyemail/[fromsignup]",
-      params: { fromsignup: "false" },
+      params: { fromsignup: "false", email: data.email },
     });
   };
 
@@ -75,6 +81,8 @@ export default function ForgotPasswordScreen() {
                     text={t("forgotPasswordScreen.sendInstructionsBtn")}
                     onPress={handleSubmit(onSubmit)}
                     style={styles.primaryButton}
+                    disabled={forgotPasswordLoading}
+                    isLoading={forgotPasswordLoading}
                   />
                 </View>
               </View>

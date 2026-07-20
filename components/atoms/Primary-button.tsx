@@ -8,12 +8,14 @@ import {
   Text,
   StyleProp,
   TextStyle,
+  ActivityIndicator,
 } from "react-native";
 
 interface PrimaryButtonProps extends PressableProps {
   text: string;
   onPress: () => void;
   textStyle?: StyleProp<TextStyle>;
+  isLoading?: boolean;
 }
 
 export default function PrimaryButton({
@@ -22,6 +24,7 @@ export default function PrimaryButton({
   style,
   textStyle,
   disabled,
+  isLoading,
   ...props
 }: PrimaryButtonProps) {
   return (
@@ -36,9 +39,19 @@ export default function PrimaryButton({
       disabled={disabled}
       {...props}
     >
-      <Text style={[styles.buttonText, disabled && styles.buttonTextDisabled, textStyle]}>
-        {text}
-      </Text>
+      {isLoading ? (
+        <ActivityIndicator size="small" color={Colors.light.white} />
+      ) : (
+        <Text
+          style={[
+            styles.buttonText,
+            disabled && styles.buttonTextDisabled,
+            textStyle,
+          ]}
+        >
+          {text}
+        </Text>
+      )}
     </Pressable>
   );
 }

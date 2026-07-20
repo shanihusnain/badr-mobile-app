@@ -1,4 +1,12 @@
 import { loginSuccess, logout } from "@/src/store/authSlice";
+import { registerForceSignOut } from "@/src/api/authSession";
+import {
+  clearAuthTokens,
+  getAccessToken as getStoredAccessToken,
+  getRefreshToken as getStoredRefreshToken,
+  setAccessToken,
+  setRefreshToken,
+} from "@/src/storage/tokenStorage";
 import { store } from "@/src/store/store";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, ReactNode, useEffect, useState } from "react";
@@ -19,8 +27,6 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-const ACCESS_TOKEN = "access_token";
-const REFRESH_TOKEN = "refresh_token";
 const USER_DATA_KEY = "user_data";
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -31,7 +37,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const loadAuthState = async () => {
       try {
-        const token = await AsyncStorage.getItem(ACCESS_TOKEN);
+        const token = await getStoredAccessToken();
         const userData = await AsyncStorage.getItem(USER_DATA_KEY);
 
         if (token) {
@@ -61,13 +67,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     userData?: any,
   ) => {
     // Strip "Bearer " prefix if present
-    const cleanAccessToken = accessToken.replace(/^Bearer\s+/i, "");
-    const cleanRefreshToken = refreshToken?.replace(/^Bearer\s+/i, "");
+    await setAccessToken(accessToken);
 
-    await AsyncStorage.setItem(ACCESS_TOKEN, cleanAccessToken);
-
-    if (cleanRefreshToken) {
-      await AsyncStorage.setItem(REFRESH_TOKEN, cleanRefreshToken);
+    if (refreshToken) {
+      await setRefreshToken(refreshToken);
     }
 
     if (userData) {
@@ -83,7 +86,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const getAccessToken = async () => {
     try {
-      return await AsyncStorage.getItem(ACCESS_TOKEN);
+      return await getStoredAccessToken();
     } catch (error) {
       console.error("Failed to get access token:", error);
       return null;
@@ -92,7 +95,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const getRefreshToken = async () => {
     try {
-      return await AsyncStorage.getItem(REFRESH_TOKEN);
+      return await getStoredRefreshToken();
     } catch (error) {
       console.error("Failed to get refresh token:", error);
       return null;
@@ -100,13 +103,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signOut = async () => {
-    await AsyncStorage.removeItem(ACCESS_TOKEN);
-    await AsyncStorage.removeItem(REFRESH_TOKEN);
+    await clearAuthTokens();
     await AsyncStorage.removeItem(USER_DATA_KEY);
     setIsAuthenticated(false);
     setUser(null);
     store.dispatch(logout());
   };
+
+  useEffect(() => {
+    registerForceSignOut(signOut);
+  }, []);
 
   return (
     <AuthContext.Provider

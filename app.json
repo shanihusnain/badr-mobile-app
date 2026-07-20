@@ -44,8 +44,14 @@
         "expo-localization",
         {
           "supportedLocales": {
-            "ios": ["en", "ar"],
-            "android": ["en", "ar"]
+            "ios": [
+              "en",
+              "ar"
+            ],
+            "android": [
+              "en",
+              "ar"
+            ]
           }
         }
       ],
@@ -65,7 +71,8 @@
           }
         }
       ],
-      "expo-video"
+      "expo-video",
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true,

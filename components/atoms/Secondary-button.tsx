@@ -9,6 +9,7 @@ import {
   StyleProp,
   TextStyle,
   ViewStyle,
+  ActivityIndicator,
 } from "react-native";
 
 interface SecondaryButtonProps extends PressableProps {
@@ -16,6 +17,7 @@ interface SecondaryButtonProps extends PressableProps {
   onPress: () => void;
   textStyle?: StyleProp<TextStyle>;
   variant?: "white" | "green";
+  isLoading?: boolean;
 }
 
 export default function SecondaryButton({
@@ -24,6 +26,7 @@ export default function SecondaryButton({
   style,
   textStyle,
   variant = "white",
+  isLoading,
   ...props
 }: SecondaryButtonProps) {
   return (
@@ -37,15 +40,24 @@ export default function SecondaryButton({
       onPress={onPress}
       {...props}
     >
-      <Text
-        style={[
-          styles.buttonText,
-          variant === "white" ? styles.buttonWhiteText : styles.buttonGreenText,
-          textStyle,
-        ]}
-      >
-        {text}
-      </Text>
+      {isLoading ? (
+        <ActivityIndicator
+          size="small"
+          color={variant === "white" ? Colors.light.white : Colors.light.green}
+        />
+      ) : (
+        <Text
+          style={[
+            styles.buttonText,
+            variant === "white"
+              ? styles.buttonWhiteText
+              : styles.buttonGreenText,
+            textStyle,
+          ]}
+        >
+          {text}
+        </Text>
+      )}
     </Pressable>
   );
 }

@@ -14,16 +14,31 @@ import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { styles } from "./style";
 import { useTranslation } from "react-i18next";
-import BackButton from "@/components/atoms/Backbutton";
+import { useVerifyOtp } from "@/src/api/mutations/useVerifyOtp";
+import { useResendOtp } from "@/src/api/mutations/useResendOtp";
+import { useForgotPasswordOtpValidation } from "@/src/api/mutations/useForgotPasswordOtpValidation";
+
+type OtpScreenParams = {
+  fromsignup?: string | string[];
+  email?: string | string[];
+};
+
+const getParam = (value?: string | string[]) =>
+  Array.isArray(value) ? value[0] : value;
 
 export default function OtpScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ fromsignup?: string }>();
+  const params = useLocalSearchParams<OtpScreenParams>();
+  const fromsignup = getParam(params.fromsignup);
+  const email = getParam(params.email);
   const { t } = useTranslation();
+  const { mutateAsync: verifyOtp, isPending } = useVerifyOtp();
 
-  const [buttonText, setButtonText] = useState("Verify");
-  console.log("OTP Screen params:", params);
-
+  const {
+    mutateAsync: forgotPasswordOtpValidation,
+    isPending: isForgotPasswordOtpValidationPending,
+  } = useForgotPasswordOtpValidation();
+  const { mutateAsync: resendOtp, isPending: isResendPending } = useResendOtp();
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [timer, setTimer] = useState(60);
@@ -68,6 +83,10 @@ export default function OtpScreen() {
   const handleResend = () => {
     console.log("Resend OTP clicked");
     setTimer(60);
+    if (email) {
+      console.log("email", email);
+      resendOtp(email);
+    }
   };
 
   useEffect(() => {
@@ -81,35 +100,58 @@ export default function OtpScreen() {
   }, [timer]);
 
   const getBtnTitle = () => {
-    return params?.fromsignup === "true"
+    return fromsignup === "true"
       ? t("otpScreen.activateBtn")
       : t("otpScreen.verifyBtn");
   };
 
   const getDescriptionText = () => {
-    return params?.fromsignup === "true"
+    return fromsignup === "true"
       ? t("otpScreen.activateDescription")
       : t("otpScreen.verifyDescription");
   };
 
-  const navigationBasedOnParams = () => {
+  const handleVerify = async () => {
     const isComplete = otp.every((digit) => digit !== "");
     if (!isComplete) {
       setError(t("validations.inputMissing"));
       return;
     }
+
+    if (!email) {
+      setError(t("validations.inputMissing"));
+      return;
+    }
+
     setError(null);
-    if (params?.fromsignup === "true") {
-      router.push("/(auth)/paymentMethod");
-    } else {
-      router.push("/(auth)/confirmpassword");
+
+    try {
+      if (fromsignup === "true") {
+        await verifyOtp({ otp: otp.join(""), email });
+      } else {
+        await forgotPasswordOtpValidation({ email, otp: otp.join("") });
+      }
+
+      if (fromsignup === "true") {
+        router.push("/(auth)/paymentMethod");
+      } else {
+        router.push({
+          pathname: "/(auth)/confirmpassword",
+          params: {
+            email: email as string,
+            code: otp.join("") as string,
+          },
+        });
+      }
+    } catch {
+      // Toast is handled in useVerifyOtp
     }
   };
 
   const navigation = useNavigation();
 
   useEffect(() => {
-    if (params?.fromsignup === "true") {
+    if (fromsignup === "true") {
       navigation.setOptions({
         title: t("otpScreen.verifyEmailTitle"),
       });
@@ -118,7 +160,7 @@ export default function OtpScreen() {
         title: t("otpScreen.forgotPasswordTitle"),
       });
     }
-  }, [navigation, params?.fromsignup, t]);
+  }, [navigation, fromsignup, t]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -172,7 +214,9 @@ export default function OtpScreen() {
             <View style={styles.buttonWrapper}>
               <PrimaryButton
                 text={getBtnTitle()}
-                onPress={navigationBasedOnParams}
+                onPress={handleVerify}
+                disabled={isPending || isForgotPasswordOtpValidationPending}
+                isLoading={isPending || isForgotPasswordOtpValidationPending}
               />
             </View>
           </View>

@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Platform, View, Image, TouchableOpacity } from "react-native";
 import * as ImagePicker from "expo-image-picker";
+import axios from "axios";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -19,13 +20,17 @@ import PrimaryButton from "@/components/atoms/Primary-button";
 import { useTranslation } from "react-i18next";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { ProfileInformationIcon, ReferUserIcon } from "@/assets/icons";
+import {
+  useRegister,
+  type RegisterPayload,
+} from "@/src/api/mutations/useRegister";
 
 export default function CreateAccountScreen() {
   const styles = createStyles();
   const router = useRouter();
   const { createAccountSchema } = useValidations();
   const { t } = useTranslation();
-
+  const { mutateAsync: registerUser, isPending } = useRegister();
   const {
     genders,
     showPassword,
@@ -52,6 +57,27 @@ export default function CreateAccountScreen() {
 
   const [image, setImage] = useState<string | null>(null);
 
+  const genderMap: Record<string, RegisterPayload["gender"]> = {
+    Male: "MALE",
+    Female: "FEMALE",
+  };
+
+  const calendarViewMap: Record<
+    string,
+    NonNullable<RegisterPayload["calendarView"]>
+  > = {
+    "Gregorian View": "GREGORIAN",
+    "Hijri View": "HIJRI",
+  };
+
+  const weekendDaysMap: Record<
+    string,
+    NonNullable<RegisterPayload["weekendDays"]>
+  > = {
+    "Friday & Saturday": "FRIDAY_SATURDAY",
+    "Saturday & Sunday": "SATURDAY_SUNDAY",
+  };
+
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       allowsEditing: true,
@@ -64,11 +90,29 @@ export default function CreateAccountScreen() {
     }
   };
 
-  const onSubmit = (data: z.infer<typeof createAccountSchema>) => {
-    router.push({
-      pathname: "./verifyemail/[fromsignup]",
-      params: { fromsignup: "true" },
-    });
+  const onSubmit = async (data: z.infer<typeof createAccountSchema>) => {
+    console.log("[create-account] submit", data, image);
+
+    const payload: RegisterPayload = {
+      username: data.name.trim(),
+      email: data.email.trim(),
+      password: data.password,
+      confirmPassword: data.confirmPassword,
+      gender: genderMap[data.gender],
+      dateOfBirth: data.dob,
+      country: data.country,
+      calendarView: calendarViewMap[data.dateView],
+      weekendDays: weekendDaysMap[data.week],
+      avatarUrl: image ?? undefined,
+    };
+
+    try {
+      await registerUser(payload);
+    } catch (error: any) {}
+  };
+
+  const onInvalid = (formErrors: typeof errors) => {
+    console.log("[create-account] validation failed", formErrors);
   };
   return (
     <SafeAreaView style={styles.container}>
@@ -212,7 +256,8 @@ export default function CreateAccountScreen() {
         <View style={styles.btnWrapper}>
           <PrimaryButton
             text={t("createAccountScreen.createAccountBtn")}
-            onPress={handleSubmit(onSubmit)}
+            onPress={handleSubmit(onSubmit, onInvalid)}
+            disabled={isPending}
           />
         </View>
       </KeyboardAwareScrollView>

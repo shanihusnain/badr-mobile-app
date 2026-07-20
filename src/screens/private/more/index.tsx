@@ -22,14 +22,23 @@ import {
   TutorialIcon,
 } from "@/assets/icons";
 import MoreActionButton from "@/components/atoms/MoreActionButton";
+import { useLogout } from "@/src/api/mutations/useLogout";
 
 export default function MoreScreen() {
   const router = useRouter();
+
+  const { mutateAsync: logoutMutation, isPending: loggingOut } = useLogout();
   const { signOut } = useAuth();
 
   const handleLogout = async () => {
-    await signOut();
-    router.replace("/(auth)/login");
+    try {
+      await logoutMutation();
+    } catch {
+      // Still clear local session if the API call fails
+    } finally {
+      await signOut();
+      router.replace("/(auth)/login");
+    }
   };
 
   const handleReferFriend = () => {
@@ -156,7 +165,13 @@ export default function MoreScreen() {
 
   const ListFooter = () => (
     <View style={styles.logoutContainer}>
-      <SecondaryButton text="LOGOUT" onPress={handleLogout} variant="green" />
+      <SecondaryButton
+        text="LOGOUT"
+        onPress={handleLogout}
+        variant="green"
+        disabled={loggingOut}
+        isLoading={loggingOut}
+      />
       <Text style={styles.versionText}>APP VERSION: 1.2.197 (BUILD 1938)</Text>
     </View>
   );

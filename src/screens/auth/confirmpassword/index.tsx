@@ -1,7 +1,7 @@
 import PrimaryButton from "@/components/atoms/Primary-button";
 import CustomTextInput from "@/components/atoms/CustomTextInput";
 import { zodResolver } from "@hookform/resolvers/zod";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import {
   Keyboard,
@@ -20,13 +20,20 @@ import { useTranslation } from "react-i18next";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import AntDesign from "@expo/vector-icons/AntDesign";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
+import { useResetPassword } from "@/src/api/mutations/useResetPassword";
 
 export default function ConfirmPasswordScreen() {
+  const { email, code }: { email: string; code: string } =
+    useLocalSearchParams();
+  console.log("email", email);
+  console.log("code", code);
   const styles = createStyles();
+
+  const { mutateAsync: resetPassword, isPending: isResetPasswordPending } =
+    useResetPassword();
   const { confirmPasswordSchema } = useValidations();
   const { t } = useTranslation();
-  const router = useRouter();
 
   const {
     control,
@@ -49,12 +56,19 @@ export default function ConfirmPasswordScreen() {
   const onPasswordToggle = () => setShowPassword((prev) => !prev);
   const onConfirmPasswordToggle = () => setShowConfirmPassword((prev) => !prev);
 
-  const onUpdatePassword = (data: z.infer<typeof confirmPasswordSchema>) => {
-    setIsSuccess(true);
-    setTimeout(() => {
-      setIsSuccess(false);
-      router.push("/(auth)/login");
-    }, 3000);
+  const onUpdatePassword = async (
+    data: z.infer<typeof confirmPasswordSchema>,
+  ) => {
+    try {
+      await resetPassword({
+        email,
+        code,
+        newPassword: data.password,
+        confirmNewPassword: data.confirmPassword,
+      });
+    } catch {
+      // Toast is handled in useResetPassword
+    }
   };
 
   return (
@@ -71,16 +85,22 @@ export default function ConfirmPasswordScreen() {
               <View style={styles.bottomSheetContent}>
                 <View style={styles.formWrapper}>
                   <CustomTextInput
-                    placeholder={t("confirmPasswordScreen.newPasswordPlaceholder")}
+                    placeholder={t(
+                      "confirmPasswordScreen.newPasswordPlaceholder",
+                    )}
                     control={control}
                     name="password"
                     showEye
                     secureTextEntry={!showPassword}
                     onToggleEye={onPasswordToggle}
-                    errors={errors.password?.message ? [errors.password.message] : []}
+                    errors={
+                      errors.password?.message ? [errors.password.message] : []
+                    }
                   />
                   <CustomTextInput
-                    placeholder={t("confirmPasswordScreen.confirmPasswordPlaceholder")}
+                    placeholder={t(
+                      "confirmPasswordScreen.confirmPasswordPlaceholder",
+                    )}
                     control={control}
                     name="confirmPassword"
                     showEye
@@ -133,7 +153,8 @@ export default function ConfirmPasswordScreen() {
                     <PrimaryButton
                       text={t("confirmPasswordScreen.updatePasswordBtn")}
                       onPress={handleSubmit(onUpdatePassword)}
-
+                      isLoading={isResetPasswordPending}
+                      disabled={isResetPasswordPending}
                     />
                   )}
                 </View>

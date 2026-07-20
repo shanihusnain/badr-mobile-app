@@ -21,13 +21,15 @@ import { styles } from "./style";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/provider/useAuth";
 import { TopSpace } from "@/components/atoms/TopSpace";
+import { useLogin } from "@/src/api/mutations/useLogin";
+import { showToast } from "@/src/config/toastConfig";
 
 export default function LoginScreen() {
   const router = useRouter();
   const { signIn } = useAuth();
   const { loginSchema } = useValidations();
   const { t } = useTranslation();
-
+  const { mutateAsync: loginMutation, isPending: loggingIn } = useLogin();
   const {
     control,
     handleSubmit,
@@ -51,10 +53,24 @@ export default function LoginScreen() {
   };
 
   const onSubmit = async (data: z.infer<typeof loginSchema>) => {
-    await signIn("mock-access-token", "mock-refresh-token", {
-      email: data.email,
-    });
-    router.replace("/(private)/greetingsscreen");
+    try {
+      const result = await loginMutation({
+        email: data.email.trim(),
+        password: data.password,
+      });
+
+      const { accessToken, refreshToken, user } = result.data;
+
+      if (!accessToken) {
+        showToast("error", "Login succeeded but no access token was returned");
+        return;
+      }
+
+      await signIn(accessToken, refreshToken, user);
+      router.replace("/(private)/greetingsscreen");
+    } catch {
+      // Toast is handled in useLogin
+    }
   };
 
   return (
@@ -99,6 +115,8 @@ export default function LoginScreen() {
                 <PrimaryButton
                   text={t("loginScreen.loginBtnText")}
                   onPress={handleSubmit(onSubmit)}
+                  disabled={loggingIn}
+                  isLoading={loggingIn}
                 />
 
                 <TouchableOpacity
