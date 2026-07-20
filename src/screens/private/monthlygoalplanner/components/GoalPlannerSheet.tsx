@@ -12,6 +12,18 @@ import { GoalCardWithDescriptionAndOptionToSelectGoal } from "./GoalCardWithDesc
 import { CycleStartTab } from "./CycleStartTab";
 import { useTranslation } from "react-i18next";
 import { router } from "expo-router";
+import {
+  tahiyyatalwudhubottomsheetimage,
+  missedpastprayerbottomsheetimage,
+  tahiyyatalmasjidbottomsheetimage,
+  sunnahrawatibbottomsheetimage,
+  duhaprayerbottomsheetimage,
+  tawbahprayerbottomsheetimage,
+  istikharaprayerbottomsheetimage,
+  shukarprayerbottomsheetimage,
+  fivedailyprayerbottomsheetimage,
+  qiyamallaylbottomsheetimage
+} from "@/assets/images";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import PrimaryButton from "@/components/atoms/Primary-button";
 import TahiyatWuduGoalSelection from "@/components/molecules/TahiyatWuduGoalSelection";
@@ -544,6 +556,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
         description:
           "A two-rak'ah Sunnah prayer performed right after completing wudhu. It serves to honor the purification process and prepare us for further prayer",
         isSelected: false,
+        image: tahiyyatalwudhubottomsheetimage,
       },
       {
         id: "fiveDailyPrayers",
@@ -551,6 +564,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
         description:
           "The five obligatory prayers, most beloved to Allah, structure our day when prayed on time, instilling discipline and deepening our gratitude",
         isSelected: false,
+        image: fivedailyprayerbottomsheetimage,
       },
       {
         id: "sunnahRawatib",
@@ -558,6 +572,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
         description:
           "Aligns with the Prophet's (PBUH) sunnah and provides opportunities to compensate any shortcomings in obligatory prayers",
         isSelected: false,
+        image: sunnahrawatibbottomsheetimage,
       },
       {
         id: "thayyat-ul-masjid",
@@ -565,6 +580,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
         description:
           "A two-rak’ah prayer performed upon entering the mosque, honoring its sanctity and seeking Allah’s blessings, guidance, and mercy",
         isSelected: false,
+        image: tahiyyatalmasjidbottomsheetimage,
       },
       {
         id: "missedPastPrayers",
@@ -572,6 +588,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
         description:
           "Many of us have neglected obligatory prayers for weeks, months, or even years. Fulfilling these overdue prayers is a testament to our renewed commitment to Allah",
         isSelected: false,
+        image: missedpastprayerbottomsheetimage,
       },
       {
         id: "duhaPrayer",
@@ -579,6 +596,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
         description:
           "It is performed in sets of 2 rak'ahs anytime from approximately 15-20 minutes after sunrise until about 10-15 minutes before the Dhuhr prayer",
         isSelected: false,
+        image: duhaprayerbottomsheetimage,
       },
       {
         id: "tawbaPrayer",
@@ -586,6 +604,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
         description:
           "Also known as the repentance prayer in English, the Tawbah prayer is a sincere 2 rak'ah prayer to seek forgiveness from Allah for our sins",
         isSelected: false,
+        image: tawbahprayerbottomsheetimage,
       },
       {
         id: "istikharah",
@@ -593,6 +612,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
         description:
           "A two rak'ah prayer performed to seek guidance from Allah when faced with a decision. It helps us make choices that align with our faith and best interests",
         isSelected: false,
+        image: istikharaprayerbottomsheetimage,
       },
       {
         id: "shukrPrayer",
@@ -600,6 +620,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
         description:
           "The Gratitude Prayer (Shukr) is a 2-rak'ah act of thanks to Allah for His countless blessings. It fosters positivity by inspiring recognition of His generosity",
         isSelected: false,
+        image: shukarprayerbottomsheetimage,
       },
       {
         id: "qiyamalLail",
@@ -607,6 +628,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
         description:
           "Night prayers, performed between Isha and Fajr, are most beloved after obligatory prayers, fostering spiritual growth and inviting Allah’s mercy and blessings",
         isSelected: false,
+        image: qiyamallaylbottomsheetimage,
       },
     ];
     const QuranData = [
@@ -1448,6 +1470,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
                   <GoalCardWithDescriptionAndOptionToSelectGoal
                     initialValue={selectedGoals[prayer.id] ?? prayer.isSelected}
                     title={t(`goalsData.${prayer.id}.title`).toUpperCase()}
+                    imageSource={prayer.image}
                     handleSeeMorePRess={() =>
                       router.push({
                         pathname: "/(private)/goaldescriptiondetails/[goal]",

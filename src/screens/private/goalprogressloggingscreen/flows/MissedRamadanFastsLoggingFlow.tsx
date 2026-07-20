@@ -10,6 +10,8 @@ import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Colors } from "@/constants/theme";
+import { FastingFlowCardRamadanCalender } from "@/assets/icons/FastingFlowCardRamadanCalender";
+import { FastingDashboardIcon } from "@/assets/icons/FastingDashboardIcon";
 import { GoalData } from "../../home/components/goalsData";
 import { FlowCard } from "../components/FlowCard";
 import { FlowDropdownSelect } from "../components/FlowDropdownSelect";
@@ -126,9 +128,9 @@ export default function MissedRamadanFastsLoggingFlow({
   useEffect(() => {
     onDropdownOpenChange?.(
       isLogTypeDropdownOpen ||
-        isDateDropdownOpen ||
-        isStartPeriodDropdownOpen ||
-        isEndPeriodDropdownOpen,
+      isDateDropdownOpen ||
+      isStartPeriodDropdownOpen ||
+      isEndPeriodDropdownOpen,
     );
   }, [
     isDateDropdownOpen,
@@ -557,9 +559,8 @@ export default function MissedRamadanFastsLoggingFlow({
       <Ionicons name="time-outline" size={15} color={Colors.light.white} />
     );
     const helpIcon = (
-      <Ionicons
-        name="help-circle-outline"
-        size={15}
+      <FastingDashboardIcon
+        size={20}
         color={Colors.light.white}
       />
     );
@@ -788,9 +789,8 @@ export default function MissedRamadanFastsLoggingFlow({
           <View style={localStyles.summaryCard}>
             <View style={localStyles.summaryBody}>
               <View style={localStyles.summaryIconCircle}>
-                <MaterialCommunityIcons
-                  name="moon-waning-crescent"
-                  size={18}
+                <FastingFlowCardRamadanCalender
+                  size={20}
                   color={Colors.light.white}
                 />
               </View>

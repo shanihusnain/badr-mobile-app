@@ -11,6 +11,10 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTranslation } from "react-i18next";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
+import { FastingDashboardIcon } from "@/assets/icons/FastingDashboardIcon";
+import { DashBoardCalenderIcon } from "@/assets/icons/DashBoardCalenderIcon";
+import { FlashIcon } from "@/assets/icons/FlashIcon";
+import { ShootIcon } from "@/assets/icons/ShootIcon";
 import type { WhiteDaysFastWeekSummary } from "@/src/screens/private/goalprogressloggingscreen/whiteDaysFastsWeeklyData";
 import { getWhiteDaysFastTodayIndexInWeek } from "@/src/screens/private/goalprogressloggingscreen/whiteDaysFastsWeeklyData";
 import { WhiteDaysFastDayRing } from "./WhiteDaysFastDayRing";
@@ -112,10 +116,9 @@ export function WhiteDaysFastsWeeklyProgressDashboard({
     <View style={styles.card}>
       <View style={styles.headerRow}>
         <View style={styles.headerLeft}>
-          <MaterialCommunityIcons
-            name="calendar-month-outline"
-            size={16}
-            color={Colors.light.seagreen}
+          <DashBoardCalenderIcon
+            size={20}
+            color={Colors.light.subtext}
           />
           <Text style={styles.weekFractionText} numberOfLines={1}>
             {weekSummary.weekFraction} {t("homeScreen.weeklyProgress_weeks")}
@@ -169,7 +172,7 @@ export function WhiteDaysFastsWeeklyProgressDashboard({
                   style={[
                     whiteDaysFastDayLabelStyles.dayLabelWrapper,
                     shouldShowTodayLabelBackground(day) &&
-                      whiteDaysFastDayLabelStyles.dayLabelTodayBackground,
+                    whiteDaysFastDayLabelStyles.dayLabelTodayBackground,
                   ]}
                 >
                   <Text
@@ -189,8 +192,7 @@ export function WhiteDaysFastsWeeklyProgressDashboard({
       </View>
 
       <View style={styles.statsRow}>
-        <MaterialCommunityIcons
-          name="calendar-check"
+        <FastingDashboardIcon
           size={22}
           color={Colors.light.seagreen}
         />
@@ -204,7 +206,7 @@ export function WhiteDaysFastsWeeklyProgressDashboard({
 
       <View style={styles.footerRow}>
         <View style={styles.streakBadge}>
-          <Ionicons name="flash" size={13} color={Colors.light.green} />
+          <FlashIcon size={13} color={Colors.light.green} />
           <Text style={styles.streakText}>
             {t("progressLogging.whiteDaysMonthlyStreak", {
               count: weekSummary.monthlyStreak,
@@ -213,10 +215,9 @@ export function WhiteDaysFastsWeeklyProgressDashboard({
         </View>
 
         <View style={styles.quoteBlock}>
-          <MaterialCommunityIcons
-            name="target"
+          <ShootIcon
             size={14}
-            color={Colors.light.seagreen}
+            Color={Colors.light.subtext}
           />
           <Text style={styles.quoteText}>{motivationalQuote}</Text>
         </View>

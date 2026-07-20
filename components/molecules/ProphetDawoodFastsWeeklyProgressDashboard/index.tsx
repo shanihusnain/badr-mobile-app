@@ -12,6 +12,10 @@ import Feather from "@expo/vector-icons/Feather";
 import { useTranslation } from "react-i18next";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
+import { FastingDashboardIcon } from "@/assets/icons/FastingDashboardIcon";
+import { FlashIcon } from "@/assets/icons/FlashIcon";
+import { ShootIcon } from "@/assets/icons/ShootIcon";
+import { DashBoardCalenderIcon } from "@/assets/icons/DashBoardCalenderIcon";
 import type { ProphetDawoodFastWeekSummary } from "@/src/screens/private/goalprogressloggingscreen/prophetDawoodFastsWeeklyData";
 import { getProphetDawoodFastTodayIndexInWeek } from "@/src/screens/private/goalprogressloggingscreen/prophetDawoodFastsWeeklyData";
 import { ProphetDawoodFastDayRing } from "./ProphetDawoodFastDayRing";
@@ -107,10 +111,9 @@ export function ProphetDawoodFastsWeeklyProgressDashboard({
     <View style={styles.card}>
       <View style={styles.headerRow}>
         <View style={styles.headerLeft}>
-          <MaterialCommunityIcons
-            name="calendar-month-outline"
-            size={16}
-            color={Colors.light.ringDawood}
+          <DashBoardCalenderIcon
+            size={20}
+            color={Colors.light.subtext}
           />
           <Text style={styles.weekFractionText} numberOfLines={1}>
             {weekSummary.weekFraction} {t("homeScreen.weeklyProgress_weeks")}
@@ -162,7 +165,7 @@ export function ProphetDawoodFastsWeeklyProgressDashboard({
                 style={[
                   styles.dayItemWrapper,
                   shouldShowTodayBackground(day) &&
-                    prophetDawoodFastDayLabelStyles.dayItemTodayBackground,
+                  prophetDawoodFastDayLabelStyles.dayItemTodayBackground,
                 ]}
               >
                 <View style={styles.ringSlot}>
@@ -195,10 +198,9 @@ export function ProphetDawoodFastsWeeklyProgressDashboard({
       </View>
 
       <View style={styles.statsRow}>
-        <MaterialCommunityIcons
-          name="calendar-check"
+        <FastingDashboardIcon
           size={22}
-          color={Colors.light.ringDawood}
+          color={Colors.light.seagreen}
         />
         <Text style={styles.statsText} numberOfLines={1}>
           <Text style={styles.statsCount}>
@@ -210,7 +212,7 @@ export function ProphetDawoodFastsWeeklyProgressDashboard({
 
       <View style={styles.footerRow}>
         <View style={styles.streakBadge}>
-          <Ionicons name="flash" size={13} color={Colors.light.green} />
+          <FlashIcon size={13} color={Colors.light.green} />
           <Text style={styles.streakText}>
             {t("progressLogging.dawoodWeeklyStreak", {
               count: weekSummary.streakDays,
@@ -219,10 +221,9 @@ export function ProphetDawoodFastsWeeklyProgressDashboard({
         </View>
 
         <View style={styles.quoteBlock}>
-          <MaterialCommunityIcons
-            name="target"
+          <ShootIcon
             size={14}
-            color={Colors.light.ringDawood}
+            Color={Colors.light.subtext}
           />
           <Text style={styles.quoteText}>{motivationalQuote}</Text>
         </View>

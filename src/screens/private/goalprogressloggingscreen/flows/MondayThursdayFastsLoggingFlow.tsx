@@ -10,6 +10,8 @@ import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Colors } from "@/constants/theme";
+import { FastingFlowCardMondayFasts } from "@/assets/icons/FastingFlowCardMondayFasts";
+import { FastingDashboardIcon } from "@/assets/icons/FastingDashboardIcon";
 import { GoalData } from "../../home/components/goalsData";
 import { FlowCard } from "../components/FlowCard";
 import { FlowDropdownSelect } from "../components/FlowDropdownSelect";
@@ -132,9 +134,9 @@ export default function MondayThursdayFastsLoggingFlow({
   useEffect(() => {
     onDropdownOpenChange?.(
       isLogTypeDropdownOpen ||
-        isDateDropdownOpen ||
-        isStartPeriodDropdownOpen ||
-        isEndPeriodDropdownOpen,
+      isDateDropdownOpen ||
+      isStartPeriodDropdownOpen ||
+      isEndPeriodDropdownOpen,
     );
   }, [
     isDateDropdownOpen,
@@ -569,9 +571,8 @@ export default function MondayThursdayFastsLoggingFlow({
       <Ionicons name="time-outline" size={15} color={Colors.light.white} />
     );
     const helpIcon = (
-      <Ionicons
-        name="help-circle-outline"
-        size={15}
+      <FastingDashboardIcon
+        size={22}
         color={Colors.light.white}
       />
     );
@@ -798,8 +799,7 @@ export default function MondayThursdayFastsLoggingFlow({
           <View style={localStyles.summaryCard}>
             <View style={localStyles.summaryBody}>
               <View style={localStyles.summaryIconCircle}>
-                <MaterialCommunityIcons
-                  name="moon-waning-crescent"
+                <FastingFlowCardMondayFasts
                   size={18}
                   color={Colors.light.white}
                 />

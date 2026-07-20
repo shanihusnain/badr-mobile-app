@@ -11,6 +11,9 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTranslation } from "react-i18next";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
+import { FastingDashboardIcon } from "@/assets/icons/FastingDashboardIcon";
+import { FlashIcon } from "@/assets/icons/FlashIcon";
+import { ShootIcon } from "@/assets/icons/ShootIcon";
 import type { MondayThursdayFastWeekSummary } from "@/src/screens/private/goalprogressloggingscreen/mondayThursdayFastsWeeklyData";
 import { getMondayThursdayFastTodayIndexInWeek } from "@/src/screens/private/goalprogressloggingscreen/mondayThursdayFastsWeeklyData";
 import { MondayThursdayFastDayRing } from "./MondayThursdayFastDayRing";
@@ -19,6 +22,7 @@ import {
   mondayThursdayDayLabelStyles,
   shouldShowTodayLabelBackground,
 } from "./mondayThursdayFastDayStyles";
+import { DashBoardCalenderIcon } from "@/assets/icons";
 
 export type MondayThursdayFastsWeeklyProgressDashboardProps = {
   weekSummary: MondayThursdayFastWeekSummary;
@@ -117,10 +121,9 @@ export function MondayThursdayFastsWeeklyProgressDashboard({
     <View style={styles.card}>
       <View style={styles.headerRow}>
         <View style={styles.headerLeft}>
-          <MaterialCommunityIcons
-            name="calendar-month-outline"
-            size={16}
-            color={Colors.light.seagreen}
+          <DashBoardCalenderIcon
+            size={20}
+            color={Colors.light.subtext}
           />
           <Text style={styles.weekFractionText} numberOfLines={1}>
             {weekSummary.weekFraction} {t("homeScreen.weeklyProgress_weeks")}
@@ -174,7 +177,7 @@ export function MondayThursdayFastsWeeklyProgressDashboard({
                   style={[
                     mondayThursdayDayLabelStyles.dayLabelWrapper,
                     shouldShowTodayLabelBackground(day) &&
-                      mondayThursdayDayLabelStyles.dayLabelTodayBackground,
+                    mondayThursdayDayLabelStyles.dayLabelTodayBackground,
                   ]}
                 >
                   <Text
@@ -194,10 +197,9 @@ export function MondayThursdayFastsWeeklyProgressDashboard({
       </View>
 
       <View style={styles.statsRow}>
-        <MaterialCommunityIcons
-          name="moon-waning-crescent"
+        <FastingDashboardIcon
           size={22}
-          color={Colors.light.green}
+          color={Colors.light.seagreen}
         />
         <Text style={styles.statsText} numberOfLines={1}>
           <Text style={styles.statsCount}>
@@ -209,7 +211,7 @@ export function MondayThursdayFastsWeeklyProgressDashboard({
 
       <View style={styles.footerRow}>
         <View style={styles.streakBadge}>
-          <Ionicons name="flash" size={13} color={Colors.light.green} />
+          <FlashIcon size={13} color={Colors.light.green} />
           <Text style={styles.streakText}>
             {t("progressLogging.mondayThursdayWeeklyStreak", {
               count: weekSummary.streakWeeks,
@@ -235,10 +237,9 @@ export function MondayThursdayFastsWeeklyProgressDashboard({
         ) : null}
 
         <View style={styles.quoteBlock}>
-          <MaterialCommunityIcons
-            name="target"
+          <ShootIcon
             size={14}
-            color={Colors.light.seagreen}
+            Color={Colors.light.seagreen}
           />
           <Text style={styles.quoteText}>{motivationalQuote}</Text>
         </View>
@@ -265,8 +266,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 5,
-    flexShrink: 1,
+    flexShrink: 2,
   },
+
   weekFractionText: {
     color: Colors.light.white,
     fontSize: 13,
