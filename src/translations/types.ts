@@ -95,7 +95,7 @@ export type GoalReadMoreTextStyle =
   | "bilalQuoteLight";
 
 export type GoalReadMoreItem =
-  | { type: "text"; content: string; style: GoalReadMoreTextStyle; align?: "left" | "right" | "center" }
+  | { type: "text"; content: string; style: GoalReadMoreTextStyle; align?: "left" | "right" | "center"; icon?: string }
   | { type: "prayerSection"; heading: string; description: string }
   | { type: "benefit"; heading: string; description: string }
   | { type: "replyWithQuote"; prefix: string; quote: string }

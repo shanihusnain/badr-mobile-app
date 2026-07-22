@@ -22,6 +22,20 @@ import istikharaprayerbottomsheetimage from "./istikharaprayerbottomsheetimage.p
 import shukarprayerbottomsheetimage from "./shukarprayerbottomsheetimage.png";
 import fivedailyprayerbottomsheetimage from "./fivedailyprayerbottomsheetimage.png";
 import qiyamallaylbottomsheetimage from "./qiyamallaylbottomsheetimage.png";
+import quranlisteningbottomsheetimage from "./quranlisteningbottomsheetimage.png";
+import quranrecitationbottomsheetimage from "./quranrecitationbottomsheetimage.png";
+import quranmemorizationbottomsheetimage from "./quranmemorizationbottomsheetimage.png";
+import qurantajweedbottomsheetimage from "./qurantajweedbottomsheetimage.png";
+import missedramadanfastsbottomsheetimage from "./missedramadanfastsbottomsheetimage.png";
+import thefastsofprophetdawoodbottomsheetimage from "./thefastsofprophetdawood(a.s)bottomsheetimage.png";
+import mondayandthursdayfastsbottomsheetimage from "./mondayandthursdayfastsbottomsheetimage.png";
+import whitedaysfastsbottomsheetimage from "./whitedaysfastsbottomsheetimage.png";
+import missedzakatbottomsheetimage from "./missedzakatbottomsheetimage.png";
+import kaffarahbottomsheetimage from "./kaffarahbottomsheetimage.png";
+import fidyabottomsheetimage from "./fidyabottomsheetimage.png";
+import lillahdonationbottomsheetimage from "./lillahdonationbottomsheetimage.png";
+import volunteeringservicesbottomsheetimage from "./volunteeringservicesbottomsheetimage.png";
+import sadaqahjariyahbottomsheetimage from "./sadaqahjariyahbottomsheetimage.png";
 import qiyamallayldetailimage from "./qiyamallayldetailimage.png";
 import duhaprayerdetailimage from "./duhaprayerdetailimage.png";
 import istikharaprayerdetailimage from "./istikharaprayerdetailimage.png";
@@ -66,4 +80,18 @@ export {
   sunnahrawatibdetailimage,
   missedprayerdetailimage,
   shukarprayerdetailimage,
+  quranlisteningbottomsheetimage,
+  quranrecitationbottomsheetimage,
+  quranmemorizationbottomsheetimage,
+  qurantajweedbottomsheetimage,
+  missedramadanfastsbottomsheetimage,
+  thefastsofprophetdawoodbottomsheetimage,
+  mondayandthursdayfastsbottomsheetimage,
+  whitedaysfastsbottomsheetimage,
+  missedzakatbottomsheetimage,
+  kaffarahbottomsheetimage,
+  fidyabottomsheetimage,
+  lillahdonationbottomsheetimage,
+  volunteeringservicesbottomsheetimage,
+  sadaqahjariyahbottomsheetimage,
 };
