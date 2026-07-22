@@ -6,43 +6,36 @@ import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.buttonBackground,
+    backgroundColor: Colors.light.blackBackground,
+  },
+
+  safeArea: {
+    flex: 1,
   },
 
   contentView: {
     flex: 1,
   },
 
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingTop: hp(2),
-    paddingBottom: hp(2),
-  },
-
-  title: {
-    color: Colors.light.white,
-    fontFamily: fonts.primary.regular,
-    fontSize: 14,
+  keyboardAvoidingView: {
     flex: 1,
-    textAlign: "center",
+    justifyContent: "flex-end",
   },
 
-  placeholder: {
-    width: 40,
+  imageSection: {
+    flex: 1,
+  },
+
+  imageTapArea: {
+    flex: 1,
   },
 
   bottomSheet: {
-    position: "absolute",
-    bottom: 0,
-    width: "100%",
     height: hp(50),
     backgroundColor: Colors.light.blackBackground,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-
+    overflow: "hidden",
     alignItems: "center",
     justifyContent: "flex-start",
     paddingHorizontal: 20,
@@ -74,11 +67,9 @@ export const styles = StyleSheet.create({
     height: 50,
     borderRadius: 8,
     backgroundColor: Colors.light.greybuttonBackground,
-
     textAlign: "center",
     fontSize: 18,
     color: Colors.light.white,
-
     padding: 0,
     includeFontPadding: false,
     textAlignVertical: "center",
@@ -106,7 +97,6 @@ export const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: fonts.primary.regular,
     lineHeight: 16,
-    // marginTop: hp(0),
     alignSelf: "center",
   },
 
@@ -125,6 +115,7 @@ export const styles = StyleSheet.create({
     width: "95%",
     marginTop: hp(2),
   },
+
   errorText: {
     color: Colors.light.red,
     fontFamily: fonts.primary.semiBold,

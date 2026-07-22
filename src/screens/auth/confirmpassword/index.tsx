@@ -1,7 +1,8 @@
 import PrimaryButton from "@/components/atoms/Primary-button";
 import CustomTextInput from "@/components/atoms/CustomTextInput";
+import { BadrTreeImage } from "@/assets/images";
 import { zodResolver } from "@hookform/resolvers/zod";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import {
   Keyboard,
@@ -10,10 +11,10 @@ import {
   TouchableWithoutFeedback,
   View,
   Text,
-  Animated,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { z } from "zod";
+import { ImageBackground } from "expo-image";
 import createStyles from "./style";
 import { useValidations } from "@/src/validations/useValidations";
 import { useTranslation } from "react-i18next";
@@ -26,8 +27,6 @@ import { useResetPassword } from "@/src/api/mutations/useResetPassword";
 export default function ConfirmPasswordScreen() {
   const { email, code }: { email: string; code: string } =
     useLocalSearchParams();
-  console.log("email", email);
-  console.log("code", code);
   const styles = createStyles();
 
   const { mutateAsync: resetPassword, isPending: isResetPasswordPending } =
@@ -72,97 +71,104 @@ export default function ConfirmPasswordScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={styles.contentView}>
-          <KeyboardAvoidingView
-            style={styles.keyboardAvoidingView}
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-            keyboardVerticalOffset={0}
-          >
-            {/* Bottom Sheet */}
-            <View style={styles.bottomSheet}>
-              <View style={styles.bottomSheetContent}>
-                <View style={styles.formWrapper}>
-                  <CustomTextInput
-                    placeholder={t(
-                      "confirmPasswordScreen.newPasswordPlaceholder",
-                    )}
-                    control={control}
-                    name="password"
-                    showEye
-                    secureTextEntry={!showPassword}
-                    onToggleEye={onPasswordToggle}
-                    errors={
-                      errors.password?.message ? [errors.password.message] : []
-                    }
-                  />
-                  <CustomTextInput
-                    placeholder={t(
-                      "confirmPasswordScreen.confirmPasswordPlaceholder",
-                    )}
-                    control={control}
-                    name="confirmPassword"
-                    showEye
-                    secureTextEntry={!showConfirmPassword}
-                    onToggleEye={onConfirmPasswordToggle}
-                    errors={
-                      errors.confirmPassword?.message
-                        ? [errors.confirmPassword.message]
-                        : []
-                    }
-                  />
-                </View>
-                <View style={styles.buttonWrapper}>
-                  {isSuccess ? (
-                    <View
-                      style={{
-                        width: "80%",
-                        minHeight: 40,
-                        borderRadius: 6,
-                        paddingVertical: 1,
-                        paddingHorizontal: 8,
-                        flexDirection: "row",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        alignSelf: "center",
-                        gap: 8,
-                        backgroundColor: Colors.light.darkgrey,
-                        //borderWidth: 1.5,
-                        //borderColor: Colors.light.green,
-                      }}
-                    >
-                      <AntDesign
-                        name="check-circle"
-                        size={18}
-                        color={Colors.light.green}
-                      />
-                      <Text
+    <View style={styles.container}>
+      <SafeAreaView style={styles.safeArea} edges={["bottom"]}>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+          <View style={styles.contentView}>
+            <KeyboardAvoidingView
+              style={styles.keyboardAvoidingView}
+              behavior={Platform.OS === "ios" ? "padding" : "height"}
+              keyboardVerticalOffset={0}
+            >
+              <ImageBackground
+                source={BadrTreeImage}
+                style={styles.imageSection}
+                contentFit="cover"
+              >
+                <View style={styles.imageTapArea} />
+              </ImageBackground>
+
+              <View style={styles.bottomSheet}>
+                <View style={styles.bottomSheetContent}>
+                  <View style={styles.formWrapper}>
+                    <CustomTextInput
+                      placeholder={t(
+                        "confirmPasswordScreen.newPasswordPlaceholder",
+                      )}
+                      control={control}
+                      name="password"
+                      showEye
+                      secureTextEntry={!showPassword}
+                      onToggleEye={onPasswordToggle}
+                      errors={
+                        errors.password?.message ? [errors.password.message] : []
+                      }
+                    />
+                    <CustomTextInput
+                      placeholder={t(
+                        "confirmPasswordScreen.confirmPasswordPlaceholder",
+                      )}
+                      control={control}
+                      name="confirmPassword"
+                      showEye
+                      secureTextEntry={!showConfirmPassword}
+                      onToggleEye={onConfirmPasswordToggle}
+                      errors={
+                        errors.confirmPassword?.message
+                          ? [errors.confirmPassword.message]
+                          : []
+                      }
+                    />
+                  </View>
+                  <View style={styles.buttonWrapper}>
+                    {isSuccess ? (
+                      <View
                         style={{
-                          color: Colors.light.white,
-                          fontFamily: fonts.primary.medium,
-                          fontWeight: "500",
-                          fontSize: 16,
-                          lineHeight: 20,
+                          width: "80%",
+                          minHeight: 40,
+                          borderRadius: 6,
+                          paddingVertical: 1,
+                          paddingHorizontal: 8,
+                          flexDirection: "row",
+                          justifyContent: "center",
+                          alignItems: "center",
+                          alignSelf: "center",
+                          gap: 8,
+                          backgroundColor: Colors.light.darkgrey,
                         }}
                       >
-                        PASSWORD UPDATED!
-                      </Text>
-                    </View>
-                  ) : (
-                    <PrimaryButton
-                      text={t("confirmPasswordScreen.updatePasswordBtn")}
-                      onPress={handleSubmit(onUpdatePassword)}
-                      isLoading={isResetPasswordPending}
-                      disabled={isResetPasswordPending}
-                    />
-                  )}
+                        <AntDesign
+                          name="check-circle"
+                          size={18}
+                          color={Colors.light.green}
+                        />
+                        <Text
+                          style={{
+                            color: Colors.light.white,
+                            fontFamily: fonts.primary.medium,
+                            fontWeight: "500",
+                            fontSize: 16,
+                            lineHeight: 20,
+                          }}
+                        >
+                          PASSWORD UPDATED!
+                        </Text>
+                      </View>
+                    ) : (
+                      <PrimaryButton
+                        text={t("confirmPasswordScreen.updatePasswordBtn")}
+                        onPress={handleSubmit(onUpdatePassword)}
+                        isLoading={isResetPasswordPending}
+                        disabled={isResetPasswordPending}
+                      />
+                    )}
+                  </View>
                 </View>
               </View>
-            </View>
-          </KeyboardAvoidingView>
-        </View>
-      </TouchableWithoutFeedback>
-    </SafeAreaView>
+            </KeyboardAvoidingView>
+          </View>
+        </TouchableWithoutFeedback>
+      </SafeAreaView>
+    </View>
   );
 }

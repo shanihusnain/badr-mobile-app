@@ -6,7 +6,11 @@ import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.buttonBackground,
+    backgroundColor: Colors.light.blackBackground,
+  },
+
+  safeArea: {
+    flex: 1,
   },
 
   contentView: {
@@ -39,6 +43,14 @@ export const styles = StyleSheet.create({
   keyboardAvoidingView: {
     flex: 1,
     justifyContent: "flex-end",
+  },
+
+  imageSection: {
+    flex: 1,
+  },
+
+  imageTapArea: {
+    flex: 1,
   },
 
   bottomSheet: {

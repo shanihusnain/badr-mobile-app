@@ -2,7 +2,6 @@ import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import axios from "axios";
-import React from "react";
 import { Platform, StyleSheet, Text, View } from "react-native";
 import Toast, { ToastConfigParams } from "react-native-toast-message";
 

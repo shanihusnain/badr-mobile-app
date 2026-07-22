@@ -1,7 +1,9 @@
 import PrimaryButton from "@/components/atoms/Primary-button";
+import { BadrTreeImage } from "@/assets/images";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Keyboard,
+  KeyboardAvoidingView,
   Platform,
   Text,
   TextInput,
@@ -9,6 +11,7 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
+import { ImageBackground } from "expo-image";
 
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -38,28 +41,12 @@ export default function OtpScreen() {
     mutateAsync: forgotPasswordOtpValidation,
     isPending: isForgotPasswordOtpValidationPending,
   } = useForgotPasswordOtpValidation();
-  const { mutateAsync: resendOtp, isPending: isResendPending } = useResendOtp();
+  const { mutateAsync: resendOtp } = useResendOtp();
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
-  const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [timer, setTimer] = useState(60);
   const [error, setError] = useState<string | null>(null);
 
   const inputRefs = useRef<(TextInput | null)[]>([]);
-
-  useEffect(() => {
-    const show = Keyboard.addListener("keyboardDidShow", () =>
-      setKeyboardVisible(true),
-    );
-
-    const hide = Keyboard.addListener("keyboardDidHide", () =>
-      setKeyboardVisible(false),
-    );
-
-    return () => {
-      show.remove();
-      hide.remove();
-    };
-  }, []);
 
   const handleOtpChange = (value: string, index: number) => {
     if (value.length > 1) value = value.slice(-1);
@@ -81,10 +68,8 @@ export default function OtpScreen() {
   };
 
   const handleResend = () => {
-    console.log("Resend OTP clicked");
     setTimer(60);
     if (email) {
-      console.log("email", email);
       resendOtp(email);
     }
   };
@@ -133,7 +118,8 @@ export default function OtpScreen() {
       }
 
       if (fromsignup === "true") {
-        router.push("/(auth)/paymentMethod");
+        // router.push("/(auth)/paymentMethod");
+        router.replace("/login");
       } else {
         router.push({
           pathname: "/(auth)/confirmpassword",
@@ -144,7 +130,7 @@ export default function OtpScreen() {
         });
       }
     } catch {
-      // Toast is handled in useVerifyOtp
+      // Toast is handled in mutations
     }
   };
 
@@ -163,65 +149,81 @@ export default function OtpScreen() {
   }, [navigation, fromsignup, t]);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={styles.contentView}>
-          <View
-            style={[
-              styles.bottomSheet,
-              keyboardVisible && {
-                marginBottom: Platform.OS === "ios" ? 260 : 180,
-              },
-            ]}
-          >
-            <Text style={styles.otpInfoText}>{getDescriptionText()}</Text>
+    <View style={styles.container}>
+      <SafeAreaView style={styles.safeArea} edges={["bottom"]}>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+          <View style={styles.contentView}>
+            <KeyboardAvoidingView
+              style={styles.keyboardAvoidingView}
+              behavior={Platform.OS === "ios" ? "padding" : "height"}
+              keyboardVerticalOffset={0}
+            >
+              <ImageBackground
+                source={BadrTreeImage}
+                style={styles.imageSection}
+                contentFit="cover"
+              >
+                <View style={styles.imageTapArea} />
+              </ImageBackground>
 
-            <View style={styles.otpContainer}>
-              {otp.map((digit, index) => (
-                <TextInput
-                  key={index}
-                  ref={(ref) => {
-                    inputRefs.current[index] = ref;
-                  }}
-                  style={styles.otpBox}
-                  value={digit}
-                  onChangeText={(value) => handleOtpChange(value, index)}
-                  onKeyPress={(e) => handleKeyPress(e, index)}
-                  keyboardType="number-pad"
-                  maxLength={1}
-                />
-              ))}
-            </View>
+              <View style={styles.bottomSheet}>
+                <Text style={styles.otpInfoText}>{getDescriptionText()}</Text>
 
-            {error && <Text style={styles.errorText}>{error}</Text>}
+                <View style={styles.otpContainer}>
+                  {otp.map((digit, index) => (
+                    <TextInput
+                      key={index}
+                      ref={(ref) => {
+                        inputRefs.current[index] = ref;
+                      }}
+                      style={styles.otpBox}
+                      value={digit}
+                      onChangeText={(value) => handleOtpChange(value, index)}
+                      onKeyPress={(e) => handleKeyPress(e, index)}
+                      keyboardType="number-pad"
+                      maxLength={1}
+                    />
+                  ))}
+                </View>
 
-            <View style={styles.resendContainer}>
-              <TouchableOpacity onPress={handleResend}>
-                <Text
-                  style={[styles.resendAction, styles.resendActionUnderline]}
-                >
-                  {t("otpScreen.resend")}
+                {error && <Text style={styles.errorText}>{error}</Text>}
+
+                <View style={styles.resendContainer}>
+                  <TouchableOpacity onPress={handleResend}>
+                    <Text
+                      style={[
+                        styles.resendAction,
+                        styles.resendActionUnderline,
+                      ]}
+                    >
+                      {t("otpScreen.resend")}
+                    </Text>
+                  </TouchableOpacity>
+
+                  <Text style={styles.resendText}>
+                    {t("otpScreen.otpCode")}
+                  </Text>
+                </View>
+
+                <Text style={styles.resendTimer}>
+                  {`00:${timer.toString().padStart(2, "0")}`}
                 </Text>
-              </TouchableOpacity>
 
-              <Text style={styles.resendText}>{t("otpScreen.otpCode")}</Text>
-            </View>
-
-            <Text style={styles.resendTimer}>
-              {`00:${timer.toString().padStart(2, "0")}`}
-            </Text>
-
-            <View style={styles.buttonWrapper}>
-              <PrimaryButton
-                text={getBtnTitle()}
-                onPress={handleVerify}
-                disabled={isPending || isForgotPasswordOtpValidationPending}
-                isLoading={isPending || isForgotPasswordOtpValidationPending}
-              />
-            </View>
+                <View style={styles.buttonWrapper}>
+                  <PrimaryButton
+                    text={getBtnTitle()}
+                    onPress={handleVerify}
+                    disabled={isPending || isForgotPasswordOtpValidationPending}
+                    isLoading={
+                      isPending || isForgotPasswordOtpValidationPending
+                    }
+                  />
+                </View>
+              </View>
+            </KeyboardAvoidingView>
           </View>
-        </View>
-      </TouchableWithoutFeedback>
-    </SafeAreaView>
+        </TouchableWithoutFeedback>
+      </SafeAreaView>
+    </View>
   );
 }

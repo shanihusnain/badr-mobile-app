@@ -6,12 +6,28 @@ const createStyles = () =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: Colors.light.buttonBackground,
+      backgroundColor: Colors.light.blackBackground,
+    },
+
+    safeArea: {
+      flex: 1,
+    },
+
+    contentView: {
+      flex: 1,
     },
 
     keyboardAvoidingView: {
       flex: 1,
       justifyContent: "flex-end",
+    },
+
+    imageSection: {
+      flex: 1,
+    },
+
+    imageTapArea: {
+      flex: 1,
     },
 
     bottomSheet: {
@@ -28,10 +44,6 @@ const createStyles = () =>
       paddingHorizontal: 10,
       paddingTop: hp(3),
       paddingBottom: hp(3),
-    },
-
-    contentView: {
-      flex: 1,
     },
 
     formWrapper: {
