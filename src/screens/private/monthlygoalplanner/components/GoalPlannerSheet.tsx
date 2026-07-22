@@ -22,7 +22,21 @@ import {
   istikharaprayerbottomsheetimage,
   shukarprayerbottomsheetimage,
   fivedailyprayerbottomsheetimage,
-  qiyamallaylbottomsheetimage
+  qiyamallaylbottomsheetimage,
+  quranlisteningbottomsheetimage,
+  quranrecitationbottomsheetimage,
+  quranmemorizationbottomsheetimage,
+  qurantajweedbottomsheetimage,
+  missedramadanfastsbottomsheetimage,
+  thefastsofprophetdawoodbottomsheetimage,
+  mondayandthursdayfastsbottomsheetimage,
+  whitedaysfastsbottomsheetimage,
+  missedzakatbottomsheetimage,
+  kaffarahbottomsheetimage,
+  fidyabottomsheetimage,
+  lillahdonationbottomsheetimage,
+  volunteeringservicesbottomsheetimage,
+  sadaqahjariyahbottomsheetimage
 } from "@/assets/images";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import PrimaryButton from "@/components/atoms/Primary-button";
@@ -638,6 +652,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
         description:
           "Listening to the Quran brings tranquility, shields from evil, alleviates stress, enhances recitation, and refines tajweed skills, fostering spiritual growth",
         isSelected: false,
+        image: quranlisteningbottomsheetimage,
       },
       {
         id: "quran-recitation",
@@ -645,6 +660,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
         description:
           "Reciting the Quran multiplies rewards, refines pronunciation, deepens understanding, and softens hearts, fostering a profound connection with Allah",
         isSelected: false,
+        image: quranrecitationbottomsheetimage,
       },
       {
         id: "quran-memorization",
@@ -652,6 +668,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
         description:
           "Every word we memorize elevates our rank in Paradise, grants intercession for others, sharpens the mind, and enhances comprehension of the Quran",
         isSelected: false,
+        image: quranmemorizationbottomsheetimage,
       },
       {
         id: "quran-tajweed",
@@ -659,6 +676,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
         description:
           "Tajweed perfects Quranic recitation as revealed to the Prophet (PBUH), preserving its authentic pronunciation, rhythm, and melody while deepening understanding",
         isSelected: false,
+        image: qurantajweedbottomsheetimage,
       },
     ];
 
@@ -669,6 +687,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
         description:
           "Fulfilling missed obligatory fasts is a duty that reflects devotion, demonstrates discipline, and upholds our commitment to Allah’s commands",
         isSelected: false,
+        image: missedramadanfastsbottomsheetimage,
       },
       {
         id: "dawood-fasts",
@@ -676,6 +695,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
         description:
           "These fasts are observed by fasting every other day, reflecting Prophet Dawood's (PBUH) devotion and resilience, and serving as a model of piety",
         isSelected: false,
+        image: thefastsofprophetdawoodbottomsheetimage,
       },
       {
         id: "monday-and-thursday-fasts",
@@ -683,6 +703,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
         description:
           "These fasts follow the Prophet's (PBUH) Sunnah, deepen devotion to Allah, promote well-being, and offer profound spiritual purification and self-discipline",
         isSelected: false,
+        image: mondayandthursdayfastsbottomsheetimage,
       },
       {
         id: "white-days-fasts",
@@ -690,6 +711,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
         description:
           "Fasting on the 13th, 14th, and 15th of each Islamic month deepens connection with Allah, nurtures discipline, and inspires profound spiritual growth and self-reflection",
         isSelected: false,
+        image: whitedaysfastsbottomsheetimage,
       },
     ];
     const sadaqahData = [
@@ -699,6 +721,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
         description:
           "Fulfilling missed Zakat is a sacred obligation that purifies wealth, restores social equity, and reaffirms a believer’s responsibility to support society’s welfare",
         isSelected: false,
+        image: missedzakatbottomsheetimage,
       },
       {
         id: "kafarah-for-breaking-fasts",
@@ -706,6 +729,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
         description:
           "A form of sadaqah to atone for broken fasts or oaths, requiring feeding or clothing those in need as prescribed",
         isSelected: false,
+        image: kaffarahbottomsheetimage,
       },
       {
         id: "fidya",
@@ -713,6 +737,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
         description:
           "A form of sadaqah that allows those unable to fast due to illness or age to stay spiritually connected by feeding one person per missed fast day",
         isSelected: false,
+        image: fidyabottomsheetimage,
       },
       {
         id: "lilah-donations",
@@ -720,6 +745,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
         description:
           "Lillah, derived from the Arabic term 'for Allah', is a pure form of sadaqah driven by a sincere desire to please Allah, fostering devotion and selflessness among Muslims",
         isSelected: false,
+        image: lillahdonationbottomsheetimage,
       },
       {
         id: "volunteering-services",
@@ -727,6 +753,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
         description:
           "As Muslims, offering our time and skills without expecting any compensation is a noble act and a profound expression of faith, bringing us closer to Allah",
         isSelected: false,
+        image: volunteeringservicesbottomsheetimage,
       },
       {
         id: "sadaqah-jariyah",
@@ -734,6 +761,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
         description:
           "This form of Sadaqah is the most rewarding—it’s the gift that keeps giving, offering endless blessings and rewards in this life and the hereafter",
         isSelected: false,
+        image: sadaqahjariyahbottomsheetimage,
       },
     ];
     // ── Render ───────────────────────────────────────────────────────────────
@@ -1518,6 +1546,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
                   <GoalCardWithDescriptionAndOptionToSelectGoal
                     initialValue={quran.isSelected}
                     title={t(`goalsData.${quran.id}.title`).toUpperCase()}
+                    imageSource={quran.image}
                     handleSeeMorePRess={() =>
                       router.push({
                         pathname: "/(private)/goaldescriptiondetails/[goal]",
@@ -1584,6 +1613,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
                   <GoalCardWithDescriptionAndOptionToSelectGoal
                     initialValue={fasting.isSelected}
                     title={t(`goalsData.${fasting.id}.title`).toUpperCase()}
+                    imageSource={fasting.image}
                     handleSeeMorePRess={() =>
                       router.push({
                         pathname: "/(private)/goaldescriptiondetails/[goal]",
@@ -1605,6 +1635,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
                   <GoalCardWithDescriptionAndOptionToSelectGoal
                     initialValue={sadaqah.isSelected}
                     title={t(`goalsData.${sadaqah.id}.title`).toUpperCase()}
+                    imageSource={sadaqah.image}
                     handleSeeMorePRess={() =>
                       router.push({
                         pathname: "/(private)/goaldescriptiondetails/[goal]",

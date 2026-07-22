@@ -1242,6 +1242,7 @@
             {
               "type": "text",
               "style": "body",
+              "icon": "FajarSunIcon",
               "content": "The word Duha in Arabic translates to \"forenoon\" or \"morning light.\" It refers to the time of day when the sun has risen above the horizon and its light spreads brightly across the sky."
             },
             {
@@ -1252,6 +1253,7 @@
             {
               "type": "text",
               "style": "quoteItalic",
+              "icon": "HadeethBookIcon",
               "content": "\"None is diligent in establishing Duha prayer except one who is oft-repentant\" (awwāb), and it is for the oft-repentant."
             },
             {
@@ -1262,6 +1264,7 @@
             {
               "type": "text",
               "style": "quoteItalic",
+              "icon": "HadeethBookIcon",
               "content": "\"In the morning, charity is due from every joint of your body. Every tasbeeh (saying 'SubhanAllah') is charity. Every tahmeed (saying 'Alhamdulillah') is charity. Every tahleelah (saying 'La ilaha illallah') is charity. Every takbeer (saying 'Allahu Akbar') is charity. Enjoining good is charity. Forbidding evil is charity. And performing two rak’ahs of Duha suffices all of this.\""
             }
           ]
@@ -1276,6 +1279,7 @@
             {
               "type": "text",
               "style": "body",
+              "icon": "DuhaPrayerStar",
               "content": "While the Quran does not directly mention the Duha prayer, Surah Al-Duha The Duha prayer is often referred to as the \"Forenoon Tahajjud\" because, like Tahajjud, it is a voluntary act of worship performed during a quiet and serene time, fostering a deep spiritual connection with Allah.\n\nWhile Tahajjud is prayed in the stillness of the night, Duha is offered in the calm of the forenoon, after the sun has risen. Both prayers are acts of devotion that reflect gratitude, repentance, and a yearning for closeness to Allah, making them spiritually enriching and beloved forms of worship."
             }
           ]
@@ -1299,6 +1303,7 @@
             {
               "type": "text",
               "style": "body",
+              "icon": "ManPrayerIcon",
               "content": "The Tawbah prayer holds a vital place in our spiritual journey as a Muslim, as it provides means to purify our heart and seek closeness to Allah through genuine remorse and a commitment to reform."
             },
             {
@@ -1309,6 +1314,7 @@
             {
               "type": "text",
               "style": "quoteItalic",
+              "icon": "HadeethBookIcon",
               "content": "\"There is no one who commits a sin, then purifies himself well, stands and prays two rak'ahs, and then asks Allah for forgiveness, but Allah will forgive him.\""
             },
             {
@@ -1333,7 +1339,8 @@
             {
               "type": "text",
               "style": "quoteSemibold",
-              "content": "Surah Al-Tawbah (9:104) states: \"Do they not know that Allah accepts repentance from His servants and receives charities, and that Allah is the Accepting of repentance, the Merciful?\""
+              "icon": "QuranImageIcon",
+              "content": "\"Do they not know that Allah accepts repentance from His servants and receives charities, and that Allah is the Accepting of repentance, the Merciful?\""
             },
             {
               "type": "text",
@@ -1343,6 +1350,7 @@
             {
               "type": "text",
               "style": "quoteSemibold",
+              "icon": "QuranImageIcon",
               "content": "\"Except for those who repent, believe and do righteous work. For them Allah will replace their evil deeds with good. And ever is Allah Forgiving and Merciful.\""
             },
             {
@@ -1353,6 +1361,7 @@
             {
               "type": "text",
               "style": "quoteSemibold",
+              "icon": "QuranImageIcon",
               "content": "\"Say, 'O My servants who have transgressed against themselves [by sinning], do not despair of the mercy of Allah. Indeed, Allah forgives all sins. Indeed, it is He who is the Forgiving, the Merciful.\""
             },
             {
@@ -1386,6 +1395,7 @@
             {
               "type": "text",
               "style": "body",
+              "icon": "ManDuaIcon",
               "content": "The Istikhara prayer, deeply rooted in the teachings of Prophet Muhammad (PBUH), serves as a special means for Muslims to seek divine guidance in decision-making. This practice is complemented by \"istishara,\" the consultation with righteous and trusted individuals who can aid in making informed decisions, reflecting the Prophet's approach with his companions such as Abu Bakr (RA) and Umar (RA)."
             },
             {
@@ -1405,6 +1415,7 @@
             {
               "type": "text",
               "style": "body",
+              "icon": "IstikharaClockIcon",
               "content": "To perform Istikhara, one begins with a voluntary prayer consisting of two rak'ahs, like any other voluntary prayer. However, what sets Istikhara apart is the specific du'a (supplication) recited afterward, seeking Allah's guidance after making personal efforts and consulting others. It is common, and recommended by some scholars, to recite Surah Al-Kafirun in the first rak'ah and Surah Al-Ikhlas in the second, due to their virtues."
             },
             {
@@ -1474,6 +1485,7 @@
             {
               "type": "text",
               "style": "quoteMediumItalic",
+              "icon": "HadeethBookIcon",
               "content": "\"Indeed, the first to be called to Paradise are those who praise Allah in prosperity and adversity.\""
             },
             {
@@ -1505,26 +1517,26 @@
               "content": "Quranic Insights on Gratitude"
             },
             {
-              "type": "boldPrefixText",
-              "prefix": "Surah Al-Baqarah (2:152):",
-              "content": "The Quran emphasizes gratitude in numerous verses. In this verse, Allah says:",
-              "style": "body"
+              "type": "text",
+              "style": "body",
+              "content": "The Quran emphasizes gratitude in numerous verses. In Surah Al-Baqarah (2:152), Allah says:"
             },
             {
               "type": "text",
               "style": "quoteSemibold",
-              "content": "“So remember Me; I will remember you. And be grateful to Me and do not deny me.\""
+              "icon": "QuranImageIcon",
+              "content": "\"So remember Me; I will remember you. And be grateful to Me and do not deny Me.\""
             },
             {
-              "type": "boldPrefixText",
-              "prefix": "Surah An-Nahl (16:18):",
-              "content": "Similarly, this verse reminds us:",
-              "style": "body"
+              "type": "text",
+              "style": "body",
+              "content": "Similarly, Surah An-Nahl (16:18) reminds us:"
             },
             {
               "type": "text",
               "style": "quoteSemibold",
-              "content": "“If you tried to count Allah's blessings, you could never enumerate them. Indeed, Allah is Forgiving and Merciful.”"
+              "icon": "QuranImageIcon",
+              "content": "\"If you tried to count Allah's bless-ings, you could never enumerate them. Indeed, Allah is Forgiving and Merciful.\""
             },
             {
               "type": "text",
@@ -1576,6 +1588,7 @@
             {
               "type": "text",
               "style": "quoteItalic",
+              "icon": "HadeethBookIcon",
               "content": "\"The best prayer after the obligatory prayers is the prayer at night.\" (Muslim)"
             },
             {
@@ -1586,6 +1599,7 @@
             {
               "type": "text",
               "style": "quoteItalic",
+              "icon": "HadeethBookIcon",
               "content": "\"You must perform the night prayer, for it is the habit of the righteous who came before you. It brings you closer to your Lord, expiates your evil deeds, and prevents you from sinning.\""
             },
             {
@@ -1615,6 +1629,7 @@
             {
               "type": "text",
               "style": "quoteSemibold",
+              "icon": "QuranImageIcon",
               "content": "\"Their sides part from their beds; they call upon their Lord in fear and hope.\""
             },
             {
@@ -1625,6 +1640,7 @@
             {
               "type": "text",
               "style": "quoteItalic",
+              "icon": "HadeethBookIcon",
               "content": "\"Every night, during the last third, our Lord descends to the lowest heaven, saying: 'Who will call upon Me, that I may answer him? Who will ask of Me, that I may give him? Who will seek My forgiveness, that I may forgive him?'\""
             },
             {
@@ -1652,6 +1668,7 @@
             {
               "type": "text",
               "style": "body",
+              "icon": "QuranListeningMoon",
               "content": "Listening attentively to the Quran immerses us in its profound wisdom, transforming our understanding and deepening our connection with Allah. This engagement not only enriches our spiritual journey but also instills tranquility and resilience."
             },
             {
@@ -1691,6 +1708,7 @@
             {
               "type": "text",
               "style": "quoteSemibold",
+              "icon": "QuranImageIcon",
               "content": "\"So when the Quran is recited, then listen to it and pay attention that you may receive mercy.\""
             },
             {
@@ -1706,6 +1724,7 @@
             {
               "type": "text",
               "style": "tableGuide",
+              "icon": "HadeethBookIcon",
               "content": "\"Recite the Quran to me.\" When Abdullah expressed surprise, the Prophet (PBUH) replied: *\"I love to hear it from others.\"*"
             },
             {
@@ -1733,6 +1752,7 @@
             {
               "type": "text",
               "style": "body",
+              "icon": "QuranImageIcon",
               "content": "The act of reciting the Quran is a profound means of drawing closer to Allah, transforming the heart and mind."
             },
             {
@@ -1773,6 +1793,7 @@
             {
               "type": "text",
               "style": "quoteSemibold",
+              "icon": "QuranImageIcon",
               "content": "\"Those to whom We have given the Book recite it with its true recital. They are the ones who believe in it.\""
             },
             {
@@ -1794,6 +1815,7 @@
             {
               "type": "text",
               "style": "quoteSemibold",
+              "icon": "QuranImageIcon",
               "content": "\"Recite the Quran with measured recitation.\""
             },
             {
@@ -1810,6 +1832,7 @@
             {
               "type": "text",
               "style": "quoteSemibold",
+              "icon": "QuranImageIcon",
               "content": "\"And We send down of the Quran that which is healing and mercy for the believers.\""
             },
             {
@@ -1826,6 +1849,7 @@
             {
               "type": "text",
               "style": "quoteSemibold",
+              "icon": "QuranImageIcon",
               "content": "\"O my Lord, indeed my people have taken this Quran as [a thing] abandoned.\""
             },
             {
@@ -1846,6 +1870,7 @@
             {
               "type": "text",
               "style": "quoteItalic",
+              "icon": "HadeethBookIcon",
               "content": "\"The example of a believer who recites the Quran is that of a citron which tastes good and smells good.\""
             },
             {
@@ -1856,16 +1881,19 @@
             {
               "type": "text",
               "style": "quoteItalic",
+              "icon": "HadeethBookIcon",
               "content": "\"Do not make your houses like graves. Satan runs away from the house in which Surah Al-Baqarah is recited.\""
             },
             {
               "type": "text",
               "style": "quoteMediumItalic",
+              "icon": "HadeethBookIcon",
               "content": "\"The best among you are those who learn the Quran and teach it.\""
             },
             {
               "type": "text",
               "style": "quoteItalic",
+              "icon": "HadeethBookIcon",
               "content": "\"Whoever recites a letter from the Book of Allah, he will be credited with a good deed, and a good deed gets a ten-fold reward.\""
             },
             {
@@ -1893,6 +1921,7 @@
             {
               "type": "text",
               "style": "body",
+              "icon": "QuranMemorizationIcon",
               "content": "Memorizing the Quran is a transformative journey that draws us closer to Allah. This discipline goes beyond mere memorization; it is a profound spiritual commitment engaging the heart, mind, and soul. Internalizing its verses fosters peace and introspection, encouraging deep reflection on their meanings."
             },
             {
@@ -1933,6 +1962,7 @@
             {
               "type": "text",
               "style": "quoteSemibold",
+              "icon": "QuranImageIcon",
               "content": "\"And We have certainly made the Quran easy to remember. So is there anyone who will be mindful?\""
             },
             {
@@ -1949,6 +1979,7 @@
             {
               "type": "text",
               "style": "quoteSemibold",
+              "icon": "QuranImageIcon",
               "content": "\"The month of Ramadan is that in which the Quran was revealed, a guidance for the people.\""
             },
             {
@@ -1959,6 +1990,7 @@
             {
               "type": "text",
               "style": "quoteMediumItalic",
+              "icon": "HadeethBookIcon",
               "content": "\"It will be said to the companion of the Quran: 'Read, and ascend, and recite as you used to recite in the [previous] world, for your status will be according to the last verse that you recite.\""
             },
             {
@@ -1969,6 +2001,7 @@
             {
               "type": "text",
               "style": "quoteMediumItalic",
+              "icon": "HadeethBookIcon",
               "content": "\"The one who is proficient in the recitation of the Quran will be with the noble and righteous scribes.\""
             },
             {
@@ -1996,6 +2029,7 @@
             {
               "type": "text",
               "style": "body",
+              "icon": "QuranTajweedIcon",
               "content": "Practicing Tajweed is a journey that elevates us as Muslims. It goes beyond mere recitation; it is a profound commitment that engages the heart, mind, and spirit."
             },
             {
@@ -2036,6 +2070,7 @@
             {
               "type": "text",
               "style": "quoteSemibold",
+              "icon": "QuranImageIcon",
               "content": "\"And recite the Quran with measured recitation.\""
             },
             {
@@ -2052,6 +2087,7 @@
             {
               "type": "text",
               "style": "quoteSemibold",
+              "icon": "QuranImageIcon",
               "content": "\"...at once?' Thus [it is] that We may strengthen thereby your heart. And We have spaced it distinctly.\""
             },
             {
@@ -2062,6 +2098,7 @@
             {
               "type": "text",
               "style": "quoteMediumItalic",
+              "icon": "HadeethBookIcon",
               "content": "\"Beautify the Quran with your voices.\""
             },
             {
@@ -2072,6 +2109,7 @@
             {
               "type": "text",
               "style": "quoteItalic",
+              "icon": "HadeethBookIcon",
               "content": "\"The best among you are those who learn the Quran and teach it.\""
             },
             {
@@ -2105,6 +2143,7 @@
             {
               "type": "text",
               "style": "tableGuide",
+              "icon": "MissedRamadanFastsHandsIcon",
               "content": "Fasting is a profound spiritual journey that nurtures the soul while fostering self-discipline, empathy, and spiritual growth. It reminds us to cherish overlooked blessings, avoid excess, and detach from worldly desires.\n\nFasting also encourages patience and resilience, prompting reflection on our purpose, cleansing of material attachments, and renewal of our commitment to spiritual and ethical values. Through this mindful practice, we draw closer to Allah, cultivating gratitude and humility."
             }
           ]
@@ -2117,14 +2156,16 @@
               "content": "How to Make Up Missed Fasts"
             },
             {
-              "type": "boldPrefixText",
-              "prefix": "Surah Al-Baqarah (2:185):",
-              "content": "Life’s unpredictability can sometimes interrupt the sacred practice of fasting, leading to missed fasts due to illness, travel, or other valid reasons. In His infinite wisdom, Allah provides guidance:",
-              "style": "body"
+              "type": "boldSuffixText",
+              "suffix": "Surah Al-Baqarah (2:185):",
+              "content": "Life’s unpredictability can sometimes interrupt the sacred practice of fasting, leading to missed fasts due to illness, travel, or other valid reasons. In His infinite wisdom, Allah provides guidance in",
+              "style": "body",
+              "icon": "MissedRamadanFastsPlatesIcon"
             },
             {
               "type": "text",
               "style": "quoteSemibold",
+              "icon": "QuranImageIcon",
               "content": "“And whoever is ill or on a journey, the same number of days which one did not observe fasts must be made up from other days.”"
             },
             {
@@ -2140,6 +2181,7 @@
             {
               "type": "text",
               "style": "quoteMediumItalic",
+              "icon": "HadeethBookIcon",
               "content": "\"Fasting is a shield against the Fire like the shield of any one of you in battle.\""
             },
             {
@@ -2150,6 +2192,7 @@
             {
               "type": "text",
               "style": "quoteSemibold",
+              "icon": "QuranImageIcon",
               "content": "\"Every deed of the son of Adam is for him except fasting; it is for Me, and I shall reward for it.”"
             },
             {
@@ -2196,6 +2239,7 @@
             {
               "type": "text",
               "style": "quoteItalic",
+              "icon": "HadeethBookIcon",
               "content": "\"The most beloved fasting to Allah is the fasting of Dawood; he would fast one day and break it the next.\""
             },
             {
@@ -2207,55 +2251,64 @@
               "type": "boldPrefixText",
               "prefix": "Connection with Allah:",
               "content": "Deepens our bond with Allah and nurtures faith, fostering a profound spiritual connection through consistent devotion and worship.",
-              "style": "body"
+              "style": "body",
+              "icon": "ProphetDawoodFastsConnectionWithAllah"
             },
             {
               "type": "boldPrefixText",
               "prefix": "Fulfilling a Sunnah:",
               "content": "Revives a Sunnah of the Prophet, grounding the practice in tradition and offering an additional layer of spiritual fulfillment.",
-              "style": "body"
+              "style": "body",
+              "icon": "ProphetDawoodFastsMoonAndHandIcon"
             },
             {
               "type": "boldPrefixText",
               "prefix": "Spiritual Resilience:",
               "content": "Strengthens commitment and steadfastness, ensuring devotion remains central while purifying the heart and sharpening focus.",
-              "style": "body"
+              "style": "body",
+              "icon": "ProphetDawoodFastsHeartIcon"
             },
             {
               "type": "boldPrefixText",
               "prefix": "Mindfulness:",
               "content": "Encourages awareness of actions and thoughts, fostering mindfulness and self-reflection while renewing spiritual focus.",
-              "style": "body"
+              "style": "body",
+              "icon": "ProphetDawoodMindfullnessIcon"
             },
             {
               "type": "boldPrefixText",
               "prefix": "Gratitude:",
               "content": "Inspires reflection and gratitude for blessings, cultivating a positive outlook and reinforcing a thankful heart.",
-              "style": "body"
+              "style": "body",
+              "icon": "ProphetDawoodGratitudeIcon"
             },
             {
               "type": "boldPrefixText",
               "prefix": "Mental Fortitude:",
               "content": "Builds self-control and willpower, fostering a mindset of dedication that extends to all aspects of life.",
-              "style": "body"
+              "style": "body",
+              "icon": "ProphetDawoodMentalHealthIcon"
             },
             {
               "type": "boldPrefixText",
               "prefix": "Physical Detoxification:",
               "content": "Supports body cleansing and detoxification, promoting health, vitality, and a robust, energetic lifestyle.",
-              "style": "body"
+              "style": "body",
+              "icon": "ProphetDawoodHeartBreakIcon"
             },
             {
               "type": "boldPrefixText",
               "prefix": "Personal Development:",
               "content": "Encourages time management and planning, helping to maintain a stable, balanced, and organized life.",
-              "style": "body"
+              "style": "body",
+              "icon": "ProphetDawoodPersonalDevelopmentIcon"
             },
             {
               "type": "boldPrefixText",
               "prefix": "Balance in Life:",
               "content": "Highlights the importance of harmony, promoting consistency and balance across all aspects of life.",
-              "style": "body"
+              "style": "body",
+              "icon": "ProphetDawoodBalanceIcon"
             },
             {
               "type": "text",
@@ -2287,6 +2340,7 @@
             {
               "type": "text",
               "style": "quoteItalic",
+              "icon": "HadeethBookIcon",
               "content": "\"Deeds are presented on Mondays and Thursdays, so I love that my deeds be presented while I am fasting\""
             },
             {
@@ -2303,6 +2357,7 @@
             {
               "type": "text",
               "style": "quoteSemibold",
+              "icon": "QuranImageIcon",
               "content": "\"O you who have believed, decreed upon you is fasting as it was decreed upon those before you that you may become righteous.\""
             },
             {
@@ -2314,6 +2369,7 @@
             {
               "type": "text",
               "style": "quoteSemibold",
+              "icon": "QuranImageIcon",
               "content": "\"And if you fast, it is better for you, if you only knew.\""
             }
           ]
@@ -2329,19 +2385,22 @@
               "type": "boldPrefixText",
               "prefix": "Cultivation of Habitual Worship:",
               "content": "Develops spiritual discipline, making other fasting days—like Ramadan—easier and more spiritually enriching.",
-              "style": "body"
+              "style": "body",
+              "icon": "MondayAndThursdayFastsHabitualIcon"
             },
             {
               "type": "boldPrefixText",
               "prefix": "Purification of the Heart:",
               "content": "Cleanses the heart, removing worldly distractions and removing worldly distractions and fostering a soul deeply connected to the divine.",
-              "style": "body"
+              "style": "body",
+              "icon": "ProphetDawoodFastsHeartIcon"
             },
             {
               "type": "boldPrefixText",
               "prefix": "Increased Remembrance of Allah:",
               "content": "Aligns the mind and heart with Allah, encouraging a constant state of worship and reflection.",
-              "style": "body"
+              "style": "body",
+              "icon": "MondayAndThursdayAllahRememberenceIcon"
             },
             {
               "type": "boldPrefixText",

@@ -59,7 +59,8 @@ import { ChangePasswordIcon } from "./ChangePasswordIcon";
 //D
 import { DocumentLockIcon } from "./DocumentLockIcon";
 import { DebtAssistanceIcon } from "./DebtAssistanceIcon";
-
+import { DuhrSunIcon } from "./DuhrSunIcon";
+import { DuhaPrayerStar } from "./DuhaPrayerStar";
 //E
 import { ExclamationIconWithCircel } from "./ExclamationIconWithCircel";
 import { ExerciseIcon } from "./ExerciseIcon";
@@ -74,6 +75,7 @@ import { FreeTrialScreenHeadPhoneIcon } from "./FreeTrialScreenHeadPhoneIcon";
 import { FreeTrialScreenPaperIcon } from "./FreeTrialScreenPaperIcon";
 import { FreeTrialScreenShotIcon } from "./FreeTrialScreenShotIcon";
 import { FreeTrialScreenLoudSpeakerIcon } from "./FreeTrialScreenLoudSpeakerIcon";
+import { FajarSunIcon } from "./FajarSunIcon";
 //G
 import { GiftIconWithMoon } from "./GiftIconWithMoon";
 import { GoatIcon } from "./GoatIcon";
@@ -96,6 +98,8 @@ import { HadeethBookIcon } from "./HadeethBookIcon";
 //M
 import { MoonIcon } from "./MoonIcon";
 import { MenstruatingIcon } from "./MenstruatingIcon";
+import { MaghribSunIcon } from "./MaghribSunIcon";
+import { ManPrayerIcon } from "./ManPrayerIcon";
 //N
 import { NotificationIcon } from "./NotificationIcon";
 //O
@@ -158,8 +162,30 @@ import { FlowCardShirtIcon } from "./FlowCardShirtIcon";
 
 //Z
 import { StarSparkleIcon } from "./StarSparkleIcon";
+import { IshaMoonIcon } from "./IshaMoonIcon";
+import { QuranImageIcon } from "./QuranImageIcon";
+import { ManDuaIcon } from "./ManDuaIcon";
+import { IstikharaClockIcon } from "./IstikharaClockIcon";
+import { QuranListeningMoon } from "./QuranListeningMoon";
+import { QuranMemorizationIcon } from "./QuranMemorizationIcon";
+import { QuranTajweedIcon } from "./QuranTajweedIcon";
+import { MissedRamadanFastsHandsIcon } from "./MissedRamadanFastsHandsIcon";
+import { MissedRamadanFastsPlatesIcon } from "./MissedRamadanFastsPlatesIcon";
+import { ProphetDawoodFastsConnectionWithAllah } from "./ProphetDawoodFastsConnectionWithAllah";
+import { ProphetDawoodFastsMoonAndHandIcon } from "./ProphetDawoodFastsMoonAndHandIcon";
+import { ProphetDawoodFastsHeartIcon } from "./ProphetDawoodFastsHeartIcon";
+import { ProphetDawoodMindfullnessIcon } from "./ProphetDawoodMindfullnessIcon";
+import { ProphetDawoodGratitudeIcon } from "./ProphetDawoodGratitudeIcon";
+import { ProphetDawoodMentalHealthIcon } from "./ProphetDawoodMentalHealthIcon";
+import { ProphetDawoodHeartBreakIcon } from "./ProphetDawoodHeartBreakIcon";
+import { ProphetDawoodPersonalDevelopmentIcon } from "./ProphetDawoodPersonalDevelopmentIcon";
+import { ProphetDawoodBalanceIcon } from "./ProphetDawoodBalanceIcon";
+import { MondayAndThursdayFastsHabitualIcon } from "./MondayAndThursdayFastsHabitualIcon";
+import { MondayAndThursdayAllahRememberenceIcon } from "./MondayAndThursdayAllahRememberenceIcon";
 
 export {
+  ManPrayerIcon,
+  DuhaPrayerStar,
   StarSparkleIcon,
   HadeethBookIcon,
   TahiyyatWudhuDropIcon,
@@ -188,6 +214,7 @@ export {
   BellIcon,
   GiftIcon,
   GiftIconWithMoon,
+  MaghribSunIcon,
   RedeemGiftIcon,
   ReferFriendTabIcon,
   PrivacyIcon,
@@ -195,6 +222,7 @@ export {
   DocumentIcon,
   DocumentLockIcon,
   DocumentSearchIcon,
+  IshaMoonIcon,
   CalendarIcon,
   MoonIcon,
   InBoxArrow,
@@ -210,6 +238,7 @@ export {
   BirthIcon,
   GaveBirthIcon,
   HeartBreakIcon,
+ DuhrSunIcon,
   ExamIcon,
   WorkLoadIcon,
   WalletIcon,
@@ -259,5 +288,25 @@ export {
   FastingFlowCardRamadanCalender,
   FastingDashboardIcon,
   FastingFlowCardMondayFasts,
-  FastingFlowCardProphetDawoodCalender
+  FastingFlowCardProphetDawoodCalender,
+  FajarSunIcon,
+  QuranImageIcon,
+  ManDuaIcon,
+  IstikharaClockIcon,
+  QuranListeningMoon,
+  QuranMemorizationIcon,
+  QuranTajweedIcon,
+  MissedRamadanFastsHandsIcon,
+  MissedRamadanFastsPlatesIcon,
+  ProphetDawoodFastsConnectionWithAllah,
+  ProphetDawoodFastsMoonAndHandIcon,
+  ProphetDawoodFastsHeartIcon,
+  ProphetDawoodMindfullnessIcon,
+  ProphetDawoodGratitudeIcon,
+  ProphetDawoodMentalHealthIcon,
+  ProphetDawoodHeartBreakIcon,
+  ProphetDawoodPersonalDevelopmentIcon,
+  ProphetDawoodBalanceIcon,
+  MondayAndThursdayFastsHabitualIcon,
+  MondayAndThursdayAllahRememberenceIcon
 };
