@@ -64,6 +64,9 @@ import { setMondayThursdaySelectedGoalFasts } from "@/src/screens/private/goalpr
 
 import { ReviewGoalBtn } from "./ReviewGoalBtn";
 import ReviewGoalCard from "./ReviewGoalCard";
+import { useGetAllPrayerGoals } from "@/src/api/queries/useGetAllPrayerGoals";
+import { mapPrayerGoalsFromApi } from "@/src/utils/prayerGoalMap";
+import { useTogglePrayerGoalByType } from "@/src/api/mutations/useTogglePrayerGoalByType";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -127,11 +130,37 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
     const [fastingMetrics, setFastingMetrics] = useState<Record<string, any>>(
       {},
     );
+
+    const { data: prayerGoalsFromApi, isLoading: loadingPrayerGoals } =
+      useGetAllPrayerGoals({
+        enabled: activeTab === "prayer",
+      });
+
+    const prayerGoals = useMemo(
+      () => mapPrayerGoalsFromApi(prayerGoalsFromApi),
+      [prayerGoalsFromApi],
+    );
+
+    // Seed toggle state from backend isActive (only for keys not yet toggled locally)
+    useEffect(() => {
+      if (!prayerGoals.length) return;
+      setSelectedGoals((prev) => {
+        const next = { ...prev };
+        let changed = false;
+        for (const goal of prayerGoals) {
+          if (next[goal.id] === undefined) {
+            next[goal.id] = goal.isSelected;
+            changed = true;
+          }
+        }
+        return changed ? next : prev;
+      });
+    }, [prayerGoals]);
+
     // lifted sadaqah metrics collected from children
     const [sadaqahMetrics, setSadaqahMetrics] = useState<Record<string, any>>(
       {},
     );
-    console.log("teh quran mertics are", quranMetrics);
     const { watch, handleSubmit, control } = useForm({
       defaultValues: {
         missedZakat: "",
@@ -162,7 +191,6 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
       [],
     );
     const [editingGoal, setEditingGoal] = useState<string | null>("");
-    console.log("the editing goal is", editingGoal);
     const localizedTabs = useMemo(
       () => [
         { id: "cycle" as Tab, label: t("monthlyGoalPlanner.tabCycle") },
@@ -563,88 +591,6 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
       [],
     );
 
-    const prayersData = [
-      {
-        id: "tahayyat-ul-wudhu",
-        title: "TAHIYYAT-UL-WUDHU",
-        description:
-          "A two-rak'ah Sunnah prayer performed right after completing wudhu. It serves to honor the purification process and prepare us for further prayer",
-        isSelected: false,
-        image: tahiyyatalwudhubottomsheetimage,
-      },
-      {
-        id: "fiveDailyPrayers",
-        title: "The 5 Daily Prayers",
-        description:
-          "The five obligatory prayers, most beloved to Allah, structure our day when prayed on time, instilling discipline and deepening our gratitude",
-        isSelected: false,
-        image: fivedailyprayerbottomsheetimage,
-      },
-      {
-        id: "sunnahRawatib",
-        title: "Sunnah Rawatib",
-        description:
-          "Aligns with the Prophet's (PBUH) sunnah and provides opportunities to compensate any shortcomings in obligatory prayers",
-        isSelected: false,
-        image: sunnahrawatibbottomsheetimage,
-      },
-      {
-        id: "thayyat-ul-masjid",
-        title: "THAYYAT-UL-MASJID",
-        description:
-          "A two-rak’ah prayer performed upon entering the mosque, honoring its sanctity and seeking Allah’s blessings, guidance, and mercy",
-        isSelected: false,
-        image: tahiyyatalmasjidbottomsheetimage,
-      },
-      {
-        id: "missedPastPrayers",
-        title: "Missed Past Prayers",
-        description:
-          "Many of us have neglected obligatory prayers for weeks, months, or even years. Fulfilling these overdue prayers is a testament to our renewed commitment to Allah",
-        isSelected: false,
-        image: missedpastprayerbottomsheetimage,
-      },
-      {
-        id: "duhaPrayer",
-        title: "Duha Prayer",
-        description:
-          "It is performed in sets of 2 rak'ahs anytime from approximately 15-20 minutes after sunrise until about 10-15 minutes before the Dhuhr prayer",
-        isSelected: false,
-        image: duhaprayerbottomsheetimage,
-      },
-      {
-        id: "tawbaPrayer",
-        title: "Tawba Prayer",
-        description:
-          "Also known as the repentance prayer in English, the Tawbah prayer is a sincere 2 rak'ah prayer to seek forgiveness from Allah for our sins",
-        isSelected: false,
-        image: tawbahprayerbottomsheetimage,
-      },
-      {
-        id: "istikharah",
-        title: "Istikharah PPrayer",
-        description:
-          "A two rak'ah prayer performed to seek guidance from Allah when faced with a decision. It helps us make choices that align with our faith and best interests",
-        isSelected: false,
-        image: istikharaprayerbottomsheetimage,
-      },
-      {
-        id: "shukrPrayer",
-        title: "Shukr Prayer",
-        description:
-          "The Gratitude Prayer (Shukr) is a 2-rak'ah act of thanks to Allah for His countless blessings. It fosters positivity by inspiring recognition of His generosity",
-        isSelected: false,
-        image: shukarprayerbottomsheetimage,
-      },
-      {
-        id: "qiyamalLail",
-        title: "Qiyam al-Lail",
-        description:
-          "Night prayers, performed between Isha and Fajr, are most beloved after obligatory prayers, fostering spiritual growth and inviting Allah’s mercy and blessings",
-        isSelected: false,
-        image: qiyamallaylbottomsheetimage,
-      },
-    ];
     const QuranData = [
       {
         id: "quran-listening",
@@ -764,17 +710,31 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
         image: sadaqahjariyahbottomsheetimage,
       },
     ];
+    const { mutate: togglePrayerGoalByType } = useTogglePrayerGoalByType();
     // ── Render ───────────────────────────────────────────────────────────────
-    const onSwicthChange = useCallback((prayerId: string) => {
-      // console.log("toggled prayer with id:", prayerId);
-    }, []);
+    const handlePrayerToggle = useCallback(
+      (prayerId: string, prayerType: string, isSelected: boolean) => {
+        handleGoalToggle(prayerId, isSelected);
+        togglePrayerGoalByType(
+          { prayerType, isActive: isSelected },
+          {
+            onError: () => {
+              console.log("now we are in error block");
+
+              handleGoalToggle(prayerId, !isSelected);
+            },
+          },
+        );
+      },
+      [handleGoalToggle, togglePrayerGoalByType],
+    );
     // Build a simple data array for the active tab. Use any[] to avoid complex typing across different data shapes
     const tabData: any[] = useMemo(() => {
       switch (activeTab) {
         case "cycle":
           return [];
         case "prayer":
-          return prayersData;
+          return prayerGoals;
         case "quran":
           return QuranData;
         case "fasting":
@@ -786,7 +746,14 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
         default:
           return [];
       }
-    }, [activeTab, prayersData, QuranData, fastingData, sadaqahData]);
+    }, [
+      activeTab,
+      prayerGoals,
+      QuranData,
+      fastingData,
+      sadaqahData,
+      reviewBtnData,
+    ]);
 
     // Render the appropriate editor/selection component for a goal when it's being edited
     const renderGoalEditor = (goal: any) => {
@@ -1493,45 +1460,61 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
           renderItem={({ item }: { item: any }) => {
             if (activeTab === "prayer") {
               const prayer = item;
+              const isOn = selectedGoals[prayer.id] ?? prayer.isSelected;
               return (
-                <View key={prayer.id}>
+                <View key={prayer.prayerType ?? prayer.id}>
                   <GoalCardWithDescriptionAndOptionToSelectGoal
-                    initialValue={selectedGoals[prayer.id] ?? prayer.isSelected}
-                    title={t(`goalsData.${prayer.id}.title`).toUpperCase()}
-                    imageSource={prayer.image}
+                    initialValue={isOn}
+                    title={(
+                      prayer.title || t(`goalsData.${prayer.id}.title`)
+                    ).toUpperCase()}
+                    imageSource={prayer?.image}
                     handleSeeMorePRess={() =>
                       router.push({
                         pathname: "/(private)/goaldescriptiondetails/[goal]",
                         params: { goal: prayer.id },
                       })
                     }
-                    description={t(`goalsData.${prayer.id}.description`)}
-                    onSwicthPress={onSwicthChange.bind(null, prayer.id)}
-                    onToggle={(val) => handleGoalToggle(prayer.id, val)}
+                    description={
+                      prayer.description ||
+                      t(`goalsData.${prayer.id}.description`)
+                    }
+                    onToggle={(isSelected) =>
+                      handlePrayerToggle(
+                        prayer.id,
+                        prayer.prayerType,
+                        isSelected,
+                      )
+                    }
                   />
-                  {prayer.id === "tahayyat-ul-wudhu" &&
-                    selectedGoals[prayer.id] && <TahiyatWuduGoalSelection />}
-                  {prayer.id === "fiveDailyPrayers" &&
-                    selectedGoals[prayer.id] && <DailyPrayerGoalSelection />}
-                  {prayer.id === "sunnahRawatib" &&
-                    selectedGoals[prayer.id] && <SunnahRawatibGoalSelection />}
-                  {prayer.id === "thayyat-ul-masjid" &&
-                    selectedGoals[prayer.id] && <TahiyyatMasjidGoalSelection />}
-                  {prayer.id === "missedPastPrayers" &&
-                    selectedGoals[prayer.id] && <MissedPrayerGoalSelection />}
-                  {prayer.id === "duhaPrayer" && selectedGoals[prayer.id] && (
+                  {prayer.id === "tahayyat-ul-wudhu" && isOn && (
+                    <TahiyatWuduGoalSelection />
+                  )}
+                  {prayer.id === "fiveDailyPrayers" && isOn && (
+                    <DailyPrayerGoalSelection />
+                  )}
+                  {prayer.id === "sunnahRawatib" && isOn && (
+                    <SunnahRawatibGoalSelection />
+                  )}
+                  {prayer.id === "thayyat-ul-masjid" && isOn && (
+                    <TahiyyatMasjidGoalSelection />
+                  )}
+                  {prayer.id === "missedPastPrayers" && isOn && (
+                    <MissedPrayerGoalSelection />
+                  )}
+                  {prayer.id === "duhaPrayer" && isOn && (
                     <DuhaPrayerGoalSelection />
                   )}
-                  {prayer.id === "tawbaPrayer" && selectedGoals[prayer.id] && (
+                  {prayer.id === "tawbaPrayer" && isOn && (
                     <TawbahPrayerGoalSelection />
                   )}
-                  {prayer.id === "istikharah" && selectedGoals[prayer.id] && (
+                  {prayer.id === "istikharah" && isOn && (
                     <IstikharaPrayerGoalSelection />
                   )}
-                  {prayer.id === "shukrPrayer" && selectedGoals[prayer.id] && (
+                  {prayer.id === "shukrPrayer" && isOn && (
                     <ShukarPrayerGoalSelection />
                   )}
-                  {prayer.id === "qiyamalLail" && selectedGoals[prayer.id] && (
+                  {prayer.id === "qiyamalLail" && isOn && (
                     <QiyamalLaylGoalSelection />
                   )}
                   <TopSpace top={10} />
@@ -1555,7 +1538,6 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
                     }
                     description={t(`goalsData.${quran.id}.description`)}
                     onToggle={(val) => handleGoalToggle(quran.id, val)}
-                    onSwicthPress={onSwicthChange.bind(null, quran.id)}
                   />
                   {quran.id === "quran-listening" &&
                     selectedGoals[quran.id] && (
@@ -1621,7 +1603,6 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
                       })
                     }
                     description={t(`goalsData.${fasting.id}.description`)}
-                    onSwicthPress={onSwicthChange.bind(null, fasting.id)}
                   />
                   <TopSpace top={10} />
                 </View>
@@ -1643,7 +1624,6 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
                       })
                     }
                     description={t(`goalsData.${sadaqah.id}.description`)}
-                    onSwicthPress={onSwicthChange.bind(null, sadaqah.id)}
                     onToggle={(val) => handleGoalToggle(sadaqah.id, val)}
                   />
 

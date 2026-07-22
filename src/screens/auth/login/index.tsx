@@ -23,6 +23,8 @@ import { useAuth } from "@/provider/useAuth";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { useLogin } from "@/src/api/mutations/useLogin";
 import { showToast } from "@/src/config/toastConfig";
+import { ImageBackground } from "expo-image";
+import { BadrTreeImage } from "@/assets/images";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -74,67 +76,76 @@ export default function LoginScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={styles.contentView}>
-          <KeyboardAvoidingView
-            style={styles.keyboardAvoidingView}
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-            keyboardVerticalOffset={0}
-          >
-            <View style={styles.bottomSheet}>
-              <View style={styles.bottomSheetContent}>
-                <CustomTextInput
-                  placeholder={t("loginScreen.emailPlaceholder")}
-                  control={control}
-                  name="email"
-                  errors={errors.email?.message ? [errors.email.message] : []}
-                />
+    <View style={styles.container}>
+      <SafeAreaView style={styles.safeArea} edges={["bottom"]}>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+          <View style={styles.contentView}>
+            <KeyboardAvoidingView
+              style={styles.keyboardAvoidingView}
+              behavior={Platform.OS === "ios" ? "padding" : "height"}
+              keyboardVerticalOffset={0}
+            >
+              <ImageBackground
+                source={BadrTreeImage}
+                style={styles.imageSection}
+                contentFit="cover"
+              >
+                <View style={styles.imageTapArea} />
+              </ImageBackground>
 
-                <CustomTextInput
-                  placeholder={t("loginScreen.passwordPlaceholder")}
-                  control={control}
-                  name="password"
-                  showEye
-                  secureTextEntry={!showPassword}
-                  onToggleEye={handleTogglePassword}
-                  errors={
-                    errors.password?.message ? [errors.password.message] : []
-                  }
-                />
+              <View style={styles.bottomSheet}>
+                <View style={styles.bottomSheetContent}>
+                  <CustomTextInput
+                    placeholder={t("loginScreen.emailPlaceholder")}
+                    control={control}
+                    name="email"
+                    errors={errors.email?.message ? [errors.email.message] : []}
+                  />
 
-                <TouchableOpacity
-                  style={styles.forgotPasswordContainer}
-                  onPress={handleForgotPassword}
-                >
-                  <Text style={styles.forgotPasswordText}>
-                    {t("loginScreen.forgotPassword")}
-                  </Text>
-                </TouchableOpacity>
-                <TopSpace top={30} />
-                <PrimaryButton
-                  text={t("loginScreen.loginBtnText")}
-                  onPress={handleSubmit(onSubmit)}
-                  disabled={loggingIn}
-                  isLoading={loggingIn}
-                />
+                  <CustomTextInput
+                    placeholder={t("loginScreen.passwordPlaceholder")}
+                    control={control}
+                    name="password"
+                    showEye
+                    secureTextEntry={!showPassword}
+                    onToggleEye={handleTogglePassword}
+                    errors={
+                      errors.password?.message ? [errors.password.message] : []
+                    }
+                  />
 
-                <TouchableOpacity
-                  style={styles.orloginContainer}
-                  onPress={() => router.push("/dummy" as any)}
-                  activeOpacity={0.7}
-                >
-                  <View style={styles.line} />
-                  <Text style={styles.orloginText}>
-                    {t("loginScreen.orLoginWith")}
-                  </Text>
-                  <View style={styles.line} />
-                </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.forgotPasswordContainer}
+                    onPress={handleForgotPassword}
+                  >
+                    <Text style={styles.forgotPasswordText}>
+                      {t("loginScreen.forgotPassword")}
+                    </Text>
+                  </TouchableOpacity>
+                  <TopSpace top={30} />
+                  <PrimaryButton
+                    text={t("loginScreen.loginBtnText")}
+                    onPress={handleSubmit(onSubmit)}
+                    disabled={loggingIn}
+                    isLoading={loggingIn}
+                  />
+
+                  <TouchableOpacity
+                    style={styles.orloginContainer}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.line} />
+                    <Text style={styles.orloginText}>
+                      {t("loginScreen.orLoginWith")}
+                    </Text>
+                    <View style={styles.line} />
+                  </TouchableOpacity>
+                </View>
               </View>
-            </View>
-          </KeyboardAvoidingView>
-        </View>
-      </TouchableWithoutFeedback>
-    </SafeAreaView>
+            </KeyboardAvoidingView>
+          </View>
+        </TouchableWithoutFeedback>
+      </SafeAreaView>
+    </View>
   );
 }

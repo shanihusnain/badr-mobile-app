@@ -191,6 +191,7 @@ export default function CreateAccountScreen() {
           errors={errors.email?.message ? [errors.email.message] : []}
           control={control}
           name="email"
+          autoCapitalize="none"
         />
         <TopSpace top={16} />
 
@@ -258,6 +259,7 @@ export default function CreateAccountScreen() {
             text={t("createAccountScreen.createAccountBtn")}
             onPress={handleSubmit(onSubmit, onInvalid)}
             disabled={isPending}
+            isLoading={isPending}
           />
         </View>
       </KeyboardAwareScrollView>

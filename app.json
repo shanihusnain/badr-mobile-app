@@ -1,15 +1,21 @@
 {
   "expo": {
-    "name": "badar",
-    "slug": "badar",
+    "name": "badr",
+    "slug": "badr",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "badar",
+    "scheme": "badr",
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.badar"
+      "bundleIdentifier": "com.anonymous.badr",
+      "infoPlist": {
+        "CFBundleLocalizations": [
+          "en",
+          "ar"
+        ]
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -19,7 +25,7 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.badar"
+      "package": "com.anonymous.badr"
     },
     "web": {
       "output": "static",
@@ -31,6 +37,8 @@
       [
         "expo-splash-screen",
         {
+          "image": "./assets/images/splash-transparent.png",
+          "imageWidth": 1,
           "backgroundColor": "#081A2F",
           "dark": {
             "backgroundColor": "#081A2F"
@@ -77,6 +85,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "owner": "badr-islamic-app",
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "5b91f90b-adf2-4070-ad94-d2b2a87171da"
+      }
     }
   }
 }

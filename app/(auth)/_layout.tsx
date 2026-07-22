@@ -1,7 +1,6 @@
 import { Stack } from "expo-router";
 
 import Header from "@/components/Header";
-import { Colors } from "@/constants/theme";
 import { PublicRoute } from "@/provider/PublicRoute";
 
 export default function AuthLayout() {
@@ -19,11 +18,11 @@ export default function AuthLayout() {
         name="login"
         options={{
           headerShown: true,
+          headerTransparent: true,
+          headerStyle: { backgroundColor: "transparent" },
+          contentStyle: { backgroundColor: "transparent" },
           header: () => (
-            <Header
-              title="LOGIN"
-              backgroundColor={Colors.light.buttonBackground}
-            />
+            <Header title="LOGIN" backgroundColor="transparent" />
           ),
         }}
       />
@@ -31,10 +30,13 @@ export default function AuthLayout() {
         name="verifyemail/[fromsignup]"
         options={{
           headerShown: true,
+          headerTransparent: true,
+          headerStyle: { backgroundColor: "transparent" },
+          contentStyle: { backgroundColor: "transparent" },
           header: ({ options }: { options: { title?: string } }) => (
             <Header
               title={options?.title ?? ""}
-              backgroundColor={Colors.light.buttonBackground}
+              backgroundColor="transparent"
             />
           ),
         }}
@@ -43,11 +45,11 @@ export default function AuthLayout() {
         name="forgotpassword"
         options={{
           headerShown: true,
+          headerTransparent: true,
+          headerStyle: { backgroundColor: "transparent" },
+          contentStyle: { backgroundColor: "transparent" },
           header: () => (
-            <Header
-              title="FORGOT PASSWORD"
-              backgroundColor={Colors.light.buttonBackground}
-            />
+            <Header title="FORGOT PASSWORD" backgroundColor="transparent" />
           ),
         }}
       />
@@ -69,11 +71,11 @@ export default function AuthLayout() {
         name="confirmpassword"
         options={{
           headerShown: true,
+          headerTransparent: true,
+          headerStyle: { backgroundColor: "transparent" },
+          contentStyle: { backgroundColor: "transparent" },
           header: () => (
-            <Header
-              title="FORGOT PASSWORD"
-              backgroundColor={Colors.light.buttonBackground}
-            />
+            <Header title="FORGOT PASSWORD" backgroundColor="transparent" />
           ),
         }}
       />
