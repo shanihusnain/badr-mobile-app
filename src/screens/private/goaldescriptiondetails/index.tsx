@@ -58,7 +58,25 @@ import {
   ProphetDawoodPersonalDevelopmentIcon,
   ProphetDawoodBalanceIcon,
   MondayAndThursdayFastsHabitualIcon,
-  MondayAndThursdayAllahRememberenceIcon
+  MondayAndThursdayAllahRememberenceIcon,
+  DashBoardHandHeartIcon,
+  SadaqahJariyahSpirtualIcon,
+  MissedZakatAccountabilityIcon,
+  MissedZakatSocialIcon,
+  HeartBreakIcon,
+  MissedZakatCalculateIcon,
+  LillahDonationGiverIcon,
+  LillahDonationRecipientIcon,
+  SadaqahJariyahWaterWellIcon,
+  SadaqahJariyahSponsoringOrphanIcon,
+  SadaqahJariyahEducationalIcon,
+  SadaqahJariyahMosqueIcon,
+  SadaqahJariyahReligiousIcon,
+  SadaqahJariyahTreePlantIcon,
+  SadaqahJariyahMedicalAidIcon,
+  SadaqahJariyahCloathIcon,
+  HandWithWorldIcon,
+  VolunteeringServicesCharityEventIcon
 } from "@/assets/icons";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
@@ -259,6 +277,11 @@ const renderReadMoreItem = (
     else if (item.icon === "ProphetDawoodBalanceIcon") IconComp = ProphetDawoodBalanceIcon;
     else if (item.icon === "MondayAndThursdayFastsHabitualIcon") IconComp = MondayAndThursdayFastsHabitualIcon;
     else if (item.icon === "MondayAndThursdayAllahRememberenceIcon") IconComp = MondayAndThursdayAllahRememberenceIcon;
+    else if (item.icon === "DashBoardHandHeartIcon") IconComp = DashBoardHandHeartIcon;
+    else if (item.icon === "MissedZakatAccountabilityIcon") IconComp = MissedZakatAccountabilityIcon;
+    else if (item.icon === "MissedZakatSocialIcon") IconComp = MissedZakatSocialIcon;
+    else if (item.icon === "SadaqahJariyahSpirtualIcon") IconComp = SadaqahJariyahSpirtualIcon;
+    else if (item.icon === "MissedZakatCalculateIcon") IconComp = MissedZakatCalculateIcon;
 
     if (IconComp) {
       let iconColor = item.icon === "QuranImageIcon" ? Colors.light.green : Colors.light.dullWhite;
@@ -449,6 +472,25 @@ const renderReadMoreItem = (
   else if (item.type === "text" && item.icon === "ProphetDawoodBalanceIcon") IconComponent = ProphetDawoodBalanceIcon;
   else if (item.type === "text" && item.icon === "MondayAndThursdayFastsHabitualIcon") IconComponent = MondayAndThursdayFastsHabitualIcon;
   else if (item.type === "text" && item.icon === "MondayAndThursdayAllahRememberenceIcon") IconComponent = MondayAndThursdayAllahRememberenceIcon;
+  else if (item.type === "text" && item.icon === "DashBoardHandHeartIcon") IconComponent = DashBoardHandHeartIcon;
+  else if (item.type === "text" && item.icon === "MissedZakatAccountabilityIcon") IconComponent = MissedZakatAccountabilityIcon;
+  else if (item.type === "text" && item.icon === "MissedZakatSocialIcon") IconComponent = MissedZakatSocialIcon;
+  else if (item.type === "text" && item.icon === "SadaqahJariyahSpirtualIcon") IconComponent = SadaqahJariyahSpirtualIcon;
+  else if (item.type === "text" && item.icon === "HeartBreakIcon") IconComponent = HeartBreakIcon;
+  else if (item.type === "text" && item.icon === "StarSparkleIcon") IconComponent = StarSparkleIcon;
+  else if (item.type === "text" && item.icon === "LillahDonationGiverIcon") IconComponent = LillahDonationGiverIcon;
+  else if (item.type === "text" && item.icon === "LillahDonationRecipientIcon") IconComponent = LillahDonationRecipientIcon;
+  else if (item.type === "text" && item.icon === "SadaqahJariyahWaterWellIcon") IconComponent = SadaqahJariyahWaterWellIcon;
+  else if (item.type === "text" && item.icon === "SadaqahJariyahSponsoringOrphanIcon") IconComponent = SadaqahJariyahSponsoringOrphanIcon;
+  else if (item.type === "text" && item.icon === "SadaqahJariyahEducationalIcon") IconComponent = SadaqahJariyahEducationalIcon;
+  else if (item.type === "text" && item.icon === "SadaqahJariyahMosqueIcon") IconComponent = SadaqahJariyahMosqueIcon;
+  else if (item.type === "text" && item.icon === "SadaqahJariyahReligiousIcon") IconComponent = SadaqahJariyahReligiousIcon;
+  else if (item.type === "text" && item.icon === "SadaqahJariyahTreePlantIcon") IconComponent = SadaqahJariyahTreePlantIcon;
+  else if (item.type === "text" && item.icon === "SadaqahJariyahMedicalAidIcon") IconComponent = SadaqahJariyahMedicalAidIcon;
+  else if (item.type === "text" && item.icon === "SadaqahJariyahCloathIcon") IconComponent = SadaqahJariyahCloathIcon;
+  else if (item.type === "text" && item.icon === "HandWithWorldIcon") IconComponent = HandWithWorldIcon;
+  else if (item.type === "text" && item.icon === "VolunteeringServicesCharityEventIcon") IconComponent = VolunteeringServicesCharityEventIcon;
+  else if (item.type === "text" && item.icon === "DashBoardHandHeartIcon") IconComponent = DashBoardHandHeartIcon;
   else if (item.style === "hadithQuoteLead" || item.style === "bilalQuote" || item.style === "quoteMediumItalic") {
     IconComponent = HadeethBookIcon;
   }
@@ -522,6 +564,63 @@ const renderReadMoreItem = (
         iconColor = Colors.light.dullWhite;
         iconSize = 30;
       } else if (item.icon === "MondayAndThursdayAllahRememberenceIcon") {
+        iconColor = Colors.light.dullWhite;
+        iconSize = 30;
+      } else if (item.icon === "DashBoardHandHeartIcon") {
+        iconColor = Colors.light.dullWhite;
+        iconSize = 30;
+      } else if (item.icon === "HeartBreakIcon") {
+        iconColor = Colors.light.dullWhite;
+        iconSize = 30;
+      } else if (item.icon === "MissedZakatAccountabilityIcon") {
+        iconColor = Colors.light.dullWhite;
+        iconSize = 30;
+      } else if (item.icon === "MissedZakatSocialIcon") {
+        iconColor = Colors.light.dullWhite;
+        iconSize = 30;
+      } else if (item.icon === "SadaqahJariyahSpirtualIcon") {
+        iconColor = Colors.light.dullWhite;
+        iconSize = 30;
+      } else if (item.icon === "StarSparkleIcon") {
+        iconColor = Colors.light.dullWhite;
+        iconSize = 16;
+      } else if (item.icon === "LillahDonationGiverIcon") {
+        iconColor = Colors.light.dullWhite;
+        iconSize = 30;
+      } else if (item.icon === "LillahDonationRecipientIcon") {
+        iconColor = Colors.light.dullWhite;
+        iconSize = 30;
+      } else if (item.icon === "SadaqahJariyahWaterWellIcon") {
+        iconColor = Colors.light.dullWhite;
+        iconSize = 30;
+      } else if (item.icon === "SadaqahJariyahSponsoringOrphanIcon") {
+        iconColor = Colors.light.dullWhite;
+        iconSize = 30;
+      } else if (item.icon === "SadaqahJariyahEducationalIcon") {
+        iconColor = Colors.light.dullWhite;
+        iconSize = 30;
+      } else if (item.icon === "SadaqahJariyahMosqueIcon") {
+        iconColor = Colors.light.dullWhite;
+        iconSize = 30;
+      } else if (item.icon === "SadaqahJariyahReligiousIcon") {
+        iconColor = Colors.light.dullWhite;
+        iconSize = 30;
+      } else if (item.icon === "SadaqahJariyahTreePlantIcon") {
+        iconColor = Colors.light.dullWhite;
+        iconSize = 30;
+      } else if (item.icon === "SadaqahJariyahMedicalAidIcon") {
+        iconColor = Colors.light.dullWhite;
+        iconSize = 30;
+      } else if (item.icon === "SadaqahJariyahCloathIcon") {
+        iconColor = Colors.light.dullWhite;
+        iconSize = 30;
+      } else if (item.icon === "HandWithWorldIcon") {
+        iconColor = Colors.light.dullWhite;
+        iconSize = 30;
+      } else if (item.icon === "VolunteeringServicesCharityEventIcon") {
+        iconColor = Colors.light.dullWhite;
+        iconSize = 30;
+      } else if (item.icon === "DashBoardHandHeartIcon") {
         iconColor = Colors.light.dullWhite;
         iconSize = 30;
       }

@@ -5,9 +5,17 @@ import { fonts } from "@/assets/fonts";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { IbadhasPrayerProgressCardsIcon } from "@/assets/icons/IbadhasPrayerProgressCardsIcon";
+import { IbadhasQuranProgressCardsIcon } from "@/assets/icons/IbadhasQuranProgressCardsIcon";
+import { IbadhasFastingProgressCardsIcon } from "@/assets/icons/IbadhasFastingProgressCardsIcon";
+import { HeartOnHandIcon } from "@/assets/icons/HeartOnHandIcon";
+import { DashBoardHandHeartIcon } from "@/assets/icons/DashBoardHandHeartIcon";
 import { useRouter } from "expo-router";
 import { IbadahsProgressCard } from "./IbadahsProgressCard";
-import { DetailedIbadahsProgressCard } from "./DetailedIbadahsProgressCards";
+import {
+  DetailedIbadahsProgressCard,
+  getDetailedIbadahIcon,
+} from "./DetailedIbadahsProgressCards";
 import {
   getResolvedGoalsByCategory,
   type GoalData,
@@ -77,14 +85,8 @@ export const DailyProgressBottomSheet = ({ onClose }: Props) => {
       key: "PRAYER",
       title: t("homeScreen.prayerCategory"),
       subtitle: t("homeScreen.prayer10Goals"),
-      icon: (
-        <FontAwesome6
-          name="person-praying"
-          size={20}
-          color={Colors.light.white}
-        />
-      ),
-      iconBgColor: Colors.light.ringPrayer + "33",
+      icon: <IbadhasPrayerProgressCardsIcon color={Colors.light.white} size={20} />,
+      iconBgColor: Colors.light.calendarBg,
       percentage: "34%",
       progressColor: Colors.light.ringPrayer,
     },
@@ -92,8 +94,8 @@ export const DailyProgressBottomSheet = ({ onClose }: Props) => {
       key: "QURAN",
       title: t("homeScreen.quranCategory"),
       subtitle: t("homeScreen.quran7Goals"),
-      icon: <Ionicons name="book" size={20} color={Colors.light.white} />,
-      iconBgColor: Colors.light.ringQuran + "33",
+      icon: <IbadhasQuranProgressCardsIcon color={Colors.light.white} size={20} />,
+      iconBgColor: Colors.light.calendarBg,
       percentage: "40%",
       progressColor: Colors.light.ringQuran,
     },
@@ -101,14 +103,8 @@ export const DailyProgressBottomSheet = ({ onClose }: Props) => {
       key: "FASTING",
       title: t("homeScreen.fastingCategory"),
       subtitle: t("homeScreen.fasting4Goals"),
-      icon: (
-        <MaterialCommunityIcons
-          name="food-off"
-          size={20}
-          color={Colors.light.white}
-        />
-      ),
-      iconBgColor: Colors.light.green + "33",
+      icon: <IbadhasFastingProgressCardsIcon color={Colors.light.white} size={20} />,
+      iconBgColor: Colors.light.calendarBg,
       percentage: "65%",
       progressColor: Colors.light.green,
     },
@@ -116,14 +112,8 @@ export const DailyProgressBottomSheet = ({ onClose }: Props) => {
       key: "SADAQAH",
       title: t("homeScreen.sadaqahCategory"),
       subtitle: t("homeScreen.sadaqah6Goals"),
-      icon: (
-        <FontAwesome6
-          name="hand-holding-heart"
-          size={18}
-          color={Colors.light.white}
-        />
-      ),
-      iconBgColor: Colors.light.ringSadaqah + "33",
+      icon: <DashBoardHandHeartIcon color={Colors.light.white} size={18} />,
+      iconBgColor: Colors.light.calendarBg,
       percentage: "85%",
       progressColor: Colors.light.ringSadaqah,
     },
@@ -234,10 +224,14 @@ export const DailyProgressBottomSheet = ({ onClose }: Props) => {
               title={getGoalDisplayTitle(goal, t)}
               subtitleCount={goal.count}
               subtitleLabel={goal.label}
-              icon={getCategoryGoalIcon(
-                selectedCategory,
-                CATEGORY_ICON_COLOR[selectedCategory],
-              )}
+              icon={
+                selectedCategory === "PRAYER"
+                  ? getDetailedIbadahIcon(goal.id, Colors.light.white)
+                  : getCategoryGoalIcon(
+                      selectedCategory,
+                      CATEGORY_ICON_COLOR[selectedCategory],
+                    )
+              }
               iconBgColor={CATEGORY_ICON_COLOR[selectedCategory] + "22"}
               percentage={goal.percentage}
               progressColor={goal.progressColor}

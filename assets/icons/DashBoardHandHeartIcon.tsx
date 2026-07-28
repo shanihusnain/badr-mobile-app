@@ -6,20 +6,18 @@ import { Colors } from "@/constants/theme";
 
 
 export const DashBoardHandHeartIcon = ({
-color = Colors.light.white,
-size = 23,
-
+  color = Colors.light.white,
+  size = 18,
 
 } : {
-color?: string;
-size?: number;}
+  color?: string;
+  size?: number;}
 ) => (
   <Svg
-    
     width={size}
     height={size}
+    viewBox="0 0 24 24"
     fill="none"
-
   >
     <Path
       fill="url(#a)"
@@ -38,8 +36,8 @@ size?: number;}
         y2={20}
         gradientUnits="userSpaceOnUse"
       >
-        <Stop stopColor="#00EAD2" />
-        <Stop offset={1} stopColor="#00B0E8" />
+        <Stop stopColor={color} />
+        <Stop offset={1} stopColor={color} />
       </LinearGradient>
       <LinearGradient
         id="b"
@@ -49,8 +47,8 @@ size?: number;}
         y2={10.558}
         gradientUnits="userSpaceOnUse"
       >
-        <Stop stopColor="#00EAD2" />
-        <Stop offset={1} stopColor="#00B0E8" />
+        <Stop stopColor={color} />
+        <Stop offset={1} stopColor={color} />
       </LinearGradient>
     </Defs>
   </Svg>

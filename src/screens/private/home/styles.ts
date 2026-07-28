@@ -49,11 +49,11 @@ export const styles = StyleSheet.create({
     width: 65,
     height: 40,
     borderRadius: 12,
-    backgroundColor: Colors.light.calendarBg,
+    backgroundColor: Colors.light.greybuttonBackground,
     justifyContent: "center",
     alignItems: "center",
-    //borderWidth: 1.5,
-    // borderColor: Colors.light.green,
+    flexDirection: "row",
+    gap: 4,
   },
 
   streakText: {
@@ -62,12 +62,45 @@ export const styles = StyleSheet.create({
     fontFamily: fonts.primary.bold,
   },
 
+  // Today Header Button
+  todayButtonContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: Colors.light.greybuttonBackground,
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    gap: 2,
+    height: 40,
+  },
+  todayButtonTextContainer: {
+    backgroundColor: Colors.light.calendarBg,
+    borderRadius: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 0,
+    height: 36,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  todayButtonText: {
+    color: Colors.light.dullWhite,
+    fontFamily: fonts.primary.bold,
+    fontWeight: "600",
+    fontSize: 13,
+
+  },
+
   // Badr Text (Center)
   badrText: {
     color: Colors.light.grey,
     fontSize: 24,
     fontFamily: fonts.primary.semiBold,
     textAlign: "center",
+    marginBottom: hp(3),
+    marginTop: hp(1),
+  },
+  badrLogoContainer: {
+    alignItems: "center",
     marginBottom: hp(3),
     marginTop: hp(1),
   },
@@ -92,12 +125,39 @@ export const styles = StyleSheet.create({
     backgroundColor: Colors.light.calendarBg,
     borderRadius: 16,
     padding: wp(5),
+    flexDirection: "column",
+    alignItems: "stretch",
+  },
+  prayerCardTopRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    //borderWidth: 1,
-    //borderColor: Colors.light.green,
-    //minHeight: 120,
+    marginBottom: hp(2.5),
+  },
+  prayerTimelineRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: wp(1),
+  },
+  prayerTimelineIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: "#2C3E50",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1.5,
+    borderColor: "#2C3E50",
+  },
+  prayerTimelineDash: {
+    flex: 1,
+    height: 0,
+    borderTopWidth: 1.2,
+    borderStyle: "dashed",
+    borderColor: Colors.light.white,
+    marginHorizontal: 2,
+    opacity: 0.89,
   },
 
   // Left Side - Prayer Details
@@ -318,7 +378,7 @@ export const styles = StyleSheet.create({
     width: 220,
     height: 220,
     borderRadius: 115,
-    backgroundColor: "#000000",
+    backgroundColor: Colors.light.blackBackground,
     marginVertical: hp(2),
   },
 

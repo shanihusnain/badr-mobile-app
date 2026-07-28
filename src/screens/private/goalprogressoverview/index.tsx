@@ -10,7 +10,10 @@ import { useRouter } from "expo-router";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import { DetailedIbadahsProgressCard } from "@/src/screens/private/home/components/DetailedIbadahsProgressCards";
+import {
+  DetailedIbadahsProgressCard,
+  getDetailedIbadahIcon,
+} from "@/src/screens/private/home/components/DetailedIbadahsProgressCards";
 import {
   FastingOverviewCalendarSection,
   OVERVIEW_FASTING_TRACK_TABS,
@@ -176,7 +179,11 @@ export const GoalProgressOverView = ({ goal }: GoalProgressOverViewProps) => {
               title={goalItem.title}
               subtitleCount={goalItem.count}
               subtitleLabel={goalItem.label}
-              icon={renderCategoryIcon(overview.category, categoryIconColor)}
+              icon={
+                overview.category === "PRAYER"
+                  ? getDetailedIbadahIcon(goalItem.id, Colors.light.white)
+                  : renderCategoryIcon(overview.category, categoryIconColor)
+              }
               iconBgColor={categoryIconColor + "22"}
               percentage={goalItem.percentage}
               progressColor={goalItem.progressColor}

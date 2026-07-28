@@ -1,8 +1,20 @@
 import React from "react";
 import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import { TaperedCircleBorder } from "@/components/atoms/TaperedCircleBorder";
+import { GoalId } from "./goalsData";
+import { TahiyyatWudhuDropIcon } from "@/assets/icons/TahiyyatAlWudhuDetailedIbadahIcon";
+import { FiveDailyPrayerIDetailedIbadhasIcon } from "@/assets/icons/FiveDailyPrayerIDetailedIbadhasIcon";
+import { SunnahRawatibDetailedIbadhasIcon } from "@/assets/icons/SunnahRawatibDetailedIbadhasIcon";
+import { TahiyyatMasjidDetailedIbadhasIcon } from "@/assets/icons/TahiyyatMasjidDetailedIbadhasIcon";
+import { MissedPastPrayerDetailedIbadhasIcon } from "@/assets/icons/MissedPastPrayerDetailedIbadhasIcon";
+import { DuhaPrayerDetailedIbadhasIcon } from "@/assets/icons/DuhaPrayerDetailedIbadhasIcon";
+import { TawbahPrayerDetailedIbadhasIcon } from "@/assets/icons/TawbahPrayerDetailedIbadhasIcon";
+import { IstikharaPrayerDetailedIcon } from "@/assets/icons/IstikharaPrayerDetailedIcon";
+import { ShukrPrayerDetailedIbadhasIcon } from "@/assets/icons/ShukrPrayerDetailedIbadhasIcon";
+import { QiyamAlLaylDetailedIbadhasIcon } from "@/assets/icons/QiyamAlLaylDetailedIbadhasIcon";
 
 type Props = {
   title: string;
@@ -16,6 +28,39 @@ type Props = {
   onPress?: () => void;
   titleFontSize?: number;
 };
+
+export function getDetailedIbadahIcon(
+  goalId: GoalId,
+  color: string,
+  size = 19,
+): React.ReactNode {
+  switch (goalId) {
+    case "prayer-tahiyyat":
+      return <TahiyyatWudhuDropIcon color={color} size={size} />;
+    case "prayer-fiveDailyPrayers":
+      return <FiveDailyPrayerIDetailedIbadhasIcon color={color} size={size} />;
+    case "prayer-sunnah":
+      return <SunnahRawatibDetailedIbadhasIcon color={color} size={size} />;
+    case "prayer-tahiyyatMasjid":
+      return <TahiyyatMasjidDetailedIbadhasIcon color={color} size={size} />;
+    case "prayer-missed":
+      return <MissedPastPrayerDetailedIbadhasIcon color={color} size={size} />;
+    case "prayer-duha":
+      return <DuhaPrayerDetailedIbadhasIcon color={color} size={size} />;
+    case "prayer-tawbah":
+      return <TawbahPrayerDetailedIbadhasIcon color={color} size={size} />;
+    case "prayer-istikhara":
+      return <IstikharaPrayerDetailedIcon color={color} size={size} />;
+    case "prayer-shukr":
+      return <ShukrPrayerDetailedIbadhasIcon color={color} size={size} />;
+    case "prayer-qiyam":
+      return <QiyamAlLaylDetailedIbadhasIcon color={color} size={size} />;
+    default:
+      return (
+        <FontAwesome6 name="person-praying" size={size} color={color} />
+      );
+  }
+}
 
 export const DetailedIbadahsProgressCard = ({
   title,
