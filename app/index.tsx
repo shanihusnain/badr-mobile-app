@@ -14,9 +14,9 @@ export default function Index() {
     return <AnimatedSplash onFinish={() => setSplashDone(true)} />;
   }
 
-  if (isAuthenticated) {
-    return <Redirect href="/(tabs)" />;
-  }
+  // if (isAuthenticated) {
+  //   return <Redirect href="/(tabs)" />;
+  // }
 
   return <Redirect href="/(auth)/welcome" />;
 }

@@ -20,12 +20,14 @@ import { Divider } from "../atoms/Divider";
 
 export default function MissedPrayerGoalSelection({
   onSave,
+  initialValue = 3,
 }: {
   onSave?: (value: number) => void;
+  initialValue?: number;
 }) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
-  const [sliderValue, setSliderValue] = useState(3);
+  const [sliderValue, setSliderValue] = useState(initialValue);
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleDropdown = () => {
@@ -41,7 +43,7 @@ export default function MissedPrayerGoalSelection({
       sliderValue * 5,
     );
     if (onSave) {
-      onSave(sliderValue * 5);
+      onSave(sliderValue);
     }
   };
 

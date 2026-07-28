@@ -1,0 +1,1137 @@
+{
+  "endpoint": "GET api/goal-cycles/current/quran-goals/:quranGoalType",
+  "notes": [
+    "Return the matching payload.data for each :quranGoalType (content fields for goal description screen).",
+    "This is the description/content shape for GoalDescriptionDetails — separate from the cycle config fields (targetValue, items, trackingMetric) when those are returned on the same endpoint.",
+    "If description content and cycle config share one GET, merge both into data (quranGoalId, isActive, trackingMetric, targetValue, completedValue, frequency, items + title/navTitle/heroTitle/description/readMore).",
+    "Images stay on mobile — do not send image URLs unless agreed later.",
+    "Icons referenced in readMore (e.g. QuranListeningMoon, QuranImageIcon, HadeethBookIcon, QuranMemorizationIcon, QuranTajweedIcon) are resolved on mobile by name.",
+    "readMore item types: text | benefit | prayerSection | replyWithQuote | boldPrefixText | boldSuffixText | table",
+    "text.style values: body | bodyTight | bodyMediumTight | bodyZero | tableGuide | sectionHeading | prayerHeading | quoteItalic | quoteSemibold | quoteMediumItalic | hadithQuoteLead | hadithQuoteLight | wuduBody | wuduBodySpaced | bilalQuote | bilalQuoteLight",
+    "UI cards group types: LISTENING; RECITATION_* → quran-recitation; MEMORIZATION_* → quran-memorization; TAJWEED. Recitation/memorization variants can share the same description content.",
+    "Arabic (ar) content can follow the same shape later."
+  ],
+  "uiIdByQuranGoalType": {
+    "LISTENING": "quran-listening",
+    "RECITATION_SURAH": "quran-recitation",
+    "RECITATION_JUZ": "quran-recitation",
+    "RECITATION_COMPLETION": "quran-recitation",
+    "MEMORIZATION_SURAH": "quran-memorization",
+    "MEMORIZATION_JUZ": "quran-memorization",
+    "MEMORIZATION_HIZB": "quran-memorization",
+    "TAJWEED": "quran-tajweed"
+  },
+  "examplesByQuranGoalType": {
+    "LISTENING": {
+      "success": true,
+      "statusCode": 200,
+      "message": "Success",
+      "data": {
+        "quranGoalType": "LISTENING",
+        "isActive": false,
+        "title": "QURAN LISTENING",
+        "navTitle": "QURAN LISTENING",
+        "heroTitle": "The Heart's Harmony",
+        "description": "Listening to the Quran engages the heart, mind, and soul, offering guidance, comfort, and spiritual growth while deepening one’s connection with Allah.",
+        "hadithIntro": "",
+        "benefitsIntro": "",
+        "benefits": [],
+        "steps": [],
+        "readMore": [
+          {
+            "items": [
+              {
+                "type": "text",
+                "style": "sectionHeading",
+                "content": "The Spiritual Essence of Quranic Listening"
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "icon": "QuranListeningMoon",
+                "content": "Listening attentively to the Quran immerses us in its profound wisdom, transforming our understanding and deepening our connection with Allah. This engagement not only enriches our spiritual journey but also instills tranquility and resilience."
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "The soothing rhythm of its recitation creates a sanctuary, dissolving stress and bringing clarity, even in life’s most challenging moments."
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "As a form of remembrance (dhikr), listening to the Quran rekindles the soul's purpose and strengthens its connection to Allah. It serves as a powerful reminder to not be consumed by worldly pursuits, urging us to integrate the Quran into our daily lives through regular  reflection on its teachings."
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "This practice draws us closer to Allah, while also offering the chance to learn and appreciate Tajweed—the art of correct pronunciation and recitation—further deepening our engagement with the Quran."
+              }
+            ]
+          },
+          {
+            "items": [
+              {
+                "type": "text",
+                "style": "sectionHeading",
+                "content": "Quranic Verses & Hadith on the Importance of Quranic Listening"
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "In **Surah Az-Zumar (39:23)**, Allah describes the Quran as **\"the best of discourses\"** (Ahsan al-Hadith), highlighting its unparalleled beauty, wisdom, and ability to guide and inspire those who listen attentively."
+              },
+              {
+                "type": "text",
+                "style": "tableGuide",
+                "content": "Allah also commands in **Surah Al-A'raf (7:204)**:"
+              },
+              {
+                "type": "text",
+                "style": "quoteSemibold",
+                "icon": "QuranImageIcon",
+                "content": "\"So when the Quran is recited, then listen to it and pay attention that you may receive mercy.\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "This verse underscores the importance of active engagement and attentiveness to fully benefit from the divine mercy embedded in the Quran’s recitation."
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "The Prophet (PBUH) also emphasized the virtues of listening to the Quran. In a hadith narrated by Abdullah ibn Mas'ud (RA), the Prophet (PBUH) said:"
+              },
+              {
+                "type": "text",
+                "style": "tableGuide",
+                "icon": "HadeethBookIcon",
+                "content": "\"Recite the Quran to me.\" When Abdullah expressed surprise, the Prophet (PBUH) replied: *\"I love to hear it from others.\"*"
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "These Quranic verses and hadith remind us of the profound spiritual enrichment that comes from listening to the Quran. By integrating this practice into our lives, we can draw closer to Allah, nurture our faith, and prioritize listening to what really uplifts our hearts and souls."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "RECITATION_SURAH": {
+      "success": true,
+      "statusCode": 200,
+      "message": "Success",
+      "data": {
+        "quranGoalType": "RECITATION_SURAH",
+        "isActive": false,
+        "title": "QURAN RECITATION",
+        "navTitle": "QURAN RECITATION",
+        "heroTitle": "The Path of Illumination",
+        "description": "Reciting the Quran fortifies our bond with Allah, enhances understanding of His words, softens hearts, provides protection, and bestows multiplied rewards",
+        "hadithIntro": "",
+        "benefitsIntro": "",
+        "benefits": [],
+        "steps": [],
+        "readMore": [
+          {
+            "items": [
+              {
+                "type": "text",
+                "style": "sectionHeading",
+                "content": "The Spiritual Depth of Quranic Recitation"
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "icon": "QuranImageIcon",
+                "content": "The act of reciting the Quran is a profound means of drawing closer to Allah, transforming the heart and mind."
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "Reciting the Quran is not just about reading; it is a meditative act that engages the entire being. The rhythm and cadence of its verses bring tranquility, allowing us to reflect deeply on their meanings."
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "This practice becomes a source of comfort and direction, especially in challenging times, reinforcing our faith and commitment to Allah's guidance. Each word spoken aloud resonates with divine significance, enriching the soul and guiding us on our spiritual journey."
+              }
+            ]
+          },
+          {
+            "items": [
+              {
+                "type": "text",
+                "style": "sectionHeading",
+                "content": "Quranic Verses & Hadiths on the Significance of Recitation"
+              },
+              {
+                "type": "text",
+                "style": "prayerHeading",
+                "content": "Quranic Verses"
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "In Surah Al-Baqarah (2:121), Allah describes those who recite the Quran with true recitation as being among the rightly guided:"
+              },
+              {
+                "type": "boldPrefixText",
+                "prefix": "Surah Al-Baqarah (2:121):",
+                "content": "",
+                "style": "body"
+              },
+              {
+                "type": "text",
+                "style": "quoteSemibold",
+                "icon": "QuranImageIcon",
+                "content": "\"Those to whom We have given the Book recite it with its true recital. They are the ones who believe in it.\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "This verse is a reminder that true believers are distinguished by their devoted recitation and engagement with the Quran, urging us to immerse ourselves in its teachings with heartfelt sincerity."
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "Furthering this call to mindful engagement, Allah advises us in Surah Al-Muzzammil (73:4):"
+              },
+              {
+                "type": "boldPrefixText",
+                "prefix": "Surah Al-Muzzammil (73:4):",
+                "content": "",
+                "style": "body"
+              },
+              {
+                "type": "text",
+                "style": "quoteSemibold",
+                "icon": "QuranImageIcon",
+                "content": "\"Recite the Quran with measured recitation.\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "This verse encourages us to approach our recitation slowly, clearly, and with reflection. This method involves distinct pronunciation of letters, observing pauses at the end of verses, and pondering meanings to facilitate connection and understanding.\n\nMoreover, we learn from Surah Al-Isra (17:82) that the Quran opens our hearts to its healing power and divine mercy, providing comfort and guidance amidst life's trials:"
+              },
+              {
+                "type": "boldPrefixText",
+                "prefix": "Surah Al-Isra (17:82):",
+                "content": "",
+                "style": "body"
+              },
+              {
+                "type": "text",
+                "style": "quoteSemibold",
+                "icon": "QuranImageIcon",
+                "content": "\"And We send down of the Quran that which is healing and mercy for the believers.\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "Lastly, Surah Al-Furqan (25:30) offers a heartfelt plea from the Prophet (PBUH) about those who abandoned the Quran, reflecting his deep concern for those who neglect its guidance:"
+              },
+              {
+                "type": "boldPrefixText",
+                "prefix": "Surah Al-Furqan (25:30):",
+                "content": "",
+                "style": "body"
+              },
+              {
+                "type": "text",
+                "style": "quoteSemibold",
+                "icon": "QuranImageIcon",
+                "content": "\"O my Lord, indeed my people have taken this Quran as [a thing] abandoned.\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "These verses inspire a deeper connection with the Quran, unlocking guidance, healing, and mercy through heartfelt recitation and reflection, drawing us closer to our Creator."
+              },
+              {
+                "type": "text",
+                "style": "prayerHeading",
+                "content": "Hadiths"
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "In a narration by Abu Musa Al-Ash'ari (RA), the Prophet (PBUH) compares a believer who recites the Quran to a citron, which is both delightful in taste and aroma:"
+              },
+              {
+                "type": "text",
+                "style": "quoteItalic",
+                "icon": "HadeethBookIcon",
+                "content": "\"The example of a believer who recites the Quran is that of a citron which tastes good and smells good.\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "Numerous other hadiths emphasize the virtues of Quranic recitation, suggesting deep insights into its transformative power:"
+              },
+              {
+                "type": "text",
+                "style": "quoteItalic",
+                "icon": "HadeethBookIcon",
+                "content": "\"Do not make your houses like graves. Satan runs away from the house in which Surah Al-Baqarah is recited.\""
+              },
+              {
+                "type": "text",
+                "style": "quoteMediumItalic",
+                "icon": "HadeethBookIcon",
+                "content": "\"The best among you are those who learn the Quran and teach it.\""
+              },
+              {
+                "type": "text",
+                "style": "quoteItalic",
+                "icon": "HadeethBookIcon",
+                "content": "\"Whoever recites a letter from the Book of Allah, he will be credited with a good deed, and a good deed gets a ten-fold reward.\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "Collectively, these teachings highlight the profound significance of Quranic recitation, encouraging a sincere and reflective relationship with the Quran."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "RECITATION_JUZ": {
+      "success": true,
+      "statusCode": 200,
+      "message": "Success",
+      "data": {
+        "quranGoalType": "RECITATION_JUZ",
+        "isActive": false,
+        "title": "QURAN RECITATION",
+        "navTitle": "QURAN RECITATION",
+        "heroTitle": "The Path of Illumination",
+        "description": "Reciting the Quran fortifies our bond with Allah, enhances understanding of His words, softens hearts, provides protection, and bestows multiplied rewards",
+        "hadithIntro": "",
+        "benefitsIntro": "",
+        "benefits": [],
+        "steps": [],
+        "readMore": [
+          {
+            "items": [
+              {
+                "type": "text",
+                "style": "sectionHeading",
+                "content": "The Spiritual Depth of Quranic Recitation"
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "icon": "QuranImageIcon",
+                "content": "The act of reciting the Quran is a profound means of drawing closer to Allah, transforming the heart and mind."
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "Reciting the Quran is not just about reading; it is a meditative act that engages the entire being. The rhythm and cadence of its verses bring tranquility, allowing us to reflect deeply on their meanings."
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "This practice becomes a source of comfort and direction, especially in challenging times, reinforcing our faith and commitment to Allah's guidance. Each word spoken aloud resonates with divine significance, enriching the soul and guiding us on our spiritual journey."
+              }
+            ]
+          },
+          {
+            "items": [
+              {
+                "type": "text",
+                "style": "sectionHeading",
+                "content": "Quranic Verses & Hadiths on the Significance of Recitation"
+              },
+              {
+                "type": "text",
+                "style": "prayerHeading",
+                "content": "Quranic Verses"
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "In Surah Al-Baqarah (2:121), Allah describes those who recite the Quran with true recitation as being among the rightly guided:"
+              },
+              {
+                "type": "boldPrefixText",
+                "prefix": "Surah Al-Baqarah (2:121):",
+                "content": "",
+                "style": "body"
+              },
+              {
+                "type": "text",
+                "style": "quoteSemibold",
+                "icon": "QuranImageIcon",
+                "content": "\"Those to whom We have given the Book recite it with its true recital. They are the ones who believe in it.\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "This verse is a reminder that true believers are distinguished by their devoted recitation and engagement with the Quran, urging us to immerse ourselves in its teachings with heartfelt sincerity."
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "Furthering this call to mindful engagement, Allah advises us in Surah Al-Muzzammil (73:4):"
+              },
+              {
+                "type": "boldPrefixText",
+                "prefix": "Surah Al-Muzzammil (73:4):",
+                "content": "",
+                "style": "body"
+              },
+              {
+                "type": "text",
+                "style": "quoteSemibold",
+                "icon": "QuranImageIcon",
+                "content": "\"Recite the Quran with measured recitation.\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "This verse encourages us to approach our recitation slowly, clearly, and with reflection. This method involves distinct pronunciation of letters, observing pauses at the end of verses, and pondering meanings to facilitate connection and understanding.\n\nMoreover, we learn from Surah Al-Isra (17:82) that the Quran opens our hearts to its healing power and divine mercy, providing comfort and guidance amidst life's trials:"
+              },
+              {
+                "type": "boldPrefixText",
+                "prefix": "Surah Al-Isra (17:82):",
+                "content": "",
+                "style": "body"
+              },
+              {
+                "type": "text",
+                "style": "quoteSemibold",
+                "icon": "QuranImageIcon",
+                "content": "\"And We send down of the Quran that which is healing and mercy for the believers.\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "Lastly, Surah Al-Furqan (25:30) offers a heartfelt plea from the Prophet (PBUH) about those who abandoned the Quran, reflecting his deep concern for those who neglect its guidance:"
+              },
+              {
+                "type": "boldPrefixText",
+                "prefix": "Surah Al-Furqan (25:30):",
+                "content": "",
+                "style": "body"
+              },
+              {
+                "type": "text",
+                "style": "quoteSemibold",
+                "icon": "QuranImageIcon",
+                "content": "\"O my Lord, indeed my people have taken this Quran as [a thing] abandoned.\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "These verses inspire a deeper connection with the Quran, unlocking guidance, healing, and mercy through heartfelt recitation and reflection, drawing us closer to our Creator."
+              },
+              {
+                "type": "text",
+                "style": "prayerHeading",
+                "content": "Hadiths"
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "In a narration by Abu Musa Al-Ash'ari (RA), the Prophet (PBUH) compares a believer who recites the Quran to a citron, which is both delightful in taste and aroma:"
+              },
+              {
+                "type": "text",
+                "style": "quoteItalic",
+                "icon": "HadeethBookIcon",
+                "content": "\"The example of a believer who recites the Quran is that of a citron which tastes good and smells good.\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "Numerous other hadiths emphasize the virtues of Quranic recitation, suggesting deep insights into its transformative power:"
+              },
+              {
+                "type": "text",
+                "style": "quoteItalic",
+                "icon": "HadeethBookIcon",
+                "content": "\"Do not make your houses like graves. Satan runs away from the house in which Surah Al-Baqarah is recited.\""
+              },
+              {
+                "type": "text",
+                "style": "quoteMediumItalic",
+                "icon": "HadeethBookIcon",
+                "content": "\"The best among you are those who learn the Quran and teach it.\""
+              },
+              {
+                "type": "text",
+                "style": "quoteItalic",
+                "icon": "HadeethBookIcon",
+                "content": "\"Whoever recites a letter from the Book of Allah, he will be credited with a good deed, and a good deed gets a ten-fold reward.\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "Collectively, these teachings highlight the profound significance of Quranic recitation, encouraging a sincere and reflective relationship with the Quran."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "RECITATION_COMPLETION": {
+      "success": true,
+      "statusCode": 200,
+      "message": "Success",
+      "data": {
+        "quranGoalType": "RECITATION_COMPLETION",
+        "isActive": false,
+        "title": "QURAN RECITATION",
+        "navTitle": "QURAN RECITATION",
+        "heroTitle": "The Path of Illumination",
+        "description": "Reciting the Quran fortifies our bond with Allah, enhances understanding of His words, softens hearts, provides protection, and bestows multiplied rewards",
+        "hadithIntro": "",
+        "benefitsIntro": "",
+        "benefits": [],
+        "steps": [],
+        "readMore": [
+          {
+            "items": [
+              {
+                "type": "text",
+                "style": "sectionHeading",
+                "content": "The Spiritual Depth of Quranic Recitation"
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "icon": "QuranImageIcon",
+                "content": "The act of reciting the Quran is a profound means of drawing closer to Allah, transforming the heart and mind."
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "Reciting the Quran is not just about reading; it is a meditative act that engages the entire being. The rhythm and cadence of its verses bring tranquility, allowing us to reflect deeply on their meanings."
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "This practice becomes a source of comfort and direction, especially in challenging times, reinforcing our faith and commitment to Allah's guidance. Each word spoken aloud resonates with divine significance, enriching the soul and guiding us on our spiritual journey."
+              }
+            ]
+          },
+          {
+            "items": [
+              {
+                "type": "text",
+                "style": "sectionHeading",
+                "content": "Quranic Verses & Hadiths on the Significance of Recitation"
+              },
+              {
+                "type": "text",
+                "style": "prayerHeading",
+                "content": "Quranic Verses"
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "In Surah Al-Baqarah (2:121), Allah describes those who recite the Quran with true recitation as being among the rightly guided:"
+              },
+              {
+                "type": "boldPrefixText",
+                "prefix": "Surah Al-Baqarah (2:121):",
+                "content": "",
+                "style": "body"
+              },
+              {
+                "type": "text",
+                "style": "quoteSemibold",
+                "icon": "QuranImageIcon",
+                "content": "\"Those to whom We have given the Book recite it with its true recital. They are the ones who believe in it.\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "This verse is a reminder that true believers are distinguished by their devoted recitation and engagement with the Quran, urging us to immerse ourselves in its teachings with heartfelt sincerity."
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "Furthering this call to mindful engagement, Allah advises us in Surah Al-Muzzammil (73:4):"
+              },
+              {
+                "type": "boldPrefixText",
+                "prefix": "Surah Al-Muzzammil (73:4):",
+                "content": "",
+                "style": "body"
+              },
+              {
+                "type": "text",
+                "style": "quoteSemibold",
+                "icon": "QuranImageIcon",
+                "content": "\"Recite the Quran with measured recitation.\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "This verse encourages us to approach our recitation slowly, clearly, and with reflection. This method involves distinct pronunciation of letters, observing pauses at the end of verses, and pondering meanings to facilitate connection and understanding.\n\nMoreover, we learn from Surah Al-Isra (17:82) that the Quran opens our hearts to its healing power and divine mercy, providing comfort and guidance amidst life's trials:"
+              },
+              {
+                "type": "boldPrefixText",
+                "prefix": "Surah Al-Isra (17:82):",
+                "content": "",
+                "style": "body"
+              },
+              {
+                "type": "text",
+                "style": "quoteSemibold",
+                "icon": "QuranImageIcon",
+                "content": "\"And We send down of the Quran that which is healing and mercy for the believers.\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "Lastly, Surah Al-Furqan (25:30) offers a heartfelt plea from the Prophet (PBUH) about those who abandoned the Quran, reflecting his deep concern for those who neglect its guidance:"
+              },
+              {
+                "type": "boldPrefixText",
+                "prefix": "Surah Al-Furqan (25:30):",
+                "content": "",
+                "style": "body"
+              },
+              {
+                "type": "text",
+                "style": "quoteSemibold",
+                "icon": "QuranImageIcon",
+                "content": "\"O my Lord, indeed my people have taken this Quran as [a thing] abandoned.\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "These verses inspire a deeper connection with the Quran, unlocking guidance, healing, and mercy through heartfelt recitation and reflection, drawing us closer to our Creator."
+              },
+              {
+                "type": "text",
+                "style": "prayerHeading",
+                "content": "Hadiths"
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "In a narration by Abu Musa Al-Ash'ari (RA), the Prophet (PBUH) compares a believer who recites the Quran to a citron, which is both delightful in taste and aroma:"
+              },
+              {
+                "type": "text",
+                "style": "quoteItalic",
+                "icon": "HadeethBookIcon",
+                "content": "\"The example of a believer who recites the Quran is that of a citron which tastes good and smells good.\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "Numerous other hadiths emphasize the virtues of Quranic recitation, suggesting deep insights into its transformative power:"
+              },
+              {
+                "type": "text",
+                "style": "quoteItalic",
+                "icon": "HadeethBookIcon",
+                "content": "\"Do not make your houses like graves. Satan runs away from the house in which Surah Al-Baqarah is recited.\""
+              },
+              {
+                "type": "text",
+                "style": "quoteMediumItalic",
+                "icon": "HadeethBookIcon",
+                "content": "\"The best among you are those who learn the Quran and teach it.\""
+              },
+              {
+                "type": "text",
+                "style": "quoteItalic",
+                "icon": "HadeethBookIcon",
+                "content": "\"Whoever recites a letter from the Book of Allah, he will be credited with a good deed, and a good deed gets a ten-fold reward.\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "Collectively, these teachings highlight the profound significance of Quranic recitation, encouraging a sincere and reflective relationship with the Quran."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "MEMORIZATION_SURAH": {
+      "success": true,
+      "statusCode": 200,
+      "message": "Success",
+      "data": {
+        "quranGoalType": "MEMORIZATION_SURAH",
+        "isActive": false,
+        "title": "QURAN MEMORIZATION",
+        "navTitle": "QURAN MEMORIZATION",
+        "heroTitle": "A Journey of Spiritual Transformation",
+        "description": "Memorizing the Quran strengthens our bond with Allah, deepens understanding of His teachings, boosts memory, and offers comfort and guidance in all life aspects.",
+        "hadithIntro": "",
+        "benefitsIntro": "",
+        "benefits": [],
+        "steps": [],
+        "readMore": [
+          {
+            "items": [
+              {
+                "type": "text",
+                "style": "sectionHeading",
+                "content": "The Spiritual Depth of Quranic Memorization"
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "icon": "QuranMemorizationIcon",
+                "content": "Memorizing the Quran is a transformative journey that draws us closer to Allah. This discipline goes beyond mere memorization; it is a profound spiritual commitment engaging the heart, mind, and soul. Internalizing its verses fosters peace and introspection, encouraging deep reflection on their meanings."
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "It acts as a shield against spiritual neglect, building a resilient faith that nurtures the internalization of its values and cultivates a lifestyle aligned with Islamic principles."
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "This journey becomes a wellspring of hope and guidance, especially in moments of difficulty, reinforcing our faith in Allah's wisdom. Each verse committed to memory carries divine significance, enriching the soul and illuminating our spiritual path."
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "It also enhances cognitive abilities, as it requires focus, repetition, and discipline, which can sharpen the mind and improve memory retention."
+              }
+            ]
+          },
+          {
+            "items": [
+              {
+                "type": "text",
+                "style": "sectionHeading",
+                "content": "Quranic Verses & Hadiths on the Significance of Quran Memorization"
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "In Surah Al-Qamar (54:17), Allah highlights the accessibility and importance of Quran, stating:"
+              },
+              {
+                "type": "boldPrefixText",
+                "prefix": "Surah Al-Qamar (54:17):",
+                "content": "",
+                "style": "body"
+              },
+              {
+                "type": "text",
+                "style": "quoteSemibold",
+                "icon": "QuranImageIcon",
+                "content": "\"And We have certainly made the Quran easy to remember. So is there anyone who will be mindful?\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "This verse serves as a divine invitation, urging us to engage with the Quran deeply and commit its teachings to memory. Surah Al-Baqarah (2:185) further underscores the Quran's role as a beacon of guidance:"
+              },
+              {
+                "type": "boldPrefixText",
+                "prefix": "Surah Al-Baqarah (2:185):",
+                "content": "",
+                "style": "body"
+              },
+              {
+                "type": "text",
+                "style": "quoteSemibold",
+                "icon": "QuranImageIcon",
+                "content": "\"The month of Ramadan is that in which the Quran was revealed, a guidance for the people.\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "Building on this foundation, the Prophet (PBUH) emphasized the profound value of memorization through his teachings. In a Hadith narrated by Abdullah ibn Amr (RA), he stated:"
+              },
+              {
+                "type": "text",
+                "style": "quoteMediumItalic",
+                "icon": "HadeethBookIcon",
+                "content": "\"It will be said to the companion of the Quran: 'Read, and ascend, and recite as you used to recite in the [previous] world, for your status will be according to the last verse that you recite.\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "This highlights the eternal rewards awaiting those who internalize and live by the Quran's teachings. Moreover, in another narration by Aisha (RA), the Prophet (PBUH) said:"
+              },
+              {
+                "type": "text",
+                "style": "quoteMediumItalic",
+                "icon": "HadeethBookIcon",
+                "content": "\"The one who is proficient in the recitation of the Quran will be with the noble and righteous scribes.\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "These teachings collectively emphasize the immense rewards and blessings of memorizing and living by the Quran, inspiring us to commit its verses to heart."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "MEMORIZATION_JUZ": {
+      "success": true,
+      "statusCode": 200,
+      "message": "Success",
+      "data": {
+        "quranGoalType": "MEMORIZATION_JUZ",
+        "isActive": false,
+        "title": "QURAN MEMORIZATION",
+        "navTitle": "QURAN MEMORIZATION",
+        "heroTitle": "A Journey of Spiritual Transformation",
+        "description": "Memorizing the Quran strengthens our bond with Allah, deepens understanding of His teachings, boosts memory, and offers comfort and guidance in all life aspects.",
+        "hadithIntro": "",
+        "benefitsIntro": "",
+        "benefits": [],
+        "steps": [],
+        "readMore": [
+          {
+            "items": [
+              {
+                "type": "text",
+                "style": "sectionHeading",
+                "content": "The Spiritual Depth of Quranic Memorization"
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "icon": "QuranMemorizationIcon",
+                "content": "Memorizing the Quran is a transformative journey that draws us closer to Allah. This discipline goes beyond mere memorization; it is a profound spiritual commitment engaging the heart, mind, and soul. Internalizing its verses fosters peace and introspection, encouraging deep reflection on their meanings."
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "It acts as a shield against spiritual neglect, building a resilient faith that nurtures the internalization of its values and cultivates a lifestyle aligned with Islamic principles."
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "This journey becomes a wellspring of hope and guidance, especially in moments of difficulty, reinforcing our faith in Allah's wisdom. Each verse committed to memory carries divine significance, enriching the soul and illuminating our spiritual path."
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "It also enhances cognitive abilities, as it requires focus, repetition, and discipline, which can sharpen the mind and improve memory retention."
+              }
+            ]
+          },
+          {
+            "items": [
+              {
+                "type": "text",
+                "style": "sectionHeading",
+                "content": "Quranic Verses & Hadiths on the Significance of Quran Memorization"
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "In Surah Al-Qamar (54:17), Allah highlights the accessibility and importance of Quran, stating:"
+              },
+              {
+                "type": "boldPrefixText",
+                "prefix": "Surah Al-Qamar (54:17):",
+                "content": "",
+                "style": "body"
+              },
+              {
+                "type": "text",
+                "style": "quoteSemibold",
+                "icon": "QuranImageIcon",
+                "content": "\"And We have certainly made the Quran easy to remember. So is there anyone who will be mindful?\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "This verse serves as a divine invitation, urging us to engage with the Quran deeply and commit its teachings to memory. Surah Al-Baqarah (2:185) further underscores the Quran's role as a beacon of guidance:"
+              },
+              {
+                "type": "boldPrefixText",
+                "prefix": "Surah Al-Baqarah (2:185):",
+                "content": "",
+                "style": "body"
+              },
+              {
+                "type": "text",
+                "style": "quoteSemibold",
+                "icon": "QuranImageIcon",
+                "content": "\"The month of Ramadan is that in which the Quran was revealed, a guidance for the people.\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "Building on this foundation, the Prophet (PBUH) emphasized the profound value of memorization through his teachings. In a Hadith narrated by Abdullah ibn Amr (RA), he stated:"
+              },
+              {
+                "type": "text",
+                "style": "quoteMediumItalic",
+                "icon": "HadeethBookIcon",
+                "content": "\"It will be said to the companion of the Quran: 'Read, and ascend, and recite as you used to recite in the [previous] world, for your status will be according to the last verse that you recite.\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "This highlights the eternal rewards awaiting those who internalize and live by the Quran's teachings. Moreover, in another narration by Aisha (RA), the Prophet (PBUH) said:"
+              },
+              {
+                "type": "text",
+                "style": "quoteMediumItalic",
+                "icon": "HadeethBookIcon",
+                "content": "\"The one who is proficient in the recitation of the Quran will be with the noble and righteous scribes.\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "These teachings collectively emphasize the immense rewards and blessings of memorizing and living by the Quran, inspiring us to commit its verses to heart."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "MEMORIZATION_HIZB": {
+      "success": true,
+      "statusCode": 200,
+      "message": "Success",
+      "data": {
+        "quranGoalType": "MEMORIZATION_HIZB",
+        "isActive": false,
+        "title": "QURAN MEMORIZATION",
+        "navTitle": "QURAN MEMORIZATION",
+        "heroTitle": "A Journey of Spiritual Transformation",
+        "description": "Memorizing the Quran strengthens our bond with Allah, deepens understanding of His teachings, boosts memory, and offers comfort and guidance in all life aspects.",
+        "hadithIntro": "",
+        "benefitsIntro": "",
+        "benefits": [],
+        "steps": [],
+        "readMore": [
+          {
+            "items": [
+              {
+                "type": "text",
+                "style": "sectionHeading",
+                "content": "The Spiritual Depth of Quranic Memorization"
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "icon": "QuranMemorizationIcon",
+                "content": "Memorizing the Quran is a transformative journey that draws us closer to Allah. This discipline goes beyond mere memorization; it is a profound spiritual commitment engaging the heart, mind, and soul. Internalizing its verses fosters peace and introspection, encouraging deep reflection on their meanings."
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "It acts as a shield against spiritual neglect, building a resilient faith that nurtures the internalization of its values and cultivates a lifestyle aligned with Islamic principles."
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "This journey becomes a wellspring of hope and guidance, especially in moments of difficulty, reinforcing our faith in Allah's wisdom. Each verse committed to memory carries divine significance, enriching the soul and illuminating our spiritual path."
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "It also enhances cognitive abilities, as it requires focus, repetition, and discipline, which can sharpen the mind and improve memory retention."
+              }
+            ]
+          },
+          {
+            "items": [
+              {
+                "type": "text",
+                "style": "sectionHeading",
+                "content": "Quranic Verses & Hadiths on the Significance of Quran Memorization"
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "In Surah Al-Qamar (54:17), Allah highlights the accessibility and importance of Quran, stating:"
+              },
+              {
+                "type": "boldPrefixText",
+                "prefix": "Surah Al-Qamar (54:17):",
+                "content": "",
+                "style": "body"
+              },
+              {
+                "type": "text",
+                "style": "quoteSemibold",
+                "icon": "QuranImageIcon",
+                "content": "\"And We have certainly made the Quran easy to remember. So is there anyone who will be mindful?\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "This verse serves as a divine invitation, urging us to engage with the Quran deeply and commit its teachings to memory. Surah Al-Baqarah (2:185) further underscores the Quran's role as a beacon of guidance:"
+              },
+              {
+                "type": "boldPrefixText",
+                "prefix": "Surah Al-Baqarah (2:185):",
+                "content": "",
+                "style": "body"
+              },
+              {
+                "type": "text",
+                "style": "quoteSemibold",
+                "icon": "QuranImageIcon",
+                "content": "\"The month of Ramadan is that in which the Quran was revealed, a guidance for the people.\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "Building on this foundation, the Prophet (PBUH) emphasized the profound value of memorization through his teachings. In a Hadith narrated by Abdullah ibn Amr (RA), he stated:"
+              },
+              {
+                "type": "text",
+                "style": "quoteMediumItalic",
+                "icon": "HadeethBookIcon",
+                "content": "\"It will be said to the companion of the Quran: 'Read, and ascend, and recite as you used to recite in the [previous] world, for your status will be according to the last verse that you recite.\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "This highlights the eternal rewards awaiting those who internalize and live by the Quran's teachings. Moreover, in another narration by Aisha (RA), the Prophet (PBUH) said:"
+              },
+              {
+                "type": "text",
+                "style": "quoteMediumItalic",
+                "icon": "HadeethBookIcon",
+                "content": "\"The one who is proficient in the recitation of the Quran will be with the noble and righteous scribes.\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "These teachings collectively emphasize the immense rewards and blessings of memorizing and living by the Quran, inspiring us to commit its verses to heart."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "TAJWEED": {
+      "success": true,
+      "statusCode": 200,
+      "message": "Success",
+      "data": {
+        "quranGoalType": "TAJWEED",
+        "isActive": false,
+        "title": "QURAN TAJWEED",
+        "navTitle": "QURAN TAJWEED",
+        "heroTitle": "Mastering the Art of Divine Recitation",
+        "description": "Tajweed helps us internalize Allah's words, allowing them to resonate deeply within us, and deepens our appreciation of their beauty and eloquence.",
+        "hadithIntro": "",
+        "benefitsIntro": "",
+        "benefits": [],
+        "steps": [],
+        "readMore": [
+          {
+            "items": [
+              {
+                "type": "text",
+                "style": "sectionHeading",
+                "content": "The Spiritual Depth of Tajweed"
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "icon": "QuranTajweedIcon",
+                "content": "Practicing Tajweed is a journey that elevates us as Muslims. It goes beyond mere recitation; it is a profound commitment that engages the heart, mind, and spirit."
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "It safeguards against mispronunciation, preserving the Quran as it was revealed to the Prophet (PBUH) and nurturing a deep appreciation for its divine rhythm and harmony."
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "This practice becomes a source of inspiration and guidance, reinforcing our faith in Allah's wisdom. Each recited verse with proper Tajweed carries divine resonance, enriching the soul and illuminating our spiritual journey."
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "Scholars affirm that learning Tajweed enhances cognitive abilities, as it requires concentration, practice, and discipline, which can refine focus and promote mindfulness."
+              }
+            ]
+          },
+          {
+            "items": [
+              {
+                "type": "text",
+                "style": "sectionHeading",
+                "content": "Quranic Verses & Hadiths on the Significance of Quran Tajweed"
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "In Surah Al-Qamar (54:17), Allah instructs:"
+              },
+              {
+                "type": "boldPrefixText",
+                "prefix": "Surah Al-Qacar (54:17):",
+                "content": "",
+                "style": "body"
+              },
+              {
+                "type": "text",
+                "style": "quoteSemibold",
+                "icon": "QuranImageIcon",
+                "content": "\"And recite the Quran with measured recitation.\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "This verse emphasizes the importance of proper Tajweed, highlighting the need for precision in recitation to foster a deeper connection with the Quran.\n\nIn Surah Al-Furqan (25:32), Allah says:"
+              },
+              {
+                "type": "boldPrefixText",
+                "prefix": "Surah Al-Furqan (25:32):",
+                "content": "",
+                "style": "body"
+              },
+              {
+                "type": "text",
+                "style": "quoteSemibold",
+                "icon": "QuranImageIcon",
+                "content": "\"...at once?' Thus [it is] that We may strengthen thereby your heart. And We have spaced it distinctly.\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "This verse highlights the wisdom behind the gradual revelation of the Quran, allowing it to be understood, implemented, and preserved with care—qualities that Tajweed embodies through its meticulous attention to detail.\n\nMoreover, the Prophet (PBUH) underscored the value of Tajweed. In a Hadith, he stated:"
+              },
+              {
+                "type": "text",
+                "style": "quoteMediumItalic",
+                "icon": "HadeethBookIcon",
+                "content": "\"Beautify the Quran with your voices.\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "This Hadith highlights the value of Tajweed in enhancing the beauty of recitation, making it a means of spiritual elevation. He further stated:"
+              },
+              {
+                "type": "text",
+                "style": "quoteItalic",
+                "icon": "HadeethBookIcon",
+                "content": "\"The best among you are those who learn the Quran and teach it.\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "These teachings highlight the immense rewards and blessings of learning the Quran, inspiring us to perfect its recitation. With dedication and practice, Tajweed becomes a pathway to spiritual growth, allowing the Quran's meanings to deeply resonate."
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

@@ -34,9 +34,14 @@ export default function WelcomeScreen() {
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.overlay} />
 
-        <Text style={styles.heroText}>{t("welcomeScreen.welcomeText")}</Text>
+        <Text
+          style={styles.heroText}
+          allowFontScaling={false}
+          maxFontSizeMultiplier={1}
+        >
+          {t("welcomeScreen.welcomeText")}
+        </Text>
 
-       
         <PrimaryButton
           text={t("welcomeScreen.loginBtnText")}
           onPress={handleLogin}

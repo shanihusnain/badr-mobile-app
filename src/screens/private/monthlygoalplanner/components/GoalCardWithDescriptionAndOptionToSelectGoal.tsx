@@ -17,6 +17,7 @@ export const GoalCardWithDescriptionAndOptionToSelectGoal = ({
   onToggle,
   onSwicthPress,
   imageSource,
+  isLoading = false,
 }: {
   initialValue?: boolean;
   title: string;
@@ -25,6 +26,7 @@ export const GoalCardWithDescriptionAndOptionToSelectGoal = ({
   onToggle?: (value: boolean) => void;
   onSwicthPress?: () => void;
   imageSource?: any;
+  isLoading?: boolean;
 }) => {
   const { t, i18n } = useTranslation();
   const isRtl = i18n.language === "ar";
@@ -39,9 +41,10 @@ export const GoalCardWithDescriptionAndOptionToSelectGoal = ({
   }, [initialValue]);
 
   const handleSwitchPress = () => {
+    if (isLoading) return;
     const newValue = !isOn.value;
     isOn.value = newValue;
-    
+
     // Defer the heavy parent state updates slightly to allow the switch's local
     // animation to start and run with absolute fluidity on the UI thread first.
     setTimeout(() => {
@@ -50,32 +53,53 @@ export const GoalCardWithDescriptionAndOptionToSelectGoal = ({
     }, 50);
   };
 
+  const displayTitle = isLoading ? "-" : title;
+  const displayDescription = isLoading ? "----" : description;
+
   return (
     <View style={styles.conatiner}>
-      <ImageBackground style={styles.backgroundImage} source={imageSource || Icon}>
-        <SwitchButton
-          value={isOn}
-          onPress={handleSwitchPress}
-          style={[styles.switch, isRtl && { alignSelf: "flex-start" }]}
-          size="small"
-        />
-      </ImageBackground>
+      {isLoading ? (
+        <View style={[styles.backgroundImage, styles.loadingImage]}>
+          <SwitchButton
+            value={isOn}
+            onPress={handleSwitchPress}
+            style={[styles.switch, isRtl && { alignSelf: "flex-start" }]}
+            size="small"
+          />
+        </View>
+      ) : (
+        <ImageBackground
+          style={styles.backgroundImage}
+          source={imageSource || Icon}
+        >
+          <SwitchButton
+            value={isOn}
+            onPress={handleSwitchPress}
+            style={[styles.switch, isRtl && { alignSelf: "flex-start" }]}
+            size="small"
+          />
+        </ImageBackground>
+      )}
       <TopSpace top={12} />
-      <Text style={[styles.title, isRtl && { textAlign: "right" }]}>{title}</Text>
+      <Text style={[styles.title, isRtl && { textAlign: "right" }]}>
+        {displayTitle}
+      </Text>
       <TopSpace top={12} />
       <Text
         numberOfLines={isDescExpanded ? undefined : DESCRIPTION_MAX_LINES}
         style={[styles.description, isRtl && { textAlign: "right" }]}
       >
-        {description}
+        {displayDescription}
       </Text>
       <TopSpace top={2} />
-      <Pressable onPress={handleSeeMorePRess}>
-        <Text style={[styles.seeMoreText, isRtl && { textAlign: "right" }]}>
-          <Text style={{ color: Colors.light.white }}>... {}</Text>
-          {t("monthlyGoalPlanner.readMore")}
-        </Text>
-      </Pressable>
+      {!isLoading && (
+        <Pressable onPress={handleSeeMorePRess}>
+          <Text style={[styles.seeMoreText, isRtl && { textAlign: "right" }]}>
+            <Text style={{ color: Colors.light.white }}>... {}</Text>
+            {t("monthlyGoalPlanner.readMore")}
+          </Text>
+        </Pressable>
+      )}
     </View>
   );
 };
@@ -105,6 +129,9 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 4,
     overflow: "hidden",
+  },
+  loadingImage: {
+    backgroundColor: Colors.light.blackBackground,
   },
   conatiner: {
     borderRadius: 8,

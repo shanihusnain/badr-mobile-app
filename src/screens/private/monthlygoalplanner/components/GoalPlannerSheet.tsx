@@ -23,10 +23,6 @@ import {
   shukarprayerbottomsheetimage,
   fivedailyprayerbottomsheetimage,
   qiyamallaylbottomsheetimage,
-  quranlisteningbottomsheetimage,
-  quranrecitationbottomsheetimage,
-  quranmemorizationbottomsheetimage,
-  qurantajweedbottomsheetimage,
   missedramadanfastsbottomsheetimage,
   thefastsofprophetdawoodbottomsheetimage,
   mondayandthursdayfastsbottomsheetimage,
@@ -36,7 +32,7 @@ import {
   fidyabottomsheetimage,
   lillahdonationbottomsheetimage,
   volunteeringservicesbottomsheetimage,
-  sadaqahjariyahbottomsheetimage
+  sadaqahjariyahbottomsheetimage,
 } from "@/assets/images";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import PrimaryButton from "@/components/atoms/Primary-button";
@@ -65,8 +61,35 @@ import { setMondayThursdaySelectedGoalFasts } from "@/src/screens/private/goalpr
 import { ReviewGoalBtn } from "./ReviewGoalBtn";
 import ReviewGoalCard from "./ReviewGoalCard";
 import { useGetAllPrayerGoals } from "@/src/api/queries/useGetAllPrayerGoals";
-import { mapPrayerGoalsFromApi } from "@/src/utils/prayerGoalMap";
+import {
+  getFiveDailyInitial,
+  getMissedTargetDays,
+  getQiyamInitial,
+  getSimpleTargetCount,
+  getSunnahInitial,
+  mapPrayerGoalsFromApi,
+  PRAYER_TYPE_TO_UI_ID,
+} from "@/src/utils/prayerGoalMap";
 import { useTogglePrayerGoalByType } from "@/src/api/mutations/useTogglePrayerGoalByType";
+import { useUpsertPrayerGoal } from "@/src/api/mutations/useUpsertPrayerGoal";
+import { useGetAllQuranGoals } from "@/src/api/queries/useGetAllQuranGoals";
+import { useToggleQuranGoalByType } from "@/src/api/mutations/useToggleQuranGoalByType";
+import { useBulkUpsertQuranGoals } from "@/src/api/mutations/useUpsertQuranGoal";
+import {
+  buildBulkQuranGoalsForVariant,
+  buildHoursQuranPayload,
+  getQuranTypesForUiId,
+  mapQuranGoalsFromApi,
+  QURAN_GOAL_LOADING_PLACEHOLDERS,
+} from "@/src/utils/quranGoalMap";
+import { showToast } from "@/src/config/toastConfig";
+
+const PRAYER_GOAL_LOADING_PLACEHOLDERS = Object.keys(PRAYER_TYPE_TO_UI_ID).map(
+  (_, index) => ({
+    id: `prayer-loading-${index}`,
+    isLoadingPlaceholder: true,
+  }),
+);
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -136,9 +159,20 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
         enabled: activeTab === "prayer",
       });
 
+    const {
+      data: allQuranGoalsFromApi,
+      isLoading: loadingQuranGoals,
+      isError: errorLoadingQuranGoals,
+    } = useGetAllQuranGoals({ enabled: activeTab === "quran" });
+
     const prayerGoals = useMemo(
       () => mapPrayerGoalsFromApi(prayerGoalsFromApi),
       [prayerGoalsFromApi],
+    );
+
+    const quranGoals = useMemo(
+      () => mapQuranGoalsFromApi(allQuranGoalsFromApi),
+      [allQuranGoalsFromApi],
     );
 
     // Seed toggle state from backend isActive (only for keys not yet toggled locally)
@@ -156,6 +190,21 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
         return changed ? next : prev;
       });
     }, [prayerGoals]);
+
+    useEffect(() => {
+      if (!quranGoals.length) return;
+      setSelectedGoals((prev) => {
+        const next = { ...prev };
+        let changed = false;
+        for (const goal of quranGoals) {
+          if (next[goal.id] === undefined) {
+            next[goal.id] = goal.isSelected;
+            changed = true;
+          }
+        }
+        return changed ? next : prev;
+      });
+    }, [quranGoals]);
 
     // lifted sadaqah metrics collected from children
     const [sadaqahMetrics, setSadaqahMetrics] = useState<Record<string, any>>(
@@ -591,41 +640,6 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
       [],
     );
 
-    const QuranData = [
-      {
-        id: "quran-listening",
-        title: "Quran Listening",
-        description:
-          "Listening to the Quran brings tranquility, shields from evil, alleviates stress, enhances recitation, and refines tajweed skills, fostering spiritual growth",
-        isSelected: false,
-        image: quranlisteningbottomsheetimage,
-      },
-      {
-        id: "quran-recitation",
-        title: "Quran Recitation",
-        description:
-          "Reciting the Quran multiplies rewards, refines pronunciation, deepens understanding, and softens hearts, fostering a profound connection with Allah",
-        isSelected: false,
-        image: quranrecitationbottomsheetimage,
-      },
-      {
-        id: "quran-memorization",
-        title: "Quran Memorization",
-        description:
-          "Every word we memorize elevates our rank in Paradise, grants intercession for others, sharpens the mind, and enhances comprehension of the Quran",
-        isSelected: false,
-        image: quranmemorizationbottomsheetimage,
-      },
-      {
-        id: "quran-tajweed",
-        title: "QURAN TAJWEED",
-        description:
-          "Tajweed perfects Quranic recitation as revealed to the Prophet (PBUH), preserving its authentic pronunciation, rhythm, and melody while deepening understanding",
-        isSelected: false,
-        image: qurantajweedbottomsheetimage,
-      },
-    ];
-
     const fastingData = [
       {
         id: "missed-fasts",
@@ -711,7 +725,10 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
       },
     ];
     const { mutate: togglePrayerGoalByType } = useTogglePrayerGoalByType();
-    // ── Render ───────────────────────────────────────────────────────────────
+    const { mutateAsync: toggleQuranGoalByType } = useToggleQuranGoalByType();
+    const { mutate: upsertPrayerGoal } = useUpsertPrayerGoal();
+    const { mutate: bulkUpsertQuranGoals } = useBulkUpsertQuranGoals();
+
     const handlePrayerToggle = useCallback(
       (prayerId: string, prayerType: string, isSelected: boolean) => {
         handleGoalToggle(prayerId, isSelected);
@@ -728,15 +745,89 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
       },
       [handleGoalToggle, togglePrayerGoalByType],
     );
+
+    const handleQuranToggle = useCallback(
+      async (
+        quranId: string,
+        apiGoals: { quranGoalType: string }[] | undefined,
+        isSelected: boolean,
+      ) => {
+        handleGoalToggle(quranId, isSelected);
+
+        const fromApi =
+          apiGoals?.map((g) => g.quranGoalType).filter(Boolean) ?? [];
+        const types =
+          fromApi.length > 0 ? fromApi : getQuranTypesForUiId(quranId);
+
+        try {
+          await Promise.all(
+            types.map((quranGoalType) =>
+              toggleQuranGoalByType({
+                quranGoalType,
+                isActive: isSelected,
+              }),
+            ),
+          );
+        } catch {
+          handleGoalToggle(quranId, !isSelected);
+        }
+      },
+      [handleGoalToggle, toggleQuranGoalByType],
+    );
+
+    const saveSimplePrayerTarget = useCallback(
+      (prayerType: string, targetCount: number) => {
+        upsertPrayerGoal({
+          prayerType,
+          isActive: true,
+          targetCount,
+          sliderValue: targetCount,
+        });
+      },
+      [upsertPrayerGoal],
+    );
+
+    const saveQuranHoursGoal = useCallback(
+      (quranGoalType: "LISTENING" | "TAJWEED", hours: number) => {
+        bulkUpsertQuranGoals({
+          goals: [buildHoursQuranPayload(quranGoalType, hours)],
+        });
+      },
+      [bulkUpsertQuranGoals],
+    );
+
+    const saveQuranMetricGoal = useCallback(
+      (
+        variant: "recitation" | "memorization",
+        /** When set (review editors), only that metric is sent; otherwise all configured metrics. */
+        onlyMetric?: "surah" | "juz" | "completion" | "hizb",
+      ) => {
+        const goals = buildBulkQuranGoalsForVariant(
+          variant,
+          quranMetrics,
+          onlyMetric,
+        );
+        if (goals.length === 0) {
+          showToast("error", "Please complete your goal selection");
+          return;
+        }
+        bulkUpsertQuranGoals({ goals });
+      },
+      [quranMetrics, bulkUpsertQuranGoals],
+    );
     // Build a simple data array for the active tab. Use any[] to avoid complex typing across different data shapes
     const tabData: any[] = useMemo(() => {
       switch (activeTab) {
         case "cycle":
           return [];
         case "prayer":
-          return prayerGoals;
+          return loadingPrayerGoals
+            ? PRAYER_GOAL_LOADING_PLACEHOLDERS
+            : prayerGoals;
         case "quran":
-          return QuranData;
+          return loadingQuranGoals
+            ? QURAN_GOAL_LOADING_PLACEHOLDERS
+            : quranGoals;
         case "fasting":
           return fastingData;
         case "sadaqah":
@@ -748,8 +839,10 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
       }
     }, [
       activeTab,
+      loadingPrayerGoals,
+      loadingQuranGoals,
       prayerGoals,
-      QuranData,
+      quranGoals,
       fastingData,
       sadaqahData,
       reviewBtnData,
@@ -774,13 +867,14 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
             <QuranTimeSelection
               title={t("monthlyGoalPlanner.selectNumHours")}
               description={t("monthlyGoalPlanner.hoursQuranListening")}
+              quranGoalType="LISTENING"
               onSave={(hours: number) => {
-                setQuranMetrics((prev) => ({ ...prev, listeningHours: hours }));
                 setQuranMetrics((prev) => ({
                   ...prev,
                   listeningHours: hours,
                   [key]: [{ id: 1, label: "Hours", value: `${hours} hrs` }],
                 }));
+                saveQuranHoursGoal("LISTENING", hours);
                 setEditingGoal(null);
               }}
             />
@@ -790,13 +884,14 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
             <QuranTimeSelection
               title={t("monthlyGoalPlanner.selectNumHours")}
               description={t("monthlyGoalPlanner.hoursQuranTajweed")}
+              quranGoalType="TAJWEED"
               onSave={(hours: number) => {
-                setQuranMetrics((prev) => ({ ...prev, tajweedHours: hours }));
                 setQuranMetrics((prev) => ({
                   ...prev,
                   tajweedHours: hours,
                   [key]: [{ id: 1, label: "Hours", value: `${hours} hrs` }],
                 }));
+                saveQuranHoursGoal("TAJWEED", hours);
                 setEditingGoal(null);
               }}
             />
@@ -826,6 +921,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
                     },
                   ],
                 }));
+                saveQuranMetricGoal("recitation", "surah");
                 setEditingGoal(null);
               }}
             />
@@ -855,6 +951,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
                     },
                   ],
                 }));
+                saveQuranMetricGoal("recitation", "completion");
                 setEditingGoal(null);
               }}
             />
@@ -880,6 +977,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
                     { id: 1, label: "Juz", value: String(prev?.juz ?? "") },
                   ],
                 }));
+                saveQuranMetricGoal("recitation", "juz");
                 setEditingGoal(null);
               }}
             />
@@ -905,6 +1003,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
                     { id: 1, label: "Juz", value: String(prev?.juz ?? "") },
                   ],
                 }));
+                saveQuranMetricGoal("memorization", "juz");
                 setEditingGoal(null);
               }}
             />
@@ -930,6 +1029,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
                     { id: 1, label: "Hizb", value: String(prev?.hizb ?? "") },
                   ],
                 }));
+                saveQuranMetricGoal("memorization", "hizb");
                 setEditingGoal(null);
               }}
             />
@@ -955,6 +1055,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
                     { id: 1, label: "Surah", value: String(prev?.surah ?? "") },
                   ],
                 }));
+                saveQuranMetricGoal("memorization", "surah");
                 setEditingGoal(null);
               }}
             />
@@ -1244,23 +1345,8 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
         case "sunnah-rawatib":
           return (
             <SunnahRawatibGoalSelection
-              onSave={(
-                beforeFajr,
-                beforeDuhr,
-                afterDuhr,
-                beforeAsr,
-                afterMaghrib,
-                afterIsha,
-              ) => {
-                console.log(
-                  "saving subbah rawatib with",
-                  beforeFajr,
-                  beforeDuhr,
-                  afterDuhr,
-                  beforeAsr,
-                  afterMaghrib,
-                  afterIsha,
-                );
+              onSave={(payload) => {
+                console.log("saving sunnah rawatib with", payload);
                 setEditingGoal(null);
               }}
             />
@@ -1460,6 +1546,21 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
           renderItem={({ item }: { item: any }) => {
             if (activeTab === "prayer") {
               const prayer = item;
+              if (prayer.isLoadingPlaceholder) {
+                return (
+                  <View key={prayer.id}>
+                    <GoalCardWithDescriptionAndOptionToSelectGoal
+                      initialValue={false}
+                      title="---"
+                      description="----------------------------------------------"
+                      imageSource={undefined}
+                      isLoading
+                      handleSeeMorePRess={() => {}}
+                    />
+                    <TopSpace top={10} />
+                  </View>
+                );
+              }
               const isOn = selectedGoals[prayer.id] ?? prayer.isSelected;
               return (
                 <View key={prayer.prayerType ?? prayer.id}>
@@ -1469,12 +1570,13 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
                       prayer.title || t(`goalsData.${prayer.id}.title`)
                     ).toUpperCase()}
                     imageSource={prayer?.image}
-                    handleSeeMorePRess={() =>
-                      router.push({
-                        pathname: "/(private)/goaldescriptiondetails/[goal]",
-                        params: { goal: prayer.id },
-                      })
-                    }
+                    handleSeeMorePRess={() => {
+                      (console.log("prayer", prayer),
+                        router.push({
+                          pathname: "/(private)/goaldescriptiondetails/[goal]",
+                          params: { goal: prayer.prayerType },
+                        }));
+                    }}
                     description={
                       prayer.description ||
                       t(`goalsData.${prayer.id}.description`)
@@ -1488,34 +1590,133 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
                     }
                   />
                   {prayer.id === "tahayyat-ul-wudhu" && isOn && (
-                    <TahiyatWuduGoalSelection />
+                    <TahiyatWuduGoalSelection
+                      initialValue={getSimpleTargetCount(prayer, 25)}
+                      onSave={(value) =>
+                        saveSimplePrayerTarget(prayer.prayerType, value)
+                      }
+                    />
                   )}
                   {prayer.id === "fiveDailyPrayers" && isOn && (
-                    <DailyPrayerGoalSelection />
+                    <DailyPrayerGoalSelection
+                      initialValues={getFiveDailyInitial(prayer)}
+                      onSave={(
+                        fajr,
+                        dhuhr,
+                        asar,
+                        maghrib,
+                        isha,
+                        jumuah,
+                        trackCongregation,
+                      ) => {
+                        upsertPrayerGoal({
+                          prayerType: prayer.prayerType,
+                          isActive: true,
+                          fiveDailyConfig: {
+                            fajrTarget: fajr,
+                            dhuhrTarget: dhuhr,
+                            asrTarget: asar,
+                            maghribTarget: maghrib,
+                            ishaTarget: isha,
+                            jumuahTarget: jumuah,
+                            congregationalTracking: trackCongregation,
+                          },
+                        });
+                      }}
+                    />
                   )}
                   {prayer.id === "sunnahRawatib" && isOn && (
-                    <SunnahRawatibGoalSelection />
+                    <SunnahRawatibGoalSelection
+                      initialValues={getSunnahInitial(prayer)}
+                      onSave={(payload) => {
+                        upsertPrayerGoal({
+                          prayerType: prayer.prayerType,
+                          isActive: true,
+                          sunnahConfig: {
+                            beforeFajrTarget: payload.beforeFajr,
+                            beforeDhuhrTarget: payload.beforeDhuhr,
+                            afterDhuhrTarget: payload.afterDhuhr,
+                            afterDhuhrRakahOption:
+                              payload.afterDhuhrRakahOption,
+                            beforeAsrEnabled: payload.beforeAsrEnabled,
+                            beforeAsrTarget: payload.beforeAsr,
+                            beforeAsrRakahOption: payload.beforeAsrRakahOption,
+                            afterMaghribTarget: payload.afterMaghrib,
+                            afterIshaTarget: payload.afterIsha,
+                          },
+                        });
+                      }}
+                    />
                   )}
                   {prayer.id === "thayyat-ul-masjid" && isOn && (
-                    <TahiyyatMasjidGoalSelection />
+                    <TahiyyatMasjidGoalSelection
+                      initialValue={getSimpleTargetCount(prayer, 140)}
+                      onSave={(value) =>
+                        saveSimplePrayerTarget(prayer.prayerType, value)
+                      }
+                    />
                   )}
                   {prayer.id === "missedPastPrayers" && isOn && (
-                    <MissedPrayerGoalSelection />
+                    <MissedPrayerGoalSelection
+                      initialValue={getMissedTargetDays(prayer, 3)}
+                      onSave={(value) => {
+                        upsertPrayerGoal({
+                          prayerType: prayer.prayerType,
+                          isActive: true,
+                          targetDays: value,
+                          targetCount: value * 5,
+                          sliderValue: value,
+                        });
+                      }}
+                    />
                   )}
                   {prayer.id === "duhaPrayer" && isOn && (
-                    <DuhaPrayerGoalSelection />
+                    <DuhaPrayerGoalSelection
+                      initialValue={getSimpleTargetCount(prayer, 40)}
+                      onSave={(value) =>
+                        saveSimplePrayerTarget(prayer.prayerType, value)
+                      }
+                    />
                   )}
                   {prayer.id === "tawbaPrayer" && isOn && (
-                    <TawbahPrayerGoalSelection />
+                    <TawbahPrayerGoalSelection
+                      initialValue={getSimpleTargetCount(prayer, 25)}
+                      onSave={(value) =>
+                        saveSimplePrayerTarget(prayer.prayerType, value)
+                      }
+                    />
                   )}
                   {prayer.id === "istikharah" && isOn && (
-                    <IstikharaPrayerGoalSelection />
+                    <IstikharaPrayerGoalSelection
+                      initialValue={getSimpleTargetCount(prayer, 25)}
+                      onSave={(value) =>
+                        saveSimplePrayerTarget(prayer.prayerType, value)
+                      }
+                    />
                   )}
                   {prayer.id === "shukrPrayer" && isOn && (
-                    <ShukarPrayerGoalSelection />
+                    <ShukarPrayerGoalSelection
+                      initialValue={getSimpleTargetCount(prayer, 25)}
+                      onSave={(value) =>
+                        saveSimplePrayerTarget(prayer.prayerType, value)
+                      }
+                    />
                   )}
                   {prayer.id === "qiyamalLail" && isOn && (
-                    <QiyamalLaylGoalSelection />
+                    <QiyamalLaylGoalSelection
+                      initialValues={getQiyamInitial(prayer)}
+                      onSave={(payload) => {
+                        upsertPrayerGoal({
+                          prayerType: prayer.prayerType,
+                          isActive: true,
+                          qiyamConfig: {
+                            isFlexible: payload.commitment === "flexible",
+                            unitTarget: payload.twoRakahPrayers,
+                            trackTahajjud: payload.trackTahajjud === "yes",
+                          },
+                        });
+                      }}
+                    />
                   )}
                   <TopSpace top={10} />
                 </View>
@@ -1524,11 +1725,30 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
 
             if (activeTab === "quran") {
               const quran = item;
+              if (quran.isLoadingPlaceholder) {
+                return (
+                  <View key={quran.id}>
+                    <GoalCardWithDescriptionAndOptionToSelectGoal
+                      initialValue={false}
+                      title="---"
+                      description="----------------------------------------------"
+                      imageSource={undefined}
+                      isLoading
+                      handleSeeMorePRess={() => {}}
+                    />
+                    <TopSpace top={10} />
+                  </View>
+                );
+              }
+
+              const isOn = selectedGoals[quran.id] ?? quran.isSelected;
               return (
                 <View key={quran.id}>
                   <GoalCardWithDescriptionAndOptionToSelectGoal
-                    initialValue={quran.isSelected}
-                    title={t(`goalsData.${quran.id}.title`).toUpperCase()}
+                    initialValue={isOn}
+                    title={(
+                      quran.title || t(`goalsData.${quran.id}.title`)
+                    ).toUpperCase()}
                     imageSource={quran.image}
                     handleSeeMorePRess={() =>
                       router.push({
@@ -1536,53 +1756,87 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
                         params: { goal: quran.id },
                       })
                     }
-                    description={t(`goalsData.${quran.id}.description`)}
-                    onToggle={(val) => handleGoalToggle(quran.id, val)}
+                    description={
+                      quran.description ||
+                      t(`goalsData.${quran.id}.description`)
+                    }
+                    onToggle={(val) =>
+                      handleQuranToggle(quran.id, quran.apiGoals, val)
+                    }
                   />
-                  {quran.id === "quran-listening" &&
-                    selectedGoals[quran.id] && (
-                      <QuranTimeSelection
-                        title={t("monthlyGoalPlanner.selectNumHours")}
-                        description={t(
-                          "monthlyGoalPlanner.hoursQuranListening",
-                        )}
-                      />
-                    )}
-                  {quran.id === "quran-tajweed" && selectedGoals[quran.id] && (
+                  {quran.id === "quran-listening" && isOn && (
+                    <QuranTimeSelection
+                      title={t("monthlyGoalPlanner.selectNumHours")}
+                      description={t("monthlyGoalPlanner.hoursQuranListening")}
+                      quranGoalType="LISTENING"
+                      onSave={(hours) => {
+                        setQuranMetrics((prev) => ({
+                          ...prev,
+                          listeningHours: hours,
+                        }));
+                        saveQuranHoursGoal("LISTENING", hours);
+                      }}
+                    />
+                  )}
+                  {quran.id === "quran-tajweed" && isOn && (
                     <QuranTimeSelection
                       title={t("monthlyGoalPlanner.selectNumHours")}
                       description={t("monthlyGoalPlanner.hoursQuranTajweed")}
+                      quranGoalType="TAJWEED"
+                      onSave={(hours) => {
+                        setQuranMetrics((prev) => ({
+                          ...prev,
+                          tajweedHours: hours,
+                        }));
+                        saveQuranHoursGoal("TAJWEED", hours);
+                      }}
                     />
                   )}
-                  {quran.id === "quran-recitation" &&
-                    selectedGoals[quran.id] && (
-                      <QuranRecitationGoalSelection
-                        title={t("monthlyGoalPlanner.selectTrackingMetric")}
-                        onMetricsChange={(payload) => {
-                          // store latest metric data by metric name
-                          setQuranMetrics((prev) => ({
+                  {quran.id === "quran-recitation" && isOn && (
+                    <QuranRecitationGoalSelection
+                      title={t("monthlyGoalPlanner.selectTrackingMetric")}
+                      onMetricsChange={(payload) => {
+                        setQuranMetrics((prev) => {
+                          const current = prev[payload.metric];
+                          if (
+                            JSON.stringify(current) ===
+                            JSON.stringify(payload.value)
+                          ) {
+                            return prev;
+                          }
+                          return {
                             ...prev,
                             [payload.metric]: payload.value,
-                          }));
-                        }}
-                        variant="others"
-                      />
-                    )}
+                          };
+                        });
+                      }}
+                      variant="others"
+                      onSave={() => saveQuranMetricGoal("recitation")}
+                    />
+                  )}
 
-                  {quran.id === "quran-memorization" &&
-                    selectedGoals[quran.id] && (
-                      <QuranRecitationGoalSelection
-                        title={t("monthlyGoalPlanner.selectTrackingMetric")}
-                        onMetricsChange={(payload) => {
-                          // store latest metric data by metric name
-                          setQuranMetrics((prev) => ({
+                  {quran.id === "quran-memorization" && isOn && (
+                    <QuranRecitationGoalSelection
+                      title={t("monthlyGoalPlanner.selectTrackingMetric")}
+                      onMetricsChange={(payload) => {
+                        setQuranMetrics((prev) => {
+                          const current = prev[payload.metric];
+                          if (
+                            JSON.stringify(current) ===
+                            JSON.stringify(payload.value)
+                          ) {
+                            return prev;
+                          }
+                          return {
                             ...prev,
                             [payload.metric]: payload.value,
-                          }));
-                        }}
-                        variant="memorization"
-                      />
-                    )}
+                          };
+                        });
+                      }}
+                      variant="memorization"
+                      onSave={() => saveQuranMetricGoal("memorization")}
+                    />
+                  )}
                   <TopSpace top={10} />
                 </View>
               );

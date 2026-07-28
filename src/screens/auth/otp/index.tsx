@@ -3,8 +3,7 @@ import { BadrTreeImage } from "@/assets/images";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Keyboard,
-  KeyboardAvoidingView,
-  Platform,
+  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
@@ -99,12 +98,12 @@ export default function OtpScreen() {
   const handleVerify = async () => {
     const isComplete = otp.every((digit) => digit !== "");
     if (!isComplete) {
-      setError(t("validations.inputMissing"));
+      setError(t("validations.otpRequired"));
       return;
     }
 
     if (!email) {
-      setError(t("validations.inputMissing"));
+      setError(t("validations.emailRequired"));
       return;
     }
 
@@ -118,7 +117,6 @@ export default function OtpScreen() {
       }
 
       if (fromsignup === "true") {
-        // router.push("/(auth)/paymentMethod");
         router.replace("/login");
       } else {
         router.push({
@@ -153,20 +151,20 @@ export default function OtpScreen() {
       <SafeAreaView style={styles.safeArea} edges={["bottom"]}>
         <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
           <View style={styles.contentView}>
-            <KeyboardAvoidingView
-              style={styles.keyboardAvoidingView}
-              behavior={Platform.OS === "ios" ? "padding" : "height"}
-              keyboardVerticalOffset={0}
-            >
-              <ImageBackground
-                source={BadrTreeImage}
-                style={styles.imageSection}
-                contentFit="cover"
-              >
-                <View style={styles.imageTapArea} />
-              </ImageBackground>
+            <ImageBackground
+              source={BadrTreeImage}
+              style={styles.imageSection}
+              contentFit="cover"
+            />
 
-              <View style={styles.bottomSheet}>
+            <View style={styles.bottomSheet}>
+              <ScrollView
+                style={styles.bottomSheetScroll}
+                contentContainerStyle={styles.bottomSheetContent}
+                keyboardShouldPersistTaps="handled"
+                bounces={false}
+                showsVerticalScrollIndicator={false}
+              >
                 <Text style={styles.otpInfoText}>{getDescriptionText()}</Text>
 
                 <View style={styles.otpContainer}>
@@ -219,8 +217,8 @@ export default function OtpScreen() {
                     }
                   />
                 </View>
-              </View>
-            </KeyboardAvoidingView>
+              </ScrollView>
+            </View>
           </View>
         </TouchableWithoutFeedback>
       </SafeAreaView>

@@ -2,8 +2,9 @@ import { fonts } from "@/assets/fonts";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { Colors } from "@/constants/theme";
 import { AntDesign } from "@expo/vector-icons";
-import { Fragment, useState, useEffect } from "react";
+import { Fragment, useState, useEffect, useRef } from "react";
 import {
+  ActivityIndicator,
   FlatList,
   Pressable,
   StyleSheet,
@@ -13,8 +14,14 @@ import {
 } from "react-native";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import { opacity } from "react-native-reanimated/lib/typescript/Colors";
 import { useTranslation } from "react-i18next";
+import type {
+  QuranHizbOption,
+  QuranSurahOption,
+} from "@/src/utils/quranGoalMap";
+
+const EMPTY_SURAHS: QuranSurahOption[] = [];
+const EMPTY_HIZBS: QuranHizbOption[] = [];
 
 export const MetricSelectionComponent = ({
   item,
@@ -22,6 +29,14 @@ export const MetricSelectionComponent = ({
   selectedMetric,
   onMetricChange,
   variant,
+  surahOptions,
+  hizbOptions,
+  initialSelectedSurahs,
+  initialSurahSettings,
+  initialJuzRange,
+  initialSelectedHizb,
+  initialCompletion,
+  isLoadingOptions,
 }: {
   item: {
     id: number;
@@ -32,29 +47,32 @@ export const MetricSelectionComponent = ({
   selectedMetric: "surah" | "juz" | "completion" | "hizb" | undefined;
   onMetricChange?: (payload: { metric: string; value: any }) => void;
   variant?: "memorization" | "others";
+  surahOptions?: QuranSurahOption[];
+  hizbOptions?: QuranHizbOption[];
+  initialSelectedSurahs?: number[];
+  initialSurahSettings?: Record<
+    number,
+    { frequency: "daily" | "weekly"; times: number }
+  >;
+  initialJuzRange?: { start: number; end: number } | null;
+  initialSelectedHizb?: number;
+  initialCompletion?: number;
+  isLoadingOptions?: boolean;
 }) => {
   const { t } = useTranslation();
   const isMemorizationSurah =
     variant === "memorization" && item.name === "surah";
+  const isActiveMetric = selectedMetric === item.name;
   const [selectedSurahs, setSelectedSurahs] = useState<number[]>([]);
   const [selectedHizbs, setSelectedHizbs] = useState<number[]>([]);
-  // NOTE: hizb should be single-select. We'll store a single selected id (or undefined)
   const [selectedHizb, setSelectedHizb] = useState<number | undefined>(
     undefined,
   );
-  const surahData = [
-    { id: 1, surahName: "al-baqarah", surahTitle: "Al-Baqarah" },
-    { id: 2, surahName: "al-imran", surahTitle: "Al-Imran" },
-    { id: 3, surahName: "an-nisa", surahTitle: "An-Nisa" },
-    { id: 4, surahName: "al-maidah", surahTitle: "Al-Maidah" },
-  ];
-  const hizbData = [
-    {
-      id: 1,
-      hizbName: "Hizb 1 | Al-Fatiha 1:1 – Al-Baqarah 2:74",
-      verses: "(81 verses)",
-    },
-  ];
+  const surahData = surahOptions ?? EMPTY_SURAHS;
+  const hizbData = hizbOptions ?? EMPTY_HIZBS;
+  const hydratedForTypeRef = useRef<string | null>(null);
+  const onMetricChangeRef = useRef(onMetricChange);
+  onMetricChangeRef.current = onMetricChange;
 
   const toggleSurah = (id: number) => {
     setSelectedSurahs((prev) =>
@@ -75,16 +93,71 @@ export const MetricSelectionComponent = ({
   const setInputFocused = (key: string, value: boolean) => {
     setFocusedInputs((prev) => ({ ...prev, [key]: value }));
   };
-  console.log("the input that is focused now is ", focusedInputs);
-  useEffect(() => {
-    // keep text input synced when juzEnd changes programmatically
-    setJuzEndText(juzEnd !== undefined ? String(juzEnd) : "");
 
-    if (juzEnd < juzStart) {
+  // Hydrate from backend detail once per goal-type load
+  useEffect(() => {
+    if (!isActiveMetric || isLoadingOptions) return;
+
+    const hydrateKey = [
+      item.name,
+      (initialSelectedSurahs ?? []).join(","),
+      initialSelectedHizb ?? "",
+      initialJuzRange?.start ?? "",
+      initialJuzRange?.end ?? "",
+      initialCompletion ?? "",
+      surahData.length,
+      hizbData.length,
+    ].join("|");
+
+    if (hydratedForTypeRef.current === hydrateKey) return;
+    hydratedForTypeRef.current = hydrateKey;
+
+    if (initialSelectedSurahs?.length) {
+      setSelectedSurahs(initialSelectedSurahs);
+    }
+    if (initialSurahSettings && Object.keys(initialSurahSettings).length > 0) {
+      setSurahSettings(initialSurahSettings);
+    }
+    if (initialJuzRange) {
+      setJuzStart(initialJuzRange.start);
+      setJuzEnd(initialJuzRange.end);
+      setJuzEndText(String(initialJuzRange.end));
+    }
+    if (initialSelectedHizb != null) {
+      setSelectedHizb(initialSelectedHizb);
+    }
+    if (initialCompletion != null && initialCompletion > 0) {
+      setQuranCompletion(initialCompletion);
+    }
+  }, [
+    isActiveMetric,
+    isLoadingOptions,
+    item.name,
+    initialSelectedSurahs,
+    initialSurahSettings,
+    initialJuzRange,
+    initialSelectedHizb,
+    initialCompletion,
+    surahData.length,
+    hizbData.length,
+  ]);
+
+  // Reset hydrate marker when switching away from this metric
+  useEffect(() => {
+    if (!isActiveMetric) {
+      hydratedForTypeRef.current = null;
+    }
+  }, [isActiveMetric]);
+
+  useEffect(() => {
+    if (juzEnd > 0 && juzStart > 0 && juzEnd < juzStart) {
       setJuzEnd(juzStart);
     }
+  }, [juzEnd, juzStart]);
+
+  useEffect(() => {
+    setJuzEndText(juzEnd > 0 ? String(juzEnd) : "");
   }, [juzEnd]);
-  console.log("the surah settings times are as follow", surahSettings);
 
   const ensureSetting = (id: number) => {
     setSurahSettings((prev) => {
@@ -106,10 +179,8 @@ export const MetricSelectionComponent = ({
     }));
   };
 
-  // remove hizb settings and make hizb single-select
   const toggleHizb = (id: number) => {
     setSelectedHizb((prev) => (prev === id ? undefined : id));
-    // keep the legacy array in sync if other parts use it (optional)
     setSelectedHizbs((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [id],
     );
@@ -123,7 +194,6 @@ export const MetricSelectionComponent = ({
     });
   };
   const enforceJuzEnd = () => {
-    // when user finishes editing end field, parse and enforce constraints
     if (juzEndText === "") {
       setJuzEnd(0);
       return;
@@ -137,7 +207,6 @@ export const MetricSelectionComponent = ({
     if (juzStart !== undefined && clamped < juzStart) clamped = juzStart;
     setJuzEnd(clamped);
   };
-  // derive display values so totals can update live while typing
   const displayJuzStart = juzStart > 0 ? juzStart : undefined;
   const displayJuzEnd = focusedInputs["juz-end"]
     ? ((): number | undefined => {
@@ -149,33 +218,53 @@ export const MetricSelectionComponent = ({
       ? juzEnd
       : undefined;
 
-  // Notify parent when relevant metric state changes
+  // Notify parent only for the active metric (avoids update loops)
   useEffect(() => {
-    if (!onMetricChange) return;
+    if (!isActiveMetric || !onMetricChangeRef.current) return;
+
     if (item.name === "surah") {
-      onMetricChange({
+      const surahNames = Object.fromEntries(
+        surahData.map((s) => [s.id, s.surahTitle || s.surahName]),
+      );
+      onMetricChangeRef.current({
         metric: "surah",
         value: isMemorizationSurah
-          ? { selectedSurahs }
-          : { selectedSurahs, surahSettings },
+          ? { selectedSurahs, surahNames }
+          : { selectedSurahs, surahSettings, surahNames },
       });
+      return;
     }
     if (item.name === "juz") {
-      onMetricChange({
+      onMetricChangeRef.current({
         metric: "juz",
         value: { start: displayJuzStart ?? 0, end: displayJuzEnd ?? 0 },
       });
+      return;
     }
     if (item.name === "completion") {
-      onMetricChange({ metric: "completion", value: quranCompletion });
+      onMetricChangeRef.current({
+        metric: "completion",
+        value: quranCompletion,
+      });
+      return;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (item.name === "hizb") {
+      onMetricChangeRef.current({
+        metric: "hizb",
+        value: { selectedHizb },
+      });
+    }
   }, [
+    isActiveMetric,
+    item.name,
+    isMemorizationSurah,
     selectedSurahs,
     surahSettings,
     displayJuzStart,
     displayJuzEnd,
     quranCompletion,
+    selectedHizb,
+    surahData,
   ]);
   return (
     <Fragment key={item?.id}>
@@ -205,10 +294,21 @@ export const MetricSelectionComponent = ({
       </Pressable>
       <TopSpace top={20} />
 
-      {item.name === "surah" && selectedMetric === item.name && (
+      {selectedMetric === item.name && isLoadingOptions && (
+        <View style={{ paddingVertical: 16, alignItems: "center" }}>
+          <ActivityIndicator color={Colors.light.green} />
+        </View>
+      )}
+
+      {item.name === "surah" &&
+        selectedMetric === item.name &&
+        !isLoadingOptions && (
         <FlatList
           data={surahData}
           keyExtractor={(s) => s.id.toString()}
+          ListEmptyComponent={
+            <Text style={styles.emptyOptionsText}>No surahs available</Text>
+          }
           renderItem={({ item: s }) => {
             const checked = selectedSurahs.includes(s.id);
             const setting = surahSettings[s.id] || {
@@ -417,7 +517,9 @@ export const MetricSelectionComponent = ({
           }}
         />
       )}
-      {item.name === "juz" && selectedMetric === item.name && (
+      {item.name === "juz" &&
+        selectedMetric === item.name &&
+        !isLoadingOptions && (
         <View style={{}}>
           <View
             style={{
@@ -566,7 +668,9 @@ export const MetricSelectionComponent = ({
         </View>
       )}
 
-      {item.name === "completion" && selectedMetric === item.name && (
+      {item.name === "completion" &&
+        selectedMetric === item.name &&
+        !isLoadingOptions && (
         <View style={{}}>
           <View
             style={{
@@ -645,10 +749,15 @@ export const MetricSelectionComponent = ({
           <TopSpace top={16} />
         </View>
       )}
-      {item.name === "hizb" && selectedMetric === item.name && (
+      {item.name === "hizb" &&
+        selectedMetric === item.name &&
+        !isLoadingOptions && (
         <FlatList
           data={hizbData}
           keyExtractor={(s) => s.id.toString()}
+          ListEmptyComponent={
+            <Text style={styles.emptyOptionsText}>No hizb available</Text>
+          }
           renderItem={({ item }) => {
             const checked = selectedHizb === item.id;
 
@@ -776,6 +885,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
+  },
+  emptyOptionsText: {
+    color: Colors.light.white,
+    opacity: 0.7,
+    fontFamily: fonts.primary.regular,
+    fontSize: 12,
+    textAlign: "center",
+    paddingVertical: 8,
   },
   deleteButton: {
     padding: 8,

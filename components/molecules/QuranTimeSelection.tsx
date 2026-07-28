@@ -1,5 +1,6 @@
 import { globalStyles } from "@/src/globalstyles/globalstyles";
 import {
+  ActivityIndicator,
   LayoutAnimation,
   StyleSheet,
   Text,
@@ -11,20 +12,43 @@ import { Divider } from "../atoms/Divider";
 import { TopSpace } from "../atoms/TopSpace";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PrimaryButton from "@/components/atoms/Primary-button";
+import { useGetQuranGoalByType } from "@/src/api/queries/useGetQuranGoalByType";
+import { getHoursFromDetail } from "@/src/utils/quranGoalMap";
 
 export const QuranTimeSelection = ({
   title,
   description,
   onSave,
+  quranGoalType,
 }: {
   title: string;
   description: string;
   onSave?: (hours: number) => void;
+  quranGoalType?: "LISTENING" | "TAJWEED";
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState<string>("");
+  const [hydrated, setHydrated] = useState(false);
+
+  const { data: goalDetail, isLoading } = useGetQuranGoalByType(quranGoalType, {
+    enabled: isOpen && !!quranGoalType,
+  });
+
+  useEffect(() => {
+    if (!isOpen || hydrated || !goalDetail) return;
+    const hours = getHoursFromDetail(goalDetail);
+    if (hours > 0) {
+      setInputValue(String(Math.round(hours)));
+    }
+    setHydrated(true);
+  }, [isOpen, goalDetail, hydrated]);
+
+  useEffect(() => {
+    if (!isOpen) setHydrated(false);
+  }, [isOpen]);
+
   const toggleDropdown = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setIsOpen(!isOpen);
@@ -40,51 +64,59 @@ export const QuranTimeSelection = ({
         <View style={styles.openContent}>
           <Divider />
           <TopSpace top={16} />
-          <Text style={styles.header}>Enter upto 280 hours.</Text>
-          <TopSpace top={12} />
-          <View style={styles.outerRow}>
-            {/* group both input and description so they center together */}
-            <TextInput
-              value={inputValue}
-              onChangeText={setInputValue}
-              keyboardType="numeric"
-              placeholder="0"
-              placeholderTextColor={Colors.light.icon}
-              style={{
-                borderColor:
-                  inputValue && inputValue.trim().length > 0
-                    ? Colors.light.green
-                    : Colors.light.white,
-                backgroundColor:
-                  inputValue && inputValue.trim().length > 0
-                    ? Colors.light.green
-                    : "transparent",
-                borderWidth: 1,
-                width: 60,
-                alignItems: "center",
-                textAlign: "center",
-                justifyContent: "center",
-                borderRadius: 8,
-                color: Colors.light.white,
-                fontSize: 12,
-                fontWeight: "400",
-                fontFamily: fonts.primary.regular,
-              }}
-            />
+          {isLoading ? (
+            <View style={{ paddingVertical: 16, alignItems: "center" }}>
+              <ActivityIndicator color={Colors.light.green} />
+            </View>
+          ) : (
+            <>
+              <Text style={styles.header}>Enter upto 280 hours.</Text>
+              <TopSpace top={12} />
+              <View style={styles.outerRow}>
+                <TextInput
+                  value={inputValue}
+                  onChangeText={setInputValue}
+                  keyboardType="numeric"
+                  placeholder="0"
+                  placeholderTextColor={Colors.light.icon}
+                  style={{
+                    borderColor:
+                      inputValue && inputValue.trim().length > 0
+                        ? Colors.light.green
+                        : Colors.light.white,
+                    backgroundColor:
+                      inputValue && inputValue.trim().length > 0
+                        ? Colors.light.green
+                        : "transparent",
+                    borderWidth: 1,
+                    width: 50,
+                    alignItems: "center",
+                    textAlign: "center",
+                    justifyContent: "center",
+                    borderRadius: 8,
+                    color: Colors.light.white,
+                    fontSize: 12,
+                    fontWeight: "400",
+                    fontFamily: fonts.primary.regular,
+                    paddingVertical: 8,
+                  }}
+                />
 
-            <Text style={styles.descriptionText}>{description}</Text>
-          </View>
-          <TopSpace top={16} />
+                <Text style={styles.descriptionText}>{description}</Text>
+              </View>
+              <TopSpace top={16} />
 
-          <PrimaryButton
-            text="Save"
-            onPress={() => {
-              const hours = parseInt(inputValue || "0", 10) || 0;
-              if (onSave) onSave(hours);
-              setIsOpen(false);
-            }}
-            style={{ width: "100%" }}
-          />
+              <PrimaryButton
+                text="Save"
+                onPress={() => {
+                  const hours = parseInt(inputValue || "0", 10) || 0;
+                  if (onSave) onSave(hours);
+                  setIsOpen(false);
+                }}
+                style={{ width: "100%" }}
+              />
+            </>
+          )}
         </View>
       )}
     </View>

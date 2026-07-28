@@ -24,14 +24,11 @@ export const styles = StyleSheet.create({
   },
 
   titleText: {
-    width: 343,
-    height: 22,
-    fontSize: hp(2.8),
+    fontSize: hp(2.2),
     fontWeight: "500",
-    textTransform: "uppercase",
-    lineHeight: 22,
-    color: Colors.dark.text,
+    color: Colors.light.white,
     textAlign: "left",
+    fontFamily: fonts.primary.semiBold,
   },
 
   secondarytext: {

@@ -1,5 +1,5 @@
 import { getApiErrorMessage, showToast } from "@/src/config/toastConfig";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { router } from "expo-router";
 import { api } from "../index";
@@ -37,12 +37,13 @@ const resetPassword = async (payload: ResetPasswordPayload) => {
 };
 
 export const useResetPassword = () => {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: resetPassword,
     mutationKey: ["reset-password"],
     onSuccess: (data: any) => {
       showToast("success", data?.message ?? "Password updated successfully");
-      router.push("/(auth)/login");
+      router.replace("/(auth)/login");
     },
     onError: (error) => {
       showToast("error", getApiErrorMessage(error, "Password reset failed"));

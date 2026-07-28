@@ -2,6 +2,7 @@ import { fonts } from "@/assets/fonts";
 import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
 import { GreenDash } from "@/components/atoms/GreenDash";
 import { Colors } from "@/constants/theme";
+import { useAuth } from "@/provider/useAuth";
 import { globalStyles } from "@/src/globalstyles/globalstyles";
 import { router } from "expo-router";
 import { useEffect } from "react";
@@ -13,6 +14,9 @@ export const GreetingsScreen = () => {
       router.replace("/(private)/setpersonalizedgoals");
     }, 5000);
   }, []);
+
+  const { user } = useAuth();
+  console.log(user);
   return (
     <BlackScreenWrapper>
       <Text
@@ -24,7 +28,7 @@ export const GreetingsScreen = () => {
           marginBottom: 16,
         }}
       >
-        Assalamu alaykum, Layla!
+        Assalamu alaykum, {user?.username}!
       </Text>
       <View style={globalStyles.rowCenter}>
         <GreenDash />

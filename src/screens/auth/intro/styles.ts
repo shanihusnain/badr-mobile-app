@@ -23,7 +23,6 @@ export const styles = StyleSheet.create({
   },
 
   introText: {
-    width: 343,
     height: 60,
     color: Colors.dark.text,
     fontFamily: fonts.primary.semiBold,
