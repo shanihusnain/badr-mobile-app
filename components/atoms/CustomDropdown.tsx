@@ -1,4 +1,5 @@
 import { fonts } from "@/assets/fonts";
+import { DownArrowIcon } from "@/assets/icons";
 import { Colors } from "@/constants/theme";
 import React, { useEffect, useState } from "react";
 import { Controller } from "react-hook-form";
@@ -132,7 +133,7 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
               {getDisplayLabel()}
             </Text>
           </View>
-          <Text style={styles.icon}>{isOpen ? "▲" : "▼"}</Text>
+          <DownArrowIcon />
         </TouchableOpacity>
 
         {isOpen && (

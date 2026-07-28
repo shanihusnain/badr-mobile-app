@@ -17,6 +17,7 @@ import {
 import moment from "moment-hijri";
 import { fonts } from "@/assets/fonts";
 import { CalendarGrid } from "@/components/molecules/CalendarGrid";
+import { DownArrowIcon } from "@/assets/icons";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -144,7 +145,10 @@ export const DOBCalendar = ({ onSave, onCancel }: DOBCalendarProps) => {
     "Dhul Q.",
     "Dhul H.",
   ];
-  const monthMoment = moment(`${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-01`, "YYYY-MM-DD");
+  const monthMoment = moment(
+    `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-01`,
+    "YYYY-MM-DD",
+  );
   const hijriMonth = HIJRI_MONTHS_SHORT[monthMoment.iMonth()];
   const hijriYear = monthMoment.iYear();
   const islamicDateLabel = `${hijriMonth} ${hijriYear}`;
@@ -175,9 +179,7 @@ export const DOBCalendar = ({ onSave, onCancel }: DOBCalendarProps) => {
               <Text style={styles.dropdownButtonText}>
                 {MONTHS[currentMonth]}
               </Text>
-              <Text style={styles.caret}>
-                {openDropdown === "month" ? "▲" : "▼"}
-              </Text>
+              <DownArrowIcon />
             </TouchableOpacity>
           </View>
           <View ref={yearBtnRef} collapsable={false}>
@@ -187,34 +189,41 @@ export const DOBCalendar = ({ onSave, onCancel }: DOBCalendarProps) => {
               activeOpacity={0.7}
             >
               <Text style={styles.dropdownButtonText}>{currentYear}</Text>
-              <Text style={styles.caret}>
-                {openDropdown === "year" ? "▲" : "▼"}
-              </Text>
+              <DownArrowIcon />
             </TouchableOpacity>
           </View>
         </View>
       </View>
 
       {/* ── Nav row ── */}
-      <View style={styles.navRow}>
-        <TouchableOpacity
-          onPress={goToPrevMonth}
-          style={styles.navArrow}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.navArrowText}>{"‹"}</Text>
-        </TouchableOpacity>
-        <View style={styles.navLabelContainer}>
-          <Text style={styles.navLabel}>{rangeLabel}</Text>
-          <Text style={styles.islamicDateText}>{islamicDateLabel}</Text>
+      <View
+        style={{
+          backgroundColor: Colors.light.calendarBg,
+          alignItems: "center",
+          paddingVertical: 10,
+        }}
+      >
+        <View style={styles.navRow}>
+          <TouchableOpacity
+            onPress={goToPrevMonth}
+            style={styles.navArrow}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.navArrowText}>{"‹"}</Text>
+          </TouchableOpacity>
+          <View style={styles.navLabelContainer}>
+            <Text style={styles.navLabel}>{rangeLabel}</Text>
+          </View>
+          <TouchableOpacity
+            onPress={goToNextMonth}
+            style={styles.navArrow}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.navArrowText}>{"›"}</Text>
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity
-          onPress={goToNextMonth}
-          style={styles.navArrow}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.navArrowText}>{"›"}</Text>
-        </TouchableOpacity>
+
+        <Text style={styles.islamicDateText}>{islamicDateLabel}</Text>
       </View>
 
       {/* ── Calendar grid ── */}
@@ -241,7 +250,16 @@ export const DOBCalendar = ({ onSave, onCancel }: DOBCalendarProps) => {
             activeOpacity={0.7}
             disabled={!selectedDate}
           >
-            <Text style={styles.okText}>OK</Text>
+            <Text
+              style={[
+                styles.okText,
+                {
+                  color: !selectedDate ? Colors.light.grey : Colors.light.green,
+                },
+              ]}
+            >
+              Ok
+            </Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.cancelBtn, !selectedDate && styles.okBtnDisabled]}
@@ -363,10 +381,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: Colors.light.calendarBg,
     paddingHorizontal: 12,
-    paddingVertical: 10,
   },
-  navArrow: { paddingHorizontal: 12, paddingVertical: 4 },
-  navArrowText: { fontSize: 24, color: Colors.light.white, lineHeight: 28 },
+  navArrow: { paddingHorizontal: 12 },
+  navArrowText: { fontSize: 24, color: Colors.light.white },
   navLabelContainer: {
     alignItems: "center",
   },
@@ -381,7 +398,7 @@ const styles = StyleSheet.create({
     fontWeight: "400",
     color: Colors.light.grey,
     fontFamily: fonts.primary.regular,
-    marginTop: 4,
+    paddingBottom: 10,
   },
 
   footer: {
@@ -404,24 +421,26 @@ const styles = StyleSheet.create({
   },
   cancelText: {
     color: Colors.light.white,
-    fontSize: 14,
+    fontSize: 12,
     fontFamily: fonts.primary.semiBold,
   },
   okBtn: {
-    paddingHorizontal: 28,
-    paddingVertical: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 2,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: Colors.light.green,
+    alignItems: "center",
+    justifyContent: "center",
   },
   cancelBtnDisabled: { opacity: 0.4 },
 
   okBtnDisabled: { opacity: 0.4 },
   okText: {
     color: Colors.light.white,
-    fontSize: 14,
-    fontWeight: "700",
-    fontFamily: fonts.primary.bold,
+    fontSize: 12,
+    fontWeight: "500",
+    fontFamily: fonts.primary.semiBold,
   },
 
   dropdownList: {

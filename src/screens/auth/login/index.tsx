@@ -6,6 +6,7 @@ import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import {
+  Alert,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -22,9 +23,19 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "@/provider/useAuth";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { useLogin } from "@/src/api/mutations/useLogin";
+import { useGoogleSignIn } from "@/src/hooks/useGoogleSignIn";
+import { useFacebookSignIn } from "@/src/hooks/useFacebookSignIn";
 import { showToast } from "@/src/config/toastConfig";
 import { ImageBackground } from "expo-image";
 import { BadrTreeImage } from "@/assets/images";
+import {
+  AppleIcon,
+  FacebookIcon,
+  GoogleIcon,
+  LetterIcon,
+  PasswordLockIcon,
+} from "@/assets/icons";
+import { SocialLoginButton } from "./components/SocialLoginButton";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -32,6 +43,32 @@ export default function LoginScreen() {
   const { loginSchema } = useValidations();
   const { t } = useTranslation();
   const { mutateAsync: loginMutation, isPending: loggingIn } = useLogin();
+  const { signInWithGoogle, isLoading: googleLoading } = useGoogleSignIn();
+  const { signInWithFacebook, isLoading: facebookLoading } = useFacebookSignIn();
+
+  const socialLoginButtons = [
+    {
+      key: "facebook",
+      icon: <FacebookIcon />,
+      onPress: () => {
+        void signInWithFacebook();
+      },
+    },
+    {
+      key: "google",
+      icon: <GoogleIcon />,
+      onPress: () => {
+        void signInWithGoogle();
+      },
+    },
+    {
+      key: "apple",
+      icon: <AppleIcon />,
+      onPress: () => {
+        Alert.alert("Apple");
+      },
+    },
+  ];
   const {
     control,
     handleSubmit,
@@ -100,6 +137,8 @@ export default function LoginScreen() {
                     control={control}
                     name="email"
                     errors={errors.email?.message ? [errors.email.message] : []}
+                    autoCapitalize="none"
+                    leftIcon={<LetterIcon />}
                   />
 
                   <CustomTextInput
@@ -112,6 +151,7 @@ export default function LoginScreen() {
                     errors={
                       errors.password?.message ? [errors.password.message] : []
                     }
+                    leftIcon={<PasswordLockIcon />}
                   />
 
                   <TouchableOpacity
@@ -126,7 +166,7 @@ export default function LoginScreen() {
                   <PrimaryButton
                     text={t("loginScreen.loginBtnText")}
                     onPress={handleSubmit(onSubmit)}
-                    disabled={loggingIn}
+                    disabled={loggingIn || googleLoading}
                     isLoading={loggingIn}
                   />
 
@@ -140,6 +180,17 @@ export default function LoginScreen() {
                     </Text>
                     <View style={styles.line} />
                   </TouchableOpacity>
+                  <TopSpace top={30} />
+                  <View style={styles.socialLoginButtonsContainer}>
+                    {socialLoginButtons.map((button) => (
+                      <SocialLoginButton
+                        key={button.key}
+                        icon={button.icon}
+                        onPress={button.onPress}
+                        disabled={loggingIn || googleLoading || facebookLoading}
+                      />
+                    ))}
+                  </View>
                 </View>
               </View>
             </KeyboardAvoidingView>

@@ -45,10 +45,7 @@ export default function FreeTrialScreen() {
   };
 
   return (
-    <SafeAreaView
-      style={styles.safeAreaContainer}
-      edges={["top", "bottom", "left", "right"]}
-    >
+    <SafeAreaView style={styles.safeAreaContainer} edges={["bottom", "top"]}>
       <FlatList
         data={texts}
         keyExtractor={(item, index) => index.toString()}

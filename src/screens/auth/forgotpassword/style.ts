@@ -55,6 +55,7 @@ export const styles = StyleSheet.create({
 
   bottomSheet: {
     height: hp(50),
+    marginTop: -20,
     backgroundColor: Colors.light.blackBackground,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,

@@ -20,12 +20,14 @@ import { Divider } from "../atoms/Divider";
 
 export default function TahiyyatMasjidGoalSelection({
   onSave,
+  initialValue = 140,
 }: {
   onSave?: (value: number) => void;
+  initialValue?: number;
 }) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
-  const [sliderValue, setSliderValue] = useState(140);
+  const [sliderValue, setSliderValue] = useState(initialValue);
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleDropdown = () => {

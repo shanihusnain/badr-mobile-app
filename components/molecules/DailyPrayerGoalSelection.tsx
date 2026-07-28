@@ -31,6 +31,15 @@ type PrayerSliderItem = {
 
 type Props = {
   cycleStartDate?: string;
+  initialValues?: {
+    fajr?: number;
+    dhuhr?: number;
+    asr?: number;
+    maghrib?: number;
+    isha?: number;
+    jumuah?: number;
+    congregationalTracking?: boolean;
+  };
   onSave?: (
     fajr: number,
     dhuhr: number,
@@ -45,6 +54,7 @@ type Props = {
 export default function DailyPrayerGoalSelection({
   cycleStartDate,
   onSave,
+  initialValues,
 }: Props) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
@@ -53,15 +63,25 @@ export default function DailyPrayerGoalSelection({
     [cycleStartDate],
   );
 
-  const [fajr, setFajr] = useState(PRAYER_CYCLE_DAYS);
-  const [dhuhr, setDhuhr] = useState(PRAYER_CYCLE_DAYS);
-  const [asar, setAsar] = useState(PRAYER_CYCLE_DAYS);
-  const [maghrib, setMaghrib] = useState(PRAYER_CYCLE_DAYS);
-  const [isha, setIsha] = useState(PRAYER_CYCLE_DAYS);
-  const [jumuah, setJumuah] = useState(0);
+  const [fajr, setFajr] = useState(
+    initialValues?.fajr ?? PRAYER_CYCLE_DAYS,
+  );
+  const [dhuhr, setDhuhr] = useState(
+    initialValues?.dhuhr ?? PRAYER_CYCLE_DAYS,
+  );
+  const [asar, setAsar] = useState(initialValues?.asr ?? PRAYER_CYCLE_DAYS);
+  const [maghrib, setMaghrib] = useState(
+    initialValues?.maghrib ?? PRAYER_CYCLE_DAYS,
+  );
+  const [isha, setIsha] = useState(initialValues?.isha ?? PRAYER_CYCLE_DAYS);
+  const [jumuah, setJumuah] = useState(initialValues?.jumuah ?? 0);
   const [isOpen, setIsOpen] = useState(false);
-  const [isTrackingCongregation, setIsTrackingCongregation] = useState(false);
-  const trackingCongregation = useSharedValue(false);
+  const [isTrackingCongregation, setIsTrackingCongregation] = useState(
+    Boolean(initialValues?.congregationalTracking),
+  );
+  const trackingCongregation = useSharedValue(
+    Boolean(initialValues?.congregationalTracking),
+  );
 
   const dhuhrMaxDays = isTrackingCongregation
     ? PRAYER_CYCLE_DAYS - jumuahCountInCycle

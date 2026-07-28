@@ -55,6 +55,7 @@ export const styles = StyleSheet.create({
 
   bottomSheet: {
     height: hp(50),
+    marginTop: -20,
     backgroundColor: Colors.light.blackBackground,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
@@ -117,5 +118,11 @@ export const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: fonts.primary.regular,
     marginHorizontal: 10,
+  },
+  socialLoginButtonsContainer: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 12,
+    alignSelf: "center",
   },
 });

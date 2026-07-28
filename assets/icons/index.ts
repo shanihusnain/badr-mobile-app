@@ -1,6 +1,7 @@
 //A
 import { AddIcon } from "./AddIcon";
 import { AllahNameIcon } from "./AllahNameIcon";
+import { AppleIcon } from "./AppleIcon";
 //B
 import { BirthIcon } from "./BirthIcon";
 import { BadarNameLogo } from "./BadarNameLogo";
@@ -36,6 +37,8 @@ import { FastingFlowCardProphetDawoodCalender } from "./FastingFlowCardProphetDa
 //G
 import { GaveBirthIcon } from "./GaveBirthIcon";
 import { GiftIcon } from "./GiftIcon";
+
+import { FacebookIcon } from "./FacebookIcon";
 //H
 import { HeartBreakIcon } from "./HeartBreakIcon";
 //I
@@ -61,6 +64,7 @@ import { DocumentLockIcon } from "./DocumentLockIcon";
 import { DebtAssistanceIcon } from "./DebtAssistanceIcon";
 import { DuhrSunIcon } from "./DuhrSunIcon";
 import { DuhaPrayerStar } from "./DuhaPrayerStar";
+import { DownArrowIcon } from "./DownArrowIcon";
 //E
 import { ExclamationIconWithCircel } from "./ExclamationIconWithCircel";
 import { ExerciseIcon } from "./ExerciseIcon";
@@ -79,6 +83,7 @@ import { FajarSunIcon } from "./FajarSunIcon";
 //G
 import { GiftIconWithMoon } from "./GiftIconWithMoon";
 import { GoatIcon } from "./GoatIcon";
+import { GoogleIcon } from "./GoogleIcon";
 //H
 import { HomeBondIcon } from "./HomeBondIcon";
 import { HomeTabIcon } from "./HomeTabIcon";
@@ -94,7 +99,7 @@ import { HadeethBookIcon } from "./HadeethBookIcon";
 //K
 
 //L
-
+import { LetterIcon } from "./LetterIcon";
 //M
 import { MoonIcon } from "./MoonIcon";
 import { MenstruatingIcon } from "./MenstruatingIcon";
@@ -130,8 +135,9 @@ import { PersonalGrowthIcon } from "./PersonalGrowthIcon";
 import { PlanTabIcon } from "./PlanTabIcon";
 import { PercentageIcon } from "./PercentageIcon";
 import { ProfileInformationIcon } from "./ProfileInformationIcon";
-//Q
+import { PasswordLockIcon } from "./PasswordLockIcon";
 
+//Q
 //R
 import { RecordIcon } from "./RecordIcon";
 import { ReferUserIcon } from "./ReferUserIcon";
@@ -186,6 +192,7 @@ import { MondayAndThursdayAllahRememberenceIcon } from "./MondayAndThursdayAllah
 export {
   ManPrayerIcon,
   DuhaPrayerStar,
+  DownArrowIcon,
   StarSparkleIcon,
   HadeethBookIcon,
   TahiyyatWudhuDropIcon,
@@ -238,7 +245,7 @@ export {
   BirthIcon,
   GaveBirthIcon,
   HeartBreakIcon,
- DuhrSunIcon,
+  DuhrSunIcon,
   ExamIcon,
   WorkLoadIcon,
   WalletIcon,
@@ -308,5 +315,10 @@ export {
   ProphetDawoodPersonalDevelopmentIcon,
   ProphetDawoodBalanceIcon,
   MondayAndThursdayFastsHabitualIcon,
-  MondayAndThursdayAllahRememberenceIcon
+  MondayAndThursdayAllahRememberenceIcon,
+  FacebookIcon,
+  GoogleIcon,
+  AppleIcon,
+  LetterIcon,
+  PasswordLockIcon,
 };

@@ -20,27 +20,48 @@ import { Divider } from "../atoms/Divider";
 
 export default function SunnahRawatibGoalSelection({
   onSave,
+  initialValues,
 }: {
-  onSave?: (
-    beforeFajar: number,
-    beforeDuhr: number,
-    afterDuhr: number,
-    beforeAsar: number,
-    afterMaghrib: number,
-    afterIsha: number,
-  ) => void;
+  onSave?: (payload: {
+    beforeFajr: number;
+    beforeDhuhr: number;
+    afterDhuhr: number;
+    afterDhuhrRakahOption: number;
+    beforeAsrEnabled: boolean;
+    beforeAsr: number;
+    beforeAsrRakahOption: number;
+    afterMaghrib: number;
+    afterIsha: number;
+  }) => void;
+  initialValues?: {
+    beforeFajr?: number;
+    beforeDhuhr?: number;
+    afterDhuhr?: number;
+    beforeAsr?: number;
+    afterMaghrib?: number;
+    afterIsha?: number;
+    afterDhuhrRakahOption?: number;
+    beforeAsrEnabled?: boolean;
+    beforeAsrRakahOption?: number;
+  };
 }) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
-  const [beforeFajar, setBeforeFajar] = useState(28);
-  const [beforeDuhr, setBeforeDuhr] = useState(56);
-  const [afterDuhr, setAfterDuhr] = useState(56);
-  const [beforeAsar, setBeforeAsar] = useState(56);
-  const [afterMaghrib, setAfterMaghrib] = useState(28);
-  const [afterIsha, setAfterIsha] = useState(28);
-  const [afterDuhrOption, setAfterDuhrOption] = useState<"one" | "two">("two");
+  const [beforeFajar, setBeforeFajar] = useState(initialValues?.beforeFajr ?? 28);
+  const [beforeDuhr, setBeforeDuhr] = useState(
+    initialValues?.beforeDhuhr ?? 56,
+  );
+  const [afterDuhr, setAfterDuhr] = useState(initialValues?.afterDhuhr ?? 56);
+  const [beforeAsar, setBeforeAsar] = useState(initialValues?.beforeAsr ?? 56);
+  const [afterMaghrib, setAfterMaghrib] = useState(
+    initialValues?.afterMaghrib ?? 28,
+  );
+  const [afterIsha, setAfterIsha] = useState(initialValues?.afterIsha ?? 28);
+  const [afterDuhrOption, setAfterDuhrOption] = useState<"one" | "two">(
+    initialValues?.afterDhuhrRakahOption === 1 ? "one" : "two",
+  );
   const [beforeAsarOption, setBeforeAsarOption] = useState<"one" | "two">(
-    "two",
+    initialValues?.beforeAsrRakahOption === 1 ? "one" : "two",
   );
   const [isOpen, setIsOpen] = useState(false);
 
@@ -78,16 +99,21 @@ export default function SunnahRawatibGoalSelection({
       beforeAsar,
       afterMaghrib,
       afterIsha,
+      afterDuhrOption,
+      beforeAsarOption,
     });
     if (onSave) {
-      onSave(
-        beforeFajar,
-        beforeDuhr,
-        afterDuhr,
-        beforeAsar,
-        afterMaghrib,
-        afterIsha,
-      );
+      onSave({
+        beforeFajr: beforeFajar,
+        beforeDhuhr: beforeDuhr,
+        afterDhuhr: afterDuhr,
+        afterDhuhrRakahOption: afterDuhrOption === "one" ? 1 : 2,
+        beforeAsrEnabled: true,
+        beforeAsr: beforeAsar,
+        beforeAsrRakahOption: beforeAsarOption === "one" ? 1 : 2,
+        afterMaghrib: afterMaghrib,
+        afterIsha: afterIsha,
+      });
     }
   };
 

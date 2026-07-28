@@ -99,12 +99,12 @@ export default function OtpScreen() {
   const handleVerify = async () => {
     const isComplete = otp.every((digit) => digit !== "");
     if (!isComplete) {
-      setError(t("validations.inputMissing"));
+      setError(t("validations.otpRequired"));
       return;
     }
 
     if (!email) {
-      setError(t("validations.inputMissing"));
+      setError(t("validations.emailRequired"));
       return;
     }
 

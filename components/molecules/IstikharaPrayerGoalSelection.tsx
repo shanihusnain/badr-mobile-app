@@ -13,12 +13,14 @@ import { Divider } from "../atoms/Divider";
 
 export default function IstikharaPrayerGoalSelection({
   onSave,
+  initialValue = 25,
 }: {
   onSave?: (value: number) => void;
+  initialValue?: number;
 }) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
-  const [sliderValue, setSliderValue] = useState(25);
+  const [sliderValue, setSliderValue] = useState(initialValue);
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleDropdown = () => {

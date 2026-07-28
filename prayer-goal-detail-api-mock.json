@@ -1,0 +1,993 @@
+{
+  "endpoint": "GET api/goal-cycles/current/prayer-goals/:prayerType",
+  "notes": [
+    "Return the matching payload.data for each :prayerType.",
+    "Images stay on mobile — do not send image URLs unless agreed later.",
+    "readMore item types: text | benefit | prayerSection | replyWithQuote | boldPrefixText | boldSuffixText | table",
+    "text.style values: body | bodyTight | bodyMediumTight | bodyZero | tableGuide | sectionHeading | prayerHeading | quoteItalic | quoteSemibold | quoteMediumItalic | hadithQuoteLead | hadithQuoteLight | wuduBody | wuduBodySpaced | bilalQuote | bilalQuoteLight",
+    "Arabic (ar) content can follow the same shape later."
+  ],
+  "examplesByPrayerType": {
+    "TAHIYYAT_AL_WUDHU": {
+      "success": true,
+      "statusCode": 200,
+      "message": "Success",
+      "data": {
+        "prayerType": "TAHIYYAT_AL_WUDHU",
+        "isActive": false,
+        "title": "TAHIYYAT-UL-WUDHU",
+        "navTitle": "Tahiyyat Al-Wudhu",
+        "heroTitle": "A Small Deed that Earns a Massive Reward",
+        "description": "Tahiyyat Al-Wudhu (Ablution Prayer) is a two-rak'ah Sunnah prayer performed right after completing Wudhu. It serves to purify us from sins and prepare us for further prayer.",
+        "hadithIntro": "Uthman ibn Affan (RA) narrates a profound hadith emphasizing the virtues of performing wudhu and following it with two rak'ahs of prayer:",
+        "benefitsIntro": "Engaging in this practice offers profound benefits:",
+        "benefits": [
+          {
+            "heading": "Spiritual Readiness",
+            "description": "Cultivates mindfulness and focus for future prayers."
+          },
+          {
+            "heading": "Purification",
+            "description": "Cleanses the mind and heart of distractions."
+          },
+          {
+            "heading": "Intention Setting",
+            "description": "Aligns actions with devotion and fosters spiritual awareness."
+          },
+          {
+            "heading": "Connection with Allah",
+            "description": "Deepens the bond with Allah, bringing peace and tranquillity."
+          }
+        ],
+        "steps": [],
+        "readMore": [
+          {
+            "items": [
+              {
+                "type": "text",
+                "style": "body",
+                "content": "Engaging in this practice offers profound benefits:"
+              },
+              {
+                "type": "benefit",
+                "heading": "Spiritual Readiness",
+                "description": "Cultivates mindfulness and focus for future prayers."
+              },
+              {
+                "type": "benefit",
+                "heading": "Purification",
+                "description": "Cleanses the mind and heart of distractions."
+              },
+              {
+                "type": "benefit",
+                "heading": "Intention Setting",
+                "description": "Aligns actions with devotion and fosters spiritual awareness."
+              },
+              {
+                "type": "benefit",
+                "heading": "Connection with Allah",
+                "description": "Deepens the bond with Allah, bringing peace and tranquillity."
+              }
+            ]
+          },
+          {
+            "items": [
+              {
+                "type": "text",
+                "style": "body",
+                "content": "Uthman ibn Affan (RA) narrates a profound hadith emphasizing the virtues of performing wudhu and following it with two rak'ahs of prayer:"
+              },
+              {
+                "type": "text",
+                "style": "hadithQuoteLead",
+                "content": "\"Whoever performs Wudhu like this wudhu of mine and then offers two "
+              },
+              {
+                "type": "text",
+                "style": "hadithQuoteLight",
+                "content": "rak'ahs of prayer without distraction, all past sins will be forgiven."
+              },
+              {
+                "type": "text",
+                "style": "wuduBody",
+                "content": "This hadith emphasizes that a proper, mindful wudhu—even if already in a state of purity—followed by two undistracted rak'ahs with sincere intention, leads to Allah's forgiveness."
+              },
+              {
+                "type": "text",
+                "style": "wuduBodySpaced",
+                "content": "On one occasion, during the time of Fajr prayer, the Prophet (PBUH) said to Bilal (RA):"
+              },
+              {
+                "type": "text",
+                "style": "bilalQuote",
+                "content": "\"O Bilal, tell me of the most hopeful deed you practiced in Islam. I heard the scuffle"
+              },
+              {
+                "type": "text",
+                "style": "bilalQuoteLight",
+                "content": "of your sandals before me in Paradise.\""
+              },
+              {
+                "type": "replyWithQuote",
+                "prefix": "Bilal (RA) replied:",
+                "quote": "\"I do not perform ablution by day or night but that I pray along with it as much as Allah has decreed me to pray.\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "This beautiful exchange highlights the virtue of remaining in a state of purity and consistently offering voluntary prayers after wudhu, a practice that brought Bilal (RA) the glad tidings of Paradise."
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "May Allah grant us the ability to revive this beautiful Sunnah, seeking His forgiveness and acceptance with every sincere act."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "FIVE_DAILY_PRAYERS": {
+      "success": true,
+      "statusCode": 200,
+      "message": "Success",
+      "data": {
+        "prayerType": "FIVE_DAILY_PRAYERS",
+        "isActive": false,
+        "title": "The 5 DAilY FARD PRAYERS",
+        "navTitle": "The 5 DAilY FARD PRAYERS",
+        "heroTitle": "The Pinnacle of Divine Connection",
+        "description": "The obligatory five daily prayers provide frequent opportunities to express gratitude, seek forgiveness, and remind us of our faith and submission to Allah.",
+        "hadithIntro": "",
+        "benefitsIntro": "The five daily prayers, Islam's second pillar, forge a profound connection with Allah, centering life on His remembrance. They anchor a Muslim's day, instilling discipline, devotion, and harmony through their timely observance:",
+        "benefits": [],
+        "steps": [],
+        "readMore": [
+          {
+            "items": [
+              {
+                "type": "text",
+                "style": "body",
+                "content": "The five daily prayers, Islam's second pillar, forge a profound connection with Allah, centering life on His remembrance. They anchor a Muslim's day, instilling discipline, devotion, and harmony through their timely observance:"
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "Fajr, performed at dawn, starts the day with a reminder of Allah's greatness."
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "Dhuhr, performed after midday, provides a break from worldly activities to refocus on our Creator."
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "Asr, in the afternoon, serves as a spiritual anchor to maintain our consciousness of Allah."
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "Maghrib, at sunset, allows us to reflect on the day's blessings."
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "Isha, in the evening, concludes the day with a peaceful connection to Allah, ensuring we end the day in His remembrance"
+              }
+            ]
+          },
+          {
+            "items": [
+              {
+                "type": "text",
+                "style": "body",
+                "content": "The significance of prayer is beautifully emphasized in a hadith of the Prophet (PBUH):"
+              },
+              {
+                "type": "text",
+                "style": "quoteItalic",
+                "content": "\"The first matter that the slave will be brought to account for on the Day of judgement is the prayer. If it is sound, then the rest of his deeds will be sound. And if it is incomplete, then the rest of his deeds will be incomplete.\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "An incomplete prayer, such as rushing through it, lacking focus, or failing to meet its essential requirements, highlights the need for sincerity and mindfulness to ensure its acceptance."
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "Ultimately, the five daily prayers offer a sanctuary of peace in a chaotic world. They remind us that while daily life is transient, our relationship with the Almighty is constant, enduring, and the source of true success."
+              }
+            ]
+          },
+          {
+            "items": [
+              {
+                "type": "text",
+                "style": "sectionHeading",
+                "content": "Unity in Worship, Greater Rewards"
+              },
+              {
+                "type": "text",
+                "style": "bodyTight",
+                "content": "Praying the five daily prayers in congregation holds immense spiritual rewards and a special place in Islam, particularly for men, for whom it is highly recommended. Standing shoulder to shoulder with fellow worshippers amplifies the reward of prayer, strengthens faith, and fosters unity. It eliminates distinctions of status, creating a sense of collective purpose and mutual support. This shared act of devotion unites us in seeking Allah's pleasure, reinforcing the values of brotherhood and solidarity."
+              },
+              {
+                "type": "text",
+                "style": "bodyTight",
+                "content": "As Abdullah bin Umar (RA) narrated, the Prophet (PBUH) said:"
+              },
+              {
+                "type": "text",
+                "style": "quoteItalic",
+                "content": "\"The reward for praying in congregation is twenty-seven times greater than praying alone\""
+              },
+              {
+                "type": "text",
+                "style": "bodyZero",
+                "content": "The Prophet (PBUH) also said:"
+              },
+              {
+                "type": "text",
+                "style": "quoteItalic",
+                "content": "\"Praying Isha in congregation equals half the night in prayer, and praying Isha and Fajr in congregation equals the entire night in prayer.\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "Another profound benefit of congregational prayer is the opportunity for the erasure of sins. Abu Huraira (RA) narrated that the Prophet (PBUH) said:"
+              },
+              {
+                "type": "text",
+                "style": "quoteItalic",
+                "content": "\"Whoever purifies himself in his house and then walks to one of the houses of Allah to perform an obligatory act of worship, each of his steps will erase a sin and the other will elevate his rank.\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "In Islam, men are strongly encouraged to pray in congregation at the mosque to foster unity, discipline, and a sense of community. Women, while equally rewarded for their prayers, are encouraged to pray at home, as it is more rewarding and ensures greater privacy and modesty. The Prophet (PBUH) said:"
+              },
+              {
+                "type": "text",
+                "style": "quoteItalic",
+                "content": "\"Do not prevent your women from visiting the mosque; but their houses are better for them (for praying).\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "In essence, praying in congregation not only amplifies rewards but also purifies the heart, strengthens communal ties, and deepens our connection with Allah."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "SUNNAH_RAWATIB": {
+      "success": true,
+      "statusCode": 200,
+      "message": "Success",
+      "data": {
+        "prayerType": "SUNNAH_RAWATIB",
+        "isActive": false,
+        "title": "SUNNAH RAWATIB",
+        "navTitle": "SUNNAH RAWATIB",
+        "heroTitle": "Build Your Home in Jannah!",
+        "description": "Performing Sunnah Rawatib prayers draws us closer to Allah. They serve as a spiritual safety net, compensating for any unintentional errors or deficiencies in obligatory prayers.",
+        "hadithIntro": "",
+        "benefitsIntro": "",
+        "benefits": [],
+        "steps": [],
+        "readMore": [
+          {
+            "items": [
+              {
+                "type": "text",
+                "style": "sectionHeading",
+                "content": "Introduction & Guide"
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "Sunnah Rawatib prayers are voluntary acts of worship that follow the Sunnah of the Prophet (PBUH) and are an essential part of our Islamic practice. They provide us with a structured way to deepen our spiritual connection with Allah, enriching our faith and devotion. Additionally, they help compensate for any unintentional mistakes or shortcomings in our obligatory prayers, ensuring that our worship is more complete and rewarding."
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "The Prophet (PBUH) stated:"
+              },
+              {
+                "type": "text",
+                "style": "quoteMediumItalic",
+                "content": "\"Allah will build a house in Paradise for whoever is consistent in praying 12 rak'ahs of Sunnah prayers.\""
+              },
+              {
+                "type": "text",
+                "style": "bodyTight",
+                "content": "The 12 rak'ahs are prayed in pairs of two rak'ahs, making them six prayers in total, each concluded with tasleem. These voluntary prayer prayers are observed within the time frame of each obligatory prayer, starting after its call to prayer and completed before the next prayer's call begins. The breakdown is as follows:"
+              },
+              {
+                "type": "prayerSection",
+                "heading": "Fajr Prayer",
+                "description": "Start with one prayer (2 rak'ahs) of Sunnah prayer performed after the call to prayer for Fajr, followed by the obligatory Fajr prayer."
+              },
+              {
+                "type": "prayerSection",
+                "heading": "Dhuhr Prayer",
+                "description": "Start with two Sunnah prayers (2 rak'ahs each) after the call to prayer for Dhuhr. After completing the obligatory Dhuhr prayer, perform one Sunnah prayer (2 rak'ahs)."
+              },
+              {
+                "type": "prayerSection",
+                "heading": "Maghrib Prayer",
+                "description": "First, perform the obligatory Maghrib prayer after the call to prayer for Maghrib. Then, follow it with one Sunnah prayer (2 rak'ahs)."
+              },
+              {
+                "type": "prayerSection",
+                "heading": "Isha Prayer",
+                "description": "Perform the obligatory Isha prayer after the call to prayer for Isha. Then, follow it with one Sunnah prayer (2 rak'ahs)."
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "Additionally, one may choose to pray two Sunnah prayers after Dhuhr instead of one (i.e., 4 rak'ahs instead of 2), as well as one or two Sunnah prayers before Asr (i.e., 2 or 4 rak'ahs)."
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "While this practice exceeds the typical 12 rak'ah prescribed in the above hadith and common practice, it highlights the flexibility in the practice of Sunnah Rawatib as an opportunity to deepen our connection with Allah and reinforce the spiritual benefits and divine protection associated with them. As the Prophet (PBUH) said:"
+              },
+              {
+                "type": "text",
+                "style": "quoteMediumItalic",
+                "content": "\"Whoever prays four rak'ah before Dhuhr and four after, the fire will not touch him.\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "Furthermore, Ibn Umar reported the Prophet (PBUH) said:"
+              },
+              {
+                "type": "text",
+                "style": "quoteMediumItalic",
+                "content": "“May Allah have mercy on a person who prays four rak’ah before the Asr prayer.”"
+              }
+            ]
+          },
+          {
+            "items": [
+              {
+                "type": "text",
+                "style": "tableGuide",
+                "content": "To help you choose the option that works best for you, we've provided a detailed table below, outlining the number of rak'ahs and their respective timings for all the options mentioned above."
+              },
+              {
+                "type": "text",
+                "style": "tableGuide",
+                "content": "Remember, it is crucial to perform all Sunnah prayers within the time frame of each obligatory prayer, starting after its call to prayer and completed before the next prayer's call begins, as they cannot be made up once missed."
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "PRAYER",
+                  "SUNNAH\n(Before)",
+                  "FARD",
+                  "SUNNAH\n(After)"
+                ],
+                "rows": [
+                  [
+                    "FAJR",
+                    "2",
+                    "2",
+                    "-"
+                  ],
+                  [
+                    "DHUHR",
+                    "2+2",
+                    "4",
+                    "2 or 4"
+                  ],
+                  [
+                    "ASR",
+                    "2 or 4",
+                    "4",
+                    "-"
+                  ],
+                  [
+                    "MAGHRIB",
+                    "-",
+                    "3",
+                    "2"
+                  ],
+                  [
+                    "ISHA",
+                    "-",
+                    "4",
+                    "2"
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "TAHIYYAT_AL_MASJID": {
+      "success": true,
+      "statusCode": 200,
+      "message": "Success",
+      "data": {
+        "prayerType": "TAHIYYAT_AL_MASJID",
+        "isActive": false,
+        "title": "TAHIYYAT AL-MASJID",
+        "navTitle": "Tahiyyat Al-Masjid",
+        "heroTitle": "Honoring the House of Allah",
+        "description": "Tahiyyat Al-Masjid is a two-rak’ah prayer performed upon entering the mosque, honoring its sanctity and seeking Allah’s blessings and mercy.",
+        "hadithIntro": "",
+        "benefitsIntro": "",
+        "benefits": [],
+        "steps": [],
+        "readMore": [
+          {
+            "items": [
+              {
+                "type": "text",
+                "style": "tableGuide",
+                "content": "Upon entering a mosque, a believer steps into a sanctuary dedicated to the worship of Allah. To honor the sanctity of this space, Islam prescribes a special voluntary prayer known as Tahiyyat Al-Masjid (Greeting of the Mosque). This two-rak'ah prayer serves not only as a mark of respect for the House of Allah but also as a spiritual preparation for the obligatory prayers that follow."
+              },
+              {
+                "type": "text",
+                "style": "tableGuide",
+                "content": "The significance of Tahiyyat Al-Masjid is rooted in the guidance of the Prophet (PBUH). Abu Qatadah (RA) narrated that the Prophet (PBUH) said:"
+              },
+              {
+                "type": "text",
+                "style": "hadithQuoteLead",
+                "content": "\"When one of you enters the mosque, let him not sit until he prays two rak'ahs.\""
+              },
+              {
+                "type": "text",
+                "style": "tableGuide",
+                "content": "This act of worship shifts a believer's focus from the worldly to the spiritual. By performing this prayer, one disconnects from the noise of daily life and attunes the heart to a state of humility and devotion. It is a moment to pause, seek Allah's mercy, and mentally prepare for the congregation."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "MISSED_PAST_PRAYERS": {
+      "success": true,
+      "statusCode": 200,
+      "message": "Success",
+      "data": {
+        "prayerType": "MISSED_PAST_PRAYERS",
+        "isActive": false,
+        "title": "MISSED PAST PRAYERS",
+        "navTitle": "MISSED PAST PRAYERS",
+        "heroTitle": "Renew & Deepen Your Connection with Allah",
+        "description": "Many of us have neglected obligatory prayers for weeks, months, or even years. Fulfilling these overdue prayers is a testament to our renewed commitment to Allah.",
+        "hadithIntro": "",
+        "benefitsIntro": "",
+        "benefits": [],
+        "steps": [],
+        "readMore": [
+          {
+            "items": [
+              {
+                "type": "text",
+                "style": "bodyZero",
+                "content": "Obligatory prayers, the second pillar of Islam, are the foundation of our faith and spiritual framework, shaping our lives and strengthening our bond with Allah."
+              },
+              {
+                "type": "text",
+                "style": "bodyZero",
+                "content": "While some of us may have neglected this duty in the past, acknowledging these shortcomings offers us an opportunity to fulfill this obligation and draw closer to Allah. It is never too late to address missed prayers, renew our commitment, and seek His pleasure through sincere effort."
+              }
+            ]
+          },
+          {
+            "items": [
+              {
+                "type": "text",
+                "style": "bodyZero",
+                "content": "There is a difference of opinion among scholars regarding missed prayers. Some scholars hold that sincere repentance (tawbah) suffices for missed prayers, emphasizing Allah's vast mercy. However, as obligatory prayers are deeply beloved to Allah and a cornerstone of worship, many scholars recommend making them up as a sign of devotion and commitment. For those who choose this path, two approaches are outlined:"
+              },
+              {
+                "type": "prayerSection",
+                "heading": "Praying Alongside Current Obligations:",
+                "description": "Perform each missed prayer in order, pairing them with your current prayers (e.g., pray a missed Fajr before the current Fajr) until the backlog is cleared."
+              },
+              {
+                "type": "prayerSection",
+                "heading": "Praying Whenever Possible:",
+                "description": "Dedicate time throughout the day to perform missed prayers in order (e.g., Fajr, Dhuhr, Asr, Maghrib, Isha) as your schedule allows, without waiting for specific prayer times."
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "Both methods require repentance, sincerity, consistency, and a commitment to fulfilling this obligation. By taking these steps, you can renew your devotion and strengthen your spiritual foundation."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "DUHA": {
+      "success": true,
+      "statusCode": 200,
+      "message": "Success",
+      "data": {
+        "prayerType": "DUHA",
+        "isActive": false,
+        "title": "DUHA",
+        "navTitle": "DUHA",
+        "heroTitle": "Spiritual Elevation & Physical Charity",
+        "description": "Duha prayer, also known as the repentant or Awabeen in Arabic, is performed in sets of 2 rak'ahs anytime 15-20 minutes after sunrise until 10-15 minutes before Dhuhr.",
+        "hadithIntro": "",
+        "benefitsIntro": "",
+        "benefits": [],
+        "steps": [
+          "Step 1: Wait for Sunrise - Allow 15-20 minutes to pass after sunrise before commencing the Duha prayer.",
+          "Step 2: Choose Rak'ahs - You can pray from 2 to 8 rak'ahs, in sets of two.",
+          "Step 3: Focus on Sincerity - Make the Niyyah in your heart to pray the Duha prayer.",
+          "Step 4: Complete Before Dhuhr - Complete your prayer before the sun reaches its zenith (about 10-15 minutes before Dhuhr)."
+        ],
+        "readMore": [
+          {
+            "items": [
+              {
+                "type": "text",
+                "style": "body",
+                "icon": "FajarSunIcon",
+                "content": "The word Duha in Arabic translates to \"forenoon\" or \"morning light.\" It refers to the time of day when the sun has risen above the horizon and its light spreads brightly across the sky."
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "Duha prayer is a significant prayer that holds a special place in the hearts of many Muslims seeking spiritual fulfillment and a closer connection to Allah. It was narrated by Abu Hurayrah (RA) that the Prophet (PBUH) said:"
+              },
+              {
+                "type": "text",
+                "style": "quoteItalic",
+                "icon": "HadeethBookIcon",
+                "content": "\"None is diligent in establishing Duha prayer except one who is oft-repentant\" (awwāb), and it is for the oft-repentant."
+              },
+              {
+                "type": "text",
+                "style": "tableGuide",
+                "content": "The term 'awwāb' refers to someone who frequently turns back to Allah in repentance and devotion. This narration emphasizes that those who habitually perform the Duha prayer are often individuals who are deeply connected to Allah, consistently seeking His forgiveness and striving to maintain a close relationship with Him. The Prophet (PBUH) highlights the special connection between the Duha prayer and the quality of being 'awwāb,' encouraging Muslims to adopt this beautiful act of worship as part of their spiritual routine.\n\nThe importance of the Duha prayer is further highlighted in a hadith narrated by Abu Dharr (RA), where the Prophet (PBUH) stated:"
+              },
+              {
+                "type": "text",
+                "style": "quoteItalic",
+                "icon": "HadeethBookIcon",
+                "content": "\"In the morning, charity is due from every joint of your body. Every tasbeeh (saying 'SubhanAllah') is charity. Every tahmeed (saying 'Alhamdulillah') is charity. Every tahleelah (saying 'La ilaha illallah') is charity. Every takbeer (saying 'Allahu Akbar') is charity. Enjoining good is charity. Forbidding evil is charity. And performing two rak’ahs of Duha suffices all of this.\""
+              }
+            ]
+          },
+          {
+            "items": [
+              {
+                "type": "text",
+                "style": "sectionHeading",
+                "content": "Duha: The \"Forenoon Tahajjud\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "icon": "DuhaPrayerStar",
+                "content": "While the Quran does not directly mention the Duha prayer, Surah Al-Duha The Duha prayer is often referred to as the \"Forenoon Tahajjud\" because, like Tahajjud, it is a voluntary act of worship performed during a quiet and serene time, fostering a deep spiritual connection with Allah.\n\nWhile Tahajjud is prayed in the stillness of the night, Duha is offered in the calm of the forenoon, after the sun has risen. Both prayers are acts of devotion that reflect gratitude, repentance, and a yearning for closeness to Allah, making them spiritually enriching and beloved forms of worship."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "TAWBAH": {
+      "success": true,
+      "statusCode": 200,
+      "message": "Success",
+      "data": {
+        "prayerType": "TAWBAH",
+        "isActive": false,
+        "title": "TAWBAH PRAYER",
+        "navTitle": "AL-TAWBAH",
+        "heroTitle": "Embracing the Power of Repentance",
+        "description": "The Tawbah prayer, or the Prayer of Repentance, is a rewarding 2-rakah voluntary prayer for seeking Allah's forgiveness and repentance for any sins, whether minor or major, old or new.",
+        "hadithIntro": "",
+        "benefitsIntro": "",
+        "benefits": [],
+        "steps": [
+          "Step 1: Perform Wudhu Beautifully - Wash yourself thoroughly, paying attention to the Sunnah steps of Wudhu.",
+          "Step 2: Make Sincere Intention - Deeply intend to seek Allah's forgiveness for your errors.",
+          "Step 3: Pray Two Rak'ahs - Pray two rak'ahs with absolute humility and focus.",
+          "Step 4: Beseech Allah's Forgiveness - In sujud or after salam, sincerely ask Allah to pardon you, promising to stay away from the sin."
+        ],
+        "readMore": [
+          {
+            "items": [
+              {
+                "type": "text",
+                "style": "body",
+                "icon": "ManPrayerIcon",
+                "content": "The Tawbah prayer holds a vital place in our spiritual journey as a Muslim, as it provides means to purify our heart and seek closeness to Allah through genuine remorse and a commitment to reform."
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "The significance of this prayer is underscored by a hadith narrated by Abu Bakr (RA), where the Prophet (PBUH) said:"
+              },
+              {
+                "type": "text",
+                "style": "quoteItalic",
+                "icon": "HadeethBookIcon",
+                "content": "\"There is no one who commits a sin, then purifies himself well, stands and prays two rak'ahs, and then asks Allah for forgiveness, but Allah will forgive him.\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "This narration highlights the mercy of Allah and the power of sincere repentance in erasing sins and renewing one's faith, encouraging us to constantly turn back to Allah and seek His forgiveness."
+              }
+            ]
+          },
+          {
+            "items": [
+              {
+                "type": "text",
+                "style": "sectionHeading",
+                "content": "Aligning with Divine Guidance"
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "While the Quran does talk about the consequences of sins, it also emphasizes that Allah's mercy is far greater than His punishment. This balance shows that while we are held accountable for our actions, Allah is always ready to forgive those who sincerely repent."
+              },
+              {
+                "type": "text",
+                "style": "quoteSemibold",
+                "icon": "QuranImageIcon",
+                "content": "\"Do they not know that Allah accepts repentance from His servants and receives charities, and that Allah is the Accepting of repentance, the Merciful?\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "Furthermore, Surah Al-Furqan (25:70) highlights the transformative power of repentance:"
+              },
+              {
+                "type": "text",
+                "style": "quoteSemibold",
+                "icon": "QuranImageIcon",
+                "content": "\"Except for those who repent, believe and do righteous work. For them Allah will replace their evil deeds with good. And ever is Allah Forgiving and Merciful.\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "Additionally, Surah Az-Zumar (39:53) emphasizes that Allah's mercy is vast and all-encompassing, encouraging all sinners, regardless of the magnitude of their sins, to repent sincerely:"
+              },
+              {
+                "type": "text",
+                "style": "quoteSemibold",
+                "icon": "QuranImageIcon",
+                "content": "\"Say, 'O My servants who have transgressed against themselves [by sinning], do not despair of the mercy of Allah. Indeed, Allah forgives all sins. Indeed, it is He who is the Forgiving, the Merciful.\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "By integrating the Tawbah prayer into our lives, we seize the opportunity to truly demonstrate our remorse by prostrating in repentance. This act conveys the depth of our sincerity and humility before Allah, drawing us closer to Him and renewing our commitment to His commands."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "ISTIKHARA": {
+      "success": true,
+      "statusCode": 200,
+      "message": "Success",
+      "data": {
+        "prayerType": "ISTIKHARA",
+        "isActive": false,
+        "title": "ISTIKHARAH PRAYER",
+        "navTitle": "ISTIKHARAH",
+        "heroTitle": "Seeking Divine Guidance in Decision-Making",
+        "description": "The Istikhara prayer is a two rak'ah prayer for divine guidance when making a decision, fostering reliance on Allah and promoting peace of mind.",
+        "hadithIntro": "",
+        "benefitsIntro": "",
+        "benefits": [],
+        "steps": [
+          "Step 1: Identify Your Dilemma - Have a specific decision or choice in mind.",
+          "Step 2: Pray Two Rak'ahs - Pray two voluntary non-obligatory rak'ahs.",
+          "Step 3: Recite the Istikharah Du'a - Recite the beautiful prophetic supplication after completing the prayer.",
+          "Step 4: Trust in Allah's Decree - Move forward with the best option, trusting that Allah will guide you to what is beneficial."
+        ],
+        "readMore": [
+          {
+            "items": [
+              {
+                "type": "text",
+                "style": "sectionHeading",
+                "content": "When to Pray Istikhara"
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "icon": "ManDuaIcon",
+                "content": "The Istikhara prayer, deeply rooted in the teachings of Prophet Muhammad (PBUH), serves as a special means for Muslims to seek divine guidance in decision-making. This practice is complemented by \"istishara,\" the consultation with righteous and trusted individuals who can aid in making informed decisions, reflecting the Prophet's approach with his companions such as Abu Bakr (RA) and Umar (RA)."
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "Although commonly linked to major decisions like choosing a career, proceeding with a marriage proposal, or purchasing a home, istikhara extends beyond these to encompass everyday choices. It is a spiritual act of entrusting one's decisions to Allah, fostering confidence and clarity in both major and minor matters."
+              }
+            ]
+          },
+          {
+            "items": [
+              {
+                "type": "text",
+                "style": "sectionHeading",
+                "content": "How to Perform Istikhara"
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "icon": "IstikharaClockIcon",
+                "content": "To perform Istikhara, one begins with a voluntary prayer consisting of two rak'ahs, like any other voluntary prayer. However, what sets Istikhara apart is the specific du'a (supplication) recited afterward, seeking Allah's guidance after making personal efforts and consulting others. It is common, and recommended by some scholars, to recite Surah Al-Kafirun in the first rak'ah and Surah Al-Ikhlas in the second, due to their virtues."
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "These two rak'ahs can be seamlessly integrated into daily sunnah prayers, such as those before Fajr or after Maghrib, or they can be additional prayers."
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "Many find peace in offering these extra rak'ahs at night, after Isha, as part of their night prayers, benefiting from the calm of the late night hours. Others might choose to pray at a different time, such as before a significant event like a job interview, finding comfort in seeking Allah's guidance just before facing a decision."
+              }
+            ]
+          },
+          {
+            "items": [
+              {
+                "type": "text",
+                "style": "sectionHeading",
+                "content": "The Istikhara Du’a"
+              },
+              {
+                "type": "text",
+                "style": "tableGuide",
+                "align": "right",
+                "content": "اللَّهُمَّ إِنِّي أَسْتَخِيرُكَ بِعِلْمِكَ وَأَسْتَقْدِرُكَ بِقُدْرَتِكَ، وَأَسْأَلُكَ مِنْ فَضْلِكَ الْعَظِيمِ، فَإِنَّكَ تَقْدِرُ وَلاَ أَقْدِرُ وَتَعْلَمُ وَلاَ أَعْلَمُ وَأَنْتَ عَلاَّمُ الْغُيُوبِ اللَّهُمَّ إِنْ كُنْتَ تَعْلَمُ أَنَّ هَذَا الأَمْرَ خَيْرٌ لِي فِي دِينِي وَمَعَاشِي وَعَاقِبَةِ أَمْرِي فَاقْدُرْهُ لِي وَيَسِّرْهُ لِي ثُمَّ بَارِكْ لِي فِيهِ وَإِنْ كُنْتَ تَعْلَمُ أَنَّ هَذَا الأَمْرَ شَرٌّ لِي فِي دِينِي وَمَعَاشِي وَعَاقِبَةِ أَمْرِي فَاصْرِفْهُ عَنِّي وَاصْرِفْنِي عَنْهُ، وَاقْدُرْ لِي الْخَيْرَ حَيْثُ كَانَ ثُمَّ أَرْضِنِي بِهِ."
+              },
+              {
+                "type": "boldPrefixText",
+                "prefix": "Transliteration:",
+                "style": "body",
+                "content": "Allahumma inni astakheeruka bi’ilmika, wa astaqdiruka biqudratika, wa as’aluka min fadhlikal-‘azeem. Fa’innaka taqdiru wa laaqdir, wa ta’lamu wa la a’lam, wa anta ‘allaamul-ghuyoob. \n\nAllahumma in kunta ta’lamu anna haadhal-amra khayrun li fi deeni wa ma’aashi wa ‘aaqibati amri (or: ‘aajili amri wa aajilihi) faqdirhu li wa yassirhu li thumma baarik li fihi. Wa in kunta ta’lamu anna haadhal-amra sharrun li fi deeni wa ma’aashi wa ‘aaqibati amri (or: ‘aajili amri wa aajilihi) fasrifhu ‘anni wasrifni ‘anhu, waqdir li al-khayra haythu kaana thumma ardini."
+              },
+              {
+                "type": "boldPrefixText",
+                "prefix": "Translation:",
+                "style": "body",
+                "content": "O Allah, I seek Your guidance (in making a choice) by virtue of Your knowledge, and I seek ability by virtue of Your power, and I ask You of Your great bounty. You have power, and I do not. You know, and I know not, and You are the Knower of the unseen. \n\nO Allah, if You know that this matter [mention the thing to be decided] is good for me in my religion, my livelihood, my worldly affairs, and in the hereafter then decree it for me, make it easy for me, and bless it for me. And if You know that this matter is bad for me in my religion, my livelihood, my worldly affairs, and in the hereafter then turn it away from me and turn me away from it, and decree for me the good wherever it may be and make me content with it (Bukhari)."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "SHUKR": {
+      "success": true,
+      "statusCode": 200,
+      "message": "Success",
+      "data": {
+        "prayerType": "SHUKR",
+        "isActive": false,
+        "title": "SHUKR PRAYER",
+        "navTitle": "SHUKR",
+        "heroTitle": "Gratitude in Devotion",
+        "description": "Al-Shukr prayer is a two rak'ah prayer of gratitude, fostering humility and appreciation for Allah's countless blessings, strengthening our faith.",
+        "hadithIntro": "",
+        "benefitsIntro": "",
+        "benefits": [],
+        "steps": [],
+        "readMore": [
+          {
+            "items": [
+              {
+                "type": "text",
+                "style": "sectionHeading",
+                "content": "Embracing the Essence of Al-Shukr Prayer"
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "In Islam, gratitude is a profound spiritual practice, with Al-Shukr prayer serving as a powerful symbol of appreciation. The Prophet Muhammad (PBUH) referred to prayer as 'shukr,' highlighting its role in expressing gratitude.\n\nAnas ibn Malik (may Allah be pleased with him) narrated that the Prophet (PBUH) would perform two rak'ahs during moments of thankfulness, expressing his gratitude through prayer."
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "Moreover, the Prophet (PBUH) encourages us to consistently recognize blessings in all circumstances. According to a narration by Ibn Abbas, the Prophet (PBUH) stated:"
+              },
+              {
+                "type": "text",
+                "style": "quoteMediumItalic",
+                "icon": "HadeethBookIcon",
+                "content": "\"Indeed, the first to be called to Paradise are those who praise Allah in prosperity and adversity.\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "This hadith illustrates the deep connection between gratitude and divine reward, urging Muslims to continuously thank Allah, appreciating blessings in both comfort and difficulty."
+              }
+            ]
+          },
+          {
+            "items": [
+              {
+                "type": "text",
+                "style": "sectionHeading",
+                "content": "The Unique Practice of Sujood Al-Shukr"
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "Incorporating Al-Shukr prayer into daily life is a powerful way to express gratitude to Allah for His countless blessings. Among these practices, Sujood Al-Shukr, or the Prostration of Gratitude, holds special significance. It is performed to immediately thank Allah for a specific blessing or relief from hardship, such as the birth of a child, recovery from illness, success, or averting a disaster.\n\nThis single prostration requires no Wudhu, facing the Qibla, or specific recitations. One simply prostrates, praises Allah—often saying, \"Subhana Rabbiyal A'la\" (Glory is to my Lord, the Most High)—and expresses heartfelt gratitude.\n\nSujood Al-Shukr beautifully reminds us to acknowledge Allah’s mercy and blessings, fostering a deeper connection with Him and a profound sense of appreciation."
+              }
+            ]
+          },
+          {
+            "items": [
+              {
+                "type": "text",
+                "style": "sectionHeading",
+                "content": "Quranic Insights on Gratitude"
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "The Quran emphasizes gratitude in numerous verses. In Surah Al-Baqarah (2:152), Allah says:"
+              },
+              {
+                "type": "text",
+                "style": "quoteSemibold",
+                "icon": "QuranImageIcon",
+                "content": "\"So remember Me; I will remember you. And be grateful to Me and do not deny Me.\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "Similarly, Surah An-Nahl (16:18) reminds us:"
+              },
+              {
+                "type": "text",
+                "style": "quoteSemibold",
+                "icon": "QuranImageIcon",
+                "content": "\"If you tried to count Allah's bless-ings, you could never enumerate them. Indeed, Allah is Forgiving and Merciful.\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "These verses underscore the significance of gratitude in Islam and the immense rewards for those who are thankful."
+              }
+            ]
+          },
+          {
+            "items": [
+              {
+                "type": "text",
+                "style": "body",
+                "content": "Practices like the Shukr prayer and Sujood Al-Shukr deepen our spiritual connection, fostering mindfulness and appreciation. By integrating them into our lives, we strengthen our bond with Allah, find peace in faith, and remain grounded amidst life’s challenges."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "QIYAM_AL_LAYL": {
+      "success": true,
+      "statusCode": 200,
+      "message": "Success",
+      "data": {
+        "prayerType": "QIYAM_AL_LAYL",
+        "isActive": false,
+        "title": "QIYAM AL-LAYL",
+        "navTitle": "QIYAM AL-LAYL",
+        "heroTitle": "Illuminating the Heart, Mind, and Soul",
+        "description": "Qiyam Al-Layl, the night prayer, is performed anytime between Isha and Fajr. This sacred time fosters spiritual elevation, bringing Allah's blessings, forgiveness, and answered prayers.",
+        "hadithIntro": "",
+        "benefitsIntro": "",
+        "benefits": [],
+        "steps": [],
+        "readMore": [
+          {
+            "items": [
+              {
+                "type": "text",
+                "style": "sectionHeading",
+                "content": "Introduction to Qiyam Al-Layl"
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "Qiyam Al-Layl is a profound act of devotion that transforms our spiritual path as Muslims."
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "It symbolizes our complete submission to Allah and reflects a deep commitment to draw closer to Him."
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "Rooted in the teachings of the Prophet Muhammad (PBUH), this prayer holds immense significance. As narrated by Abu Huraira (RA), the Prophet (PBUH) said:"
+              },
+              {
+                "type": "text",
+                "style": "quoteItalic",
+                "icon": "HadeethBookIcon",
+                "content": "\"The best prayer after the obligatory prayers is the prayer at night.\" (Muslim)"
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "In another hadith narrated by Abu Umamah Al-Bahili (RA), the Prophet (PBUH) also said:"
+              },
+              {
+                "type": "text",
+                "style": "quoteItalic",
+                "icon": "HadeethBookIcon",
+                "content": "\"You must perform the night prayer, for it is the habit of the righteous who came before you. It brings you closer to your Lord, expiates your evil deeds, and prevents you from sinning.\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "These powerful sayings emphasize the spiritual richness of Qiyam Al-Layl. It is a sacred time where we can pour our hearts out in sincere supplication, confident that our prayers will be met with unparalleled compassion."
+              }
+            ]
+          },
+          {
+            "items": [
+              {
+                "type": "text",
+                "style": "sectionHeading",
+                "content": "Tahajjud: The Pinnacle of Qiyam Al-Layl"
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "One form of Qiyam Al-Layl that holds immense spiritual significance is Tahajjud, often regarded as the crown jewel of night prayers. Observed in the final third of the night after a brief sleep following Isha, it reflects profound devotion and longing for closeness to Allah."
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "Rising from the comfort of one's bed to worship in solitude embodies a sincere commitment, driven by hope for Allah's mercy and fear of His displeasure, as beautifully described in Surah Al-Sajdah (32:16):"
+              },
+              {
+                "type": "text",
+                "style": "quoteSemibold",
+                "icon": "QuranImageIcon",
+                "content": "\"Their sides part from their beds; they call upon their Lord in fear and hope.\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "In a hadith narrated by Abu Huraira (RA), the Prophet Muhammad (PBUH) said:"
+              },
+              {
+                "type": "text",
+                "style": "quoteItalic",
+                "icon": "HadeethBookIcon",
+                "content": "\"Every night, during the last third, our Lord descends to the lowest heaven, saying: 'Who will call upon Me, that I may answer him? Who will ask of Me, that I may give him? Who will seek My forgiveness, that I may forgive him?'\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "This profound hadith beautifully encapsulates the unmatched blessings of the last third of the night. It reminds us of Allah's immense mercy and His eagerness to accept our prayers, grant our requests, and forgive our shortcomings."
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

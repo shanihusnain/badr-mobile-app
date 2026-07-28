@@ -20,6 +20,7 @@ import { Divider } from "../atoms/Divider";
 
 export default function QiyamalLaylGoalSelection({
   onSave,
+  initialValues,
 }: {
   onSave?: (value: {
     commitment: "every_night" | "flexible";
@@ -27,15 +28,25 @@ export default function QiyamalLaylGoalSelection({
     witrPrayers: number;
     trackTahajjud: "yes" | "no";
   }) => void;
+  initialValues?: {
+    isFlexible?: boolean;
+    unitTarget?: number;
+    witrTarget?: number;
+    trackTahajjud?: boolean;
+  };
 }) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
   const [isOpen, setIsOpen] = useState(false);
   const [commitment, setCommitment] = useState<"every_night" | "flexible">(
-    "flexible",
+    initialValues?.isFlexible ? "flexible" : "every_night",
   );
-  const [sliderValue, setSliderValue] = useState(1);
-  const [trackTahajjud, setTrackTahajjud] = useState<"yes" | "no">("yes");
+  const [sliderValue, setSliderValue] = useState(
+    initialValues?.unitTarget ?? 1,
+  );
+  const [trackTahajjud, setTrackTahajjud] = useState<"yes" | "no">(
+    initialValues?.trackTahajjud ? "yes" : "no",
+  );
 
   const toggleDropdown = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);

@@ -84,6 +84,7 @@ export default function ForgotPasswordScreen() {
                       errors={
                         errors.email?.message ? [errors.email.message] : []
                       }
+                      autoCapitalize="none"
                     />
                   </View>
 

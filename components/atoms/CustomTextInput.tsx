@@ -48,6 +48,7 @@ interface CustomTextInputProps {
   editable?: boolean;
   selectTextOnFocus?: boolean;
   numberOfLines?: number;
+  leftIcon?: React.ReactNode;
 }
 
 const CustomTextInput: React.FC<CustomTextInputProps> = ({
@@ -72,6 +73,7 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
   editable,
   selectTextOnFocus,
   numberOfLines,
+  leftIcon,
 }) => {
   const { i18n } = useTranslation();
   const isRtl = i18n.language === "ar";
@@ -89,32 +91,31 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
           multiline && styles.multilineInputWrapper,
         ]}
       >
-        <View style={styles.flex1}>
-          <TextInput
-            style={[
-              styles.input,
-              { textAlign: isRtl ? "right" : "left" },
-              secureTextEntry && { fontFamily: fonts.primary.semiBold },
-              multiline && styles.multilineTextInput,
-              inputStyle,
-            ]}
-            placeholder={placeholder}
-            placeholderTextColor={Colors.light.icon}
-            value={fieldValue ?? value ?? ""}
-            onChangeText={fieldOnChange ?? onChangeText}
-            secureTextEntry={secureTextEntry}
-            multiline={multiline}
-            keyboardType={keyboardType}
-            autoCapitalize={autoCapitalize}
-            maxLength={maxLength}
-            editable={editable}
-            selectTextOnFocus={selectTextOnFocus}
-            numberOfLines={numberOfLines}
-            textAlignVertical={multiline ? "top" : "center"}
-          />
-        </View>
+        {leftIcon ? <View style={styles.leftIcon}>{leftIcon}</View> : null}
+        <TextInput
+          style={[
+            styles.input,
+            { textAlign: isRtl ? "right" : "left" },
+            secureTextEntry && { fontFamily: fonts.primary.semiBold },
+            multiline && styles.multilineTextInput,
+            inputStyle,
+          ]}
+          placeholder={placeholder}
+          placeholderTextColor={Colors.light.icon}
+          value={fieldValue ?? value ?? ""}
+          onChangeText={fieldOnChange ?? onChangeText}
+          secureTextEntry={secureTextEntry}
+          multiline={multiline}
+          keyboardType={keyboardType}
+          autoCapitalize={autoCapitalize}
+          maxLength={maxLength}
+          editable={editable}
+          selectTextOnFocus={selectTextOnFocus}
+          numberOfLines={numberOfLines}
+          textAlignVertical={multiline ? "top" : "center"}
+        />
         {showEye && onToggleEye && (
-          <TouchableOpacity onPress={onToggleEye}>
+          <TouchableOpacity onPress={onToggleEye} style={styles.rightIcon}>
             <AntDesign
               name={secureTextEntry ? "eye-invisible" : "eye"}
               size={20}
@@ -162,14 +163,23 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
   },
   input: {
+    flex: 1,
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
     fontSize: 12,
     padding: 0,
+    margin: 0,
     includeFontPadding: false,
   },
-  flex1: {
-    flex: 1,
+  leftIcon: {
+    marginRight: 6,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  rightIcon: {
+    marginLeft: 6,
+    justifyContent: "center",
+    alignItems: "center",
   },
   inputWrapper: {
     backgroundColor: Colors.light.calendarBg,
@@ -179,7 +189,6 @@ const styles = StyleSheet.create({
     marginTop: hp(1),
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
   },
   multilineInputWrapper: {
     alignItems: "flex-start",

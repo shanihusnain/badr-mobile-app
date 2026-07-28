@@ -26,7 +26,7 @@
   },
   "forgotPasswordScreen": {
     "title": "Forgot Password",
-    "description": "Enter the email address linked to your account. We'll send you a 6-digit code to reset your password.",
+    "description": "Enter the email address linked to your account.\nWe'll send you a 6-digit code to reset your\npassword.",
     "emailPlaceholder": "Email Address",
     "sendInstructionsBtn": "Send",
     "backToLoginText": "Back to Login"
@@ -47,7 +47,7 @@
     "updatePasswordBtn": "UPDATE PASSWORD"
   },
   "introScreen": {
-    "introText": "Embark on your journey to become a better Muslim with Badr",
+    "introText": "Embark on your journey to become\na better Muslim with Badr",
     "subtitleText": "Set ibadat goal, track progress in real-time, and elevate your journey as a devoted Muslim with a reflective journal and enriching experiences islamic content"
   },
   "freeTrialScreen": {
@@ -140,13 +140,26 @@
     "descAnnual": "$0 for 2 months, then $99.99 every 3 months after. If you've already used your free trial before, billing begins immediately."
   },
   "validations": {
-    "inputMissing": "invalid input",
+    "nameRequired": "Please enter your name",
+    "emailRequired": "Please enter your email",
+    "passwordRequired": "Please enter your password",
+    "confirmPasswordRequired": "Please confirm your password",
+    "genderRequired": "Please select your gender",
+    "dobRequired": "Please select your date of birth",
+    "countryRequired": "Please select your country",
+    "dateViewRequired": "Please select a date view",
+    "weekRequired": "Please select a week start",
+    "recipientNameRequired": "Please enter the recipient's name",
+    "recipientEmailRequired": "Please enter the recipient's email",
+    "personalMessageRequired": "Please enter a personal message",
+    "yourNameRequired": "Please enter your name",
+    "otpRequired": "Please enter the complete verification code",
     "passwordMin": "Password must be at least 8 characters",
-    "mustContainUppercase": "Must contain uppercase",
-    "mustContainLowercase": "Must contain lowercase",
-    "mustContainNumber": "Must contain number",
-    "mustContainSpecialChar": "Must contain special character",
-    "invalidEmail": "Invalid email",
+    "mustContainUppercase": "Password must contain an uppercase letter",
+    "mustContainLowercase": "Password must contain a lowercase letter",
+    "mustContainNumber": "Password must contain a number",
+    "mustContainSpecialChar": "Password must contain a special character",
+    "invalidEmail": "Please enter a valid email address",
     "passwordsDontMatch": "Passwords don't match"
   },
   "monthlyGoalPlanner": {
@@ -1110,36 +1123,11 @@
                 "SUNNAH\n(After)"
               ],
               "rows": [
-                [
-                  "FAJR",
-                  "2",
-                  "2",
-                  "-"
-                ],
-                [
-                  "DHUHR",
-                  "2+2",
-                  "4",
-                  "2 or 4"
-                ],
-                [
-                  "ASR",
-                  "2 or 4",
-                  "4",
-                  "-"
-                ],
-                [
-                  "MAGHRIB",
-                  "-",
-                  "3",
-                  "2"
-                ],
-                [
-                  "ISHA",
-                  "-",
-                  "4",
-                  "2"
-                ]
+                ["FAJR", "2", "2", "-"],
+                ["DHUHR", "2+2", "4", "2 or 4"],
+                ["ASR", "2 or 4", "4", "-"],
+                ["MAGHRIB", "-", "3", "2"],
+                ["ISHA", "-", "4", "2"]
               ]
             }
           ]
@@ -3580,15 +3568,7 @@
     "unlockMilestone": "to unlock your\nnext milestone.",
     "consistencyHeader": "Stay Consistent for Long-Term Barakah",
     "consistencyBody": "Your daily commitment to logging on Badr is more than a routine—it’s a step toward spiritual growth, bringing you closer to your goals, strengthening worship, and deepening your connection with Allah.",
-    "weekDays": [
-      "Sun",
-      "Mon",
-      "Tue",
-      "Wed",
-      "Thu",
-      "Fri",
-      "Sat"
-    ]
+    "weekDays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
   },
   "journalFilling": {
     "titleYesterday": "What happened yesterday,\n{{name}}?",
