@@ -15,6 +15,7 @@ export const styles = StyleSheet.create({
 
   contentView: {
     flex: 1,
+    flexDirection: "column",
   },
 
   header: {
@@ -47,6 +48,7 @@ export const styles = StyleSheet.create({
 
   imageSection: {
     flex: 1,
+    minHeight: hp(35),
   },
 
   imageTapArea: {
@@ -62,11 +64,14 @@ export const styles = StyleSheet.create({
     overflow: "hidden",
   },
 
-  bottomSheetContent: {
+  bottomSheetScroll: {
     flex: 1,
+  },
+
+  bottomSheetContent: {
     paddingHorizontal: 16,
     paddingTop: hp(2),
-    paddingBottom: hp(3),
+    paddingBottom: hp(4),
   },
 
   forgotPasswordContainer: {

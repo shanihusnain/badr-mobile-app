@@ -7,6 +7,14 @@
     "icon": "./assets/images/icon.png",
     "scheme": "badr",
     "userInterfaceStyle": "automatic",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/5b91f90b-adf2-4070-ad94-d2b2a87171da",
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 0
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.anonymous.badr",
@@ -28,18 +36,7 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.badar",
-      "intentFilters": [
-        {
-          "action": "VIEW",
-          "category": ["BROWSABLE", "DEFAULT"],
-          "data": [
-            {
-              "scheme": "com.googleusercontent.apps.847727401784-s0ch0ho1skaoe5gkmjkl33sieulhs426"
-            }
-          ]
-        }
-      ]
+      "package": "com.anonymous.badar"
     },
     "web": {
       "output": "static",
@@ -94,7 +91,26 @@
         }
       ],
       "expo-video",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-updates",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.847727401784-s0ch0ho1skaoe5gkmjkl33sieulhs426"
+        }
+      ],
+      [
+        "react-native-fbsdk-next",
+        {
+          "appID": "969327542833617",
+          "clientToken": "5ed10062103f197731f88dfedc1e785c",
+          "displayName": "badr",
+          "scheme": "fb969327542833617",
+          "isAutoInitEnabled": true,
+          "autoLogAppEventsEnabled": false,
+          "advertiserIDCollectionEnabled": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

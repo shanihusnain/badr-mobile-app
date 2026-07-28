@@ -8,7 +8,7 @@ export const useFacebookSignIn = () => {
   // These are required for react-native-fbsdk-next (plugin/native setup).
   // They are runtime checks only; the actual native wiring is done by the Expo config plugin.
   const fbAppId = process.env.EXPO_PUBLIC_FACEBOOK_APP_ID ?? "";
-  const permissions = useMemo(() => ["public_profile", "email"], []);
+  const permissions = useMemo(() => ["public_profile"], []);
 
   const signInWithFacebook = useCallback(async () => {
     if (isPrompting) return;

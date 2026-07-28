@@ -7,8 +7,7 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import {
   Keyboard,
-  KeyboardAvoidingView,
-  Platform,
+  ScrollView,
   Text,
   TouchableWithoutFeedback,
   View,
@@ -55,51 +54,49 @@ export default function ForgotPasswordScreen() {
       <SafeAreaView style={styles.safeArea} edges={["bottom"]}>
         <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
           <View style={styles.contentView}>
-            <KeyboardAvoidingView
-              style={styles.keyboardAvoidingView}
-              behavior={Platform.OS === "ios" ? "padding" : "height"}
-              keyboardVerticalOffset={0}
-            >
-              <ImageBackground
-                source={BadrTreeImage}
-                style={styles.imageSection}
-                contentFit="cover"
+            <ImageBackground
+              source={BadrTreeImage}
+              style={styles.imageSection}
+              contentFit="cover"
+            />
+
+            <View style={styles.bottomSheet}>
+              <ScrollView
+                style={styles.bottomSheetScroll}
+                contentContainerStyle={styles.bottomSheetContent}
+                keyboardShouldPersistTaps="handled"
+                bounces={false}
+                showsVerticalScrollIndicator={false}
               >
-                <View style={styles.imageTapArea} />
-              </ImageBackground>
-
-              <View style={styles.bottomSheet}>
-                <View style={styles.bottomSheetContent}>
-                  <View style={styles.messageContainer}>
-                    <Text style={styles.messageText}>
-                      {t("forgotPasswordScreen.description")}
-                    </Text>
-                  </View>
-
-                  <View style={styles.formWrapper}>
-                    <CustomTextInput
-                      placeholder={t("forgotPasswordScreen.emailPlaceholder")}
-                      control={control}
-                      name="email"
-                      errors={
-                        errors.email?.message ? [errors.email.message] : []
-                      }
-                      autoCapitalize="none"
-                    />
-                  </View>
-
-                  <View style={styles.buttonWrapper}>
-                    <PrimaryButton
-                      text={t("forgotPasswordScreen.sendInstructionsBtn")}
-                      onPress={handleSubmit(onSubmit)}
-                      style={styles.primaryButton}
-                      disabled={forgotPasswordLoading}
-                      isLoading={forgotPasswordLoading}
-                    />
-                  </View>
+                <View style={styles.messageContainer}>
+                  <Text style={styles.messageText}>
+                    {t("forgotPasswordScreen.description")}
+                  </Text>
                 </View>
-              </View>
-            </KeyboardAvoidingView>
+
+                <View style={styles.formWrapper}>
+                  <CustomTextInput
+                    placeholder={t("forgotPasswordScreen.emailPlaceholder")}
+                    control={control}
+                    name="email"
+                    errors={
+                      errors.email?.message ? [errors.email.message] : []
+                    }
+                    autoCapitalize="none"
+                  />
+                </View>
+
+                <View style={styles.buttonWrapper}>
+                  <PrimaryButton
+                    text={t("forgotPasswordScreen.sendInstructionsBtn")}
+                    onPress={handleSubmit(onSubmit)}
+                    style={styles.primaryButton}
+                    disabled={forgotPasswordLoading}
+                    isLoading={forgotPasswordLoading}
+                  />
+                </View>
+              </ScrollView>
+            </View>
           </View>
         </TouchableWithoutFeedback>
       </SafeAreaView>

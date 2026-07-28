@@ -6,8 +6,7 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import {
   Keyboard,
-  KeyboardAvoidingView,
-  Platform,
+  ScrollView,
   TouchableWithoutFeedback,
   View,
   Text,
@@ -50,7 +49,7 @@ export default function ConfirmPasswordScreen() {
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
+  const [isSuccess] = useState(false);
 
   const onPasswordToggle = () => setShowPassword((prev) => !prev);
   const onConfirmPasswordToggle = () => setShowConfirmPassword((prev) => !prev);
@@ -75,97 +74,95 @@ export default function ConfirmPasswordScreen() {
       <SafeAreaView style={styles.safeArea} edges={["bottom"]}>
         <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
           <View style={styles.contentView}>
-            <KeyboardAvoidingView
-              style={styles.keyboardAvoidingView}
-              behavior={Platform.OS === "ios" ? "padding" : "height"}
-              keyboardVerticalOffset={0}
-            >
-              <ImageBackground
-                source={BadrTreeImage}
-                style={styles.imageSection}
-                contentFit="cover"
-              >
-                <View style={styles.imageTapArea} />
-              </ImageBackground>
+            <ImageBackground
+              source={BadrTreeImage}
+              style={styles.imageSection}
+              contentFit="cover"
+            />
 
-              <View style={styles.bottomSheet}>
-                <View style={styles.bottomSheetContent}>
-                  <View style={styles.formWrapper}>
-                    <CustomTextInput
-                      placeholder={t(
-                        "confirmPasswordScreen.newPasswordPlaceholder",
-                      )}
-                      control={control}
-                      name="password"
-                      showEye
-                      secureTextEntry={!showPassword}
-                      onToggleEye={onPasswordToggle}
-                      errors={
-                        errors.password?.message ? [errors.password.message] : []
-                      }
-                    />
-                    <CustomTextInput
-                      placeholder={t(
-                        "confirmPasswordScreen.confirmPasswordPlaceholder",
-                      )}
-                      control={control}
-                      name="confirmPassword"
-                      showEye
-                      secureTextEntry={!showConfirmPassword}
-                      onToggleEye={onConfirmPasswordToggle}
-                      errors={
-                        errors.confirmPassword?.message
-                          ? [errors.confirmPassword.message]
-                          : []
-                      }
-                    />
-                  </View>
-                  <View style={styles.buttonWrapper}>
-                    {isSuccess ? (
-                      <View
+            <View style={styles.bottomSheet}>
+              <ScrollView
+                style={styles.bottomSheetScroll}
+                contentContainerStyle={styles.bottomSheetContent}
+                keyboardShouldPersistTaps="handled"
+                bounces={false}
+                showsVerticalScrollIndicator={false}
+              >
+                <View style={styles.formWrapper}>
+                  <CustomTextInput
+                    placeholder={t(
+                      "confirmPasswordScreen.newPasswordPlaceholder",
+                    )}
+                    control={control}
+                    name="password"
+                    showEye
+                    secureTextEntry={!showPassword}
+                    onToggleEye={onPasswordToggle}
+                    errors={
+                      errors.password?.message ? [errors.password.message] : []
+                    }
+                  />
+                  <CustomTextInput
+                    placeholder={t(
+                      "confirmPasswordScreen.confirmPasswordPlaceholder",
+                    )}
+                    control={control}
+                    name="confirmPassword"
+                    showEye
+                    secureTextEntry={!showConfirmPassword}
+                    onToggleEye={onConfirmPasswordToggle}
+                    errors={
+                      errors.confirmPassword?.message
+                        ? [errors.confirmPassword.message]
+                        : []
+                    }
+                  />
+                </View>
+                <View style={styles.buttonWrapper}>
+                  {isSuccess ? (
+                    <View
+                      style={{
+                        width: "80%",
+                        minHeight: 40,
+                        borderRadius: 6,
+                        paddingVertical: 1,
+                        paddingHorizontal: 8,
+                        flexDirection: "row",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        alignSelf: "center",
+                        gap: 8,
+                        backgroundColor: Colors.light.darkgrey,
+                      }}
+                    >
+                      <AntDesign
+                        name="check-circle"
+                        size={18}
+                        color={Colors.light.green}
+                      />
+                      <Text
                         style={{
-                          width: "80%",
-                          minHeight: 40,
-                          borderRadius: 6,
-                          paddingVertical: 1,
-                          paddingHorizontal: 8,
-                          flexDirection: "row",
-                          justifyContent: "center",
-                          alignItems: "center",
-                          alignSelf: "center",
-                          gap: 8,
-                          backgroundColor: Colors.light.darkgrey,
+                          color: Colors.light.white,
+                          fontFamily: fonts.primary.medium,
+                          fontWeight: "500",
+                          fontSize: 16,
+                          lineHeight: 20,
                         }}
                       >
-                        <AntDesign
-                          name="check-circle"
-                          size={18}
-                          color={Colors.light.green}
-                        />
-                        <Text
-                          style={{
-                            color: Colors.light.white,
-                            fontFamily: fonts.primary.medium,
-                            fontWeight: "500",
-                            fontSize: 16,
-                            lineHeight: 20,
-                          }}
-                        >
-                          PASSWORD UPDATED!
-                        </Text>
-                      </View>
-                    ) : (
-                      <PrimaryButton
-                        text={t("confirmPasswordScreen.updatePasswordBtn")}
-                        onPress={handleSubmit(onUpdatePassword)}
-                        isLoading={isResetPasswordPending}
-                        disabled={isResetPasswordPending}
-                      />
-                    )}
-                  </View>
+                        PASSWORD UPDATED!
+                      </Text>
+                    </View>
+                  ) : (
+                    <PrimaryButton
+                      text={t("confirmPasswordScreen.updatePasswordBtn")}
+                      onPress={handleSubmit(onUpdatePassword)}
+                      isLoading={isResetPasswordPending}
+                      disabled={isResetPasswordPending}
+                    />
+                  )}
                 </View>
-              </View>
-            </KeyboardAvoidingView>
+              </ScrollView>
+            </View>
           </View>
         </TouchableWithoutFeedback>
       </SafeAreaView>

@@ -1,18 +1,30 @@
 import { useGoogleLogin } from "@/src/api/mutations/useGoogleLogin";
 import { showToast } from "@/src/config/toastConfig";
 import { useAuth } from "@/provider/useAuth";
-import * as AuthSession from "expo-auth-session";
-import * as Google from "expo-auth-session/providers/google";
-import * as WebBrowser from "expo-web-browser";
+import {
+  GoogleSignin,
+  isErrorWithCode,
+  isSuccessResponse,
+  statusCodes,
+} from "@react-native-google-signin/google-signin";
 import { useRouter } from "expo-router";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Platform } from "react-native";
-
-WebBrowser.maybeCompleteAuthSession();
+import { useCallback, useEffect, useState } from "react";
 
 const webClientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? "";
-const androidClientId = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID ?? "";
-const iosClientId = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ?? webClientId;
+const iosClientId = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID;
+
+let isConfigured = false;
+
+const configureGoogleSignIn = () => {
+  if (isConfigured || !webClientId) return;
+
+  GoogleSignin.configure({
+    // Web client ID is required so Google returns an idToken for your backend.
+    webClientId,
+    ...(iosClientId ? { iosClientId } : {}),
+  });
+  isConfigured = true;
+};
 
 export const useGoogleSignIn = () => {
   const router = useRouter();
@@ -20,22 +32,42 @@ export const useGoogleSignIn = () => {
   const { mutateAsync: googleLoginMutation, isPending: isExchanging } =
     useGoogleLogin();
   const [isPrompting, setIsPrompting] = useState(false);
-  const handledResponseKey = useRef<string | null>(null);
-  const redirectUri = AuthSession.makeRedirectUri({
-    native: "https://auth.expo.io/@badr-islamic-app/badr",
-  });
 
-  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
-    webClientId,
-    androidClientId,
-    iosClientId,
-    redirectUri,
-    selectAccount: true,
-  });
+  useEffect(() => {
+    configureGoogleSignIn();
+  }, []);
 
-  const completeSignIn = useCallback(
-    async (idToken: string) => {
-      const result = await googleLoginMutation({ idToken });
+  const signInWithGoogle = useCallback(async () => {
+    if (isPrompting || isExchanging) return;
+
+    if (!webClientId) {
+      showToast("error", "Google Web client ID is not configured");
+      return;
+    }
+
+    configureGoogleSignIn();
+
+    try {
+      setIsPrompting(true);
+
+      await GoogleSignin.hasPlayServices({
+        showPlayServicesUpdateDialog: true,
+      });
+
+      const response = await GoogleSignin.signIn();
+
+      if (!isSuccessResponse(response)) {
+        // User cancelled the account picker / consent sheet.
+        return;
+      }
+
+      const idToken = response.data.idToken;
+      if (!idToken) {
+        showToast("error", "Google did not return an ID token");
+        return;
+      }
+
+      const result = await googleLoginMutation({ token: idToken });
       const { accessToken, refreshToken, user } = result.data;
 
       if (!accessToken) {
@@ -45,84 +77,26 @@ export const useGoogleSignIn = () => {
 
       await signIn(accessToken, refreshToken, user);
       router.replace("/(private)/greetingsscreen");
-    },
-    [googleLoginMutation, router, signIn],
-  );
-
-  useEffect(() => {
-    if (!response) return;
-
-    if (response.type === "dismiss" || response.type === "cancel") {
-      setIsPrompting(false);
-      return;
-    }
-
-    if (response.type !== "success") {
-      setIsPrompting(false);
-      showToast("error", "Google sign-in was not completed");
-      return;
-    }
-
-    const idToken =
-      response.params.id_token ?? response.authentication?.idToken ?? "";
-
-    const responseKey = idToken || JSON.stringify(response.params);
-    if (handledResponseKey.current === responseKey) return;
-    handledResponseKey.current = responseKey;
-
-    if (!idToken) {
-      setIsPrompting(false);
-      showToast("error", "Google did not return an ID token");
-      return;
-    }
-
-    void (async () => {
-      try {
-        await completeSignIn(idToken);
-      } catch {
-        // Toast handled in useGoogleLogin
-      } finally {
-        setIsPrompting(false);
+    } catch (error) {
+      if (isErrorWithCode(error)) {
+        if (error.code === statusCodes.SIGN_IN_CANCELLED) return;
+        if (error.code === statusCodes.IN_PROGRESS) return;
+        if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+          showToast("error", "Google Play Services is unavailable");
+          return;
+        }
       }
-    })();
-  }, [completeSignIn, response]);
 
-  const signInWithGoogle = useCallback(async () => {
-    if (isPrompting || isExchanging) return;
-
-    if (Platform.OS === "android" && !androidClientId) {
-      showToast("error", "Google Android client ID is not configured");
-      return;
-    }
-
-    if (Platform.OS === "ios" && !iosClientId) {
-      showToast("error", "Google iOS client ID is not configured");
-      return;
-    }
-
-    if (!webClientId && !androidClientId && !iosClientId) {
-      showToast("error", "Google client IDs are not configured");
-      return;
-    }
-
-    if (!request) {
-      showToast("error", "Google sign-in is still loading. Try again.");
-      return;
-    }
-
-    try {
-      setIsPrompting(true);
-      handledResponseKey.current = null;
-      await promptAsync();
-    } catch {
+      console.error("[Google Login]", JSON.stringify(error, null, 2));
+      showToast("error", "Unable to complete Google sign-in");
+    } finally {
       setIsPrompting(false);
-      showToast("error", "Unable to open Google sign-in");
     }
-  }, [isExchanging, isPrompting, promptAsync, request]);
+  }, [googleLoginMutation, isExchanging, isPrompting, router, signIn]);
 
   return {
     signInWithGoogle,
-    isReady: !!request,
+    isReady: !!webClientId,
     isLoading: isPrompting || isExchanging,
   };
 };

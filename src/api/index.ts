@@ -22,6 +22,7 @@ type RetryConfig = InternalAxiosRequestConfig & {
 
 const SKIP_REFRESH_URLS = [
   "api/auth/login",
+  "api/auth/social-login",
   "api/auth/google",
   "api/auth/facebook",
   "api/auth/register",

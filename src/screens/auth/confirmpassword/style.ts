@@ -15,19 +15,12 @@ const createStyles = () =>
 
     contentView: {
       flex: 1,
-    },
-
-    keyboardAvoidingView: {
-      flex: 1,
-      justifyContent: "flex-end",
+      flexDirection: "column",
     },
 
     imageSection: {
       flex: 1,
-    },
-
-    imageTapArea: {
-      flex: 1,
+      minHeight: hp(35),
     },
 
     bottomSheet: {
@@ -39,12 +32,14 @@ const createStyles = () =>
       overflow: "hidden",
     },
 
-    bottomSheetContent: {
+    bottomSheetScroll: {
       flex: 1,
-      justifyContent: "space-between",
+    },
+
+    bottomSheetContent: {
       paddingHorizontal: 10,
       paddingTop: hp(3),
-      paddingBottom: hp(3),
+      paddingBottom: hp(4),
     },
 
     formWrapper: {
@@ -56,7 +51,7 @@ const createStyles = () =>
     buttonWrapper: {
       marginTop: hp(4),
       width: "100%",
-      marginBottom: hp(18),
+      marginBottom: hp(4),
       alignItems: "center",
     },
   });
