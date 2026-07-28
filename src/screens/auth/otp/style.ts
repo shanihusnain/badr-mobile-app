@@ -15,31 +15,32 @@ export const styles = StyleSheet.create({
 
   contentView: {
     flex: 1,
-  },
-
-  keyboardAvoidingView: {
-    flex: 1,
-    justifyContent: "flex-end",
+    flexDirection: "column",
   },
 
   imageSection: {
     flex: 1,
-  },
-
-  imageTapArea: {
-    flex: 1,
+    minHeight: hp(35),
   },
 
   bottomSheet: {
     height: hp(50),
+    marginTop: -20,
     backgroundColor: Colors.light.blackBackground,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     overflow: "hidden",
+  },
+
+  bottomSheetScroll: {
+    flex: 1,
+  },
+
+  bottomSheetContent: {
     alignItems: "center",
-    justifyContent: "flex-start",
     paddingHorizontal: 20,
     paddingTop: hp(4),
+    paddingBottom: hp(4),
   },
 
   otpInfoText: {

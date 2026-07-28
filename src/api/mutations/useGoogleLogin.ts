@@ -4,14 +4,18 @@ import { api } from "../index";
 import type { LoginResponse } from "./useLogin";
 
 export type GoogleLoginPayload = {
-  idToken: string;
+  token: string;
+  fcmToken?: string;
 };
 
 const googleLogin = async ({
-  idToken,
+  token,
+  fcmToken,
 }: GoogleLoginPayload): Promise<LoginResponse> => {
-  const response = await api.post("api/auth/google", {
-    idToken,
+  const response = await api.post("api/auth/social-login", {
+    provider: "GOOGLE",
+    token,
+    ...(fcmToken ? { fcmToken } : {}),
   });
   return response.data;
 };
@@ -21,7 +25,7 @@ export const useGoogleLogin = () => {
     mutationFn: googleLogin,
     mutationKey: ["googleLogin"],
     onSuccess: (data) => {
-      showToast("success", data?.message ?? "Login successful");
+      showToast("success", data?.message ?? "Logged in successfully");
     },
     onError: (error) => {
       showToast("error", getApiErrorMessage(error, "Google login failed"));
