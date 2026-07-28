@@ -79,10 +79,17 @@ export default function CreateAccountScreen() {
   };
 
   const pickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
+    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+
+    if (permissionResult.granted === false) {
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
       allowsEditing: true,
       aspect: [1, 1],
-      quality: 1,
+      quality: 0.8,
+      cameraType: ImagePicker.CameraType.front,
     });
 
     if (!result.canceled) {

@@ -30,6 +30,7 @@ import { FlowCardQardHassanIcon } from "./FlowCardQardHassanIcon";
 import { FlowCardFoodReliefIcon } from "./FlowCardFoodReleifIcon";
 import { FlowCardHandHeartIcon } from "./FlowCardHandHeartIcon";
 import { FlowCardZakatIcon } from "./FlowCardZakatIcon";
+import { MissedZakatCalculateIcon } from "./MissedZakatCalculateIcon";
 import { FastingFlowCardRamadanCalender } from "./FastingFlowCardRamadanCalender";
 import { FastingDashboardIcon } from "./FastingDashboardIcon";
 import { FastingFlowCardMondayFasts } from "./FastingFlowCardMondayFasts";
@@ -99,6 +100,8 @@ import { HadeethBookIcon } from "./HadeethBookIcon";
 //K
 
 //L
+import { LillahDonationGiverIcon } from "./LillahDonationGiverIcon";
+import { LillahDonationRecipientIcon } from "./LillahDonationRecipientIcon";
 import { LetterIcon } from "./LetterIcon";
 //M
 import { MoonIcon } from "./MoonIcon";
@@ -122,6 +125,15 @@ import { RedeemGiftIcon } from "./RedeemGiftIcon";
 //S
 import { SettingIcon } from "./SettingIcon";
 import { ShootIcon } from "./ShootIcon";
+import { SadaqahJariyahSponsoringOrphanIcon } from "./SadaqahJariyahSponsoringOrphanIcon";
+import { SadaqahJariyahMosqueIcon } from "./SadaqahJariyahMosqueIcon";
+import { SadaqahJariyahWaterWellIcon } from "./SadaqahJariyahWaterWellIcon";
+import { SadaqahJariyahSpirtualIcon } from "./SadaqahJariyahSpirtualIcon";
+import { SadaqahJariyahReligiousIcon } from "./SadaqahJariyahReligiousIcon";
+import { SadaqahJariyahMedicalAidIcon } from "./SadaqahJariyahMedicalAidIcon";
+import { SadaqahJariyahCloathIcon } from "./SadaqahJariyahCloathIcon";
+import { SadaqahJariyahEducationalIcon } from "./SadaqahJariyahEducationalIcon";
+import { SadaqahJariyahTreePlantIcon } from "./SadaqahJariyahTreePlantIcon";
 //T
 import { TravelingIcon } from "./TravelingIcon";
 import { MoreTabIcon } from "./MoreTabIcon";
@@ -151,7 +163,8 @@ import { ThreeDotsIcon } from "./ThreeDotsIcon";
 import { TimeSpentIcon } from "./TimeSpentIcon";
 //U
 
-//V
+import { VolunteeringServicesCharityEventIcon } from "./VolunteeringServicesCharityEventIcon";
+import { HandWithWorldIcon } from "./HandWithWorldIcon";
 import { Volunteeringservicesheart } from "./Volunteeringservicesheart";
 import { TahiyyatWudhuDropIcon } from "./TahiyyatWudhuDropIcon";
 import { TahiyyatWudhuEyeIcon } from "./TahiyyatWudhuEyeIcon";
@@ -188,8 +201,21 @@ import { ProphetDawoodPersonalDevelopmentIcon } from "./ProphetDawoodPersonalDev
 import { ProphetDawoodBalanceIcon } from "./ProphetDawoodBalanceIcon";
 import { MondayAndThursdayFastsHabitualIcon } from "./MondayAndThursdayFastsHabitualIcon";
 import { MondayAndThursdayAllahRememberenceIcon } from "./MondayAndThursdayAllahRememberenceIcon";
+import { MissedZakatAccountabilityIcon } from "./MissedZakatAccountabilityIcon";
+import { MissedZakatSocialIcon } from "./MissedZakatSocialIcon";
 
 export {
+  SadaqahJariyahCloathIcon,
+  SadaqahJariyahMedicalAidIcon,
+  SadaqahJariyahReligiousIcon,
+  SadaqahJariyahSpirtualIcon,
+  SadaqahJariyahWaterWellIcon,
+  SadaqahJariyahMosqueIcon,
+  SadaqahJariyahSponsoringOrphanIcon,
+  SadaqahJariyahTreePlantIcon,
+  SadaqahJariyahEducationalIcon,
+  LillahDonationGiverIcon,
+  LillahDonationRecipientIcon,
   ManPrayerIcon,
   DuhaPrayerStar,
   DownArrowIcon,
@@ -200,6 +226,8 @@ export {
   TahiyyatWudhuShootIcon,
   TahiyyatWudhuEyeIcon,
   AddIcon,
+  HandWithWorldIcon,
+  VolunteeringServicesCharityEventIcon,
   AllahNameIcon,
   Volunteeringservicesheart,
   FlashIcon,
@@ -212,6 +240,7 @@ export {
   ClockIcon,
   FlowCardCallender,
   FlowCardWalletIcon,
+  MissedZakatCalculateIcon,
   ThreeHeartIcon,
   ChangePasswordIcon,
   DashBoardCalenderIcon,
@@ -316,6 +345,8 @@ export {
   ProphetDawoodBalanceIcon,
   MondayAndThursdayFastsHabitualIcon,
   MondayAndThursdayAllahRememberenceIcon,
+  MissedZakatAccountabilityIcon,
+  MissedZakatSocialIcon
   FacebookIcon,
   GoogleIcon,
   AppleIcon,

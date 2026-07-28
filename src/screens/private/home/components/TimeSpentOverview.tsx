@@ -14,6 +14,7 @@ import {
 import { styles } from "../styles";
 import { TimeSpentCategoryRow } from "./TimeSpentCategoryRow";
 import { TimeSpentChartBlock } from "./TimeSpentChartBlock";
+import { TimeSpentMoreTabDashboardIcon } from "@/assets/icons/TimeSpentMoreTabDashboardIcon";
 
 type Props = {
   onExpandPress?: () => void;
@@ -107,7 +108,7 @@ export function TimeSpentOverview({ onExpandPress }: Props) {
     <View style={styles.timeSpentContainer}>
       <View style={styles.timeSpentHeaderRow}>
         <View style={styles.timeSpentTitleRow}>
-          <AntDesign name="clock-circle" size={24} color={Colors.light.white} />
+          <TimeSpentMoreTabDashboardIcon size={30} color="#A0A0A0" />
           <Text style={styles.timeSpentTitle}>{t("homeScreen.timeSpent")}</Text>
         </View>
         <Pressable

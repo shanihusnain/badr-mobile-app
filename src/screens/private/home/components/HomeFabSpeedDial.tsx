@@ -11,6 +11,8 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { TaperedCircleBorder } from "@/components/atoms/TaperedCircleBorder";
 import { useTypedTranslation } from "@/i18next/useTypedTranslation";
 import { styles } from "../styles";
+import { ShootIcon } from "@/assets/icons/ShootIcon";
+import { JournalBookIconGoldenFabButtonIcon } from "@/assets/icons/JournalBookIconGoldenFabButtonIcon";
 
 const FAB_SPRING_CONFIG = {
   friction: 6,
@@ -135,7 +137,7 @@ function HomeFabSpeedDialComponent({
               {t("homeScreen.setNextMonthsGoals")}
             </Text>
             <View style={styles.fabOptionIconContainer}>
-              <MaterialCommunityIcons name="target" size={22} color="white" />
+              <ShootIcon size={28} Color="white" />
             </View>
           </TouchableOpacity>
 
@@ -148,11 +150,7 @@ function HomeFabSpeedDialComponent({
               {t("homeScreen.completeYourJournal")}
             </Text>
             <View style={styles.fabOptionIconContainer}>
-              <MaterialCommunityIcons
-                name="book-open-outline"
-                size={22}
-                color="white"
-              />
+              <JournalBookIconGoldenFabButtonIcon size={24} color="white" />
             </View>
           </TouchableOpacity>
 

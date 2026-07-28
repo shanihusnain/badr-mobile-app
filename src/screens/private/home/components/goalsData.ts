@@ -697,6 +697,31 @@ export const getGoalById = (goalId: GoalId): GoalData | null => {
   return GOALS_DATA[goalId] || null;
 };
 
+const PRAYER_GOAL_DISPLAY_ORDER: GoalId[] = [
+  "prayer-tahiyyat",
+  "prayer-fiveDailyPrayers",
+  "prayer-sunnah",
+  "prayer-tahiyyatMasjid",
+  "prayer-missed",
+  "prayer-duha",
+  "prayer-tawbah",
+  "prayer-istikhara",
+  "prayer-shukr",
+  "prayer-qiyam",
+];
+
+function sortGoalsByPriority(goals: GoalData[], order: GoalId[]) {
+  return [...goals].sort((left, right) => {
+    const leftIndex = order.indexOf(left.id);
+    const rightIndex = order.indexOf(right.id);
+
+    if (leftIndex === -1 && rightIndex === -1) return 0;
+    if (leftIndex === -1) return 1;
+    if (rightIndex === -1) return -1;
+    return leftIndex - rightIndex;
+  });
+}
+
 function getSurahMemorisationAggregateProgress() {
   const { totalMemorized, totalAyahs, percent } =
     getMemorisationAggregateProgress();
@@ -895,7 +920,15 @@ export function getResolvedGoalById(goalId: GoalId): GoalData | null {
 export const getGoalsByCategory = (
   category: "PRAYER" | "QURAN" | "FASTING" | "SADAQAH",
 ): GoalData[] => {
-  return Object.values(GOALS_DATA).filter((goal) => goal.category === category);
+  const goals = Object.values(GOALS_DATA).filter(
+    (goal) => goal.category === category,
+  );
+
+  if (category === "PRAYER") {
+    return sortGoalsByPriority(goals, PRAYER_GOAL_DISPLAY_ORDER);
+  }
+
+  return goals;
 };
 
 export function getResolvedGoalsByCategory(

@@ -14,6 +14,12 @@ import { useTranslation } from "react-i18next";
 import BottomSheet from "@gorhom/bottom-sheet";
 import { GoalPlannerSheet } from "./components/GoalPlannerSheet";
 import type { Tab } from "./components/GoalPlannerSheet";
+import { ShootIcon } from "@/assets/icons/ShootIcon";
+import { MonthlyGoalPlannerReviewCardIcon } from "@/assets/icons/MonthlyGoalPlannerReviewCardIcon";
+import { MonthlyGoalPlannerSaveCardIcon } from "@/assets/icons/MonthlyGoalPlannerSaveCardIcon";
+import { TickWithCircleIcon } from "@/assets/icons/TickWithCircleIcon";
+import { MonthlyGoalPlannerComittedCardIcon } from "@/assets/icons/MonthlyGoalPlannerComittedCardIcon";
+import { MonthlyGoalPlannerPlanIcon } from "@/assets/icons/MonthlyGoalPlannerPlanIcon";
 
 type StepItem = {
   id: number;
@@ -77,7 +83,7 @@ export const MonthlyGoalPlannerScreen = () => {
     bottomSheetRef.current?.expand();
   }, []);
 
-  const handleSheetClose = useCallback(() => {}, []);
+  const handleSheetClose = useCallback(() => { }, []);
 
   const renderItem = useCallback(
     ({ item }: { item: StepItem }) => (
@@ -91,31 +97,37 @@ export const MonthlyGoalPlannerScreen = () => {
       id: "1",
       title: t("monthlyGoalPlanner.card1Title"),
       description: t("monthlyGoalPlanner.card1Desc"),
+      icon: <ShootIcon size={32} Color={Colors.light.green} />,
     },
     {
       id: "2",
       title: t("monthlyGoalPlanner.card2Title"),
       description: t("monthlyGoalPlanner.card2Desc"),
+      icon: <MonthlyGoalPlannerReviewCardIcon size={32} color={Colors.light.green} />,
     },
     {
       id: "3",
       title: t("monthlyGoalPlanner.card3Title"),
       description: t("monthlyGoalPlanner.card3Desc"),
+      icon: <MonthlyGoalPlannerSaveCardIcon size={32} color={Colors.light.green} />,
     },
     {
       id: "4",
       title: t("monthlyGoalPlanner.card4Title"),
       description: t("monthlyGoalPlanner.card4Desc"),
+      icon: <TickWithCircleIcon size={32} color={Colors.light.green} />,
     },
     {
       id: "5",
       title: t("monthlyGoalPlanner.card5Title"),
       description: t("monthlyGoalPlanner.card5Desc"),
+      icon: <MonthlyGoalPlannerComittedCardIcon size={34} color={Colors.light.green} />,
     },
     {
       id: "6",
       title: t("monthlyGoalPlanner.card6Title"),
       description: t("monthlyGoalPlanner.card6Desc"),
+      icon: <MonthlyGoalPlannerPlanIcon size={36} color={Colors.light.green} />,
     },
   ];
 

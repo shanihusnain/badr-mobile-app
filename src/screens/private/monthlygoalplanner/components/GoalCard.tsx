@@ -7,6 +7,7 @@ export type GoalCardData = {
   id: string;
   title: string;
   description: string;
+  icon?: React.ReactNode;
 };
 
 type Props = {
@@ -18,9 +19,16 @@ type Props = {
 export const GoalCard = ({ item, cardWidth }: Props) => {
   return (
     <View style={[styles.card, { width: cardWidth }]}>
-      <Text style={styles.title}>{item.title}</Text>
-      <TopSpace top={16} />
-      <Text style={styles.description}>{item.description}</Text>
+      {item.icon && (
+        <View style={styles.iconContainer}>
+          {item.icon}
+        </View>
+      )}
+      <View style={styles.contentContainer}>
+        <Text style={styles.title}>{item.title}</Text>
+        <TopSpace top={12} />
+        <Text style={styles.description}>{item.description}</Text>
+      </View>
     </View>
   );
 };
@@ -30,8 +38,18 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.greybuttonBackground,
     borderRadius: 16,
     padding: 20,
-    justifyContent: "center",
+    flexDirection: "row",
+    alignItems: "center",
     minHeight: 180,
+  },
+  iconContainer: {
+    marginRight: 16,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  contentContainer: {
+    flex: 1,
+    justifyContent: "center",
   },
   title: {
     color: Colors.light.white,

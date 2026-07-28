@@ -13,6 +13,7 @@ import { PLANNED_FASTS } from "../plannedFasts";
 import { styles } from "../styles";
 import { FastingCalendarTrack } from "./FastingCalendarTrack";
 import { FastingGoalTotalCard } from "./FastingGoalTotalCard";
+import { FastingCalenderDashboardIcon } from "@/assets/icons/FastingCalenderDashboardIcon";
 
 export type FastingTrackTab = {
   label: string;
@@ -79,7 +80,10 @@ export function FastingOverviewCalendarSection({
 
   return (
     <View style={styles.fastingCalendarSection}>
-      <Text style={styles.dashboardText}>{resolvedTitle}</Text>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+        <FastingCalenderDashboardIcon size={32} />
+        <Text style={styles.dashboardText}>{resolvedTitle}</Text>
+      </View>
       <TopSpace top={16} />
       {showInfoBannerVisible ? (
         <View style={styles.fastingInfoBanner}>

@@ -1,7 +1,7 @@
 import * as React from "react"
 import Svg, { Path, Defs, LinearGradient, Stop } from "react-native-svg"
 import { Colors } from "@/constants/theme"
-import { ColorType } from "@shopify/react-native-skia";
+
 
 
 export const FastingDashboardIcon = ({

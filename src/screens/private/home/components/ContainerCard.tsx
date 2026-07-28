@@ -51,7 +51,7 @@ export const ContainerCard = ({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: Colors.light.greybuttonBackground,
+    backgroundColor: "#1e2d3d",
     borderRadius: 16,
     padding: wp(5),
     justifyContent: "center",
@@ -70,19 +70,19 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
   },
   content: {
-    color: Colors.light.white,
+    color: "rgba(255,255,255,0.75)",
     fontSize: 14,
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
-    lineHeight: 19,
+    lineHeight: 20,
     letterSpacing: 0,
   },
   highlightedText: {
     color: Colors.light.white,
     fontSize: 14,
-    fontFamily: fonts.primary.medium,
-    fontWeight: "500",
-    lineHeight: 19,
+    fontFamily: fonts.primary.bold,
+    fontWeight: "700",
+    lineHeight: 20,
     letterSpacing: 0,
   },
 });

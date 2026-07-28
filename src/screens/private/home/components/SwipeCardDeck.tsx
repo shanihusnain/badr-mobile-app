@@ -1,7 +1,10 @@
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import { useCallback, useState } from "react";
-import { StyleSheet, useWindowDimensions, View, Text } from "react-native";
+import { StyleSheet, useWindowDimensions, View, Text, TouchableOpacity } from "react-native";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import AntDesign from "@expo/vector-icons/AntDesign";
+import { AllDoneCheckIcon } from "@/assets/icons/AllDoneCheckIcon";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   useSharedValue,
@@ -122,6 +125,7 @@ const DeckSwipeCard = ({
         />
         {stackIndex === 0 && (
           <View style={styles.remainingBadge}>
+            <Text style={styles.remainingBadgeTick}>✓</Text>
             <Text style={styles.remainingBadgeText}>{total}</Text>
           </View>
         )}
@@ -137,48 +141,71 @@ export const SwipeCardDeck = ({
   const { width: windowWidth } = useWindowDimensions();
   const cardWidth = windowWidth - SCREEN_H_PADDING * 2;
   const [activeIndex, setActiveIndex] = useState(0);
+  const [isDismissed, setIsDismissed] = useState(false);
+
+  if (isDismissed) {
+    return null;
+  }
 
   const remainingCards = data.slice(activeIndex);
   const deckHeight =
     CARD_HEIGHT + STACK_OFFSET_Y * Math.min(remainingCards.length - 1, 2);
 
   const handleCardSwiped = useCallback(() => {
-    setActiveIndex((prev) => Math.min(prev + 1, data.length - 1));
+    setActiveIndex((prev) => Math.min(prev + 1, data.length));
   }, [data.length]);
 
   return (
     <View>
       <View style={[styles.deckContainer, { height: deckHeight, width: cardWidth }]}>
-        {remainingCards
-          .slice()
-          .reverse()
-          .map((item, reversedIndex) => {
-            const stackIndex = remainingCards.length - 1 - reversedIndex;
-            return (
-              <DeckSwipeCard
-                key={`${activeIndex}-${item.id}`}
-                item={item}
-                cardWidth={cardWidth}
-                stackIndex={stackIndex}
-                total={remainingCards.length - stackIndex}
-                renderTextWithHighlight={renderTextWithHighlight}
-                onSwiped={stackIndex === 0 ? handleCardSwiped : () => {}}
-              />
-            );
-          })}
+        {remainingCards.length === 0 ? (
+          <View style={styles.emptyStateContainer}>
+            <View style={styles.emptyStateCenter}>
+              <AllDoneCheckIcon size={48} color={Colors.light.white} />
+              <Text style={styles.emptyStateText}>You're all set!</Text>
+            </View>
+            <TouchableOpacity 
+              activeOpacity={0.8} 
+              style={styles.emptyStateDoneBtn}
+              onPress={() => setIsDismissed(true)}
+            >
+              <AntDesign name="check" size={22} color={Colors.light.white} />
+            </TouchableOpacity>
+          </View>
+        ) : (
+          remainingCards
+            .slice()
+            .reverse()
+            .map((item, reversedIndex) => {
+              const stackIndex = remainingCards.length - 1 - reversedIndex;
+              return (
+                <DeckSwipeCard
+                  key={`${activeIndex}-${item.id}`}
+                  item={item}
+                  cardWidth={cardWidth}
+                  stackIndex={stackIndex}
+                  total={remainingCards.length - stackIndex}
+                  renderTextWithHighlight={renderTextWithHighlight}
+                  onSwiped={stackIndex === 0 ? handleCardSwiped : () => { }}
+                />
+              );
+            })
+        )}
       </View>
 
-      <View style={styles.dotRow}>
-        {data.map((_, index) => (
-          <View
-            key={index}
-            style={[
-              styles.dot,
-              index === activeIndex ? styles.dotActive : styles.dotInactive,
-            ]}
-          />
-        ))}
-      </View>
+      {remainingCards.length > 0 && (
+        <View style={styles.dotRow}>
+          {data.map((_, index) => (
+            <View
+              key={index}
+              style={[
+                styles.dot,
+                index === activeIndex ? styles.dotActive : styles.dotInactive,
+              ]}
+            />
+          ))}
+        </View>
+      )}
     </View>
   );
 };
@@ -195,20 +222,27 @@ const styles = StyleSheet.create({
   },
   remainingBadge: {
     position: "absolute",
-    top: 10,
-    right: 10,
-    width: 22,
-    height: 22,
-    borderRadius: 11,
+    top: 12,
+    right: 12,
+    width: 28,
+    paddingVertical: 6,
+    borderRadius: 8,
     backgroundColor: Colors.light.calendarBg,
     justifyContent: "center",
     alignItems: "center",
+    gap: 1,
+  },
+  remainingBadgeTick: {
+    color: Colors.light.white,
+    fontSize: 12,
+    fontFamily: fonts.primary.semiBold,
+    lineHeight: 14,
   },
   remainingBadgeText: {
     color: Colors.light.white,
-    fontSize: 11,
+    fontSize: 13,
     fontFamily: fonts.primary.semiBold,
-    lineHeight: 14,
+    lineHeight: 16,
   },
   dotRow: {
     flexDirection: "row",
@@ -227,5 +261,36 @@ const styles = StyleSheet.create({
   },
   dotInactive: {
     backgroundColor: Colors.light.calendarBg,
+  },
+  emptyStateContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: Colors.light.blackBackground,
+    borderRadius: 12,
+    padding: 16,
+    position: "relative",
+  },
+  emptyStateCenter: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 46, // Moved down slightly per request
+  },
+  emptyStateText: {
+    color: Colors.light.white,
+    fontSize: 14,
+    fontFamily: fonts.primary.semiBold,
+    marginTop: 6,
+  },
+  emptyStateDoneBtn: {
+    position: "absolute",
+    top: 10, // Moved down (was -24)
+    right: 6, // Moved left (was -16)
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    backgroundColor: Colors.light.green,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });

@@ -2394,13 +2394,15 @@
               "type": "boldPrefixText",
               "prefix": "Growth in Patience & Resilience:",
               "content": "Builds patience and resilience, enabling us to face life’s challenges with unwavering strength.",
-              "style": "body"
+              "style": "body",
+              "icon": "ProphetDawoodMentalHealthIcon"
             },
             {
               "type": "boldPrefixText",
               "prefix": "Encouragement of Good Deeds:",
               "content": "Inspires acts of kindness and charity, strengthening community bonds and fostering unity.",
-              "style": "body"
+              "style": "body",
+              "icon": "DashBoardHandHeartIcon"
             },
             {
               "type": "text",
@@ -2437,6 +2439,7 @@
             {
               "type": "text",
               "style": "quoteMediumItalic",
+              "icon": "HadeethBookIcon",
               "content": "\"If you fast three days of the month, then fast the 13th, 14th, and 15th.\""
             },
             {
@@ -2447,6 +2450,7 @@
             {
               "type": "text",
               "style": "quoteMediumItalic",
+              "icon": "HadeethBookIcon",
               "content": "\"Fasting three days of each month is like fasting for a lifetime.\""
             },
             {
@@ -2457,6 +2461,7 @@
             {
               "type": "text",
               "style": "quoteMediumItalic",
+              "icon": "HadeethBookIcon",
               "content": "\"The Messenger of Allah never missed fasting the white days, whether at home or on a journey.\""
             },
             {
@@ -2492,6 +2497,7 @@
             {
               "type": "text",
               "style": "quoteSemibold",
+              "icon": "QuranImageIcon",
               "content": "\"It is He who made the sun a shining light and the moon a reflected light, and determined phases for it so that you may know the number of years and the calculation of time. Allah created this with truth. He explains the signs for people who understand.\""
             },
             {
@@ -2508,6 +2514,7 @@
             {
               "type": "text",
               "style": "quoteSemibold",
+              "icon": "QuranImageIcon",
               "content": "\"They ask you about the new moons. Say, 'They are measurements of time for the people and for Hajj.'\""
             },
             {
@@ -2524,6 +2531,7 @@
             {
               "type": "text",
               "style": "quoteSemibold",
+              "icon": "QuranImageIcon",
               "content": "\"The Hour has come near, and the moon has split [in two].\""
             },
             {
@@ -2566,11 +2574,13 @@
             {
               "type": "text",
               "style": "body",
+              "icon": "MissedZakatAccountabilityIcon",
               "content": "Zakat, a fundamental pillar of Islam, is ordained by Allah as a sacred obligation for every believer. Far beyond a financial duty, it is an act of worship symbolizing submission to divine will. The Quran highlights Zakat's role in purifying wealth and fulfilling one's accountability to Allah:"
             },
             {
               "type": "text",
               "style": "quoteSemibold",
+              "icon": "QuranImageIcon",
               "content": "\"And establish prayer and give Zakat, and whatever good you put forward for yourselves – you will find it with Allah. Indeed, Allah of what you do, is Seeing.\" (Surah Al-Baqarah, 2:110)"
             },
             {
@@ -2586,11 +2596,13 @@
             {
               "type": "text",
               "style": "body",
+              "icon": "MissedZakatSocialIcon",
               "content": "At its core, Zakat is a profound expression of empathy and social responsibility. It is designed to bridge the gap between the wealthy and the less fortunate, fostering a sense of unity and care within the community. The Quran highlights the duty of the affluent to support those in need:"
             },
             {
               "type": "text",
               "style": "quoteSemibold",
+              "icon": "QuranImageIcon",
               "content": "\"And those within whose wealth is a known right for the petitioner and the deprived.\" (Surah Al-Ma'arij, 70:24-25)"
             },
             {
@@ -2606,11 +2618,13 @@
             {
               "type": "text",
               "style": "body",
+              "icon": "HeartBreakIcon",
               "content": "For those who have delayed or missed their Zakat payments, Islam offers a path to redemption. Believers are encouraged to calculate and fulfill their missed obligations as soon as possible, seeking forgiveness from Allah for any negligence. The Quran reassures believers of Allah's mercy:"
             },
             {
               "type": "text",
               "style": "quoteSemibold",
+              "icon": "QuranImageIcon",
               "content": "\"But whoever repents after his wrongdoing and reforms, indeed, Allah will turn to him in forgiveness. Indeed, Allah is Forgiving and Merciful.\" (Surah Al-Ma'idah, 5:39)"
             },
             {
@@ -2630,18 +2644,21 @@
             {
               "type": "boldPrefixText",
               "prefix": "Calculate Missed Zakat:",
+              "icon": "MissedZakatCalculateIcon",
               "content": "Review past years and calculate the Zakat due on your wealth for each year missed.",
               "style": "body"
             },
             {
               "type": "boldPrefixText",
               "prefix": "Pay It Promptly:",
+              "icon": "DashBoardHandHeartIcon",
               "content": "Distribute the calculated amount to eligible recipients, such as the poor, orphans, and those in need.",
               "style": "body"
             },
             {
               "type": "boldPrefixText",
               "prefix": "Seek Forgiveness:",
+              "icon": "ProphetDawoodHeartBreakIcon",
               "content": "Repent sincerely for the delay and resolve to fulfill Zakat obligations on time in the future.",
               "style": "body"
             }
@@ -2675,11 +2692,13 @@
             {
               "type": "text",
               "style": "body",
+              "icon": "ProphetDawoodHeartBreakIcon",
               "content": "Kaffarah is a sacred call to return to Allah, turning missteps into milestones of devotion. Through sincere repentance and feeding the needy, it purifies the soul, seeking Allah's mercy and deepening our connection with Him. The Quran beautifully states:"
             },
             {
               "type": "text",
               "style": "quoteSemibold",
+              "icon": "QuranImageIcon",
               "content": "\"And whoever does evil or wrongs themselves but afterwards seeks Allah's forgiveness, they will find Allah Oft-Forgiving, Most Merciful\" (Surah An-Nisa, 4:110)."
             },
             {
@@ -2690,6 +2709,7 @@
             {
               "type": "text",
               "style": "body",
+              "icon": "ProphetDawoodFastsHeartIcon",
               "content": "Engaging in Kaffarah brings peace and clarity, lifting guilt's burden and unlocking the healing power of repentance. This spiritual act realigns us with Islam's core values, renewing purpose and inner tranquility."
             },
             {
@@ -2700,6 +2720,7 @@
             {
               "type": "text",
               "style": "body",
+              "icon": "MondayAndThursdayAllahRememberenceIcon",
               "content": "Fulfilling Kaffarah reflects our commitment to rectifying actions and strengthening spiritual discipline. This devotion affirms our faith, deepens our bond with Allah, and fortifies our resolve to uphold righteousness."
             },
             {
@@ -2710,6 +2731,7 @@
             {
               "type": "text",
               "style": "body",
+              "icon": "DashBoardHandHeartIcon",
               "content": "Kaffarah extends beyond personal atonement, uplifting society by aiding the needy and less fortunate. These acts inspire empathy, foster generosity, and strengthen communal bonds, reminding us of our duty to support one another."
             }
           ]
@@ -2739,6 +2761,7 @@
             {
               "type": "text",
               "style": "quoteSemibold",
+              "icon": "QuranImageIcon",
               "content": "\"Allah will not call you to account for what is unintentional in your oaths, but He will call you to account for what you have made deliberately. For its expiation, feed ten poor persons, clothe them, or give a slave their freedom. If that is beyond your means, fast for three days.\""
             },
             {
@@ -2774,7 +2797,25 @@
             {
               "type": "text",
               "style": "body",
-              "content": "The Hadith continues with the Prophet (PBUH) later providing the man with dates to distribute as charity, and when the man confessed that no one in his town was poorer than him, the Prophet (PBUH) allowed him to keep the dates for his family.\n\nThis Hadith, recorded in Sahih al-Bukhari and Sahih Muslim, highlights the gravity of intentionally breaking a fast and the prescribed means of atonement:\n\n• Freeing a slave\n• Fasting for two consecutive months, or\n• Feeding sixty needy people"
+              "content": "The Hadith continues with the Prophet (PBUH) later providing the man with dates to distribute as charity, and when the man confessed that no one in his town was poorer than him, the Prophet (PBUH) allowed him to keep the dates for his family.\n\nThis Hadith, recorded in Sahih al-Bukhari and Sahih Muslim, highlights the gravity of intentionally breaking a fast and the prescribed means of atonement:"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "icon": "StarSparkleIcon",
+              "content": "Freeing a slave"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "icon": "StarSparkleIcon",
+              "content": "Fasting for two consecutive months, or"
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "icon": "StarSparkleIcon",
+              "content": "Feeding sixty needy people"
             }
           ]
         },
@@ -2820,6 +2861,7 @@
             {
               "type": "text",
               "style": "body",
+              "icon": "ProphetDawoodHeartBreakIcon",
               "content": "Fidya offers a chance to seek Allah's mercy and forgiveness, expressing faith through kindness. By aiding the less fortunate, it reflects Allah's compassion and transcends physical limitations."
             },
             {
@@ -2830,6 +2872,7 @@
             {
               "type": "text",
               "style": "body",
+              "icon": "ProphetDawoodFastsHeartIcon",
               "content": "Fidya brings inner peace, enabling those unable to fast to fulfill their duties and find solace. It nurtures tranquility, aligns with Islamic values, and fosters clarity through Allah's forgiveness."
             },
             {
@@ -2840,6 +2883,7 @@
             {
               "type": "text",
               "style": "bodyTight",
+              "icon": "MondayAndThursdayAllahRememberenceIcon",
               "content": "Giving Fidya strengthens faith and devotion, reflecting commitment to religious obligations. It reinforces the connection with Allah, fostering resilience through charitable acts despite limitations."
             },
             {
@@ -2850,6 +2894,7 @@
             {
               "type": "text",
               "style": "body",
+              "icon": "DashBoardHandHeartIcon",
               "content": "Fidya transcends personal atonement, aiding the needy and fostering empathy. It inspires community support, creating a cycle of generosity and gratitude."
             }
           ]
@@ -2869,6 +2914,7 @@
             {
               "type": "boldPrefixText",
               "prefix": "Surah Al-Baqarah (2:184):",
+              "icon": "QuranImageIcon",
               "content": "And [for] those who can fast with difficulty, there is a ransom: the feeding of a poor person each day.",
               "style": "body"
             },
@@ -2890,6 +2936,7 @@
             {
               "type": "text",
               "style": "quoteMediumItalic",
+              "icon": "HadeethBookIcon",
               "content": "Feed the hungry, visit the sick, and free the captives."
             },
             {
@@ -2917,6 +2964,7 @@
             {
               "type": "text",
               "style": "body",
+              "icon": "MondayAndThursdayAllahRememberenceIcon",
               "content": "Lillah donations embody unconditional giving, fostering selflessness and devotion. Unlike atonement-based charity such as Kaffarah, or obligatory acts like Fidya or Zakat, Lillah reflects a pure intent to please Allah. It enriches both the giver and the recipient spiritually."
             },
             {
@@ -2927,6 +2975,7 @@
             {
               "type": "boldPrefixText",
               "prefix": "Surah Al-Baqarah (2:261):",
+              "icon": "QuranImageIcon",
               "content": "The example of those who spend their wealth in the way of Allah is like a seed of grain that sprouts seven ears; in every ear, there are a hundred grains. And Allah multiplies for whom He wills. And Allah is all-Encompassing and Knowing.",
               "style": "body"
             },
@@ -2938,6 +2987,7 @@
             {
               "type": "boldPrefixText",
               "prefix": "Surah Al-Insan (76:8-9):",
+              "icon": "QuranImageIcon",
               "content": "And they give food in spite of love for it to the needy, the orphan, and the captive, [saying], 'We feed you only for the countenance of Allah. We wish not from you reward or gratitude.",
               "style": "body"
             },
@@ -2954,6 +3004,7 @@
             {
               "type": "boldPrefixText",
               "prefix": "Surah Al-Baqarah (2:262):",
+              "icon": "QuranImageIcon",
               "content": "Those who spend their wealth in the cause of Allah and then do not follow up what they have spent with reminders [of it] or [other] injury will have their reward with their Lord, and there will be no fear concerning them, nor will they grieve.",
               "style": "body"
             },
@@ -2979,11 +3030,24 @@
             {
               "type": "text",
               "style": "body",
-              "content": "For the giver: It nurtures empathy and reinforces their role as stewards of the community.\n\nFor the recipient: It offers relief, dignity, and a sense of belonging.\n\nThis pure form of sadaqah allows resources to flow within the community without the burden of repayment, fostering a culture of care and solidarity. As the Prophet (PBUH) said:"
+              "icon": "LillahDonationGiverIcon",
+              "content": "For the giver: It nurtures empathy and reinforces their role as stewards of the community."
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "icon": "LillahDonationRecipientIcon",
+              "content": "For the recipient: It offers relief, dignity, and a sense of belonging."
+            },
+            {
+              "type": "text",
+              "style": "body",
+              "content": "This pure form of sadaqah allows resources to flow within the community without the burden of repayment, fostering a culture of care and solidarity. As the Prophet (PBUH) said:"
             },
             {
               "type": "text",
               "style": "quoteMediumItalic",
+              "icon": "HadeethBookIcon",
               "content": "Charity does not decrease wealth."
             },
             {
@@ -2994,6 +3058,7 @@
             {
               "type": "boldPrefixText",
               "prefix": "Surah Al-Insan (76:8):",
+              "icon": "QuranImageIcon",
               "content": "And they give food, in spite of love for it, to the needy, the orphan, and the captive.",
               "style": "body"
             },
@@ -3022,6 +3087,7 @@
             {
               "type": "text",
               "style": "body",
+              "icon": "DashBoardHandHeartIcon",
               "content": "Engaging in volunteer work offers profound spiritual benefits and positively impacts society. It embodies core Islamic values of compassion, generosity, and community spirit. By offering time and skills, we cultivate humility, empathy, and gratitude—qualities that enhance character and faith"
             },
             {
@@ -3071,6 +3137,7 @@
             {
               "type": "text",
               "style": "body",
+              "icon": "DashBoardHandHeartIcon",
               "content": "Participating in clean-up efforts reflects Islamic stewardship, fostering unity and shared responsibility to protect Allah's creation."
             },
             {
@@ -3081,6 +3148,7 @@
             {
               "type": "text",
               "style": "body",
+              "icon": "VolunteeringServicesCharityEventIcon",
               "content": "Supporting events for causes like poverty, hunger, or medical aid embodies Islamic values of generosity and compassion, fostering community bonding and a culture of giving."
             },
             {
@@ -3091,6 +3159,7 @@
             {
               "type": "text",
               "style": "tableGuide",
+              "icon": "SadaqahJariyahEducationalIcon",
               "content": "Volunteering in education promotes literacy and aligns with Islam's emphasis on seeking knowledge as worship. Contributions can include teaching, event management, or logistics."
             },
             {
@@ -3101,6 +3170,7 @@
             {
               "type": "text",
               "style": "body",
+              "icon": "SadaqahJariyahMedicalAidIcon",
               "content": "Visiting hospital patients reflects Islamic teachings of mercy and support, offering comfort, hope, and emotional relief while fostering empathy and human connection."
             }
           ]
@@ -3123,6 +3193,7 @@
             {
               "type": "text",
               "style": "body",
+              "icon": "SadaqahJariyahSpirtualIcon",
               "content": "In Islam, Sadaqah Jariyah represents a noble act of continuous charity that benefits both the donor and others long after the act is performed. It enriches lives with compassion and faith, creating an enduring legacy of good deeds."
             },
             {
@@ -3162,6 +3233,7 @@
             {
               "type": "text",
               "style": "body",
+              "icon": "SadaqahJariyahWaterWellIcon",
               "content": "Providing clean water improves health and quality of life, offering continuous rewards as long as the well is in use."
             },
             {
@@ -3172,6 +3244,7 @@
             {
               "type": "text",
               "style": "body",
+              "icon": "SadaqahJariyahSponsoringOrphanIcon",
               "content": "Supporting orphans with education and resources secures their future and uplifts communities."
             },
             {
@@ -3182,6 +3255,7 @@
             {
               "type": "text",
               "style": "body",
+              "icon": "SadaqahJariyahEducationalIcon",
               "content": "Establishing schools, scholarships, or funding Quranic education spreads knowledge and benefits generations."
             },
             {
@@ -3192,6 +3266,7 @@
             {
               "type": "text",
               "style": "body",
+              "icon": "SadaqahJariyahMosqueIcon",
               "content": "Constructing mosques creates spaces for worship and spiritual growth, ensuring ongoing blessings."
             },
             {
@@ -3202,6 +3277,7 @@
             {
               "type": "text",
               "style": "body",
+              "icon": "SadaqahJariyahReligiousIcon",
               "content": "Providing Qurans, dua books, or prayer mats ensures continuous rewards each time they are used."
             },
             {
@@ -3212,6 +3288,7 @@
             {
               "type": "text",
               "style": "body",
+              "icon": "SadaqahJariyahTreePlantIcon",
               "content": "Trees offer environmental benefits and sustain life, serving as a lasting tribute."
             },
             {
@@ -3222,6 +3299,7 @@
             {
               "type": "text",
               "style": "body",
+              "icon": "MissedZakatSocialIcon",
               "content": "Contributing to infrastructure like roads, bridges, or healthcare facilities enhances community well-being."
             },
             {
@@ -3232,6 +3310,7 @@
             {
               "type": "text",
               "style": "body",
+              "icon": "SadaqahJariyahMedicalAidIcon",
               "content": "Funding hospitals or treatments provides critical care to those in need, alleviating suffering."
             },
             {
@@ -3242,6 +3321,7 @@
             {
               "type": "text",
               "style": "body",
+              "icon": "SadaqahJariyahCloathIcon",
               "content": "Donating modest clothing upholds dignity, fosters solidarity, and reflects Islamic values."
             }
           ]

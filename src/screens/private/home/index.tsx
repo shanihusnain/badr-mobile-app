@@ -15,12 +15,21 @@ import {
   NativeSyntheticEvent,
   Animated,
   type LayoutChangeEvent,
+  ImageBackground,
 } from "react-native";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Entypo from "@expo/vector-icons/Entypo";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "@/constants/theme";
+import { FlashIcon } from "@/assets/icons/FlashIcon";
+import { CustomizeBadgeSettingIcon } from "@/assets/icons/CustomizeBadgeSettingIcon";
+import { UpComingFajrIcon } from "@/assets/icons/UpComingFajrIcon";
+import { UpComingDuhrIcon } from "@/assets/icons/UpComingDuhrIcon";
+import { UpComingAsrIcon } from "@/assets/icons/UpComingAsrIcon";
+import { UpComingMaghrebIcon } from "@/assets/icons/UpComingMaghrebIcon";
+import { UpComingIshaIcon } from "@/assets/icons/UpComingIshaIcon";
+import { BadarNameLogo } from "@/assets/icons/BadarNameLogo";
 import { TaperedCircleBorder } from "@/components/atoms/TaperedCircleBorder";
 import { SwipeCardDeck } from "./components/SwipeCardDeck";
 import { DailyProgressBottomSheet } from "./components/DailyProgressBottomSheet";
@@ -301,10 +310,10 @@ export default function HomeScreen() {
     const goals = DASHBOARD_SUB_GOALS.map((goal) =>
       goal.id === "quran-recitation"
         ? {
-            ...goal,
-            percentage: quranCategory?.percentage ?? goal.percentage,
-            progressColor: quranCategory?.progressColor ?? goal.progressColor,
-          }
+          ...goal,
+          percentage: quranCategory?.percentage ?? goal.percentage,
+          progressColor: quranCategory?.progressColor ?? goal.progressColor,
+        }
         : goal,
     );
 
@@ -431,14 +440,37 @@ export default function HomeScreen() {
           <View style={styles.avatarContainer}>
             <AntDesign size={40} color={Colors.light.white} />
           </View>
+
+          {/* Today Button */}
+          <View style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0, alignItems: "center", justifyContent: "center" }} pointerEvents="box-none">
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => { }}
+            >
+              <View style={styles.todayButtonContainer}>
+                <Entypo name={i18n.language === "ar" ? "chevron-right" : "chevron-left"} size={18} color={Colors.light.white} />
+                <View style={styles.todayButtonTextContainer}>
+                  <Text style={styles.todayButtonText}>{t("homeScreen.today", "TODAY")}</Text>
+                </View>
+                <Entypo name={i18n.language === "ar" ? "chevron-left" : "chevron-right"} size={18} color={Colors.light.white} />
+              </View>
+            </TouchableOpacity>
+          </View>
+
           <TouchableOpacity
             activeOpacity={0.7}
             onPress={() => router.push("/streakcounter")}
           >
             <View style={styles.streakBox}>
+              <FlashIcon size={12} />
               <Text style={styles.streakText}>0</Text>
             </View>
           </TouchableOpacity>
+        </View>
+
+        {/* Badr Logo */}
+        <View style={styles.badrLogoContainer}>
+          <BadarNameLogo size={32} />
         </View>
 
         {/* Upcoming prayer card */}
@@ -450,20 +482,56 @@ export default function HomeScreen() {
             >
               <AntDesign name="close" size={20} color={Colors.light.white} />
             </TouchableOpacity>
-            <View style={styles.prayerCardContainer}>
-              <View style={styles.prayerDetailsLeft}>
-                <Text style={styles.upcomingText}>
-                  {t("homeScreen.upcoming")}
-                </Text>
-                <Text style={styles.prayerNameText}>
-                  {t("homeScreen.asrPrayer")}
-                </Text>
-                <Text style={styles.timeText}>{t("homeScreen.asrTime")}</Text>
+            <ImageBackground
+              source={require("@/assets/images/NamazTimeMoreTabBackGroundImage.png")}
+              style={styles.prayerCardContainer}
+              imageStyle={{ borderRadius: 16 }}
+            >
+              <View style={styles.prayerCardTopRow}>
+                <View style={styles.prayerDetailsLeft}>
+                  <Text style={styles.upcomingText}>
+                    {t("homeScreen.upcoming")}
+                  </Text>
+                  <Text style={styles.prayerNameText}>
+                    {t("homeScreen.asrPrayer")}
+                  </Text>
+                  <Text style={styles.timeText}>{t("homeScreen.asrTime")}</Text>
+                </View>
+                <View style={styles.dateRight}>
+                  <Text style={styles.dateText}>{t("homeScreen.juneDate")}</Text>
+                </View>
               </View>
-              <View style={styles.dateRight}>
-                <Text style={styles.dateText}>{t("homeScreen.juneDate")}</Text>
-              </View>
-            </View>
+
+              {/* Timeline */}
+              {(() => {
+                const currentPrayer = "fajr"; // Placeholder logic for now
+                const getIconColor = (prayerName: string) => currentPrayer === prayerName ? Colors.light.green : Colors.light.white;
+
+                return (
+                  <View style={styles.prayerTimelineRow}>
+                    <View style={styles.prayerTimelineIcon}>
+                      <UpComingFajrIcon color={getIconColor("fajr")} size={16} />
+                    </View>
+                    <View style={styles.prayerTimelineDash} />
+                    <View style={styles.prayerTimelineIcon}>
+                      <UpComingDuhrIcon color={getIconColor("duhr")} size={16} />
+                    </View>
+                    <View style={styles.prayerTimelineDash} />
+                    <View style={styles.prayerTimelineIcon}>
+                      <UpComingAsrIcon color={getIconColor("asr")} size={16} />
+                    </View>
+                    <View style={styles.prayerTimelineDash} />
+                    <View style={styles.prayerTimelineIcon}>
+                      <UpComingMaghrebIcon color={getIconColor("maghreb")} size={16} />
+                    </View>
+                    <View style={styles.prayerTimelineDash} />
+                    <View style={styles.prayerTimelineIcon}>
+                      <UpComingIshaIcon color={getIconColor("isha")} size={16} />
+                    </View>
+                  </View>
+                );
+              })()}
+            </ImageBackground>
           </View>
         )}
 
@@ -698,12 +766,13 @@ export default function HomeScreen() {
           </Text>
           <TouchableOpacity
             activeOpacity={0.7}
-            style={styles.customizeContainer}
+            style={[styles.customizeContainer, { gap: 6 }]}
             onPress={() => dashboardSheetRef.current?.expand()}
           >
             <Text style={styles.customizeText}>
               {t("homeScreen.customize")}
             </Text>
+            <CustomizeBadgeSettingIcon size={16} color={Colors.light.green} />
           </TouchableOpacity>
         </View>
 
@@ -745,7 +814,7 @@ export default function HomeScreen() {
 
       <NamazGoalBottomSheet
         ref={namazBottomSheetRef}
-        onClose={() => {}}
+        onClose={() => { }}
         onChange={(index) => handleBottomSheetChange("namaz", index)}
       />
       <TimeSpentBottomSheet
