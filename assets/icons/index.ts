@@ -346,7 +346,7 @@ export {
   MondayAndThursdayFastsHabitualIcon,
   MondayAndThursdayAllahRememberenceIcon,
   MissedZakatAccountabilityIcon,
-  MissedZakatSocialIcon
+  MissedZakatSocialIcon,
   FacebookIcon,
   GoogleIcon,
   AppleIcon,
