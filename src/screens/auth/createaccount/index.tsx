@@ -24,13 +24,16 @@ import {
   useRegister,
   type RegisterPayload,
 } from "@/src/api/mutations/useRegister";
+import { useUploadAvatar } from "@/src/api/mutations/useUploadAvatar";
 
 export default function CreateAccountScreen() {
   const styles = createStyles();
   const router = useRouter();
   const { createAccountSchema } = useValidations();
   const { t } = useTranslation();
-  const { mutateAsync: registerUser, isPending } = useRegister();
+  const { mutateAsync: registerUser, isPending: isRegistering } = useRegister();
+  const { mutateAsync: uploadAvatar, isPending: isUploading } = useUploadAvatar();
+  const isPending = isRegistering || isUploading;
   const {
     genders,
     showPassword,
@@ -98,7 +101,7 @@ export default function CreateAccountScreen() {
   };
 
   const onSubmit = async (data: z.infer<typeof createAccountSchema>) => {
-    console.log("[create-account] submit", data, image);
+    console.log("[create-account] submit triggered", { data, hasImage: !!image });
 
     const payload: RegisterPayload = {
       username: data.name.trim(),
@@ -110,12 +113,41 @@ export default function CreateAccountScreen() {
       country: data.country,
       calendarView: calendarViewMap[data.dateView],
       weekendDays: weekendDaysMap[data.week],
-      avatarUrl: image ?? undefined,
     };
 
     try {
-      await registerUser(payload);
-    } catch (error: any) {}
+      console.log("[create-account] calling registerUser...");
+      const result = await registerUser(payload);
+      console.log("[create-account] registerUser response:", JSON.stringify(result));
+
+      const userId = result?.data?.user?.id;
+      console.log("[create-account] userId:", userId);
+
+      // If user selected an image, upload avatar after registration
+      if (image && userId) {
+        console.log("[create-account] uploading avatar for userId:", userId);
+        try {
+          const avatarResult = await uploadAvatar({ userId, imageUri: image });
+          console.log("[create-account] avatar uploaded successfully:", avatarResult);
+        } catch (uploadError) {
+          console.error("[create-account] avatar upload failed (continuing anyway):", uploadError);
+        }
+      } else {
+        console.log("[create-account] skipping avatar upload — image:", !!image, "userId:", userId);
+      }
+
+      // Always navigate to verify email after registration (with or without avatar)
+      console.log("[create-account] navigating to verifyemail...");
+      router.push({
+        pathname: "/(auth)/verifyemail/[fromsignup]",
+        params: {
+          fromsignup: "true",
+          email: data.email,
+        },
+      });
+    } catch (error: any) {
+      console.error("[create-account] registration failed:", error);
+    }
   };
 
   const onInvalid = (formErrors: typeof errors) => {

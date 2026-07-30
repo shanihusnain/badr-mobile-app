@@ -117,7 +117,7 @@ export default function OtpScreen() {
       }
 
       if (fromsignup === "true") {
-        router.replace("/login");
+        router.replace("/(auth)/login");
       } else {
         router.push({
           pathname: "/(auth)/confirmpassword",

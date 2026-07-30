@@ -72,6 +72,7 @@ import { useTypedTranslation } from "@/i18next/useTypedTranslation";
 import { HomeFabSpeedDial } from "./components/HomeFabSpeedDial";
 import { JournalingHistoryWeekDashboard } from "./components/JournalingHistoryWeekDashboard";
 import { JournalingHistoryWeekDays } from "./journalingHistory";
+import { useAuth } from "@/provider/useAuth";
 type TextPart = { text: string; highlighted: boolean };
 
 type CategoryItem = {
@@ -218,6 +219,17 @@ export default function HomeScreen() {
   const [isAnyBottomSheetOpen, setIsAnyBottomSheetOpen] = useState(false);
   const openBottomSheetsRef = useRef(new Set<string>());
   const scrollY = useRef(new Animated.Value(0)).current;
+  const { user } = useAuth();
+  console.log("user in redux", user);
+
+  const normalizeGender = (value?: string | null) =>
+    value?.toString().trim().toUpperCase();
+
+  const isFemaleUser = [
+    user?.gender,
+    user?.user?.gender,
+    user?.data?.gender,
+  ].some((value) => normalizeGender(value) === "FEMALE");
 
   const handleAddDailyProgress = useCallback(() => {
     goldenBottomSheetRef.current?.expand();
@@ -450,7 +462,7 @@ export default function HomeScreen() {
               <View style={styles.todayButtonContainer}>
                 <Entypo name={i18n.language === "ar" ? "chevron-right" : "chevron-left"} size={18} color={Colors.light.white} />
                 <View style={styles.todayButtonTextContainer}>
-                  <Text style={styles.todayButtonText}>{t("homeScreen.today", "TODAY")}</Text>
+                  <Text style={styles.todayButtonText}>{t("homeScreen.today", { defaultValue: "TODAY" })}</Text>
                 </View>
                 <Entypo name={i18n.language === "ar" ? "chevron-left" : "chevron-right"} size={18} color={Colors.light.white} />
               </View>
@@ -627,14 +639,19 @@ export default function HomeScreen() {
 
         {/* Log menstruation */}
         <TouchableOpacity
-          activeOpacity={0.8}
-          style={styles.menstruationContainer}
-          onPress={() =>
+          activeOpacity={isFemaleUser ? 0.8 : 1}
+          disabled={!isFemaleUser}
+          style={[
+            styles.menstruationContainer,
+            !isFemaleUser && { opacity: 0.5 },
+          ]}
+          onPress={() => {
+            if (!isFemaleUser) return;
             router.push({
               pathname: "/menstruationlog",
               params: { cycleStartDate: "2026-05-08" },
-            })
-          }
+            });
+          }}
         >
           <View style={styles.menstruationInner}>
             <View style={styles.greenPlusCircle}>
