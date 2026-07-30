@@ -93,6 +93,7 @@ import { HandIcon } from "./HandIcon";
 import { HeartOnHandIcon } from "./HeartOnHandIcon";
 import { HouseWithHeartIcon } from "./HouseWithHeartIcon";
 import { HadeethBookIcon } from "./HadeethBookIcon";
+import { HomeScreenGlowyMinusIcon } from "./HomeScreenGlowyMinusIcon";
 //I
 
 //J
@@ -148,6 +149,7 @@ import { PlanTabIcon } from "./PlanTabIcon";
 import { PercentageIcon } from "./PercentageIcon";
 import { ProfileInformationIcon } from "./ProfileInformationIcon";
 import { PasswordLockIcon } from "./PasswordLockIcon";
+import { PlusGlowyIcon } from "./PlusGlowyIcon";
 
 //Q
 //R
@@ -352,4 +354,6 @@ export {
   AppleIcon,
   LetterIcon,
   PasswordLockIcon,
+  PlusGlowyIcon,
+  HomeScreenGlowyMinusIcon,
 };

@@ -1,17 +1,23 @@
+import { useFacebookLogin } from "@/src/api/mutations/useFacebookLogin";
 import { showToast } from "@/src/config/toastConfig";
+import { useAuth } from "@/provider/useAuth";
 import { AccessToken, LoginManager } from "react-native-fbsdk-next";
+import { useRouter } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 
 export const useFacebookSignIn = () => {
+  const router = useRouter();
+  const { signIn } = useAuth();
+  const { mutateAsync: facebookLoginMutation, isPending: isExchanging } =
+    useFacebookLogin();
   const [isPrompting, setIsPrompting] = useState(false);
 
-  // These are required for react-native-fbsdk-next (plugin/native setup).
-  // They are runtime checks only; the actual native wiring is done by the Expo config plugin.
   const fbAppId = process.env.EXPO_PUBLIC_FACEBOOK_APP_ID ?? "";
+  // Enable "email" in Meta App Dashboard → Permissions before adding it here.
   const permissions = useMemo(() => ["public_profile"], []);
 
   const signInWithFacebook = useCallback(async () => {
-    if (isPrompting) return;
+    if (isPrompting || isExchanging) return;
 
     if (!fbAppId) {
       showToast(
@@ -23,57 +29,61 @@ export const useFacebookSignIn = () => {
 
     try {
       setIsPrompting(true);
-      console.log("[Facebook Login] Starting login flow");
 
       const loginResult = await LoginManager.logInWithPermissions(permissions);
-      console.log("[Facebook Login] Redirect returned", {
-        isCancelled: loginResult.isCancelled,
-        grantedPermissions: loginResult.grantedPermissions,
-        declinedPermissions: loginResult.declinedPermissions,
-      });
 
       if (loginResult.isCancelled) {
-        console.log("[Facebook Login] User cancelled before token retrieval");
-        showToast("error", "Facebook login cancelled");
         return;
       }
 
       const token = await AccessToken.getCurrentAccessToken();
       const fbAccessToken = token?.accessToken;
-      console.log("[Facebook Login] Access token lookup finished", {
-        hasToken: !!fbAccessToken,
-        userId: token?.userID,
-        applicationId: token?.applicationID,
-        expiresAt: token?.expirationTime,
-      });
 
       if (!fbAccessToken) {
-        console.log("[Facebook Login] Missing access token after redirect");
         showToast("error", "Facebook login succeeded but token is missing");
         return;
       }
 
-      console.log("[Facebook Login] Facebook callback payload", {
-        accessToken: fbAccessToken,
-        tokenPreview: `${fbAccessToken.slice(0, 12)}...`,
-        userId: token?.userID,
-        applicationId: token?.applicationID,
-        permissions: token?.permissions,
-        declinedPermissions: token?.declinedPermissions,
-        expiredPermissions: token?.expiredPermissions,
-        expiresAt: token?.expirationTime,
-      });
+      const result = await facebookLoginMutation({ token: fbAccessToken });
+      const { accessToken, refreshToken, user, isNewUser } = result.data;
+
+      if (!accessToken) {
+        showToast("error", "Login succeeded but no access token was returned");
+        return;
+      }
+
+      // Tokens are required so createaccount can call PUT /api/users/profile.
+      await signIn(accessToken, refreshToken, user);
+
+      if (isNewUser) {
+        router.replace({
+          pathname: "/(auth)/createaccount",
+          params: { user: JSON.stringify(user) },
+        });
+        return;
+      }
+
+      router.replace("/(private)/greetingsscreen");
     } catch (error) {
-      console.log("[Facebook Login] Flow failed", error);
-      showToast("error", "Facebook login failed");
+      console.error("[Facebook Login]", error);
+      if (!(error as { response?: unknown })?.response) {
+        showToast("error", "Unable to complete Facebook sign-in");
+      }
     } finally {
-      console.log("[Facebook Login] Flow finished");
       setIsPrompting(false);
     }
-  }, [permissions, fbAppId, isPrompting]);
+  }, [
+    facebookLoginMutation,
+    fbAppId,
+    isExchanging,
+    isPrompting,
+    permissions,
+    router,
+    signIn,
+  ]);
 
   return {
     signInWithFacebook,
-    isLoading: isPrompting,
+    isLoading: isPrompting || isExchanging,
   };
 };

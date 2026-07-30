@@ -1,4 +1,4 @@
-import { Redirect } from "expo-router";
+import { Redirect, usePathname } from "expo-router";
 import { ActivityIndicator, View } from "react-native";
 
 import { useAuth } from "./useAuth";
@@ -9,6 +9,7 @@ type PublicRouteProps = {
 
 export function PublicRoute({ children }: PublicRouteProps) {
   const { isAuthenticated, isLoading } = useAuth();
+  const pathname = usePathname();
 
   if (isLoading) {
     return (
@@ -18,7 +19,10 @@ export function PublicRoute({ children }: PublicRouteProps) {
     );
   }
 
-  if (isAuthenticated) {
+  // New social users are signed in first, then finish profile on createaccount.
+  const isCompletingSocialProfile = pathname.includes("createaccount");
+
+  if (isAuthenticated && !isCompletingSocialProfile) {
     return <Redirect href="/(tabs)" />;
   }
 

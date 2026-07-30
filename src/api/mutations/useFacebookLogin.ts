@@ -4,17 +4,20 @@ import { api } from "../index";
 import type { LoginResponse } from "./useLogin";
 
 export type FacebookLoginPayload = {
-  accessToken: string;
+  token: string;
+  fcmToken?: string;
 };
 
 const facebookLogin = async ({
-  accessToken,
+  token,
+  fcmToken,
 }: FacebookLoginPayload): Promise<LoginResponse> => {
-  // Backend must implement this endpoint and exchange the Facebook token
-  // for your app's `accessToken`/`refreshToken`.
-  const response = await api.post("api/auth/facebook", { accessToken });
-
-  console.log("response", response.data);
+  const response = await api.post("api/auth/social-login", {
+    provider: "FACEBOOK",
+    token,
+    ...(fcmToken ? { fcmToken } : {}),
+  });
+  console.log("response", JSON.stringify(response.data, null, 2));
   return response.data;
 };
 
@@ -23,10 +26,10 @@ export const useFacebookLogin = () => {
     mutationFn: facebookLogin,
     mutationKey: ["facebookLogin"],
     onSuccess: (data) => {
-      showToast("success", data?.message ?? "Login successful");
+      showToast("success", data?.message ?? "Logged in successfully");
     },
     onError: (error) => {
-      console.log("error", error);
+      console.log("error", JSON.stringify(error, null, 2));
       showToast("error", getApiErrorMessage(error, "Facebook login failed"));
     },
   });

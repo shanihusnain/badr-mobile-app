@@ -1,26 +1,23 @@
 import { useMutation } from "@tanstack/react-query";
 import { api } from "../index";
-import { showToast } from "@/src/config/toastConfig";
+import { getApiErrorMessage, showToast } from "@/src/config/toastConfig";
 
 const forgotPassword = async (email: string) => {
-  try {
-    const response = await api.post("api/auth/forgot-password", {
-      email,
-    });
-    return response.data;
-  } catch (error: any) {
-    console.log("error", error?.response?.data);
-  }
+  const response = await api.post("api/auth/forgot-password", { email });
+  return response.data;
 };
 
 export const useForgotPassword = () => {
   return useMutation({
     mutationFn: forgotPassword,
-    onSuccess: (data: any) => {
-      showToast("success", data?.message);
+    onSuccess: (data: { message?: string }) => {
+      showToast("success", data?.message ?? "OTP sent successfully");
     },
-    onError: (error: any) => {
-      showToast("error", error?.response?.data?.message);
+    onError: (error) => {
+      showToast(
+        "error",
+        getApiErrorMessage(error, "Failed to send reset instructions"),
+      );
     },
   });
 };

@@ -7,6 +7,7 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import {
   Keyboard,
+  KeyboardAvoidingView,
   Platform,
   ScrollView,
   Text,
@@ -65,7 +66,6 @@ export default function LoginScreen() {
       });
 
       const { accessToken, refreshToken, user } = result.data;
-
       if (!accessToken) {
         showToast("error", "Login succeeded but no access token was returned");
         return;
@@ -89,67 +89,72 @@ export default function LoginScreen() {
               contentFit="cover"
             />
 
-            <View style={styles.bottomSheet}>
-              <ScrollView
-                style={styles.bottomSheetScroll}
-                contentContainerStyle={styles.bottomSheetContent}
-                keyboardShouldPersistTaps="handled"
-                bounces={false}
-                showsVerticalScrollIndicator={false}
-              >
-                <CustomTextInput
-                  placeholder={t("loginScreen.emailPlaceholder")}
-                  control={control}
-                  name="email"
-                  errors={errors.email?.message ? [errors.email.message] : []}
-                  autoCapitalize="none"
-                  leftIcon={<LetterIcon />}
-                />
-
-                <CustomTextInput
-                  placeholder={t("loginScreen.passwordPlaceholder")}
-                  control={control}
-                  name="password"
-                  showEye
-                  secureTextEntry={!showPassword}
-                  onToggleEye={handleTogglePassword}
-                  errors={
-                    errors.password?.message ? [errors.password.message] : []
-                  }
-                  leftIcon={<PasswordLockIcon />}
-                />
-
-                <TouchableOpacity
-                  style={styles.forgotPasswordContainer}
-                  onPress={handleForgotPassword}
+            <KeyboardAvoidingView
+              behavior={Platform.OS === "ios" ? "padding" : "position"}
+              keyboardVerticalOffset={0}
+            >
+              <View style={styles.bottomSheet}>
+                <ScrollView
+                  style={styles.bottomSheetScroll}
+                  contentContainerStyle={styles.bottomSheetContent}
+                  keyboardShouldPersistTaps="handled"
+                  bounces={false}
+                  showsVerticalScrollIndicator={false}
                 >
-                  <Text style={styles.forgotPasswordText}>
-                    {t("loginScreen.forgotPassword")}
-                  </Text>
-                </TouchableOpacity>
-                <TopSpace top={30} />
-                <PrimaryButton
-                  text={t("loginScreen.loginBtnText")}
-                  onPress={handleSubmit(onSubmit)}
-                  disabled={loggingIn}
-                  isLoading={loggingIn}
-                />
+                  <CustomTextInput
+                    placeholder={t("loginScreen.emailPlaceholder")}
+                    control={control}
+                    name="email"
+                    errors={errors.email?.message ? [errors.email.message] : []}
+                    autoCapitalize="none"
+                    leftIcon={<LetterIcon />}
+                  />
 
-                <TouchableOpacity
-                  style={styles.orloginContainer}
-                  activeOpacity={0.7}
-                >
-                  <View style={styles.line} />
-                  <Text style={styles.orloginText}>
-                    {t("loginScreen.orLoginWith")}
-                  </Text>
-                  <View style={styles.line} />
-                </TouchableOpacity>
-                <TopSpace top={30} />
-                <SocialAuthSection disabled={loggingIn} />
-                {Platform.OS === "ios" ? <TopSpace top={10} /> : null}
-              </ScrollView>
-            </View>
+                  <CustomTextInput
+                    placeholder={t("loginScreen.passwordPlaceholder")}
+                    control={control}
+                    name="password"
+                    showEye
+                    secureTextEntry={!showPassword}
+                    onToggleEye={handleTogglePassword}
+                    errors={
+                      errors.password?.message ? [errors.password.message] : []
+                    }
+                    leftIcon={<PasswordLockIcon />}
+                  />
+
+                  <TouchableOpacity
+                    style={styles.forgotPasswordContainer}
+                    onPress={handleForgotPassword}
+                  >
+                    <Text style={styles.forgotPasswordText}>
+                      {t("loginScreen.forgotPassword")}
+                    </Text>
+                  </TouchableOpacity>
+                  <TopSpace top={30} />
+                  <PrimaryButton
+                    text={t("loginScreen.loginBtnText")}
+                    onPress={handleSubmit(onSubmit)}
+                    disabled={loggingIn}
+                    isLoading={loggingIn}
+                  />
+
+                  <TouchableOpacity
+                    style={styles.orloginContainer}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.line} />
+                    <Text style={styles.orloginText}>
+                      {t("loginScreen.orLoginWith")}
+                    </Text>
+                    <View style={styles.line} />
+                  </TouchableOpacity>
+                  <TopSpace top={30} />
+                  <SocialAuthSection disabled={loggingIn} />
+                  {Platform.OS === "ios" ? <TopSpace top={10} /> : null}
+                </ScrollView>
+              </View>
+            </KeyboardAvoidingView>
           </View>
         </TouchableWithoutFeedback>
       </SafeAreaView>

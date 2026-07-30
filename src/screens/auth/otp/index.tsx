@@ -3,6 +3,8 @@ import { BadrTreeImage } from "@/assets/images";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Keyboard,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   Text,
   TextInput,
@@ -157,68 +159,73 @@ export default function OtpScreen() {
               contentFit="cover"
             />
 
-            <View style={styles.bottomSheet}>
-              <ScrollView
-                style={styles.bottomSheetScroll}
-                contentContainerStyle={styles.bottomSheetContent}
-                keyboardShouldPersistTaps="handled"
-                bounces={false}
-                showsVerticalScrollIndicator={false}
-              >
-                <Text style={styles.otpInfoText}>{getDescriptionText()}</Text>
+            <KeyboardAvoidingView
+              behavior={Platform.OS === "ios" ? "padding" : "position"}
+              keyboardVerticalOffset={0}
+            >
+              <View style={styles.bottomSheet}>
+                <ScrollView
+                  style={styles.bottomSheetScroll}
+                  contentContainerStyle={styles.bottomSheetContent}
+                  keyboardShouldPersistTaps="handled"
+                  bounces={false}
+                  showsVerticalScrollIndicator={false}
+                >
+                  <Text style={styles.otpInfoText}>{getDescriptionText()}</Text>
 
-                <View style={styles.otpContainer}>
-                  {otp.map((digit, index) => (
-                    <TextInput
-                      key={index}
-                      ref={(ref) => {
-                        inputRefs.current[index] = ref;
-                      }}
-                      style={styles.otpBox}
-                      value={digit}
-                      onChangeText={(value) => handleOtpChange(value, index)}
-                      onKeyPress={(e) => handleKeyPress(e, index)}
-                      keyboardType="number-pad"
-                      maxLength={1}
-                    />
-                  ))}
-                </View>
+                  <View style={styles.otpContainer}>
+                    {otp.map((digit, index) => (
+                      <TextInput
+                        key={index}
+                        ref={(ref) => {
+                          inputRefs.current[index] = ref;
+                        }}
+                        style={styles.otpBox}
+                        value={digit}
+                        onChangeText={(value) => handleOtpChange(value, index)}
+                        onKeyPress={(e) => handleKeyPress(e, index)}
+                        keyboardType="number-pad"
+                        maxLength={1}
+                      />
+                    ))}
+                  </View>
 
-                {error && <Text style={styles.errorText}>{error}</Text>}
+                  {error && <Text style={styles.errorText}>{error}</Text>}
 
-                <View style={styles.resendContainer}>
-                  <TouchableOpacity onPress={handleResend}>
-                    <Text
-                      style={[
-                        styles.resendAction,
-                        styles.resendActionUnderline,
-                      ]}
-                    >
-                      {t("otpScreen.resend")}
+                  <View style={styles.resendContainer}>
+                    <TouchableOpacity onPress={handleResend}>
+                      <Text
+                        style={[
+                          styles.resendAction,
+                          styles.resendActionUnderline,
+                        ]}
+                      >
+                        {t("otpScreen.resend")}
+                      </Text>
+                    </TouchableOpacity>
+
+                    <Text style={styles.resendText}>
+                      {t("otpScreen.otpCode")}
                     </Text>
-                  </TouchableOpacity>
+                  </View>
 
-                  <Text style={styles.resendText}>
-                    {t("otpScreen.otpCode")}
+                  <Text style={styles.resendTimer}>
+                    {`00:${timer.toString().padStart(2, "0")}`}
                   </Text>
-                </View>
 
-                <Text style={styles.resendTimer}>
-                  {`00:${timer.toString().padStart(2, "0")}`}
-                </Text>
-
-                <View style={styles.buttonWrapper}>
-                  <PrimaryButton
-                    text={getBtnTitle()}
-                    onPress={handleVerify}
-                    disabled={isPending || isForgotPasswordOtpValidationPending}
-                    isLoading={
-                      isPending || isForgotPasswordOtpValidationPending
-                    }
-                  />
-                </View>
-              </ScrollView>
-            </View>
+                  <View style={styles.buttonWrapper}>
+                    <PrimaryButton
+                      text={getBtnTitle()}
+                      onPress={handleVerify}
+                      disabled={
+                        isPending || isForgotPasswordOtpValidationPending
+                      }
+                      isLoading={isPending || isForgotPasswordOtpValidationPending}
+                    />
+                  </View>
+                </ScrollView>
+              </View>
+            </KeyboardAvoidingView>
           </View>
         </TouchableWithoutFeedback>
       </SafeAreaView>

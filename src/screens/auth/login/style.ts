@@ -84,6 +84,7 @@ export const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: fonts.primary.regular,
     lineHeight: 14,
+    marginRight: 8,
   },
 
   primaryButton: {

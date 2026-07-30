@@ -57,7 +57,6 @@ export const useGoogleSignIn = () => {
       const response = await GoogleSignin.signIn();
 
       if (!isSuccessResponse(response)) {
-        // User cancelled the account picker / consent sheet.
         return;
       }
 
@@ -68,7 +67,7 @@ export const useGoogleSignIn = () => {
       }
 
       const result = await googleLoginMutation({ token: idToken });
-      const { accessToken, refreshToken, user } = result.data;
+      const { accessToken, refreshToken, user, isNewUser } = result.data;
 
       if (!accessToken) {
         showToast("error", "Login succeeded but no access token was returned");
@@ -76,6 +75,15 @@ export const useGoogleSignIn = () => {
       }
 
       await signIn(accessToken, refreshToken, user);
+
+      if (isNewUser) {
+        router.replace({
+          pathname: "/(auth)/createaccount",
+          params: { user: JSON.stringify(user) },
+        });
+        return;
+      }
+
       router.replace("/(private)/greetingsscreen");
     } catch (error) {
       if (isErrorWithCode(error)) {

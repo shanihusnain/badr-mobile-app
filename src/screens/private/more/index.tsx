@@ -29,7 +29,7 @@ export default function MoreScreen() {
 
   const { mutateAsync: logoutMutation, isPending: loggingOut } = useLogout();
   const { signOut } = useAuth();
-
+  console.log("is logging out", loggingOut);
   const handleLogout = async () => {
     try {
       await logoutMutation();

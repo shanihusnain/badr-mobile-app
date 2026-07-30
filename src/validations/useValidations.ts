@@ -38,6 +38,22 @@ export const useValidations = () => {
       path: ["confirmPassword"],
     });
 
+  /** Social signup: passwords are not collected; profile is completed via PUT /users/profile. */
+  const socialCompleteProfileSchema = z.object({
+    name: z.string().min(1, t("validations.nameRequired")),
+    password: z.string().optional(),
+    confirmPassword: z.string().optional(),
+    email: z
+      .string()
+      .min(1, t("validations.emailRequired"))
+      .email(t("validations.invalidEmail")),
+    gender: z.string().min(1, t("validations.genderRequired")),
+    dob: z.string().min(1, t("validations.dobRequired")),
+    country: z.string().min(1, t("validations.countryRequired")),
+    dateView: z.string().min(1, t("validations.dateViewRequired")),
+    week: z.string().min(1, t("validations.weekRequired")),
+  });
+
   const loginSchema = z.object({
     email: z
       .string()
@@ -79,6 +95,7 @@ export const useValidations = () => {
 
   return {
     createAccountSchema,
+    socialCompleteProfileSchema,
     loginSchema,
     forgotPasswordSchema,
     confirmPasswordSchema,

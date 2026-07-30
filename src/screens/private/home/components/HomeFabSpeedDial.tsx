@@ -13,6 +13,7 @@ import { useTypedTranslation } from "@/i18next/useTypedTranslation";
 import { styles } from "../styles";
 import { ShootIcon } from "@/assets/icons/ShootIcon";
 import { JournalBookIconGoldenFabButtonIcon } from "@/assets/icons/JournalBookIconGoldenFabButtonIcon";
+import { HomeScreenGlowyMinusIcon, PlusGlowyIcon } from "@/assets/icons";
 
 const FAB_SPRING_CONFIG = {
   friction: 6,
@@ -176,11 +177,13 @@ function HomeFabSpeedDialComponent({
         accessibilityRole="button"
         accessibilityState={{ expanded: isExpanded }}
       >
-        <TaperedCircleBorder variant="golden" size={30}>
+        {/* <TaperedCircleBorder variant="golden" size={30}>
           <View style={styles.goldenFabInner}>
             <Text style={styles.goldenFabPlus}>{isExpanded ? "−" : "+"}</Text>
           </View>
-        </TaperedCircleBorder>
+        </TaperedCircleBorder> */}
+
+        {!isExpanded ? <PlusGlowyIcon /> : <HomeScreenGlowyMinusIcon />}
       </TouchableOpacity>
     </>
   );
