@@ -87,7 +87,6 @@ export const styles = StyleSheet.create({
     fontFamily: fonts.primary.bold,
     fontWeight: "600",
     fontSize: 13,
-
   },
 
   // Badr Text (Center)
@@ -1053,7 +1052,7 @@ export const styles = StyleSheet.create({
   },
   goldenFab: {
     position: "absolute",
-    right: 20,
+    right: 5,
     zIndex: 1000,
     overflow: "visible",
   },

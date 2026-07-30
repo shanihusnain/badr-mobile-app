@@ -348,7 +348,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 12,
     borderTopRightRadius: 12,
     paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingTop: 16,
     zIndex: 20,
   },
   header: {
@@ -360,13 +360,12 @@ const styles = StyleSheet.create({
   dropdownButton: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    gap: 6,
+
+    gap: 16,
     backgroundColor: Colors.light.greybuttonBackground,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
     borderRadius: 8,
-    minWidth: 130,
   },
   dropdownButtonText: {
     fontSize: 15,
@@ -389,7 +388,7 @@ const styles = StyleSheet.create({
   },
   navLabel: {
     fontSize: 14,
-    fontWeight: "600",
+    fontWeight: "500",
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
   },
@@ -417,7 +416,7 @@ const styles = StyleSheet.create({
   },
   cancelBtn: {
     paddingHorizontal: 20,
-    paddingVertical: 10,
+    paddingVertical: 4,
   },
   cancelText: {
     color: Colors.light.white,
@@ -425,9 +424,8 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.semiBold,
   },
   okBtn: {
-    paddingHorizontal: 16,
-    paddingVertical: 2,
-    borderRadius: 8,
+    paddingHorizontal: 20,
+    borderRadius: 6,
     borderWidth: 1,
     borderColor: Colors.light.green,
     alignItems: "center",

@@ -24,6 +24,7 @@ export type LoginAuthData = {
   accessToken: string;
   refreshToken: string;
   user: LoginUser;
+  isNewUser?: boolean;
 };
 
 export type LoginResponse = {

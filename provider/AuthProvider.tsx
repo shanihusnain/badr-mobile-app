@@ -21,6 +21,7 @@ interface AuthContextType {
     userData?: any,
   ) => Promise<void>;
   signOut: () => Promise<void>;
+  updateUser: (userData: any) => Promise<void>;
   user: any | null;
   getAccessToken: () => Promise<string | null>;
   getRefreshToken: () => Promise<string | null>;
@@ -110,6 +111,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     store.dispatch(logout());
   };
 
+  const updateUser = async (userData: any) => {
+    await AsyncStorage.setItem(USER_DATA_KEY, JSON.stringify(userData));
+    setUser(userData);
+    store.dispatch(loginSuccess({ email: userData?.email ?? "" }));
+  };
+
   useEffect(() => {
     registerForceSignOut(signOut);
   }, []);
@@ -121,6 +128,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         isLoading: loading,
         signIn,
         signOut,
+        updateUser,
         user,
         getAccessToken,
         getRefreshToken,

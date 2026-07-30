@@ -7,6 +7,8 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import {
   Keyboard,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   Text,
   TouchableWithoutFeedback,
@@ -41,12 +43,14 @@ export default function ForgotPasswordScreen() {
   });
 
   const onSubmit = async (data: z.infer<typeof forgotPasswordSchema>) => {
-    await forgotPasswordMutation(data.email);
+    try {
+      await forgotPasswordMutation(data.email);
 
-    router.push({
-      pathname: "./verifyemail/[fromsignup]",
-      params: { fromsignup: "false", email: data.email },
-    });
+      router.push({
+        pathname: "./verifyemail/[fromsignup]",
+        params: { fromsignup: "false", email: data.email },
+      });
+    } catch {}
   };
 
   return (
@@ -60,43 +64,48 @@ export default function ForgotPasswordScreen() {
               contentFit="cover"
             />
 
-            <View style={styles.bottomSheet}>
-              <ScrollView
-                style={styles.bottomSheetScroll}
-                contentContainerStyle={styles.bottomSheetContent}
-                keyboardShouldPersistTaps="handled"
-                bounces={false}
-                showsVerticalScrollIndicator={false}
-              >
-                <View style={styles.messageContainer}>
-                  <Text style={styles.messageText}>
-                    {t("forgotPasswordScreen.description")}
-                  </Text>
-                </View>
+            <KeyboardAvoidingView
+              behavior={Platform.OS === "ios" ? "padding" : "position"}
+              keyboardVerticalOffset={0}
+            >
+              <View style={styles.bottomSheet}>
+                <ScrollView
+                  style={styles.bottomSheetScroll}
+                  contentContainerStyle={styles.bottomSheetContent}
+                  keyboardShouldPersistTaps="handled"
+                  bounces={false}
+                  showsVerticalScrollIndicator={false}
+                >
+                  <View style={styles.messageContainer}>
+                    <Text style={styles.messageText}>
+                      {t("forgotPasswordScreen.description")}
+                    </Text>
+                  </View>
 
-                <View style={styles.formWrapper}>
-                  <CustomTextInput
-                    placeholder={t("forgotPasswordScreen.emailPlaceholder")}
-                    control={control}
-                    name="email"
-                    errors={
-                      errors.email?.message ? [errors.email.message] : []
-                    }
-                    autoCapitalize="none"
-                  />
-                </View>
+                  <View style={styles.formWrapper}>
+                    <CustomTextInput
+                      placeholder={t("forgotPasswordScreen.emailPlaceholder")}
+                      control={control}
+                      name="email"
+                      errors={
+                        errors.email?.message ? [errors.email.message] : []
+                      }
+                      autoCapitalize="none"
+                    />
+                  </View>
 
-                <View style={styles.buttonWrapper}>
-                  <PrimaryButton
-                    text={t("forgotPasswordScreen.sendInstructionsBtn")}
-                    onPress={handleSubmit(onSubmit)}
-                    style={styles.primaryButton}
-                    disabled={forgotPasswordLoading}
-                    isLoading={forgotPasswordLoading}
-                  />
-                </View>
-              </ScrollView>
-            </View>
+                  <View style={styles.buttonWrapper}>
+                    <PrimaryButton
+                      text={t("forgotPasswordScreen.sendInstructionsBtn")}
+                      onPress={handleSubmit(onSubmit)}
+                      style={styles.primaryButton}
+                      disabled={forgotPasswordLoading}
+                      isLoading={forgotPasswordLoading}
+                    />
+                  </View>
+                </ScrollView>
+              </View>
+            </KeyboardAvoidingView>
           </View>
         </TouchableWithoutFeedback>
       </SafeAreaView>

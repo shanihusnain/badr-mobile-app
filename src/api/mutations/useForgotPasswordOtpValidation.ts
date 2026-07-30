@@ -1,18 +1,13 @@
 import { useMutation } from "@tanstack/react-query";
 import { api } from "../index";
-import { showToast } from "@/src/config/toastConfig";
+import { getApiErrorMessage, showToast } from "@/src/config/toastConfig";
 
 const forgotPasswordOtpValidation = async (email: string, otp: string) => {
-  try {
-    const response = await api.post("api/auth/verify-otp", {
-      email,
-      code: otp,
-    });
-
-    return response.data;
-  } catch (error: any) {
-    console.log("error", error?.response?.data);
-  }
+  const response = await api.post("api/auth/verify-otp", {
+    email,
+    code: otp,
+  });
+  return response.data;
 };
 
 export const useForgotPasswordOtpValidation = () => {
@@ -20,11 +15,14 @@ export const useForgotPasswordOtpValidation = () => {
     mutationFn: ({ email, otp }: { email: string; otp: string }) =>
       forgotPasswordOtpValidation(email, otp),
     mutationKey: ["forgot-password-otp-validation"],
-    onSuccess: (data: any) => {
-      showToast("success", data?.message);
+    onSuccess: (data: { message?: string }) => {
+      showToast("success", data?.message ?? "OTP verified");
     },
-    onError: (error: any) => {
-      showToast("error", error?.response?.data?.message);
+    onError: (error) => {
+      showToast(
+        "error",
+        getApiErrorMessage(error, "Invalid OTP. Please try again."),
+      );
     },
   });
 };

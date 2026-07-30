@@ -39,18 +39,6 @@ export const useCreateAccountProps = () => {
     { label: t("createAccountScreen.satSun"), value: "Saturday & Sunday" },
   ];
 
-  const defaultValues = {
-    name: "",
-    password: "",
-    confirmPassword: "",
-    email: "",
-    gender: "",
-    dob: "",
-    country: "",
-    dateView: "",
-    week: "",
-  };
-
   const onPasswordToggle = () => setShowPassword((prev) => !prev);
   const onConfirmPasswordToggle = () => setShowConfirmPassword((prev) => !prev);
 
@@ -63,6 +51,5 @@ export const useCreateAccountProps = () => {
     showConfirmPassword,
     onPasswordToggle,
     onConfirmPasswordToggle,
-    defaultValues,
   };
 };

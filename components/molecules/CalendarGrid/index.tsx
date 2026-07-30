@@ -117,13 +117,13 @@ export type CalendarGridProps = {
 // ── Ring colour constants are defined in constants/theme.ts ──────────────────
 
 const WEEKDAY_KEYS = [
-  "homeScreen.calendar_weekday_sun",
   "homeScreen.calendar_weekday_mon",
   "homeScreen.calendar_weekday_tue",
   "homeScreen.calendar_weekday_wed",
   "homeScreen.calendar_weekday_thu",
   "homeScreen.calendar_weekday_fri",
   "homeScreen.calendar_weekday_sat",
+  "homeScreen.calendar_weekday_sun",
 ] as const;
 
 function buildCycleWeeks(
@@ -131,8 +131,9 @@ function buildCycleWeeks(
   windowEnd: moment.Moment,
 ): (string | null)[][] {
   const weeks: (string | null)[][] = [];
-  const cursor = windowStart.clone().startOf("week");
-  const gridEnd = windowEnd.clone().endOf("week");
+  // isoWeek starts on Monday so columns match WEEKDAY_KEYS.
+  const cursor = windowStart.clone().startOf("isoWeek");
+  const gridEnd = windowEnd.clone().endOf("isoWeek");
 
   while (cursor.isSameOrBefore(gridEnd, "day")) {
     const week: (string | null)[] = [];
@@ -157,8 +158,9 @@ function buildCycleWeeks(
 function buildMonthWeeks(monthDate: string): string[][] {
   const monthStart = moment(monthDate, "YYYY-MM-DD").startOf("month");
   const monthEnd = monthStart.clone().endOf("month");
-  const cursor = monthStart.clone().startOf("week");
-  const gridEnd = monthEnd.clone().endOf("week");
+  // isoWeek starts on Monday so columns match WEEKDAY_KEYS.
+  const cursor = monthStart.clone().startOf("isoWeek");
+  const gridEnd = monthEnd.clone().endOf("isoWeek");
   const weeks: string[][] = [];
 
   while (cursor.isSameOrBefore(gridEnd, "day")) {
@@ -257,6 +259,8 @@ export const CalendarGrid = ({
     const isSelected = ds === selectedDate;
     const isEndDate = !!endDate && ds === endDate;
     const dayOfWeek = new Date(ds).getDay(); // 0=Sun 1=Mon … 4=Thu
+
+    console.log("dayOfWeek", dayOfWeek);
     const isDisabledDobDate = isDobDateDisabled(ds);
     const isInRange = isInSelectedRange(ds);
 
@@ -723,10 +727,11 @@ const styles = StyleSheet.create({
   weekdayLabel: {
     flex: 1,
     textAlign: "center",
-    fontSize: 13,
+    fontSize: 12,
     color: Colors.light.white,
-    fontFamily: fonts.primary.semiBold,
+    fontFamily: fonts.primary.regular,
     marginBottom: 7,
+    fontWeight: "400",
   },
   weekRow: {
     flexDirection: "row",

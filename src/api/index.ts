@@ -30,6 +30,9 @@ const SKIP_REFRESH_URLS = [
   "api/auth/logout",
   "api/auth/reset-password",
   "api/auth/forgot-password",
+  "api/auth/verify-otp",
+  "api/auth/verify-email",
+  "api/auth/resend-otp",
 ];
 
 const shouldSkipRefresh = (url?: string) => {

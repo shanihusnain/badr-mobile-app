@@ -322,10 +322,10 @@ export default function HomeScreen() {
     const goals = DASHBOARD_SUB_GOALS.map((goal) =>
       goal.id === "quran-recitation"
         ? {
-          ...goal,
-          percentage: quranCategory?.percentage ?? goal.percentage,
-          progressColor: quranCategory?.progressColor ?? goal.progressColor,
-        }
+            ...goal,
+            percentage: quranCategory?.percentage ?? goal.percentage,
+            progressColor: quranCategory?.progressColor ?? goal.progressColor,
+          }
         : goal,
     );
 
@@ -454,17 +454,39 @@ export default function HomeScreen() {
           </View>
 
           {/* Today Button */}
-          <View style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0, alignItems: "center", justifyContent: "center" }} pointerEvents="box-none">
-            <TouchableOpacity
-              activeOpacity={0.7}
-              onPress={() => { }}
-            >
+          <View
+            style={{
+              position: "absolute",
+              left: 0,
+              right: 0,
+              top: 0,
+              bottom: 0,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+            pointerEvents="box-none"
+          >
+            <TouchableOpacity activeOpacity={0.7} onPress={() => {}}>
               <View style={styles.todayButtonContainer}>
-                <Entypo name={i18n.language === "ar" ? "chevron-right" : "chevron-left"} size={18} color={Colors.light.white} />
+                <Entypo
+                  name={
+                    i18n.language === "ar" ? "chevron-right" : "chevron-left"
+                  }
+                  size={18}
+                  color={Colors.light.white}
+                />
                 <View style={styles.todayButtonTextContainer}>
-                  <Text style={styles.todayButtonText}>{t("homeScreen.today", { defaultValue: "TODAY" })}</Text>
+                  <Text style={styles.todayButtonText}>
+                    {t("homeScreen.today", "TODAY")}
+                  </Text>
                 </View>
-                <Entypo name={i18n.language === "ar" ? "chevron-left" : "chevron-right"} size={18} color={Colors.light.white} />
+                <Entypo
+                  name={
+                    i18n.language === "ar" ? "chevron-left" : "chevron-right"
+                  }
+                  size={18}
+                  color={Colors.light.white}
+                />
               </View>
             </TouchableOpacity>
           </View>
@@ -510,23 +532,34 @@ export default function HomeScreen() {
                   <Text style={styles.timeText}>{t("homeScreen.asrTime")}</Text>
                 </View>
                 <View style={styles.dateRight}>
-                  <Text style={styles.dateText}>{t("homeScreen.juneDate")}</Text>
+                  <Text style={styles.dateText}>
+                    {t("homeScreen.juneDate")}
+                  </Text>
                 </View>
               </View>
 
               {/* Timeline */}
               {(() => {
                 const currentPrayer = "fajr"; // Placeholder logic for now
-                const getIconColor = (prayerName: string) => currentPrayer === prayerName ? Colors.light.green : Colors.light.white;
+                const getIconColor = (prayerName: string) =>
+                  currentPrayer === prayerName
+                    ? Colors.light.green
+                    : Colors.light.white;
 
                 return (
                   <View style={styles.prayerTimelineRow}>
                     <View style={styles.prayerTimelineIcon}>
-                      <UpComingFajrIcon color={getIconColor("fajr")} size={16} />
+                      <UpComingFajrIcon
+                        color={getIconColor("fajr")}
+                        size={16}
+                      />
                     </View>
                     <View style={styles.prayerTimelineDash} />
                     <View style={styles.prayerTimelineIcon}>
-                      <UpComingDuhrIcon color={getIconColor("duhr")} size={16} />
+                      <UpComingDuhrIcon
+                        color={getIconColor("duhr")}
+                        size={16}
+                      />
                     </View>
                     <View style={styles.prayerTimelineDash} />
                     <View style={styles.prayerTimelineIcon}>
@@ -534,11 +567,17 @@ export default function HomeScreen() {
                     </View>
                     <View style={styles.prayerTimelineDash} />
                     <View style={styles.prayerTimelineIcon}>
-                      <UpComingMaghrebIcon color={getIconColor("maghreb")} size={16} />
+                      <UpComingMaghrebIcon
+                        color={getIconColor("maghreb")}
+                        size={16}
+                      />
                     </View>
                     <View style={styles.prayerTimelineDash} />
                     <View style={styles.prayerTimelineIcon}>
-                      <UpComingIshaIcon color={getIconColor("isha")} size={16} />
+                      <UpComingIshaIcon
+                        color={getIconColor("isha")}
+                        size={16}
+                      />
                     </View>
                   </View>
                 );
@@ -831,7 +870,7 @@ export default function HomeScreen() {
 
       <NamazGoalBottomSheet
         ref={namazBottomSheetRef}
-        onClose={() => { }}
+        onClose={() => {}}
         onChange={(index) => handleBottomSheetChange("namaz", index)}
       />
       <TimeSpentBottomSheet

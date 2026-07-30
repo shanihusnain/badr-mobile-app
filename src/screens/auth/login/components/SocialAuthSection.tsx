@@ -1,10 +1,6 @@
 import React, { Component, type ErrorInfo, type ReactNode } from "react";
-import { Alert, View } from "react-native";
-import {
-  AppleIcon,
-  FacebookIcon,
-  GoogleIcon,
-} from "@/assets/icons";
+import { Alert, Platform, View } from "react-native";
+import { AppleIcon, FacebookIcon, GoogleIcon } from "@/assets/icons";
 import { useFacebookSignIn } from "@/src/hooks/useFacebookSignIn";
 import { useGoogleSignIn } from "@/src/hooks/useGoogleSignIn";
 import { styles } from "../style";
@@ -59,13 +55,15 @@ function SocialAuthButtons({ disabled = false }: Props) {
         }}
         disabled={isBusy}
       />
-      <SocialLoginButton
-        icon={<AppleIcon />}
-        onPress={() => {
-          Alert.alert("Apple");
-        }}
-        disabled={isBusy}
-      />
+      {Platform.OS === "ios" && (
+        <SocialLoginButton
+          icon={<AppleIcon />}
+          onPress={() => {
+            Alert.alert("Apple");
+          }}
+          disabled={isBusy}
+        />
+      )}
     </View>
   );
 }
