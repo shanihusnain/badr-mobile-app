@@ -1,14 +1,15 @@
 import { useGoogleLogin } from "@/src/api/mutations/useGoogleLogin";
 import { showToast } from "@/src/config/toastConfig";
 import { useAuth } from "@/provider/useAuth";
-import {
-  GoogleSignin,
-  isErrorWithCode,
-  isSuccessResponse,
-  statusCodes,
-} from "@react-native-google-signin/google-signin";
+// import {
+//   GoogleSignin,
+//   isErrorWithCode,
+//   isSuccessResponse,
+//   statusCodes,
+// } from "@react-native-google-signin/google-signin";
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
+import { Alert } from "react-native";
 
 const webClientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? "";
 const iosClientId = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID;
@@ -18,11 +19,10 @@ let isConfigured = false;
 const configureGoogleSignIn = () => {
   if (isConfigured || !webClientId) return;
 
-  GoogleSignin.configure({
-    // Web client ID is required so Google returns an idToken for your backend.
-    webClientId,
-    ...(iosClientId ? { iosClientId } : {}),
-  });
+  // GoogleSignin.configure({
+  //   webClientId,
+  //   ...(iosClientId ? { iosClientId } : {}),
+  // });
   isConfigured = true;
 };
 

@@ -1,5 +1,8 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { QatarFlagIcon } from "@/assets/icons/QatarFlagIcon";
+import { UnitedKingdomFlagIcon } from "@/assets/icons/UnitedKingdomFlagIcon";
+import { UnitedStatesFlagIcon } from "@/assets/icons/UnitedStatesFlagIcon";
 
 export const useCreateAccountProps = () => {
   const { t } = useTranslation();
@@ -11,8 +14,21 @@ export const useCreateAccountProps = () => {
     { label: t("createAccountScreen.female"), value: "Female" },
   ];
   const countries = [
-    { label: t("createAccountScreen.pakistan"), value: "Pakistan" },
-    { label: t("createAccountScreen.saudiArabia"), value: "Saudi Arabia" },
+    {
+      label: t("createAccountScreen.qatar"),
+      value: "Qatar",
+      icon: React.createElement(QatarFlagIcon, { size: 18 }),
+    },
+    {
+      label: "United States",
+      value: "United States",
+      icon: React.createElement(UnitedStatesFlagIcon, { size: 18 }),
+    },
+    {
+      label: "United Kingdom",
+      value: "United Kingdom",
+      icon: React.createElement(UnitedKingdomFlagIcon, { size: 18 }),
+    },
   ];
   const calendarView = [
     { label: t("createAccountScreen.gregorianView"), value: "Gregorian View" },

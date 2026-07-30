@@ -18,6 +18,7 @@ export default function WelcomeScreen() {
   const router = useRouter();
 
   const handleLogin = () => {
+    console.log("Login button pressed");
     router.push("/(auth)/login");
   };
 

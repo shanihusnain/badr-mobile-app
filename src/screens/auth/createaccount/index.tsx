@@ -229,7 +229,6 @@ export default function CreateAccountScreen() {
       country: data.country,
       calendarView: calendarViewMap[data.dateView],
       weekendDays: weekendDaysMap[data.week],
-      avatarUrl: image ?? undefined,
     };
 
     try {

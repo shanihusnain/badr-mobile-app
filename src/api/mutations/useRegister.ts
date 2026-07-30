@@ -63,14 +63,5 @@ export const useRegister = () => {
     onError: (error) => {
       showToast("error", getApiErrorMessage(error, "Registration failed"));
     },
-    onSuccess: (_data, variables) => {
-      router.push({
-        pathname: "/(auth)/verifyemail/[fromsignup]",
-        params: {
-          fromsignup: "true",
-          email: variables.email,
-        },
-      });
-    },
   });
 };

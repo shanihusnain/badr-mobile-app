@@ -18,7 +18,7 @@ import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 interface Option {
   label: string;
   value: string | number;
-  icon?: string;
+  icon?: React.ReactNode;
 }
 
 interface CustomDropdownProps {
@@ -121,7 +121,7 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
             {selectedOption &&
             typeof selectedOption !== "string" &&
             selectedOption.icon ? (
-              <Text style={styles.optionIcon}>{selectedOption.icon}</Text>
+              <View style={styles.iconWrapper}>{selectedOption.icon}</View>
             ) : null}
             <Text
               style={[
@@ -166,7 +166,7 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
                     {isSelected && <View style={styles.radioInner} />}
                   </View>
                   {itemIcon ? (
-                    <Text style={styles.optionIcon}>{itemIcon}</Text>
+                    <View style={styles.iconWrapper}>{itemIcon}</View>
                   ) : null}
                   <Text style={[styles.optionText, optionTextStyle]}>
                     {itemLabel}
@@ -246,6 +246,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginRight: 6,
   },
+  iconWrapper: {
+    marginLeft: 10,
+    marginRight: 4,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   icon: {
     color: Colors.light.white,
     fontSize: 14,
@@ -268,7 +274,7 @@ const styles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
     fontSize: 12,
-    marginLeft: 10,
+    marginLeft: 4,
   },
   radioOuter: {
     width: 18,
