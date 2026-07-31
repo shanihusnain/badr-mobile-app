@@ -1,15 +1,18 @@
 import { useGoogleLogin } from "@/src/api/mutations/useGoogleLogin";
 import { showToast } from "@/src/config/toastConfig";
 import { useAuth } from "@/provider/useAuth";
-// import {
-//   GoogleSignin,
-//   isErrorWithCode,
-//   isSuccessResponse,
-//   statusCodes,
-// } from "@react-native-google-signin/google-signin";
+import {
+  mergeSocialLoginUser,
+  needsSocialProfileCompletion,
+} from "@/src/utils/needsSocialProfileCompletion";
+import {
+  GoogleSignin,
+  isErrorWithCode,
+  isSuccessResponse,
+  statusCodes,
+} from "@react-native-google-signin/google-signin";
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import { Alert } from "react-native";
 
 const webClientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? "";
 const iosClientId = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID;
@@ -19,10 +22,10 @@ let isConfigured = false;
 const configureGoogleSignIn = () => {
   if (isConfigured || !webClientId) return;
 
-  // GoogleSignin.configure({
-  //   webClientId,
-  //   ...(iosClientId ? { iosClientId } : {}),
-  // });
+  GoogleSignin.configure({
+    webClientId,
+    ...(iosClientId ? { iosClientId } : {}),
+  });
   isConfigured = true;
 };
 
@@ -67,19 +70,42 @@ export const useGoogleSignIn = () => {
       }
 
       const result = await googleLoginMutation({ token: idToken });
-      const { accessToken, refreshToken, user, isNewUser } = result.data;
+      const {
+        accessToken,
+        refreshToken,
+        user,
+        isNewUser,
+        calendarView,
+        weekendDays,
+      } = result.data;
 
       if (!accessToken) {
         showToast("error", "Login succeeded but no access token was returned");
         return;
       }
 
-      await signIn(accessToken, refreshToken, user);
+      const profileUser = mergeSocialLoginUser(
+        (user ?? {}) as Record<string, unknown>,
+        {
+          calendarView:
+            calendarView ??
+            (user as { calendarView?: string } | undefined)?.calendarView,
+          weekendDays:
+            weekendDays ??
+            (user as { weekendDays?: string[] } | undefined)?.weekendDays,
+        },
+      );
 
-      if (isNewUser) {
+      await signIn(accessToken, refreshToken, profileUser);
+
+      if (needsSocialProfileCompletion(profileUser, isNewUser)) {
         router.replace({
           pathname: "/(auth)/createaccount",
-          params: { user: JSON.stringify(user) },
+          params: {
+            user: JSON.stringify(profileUser),
+            calendarView: String(profileUser.calendarView ?? ""),
+            weekendDays: JSON.stringify(profileUser.weekendDays ?? []),
+          },
         });
         return;
       }

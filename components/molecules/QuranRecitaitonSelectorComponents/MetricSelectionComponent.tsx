@@ -19,6 +19,7 @@ import type {
   QuranHizbOption,
   QuranSurahOption,
 } from "@/src/utils/quranGoalMap";
+import { BinIcon } from "@/assets/icons";
 
 const EMPTY_SURAHS: QuranSurahOption[] = [];
 const EMPTY_HIZBS: QuranHizbOption[] = [];
@@ -303,46 +304,498 @@ export const MetricSelectionComponent = ({
       {item.name === "surah" &&
         selectedMetric === item.name &&
         !isLoadingOptions && (
-        <FlatList
-          data={surahData}
-          keyExtractor={(s) => s.id.toString()}
-          ListEmptyComponent={
-            <Text style={styles.emptyOptionsText}>No surahs available</Text>
-          }
-          renderItem={({ item: s }) => {
-            const checked = selectedSurahs.includes(s.id);
-            const setting = surahSettings[s.id] || {
-              frequency: "daily",
-              times: 1,
-            };
-            const isDaily = setting.frequency === "daily";
-            const maxTimes = isDaily ? 5 : 6;
-            const timesValue = setting.times ?? 0;
-            const multiplier = isDaily ? 28 : 4;
-            const total = (timesValue || 0) * multiplier;
+          <FlatList
+            data={surahData}
+            keyExtractor={(s) => s.id.toString()}
+            ListEmptyComponent={
+              <Text style={styles.emptyOptionsText}>No surahs available</Text>
+            }
+            renderItem={({ item: s }) => {
+              const checked = selectedSurahs.includes(s.id);
+              const setting = surahSettings[s.id] || {
+                frequency: "daily",
+                times: 1,
+              };
+              const isDaily = setting.frequency === "daily";
+              const maxTimes = isDaily ? 5 : 6;
+              const timesValue = setting.times ?? 0;
+              const multiplier = isDaily ? 28 : 4;
+              const total = (timesValue || 0) * multiplier;
 
-            return (
-              <View
+              return (
+                <View
+                  style={{
+                    paddingVertical: 8,
+                    paddingRight: 20,
+                  }}
+                >
+                  <Pressable
+                    onPress={() => {
+                      toggleSurah(s.id);
+                      if (
+                        !selectedSurahs.includes(s.id) &&
+                        !isMemorizationSurah
+                      ) {
+                        ensureSetting(s.id);
+                      }
+                    }}
+                    style={[styles.metrixWrapper]}
+                  >
+                    <View style={styles.surahItemWrapper}>
+                      <View
+                        style={[
+                          styles.checkbox,
+                          {
+                            opacity: checked ? 1 : 0.25,
+                          },
+                        ]}
+                      >
+                        {checked && (
+                          <FontAwesome
+                            name="check"
+                            size={14}
+                            color={Colors.light.white}
+                          />
+                        )}
+                      </View>
+                      <Text
+                        style={{
+                          color: Colors.light.white,
+                          fontSize: 14,
+                          fontFamily: fonts.primary.regular,
+                          flex: 1,
+                        }}
+                      >
+                        {s.surahTitle}
+                      </Text>
+                    </View>
+                    {checked && !isMemorizationSurah && (
+                      <MaterialCommunityIcons
+                        name="chevron-up"
+                        size={24}
+                        color={Colors.light.white}
+                      />
+                    )}
+                  </Pressable>
+
+                  {checked && !isMemorizationSurah && (
+                    <View
+                      style={{
+                        paddingHorizontal: 8,
+                        paddingTop: 12,
+                        alignItems: "center",
+                      }}
+                    >
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          gap: 12,
+                          alignItems: "center",
+                        }}
+                      >
+                        <Pressable
+                          onPress={() =>
+                            updateSurahSetting(s.id, { frequency: "daily" })
+                          }
+                          style={[
+                            styles.radio,
+                            isDaily ? styles.radioChecked : undefined,
+                          ]}
+                        >
+                          {isDaily && <View style={styles.radioInner} />}
+                        </Pressable>
+                        <Text style={styles.radioLabel}>
+                          {t("monthlyGoalPlanner.quranMetrics.daily")}
+                        </Text>
+
+                        <Pressable
+                          onPress={() =>
+                            updateSurahSetting(s.id, { frequency: "weekly" })
+                          }
+                          style={[
+                            styles.radio,
+                            !isDaily ? styles.radioChecked : undefined,
+                          ]}
+                        >
+                          {!isDaily && <View style={styles.radioInner} />}
+                        </Pressable>
+                        <Text style={styles.radioLabel}>
+                          {t("monthlyGoalPlanner.quranMetrics.weekly")}
+                        </Text>
+                      </View>
+
+                      <TopSpace top={12} />
+                      <View
+                        style={{
+                          position: "relative",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          minHeight: 24,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            color: Colors.light.white,
+                            marginBottom: 6,
+                            opacity: 0.8,
+                            textAlign: "center",
+                            paddingHorizontal: 28,
+                          }}
+                        >
+                          {t("monthlyGoalPlanner.quranMetrics.enterUpToTimes", {
+                            max: maxTimes,
+                            frequency: isDaily
+                              ? t("monthlyGoalPlanner.quranMetrics.daily")
+                              : t("monthlyGoalPlanner.quranMetrics.weekly"),
+                          })}
+                        </Text>
+                        <Pressable
+                          onPress={() => {
+                            deleteSurah(s.id);
+                          }}
+                          style={{
+                            position: "absolute",
+                            right: 0,
+                            top: 0,
+                          }}
+                          hitSlop={8}
+                        >
+                          <BinIcon />
+                        </Pressable>
+                      </View>
+
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          gap: 8,
+                        }}
+                      >
+                        <TextInput
+                          value={String(timesValue)}
+                          onChangeText={(v) => {
+                            const n = parseInt(v || "0", 10);
+                            const clamped = Number.isNaN(n)
+                              ? undefined
+                              : Math.min(Math.max(0, n), maxTimes);
+                            updateSurahSetting(s.id, { times: clamped });
+                          }}
+                          keyboardType="numeric"
+                          onFocus={() => setInputFocused(`surah-${s.id}`, true)}
+                          onBlur={() => setInputFocused(`surah-${s.id}`, false)}
+                          style={[
+                            styles.timesInput,
+                            {
+                              backgroundColor: focusedInputs[`surah-${s.id}`]
+                                ? Colors.light.green
+                                : "transparent",
+                              borderColor: focusedInputs[`surah-${s.id}`]
+                                ? Colors.light.green
+                                : Colors.light.white,
+                            },
+                          ]}
+                          placeholder="0"
+                        />
+                        <Text style={{ color: Colors.light.white }}>
+                          {t("monthlyGoalPlanner.quranMetrics.timesFrequency", {
+                            frequency: isDaily
+                              ? t("monthlyGoalPlanner.quranMetrics.daily")
+                              : t("monthlyGoalPlanner.quranMetrics.weekly"),
+                          })}
+                        </Text>
+                      </View>
+
+                      <View style={{ height: 12 }} />
+
+                      <View>
+                        <Text style={{ color: Colors.light.white }}>
+                          {t(
+                            "monthlyGoalPlanner.quranMetrics.recitationsCount",
+                            { count: timesValue || 0 },
+                          )}
+                        </Text>
+                        <Text style={{ color: Colors.light.white }}>
+                          {t(
+                            "monthlyGoalPlanner.quranMetrics.recitationsFormula",
+                            {
+                              times: timesValue || 0,
+                              multiplier,
+                              total,
+                            },
+                          )}
+                        </Text>
+                      </View>
+                    </View>
+                  )}
+                </View>
+              );
+            }}
+          />
+        )}
+      {item.name === "juz" &&
+        selectedMetric === item.name &&
+        !isLoadingOptions && (
+          <View style={{}}>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <Text
                 style={{
-                  paddingVertical: 8,
-                  paddingRight: 20,
+                  width: "80%",
+                  color: Colors.light.white,
+                  fontFamily: fonts.primary.regular,
+                  fontWeight: "400",
+                  fontSize: 12,
+                  opacity: 0.8,
                 }}
               >
+                {t("monthlyGoalPlanner.quranMetrics.juzRangeHint")}
+              </Text>
+              <Pressable>
+                <FontAwesome
+                  name="trash-o"
+                  size={24}
+                  color={Colors.light.white}
+                />
+              </Pressable>
+            </View>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 8,
+                marginTop: 12,
+                alignSelf: "center",
+              }}
+            >
+              <Text
+                style={{
+                  fontWeight: "400",
+                  fontSize: 14,
+                  fontFamily: fonts.primary.regular,
+                  color: Colors.light.white,
+                }}
+              >
+                {t("monthlyGoalPlanner.quranMetrics.fromJuz")}
+              </Text>
+              <TextInput
+                value={juzStart !== undefined ? String(juzStart) : ""}
+                onChangeText={(v) => {
+                  // allow clearing the field
+                  if (v === "") {
+                    setJuzStart(0);
+                    return;
+                  }
+                  // keep digits only
+                  const digits = v.replace(/[^0-9]/g, "");
+                  const n = parseInt(digits, 10);
+                  if (Number.isNaN(n)) {
+                    setJuzEnd(0);
+                    return;
+                  }
+                  // clamp to valid juz range 1-30
+                  const clamped = Math.min(Math.max(1, n), 30);
+                  setJuzStart(clamped);
+                  // if end is set and less than new start, bump end to match start
+                  setJuzEnd((prev) =>
+                    prev === undefined ? prev : Math.max(prev, clamped),
+                  );
+                }}
+                keyboardType="numeric"
+                onFocus={() => setInputFocused("juz-start", true)}
+                onBlur={() => setInputFocused("juz-start", false)}
+                style={[
+                  styles.timesInput,
+                  {
+                    backgroundColor: focusedInputs["juz-start"]
+                      ? Colors.light.green
+                      : "transparent",
+                    borderColor: focusedInputs["juz-start"]
+                      ? Colors.light.green
+                      : Colors.light.white,
+                    width: 40,
+                  },
+                ]}
+                placeholder="1"
+              />
+              <Text
+                style={{
+                  fontWeight: "400",
+                  fontSize: 14,
+                  fontFamily: fonts.primary.regular,
+                  color: Colors.light.white,
+                }}
+              >
+                {t("monthlyGoalPlanner.quranMetrics.toJuz")}
+              </Text>
+              <TextInput
+                value={juzEndText}
+                onChangeText={(v) => {
+                  // allow free typing in text state; sanitize digits
+                  const digits = v.replace(/[^0-9]/g, "");
+                  setJuzEndText(digits);
+                }}
+                keyboardType="numeric"
+                onFocus={() => setInputFocused("juz-end", true)}
+                onBlur={() => {
+                  setInputFocused("juz-end", false);
+                  enforceJuzEnd();
+                }}
+                onEndEditing={() => enforceJuzEnd()}
+                onSubmitEditing={() => enforceJuzEnd()}
+                style={[
+                  styles.timesInput,
+                  {
+                    backgroundColor: focusedInputs["juz-end"]
+                      ? Colors.light.green
+                      : "transparent",
+                    borderColor: focusedInputs["juz-end"]
+                      ? Colors.light.green
+                      : Colors.light.white,
+                    width: 40,
+                  },
+                ]}
+                placeholder="1"
+              />
+            </View>
+            <TopSpace top={12} />
+            <Text
+              style={{
+                color: Colors.light.white,
+                alignSelf: "center",
+                opacity: 0.8,
+                fontFamily: fonts.primary.regular,
+                fontSize: 12,
+              }}
+            >
+              {(() => {
+                if (
+                  displayJuzStart === undefined ||
+                  displayJuzEnd === undefined
+                )
+                  return t("monthlyGoalPlanner.quranMetrics.totalJuz", {
+                    total: 0,
+                  });
+                const total = Math.max(0, displayJuzEnd - displayJuzStart + 1);
+                return t("monthlyGoalPlanner.quranMetrics.totalJuz", { total });
+              })()}
+            </Text>
+            <TopSpace top={16} />
+          </View>
+        )}
+
+      {item.name === "completion" &&
+        selectedMetric === item.name &&
+        !isLoadingOptions && (
+          <View style={{}}>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 12,
+                justifyContent: "space-between",
+              }}
+            >
+              <Text
+                style={{
+                  width: "80%",
+                  color: Colors.light.white,
+                  fontFamily: fonts.primary.regular,
+                  fontWeight: "400",
+                  fontSize: 12,
+                  opacity: 0.8,
+                }}
+              >
+                {t("monthlyGoalPlanner.quranMetrics.enterUpToCompletions")}
+              </Text>
+              <Pressable>
+                <FontAwesome
+                  name="trash-o"
+                  size={24}
+                  color={Colors.light.white}
+                />
+              </Pressable>
+            </View>
+            <TopSpace top={16} />
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 8,
+                alignSelf: "center",
+              }}
+            >
+              <TextInput
+                value={String(quranCompletion)}
+                onChangeText={(v) => {
+                  const n = parseInt(v || "0", 10);
+                  const clamped = Number.isNaN(n)
+                    ? 0
+                    : Math.max(0, Math.min(28, n));
+                  setQuranCompletion(clamped);
+                }}
+                keyboardType="numeric"
+                onFocus={() => setInputFocused(`completion`, true)}
+                onBlur={() => setInputFocused(`completion`, false)}
+                style={[
+                  styles.timesInput,
+                  {
+                    backgroundColor: focusedInputs[`completion`]
+                      ? Colors.light.green
+                      : "transparent",
+                    borderColor: focusedInputs[`completion`]
+                      ? Colors.light.green
+                      : Colors.light.white,
+                    textAlign: "center",
+                  },
+                ]}
+                placeholder="0"
+              />
+              <Text
+                style={{
+                  fontWeight: "400",
+                  fontSize: 14,
+                  fontFamily: fonts.primary.regular,
+                  color: Colors.light.white,
+                }}
+              >
+                {t("monthlyGoalPlanner.quranMetrics.fullCompletions")}
+              </Text>
+            </View>
+            <TopSpace top={16} />
+          </View>
+        )}
+      {item.name === "hizb" &&
+        selectedMetric === item.name &&
+        !isLoadingOptions && (
+          <FlatList
+            data={hizbData}
+            keyExtractor={(s) => s.id.toString()}
+            ListEmptyComponent={
+              <Text style={styles.emptyOptionsText}>No hizb available</Text>
+            }
+            renderItem={({ item }) => {
+              const checked = selectedHizb === item.id;
+
+              return (
                 <Pressable
-                  onPress={() => {
-                    toggleSurah(s.id);
-                    if (!selectedSurahs.includes(s.id) && !isMemorizationSurah) {
-                      ensureSetting(s.id);
-                    }
-                  }}
-                  style={[styles.metrixWrapper]}
+                  onPress={() => toggleHizb(item.id)}
+                  style={{ paddingVertical: 8, paddingRight: 20 }}
                 >
-                  <View style={styles.surahItemWrapper}>
+                  <View style={{ flexDirection: "row", gap: 12 }}>
                     <View
                       style={[
                         styles.checkbox,
                         {
                           opacity: checked ? 1 : 0.25,
+                          backgroundColor: checked
+                            ? Colors.light.green
+                            : "transparent",
+                          borderWidth: checked ? 0 : 1,
                         },
                       ]}
                     >
@@ -354,473 +807,40 @@ export const MetricSelectionComponent = ({
                         />
                       )}
                     </View>
-                    <Text
-                      style={{
-                        color: Colors.light.white,
-                        fontSize: 14,
-                        fontFamily: fonts.primary.regular,
-                        flex: 1,
-                      }}
-                    >
-                      {s.surahTitle}
-                    </Text>
-                  </View>
-                  {checked && !isMemorizationSurah && (
-                    <MaterialCommunityIcons
-                      name="chevron-up"
-                      size={24}
-                      color={Colors.light.white}
-                    />
-                  )}
-                </Pressable>
-
-                {checked && !isMemorizationSurah && (
-                  <View
-                    style={{
-                      paddingHorizontal: 8,
-                      paddingTop: 12,
-                      alignItems: "center",
-                    }}
-                  >
                     <View
-                      style={{
-                        flexDirection: "row",
-                        gap: 12,
-                        alignItems: "center",
-                      }}
-                    >
-                      <Pressable
-                        onPress={() =>
-                          updateSurahSetting(s.id, { frequency: "daily" })
-                        }
-                        style={[
-                          styles.radio,
-                          isDaily ? styles.radioChecked : undefined,
-                        ]}
-                      >
-                        {isDaily && <View style={styles.radioInner} />}
-                      </Pressable>
-                      <Text style={styles.radioLabel}>{t("monthlyGoalPlanner.quranMetrics.daily")}</Text>
-
-                      <Pressable
-                        onPress={() =>
-                          updateSurahSetting(s.id, { frequency: "weekly" })
-                        }
-                        style={[
-                          styles.radio,
-                          !isDaily ? styles.radioChecked : undefined,
-                        ]}
-                      >
-                        {!isDaily && <View style={styles.radioInner} />}
-                      </Pressable>
-                      <Text style={styles.radioLabel}>{t("monthlyGoalPlanner.quranMetrics.weekly")}</Text>
-                    </View>
-
-                    <View style={{ height: 12 }} />
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        gap: 40,
-                      }}
+                      style={[
+                        styles.surahItemWrapper,
+                        { flexDirection: "column", alignItems: "flex-start" },
+                      ]}
                     >
                       <Text
                         style={{
                           color: Colors.light.white,
-                          marginBottom: 6,
-                          opacity: 0.8,
+                          fontSize: 14,
+                          fontFamily: fonts.primary.regular,
+                          flex: 1,
+                          fontWeight: "400",
                         }}
                       >
-                        {t("monthlyGoalPlanner.quranMetrics.enterUpToTimes", {
-                          max: maxTimes,
-                          frequency: isDaily
-                            ? t("monthlyGoalPlanner.quranMetrics.daily")
-                            : t("monthlyGoalPlanner.quranMetrics.weekly"),
-                        })}
+                        {item.hizbName}
                       </Text>
-                      <Pressable
-                        onPress={() => {
-                          console.log("deleting surah with id", s.id);
-                          deleteSurah(s.id);
+                      <Text
+                        style={{
+                          color: Colors.light.white,
+                          fontSize: 14,
+                          fontFamily: fonts.primary.semiBold,
+                          fontWeight: "600",
                         }}
                       >
-                        <FontAwesome
-                          name="trash-o"
-                          size={24}
-                          color={
-                            isDaily ? Colors.light.white : Colors.light.grey
-                          }
-                        />
-                      </Pressable>
-                    </View>
-
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        gap: 8,
-                      }}
-                    >
-                      <TextInput
-                        value={String(timesValue)}
-                        onChangeText={(v) => {
-                          const n = parseInt(v || "0", 10);
-                          const clamped = Number.isNaN(n)
-                            ? undefined
-                            : Math.min(Math.max(0, n), maxTimes);
-                          updateSurahSetting(s.id, { times: clamped });
-                        }}
-                        keyboardType="numeric"
-                        onFocus={() => setInputFocused(`surah-${s.id}`, true)}
-                        onBlur={() => setInputFocused(`surah-${s.id}`, false)}
-                        style={[
-                          styles.timesInput,
-                          {
-                            backgroundColor: focusedInputs[`surah-${s.id}`]
-                              ? Colors.light.green
-                              : "transparent",
-                            borderColor: focusedInputs[`surah-${s.id}`]
-                              ? Colors.light.green
-                              : Colors.light.white,
-                          },
-                        ]}
-                        placeholder="0"
-                      />
-                      <Text
-                        style={{ color: Colors.light.white }}
-                      >{t("monthlyGoalPlanner.quranMetrics.timesFrequency", {
-                        frequency: isDaily
-                          ? t("monthlyGoalPlanner.quranMetrics.daily")
-                          : t("monthlyGoalPlanner.quranMetrics.weekly"),
-                      })}</Text>
-                    </View>
-
-                    <View style={{ height: 12 }} />
-
-                    <View>
-                      <Text
-                        style={{ color: Colors.light.white }}
-                      >{t("monthlyGoalPlanner.quranMetrics.recitationsCount", { count: timesValue || 0 })}</Text>
-                      <Text
-                        style={{ color: Colors.light.white }}
-                      >{t("monthlyGoalPlanner.quranMetrics.recitationsFormula", {
-                        times: timesValue || 0,
-                        multiplier,
-                        total,
-                      })}</Text>
+                        {item.verses}
+                      </Text>
                     </View>
                   </View>
-                )}
-              </View>
-            );
-          }}
-        />
-      )}
-      {item.name === "juz" &&
-        selectedMetric === item.name &&
-        !isLoadingOptions && (
-        <View style={{}}>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
+                </Pressable>
+              );
             }}
-          >
-            <Text
-              style={{
-                width: "80%",
-                color: Colors.light.white,
-                fontFamily: fonts.primary.regular,
-                fontWeight: "400",
-                fontSize: 12,
-                opacity: 0.8,
-              }}
-            >
-              {t("monthlyGoalPlanner.quranMetrics.juzRangeHint")}
-            </Text>
-            <Pressable>
-              <FontAwesome
-                name="trash-o"
-                size={24}
-                color={Colors.light.white}
-              />
-            </Pressable>
-          </View>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 8,
-              marginTop: 12,
-              alignSelf: "center",
-            }}
-          >
-            <Text
-              style={{
-                fontWeight: "400",
-                fontSize: 14,
-                fontFamily: fonts.primary.regular,
-                color: Colors.light.white,
-              }}
-            >
-              {t("monthlyGoalPlanner.quranMetrics.fromJuz")}
-            </Text>
-            <TextInput
-              value={juzStart !== undefined ? String(juzStart) : ""}
-              onChangeText={(v) => {
-                // allow clearing the field
-                if (v === "") {
-                  setJuzStart(0);
-                  return;
-                }
-                // keep digits only
-                const digits = v.replace(/[^0-9]/g, "");
-                const n = parseInt(digits, 10);
-                if (Number.isNaN(n)) {
-                  setJuzEnd(0);
-                  return;
-                }
-                // clamp to valid juz range 1-30
-                const clamped = Math.min(Math.max(1, n), 30);
-                setJuzStart(clamped);
-                // if end is set and less than new start, bump end to match start
-                setJuzEnd((prev) =>
-                  prev === undefined ? prev : Math.max(prev, clamped),
-                );
-              }}
-              keyboardType="numeric"
-              onFocus={() => setInputFocused("juz-start", true)}
-              onBlur={() => setInputFocused("juz-start", false)}
-              style={[
-                styles.timesInput,
-                {
-                  backgroundColor: focusedInputs["juz-start"]
-                    ? Colors.light.green
-                    : "transparent",
-                  borderColor: focusedInputs["juz-start"]
-                    ? Colors.light.green
-                    : Colors.light.white,
-                  width: 40,
-                },
-              ]}
-              placeholder="1"
-            />
-            <Text
-              style={{
-                fontWeight: "400",
-                fontSize: 14,
-                fontFamily: fonts.primary.regular,
-                color: Colors.light.white,
-              }}
-            >
-              {t("monthlyGoalPlanner.quranMetrics.toJuz")}
-            </Text>
-            <TextInput
-              value={juzEndText}
-              onChangeText={(v) => {
-                // allow free typing in text state; sanitize digits
-                const digits = v.replace(/[^0-9]/g, "");
-                setJuzEndText(digits);
-              }}
-              keyboardType="numeric"
-              onFocus={() => setInputFocused("juz-end", true)}
-              onBlur={() => {
-                setInputFocused("juz-end", false);
-                enforceJuzEnd();
-              }}
-              onEndEditing={() => enforceJuzEnd()}
-              onSubmitEditing={() => enforceJuzEnd()}
-              style={[
-                styles.timesInput,
-                {
-                  backgroundColor: focusedInputs["juz-end"]
-                    ? Colors.light.green
-                    : "transparent",
-                  borderColor: focusedInputs["juz-end"]
-                    ? Colors.light.green
-                    : Colors.light.white,
-                  width: 40,
-                },
-              ]}
-              placeholder="1"
-            />
-          </View>
-          <TopSpace top={12} />
-          <Text
-            style={{
-              color: Colors.light.white,
-              alignSelf: "center",
-              opacity: 0.8,
-              fontFamily: fonts.primary.regular,
-              fontSize: 12,
-            }}
-          >
-            {(() => {
-              if (displayJuzStart === undefined || displayJuzEnd === undefined)
-                return t("monthlyGoalPlanner.quranMetrics.totalJuz", { total: 0 });
-              const total = Math.max(0, displayJuzEnd - displayJuzStart + 1);
-              return t("monthlyGoalPlanner.quranMetrics.totalJuz", { total });
-            })()}
-          </Text>
-          <TopSpace top={16} />
-        </View>
-      )}
-
-      {item.name === "completion" &&
-        selectedMetric === item.name &&
-        !isLoadingOptions && (
-        <View style={{}}>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 12,
-              justifyContent: "space-between",
-            }}
-          >
-            <Text
-              style={{
-                width: "80%",
-                color: Colors.light.white,
-                fontFamily: fonts.primary.regular,
-                fontWeight: "400",
-                fontSize: 12,
-                opacity: 0.8,
-              }}
-            >
-              {t("monthlyGoalPlanner.quranMetrics.enterUpToCompletions")}
-            </Text>
-            <Pressable>
-              <FontAwesome
-                name="trash-o"
-                size={24}
-                color={Colors.light.white}
-              />
-            </Pressable>
-          </View>
-          <TopSpace top={16} />
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 8,
-              alignSelf: "center",
-            }}
-          >
-            <TextInput
-              value={String(quranCompletion)}
-              onChangeText={(v) => {
-                const n = parseInt(v || "0", 10);
-                const clamped = Number.isNaN(n)
-                  ? 0
-                  : Math.max(0, Math.min(28, n));
-                setQuranCompletion(clamped);
-              }}
-              keyboardType="numeric"
-              onFocus={() => setInputFocused(`completion`, true)}
-              onBlur={() => setInputFocused(`completion`, false)}
-              style={[
-                styles.timesInput,
-                {
-                  backgroundColor: focusedInputs[`completion`]
-                    ? Colors.light.green
-                    : "transparent",
-                  borderColor: focusedInputs[`completion`]
-                    ? Colors.light.green
-                    : Colors.light.white,
-                  textAlign: "center",
-                },
-              ]}
-              placeholder="0"
-            />
-            <Text
-              style={{
-                fontWeight: "400",
-                fontSize: 14,
-                fontFamily: fonts.primary.regular,
-                color: Colors.light.white,
-              }}
-            >
-              {t("monthlyGoalPlanner.quranMetrics.fullCompletions")}
-            </Text>
-          </View>
-          <TopSpace top={16} />
-        </View>
-      )}
-      {item.name === "hizb" &&
-        selectedMetric === item.name &&
-        !isLoadingOptions && (
-        <FlatList
-          data={hizbData}
-          keyExtractor={(s) => s.id.toString()}
-          ListEmptyComponent={
-            <Text style={styles.emptyOptionsText}>No hizb available</Text>
-          }
-          renderItem={({ item }) => {
-            const checked = selectedHizb === item.id;
-
-            return (
-              <Pressable
-                onPress={() => toggleHizb(item.id)}
-                style={{ paddingVertical: 8, paddingRight: 20 }}
-              >
-                <View style={{ flexDirection: "row", gap: 12 }}>
-                  <View
-                    style={[
-                      styles.checkbox,
-                      {
-                        opacity: checked ? 1 : 0.25,
-                        backgroundColor: checked
-                          ? Colors.light.green
-                          : "transparent",
-                        borderWidth: checked ? 0 : 1,
-                      },
-                    ]}
-                  >
-                    {checked && (
-                      <FontAwesome
-                        name="check"
-                        size={14}
-                        color={Colors.light.white}
-                      />
-                    )}
-                  </View>
-                  <View
-                    style={[
-                      styles.surahItemWrapper,
-                      { flexDirection: "column", alignItems: "flex-start" },
-                    ]}
-                  >
-                    <Text
-                      style={{
-                        color: Colors.light.white,
-                        fontSize: 14,
-                        fontFamily: fonts.primary.regular,
-                        flex: 1,
-                        fontWeight: "400",
-                      }}
-                    >
-                      {item.hizbName}
-                    </Text>
-                    <Text
-                      style={{
-                        color: Colors.light.white,
-                        fontSize: 14,
-                        fontFamily: fonts.primary.semiBold,
-                        fontWeight: "600",
-                      }}
-                    >
-                      {item.verses}
-                    </Text>
-                  </View>
-                </View>
-              </Pressable>
-            );
-          }}
-        />
-      )}
+          />
+        )}
     </Fragment>
   );
 };

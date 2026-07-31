@@ -81,6 +81,7 @@ import {
   getQuranTypesForUiId,
   mapQuranGoalsFromApi,
   QURAN_GOAL_LOADING_PLACEHOLDERS,
+  type QuranGoalApiItem,
 } from "@/src/utils/quranGoalMap";
 import { showToast } from "@/src/config/toastConfig";
 
@@ -160,9 +161,10 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
       });
 
     const {
-      data: allQuranGoalsFromApi,
+      data: allQuranGoalsResponse,
       isLoading: loadingQuranGoals,
       isError: errorLoadingQuranGoals,
+      refetch: refetchQuranGoals,
     } = useGetAllQuranGoals({ enabled: activeTab === "quran" });
 
     const prayerGoals = useMemo(
@@ -170,10 +172,18 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
       [prayerGoalsFromApi],
     );
 
-    const quranGoals = useMemo(
-      () => mapQuranGoalsFromApi(allQuranGoalsFromApi),
-      [allQuranGoalsFromApi],
-    );
+    const quranGoals = useMemo(() => {
+      const data = allQuranGoalsResponse as
+        | { goals?: QuranGoalApiItem[] }
+        | QuranGoalApiItem[]
+        | null
+        | undefined;
+      if (!data) return mapQuranGoalsFromApi([]);
+      // Transition / bad cache: older clients stored the bare array or envelope
+      if (Array.isArray(data)) return mapQuranGoalsFromApi(data);
+      if (Array.isArray(data.goals)) return mapQuranGoalsFromApi(data.goals);
+      return mapQuranGoalsFromApi([]);
+    }, [allQuranGoalsResponse]);
 
     // Seed toggle state from backend isActive (only for keys not yet toggled locally)
     useEffect(() => {
@@ -1506,6 +1516,27 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
           showsVerticalScrollIndicator={false}
           ListHeaderComponent={
             activeTab === "cycle" ? CycleStartTab : undefined
+          }
+          ListEmptyComponent={
+            activeTab === "quran" && !loadingQuranGoals ? (
+              <View style={{ paddingVertical: 24, alignItems: "center" }}>
+                <Text style={styles.tabText}>
+                  {errorLoadingQuranGoals
+                    ? "Failed to load Quran goals"
+                    : "No Quran goals available"}
+                </Text>
+                {errorLoadingQuranGoals ? (
+                  <Pressable
+                    onPress={() => refetchQuranGoals()}
+                    style={{ marginTop: 12 }}
+                  >
+                    <Text style={[styles.tabText, styles.tabTextActive]}>
+                      Tap to retry
+                    </Text>
+                  </Pressable>
+                ) : null}
+              </View>
+            ) : null
           }
           ListFooterComponent={() => (
             <View style={styles.footerContainer}>

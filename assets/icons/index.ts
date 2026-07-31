@@ -7,6 +7,7 @@ import { BirthIcon } from "./BirthIcon";
 import { BadarNameLogo } from "./BadarNameLogo";
 import { BellIcon } from "./BellIcon";
 import { BulbIcon } from "./BulbIcon";
+import { BinIcon } from "./BinIcon";
 //C
 import { CalendarIcon } from "./CalenderIcon";
 import { ClockIcon } from "./ClockIcon";
@@ -207,6 +208,7 @@ import { MissedZakatAccountabilityIcon } from "./MissedZakatAccountabilityIcon";
 import { MissedZakatSocialIcon } from "./MissedZakatSocialIcon";
 
 export {
+  BinIcon,
   SadaqahJariyahCloathIcon,
   SadaqahJariyahMedicalAidIcon,
   SadaqahJariyahReligiousIcon,

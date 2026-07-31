@@ -70,8 +70,6 @@ import {
 } from "@/src/translations/types";
 import { useGetPrayerDetailByType } from "@/src/api/queries/useGetPrayerDetailBytype";
 import { resolvePrayerUiId } from "@/src/utils/prayerGoalMap";
-import { useGetAllQuranGoals } from "@/src/api/queries/useGetAllQuranGoals";
-
 type ReadMoreStyles = ReturnType<typeof createReadMoreStyles>;
 
 const getReadMoreTextStyle = (
