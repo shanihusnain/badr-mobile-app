@@ -1,10 +1,13 @@
 import { useFacebookLogin } from "@/src/api/mutations/useFacebookLogin";
 import { showToast } from "@/src/config/toastConfig";
 import { useAuth } from "@/provider/useAuth";
+import {
+  mergeSocialLoginUser,
+  needsSocialProfileCompletion,
+} from "@/src/utils/needsSocialProfileCompletion";
 import { AccessToken, LoginManager } from "react-native-fbsdk-next";
 import { useRouter } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
-import { Alert } from "react-native";
 
 export const useFacebookSignIn = () => {
   const router = useRouter();
@@ -46,20 +49,44 @@ export const useFacebookSignIn = () => {
       }
 
       const result = await facebookLoginMutation({ token: fbAccessToken });
-      const { accessToken, refreshToken, user, isNewUser } = result.data;
+      const {
+        accessToken,
+        refreshToken,
+        user,
+        isNewUser,
+        calendarView,
+        weekendDays,
+      } = result.data;
 
       if (!accessToken) {
         showToast("error", "Login succeeded but no access token was returned");
         return;
       }
 
-      // Tokens are required so createaccount can call PUT /api/users/profile.
-      await signIn(accessToken, refreshToken, user);
+      // Prefs are returned on data (siblings of user), not nested under user.
+      const profileUser = mergeSocialLoginUser(
+        (user ?? {}) as Record<string, unknown>,
+        {
+          calendarView:
+            calendarView ??
+            (user as { calendarView?: string } | undefined)?.calendarView,
+          weekendDays:
+            weekendDays ??
+            (user as { weekendDays?: string[] } | undefined)?.weekendDays,
+        },
+      );
 
-      if (isNewUser) {
+      await signIn(accessToken, refreshToken, profileUser);
+
+      if (needsSocialProfileCompletion(profileUser, isNewUser)) {
         router.replace({
           pathname: "/(auth)/createaccount",
-          params: { user: JSON.stringify(user) },
+          params: {
+            user: JSON.stringify(profileUser),
+            // Flat string params — route serialization drops nested arrays.
+            calendarView: String(profileUser.calendarView ?? ""),
+            weekendDays: JSON.stringify(profileUser.weekendDays ?? []),
+          },
         });
         return;
       }

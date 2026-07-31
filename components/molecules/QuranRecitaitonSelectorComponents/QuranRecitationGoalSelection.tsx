@@ -12,10 +12,7 @@ import { MetricSelectionComponent } from "./MetricSelectionComponent";
 import PrimaryButton from "@/components/atoms/Primary-button";
 import { useTranslation } from "react-i18next";
 import { useGetQuranGoalByType } from "@/src/api/queries/useGetQuranGoalByType";
-import {
-  useGetQuranHizb,
-  useGetQuranSurahs,
-} from "@/src/api/queries/useGetQuranReference";
+import { useGetAllQuranGoals } from "@/src/api/queries/useGetAllQuranGoals";
 import {
   getCompletionFromDetail,
   getJuzRangeFromDetail,
@@ -78,14 +75,21 @@ export const QuranRecitationGoalSelection = ({
     { enabled: isOpen && !!quranGoalType },
   );
 
-  const needsSurahs = isOpen && resolvedMetric === "surah";
-  const needsHizb = isOpen && resolvedMetric === "hizb";
+  // Surah / juz / hizb lists come bundled with GET .../quran-goals (shared cache).
+  const needsReference =
+    isOpen &&
+    (resolvedMetric === "surah" ||
+      resolvedMetric === "hizb" ||
+      resolvedMetric === "juz");
 
-  const { data: surahReference = [], isLoading: loadingSurahs } =
-    useGetQuranSurahs({ enabled: needsSurahs });
-  const { data: hizbReference = [], isLoading: loadingHizb } = useGetQuranHizb({
-    enabled: needsHizb,
-  });
+  const {
+    data: allQuranGoals,
+    isLoading: loadingReference,
+    isFetching: fetchingReference,
+  } = useGetAllQuranGoals({ enabled: needsReference });
+
+  const surahReference = allQuranGoals?.reference.surahs ?? [];
+  const hizbReference = allQuranGoals?.reference.hizb ?? [];
 
   const surahOptions = useMemo(
     () => mergeSurahOptionsWithDetail(surahReference, goalDetail),
@@ -172,8 +176,9 @@ export const QuranRecitationGoalSelection = ({
 
   const isLoadingOptions =
     loadingDetail ||
-    (resolvedMetric === "surah" && loadingSurahs) ||
-    (resolvedMetric === "hizb" && loadingHizb);
+    (needsReference &&
+      (loadingReference || fetchingReference) &&
+      !allQuranGoals);
 
   return (
     <View style={styles.wrapper}>

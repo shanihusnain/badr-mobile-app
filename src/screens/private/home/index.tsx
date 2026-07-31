@@ -73,6 +73,7 @@ import { HomeFabSpeedDial } from "./components/HomeFabSpeedDial";
 import { JournalingHistoryWeekDashboard } from "./components/JournalingHistoryWeekDashboard";
 import { JournalingHistoryWeekDays } from "./journalingHistory";
 import { useAuth } from "@/provider/useAuth";
+import { Image } from "expo-image";
 type TextPart = { text: string; highlighted: boolean };
 
 type CategoryItem = {
@@ -450,7 +451,11 @@ export default function HomeScreen() {
         {/* Avatar + Streak row */}
         <View style={styles.topSection}>
           <View style={styles.avatarContainer}>
-            <AntDesign size={40} color={Colors.light.white} />
+            <Image
+              source={{ uri: user?.avatarUrl }}
+              style={{ width: 40, height: 40, borderRadius: 20 }}
+              contentFit="cover"
+            />
           </View>
 
           {/* Today Button */}
@@ -477,7 +482,7 @@ export default function HomeScreen() {
                 />
                 <View style={styles.todayButtonTextContainer}>
                   <Text style={styles.todayButtonText}>
-                    {t("homeScreen.today", "TODAY")}
+                    {t("homeScreen.today")}
                   </Text>
                 </View>
                 <Entypo

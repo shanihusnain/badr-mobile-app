@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Platform, View, Image, TouchableOpacity } from "react-native";
 import * as ImagePicker from "expo-image-picker";
@@ -25,6 +25,8 @@ import {
 } from "@/src/api/mutations/useRegister";
 import { useUpdateProfile } from "@/src/api/mutations/useUpdateProfile";
 import { useAuth } from "@/provider/useAuth";
+import { useUploadAvatar } from "@/src/api/mutations/useUploadAvatar";
+import { normalizeWeekendDays } from "@/src/utils/needsSocialProfileCompletion";
 
 type SocialUserParam = {
   id?: string;
@@ -46,29 +48,42 @@ const genderFromApi = (value?: string | null) => {
 };
 
 const dateViewFromApi = (value?: string | null) => {
-  if (value === "HIJRI") return "Hijri View";
-  if (value === "GREGORIAN") return "Gregorian View";
+  if (!value) return "";
+  const normalized = String(value).trim().toUpperCase();
+  if (normalized === "HIJRI" || normalized === "HIJRI VIEW")
+    return "Hijri View";
+  if (normalized === "GREGORIAN" || normalized === "GREGORIAN VIEW") {
+    return "Gregorian View";
+  }
+  if (value === "Hijri View" || value === "Gregorian View") return value;
   return "";
+};
+
+const normalizeDob = (value?: string | null) => {
+  if (!value) return "";
+  // API may return ISO datetime; form/date picker expects YYYY-MM-DD.
+  return value.includes("T") ? value.slice(0, 10) : value;
 };
 
 const weekendFromApi = (value?: string | string[] | null) => {
-  if (Array.isArray(value)) {
-    const days = value.map((d) => d.toUpperCase());
-    if (days.includes("FRIDAY") && days.includes("SATURDAY")) {
-      return "Friday & Saturday";
-    }
-    if (days.includes("SATURDAY") && days.includes("SUNDAY")) {
-      return "Saturday & Sunday";
-    }
+  const days = normalizeWeekendDays(value);
+  if (!days) return "";
+  if (days.includes("FRIDAY") && days.includes("SATURDAY")) {
+    return "Friday & Saturday";
   }
-  if (value === "FRIDAY_SATURDAY") return "Friday & Saturday";
-  if (value === "SATURDAY_SUNDAY") return "Saturday & Sunday";
+  if (days.includes("SATURDAY") && days.includes("SUNDAY")) {
+    return "Saturday & Sunday";
+  }
   return "";
 };
 
+const firstParam = (raw?: string | string[]) =>
+  Array.isArray(raw) ? raw[0] : raw;
+
 const parseSocialUser = (raw?: string | string[]): SocialUserParam | null => {
-  const value = Array.isArray(raw) ? raw[0] : raw;
+  const value = firstParam(raw);
   if (!value) return null;
+  if (typeof value === "object") return value as SocialUserParam;
   try {
     return JSON.parse(value) as SocialUserParam;
   } catch {
@@ -76,20 +91,103 @@ const parseSocialUser = (raw?: string | string[]): SocialUserParam | null => {
   }
 };
 
+const extractRemoteAvatarUrl = (payload: unknown): string | null => {
+  if (!payload || typeof payload !== "object") return null;
+
+  const root = payload as Record<string, unknown>;
+  const data =
+    root.data && typeof root.data === "object"
+      ? (root.data as Record<string, unknown>)
+      : null;
+  const user =
+    data?.user && typeof data.user === "object"
+      ? (data.user as Record<string, unknown>)
+      : null;
+
+  // Backend: { data: { user: { avatarUrl } } }
+  const candidates = [
+    user?.avatarUrl,
+    data?.avatarUrl,
+    data?.url,
+    typeof root.data === "string" ? root.data : null,
+    root.avatarUrl,
+    root.url,
+  ];
+
+  for (const candidate of candidates) {
+    if (
+      typeof candidate === "string" &&
+      candidate.length > 0 &&
+      (candidate.startsWith("http://") || candidate.startsWith("https://"))
+    ) {
+      return candidate;
+    }
+  }
+
+  return null;
+};
+
 export default function CreateAccountScreen() {
   const styles = createStyles();
-  const params = useLocalSearchParams<{ user?: string | string[] }>();
-  const socialUser = useMemo(() => parseSocialUser(params.user), [params.user]);
+  const params = useLocalSearchParams<{
+    user?: string | string[];
+    calendarView?: string | string[];
+    weekendDays?: string | string[];
+  }>();
+  const router = useRouter();
+  const { updateUser, user: authUser, signIn } = useAuth();
+
+  // Prefer auth user (arrays intact after signIn) over route params, which can
+  // drop nested weekendDays when Expo Router serializes the query string.
+  const socialUser = useMemo(() => {
+    const fromParams = parseSocialUser(params.user);
+    const paramCalendarView = firstParam(params.calendarView) || null;
+    const paramWeekendDays = firstParam(params.weekendDays) || null;
+
+    const fromAuth =
+      authUser && typeof authUser === "object"
+        ? (authUser as SocialUserParam)
+        : null;
+
+    const base =
+      fromParams?.id && fromAuth?.id && fromParams.id === fromAuth.id
+        ? { ...fromParams, ...fromAuth }
+        : fromParams?.id
+          ? fromParams
+          : fromAuth?.id
+            ? fromAuth
+            : null;
+
+    if (!base?.id) return null;
+
+    return {
+      ...base,
+      calendarView:
+        paramCalendarView ||
+        base.calendarView ||
+        base.preferredDateView ||
+        null,
+      preferredDateView:
+        base.preferredDateView ||
+        paramCalendarView ||
+        base.calendarView ||
+        null,
+      weekendDays:
+        normalizeWeekendDays(paramWeekendDays) ??
+        normalizeWeekendDays(base.weekendDays) ??
+        null,
+    };
+  }, [authUser, params.calendarView, params.user, params.weekendDays]);
+
   const isSocialFlow = !!socialUser?.id;
 
-  const router = useRouter();
-  const { updateUser, user: authUser } = useAuth();
   const { createAccountSchema, socialCompleteProfileSchema } = useValidations();
   const { t } = useTranslation();
   const { mutateAsync: registerUser, isPending: isRegistering } = useRegister();
   const { mutateAsync: updateProfile, isPending: isUpdatingProfile } =
     useUpdateProfile();
-
+  const { mutateAsync: uploadAvatar, isPending: isUploadingAvatar } =
+    useUploadAvatar();
   const defaultValues = useMemo(
     () => ({
       name: socialUser?.username ?? "",
@@ -97,7 +195,7 @@ export default function CreateAccountScreen() {
       confirmPassword: "",
       email: socialUser?.email ?? "",
       gender: genderFromApi(socialUser?.gender),
-      dob: socialUser?.dateOfBirth ?? "",
+      dob: normalizeDob(socialUser?.dateOfBirth),
       country: socialUser?.country ?? "",
       dateView: dateViewFromApi(
         socialUser?.preferredDateView ?? socialUser?.calendarView,
@@ -121,6 +219,7 @@ export default function CreateAccountScreen() {
   const {
     control,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(
@@ -131,9 +230,23 @@ export default function CreateAccountScreen() {
     defaultValues,
   });
 
+  // Route/auth prefs can arrive after first mount — keep dropdowns in sync.
+  useEffect(() => {
+    if (!isSocialFlow) return;
+    reset(defaultValues);
+  }, [defaultValues, isSocialFlow, reset]);
+
   const [image, setImage] = useState<string | null>(
     socialUser?.avatarUrl ?? null,
   );
+  /** Only local camera/gallery URIs should be uploaded (not remote social avatar URLs). */
+  const [localImageUri, setLocalImageUri] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!localImageUri && socialUser?.avatarUrl) {
+      setImage(socialUser.avatarUrl);
+    }
+  }, [localImageUri, socialUser?.avatarUrl]);
 
   const genderMap: Record<string, RegisterPayload["gender"]> = {
     Male: "MALE",
@@ -179,12 +292,16 @@ export default function CreateAccountScreen() {
     });
 
     if (!result.canceled) {
-      setImage(result.assets[0].uri);
+      const uri = result.assets[0].uri;
+      setImage(uri);
+      setLocalImageUri(uri);
     }
   };
 
   const onSubmit = async (
-    data: z.infer<typeof createAccountSchema> | z.infer<typeof socialCompleteProfileSchema>,
+    data:
+      | z.infer<typeof createAccountSchema>
+      | z.infer<typeof socialCompleteProfileSchema>,
   ) => {
     if (isSocialFlow && socialUser?.id) {
       try {
@@ -199,6 +316,28 @@ export default function CreateAccountScreen() {
           weekendDays: weekendDaysArrayMap[data.week],
         });
 
+        let avatarUrl =
+          typeof socialUser.avatarUrl === "string" &&
+          socialUser.avatarUrl.startsWith("http")
+            ? socialUser.avatarUrl
+            : null;
+
+        if (localImageUri) {
+          const uploadResult = await uploadAvatar({
+            imageUri: localImageUri,
+            userId: socialUser.id,
+          });
+
+          // Must come from upload API only: data.user.avatarUrl
+          const remoteAvatarUrl = extractRemoteAvatarUrl(uploadResult);
+          if (!remoteAvatarUrl) {
+            throw new Error(
+              "Avatar uploaded but server did not return data.user.avatarUrl",
+            );
+          }
+          avatarUrl = remoteAvatarUrl;
+        }
+
         const nextUser = {
           ...(authUser ?? socialUser),
           username: data.name.trim(),
@@ -208,33 +347,63 @@ export default function CreateAccountScreen() {
           country: data.country,
           preferredDateView: calendarViewMap[data.dateView],
           weekendDays: weekendDaysArrayMap[data.week],
-          avatarUrl: image ?? socialUser.avatarUrl ?? null,
+          avatarUrl,
         };
 
         await updateUser(nextUser);
+
         router.replace("/(private)/greetingsscreen");
       } catch {
-        // Toast handled in useUpdateProfile
+        // Toast handled in mutations
       }
       return;
-    }
+    } else if (!isSocialFlow) {
+      const payload: RegisterPayload = {
+        username: data.name.trim(),
+        email: data.email.trim(),
+        password: data.password ?? "",
+        confirmPassword: data.confirmPassword ?? "",
+        gender: genderMap[data.gender],
+        dateOfBirth: data.dob,
+        country: data.country,
+        calendarView: calendarViewMap[data.dateView],
+        weekendDays: weekendDaysMap[data.week],
+      };
 
-    const payload: RegisterPayload = {
-      username: data.name.trim(),
-      email: data.email.trim(),
-      password: data.password ?? "",
-      confirmPassword: data.confirmPassword ?? "",
-      gender: genderMap[data.gender],
-      dateOfBirth: data.dob,
-      country: data.country,
-      calendarView: calendarViewMap[data.dateView],
-      weekendDays: weekendDaysMap[data.week],
-    };
+      try {
+        const response = await registerUser(payload);
+        if (!response?.success) {
+          throw new Error(response?.message ?? "Registration failed");
+        }
 
-    try {
-      await registerUser(payload);
-    } catch {
-      // Toast handled in useRegister
+        const authData = response.data ?? {};
+        const { accessToken, refreshToken, user } = authData;
+
+        if (!accessToken) {
+          throw new Error("Registration succeeded but no access token was returned");
+        }
+
+        // Required before private routes (ProtectedRoute) and authenticated avatar upload.
+        let nextUser = { ...(user ?? {}) };
+
+        await signIn(accessToken, refreshToken, nextUser);
+
+        if (localImageUri && user?.id) {
+          const uploadResult = await uploadAvatar({
+            imageUri: localImageUri,
+            userId: user.id,
+          });
+          const remoteAvatarUrl = extractRemoteAvatarUrl(uploadResult);
+          if (remoteAvatarUrl) {
+            nextUser = { ...nextUser, avatarUrl: remoteAvatarUrl };
+            await updateUser(nextUser);
+          }
+        }
+
+        router.replace("/(private)/greetingsscreen");
+      } catch {
+        // Toast handled in useRegister / useUploadAvatar
+      }
     }
   };
 
@@ -242,7 +411,7 @@ export default function CreateAccountScreen() {
     console.log("[create-account] validation failed", formErrors);
   };
 
-  const isPending = isRegistering || isUpdatingProfile;
+  const isPending = isRegistering || isUpdatingProfile || isUploadingAvatar;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -387,7 +556,11 @@ export default function CreateAccountScreen() {
 
         <View style={styles.btnWrapper}>
           <PrimaryButton
-            text={t("createAccountScreen.createAccountBtn")}
+            text={
+              isSocialFlow
+                ? "UPDATE ACCOUNT"
+                : t("createAccountScreen.createAccountBtn")
+            }
             onPress={handleSubmit(onSubmit, onInvalid)}
             disabled={isPending}
             isLoading={isPending}

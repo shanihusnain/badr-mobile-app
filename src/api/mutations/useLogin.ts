@@ -25,6 +25,8 @@ export type LoginAuthData = {
   refreshToken: string;
   user: LoginUser;
   isNewUser?: boolean;
+  calendarView?: "GREGORIAN" | "HIJRI" | string | null;
+  weekendDays?: Array<"FRIDAY" | "SATURDAY" | "SUNDAY"> | string[] | null;
 };
 
 export type LoginResponse = {

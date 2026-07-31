@@ -115,6 +115,16 @@ export type QuranHizbOption = {
   verses?: string;
 };
 
+export type QuranJuzOption = {
+  id: number;
+  juzName: string;
+  startSurah?: number;
+  startAyah?: number;
+  endSurah?: number;
+  endAyah?: number;
+  totalAyahs?: number;
+};
+
 function asRecord(value: unknown): Record<string, any> | null {
   return value && typeof value === "object"
     ? (value as Record<string, any>)
@@ -129,7 +139,14 @@ function pickNumber(...values: unknown[]): number | undefined {
   return undefined;
 }
 
-/** Map /api/quran-reference/surahs rows → UI options */
+function pickString(...values: unknown[]): string | undefined {
+  for (const value of values) {
+    if (typeof value === "string" && value.trim()) return value.trim();
+  }
+  return undefined;
+}
+
+/** Map reference.surahs (or legacy /api/quran-reference/surahs) → UI options */
 export function mapSurahOptionsFromReference(
   rows: unknown[] | null | undefined,
 ): QuranSurahOption[] {
@@ -140,32 +157,64 @@ export function mapSurahOptionsFromReference(
     const row = asRecord(item);
     if (!row) continue;
     const id = pickNumber(
-      row.id,
       row.number,
+      row.id,
       row.surahNumber,
       row.surahId,
       row.itemNumber,
     );
     if (!id || seen.has(id)) continue;
     seen.add(id);
-    const title = String(
-      row.englishName ??
-        row.surahTitle ??
-        row.title ??
-        row.name ??
-        row.surahName ??
-        `Surah ${id}`,
-    );
+    const label =
+      pickString(
+        row.nameTranslit,
+        row.surahName,
+        row.name,
+        row.slug,
+        row.nameEnglish,
+        row.englishName,
+        row.surahTitle,
+        row.title,
+        row.nameArabic,
+      ) ?? `Surah ${id}`;
     options.push({
       id,
-      surahName: String(row.surahName ?? row.name ?? row.slug ?? title),
-      surahTitle: title,
+      surahName: label,
+      surahTitle: label,
     });
   }
   return options.sort((a, b) => a.id - b.id);
 }
 
-/** Map /api/quran-reference/hizb rows → UI options */
+/** Map reference.juz → UI options */
+export function mapJuzOptionsFromReference(
+  rows: unknown[] | null | undefined,
+): QuranJuzOption[] {
+  if (!Array.isArray(rows)) return [];
+  const seen = new Set<number>();
+  const options: QuranJuzOption[] = [];
+  for (const item of rows) {
+    const row = asRecord(item);
+    if (!row) continue;
+    const id = pickNumber(row.number, row.id, row.juzNumber, row.itemNumber);
+    if (!id || seen.has(id)) continue;
+    seen.add(id);
+    options.push({
+      id,
+      juzName:
+        pickString(row.nameArabic, row.nameEnglish, row.label, row.title, row.name) ??
+        `Juz ${id}`,
+      startSurah: pickNumber(row.startSurah),
+      startAyah: pickNumber(row.startAyah),
+      endSurah: pickNumber(row.endSurah),
+      endAyah: pickNumber(row.endAyah),
+      totalAyahs: pickNumber(row.totalAyahs, row.totalVerses, row.verseCount),
+    });
+  }
+  return options.sort((a, b) => a.id - b.id);
+}
+
+/** Map reference.hizb (or legacy /api/quran-reference/hizb) → UI options */
 export function mapHizbOptionsFromReference(
   rows: unknown[] | null | undefined,
 ): QuranHizbOption[] {
@@ -176,21 +225,37 @@ export function mapHizbOptionsFromReference(
     const row = asRecord(item);
     if (!row) continue;
     const id = pickNumber(
-      row.id,
       row.number,
+      row.id,
       row.hizbNumber,
       row.hizbId,
       row.itemNumber,
     );
     if (!id || seen.has(id)) continue;
     seen.add(id);
-    const verseStart = row.verseStart ?? row.startVerse;
-    const verseEnd = row.verseEnd ?? row.endVerse;
-    const verseCount = row.verseCount ?? row.versesCount ?? row.totalVerses;
+    const verseStart = pickNumber(
+      row.verseStart,
+      row.startVerse,
+      row.startAyah,
+    );
+    const verseEnd = pickNumber(row.verseEnd, row.endVerse, row.endAyah);
+    const verseCount = pickNumber(
+      row.verseCount,
+      row.versesCount,
+      row.totalVerses,
+      row.totalAyahs,
+    );
+    const startSurah = pickNumber(row.startSurah);
+    const endSurah = pickNumber(row.endSurah);
     const rangeLabel =
-      verseStart != null && verseEnd != null
-        ? `${verseStart} – ${verseEnd}`
-        : undefined;
+      startSurah != null &&
+      verseStart != null &&
+      endSurah != null &&
+      verseEnd != null
+        ? `${startSurah}:${verseStart} – ${endSurah}:${verseEnd}`
+        : verseStart != null && verseEnd != null
+          ? `${verseStart} – ${verseEnd}`
+          : undefined;
     const verses =
       row.verses != null
         ? String(row.verses)
@@ -201,9 +266,9 @@ export function mapHizbOptionsFromReference(
             : undefined;
     options.push({
       id,
-      hizbName: String(
-        row.hizbName ?? row.label ?? row.title ?? row.name ?? `Hizb ${id}`,
-      ),
+      hizbName:
+        pickString(row.hizbName, row.label, row.title, row.name) ??
+        `Hizb ${id}`,
       verses,
     });
   }
