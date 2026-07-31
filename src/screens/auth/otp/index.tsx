@@ -21,6 +21,7 @@ import { useTranslation } from "react-i18next";
 import { useVerifyOtp } from "@/src/api/mutations/useVerifyOtp";
 import { useResendOtp } from "@/src/api/mutations/useResendOtp";
 import { useForgotPasswordOtpValidation } from "@/src/api/mutations/useForgotPasswordOtpValidation";
+import { useAuth } from "@/provider/useAuth";
 
 type OtpScreenParams = {
   fromsignup?: string | string[];
@@ -36,6 +37,7 @@ export default function OtpScreen() {
   const fromsignup = getParam(params.fromsignup);
   const email = getParam(params.email);
   const { t } = useTranslation();
+  const { updateUser, user: authUser, isAuthenticated } = useAuth();
   const { mutateAsync: verifyOtp, isPending } = useVerifyOtp();
 
   const {
@@ -119,7 +121,17 @@ export default function OtpScreen() {
       }
 
       if (fromsignup === "true") {
-        router.replace("/(auth)/login");
+        if (authUser) {
+          await updateUser({ ...authUser, emailVerified: true });
+        }
+
+        // Already signed in after register → enter private stack.
+        // Otherwise fall back to login (e.g. verify opened without session).
+        if (isAuthenticated) {
+          router.replace("/(private)/greetingsscreen");
+        } else {
+          router.replace("/(auth)/login");
+        }
       } else {
         router.push({
           pathname: "/(auth)/confirmpassword",

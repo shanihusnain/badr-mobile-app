@@ -19,10 +19,11 @@ export function PublicRoute({ children }: PublicRouteProps) {
     );
   }
 
-  // New social users are signed in first, then finish profile on createaccount.
-  const isCompletingSocialProfile = pathname.includes("createaccount");
+  // Signed-in users finishing signup may stay on createaccount / email OTP.
+  const isCompletingSignup =
+    pathname.includes("createaccount") || pathname.includes("verifyemail");
 
-  if (isAuthenticated && !isCompletingSocialProfile) {
+  if (isAuthenticated && !isCompletingSignup) {
     return <Redirect href="/(tabs)" />;
   }
 

@@ -383,7 +383,7 @@ export default function CreateAccountScreen() {
           throw new Error("Registration succeeded but no access token was returned");
         }
 
-        // Required before private routes (ProtectedRoute) and authenticated avatar upload.
+        // Required for authenticated avatar upload; private stack only after OTP.
         let nextUser = { ...(user ?? {}) };
 
         await signIn(accessToken, refreshToken, nextUser);
@@ -400,7 +400,13 @@ export default function CreateAccountScreen() {
           }
         }
 
-        router.replace("/(private)/greetingsscreen");
+        router.replace({
+          pathname: "/(auth)/verifyemail/[fromsignup]",
+          params: {
+            fromsignup: "true",
+            email: data.email.trim(),
+          },
+        });
       } catch {
         // Toast handled in useRegister / useUploadAvatar
       }
