@@ -22,6 +22,29 @@ export const QURAN_TYPE_TO_UI_ID: Record<string, string> = {
   TAJWEED: "quran-tajweed",
 };
 
+/** Primary API type for each UI card (used for detail/description fetches). */
+export const UI_ID_TO_QURAN_TYPE: Record<string, string> = {
+  "quran-listening": "LISTENING",
+  "quran-recitation": "RECITATION_SURAH",
+  "quran-memorization": "MEMORIZATION_SURAH",
+  "quran-tajweed": "TAJWEED",
+};
+
+/** Accept either API enum or local UI id */
+export function resolveQuranType(goalKey: string): string {
+  if (QURAN_TYPE_TO_UI_ID[goalKey]) return goalKey;
+  return UI_ID_TO_QURAN_TYPE[goalKey] ?? goalKey;
+}
+
+export function resolveQuranUiId(goalKey: string): string {
+  if (UI_ID_TO_QURAN_TYPE[goalKey]) return goalKey;
+  return QURAN_TYPE_TO_UI_ID[goalKey] ?? goalKey;
+}
+
+export function isQuranGoalKey(goalKey: string): boolean {
+  return !!QURAN_TYPE_TO_UI_ID[goalKey] || !!UI_ID_TO_QURAN_TYPE[goalKey];
+}
+
 export function getQuranTypesForUiId(uiId: string): string[] {
   return Object.entries(QURAN_TYPE_TO_UI_ID)
     .filter(([, mappedUiId]) => mappedUiId === uiId)
@@ -371,14 +394,20 @@ export function getJuzRangeFromDetail(
   };
 }
 
+export function getSelectedHizbIdsFromDetail(
+  detail: QuranGoalDetail | null | undefined,
+): number[] {
+  return (detail?.items ?? [])
+    .filter((item) => String(item.itemType).toUpperCase() === "HIZB")
+    .map((item) => Number(item.itemNumber))
+    .filter((n) => Number.isFinite(n) && n > 0);
+}
+
+/** @deprecated Prefer getSelectedHizbIdsFromDetail for multi-select */
 export function getSelectedHizbFromDetail(
   detail: QuranGoalDetail | null | undefined,
 ): number | undefined {
-  const item = (detail?.items ?? []).find(
-    (row) => String(row.itemType).toUpperCase() === "HIZB",
-  );
-  const id = Number(item?.itemNumber);
-  return Number.isFinite(id) && id > 0 ? id : undefined;
+  return getSelectedHizbIdsFromDetail(detail)[0];
 }
 
 /** Hours goals store the value in targetValue */
@@ -435,11 +464,15 @@ export function buildQuranMetricUpsertPayload(
     }
     if (metric === "juz") {
       const juz = (metrics.juz ?? {}) as JuzMetricValue;
-      const start = Number(juz.start ?? 0);
-      const end = Number(juz.end ?? start);
-      if (start <= 0) return null;
+      let start = Number(juz.start ?? 0);
+      let end = Number(juz.end ?? 0);
+      // UI may leave "from" empty (0) while "to" is set — treat as 1..end
+      if (start <= 0 && end > 0) start = 1;
+      if (end <= 0 && start > 0) end = start;
+      if (start <= 0 || end <= 0) return null;
+      if (end < start) end = start;
       const items: QuranGoalItemPayload[] = [];
-      for (let n = start; n <= Math.max(start, end); n += 1) {
+      for (let n = start; n <= end; n += 1) {
         items.push({ itemType: "JUZ", itemNumber: n, targetCount: 1 });
       }
       return {
@@ -473,22 +506,36 @@ export function buildQuranMetricUpsertPayload(
   if (metric === "completion") return null;
   const quranGoalType = MEMORIZATION_METRIC_TO_TYPE[metric];
   if (metric === "hizb") {
-    const hizbId = Number(metrics.hizb?.selectedHizb ?? metrics.hizb ?? 0);
-    if (!hizbId) return null;
+    const selectedIds: number[] = Array.isArray(metrics.hizb?.selectedHizbs)
+      ? metrics.hizb.selectedHizbs.map(Number)
+      : metrics.hizb?.selectedHizb != null
+        ? [Number(metrics.hizb.selectedHizb)]
+        : Array.isArray(metrics.hizb)
+          ? metrics.hizb.map(Number)
+          : [];
+    const ids = selectedIds.filter((n) => Number.isFinite(n) && n > 0);
+    if (ids.length === 0) return null;
     return {
       quranGoalType,
       isActive: true,
       frequency: "MONTHLY",
-      items: [{ itemType: "HIZB", itemNumber: hizbId, targetCount: 1 }],
+      items: ids.map((hizbId) => ({
+        itemType: "HIZB" as const,
+        itemNumber: hizbId,
+        targetCount: 1,
+      })),
     };
   }
   if (metric === "juz") {
     const juz = (metrics.juz ?? {}) as JuzMetricValue;
-    const start = Number(juz.start ?? 0);
-    const end = Number(juz.end ?? start);
-    if (start <= 0) return null;
+    let start = Number(juz.start ?? 0);
+    let end = Number(juz.end ?? 0);
+    if (start <= 0 && end > 0) start = 1;
+    if (end <= 0 && start > 0) end = start;
+    if (start <= 0 || end <= 0) return null;
+    if (end < start) end = start;
     const items: QuranGoalItemPayload[] = [];
-    for (let n = start; n <= Math.max(start, end); n += 1) {
+    for (let n = start; n <= end; n += 1) {
       items.push({ itemType: "JUZ", itemNumber: n, targetCount: 1 });
     }
     return {

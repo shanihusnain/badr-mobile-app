@@ -44,6 +44,10 @@ export function resolvePrayerUiId(goalKey: string): string {
   return PRAYER_TYPE_TO_UI_ID[goalKey] ?? goalKey;
 }
 
+export function isPrayerGoalKey(goalKey: string): boolean {
+  return !!PRAYER_TYPE_TO_UI_ID[goalKey] || !!UI_ID_TO_PRAYER_TYPE[goalKey];
+}
+
 const PRAYER_TYPE_IMAGES: Record<string, ImageSourcePropType> = {
   TAHIYYAT_AL_WUDHU: tahiyyatalwudhubottomsheetimage,
   FIVE_DAILY_PRAYERS: fivedailyprayerbottomsheetimage,

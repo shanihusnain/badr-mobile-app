@@ -20,12 +20,16 @@ const getPrayerDetailByType = async (
   return response.data?.data ?? null;
 };
 
-export const useGetPrayerDetailByType = (type: string) => {
+export const useGetPrayerDetailByType = (
+  type: string,
+  options?: { enabled?: boolean },
+) => {
   const prayerType = resolvePrayerType(type);
+  const enabled = !!prayerType && (options?.enabled ?? true);
 
   return useQuery({
     queryKey: ["prayer-detail", prayerType],
     queryFn: () => getPrayerDetailByType(prayerType),
-    enabled: !!prayerType,
+    enabled,
   });
 };

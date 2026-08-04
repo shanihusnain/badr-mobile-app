@@ -5,64 +5,45 @@ import { TopSpace } from "@/components/atoms/TopSpace";
 import { Colors } from "@/constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 import moment from "moment-hijri";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { localizeNumber } from "@/src/utils/localizeNumbers";
 import { useStartEditCycleMutation } from "@/src/api/mutations/useStartEditCycle";
 
-// ── Constants ─────────────────────────────────────────────────────────────────
-
-const MONTHS = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
-
-const HIJRI_MONTHS_SHORT = [
-  "Muh.",
-  "Saf.",
-  "Rab. I",
-  "Rab. II",
-  "Jum. I",
-  "Jum. II",
-  "Raj.",
-  "Sha.",
-  "Ram.",
-  "Shaw.",
-  "Dhul Q.",
-  "Dhul H.",
-];
-
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 type Props = {
   onCommit?: (startDate: string, endDate: string) => void;
+  onDateSelect?: (startDate: string, endDate: string) => void;
+  /** Source-of-truth start date from API or parent (YYYY-MM-DD). */
+  selectedStartDate?: string | null;
+  /** Source-of-truth end date from API or parent (YYYY-MM-DD). */
+  selectedEndDate?: string | null;
 };
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export const CycleStartTab = ({ onCommit }: Props) => {
+export const CycleStartTab = ({
+  onCommit,
+  onDateSelect,
+  selectedStartDate = null,
+  selectedEndDate = null,
+}: Props) => {
   const { t, i18n } = useTranslation();
-  const [cycleStartDate, setCycleStartDate] = useState<string | null>(null);
+  const cycleStartDate = selectedStartDate;
   const [calMonth, setCalMonth] = useState(() =>
-    moment().startOf("month").format("YYYY-MM-DD"),
+    selectedStartDate
+      ? moment(selectedStartDate, "YYYY-MM-DD")
+          .startOf("month")
+          .format("YYYY-MM-DD")
+      : moment().startOf("month").format("YYYY-MM-DD"),
   );
   const {
     mutateAsync: startEditCycle,
     isPending: isStartEditCyclePending,
-    isSuccess: isStartEditCycleSuccess,
-    isError: isStartEditCycleError,
   } = useStartEditCycleMutation();
+
   const localizedMonths = useMemo(
     () => [
       t("monthlyGoalPlanner.months.jan"),
@@ -101,12 +82,27 @@ export const CycleStartTab = ({ onCommit }: Props) => {
 
   // ── Handlers ────────────────────────────────────────────────────────────────
 
-  const handleDayPress = useCallback((dateString: string) => {
-    setCycleStartDate(dateString);
+  useEffect(() => {
+    if (!selectedStartDate) return;
     setCalMonth(
-      moment(dateString, "YYYY-MM-DD").startOf("month").format("YYYY-MM-DD"),
+      moment(selectedStartDate, "YYYY-MM-DD")
+        .startOf("month")
+        .format("YYYY-MM-DD"),
     );
-  }, []);
+  }, [selectedStartDate]);
+
+  const handleDayPress = useCallback(
+    (dateString: string) => {
+      const endDate = moment(dateString, "YYYY-MM-DD")
+        .add(27, "days")
+        .format("YYYY-MM-DD");
+      setCalMonth(
+        moment(dateString, "YYYY-MM-DD").startOf("month").format("YYYY-MM-DD"),
+      );
+      onDateSelect?.(dateString, endDate);
+    },
+    [onDateSelect],
+  );
 
   const goToPrevMonth = useCallback(() => {
     setCalMonth((prev) =>
@@ -125,22 +121,26 @@ export const CycleStartTab = ({ onCommit }: Props) => {
   const calMonthMoment = moment(calMonth, "YYYY-MM-DD");
   const monthLabel = `${localizedMonths[calMonthMoment.month()]} ${localizeNumber(calMonthMoment.year(), i18n.language)}`;
 
-  const cycleEndDate = cycleStartDate
-    ? moment(cycleStartDate, "YYYY-MM-DD").add(27, "days")
-    : null;
+  const cycleEndDateString =
+    selectedEndDate ??
+    (cycleStartDate
+      ? moment(cycleStartDate, "YYYY-MM-DD").add(27, "days").format("YYYY-MM-DD")
+      : null);
 
   const cycleStartFormatted = cycleStartDate
     ? (() => {
         const fmt = moment(cycleStartDate, "YYYY-MM-DD")
+          .clone()
           .locale(i18n.language)
           .format(i18n.language === "ar" ? "D MMMM" : "MMM D");
         return localizeNumber(fmt, i18n.language);
       })()
     : null;
 
-  const cycleEndFormatted = cycleEndDate
+  const cycleEndFormatted = cycleEndDateString
     ? (() => {
-        const fmt = cycleEndDate
+        const fmt = moment(cycleEndDateString, "YYYY-MM-DD")
+          .clone()
           .locale(i18n.language)
           .format(i18n.language === "ar" ? "D MMMM, YYYY" : "MMM D, YYYY");
         return localizeNumber(fmt, i18n.language);
@@ -148,13 +148,15 @@ export const CycleStartTab = ({ onCommit }: Props) => {
     : null;
 
   const cycleRangeLabel =
-    cycleStartDate && cycleEndDate
+    cycleStartDate && cycleEndDateString
       ? (() => {
           const startFmt = moment(cycleStartDate, "YYYY-MM-DD")
+            .clone()
             .locale(i18n.language)
             .format(i18n.language === "ar" ? "D MMMM" : "MMM D")
             .toUpperCase();
-          const endFmt = cycleEndDate
+          const endFmt = moment(cycleEndDateString, "YYYY-MM-DD")
+            .clone()
             .locale(i18n.language)
             .format(i18n.language === "ar" ? "D MMMM, YYYY" : "MMM D, YYYY")
             .toUpperCase();
@@ -163,11 +165,15 @@ export const CycleStartTab = ({ onCommit }: Props) => {
       : null;
 
   const hijriRangeLabel = (() => {
-    if (!cycleStartDate || !cycleEndDate) return null;
+    if (!cycleStartDate || !cycleEndDateString) return null;
     const startH = moment(cycleStartDate, "YYYY-MM-DD");
-    const endH = cycleEndDate;
+    const endH = moment(cycleEndDateString, "YYYY-MM-DD");
+    if (!startH.isValid() || !endH.isValid()) return null;
     const startMonthNum = startH.iMonth();
     const endMonthNum = endH.iMonth();
+    if (!Number.isFinite(startMonthNum) || !Number.isFinite(endMonthNum)) {
+      return null;
+    }
     const startLabel = `${localizedHijriMonths[startMonthNum]} ${localizeNumber(startH.iYear(), i18n.language)}`;
     const endLabel =
       startMonthNum === endMonthNum && startH.iYear() === endH.iYear()
@@ -207,10 +213,7 @@ export const CycleStartTab = ({ onCommit }: Props) => {
 
           <View style={styles.monthNavCenter}>
             {cycleRangeLabel ? (
-              <>
-                <Text style={styles.rangeLabel}>{cycleRangeLabel}</Text>
-                <Text style={styles.hijriLabel}>{hijriRangeLabel}</Text>
-              </>
+              <Text style={styles.rangeLabel}>{cycleRangeLabel}</Text>
             ) : (
               <Text style={styles.monthLabel}>{monthLabel}</Text>
             )}
@@ -228,6 +231,9 @@ export const CycleStartTab = ({ onCommit }: Props) => {
             />
           </TouchableOpacity>
         </View>
+        {hijriRangeLabel ? (
+          <Text style={styles.hijriLabel}>{hijriRangeLabel}</Text>
+        ) : null}
       </View>
 
       {/* ── Calendar grid ── */}
@@ -235,7 +241,7 @@ export const CycleStartTab = ({ onCommit }: Props) => {
         mode="dob"
         currentDate={calMonth}
         selectedDate={cycleStartDate ?? undefined}
-        endDate={cycleEndDate?.format("YYYY-MM-DD")}
+        endDate={cycleEndDateString ?? undefined}
         onDayPress={handleDayPress}
       />
 
@@ -260,12 +266,10 @@ export const CycleStartTab = ({ onCommit }: Props) => {
       <PrimaryButton
         text={t("monthlyGoalPlanner.commit")}
         isLoading={isStartEditCyclePending}
-        disabled={isStartEditCyclePending}
+        disabled={isStartEditCyclePending || !cycleStartDate}
         onPress={() => {
-          if (cycleStartDate && cycleEndDate) {
-            console.log("cycleStartDate", cycleStartDate);
-            console.log("cycleEndDate", cycleEndDate.format("YYYY-MM-DD"));
-            onCommit?.(cycleStartDate, cycleEndDate.format("YYYY-MM-DD"));
+          if (cycleStartDate && cycleEndDateString) {
+            onCommit?.(cycleStartDate, cycleEndDateString);
             startEditCycle({ startDate: cycleStartDate });
           }
         }}
@@ -299,12 +303,8 @@ const styles = StyleSheet.create({
     alignSelf: "center",
   },
   monthNavCenter: {
-    flex: 1,
     alignItems: "center",
     justifyContent: "center",
-  },
-  navBtn: {
-    padding: 8,
   },
   monthLabel: {
     color: Colors.light.white,
@@ -314,36 +314,33 @@ const styles = StyleSheet.create({
   },
   rangeLabel: {
     color: Colors.light.white,
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
     textAlign: "center",
   },
   hijriLabel: {
     color: Colors.light.grey,
-    fontSize: 11,
+    fontSize: 12,
     fontFamily: fonts.primary.regular,
     textAlign: "center",
     marginTop: 2,
   },
+  navBtn: {
+    padding: 4,
+  },
   footer: {
-    backgroundColor: Colors.light.calendarBg,
-    borderBottomLeftRadius: 12,
-    borderBottomRightRadius: 12,
-    paddingHorizontal: 16,
-    paddingTop: 14,
-    paddingBottom: 20,
+    marginTop: 12,
+    paddingHorizontal: 4,
   },
   infoText: {
-    color: Colors.light.dullWhite,
-    fontSize: 14,
+    color: Colors.light.white,
+    fontSize: 13,
     fontFamily: fonts.primary.regular,
-    lineHeight: 22,
-    flex: 1,
+    lineHeight: 20,
   },
   infoHighlight: {
-    color: Colors.light.white,
+    color: Colors.light.green,
     fontFamily: fonts.primary.semiBold,
-    fontWeight: "600",
   },
 });

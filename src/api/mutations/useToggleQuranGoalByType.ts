@@ -24,6 +24,7 @@ export const useToggleQuranGoalByType = () => {
     mutationFn: toggleQuranGoalByType,
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["all-quran-goals"] });
+      queryClient.invalidateQueries({ queryKey: ["goal-cycle"] });
       queryClient.invalidateQueries({
         queryKey: ["quran-goal-detail", variables.quranGoalType],
       });

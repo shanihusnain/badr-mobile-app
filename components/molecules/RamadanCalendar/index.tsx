@@ -1,25 +1,20 @@
 /**
- * RamadanCalendar — reusable component for marking missed Ramadan fast dates.
- *
- * Layout:
- *   ○ MISSED RAMADAN FASTS  ← legend row
- *   May 13 - Jun 9, 2026    ← date range label (no nav arrows)
- *   [ CalendarGrid ]
- *   Description text
- *   N missed Ramadan Fasts
- *   [ Save ]
+ * RamadanCalendar — mark missed Ramadan fast dates.
+ * Cycle window + other-goal overlays from GET fasting-goals/calendar-preview.
  */
 
 import { Colors } from "@/constants/theme";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import moment from "moment-hijri";
 import { fonts } from "@/assets/fonts";
 import { CalendarGrid } from "@/components/molecules/CalendarGrid";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { CalendarCountAndRamadanText } from "@/components/atoms/CalendarCountAndRamadanText";
-
-// ── Types ─────────────────────────────────────────────────────────────────────
+import {
+  getFastingLegendItems,
+  type FastingCalendarWindow,
+} from "@/src/utils/fastingCalendarPreview";
 
 type RamadanCalendarProps = {
   /** Called with the final list of selected missed-fast dates when user taps Save. */
@@ -29,9 +24,9 @@ type RamadanCalendarProps = {
   hideFooter?: boolean;
   hideLegend?: boolean;
   hideDateLabel?: boolean;
+  /** Cycle window from GET fasting-goals/calendar-preview */
+  calendarWindow?: FastingCalendarWindow | null;
 };
-
-// ── Component ─────────────────────────────────────────────────────────────────
 
 export const RamadanCalendar = ({
   onSave,
@@ -40,21 +35,23 @@ export const RamadanCalendar = ({
   hideFooter = false,
   hideLegend = false,
   hideDateLabel = false,
+  calendarWindow,
 }: RamadanCalendarProps) => {
   const [internalMissedDates, setInternalMissedDates] = useState<string[]>([]);
   const isControlled = selectedDates !== undefined;
   const missedDates = isControlled ? selectedDates : internalMissedDates;
 
-  // 28-day window starting from today
-  const startDate = moment().format("YYYY-MM-DD");
-  const endDate = moment().add(27, "days").format("YYYY-MM-DD");
+  const startDate =
+    calendarWindow?.startDate ?? moment().format("YYYY-MM-DD");
+  const endDate =
+    calendarWindow?.endDate ?? moment().add(27, "days").format("YYYY-MM-DD");
 
-  // Date range label
   const startMoment = moment(startDate, "YYYY-MM-DD");
   const endMoment = moment(endDate, "YYYY-MM-DD");
-  const rangeLabel = `${startMoment.format("MMM D")} - ${endMoment.format("MMM D")}, ${startMoment.year()}`;
+  const rangeLabel =
+    calendarWindow?.rangeLabel ??
+    `${startMoment.format("MMM D")} - ${endMoment.format("MMM D")}, ${startMoment.year()}`;
 
-  // Calculate Islamic date range label
   const HIJRI_MONTHS_SHORT = [
     "Muh.",
     "Saf.",
@@ -74,20 +71,74 @@ export const RamadanCalendar = ({
   const startHijriYear = startMoment.iYear();
   const endHijriYear = endMoment.iYear();
 
-  let islamicRangeLabel = "";
-  if (startMoment.iMonth() === endMoment.iMonth() && startHijriYear === endHijriYear) {
-    islamicRangeLabel = `${startHijriMonth} ${startHijriYear}`;
+  let fallbackIslamicRangeLabel = "";
+  if (
+    startMoment.iMonth() === endMoment.iMonth() &&
+    startHijriYear === endHijriYear
+  ) {
+    fallbackIslamicRangeLabel = `${startHijriMonth} ${startHijriYear}`;
   } else if (startHijriYear === endHijriYear) {
-    islamicRangeLabel = `${startHijriMonth} - ${endHijriMonth} ${startHijriYear}`;
+    fallbackIslamicRangeLabel = `${startHijriMonth} - ${endHijriMonth} ${startHijriYear}`;
   } else {
-    islamicRangeLabel = `${startHijriMonth} ${startHijriYear} - ${endHijriMonth} ${endHijriYear}`;
+    fallbackIslamicRangeLabel = `${startHijriMonth} ${startHijriYear} - ${endHijriMonth} ${endHijriYear}`;
   }
+  const islamicRangeLabel =
+    calendarWindow?.islamicRangeLabel ?? fallbackIslamicRangeLabel;
 
-  // The calendar displays the month that contains the start of the window
-  const currentDate = startMoment.startOf("month").format("YYYY-MM-DD");
+  const currentDate =
+    calendarWindow?.currentDate ??
+    startMoment.clone().startOf("month").format("YYYY-MM-DD");
 
-  // Tap toggles a date in/out of missedDates
+  const occupiedByOtherGoals = useMemo(() => {
+    const set = new Set([
+      ...(calendarWindow?.activeMonThuDates ?? []),
+      ...(calendarWindow?.monThuPlannedDates ?? []),
+      ...(calendarWindow?.activeWhiteDayDates ?? []),
+      ...(calendarWindow?.whiteDaysPlannedDates ?? []),
+      ...(calendarWindow?.activeDawoodDates ?? []),
+      ...(calendarWindow?.dawoodPlannedDates ?? []),
+    ]);
+    return set;
+  }, [calendarWindow]);
+
+  const overlayMonThuDates = useMemo(() => {
+    const set = new Set([
+      ...(calendarWindow?.activeMonThuDates ?? []),
+      ...(calendarWindow?.monThuPlannedDates ?? []),
+    ]);
+    return Array.from(set);
+  }, [calendarWindow]);
+
+  const overlayWhiteDayDates = useMemo(() => {
+    const set = new Set([
+      ...(calendarWindow?.activeWhiteDayDates ?? []),
+      ...(calendarWindow?.whiteDaysPlannedDates ?? []),
+    ]);
+    return Array.from(set);
+  }, [calendarWindow]);
+
+  const overlayDawoodDates = useMemo(() => {
+    const set = new Set([
+      ...(calendarWindow?.activeDawoodDates ?? []),
+      ...(calendarWindow?.dawoodPlannedDates ?? []),
+    ]);
+    return Array.from(set);
+  }, [calendarWindow]);
+
+  const legendItems = useMemo(
+    () =>
+      getFastingLegendItems(calendarWindow?.legendTypes ?? [], {
+        forceInclude: ["MISSED_RAMADAN"],
+      }),
+    [calendarWindow?.legendTypes],
+  );
+
   const toggleDate = (ds: string) => {
+    // Block selecting dates already used by another fasting goal
+    if (occupiedByOtherGoals.has(ds) && !missedDates.includes(ds)) {
+      return;
+    }
+
     const nextDates = missedDates.includes(ds)
       ? missedDates.filter((d) => d !== ds)
       : [...missedDates, ds];
@@ -102,21 +153,35 @@ export const RamadanCalendar = ({
     onSave?.(missedDates);
   };
 
-  // ── Render ────────────────────────────────────────────────────────────────
-
   return (
     <View style={styles.wrapper}>
-      {/* ── Legend — calendarBg top bar ── */}
-      {!hideLegend && (
+      {!hideLegend && legendItems.length > 0 && (
         <View style={styles.topBar}>
           <View style={styles.legendRow}>
-            <View style={styles.legendRing} />
-            <Text style={styles.legendText}>MISSED RAMADAN FASTS</Text>
+            {legendItems.map((item) => (
+              <View key={item.type} style={styles.legendItem}>
+                <View
+                  style={[
+                    styles.legendRing,
+                    {
+                      borderColor:
+                        item.type === "MONDAY_THURSDAY"
+                          ? Colors.light.ringMonThu
+                          : item.color,
+                    },
+                  ]}
+                />
+                <Text style={styles.legendText} numberOfLines={1}>
+                  {item.type === "MISSED_RAMADAN"
+                    ? "MISSED RAMADAN"
+                    : item.label}
+                </Text>
+              </View>
+            ))}
           </View>
         </View>
       )}
 
-      {/* ── Date range label ── */}
       {!hideDateLabel && (
         <View style={styles.dateLabel}>
           <Text style={styles.dateLabelText}>{rangeLabel}</Text>
@@ -124,20 +189,25 @@ export const RamadanCalendar = ({
         </View>
       )}
 
-      {/* ── Calendar ── */}
       <CalendarGrid
         mode="ramadan"
         currentDate={currentDate}
+        windowStartDate={startDate}
+        windowEndDate={endDate}
         markedDates={missedDates}
+        monThuDates={overlayMonThuDates}
+        whiteDayDates={overlayWhiteDayDates}
+        dawoodDates={overlayDawoodDates}
+        dimInactiveDays
         onDayPress={toggleDate}
       />
 
-      {/* ── Footer — calendarBg bottom bar ── */}
       {!hideFooter && (
         <View style={styles.footer}>
           <Text style={styles.description}>
             Tap on the dates when you missed your Ramadan fast. These will be
-            added to your fasting schedule.
+            added to your fasting schedule. Dates already planned for other
+            fasting goals are shown dimmed and cannot be selected.
           </Text>
           <TopSpace top={16} />
 
@@ -165,12 +235,9 @@ export const RamadanCalendar = ({
 
 export default RamadanCalendar;
 
-// ── Styles ────────────────────────────────────────────────────────────────────
-
 const styles = StyleSheet.create({
   wrapper: { marginBottom: 0 },
 
-  // ── Top bar (legend) — calendarBg rounded top ────────
   topBar: {
     backgroundColor: Colors.light.calendarBg,
     borderTopLeftRadius: 12,
@@ -179,19 +246,23 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
 
-  // ── Legend ──────────────────────────────────────────
   legendRow: {
     flexDirection: "row",
+    flexWrap: "wrap",
     alignItems: "center",
     gap: 10,
     alignSelf: "center",
+  },
+  legendItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
   },
   legendRing: {
     width: 10,
     height: 10,
     borderRadius: 5,
     borderWidth: 1,
-    borderColor: Colors.light.ringRamadan,
   },
   legendText: {
     fontSize: 10,
@@ -201,7 +272,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
 
-  // ── Date range label ─────────────────────────────────
   dateLabel: {
     alignItems: "center",
     backgroundColor: Colors.light.calendarBg,
@@ -221,7 +291,6 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 
-  // ── Footer — calendarBg rounded bottom ───────────────
   footer: {
     backgroundColor: Colors.light.calendarBg,
     borderBottomLeftRadius: 12,
@@ -231,7 +300,6 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
 
-  // ── Description ──────────────────────────────────────
   description: {
     fontSize: 13,
     color: Colors.light.grey,
@@ -239,14 +307,12 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.regular,
   },
 
-  // ── Count ────────────────────────────────────────────
   count: {
     fontSize: 16,
     fontWeight: "500",
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
   },
-  // ── Save button ──────────────────────────────────────
   saveBtn: {
     marginTop: 20,
     backgroundColor: Colors.light.green,

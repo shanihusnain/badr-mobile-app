@@ -1,14 +1,13 @@
 {
   "endpoint": "GET api/goal-cycles/current/quran-goals/:quranGoalType",
   "notes": [
-    "Return the matching payload.data for each :quranGoalType (content fields for goal description screen).",
-    "This is the description/content shape for GoalDescriptionDetails — separate from the cycle config fields (targetValue, items, trackingMetric) when those are returned on the same endpoint.",
-    "If description content and cycle config share one GET, merge both into data (quranGoalId, isActive, trackingMetric, targetValue, completedValue, frequency, items + title/navTitle/heroTitle/description/readMore).",
+    "Return the matching payload.data for each :quranGoalType.",
     "Images stay on mobile — do not send image URLs unless agreed later.",
     "Icons referenced in readMore (e.g. QuranListeningMoon, QuranImageIcon, HadeethBookIcon, QuranMemorizationIcon, QuranTajweedIcon) are resolved on mobile by name.",
     "readMore item types: text | benefit | prayerSection | replyWithQuote | boldPrefixText | boldSuffixText | table",
     "text.style values: body | bodyTight | bodyMediumTight | bodyZero | tableGuide | sectionHeading | prayerHeading | quoteItalic | quoteSemibold | quoteMediumItalic | hadithQuoteLead | hadithQuoteLight | wuduBody | wuduBodySpaced | bilalQuote | bilalQuoteLight",
     "UI cards group types: LISTENING; RECITATION_* → quran-recitation; MEMORIZATION_* → quran-memorization; TAJWEED. Recitation/memorization variants can share the same description content.",
+    "If this GET also returns cycle config, merge description fields with quranGoalId/isActive/trackingMetric/targetValue/completedValue/frequency/items.",
     "Arabic (ar) content can follow the same shape later."
   ],
   "uiIdByQuranGoalType": {

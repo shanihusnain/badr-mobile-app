@@ -1,48 +1,59 @@
 /**
- * WhiteDaysCalendar — reusable component showing the White Days fasts
- * (Hijri 13, 14, 15 of each month). All other days are dimmed.
- * Also overlays missed Ramadan fasts and Mon/Thu fasts.
- *
- * Layout:
- *   ○ MISSED RAMADAN  ● MON & THU  ○ WHITE DAYS  ← legend row
- *   May 13 - Jun 9, 2026                         ← date label (no arrows)
- *   [ CalendarGrid mode="white_days" ]
- *   Description text
- *   N White Days Fasts
- *   [ Save ]
+ * WhiteDaysCalendar — selectable White Days (Hijri 13, 14, 15).
+ * User can pick 1–3; dates occupied by other goals are dimmed and blocked.
  */
 
 import { Colors } from "@/constants/theme";
+import { useEffect, useMemo, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import moment from "moment-hijri";
 import { fonts } from "@/assets/fonts";
 import { CalendarGrid } from "@/components/molecules/CalendarGrid";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { CalendarCountAndRamadanText } from "@/components/atoms/CalendarCountAndRamadanText";
+import {
+  getFastingLegendItems,
+  type FastingCalendarWindow,
+} from "@/src/utils/fastingCalendarPreview";
 
 type WhiteDaysCalendarProps = {
   missedRamadanDates?: string[];
-  onSave?: (count: number) => void;
+  onSave?: (selectedDates: string[]) => void;
+  onDatesChange?: (selectedDates: string[]) => void;
+  initialSelectedDates?: string[];
   hideFooter?: boolean;
   hideLegend?: boolean;
   hideDateLabel?: boolean;
   dimInactiveDays?: boolean;
+  readOnly?: boolean;
+  calendarWindow?: FastingCalendarWindow | null;
 };
 
 export const WhiteDaysCalendar = ({
   missedRamadanDates = [],
   onSave,
+  onDatesChange,
+  initialSelectedDates,
   hideFooter = false,
   hideLegend = false,
   hideDateLabel = false,
   dimInactiveDays = true,
+  readOnly = false,
+  calendarWindow,
 }: WhiteDaysCalendarProps) => {
-  const startMoment = moment();
-  const endMoment = moment().add(27, "days");
-  const rangeLabel = `${startMoment.format("MMM D")} - ${endMoment.format("MMM D")}, ${startMoment.year()}`;
-  const currentDate = startMoment.clone().startOf("month").format("YYYY-MM-DD");
+  const startMoment = calendarWindow
+    ? moment(calendarWindow.startDate, "YYYY-MM-DD")
+    : moment();
+  const endMoment = calendarWindow
+    ? moment(calendarWindow.endDate, "YYYY-MM-DD")
+    : moment().add(27, "days");
+  const rangeLabel =
+    calendarWindow?.rangeLabel ??
+    `${startMoment.format("MMM D")} - ${endMoment.format("MMM D")}, ${startMoment.year()}`;
+  const currentDate =
+    calendarWindow?.currentDate ??
+    startMoment.clone().startOf("month").format("YYYY-MM-DD");
 
-  // Calculate Islamic date range label
   const HIJRI_MONTHS_SHORT = [
     "Muh.",
     "Saf.",
@@ -62,98 +73,195 @@ export const WhiteDaysCalendar = ({
   const startYear = startMoment.iYear();
   const endYear = endMoment.iYear();
 
-  let islamicRangeLabel = "";
+  let fallbackIslamicRangeLabel = "";
   if (startMoment.iMonth() === endMoment.iMonth() && startYear === endYear) {
-    islamicRangeLabel = `${startMonth} ${startYear}`;
+    fallbackIslamicRangeLabel = `${startMonth} ${startYear}`;
   } else if (startYear === endYear) {
-    islamicRangeLabel = `${startMonth} - ${endMonth} ${startYear}`;
+    fallbackIslamicRangeLabel = `${startMonth} - ${endMonth} ${startYear}`;
   } else {
-    islamicRangeLabel = `${startMonth} ${startYear} - ${endMonth} ${endYear}`;
+    fallbackIslamicRangeLabel = `${startMonth} ${startYear} - ${endMonth} ${endYear}`;
   }
+  const islamicRangeLabel =
+    calendarWindow?.islamicRangeLabel ?? fallbackIslamicRangeLabel;
 
-  // Count white days (Hijri 13/14/15) in the 28-day window
-  const whiteDayCount = Array.from({ length: 28 }, (_, i) => {
-    const hijri = moment().add(i, "days").iDate();
-    return hijri === 13 || hijri === 14 || hijri === 15;
-  }).filter(Boolean).length;
+  const potentialWhiteDayDates = useMemo(() => {
+    if (calendarWindow?.whiteDayDates.length) {
+      return calendarWindow.whiteDayDates;
+    }
+    const start =
+      calendarWindow?.startDate ?? moment().format("YYYY-MM-DD");
+    return Array.from({ length: 28 }, (_, i) => {
+      const day = moment(start, "YYYY-MM-DD").add(i, "days");
+      const hijri = day.iDate();
+      if (hijri === 13 || hijri === 14 || hijri === 15) {
+        return day.format("YYYY-MM-DD");
+      }
+      return null;
+    }).filter(Boolean) as string[];
+  }, [calendarWindow?.whiteDayDates, calendarWindow?.startDate]);
+
+  const whiteDaySet = useMemo(
+    () => new Set(potentialWhiteDayDates),
+    [potentialWhiteDayDates],
+  );
+
+  const overlayMissedDates =
+    missedRamadanDates.length > 0
+      ? missedRamadanDates
+      : (calendarWindow?.missedRamadanDates ?? []);
+
+  const overlayMonThuDates = useMemo(() => {
+    const set = new Set([
+      ...(calendarWindow?.activeMonThuDates ?? []),
+      ...(calendarWindow?.monThuPlannedDates ?? []),
+    ]);
+    return Array.from(set);
+  }, [calendarWindow]);
+
+  const overlayDawoodDates = useMemo(() => {
+    const set = new Set([
+      ...(calendarWindow?.activeDawoodDates ?? []),
+      ...(calendarWindow?.dawoodPlannedDates ?? []),
+    ]);
+    return Array.from(set);
+  }, [calendarWindow]);
+
+  const occupiedByOtherGoals = useMemo(() => {
+    return new Set([
+      ...overlayMissedDates,
+      ...overlayMonThuDates,
+      ...overlayDawoodDates,
+    ]);
+  }, [overlayMissedDates, overlayMonThuDates, overlayDawoodDates]);
+
+  const seedSelectedDates = useMemo(() => {
+    const seed =
+      initialSelectedDates ??
+      calendarWindow?.whiteDaysPlannedDates ??
+      [];
+    // Drop any seed dates that are now occupied by another goal
+    return seed.filter((ds) => !occupiedByOtherGoals.has(ds));
+  }, [
+    initialSelectedDates,
+    calendarWindow?.whiteDaysPlannedDates,
+    occupiedByOtherGoals,
+  ]);
+
+  const [selectedDates, setSelectedDates] = useState<Set<string>>(
+    () => new Set(seedSelectedDates),
+  );
+
+  useEffect(() => {
+    setSelectedDates(new Set(seedSelectedDates));
+  }, [seedSelectedDates]);
+
+  useEffect(() => {
+    onDatesChange?.(Array.from(selectedDates));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedDates]);
+
+  const legendItems = useMemo(
+    () =>
+      getFastingLegendItems(calendarWindow?.legendTypes ?? [], {
+        forceInclude: ["WHITE_DAYS"],
+      }),
+    [calendarWindow?.legendTypes],
+  );
+
+  const selectedCount = selectedDates.size;
 
   return (
     <View style={styles.wrapper}>
-      {/* ── Legend — calendarBg top bar ── */}
-      {!hideLegend && (
-      <View style={styles.topBar}>
-        <View style={styles.legendContainer}>
-          <View style={styles.legendRow}>
-            <View style={styles.legendItem}>
-              <View
-                style={[
-                  styles.legendRing,
-                  { borderColor: Colors.light.ringRamadan },
-                ]}
-              />
-              <Text style={styles.legendText} numberOfLines={1}>
-                MISSED RAMADAN
-              </Text>
-            </View>
-            <View style={styles.legendItem}>
-              <View
-                style={[
-                  styles.legendRing,
-                  { borderColor: Colors.light.ringMonThu },
-                ]}
-              />
-              <Text style={styles.legendText} numberOfLines={1}>
-                MONDAYS & THURSDAYS
-              </Text>
-            </View>
-          </View>
-          <View style={[styles.legendRow, { marginTop: 6 }]}>
-            <View style={styles.legendItem}>
-              <View
-                style={[styles.legendRing, { borderColor: Colors.light.white }]}
-              />
-              <Text style={styles.legendText} numberOfLines={1}>
-                WHITE DAYS
-              </Text>
+      {!hideLegend && legendItems.length > 0 && (
+        <View style={styles.topBar}>
+          <View style={styles.legendContainer}>
+            <View style={styles.legendRow}>
+              {legendItems.map((item) => (
+                <View key={item.type} style={styles.legendItem}>
+                  <View
+                    style={[
+                      styles.legendRing,
+                      {
+                        borderColor:
+                          item.type === "MONDAY_THURSDAY"
+                            ? Colors.light.ringMonThu
+                            : item.color,
+                      },
+                    ]}
+                  />
+                  <Text style={styles.legendText} numberOfLines={1}>
+                    {item.type === "MISSED_RAMADAN"
+                      ? "MISSED RAMADAN"
+                      : item.label}
+                  </Text>
+                </View>
+              ))}
             </View>
           </View>
         </View>
-      </View>
       )}
 
-      {/* ── Date range label ── */}
       {!hideDateLabel && (
-      <View style={styles.dateLabel}>
-        <Text style={styles.dateLabelText}>{rangeLabel}</Text>
-        <Text style={styles.islamicDateText}>{islamicRangeLabel}</Text>
-      </View>
+        <View style={styles.dateLabel}>
+          <Text style={styles.dateLabelText}>{rangeLabel}</Text>
+          <Text style={styles.islamicDateText}>{islamicRangeLabel}</Text>
+        </View>
       )}
 
-      {/* ── Calendar ── */}
       <CalendarGrid
         mode="white_days"
         currentDate={currentDate}
-        markedDates={missedRamadanDates}
+        windowStartDate={
+          calendarWindow?.startDate ?? startMoment.format("YYYY-MM-DD")
+        }
+        windowEndDate={
+          calendarWindow?.endDate ?? endMoment.format("YYYY-MM-DD")
+        }
+        markedDates={overlayMissedDates}
+        whiteDayDates={potentialWhiteDayDates}
+        monThuDates={overlayMonThuDates}
+        dawoodDates={overlayDawoodDates}
+        selectedDates={Array.from(selectedDates)}
         dimInactiveDays={dimInactiveDays}
+        onDayPress={
+          readOnly
+            ? undefined
+            : (ds) => {
+                if (!whiteDaySet.has(ds)) return;
+                if (occupiedByOtherGoals.has(ds) && !selectedDates.has(ds)) {
+                  return;
+                }
+                setSelectedDates((prev) => {
+                  const next = new Set(Array.from(prev));
+                  if (next.has(ds)) next.delete(ds);
+                  else next.add(ds);
+                  return next;
+                });
+              }
+        }
       />
 
       {!hideFooter && (
         <View style={styles.footer}>
           <Text style={styles.description}>
-            The White Days are the 13th, 14th and 15th of each Islamic month.
-            All other days are dimmed. Missed Ramadan and Mon/Thu fasts are
-            shown with their respective colours.
+            Tap the White Days (13th, 14th, 15th) you want to fast. You can
+            select one, two, or all three. Dates already planned for other
+            fasting goals are dimmed and cannot be selected.
           </Text>
           <TopSpace top={16} />
           <CalendarCountAndRamadanText
-            fastCount={whiteDayCount}
+            fastCount={selectedCount}
             countColor={Colors.light.white}
             title="White Days Fasts"
           />
           <TouchableOpacity
-            style={styles.saveBtn}
-            onPress={() => onSave?.(whiteDayCount)}
+            style={[
+              styles.saveBtn,
+              selectedCount === 0 && styles.saveBtnDisabled,
+            ]}
+            onPress={() => onSave?.(Array.from(selectedDates))}
             activeOpacity={0.8}
+            disabled={selectedCount === 0}
           >
             <Text style={styles.saveBtnText}>Save</Text>
           </TouchableOpacity>
@@ -181,6 +289,7 @@ const styles = StyleSheet.create({
   },
   legendRow: {
     flexDirection: "row",
+    flexWrap: "wrap",
     alignItems: "center",
     gap: 12,
   },
@@ -236,13 +345,6 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     fontFamily: fonts.primary.regular,
   },
-  count: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: Colors.light.white,
-    marginTop: 12,
-    fontFamily: fonts.primary.bold,
-  },
   saveBtn: {
     marginTop: 20,
     backgroundColor: Colors.light.green,
@@ -250,6 +352,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     alignItems: "center",
   },
+  saveBtnDisabled: { opacity: 0.4 },
   saveBtnText: {
     color: Colors.light.white,
     fontSize: 16,

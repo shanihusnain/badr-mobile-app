@@ -26,6 +26,14 @@ import {
   sunnahrawatibdetailimage,
   missedprayerdetailimage,
   shukarprayerdetailimage,
+  missedramadanfastsbottomsheetimage,
+  thefastsofprophetdawoodbottomsheetimage,
+  mondayandthursdayfastsbottomsheetimage,
+  whitedaysfastsbottomsheetimage,
+  quranlisteningbottomsheetimage,
+  quranrecitationbottomsheetimage,
+  quranmemorizationbottomsheetimage,
+  qurantajweedbottomsheetimage,
 } from "@/assets/images";
 import {
   TahiyyatWudhuEyeIcon,
@@ -59,6 +67,7 @@ import {
   ProphetDawoodBalanceIcon,
   MondayAndThursdayFastsHabitualIcon,
   MondayAndThursdayAllahRememberenceIcon,
+  DashBoardHandHeartIcon,
 } from "@/assets/icons";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
@@ -69,7 +78,16 @@ import {
   GoalReadMoreTextStyle,
 } from "@/src/translations/types";
 import { useGetPrayerDetailByType } from "@/src/api/queries/useGetPrayerDetailBytype";
-import { resolvePrayerUiId } from "@/src/utils/prayerGoalMap";
+import { useGetQuranDetailByType } from "@/src/api/queries/useGetQuranDetailByType";
+import { useGetFastingDetailByType } from "@/src/api/queries/useGetFastingDetailByType";
+import { isPrayerGoalKey, resolvePrayerUiId } from "@/src/utils/prayerGoalMap";
+import { isQuranGoalKey, resolveQuranUiId } from "@/src/utils/quranGoalMap";
+import {
+  isFastingGoalKey,
+  resolveFastingUiId,
+} from "@/src/utils/fastingGoalMap";
+import { getAccessToken } from "@/src/storage/tokenStorage";
+import { createReadMoreStyles, styles } from "./styles";
 type ReadMoreStyles = ReturnType<typeof createReadMoreStyles>;
 
 const getReadMoreTextStyle = (
@@ -113,7 +131,8 @@ const getReadMoreTextStyle = (
       return readMoreStyles.body;
   }
 };
-
+const token = getAccessToken();
+console.log("token", token);
 const renderParsedContent = (content: string) => {
   if (!content) return "";
   const regex = /(\*\*.*?\*\*|\*.*?\*)/g;
@@ -306,6 +325,8 @@ const renderReadMoreItem = (
       IconComp = MondayAndThursdayFastsHabitualIcon;
     else if (item.icon === "MondayAndThursdayAllahRememberenceIcon")
       IconComp = MondayAndThursdayAllahRememberenceIcon;
+    else if (item.icon === "DashBoardHandHeartIcon")
+      IconComp = DashBoardHandHeartIcon;
 
     if (IconComp) {
       let iconColor =
@@ -601,6 +622,8 @@ const renderReadMoreItem = (
     item.icon === "MondayAndThursdayAllahRememberenceIcon"
   )
     IconComponent = MondayAndThursdayAllahRememberenceIcon;
+  else if (item.type === "text" && item.icon === "DashBoardHandHeartIcon")
+    IconComponent = DashBoardHandHeartIcon;
   else if (
     item.style === "hadithQuoteLead" ||
     item.style === "bilalQuote" ||
@@ -682,6 +705,9 @@ const renderReadMoreItem = (
       } else if (item.icon === "MondayAndThursdayAllahRememberenceIcon") {
         iconColor = Colors.light.dullWhite;
         iconSize = 30;
+      } else if (item.icon === "DashBoardHandHeartIcon") {
+        iconColor = Colors.light.dullWhite;
+        iconSize = 30;
       }
     }
 
@@ -756,9 +782,32 @@ export const GoalDescriptionDetails = ({ goal }: { goal: string }) => {
   const isRtl = i18n.language === "ar";
   const navigation = useNavigation();
   const readMoreStyles = createReadMoreStyles();
-  const goalUiId = resolvePrayerUiId(goal);
+  const isPrayerGoal = isPrayerGoalKey(goal);
+  const isQuranGoal = isQuranGoalKey(goal);
+  const isFastingGoal = isFastingGoalKey(goal);
+  const goalUiId = isFastingGoal
+    ? resolveFastingUiId(goal)
+    : isQuranGoal
+      ? resolveQuranUiId(goal)
+      : resolvePrayerUiId(goal);
+
   const { data: prayerDetail, isLoading: isLoadingPrayerDetail } =
-    useGetPrayerDetailByType(goal);
+    useGetPrayerDetailByType(goal, { enabled: isPrayerGoal });
+  const { data: quranDetail, isLoading: isLoadingQuranDetail } =
+    useGetQuranDetailByType(goal, { enabled: isQuranGoal });
+  const { data: fastingDetail, isLoading: isLoadingFastingDetail } =
+    useGetFastingDetailByType(goal, { enabled: isFastingGoal });
+
+  const apiDetail = isFastingGoal
+    ? fastingDetail
+    : isQuranGoal
+      ? quranDetail
+      : prayerDetail;
+  const isLoadingDetail = isFastingGoal
+    ? isLoadingFastingDetail
+    : isQuranGoal
+      ? isLoadingQuranDetail
+      : isLoadingPrayerDetail;
 
   const localGoalInfo = (t(`goalsData.${goalUiId}`, {
     returnObjects: true,
@@ -766,22 +815,25 @@ export const GoalDescriptionDetails = ({ goal }: { goal: string }) => {
 
   const goalInfo: GoalInfo = {
     ...localGoalInfo,
-    ...(prayerDetail ?? {}),
-    title: prayerDetail?.title || localGoalInfo.title,
-    navTitle: prayerDetail?.navTitle || localGoalInfo.navTitle,
-    heroTitle: prayerDetail?.heroTitle || localGoalInfo.heroTitle,
-    description: prayerDetail?.description || localGoalInfo.description,
-    hadithIntro: prayerDetail?.hadithIntro || localGoalInfo.hadithIntro,
-    benefitsIntro: prayerDetail?.benefitsIntro || localGoalInfo.benefitsIntro,
+    ...(apiDetail ?? {}),
+    title: apiDetail?.title || localGoalInfo.title,
+    navTitle: apiDetail?.navTitle || localGoalInfo.navTitle,
+    heroTitle: apiDetail?.heroTitle || localGoalInfo.heroTitle,
+    description: apiDetail?.description || localGoalInfo.description,
+    hadithIntro: apiDetail?.hadithIntro || localGoalInfo.hadithIntro,
+    benefitsIntro: apiDetail?.benefitsIntro || localGoalInfo.benefitsIntro,
     benefits:
-      prayerDetail?.benefits && prayerDetail.benefits.length > 0
-        ? prayerDetail.benefits
+      apiDetail?.benefits && apiDetail.benefits.length > 0
+        ? apiDetail.benefits
         : localGoalInfo.benefits,
     steps:
-      prayerDetail?.steps && prayerDetail.steps.length > 0
-        ? prayerDetail.steps
+      apiDetail?.steps && apiDetail.steps.length > 0
+        ? apiDetail.steps
         : localGoalInfo.steps,
-    readMore: prayerDetail?.readMore,
+    readMore:
+      apiDetail?.readMore && apiDetail.readMore.length > 0
+        ? apiDetail.readMore
+        : localGoalInfo.readMore,
   };
 
   const steps = goalInfo.steps || [];
@@ -812,6 +864,17 @@ export const GoalDescriptionDetails = ({ goal }: { goal: string }) => {
     if (goalUiId === "sunnahRawatib") return sunnahrawatibdetailimage;
     if (goalUiId === "missedPastPrayers") return missedprayerdetailimage;
     if (goalUiId === "shukrPrayer") return shukarprayerdetailimage;
+    if (goalUiId === "quran-listening") return quranlisteningbottomsheetimage;
+    if (goalUiId === "quran-recitation") return quranrecitationbottomsheetimage;
+    if (goalUiId === "quran-memorization")
+      return quranmemorizationbottomsheetimage;
+    if (goalUiId === "quran-tajweed") return qurantajweedbottomsheetimage;
+    if (goalUiId === "missed-fasts") return missedramadanfastsbottomsheetimage;
+    if (goalUiId === "dawood-fasts")
+      return thefastsofprophetdawoodbottomsheetimage;
+    if (goalUiId === "monday-and-thursday-fasts")
+      return mondayandthursdayfastsbottomsheetimage;
+    if (goalUiId === "white-days-fasts") return whitedaysfastsbottomsheetimage;
     return Icon;
   };
 
@@ -826,7 +889,15 @@ export const GoalDescriptionDetails = ({ goal }: { goal: string }) => {
       goalUiId === "thayyat-ul-masjid" ||
       goalUiId === "sunnahRawatib" ||
       goalUiId === "missedPastPrayers" ||
-      goalUiId === "shukrPrayer"
+      goalUiId === "shukrPrayer" ||
+      goalUiId === "quran-listening" ||
+      goalUiId === "quran-recitation" ||
+      goalUiId === "quran-memorization" ||
+      goalUiId === "quran-tajweed" ||
+      goalUiId === "missed-fasts" ||
+      goalUiId === "dawood-fasts" ||
+      goalUiId === "monday-and-thursday-fasts" ||
+      goalUiId === "white-days-fasts"
     ) {
       return 380;
     }
@@ -835,10 +906,10 @@ export const GoalDescriptionDetails = ({ goal }: { goal: string }) => {
 
   const renderHeader = () => (
     <HeaderWithImageAndDescription
-      heroTitle={isLoadingPrayerDetail ? "---" : heroTitle}
-      navTitle={isLoadingPrayerDetail ? "---" : navTitle}
+      heroTitle={isLoadingDetail ? "---" : heroTitle}
+      navTitle={isLoadingDetail ? "---" : navTitle}
       description={
-        isLoadingPrayerDetail
+        isLoadingDetail
           ? "----------------------------------------------"
           : description
       }
@@ -896,312 +967,3 @@ export const GoalDescriptionDetails = ({ goal }: { goal: string }) => {
     </View>
   );
 };
-
-const createReadMoreStyles = () =>
-  StyleSheet.create({
-    body: {
-      color: Colors.light.white,
-      fontFamily: fonts.primary.regular,
-      fontWeight: "400",
-      fontSize: 14,
-      lineHeight: 20,
-      letterSpacing: 0.1,
-      alignSelf: "flex-start",
-      width: "100%",
-    },
-    bodyTight: {
-      color: Colors.light.white,
-      fontFamily: fonts.primary.regular,
-      fontWeight: "400",
-      fontSize: 14,
-      lineHeight: 20,
-      letterSpacing: -0.3,
-      alignSelf: "flex-start",
-      width: "100%",
-    },
-    bodyMediumTight: {
-      color: Colors.light.white,
-      fontFamily: fonts.primary.regular,
-      fontWeight: "400",
-      fontSize: 14,
-      lineHeight: 20,
-      letterSpacing: -0.2,
-      alignSelf: "flex-start",
-      width: "100%",
-    },
-    bodyZero: {
-      color: Colors.light.white,
-      fontFamily: fonts.primary.regular,
-      fontWeight: "400",
-      fontSize: 14,
-      lineHeight: 20,
-      letterSpacing: 0,
-      alignSelf: "flex-start",
-      width: "100%",
-    },
-    tableGuide: {
-      color: Colors.light.white,
-      fontFamily: fonts.primary.regular,
-      fontWeight: "400",
-      fontSize: 14,
-      lineHeight: 20,
-      letterSpacing: -0.1,
-      alignSelf: "flex-start",
-      width: "100%",
-    },
-    sectionHeading: {
-      color: Colors.light.white,
-      fontFamily: fonts.primary.semiBold,
-      fontWeight: "600",
-      fontSize: 16,
-      lineHeight: 20,
-      letterSpacing: 0,
-      alignSelf: "flex-start",
-      width: "100%",
-      marginBottom: 4,
-    },
-    prayerHeading: {
-      color: Colors.light.white,
-      fontFamily: fonts.primary.semiBold,
-      fontWeight: "600",
-      fontSize: 14,
-      lineHeight: 20,
-      letterSpacing: 0,
-      alignSelf: "flex-start",
-      width: "100%",
-      marginBottom: 6,
-    },
-    quoteItalic: {
-      color: Colors.light.white,
-      fontFamily: fonts.primary.regularItalic,
-      fontWeight: "400",
-      fontStyle: "italic",
-      fontSize: 14,
-      lineHeight: 20,
-      letterSpacing: -0.1,
-      alignSelf: "flex-start",
-      width: "100%",
-    },
-    quoteSemibold: {
-      color: Colors.light.white,
-      fontFamily: fonts.primary.semiBold,
-      fontWeight: "600",
-      fontSize: 14,
-      lineHeight: 20,
-      letterSpacing: 0.1,
-      alignSelf: "flex-start",
-      width: "100%",
-    },
-    quoteMediumItalic: {
-      color: Colors.light.white,
-      fontFamily: fonts.primary.mediumItalic,
-      fontWeight: "500",
-      fontStyle: "italic",
-      fontSize: 14,
-      lineHeight: 20,
-      letterSpacing: -0.1,
-      alignSelf: "flex-start",
-      width: "100%",
-    },
-    hadithQuoteLead: {
-      color: Colors.light.white,
-      fontSize: 14,
-      fontWeight: "500",
-      fontStyle: "italic",
-      lineHeight: 22,
-      alignSelf: "flex-start",
-      width: "100%",
-    },
-    hadithQuoteLight: {
-      color: Colors.light.white,
-      fontFamily: fonts.primary.lightItalic,
-      fontSize: 14,
-      fontWeight: "400",
-      fontStyle: "italic",
-      lineHeight: 22,
-      alignSelf: "flex-start",
-      width: "100%",
-      marginBottom: 12,
-    },
-    wuduBody: {
-      color: Colors.light.white,
-      fontFamily: fonts.primary.regular,
-      fontWeight: "400",
-      fontSize: 14,
-      lineHeight: 22,
-      alignSelf: "flex-start",
-      width: "100%",
-    },
-    wuduBodySpaced: {
-      color: Colors.light.white,
-      fontFamily: fonts.primary.regular,
-      fontWeight: "400",
-      fontSize: 14,
-      lineHeight: 22,
-      alignSelf: "flex-start",
-      width: "100%",
-      marginTop: 16,
-    },
-    bilalQuote: {
-      color: Colors.light.white,
-      fontFamily: fonts.primary.medium,
-      fontWeight: "500",
-      fontStyle: "italic",
-      fontSize: 14,
-      lineHeight: 20,
-      letterSpacing: -0.1,
-      alignSelf: "flex-start",
-      width: "100%",
-      marginTop: 12,
-    },
-    bilalQuoteLight: {
-      color: Colors.light.white,
-      fontFamily: fonts.primary.regular,
-      fontWeight: "400",
-      fontStyle: "italic",
-      fontSize: 14,
-      lineHeight: 20,
-      letterSpacing: -0.1,
-      alignSelf: "flex-start",
-      width: "100%",
-    },
-    bilalReply: {
-      color: Colors.light.white,
-      fontFamily: fonts.primary.regular,
-      fontWeight: "400",
-      fontSize: 14,
-      lineHeight: 20,
-      letterSpacing: 0.1,
-      alignSelf: "flex-start",
-      width: "100%",
-      marginTop: 12,
-    },
-    bilalReplyQuote: {
-      fontFamily: fonts.primary.regular,
-      fontWeight: "400",
-      fontStyle: "italic",
-      fontSize: 14,
-      lineHeight: 20,
-      letterSpacing: 0.1,
-      color: Colors.light.white,
-    },
-    benefitSection: {
-      width: "100%",
-      alignSelf: "flex-start",
-      flexDirection: "row",
-      alignItems: "flex-start",
-    },
-    benefitHeading: {
-      color: Colors.light.white,
-      fontSize: 14,
-      fontFamily: fonts.primary.semiBold,
-      fontWeight: "600",
-      lineHeight: 22,
-      alignSelf: "flex-start",
-      marginBottom: 4,
-    },
-    benefitDescription: {
-      color: Colors.light.white,
-      fontSize: 14,
-      fontFamily: fonts.primary.regular,
-      fontWeight: "400",
-      lineHeight: 22,
-      alignSelf: "flex-start",
-      width: "100%",
-    },
-    blockSpacing: {
-      marginTop: 12,
-    },
-    quoteSpacing: {
-      marginTop: 8,
-    },
-    prayerSection: {
-      width: "100%",
-      marginTop: 16,
-      alignSelf: "flex-start",
-    },
-    prayerSectionFirst: {
-      marginTop: 0,
-    },
-    prayerDescription: {
-      marginTop: 0,
-    },
-    tableContainer: {
-      width: "100%",
-      borderWidth: 1,
-      borderColor: Colors.light.white,
-      borderRadius: 1,
-      overflow: "hidden",
-      marginTop: 12,
-    },
-    tableHeaderRow: {
-      flexDirection: "row",
-      //backgroundColor: "rgba(255, 255, 255, 0.08)",
-      borderBottomWidth: 1,
-      borderColor: Colors.light.white,
-    },
-    tableHeaderCell: {
-      flex: 1,
-      paddingVertical: 10,
-      paddingHorizontal: 4,
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    tableHeaderText: {
-      color: Colors.light.white,
-      fontFamily: fonts.primary.semiBold,
-      fontWeight: "600",
-      fontSize: 10,
-      textAlign: "center",
-      lineHeight: 12,
-    },
-    tableHeaderSubText: {
-      color: Colors.light.white,
-      fontFamily: fonts.primary.regular,
-      fontWeight: "400",
-      fontSize: 8,
-      textAlign: "center",
-      lineHeight: 10,
-      marginTop: 2,
-    },
-    tableRow: {
-      flexDirection: "row",
-    },
-    tableCell: {
-      flex: 1,
-      paddingVertical: 10,
-      paddingHorizontal: 4,
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    tableCellTextWord: {
-      color: Colors.light.white,
-      fontFamily: fonts.primary.semiBold,
-      fontWeight: "600",
-      fontSize: 10,
-      textAlign: "center",
-      lineHeight: 12,
-    },
-    tableCellTextCount: {
-      color: Colors.light.white,
-      fontFamily: fonts.primary.semiBold,
-      fontWeight: "600",
-      fontSize: 12,
-      textAlign: "center",
-      lineHeight: 14,
-    },
-    borderRightWhite: {
-      borderRightWidth: 1,
-      borderColor: Colors.light.white,
-    },
-    borderBottomWhite: {
-      borderBottomWidth: 1,
-      borderColor: Colors.light.white,
-    },
-  });
-
-const styles = StyleSheet.create({
-  scrollContent: {
-    paddingBottom: 24,
-  },
-});

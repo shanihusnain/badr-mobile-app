@@ -24,6 +24,7 @@ export const useTogglePrayerGoalByType = () => {
     mutationFn: togglePrayerGoalByType,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["all-prayer-goals"] });
+      queryClient.invalidateQueries({ queryKey: ["goal-cycle"] });
     },
     onError: (error: any) => {
       showToast("error", error.response?.data?.message);

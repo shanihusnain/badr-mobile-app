@@ -35,9 +35,11 @@ export const MetricSelectionComponent = ({
   initialSelectedSurahs,
   initialSurahSettings,
   initialJuzRange,
-  initialSelectedHizb,
+  initialSelectedHizbs,
   initialCompletion,
   isLoadingOptions,
+  onDeleteSavedItem,
+  isDeletingItem,
 }: {
   item: {
     id: number;
@@ -56,19 +58,23 @@ export const MetricSelectionComponent = ({
     { frequency: "daily" | "weekly"; times: number }
   >;
   initialJuzRange?: { start: number; end: number } | null;
-  initialSelectedHizb?: number;
+  initialSelectedHizbs?: number[];
   initialCompletion?: number;
   isLoadingOptions?: boolean;
+  /** Persist delete for an item already saved on the server. */
+  onDeleteSavedItem?: (args: {
+    itemType: "SURAH" | "JUZ" | "HIZB" | "COMPLETION";
+    itemNumber: number;
+  }) => Promise<void>;
+  isDeletingItem?: boolean;
 }) => {
   const { t } = useTranslation();
   const isMemorizationSurah =
     variant === "memorization" && item.name === "surah";
+
   const isActiveMetric = selectedMetric === item.name;
   const [selectedSurahs, setSelectedSurahs] = useState<number[]>([]);
   const [selectedHizbs, setSelectedHizbs] = useState<number[]>([]);
-  const [selectedHizb, setSelectedHizb] = useState<number | undefined>(
-    undefined,
-  );
   const surahData = surahOptions ?? EMPTY_SURAHS;
   const hizbData = hizbOptions ?? EMPTY_HIZBS;
   const hydratedForTypeRef = useRef<string | null>(null);
@@ -102,7 +108,7 @@ export const MetricSelectionComponent = ({
     const hydrateKey = [
       item.name,
       (initialSelectedSurahs ?? []).join(","),
-      initialSelectedHizb ?? "",
+      (initialSelectedHizbs ?? []).join(","),
       initialJuzRange?.start ?? "",
       initialJuzRange?.end ?? "",
       initialCompletion ?? "",
@@ -124,8 +130,8 @@ export const MetricSelectionComponent = ({
       setJuzEnd(initialJuzRange.end);
       setJuzEndText(String(initialJuzRange.end));
     }
-    if (initialSelectedHizb != null) {
-      setSelectedHizb(initialSelectedHizb);
+    if (initialSelectedHizbs?.length) {
+      setSelectedHizbs(initialSelectedHizbs);
     }
     if (initialCompletion != null && initialCompletion > 0) {
       setQuranCompletion(initialCompletion);
@@ -137,7 +143,7 @@ export const MetricSelectionComponent = ({
     initialSelectedSurahs,
     initialSurahSettings,
     initialJuzRange,
-    initialSelectedHizb,
+    initialSelectedHizbs,
     initialCompletion,
     surahData.length,
     hizbData.length,
@@ -181,12 +187,19 @@ export const MetricSelectionComponent = ({
   };
 
   const toggleHizb = (id: number) => {
-    setSelectedHizb((prev) => (prev === id ? undefined : id));
     setSelectedHizbs((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [id],
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
   };
-  const deleteSurah = (id: number) => {
+  const deleteSurah = async (id: number) => {
+    const wasSaved = (initialSelectedSurahs ?? []).includes(id);
+    if (wasSaved && onDeleteSavedItem) {
+      try {
+        await onDeleteSavedItem({ itemType: "SURAH", itemNumber: id });
+      } catch {
+        return;
+      }
+    }
     setSelectedSurahs((prev) => prev.filter((x) => x !== id));
     setSurahSettings((prev) => {
       const copy = { ...prev };
@@ -194,6 +207,38 @@ export const MetricSelectionComponent = ({
       return copy;
     });
   };
+
+  const clearJuzSelection = async () => {
+    const savedStart = initialJuzRange?.start ?? 0;
+    const savedEnd = initialJuzRange?.end ?? savedStart;
+    if (onDeleteSavedItem && savedStart > 0 && savedEnd > 0) {
+      try {
+        for (let n = savedStart; n <= savedEnd; n += 1) {
+          await onDeleteSavedItem({ itemType: "JUZ", itemNumber: n });
+        }
+      } catch {
+        return;
+      }
+    }
+    setJuzStart(0);
+    setJuzEnd(0);
+    setJuzEndText("");
+  };
+
+  const clearCompletionSelection = async () => {
+    if (onDeleteSavedItem && (initialCompletion ?? 0) > 0) {
+      try {
+        await onDeleteSavedItem({
+          itemType: "COMPLETION",
+          itemNumber: initialCompletion || quranCompletion || 1,
+        });
+      } catch {
+        return;
+      }
+    }
+    setQuranCompletion(0);
+  };
+
   const enforceJuzEnd = () => {
     if (juzEndText === "") {
       setJuzEnd(0);
@@ -236,9 +281,17 @@ export const MetricSelectionComponent = ({
       return;
     }
     if (item.name === "juz") {
+      const start =
+        displayJuzStart && displayJuzStart > 0
+          ? displayJuzStart
+          : displayJuzEnd && displayJuzEnd > 0
+            ? 1
+            : 0;
+      const end =
+        displayJuzEnd && displayJuzEnd > 0 ? displayJuzEnd : start;
       onMetricChangeRef.current({
         metric: "juz",
-        value: { start: displayJuzStart ?? 0, end: displayJuzEnd ?? 0 },
+        value: { start, end },
       });
       return;
     }
@@ -252,7 +305,7 @@ export const MetricSelectionComponent = ({
     if (item.name === "hizb") {
       onMetricChangeRef.current({
         metric: "hizb",
-        value: { selectedHizb },
+        value: { selectedHizbs },
       });
     }
   }, [
@@ -264,7 +317,7 @@ export const MetricSelectionComponent = ({
     displayJuzStart,
     displayJuzEnd,
     quranCompletion,
-    selectedHizb,
+    selectedHizbs,
     surahData,
   ]);
   return (
@@ -451,12 +504,14 @@ export const MetricSelectionComponent = ({
                         </Text>
                         <Pressable
                           onPress={() => {
-                            deleteSurah(s.id);
+                            void deleteSurah(s.id);
                           }}
+                          disabled={isDeletingItem}
                           style={{
                             position: "absolute",
                             right: 0,
                             top: 0,
+                            opacity: isDeletingItem ? 0.5 : 1,
                           }}
                           hitSlop={8}
                         >
@@ -555,7 +610,14 @@ export const MetricSelectionComponent = ({
               >
                 {t("monthlyGoalPlanner.quranMetrics.juzRangeHint")}
               </Text>
-              <Pressable>
+              <Pressable
+                onPress={() => {
+                  void clearJuzSelection();
+                }}
+                disabled={isDeletingItem}
+                style={{ opacity: isDeletingItem ? 0.5 : 1 }}
+                hitSlop={8}
+              >
                 <FontAwesome
                   name="trash-o"
                   size={24}
@@ -583,7 +645,7 @@ export const MetricSelectionComponent = ({
                 {t("monthlyGoalPlanner.quranMetrics.fromJuz")}
               </Text>
               <TextInput
-                value={juzStart !== undefined ? String(juzStart) : ""}
+                value={juzStart > 0 ? String(juzStart) : ""}
                 onChangeText={(v) => {
                   // allow clearing the field
                   if (v === "") {
@@ -594,7 +656,7 @@ export const MetricSelectionComponent = ({
                   const digits = v.replace(/[^0-9]/g, "");
                   const n = parseInt(digits, 10);
                   if (Number.isNaN(n)) {
-                    setJuzEnd(0);
+                    setJuzStart(0);
                     return;
                   }
                   // clamp to valid juz range 1-30
@@ -602,7 +664,7 @@ export const MetricSelectionComponent = ({
                   setJuzStart(clamped);
                   // if end is set and less than new start, bump end to match start
                   setJuzEnd((prev) =>
-                    prev === undefined ? prev : Math.max(prev, clamped),
+                    prev > 0 ? Math.max(prev, clamped) : prev,
                   );
                 }}
                 keyboardType="numeric"
@@ -712,7 +774,14 @@ export const MetricSelectionComponent = ({
               >
                 {t("monthlyGoalPlanner.quranMetrics.enterUpToCompletions")}
               </Text>
-              <Pressable>
+              <Pressable
+                onPress={() => {
+                  void clearCompletionSelection();
+                }}
+                disabled={isDeletingItem}
+                style={{ opacity: isDeletingItem ? 0.5 : 1 }}
+                hitSlop={8}
+              >
                 <FontAwesome
                   name="trash-o"
                   size={24}
@@ -779,7 +848,7 @@ export const MetricSelectionComponent = ({
               <Text style={styles.emptyOptionsText}>No hizb available</Text>
             }
             renderItem={({ item }) => {
-              const checked = selectedHizb === item.id;
+              const checked = selectedHizbs.includes(item.id);
 
               return (
                 <Pressable

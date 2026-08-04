@@ -1,0 +1,509 @@
+{
+  "endpoint": "GET api/goal-cycles/current/fasting-goals/:fastingType",
+  "notes": [
+    "Return the matching payload.data for each :fastingType.",
+    "Images stay on mobile — do not send image URLs unless agreed later.",
+    "Icons referenced in readMore are resolved on mobile by name.",
+    "readMore item types: text | benefit | prayerSection | replyWithQuote | boldPrefixText | boldSuffixText | table",
+    "text.style values: body | bodyTight | bodyMediumTight | bodyZero | tableGuide | sectionHeading | prayerHeading | quoteItalic | quoteSemibold | quoteMediumItalic | hadithQuoteLead | hadithQuoteLight | wuduBody | wuduBodySpaced | bilalQuote | bilalQuoteLight",
+    "Valid :fastingType values: MISSED_RAMADAN | PROPHET_DAWOOD | MONDAY_THURSDAY | WHITE_DAYS",
+    "This is the description/content shape for GoalDescriptionDetails — separate from cycle config (targetCount, plannedDates, dawoodStartDay) when those are returned on the same endpoint.",
+    "If description content and cycle config share one GET, merge both into data.",
+    "Arabic (ar) content can follow the same shape later."
+  ],
+  "uiIdByFastingType": {
+    "MISSED_RAMADAN": "missed-fasts",
+    "PROPHET_DAWOOD": "dawood-fasts",
+    "MONDAY_THURSDAY": "monday-and-thursday-fasts",
+    "WHITE_DAYS": "white-days-fasts"
+  },
+  "examplesByFastingType": {
+    "MISSED_RAMADAN": {
+      "success": true,
+      "statusCode": 200,
+      "message": "Success",
+      "data": {
+        "fastingType": "MISSED_RAMADAN",
+        "isActive": false,
+        "title": "MISSED RAMADAN FASTS",
+        "navTitle": "MISSED RAMADAN FASTS",
+        "heroTitle": "Fulfilling obligations for spiritual growth",
+        "description": "By making up missed fasts, we honor our religious duty, reinforce our faith, nurture spiritual resilience, and deepen our connection with Allah.",
+        "hadithIntro": "",
+        "benefitsIntro": "",
+        "benefits": [],
+        "steps": [
+          "Step 1: Count Your Missed Days - List down the number of obligatory Ramadan fasts you missed due to travel, illness, or other valid reasons.",
+          "Step 2: Set the Intention - Formulate the intention (Niyyah) to make up a missed Ramadan fast before dawn.",
+          "Step 3: Observe the Fast - Abstain from food, drink, and invalidators from dawn to sunset.",
+          "Step 4: Mark Your Completion - Break your fast with dates or water, and log it to track your remaining makeup days."
+        ],
+        "readMore": [
+          {
+            "items": [
+              {
+                "type": "text",
+                "style": "sectionHeading",
+                "content": "Aligning with Divine Guidance"
+              },
+              {
+                "type": "text",
+                "style": "tableGuide",
+                "icon": "MissedRamadanFastsHandsIcon",
+                "content": "Fasting is a profound spiritual journey that nurtures the soul while fostering self-discipline, empathy, and spiritual growth. It reminds us to cherish overlooked blessings, avoid excess, and detach from worldly desires.\n\nFasting also encourages patience and resilience, prompting reflection on our purpose, cleansing of material attachments, and renewal of our commitment to spiritual and ethical values. Through this mindful practice, we draw closer to Allah, cultivating gratitude and humility."
+              }
+            ]
+          },
+          {
+            "items": [
+              {
+                "type": "text",
+                "style": "sectionHeading",
+                "content": "How to Make Up Missed Fasts"
+              },
+              {
+                "type": "boldSuffixText",
+                "suffix": "Surah Al-Baqarah (2:185):",
+                "content": "Life’s unpredictability can sometimes interrupt the sacred practice of fasting, leading to missed fasts due to illness, travel, or other valid reasons. In His infinite wisdom, Allah provides guidance in",
+                "style": "body",
+                "icon": "MissedRamadanFastsPlatesIcon"
+              },
+              {
+                "type": "text",
+                "style": "quoteSemibold",
+                "icon": "QuranImageIcon",
+                "content": "“And whoever is ill or on a journey, the same number of days which one did not observe fasts must be made up from other days.”"
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "This verse beautifully balances spiritual commitment with compassion, reminding us that while the obligation remains, Islam accommodates life’s challenges.\n\nThe primary method of making up missed fasts is to fast an equivalent number of days before the next Ramadan. Aisha (RA) narrated that women were required to make up missed fasts but not prayers, reflecting Islam’s merciful approach to obligations. Each day of fasting becomes a renewal of the spiritual growth experienced during Ramadan, fostering a deeper connection with Allah."
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "The Prophet (PBUH) described fasting as a shield, stating:"
+              },
+              {
+                "type": "text",
+                "style": "quoteMediumItalic",
+                "icon": "HadeethBookIcon",
+                "content": "\"Fasting is a shield against the Fire like the shield of any one of you in battle.\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "Furthermore, in a Hadith Qudsi, Allah says:"
+              },
+              {
+                "type": "text",
+                "style": "quoteSemibold",
+                "icon": "QuranImageIcon",
+                "content": "\"Every deed of the son of Adam is for him except fasting; it is for Me, and I shall reward for it.”"
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "This profound statement underscores the unique and intimate nature of fasting. Unlike other deeds, fasting is a personal commitment, hidden from others and free from recognition. It is an act of pure sincerity, performed solely for Allah’s pleasure, with a reward known and bestowed only by Him."
+              }
+            ]
+          },
+          {
+            "items": [
+              {
+                "type": "text",
+                "style": "sectionHeading",
+                "content": "Fidya and Kaffarah: Making Amends for Missed Fasts"
+              },
+              {
+                "type": "text",
+                "style": "bodyTight",
+                "content": "Intentionally missing a fast without a valid reason is a serious matter in Islam, requiring sincere repentance and corrective action. For such cases, kaffarah is prescribed as expiation, involving fasting two consecutive months or feeding sixty needy people. This approach serves as both personal atonement and a means of benefiting the community.\n\nFor those unable to fast due to valid, permanent reasons such as chronic illness, fidya is prescribed. This involves feeding a needy person for each missed fast, reflecting Islam’s compassion and focus on social welfare.\n\nThese acts of redemption—kaffarah for intentional violations and fidya for valid exemptions—highlight the balance between accountability and mercy in Islam. By fulfilling these obligations with sincerity, we seek Allah’s forgiveness, foster personal growth, and strengthen the bonds of the Muslim ummah."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "PROPHET_DAWOOD": {
+      "success": true,
+      "statusCode": 200,
+      "message": "Success",
+      "data": {
+        "fastingType": "PROPHET_DAWOOD",
+        "isActive": false,
+        "title": "THE FAST OF PROPHET DAWOOD",
+        "navTitle": "THE FAST OF PROPHET DAWOOD (DAVID)",
+        "heroTitle": "A Testament to Devotion & Spiritual Resilience",
+        "description": "The fast of Dawood (PBUH), observed everyother day, exemplifies devotion, patience, and resilience, serving as a timeless model of piety for Muslims.",
+        "hadithIntro": "",
+        "benefitsIntro": "",
+        "benefits": [],
+        "steps": [],
+        "readMore": [
+          {
+            "items": [
+              {
+                "type": "text",
+                "style": "sectionHeading",
+                "content": "The Significance of Dawood's Fasts"
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "Prophet Dawood’s (PBUH) fasting is highly esteemed in Islam, valued for its spiritual discipline and ability to strengthen one’s connection with Allah, serving as a profound example of devotion. The Prophet (PBUH) emphasized its significance by stating:"
+              },
+              {
+                "type": "text",
+                "style": "quoteItalic",
+                "icon": "HadeethBookIcon",
+                "content": "\"The most beloved fasting to Allah is the fasting of Dawood; he would fast one day and break it the next.\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "Engaging in Dawood's fasts offers a multitude of benefits, enhancing both spiritual and personal growth:"
+              },
+              {
+                "type": "boldPrefixText",
+                "prefix": "Connection with Allah:",
+                "content": "Deepens our bond with Allah and nurtures faith, fostering a profound spiritual connection through consistent devotion and worship.",
+                "style": "body",
+                "icon": "ProphetDawoodFastsConnectionWithAllah"
+              },
+              {
+                "type": "boldPrefixText",
+                "prefix": "Fulfilling a Sunnah:",
+                "content": "Revives a Sunnah of the Prophet, grounding the practice in tradition and offering an additional layer of spiritual fulfillment.",
+                "style": "body",
+                "icon": "ProphetDawoodFastsMoonAndHandIcon"
+              },
+              {
+                "type": "boldPrefixText",
+                "prefix": "Spiritual Resilience:",
+                "content": "Strengthens commitment and steadfastness, ensuring devotion remains central while purifying the heart and sharpening focus.",
+                "style": "body",
+                "icon": "ProphetDawoodFastsHeartIcon"
+              },
+              {
+                "type": "boldPrefixText",
+                "prefix": "Mindfulness:",
+                "content": "Encourages awareness of actions and thoughts, fostering mindfulness and self-reflection while renewing spiritual focus.",
+                "style": "body",
+                "icon": "ProphetDawoodMindfullnessIcon"
+              },
+              {
+                "type": "boldPrefixText",
+                "prefix": "Gratitude:",
+                "content": "Inspires reflection and gratitude for blessings, cultivating a positive outlook and reinforcing a thankful heart.",
+                "style": "body",
+                "icon": "ProphetDawoodGratitudeIcon"
+              },
+              {
+                "type": "boldPrefixText",
+                "prefix": "Mental Fortitude:",
+                "content": "Builds self-control and willpower, fostering a mindset of dedication that extends to all aspects of life.",
+                "style": "body",
+                "icon": "ProphetDawoodMentalHealthIcon"
+              },
+              {
+                "type": "boldPrefixText",
+                "prefix": "Physical Detoxification:",
+                "content": "Supports body cleansing and detoxification, promoting health, vitality, and a robust, energetic lifestyle.",
+                "style": "body",
+                "icon": "ProphetDawoodHeartBreakIcon"
+              },
+              {
+                "type": "boldPrefixText",
+                "prefix": "Personal Development:",
+                "content": "Encourages time management and planning, helping to maintain a stable, balanced, and organized life.",
+                "style": "body",
+                "icon": "ProphetDawoodPersonalDevelopmentIcon"
+              },
+              {
+                "type": "boldPrefixText",
+                "prefix": "Balance in Life:",
+                "content": "Highlights the importance of harmony, promoting consistency and balance across all aspects of life.",
+                "style": "body",
+                "icon": "ProphetDawoodBalanceIcon"
+              },
+              {
+                "type": "text",
+                "style": "tableGuide",
+                "content": "Through these multifaceted benefits, Dawood's fasts represent a perfect harmony of devotion, discipline, and growth, offering a transformative path for Muslims striving to enrich their spiritual journey."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "MONDAY_THURSDAY": {
+      "success": true,
+      "statusCode": 200,
+      "message": "Success",
+      "data": {
+        "fastingType": "MONDAY_THURSDAY",
+        "isActive": false,
+        "title": "MONDAYS & THURSDAYS FASTS",
+        "navTitle": "MONDAYS & THURSDAYS FASTS",
+        "heroTitle": "Spiritual Strength & Consistent Devotion",
+        "description": "Fasting on Mondays and Thursdays, a Sunnah of the Prophet (PBUH), offers structured opportunities to foster spiritual growth and deepen our connection with Allah.",
+        "hadithIntro": "",
+        "benefitsIntro": "",
+        "benefits": [],
+        "steps": [],
+        "readMore": [
+          {
+            "items": [
+              {
+                "type": "text",
+                "style": "sectionHeading",
+                "content": "Importance of Monday & Thursday Fasts"
+              },
+              {
+                "type": "text",
+                "style": "bodyZero",
+                "content": "As believers, we are reminded of the importance of accountability and self-reflection in our spiritual journey. Fasting on Mondays and Thursdays embodies this principle, as the Prophet (PBUH) said:"
+              },
+              {
+                "type": "text",
+                "style": "quoteItalic",
+                "icon": "HadeethBookIcon",
+                "content": "\"Deeds are presented on Mondays and Thursdays, so I love that my deeds be presented while I am fasting\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "This practice aligns with the divine review of deeds, offering a unique opportunity for repentance and the pursuit of Allah's favor. Regular fasting on these days not only brings immense spiritual rewards but also fosters a deeper connection with our Creator.\n\nOver time, as we embrace this routine, fasting transitions from a challenge to a cherished act of devotion. The initial difficulties fade, replaced by a profound sense of ease, commitment, and spiritual fulfillment.\n\nAt its core, fasting is an act of purification—a deliberate effort to cleanse the soul from worldly distractions and redirect the heart toward Allah. The Quran beautifully captures this transformative essence:"
+              },
+              {
+                "type": "boldPrefixText",
+                "prefix": "Surah Al-Baqarah (2:183):",
+                "content": "",
+                "style": "body"
+              },
+              {
+                "type": "text",
+                "style": "quoteSemibold",
+                "icon": "QuranImageIcon",
+                "content": "\"O you who have believed, decreed upon you is fasting as it was decreed upon those before you that you may become righteous.\""
+              },
+              {
+                "type": "boldPrefixText",
+                "prefix": "Surah Al-Baqarah (2:184):",
+                "content": "Further reinforcing this:",
+                "style": "body"
+              },
+              {
+                "type": "text",
+                "style": "quoteSemibold",
+                "icon": "QuranImageIcon",
+                "content": "\"And if you fast, it is better for you, if you only knew.\""
+              }
+            ]
+          },
+          {
+            "items": [
+              {
+                "type": "text",
+                "style": "body",
+                "content": "The following are key spiritual benefits of fasting on Mondays & Thursdays:"
+              },
+              {
+                "type": "boldPrefixText",
+                "prefix": "Cultivation of Habitual Worship:",
+                "content": "Develops spiritual discipline, making other fasting days—like Ramadan—easier and more spiritually enriching.",
+                "style": "body",
+                "icon": "MondayAndThursdayFastsHabitualIcon"
+              },
+              {
+                "type": "boldPrefixText",
+                "prefix": "Purification of the Heart:",
+                "content": "Cleanses the heart, removing worldly distractions and removing worldly distractions and fostering a soul deeply connected to the divine.",
+                "style": "body",
+                "icon": "ProphetDawoodFastsHeartIcon"
+              },
+              {
+                "type": "boldPrefixText",
+                "prefix": "Increased Remembrance of Allah:",
+                "content": "Aligns the mind and heart with Allah, encouraging a constant state of worship and reflection.",
+                "style": "body",
+                "icon": "MondayAndThursdayAllahRememberenceIcon"
+              },
+              {
+                "type": "boldPrefixText",
+                "prefix": "Growth in Patience & Resilience:",
+                "content": "Builds patience and resilience, enabling us to face life’s challenges with unwavering strength.",
+                "style": "body",
+                "icon": "ProphetDawoodMentalHealthIcon"
+              },
+              {
+                "type": "boldPrefixText",
+                "prefix": "Encouragement of Good Deeds:",
+                "content": "Inspires acts of kindness and charity, strengthening community bonds and fostering unity.",
+                "style": "body",
+                "icon": "DashBoardHandHeartIcon"
+              },
+              {
+                "type": "text",
+                "style": "bodyZero",
+                "content": "By fasting on Mondays and Thursdays, Muslims fulfill a Sunnah while cultivating spiritual resilience, purifying the heart, and deepening their remembrance of Allah, reaping countless spiritual and physical rewards."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "WHITE_DAYS": {
+      "success": true,
+      "statusCode": 200,
+      "message": "Success",
+      "data": {
+        "fastingType": "WHITE_DAYS",
+        "isActive": false,
+        "title": "WHITE DAYS FASTS",
+        "navTitle": "WHITE DAYS FASTS",
+        "heroTitle": "Aligning with Celestial Harmony",
+        "description": "Fasting on the White Days, the 13th, 14th, and 15th of each Islamic month, strengthens your connection with Allah, fosters discipline, and cultivates deep spiritual growth.",
+        "hadithIntro": "",
+        "benefitsIntro": "",
+        "benefits": [],
+        "steps": [],
+        "readMore": [
+          {
+            "items": [
+              {
+                "type": "text",
+                "style": "sectionHeading",
+                "content": "Spiritual Importance of Fasting on the White Days"
+              },
+              {
+                "type": "text",
+                "style": "bodyMediumTight",
+                "content": "Fasting on the White Days is a Sunnah of Prophet (PBUH) that nurtures faith , detachment from worldly desires, and a closer connection to Allah. This practice harmonizes spiritual and physical benefits with the lunar cycle."
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "Abu Hurairah (RA) narrated that the Prophet (PBUH) said:"
+              },
+              {
+                "type": "text",
+                "style": "quoteMediumItalic",
+                "icon": "HadeethBookIcon",
+                "content": "\"If you fast three days of the month, then fast the 13th, 14th, and 15th.\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "The Prophet (PBUH) further emphasized the significance of fasting three days each month, stating:"
+              },
+              {
+                "type": "text",
+                "style": "quoteMediumItalic",
+                "icon": "HadeethBookIcon",
+                "content": "\"Fasting three days of each month is like fasting for a lifetime.\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "This profound statement highlights the immense spiritual rewards and the unique status of this practice in Islam. Ibn Abbas (RA), a close companion of the Prophet (PBUH), also narrated:"
+              },
+              {
+                "type": "text",
+                "style": "quoteMediumItalic",
+                "icon": "HadeethBookIcon",
+                "content": "\"The Messenger of Allah never missed fasting the white days, whether at home or on a journey.\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "In a Hadith Qudsi, Allah Himself declares:"
+              },
+              {
+                "type": "text",
+                "style": "quoteSemibold",
+                "content": "\"Every good deed of Adam’s son is for him except fasting; it is for Me, and I shall reward for it.\""
+              },
+              {
+                "type": "text",
+                "style": "bodyZero",
+                "content": "These teachings collectively underscore the transformative power of fasting during these luminous days. They invite Muslims to embrace this sacred practice as a means of spiritual elevation, self-purification, and a deeper closeness to Allah."
+              }
+            ]
+          },
+          {
+            "items": [
+              {
+                "type": "text",
+                "style": "sectionHeading",
+                "content": "Quranic Insights on the Moon"
+              },
+              {
+                "type": "boldSuffixText",
+                "content": "Fasting during the White Days connects believers to the moon’s radiant phases, symbolizing reflection and spiritual awakening. The Quran beautifully highlights the moon’s significance in",
+                "suffix": "Surah Yunus (10:5):",
+                "style": "bodyMediumTight"
+              },
+              {
+                "type": "text",
+                "style": "quoteSemibold",
+                "icon": "QuranImageIcon",
+                "content": "\"It is He who made the sun a shining light and the moon a reflected light, and determined phases for it so that you may know the number of years and the calculation of time. Allah created this with truth. He explains the signs for people who understand.\""
+              },
+              {
+                "type": "text",
+                "style": "tableGuide",
+                "content": "This verse emphasizes Allah’s wisdom in creating the sun and moon with distinct roles, guiding humanity in timekeeping and reflection."
+              },
+              {
+                "type": "boldPrefixText",
+                "prefix": "Surah Al-Baqarah (2:189):",
+                "content": "Allah says:",
+                "style": "body"
+              },
+              {
+                "type": "text",
+                "style": "quoteSemibold",
+                "icon": "QuranImageIcon",
+                "content": "\"They ask you about the new moons. Say, 'They are measurements of time for the people and for Hajj.'\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "This verse highlights the moon’s role in organizing religious observances like Ramadan and Hajj, underscoring its importance in Islamic life."
+              },
+              {
+                "type": "boldPrefixText",
+                "prefix": "Surah Al-Qamar (54:1):",
+                "content": "Finally, states:",
+                "style": "body"
+              },
+              {
+                "type": "text",
+                "style": "quoteSemibold",
+                "icon": "QuranImageIcon",
+                "content": "\"The Hour has come near, and the moon has split [in two].\""
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "This verse refers to the miraculous splitting of the moon during the Prophet’s time, serving as a sign of Allah’s power and a reminder of the Day of Judgment."
+              },
+              {
+                "type": "text",
+                "style": "bodyMediumTight",
+                "content": "By linking fasting on the White Days with these Quranic insights, we are encouraged to view the moon as a divine symbol, enhancing spiritual growth and deepening their connection with Allah."
+              },
+              {
+                "type": "text",
+                "style": "bodyMediumTight",
+                "content": "This practice aligns with the celestial rhythm ordained by Allah, fostering worship and introspection."
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

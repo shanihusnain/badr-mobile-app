@@ -35,6 +35,7 @@ export default function ReviewGoalCard({ goal, handleEditPress }: Props) {
     if (
       key === "missed-zakat" ||
       key === "lillah-donations" ||
+      key === "lilah-donations" ||
       key === "sadaqah-jariyah"
     ) {
       if (firstSelected && looksLikeCurrency(firstSelected.value))

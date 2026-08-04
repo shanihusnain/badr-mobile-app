@@ -56,6 +56,7 @@ export const useUpsertPrayerGoal = () => {
     mutationFn: upsertPrayerGoal,
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["all-prayer-goals"] });
+      queryClient.invalidateQueries({ queryKey: ["goal-cycle"] });
       console.log("data", data);
       showToast("success", data?.data?.message ?? "Goal saved");
     },

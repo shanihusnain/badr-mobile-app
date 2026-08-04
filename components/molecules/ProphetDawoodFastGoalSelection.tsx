@@ -8,9 +8,18 @@ import { fonts } from "../../assets/fonts";
 import PrimaryButton from "../atoms/Primary-button";
 import { useLocaleNumber } from "../../hooks/useLocaleNumber";
 import { CalendarGrid } from "./CalendarGrid";
+import type { FastingCalendarWindow } from "@/src/utils/fastingCalendarPreview";
+import { useUpsertFastingGoals } from "@/src/api/mutations/useUpsertFastingGoals";
 
-export default function ProphetDawoodFastGoalSelection() {
+export default function ProphetDawoodFastGoalSelection({
+  calendarWindow,
+  onSave,
+}: {
+  calendarWindow?: FastingCalendarWindow | null;
+  onSave?: (dawoodStartDay: 1 | 2) => void;
+}) {
     const formatNumber = useLocaleNumber();
+    const { mutate: upsertFastingGoal, isPending } = useUpsertFastingGoals();
     const [isOpen, setIsOpen] = useState(false);
     const [selectedStartDay, setSelectedStartDay] = useState<1 | 2>(1);
 
@@ -20,48 +29,67 @@ export default function ProphetDawoodFastGoalSelection() {
     };
 
     const handleSave = () => {
-        console.log("Saved Prophet Dawood fasts starting from day:", selectedStartDay);
+        upsertFastingGoal(
+            {
+                fastingType: "PROPHET_DAWOOD",
+                dawoodStartDay: selectedStartDay,
+            },
+            {
+                onSuccess: () => onSave?.(selectedStartDay),
+            },
+        );
     };
 
-    // Calculate dates and range label
-    const startMoment = moment();
-    const endMoment = moment().add(27, "days");
-    const rangeLabel = `${startMoment.format("MMM D")} - ${endMoment.format("MMM D")}, ${startMoment.year()}`;
-    const currentDate = startMoment.clone().startOf("month").format("YYYY-MM-DD");
+    const startMoment = calendarWindow
+      ? moment(calendarWindow.startDate, "YYYY-MM-DD")
+      : moment();
+    const endMoment = calendarWindow
+      ? moment(calendarWindow.endDate, "YYYY-MM-DD")
+      : moment().add(27, "days");
+    const rangeLabel =
+      calendarWindow?.rangeLabel ??
+      `${startMoment.format("MMM D")} - ${endMoment.format("MMM D")}, ${startMoment.year()}`;
+    const currentDate =
+      calendarWindow?.currentDate ??
+      startMoment.clone().startOf("month").format("YYYY-MM-DD");
 
-    // Calculate Islamic date range label (e.g. Jum. I - Jum. II 1445)
-    const HIJRI_MONTHS_SHORT = [
-        "Muh.",
-        "Saf.",
-        "Rab. I",
-        "Rab. II",
-        "Jum. I",
-        "Jum. II",
-        "Raj.",
-        "Sha.",
-        "Ram.",
-        "Shaw.",
-        "Dhul Q.",
-        "Dhul H.",
-    ];
-    const startMonth = HIJRI_MONTHS_SHORT[startMoment.iMonth()];
-    const endMonth = HIJRI_MONTHS_SHORT[endMoment.iMonth()];
-    const startYear = startMoment.iYear();
-    const endYear = endMoment.iYear();
+    const islamicRangeLabel =
+      calendarWindow?.islamicRangeLabel ??
+      (() => {
+        const HIJRI_MONTHS_SHORT = [
+          "Muh.",
+          "Saf.",
+          "Rab. I",
+          "Rab. II",
+          "Jum. I",
+          "Jum. II",
+          "Raj.",
+          "Sha.",
+          "Ram.",
+          "Shaw.",
+          "Dhul Q.",
+          "Dhul H.",
+        ];
+        const startMonth = HIJRI_MONTHS_SHORT[startMoment.iMonth()];
+        const endMonth = HIJRI_MONTHS_SHORT[endMoment.iMonth()];
+        const startYear = startMoment.iYear();
+        const endYear = endMoment.iYear();
+        if (startMoment.iMonth() === endMoment.iMonth() && startYear === endYear) {
+          return `${startMonth} ${startYear}`;
+        }
+        if (startYear === endYear) {
+          return `${startMonth} - ${endMonth} ${startYear}`;
+        }
+        return `${startMonth} ${startYear} - ${endMonth} ${endYear}`;
+      })();
 
-    let islamicRangeLabel = "";
-    if (startMoment.iMonth() === endMoment.iMonth() && startYear === endYear) {
-        islamicRangeLabel = `${startMonth} ${startYear}`;
-    } else if (startYear === endYear) {
-        islamicRangeLabel = `${startMonth} - ${endMonth} ${startYear}`;
-    } else {
-        islamicRangeLabel = `${startMonth} ${startYear} - ${endMonth} ${endYear}`;
-    }
-
-    // Calculate fast count dynamically
-    const fastCount = Array.from({ length: 28 }, (_, i) => i).filter((i) =>
-        selectedStartDay === 1 ? i % 2 === 0 : i % 2 === 1
-    ).length;
+    const fastCount = (() => {
+      if (!calendarWindow?.days?.length) return 14;
+      // isDawoodDay from API is the day-1 alternating pattern from cycle start.
+      return calendarWindow.days.filter((day) =>
+        selectedStartDay === 1 ? day.isDawoodDay : !day.isDawoodDay,
+      ).length;
+    })();
 
     return (
         <View style={styles.container}>
@@ -81,7 +109,6 @@ export default function ProphetDawoodFastGoalSelection() {
 
             {isOpen && (
                 <View style={styles.expandedContent}>
-                    {/* Radio Button Row */}
                     <View style={styles.radioRow}>
                         <TouchableOpacity
                             style={styles.radioOption}
@@ -106,17 +133,23 @@ export default function ProphetDawoodFastGoalSelection() {
                         </TouchableOpacity>
                     </View>
 
-                    {/* Date range label + Calendar */}
                     <View style={styles.calendarWrapper}>
                         <View style={styles.dateLabel}>
                             <Text style={styles.dateLabelText}>{rangeLabel}</Text>
                             <Text style={styles.islamicDateText}>{islamicRangeLabel}</Text>
                         </View>
 
-                        {/* Calendar Component */}
                         <CalendarGrid
                             mode="dawood"
                             currentDate={currentDate}
+                            windowStartDate={
+                              calendarWindow?.startDate ??
+                              startMoment.format("YYYY-MM-DD")
+                            }
+                            windowEndDate={
+                              calendarWindow?.endDate ??
+                              endMoment.format("YYYY-MM-DD")
+                            }
                             dawoodStartDay={selectedStartDay}
                         />
                     </View>
@@ -140,6 +173,8 @@ export default function ProphetDawoodFastGoalSelection() {
                         <PrimaryButton
                             text="Save"
                             onPress={handleSave}
+                            isLoading={isPending}
+                            disabled={isPending}
                             style={styles.saveButton}
                             textStyle={styles.saveButtonText}
                         />

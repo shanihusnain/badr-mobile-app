@@ -1,10 +1,6 @@
-import {
-  LayoutAnimation,
-  StyleSheet,
-  View,
-} from "react-native";
+import { LayoutAnimation, StyleSheet, View } from "react-native";
 import { GoalSelectionOpenCloseButton } from "../GoalSelectionOpenCloseButton";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Colors } from "@/constants/theme";
 import { Divider } from "../../atoms/Divider";
 import { TopSpace } from "../../atoms/TopSpace";
@@ -12,27 +8,21 @@ import { MetricSelectionComponent } from "./MetricSelectionComponent";
 import PrimaryButton from "@/components/atoms/Primary-button";
 import { useTranslation } from "react-i18next";
 import { useGetQuranGoalByType } from "@/src/api/queries/useGetQuranGoalByType";
-import { useGetAllQuranGoals } from "@/src/api/queries/useGetAllQuranGoals";
+import { useDeleteQuranGoalSingleMetric } from "@/src/api/mutations/useDeleteQuranGoalSingleMetric";
 import {
   getCompletionFromDetail,
   getJuzRangeFromDetail,
   getQuranGoalTypeForMetric,
-  getSelectedHizbFromDetail,
+  getSelectedHizbIdsFromDetail,
   getSelectedSurahIdsFromDetail,
   getSurahSettingsFromDetail,
   mergeHizbOptionsWithDetail,
   mergeSurahOptionsWithDetail,
+  type QuranHizbOption,
+  type QuranSurahOption,
 } from "@/src/utils/quranGoalMap";
 
-export const QuranRecitationGoalSelection = ({
-  title,
-  onMetricsChange,
-  variant,
-  onSave,
-  initialMetric,
-  allowedMetrics,
-  openOnMount,
-}: {
+export type QuranRecitationGoalSelectionProps = {
   title: string;
   onMetricsChange?: (payload: { metric: string; value: any }) => void;
   variant?: "memorization" | "others";
@@ -42,7 +32,24 @@ export const QuranRecitationGoalSelection = ({
   initialMetric?: "surah" | "juz" | "completion" | "hizb";
   allowedMetrics?: Array<"surah" | "juz" | "completion" | "hizb">;
   openOnMount?: boolean;
-}) => {
+  /** From parent GET .../quran-goals `reference` (single fetch in GoalPlannerSheet). */
+  surahReference?: QuranSurahOption[];
+  hizbReference?: QuranHizbOption[];
+  isReferenceLoading?: boolean;
+};
+
+export const QuranRecitationGoalSelection = ({
+  title,
+  onMetricsChange,
+  variant,
+  onSave,
+  initialMetric,
+  allowedMetrics,
+  openOnMount,
+  surahReference = [],
+  hizbReference = [],
+  isReferenceLoading = false,
+}: QuranRecitationGoalSelectionProps) => {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(!!openOnMount);
   const handleToggleDropdown = () => {
@@ -75,21 +82,29 @@ export const QuranRecitationGoalSelection = ({
     { enabled: isOpen && !!quranGoalType },
   );
 
-  // Surah / juz / hizb lists come bundled with GET .../quran-goals (shared cache).
+  const { mutateAsync: deleteGoalItem, isPending: isDeletingItem } =
+    useDeleteQuranGoalSingleMetric();
+
+  const handleDeleteSavedItem = useCallback(
+    async (args: {
+      itemType: "SURAH" | "JUZ" | "HIZB" | "COMPLETION";
+      itemNumber: number;
+    }) => {
+      if (!quranGoalType) return;
+      await deleteGoalItem({
+        quranGoalType,
+        itemType: args.itemType,
+        itemNumber: args.itemNumber,
+      });
+    },
+    [deleteGoalItem, quranGoalType],
+  );
+
   const needsReference =
     isOpen &&
     (resolvedMetric === "surah" ||
       resolvedMetric === "hizb" ||
       resolvedMetric === "juz");
-
-  const {
-    data: allQuranGoals,
-    isLoading: loadingReference,
-    isFetching: fetchingReference,
-  } = useGetAllQuranGoals({ enabled: needsReference });
-
-  const surahReference = allQuranGoals?.reference.surahs ?? [];
-  const hizbReference = allQuranGoals?.reference.hizb ?? [];
 
   const surahOptions = useMemo(
     () => mergeSurahOptionsWithDetail(surahReference, goalDetail),
@@ -111,8 +126,8 @@ export const QuranRecitationGoalSelection = ({
     () => getJuzRangeFromDetail(goalDetail),
     [goalDetail],
   );
-  const initialSelectedHizb = useMemo(
-    () => getSelectedHizbFromDetail(goalDetail),
+  const initialSelectedHizbs = useMemo(
+    () => getSelectedHizbIdsFromDetail(goalDetail),
     [goalDetail],
   );
   const initialCompletion = useMemo(
@@ -176,9 +191,7 @@ export const QuranRecitationGoalSelection = ({
 
   const isLoadingOptions =
     loadingDetail ||
-    (needsReference &&
-      (loadingReference || fetchingReference) &&
-      !allQuranGoals);
+    (needsReference && isReferenceLoading && surahReference.length === 0);
 
   return (
     <View style={styles.wrapper}>
@@ -210,13 +223,17 @@ export const QuranRecitationGoalSelection = ({
                   isActiveMetric ? initialSurahSettings : undefined
                 }
                 initialJuzRange={isActiveMetric ? initialJuzRange : undefined}
-                initialSelectedHizb={
-                  isActiveMetric ? initialSelectedHizb : undefined
+                initialSelectedHizbs={
+                  isActiveMetric ? initialSelectedHizbs : undefined
                 }
                 initialCompletion={
                   isActiveMetric ? initialCompletion : undefined
                 }
                 isLoadingOptions={isActiveMetric && isLoadingOptions}
+                onDeleteSavedItem={
+                  isActiveMetric ? handleDeleteSavedItem : undefined
+                }
+                isDeletingItem={isActiveMetric && isDeletingItem}
               />
             );
           })}
