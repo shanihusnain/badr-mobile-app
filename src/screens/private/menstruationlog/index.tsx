@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 import { useRouter } from "expo-router";
+import { useFocusEffect } from "expo-router";
 import { useSharedValue } from "react-native-reanimated";
 import moment from "moment-hijri";
 moment.locale("en");
@@ -13,6 +14,11 @@ import { Colors } from "@/constants/theme";
 import styles from "./style";
 import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
 import { useTypedTranslation } from "@/i18next/useTypedTranslation";
+import { useGetMenstruationPeriod } from "@/src/api/queries/useGetMenstruationPeriod";
+import { useGetGoalCycle } from "@/src/api/queries/useGetGoalCycle";
+import { useSaveMenstruationPeriod } from "@/src/api/mutations/useSaveMenstruationPeriod";
+import { useGetMe } from "@/src/api/queries/useGetMe";
+import { useAuth } from "@/provider/useAuth";
 
 function toDateString(date: Date): string {
   const y = date.getFullYear();
@@ -45,21 +51,103 @@ export default function MenstruationLog({
   const [selectedStartTime, setSelectedStartTime] = useState<string>("");
   const [selectedEndTime, setSelectedEndTime] = useState<string>("");
 
+  const { mutateAsync: saveMenstruation, isPending } = useSaveMenstruationPeriod();
+
+  // useAuth has the user from login stored in AsyncStorage
+  const { user } = useAuth();
+  // useGetMe provides the latest user data directly from the backend
+  const { data: meData } = useGetMe();
+
+  // The backend is fixed and is the source of truth. Always prioritize `meData`.
+  const menstruationPeriodId =
+    meData?.data?.menstruationPeriodId ??
+    user?.menstruationPeriodId ??
+    null;
+
+  const goalCycleId =
+    meData?.data?.goalCycleId ??
+    user?.goalCycleId ??
+    null;
+
+  // Fetch the existing menstruation period using the ID
+  const { data: periodData } = useGetMenstruationPeriod(menstruationPeriodId);
+  // Fetch the active Goal Cycle
+  const { data: goalCycleData } = useGetGoalCycle(goalCycleId);
+
+  const reversePrayerMap: Record<string, string> = {
+    FAJR: "Before Fajr",
+    DUHR: "Before Duhr",
+    ASR: "Before Asr",
+    MAGHRIB: "Before Maghrib",
+    ISHA: "Before Isha",
+  };
+
+  // Guard: only populate from backend ONCE per screen visit.
+  // Reset every time the screen comes into focus so returning users get fresh data.
+  const hasInitialized = useRef(false);
+  useFocusEffect(
+    useCallback(() => {
+      hasInitialized.current = false;
+    }, [])
+  );
+
+  useEffect(() => {
+    console.log("=== LOAD DEBUG ===");
+    console.log("meData?.data:", meData?.data);
+    console.log("menstruationPeriodId:", menstruationPeriodId);
+    console.log("periodData?.data:", periodData?.data);
+    console.log("hasInitialized:", hasInitialized.current);
+
+    // Skip if already initialized or no data yet
+    if (hasInitialized.current || !periodData?.data) return;
+    hasInitialized.current = true;
+
+    const period = periodData.data;
+
+    // If the last period is closed, leave the UI blank so the user can log a new cycle.
+    if (!period.isOngoing) {
+      return;
+    }
+
+    // Turn on the first toggle since an ONGOING period record exists
+    setMenstruating(true);
+    isMenstruating.value = true;
+
+    // Set "still menstruating" toggle from backend value
+    const ongoing = !!period.isOngoing;
+    setStillMenstruating(ongoing);
+    isStillMenstruating.value = ongoing;
+
+    // Prepopulate start date
+    if (period.startDate) {
+      const dateObj = new Date(period.startDate);
+      setSelectedDate(toDateString(dateObj));
+      setSelectedEndDate(toDateString(dateObj));
+    }
+
+    // Prepopulate start prayer
+    if (period.startPrayer) {
+      setSelectedStartTime(reversePrayerMap[period.startPrayer] ?? "");
+    }
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [periodData, menstruationPeriodId]);
+
   const today = new Date();
   const todayString = toDateString(today);
 
-  // Resolve the active 28-day cycle window. Selection is limited to this range
-  // (and never past today, since a period that hasn't happened can't be logged).
-  // The cycle begins at its start date and runs forward 28 days, so nothing
-  // before the cycle start is selectable. Defaults to a cycle starting today.
-  const cycleStart = cycleStartDate
+  // Ensure we use the Goal Cycle start date if it exists.
+  // Fallback to today if there is absolutely no goal cycle, but the form will be disabled anyway.
+  const cycleStart = goalCycleData?.data?.startDate
+    ? moment(goalCycleData.data.startDate).startOf("day")
+    : cycleStartDate
     ? moment(cycleStartDate, "YYYY-MM-DD").startOf("day")
     : moment(today).startOf("day");
   const cycleEnd = cycleStart.clone().add(CYCLE_LENGTH_DAYS - 1, "days");
 
-  const cycleStartDateObj = cycleStart.toDate();
-  // Can't log future menstruation, so cap the upper bound at today.
-  const selectableMax = moment.min(cycleEnd, moment(today)).toDate();
+  // Strictly bind dates to the Goal Cycle's 28 days.
+  const startDateMinimum = cycleStart.toDate();
+  const selectableMax = cycleEnd.toDate();
   const selectableMaxString = toDateString(selectableMax);
 
   const [selectedDate, setSelectedDate] = useState(selectableMaxString);
@@ -123,22 +211,22 @@ export default function MenstruationLog({
 
   const isEndDateActive = menstruating && !stillMenstruating;
 
-  // Start date is bounded by the cycle window; end date can't precede the start.
-  const startDateMinimum = cycleStartDateObj;
+  // Start date minimum is defined above as 1 year ago.
+  // end date can't precede the start date.
   const endDateMinimum = moment(selectedDate, "YYYY-MM-DD").toDate();
 
   const startQuestionText = dateExplicitlyPicked
     ? t("homeScreen.menstruationLog_whenDidItStart", {
-        date: moment(selectedDate, "YYYY-MM-DD").locale(locale).format("MMM D"),
-      })
+      date: moment(selectedDate, "YYYY-MM-DD").locale(locale).format("MMM D"),
+    })
     : t("homeScreen.menstruationLog_whenDidItStartToday");
 
   const endQuestionText = endDateExplicitlyPicked
     ? t("homeScreen.menstruationLog_whenDidItEnd", {
-        date: moment(selectedEndDate, "YYYY-MM-DD")
-          .locale(locale)
-          .format("MMM D"),
-      })
+      date: moment(selectedEndDate, "YYYY-MM-DD")
+        .locale(locale)
+        .format("MMM D"),
+    })
     : t("homeScreen.menstruationLog_whenDidItEndToday");
 
   return (
@@ -175,6 +263,7 @@ export default function MenstruationLog({
           <SwitchButton
             value={isMenstruating}
             onPress={() => {
+              if (!goalCycleId) return; // Prevent toggling if no goal cycle
               const newValue = !isMenstruating.value;
               isMenstruating.value = newValue;
               setMenstruating(newValue);
@@ -227,7 +316,7 @@ export default function MenstruationLog({
                 style={[
                   styles.todayText,
                   dateExplicitlyPicked &&
-                    menstruating && { color: Colors.light.white },
+                  menstruating && { color: Colors.light.white },
                 ]}
               >
                 {todayButtonLabel}
@@ -396,7 +485,7 @@ export default function MenstruationLog({
                 style={[
                   styles.todayText,
                   endDateExplicitlyPicked &&
-                    isEndDateActive && { color: Colors.light.white },
+                  isEndDateActive && { color: Colors.light.white },
                 ]}
               >
                 {endDateButtonLabel}
@@ -463,16 +552,57 @@ export default function MenstruationLog({
 
         <PrimaryButton
           text={t("homeScreen.menstruationLog_save")}
-          onPress={() => {
-            router.back();
+          onPress={async () => {
+            if (!goalCycleId) {
+              alert("You must select a Goal Cycle before logging a period.");
+              return;
+            }
+
+            const prayerMap: Record<string, string> = {
+              "Before Fajr": "FAJR",
+              "Before Duhr": "DUHR",
+              "Before Asr": "ASR",
+              "Before Maghrib": "MAGHRIB",
+              "Before Isha": "ISHA",
+            };
+            const startPrayer = prayerMap[selectedStartTime] || "FAJR";
+
+            // Note: selectedDate is "YYYY-MM-DD"
+            const isoStartDate = new Date(selectedDate).toISOString();
+
+            const payload: any = {
+              startDate: isoStartDate,
+              startPrayer: startPrayer,
+              isOngoing: stillMenstruating,
+            };
+
+            if (!stillMenstruating) {
+              payload.endDate = new Date(selectedEndDate).toISOString();
+              payload.endPrayer = prayerMap[selectedEndTime] || "FAJR";
+            }
+
+            console.log("=== SAVE DEBUG ===");
+            console.log("Saving payload:", JSON.stringify(payload));
+
+            try {
+              // Backend uses the same POST endpoint for both create and update.
+              await saveMenstruation(payload);
+              router.back();
+            } catch (error) {
+              // error handled in mutation
+            }
           }}
-          disabled={!menstruating || selectedStartTime === ""}
-          style={({ pressed }) => [
-            { marginTop: 24 },
-            !menstruating || selectedStartTime === ""
-              ? { backgroundColor: Colors.light.greybuttonBackground, borderColor: Colors.light.greybuttonBackground }
-              : {},
-          ]}
+          disabled={!menstruating || selectedStartTime === "" || (!stillMenstruating && selectedEndTime === "") || isPending || !goalCycleId}
+          isLoading={isPending}
+          style={({ pressed }) => {
+            const isDisabled = !menstruating || selectedStartTime === "" || (!stillMenstruating && selectedEndTime === "") || isPending || !goalCycleId;
+            return [
+              { marginTop: 24 },
+              isDisabled
+                ? { backgroundColor: Colors.light.greybuttonBackground, borderColor: Colors.light.greybuttonBackground }
+                : {},
+            ];
+          }}
         />
       </ScrollView>
     </BlackScreenWrapper>
