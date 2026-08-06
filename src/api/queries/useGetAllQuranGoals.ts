@@ -57,12 +57,11 @@ function extractReferenceRaw(value: unknown): Record<string, unknown> {
 
 function mapReference(raw: Record<string, unknown>): QuranGoalsReference {
   try {
+    const surahRows = (raw.surahs as unknown[]) ?? [];
     return {
-      surahs: mapSurahOptionsFromReference(
-        (raw.surahs as unknown[]) ?? [],
-      ),
+      surahs: mapSurahOptionsFromReference(surahRows),
       juz: mapJuzOptionsFromReference((raw.juz as unknown[]) ?? []),
-      hizb: mapHizbOptionsFromReference((raw.hizb as unknown[]) ?? []),
+      hizb: mapHizbOptionsFromReference((raw.hizb as unknown[]) ?? [], surahRows),
     };
   } catch (error) {
     console.error("[quran-goals] failed to map reference", error);
@@ -95,7 +94,6 @@ export function normalizeAllQuranGoalsResponse(
 const getAllQuranGoals = async (): Promise<AllQuranGoalsResponse> => {
   const response = await api.get("api/goal-cycles/current/quran-goals");
   const normalized = normalizeAllQuranGoalsResponse(response.data);
-
   if (__DEV__) {
     console.log(
       "[quran-goals] goals:",
@@ -108,7 +106,6 @@ const getAllQuranGoals = async (): Promise<AllQuranGoalsResponse> => {
       normalized.reference.hizb.length,
     );
   }
-
   return normalized;
 };
 

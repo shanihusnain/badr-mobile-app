@@ -1,11 +1,13 @@
-import { LayoutAnimation, StyleSheet, View } from "react-native";
+import { LayoutAnimation, StyleSheet, Text, View } from "react-native";
 import { GoalSelectionOpenCloseButton } from "../GoalSelectionOpenCloseButton";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Colors } from "@/constants/theme";
+import { fonts } from "@/assets/fonts";
 import { Divider } from "../../atoms/Divider";
 import { TopSpace } from "../../atoms/TopSpace";
 import { MetricSelectionComponent } from "./MetricSelectionComponent";
 import PrimaryButton from "@/components/atoms/Primary-button";
+import WarningModal from "@/components/atoms/WarningModal";
 import { useTranslation } from "react-i18next";
 import { useGetQuranGoalByType } from "@/src/api/queries/useGetQuranGoalByType";
 import { useDeleteQuranGoalSingleMetric } from "@/src/api/mutations/useDeleteQuranGoalSingleMetric";
@@ -21,6 +23,8 @@ import {
   type QuranHizbOption,
   type QuranSurahOption,
 } from "@/src/utils/quranGoalMap";
+
+type MetricName = "surah" | "juz" | "completion" | "hizb";
 
 export type QuranRecitationGoalSelectionProps = {
   title: string;
@@ -57,15 +61,25 @@ export const QuranRecitationGoalSelection = ({
     setIsOpen(!isOpen);
   };
 
-  const [selectedMetric, setSelectedMetric] = useState<
-    "surah" | "juz" | "completion" | "hizb" | undefined
-  >(initialMetric);
+  const [selectedMetric, setSelectedMetric] = useState<MetricName | undefined>(
+    initialMetric,
+  );
+  const [isMetricDirty, setIsMetricDirty] = useState(false);
+  const [unsavedModalVisible, setUnsavedModalVisible] = useState(false);
+  const [pendingMetric, setPendingMetric] = useState<MetricName | undefined>(
+    undefined,
+  );
+  const [hasPendingMetricChange, setHasPendingMetricChange] = useState(false);
+  const [discardNonce, setDiscardNonce] = useState(0);
+  const [markCleanNonce, setMarkCleanNonce] = useState(0);
+  const [shouldApplyPendingMetric, setShouldApplyPendingMetric] =
+    useState(false);
 
   useEffect(() => {
-    if (!selectedMetric && allowedMetrics && allowedMetrics.length === 1) {
-      setSelectedMetric(allowedMetrics[0]);
-    }
-  }, [allowedMetrics, selectedMetric]);
+    if (initialMetric) return;
+    if (!allowedMetrics || allowedMetrics.length !== 1) return;
+    setSelectedMetric((prev) => prev ?? allowedMetrics[0]);
+  }, [allowedMetrics, initialMetric]);
 
   const resolvedMetric = selectedMetric;
 
@@ -137,14 +151,14 @@ export const QuranRecitationGoalSelection = ({
 
   interface IItem {
     id: number;
-    name: "surah" | "juz" | "completion" | "hizb";
+    name: MetricName;
     title: string;
   }
   const memorizationMetrices = [
     {
       id: 1,
-      name: "juz" as const,
-      title: t("monthlyGoalPlanner.reviewLabels.juz"),
+      name: "surah" as const,
+      title: t("monthlyGoalPlanner.reviewLabels.surah"),
     },
     {
       id: 2,
@@ -153,8 +167,8 @@ export const QuranRecitationGoalSelection = ({
     },
     {
       id: 3,
-      name: "surah" as const,
-      title: t("monthlyGoalPlanner.reviewLabels.surah"),
+      name: "juz" as const,
+      title: t("monthlyGoalPlanner.reviewLabels.juz"),
     },
   ];
   const otherMetrices = [
@@ -164,14 +178,14 @@ export const QuranRecitationGoalSelection = ({
       title: t("monthlyGoalPlanner.reviewLabels.surah"),
     },
     {
-      id: 2,
-      name: "completion" as const,
-      title: t("monthlyGoalPlanner.quranMetrics.completionKhatma"),
-    },
-    {
       id: 3,
       name: "juz" as const,
       title: t("monthlyGoalPlanner.reviewLabels.juz"),
+    },
+    {
+      id: 2,
+      name: "completion" as const,
+      title: t("monthlyGoalPlanner.quranMetrics.completionKhatma"),
     },
   ];
   const metricesDecider = () => {
@@ -185,8 +199,53 @@ export const QuranRecitationGoalSelection = ({
     );
   };
 
+  const applyMetricChange = useCallback((next: MetricName | undefined) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setSelectedMetric(next);
+    setIsMetricDirty(false);
+  }, []);
+
+  // Discard local edits first (while metric still expanded), then collapse/switch
+  useEffect(() => {
+    if (!shouldApplyPendingMetric) return;
+    applyMetricChange(pendingMetric);
+    setShouldApplyPendingMetric(false);
+    setHasPendingMetricChange(false);
+  }, [
+    shouldApplyPendingMetric,
+    pendingMetric,
+    applyMetricChange,
+    discardNonce,
+  ]);
+
   const handlePressMetrix = (item: IItem) => {
-    setSelectedMetric(item.name);
+    const nextMetric: MetricName | undefined =
+      selectedMetric === item.name ? undefined : item.name;
+    const leavingExpanded =
+      !!selectedMetric &&
+      (nextMetric === undefined || nextMetric !== selectedMetric);
+
+    if (leavingExpanded && isMetricDirty) {
+      setPendingMetric(nextMetric);
+      setHasPendingMetricChange(true);
+      setUnsavedModalVisible(true);
+      return;
+    }
+
+    applyMetricChange(nextMetric);
+  };
+
+  const handleConfirmLeave = () => {
+    setUnsavedModalVisible(false);
+    setDiscardNonce((n) => n + 1);
+    if (hasPendingMetricChange) {
+      setShouldApplyPendingMetric(true);
+    }
+  };
+
+  const handleCancelLeave = () => {
+    setUnsavedModalVisible(false);
+    setHasPendingMetricChange(false);
   };
 
   const isLoadingOptions =
@@ -204,7 +263,12 @@ export const QuranRecitationGoalSelection = ({
         <>
           <Divider />
           <TopSpace top={16} />
-          {metricesDecider().map((item: any) => {
+          {(variant === "memorization" || variant === "others") && (
+            <Text style={styles.selectMoreText}>
+              You can select more than one.
+            </Text>
+          )}
+          {metricesDecider().map((item: IItem) => {
             const isActiveMetric = resolvedMetric === item.name;
             return (
               <MetricSelectionComponent
@@ -234,6 +298,9 @@ export const QuranRecitationGoalSelection = ({
                   isActiveMetric ? handleDeleteSavedItem : undefined
                 }
                 isDeletingItem={isActiveMetric && isDeletingItem}
+                onDirtyChange={isActiveMetric ? setIsMetricDirty : undefined}
+                discardNonce={isActiveMetric ? discardNonce : 0}
+                markCleanNonce={isActiveMetric ? markCleanNonce : 0}
               />
             );
           })}
@@ -247,7 +314,24 @@ export const QuranRecitationGoalSelection = ({
         }}
         onPress={() => {
           if (onSave && resolvedMetric) onSave({ metric: resolvedMetric });
+          setMarkCleanNonce((n) => n + 1);
+          setIsMetricDirty(false);
         }}
+      />
+
+      <WarningModal
+        visible={unsavedModalVisible}
+        title="UNSAVED CHANGES"
+        message="Are you sure you want to leave this page? Your changes will not be saved."
+        primaryButtonText="Leave"
+        secondaryButtonText="Cancel"
+        primaryButtonVariant="white"
+        primaryButtonStyle={styles.leaveButton}
+        primaryButtonTextStyle={styles.leaveButtonText}
+        secondaryButtonTextStyle={styles.cancelButtonText}
+        onPrimaryPress={handleConfirmLeave}
+        onSecondaryPress={handleCancelLeave}
+        onBackdropPress={handleCancelLeave}
       />
     </View>
   );
@@ -259,5 +343,22 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginVertical: 10,
+  },
+  selectMoreText: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.regular,
+    fontSize: 12,
+    fontWeight: "400",
+    opacity: 0.85,
+    marginBottom: 12,
+  },
+  leaveButton: {
+    borderColor: Colors.light.red,
+  },
+  leaveButtonText: {
+    color: Colors.light.red,
+  },
+  cancelButtonText: {
+    color: Colors.light.green,
   },
 });

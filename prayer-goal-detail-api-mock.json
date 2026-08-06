@@ -134,8 +134,8 @@
       "data": {
         "prayerType": "FIVE_DAILY_PRAYERS",
         "isActive": false,
-        "title": "The 5 DAilY FARD PRAYERS",
-        "navTitle": "The 5 DAilY FARD PRAYERS",
+        "title": "The 5 DAilY PRAYERS",
+        "navTitle": "The 5 DAilY PRAYERS",
         "heroTitle": "The Pinnacle of Divine Connection",
         "description": "The obligatory five daily prayers provide frequent opportunities to express gratitude, seek forgiveness, and remind us of our faith and submission to Allah.",
         "hadithIntro": "",
@@ -374,36 +374,11 @@
                   "SUNNAH\n(After)"
                 ],
                 "rows": [
-                  [
-                    "FAJR",
-                    "2",
-                    "2",
-                    "-"
-                  ],
-                  [
-                    "DHUHR",
-                    "2+2",
-                    "4",
-                    "2 or 4"
-                  ],
-                  [
-                    "ASR",
-                    "2 or 4",
-                    "4",
-                    "-"
-                  ],
-                  [
-                    "MAGHRIB",
-                    "-",
-                    "3",
-                    "2"
-                  ],
-                  [
-                    "ISHA",
-                    "-",
-                    "4",
-                    "2"
-                  ]
+                  ["FAJR", "2", "2", "-"],
+                  ["DHUHR", "2+2", "4", "2 or 4"],
+                  ["ASR", "2 or 4", "4", "-"],
+                  ["MAGHRIB", "-", "3", "2"],
+                  ["ISHA", "-", "4", "2"]
                 ]
               }
             ]

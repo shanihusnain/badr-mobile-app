@@ -41,7 +41,7 @@ export const GoalProgressCard = ({
       <TopSpace top={20} />
 
       {/* ── Image ── */}
-      {/* <View
+      <View
         style={{
           height: heightPercentageToDP(30),
           width: "100%",
@@ -50,7 +50,7 @@ export const GoalProgressCard = ({
         }}
       >
         <MoonProgress progressPercent={overallProgress} />
-      </View> */}
+      </View>
 
       {/* ── Stats row ── */}
       <View style={[globalStyles.rowCenter, styles.statsRow]}>

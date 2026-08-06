@@ -19,6 +19,7 @@ import {
 } from "@/src/utils/fastingCalendarPreview";
 import { useUpsertFastingGoals } from "@/src/api/mutations/useUpsertFastingGoals";
 import { showToast } from "@/src/config/toastConfig";
+import { TopSpace } from "../atoms/TopSpace";
 
 export default function MissedRamadanFastGoalSelection({
   calendarWindow,
@@ -121,6 +122,7 @@ export default function MissedRamadanFastGoalSelection({
             />
           </View>
 
+          <TopSpace top={16} />
           <View style={styles.advisoryContainer}>
             <EvilIcons
               name="exclamation"

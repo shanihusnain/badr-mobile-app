@@ -43,6 +43,7 @@ export type UpsertPrayerGoalPayload = {
 
 const upsertPrayerGoal = async (payload: UpsertPrayerGoalPayload) => {
   const { prayerType, ...body } = payload;
+  console.log("body", body);
   const response = await api.put(
     `api/goal-cycles/current/prayer-goals/${prayerType}`,
     { prayerType, ...body },

@@ -169,9 +169,19 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
       visible: boolean;
       message: string;
     }>({ visible: false, message: "" });
+    const [finishSaveModalVisible, setFinishSaveModalVisible] = useState(false);
 
     const closeFastingGoalConflictModal = useCallback(() => {
       setFastingGoalConflictModal({ visible: false, message: "" });
+    }, []);
+
+    const closeFinishSaveModal = useCallback(() => {
+      setFinishSaveModalVisible(false);
+    }, []);
+
+    const confirmFinishAndSave = useCallback(() => {
+      setFinishSaveModalVisible(false);
+      router.push({ pathname: "/(tabs)" });
     }, []);
 
     const { data: meUser } = useGetMe();
@@ -1430,7 +1440,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
                       jumuah: sourcePrayer.fiveDailyConfig.jumuahTarget ?? 0,
                       congregationalTracking: Boolean(
                         sourcePrayer.fiveDailyConfig.congregationalTracking ??
-                          sourcePrayer.congregationalTracking,
+                        sourcePrayer.congregationalTracking,
                       ),
                     }
                   : undefined
@@ -1735,35 +1745,15 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
             ListFooterComponent={() => (
               <View style={styles.footerContainer}>
                 <PrimaryButton
-                  text={t("monthlyGoalPlanner.commit")}
+                  text={
+                    activeTab === "review"
+                      ? t("monthlyGoalPlanner.finishAndSaveGoals")
+                      : "NEXT"
+                  }
+                  disabled={activeTab !== "review"}
                   onPress={() => {
-                    // gather payload for future API integration
-                    const payload = {
-                      selectedGoals,
-                      sadaqah: {
-                        missedZakatAmount,
-                        kafarahMeals,
-                        kafarahCloths,
-                        fidyaMeals,
-                        lillahAmount,
-                        sadaqahJariyahAmount,
-                        volunteeringHours,
-                      },
-                      quran: quranMetrics,
-                    };
-                    // console.log("======================>>>>>>>>>>>>>>>");
-                    // console.log(
-                    //   "Commit payload:",
-                    //   JSON.stringify(payload, null, 2),
-                    // );
-                    // console.log("======================>>>>>>>>>>>>>>>");
-
-                    // TODO: call API with payload
-                    // Navigate to home screen
-                    console.log("payload", payload);
-                    router.push({
-                      pathname: "/(tabs)",
-                    });
+                    if (activeTab !== "review") return;
+                    setFinishSaveModalVisible(true);
                   }}
                 />
               </View>
@@ -2313,9 +2303,10 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
                         setCount={setLillahAmount}
                         control={control}
                         name="lillahDonation"
-                        title={t(
-                          "monthlyGoalPlanner.reviewLabels.lilahDonations",
-                        )}
+                        // title={t(
+                        //   "monthlyGoalPlanner.reviewLabels.lilahDonations",
+                        // )}
+                        title="Select target for this month"
                         handleDecrease={() => {
                           setLillahAmount((prev) => Math.max(0, prev - 1));
                         }}
@@ -2339,7 +2330,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
                           setVolunteeringHours((prev) => prev + 1);
                         }}
                         title={t("monthlyGoalPlanner.volunteeringMonthTitle")}
-                        countTitle={t("monthlyGoalPlanner.hours")}
+                        countTitle="Volunteering Hour(s)"
                         isSaving={isSavingSadaqah}
                         onSave={() => saveVolunteeringGoal(sadaqah.id)}
                       />
@@ -2350,9 +2341,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
                         setCount={setSadaqahJariyahAmount}
                         control={control}
                         name="sadaqahJariyah"
-                        title={t(
-                          "monthlyGoalPlanner.reviewLabels.sadaqahJariyah",
-                        )}
+                        title="Select target for this month"
                         handleDecrease={() => {
                           setSadaqahJariyahAmount((prev) =>
                             Math.max(0, prev - 1),
@@ -2450,6 +2439,20 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
           primaryButtonStyle={{
             paddingVertical: 4,
             alignSelf: "center",
+          }}
+        />
+        <WarningModal
+          visible={finishSaveModalVisible}
+          title={t("monthlyGoalPlanner.finishAndSaveModalTitle")}
+          message={t("monthlyGoalPlanner.finishAndSaveModalMessage")}
+          primaryButtonText={t("monthlyGoalPlanner.finishAndSaveYes")}
+          secondaryButtonText={t("monthlyGoalPlanner.finishAndSaveCancel")}
+          primaryButtonVariant="green"
+          onPrimaryPress={confirmFinishAndSave}
+          onSecondaryPress={closeFinishSaveModal}
+          onBackdropPress={closeFinishSaveModal}
+          secondaryButtonTextStyle={{
+            color: Colors.light.subtext,
           }}
         />
       </>

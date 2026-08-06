@@ -63,6 +63,7 @@ export const useUpsertSadaqahGoal = () => {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["all-sadaqah-goals"] });
       queryClient.invalidateQueries({ queryKey: ["goal-cycle"] });
+      queryClient.invalidateQueries({ queryKey: ["sadaqah-detail"] });
       showToast(
         "success",
         data?.data?.message ?? data?.message ?? "Sadaqah goal saved",

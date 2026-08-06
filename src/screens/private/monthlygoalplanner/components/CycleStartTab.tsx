@@ -39,28 +39,9 @@ export const CycleStartTab = ({
           .format("YYYY-MM-DD")
       : moment().startOf("month").format("YYYY-MM-DD"),
   );
-  const {
-    mutateAsync: startEditCycle,
-    isPending: isStartEditCyclePending,
-  } = useStartEditCycleMutation();
 
-  const localizedMonths = useMemo(
-    () => [
-      t("monthlyGoalPlanner.months.jan"),
-      t("monthlyGoalPlanner.months.feb"),
-      t("monthlyGoalPlanner.months.mar"),
-      t("monthlyGoalPlanner.months.apr"),
-      t("monthlyGoalPlanner.months.may"),
-      t("monthlyGoalPlanner.months.jun"),
-      t("monthlyGoalPlanner.months.jul"),
-      t("monthlyGoalPlanner.months.aug"),
-      t("monthlyGoalPlanner.months.sep"),
-      t("monthlyGoalPlanner.months.oct"),
-      t("monthlyGoalPlanner.months.nov"),
-      t("monthlyGoalPlanner.months.dec"),
-    ],
-    [t],
-  );
+  const { mutateAsync: startEditCycle, isPending: isStartEditCyclePending } =
+    useStartEditCycleMutation();
 
   const localizedHijriMonths = useMemo(
     () => [
@@ -119,12 +100,15 @@ export const CycleStartTab = ({
   // ── Derived values ──────────────────────────────────────────────────────────
 
   const calMonthMoment = moment(calMonth, "YYYY-MM-DD");
-  const monthLabel = `${localizedMonths[calMonthMoment.month()]} ${localizeNumber(calMonthMoment.year(), i18n.language)}`;
+  const monthFirstDay = calMonthMoment.clone().startOf("month");
+  const monthLastDay = calMonthMoment.clone().endOf("month");
 
   const cycleEndDateString =
     selectedEndDate ??
     (cycleStartDate
-      ? moment(cycleStartDate, "YYYY-MM-DD").add(27, "days").format("YYYY-MM-DD")
+      ? moment(cycleStartDate, "YYYY-MM-DD")
+          .add(27, "days")
+          .format("YYYY-MM-DD")
       : null);
 
   const cycleStartFormatted = cycleStartDate
@@ -147,38 +131,35 @@ export const CycleStartTab = ({
       })()
     : null;
 
-  const cycleRangeLabel =
-    cycleStartDate && cycleEndDateString
-      ? (() => {
-          const startFmt = moment(cycleStartDate, "YYYY-MM-DD")
-            .clone()
-            .locale(i18n.language)
-            .format(i18n.language === "ar" ? "D MMMM" : "MMM D")
-            .toUpperCase();
-          const endFmt = moment(cycleEndDateString, "YYYY-MM-DD")
-            .clone()
-            .locale(i18n.language)
-            .format(i18n.language === "ar" ? "D MMMM, YYYY" : "MMM D, YYYY")
-            .toUpperCase();
-          return localizeNumber(`${startFmt} – ${endFmt}`, i18n.language);
-        })()
-      : null;
+  // Month window currently shown in the calendar (updates with arrow nav).
+  const monthRangeLabel = (() => {
+    const dayFmt = i18n.language === "ar" ? "D MMMM" : "MMM D";
+    const endFmt = i18n.language === "ar" ? "D MMMM, YYYY" : "MMM D, YYYY";
+    const startFmt = monthFirstDay
+      .clone()
+      .locale(i18n.language)
+      .format(dayFmt)
+      .toUpperCase();
+    const endLabel = monthLastDay
+      .clone()
+      .locale(i18n.language)
+      .format(endFmt)
+      .toUpperCase();
+    return localizeNumber(`${startFmt} – ${endLabel}`, i18n.language);
+  })();
 
   const hijriRangeLabel = (() => {
-    if (!cycleStartDate || !cycleEndDateString) return null;
-    const startH = moment(cycleStartDate, "YYYY-MM-DD");
-    const endH = moment(cycleEndDateString, "YYYY-MM-DD");
-    if (!startH.isValid() || !endH.isValid()) return null;
-    const startMonthNum = startH.iMonth();
-    const endMonthNum = endH.iMonth();
+    const startMonthNum = monthFirstDay.iMonth();
+    const endMonthNum = monthLastDay.iMonth();
     if (!Number.isFinite(startMonthNum) || !Number.isFinite(endMonthNum)) {
       return null;
     }
-    const startLabel = `${localizedHijriMonths[startMonthNum]} ${localizeNumber(startH.iYear(), i18n.language)}`;
+    const startLabel = `${localizedHijriMonths[startMonthNum]} ${localizeNumber(monthFirstDay.iYear(), i18n.language)}`;
     const endLabel =
-      startMonthNum === endMonthNum && startH.iYear() === endH.iYear()
+      startMonthNum === endMonthNum &&
+      monthFirstDay.iYear() === monthLastDay.iYear()
         ? ""
-        : ` · ${localizedHijriMonths[endMonthNum]} ${localizeNumber(endH.iYear(), i18n.language)}`;
+        : ` · ${localizedHijriMonths[endMonthNum]} ${localizeNumber(monthLastDay.iYear(), i18n.language)}`;
     return `${startLabel}${endLabel}`;
   })();
 
@@ -192,7 +173,7 @@ export const CycleStartTab = ({
           i18n.language === "ar" && { textAlign: "right" },
         ]}
       >
-        {/* {t("monthlyGoalPlanner.cycleStartDescription")} */}
+        {t("monthlyGoalPlanner.cycleStartDescription")}
       </Text>
       <TopSpace top={10} />
 
@@ -212,11 +193,7 @@ export const CycleStartTab = ({
           </TouchableOpacity>
 
           <View style={styles.monthNavCenter}>
-            {cycleRangeLabel ? (
-              <Text style={styles.rangeLabel}>{cycleRangeLabel}</Text>
-            ) : (
-              <Text style={styles.monthLabel}>{monthLabel}</Text>
-            )}
+            <Text style={styles.rangeLabel}>{monthRangeLabel}</Text>
           </View>
 
           <TouchableOpacity
@@ -239,6 +216,8 @@ export const CycleStartTab = ({
       {/* ── Calendar grid ── */}
       <CalendarGrid
         mode="dob"
+        borderBottomLeftRadius={12}
+        borderBottomRightRadius={12}
         currentDate={calMonth}
         selectedDate={cycleStartDate ?? undefined}
         endDate={cycleEndDateString ?? undefined}
@@ -306,12 +285,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  monthLabel: {
-    color: Colors.light.white,
-    fontSize: 16,
-    fontFamily: fonts.primary.semiBold,
-    fontWeight: "600",
-  },
   rangeLabel: {
     color: Colors.light.white,
     fontSize: 13,
@@ -335,12 +308,12 @@ const styles = StyleSheet.create({
   },
   infoText: {
     color: Colors.light.white,
-    fontSize: 13,
+    fontSize: 12,
     fontFamily: fonts.primary.regular,
     lineHeight: 20,
   },
   infoHighlight: {
-    color: Colors.light.green,
+    color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
   },
 });

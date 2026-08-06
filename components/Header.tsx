@@ -1,5 +1,5 @@
 import React from "react";
-import { Text, View } from "react-native";
+import { Text, TextStyle, View } from "react-native";
 import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 import { fonts } from "../assets/fonts";
 import { Colors } from "../constants/theme";
@@ -11,6 +11,10 @@ interface HeaderProps {
   backgroundColor?: string;
   onBackPress?: () => void;
   arrowBg?: string;
+  showBackBtn?: boolean;
+  fontSize?: number;
+  textAlign?: TextStyle["textAlign"];
+  lineHeight?: number;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -18,6 +22,10 @@ const Header: React.FC<HeaderProps> = ({
   backgroundColor,
   onBackPress,
   arrowBg,
+  showBackBtn = true,
+  fontSize,
+  textAlign,
+  lineHeight,
 }) => {
   const insets = useSafeAreaInsets();
   return (
@@ -33,18 +41,21 @@ const Header: React.FC<HeaderProps> = ({
         backgroundColor: backgroundColor ?? Colors.light.blackBackground,
       }}
     >
-      <BackButton
-        onPress={onBackPress}
-        bgcolor={arrowBg ? arrowBg : Colors.light.buttonBackground}
-      />
+      {showBackBtn && (
+        <BackButton
+          onPress={onBackPress}
+          bgcolor={arrowBg ? arrowBg : Colors.light.buttonBackground}
+        />
+      )}
       {title ? (
         <Text
           style={{
             color: Colors.light.white,
             fontFamily: fonts.primary.semiBold,
             fontWeight: "600",
-            fontSize: 14,
-            textAlign: "center",
+            fontSize: fontSize ?? 14,
+            textAlign: textAlign ?? "center",
+            lineHeight: lineHeight ?? 24,
           }}
         >
           {title}

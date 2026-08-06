@@ -75,6 +75,8 @@ export type CalendarMode =
 
 export type CalendarGridProps = {
   mode: CalendarMode;
+  borderBottomLeftRadius?: number;
+  borderBottomRightRadius?: number;
   /**
    * Controls which month to display — "YYYY-MM-DD" (usually the 1st of the month).
    * For non-dob modes this is also used as the start of the 28-day window.
@@ -186,6 +188,8 @@ function buildMonthWeeks(monthDate: string): string[][] {
 
 export const CalendarGrid = ({
   mode,
+  borderBottomLeftRadius,
+  borderBottomRightRadius,
   currentDate,
   windowStartDate,
   windowEndDate,
@@ -787,8 +791,16 @@ export const CalendarGrid = ({
       style={[
         styles.wrapper,
         {
-          borderBottomLeftRadius: mode === "dob" ? 0 : 12,
-          borderBottomRightRadius: mode === "dob" ? 0 : 12,
+          borderBottomLeftRadius: borderBottomLeftRadius
+            ? borderBottomLeftRadius
+            : mode === "dob"
+              ? 0
+              : 12,
+          borderBottomRightRadius: borderBottomRightRadius
+            ? borderBottomRightRadius
+            : mode === "dob"
+              ? 0
+              : 12,
         },
       ]}
     >

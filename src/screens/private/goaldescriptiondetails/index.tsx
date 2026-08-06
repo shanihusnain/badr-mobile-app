@@ -2,7 +2,7 @@ import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
 import GoalDescriptionContent from "@/components/molecules/GoalDescriptionContent";
 import { useNavigation } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useEffect } from "react";
+import { useEffect, type ComponentType } from "react";
 import { useTranslation } from "react-i18next";
 import {
   FlatList,
@@ -34,6 +34,12 @@ import {
   quranrecitationbottomsheetimage,
   quranmemorizationbottomsheetimage,
   qurantajweedbottomsheetimage,
+  missedzakatbottomsheetimage,
+  kaffarahbottomsheetimage,
+  fidyabottomsheetimage,
+  lillahdonationbottomsheetimage,
+  volunteeringservicesbottomsheetimage,
+  sadaqahjariyahbottomsheetimage,
 } from "@/assets/images";
 import {
   TahiyyatWudhuEyeIcon,
@@ -68,6 +74,22 @@ import {
   MondayAndThursdayFastsHabitualIcon,
   MondayAndThursdayAllahRememberenceIcon,
   DashBoardHandHeartIcon,
+  HeartBreakIcon,
+  MissedZakatAccountabilityIcon,
+  MissedZakatSocialIcon,
+  MissedZakatCalculateIcon,
+  LillahDonationGiverIcon,
+  LillahDonationRecipientIcon,
+  VolunteeringServicesCharityEventIcon,
+  SadaqahJariyahEducationalIcon,
+  SadaqahJariyahMedicalAidIcon,
+  SadaqahJariyahSpirtualIcon,
+  SadaqahJariyahWaterWellIcon,
+  SadaqahJariyahSponsoringOrphanIcon,
+  SadaqahJariyahMosqueIcon,
+  SadaqahJariyahReligiousIcon,
+  SadaqahJariyahTreePlantIcon,
+  SadaqahJariyahCloathIcon,
 } from "@/assets/icons";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
@@ -80,15 +102,71 @@ import {
 import { useGetPrayerDetailByType } from "@/src/api/queries/useGetPrayerDetailBytype";
 import { useGetQuranDetailByType } from "@/src/api/queries/useGetQuranDetailByType";
 import { useGetFastingDetailByType } from "@/src/api/queries/useGetFastingDetailByType";
+import { useGetSadaqahDetailByType } from "@/src/api/queries/useGetSadaqahDetailByType";
 import { isPrayerGoalKey, resolvePrayerUiId } from "@/src/utils/prayerGoalMap";
 import { isQuranGoalKey, resolveQuranUiId } from "@/src/utils/quranGoalMap";
 import {
   isFastingGoalKey,
   resolveFastingUiId,
 } from "@/src/utils/fastingGoalMap";
+import {
+  getSadaqahDetailImage,
+  isSadaqahGoalKey,
+  resolveSadaqahUiId,
+} from "@/src/utils/sadaqahGoalMap";
 import { getAccessToken } from "@/src/storage/tokenStorage";
 import { createReadMoreStyles, styles } from "./styles";
 type ReadMoreStyles = ReturnType<typeof createReadMoreStyles>;
+
+const READ_MORE_ICON_MAP: Record<
+  string,
+  ComponentType<{ color?: string; size?: number }>
+> = {
+  FajarSunIcon,
+  HadeethBookIcon,
+  DuhaPrayerStar,
+  ManPrayerIcon,
+  QuranImageIcon,
+  IstikharaClockIcon,
+  ManDuaIcon,
+  QuranListeningMoon,
+  QuranMemorizationIcon,
+  QuranTajweedIcon,
+  MissedRamadanFastsHandsIcon,
+  MissedRamadanFastsPlatesIcon,
+  ProphetDawoodFastsConnectionWithAllah,
+  ProphetDawoodFastsMoonAndHandIcon,
+  ProphetDawoodFastsHeartIcon,
+  ProphetDawoodMindfullnessIcon,
+  ProphetDawoodGratitudeIcon,
+  ProphetDawoodMentalHealthIcon,
+  ProphetDawoodHeartBreakIcon,
+  ProphetDawoodPersonalDevelopmentIcon,
+  ProphetDawoodBalanceIcon,
+  MondayAndThursdayFastsHabitualIcon,
+  MondayAndThursdayAllahRememberenceIcon,
+  DashBoardHandHeartIcon,
+  HeartBreakIcon,
+  StarSparkleIcon,
+  MissedZakatAccountabilityIcon,
+  MissedZakatSocialIcon,
+  MissedZakatCalculateIcon,
+  LillahDonationGiverIcon,
+  LillahDonationRecipientIcon,
+  VolunteeringServicesCharityEventIcon,
+  SadaqahJariyahEducationalIcon,
+  SadaqahJariyahMedicalAidIcon,
+  SadaqahJariyahSpirtualIcon,
+  SadaqahJariyahWaterWellIcon,
+  SadaqahJariyahSponsoringOrphanIcon,
+  SadaqahJariyahMosqueIcon,
+  SadaqahJariyahReligiousIcon,
+  SadaqahJariyahTreePlantIcon,
+  SadaqahJariyahCloathIcon,
+};
+
+const resolveReadMoreIcon = (iconName?: string) =>
+  iconName ? (READ_MORE_ICON_MAP[iconName] ?? null) : null;
 
 const getReadMoreTextStyle = (
   style: GoalReadMoreTextStyle,
@@ -299,34 +377,7 @@ const renderReadMoreItem = (
 
     const itemTextAlign = item.align || textAlign;
 
-    let IconComp = null;
-    if (item.icon === "MissedRamadanFastsPlatesIcon")
-      IconComp = MissedRamadanFastsPlatesIcon;
-    else if (item.icon === "QuranImageIcon") IconComp = QuranImageIcon;
-    else if (item.icon === "ProphetDawoodFastsConnectionWithAllah")
-      IconComp = ProphetDawoodFastsConnectionWithAllah;
-    else if (item.icon === "ProphetDawoodFastsMoonAndHandIcon")
-      IconComp = ProphetDawoodFastsMoonAndHandIcon;
-    else if (item.icon === "ProphetDawoodFastsHeartIcon")
-      IconComp = ProphetDawoodFastsHeartIcon;
-    else if (item.icon === "ProphetDawoodMindfullnessIcon")
-      IconComp = ProphetDawoodMindfullnessIcon;
-    else if (item.icon === "ProphetDawoodGratitudeIcon")
-      IconComp = ProphetDawoodGratitudeIcon;
-    else if (item.icon === "ProphetDawoodMentalHealthIcon")
-      IconComp = ProphetDawoodMentalHealthIcon;
-    else if (item.icon === "ProphetDawoodHeartBreakIcon")
-      IconComp = ProphetDawoodHeartBreakIcon;
-    else if (item.icon === "ProphetDawoodPersonalDevelopmentIcon")
-      IconComp = ProphetDawoodPersonalDevelopmentIcon;
-    else if (item.icon === "ProphetDawoodBalanceIcon")
-      IconComp = ProphetDawoodBalanceIcon;
-    else if (item.icon === "MondayAndThursdayFastsHabitualIcon")
-      IconComp = MondayAndThursdayFastsHabitualIcon;
-    else if (item.icon === "MondayAndThursdayAllahRememberenceIcon")
-      IconComp = MondayAndThursdayAllahRememberenceIcon;
-    else if (item.icon === "DashBoardHandHeartIcon")
-      IconComp = DashBoardHandHeartIcon;
+    const IconComp = resolveReadMoreIcon(item.icon);
 
     if (IconComp) {
       let iconColor =
@@ -400,10 +451,7 @@ const renderReadMoreItem = (
 
     const itemTextAlign = item.align || textAlign;
 
-    let IconComp = null;
-    if (item.icon === "MissedRamadanFastsPlatesIcon")
-      IconComp = MissedRamadanFastsPlatesIcon;
-    else if (item.icon === "QuranImageIcon") IconComp = QuranImageIcon;
+    const IconComp = resolveReadMoreIcon(item.icon);
 
     if (IconComp) {
       let iconColor =
@@ -554,162 +602,26 @@ const renderReadMoreItem = (
 
   const itemTextAlign = item.align || textAlign;
 
-  let IconComponent = null;
-  if (item.type === "text" && item.icon === "FajarSunIcon")
-    IconComponent = FajarSunIcon;
-  else if (item.type === "text" && item.icon === "HadeethBookIcon")
-    IconComponent = HadeethBookIcon;
-  else if (item.type === "text" && item.icon === "DuhaPrayerStar")
-    IconComponent = DuhaPrayerStar;
-  else if (item.type === "text" && item.icon === "ManPrayerIcon")
-    IconComponent = ManPrayerIcon;
-  else if (item.type === "text" && item.icon === "QuranImageIcon")
-    IconComponent = QuranImageIcon;
-  else if (item.type === "text" && item.icon === "IstikharaClockIcon")
-    IconComponent = IstikharaClockIcon;
-  else if (item.type === "text" && item.icon === "ManDuaIcon")
-    IconComponent = ManDuaIcon;
-  else if (item.type === "text" && item.icon === "QuranListeningMoon")
-    IconComponent = QuranListeningMoon;
-  else if (item.type === "text" && item.icon === "QuranMemorizationIcon")
-    IconComponent = QuranMemorizationIcon;
-  else if (item.type === "text" && item.icon === "QuranTajweedIcon")
-    IconComponent = QuranTajweedIcon;
-  else if (item.type === "text" && item.icon === "MissedRamadanFastsHandsIcon")
-    IconComponent = MissedRamadanFastsHandsIcon;
-  else if (item.type === "text" && item.icon === "MissedRamadanFastsPlatesIcon")
-    IconComponent = MissedRamadanFastsPlatesIcon;
-  else if (
-    item.type === "text" &&
-    item.icon === "ProphetDawoodFastsConnectionWithAllah"
-  )
-    IconComponent = ProphetDawoodFastsConnectionWithAllah;
-  else if (
-    item.type === "text" &&
-    item.icon === "ProphetDawoodFastsMoonAndHandIcon"
-  )
-    IconComponent = ProphetDawoodFastsMoonAndHandIcon;
-  else if (item.type === "text" && item.icon === "ProphetDawoodFastsHeartIcon")
-    IconComponent = ProphetDawoodFastsHeartIcon;
-  else if (
-    item.type === "text" &&
-    item.icon === "ProphetDawoodMindfullnessIcon"
-  )
-    IconComponent = ProphetDawoodMindfullnessIcon;
-  else if (item.type === "text" && item.icon === "ProphetDawoodGratitudeIcon")
-    IconComponent = ProphetDawoodGratitudeIcon;
-  else if (
-    item.type === "text" &&
-    item.icon === "ProphetDawoodMentalHealthIcon"
-  )
-    IconComponent = ProphetDawoodMentalHealthIcon;
-  else if (item.type === "text" && item.icon === "ProphetDawoodHeartBreakIcon")
-    IconComponent = ProphetDawoodHeartBreakIcon;
-  else if (
-    item.type === "text" &&
-    item.icon === "ProphetDawoodPersonalDevelopmentIcon"
-  )
-    IconComponent = ProphetDawoodPersonalDevelopmentIcon;
-  else if (item.type === "text" && item.icon === "ProphetDawoodBalanceIcon")
-    IconComponent = ProphetDawoodBalanceIcon;
-  else if (
-    item.type === "text" &&
-    item.icon === "MondayAndThursdayFastsHabitualIcon"
-  )
-    IconComponent = MondayAndThursdayFastsHabitualIcon;
-  else if (
-    item.type === "text" &&
-    item.icon === "MondayAndThursdayAllahRememberenceIcon"
-  )
-    IconComponent = MondayAndThursdayAllahRememberenceIcon;
-  else if (item.type === "text" && item.icon === "DashBoardHandHeartIcon")
-    IconComponent = DashBoardHandHeartIcon;
-  else if (
-    item.style === "hadithQuoteLead" ||
-    item.style === "bilalQuote" ||
-    item.style === "quoteMediumItalic" ||
-    item.style === "quoteItalic" ||
-    item.style === "quoteSemibold"
+  let IconComponent =
+    item.type === "text" ? resolveReadMoreIcon(item.icon) : null;
+  if (
+    !IconComponent &&
+    (item.style === "hadithQuoteLead" ||
+      item.style === "bilalQuote" ||
+      item.style === "quoteMediumItalic" ||
+      item.style === "quoteItalic" ||
+      item.style === "quoteSemibold")
   ) {
     IconComponent = HadeethBookIcon;
   }
 
   if (IconComponent) {
-    let iconColor: string = Colors.light.dullWhite;
-    let iconSize = 30;
-
-    if (item.type === "text") {
-      if (item.icon === "FajarSunIcon") {
-        iconColor = Colors.light.dullWhite;
-        iconSize = 28;
-      } else if (item.icon === "DuhaPrayerStar") {
-        iconColor = Colors.light.dullWhite;
-        iconSize = 28;
-      } else if (item.icon === "ManPrayerIcon") {
-        iconColor = Colors.light.dullWhite;
-        iconSize = 30;
-      } else if (item.icon === "ManDuaIcon") {
-        iconColor = Colors.light.dullWhite;
-        iconSize = 30;
-      } else if (item.icon === "QuranImageIcon") {
-        iconColor = Colors.light.green;
-        iconSize = 30;
-      } else if (item.icon === "IstikharaClockIcon") {
-        iconColor = Colors.light.dullWhite;
-        iconSize = 30;
-      } else if (item.icon === "QuranListeningMoon") {
-        iconColor = Colors.light.dullWhite;
-        iconSize = 30;
-      } else if (item.icon === "QuranMemorizationIcon") {
-        iconColor = Colors.light.dullWhite;
-        iconSize = 30;
-      } else if (item.icon === "QuranTajweedIcon") {
-        iconColor = Colors.light.dullWhite;
-        iconSize = 30;
-      } else if (item.icon === "MissedRamadanFastsHandsIcon") {
-        iconColor = Colors.light.dullWhite;
-        iconSize = 30;
-      } else if (item.icon === "MissedRamadanFastsPlatesIcon") {
-        iconColor = Colors.light.dullWhite;
-        iconSize = 30;
-      } else if (item.icon === "ProphetDawoodFastsConnectionWithAllah") {
-        iconColor = Colors.light.dullWhite;
-        iconSize = 30;
-      } else if (item.icon === "ProphetDawoodFastsMoonAndHandIcon") {
-        iconColor = Colors.light.dullWhite;
-        iconSize = 30;
-      } else if (item.icon === "ProphetDawoodFastsHeartIcon") {
-        iconColor = Colors.light.dullWhite;
-        iconSize = 30;
-      } else if (item.icon === "ProphetDawoodMindfullnessIcon") {
-        iconColor = Colors.light.dullWhite;
-        iconSize = 30;
-      } else if (item.icon === "ProphetDawoodGratitudeIcon") {
-        iconColor = Colors.light.dullWhite;
-        iconSize = 30;
-      } else if (item.icon === "ProphetDawoodMentalHealthIcon") {
-        iconColor = Colors.light.dullWhite;
-        iconSize = 30;
-      } else if (item.icon === "ProphetDawoodHeartBreakIcon") {
-        iconColor = Colors.light.dullWhite;
-        iconSize = 30;
-      } else if (item.icon === "ProphetDawoodPersonalDevelopmentIcon") {
-        iconColor = Colors.light.dullWhite;
-        iconSize = 30;
-      } else if (item.icon === "ProphetDawoodBalanceIcon") {
-        iconColor = Colors.light.dullWhite;
-        iconSize = 30;
-      } else if (item.icon === "MondayAndThursdayFastsHabitualIcon") {
-        iconColor = Colors.light.dullWhite;
-        iconSize = 30;
-      } else if (item.icon === "MondayAndThursdayAllahRememberenceIcon") {
-        iconColor = Colors.light.dullWhite;
-        iconSize = 30;
-      } else if (item.icon === "DashBoardHandHeartIcon") {
-        iconColor = Colors.light.dullWhite;
-        iconSize = 30;
-      }
-    }
+    let iconColor: string =
+      item.icon === "QuranImageIcon"
+        ? Colors.light.green
+        : Colors.light.dullWhite;
+    let iconSize =
+      item.icon === "FajarSunIcon" || item.icon === "DuhaPrayerStar" ? 28 : 30;
 
     return (
       <View
@@ -785,11 +697,14 @@ export const GoalDescriptionDetails = ({ goal }: { goal: string }) => {
   const isPrayerGoal = isPrayerGoalKey(goal);
   const isQuranGoal = isQuranGoalKey(goal);
   const isFastingGoal = isFastingGoalKey(goal);
-  const goalUiId = isFastingGoal
-    ? resolveFastingUiId(goal)
-    : isQuranGoal
-      ? resolveQuranUiId(goal)
-      : resolvePrayerUiId(goal);
+  const isSadaqahGoal = isSadaqahGoalKey(goal);
+  const goalUiId = isSadaqahGoal
+    ? resolveSadaqahUiId(goal)
+    : isFastingGoal
+      ? resolveFastingUiId(goal)
+      : isQuranGoal
+        ? resolveQuranUiId(goal)
+        : resolvePrayerUiId(goal);
 
   const { data: prayerDetail, isLoading: isLoadingPrayerDetail } =
     useGetPrayerDetailByType(goal, { enabled: isPrayerGoal });
@@ -797,17 +712,23 @@ export const GoalDescriptionDetails = ({ goal }: { goal: string }) => {
     useGetQuranDetailByType(goal, { enabled: isQuranGoal });
   const { data: fastingDetail, isLoading: isLoadingFastingDetail } =
     useGetFastingDetailByType(goal, { enabled: isFastingGoal });
+  const { data: sadaqahDetail, isLoading: isLoadingSadaqahDetail } =
+    useGetSadaqahDetailByType(goal, { enabled: isSadaqahGoal });
 
-  const apiDetail = isFastingGoal
-    ? fastingDetail
-    : isQuranGoal
-      ? quranDetail
-      : prayerDetail;
-  const isLoadingDetail = isFastingGoal
-    ? isLoadingFastingDetail
-    : isQuranGoal
-      ? isLoadingQuranDetail
-      : isLoadingPrayerDetail;
+  const apiDetail = isSadaqahGoal
+    ? sadaqahDetail
+    : isFastingGoal
+      ? fastingDetail
+      : isQuranGoal
+        ? quranDetail
+        : prayerDetail;
+  const isLoadingDetail = isSadaqahGoal
+    ? isLoadingSadaqahDetail
+    : isFastingGoal
+      ? isLoadingFastingDetail
+      : isQuranGoal
+        ? isLoadingQuranDetail
+        : isLoadingPrayerDetail;
 
   const localGoalInfo = (t(`goalsData.${goalUiId}`, {
     returnObjects: true,
@@ -875,7 +796,15 @@ export const GoalDescriptionDetails = ({ goal }: { goal: string }) => {
     if (goalUiId === "monday-and-thursday-fasts")
       return mondayandthursdayfastsbottomsheetimage;
     if (goalUiId === "white-days-fasts") return whitedaysfastsbottomsheetimage;
-    return Icon;
+    if (goalUiId === "missed-zakat") return missedzakatbottomsheetimage;
+    if (goalUiId === "kafarah-for-breaking-fasts")
+      return kaffarahbottomsheetimage;
+    if (goalUiId === "fidya") return fidyabottomsheetimage;
+    if (goalUiId === "lilah-donations") return lillahdonationbottomsheetimage;
+    if (goalUiId === "volunteering-services")
+      return volunteeringservicesbottomsheetimage;
+    if (goalUiId === "sadaqah-jariyah") return sadaqahjariyahbottomsheetimage;
+    return getSadaqahDetailImage(goalUiId) ?? Icon;
   };
 
   const getImageHeight = () => {
@@ -897,7 +826,13 @@ export const GoalDescriptionDetails = ({ goal }: { goal: string }) => {
       goalUiId === "missed-fasts" ||
       goalUiId === "dawood-fasts" ||
       goalUiId === "monday-and-thursday-fasts" ||
-      goalUiId === "white-days-fasts"
+      goalUiId === "white-days-fasts" ||
+      goalUiId === "missed-zakat" ||
+      goalUiId === "kafarah-for-breaking-fasts" ||
+      goalUiId === "fidya" ||
+      goalUiId === "lilah-donations" ||
+      goalUiId === "volunteering-services" ||
+      goalUiId === "sadaqah-jariyah"
     ) {
       return 380;
     }

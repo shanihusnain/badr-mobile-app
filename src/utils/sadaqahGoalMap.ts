@@ -35,6 +35,14 @@ const SADAQAH_TYPE_IMAGES: Record<string, ImageSourcePropType> = {
   SADAQAH_JARIYAH: sadaqahjariyahbottomsheetimage,
 };
 
+/** Hero / detail image for a sadaqah UI id or backend type. */
+export function getSadaqahDetailImage(
+  goalKey: string,
+): ImageSourcePropType | undefined {
+  const type = resolveSadaqahType(goalKey);
+  return SADAQAH_TYPE_IMAGES[type];
+}
+
 export const SADAQAH_GOAL_LOADING_PLACEHOLDERS = Object.keys(
   SADAQAH_TYPE_TO_UI_ID,
 ).map((_, index) => ({
