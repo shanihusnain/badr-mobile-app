@@ -60,7 +60,7 @@ const processQueue = (error: unknown, token: string | null = null) => {
 api.interceptors.request.use(
   async (config) => {
     const token = await getAccessToken();
-
+console.log("Access token in request interceptor:", token);
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

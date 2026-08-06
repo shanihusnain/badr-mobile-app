@@ -139,7 +139,7 @@ export default function LoginScreen() {
                     isLoading={loggingIn}
                   />
 
-                  <TouchableOpacity
+                  {/* <TouchableOpacity
                     style={styles.orloginContainer}
                     activeOpacity={0.7}
                   >
@@ -150,7 +150,7 @@ export default function LoginScreen() {
                     <View style={styles.line} />
                   </TouchableOpacity>
                   <TopSpace top={30} />
-                  <SocialAuthSection disabled={loggingIn} />
+                  <SocialAuthSection disabled={loggingIn} /> */}
                   {Platform.OS === "ios" ? <TopSpace top={10} /> : null}
                 </ScrollView>
               </View>
