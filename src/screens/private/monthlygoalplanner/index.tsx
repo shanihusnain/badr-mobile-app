@@ -83,7 +83,7 @@ export const MonthlyGoalPlannerScreen = () => {
     bottomSheetRef.current?.expand();
   }, []);
 
-  const handleSheetClose = useCallback(() => { }, []);
+  const handleSheetClose = useCallback(() => {}, []);
 
   const renderItem = useCallback(
     ({ item }: { item: StepItem }) => (
@@ -103,13 +103,20 @@ export const MonthlyGoalPlannerScreen = () => {
       id: "2",
       title: t("monthlyGoalPlanner.card2Title"),
       description: t("monthlyGoalPlanner.card2Desc"),
-      icon: <MonthlyGoalPlannerReviewCardIcon size={32} color={Colors.light.green} />,
+      icon: (
+        <MonthlyGoalPlannerReviewCardIcon
+          size={32}
+          color={Colors.light.green}
+        />
+      ),
     },
     {
       id: "3",
       title: t("monthlyGoalPlanner.card3Title"),
       description: t("monthlyGoalPlanner.card3Desc"),
-      icon: <MonthlyGoalPlannerSaveCardIcon size={32} color={Colors.light.green} />,
+      icon: (
+        <MonthlyGoalPlannerSaveCardIcon size={32} color={Colors.light.green} />
+      ),
     },
     {
       id: "4",
@@ -121,7 +128,12 @@ export const MonthlyGoalPlannerScreen = () => {
       id: "5",
       title: t("monthlyGoalPlanner.card5Title"),
       description: t("monthlyGoalPlanner.card5Desc"),
-      icon: <MonthlyGoalPlannerComittedCardIcon size={34} color={Colors.light.green} />,
+      icon: (
+        <MonthlyGoalPlannerComittedCardIcon
+          size={34}
+          color={Colors.light.green}
+        />
+      ),
     },
     {
       id: "6",

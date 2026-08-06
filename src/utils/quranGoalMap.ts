@@ -22,6 +22,29 @@ export const QURAN_TYPE_TO_UI_ID: Record<string, string> = {
   TAJWEED: "quran-tajweed",
 };
 
+/** Primary API type for each UI card (used for detail/description fetches). */
+export const UI_ID_TO_QURAN_TYPE: Record<string, string> = {
+  "quran-listening": "LISTENING",
+  "quran-recitation": "RECITATION_SURAH",
+  "quran-memorization": "MEMORIZATION_SURAH",
+  "quran-tajweed": "TAJWEED",
+};
+
+/** Accept either API enum or local UI id */
+export function resolveQuranType(goalKey: string): string {
+  if (QURAN_TYPE_TO_UI_ID[goalKey]) return goalKey;
+  return UI_ID_TO_QURAN_TYPE[goalKey] ?? goalKey;
+}
+
+export function resolveQuranUiId(goalKey: string): string {
+  if (UI_ID_TO_QURAN_TYPE[goalKey]) return goalKey;
+  return QURAN_TYPE_TO_UI_ID[goalKey] ?? goalKey;
+}
+
+export function isQuranGoalKey(goalKey: string): boolean {
+  return !!QURAN_TYPE_TO_UI_ID[goalKey] || !!UI_ID_TO_QURAN_TYPE[goalKey];
+}
+
 export function getQuranTypesForUiId(uiId: string): string[] {
   return Object.entries(QURAN_TYPE_TO_UI_ID)
     .filter(([, mappedUiId]) => mappedUiId === uiId)
@@ -107,6 +130,7 @@ export type QuranSurahOption = {
   id: number;
   surahName: string;
   surahTitle: string;
+  verses?: string;
 };
 
 export type QuranHizbOption = {
@@ -165,22 +189,25 @@ export function mapSurahOptionsFromReference(
     );
     if (!id || seen.has(id)) continue;
     seen.add(id);
+    const translit = pickString(row.nameTranslit, row.surahName, row.name, row.slug);
+    const english = pickString(row.nameEnglish, row.englishName, row.surahTitle, row.title);
+    const verseCount = pickNumber(
+      row.verseCount,
+      row.versesCount,
+      row.totalVerses,
+      row.totalAyahs,
+      row.verses,
+    );
+    const verses = verseCount != null ? `(${verseCount} verses)` : undefined;
     const label =
-      pickString(
-        row.nameTranslit,
-        row.surahName,
-        row.name,
-        row.slug,
-        row.nameEnglish,
-        row.englishName,
-        row.surahTitle,
-        row.title,
-        row.nameArabic,
-      ) ?? `Surah ${id}`;
+      translit && english
+        ? `${translit} (${english})`
+        : translit ?? english ?? pickString(row.nameArabic) ?? `Surah ${id}`;
     options.push({
       id,
       surahName: label,
       surahTitle: label,
+      verses,
     });
   }
   return options.sort((a, b) => a.id - b.id);
@@ -217,8 +244,52 @@ export function mapJuzOptionsFromReference(
 /** Map reference.hizb (or legacy /api/quran-reference/hizb) → UI options */
 export function mapHizbOptionsFromReference(
   rows: unknown[] | null | undefined,
+  surahRows?: unknown[] | null | undefined,
 ): QuranHizbOption[] {
   if (!Array.isArray(rows)) return [];
+  const surahNameMap = new Map<number, string>();
+  const surahVerseCountMap = new Map<number, number>();
+
+  for (const item of surahRows ?? []) {
+    const row = asRecord(item);
+    if (!row) continue;
+    const surahId = pickNumber(
+      row.number,
+      row.id,
+      row.surahNumber,
+      row.surahId,
+      row.itemNumber,
+    );
+    if (!surahId) continue;
+    const translit = pickString(
+      row.nameTranslit,
+      row.surahName,
+      row.name,
+      row.slug,
+    );
+    const english = pickString(
+      row.nameEnglish,
+      row.englishName,
+      row.surahTitle,
+      row.title,
+    );
+    const label =
+      translit && english
+        ? `${translit} (${english})`
+        : translit ?? english ?? pickString(row.nameArabic) ?? `Surah ${surahId}`;
+    surahNameMap.set(surahId, label);
+
+    const surahVerseCount = pickNumber(
+      row.verseCount,
+      row.versesCount,
+      row.totalVerses,
+      row.totalAyahs,
+    );
+    if (surahVerseCount != null) {
+      surahVerseCountMap.set(surahId, surahVerseCount);
+    }
+  }
+
   const seen = new Set<number>();
   const options: QuranHizbOption[] = [];
   for (const item of rows) {
@@ -247,28 +318,69 @@ export function mapHizbOptionsFromReference(
     );
     const startSurah = pickNumber(row.startSurah);
     const endSurah = pickNumber(row.endSurah);
+    const startSurahName =
+      startSurah != null
+        ? surahNameMap.get(startSurah) ?? SURAH_NAMES[startSurah] ?? `Surah ${startSurah}`
+        : undefined;
+    const endSurahName =
+      endSurah != null
+        ? surahNameMap.get(endSurah) ?? SURAH_NAMES[endSurah] ?? `Surah ${endSurah}`
+        : undefined;
+
     const rangeLabel =
       startSurah != null &&
       verseStart != null &&
       endSurah != null &&
       verseEnd != null
-        ? `${startSurah}:${verseStart} – ${endSurah}:${verseEnd}`
+        ? `${startSurahName} ${startSurah}:${verseStart} – ${endSurahName} ${endSurah}:${verseEnd}`
         : verseStart != null && verseEnd != null
           ? `${verseStart} – ${verseEnd}`
           : undefined;
+
+    let computedVerseCount: number | undefined;
+    if (
+      verseCount == null &&
+      startSurah != null &&
+      endSurah != null &&
+      verseStart != null &&
+      verseEnd != null
+    ) {
+      if (startSurah === endSurah) {
+        computedVerseCount = Math.max(0, verseEnd - verseStart + 1);
+      } else {
+        const firstSurahCount = surahVerseCountMap.get(startSurah);
+        const lastSurahCount = surahVerseCountMap.get(endSurah);
+        if (firstSurahCount != null && lastSurahCount != null) {
+          let total = firstSurahCount - verseStart + 1 + verseEnd;
+          for (let surah = startSurah + 1; surah < endSurah; surah += 1) {
+            const middleCount = surahVerseCountMap.get(surah);
+            if (middleCount == null) {
+              total = 0;
+              break;
+            }
+            total += middleCount;
+          }
+          computedVerseCount = total > 0 ? total : undefined;
+        }
+      }
+    }
+
     const verses =
       row.verses != null
         ? String(row.verses)
-        : verseCount != null
-          ? `(${verseCount} verses)`
+        : verseCount != null || computedVerseCount != null
+          ? `(${verseCount ?? computedVerseCount} verses)`
           : rangeLabel
-            ? `(${rangeLabel})`
+            ? undefined
             : undefined;
+
+    const hizbName =
+      pickString(row.hizbName, row.label, row.title, row.name) ??
+      (rangeLabel ? `Hizb ${id} | ${rangeLabel}` : `Hizb ${id}`);
+
     options.push({
       id,
-      hizbName:
-        pickString(row.hizbName, row.label, row.title, row.name) ??
-        `Hizb ${id}`,
+      hizbName,
       verses,
     });
   }
@@ -371,14 +483,20 @@ export function getJuzRangeFromDetail(
   };
 }
 
+export function getSelectedHizbIdsFromDetail(
+  detail: QuranGoalDetail | null | undefined,
+): number[] {
+  return (detail?.items ?? [])
+    .filter((item) => String(item.itemType).toUpperCase() === "HIZB")
+    .map((item) => Number(item.itemNumber))
+    .filter((n) => Number.isFinite(n) && n > 0);
+}
+
+/** @deprecated Prefer getSelectedHizbIdsFromDetail for multi-select */
 export function getSelectedHizbFromDetail(
   detail: QuranGoalDetail | null | undefined,
 ): number | undefined {
-  const item = (detail?.items ?? []).find(
-    (row) => String(row.itemType).toUpperCase() === "HIZB",
-  );
-  const id = Number(item?.itemNumber);
-  return Number.isFinite(id) && id > 0 ? id : undefined;
+  return getSelectedHizbIdsFromDetail(detail)[0];
 }
 
 /** Hours goals store the value in targetValue */
@@ -435,11 +553,15 @@ export function buildQuranMetricUpsertPayload(
     }
     if (metric === "juz") {
       const juz = (metrics.juz ?? {}) as JuzMetricValue;
-      const start = Number(juz.start ?? 0);
-      const end = Number(juz.end ?? start);
-      if (start <= 0) return null;
+      let start = Number(juz.start ?? 0);
+      let end = Number(juz.end ?? 0);
+      // UI may leave "from" empty (0) while "to" is set — treat as 1..end
+      if (start <= 0 && end > 0) start = 1;
+      if (end <= 0 && start > 0) end = start;
+      if (start <= 0 || end <= 0) return null;
+      if (end < start) end = start;
       const items: QuranGoalItemPayload[] = [];
-      for (let n = start; n <= Math.max(start, end); n += 1) {
+      for (let n = start; n <= end; n += 1) {
         items.push({ itemType: "JUZ", itemNumber: n, targetCount: 1 });
       }
       return {
@@ -473,22 +595,36 @@ export function buildQuranMetricUpsertPayload(
   if (metric === "completion") return null;
   const quranGoalType = MEMORIZATION_METRIC_TO_TYPE[metric];
   if (metric === "hizb") {
-    const hizbId = Number(metrics.hizb?.selectedHizb ?? metrics.hizb ?? 0);
-    if (!hizbId) return null;
+    const selectedIds: number[] = Array.isArray(metrics.hizb?.selectedHizbs)
+      ? metrics.hizb.selectedHizbs.map(Number)
+      : metrics.hizb?.selectedHizb != null
+        ? [Number(metrics.hizb.selectedHizb)]
+        : Array.isArray(metrics.hizb)
+          ? metrics.hizb.map(Number)
+          : [];
+    const ids = selectedIds.filter((n) => Number.isFinite(n) && n > 0);
+    if (ids.length === 0) return null;
     return {
       quranGoalType,
       isActive: true,
       frequency: "MONTHLY",
-      items: [{ itemType: "HIZB", itemNumber: hizbId, targetCount: 1 }],
+      items: ids.map((hizbId) => ({
+        itemType: "HIZB" as const,
+        itemNumber: hizbId,
+        targetCount: 1,
+      })),
     };
   }
   if (metric === "juz") {
     const juz = (metrics.juz ?? {}) as JuzMetricValue;
-    const start = Number(juz.start ?? 0);
-    const end = Number(juz.end ?? start);
-    if (start <= 0) return null;
+    let start = Number(juz.start ?? 0);
+    let end = Number(juz.end ?? 0);
+    if (start <= 0 && end > 0) start = 1;
+    if (end <= 0 && start > 0) end = start;
+    if (start <= 0 || end <= 0) return null;
+    if (end < start) end = start;
     const items: QuranGoalItemPayload[] = [];
-    for (let n = start; n <= Math.max(start, end); n += 1) {
+    for (let n = start; n <= end; n += 1) {
       items.push({ itemType: "JUZ", itemNumber: n, targetCount: 1 });
     }
     return {

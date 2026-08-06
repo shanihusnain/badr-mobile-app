@@ -140,6 +140,7 @@ import { SadaqahJariyahTreePlantIcon } from "./SadaqahJariyahTreePlantIcon";
 import { TravelingIcon } from "./TravelingIcon";
 import { MoreTabIcon } from "./MoreTabIcon";
 import { ThreeHeartIcon } from "./ThreeHeartIcon";
+import { TickIconWithGreenBg } from "./TickIconWithGreenBg";
 //N
 
 //O
@@ -358,4 +359,5 @@ export {
   PasswordLockIcon,
   PlusGlowyIcon,
   HomeScreenGlowyMinusIcon,
+  TickIconWithGreenBg,
 };

@@ -1,39 +1,29 @@
 /**
- * MonThuCalendar — reusable component showing Monday & Thursday fasts.
- * Also shows any missed Ramadan fast dates as an overlay.
- *
- * Layout:
- *   ○ MISSED RAMADAN FASTS   ● MONDAY & THURSDAY FASTS  ← legend row
- *   May 13 - Jun 9, 2026                                ← date label (no arrows)
- *   [ CalendarGrid mode="mon_thu" ]
- *   Description text
- *   N MONDAY & THURSDAY FASTS
- *   [ Save ]
+ * MonThuCalendar — Monday & Thursday fast selection.
+ * Dates/legends driven by GET fasting-goals/calendar-preview.
  */
 
 import { Colors } from "@/constants/theme";
-import { useState, useEffect } from "react";
-import {
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  ViewStyle,
-} from "react-native";
+import { useState, useEffect, useMemo } from "react";
+import { StyleSheet, Text, View } from "react-native";
 import moment from "moment-hijri";
 import { fonts } from "@/assets/fonts";
 import { CalendarGrid } from "@/components/molecules/CalendarGrid";
+import {
+  getFastingLegendItems,
+  type FastingCalendarWindow,
+} from "@/src/utils/fastingCalendarPreview";
 
 type MonThuCalendarProps = {
-  /** Pre-existing missed Ramadan dates to overlay on the calendar. */
   missedRamadanDates?: string[];
-  /** Called when user selection changes — returns array of selected date strings (YYYY-MM-DD). */
   onSave?: (selectedDates: string[]) => void;
   hideFooter?: boolean;
   hideLegend?: boolean;
   hideDateLabel?: boolean;
   readOnly?: boolean;
   bgColor?: string;
+  calendarWindow?: FastingCalendarWindow | null;
+  initialSelectedDates?: string[];
 };
 
 export const MonThuCalendar = ({
@@ -44,65 +34,79 @@ export const MonThuCalendar = ({
   hideDateLabel = false,
   readOnly = false,
   bgColor = Colors.light.calendarBg,
+  calendarWindow,
+  initialSelectedDates,
 }: MonThuCalendarProps) => {
-  const startMoment = moment();
-  const endMoment = moment().add(27, "days");
-  const rangeLabel = `${startMoment.format("MMM D")} - ${endMoment.format("MMM D")}, ${startMoment.year()}`;
-  const currentDate = startMoment.clone().startOf("month").format("YYYY-MM-DD");
+  const startMoment = calendarWindow
+    ? moment(calendarWindow.startDate, "YYYY-MM-DD")
+    : moment();
+  const endMoment = calendarWindow
+    ? moment(calendarWindow.endDate, "YYYY-MM-DD")
+    : moment().add(27, "days");
+  const rangeLabel =
+    calendarWindow?.rangeLabel ??
+    `${startMoment.format("MMM D")} - ${endMoment.format("MMM D")}, ${startMoment.year()}`;
+  const currentDate =
+    calendarWindow?.currentDate ??
+    startMoment.clone().startOf("month").format("YYYY-MM-DD");
+  const islamicRangeLabel = calendarWindow?.islamicRangeLabel ?? "";
 
-  // Calculate Islamic date range label
-  const HIJRI_MONTHS_SHORT = [
-    "Muh.",
-    "Saf.",
-    "Rab. I",
-    "Rab. II",
-    "Jum. I",
-    "Jum. II",
-    "Raj.",
-    "Sha.",
-    "Ram.",
-    "Shaw.",
-    "Dhul Q.",
-    "Dhul H.",
-  ];
-  const startMonth = HIJRI_MONTHS_SHORT[startMoment.iMonth()];
-  const endMonth = HIJRI_MONTHS_SHORT[endMoment.iMonth()];
-  const startYear = startMoment.iYear();
-  const endYear = endMoment.iYear();
+  const monThuDates = calendarWindow?.monThuDates;
+  const monThuSet = useMemo(
+    () => new Set(monThuDates ?? []),
+    [monThuDates],
+  );
 
-  let islamicRangeLabel = "";
-  if (startMoment.iMonth() === endMoment.iMonth() && startYear === endYear) {
-    islamicRangeLabel = `${startMonth} ${startYear}`;
-  } else if (startYear === endYear) {
-    islamicRangeLabel = `${startMonth} - ${endMonth} ${startYear}`;
-  } else {
-    islamicRangeLabel = `${startMonth} ${startYear} - ${endMonth} ${endYear}`;
-  }
+  const overlayMissedDates =
+    missedRamadanDates.length > 0
+      ? missedRamadanDates
+      : (calendarWindow?.missedRamadanDates ?? []);
 
-  // Count Mon/Thu in window
-  const monThuCount = Array.from({ length: 28 }, (_, i) => {
-    const dow = moment().add(i, "days").day(); // 0=Sun 1=Mon … 4=Thu
-    return dow === 1 || dow === 4;
-  }).filter(Boolean).length;
+  // Other active/planned goals shown as dimmed rings while selecting Mon/Thu
+  const overlayWhiteDayDates = useMemo(() => {
+    const set = new Set([
+      ...(calendarWindow?.activeWhiteDayDates ?? []),
+      ...(calendarWindow?.whiteDaysPlannedDates ?? []),
+    ]);
+    return Array.from(set);
+  }, [calendarWindow]);
 
-  // Call onSave callback with count
-  // Manage selected Mon/Thu dates locally; parent can supply missedRamadanDates but selected
-  // mon/thu days are chosen by tapping the calendar. Keep a set of selected date strings.
-  const [selectedDates, setSelectedDates] = useState<Set<string>>(new Set());
+  const overlayDawoodDates = useMemo(() => {
+    const set = new Set([
+      ...(calendarWindow?.activeDawoodDates ?? []),
+      ...(calendarWindow?.dawoodPlannedDates ?? []),
+    ]);
+    return Array.from(set);
+  }, [calendarWindow]);
+
+  const legendItems = useMemo(
+    () =>
+      getFastingLegendItems(calendarWindow?.legendTypes ?? [], {
+        forceInclude: ["MONDAY_THURSDAY"],
+      }),
+    [calendarWindow?.legendTypes],
+  );
+
+  const [selectedDates, setSelectedDates] = useState<Set<string>>(
+    () =>
+      new Set(initialSelectedDates ?? calendarWindow?.monThuPlannedDates ?? []),
+  );
 
   useEffect(() => {
-    // report selected date array to parent whenever it changes
-    // NOTE: intentionally omitting `onSave` from deps because parent often
-    // provides an inline handler which would trigger a render loop. We only
-    // want to call the most recent handler when `selectedDates` changes.
+    if (!initialSelectedDates && !calendarWindow?.monThuPlannedDates) return;
+    setSelectedDates(
+      new Set(initialSelectedDates ?? calendarWindow?.monThuPlannedDates ?? []),
+    );
+  }, [initialSelectedDates, calendarWindow?.monThuPlannedDates]);
+
+  useEffect(() => {
     onSave?.(Array.from(selectedDates));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDates]);
 
   return (
     <View style={styles.wrapper}>
-      {/* ── Legend — calendarBg top bar ── */}
-      {!hideLegend && (
+      {!hideLegend && legendItems.length > 0 && (
         <View
           style={[
             styles.topBar,
@@ -113,35 +117,23 @@ export const MonThuCalendar = ({
           ]}
         >
           <View style={styles.legendRow}>
-            <View
-              style={[
-                styles.legendRing,
-                { borderColor: Colors.light.ringRamadan },
-              ]}
-            />
-            <Text
-              style={[styles.legendText, { color: Colors.light.grey }]}
-              numberOfLines={1}
-            >
-              MISSED RAMADAN FASTS
-            </Text>
-            <View
-              style={[
-                styles.legendRing,
-                { borderColor: Colors.light.ringMonThu },
-              ]}
-            />
-            <Text
-              style={[styles.legendText, { color: Colors.light.grey }]}
-              numberOfLines={1}
-            >
-              MONDAYS & THURSDAYS
-            </Text>
+            {legendItems.map((item) => (
+              <View key={item.type} style={styles.legendItem}>
+                <View
+                  style={[styles.legendRing, { borderColor: item.color }]}
+                />
+                <Text
+                  style={[styles.legendText, { color: Colors.light.grey }]}
+                  numberOfLines={1}
+                >
+                  {item.label}
+                </Text>
+              </View>
+            ))}
           </View>
         </View>
       )}
 
-      {/* ── Date range label ── */}
       {!hideDateLabel && (
         <View
           style={[
@@ -150,21 +142,40 @@ export const MonThuCalendar = ({
           ]}
         >
           <Text style={styles.dateLabelText}>{rangeLabel}</Text>
-          <Text style={styles.islamicDateText}>{islamicRangeLabel}</Text>
+          {!!islamicRangeLabel && (
+            <Text style={styles.islamicDateText}>{islamicRangeLabel}</Text>
+          )}
         </View>
       )}
 
-      {/* ── Calendar ── */}
       <CalendarGrid
         mode="mon_thu"
         currentDate={currentDate}
-        markedDates={missedRamadanDates}
+        windowStartDate={
+          calendarWindow?.startDate ?? startMoment.format("YYYY-MM-DD")
+        }
+        windowEndDate={
+          calendarWindow?.endDate ?? endMoment.format("YYYY-MM-DD")
+        }
+        markedDates={overlayMissedDates}
+        monThuDates={monThuDates}
+        whiteDayDates={overlayWhiteDayDates}
+        dawoodDates={overlayDawoodDates}
+        selectedDates={Array.from(selectedDates)}
+        dimInactiveDays
+        bgColor={bgColor}
         onDayPress={
           readOnly
             ? undefined
             : (ds) => {
-                const dow = new Date(ds).getDay();
-                if (dow !== 1 && dow !== 4) return;
+                const isMonThu =
+                  monThuSet.size > 0
+                    ? monThuSet.has(ds)
+                    : (() => {
+                        const dow = new Date(ds + "T12:00:00").getDay();
+                        return dow === 1 || dow === 4;
+                      })();
+                if (!isMonThu) return;
                 setSelectedDates((prev) => {
                   const next = new Set(Array.from(prev));
                   if (next.has(ds)) next.delete(ds);
@@ -192,6 +203,12 @@ const styles = StyleSheet.create({
   },
 
   legendRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
+    gap: 10,
+  },
+  legendItem: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,

@@ -37,7 +37,7 @@ export function SurahRecitationGoalCard({
 }: Props) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
-
+  console.log("goal", goal);
   const statusLabel = useMemo(() => {
     switch (goal.status) {
       case "not-started":
@@ -94,12 +94,16 @@ export function SurahRecitationGoalCard({
             style={[
               surahGoalStyles.card,
               { width: "100%" },
-              isInView ? surahGoalStyles.cardActive : surahGoalStyles.cardInactive,
+              isInView
+                ? surahGoalStyles.cardActive
+                : surahGoalStyles.cardInactive,
             ]}
           >
             <View style={surahGoalStyles.cardContent}>
               <View style={surahGoalStyles.statusChip}>
-                <Text style={surahGoalStyles.statusChipText}>{statusLabel}</Text>
+                <Text style={surahGoalStyles.statusChipText}>
+                  {statusLabel}
+                </Text>
               </View>
 
               <Text style={surahGoalStyles.surahName}>

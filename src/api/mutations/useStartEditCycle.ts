@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "..";
 import { showToast } from "@/src/config/toastConfig";
 
@@ -18,10 +18,14 @@ const useStartEditCycle = async ({ startDate }: { startDate: string }) => {
 };
 
 export const useStartEditCycleMutation = () => {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: ({ startDate }: { startDate: string }) =>
       useStartEditCycle({ startDate }),
     onSuccess: (response) => {
+      queryClient.invalidateQueries({ queryKey: ["me"] });
+      queryClient.invalidateQueries({ queryKey: ["goal-cycle"] });
       showToast("success", response.message);
     },
     onError: (error: any) => {

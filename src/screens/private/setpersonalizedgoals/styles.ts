@@ -9,6 +9,8 @@ export const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: fonts.primary.regular,
     lineHeight: 20,
+    letterSpacing: 0.1,
+    textAlign: "justify",
   },
   languageRow: {
     flexDirection: "row",

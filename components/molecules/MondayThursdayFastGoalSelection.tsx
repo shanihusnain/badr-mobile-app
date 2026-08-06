@@ -14,17 +14,25 @@ import PrimaryButton from "../atoms/Primary-button";
 import { useLocaleNumber } from "../../hooks/useLocaleNumber";
 import { MonThuCalendar } from "./MonThuCalendar";
 import { TopSpace } from "../atoms/TopSpace";
+import type { FastingCalendarWindow } from "@/src/utils/fastingCalendarPreview";
+import { useUpsertFastingGoals } from "@/src/api/mutations/useUpsertFastingGoals";
 
 export default function MondayThursdayFastGoalSelection({
   onSave,
+  calendarWindow,
 }: {
   onSave?: (selectedDates: string[]) => void;
+  calendarWindow?: FastingCalendarWindow | null;
 }) {
   const formatNumber = useLocaleNumber();
-  const [missedRamadanDates, setMissedRamadanDates] = useState<string[]>([]);
+  const { mutate: upsertFastingGoal, isPending } = useUpsertFastingGoals();
   const [isOpen, setIsOpen] = useState(false);
-  const [monThuCount, setMonThuCount] = useState(0);
-  const [selectedMonThuDates, setSelectedMonThuDates] = useState<string[]>([]);
+  const [monThuCount, setMonThuCount] = useState(
+    () => calendarWindow?.monThuPlannedDates.length ?? 0,
+  );
+  const [selectedMonThuDates, setSelectedMonThuDates] = useState<string[]>(
+    () => calendarWindow?.monThuPlannedDates ?? [],
+  );
 
   const toggleDropdown = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -32,12 +40,18 @@ export default function MondayThursdayFastGoalSelection({
   };
 
   const handleSave = () => {
-    // notify parent of selected dates and also log locally
-    console.log(
-      "Saved Monday & Thursday fasts with selected dates:",
-      selectedMonThuDates,
+    // Empty plannedDates → backend auto-fills all Mon/Thu in the cycle
+    upsertFastingGoal(
+      {
+        fastingType: "MONDAY_THURSDAY",
+        ...(selectedMonThuDates.length > 0
+          ? { plannedDates: selectedMonThuDates }
+          : {}),
+      },
+      {
+        onSuccess: () => onSave?.(selectedMonThuDates),
+      },
     );
-    onSave?.(selectedMonThuDates);
   };
 
   return (
@@ -62,10 +76,11 @@ export default function MondayThursdayFastGoalSelection({
 
       {isOpen && (
         <View style={styles.expandedContent}>
-          {/* Calendar Component with description */}
           <View style={styles.calendarWrapper}>
             <MonThuCalendar
-              missedRamadanDates={missedRamadanDates}
+              calendarWindow={calendarWindow}
+              missedRamadanDates={calendarWindow?.missedRamadanDates}
+              initialSelectedDates={calendarWindow?.monThuPlannedDates}
               onSave={(selectedDates) => {
                 setSelectedMonThuDates(selectedDates);
                 setMonThuCount(selectedDates.length);
@@ -98,6 +113,8 @@ export default function MondayThursdayFastGoalSelection({
             <PrimaryButton
               text="Save"
               onPress={handleSave}
+              isLoading={isPending}
+              disabled={isPending}
               style={styles.saveButton}
               textStyle={styles.saveButtonText}
             />

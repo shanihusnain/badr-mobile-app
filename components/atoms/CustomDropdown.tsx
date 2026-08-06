@@ -109,10 +109,15 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
           style={[
             styles.trigger,
             containerStyle,
-            {
-              borderColor: isOpen ? Colors.light.green : "transparent",
-              borderWidth: isOpen ? 1 : 0,
-            },
+            borderColor
+              ? {
+                  borderColor: isOpen ? Colors.light.green : borderColor,
+                  borderWidth: 1,
+                }
+              : {
+                  borderColor: isOpen ? Colors.light.green : "transparent",
+                  borderWidth: isOpen ? 1 : 0,
+                },
           ]}
           onPress={() => setIsOpen((prev) => !prev)}
           activeOpacity={0.8}

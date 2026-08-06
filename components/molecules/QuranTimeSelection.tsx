@@ -17,6 +17,8 @@ import PrimaryButton from "@/components/atoms/Primary-button";
 import { useGetQuranGoalByType } from "@/src/api/queries/useGetQuranGoalByType";
 import { getHoursFromDetail } from "@/src/utils/quranGoalMap";
 
+const MAX_HOURS = 280;
+
 export const QuranTimeSelection = ({
   title,
   description,
@@ -40,7 +42,7 @@ export const QuranTimeSelection = ({
     if (!isOpen || hydrated || !goalDetail) return;
     const hours = getHoursFromDetail(goalDetail);
     if (hours > 0) {
-      setInputValue(String(Math.round(hours)));
+      setInputValue(String(Math.min(MAX_HOURS, Math.round(hours))));
     }
     setHydrated(true);
   }, [isOpen, goalDetail, hydrated]);
@@ -48,6 +50,20 @@ export const QuranTimeSelection = ({
   useEffect(() => {
     if (!isOpen) setHydrated(false);
   }, [isOpen]);
+
+  const handleHoursChange = (text: string) => {
+    const digitsOnly = text.replace(/[^0-9]/g, "");
+    if (digitsOnly === "") {
+      setInputValue("");
+      return;
+    }
+    const parsed = parseInt(digitsOnly, 10);
+    if (Number.isNaN(parsed)) {
+      setInputValue("");
+      return;
+    }
+    setInputValue(String(Math.min(MAX_HOURS, parsed)));
+  };
 
   const toggleDropdown = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -70,15 +86,16 @@ export const QuranTimeSelection = ({
             </View>
           ) : (
             <>
-              <Text style={styles.header}>Enter upto 280 hours.</Text>
+              <Text style={styles.header}>Enter upto {MAX_HOURS} hours.</Text>
               <TopSpace top={12} />
               <View style={styles.outerRow}>
                 <TextInput
                   value={inputValue}
-                  onChangeText={setInputValue}
+                  onChangeText={handleHoursChange}
                   keyboardType="numeric"
                   placeholder="0"
                   placeholderTextColor={Colors.light.icon}
+                  maxLength={3}
                   style={{
                     borderColor:
                       inputValue && inputValue.trim().length > 0
@@ -109,7 +126,10 @@ export const QuranTimeSelection = ({
               <PrimaryButton
                 text="Save"
                 onPress={() => {
-                  const hours = parseInt(inputValue || "0", 10) || 0;
+                  const hours = Math.min(
+                    MAX_HOURS,
+                    parseInt(inputValue || "0", 10) || 0,
+                  );
                   if (onSave) onSave(hours);
                   setIsOpen(false);
                 }}

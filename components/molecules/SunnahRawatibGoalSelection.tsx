@@ -1,13 +1,12 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
   StyleSheet,
   Text,
   View,
   TouchableOpacity,
   LayoutAnimation,
-  Platform,
 } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import { useSharedValue } from "react-native-reanimated";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import CustomSlider from "@/components/atoms/CustomSlider";
@@ -17,6 +16,7 @@ import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import { globalStyles } from "@/src/globalstyles/globalstyles";
 import { GoalSelectionOpenCloseButton } from "./GoalSelectionOpenCloseButton";
 import { Divider } from "../atoms/Divider";
+import { SwitchButton } from "../atoms/SwitchButton";
 
 export default function SunnahRawatibGoalSelection({
   onSave,
@@ -47,7 +47,9 @@ export default function SunnahRawatibGoalSelection({
 }) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
-  const [beforeFajar, setBeforeFajar] = useState(initialValues?.beforeFajr ?? 28);
+  const [beforeFajar, setBeforeFajar] = useState(
+    initialValues?.beforeFajr ?? 28,
+  );
   const [beforeDuhr, setBeforeDuhr] = useState(
     initialValues?.beforeDhuhr ?? 56,
   );
@@ -63,17 +65,28 @@ export default function SunnahRawatibGoalSelection({
   const [beforeAsarOption, setBeforeAsarOption] = useState<"one" | "two">(
     initialValues?.beforeAsrRakahOption === 1 ? "one" : "two",
   );
+  const [isBeforeAsarEnabled, setIsBeforeAsarEnabled] = useState(
+    initialValues?.beforeAsrEnabled ?? true,
+  );
+  const beforeAsarEnabled = useSharedValue(
+    initialValues?.beforeAsrEnabled ?? true,
+  );
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleDropdown = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setIsOpen(!isOpen);
   };
-  console.log("the prayer after dhuhur state is", afterDuhr);
+
+  const handleToggleBeforeAsar = useCallback(() => {
+    const nextValue = !isBeforeAsarEnabled;
+    beforeAsarEnabled.value = nextValue;
+    setIsBeforeAsarEnabled(nextValue);
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+  }, [beforeAsarEnabled, isBeforeAsarEnabled]);
+
   const handleAfterDuhrOptionChange = (option: "one" | "two") => {
     setAfterDuhrOption(option);
-
-    const maxVal = option === "one" ? 28 : 56;
     if (option === "one") {
       setAfterDuhr(28);
     } else {
@@ -83,7 +96,6 @@ export default function SunnahRawatibGoalSelection({
 
   const handleBeforeAsarOptionChange = (option: "one" | "two") => {
     setBeforeAsarOption(option);
-    const maxVal = option === "one" ? 28 : 56;
     if (option === "one") {
       setBeforeAsar(28);
     } else {
@@ -92,24 +104,14 @@ export default function SunnahRawatibGoalSelection({
   };
 
   const handleSave = () => {
-    console.log("Saved target Sunnah Rawatib prayers:", {
-      beforeFajar,
-      beforeDuhr,
-      afterDuhr,
-      beforeAsar,
-      afterMaghrib,
-      afterIsha,
-      afterDuhrOption,
-      beforeAsarOption,
-    });
     if (onSave) {
       onSave({
         beforeFajr: beforeFajar,
         beforeDhuhr: beforeDuhr,
         afterDhuhr: afterDuhr,
         afterDhuhrRakahOption: afterDuhrOption === "one" ? 1 : 2,
-        beforeAsrEnabled: true,
-        beforeAsr: beforeAsar,
+        beforeAsrEnabled: isBeforeAsarEnabled,
+        beforeAsr: isBeforeAsarEnabled ? beforeAsar : 0,
         beforeAsrRakahOption: beforeAsarOption === "one" ? 1 : 2,
         afterMaghrib: afterMaghrib,
         afterIsha: afterIsha,
@@ -121,7 +123,7 @@ export default function SunnahRawatibGoalSelection({
     beforeFajar +
     beforeDuhr +
     afterDuhr +
-    beforeAsar +
+    (isBeforeAsarEnabled ? beforeAsar : 0) +
     afterMaghrib +
     afterIsha;
 
@@ -209,46 +211,66 @@ export default function SunnahRawatibGoalSelection({
 
           {/* Before Asar */}
           <View style={styles.sliderGroup}>
-            <Text style={styles.sliderHeading}>
-              {t("prayerGoals.beforeAsrHeading")}
-            </Text>
-            <View style={styles.radioRow}>
-              <TouchableOpacity
-                style={styles.radioOption}
-                onPress={() => handleBeforeAsarOptionChange("one")}
-                activeOpacity={0.7}
+            <View style={styles.switchRow}>
+              <Text
+                style={[
+                  styles.sliderHeading,
+                  styles.switchHeading,
+                  !isBeforeAsarEnabled && styles.disabledText,
+                ]}
               >
-                <View style={styles.radioOuter}>
-                  {beforeAsarOption === "one" && (
-                    <View style={styles.radioInner} />
-                  )}
-                </View>
-                <Text style={styles.radioText}>
-                  {t("prayerGoals.oneRakahOption")}
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.radioOption}
-                onPress={() => handleBeforeAsarOptionChange("two")}
-                activeOpacity={0.7}
-              >
-                <View style={styles.radioOuter}>
-                  {beforeAsarOption === "two" && (
-                    <View style={styles.radioInner} />
-                  )}
-                </View>
-                <Text style={styles.radioText}>
-                  {t("prayerGoals.twoRakahOption")}
-                </Text>
-              </TouchableOpacity>
+                {t("prayerGoals.beforeAsrHeading")}
+              </Text>
+              <SwitchButton
+                value={beforeAsarEnabled}
+                onPress={handleToggleBeforeAsar}
+                size="small"
+              />
             </View>
-            <CustomSlider
-              maxDays={beforeAsarOption === "one" ? 28 : 56}
-              initialDays={beforeAsar}
-              onChange={(val) => setBeforeAsar(val)}
-              locked={true}
-            />
+            <View
+              style={!isBeforeAsarEnabled ? styles.disabledControls : undefined}
+              pointerEvents={isBeforeAsarEnabled ? "auto" : "none"}
+            >
+              <View style={styles.radioRow}>
+                <TouchableOpacity
+                  style={styles.radioOption}
+                  onPress={() => handleBeforeAsarOptionChange("one")}
+                  activeOpacity={0.7}
+                  disabled={!isBeforeAsarEnabled}
+                >
+                  <View style={styles.radioOuter}>
+                    {isBeforeAsarEnabled && beforeAsarOption === "one" && (
+                      <View style={styles.radioInner} />
+                    )}
+                  </View>
+                  <Text style={styles.radioText}>
+                    {t("prayerGoals.oneRakahOption")}
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.radioOption}
+                  onPress={() => handleBeforeAsarOptionChange("two")}
+                  activeOpacity={0.7}
+                  disabled={!isBeforeAsarEnabled}
+                >
+                  <View style={styles.radioOuter}>
+                    {isBeforeAsarEnabled && beforeAsarOption === "two" && (
+                      <View style={styles.radioInner} />
+                    )}
+                  </View>
+                  <Text style={styles.radioText}>
+                    {t("prayerGoals.twoRakahOption")}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              <CustomSlider
+                maxDays={beforeAsarOption === "one" ? 28 : 56}
+                initialDays={isBeforeAsarEnabled ? beforeAsar : 0}
+                onChange={(val) => setBeforeAsar(val)}
+                locked={true}
+              />
+            </View>
           </View>
 
           {/* After Maghrib */}
@@ -316,6 +338,23 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
     textAlign: "left",
     marginBottom: 4,
+  },
+  switchRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: "100%",
+    gap: 12,
+  },
+  switchHeading: {
+    flex: 1,
+    marginBottom: 0,
+  },
+  disabledText: {
+    color: Colors.light.grey,
+  },
+  disabledControls: {
+    opacity: 0.35,
   },
 
   radioRow: {
