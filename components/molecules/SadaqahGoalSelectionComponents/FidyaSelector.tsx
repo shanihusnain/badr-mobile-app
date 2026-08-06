@@ -5,6 +5,7 @@ import { Counter } from "../Counter";
 import { useState } from "react";
 import { Divider } from "@/components/atoms/Divider";
 import { TopSpace } from "@/components/atoms/TopSpace";
+import PrimaryButton from "@/components/atoms/Primary-button";
 import { useTranslation } from "react-i18next";
 
 export const FidyaSelector = ({
@@ -14,6 +15,8 @@ export const FidyaSelector = ({
   handleIncrease,
   title,
   countTitle,
+  onSave,
+  isSaving,
 }: {
   count: number;
   setCount: (value: number) => void;
@@ -21,6 +24,8 @@ export const FidyaSelector = ({
   handleIncrease: () => void;
   title: string;
   countTitle?: string;
+  onSave?: () => void;
+  isSaving?: boolean;
 }) => {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
@@ -47,6 +52,17 @@ export const FidyaSelector = ({
             countTitle={countTitle ?? t("monthlyGoalPlanner.meals")}
             width={"50%"}
           />
+          {onSave ? (
+            <>
+              <TopSpace top={16} />
+              <PrimaryButton
+                text={t("monthlyGoalPlanner.save")}
+                onPress={onSave}
+                isLoading={isSaving}
+                disabled={isSaving || count < 1}
+              />
+            </>
+          ) : null}
         </>
       )}
     </View>

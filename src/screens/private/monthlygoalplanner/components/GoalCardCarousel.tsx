@@ -1,8 +1,8 @@
 import { Colors } from "@/constants/theme";
-import { useState } from "react";
 import { StyleSheet, useWindowDimensions, View } from "react-native";
+import { useSharedValue } from "react-native-reanimated";
 import { useTranslation } from "react-i18next";
-import Carousel from "react-native-reanimated-carousel";
+import Carousel, { Pagination } from "react-native-reanimated-carousel";
 import { GoalCard, type GoalCardData } from "./GoalCard";
 
 const SCREEN_H_PADDING = 16;
@@ -31,7 +31,7 @@ export const GoalCardCarousel = ({ data }: Props) => {
 
   const { i18n } = useTranslation();
   const isRtl = i18n.language === "ar";
-  const [activeIndex, setActiveIndex] = useState(0);
+  const progress = useSharedValue(0);
 
   return (
     <View>
@@ -42,43 +42,41 @@ export const GoalCardCarousel = ({ data }: Props) => {
         loop={false}
         mode="horizontal-stack"
         modeConfig={STACK_MODE_CONFIG}
-        onSnapToItem={setActiveIndex}
+        onProgressChange={progress}
         renderItem={({ item }) => (
           <GoalCard item={item} cardWidth={cardWidth} />
         )}
         style={{ width: cardWidth }}
+        pagingEnabled={true}
       />
 
-      {/* Dot indicators */}
-      <View style={[styles.dotsRow, { flexDirection: isRtl ? "row-reverse" : "row" }]}>
-        {data.map((_, i) => (
-          <View
-            key={i}
-            style={[styles.dot, i === activeIndex && styles.dotActive]}
-          />
-        ))}
-      </View>
+      <Pagination.Basic
+        progress={progress}
+        data={data}
+        size={10}
+        dotStyle={styles.dot}
+        activeDotStyle={styles.dotActive}
+        containerStyle={[
+          styles.dotsRow,
+          { flexDirection: isRtl ? "row-reverse" : "row" },
+        ]}
+      />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   dotsRow: {
-    flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
     marginTop: 12,
     gap: 6,
   },
   dot: {
-    width: 10,
-    height: 10,
-    borderRadius: 12,
     backgroundColor: Colors.light.grey,
+    borderRadius: 12,
   },
   dotActive: {
-    width: 10,
-    height: 10,
     backgroundColor: Colors.light.green,
     borderRadius: 12,
   },

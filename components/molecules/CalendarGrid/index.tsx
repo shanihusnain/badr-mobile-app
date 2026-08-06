@@ -30,8 +30,11 @@ import { FontAwesome } from "@expo/vector-icons";
 import Feather from "@expo/vector-icons/Feather";
 import { useTypedTranslation } from "@/i18next/useTypedTranslation";
 
-const RING_SIZE = 36;
-const COMPLETED_DOT_SIZE = 30;
+const RING_SIZE = 32;
+const COMPLETED_DOT_SIZE = 26;
+/** Day-cell footprint — keep stable so Hijri labels don't shrink with the ring. */
+const DAY_CELL_WIDTH = 36;
+const DAY_CELL_HEIGHT = 48;
 
 const ringStyle: ViewStyle = {
   width: RING_SIZE,
@@ -72,6 +75,8 @@ export type CalendarMode =
 
 export type CalendarGridProps = {
   mode: CalendarMode;
+  borderBottomLeftRadius?: number;
+  borderBottomRightRadius?: number;
   /**
    * Controls which month to display — "YYYY-MM-DD" (usually the 1st of the month).
    * For non-dob modes this is also used as the start of the 28-day window.
@@ -89,15 +94,19 @@ export type CalendarGridProps = {
   incompletePlannedFastDates?: string[];
   /** Monday & Thursday achievement: outlined markers for missed selected fasts. */
   missedFastDates?: string[];
-  /** Planned Mon/Thu fast dates (planned_all mode). */
+  /** Planned Mon/Thu fast dates (planned_all / mon_thu modes). */
   monThuDates?: string[];
-  /** Planned White Day fast dates (planned_all mode). */
+  /** Planned White Day fast dates (planned_all / white_days / mon_thu overlay). */
   whiteDayDates?: string[];
+  /** Overlay Prophet Dawood fast dates (mon_thu / white_days selection calendars). */
+  dawoodDates?: string[];
+  /** Multi-select highlight (e.g. chosen Mon/Thu dates while editing). */
+  selectedDates?: string[];
   /** Planned vs. progress markers (planned_progress mode). */
   plannedFastMarkers?: PlannedFastMarker[];
   /** Dawood mode: 1 = fast on days 1,3,5… | 2 = fast on days 2,4,6… */
   dawoodStartDay?: 1 | 2;
-  /** White-days mode: dim non-white days when true (default true). */
+  /** White-days / mon_thu: dim inactive days when true (default true). */
   dimInactiveDays?: boolean;
   /** Called when the user taps a day cell. */
   onDayPress?: (dateString: string) => void;
@@ -179,6 +188,8 @@ function buildMonthWeeks(monthDate: string): string[][] {
 
 export const CalendarGrid = ({
   mode,
+  borderBottomLeftRadius,
+  borderBottomRightRadius,
   currentDate,
   windowStartDate,
   windowEndDate,
@@ -188,11 +199,13 @@ export const CalendarGrid = ({
   missedFastDates = [],
   monThuDates = [],
   whiteDayDates = [],
+  dawoodDates = [],
   plannedFastMarkers = [],
   dawoodStartDay = 1,
   dimInactiveDays = true,
   onDayPress,
   selectedDate,
+  selectedDates = [],
   endDate,
   minDate,
   maxDate,
@@ -206,6 +219,8 @@ export const CalendarGrid = ({
   const missedFastSet = new Set(missedFastDates);
   const monThuSet = new Set(monThuDates);
   const whiteDaySet = new Set(whiteDayDates);
+  const dawoodSet = new Set(dawoodDates);
+  const selectedDatesSet = new Set(selectedDates);
   const plannedFastMarkerMap = new Map(
     plannedFastMarkers.map((marker) => [marker.date, marker]),
   );
@@ -255,12 +270,11 @@ export const CalendarGrid = ({
   const renderDayCell = (ds: string, dayNumber: number) => {
     // ── Shared values ─────────────────────────────────────────────────
     const hijriDay = moment(ds, "YYYY-MM-DD").iDate();
+    const hijriDayLabel = Number.isFinite(hijriDay) ? String(hijriDay) : "";
     const isToday = ds === moment().format("YYYY-MM-DD");
     const isSelected = ds === selectedDate;
     const isEndDate = !!endDate && ds === endDate;
-    const dayOfWeek = new Date(ds).getDay(); // 0=Sun 1=Mon … 4=Thu
-
-    console.log("dayOfWeek", dayOfWeek);
+    const dayOfWeek = new Date(ds + "T12:00:00").getDay(); // 0=Sun 1=Mon … 4=Thu
     const isDisabledDobDate = isDobDateDisabled(ds);
     const isInRange = isInSelectedRange(ds);
 
@@ -302,13 +316,41 @@ export const CalendarGrid = ({
       }
 
       // ── Missed Ramadan Fasts ────────────────────────────────────────
+      // Selected: ramadan ring. Other goals: dimmed ring, not selectable.
       case "ramadan": {
-        if (markedSet.has(ds)) {
+        const isUserSelected = markedSet.has(ds);
+        const hasMonThu = monThuSet.has(ds);
+        const hasWhiteDay = whiteDaySet.has(ds);
+        const hasDawood = dawoodSet.has(ds);
+
+        if (isUserSelected) {
+          cellOpacity = 1;
           circleStyle = {
             borderWidth: 1.2,
             borderColor: Colors.light.ringRamadan,
           };
           textStyle = { color: Colors.light.ringRamadan };
+        } else if (hasMonThu) {
+          cellOpacity = dimInactiveDays ? 0.35 : 1;
+          circleStyle = {
+            borderWidth: 1.2,
+            borderColor: Colors.light.ringMonThu,
+          };
+          textStyle = { color: Colors.light.ringMonThu };
+        } else if (hasDawood) {
+          cellOpacity = dimInactiveDays ? 0.35 : 1;
+          circleStyle = {
+            borderWidth: 1.2,
+            borderColor: Colors.light.ringDawood,
+          };
+          textStyle = { color: Colors.light.ringDawood };
+        } else if (hasWhiteDay) {
+          cellOpacity = dimInactiveDays ? 0.35 : 1;
+          circleStyle = {
+            borderWidth: 1.2,
+            borderColor: Colors.light.white,
+          };
+          textStyle = { color: Colors.light.white };
         }
         break;
       }
@@ -329,45 +371,104 @@ export const CalendarGrid = ({
       }
 
       // ── Monday & Thursday Fasts ─────────────────────────────────────
+      // Unselected Mon/Thu: no ring (still tappable). Selected: white ring.
+      // Other goals (missed Ramadan / white days / Dawood): dimmed ring in that goal color.
       case "mon_thu": {
-        if (markedSet.has(ds)) {
+        const isMonThu =
+          monThuSet.size > 0
+            ? monThuSet.has(ds)
+            : dayOfWeek === 1 || dayOfWeek === 4;
+        const isUserSelected = selectedDatesSet.has(ds);
+        const hasMissedRamadan = markedSet.has(ds);
+        const hasWhiteDay = whiteDaySet.has(ds);
+        const hasDawood = dawoodSet.has(ds);
+
+        if (isUserSelected && isMonThu) {
+          cellOpacity = 1;
           circleStyle = {
             borderWidth: 1.2,
-
+            borderColor: Colors.light.white,
+          };
+          textStyle = { color: Colors.light.white };
+        } else if (hasMissedRamadan) {
+          cellOpacity = dimInactiveDays ? 0.35 : 1;
+          circleStyle = {
+            borderWidth: 1.2,
             borderColor: Colors.light.ringRamadan,
           };
           textStyle = { color: Colors.light.ringRamadan };
-        } else if (dayOfWeek === 1 || dayOfWeek === 4) {
+        } else if (hasDawood) {
+          cellOpacity = dimInactiveDays ? 0.35 : 1;
           circleStyle = {
             borderWidth: 1.2,
-
-            borderColor: Colors.light.ringMonThu,
+            borderColor: Colors.light.ringDawood,
           };
-          textStyle = { color: Colors.light.ringMonThu };
+          textStyle = { color: Colors.light.ringDawood };
+        } else if (hasWhiteDay) {
+          cellOpacity = dimInactiveDays ? 0.35 : 1;
+          circleStyle = {
+            borderWidth: 1.2,
+            borderColor: Colors.light.white,
+          };
+          textStyle = { color: Colors.light.white };
+        } else if (isMonThu) {
+          // Selectable but unselected — no ring, keep readable
+          cellOpacity = 1;
+          textStyle = { color: Colors.light.white };
+        } else {
+          cellOpacity = dimInactiveDays ? 0.3 : 1;
+          textStyle = { color: Colors.light.grey };
         }
         break;
       }
 
       // ── White Days (Hijri 13, 14, 15) ──────────────────────────────
+      // Unselected White Day: no ring (still tappable). Selected: white ring.
+      // Other goals: dimmed ring in that goal color (not selectable).
       case "white_days": {
         const isWhiteDay =
-          hijriDay === 13 || hijriDay === 14 || hijriDay === 15;
-        const isPlannedDay = markedSet.has(ds) || isWhiteDay;
-        cellOpacity = dimInactiveDays && !isPlannedDay ? 0.3 : 1;
-        if (markedSet.has(ds)) {
+          whiteDaySet.size > 0
+            ? whiteDaySet.has(ds)
+            : hijriDay === 13 || hijriDay === 14 || hijriDay === 15;
+        const isUserSelected = selectedDatesSet.has(ds);
+        const hasMissedRamadan = markedSet.has(ds);
+        const hasMonThu = monThuSet.has(ds);
+        const hasDawood = dawoodSet.has(ds);
+
+        if (isUserSelected && isWhiteDay) {
+          cellOpacity = 1;
           circleStyle = {
             borderWidth: 1.2,
-
-            borderColor: Colors.light.ringRamadan,
-          };
-          textStyle = { color: Colors.light.ringRamadan };
-        } else if (isWhiteDay) {
-          circleStyle = {
-            borderWidth: 1.2,
-
             borderColor: Colors.light.white,
           };
           textStyle = { color: Colors.light.white };
+        } else if (hasMissedRamadan) {
+          cellOpacity = dimInactiveDays ? 0.35 : 1;
+          circleStyle = {
+            borderWidth: 1.2,
+            borderColor: Colors.light.ringRamadan,
+          };
+          textStyle = { color: Colors.light.ringRamadan };
+        } else if (hasDawood) {
+          cellOpacity = dimInactiveDays ? 0.35 : 1;
+          circleStyle = {
+            borderWidth: 1.2,
+            borderColor: Colors.light.ringDawood,
+          };
+          textStyle = { color: Colors.light.ringDawood };
+        } else if (hasMonThu) {
+          cellOpacity = dimInactiveDays ? 0.35 : 1;
+          circleStyle = {
+            borderWidth: 1.2,
+            borderColor: Colors.light.ringMonThu,
+          };
+          textStyle = { color: Colors.light.ringMonThu };
+        } else if (isWhiteDay) {
+          cellOpacity = 1;
+          textStyle = { color: Colors.light.white };
+        } else {
+          cellOpacity = dimInactiveDays ? 0.3 : 1;
+          textStyle = { color: Colors.light.grey };
         }
         break;
       }
@@ -589,9 +690,37 @@ export const CalendarGrid = ({
       cellBg = { backgroundColor: Colors.light.calendarTodayBg };
     }
 
+    const isMonThuDay =
+      monThuSet.size > 0
+        ? monThuSet.has(ds)
+        : dayOfWeek === 1 || dayOfWeek === 4;
+
+    const isWhiteDayCell =
+      whiteDaySet.size > 0
+        ? whiteDaySet.has(ds)
+        : (() => {
+            const hijri = moment(ds, "YYYY-MM-DD").iDate();
+            return hijri === 13 || hijri === 14 || hijri === 15;
+          })();
+
+    const hasOtherFastingGoalOverlay =
+      monThuSet.has(ds) || whiteDaySet.has(ds) || dawoodSet.has(ds);
+    const isRamadanTappable =
+      mode === "ramadan" && (markedSet.has(ds) || !hasOtherFastingGoalOverlay);
+
+    // White Days: only Hijri 13–15, and not occupied by another goal
+    const hasOtherGoalOnWhiteDay =
+      markedSet.has(ds) || monThuSet.has(ds) || dawoodSet.has(ds);
+    const isWhiteDayTappable =
+      mode === "white_days" &&
+      isWhiteDayCell &&
+      (selectedDatesSet.has(ds) || !hasOtherGoalOnWhiteDay);
+
     const isTappable =
-      (mode === "dob" || mode === "ramadan" || mode === "mon_thu") &&
-      !isDisabledDobDate;
+      (mode === "dob" && !isDisabledDobDate) ||
+      isRamadanTappable ||
+      (mode === "mon_thu" && isMonThuDay) ||
+      isWhiteDayTappable;
     const isAchievementTappable = isAchievementMode && Boolean(onDayPress);
 
     return (
@@ -650,7 +779,7 @@ export const CalendarGrid = ({
             ) : null}
           </View>
           {mode !== "white_days_achievement" ? (
-            <Text style={styles.dayHijri}>{hijriDay}</Text>
+            <Text style={styles.dayHijri}>{hijriDayLabel}</Text>
           ) : null}
         </View>
       </TouchableOpacity>
@@ -662,8 +791,16 @@ export const CalendarGrid = ({
       style={[
         styles.wrapper,
         {
-          borderBottomLeftRadius: mode === "dob" ? 0 : 12,
-          borderBottomRightRadius: mode === "dob" ? 0 : 12,
+          borderBottomLeftRadius: borderBottomLeftRadius
+            ? borderBottomLeftRadius
+            : mode === "dob"
+              ? 0
+              : 12,
+          borderBottomRightRadius: borderBottomRightRadius
+            ? borderBottomRightRadius
+            : mode === "dob"
+              ? 0
+              : 12,
         },
       ]}
     >
@@ -744,24 +881,24 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   paddingDayCell: {
-    width: RING_SIZE,
-    height: 50,
+    width: DAY_CELL_WIDTH,
+    height: DAY_CELL_HEIGHT + 8,
   },
   dayPressable: {
     alignSelf: "center",
-    width: RING_SIZE,
+    width: DAY_CELL_WIDTH,
   },
   dayCell: {
     alignItems: "center",
-    justifyContent: "center",
-    width: RING_SIZE,
-    height: 50,
+    justifyContent: "flex-start",
+    width: DAY_CELL_WIDTH,
+    height: DAY_CELL_HEIGHT,
     paddingVertical: 2,
     borderRadius: 6,
     marginBottom: 10,
   },
   dayMarkerWrap: {
-    width: RING_SIZE,
+    width: DAY_CELL_WIDTH,
     height: RING_SIZE,
     alignItems: "center",
     justifyContent: "center",

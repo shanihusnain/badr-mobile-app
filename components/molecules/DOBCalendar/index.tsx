@@ -172,11 +172,16 @@ export const DOBCalendar = ({ onSave, onCancel }: DOBCalendarProps) => {
         <View style={styles.header}>
           <View ref={monthBtnRef} collapsable={false}>
             <TouchableOpacity
-              style={styles.dropdownButton}
+              style={[styles.dropdownButton]}
               onPress={() => openPicker("month", monthBtnRef)}
               activeOpacity={0.7}
             >
-              <Text style={styles.dropdownButtonText}>
+              <Text
+                style={styles.dropdownButtonText}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.8}
+              >
                 {MONTHS[currentMonth]}
               </Text>
               <DownArrowIcon />
@@ -289,7 +294,11 @@ export const DOBCalendar = ({ onSave, onCancel }: DOBCalendarProps) => {
               {
                 top: dropdownAnchor.y + dropdownAnchor.height + 4,
                 left: dropdownAnchor.x,
-                width: dropdownAnchor.width,
+                // Keep month list wide enough for "September" even if button is short
+                width:
+                  openDropdown === "month"
+                    ? Math.max(dropdownAnchor.width, 148)
+                    : dropdownAnchor.width,
               },
             ]}
           >
@@ -322,6 +331,9 @@ export const DOBCalendar = ({ onSave, onCancel }: DOBCalendarProps) => {
                         styles.listItemText,
                         isSelected && styles.listItemTextSelected,
                       ]}
+                      numberOfLines={1}
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.75}
                     >
                       {item}
                     </Text>
@@ -363,7 +375,7 @@ const styles = StyleSheet.create({
 
     gap: 16,
     backgroundColor: Colors.light.greybuttonBackground,
-    paddingHorizontal: 10,
+    paddingHorizontal: 12,
     paddingVertical: 3,
     borderRadius: 8,
   },

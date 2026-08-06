@@ -74,7 +74,9 @@ const styles = StyleSheet.create({
     opacity: 0.8,
   },
   buttonDisabled: {
-    opacity: 0.7,
+    backgroundColor: Colors.light.disabledButtonColor,
+    borderColor: Colors.light.disabledButtonColor,
+    opacity: 1,
   },
   buttonText: {
     color: Colors.light.white,
@@ -85,6 +87,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0,
   },
   buttonTextDisabled: {
-    color: Colors.light.background,
+    color: Colors.light.white,
   },
 });

@@ -70,8 +70,12 @@ export default function CustomSlider({
   const badgeHalf = badgeWidth / 2;
   const badgeEdgeInset = 4;
 
-  // Use the continuous float value to calculate percentage for 60fps smooth tracking
-  const percent = (continuousVal - 1) / (maxDays - 1);
+  // Use the continuous float value to calculate percentage for 60fps smooth tracking.
+  // Clamp so values below the track min (e.g. 0 when disabled) stay at the left edge.
+  const percent = Math.max(
+    0,
+    Math.min(1, (continuousVal - 1) / (maxDays - 1)),
+  );
 
   // Progress width and badge offset track the thumb's dynamic position perfectly and smoothly
   const progressWidth = percent * trackOverlayWidth;

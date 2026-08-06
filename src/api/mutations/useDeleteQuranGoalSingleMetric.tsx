@@ -1,38 +1,46 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "..";
+import { getApiErrorMessage, showToast } from "@/src/config/toastConfig";
 
-const deleteSingleQuranGoalMetric = async (
-  quranGoalType: string,
-  itemtype: string,
-  itemNumber: string | number,
-) => {
-  try {
-    const response = await api.delete(
-      `api/goal-cycles/current/quran-goals/${quranGoalType}?itemType=${itemtype}&itemNumber=${itemNumber}`,
-    );
-    return response.data;
-  } catch (error) {
-    console.error(error);
-  }
+export type DeleteQuranGoalMetricArgs = {
+  quranGoalType: string;
+  itemType: string;
+  itemNumber: string | number;
+};
+
+const deleteSingleQuranGoalMetric = async ({
+  quranGoalType,
+  itemType,
+  itemNumber,
+}: DeleteQuranGoalMetricArgs) => {
+  const response = await api.delete(
+    `api/goal-cycles/current/quran-goals/${quranGoalType}`,
+    {
+      params: {
+        itemType,
+        itemNumber,
+      },
+    },
+  );
+  return response.data;
 };
 
 export const useDeleteQuranGoalSingleMetric = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({
-      quranGoalType,
-      itemtype,
-      itemNumber,
-    }: {
-      quranGoalType: string;
-      itemtype: string;
-      itemNumber: string | number;
-    }) => deleteSingleQuranGoalMetric(quranGoalType, itemtype, itemNumber),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["quran-goals"] });
+    mutationFn: deleteSingleQuranGoalMetric,
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["all-quran-goals"] });
+      queryClient.invalidateQueries({
+        queryKey: ["quran-goal-detail", variables.quranGoalType],
+      });
+      showToast("success", "Goal item removed");
     },
     onError: (error) => {
-      console.error(error);
+      showToast(
+        "error",
+        getApiErrorMessage(error, "Failed to remove goal item"),
+      );
     },
   });
 };

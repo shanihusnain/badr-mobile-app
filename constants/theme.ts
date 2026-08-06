@@ -69,6 +69,7 @@ export const Colors = {
     journalFillingCapsuleBg: "rgba(255, 255, 255, 0.08)",
     journalFillingCapsuleBorder: "rgba(255, 255, 255, 0.2)",
     journalFillingCapsuleSelectedBg: "rgba(255, 255, 255, 0.16)",
+    disabledButtonColor: "#8E98A8",
   },
   dark: {
     text: "#ECEDEE",

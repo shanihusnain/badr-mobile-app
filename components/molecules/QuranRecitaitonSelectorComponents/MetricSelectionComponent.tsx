@@ -19,7 +19,8 @@ import type {
   QuranHizbOption,
   QuranSurahOption,
 } from "@/src/utils/quranGoalMap";
-import { BinIcon } from "@/assets/icons";
+import { BinIcon, TickIconWithGreenBg } from "@/assets/icons";
+import WarningModal from "@/components/atoms/WarningModal";
 
 const EMPTY_SURAHS: QuranSurahOption[] = [];
 const EMPTY_HIZBS: QuranHizbOption[] = [];
@@ -35,9 +36,14 @@ export const MetricSelectionComponent = ({
   initialSelectedSurahs,
   initialSurahSettings,
   initialJuzRange,
-  initialSelectedHizb,
+  initialSelectedHizbs,
   initialCompletion,
   isLoadingOptions,
+  onDeleteSavedItem,
+  isDeletingItem,
+  onDirtyChange,
+  discardNonce = 0,
+  markCleanNonce = 0,
 }: {
   item: {
     id: number;
@@ -56,24 +62,66 @@ export const MetricSelectionComponent = ({
     { frequency: "daily" | "weekly"; times: number }
   >;
   initialJuzRange?: { start: number; end: number } | null;
-  initialSelectedHizb?: number;
+  initialSelectedHizbs?: number[];
   initialCompletion?: number;
   isLoadingOptions?: boolean;
+  /** Persist delete for an item already saved on the server. */
+  onDeleteSavedItem?: (args: {
+    itemType: "SURAH" | "JUZ" | "HIZB" | "COMPLETION";
+    itemNumber: number;
+  }) => Promise<void>;
+  isDeletingItem?: boolean;
+  onDirtyChange?: (dirty: boolean) => void;
+  /** Increment to discard local edits and restore last saved/initial values. */
+  discardNonce?: number;
+  /** Increment after a successful save so current values become the clean baseline. */
+  markCleanNonce?: number;
 }) => {
   const { t } = useTranslation();
   const isMemorizationSurah =
     variant === "memorization" && item.name === "surah";
+
   const isActiveMetric = selectedMetric === item.name;
   const [selectedSurahs, setSelectedSurahs] = useState<number[]>([]);
   const [selectedHizbs, setSelectedHizbs] = useState<number[]>([]);
-  const [selectedHizb, setSelectedHizb] = useState<number | undefined>(
-    undefined,
-  );
   const surahData = surahOptions ?? EMPTY_SURAHS;
   const hizbData = hizbOptions ?? EMPTY_HIZBS;
   const hydratedForTypeRef = useRef<string | null>(null);
   const onMetricChangeRef = useRef(onMetricChange);
   onMetricChangeRef.current = onMetricChange;
+  const onDirtyChangeRef = useRef(onDirtyChange);
+  onDirtyChangeRef.current = onDirtyChange;
+  const cleanBaselineRef = useRef<string>("");
+
+  const buildDirtySnapshot = (
+    surahs: number[],
+    settings: Record<
+      number,
+      { frequency: "daily" | "weekly"; times: number | undefined }
+    >,
+    start: number,
+    end: number,
+    hizbs: number[],
+    completion: number,
+  ) => {
+    const sortedSurahs = [...surahs].sort((a, b) => a - b);
+    const settingsSlice = Object.fromEntries(
+      sortedSurahs.map((id) => [
+        id,
+        {
+          frequency: settings[id]?.frequency ?? "daily",
+          times: settings[id]?.times ?? 1,
+        },
+      ]),
+    );
+    return JSON.stringify({
+      surahs: sortedSurahs,
+      settings: isMemorizationSurah ? {} : settingsSlice,
+      juz: { start, end },
+      hizbs: [...hizbs].sort((a, b) => a - b),
+      completion,
+    });
+  };
 
   const toggleSurah = (id: number) => {
     setSelectedSurahs((prev) =>
@@ -91,6 +139,13 @@ export const MetricSelectionComponent = ({
     {},
   );
   const [quranCompletion, setQuranCompletion] = useState<number>(0);
+  const [deleteConfirmVisible, setDeleteConfirmVisible] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<
+    | { kind: "SURAH"; itemNumber: number }
+    | { kind: "JUZ" }
+    | { kind: "COMPLETION" }
+    | null
+  >(null);
   const setInputFocused = (key: string, value: boolean) => {
     setFocusedInputs((prev) => ({ ...prev, [key]: value }));
   };
@@ -102,7 +157,7 @@ export const MetricSelectionComponent = ({
     const hydrateKey = [
       item.name,
       (initialSelectedSurahs ?? []).join(","),
-      initialSelectedHizb ?? "",
+      (initialSelectedHizbs ?? []).join(","),
       initialJuzRange?.start ?? "",
       initialJuzRange?.end ?? "",
       initialCompletion ?? "",
@@ -124,12 +179,22 @@ export const MetricSelectionComponent = ({
       setJuzEnd(initialJuzRange.end);
       setJuzEndText(String(initialJuzRange.end));
     }
-    if (initialSelectedHizb != null) {
-      setSelectedHizb(initialSelectedHizb);
+    if (initialSelectedHizbs?.length) {
+      setSelectedHizbs(initialSelectedHizbs);
     }
     if (initialCompletion != null && initialCompletion > 0) {
       setQuranCompletion(initialCompletion);
     }
+
+    cleanBaselineRef.current = buildDirtySnapshot(
+      initialSelectedSurahs ?? [],
+      initialSurahSettings ?? {},
+      initialJuzRange?.start ?? 0,
+      initialJuzRange?.end ?? 0,
+      initialSelectedHizbs ?? [],
+      initialCompletion ?? 0,
+    );
+    onDirtyChangeRef.current?.(false);
   }, [
     isActiveMetric,
     isLoadingOptions,
@@ -137,7 +202,7 @@ export const MetricSelectionComponent = ({
     initialSelectedSurahs,
     initialSurahSettings,
     initialJuzRange,
-    initialSelectedHizb,
+    initialSelectedHizbs,
     initialCompletion,
     surahData.length,
     hizbData.length,
@@ -147,18 +212,84 @@ export const MetricSelectionComponent = ({
   useEffect(() => {
     if (!isActiveMetric) {
       hydratedForTypeRef.current = null;
+      onDirtyChangeRef.current?.(false);
     }
   }, [isActiveMetric]);
 
+  // Discard unsaved local edits → restore last saved/initial values
   useEffect(() => {
-    if (juzEnd > 0 && juzStart > 0 && juzEnd < juzStart) {
-      setJuzEnd(juzStart);
-    }
-  }, [juzEnd, juzStart]);
+    if (discardNonce < 1) return;
+    const nextSurahs = initialSelectedSurahs ?? [];
+    const nextSettings = initialSurahSettings ?? {};
+    const nextStart = initialJuzRange?.start ?? 0;
+    const nextEnd = initialJuzRange?.end ?? 0;
+    const nextHizbs = initialSelectedHizbs ?? [];
+    const nextCompletion = initialCompletion ?? 0;
 
+    setSelectedSurahs(nextSurahs);
+    setSurahSettings(nextSettings);
+    setJuzStart(nextStart);
+    setJuzEnd(nextEnd);
+    setJuzEndText(nextEnd > 0 ? String(nextEnd) : "");
+    setSelectedHizbs(nextHizbs);
+    setQuranCompletion(nextCompletion);
+
+    cleanBaselineRef.current = buildDirtySnapshot(
+      nextSurahs,
+      nextSettings,
+      nextStart,
+      nextEnd,
+      nextHizbs,
+      nextCompletion,
+    );
+    onDirtyChangeRef.current?.(false);
+  }, [discardNonce]);
+
+  // After Save / upsert, treat current values as clean
   useEffect(() => {
-    setJuzEndText(juzEnd > 0 ? String(juzEnd) : "");
-  }, [juzEnd]);
+    if (markCleanNonce < 1) return;
+    cleanBaselineRef.current = buildDirtySnapshot(
+      selectedSurahs,
+      surahSettings,
+      juzStart,
+      juzEnd,
+      selectedHizbs,
+      quranCompletion,
+    );
+    onDirtyChangeRef.current?.(false);
+  }, [markCleanNonce]);
+
+  // Report dirty state while this metric is expanded
+  useEffect(() => {
+    if (!isActiveMetric) return;
+    if (!cleanBaselineRef.current) return;
+    const snapshot = buildDirtySnapshot(
+      selectedSurahs,
+      surahSettings,
+      juzStart,
+      juzEnd,
+      selectedHizbs,
+      quranCompletion,
+    );
+    onDirtyChangeRef.current?.(snapshot !== cleanBaselineRef.current);
+  }, [
+    isActiveMetric,
+    selectedSurahs,
+    surahSettings,
+    juzStart,
+    juzEnd,
+    selectedHizbs,
+    quranCompletion,
+    isMemorizationSurah,
+  ]);
+
+  // Keep end >= start. Prefer bumping end up when start moves past it.
+  useEffect(() => {
+    if (juzStart > 0 && juzEnd > 0 && juzEnd < juzStart) {
+      setJuzEnd(juzStart);
+      setJuzEndText(String(juzStart));
+    }
+  }, [juzStart, juzEnd]);
 
   const ensureSetting = (id: number) => {
     setSurahSettings((prev) => {
@@ -181,12 +312,19 @@ export const MetricSelectionComponent = ({
   };
 
   const toggleHizb = (id: number) => {
-    setSelectedHizb((prev) => (prev === id ? undefined : id));
     setSelectedHizbs((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [id],
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
   };
-  const deleteSurah = (id: number) => {
+  const deleteSurah = async (id: number) => {
+    const wasSaved = (initialSelectedSurahs ?? []).includes(id);
+    if (wasSaved && onDeleteSavedItem) {
+      try {
+        await onDeleteSavedItem({ itemType: "SURAH", itemNumber: id });
+      } catch {
+        return;
+      }
+    }
     setSelectedSurahs((prev) => prev.filter((x) => x !== id));
     setSurahSettings((prev) => {
       const copy = { ...prev };
@@ -194,30 +332,171 @@ export const MetricSelectionComponent = ({
       return copy;
     });
   };
+
+  const clearJuzSelection = async () => {
+    const savedStart = initialJuzRange?.start ?? 0;
+    const savedEnd = initialJuzRange?.end ?? savedStart;
+    if (onDeleteSavedItem && savedStart > 0 && savedEnd > 0) {
+      try {
+        for (let n = savedStart; n <= savedEnd; n += 1) {
+          await onDeleteSavedItem({ itemType: "JUZ", itemNumber: n });
+        }
+      } catch {
+        return;
+      }
+    }
+    setJuzStart(0);
+    setJuzEnd(0);
+    setJuzEndText("");
+  };
+
+  const clearCompletionSelection = async () => {
+    if (onDeleteSavedItem && (initialCompletion ?? 0) > 0) {
+      try {
+        await onDeleteSavedItem({
+          itemType: "COMPLETION",
+          itemNumber: initialCompletion || quranCompletion || 1,
+        });
+      } catch {
+        return;
+      }
+    }
+    setQuranCompletion(0);
+  };
+
+  const openDeleteConfirm = (payload: NonNullable<typeof pendingDelete>) => {
+    setPendingDelete(payload);
+    setDeleteConfirmVisible(true);
+  };
+
+  const closeDeleteConfirm = () => {
+    setDeleteConfirmVisible(false);
+    setPendingDelete(null);
+  };
+
+  const confirmDelete = async () => {
+    if (!pendingDelete) return;
+    if (isDeletingItem) return;
+
+    try {
+      if (pendingDelete.kind === "SURAH") {
+        await deleteSurah(pendingDelete.itemNumber);
+      } else if (pendingDelete.kind === "JUZ") {
+        await clearJuzSelection();
+      } else if (pendingDelete.kind === "COMPLETION") {
+        await clearCompletionSelection();
+      }
+    } finally {
+      closeDeleteConfirm();
+    }
+  };
+
+  const clampJuzNumber = (n: number) => Math.min(Math.max(1, n), 30);
+
+  /** True when `digits` can still grow into a value in [minEnd, 30] (e.g. "1" → "15"). */
+  const canBePrefixOfValidEnd = (digits: string, minEnd: number) => {
+    if (!digits) return true;
+    const n = parseInt(digits, 10);
+    if (Number.isNaN(n)) return false;
+    if (n >= minEnd && n <= 30) return true;
+    if (n > 30 || digits.length >= 2) return false;
+    const lo = n * 10;
+    const hi = Math.min(n * 10 + 9, 30);
+    if (lo > 30) return false;
+    return hi >= minEnd;
+  };
+
+  const enforceJuzStart = (raw: string) => {
+    if (raw === "") {
+      setJuzStart(0);
+      return;
+    }
+    const n = parseInt(raw.replace(/[^0-9]/g, ""), 10);
+    if (Number.isNaN(n)) {
+      setJuzStart(0);
+      return;
+    }
+    let clamped = clampJuzNumber(n);
+    if (juzEnd > 0 && clamped > juzEnd) clamped = juzEnd;
+    setJuzStart(clamped);
+  };
+
+  const commitJuzEnd = (value: number) => {
+    const clamped =
+      juzStart > 0
+        ? Math.max(clampJuzNumber(value), juzStart)
+        : clampJuzNumber(value);
+    setJuzEnd(clamped);
+    setJuzEndText(String(clamped));
+  };
+
   const enforceJuzEnd = () => {
     if (juzEndText === "") {
       setJuzEnd(0);
+      setJuzEndText("");
       return;
     }
     const n = parseInt(juzEndText, 10);
     if (Number.isNaN(n)) {
       setJuzEnd(0);
+      setJuzEndText("");
       return;
     }
-    let clamped = Math.min(Math.max(1, n), 30);
-    if (juzStart !== undefined && clamped < juzStart) clamped = juzStart;
-    setJuzEnd(clamped);
+    commitJuzEnd(n);
   };
+
+  const handleJuzEndChange = (v: string) => {
+    const digits = v.replace(/[^0-9]/g, "").slice(0, 2);
+    if (digits === "") {
+      setJuzEndText("");
+      setJuzEnd(0);
+      return;
+    }
+
+    const n = parseInt(digits, 10);
+    if (Number.isNaN(n)) {
+      setJuzEndText("");
+      setJuzEnd(0);
+      return;
+    }
+
+    if (n > 30) {
+      commitJuzEnd(30);
+      return;
+    }
+
+    // Block end < start, but allow drafts like "1" when start is 10 (so user can type "15")
+    if (juzStart > 0 && n < juzStart) {
+      if (canBePrefixOfValidEnd(digits, juzStart)) {
+        setJuzEndText(digits);
+        return;
+      }
+      commitJuzEnd(juzStart);
+      return;
+    }
+
+    setJuzEndText(digits);
+    setJuzEnd(n);
+  };
+
   const displayJuzStart = juzStart > 0 ? juzStart : undefined;
-  const displayJuzEnd = focusedInputs["juz-end"]
-    ? ((): number | undefined => {
-        const parsed = parseInt(juzEndText || "", 10);
-        if (Number.isNaN(parsed)) return undefined;
-        return Math.min(Math.max(1, parsed), 30);
-      })()
-    : juzEnd > 0
-      ? juzEnd
-      : undefined;
+  const displayJuzEnd = (() => {
+    if (!focusedInputs["juz-end"]) {
+      return juzEnd > 0 ? juzEnd : undefined;
+    }
+    if (juzEndText === "") return undefined;
+    const parsed = parseInt(juzEndText, 10);
+    if (Number.isNaN(parsed)) return undefined;
+    let value = clampJuzNumber(parsed);
+    if (juzStart > 0 && value < juzStart) {
+      // Draft in progress — keep last committed end for totals/parent payload
+      if (canBePrefixOfValidEnd(juzEndText, juzStart)) {
+        return juzEnd > 0 ? juzEnd : undefined;
+      }
+      value = juzStart;
+    }
+    return value;
+  })();
 
   // Notify parent only for the active metric (avoids update loops)
   useEffect(() => {
@@ -236,9 +515,16 @@ export const MetricSelectionComponent = ({
       return;
     }
     if (item.name === "juz") {
+      const start =
+        displayJuzStart && displayJuzStart > 0
+          ? displayJuzStart
+          : displayJuzEnd && displayJuzEnd > 0
+            ? 1
+            : 0;
+      const end = displayJuzEnd && displayJuzEnd > 0 ? displayJuzEnd : start;
       onMetricChangeRef.current({
         metric: "juz",
-        value: { start: displayJuzStart ?? 0, end: displayJuzEnd ?? 0 },
+        value: { start, end },
       });
       return;
     }
@@ -252,7 +538,7 @@ export const MetricSelectionComponent = ({
     if (item.name === "hizb") {
       onMetricChangeRef.current({
         metric: "hizb",
-        value: { selectedHizb },
+        value: { selectedHizbs },
       });
     }
   }, [
@@ -264,7 +550,7 @@ export const MetricSelectionComponent = ({
     displayJuzStart,
     displayJuzEnd,
     quranCompletion,
-    selectedHizb,
+    selectedHizbs,
     surahData,
   ]);
   return (
@@ -274,7 +560,10 @@ export const MetricSelectionComponent = ({
         onPress={handleMetricPress}
         style={styles.metrixWrapper}
       >
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+        <Pressable
+          onPress={handleMetricPress}
+          style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+        >
           <Text style={styles.metrixName}>{item.title}</Text>
           {item.name === selectedMetric && (
             <MaterialCommunityIcons
@@ -283,11 +572,20 @@ export const MetricSelectionComponent = ({
               color={Colors.light.white}
             />
           )}
-        </View>
+        </Pressable>
 
         {selectedMetric === item.name ? (
-          <View style={{ alignItems: "center", justifyContent: "center" }}>
-            <FontAwesome name="check" size={18} color={Colors.light.green} />
+          <View
+            style={{
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: Colors.light.green,
+              borderRadius: 30,
+              height: 24,
+              width: 24,
+            }}
+          >
+            <TickIconWithGreenBg />
           </View>
         ) : (
           <AntDesign name="plus-circle" color={Colors.light.white} size={20} />
@@ -358,16 +656,20 @@ export const MetricSelectionComponent = ({
                           />
                         )}
                       </View>
-                      <Text
-                        style={{
-                          color: Colors.light.white,
-                          fontSize: 14,
-                          fontFamily: fonts.primary.regular,
-                          flex: 1,
-                        }}
-                      >
-                        {s.surahTitle}
-                      </Text>
+                      <View style={{ flex: 1 }}>
+                        <Text
+                          style={{
+                            color: Colors.light.white,
+                            fontSize: 14,
+                            fontFamily: fonts.primary.regular,
+                          }}
+                        >
+                          {s.surahTitle}
+                        </Text>
+                        {s.verses ? (
+                          <Text style={styles.surahVerseCount}>{s.verses}</Text>
+                        ) : null}
+                      </View>
                     </View>
                     {checked && !isMemorizationSurah && (
                       <MaterialCommunityIcons
@@ -381,7 +683,7 @@ export const MetricSelectionComponent = ({
                   {checked && !isMemorizationSurah && (
                     <View
                       style={{
-                        paddingHorizontal: 8,
+                        // paddingHorizontal: 8,
                         paddingTop: 12,
                         alignItems: "center",
                       }}
@@ -431,6 +733,8 @@ export const MetricSelectionComponent = ({
                           alignItems: "center",
                           justifyContent: "center",
                           minHeight: 24,
+                          width: "100%",
+                          alignSelf: "stretch",
                         }}
                       >
                         <Text
@@ -439,7 +743,6 @@ export const MetricSelectionComponent = ({
                             marginBottom: 6,
                             opacity: 0.8,
                             textAlign: "center",
-                            paddingHorizontal: 28,
                           }}
                         >
                           {t("monthlyGoalPlanner.quranMetrics.enterUpToTimes", {
@@ -451,12 +754,19 @@ export const MetricSelectionComponent = ({
                         </Text>
                         <Pressable
                           onPress={() => {
-                            deleteSurah(s.id);
+                            openDeleteConfirm({
+                              kind: "SURAH",
+                              itemNumber: s.id,
+                            });
                           }}
+                          disabled={isDeletingItem}
                           style={{
                             position: "absolute",
-                            right: 0,
-                            top: 0,
+                            // Center-align under the metric tick (24x24) container.
+                            // Bin icon is smaller (13x14), so anchoring at right: 0 shifts it right.
+                            right: -8,
+                            top: 5,
+                            opacity: isDeletingItem ? 0.5 : 1,
                           }}
                           hitSlop={8}
                         >
@@ -491,12 +801,20 @@ export const MetricSelectionComponent = ({
                                 : "transparent",
                               borderColor: focusedInputs[`surah-${s.id}`]
                                 ? Colors.light.green
-                                : Colors.light.white,
+                                : Colors.light.grey,
                             },
                           ]}
                           placeholder="0"
                         />
-                        <Text style={{ color: Colors.light.white }}>
+                        <Text
+                          style={{
+                            color: Colors.light.white,
+                            fontSize: 14,
+                            fontWeight: "400",
+                            fontFamily: fonts.primary.regular,
+                            opacity: 0.8,
+                          }}
+                        >
                           {t("monthlyGoalPlanner.quranMetrics.timesFrequency", {
                             frequency: isDaily
                               ? t("monthlyGoalPlanner.quranMetrics.daily")
@@ -505,16 +823,36 @@ export const MetricSelectionComponent = ({
                         </Text>
                       </View>
 
-                      <View style={{ height: 12 }} />
+                      <View style={{ height: 10 }} />
 
                       <View>
-                        <Text style={{ color: Colors.light.white }}>
+                        <Text
+                          style={{
+                            color: Colors.light.white,
+                            fontSize: 12,
+                            fontWeight: "400",
+                            fontFamily: fonts.primary.regular,
+                            opacity: 0.8,
+                          }}
+                        >
+                          ({" "}
                           {t(
                             "monthlyGoalPlanner.quranMetrics.recitationsCount",
                             { count: timesValue || 0 },
                           )}
+                          )*
                         </Text>
-                        <Text style={{ color: Colors.light.white }}>
+                        <TopSpace top={4} />
+                        <Text
+                          style={{
+                            color: Colors.light.white,
+                            fontSize: 10,
+                            fontWeight: "400",
+                            fontFamily: fonts.primary.regular,
+                            opacity: 0.8,
+                          }}
+                        >
+                          *
                           {t(
                             "monthlyGoalPlanner.quranMetrics.recitationsFormula",
                             {
@@ -555,7 +893,14 @@ export const MetricSelectionComponent = ({
               >
                 {t("monthlyGoalPlanner.quranMetrics.juzRangeHint")}
               </Text>
-              <Pressable>
+              <Pressable
+                onPress={() => {
+                  openDeleteConfirm({ kind: "JUZ" });
+                }}
+                disabled={isDeletingItem}
+                style={{ opacity: isDeletingItem ? 0.5 : 1 }}
+                hitSlop={8}
+              >
                 <FontAwesome
                   name="trash-o"
                   size={24}
@@ -578,36 +923,35 @@ export const MetricSelectionComponent = ({
                   fontSize: 14,
                   fontFamily: fonts.primary.regular,
                   color: Colors.light.white,
+                  opacity: 0.8,
                 }}
               >
                 {t("monthlyGoalPlanner.quranMetrics.fromJuz")}
               </Text>
               <TextInput
-                value={juzStart !== undefined ? String(juzStart) : ""}
+                value={juzStart > 0 ? String(juzStart) : ""}
                 onChangeText={(v) => {
-                  // allow clearing the field
                   if (v === "") {
                     setJuzStart(0);
                     return;
                   }
-                  // keep digits only
                   const digits = v.replace(/[^0-9]/g, "");
                   const n = parseInt(digits, 10);
                   if (Number.isNaN(n)) {
-                    setJuzEnd(0);
+                    setJuzStart(0);
                     return;
                   }
-                  // clamp to valid juz range 1-30
-                  const clamped = Math.min(Math.max(1, n), 30);
+                  let clamped = Math.min(Math.max(1, n), 30);
+                  // Start juz must be lesser than or equal to end juz
+                  if (juzEnd > 0 && clamped > juzEnd) clamped = juzEnd;
                   setJuzStart(clamped);
-                  // if end is set and less than new start, bump end to match start
-                  setJuzEnd((prev) =>
-                    prev === undefined ? prev : Math.max(prev, clamped),
-                  );
                 }}
                 keyboardType="numeric"
                 onFocus={() => setInputFocused("juz-start", true)}
-                onBlur={() => setInputFocused("juz-start", false)}
+                onBlur={() => {
+                  setInputFocused("juz-start", false);
+                  enforceJuzStart(juzStart > 0 ? String(juzStart) : "");
+                }}
                 style={[
                   styles.timesInput,
                   {
@@ -618,9 +962,11 @@ export const MetricSelectionComponent = ({
                       ? Colors.light.green
                       : Colors.light.white,
                     width: 40,
+                    color: Colors.light.white,
                   },
                 ]}
                 placeholder="1"
+                placeholderTextColor={Colors.light.grey}
               />
               <Text
                 style={{
@@ -628,18 +974,16 @@ export const MetricSelectionComponent = ({
                   fontSize: 14,
                   fontFamily: fonts.primary.regular,
                   color: Colors.light.white,
+                  opacity: 0.8,
                 }}
               >
                 {t("monthlyGoalPlanner.quranMetrics.toJuz")}
               </Text>
               <TextInput
                 value={juzEndText}
-                onChangeText={(v) => {
-                  // allow free typing in text state; sanitize digits
-                  const digits = v.replace(/[^0-9]/g, "");
-                  setJuzEndText(digits);
-                }}
+                onChangeText={handleJuzEndChange}
                 keyboardType="numeric"
+                maxLength={2}
                 onFocus={() => setInputFocused("juz-end", true)}
                 onBlur={() => {
                   setInputFocused("juz-end", false);
@@ -657,9 +1001,11 @@ export const MetricSelectionComponent = ({
                       ? Colors.light.green
                       : Colors.light.white,
                     width: 40,
+                    color: Colors.light.white,
                   },
                 ]}
                 placeholder="1"
+                placeholderTextColor={Colors.light.grey}
               />
             </View>
             <TopSpace top={12} />
@@ -712,7 +1058,14 @@ export const MetricSelectionComponent = ({
               >
                 {t("monthlyGoalPlanner.quranMetrics.enterUpToCompletions")}
               </Text>
-              <Pressable>
+              <Pressable
+                onPress={() => {
+                  openDeleteConfirm({ kind: "COMPLETION" });
+                }}
+                disabled={isDeletingItem}
+                style={{ opacity: isDeletingItem ? 0.5 : 1 }}
+                hitSlop={8}
+              >
                 <FontAwesome
                   name="trash-o"
                   size={24}
@@ -779,7 +1132,7 @@ export const MetricSelectionComponent = ({
               <Text style={styles.emptyOptionsText}>No hizb available</Text>
             }
             renderItem={({ item }) => {
-              const checked = selectedHizb === item.id;
+              const checked = selectedHizbs.includes(item.id);
 
               return (
                 <Pressable
@@ -810,7 +1163,11 @@ export const MetricSelectionComponent = ({
                     <View
                       style={[
                         styles.surahItemWrapper,
-                        { flexDirection: "column", alignItems: "flex-start" },
+                        {
+                          flexDirection: "column",
+                          alignItems: "flex-start",
+                          gap: 4,
+                        },
                       ]}
                     >
                       <Text
@@ -820,6 +1177,7 @@ export const MetricSelectionComponent = ({
                           fontFamily: fonts.primary.regular,
                           flex: 1,
                           fontWeight: "400",
+                          lineHeight: 20,
                         }}
                       >
                         {item.hizbName}
@@ -829,7 +1187,7 @@ export const MetricSelectionComponent = ({
                           color: Colors.light.white,
                           fontSize: 14,
                           fontFamily: fonts.primary.semiBold,
-                          fontWeight: "600",
+                          fontWeight: "500",
                         }}
                       >
                         {item.verses}
@@ -841,6 +1199,47 @@ export const MetricSelectionComponent = ({
             }}
           />
         )}
+
+      <WarningModal
+        visible={deleteConfirmVisible}
+        title="DELETE GOAL?"
+        message={
+          <>
+            <Text
+              style={{
+                color: Colors.light.white,
+                fontSize: 14,
+                fontWeight: "400",
+                fontFamily: fonts.primary.regular,
+                opacity: 0.8,
+                textAlign: "center",
+                lineHeight: 20,
+              }}
+            >
+              Are you sure you want to delete the goal? This will remove your
+              goal permanently. This action cannot be undone.
+            </Text>
+          </>
+        }
+        primaryButtonText="DELETE"
+        secondaryButtonText="CANCEL"
+        primaryButtonVariant="white"
+        primaryButtonStyle={{
+          borderColor: Colors.light.red,
+        }}
+        primaryButtonTextStyle={{
+          color: Colors.light.red,
+          fontSize: 14,
+          fontWeight: "400",
+          fontFamily: fonts.primary.regular,
+        }}
+        secondaryButtonTextStyle={{
+          color: Colors.light.green,
+        }}
+        onPrimaryPress={confirmDelete}
+        onSecondaryPress={closeDeleteConfirm}
+        onBackdropPress={closeDeleteConfirm}
+      />
     </Fragment>
   );
 };
@@ -869,8 +1268,15 @@ const styles = StyleSheet.create({
   },
   surahItemWrapper: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     gap: 12,
+  },
+  surahVerseCount: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.semiBold,
+    fontSize: 13,
+    fontWeight: "500",
+    marginTop: 2,
   },
   radio: {
     height: 18,
@@ -895,16 +1301,18 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.regular,
     fontSize: 14,
     marginRight: 8,
+    opacity: 0.8,
   },
   timesInput: {
     height: 40,
-    width: 64,
+    width: 50,
     borderWidth: 1,
     borderColor: Colors.light.white,
     borderRadius: 6,
     paddingHorizontal: 8,
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
+    textAlign: "center",
   },
   emptyOptionsText: {
     color: Colors.light.white,

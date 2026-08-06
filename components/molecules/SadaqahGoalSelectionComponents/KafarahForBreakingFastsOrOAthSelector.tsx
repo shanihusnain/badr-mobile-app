@@ -2,10 +2,10 @@ import { globalStyles } from "@/src/globalstyles/globalstyles";
 import { LayoutAnimation, View } from "react-native";
 import { GoalSelectionOpenCloseButton } from "../GoalSelectionOpenCloseButton";
 import { Counter } from "../Counter";
-import { set } from "zod";
 import { Divider } from "@/components/atoms/Divider";
 import { useState } from "react";
 import { TopSpace } from "@/components/atoms/TopSpace";
+import PrimaryButton from "@/components/atoms/Primary-button";
 import { useTranslation } from "react-i18next";
 
 export const KafarahForBreakingFastsOrOAthSelector = ({
@@ -17,6 +17,8 @@ export const KafarahForBreakingFastsOrOAthSelector = ({
   setClothCount,
   handleClothDecrease,
   handleClothIncrease,
+  onSave,
+  isSaving,
 }: {
   mealCount: number;
   setMealCount: (count: number) => void;
@@ -26,6 +28,8 @@ export const KafarahForBreakingFastsOrOAthSelector = ({
   setClothCount: (count: number) => void;
   handleClothDecrease: () => void;
   handleClothIncrease: () => void;
+  onSave?: () => void;
+  isSaving?: boolean;
 }) => {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
@@ -69,6 +73,17 @@ export const KafarahForBreakingFastsOrOAthSelector = ({
               width={"50%"}
             />
           </View>
+          {onSave ? (
+            <>
+              <TopSpace top={16} />
+              <PrimaryButton
+                text={t("monthlyGoalPlanner.save")}
+                onPress={onSave}
+                isLoading={isSaving}
+                disabled={isSaving || (mealCount < 1 && clothCount < 1)}
+              />
+            </>
+          ) : null}
         </>
       )}
     </View>

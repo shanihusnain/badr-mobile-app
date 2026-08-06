@@ -43,6 +43,7 @@ export type UpsertPrayerGoalPayload = {
 
 const upsertPrayerGoal = async (payload: UpsertPrayerGoalPayload) => {
   const { prayerType, ...body } = payload;
+  console.log("body", body);
   const response = await api.put(
     `api/goal-cycles/current/prayer-goals/${prayerType}`,
     { prayerType, ...body },
@@ -56,6 +57,7 @@ export const useUpsertPrayerGoal = () => {
     mutationFn: upsertPrayerGoal,
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["all-prayer-goals"] });
+      queryClient.invalidateQueries({ queryKey: ["goal-cycle"] });
       console.log("data", data);
       showToast("success", data?.data?.message ?? "Goal saved");
     },

@@ -19,11 +19,7 @@ type Props = {
 export const GoalCard = ({ item, cardWidth }: Props) => {
   return (
     <View style={[styles.card, { width: cardWidth }]}>
-      {item.icon && (
-        <View style={styles.iconContainer}>
-          {item.icon}
-        </View>
-      )}
+      {item.icon && <View style={styles.iconContainer}>{item.icon}</View>}
       <View style={styles.contentContainer}>
         <Text style={styles.title}>{item.title}</Text>
         <TopSpace top={12} />
@@ -40,7 +36,6 @@ const styles = StyleSheet.create({
     padding: 20,
     flexDirection: "row",
     alignItems: "center",
-    minHeight: 180,
   },
   iconContainer: {
     marginRight: 16,

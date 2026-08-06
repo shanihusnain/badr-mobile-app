@@ -70,7 +70,13 @@ export const SetPersonalizedGoalsScreen = () => {
       navigation.setOptions({
         headerShown: true,
         header: () => (
-          <Header title={t("setpersonalizedgoals.Setyourperosnalizedgoals")} />
+          <Header
+            title={t("setpersonalizedgoals.Setyourperosnalizedgoals")}
+            showBackBtn={false}
+            fontSize={18}
+            textAlign="left"
+            lineHeight={24}
+          />
         ),
       });
     }

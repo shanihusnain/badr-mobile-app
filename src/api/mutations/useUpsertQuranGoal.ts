@@ -50,6 +50,7 @@ export const useBulkUpsertQuranGoals = () => {
     mutationFn: bulkUpsertQuranGoals,
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["all-quran-goals"] });
+      queryClient.invalidateQueries({ queryKey: ["goal-cycle"] });
       for (const goal of variables.goals) {
         queryClient.invalidateQueries({
           queryKey: ["quran-goal-detail", goal.quranGoalType],
@@ -69,6 +70,7 @@ export const useUpsertQuranGoal = () => {
     mutationFn: upsertQuranGoal,
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["all-quran-goals"] });
+      queryClient.invalidateQueries({ queryKey: ["goal-cycle"] });
       queryClient.invalidateQueries({
         queryKey: ["quran-goal-detail", variables.quranGoalType],
       });

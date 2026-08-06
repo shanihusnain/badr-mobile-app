@@ -18,9 +18,10 @@ type WarningModalProps = {
   title: string;
   message?: React.ReactNode;
   primaryButtonText?: string;
-  secondaryButtonText?: string;
+  /** Omit or pass null/empty to hide the secondary text button (single-action modal). */
+  secondaryButtonText?: string | null;
   onPrimaryPress: () => void;
-  onSecondaryPress: () => void;
+  onSecondaryPress?: () => void;
   onBackdropPress?: () => void;
   /** Optional overrides — defaults keep existing WarningModal look elsewhere. */
   primaryButtonStyle?: StyleProp<ViewStyle>;
@@ -49,6 +50,7 @@ export default function WarningModal({
   };
 
   const hasMessage = message != null && message !== "" && message !== false;
+  const showSecondaryButton = Boolean(secondaryButtonText);
 
   return (
     <Modal
@@ -83,16 +85,18 @@ export default function WarningModal({
               style={primaryButtonStyle}
               textStyle={primaryButtonTextStyle}
             />
-            <Pressable
-              style={styles.secondaryButton}
-              onPress={onSecondaryPress}
-            >
-              <Text
-                style={[styles.secondaryButtonText, secondaryButtonTextStyle]}
+            {showSecondaryButton ? (
+              <Pressable
+                style={styles.secondaryButton}
+                onPress={onSecondaryPress}
               >
-                {secondaryButtonText}
-              </Text>
-            </Pressable>
+                <Text
+                  style={[styles.secondaryButtonText, secondaryButtonTextStyle]}
+                >
+                  {secondaryButtonText}
+                </Text>
+              </Pressable>
+            ) : null}
           </View>
         </Pressable>
       </Pressable>
@@ -132,7 +136,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   message: {
-    color: Colors.light.dullWhite,
+    color: Colors.light.white,
     fontFamily: fonts.primary.regular,
     fontSize: 14,
     textAlign: "center",
@@ -140,9 +144,11 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     gap: 12,
+    width: "40%",
+    alignSelf: "center",
   },
   secondaryButton: {
-    paddingVertical: 8,
+    paddingVertical: 4,
     alignItems: "center",
     justifyContent: "center",
   },
