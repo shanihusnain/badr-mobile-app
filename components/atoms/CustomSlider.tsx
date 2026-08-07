@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Dimensions, StyleSheet, Text, View } from "react-native";
+import { Dimensions, StyleSheet, Text, View, type StyleProp, type ViewStyle } from "react-native";
 import { Colors } from "../../constants/theme";
 import { useLocaleNumber } from "../../hooks/useLocaleNumber";
 
@@ -13,6 +13,9 @@ type CustomSliderProps = {
   scale?: number; // Uniform scale factor for track thickness & pointer size
   onChange?: (days: number) => void;
   locked?: boolean;
+  containerStyle?: StyleProp<ViewStyle>;
+  /** Tighter vertical footprint for stacked prayer sliders (Figma). */
+  compact?: boolean;
 };
 
 export default function CustomSlider({
@@ -21,6 +24,8 @@ export default function CustomSlider({
   scale = 1.2, // Default premium 1.2x scale (smaller, highly elegant)
   onChange,
   locked = false,
+  containerStyle,
+  compact = false,
 }: CustomSliderProps) {
   const formatNumber = useLocaleNumber();
   const [days, setDays] = useState(initialDays);
@@ -48,7 +53,7 @@ export default function CustomSlider({
 
   const onLayout = (event: any) => {
     const layoutWidth = event.nativeEvent.layout.width;
-    if (layoutWidth > 0 && isMounted.current) {
+    if (layoutWidth > 0) {
       setWidth(layoutWidth);
     }
   };
@@ -62,8 +67,12 @@ export default function CustomSlider({
   const trackHeight = baseTrackHeight * scale;
   const ringSize = baseRingSize * scale;
   const thumbSize = baseThumbSize * scale;
+  // Compact hugs the thumb/track so stacked rows match Figma (no tall empty hit-area).
+  const sliderHeight = compact ? 28 : 50;
+  const badgeTop = compact ? -16 : -11;
 
-  // Horizontal inset — shorter track + room for count badge at min/max
+  // Horizontal inset — room for thumb/badge at min/max.
+  // Paired with container width 112% so the visible track aligns with card content edges.
   const paddingX = 20;
   const trackOverlayWidth = width - paddingX * 2;
   const badgeWidth = 32;
@@ -133,10 +142,17 @@ export default function CustomSlider({
   // Native slider uses 100% width. Scaling the visual elements only, to preserve hit bounds.
 
   return (
-    <View style={styles.container} onLayout={onLayout}>
-      <View style={styles.sliderWrapper}>
+    <View
+      style={[
+        styles.container,
+        compact && styles.containerCompact,
+        containerStyle,
+      ]}
+      onLayout={onLayout}
+    >
+      <View style={[styles.sliderWrapper, { height: sliderHeight }]}>
         {/* Floating badge with connection speech-bubble arrow pointing to thumb */}
-        <View style={[styles.badgeContainer, { left: badgeLeft }]}>
+        <View style={[styles.badgeContainer, { left: badgeLeft, top: badgeTop }]}>
           <View style={styles.badge}>
             <Text style={styles.badgeText}>{formatNumber(days)}</Text>
           </View>
@@ -179,7 +195,7 @@ export default function CustomSlider({
         {/* Transparent Interactive Drag Area wrapped in GestureDetector */}
         {locked ? (
           <View
-            style={[styles.slider, { width: "100%" }]}
+            style={[styles.slider, { width: "100%", height: sliderHeight }]}
             pointerEvents="none"
           />
         ) : (
@@ -189,6 +205,7 @@ export default function CustomSlider({
                 styles.slider,
                 {
                   width: "100%",
+                  height: sliderHeight,
                 },
               ]}
             />
@@ -205,7 +222,7 @@ export default function CustomSlider({
               width: thumbSize,
               height: thumbSize,
               borderRadius: thumbSize / 2,
-              top: (50 - thumbSize) / 2,
+              top: (sliderHeight - thumbSize) / 2,
             },
           ]}
           pointerEvents="none"
@@ -244,16 +261,24 @@ const styles = StyleSheet.create({
     alignSelf: "center",
   },
 
+  containerCompact: {
+    // Same bleed as default: paddingX (20) each side is offset by 12% extra width
+    // so the green track lines up with labels / SAVE.
+    width: "112%",
+    alignSelf: "center",
+    marginVertical: 0,
+    // Reserve space for the floating value badge above the track (Figma).
+    paddingTop: 18,
+  },
+
   sliderWrapper: {
     position: "relative",
     justifyContent: "center",
     alignItems: "center",
-    height: 50,
   },
 
   badgeContainer: {
     position: "absolute",
-    top: -11, // Sits beautifully above the track and points to thumb
     width: 32,
     alignItems: "center",
     zIndex: 10,
@@ -307,7 +332,6 @@ const styles = StyleSheet.create({
   },
 
   slider: {
-    height: 50,
     zIndex: 5,
   },
 
@@ -317,10 +341,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 100 },
-    shadowOpacity: 0.91,
-    shadowRadius: 50,
-    elevation: 30,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3,
+    elevation: 4,
     zIndex: 10,
   },
 });

@@ -1,6 +1,7 @@
 import { fonts } from "@/assets/fonts";
 import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
 import { GreenDash } from "@/components/atoms/GreenDash";
+import { TopSpace } from "@/components/atoms/TopSpace";
 import { Colors } from "@/constants/theme";
 import { useAuth } from "@/provider/useAuth";
 import { globalStyles } from "@/src/globalstyles/globalstyles";
@@ -19,6 +20,7 @@ export const GreetingsScreen = () => {
   console.log(user);
   return (
     <BlackScreenWrapper>
+      <TopSpace top={30} />
       <Text
         style={{
           fontWeight: "500",
@@ -26,6 +28,8 @@ export const GreetingsScreen = () => {
           fontSize: 18,
           color: Colors.light.white,
           marginBottom: 16,
+          lineHeight: 22,
+          textTransform: "uppercase",
         }}
       >
         Assalamu alaykum, {user?.username}!
@@ -39,9 +43,10 @@ export const GreetingsScreen = () => {
             fontFamily: fonts.primary.medium,
             fontWeight: "500",
             marginLeft: 8,
+            lineHeight: 18,
           }}
         >
-          Let's Begin
+          {"Let's Begin".toUpperCase()}
         </Text>
       </View>
     </BlackScreenWrapper>

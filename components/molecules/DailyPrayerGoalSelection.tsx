@@ -63,12 +63,8 @@ export default function DailyPrayerGoalSelection({
     [cycleStartDate],
   );
 
-  const [fajr, setFajr] = useState(
-    initialValues?.fajr ?? PRAYER_CYCLE_DAYS,
-  );
-  const [dhuhr, setDhuhr] = useState(
-    initialValues?.dhuhr ?? PRAYER_CYCLE_DAYS,
-  );
+  const [fajr, setFajr] = useState(initialValues?.fajr ?? PRAYER_CYCLE_DAYS);
+  const [dhuhr, setDhuhr] = useState(initialValues?.dhuhr ?? PRAYER_CYCLE_DAYS);
   const [asar, setAsar] = useState(initialValues?.asr ?? PRAYER_CYCLE_DAYS);
   const [maghrib, setMaghrib] = useState(
     initialValues?.maghrib ?? PRAYER_CYCLE_DAYS,
@@ -194,6 +190,8 @@ export default function DailyPrayerGoalSelection({
           initialDays={item.value}
           onChange={item.onChange}
           locked={true}
+          compact
+          containerStyle={styles.slider}
         />
         {item.id === "dhuhr" && isTrackingCongregation ? (
           <Text style={styles.dhuhrNote}>
@@ -224,7 +222,7 @@ export default function DailyPrayerGoalSelection({
       {isOpen && <Divider />}
 
       {isOpen && (
-        <>
+        <View style={styles.expandedContent}>
           <FlatList
             data={sliderData}
             renderItem={renderItem}
@@ -238,8 +236,9 @@ export default function DailyPrayerGoalSelection({
               {t("prayerGoals.dailyPrayersSuffix")}
             </Text>
           </Text>
+
           <View style={styles.switchRow}>
-            <View>
+            <View style={styles.switchCopy}>
               <Text style={styles.trackText}>
                 {t("prayerGoals.trackCongregation")}
               </Text>
@@ -251,18 +250,19 @@ export default function DailyPrayerGoalSelection({
             <SwitchButton
               value={trackingCongregation}
               onPress={handleToggleCongregation}
+              size="small"
             />
           </View>
 
           <View style={styles.buttonContainer}>
             <PrimaryButton
-              text={t("prayerGoals.save")}
+              text={t("prayerGoals.save").toUpperCase()}
               onPress={handleSave}
               style={styles.saveButton}
               textStyle={styles.saveButtonText}
             />
           </View>
-        </>
+        </View>
       )}
     </View>
   );
@@ -273,21 +273,36 @@ const styles = StyleSheet.create({
     width: "100%",
     backgroundColor: Colors.light.calendarBg,
     borderRadius: 12,
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 18,
     marginVertical: 10,
+  },
+  expandedContent: {
+    width: "100%",
+    paddingTop: 12,
   },
   sliderGroup: {
     width: "100%",
-    marginBottom: 10,
+    // Track bottom → next label ≈ Figma (~24–25px) with compact slider.
+    marginBottom: 8,
+    paddingRight: 10,
   },
   sliderHeading: {
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
     fontSize: 12,
     fontWeight: "500",
+    lineHeight: 16,
     alignSelf: "flex-start",
     textAlign: "left",
-    marginBottom: 4,
+  },
+  slider: {
+    // Do not set width here — CustomSlider uses 112% bleed so the track
+    // matches the card content width after its internal paddingX inset.
+    marginVertical: 0,
+    marginTop: 0,
+    marginBottom: 0,
   },
   dhuhrNote: {
     color: Colors.light.subtext,
@@ -295,45 +310,63 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: "400",
     lineHeight: 14,
-    marginTop: 6,
+    marginBottom: 0,
   },
   valueText: {
     color: Colors.light.green,
     fontFamily: fonts.primary.medium,
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: "500",
-    marginTop: -9,
-    marginBottom: 25,
+    lineHeight: 20,
+    // Last row already has sliderGroup marginBottom; keep total close to Figma (~32px).
+    marginTop: 8,
+    marginBottom: 20,
     textAlign: "center",
+    letterSpacing: 0.1,
   },
   whiteText: {
     color: Colors.light.white,
+    fontFamily: fonts.primary.medium,
+    fontSize: 14,
+    fontWeight: "500",
+    lineHeight: 20,
+    // Last row already has sliderGroup marginBottom; keep total close to Figma (~32px).
+    marginTop: 8,
+    marginBottom: 20,
+    textAlign: "center",
+    letterSpacing: 0.1,
+  },
+  switchRow: {
+    flexDirection: "row",
+    // alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    marginBottom: 32,
+  },
+  switchCopy: {
+    flex: 1,
   },
   trackText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
     fontSize: 12,
     fontWeight: "500",
-    alignSelf: "flex-start",
+    lineHeight: 16,
+    letterSpacing: 0.1,
     textAlign: "left",
-  },
-  switchRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
   },
   switchText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
     fontSize: 10,
     fontWeight: "400",
-    flex: 1,
-    marginRight: 12,
+    lineHeight: 14,
+    marginTop: 4,
     textAlign: "left",
+    opacity: 0.8,
   },
   buttonContainer: {
     width: "100%",
-    marginTop: 6,
     alignItems: "center",
   },
   saveButton: {

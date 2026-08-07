@@ -33,7 +33,8 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: Colors.light.greybuttonBackground,
     borderRadius: 16,
-    padding: 20,
+    paddingVertical: 15,
+    paddingHorizontal: 12,
     flexDirection: "row",
     alignItems: "center",
   },
@@ -51,12 +52,14 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
+    lineHeight: 22,
   },
   description: {
     color: Colors.light.white,
     fontSize: 14,
     fontFamily: fonts.primary.regular,
-    lineHeight: 22,
+    lineHeight: 20,
     fontWeight: "400",
+    letterSpacing: 0.1,
   },
 });

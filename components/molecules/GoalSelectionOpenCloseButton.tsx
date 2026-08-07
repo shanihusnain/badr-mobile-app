@@ -27,7 +27,7 @@ export const GoalSelectionOpenCloseButton = ({
 const styles = StyleSheet.create({
   headerRow: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     justifyContent: "space-between",
   },
   titleText: {
@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "500",
     lineHeight: 20,
-    marginRight: 8,
+    letterSpacing: 0.1,
   },
   icon: {
     marginLeft: 4,

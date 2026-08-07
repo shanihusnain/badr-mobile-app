@@ -21,9 +21,11 @@ import { Divider } from "../atoms/Divider";
 export default function TahiyatWuduGoalSelection({
   onSave,
   initialValue = 25,
+  isSaving = false,
 }: {
   onSave?: (value: number) => void;
   initialValue?: number;
+  isSaving?: boolean;
 }) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
@@ -43,7 +45,14 @@ export default function TahiyatWuduGoalSelection({
   };
 
   return (
-    <View style={globalStyles.goalSelectionWrapper}>
+    <View
+      style={[
+        globalStyles.goalSelectionWrapper,
+        {
+          paddingBottom: isOpen ? 18 : 12,
+        },
+      ]}
+    >
       <GoalSelectionOpenCloseButton
         isOpen={isOpen}
         title={t("prayerGoals.tahiyaWuduTitle")}
@@ -68,10 +77,12 @@ export default function TahiyatWuduGoalSelection({
 
           <View style={styles.buttonContainer}>
             <PrimaryButton
-              text={t("prayerGoals.save")}
+              text={t("prayerGoals.save").toLocaleUpperCase()}
               onPress={handleSave}
               style={styles.saveButton}
               textStyle={styles.saveButtonText}
+              isLoading={isSaving}
+              disabled={isSaving}
             />
           </View>
         </View>
@@ -89,7 +100,7 @@ const styles = StyleSheet.create({
   valueText: {
     color: Colors.light.green,
     fontFamily: fonts.primary.medium,
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: "500",
     marginTop: -9,
     marginBottom: 25,

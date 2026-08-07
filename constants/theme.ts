@@ -21,7 +21,7 @@ export const Colors = {
     blackBackground: "#081A2F",
     buttonBackground: "#36454F",
     white: "#FFFFFF",
-    greybuttonBackground: "#213144",
+    greybuttonBackground: "#203144",
     grey: "#A0A0A0",
     placeholder: "#8A8A8A",
     calendarBg: "#2F4054",
@@ -70,6 +70,8 @@ export const Colors = {
     journalFillingCapsuleBorder: "rgba(255, 255, 255, 0.2)",
     journalFillingCapsuleSelectedBg: "rgba(255, 255, 255, 0.16)",
     disabledButtonColor: "#8E98A8",
+    paginationInactiveDot: "#D9D9D9",
+    switchOnTrackColor: "#627666",
   },
   dark: {
     text: "#ECEDEE",

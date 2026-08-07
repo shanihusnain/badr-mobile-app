@@ -41,11 +41,11 @@ export const SwitchButton = ({
   style,
   duration = 300,
   trackColors = {
-    on: Colors.light.green,
+    on: Colors.light.switchOnTrackColor,
     off: Colors.light.unselectedSwtchTrack,
   },
   thumbColors = {
-    on: Colors.light.white,
+    on: Colors.light.green,
     off: Colors.light.white,
   },
   size = "default",
@@ -75,7 +75,9 @@ export const SwitchButton = ({
     const translateAmount = isRtl ? -travel : travel;
     return {
       transform: [
-        { translateX: interpolate(progress.value, [0, 1], [0, translateAmount]) },
+        {
+          translateX: interpolate(progress.value, [0, 1], [0, translateAmount]),
+        },
       ],
       backgroundColor: interpolateColor(
         progress.value,

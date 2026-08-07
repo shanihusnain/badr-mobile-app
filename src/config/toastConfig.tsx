@@ -71,7 +71,7 @@ export const toastConfig = {
       >
         <AntDesign name="check" size={15} color={Colors.light.white} />
       </View> */}
-      <Text style={[styles.toastText, { color: Colors.light.blackBackground }]}>
+      <Text style={[styles.toastText, { color: Colors.light.white }]}>
         {props.text1}
       </Text>
     </View>
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
     elevation: 99999,
   },
   successContainer: {
-    backgroundColor: Colors.light.white,
+    backgroundColor: Colors.light.calendarBg,
   },
   errorContainer: {
     backgroundColor: Colors.light.red,

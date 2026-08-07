@@ -18,7 +18,6 @@ import { globalStyles } from "@/src/globalstyles/globalstyles";
 import { GoalSelectionOpenCloseButton } from "./GoalSelectionOpenCloseButton";
 import { Divider } from "../atoms/Divider";
 
-
 export default function CongregationalPrayerGoalSelection() {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
@@ -68,7 +67,7 @@ export default function CongregationalPrayerGoalSelection() {
       />
 
       {/* {isOpen && <View style={styles.divider} />} */}
-      {isOpen && <Divider/>}
+      {isOpen && <Divider />}
 
       {isOpen && (
         <View style={styles.expandedContent}>

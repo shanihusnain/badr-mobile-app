@@ -9,34 +9,32 @@ interface FrameIndicatorProps {
 
 export const FrameIndicator = ({ total, active }: FrameIndicatorProps) => {
   return (
-    <View style={{ flexDirection: "row", marginTop: 16 }}>
-      {Array.from({ length: total }, (_, i) => {
-        const frame = i + 1;
-        const isActive = frame === active;
-        const isLast = frame === total;
-        return (
-          <View key={frame} style={{ flexDirection: "row" }}>
-            <Text
-              style={{
-                fontFamily: fonts.primary.medium,
-                color: isActive ? Colors.light.white : Colors.light.icon,
-              }}
-            >
-              {frame}
-            </Text>
-            {!isLast && (
-              <Text
-                style={{
-                  fontFamily: fonts.primary.medium,
-                  color: Colors.light.icon,
-                }}
-              >
-                /
-              </Text>
-            )}
-          </View>
-        );
-      })}
+    <View
+      style={{
+        flexDirection: "row",
+        marginTop: 16,
+        alignItems: "baseline",
+        gap: 1,
+      }}
+    >
+      <Text
+        style={{
+          fontFamily: fonts.primary.bold,
+          color: Colors.light.white,
+          fontSize: 12,
+        }}
+      >
+        {active}
+      </Text>
+      <Text
+        style={{
+          fontFamily: fonts.primary.medium,
+          color: Colors.light.icon,
+          fontSize: 10,
+        }}
+      >
+        /{total}
+      </Text>
     </View>
   );
 };

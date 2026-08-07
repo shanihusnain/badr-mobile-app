@@ -20,6 +20,7 @@ import { MonthlyGoalPlannerSaveCardIcon } from "@/assets/icons/MonthlyGoalPlanne
 import { TickWithCircleIcon } from "@/assets/icons/TickWithCircleIcon";
 import { MonthlyGoalPlannerComittedCardIcon } from "@/assets/icons/MonthlyGoalPlannerComittedCardIcon";
 import { MonthlyGoalPlannerPlanIcon } from "@/assets/icons/MonthlyGoalPlannerPlanIcon";
+import { globalStyles } from "@/src/globalstyles/globalstyles";
 
 type StepItem = {
   id: number;
@@ -46,15 +47,15 @@ const StepRow = ({
       )}
       <Text style={styles.stepTitle}>{item.title}</Text>
     </View>
-    {item.status === "completed" ? (
-      <Ionicons
-        name="checkmark-circle-outline"
-        size={24}
-        color={Colors.light.white}
-      />
-    ) : (
+    {/* {item.status === "completed" ? ( */}
+    <Ionicons
+      name="checkmark-circle-outline"
+      size={24}
+      color={Colors.light.dullWhite}
+    />
+    {/* ) : (
       <Ionicons name="chevron-forward" size={20} color={Colors.light.grey} />
-    )}
+    )} */}
   </Pressable>
 );
 
@@ -181,17 +182,17 @@ export const MonthlyGoalPlannerScreen = () => {
 
   return (
     <View style={{ flex: 1 }}>
-      <BlackScreenWrapper>
+      <BlackScreenWrapper edges={["bottom", "left", "right"]}>
         <FlatList
           data={steps}
           keyExtractor={keyExtractor}
           renderItem={renderItem}
           ItemSeparatorComponent={ItemSeparator}
-          style={styles.stepsList}
+          style={[styles.stepsList, { flex: 1 }]}
           contentContainerStyle={styles.stepsContent}
           ListHeaderComponent={
             <>
-              <Text style={styles.heading}>
+              <Text style={globalStyles.onboardingHeading}>
                 {t("monthlyGoalPlanner.heading")}
               </Text>
               <TopSpace top={16} />
@@ -201,9 +202,13 @@ export const MonthlyGoalPlannerScreen = () => {
               <TopSpace top={24} />
               <GoalCardCarousel data={goalCards} />
               <GoalPlannerSummary />
+              <TopSpace top={10} />
             </>
           }
         />
+        <Pressable style={{ alignSelf: "center", marginBottom: 16 }}>
+          <Text style={globalStyles.greenCTA}>BEGIN NOW</Text>
+        </Pressable>
       </BlackScreenWrapper>
       <GoalPlannerSheet
         ref={bottomSheetRef}

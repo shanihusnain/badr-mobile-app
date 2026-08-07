@@ -43,7 +43,7 @@ export const GoalProgressCard = ({
       {/* ── Image ── */}
       <View
         style={{
-          height: heightPercentageToDP(30),
+          height: heightPercentageToDP(35),
           width: "100%",
           alignItems: "center",
           justifyContent: "center",
@@ -63,7 +63,14 @@ export const GoalProgressCard = ({
           <Text style={styles.statLabel}>
             {t("setpersonalizedgoals.overall progress")}
           </Text>
-          <Text style={styles.statValue}>{`${overallProgress}%`}</Text>
+          <Text
+            style={[
+              styles.statValue,
+              {
+                color: Colors.light.lightblue,
+              },
+            ]}
+          >{`${overallProgress}%`}</Text>
         </View>
       </View>
     </View>
@@ -73,21 +80,25 @@ export const GoalProgressCard = ({
 const styles = StyleSheet.create({
   card: {
     borderRadius: 12,
-    backgroundColor: Colors.light.calendarBg,
+    backgroundColor: Colors.light.darkgrey,
     padding: 16,
     marginTop: 16,
   },
   currentDayText: {
     color: Colors.light.white,
-    fontFamily: fonts.primary.medium,
+    fontFamily: fonts.primary.semiBold,
     fontSize: 16,
     textAlign: "center",
-    fontWeight: "700",
+    fontWeight: "600",
+    letterSpacing: 0.5,
   },
   daysLeftText: {
     fontWeight: "400",
     fontFamily: fonts.primary.regular,
     fontSize: 16,
+    color: Colors.light.white,
+    opacity: 0.8,
+    letterSpacing: 0.5,
   },
   image: {
     width: widthPercentageToDP(90),
@@ -104,6 +115,8 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.medium,
     fontSize: 14,
     color: Colors.light.white,
+    letterSpacing: 0.5,
+    marginBottom: 4,
   },
   statValue: {
     fontWeight: "600",

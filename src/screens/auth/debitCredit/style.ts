@@ -1,5 +1,6 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
+import { Color } from "expo-router";
 import { StyleSheet } from "react-native";
 import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 
@@ -122,7 +123,7 @@ export const styles = StyleSheet.create({
     height: 20,
     marginRight: 10,
     borderRadius: 4,
-    backgroundColor: "#213144",
+    backgroundColor: Colors.light.greybuttonBackground,
     borderWidth: 0,
   },
   checkboxLabel: {
@@ -171,7 +172,7 @@ export const styles = StyleSheet.create({
   },
   greyButton: {
     flex: 1,
-    width:"50%",
+    width: "50%",
     height: 40,
     borderRadius: 6,
     paddingTop: 10,

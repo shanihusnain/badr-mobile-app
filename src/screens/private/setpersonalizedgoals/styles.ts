@@ -42,6 +42,7 @@ export const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
+    letterSpacing: 0.4,
   },
   setPersonalizedGoalText: {
     color: Colors.light.white,

@@ -522,8 +522,11 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
     const { mutate: toggleSadaqahGoalByType } = useToggleSadaqahGoalByType();
     const { mutate: upsertSadaqahGoal, isPending: isSavingSadaqah } =
       useUpsertSadaqahGoal();
-    const { mutate: upsertPrayerGoal } = useUpsertPrayerGoal();
-    const { mutate: bulkUpsertQuranGoals } = useBulkUpsertQuranGoals();
+    const { mutate: upsertPrayerGoal, isPending: isSavingPrayer } =
+      useUpsertPrayerGoal();
+    console.log("isSavingPrayer", isSavingPrayer);
+    const { mutate: bulkUpsertQuranGoals, isPending: isSavingQuran } =
+      useBulkUpsertQuranGoals();
 
     const handlePrayerToggle = useCallback(
       (prayerId: string, prayerType: string, isSelected: boolean) => {
@@ -1001,9 +1004,9 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
 
       switch (key) {
         case "tahayyat-ul-wudhu":
-        case "tahayyat-ul-wuddu":
           return (
             <TahiyatWuduGoalSelection
+              isSaving={isSavingPrayer}
               initialValue={sourcePrayer?.targetCount ?? 25}
               onSave={(value) => {
                 saveSimplePrayerTarget("TAHIYYAT_AL_WUDHU", value);
@@ -2489,10 +2492,10 @@ const styles = StyleSheet.create({
   },
   tab: {
     paddingHorizontal: 16,
-    paddingVertical: 6,
-    borderRadius: 10,
+    paddingVertical: 8,
+    borderRadius: 4,
     backgroundColor: Colors.light.greybuttonBackground,
-    minHeight: 32,
+    minHeight: 36,
     alignItems: "center",
     justifyContent: "center",
     flexDirection: "row",
@@ -2505,22 +2508,26 @@ const styles = StyleSheet.create({
     opacity: 0.35,
   },
   tabText: {
-    color: Colors.light.white,
-    fontSize: 13,
-    fontFamily: fonts.primary.regular,
-    fontWeight: "400",
+    color: Colors.light.dullWhite,
+    fontSize: 14,
+    fontFamily: fonts.primary.medium,
+    fontWeight: "500",
+    lineHeight: 18,
+    letterSpacing: 0.1,
+    includeFontPadding: false,
+    textAlign: "center",
+    textAlignVertical: "center",
   },
   tabTextActive: {
     color: Colors.light.white,
-    fontSize: 13,
-    fontFamily: fonts.primary.regular,
-    fontWeight: "400",
   },
   // ── Category chip inside tabs
   tabChip: {
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
+    alignItems: "center",
+    justifyContent: "center",
   },
   tabChipActive: {
     backgroundColor: Colors.light.green,
@@ -2529,16 +2536,19 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.calendarBg,
   },
   tabChipText: {
-    color: Colors.light.white,
-    fontSize: 11,
+    color: Colors.light.dullWhite,
+    fontSize: 12,
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
+    lineHeight: 16,
+    includeFontPadding: false,
+    textAlign: "center",
+    textAlignVertical: "center",
   },
   tabChipTextActive: {
     color: Colors.light.white,
-    fontSize: 11,
-    fontFamily: fonts.primary.regular,
-    fontWeight: "400",
+    fontFamily: fonts.primary.medium,
+    fontWeight: "500",
   },
   tabDivider: {},
   // ── Content

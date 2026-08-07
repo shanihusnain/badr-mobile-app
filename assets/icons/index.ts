@@ -165,6 +165,7 @@ import { ServiceIcon } from "./ServiceIcon";
 import { TutorialIcon } from "./TutorialIcon";
 import { ThreeDotsIcon } from "./ThreeDotsIcon";
 import { TimeSpentIcon } from "./TimeSpentIcon";
+import { TimePieceIcon } from "./TimePieceIcon";
 //U
 
 import { VolunteeringServicesCharityEventIcon } from "./VolunteeringServicesCharityEventIcon";
@@ -360,4 +361,5 @@ export {
   PlusGlowyIcon,
   HomeScreenGlowyMinusIcon,
   TickIconWithGreenBg,
+  TimePieceIcon,
 };

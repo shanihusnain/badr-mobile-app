@@ -106,22 +106,24 @@ export const GoalCardWithDescriptionAndOptionToSelectGoal = ({
 const styles = StyleSheet.create({
   seeMoreText: {
     color: Colors.light.green,
-    fontSize: 13,
-    fontFamily: fonts.primary.semiBold,
-    fontWeight: "600",
+    fontSize: 14,
+    fontFamily: fonts.primary.regular,
+    fontWeight: "400",
   },
   description: {
     color: Colors.light.white,
     fontWeight: "400",
     fontFamily: fonts.primary.regular,
     fontSize: 14,
-    lineHeight: 22,
+    lineHeight: 21,
   },
   title: {
     color: Colors.light.white,
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
     fontSize: 16,
+    lineHeight: 20,
+    textTransform: "capitalize",
   },
   backgroundImage: {
     width: "100%",
@@ -135,7 +137,7 @@ const styles = StyleSheet.create({
   },
   conatiner: {
     borderRadius: 8,
-    backgroundColor: Colors.light.calendarBg,
+    backgroundColor: Colors.light.greybuttonBackground,
     // alignItems: "center",
     justifyContent: "center",
     padding: 16,

@@ -58,17 +58,12 @@ export default function PrimaryButton({
 const styles = StyleSheet.create({
   button: {
     width: "100%",
-    minHeight: 40,
     borderRadius: 6,
-    paddingTop: 10,
-    paddingBottom: 10,
+    paddingVertical: 5,
     paddingHorizontal: 8,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: Colors.light.green,
-    //borderWidth: 1.5,
-    borderColor: Colors.light.green,
-    // marginBottom: 10,
   },
   buttonPressed: {
     opacity: 0.8,
@@ -83,7 +78,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
     fontSize: 14,
-    lineHeight: 18,
+    lineHeight: 25,
     letterSpacing: 0,
   },
   buttonTextDisabled: {

@@ -13,10 +13,59 @@ import CustomSlider from "@/components/atoms/CustomSlider";
 import PrimaryButton from "@/components/atoms/Primary-button";
 import { useTranslation } from "react-i18next";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
-import { globalStyles } from "@/src/globalstyles/globalstyles";
 import { GoalSelectionOpenCloseButton } from "./GoalSelectionOpenCloseButton";
 import { Divider } from "../atoms/Divider";
 import { SwitchButton } from "../atoms/SwitchButton";
+import { TopSpace } from "../atoms/TopSpace";
+
+function RadioOption({
+  selected,
+  label,
+  onPress,
+  disabled,
+}: {
+  selected: boolean;
+  label: string;
+  onPress: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <TouchableOpacity
+      style={styles.radioOption}
+      onPress={onPress}
+      activeOpacity={0.7}
+      disabled={disabled}
+    >
+      <View style={[styles.radioOuter, selected && styles.radioOuterSelected]}>
+        {selected ? <View style={styles.radioInner} /> : null}
+      </View>
+      <Text style={styles.radioText}>{label}</Text>
+    </TouchableOpacity>
+  );
+}
+
+function SliderHeading({
+  text,
+  style,
+}: {
+  text: string;
+  style?: object | object[];
+}) {
+  const parenIndex = text.indexOf("(");
+  if (parenIndex <= 0) {
+    return <Text style={[styles.sliderHeading, style]}>{text}</Text>;
+  }
+
+  const main = text.slice(0, parenIndex);
+  const parenthetical = text.slice(parenIndex);
+
+  return (
+    <Text style={[styles.sliderHeading, style]}>
+      {main}
+      <Text style={styles.sliderHeadingParen}>{parenthetical}</Text>
+    </Text>
+  );
+}
 
 export default function SunnahRawatibGoalSelection({
   onSave,
@@ -127,8 +176,11 @@ export default function SunnahRawatibGoalSelection({
     afterMaghrib +
     afterIsha;
 
+  const afterDuhrMax = afterDuhrOption === "one" ? 28 : 56;
+  const beforeAsarMax = beforeAsarOption === "one" ? 28 : 56;
+
   return (
-    <View style={globalStyles.goalSelectionWrapper}>
+    <View style={styles.container}>
       <GoalSelectionOpenCloseButton
         isOpen={isOpen}
         title={t("prayerGoals.sunnahTitle")}
@@ -139,88 +191,69 @@ export default function SunnahRawatibGoalSelection({
 
       {isOpen && (
         <View style={styles.expandedContent}>
-          {/* Before Fajar */}
+          {/* Before Fajr */}
           <View style={styles.sliderGroup}>
-            <Text style={styles.sliderHeading}>
-              {t("prayerGoals.beforeFajrHeading")}{" "}
-            </Text>
+            <SliderHeading text={t("prayerGoals.beforeFajrHeading")} />
             <CustomSlider
               maxDays={28}
               initialDays={beforeFajar}
-              onChange={(val) => setBeforeFajar(val)}
-              locked={true}
+              onChange={setBeforeFajar}
+              locked
+              compact
+              containerStyle={styles.slider}
             />
           </View>
 
-          {/* Before Duhr */}
+          {/* Before Dhuhr */}
           <View style={styles.sliderGroup}>
-            <Text style={styles.sliderHeading}>
-              {t("prayerGoals.beforeDhuhrHeading")}{" "}
-            </Text>
+            <SliderHeading text={t("prayerGoals.beforeDhuhrHeading")} />
             <CustomSlider
               maxDays={56}
               initialDays={beforeDuhr}
-              onChange={(val) => setBeforeDuhr(val)}
-              locked={true}
+              onChange={setBeforeDuhr}
+              locked
+              compact
+              containerStyle={styles.slider}
             />
           </View>
 
-          {/* After Duhr */}
+          {/* After Dhuhr */}
           <View style={styles.sliderGroup}>
-            <Text style={styles.sliderHeading}>
-              {t("prayerGoals.afterDhuhrHeading")}
-            </Text>
+            <SliderHeading text={t("prayerGoals.afterDhuhrHeading")} />
+            <TopSpace top={20} />
             <View style={styles.radioRow}>
-              <TouchableOpacity
-                style={styles.radioOption}
+              <RadioOption
+                selected={afterDuhrOption === "one"}
+                label={t("prayerGoals.oneRakahOption")}
                 onPress={() => handleAfterDuhrOptionChange("one")}
-                activeOpacity={0.7}
-              >
-                <View style={styles.radioOuter}>
-                  {afterDuhrOption === "one" && (
-                    <View style={styles.radioInner} />
-                  )}
-                </View>
-                <Text style={styles.radioText}>
-                  {t("prayerGoals.oneRakahOption")}
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.radioOption}
+              />
+              <RadioOption
+                selected={afterDuhrOption === "two"}
+                label={t("prayerGoals.twoRakahOption")}
                 onPress={() => handleAfterDuhrOptionChange("two")}
-                activeOpacity={0.7}
-              >
-                <View style={styles.radioOuter}>
-                  {afterDuhrOption === "two" && (
-                    <View style={styles.radioInner} />
-                  )}
-                </View>
-                <Text style={styles.radioText}>
-                  {t("prayerGoals.twoRakahOption")}
-                </Text>
-              </TouchableOpacity>
+              />
             </View>
             <CustomSlider
-              maxDays={afterDuhrOption === "one" ? 28 : 56}
+              key={`after-dhuhr-${afterDuhrMax}-${afterDuhr}`}
+              maxDays={afterDuhrMax}
               initialDays={afterDuhr}
-              onChange={(val) => setAfterDuhr(val)}
-              locked={true}
+              onChange={setAfterDuhr}
+              locked
+              compact
+              containerStyle={styles.slider}
             />
           </View>
 
-          {/* Before Asar */}
+          {/* Before Asr */}
           <View style={styles.sliderGroup}>
             <View style={styles.switchRow}>
-              <Text
+              <SliderHeading
+                text={t("prayerGoals.beforeAsrHeading")}
                 style={[
-                  styles.sliderHeading,
                   styles.switchHeading,
                   !isBeforeAsarEnabled && styles.disabledText,
                 ]}
-              >
-                {t("prayerGoals.beforeAsrHeading")}
-              </Text>
+              />
               <SwitchButton
                 value={beforeAsarEnabled}
                 onPress={handleToggleBeforeAsar}
@@ -232,70 +265,54 @@ export default function SunnahRawatibGoalSelection({
               pointerEvents={isBeforeAsarEnabled ? "auto" : "none"}
             >
               <View style={styles.radioRow}>
-                <TouchableOpacity
-                  style={styles.radioOption}
+                <RadioOption
+                  selected={isBeforeAsarEnabled && beforeAsarOption === "one"}
+                  label={t("prayerGoals.oneRakahOption")}
                   onPress={() => handleBeforeAsarOptionChange("one")}
-                  activeOpacity={0.7}
                   disabled={!isBeforeAsarEnabled}
-                >
-                  <View style={styles.radioOuter}>
-                    {isBeforeAsarEnabled && beforeAsarOption === "one" && (
-                      <View style={styles.radioInner} />
-                    )}
-                  </View>
-                  <Text style={styles.radioText}>
-                    {t("prayerGoals.oneRakahOption")}
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.radioOption}
+                />
+                <RadioOption
+                  selected={isBeforeAsarEnabled && beforeAsarOption === "two"}
+                  label={t("prayerGoals.twoRakahOption")}
                   onPress={() => handleBeforeAsarOptionChange("two")}
-                  activeOpacity={0.7}
                   disabled={!isBeforeAsarEnabled}
-                >
-                  <View style={styles.radioOuter}>
-                    {isBeforeAsarEnabled && beforeAsarOption === "two" && (
-                      <View style={styles.radioInner} />
-                    )}
-                  </View>
-                  <Text style={styles.radioText}>
-                    {t("prayerGoals.twoRakahOption")}
-                  </Text>
-                </TouchableOpacity>
+                />
               </View>
               <CustomSlider
-                maxDays={beforeAsarOption === "one" ? 28 : 56}
+                key={`before-asr-${beforeAsarMax}-${isBeforeAsarEnabled ? beforeAsar : 0}`}
+                maxDays={beforeAsarMax}
                 initialDays={isBeforeAsarEnabled ? beforeAsar : 0}
-                onChange={(val) => setBeforeAsar(val)}
-                locked={true}
+                onChange={setBeforeAsar}
+                locked
+                compact
+                containerStyle={styles.slider}
               />
             </View>
           </View>
 
           {/* After Maghrib */}
           <View style={styles.sliderGroup}>
-            <Text style={styles.sliderHeading}>
-              {t("prayerGoals.afterMaghribHeading")}
-            </Text>
+            <SliderHeading text={t("prayerGoals.afterMaghribHeading")} />
             <CustomSlider
               maxDays={28}
               initialDays={afterMaghrib}
-              onChange={(val) => setAfterMaghrib(val)}
-              locked={true}
+              onChange={setAfterMaghrib}
+              locked
+              compact
+              containerStyle={styles.slider}
             />
           </View>
 
           {/* After Isha */}
           <View style={styles.sliderGroup}>
-            <Text style={styles.sliderHeading}>
-              {t("prayerGoals.afterIshaHeading")}
-            </Text>
+            <SliderHeading text={t("prayerGoals.afterIshaHeading")} />
             <CustomSlider
               maxDays={28}
               initialDays={afterIsha}
-              onChange={(val) => setAfterIsha(val)}
-              locked={true}
+              onChange={setAfterIsha}
+              locked
+              compact
+              containerStyle={styles.slider}
             />
           </View>
 
@@ -308,7 +325,7 @@ export default function SunnahRawatibGoalSelection({
 
           <View style={styles.buttonContainer}>
             <PrimaryButton
-              text={t("prayerGoals.save")}
+              text={t("prayerGoals.save").toLocaleUpperCase()}
               onPress={handleSave}
               style={styles.saveButton}
               textStyle={styles.saveButtonText}
@@ -321,23 +338,44 @@ export default function SunnahRawatibGoalSelection({
 }
 
 const styles = StyleSheet.create({
-  expandedContent: {
-    marginTop: 16,
-    alignItems: "center",
+  container: {
     width: "100%",
+    backgroundColor: Colors.light.calendarBg,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 16,
+    marginVertical: 10,
+  },
+  expandedContent: {
+    width: "100%",
+    paddingTop: 12,
   },
   sliderGroup: {
     width: "100%",
-    marginBottom: 10,
+    // Track → next label ≈ Figma (~35px) with compact slider.
+    marginBottom: 20,
+    paddingRight: 10,
   },
   sliderHeading: {
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
     fontSize: 12,
     fontWeight: "500",
+    lineHeight: 16,
     alignSelf: "flex-start",
     textAlign: "left",
-    marginBottom: 4,
+    // marginBottom: 14,
+  },
+  sliderHeadingParen: {
+    fontFamily: fonts.primary.regular,
+    fontWeight: "400",
+  },
+  slider: {
+    // Keep CustomSlider 112% bleed — do not force width: "100%".
+    marginVertical: 0,
+    marginTop: 0,
+    marginBottom: 0,
   },
   switchRow: {
     flexDirection: "row",
@@ -345,6 +383,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     width: "100%",
     gap: 12,
+    marginBottom: 14,
   },
   switchHeading: {
     flex: 1,
@@ -356,13 +395,12 @@ const styles = StyleSheet.create({
   disabledControls: {
     opacity: 0.35,
   },
-
   radioRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "flex-start",
     gap: 20,
-    marginVertical: 10,
+    marginBottom: 12,
     width: "100%",
   },
   radioOption: {
@@ -375,31 +413,35 @@ const styles = StyleSheet.create({
     borderRadius: 7,
     borderWidth: 1,
     borderColor: Colors.light.grey,
-    backgroundColor: Colors.light.calendarBg,
+    backgroundColor: "transparent",
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 7,
+    marginRight: 8,
+  },
+  radioOuterSelected: {
+    borderColor: Colors.light.grey,
   },
   radioInner: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
     backgroundColor: Colors.light.green,
   },
   radioText: {
     color: Colors.light.white,
-    fontFamily: fonts.primary.medium,
+    fontFamily: fonts.primary.regular,
     fontSize: 12,
-    fontWeight: "500",
-    marginLeft: -1,
+    fontWeight: "400",
+    lineHeight: 16,
   },
   valueText: {
     color: Colors.light.green,
     fontFamily: fonts.primary.medium,
-    fontSize: 18,
-    fontWeight: "500",
-    marginTop: -9,
-    marginBottom: 25,
+    fontSize: 12,
+    fontWeight: "400",
+    lineHeight: 24,
+    marginTop: 0,
+    marginBottom: 32,
     textAlign: "center",
   },
   whiteText: {
@@ -407,7 +449,6 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     width: "100%",
-    marginTop: 6,
     alignItems: "center",
   },
   saveButton: {

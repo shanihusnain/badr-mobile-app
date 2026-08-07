@@ -93,14 +93,20 @@ export const SetPersonalizedGoalsScreen = () => {
   return (
     <BlackScreenWrapper>
       {/* ── Frame 1 sub-header ── */}
-      {activeFrame === 1 && (
-        <View style={globalStyles.rowCenter}>
-          <GreenDash />
-          <Text style={styles.howItWorksText}>
-            {t("setpersonalizedgoals.howItWorks")}
+      {activeFrame === 2 && (
+        <>
+          <Text style={globalStyles.onboardingHeading}>
+            {t("setpersonalizedgoals.Setyourperosnalizedgoals")}!
           </Text>
-        </View>
+          <TopSpace top={14} />
+        </>
       )}
+      <View style={globalStyles.rowCenter}>
+        <GreenDash />
+        <Text style={styles.howItWorksText}>
+          {t("setpersonalizedgoals.howItWorks")}
+        </Text>
+      </View>
       <FrameIndicator total={2} active={activeFrame} />
       {activeFrame === 1 && (
         <GoalProgressCard
@@ -119,10 +125,9 @@ export const SetPersonalizedGoalsScreen = () => {
         </>
       )}
       {activeFrame === 2 && <TutorialVideoPlayer onSkip={handleSkipTutorial} />}
-      {/* ── Language Switcher (dummy) ── */}
       {activeFrame === 1 && (
         <>
-          <TopSpace top={16} />
+          <View style={{ flex: 1 }} />
           <Pressable
             onPress={onWatchTutorialPress}
             style={{
@@ -130,39 +135,10 @@ export const SetPersonalizedGoalsScreen = () => {
               marginBottom: 16,
             }}
           >
-            <Text
-              style={{
-                fontWeight: "500",
-                fontFamily: fonts.primary.medium,
-                fontSize: 18,
-                color: Colors.light.green,
-              }}
-            >
-              WATCH OUR TUTORIAL
-            </Text>
+            <Text style={globalStyles.greenCTA}>WATCH OUR TUTORIAL</Text>
           </Pressable>
         </>
       )}
-      <TopSpace top={32} />
-      {/* <View style={styles.languageRow}>
-        {SUPPORTED_LANGUAGES.map((lang) => {
-          const isSelected = lang === currentLanguage;
-          return (
-            <TouchableOpacity
-              key={lang}
-              style={[styles.langBtn, isSelected && styles.langBtnActive]}
-              onPress={() => handleLanguageChange(lang)}
-              activeOpacity={0.7}
-            >
-              <Text
-                style={[styles.langText, isSelected && styles.langTextActive]}
-              >
-                {LANGUAGE_LABELS[lang]}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View> */}
     </BlackScreenWrapper>
   );
 };

@@ -61,7 +61,7 @@ export default function IstikharaPrayerGoalSelection({
 
           <View style={styles.buttonContainer}>
             <PrimaryButton
-              text={t("prayerGoals.save")}
+              text={t("prayerGoals.save").toLocaleUpperCase()}
               onPress={handleSave}
               style={styles.saveButton}
               textStyle={styles.saveButtonText}
@@ -78,14 +78,14 @@ const styles = StyleSheet.create({
     marginTop: 16,
     alignItems: "center",
     width: "100%",
+    paddingBottom: 6,
   },
   valueText: {
     color: Colors.light.green,
     fontFamily: fonts.primary.medium,
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: "500",
-    marginTop: -9,
-    marginBottom: 25,
+    marginBottom: 20,
     textAlign: "center",
   },
   whiteText: {

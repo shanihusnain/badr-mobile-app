@@ -21,12 +21,13 @@ export const styles = StyleSheet.create({
   },
   stepsContent: {
     paddingBottom: 32,
-    gap: 12,
+    gap: 6,
   },
   stepRow: {
     backgroundColor: Colors.light.greybuttonBackground,
     borderRadius: 4,
-    padding: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
     flexDirection: "row",
     alignItems: "center",
   },
@@ -38,21 +39,22 @@ export const styles = StyleSheet.create({
   },
   categoryBadge: {
     backgroundColor: Colors.light.calendarBg,
-    paddingHorizontal: 6,
+    paddingHorizontal: 5,
     paddingVertical: 2,
     borderRadius: 4,
   },
   categoryText: {
-    color: Colors.light.white,
+    color: Colors.light.dullWhite,
     fontSize: 12,
     fontWeight: "400",
     fontFamily: fonts.primary.regular,
   },
   stepTitle: {
-    color: Colors.light.white,
+    color: Colors.light.dullWhite,
     fontWeight: "500",
     fontFamily: fonts.primary.medium,
     fontSize: 14,
+    letterSpacing: 0.1,
   },
   stepsHeading: {
     color: Colors.light.white,

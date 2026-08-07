@@ -16,6 +16,7 @@
 
 import { Colors } from "@/constants/theme";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import type { ReactNode } from "react";
 import {
   StyleSheet,
   Text,
@@ -33,7 +34,7 @@ import { useTypedTranslation } from "@/i18next/useTypedTranslation";
 const RING_SIZE = 32;
 const COMPLETED_DOT_SIZE = 26;
 /** Day-cell footprint — keep stable so Hijri labels don't shrink with the ring. */
-const DAY_CELL_WIDTH = 36;
+const DAY_CELL_WIDTH = 30;
 const DAY_CELL_HEIGHT = 48;
 
 const ringStyle: ViewStyle = {
@@ -62,6 +63,7 @@ export type PlannedFastMarker = {
 
 export type CalendarMode =
   | "dob"
+  | "cycle_start"
   | "ramadan"
   | "dawood"
   | "mon_thu"
@@ -121,6 +123,8 @@ export type CalendarGridProps = {
   /** Prophet Dawood achievement: show cycle restart marker on this date. */
   cycleRestartDate?: string | null;
   bgColor?: string;
+  /** Optional footer rendered inside the calendar card (e.g. cycle start summary). */
+  footer?: ReactNode;
 };
 
 // ── Ring colour constants are defined in constants/theme.ts ──────────────────
@@ -211,6 +215,7 @@ export const CalendarGrid = ({
   maxDate,
   cycleRestartDate = null,
   bgColor,
+  footer,
 }: CalendarGridProps) => {
   const { t } = useTypedTranslation();
   const markedSet = new Set(markedDates);
@@ -292,7 +297,7 @@ export const CalendarGrid = ({
     //     cellBg = { backgroundColor: Colors.light.calendarTodayBg };
 
     switch (mode) {
-      // ── Date of Birth / Cycle Start ─────────────────────────────────
+      // ── Date of Birth ───────────────────────────────────────────────
       case "dob": {
         if (isDisabledDobDate) {
           cellOpacity = 0.35;
@@ -302,16 +307,21 @@ export const CalendarGrid = ({
           textStyle = { color: Colors.light.white };
         } else if (isEndDate) {
           circleStyle = {
-            borderWidth: 1.2,
-            borderColor: Colors.light.green,
+            borderColor: Colors.light.white,
           };
-          textStyle = { color: Colors.light.green };
+          textStyle = { color: Colors.light.white };
         } else if (isInRange) {
-          cellBg = { backgroundColor: Colors.light.lightgreen };
+          cellBg = { backgroundColor: "transparent" };
           textStyle = { color: Colors.light.white };
         } else if (isToday) {
           textStyle = { color: Colors.light.green };
         }
+        break;
+      }
+
+      // ── Cycle Start (28-day) — Figma: only start day highlighted ─────
+      case "cycle_start": {
+        // Selection bg is applied on the compact inner marker, not the cell.
         break;
       }
 
@@ -718,6 +728,7 @@ export const CalendarGrid = ({
 
     const isTappable =
       (mode === "dob" && !isDisabledDobDate) ||
+      mode === "cycle_start" ||
       isRamadanTappable ||
       (mode === "mon_thu" && isMonThuDay) ||
       isWhiteDayTappable;
@@ -728,63 +739,91 @@ export const CalendarGrid = ({
         onPress={() => onDayPress?.(ds)}
         activeOpacity={isTappable || isAchievementTappable ? 0.7 : 1}
         disabled={!isTappable && !isAchievementTappable}
-        style={styles.dayPressable}
+        style={[
+          styles.dayPressable,
+          mode === "cycle_start" && styles.cycleStartDayPressable,
+        ]}
       >
-        <View style={[styles.dayCell, cellBg, { opacity: cellOpacity }]}>
-          <View style={styles.dayMarkerWrap}>
-            <View style={[styles.circle, ringStyle, circleStyle]}>
-              {showCompletedDot && markerColor ? (
-                <View
-                  style={[
-                    styles.completedDot,
-                    { backgroundColor: markerColor },
-                  ]}
-                />
-              ) : null}
-              <Text
-                style={[
-                  styles.dayGregorian,
-                  textStyle,
-                  showCompletedDot && styles.dayGregorianAboveDot,
-                ]}
-              >
+        <View
+          style={[
+            styles.dayCell,
+            mode === "cycle_start" && styles.cycleStartDayCell,
+            mode !== "cycle_start" ? cellBg : null,
+            { opacity: cellOpacity },
+          ]}
+        >
+          {mode === "cycle_start" ? (
+            <View
+              style={[
+                styles.cycleStartMarker,
+                isSelected && styles.cycleStartMarkerSelected,
+              ]}
+            >
+              <Text style={[styles.cycleStartDayGregorian, textStyle]}>
                 {dayNumber}
               </Text>
+              <Text style={styles.cycleStartDayHijri}>{hijriDayLabel}</Text>
             </View>
-            {showMissedWarning && mode === "dawood_achievement" ? (
-              <FontAwesome
-                name="warning"
-                size={10}
-                color={Colors.light.golden}
-                style={styles.dawoodMissedWarningOutside}
-              />
-            ) : null}
-            {showMissedWarning && mode !== "dawood_achievement" ? (
-              <FontAwesome
-                name="warning"
-                size={14}
-                color={Colors.light.golden}
-                style={styles.missedWarningIcon}
-              />
-            ) : null}
-            {mode === "dawood_achievement" &&
-            cycleRestartDate &&
-            ds === cycleRestartDate ? (
-              <Feather
-                name="refresh-ccw"
-                size={12}
-                color={Colors.light.ringDawood}
-                style={styles.cycleRestartIcon}
-              />
-            ) : null}
-          </View>
-          {mode !== "white_days_achievement" ? (
-            <Text style={styles.dayHijri}>{hijriDayLabel}</Text>
-          ) : null}
+          ) : (
+            <>
+              <View style={styles.dayMarkerWrap}>
+                <View style={[styles.circle, ringStyle, circleStyle]}>
+                  {showCompletedDot && markerColor ? (
+                    <View
+                      style={[
+                        styles.completedDot,
+                        { backgroundColor: markerColor },
+                      ]}
+                    />
+                  ) : null}
+                  <Text
+                    style={[
+                      styles.dayGregorian,
+                      textStyle,
+                      showCompletedDot && styles.dayGregorianAboveDot,
+                    ]}
+                  >
+                    {dayNumber}
+                  </Text>
+                </View>
+                {showMissedWarning && mode === "dawood_achievement" ? (
+                  <FontAwesome
+                    name="warning"
+                    size={10}
+                    color={Colors.light.golden}
+                    style={styles.dawoodMissedWarningOutside}
+                  />
+                ) : null}
+                {showMissedWarning && mode !== "dawood_achievement" ? (
+                  <FontAwesome
+                    name="warning"
+                    size={14}
+                    color={Colors.light.golden}
+                    style={styles.missedWarningIcon}
+                  />
+                ) : null}
+                {mode === "dawood_achievement" &&
+                cycleRestartDate &&
+                ds === cycleRestartDate ? (
+                  <Feather
+                    name="refresh-ccw"
+                    size={12}
+                    color={Colors.light.ringDawood}
+                    style={styles.cycleRestartIcon}
+                  />
+                ) : null}
+              </View>
+              {mode !== "white_days_achievement" ? (
+                <Text style={styles.dayHijri}>{hijriDayLabel}</Text>
+              ) : null}
+            </>
+          )}
         </View>
       </TouchableOpacity>
     );
   };
+
+  const isCycleStartMode = mode === "cycle_start";
 
   return (
     <View
@@ -807,7 +846,7 @@ export const CalendarGrid = ({
       {gridWeeks ? (
         <View
           style={[
-            styles.cycleGrid,
+            isCycleStartMode ? styles.cycleStartGrid : styles.cycleGrid,
             {
               backgroundColor: bgColor ?? Colors.light.calendarBg,
             },
@@ -815,7 +854,13 @@ export const CalendarGrid = ({
         >
           <View style={styles.weekdayHeader}>
             {WEEKDAY_KEYS.map((key, index) => (
-              <Text key={`${key}-${index}`} style={styles.weekdayLabel}>
+              <Text
+                key={`${key}-${index}`}
+                style={[
+                  styles.weekdayLabel,
+                  isCycleStartMode && styles.cycleStartWeekdayLabel,
+                ]}
+              >
                 {t(key as any)}
               </Text>
             ))}
@@ -833,12 +878,28 @@ export const CalendarGrid = ({
                       moment(dateString, "YYYY-MM-DD").date(),
                     )
                   ) : (
-                    <View style={styles.paddingDayCell} />
+                    <View
+                      style={[
+                        styles.paddingDayCell,
+                        isCycleStartMode && styles.cycleStartPaddingDayCell,
+                      ]}
+                    />
                   )}
                 </View>
               ))}
             </View>
           ))}
+          {footer ? (
+            <View
+              style={
+                isCycleStartMode
+                  ? styles.cycleStartFooter
+                  : styles.calendarFooter
+              }
+            >
+              {footer}
+            </View>
+          ) : null}
         </View>
       ) : null}
     </View>
@@ -856,6 +917,25 @@ const styles = StyleSheet.create({
   cycleGrid: {
     backgroundColor: Colors.light.calendarBg,
     paddingBottom: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 24,
+  },
+  // ── Cycle Start mode (Figma: Cycle Start Date frame) ────────────────
+  // Intentionally replaces base cycleGrid padding (do not stack with paddingVertical).
+  cycleStartGrid: {
+    backgroundColor: Colors.light.calendarBg,
+    paddingTop: 12,
+    paddingBottom: 0,
+    paddingHorizontal: 16,
+  },
+  calendarFooter: {
+    paddingTop: 12,
+    paddingBottom: 16,
+  },
+  cycleStartFooter: {
+    paddingTop: 12,
+    paddingBottom: 20,
+    paddingHorizontal: 4,
   },
   weekdayHeader: {
     flexDirection: "row",
@@ -892,14 +972,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "flex-start",
     width: DAY_CELL_WIDTH,
-    height: DAY_CELL_HEIGHT,
+    height: DAY_CELL_HEIGHT + 4,
     paddingVertical: 2,
     borderRadius: 6,
     marginBottom: 10,
   },
   dayMarkerWrap: {
-    width: DAY_CELL_WIDTH,
-    height: RING_SIZE,
+    width: DAY_CELL_WIDTH - 5,
+    height: RING_SIZE - 16,
     alignItems: "center",
     justifyContent: "center",
     flexShrink: 0,
@@ -935,10 +1015,10 @@ const styles = StyleSheet.create({
     zIndex: 4,
   },
   dayGregorian: {
-    fontSize: 14,
-    fontWeight: "600",
+    fontSize: 12,
+    fontWeight: "500",
     color: Colors.light.white,
-    fontFamily: fonts.primary.semiBold,
+    fontFamily: fonts.primary.medium,
     lineHeight: 16,
   },
   dayGregorianAboveDot: {
@@ -951,5 +1031,57 @@ const styles = StyleSheet.create({
     marginTop: 2,
     fontWeight: "500",
     fontFamily: fonts.primary.semiBold,
+  },
+  cycleStartWeekdayLabel: {
+    color: Colors.light.white,
+    marginBottom: 8,
+    fontSize: 12,
+    fontFamily: fonts.primary.regular,
+    fontWeight: "400",
+  },
+  cycleStartDayPressable: {
+    width: 36,
+  },
+  cycleStartDayCell: {
+    width: 36,
+    height: 48,
+    paddingVertical: 0,
+    borderRadius: 0,
+    marginBottom: 7,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "transparent",
+  },
+  cycleStartMarker: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 6,
+    minWidth: 18,
+  },
+  cycleStartMarkerSelected: {
+    backgroundColor: Colors.light.calendarTodayBg,
+  },
+  cycleStartDayGregorian: {
+    fontSize: 12,
+    lineHeight: 14,
+    fontFamily: fonts.primary.medium,
+    fontWeight: "500",
+    color: Colors.light.white,
+    textAlign: "center",
+  },
+  cycleStartDayHijri: {
+    fontSize: 10,
+    marginTop: 4,
+    lineHeight: 12,
+    color: Colors.light.grey,
+    fontFamily: fonts.primary.regular,
+    fontWeight: "400",
+    textAlign: "center",
+  },
+  cycleStartPaddingDayCell: {
+    width: 36,
+    height: 48,
   },
 });

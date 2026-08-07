@@ -5,7 +5,10 @@ import type { PrayerGoalApiItem } from "@/src/utils/prayerGoalMap";
 const getAllPrayerGoals = async (): Promise<PrayerGoalApiItem[]> => {
   const response = await api.get("api/goal-cycles/current/prayer-goals/mapped");
 
-  console.log("response of the prayer goals mapped", response.data?.data);
+  console.log(
+    "response of the prayer goals mapped",
+    JSON.stringify(response.data?.data, null, 2),
+  );
   return response.data?.data ?? [];
 };
 

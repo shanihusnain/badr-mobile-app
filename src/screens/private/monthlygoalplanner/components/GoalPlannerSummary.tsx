@@ -8,11 +8,17 @@ export const GoalPlannerSummary = () => {
   return (
     <Text style={styles.container}>
       {t("monthlyGoalPlanner.summaryText1")}
-      <Text style={styles.bold}>{t("monthlyGoalPlanner.summaryTextBold1")}</Text>
+      <Text style={styles.bold}>
+        {t("monthlyGoalPlanner.summaryTextBold1")}
+      </Text>
       {t("monthlyGoalPlanner.summaryText2")}
-      <Text style={styles.bold}>{t("monthlyGoalPlanner.summaryTextBold2")}</Text>
+      <Text style={styles.bold}>
+        {t("monthlyGoalPlanner.summaryTextBold2")}
+      </Text>
       {t("monthlyGoalPlanner.summaryText3")}
-      <Text style={styles.bold}>{t("monthlyGoalPlanner.summaryTextBold3")}</Text>
+      <Text style={styles.bold}>
+        {t("monthlyGoalPlanner.summaryTextBold3")}
+      </Text>
       {t("monthlyGoalPlanner.summaryText4")}
     </Text>
   );
@@ -33,5 +39,6 @@ const styles = StyleSheet.create({
   bold: {
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
+    fontSize: 16,
   },
 });
