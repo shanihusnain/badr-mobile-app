@@ -60,12 +60,12 @@ export default function MenstruationLog({
 
   // The backend is fixed and is the source of truth. Always prioritize `meData`.
   const menstruationPeriodId =
-    meData?.data?.menstruationPeriodId ??
+    meData?.menstruationPeriodId ??
     user?.menstruationPeriodId ??
     null;
 
   const goalCycleId =
-    meData?.data?.goalCycleId ??
+    meData?.goalCycleId ??
     user?.goalCycleId ??
     null;
 
@@ -93,7 +93,7 @@ export default function MenstruationLog({
 
   useEffect(() => {
     console.log("=== LOAD DEBUG ===");
-    console.log("meData?.data:", meData?.data);
+    console.log("meData:", meData);
     console.log("menstruationPeriodId:", menstruationPeriodId);
     console.log("periodData?.data:", periodData?.data);
     console.log("hasInitialized:", hasInitialized.current);
@@ -263,7 +263,10 @@ export default function MenstruationLog({
           <SwitchButton
             value={isMenstruating}
             onPress={() => {
-              if (!goalCycleId) return; // Prevent toggling if no goal cycle
+              if (!goalCycleId) {
+                alert("You must select a Goal Cycle before logging a period.");
+                return;
+              }
               const newValue = !isMenstruating.value;
               isMenstruating.value = newValue;
               setMenstruating(newValue);

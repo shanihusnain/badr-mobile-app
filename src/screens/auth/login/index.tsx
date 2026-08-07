@@ -27,7 +27,8 @@ import { showToast } from "@/src/config/toastConfig";
 import { ImageBackground } from "expo-image";
 import { BadrTreeImage } from "@/assets/images";
 import { LetterIcon, PasswordLockIcon } from "@/assets/icons";
-import { SocialAuthSection } from "./components/SocialAuthSection";
+// Social login providers are temporarily disabled in Expo Go.
+// import { SocialAuthSection } from "./components/SocialAuthSection";
 
 export default function LoginScreen() {
   const router = useRouter();

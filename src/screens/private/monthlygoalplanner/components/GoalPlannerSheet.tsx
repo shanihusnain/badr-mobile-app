@@ -1797,6 +1797,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
                           }));
                       }}
                       description={
+                        prayer.summaryDescription ||
                         prayer.description ||
                         t(`goalsData.${prayer.id}.description`)
                       }
