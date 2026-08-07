@@ -9,7 +9,7 @@ import {
   type SupportedLanguage,
 } from "@/i18next/i18next";
 import { useTranslation } from "react-i18next";
-import { Text, TouchableOpacity, View, Alert, Pressable } from "react-native";
+import { Text, TouchableOpacity, View, Alert, Pressable, ScrollView } from "react-native";
 import { useCallback, useEffect, useState } from "react";
 import { router, useNavigation } from "expo-router";
 import PrimaryButton from "@/components/atoms/Primary-button";
@@ -92,53 +92,59 @@ export const SetPersonalizedGoalsScreen = () => {
 
   return (
     <BlackScreenWrapper>
-      {/* ── Frame 1 sub-header ── */}
-      {activeFrame === 2 && (
-        <>
-          <Text style={globalStyles.onboardingHeading}>
-            {t("setpersonalizedgoals.Setyourperosnalizedgoals")}!
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: 24 }}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* ── Frame 1 sub-header ── */}
+        {activeFrame === 2 && (
+          <>
+            <Text style={globalStyles.onboardingHeading}>
+              {t("setpersonalizedgoals.Setyourperosnalizedgoals")}!
+            </Text>
+            <TopSpace top={14} />
+          </>
+        )}
+        <View style={globalStyles.rowCenter}>
+          <GreenDash />
+          <Text style={styles.howItWorksText}>
+            {t("setpersonalizedgoals.howItWorks")}
           </Text>
-          <TopSpace top={14} />
-        </>
-      )}
-      <View style={globalStyles.rowCenter}>
-        <GreenDash />
-        <Text style={styles.howItWorksText}>
-          {t("setpersonalizedgoals.howItWorks")}
-        </Text>
-      </View>
-      <FrameIndicator total={2} active={activeFrame} />
-      {activeFrame === 1 && (
-        <GoalProgressCard
-          currentDay={10}
-          totalDays={28}
-          lastActiveDays={12}
-          overallProgress={23}
-        />
-      )}
-      {activeFrame === 1 && (
-        <>
-          <TopSpace top={16} />
-          <Text style={styles.descriptionText}>
-            {t("setpersonalizedgoals.setPersonalizedDescription")}
-          </Text>
-        </>
-      )}
-      {activeFrame === 2 && <TutorialVideoPlayer onSkip={handleSkipTutorial} />}
-      {activeFrame === 1 && (
-        <>
-          <View style={{ flex: 1 }} />
-          <Pressable
-            onPress={onWatchTutorialPress}
-            style={{
-              alignSelf: "center",
-              marginBottom: 16,
-            }}
-          >
-            <Text style={globalStyles.greenCTA}>WATCH OUR TUTORIAL</Text>
-          </Pressable>
-        </>
-      )}
+        </View>
+        <FrameIndicator total={2} active={activeFrame} />
+        {activeFrame === 1 && (
+          <GoalProgressCard
+            currentDay={10}
+            totalDays={28}
+            lastActiveDays={12}
+            overallProgress={23}
+          />
+        )}
+        {activeFrame === 1 && (
+          <>
+            <TopSpace top={16} />
+            <Text style={styles.descriptionText}>
+              {t("setpersonalizedgoals.setPersonalizedDescription")}
+            </Text>
+          </>
+        )}
+        {activeFrame === 2 && <TutorialVideoPlayer onSkip={handleSkipTutorial} />}
+        {activeFrame === 1 && (
+          <View style={{ marginTop: 24, paddingBottom: 16 }}>
+            <Pressable
+              onPress={onWatchTutorialPress}
+              style={{
+                alignSelf: "center",
+              }}
+            >
+              <Text style={globalStyles.greenCTA}>
+                {t("setpersonalizedgoals.watchTutorial")}
+              </Text>
+            </Pressable>
+          </View>
+        )}
+      </ScrollView>
     </BlackScreenWrapper>
   );
 };
