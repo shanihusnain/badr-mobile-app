@@ -627,7 +627,11 @@ const renderReadMoreItem = (
       <View
         key={`text-${index}`}
         style={[
-          { flexDirection: "row", alignItems: "flex-start", width: "100%" },
+          {
+            flexDirection: "row",
+            alignItems: "flex-start",
+            width: "100%",
+          },
           spacingStyle,
         ]}
       >
@@ -639,11 +643,11 @@ const renderReadMoreItem = (
         >
           <IconComponent color={iconColor} size={iconSize} />
         </View>
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, minWidth: 0 }}>
           <Text
             style={[
               getReadMoreTextStyle(item.style, readMoreStyles),
-              { textAlign: itemTextAlign, width: undefined },
+              { textAlign: itemTextAlign, width: undefined, flexShrink: 1 },
             ]}
           >
             {renderParsedContent(item.content)}

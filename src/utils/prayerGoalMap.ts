@@ -75,6 +75,7 @@ export type PrayerGoalApiItem = {
   isActive: boolean;
   title?: string;
   description?: string;
+  summaryDescription?: string;
   targets?: Record<string, PrayerTargetBucket | number | boolean> & {
     completedCount?: number;
     targetCount?: number;

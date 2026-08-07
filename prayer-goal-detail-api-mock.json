@@ -15,8 +15,8 @@
       "data": {
         "prayerType": "TAHIYYAT_AL_WUDHU",
         "isActive": false,
-        "title": "TAHIYYAT-UL-WUDHU",
-        "navTitle": "Tahiyyat Al-Wudhu",
+        "title": "TAHIYYAT AL-WUDHU",
+        "navTitle": "TAHIYYAT AL-WUDHU",
         "heroTitle": "A Small Deed that Earns a Massive Reward",
         "description": "Tahiyyat Al-Wudhu (Ablution Prayer) is a two-rak'ah Sunnah prayer performed right after completing Wudhu. It serves to purify us from sins and prepare us for further prayer.",
         "hadithIntro": "Uthman ibn Affan (RA) narrates a profound hadith emphasizing the virtues of performing wudhu and following it with two rak'ahs of prayer:",
@@ -134,8 +134,8 @@
       "data": {
         "prayerType": "FIVE_DAILY_PRAYERS",
         "isActive": false,
-        "title": "The 5 DAilY PRAYERS",
-        "navTitle": "The 5 DAilY PRAYERS",
+        "title": "THE 5 DAILY PRAYERS",
+        "navTitle": "The 5 DAILY FARD PRAYERS",
         "heroTitle": "The Pinnacle of Divine Connection",
         "description": "The obligatory five daily prayers provide frequent opportunities to express gratitude, seek forgiveness, and remind us of our faith and submission to Allah.",
         "hadithIntro": "",
@@ -349,7 +349,7 @@
               {
                 "type": "text",
                 "style": "quoteMediumItalic",
-                "content": "“May Allah have mercy on a person who prays four rak’ah before the Asr prayer.”"
+                "content": "“May Allah have mercy on a person who prays four rak'ah before the Asr prayer.”"
               }
             ]
           },
@@ -394,7 +394,7 @@
         "prayerType": "TAHIYYAT_AL_MASJID",
         "isActive": false,
         "title": "TAHIYYAT AL-MASJID",
-        "navTitle": "Tahiyyat Al-Masjid",
+        "navTitle": "TAHIYYAT AL-MASJID",
         "heroTitle": "Honoring the House of Allah",
         "description": "Tahiyyat Al-Masjid is a two-rak’ah prayer performed upon entering the mosque, honoring its sanctity and seeking Allah’s blessings and mercy.",
         "hadithIntro": "",
@@ -493,19 +493,14 @@
       "data": {
         "prayerType": "DUHA",
         "isActive": false,
-        "title": "DUHA",
+        "title": "DUHA PRAYER",
         "navTitle": "DUHA",
         "heroTitle": "Spiritual Elevation & Physical Charity",
         "description": "Duha prayer, also known as the repentant or Awabeen in Arabic, is performed in sets of 2 rak'ahs anytime 15-20 minutes after sunrise until 10-15 minutes before Dhuhr.",
+        "summaryDescription": "Duha prayer, also known as the repentant or Awabeen in Arabic, is performed in sets of 2 rak'ahs anytime 15-20 minutes after sunrise until 10-15 minutes before Dhuhr.",
         "hadithIntro": "",
         "benefitsIntro": "",
         "benefits": [],
-        "steps": [
-          "Step 1: Wait for Sunrise - Allow 15-20 minutes to pass after sunrise before commencing the Duha prayer.",
-          "Step 2: Choose Rak'ahs - You can pray from 2 to 8 rak'ahs, in sets of two.",
-          "Step 3: Focus on Sincerity - Make the Niyyah in your heart to pray the Duha prayer.",
-          "Step 4: Complete Before Dhuhr - Complete your prayer before the sun reaches its zenith (about 10-15 minutes before Dhuhr)."
-        ],
         "readMore": [
           {
             "items": [
@@ -567,16 +562,11 @@
         "title": "TAWBAH PRAYER",
         "navTitle": "AL-TAWBAH",
         "heroTitle": "Embracing the Power of Repentance",
+        "summaryDescription": "Also known as the repentance prayer in English, the Tawbah prayer is a sincere 2 rak'ah prayer to seek forgiveness from Allah for our sins.",
         "description": "The Tawbah prayer, or the Prayer of Repentance, is a rewarding 2-rakah voluntary prayer for seeking Allah's forgiveness and repentance for any sins, whether minor or major, old or new.",
         "hadithIntro": "",
         "benefitsIntro": "",
         "benefits": [],
-        "steps": [
-          "Step 1: Perform Wudhu Beautifully - Wash yourself thoroughly, paying attention to the Sunnah steps of Wudhu.",
-          "Step 2: Make Sincere Intention - Deeply intend to seek Allah's forgiveness for your errors.",
-          "Step 3: Pray Two Rak'ahs - Pray two rak'ahs with absolute humility and focus.",
-          "Step 4: Beseech Allah's Forgiveness - In sujud or after salam, sincerely ask Allah to pardon you, promising to stay away from the sin."
-        ],
         "readMore": [
           {
             "items": [
@@ -615,6 +605,11 @@
                 "type": "text",
                 "style": "body",
                 "content": "While the Quran does talk about the consequences of sins, it also emphasizes that Allah's mercy is far greater than His punishment. This balance shows that while we are held accountable for our actions, Allah is always ready to forgive those who sincerely repent."
+              },
+               {
+                "type": "text",
+                "style": "sectionHeading",
+                "content": "Surah Al-Tawbah (9:104) states:"
               },
               {
                 "type": "text",
@@ -661,19 +656,14 @@
       "data": {
         "prayerType": "ISTIKHARA",
         "isActive": false,
-        "title": "ISTIKHARAH PRAYER",
-        "navTitle": "ISTIKHARAH",
+        "title": "ISTIKHARA PRAYER",
+        "navTitle": "ISTIKHARA",
         "heroTitle": "Seeking Divine Guidance in Decision-Making",
+        "summaryDescription": "A two rak'ah prayer performed to seek guidance from Allah when faced with a decision. It helps us make choices that align with our faith and best interests.",
         "description": "The Istikhara prayer is a two rak'ah prayer for divine guidance when making a decision, fostering reliance on Allah and promoting peace of mind.",
         "hadithIntro": "",
         "benefitsIntro": "",
         "benefits": [],
-        "steps": [
-          "Step 1: Identify Your Dilemma - Have a specific decision or choice in mind.",
-          "Step 2: Pray Two Rak'ahs - Pray two voluntary non-obligatory rak'ahs.",
-          "Step 3: Recite the Istikharah Du'a - Recite the beautiful prophetic supplication after completing the prayer.",
-          "Step 4: Trust in Allah's Decree - Move forward with the best option, trusting that Allah will guide you to what is beneficial."
-        ],
         "readMore": [
           {
             "items": [
@@ -691,7 +681,12 @@
               {
                 "type": "text",
                 "style": "body",
-                "content": "Although commonly linked to major decisions like choosing a career, proceeding with a marriage proposal, or purchasing a home, istikhara extends beyond these to encompass everyday choices. It is a spiritual act of entrusting one's decisions to Allah, fostering confidence and clarity in both major and minor matters."
+                "content": "Although commonly linked to major decisions like choosing a career, proceeding with a marriage proposal, or purchasing a home, istikhara extends beyond these to encompass everyday choices."
+              },
+              {
+                "type": "text",
+                "style": "body",
+                "content": "It is a spiritual act of entrusting one's decisions to Allah, fostering confidence and clarity in both major and minor matters."
               }
             ]
           },
@@ -706,8 +701,15 @@
                 "type": "text",
                 "style": "body",
                 "icon": "IstikharaClockIcon",
-                "content": "To perform Istikhara, one begins with a voluntary prayer consisting of two rak'ahs, like any other voluntary prayer. However, what sets Istikhara apart is the specific du'a (supplication) recited afterward, seeking Allah's guidance after making personal efforts and consulting others. It is common, and recommended by some scholars, to recite Surah Al-Kafirun in the first rak'ah and Surah Al-Ikhlas in the second, due to their virtues."
+                "content": "To perform Istikhara, one begins with a voluntary prayer consisting of two rak'ahs, like any other voluntary prayer. However, what sets Istikhara apart is the specific du'a (supplication) recited afterward, seeking Allah's guidance after making personal efforts and consulting others."
               },
+              {"type": "text",
+                "style": "body",
+                "content": "It is common, and recommended by some scholars, to recite Surah Al-Kafirun in the first rak'ah and Surah Al-Ikhlas in the second, due to their virtues."
+              },
+
+
+              
               {
                 "type": "text",
                 "style": "body",
@@ -716,7 +718,13 @@
               {
                 "type": "text",
                 "style": "body",
-                "content": "Many find peace in offering these extra rak'ahs at night, after Isha, as part of their night prayers, benefiting from the calm of the late night hours. Others might choose to pray at a different time, such as before a significant event like a job interview, finding comfort in seeking Allah's guidance just before facing a decision."
+                "content": "Many find peace in offering these extra rak'ahs at night, after Isha, as part of their night prayers, benefiting from the calm of the late night hours."
+              },
+
+
+              {"type": "text",
+                "style": "body",
+                "content": "Others might choose to pray at a different time, such as before a significant event like a job interview, finding comfort in seeking Allah's guidance just before facing a decision."
               }
             ]
           },
@@ -760,6 +768,7 @@
         "title": "SHUKR PRAYER",
         "navTitle": "SHUKR",
         "heroTitle": "Gratitude in Devotion",
+        "summaryDescription": "The Gratitude Prayer (Shukr) is a 2-rak'ah act of thanks to Allah for His countless blessings. It fosters positivity by inspiring recognition of His generosity...",
         "description": "Al-Shukr prayer is a two rak'ah prayer of gratitude, fostering humility and appreciation for Allah's countless blessings, strengthening our faith.",
         "hadithIntro": "",
         "benefitsIntro": "",
@@ -868,6 +877,7 @@
         "title": "QIYAM AL-LAYL",
         "navTitle": "QIYAM AL-LAYL",
         "heroTitle": "Illuminating the Heart, Mind, and Soul",
+        "summaryDescription": "Night prayers, performed between Isha and Fajr, are most beloved after obligatory prayers, fostering spiritual growth and inviting Allah's mercy and blessings...",
         "description": "Qiyam Al-Layl, the night prayer, is performed anytime between Isha and Fajr. This sacred time fosters spiritual elevation, bringing Allah's blessings, forgiveness, and answered prayers.",
         "hadithIntro": "",
         "benefitsIntro": "",

@@ -28,16 +28,11 @@
         "title": "MISSED RAMADAN FASTS",
         "navTitle": "MISSED RAMADAN FASTS",
         "heroTitle": "Fulfilling obligations for spiritual growth",
+        "summaryDescription": "Fulfilling missed obligatory fasts is a duty that reflects devotion, demonstrates discipline, and upholds our commitment to Allah’s commands...",
         "description": "By making up missed fasts, we honor our religious duty, reinforce our faith, nurture spiritual resilience, and deepen our connection with Allah.",
         "hadithIntro": "",
         "benefitsIntro": "",
         "benefits": [],
-        "steps": [
-          "Step 1: Count Your Missed Days - List down the number of obligatory Ramadan fasts you missed due to travel, illness, or other valid reasons.",
-          "Step 2: Set the Intention - Formulate the intention (Niyyah) to make up a missed Ramadan fast before dawn.",
-          "Step 3: Observe the Fast - Abstain from food, drink, and invalidators from dawn to sunset.",
-          "Step 4: Mark Your Completion - Break your fast with dates or water, and log it to track your remaining makeup days."
-        ],
         "readMore": [
           {
             "items": [
@@ -132,9 +127,10 @@
       "data": {
         "fastingType": "PROPHET_DAWOOD",
         "isActive": false,
-        "title": "THE FAST OF PROPHET DAWOOD",
-        "navTitle": "THE FAST OF PROPHET DAWOOD (DAVID)",
+        "title": "THE FAST OF PROPHET DAWOOD (AS)",
+        "navTitle": "THE FAST OF PROPHET DAWOOD (AS) (DAVID)",
         "heroTitle": "A Testament to Devotion & Spiritual Resilience",
+        "summaryDescription": "These fasts are observed by fasting every other day, reflecting Prophet Dawood's (PBUH) devotion and resilience, and serving as a model of piety...",
         "description": "The fast of Dawood (PBUH), observed everyother day, exemplifies devotion, patience, and resilience, serving as a timeless model of piety for Muslims.",
         "hadithIntro": "",
         "benefitsIntro": "",
@@ -247,6 +243,7 @@
         "title": "MONDAYS & THURSDAYS FASTS",
         "navTitle": "MONDAYS & THURSDAYS FASTS",
         "heroTitle": "Spiritual Strength & Consistent Devotion",
+        "summaryDescription": "These fasts follow the Prophet's (PBUH) Sunnah, deepen devotion to Allah, promote well-being, and offer profound spiritual purification and self-discipline ..",
         "description": "Fasting on Mondays and Thursdays, a Sunnah of the Prophet (PBUH), offers structured opportunities to foster spiritual growth and deepen our connection with Allah.",
         "hadithIntro": "",
         "benefitsIntro": "",
@@ -364,6 +361,7 @@
         "title": "WHITE DAYS FASTS",
         "navTitle": "WHITE DAYS FASTS",
         "heroTitle": "Aligning with Celestial Harmony",
+        "summaryDescription": "Fasting on the 13th, 14th, and 15th of each Islamic month deepens connection with Allah, nurtures discipline, and inspires profound spiritual growth and self-reflection..",
         "description": "Fasting on the White Days, the 13th, 14th, and 15th of each Islamic month, strengthens your connection with Allah, fosters discipline, and cultivates deep spiritual growth.",
         "hadithIntro": "",
         "benefitsIntro": "",

@@ -8,6 +8,7 @@ export type PrayerDetailApiData = GoalInfo & {
   isActive?: boolean;
   title?: string;
   description?: string;
+  summaryDescription?: string;
 };
 
 const getPrayerDetailByType = async (
