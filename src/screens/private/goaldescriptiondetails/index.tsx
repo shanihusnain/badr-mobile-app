@@ -54,6 +54,11 @@ import {
   IshaMoonIcon,
   DuhaPrayerStar,
   ManPrayerIcon,
+  FajrFardPrayerIcon,
+  DhuharFardPrayerIcon,
+  AsrFardPrayerIcon,
+  MaghrebFardPrayerIcon,
+  IshaFardPrayerIcon,
   QuranImageIcon,
   IstikharaClockIcon,
   ManDuaIcon,
@@ -99,10 +104,7 @@ import {
   GoalReadMoreItem,
   GoalReadMoreTextStyle,
 } from "@/src/translations/types";
-import { useGetPrayerDetailByType } from "@/src/api/queries/useGetPrayerDetailBytype";
-import { useGetQuranDetailByType } from "@/src/api/queries/useGetQuranDetailByType";
-import { useGetFastingDetailByType } from "@/src/api/queries/useGetFastingDetailByType";
-import { useGetSadaqahDetailByType } from "@/src/api/queries/useGetSadaqahDetailByType";
+
 import { isPrayerGoalKey, resolvePrayerUiId } from "@/src/utils/prayerGoalMap";
 import { isQuranGoalKey, resolveQuranUiId } from "@/src/utils/quranGoalMap";
 import {
@@ -118,10 +120,7 @@ import { getAccessToken } from "@/src/storage/tokenStorage";
 import { createReadMoreStyles, styles } from "./styles";
 type ReadMoreStyles = ReturnType<typeof createReadMoreStyles>;
 
-const READ_MORE_ICON_MAP: Record<
-  string,
-  ComponentType<{ color?: string; size?: number }>
-> = {
+const READ_MORE_ICON_MAP: Record<string, ComponentType<any>> = {
   FajarSunIcon,
   HadeethBookIcon,
   DuhaPrayerStar,
@@ -148,6 +147,11 @@ const READ_MORE_ICON_MAP: Record<
   DashBoardHandHeartIcon,
   HeartBreakIcon,
   StarSparkleIcon,
+  FajrFardPrayerIcon,
+  DhuharFardPrayerIcon,
+  AsrFardPrayerIcon,
+  MaghrebFardPrayerIcon,
+  IshaFardPrayerIcon,
   MissedZakatAccountabilityIcon,
   MissedZakatSocialIcon,
   MissedZakatCalculateIcon,
@@ -277,29 +281,30 @@ const renderReadMoreItem = (
           index > 0 ? readMoreStyles.blockSpacing : null,
         ]}
       >
+        <Text style={[readMoreStyles.prayerHeading, { textAlign }]}> 
+          {item.heading}
+        </Text>
         <View
           style={{
             flexDirection: "row",
             alignItems: "flex-start",
             width: "100%",
+            marginTop: 4,
           }}
         >
-          <View style={{ marginRight: 8, marginTop: -4 }}>
+          <View style={{ marginRight: 12, marginTop: 2 }}>
             {PrayerIcon ? (
               <PrayerIcon color={Colors.light.dullWhite} size={28} />
             ) : (
               <StarSparkleIcon color={Colors.light.white} size={24} />
             )}
           </View>
-          <View style={{ flex: 1 }}>
-            <Text style={[readMoreStyles.prayerHeading, { textAlign }]}>
-              {item.heading}
-            </Text>
+          <View style={{ flex: 1, minWidth: 0 }}>
             <Text
               style={[
                 readMoreStyles.body,
                 readMoreStyles.prayerDescription,
-                { textAlign },
+                { textAlign, width: undefined, flexShrink: 1 },
               ]}
             >
               {item.description}
@@ -617,7 +622,9 @@ const renderReadMoreItem = (
 
   if (IconComponent) {
     let iconColor: string =
-      item.icon === "QuranImageIcon"
+      item.icon === "QuranImageIcon" ||
+      item.icon === "HadeethBookIcon" ||
+      IconComponent === HadeethBookIcon
         ? Colors.light.green
         : Colors.light.dullWhite;
     let iconSize =
@@ -710,62 +717,20 @@ export const GoalDescriptionDetails = ({ goal }: { goal: string }) => {
         ? resolveQuranUiId(goal)
         : resolvePrayerUiId(goal);
 
-  const { data: prayerDetail, isLoading: isLoadingPrayerDetail } =
-    useGetPrayerDetailByType(goal, { enabled: isPrayerGoal });
-  const { data: quranDetail, isLoading: isLoadingQuranDetail } =
-    useGetQuranDetailByType(goal, { enabled: isQuranGoal });
-  const { data: fastingDetail, isLoading: isLoadingFastingDetail } =
-    useGetFastingDetailByType(goal, { enabled: isFastingGoal });
-  const { data: sadaqahDetail, isLoading: isLoadingSadaqahDetail } =
-    useGetSadaqahDetailByType(goal, { enabled: isSadaqahGoal });
-
-  const apiDetail = isSadaqahGoal
-    ? sadaqahDetail
-    : isFastingGoal
-      ? fastingDetail
-      : isQuranGoal
-        ? quranDetail
-        : prayerDetail;
-  const isLoadingDetail = isSadaqahGoal
-    ? isLoadingSadaqahDetail
-    : isFastingGoal
-      ? isLoadingFastingDetail
-      : isQuranGoal
-        ? isLoadingQuranDetail
-        : isLoadingPrayerDetail;
+  const isLoadingDetail = false;
 
   const localGoalInfo = (t(`goalsData.${goalUiId}`, {
     returnObjects: true,
   }) || {}) as GoalInfo;
 
-  const goalInfo: GoalInfo = {
-    ...localGoalInfo,
-    ...(apiDetail ?? {}),
-    title: apiDetail?.title || localGoalInfo.title,
-    navTitle: apiDetail?.navTitle || localGoalInfo.navTitle,
-    heroTitle: apiDetail?.heroTitle || localGoalInfo.heroTitle,
-    description: apiDetail?.description || localGoalInfo.description,
-    hadithIntro: apiDetail?.hadithIntro || localGoalInfo.hadithIntro,
-    benefitsIntro: apiDetail?.benefitsIntro || localGoalInfo.benefitsIntro,
-    benefits:
-      apiDetail?.benefits && apiDetail.benefits.length > 0
-        ? apiDetail.benefits
-        : localGoalInfo.benefits,
-    steps:
-      apiDetail?.steps && apiDetail.steps.length > 0
-        ? apiDetail.steps
-        : localGoalInfo.steps,
-    readMore:
-      apiDetail?.readMore && apiDetail.readMore.length > 0
-        ? apiDetail.readMore
-        : localGoalInfo.readMore,
-  };
+  const goalInfo: GoalInfo = localGoalInfo;
 
   const steps = goalInfo.steps || [];
   const readMore = goalInfo.readMore || [];
   const heroTitle = goalInfo.heroTitle || "";
   const navTitle = goalInfo.navTitle || "";
   const description = goalInfo.description || "";
+  const summaryDescription = goalInfo.summaryDescription || "";
   const textAlign = isRtl ? "right" : "left";
 
   const hasReadMoreContent = readMore.length > 0;
@@ -845,13 +810,9 @@ export const GoalDescriptionDetails = ({ goal }: { goal: string }) => {
 
   const renderHeader = () => (
     <HeaderWithImageAndDescription
-      heroTitle={isLoadingDetail ? "---" : heroTitle}
-      navTitle={isLoadingDetail ? "---" : navTitle}
-      description={
-        isLoadingDetail
-          ? "----------------------------------------------"
-          : description
-      }
+      heroTitle={heroTitle}
+      navTitle={navTitle}
+      description={summaryDescription || description}
       imageSource={getImageSource()}
       imageHeight={getImageHeight()}
       onBackPress={() => navigation.goBack()}

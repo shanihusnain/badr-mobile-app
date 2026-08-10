@@ -44,21 +44,40 @@ type DropdownType = "month" | "year" | null;
 // ── Props ──────────────────────────────────────────────────────────────────────
 
 interface DOBCalendarProps {
+  /** Previously saved date (YYYY-MM-DD or DD/MM/YYYY) to restore on open. */
+  value?: string;
   /** Called with the selected date string (YYYY-MM-DD) when OK is pressed. */
   onSave?: (date: string) => void;
   /** Called when Cancel is pressed. */
   onCancel?: () => void;
 }
 
+const parseCalendarDate = (value?: string): Date | null => {
+  if (!value) return null;
+  if (value.includes("-")) {
+    const parsed = moment(value, "YYYY-MM-DD", true);
+    return parsed.isValid() ? parsed.toDate() : null;
+  }
+  if (value.includes("/")) {
+    const [day, month, year] = value.split("/").map(Number);
+    if (!day || !month || !year) return null;
+    const parsed = new Date(year, month - 1, day);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+  return null;
+};
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export const DOBCalendar = ({ onSave, onCancel }: DOBCalendarProps) => {
+export const DOBCalendar = ({ onSave, onCancel, value }: DOBCalendarProps) => {
   const today = new Date();
+  const initialDate = parseCalendarDate(value);
+  const startDate = initialDate ?? today;
 
-  const [currentMonth, setCurrentMonth] = useState(today.getMonth());
-  const [currentYear, setCurrentYear] = useState(today.getFullYear());
+  const [currentMonth, setCurrentMonth] = useState(startDate.getMonth());
+  const [currentYear, setCurrentYear] = useState(startDate.getFullYear());
   const [selectedDate, setSelectedDate] = useState<string | undefined>(
-    undefined,
+    initialDate ? moment(initialDate).format("YYYY-MM-DD") : undefined,
   );
   const [openDropdown, setOpenDropdown] = useState<DropdownType>(null);
   const [dropdownAnchor, setDropdownAnchor] = useState<{

@@ -115,6 +115,7 @@ export type GoalBenefitItem = {
 export interface GoalInfo {
   title?: string;
   description?: string;
+  summaryDescription?: string;
   heroTitle?: string;
   navTitle?: string;
   steps?: string[];

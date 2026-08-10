@@ -153,26 +153,31 @@
               {
                 "type": "text",
                 "style": "body",
+                "icon": "FajrFardPrayerIcon",
                 "content": "Fajr, performed at dawn, starts the day with a reminder of Allah's greatness."
               },
               {
                 "type": "text",
                 "style": "body",
+                "icon": "DhuharFardPrayerIcon",
                 "content": "Dhuhr, performed after midday, provides a break from worldly activities to refocus on our Creator."
               },
               {
                 "type": "text",
                 "style": "body",
+                "icon": "AsrFardPrayerIcon",
                 "content": "Asr, in the afternoon, serves as a spiritual anchor to maintain our consciousness of Allah."
               },
               {
                 "type": "text",
                 "style": "body",
+                "icon": "MaghrebFardPrayerIcon",
                 "content": "Maghrib, at sunset, allows us to reflect on the day's blessings."
               },
               {
                 "type": "text",
                 "style": "body",
+                "icon": "IshaFardPrayerIcon",
                 "content": "Isha, in the evening, concludes the day with a peaceful connection to Allah, ensuring we end the day in His remembrance"
               }
             ]
@@ -608,7 +613,7 @@
               },
                {
                 "type": "text",
-                "style": "sectionHeading",
+                "style": "paragraphHeading",
                 "content": "Surah Al-Tawbah (9:104) states:"
               },
               {
@@ -620,7 +625,7 @@
               {
                 "type": "text",
                 "style": "body",
-                "content": "Furthermore, Surah Al-Furqan (25:70) highlights the transformative power of repentance:"
+                "content": "Furthermore, **Surah Al-Furqan (25:70)** highlights the transformative power of repentance:"
               },
               {
                 "type": "text",
@@ -631,7 +636,7 @@
               {
                 "type": "text",
                 "style": "body",
-                "content": "Additionally, Surah Az-Zumar (39:53) emphasizes that Allah's mercy is vast and all-encompassing, encouraging all sinners, regardless of the magnitude of their sins, to repent sincerely:"
+                "content": "Additionally, **Surah Az-Zumar (39:53)** emphasizes that Allah's mercy is vast and all-encompassing, encouraging all sinners, regardless of the magnitude of their sins, to repent sincerely:"
               },
               {
                 "type": "text",
@@ -894,12 +899,7 @@
               {
                 "type": "text",
                 "style": "body",
-                "content": "Qiyam Al-Layl is a profound act of devotion that transforms our spiritual path as Muslims."
-              },
-              {
-                "type": "text",
-                "style": "body",
-                "content": "It symbolizes our complete submission to Allah and reflects a deep commitment to draw closer to Him."
+                "content": "Qiyam Al-Layl is a profound act of devotion that transforms our spiritual path as Muslims.\nIt symbolizes our complete submission to Allah and reflects a deep commitment to draw closer to Him."
               },
               {
                 "type": "text",
@@ -945,7 +945,7 @@
               {
                 "type": "text",
                 "style": "body",
-                "content": "Rising from the comfort of one's bed to worship in solitude embodies a sincere commitment, driven by hope for Allah's mercy and fear of His displeasure, as beautifully described in Surah Al-Sajdah (32:16):"
+                "content": "Rising from the comfort of one's bed to worship in solitude embodies a sincere commitment, driven by hope for Allah's mercy and fear of His displeasure, as beautifully described in **Surah Al-Sajdah (32:16):**"
               },
               {
                 "type": "text",

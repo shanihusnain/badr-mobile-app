@@ -70,15 +70,15 @@ const styles = StyleSheet.create({
   heroTitle: {
     color: Colors.light.white,
     fontSize: 18,
-    fontFamily: fonts.primary.semiBold,
+    fontFamily: fonts.primary.medium,
     fontWeight: "500",
-    lineHeight: 20,
-    marginBottom: 10,
+    lineHeight: 22,
+    marginBottom: 14,
   },
   description: {
     color: Colors.light.dullWhite,
     fontSize: 14,
-    fontFamily: fonts.primary.regular,
-    lineHeight: 22,
+    fontFamily: fonts.primary.medium,
+    lineHeight: 20,
   },
 });

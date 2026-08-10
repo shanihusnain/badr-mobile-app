@@ -11,6 +11,7 @@ import { BinIcon } from "./BinIcon";
 //C
 import { CalendarIcon } from "./CalenderIcon";
 import { ClockIcon } from "./ClockIcon";
+import { CreateAccountCalenderIcon } from "./CreateAccountCalenderIcon";
 //D
 import { DocumentIcon } from "./DocumentIcon";
 import { DocumentSearchIcon } from "./DocumentSearchIcon";
@@ -110,6 +111,11 @@ import { MoonIcon } from "./MoonIcon";
 import { MenstruatingIcon } from "./MenstruatingIcon";
 import { MaghribSunIcon } from "./MaghribSunIcon";
 import { ManPrayerIcon } from "./ManPrayerIcon";
+import { FajrFardPrayerIcon } from "./FajrFardPrayerIcon";
+import { DhuharFardPrayerIcon } from "./DhuharFardParyerIcon";
+import { AsrFardPrayerIcon } from "./AsrFardPrayerIcon";
+import { MaghrebFardPrayerIcon } from "./MaghrebFardParyerIcon";
+import { IshaFardPrayerIcon } from "./IshaFardPrayerIcon";
 //N
 import { NotificationIcon } from "./NotificationIcon";
 //O
@@ -210,6 +216,7 @@ import { MissedZakatAccountabilityIcon } from "./MissedZakatAccountabilityIcon";
 import { MissedZakatSocialIcon } from "./MissedZakatSocialIcon";
 
 export {
+  CreateAccountCalenderIcon,
   BinIcon,
   SadaqahJariyahCloathIcon,
   SadaqahJariyahMedicalAidIcon,
@@ -223,6 +230,11 @@ export {
   LillahDonationGiverIcon,
   LillahDonationRecipientIcon,
   ManPrayerIcon,
+  FajrFardPrayerIcon,
+  DhuharFardPrayerIcon,
+  AsrFardPrayerIcon,
+  MaghrebFardPrayerIcon,
+  IshaFardPrayerIcon,
   DuhaPrayerStar,
   DownArrowIcon,
   StarSparkleIcon,
