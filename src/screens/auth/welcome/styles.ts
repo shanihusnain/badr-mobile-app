@@ -46,10 +46,10 @@ export const styles = StyleSheet.create({
     fontFamily: fonts.primary.heavy,
     fontSize: 30,
     fontWeight: "800",
-    letterSpacing: Platform.OS === "ios" ? 1 : 1.4,
+    letterSpacing: Platform.OS === "ios" ? 1 : 1.5,
     textAlign: "left",
     flex: 1,
-    lineHeight: 40,
+    lineHeight: 42,
     zIndex: 1,
   },
 });

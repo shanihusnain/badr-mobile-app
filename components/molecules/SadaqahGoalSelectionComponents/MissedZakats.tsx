@@ -1,5 +1,6 @@
+import { Colors } from "@/constants/theme";
 import { TopSpace } from "@/components/atoms/TopSpace";
-import PrimaryButton from "@/components/atoms/Primary-button";
+import GoalSelectionSaveButton from "@/components/molecules/GoalSelectionSaveButton";
 import { CurrencyAndAmountSelector } from "../CurrencyAndAmountSelector";
 import { Counter } from "../Counter";
 import { LayoutAnimation, View } from "react-native";
@@ -7,7 +8,6 @@ import { useState } from "react";
 import { GoalSelectionOpenCloseButton } from "../GoalSelectionOpenCloseButton";
 import { globalStyles } from "@/src/globalstyles/globalstyles";
 import { useTranslation } from "react-i18next";
-import { Divider } from "@/components/atoms/Divider";
 
 export const MissedZakats = ({
   control,
@@ -20,6 +20,7 @@ export const MissedZakats = ({
   handleIncrease,
   onSave,
   isSaving,
+  onSetAsDefaultCurrency,
 }: {
   control: any;
   name: string;
@@ -29,8 +30,9 @@ export const MissedZakats = ({
   setCount: (count: number) => void;
   handleDecrease: () => void;
   handleIncrease: () => void;
-  onSave?: () => void;
+  onSave?: (onDone?: () => void) => void;
   isSaving?: boolean;
+  onSetAsDefaultCurrency?: (currencyOptionValue: string) => void;
 }) => {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
@@ -39,7 +41,12 @@ export const MissedZakats = ({
     setIsOpen(!isOpen);
   };
   return (
-    <View style={globalStyles.goalSelectionWrapper}>
+    <View
+      style={[
+        globalStyles.goalSelectionWrapper,
+        { paddingBottom: isOpen ? 14 : 6 },
+      ]}
+    >
       <GoalSelectionOpenCloseButton
         title={title ?? t("monthlyGoalPlanner.amount")}
         isOpen={isOpen}
@@ -48,8 +55,11 @@ export const MissedZakats = ({
 
       {isOpen && (
         <>
-          <Divider />
-          <CurrencyAndAmountSelector control={control} name={name} />
+          <CurrencyAndAmountSelector
+            control={control}
+            name={name}
+            onSetAsDefaultCurrency={onSetAsDefaultCurrency}
+          />
 
           <TopSpace top={16} />
           <Counter
@@ -62,9 +72,9 @@ export const MissedZakats = ({
           {onSave ? (
             <>
               <TopSpace top={16} />
-              <PrimaryButton
+              <GoalSelectionSaveButton
                 text={t("monthlyGoalPlanner.save")}
-                onPress={onSave}
+                onPress={(markSaved) => onSave?.(markSaved)}
                 isLoading={isSaving}
                 disabled={isSaving || count < 1}
               />

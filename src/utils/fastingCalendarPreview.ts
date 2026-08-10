@@ -116,7 +116,7 @@ export const FASTING_LEGEND_META: Record<
   },
   MONDAY_THURSDAY: {
     label: "MONDAYS & THURSDAYS",
-    color: Colors.light.white,
+    color: Colors.light.ringMonThu,
   },
   WHITE_DAYS: {
     label: "WHITE DAYS",
@@ -283,6 +283,22 @@ export function getFastingLegendItems(
     label: FASTING_LEGEND_META[type].label,
     color: FASTING_LEGEND_META[type].color,
   }));
+}
+
+/**
+ * Mon/Thu dates the user can pick — excludes days claimed by other fasting goals.
+ * Uses planned dates only (not activePotentials, which mark every Mon/Thu while a goal is on).
+ */
+export function getSelectableMonThuDates(
+  calendarWindow?: FastingCalendarWindow | null,
+): string[] {
+  if (!calendarWindow) return [];
+  const blocked = new Set([
+    ...calendarWindow.missedRamadanDates,
+    ...calendarWindow.whiteDaysPlannedDates,
+    ...calendarWindow.dawoodPlannedDates,
+  ]);
+  return calendarWindow.monThuDates.filter((date) => !blocked.has(date));
 }
 
 export function buildFastingCalendarWindow(

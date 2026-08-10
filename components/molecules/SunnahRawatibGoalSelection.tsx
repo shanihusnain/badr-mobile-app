@@ -10,7 +10,7 @@ import { useSharedValue } from "react-native-reanimated";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import CustomSlider from "@/components/atoms/CustomSlider";
-import PrimaryButton from "@/components/atoms/Primary-button";
+import GoalSelectionSaveButton from "./GoalSelectionSaveButton";
 import { useTranslation } from "react-i18next";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import { GoalSelectionOpenCloseButton } from "./GoalSelectionOpenCloseButton";
@@ -152,20 +152,19 @@ export default function SunnahRawatibGoalSelection({
     }
   };
 
-  const handleSave = () => {
-    if (onSave) {
-      onSave({
-        beforeFajr: beforeFajar,
-        beforeDhuhr: beforeDuhr,
-        afterDhuhr: afterDuhr,
-        afterDhuhrRakahOption: afterDuhrOption === "one" ? 1 : 2,
-        beforeAsrEnabled: isBeforeAsarEnabled,
-        beforeAsr: isBeforeAsarEnabled ? beforeAsar : 0,
-        beforeAsrRakahOption: beforeAsarOption === "one" ? 1 : 2,
-        afterMaghrib: afterMaghrib,
-        afterIsha: afterIsha,
-      });
-    }
+  const handleSave = (markSaved: () => void) => {
+    onSave?.({
+      beforeFajr: beforeFajar,
+      beforeDhuhr: beforeDuhr,
+      afterDhuhr: afterDuhr,
+      afterDhuhrRakahOption: afterDuhrOption === "one" ? 1 : 2,
+      beforeAsrEnabled: isBeforeAsarEnabled,
+      beforeAsr: isBeforeAsarEnabled ? beforeAsar : 0,
+      beforeAsrRakahOption: beforeAsarOption === "one" ? 1 : 2,
+      afterMaghrib: afterMaghrib,
+      afterIsha: afterIsha,
+    });
+    markSaved();
   };
 
   const totalPrayers =
@@ -251,7 +250,7 @@ export default function SunnahRawatibGoalSelection({
                 text={t("prayerGoals.beforeAsrHeading")}
                 style={[
                   styles.switchHeading,
-                  !isBeforeAsarEnabled && styles.disabledText,
+                  !isBeforeAsarEnabled && styles.disabledText
                 ]}
               />
               <SwitchButton
@@ -324,7 +323,7 @@ export default function SunnahRawatibGoalSelection({
           </Text>
 
           <View style={styles.buttonContainer}>
-            <PrimaryButton
+            <GoalSelectionSaveButton
               text={t("prayerGoals.save").toLocaleUpperCase()}
               onPress={handleSave}
               style={styles.saveButton}
@@ -345,11 +344,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 16,
-    marginVertical: 10,
+    marginVertical: 0,
   },
   expandedContent: {
     width: "100%",
     paddingTop: 12,
+    paddingBottom: 6,
   },
   sliderGroup: {
     width: "100%",

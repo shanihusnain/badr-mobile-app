@@ -76,6 +76,7 @@ export type CycleFastingGoal = {
   dawoodStartDay?: number | null;
   isActive: boolean;
   fastingPlans?: CycleFastingPlan[];
+  plannedDates?: string[];
 };
 
 export type CycleSadaqahGoal = SadaqahGoalApiItem & {

@@ -251,6 +251,7 @@ export const CycleStartTab = ({
 
       <TopSpace top={32} />
       <PrimaryButton
+        size="compact"
         text={t("monthlyGoalPlanner.commit")}
         isLoading={isStartEditCyclePending}
         disabled={isStartEditCyclePending || !cycleStartDate}

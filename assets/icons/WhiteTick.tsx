@@ -1,13 +1,6 @@
 import * as React from "react";
 import Svg, { Path } from "react-native-svg";
-import { Colors } from "@/constants/theme";
-export const TickWithCircleIcon = ({
-  color = Colors.light.white,
-  size = 32,
-}: {
-  color?: string;
-  size?: number;
-}) => (
+export const WhiteTick = () => (
   <Svg width={7} height={5} fill="none">
     <Path
       stroke="#fff"

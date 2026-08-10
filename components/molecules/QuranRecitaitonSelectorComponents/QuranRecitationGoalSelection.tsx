@@ -6,9 +6,10 @@ import { fonts } from "@/assets/fonts";
 import { Divider } from "../../atoms/Divider";
 import { TopSpace } from "../../atoms/TopSpace";
 import { MetricSelectionComponent } from "./MetricSelectionComponent";
-import PrimaryButton from "@/components/atoms/Primary-button";
+import GoalSelectionSaveButton from "@/components/molecules/GoalSelectionSaveButton";
 import WarningModal from "@/components/atoms/WarningModal";
 import { useTranslation } from "react-i18next";
+import { globalStyles } from "@/src/globalstyles/globalstyles";
 import { useGetQuranGoalByType } from "@/src/api/queries/useGetQuranGoalByType";
 import { useDeleteQuranGoalSingleMetric } from "@/src/api/mutations/useDeleteQuranGoalSingleMetric";
 import {
@@ -16,13 +17,17 @@ import {
   getJuzRangeFromDetail,
   getQuranGoalTypeForMetric,
   getSelectedHizbIdsFromDetail,
+  getSelectedJuzIdsFromDetail,
   getSelectedSurahIdsFromDetail,
   getSurahSettingsFromDetail,
   mergeHizbOptionsWithDetail,
+  mergeJuzOptionsWithDetail,
   mergeSurahOptionsWithDetail,
   type QuranHizbOption,
+  type QuranJuzOption,
   type QuranSurahOption,
 } from "@/src/utils/quranGoalMap";
+import { getJuzVerseMetadata } from "@/src/screens/private/goalprogressloggingscreen/quranJuzVerseMap";
 
 type MetricName = "surah" | "juz" | "completion" | "hizb";
 
@@ -39,7 +44,10 @@ export type QuranRecitationGoalSelectionProps = {
   /** From parent GET .../quran-goals `reference` (single fetch in GoalPlannerSheet). */
   surahReference?: QuranSurahOption[];
   hizbReference?: QuranHizbOption[];
+  juzReference?: QuranJuzOption[];
   isReferenceLoading?: boolean;
+  /** Disable parent bottom-sheet scroll while the nested metric list is scrolling. */
+  onNestedScrollActiveChange?: (active: boolean) => void;
 };
 
 export const QuranRecitationGoalSelection = ({
@@ -52,7 +60,9 @@ export const QuranRecitationGoalSelection = ({
   openOnMount,
   surahReference = [],
   hizbReference = [],
+  juzReference = [],
   isReferenceLoading = false,
+  onNestedScrollActiveChange,
 }: QuranRecitationGoalSelectionProps) => {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(!!openOnMount);
@@ -128,6 +138,35 @@ export const QuranRecitationGoalSelection = ({
     () => mergeHizbOptionsWithDetail(hizbReference, goalDetail),
     [hizbReference, goalDetail],
   );
+  const juzOptions = useMemo(() => {
+    const merged = mergeJuzOptionsWithDetail(juzReference, goalDetail);
+    const base: QuranJuzOption[] =
+      merged.length > 0
+        ? merged
+        : Array.from({ length: 30 }, (_, i) => ({
+            id: i + 1,
+            juzName: `Juz ${i + 1}`,
+          }));
+
+    return base.map((juz) => {
+      if (juz.juzName.includes("|") && juz.verses) return juz;
+      try {
+        const meta = getJuzVerseMetadata(juz.id);
+        return {
+          ...juz,
+          juzName: `Juz ${juz.id} | ${meta.rangeLabel}`,
+          verses: juz.verses ?? `(${meta.totalVerses} verses)`,
+          totalAyahs: juz.totalAyahs ?? meta.totalVerses,
+          startSurah: juz.startSurah ?? meta.startSurahNumber,
+          startAyah: juz.startAyah ?? meta.startAyah,
+          endSurah: juz.endSurah ?? meta.endSurahNumber,
+          endAyah: juz.endAyah ?? meta.endAyah,
+        };
+      } catch {
+        return juz;
+      }
+    });
+  }, [juzReference, goalDetail]);
   const initialSelectedSurahs = useMemo(
     () => getSelectedSurahIdsFromDetail(goalDetail),
     [goalDetail],
@@ -138,6 +177,10 @@ export const QuranRecitationGoalSelection = ({
   );
   const initialJuzRange = useMemo(
     () => getJuzRangeFromDetail(goalDetail),
+    [goalDetail],
+  );
+  const initialSelectedJuzs = useMemo(
+    () => getSelectedJuzIdsFromDetail(goalDetail),
     [goalDetail],
   );
   const initialSelectedHizbs = useMemo(
@@ -253,71 +296,89 @@ export const QuranRecitationGoalSelection = ({
     (needsReference && isReferenceLoading && surahReference.length === 0);
 
   return (
-    <View style={styles.wrapper}>
+    <View
+      style={[
+        globalStyles.goalSelectionWrapper,
+        { paddingBottom: isOpen ? 6 : 10 },
+      ]}
+    >
       <GoalSelectionOpenCloseButton
         isOpen={isOpen}
         toggleDropdown={handleToggleDropdown}
         title={title}
       />
       {isOpen && (
-        <>
+        <View style={styles.openContent}>
           <Divider />
-          <TopSpace top={16} />
+          <TopSpace top={10} />
           {(variant === "memorization" || variant === "others") && (
             <Text style={styles.selectMoreText}>
               You can select more than one.
             </Text>
           )}
-          {metricesDecider().map((item: IItem) => {
-            const isActiveMetric = resolvedMetric === item.name;
-            return (
-              <MetricSelectionComponent
-                key={item.id}
-                item={item}
-                handleMetricPress={() => handlePressMetrix(item)}
-                selectedMetric={resolvedMetric}
-                onMetricChange={onMetricsChange}
-                variant={variant}
-                surahOptions={isActiveMetric ? surahOptions : undefined}
-                hizbOptions={isActiveMetric ? hizbOptions : undefined}
-                initialSelectedSurahs={
-                  isActiveMetric ? initialSelectedSurahs : undefined
+          <View style={styles.metricsScrollArea}>
+            {metricesDecider().map((item: IItem) => {
+              const isActiveMetric = resolvedMetric === item.name;
+              return (
+                <MetricSelectionComponent
+                  key={item.id}
+                  item={item}
+                  handleMetricPress={() => handlePressMetrix(item)}
+                  selectedMetric={resolvedMetric}
+                  onMetricChange={onMetricsChange}
+                  variant={variant}
+                  surahOptions={isActiveMetric ? surahOptions : undefined}
+                  hizbOptions={isActiveMetric ? hizbOptions : undefined}
+                  juzOptions={isActiveMetric ? juzOptions : undefined}
+                  initialSelectedSurahs={
+                    isActiveMetric ? initialSelectedSurahs : undefined
+                  }
+                  initialSurahSettings={
+                    isActiveMetric ? initialSurahSettings : undefined
+                  }
+                  initialJuzRange={isActiveMetric ? initialJuzRange : undefined}
+                  initialSelectedJuzs={
+                    isActiveMetric ? initialSelectedJuzs : undefined
+                  }
+                  initialSelectedHizbs={
+                    isActiveMetric ? initialSelectedHizbs : undefined
+                  }
+                  initialCompletion={
+                    isActiveMetric ? initialCompletion : undefined
+                  }
+                  isLoadingOptions={isActiveMetric && isLoadingOptions}
+                  onDeleteSavedItem={
+                    isActiveMetric ? handleDeleteSavedItem : undefined
+                  }
+                  isDeletingItem={isActiveMetric && isDeletingItem}
+                  onDirtyChange={isActiveMetric ? setIsMetricDirty : undefined}
+                  discardNonce={isActiveMetric ? discardNonce : 0}
+                  markCleanNonce={isActiveMetric ? markCleanNonce : 0}
+                  onNestedScrollActiveChange={
+                    isActiveMetric ? onNestedScrollActiveChange : undefined
+                  }
+                />
+              );
+            })}
+          </View>
+          <View style={styles.saveFooter}>
+            <GoalSelectionSaveButton
+              text={t("monthlyGoalPlanner.save")}
+              style={{
+                width: "100%",
+              }}
+              onPress={(markSaved) => {
+                if (onSave && resolvedMetric) {
+                  onSave({ metric: resolvedMetric });
+                  markSaved();
                 }
-                initialSurahSettings={
-                  isActiveMetric ? initialSurahSettings : undefined
-                }
-                initialJuzRange={isActiveMetric ? initialJuzRange : undefined}
-                initialSelectedHizbs={
-                  isActiveMetric ? initialSelectedHizbs : undefined
-                }
-                initialCompletion={
-                  isActiveMetric ? initialCompletion : undefined
-                }
-                isLoadingOptions={isActiveMetric && isLoadingOptions}
-                onDeleteSavedItem={
-                  isActiveMetric ? handleDeleteSavedItem : undefined
-                }
-                isDeletingItem={isActiveMetric && isDeletingItem}
-                onDirtyChange={isActiveMetric ? setIsMetricDirty : undefined}
-                discardNonce={isActiveMetric ? discardNonce : 0}
-                markCleanNonce={isActiveMetric ? markCleanNonce : 0}
-              />
-            );
-          })}
-        </>
+                setMarkCleanNonce((n) => n + 1);
+                setIsMetricDirty(false);
+              }}
+            />
+          </View>
+        </View>
       )}
-      <TopSpace top={16} />
-      <PrimaryButton
-        text={t("monthlyGoalPlanner.save")}
-        style={{
-          width: "100%",
-        }}
-        onPress={() => {
-          if (onSave && resolvedMetric) onSave({ metric: resolvedMetric });
-          setMarkCleanNonce((n) => n + 1);
-          setIsMetricDirty(false);
-        }}
-      />
 
       <WarningModal
         visible={unsavedModalVisible}
@@ -338,11 +399,17 @@ export const QuranRecitationGoalSelection = ({
 };
 
 const styles = StyleSheet.create({
-  wrapper: {
+  openContent: {
+    width: "100%",
+    paddingBottom: 6,
+  },
+  metricsScrollArea: {
+    width: "100%",
+  },
+  saveFooter: {
+    width: "100%",
+    paddingTop: 16,
     backgroundColor: Colors.light.calendarBg,
-    borderRadius: 12,
-    padding: 16,
-    marginVertical: 10,
   },
   selectMoreText: {
     color: Colors.light.white,
@@ -351,6 +418,7 @@ const styles = StyleSheet.create({
     fontWeight: "400",
     opacity: 0.85,
     marginBottom: 12,
+    alignSelf: "flex-start",
   },
   leaveButton: {
     borderColor: Colors.light.red,

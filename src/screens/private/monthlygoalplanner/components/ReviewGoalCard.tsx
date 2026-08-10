@@ -40,11 +40,56 @@ const CURRENCY_GOAL_TITLES = new Set([
   "sadaqah-jariyah",
 ]);
 
+/** Goals whose sub-rows show label only (no right-side value). */
+const SUBGOAL_VALUE_HIDDEN_TITLES = new Set(["quran-memorization-by-surah"]);
+
+/** Goals that show header chip/total only — no sub-goal rows on review. */
+const HEADER_ONLY_GOAL_TITLES = new Set([
+  "qiyal-al-lail-prayer",
+  "quran-listening",
+  "quran-tajweed",
+  "fidya",
+  "lillah-donations",
+  "lilah-donations",
+  "volunteering-services",
+  "sadaqah-jariyah",
+]);
+
+/** Bold juz numbers in "From Juz 5 to Juz 13" (and Arabic equivalent). */
+function renderLabelWithBoldNumbers(label: string) {
+  const parts = String(label).split(/(\d+)/);
+  return parts.map((part, index) =>
+    /^\d+$/.test(part) ? (
+      <Text key={`${part}-${index}`} style={styles.subGoalParenCount}>
+        {part}
+      </Text>
+    ) : (
+      part
+    ),
+  );
+}
+
+/** Bold the count inside parentheses, e.g. "Surah X (2 times daily)". */
+function renderLabelWithBoldParenCount(label: string) {
+  const match = label.match(/^(.*\()(\d+)(.*\))$/);
+  if (!match) return label;
+  const [, before, count, after] = match;
+  return (
+    <>
+      {before}
+      <Text style={styles.subGoalParenCount}>{count}</Text>
+      {after}
+    </>
+  );
+}
+
 export default function ReviewGoalCard({ goal, handleEditPress }: Props) {
   const { t } = useTranslation();
-  const selected = goal?.selectedGoals ?? [];
-  const firstSelected = selected.length > 0 ? selected[0] : null;
   const key = String(goal?.title ?? "");
+  const selected = HEADER_ONLY_GOAL_TITLES.has(key)
+    ? []
+    : (goal?.selectedGoals ?? []);
+  const firstSelected = selected.length > 0 ? selected[0] : null;
   const totalValue = goal?.totalValue;
 
   const renderGreenTotal = (text: string) => (
@@ -66,7 +111,9 @@ export default function ReviewGoalCard({ goal, handleEditPress }: Props) {
       if (firstSelected && looksLikeCurrency(firstSelected.value)) {
         return renderGreenTotal(String(firstSelected.value));
       }
-      return renderGreenTotal(`$ ${String(totalValue ?? "")}`);
+      const currency =
+        goal?.sourceSadaqah?.currencyCode ?? goal?.currencyCode ?? "SAR";
+      return renderGreenTotal(`${currency} ${String(totalValue ?? "")}`);
     }
 
     const unitKey = UNIT_BY_GOAL_TITLE[key];
@@ -167,10 +214,25 @@ export default function ReviewGoalCard({ goal, handleEditPress }: Props) {
                   if (cleanLabel.toLowerCase() === "hours")
                     return t("monthlyGoalPlanner.hours");
 
+                  if (
+                    key === "quran-recitation-by-juz" &&
+                    String(subGoal?.name ?? "").startsWith("JUZ-RANGE")
+                  ) {
+                    return renderLabelWithBoldNumbers(cleanLabel);
+                  }
+
+                  if (key.startsWith("quran-")) {
+                    return renderLabelWithBoldParenCount(cleanLabel);
+                  }
+
                   return cleanLabel;
                 })()}
               </Text>
-              <Text style={styles.subGoalValueText}>{subGoal?.value}</Text>
+              {subGoal?.value != null &&
+                String(subGoal.value).trim() !== "" &&
+                !SUBGOAL_VALUE_HIDDEN_TITLES.has(key) && (
+                  <Text style={styles.subGoalValueText}>{subGoal?.value}</Text>
+                )}
             </View>
           </View>
         ))}
@@ -181,8 +243,7 @@ export default function ReviewGoalCard({ goal, handleEditPress }: Props) {
 
 const styles = StyleSheet.create({
   appliedGoalContainer: {
-    marginTop: 10,
-    backgroundColor: Colors.light.calendarBg,
+    backgroundColor: Colors.light.greybuttonBackground,
     padding: 10,
     borderRadius: 6,
   },
@@ -210,6 +271,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
+    letterSpacing: 0.1,
+    lineHeight: 20,
   },
   chipRow: {
     flexDirection: "row",
@@ -218,24 +281,26 @@ const styles = StyleSheet.create({
   },
   unitChip: {
     backgroundColor: Colors.light.progressBarEmpty,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
+    padding: 2,
+    borderRadius: 4,
     alignItems: "center",
     justifyContent: "center",
   },
   unitChipText: {
     color: Colors.light.green,
-    fontFamily: fonts.primary.semiBold,
-    fontSize: 12,
+    fontFamily: fonts.primary.regular,
+    fontWeight: "400",
+    fontSize: 10,
+    letterSpacing: 0.1,
   },
   subGoalWrapper: {
-    marginTop: 6,
+    // marginTop: 6,
   },
   subGoalRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    paddingVertical: 5,
   },
   subGoalText: {
     color: Colors.light.white,
@@ -243,7 +308,12 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
-    opacity: 0.8,
+    flexShrink: 1,
+    opacity: 0.9,
+  },
+  subGoalParenCount: {
+    fontFamily: fonts.primary.bold,
+    fontWeight: "700",
   },
   subGoalValueText: {
     color: Colors.light.white,

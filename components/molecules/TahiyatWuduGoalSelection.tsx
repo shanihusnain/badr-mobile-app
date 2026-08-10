@@ -11,7 +11,7 @@ import { Feather } from "@expo/vector-icons";
 import { Colors } from "../../constants/theme";
 import { fonts } from "../../assets/fonts";
 import CustomSlider from "../atoms/CustomSlider";
-import PrimaryButton from "../atoms/Primary-button";
+import GoalSelectionSaveButton from "./GoalSelectionSaveButton";
 import { useTranslation } from "react-i18next";
 import { useLocaleNumber } from "../../hooks/useLocaleNumber";
 import { globalStyles } from "@/src/globalstyles/globalstyles";
@@ -37,20 +37,13 @@ export default function TahiyatWuduGoalSelection({
     setIsOpen(!isOpen);
   };
 
-  const handleSave = () => {
-    console.log("Saved target Tahiyyat Al-Wudhu:", sliderValue);
-    if (onSave) {
-      onSave(sliderValue);
-    }
-  };
-
   return (
     <View
       style={[
         globalStyles.goalSelectionWrapper,
         {
-          paddingBottom: isOpen ? 18 : 12,
-        },
+          paddingBottom: isOpen ? 6 : 10,
+        }
       ]}
     >
       <GoalSelectionOpenCloseButton
@@ -76,9 +69,12 @@ export default function TahiyatWuduGoalSelection({
           </Text>
 
           <View style={styles.buttonContainer}>
-            <PrimaryButton
+            <GoalSelectionSaveButton
               text={t("prayerGoals.save").toLocaleUpperCase()}
-              onPress={handleSave}
+              onPress={(markSaved) => {
+                onSave?.(sliderValue);
+                markSaved();
+              }}
               style={styles.saveButton}
               textStyle={styles.saveButtonText}
               isLoading={isSaving}
@@ -96,6 +92,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
     alignItems: "center",
     width: "100%",
+    paddingBottom: 6,
   },
   valueText: {
     color: Colors.light.green,

@@ -11,12 +11,15 @@ import { Feather } from "@expo/vector-icons";
 import { Colors } from "../../constants/theme";
 import { fonts } from "../../assets/fonts";
 import CustomSlider from "../atoms/CustomSlider";
-import PrimaryButton from "../atoms/Primary-button";
+import GoalSelectionSaveButton from "./GoalSelectionSaveButton";
 import { useTranslation } from "react-i18next";
 import { useLocaleNumber } from "../../hooks/useLocaleNumber";
 import { globalStyles } from "@/src/globalstyles/globalstyles";
 import { GoalSelectionOpenCloseButton } from "./GoalSelectionOpenCloseButton";
 import { Divider } from "../atoms/Divider";
+import { useAuth } from "@/provider/useAuth";
+import { TopSpace } from "../atoms/TopSpace";
+import { PRAYER_CYCLE_DAYS } from "@/src/utils/prayerCycleUtils";
 
 export default function QiyamalLaylGoalSelection({
   onSave,
@@ -53,23 +56,17 @@ export default function QiyamalLaylGoalSelection({
     setIsOpen(!isOpen);
   };
 
-  const handleSave = () => {
-    console.log("Saved target Qiyam Al-Layl:", {
+  const handleSave = (markSaved: () => void) => {
+    onSave?.({
       commitment,
       twoRakahPrayers: sliderValue,
       witrPrayers: 28,
       trackTahajjud,
     });
-    if (onSave) {
-      onSave({
-        commitment,
-        twoRakahPrayers: sliderValue,
-        witrPrayers: 28,
-        trackTahajjud,
-      });
-    }
+    markSaved();
   };
-
+  const { user } = useAuth();
+  console.log("user gender in qiyam al layl goal selection", user?.gender);
   return (
     <View style={globalStyles.goalSelectionWrapper}>
       <GoalSelectionOpenCloseButton
@@ -82,6 +79,15 @@ export default function QiyamalLaylGoalSelection({
 
       {isOpen && (
         <View style={styles.expandedContent}>
+          {user?.gender !== "MALE" && (
+            <>
+              <Text style={styles.greyDescription}>
+                The target number of Witr prayers will automatically adjust if
+                menstruation is logged from the home screen.
+              </Text>
+              <TopSpace top={10} />
+            </>
+          )}
           {/* STEP 1 */}
           <View style={styles.stepBadge}>
             <Text style={styles.stepBadgeText}>{t("prayerGoals.step1")}</Text>
@@ -137,7 +143,14 @@ export default function QiyamalLaylGoalSelection({
           </View>
 
           {/* STEP 3 */}
-          <View style={styles.stepBadge}>
+          <View
+            style={[
+              styles.stepBadge,
+              {
+                marginTop: 0,
+              },
+            ]}
+          >
             <Text style={styles.stepBadgeText}>{t("prayerGoals.step3")}</Text>
           </View>
           <Text style={styles.stepTitle}>
@@ -183,22 +196,35 @@ export default function QiyamalLaylGoalSelection({
 
           {/* Result / Save area */}
           <View style={styles.resultContainer}>
-            <Text style={styles.valueText}>
-              {formatNumber(sliderValue)}
-              <Text style={styles.whiteText}>
-                {sliderValue === 1
-                  ? t("prayerGoals.rakahPrayer")
-                  : t("prayerGoals.rakahPrayers")}
-                {commitment === "every_night"
-                  ? t("prayerGoals.and28Witr")
-                  : t("prayerGoals.plusWitrFlexible")}
+            <View style={{ alignItems: "center", paddingHorizontal: 46 }}>
+              <Text style={styles.valueText}>
+                {formatNumber(sliderValue)}
+                <Text style={styles.whiteText}>
+                  {sliderValue === 1
+                    ? t("prayerGoals.rakahPrayer")
+                    : t("prayerGoals.rakahPrayers")}
+                </Text>
+                {commitment === "every_night" ? (
+                  <Text style={styles.whiteText}>
+                    {t("prayerGoals.and28WitrBefore")}
+                    <Text style={styles.greenCount}>
+                      {formatNumber(PRAYER_CYCLE_DAYS)}
+                    </Text>
+                    {t("prayerGoals.and28WitrAfter")}
+                  </Text>
+                ) : (
+                  <Text style={styles.whiteText}>
+                    {t("prayerGoals.plusWitrFlexible")}
+                  </Text>
+                )}
               </Text>
-            </Text>
-            <Text style={styles.witrDescription}>
-              {t("prayerGoals.witrDesc")}
-            </Text>
+              <Text style={styles.witrDescription}>
+                {t("prayerGoals.witrDesc")}
+              </Text>
+            </View>
+
             <View style={styles.buttonContainer}>
-              <PrimaryButton
+              <GoalSelectionSaveButton
                 text={t("prayerGoals.save")}
                 onPress={handleSave}
                 style={styles.saveButton}
@@ -214,8 +240,9 @@ export default function QiyamalLaylGoalSelection({
 
 const styles = StyleSheet.create({
   expandedContent: {
-    marginTop: 16,
+    marginTop: 10,
     width: "100%",
+    paddingBottom: 6,
   },
   stepBadge: {
     backgroundColor: Colors.light.darkgrey,
@@ -224,7 +251,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     alignSelf: "flex-start",
     marginBottom: 6,
-    marginTop: 14,
+    marginTop: 10,
   },
   stepBadgeText: {
     color: "white",
@@ -234,14 +261,16 @@ const styles = StyleSheet.create({
   },
   stepTitle: {
     color: Colors.light.white,
-    fontFamily: fonts.primary.medium,
+    fontFamily: fonts.primary.regular,
     fontSize: 12,
-    lineHeight: 18,
+    lineHeight: 15,
     marginBottom: 10,
+    // letterSpacing: 0.1,
   },
   sliderContainer: {
-    marginTop: -9,
-    marginBottom: -13,
+    // marginTop: -9,
+    // marginBottom: -13,
+    paddingHorizontal: 10,
   },
   radioRow: {
     flexDirection: "row",
@@ -254,6 +283,8 @@ const styles = StyleSheet.create({
   radioOption: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
+    paddingLeft: 8,
   },
   radioOuter: {
     width: 14,
@@ -287,7 +318,7 @@ const styles = StyleSheet.create({
   },
   radioOptionCol: {
     flexDirection: "row",
-    alignItems: "flex-start",
+    alignItems: "center",
     width: "100%",
   },
   radioOuterCol: {
@@ -300,7 +331,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginRight: 8,
-    marginTop: 3,
   },
   radioInnerCol: {
     width: 10,
@@ -317,23 +347,30 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   greyDescription: {
-    color: Colors.light.grey,
+    color: Colors.light.dullDescriptionText,
     fontFamily: fonts.primary.regular,
-    fontSize: 11,
-    lineHeight: 16,
+    fontSize: 10,
+    lineHeight: 15,
+    fontWeight: "400",
   },
   resultContainer: {
     width: "100%",
     alignItems: "center",
-    marginTop: 20,
+    marginTop: 10,
   },
   valueText: {
     color: Colors.light.green,
     fontFamily: fonts.primary.medium,
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: "500",
     marginBottom: 8,
     textAlign: "center",
+  },
+  greenCount: {
+    color: Colors.light.green,
+    fontFamily: fonts.primary.medium,
+    fontSize: 14,
+    fontWeight: "500",
   },
   whiteText: {
     color: Colors.light.white,
@@ -341,11 +378,11 @@ const styles = StyleSheet.create({
   witrDescription: {
     color: Colors.light.grey,
     fontFamily: fonts.primary.regular,
-    fontSize: 12,
-    lineHeight: 18,
-    textAlign: "center",
+    fontSize: 10,
+    textAlign: "left",
     paddingHorizontal: 10,
     marginBottom: 20,
+    fontWeight: "400",
   },
   buttonContainer: {
     width: "100%",

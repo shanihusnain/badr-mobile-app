@@ -11,6 +11,7 @@ import { BinIcon } from "./BinIcon";
 //C
 import { CalendarIcon } from "./CalenderIcon";
 import { ClockIcon } from "./ClockIcon";
+import { ChevronUpIcon } from "./ChecvronUpIcon";
 //D
 import { DocumentIcon } from "./DocumentIcon";
 import { DocumentSearchIcon } from "./DocumentSearchIcon";
@@ -166,6 +167,7 @@ import { TutorialIcon } from "./TutorialIcon";
 import { ThreeDotsIcon } from "./ThreeDotsIcon";
 import { TimeSpentIcon } from "./TimeSpentIcon";
 import { TimePieceIcon } from "./TimePieceIcon";
+// import { TickIconWithCircle } from "./TickIconWithCircle";
 //U
 
 import { VolunteeringServicesCharityEventIcon } from "./VolunteeringServicesCharityEventIcon";
@@ -179,7 +181,7 @@ import { TahiyyatWudhuShootIcon } from "./TahiyyatWudhuShootIcon";
 import { WorkLoadIcon } from "./WorkLoadIcon";
 import { WalletIcon } from "./WalletIcon";
 import { FlowCardShirtIcon } from "./FlowCardShirtIcon";
-
+import { WhiteTick } from "./WhiteTick";
 //X
 
 //Y
@@ -208,6 +210,7 @@ import { MondayAndThursdayFastsHabitualIcon } from "./MondayAndThursdayFastsHabi
 import { MondayAndThursdayAllahRememberenceIcon } from "./MondayAndThursdayAllahRememberenceIcon";
 import { MissedZakatAccountabilityIcon } from "./MissedZakatAccountabilityIcon";
 import { MissedZakatSocialIcon } from "./MissedZakatSocialIcon";
+import { CheckBoxTickIcon } from "./CheckBoxTickIcon";
 
 export {
   BinIcon,
@@ -362,4 +365,8 @@ export {
   HomeScreenGlowyMinusIcon,
   TickIconWithGreenBg,
   TimePieceIcon,
+  CheckBoxTickIcon,
+  ChevronUpIcon,
+  // TickIconWithCircle,
+  WhiteTick,
 };

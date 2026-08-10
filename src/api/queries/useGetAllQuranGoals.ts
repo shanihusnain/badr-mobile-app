@@ -60,7 +60,7 @@ function mapReference(raw: Record<string, unknown>): QuranGoalsReference {
     const surahRows = (raw.surahs as unknown[]) ?? [];
     return {
       surahs: mapSurahOptionsFromReference(surahRows),
-      juz: mapJuzOptionsFromReference((raw.juz as unknown[]) ?? []),
+      juz: mapJuzOptionsFromReference((raw.juz as unknown[]) ?? [], surahRows),
       hizb: mapHizbOptionsFromReference((raw.hizb as unknown[]) ?? [], surahRows),
     };
   } catch (error) {

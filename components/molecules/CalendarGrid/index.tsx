@@ -31,11 +31,21 @@ import { FontAwesome } from "@expo/vector-icons";
 import Feather from "@expo/vector-icons/Feather";
 import { useTypedTranslation } from "@/i18next/useTypedTranslation";
 
-const RING_SIZE = 32;
-const COMPLETED_DOT_SIZE = 26;
-/** Day-cell footprint — keep stable so Hijri labels don't shrink with the ring. */
-const DAY_CELL_WIDTH = 30;
+const RING_SIZE = 24;
+const COMPLETED_DOT_SIZE = 20;
+/**
+ * Shared day footprint for cycle-window calendars (fasting goals).
+ * Matches cycle_start cell size so grids stay visually consistent.
+ * cycle_start still uses its own style overrides and never reads RING_SIZE.
+ */
+const DAY_CELL_WIDTH = 36;
 const DAY_CELL_HEIGHT = 48;
+/**
+ * Marker slot for Gregorian digit + ring/dot.
+ * Independent of RING_SIZE so ring scaling does not shift day/Hijri layout.
+ */
+const DAY_MARKER_SLOT_WIDTH = 28;
+const DAY_MARKER_SLOT_HEIGHT = 24;
 
 const ringStyle: ViewStyle = {
   width: RING_SIZE,
@@ -336,28 +346,28 @@ export const CalendarGrid = ({
         if (isUserSelected) {
           cellOpacity = 1;
           circleStyle = {
-            borderWidth: 1.2,
+            borderWidth: 1,
             borderColor: Colors.light.ringRamadan,
           };
           textStyle = { color: Colors.light.ringRamadan };
         } else if (hasMonThu) {
           cellOpacity = dimInactiveDays ? 0.35 : 1;
           circleStyle = {
-            borderWidth: 1.2,
+            borderWidth: 1,
             borderColor: Colors.light.ringMonThu,
           };
           textStyle = { color: Colors.light.ringMonThu };
         } else if (hasDawood) {
           cellOpacity = dimInactiveDays ? 0.35 : 1;
           circleStyle = {
-            borderWidth: 1.2,
+            borderWidth: 1,
             borderColor: Colors.light.ringDawood,
           };
           textStyle = { color: Colors.light.ringDawood };
         } else if (hasWhiteDay) {
           cellOpacity = dimInactiveDays ? 0.35 : 1;
           circleStyle = {
-            borderWidth: 1.2,
+            borderWidth: 1,
             borderColor: Colors.light.white,
           };
           textStyle = { color: Colors.light.white };
@@ -372,7 +382,7 @@ export const CalendarGrid = ({
           dawoodStartDay === 1 ? diffDays % 2 === 0 : diffDays % 2 === 1;
         if (isFastDay) {
           circleStyle = {
-            borderWidth: 1.2,
+            borderWidth: 1,
             borderColor: Colors.light.ringDawood,
           };
           textStyle = { color: Colors.light.ringDawood };
@@ -396,28 +406,28 @@ export const CalendarGrid = ({
         if (isUserSelected && isMonThu) {
           cellOpacity = 1;
           circleStyle = {
-            borderWidth: 1.2,
-            borderColor: Colors.light.white,
+            borderWidth: 1,
+            borderColor: Colors.light.ringMonThu,
           };
-          textStyle = { color: Colors.light.white };
+          textStyle = { color: Colors.light.ringMonThu };
         } else if (hasMissedRamadan) {
           cellOpacity = dimInactiveDays ? 0.35 : 1;
           circleStyle = {
-            borderWidth: 1.2,
+            borderWidth: 1,
             borderColor: Colors.light.ringRamadan,
           };
           textStyle = { color: Colors.light.ringRamadan };
         } else if (hasDawood) {
           cellOpacity = dimInactiveDays ? 0.35 : 1;
           circleStyle = {
-            borderWidth: 1.2,
+            borderWidth: 1,
             borderColor: Colors.light.ringDawood,
           };
           textStyle = { color: Colors.light.ringDawood };
         } else if (hasWhiteDay) {
           cellOpacity = dimInactiveDays ? 0.35 : 1;
           circleStyle = {
-            borderWidth: 1.2,
+            borderWidth: 1,
             borderColor: Colors.light.white,
           };
           textStyle = { color: Colors.light.white };
@@ -448,28 +458,28 @@ export const CalendarGrid = ({
         if (isUserSelected && isWhiteDay) {
           cellOpacity = 1;
           circleStyle = {
-            borderWidth: 1.2,
+            borderWidth: 1,
             borderColor: Colors.light.white,
           };
           textStyle = { color: Colors.light.white };
         } else if (hasMissedRamadan) {
           cellOpacity = dimInactiveDays ? 0.35 : 1;
           circleStyle = {
-            borderWidth: 1.2,
+            borderWidth: 1,
             borderColor: Colors.light.ringRamadan,
           };
           textStyle = { color: Colors.light.ringRamadan };
         } else if (hasDawood) {
           cellOpacity = dimInactiveDays ? 0.35 : 1;
           circleStyle = {
-            borderWidth: 1.2,
+            borderWidth: 1,
             borderColor: Colors.light.ringDawood,
           };
           textStyle = { color: Colors.light.ringDawood };
         } else if (hasMonThu) {
           cellOpacity = dimInactiveDays ? 0.35 : 1;
           circleStyle = {
-            borderWidth: 1.2,
+            borderWidth: 1,
             borderColor: Colors.light.ringMonThu,
           };
           textStyle = { color: Colors.light.ringMonThu };
@@ -487,19 +497,19 @@ export const CalendarGrid = ({
       case "planned_all": {
         if (markedSet.has(ds)) {
           circleStyle = {
-            borderWidth: 1.2,
+            borderWidth: 1,
             borderColor: Colors.light.ringRamadan,
           };
           textStyle = { color: Colors.light.ringRamadan };
         } else if (monThuSet.has(ds)) {
           circleStyle = {
-            borderWidth: 1.2,
+            borderWidth: 1,
             borderColor: Colors.light.ringMonThu,
           };
           textStyle = { color: Colors.light.ringMonThu };
         } else if (whiteDaySet.has(ds)) {
           circleStyle = {
-            borderWidth: 1.2,
+            borderWidth: 1,
             borderColor: Colors.light.white,
           };
           textStyle = { color: Colors.light.white };
@@ -512,21 +522,21 @@ export const CalendarGrid = ({
         if (completedFastSet.has(ds)) {
           markerColor = Colors.light.ringRamadan;
           circleStyle = {
-            borderWidth: 1.2,
+            borderWidth: 1,
             borderColor: Colors.light.ringRamadan,
           };
           showCompletedDot = true;
           textStyle = { color: Colors.light.white };
         } else if (missedFastSet.has(ds)) {
           circleStyle = {
-            borderWidth: 1.2,
+            borderWidth: 1,
             borderColor: Colors.light.warning,
           };
           showMissedWarning = true;
           textStyle = { color: Colors.light.warning };
         } else if (incompletePlannedFastSet.has(ds)) {
           circleStyle = {
-            borderWidth: 1.2,
+            borderWidth: 1,
             borderColor: Colors.light.subtext,
             backgroundColor: "transparent",
           };
@@ -556,21 +566,21 @@ export const CalendarGrid = ({
         if (completedFastSet.has(ds)) {
           markerColor = Colors.light.green;
           circleStyle = {
-            borderWidth: 1.2,
+            borderWidth: 1,
             borderColor: Colors.light.green,
           };
           showCompletedDot = true;
           textStyle = { color: Colors.light.blackBackground };
         } else if (missedFastSet.has(ds)) {
           circleStyle = {
-            borderWidth: 1.2,
+            borderWidth: 1,
             borderColor: Colors.light.warning,
           };
           showMissedWarning = true;
           textStyle = { color: Colors.light.warning };
         } else if (incompletePlannedFastSet.has(ds)) {
           circleStyle = {
-            borderWidth: 1.2,
+            borderWidth: 1,
             borderColor: Colors.light.green,
             backgroundColor: "transparent",
           };
@@ -599,21 +609,21 @@ export const CalendarGrid = ({
         if (completedFastSet.has(ds)) {
           markerColor = Colors.light.white;
           circleStyle = {
-            borderWidth: 1.5,
+            borderWidth: 1,
             borderColor: "#000000",
           };
           showCompletedDot = true;
           textStyle = { color: Colors.light.blackBackground };
         } else if (missedFastSet.has(ds)) {
           circleStyle = {
-            borderWidth: 1.2,
+            borderWidth: 1,
             borderColor: Colors.light.white,
           };
           showMissedWarning = true;
           textStyle = { color: Colors.light.white };
         } else if (incompletePlannedFastSet.has(ds)) {
           circleStyle = {
-            borderWidth: 1.2,
+            borderWidth: 1,
             borderColor: Colors.light.white,
           };
           textStyle = { color: Colors.light.white };
@@ -641,21 +651,21 @@ export const CalendarGrid = ({
         if (completedFastSet.has(ds)) {
           markerColor = Colors.light.ringDawood;
           circleStyle = {
-            borderWidth: 1.2,
+            borderWidth: 1,
             borderColor: Colors.light.ringDawood,
           };
           showCompletedDot = true;
           textStyle = { color: Colors.light.white };
         } else if (missedFastSet.has(ds)) {
           circleStyle = {
-            borderWidth: 1.2,
+            borderWidth: 1,
             borderColor: Colors.light.warning,
           };
           showMissedWarning = true;
           textStyle = { color: Colors.light.warning };
         } else if (incompletePlannedFastSet.has(ds)) {
           circleStyle = {
-            borderWidth: 1.2,
+            borderWidth: 1,
             borderColor: Colors.light.ringDawood,
             backgroundColor: "transparent",
           };
@@ -671,7 +681,7 @@ export const CalendarGrid = ({
         if (marker) {
           markerColor = marker.color;
           circleStyle = {
-            borderWidth: 1.2,
+            borderWidth: 1,
             borderColor: marker.color,
           };
           showCompletedDot = marker.state === "completed";
@@ -726,11 +736,19 @@ export const CalendarGrid = ({
       isWhiteDayCell &&
       (selectedDatesSet.has(ds) || !hasOtherGoalOnWhiteDay);
 
+    // Mon/Thu: only Mon/Thu, and not occupied by another goal
+    const hasOtherGoalOnMonThu =
+      markedSet.has(ds) || whiteDaySet.has(ds) || dawoodSet.has(ds);
+    const isMonThuTappable =
+      mode === "mon_thu" &&
+      isMonThuDay &&
+      (selectedDatesSet.has(ds) || !hasOtherGoalOnMonThu);
+
     const isTappable =
       (mode === "dob" && !isDisabledDobDate) ||
       mode === "cycle_start" ||
       isRamadanTappable ||
-      (mode === "mon_thu" && isMonThuDay) ||
+      isMonThuTappable ||
       isWhiteDayTappable;
     const isAchievementTappable = isAchievementMode && Boolean(onDayPress);
 
@@ -759,7 +777,13 @@ export const CalendarGrid = ({
                 isSelected && styles.cycleStartMarkerSelected,
               ]}
             >
-              <Text style={[styles.cycleStartDayGregorian, textStyle]}>
+              <Text
+                style={[
+                  styles.cycleStartDayGregorian,
+                  isSelected && styles.cycleStartDayGregorianSelected,
+                  textStyle,
+                ]}
+              >
                 {dayNumber}
               </Text>
               <Text style={styles.cycleStartDayHijri}>{hijriDayLabel}</Text>
@@ -814,7 +838,9 @@ export const CalendarGrid = ({
                 ) : null}
               </View>
               {mode !== "white_days_achievement" ? (
-                <Text style={styles.dayHijri}>{hijriDayLabel}</Text>
+                <Text style={[styles.dayHijri, textStyle]}>
+                  {hijriDayLabel}
+                </Text>
               ) : null}
             </>
           )}
@@ -915,10 +941,11 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   cycleGrid: {
+    // Match cycle_start padding so fasting goal grids share the same chrome.
     backgroundColor: Colors.light.calendarBg,
-    paddingBottom: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 24,
+    paddingTop: 12,
+    paddingBottom: 0,
+    paddingHorizontal: 16,
   },
   // ── Cycle Start mode (Figma: Cycle Start Date frame) ────────────────
   // Intentionally replaces base cycleGrid padding (do not stack with paddingVertical).
@@ -947,7 +974,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    marginBottom: 7,
+    marginBottom: 8,
     fontWeight: "400",
   },
   weekRow: {
@@ -962,7 +989,7 @@ const styles = StyleSheet.create({
   },
   paddingDayCell: {
     width: DAY_CELL_WIDTH,
-    height: DAY_CELL_HEIGHT + 8,
+    height: DAY_CELL_HEIGHT,
   },
   dayPressable: {
     alignSelf: "center",
@@ -970,16 +997,16 @@ const styles = StyleSheet.create({
   },
   dayCell: {
     alignItems: "center",
-    justifyContent: "flex-start",
+    justifyContent: "center",
     width: DAY_CELL_WIDTH,
-    height: DAY_CELL_HEIGHT + 4,
-    paddingVertical: 2,
-    borderRadius: 6,
-    marginBottom: 10,
+    height: DAY_CELL_HEIGHT,
+    paddingVertical: 0,
+    borderRadius: 0,
+    marginBottom: 7,
   },
   dayMarkerWrap: {
-    width: DAY_CELL_WIDTH - 5,
-    height: RING_SIZE - 16,
+    width: DAY_MARKER_SLOT_WIDTH,
+    height: DAY_MARKER_SLOT_HEIGHT,
     alignItems: "center",
     justifyContent: "center",
     flexShrink: 0,
@@ -1019,7 +1046,8 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
-    lineHeight: 16,
+    lineHeight: 20,
+    textAlign: "center",
   },
   dayGregorianAboveDot: {
     zIndex: 2,
@@ -1028,9 +1056,11 @@ const styles = StyleSheet.create({
   dayHijri: {
     fontSize: 10,
     color: Colors.light.grey,
-    marginTop: 2,
-    fontWeight: "500",
-    fontFamily: fonts.primary.semiBold,
+    marginTop: 4,
+    lineHeight: 18,
+    fontWeight: "400",
+    fontFamily: fonts.primary.regular,
+    textAlign: "center",
   },
   cycleStartWeekdayLabel: {
     color: Colors.light.white,
@@ -1055,26 +1085,30 @@ const styles = StyleSheet.create({
   cycleStartMarker: {
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    borderRadius: 6,
-    minWidth: 18,
+    paddingHorizontal: 4,
+
+    borderRadius: 4,
+    minWidth: 15,
   },
   cycleStartMarkerSelected: {
     backgroundColor: Colors.light.calendarTodayBg,
   },
   cycleStartDayGregorian: {
     fontSize: 12,
-    lineHeight: 14,
+    lineHeight: 20,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
     color: Colors.light.white,
     textAlign: "center",
   },
+  cycleStartDayGregorianSelected: {
+    fontFamily: fonts.primary.bold,
+    fontWeight: "700",
+  },
   cycleStartDayHijri: {
     fontSize: 10,
-    marginTop: 4,
-    lineHeight: 12,
+    marginTop: 2,
+    lineHeight: 18,
     color: Colors.light.grey,
     fontFamily: fonts.primary.regular,
     fontWeight: "400",

@@ -10,7 +10,7 @@ import { useSharedValue } from "react-native-reanimated";
 import { Colors } from "../../constants/theme";
 import { fonts } from "../../assets/fonts";
 import CustomSlider from "../atoms/CustomSlider";
-import PrimaryButton from "../atoms/Primary-button";
+import GoalSelectionSaveButton from "./GoalSelectionSaveButton";
 import { useTranslation } from "react-i18next";
 import { useLocaleNumber } from "../../hooks/useLocaleNumber";
 import { GoalSelectionOpenCloseButton } from "./GoalSelectionOpenCloseButton";
@@ -111,10 +111,9 @@ export default function DailyPrayerGoalSelection({
     trackingCongregation,
   ]);
 
-  const handleSave = () => {
-    if (onSave) {
-      onSave(fajr, dhuhr, asar, maghrib, isha, jumuah, isTrackingCongregation);
-    }
+  const handleSave = (markSaved: () => void) => {
+    onSave?.(fajr, dhuhr, asar, maghrib, isha, jumuah, isTrackingCongregation);
+    markSaved();
   };
 
   const sliderData = useMemo<PrayerSliderItem[]>(() => {
@@ -255,7 +254,7 @@ export default function DailyPrayerGoalSelection({
           </View>
 
           <View style={styles.buttonContainer}>
-            <PrimaryButton
+            <GoalSelectionSaveButton
               text={t("prayerGoals.save").toUpperCase()}
               onPress={handleSave}
               style={styles.saveButton}
@@ -276,11 +275,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 18,
-    marginVertical: 10,
+    marginVertical: 0,
   },
   expandedContent: {
     width: "100%",
     paddingTop: 12,
+    paddingBottom: 6,
   },
   sliderGroup: {
     width: "100%",

@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
   container: {
     color: Colors.light.white,
     fontWeight: "400",
-    fontSize: 14,
+    fontSize: 16,
     fontFamily: fonts.primary.regular,
     lineHeight: 20,
     marginTop: 24,

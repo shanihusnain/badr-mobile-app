@@ -32,7 +32,7 @@ export const GoalCard = ({ item, cardWidth }: Props) => {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: Colors.light.greybuttonBackground,
-    borderRadius: 16,
+    borderRadius: 8,
     paddingVertical: 15,
     paddingHorizontal: 12,
     flexDirection: "row",
