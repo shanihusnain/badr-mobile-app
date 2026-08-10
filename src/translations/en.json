@@ -1245,6 +1245,7 @@
     },
     "duhaPrayer": {
       "title": "DUHA",
+      "summaryDescription": "Duha prayer, also known as the repentant or Awabeen in Arabic, is performed in sets of 2 rak'ahs anytime 15-20 minutes after sunrise until 10-15 minutes before Dhuhr.",
       "description": "Duha prayer, also known as the repentant or Awabeen in Arabic, is performed in sets of 2 rak'ahs anytime 15-20 minutes after sunrise until 10-15 minutes before Dhuhr.",
       "heroTitle": "Spiritual Elevation & Physical Charity",
       "navTitle": "DUHA",
@@ -1306,6 +1307,7 @@
     },
     "tawbaPrayer": {
       "title": "TAWBAH PRAYER",
+      "summaryDescription": "Also known as the repentance prayer in English, the Tawbah prayer is a sincere 2 rak'ah prayer to seek forgiveness from Allah for our sins.",
       "description": "The Tawbah prayer, or the Prayer of Repentance, is a rewarding 2-rakah voluntary prayer for seeking Allah's forgiveness and repentance for any sins, whether minor or major, old or new.",
       "heroTitle": "Embracing the Power of Repentance",
       "navTitle": "AL-TAWBAH",
@@ -1393,6 +1395,7 @@
     },
     "istikharah": {
       "title": "ISTIKHARAH PRAYER",
+      "summaryDescription": "A two rak'ah prayer performed to seek guidance from Allah when faced with a decision. It helps us make choices that align with our faith and best interests.",
       "description": "The Istikhara prayer is a two rak'ah prayer for divine guidance when making a decision, fostering reliance on Allah and promoting peace of mind.",
       "heroTitle": "Seeking Divine Guidance in Decision-Making",
       "navTitle": "ISTIKHARAH",
@@ -1479,6 +1482,7 @@
     },
     "shukrPrayer": {
       "title": "SHUKR PRAYER",
+      "summaryDescription": "The Gratitude Prayer (Shukr) is a 2-rak'ah act of thanks to Allah for His countless blessings. It fosters positivity by inspiring recognition of His generosity...",
       "description": "Al-Shukr prayer is a two rak'ah prayer of gratitude, fostering humility and appreciation for Allah's countless blessings, strengthening our faith.",
       "heroTitle": "Gratitude in Devotion",
       "navTitle": "SHUKR",
@@ -1576,6 +1580,7 @@
     },
     "qiyamalLail": {
       "title": "QIYAM AL-LAYL",
+      "summaryDescription": "Night prayers, performed between Isha and Fajr, are most beloved after obligatory prayers, fostering spiritual growth and inviting Allah's mercy and blessings...",
       "description": "Qiyam Al-Layl, the night prayer, is performed anytime between Isha and Fajr. This sacred time fosters spiritual elevation, bringing Allah's blessings, forgiveness, and answered prayers.",
       "heroTitle": "Illuminating the Heart, Mind, and Soul",
       "navTitle": "QIYAM AL-LAYL",
@@ -1672,6 +1677,7 @@
     },
     "quran-listening": {
       "title": "QURAN LISTENING",
+      "summaryDescription": "Listening to the Quran brings tranquility, shields from evil, alleviates stress, enhances recitation, and refines tajweed skills, fostering spiritual growth....",
       "description": "Listening to the Quran engages the heart, mind, and soul, offering guidance, comfort, and spiritual growth while deepening one’s connection with Allah.",
       "heroTitle": "The Heart's Harmony",
       "navTitle": "QURAN LISTENING",
@@ -1756,6 +1762,7 @@
     },
     "quran-recitation": {
       "title": "QURAN RECITATION",
+      "summaryDescription": "Reciting the Quran multiplies rewards, refines pronunciation, deepens understanding, and softens hearts, fostering a profound connection with Allah...",
       "description": "Reciting the Quran fortifies our bond with Allah, enhances understanding of His words, softens hearts, provides protection, and bestows multiplied rewards",
       "heroTitle": "The Path of Illumination",
       "navTitle": "QURAN RECITATION",
@@ -1925,6 +1932,7 @@
     },
     "quran-memorization": {
       "title": "QURAN MEMORIZATION",
+      "summaryDescription": "Every word we memorize elevates our rank in Paradise, grants intercession for others, sharpens the mind, and enhances comprehension of the Quran...",
       "description": "Memorizing the Quran strengthens our bond with Allah, deepens understanding of His teachings, boosts memory, and offers comfort and guidance in all life aspects.",
       "heroTitle": "A Journey of Spiritual Transformation",
       "navTitle": "QURAN MEMORIZATION",
@@ -2033,6 +2041,7 @@
     },
     "quran-tajweed": {
       "title": "QURAN TAJWEED",
+      "summaryDescription": "Tajweed perfects Quranic recitation as revealed to the Prophet (PBUH), preserving its authentic pronunciation, rhythm, and melody while deepening understanding..",
       "description": "Tajweed helps us internalize Allah's words, allowing them to resonate deeply within us, and deepens our appreciation of their beauty and eloquence.",
       "heroTitle": "Mastering the Art of Divine Recitation",
       "navTitle": "QURAN TAJWEED",
@@ -2141,6 +2150,7 @@
     },
     "missed-fasts": {
       "title": "MISSED RAMADAN FASTS",
+      "summaryDescription": "Fulfilling missed obligatory fasts is a duty that reflects devotion, demonstrates discipline, and upholds our commitment to Allah’s commands...",
       "description": "By making up missed fasts, we honor our religious duty, reinforce our faith, nurture spiritual resilience, and deepen our connection with Allah.",
       "heroTitle": "Fulfilling obligations for spiritual growth",
       "navTitle": "MISSED RAMADAN FASTS",
@@ -2445,6 +2455,7 @@
     },
     "white-days-fasts": {
       "title": "WHITE DAYS FASTS",
+      "summaryDescription": "Fasting on the 13th, 14th, and 15th of each Islamic month deepens connection with Allah, nurtures discipline, and inspires profound spiritual growth and self-reflection..",
       "description": "Fasting on the White Days, the 13th, 14th, and 15th of each Islamic month, strengthens your connection with Allah, fosters discipline, and cultivates deep spiritual growth.",
       "heroTitle": "Aligning with Celestial Harmony",
       "navTitle": "WHITE DAYS FASTS",
@@ -2585,6 +2596,7 @@
     },
     "missed-zakat": {
       "title": "MISSED ZAKAT",
+      "summaryDescription": "Fulfilling missed Zakat is a sacred obligation that purifies wealth, restores social equity, and reaffirms a believer’s responsibility to support society’s welfare.",
       "description": "Zakat, one of the Five Pillars of Islam, is a sacred obligation that purifies wealth and ensures social equity, emphasizing the responsibility of every believer to contribute to the welfare of society.",
       "heroTitle": "A Path to Redemption & Social Justice",
       "navTitle": "MISSED ZAKAT",
@@ -2867,6 +2879,7 @@
     },
     "fidya": {
       "title": "FIDYA",
+      "summaryDescription": "A form of sadaqah that allows those unable to fast due to illness or age to stay spiritually connected by feeding one person per missed fast day.",
       "description": "Fidya allows those unable to fast due to illness or age to stay spiritually connected by feeding one person per missed fast day, maintaining their worship and compassion.",
       "heroTitle": "Bridging Faith with Communal Empathy",
       "navTitle": "FIDYA",
@@ -2980,6 +2993,7 @@
     },
     "lilah-donations": {
       "title": "LILLAH DONATIONS",
+      "summaryDescription": "A form of sadaqah to atone for broken fasts or oaths, requiring feeding or clothing those in need as prescribed.",
       "description": "Lillah, derived from the Arabic term 'for Allah', The Quran also emphasizes this in Surah Al-Insan (76:8):is a pure form of sadaqah driven by a sincere desire to please Allah, fostering devotion and selflessness among Muslims.",
       "heroTitle": "A Pure Act of Sadaqah for Allah's Sake",
       "navTitle": "LILLAH DONATIONS",
@@ -3209,6 +3223,7 @@
     },
     "sadaqah-jariyah": {
       "title": "SADAQAH JARIYAH",
+      "summaryDescription": "This form of Sadaqah is the most rewarding—it’s the gift that keeps giving, offering endless blessings and rewards in this life and the hereafter.",
       "description": "Sadaqah Jariyah is a key Islamic practice that seeks Allah's mercy and offers continuous benefits, providing ongoing rewards for the donor in this life and the afterlife.",
       "heroTitle": "A Path to Eternal Blessings & Remembrance",
       "navTitle": "SADAQAH JARIYAH",

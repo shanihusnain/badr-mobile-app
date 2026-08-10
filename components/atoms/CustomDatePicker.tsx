@@ -1,11 +1,9 @@
 import { fonts } from "@/assets/fonts";
+import { CreateAccountCalenderIcon } from "@/assets/icons";
 import { Colors } from "@/constants/theme";
-import SimpleLineIcons from "@expo/vector-icons/SimpleLineIcons";
-import DateTimePicker from "@react-native-community/datetimepicker";
 import React, { useState } from "react";
 import { Controller } from "react-hook-form";
 import {
-  Platform,
   StyleSheet,
   Text,
   TextStyle,
@@ -99,7 +97,7 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
             >
               {value ? formatStoredDate(String(value)) : placeholder}
             </Text>
-            <SimpleLineIcons name="calendar" size={16} color={Colors.light.white} />
+            <CreateAccountCalenderIcon width={20} color={Colors.light.white} />
           </TouchableOpacity>
 
           {errors.length > 0 && (
@@ -115,6 +113,7 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
             <>
               <TopSpace top={8} />
               <DOBCalendar
+                value={value ? String(value) : undefined}
                 onSave={(data) => {
                   setSelectedDate(data);
                   onChange(data);

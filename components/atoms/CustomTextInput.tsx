@@ -81,57 +81,87 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
   const renderInput = (
     fieldValue?: string,
     fieldOnChange?: (value: string) => void,
-  ) => (
-    <View style={styles.wrapper}>
-      {label ? <Text style={[styles.label, labelStyle]}>{label}</Text> : null}
-      <View
-        style={[
-          styles.inputWrapper,
-          containerStyle,
-          multiline && styles.multilineInputWrapper,
-        ]}
-      >
-        {leftIcon ? <View style={styles.leftIcon}>{leftIcon}</View> : null}
-        <TextInput
+  ) => {
+    const actualValue = fieldValue ?? value ?? "";
+    const handleChange = fieldOnChange ?? onChangeText;
+
+    // Native secureTextEntry only shows platform dots; mask with asterisks instead.
+    const displayValue = secureTextEntry
+      ? "*".repeat(actualValue.length)
+      : actualValue;
+
+    const handleMaskedChange = (text: string) => {
+      if (!handleChange) return;
+
+      if (!secureTextEntry) {
+        handleChange(text);
+        return;
+      }
+
+      if (text.length < actualValue.length) {
+        handleChange(actualValue.slice(0, text.length));
+        return;
+      }
+
+      handleChange(actualValue + text.slice(actualValue.length));
+    };
+
+    return (
+      <View style={styles.wrapper}>
+        {label ? <Text style={[styles.label, labelStyle]}>{label}</Text> : null}
+        <View
           style={[
-            styles.input,
-            { textAlign: isRtl ? "right" : "left" },
-            secureTextEntry && { fontFamily: fonts.primary.semiBold },
-            multiline && styles.multilineTextInput,
-            inputStyle,
+            styles.inputWrapper,
+            containerStyle,
+            multiline && styles.multilineInputWrapper,
           ]}
-          placeholder={placeholder}
-          placeholderTextColor={Colors.light.icon}
-          value={fieldValue ?? value ?? ""}
-          onChangeText={fieldOnChange ?? onChangeText}
-          secureTextEntry={secureTextEntry}
-          multiline={multiline}
-          keyboardType={keyboardType}
-          autoCapitalize={autoCapitalize}
-          maxLength={maxLength}
-          editable={editable}
-          selectTextOnFocus={selectTextOnFocus}
-          numberOfLines={numberOfLines}
-          textAlignVertical={multiline ? "top" : "center"}
-        />
-        {showEye && onToggleEye && (
-          <TouchableOpacity onPress={onToggleEye} style={styles.rightIcon}>
-            <AntDesign
-              name={secureTextEntry ? "eye-invisible" : "eye"}
-              size={20}
-              color={Colors.light.white}
-            />
-          </TouchableOpacity>
+        >
+          {leftIcon ? <View style={styles.leftIcon}>{leftIcon}</View> : null}
+          <TextInput
+            style={[
+              styles.input,
+              { textAlign: isRtl ? "right" : "left" },
+              secureTextEntry && { fontFamily: fonts.primary.semiBold },
+              multiline && styles.multilineTextInput,
+              inputStyle,
+            ]}
+            placeholder={placeholder}
+            placeholderTextColor={Colors.light.icon}
+            value={displayValue}
+            onChangeText={handleMaskedChange}
+            secureTextEntry={false}
+            multiline={multiline}
+            keyboardType={keyboardType}
+            autoCapitalize={secureTextEntry ? "none" : autoCapitalize}
+            autoCorrect={false}
+            spellCheck={false}
+            textContentType={secureTextEntry || showEye ? "password" : undefined}
+            autoComplete={secureTextEntry || showEye ? "password" : undefined}
+            maxLength={maxLength}
+            editable={editable}
+            selectTextOnFocus={selectTextOnFocus}
+            numberOfLines={numberOfLines}
+            textAlignVertical={multiline ? "top" : "center"}
+          />
+          {showEye && onToggleEye && (
+            <TouchableOpacity onPress={onToggleEye} style={styles.rightIcon}>
+              <AntDesign
+                name={secureTextEntry ? "eye-invisible" : "eye"}
+                size={20}
+                color={Colors.light.white}
+              />
+            </TouchableOpacity>
+          )}
+        </View>
+        {errors.length > 0 && (
+          <Text style={styles.errorMsg}>{errors.join(", ")}</Text>
+        )}
+        {success.length > 0 && (
+          <Text style={styles.successMsg}>{success.join(", ")}</Text>
         )}
       </View>
-      {errors.length > 0 && (
-        <Text style={styles.errorMsg}>{errors.join(", ")}</Text>
-      )}
-      {success.length > 0 && (
-        <Text style={styles.successMsg}>{success.join(", ")}</Text>
-      )}
-    </View>
-  );
+    );
+  };
 
   if (control && name) {
     return (

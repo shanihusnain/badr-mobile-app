@@ -428,36 +428,6 @@ export default function MenstruationLog({
           </View>
         </View>
 
-        <View style={styles.menstruatingContainer}>
-          <Text
-            style={[
-              styles.menstruatingText,
-              {
-                color: menstruating ? Colors.light.white : Colors.light.subtext,
-              },
-            ]}
-          >
-            {t("homeScreen.menstruationLog_imStillMenstruating")}
-          </Text>
-          <SwitchButton
-            value={isStillMenstruating}
-            onPress={() => {
-              if (!menstruating) return;
-              const newValue = !isStillMenstruating.value;
-              isStillMenstruating.value = newValue;
-              setStillMenstruating(newValue);
-              if (newValue) {
-                setShowEndDatePicker(false);
-                setSelectedEndDate(selectableMaxString);
-              }
-            }}
-            trackColors={{ off: Colors.light.subtext, on: Colors.light.dullWhiteOpacity }}
-            thumbColors={{ off: Colors.light.white, on: Colors.light.green }}
-            size="small"
-            style={[styles.switchButton, !menstruating && { opacity: 0.4 }]}
-          />
-        </View>
-
         <View style={styles.startDateContainer}>
           <Text
             style={[
@@ -552,6 +522,36 @@ export default function MenstruationLog({
             </View>
           </View>
         )}
+
+        <View style={styles.menstruatingContainer}>
+          <Text
+            style={[
+              styles.menstruatingText,
+              {
+                color: menstruating ? Colors.light.white : Colors.light.subtext,
+              },
+            ]}
+          >
+            {t("homeScreen.menstruationLog_imStillMenstruating")}
+          </Text>
+          <SwitchButton
+            value={isStillMenstruating}
+            onPress={() => {
+              if (!menstruating) return;
+              const newValue = !isStillMenstruating.value;
+              isStillMenstruating.value = newValue;
+              setStillMenstruating(newValue);
+              if (newValue) {
+                setShowEndDatePicker(false);
+                setSelectedEndDate(selectableMaxString);
+              }
+            }}
+            trackColors={{ off: Colors.light.subtext, on: Colors.light.dullWhiteOpacity }}
+            thumbColors={{ off: Colors.light.white, on: Colors.light.green }}
+            size="small"
+            style={[styles.switchButton, !menstruating && { opacity: 0.4 }]}
+          />
+        </View>
 
         <PrimaryButton
           text={t("homeScreen.menstruationLog_save")}
