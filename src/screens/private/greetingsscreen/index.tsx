@@ -27,9 +27,10 @@ export const GreetingsScreen = () => {
           fontFamily: fonts.primary.medium,
           fontSize: 18,
           color: Colors.light.white,
-          marginBottom: 16,
+          marginBottom: 20,
           lineHeight: 22,
           textTransform: "uppercase",
+          letterSpacing: 0,
         }}
       >
         Assalamu alaykum, {user?.username}!

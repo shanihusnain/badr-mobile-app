@@ -9,11 +9,12 @@ export const globalStyles = StyleSheet.create({
   goalSelectionWrapper: {
     alignItems: "center",
     width: "100%",
-    backgroundColor: Colors.light.calendarBg,
+    backgroundColor: "#2F4053",
     borderRadius: 6,
     paddingHorizontal: 16,
     paddingVertical: 10,
-    marginVertical: 10,
+    // Vertical gap is owned by GoalPlannerSheet (12 under card / 20 between items).
+    marginVertical: 0,
   },
   onboardingHeading: {
     color: Colors.light.white,
@@ -29,5 +30,6 @@ export const globalStyles = StyleSheet.create({
     fontFamily: fonts.primary.medium,
     fontSize: 18,
     color: Colors.light.green,
+    lineHeight: 22,
   },
 });

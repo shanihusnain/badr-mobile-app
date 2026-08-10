@@ -28,6 +28,8 @@ type WarningModalProps = {
   primaryButtonTextStyle?: StyleProp<TextStyle>;
   secondaryButtonTextStyle?: StyleProp<TextStyle>;
   primaryButtonVariant?: "white" | "green";
+  /** Defaults to compact so modal bordered CTAs stay shorter than app-wide SecondaryButtons. */
+  primaryButtonSize?: "default" | "compact";
 };
 
 export default function WarningModal({
@@ -43,6 +45,7 @@ export default function WarningModal({
   primaryButtonTextStyle,
   secondaryButtonTextStyle,
   primaryButtonVariant = "green",
+  primaryButtonSize = "compact",
 }: WarningModalProps) {
   const handleBackdropPress = () => {
     if (onBackdropPress) onBackdropPress();
@@ -82,6 +85,7 @@ export default function WarningModal({
               text={primaryButtonText}
               onPress={onPrimaryPress}
               variant={primaryButtonVariant}
+              size={primaryButtonSize}
               style={primaryButtonStyle}
               textStyle={primaryButtonTextStyle}
             />
@@ -113,11 +117,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
   },
   modalContainer: {
-    backgroundColor: Colors.light.calendarBg,
+    backgroundColor: Colors.light.darkgrey,
     borderRadius: 12,
     paddingHorizontal: 24,
-    paddingTop: 24,
-    paddingBottom: 20,
+    paddingVertical: 30,
     width: "100%",
   },
   title: {
@@ -144,7 +147,7 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     gap: 12,
-    width: "40%",
+    width: "50%",
     alignSelf: "center",
   },
   secondaryButton: {

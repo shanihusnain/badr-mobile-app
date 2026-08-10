@@ -16,6 +16,8 @@ interface PrimaryButtonProps extends PressableProps {
   onPress: () => void;
   textStyle?: StyleProp<TextStyle>;
   isLoading?: boolean;
+  /** Compact height for in-sheet goal Save actions (smaller than sheet NEXT). */
+  size?: "default" | "compact";
 }
 
 export default function PrimaryButton({
@@ -25,12 +27,14 @@ export default function PrimaryButton({
   textStyle,
   disabled,
   isLoading,
+  size = "default",
   ...props
 }: PrimaryButtonProps) {
   return (
     <Pressable
       style={(state) => [
         styles.button,
+        size === "compact" && styles.buttonCompact,
         disabled && styles.buttonDisabled,
         typeof style === "function" ? style(state) : style,
         state.pressed && !disabled && styles.buttonPressed,
@@ -49,7 +53,7 @@ export default function PrimaryButton({
             textStyle,
           ]}
         >
-          {text}
+          {text.toLocaleUpperCase()}
         </Text>
       )}
     </Pressable>
@@ -58,12 +62,18 @@ export default function PrimaryButton({
 const styles = StyleSheet.create({
   button: {
     width: "100%",
-    borderRadius: 6,
-    paddingVertical: 5,
+    borderRadius: 4,
+    paddingVertical: 8,
     paddingHorizontal: 8,
+    // padding + label lineHeight — keeps loading/disabled the same height as enabled
+    minHeight: 41,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: Colors.light.green,
+  },
+  buttonCompact: {
+    paddingVertical: 2,
+    minHeight: 32,
   },
   buttonPressed: {
     opacity: 0.8,
@@ -71,7 +81,6 @@ const styles = StyleSheet.create({
   buttonDisabled: {
     backgroundColor: Colors.light.disabledButtonColor,
     borderColor: Colors.light.disabledButtonColor,
-    opacity: 1,
   },
   buttonText: {
     color: Colors.light.white,

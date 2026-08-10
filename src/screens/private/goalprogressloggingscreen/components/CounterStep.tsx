@@ -69,8 +69,9 @@ const styles = StyleSheet.create({
   },
   unitText: {
     color: Colors.light.white,
-    fontFamily: fonts.primary.medium,
+    fontFamily: fonts.primary.regular,
     fontSize: 14,
-    fontWeight: "500",
+    fontWeight: "400",
+    letterSpacing: 0.1,
   },
 });

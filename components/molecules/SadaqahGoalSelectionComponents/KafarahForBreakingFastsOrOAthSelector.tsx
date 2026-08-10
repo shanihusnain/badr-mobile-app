@@ -1,11 +1,11 @@
+import { Colors } from "@/constants/theme";
 import { globalStyles } from "@/src/globalstyles/globalstyles";
 import { LayoutAnimation, View } from "react-native";
 import { GoalSelectionOpenCloseButton } from "../GoalSelectionOpenCloseButton";
 import { Counter } from "../Counter";
-import { Divider } from "@/components/atoms/Divider";
 import { useState } from "react";
 import { TopSpace } from "@/components/atoms/TopSpace";
-import PrimaryButton from "@/components/atoms/Primary-button";
+import GoalSelectionSaveButton from "@/components/molecules/GoalSelectionSaveButton";
 import { useTranslation } from "react-i18next";
 
 export const KafarahForBreakingFastsOrOAthSelector = ({
@@ -28,7 +28,7 @@ export const KafarahForBreakingFastsOrOAthSelector = ({
   setClothCount: (count: number) => void;
   handleClothDecrease: () => void;
   handleClothIncrease: () => void;
-  onSave?: () => void;
+  onSave?: (onDone?: () => void) => void;
   isSaving?: boolean;
 }) => {
   const { t } = useTranslation();
@@ -38,7 +38,12 @@ export const KafarahForBreakingFastsOrOAthSelector = ({
     setIsOpen(!isOpen);
   };
   return (
-    <View style={[globalStyles.goalSelectionWrapper]}>
+    <View
+      style={[
+        globalStyles.goalSelectionWrapper,
+        { paddingBottom: isOpen ? 14 : 6 },
+      ]}
+    >
       <GoalSelectionOpenCloseButton
         isOpen={isOpen}
         title={t("monthlyGoalPlanner.reviewLabels.kafarahBreakingFasts")}
@@ -46,8 +51,7 @@ export const KafarahForBreakingFastsOrOAthSelector = ({
       />
       {isOpen && (
         <>
-          <Divider />
-          <TopSpace top={16} />
+          <TopSpace top={24} />
           <View
             style={{
               flexDirection: "row",
@@ -76,9 +80,9 @@ export const KafarahForBreakingFastsOrOAthSelector = ({
           {onSave ? (
             <>
               <TopSpace top={16} />
-              <PrimaryButton
+              <GoalSelectionSaveButton
                 text={t("monthlyGoalPlanner.save")}
-                onPress={onSave}
+                onPress={(markSaved) => onSave?.(markSaved)}
                 isLoading={isSaving}
                 disabled={isSaving || (mealCount < 1 && clothCount < 1)}
               />

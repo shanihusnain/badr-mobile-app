@@ -110,21 +110,10 @@ export const WhiteDaysCalendar = ({
       ? missedRamadanDates
       : (calendarWindow?.missedRamadanDates ?? []);
 
-  const overlayMonThuDates = useMemo(() => {
-    const set = new Set([
-      ...(calendarWindow?.activeMonThuDates ?? []),
-      ...(calendarWindow?.monThuPlannedDates ?? []),
-    ]);
-    return Array.from(set);
-  }, [calendarWindow]);
-
-  const overlayDawoodDates = useMemo(() => {
-    const set = new Set([
-      ...(calendarWindow?.activeDawoodDates ?? []),
-      ...(calendarWindow?.dawoodPlannedDates ?? []),
-    ]);
-    return Array.from(set);
-  }, [calendarWindow]);
+  // Overlay other goals by their planned dates only — not activePotentials
+  // (active Mon/Thu marks every Mon/Thu while the goal is on, which inflates the dimmed count).
+  const overlayMonThuDates = calendarWindow?.monThuPlannedDates ?? [];
+  const overlayDawoodDates = calendarWindow?.dawoodPlannedDates ?? [];
 
   const occupiedByOtherGoals = useMemo(() => {
     return new Set([

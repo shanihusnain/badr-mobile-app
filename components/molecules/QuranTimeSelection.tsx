@@ -13,23 +13,26 @@ import { TopSpace } from "../atoms/TopSpace";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import { useEffect, useState } from "react";
-import PrimaryButton from "@/components/atoms/Primary-button";
+import GoalSelectionSaveButton from "@/components/molecules/GoalSelectionSaveButton";
 import { useGetQuranGoalByType } from "@/src/api/queries/useGetQuranGoalByType";
 import { getHoursFromDetail } from "@/src/utils/quranGoalMap";
+import { useTranslation } from "react-i18next";
 
 const MAX_HOURS = 280;
 
 export const QuranTimeSelection = ({
   title,
-  description,
+  descriptionKey,
   onSave,
   quranGoalType,
 }: {
   title: string;
-  description: string;
+  /** i18n key with `_one` / `_other` plural forms (pass count via input). */
+  descriptionKey: string;
   onSave?: (hours: number) => void;
   quranGoalType?: "LISTENING" | "TAJWEED";
 }) => {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState<string>("");
   const [hydrated, setHydrated] = useState(false);
@@ -69,8 +72,12 @@ export const QuranTimeSelection = ({
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setIsOpen(!isOpen);
   };
+
+  const hoursCount = parseInt(inputValue || "0", 10) || 0;
+  const descriptionText = t(descriptionKey, { count: hoursCount });
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingBottom: isOpen ? 6 : 10 }]}>
       <GoalSelectionOpenCloseButton
         isOpen={isOpen}
         title={title}
@@ -86,7 +93,7 @@ export const QuranTimeSelection = ({
             </View>
           ) : (
             <>
-              <Text style={styles.header}>Enter upto {MAX_HOURS} hours.</Text>
+              <Text style={styles.header}>Enter up to {MAX_HOURS} hours.</Text>
               <TopSpace top={12} />
               <View style={styles.outerRow}>
                 <TextInput
@@ -94,44 +101,29 @@ export const QuranTimeSelection = ({
                   onChangeText={handleHoursChange}
                   keyboardType="numeric"
                   placeholder="0"
-                  placeholderTextColor={Colors.light.icon}
+                  placeholderTextColor={Colors.light.white}
                   maxLength={3}
-                  style={{
-                    borderColor:
-                      inputValue && inputValue.trim().length > 0
-                        ? Colors.light.green
-                        : Colors.light.white,
-                    backgroundColor:
-                      inputValue && inputValue.trim().length > 0
-                        ? Colors.light.green
-                        : "transparent",
-                    borderWidth: 1,
-                    width: 50,
-                    alignItems: "center",
-                    textAlign: "center",
-                    justifyContent: "center",
-                    borderRadius: 8,
-                    color: Colors.light.white,
-                    fontSize: 12,
-                    fontWeight: "400",
-                    fontFamily: fonts.primary.regular,
-                    paddingVertical: 8,
-                  }}
+                  textAlignVertical="center"
+                  style={[
+                    styles.hoursInput,
+                    inputValue.trim().length > 0 && styles.hoursInputFilled,
+                  ]}
                 />
 
-                <Text style={styles.descriptionText}>{description}</Text>
+                <Text style={styles.descriptionText}>{descriptionText}</Text>
               </View>
-              <TopSpace top={16} />
+              <TopSpace top={56} />
 
-              <PrimaryButton
+              <GoalSelectionSaveButton
                 text="Save"
-                onPress={() => {
+                disabled={hoursCount <= 0}
+                onPress={(markSaved) => {
                   const hours = Math.min(
                     MAX_HOURS,
                     parseInt(inputValue || "0", 10) || 0,
                   );
-                  if (onSave) onSave(hours);
-                  setIsOpen(false);
+                  onSave?.(hours);
+                  markSaved();
                 }}
                 style={{ width: "100%" }}
               />
@@ -146,10 +138,34 @@ export const QuranTimeSelection = ({
 const styles = StyleSheet.create({
   descriptionText: {
     color: Colors.light.white,
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: "400",
     fontFamily: fonts.primary.regular,
     textAlign: "center",
+    letterSpacing: 0.1,
+  },
+  hoursInput: {
+    width: 40,
+    paddingTop: 4,
+    paddingRight: 6,
+    paddingBottom: 4,
+    paddingLeft: 6,
+    justifyContent: "center",
+    alignItems: "center",
+    textAlign: "center",
+    borderWidth: 1,
+    borderColor: Colors.light.white,
+    backgroundColor: "transparent",
+    borderRadius: 4,
+    color: Colors.light.white,
+    fontSize: 16,
+    fontWeight: "500",
+    fontFamily: fonts.primary.medium,
+    includeFontPadding: false,
+  },
+  hoursInputFilled: {
+    borderColor: Colors.light.green,
+    backgroundColor: Colors.light.green,
   },
   innerRow: {
     alignItems: "center",
@@ -171,6 +187,7 @@ const styles = StyleSheet.create({
     fontWeight: "400",
     fontFamily: fonts.primary.regular,
     textAlign: "left",
+    letterSpacing: 0.1,
   },
   container: {
     ...globalStyles.goalSelectionWrapper,
@@ -178,6 +195,7 @@ const styles = StyleSheet.create({
   },
   openContent: {
     width: "100%",
+    paddingBottom: 6,
   },
   textInput: {
     borderWidth: 1,

@@ -1,5 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Dimensions, StyleSheet, Text, View, type StyleProp, type ViewStyle } from "react-native";
+import {
+  Dimensions,
+  StyleSheet,
+  Text,
+  View,
+  type StyleProp,
+  type ViewStyle,
+} from "react-native";
 import { Colors } from "../../constants/theme";
 import { useLocaleNumber } from "../../hooks/useLocaleNumber";
 
@@ -81,10 +88,7 @@ export default function CustomSlider({
 
   // Use the continuous float value to calculate percentage for 60fps smooth tracking.
   // Clamp so values below the track min (e.g. 0 when disabled) stay at the left edge.
-  const percent = Math.max(
-    0,
-    Math.min(1, (continuousVal - 1) / (maxDays - 1)),
-  );
+  const percent = Math.max(0, Math.min(1, (continuousVal - 1) / (maxDays - 1)));
 
   // Progress width and badge offset track the thumb's dynamic position perfectly and smoothly
   const progressWidth = percent * trackOverlayWidth;
@@ -152,7 +156,9 @@ export default function CustomSlider({
     >
       <View style={[styles.sliderWrapper, { height: sliderHeight }]}>
         {/* Floating badge with connection speech-bubble arrow pointing to thumb */}
-        <View style={[styles.badgeContainer, { left: badgeLeft, top: badgeTop }]}>
+        <View
+          style={[styles.badgeContainer, { left: badgeLeft, top: badgeTop }]}
+        >
           <View style={styles.badge}>
             <Text style={styles.badgeText}>{formatNumber(days)}</Text>
           </View>
@@ -322,7 +328,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 0,
     right: 0,
-    backgroundColor: "#444",
+    backgroundColor: Colors.light.progressBarEmpty,
   },
 
   customProgressTrack: {

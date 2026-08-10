@@ -17,10 +17,12 @@ import type { Tab } from "./components/GoalPlannerSheet";
 import { ShootIcon } from "@/assets/icons/ShootIcon";
 import { MonthlyGoalPlannerReviewCardIcon } from "@/assets/icons/MonthlyGoalPlannerReviewCardIcon";
 import { MonthlyGoalPlannerSaveCardIcon } from "@/assets/icons/MonthlyGoalPlannerSaveCardIcon";
-import { TickWithCircleIcon } from "@/assets/icons/TickWithCircleIcon";
+// import { TickWithCircleIcon } from "@/assets/icons/TickWithCircleIcon";
 import { MonthlyGoalPlannerComittedCardIcon } from "@/assets/icons/MonthlyGoalPlannerComittedCardIcon";
 import { MonthlyGoalPlannerPlanIcon } from "@/assets/icons/MonthlyGoalPlannerPlanIcon";
 import { globalStyles } from "@/src/globalstyles/globalstyles";
+import { TickIconWithCircle } from "@/assets/icons/TickIconWithCircle";
+import { WhiteTick } from "@/assets/icons";
 
 type StepItem = {
   id: number;
@@ -48,11 +50,20 @@ const StepRow = ({
       <Text style={styles.stepTitle}>{item.title}</Text>
     </View>
     {/* {item.status === "completed" ? ( */}
-    <Ionicons
-      name="checkmark-circle-outline"
-      size={24}
-      color={Colors.light.dullWhite}
-    />
+    <View
+      style={{
+        width: 12,
+        height: 12,
+        borderRadius: 12,
+        borderWidth: 1,
+        alignItems: "center",
+        justifyContent: "center",
+        borderColor: Colors.light.white,
+      }}
+    >
+      {/* <TickWithCircleIcon /> */}
+      <WhiteTick />
+    </View>
     {/* ) : (
       <Ionicons name="chevron-forward" size={20} color={Colors.light.grey} />
     )} */}
@@ -123,7 +134,7 @@ export const MonthlyGoalPlannerScreen = () => {
       id: "4",
       title: t("monthlyGoalPlanner.card4Title"),
       description: t("monthlyGoalPlanner.card4Desc"),
-      icon: <TickWithCircleIcon size={32} color={Colors.light.green} />,
+      icon: <TickIconWithCircle />,
     },
     {
       id: "5",
@@ -180,6 +191,11 @@ export const MonthlyGoalPlannerScreen = () => {
     });
   }, [navigation, t]);
 
+  const handleBeginNowPress = useCallback(() => {
+    //open the bottom sheet
+    bottomSheetRef.current?.expand();
+  }, [bottomSheetRef]);
+
   return (
     <View style={{ flex: 1 }}>
       <BlackScreenWrapper edges={["bottom", "left", "right"]}>
@@ -206,7 +222,10 @@ export const MonthlyGoalPlannerScreen = () => {
             </>
           }
         />
-        <Pressable style={{ alignSelf: "center", marginBottom: 16 }}>
+        <Pressable
+          onPress={handleBeginNowPress}
+          style={{ alignSelf: "center", marginBottom: 16 }}
+        >
           <Text style={globalStyles.greenCTA}>BEGIN NOW</Text>
         </Pressable>
       </BlackScreenWrapper>

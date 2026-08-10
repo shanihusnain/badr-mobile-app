@@ -1,11 +1,11 @@
+import { Colors } from "@/constants/theme";
 import { globalStyles } from "@/src/globalstyles/globalstyles";
 import { LayoutAnimation, View } from "react-native";
 import { GoalSelectionOpenCloseButton } from "../GoalSelectionOpenCloseButton";
 import { Counter } from "../Counter";
 import { useState } from "react";
-import { Divider } from "@/components/atoms/Divider";
 import { TopSpace } from "@/components/atoms/TopSpace";
-import PrimaryButton from "@/components/atoms/Primary-button";
+import GoalSelectionSaveButton from "@/components/molecules/GoalSelectionSaveButton";
 import { useTranslation } from "react-i18next";
 
 export const FidyaSelector = ({
@@ -24,7 +24,7 @@ export const FidyaSelector = ({
   handleIncrease: () => void;
   title: string;
   countTitle?: string;
-  onSave?: () => void;
+  onSave?: (onDone?: () => void) => void;
   isSaving?: boolean;
 }) => {
   const { t } = useTranslation();
@@ -34,7 +34,12 @@ export const FidyaSelector = ({
     setIsOpen(!isOpen);
   };
   return (
-    <View style={globalStyles.goalSelectionWrapper}>
+    <View
+      style={[
+        globalStyles.goalSelectionWrapper,
+        { paddingBottom: isOpen ? 14 : 6 },
+      ]}
+    >
       <GoalSelectionOpenCloseButton
         isOpen={isOpen}
         title={title}
@@ -42,8 +47,7 @@ export const FidyaSelector = ({
       />
       {isOpen && (
         <>
-          <Divider />
-          <TopSpace top={16} />
+          <TopSpace top={24} />
           <Counter
             count={count}
             setCount={setCount}
@@ -55,9 +59,9 @@ export const FidyaSelector = ({
           {onSave ? (
             <>
               <TopSpace top={16} />
-              <PrimaryButton
+              <GoalSelectionSaveButton
                 text={t("monthlyGoalPlanner.save")}
-                onPress={onSave}
+                onPress={(markSaved) => onSave?.(markSaved)}
                 isLoading={isSaving}
                 disabled={isSaving || count < 1}
               />

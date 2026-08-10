@@ -91,39 +91,17 @@ export const RamadanCalendar = ({
 
   const occupiedByOtherGoals = useMemo(() => {
     const set = new Set([
-      ...(calendarWindow?.activeMonThuDates ?? []),
       ...(calendarWindow?.monThuPlannedDates ?? []),
-      ...(calendarWindow?.activeWhiteDayDates ?? []),
       ...(calendarWindow?.whiteDaysPlannedDates ?? []),
-      ...(calendarWindow?.activeDawoodDates ?? []),
       ...(calendarWindow?.dawoodPlannedDates ?? []),
     ]);
     return set;
   }, [calendarWindow]);
 
-  const overlayMonThuDates = useMemo(() => {
-    const set = new Set([
-      ...(calendarWindow?.activeMonThuDates ?? []),
-      ...(calendarWindow?.monThuPlannedDates ?? []),
-    ]);
-    return Array.from(set);
-  }, [calendarWindow]);
-
-  const overlayWhiteDayDates = useMemo(() => {
-    const set = new Set([
-      ...(calendarWindow?.activeWhiteDayDates ?? []),
-      ...(calendarWindow?.whiteDaysPlannedDates ?? []),
-    ]);
-    return Array.from(set);
-  }, [calendarWindow]);
-
-  const overlayDawoodDates = useMemo(() => {
-    const set = new Set([
-      ...(calendarWindow?.activeDawoodDates ?? []),
-      ...(calendarWindow?.dawoodPlannedDates ?? []),
-    ]);
-    return Array.from(set);
-  }, [calendarWindow]);
+  // Overlay other goals by planned dates only (not activePotentials).
+  const overlayMonThuDates = calendarWindow?.monThuPlannedDates ?? [];
+  const overlayWhiteDayDates = calendarWindow?.whiteDaysPlannedDates ?? [];
+  const overlayDawoodDates = calendarWindow?.dawoodPlannedDates ?? [];
 
   const legendItems = useMemo(
     () =>

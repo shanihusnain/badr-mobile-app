@@ -44,7 +44,7 @@ const Header: React.FC<HeaderProps> = ({
       {showBackBtn && (
         <BackButton
           onPress={onBackPress}
-          bgcolor={arrowBg ? arrowBg : Colors.light.buttonBackground}
+          bgcolor={arrowBg ? arrowBg : Colors.light.greybuttonBackground}
         />
       )}
       {title ? (

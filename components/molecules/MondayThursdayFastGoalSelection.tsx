@@ -10,12 +10,24 @@ import { Feather } from "@expo/vector-icons";
 import EvilIcons from "@expo/vector-icons/EvilIcons";
 import { Colors } from "../../constants/theme";
 import { fonts } from "../../assets/fonts";
-import PrimaryButton from "../atoms/Primary-button";
+import GoalSelectionSaveButton from "./GoalSelectionSaveButton";
 import { useLocaleNumber } from "../../hooks/useLocaleNumber";
 import { MonThuCalendar } from "./MonThuCalendar";
 import { TopSpace } from "../atoms/TopSpace";
-import type { FastingCalendarWindow } from "@/src/utils/fastingCalendarPreview";
+import {
+  getSelectableMonThuDates,
+  type FastingCalendarWindow,
+} from "@/src/utils/fastingCalendarPreview";
 import { useUpsertFastingGoals } from "@/src/api/mutations/useUpsertFastingGoals";
+import { showToast } from "@/src/config/toastConfig";
+
+function initialMonThuDates(
+  calendarWindow?: FastingCalendarWindow | null,
+): string[] {
+  const planned = calendarWindow?.monThuPlannedDates ?? [];
+  if (planned.length > 0) return planned;
+  return getSelectableMonThuDates(calendarWindow);
+}
 
 export default function MondayThursdayFastGoalSelection({
   onSave,
@@ -27,29 +39,32 @@ export default function MondayThursdayFastGoalSelection({
   const formatNumber = useLocaleNumber();
   const { mutate: upsertFastingGoal, isPending } = useUpsertFastingGoals();
   const [isOpen, setIsOpen] = useState(false);
-  const [monThuCount, setMonThuCount] = useState(
-    () => calendarWindow?.monThuPlannedDates.length ?? 0,
+  const [selectedMonThuDates, setSelectedMonThuDates] = useState<string[]>(() =>
+    initialMonThuDates(calendarWindow),
   );
-  const [selectedMonThuDates, setSelectedMonThuDates] = useState<string[]>(
-    () => calendarWindow?.monThuPlannedDates ?? [],
-  );
+  const monThuCount = selectedMonThuDates.length;
 
   const toggleDropdown = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setIsOpen(!isOpen);
   };
 
-  const handleSave = () => {
-    // Empty plannedDates → backend auto-fills all Mon/Thu in the cycle
+  const handleSave = (markSaved: () => void) => {
+    if (selectedMonThuDates.length === 0) {
+      showToast("error", "Select at least one Monday or Thursday to fast");
+      return;
+    }
     upsertFastingGoal(
       {
         fastingType: "MONDAY_THURSDAY",
-        ...(selectedMonThuDates.length > 0
-          ? { plannedDates: selectedMonThuDates }
-          : {}),
+        plannedDates: selectedMonThuDates,
+        targetCount: selectedMonThuDates.length,
       },
       {
-        onSuccess: () => onSave?.(selectedMonThuDates),
+        onSuccess: () => {
+          onSave?.(selectedMonThuDates);
+          markSaved();
+        },
       },
     );
   };
@@ -80,11 +95,8 @@ export default function MondayThursdayFastGoalSelection({
             <MonThuCalendar
               calendarWindow={calendarWindow}
               missedRamadanDates={calendarWindow?.missedRamadanDates}
-              initialSelectedDates={calendarWindow?.monThuPlannedDates}
-              onSave={(selectedDates) => {
-                setSelectedMonThuDates(selectedDates);
-                setMonThuCount(selectedDates.length);
-              }}
+              initialSelectedDates={initialMonThuDates(calendarWindow)}
+              onSave={setSelectedMonThuDates}
             />
           </View>
           <TopSpace top={16} />
@@ -97,10 +109,9 @@ export default function MondayThursdayFastGoalSelection({
               style={styles.advisoryIcon}
             />
             <Text style={styles.advisoryText}>
-              You have the entire month to complete your fasting goal. If you
-              happen to miss any planned fasting days, you can make them up on
-              any Monday or Thursday that you have not already scheduled for
-              fasting in this month.
+              If you don't fast on your selected dates, you can still complete
+              your goal by fasting on any unscheduled Monday or Thursday, as
+              long as they don’t overlap with other fasting goals.
             </Text>
           </View>
 
@@ -110,11 +121,11 @@ export default function MondayThursdayFastGoalSelection({
           </Text>
 
           <View style={styles.buttonContainer}>
-            <PrimaryButton
+            <GoalSelectionSaveButton
               text="Save"
               onPress={handleSave}
               isLoading={isPending}
-              disabled={isPending}
+              disabled={isPending || selectedMonThuDates.length === 0}
               style={styles.saveButton}
               textStyle={styles.saveButtonText}
             />
@@ -131,7 +142,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.calendarBg,
     borderRadius: 12,
     padding: 16,
-    marginVertical: 10,
+    marginVertical: 0,
   },
   headerRow: {
     flexDirection: "row",
@@ -160,6 +171,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
     alignItems: "center",
     width: "100%",
+    paddingBottom: 6,
   },
   calendarWrapper: {
     width: "100%",
@@ -169,30 +181,30 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-start",
     width: "100%",
-    marginTop: -20,
     marginBottom: 10,
     paddingHorizontal: 4,
   },
   advisoryIcon: {
-    marginTop: -1,
     marginRight: 6,
   },
   advisoryText: {
     flex: 1,
-    color: Colors.light.grey,
+    color: Colors.light.white,
     fontFamily: fonts.primary.regular,
     fontSize: 12,
-    lineHeight: 18,
+    lineHeight: 16,
     textAlign: "left",
+    opacity: 0.5,
   },
   valueText: {
     color: Colors.light.ringMonThu,
     fontFamily: fonts.primary.medium,
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "500",
     marginTop: 12,
     marginBottom: 25,
     textAlign: "center",
+    lineHeight: 22,
   },
   whiteText: {
     color: Colors.light.white,

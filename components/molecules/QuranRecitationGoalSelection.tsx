@@ -12,6 +12,7 @@ import { Colors } from "@/constants/theme";
 import { Divider } from "../atoms/Divider";
 import { TopSpace } from "../atoms/TopSpace";
 import { fonts } from "@/assets/fonts";
+import { globalStyles } from "@/src/globalstyles/globalstyles";
 
 export const QuranRecitationGoalSelection = ({ title }: { title: string }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -19,10 +20,6 @@ export const QuranRecitationGoalSelection = ({ title }: { title: string }) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setIsOpen(!isOpen);
   };
-  const [selectedMetrix, setSelectedMetrix] = useState<
-    "surah" | "juz" | "completion"
-  >();
-
   const [selectedMetric, setSelectedMetric] = useState<
     "surah" | "juz" | "completion"
   >();
@@ -42,14 +39,19 @@ export const QuranRecitationGoalSelection = ({ title }: { title: string }) => {
     {
       id: 3,
       name: "completion",
-    },
+    }
   ];
   const handlePressMetrix = (item: IItem) => {
     console.log("Selected metric:", item.name);
     setSelectedMetric(item.name);
   };
   return (
-    <View style={styles.wrapper}>
+    <View
+      style={[
+        globalStyles.goalSelectionWrapper,
+        { paddingBottom: isOpen ? 6 : 10 }
+      ]}
+    >
       <GoalSelectionOpenCloseButton
         isOpen={isOpen}
         toggleDropdown={handleToggleDropdown}
@@ -96,11 +98,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     flex: 1,
-  },
-  wrapper: {
-    backgroundColor: Colors.light.calendarBg,
-    borderRadius: 12,
-    padding: 16,
-    marginVertical: 10,
   },
 });

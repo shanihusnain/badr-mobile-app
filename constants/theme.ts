@@ -2,7 +2,7 @@ import { Platform } from "react-native";
 
 const tintColorLight = "#0a7ea4";
 const tintColorDark = "#fff";
-const greenColor = "#1DBF73";
+const greenColor = "#1CBF73";
 const redColor = "#FF4C4C";
 
 export const Colors = {
@@ -72,6 +72,7 @@ export const Colors = {
     disabledButtonColor: "#8E98A8",
     paginationInactiveDot: "#D9D9D9",
     switchOnTrackColor: "#627666",
+    dullDescriptionText: "rgba(255, 255, 255, 0.50)",
   },
   dark: {
     text: "#ECEDEE",

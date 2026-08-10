@@ -7,7 +7,7 @@ export type UpsertFastingGoalPayload = {
   fastingType: string;
   /** Required for MISSED_RAMADAN */
   targetCount?: number;
-  /** Explicit dates (YYYY-MM-DD). Required for MISSED_RAMADAN; optional for others (auto-fill). */
+  /** Explicit dates (YYYY-MM-DD). Required for date-based fasting goals. */
   plannedDates?: string[];
   /** PROPHET_DAWOOD: 1 = start day 1, 2 = start day 2 */
   dawoodStartDay?: 1 | 2;

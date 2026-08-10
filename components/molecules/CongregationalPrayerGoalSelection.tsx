@@ -11,7 +11,7 @@ import { Feather } from "@expo/vector-icons";
 import { Colors } from "../../constants/theme";
 import { fonts } from "../../assets/fonts";
 import CustomSlider from "../atoms/CustomSlider";
-import PrimaryButton from "../atoms/Primary-button";
+import GoalSelectionSaveButton from "./GoalSelectionSaveButton";
 import { useTranslation } from "react-i18next";
 import { useLocaleNumber } from "../../hooks/useLocaleNumber";
 import { globalStyles } from "@/src/globalstyles/globalstyles";
@@ -34,7 +34,7 @@ export default function CongregationalPrayerGoalSelection() {
     setIsOpen(!isOpen);
   };
 
-  const handleSave = () => {
+  const handleSave = (markSaved: () => void) => {
     console.log("Saved target Congregation Prayers:", {
       fajr,
       dhuhr,
@@ -43,6 +43,7 @@ export default function CongregationalPrayerGoalSelection() {
       isha,
       jumuah,
     });
+    markSaved();
   };
 
   const totalPrayers = fajr + dhuhr + asar + maghrib + isha + jumuah;
@@ -147,7 +148,7 @@ export default function CongregationalPrayerGoalSelection() {
           </Text>
 
           <View style={styles.buttonContainer}>
-            <PrimaryButton
+            <GoalSelectionSaveButton
               text={t("prayerGoals.save")}
               onPress={handleSave}
               style={styles.saveButton}
@@ -166,7 +167,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.calendarBg,
     borderRadius: 12,
     padding: 16,
-    marginVertical: 10,
+    marginVertical: 0,
   },
   headerRow: {
     flexDirection: "row",
@@ -190,6 +191,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
     alignItems: "center",
     width: "100%",
+    paddingBottom: 6,
   },
   sliderGroup: {
     width: "100%",

@@ -10,7 +10,7 @@ import { Feather } from "@expo/vector-icons";
 import EvilIcons from "@expo/vector-icons/EvilIcons";
 import { Colors } from "../../constants/theme";
 import { fonts } from "../../assets/fonts";
-import PrimaryButton from "../atoms/Primary-button";
+import GoalSelectionSaveButton from "./GoalSelectionSaveButton";
 import { useLocaleNumber } from "../../hooks/useLocaleNumber";
 import RamadanCalendar from "./RamadanCalendar";
 import {
@@ -48,7 +48,7 @@ export default function MissedRamadanFastGoalSelection({
     setIsOpen(!isOpen);
   };
 
-  const handleSave = () => {
+  const handleSave = (markSaved: () => void) => {
     if (selectedDates.length === 0) {
       showToast("error", "Select at least one missed Ramadan fast date");
       return;
@@ -60,7 +60,10 @@ export default function MissedRamadanFastGoalSelection({
         targetCount: selectedDates.length,
       },
       {
-        onSuccess: () => onSave?.(selectedDates),
+        onSuccess: () => {
+          onSave?.(selectedDates);
+          markSaved();
+        },
       },
     );
   };
@@ -143,11 +146,11 @@ export default function MissedRamadanFastGoalSelection({
           </Text>
 
           <View style={styles.buttonContainer}>
-            <PrimaryButton
+            <GoalSelectionSaveButton
               text="Save"
               onPress={handleSave}
               isLoading={isPending}
-              disabled={isPending}
+              disabled={isPending || selectedDates.length === 0}
               style={styles.saveButton}
               textStyle={styles.saveButtonText}
             />
@@ -164,7 +167,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.calendarBg,
     borderRadius: 12,
     padding: 16,
-    marginVertical: 10,
+    marginVertical: 0,
   },
   headerRow: {
     flexDirection: "row",
@@ -187,12 +190,13 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: "rgba(255, 255, 255, 0.08)",
     width: "100%",
-    marginTop: 12,
+    marginTop: 10,
   },
   expandedContent: {
-    marginTop: 16,
+    marginTop: 12,
     alignItems: "center",
     width: "100%",
+    paddingBottom: 6,
   },
   calendarWrapper: {
     width: "100%",
@@ -238,20 +242,22 @@ const styles = StyleSheet.create({
   },
   advisoryText: {
     flex: 1,
-    color: Colors.light.grey,
+    color: Colors.light.white,
     fontFamily: fonts.primary.regular,
     fontSize: 12,
-    lineHeight: 18,
+    lineHeight: 16,
     textAlign: "left",
+    opacity: 0.5,
   },
   valueText: {
     color: Colors.light.ringRamadan,
     fontFamily: fonts.primary.medium,
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "500",
     marginTop: 12,
     marginBottom: 25,
     textAlign: "center",
+    lineHeight: 22,
   },
   whiteText: {
     color: Colors.light.white,

@@ -1,7 +1,11 @@
 import { Colors } from "@/constants/theme";
 import { StyleSheet, View } from "react-native";
+import { useState } from "react";
 import CustomDropdown from "../atoms/CustomDropdown";
+import WarningModal from "../atoms/WarningModal";
 import { fonts } from "@/assets/fonts";
+import { setDefaultSadaqahCurrency } from "@/src/storage/sadaqahCurrencyStorage";
+import { useTranslation } from "react-i18next";
 
 export const SADAQAH_CURRENCY_OPTIONS = [
   {
@@ -64,10 +68,37 @@ export function currencyOptionFromCode(
 export const CurrencyAndAmountSelector = ({
   control,
   name,
+  onSetAsDefaultCurrency,
 }: {
   control: any;
   name: string;
+  /** Called when user confirms using this currency as default for all sadaqah goals. */
+  onSetAsDefaultCurrency?: (currencyOptionValue: string) => void;
 }) => {
+  const { t } = useTranslation();
+  const [defaultCurrencyModalVisible, setDefaultCurrencyModalVisible] =
+    useState(false);
+  const [pendingCurrency, setPendingCurrency] = useState<string | null>(null);
+
+  const closeDefaultCurrencyModal = () => {
+    setDefaultCurrencyModalVisible(false);
+    setPendingCurrency(null);
+  };
+
+  const confirmDefaultCurrency = async () => {
+    if (!pendingCurrency) {
+      closeDefaultCurrencyModal();
+      return;
+    }
+    try {
+      await setDefaultSadaqahCurrency(pendingCurrency);
+    } catch {
+      // Still apply in-session even if persistence fails
+    }
+    onSetAsDefaultCurrency?.(pendingCurrency);
+    closeDefaultCurrencyModal();
+  };
+
   return (
     <View style={styles.wrapper}>
       <View style={styles.dropdownWrapper}>
@@ -77,17 +108,36 @@ export const CurrencyAndAmountSelector = ({
           label=""
           options={[...SADAQAH_CURRENCY_OPTIONS]}
           onSelect={(option) => {
-            console.log(option);
+            const value = typeof option === "string" ? option : String(option);
+            if (!value) return;
+            setPendingCurrency(value);
+            setDefaultCurrencyModalVisible(true);
           }}
           selectedTextStyle={styles.selectedTextStyle}
+          containerStyle={styles.triggerStyle}
           menuStyle={styles.menuStyle}
           borderColor={Colors.light.white}
-          placeholder=""
+          placeholder={t("monthlyGoalPlanner.selectCurrency")}
         />
       </View>
+
+      <WarningModal
+        visible={defaultCurrencyModalVisible}
+        title={t("monthlyGoalPlanner.currencyUpdatedTitle")}
+        message={t("monthlyGoalPlanner.currencyUpdatedMessage")}
+        primaryButtonText={t("monthlyGoalPlanner.currencyUpdatedYes")}
+        secondaryButtonText={t("monthlyGoalPlanner.currencyUpdatedNo")}
+        primaryButtonVariant="green"
+        onPrimaryPress={confirmDefaultCurrency}
+        onSecondaryPress={closeDefaultCurrencyModal}
+        onBackdropPress={closeDefaultCurrencyModal}
+        secondaryButtonTextStyle={{ color: Colors.light.white }}
+        primaryButtonSize="compact"
+      />
     </View>
   );
 };
+
 const styles = StyleSheet.create({
   menuStyle: {
     backgroundColor: Colors.light.calendarBg,
@@ -100,9 +150,21 @@ const styles = StyleSheet.create({
   },
   selectedTextStyle: {
     color: Colors.light.green,
-    fontSize: 16,
-    fontWeight: "600",
-    fontFamily: fonts.primary.semiBold,
+    fontSize: 15,
+    fontWeight: "500",
+    fontFamily: fonts.primary.medium,
+  },
+  /** Figma: height 32, padding 0 8 — scoped to sadaqah currency only */
+  triggerStyle: {
+    height: 36,
+    paddingHorizontal: 8,
+    marginTop: 0,
+    justifyContent: "space-between",
+    alignItems: "center",
+    alignSelf: "center",
+    paddingRight: 12,
+    width: "96%",
+    borderRadius: 4,
   },
   dropdownWrapper: {
     backgroundColor: Colors.light.calendarBg,
@@ -115,6 +177,9 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.calendarBg,
     alignItems: "center",
     justifyContent: "center",
-    padding: 10,
+    width: "100%",
+    paddingTop: 16,
+    paddingBottom: 0,
+    paddingHorizontal: 0,
   },
 });

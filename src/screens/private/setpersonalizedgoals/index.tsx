@@ -9,7 +9,14 @@ import {
   type SupportedLanguage,
 } from "@/i18next/i18next";
 import { useTranslation } from "react-i18next";
-import { Text, TouchableOpacity, View, Alert, Pressable, ScrollView } from "react-native";
+import {
+  Text,
+  TouchableOpacity,
+  View,
+  Alert,
+  Pressable,
+  ScrollView,
+} from "react-native";
 import { useCallback, useEffect, useState } from "react";
 import { router, useNavigation } from "expo-router";
 import PrimaryButton from "@/components/atoms/Primary-button";
@@ -101,7 +108,7 @@ export const SetPersonalizedGoalsScreen = () => {
         {activeFrame === 2 && (
           <>
             <Text style={globalStyles.onboardingHeading}>
-              {t("setpersonalizedgoals.Setyourperosnalizedgoals")}!
+              {t("setpersonalizedgoals.Setyourperosnalizedgoals")}
             </Text>
             <TopSpace top={14} />
           </>
@@ -115,10 +122,11 @@ export const SetPersonalizedGoalsScreen = () => {
         <FrameIndicator total={2} active={activeFrame} />
         {activeFrame === 1 && (
           <GoalProgressCard
-            currentDay={10}
+            currentDay={28}
             totalDays={28}
-            lastActiveDays={12}
-            overallProgress={23}
+            lastActiveDays={28}
+            overallProgress={100}
+            animate
           />
         )}
         {activeFrame === 1 && (
@@ -129,7 +137,9 @@ export const SetPersonalizedGoalsScreen = () => {
             </Text>
           </>
         )}
-        {activeFrame === 2 && <TutorialVideoPlayer onSkip={handleSkipTutorial} />}
+        {activeFrame === 2 && (
+          <TutorialVideoPlayer onSkip={handleSkipTutorial} />
+        )}
         {activeFrame === 1 && (
           <View style={{ marginTop: 24, paddingBottom: 16 }}>
             <Pressable

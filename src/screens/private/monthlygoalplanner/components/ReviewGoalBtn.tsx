@@ -40,7 +40,6 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     backgroundColor: Colors.light.calendarBg,
     borderRadius: 6,
-    marginBottom: 10,
   },
   reviewHeaderPressable: {
     flexDirection: "row",
@@ -49,8 +48,10 @@ const styles = StyleSheet.create({
   reviewHeaderText: {
     fontSize: 16,
     color: Colors.light.white,
-    fontFamily: fonts.primary.semiBold,
-    fontWeight: "600",
+    fontFamily: fonts.primary.medium,
+    fontWeight: "500",
     flex: 1,
+    letterSpacing: 0.1,
+    lineHeight: 20,
   },
 });

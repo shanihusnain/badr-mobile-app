@@ -11,6 +11,7 @@ import { fonts } from "@/assets/fonts";
 import { CalendarGrid } from "@/components/molecules/CalendarGrid";
 import {
   getFastingLegendItems,
+  getSelectableMonThuDates,
   type FastingCalendarWindow,
 } from "@/src/utils/fastingCalendarPreview";
 
@@ -62,22 +63,9 @@ export const MonThuCalendar = ({
       ? missedRamadanDates
       : (calendarWindow?.missedRamadanDates ?? []);
 
-  // Other active/planned goals shown as dimmed rings while selecting Mon/Thu
-  const overlayWhiteDayDates = useMemo(() => {
-    const set = new Set([
-      ...(calendarWindow?.activeWhiteDayDates ?? []),
-      ...(calendarWindow?.whiteDaysPlannedDates ?? []),
-    ]);
-    return Array.from(set);
-  }, [calendarWindow]);
-
-  const overlayDawoodDates = useMemo(() => {
-    const set = new Set([
-      ...(calendarWindow?.activeDawoodDates ?? []),
-      ...(calendarWindow?.dawoodPlannedDates ?? []),
-    ]);
-    return Array.from(set);
-  }, [calendarWindow]);
+  // Other goals: show planned dates only (not every activePotential day).
+  const overlayWhiteDayDates = calendarWindow?.whiteDaysPlannedDates ?? [];
+  const overlayDawoodDates = calendarWindow?.dawoodPlannedDates ?? [];
 
   const legendItems = useMemo(
     () =>
@@ -87,22 +75,31 @@ export const MonThuCalendar = ({
     [calendarWindow?.legendTypes],
   );
 
-  const [selectedDates, setSelectedDates] = useState<Set<string>>(
-    () =>
-      new Set(initialSelectedDates ?? calendarWindow?.monThuPlannedDates ?? []),
-  );
+  const [selectedDates, setSelectedDates] = useState<Set<string>>(() => {
+    const planned =
+      initialSelectedDates ?? calendarWindow?.monThuPlannedDates ?? [];
+    if (planned.length > 0) return new Set(planned);
+    return new Set(getSelectableMonThuDates(calendarWindow));
+  });
 
+  // Hydrate from server-planned dates when calendar preview updates
   useEffect(() => {
-    if (!initialSelectedDates && !calendarWindow?.monThuPlannedDates) return;
-    setSelectedDates(
-      new Set(initialSelectedDates ?? calendarWindow?.monThuPlannedDates ?? []),
-    );
-  }, [initialSelectedDates, calendarWindow?.monThuPlannedDates]);
+    if (!calendarWindow?.monThuPlannedDates?.length) return;
+    setSelectedDates(new Set(calendarWindow.monThuPlannedDates));
+  }, [calendarWindow?.monThuPlannedDates]);
 
   useEffect(() => {
     onSave?.(Array.from(selectedDates));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDates]);
+
+  const blockedOtherGoalDates = useMemo(() => {
+    return new Set([
+      ...overlayMissedDates,
+      ...overlayWhiteDayDates,
+      ...overlayDawoodDates,
+    ]);
+  }, [overlayMissedDates, overlayWhiteDayDates, overlayDawoodDates]);
 
   return (
     <View style={styles.wrapper}>
@@ -176,6 +173,13 @@ export const MonThuCalendar = ({
                         return dow === 1 || dow === 4;
                       })();
                 if (!isMonThu) return;
+                // Allow deselect; block newly selecting days claimed by other goals
+                if (
+                  !selectedDates.has(ds) &&
+                  blockedOtherGoalDates.has(ds)
+                ) {
+                  return;
+                }
                 setSelectedDates((prev) => {
                   const next = new Set(Array.from(prev));
                   if (next.has(ds)) next.delete(ds);

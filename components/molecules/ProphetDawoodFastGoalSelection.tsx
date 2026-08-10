@@ -11,7 +11,7 @@ import EvilIcons from "@expo/vector-icons/EvilIcons";
 import moment from "moment-hijri";
 import { Colors } from "../../constants/theme";
 import { fonts } from "../../assets/fonts";
-import PrimaryButton from "../atoms/Primary-button";
+import GoalSelectionSaveButton from "./GoalSelectionSaveButton";
 import { useLocaleNumber } from "../../hooks/useLocaleNumber";
 import { CalendarGrid } from "./CalendarGrid";
 import type { FastingCalendarWindow } from "@/src/utils/fastingCalendarPreview";
@@ -35,14 +35,17 @@ export default function ProphetDawoodFastGoalSelection({
     setIsOpen(!isOpen);
   };
 
-  const handleSave = () => {
+  const handleSave = (markSaved: () => void) => {
     upsertFastingGoal(
       {
         fastingType: "PROPHET_DAWOOD",
         dawoodStartDay: selectedStartDay,
       },
       {
-        onSuccess: () => onSave?.(selectedStartDay),
+        onSuccess: () => {
+          onSave?.(selectedStartDay);
+          markSaved();
+        },
       },
     );
   };
@@ -75,7 +78,7 @@ export default function ProphetDawoodFastGoalSelection({
         "Ram.",
         "Shaw.",
         "Dhul Q.",
-        "Dhul H.",
+        "Dhul H."
       ];
       const startMonth = HIJRI_MONTHS_SHORT[startMoment.iMonth()];
       const endMonth = HIJRI_MONTHS_SHORT[endMoment.iMonth()];
@@ -190,7 +193,7 @@ export default function ProphetDawoodFastGoalSelection({
 
           {/* Save Button */}
           <View style={styles.buttonContainer}>
-            <PrimaryButton
+            <GoalSelectionSaveButton
               text="Save"
               onPress={handleSave}
               isLoading={isPending}
@@ -211,7 +214,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.calendarBg,
     borderRadius: 12,
     padding: 16,
-    marginVertical: 10,
+    marginVertical: 0,
   },
   headerRow: {
     flexDirection: "row",
@@ -240,6 +243,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
     alignItems: "center",
     width: "100%",
+    paddingBottom: 6,
   },
   calendarWrapper: {
     width: "100%",
@@ -304,30 +308,30 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-start",
     width: "100%",
-    marginTop: -20,
     marginBottom: 10,
     paddingHorizontal: 4,
   },
   advisoryIcon: {
-    marginTop: -1,
     marginRight: 6,
   },
   advisoryText: {
     flex: 1,
-    color: Colors.light.grey,
+    color: Colors.light.white,
     fontFamily: fonts.primary.regular,
     fontSize: 12,
-    lineHeight: 18,
+    lineHeight: 16,
     textAlign: "left",
+    opacity: 0.5,
   },
   valueText: {
     color: Colors.light.ringDawood,
     fontFamily: fonts.primary.medium,
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "500",
     marginTop: 12,
     marginBottom: 25,
     textAlign: "center",
+    lineHeight: 22,
   },
   whiteText: {
     color: Colors.light.white,

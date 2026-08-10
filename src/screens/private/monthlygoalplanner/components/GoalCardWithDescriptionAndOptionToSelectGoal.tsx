@@ -80,11 +80,11 @@ export const GoalCardWithDescriptionAndOptionToSelectGoal = ({
           />
         </ImageBackground>
       )}
-      <TopSpace top={12} />
+      <TopSpace top={16} />
       <Text style={[styles.title, isRtl && { textAlign: "right" }]}>
         {displayTitle}
       </Text>
-      <TopSpace top={12} />
+      <TopSpace top={8} />
       <Text
         numberOfLines={isDescExpanded ? undefined : DESCRIPTION_MAX_LINES}
         style={[styles.description, isRtl && { textAlign: "right" }]}
@@ -116,6 +116,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.regular,
     fontSize: 14,
     lineHeight: 21,
+    letterSpacing: 0.02,
   },
   title: {
     color: Colors.light.white,
@@ -127,7 +128,7 @@ const styles = StyleSheet.create({
   },
   backgroundImage: {
     width: "100%",
-    height: 150,
+    height: 120,
     padding: 16,
     borderRadius: 4,
     overflow: "hidden",

@@ -11,7 +11,7 @@ import { Feather } from "@expo/vector-icons";
 import { Colors } from "../../constants/theme";
 import { fonts } from "../../assets/fonts";
 import CustomSlider from "../atoms/CustomSlider";
-import PrimaryButton from "../atoms/Primary-button";
+import GoalSelectionSaveButton from "./GoalSelectionSaveButton";
 import { useTranslation } from "react-i18next";
 import { useLocaleNumber } from "../../hooks/useLocaleNumber";
 import { globalStyles } from "@/src/globalstyles/globalstyles";
@@ -33,13 +33,6 @@ export default function TahiyyatMasjidGoalSelection({
   const toggleDropdown = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setIsOpen(!isOpen);
-  };
-
-  const handleSave = () => {
-    console.log("Saved target Tahiyyat Al-Masjid:", sliderValue);
-    if (onSave) {
-      onSave(sliderValue);
-    }
   };
 
   return (
@@ -68,9 +61,12 @@ export default function TahiyyatMasjidGoalSelection({
           </Text>
 
           <View style={styles.buttonContainer}>
-            <PrimaryButton
+            <GoalSelectionSaveButton
               text={t("prayerGoals.save").toLocaleUpperCase()}
-              onPress={handleSave}
+              onPress={(markSaved) => {
+                onSave?.(sliderValue);
+                markSaved();
+              }}
               style={styles.saveButton}
               textStyle={styles.saveButtonText}
             />

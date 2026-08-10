@@ -209,6 +209,7 @@
     "tabFasting": "أهداف الصيام",
     "tabSadaqah": "أهداف الصدقة",
     "tabReview": "المراجعة والتأكيد",
+    "goalSaved": "تم الحفظ!",
     "finishAndSaveGoals": "إنهاء وحفظ الأهداف",
     "finishAndSaveModalTitle": "إنهاء وحفظ الأهداف",
     "finishAndSaveModalMessage": "سيتم قفل أهدافك لمساعدتك على الالتزام والاستمرارية، وتعزيز حياة إسلامية واعية ومُرضية. هل تريد الحفظ والالتزام الآن؟",
@@ -246,6 +247,11 @@
       "dhulQ": "ذو القعدة",
       "dhulH": "ذو الحجة"
     },
+    "selectCurrency": "اختر العملة",
+    "currencyUpdatedTitle": "تم تحديث العملة!",
+    "currencyUpdatedMessage": "هل تريد استخدام هذه العملة كإعداد افتراضي لجميع أهداف الصدقة المالية المستقبلية؟",
+    "currencyUpdatedYes": "نعم",
+    "currencyUpdatedNo": "لا",
     "save": "حفظ",
     "amount": "المبلغ",
     "meals": "الوجبات",
@@ -257,8 +263,10 @@
     "hizbUnit": "أحزاب",
     "completions": "ختمات",
     "selectNumHours": "حدد عدد الساعات",
-    "hoursQuranListening": "ساعات الاستماع للقرآن",
-    "hoursQuranTajweed": "ساعات تجويد القرآن",
+    "hoursQuranListening_one": "ساعة استماع للقرآن",
+    "hoursQuranListening_other": "ساعات الاستماع للقرآن",
+    "hoursQuranTajweed_one": "ساعة تجويد للقرآن",
+    "hoursQuranTajweed_other": "ساعات تجويد القرآن",
     "recitationBySurah": "التلاوة — بالسورة",
     "recitationByCompletion": "التلاوة — بالختمة",
     "recitationByJuz": "التلاوة — بالجزء",
@@ -273,6 +281,12 @@
       "tahayyatWudu": "تحية الوضوء",
       "fiveDailyPrayers": "الصلوات الخمس المفروضة",
       "sunnahRawatib": "السنن الرواتب",
+      "sunnahSlotBeforeFajr": "قبل الفجر",
+      "sunnahSlotBeforeDhuhr": "قبل الظهر",
+      "sunnahSlotAfterDhuhr": "بعد الظهر",
+      "sunnahSlotAfterMaghrib": "بعد المغرب",
+      "sunnahSlotAfterIsha": "بعد العشاء",
+      "sunnahRawatibRow": "{{prayer}} ({{count}} ركعة)",
       "tahayyatMasjid": "تحية المسجد",
       "missedPastPrayers": "الصلوات الفائتة السابقة",
       "duha": "الضحى",
@@ -284,6 +298,7 @@
       "quranRecitationSurah": "تلاوة القرآن (بالسورة)",
       "quranRecitationCompletion": "تلاوة القرآن (بالختمة)",
       "quranRecitationJuz": "تلاوة القرآن (بالجزء)",
+      "juzRecitationRange": "من جزء {{from}} إلى جزء {{to}}",
       "quranMemorizationJuz": "حفظ القرآن (بالجزء)",
       "quranMemorizationHizb": "حفظ القرآن (بالحزب)",
       "quranMemorizationSurah": "حفظ القرآن (بالسورة)",
@@ -322,7 +337,8 @@
       "daily": "يوميًا",
       "weekly": "أسبوعيًا",
       "enterUpToTimes": "أدخل ما يصل إلى {{max}} مرات {{frequency}}",
-      "timesFrequency": "مرات {{frequency}}",
+      "timesFrequency_one": "مرة {{frequency}}",
+      "timesFrequency_other": "مرات {{frequency}}",
       "recitationsCount": "{{count}} تلاوات",
       "recitationsFormula": "{{times}} × {{multiplier}} = {{total}} تلاوة",
       "juzRangeHint": "أدخل أرقامًا بين ١-٣٠. يجب أن يكون 'إلى جزء' أكبر من أو يساوي 'من جزء'.",
@@ -361,7 +377,8 @@
     "noDesc": "(اختر هذا إذا كان هدفك هو زيادة صلاة الليل - بغض النظر عما إذا كانت تصلى بعد العشاء أو بالاستيقاظ للتهجد.)",
     "rakahPrayer": " صلاة ركعتين",
     "rakahPrayers": " صلوات ركعتين",
-    "and28Witr": " و ٢٨ ركعة وتر",
+    "and28WitrBefore": " و ",
+    "and28WitrAfter": " ركعة وتر",
     "plusWitrFlexible": " + الوتر لكل ليلة تصليها",
     "witrDesc": "الوتر يختم صلاة الليل ويشمل كل ليلة من ليالي القيام المستهدفة.",
     "save": "حفظ",
@@ -643,6 +660,7 @@
     "juzFilterAll": "الكل",
     "juzFilterTab": "جزء {{number}}",
     "juzRowTitle": "جزء {{number}}",
+    "hizbRowTitle": "حزب {{number}}",
     "juzVerseProgressUnit": "آيات",
     "juzDrillDownHeader": "{{analytics}} — {{juz}}",
     "juzDetailedSummaryMonthly": "في الشهر الماضي، حققت {{percent}}% من هدف تلاوة الأجزاء البالغ {{goalTotal}} لـ {{juz}} — {{delta}}% {{direction}} من الشهر السابق.",
@@ -1128,43 +1146,13 @@
             },
             {
               "type": "table",
-              "headers": [
-                "الصلاة",
-                "السنة\n(قبل)",
-                "الفرض",
-                "السنة\n(بعد)"
-              ],
+              "headers": ["الصلاة", "السنة\n(قبل)", "الفرض", "السنة\n(بعد)"],
               "rows": [
-                [
-                  "الفجر",
-                  "٢",
-                  "٢",
-                  "-"
-                ],
-                [
-                  "الظهر",
-                  "٢+٢",
-                  "٤",
-                  "٢ أو ٤"
-                ],
-                [
-                  "العصر",
-                  "٢ أو ٤",
-                  "٤",
-                  "-"
-                ],
-                [
-                  "المغرب",
-                  "-",
-                  "٣",
-                  "٢"
-                ],
-                [
-                  "العشاء",
-                  "-",
-                  "٤",
-                  "٢"
-                ]
+                ["الفجر", "٢", "٢", "-"],
+                ["الظهر", "٢+٢", "٤", "٢ أو ٤"],
+                ["العصر", "٢ أو ٤", "٤", "-"],
+                ["المغرب", "-", "٣", "٢"],
+                ["العشاء", "-", "٤", "٢"]
               ]
             }
           ]
