@@ -299,12 +299,7 @@ export const CycleStartTab = ({
         isLoading={isStartEditCyclePending}
         disabled={isStartEditCyclePending || !cycleStartDate}
         style={styles.commitButton}
-        onPress={() => {
-          if (cycleStartDate && cycleEndDateString) {
-            onCommit?.(cycleStartDate, cycleEndDateString);
-            startEditCycle({ startDate: cycleStartDate });
-          }
-        }}
+        onPress={handleCommitPress}
       />
 
       <WarningModal
