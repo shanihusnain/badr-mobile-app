@@ -73,7 +73,7 @@ export const Colors = {
     paginationInactiveDot: "#D9D9D9",
     switchOnTrackColor: "#627666",
     dullDescriptionText: "rgba(255, 255, 255, 0.50)",
-    greentextbutton:"#1DBF73"
+    greentextbutton: "#1DBF73",
     notStartedTextColor: "#6E6D6D",
   },
   dark: {

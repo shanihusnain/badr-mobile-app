@@ -305,7 +305,6 @@ export const CycleStartTab = ({
             startEditCycle({ startDate: cycleStartDate });
           }
         }}
-        onPress={handleCommitPress}
       />
 
       <WarningModal
