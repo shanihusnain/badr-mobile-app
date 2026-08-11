@@ -35,9 +35,12 @@ export type QuranRecitationGoalSelectionProps = {
   title: string;
   onMetricsChange?: (payload: { metric: string; value: any }) => void;
   variant?: "memorization" | "others";
-  onSave?: (payload: {
-    metric: "surah" | "juz" | "completion" | "hizb";
-  }) => void;
+  onSave?: (
+    payload: {
+      metric: "surah" | "juz" | "completion" | "hizb";
+    },
+    onDone?: () => void,
+  ) => void;
   initialMetric?: "surah" | "juz" | "completion" | "hizb";
   allowedMetrics?: Array<"surah" | "juz" | "completion" | "hizb">;
   openOnMount?: boolean;
@@ -48,6 +51,7 @@ export type QuranRecitationGoalSelectionProps = {
   isReferenceLoading?: boolean;
   /** Disable parent bottom-sheet scroll while the nested metric list is scrolling. */
   onNestedScrollActiveChange?: (active: boolean) => void;
+  isSaving?: boolean;
 };
 
 export const QuranRecitationGoalSelection = ({
@@ -63,6 +67,7 @@ export const QuranRecitationGoalSelection = ({
   juzReference = [],
   isReferenceLoading = false,
   onNestedScrollActiveChange,
+  isSaving = false,
 }: QuranRecitationGoalSelectionProps) => {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(!!openOnMount);
@@ -367,13 +372,16 @@ export const QuranRecitationGoalSelection = ({
               style={{
                 width: "100%",
               }}
-              onPress={(markSaved) => {
+              isLoading={isSaving}
+              disabled={isSaving}
+              onPress={(markSaved, markFailed) => {
                 if (onSave && resolvedMetric) {
-                  onSave({ metric: resolvedMetric });
-                  markSaved();
+                  onSave({ metric: resolvedMetric }, markSaved);
+                  setMarkCleanNonce((n) => n + 1);
+                  setIsMetricDirty(false);
+                  return;
                 }
-                setMarkCleanNonce((n) => n + 1);
-                setIsMetricDirty(false);
+                markFailed();
               }}
             />
           </View>

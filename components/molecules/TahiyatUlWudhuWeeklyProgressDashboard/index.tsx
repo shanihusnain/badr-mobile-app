@@ -11,6 +11,14 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTranslation } from "react-i18next";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
+import { LighteningIcon } from "@/assets/icons/LighteningIcon";
+import {
+  AimIcon,
+  BestdayStarIcon,
+  CalendarIcon,
+  PrayerMatIcon,
+  ShootIcon,
+} from "@/assets/icons";
 
 export type TahiyatUlWudhuDayProgress = {
   day: string;
@@ -35,7 +43,7 @@ export type TahiyatUlWudhuWeeklyProgressDashboardProps = {
 
 const CARD_HORIZONTAL_PADDING = 16;
 const WRAPPER_WIDTH_RATIO = 0.92;
-const RING_SIZE_MAX = 34;
+const RING_SIZE_MAX = 24;
 
 type DayRingProps = {
   size: number;
@@ -55,8 +63,8 @@ function TahiyatUlWudhuDayRing({
       style={[
         styles.ringOuter,
         {
-          width: size + 10,
-          height: size + 16,
+          width: size + 5,
+          height: size + 5,
           borderRadius: 8,
         },
         isSelected && styles.ringOuterSelected,
@@ -73,9 +81,7 @@ function TahiyatUlWudhuDayRing({
           hasLog ? styles.ringInnerLogged : styles.ringInnerEmpty,
         ]}
       >
-        {isBestDay && (
-          <Ionicons name="star" size={18} color={Colors.light.yellow} />
-        )}
+        {isBestDay && <BestdayStarIcon />}
       </View>
     </View>
   );
@@ -101,10 +107,15 @@ export function TahiyatUlWudhuWeeklyProgressDashboard({
     screenWidth * WRAPPER_WIDTH_RATIO - CARD_HORIZONTAL_PADDING;
   const ringSize = Math.min(
     RING_SIZE_MAX,
-    Math.floor((availableWidth / 7) * 0.62)
+    Math.floor((availableWidth / 7) * 0.62),
   );
 
   const [activeDayIndex, setActiveDayIndex] = useState(selectedDayIndex);
+
+  // Keep highlight synced when `selectedDayIndex` changes (e.g. week navigation / refetch).
+  React.useEffect(() => {
+    setActiveDayIndex(selectedDayIndex);
+  }, [selectedDayIndex]);
 
   const handleDayPress = (index: number) => () => {
     setActiveDayIndex(index);
@@ -115,11 +126,7 @@ export function TahiyatUlWudhuWeeklyProgressDashboard({
     <View style={styles.card}>
       <View style={styles.headerRow}>
         <View style={styles.headerLeft}>
-          <MaterialCommunityIcons
-            name="calendar-month-outline"
-            size={16}
-            color={Colors.light.seagreen}
-          />
+          <CalendarIcon size={24} color={Colors.light.graylightshade} />
           <Text style={styles.weekFractionText} numberOfLines={1}>
             {weekFraction} WEEKS
           </Text>
@@ -133,7 +140,7 @@ export function TahiyatUlWudhuWeeklyProgressDashboard({
           >
             <Ionicons
               name="chevron-back"
-              size={14}
+              size={20}
               color={Colors.light.dullWhite}
             />
           </TouchableOpacity>
@@ -147,7 +154,7 @@ export function TahiyatUlWudhuWeeklyProgressDashboard({
           >
             <Ionicons
               name="chevron-forward"
-              size={14}
+              size={20}
               color={Colors.light.dullWhite}
             />
           </TouchableOpacity>
@@ -166,7 +173,12 @@ export function TahiyatUlWudhuWeeklyProgressDashboard({
               onPress={handleDayPress(index)}
               activeOpacity={0.75}
             >
-              <View style={[styles.dayItemWrapper, isSelected && styles.dayItemSelected]}>
+              <View
+                style={[
+                  styles.dayItemWrapper,
+                  isSelected && styles.dayItemSelected,
+                ]}
+              >
                 <TahiyatUlWudhuDayRing
                   size={ringSize}
                   hasLog={hasLog}
@@ -195,7 +207,11 @@ export function TahiyatUlWudhuWeeklyProgressDashboard({
                     ]}
                     numberOfLines={1}
                   >
-                    {day.isBestDay ? day.prayersLogged.toString() : (day.prayersLogged > 0 ? day.prayersLogged.toString() : "")}
+                    {day.isBestDay
+                      ? day.prayersLogged.toString()
+                      : day.prayersLogged > 0
+                        ? day.prayersLogged.toString()
+                        : ""}
                   </Text>
                 </View>
               </View>
@@ -205,34 +221,28 @@ export function TahiyatUlWudhuWeeklyProgressDashboard({
       </View>
 
       <View style={styles.statsRow}>
-        <MaterialCommunityIcons
-          name={statsIcon}
-          size={24}
-          color={Colors.light.lightblue}
-        />
+        <PrayerMatIcon />
         <Text style={styles.statsText} numberOfLines={1}>
-          <Text style={styles.statsCount}>
-            {totalPrayersThisWeek}
-          </Text>
+          <Text style={styles.statsCount}>{totalPrayersThisWeek}</Text>
           {" prayers this week"}
         </Text>
       </View>
 
       <View style={styles.footerRow}>
         <View style={styles.streakBadge}>
-          <Ionicons name="flash" size={13} color={Colors.light.yellow} />
+          <LighteningIcon />
           <Text style={styles.streakText}>
-            {streakDays}-day streak
+            <Text style={styles.streakCount}>{streakDays}</Text>
+            <Text>-day streak</Text>
           </Text>
         </View>
 
         <View style={styles.quoteBlock}>
-          <MaterialCommunityIcons
-            name="target"
-            size={14}
-            color={Colors.light.seagreen}
-          />
-          <Text style={styles.quoteText}>{motivationalQuote || "Masha'Allah, may Allah always fill your heart with His love and light!"}</Text>
+          <AimIcon />
+          <Text style={styles.quoteText}>
+            {motivationalQuote ||
+              "Masha'Allah, may Allah always fill your heart with His love and light!"}
+          </Text>
         </View>
       </View>
     </View>
@@ -261,14 +271,16 @@ const styles = StyleSheet.create({
   },
   weekFractionText: {
     color: Colors.light.white,
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
+    lineHeight: 19,
+    marginLeft: 10,
   },
   headerNav: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 2,
+    gap: 8,
     flexShrink: 0,
   },
   navBtn: {
@@ -276,10 +288,12 @@ const styles = StyleSheet.create({
   },
   weekRangeText: {
     color: Colors.light.white,
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: "500",
     fontFamily: fonts.primary.medium,
     textAlign: "center",
+    lineHeight: 20,
+    letterSpacing: 0.1,
   },
   daysRow: {
     flexDirection: "row",
@@ -352,20 +366,21 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 6,
+    gap: 8,
     flexWrap: "nowrap",
   },
   statsText: {
     color: Colors.light.white,
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: fonts.primary.medium,
     flexShrink: 1,
     fontWeight: "500",
+    letterSpacing: 0.1,
   },
   statsCount: {
     color: Colors.light.white,
     fontWeight: "700",
-    fontSize: 22,
+    fontSize: 20,
     fontFamily: fonts.primary.bold,
   },
   footerRow: {
@@ -384,6 +399,12 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "500",
     fontFamily: fonts.primary.medium,
+  },
+  streakCount: {
+    color: Colors.light.white,
+    fontSize: 13,
+    fontWeight: "700",
+    fontFamily: fonts.primary.bold,
   },
   quoteBlock: {
     flex: 1,

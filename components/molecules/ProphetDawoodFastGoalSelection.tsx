@@ -35,7 +35,7 @@ export default function ProphetDawoodFastGoalSelection({
     setIsOpen(!isOpen);
   };
 
-  const handleSave = (markSaved: () => void) => {
+  const handleSave = (markSaved: () => void, markFailed: () => void) => {
     upsertFastingGoal(
       {
         fastingType: "PROPHET_DAWOOD",
@@ -46,6 +46,7 @@ export default function ProphetDawoodFastGoalSelection({
           onSave?.(selectedStartDay);
           markSaved();
         },
+        onError: () => markFailed(),
       },
     );
   };

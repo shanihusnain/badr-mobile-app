@@ -24,7 +24,7 @@ export const FidyaSelector = ({
   handleIncrease: () => void;
   title: string;
   countTitle?: string;
-  onSave?: (onDone?: () => void) => void;
+  onSave?: (onDone?: () => void, onFail?: () => void) => void;
   isSaving?: boolean;
 }) => {
   const { t } = useTranslation();
@@ -61,7 +61,9 @@ export const FidyaSelector = ({
               <TopSpace top={16} />
               <GoalSelectionSaveButton
                 text={t("monthlyGoalPlanner.save")}
-                onPress={(markSaved) => onSave?.(markSaved)}
+                onPress={(markSaved, markFailed) =>
+                  onSave?.(markSaved, markFailed)
+                }
                 isLoading={isSaving}
                 disabled={isSaving || count < 1}
               />

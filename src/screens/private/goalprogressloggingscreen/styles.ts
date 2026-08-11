@@ -47,11 +47,12 @@ export const styles = StyleSheet.create({
   },
   circleGoalText: {
     color: Colors.light.white,
-    fontFamily: fonts.primary.regular,
+    fontFamily: fonts.primary.medium,
     fontSize: 14,
     opacity: 0.9,
     letterSpacing: -0.5,
     marginBottom: -4,
+    fontWeight: "500",
   },
   circlePercentRow: {
     flexDirection: "row",
@@ -67,7 +68,7 @@ export const styles = StyleSheet.create({
   circlePercentSymbol: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: 18,
+    fontSize: 12,
     marginLeft: 2,
   },
   weeklyDashboardWrapper: {

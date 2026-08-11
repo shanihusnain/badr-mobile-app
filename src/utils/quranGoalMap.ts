@@ -871,3 +871,19 @@ export function mapQuranGoalsFromApi(
     };
   }).filter((item) => item.apiGoals.length > 0);
 }
+
+/** True when any backend row for this card has saved targets/items (not merely isActive). */
+export function hasConfiguredQuranGoal(
+  item: QuranGoalListItem | undefined | null,
+): boolean {
+  if (!item?.apiGoals?.length) return false;
+  return item.apiGoals.some((goal) => {
+    if (typeof goal.targetValue === "number" && goal.targetValue > 0) {
+      return true;
+    }
+    if (Array.isArray(goal.items) && goal.items.length > 0) {
+      return true;
+    }
+    return false;
+  });
+}

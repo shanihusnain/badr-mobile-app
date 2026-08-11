@@ -100,6 +100,8 @@ export const MetricSelectionComponent = ({
   const isMemorizationSurah =
     variant === "memorization" && item.name === "surah";
   const isMemorizationJuz = variant === "memorization" && item.name === "juz";
+  const isMemorizationHizb = variant === "memorization" && item.name === "hizb";
+  const isRecitationSurah = item.name === "surah" && !isMemorizationSurah;
 
   const isActiveMetric = selectedMetric === item.name;
   const [selectedSurahs, setSelectedSurahs] = useState<number[]>([]);
@@ -162,16 +164,59 @@ export const MetricSelectionComponent = ({
     });
   };
 
+  const isSurahSavedOnBackend = (id: number) =>
+    (initialSelectedSurahs ?? []).includes(id) &&
+    !deletedSavedSurahIds.includes(id);
+
   const toggleSurah = (id: number) => {
     setSelectedSurahs((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
   };
 
+  const handleSurahPress = (id: number) => {
+    const isChecked = selectedSurahs.includes(id);
+
+    if (isChecked && item.name === "surah" && isSurahSavedOnBackend(id)) {
+      openDeleteConfirm({ kind: "SURAH", itemNumber: id });
+      return;
+    }
+
+    toggleSurah(id);
+    if (!isChecked && !isMemorizationSurah) {
+      ensureSetting(id);
+    }
+  };
+
   const toggleJuz = (id: number) => {
     setSelectedJuzs((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
+  };
+
+  const getSavedJuzIdsOnBackend = (): number[] => {
+    if (initialSelectedJuzs?.length) return initialSelectedJuzs;
+    const start = initialJuzRange?.start ?? 0;
+    const end = initialJuzRange?.end ?? start;
+    if (start <= 0 || end <= 0) return [];
+    return Array.from(
+      { length: Math.max(0, end - start + 1) },
+      (_, i) => start + i,
+    );
+  };
+
+  const handleJuzPress = (id: number) => {
+    const isChecked = selectedJuzs.includes(id);
+    const isSavedOnBackend =
+      getSavedJuzIdsOnBackend().includes(id) &&
+      !deletedSavedJuzIds.includes(id);
+
+    if (isChecked && isMemorizationJuz && isSavedOnBackend) {
+      openDeleteConfirm({ kind: "JUZ", itemNumber: id });
+      return;
+    }
+
+    toggleJuz(id);
   };
 
   const [surahSettings, setSurahSettings] = useState<
@@ -187,10 +232,19 @@ export const MetricSelectionComponent = ({
   const [deleteConfirmVisible, setDeleteConfirmVisible] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<
     | { kind: "SURAH"; itemNumber: number }
-    | { kind: "JUZ" }
+    | { kind: "HIZB"; itemNumber: number }
+    | { kind: "JUZ"; itemNumber?: number }
     | { kind: "COMPLETION" }
     | null
   >(null);
+  /** Saved surahs removed via API this session (until detail refetches). */
+  const [deletedSavedSurahIds, setDeletedSavedSurahIds] = useState<number[]>(
+    [],
+  );
+  /** Saved hizbs removed via API this session (until detail refetches). */
+  const [deletedSavedHizbIds, setDeletedSavedHizbIds] = useState<number[]>([]);
+  /** Saved juzs removed via API this session (until detail refetches). */
+  const [deletedSavedJuzIds, setDeletedSavedJuzIds] = useState<number[]>([]);
   const setInputFocused = (key: string, value: boolean) => {
     setFocusedInputs((prev) => ({ ...prev, [key]: value }));
   };
@@ -214,6 +268,9 @@ export const MetricSelectionComponent = ({
 
     if (hydratedForTypeRef.current === hydrateKey) return;
     hydratedForTypeRef.current = hydrateKey;
+    setDeletedSavedSurahIds([]);
+    setDeletedSavedHizbIds([]);
+    setDeletedSavedJuzIds([]);
 
     if (initialSelectedSurahs?.length) {
       setSelectedSurahs(initialSelectedSurahs);
@@ -403,21 +460,104 @@ export const MetricSelectionComponent = ({
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
   };
+
+  const isHizbSavedOnBackend = (id: number) =>
+    (initialSelectedHizbs ?? []).includes(id) &&
+    !deletedSavedHizbIds.includes(id);
+
+  const handleHizbPress = (id: number) => {
+    const isChecked = selectedHizbs.includes(id);
+
+    if (isChecked && isMemorizationHizb && isHizbSavedOnBackend(id)) {
+      openDeleteConfirm({ kind: "HIZB", itemNumber: id });
+      return;
+    }
+
+    toggleHizb(id);
+  };
+
+  const deleteHizb = async (id: number) => {
+    const wasSaved = isHizbSavedOnBackend(id);
+    if (wasSaved && onDeleteSavedItem) {
+      try {
+        await onDeleteSavedItem({ itemType: "HIZB", itemNumber: id });
+      } catch {
+        return;
+      }
+      setDeletedSavedHizbIds((prev) => [...prev, id]);
+    }
+
+    const nextHizbs = selectedHizbs.filter((x) => x !== id);
+    setSelectedHizbs(nextHizbs);
+
+    cleanBaselineRef.current = buildDirtySnapshot(
+      selectedSurahs,
+      surahSettings,
+      juzStart,
+      juzEnd,
+      selectedJuzs,
+      nextHizbs,
+      quranCompletion,
+    );
+    onDirtyChangeRef.current?.(false);
+  };
+
+  const deleteJuz = async (id: number) => {
+    const wasSaved =
+      getSavedJuzIdsOnBackend().includes(id) &&
+      !deletedSavedJuzIds.includes(id);
+    if (wasSaved && onDeleteSavedItem) {
+      try {
+        await onDeleteSavedItem({ itemType: "JUZ", itemNumber: id });
+      } catch {
+        return;
+      }
+      setDeletedSavedJuzIds((prev) => [...prev, id]);
+    }
+
+    const nextJuzs = selectedJuzs.filter((x) => x !== id);
+    setSelectedJuzs(nextJuzs);
+
+    cleanBaselineRef.current = buildDirtySnapshot(
+      selectedSurahs,
+      surahSettings,
+      juzStart,
+      juzEnd,
+      nextJuzs,
+      selectedHizbs,
+      quranCompletion,
+    );
+    onDirtyChangeRef.current?.(false);
+  };
+
   const deleteSurah = async (id: number) => {
-    const wasSaved = (initialSelectedSurahs ?? []).includes(id);
+    const wasSaved = isSurahSavedOnBackend(id);
     if (wasSaved && onDeleteSavedItem) {
       try {
         await onDeleteSavedItem({ itemType: "SURAH", itemNumber: id });
       } catch {
         return;
       }
+      setDeletedSavedSurahIds((prev) => [...prev, id]);
     }
-    setSelectedSurahs((prev) => prev.filter((x) => x !== id));
-    setSurahSettings((prev) => {
-      const copy = { ...prev };
-      delete copy[id];
-      return copy;
-    });
+
+    const nextSurahs = selectedSurahs.filter((x) => x !== id);
+    const nextSettings = { ...surahSettings };
+    delete nextSettings[id];
+
+    setSelectedSurahs(nextSurahs);
+    setSurahSettings(nextSettings);
+
+    cleanBaselineRef.current = buildDirtySnapshot(
+      nextSurahs,
+      nextSettings,
+      juzStart,
+      juzEnd,
+      selectedJuzs,
+      selectedHizbs,
+      quranCompletion,
+    );
+    onDirtyChangeRef.current?.(false);
   };
 
   const clearJuzSelection = async () => {
@@ -492,8 +632,14 @@ export const MetricSelectionComponent = ({
     try {
       if (pendingDelete.kind === "SURAH") {
         await deleteSurah(pendingDelete.itemNumber);
+      } else if (pendingDelete.kind === "HIZB") {
+        await deleteHizb(pendingDelete.itemNumber);
       } else if (pendingDelete.kind === "JUZ") {
-        await clearJuzSelection();
+        if (pendingDelete.itemNumber != null) {
+          await deleteJuz(pendingDelete.itemNumber);
+        } else {
+          await clearJuzSelection();
+        }
       } else if (pendingDelete.kind === "COMPLETION") {
         await clearCompletionSelection();
       }
@@ -752,15 +898,7 @@ export const MetricSelectionComponent = ({
                 return (
                   <View style={styles.surahItemContainer}>
                     <Pressable
-                      onPress={() => {
-                        toggleSurah(s.id);
-                        if (
-                          !selectedSurahs.includes(s.id) &&
-                          !isMemorizationSurah
-                        ) {
-                          ensureSetting(s.id);
-                        }
-                      }}
+                      onPress={() => handleSurahPress(s.id)}
                       style={[styles.metrixWrapper]}
                     >
                       <View
@@ -987,7 +1125,7 @@ export const MetricSelectionComponent = ({
                 const checked = selectedJuzs.includes(juz.id);
                 return (
                   <Pressable
-                    onPress={() => toggleJuz(juz.id)}
+                    onPress={() => handleJuzPress(juz.id)}
                     style={styles.surahItemContainer}
                   >
                     <View
@@ -1294,7 +1432,7 @@ export const MetricSelectionComponent = ({
 
                 return (
                   <Pressable
-                    onPress={() => toggleHizb(hizb.id)}
+                    onPress={() => handleHizbPress(hizb.id)}
                     style={styles.surahItemContainer}
                   >
                     <View
@@ -1347,7 +1485,19 @@ export const MetricSelectionComponent = ({
 
       <WarningModal
         visible={deleteConfirmVisible}
-        title="DELETE GOAL?"
+        title={
+          pendingDelete?.kind === "SURAH" && isMemorizationSurah
+            ? t("monthlyGoalPlanner.quranMetrics.deleteMemorizationSurahTitle")
+            : pendingDelete?.kind === "SURAH" && isRecitationSurah
+              ? t("monthlyGoalPlanner.quranMetrics.deleteRecitationSurahTitle")
+              : pendingDelete?.kind === "HIZB" && isMemorizationHizb
+                ? t("monthlyGoalPlanner.quranMetrics.deleteMemorizationHizbTitle")
+                : pendingDelete?.kind === "JUZ" &&
+                    isMemorizationJuz &&
+                    pendingDelete.itemNumber != null
+                  ? t("monthlyGoalPlanner.quranMetrics.deleteMemorizationJuzTitle")
+                  : t("monthlyGoalPlanner.quranMetrics.deleteGoalTitle")
+        }
         message={
           <>
             <Text
@@ -1360,13 +1510,50 @@ export const MetricSelectionComponent = ({
                 lineHeight: 20,
               }}
             >
-              Are you sure you want to delete the goal? This will remove your
-              goal permanently. This action cannot be undone.
+              {pendingDelete?.kind === "SURAH" && isMemorizationSurah
+                ? t(
+                    "monthlyGoalPlanner.quranMetrics.deleteMemorizationSurahMessage",
+                    {
+                      surahName:
+                        surahData.find((s) => s.id === pendingDelete.itemNumber)
+                          ?.surahTitle ?? "",
+                    },
+                  )
+                : pendingDelete?.kind === "SURAH" && isRecitationSurah
+                  ? t(
+                      "monthlyGoalPlanner.quranMetrics.deleteRecitationSurahMessage",
+                      {
+                        surahName:
+                          surahData.find((s) => s.id === pendingDelete.itemNumber)
+                            ?.surahTitle ?? "",
+                      },
+                    )
+                  : pendingDelete?.kind === "HIZB" && isMemorizationHizb
+                  ? t(
+                      "monthlyGoalPlanner.quranMetrics.deleteMemorizationHizbMessage",
+                      {
+                        hizbName:
+                          hizbData.find((h) => h.id === pendingDelete.itemNumber)
+                            ?.hizbName ?? "",
+                      },
+                    )
+                  : pendingDelete?.kind === "JUZ" &&
+                      isMemorizationJuz &&
+                      pendingDelete.itemNumber != null
+                    ? t(
+                        "monthlyGoalPlanner.quranMetrics.deleteMemorizationJuzMessage",
+                        {
+                          juzName:
+                            juzData.find((j) => j.id === pendingDelete.itemNumber)
+                              ?.juzName ?? "",
+                        },
+                      )
+                    : t("monthlyGoalPlanner.quranMetrics.deleteGoalMessage")}
             </Text>
           </>
         }
-        primaryButtonText="DELETE"
-        secondaryButtonText="Cancel"
+        primaryButtonText={t("monthlyGoalPlanner.quranMetrics.delete")}
+        secondaryButtonText={t("monthlyGoalPlanner.quranMetrics.cancel")}
         primaryButtonVariant="white"
         primaryButtonStyle={{
           borderColor: Colors.light.red,

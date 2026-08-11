@@ -21,6 +21,7 @@ import {
   formatPrayerTimeSpentLabel,
   getPrayerPastAchievement,
   type PrayerAnalyticsView,
+  type PrayerPastAchievement,
 } from "@/src/screens/private/goalprogressloggingscreen/prayerPastAchievementData";
 import type { PastAchievementPeriod } from "@/src/screens/private/goalprogressloggingscreen/quranHoursPastAchievementData";
 import { INCOMPLETE_BAR_COLOR } from "../QuranHoursPastAchievements/pastAchievementStyles";
@@ -31,6 +32,12 @@ import {
   getGoalById,
   type GoalId,
 } from "@/src/screens/private/home/components/goalsData";
+import { useGetPrayerGoalAchievements } from "@/src/api/queries/useGetPrayerGoalAchievements";
+import {
+  mapPrayerGoalAchievementsToUi,
+  shiftPrayerAchievementsPeriodStart,
+} from "@/src/utils/prayerGoalAchievementsMap";
+import { resolvePrayerTypeFromGoalId } from "@/src/utils/prayerGoalMap";
 
 type Props = {
   goalId: GoalId;
@@ -81,6 +88,24 @@ const SUNNAH_RAWATIB_TABS = [
 ];
 const QIYAM_TABS = ["All", "After Isha", "Tahajjud"];
 
+const LOADING_DASH = "---";
+
+const EMPTY_PRAYER_ACHIEVEMENT: PrayerPastAchievement = {
+  dateRangeLabel: LOADING_DASH,
+  achievementPercent: 0,
+  previousPeriodDeltaPercent: 0,
+  chartData: [],
+  goalPrayers: 0,
+  periodGoalPrayers: 0,
+  completedPrayers: 0,
+  incompletePrayers: 0,
+  totalTimeSpentMinutes: 0,
+  yMax: 10,
+  yTicks: [0, 5, 10],
+  pageCount: 0,
+  activePageIndex: 0,
+};
+
 export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
@@ -88,6 +113,7 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
   const router = useRouter();
   const [selectedPrayerTab, setSelectedPrayerTab] = useState<string>("All");
   const [period, setPeriod] = useState<PastAchievementPeriod>("monthly");
+  const [periodStartParam, setPeriodStartParam] = useState<string | null>(null);
   const [analyticsView, setAnalyticsView] = useState<PrayerAnalyticsView>(
     "completedVsIncomplete"
   );
@@ -95,6 +121,20 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
   const [hintDismissed, setHintDismissed] = useState(false);
   const goalData = getGoalById(goalId);
   const cleanGoalLabel = goalData?.title || "";
+  const isTahiyyat = goalId === "prayer-tahiyyat";
+  const prayerType = resolvePrayerTypeFromGoalId(goalId);
+
+  const {
+    data: achievementsApiData,
+    isLoading: isAchievementsLoading,
+  } = useGetPrayerGoalAchievements(prayerType, {
+    period,
+    periodStart: periodStartParam,
+    enabled: isTahiyyat && !!prayerType,
+  });
+
+  const showPlaceholders =
+    isTahiyyat && (!achievementsApiData || isAchievementsLoading);
 
   useEffect(() => {
     if (goalId === "prayer-qiyam" && analyticsView === "completedByCategory" && selectedPrayerTab === "All") {
@@ -102,12 +142,20 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
     }
   }, [goalId, analyticsView, selectedPrayerTab]);
 
-  const baseAchievementRaw = useMemo(
-    () => getPrayerPastAchievement(goalId, period),
-    [goalId, period]
-  );
+  useEffect(() => {
+    setPeriodStartParam(null);
+  }, [period, goalId]);
+
+  const baseAchievementRaw = useMemo((): PrayerPastAchievement | null => {
+    if (isTahiyyat) {
+      if (!achievementsApiData) return null;
+      return mapPrayerGoalAchievementsToUi(achievementsApiData);
+    }
+    return getPrayerPastAchievement(goalId, period);
+  }, [isTahiyyat, achievementsApiData, goalId, period]);
 
   const baseAchievement = useMemo(() => {
+    if (!baseAchievementRaw) return null;
     let data = { ...baseAchievementRaw };
 
     const isMissed = goalId === "prayer-missed";
@@ -155,34 +203,88 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
   }, [baseAchievementRaw, goalId, selectedPrayerTab]);
 
   const achievement = useMemo(
-    () => applyPrayerAnalyticsView(baseAchievement, analyticsView),
+    () =>
+      baseAchievement
+        ? applyPrayerAnalyticsView(baseAchievement, analyticsView)
+        : null,
     [baseAchievement, analyticsView]
   );
 
   useEffect(() => {
     setSelectedBarIndex(null);
     setHintDismissed(false);
-  }, [period, goalId, analyticsView]);
+  }, [period, goalId, analyticsView, periodStartParam]);
 
   const handleBarPress = useCallback((index: number | null) => {
     setHintDismissed(true);
     setSelectedBarIndex((prev) => (prev === index ? null : index));
   }, []);
 
+  const handlePeriodChange = useCallback((next: PastAchievementPeriod) => {
+    setPeriod(next);
+    setPeriodStartParam(null);
+  }, []);
+
+  const handleNavigateBack = useCallback(() => {
+    if (!isTahiyyat || !achievementsApiData?.canNavigateBack) return;
+    const nextStart = shiftPrayerAchievementsPeriodStart(
+      achievementsApiData.periodStart,
+      achievementsApiData.periodEnd,
+      -1,
+    );
+    setPeriodStartParam(nextStart);
+  }, [isTahiyyat, achievementsApiData]);
+
+  const handleNavigateForward = useCallback(() => {
+    if (!isTahiyyat || !achievementsApiData?.canNavigateForward) return;
+    const nextStart = shiftPrayerAchievementsPeriodStart(
+      achievementsApiData.periodStart,
+      achievementsApiData.periodEnd,
+      1,
+    );
+    setPeriodStartParam(nextStart);
+  }, [isTahiyyat, achievementsApiData]);
+
+  const canNavigateBack = isTahiyyat
+    ? !showPlaceholders && !!achievementsApiData?.canNavigateBack
+    : true;
+  const canNavigateForward = isTahiyyat
+    ? !showPlaceholders && !!achievementsApiData?.canNavigateForward
+    : true;
+
   const selectedBaseWeek =
-    selectedBarIndex !== null
+    !showPlaceholders &&
+    selectedBarIndex !== null &&
+    baseAchievement
       ? (baseAchievement.chartData[selectedBarIndex] as any)
       : null;
 
   const displayBaseCompleted =
-    selectedBaseWeek?.completedPrayers ?? baseAchievement.completedPrayers;
+    selectedBaseWeek?.completedPrayers ?? baseAchievement?.completedPrayers ?? 0;
   const displayBaseIncomplete =
-    selectedBaseWeek?.incompletePrayers ?? baseAchievement.incompletePrayers;
+    selectedBaseWeek?.incompletePrayers ??
+    baseAchievement?.incompletePrayers ??
+    0;
 
   const displayTimeSpent =
-    selectedBaseWeek?.timeSpentMinutes ?? baseAchievement.totalTimeSpentMinutes;
+    selectedBaseWeek?.timeSpentMinutes ??
+    baseAchievement?.totalTimeSpentMinutes ??
+    0;
+
+  const resolvedBaseAchievement = baseAchievement ?? EMPTY_PRAYER_ACHIEVEMENT;
+  const resolvedAchievement =
+    achievement ??
+    applyPrayerAnalyticsView(EMPTY_PRAYER_ACHIEVEMENT, analyticsView);
+  const deltaIsPositive =
+    resolvedBaseAchievement.previousPeriodDeltaPercent >= 0;
+
+  if (!isTahiyyat && (!baseAchievement || !achievement)) {
+    return null;
+  }
 
   const renderInsights = () => {
+    // Tahiyyat uses backend achievements only — skip static insight mocks.
+    if (isTahiyyat) return null;
     const cards = PRAYER_INSIGHT_CARDS[goalId]?.[period as "monthly" | "threeMonths" | "sixMonths"];
     if (!cards || !isDetailed) return null;
 
@@ -212,7 +314,6 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
   };
 
   const showChartHint = !hintDismissed && selectedBarIndex === null;
-  const deltaIsPositive = baseAchievement.previousPeriodDeltaPercent >= 0;
 
   return (
     <View style={styles.section}>
@@ -246,29 +347,43 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
               {t("progressLogging.achievementsLabel").toUpperCase()}
             </Text>
             <Text style={styles.achievementPercent}>
-              {formatNumber(achievement.achievementPercent)}
-              <Text style={styles.achievementPercentSymbol}>%</Text>
+              {showPlaceholders ? (
+                LOADING_DASH
+              ) : (
+                <>
+                  {formatNumber(resolvedAchievement.achievementPercent)}
+                  <Text style={styles.achievementPercentSymbol}>%</Text>
+                </>
+              )}
             </Text>
             <View
               style={[
                 styles.deltaBadge,
-                !deltaIsPositive && styles.deltaBadgeNegative,
+                (!deltaIsPositive || showPlaceholders) &&
+                  styles.deltaBadgeNegative,
               ]}
             >
-              <Ionicons
-                name={deltaIsPositive ? "arrow-up" : "arrow-down"}
-                size={11}
-                color={deltaIsPositive ? Colors.light.green : Colors.light.subtext}
-              />
+              {!showPlaceholders && (
+                <Ionicons
+                  name={deltaIsPositive ? "arrow-up" : "arrow-down"}
+                  size={11}
+                  color={
+                    deltaIsPositive
+                      ? Colors.light.green
+                      : Colors.light.subtext
+                  }
+                />
+              )}
               <Text
                 style={[
                   styles.deltaText,
-                  !deltaIsPositive && styles.deltaTextNegative,
+                  (!deltaIsPositive || showPlaceholders) &&
+                    styles.deltaTextNegative,
                 ]}
               >
-                {deltaIsPositive ? "+" : ""}
-                {formatNumber(baseAchievement.previousPeriodDeltaPercent)}%{" "}
-                {t("progressLogging.previousMonth")}
+                {showPlaceholders
+                  ? LOADING_DASH
+                  : `${deltaIsPositive ? "+" : ""}${formatNumber(resolvedBaseAchievement.previousPeriodDeltaPercent)}% ${t("progressLogging.previousMonth")}`}
               </Text>
             </View>
           </View>
@@ -280,7 +395,7 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
                 return (
                   <Pressable
                     key={item}
-                    onPress={() => setPeriod(item)}
+                    onPress={() => handlePeriodChange(item)}
                     style={[
                       styles.periodButton,
                       isActive
@@ -302,34 +417,54 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
             </View>
 
             <View style={styles.dateNavRow}>
-              <TouchableOpacity activeOpacity={0.7} style={styles.navBtn}>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                style={styles.navBtn}
+                onPress={handleNavigateBack}
+                disabled={!canNavigateBack}
+              >
                 <Ionicons
                   name="chevron-back"
                   size={24}
-                  color={Colors.light.dullWhite}
+                  color={
+                    canNavigateBack
+                      ? Colors.light.dullWhite
+                      : Colors.light.subtext
+                  }
                 />
               </TouchableOpacity>
               <Text style={styles.dateRange} numberOfLines={1}>
-                {achievement.dateRangeLabel}
+                {showPlaceholders
+                  ? LOADING_DASH
+                  : resolvedAchievement.dateRangeLabel}
               </Text>
-              <TouchableOpacity activeOpacity={0.7} style={styles.navBtn}>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                style={styles.navBtn}
+                onPress={handleNavigateForward}
+                disabled={!canNavigateForward}
+              >
                 <Ionicons
                   name="chevron-forward"
                   size={24}
-                  color={Colors.light.dullWhite}
+                  color={
+                    canNavigateForward
+                      ? Colors.light.dullWhite
+                      : Colors.light.subtext
+                  }
                 />
               </TouchableOpacity>
             </View>
           </View>
         </View>
 
-        {isDetailed && (
+        {isDetailed && !showPlaceholders && (
           <>
             <Text style={styles.summaryText}>
               <Text>{PERIOD_PHRASE[period]}, you achieved </Text>
-              <Text style={styles.summaryBold}>{formatNumber(baseAchievement.achievementPercent)}%</Text>
+              <Text style={styles.summaryBold}>{formatNumber(resolvedBaseAchievement.achievementPercent)}%</Text>
               <Text> of your {cleanGoalLabel} prayer goals — </Text>
-              <Text style={styles.summaryBold}>{formatNumber(Math.abs(baseAchievement.previousPeriodDeltaPercent))}%</Text>
+              <Text style={styles.summaryBold}>{formatNumber(Math.abs(resolvedBaseAchievement.previousPeriodDeltaPercent))}%</Text>
               <Text>
                 {" "}
                 {deltaIsPositive ? "more" : "less"} than the previous{" "}
@@ -383,7 +518,9 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
           <Text style={styles.goalLabel}>{t("progressLogging.goal")}</Text>
           <View style={styles.goalValueRow}>
             <Text style={styles.goalPillValue}>
-              {formatNumber(baseAchievement.goalPrayers)}{" "}
+              {showPlaceholders
+                ? LOADING_DASH
+                : formatNumber(resolvedBaseAchievement.goalPrayers)}{" "}
             </Text>
             <View style={styles.goalPill}>
               <Text style={styles.goalPillText}>
@@ -478,7 +615,9 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
                 analyticsView === "inMosqueVsOutOfMosque" && { color: "#00E5FF" }
               ]}
             >
-              {formatPrayerCountLabel(displayBaseCompleted)}
+              {showPlaceholders
+                ? LOADING_DASH
+                : formatPrayerCountLabel(displayBaseCompleted)}
             </Text>
           </View>
           <View style={styles.statColumn}>
@@ -496,9 +635,11 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
                   : styles.statValueIncomplete
               }
             >
-              {analyticsView === "completedVsTimeSpent"
-                ? formatPrayerTimeSpentLabel(displayTimeSpent)
-                : formatPrayerCountLabel(displayBaseIncomplete)}
+              {showPlaceholders
+                ? LOADING_DASH
+                : analyticsView === "completedVsTimeSpent"
+                  ? formatPrayerTimeSpentLabel(displayTimeSpent)
+                  : formatPrayerCountLabel(displayBaseIncomplete)}
             </Text>
           </View>
         </View>
@@ -508,26 +649,34 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
           onMoveShouldSetResponder={() => false}
         >
           <QuranHoursPastAchievementChartBlock
-            chartData={achievement.chartData}
-            selectedBarIndex={isDetailed ? selectedBarIndex : null}
-            onBarPress={isDetailed ? handleBarPress : () => { }}
-            chartKey={`${goalId}-${period}-${analyticsView}-${selectedPrayerTab}`}
-            yMax={achievement.yMax}
-            yTicks={achievement.yTicks}
-            showHint={isDetailed ? showChartHint : false}
+            chartData={
+              showPlaceholders ? [] : resolvedAchievement.chartData
+            }
+            selectedBarIndex={
+              isDetailed && !showPlaceholders ? selectedBarIndex : null
+            }
+            onBarPress={
+              isDetailed && !showPlaceholders ? handleBarPress : () => { }
+            }
+            chartKey={`${goalId}-${period}-${analyticsView}-${selectedPrayerTab}-${showPlaceholders ? "loading" : "ready"}`}
+            yMax={resolvedAchievement.yMax}
+            yTicks={resolvedAchievement.yTicks}
+            showHint={isDetailed && !showPlaceholders ? showChartHint : false}
             onDismissHint={() => {
               setHintDismissed(true);
-              if (achievement.chartData.length > 0) {
-                setSelectedBarIndex(achievement.chartData.length - 1);
+              if (resolvedAchievement.chartData.length > 0) {
+                setSelectedBarIndex(resolvedAchievement.chartData.length - 1);
               }
             }}
             hintText={t("progressLogging.chartTapHint")}
             hintActionText={t("progressLogging.okGotIt")}
-            pageCount={achievement.pageCount}
-            activePageIndex={selectedBarIndex ?? achievement.activePageIndex}
+            pageCount={resolvedAchievement.pageCount}
+            activePageIndex={
+              selectedBarIndex ?? resolvedAchievement.activePageIndex
+            }
             formatBarValue={formatPrayerCountLabel}
             isPrayerGoal={true}
-            showPagination={isDetailed}
+            showPagination={isDetailed && !showPlaceholders}
             showBarLine={goalId === "prayer-qiyam"}
           />
         </View>

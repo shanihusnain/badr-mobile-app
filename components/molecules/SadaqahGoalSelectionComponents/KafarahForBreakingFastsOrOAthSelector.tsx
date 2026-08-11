@@ -28,7 +28,7 @@ export const KafarahForBreakingFastsOrOAthSelector = ({
   setClothCount: (count: number) => void;
   handleClothDecrease: () => void;
   handleClothIncrease: () => void;
-  onSave?: (onDone?: () => void) => void;
+  onSave?: (onDone?: () => void, onFail?: () => void) => void;
   isSaving?: boolean;
 }) => {
   const { t } = useTranslation();
@@ -82,7 +82,9 @@ export const KafarahForBreakingFastsOrOAthSelector = ({
               <TopSpace top={16} />
               <GoalSelectionSaveButton
                 text={t("monthlyGoalPlanner.save")}
-                onPress={(markSaved) => onSave?.(markSaved)}
+                onPress={(markSaved, markFailed) =>
+                  onSave?.(markSaved, markFailed)
+                }
                 isLoading={isSaving}
                 disabled={isSaving || (mealCount < 1 && clothCount < 1)}
               />

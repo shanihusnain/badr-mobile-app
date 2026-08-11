@@ -33,10 +33,29 @@ export const UI_ID_TO_PRAYER_TYPE: Record<string, string> = Object.fromEntries(
   ]),
 );
 
+/** Progress logging screen goal ids → backend prayerType enum */
+export const GOAL_ID_TO_PRAYER_TYPE: Record<string, string> = {
+  "prayer-tahiyyat": "TAHIYYAT_AL_WUDHU",
+  "prayer-tahiyyatMasjid": "TAHIYYAT_AL_MASJID",
+  "prayer-tawbah": "TAWBAH",
+  "prayer-istikhara": "ISTIKHARA",
+  "prayer-shukr": "SHUKR",
+  "prayer-sunnah": "SUNNAH_RAWATIB",
+  "prayer-duha": "DUHA",
+  "prayer-qiyam": "QIYAM_AL_LAYL",
+  "prayer-missed": "MISSED_PAST_PRAYERS",
+  "prayer-fiveDailyPrayers": "FIVE_DAILY_PRAYERS",
+};
+
 /** Accept either API enum or local UI id */
 export function resolvePrayerType(goalKey: string): string {
   if (PRAYER_TYPE_TO_UI_ID[goalKey]) return goalKey;
+  if (GOAL_ID_TO_PRAYER_TYPE[goalKey]) return GOAL_ID_TO_PRAYER_TYPE[goalKey];
   return UI_ID_TO_PRAYER_TYPE[goalKey] ?? goalKey;
+}
+
+export function resolvePrayerTypeFromGoalId(goalId: string): string | null {
+  return GOAL_ID_TO_PRAYER_TYPE[goalId] ?? null;
 }
 
 export function resolvePrayerUiId(goalKey: string): string {
@@ -128,7 +147,7 @@ function pickSavedNumber(
   return typeof value === "number" && value > 0 ? value : fallback;
 }
 
-function hasConfiguredTargets(goal: PrayerGoalApiItem | undefined): boolean {
+export function hasConfiguredTargets(goal: PrayerGoalApiItem | undefined): boolean {
   if (!goal?.targets) return false;
 
   const {

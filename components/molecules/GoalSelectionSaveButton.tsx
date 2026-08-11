@@ -16,8 +16,12 @@ import PrimaryButton from "@/components/atoms/Primary-button";
 const SAVED_VISIBLE_MS = 3000;
 
 type Props = {
-  /** Call `markSaved()` once the save succeeds (sync or after mutation onSuccess). */
-  onPress: (markSaved: () => void) => void;
+  /**
+   * Call `markSaved()` only after the API succeeds.
+   * Call `markFailed()` if validation fails before the request, or on API error
+   * when parent `isLoading` is not used.
+   */
+  onPress: (markSaved: () => void, markFailed: () => void) => void;
   text?: string;
   disabled?: boolean;
   isLoading?: boolean;
@@ -26,20 +30,24 @@ type Props = {
 };
 
 /**
- * Goal-selection Save CTA: on success shows a SAVED! bar for 3s, then Save again.
- * Does not collapse the selection panel.
+ * Goal-selection Save CTA phases:
+ * 1) Save
+ * 2) Loading until the API settles
+ * 3) SAVED! only when `markSaved()` is called after success
  */
 export default function GoalSelectionSaveButton({
   onPress,
   text,
   disabled,
-  isLoading,
+  isLoading = false,
   style,
   textStyle,
 }: Props) {
   const { t } = useTranslation();
   const [showSaved, setShowSaved] = useState(false);
+  const [pending, setPending] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const wasParentLoadingRef = useRef(false);
 
   useEffect(() => {
     return () => {
@@ -47,7 +55,20 @@ export default function GoalSelectionSaveButton({
     };
   }, []);
 
+  // If parent-driven loading ends without markSaved, return to Save.
+  useEffect(() => {
+    if (isLoading) {
+      wasParentLoadingRef.current = true;
+      return;
+    }
+    if (wasParentLoadingRef.current && pending && !showSaved) {
+      setPending(false);
+    }
+    wasParentLoadingRef.current = false;
+  }, [isLoading, pending, showSaved]);
+
   const markSaved = useCallback(() => {
+    setPending(false);
     setShowSaved(true);
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => {
@@ -55,6 +76,12 @@ export default function GoalSelectionSaveButton({
       timerRef.current = null;
     }, SAVED_VISIBLE_MS);
   }, []);
+
+  const markFailed = useCallback(() => {
+    setPending(false);
+  }, []);
+
+  const loading = Boolean(isLoading) || pending;
 
   if (showSaved) {
     return (
@@ -71,9 +98,12 @@ export default function GoalSelectionSaveButton({
     <PrimaryButton
       size="compact"
       text={(text ?? t("prayerGoals.save", "Save")).toLocaleUpperCase()}
-      onPress={() => onPress(markSaved)}
-      disabled={disabled}
-      isLoading={isLoading}
+      onPress={() => {
+        setPending(true);
+        onPress(markSaved, markFailed);
+      }}
+      disabled={disabled || loading}
+      isLoading={loading}
       style={style}
       textStyle={textStyle}
     />
