@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   Pressable,
   Text,
@@ -18,9 +18,32 @@ import { FlowCard } from "../components/FlowCard";
 import { styles as commonStyles } from "../components/DailyProgressLogging.styles";
 import { fonts } from "@/assets/fonts";
 import type { ProgressLogEntry } from "../types";
+import { useOptionalPrayerGoalFrameContext } from "../prayerGoalFrameContext";
+import {
+  getPrayerFrameAchievementLabel,
+  prayerFrameShowsInsights,
+} from "@/src/utils/prayerGoalFrameMap";
+import { useLogTahiyatAlWudhuGoal } from "@/src/api/mutations/useLogTahiyatAlWudhuGoal";
+import {
+  AddLoggingFlowIcon,
+  CalendarFlippingIcon,
+  PlusAddIcon,
+  WhiteClockIcon,
+  WhitePrayerMatIcon,
+  WhiteTimerIcon,
+} from "@/assets/icons";
 
-type TahiyatUlWudhuStepId = "date" | "prayer-right-after" | "start-time" | "time-spent";
-const STEPS: TahiyatUlWudhuStepId[] = ["date", "prayer-right-after", "start-time", "time-spent"];
+type TahiyatUlWudhuStepId =
+  | "date"
+  | "prayer-right-after"
+  | "start-time"
+  | "time-spent";
+const STEPS: TahiyatUlWudhuStepId[] = [
+  "date",
+  "prayer-right-after",
+  "start-time",
+  "time-spent",
+];
 
 type Props = {
   goalData: GoalData;
@@ -53,24 +76,66 @@ export default function TahiyatUlWudhuLoggingFlow({
   const [durationHours, setDurationHours] = useState("0");
   const [durationMinutes, setDurationMinutes] = useState("10");
 
-  // MOCK DATA — fixed until backend is connected
-  const MOCK_PERCENTAGE = 40; // represents 10/25 prayers done
-  const totalPrayersRequired = 27;
-  const mockTitle = `${totalPrayersRequired} 2-Rak'ah Tahiyyat Al-Wudhu Prayers`;
+  const prayerFrame = useOptionalPrayerGoalFrameContext();
+  const frame = prayerFrame?.frame;
 
-  // hasLogged: false = show "In Progress", true = show fixed percentage
-  const [hasLogged, setHasLogged] = useState(false);
+  const cycleStartHijri = frame?.cycle?.cycleStart
+    ? toDateString(new Date(frame.cycle.cycleStart))
+    : undefined;
+  const cycleEndHijri = frame?.cycle?.cycleEnd
+    ? toDateString(new Date(frame.cycle.cycleEnd))
+    : undefined;
 
-  const getBadgeStatus = () => {
-    if (!hasLogged) return { text: "In Progress", type: "in-progress" };
-    if (MOCK_PERCENTAGE >= 100) return { text: "100% Achieved!", type: "completed" };
-    return { text: `${MOCK_PERCENTAGE}% Achieved`, type: "completed" }; // green badge for any % shown
+  const goalLabel = frame?.goal.label ?? "";
+
+  const badgeStatus = useMemo(() => {
+    if (!frame) {
+      return {
+        text: t("progressLogging.inProgress"),
+        type: "in-progress" as const,
+      };
+    }
+    return getPrayerFrameAchievementLabel(frame, t);
+  }, [frame, t]);
+
+  const showInsights = frame ? prayerFrameShowsInsights(frame) : false;
+
+  const { mutateAsync: logTahiyat, isPending: isLogging } =
+    useLogTahiyatAlWudhuGoal();
+
+  const formatStartTimeForApi = () => {
+    const hourNum = parseInt(startHour || "0", 10) || 0; // 1-12
+    const minuteNum = parseInt(startMinute || "0", 10) || 0; // 0-59
+
+    let hour24 = hourNum % 12;
+    if (startPeriod === "pm") hour24 += 12;
+
+    const hh = String(Math.max(0, hour24)).padStart(2, "0");
+    const mm = String(Math.max(0, minuteNum)).padStart(2, "0");
+    return `${hh}:${mm}`;
   };
 
-  const badgeStatus = getBadgeStatus();
-  const isCompleted = hasLogged;
+  const buildDurationMinutesForApi = () => {
+    const h = parseInt(durationHours || "0", 10) || 0;
+    const m = parseInt(durationMinutes || "0", 10) || 0;
+    return h * 60 + m;
+  };
 
   const todayString = toDateString(new Date());
+  const maxSelectableDate = cycleEndHijri
+    ? cycleEndHijri < todayString
+      ? cycleEndHijri
+      : todayString
+    : todayString;
+
+  // Clamp initial/changed selected date to the cycle window
+  React.useEffect(() => {
+    if (!cycleStartHijri || !cycleEndHijri) return;
+    if (selectedDate < cycleStartHijri) setSelectedDate(cycleStartHijri);
+    else if (selectedDate > maxSelectableDate) {
+      setSelectedDate(maxSelectableDate);
+    }
+  }, [cycleStartHijri, cycleEndHijri, maxSelectableDate]);
   const currentStep = STEPS[stepIndex];
   const isLastStep = stepIndex === STEPS.length - 1;
 
@@ -83,7 +148,11 @@ export default function TahiyatUlWudhuLoggingFlow({
     const next = moment(selectedDate, "YYYY-MM-DD")
       .add(direction, "days")
       .format("YYYY-MM-DD");
-    if (direction === 1 && next > todayString) return;
+
+    // Restrict date selection within backend cycle window.
+    if (cycleStartHijri && direction === -1 && next < cycleStartHijri) return;
+    if (direction === 1 && next > maxSelectableDate) return;
+
     setSelectedDate(next);
   };
 
@@ -101,19 +170,41 @@ export default function TahiyatUlWudhuLoggingFlow({
   }, []);
 
   const handleConfirm = () => {
-    // Mark as logged so badge switches from "In Progress" to the fixed percentage.
-    // Actual percentage will come from backend when integrated.
-    setHasLogged(true);
-    onLogComplete?.({
-      type: "tahiyat-ul-wudhu",
-      goalId: goalData.id,
-      date: selectedDate,
-      prayedRightAfter,
-      startTime: `${startHour}:${startMinute} ${startPeriod}`,
-      durationHours,
-      durationMinutes,
-    } as any);
-    resetFlow();
+    if (isLogging) return;
+
+    const run = async () => {
+      const payload = {
+        date: selectedDate,
+        count: 1,
+        prayedAfterWudhu: prayedRightAfter === "Yes",
+        startTime: formatStartTimeForApi(),
+        durationMinutes: buildDurationMinutesForApi(),
+        notes: prayedRightAfter === "Yes" ? "After Wudhu" : "Not after Wudhu",
+      };
+
+      try {
+        await logTahiyat(payload);
+
+        // Make the green card/week update immediately after logging.
+        // (The provider refetch can also be triggered by onLogComplete refreshKey,
+        // but we do it here for faster perceived UI response.)
+        await prayerFrame?.refetch();
+
+        onLogComplete?.({
+          type: "tahiyat-ul-wudhu",
+          goalId: goalData.id,
+          date: selectedDate,
+          prayedRightAfter,
+          startTime: payload.startTime,
+          durationMinutes: payload.durationMinutes,
+        } as any);
+        resetFlow();
+      } catch {
+        // onError handler already shows toast.
+      }
+    };
+
+    void run();
   };
 
   const handleBack = () => {
@@ -136,22 +227,22 @@ export default function TahiyatUlWudhuLoggingFlow({
     switch (step) {
       case "date":
         return {
-          icon: <Ionicons name="calendar-outline" size={15} color={Colors.light.white} />,
+          icon: <CalendarFlippingIcon />,
           label: "Which day are you logging for?",
         };
       case "prayer-right-after":
         return {
-          icon: <Ionicons name="apps-outline" size={15} color={Colors.light.white} />, // Using a generic icon for rug representation
+          icon: <WhitePrayerMatIcon />, // Using a generic icon for rug representation
           label: "Did you pray right after performing wudhu?",
         };
       case "start-time":
         return {
-          icon: <Ionicons name="time-outline" size={15} color={Colors.light.white} />,
+          icon: <WhiteClockIcon />,
           label: "Enter start time.",
         };
       case "time-spent":
         return {
-          icon: <Ionicons name="timer-outline" size={15} color={Colors.light.white} />,
+          icon: <WhiteTimerIcon />,
           label: "Enter time spent.",
         };
     }
@@ -211,7 +302,9 @@ export default function TahiyatUlWudhuLoggingFlow({
 
   return (
     <View style={commonStyles.section}>
-      <Text style={commonStyles.sectionTitle}>{t("progressLogging.myProgress")}</Text>
+      <Text style={commonStyles.sectionTitle}>
+        {t("progressLogging.myProgress")}
+      </Text>
 
       <View style={commonStyles.cardAnchor}>
         {flowMode === "active" && (
@@ -234,31 +327,58 @@ export default function TahiyatUlWudhuLoggingFlow({
                 <Ionicons name="water" size={18} color={Colors.light.white} />
               </View>
               <View style={{ flex: 1, gap: 4 }}>
-                <View style={[localStyles.badge, badgeStatus.type === "completed" ? localStyles.badgeCompleted : localStyles.badgeInProgress, { alignSelf: "flex-start" }]}>
-                  <Text style={[localStyles.badgeText, badgeStatus.type === "completed" ? localStyles.badgeTextCompleted : localStyles.badgeTextInProgress]}>
+                <View
+                  style={[
+                    localStyles.badge,
+                    badgeStatus.type === "completed"
+                      ? localStyles.badgeCompleted
+                      : localStyles.badgeInProgress,
+                    badgeStatus.type === "not-started"
+                      ? localStyles.badgeNotStarted
+                      : localStyles.badgeInProgress,
+                    { alignSelf: "flex-start" },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      localStyles.badgeText,
+                      badgeStatus.type === "completed"
+                        ? localStyles.badgeTextCompleted
+                        : localStyles.badgeTextInProgress,
+                      badgeStatus.type === "not-started"
+                        ? localStyles.badgeTextNotStarted
+                        : localStyles.badgeTextInProgress,
+                    ]}
+                  >
                     {badgeStatus.text}
                   </Text>
                 </View>
                 <Text style={[localStyles.summaryTitle, { flex: undefined }]}>
-                  {mockTitle}
+                  {goalLabel}
                 </Text>
               </View>
             </View>
 
             <View style={localStyles.footerRow}>
-              {isCompleted ? (
+              {showInsights ? (
                 <TouchableOpacity style={localStyles.insightsBtn}>
                   <Text style={localStyles.insightsText}>VIEW INSIGHTS</Text>
-                  <Ionicons name="chevron-forward" size={22} color={Colors.light.white} />
+                  <Ionicons
+                    name="chevron-forward"
+                    size={22}
+                    color={Colors.light.white}
+                  />
                 </TouchableOpacity>
-              ) : <View style={localStyles.spacer} />}
+              ) : (
+                <View style={localStyles.spacer} />
+              )}
 
               <TouchableOpacity
                 style={localStyles.addButton}
                 onPress={handleOpenFlow}
                 activeOpacity={0.8}
               >
-                <Ionicons name="add" size={22} color={Colors.light.white} />
+                <AddLoggingFlowIcon />
               </TouchableOpacity>
             </View>
           </View>
@@ -271,6 +391,7 @@ export default function TahiyatUlWudhuLoggingFlow({
               onForward={handleForward}
               onConfirm={handleConfirm}
               canGoForward={!isLastStep}
+              canConfirm={isLastStep && !isLogging}
               styles={commonStyles}
               style={commonStyles.inPlaceFlowCard}
             >
@@ -290,7 +411,7 @@ const localStyles = StyleSheet.create({
     padding: 16,
     gap: 12,
     height: 145,
-    justifyContent: 'space-between',
+    justifyContent: "space-between",
   },
   badge: {
     paddingHorizontal: 8,
@@ -305,6 +426,9 @@ const localStyles = StyleSheet.create({
   badgeCompleted: {
     backgroundColor: Colors.light.lightgreenbadgecolor,
   },
+  badgeNotStarted: {
+    backgroundColor: Colors.light.paginationInactiveDot,
+  },
   badgeText: {
     fontFamily: fonts.primary.semiBold,
     fontSize: 10,
@@ -315,6 +439,9 @@ const localStyles = StyleSheet.create({
   },
   badgeTextCompleted: {
     color: Colors.light.green,
+  },
+  badgeTextNotStarted: {
+    color: Colors.light.notStartedTextColor,
   },
   summaryBody: {
     flexDirection: "row",
@@ -360,8 +487,8 @@ const localStyles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    borderWidth: 1.5,
-    borderColor: Colors.light.white,
+    // borderWidth: 1.5,
+    // borderColor: Colors.light.white,
     alignItems: "center",
     justifyContent: "center",
   },

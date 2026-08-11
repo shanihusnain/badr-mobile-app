@@ -25,12 +25,14 @@ export const QuranTimeSelection = ({
   descriptionKey,
   onSave,
   quranGoalType,
+  isSaving = false,
 }: {
   title: string;
   /** i18n key with `_one` / `_other` plural forms (pass count via input). */
   descriptionKey: string;
-  onSave?: (hours: number) => void;
+  onSave?: (hours: number, onDone?: () => void) => void;
   quranGoalType?: "LISTENING" | "TAJWEED";
+  isSaving?: boolean;
 }) => {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
@@ -116,14 +118,18 @@ export const QuranTimeSelection = ({
 
               <GoalSelectionSaveButton
                 text="Save"
-                disabled={hoursCount <= 0}
-                onPress={(markSaved) => {
+                disabled={hoursCount <= 0 || isSaving}
+                isLoading={isSaving}
+                onPress={(markSaved, markFailed) => {
                   const hours = Math.min(
                     MAX_HOURS,
                     parseInt(inputValue || "0", 10) || 0,
                   );
-                  onSave?.(hours);
-                  markSaved();
+                  if (hours <= 0) {
+                    markFailed();
+                    return;
+                  }
+                  onSave?.(hours, markSaved);
                 }}
                 style={{ width: "100%" }}
               />

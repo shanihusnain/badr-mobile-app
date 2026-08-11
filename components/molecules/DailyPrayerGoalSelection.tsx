@@ -48,13 +48,16 @@ type Props = {
     isha: number,
     jumuah: number,
     trackCongregation: boolean,
+    onDone?: () => void,
   ) => void;
+  isSaving?: boolean;
 };
 
 export default function DailyPrayerGoalSelection({
   cycleStartDate,
   onSave,
   initialValues,
+  isSaving = false,
 }: Props) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
@@ -112,8 +115,16 @@ export default function DailyPrayerGoalSelection({
   ]);
 
   const handleSave = (markSaved: () => void) => {
-    onSave?.(fajr, dhuhr, asar, maghrib, isha, jumuah, isTrackingCongregation);
-    markSaved();
+    onSave?.(
+      fajr,
+      dhuhr,
+      asar,
+      maghrib,
+      isha,
+      jumuah,
+      isTrackingCongregation,
+      markSaved,
+    );
   };
 
   const sliderData = useMemo<PrayerSliderItem[]>(() => {
@@ -259,6 +270,8 @@ export default function DailyPrayerGoalSelection({
               onPress={handleSave}
               style={styles.saveButton}
               textStyle={styles.saveButtonText}
+              isLoading={isSaving}
+              disabled={isSaving}
             />
           </View>
         </View>

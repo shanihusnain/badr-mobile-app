@@ -106,6 +106,17 @@ export function mapSadaqahGoalsFromApi(
     .filter(Boolean) as SadaqahGoalListItem[];
 }
 
+/** True when the sadaqah goal has saved target data (not merely isActive). */
+export function hasConfiguredSadaqahGoal(
+  goal: SadaqahGoalApiItem | undefined | null,
+): boolean {
+  if (!goal) return false;
+  if ((goal.targetAmount ?? 0) > 0) return true;
+  if ((goal.kaffarahMealsTarget ?? 0) > 0) return true;
+  if ((goal.kaffarahItemsTarget ?? 0) > 0) return true;
+  return false;
+}
+
 /** Pull ISO 4217 code from dropdown labels like "🇸🇦 SAR – Saudi Riyal (ر.س)" */
 export function extractCurrencyCode(
   value: string | undefined | null,

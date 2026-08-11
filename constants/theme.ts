@@ -74,6 +74,7 @@ export const Colors = {
     switchOnTrackColor: "#627666",
     dullDescriptionText: "rgba(255, 255, 255, 0.50)",
     greentextbutton:"#1DBF73"
+    notStartedTextColor: "#6E6D6D",
   },
   dark: {
     text: "#ECEDEE",

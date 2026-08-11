@@ -14,8 +14,10 @@ import { Divider } from "../atoms/Divider";
 export default function IstikharaPrayerGoalSelection({
   onSave,
   initialValue = 25,
+  isSaving = false,
 }: {
-  onSave?: (value: number) => void;
+  onSave?: (value: number, onDone?: () => void) => void;
+  isSaving?: boolean;
   initialValue?: number;
 }) {
   const { t } = useTranslation();
@@ -56,9 +58,10 @@ export default function IstikharaPrayerGoalSelection({
             <GoalSelectionSaveButton
               text={t("prayerGoals.save").toLocaleUpperCase()}
               onPress={(markSaved) => {
-                onSave?.(sliderValue);
-                markSaved();
+                onSave?.(sliderValue, markSaved);
               }}
+              isLoading={isSaving}
+              disabled={isSaving}
               style={styles.saveButton}
               textStyle={styles.saveButtonText}
             />

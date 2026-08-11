@@ -88,3 +88,15 @@ export function mapFastingGoalsFromApi(
     })
     .filter(Boolean) as FastingGoalListItem[];
 }
+
+/** True when the fasting goal has saved plan/target data (not merely isActive). */
+export function hasConfiguredFastingGoal(
+  goal: FastingGoalApiItem | undefined | null,
+): boolean {
+  if (!goal) return false;
+  if ((goal.plannedDates?.length ?? 0) > 0) return true;
+  if ((goal.plannedCount ?? 0) > 0) return true;
+  if ((goal.targetCount ?? 0) > 0) return true;
+  if (goal.dawoodStartDay != null) return true;
+  return false;
+}

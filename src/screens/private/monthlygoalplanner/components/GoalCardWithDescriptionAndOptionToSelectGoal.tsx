@@ -16,6 +16,7 @@ export const GoalCardWithDescriptionAndOptionToSelectGoal = ({
   handleSeeMorePRess,
   onToggle,
   onSwicthPress,
+  canToggle,
   imageSource,
   isLoading = false,
 }: {
@@ -25,6 +26,8 @@ export const GoalCardWithDescriptionAndOptionToSelectGoal = ({
   handleSeeMorePRess: () => void;
   onToggle?: (value: boolean) => void;
   onSwicthPress?: () => void;
+  /** Return false to block the switch flip (e.g. another goal is unfinished). */
+  canToggle?: (nextValue: boolean) => boolean;
   imageSource?: any;
   isLoading?: boolean;
 }) => {
@@ -43,6 +46,7 @@ export const GoalCardWithDescriptionAndOptionToSelectGoal = ({
   const handleSwitchPress = () => {
     if (isLoading) return;
     const newValue = !isOn.value;
+    if (canToggle && canToggle(newValue) === false) return;
     isOn.value = newValue;
 
     // Defer the heavy parent state updates slightly to allow the switch's local

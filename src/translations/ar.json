@@ -216,6 +216,14 @@
     "finishAndSaveModalMessage": "سيتم قفل أهدافك لمساعدتك على الالتزام والاستمرارية، وتعزيز حياة إسلامية واعية ومُرضية. هل تريد الحفظ والالتزام الآن؟",
     "finishAndSaveYes": "نعم",
     "finishAndSaveCancel": "إلغاء",
+    "changeCycleStartModalTitle": "تغيير تاريخ بدء الدورة؟",
+    "changeCycleStartModalMessage": "سيؤدي تغيير تاريخ بدء الدورة إلى مسح أهداف الصيام الخاصة بك. هل تريد المتابعة؟",
+    "changeCycleStartYes": "نعم",
+    "changeCycleStartNo": "لا",
+    "finishCurrentGoalFirst": "يرجى إنهاء إعداد هدفك الحالي قبل تفعيل هدف آخر.",
+    "unfinishedGoalModalTitle": "أكمل إعداد الهدف",
+    "unfinishedGoalModalMessage": "يرجى إكمال إعداد هدف {{goalName}} أولاً.",
+    "unfinishedGoalModalOk": "حسناً",
     "tabChipCategory1": "الفئة الأولى",
     "tabChipCategory2": "الفئة الثانية",
     "tabChipCategory3": "الفئة الثالثة",
@@ -347,7 +355,19 @@
       "toJuz": "إلى جزء",
       "totalJuz": "(إجمالي {{total}} أجزاء)",
       "enterUpToCompletions": "أدخل ما يصل إلى ٢٨ ختمة.",
-      "fullCompletions": "ختمة (ختمات) كاملة للقرآن"
+      "fullCompletions": "ختمة (ختمات) كاملة للقرآن",
+      "deleteGoalTitle": "حذف الهدف؟",
+      "deleteGoalMessage": "هل أنت متأكد أنك تريد حذف الهدف؟ سيؤدي ذلك إلى إزالة هدفك نهائيًا. لا يمكن التراجع عن هذا الإجراء.",
+      "deleteMemorizationSurahTitle": "حذف السورة؟",
+      "deleteMemorizationSurahMessage": "هل أنت متأكد أنك تريد إزالة {{surahName}} من أهداف الحفظ؟ لا يمكن التراجع عن هذا الإجراء.",
+      "deleteRecitationSurahTitle": "حذف السورة؟",
+      "deleteRecitationSurahMessage": "هل أنت متأكد أنك تريد إزالة {{surahName}} من أهداف التلاوة؟ لا يمكن التراجع عن هذا الإجراء.",
+      "deleteMemorizationHizbTitle": "حذف الحزب؟",
+      "deleteMemorizationHizbMessage": "هل أنت متأكد أنك تريد إزالة {{hizbName}} من أهداف الحفظ؟ لا يمكن التراجع عن هذا الإجراء.",
+      "deleteMemorizationJuzTitle": "حذف الجزء؟",
+      "deleteMemorizationJuzMessage": "هل أنت متأكد أنك تريد إزالة {{juzName}} من أهداف الحفظ؟ لا يمكن التراجع عن هذا الإجراء.",
+      "delete": "حذف",
+      "cancel": "إلغاء"
     }
   },
   "prayerGoals": {
@@ -412,6 +432,7 @@
   "progressLogging": {
     "myProgress": "تقدمي",
     "inProgress": "قيد التقدم",
+    "notStarted": "لم يبدأ",
     "total": "المجموع",
     "unitPrayers": "صلاة",
     "today": "اليوم",

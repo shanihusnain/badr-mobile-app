@@ -27,6 +27,7 @@ import { showToast } from "@/src/config/toastConfig";
 import { ImageBackground } from "expo-image";
 import { BadrTreeImage } from "@/assets/images";
 import { LetterIcon, PasswordLockIcon } from "@/assets/icons";
+import { SocialAuthSection } from "./components/SocialAuthSection";
 // Social login providers are temporarily disabled in Expo Go.
 // import { SocialAuthSection } from "./components/SocialAuthSection";
 
@@ -141,7 +142,7 @@ export default function LoginScreen() {
                     style={styles.primaryButton}
                   />
 
-                  {/* <TouchableOpacity
+                  <TouchableOpacity
                     style={styles.orloginContainer}
                     activeOpacity={0.7}
                   >
@@ -152,7 +153,7 @@ export default function LoginScreen() {
                     <View style={styles.line} />
                   </TouchableOpacity>
                   <TopSpace top={30} />
-                  <SocialAuthSection disabled={loggingIn} /> */}
+                  <SocialAuthSection disabled={loggingIn} />
                   {Platform.OS === "ios" ? <TopSpace top={10} /> : null}
                 </ScrollView>
               </View>

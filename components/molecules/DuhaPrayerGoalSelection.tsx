@@ -21,8 +21,10 @@ import { Divider } from "../atoms/Divider";
 export default function DuhaPrayerGoalSelection({
   onSave,
   initialValue = 40,
+  isSaving = false,
 }: {
-  onSave?: (value: number) => void;
+  onSave?: (value: number, onDone?: () => void) => void;
+  isSaving?: boolean;
   initialValue?: number;
 }) {
   const { t } = useTranslation();
@@ -62,9 +64,10 @@ export default function DuhaPrayerGoalSelection({
             <GoalSelectionSaveButton
               text={t("prayerGoals.save").toLocaleUpperCase()}
               onPress={(markSaved) => {
-                onSave?.(sliderValue);
-                markSaved();
+                onSave?.(sliderValue, markSaved);
               }}
+              isLoading={isSaving}
+              disabled={isSaving}
               style={styles.saveButton}
               textStyle={styles.saveButtonText}
             />

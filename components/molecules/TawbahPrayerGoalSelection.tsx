@@ -13,8 +13,10 @@ import { Divider } from "../atoms/Divider";
 export default function TawbahPrayerGoalSelection({
   onSave,
   initialValue = 25,
+  isSaving = false,
 }: {
-  onSave?: (value: number) => void;
+  onSave?: (value: number, onDone?: () => void) => void;
+  isSaving?: boolean;
   initialValue?: number;
 }) {
   const { t } = useTranslation();
@@ -55,9 +57,10 @@ export default function TawbahPrayerGoalSelection({
             <GoalSelectionSaveButton
               text={t("prayerGoals.save").toLocaleUpperCase()}
               onPress={(markSaved) => {
-                onSave?.(sliderValue);
-                markSaved();
+                onSave?.(sliderValue, markSaved);
               }}
+              isLoading={isSaving}
+              disabled={isSaving}
               style={styles.saveButton}
               textStyle={styles.saveButtonText}
             />

@@ -1,4 +1,4 @@
-import React, { useId } from "react";
+import React, { useId, useMemo } from "react";
 import { View, Text, StyleSheet, Platform, type ViewStyle } from "react-native";
 import Svg, {
   Path,
@@ -23,7 +23,12 @@ interface TaperedCircleBorderProps {
   progressColor?: string;
   segments?: RingSegment[];
   children?: React.ReactNode;
-  variant?: "default" | "golden";
+  /**
+   * - default: core + glow use `progressColor` (home cards, habit rings, etc.)
+   * - golden: full white ring with golden bloom
+   * - illuminated: white tapered core + stage-colored glow (logging hero only)
+   */
+  variant?: "default" | "golden" | "illuminated";
   style?: ViewStyle;
 }
 
@@ -32,6 +37,12 @@ const CY = 40;
 const RADIUS = 33;
 const TRACK_WIDTH = 2;
 const CORE_WIDTH = 2.4;
+/**
+ * Core width for the logging hero ring. Measured from the exported Figma
+ * arc: max core ≈ 0.046 × ring radius — a delicate thin line; the wide
+ * soft glow is what gives the ring its weight.
+ */
+const ILLUMINATED_CORE_WIDTH = 1.6;
 
 const FIGMA_GOLDEN = Colors.light.golden;
 const GLOW_PAD = 16;
@@ -43,6 +54,29 @@ const GLOW_LAYERS = [
   { widthAdd: 0.5, opacity: 0.3 },
 ] as const;
 const GLOW_BLUR_STD = 2;
+
+/**
+ * Figma taper, measured pixel-by-pixel from the design:
+ * the arc starts near-invisible at 12 o'clock and thickens linearly with
+ * the ABSOLUTE angle traveled, reaching full width after ~130°. From there
+ * it stays at full width all the way to the head, which ends in a short
+ * narrowing (~9°) plus a rounded cap. Short arcs (< 130°) therefore stay
+ * thin along their whole length, exactly as in Figma.
+ */
+const ILLUMINATED_RAMP_DEG = 130;
+/**
+ * Width at the very start of the tail. The exported Figma arc shows a
+ * visible ~1px line from degree 0 (~30% of max width), not an invisible tip.
+ */
+const ILLUMINATED_MIN_SCALE = 0.3;
+/** Angular length of the narrowing right before the rounded tip. */
+const ILLUMINATED_TIP_DEG = 9;
+/** Width scale the head narrows to before the cap rounds it off. */
+const ILLUMINATED_TIP_SCALE = 0.7;
+/** Outline samples along the ribbon (per edge). */
+const RIBBON_SAMPLES = 64;
+/** Samples for the rounded head cap. */
+const CAP_SAMPLES = 10;
 
 export function parsePercent(value?: string | number): number {
   const n = Number.parseInt(String(value ?? "0").replace("%", ""), 10);
@@ -57,6 +91,18 @@ export function getGlowSlab(percent: number): 0 | 1 | 2 | 3 {
   return 3;
 }
 
+/**
+ * Stage glow colors for the illuminated ring (logging hero):
+ * Silver (1–33) → Blue (34–66) → Gold (67–99) → Glowing Gold (100).
+ * Ring color follows progress percentage, never the goal category.
+ */
+export function getIlluminationGlowColor(percent: number): string {
+  if (percent >= 100) return Colors.light.goldenBright;
+  if (percent >= 67) return Colors.light.gold;
+  if (percent >= 34) return Colors.light.darkblue;
+  return Colors.light.dullWhite;
+}
+
 function polarToCartesian(r: number, angleDeg: number) {
   const rad = ((angleDeg - 90) * Math.PI) / 180;
   return { x: CX + r * Math.cos(rad), y: CY + r * Math.sin(rad) };
@@ -69,6 +115,173 @@ function arcPath(r: number, startDeg: number, sweepDeg: number): string {
   const end = polarToCartesian(r, startDeg + clamped);
   const largeArc = clamped > 180 ? 1 : 0;
   return `M ${start.x} ${start.y} A ${r} ${r} 0 ${largeArc} 1 ${end.x} ${end.y}`;
+}
+
+/**
+ * Stroke width along the arc (t in 0..1) — measured Figma profile:
+ * comet shape. Width ramps linearly with the absolute angle traveled
+ * (full width after ILLUMINATED_RAMP_DEG), holds full width to the head,
+ * then narrows slightly over the last few degrees into the rounded cap.
+ */
+function illuminatedWidthAt(
+  t: number,
+  sweepDeg: number,
+  maxWidth: number,
+): number {
+  const deg = t * sweepDeg;
+  const ramp = Math.min(1, deg / ILLUMINATED_RAMP_DEG);
+  const grow =
+    ILLUMINATED_MIN_SCALE + (1 - ILLUMINATED_MIN_SCALE) * ramp;
+
+  const tipDeg = Math.min(ILLUMINATED_TIP_DEG, sweepDeg * 0.25);
+  const fromEnd = sweepDeg - deg;
+  const tip =
+    fromEnd < tipDeg
+      ? ILLUMINATED_TIP_SCALE +
+        (1 - ILLUMINATED_TIP_SCALE) * (fromEnd / tipDeg)
+      : 1;
+
+  return maxWidth * grow * tip;
+}
+
+/**
+ * Single closed path outlining the tapered arc: outer edge out,
+ * rounded head cap, inner edge back. Being ONE filled shape (per layer),
+ * it can never self-overlap — no beading at any percentage.
+ */
+function taperedRibbonPath(sweepDeg: number, maxWidth: number): string {
+  const sweep = Math.min(Math.max(sweepDeg, 0.01), 359.99);
+  const n = Math.max(24, Math.min(RIBBON_SAMPLES, Math.ceil(sweep / 3) + 8));
+  const toRad = Math.PI / 180;
+
+  // Angle measured clockwise from 12 o'clock.
+  const point = (angleDeg: number, radialOffset: number) => {
+    const a = angleDeg * toRad;
+    const r = RADIUS + radialOffset;
+    return { x: CX + r * Math.sin(a), y: CY - r * Math.cos(a) };
+  };
+
+  const outer: { x: number; y: number }[] = [];
+  const inner: { x: number; y: number }[] = [];
+  for (let i = 0; i <= n; i += 1) {
+    const t = i / n;
+    const angle = t * sweep;
+    const half = illuminatedWidthAt(t, sweep, maxWidth) / 2;
+    outer.push(point(angle, half));
+    inner.push(point(angle, -half));
+  }
+
+  // Rounded cap at the head (widest end).
+  const headRad = sweep * toRad;
+  const sinH = Math.sin(headRad);
+  const cosH = Math.cos(headRad);
+  const head = { x: CX + RADIUS * sinH, y: CY - RADIUS * cosH };
+  const radial = { x: sinH, y: -cosH };
+  const tangent = { x: cosH, y: sinH };
+  const capHalf = illuminatedWidthAt(1, sweep, maxWidth) / 2;
+  const cap: { x: number; y: number }[] = [];
+  for (let i = 1; i < CAP_SAMPLES; i += 1) {
+    const a = (i / CAP_SAMPLES) * Math.PI;
+    cap.push({
+      x: head.x + capHalf * (radial.x * Math.cos(a) + tangent.x * Math.sin(a)),
+      y: head.y + capHalf * (radial.y * Math.cos(a) + tangent.y * Math.sin(a)),
+    });
+  }
+
+  const pts = [...outer, ...cap, ...inner.reverse()];
+  return `M ${pts
+    .map((p) => `${p.x.toFixed(2)} ${p.y.toFixed(2)}`)
+    .join(" L ")} Z`;
+}
+
+function IlluminatedProgressArc({
+  sweep,
+  glowColor,
+  blurId,
+  glowStrength,
+}: {
+  sweep: number;
+  glowColor: string;
+  blurId: string;
+  glowStrength: number;
+}) {
+  const isFullRing = sweep >= 359.5;
+
+  // Each layer is ONE filled ribbon — no overlapping strokes, no beading.
+  const paths = useMemo(() => {
+    if (isFullRing || sweep <= 0) return null;
+    return {
+      glowOuter: taperedRibbonPath(sweep, ILLUMINATED_CORE_WIDTH * 3.4),
+      glowMid: taperedRibbonPath(sweep, ILLUMINATED_CORE_WIDTH * 2),
+      band: taperedRibbonPath(sweep, ILLUMINATED_CORE_WIDTH * 1.4),
+      core: taperedRibbonPath(sweep, ILLUMINATED_CORE_WIDTH),
+    };
+  }, [sweep, isFullRing]);
+
+  // 100%: one continuous circle with an even bloom — no taper, no seams.
+  // Kept lighter than the partial-arc glow so it reads as a crisp ring
+  // haloed in gold, not a thick glowing donut.
+  if (isFullRing) {
+    return (
+      <>
+        <G filter={`url(#${blurId})`}>
+          <Circle
+            cx={CX}
+            cy={CY}
+            r={RADIUS}
+            stroke={glowColor}
+            strokeWidth={ILLUMINATED_CORE_WIDTH * 2.8}
+            fill="none"
+            opacity={0.14 * glowStrength}
+          />
+          <Circle
+            cx={CX}
+            cy={CY}
+            r={RADIUS}
+            stroke={glowColor}
+            strokeWidth={ILLUMINATED_CORE_WIDTH * 1.8}
+            fill="none"
+            opacity={0.26 * glowStrength}
+          />
+        </G>
+        <Circle
+          cx={CX}
+          cy={CY}
+          r={RADIUS}
+          stroke={glowColor}
+          strokeWidth={ILLUMINATED_CORE_WIDTH * 1.3}
+          fill="none"
+          opacity={0.22 * glowStrength}
+        />
+        <Circle
+          cx={CX}
+          cy={CY}
+          r={RADIUS}
+          stroke={Colors.light.white}
+          strokeWidth={ILLUMINATED_CORE_WIDTH}
+          fill="none"
+        />
+      </>
+    );
+  }
+
+  if (!paths) return null;
+
+  return (
+    <>
+      {/* Neon bloom, blurred — wide soft halo plus tighter saturated band. */}
+      <G filter={`url(#${blurId})`}>
+        <Path d={paths.glowOuter} fill={glowColor} opacity={0.2 * glowStrength} />
+        <Path d={paths.glowMid} fill={glowColor} opacity={0.35 * glowStrength} />
+      </G>
+
+      {/* Tight unblurred color band hugging the core. */}
+      <Path d={paths.band} fill={glowColor} opacity={0.28 * glowStrength} />
+
+      {/* Crisp white tapered core on top. */}
+      <Path d={paths.core} fill={Colors.light.white} />
+    </>
+  );
 }
 
 function GoldenNativeGlow({ size }: { size: number }) {
@@ -181,18 +394,28 @@ export const TaperedCircleBorder: React.FC<TaperedCircleBorderProps> = ({
   style,
 }) => {
   const isGolden = variant === "golden";
+  const isIlluminated = variant === "illuminated";
   const percent = parsePercent(percentage);
   const segmentTotal =
     segments?.reduce((sum, segment) => sum + segment.value, 0) ?? 0;
-  const useSegments = !isGolden && segmentTotal > 0;
+  // Segments keep the existing multi-color path; illuminated is for solid arcs only.
+  const useSegments = !isGolden && !isIlluminated && segmentTotal > 0;
   const slab = isGolden ? 3 : getGlowSlab(percent);
-  const glowColor = isGolden ? FIGMA_GOLDEN : progressColor;
+  const glowColor = isGolden
+    ? FIGMA_GOLDEN
+    : isIlluminated
+      ? getIlluminationGlowColor(percent)
+      : progressColor;
   const coreColor = isGolden ? Colors.light.white : progressColor;
-  const showArc = isGolden || (percent > 0 && !!progressColor);
+  const showArc = isGolden || isIlluminated || (percent > 0 && !!progressColor);
   const hasGlow = !!glowColor && slab > 0;
 
   // Higher percentage → stronger bloom.
-  const glowStrength = isGolden ? 1 : 0.6 + (slab / 3) * 0.4;
+  const glowStrength = isGolden
+    ? 1
+    : isIlluminated
+      ? 0.6 + (slab / 3) * 0.4
+      : 0.6 + (slab / 3) * 0.4;
   const sweep = isGolden ? 360 : (percent / 100) * 360;
 
   const uid = useId().replace(/:/g, "");
@@ -202,9 +425,7 @@ export const TaperedCircleBorder: React.FC<TaperedCircleBorderProps> = ({
   const svgOffset = -GLOW_PAD;
   const arcD = arcPath(RADIUS, 0, sweep);
   const segmentArcs =
-    useSegments && segments
-      ? buildSegmentArcs(segments, segmentTotal)
-      : [];
+    useSegments && segments ? buildSegmentArcs(segments, segmentTotal) : [];
 
   return (
     <View style={[styles.wrapper, { width: size, height: size }, style]}>
@@ -218,7 +439,10 @@ export const TaperedCircleBorder: React.FC<TaperedCircleBorderProps> = ({
       >
         <Defs>
           <Filter id={blurId} x="-90%" y="-90%" width="280%" height="280%">
-            <FeGaussianBlur in="SourceGraphic" stdDeviation={GLOW_BLUR_STD} />
+            <FeGaussianBlur
+              in="SourceGraphic"
+              stdDeviation={isIlluminated ? 2 : GLOW_BLUR_STD}
+            />
           </Filter>
         </Defs>
 
@@ -248,7 +472,16 @@ export const TaperedCircleBorder: React.FC<TaperedCircleBorderProps> = ({
             ))
           : null}
 
-        {!useSegments && hasGlow ? (
+        {isIlluminated && showArc && hasGlow && glowColor ? (
+          <IlluminatedProgressArc
+            sweep={sweep}
+            glowColor={glowColor}
+            blurId={blurId}
+            glowStrength={glowStrength}
+          />
+        ) : null}
+
+        {!isIlluminated && !useSegments && hasGlow ? (
           <G filter={`url(#${blurId})`}>
             {GLOW_LAYERS.map((layer, index) => (
               <Path
@@ -264,7 +497,7 @@ export const TaperedCircleBorder: React.FC<TaperedCircleBorderProps> = ({
           </G>
         ) : null}
 
-        {!useSegments && showArc ? (
+        {!isIlluminated && !useSegments && showArc ? (
           <Path
             d={arcD}
             stroke={coreColor}
@@ -274,7 +507,7 @@ export const TaperedCircleBorder: React.FC<TaperedCircleBorderProps> = ({
           />
         ) : null}
 
-        {!useSegments && showArc && !isGolden ? (
+        {!isIlluminated && !useSegments && showArc && !isGolden ? (
           <Path
             d={arcD}
             stroke={Colors.light.white}
