@@ -24,11 +24,11 @@ export const styles = StyleSheet.create({
   },
 
   bottomSheet: {
-    height: hp(50),
+    height: hp(46),
     marginTop: -20,
     backgroundColor: Colors.light.blackBackground,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: 37,
+    borderTopRightRadius: 37,
     overflow: "hidden",
   },
 
@@ -43,32 +43,46 @@ export const styles = StyleSheet.create({
   },
 
   messageContainer: {
-    marginTop: hp(2),
+    marginTop: hp(1.5),
     paddingHorizontal: 10,
   },
 
   messageText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 14,
+    lineHeight: 20,
     textAlign: "left",
+    letterSpacing: 0.1,
   },
 
   formWrapper: {
     alignItems: "center",
     width: "100%",
-    marginTop: hp(3),
+    marginTop: hp(1.5),
+  },
+
+  emailInput: {
+    fontFamily: fonts.primary.regular,
+    fontWeight: "400",
+    fontSize: 14,
+    lineHeight: 20,
+    letterSpacing: 0.1,
+  },
+
+  emailContainer: {
+    marginTop: hp(1.5),
   },
 
   buttonWrapper: {
     marginTop: hp(4),
-    width: "100%",
+    width: "94%",
     marginBottom: hp(4),
+    alignSelf: "center",
   },
 
   primaryButton: {
-    width: "95%",
+    width: "96%",
     borderRadius: 6,
     paddingTop: 10,
     paddingBottom: 10,

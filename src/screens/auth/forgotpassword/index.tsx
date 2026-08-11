@@ -1,5 +1,6 @@
 import PrimaryButton from "@/components/atoms/Primary-button";
 import CustomTextInput from "@/components/atoms/CustomTextInput";
+import { EmailAddressMailIcon } from "@/assets/icons";
 import { BadrTreeImage } from "@/assets/images";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "expo-router";
@@ -91,6 +92,9 @@ export default function ForgotPasswordScreen() {
                         errors.email?.message ? [errors.email.message] : []
                       }
                       autoCapitalize="none"
+                      leftIcon={<EmailAddressMailIcon />}
+                      inputStyle={styles.emailInput}
+                      containerStyle={styles.emailContainer}
                     />
                   </View>
 

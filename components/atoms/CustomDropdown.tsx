@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
   },
   trigger: {
-    backgroundColor: Colors.light.calendarBg,
+    backgroundColor: Colors.light.greybuttonBackground,
     borderRadius: 8,
     paddingHorizontal: 16,
     height: 48,
@@ -240,6 +240,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     flex: 1,
+    gap: 8,
   },
   triggerText: {
     color: Colors.light.white,
@@ -253,7 +254,7 @@ const styles = StyleSheet.create({
   },
   iconWrapper: {
     marginLeft: 10,
-    marginRight: 4,
+    marginRight: 0,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -277,9 +278,9 @@ const styles = StyleSheet.create({
   },
   optionText: {
     color: Colors.light.white,
-    fontFamily: fonts.primary.semiBold,
-    fontSize: 12,
-    marginLeft: 4,
+    fontFamily: fonts.primary.regular,
+    fontSize: 13,
+    marginLeft: 10,
   },
   radioOuter: {
     width: 18,

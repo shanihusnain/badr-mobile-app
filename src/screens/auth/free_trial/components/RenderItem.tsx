@@ -1,7 +1,6 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
 import { StyleSheet, Text, View } from "react-native";
-import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 
 export const RenderItem = ({
   item,
@@ -22,25 +21,26 @@ export const RenderItem = ({
 const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
-    alignItems: "center",
-    marginTop: 16,
+    alignItems: "flex-start",
+    marginTop: 18,
   },
   iconWrapper: {
     width: 24,
-    height: 24,
-    marginRight: 12,
+    height: 20,
+    marginRight: 9,
     justifyContent: "center",
     alignItems: "center",
-    marginTop: -20,
+    marginTop: 2,
   },
   pointText: {
     flex: 1,
+    maxWidth: 307,
     color: Colors.dark.text,
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
-    fontSize: hp(1.8),
+    fontSize: 14,
     lineHeight: 20,
-    letterSpacing: 0.1,
+    letterSpacing: 0,
     textAlign: "left",
     opacity: 1,
   },

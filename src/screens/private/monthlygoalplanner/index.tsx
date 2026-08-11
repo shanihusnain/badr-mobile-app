@@ -224,7 +224,7 @@ export const MonthlyGoalPlannerScreen = () => {
         />
         <Pressable
           onPress={handleBeginNowPress}
-          style={{ alignSelf: "center", marginBottom: 16 }}
+          style={{ alignSelf: "center", marginBottom: 16 , paddingTop: 16}}
         >
           <Text style={globalStyles.greenCTA}>BEGIN NOW</Text>
         </Pressable>

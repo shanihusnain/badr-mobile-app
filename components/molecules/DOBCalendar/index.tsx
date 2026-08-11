@@ -145,32 +145,40 @@ export const DOBCalendar = ({ onSave, onCancel, value }: DOBCalendarProps) => {
 
   const firstDay = new Date(currentYear, currentMonth, 1);
   const lastDay = new Date(currentYear, currentMonth + 1, 0);
-  const fmt = (d: Date) =>
-    d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-  const rangeLabel = `${fmt(firstDay)} - ${fmt(lastDay)}, ${currentYear}`;
+  // Sync range labels with the month/year dropdown selection.
+  const rangeStart = moment(firstDay);
+  const rangeEnd = moment(lastDay);
+  const formatRangePart = (d: moment.Moment) =>
+    `${d.format("MMM").toUpperCase()} ${d.format("D")}`;
+  const rangeLabel = `${formatRangePart(rangeStart)} - ${formatRangePart(rangeEnd)}, ${rangeEnd.year()}`;
 
-  // Calculate Islamic date for the current month
+  // Islamic range for the same selected Gregorian month
+  // Figma-style Hijri month abbreviations (e.g. "Shw 24 – DhQ 21, 1420")
   const HIJRI_MONTHS_SHORT = [
-    "Muh.",
-    "Saf.",
-    "Rab. I",
-    "Rab. II",
-    "Jum. I",
-    "Jum. II",
-    "Raj.",
-    "Sha.",
-    "Ram.",
-    "Shaw.",
-    "Dhul Q.",
-    "Dhul H.",
+    "Muh",
+    "Saf",
+    "RbI",
+    "RbII",
+    "JmI",
+    "JmII",
+    "Raj",
+    "Shb",
+    "Ram",
+    "Shw",
+    "DhQ",
+    "DhH",
   ];
-  const monthMoment = moment(
-    `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-01`,
-    "YYYY-MM-DD",
-  );
-  const hijriMonth = HIJRI_MONTHS_SHORT[monthMoment.iMonth()];
-  const hijriYear = monthMoment.iYear();
-  const islamicDateLabel = `${hijriMonth} ${hijriYear}`;
+  const startHijriMonth = HIJRI_MONTHS_SHORT[rangeStart.iMonth()];
+  const endHijriMonth = HIJRI_MONTHS_SHORT[rangeEnd.iMonth()];
+  const startHijriDay = rangeStart.iDate();
+  const endHijriDay = rangeEnd.iDate();
+  const startHijriYear = rangeStart.iYear();
+  const endHijriYear = rangeEnd.iYear();
+
+  const islamicDateLabel =
+    startHijriYear === endHijriYear
+      ? `${startHijriMonth} ${startHijriDay} – ${endHijriMonth} ${endHijriDay}, ${endHijriYear}`
+      : `${startHijriMonth} ${startHijriDay}, ${startHijriYear} – ${endHijriMonth} ${endHijriDay}, ${endHijriYear}`;
 
   // ── OK / Cancel ─────────────────────────────────────────────────────────────
 
@@ -191,7 +199,11 @@ export const DOBCalendar = ({ onSave, onCancel, value }: DOBCalendarProps) => {
         <View style={styles.header}>
           <View ref={monthBtnRef} collapsable={false}>
             <TouchableOpacity
-              style={[styles.dropdownButton]}
+              style={[
+                styles.dropdownButton,
+                styles.monthDropdownButton,
+                openDropdown === "month" && styles.dropdownButtonOpen,
+              ]}
               onPress={() => openPicker("month", monthBtnRef)}
               activeOpacity={0.7}
             >
@@ -208,7 +220,11 @@ export const DOBCalendar = ({ onSave, onCancel, value }: DOBCalendarProps) => {
           </View>
           <View ref={yearBtnRef} collapsable={false}>
             <TouchableOpacity
-              style={styles.dropdownButton}
+              style={[
+                styles.dropdownButton,
+                styles.yearDropdownButton,
+                openDropdown === "year" && styles.dropdownButtonOpen,
+              ]}
               onPress={() => openPicker("year", yearBtnRef)}
               activeOpacity={0.7}
             >
@@ -310,21 +326,22 @@ export const DOBCalendar = ({ onSave, onCancel, value }: DOBCalendarProps) => {
           <View
             style={[
               styles.dropdownList,
+              openDropdown === "month"
+                ? styles.monthDropdownList
+                : styles.yearDropdownList,
               {
-                top: dropdownAnchor.y + dropdownAnchor.height + 4,
+                top: dropdownAnchor.y + dropdownAnchor.height - 30,
                 left: dropdownAnchor.x,
-                // Keep month list wide enough for "September" even if button is short
-                width:
-                  openDropdown === "month"
-                    ? Math.max(dropdownAnchor.width, 148)
-                    : dropdownAnchor.width,
+                width: dropdownAnchor.width,
               },
             ]}
           >
             <ScrollView
-              showsVerticalScrollIndicator
+              scrollEnabled={openDropdown === "year"}
+              showsVerticalScrollIndicator={openDropdown === "year"}
               keyboardShouldPersistTaps="handled"
-              nestedScrollEnabled
+              nestedScrollEnabled={openDropdown === "year"}
+              bounces={openDropdown === "year"}
             >
               {dropdownData.map((item, index) => {
                 const isSelected =
@@ -391,17 +408,32 @@ const styles = StyleSheet.create({
   dropdownButton: {
     flexDirection: "row",
     alignItems: "center",
-
-    gap: 16,
     backgroundColor: Colors.light.greybuttonBackground,
-    paddingHorizontal: 12,
     paddingVertical: 3,
-    borderRadius: 8,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: "transparent",
+  },
+  dropdownButtonOpen: {
+    borderColor: Colors.light.green,
+  },
+  monthDropdownButton: {
+    gap: 16,
+    paddingHorizontal: 12,
+    minWidth: 100,
+    justifyContent: "center",
+  },
+  yearDropdownButton: {
+    gap: 8,
+    paddingHorizontal: 10,
+    minWidth: 72,
   },
   dropdownButtonText: {
-    fontSize: 15,
-    fontWeight: "600",
+    fontSize: 12,
+    fontWeight: "500",
     color: Colors.light.white,
+    fontFamily: fonts.primary.medium,
+    lineHeight: 16,
   },
   caret: { fontSize: 10, color: Colors.light.white },
 
@@ -412,7 +444,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.calendarBg,
     paddingHorizontal: 12,
   },
-  navArrow: { paddingHorizontal: 12 },
+  navArrow: { paddingHorizontal: 12, },
   navArrowText: { fontSize: 24, color: Colors.light.white },
   navLabelContainer: {
     alignItems: "center",
@@ -420,6 +452,7 @@ const styles = StyleSheet.create({
   navLabel: {
     fontSize: 14,
     fontWeight: "500",
+    lineHeight: 18,
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
   },
@@ -476,7 +509,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     zIndex: 999,
     elevation: 16,
-    height: 500,
     backgroundColor: Colors.light.greybuttonBackground,
     borderRadius: 10,
     paddingVertical: 4,
@@ -485,7 +517,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 10,
   },
-  listItem: { paddingHorizontal: 16, paddingVertical: 11 },
+  monthDropdownList: {
+    height: undefined,
+  },
+  yearDropdownList: {
+    height: 330,
+  },
+  listItem: { paddingHorizontal: 16, paddingVertical: 4 },
   listItemSelected: {},
   listItemText: { fontSize: 14, color: Colors.light.white },
   listItemTextSelected: {

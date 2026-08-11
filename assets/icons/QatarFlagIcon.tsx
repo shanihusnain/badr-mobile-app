@@ -10,10 +10,9 @@ export const QatarFlagIcon = ({
     size?: number;
   }) => (
       <Svg
-        
-       
-        width={size}
+    width={size}
     height={size}
+    viewBox="0 0 16 16"
     fill="none"
   >
     <Path fill="url(#a)" d="M0 0h16v16H0z" />

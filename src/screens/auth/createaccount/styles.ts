@@ -3,8 +3,8 @@ import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
 
-const createStyles = () =>
-  StyleSheet.create({
+export default function createStyles() {
+  return StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: Colors.light.blackBackground,
@@ -58,27 +58,28 @@ const createStyles = () =>
 
     userNameLabel: {
       color: Colors.light.grey,
-      fontFamily: fonts.primary.semiBold,
-      fontSize: 12,
+      fontFamily: fonts.primary.regular,
+      fontSize: 14,
       marginTop: hp(2),
       alignSelf: "flex-start",
-      //marginLeft: ,
       marginRight: 14,
+      fontWeight: "100",
     },
 
     nameContainer: {
       backgroundColor: Colors.light.greybuttonBackground,
-      borderRadius: 28,
+      borderRadius: 8,
       paddingHorizontal: 12,
       paddingVertical: 3,
       width: 333,
       marginTop: hp(1),
+      height: 48,
     },
 
     nameText: {
-      color: Colors.light.white,
-      fontFamily: fonts.primary.semiBold,
-      fontSize: 12,
+      color: Colors.light.green,
+      fontFamily: fonts.primary.regular,
+      fontSize: 14,
     },
 
     passwordLabel: {
@@ -325,5 +326,5 @@ const createStyles = () =>
       borderRadius: 28,
     },
   });
+}
 
-export default createStyles;

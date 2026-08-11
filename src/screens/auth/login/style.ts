@@ -56,11 +56,11 @@ export const styles = StyleSheet.create({
   },
 
   bottomSheet: {
-    height: hp(50),
+    height: hp(46),
     marginTop: -20,
     backgroundColor: Colors.light.blackBackground,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: 37,
+    borderTopRightRadius: 37,
     overflow: "hidden",
   },
 
@@ -88,7 +88,7 @@ export const styles = StyleSheet.create({
   },
 
   primaryButton: {
-    width: "90%",
+    width: "94%",
     minHeight: 40,
     borderRadius: 6,
     paddingTop: 10,
@@ -99,6 +99,7 @@ export const styles = StyleSheet.create({
     backgroundColor: Colors.light.green,
     borderWidth: 1.5,
     borderColor: Colors.light.green,
+    marginTop: hp(1.1),
     marginBottom: 10,
     alignSelf: "center",
   },

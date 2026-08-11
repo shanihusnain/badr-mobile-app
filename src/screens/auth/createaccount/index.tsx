@@ -13,6 +13,7 @@ import CustomDropdown from "@/components/atoms/CustomDropdown";
 import CustomDatePicker from "@/components/atoms/CustomDatePicker";
 import CustomTextInput from "@/components/atoms/CustomTextInput";
 import { Colors } from "@/constants/theme";
+import { fonts } from "@/assets/fonts";
 import { useValidations } from "@/src/validations/useValidations";
 import { useCreateAccountProps } from "./useCreateAccountProps";
 import PrimaryButton from "@/components/atoms/Primary-button";
@@ -129,6 +130,11 @@ const extractRemoteAvatarUrl = (payload: unknown): string | null => {
 
 export default function CreateAccountScreen() {
   const styles = createStyles();
+  const fieldLabelStyle = {
+    color: Colors.light.grey,
+    fontFamily: fonts.primary.regular,
+    fontWeight: "400" as const,
+  };
   const params = useLocalSearchParams<{
     user?: string | string[];
     calendarView?: string | string[];
@@ -428,6 +434,7 @@ export default function CreateAccountScreen() {
         enableOnAndroid
         enableAutomaticScroll
         keyboardShouldPersistTaps="handled"
+        nestedScrollEnabled
         extraScrollHeight={Platform.OS === "ios" ? 20 : 100}
         keyboardOpeningTime={0}
       >
@@ -448,7 +455,7 @@ export default function CreateAccountScreen() {
 
         <CustomTextInput
           label={t("createAccountScreen.usernameLabel")}
-          labelStyle={{ color: Colors.light.grey }}
+          labelStyle={fieldLabelStyle}
           placeholder={t("createAccountScreen.usernamePlaceholder")}
           errors={errors.name?.message ? [errors.name.message] : []}
           control={control}
@@ -460,7 +467,7 @@ export default function CreateAccountScreen() {
           <>
             <CustomTextInput
               label={t("createAccountScreen.passwordLabel")}
-              labelStyle={{ color: Colors.light.grey }}
+              labelStyle={fieldLabelStyle}
               placeholder={t("createAccountScreen.passwordPlaceholder")}
               errors={errors.password?.message ? [errors.password.message] : []}
               control={control}
@@ -473,7 +480,7 @@ export default function CreateAccountScreen() {
 
             <CustomTextInput
               label={t("createAccountScreen.confirmPasswordLabel")}
-              labelStyle={{ color: Colors.light.grey }}
+              labelStyle={fieldLabelStyle}
               placeholder={t("createAccountScreen.confirmPasswordPlaceholder")}
               errors={
                 errors.confirmPassword?.message
@@ -492,7 +499,7 @@ export default function CreateAccountScreen() {
 
         <CustomTextInput
           label={t("createAccountScreen.emailLabel")}
-          labelStyle={{ color: Colors.light.grey }}
+          labelStyle={fieldLabelStyle}
           placeholder={t("createAccountScreen.emailPlaceholder")}
           errors={errors.email?.message ? [errors.email.message] : []}
           control={control}
@@ -503,7 +510,7 @@ export default function CreateAccountScreen() {
 
         <CustomDropdown
           label={t("createAccountScreen.genderLabel")}
-          labelStyle={{ color: Colors.light.grey }}
+          labelStyle={fieldLabelStyle}
           placeholder={t("createAccountScreen.genderPlaceholder")}
           options={genders}
           errors={errors.gender?.message ? [errors.gender.message] : []}
@@ -513,7 +520,7 @@ export default function CreateAccountScreen() {
 
         <CustomDatePicker
           label={t("createAccountScreen.dobLabel")}
-          labelStyle={{ color: Colors.light.grey }}
+          labelStyle={fieldLabelStyle}
           placeholder={t("createAccountScreen.dobPlaceholder")}
           control={control}
           name="dob"
@@ -523,7 +530,7 @@ export default function CreateAccountScreen() {
 
         <CustomDropdown
           label={t("createAccountScreen.countryLabel")}
-          labelStyle={{ color: Colors.light.grey }}
+          labelStyle={fieldLabelStyle}
           placeholder={t("createAccountScreen.countryPlaceholder")}
           options={countries}
           errors={errors.country?.message ? [errors.country.message] : []}
@@ -536,7 +543,7 @@ export default function CreateAccountScreen() {
 
         <CustomDropdown
           label={t("createAccountScreen.dateViewLabel")}
-          labelStyle={{ color: Colors.light.grey }}
+          labelStyle={fieldLabelStyle}
           placeholder={t("createAccountScreen.dateViewPlaceholder")}
           options={calendarView}
           errors={errors.dateView?.message ? [errors.dateView.message] : []}
@@ -549,7 +556,7 @@ export default function CreateAccountScreen() {
 
         <CustomDropdown
           label={t("createAccountScreen.weekendDaysLabel")}
-          labelStyle={{ color: Colors.light.grey }}
+          labelStyle={fieldLabelStyle}
           placeholder={t("createAccountScreen.weekendDaysPlaceholder")}
           options={weekDays}
           errors={errors.week?.message ? [errors.week.message] : []}

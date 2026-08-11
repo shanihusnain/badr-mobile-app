@@ -81,7 +81,7 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
               {
                 borderColor: show
                   ? Colors.light.green
-                  : Colors.light.calendarBg,
+                  : Colors.light.greybuttonBackground,
                 borderWidth: 1,
               },
             ]}
@@ -133,6 +133,8 @@ const styles = StyleSheet.create({
   wrapper: {
     width: "98%",
     marginTop: 0,
+    zIndex: 20,
+    overflow: "visible",
   },
   label: {
     color: Colors.light.white,
@@ -142,7 +144,7 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
   },
   container: {
-    backgroundColor: Colors.light.calendarBg,
+    backgroundColor: Colors.light.greybuttonBackground,
     borderRadius: 6,
     paddingHorizontal: 12,
     height: 48,

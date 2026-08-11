@@ -35,7 +35,7 @@
   "otpScreen": {
     "activateBtn": "ACTIVATE",
     "verifyBtn": "VERIFY",
-    "activateDescription": "Enter the 6-digit OTP sent to your email so we can\nactivate your account.",
+    "activateDescription": "Enter the 6-digit OTP sent to your email so we can activate your account.",
     "verifyDescription": "Enter the 6-digit OTP sent to your email so we can\nverify it's you.",
     "verifyEmailTitle": "VERIFY EMAIL",
     "forgotPasswordTitle": "FORGOT PASSWORD",
@@ -56,9 +56,9 @@
     "whatsIncluded": "WHAT’S INCLUDED?",
     "subtitle": "With your Badr membership, you unlock features designed to support your journey towards becoming a better Muslim.",
     "startTrialBtn": "START YOUR FREE TRIAL",
-    "feature1": "A journal feature focused on character development, helping you be mindful of your behaviors aligned with Islamic values.",
+    "feature1": "Customized notifications to help you stay on track by setting reminders and schedules.",
     "feature2": "Monthly goal setting and tracking to enrich your journey with personalized insights.",
-    "feature3": "Customized notifications to help you stay on track by setting reminders and schedules.",
+    "feature3": "A journal feature focused on character\ndevelopment, helping you be mindful of\nyour behaviors aligned with Islamic values.",
     "feature4": "A private community to connect with friends and family, share progress, and provide mutual support.",
     "feature5": "Rich Islamic content to support your spiritual journey, including articles, podcasts, and videos.",
     "feature6": "Monthly achievement reports, illuminating your progress and fostering continuous growth."
@@ -87,6 +87,7 @@
     "female": "Female",
     "pakistan": "Pakistan",
     "qatar": "Qatar",
+    "canada": "Canada",
     "saudiArabia": "Saudi Arabia",
     "gregorianView": "Gregorian View",
     "hijriView": "Hijri View",

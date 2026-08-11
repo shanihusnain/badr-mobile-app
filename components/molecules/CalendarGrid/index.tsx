@@ -178,18 +178,25 @@ function buildCycleWeeks(
   return weeks;
 }
 
-function buildMonthWeeks(monthDate: string): string[][] {
+function buildMonthWeeks(
+  monthDate: string,
+  options?: { hideOutsideMonth?: boolean },
+): (string | null)[][] {
   const monthStart = moment(monthDate, "YYYY-MM-DD").startOf("month");
   const monthEnd = monthStart.clone().endOf("month");
   // isoWeek starts on Monday so columns match WEEKDAY_KEYS.
   const cursor = monthStart.clone().startOf("isoWeek");
   const gridEnd = monthEnd.clone().endOf("isoWeek");
-  const weeks: string[][] = [];
+  const weeks: (string | null)[][] = [];
 
   while (cursor.isSameOrBefore(gridEnd, "day")) {
-    const week: string[] = [];
+    const week: (string | null)[] = [];
     for (let i = 0; i < 7; i++) {
-      week.push(cursor.format("YYYY-MM-DD"));
+      if (options?.hideOutsideMonth && !cursor.isSame(monthStart, "month")) {
+        week.push(null);
+      } else {
+        week.push(cursor.format("YYYY-MM-DD"));
+      }
       cursor.add(1, "day");
     }
     weeks.push(week);
@@ -256,12 +263,13 @@ export const CalendarGrid = ({
   const cycleWeeks =
     windowStart && windowEnd ? buildCycleWeeks(windowStart, windowEnd) : null;
   const monthWeeks =
-    mode === "dob" ||
-    mode === "white_days_achievement" ||
-    mode === "dawood_achievement" ||
-    mode === "monday_thursday_achievement"
-      ? buildMonthWeeks(currentDate)
-      : null;
+    mode === "dob"
+      ? buildMonthWeeks(currentDate, { hideOutsideMonth: true })
+      : mode === "white_days_achievement" ||
+          mode === "dawood_achievement" ||
+          mode === "monday_thursday_achievement"
+        ? buildMonthWeeks(currentDate)
+        : null;
   const gridWeeks: (string | null)[][] | null =
     monthWeeks ?? cycleWeeks ?? null;
 
@@ -313,7 +321,7 @@ export const CalendarGrid = ({
           cellOpacity = 0.35;
           textStyle = { color: Colors.light.grey };
         } else if (isSelected) {
-          cellBg = { backgroundColor: Colors.light.calendarTodayBg };
+          // Selection highlight is drawn on an inner marker (not full cell).
           textStyle = { color: Colors.light.white };
         } else if (isEndDate) {
           circleStyle = {
@@ -789,7 +797,13 @@ export const CalendarGrid = ({
               <Text style={styles.cycleStartDayHijri}>{hijriDayLabel}</Text>
             </View>
           ) : (
-            <>
+            <View
+              style={
+                mode === "dob" && isSelected
+                  ? styles.dobSelectedMarker
+                  : undefined
+              }
+            >
               <View style={styles.dayMarkerWrap}>
                 <View style={[styles.circle, ringStyle, circleStyle]}>
                   {showCompletedDot && markerColor ? (
@@ -842,7 +856,7 @@ export const CalendarGrid = ({
                   {hijriDayLabel}
                 </Text>
               ) : null}
-            </>
+            </View>
           )}
         </View>
       </TouchableOpacity>
@@ -1061,6 +1075,15 @@ const styles = StyleSheet.create({
     fontWeight: "400",
     fontFamily: fonts.primary.regular,
     textAlign: "center",
+  },
+  dobSelectedMarker: {
+    backgroundColor: Colors.light.calendarTodayBg,
+    borderRadius: 5,
+    paddingHorizontal: 2,
+    paddingVertical: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    minWidth: 20,
   },
   cycleStartWeekdayLabel: {
     color: Colors.light.white,
