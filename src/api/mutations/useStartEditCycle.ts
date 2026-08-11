@@ -26,6 +26,8 @@ export const useStartEditCycleMutation = () => {
     onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: ["me"] });
       queryClient.invalidateQueries({ queryKey: ["goal-cycle"] });
+      queryClient.invalidateQueries({ queryKey: ["all-fasting-goals"] });
+      queryClient.invalidateQueries({ queryKey: ["fasting-calendar-preview"] });
       showToast("success", response.message);
     },
     onError: (error: any) => {

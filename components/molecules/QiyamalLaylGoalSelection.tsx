@@ -24,19 +24,24 @@ import { PRAYER_CYCLE_DAYS } from "@/src/utils/prayerCycleUtils";
 export default function QiyamalLaylGoalSelection({
   onSave,
   initialValues,
+  isSaving = false,
 }: {
-  onSave?: (value: {
-    commitment: "every_night" | "flexible";
-    twoRakahPrayers: number;
-    witrPrayers: number;
-    trackTahajjud: "yes" | "no";
-  }) => void;
+  onSave?: (
+    value: {
+      commitment: "every_night" | "flexible";
+      twoRakahPrayers: number;
+      witrPrayers: number;
+      trackTahajjud: "yes" | "no";
+    },
+    onDone?: () => void,
+  ) => void;
   initialValues?: {
     isFlexible?: boolean;
     unitTarget?: number;
     witrTarget?: number;
     trackTahajjud?: boolean;
   };
+  isSaving?: boolean;
 }) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
@@ -57,13 +62,15 @@ export default function QiyamalLaylGoalSelection({
   };
 
   const handleSave = (markSaved: () => void) => {
-    onSave?.({
-      commitment,
-      twoRakahPrayers: sliderValue,
-      witrPrayers: 28,
-      trackTahajjud,
-    });
-    markSaved();
+    onSave?.(
+      {
+        commitment,
+        twoRakahPrayers: sliderValue,
+        witrPrayers: 28,
+        trackTahajjud,
+      },
+      markSaved,
+    );
   };
   const { user } = useAuth();
   console.log("user gender in qiyam al layl goal selection", user?.gender);
@@ -229,6 +236,8 @@ export default function QiyamalLaylGoalSelection({
                 onPress={handleSave}
                 style={styles.saveButton}
                 textStyle={styles.saveButtonText}
+                isLoading={isSaving}
+                disabled={isSaving}
               />
             </View>
           </View>

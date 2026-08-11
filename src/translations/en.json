@@ -215,6 +215,14 @@
     "finishAndSaveModalMessage": "Your goals will be locked to help you stay committed and consistent, fostering a mindful and fulfilling Islamic life. Save and commit now?",
     "finishAndSaveYes": "YES",
     "finishAndSaveCancel": "Cancel",
+    "changeCycleStartModalTitle": "CHANGE CYCLE START DATE?",
+    "changeCycleStartModalMessage": "Changing your cycle start date will clear your fasting goals. Do you want to continue?",
+    "changeCycleStartYes": "Yes",
+    "changeCycleStartNo": "No",
+    "finishCurrentGoalFirst": "Please finish setting your current goal before enabling another.",
+    "unfinishedGoalModalTitle": "COMPLETE GOAL SETUP",
+    "unfinishedGoalModalMessage": "Please complete setting the goal for {{goalName}} first.",
+    "unfinishedGoalModalOk": "Ok",
     "tabChipCategory1": "Category 1",
     "tabChipCategory2": "Category 2",
     "tabChipCategory3": "Category 3",
@@ -346,7 +354,19 @@
       "toJuz": "to Juz",
       "totalJuz": "(a total of {{total}} juz)",
       "enterUpToCompletions": "Enter up to 28 Completions.",
-      "fullCompletions": "Full completion(s) of the Quran"
+      "fullCompletions": "Full completion(s) of the Quran",
+      "deleteGoalTitle": "DELETE GOAL?",
+      "deleteGoalMessage": "Are you sure you want to delete the goal? This will remove your goal permanently. This action cannot be undone.",
+      "deleteMemorizationSurahTitle": "DELETE SURAH?",
+      "deleteMemorizationSurahMessage": "Are you sure you want to remove {{surahName}} from your memorization goals? This action cannot be undone.",
+      "deleteRecitationSurahTitle": "DELETE SURAH?",
+      "deleteRecitationSurahMessage": "Are you sure you want to remove {{surahName}} from your recitation goals? This action cannot be undone.",
+      "deleteMemorizationHizbTitle": "DELETE HIZB?",
+      "deleteMemorizationHizbMessage": "Are you sure you want to remove {{hizbName}} from your memorization goals? This action cannot be undone.",
+      "deleteMemorizationJuzTitle": "DELETE JUZ?",
+      "deleteMemorizationJuzMessage": "Are you sure you want to remove {{juzName}} from your memorization goals? This action cannot be undone.",
+      "delete": "DELETE",
+      "cancel": "Cancel"
     }
   },
   "prayerGoals": {
@@ -411,6 +431,7 @@
   "progressLogging": {
     "myProgress": "My Progress",
     "inProgress": "In Progress",
+    "notStarted": "Not Started",
     "total": "total",
     "unitPrayers": "prayers",
     "today": "Today",

@@ -48,9 +48,10 @@ export default function MissedRamadanFastGoalSelection({
     setIsOpen(!isOpen);
   };
 
-  const handleSave = (markSaved: () => void) => {
+  const handleSave = (markSaved: () => void, markFailed: () => void) => {
     if (selectedDates.length === 0) {
       showToast("error", "Select at least one missed Ramadan fast date");
+      markFailed();
       return;
     }
     upsertFastingGoal(
@@ -64,6 +65,7 @@ export default function MissedRamadanFastGoalSelection({
           onSave?.(selectedDates);
           markSaved();
         },
+        onError: () => markFailed(),
       },
     );
   };

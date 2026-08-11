@@ -70,18 +70,22 @@ function SliderHeading({
 export default function SunnahRawatibGoalSelection({
   onSave,
   initialValues,
+  isSaving = false,
 }: {
-  onSave?: (payload: {
-    beforeFajr: number;
-    beforeDhuhr: number;
-    afterDhuhr: number;
-    afterDhuhrRakahOption: number;
-    beforeAsrEnabled: boolean;
-    beforeAsr: number;
-    beforeAsrRakahOption: number;
-    afterMaghrib: number;
-    afterIsha: number;
-  }) => void;
+  onSave?: (
+    payload: {
+      beforeFajr: number;
+      beforeDhuhr: number;
+      afterDhuhr: number;
+      afterDhuhrRakahOption: number;
+      beforeAsrEnabled: boolean;
+      beforeAsr: number;
+      beforeAsrRakahOption: number;
+      afterMaghrib: number;
+      afterIsha: number;
+    },
+    onDone?: () => void,
+  ) => void;
   initialValues?: {
     beforeFajr?: number;
     beforeDhuhr?: number;
@@ -93,6 +97,7 @@ export default function SunnahRawatibGoalSelection({
     beforeAsrEnabled?: boolean;
     beforeAsrRakahOption?: number;
   };
+  isSaving?: boolean;
 }) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
@@ -153,18 +158,20 @@ export default function SunnahRawatibGoalSelection({
   };
 
   const handleSave = (markSaved: () => void) => {
-    onSave?.({
-      beforeFajr: beforeFajar,
-      beforeDhuhr: beforeDuhr,
-      afterDhuhr: afterDuhr,
-      afterDhuhrRakahOption: afterDuhrOption === "one" ? 1 : 2,
-      beforeAsrEnabled: isBeforeAsarEnabled,
-      beforeAsr: isBeforeAsarEnabled ? beforeAsar : 0,
-      beforeAsrRakahOption: beforeAsarOption === "one" ? 1 : 2,
-      afterMaghrib: afterMaghrib,
-      afterIsha: afterIsha,
-    });
-    markSaved();
+    onSave?.(
+      {
+        beforeFajr: beforeFajar,
+        beforeDhuhr: beforeDuhr,
+        afterDhuhr: afterDuhr,
+        afterDhuhrRakahOption: afterDuhrOption === "one" ? 1 : 2,
+        beforeAsrEnabled: isBeforeAsarEnabled,
+        beforeAsr: isBeforeAsarEnabled ? beforeAsar : 0,
+        beforeAsrRakahOption: beforeAsarOption === "one" ? 1 : 2,
+        afterMaghrib: afterMaghrib,
+        afterIsha: afterIsha,
+      },
+      markSaved,
+    );
   };
 
   const totalPrayers =
@@ -328,6 +335,8 @@ export default function SunnahRawatibGoalSelection({
               onPress={handleSave}
               style={styles.saveButton}
               textStyle={styles.saveButtonText}
+              isLoading={isSaving}
+              disabled={isSaving}
             />
           </View>
         </View>

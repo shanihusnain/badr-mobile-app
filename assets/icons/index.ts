@@ -2,12 +2,15 @@
 import { AddIcon } from "./AddIcon";
 import { AllahNameIcon } from "./AllahNameIcon";
 import { AppleIcon } from "./AppleIcon";
+import { AddLoggingFlowIcon } from "./AddLoggingFlowIcon";
+import { AimIcon } from "./AimIcon";
 //B
 import { BirthIcon } from "./BirthIcon";
 import { BadarNameLogo } from "./BadarNameLogo";
 import { BellIcon } from "./BellIcon";
 import { BulbIcon } from "./BulbIcon";
 import { BinIcon } from "./BinIcon";
+import { BestdayStarIcon } from "./BestdayStarIcon";
 //C
 import { CalendarIcon } from "./CalenderIcon";
 import { ClockIcon } from "./ClockIcon";
@@ -63,6 +66,7 @@ import { CrossIcon } from "./CrossIcon";
 import { CheckBox } from "./CheckBox";
 import { CrossBox } from "./CrossBox";
 import { ChangePasswordIcon } from "./ChangePasswordIcon";
+import { CalendarFlippingIcon } from "./CalendarFlippingIcon";
 //D
 import { DocumentLockIcon } from "./DocumentLockIcon";
 import { DebtAssistanceIcon } from "./DebtAssistanceIcon";
@@ -107,6 +111,7 @@ import { HomeScreenGlowyMinusIcon } from "./HomeScreenGlowyMinusIcon";
 import { LillahDonationGiverIcon } from "./LillahDonationGiverIcon";
 import { LillahDonationRecipientIcon } from "./LillahDonationRecipientIcon";
 import { LetterIcon } from "./LetterIcon";
+import { LighteningIcon } from "./LighteningIcon";
 //M
 import { MoonIcon } from "./MoonIcon";
 import { MenstruatingIcon } from "./MenstruatingIcon";
@@ -125,6 +130,7 @@ import { NotificationIcon } from "./NotificationIcon";
 import { PaymentIcon } from "./PaymentIcon";
 import { PrivacyIcon } from "./PrivacyIcon";
 import { PencilIcon } from "./PencilIcon";
+import { PrayerMatIcon } from "./PrayerMatIcon";
 //Q
 
 //R
@@ -188,6 +194,8 @@ import { WorkLoadIcon } from "./WorkLoadIcon";
 import { WalletIcon } from "./WalletIcon";
 import { FlowCardShirtIcon } from "./FlowCardShirtIcon";
 import { WhiteTick } from "./WhiteTick";
+import { WhitePrayerMatIcon } from "./WhitePrayerMatIcon";
+import { WhiteTimerIcon } from "./WhiteTimerIcon";
 //X
 
 //Y
@@ -217,9 +225,12 @@ import { MondayAndThursdayAllahRememberenceIcon } from "./MondayAndThursdayAllah
 import { MissedZakatAccountabilityIcon } from "./MissedZakatAccountabilityIcon";
 import { MissedZakatSocialIcon } from "./MissedZakatSocialIcon";
 import { CheckBoxTickIcon } from "./CheckBoxTickIcon";
+import { WhiteClockIcon } from "./WhiteClockIcon";
 
 export {
+  AimIcon,
   CreateAccountCalenderIcon,
+  AddLoggingFlowIcon,
   BinIcon,
   SadaqahJariyahCloathIcon,
   SadaqahJariyahMedicalAidIcon,
@@ -381,4 +392,11 @@ export {
   ChevronUpIcon,
   // TickIconWithCircle,
   WhiteTick,
+  PrayerMatIcon,
+  LighteningIcon,
+  BestdayStarIcon,
+  CalendarFlippingIcon,
+  WhitePrayerMatIcon,
+  WhiteClockIcon,
+  WhiteTimerIcon,
 };

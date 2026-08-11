@@ -30,7 +30,7 @@ export const MissedZakats = ({
   setCount: (count: number) => void;
   handleDecrease: () => void;
   handleIncrease: () => void;
-  onSave?: (onDone?: () => void) => void;
+  onSave?: (onDone?: () => void, onFail?: () => void) => void;
   isSaving?: boolean;
   onSetAsDefaultCurrency?: (currencyOptionValue: string) => void;
 }) => {
@@ -74,7 +74,9 @@ export const MissedZakats = ({
               <TopSpace top={16} />
               <GoalSelectionSaveButton
                 text={t("monthlyGoalPlanner.save")}
-                onPress={(markSaved) => onSave?.(markSaved)}
+                onPress={(markSaved, markFailed) =>
+                  onSave?.(markSaved, markFailed)
+                }
                 isLoading={isSaving}
                 disabled={isSaving || count < 1}
               />

@@ -114,6 +114,13 @@ import {
   getProphetDawoodFastCycleSummary,
   getProphetDawoodFastTodayIndexInWeek,
 } from "../prophetDawoodFastsWeeklyData";
+import { useOptionalPrayerGoalFrameContext } from "../prayerGoalFrameContext";
+import {
+  formatPrayerFrameWeekRange,
+  getPrayerFrameTodayIndex,
+  getPrayerFrameWeekFraction,
+  mapPrayerFrameWeekDays,
+} from "@/src/utils/prayerGoalFrameMap";
 
 type Props = {
   goalData: GoalData;
@@ -128,7 +135,7 @@ export function WeeklyProgressSection({
 }: Props) {
   const { t } = useTranslation();
   const template = getLoggingFlowTemplate(goalData.id);
-  console.log("template", template);
+  const prayerFrame = useOptionalPrayerGoalFrameContext();
   const memorisationContext = useOptionalMemorisationSurahContext();
   const hizbMemorisationContext = useOptionalMemorisationHizbContext();
   const juzMemorisationContext = useOptionalMemorisationJuzContext();
@@ -816,30 +823,52 @@ export function WeeklyProgressSection({
   }
 
   if (template === "tahiyat-ul-wudhu") {
-    // Mock week data based on the images, in a real app this would come from a hook/data store
-    const mockWeek = {
-      weekDays: [
-        { day: "Sun", prayersLogged: 0, isLogged: true },
-        { day: "Mon", prayersLogged: 5, isLogged: true, isBestDay: true },
-        { day: "Tue", prayersLogged: 2, isLogged: true },
-        { day: "Wed", prayersLogged: 0, isLogged: false },
-        { day: "Thu", prayersLogged: 0, isLogged: false },
-        { day: "Fri", prayersLogged: 2, isLogged: true },
-        { day: "Sat", prayersLogged: 3, isLogged: true },
-      ],
-      weekRangeLabel: "Nov 29 — Dec 5",
-      weekFraction: "1/4",
-      totalPrayersThisWeek: 15,
-      streakDays: 2,
-    };
+    const frame = prayerFrame?.frame;
+    if (frame) {
+      const totalWeeks = frame.cycle.totalWeeks;
+      const currentWeek = frame.cycle.weekNumber;
+
+      const canPrev = currentWeek > 1;
+      const canNext = currentWeek < totalWeeks;
+
+      const handlePrevWeek = canPrev
+        ? () => {
+            prayerFrame?.setWeekNumber(currentWeek - 1);
+          }
+        : undefined;
+
+      const handleNextWeek = canNext
+        ? () => {
+            prayerFrame?.setWeekNumber(currentWeek + 1);
+          }
+        : undefined;
+
+      return (
+        <TahiyatUlWudhuWeeklyProgressDashboard
+          weekDays={mapPrayerFrameWeekDays(frame)}
+          weekRangeLabel={formatPrayerFrameWeekRange(
+            frame.cycle.weekStart,
+            frame.cycle.weekEnd,
+          )}
+          weekFraction={getPrayerFrameWeekFraction(frame)}
+          totalPrayersThisWeek={frame.week.thisWeekTotal}
+          streakDays={frame.week.currentStreak}
+          motivationalQuote={frame.week.motivationalMessage}
+          selectedDayIndex={getPrayerFrameTodayIndex(frame)}
+          statsIcon="rug"
+          onPrevWeek={handlePrevWeek}
+          onNextWeek={handleNextWeek}
+        />
+      );
+    }
 
     return (
       <TahiyatUlWudhuWeeklyProgressDashboard
-        weekDays={mockWeek.weekDays}
-        weekRangeLabel={mockWeek.weekRangeLabel}
-        weekFraction={mockWeek.weekFraction}
-        totalPrayersThisWeek={mockWeek.totalPrayersThisWeek}
-        streakDays={mockWeek.streakDays}
+        weekDays={[]}
+        weekRangeLabel=""
+        weekFraction="—"
+        totalPrayersThisWeek={0}
+        streakDays={0}
         statsIcon="rug"
       />
     );

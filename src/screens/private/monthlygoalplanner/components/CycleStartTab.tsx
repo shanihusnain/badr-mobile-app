@@ -1,6 +1,7 @@
 import { fonts } from "@/assets/fonts";
 import { CalendarGrid } from "@/components/molecules/CalendarGrid";
 import PrimaryButton from "@/components/atoms/Primary-button";
+import WarningModal from "@/components/atoms/WarningModal";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { Colors } from "@/constants/theme";
 import { Ionicons } from "@expo/vector-icons";
@@ -20,6 +21,8 @@ type Props = {
   selectedStartDate?: string | null;
   /** Source-of-truth end date from API or parent (YYYY-MM-DD). */
   selectedEndDate?: string | null;
+  /** Original cycle start date from the backend (YYYY-MM-DD). */
+  backendStartDate?: string | null;
 };
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -29,6 +32,7 @@ export const CycleStartTab = ({
   onDateSelect,
   selectedStartDate = null,
   selectedEndDate = null,
+  backendStartDate = null,
 }: Props) => {
   const { t, i18n } = useTranslation();
   const tomorrowDateString = useMemo(
@@ -41,6 +45,7 @@ export const CycleStartTab = ({
   const cycleStartDate = selectedStartDate ?? localCycleStartDate;
   const [windowStartDate, setWindowStartDate] =
     useState<string>(cycleStartDate);
+  const [changeCycleModalVisible, setChangeCycleModalVisible] = useState(false);
 
   const { mutateAsync: startEditCycle, isPending: isStartEditCyclePending } =
     useStartEditCycleMutation();
@@ -102,6 +107,44 @@ export const CycleStartTab = ({
     setWindowStartDate((prev) =>
       moment(prev, "YYYY-MM-DD").add(1, "month").format("YYYY-MM-DD"),
     );
+  }, []);
+
+  const commitCycle = useCallback(
+    async (startDate: string) => {
+      const endDate = moment(startDate, "YYYY-MM-DD")
+        .add(27, "days")
+        .format("YYYY-MM-DD");
+      onCommit?.(startDate, endDate);
+      await startEditCycle({ startDate });
+    },
+    [onCommit, startEditCycle],
+  );
+
+  const handleCommitPress = useCallback(() => {
+    if (!cycleStartDate) return;
+
+    const selectedDay = moment(cycleStartDate).format("YYYY-MM-DD");
+    const backendDay = backendStartDate
+      ? moment(backendStartDate).format("YYYY-MM-DD")
+      : null;
+
+    // Same as backend (or no backend date yet) → commit with no confirmation.
+    if (!backendDay || backendDay === selectedDay) {
+      void commitCycle(cycleStartDate);
+      return;
+    }
+
+    setChangeCycleModalVisible(true);
+  }, [backendStartDate, cycleStartDate, commitCycle]);
+
+  const confirmChangeCycle = useCallback(() => {
+    if (!cycleStartDate) return;
+    setChangeCycleModalVisible(false);
+    void commitCycle(cycleStartDate);
+  }, [cycleStartDate, commitCycle]);
+
+  const cancelChangeCycle = useCallback(() => {
+    setChangeCycleModalVisible(false);
   }, []);
 
   // ── Derived values ──────────────────────────────────────────────────────────
@@ -255,12 +298,19 @@ export const CycleStartTab = ({
         text={t("monthlyGoalPlanner.commit")}
         isLoading={isStartEditCyclePending}
         disabled={isStartEditCyclePending || !cycleStartDate}
-        onPress={() => {
-          if (cycleStartDate && cycleEndDateString) {
-            onCommit?.(cycleStartDate, cycleEndDateString);
-            startEditCycle({ startDate: cycleStartDate });
-          }
-        }}
+        onPress={handleCommitPress}
+      />
+
+      <WarningModal
+        visible={changeCycleModalVisible}
+        title={t("monthlyGoalPlanner.changeCycleStartModalTitle")}
+        message={t("monthlyGoalPlanner.changeCycleStartModalMessage")}
+        primaryButtonText={t("monthlyGoalPlanner.changeCycleStartYes")}
+        secondaryButtonText={t("monthlyGoalPlanner.changeCycleStartNo")}
+        primaryButtonVariant="green"
+        onPrimaryPress={confirmChangeCycle}
+        onSecondaryPress={cancelChangeCycle}
+        onBackdropPress={cancelChangeCycle}
       />
     </>
   );

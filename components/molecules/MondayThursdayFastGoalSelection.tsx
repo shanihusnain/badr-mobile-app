@@ -49,9 +49,10 @@ export default function MondayThursdayFastGoalSelection({
     setIsOpen(!isOpen);
   };
 
-  const handleSave = (markSaved: () => void) => {
+  const handleSave = (markSaved: () => void, markFailed: () => void) => {
     if (selectedMonThuDates.length === 0) {
       showToast("error", "Select at least one Monday or Thursday to fast");
+      markFailed();
       return;
     }
     upsertFastingGoal(
@@ -65,6 +66,7 @@ export default function MondayThursdayFastGoalSelection({
           onSave?.(selectedMonThuDates);
           markSaved();
         },
+        onError: () => markFailed(),
       },
     );
   };
