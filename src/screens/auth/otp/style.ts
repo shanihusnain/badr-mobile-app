@@ -24,11 +24,11 @@ export const styles = StyleSheet.create({
   },
 
   bottomSheet: {
-    height: hp(50),
+    height: hp(45),
     marginTop: -20,
     backgroundColor: Colors.light.blackBackground,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: 37,
+    borderTopRightRadius: 37,
     overflow: "hidden",
   },
 
@@ -45,10 +45,12 @@ export const styles = StyleSheet.create({
 
   otpInfoText: {
     color: Colors.light.white,
-    fontSize: 13,
+    fontSize: 14,
+    fontWeight: "400",
     fontFamily: fonts.primary.regular,
-    lineHeight: 18,
-    opacity: 0.8,
+    lineHeight: 20,
+    opacity: 0.7,
+    letterSpacing: 0.1,
     textAlign: "left",
     alignSelf: "flex-start",
     width: "100%",
@@ -56,17 +58,18 @@ export const styles = StyleSheet.create({
   },
 
   otpContainer: {
+    width: "100%",
     flexDirection: "row",
-    justifyContent: "center",
-    gap: 7.5,
+    justifyContent: "space-between",
+    alignItems: "center",
     marginTop: hp(2),
     marginBottom: hp(1),
   },
 
   otpBox: {
-    width: 50,
+    width: "15%",
     height: 50,
-    borderRadius: 8,
+    borderRadius: 7,
     backgroundColor: Colors.light.greybuttonBackground,
     textAlign: "center",
     fontSize: 18,
@@ -81,23 +84,25 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    marginTop: hp(1),
-    marginBottom: hp(2),
+    marginTop: hp(1.3),
+    marginBottom: hp(1.4),
   },
 
   resendText: {
     color: Colors.light.white,
+    fontWeight: "400",
     fontSize: 14,
     fontFamily: fonts.primary.regular,
-    lineHeight: 18,
+    lineHeight: 20,
     marginLeft: 5,
   },
 
   resendTimer: {
     color: Colors.light.white,
     fontSize: 16,
-    fontFamily: fonts.primary.regular,
-    lineHeight: 16,
+    fontFamily: fonts.primary.medium,
+    fontWeight: "500",
+    lineHeight: 22,
     alignSelf: "center",
   },
 
@@ -113,8 +118,8 @@ export const styles = StyleSheet.create({
   },
 
   buttonWrapper: {
-    width: "95%",
-    marginTop: hp(2),
+    width: "94%",
+    marginTop: hp(3.5),
   },
 
   errorText: {

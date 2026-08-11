@@ -14,7 +14,10 @@ import { Controller } from "react-hook-form";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import { useTranslation } from "react-i18next";
-import AntDesign from "@expo/vector-icons/AntDesign";
+import {
+  ConfirmPasswordEyeIcon,
+  PasswordEyeIcon,
+} from "@/assets/icons";
 interface CustomTextInputProps {
   label?: string;
   placeholder: string;
@@ -145,11 +148,11 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
           />
           {showEye && onToggleEye && (
             <TouchableOpacity onPress={onToggleEye} style={styles.rightIcon}>
-              <AntDesign
-                name={secureTextEntry ? "eye-invisible" : "eye"}
-                size={20}
-                color={Colors.light.white}
-              />
+              {secureTextEntry ? (
+                <ConfirmPasswordEyeIcon size={20} color={Colors.light.white} />
+              ) : (
+                <PasswordEyeIcon size={20} color={Colors.light.white} />
+              )}
             </TouchableOpacity>
           )}
         </View>
@@ -212,7 +215,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   inputWrapper: {
-    backgroundColor: Colors.light.calendarBg,
+    backgroundColor: Colors.light.greybuttonBackground,
     borderRadius: 6,
     paddingHorizontal: 12,
     height: 48,

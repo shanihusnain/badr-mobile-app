@@ -58,6 +58,7 @@ import { AchivementArrowIcon } from "./AchivementArrowIcon";
 //B
 
 //C
+import { ConfirmPasswordEyeIcon } from "./ConfirmPasswordEyeIcon";
 import { CresentAndStarIcon } from "./CresentAndStarIcon";
 import { ConnectTabIcon } from "./ConnectTabIcon";
 import { CheckIcon } from "./CheckIcon";
@@ -78,6 +79,7 @@ import { ExclamationIconWithCircel } from "./ExclamationIconWithCircel";
 import { ExerciseIcon } from "./ExerciseIcon";
 import { EmailIcon } from "./EmailIcon";
 import { EnterInviteCode } from "./EnterInviteCode";
+import { EmailAddressMailIcon } from "./EmailAddressMailIcon";
 //F
 import { FilterIcon } from "./FilterIcon";
 import { FlashIcon } from "./FlashIcon";
@@ -130,6 +132,7 @@ import { NotificationIcon } from "./NotificationIcon";
 import { PaymentIcon } from "./PaymentIcon";
 import { PrivacyIcon } from "./PrivacyIcon";
 import { PencilIcon } from "./PencilIcon";
+import { PasswordEyeIcon } from "./PasswordEyeIcon";
 import { PrayerMatIcon } from "./PrayerMatIcon";
 //Q
 
@@ -264,6 +267,7 @@ export {
   Volunteeringservicesheart,
   FlashIcon,
   FlowCardClockIcon,
+  EmailAddressMailIcon,
   ShootIcon,
   TimeSpentIcon,
   HeartOnHandIcon,
@@ -381,6 +385,8 @@ export {
   MissedZakatSocialIcon,
   FacebookIcon,
   GoogleIcon,
+  PasswordEyeIcon,
+  ConfirmPasswordEyeIcon,
   AppleIcon,
   LetterIcon,
   PasswordLockIcon,

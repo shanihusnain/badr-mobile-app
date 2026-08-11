@@ -38,6 +38,7 @@ export const styles = StyleSheet.create({
   },
   howItWorksText: {
     marginLeft: 10,
+    marginTop: -2,
     fontWeight: "500",
     fontSize: 14,
     color: Colors.light.white,

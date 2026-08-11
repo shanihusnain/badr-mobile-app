@@ -141,7 +141,7 @@ export const SetPersonalizedGoalsScreen = () => {
           <TutorialVideoPlayer onSkip={handleSkipTutorial} />
         )}
         {activeFrame === 1 && (
-          <View style={{ marginTop: 24, paddingBottom: 16 }}>
+          <View style={{alignSelf:"center",marginTop:"auto"}}>
             <Pressable
               onPress={onWatchTutorialPress}
               style={{

@@ -15,19 +15,20 @@ export const useFreeTrialProps = () => {
 
   const texts = [
     {
-      title: t("freeTrialScreen.feature1"),
-      icon: React.createElement(FreeTrialScreenLoudSpeakerIcon, {
-        size: 24,
-        color: Colors.light.green,
-      }),
-    },
-    {
       title: t("freeTrialScreen.feature2"),
       icon: React.createElement(FreeTrialScreenShotIcon, {
         size: 24,
         color: Colors.light.green,
       }),
     },
+    {
+      title: t("freeTrialScreen.feature1"),
+      icon: React.createElement(FreeTrialScreenLoudSpeakerIcon, {
+        size: 24,
+        color: Colors.light.green,
+      }),
+    },
+   
     {
       title: t("freeTrialScreen.feature3"),
       icon: React.createElement(FreeTrialScreenBookIcon, {

@@ -139,6 +139,7 @@ export default function LoginScreen() {
                     onPress={handleSubmit(onSubmit)}
                     disabled={loggingIn}
                     isLoading={loggingIn}
+                    style={styles.primaryButton}
                   />
 
                   <TouchableOpacity

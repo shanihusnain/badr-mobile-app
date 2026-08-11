@@ -10,13 +10,19 @@ import {
 } from "expo-video";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
 
 /** Bundled scenic placeholder (CC0 nature clip) until the real tutorial is wired. */
 const PLACEHOLDER_VIDEO_SOURCE: VideoSource = require("@/assets/videos/tutorial-scenery.mp4");
 
 /** Tutorial length shown in Figma while real asset is wired. */
 const TUTORIAL_DURATION_SEC = 45;
+
+/** Match BlackScreenWrapper padding so the player can span nearly full width. */
+const PARENT_HORIZONTAL_PADDING = 16;
+const SCREEN_SIDE_INSET = 8;
+const PLAYER_WIDTH =
+  Dimensions.get("window").width - SCREEN_SIDE_INSET * 2;
 
 interface TutorialVideoPlayerProps {
   videoUrl?: string;
@@ -125,7 +131,10 @@ const styles = StyleSheet.create({
   wrapper: {
     marginTop: 16,
     flex: 1,
-    width: "100%",
+    width: PLAYER_WIDTH,
+    marginHorizontal: -(PARENT_HORIZONTAL_PADDING - SCREEN_SIDE_INSET),
+    alignSelf: "center",
+    borderRadius: 16,
   },
   player: {
     flex: 1,

@@ -298,6 +298,13 @@ export const CycleStartTab = ({
         text={t("monthlyGoalPlanner.commit")}
         isLoading={isStartEditCyclePending}
         disabled={isStartEditCyclePending || !cycleStartDate}
+        style={styles.commitButton}
+        onPress={() => {
+          if (cycleStartDate && cycleEndDateString) {
+            onCommit?.(cycleStartDate, cycleEndDateString);
+            startEditCycle({ startDate: cycleStartDate });
+          }
+        }}
         onPress={handleCommitPress}
       />
 
@@ -324,7 +331,7 @@ const styles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
-    letterSpacing: 0.4,
+    letterSpacing: 0,
     lineHeight: 20,
   },
   topBar: {
@@ -369,14 +376,20 @@ const styles = StyleSheet.create({
     color: Colors.light.white,
     fontSize: 12,
     fontFamily: fonts.primary.regular,
-    lineHeight: 18,
+    lineHeight: 20,
     fontWeight: "400",
-    letterSpacing: 0.2,
+    letterSpacing: 0,
     textAlign: "center",
   },
   infoHighlight: {
     color: Colors.light.white,
-    fontFamily: fonts.primary.semiBold,
+    fontFamily: fonts.primary.bold,
     fontWeight: "600",
+  },
+  commitButton: {
+    width: "90%",
+    alignSelf: "center",
+    minHeight: 40,
+    paddingVertical: 8,
   },
 });

@@ -14,13 +14,13 @@ export const styles = StyleSheet.create({
   safeAreaContainer: {
     flex: 1,
     backgroundColor: Colors.light.blackBackground,
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingTop: 20,
   },
 
   buttonContainer: {
     paddingHorizontal: 16,
-    paddingBottom: 24,
+    paddingBottom: 36,
   },
 
   titleText: {
@@ -45,21 +45,21 @@ export const styles = StyleSheet.create({
   secondaryTextWrapper: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 20,
+    marginTop: 14,
   },
 
   subtitletext: {
-    width: 343,
-    height: 60,
+    width: "100%",
     color: Colors.dark.text,
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
-    fontSize: hp(1.71),
+    fontSize: 14,
     lineHeight: 20,
     letterSpacing: 0.1,
     textAlign: "left",
     opacity: 1,
-    marginTop: 22,
+    marginTop: 18,
+    marginBottom: 15,
   },
 
   pointText: {

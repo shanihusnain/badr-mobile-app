@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { CanadaFlagIcon } from "@/assets/icons/CanadaFlagIcon";
 import { QatarFlagIcon } from "@/assets/icons/QatarFlagIcon";
 import { UnitedKingdomFlagIcon } from "@/assets/icons/UnitedKingdomFlagIcon";
 import { UnitedStatesFlagIcon } from "@/assets/icons/UnitedStatesFlagIcon";
@@ -28,6 +29,11 @@ export const useCreateAccountProps = () => {
       label: "United Kingdom",
       value: "United Kingdom",
       icon: React.createElement(UnitedKingdomFlagIcon, { size: 18 }),
+    },
+    {
+      label: t("createAccountScreen.canada"),
+      value: "Canada",
+      icon: React.createElement(CanadaFlagIcon, { size: 18 }),
     },
   ];
   const calendarView = [

@@ -2187,6 +2187,9 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
                   selectedEndDate={cycleEndDate}
                   backendStartDate={goalCycleDetail?.startDate ?? null}
                   onDateSelect={handleCycleDateSelect}
+                  onCommit={() => {
+                    goToNextTab();
+                  }}
                 />
               ) : undefined
             }
@@ -2211,19 +2214,21 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
                 </View>
               ) : null
             }
-            ListFooterComponent={() => (
-              <View style={styles.footerContainer}>
-                <PrimaryButton
-                  text={
-                    activeTab === "review"
-                      ? t("monthlyGoalPlanner.finishAndSaveGoals")
-                      : "NEXT"
-                  }
-                  disabled={!canPressFooterPrimary}
-                  onPress={handleFooterPrimaryPress}
-                />
-              </View>
-            )}
+            ListFooterComponent={() =>
+              activeTab === "cycle" ? null : (
+                <View style={styles.footerContainer}>
+                  <PrimaryButton
+                    text={
+                      activeTab === "review"
+                        ? t("monthlyGoalPlanner.finishAndSaveGoals")
+                        : "NEXT"
+                    }
+                    disabled={!canPressFooterPrimary}
+                    onPress={handleFooterPrimaryPress}
+                  />
+                </View>
+              )
+            }
             renderItem={({ item }: { item: any }) => {
               if (activeTab === "prayer") {
                 const prayer = item;

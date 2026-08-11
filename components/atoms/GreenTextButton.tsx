@@ -20,7 +20,7 @@ export const GreenTextButton: React.FC<GreenTextButtonProps> = ({
 
 const styles = StyleSheet.create({
   text: {
-    color: Colors.light.green,
+    color: Colors.light.greentextbutton,
     fontSize: 16,
     textAlign: "center",
     fontWeight: "600",
