@@ -2391,11 +2391,20 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                             params: { goal: prayer.prayerType },
                           }));
                       }}
-                      description={
-                        prayer.summaryDescription ||
-                        prayer.description ||
-                        t(`goalsData.${prayer.id}.description`)
-                      }
+                      description={(() => {
+                        const localCopy = t(`goalsData.${prayer.id}`, {
+                          returnObjects: true,
+                        }) as { summaryDescription?: string; description?: string };
+                        return (
+                          (typeof localCopy?.summaryDescription === "string" &&
+                            localCopy.summaryDescription) ||
+                          prayer.summaryDescription ||
+                          (typeof localCopy?.description === "string" &&
+                            localCopy.description) ||
+                          prayer.description ||
+                          t(`goalsData.${prayer.id}.description`)
+                        );
+                      })()}
                       onToggle={(isSelected) =>
                         handlePrayerToggle(
                           prayer.id,
@@ -2687,10 +2696,23 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                           params: { goal: quran.id },
                         })
                       }
-                      description={
-                        quran.description ||
-                        t(`goalsData.${quran.id}.description`)
-                      }
+                      description={(() => {
+                        const localCopy = t(`goalsData.${quran.id}`, {
+                          returnObjects: true,
+                        }) as {
+                          summaryDescription?: string;
+                          description?: string;
+                        };
+                        return (
+                          (typeof localCopy?.summaryDescription === "string" &&
+                            localCopy.summaryDescription) ||
+                          quran.summaryDescription ||
+                          (typeof localCopy?.description === "string" &&
+                            localCopy.description) ||
+                          quran.description ||
+                          t(`goalsData.${quran.id}.description`)
+                        );
+                      })()}
                       onToggle={(val) =>
                         handleQuranToggle(quran.id, quran.apiGoals, val)
                       }
@@ -2817,7 +2839,21 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                           params: { goal: fasting.id },
                         })
                       }
-                      description={t(`goalsData.${fasting.id}.description`)}
+                      description={(() => {
+                        const localCopy = t(`goalsData.${fasting.id}`, {
+                          returnObjects: true,
+                        }) as {
+                          summaryDescription?: string;
+                          description?: string;
+                        };
+                        return (
+                          (typeof localCopy?.summaryDescription === "string" &&
+                            localCopy.summaryDescription) ||
+                          (typeof localCopy?.description === "string" &&
+                            localCopy.description) ||
+                          t(`goalsData.${fasting.id}.description`)
+                        );
+                      })()}
                       onToggle={(val) =>
                         handleFastingToggle(
                           fasting.id,
@@ -2922,7 +2958,21 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                           params: { goal: sadaqah.id },
                         })
                       }
-                      description={t(`goalsData.${sadaqah.id}.description`)}
+                      description={(() => {
+                        const localCopy = t(`goalsData.${sadaqah.id}`, {
+                          returnObjects: true,
+                        }) as {
+                          summaryDescription?: string;
+                          description?: string;
+                        };
+                        return (
+                          (typeof localCopy?.summaryDescription === "string" &&
+                            localCopy.summaryDescription) ||
+                          (typeof localCopy?.description === "string" &&
+                            localCopy.description) ||
+                          t(`goalsData.${sadaqah.id}.description`)
+                        );
+                      })()}
                       onToggle={(val) =>
                         handleSadaqahToggle(
                           sadaqah.id,

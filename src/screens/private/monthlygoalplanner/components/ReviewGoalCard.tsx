@@ -4,14 +4,12 @@ import { Colors } from "@/constants/theme";
 import { Feather } from "@expo/vector-icons";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
+import { formatReviewCurrencyAmount } from "@/src/utils/sadaqahGoalMap";
 
 type Props = {
   goal: any;
   handleEditPress: (goal: any) => void;
 };
-
-const looksLikeCurrency = (v: any) =>
-  typeof v === "string" && /[^0-9\s,\.\-]/.test(v);
 
 const UNIT_BY_GOAL_TITLE: Record<string, string> = {
   "kafarah-for-breaking-fasts": "monthlyGoalPlanner.items",
@@ -108,12 +106,15 @@ export default function ReviewGoalCard({ goal, handleEditPress }: Props) {
 
   const rightNode = (() => {
     if (CURRENCY_GOAL_TITLES.has(key)) {
-      if (firstSelected && looksLikeCurrency(firstSelected.value)) {
-        return renderGreenTotal(String(firstSelected.value));
-      }
       const currency =
         goal?.sourceSadaqah?.currencyCode ?? goal?.currencyCode ?? "SAR";
-      return renderGreenTotal(`${currency} ${String(totalValue ?? "")}`);
+      const amount =
+        typeof totalValue === "number"
+          ? totalValue
+          : Number(
+              String(firstSelected?.value ?? "").replace(/[^\d.-]/g, ""),
+            ) || 0;
+      return renderGreenTotal(formatReviewCurrencyAmount(currency, amount));
     }
 
     const unitKey = UNIT_BY_GOAL_TITLE[key];

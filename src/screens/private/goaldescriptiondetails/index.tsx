@@ -812,7 +812,7 @@ export const GoalDescriptionDetails = ({ goal }: { goal: string }) => {
     <HeaderWithImageAndDescription
       heroTitle={heroTitle}
       navTitle={navTitle}
-      description={summaryDescription || description}
+      description={description || summaryDescription}
       imageSource={getImageSource()}
       imageHeight={getImageHeight()}
       onBackPress={() => navigation.goBack()}

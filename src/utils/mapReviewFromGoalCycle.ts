@@ -9,7 +9,7 @@ import type {
 } from "@/src/api/queries/useGetGoalCycleById";
 import { PRAYER_TYPE_TO_UI_ID } from "@/src/utils/prayerGoalMap";
 import { FASTING_TYPE_TO_UI_ID } from "@/src/utils/fastingGoalMap";
-import { SADAQAH_TYPE_TO_UI_ID } from "@/src/utils/sadaqahGoalMap";
+import { SADAQAH_TYPE_TO_UI_ID, formatReviewCurrencyAmount } from "@/src/utils/sadaqahGoalMap";
 import type {
   QuranHizbOption,
   QuranJuzOption,
@@ -578,8 +578,9 @@ function mapSadaqahGoal(
       id: 1,
       name: "amount",
       label: t("monthlyGoalPlanner.amount"),
-      value: `${currency} ${goal.targetAmount ?? 0}`,
+      value: formatReviewCurrencyAmount(currency, goal.targetAmount ?? 0),
     });
+    totalValue = goal.targetAmount ?? 0;
   } else if (
     goal.sadaqahType === "LILLAH" ||
     goal.sadaqahType === "SADAQAH_JARIYAH"

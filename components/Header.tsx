@@ -1,6 +1,5 @@
 import React from "react";
 import { Text, TextStyle, View } from "react-native";
-import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 import { fonts } from "../assets/fonts";
 import { Colors } from "../constants/theme";
 import BackButton from "./atoms/Backbutton";
@@ -16,6 +15,8 @@ interface HeaderProps {
   textAlign?: TextStyle["textAlign"];
   lineHeight?: number;
 }
+
+const SIDE_SLOT_WIDTH = 40;
 
 const Header: React.FC<HeaderProps> = ({
   title,
@@ -37,33 +38,40 @@ const Header: React.FC<HeaderProps> = ({
         justifyContent: "space-between",
         paddingHorizontal: 16,
         paddingTop: insets.top + 10,
-        // paddingBottom: hp(1),
         backgroundColor: backgroundColor ?? Colors.light.blackBackground,
       }}
     >
-      {showBackBtn && (
-        <BackButton
-          onPress={onBackPress}
-          bgcolor={arrowBg ? arrowBg : Colors.light.greybuttonBackground}
-        />
-      )}
+      <View style={{ width: SIDE_SLOT_WIDTH, alignItems: "flex-start" }}>
+        {showBackBtn ? (
+          <BackButton
+            onPress={onBackPress}
+            bgcolor={arrowBg ? arrowBg : Colors.light.greybuttonBackground}
+          />
+        ) : null}
+      </View>
       {title ? (
         <Text
+          numberOfLines={2}
+          adjustsFontSizeToFit
+          minimumFontScale={0.75}
           style={{
+            flex: 1,
+            flexShrink: 1,
+            marginHorizontal: 8,
             color: Colors.light.white,
             fontFamily: fonts.primary.semiBold,
             fontWeight: "600",
             fontSize: fontSize ?? 14,
             textAlign: textAlign ?? "center",
-            lineHeight: lineHeight ?? 24,
+            lineHeight: lineHeight ?? 18,
           }}
         >
           {title}
         </Text>
       ) : (
-        <View style={{ width: 130 }} />
+        <View style={{ flex: 1 }} />
       )}
-      <View style={{ width: 30 }} />
+      <View style={{ width: SIDE_SLOT_WIDTH }} />
     </View>
   );
 };
