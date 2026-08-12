@@ -30,7 +30,7 @@ export const QuranTimeSelection = ({
   title: string;
   /** i18n key with `_one` / `_other` plural forms (pass count via input). */
   descriptionKey: string;
-  onSave?: (hours: number, onDone?: () => void) => void;
+  onSave?: (hours: number, onDone?: () => void, onFail?: () => void) => void;
   quranGoalType?: "LISTENING" | "TAJWEED";
   isSaving?: boolean;
 }) => {
@@ -129,7 +129,7 @@ export const QuranTimeSelection = ({
                     markFailed();
                     return;
                   }
-                  onSave?.(hours, markSaved);
+                  onSave?.(hours, markSaved, markFailed);
                 }}
                 style={{ width: "100%" }}
               />

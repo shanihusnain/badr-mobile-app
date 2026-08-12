@@ -1,12 +1,32 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
-import BottomSheet, {
+import {
   BottomSheetBackdrop,
   BottomSheetFlatList,
+  BottomSheetModal,
 } from "@gorhom/bottom-sheet";
-import { ScrollView as RNScrollView } from "react-native-gesture-handler";
-import { forwardRef, useCallback, useEffect, useMemo, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  GestureHandlerRootView,
+  ScrollView as RNScrollView,
+} from "react-native-gesture-handler";
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
+import {
+  Modal,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { FullWindowOverlay } from "react-native-screens";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { BottomSheetDefaultBackdropProps } from "@gorhom/bottom-sheet/lib/typescript/components/bottomSheetBackdrop/types";
 import { GoalCardWithDescriptionAndOptionToSelectGoal } from "./GoalCardWithDescriptionAndOptionToSelectGoal";
 import { CycleStartTab } from "./CycleStartTab";
@@ -159,11 +179,40 @@ type Props = {
   initialTab?: Tab;
 };
 
+function GoalPlannerSheetContainer({
+  children,
+}: {
+  children?: ReactNode;
+}) {
+  const content = (
+    <GestureHandlerRootView style={styles.sheetOverlayRoot}>
+      {children}
+    </GestureHandlerRootView>
+  );
+
+  if (Platform.OS === "ios") {
+    return <FullWindowOverlay>{content}</FullWindowOverlay>;
+  }
+
+  return (
+    <Modal
+      visible
+      transparent
+      statusBarTranslucent
+      animationType="none"
+      presentationStyle="overFullScreen"
+    >
+      {content}
+    </Modal>
+  );
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
+export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
   ({ onClose, initialTab }, ref) => {
     const { t } = useTranslation();
+    const insets = useSafeAreaInsets();
     const [activeTab, setActiveTab] = useState<Tab>(initialTab ?? "cycle");
     const [cycleStartDate, setCycleStartDate] = useState<string | null>(null);
     const [cycleEndDate, setCycleEndDate] = useState<string | null>(null);
@@ -1492,7 +1541,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
               onMetricsChange={handleQuranMetricsChange}
               variant="others"
               isSaving={isSavingQuran}
-              onSave={(onDone, onFail) => {
+              onSave={(_payload, onDone, onFail) => {
                 setQuranMetrics((prev) => {
                   const surah = prev?.surah ?? {};
                   const selected: number[] = Array.isArray(surah.selectedSurahs)
@@ -1534,7 +1583,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
               onMetricsChange={handleQuranMetricsChange}
               variant="others"
               isSaving={isSavingQuran}
-              onSave={(onDone, onFail) => {
+              onSave={(_payload, onDone, onFail) => {
                 setQuranMetrics((prev) => ({
                   ...prev,
                   [key]: [
@@ -1560,7 +1609,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
               onMetricsChange={handleQuranMetricsChange}
               variant="others"
               isSaving={isSavingQuran}
-              onSave={(onDone, onFail) => {
+              onSave={(_payload, onDone, onFail) => {
                 setQuranMetrics((prev) => {
                   const juz = prev?.juz ?? {};
                   let from = Number(juz.start ?? 0);
@@ -1595,7 +1644,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
               onMetricsChange={handleQuranMetricsChange}
               variant="memorization"
               isSaving={isSavingQuran}
-              onSave={(onDone, onFail) => {
+              onSave={(_payload, onDone, onFail) => {
                 setQuranMetrics((prev) => {
                   const juz = prev?.juz ?? {};
                   const selectedIds: number[] = Array.isArray(juz.selectedJuzs)
@@ -1660,7 +1709,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
               onMetricsChange={handleQuranMetricsChange}
               variant="memorization"
               isSaving={isSavingQuran}
-              onSave={(onDone, onFail) => {
+              onSave={(_payload, onDone, onFail) => {
                 setQuranMetrics((prev) => {
                   const hizb = prev?.hizb ?? {};
                   const selectedIds: number[] = Array.isArray(
@@ -1707,7 +1756,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
               onMetricsChange={handleQuranMetricsChange}
               variant="memorization"
               isSaving={isSavingQuran}
-              onSave={(onDone, onFail) => {
+              onSave={(_payload, onDone, onFail) => {
                 setQuranMetrics((prev) => {
                   const surah = prev?.surah ?? {};
                   const selected: number[] = Array.isArray(surah.selectedSurahs)
@@ -2102,15 +2151,19 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
 
     return (
       <>
-        <BottomSheet
+        <BottomSheetModal
           ref={ref}
-          index={-1}
+          index={2}
           snapPoints={snapPoints}
+          bottomInset={insets.bottom}
           enablePanDownToClose
-          onClose={onClose}
+          enableHandlePanningGesture
+          enableContentPanningGesture
+          onDismiss={onClose}
           backdropComponent={renderBackdrop}
           backgroundStyle={styles.sheetBg}
           handleIndicatorStyle={styles.handle}
+          containerComponent={GoalPlannerSheetContainer}
         >
           <RNScrollView
             horizontal
@@ -2216,7 +2269,12 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
             }
             ListFooterComponent={() =>
               activeTab === "cycle" ? null : (
-                <View style={styles.footerContainer}>
+                <View
+                  style={[
+                    styles.footerContainer,
+                    { paddingBottom: Math.max(insets.bottom, 20) },
+                  ]}
+                >
                   <PrimaryButton
                     text={
                       activeTab === "review"
@@ -2951,7 +3009,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
               return null;
             }}
           />
-        </BottomSheet>
+        </BottomSheetModal>
         <WarningModal
           visible={fastingGoalConflictModal.visible}
           title="SET GOAL?"
@@ -3002,6 +3060,9 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
 // ── Styles ────────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
+  sheetOverlayRoot: {
+    flex: 1,
+  },
   container: {
     flex: 1,
     // height: 300,

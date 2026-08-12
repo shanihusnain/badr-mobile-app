@@ -9,6 +9,7 @@ import moment from "moment-hijri";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useTranslation } from "react-i18next";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { localizeNumber } from "@/src/utils/localizeNumbers";
 import { useStartEditCycleMutation } from "@/src/api/mutations/useStartEditCycle";
 
@@ -35,6 +36,7 @@ export const CycleStartTab = ({
   backendStartDate = null,
 }: Props) => {
   const { t, i18n } = useTranslation();
+  const insets = useSafeAreaInsets();
   const tomorrowDateString = useMemo(
     () => moment().add(1, "day").format("YYYY-MM-DD"),
     [],
@@ -298,7 +300,10 @@ export const CycleStartTab = ({
         text={t("monthlyGoalPlanner.commit")}
         isLoading={isStartEditCyclePending}
         disabled={isStartEditCyclePending || !cycleStartDate}
-        style={styles.commitButton}
+        style={[
+          styles.commitButton,
+          { marginBottom: Math.max(insets.bottom, 16) },
+        ]}
         onPress={handleCommitPress}
       />
 

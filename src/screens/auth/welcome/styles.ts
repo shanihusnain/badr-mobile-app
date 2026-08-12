@@ -44,12 +44,12 @@ export const styles = StyleSheet.create({
   heroText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.heavy,
-    fontSize: 30,
-    fontWeight: "800",
+    fontSize: 32,
+    fontWeight: "bold",
     letterSpacing: Platform.OS === "ios" ? 1 : 1.5,
     textAlign: "left",
     flex: 1,
-    lineHeight: 42,
+    lineHeight: 45,
     zIndex: 1,
   },
 });

@@ -85,6 +85,7 @@ export default function SunnahRawatibGoalSelection({
       afterIsha: number;
     },
     onDone?: () => void,
+    onFail?: () => void,
   ) => void;
   initialValues?: {
     beforeFajr?: number;
@@ -157,7 +158,7 @@ export default function SunnahRawatibGoalSelection({
     }
   };
 
-  const handleSave = (markSaved: () => void) => {
+  const handleSave = (markSaved: () => void, markFailed?: () => void) => {
     onSave?.(
       {
         beforeFajr: beforeFajar,
@@ -171,6 +172,7 @@ export default function SunnahRawatibGoalSelection({
         afterIsha: afterIsha,
       },
       markSaved,
+      markFailed,
     );
   };
 

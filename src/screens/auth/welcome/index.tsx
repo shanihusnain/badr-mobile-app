@@ -35,11 +35,7 @@ export default function WelcomeScreen() {
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.overlay} />
 
-        <Text
-          style={styles.heroText}
-          allowFontScaling={false}
-          maxFontSizeMultiplier={1}
-        >
+        <Text style={styles.heroText} allowFontScaling={false}>
           {t("welcomeScreen.welcomeText")}
         </Text>
 

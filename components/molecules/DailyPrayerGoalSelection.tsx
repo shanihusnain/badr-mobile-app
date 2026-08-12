@@ -49,6 +49,7 @@ type Props = {
     jumuah: number,
     trackCongregation: boolean,
     onDone?: () => void,
+    onFail?: () => void,
   ) => void;
   isSaving?: boolean;
 };
@@ -114,7 +115,7 @@ export default function DailyPrayerGoalSelection({
     trackingCongregation,
   ]);
 
-  const handleSave = (markSaved: () => void) => {
+  const handleSave = (markSaved: () => void, markFailed?: () => void) => {
     onSave?.(
       fajr,
       dhuhr,
@@ -124,6 +125,7 @@ export default function DailyPrayerGoalSelection({
       jumuah,
       isTrackingCongregation,
       markSaved,
+      markFailed,
     );
   };
 
