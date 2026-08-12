@@ -92,25 +92,7 @@
       ],
       "expo-video",
       "expo-secure-store",
-      "expo-updates",
-      [
-        "@react-native-google-signin/google-signin",
-        {
-          "iosUrlScheme": "com.googleusercontent.apps.847727401784-s0ch0ho1skaoe5gkmjkl33sieulhs426"
-        }
-      ],
-      [
-        "react-native-fbsdk-next",
-        {
-          "appID": "969327542833617",
-          "clientToken": "5ed10062103f197731f88dfedc1e785c",
-          "displayName": "badr",
-          "scheme": "fb969327542833617",
-          "isAutoInitEnabled": true,
-          "autoLogAppEventsEnabled": false,
-          "advertiserIDCollectionEnabled": false
-        }
-      ]
+      "expo-updates"
     ],
     "experiments": {
       "typedRoutes": true,

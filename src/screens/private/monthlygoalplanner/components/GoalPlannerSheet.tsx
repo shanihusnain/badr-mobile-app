@@ -4,6 +4,7 @@ import BottomSheet, {
   BottomSheetBackdrop,
   BottomSheetFlatList,
 } from "@gorhom/bottom-sheet";
+import { BlurView } from "expo-blur";
 import { ScrollView as RNScrollView } from "react-native-gesture-handler";
 import { forwardRef, useCallback, useEffect, useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -657,7 +658,17 @@ export const GoalPlannerSheet = forwardRef<BottomSheet, Props>(
           disappearsOnIndex={-1}
           appearsOnIndex={0}
           pressBehavior="close"
-        />
+          opacity={1}
+          // Transparent host so BlurView can soft-blur the screen behind (incl. header).
+          style={[props.style, styles.backdropHost]}
+        >
+          <BlurView
+            intensity={22}
+            tint="dark"
+            style={StyleSheet.absoluteFillObject}
+          />
+          <View style={styles.backdropDim} />
+        </BottomSheetBackdrop>
       ),
       [],
     );
@@ -3010,6 +3021,13 @@ const styles = StyleSheet.create({
   },
   sheetBg: {
     backgroundColor: Colors.light.blackBackground,
+  },
+  backdropHost: {
+    backgroundColor: "transparent",
+  },
+  backdropDim: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(8, 26, 47, 0.55)",
   },
   handle: {
     backgroundColor: Colors.light.white,
