@@ -76,9 +76,11 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   description: {
-    color: Colors.light.dullWhite,
+    color: "rgba(255, 255, 255, 0.7)",
     fontSize: 14,
     fontFamily: fonts.primary.medium,
     lineHeight: 20,
+    fontWeight: "500",
+    letterSpacing: 0.1,
   },
 });

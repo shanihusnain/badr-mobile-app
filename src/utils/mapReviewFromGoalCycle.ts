@@ -8,6 +8,10 @@ import type {
   GoalCycleDetail,
 } from "@/src/api/queries/useGetGoalCycleById";
 import { PRAYER_TYPE_TO_UI_ID } from "@/src/utils/prayerGoalMap";
+import {
+  getJumuahCountForCycle,
+  PRAYER_CYCLE_DAYS,
+} from "@/src/utils/prayerCycleUtils";
 import { FASTING_TYPE_TO_UI_ID } from "@/src/utils/fastingGoalMap";
 import { SADAQAH_TYPE_TO_UI_ID, formatReviewCurrencyAmount } from "@/src/utils/sadaqahGoalMap";
 import type {
@@ -218,6 +222,7 @@ function mapPrayerGoal(
   goal: CyclePrayerGoal,
   t: TFunction,
   index: number,
+  cycleStartDate?: string,
 ): ReviewAppliedGoal | null {
   if (!goal.isActive) return null;
   const title = PRAYER_TYPE_TO_REVIEW_TITLE[goal.prayerType];
@@ -228,24 +233,66 @@ function mapPrayerGoal(
   const selectedGoals: ReviewSelectedGoal[] = [];
   let totalValue = goal.targetCount ?? 0;
 
-  if (goal.prayerType === "FIVE_DAILY_PRAYERS" && goal.fiveDailyConfig) {
+  if (goal.prayerType === "FIVE_DAILY_PRAYERS") {
+    // Locked cycle targets: 28 × 5 = 140. Jum'ah row only when congregation
+    // tracking is ON (same as DailyPrayerGoalSelection toggle).
     const cfg = goal.fiveDailyConfig;
-    const rows: Array<[string, string, number | undefined]> = [
-      ["fajr", t("prayerGoals.fajr"), cfg.fajrTarget],
-      ["dhuhr", t("prayerGoals.dhuhr"), cfg.dhuhrTarget],
-      ["asr", t("prayerGoals.asr"), cfg.asrTarget],
-      ["maghrib", t("prayerGoals.maghrib"), cfg.maghribTarget],
-      ["isha", t("prayerGoals.isha"), cfg.ishaTarget],
+    const locked = PRAYER_CYCLE_DAYS;
+    const jumuahFridays = getJumuahCountForCycle(cycleStartDate);
+    const trackCongregation =
+      cfg?.congregationalTracking != null
+        ? Boolean(cfg.congregationalTracking)
+        : Boolean(goal.congregationalTracking);
+
+    const pickLocked = (value: number | undefined) =>
+      typeof value === "number" && value > 0 ? value : locked;
+
+    const fajr = pickLocked(cfg?.fajrTarget);
+    const asr = pickLocked(cfg?.asrTarget);
+    const maghrib = pickLocked(cfg?.maghribTarget);
+    const isha = pickLocked(cfg?.ishaTarget);
+
+    let jumuah = 0;
+    let dhuhr = locked;
+    if (trackCongregation) {
+      const savedJumuah = cfg?.jumuahTarget ?? 0;
+      jumuah = savedJumuah > 0 ? savedJumuah : jumuahFridays;
+      const savedDhuhr = cfg?.dhuhrTarget ?? 0;
+      dhuhr =
+        savedDhuhr > 0 && savedDhuhr + jumuah === locked
+          ? savedDhuhr
+          : Math.max(0, locked - jumuah);
+    } else if (
+      typeof cfg?.dhuhrTarget === "number" &&
+      cfg.dhuhrTarget > 0 &&
+      (cfg.jumuahTarget ?? 0) <= 0
+    ) {
+      // Toggle off — use saved Dhuhr when Jum'ah is cleared.
+      dhuhr = cfg.dhuhrTarget;
+    }
+
+    const rows: Array<[string, string, number]> = [
+      ["fajr", t("prayerGoals.fajr"), fajr],
+      ["dhuhr", t("prayerGoals.dhuhr"), dhuhr],
     ];
+    if (trackCongregation && jumuah > 0) {
+      rows.push(["jumuah", t("prayerGoals.jumuah"), jumuah]);
+    }
+    rows.push(
+      ["asr", t("prayerGoals.asr"), asr],
+      ["maghrib", t("prayerGoals.maghrib"), maghrib],
+      ["isha", t("prayerGoals.isha"), isha],
+    );
+
     rows.forEach(([name, rowLabel, value], i) => {
       selectedGoals.push({
         id: i + 1,
         name,
         label: rowLabel,
-        value: value ?? 0,
+        value,
       });
     });
-    totalValue = rows.reduce((sum, [, , v]) => sum + (v ?? 0), 0);
+    totalValue = rows.reduce((sum, [, , v]) => sum + v, 0);
   } else if (goal.prayerType === "SUNNAH_RAWATIB" && goal.sunnahRawatibConfig) {
     const cfg = goal.sunnahRawatibConfig;
     const rows: Array<[string, number | undefined]> = [
@@ -619,7 +666,7 @@ export function mapReviewFromGoalCycle(
 
   const prayerGoals = sortByTypeOrder(
     (cycle.prayerGoals ?? [])
-      .map((goal, i) => mapPrayerGoal(goal, t, i))
+      .map((goal, i) => mapPrayerGoal(goal, t, i, cycle.startDate))
       .filter(Boolean) as ReviewAppliedGoal[],
     (goal) => goal.prayerType,
     PRAYER_REVIEW_ORDER,
