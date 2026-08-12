@@ -17,7 +17,7 @@ export const GoalSelectionOpenCloseButton = ({
       <Text style={styles.titleText}>{title}</Text>
       <Feather
         name={isOpen ? "chevron-up" : "chevron-down"}
-        size={24}
+        size={18}
         color={Colors.light.white}
         style={styles.icon}
       />
@@ -27,8 +27,10 @@ export const GoalSelectionOpenCloseButton = ({
 const styles = StyleSheet.create({
   headerRow: {
     flexDirection: "row",
-    alignItems: "flex-start",
+    alignItems: "center",
     justifyContent: "space-between",
+    width: "100%",
+    minHeight: 24,
   },
   titleText: {
     flex: 1,

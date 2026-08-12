@@ -448,11 +448,12 @@ const styles = StyleSheet.create({
   valueText: {
     color: Colors.light.green,
     fontFamily: fonts.primary.medium,
-    fontSize: 12,
-    fontWeight: "400",
-    lineHeight: 24,
+    fontSize: 14,
+    fontWeight: "500",
+    lineHeight: 20,
     marginTop: 0,
     marginBottom: 32,
+    letterSpacing: 0.1,
     textAlign: "center",
   },
   whiteText: {

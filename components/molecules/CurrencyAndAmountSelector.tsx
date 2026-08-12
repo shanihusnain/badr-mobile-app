@@ -51,6 +51,10 @@ export const SADAQAH_CURRENCY_OPTIONS = [
     label: "🇬🇧 GBP – British Pound (£)",
     value: "🇬🇧 GBP – British Pound (£)",
   },
+  {
+    label: "🇺🇸 USD – US DOLLAR ($)",
+    value: "🇺🇸 USD – US DOLLAR ($)",
+  },
 ] as const;
 
 /** Map ISO code (e.g. "SAR") to the dropdown option value string. */

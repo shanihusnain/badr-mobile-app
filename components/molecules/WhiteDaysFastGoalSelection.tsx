@@ -71,7 +71,7 @@ export default function WhiteDaysFastGoalSelection({
         </Text>
         <Feather
           name={isOpen ? "chevron-up" : "chevron-down"}
-          size={24}
+          size={18}
           color={Colors.light.white}
           style={styles.icon}
         />

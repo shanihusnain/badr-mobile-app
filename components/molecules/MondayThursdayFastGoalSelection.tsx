@@ -83,7 +83,7 @@ export default function MondayThursdayFastGoalSelection({
         </Text>
         <Feather
           name={isOpen ? "chevron-up" : "chevron-down"}
-          size={24}
+          size={18}
           color={Colors.light.white}
           style={styles.icon}
         />
@@ -192,9 +192,10 @@ const styles = StyleSheet.create({
   advisoryText: {
     flex: 1,
     color: Colors.light.white,
-    fontFamily: fonts.primary.regular,
+    fontFamily: fonts.primary.medium,
     fontSize: 12,
     lineHeight: 16,
+    fontWeight: "500",
     textAlign: "left",
     opacity: 0.5,
   },

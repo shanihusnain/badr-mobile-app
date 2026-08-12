@@ -267,6 +267,8 @@
     "cloths": "Clothing Item(s)",
     "hours": "Hours",
     "days": "days",
+    "surah_one": "surah",
+    "surah_other": "surahs",
     "surahs": "surahs",
     "juzUnit": "juz",
     "hizbUnit": "hizb",

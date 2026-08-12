@@ -19,8 +19,8 @@ const UNIT_BY_GOAL_TITLE: Record<string, string> = {
   "volunteering-services": "monthlyGoalPlanner.hours",
   "quran-listening": "monthlyGoalPlanner.hours",
   "quran-tajweed": "monthlyGoalPlanner.hours",
-  "quran-recitation-by-surah": "monthlyGoalPlanner.surahs",
-  "quran-memorization-by-surah": "monthlyGoalPlanner.surahs",
+  "quran-recitation-by-surah": "monthlyGoalPlanner.surah",
+  "quran-memorization-by-surah": "monthlyGoalPlanner.surah",
   "quran-recitation-by-juz": "monthlyGoalPlanner.juzUnit",
   "quran-memorization-by-juz": "monthlyGoalPlanner.juzUnit",
   "quran-memorization-by-hizb": "monthlyGoalPlanner.hizbUnit",
@@ -118,8 +118,9 @@ export default function ReviewGoalCard({ goal, handleEditPress }: Props) {
 
     const unitKey = UNIT_BY_GOAL_TITLE[key];
     if (unitKey) {
+      const count = Number(totalValue) || 0;
       return renderChipWithValue(
-        t(unitKey).toLowerCase(),
+        t(unitKey, { count }).toLowerCase(),
         String(totalValue ?? 0),
       );
     }

@@ -233,7 +233,14 @@ export function getSunnahInitial(goal: PrayerGoalApiItem | undefined) {
 }
 
 export function getQiyamInitial(goal: PrayerGoalApiItem | undefined) {
-  if (!hasConfiguredTargets(goal)) return undefined;
+  if (!hasConfiguredTargets(goal)) {
+    return {
+      isFlexible: false,
+      unitTarget: 1,
+      witrTarget: 0,
+      trackTahajjud: false,
+    };
+  }
 
   const isFlexible = Boolean(goal?.isFlexible);
   const unitTarget = isFlexible
