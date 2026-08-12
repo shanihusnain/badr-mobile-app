@@ -30,6 +30,7 @@
     "axios": "^1.16.1",
     "expo": "~55.0.25",
     "expo-auth-session": "~55.0.17",
+    "expo-blur": "~55.0.16",
     "expo-checkbox": "~55.0.4",
     "expo-constants": "~55.0.16",
     "expo-crypto": "~55.0.17",

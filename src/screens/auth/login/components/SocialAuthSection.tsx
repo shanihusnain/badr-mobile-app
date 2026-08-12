@@ -1,3 +1,20 @@
+import React from "react";
+
+type Props = {
+  disabled?: boolean;
+};
+
+/**
+ * Social login is temporarily disabled for Expo Go compatibility
+ * (Google Sign-In / Facebook SDK require a custom native build).
+ *
+ * Original implementation kept below for restore later.
+ */
+export function SocialAuthSection(_props: Props) {
+  return null;
+}
+
+/*
 import React, { Component, type ErrorInfo, type ReactNode } from "react";
 import { Alert, Platform, View } from "react-native";
 import { AppleIcon, FacebookIcon, GoogleIcon } from "@/assets/icons";
@@ -75,3 +92,4 @@ export function SocialAuthSection({ disabled = false }: Props) {
     </SocialAuthErrorBoundary>
   );
 }
+*/
