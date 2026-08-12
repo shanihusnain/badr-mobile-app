@@ -710,6 +710,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
             tint="dark"
             style={StyleSheet.absoluteFillObject}
           />
+
           <View style={styles.backdropDim} />
         </BottomSheetBackdrop>
       ),
