@@ -109,10 +109,16 @@ const getAllQuranGoals = async (): Promise<AllQuranGoalsResponse> => {
   return normalized;
 };
 
-export const useGetAllQuranGoals = ({ enabled }: { enabled: boolean }) => {
+export const useGetAllQuranGoals = ({
+  enabled,
+  userId,
+}: {
+  enabled: boolean;
+  userId?: string | null;
+}) => {
   return useQuery({
     // v2: response is { goals, reference } (not a bare goals array)
-    queryKey: ["all-quran-goals", "v2"],
+    queryKey: ["all-quran-goals", "v2", userId ?? "anonymous"],
     queryFn: getAllQuranGoals,
     enabled,
     staleTime: 0,

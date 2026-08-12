@@ -12,6 +12,7 @@ import { useTranslation } from "react-i18next";
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
 import PrimaryButton from "@/components/atoms/Primary-button";
+import { GreenTickWithCircleIcon } from "@/assets/icons";
 
 const SAVED_VISIBLE_MS = 3000;
 
@@ -86,7 +87,7 @@ export default function GoalSelectionSaveButton({
   if (showSaved) {
     return (
       <View style={[styles.savedBar, style]}>
-        <Feather name="check-circle" size={18} color={Colors.light.green} />
+        <GreenTickWithCircleIcon />
         <Text style={styles.savedText}>
           {t("monthlyGoalPlanner.goalSaved", "SAVED!")}
         </Text>
@@ -127,7 +128,7 @@ const styles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
-    fontSize: 14,
+    fontSize: 16,
     letterSpacing: 0.1,
     textTransform: "uppercase",
   },

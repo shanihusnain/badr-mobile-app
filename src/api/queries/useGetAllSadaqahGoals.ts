@@ -45,9 +45,15 @@ const getAllSadaqahGoals = async (): Promise<AllSadaqahGoalsResponse> => {
   return normalizeAllSadaqahGoalsResponse(response.data);
 };
 
-export const useGetAllSadaqahGoals = ({ enabled }: { enabled: boolean }) => {
+export const useGetAllSadaqahGoals = ({
+  enabled,
+  userId,
+}: {
+  enabled: boolean;
+  userId?: string | null;
+}) => {
   return useQuery({
-    queryKey: ["all-sadaqah-goals"],
+    queryKey: ["all-sadaqah-goals", userId ?? "anonymous"],
     queryFn: getAllSadaqahGoals,
     enabled,
   });

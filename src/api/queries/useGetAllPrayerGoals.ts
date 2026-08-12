@@ -12,9 +12,15 @@ const getAllPrayerGoals = async (): Promise<PrayerGoalApiItem[]> => {
   return response.data?.data ?? [];
 };
 
-export const useGetAllPrayerGoals = ({ enabled }: { enabled: boolean }) => {
+export const useGetAllPrayerGoals = ({
+  enabled,
+  userId,
+}: {
+  enabled: boolean;
+  userId?: string | null;
+}) => {
   return useQuery({
-    queryKey: ["all-prayer-goals"],
+    queryKey: ["all-prayer-goals", userId ?? "anonymous"],
     queryFn: getAllPrayerGoals,
     enabled,
   });

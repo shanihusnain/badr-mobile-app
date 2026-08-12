@@ -46,7 +46,7 @@ import { Forwardchevron } from "./Forwardchevron";
 //G
 import { GaveBirthIcon } from "./GaveBirthIcon";
 import { GiftIcon } from "./GiftIcon";
-
+import { GreenTickWithCircleIcon } from "./GreenTickWithCircleIcon";
 import { FacebookIcon } from "./FacebookIcon";
 //H
 import { HeartBreakIcon } from "./HeartBreakIcon";
@@ -409,4 +409,5 @@ export {
   WhiteTimerIcon,
   BackChevron,
   Forwardchevron,
+  GreenTickWithCircleIcon,
 };

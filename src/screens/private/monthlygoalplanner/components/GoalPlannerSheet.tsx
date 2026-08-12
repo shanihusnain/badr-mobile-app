@@ -13,6 +13,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -300,8 +301,23 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
     }, []);
 
     const { data: meUser } = useGetMe();
+    const userId = meUser?.id ?? null;
     const goalCycleId = meUser?.goalCycleId ?? null;
     const { data: goalCycleDetail } = useGetGoalCycleById(goalCycleId);
+    const locallyToggledGoalIdsRef = useRef<Record<string, boolean>>({});
+
+    // Drop previous-user toggle/config state when the account or cycle changes.
+    useEffect(() => {
+      locallyToggledGoalIdsRef.current = {};
+      setSelectedGoals({});
+      setLocallyConfiguredGoalIds({});
+      setPendingUnconfiguredGoalId({
+        prayer: null,
+        quran: null,
+        fasting: null,
+        sadaqah: null,
+      });
+    }, [userId, goalCycleId]);
 
     // Hydrate cycle dates from API as the source of truth when the user returns.
     useEffect(() => {
@@ -313,6 +329,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
     const { data: prayerGoalsFromApi, isLoading: loadingPrayerGoals } =
       useGetAllPrayerGoals({
         enabled: activeTab === "prayer" || activeTab === "review",
+        userId,
       });
 
     const {
@@ -322,16 +339,19 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
       refetch: refetchQuranGoals,
     } = useGetAllQuranGoals({
       enabled: activeTab === "quran" || activeTab === "review",
+      userId,
     });
 
     const { data: allFastingGoalsResponse, isLoading: loadingFastingGoals } =
       useGetAllFastingGoals({
         enabled: activeTab === "fasting" || activeTab === "review",
+        userId,
       });
 
     const { data: allSadaqahGoalsResponse, isLoading: loadingSadaqahGoals } =
       useGetAllSadaqahGoals({
         enabled: activeTab === "sadaqah" || activeTab === "review",
+        userId,
       });
 
     const { data: fastingCalendarPreview } = useGetFastingCalendarPreview({

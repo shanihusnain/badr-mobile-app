@@ -9,6 +9,7 @@ import {
 } from "@/src/storage/tokenStorage";
 import { store } from "@/src/store/store";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useQueryClient } from "@tanstack/react-query";
 import React, { createContext, ReactNode, useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 
@@ -31,6 +32,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const USER_DATA_KEY = "user_data";
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const queryClient = useQueryClient();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
@@ -106,6 +108,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signOut = async () => {
     await clearAuthTokens();
     await AsyncStorage.removeItem(USER_DATA_KEY);
+    queryClient.clear();
     setIsAuthenticated(false);
     setUser(null);
     store.dispatch(logout());

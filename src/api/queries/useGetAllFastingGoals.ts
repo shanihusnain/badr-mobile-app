@@ -46,9 +46,15 @@ const getAllFastingGoals = async (): Promise<AllFastingGoalsResponse> => {
   return normalizeAllFastingGoalsResponse(response.data);
 };
 
-export const useGetAllFastingGoals = ({ enabled }: { enabled: boolean }) => {
+export const useGetAllFastingGoals = ({
+  enabled,
+  userId,
+}: {
+  enabled: boolean;
+  userId?: string | null;
+}) => {
   return useQuery({
-    queryKey: ["all-fasting-goals"],
+    queryKey: ["all-fasting-goals", userId ?? "anonymous"],
     queryFn: getAllFastingGoals,
     enabled,
   });
