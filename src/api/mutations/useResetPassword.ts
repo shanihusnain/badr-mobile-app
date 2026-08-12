@@ -43,7 +43,9 @@ export const useResetPassword = () => {
     mutationKey: ["reset-password"],
     onSuccess: (data: any) => {
       showToast("success", data?.message ?? "Password updated successfully");
-      router.replace("/(auth)/login");
+      setTimeout(() => {
+        router.replace("/(auth)/login");
+      }, 2000);
     },
     onError: (error) => {
       showToast("error", getApiErrorMessage(error, "Password reset failed"));

@@ -22,16 +22,20 @@ import { useTranslation } from "react-i18next";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import AntDesign from "@expo/vector-icons/AntDesign";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useResetPassword } from "@/src/api/mutations/useResetPassword";
+import { PasswordLockIcon } from "@/assets/icons";
 
 export default function ConfirmPasswordScreen() {
   const { email, code }: { email: string; code: string } =
     useLocalSearchParams();
   const styles = createStyles();
 
-  const { mutateAsync: resetPassword, isPending: isResetPasswordPending } =
-    useResetPassword();
+  const {
+    mutateAsync: resetPassword,
+    isPending: isResetPasswordPending,
+    isSuccess: isResetPasswordSuccess,
+  } = useResetPassword();
   const { confirmPasswordSchema } = useValidations();
   const { t } = useTranslation();
 
@@ -51,7 +55,6 @@ export default function ConfirmPasswordScreen() {
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isSuccess] = useState(false);
 
   const onPasswordToggle = () => setShowPassword((prev) => !prev);
   const onConfirmPasswordToggle = () => setShowConfirmPassword((prev) => !prev);
@@ -66,6 +69,8 @@ export default function ConfirmPasswordScreen() {
         newPassword: data.password,
         confirmNewPassword: data.confirmPassword,
       });
+      if (isResetPasswordSuccess) {
+      }
     } catch {
       // Toast is handled in useResetPassword
     }
@@ -105,8 +110,11 @@ export default function ConfirmPasswordScreen() {
                       secureTextEntry={!showPassword}
                       onToggleEye={onPasswordToggle}
                       errors={
-                        errors.password?.message ? [errors.password.message] : []
+                        errors.password?.message
+                          ? [errors.password.message]
+                          : []
                       }
+                      leftIcon={<PasswordLockIcon />}
                     />
                     <CustomTextInput
                       placeholder={t(
@@ -122,10 +130,11 @@ export default function ConfirmPasswordScreen() {
                           ? [errors.confirmPassword.message]
                           : []
                       }
+                      leftIcon={<PasswordLockIcon />}
                     />
                   </View>
                   <View style={styles.buttonWrapper}>
-                    {isSuccess ? (
+                    {isResetPasswordSuccess ? (
                       <View
                         style={{
                           width: "80%",
@@ -164,6 +173,7 @@ export default function ConfirmPasswordScreen() {
                         onPress={handleSubmit(onUpdatePassword)}
                         isLoading={isResetPasswordPending}
                         disabled={isResetPasswordPending}
+                        style={{ width: "94%" }}
                       />
                     )}
                   </View>

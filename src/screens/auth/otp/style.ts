@@ -49,7 +49,7 @@ export const styles = StyleSheet.create({
     fontWeight: "400",
     fontFamily: fonts.primary.regular,
     lineHeight: 20,
-    opacity: 0.7,
+    opacity: 0.9,
     letterSpacing: 0.1,
     textAlign: "left",
     alignSelf: "flex-start",

@@ -49,7 +49,7 @@ const createStyles = () =>
     },
 
     buttonWrapper: {
-      marginTop: hp(4),
+      marginTop: hp(8),
       width: "100%",
       marginBottom: hp(4),
       alignItems: "center",

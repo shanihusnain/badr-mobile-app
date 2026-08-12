@@ -27,6 +27,7 @@ import { showToast } from "@/src/config/toastConfig";
 import { ImageBackground } from "expo-image";
 import { BadrTreeImage } from "@/assets/images";
 import { LetterIcon, PasswordLockIcon } from "@/assets/icons";
+import { SocialAuthSection } from "./components/SocialAuthSection";
 // Social login disabled (Expo Go / unmatched native routes).
 // import { SocialAuthSection } from "./components/SocialAuthSection";
 
@@ -141,7 +142,7 @@ export default function LoginScreen() {
                     style={styles.primaryButton}
                   />
 
-                  {/* Social login temporarily disabled
+                  {/* Social login temporarily disabled */}
                   <TouchableOpacity
                     style={styles.orloginContainer}
                     activeOpacity={0.7}
@@ -154,7 +155,7 @@ export default function LoginScreen() {
                   </TouchableOpacity>
                   <TopSpace top={30} />
                   <SocialAuthSection disabled={loggingIn} />
-                  */}
+
                   {Platform.OS === "ios" ? <TopSpace top={10} /> : null}
                 </ScrollView>
               </View>
