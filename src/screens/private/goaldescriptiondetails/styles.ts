@@ -62,7 +62,7 @@ export const createReadMoreStyles = () =>
       lineHeight: 20,
       letterSpacing: 0,
       alignSelf: "flex-start",
-      width: 315,
+      
       marginBottom: 4,
     },
     paragraphHeading: {

@@ -838,9 +838,10 @@
   "goalsData": {
     "tahayyat-ul-wudhu": {
       "title": "TAHIYYAT-UL-WUDHU",
+      "summaryDescription": "A two-rak'ah Sunnah prayer performed right after completing wudhu. It serves to honor the purification process and prepare us for further prayer...",
       "description": "Tahiyyat Al-Wudhu (Ablution Prayer) is a two-rak'ah Sunnah prayer performed right after completing Wudhu. It serves to purify us from sins and prepare us for further prayer.",
       "heroTitle": "A Small Deed that Earns a Massive Reward",
-      "navTitle": "Tahiyyat Al-Wudhu",
+      "navTitle": "TAHIYYAT AL-WUDHU",
       "hadithIntro": "Uthman ibn Affan (RA) narrates a profound hadith emphasizing the virtues of performing wudhu and following it with two rak'ahs of prayer:",
       "benefitsIntro": "Engaging in this practice offers profound benefits:",
       "benefits": [
@@ -1077,6 +1078,7 @@
     },
     "sunnahRawatib": {
       "title": "SUNNAH RAWATIB",
+      "summaryDescription": "Aligns with the Prophet's (PBUH) sunnah and provides opportunities to compensate any shortcomings in obligatory prayers...",
       "description": "Performing Sunnah Rawatib prayers draws us closer to Allah. They serve as a spiritual safety net, compensating for any unintentional errors or deficiencies in obligatory prayers.",
       "heroTitle": "Build Your Home in Jannah!",
       "navTitle": "SUNNAH RAWATIB",
@@ -1190,9 +1192,10 @@
     },
     "thayyat-ul-masjid": {
       "title": "TAHIYYAT AL-MASJID",
+      "summaryDescription": "A two-rak’ah prayer performed upon entering the mosque, honoring its sanctity and seeking Allah’s blessings, guidance, and mercy...",
       "description": "Tahiyyat Al-Masjid is a two-rak’ah prayer performed upon entering the mosque, honoring its sanctity and seeking Allah’s blessings and mercy.",
       "heroTitle": "Honoring the House of Allah",
-      "navTitle": "Tahiyyat Al-Masjid",
+      "navTitle": "TAHIYYAT AL-MASJID",
       "readMore": [
         {
           "items": [
@@ -1269,7 +1272,7 @@
     },
     "duhaPrayer": {
       "title": "DUHA",
-      "summaryDescription": "Duha prayer, also known as the repentant or Awabeen in Arabic, is performed in sets of 2 rak'ahs anytime 15-20 minutes after sunrise until 10-15 minutes before Dhuhr.",
+      "summaryDescription": "It is performed in sets of 2 rak'ahs anytime from approximately 15-20 minutes after sunrise until about 10-15 minutes before the Dhuhr prayer...",
       "description": "Duha prayer, also known as the repentant or Awabeen in Arabic, is performed in sets of 2 rak'ahs anytime 15-20 minutes after sunrise until 10-15 minutes before Dhuhr.",
       "heroTitle": "Spiritual Elevation & Physical Charity",
       "navTitle": "DUHA",
@@ -1331,7 +1334,7 @@
     },
     "tawbaPrayer": {
       "title": "TAWBAH PRAYER",
-      "summaryDescription": "Also known as the repentance prayer in English, the Tawbah prayer is a sincere 2 rak'ah prayer to seek forgiveness from Allah for our sins.",
+      "summaryDescription": "Also known as the repentance prayer in English, the Tawbah prayer is a sincere 2 rak'ah prayer to seek forgiveness from Allah for our sins...",
       "description": "The Tawbah prayer, or the Prayer of Repentance, is a rewarding 2-rakah voluntary prayer for seeking Allah's forgiveness and repentance for any sins, whether minor or major, old or new.",
       "heroTitle": "Embracing the Power of Repentance",
       "navTitle": "AL-TAWBAH",
@@ -1620,13 +1623,9 @@
             {
               "type": "text",
               "style": "body",
-              "content": "Qiyam Al-Layl is a profound act of devotion that transforms our spiritual path as Muslims."
+              "content": "Qiyam Al-Layl is a profound act of devotion that transforms our spiritual path as Muslims. It symbolizes our complete submission to Allah and reflects a deep commitment to draw closer to Him."
             },
-            {
-              "type": "text",
-              "style": "body",
-              "content": "It symbolizes our complete submission to Allah and reflects a deep commitment to draw closer to Him."
-            },
+           
             {
               "type": "text",
               "style": "body",
@@ -2272,9 +2271,10 @@
     },
     "dawood-fasts": {
       "title": "THE FAST OF PROPHET DAWOOD",
+      "summaryDescription": "These fasts are observed by fasting every other day, reflecting Prophet Dawood's (PBUH) devotion and resilience, and serving as a model of piety...",
       "description": "The fast of Dawood (PBUH), observed everyother day, exemplifies devotion, patience, and resilience, serving as a timeless model of piety for Muslims.",
       "heroTitle": "A Testament to Devotion & Spiritual Resilience",
-      "navTitle": "THE FAST OF PROPHET DAWOOD (DAVID)",
+      "navTitle": "THE FAST OF PROPHET DAWOOD (AS) (DAVID)",
       "readMore": [
         {
           "items": [
@@ -2373,6 +2373,7 @@
     },
     "monday-and-thursday-fasts": {
       "title": "MONDAYS & THURSDAYS FASTS",
+      "summaryDescription": "These fasts follow the Prophet's (PBUH) Sunnah, deepen devotion to Allah, promote well-being, and offer profound spiritual purification and self-discipline ...",
       "description": "Fasting on Mondays and Thursdays, a Sunnah of the Prophet (PBUH), offers structured opportunities to foster spiritual growth and deepen our connection with Allah.",
       "heroTitle": "Spiritual Strength & Consistent Devotion",
       "navTitle": "MONDAYS & THURSDAYS FASTS",
@@ -2620,7 +2621,7 @@
     },
     "missed-zakat": {
       "title": "MISSED ZAKAT",
-      "summaryDescription": "Fulfilling missed Zakat is a sacred obligation that purifies wealth, restores social equity, and reaffirms a believer’s responsibility to support society’s welfare.",
+      "summaryDescription": "Fulfilling missed Zakat is a sacred obligation that purifies wealth, restores social equity, and reaffirms a believer’s responsibility to support society’s welfare...",
       "description": "Zakat, one of the Five Pillars of Islam, is a sacred obligation that purifies wealth and ensures social equity, emphasizing the responsibility of every believer to contribute to the welfare of society.",
       "heroTitle": "A Path to Redemption & Social Justice",
       "navTitle": "MISSED ZAKAT",
@@ -2734,6 +2735,7 @@
     },
     "kafarah-for-breaking-fasts": {
       "title": "KAFFARAH FOR BREAKING FASTS OR OATHS",
+      "summaryDescription": "A form of sadaqah to atone for broken fasts or oaths, requiring feeding or clothing those in need as prescribed...",
       "description": "Kaffarah for breaking fasts or oaths is a sadaqah to atone for breaking them without a valid reason, requiring feeding 10 people per broken oath and 60 people per broken fast.",
       "heroTitle": "A Path to Atonement & Community Care",
       "navTitle": "KAFFARAH FOR BREAKING FASTS OR OATHS",
@@ -3017,7 +3019,7 @@
     },
     "lilah-donations": {
       "title": "LILLAH DONATIONS",
-      "summaryDescription": "A form of sadaqah to atone for broken fasts or oaths, requiring feeding or clothing those in need as prescribed.",
+      
       "description": "Lillah, derived from the Arabic term 'for Allah', The Quran also emphasizes this in Surah Al-Insan (76:8):is a pure form of sadaqah driven by a sincere desire to please Allah, fostering devotion and selflessness among Muslims.",
       "heroTitle": "A Pure Act of Sadaqah for Allah's Sake",
       "navTitle": "LILLAH DONATIONS",

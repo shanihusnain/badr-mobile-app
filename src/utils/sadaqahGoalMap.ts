@@ -128,3 +128,50 @@ export function extractCurrencyCode(
   const match = trimmed.match(/\b([A-Z]{3})\b/);
   return match?.[1] ?? fallback;
 }
+
+const CURRENCY_SYMBOL_BY_CODE: Record<string, string> = {
+  USD: "$",
+  GBP: "£",
+  SAR: "ر.س",
+  EGP: "E£",
+  PKR: "₨",
+  IDR: "Rp",
+  BDT: "৳",
+  TRY: "₺",
+  MYR: "RM",
+  AED: "د.إ",
+  MAD: "د.م.",
+  DZD: "د.ج",
+  NGN: "₦",
+  INR: "₹",
+};
+
+const PREFIX_CURRENCY_SYMBOLS = new Set([
+  "$",
+  "£",
+  "€",
+  "₹",
+  "₺",
+  "₦",
+  "৳",
+  "₨",
+  "E£",
+  "Rp",
+  "RM",
+]);
+
+/** Review UI: "$1,000" / "£1,000" / "ر.س 1,000" */
+export function formatReviewCurrencyAmount(
+  currencyCode: string | null | undefined,
+  amount: number | null | undefined,
+): string {
+  const code = (currencyCode || "SAR").trim().toUpperCase();
+  const symbol = CURRENCY_SYMBOL_BY_CODE[code] ?? code;
+  const numeric = Number(amount) || 0;
+  const formatted = Math.round(numeric).toLocaleString("en-US");
+
+  if (PREFIX_CURRENCY_SYMBOLS.has(symbol)) {
+    return `${symbol}${formatted}`;
+  }
+  return `${symbol} ${formatted}`;
+}
