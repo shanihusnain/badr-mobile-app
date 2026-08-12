@@ -2,7 +2,7 @@ import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
 import GoalDescriptionContent from "@/components/molecules/GoalDescriptionContent";
 import { useNavigation } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useEffect, type ComponentType } from "react";
+import { useEffect, useState, type ComponentType } from "react";
 import { useTranslation } from "react-i18next";
 import {
   FlatList,
@@ -253,12 +253,143 @@ const renderParsedContent = (content: string) => {
   });
 };
 
+/** Text wraps beside an icon, then continues full-width underneath (float layout). */
+const TextWithFloatingIcon = ({
+  content,
+  textStyle,
+  textAlign,
+  spacingStyle,
+  IconComponent,
+  iconColor,
+  iconSize,
+  iconMarginTop = 1,
+}: {
+  content: string;
+  textStyle: TextStyle | Array<TextStyle | undefined | null | false>;
+  textAlign: "left" | "right" | "center";
+  spacingStyle?: ViewStyle | Array<ViewStyle | undefined | null | false>;
+  IconComponent: ComponentType<{ color?: string; size?: number }>;
+  iconColor: string;
+  iconSize: number;
+  iconMarginTop?: number;
+}) => {
+  const gap = 8;
+  const flatStyle = StyleSheet.flatten(textStyle) || {};
+  const lineHeight =
+    typeof flatStyle.lineHeight === "number" ? flatStyle.lineHeight : 20;
+  const linesBeside = Math.max(1, Math.ceil(iconSize / lineHeight));
+
+  const [rowWidth, setRowWidth] = useState(0);
+  const [splitAt, setSplitAt] = useState<number | null>(null);
+  const measureWidth = rowWidth > 0 ? Math.max(1, rowWidth - iconSize - gap) : 0;
+  const isRtl = textAlign === "right";
+
+  useEffect(() => {
+    setSplitAt(null);
+  }, [content, measureWidth, linesBeside]);
+
+  const beside =
+    splitAt === null ? content : content.slice(0, splitAt).replace(/\s+$/, "");
+  const below =
+    splitAt !== null && splitAt < content.length
+      ? content.slice(splitAt).replace(/^\s+/, "")
+      : "";
+
+  const floatTextStyle = [
+    textStyle,
+    {
+      marginTop: 0,
+      marginBottom: 0,
+    },
+  ];
+
+  return (
+    <View
+      style={[{ width: "100%" }, spacingStyle]}
+      onLayout={(e) => {
+        const next = e.nativeEvent.layout.width;
+        if (next > 0 && next !== rowWidth) setRowWidth(next);
+      }}
+    >
+      {measureWidth > 0 && splitAt === null ? (
+        <Text
+          pointerEvents="none"
+          style={[
+            floatTextStyle,
+            {
+              position: "absolute",
+              opacity: 0,
+              width: measureWidth,
+            },
+          ]}
+          onTextLayout={(e) => {
+            const { lines } = e.nativeEvent;
+            if (!lines?.length) {
+              setSplitAt(content.length);
+              return;
+            }
+            if (lines.length <= linesBeside) {
+              setSplitAt(content.length);
+              return;
+            }
+            let count = 0;
+            for (let i = 0; i < linesBeside; i++) {
+              count += lines[i]?.text?.length ?? 0;
+            }
+            setSplitAt(Math.min(count, content.length));
+          }}
+        >
+          {content}
+        </Text>
+      ) : null}
+
+      <View
+        style={{
+          flexDirection: isRtl ? "row-reverse" : "row",
+          alignItems: "flex-start",
+          width: "100%",
+        }}
+      >
+        <View
+          style={{
+            marginTop: iconMarginTop,
+            marginRight: isRtl ? 0 : gap,
+            marginLeft: isRtl ? gap : 0,
+          }}
+        >
+          <IconComponent color={iconColor} size={iconSize} />
+        </View>
+        <Text
+          style={[
+            floatTextStyle,
+            {
+              flex: 1,
+              width: undefined,
+              alignSelf: undefined,
+              textAlign,
+            },
+          ]}
+        >
+          {renderParsedContent(beside)}
+        </Text>
+      </View>
+
+      {below ? (
+        <Text style={[floatTextStyle, { textAlign, width: "100%" }]}>
+          {renderParsedContent(below)}
+        </Text>
+      ) : null}
+    </View>
+  );
+};
+
 const renderReadMoreItem = (
   item: GoalReadMoreItem,
   index: number,
   textAlign: "left" | "right" | "center",
   readMoreStyles: ReadMoreStyles,
   isFirstInContainer: boolean,
+  previousItem?: GoalReadMoreItem,
 ) => {
   if (item.type === "prayerSection") {
     let PrayerIcon: React.ComponentType<{
@@ -281,36 +412,45 @@ const renderReadMoreItem = (
           index > 0 ? readMoreStyles.blockSpacing : null,
         ]}
       >
-        <Text style={[readMoreStyles.prayerHeading, { textAlign }]}> 
-          {item.heading}
-        </Text>
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "flex-start",
-            width: "100%",
-            marginTop: 4,
-          }}
-        >
-          <View style={{ marginRight: 12, marginTop: 2 }}>
-            {PrayerIcon ? (
-              <PrayerIcon color={Colors.light.dullWhite} size={28} />
-            ) : (
-              <StarSparkleIcon color={Colors.light.white} size={24} />
-            )}
-          </View>
-          <View style={{ flex: 1, minWidth: 0 }}>
-            <Text
-              style={[
+        {PrayerIcon ? (
+          <>
+            <Text style={[readMoreStyles.prayerHeading, { textAlign }]}>
+              {item.heading}
+            </Text>
+            <TextWithFloatingIcon
+              content={item.description}
+              textStyle={[
                 readMoreStyles.body,
                 readMoreStyles.prayerDescription,
-                { textAlign, width: undefined, flexShrink: 1 },
               ]}
-            >
-              {item.description}
-            </Text>
+              textAlign={textAlign}
+              IconComponent={PrayerIcon}
+              iconColor={Colors.light.white}
+              iconSize={28}
+              iconMarginTop={1}
+            />
+          </>
+        ) : (
+          <View style={readMoreStyles.prayerSectionRow}>
+            <View style={readMoreStyles.prayerSectionIcon}>
+              <StarSparkleIcon color={Colors.light.white} size={24} />
+            </View>
+            <View style={readMoreStyles.prayerSectionCopy}>
+              <Text style={[readMoreStyles.prayerHeading, { textAlign }]}>
+                {item.heading}
+              </Text>
+              <Text
+                style={[
+                  readMoreStyles.body,
+                  readMoreStyles.prayerDescription,
+                  { textAlign, width: undefined },
+                ]}
+              >
+                {item.description}
+              </Text>
+            </View>
           </View>
-        </View>
+        )}
       </View>
     );
   }
@@ -601,6 +741,23 @@ const renderReadMoreItem = (
         : readMoreStyles.blockSpacing
       : undefined;
 
+  if (
+    usesQuoteSpacing &&
+    previousItem?.type === "text" &&
+    previousItem.style === "tableGuide"
+  ) {
+    spacingStyle = readMoreStyles.quoteSpacingAfterGuide;
+  }
+
+  if (
+    item.type === "text" &&
+    item.style === "hadithQuoteLight" &&
+    previousItem?.type === "text" &&
+    previousItem.style === "hadithQuoteLead"
+  ) {
+    spacingStyle = { marginTop: 0 };
+  }
+
   if (item.style === "bilalQuoteLight") {
     spacingStyle = { marginTop: -2 };
   }
@@ -626,41 +783,22 @@ const renderReadMoreItem = (
       item.icon === "HadeethBookIcon" ||
       IconComponent === HadeethBookIcon
         ? Colors.light.green
-        : Colors.light.dullWhite;
+        : Colors.light.white;
     let iconSize =
-      item.icon === "FajarSunIcon" || item.icon === "DuhaPrayerStar" ? 28 : 30;
+      item.icon === "FajarSunIcon" || item.icon === "DuhaPrayerStar" ? 36 : 30;
 
     return (
-      <View
+      <TextWithFloatingIcon
         key={`text-${index}`}
-        style={[
-          {
-            flexDirection: "row",
-            alignItems: "flex-start",
-            width: "100%",
-          },
-          spacingStyle,
-        ]}
-      >
-        <View
-          style={{
-            marginRight: 12,
-            marginTop: item.style === "bilalQuote" ? 14 : 4,
-          }}
-        >
-          <IconComponent color={iconColor} size={iconSize} />
-        </View>
-        <View style={{ flex: 1, minWidth: 0 }}>
-          <Text
-            style={[
-              getReadMoreTextStyle(item.style, readMoreStyles),
-              { textAlign: itemTextAlign, width: undefined, flexShrink: 1 },
-            ]}
-          >
-            {renderParsedContent(item.content)}
-          </Text>
-        </View>
-      </View>
+        content={item.content}
+        textStyle={getReadMoreTextStyle(item.style, readMoreStyles)}
+        textAlign={itemTextAlign}
+        spacingStyle={spacingStyle}
+        IconComponent={IconComponent}
+        iconColor={iconColor}
+        iconSize={iconSize}
+        iconMarginTop={item.style === "bilalQuote" ? 6 : 1}
+      />
     );
   }
 
@@ -695,6 +833,7 @@ const renderReadMoreContainers = (
           textAlign,
           readMoreStyles,
           itemIndex === 0,
+          container.items[itemIndex - 1],
         ),
       )}
     </GoalDescriptionContent>

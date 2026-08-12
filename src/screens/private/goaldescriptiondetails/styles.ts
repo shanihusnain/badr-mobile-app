@@ -13,6 +13,7 @@ export const createReadMoreStyles = () =>
       letterSpacing: 0.1,
       alignSelf: "flex-start",
       width: "100%",
+      marginBottom: 8,
     },
     bodyTight: {
       color: Colors.light.white,
@@ -81,8 +82,7 @@ export const createReadMoreStyles = () =>
       lineHeight: 20,
       letterSpacing: 0,
       alignSelf: "flex-start",
-      width: "100%",
-      marginBottom: 6,
+      marginBottom: 4,
     },
     quoteItalic: {
       color: Colors.light.white,
@@ -212,7 +212,7 @@ export const createReadMoreStyles = () =>
       fontWeight: "600",
       lineHeight: 22,
       alignSelf: "flex-start",
-      marginBottom: 4,
+      marginBottom: -2,
     },
     benefitDescription: {
       color: Colors.light.white,
@@ -229,6 +229,9 @@ export const createReadMoreStyles = () =>
     quoteSpacing: {
       marginTop: 8,
     },
+    quoteSpacingAfterGuide: {
+      marginTop: 16,
+    },
     prayerSection: {
       width: "100%",
       marginTop: 16,
@@ -237,8 +240,23 @@ export const createReadMoreStyles = () =>
     prayerSectionFirst: {
       marginTop: 0,
     },
+    prayerSectionRow: {
+      width: "100%",
+      flexDirection: "row",
+      alignItems: "flex-start",
+    },
+    prayerSectionIcon: {
+      marginRight: 4,
+      marginTop: 2,
+    },
+    prayerSectionCopy: {
+      flex: 1,
+      minWidth: 0,
+    },
     prayerDescription: {
       marginTop: 0,
+      marginBottom: 0,
+      color: "rgba(255, 255, 255, 0.7)",
     },
     tableContainer: {
       width: "100%",
