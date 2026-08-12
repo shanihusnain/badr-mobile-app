@@ -82,7 +82,10 @@ export default function DailyPrayerGoalSelection({
     if (trackingInitiallyOn) {
       const saved = initialValues?.dhuhr;
       const adjustedDefault = congregationalAdjustments.dhuhrMax;
-      return Math.min(saved ?? adjustedDefault, congregationalAdjustments.dhuhrMax);
+      return Math.min(
+        saved ?? adjustedDefault,
+        congregationalAdjustments.dhuhrMax,
+      );
     }
     return initialValues?.dhuhr ?? cycleDayCount;
   });
@@ -91,7 +94,8 @@ export default function DailyPrayerGoalSelection({
   );
   const [maghrib, setMaghrib] = useState(
     () =>
-      initialValues?.maghrib ?? congregationalAdjustments.prayerDefaults.maghrib,
+      initialValues?.maghrib ??
+      congregationalAdjustments.prayerDefaults.maghrib,
   );
   const [isha, setIsha] = useState(
     () => initialValues?.isha ?? congregationalAdjustments.prayerDefaults.isha,
@@ -113,13 +117,8 @@ export default function DailyPrayerGoalSelection({
   useEffect(() => {
     if (!isTrackingCongregation) return;
 
-    setDhuhr((prev) =>
-      Math.min(prev, congregationalAdjustments.dhuhrMax),
-    );
-  }, [
-    isTrackingCongregation,
-    congregationalAdjustments.dhuhrMax,
-  ]);
+    setDhuhr((prev) => Math.min(prev, congregationalAdjustments.dhuhrMax));
+  }, [isTrackingCongregation, congregationalAdjustments.dhuhrMax]);
 
   useEffect(() => {
     setFajr((prev) => Math.min(prev, cycleDayCount));
@@ -146,9 +145,7 @@ export default function DailyPrayerGoalSelection({
       return;
     }
 
-    setDhuhr((prev) =>
-      Math.min(cycleDayCount, prev + jumuahCountInCycle),
-    );
+    setDhuhr((prev) => Math.min(cycleDayCount, prev + jumuahCountInCycle));
   }, [
     isTrackingCongregation,
     jumuahCountInCycle,
