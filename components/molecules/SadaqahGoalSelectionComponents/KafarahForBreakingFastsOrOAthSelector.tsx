@@ -46,7 +46,7 @@ export const KafarahForBreakingFastsOrOAthSelector = ({
     >
       <GoalSelectionOpenCloseButton
         isOpen={isOpen}
-        title={t("monthlyGoalPlanner.reviewLabels.kafarahBreakingFasts")}
+        title={t("monthlyGoalPlanner.kafarahTargetTitle")}
         toggleDropdown={toggleDropdown}
       />
       {isOpen && (

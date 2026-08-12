@@ -19,7 +19,7 @@ interface SecondaryButtonProps extends PressableProps {
   variant?: "white" | "green";
   isLoading?: boolean;
   /** Compact height for WarningModal / goal-planner actions (smaller than default bordered CTAs). */
-  size?: "default" | "compact";
+  size?: "default" | "compact" | "modal";
 }
 
 export default function SecondaryButton({
@@ -37,6 +37,7 @@ export default function SecondaryButton({
       style={(state) => [
         styles.button,
         size === "compact" && styles.buttonCompact,
+        size === "modal" && styles.buttonModal,
         variant === "white" ? styles.buttonWhite : styles.buttonGreen,
         typeof style === "function" ? style(state) : style,
         state.pressed && styles.buttonPressed,
@@ -56,6 +57,7 @@ export default function SecondaryButton({
             variant === "white"
               ? styles.buttonWhiteText
               : styles.buttonGreenText,
+            size === "modal" && styles.buttonTextModal,
             textStyle,
           ]}
         >
@@ -86,6 +88,11 @@ const styles = StyleSheet.create({
     paddingBottom: 5,
     minHeight: 35,
   },
+  buttonModal: {
+    paddingTop: 3,
+    paddingBottom: 3,
+    minHeight: 28,
+  },
   buttonPressed: {
     opacity: 0.8,
   },
@@ -96,6 +103,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 18,
     letterSpacing: 0,
+  },
+  buttonTextModal: {
+    fontSize: 13,
+    lineHeight: 16,
   },
   buttonWhite: {
     borderColor: Colors.light.background,

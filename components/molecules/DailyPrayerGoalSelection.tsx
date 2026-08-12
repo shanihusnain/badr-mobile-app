@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -17,7 +17,8 @@ import { GoalSelectionOpenCloseButton } from "./GoalSelectionOpenCloseButton";
 import { Divider } from "../atoms/Divider";
 import { SwitchButton } from "../atoms/SwitchButton";
 import {
-  getJumuahCountForCycle,
+  getCongregationalPrayerAdjustments,
+  getJumuahCountForCycleStart,
   PRAYER_CYCLE_DAYS,
 } from "@/src/utils/prayerCycleUtils";
 
@@ -62,19 +63,39 @@ export default function DailyPrayerGoalSelection({
 }: Props) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
+  const cycleDayCount = PRAYER_CYCLE_DAYS;
   const jumuahCountInCycle = useMemo(
-    () => getJumuahCountForCycle(cycleStartDate),
+    () => getJumuahCountForCycleStart(cycleStartDate),
+    [cycleStartDate],
+  );
+  const congregationalAdjustments = useMemo(
+    () => getCongregationalPrayerAdjustments(cycleStartDate),
     [cycleStartDate],
   );
 
-  const [fajr, setFajr] = useState(initialValues?.fajr ?? PRAYER_CYCLE_DAYS);
-  const [dhuhr, setDhuhr] = useState(initialValues?.dhuhr ?? PRAYER_CYCLE_DAYS);
-  const [asar, setAsar] = useState(initialValues?.asr ?? PRAYER_CYCLE_DAYS);
-  const [maghrib, setMaghrib] = useState(
-    initialValues?.maghrib ?? PRAYER_CYCLE_DAYS,
+  const trackingInitiallyOn = Boolean(initialValues?.congregationalTracking);
+
+  const [fajr, setFajr] = useState(
+    () => initialValues?.fajr ?? congregationalAdjustments.prayerDefaults.fajr,
   );
-  const [isha, setIsha] = useState(initialValues?.isha ?? PRAYER_CYCLE_DAYS);
-  const [jumuah, setJumuah] = useState(initialValues?.jumuah ?? 0);
+  const [dhuhr, setDhuhr] = useState(() => {
+    if (trackingInitiallyOn) {
+      const saved = initialValues?.dhuhr;
+      const adjustedDefault = congregationalAdjustments.dhuhrMax;
+      return Math.min(saved ?? adjustedDefault, congregationalAdjustments.dhuhrMax);
+    }
+    return initialValues?.dhuhr ?? cycleDayCount;
+  });
+  const [asar, setAsar] = useState(
+    () => initialValues?.asr ?? congregationalAdjustments.prayerDefaults.asr,
+  );
+  const [maghrib, setMaghrib] = useState(
+    () =>
+      initialValues?.maghrib ?? congregationalAdjustments.prayerDefaults.maghrib,
+  );
+  const [isha, setIsha] = useState(
+    () => initialValues?.isha ?? congregationalAdjustments.prayerDefaults.isha,
+  );
   const [isOpen, setIsOpen] = useState(false);
   const [isTrackingCongregation, setIsTrackingCongregation] = useState(
     Boolean(initialValues?.congregationalTracking),
@@ -84,8 +105,31 @@ export default function DailyPrayerGoalSelection({
   );
 
   const dhuhrMaxDays = isTrackingCongregation
-    ? PRAYER_CYCLE_DAYS - jumuahCountInCycle
-    : PRAYER_CYCLE_DAYS;
+    ? congregationalAdjustments.dhuhrMax
+    : cycleDayCount;
+
+  // Congregational tracking: Jumu'ah count comes from the 28-day cycle start;
+  // Dhuhr max is 28 minus that Jumu'ah count (typically 24 when Jumu'ah is 4).
+  useEffect(() => {
+    if (!isTrackingCongregation) return;
+
+    setDhuhr((prev) =>
+      Math.min(prev, congregationalAdjustments.dhuhrMax),
+    );
+  }, [
+    isTrackingCongregation,
+    congregationalAdjustments.dhuhrMax,
+  ]);
+
+  useEffect(() => {
+    setFajr((prev) => Math.min(prev, cycleDayCount));
+    setAsar((prev) => Math.min(prev, cycleDayCount));
+    setMaghrib((prev) => Math.min(prev, cycleDayCount));
+    setIsha((prev) => Math.min(prev, cycleDayCount));
+    if (!isTrackingCongregation) {
+      setDhuhr((prev) => Math.min(prev, cycleDayCount));
+    }
+  }, [cycleDayCount, isTrackingCongregation]);
 
   const toggleDropdown = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -98,20 +142,18 @@ export default function DailyPrayerGoalSelection({
     setIsTrackingCongregation(nextValue);
 
     if (nextValue) {
-      const maxDhuhr = PRAYER_CYCLE_DAYS - jumuahCountInCycle;
-      setJumuah(jumuahCountInCycle);
-      setDhuhr((prev) =>
-        Math.min(maxDhuhr, Math.max(0, prev - jumuahCountInCycle)),
-      );
+      setDhuhr(congregationalAdjustments.dhuhrMax);
       return;
     }
 
-    setDhuhr((prev) => Math.min(PRAYER_CYCLE_DAYS, prev + jumuah));
-    setJumuah(0);
+    setDhuhr((prev) =>
+      Math.min(cycleDayCount, prev + jumuahCountInCycle),
+    );
   }, [
     isTrackingCongregation,
-    jumuah,
     jumuahCountInCycle,
+    congregationalAdjustments.dhuhrMax,
+    cycleDayCount,
     trackingCongregation,
   ]);
 
@@ -122,7 +164,7 @@ export default function DailyPrayerGoalSelection({
       asar,
       maghrib,
       isha,
-      jumuah,
+      isTrackingCongregation ? jumuahCountInCycle : 0,
       isTrackingCongregation,
       markSaved,
       markFailed,
@@ -135,7 +177,7 @@ export default function DailyPrayerGoalSelection({
         id: "fajr",
         title: t("prayerGoals.fajr"),
         value: fajr,
-        maxDays: PRAYER_CYCLE_DAYS,
+        maxDays: cycleDayCount,
         onChange: setFajr,
       },
       {
@@ -149,21 +191,21 @@ export default function DailyPrayerGoalSelection({
         id: "asar",
         title: t("prayerGoals.asr"),
         value: asar,
-        maxDays: PRAYER_CYCLE_DAYS,
+        maxDays: cycleDayCount,
         onChange: setAsar,
       },
       {
         id: "maghrib",
         title: t("prayerGoals.maghrib"),
         value: maghrib,
-        maxDays: PRAYER_CYCLE_DAYS,
+        maxDays: cycleDayCount,
         onChange: setMaghrib,
       },
       {
         id: "isha",
         title: t("prayerGoals.isha"),
         value: isha,
-        maxDays: PRAYER_CYCLE_DAYS,
+        maxDays: cycleDayCount,
         onChange: setIsha,
       },
     ];
@@ -172,21 +214,21 @@ export default function DailyPrayerGoalSelection({
       items.push({
         id: "jumuah",
         title: t("prayerGoals.jumuah"),
-        value: jumuah,
+        value: jumuahCountInCycle,
         maxDays: jumuahCountInCycle,
-        onChange: setJumuah,
+        onChange: () => {},
       });
     }
 
     return items;
   }, [
     asar,
+    cycleDayCount,
     dhuhr,
     dhuhrMaxDays,
     fajr,
     isTrackingCongregation,
     isha,
-    jumuah,
     jumuahCountInCycle,
     maghrib,
     t,
@@ -221,7 +263,7 @@ export default function DailyPrayerGoalSelection({
     asar +
     maghrib +
     isha +
-    (isTrackingCongregation ? jumuah : 0);
+    (isTrackingCongregation ? jumuahCountInCycle : 0);
 
   return (
     <View style={styles.container}>

@@ -29,6 +29,8 @@ const Header: React.FC<HeaderProps> = ({
   lineHeight,
 }) => {
   const insets = useSafeAreaInsets();
+  const showSideSlots = showBackBtn;
+
   return (
     <View
       style={{
@@ -41,14 +43,14 @@ const Header: React.FC<HeaderProps> = ({
         backgroundColor: backgroundColor ?? Colors.light.blackBackground,
       }}
     >
-      <View style={{ width: SIDE_SLOT_WIDTH, alignItems: "flex-start" }}>
-        {showBackBtn ? (
+      {showSideSlots ? (
+        <View style={{ width: SIDE_SLOT_WIDTH, alignItems: "flex-start" }}>
           <BackButton
             onPress={onBackPress}
             bgcolor={arrowBg ? arrowBg : Colors.light.greybuttonBackground}
           />
-        ) : null}
-      </View>
+        </View>
+      ) : null}
       {title ? (
         <Text
           numberOfLines={2}
@@ -57,7 +59,7 @@ const Header: React.FC<HeaderProps> = ({
           style={{
             flex: 1,
             flexShrink: 1,
-            marginHorizontal: 8,
+            marginHorizontal: showSideSlots ? 8 : 0,
             color: Colors.light.white,
             fontFamily: fonts.primary.semiBold,
             fontWeight: "600",
@@ -71,7 +73,7 @@ const Header: React.FC<HeaderProps> = ({
       ) : (
         <View style={{ flex: 1 }} />
       )}
-      <View style={{ width: SIDE_SLOT_WIDTH }} />
+      {showSideSlots ? <View style={{ width: SIDE_SLOT_WIDTH }} /> : null}
     </View>
   );
 };

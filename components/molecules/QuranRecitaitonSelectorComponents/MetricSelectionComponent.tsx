@@ -2,7 +2,7 @@ import { fonts } from "@/assets/fonts";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { Colors } from "@/constants/theme";
 import { AntDesign } from "@expo/vector-icons";
-import { Fragment, useState, useEffect, useRef } from "react";
+import { Fragment, useState, useEffect, useRef, useCallback } from "react";
 import {
   ActivityIndicator,
   Dimensions,
@@ -102,6 +102,7 @@ export const MetricSelectionComponent = ({
   const isMemorizationJuz = variant === "memorization" && item.name === "juz";
   const isMemorizationHizb = variant === "memorization" && item.name === "hizb";
   const isRecitationSurah = item.name === "surah" && !isMemorizationSurah;
+  const isRecitationJuz = item.name === "juz" && !isMemorizationJuz;
 
   const isActiveMetric = selectedMetric === item.name;
   const [selectedSurahs, setSelectedSurahs] = useState<number[]>([]);
@@ -149,7 +150,7 @@ export const MetricSelectionComponent = ({
         id,
         {
           frequency: settings[id]?.frequency ?? "daily",
-          times: settings[id]?.times ?? 1,
+          times: settings[id]?.times ?? 0,
         },
       ]),
     );
@@ -224,7 +225,13 @@ export const MetricSelectionComponent = ({
   >({});
   const [juzStart, setJuzStart] = useState<number>(0);
   const [juzEnd, setJuzEnd] = useState<number>(0);
-  const [juzEndText, setJuzEndText] = useState<string>("");
+  const [juzEndText, setJuzEndText] = useState<string>("0");
+
+  const resetRecitationJuzInputs = useCallback(() => {
+    setJuzStart(0);
+    setJuzEnd(0);
+    setJuzEndText("0");
+  }, []);
   const [focusedInputs, setFocusedInputs] = useState<Record<string, boolean>>(
     {},
   );
@@ -282,6 +289,8 @@ export const MetricSelectionComponent = ({
       setJuzStart(initialJuzRange.start);
       setJuzEnd(initialJuzRange.end);
       setJuzEndText(String(initialJuzRange.end));
+    } else if (isRecitationJuz) {
+      resetRecitationJuzInputs();
     }
     if (initialSelectedJuzs?.length) {
       setSelectedJuzs(initialSelectedJuzs);
@@ -368,7 +377,7 @@ export const MetricSelectionComponent = ({
     setSurahSettings(nextSettings);
     setJuzStart(nextStart);
     setJuzEnd(nextEnd);
-    setJuzEndText(nextEnd > 0 ? String(nextEnd) : "");
+    setJuzEndText(nextEnd > 0 ? String(nextEnd) : isRecitationJuz ? "0" : "");
     setSelectedJuzs(nextJuzs);
     setSelectedHizbs(nextHizbs);
     setQuranCompletion(nextCompletion);
@@ -438,7 +447,7 @@ export const MetricSelectionComponent = ({
   const ensureSetting = (id: number) => {
     setSurahSettings((prev) => {
       if (prev[id]) return prev;
-      return { ...prev, [id]: { frequency: "daily", times: 1 } };
+      return { ...prev, [id]: { frequency: "daily", times: 0 } };
     });
   };
 
@@ -451,7 +460,7 @@ export const MetricSelectionComponent = ({
   ) => {
     setSurahSettings((prev) => ({
       ...prev,
-      [id]: { ...(prev[id] || { frequency: "daily", times: 1 }), ...changes },
+      [id]: { ...(prev[id] || { frequency: "daily", times: 0 }), ...changes },
     }));
   };
 
@@ -598,7 +607,7 @@ export const MetricSelectionComponent = ({
     }
     setJuzStart(0);
     setJuzEnd(0);
-    setJuzEndText("");
+    setJuzEndText(isRecitationJuz ? "0" : "");
   };
 
   const clearCompletionSelection = async () => {
@@ -664,7 +673,7 @@ export const MetricSelectionComponent = ({
   };
 
   const enforceJuzStart = (raw: string) => {
-    if (raw === "") {
+    if (raw === "" || raw === "0") {
       setJuzStart(0);
       return;
     }
@@ -688,15 +697,15 @@ export const MetricSelectionComponent = ({
   };
 
   const enforceJuzEnd = () => {
-    if (juzEndText === "") {
+    if (juzEndText === "" || juzEndText === "0") {
       setJuzEnd(0);
-      setJuzEndText("");
+      setJuzEndText(isRecitationJuz ? "0" : "");
       return;
     }
     const n = parseInt(juzEndText, 10);
     if (Number.isNaN(n)) {
       setJuzEnd(0);
-      setJuzEndText("");
+      setJuzEndText(isRecitationJuz ? "0" : "");
       return;
     }
     commitJuzEnd(n);
@@ -712,7 +721,13 @@ export const MetricSelectionComponent = ({
 
     const n = parseInt(digits, 10);
     if (Number.isNaN(n)) {
-      setJuzEndText("");
+      setJuzEndText(isRecitationJuz ? "0" : "");
+      setJuzEnd(0);
+      return;
+    }
+
+    if (n === 0) {
+      setJuzEndText("0");
       setJuzEnd(0);
       return;
     }
@@ -887,7 +902,7 @@ export const MetricSelectionComponent = ({
                 const checked = selectedSurahs.includes(s.id);
                 const setting = surahSettings[s.id] || {
                   frequency: "daily",
-                  times: 1,
+                  times: 0,
                 };
                 const isDaily = setting.frequency === "daily";
                 const maxTimes = isDaily ? 5 : 6;
@@ -1084,7 +1099,13 @@ export const MetricSelectionComponent = ({
                               "monthlyGoalPlanner.quranMetrics.recitationsFormula",
                               {
                                 times: timesValue || 0,
-                                multiplier,
+                                period: isDaily
+                                  ? t(
+                                      "monthlyGoalPlanner.quranMetrics.formulaPeriodDays",
+                                    )
+                                  : t(
+                                      "monthlyGoalPlanner.quranMetrics.formulaPeriodWeeks",
+                                    ),
                                 total,
                               },
                             )}
@@ -1233,7 +1254,7 @@ export const MetricSelectionComponent = ({
                 {t("monthlyGoalPlanner.quranMetrics.fromJuz")}
               </Text>
               <TextInput
-                value={juzStart > 0 ? String(juzStart) : ""}
+                value={String(juzStart)}
                 onChangeText={(v) => {
                   if (v === "") {
                     setJuzStart(0);
@@ -1242,6 +1263,10 @@ export const MetricSelectionComponent = ({
                   const digits = v.replace(/[^0-9]/g, "");
                   const n = parseInt(digits, 10);
                   if (Number.isNaN(n)) {
+                    setJuzStart(0);
+                    return;
+                  }
+                  if (n === 0) {
                     setJuzStart(0);
                     return;
                   }
@@ -1255,14 +1280,14 @@ export const MetricSelectionComponent = ({
                 onFocus={() => setInputFocused("juz-start", true)}
                 onBlur={() => {
                   setInputFocused("juz-start", false);
-                  enforceJuzStart(juzStart > 0 ? String(juzStart) : "");
+                  enforceJuzStart(String(juzStart));
                 }}
                 textAlignVertical="center"
                 style={[
                   styles.juzRangeInput,
                   juzStart > 0 && styles.timesInputFilled,
                 ]}
-                placeholder="1"
+                placeholder="0"
                 placeholderTextColor={Colors.light.white}
               />
               <Text
@@ -1276,7 +1301,9 @@ export const MetricSelectionComponent = ({
                 {t("monthlyGoalPlanner.quranMetrics.toJuz")}
               </Text>
               <TextInput
-                value={juzEndText}
+                value={
+                  focusedInputs["juz-end"] ? juzEndText : juzEndText || "0"
+                }
                 onChangeText={handleJuzEndChange}
                 keyboardType="numeric"
                 maxLength={2}
@@ -1290,9 +1317,9 @@ export const MetricSelectionComponent = ({
                 textAlignVertical="center"
                 style={[
                   styles.juzRangeInput,
-                  juzEndText.trim().length > 0 && styles.timesInputFilled,
+                  juzEnd > 0 && styles.timesInputFilled,
                 ]}
-                placeholder="1"
+                placeholder="0"
                 placeholderTextColor={Colors.light.white}
               />
             </View>
@@ -1333,6 +1360,7 @@ export const MetricSelectionComponent = ({
                 gap: 12,
                 justifyContent: "space-between",
                 marginTop: 10,
+                marginRight: 5,
               }}
             >
               <Text
@@ -1491,11 +1519,15 @@ export const MetricSelectionComponent = ({
             : pendingDelete?.kind === "SURAH" && isRecitationSurah
               ? t("monthlyGoalPlanner.quranMetrics.deleteRecitationSurahTitle")
               : pendingDelete?.kind === "HIZB" && isMemorizationHizb
-                ? t("monthlyGoalPlanner.quranMetrics.deleteMemorizationHizbTitle")
+                ? t(
+                    "monthlyGoalPlanner.quranMetrics.deleteMemorizationHizbTitle",
+                  )
                 : pendingDelete?.kind === "JUZ" &&
                     isMemorizationJuz &&
                     pendingDelete.itemNumber != null
-                  ? t("monthlyGoalPlanner.quranMetrics.deleteMemorizationJuzTitle")
+                  ? t(
+                      "monthlyGoalPlanner.quranMetrics.deleteMemorizationJuzTitle",
+                    )
                   : t("monthlyGoalPlanner.quranMetrics.deleteGoalTitle")
         }
         message={
@@ -1524,47 +1556,49 @@ export const MetricSelectionComponent = ({
                       "monthlyGoalPlanner.quranMetrics.deleteRecitationSurahMessage",
                       {
                         surahName:
-                          surahData.find((s) => s.id === pendingDelete.itemNumber)
-                            ?.surahTitle ?? "",
+                          surahData.find(
+                            (s) => s.id === pendingDelete.itemNumber,
+                          )?.surahTitle ?? "",
                       },
                     )
                   : pendingDelete?.kind === "HIZB" && isMemorizationHizb
-                  ? t(
-                      "monthlyGoalPlanner.quranMetrics.deleteMemorizationHizbMessage",
-                      {
-                        hizbName:
-                          hizbData.find((h) => h.id === pendingDelete.itemNumber)
-                            ?.hizbName ?? "",
-                      },
-                    )
-                  : pendingDelete?.kind === "JUZ" &&
-                      isMemorizationJuz &&
-                      pendingDelete.itemNumber != null
                     ? t(
-                        "monthlyGoalPlanner.quranMetrics.deleteMemorizationJuzMessage",
+                        "monthlyGoalPlanner.quranMetrics.deleteMemorizationHizbMessage",
                         {
-                          juzName:
-                            juzData.find((j) => j.id === pendingDelete.itemNumber)
-                              ?.juzName ?? "",
+                          hizbName:
+                            hizbData.find(
+                              (h) => h.id === pendingDelete.itemNumber,
+                            )?.hizbName ?? "",
                         },
                       )
-                    : t("monthlyGoalPlanner.quranMetrics.deleteGoalMessage")}
+                    : pendingDelete?.kind === "JUZ" &&
+                        isMemorizationJuz &&
+                        pendingDelete.itemNumber != null
+                      ? t(
+                          "monthlyGoalPlanner.quranMetrics.deleteMemorizationJuzMessage",
+                          {
+                            juzName:
+                              juzData.find(
+                                (j) => j.id === pendingDelete.itemNumber,
+                              )?.juzName ?? "",
+                          },
+                        )
+                      : t("monthlyGoalPlanner.quranMetrics.deleteGoalMessage")}
             </Text>
           </>
         }
         primaryButtonText={t("monthlyGoalPlanner.quranMetrics.delete")}
         secondaryButtonText={t("monthlyGoalPlanner.quranMetrics.cancel")}
         primaryButtonVariant="white"
+        primaryButtonSize="modal"
         primaryButtonStyle={{
+          alignSelf: "center",
           borderColor: Colors.light.red,
         }}
         primaryButtonTextStyle={{
           color: Colors.light.red,
-          fontSize: 14,
           fontWeight: "400",
           fontFamily: fonts.primary.regular,
-          paddingVertical: 1,
-          paddingHorizontal: 10,
         }}
         secondaryButtonTextStyle={{
           color: Colors.light.green,
@@ -1572,7 +1606,6 @@ export const MetricSelectionComponent = ({
         onPrimaryPress={confirmDelete}
         onSecondaryPress={closeDeleteConfirm}
         onBackdropPress={closeDeleteConfirm}
-        primaryButtonSize="compact"
       />
     </Fragment>
   );

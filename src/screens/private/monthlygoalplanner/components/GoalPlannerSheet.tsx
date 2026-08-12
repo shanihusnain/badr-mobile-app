@@ -142,6 +142,13 @@ import { getDefaultSadaqahCurrency } from "@/src/storage/sadaqahCurrencyStorage"
 import { buildFastingCalendarWindow } from "@/src/utils/fastingCalendarPreview";
 import { showToast } from "@/src/config/toastConfig";
 
+const OTHER_FASTING_GOAL_IDS = [
+  "missed-fasts",
+  "monday-and-thursday-fasts",
+  "white-days-fasts",
+] as const;
+const DAWOOD_FAST_GOAL_ID = "dawood-fasts";
+
 const SADAQAH_CURRENCY_FIELDS = [
   "missedZakat",
   "lillahDonation",
@@ -234,6 +241,8 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
       visible: boolean;
       message: string;
     }>({ visible: false, message: "" });
+    const [dawoodFastConfirmModalVisible, setDawoodFastConfirmModalVisible] =
+      useState(false);
     const [unfinishedGoalModal, setUnfinishedGoalModal] = useState<{
       visible: boolean;
       goalName: string;
@@ -287,6 +296,10 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
       setFastingGoalConflictModal({ visible: false, message: "" });
     }, []);
 
+    const closeDawoodFastConfirmModal = useCallback(() => {
+      setDawoodFastConfirmModalVisible(false);
+    }, []);
+
     const closeUnfinishedGoalModal = useCallback(() => {
       setUnfinishedGoalModal({ visible: false, goalName: "" });
     }, []);
@@ -299,6 +312,19 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
       setFinishSaveModalVisible(false);
       router.push({ pathname: "/(tabs)" });
     }, []);
+
+    const handleSeeMorePress = useCallback(
+      (goal: string) => {
+        if (ref && typeof ref !== "function") {
+          ref.current?.dismiss();
+        }
+        router.push({
+          pathname: "/(private)/goaldescriptiondetails/[goal]",
+          params: { goal },
+        });
+      },
+      [ref],
+    );
 
     const { data: meUser } = useGetMe();
     const userId = meUser?.id ?? null;
@@ -554,6 +580,17 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
       },
       [locallyConfiguredGoalIds, fastingGoals],
     );
+
+    const isOtherFastingGoalActive = useCallback(() => {
+      return OTHER_FASTING_GOAL_IDS.some((goalId) => {
+        if (selectedGoals[goalId] !== undefined) {
+          return Boolean(selectedGoals[goalId]);
+        }
+        return Boolean(
+          fastingGoals.find((goal) => goal.id === goalId)?.isSelected,
+        );
+      });
+    }, [selectedGoals, fastingGoals]);
 
     const isSadaqahGoalConfigured = useCallback(
       (goalId: string) => {
@@ -971,6 +1008,18 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         trackPendingOnToggle,
       ],
     );
+
+    const confirmDawoodFastGoal = useCallback(() => {
+      setDawoodFastConfirmModalVisible(false);
+      const dawoodGoal = fastingGoals.find(
+        (goal) => goal.id === DAWOOD_FAST_GOAL_ID,
+      );
+      handleFastingToggle(
+        DAWOOD_FAST_GOAL_ID,
+        dawoodGoal?.fastingType,
+        true,
+      );
+    }, [fastingGoals, handleFastingToggle]);
 
     const handleSadaqahToggle = useCallback(
       (
@@ -1875,7 +1924,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
               setCount={setMissedZakatAmount}
               control={control}
               name="missedZakat"
-              title={t("monthlyGoalPlanner.reviewLabels.missedZakat")}
+              title={t("monthlyGoalPlanner.volunteeringMonthTitle")}
               handleDecrease={() =>
                 setMissedZakatAmount((prev) => Math.max(0, prev - 1))
               }
@@ -1963,7 +2012,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
               setCount={setSadaqahJariyahAmount}
               control={control}
               name="sadaqahJariyah"
-              title={t("monthlyGoalPlanner.reviewLabels.sadaqahJariyah")}
+              title={t("monthlyGoalPlanner.volunteeringMonthTitle")}
               handleDecrease={() =>
                 setSadaqahJariyahAmount((prev) => Math.max(0, prev - 1))
               }
@@ -1979,6 +2028,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         case "five-daily-prayers":
           return (
             <DailyPrayerGoalSelection
+              cycleStartDate={cycleStartDate ?? undefined}
               initialValues={
                 sourcePrayer?.fiveDailyConfig
                   ? {
@@ -2383,18 +2433,16 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                         prayer.title || t(`goalsData.${prayer.id}.title`)
                       ).toUpperCase()}
                       imageSource={prayer?.image}
-                      handleSeeMorePRess={() => {
-                        (console.log("prayer", prayer),
-                          router.push({
-                            pathname:
-                              "/(private)/goaldescriptiondetails/[goal]",
-                            params: { goal: prayer.prayerType },
-                          }));
-                      }}
+                      handleSeeMorePRess={() =>
+                        handleSeeMorePress(prayer.prayerType)
+                      }
                       description={(() => {
                         const localCopy = t(`goalsData.${prayer.id}`, {
                           returnObjects: true,
-                        }) as { summaryDescription?: string; description?: string };
+                        }) as {
+                          summaryDescription?: string;
+                          description?: string;
+                        };
                         return (
                           (typeof localCopy?.summaryDescription === "string" &&
                             localCopy.summaryDescription) ||
@@ -2439,6 +2487,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {prayer.id === "fiveDailyPrayers" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                         <DailyPrayerGoalSelection
+                          cycleStartDate={cycleStartDate ?? undefined}
                           initialValues={getFiveDailyInitial(prayer)}
                           isSaving={
                             isSavingPrayer &&
@@ -2690,12 +2739,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                         quran.title || t(`goalsData.${quran.id}.title`)
                       ).toUpperCase()}
                       imageSource={quran.image}
-                      handleSeeMorePRess={() =>
-                        router.push({
-                          pathname: "/(private)/goaldescriptiondetails/[goal]",
-                          params: { goal: quran.id },
-                        })
-                      }
+                      handleSeeMorePRess={() => handleSeeMorePress(quran.id)}
                       description={(() => {
                         const localCopy = t(`goalsData.${quran.id}`, {
                           returnObjects: true,
@@ -2833,12 +2877,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                       initialValue={isOn}
                       title={t(`goalsData.${fasting.id}.title`).toUpperCase()}
                       imageSource={fasting.image}
-                      handleSeeMorePRess={() =>
-                        router.push({
-                          pathname: "/(private)/goaldescriptiondetails/[goal]",
-                          params: { goal: fasting.id },
-                        })
-                      }
+                      handleSeeMorePRess={() => handleSeeMorePress(fasting.id)}
                       description={(() => {
                         const localCopy = t(`goalsData.${fasting.id}`, {
                           returnObjects: true,
@@ -2861,10 +2900,17 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                           val,
                         )
                       }
-                      canToggle={(nextValue) =>
-                        !nextValue ||
-                        canEnableGoalInCategory("fasting", fasting.id)
-                      }
+                      canToggle={(nextValue) => {
+                        if (!nextValue) return true;
+                        if (
+                          fasting.id === DAWOOD_FAST_GOAL_ID &&
+                          !isOtherFastingGoalActive()
+                        ) {
+                          setDawoodFastConfirmModalVisible(true);
+                          return false;
+                        }
+                        return canEnableGoalInCategory("fasting", fasting.id);
+                      }}
                     />
                     {fasting.id === "missed-fasts" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
@@ -2952,12 +2998,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                       initialValue={isOn}
                       title={t(`goalsData.${sadaqah.id}.title`).toUpperCase()}
                       imageSource={sadaqah.image}
-                      handleSeeMorePRess={() =>
-                        router.push({
-                          pathname: "/(private)/goaldescriptiondetails/[goal]",
-                          params: { goal: sadaqah.id },
-                        })
-                      }
+                      handleSeeMorePRess={() => handleSeeMorePress(sadaqah.id)}
                       description={(() => {
                         const localCopy = t(`goalsData.${sadaqah.id}`, {
                           returnObjects: true,
@@ -2994,7 +3035,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                           control={control}
                           name="missedZakat"
                           title={t(
-                            "monthlyGoalPlanner.reviewLabels.missedZakat",
+                            "monthlyGoalPlanner.volunteeringMonthTitle",
                           )}
                           handleDecrease={() => {
                             setMissedZakatAmount((prev) =>
@@ -3067,10 +3108,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                           setCount={setLillahAmount}
                           control={control}
                           name="lillahDonation"
-                          // title={t(
-                          //   "monthlyGoalPlanner.reviewLabels.lilahDonations",
-                          // )}
-                          title="Select target for this month"
+                          title={t("monthlyGoalPlanner.volunteeringMonthTitle")}
                           handleDecrease={() => {
                             setLillahAmount((prev) => Math.max(0, prev - 1));
                           }}
@@ -3116,7 +3154,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                           setCount={setSadaqahJariyahAmount}
                           control={control}
                           name="sadaqahJariyah"
-                          title="Select target for this month"
+                          title={t("monthlyGoalPlanner.volunteeringMonthTitle")}
                           handleDecrease={() => {
                             setSadaqahJariyahAmount((prev) =>
                               Math.max(0, prev - 1),
@@ -3239,10 +3277,25 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
           primaryButtonText="Ok"
           secondaryButtonText={null}
           primaryButtonVariant="green"
+          primaryButtonSize="modal"
           onPrimaryPress={closeFastingGoalConflictModal}
           onBackdropPress={closeFastingGoalConflictModal}
-          primaryButtonStyle={{
-            alignSelf: "center",
+          primaryButtonStyle={styles.modalPrimaryButton}
+        />
+        <WarningModal
+          visible={dawoodFastConfirmModalVisible}
+          title={t("monthlyGoalPlanner.dawoodFastConfirmModalTitle")}
+          message={t("monthlyGoalPlanner.dawoodFastConfirmModalMessage")}
+          primaryButtonText={t("monthlyGoalPlanner.dawoodFastConfirmContinue")}
+          secondaryButtonText={t("monthlyGoalPlanner.dawoodFastConfirmCancel")}
+          primaryButtonVariant="green"
+          primaryButtonSize="modal"
+          onPrimaryPress={confirmDawoodFastGoal}
+          onSecondaryPress={closeDawoodFastConfirmModal}
+          onBackdropPress={closeDawoodFastConfirmModal}
+          primaryButtonStyle={styles.modalPrimaryButton}
+          secondaryButtonTextStyle={{
+            color: Colors.light.subtext,
           }}
         />
         <WarningModal
@@ -3254,11 +3307,10 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
           primaryButtonText={t("monthlyGoalPlanner.unfinishedGoalModalOk")}
           secondaryButtonText={null}
           primaryButtonVariant="green"
+          primaryButtonSize="modal"
           onPrimaryPress={closeUnfinishedGoalModal}
           onBackdropPress={closeUnfinishedGoalModal}
-          primaryButtonStyle={{
-            alignSelf: "center",
-          }}
+          primaryButtonStyle={styles.modalPrimaryButton}
         />
         <WarningModal
           visible={finishSaveModalVisible}
@@ -3267,9 +3319,11 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
           primaryButtonText={t("monthlyGoalPlanner.finishAndSaveYes")}
           secondaryButtonText={t("monthlyGoalPlanner.finishAndSaveCancel")}
           primaryButtonVariant="green"
+          primaryButtonSize="modal"
           onPrimaryPress={confirmFinishAndSave}
           onSecondaryPress={closeFinishSaveModal}
           onBackdropPress={closeFinishSaveModal}
+          primaryButtonStyle={styles.modalPrimaryButton}
           secondaryButtonTextStyle={{
             color: Colors.light.subtext,
           }}
@@ -3282,6 +3336,9 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
 // ── Styles ────────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
+  modalPrimaryButton: {
+    alignSelf: "center",
+  },
   sheetOverlayRoot: {
     flex: 1,
   },

@@ -1,8 +1,8 @@
 const CYCLE_DAYS = 28;
 
 /**
- * Counts Fridays (Jumu'ah) within a goal cycle window.
- * A 28-day window always contains 4 Fridays; longer windows can contain 5.
+ * Counts Fridays (Jumu'ah) within the fixed 28-day goal cycle starting on
+ * `cycleStartDate`. Every 28-day window contains exactly 4 Fridays.
  */
 export function getJumuahCountForCycle(
   cycleStartDate: string = new Date().toISOString().slice(0, 10),
@@ -21,4 +21,52 @@ export function getJumuahCountForCycle(
   return count;
 }
 
+/** Jumu'ah count for the user's 28-day cycle (from cycle start date). */
+export function getJumuahCountForCycleStart(
+  cycleStartDate?: string | null,
+): number {
+  if (!cycleStartDate) return getJumuahCountForCycle();
+  return getJumuahCountForCycle(cycleStartDate, CYCLE_DAYS);
+}
+
+/** Jumu'ah + Dhuhr limits when congregational tracking is enabled (28-day cycle). */
+export function getCongregationalPrayerAdjustments(
+  cycleStartDate?: string | null,
+) {
+  const cycleDayCount = CYCLE_DAYS;
+  const jumuahCount = getJumuahCountForCycleStart(cycleStartDate);
+  const dhuhrMax = Math.max(0, cycleDayCount - jumuahCount);
+
+  return {
+    cycleDayCount,
+    jumuahCount,
+    dhuhrMax,
+    prayerDefaults: {
+      fajr: cycleDayCount,
+      dhuhr: dhuhrMax,
+      asr: cycleDayCount,
+      maghrib: cycleDayCount,
+      isha: cycleDayCount,
+      jumuah: jumuahCount,
+    },
+  };
+}
+
 export const PRAYER_CYCLE_DAYS = CYCLE_DAYS;
+
+/** @deprecated Use getJumuahCountForCycleStart — cycles are always 28 days. */
+export function getJumuahCountForCycleRange(
+  cycleStartDate?: string | null,
+  _cycleEndDate?: string | null,
+): number {
+  return getJumuahCountForCycleStart(cycleStartDate);
+}
+
+/** @deprecated Cycles are always 28 days for prayer goals. */
+export function getCycleDayCount(
+  _cycleStartDate?: string | null,
+  _cycleEndDate?: string | null,
+  fallbackDays: number = CYCLE_DAYS,
+): number {
+  return fallbackDays;
+}

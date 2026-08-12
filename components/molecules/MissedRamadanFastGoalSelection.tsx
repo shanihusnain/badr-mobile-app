@@ -109,7 +109,7 @@ export default function MissedRamadanFastGoalSelection({
                   />
                   <Text style={styles.legendText} numberOfLines={1}>
                     {item.type === "MISSED_RAMADAN"
-                      ? "MISSED RAMADAN"
+                      ? "MISSED RAMADAN FASTS"
                       : item.label}
                   </Text>
                 </View>

@@ -29,7 +29,7 @@ type WarningModalProps = {
   secondaryButtonTextStyle?: StyleProp<TextStyle>;
   primaryButtonVariant?: "white" | "green";
   /** Defaults to compact so modal bordered CTAs stay shorter than app-wide SecondaryButtons. */
-  primaryButtonSize?: "default" | "compact";
+  primaryButtonSize?: "default" | "compact" | "modal";
 };
 
 export default function WarningModal({

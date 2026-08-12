@@ -314,9 +314,11 @@ export const CycleStartTab = ({
         primaryButtonText={t("monthlyGoalPlanner.changeCycleStartYes")}
         secondaryButtonText={t("monthlyGoalPlanner.changeCycleStartNo")}
         primaryButtonVariant="green"
+        primaryButtonSize="modal"
         onPrimaryPress={confirmChangeCycle}
         onSecondaryPress={cancelChangeCycle}
         onBackdropPress={cancelChangeCycle}
+        primaryButtonStyle={styles.modalPrimaryButton}
       />
     </>
   );
@@ -390,5 +392,8 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     minHeight: 40,
     paddingVertical: 8,
+  },
+  modalPrimaryButton: {
+    alignSelf: "center",
   },
 });

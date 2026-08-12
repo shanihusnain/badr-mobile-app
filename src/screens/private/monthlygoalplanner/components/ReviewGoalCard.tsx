@@ -246,7 +246,8 @@ export default function ReviewGoalCard({ goal, handleEditPress }: Props) {
 const styles = StyleSheet.create({
   appliedGoalContainer: {
     backgroundColor: Colors.light.greybuttonBackground,
-    padding: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
     borderRadius: 6,
   },
   appliedGoalRow: {
