@@ -23,7 +23,7 @@ export default function TahiyatWuduGoalSelection({
   initialValue = 25,
   isSaving = false,
 }: {
-  onSave?: (value: number, onDone?: () => void) => void;
+  onSave?: (value: number, onDone?: () => void, onFail?: () => void) => void;
   initialValue?: number;
   isSaving?: boolean;
 }) {
@@ -71,8 +71,8 @@ export default function TahiyatWuduGoalSelection({
           <View style={styles.buttonContainer}>
             <GoalSelectionSaveButton
               text={t("prayerGoals.save").toLocaleUpperCase()}
-              onPress={(markSaved) => {
-                onSave?.(sliderValue, markSaved);
+              onPress={(markSaved, markFailed) => {
+                onSave?.(sliderValue, markSaved, markFailed);
               }}
               style={styles.saveButton}
               textStyle={styles.saveButtonText}

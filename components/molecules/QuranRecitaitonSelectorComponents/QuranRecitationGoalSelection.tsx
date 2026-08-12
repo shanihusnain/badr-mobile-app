@@ -40,6 +40,7 @@ export type QuranRecitationGoalSelectionProps = {
       metric: "surah" | "juz" | "completion" | "hizb";
     },
     onDone?: () => void,
+    onFail?: () => void,
   ) => void;
   initialMetric?: "surah" | "juz" | "completion" | "hizb";
   allowedMetrics?: Array<"surah" | "juz" | "completion" | "hizb">;
@@ -376,7 +377,7 @@ export const QuranRecitationGoalSelection = ({
               disabled={isSaving}
               onPress={(markSaved, markFailed) => {
                 if (onSave && resolvedMetric) {
-                  onSave({ metric: resolvedMetric }, markSaved);
+                  onSave({ metric: resolvedMetric }, markSaved, markFailed);
                   setMarkCleanNonce((n) => n + 1);
                   setIsMetricDirty(false);
                   return;

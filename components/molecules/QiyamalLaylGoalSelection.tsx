@@ -34,6 +34,7 @@ export default function QiyamalLaylGoalSelection({
       trackTahajjud: "yes" | "no";
     },
     onDone?: () => void,
+    onFail?: () => void,
   ) => void;
   initialValues?: {
     isFlexible?: boolean;
@@ -61,7 +62,7 @@ export default function QiyamalLaylGoalSelection({
     setIsOpen(!isOpen);
   };
 
-  const handleSave = (markSaved: () => void) => {
+  const handleSave = (markSaved: () => void, markFailed?: () => void) => {
     onSave?.(
       {
         commitment,
@@ -70,6 +71,7 @@ export default function QiyamalLaylGoalSelection({
         trackTahajjud,
       },
       markSaved,
+      markFailed,
     );
   };
   const { user } = useAuth();

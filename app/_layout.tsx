@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import * as SystemUI from "expo-system-ui";
 import "react-native-reanimated";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { Provider } from "react-redux";
 
 import { fontAssets } from "@/assets/fonts";
@@ -64,21 +65,23 @@ export default function RootLayout() {
           <AuthProvider>
             <SafeAreaProvider>
               <ThemeProvider value={AppTheme}>
-                <Stack screenOptions={{ headerShown: false }}>
-                  <Stack.Screen name="index" />
-                  {/* <Stack.Screen name="(tabs)" /> */}
-                  <Stack.Screen name="(auth)" />
-                  <Stack.Screen name="(private)" />
-                  <Stack.Screen
-                    name="modal"
-                    options={{ presentation: "modal", title: "Modal" }}
+                <BottomSheetModalProvider>
+                  <Stack screenOptions={{ headerShown: false }}>
+                    <Stack.Screen name="index" />
+                    {/* <Stack.Screen name="(tabs)" /> */}
+                    <Stack.Screen name="(auth)" />
+                    <Stack.Screen name="(private)" />
+                    <Stack.Screen
+                      name="modal"
+                      options={{ presentation: "modal", title: "Modal" }}
+                    />
+                  </Stack>
+                  <StatusBar
+                    style="light"
+                    backgroundColor={Colors.light.blackBackground}
                   />
-                </Stack>
-                <StatusBar
-                  style="light"
-                  backgroundColor={Colors.light.blackBackground}
-                />
-                <Toast config={toastConfig} />
+                  <Toast config={toastConfig} />
+                </BottomSheetModalProvider>
               </ThemeProvider>
             </SafeAreaProvider>
           </AuthProvider>

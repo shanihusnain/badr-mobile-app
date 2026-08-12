@@ -21,8 +21,7 @@ const TUTORIAL_DURATION_SEC = 45;
 /** Match BlackScreenWrapper padding so the player can span nearly full width. */
 const PARENT_HORIZONTAL_PADDING = 16;
 const SCREEN_SIDE_INSET = 8;
-const PLAYER_WIDTH =
-  Dimensions.get("window").width - SCREEN_SIDE_INSET * 2;
+const PLAYER_WIDTH = Dimensions.get("window").width - SCREEN_SIDE_INSET * 2;
 
 interface TutorialVideoPlayerProps {
   videoUrl?: string;
@@ -134,12 +133,12 @@ const styles = StyleSheet.create({
     width: PLAYER_WIDTH,
     marginHorizontal: -(PARENT_HORIZONTAL_PADDING - SCREEN_SIDE_INSET),
     alignSelf: "center",
-    borderRadius: 16,
+    borderRadius: 18,
   },
   player: {
     flex: 1,
     width: "100%",
-    borderRadius: 12,
+    borderRadius: 18,
     overflow: "hidden",
     backgroundColor: Colors.light.calendarBg,
   },

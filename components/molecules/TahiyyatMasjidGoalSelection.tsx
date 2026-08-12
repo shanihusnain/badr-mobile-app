@@ -23,7 +23,7 @@ export default function TahiyyatMasjidGoalSelection({
   initialValue = 140,
   isSaving = false,
 }: {
-  onSave?: (value: number, onDone?: () => void) => void;
+  onSave?: (value: number, onDone?: () => void, onFail?: () => void) => void;
   isSaving?: boolean;
   initialValue?: number;
 }) {
@@ -65,8 +65,8 @@ export default function TahiyyatMasjidGoalSelection({
           <View style={styles.buttonContainer}>
             <GoalSelectionSaveButton
               text={t("prayerGoals.save").toLocaleUpperCase()}
-              onPress={(markSaved) => {
-                onSave?.(sliderValue, markSaved);
+              onPress={(markSaved, markFailed) => {
+                onSave?.(sliderValue, markSaved, markFailed);
               }}
               isLoading={isSaving}
               disabled={isSaving}

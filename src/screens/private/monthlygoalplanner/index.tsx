@@ -1,17 +1,15 @@
 import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { Colors } from "@/constants/theme";
-import { useNavigation } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { FlatList, Pressable, Text, View } from "react-native";
-import Header from "@/components/Header";
 import type { GoalCardData } from "./components/GoalCard";
 import { GoalCardCarousel } from "./components/GoalCardCarousel";
 import { GoalPlannerSummary } from "./components/GoalPlannerSummary";
 import { styles } from "./styles";
 import { useTranslation } from "react-i18next";
-import BottomSheet from "@gorhom/bottom-sheet";
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { GoalPlannerSheet } from "./components/GoalPlannerSheet";
 import type { Tab } from "./components/GoalPlannerSheet";
 import { ShootIcon } from "@/assets/icons/ShootIcon";
@@ -75,9 +73,8 @@ const ItemSeparator = () => <TopSpace top={12} />;
 
 export const MonthlyGoalPlannerScreen = () => {
   const { t } = useTranslation();
-  const navigation = useNavigation();
 
-  const bottomSheetRef = useRef<BottomSheet>(null);
+  const bottomSheetRef = useRef<BottomSheetModal>(null);
   const [selectedTab, setSelectedTab] = useState<Tab>("cycle");
 
   // Map each step id to its corresponding sheet tab
@@ -92,7 +89,7 @@ export const MonthlyGoalPlannerScreen = () => {
 
   const handleStepPress = useCallback((stepId: number) => {
     setSelectedTab(STEP_TAB_MAP[stepId] ?? "cycle");
-    bottomSheetRef.current?.expand();
+    bottomSheetRef.current?.present();
   }, []);
 
   const handleSheetClose = useCallback(() => {}, []);
@@ -184,16 +181,9 @@ export const MonthlyGoalPlannerScreen = () => {
     { id: 6, title: t("monthlyGoalPlanner.step6Title"), status: "completed" },
   ];
 
-  useEffect(() => {
-    navigation.setOptions({
-      headerShown: true,
-      header: () => <Header title={t("monthlyGoalPlanner.title")} />,
-    });
-  }, [navigation, t]);
-
   const handleBeginNowPress = useCallback(() => {
     //open the bottom sheet
-    bottomSheetRef.current?.expand();
+    bottomSheetRef.current?.present();
   }, [bottomSheetRef]);
 
   return (
@@ -224,7 +214,7 @@ export const MonthlyGoalPlannerScreen = () => {
         />
         <Pressable
           onPress={handleBeginNowPress}
-          style={{ alignSelf: "center", marginBottom: 16 , paddingTop: 16}}
+          style={{ alignSelf: "center", marginBottom: 16, paddingTop: 16 }}
         >
           <Text style={globalStyles.greenCTA}>BEGIN NOW</Text>
         </Pressable>
