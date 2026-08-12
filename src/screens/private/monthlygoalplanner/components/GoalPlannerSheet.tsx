@@ -1498,7 +1498,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
           return (
             <TahiyatWuduGoalSelection
               isSaving={isSavingPrayer}
-              initialValue={sourcePrayer?.targetCount ?? 25}
+              initialValue={sourcePrayer?.targetCount ?? 1}
               onSave={(value, onDone, onFail) => {
                 saveSimplePrayerTarget(
                   "TAHIYYAT_AL_WUDHU",
@@ -2062,7 +2062,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         case "tahayyat-ul-masjid":
           return (
             <TahiyyatMasjidGoalSelection
-              initialValue={sourcePrayer?.targetCount ?? 140}
+              initialValue={sourcePrayer?.targetCount ?? 1}
               isSaving={isSavingPrayer}
               onSave={(value, onDone, onFail) => {
                 saveSimplePrayerTarget(
@@ -2100,7 +2100,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         case "duha-prayer":
           return (
             <DuhaPrayerGoalSelection
-              initialValue={sourcePrayer?.targetCount ?? 40}
+              initialValue={sourcePrayer?.targetCount ?? 1}
               isSaving={isSavingPrayer}
               onSave={(value, onDone, onFail) => {
                 saveSimplePrayerTarget("DUHA", value, onDone, onFail);
@@ -2110,7 +2110,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         case "tawba-prayer":
           return (
             <TawbahPrayerGoalSelection
-              initialValue={sourcePrayer?.targetCount ?? 25}
+              initialValue={sourcePrayer?.targetCount ?? 1}
               isSaving={isSavingPrayer}
               onSave={(value, onDone, onFail) => {
                 saveSimplePrayerTarget("TAWBAH", value, onDone, onFail);
@@ -2120,7 +2120,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         case "istikhara-prayer":
           return (
             <IstikharaPrayerGoalSelection
-              initialValue={sourcePrayer?.targetCount ?? 25}
+              initialValue={sourcePrayer?.targetCount ?? 1}
               isSaving={isSavingPrayer}
               onSave={(value, onDone, onFail) => {
                 saveSimplePrayerTarget("ISTIKHARA", value, onDone, onFail);
@@ -2130,7 +2130,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         case "shukr-prayer":
           return (
             <ShukarPrayerGoalSelection
-              initialValue={sourcePrayer?.targetCount ?? 25}
+              initialValue={sourcePrayer?.targetCount ?? 1}
               isSaving={isSavingPrayer}
               onSave={(value, onDone, onFail) => {
                 saveSimplePrayerTarget("SHUKR", value, onDone, onFail);
@@ -2144,7 +2144,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                 sourcePrayer?.qiyamConfig
                   ? {
                       isFlexible: Boolean(sourcePrayer.qiyamConfig.isFlexible),
-                      unitTarget: sourcePrayer.qiyamConfig.unitTarget ?? 20,
+                      unitTarget: sourcePrayer.qiyamConfig.unitTarget ?? 1,
                       trackTahajjud: Boolean(
                         sourcePrayer.qiyamConfig.trackTahajjud,
                       ),
@@ -2379,7 +2379,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {prayer.id === "tahayyat-ul-wudhu" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                         <TahiyatWuduGoalSelection
-                          initialValue={getSimpleTargetCount(prayer, 25)}
+                          initialValue={getSimpleTargetCount(prayer, 1)}
                           isSaving={isSavingPrayer}
                           onSave={(value, onDone, onFail) =>
                             saveSimplePrayerTarget(
@@ -2465,7 +2465,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {prayer.id === "thayyat-ul-masjid" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                         <TahiyyatMasjidGoalSelection
-                          initialValue={getSimpleTargetCount(prayer, 140)}
+                          initialValue={getSimpleTargetCount(prayer, 1)}
                           isSaving={isSavingPrayer}
                           onSave={(value, onDone, onFail) =>
                             saveSimplePrayerTarget(
@@ -2503,7 +2503,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {prayer.id === "duhaPrayer" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                         <DuhaPrayerGoalSelection
-                          initialValue={getSimpleTargetCount(prayer, 40)}
+                          initialValue={getSimpleTargetCount(prayer, 1)}
                           isSaving={isSavingPrayer}
                           onSave={(value, onDone, onFail) =>
                             saveSimplePrayerTarget(
@@ -2519,7 +2519,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {prayer.id === "tawbaPrayer" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                         <TawbahPrayerGoalSelection
-                          initialValue={getSimpleTargetCount(prayer, 25)}
+                          initialValue={getSimpleTargetCount(prayer, 1)}
                           isSaving={isSavingPrayer}
                           onSave={(value, onDone, onFail) =>
                             saveSimplePrayerTarget(
@@ -2535,7 +2535,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {prayer.id === "istikharah" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                         <IstikharaPrayerGoalSelection
-                          initialValue={getSimpleTargetCount(prayer, 25)}
+                          initialValue={getSimpleTargetCount(prayer, 1)}
                           isSaving={isSavingPrayer}
                           onSave={(value, onDone, onFail) =>
                             saveSimplePrayerTarget(
@@ -2551,7 +2551,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {prayer.id === "shukrPrayer" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                         <ShukarPrayerGoalSelection
-                          initialValue={getSimpleTargetCount(prayer, 25)}
+                          initialValue={getSimpleTargetCount(prayer, 1)}
                           isSaving={isSavingPrayer}
                           onSave={(value, onDone, onFail) =>
                             saveSimplePrayerTarget(

@@ -20,7 +20,7 @@ import { Divider } from "../atoms/Divider";
 
 export default function TahiyatWuduGoalSelection({
   onSave,
-  initialValue = 25,
+  initialValue = 1,
   isSaving = false,
 }: {
   onSave?: (value: number, onDone?: () => void, onFail?: () => void) => void;

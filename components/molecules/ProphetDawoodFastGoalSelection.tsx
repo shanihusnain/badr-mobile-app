@@ -117,7 +117,7 @@ export default function ProphetDawoodFastGoalSelection({
         </Text>
         <Feather
           name={isOpen ? "chevron-up" : "chevron-down"}
-          size={24}
+          size={18}
           color={Colors.light.white}
           style={styles.icon}
         />
@@ -189,7 +189,7 @@ export default function ProphetDawoodFastGoalSelection({
           {/* Value/Count text */}
           <Text style={styles.valueText}>
             {formatNumber(fastCount)}
-            <Text style={styles.whiteText}> Prophet Dawood Fasts</Text>
+            <Text style={styles.whiteText}> Prophet Dawood (AS) Fasts</Text>
           </Text>
 
           {/* Save Button */}
@@ -318,8 +318,9 @@ const styles = StyleSheet.create({
   advisoryText: {
     flex: 1,
     color: Colors.light.white,
-    fontFamily: fonts.primary.regular,
+    fontFamily: fonts.primary.medium,
     fontSize: 12,
+    fontWeight: "500",
     lineHeight: 16,
     textAlign: "left",
     opacity: 0.5,

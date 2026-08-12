@@ -12,7 +12,7 @@ export const globalStyles = StyleSheet.create({
     backgroundColor: "#2F4053",
     borderRadius: 6,
     paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingVertical: 14,
     // Vertical gap is owned by GoalPlannerSheet (12 under card / 20 between items).
     marginVertical: 0,
   },

@@ -41,7 +41,7 @@ export const KafarahForBreakingFastsOrOAthSelector = ({
     <View
       style={[
         globalStyles.goalSelectionWrapper,
-        { paddingBottom: isOpen ? 14 : 6 },
+        { paddingBottom: isOpen ? 16 : 14 },
       ]}
     >
       <GoalSelectionOpenCloseButton

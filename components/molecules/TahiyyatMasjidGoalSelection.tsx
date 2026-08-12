@@ -20,7 +20,7 @@ import { Divider } from "../atoms/Divider";
 
 export default function TahiyyatMasjidGoalSelection({
   onSave,
-  initialValue = 140,
+  initialValue = 1,
   isSaving = false,
 }: {
   onSave?: (value: number, onDone?: () => void, onFail?: () => void) => void;
