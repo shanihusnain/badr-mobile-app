@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
   },
   menu: {
     backgroundColor: Colors.light.calendarBg,
-    borderRadius: 6,
+    borderRadius: 8,
     //borderWidth: 1,
     //borderColor: Colors.light.border,
     marginTop: 10,

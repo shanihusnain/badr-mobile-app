@@ -17,7 +17,7 @@ import {
 import moment from "moment-hijri";
 import { fonts } from "@/assets/fonts";
 import { CalendarGrid } from "@/components/molecules/CalendarGrid";
-import { DownArrowIcon } from "@/assets/icons";
+import { BackChevron, DownArrowIcon, Forwardchevron } from "@/assets/icons";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -249,7 +249,7 @@ export const DOBCalendar = ({ onSave, onCancel, value }: DOBCalendarProps) => {
             style={styles.navArrow}
             activeOpacity={0.7}
           >
-            <Text style={styles.navArrowText}>{"‹"}</Text>
+            <BackChevron />
           </TouchableOpacity>
           <View style={styles.navLabelContainer}>
             <Text style={styles.navLabel}>{rangeLabel}</Text>
@@ -259,7 +259,7 @@ export const DOBCalendar = ({ onSave, onCancel, value }: DOBCalendarProps) => {
             style={styles.navArrow}
             activeOpacity={0.7}
           >
-            <Text style={styles.navArrowText}>{"›"}</Text>
+            <Forwardchevron />
           </TouchableOpacity>
         </View>
 
@@ -442,9 +442,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: Colors.light.calendarBg,
-    paddingHorizontal: 12,
   },
-  navArrow: { paddingHorizontal: 12, },
+  navArrow: { paddingHorizontal: 12 },
   navArrowText: { fontSize: 24, color: Colors.light.white },
   navLabelContainer: {
     alignItems: "center",
@@ -452,7 +451,7 @@ const styles = StyleSheet.create({
   navLabel: {
     fontSize: 14,
     fontWeight: "500",
-    lineHeight: 18,
+    // lineHeight: 18,
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
   },
@@ -461,7 +460,7 @@ const styles = StyleSheet.create({
     fontWeight: "400",
     color: Colors.light.grey,
     fontFamily: fonts.primary.regular,
-    paddingBottom: 10,
+    marginTop: 10,
   },
 
   footer: {

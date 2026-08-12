@@ -11,6 +11,7 @@ import { BellIcon } from "./BellIcon";
 import { BulbIcon } from "./BulbIcon";
 import { BinIcon } from "./BinIcon";
 import { BestdayStarIcon } from "./BestdayStarIcon";
+import { BackChevron } from "./BackChevron";
 //C
 import { CalendarIcon } from "./CalenderIcon";
 import { ClockIcon } from "./ClockIcon";
@@ -41,6 +42,7 @@ import { FastingFlowCardRamadanCalender } from "./FastingFlowCardRamadanCalender
 import { FastingDashboardIcon } from "./FastingDashboardIcon";
 import { FastingFlowCardMondayFasts } from "./FastingFlowCardMondayFasts";
 import { FastingFlowCardProphetDawoodCalender } from "./FastingFlowCardProphetDawoodCalender";
+import { Forwardchevron } from "./Forwardchevron";
 //G
 import { GaveBirthIcon } from "./GaveBirthIcon";
 import { GiftIcon } from "./GiftIcon";
@@ -405,4 +407,6 @@ export {
   WhitePrayerMatIcon,
   WhiteClockIcon,
   WhiteTimerIcon,
+  BackChevron,
+  Forwardchevron,
 };

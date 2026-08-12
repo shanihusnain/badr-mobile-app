@@ -2,6 +2,7 @@ import { Stack } from "expo-router";
 
 import Header from "@/components/Header";
 import { PublicRoute } from "@/provider/PublicRoute";
+import { Colors } from "@/constants/theme";
 
 const transparentAuthScreenOptions = {
   headerShown: true,
@@ -26,7 +27,11 @@ export default function AuthLayout() {
           options={{
             ...transparentAuthScreenOptions,
             header: () => (
-              <Header title="LOGIN" backgroundColor="transparent" />
+              <Header
+                title="LOGIN"
+                backgroundColor="transparent"
+                arrowBg={Colors.light.arrowTransparentBg}
+              />
             ),
           }}
         />
@@ -38,6 +43,7 @@ export default function AuthLayout() {
               <Header
                 title={options?.title ?? ""}
                 backgroundColor="transparent"
+                arrowBg={Colors.light.arrowTransparentBg}
               />
             ),
           }}
@@ -47,7 +53,11 @@ export default function AuthLayout() {
           options={{
             ...transparentAuthScreenOptions,
             header: () => (
-              <Header title="FORGOT PASSWORD" backgroundColor="transparent" />
+              <Header
+                title="FORGOT PASSWORD"
+                backgroundColor="transparent"
+                arrowBg={Colors.light.arrowTransparentBg}
+              />
             ),
           }}
         />
@@ -70,7 +80,11 @@ export default function AuthLayout() {
           options={{
             ...transparentAuthScreenOptions,
             header: () => (
-              <Header title="FORGOT PASSWORD" backgroundColor="transparent" />
+              <Header
+                title="FORGOT PASSWORD"
+                backgroundColor="transparent"
+                arrowBg={Colors.light.arrowTransparentBg}
+              />
             ),
           }}
         />

@@ -75,6 +75,7 @@ export const Colors = {
     dullDescriptionText: "rgba(255, 255, 255, 0.50)",
     greentextbutton: "#1DBF73",
     notStartedTextColor: "#6E6D6D",
+    arrowTransparentBg: "gba(255, 255, 255, 0.10)",
   },
   dark: {
     text: "#ECEDEE",
