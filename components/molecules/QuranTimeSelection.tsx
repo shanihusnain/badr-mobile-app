@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.1,
   },
   hoursInput: {
-    width: 40,
+    width: 44,
     paddingTop: 4,
     paddingRight: 6,
     paddingBottom: 4,

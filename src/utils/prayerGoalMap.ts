@@ -238,7 +238,7 @@ export function getQiyamInitial(goal: PrayerGoalApiItem | undefined) {
       isFlexible: false,
       unitTarget: 1,
       witrTarget: 0,
-      trackTahajjud: false,
+      trackTahajjud: true,
     };
   }
 

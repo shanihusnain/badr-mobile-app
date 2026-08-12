@@ -5,9 +5,11 @@ import {
   mergeSocialLoginUser,
   needsSocialProfileCompletion,
 } from "@/src/utils/needsSocialProfileCompletion";
-import { AccessToken, LoginManager } from "react-native-fbsdk-next";
 import { useRouter } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
+
+const getFacebookSdk = () =>
+  require("react-native-fbsdk-next") as typeof import("react-native-fbsdk-next");
 
 export const useFacebookSignIn = () => {
   const router = useRouter();
@@ -33,6 +35,10 @@ export const useFacebookSignIn = () => {
 
     try {
       setIsPrompting(true);
+
+      const { AccessToken, LoginManager, Settings } = getFacebookSdk();
+      Settings.setAppID(fbAppId);
+      Settings.initializeSDK();
 
       const loginResult = await LoginManager.logInWithPermissions(permissions);
 

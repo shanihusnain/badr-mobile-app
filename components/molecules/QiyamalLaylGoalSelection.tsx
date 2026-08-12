@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   LayoutAnimation,
   Platform,
+  type TextLayoutEventData,
+  type NativeSyntheticEvent,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { Colors } from "../../constants/theme";
@@ -56,6 +58,22 @@ export default function QiyamalLaylGoalSelection({
   const [trackTahajjud, setTrackTahajjud] = useState<"yes" | "no">(
     initialValues?.trackTahajjud ? "yes" : "no",
   );
+  const [summaryTextWidth, setSummaryTextWidth] = useState<number | null>(
+    null,
+  );
+
+  const handleSummaryTextLayout = (
+    event: NativeSyntheticEvent<TextLayoutEventData>,
+  ) => {
+    const maxLineWidth = Math.max(
+      0,
+      ...event.nativeEvent.lines.map((line) => line.width),
+    );
+
+    if (maxLineWidth > 0) {
+      setSummaryTextWidth(maxLineWidth);
+    }
+  };
 
   const toggleDropdown = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -205,8 +223,11 @@ export default function QiyamalLaylGoalSelection({
 
           {/* Result / Save area */}
           <View style={styles.resultContainer}>
-            <View style={{ alignItems: "center", paddingHorizontal: 46 }}>
-              <Text style={styles.valueText}>
+            <View style={styles.summaryTextBlock}>
+              <Text
+                style={styles.valueText}
+                onTextLayout={handleSummaryTextLayout}
+              >
                 {formatNumber(sliderValue)}
                 <Text style={styles.whiteText}>
                   {sliderValue === 1
@@ -227,9 +248,21 @@ export default function QiyamalLaylGoalSelection({
                   </Text>
                 )}
               </Text>
-              <Text style={styles.witrDescription}>
-                {t("prayerGoals.witrDesc")}
-              </Text>
+              {commitment === "every_night" ? (
+                <Text
+                  style={[
+                    styles.witrDescription,
+                    summaryTextWidth != null && {
+                      width: summaryTextWidth,
+                      alignSelf: "center",
+                    },
+                  ]}
+                >
+                  {t("prayerGoals.witrDesc")}
+                </Text>
+              ) : (
+                <View style={styles.summarySpacer} />
+              )}
             </View>
 
             <View style={styles.buttonContainer}>
@@ -286,10 +319,10 @@ const styles = StyleSheet.create({
   radioRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "flex-start",
-    gap: 20,
+    justifyContent: "space-between",
     marginVertical: 8,
     width: "100%",
+    paddingRight: 20,
   },
   radioOption: {
     flexDirection: "row",
@@ -311,7 +344,7 @@ const styles = StyleSheet.create({
   radioInner: {
     width: 10,
     height: 10,
-    borderRadius: 5,
+    borderRadius: 8,
     backgroundColor: Colors.light.green,
   },
   radioText: {
@@ -341,12 +374,12 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.calendarBg,
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 8,
+    marginRight: 12,
   },
   radioInnerCol: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    width: 8,
+    height: 8,
+    borderRadius: 8,
     backgroundColor: Colors.light.green,
   },
   radioTextCol: {
@@ -366,14 +399,21 @@ const styles = StyleSheet.create({
   },
   resultContainer: {
     width: "100%",
-    alignItems: "center",
     marginTop: 10,
+  },
+  summaryTextBlock: {
+    width: "100%",
+    alignItems: "center",
+  },
+  summarySpacer: {
+    height: 30,
   },
   valueText: {
     color: Colors.light.green,
     fontFamily: fonts.primary.medium,
     fontSize: 14,
     fontWeight: "500",
+    lineHeight: 20,
     marginBottom: 8,
     textAlign: "center",
   },
@@ -390,8 +430,8 @@ const styles = StyleSheet.create({
     color: Colors.light.grey,
     fontFamily: fonts.primary.regular,
     fontSize: 10,
+    lineHeight: 15,
     textAlign: "left",
-    paddingHorizontal: 10,
     marginBottom: 20,
     fontWeight: "400",
   },

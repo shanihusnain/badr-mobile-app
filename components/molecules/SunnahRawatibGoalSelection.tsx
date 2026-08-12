@@ -17,6 +17,7 @@ import { GoalSelectionOpenCloseButton } from "./GoalSelectionOpenCloseButton";
 import { Divider } from "../atoms/Divider";
 import { SwitchButton } from "../atoms/SwitchButton";
 import { TopSpace } from "../atoms/TopSpace";
+import { useAuth } from "@/provider/useAuth";
 
 function RadioOption({
   selected,
@@ -108,6 +109,7 @@ export default function SunnahRawatibGoalSelection({
   const [beforeDuhr, setBeforeDuhr] = useState(
     initialValues?.beforeDhuhr ?? 56,
   );
+  const { user } = useAuth();
   const [afterDuhr, setAfterDuhr] = useState(initialValues?.afterDhuhr ?? 56);
   const [beforeAsar, setBeforeAsar] = useState(initialValues?.beforeAsr ?? 56);
   const [afterMaghrib, setAfterMaghrib] = useState(
@@ -200,6 +202,21 @@ export default function SunnahRawatibGoalSelection({
       {isOpen && (
         <View style={styles.expandedContent}>
           {/* Before Fajr */}
+          {user.gender === "FEMALE" ? (
+            <Text
+              style={{
+                fontSize: 10,
+                fontFamily: fonts.primary.regular,
+                fontWeight: "400",
+                color: Colors.light.white,
+                marginBottom: 20,
+                opacity: 0.6,
+              }}
+            >
+              Prayer totals are locked for this goal and will automatically
+              adjust if menstruation is logged from the home screen.
+            </Text>
+          ) : null}
           <View style={styles.sliderGroup}>
             <SliderHeading text={t("prayerGoals.beforeFajrHeading")} />
             <CustomSlider
@@ -259,7 +276,7 @@ export default function SunnahRawatibGoalSelection({
                 text={t("prayerGoals.beforeAsrHeading")}
                 style={[
                   styles.switchHeading,
-                  !isBeforeAsarEnabled && styles.disabledText
+                  !isBeforeAsarEnabled && styles.disabledText,
                 ]}
               />
               <SwitchButton

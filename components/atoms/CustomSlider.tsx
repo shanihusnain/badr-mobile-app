@@ -263,7 +263,7 @@ export default function CustomSlider({
 const styles = StyleSheet.create({
   container: {
     width: "112%",
-    marginVertical: 12,
+    marginVertical: 8,
     alignSelf: "center",
   },
 

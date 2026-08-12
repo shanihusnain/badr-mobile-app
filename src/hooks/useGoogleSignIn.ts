@@ -5,24 +5,21 @@ import {
   mergeSocialLoginUser,
   needsSocialProfileCompletion,
 } from "@/src/utils/needsSocialProfileCompletion";
-import {
-  GoogleSignin,
-  isErrorWithCode,
-  isSuccessResponse,
-  statusCodes,
-} from "@react-native-google-signin/google-signin";
 import { useRouter } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 
 const webClientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? "";
 const iosClientId = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID;
 
 let isConfigured = false;
 
+const getGoogleSignIn = () =>
+  require("@react-native-google-signin/google-signin") as typeof import("@react-native-google-signin/google-signin");
+
 const configureGoogleSignIn = () => {
   if (isConfigured || !webClientId) return;
 
-  GoogleSignin.configure({
+  getGoogleSignIn().GoogleSignin.configure({
     webClientId,
     ...(iosClientId ? { iosClientId } : {}),
   });
@@ -36,10 +33,6 @@ export const useGoogleSignIn = () => {
     useGoogleLogin();
   const [isPrompting, setIsPrompting] = useState(false);
 
-  useEffect(() => {
-    configureGoogleSignIn();
-  }, []);
-
   const signInWithGoogle = useCallback(async () => {
     if (isPrompting || isExchanging) return;
 
@@ -47,6 +40,13 @@ export const useGoogleSignIn = () => {
       showToast("error", "Google Web client ID is not configured");
       return;
     }
+
+    const {
+      GoogleSignin,
+      isErrorWithCode,
+      isSuccessResponse,
+      statusCodes,
+    } = getGoogleSignIn();
 
     configureGoogleSignIn();
 
@@ -112,6 +112,7 @@ export const useGoogleSignIn = () => {
 
       router.replace("/(private)/greetingsscreen");
     } catch (error) {
+      const { isErrorWithCode, statusCodes } = getGoogleSignIn();
       if (isErrorWithCode(error)) {
         if (error.code === statusCodes.SIGN_IN_CANCELLED) return;
         if (error.code === statusCodes.IN_PROGRESS) return;

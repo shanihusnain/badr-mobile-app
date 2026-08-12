@@ -832,6 +832,15 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
     const { mutate: bulkUpsertQuranGoals, isPending: isSavingQuran } =
       useBulkUpsertQuranGoals();
 
+    // React-query exposes a single `isSavingPrayer` boolean for the whole category.
+    // Track the specific prayerType being saved so only that goal shows loading.
+    const [savingPrayerType, setSavingPrayerType] = useState<string | null>(
+      null,
+    );
+    useEffect(() => {
+      if (!isSavingPrayer) setSavingPrayerType(null);
+    }, [isSavingPrayer]);
+
     const handlePrayerToggle = useCallback(
       (prayerId: string, prayerType: string, isSelected: boolean) => {
         if (isSelected && !canEnableGoalInCategory("prayer", prayerId)) {
@@ -1325,6 +1334,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         onDone?: () => void,
         onFail?: () => void,
       ) => {
+        setSavingPrayerType(payload.prayerType);
         upsertPrayerGoal(payload, {
           onSuccess: () => {
             const id = goalId ?? PRAYER_TYPE_TO_UI_ID[payload.prayerType];
@@ -2164,10 +2174,12 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                 sourcePrayer?.qiyamConfig
                   ? {
                       isFlexible: Boolean(sourcePrayer.qiyamConfig.isFlexible),
-                      unitTarget: sourcePrayer.qiyamConfig.unitTarget ?? 1,
-                      trackTahajjud: Boolean(
-                        sourcePrayer.qiyamConfig.trackTahajjud,
-                      ),
+                      unitTarget:
+                        Number(sourcePrayer.qiyamConfig.unitTarget) > 0
+                          ? Number(sourcePrayer.qiyamConfig.unitTarget)
+                          : 1,
+                      trackTahajjud:
+                        sourcePrayer.qiyamConfig.trackTahajjud ?? true,
                     }
                   : undefined
               }
@@ -2400,7 +2412,10 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                       <View style={styles.goalSelectionBelowCard}>
                         <TahiyatWuduGoalSelection
                           initialValue={getSimpleTargetCount(prayer, 1)}
-                          isSaving={isSavingPrayer}
+                          isSaving={
+                            isSavingPrayer &&
+                            savingPrayerType === prayer.prayerType
+                          }
                           onSave={(value, onDone, onFail) =>
                             saveSimplePrayerTarget(
                               prayer.prayerType,
@@ -2416,7 +2431,10 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                       <View style={styles.goalSelectionBelowCard}>
                         <DailyPrayerGoalSelection
                           initialValues={getFiveDailyInitial(prayer)}
-                          isSaving={isSavingPrayer}
+                          isSaving={
+                            isSavingPrayer &&
+                            savingPrayerType === prayer.prayerType
+                          }
                           onSave={(
                             fajr,
                             dhuhr,
@@ -2454,7 +2472,10 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                       <View style={styles.goalSelectionBelowCard}>
                         <SunnahRawatibGoalSelection
                           initialValues={getSunnahInitial(prayer)}
-                          isSaving={isSavingPrayer}
+                          isSaving={
+                            isSavingPrayer &&
+                            savingPrayerType === prayer.prayerType
+                          }
                           onSave={(payload, onDone, onFail) => {
                             persistPrayerGoal(
                               {
@@ -2486,7 +2507,10 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                       <View style={styles.goalSelectionBelowCard}>
                         <TahiyyatMasjidGoalSelection
                           initialValue={getSimpleTargetCount(prayer, 1)}
-                          isSaving={isSavingPrayer}
+                          isSaving={
+                            isSavingPrayer &&
+                            savingPrayerType === prayer.prayerType
+                          }
                           onSave={(value, onDone, onFail) =>
                             saveSimplePrayerTarget(
                               prayer.prayerType,
@@ -2502,7 +2526,10 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                       <View style={styles.goalSelectionBelowCard}>
                         <MissedPrayerGoalSelection
                           initialValue={getMissedTargetDays(prayer, 3)}
-                          isSaving={isSavingPrayer}
+                          isSaving={
+                            isSavingPrayer &&
+                            savingPrayerType === prayer.prayerType
+                          }
                           onSave={(value, onDone, onFail) => {
                             persistPrayerGoal(
                               {
@@ -2524,7 +2551,10 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                       <View style={styles.goalSelectionBelowCard}>
                         <DuhaPrayerGoalSelection
                           initialValue={getSimpleTargetCount(prayer, 1)}
-                          isSaving={isSavingPrayer}
+                          isSaving={
+                            isSavingPrayer &&
+                            savingPrayerType === prayer.prayerType
+                          }
                           onSave={(value, onDone, onFail) =>
                             saveSimplePrayerTarget(
                               prayer.prayerType,
@@ -2540,7 +2570,10 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                       <View style={styles.goalSelectionBelowCard}>
                         <TawbahPrayerGoalSelection
                           initialValue={getSimpleTargetCount(prayer, 1)}
-                          isSaving={isSavingPrayer}
+                          isSaving={
+                            isSavingPrayer &&
+                            savingPrayerType === prayer.prayerType
+                          }
                           onSave={(value, onDone, onFail) =>
                             saveSimplePrayerTarget(
                               prayer.prayerType,
@@ -2556,7 +2589,10 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                       <View style={styles.goalSelectionBelowCard}>
                         <IstikharaPrayerGoalSelection
                           initialValue={getSimpleTargetCount(prayer, 1)}
-                          isSaving={isSavingPrayer}
+                          isSaving={
+                            isSavingPrayer &&
+                            savingPrayerType === prayer.prayerType
+                          }
                           onSave={(value, onDone, onFail) =>
                             saveSimplePrayerTarget(
                               prayer.prayerType,
@@ -2572,7 +2608,10 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                       <View style={styles.goalSelectionBelowCard}>
                         <ShukarPrayerGoalSelection
                           initialValue={getSimpleTargetCount(prayer, 1)}
-                          isSaving={isSavingPrayer}
+                          isSaving={
+                            isSavingPrayer &&
+                            savingPrayerType === prayer.prayerType
+                          }
                           onSave={(value, onDone, onFail) =>
                             saveSimplePrayerTarget(
                               prayer.prayerType,
@@ -2588,7 +2627,10 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                       <View style={styles.goalSelectionBelowCard}>
                         <QiyamalLaylGoalSelection
                           initialValues={getQiyamInitial(prayer)}
-                          isSaving={isSavingPrayer}
+                          isSaving={
+                            isSavingPrayer &&
+                            savingPrayerType === prayer.prayerType
+                          }
                           onSave={(payload, onDone, onFail) => {
                             persistPrayerGoal(
                               {

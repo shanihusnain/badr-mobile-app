@@ -143,16 +143,13 @@ export default function LoginScreen() {
                   />
 
                   {/* Social login temporarily disabled */}
-                  <TouchableOpacity
-                    style={styles.orloginContainer}
-                    activeOpacity={0.7}
-                  >
+                  <View style={styles.orloginContainer}>
                     <View style={styles.line} />
                     <Text style={styles.orloginText}>
                       {t("loginScreen.orLoginWith")}
                     </Text>
                     <View style={styles.line} />
-                  </TouchableOpacity>
+                  </View>
                   <TopSpace top={30} />
                   <SocialAuthSection disabled={loggingIn} />
 
