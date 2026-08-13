@@ -7,49 +7,54 @@ import { useAuth } from "@/provider/useAuth";
 import { globalStyles } from "@/src/globalstyles/globalstyles";
 import { router } from "expo-router";
 import { useEffect } from "react";
-import { Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 export const GreetingsScreen = () => {
   useEffect(() => {
-    setTimeout(() => {
-      router.replace("/(private)/setpersonalizedgoals");
-    }, 5000);
+    // setTimeout(() => {
+    //   router.push("/(private)/setpersonalizedgoals");
+    // }, 5000);
   }, []);
 
   const { user } = useAuth();
   console.log(user);
   return (
     <BlackScreenWrapper>
-      <TopSpace top={30} />
-      <Text
-        style={{
-          fontWeight: "500",
-          fontFamily: fonts.primary.medium,
-          fontSize: 18,
-          color: Colors.light.white,
-          marginBottom: 20,
-          lineHeight: 22,
-          textTransform: "uppercase",
-          letterSpacing: 0,
-        }}
+      <Pressable
+        onPress={() => router.push("/(private)/setpersonalizedgoals")}
+        style={{ flex: 1 }}
       >
-        Assalamu alaykum, {user?.username}!
-      </Text>
-      <View style={globalStyles.rowCenter}>
-        <GreenDash />
+        <TopSpace top={30} />
         <Text
           style={{
-            color: Colors.light.white,
-            fontSize: 14,
-            fontFamily: fonts.primary.medium,
             fontWeight: "500",
-            marginLeft: 8,
-            lineHeight: 18,
+            fontFamily: fonts.primary.medium,
+            fontSize: 18,
+            color: Colors.light.white,
+            marginBottom: 20,
+            lineHeight: 22,
+            textTransform: "uppercase",
+            letterSpacing: 0,
           }}
         >
-          {"Let's Begin".toUpperCase()}
+          Assalamu alaykum, {user?.username}!
         </Text>
-      </View>
+        <View style={globalStyles.rowCenter}>
+          <GreenDash />
+          <Text
+            style={{
+              color: Colors.light.white,
+              fontSize: 14,
+              fontFamily: fonts.primary.medium,
+              fontWeight: "500",
+              marginLeft: 8,
+              lineHeight: 18,
+            }}
+          >
+            {"Let's Begin".toUpperCase()}
+          </Text>
+        </View>
+      </Pressable>
     </BlackScreenWrapper>
   );
 };
