@@ -27,6 +27,7 @@ export default function QiyamalLaylGoalSelection({
   onSave,
   initialValues,
   isSaving = false,
+  openOnMount = false,
 }: {
   onSave?: (
     value: {
@@ -45,10 +46,11 @@ export default function QiyamalLaylGoalSelection({
     trackTahajjud?: boolean;
   };
   isSaving?: boolean;
+  openOnMount?: boolean;
 }) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(openOnMount);
   const [commitment, setCommitment] = useState<"every_night" | "flexible">(
     initialValues?.isFlexible ? "flexible" : "every_night",
   );
@@ -56,7 +58,13 @@ export default function QiyamalLaylGoalSelection({
     initialValues?.unitTarget ?? 1,
   );
   const [trackTahajjud, setTrackTahajjud] = useState<"yes" | "no">(
-    initialValues?.trackTahajjud ? "yes" : "no",
+    // If `initialValues` is absent or does not include `trackTahajjud`,
+    // default to "yes" for new users. Only use provided boolean when set.
+    initialValues?.trackTahajjud === undefined
+      ? "yes"
+      : initialValues.trackTahajjud
+        ? "yes"
+        : "no",
   );
   const [summaryTextWidth, setSummaryTextWidth] = useState<number | null>(
     null,
@@ -81,6 +89,13 @@ export default function QiyamalLaylGoalSelection({
   };
 
   const handleSave = (markSaved: () => void, markFailed?: () => void) => {
+    const handleSavedSuccess = () => {
+      markSaved();
+      setTimeout(() => {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+        setIsOpen(false);
+      }, 2000);
+    };
     onSave?.(
       {
         commitment,
@@ -88,7 +103,7 @@ export default function QiyamalLaylGoalSelection({
         witrPrayers: 28,
         trackTahajjud,
       },
-      markSaved,
+      handleSavedSuccess,
       markFailed,
     );
   };

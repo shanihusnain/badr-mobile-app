@@ -87,14 +87,13 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
     };
 
     const selectedOption = getSelectedOption();
+    const hasValue =
+      currentValue !== undefined &&
+      currentValue !== null &&
+      String(currentValue).trim() !== "";
 
     const getDisplayLabel = (): string => {
-      if (
-        currentValue === undefined ||
-        currentValue === null ||
-        currentValue === ""
-      )
-        return placeholder;
+      if (!hasValue) return placeholder;
       if (!selectedOption) return String(currentValue);
       return typeof selectedOption === "string"
         ? selectedOption
@@ -131,8 +130,7 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
             <Text
               style={[
                 styles.triggerText,
-                selectedTextStyle,
-                !currentValue && { color: Colors.light.icon },
+                hasValue ? selectedTextStyle : styles.placeholderText,
               ]}
             >
               {getDisplayLabel()}
@@ -247,6 +245,12 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.semiBold,
     fontSize: 12,
     flex: 1,
+  },
+  placeholderText: {
+    color: Colors.light.placeholder,
+    fontFamily: fonts.primary.medium,
+    fontWeight: "500",
+    fontSize: 15,
   },
   optionIcon: {
     fontSize: 14,

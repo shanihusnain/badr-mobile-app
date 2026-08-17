@@ -112,6 +112,8 @@ export type CalendarGridProps = {
   whiteDayDates?: string[];
   /** Overlay Prophet Dawood fast dates (mon_thu / white_days selection calendars). */
   dawoodDates?: string[];
+  /** Dates that overlap another fasting goal — selected days use the bright accent. */
+  conflictDates?: string[];
   /** Multi-select highlight (e.g. chosen Mon/Thu dates while editing). */
   selectedDates?: string[];
   /** Planned vs. progress markers (planned_progress mode). */
@@ -221,6 +223,7 @@ export const CalendarGrid = ({
   monThuDates = [],
   whiteDayDates = [],
   dawoodDates = [],
+  conflictDates: _conflictDates = [],
   plannedFastMarkers = [],
   dawoodStartDay = 1,
   dimInactiveDays = true,
@@ -344,41 +347,44 @@ export const CalendarGrid = ({
       }
 
       // ── Missed Ramadan Fasts ────────────────────────────────────────
-      // Selected: ramadan ring. Other goals: dimmed ring, not selectable.
+      // Own selected days stay the light ramadan brown.
+      // Other goals that land on this date show their BRIGHT color
+      // so you can tell the day is already claimed elsewhere.
       case "ramadan": {
         const isUserSelected = markedSet.has(ds);
         const hasMonThu = monThuSet.has(ds);
         const hasWhiteDay = whiteDaySet.has(ds);
         const hasDawood = dawoodSet.has(ds);
+        const claimedByOther = hasMonThu || hasWhiteDay || hasDawood;
 
-        if (isUserSelected) {
+        if (hasMonThu) {
+          cellOpacity = 1;
+          circleStyle = {
+            borderWidth: 1,
+            borderColor: Colors.light.ringMonThuBright,
+          };
+          textStyle = { color: Colors.light.ringMonThuBright };
+        } else if (hasDawood) {
+          cellOpacity = 1;
+          circleStyle = {
+            borderWidth: 1,
+            borderColor: Colors.light.ringDawoodBright,
+          };
+          textStyle = { color: Colors.light.ringDawoodBright };
+        } else if (hasWhiteDay) {
+          cellOpacity = 1;
+          circleStyle = {
+            borderWidth: 1,
+            borderColor: Colors.light.ringWhiteDaysBright,
+          };
+          textStyle = { color: Colors.light.ringWhiteDaysBright };
+        } else if (isUserSelected) {
           cellOpacity = 1;
           circleStyle = {
             borderWidth: 1,
             borderColor: Colors.light.ringRamadan,
           };
           textStyle = { color: Colors.light.ringRamadan };
-        } else if (hasMonThu) {
-          cellOpacity = dimInactiveDays ? 0.35 : 1;
-          circleStyle = {
-            borderWidth: 1,
-            borderColor: Colors.light.ringMonThu,
-          };
-          textStyle = { color: Colors.light.ringMonThu };
-        } else if (hasDawood) {
-          cellOpacity = dimInactiveDays ? 0.35 : 1;
-          circleStyle = {
-            borderWidth: 1,
-            borderColor: Colors.light.ringDawood,
-          };
-          textStyle = { color: Colors.light.ringDawood };
-        } else if (hasWhiteDay) {
-          cellOpacity = dimInactiveDays ? 0.35 : 1;
-          circleStyle = {
-            borderWidth: 1,
-            borderColor: Colors.light.white,
-          };
-          textStyle = { color: Colors.light.white };
         }
         break;
       }
@@ -399,8 +405,9 @@ export const CalendarGrid = ({
       }
 
       // ── Monday & Thursday Fasts ─────────────────────────────────────
-      // Unselected Mon/Thu: no ring (still tappable). Selected: white ring.
-      // Other goals (missed Ramadan / white days / Dawood): dimmed ring in that goal color.
+      // Own selected Mon/Thu stay light green.
+      // A White Day / Ramadan / Dawood that falls on a Mon/Thu shows that
+      // other goal's BRIGHT color so the clash is visible here.
       case "mon_thu": {
         const isMonThu =
           monThuSet.size > 0
@@ -410,8 +417,31 @@ export const CalendarGrid = ({
         const hasMissedRamadan = markedSet.has(ds);
         const hasWhiteDay = whiteDaySet.has(ds);
         const hasDawood = dawoodSet.has(ds);
+        const collidesWithOtherGoal =
+          isMonThu && (hasMissedRamadan || hasWhiteDay || hasDawood);
 
-        if (isUserSelected && isMonThu) {
+        if (collidesWithOtherGoal && hasMissedRamadan) {
+          cellOpacity = 1;
+          circleStyle = {
+            borderWidth: 1,
+            borderColor: Colors.light.ringRamadanBright,
+          };
+          textStyle = { color: Colors.light.ringRamadanBright };
+        } else if (collidesWithOtherGoal && hasDawood) {
+          cellOpacity = 1;
+          circleStyle = {
+            borderWidth: 1,
+            borderColor: Colors.light.ringDawoodBright,
+          };
+          textStyle = { color: Colors.light.ringDawoodBright };
+        } else if (collidesWithOtherGoal && hasWhiteDay) {
+          cellOpacity = 1;
+          circleStyle = {
+            borderWidth: 1,
+            borderColor: Colors.light.ringWhiteDaysBright,
+          };
+          textStyle = { color: Colors.light.ringWhiteDaysBright };
+        } else if (isUserSelected && isMonThu) {
           cellOpacity = 1;
           circleStyle = {
             borderWidth: 1,
@@ -440,7 +470,6 @@ export const CalendarGrid = ({
           };
           textStyle = { color: Colors.light.white };
         } else if (isMonThu) {
-          // Selectable but unselected — no ring, keep readable
           cellOpacity = 1;
           textStyle = { color: Colors.light.white };
         } else {
@@ -451,8 +480,9 @@ export const CalendarGrid = ({
       }
 
       // ── White Days (Hijri 13, 14, 15) ──────────────────────────────
-      // Unselected White Day: no ring (still tappable). Selected: white ring.
-      // Other goals: dimmed ring in that goal color (not selectable).
+      // Own selected White Days stay white.
+      // A Mon/Thu (or Ramadan / Dawood) that falls on a White Day shows
+      // that other goal's BRIGHT color so you can see it is already taken.
       case "white_days": {
         const isWhiteDay =
           whiteDaySet.size > 0
@@ -462,8 +492,31 @@ export const CalendarGrid = ({
         const hasMissedRamadan = markedSet.has(ds);
         const hasMonThu = monThuSet.has(ds);
         const hasDawood = dawoodSet.has(ds);
+        const collidesWithOtherGoal =
+          isWhiteDay && (hasMissedRamadan || hasMonThu || hasDawood);
 
-        if (isUserSelected && isWhiteDay) {
+        if (collidesWithOtherGoal && hasMonThu) {
+          cellOpacity = 1;
+          circleStyle = {
+            borderWidth: 1,
+            borderColor: Colors.light.ringMonThuBright,
+          };
+          textStyle = { color: Colors.light.ringMonThuBright };
+        } else if (collidesWithOtherGoal && hasMissedRamadan) {
+          cellOpacity = 1;
+          circleStyle = {
+            borderWidth: 1,
+            borderColor: Colors.light.ringRamadanBright,
+          };
+          textStyle = { color: Colors.light.ringRamadanBright };
+        } else if (collidesWithOtherGoal && hasDawood) {
+          cellOpacity = 1;
+          circleStyle = {
+            borderWidth: 1,
+            borderColor: Colors.light.ringDawoodBright,
+          };
+          textStyle = { color: Colors.light.ringDawoodBright };
+        } else if (isUserSelected && isWhiteDay) {
           cellOpacity = 1;
           circleStyle = {
             borderWidth: 1,

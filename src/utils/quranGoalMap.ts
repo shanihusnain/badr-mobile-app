@@ -9,6 +9,10 @@ import type {
   QuranGoalItemPayload,
   UpsertQuranGoalPayload,
 } from "@/src/api/mutations/useUpsertQuranGoal";
+import {
+  rememberQuranSurahFrequencies,
+  resolveQuranSurahFrequency,
+} from "@/src/storage/quranSurahFrequencyStorage";
 
 /** Backend quranGoalType → local UI card id */
 export const QURAN_TYPE_TO_UI_ID: Record<string, string> = {
@@ -73,7 +77,10 @@ const SURAH_NAMES: Record<number, string> = {
 
 function toApiFrequency(freq?: string): string {
   if (!freq) return "DAILY";
-  return freq.toUpperCase();
+  const normalized = freq.toLowerCase();
+  if (normalized === "weekly" || normalized === "week") return "WEEKLY";
+  if (normalized === "monthly" || normalized === "month") return "MONTHLY";
+  return "DAILY";
 }
 
 type SurahMetricValue = {
@@ -539,9 +546,6 @@ export function getSelectedSurahIdsFromDetail(
 export function getSurahSettingsFromDetail(
   detail: QuranGoalDetail | null | undefined,
 ): Record<number, { frequency: "daily" | "weekly"; times: number }> {
-  const frequency = String(detail?.frequency ?? "MONTHLY").toLowerCase();
-  const uiFrequency: "daily" | "weekly" =
-    frequency === "weekly" ? "weekly" : "daily";
   const settings: Record<
     number,
     { frequency: "daily" | "weekly"; times: number }
@@ -550,9 +554,15 @@ export function getSurahSettingsFromDetail(
     if (String(item.itemType).toUpperCase() !== "SURAH") continue;
     const id = Number(item.itemNumber);
     if (!Number.isFinite(id) || id <= 0) continue;
+    const times = Number(item.targetCount ?? 1) || 1;
     settings[id] = {
-      frequency: uiFrequency,
-      times: Number(item.targetCount ?? 1) || 1,
+      frequency: resolveQuranSurahFrequency({
+        surahId: id,
+        times,
+        itemFrequency: (item as { frequency?: string | null }).frequency,
+        goalFrequency: detail?.frequency,
+      }),
+      times,
     };
   }
   return settings;
@@ -684,6 +694,7 @@ export function buildQuranMetricUpsertPayload(
     const selected = surah.selectedSurahs ?? [];
     if (selected.length === 0) return null;
     const settings = surah.surahSettings ?? {};
+    rememberQuranSurahFrequencies(settings);
     const firstFreq = settings[selected[0]]?.frequency;
     const items: QuranGoalItemPayload[] = selected.map((id) => ({
       itemType: "SURAH",

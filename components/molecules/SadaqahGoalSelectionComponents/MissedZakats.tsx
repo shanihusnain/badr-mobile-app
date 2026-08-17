@@ -1,10 +1,10 @@
-import { Colors } from "@/constants/theme";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import GoalSelectionSaveButton from "@/components/molecules/GoalSelectionSaveButton";
 import { CurrencyAndAmountSelector } from "../CurrencyAndAmountSelector";
 import { Counter } from "../Counter";
 import { LayoutAnimation, View } from "react-native";
 import { useState } from "react";
+import { useWatch } from "react-hook-form";
 import { GoalSelectionOpenCloseButton } from "../GoalSelectionOpenCloseButton";
 import { globalStyles } from "@/src/globalstyles/globalstyles";
 import { useTranslation } from "react-i18next";
@@ -21,6 +21,7 @@ export const MissedZakats = ({
   onSave,
   isSaving,
   onSetAsDefaultCurrency,
+  openOnMount = false,
 }: {
   control: any;
   name: string;
@@ -33,9 +34,12 @@ export const MissedZakats = ({
   onSave?: (onDone?: () => void, onFail?: () => void) => void;
   isSaving?: boolean;
   onSetAsDefaultCurrency?: (currencyOptionValue: string) => void;
+  openOnMount?: boolean;
 }) => {
   const { t } = useTranslation();
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(openOnMount);
+  const selectedCurrency = useWatch({ control, name });
+  const hasCurrency = Boolean(String(selectedCurrency ?? "").trim());
   const toggleDropdown = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setIsOpen(!isOpen);
@@ -74,11 +78,18 @@ export const MissedZakats = ({
               <TopSpace top={16} />
               <GoalSelectionSaveButton
                 text={t("monthlyGoalPlanner.save")}
-                onPress={(markSaved, markFailed) =>
-                  onSave?.(markSaved, markFailed)
-                }
+                onPress={(markSaved, markFailed) => {
+                  const handleSaved = () => {
+                    markSaved?.();
+                    setTimeout(() => {
+                      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                      setIsOpen(false);
+                    }, 2000);
+                  };
+                  onSave?.(handleSaved, markFailed);
+                }}
                 isLoading={isSaving}
-                disabled={isSaving || count < 1}
+                disabled={isSaving || count < 1 || !hasCurrency}
               />
             </>
           ) : null}

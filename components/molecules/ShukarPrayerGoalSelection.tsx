@@ -14,15 +14,17 @@ export default function ShukarPrayerGoalSelection({
   onSave,
   initialValue = 1,
   isSaving = false,
+  openOnMount = false,
 }: {
   onSave?: (value: number, onDone?: () => void, onFail?: () => void) => void;
   isSaving?: boolean;
+  openOnMount?: boolean;
   initialValue?: number;
 }) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
   const [sliderValue, setSliderValue] = useState(initialValue);
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(openOnMount);
 
   const toggleDropdown = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -58,7 +60,14 @@ export default function ShukarPrayerGoalSelection({
             <GoalSelectionSaveButton
               text={t("prayerGoals.save").toLocaleUpperCase()}
               onPress={(markSaved, markFailed) => {
-                onSave?.(sliderValue, markSaved, markFailed);
+                const handleSaved = () => {
+                  markSaved?.();
+                  setTimeout(() => {
+                    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                    setIsOpen(false);
+                  }, 2000);
+                };
+                onSave?.(sliderValue, handleSaved, markFailed);
               }}
               isLoading={isSaving}
               disabled={isSaving}

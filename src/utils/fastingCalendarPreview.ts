@@ -286,9 +286,42 @@ export function getFastingLegendItems(
 }
 
 /**
- * Mon/Thu dates the user can pick — excludes days claimed by other fasting goals.
- * Uses planned dates only (not activePotentials, which mark every Mon/Thu while a goal is on).
+ * Dates where the current fasting goal overlaps another goal in this cycle.
+ * Used to brighten only colliding selected days.
  */
+export function getFastingCollisionDates(
+  calendarWindow: FastingCalendarWindow | null | undefined,
+  currentType: FastingLegendType,
+): string[] {
+  if (!calendarWindow) return [];
+
+  const activeGoals = new Set<FastingLegendType>([
+    ...calendarWindow.plannedTypes,
+    ...calendarWindow.activePotentialTypes,
+  ]);
+
+  const dates = new Set<string>(calendarWindow.conflictDates ?? []);
+
+  if (currentType !== "WHITE_DAYS" && activeGoals.has("WHITE_DAYS")) {
+    for (const date of calendarWindow.whiteDayDates) dates.add(date);
+  }
+  if (currentType !== "MONDAY_THURSDAY" && activeGoals.has("MONDAY_THURSDAY")) {
+    for (const date of calendarWindow.monThuDates) dates.add(date);
+  }
+  if (currentType !== "MISSED_RAMADAN" && activeGoals.has("MISSED_RAMADAN")) {
+    for (const date of calendarWindow.missedRamadanDates) dates.add(date);
+  }
+  if (currentType !== "PROPHET_DAWOOD" && activeGoals.has("PROPHET_DAWOOD")) {
+    const dawood =
+      calendarWindow.dawoodPlannedDates.length > 0
+        ? calendarWindow.dawoodPlannedDates
+        : calendarWindow.dawoodDates;
+    for (const date of dawood) dates.add(date);
+  }
+
+  return Array.from(dates);
+}
+
 export function getSelectableMonThuDates(
   calendarWindow?: FastingCalendarWindow | null,
 ): string[] {

@@ -18,6 +18,7 @@ import type {
   QuranHizbOption,
   QuranJuzOption,
 } from "@/src/utils/quranGoalMap";
+import { resolveQuranSurahFrequency } from "@/src/storage/quranSurahFrequencyStorage";
 
 export type ReviewSelectedGoal = {
   id: number;
@@ -341,7 +342,14 @@ function ensureSurahPrefix(name: string): string {
   return `Surah ${trimmed}`;
 }
 
-/** e.g. "Surah Al-Baqarah (2 times daily)" */
+function isWeeklySurahFrequency(frequency: string | null | undefined): boolean {
+  const normalized = String(frequency ?? "")
+    .trim()
+    .toLowerCase();
+  return normalized === "weekly" || normalized === "week";
+}
+
+/** e.g. "Surah Al-Baqarah (2 times daily)" / "Surah Al-Imran (3 days per week)" */
 export function formatSurahRecitationReviewLabel(
   surahName: string,
   times: number,
@@ -350,9 +358,8 @@ export function formatSurahRecitationReviewLabel(
 ): string {
   const surah = ensureSurahPrefix(surahName);
   const count = Number.isFinite(times) && times > 0 ? times : 1;
-  const isWeekly = String(frequency ?? "").toLowerCase() === "weekly";
 
-  if (isWeekly) {
+  if (isWeeklySurahFrequency(frequency)) {
     return count === 1
       ? t("progressLogging.recitationSurahMetaWeeklyOnce", { surah })
       : t("progressLogging.recitationSurahMetaWeeklyTimes", {
@@ -364,6 +371,45 @@ export function formatSurahRecitationReviewLabel(
   return count === 1
     ? t("progressLogging.recitationSurahMetaDailyOnce", { surah })
     : t("progressLogging.recitationSurahMetaDailyTimes", { surah, count });
+}
+
+/** Build review rows from live surah metric state (per-surah frequency). */
+export function buildSurahRecitationReviewSelectedGoals(
+  surah: {
+    selectedSurahs?: number[];
+    surahSettings?: Record<
+      number,
+      { frequency?: string; times?: number }
+    >;
+    surahNames?: Record<number, string>;
+  },
+  t: TFunction,
+): ReviewSelectedGoal[] {
+  const selected = Array.isArray(surah.selectedSurahs)
+    ? surah.selectedSurahs
+    : [];
+  const settings = surah.surahSettings ?? {};
+  const names = surah.surahNames ?? {};
+
+  return selected.map((id, i) => {
+    const times = Number(settings[id]?.times ?? 1) || 1;
+    const frequency = resolveQuranSurahFrequency({
+      surahId: id,
+      times,
+      itemFrequency: settings[id]?.frequency,
+    });
+    return {
+      id: i + 1,
+      name: `SURAH-${id}`,
+      label: formatSurahRecitationReviewLabel(
+        String(names[id] ?? `Surah ${id}`),
+        times,
+        frequency,
+        t,
+      ),
+      value: "",
+    };
+  });
 }
 
 export function parseJuzRangeReviewName(
@@ -473,13 +519,20 @@ function mapQuranGoal(
     const surahName = item.surahName ?? fallbackName;
 
     if (isSurahRecitation) {
+      const times = item.targetCount ?? 1;
+      const frequency = resolveQuranSurahFrequency({
+        surahId: itemNumber,
+        times,
+        itemFrequency: item.frequency,
+        goalFrequency: goal.frequency,
+      });
       return {
         id: i + 1,
         name: `${item.itemType}-${item.itemNumber}`,
         label: formatSurahRecitationReviewLabel(
           surahName,
-          item.targetCount ?? 1,
-          goal.frequency,
+          times,
+          frequency,
           t,
         ),
         value: "",

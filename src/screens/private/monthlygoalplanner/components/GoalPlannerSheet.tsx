@@ -5,6 +5,7 @@ import {
   BottomSheetBackdrop,
   BottomSheetFlatList,
   BottomSheetModal,
+  type BottomSheetFlatListMethods,
 } from "@gorhom/bottom-sheet";
 import { ScrollView as RNScrollView } from "react-native-gesture-handler";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -103,12 +104,16 @@ import { useGetGoalCycleById } from "@/src/api/queries/useGetGoalCycleById";
 import {
   mapReviewFromGoalCycle,
   resolveJuzOrHizbReviewRow,
-  formatSurahRecitationReviewLabel,
   formatFastingReviewRowsFromDates,
   buildJuzRecitationRangeReviewRow,
+  buildSurahRecitationReviewSelectedGoals,
   countJuzInRange,
   parseJuzRangeReviewName,
 } from "@/src/utils/mapReviewFromGoalCycle";
+import {
+  hydrateQuranSurahFrequencies,
+  rememberQuranSurahFrequencies,
+} from "@/src/storage/quranSurahFrequencyStorage";
 import { useToggleQuranGoalByType } from "@/src/api/mutations/useToggleQuranGoalByType";
 import { useToggleFastingGoalByType } from "@/src/api/mutations/useToggleFastingGoalByType";
 import { useToggleSadaqahGoalByType } from "@/src/api/mutations/useToggleSadaqahGoalByType";
@@ -138,7 +143,6 @@ import {
   extractCurrencyCode,
 } from "@/src/utils/sadaqahGoalMap";
 import { currencyOptionFromCode } from "@/components/molecules/CurrencyAndAmountSelector";
-import { getDefaultSadaqahCurrency } from "@/src/storage/sadaqahCurrencyStorage";
 import { buildFastingCalendarWindow } from "@/src/utils/fastingCalendarPreview";
 import { showToast } from "@/src/config/toastConfig";
 
@@ -148,6 +152,11 @@ const OTHER_FASTING_GOAL_IDS = [
   "white-days-fasts",
 ] as const;
 const DAWOOD_FAST_GOAL_ID = "dawood-fasts";
+/** Wait for the current editor to show SAVED! and collapse before opening the next. */
+const ADVANCE_TO_NEXT_GOAL_MS = 2100;
+/** Fallback row height until onLayout measures each goal card. */
+const GOAL_ITEM_ESTIMATED_HEIGHT = 380;
+const GOAL_LIST_ITEM_GAP = 20;
 
 const SADAQAH_CURRENCY_FIELDS = [
   "missedZakat",
@@ -165,12 +174,7 @@ const PRAYER_GOAL_LOADING_PLACEHOLDERS = Object.keys(PRAYER_TYPE_TO_UI_ID).map(
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 export type Tab =
-  | "cycle"
-  | "prayer"
-  | "quran"
-  | "fasting"
-  | "sadaqah"
-  | "review";
+  "cycle" | "prayer" | "quran" | "fasting" | "sadaqah" | "review";
 
 const TABS: { id: Tab; label: string; chip?: string }[] = [
   { id: "cycle", label: "Select Cycle Start Date" },
@@ -219,6 +223,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
     const [activeTab, setActiveTab] = useState<Tab>(initialTab ?? "cycle");
     const [cycleStartDate, setCycleStartDate] = useState<string | null>(null);
     const [cycleEndDate, setCycleEndDate] = useState<string | null>(null);
+    const [hasCommittedCycle, setHasCommittedCycle] = useState(false);
     const isCycleDateSelected = !!cycleStartDate;
     const [selectedGoals, setSelectedGoals] = useState<Record<string, boolean>>(
       {},
@@ -233,6 +238,8 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
     const [sadaqahJariyahAmount, setSadaqahJariyahAmount] = useState<number>(0);
     // lifted Quran metrics collected from children
     const [quranMetrics, setQuranMetrics] = useState<Record<string, any>>({});
+    const quranMetricsRef = useRef(quranMetrics);
+    quranMetricsRef.current = quranMetrics;
     // lifted fasting metrics collected from children
     const [fastingMetrics, setFastingMetrics] = useState<Record<string, any>>(
       {},
@@ -283,6 +290,13 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
           ) {
             return prev;
           }
+          if (
+            payload.metric === "surah" &&
+            payload.value?.surahSettings &&
+            typeof payload.value.surahSettings === "object"
+          ) {
+            rememberQuranSurahFrequencies(payload.value.surahSettings);
+          }
           return {
             ...prev,
             [payload.metric]: payload.value,
@@ -310,8 +324,11 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
 
     const confirmFinishAndSave = useCallback(() => {
       setFinishSaveModalVisible(false);
-      router.push({ pathname: "/(tabs)" });
-    }, []);
+      if (ref && typeof ref !== "function") {
+        ref.current?.dismiss();
+      }
+      router.replace("/(tabs)");
+    }, [ref]);
 
     const handleSeeMorePress = useCallback(
       (goal: string) => {
@@ -331,6 +348,30 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
     const goalCycleId = meUser?.goalCycleId ?? null;
     const { data: goalCycleDetail } = useGetGoalCycleById(goalCycleId);
     const locallyToggledGoalIdsRef = useRef<Record<string, boolean>>({});
+    const listRef = useRef<BottomSheetFlatListMethods>(null);
+    const goalItemHeightsRef = useRef<Record<string, number>>({});
+    const advanceToNextGoalTimerRef = useRef<ReturnType<
+      typeof setTimeout
+    > | null>(null);
+    const advanceToNextGoalRef = useRef<(savedGoalId: string) => void>(
+      () => {},
+    );
+    const enableGoalInActiveTabRef = useRef<(goal: any) => void>(() => {});
+    const activeTabRef = useRef(activeTab);
+    activeTabRef.current = activeTab;
+    const selectedGoalsRef = useRef(selectedGoals);
+    selectedGoalsRef.current = selectedGoals;
+
+    const registerGoalItemLayout = useCallback((goalId: string, height: number) => {
+      if (!goalId || height <= 0) return;
+      goalItemHeightsRef.current[goalId] = height;
+    }, []);
+
+    const scrollToGoalItemIdRef = useRef<(goalId: string) => void>(() => {});
+
+    useEffect(() => {
+      hydrateQuranSurahFrequencies();
+    }, []);
 
     // Drop previous-user toggle/config state when the account or cycle changes.
     useEffect(() => {
@@ -343,6 +384,11 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         fasting: null,
         sadaqah: null,
       });
+      setHasCommittedCycle(false);
+      if (advanceToNextGoalTimerRef.current) {
+        clearTimeout(advanceToNextGoalTimerRef.current);
+        advanceToNextGoalTimerRef.current = null;
+      }
     }, [userId, goalCycleId]);
 
     // Hydrate cycle dates from API as the source of truth when the user returns.
@@ -350,6 +396,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
       if (!goalCycleDetail?.startDate) return;
       setCycleStartDate((prev) => prev ?? goalCycleDetail.startDate);
       setCycleEndDate((prev) => prev ?? goalCycleDetail.endDate);
+      setHasCommittedCycle(true);
     }, [goalCycleDetail?.startDate, goalCycleDetail?.endDate]);
 
     const { data: prayerGoalsFromApi, isLoading: loadingPrayerGoals } =
@@ -396,10 +443,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
 
     const quranGoals = useMemo(() => {
       const data = allQuranGoalsResponse as
-        | { goals?: QuranGoalApiItem[] }
-        | QuranGoalApiItem[]
-        | null
-        | undefined;
+        { goals?: QuranGoalApiItem[] } | QuranGoalApiItem[] | null | undefined;
       if (!data) return mapQuranGoalsFromApi([]);
       // Transition / bad cache: older clients stored the bare array or envelope
       if (Array.isArray(data)) return mapQuranGoalsFromApi(data);
@@ -506,7 +550,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
     const [sadaqahMetrics, setSadaqahMetrics] = useState<Record<string, any>>(
       {},
     );
-    const { watch, handleSubmit, control, getValues, setValue } = useForm({
+    const { control, getValues, setValue, reset } = useForm({
       defaultValues: {
         missedZakat: "",
         kafarahForBreakingFasts: "",
@@ -515,6 +559,22 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
       },
       mode: "onChange",
     });
+
+    useEffect(() => {
+      reset({
+        missedZakat: "",
+        kafarahForBreakingFasts: "",
+        lillahDonation: "",
+        sadaqahJariyah: "",
+      });
+      setMissedZakatAmount(0);
+      setLillahAmount(0);
+      setSadaqahJariyahAmount(0);
+      setFidyaMeals(0);
+      setKafarahMeals(0);
+      setKafarahCloths(0);
+      setVolunteeringHours(0);
+    }, [userId, goalCycleId, reset]);
 
     const [reviewExpanded, setReviewExpanded] = useState<string>("");
     const handleReviewItemPress = useCallback(
@@ -552,6 +612,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         });
         return changed ? next : prev;
       });
+      advanceToNextGoalRef.current(goalId);
     }, []);
 
     const isPrayerGoalConfigured = useCallback(
@@ -1014,11 +1075,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
       const dawoodGoal = fastingGoals.find(
         (goal) => goal.id === DAWOOD_FAST_GOAL_ID,
       );
-      handleFastingToggle(
-        DAWOOD_FAST_GOAL_ID,
-        dawoodGoal?.fastingType,
-        true,
-      );
+      handleFastingToggle(DAWOOD_FAST_GOAL_ID, dawoodGoal?.fastingType, true);
     }, [fastingGoals, handleFastingToggle]);
 
     const handleSadaqahToggle = useCallback(
@@ -1062,6 +1119,26 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
       ],
     );
 
+    enableGoalInActiveTabRef.current = (goal: any) => {
+      if (!goal?.id) return;
+      const tab = activeTabRef.current;
+      if (tab === "prayer") {
+        handlePrayerToggle(goal.id, goal.prayerType, true);
+        return;
+      }
+      if (tab === "quran") {
+        void handleQuranToggle(goal.id, goal.apiGoals, true);
+        return;
+      }
+      if (tab === "fasting") {
+        handleFastingToggle(goal.id, goal.fastingType, true);
+        return;
+      }
+      if (tab === "sadaqah") {
+        handleSadaqahToggle(goal.id, goal.sadaqahType, true);
+      }
+    };
+
     const persistSadaqahMetrics = useCallback(
       (
         goalKey: string,
@@ -1075,6 +1152,18 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
       [],
     );
 
+    const requireSadaqahCurrencyCode = useCallback(
+      (field: (typeof SADAQAH_CURRENCY_FIELDS)[number]) => {
+        const code = extractCurrencyCode(getValues(field), "");
+        if (!code) {
+          showToast("error", t("monthlyGoalPlanner.selectCurrencyRequired"));
+          return null;
+        }
+        return code;
+      },
+      [getValues, t],
+    );
+
     const saveMissedZakatGoal = useCallback(
       (goalKey: string, onDone?: () => void, onFail?: () => void) => {
         if (missedZakatAmount < 1) {
@@ -1082,11 +1171,16 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
           onFail?.();
           return;
         }
+        const currencyCode = requireSadaqahCurrencyCode("missedZakat");
+        if (!currencyCode) {
+          onFail?.();
+          return;
+        }
         upsertSadaqahGoal(
           {
             sadaqahType: "MISSED_ZAKAT",
             targetAmount: missedZakatAmount,
-            currencyCode: extractCurrencyCode(getValues("missedZakat")),
+            currencyCode,
           },
           {
             onSuccess: () => {
@@ -1107,7 +1201,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
       [
         missedZakatAmount,
         upsertSadaqahGoal,
-        getValues,
+        requireSadaqahCurrencyCode,
         persistSadaqahMetrics,
         markGoalConfigured,
         t,
@@ -1196,11 +1290,16 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
           onFail?.();
           return;
         }
+        const currencyCode = requireSadaqahCurrencyCode("lillahDonation");
+        if (!currencyCode) {
+          onFail?.();
+          return;
+        }
         upsertSadaqahGoal(
           {
             sadaqahType: "LILLAH",
             targetAmount: lillahAmount,
-            currencyCode: extractCurrencyCode(getValues("lillahDonation")),
+            currencyCode,
           },
           {
             onSuccess: () => {
@@ -1215,7 +1314,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
       [
         lillahAmount,
         upsertSadaqahGoal,
-        getValues,
+        requireSadaqahCurrencyCode,
         persistSadaqahMetrics,
         markGoalConfigured,
       ],
@@ -1260,11 +1359,16 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
           onFail?.();
           return;
         }
+        const currencyCode = requireSadaqahCurrencyCode("sadaqahJariyah");
+        if (!currencyCode) {
+          onFail?.();
+          return;
+        }
         upsertSadaqahGoal(
           {
             sadaqahType: "SADAQAH_JARIYAH",
             targetAmount: sadaqahJariyahAmount,
-            currencyCode: extractCurrencyCode(getValues("sadaqahJariyah")),
+            currencyCode,
             causeCategory: "general",
           },
           {
@@ -1280,7 +1384,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
       [
         sadaqahJariyahAmount,
         upsertSadaqahGoal,
-        getValues,
+        requireSadaqahCurrencyCode,
         persistSadaqahMetrics,
         markGoalConfigured,
       ],
@@ -1300,12 +1404,15 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         if (!currencyCode) return;
         const current = getValues(field);
         if (current && String(current).trim().length > 0) return;
-        setValue(field, currencyOptionFromCode(currencyCode), {
+        const option = currencyOptionFromCode(currencyCode);
+        if (!option) return;
+        setValue(field, option, {
           shouldDirty: false,
         });
       };
 
       for (const goal of sourceGoals) {
+        if (!hasConfiguredSadaqahGoal(goal)) continue;
         const amount = goal.targetAmount ?? 0;
         switch (goal.sadaqahType) {
           case "MISSED_ZAKAT":
@@ -1355,17 +1462,14 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
             break;
         }
       }
-
-      // Fill any remaining empty currency fields from the user's saved default
-      void getDefaultSadaqahCurrency().then((defaultCurrency) => {
-        if (!defaultCurrency) return;
-        for (const field of SADAQAH_CURRENCY_FIELDS) {
-          const current = getValues(field);
-          if (current && String(current).trim().length > 0) continue;
-          setValue(field, defaultCurrency, { shouldDirty: false });
-        }
-      });
-    }, [sadaqahGoals, goalCycleDetail?.sadaqahGoals, getValues, setValue]);
+    }, [
+      sadaqahGoals,
+      goalCycleDetail?.sadaqahGoals,
+      userId,
+      goalCycleId,
+      getValues,
+      setValue,
+    ]);
 
     const applyDefaultSadaqahCurrency = useCallback(
       (currencyOptionValue: string) => {
@@ -1455,7 +1559,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
       ) => {
         const goals = buildBulkQuranGoalsForVariant(
           variant,
-          quranMetrics,
+          quranMetricsRef.current,
           onlyMetric,
         );
         if (goals.length === 0) {
@@ -1478,7 +1582,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
           },
         );
       },
-      [quranMetrics, bulkUpsertQuranGoals, markGoalConfigured],
+      [bulkUpsertQuranGoals, markGoalConfigured],
     );
     // Build a simple data array for the active tab. Use any[] to avoid complex typing across different data shapes
     const tabData: any[] = useMemo(() => {
@@ -1524,6 +1628,78 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
       sadaqahData,
       reviewBtnData,
     ]);
+
+    const tabDataRef = useRef(tabData);
+    tabDataRef.current = tabData;
+
+    scrollToGoalItemIdRef.current = (goalId: string) => {
+      const goals = tabDataRef.current;
+      const index = goals.findIndex((item) => item?.id === goalId);
+      if (index < 0 || !listRef.current) return;
+
+      const computeOffset = () => {
+        let offset = 12;
+        for (let i = 0; i < index; i++) {
+          const id = goals[i]?.id;
+          offset +=
+            (id ? goalItemHeightsRef.current[id] : undefined) ??
+            GOAL_ITEM_ESTIMATED_HEIGHT;
+          offset += GOAL_LIST_ITEM_GAP;
+        }
+        return offset;
+      };
+
+      const runScroll = () => {
+        listRef.current?.scrollToOffset({
+          offset: Math.max(0, computeOffset()),
+          animated: true,
+        });
+      };
+
+      runScroll();
+      setTimeout(runScroll, 350);
+      setTimeout(runScroll, 750);
+    };
+
+    advanceToNextGoalRef.current = (savedGoalId: string) => {
+      const tab = activeTabRef.current;
+      if (tab === "cycle" || tab === "review") return;
+
+      if (advanceToNextGoalTimerRef.current) {
+        clearTimeout(advanceToNextGoalTimerRef.current);
+      }
+
+      advanceToNextGoalTimerRef.current = setTimeout(() => {
+        advanceToNextGoalTimerRef.current = null;
+        if (activeTabRef.current !== tab) return;
+
+        const goals = tabDataRef.current;
+        const index = goals.findIndex((item) => item?.id === savedGoalId);
+        if (index < 0 || index >= goals.length - 1) return;
+
+        const next = goals[index + 1];
+        if (!next?.id || next.isLoadingPlaceholder) return;
+
+        const alreadyOn = Boolean(
+          selectedGoalsRef.current[next.id] ?? next.isSelected,
+        );
+        if (!alreadyOn) {
+          enableGoalInActiveTabRef.current(next);
+        }
+
+        setTimeout(() => scrollToGoalItemIdRef.current(next.id), 450);
+        setTimeout(() => scrollToGoalItemIdRef.current(next.id), 950);
+        setTimeout(() => scrollToGoalItemIdRef.current(next.id), 1500);
+      }, ADVANCE_TO_NEXT_GOAL_MS);
+    };
+
+    useEffect(() => {
+      return () => {
+        if (advanceToNextGoalTimerRef.current) {
+          clearTimeout(advanceToNextGoalTimerRef.current);
+        }
+      };
+    }, []);
 
     const tabOrder = useMemo(
       () => localizedTabs.map((tab) => tab.id),
@@ -1577,6 +1753,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
           return (
             <TahiyatWuduGoalSelection
               isSaving={isSavingPrayer}
+              openOnMount={true}
               initialValue={sourcePrayer?.targetCount ?? 1}
               onSave={(value, onDone, onFail) => {
                 saveSimplePrayerTarget(
@@ -1591,6 +1768,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         case "quran-listening":
           return (
             <QuranTimeSelection
+              openOnMount={true}
               title={t("monthlyGoalPlanner.selectNumHours")}
               descriptionKey="monthlyGoalPlanner.hoursQuranListening"
               quranGoalType="LISTENING"
@@ -1607,6 +1785,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         case "quran-tajweed":
           return (
             <QuranTimeSelection
+              openOnMount={true}
               title={t("monthlyGoalPlanner.selectNumHours")}
               descriptionKey="monthlyGoalPlanner.hoursQuranTajweed"
               quranGoalType="TAJWEED"
@@ -1623,39 +1802,20 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         case "quran-recitation-by-surah":
           return (
             <QuranRecitationGoalSelection
+              openOnMount={true}
               {...quranReferenceProps}
               title={t("monthlyGoalPlanner.recitationBySurah")}
               initialMetric="surah"
               allowedMetrics={["surah"]}
-              openOnMount
               onMetricsChange={handleQuranMetricsChange}
               variant="others"
               isSaving={isSavingQuran}
               onSave={(_payload, onDone, onFail) => {
                 setQuranMetrics((prev) => {
                   const surah = prev?.surah ?? {};
-                  const selected: number[] = Array.isArray(surah.selectedSurahs)
-                    ? surah.selectedSurahs
-                    : [];
-                  const settings = surah.surahSettings ?? {};
-                  const names = surah.surahNames ?? {};
                   return {
                     ...prev,
-                    [key]: selected.map((id, i) => {
-                      const setting = settings[id] ?? {};
-                      const rawName = names[id] ?? `Surah ${id}`;
-                      return {
-                        id: i + 1,
-                        name: `SURAH-${id}`,
-                        label: formatSurahRecitationReviewLabel(
-                          String(rawName),
-                          Number(setting.times ?? 1) || 1,
-                          setting.frequency ?? "daily",
-                          t,
-                        ),
-                        value: "",
-                      };
-                    }),
+                    [key]: buildSurahRecitationReviewSelectedGoals(surah, t),
                   };
                 });
                 saveQuranMetricGoal("recitation", "surah", onDone, onFail);
@@ -1665,11 +1825,11 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         case "quran-recitation-by-completion":
           return (
             <QuranRecitationGoalSelection
+              openOnMount={true}
               {...quranReferenceProps}
               title={t("monthlyGoalPlanner.recitationByCompletion")}
               initialMetric="completion"
               allowedMetrics={["completion"]}
-              openOnMount
               onMetricsChange={handleQuranMetricsChange}
               variant="others"
               isSaving={isSavingQuran}
@@ -1691,11 +1851,11 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         case "quran-recitation-by-juz":
           return (
             <QuranRecitationGoalSelection
+              openOnMount={true}
               {...quranReferenceProps}
               title={t("monthlyGoalPlanner.recitationByJuz")}
               initialMetric="juz"
               allowedMetrics={["juz"]}
-              openOnMount
               onMetricsChange={handleQuranMetricsChange}
               variant="others"
               isSaving={isSavingQuran}
@@ -1730,11 +1890,11 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         case "quran-memorization-by-juz":
           return (
             <QuranRecitationGoalSelection
+              openOnMount={true}
               {...quranReferenceProps}
               title={t("monthlyGoalPlanner.memorizationByJuz")}
               initialMetric="juz"
               allowedMetrics={["juz"]}
-              openOnMount
               onMetricsChange={handleQuranMetricsChange}
               variant="memorization"
               isSaving={isSavingQuran}
@@ -1795,11 +1955,11 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         case "quran-memorization-by-hizb":
           return (
             <QuranRecitationGoalSelection
+              openOnMount={true}
               {...quranReferenceProps}
               title={t("monthlyGoalPlanner.memorizationByHizb")}
               initialMetric="hizb"
               allowedMetrics={["hizb"]}
-              openOnMount
               onMetricsChange={handleQuranMetricsChange}
               variant="memorization"
               isSaving={isSavingQuran}
@@ -1842,11 +2002,11 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         case "quran-memorization-by-surah":
           return (
             <QuranRecitationGoalSelection
+              openOnMount={true}
               {...quranReferenceProps}
               title={t("monthlyGoalPlanner.memorizationBySurah")}
               initialMetric="surah"
               allowedMetrics={["surah"]}
-              openOnMount
               onMetricsChange={handleQuranMetricsChange}
               variant="memorization"
               isSaving={isSavingQuran}
@@ -1874,6 +2034,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         case "missed-fasts":
           return (
             <MissedRamadanFastGoalSelection
+              openOnMount={true}
               calendarWindow={fastingCalendarWindow}
               onSave={(selectedDates: string[]) => {
                 setFastingMetrics((prev) => ({
@@ -1886,6 +2047,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         case "dawood-fasts":
           return (
             <ProphetDawoodFastGoalSelection
+              openOnMount={true}
               calendarWindow={fastingCalendarWindow}
               onSave={() => {}}
             />
@@ -1893,6 +2055,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         case "monday-and-thursday-fasts":
           return (
             <MondayThursdayFastGoalSelection
+              openOnMount={true}
               calendarWindow={fastingCalendarWindow}
               onSave={(selectedDates: string[]) => {
                 setFastingMetrics((prev) => ({
@@ -1906,6 +2069,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         case "white-days-fasts":
           return (
             <WhiteDaysFastGoalSelection
+              openOnMount={true}
               calendarWindow={fastingCalendarWindow}
               onSave={() => {
                 setFastingMetrics((prev) => {
@@ -1920,6 +2084,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         case "missed-zakat":
           return (
             <MissedZakats
+              openOnMount={true}
               count={missedZakatAmount}
               setCount={setMissedZakatAmount}
               control={control}
@@ -1940,6 +2105,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         case "kafarah-for-breaking-fasts":
           return (
             <KafarahForBreakingFastsOrOAthSelector
+              openOnMount={true}
               mealCount={kafarahMeals}
               setMealCount={setKafarahMeals}
               clothCount={kafarahCloths}
@@ -1959,6 +2125,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         case "fidya":
           return (
             <FidyaSelector
+              openOnMount={true}
               count={fidyaMeals}
               setCount={setFidyaMeals}
               handleDecrease={() =>
@@ -1973,6 +2140,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         case "lilah-donations":
           return (
             <MissedZakats
+              openOnMount={true}
               count={lillahAmount}
               setCount={setLillahAmount}
               control={control}
@@ -1991,6 +2159,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         case "volunteering-services":
           return (
             <FidyaSelector
+              openOnMount={true}
               count={volunteeringHours}
               setCount={setVolunteeringHours}
               handleDecrease={() =>
@@ -2008,6 +2177,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         case "sadaqah-jariyah":
           return (
             <MissedZakats
+              openOnMount={true}
               count={sadaqahJariyahAmount}
               setCount={setSadaqahJariyahAmount}
               control={control}
@@ -2028,6 +2198,8 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         case "five-daily-prayers":
           return (
             <DailyPrayerGoalSelection
+              openOnMount={true}
+
               cycleStartDate={cycleStartDate ?? undefined}
               initialValues={
                 sourcePrayer?.fiveDailyConfig
@@ -2081,6 +2253,8 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         case "sunnah-rawatib":
           return (
             <SunnahRawatibGoalSelection
+              openOnMount={true}
+
               initialValues={
                 sourcePrayer?.sunnahRawatibConfig
                   ? {
@@ -2142,6 +2316,8 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         case "tahayyat-ul-masjid":
           return (
             <TahiyyatMasjidGoalSelection
+              openOnMount={true}
+
               initialValue={sourcePrayer?.targetCount ?? 1}
               isSaving={isSavingPrayer}
               onSave={(value, onDone, onFail) => {
@@ -2157,6 +2333,8 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         case "missed-past-prayers":
           return (
             <MissedPrayerGoalSelection
+              openOnMount={true}
+
               initialValue={
                 sourcePrayer?.targetDays ?? sourcePrayer?.targetCount ?? 3
               }
@@ -2180,6 +2358,8 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         case "duha-prayer":
           return (
             <DuhaPrayerGoalSelection
+              openOnMount={true}
+
               initialValue={sourcePrayer?.targetCount ?? 1}
               isSaving={isSavingPrayer}
               onSave={(value, onDone, onFail) => {
@@ -2190,6 +2370,8 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         case "tawba-prayer":
           return (
             <TawbahPrayerGoalSelection
+              openOnMount={true}
+
               initialValue={sourcePrayer?.targetCount ?? 1}
               isSaving={isSavingPrayer}
               onSave={(value, onDone, onFail) => {
@@ -2200,6 +2382,8 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         case "istikhara-prayer":
           return (
             <IstikharaPrayerGoalSelection
+              openOnMount={true}
+
               initialValue={sourcePrayer?.targetCount ?? 1}
               isSaving={isSavingPrayer}
               onSave={(value, onDone, onFail) => {
@@ -2210,6 +2394,8 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         case "shukr-prayer":
           return (
             <ShukarPrayerGoalSelection
+              openOnMount={true}
+
               initialValue={sourcePrayer?.targetCount ?? 1}
               isSaving={isSavingPrayer}
               onSave={(value, onDone, onFail) => {
@@ -2220,6 +2406,8 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         case "qiyal-al-lail-prayer":
           return (
             <QiyamalLaylGoalSelection
+              openOnMount={true}
+
               initialValues={
                 sourcePrayer?.qiyamConfig
                   ? {
@@ -2345,19 +2533,40 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
 
           {/* ── Tab content ── */}
           <BottomSheetFlatList
+            ref={listRef}
             data={tabData}
             keyExtractor={(item: any) => String(item.id)}
             contentContainerStyle={styles.content}
             showsVerticalScrollIndicator={false}
             scrollEnabled={sheetScrollEnabled}
+            onScrollToIndexFailed={({ index, averageItemLength }) => {
+              const fallbackOffset = Math.max(
+                0,
+                (averageItemLength || GOAL_ITEM_ESTIMATED_HEIGHT + GOAL_LIST_ITEM_GAP) *
+                  index,
+              );
+              listRef.current?.scrollToOffset({
+                offset: fallbackOffset,
+                animated: true,
+              });
+              setTimeout(() => {
+                listRef.current?.scrollToIndex({
+                  index,
+                  animated: true,
+                  viewPosition: 0,
+                });
+              }, 300);
+            }}
             ListHeaderComponent={
               activeTab === "cycle" ? (
                 <CycleStartTab
                   selectedStartDate={cycleStartDate}
                   selectedEndDate={cycleEndDate}
                   backendStartDate={goalCycleDetail?.startDate ?? null}
+                  showCycleRangeFooter={hasCommittedCycle}
                   onDateSelect={handleCycleDateSelect}
                   onCommit={() => {
+                    setHasCommittedCycle(true);
                     goToNextTab();
                   }}
                 />
@@ -2426,6 +2635,12 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                   <View
                     key={prayer.prayerType ?? prayer.id}
                     style={styles.goalListItem}
+                    onLayout={(event) =>
+                      registerGoalItemLayout(
+                        prayer.id,
+                        event.nativeEvent.layout.height,
+                      )
+                    }
                   >
                     <GoalCardWithDescriptionAndOptionToSelectGoal
                       initialValue={isOn}
@@ -2468,6 +2683,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {prayer.id === "tahayyat-ul-wudhu" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                         <TahiyatWuduGoalSelection
+                          openOnMount={true}
                           initialValue={getSimpleTargetCount(prayer, 1)}
                           isSaving={
                             isSavingPrayer &&
@@ -2487,6 +2703,8 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {prayer.id === "fiveDailyPrayers" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                         <DailyPrayerGoalSelection
+                          openOnMount={true}
+
                           cycleStartDate={cycleStartDate ?? undefined}
                           initialValues={getFiveDailyInitial(prayer)}
                           isSaving={
@@ -2529,6 +2747,8 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {prayer.id === "sunnahRawatib" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                         <SunnahRawatibGoalSelection
+                          openOnMount={true}
+
                           initialValues={getSunnahInitial(prayer)}
                           isSaving={
                             isSavingPrayer &&
@@ -2564,6 +2784,8 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {prayer.id === "thayyat-ul-masjid" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                         <TahiyyatMasjidGoalSelection
+                          openOnMount={true}
+
                           initialValue={getSimpleTargetCount(prayer, 1)}
                           isSaving={
                             isSavingPrayer &&
@@ -2583,6 +2805,8 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {prayer.id === "missedPastPrayers" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                         <MissedPrayerGoalSelection
+                          openOnMount={true}
+
                           initialValue={getMissedTargetDays(prayer, 3)}
                           isSaving={
                             isSavingPrayer &&
@@ -2608,6 +2832,8 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {prayer.id === "duhaPrayer" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                         <DuhaPrayerGoalSelection
+                          openOnMount={true}
+
                           initialValue={getSimpleTargetCount(prayer, 1)}
                           isSaving={
                             isSavingPrayer &&
@@ -2627,6 +2853,8 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {prayer.id === "tawbaPrayer" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                         <TawbahPrayerGoalSelection
+                          openOnMount={true}
+
                           initialValue={getSimpleTargetCount(prayer, 1)}
                           isSaving={
                             isSavingPrayer &&
@@ -2646,6 +2874,8 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {prayer.id === "istikharah" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                         <IstikharaPrayerGoalSelection
+                          openOnMount={true}
+
                           initialValue={getSimpleTargetCount(prayer, 1)}
                           isSaving={
                             isSavingPrayer &&
@@ -2665,6 +2895,8 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {prayer.id === "shukrPrayer" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                         <ShukarPrayerGoalSelection
+                          openOnMount={true}
+
                           initialValue={getSimpleTargetCount(prayer, 1)}
                           isSaving={
                             isSavingPrayer &&
@@ -2684,6 +2916,8 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {prayer.id === "qiyamalLail" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                         <QiyamalLaylGoalSelection
+                          openOnMount={true}
+
                           initialValues={getQiyamInitial(prayer)}
                           isSaving={
                             isSavingPrayer &&
@@ -2732,7 +2966,16 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
 
                 const isOn = selectedGoals[quran.id] ?? quran.isSelected;
                 return (
-                  <View key={quran.id} style={styles.goalListItem}>
+                  <View
+                    key={quran.id}
+                    style={styles.goalListItem}
+                    onLayout={(event) =>
+                      registerGoalItemLayout(
+                        quran.id,
+                        event.nativeEvent.layout.height,
+                      )
+                    }
+                  >
                     <GoalCardWithDescriptionAndOptionToSelectGoal
                       initialValue={isOn}
                       title={(
@@ -2767,6 +3010,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {quran.id === "quran-listening" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                         <QuranTimeSelection
+                          openOnMount={true}
                           title={t("monthlyGoalPlanner.selectNumHours")}
                           descriptionKey="monthlyGoalPlanner.hoursQuranListening"
                           quranGoalType="LISTENING"
@@ -2789,6 +3033,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {quran.id === "quran-tajweed" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                         <QuranTimeSelection
+                          openOnMount={true}
                           title={t("monthlyGoalPlanner.selectNumHours")}
                           descriptionKey="monthlyGoalPlanner.hoursQuranTajweed"
                           quranGoalType="TAJWEED"
@@ -2811,6 +3056,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {quran.id === "quran-recitation" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                         <QuranRecitationGoalSelection
+                          openOnMount={true}
                           {...quranReferenceProps}
                           title={t("monthlyGoalPlanner.selectTrackingMetric")}
                           onMetricsChange={handleQuranMetricsChange}
@@ -2820,7 +3066,19 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                             saveQuranMetricGoal(
                               "recitation",
                               metric,
-                              onDone,
+                              () => {
+                                if (metric === "surah") {
+                                  setQuranMetrics((prev) => ({
+                                    ...prev,
+                                    "quran-recitation-by-surah":
+                                      buildSurahRecitationReviewSelectedGoals(
+                                        quranMetricsRef.current?.surah ?? {},
+                                        t,
+                                      ),
+                                  }));
+                                }
+                                onDone?.();
+                              },
                               onFail,
                             )
                           }
@@ -2831,6 +3089,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {quran.id === "quran-memorization" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                         <QuranRecitationGoalSelection
+                          openOnMount={true}
                           {...quranReferenceProps}
                           title={t("monthlyGoalPlanner.selectTrackingMetric")}
                           onMetricsChange={handleQuranMetricsChange}
@@ -2872,6 +3131,12 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                   <View
                     key={fasting.fastingType ?? fasting.id}
                     style={styles.goalListItem}
+                    onLayout={(event) =>
+                      registerGoalItemLayout(
+                        fasting.id,
+                        event.nativeEvent.layout.height,
+                      )
+                    }
                   >
                     <GoalCardWithDescriptionAndOptionToSelectGoal
                       initialValue={isOn}
@@ -2915,6 +3180,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {fasting.id === "missed-fasts" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                         <MissedRamadanFastGoalSelection
+                          openOnMount={true}
                           calendarWindow={fastingCalendarWindow}
                           onSave={(selectedDates: string[]) => {
                             setFastingMetrics((prev) => ({
@@ -2930,6 +3196,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {fasting.id === "dawood-fasts" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                         <ProphetDawoodFastGoalSelection
+                          openOnMount={true}
                           calendarWindow={fastingCalendarWindow}
                           onSave={() => {
                             markGoalConfigured(fasting.id);
@@ -2940,6 +3207,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {fasting.id === "monday-and-thursday-fasts" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                         <MondayThursdayFastGoalSelection
+                          openOnMount={true}
                           calendarWindow={fastingCalendarWindow}
                           onSave={(selectedDates: string[]) => {
                             setFastingMetrics((prev) => ({
@@ -2956,6 +3224,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {fasting.id === "white-days-fasts" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                         <WhiteDaysFastGoalSelection
+                          openOnMount={true}
                           calendarWindow={fastingCalendarWindow}
                           onSave={() => {
                             setFastingMetrics((prev) => {
@@ -2993,6 +3262,12 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                   <View
                     key={sadaqah.sadaqahType ?? sadaqah.id}
                     style={styles.goalListItem}
+                    onLayout={(event) =>
+                      registerGoalItemLayout(
+                        sadaqah.id,
+                        event.nativeEvent.layout.height,
+                      )
+                    }
                   >
                     <GoalCardWithDescriptionAndOptionToSelectGoal
                       initialValue={isOn}
@@ -3030,13 +3305,12 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {sadaqah.id === "missed-zakat" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                         <MissedZakats
+                          openOnMount={true}
                           count={missedZakatAmount}
                           setCount={setMissedZakatAmount}
                           control={control}
                           name="missedZakat"
-                          title={t(
-                            "monthlyGoalPlanner.volunteeringMonthTitle",
-                          )}
+                          title={t("monthlyGoalPlanner.volunteeringMonthTitle")}
                           handleDecrease={() => {
                             setMissedZakatAmount((prev) =>
                               Math.max(0, prev - 1),
@@ -3058,6 +3332,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {sadaqah.id === "kafarah-for-breaking-fasts" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                         <KafarahForBreakingFastsOrOAthSelector
+                          openOnMount={true}
                           mealCount={kafarahMeals}
                           setMealCount={setKafarahMeals}
                           clothCount={kafarahCloths}
@@ -3084,6 +3359,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {sadaqah.id === "fidya" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                         <FidyaSelector
+                          openOnMount={true}
                           count={fidyaMeals}
                           setCount={setFidyaMeals}
                           handleDecrease={() => {
@@ -3104,6 +3380,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {sadaqah.id === "lilah-donations" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                         <MissedZakats
+                          openOnMount={true}
                           count={lillahAmount}
                           setCount={setLillahAmount}
                           control={control}
@@ -3128,6 +3405,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {sadaqah.id === "volunteering-services" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                         <FidyaSelector
+                          openOnMount={true}
                           count={volunteeringHours}
                           setCount={setVolunteeringHours}
                           handleDecrease={() => {
@@ -3150,6 +3428,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {sadaqah.id === "sadaqah-jariyah" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                         <MissedZakats
+                          openOnMount={true}
                           count={sadaqahJariyahAmount}
                           setCount={setSadaqahJariyahAmount}
                           control={control}
@@ -3218,7 +3497,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                           ...localSadaqah,
                           ...(quranMetrics?.[goal.title] ?? []),
                         ];
-                        const mergedSelected = (
+                        let mergedSelected = (
                           localSelected.length > 0 ? localSelected : apiSelected
                         ).map((entry: any, i: number) => ({
                           id: i + 1,
@@ -3226,6 +3505,22 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                           label: entry?.label ?? "",
                           value: entry?.value ?? "",
                         }));
+
+                        // Recitation-by-surah: rebuild from live per-surah
+                        // settings so weekly/daily is not flattened by the
+                        // API's single goal-level frequency.
+                        if (
+                          goal.title === "quran-recitation-by-surah" &&
+                          Array.isArray(quranMetrics?.surah?.selectedSurahs) &&
+                          quranMetrics.surah.selectedSurahs.length > 0
+                        ) {
+                          mergedSelected =
+                            buildSurahRecitationReviewSelectedGoals(
+                              quranMetrics.surah,
+                              t,
+                            );
+                        }
+
                         let goalWithSelected = mergedSelected.length
                           ? { ...goal, selectedGoals: mergedSelected }
                           : goal;

@@ -90,6 +90,10 @@ export const QuranRecitationGoalSelection = ({
   const [markCleanNonce, setMarkCleanNonce] = useState(0);
   const [shouldApplyPendingMetric, setShouldApplyPendingMetric] =
     useState(false);
+  /** Metrics that have been successfully saved in this session (or pre-exist from API). */
+  const [savedMetrics, setSavedMetrics] = useState<Set<MetricName>>(
+    () => new Set(initialMetric ? [initialMetric] : []),
+  );
 
   useEffect(() => {
     if (initialMetric) return;
@@ -331,6 +335,7 @@ export const QuranRecitationGoalSelection = ({
                   item={item}
                   handleMetricPress={() => handlePressMetrix(item)}
                   selectedMetric={resolvedMetric}
+                  isSaved={savedMetrics.has(item.name)}
                   onMetricChange={onMetricsChange}
                   variant={variant}
                   surahOptions={isActiveMetric ? surahOptions : undefined}
@@ -374,10 +379,28 @@ export const QuranRecitationGoalSelection = ({
                 width: "100%",
               }}
               isLoading={isSaving}
-              disabled={isSaving}
+              disabled={isSaving || !resolvedMetric}
               onPress={(markSaved, markFailed) => {
+                const handleSaved = () => {
+                  markSaved?.();
+                  setTimeout(() => {
+                    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                    setIsOpen(false);
+                  }, 2000);
+                };
                 if (onSave && resolvedMetric) {
-                  onSave({ metric: resolvedMetric }, markSaved, markFailed);
+                  onSave(
+                    { metric: resolvedMetric },
+                    () => {
+                      setSavedMetrics((prev) => {
+                        const next = new Set(prev);
+                        next.add(resolvedMetric);
+                        return next;
+                      });
+                      handleSaved();
+                    },
+                    markFailed,
+                  );
                   setMarkCleanNonce((n) => n + 1);
                   setIsMetricDirty(false);
                   return;

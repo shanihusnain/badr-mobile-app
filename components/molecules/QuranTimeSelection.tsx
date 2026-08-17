@@ -26,6 +26,7 @@ export const QuranTimeSelection = ({
   onSave,
   quranGoalType,
   isSaving = false,
+  openOnMount = false,
 }: {
   title: string;
   /** i18n key with `_one` / `_other` plural forms (pass count via input). */
@@ -33,9 +34,10 @@ export const QuranTimeSelection = ({
   onSave?: (hours: number, onDone?: () => void, onFail?: () => void) => void;
   quranGoalType?: "LISTENING" | "TAJWEED";
   isSaving?: boolean;
+  openOnMount?: boolean;
 }) => {
   const { t } = useTranslation();
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(openOnMount);
   const [inputValue, setInputValue] = useState<string>("");
   const [hydrated, setHydrated] = useState(false);
 
@@ -129,7 +131,16 @@ export const QuranTimeSelection = ({
                     markFailed();
                     return;
                   }
-                  onSave?.(hours, markSaved, markFailed);
+
+                  const handleSaved = () => {
+                    markSaved?.();
+                    setTimeout(() => {
+                      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                      setIsOpen(false);
+                    }, 2000);
+                  };
+
+                  onSave?.(hours, handleSaved, markFailed);
                 }}
                 style={{ width: "100%" }}
               />
