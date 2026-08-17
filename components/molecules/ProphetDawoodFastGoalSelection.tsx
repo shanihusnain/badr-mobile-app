@@ -21,13 +21,15 @@ import { TopSpace } from "../atoms/TopSpace";
 export default function ProphetDawoodFastGoalSelection({
   calendarWindow,
   onSave,
+  openOnMount = false,
 }: {
   calendarWindow?: FastingCalendarWindow | null;
   onSave?: (dawoodStartDay: 1 | 2) => void;
+  openOnMount?: boolean;
 }) {
   const formatNumber = useLocaleNumber();
   const { mutate: upsertFastingGoal, isPending } = useUpsertFastingGoals();
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(openOnMount);
   const [selectedStartDay, setSelectedStartDay] = useState<1 | 2>(1);
 
   const toggleDropdown = () => {
@@ -45,6 +47,10 @@ export default function ProphetDawoodFastGoalSelection({
         onSuccess: () => {
           onSave?.(selectedStartDay);
           markSaved();
+          setTimeout(() => {
+            LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+            setIsOpen(false);
+          }, 2000);
         },
         onError: () => markFailed(),
       },

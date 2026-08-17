@@ -153,7 +153,8 @@ export default function ReviewGoalCard({ goal, handleEditPress }: Props) {
 
         {selected.length > 0 && <Divider />}
 
-        {selected.map((subGoal: any, subIdx: number) => (
+        {selected.map((subGoal: any, subIdx: number) => 
+        (
           <View
             key={
               subGoal?.id != null

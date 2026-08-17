@@ -13,6 +13,7 @@ import { TopSpace } from "@/components/atoms/TopSpace";
 import { CalendarCountAndRamadanText } from "@/components/atoms/CalendarCountAndRamadanText";
 import {
   getFastingLegendItems,
+  getFastingCollisionDates,
   type FastingCalendarWindow,
 } from "@/src/utils/fastingCalendarPreview";
 
@@ -102,6 +103,10 @@ export const RamadanCalendar = ({
   const overlayMonThuDates = calendarWindow?.monThuPlannedDates ?? [];
   const overlayWhiteDayDates = calendarWindow?.whiteDaysPlannedDates ?? [];
   const overlayDawoodDates = calendarWindow?.dawoodPlannedDates ?? [];
+  const collisionDates = useMemo(
+    () => getFastingCollisionDates(calendarWindow, "MISSED_RAMADAN"),
+    [calendarWindow],
+  );
 
   const legendItems = useMemo(
     () =>
@@ -176,6 +181,7 @@ export const RamadanCalendar = ({
         monThuDates={overlayMonThuDates}
         whiteDayDates={overlayWhiteDayDates}
         dawoodDates={overlayDawoodDates}
+        conflictDates={collisionDates}
         dimInactiveDays
         onDayPress={toggleDate}
       />

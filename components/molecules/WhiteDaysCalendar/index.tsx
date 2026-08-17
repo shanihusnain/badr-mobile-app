@@ -13,6 +13,7 @@ import { TopSpace } from "@/components/atoms/TopSpace";
 import { CalendarCountAndRamadanText } from "@/components/atoms/CalendarCountAndRamadanText";
 import {
   getFastingLegendItems,
+  getFastingCollisionDates,
   type FastingCalendarWindow,
 } from "@/src/utils/fastingCalendarPreview";
 
@@ -114,6 +115,10 @@ export const WhiteDaysCalendar = ({
   // (active Mon/Thu marks every Mon/Thu while the goal is on, which inflates the dimmed count).
   const overlayMonThuDates = calendarWindow?.monThuPlannedDates ?? [];
   const overlayDawoodDates = calendarWindow?.dawoodPlannedDates ?? [];
+  const collisionDates = useMemo(
+    () => getFastingCollisionDates(calendarWindow, "WHITE_DAYS"),
+    [calendarWindow],
+  );
 
   const occupiedByOtherGoals = useMemo(() => {
     return new Set([
@@ -210,6 +215,7 @@ export const WhiteDaysCalendar = ({
         whiteDayDates={potentialWhiteDayDates}
         monThuDates={overlayMonThuDates}
         dawoodDates={overlayDawoodDates}
+        conflictDates={collisionDates}
         selectedDates={Array.from(selectedDates)}
         dimInactiveDays={dimInactiveDays}
         onDayPress={

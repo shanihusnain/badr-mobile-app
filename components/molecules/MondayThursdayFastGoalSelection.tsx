@@ -32,13 +32,15 @@ function initialMonThuDates(
 export default function MondayThursdayFastGoalSelection({
   onSave,
   calendarWindow,
+  openOnMount = false,
 }: {
   onSave?: (selectedDates: string[]) => void;
   calendarWindow?: FastingCalendarWindow | null;
+  openOnMount?: boolean;
 }) {
   const formatNumber = useLocaleNumber();
   const { mutate: upsertFastingGoal, isPending } = useUpsertFastingGoals();
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(openOnMount);
   const [selectedMonThuDates, setSelectedMonThuDates] = useState<string[]>(() =>
     initialMonThuDates(calendarWindow),
   );
@@ -65,6 +67,10 @@ export default function MondayThursdayFastGoalSelection({
         onSuccess: () => {
           onSave?.(selectedMonThuDates);
           markSaved();
+          setTimeout(() => {
+            LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+            setIsOpen(false);
+          }, 2000);
         },
         onError: () => markFailed(),
       },

@@ -120,7 +120,7 @@ export const SetPersonalizedGoalsScreen = () => {
           </Text>
         </View>
         <FrameIndicator total={2} active={activeFrame} />
-        {activeFrame === 1 && (
+        {/* {activeFrame === 1 && (
           <GoalProgressCard
             currentDay={28}
             totalDays={28}
@@ -128,7 +128,7 @@ export const SetPersonalizedGoalsScreen = () => {
             overallProgress={100}
             animate
           />
-        )}
+        )} */}
         {activeFrame === 1 && (
           <>
             <TopSpace top={20} />

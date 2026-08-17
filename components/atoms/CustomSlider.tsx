@@ -235,7 +235,7 @@ export default function CustomSlider({
         >
           {/* Hollow Green Circle inside Center - Flexbox guarantees it is perfectly locked & static */}
           {locked ? (
-            <EvilIcons name="lock" size={15} color={Colors.light.green} />
+            <EvilIcons name="lock" size={Math.round(thumbSize * 1.0)} color={Colors.light.green} />
           ) : (
             <View
               style={{

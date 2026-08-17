@@ -17,6 +17,7 @@ import { CalendarIcon } from "./CalenderIcon";
 import { ClockIcon } from "./ClockIcon";
 import { CreateAccountCalenderIcon } from "./CreateAccountCalenderIcon";
 import { ChevronUpIcon } from "./ChecvronUpIcon";
+import { ChevronDownIcon } from "./ChevronDownIcon";
 //D
 import { DocumentIcon } from "./DocumentIcon";
 import { DocumentSearchIcon } from "./DocumentSearchIcon";
@@ -405,6 +406,7 @@ export {
   TimePieceIcon,
   CheckBoxTickIcon,
   ChevronUpIcon,
+  ChevronDownIcon,
   // TickIconWithCircle,
   WhiteTick,
   PrayerMatIcon,

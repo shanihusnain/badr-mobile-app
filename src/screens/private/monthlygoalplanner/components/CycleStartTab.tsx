@@ -24,6 +24,8 @@ type Props = {
   selectedEndDate?: string | null;
   /** Original cycle start date from the backend (YYYY-MM-DD). */
   backendStartDate?: string | null;
+  /** Show the "cycle will run from X to Y" line after the user has committed. */
+  showCycleRangeFooter?: boolean;
 };
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -34,6 +36,7 @@ export const CycleStartTab = ({
   selectedStartDate = null,
   selectedEndDate = null,
   backendStartDate = null,
+  showCycleRangeFooter = false,
 }: Props) => {
   const { t, i18n } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -278,7 +281,7 @@ export const CycleStartTab = ({
         endDate={cycleEndDateString ?? undefined}
         onDayPress={handleDayPress}
         footer={
-          cycleStartDate ? (
+          showCycleRangeFooter && cycleStartDate ? (
             <Text
               style={[
                 styles.infoText,

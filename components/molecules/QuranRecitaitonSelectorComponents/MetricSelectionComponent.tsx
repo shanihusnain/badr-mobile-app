@@ -24,6 +24,7 @@ import type {
 import {
   BinIcon,
   CheckBoxTickIcon,
+  ChevronDownIcon,
   ChevronUpIcon,
   TickIconWithGreenBg,
 } from "@/assets/icons";
@@ -60,6 +61,7 @@ export const MetricSelectionComponent = ({
   discardNonce = 0,
   markCleanNonce = 0,
   onNestedScrollActiveChange,
+  isSaved = false,
 }: {
   item: {
     id: number;
@@ -95,6 +97,8 @@ export const MetricSelectionComponent = ({
   /** Increment after a successful save so current values become the clean baseline. */
   markCleanNonce?: number;
   onNestedScrollActiveChange?: (active: boolean) => void;
+  /** True when this metric has been successfully saved (persists after collapsing). */
+  isSaved?: boolean;
 }) => {
   const { t } = useTranslation();
   const isMemorizationSurah =
@@ -848,10 +852,14 @@ export const MetricSelectionComponent = ({
           style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
         >
           <Text style={styles.metrixName}>{item.title}</Text>
-          {item.name === selectedMetric && <ChevronUpIcon />}
+          {item.name === selectedMetric ? (
+            <ChevronUpIcon />
+          ) : isSaved ? (
+            <ChevronDownIcon />
+          ) : null}
         </Pressable>
 
-        {selectedMetric === item.name ? (
+        {isSaved ? (
           <View
             style={{
               alignItems: "center",

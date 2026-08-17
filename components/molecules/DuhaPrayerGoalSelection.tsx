@@ -22,15 +22,17 @@ export default function DuhaPrayerGoalSelection({
   onSave,
   initialValue = 1,
   isSaving = false,
+  openOnMount = false,
 }: {
   onSave?: (value: number, onDone?: () => void, onFail?: () => void) => void;
   isSaving?: boolean;
+  openOnMount?: boolean;
   initialValue?: number;
 }) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
   const [sliderValue, setSliderValue] = useState(initialValue);
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(openOnMount);
 
   const toggleDropdown = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);

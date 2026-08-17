@@ -21,13 +21,15 @@ import { TopSpace } from "../atoms/TopSpace";
 export default function WhiteDaysFastGoalSelection({
   calendarWindow,
   onSave,
+  openOnMount = false,
 }: {
   calendarWindow?: FastingCalendarWindow | null;
   onSave?: (selectedDates: string[]) => void;
+  openOnMount?: boolean;
 }) {
   const formatNumber = useLocaleNumber();
   const { mutate: upsertFastingGoal, isPending } = useUpsertFastingGoals();
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(openOnMount);
   const [selectedDates, setSelectedDates] = useState<string[]>(
     () => calendarWindow?.whiteDaysPlannedDates ?? [],
   );
@@ -53,6 +55,10 @@ export default function WhiteDaysFastGoalSelection({
         onSuccess: () => {
           onSave?.(selectedDates);
           markSaved();
+          setTimeout(() => {
+            LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+            setIsOpen(false);
+          }, 2000);
         },
         onError: () => markFailed(),
       },

@@ -12,6 +12,7 @@ import { CalendarGrid } from "@/components/molecules/CalendarGrid";
 import {
   getFastingLegendItems,
   getSelectableMonThuDates,
+  getFastingCollisionDates,
   type FastingCalendarWindow,
 } from "@/src/utils/fastingCalendarPreview";
 
@@ -66,6 +67,10 @@ export const MonThuCalendar = ({
   // Other goals: show planned dates only (not every activePotential day).
   const overlayWhiteDayDates = calendarWindow?.whiteDaysPlannedDates ?? [];
   const overlayDawoodDates = calendarWindow?.dawoodPlannedDates ?? [];
+  const collisionDates = useMemo(
+    () => getFastingCollisionDates(calendarWindow, "MONDAY_THURSDAY"),
+    [calendarWindow],
+  );
 
   const legendItems = useMemo(
     () =>
@@ -158,6 +163,7 @@ export const MonThuCalendar = ({
         monThuDates={monThuDates}
         whiteDayDates={overlayWhiteDayDates}
         dawoodDates={overlayDawoodDates}
+        conflictDates={collisionDates}
         selectedDates={Array.from(selectedDates)}
         dimInactiveDays
         bgColor={bgColor}

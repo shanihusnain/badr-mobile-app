@@ -18,7 +18,11 @@ import { globalStyles } from "@/src/globalstyles/globalstyles";
 import { GoalSelectionOpenCloseButton } from "./GoalSelectionOpenCloseButton";
 import { Divider } from "../atoms/Divider";
 
-export default function CongregationalPrayerGoalSelection() {
+export default function CongregationalPrayerGoalSelection({
+  openOnMount = false,
+}: {
+  openOnMount?: boolean;
+} = {}) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
   const [fajr, setFajr] = useState(28);
@@ -27,7 +31,7 @@ export default function CongregationalPrayerGoalSelection() {
   const [maghrib, setMaghrib] = useState(28);
   const [isha, setIsha] = useState(28);
   const [jumuah, setJumuah] = useState(4);
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(openOnMount);
 
   const toggleDropdown = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
