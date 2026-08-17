@@ -95,6 +95,7 @@ export default function TahiyatAlMasjidLoggingFlow({
   }, [frame, t]);
 
   const showInsights = frame ? prayerFrameShowsInsights(frame) : false;
+  const isFullyAchieved = (frame?.goal.achievementPct ?? 0) >= 100;
 
   const { mutateAsync: logTahiyat, isPending: isLogging } =
     useLogTahiyatAlMasjidGoal();
@@ -214,8 +215,9 @@ export default function TahiyatAlMasjidLoggingFlow({
   };
 
   const handleOpenFlow = useCallback(() => {
+    if (isFullyAchieved) return;
     setFlowMode("active");
-  }, []);
+  }, [isFullyAchieved]);
 
   const getStepHeader = (step: TahiyatAlMasjidStepId) => {
     switch (step) {
@@ -369,9 +371,13 @@ export default function TahiyatAlMasjidLoggingFlow({
                 )}
 
                 <TouchableOpacity
-                  style={localStyles.addButton}
+                  style={[
+                    localStyles.addButton,
+                    isFullyAchieved && localStyles.addButtonDisabled,
+                  ]}
                   onPress={handleOpenFlow}
                   activeOpacity={0.8}
+                  disabled={isFullyAchieved}
                 >
                   <AddLoggingFlowIcon />
                 </TouchableOpacity>
@@ -487,6 +493,9 @@ const localStyles = StyleSheet.create({
     borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
+  },
+  addButtonDisabled: {
+    opacity: 0.35,
   },
   spacer: {
     flex: 1,

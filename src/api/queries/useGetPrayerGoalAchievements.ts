@@ -9,11 +9,35 @@ export type PrayerAchievementsChartItem = {
   weekLabel: string;
   completed: number;
   incomplete: number;
+  completedDeltaPct: number | null;
+  hasCycleData?: boolean;
 };
 
 export type PrayerAchievementsTimeItem = {
   weekLabel: string;
   minutesSpent: number;
+  timeSpentDeltaPct?: number | null;
+};
+
+export type PrayerAchievementsKeyInsights = {
+  activeDaysCount?: number | null;
+  activeDaysDelta?: number | null;
+  goalTrackedMonths?: number | null;
+  goalTrackedDelta?: number | null;
+  longestStreak?: number | null;
+  longestStreakDelta?: number | null;
+  bestDayCount?: number | null;
+  bestDay?: number | null;
+  personalBest?: number | null;
+  bestDayDelta?: number | null;
+  personalBestDelta?: number | null;
+  weeklyAverage?: number | null;
+  weeklyAverageDelta?: number | null;
+  monthlyAverage?: number | null;
+  monthlyAverageDelta?: number | null;
+  timeSpentMinutes?: number | null;
+  timeSpentDeltaMinutes?: number | null;
+  timeSpentDelta?: number | null;
 };
 
 export type PrayerGoalAchievementsData = {
@@ -23,13 +47,14 @@ export type PrayerGoalAchievementsData = {
   activeSlot: string;
   achievementPct: number;
   previousPeriodPct: number;
-  delta: number;
+  delta: number | null;
   goal: number;
   completedCount: number;
   incompleteCount: number;
   chartData: PrayerAchievementsChartItem[];
   timeData: PrayerAchievementsTimeItem[];
   totalMinutesSpent: number;
+  keyInsights?: PrayerAchievementsKeyInsights | null;
   canNavigateBack: boolean;
   canNavigateForward: boolean;
 };

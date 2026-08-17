@@ -6,12 +6,14 @@ export type PastAchievementPeriod = "monthly" | "threeMonths" | "sixMonths";
 
 export type PrayerAnalyticsView = "completedVsIncomplete" | "completedVsTimeSpent" | "inMosqueVsOutOfMosque" | "completedByCategory";
 
-export type PrayerPastChartItem = QuranPastChartItem;
+export type PrayerPastChartItem = QuranPastChartItem & {
+  completedDeltaPct?: number | null;
+};
 
 export type PrayerPastAchievement = {
   dateRangeLabel: string;
   achievementPercent: number;
-  previousPeriodDeltaPercent: number;
+  previousPeriodDeltaPercent: number | null;
   chartData: PrayerPastChartItem[];
   goalPrayers: number;
   periodGoalPrayers: number;

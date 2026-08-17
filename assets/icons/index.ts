@@ -132,6 +132,7 @@ import { MaghrebFardPrayerIcon } from "./MaghrebFardParyerIcon";
 import { IshaFardPrayerIcon } from "./IshaFardPrayerIcon";
 //N
 import { NotificationIcon } from "./NotificationIcon";
+import { NegativeProgressIcon } from "./NegativeProgressIcon";
 //O
 
 //P
@@ -174,6 +175,7 @@ import { PercentageIcon } from "./PercentageIcon";
 import { ProfileInformationIcon } from "./ProfileInformationIcon";
 import { PasswordLockIcon } from "./PasswordLockIcon";
 import { PlusGlowyIcon } from "./PlusGlowyIcon";
+import { PositiveProgressIcon } from "./PositiveProgressIcon";
 
 //Q
 //R
@@ -419,4 +421,6 @@ export {
   WeighBalanceIcon,
   FilledWallClock,
   HeaderInfoIcon,
+  PositiveProgressIcon,
+  NegativeProgressIcon,
 };

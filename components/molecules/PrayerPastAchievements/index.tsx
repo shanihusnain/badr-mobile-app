@@ -27,17 +27,21 @@ import type { PastAchievementPeriod } from "@/src/screens/private/goalprogresslo
 import { INCOMPLETE_BAR_COLOR } from "../QuranHoursPastAchievements/pastAchievementStyles";
 import { QuranHoursPastAchievementChartBlock } from "../QuranHoursPastAchievements/QuranHoursPastAchievementChartBlock";
 import { InsightCard } from "../InsightCard";
-import { PRAYER_INSIGHT_CARDS } from "./insightCardsData";
+import { PRAYER_INSIGHT_CARDS, type InsightCardData } from "./insightCardsData";
 import {
   getGoalById,
   type GoalId,
 } from "@/src/screens/private/home/components/goalsData";
-import { useGetPrayerGoalAchievements } from "@/src/api/queries/useGetPrayerGoalAchievements";
+import {
+  useGetPrayerGoalAchievements,
+  type PrayerGoalAchievementsData,
+} from "@/src/api/queries/useGetPrayerGoalAchievements";
 import {
   mapPrayerGoalAchievementsToUi,
   shiftPrayerAchievementsPeriodStart,
 } from "@/src/utils/prayerGoalAchievementsMap";
 import { resolvePrayerTypeFromGoalId } from "@/src/utils/prayerGoalMap";
+import { NegativeProgressIcon, PositiveProgressIcon } from "@/assets/icons";
 
 type Props = {
   goalId: GoalId;
@@ -54,6 +58,12 @@ const PERIOD_LABEL_KEYS: Record<PastAchievementPeriod, string> = {
   monthly: "progressLogging.periodMonthly",
   threeMonths: "progressLogging.periodThreeMonths",
   sixMonths: "progressLogging.periodSixMonths",
+};
+
+const PERIOD_DELTA_LABEL_KEYS: Record<PastAchievementPeriod, string> = {
+  monthly: "progressLogging.previousMonth",
+  threeMonths: "progressLogging.previousThreeMonthsShort",
+  sixMonths: "progressLogging.previousSixMonthsShort",
 };
 
 const ANALYTICS_VIEWS: PrayerAnalyticsView[] = [
@@ -90,6 +100,217 @@ const QIYAM_TABS = ["All", "After Isha", "Tahajjud"];
 
 const LOADING_DASH = "---";
 
+function trendFromDelta(
+  delta: number | null | undefined,
+  formatUnit: (abs: number) => string,
+): Pick<InsightCardData, "trendValue" | "trendDirection"> {
+  if (delta == null || delta === 0) return {};
+  const abs = Math.abs(delta);
+  return {
+    trendValue: formatUnit(abs),
+    trendDirection: delta > 0 ? "up" : "down",
+  };
+}
+
+function firstNumber(
+  ...values: Array<number | null | undefined>
+): number | null {
+  for (const value of values) {
+    if (typeof value === "number" && !Number.isNaN(value)) return value;
+  }
+  return null;
+}
+
+function formatInsightDuration(totalMinutes: number): string {
+  const safe = Math.max(0, Math.round(totalMinutes));
+  return `${Math.floor(safe / 60)}h ${safe % 60}m`;
+}
+
+function metricCard({
+  title,
+  iconFamily,
+  iconName,
+  value,
+  subValue,
+  delta,
+  formatDelta,
+  noData,
+  noDataLabel,
+  zeroDeltaFooter,
+}: {
+  title: string;
+  iconFamily: InsightCardData["iconFamily"];
+  iconName: string;
+  value: number | null;
+  subValue?: string;
+  delta?: number | null;
+  formatDelta: (abs: number) => string;
+  noData: boolean;
+  noDataLabel: string;
+  zeroDeltaFooter?: string;
+}): InsightCardData {
+  if (noData || value == null || value === 0) {
+    return {
+      iconFamily,
+      iconName,
+      title,
+      value: "-- --",
+      noData: true,
+      footerText: noDataLabel,
+    };
+  }
+
+  const trend = trendFromDelta(delta, formatDelta);
+  return {
+    iconFamily,
+    iconName,
+    title,
+    value: String(value),
+    subValue,
+    ...trend,
+    ...(!trend.trendValue && zeroDeltaFooter
+      ? { footerText: zeroDeltaFooter, footerNeutral: true }
+      : {}),
+  };
+}
+
+function mapApiKeyInsightsToCards(
+  data: PrayerGoalAchievementsData | null | undefined,
+  period: PastAchievementPeriod,
+  t: (key: string, options?: Record<string, string | number>) => string,
+  isLoading = false,
+): InsightCardData[] {
+  const insights = data?.keyInsights ?? {};
+  const noDataLabel = t("progressLogging.insightNoData");
+  const dayTrendLabel = (abs: number) =>
+    t("progressLogging.insightsDayCount", { count: abs });
+  const prayerTrendLabel = (abs: number) =>
+    `${abs} ${t("progressLogging.insightPrayer", { count: abs })}`;
+  const monthTrendLabel = (abs: number) =>
+    `${abs} ${t("progressLogging.recitationInsightMonths")}`;
+
+  const cards: InsightCardData[] = [];
+
+  if (period !== "monthly") {
+    const months = firstNumber(insights.goalTrackedMonths) ?? 0;
+    cards.push(
+      metricCard({
+        title: t("progressLogging.recitationInsightGoalTracked"),
+        iconFamily: "Ionicons",
+        iconName: "calendar-outline",
+        value: months,
+        subValue: t("progressLogging.recitationInsightMonths"),
+        delta: insights.goalTrackedDelta,
+        formatDelta: monthTrendLabel,
+        noData: isLoading,
+        noDataLabel,
+        zeroDeltaFooter: `${months} ${t("progressLogging.recitationInsightMonths")}`,
+      }),
+    );
+  }
+
+  cards.push(
+    metricCard({
+      title: t("progressLogging.completedIn"),
+      iconFamily: "Ionicons",
+      iconName: "checkmark-circle-outline",
+      value: firstNumber(insights.activeDaysCount) ?? 0,
+      subValue: t("progressLogging.recitationInsightActiveDays"),
+      delta: insights.activeDaysDelta,
+      formatDelta: dayTrendLabel,
+      noData: isLoading,
+      noDataLabel,
+    }),
+  );
+
+  cards.push(
+    metricCard({
+      title: t("progressLogging.longestStreak"),
+      iconFamily: "Ionicons",
+      iconName: "flash",
+      value: firstNumber(insights.longestStreak) ?? 0,
+      subValue: t("progressLogging.daysLabel"),
+      delta: insights.longestStreakDelta,
+      formatDelta: dayTrendLabel,
+      noData: isLoading,
+      noDataLabel,
+    }),
+  );
+
+  cards.push(
+    metricCard({
+      title: t("progressLogging.insightBestDay"),
+      iconFamily: "Ionicons",
+      iconName: "sparkles",
+      value:
+        firstNumber(
+          insights.bestDayCount,
+          insights.personalBest,
+          insights.bestDay,
+        ) ?? 0,
+      subValue: t("progressLogging.insightPrayer", { count: 2 }),
+      delta: firstNumber(insights.bestDayDelta, insights.personalBestDelta),
+      formatDelta: prayerTrendLabel,
+      noData: isLoading,
+      noDataLabel,
+    }),
+  );
+
+  if (period === "monthly") {
+    cards.push(
+      metricCard({
+        title: t("progressLogging.insightWeeklyAverage"),
+        iconFamily: "MaterialCommunityIcons",
+        iconName: "scale-balance",
+        value: firstNumber(insights.weeklyAverage) ?? 0,
+        subValue: t("progressLogging.insightPrayer", { count: 2 }),
+        delta: insights.weeklyAverageDelta,
+        formatDelta: prayerTrendLabel,
+        noData: isLoading,
+        noDataLabel,
+      }),
+    );
+  } else {
+    cards.push(
+      metricCard({
+        title: t("progressLogging.insightMonthlyAverage"),
+        iconFamily: "MaterialCommunityIcons",
+        iconName: "scale-balance",
+        value: firstNumber(insights.monthlyAverage) ?? 0,
+        subValue: t("progressLogging.insightPrayer", { count: 2 }),
+        delta: insights.monthlyAverageDelta,
+        formatDelta: prayerTrendLabel,
+        noData: isLoading,
+        noDataLabel,
+      }),
+    );
+  }
+
+  const timeSpent =
+    firstNumber(insights.timeSpentMinutes, data?.totalMinutesSpent) ?? 0;
+  const timeDelta = firstNumber(
+    insights.timeSpentDeltaMinutes,
+    insights.timeSpentDelta,
+  );
+  cards.push({
+    ...metricCard({
+      title: t("progressLogging.timeSpentLabel").toUpperCase(),
+      iconFamily: "Ionicons",
+      iconName: "time-outline",
+      value: timeSpent,
+      delta: timeDelta,
+      formatDelta: (abs) => formatInsightDuration(abs),
+      noData: isLoading,
+      noDataLabel,
+    }),
+    ...(!isLoading && timeSpent > 0
+      ? { value: formatInsightDuration(timeSpent) }
+      : {}),
+  });
+
+  return cards;
+}
+
 const EMPTY_PRAYER_ACHIEVEMENT: PrayerPastAchievement = {
   dateRangeLabel: LOADING_DASH,
   achievementPercent: 0,
@@ -121,7 +342,8 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
   const [hintDismissed, setHintDismissed] = useState(false);
   const goalData = getGoalById(goalId);
   const cleanGoalLabel = goalData?.title || "";
-  const isTahiyyat = goalId === "prayer-tahiyyat";
+  const isTahiyyat =
+    goalId === "prayer-tahiyyat" || goalId === "prayer-tahiyyatMasjid";
   const prayerType = resolvePrayerTypeFromGoalId(goalId);
 
   const { data: achievementsApiData, isLoading: isAchievementsLoading } =
@@ -285,26 +507,52 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
   const resolvedAchievement =
     achievement ??
     applyPrayerAnalyticsView(EMPTY_PRAYER_ACHIEVEMENT, analyticsView);
-  const deltaIsPositive =
-    resolvedBaseAchievement.previousPeriodDeltaPercent >= 0;
+
+  const barDeltaPct = selectedBaseWeek?.completedDeltaPct as
+    | number
+    | null
+    | undefined;
+  const displayedDeltaPct =
+    selectedBarIndex !== null && selectedBaseWeek
+      ? barDeltaPct === undefined
+        ? resolvedBaseAchievement.previousPeriodDeltaPercent
+        : barDeltaPct
+      : resolvedBaseAchievement.previousPeriodDeltaPercent;
+  const showDeltaChip = !showPlaceholders && displayedDeltaPct !== null;
+  const deltaIsZero = displayedDeltaPct === 0;
+  const deltaIsPositive = (displayedDeltaPct ?? 0) > 0;
+  const deltaPeriodLabel = t(
+    selectedBarIndex !== null && period === "monthly"
+      ? "progressLogging.previousWeek"
+      : PERIOD_DELTA_LABEL_KEYS[period],
+  );
 
   if (!isTahiyyat && (!baseAchievement || !achievement)) {
     return null;
   }
 
   const renderInsights = () => {
-    // Tahiyyat uses backend achievements only — skip static insight mocks.
-    if (isTahiyyat) return null;
-    const cards =
-      PRAYER_INSIGHT_CARDS[goalId]?.[
-        period as "monthly" | "threeMonths" | "sixMonths"
-      ];
-    if (!cards || !isDetailed) return null;
+    if (!isDetailed && !isTahiyyat) return null;
+
+    const cards = isTahiyyat
+      ? mapApiKeyInsightsToCards(
+          achievementsApiData,
+          period,
+          t,
+          showPlaceholders,
+        )
+      : PRAYER_INSIGHT_CARDS[goalId]?.[
+          period as "monthly" | "threeMonths" | "sixMonths"
+        ];
+
+    if (!cards || cards.length === 0) return null;
 
     return (
       <View style={styles.insightsSection}>
         <View style={styles.insightsHeader}>
-          <Text style={styles.insightsTitleLabel}>KEY INSIGHTS</Text>
+          <Text style={styles.insightsTitleLabel}>
+            {t("progressLogging.keyInsights")}
+          </Text>
           <Text style={styles.insightsSubtitleLabel}>
             {period === "monthly"
               ? "VS. LAST MONTH"
@@ -374,34 +622,31 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
                 </>
               )}
             </Text>
-            <View
-              style={[
-                styles.deltaBadge,
-                (!deltaIsPositive || showPlaceholders) &&
-                  styles.deltaBadgeNegative,
-              ]}
-            >
-              {!showPlaceholders && (
-                <Ionicons
-                  name={deltaIsPositive ? "arrow-up" : "arrow-down"}
-                  size={11}
-                  color={
-                    deltaIsPositive ? Colors.light.green : Colors.light.subtext
-                  }
-                />
-              )}
-              <Text
-                style={[
-                  styles.deltaText,
-                  (!deltaIsPositive || showPlaceholders) &&
-                    styles.deltaTextNegative,
-                ]}
-              >
-                {showPlaceholders
-                  ? LOADING_DASH
-                  : `${deltaIsPositive ? "+" : ""}${formatNumber(resolvedBaseAchievement.previousPeriodDeltaPercent)}% ${t("progressLogging.previousMonth")}`}
-              </Text>
-            </View>
+            {showDeltaChip &&
+              (deltaIsZero ? (
+                <View style={[styles.deltaBadge, styles.deltaBadgeNeutral]}>
+                  <View style={styles.deltaDot} />
+                  <Text style={[styles.deltaText, styles.deltaTextNegative]}>
+                    {`${formatNumber(0)}% ${deltaPeriodLabel}`}
+                  </Text>
+                </View>
+              ) : (
+                <View style={styles.deltaBadge}>
+                  {deltaIsPositive ? (
+                    <PositiveProgressIcon />
+                  ) : (
+                    <NegativeProgressIcon />
+                  )}
+                  <Text
+                    style={[
+                      styles.deltaText,
+                      !deltaIsPositive && styles.deltaTextNegative,
+                    ]}
+                  >
+                    {`${formatNumber(Math.abs(displayedDeltaPct ?? 0))}% ${deltaPeriodLabel}`}
+                  </Text>
+                </View>
+              ))}
           </View>
 
           <View style={styles.periodNavRow}>
@@ -481,29 +726,58 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
               <Text style={styles.summaryBold}>
                 {formatNumber(resolvedBaseAchievement.achievementPercent)}%
               </Text>
-              <Text> of your {cleanGoalLabel} prayer goals — </Text>
-              <Text style={styles.summaryBold}>
-                {formatNumber(
-                  Math.abs(resolvedBaseAchievement.previousPeriodDeltaPercent),
-                )}
-                %
-              </Text>
-              <Text>
-                {" "}
-                {deltaIsPositive ? "more" : "less"} than the previous{" "}
-                {period === "monthly" && "month"}
-                {period === "threeMonths" && (
+              <Text> of your {cleanGoalLabel} prayer goals</Text>
+              {resolvedBaseAchievement.previousPeriodDeltaPercent !== null ? (
+                resolvedBaseAchievement.previousPeriodDeltaPercent === 0 ? (
+                  <Text>
+                    {" "}
+                    — the same as the previous {period === "monthly" && "month"}
+                    {period === "threeMonths" && (
+                      <>
+                        <Text style={styles.summaryBold}>3M</Text> period
+                      </>
+                    )}
+                    {period === "sixMonths" && (
+                      <>
+                        <Text style={styles.summaryBold}>6M</Text> period
+                      </>
+                    )}
+                    .
+                  </Text>
+                ) : (
                   <>
-                    <Text style={styles.summaryBold}>3M</Text> period
+                    <Text> — </Text>
+                    <Text style={styles.summaryBold}>
+                      {formatNumber(
+                        Math.abs(
+                          resolvedBaseAchievement.previousPeriodDeltaPercent,
+                        ),
+                      )}
+                      %
+                    </Text>
+                    <Text>
+                      {" "}
+                      {resolvedBaseAchievement.previousPeriodDeltaPercent > 0
+                        ? "more"
+                        : "less"}{" "}
+                      than the previous {period === "monthly" && "month"}
+                      {period === "threeMonths" && (
+                        <>
+                          <Text style={styles.summaryBold}>3M</Text> period
+                        </>
+                      )}
+                      {period === "sixMonths" && (
+                        <>
+                          <Text style={styles.summaryBold}>6M</Text> period
+                        </>
+                      )}
+                      .
+                    </Text>
                   </>
-                )}
-                {period === "sixMonths" && (
-                  <>
-                    <Text style={styles.summaryBold}>6M</Text> period
-                  </>
-                )}
-                .
-              </Text>
+                )
+              ) : (
+                <Text>.</Text>
+              )}
             </Text>
 
             {(goalId === "prayer-missed" || goalId === "prayer-sunnah") && (
@@ -804,17 +1078,23 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    backgroundColor: Colors.light.lightgreen,
+    backgroundColor: Colors.light.calendarBg,
     borderRadius: 6,
     paddingHorizontal: 10,
     paddingVertical: 4,
     marginTop: 2,
   },
-  deltaBadgeNegative: {
+  deltaBadgeNeutral: {
     backgroundColor: Colors.light.calendarBg,
   },
+  deltaDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    backgroundColor: Colors.light.subtext,
+  },
   deltaText: {
-    color: Colors.light.green,
+    color: Colors.light.greentextbutton,
     fontSize: 11,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
@@ -1037,7 +1317,7 @@ const styles = StyleSheet.create({
   insightsDottedDivider: {
     height: 1,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.1)",
+    borderColor: Colors.light.dullestWhite,
     borderStyle: "dashed",
     width: "100%",
     marginBottom: 16,
@@ -1068,7 +1348,7 @@ const styles = StyleSheet.create({
     paddingRight: 20, // Add some padding to the end of the scroll
   },
   insightCardFixed: {
-    width: 140,
+    width: 176,
     flex: 0,
     minWidth: "auto",
   },

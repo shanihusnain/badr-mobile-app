@@ -4,6 +4,7 @@ import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { NegativeProgressIcon, PositiveProgressIcon } from "@/assets/icons";
 
 export type InsightCardProps = {
   iconFamily?: "Ionicons" | "MaterialCommunityIcons";
@@ -14,6 +15,8 @@ export type InsightCardProps = {
   trendValue?: string;
   trendDirection?: "up" | "down";
   footerText?: string;
+  footerNeutral?: boolean;
+  noData?: boolean;
   style?: ViewStyle;
 };
 
@@ -26,44 +29,68 @@ export function InsightCard({
   trendValue,
   trendDirection,
   footerText,
+  footerNeutral,
+  noData,
   style,
 }: InsightCardProps) {
   const isUp = trendDirection === "up";
+  const showTrend = !noData && !!trendValue;
+  const showNeutralFooter = noData || (!showTrend && (!!footerText || footerNeutral));
 
   return (
     <View style={[styles.card, style]}>
       <View style={styles.header}>
         {iconFamily === "Ionicons" ? (
-          <Ionicons name={iconName as any} size={14} color={Colors.light.subtext} />
+          <Ionicons
+            name={iconName as any}
+            size={14}
+            color={Colors.light.subtext}
+          />
         ) : (
-          <MaterialCommunityIcons name={iconName as any} size={14} color={Colors.light.subtext} />
+          <MaterialCommunityIcons
+            name={iconName as any}
+            size={14}
+            color={Colors.light.subtext}
+          />
         )}
         <Text style={styles.title}>{title}</Text>
       </View>
 
       <View style={styles.valueContainer}>
-        <Text style={styles.value}>{value}</Text>
-        {subValue && <Text style={styles.subValue}>{subValue}</Text>}
+        <Text style={styles.value}>{noData ? "-- --" : value}</Text>
+        {!noData && subValue ? (
+          <Text style={styles.subValue}>{subValue}</Text>
+        ) : null}
       </View>
 
-      {trendValue && (
-        <View style={[styles.trendBadge, isUp ? styles.trendUp : styles.trendDown]}>
-          <Ionicons
-            name={isUp ? "caret-up" : "caret-down"}
-            size={10}
-            color={isUp ? Colors.light.green : Colors.light.subtext}
-          />
-          <Text style={[styles.trendText, isUp ? styles.trendTextUp : styles.trendTextDown]}>
+      {showTrend ? (
+        <View
+          style={[styles.trendBadge, isUp ? styles.trendUp : styles.trendDown]}
+        >
+          {isUp ? <PositiveProgressIcon /> : <NegativeProgressIcon />}
+          <Text
+            style={[
+              styles.trendText,
+              isUp ? styles.trendTextUp : styles.trendTextDown,
+            ]}
+          >
             {trendValue}
           </Text>
         </View>
-      )}
+      ) : null}
 
-      {footerText && (
+      {showNeutralFooter ? (
         <View style={styles.footerBadge}>
-          <Text style={styles.footerText}>{footerText}</Text>
+          {(noData ||
+            footerNeutral ||
+            !String(footerText ?? "").trim().startsWith("•")) && (
+            <View style={styles.footerDot} />
+          )}
+          <Text style={styles.footerText}>
+            {noData ? footerText || "No data" : footerText}
+          </Text>
         </View>
-      )}
+      ) : null}
     </View>
   );
 }
@@ -79,16 +106,19 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     gap: 6,
   },
   title: {
+    flex: 1,
+    flexShrink: 1,
     color: Colors.light.subtext,
     fontSize: 10,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
     textTransform: "uppercase",
-    letterSpacing: 0.5,
+    letterSpacing: 0.2,
+    lineHeight: 13,
   },
   valueContainer: {
     flexDirection: "row",
@@ -115,7 +145,7 @@ const styles = StyleSheet.create({
     gap: 4,
     alignSelf: "flex-start",
     paddingHorizontal: 6,
-    paddingVertical: 2,
+    paddingVertical: 4,
     borderRadius: 4,
     marginTop: 4,
   },
@@ -131,18 +161,27 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   trendTextUp: {
-    color: Colors.light.green,
+    color: Colors.light.greentextbutton,
   },
   trendTextDown: {
     color: Colors.light.subtext,
   },
   footerBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
     alignSelf: "flex-start",
     backgroundColor: Colors.light.calendarBg,
     paddingHorizontal: 6,
     paddingVertical: 3,
     borderRadius: 4,
     marginTop: 4,
+  },
+  footerDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    backgroundColor: Colors.light.subtext,
   },
   footerText: {
     color: Colors.light.subtext,

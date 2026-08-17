@@ -67,6 +67,7 @@ export function mapPrayerGoalAchievementsToUi(
       incompletePrayers: incomplete,
       timeSpentMinutes,
       stackTotalPrayers,
+      completedDeltaPct: item.completedDeltaPct ?? null,
     } as PrayerPastAchievement["chartData"][number];
   });
 
@@ -81,7 +82,7 @@ export function mapPrayerGoalAchievementsToUi(
       data.periodEnd,
     ),
     achievementPercent: data.achievementPct ?? 0,
-    previousPeriodDeltaPercent: data.delta ?? 0,
+    previousPeriodDeltaPercent: data.delta ?? null,
     chartData,
     goalPrayers: data.goal ?? 0,
     periodGoalPrayers: (data.goal ?? 0) / barCount,

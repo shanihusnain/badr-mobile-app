@@ -103,6 +103,7 @@ export default function TahiyatUlWudhuLoggingFlow({
   }, [frame, t]);
 
   const showInsights = frame ? prayerFrameShowsInsights(frame) : false;
+  const isFullyAchieved = (frame?.goal.achievementPct ?? 0) >= 100;
 
   const { mutateAsync: logTahiyat, isPending: isLogging } =
     useLogTahiyatAlWudhuGoal();
@@ -224,8 +225,9 @@ export default function TahiyatUlWudhuLoggingFlow({
   };
 
   const handleOpenFlow = useCallback(() => {
+    if (isFullyAchieved) return;
     setFlowMode("active");
-  }, []);
+  }, [isFullyAchieved]);
 
   const getStepHeader = (step: TahiyatUlWudhuStepId) => {
     switch (step) {
@@ -375,9 +377,13 @@ export default function TahiyatUlWudhuLoggingFlow({
                 )}
 
                 <TouchableOpacity
-                  style={localStyles.addButton}
+                  style={[
+                    localStyles.addButton,
+                    isFullyAchieved && localStyles.addButtonDisabled,
+                  ]}
                   onPress={handleOpenFlow}
                   activeOpacity={0.8}
+                  disabled={isFullyAchieved}
                 >
                   <AddLoggingFlowIcon />
                 </TouchableOpacity>
@@ -497,6 +503,9 @@ const localStyles = StyleSheet.create({
     // borderColor: Colors.light.white,
     alignItems: "center",
     justifyContent: "center",
+  },
+  addButtonDisabled: {
+    opacity: 0.35,
   },
   badgeRow: {
     flexDirection: "row",

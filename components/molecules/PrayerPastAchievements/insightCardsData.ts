@@ -10,6 +10,8 @@ export type InsightCardData = {
   trendValue?: string;
   trendDirection?: "up" | "down";
   footerText?: string;
+  footerNeutral?: boolean;
+  noData?: boolean;
 };
 
 export type PeriodCardMap = {
