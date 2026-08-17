@@ -52,15 +52,15 @@ import {
   DASHBOARD_SUB_GOALS,
   getVisibleDashboardSubGoals,
 } from "./dashboardSubGoals";
-import { TodayGoalProgressCard } from "./components/TodayGoalProgressCard";
-import { SwipeToDeleteRow } from "./components/SwipeToDeleteRow";
-import {
-  TODAY_GOALS_PROGRESS,
-  canExpandTodayGoalProgress,
-  getDisplayedTodayGoalProgress,
-  getVisibleTodayGoalProgress,
-  type TodayGoalProgressEntry,
-} from "./todayGoalsProgress";
+// import { TodayGoalProgressCard } from "./components/TodayGoalProgressCard";
+// import { SwipeToDeleteRow } from "./components/SwipeToDeleteRow";
+// import {
+//   TODAY_GOALS_PROGRESS,
+//   canExpandTodayGoalProgress,
+//   getDisplayedTodayGoalProgress,
+//   getVisibleTodayGoalProgress,
+//   type TodayGoalProgressEntry,
+// } from "./todayGoalsProgress";
 import { fonts } from "@/assets/fonts";
 import {
   FastingOverviewCalendarSection,
@@ -209,12 +209,12 @@ export default function HomeScreen() {
   const [selectedDashboardCategory, setSelectedDashboardCategory] =
     useState("All");
   const [selectedDayTab, setSelectedDayTab] = useState("All");
-  const [todayGoalsProgress, setTodayGoalsProgress] =
-    useState<TodayGoalProgressEntry[]>(TODAY_GOALS_PROGRESS);
-  const [isTodayProgressExpanded, setIsTodayProgressExpanded] = useState(false);
-  const [openTodayProgressRowId, setOpenTodayProgressRowId] = useState<
-    string | null
-  >(null);
+  // const [todayGoalsProgress, setTodayGoalsProgress] =
+  //   useState<TodayGoalProgressEntry[]>(TODAY_GOALS_PROGRESS);
+  // const [isTodayProgressExpanded, setIsTodayProgressExpanded] = useState(false);
+  // const [openTodayProgressRowId, setOpenTodayProgressRowId] = useState<
+  //   string | null
+  // >(null);
   const [scrollCollapseThreshold, setScrollCollapseThreshold] = useState(260);
   const [showDailyProgress, setShowDailyProgress] = useState(false);
   const [isAnyBottomSheetOpen, setIsAnyBottomSheetOpen] = useState(false);
@@ -333,41 +333,41 @@ export default function HomeScreen() {
     return getVisibleDashboardSubGoals(goals, selectedDashboardCategory);
   }, [selectedDashboardCategory, quranCategory]);
 
-  const visibleTodayGoalsProgress = useMemo(
-    () => getVisibleTodayGoalProgress(todayGoalsProgress, selectedDayTab),
-    [todayGoalsProgress, selectedDayTab],
-  );
+  // const visibleTodayGoalsProgress = useMemo(
+  //   () => getVisibleTodayGoalProgress(todayGoalsProgress, selectedDayTab),
+  //   [todayGoalsProgress, selectedDayTab],
+  // );
 
-  const displayedTodayGoalsProgress = useMemo(
-    () =>
-      getDisplayedTodayGoalProgress(
-        visibleTodayGoalsProgress,
-        isTodayProgressExpanded,
-      ),
-    [visibleTodayGoalsProgress, isTodayProgressExpanded],
-  );
+  // const displayedTodayGoalsProgress = useMemo(
+  //   () =>
+  //     getDisplayedTodayGoalProgress(
+  //       visibleTodayGoalsProgress,
+  //       isTodayProgressExpanded,
+  //     ),
+  //   [visibleTodayGoalsProgress, isTodayProgressExpanded],
+  // );
   const handleShowHideTodayProgress = useCallback(() => {
     setShowDailyProgress((show) => !show);
   }, [setShowDailyProgress, showDailyProgress]);
-  const showTodayProgressToggle = canExpandTodayGoalProgress(
-    visibleTodayGoalsProgress,
-  );
+  // const showTodayProgressToggle = canExpandTodayGoalProgress(
+  //   visibleTodayGoalsProgress,
+  // );
 
-  useEffect(() => {
-    setIsTodayProgressExpanded(false);
-    setOpenTodayProgressRowId(null);
-  }, [selectedDayTab]);
+  // useEffect(() => {
+  //   setIsTodayProgressExpanded(false);
+  //   setOpenTodayProgressRowId(null);
+  // }, [selectedDayTab]);
 
-  const handleTodayProgressSwipeOpen = useCallback((rowId: string | null) => {
-    setOpenTodayProgressRowId(rowId);
-  }, []);
+  // const handleTodayProgressSwipeOpen = useCallback((rowId: string | null) => {
+  //   setOpenTodayProgressRowId(rowId);
+  // }, []);
 
-  const handleTodayProgressDelete = useCallback((entryId: string) => {
-    setTodayGoalsProgress((entries) =>
-      entries.filter((entry) => entry.id !== entryId),
-    );
-    setOpenTodayProgressRowId(null);
-  }, []);
+  // const handleTodayProgressDelete = useCallback((entryId: string) => {
+  //   setTodayGoalsProgress((entries) =>
+  //     entries.filter((entry) => entry.id !== entryId),
+  //   );
+  //   setOpenTodayProgressRowId(null);
+  // }, []);
 
   const stickyHeaderOpacity = scrollY.interpolate({
     inputRange: [scrollCollapseThreshold - 50, scrollCollapseThreshold],
@@ -770,6 +770,7 @@ export default function HomeScreen() {
             </ScrollView>
             <TopSpace top={16} />
 
+            {/* Goal progress cards on home screen
             <View style={styles.todayGoalsProgressSection}>
               <Text style={styles.todayGoalsProgressTitle}>
                 {t("homeScreen.todayGoalsProgress")}
@@ -813,6 +814,7 @@ export default function HomeScreen() {
                 </>
               ) : null}
             </View>
+            */}
           </>
         )}
         <JournalingHistoryWeekDashboard

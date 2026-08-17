@@ -35,6 +35,10 @@ export const SetPersonalizedGoalsScreen = () => {
 
   const [activeFrame, setActiveFrame] = useState(1);
 
+  useEffect(() => {
+    console.log("🔵 SetPersonalizedGoalsScreen mounted");
+  }, []);
+
   const handleLanguageChange = useCallback(
     (lang: SupportedLanguage) => {
       if (lang === currentLanguage) return;
@@ -63,7 +67,9 @@ export const SetPersonalizedGoalsScreen = () => {
   );
 
   useEffect(() => {
+    console.log("🟢 activeFrame changed to:", activeFrame);
     if (activeFrame === 2) {
+      console.log("📺 Showing tutorial frame");
       navigation.setOptions({
         headerShown: true,
         header: () => (
@@ -74,6 +80,7 @@ export const SetPersonalizedGoalsScreen = () => {
         ),
       });
     } else {
+      console.log("📋 Showing goals frame");
       navigation.setOptions({
         headerShown: true,
         header: () => (
@@ -90,10 +97,12 @@ export const SetPersonalizedGoalsScreen = () => {
   }, [activeFrame, navigation, t]);
 
   const onWatchTutorialPress = useCallback(() => {
+    console.log("👁️ Watch tutorial pressed");
     setActiveFrame(2);
   }, []);
 
   const handleSkipTutorial = useCallback(() => {
+    console.log("⏭️ Skip tutorial pressed, navigating to /monthlygoalplanner");
     router.push("/monthlygoalplanner");
   }, []);
 
@@ -103,7 +112,9 @@ export const SetPersonalizedGoalsScreen = () => {
         style={{ flex: 1 }}
         contentContainerStyle={{ flexGrow: 1, paddingBottom: 24 }}
         showsVerticalScrollIndicator={false}
+      
       >
+
         {/* ── Frame 1 sub-header ── */}
         {activeFrame === 2 && (
           <>
@@ -120,7 +131,7 @@ export const SetPersonalizedGoalsScreen = () => {
           </Text>
         </View>
         <FrameIndicator total={2} active={activeFrame} />
-        {/* {activeFrame === 1 && (
+        {activeFrame === 1 && (
           <GoalProgressCard
             currentDay={28}
             totalDays={28}
@@ -128,7 +139,7 @@ export const SetPersonalizedGoalsScreen = () => {
             overallProgress={100}
             animate
           />
-        )} */}
+        )}
         {activeFrame === 1 && (
           <>
             <TopSpace top={16} />
@@ -138,7 +149,10 @@ export const SetPersonalizedGoalsScreen = () => {
           </>
         )}
         {activeFrame === 2 && (
-          <TutorialVideoPlayer onSkip={handleSkipTutorial} />
+          <>
+            {console.log("▶️ Rendering tutorial video player")}
+            <TutorialVideoPlayer onSkip={handleSkipTutorial} />
+          </>
         )}
         {activeFrame === 1 && (
           <View style={{ alignSelf: "center", marginTop: "auto" }}>
