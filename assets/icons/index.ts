@@ -43,13 +43,16 @@ import { FastingDashboardIcon } from "./FastingDashboardIcon";
 import { FastingFlowCardMondayFasts } from "./FastingFlowCardMondayFasts";
 import { FastingFlowCardProphetDawoodCalender } from "./FastingFlowCardProphetDawoodCalender";
 import { Forwardchevron } from "./Forwardchevron";
+import { FilledWallClock } from "./FilledWallClock";
 //G
+
 import { GaveBirthIcon } from "./GaveBirthIcon";
 import { GiftIcon } from "./GiftIcon";
 import { GreenTickWithCircleIcon } from "./GreenTickWithCircleIcon";
 import { FacebookIcon } from "./FacebookIcon";
 //H
 import { HeartBreakIcon } from "./HeartBreakIcon";
+import { HeaderInfoIcon } from "./HeaderInfoIcon";
 //I
 import { InBoxArrow } from "./InBoxArrow";
 import { InsightIcon } from "./InsightIcon";
@@ -96,6 +99,7 @@ import { FajarSunIcon } from "./FajarSunIcon";
 import { GiftIconWithMoon } from "./GiftIconWithMoon";
 import { GoatIcon } from "./GoatIcon";
 import { GoogleIcon } from "./GoogleIcon";
+import { GoldenTickIcon } from "./GoldenTickIcon";
 //H
 import { HomeBondIcon } from "./HomeBondIcon";
 import { HomeTabIcon } from "./HomeTabIcon";
@@ -201,6 +205,7 @@ import { FlowCardShirtIcon } from "./FlowCardShirtIcon";
 import { WhiteTick } from "./WhiteTick";
 import { WhitePrayerMatIcon } from "./WhitePrayerMatIcon";
 import { WhiteTimerIcon } from "./WhiteTimerIcon";
+import { WeighBalanceIcon } from "./WeighBalanceIcon";
 //X
 
 //Y
@@ -410,4 +415,8 @@ export {
   BackChevron,
   Forwardchevron,
   GreenTickWithCircleIcon,
+  GoldenTickIcon,
+  WeighBalanceIcon,
+  FilledWallClock,
+  HeaderInfoIcon,
 };

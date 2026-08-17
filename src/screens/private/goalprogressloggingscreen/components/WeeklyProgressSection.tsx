@@ -904,29 +904,53 @@ export function WeeklyProgressSection({
   }
 
   if (template === "tahiyat-al-masjid") {
-    const mockWeek = {
-      weekDays: [
-        { day: "Sun", prayersLogged: 3, isLogged: true },
-        { day: "Mon", prayersLogged: 3, isLogged: true },
-        { day: "Tue", prayersLogged: 2, isLogged: true },
-        { day: "Wed", prayersLogged: 1, isLogged: true },
-        { day: "Thu", prayersLogged: 0, isLogged: false, isMenstruation: true },
-        { day: "Fri", prayersLogged: 4, isLogged: true, isBestDay: true },
-        { day: "Sat", prayersLogged: 1, isLogged: true },
-      ],
-      weekRangeLabel: "Dec 20 — 26",
-      weekFraction: "4/4",
-      totalPrayersThisWeek: 14,
-      streakDays: 2,
-    };
+    const frame = prayerFrame?.frame;
+    if (frame) {
+      const totalWeeks = frame.cycle.totalWeeks;
+      const currentWeek = frame.cycle.weekNumber;
+
+      const canPrev = currentWeek > 1;
+      const canNext = currentWeek < totalWeeks;
+
+      const handlePrevWeek = canPrev
+        ? () => {
+            prayerFrame?.setWeekNumber(currentWeek - 1);
+          }
+        : undefined;
+
+      const handleNextWeek = canNext
+        ? () => {
+            prayerFrame?.setWeekNumber(currentWeek + 1);
+          }
+        : undefined;
+
+      return (
+        <TahiyatAlMasjidWeeklyProgressDashboard
+          weekDays={mapPrayerFrameWeekDays(frame)}
+          weekRangeLabel={formatPrayerFrameWeekRange(
+            frame.cycle.weekStart,
+            frame.cycle.weekEnd,
+          )}
+          weekFraction={getPrayerFrameWeekFraction(frame)}
+          totalPrayersThisWeek={frame.week.thisWeekTotal}
+          streakDays={frame.week.currentStreak}
+          motivationalQuote={frame.week.motivationalMessage}
+          selectedDayIndex={getPrayerFrameTodayIndex(frame)}
+          statsIcon="mosque"
+          onPrevWeek={handlePrevWeek}
+          onNextWeek={handleNextWeek}
+        />
+      );
+    }
 
     return (
       <TahiyatAlMasjidWeeklyProgressDashboard
-        weekDays={mockWeek.weekDays}
-        weekRangeLabel={mockWeek.weekRangeLabel}
-        weekFraction={mockWeek.weekFraction}
-        totalPrayersThisWeek={mockWeek.totalPrayersThisWeek}
-        streakDays={mockWeek.streakDays}
+        weekDays={[]}
+        weekRangeLabel=""
+        weekFraction="—"
+        totalPrayersThisWeek={0}
+        streakDays={0}
+        statsIcon="mosque"
       />
     );
   }

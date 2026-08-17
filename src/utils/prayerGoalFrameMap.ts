@@ -69,7 +69,7 @@ export function getPrayerFrameAchievementLabel(
     case "IN_PROGRESS":
       // If backend says "in progress" but progress is still 0, show the purple "In Progress" chip
       // and hide insights (matches Figma).
-      if (pct <= 0) {
+      if (pct <= 0 || pct <= 90) {
         return {
           text: t("progressLogging.inProgress"),
           type: "in-progress",

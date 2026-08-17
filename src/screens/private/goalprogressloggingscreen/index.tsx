@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useLayoutEffect } from "react";
+import React, { useMemo, useState, useLayoutEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -41,6 +41,8 @@ import {
   useOptionalPrayerGoalFrameContext,
 } from "./prayerGoalFrameContext";
 import { getPrayerFrameRingGoalCountLabel } from "@/src/utils/prayerGoalFrameMap";
+import { resolvePrayerTypeFromGoalId } from "@/src/utils/prayerGoalMap";
+import BottomSheet from "@gorhom/bottom-sheet";
 import {
   tahiyyatwudhudetailimage,
   tahiyyatmasjiddetailimage,
@@ -57,6 +59,8 @@ import {
   quranrecitationbottomsheetimage,
   quranmemorizationbottomsheetimage,
 } from "@/assets/images";
+import { InformationSheet } from "@/components/molecules/informationsheet";
+import { HeaderInfoIcon } from "@/assets/icons";
 
 /** Hero background per prayer / Quran / fasting / sadaqah logging goal. */
 function getLoggingBackgroundSource(
@@ -141,7 +145,8 @@ function GoalProgressLoggingBody({
   const [weekViewPercent, setWeekViewPercent] = useState<number | null>(null);
   const template = getLoggingFlowTemplate(goalId);
   const prayerFrame = useOptionalPrayerGoalFrameContext();
-  const isTahiyatUlWudhu = template === "tahiyat-ul-wudhu";
+  const isTahiyatFrameGoal =
+    template === "tahiyat-ul-wudhu" || template === "tahiyat-al-masjid";
   const liveGoalData = useMemo(
     () => getResolvedGoalById(goalId) ?? goalData,
     [goalData, goalId, weeklyRefreshKey],
@@ -149,7 +154,7 @@ function GoalProgressLoggingBody({
 
   const isMondayThursdayFasts = isMondayThursdayFastsGoalId(goalId);
   const frameAchievementPct = prayerFrame?.frame?.goal.achievementPct;
-  const displayPercentage = isTahiyatUlWudhu
+  const displayPercentage = isTahiyatFrameGoal
     ? frameAchievementPct != null
       ? `${frameAchievementPct}%`
       : "0%"
@@ -169,9 +174,6 @@ function GoalProgressLoggingBody({
     return getMondayThursdayFastRingSegments(mondayThursdayCompletedCount);
   }, [isMondayThursdayFasts, mondayThursdayCompletedCount]);
   const percentageNum = displayPercentage.replace("%", "");
-  const isGoalComplete = isTahiyatUlWudhu
-    ? frameAchievementPct != null && frameAchievementPct >= 100
-    : parsePercent(displayPercentage) >= 100;
   const frameGoalLabel = prayerFrame?.frame?.goal.label;
   const cleanLabel = frameGoalLabel
     ? frameGoalLabel
@@ -180,7 +182,7 @@ function GoalProgressLoggingBody({
       : liveGoalData.label.startsWith("/")
         ? liveGoalData.label.substring(1)
         : liveGoalData.label;
-  const ringGoalLabel = isTahiyatUlWudhu
+  const ringGoalLabel = isTahiyatFrameGoal
     ? prayerFrame?.frame
       ? t("homeScreen.weeklyProgress_goalLabel", {
           label: getPrayerFrameRingGoalCountLabel(
@@ -199,33 +201,9 @@ function GoalProgressLoggingBody({
           })
         : t("homeScreen.weeklyProgress_goalLabel", { label: cleanLabel });
 
-  const getCategoryColor = (category: string): string => {
-    switch (category) {
-      case "PRAYER":
-        return Colors.light.ringPrayer;
-      case "QURAN":
-        return Colors.light.ringQuran;
-      case "FASTING":
-        return Colors.light.green;
-      case "SADAQAH":
-        return Colors.light.ringSadaqah;
-      default:
-        return Colors.light.green;
-    }
-  };
-
-  const categoryColor = isTahiyatUlWudhu
-    ? Colors.light.ringPrayer
-    : getCategoryColor(liveGoalData.category);
-
   return (
     <>
       <View style={styles.goalInfoContainer}>
-        {isGoalComplete ? (
-          <View style={styles.ringCheckmark}>
-            <Ionicons name="checkmark-circle" size={28} color={categoryColor} />
-          </View>
-        ) : null}
         {/* Illuminated ring colors itself by percentage stage, not category. */}
         <TaperedCircleBorder
           percentage={displayPercentage}
@@ -336,57 +314,24 @@ export const GoalProgressLoggingScreen = ({
 }: GoalProgressLoggingScreenProps) => {
   const goalId = (goalIdParam || "") as GoalId;
   const goalData = getResolvedGoalById(goalId);
+  console.log("goalData", goalData);
   const [screenScrollEnabled, setScreenScrollEnabled] = useState(true);
-
-  if (!goalData) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyStateText}>
-            Goal data not found: {goalId}
-          </Text>
-        </View>
-      </View>
-    );
-  }
-
+  const navigation = useNavigation();
+  const infoSheetRef = useRef<BottomSheet>(null);
+  const prayerType = resolvePrayerTypeFromGoalId(goalId);
   const template = getLoggingFlowTemplate(goalId);
   const backgroundSource = getLoggingBackgroundSource(goalId, template);
   const shouldUseBackground = backgroundSource != null;
 
-  const scrollView = (
-    <ScrollView
-      style={[
-        styles.container,
-        shouldUseBackground && styles.transparentBackground,
-      ]}
-      contentContainerStyle={[
-        styles.scrollContent,
-        shouldUseBackground ? { paddingTop: 100 } : undefined,
-      ]}
-      showsVerticalScrollIndicator={false}
-      keyboardShouldPersistTaps="handled"
-      scrollEnabled={screenScrollEnabled}
-      nestedScrollEnabled
-    >
-      {shouldUseBackground && backgroundSource && (
-        <Image
-          source={backgroundSource}
-          style={[styles.backgroundImage, { top: -130, height: 880 }]}
-          resizeMode="cover"
-        />
-      )}
-      <GoalProgressLoggingContent
-        goalData={goalData}
-        goalId={goalId}
-        onDropdownOpenChange={(open) => setScreenScrollEnabled(!open)}
-      />
-    </ScrollView>
-  );
-
-  const navigation = useNavigation();
+  const openInsightsSheet = () => {
+    infoSheetRef.current?.expand();
+  };
 
   useLayoutEffect(() => {
+    if (!goalData) {
+      navigation.setOptions({ headerShown: false });
+      return;
+    }
     if (shouldUseBackground) {
       navigation.setOptions({
         headerShown: true,
@@ -400,13 +345,64 @@ export const GoalProgressLoggingScreen = ({
             iconName="chevron-left"
             leftButtonBackground="rgba(255,255,255,0.08)"
             onBackPress={() => navigation.goBack()}
+            rightIcon={<HeaderInfoIcon />}
+            onRightPress={prayerType ? openInsightsSheet : undefined}
           />
         ),
       });
     } else {
       navigation.setOptions({ headerShown: false });
     }
-  }, [navigation, shouldUseBackground, goalData]);
+  }, [navigation, shouldUseBackground, goalData, prayerType]);
 
-  return scrollView;
+  if (!goalData) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyStateText}>
+            Goal data not found: {goalId}
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <ScrollView
+        style={[
+          styles.container,
+          shouldUseBackground && styles.transparentBackground,
+        ]}
+        contentContainerStyle={[
+          styles.scrollContent,
+          shouldUseBackground ? { paddingTop: 100 } : undefined,
+        ]}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        scrollEnabled={screenScrollEnabled}
+        nestedScrollEnabled
+      >
+        {shouldUseBackground && backgroundSource && (
+          <Image
+            source={backgroundSource}
+            style={[styles.backgroundImage, { top: -130, height: 880 }]}
+            resizeMode="cover"
+          />
+        )}
+        <GoalProgressLoggingContent
+          goalData={goalData}
+          goalId={goalId}
+          onDropdownOpenChange={(open) => setScreenScrollEnabled(!open)}
+        />
+      </ScrollView>
+      {prayerType ? (
+        <InformationSheet
+          ref={infoSheetRef}
+          prayerType={prayerType}
+          onClose={() => infoSheetRef.current?.close()}
+        />
+      ) : null}
+    </View>
+  );
 };

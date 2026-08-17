@@ -10,6 +10,7 @@ import Svg, {
 } from "react-native-svg";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
+import { GoldenTickIcon } from "@/assets/icons/GoldenTickIcon";
 
 export type RingSegment = {
   value: number;
@@ -127,18 +128,17 @@ function illuminatedWidthAt(
   t: number,
   sweepDeg: number,
   maxWidth: number,
+  minScale = ILLUMINATED_MIN_SCALE,
 ): number {
   const deg = t * sweepDeg;
   const ramp = Math.min(1, deg / ILLUMINATED_RAMP_DEG);
-  const grow =
-    ILLUMINATED_MIN_SCALE + (1 - ILLUMINATED_MIN_SCALE) * ramp;
+  const grow = minScale + (1 - minScale) * ramp;
 
   const tipDeg = Math.min(ILLUMINATED_TIP_DEG, sweepDeg * 0.25);
   const fromEnd = sweepDeg - deg;
   const tip =
     fromEnd < tipDeg
-      ? ILLUMINATED_TIP_SCALE +
-        (1 - ILLUMINATED_TIP_SCALE) * (fromEnd / tipDeg)
+      ? ILLUMINATED_TIP_SCALE + (1 - ILLUMINATED_TIP_SCALE) * (fromEnd / tipDeg)
       : 1;
 
   return maxWidth * grow * tip;
@@ -149,10 +149,16 @@ function illuminatedWidthAt(
  * rounded head cap, inner edge back. Being ONE filled shape (per layer),
  * it can never self-overlap — no beading at any percentage.
  */
-function taperedRibbonPath(sweepDeg: number, maxWidth: number): string {
+function taperedRibbonPath(
+  sweepDeg: number,
+  maxWidth: number,
+  startDeg = 0,
+  capTail = false,
+): string {
   const sweep = Math.min(Math.max(sweepDeg, 0.01), 359.99);
   const n = Math.max(24, Math.min(RIBBON_SAMPLES, Math.ceil(sweep / 3) + 8));
   const toRad = Math.PI / 180;
+  const minScale = capTail ? 0.75 : ILLUMINATED_MIN_SCALE;
 
   // Angle measured clockwise from 12 o'clock.
   const point = (angleDeg: number, radialOffset: number) => {
@@ -165,63 +171,123 @@ function taperedRibbonPath(sweepDeg: number, maxWidth: number): string {
   const inner: { x: number; y: number }[] = [];
   for (let i = 0; i <= n; i += 1) {
     const t = i / n;
-    const angle = t * sweep;
-    const half = illuminatedWidthAt(t, sweep, maxWidth) / 2;
+    const angle = startDeg + t * sweep;
+    const half = illuminatedWidthAt(t, sweep, maxWidth, minScale) / 2;
     outer.push(point(angle, half));
     inner.push(point(angle, -half));
   }
 
-  // Rounded cap at the head (widest end).
-  const headRad = sweep * toRad;
+  const headAngle = startDeg + sweep;
+  const headRad = headAngle * toRad;
   const sinH = Math.sin(headRad);
   const cosH = Math.cos(headRad);
   const head = { x: CX + RADIUS * sinH, y: CY - RADIUS * cosH };
-  const radial = { x: sinH, y: -cosH };
-  const tangent = { x: cosH, y: sinH };
-  const capHalf = illuminatedWidthAt(1, sweep, maxWidth) / 2;
-  const cap: { x: number; y: number }[] = [];
+  const headRadial = { x: sinH, y: -cosH };
+  const headTangent = { x: cosH, y: sinH };
+  const capHalf = illuminatedWidthAt(1, sweep, maxWidth, minScale) / 2;
+  const headCap: { x: number; y: number }[] = [];
   for (let i = 1; i < CAP_SAMPLES; i += 1) {
     const a = (i / CAP_SAMPLES) * Math.PI;
-    cap.push({
-      x: head.x + capHalf * (radial.x * Math.cos(a) + tangent.x * Math.sin(a)),
-      y: head.y + capHalf * (radial.y * Math.cos(a) + tangent.y * Math.sin(a)),
+    headCap.push({
+      x:
+        head.x +
+        capHalf * (headRadial.x * Math.cos(a) + headTangent.x * Math.sin(a)),
+      y:
+        head.y +
+        capHalf * (headRadial.y * Math.cos(a) + headTangent.y * Math.sin(a)),
     });
   }
 
-  const pts = [...outer, ...cap, ...inner.reverse()];
+  const tailCap: { x: number; y: number }[] = [];
+  if (capTail) {
+    const startRad = startDeg * toRad;
+    const sinS = Math.sin(startRad);
+    const cosS = Math.cos(startRad);
+    const tail = { x: CX + RADIUS * sinS, y: CY - RADIUS * cosS };
+    const tailRadial = { x: sinS, y: -cosS };
+    const tailTangent = { x: cosS, y: sinS };
+    const tailHalf = illuminatedWidthAt(0, sweep, maxWidth, minScale) / 2;
+    for (let i = 1; i < CAP_SAMPLES; i += 1) {
+      const a = (i / CAP_SAMPLES) * Math.PI;
+      // Inner → counter-clockwise → outer, to close the ribbon.
+      tailCap.push({
+        x:
+          tail.x +
+          tailHalf *
+            (-tailRadial.x * Math.cos(a) - tailTangent.x * Math.sin(a)),
+        y:
+          tail.y +
+          tailHalf *
+            (-tailRadial.y * Math.cos(a) - tailTangent.y * Math.sin(a)),
+      });
+    }
+  }
+
+  const pts = [...outer, ...headCap, ...inner.reverse(), ...tailCap];
   return `M ${pts
     .map((p) => `${p.x.toFixed(2)} ${p.y.toFixed(2)}`)
     .join(" L ")} Z`;
 }
+
+/** Path glyph sits inset in the 22×22 viewBox (drawn ~4–18). */
+const TICK_PATH_INSET = 14 / 22;
 
 function IlluminatedProgressArc({
   sweep,
   glowColor,
   blurId,
   glowStrength,
+  openAtTop = false,
+  topGapDeg = 0,
 }: {
   sweep: number;
   glowColor: string;
   blurId: string;
   glowStrength: number;
+  openAtTop?: boolean;
+  /** Angular gap at 12 o'clock; only used when `openAtTop` (100% check). */
+  topGapDeg?: number;
 }) {
-  const isFullRing = sweep >= 359.5;
+  const gapDeg = openAtTop ? Math.max(8, topGapDeg) : 0;
+  const startDeg = gapDeg / 2;
+  const arcSweep = openAtTop
+    ? Math.min(Math.max(sweep - gapDeg, 0.01), 360 - gapDeg)
+    : sweep;
+  const isClosedRing = !openAtTop && sweep >= 359.5;
 
   // Each layer is ONE filled ribbon — no overlapping strokes, no beading.
   const paths = useMemo(() => {
-    if (isFullRing || sweep <= 0) return null;
+    if (isClosedRing || arcSweep <= 0) return null;
     return {
-      glowOuter: taperedRibbonPath(sweep, ILLUMINATED_CORE_WIDTH * 3.4),
-      glowMid: taperedRibbonPath(sweep, ILLUMINATED_CORE_WIDTH * 2),
-      band: taperedRibbonPath(sweep, ILLUMINATED_CORE_WIDTH * 1.4),
-      core: taperedRibbonPath(sweep, ILLUMINATED_CORE_WIDTH),
+      glowOuter: taperedRibbonPath(
+        arcSweep,
+        ILLUMINATED_CORE_WIDTH * 3.4,
+        startDeg,
+        openAtTop,
+      ),
+      glowMid: taperedRibbonPath(
+        arcSweep,
+        ILLUMINATED_CORE_WIDTH * 2,
+        startDeg,
+        openAtTop,
+      ),
+      band: taperedRibbonPath(
+        arcSweep,
+        ILLUMINATED_CORE_WIDTH * 1.4,
+        startDeg,
+        openAtTop,
+      ),
+      core: taperedRibbonPath(
+        arcSweep,
+        ILLUMINATED_CORE_WIDTH,
+        startDeg,
+        openAtTop,
+      ),
     };
-  }, [sweep, isFullRing]);
+  }, [arcSweep, isClosedRing, openAtTop, startDeg]);
 
-  // 100%: one continuous circle with an even bloom — no taper, no seams.
-  // Kept lighter than the partial-arc glow so it reads as a crisp ring
-  // haloed in gold, not a thick glowing donut.
-  if (isFullRing) {
+  // 100% without a check: one continuous circle with an even bloom.
+  if (isClosedRing) {
     return (
       <>
         <G filter={`url(#${blurId})`}>
@@ -271,8 +337,16 @@ function IlluminatedProgressArc({
     <>
       {/* Neon bloom, blurred — wide soft halo plus tighter saturated band. */}
       <G filter={`url(#${blurId})`}>
-        <Path d={paths.glowOuter} fill={glowColor} opacity={0.2 * glowStrength} />
-        <Path d={paths.glowMid} fill={glowColor} opacity={0.35 * glowStrength} />
+        <Path
+          d={paths.glowOuter}
+          fill={glowColor}
+          opacity={0.2 * glowStrength}
+        />
+        <Path
+          d={paths.glowMid}
+          fill={glowColor}
+          opacity={0.35 * glowStrength}
+        />
       </G>
 
       {/* Tight unblurred color band hugging the core. */}
@@ -423,13 +497,31 @@ export const TaperedCircleBorder: React.FC<TaperedCircleBorderProps> = ({
 
   const svgSize = size + GLOW_PAD * 2;
   const svgOffset = -GLOW_PAD;
+  const radiusPx = (RADIUS / 80) * svgSize;
   const arcD = arcPath(RADIUS, 0, sweep);
   const segmentArcs =
     useSegments && segments ? buildSegmentArcs(segments, segmentTotal) : [];
+  // Check + top gap: 100% illuminated rings only. Never at 99% or below.
+  const showCompleteCheck = isIlluminated && percent === 100;
+  const checkSize = Math.max(28, Math.round(size * (34 / 174)));
+  const visualTickPx = checkSize * TICK_PATH_INSET;
+  // Arc gap slightly smaller than the glyph so both ends tuck into the icon.
+  const checkGapDeg =
+    ((visualTickPx * 1.2) / (2 * Math.PI * radiusPx)) * 360;
+  const checkTop = size / 2 - radiusPx - checkSize / 2;
 
   return (
     <View style={[styles.wrapper, { width: size, height: size }, style]}>
       {isGolden && <GoldenNativeGlow size={size} />}
+
+      {showCompleteCheck ? (
+        <View
+          style={[styles.completeCheck, { top: checkTop }]}
+          pointerEvents="none"
+        >
+          <GoldenTickIcon size={checkSize} />
+        </View>
+      ) : null}
 
       <Svg
         width={svgSize}
@@ -446,7 +538,7 @@ export const TaperedCircleBorder: React.FC<TaperedCircleBorderProps> = ({
           </Filter>
         </Defs>
 
-        {!isGolden && !useSegments ? (
+        {!isGolden && !useSegments && !showCompleteCheck ? (
           <Circle
             cx={CX}
             cy={CY}
@@ -478,6 +570,8 @@ export const TaperedCircleBorder: React.FC<TaperedCircleBorderProps> = ({
             glowColor={glowColor}
             blurId={blurId}
             glowStrength={glowStrength}
+            openAtTop={showCompleteCheck}
+            topGapDeg={checkGapDeg}
           />
         ) : null}
 
@@ -538,6 +632,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     overflow: "visible",
+  },
+  completeCheck: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    alignItems: "center",
+    zIndex: 4,
   },
   svg: {
     position: "absolute",

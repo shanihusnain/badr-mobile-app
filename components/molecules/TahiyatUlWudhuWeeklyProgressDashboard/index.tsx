@@ -19,6 +19,8 @@ import {
   PrayerMatIcon,
   ShootIcon,
 } from "@/assets/icons";
+import { TopSpace } from "@/components/atoms/TopSpace";
+import { isSuccessResponse } from "@react-native-google-signin/google-signin";
 
 export type TahiyatUlWudhuDayProgress = {
   day: string;
@@ -160,7 +162,6 @@ export function TahiyatUlWudhuWeeklyProgressDashboard({
           </TouchableOpacity>
         </View>
       </View>
-
       <View style={styles.daysRow}>
         {weekDays.map((day, index) => {
           const isSelected = index === activeDayIndex;
@@ -189,6 +190,16 @@ export function TahiyatUlWudhuWeeklyProgressDashboard({
                 <Text
                   style={[
                     day.isBestDay ? styles.bestDayLabel : styles.dayLabel,
+                    {
+                      color:
+                        isSelected && day.isBestDay
+                          ? Colors.light.green
+                          : day.isBestDay
+                            ? Colors.light.green
+                            : isSelected
+                              ? Colors.light.white
+                              : Colors.light.subtext,
+                    },
                   ]}
                   numberOfLines={1}
                 >
@@ -254,20 +265,21 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     backgroundColor: Colors.light.greybuttonBackground,
     paddingHorizontal: 8,
-    paddingVertical: 20,
+    paddingVertical: 14,
     gap: 16,
+    zIndex: 150,
   },
   headerRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     gap: 8,
+    paddingHorizontal: 15,
   },
   headerLeft: {
     flexDirection: "row",
     alignItems: "center",
     gap: 5,
-    flexShrink: 1,
   },
   weekFractionText: {
     color: Colors.light.white,
@@ -302,16 +314,14 @@ const styles = StyleSheet.create({
   dayColumn: {
     flex: 1,
     alignItems: "center",
-    minWidth: 0,
   },
   dayItemWrapper: {
     alignItems: "center",
-    paddingVertical: 4,
     paddingHorizontal: 2,
     borderRadius: 8,
   },
   dayItemSelected: {
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
+    backgroundColor: Colors.light.dayProgressCardBg,
   },
   bestDayLabel: {
     color: Colors.light.green,

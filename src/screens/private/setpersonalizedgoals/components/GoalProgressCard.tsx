@@ -28,7 +28,7 @@ interface GoalProgressCardProps {
   animationDurationMs?: number;
 }
 
-const DEFAULT_ANIMATION_MS = 2800;
+const DEFAULT_ANIMATION_MS = 18000;
 
 function easeOutCubic(t: number) {
   return 1 - Math.pow(1 - t, 3);
@@ -66,15 +66,20 @@ export const GoalProgressCard = ({
 }: GoalProgressCardProps) => {
   const { t } = useTranslation();
 
+  const staticDaysLeft = Math.max(0, totalDays - currentDay);
+
   const [moonReady, setMoonReady] = useState(!animate);
-  const [displayCurrentDay, setDisplayCurrentDay] = useState(
-    animate ? 1 : currentDay,
-  );
+  /** Animated countdown numerator — only used when `animate` is true. */
+  const [animatedDaysLeft, setAnimatedDaysLeft] = useState(totalDays);
   const [displayLastActiveDays, setDisplayLastActiveDays] = useState(
     animate ? 1 : lastActiveDays,
   );
-  const [displayProgress, setDisplayProgress] = useState(
+  /** Fractional % for the moon; text below uses the rounded value. */
+  const [moonProgress, setMoonProgress] = useState(
     animate ? 0 : overallProgress,
+  );
+  const [displayProgress, setDisplayProgress] = useState(
+    animate ? 0 : Math.round(overallProgress),
   );
 
   const handleMoonReady = useCallback(() => {
@@ -84,21 +89,24 @@ export const GoalProgressCard = ({
   useEffect(() => {
     if (!animate) {
       setMoonReady(true);
-      setDisplayCurrentDay(currentDay);
       setDisplayLastActiveDays(lastActiveDays);
-      setDisplayProgress(overallProgress);
+      setMoonProgress(overallProgress);
+      setDisplayProgress(Math.round(overallProgress));
       return;
     }
 
     // Hold at start values until the Rive moon is ready to follow progress.
     if (!moonReady) {
-      setDisplayCurrentDay(1);
+      setAnimatedDaysLeft(totalDays);
       setDisplayLastActiveDays(1);
+      setMoonProgress(0);
       setDisplayProgress(0);
       return;
     }
 
-    const fromDay = 1;
+    const fromDaysLeft = totalDays;
+    const toDaysLeft = staticDaysLeft;
+    const fromActiveDays = 1;
     const fromProgress = 0;
     let frameId = 0;
     let startTs: number | null = null;
@@ -108,20 +116,26 @@ export const GoalProgressCard = ({
       const raw = Math.min(1, (now - startTs) / animationDurationMs);
       const e = easeOutCubic(raw);
 
-      setDisplayCurrentDay(Math.round(fromDay + (currentDay - fromDay) * e));
+      const nextProgress = fromProgress + (overallProgress - fromProgress) * e;
+
+      // Countdown only while animating: 28/28 → 27/28 → … → days left
+      setAnimatedDaysLeft(
+        Math.round(fromDaysLeft + (toDaysLeft - fromDaysLeft) * e),
+      );
       setDisplayLastActiveDays(
-        Math.round(fromDay + (lastActiveDays - fromDay) * e),
+        Math.round(fromActiveDays + (lastActiveDays - fromActiveDays) * e),
       );
-      setDisplayProgress(
-        Math.round(fromProgress + (overallProgress - fromProgress) * e),
-      );
+      // Keep moon on continuous floats; round only the % label.
+      setMoonProgress(nextProgress);
+      setDisplayProgress(Math.round(nextProgress));
 
       if (raw < 1) {
         frameId = requestAnimationFrame(tick);
       } else {
-        setDisplayCurrentDay(currentDay);
+        setAnimatedDaysLeft(toDaysLeft);
         setDisplayLastActiveDays(lastActiveDays);
-        setDisplayProgress(overallProgress);
+        setMoonProgress(overallProgress);
+        setDisplayProgress(Math.round(overallProgress));
       }
     };
 
@@ -130,17 +144,20 @@ export const GoalProgressCard = ({
   }, [
     animate,
     animationDurationMs,
-    currentDay,
     lastActiveDays,
     moonReady,
     overallProgress,
+    staticDaysLeft,
+    totalDays,
   ]);
+
+  const daysLeftDisplay = animate ? animatedDaysLeft : staticDaysLeft;
 
   return (
     <View style={styles.card}>
       {/* ── Days left header ── */}
       <Text style={styles.currentDayText}>
-        {displayCurrentDay}
+        {daysLeftDisplay}
         <Text style={styles.daysLeftText}>
           {`/${totalDays} ${t("setpersonalizedgoals.daysLeft")}`}
         </Text>
@@ -158,7 +175,7 @@ export const GoalProgressCard = ({
         }}
       >
         <MoonProgress
-          progressPercent={displayProgress}
+          progressPercent={moonProgress}
           onReady={animate ? handleMoonReady : undefined}
         />
       </View>

@@ -95,6 +95,10 @@ export default function TahiyatUlWudhuLoggingFlow({
         type: "in-progress" as const,
       };
     }
+    console.log(
+      "get prayer frame achievement label",
+      getPrayerFrameAchievementLabel(frame, t),
+    );
     return getPrayerFrameAchievementLabel(frame, t);
   }, [frame, t]);
 
@@ -301,106 +305,108 @@ export default function TahiyatUlWudhuLoggingFlow({
   const stepHeader = getStepHeader(currentStep);
 
   return (
-    <View style={commonStyles.section}>
-      <Text style={commonStyles.sectionTitle}>
-        {t("progressLogging.myProgress")}
-      </Text>
+    <>
+      {flowMode === "active" && (
+        <TouchableOpacity
+          style={commonStyles.cancelButton}
+          onPress={resetFlow}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="close" size={20} color={Colors.light.white} />
+        </TouchableOpacity>
+      )}
+      <View style={commonStyles.section}>
+        <Text style={commonStyles.sectionTitle}>
+          {t("progressLogging.myProgress")}
+        </Text>
 
-      <View style={commonStyles.cardAnchor}>
-        {flowMode === "active" && (
-          <Pressable style={commonStyles.backdrop} onPress={resetFlow} />
-        )}
-        {flowMode === "active" && (
-          <TouchableOpacity
-            style={commonStyles.cancelButton}
-            onPress={resetFlow}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="close" size={20} color={Colors.light.white} />
-          </TouchableOpacity>
-        )}
-
-        {flowMode === "collapsed" ? (
-          <View style={localStyles.summaryCard}>
-            <View style={localStyles.summaryBody}>
-              <View style={localStyles.summaryIconCircle}>
-                <Ionicons name="water" size={18} color={Colors.light.white} />
-              </View>
-              <View style={{ flex: 1, gap: 4 }}>
-                <View
-                  style={[
-                    localStyles.badge,
-                    badgeStatus.type === "completed"
-                      ? localStyles.badgeCompleted
-                      : localStyles.badgeInProgress,
-                    badgeStatus.type === "not-started"
-                      ? localStyles.badgeNotStarted
-                      : localStyles.badgeInProgress,
-                    { alignSelf: "flex-start" },
-                  ]}
-                >
-                  <Text
+        <View style={commonStyles.cardAnchor}>
+          {flowMode === "collapsed" ? (
+            <View style={localStyles.summaryCard}>
+              <View style={localStyles.summaryBody}>
+                <View style={localStyles.summaryIconCircle}>
+                  <Ionicons name="water" size={18} color={Colors.light.white} />
+                </View>
+                <View style={{ flex: 1, gap: 4 }}>
+                  <View
                     style={[
-                      localStyles.badgeText,
+                      localStyles.badge,
                       badgeStatus.type === "completed"
-                        ? localStyles.badgeTextCompleted
-                        : localStyles.badgeTextInProgress,
+                        ? localStyles.badgeCompleted
+                        : localStyles.badgeInProgress,
                       badgeStatus.type === "not-started"
-                        ? localStyles.badgeTextNotStarted
-                        : localStyles.badgeTextInProgress,
+                        ? localStyles.badgeNotStarted
+                        : localStyles.badgeInProgress,
+                      { alignSelf: "flex-start" },
                     ]}
                   >
-                    {badgeStatus.text}
+                    <Text
+                      style={[
+                        localStyles.badgeText,
+                        badgeStatus.type === "completed"
+                          ? localStyles.badgeTextCompleted
+                          : localStyles.badgeTextInProgress,
+                        badgeStatus.type === "not-started"
+                          ? localStyles.badgeTextNotStarted
+                          : localStyles.badgeTextInProgress,
+                      ]}
+                    >
+                      {badgeStatus.text}
+                    </Text>
+                  </View>
+                  <Text style={[localStyles.summaryTitle, { flex: undefined }]}>
+                    {goalLabel}
                   </Text>
                 </View>
-                <Text style={[localStyles.summaryTitle, { flex: undefined }]}>
-                  {goalLabel}
-                </Text>
+              </View>
+
+              <View style={localStyles.footerRow}>
+                {showInsights ? (
+                  <TouchableOpacity style={localStyles.insightsBtn}>
+                    <Text style={localStyles.insightsText}>VIEW INSIGHTS</Text>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={22}
+                      color={Colors.light.white}
+                    />
+                  </TouchableOpacity>
+                ) : (
+                  <View style={localStyles.spacer} />
+                )}
+
+                <TouchableOpacity
+                  style={localStyles.addButton}
+                  onPress={handleOpenFlow}
+                  activeOpacity={0.8}
+                >
+                  <AddLoggingFlowIcon />
+                </TouchableOpacity>
               </View>
             </View>
-
-            <View style={localStyles.footerRow}>
-              {showInsights ? (
-                <TouchableOpacity style={localStyles.insightsBtn}>
-                  <Text style={localStyles.insightsText}>VIEW INSIGHTS</Text>
-                  <Ionicons
-                    name="chevron-forward"
-                    size={22}
-                    color={Colors.light.white}
-                  />
-                </TouchableOpacity>
-              ) : (
-                <View style={localStyles.spacer} />
-              )}
-
-              <TouchableOpacity
-                style={localStyles.addButton}
-                onPress={handleOpenFlow}
-                activeOpacity={0.8}
+          ) : (
+            <View style={commonStyles.flowCardLayer}>
+              <FlowCard
+                headerIcon={stepHeader.icon}
+                headerLabel={stepHeader.label}
+                onBack={handleBack}
+                onForward={handleForward}
+                onConfirm={handleConfirm}
+                canGoForward={!isLastStep}
+                canConfirm={isLastStep && !isLogging}
+                styles={commonStyles}
+                style={commonStyles.inPlaceFlowCard}
               >
-                <AddLoggingFlowIcon />
-              </TouchableOpacity>
+                {renderStepContent(currentStep)}
+              </FlowCard>
             </View>
-          </View>
-        ) : (
-          <View style={commonStyles.flowCardLayer}>
-            <FlowCard
-              headerIcon={stepHeader.icon}
-              headerLabel={stepHeader.label}
-              onBack={handleBack}
-              onForward={handleForward}
-              onConfirm={handleConfirm}
-              canGoForward={!isLastStep}
-              canConfirm={isLastStep && !isLogging}
-              styles={commonStyles}
-              style={commonStyles.inPlaceFlowCard}
-            >
-              {renderStepContent(currentStep)}
-            </FlowCard>
-          </View>
-        )}
+          )}
+        </View>
       </View>
-    </View>
+
+      {flowMode === "active" && (
+        <Pressable style={commonStyles.backdrop} onPress={resetFlow} />
+      )}
+    </>
   );
 }
 

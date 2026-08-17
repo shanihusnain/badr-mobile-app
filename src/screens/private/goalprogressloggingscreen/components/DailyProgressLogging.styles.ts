@@ -6,13 +6,16 @@ export const FLOW_CARD_HEIGHT = 145;
 
 export const styles = StyleSheet.create({
   backdrop: {
-    position: "absolute",
-    top: -3000,
-    bottom: -3000,
-    left: -1000,
-    right: -1000,
+    flex: 1,
     backgroundColor: Colors.light.overlayBlackColor,
     zIndex: 90,
+    height: "100%",
+    width: "100%",
+    position: "absolute",
+    top: -19,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
   section: {
     width: "100%",
@@ -45,8 +48,8 @@ export const styles = StyleSheet.create({
   },
   cancelButton: {
     position: "absolute",
-    right: -8,
-    top: -72,
+    right: "5%",
+    top: "6%",
     width: 36,
     height: 36,
     borderRadius: 18,

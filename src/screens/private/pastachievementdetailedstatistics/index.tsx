@@ -9,7 +9,11 @@ import { QuranJuzPastAchievements } from "@/components/molecules/QuranJuzPastAch
 import { QuranHoursPastAchievements } from "@/components/molecules/QuranHoursPastAchievements";
 import { RecitationSurahProvider } from "@/src/screens/private/goalprogressloggingscreen/recitationSurahContext";
 import { isSurahRecitationGoalId } from "@/src/screens/private/goalprogressloggingscreen/quranRecitationTarget";
-import { isJuzRecitationGoalId, isQuranHoursGoalId, isCompletionGoalId } from "@/src/screens/private/goalprogressloggingscreen/types";
+import {
+  isJuzRecitationGoalId,
+  isQuranHoursGoalId,
+  isCompletionGoalId,
+} from "@/src/screens/private/goalprogressloggingscreen/types";
 import { QuranCompletionPastAchievements } from "@/components/molecules/QuranCompletionPastAchievements";
 import { QuranMemorisationPastAchievements } from "@/components/molecules/QuranMemorisationPastAchievements";
 import { MemorisationSurahProvider } from "@/src/screens/private/goalprogressloggingscreen/memorisationSurahContext";
@@ -53,7 +57,7 @@ export default function PastAchievementDetailedStatisticsScreen({
   selectedMemorisationJuzFilter,
 }: PastAchievementDetailedStatisticsScreenProps) {
   const goalData = getGoalById(goalId);
-
+  console.log("pastachivement screen called");
   if (!goalData) {
     return null;
   }

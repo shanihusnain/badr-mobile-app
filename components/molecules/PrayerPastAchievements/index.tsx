@@ -60,7 +60,7 @@ const ANALYTICS_VIEWS: PrayerAnalyticsView[] = [
   "completedVsIncomplete",
   "inMosqueVsOutOfMosque",
   "completedByCategory",
-  "completedVsTimeSpent"
+  "completedVsTimeSpent",
 ];
 
 const ANALYTICS_VIEW_LABEL_KEYS: Record<PrayerAnalyticsView, string> = {
@@ -115,7 +115,7 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
   const [period, setPeriod] = useState<PastAchievementPeriod>("monthly");
   const [periodStartParam, setPeriodStartParam] = useState<string | null>(null);
   const [analyticsView, setAnalyticsView] = useState<PrayerAnalyticsView>(
-    "completedVsIncomplete"
+    "completedVsIncomplete",
   );
   const [selectedBarIndex, setSelectedBarIndex] = useState<number | null>(null);
   const [hintDismissed, setHintDismissed] = useState(false);
@@ -124,20 +124,22 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
   const isTahiyyat = goalId === "prayer-tahiyyat";
   const prayerType = resolvePrayerTypeFromGoalId(goalId);
 
-  const {
-    data: achievementsApiData,
-    isLoading: isAchievementsLoading,
-  } = useGetPrayerGoalAchievements(prayerType, {
-    period,
-    periodStart: periodStartParam,
-    enabled: isTahiyyat && !!prayerType,
-  });
-
+  const { data: achievementsApiData, isLoading: isAchievementsLoading } =
+    useGetPrayerGoalAchievements(prayerType, {
+      period,
+      periodStart: periodStartParam,
+      enabled: isTahiyyat && !!prayerType,
+    });
+  console.log("achievementsApiData", achievementsApiData);
   const showPlaceholders =
     isTahiyyat && (!achievementsApiData || isAchievementsLoading);
 
   useEffect(() => {
-    if (goalId === "prayer-qiyam" && analyticsView === "completedByCategory" && selectedPrayerTab === "All") {
+    if (
+      goalId === "prayer-qiyam" &&
+      analyticsView === "completedByCategory" &&
+      selectedPrayerTab === "All"
+    ) {
       setSelectedPrayerTab("After Isha");
     }
   }, [goalId, analyticsView, selectedPrayerTab]);
@@ -181,19 +183,27 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
 
       data = {
         ...data,
-        achievementPercent: Math.min(100, Math.round(data.achievementPercent * multiplier * 1.5)),
+        achievementPercent: Math.min(
+          100,
+          Math.round(data.achievementPercent * multiplier * 1.5),
+        ),
         completedPrayers: Math.round(data.completedPrayers * multiplier),
         incompletePrayers: Math.round(data.incompletePrayers * multiplier),
-        totalTimeSpentMinutes: Math.round(data.totalTimeSpentMinutes * multiplier),
+        totalTimeSpentMinutes: Math.round(
+          data.totalTimeSpentMinutes * multiplier,
+        ),
         chartData: data.chartData.map((item: any, idx: number) => {
           // deterministic variation so the graph shape physically changes
-          const variation = 0.5 + ((idx * 7 + selectedPrayerTab.length * 3) % 10) / 10;
+          const variation =
+            0.5 + ((idx * 7 + selectedPrayerTab.length * 3) % 10) / 10;
           const barMultiplier = multiplier * variation;
 
           return {
             ...item,
             completedPrayers: Math.round(item.completedPrayers * barMultiplier),
-            incompletePrayers: Math.round(item.incompletePrayers * barMultiplier),
+            incompletePrayers: Math.round(
+              item.incompletePrayers * barMultiplier,
+            ),
             timeSpentMinutes: Math.round(item.timeSpentMinutes * barMultiplier),
           };
         }),
@@ -207,7 +217,7 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
       baseAchievement
         ? applyPrayerAnalyticsView(baseAchievement, analyticsView)
         : null,
-    [baseAchievement, analyticsView]
+    [baseAchievement, analyticsView],
   );
 
   useEffect(() => {
@@ -253,14 +263,14 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
     : true;
 
   const selectedBaseWeek =
-    !showPlaceholders &&
-    selectedBarIndex !== null &&
-    baseAchievement
+    !showPlaceholders && selectedBarIndex !== null && baseAchievement
       ? (baseAchievement.chartData[selectedBarIndex] as any)
       : null;
 
   const displayBaseCompleted =
-    selectedBaseWeek?.completedPrayers ?? baseAchievement?.completedPrayers ?? 0;
+    selectedBaseWeek?.completedPrayers ??
+    baseAchievement?.completedPrayers ??
+    0;
   const displayBaseIncomplete =
     selectedBaseWeek?.incompletePrayers ??
     baseAchievement?.incompletePrayers ??
@@ -285,7 +295,10 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
   const renderInsights = () => {
     // Tahiyyat uses backend achievements only — skip static insight mocks.
     if (isTahiyyat) return null;
-    const cards = PRAYER_INSIGHT_CARDS[goalId]?.[period as "monthly" | "threeMonths" | "sixMonths"];
+    const cards =
+      PRAYER_INSIGHT_CARDS[goalId]?.[
+        period as "monthly" | "threeMonths" | "sixMonths"
+      ];
     if (!cards || !isDetailed) return null;
 
     return (
@@ -329,7 +342,12 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
           </Text>
           {!isDetailed && (
             <TouchableOpacity
-              onPress={() => router.push({ pathname: "/(private)/pastachievementdetailedstatistics", params: { goalId } })}
+              onPress={() =>
+                router.push({
+                  pathname: "/(private)/pastachievementdetailedstatistics",
+                  params: { goalId },
+                })
+              }
               style={{ marginLeft: "auto", padding: 4 }}
             >
               <Ionicons
@@ -368,9 +386,7 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
                   name={deltaIsPositive ? "arrow-up" : "arrow-down"}
                   size={11}
                   color={
-                    deltaIsPositive
-                      ? Colors.light.green
-                      : Colors.light.subtext
+                    deltaIsPositive ? Colors.light.green : Colors.light.subtext
                   }
                 />
               )}
@@ -462,18 +478,29 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
           <>
             <Text style={styles.summaryText}>
               <Text>{PERIOD_PHRASE[period]}, you achieved </Text>
-              <Text style={styles.summaryBold}>{formatNumber(resolvedBaseAchievement.achievementPercent)}%</Text>
+              <Text style={styles.summaryBold}>
+                {formatNumber(resolvedBaseAchievement.achievementPercent)}%
+              </Text>
               <Text> of your {cleanGoalLabel} prayer goals — </Text>
-              <Text style={styles.summaryBold}>{formatNumber(Math.abs(resolvedBaseAchievement.previousPeriodDeltaPercent))}%</Text>
+              <Text style={styles.summaryBold}>
+                {formatNumber(
+                  Math.abs(resolvedBaseAchievement.previousPeriodDeltaPercent),
+                )}
+                %
+              </Text>
               <Text>
                 {" "}
                 {deltaIsPositive ? "more" : "less"} than the previous{" "}
                 {period === "monthly" && "month"}
                 {period === "threeMonths" && (
-                  <><Text style={styles.summaryBold}>3M</Text> period</>
+                  <>
+                    <Text style={styles.summaryBold}>3M</Text> period
+                  </>
                 )}
                 {period === "sixMonths" && (
-                  <><Text style={styles.summaryBold}>6M</Text> period</>
+                  <>
+                    <Text style={styles.summaryBold}>6M</Text> period
+                  </>
                 )}
                 .
               </Text>
@@ -486,7 +513,10 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
                   showsHorizontalScrollIndicator={false}
                   contentContainerStyle={styles.missedPrayerTabsContainer}
                 >
-                  {(goalId === "prayer-missed" ? MISSED_PRAYER_TABS : SUNNAH_RAWATIB_TABS).map((prayer) => {
+                  {(goalId === "prayer-missed"
+                    ? MISSED_PRAYER_TABS
+                    : SUNNAH_RAWATIB_TABS
+                  ).map((prayer) => {
                     const isActive = selectedPrayerTab === prayer;
                     return (
                       <TouchableOpacity
@@ -494,13 +524,17 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
                         onPress={() => setSelectedPrayerTab(prayer)}
                         style={[
                           styles.missedPrayerTab,
-                          isActive ? styles.missedPrayerTabActive : styles.missedPrayerTabInactive,
+                          isActive
+                            ? styles.missedPrayerTabActive
+                            : styles.missedPrayerTabInactive,
                         ]}
                       >
                         <Text
                           style={[
                             styles.missedPrayerTabText,
-                            isActive ? styles.missedPrayerTabTextActive : styles.missedPrayerTabTextInactive,
+                            isActive
+                              ? styles.missedPrayerTabTextActive
+                              : styles.missedPrayerTabTextInactive,
                           ]}
                         >
                           {prayer}
@@ -523,26 +557,36 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
                 : formatNumber(resolvedBaseAchievement.goalPrayers)}{" "}
             </Text>
             <View style={styles.goalPill}>
-              <Text style={styles.goalPillText}>
-                prayers
-              </Text>
+              <Text style={styles.goalPillText}>prayers</Text>
             </View>
           </View>
         </View>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.analyticsToggle}>
-          {ANALYTICS_VIEWS.filter(v => {
-            if (goalId === "prayer-fiveDailyPrayers") return v !== "completedByCategory";
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.analyticsToggle}
+        >
+          {ANALYTICS_VIEWS.filter((v) => {
+            if (goalId === "prayer-fiveDailyPrayers")
+              return v !== "completedByCategory";
             if (goalId === "prayer-qiyam") return v !== "inMosqueVsOutOfMosque";
-            return v === "completedVsIncomplete" || v === "completedVsTimeSpent";
+            return (
+              v === "completedVsIncomplete" || v === "completedVsTimeSpent"
+            );
           }).map((view) => {
             const isActive = analyticsView === view;
 
-            let label = view === "completedByCategory" ? "Completed by Category" : t(ANALYTICS_VIEW_LABEL_KEYS[view]);
+            let label =
+              view === "completedByCategory"
+                ? "Completed by Category"
+                : t(ANALYTICS_VIEW_LABEL_KEYS[view]);
             if (goalId === "prayer-fiveDailyPrayers") {
               if (view === "completedVsIncomplete") label = "On-Time vs. Qadha";
-              else if (view === "inMosqueVsOutOfMosque") label = "On-Time: In-Mosque vs. Out-of-Mosque";
-              else if (view === "completedVsTimeSpent") label = "On-Time & Qadha vs. Time Spent";
+              else if (view === "inMosqueVsOutOfMosque")
+                label = "On-Time: In-Mosque vs. Out-of-Mosque";
+              else if (view === "completedVsTimeSpent")
+                label = "On-Time & Qadha vs. Time Spent";
             }
 
             return (
@@ -569,50 +613,62 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
           })}
         </ScrollView>
 
-        {goalId === "prayer-qiyam" && analyticsView !== "completedVsIncomplete" && (
-          <View style={[styles.missedPrayerTabsWrapper, { marginTop: 12 }]}>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.missedPrayerTabsContainer}
-            >
-              {(analyticsView === "completedByCategory" ? QIYAM_TABS.filter(t => t !== "All") : QIYAM_TABS).map((prayer) => {
-                const isActive = selectedPrayerTab === prayer;
-                return (
-                  <TouchableOpacity
-                    key={prayer}
-                    onPress={() => setSelectedPrayerTab(prayer)}
-                    style={[
-                      styles.missedPrayerTab,
-                      isActive ? styles.missedPrayerTabActive : styles.missedPrayerTabInactive,
-                    ]}
-                  >
-                    <Text
+        {goalId === "prayer-qiyam" &&
+          analyticsView !== "completedVsIncomplete" && (
+            <View style={[styles.missedPrayerTabsWrapper, { marginTop: 12 }]}>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.missedPrayerTabsContainer}
+              >
+                {(analyticsView === "completedByCategory"
+                  ? QIYAM_TABS.filter((t) => t !== "All")
+                  : QIYAM_TABS
+                ).map((prayer) => {
+                  const isActive = selectedPrayerTab === prayer;
+                  return (
+                    <TouchableOpacity
+                      key={prayer}
+                      onPress={() => setSelectedPrayerTab(prayer)}
                       style={[
-                        styles.missedPrayerTabText,
-                        isActive ? styles.missedPrayerTabTextActive : styles.missedPrayerTabTextInactive,
+                        styles.missedPrayerTab,
+                        isActive
+                          ? styles.missedPrayerTabActive
+                          : styles.missedPrayerTabInactive,
                       ]}
                     >
-                      {prayer}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
-          </View>
-        )}
+                      <Text
+                        style={[
+                          styles.missedPrayerTabText,
+                          isActive
+                            ? styles.missedPrayerTabTextActive
+                            : styles.missedPrayerTabTextInactive,
+                        ]}
+                      >
+                        {prayer}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            </View>
+          )}
 
         <View style={styles.statsRow}>
           <View style={styles.statColumn}>
             <Text style={styles.statLabel}>
               {goalId === "prayer-fiveDailyPrayers"
-                ? (analyticsView === "inMosqueVsOutOfMosque" ? "IN-MOSQUE" : "ON-TIME")
+                ? analyticsView === "inMosqueVsOutOfMosque"
+                  ? "IN-MOSQUE"
+                  : "ON-TIME"
                 : t("progressLogging.completed")}
             </Text>
             <Text
               style={[
                 styles.statValueCompleted,
-                analyticsView === "inMosqueVsOutOfMosque" && { color: "#00E5FF" }
+                analyticsView === "inMosqueVsOutOfMosque" && {
+                  color: "#00E5FF",
+                },
               ]}
             >
               {showPlaceholders
@@ -624,13 +680,18 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
             <Text style={styles.statLabel}>
               {analyticsView === "completedVsTimeSpent"
                 ? t("progressLogging.timeSpentLabel")
-                : (goalId === "prayer-fiveDailyPrayers"
-                  ? (analyticsView === "inMosqueVsOutOfMosque" ? "OUT-OF-MOSQUE" : "QADHA")
-                  : (analyticsView === "completedByCategory" ? "NIGHTS" : t("progressLogging.incomplete")))}
+                : goalId === "prayer-fiveDailyPrayers"
+                  ? analyticsView === "inMosqueVsOutOfMosque"
+                    ? "OUT-OF-MOSQUE"
+                    : "QADHA"
+                  : analyticsView === "completedByCategory"
+                    ? "NIGHTS"
+                    : t("progressLogging.incomplete")}
             </Text>
             <Text
               style={
-                (analyticsView === "completedVsTimeSpent" || analyticsView === "completedByCategory")
+                analyticsView === "completedVsTimeSpent" ||
+                analyticsView === "completedByCategory"
                   ? styles.statValueTimeSpent
                   : styles.statValueIncomplete
               }
@@ -649,14 +710,12 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
           onMoveShouldSetResponder={() => false}
         >
           <QuranHoursPastAchievementChartBlock
-            chartData={
-              showPlaceholders ? [] : resolvedAchievement.chartData
-            }
+            chartData={showPlaceholders ? [] : resolvedAchievement.chartData}
             selectedBarIndex={
               isDetailed && !showPlaceholders ? selectedBarIndex : null
             }
             onBarPress={
-              isDetailed && !showPlaceholders ? handleBarPress : () => { }
+              isDetailed && !showPlaceholders ? handleBarPress : () => {}
             }
             chartKey={`${goalId}-${period}-${analyticsView}-${selectedPrayerTab}-${showPlaceholders ? "loading" : "ready"}`}
             yMax={resolvedAchievement.yMax}

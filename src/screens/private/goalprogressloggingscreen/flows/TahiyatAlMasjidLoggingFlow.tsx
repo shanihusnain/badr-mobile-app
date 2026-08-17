@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   Pressable,
   Text,
@@ -19,9 +19,31 @@ import { FlowCard } from "../components/FlowCard";
 import { styles as commonStyles } from "../components/DailyProgressLogging.styles";
 import { fonts } from "@/assets/fonts";
 import type { ProgressLogEntry } from "../types";
+import { useOptionalPrayerGoalFrameContext } from "../prayerGoalFrameContext";
+import {
+  getPrayerFrameAchievementLabel,
+  prayerFrameShowsInsights,
+} from "@/src/utils/prayerGoalFrameMap";
+import { useLogTahiyatAlMasjidGoal } from "@/src/api/mutations/useLogTahiyatAlMasjidGoal";
+import {
+  AddLoggingFlowIcon,
+  CalendarFlippingIcon,
+  WhiteClockIcon,
+  WhitePrayerMatIcon,
+  WhiteTimerIcon,
+} from "@/assets/icons";
 
-type TahiyatAlMasjidStepId = "date" | "prayer-right-after" | "start-time" | "time-spent";
-const STEPS: TahiyatAlMasjidStepId[] = ["date", "prayer-right-after", "start-time", "time-spent"];
+type TahiyatAlMasjidStepId =
+  | "date"
+  | "prayer-right-after"
+  | "start-time"
+  | "time-spent";
+const STEPS: TahiyatAlMasjidStepId[] = [
+  "date",
+  "prayer-right-after",
+  "start-time",
+  "time-spent",
+];
 
 type Props = {
   goalData: GoalData;
@@ -32,8 +54,6 @@ type FlowMode = "collapsed" | "active";
 
 const toDateString = (date: Date) => moment(date).format("YYYY-MM-DD");
 
-const getLabelIdentity = (o: string) => o;
-
 export default function TahiyatAlMasjidLoggingFlow({
   goalData,
   onLogComplete,
@@ -43,37 +63,75 @@ export default function TahiyatAlMasjidLoggingFlow({
   const [flowMode, setFlowMode] = useState<FlowMode>("collapsed");
   const [stepIndex, setStepIndex] = useState(0);
 
-  // Step 1: Date
   const [selectedDate, setSelectedDate] = useState(toDateString(new Date()));
-  // Step 2: Did you pray right after entering the mosque?
   const [prayedRightAfter, setPrayedRightAfter] = useState<"Yes" | "No">("Yes");
-  // Step 3: Start Time
   const [startHour, setStartHour] = useState("06");
   const [startMinute, setStartMinute] = useState("15");
   const [startPeriod, setStartPeriod] = useState<"am" | "pm">("am");
   const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
-  // Step 4: Time Spent
   const [durationHours, setDurationHours] = useState("0");
   const [durationMinutes, setDurationMinutes] = useState("10");
 
-  // MOCK DATA — fixed until backend is connected
-  const MOCK_PERCENTAGE = 58;
-  const totalPrayersRequired = 100;
-  const mockTitle = `${totalPrayersRequired} 2-Rak'ah Tahiyyat Al-Masjid Prayers`;
+  const prayerFrame = useOptionalPrayerGoalFrameContext();
+  const frame = prayerFrame?.frame;
 
-  // hasLogged: false = show "In Progress", true = show fixed percentage
-  const [hasLogged, setHasLogged] = useState(false);
+  const cycleStartHijri = frame?.cycle?.cycleStart
+    ? toDateString(new Date(frame.cycle.cycleStart))
+    : undefined;
+  const cycleEndHijri = frame?.cycle?.cycleEnd
+    ? toDateString(new Date(frame.cycle.cycleEnd))
+    : undefined;
 
-  const getBadgeStatus = () => {
-    if (!hasLogged) return { text: "In Progress", type: "in-progress" };
-    if (MOCK_PERCENTAGE >= 100) return { text: "100% Achieved!", type: "completed" };
-    return { text: `${MOCK_PERCENTAGE}% Achieved`, type: "completed" };
+  const goalLabel = frame?.goal.label ?? "";
+
+  const badgeStatus = useMemo(() => {
+    if (!frame) {
+      return {
+        text: t("progressLogging.inProgress"),
+        type: "in-progress" as const,
+      };
+    }
+    return getPrayerFrameAchievementLabel(frame, t);
+  }, [frame, t]);
+
+  const showInsights = frame ? prayerFrameShowsInsights(frame) : false;
+
+  const { mutateAsync: logTahiyat, isPending: isLogging } =
+    useLogTahiyatAlMasjidGoal();
+
+  const formatStartTimeForApi = () => {
+    const hourNum = parseInt(startHour || "0", 10) || 0;
+    const minuteNum = parseInt(startMinute || "0", 10) || 0;
+
+    let hour24 = hourNum % 12;
+    if (startPeriod === "pm") hour24 += 12;
+
+    const hh = String(Math.max(0, hour24)).padStart(2, "0");
+    const mm = String(Math.max(0, minuteNum)).padStart(2, "0");
+    return `${hh}:${mm}`;
   };
 
-  const badgeStatus = getBadgeStatus();
-  const isCompleted = hasLogged;
+  const buildDurationMinutesForApi = () => {
+    const h = parseInt(durationHours || "0", 10) || 0;
+    const m = parseInt(durationMinutes || "0", 10) || 0;
+    return h * 60 + m;
+  };
 
   const todayString = toDateString(new Date());
+  const maxSelectableDate = cycleEndHijri
+    ? cycleEndHijri < todayString
+      ? cycleEndHijri
+      : todayString
+    : todayString;
+
+  React.useEffect(() => {
+    if (!cycleStartHijri || !cycleEndHijri) return;
+    if (selectedDate < cycleStartHijri) setSelectedDate(cycleStartHijri);
+    else if (selectedDate > maxSelectableDate) {
+      setSelectedDate(maxSelectableDate);
+    }
+  }, [cycleStartHijri, cycleEndHijri, maxSelectableDate]);
+
   const currentStep = STEPS[stepIndex];
   const isLastStep = stepIndex === STEPS.length - 1;
 
@@ -86,7 +144,10 @@ export default function TahiyatAlMasjidLoggingFlow({
     const next = moment(selectedDate, "YYYY-MM-DD")
       .add(direction, "days")
       .format("YYYY-MM-DD");
-    if (direction === 1 && next > todayString) return;
+
+    if (cycleStartHijri && direction === -1 && next < cycleStartHijri) return;
+    if (direction === 1 && next > maxSelectableDate) return;
+
     setSelectedDate(next);
   };
 
@@ -104,17 +165,40 @@ export default function TahiyatAlMasjidLoggingFlow({
   }, []);
 
   const handleConfirm = () => {
-    setHasLogged(true);
-    onLogComplete?.({
-      type: "tahiyat-al-masjid",
-      goalId: goalData.id,
-      date: selectedDate,
-      prayedRightAfter,
-      startTime: `${startHour}:${startMinute} ${startPeriod}`,
-      durationHours,
-      durationMinutes,
-    } as any);
-    resetFlow();
+    if (isLogging) return;
+
+    const run = async () => {
+      const payload = {
+        date: selectedDate,
+        count: 1,
+        prayedAfterEntering: prayedRightAfter === "Yes",
+        startTime: formatStartTimeForApi(),
+        durationMinutes: buildDurationMinutesForApi(),
+        notes:
+          prayedRightAfter === "Yes"
+            ? "After entering mosque"
+            : "Not after entering mosque",
+      };
+
+      try {
+        await logTahiyat(payload);
+        await prayerFrame?.refetch();
+
+        onLogComplete?.({
+          type: "tahiyat-al-masjid",
+          goalId: goalData.id,
+          date: selectedDate,
+          prayedRightAfter,
+          startTime: payload.startTime,
+          durationMinutes: payload.durationMinutes,
+        } as any);
+        resetFlow();
+      } catch {
+        // onError handler already shows toast.
+      }
+    };
+
+    void run();
   };
 
   const handleBack = () => {
@@ -137,22 +221,22 @@ export default function TahiyatAlMasjidLoggingFlow({
     switch (step) {
       case "date":
         return {
-          icon: <Ionicons name="calendar-outline" size={15} color={Colors.light.white} />,
+          icon: <CalendarFlippingIcon />,
           label: "Which day are you logging for?",
         };
       case "prayer-right-after":
         return {
-          icon: <MaterialCommunityIcons name="rug" size={15} color={Colors.light.white} />, // Prayer rug icon
+          icon: <WhitePrayerMatIcon />,
           label: "Did you pray right after entering the mosque?",
         };
       case "start-time":
         return {
-          icon: <Ionicons name="time-outline" size={15} color={Colors.light.white} />,
+          icon: <WhiteClockIcon />,
           label: "Enter start time.",
         };
       case "time-spent":
         return {
-          icon: <Ionicons name="timer-outline" size={15} color={Colors.light.white} />,
+          icon: <WhiteTimerIcon />,
           label: "Enter time spent.",
         };
     }
@@ -176,7 +260,7 @@ export default function TahiyatAlMasjidLoggingFlow({
             options={["Yes", "No"]}
             selectedValue={prayedRightAfter}
             onSelectValue={setPrayedRightAfter}
-            getLabel={getLabelIdentity}
+            getLabel={(o) => o}
             radioInnerColor={Colors.light.white}
             styles={commonStyles}
           />
@@ -211,76 +295,112 @@ export default function TahiyatAlMasjidLoggingFlow({
   const stepHeader = getStepHeader(currentStep);
 
   return (
-    <View style={commonStyles.section}>
-      <Text style={commonStyles.sectionTitle}>{t("progressLogging.myProgress")}</Text>
+    <>
+      {flowMode === "active" && (
+        <TouchableOpacity
+          style={commonStyles.cancelButton}
+          onPress={resetFlow}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="close" size={20} color={Colors.light.white} />
+        </TouchableOpacity>
+      )}
+      <View style={commonStyles.section}>
+        <Text style={commonStyles.sectionTitle}>
+          {t("progressLogging.myProgress")}
+        </Text>
 
-      <View style={commonStyles.cardAnchor}>
-        {flowMode === "active" && (
-          <Pressable style={commonStyles.backdrop} onPress={resetFlow} />
-        )}
-        {flowMode === "active" && (
-          <TouchableOpacity
-            style={commonStyles.cancelButton}
-            onPress={resetFlow}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="close" size={20} color={Colors.light.white} />
-          </TouchableOpacity>
-        )}
-
-        {flowMode === "collapsed" ? (
-          <View style={localStyles.summaryCard}>
-            <View style={localStyles.summaryBody}>
-              <View style={localStyles.summaryIconCircle}>
-                <MaterialCommunityIcons name="mosque" size={26} color={Colors.light.white} />
-              </View>
-              <View style={{ flex: 1, gap: 4 }}>
-                <View style={[localStyles.badge, badgeStatus.type === "completed" ? localStyles.badgeCompleted : localStyles.badgeInProgress, { alignSelf: "flex-start" }]}>
-                  <Text style={[localStyles.badgeText, badgeStatus.type === "completed" ? localStyles.badgeTextCompleted : localStyles.badgeTextInProgress]}>
-                    {badgeStatus.text}
+        <View style={commonStyles.cardAnchor}>
+          {flowMode === "collapsed" ? (
+            <View style={localStyles.summaryCard}>
+              <View style={localStyles.summaryBody}>
+                <View style={localStyles.summaryIconCircle}>
+                  <MaterialCommunityIcons
+                    name="mosque"
+                    size={18}
+                    color={Colors.light.white}
+                  />
+                </View>
+                <View style={{ flex: 1, gap: 4 }}>
+                  <View
+                    style={[
+                      localStyles.badge,
+                      badgeStatus.type === "completed"
+                        ? localStyles.badgeCompleted
+                        : localStyles.badgeInProgress,
+                      badgeStatus.type === "not-started"
+                        ? localStyles.badgeNotStarted
+                        : localStyles.badgeInProgress,
+                      { alignSelf: "flex-start" },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        localStyles.badgeText,
+                        badgeStatus.type === "completed"
+                          ? localStyles.badgeTextCompleted
+                          : localStyles.badgeTextInProgress,
+                        badgeStatus.type === "not-started"
+                          ? localStyles.badgeTextNotStarted
+                          : localStyles.badgeTextInProgress,
+                      ]}
+                    >
+                      {badgeStatus.text}
+                    </Text>
+                  </View>
+                  <Text style={[localStyles.summaryTitle, { flex: undefined }]}>
+                    {goalLabel}
                   </Text>
                 </View>
-                <Text style={[localStyles.summaryTitle, { flex: undefined }]}>
-                  {mockTitle}
-                </Text>
+              </View>
+
+              <View style={localStyles.footerRow}>
+                {showInsights ? (
+                  <TouchableOpacity style={localStyles.insightsBtn}>
+                    <Text style={localStyles.insightsText}>VIEW INSIGHTS</Text>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={22}
+                      color={Colors.light.white}
+                    />
+                  </TouchableOpacity>
+                ) : (
+                  <View style={localStyles.spacer} />
+                )}
+
+                <TouchableOpacity
+                  style={localStyles.addButton}
+                  onPress={handleOpenFlow}
+                  activeOpacity={0.8}
+                >
+                  <AddLoggingFlowIcon />
+                </TouchableOpacity>
               </View>
             </View>
-
-            <View style={localStyles.footerRow}>
-              {isCompleted ? (
-                <TouchableOpacity style={localStyles.insightsBtn}>
-                  <Text style={localStyles.insightsText}>VIEW INSIGHTS</Text>
-                  <Ionicons name="chevron-forward" size={22} color={Colors.light.white} />
-                </TouchableOpacity>
-              ) : <View style={localStyles.spacer} />}
-
-              <TouchableOpacity
-                style={localStyles.addButton}
-                onPress={handleOpenFlow}
-                activeOpacity={0.8}
+          ) : (
+            <View style={commonStyles.flowCardLayer}>
+              <FlowCard
+                headerIcon={stepHeader.icon}
+                headerLabel={stepHeader.label}
+                onBack={handleBack}
+                onForward={handleForward}
+                onConfirm={handleConfirm}
+                canGoForward={!isLastStep}
+                canConfirm={isLastStep && !isLogging}
+                styles={commonStyles}
+                style={commonStyles.inPlaceFlowCard}
               >
-                <Ionicons name="add" size={22} color={Colors.light.white} />
-              </TouchableOpacity>
+                {renderStepContent(currentStep)}
+              </FlowCard>
             </View>
-          </View>
-        ) : (
-          <View style={commonStyles.flowCardLayer}>
-            <FlowCard
-              headerIcon={stepHeader.icon}
-              headerLabel={stepHeader.label}
-              onBack={handleBack}
-              onForward={handleForward}
-              onConfirm={handleConfirm}
-              canGoForward={!isLastStep}
-              styles={commonStyles}
-              style={commonStyles.inPlaceFlowCard}
-            >
-              {renderStepContent(currentStep)}
-            </FlowCard>
-          </View>
-        )}
+          )}
+        </View>
       </View>
-    </View>
+
+      {flowMode === "active" && (
+        <Pressable style={commonStyles.backdrop} onPress={resetFlow} />
+      )}
+    </>
   );
 }
 
@@ -291,7 +411,7 @@ const localStyles = StyleSheet.create({
     padding: 16,
     gap: 12,
     height: 145,
-    justifyContent: 'space-between',
+    justifyContent: "space-between",
   },
   badge: {
     paddingHorizontal: 8,
@@ -304,6 +424,9 @@ const localStyles = StyleSheet.create({
   badgeCompleted: {
     backgroundColor: Colors.light.lightgreenbadgecolor,
   },
+  badgeNotStarted: {
+    backgroundColor: Colors.light.paginationInactiveDot,
+  },
   badgeText: {
     fontFamily: fonts.primary.semiBold,
     fontSize: 10,
@@ -315,16 +438,19 @@ const localStyles = StyleSheet.create({
   badgeTextCompleted: {
     color: Colors.light.green,
   },
+  badgeTextNotStarted: {
+    color: Colors.light.notStartedTextColor,
+  },
   summaryBody: {
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
   },
   summaryIconCircle: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    backgroundColor: Colors.light.blackBackground, // Dark grey background
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.light.blackBackground,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -348,7 +474,6 @@ const localStyles = StyleSheet.create({
     alignItems: "center",
     gap: 4,
     paddingBottom: 4,
-    transform: [{ translateY: -8 }],
   },
   insightsText: {
     color: Colors.light.white,
@@ -360,15 +485,8 @@ const localStyles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    borderWidth: 1.5,
-    borderColor: Colors.light.white,
     alignItems: "center",
     justifyContent: "center",
-    transform: [{ translateY: -8 }],
-  },
-  badgeRow: {
-    flexDirection: "row",
-    marginLeft: 14,
   },
   spacer: {
     flex: 1,

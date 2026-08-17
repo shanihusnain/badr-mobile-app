@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
   },
   handle: {
     backgroundColor: Colors.light.grey,
-    width: 40,
+    width: 102,
   },
   content: {
     paddingHorizontal: 20,

@@ -131,7 +131,7 @@ export const SetPersonalizedGoalsScreen = () => {
         )}
         {activeFrame === 1 && (
           <>
-            <TopSpace top={16} />
+            <TopSpace top={20} />
             <Text style={styles.descriptionText}>
               {t("setpersonalizedgoals.setPersonalizedDescription")}
             </Text>

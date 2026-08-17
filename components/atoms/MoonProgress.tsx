@@ -3,6 +3,7 @@ import { StyleSheet, View } from "react-native";
 import { Fit, RiveView, useRive, useRiveFile } from "@rive-app/react-native";
 
 type Props = {
+  /** 0–100; fractional values keep the moon fill smooth. */
   progressPercent: number;
   /** Fires once when the Rive view is ready (or if loading fails). */
   onReady?: () => void;
@@ -10,12 +11,25 @@ type Props = {
 
 const MOON_RIV = require("../../assets/animations/moon.riv");
 
+function clampPercent(value: number) {
+  return Math.min(100, Math.max(0, value));
+}
+
 const MoonProgress = ({ progressPercent, onReady }: Props) => {
   const { riveFile, error } = useRiveFile(MOON_RIV);
   const { riveViewRef, setHybridRef } = useRive();
   const readyNotifiedRef = useRef(false);
   const onReadyRef = useRef(onReady);
   onReadyRef.current = onReady;
+
+  const targetRef = useRef(clampPercent(progressPercent));
+  const appliedRef = useRef<number | null>(null);
+  const frameRef = useRef(0);
+  const startedRef = useRef(false);
+
+  // Sync during render so the RAF loop sees the latest value immediately
+  // (no wait for useEffect after paint).
+  targetRef.current = clampPercent(progressPercent);
 
   const notifyReady = () => {
     if (readyNotifiedRef.current) return;
@@ -26,11 +40,33 @@ const MoonProgress = ({ progressPercent, onReady }: Props) => {
   useEffect(() => {
     if (!riveViewRef) return;
 
-    const percentage = Math.min(100, Math.max(0, progressPercent));
-    riveViewRef.setNumberInputValue("Number 1", percentage);
-    riveViewRef.playIfNeeded();
-    notifyReady();
-  }, [progressPercent, riveViewRef]);
+    if (!startedRef.current) {
+      startedRef.current = true;
+      riveViewRef.playIfNeeded();
+      const seed = clampPercent(progressPercent);
+      targetRef.current = seed;
+      appliedRef.current = seed;
+      riveViewRef.setNumberInputValue("Number 1", seed);
+      notifyReady();
+    }
+
+    const tick = () => {
+      const target = targetRef.current;
+      // Push every frame so Rive gets continuous fractional updates,
+      // not only when React re-renders / useEffect fires.
+      if (appliedRef.current !== target) {
+        appliedRef.current = target;
+        riveViewRef.setNumberInputValue("Number 1", target);
+      }
+      frameRef.current = requestAnimationFrame(tick);
+    };
+
+    frameRef.current = requestAnimationFrame(tick);
+    return () => {
+      cancelAnimationFrame(frameRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [riveViewRef]);
 
   useEffect(() => {
     if (!error) return;
