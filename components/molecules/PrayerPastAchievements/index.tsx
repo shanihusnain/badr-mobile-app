@@ -657,13 +657,7 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
             justifyContent: "space-between",
           }}
         >
-          <View
-            style={
-              {
-                // flex: 1,
-              }
-            }
-          >
+          <View>
             <Text style={styles.achievementCaption}>
               {t("progressLogging.achievementsLabel").toUpperCase()}
             </Text>
@@ -1181,12 +1175,11 @@ const styles = StyleSheet.create({
     height: 24,
   },
   periodNavRow: {
-    width: 190,
+    width: 185,
     height: 24,
     justifyContent: "center",
     alignItems: "stretch",
     flexShrink: 0,
-    marginRight: 20,
     marginTop: -10,
   },
   periodToggle: {

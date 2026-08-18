@@ -25,6 +25,20 @@ export const styles = StyleSheet.create({
     marginTop: 20,
     overflow: "visible",
   },
+  scrollContentWithHero: {
+    marginTop: 0,
+    paddingTop: 100,
+  },
+  heroBackground: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+  },
+  heroBackgroundImage: {
+    width: "100%",
+    height: "100%",
+  },
   goalInfoContainer: {
     alignItems: "center",
     justifyContent: "center",
@@ -86,14 +100,18 @@ export const styles = StyleSheet.create({
     alignSelf: "center",
     paddingTop: 12,
     paddingBottom: 16,
+    zIndex: 95,
+    elevation: 10,
+  },
+  pastAchievementsWrapper: {
+    width: "92%",
+    alignSelf: "center",
+    paddingTop: 12,
+    paddingBottom: 16,
+    zIndex: 0,
+    elevation: 0,
   },
   transparentBackground: {
     backgroundColor: "transparent",
-  },
-  backgroundImage: {
-    position: "absolute",
-    top: 0,
-    width: "100%",
-    height: 560,
   },
 });
