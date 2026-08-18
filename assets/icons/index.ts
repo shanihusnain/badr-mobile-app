@@ -4,6 +4,7 @@ import { AllahNameIcon } from "./AllahNameIcon";
 import { AppleIcon } from "./AppleIcon";
 import { AddLoggingFlowIcon } from "./AddLoggingFlowIcon";
 import { AimIcon } from "./AimIcon";
+import { AchivementArrowIcon } from "./AchivementArrowIcon";
 //B
 import { BirthIcon } from "./BirthIcon";
 import { BadarNameLogo } from "./BadarNameLogo";
@@ -60,7 +61,7 @@ import { InsightIcon } from "./InsightIcon";
 
 //J
 import { JournalBookIcon } from "./JournalBookIcon";
-import { AchivementArrowIcon } from "./AchivementArrowIcon";
+
 //B
 
 //C
@@ -242,6 +243,7 @@ import { WhiteClockIcon } from "./WhiteClockIcon";
 
 export {
   AimIcon,
+  AchivementArrowIcon,
   CreateAccountCalenderIcon,
   AddLoggingFlowIcon,
   BinIcon,
@@ -328,7 +330,6 @@ export {
   ReferFriendIcon,
   RecordIcon,
   FilterIcon,
-  AchivementArrowIcon,
   CresentAndStarIcon,
   ExclamationIconWithCircel,
   PersonalGrowthIcon,
