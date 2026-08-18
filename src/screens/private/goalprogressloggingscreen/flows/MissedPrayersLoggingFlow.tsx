@@ -18,10 +18,11 @@ import { StartTimeStep, DurationStep } from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
 import { styles as commonStyles } from "../components/DailyProgressLogging.styles";
 import { fonts } from "@/assets/fonts";
-import { useQueryClient } from "@tanstack/react-query";
 import type { ProgressLogEntry } from "../types";
 import { PrayerName } from "../progressLoggingConfig";
 import { useOptionalPrayerGoalFrameContext } from "../prayerGoalFrameContext";
+import { useLogMissedPastPrayersGoal } from "@/src/api/mutations/useLogMissedPastPrayersGoal";
+import type { MissedPastPrayerSlotKey } from "@/src/api/queries/useGetMissedPastPrayersSlot";
 import {
   getPrayerFrameAchievementLabel,
   prayerFrameShowsInsights,
@@ -48,6 +49,14 @@ type Props = {
 
 type FlowMode = "collapsed" | "active";
 
+const PRAYER_TO_SLOT_KEY: Record<PrayerName, MissedPastPrayerSlotKey> = {
+  fajr: "FAJR",
+  dhuhr: "DHUHR",
+  asr: "ASR",
+  maghrib: "MAGHRIB",
+  isha: "ISHA",
+};
+
 const toDateString = (date: Date) => moment(date).format("YYYY-MM-DD");
 
 export default function MissedPrayersLoggingFlow({
@@ -55,7 +64,8 @@ export default function MissedPrayersLoggingFlow({
   onLogComplete,
 }: Props) {
   const { t } = useTranslation();
-  const queryClient = useQueryClient();
+  const { mutateAsync: logMissedPastPrayers, isPending: isLogging } =
+    useLogMissedPastPrayersGoal();
 
   const [flowMode, setFlowMode] = useState<FlowMode>("collapsed");
   const [stepIndex, setStepIndex] = useState(0);
@@ -163,28 +173,64 @@ export default function MissedPrayersLoggingFlow({
     setIsPeriodDropdownOpen(false);
   }, []);
 
+  const formatStartTimeForApi = () => {
+    const hourNum = parseInt(startHour || "0", 10) || 0;
+    const minuteNum = parseInt(startMinute || "0", 10) || 0;
+
+    let hour24 = hourNum % 12;
+    if (startPeriod === "pm") hour24 += 12;
+
+    const hh = String(Math.max(0, hour24)).padStart(2, "0");
+    const mm = String(Math.max(0, minuteNum)).padStart(2, "0");
+    return `${hh}:${mm}`;
+  };
+
+  const buildDurationMinutesForApi = () => {
+    const h = parseInt(durationHours || "0", 10) || 0;
+    const m = parseInt(durationMinutes || "0", 10) || 0;
+    return h * 60 + m;
+  };
+
   const handleConfirm = () => {
-    // Sum all selected prayers
-    const totalSelected = Object.values(quantities).reduce(
-      (acc, curr) => acc + curr,
-      0,
-    );
+    if (isLogging) return;
 
-    onLogComplete?.({
-      type: "missed-prayers",
-      goalId: goalData.id,
-      date: selectedDate,
-      prayersCount: totalSelected,
-      startTime: `${startHour}:${startMinute} ${startPeriod}`,
-      durationHours,
-      durationMinutes,
-      prayerQuantities: quantities,
-    } as any);
+    const slots = (Object.entries(quantities) as [PrayerName, number][])
+      .filter(([, count]) => count > 0)
+      .map(([prayer, count]) => ({
+        prayerSlot: PRAYER_TO_SLOT_KEY[prayer],
+        count,
+      }));
 
-    prayerFrame?.refetch();
-    queryClient.invalidateQueries({ queryKey: ["missed-past-prayers-slot"] });
+    if (slots.length === 0) return;
 
-    resetFlow();
+    const run = async () => {
+      const payload = {
+        date: selectedDate,
+        slots,
+        startTime: formatStartTimeForApi(),
+        durationMinutes: buildDurationMinutesForApi(),
+      };
+
+      try {
+        await logMissedPastPrayers(payload);
+        await prayerFrame?.refetch();
+
+        onLogComplete?.({
+          type: "missed-prayers",
+          goalId: goalData.id,
+          date: selectedDate,
+          prayersCount: slots.reduce((acc, slot) => acc + slot.count, 0),
+          startTime: payload.startTime,
+          durationMinutes: payload.durationMinutes,
+          prayerQuantities: quantities,
+        } as any);
+        resetFlow();
+      } catch {
+        // onError handler already shows toast.
+      }
+    };
+
+    void run();
   };
 
   const handleBack = () => {
@@ -363,7 +409,11 @@ export default function MissedPrayersLoggingFlow({
 
               <View style={localStyles.footerRow}>
                 {showInsights ? (
-                  <TouchableOpacity style={localStyles.insightsBtn}>
+                  <TouchableOpacity
+                    style={localStyles.insightsBtn}
+                    onPress={prayerFrame?.openInsights}
+                    activeOpacity={0.8}
+                  >
                     <Text style={localStyles.insightsText}>VIEW INSIGHTS</Text>
                     <Ionicons
                       name="chevron-forward"
@@ -398,7 +448,12 @@ export default function MissedPrayersLoggingFlow({
                 onForward={handleForward}
                 onConfirm={handleConfirm}
                 canGoForward={!isLastStep}
-                canConfirm={isLastStep && !isCompleted}
+                canConfirm={
+                  isLastStep &&
+                  !isCompleted &&
+                  !isLogging &&
+                  Object.values(quantities).some((count) => count > 0)
+                }
                 styles={commonStyles}
                 style={commonStyles.inPlaceFlowCard}
               >

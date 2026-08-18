@@ -41,7 +41,11 @@ import {
   shiftPrayerAchievementsPeriodStart,
 } from "@/src/utils/prayerGoalAchievementsMap";
 import { resolvePrayerTypeFromGoalId } from "@/src/utils/prayerGoalMap";
-import { NegativeProgressIcon, PositiveProgressIcon, AchivementArrowIcon } from "@/assets/icons";
+import {
+  NegativeProgressIcon,
+  PositiveProgressIcon,
+  AchivementArrowIcon,
+} from "@/assets/icons";
 
 type Props = {
   goalId: GoalId;
@@ -538,14 +542,14 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
 
     const cards = isTahiyyat
       ? mapApiKeyInsightsToCards(
-        achievementsApiData,
-        period,
-        t,
-        showPlaceholders,
-      )
+          achievementsApiData,
+          period,
+          t,
+          showPlaceholders,
+        )
       : PRAYER_INSIGHT_CARDS[goalId]?.[
-      period as "monthly" | "threeMonths" | "sixMonths"
-      ];
+          period as "monthly" | "threeMonths" | "sixMonths"
+        ];
 
     if (!cards || cards.length === 0) return null;
 
@@ -605,8 +609,20 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
           )}
         </View>
 
-        <View style={styles.topRow}>
-          <View style={styles.achievementBlock}>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <View
+            style={
+              {
+                // flex: 1,
+              }
+            }
+          >
             <Text style={styles.achievementCaption}>
               {t("progressLogging.achievementsLabel").toUpperCase()}
             </Text>
@@ -620,11 +636,50 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
                 </>
               )}
             </Text>
-            {showDeltaChip &&
-              (deltaIsZero ? (
+          </View>
+          <View style={styles.periodToggle}>
+            {PERIODS.map((item) => {
+              const isActive = period === item;
+              return (
+                <Pressable
+                  key={item}
+                  onPress={() => handlePeriodChange(item)}
+                  style={[
+                    styles.periodButton,
+                    isActive
+                      ? styles.periodButtonActive
+                      : styles.periodButtonInactive,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.periodButtonText,
+                      isActive && styles.periodButtonTextActive,
+                    ]}
+                  >
+                    {t(PERIOD_LABEL_KEYS[item])}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <View style={styles.deltaSlot}>
+            {showDeltaChip ? (
+              deltaIsZero ? (
                 <View style={[styles.deltaBadge, styles.deltaBadgeNeutral]}>
                   <View style={styles.deltaDot} />
-                  <Text style={[styles.deltaText, styles.deltaTextNegative]}>
+                  <Text
+                    style={[styles.deltaText, styles.deltaTextNegative]}
+                    numberOfLines={1}
+                  >
                     {`${formatNumber(0)}% ${deltaPeriodLabel}`}
                   </Text>
                 </View>
@@ -635,46 +690,16 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
                   ) : (
                     <NegativeProgressIcon />
                   )}
-                  <Text
-                    style={[
-                      styles.deltaText,
-                      !deltaIsPositive && styles.deltaTextNegative,
-                    ]}
-                  >
+                  <Text style={styles.deltaText} numberOfLines={1}>
                     {`${formatNumber(Math.abs(displayedDeltaPct ?? 0))}% ${deltaPeriodLabel}`}
                   </Text>
                 </View>
-              ))}
+              )
+            ) : (
+              <View style={styles.deltaBadgePlaceholder} />
+            )}
           </View>
-
           <View style={styles.periodNavRow}>
-            <View style={styles.periodToggle}>
-              {PERIODS.map((item) => {
-                const isActive = period === item;
-                return (
-                  <Pressable
-                    key={item}
-                    onPress={() => handlePeriodChange(item)}
-                    style={[
-                      styles.periodButton,
-                      isActive
-                        ? styles.periodButtonActive
-                        : styles.periodButtonInactive,
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.periodButtonText,
-                        isActive && styles.periodButtonTextActive,
-                      ]}
-                    >
-                      {t(PERIOD_LABEL_KEYS[item])}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-
             <View style={styles.dateNavRow}>
               <TouchableOpacity
                 activeOpacity={0.7}
@@ -692,7 +717,11 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
                   }
                 />
               </TouchableOpacity>
-              <Text style={styles.dateRange} numberOfLines={1}>
+              <Text
+                style={styles.dateRange}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
                 {showPlaceholders
                   ? LOADING_DASH
                   : resolvedAchievement.dateRangeLabel}
@@ -963,7 +992,7 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
             <Text
               style={
                 analyticsView === "completedVsTimeSpent" ||
-                  analyticsView === "completedByCategory"
+                analyticsView === "completedByCategory"
                   ? styles.statValueTimeSpent
                   : styles.statValueIncomplete
               }
@@ -987,7 +1016,7 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
               isDetailed && !showPlaceholders ? selectedBarIndex : null
             }
             onBarPress={
-              isDetailed && !showPlaceholders ? handleBarPress : () => { }
+              isDetailed && !showPlaceholders ? handleBarPress : () => {}
             }
             chartKey={`${goalId}-${period}-${analyticsView}-${selectedPrayerTab}-${showPlaceholders ? "loading" : "ready"}`}
             yMax={resolvedAchievement.yMax}
@@ -1051,8 +1080,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   achievementBlock: {
-    alignItems: "flex-start",
-    gap: 4,
+    gap: 2,
   },
   achievementCaption: {
     color: Colors.light.subtext,
@@ -1081,7 +1109,10 @@ const styles = StyleSheet.create({
     borderRadius: 2,
     paddingHorizontal: 10,
     paddingVertical: 4,
-    marginTop: 2,
+    height: 24,
+  },
+  deltaBadgePlaceholder: {
+    height: 24,
   },
   deltaBadgeNeutral: {
     backgroundColor: Colors.light.calendarBg,
@@ -1101,19 +1132,30 @@ const styles = StyleSheet.create({
   deltaTextNegative: {
     color: Colors.light.subtext,
   },
+  deltaSlot: {
+    flex: 1,
+    minWidth: 0,
+    marginRight: 8,
+    justifyContent: "center",
+    height: 24,
+  },
   periodNavRow: {
-    width: 176,
+    width: 190,
+    height: 24,
+    justifyContent: "center",
     alignItems: "stretch",
-    gap: 8,
     flexShrink: 0,
+    marginRight: 20,
+    marginTop: -10,
   },
   periodToggle: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
     padding: 2,
     backgroundColor: Colors.light.blackBackground,
     borderRadius: 6,
-    width: "100%",
+    maxWidth: "70%",
   },
   periodButton: {
     flex: 1,
@@ -1151,6 +1193,7 @@ const styles = StyleSheet.create({
   },
   dateRange: {
     flex: 1,
+    minWidth: 0,
     color: Colors.light.white,
     fontSize: 13,
     fontFamily: fonts.primary.medium,
