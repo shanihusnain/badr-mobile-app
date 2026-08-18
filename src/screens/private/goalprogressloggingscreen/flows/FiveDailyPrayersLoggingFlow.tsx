@@ -8,19 +8,24 @@ import {
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import moment from "moment-hijri";
 import { Colors } from "@/constants/theme";
 import { GoalData } from "../../home/components/goalsData";
+import {
+  CongregationOption,
+  LogStepId,
+  PrayerName,
+  TimingOption,
+} from "../progressLoggingConfig";
 import { DateStep } from "../components/DateStep";
-import { MissedPrayersQuantityStep } from "../components/MissedPrayersQuantityStep";
+import { PrayerSelectStep } from "../components/PrayerSelectStep";
+import { OptionSelectStep } from "../components/OptionSelectStep";
 import { StartTimeStep, DurationStep } from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
 import { styles as commonStyles } from "../components/DailyProgressLogging.styles";
 import { fonts } from "@/assets/fonts";
-import { useQueryClient } from "@tanstack/react-query";
 import type { ProgressLogEntry } from "../types";
-import { PrayerName } from "../progressLoggingConfig";
 import { useOptionalPrayerGoalFrameContext } from "../prayerGoalFrameContext";
 import {
   getPrayerFrameAchievementLabel,
@@ -32,13 +37,15 @@ import {
   WhiteClockIcon,
   WhiteTimerIcon,
 } from "@/assets/icons";
+import { FiveDailyPrayerIDetailedIbadhasIcon } from "@/assets/icons/FiveDailyPrayerIDetailedIbadhasIcon";
 
-type MissedPrayersStepId = "date" | "prayers-qty" | "start-time" | "time-spent";
-const STEPS: MissedPrayersStepId[] = [
+const STEPS: LogStepId[] = [
   "date",
-  "prayers-qty",
-  "start-time",
-  "time-spent",
+  "prayerSelect",
+  "timing",
+  "congregation",
+  "startTime",
+  "duration",
 ];
 
 type Props = {
@@ -50,42 +57,22 @@ type FlowMode = "collapsed" | "active";
 
 const toDateString = (date: Date) => moment(date).format("YYYY-MM-DD");
 
-export default function MissedPrayersLoggingFlow({
+export default function FiveDailyPrayersLoggingFlow({
   goalData,
   onLogComplete,
 }: Props) {
   const { t } = useTranslation();
-  const queryClient = useQueryClient();
 
   const [flowMode, setFlowMode] = useState<FlowMode>("collapsed");
   const [stepIndex, setStepIndex] = useState(0);
-
-  // Step 1: Date
   const [selectedDate, setSelectedDate] = useState(toDateString(new Date()));
-
-  // Step 2: Prayers Quantities
-  const [quantities, setQuantities] = useState<Record<PrayerName, number>>({
-    fajr: 0,
-    dhuhr: 0,
-    asr: 0,
-    maghrib: 0,
-    isha: 0,
-  });
-
-  const handleIncrementPrayer = useCallback((prayer: PrayerName) => {
-    setQuantities((prev) => ({
-      ...prev,
-      [prayer]: (prev[prayer] || 0) + 1,
-    }));
-  }, []);
-
-  // Step 3: Start Time
+  const [selectedPrayer, setSelectedPrayer] = useState<PrayerName>("fajr");
+  const [timing, setTiming] = useState<TimingOption>("onTime");
+  const [congregation, setCongregation] = useState<CongregationOption>("yes");
   const [startHour, setStartHour] = useState("06");
   const [startMinute, setStartMinute] = useState("15");
   const [startPeriod, setStartPeriod] = useState<"am" | "pm">("am");
   const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
-
-  // Step 4: Time Spent
   const [durationHours, setDurationHours] = useState("0");
   const [durationMinutes, setDurationMinutes] = useState("10");
 
@@ -101,6 +88,8 @@ export default function MissedPrayersLoggingFlow({
     ? toDateString(new Date(frame.cycle.cycleEnd))
     : undefined;
 
+  const goalLabel = frame?.goal.label ?? "---";
+
   const badgeStatus = useMemo(() => {
     if (!frame) {
       return {
@@ -111,11 +100,8 @@ export default function MissedPrayersLoggingFlow({
     return getPrayerFrameAchievementLabel(frame, t);
   }, [frame, t]);
 
-  const isCompleted = (frame?.goal.achievementPct ?? 0) >= 100;
   const showInsights = frame ? prayerFrameShowsInsights(frame) : false;
-
-  const goalLabel = frame?.goal.label ?? "---";
-  const totalPrayersRequired = frame?.goal.targetCount;
+  const isFullyAchieved = (frame?.goal.achievementPct ?? 0) >= 100;
 
   const todayString = toDateString(new Date());
   const maxSelectableDate = cycleEndHijri
@@ -131,6 +117,7 @@ export default function MissedPrayersLoggingFlow({
       setSelectedDate(maxSelectableDate);
     }
   }, [cycleStartHijri, cycleEndHijri, maxSelectableDate]);
+
   const currentStep = STEPS[stepIndex];
   const isLastStep = stepIndex === STEPS.length - 1;
 
@@ -154,36 +141,29 @@ export default function MissedPrayersLoggingFlow({
     setFlowMode("collapsed");
     setStepIndex(0);
     setSelectedDate(toDateString(new Date()));
-    setQuantities({ fajr: 0, dhuhr: 0, asr: 0, maghrib: 0, isha: 0 });
+    setSelectedPrayer("fajr");
+    setTiming("onTime");
+    setCongregation("yes");
     setStartHour("06");
     setStartMinute("15");
     setStartPeriod("am");
+    setIsPeriodDropdownOpen(false);
     setDurationHours("0");
     setDurationMinutes("10");
-    setIsPeriodDropdownOpen(false);
   }, []);
 
   const handleConfirm = () => {
-    // Sum all selected prayers
-    const totalSelected = Object.values(quantities).reduce(
-      (acc, curr) => acc + curr,
-      0,
-    );
-
     onLogComplete?.({
-      type: "missed-prayers",
+      type: "five-daily-prayers",
       goalId: goalData.id,
       date: selectedDate,
-      prayersCount: totalSelected,
+      prayer: selectedPrayer,
+      timing,
+      congregation,
       startTime: `${startHour}:${startMinute} ${startPeriod}`,
-      durationHours,
-      durationMinutes,
-      prayerQuantities: quantities,
-    } as any);
-
+      duration: `${durationHours}h ${durationMinutes}m`,
+    });
     prayerFrame?.refetch();
-    queryClient.invalidateQueries({ queryKey: ["missed-past-prayers-slot"] });
-
     resetFlow();
   };
 
@@ -200,42 +180,76 @@ export default function MissedPrayersLoggingFlow({
   };
 
   const handleOpenFlow = useCallback(() => {
-    if (isCompleted) return;
+    if (frameLoading || isFullyAchieved) return;
     setFlowMode("active");
-  }, [isCompleted]);
+  }, [frameLoading, isFullyAchieved]);
 
-  const getStepHeader = (step: MissedPrayersStepId) => {
+  const getTimingLabel = useCallback(
+    (option: TimingOption) =>
+      option === "onTime"
+        ? t("progressLogging.onTime")
+        : t("progressLogging.qadha"),
+    [t],
+  );
+
+  const getCongregationLabel = useCallback(
+    (option: CongregationOption) =>
+      option === "yes" ? t("progressLogging.yes") : t("progressLogging.no"),
+    [t],
+  );
+
+  const getStepHeader = (step: LogStepId) => {
     switch (step) {
       case "date":
         return {
           icon: <CalendarFlippingIcon />,
-          label: "Which day are you logging for?",
+          label: t("progressLogging.whichDay"),
         };
-      case "prayers-qty":
+      case "prayerSelect":
+        return {
+          icon: (
+            <FontAwesome6
+              name="person-praying"
+              size={13}
+              color={Colors.light.white}
+            />
+          ),
+          label: t("progressLogging.selectPrayer"),
+        };
+      case "timing":
         return {
           icon: (
             <Ionicons
-              name="apps-outline"
+              name="checkmark-circle-outline"
               size={15}
               color={Colors.light.white}
             />
           ),
-          label: "Tap prayers multiple times to update qty.",
+          label: t("progressLogging.prayedOnTime"),
         };
-      case "start-time":
+      case "congregation":
+        return {
+          icon: (
+            <FontAwesome6 name="mosque" size={13} color={Colors.light.white} />
+          ),
+          label: t("progressLogging.prayedInMosque"),
+        };
+      case "startTime":
         return {
           icon: <WhiteClockIcon />,
-          label: "Enter start time.",
+          label: t("progressLogging.enterStartTime"),
         };
-      case "time-spent":
+      case "duration":
         return {
           icon: <WhiteTimerIcon />,
-          label: "Enter time spent.",
+          label: t("progressLogging.enterTimeSpent"),
         };
+      default:
+        return { icon: null, label: "" };
     }
   };
 
-  const renderStepContent = (step: MissedPrayersStepId) => {
+  const renderStepContent = (step: LogStepId) => {
     switch (step) {
       case "date":
         return (
@@ -247,15 +261,39 @@ export default function MissedPrayersLoggingFlow({
             styles={commonStyles}
           />
         );
-      case "prayers-qty":
+      case "prayerSelect":
         return (
-          <MissedPrayersQuantityStep
-            quantities={quantities}
-            onIncrement={handleIncrementPrayer}
+          <PrayerSelectStep
+            selectedPrayer={selectedPrayer}
+            onSelectPrayer={setSelectedPrayer}
             categoryColor={Colors.light.green}
+            t={t}
+            styles={commonStyles}
           />
         );
-      case "start-time":
+      case "timing":
+        return (
+          <OptionSelectStep<TimingOption>
+            options={["onTime", "qadha"]}
+            selectedValue={timing}
+            onSelectValue={setTiming}
+            getLabel={getTimingLabel}
+            radioInnerColor={Colors.light.white}
+            styles={commonStyles}
+          />
+        );
+      case "congregation":
+        return (
+          <OptionSelectStep<CongregationOption>
+            options={["yes", "no"]}
+            selectedValue={congregation}
+            onSelectValue={setCongregation}
+            getLabel={getCongregationLabel}
+            radioInnerColor={Colors.light.white}
+            styles={commonStyles}
+          />
+        );
+      case "startTime":
         return (
           <StartTimeStep
             startHour={startHour}
@@ -269,7 +307,7 @@ export default function MissedPrayersLoggingFlow({
             styles={commonStyles}
           />
         );
-      case "time-spent":
+      case "duration":
         return (
           <DurationStep
             durationHours={durationHours}
@@ -279,6 +317,8 @@ export default function MissedPrayersLoggingFlow({
             styles={commonStyles}
           />
         );
+      default:
+        return null;
     }
   };
 
@@ -306,13 +346,12 @@ export default function MissedPrayersLoggingFlow({
             <View style={localStyles.summaryCard}>
               <View style={localStyles.summaryBody}>
                 <View style={localStyles.summaryIconCircle}>
-                  <MaterialCommunityIcons
-                    name="calendar-remove"
-                    size={18}
+                  <FiveDailyPrayerIDetailedIbadhasIcon
                     color={Colors.light.white}
+                    size={18}
                   />
                 </View>
-                <View style={localStyles.titleContainer}>
+                <View style={{ flex: 1, gap: 4 }}>
                   <View
                     style={[
                       localStyles.badge,
@@ -321,7 +360,7 @@ export default function MissedPrayersLoggingFlow({
                         : badgeStatus.type === "not-started"
                           ? localStyles.badgeNotStarted
                           : localStyles.badgeInProgress,
-                      { alignSelf: "flex-start", marginBottom: 4 },
+                      { alignSelf: "flex-start" },
                     ]}
                   >
                     <Text
@@ -337,26 +376,15 @@ export default function MissedPrayersLoggingFlow({
                       {badgeStatus.text}
                     </Text>
                   </View>
-                  <Text style={localStyles.summaryTitle} numberOfLines={2}>
-                    {goalLabel}
-                  </Text>
                   <Text
                     style={[
-                      localStyles.summarySubtitle,
+                      localStyles.summaryTitle,
+                      { flex: undefined },
                       frameLoading && localStyles.loadingPlaceholderText,
                     ]}
+                    numberOfLines={2}
                   >
-                    {totalPrayersRequired != null ? (
-                      <>
-                        (total{" "}
-                        <Text style={localStyles.subtitleBold}>
-                          {totalPrayersRequired}
-                        </Text>{" "}
-                        prayers)
-                      </>
-                    ) : (
-                      "---"
-                    )}
+                    {goalLabel}
                   </Text>
                 </View>
               </View>
@@ -374,20 +402,20 @@ export default function MissedPrayersLoggingFlow({
                 ) : (
                   <View style={localStyles.spacer} />
                 )}
-              </View>
 
-              <TouchableOpacity
-                style={[
-                  localStyles.addButton,
-                  frameLoading && localStyles.addButtonDisabled,
-                  isCompleted && localStyles.addButtonDisabled,
-                ]}
-                onPress={handleOpenFlow}
-                activeOpacity={0.8}
-                disabled={frameLoading || isCompleted}
-              >
-                <AddLoggingFlowIcon />
-              </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    localStyles.addButton,
+                    (frameLoading || isFullyAchieved) &&
+                      localStyles.addButtonDisabled,
+                  ]}
+                  onPress={handleOpenFlow}
+                  activeOpacity={0.8}
+                  disabled={frameLoading || isFullyAchieved}
+                >
+                  <AddLoggingFlowIcon />
+                </TouchableOpacity>
+              </View>
             </View>
           ) : (
             <View style={commonStyles.flowCardLayer}>
@@ -398,7 +426,7 @@ export default function MissedPrayersLoggingFlow({
                 onForward={handleForward}
                 onConfirm={handleConfirm}
                 canGoForward={!isLastStep}
-                canConfirm={isLastStep && !isCompleted}
+                canConfirm={isLastStep}
                 styles={commonStyles}
                 style={commonStyles.inPlaceFlowCard}
               >
@@ -421,12 +449,9 @@ const localStyles = StyleSheet.create({
     backgroundColor: Colors.light.green,
     borderRadius: 14,
     padding: 16,
-    paddingBottom: 12,
-    gap: 8,
+    gap: 12,
     height: 145,
     justifyContent: "space-between",
-    overflow: "hidden",
-    position: "relative",
   },
   badge: {
     paddingHorizontal: 8,
@@ -465,15 +490,9 @@ const localStyles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: Colors.light.blackBackground, // Dark grey background for icon
+    backgroundColor: Colors.light.blackBackground,
     alignItems: "center",
     justifyContent: "center",
-  },
-  titleContainer: {
-    flex: 1,
-    flexDirection: "column",
-    gap: 2,
-    paddingRight: 8,
   },
   summaryTitle: {
     color: Colors.light.white,
@@ -482,26 +501,16 @@ const localStyles = StyleSheet.create({
     fontWeight: "600",
     lineHeight: 18,
     letterSpacing: 0,
+    flex: 1,
   },
   loadingPlaceholderText: {
     opacity: 0.35,
-  },
-  summarySubtitle: {
-    color: Colors.light.white,
-    fontFamily: fonts.primary.medium,
-    fontSize: 12,
-    fontWeight: "500",
-  },
-  subtitleBold: {
-    fontFamily: fonts.primary.bold,
-    fontWeight: "700",
   },
   footerRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-end",
     marginTop: 4,
-    paddingRight: 40,
   },
   insightsBtn: {
     flexDirection: "row",
@@ -516,9 +525,6 @@ const localStyles = StyleSheet.create({
     fontWeight: "700",
   },
   addButton: {
-    position: "absolute",
-    right: 16,
-    bottom: 12,
     width: 32,
     height: 32,
     borderRadius: 16,
@@ -527,10 +533,6 @@ const localStyles = StyleSheet.create({
   },
   addButtonDisabled: {
     opacity: 0.35,
-  },
-  badgeRow: {
-    flexDirection: "row",
-    marginLeft: 14,
   },
   spacer: {
     flex: 1,

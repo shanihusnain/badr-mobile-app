@@ -59,6 +59,7 @@ const FLOW_TEMPLATE_BY_GOAL: Partial<Record<GoalId, LoggingFlowTemplate>> = {
   "quran-recitationByCompletion": "quran-completion",
   "quran-recitationByJuz": "quran-juz",
   "prayer-tahiyyat": "tahiyat-ul-wudhu",
+  "prayer-fiveDailyPrayers": "five-daily-prayers",
   "prayer-missed": "missed-prayers",
   "prayer-tahiyyatMasjid": "tahiyat-al-masjid",
   "prayer-duha": "duha-prayer",

@@ -343,7 +343,9 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
   const goalData = getGoalById(goalId);
   const cleanGoalLabel = goalData?.title || "";
   const isTahiyyat =
-    goalId === "prayer-tahiyyat" || goalId === "prayer-tahiyyatMasjid";
+    goalId === "prayer-tahiyyat" ||
+    goalId === "prayer-tahiyyatMasjid" ||
+    goalId === "prayer-missed";
   const prayerType = resolvePrayerTypeFromGoalId(goalId);
 
   const { data: achievementsApiData, isLoading: isAchievementsLoading } =
@@ -1103,9 +1105,10 @@ const styles = StyleSheet.create({
     color: Colors.light.subtext,
   },
   periodNavRow: {
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 10,
+    width: 176,
+    alignItems: "stretch",
+    gap: 8,
+    flexShrink: 0,
   },
   periodToggle: {
     flexDirection: "row",
@@ -1113,13 +1116,15 @@ const styles = StyleSheet.create({
     padding: 3,
     backgroundColor: Colors.light.blackBackground,
     borderRadius: 6,
-    flexShrink: 0,
+    width: "100%",
   },
   periodButton: {
+    flex: 1,
     borderRadius: 5,
-    paddingHorizontal: 18,
+    paddingHorizontal: 0,
     paddingVertical: 8,
     alignItems: "center",
+    justifyContent: "center",
   },
   periodButtonActive: {
     backgroundColor: Colors.light.greybuttonBackground,
@@ -1130,32 +1135,30 @@ const styles = StyleSheet.create({
   periodButtonText: {
     color: Colors.light.grey,
     fontSize: 12,
-    fontFamily: fonts.primary.medium,
-    fontWeight: "500",
-  },
-  periodButtonTextActive: {
-    color: Colors.light.green,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
   },
+  periodButtonTextActive: {
+    color: Colors.light.green,
+  },
   dateNavRow: {
-    flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "flex-end",
-    gap: 2,
-    minWidth: 0,
+    width: "100%",
   },
   navBtn: {
-    padding: 2,
+    width: 24,
+    height: 24,
+    alignItems: "center",
+    justifyContent: "center",
   },
   dateRange: {
+    flex: 1,
     color: Colors.light.white,
     fontSize: 13,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
     textAlign: "center",
-    flexShrink: 1,
   },
   summaryText: {
     color: Colors.light.grey,

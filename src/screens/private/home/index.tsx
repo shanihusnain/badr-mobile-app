@@ -450,16 +450,16 @@ export default function HomeScreen() {
       >
         {/* Avatar + Streak row */}
         <View style={styles.topSection}>
-          <View style={styles.avatarContainer}>
+          {/* <View style={styles.avatarContainer}>
             <Image
               source={{ uri: user?.avatarUrl }}
               style={{ width: 40, height: 40, borderRadius: 20 }}
               contentFit="cover"
             />
-          </View>
+          </View> */}
 
           {/* Today Button */}
-          <View
+          {/* <View
             style={{
               position: "absolute",
               left: 0,
@@ -494,9 +494,9 @@ export default function HomeScreen() {
                 />
               </View>
             </TouchableOpacity>
-          </View>
+          </View> */}
 
-          <TouchableOpacity
+          {/* <TouchableOpacity
             activeOpacity={0.7}
             onPress={() => router.push("/streakcounter")}
           >
@@ -504,13 +504,13 @@ export default function HomeScreen() {
               <FlashIcon size={12} />
               <Text style={styles.streakText}>0</Text>
             </View>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
 
         {/* Badr Logo */}
-        <View style={styles.badrLogoContainer}>
+        {/* <View style={styles.badrLogoContainer}>
           <BadarNameLogo size={32} />
-        </View>
+        </View> */}
 
         {/* Upcoming prayer card */}
         {isPrayerCardVisible && (
@@ -599,7 +599,7 @@ export default function HomeScreen() {
             { opacity: categorySectionOpacity },
           ]}
         >
-          {GOAL_CATEGORIES.map((category) => (
+          {/* {GOAL_CATEGORIES.map((category) => (
             <View key={category.title} style={styles.categoryItemWrapper}>
               <TaperedCircleBorder
                 percentage={category.percentage}
@@ -621,19 +621,19 @@ export default function HomeScreen() {
                 />
               </View>
             </View>
-          ))}
+          ))} */}
         </Animated.View>
 
         {/* Welcome / info card deck */}
-        <View style={styles.containersSection}>
+        {/* <View style={styles.containersSection}>
           <SwipeCardDeck
             data={translatedWelcomeCards}
             renderTextWithHighlight={buildTextParts}
           />
-        </View>
+        </View> */}
 
         {/* Days tracker */}
-        <TouchableOpacity
+        {/* <TouchableOpacity
           activeOpacity={0.85}
           onPress={() => namazBottomSheetRef.current?.expand()}
           style={{
@@ -643,10 +643,10 @@ export default function HomeScreen() {
           }}
         >
           <DaysTrackerContainer isBottomSheetView={false} />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
 
         {/* Inspiration cards */}
-        <View style={styles.inspirationSection}>
+        {/* <View style={styles.inspirationSection}>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -679,10 +679,10 @@ export default function HomeScreen() {
               />
             ))}
           </View>
-        </View>
+        </View> */}
 
         {/* Log menstruation */}
-        <TouchableOpacity
+        {/* <TouchableOpacity
           activeOpacity={isFemaleUser ? 0.8 : 1}
           disabled={!isFemaleUser}
           style={[
@@ -705,10 +705,10 @@ export default function HomeScreen() {
               {t("homeScreen.logMenstruation")}
             </Text>
           </View>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
 
         {/* Customize journal */}
-        <View style={styles.journalContainer}>
+        {/* <View style={styles.journalContainer}>
           <Text style={styles.journalTitle}>
             {t("homeScreen.customizeJournalTitle")}
           </Text>
@@ -725,10 +725,10 @@ export default function HomeScreen() {
               color={Colors.light.green}
             />
           </TouchableOpacity>
-        </View>
+        </View> */}
         {/* My Day */}
 
-        <View style={[styles.dashboardSection]}>
+        {/* <View style={[styles.dashboardSection]}>
           <Text style={styles.dashboardText}>{t("homeScreen.myDay")}</Text>
           <TouchableOpacity
             activeOpacity={0.7}
@@ -748,10 +748,10 @@ export default function HomeScreen() {
               <AntDesign name="eye" size={16} color={Colors.light.green} />
             )}
           </TouchableOpacity>
-        </View>
+        </View> */}
         {showDailyProgress && (
           <>
-            <ScrollView
+            {/* <ScrollView
               horizontal
               style={styles.categoryFilterScroll}
               contentContainerStyle={styles.categoryFilterContent}
@@ -767,7 +767,7 @@ export default function HomeScreen() {
                   selectedTab={t(getFilterTabTranslationKey(selectedDayTab))}
                 />
               ))}
-            </ScrollView>
+            </ScrollView> */}
             <TopSpace top={16} />
 
             {/* Goal progress cards on home screen
@@ -817,13 +817,13 @@ export default function HomeScreen() {
             */}
           </>
         )}
-        <JournalingHistoryWeekDashboard
+        {/* <JournalingHistoryWeekDashboard
           weekDays={JournalingHistoryWeekDays}
           onDayPress={handleJournalDayPress}
           onBehaviorInsightsPress={handleJournalBehaviorInsightsPress}
-        />
+        /> */}
         {/* My Dashboard */}
-        <View style={styles.dashboardSection}>
+        {/* <View style={styles.dashboardSection}>
           <Text style={styles.dashboardText}>
             {t("homeScreen.myDashboard")}
           </Text>
@@ -837,10 +837,10 @@ export default function HomeScreen() {
             </Text>
             <CustomizeBadgeSettingIcon size={16} color={Colors.light.green} />
           </TouchableOpacity>
-        </View>
+        </View> */}
 
         {/* Dashboard category filter */}
-        <ScrollView
+        {/* <ScrollView
           horizontal
           style={styles.categoryFilterScroll}
           contentContainerStyle={styles.categoryFilterContent}
@@ -858,12 +858,12 @@ export default function HomeScreen() {
               )}
             />
           ))}
-        </ScrollView>
+        </ScrollView> */}
 
-        {visibleDashboardSubGoals.map((goal) => (
+        {/* {visibleDashboardSubGoals.map((goal) => (
           <DashboardSubGoalRow key={goal.id} goal={goal} />
-        ))}
-
+        ))} */}
+        {/* 
         <TouchableOpacity style={styles.showMoreButton}>
           <Text style={styles.showMoreText}>{t("homeScreen.showMore")}</Text>
           <Entypo name="chevron-down" size={24} color="white" />
@@ -872,10 +872,10 @@ export default function HomeScreen() {
         <TopSpace top={16} />
         <TimeSpentOverview
           onExpandPress={() => timeSpentSheetRef.current?.expand()}
-        />
+        /> */}
       </Animated.ScrollView>
 
-      <NamazGoalBottomSheet
+      {/* <NamazGoalBottomSheet
         ref={namazBottomSheetRef}
         onClose={() => {}}
         onChange={(index) => handleBottomSheetChange("namaz", index)}
@@ -894,7 +894,7 @@ export default function HomeScreen() {
         }}
         onChange={(index) => handleBottomSheetChange("dashboard", index)}
       />
-
+*/}
       <BottomSheetWrapper
         ref={goldenBottomSheetRef}
         snapPoints={["50%", "92%"]}
