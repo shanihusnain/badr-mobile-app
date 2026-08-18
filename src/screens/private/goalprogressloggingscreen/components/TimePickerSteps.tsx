@@ -87,7 +87,7 @@ export const StartTimeStep: React.FC<StartTimeStepProps> = ({
             activeOpacity={0.8}
           >
             <Text style={styles.periodText}>{startPeriod}</Text>
-            <Ionicons name="chevron-down" size={14} color={Colors.light.white} />
+            <Ionicons name="chevron-down" size={14} color={Colors.light.white} style={{ marginTop: 2 }} />
           </TouchableOpacity>
 
           {isPeriodDropdownOpen && (
