@@ -4,6 +4,7 @@ import {
   Text,
   ScrollView,
   Image,
+  useWindowDimensions,
   type ImageSourcePropType,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -355,6 +356,8 @@ export const GoalProgressLoggingScreen = ({
   const template = getLoggingFlowTemplate(goalId);
   const backgroundSource = getLoggingBackgroundSource(goalId, template);
   const shouldUseBackground = backgroundSource != null;
+  const { height: windowHeight } = useWindowDimensions();
+  const isTahiyatUlWudhu = template === "tahiyat-ul-wudhu";
 
   const openInsightsSheet = () => {
     infoSheetRef.current?.expand();
@@ -419,7 +422,12 @@ export const GoalProgressLoggingScreen = ({
         {shouldUseBackground && backgroundSource && (
           <Image
             source={backgroundSource}
-            style={[styles.backgroundImage, { top: -130, height: 880 }]}
+            style={[
+              styles.backgroundImage,
+              isTahiyatUlWudhu
+                ? { top: -130, height: windowHeight + 130 }
+                : { top: -130, height: 880 },
+            ]}
             resizeMode="cover"
           />
         )}

@@ -103,7 +103,7 @@ export function TahiyatUlWudhuWeeklyProgressDashboard({
   onNextWeek,
 }: TahiyatUlWudhuWeeklyProgressDashboardProps) {
   const { t } = useTranslation();
-  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
+  const { width: screenWidth } = useWindowDimensions();
 
   const availableWidth =
     screenWidth * WRAPPER_WIDTH_RATIO - CARD_HORIZONTAL_PADDING;
@@ -125,15 +125,7 @@ export function TahiyatUlWudhuWeeklyProgressDashboard({
   };
 
   return (
-    <View
-      style={[
-        styles.card,
-        {
-          paddingVertical: Math.max(16, screenHeight * 0.025),
-          gap: Math.max(16, screenHeight * 0.03),
-        },
-      ]}
-    >
+    <View style={styles.card}>
       <View style={styles.headerRow}>
         <View style={styles.headerLeft}>
           <DashBoardCalenderIcon size={24} color={Colors.light.graylightshade} />

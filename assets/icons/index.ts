@@ -58,6 +58,12 @@ import { HeaderInfoIcon } from "./HeaderInfoIcon";
 //I
 import { InBoxArrow } from "./InBoxArrow";
 import { InsightIcon } from "./InsightIcon";
+import { InsightCardTickIcon } from "./InsightCardTickIcon";
+import { InsightCardFlashIcon } from "./InsightCardFlashIcon";
+import { InsightCardGoodDayIcon } from "./InsightCardGoodDayIcon";
+import { InsightCardWeeklyAverageIcon } from "./InsightCardWeeklyAverageIcon";
+import { InsightCardTimeSpentIcon } from "./InsightCardTimeSpentIcon";
+import { InsightCardGoalTrackedIcon } from "./InsightCardGoalTrackedIcon";
 
 //J
 import { JournalBookIcon } from "./JournalBookIcon";
@@ -311,6 +317,12 @@ export {
   MoonIcon,
   InBoxArrow,
   InsightIcon,
+  InsightCardTickIcon,
+  InsightCardFlashIcon,
+  InsightCardGoodDayIcon,
+  InsightCardWeeklyAverageIcon,
+  InsightCardTimeSpentIcon,
+  InsightCardGoalTrackedIcon,
   DebtAssistanceIcon,
   JournalBookIcon,
   NotificationIcon,

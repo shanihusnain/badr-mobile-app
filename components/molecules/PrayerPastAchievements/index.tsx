@@ -45,6 +45,12 @@ import {
   NegativeProgressIcon,
   PositiveProgressIcon,
   AchivementArrowIcon,
+  InsightCardTickIcon,
+  InsightCardFlashIcon,
+  InsightCardGoodDayIcon,
+  InsightCardWeeklyAverageIcon,
+  InsightCardTimeSpentIcon,
+  InsightCardGoalTrackedIcon,
 } from "@/assets/icons";
 
 type Props = {
@@ -176,6 +182,32 @@ function metricCard({
       ? { footerText: zeroDeltaFooter, footerNeutral: true }
       : {}),
   };
+}
+
+const TAHIYYAT_INSIGHT_ICON_SIZE = 14;
+
+function getTahiyyatAlWudhuInsightIcon(card: InsightCardData) {
+  const title = card.title.toUpperCase();
+  const name = card.iconName;
+  if (name === "calendar-outline" || title.includes("GOAL TRACKED")) {
+    return <InsightCardGoalTrackedIcon size={TAHIYYAT_INSIGHT_ICON_SIZE} />;
+  }
+  if (name === "checkmark-circle-outline" || title.includes("COMPLETED")) {
+    return <InsightCardTickIcon size={TAHIYYAT_INSIGHT_ICON_SIZE} />;
+  }
+  if (name === "flash" || title.includes("STREAK")) {
+    return <InsightCardFlashIcon size={TAHIYYAT_INSIGHT_ICON_SIZE} />;
+  }
+  if (name === "sparkles" || title.includes("BEST")) {
+    return <InsightCardGoodDayIcon size={TAHIYYAT_INSIGHT_ICON_SIZE} />;
+  }
+  if (name === "scale-balance" || title.includes("AVERAGE")) {
+    return <InsightCardWeeklyAverageIcon size={TAHIYYAT_INSIGHT_ICON_SIZE} />;
+  }
+  if (name === "time-outline" || title.includes("TIME")) {
+    return <InsightCardTimeSpentIcon size={TAHIYYAT_INSIGHT_ICON_SIZE} />;
+  }
+  return undefined;
 }
 
 function mapApiKeyInsightsToCards(
@@ -573,7 +605,16 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
           contentContainerStyle={styles.insightsScrollContent}
         >
           {cards.map((c, i) => (
-            <InsightCard key={i} {...c} style={styles.insightCardFixed} />
+            <InsightCard
+              key={i}
+              {...c}
+              icon={
+                goalId === "prayer-tahiyyat"
+                  ? getTahiyyatAlWudhuInsightIcon(c)
+                  : undefined
+              }
+              style={styles.insightCardFixed}
+            />
           ))}
         </ScrollView>
       </View>
@@ -1257,7 +1298,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
     backgroundColor: Colors.light.blackBackground,
     paddingLeft: 10,
-    paddingRight: 4,
+    paddingRight: 10,
     paddingVertical: 8,
     borderRadius: 10,
   },
@@ -1272,14 +1313,14 @@ const styles = StyleSheet.create({
   goalValueRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
+    gap: 7,
   },
   goalPill: {
     backgroundColor: Colors.light.calendarBg,
     borderRadius: 4,
-    paddingHorizontal: 4,
-    paddingVertical: 3,
-    marginLeft: -1,
+    paddingHorizontal: 3,
+    paddingVertical: 2,
+    marginLeft: -4,
   },
   goalPillText: {
     color: Colors.light.white,

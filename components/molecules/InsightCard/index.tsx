@@ -5,10 +5,12 @@ import { fonts } from "@/assets/fonts";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { NegativeProgressIcon, PositiveProgressIcon } from "@/assets/icons";
+import type { ReactNode } from "react";
 
 export type InsightCardProps = {
   iconFamily?: "Ionicons" | "MaterialCommunityIcons";
-  iconName: string;
+  iconName?: string;
+  icon?: ReactNode;
   title: string;
   value: string | number;
   subValue?: string;
@@ -23,6 +25,7 @@ export type InsightCardProps = {
 export function InsightCard({
   iconFamily = "Ionicons",
   iconName,
+  icon,
   title,
   value,
   subValue,
@@ -40,7 +43,9 @@ export function InsightCard({
   return (
     <View style={[styles.card, style]}>
       <View style={styles.header}>
-        {iconFamily === "Ionicons" ? (
+        {icon ? (
+          icon
+        ) : iconFamily === "Ionicons" ? (
           <Ionicons
             name={iconName as any}
             size={14}
@@ -114,10 +119,10 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     color: Colors.light.subtext,
     fontSize: 10,
-    fontFamily: fonts.primary.semiBold,
-    fontWeight: "600",
+    fontFamily: fonts.primary.heavy,
+    fontWeight: "800",
     textTransform: "uppercase",
-    letterSpacing: 0.2,
+    letterSpacing: 0.1,
     lineHeight: 13,
   },
   valueContainer: {
