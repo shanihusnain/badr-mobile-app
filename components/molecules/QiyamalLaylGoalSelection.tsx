@@ -58,17 +58,9 @@ export default function QiyamalLaylGoalSelection({
     initialValues?.unitTarget ?? 1,
   );
   const [trackTahajjud, setTrackTahajjud] = useState<"yes" | "no">(
-    // If `initialValues` is absent or does not include `trackTahajjud`,
-    // default to "yes" for new users. Only use provided boolean when set.
-    initialValues?.trackTahajjud === undefined
-      ? "yes"
-      : initialValues.trackTahajjud
-        ? "yes"
-        : "no",
+    initialValues?.trackTahajjud === false ? "no" : "yes",
   );
-  const [summaryTextWidth, setSummaryTextWidth] = useState<number | null>(
-    null,
-  );
+  const [summaryTextWidth, setSummaryTextWidth] = useState<number | null>(null);
 
   const handleSummaryTextLayout = (
     event: NativeSyntheticEvent<TextLayoutEventData>,
@@ -108,7 +100,6 @@ export default function QiyamalLaylGoalSelection({
     );
   };
   const { user } = useAuth();
-  console.log("user gender in qiyam al layl goal selection", user?.gender);
   return (
     <View style={globalStyles.goalSelectionWrapper}>
       <GoalSelectionOpenCloseButton

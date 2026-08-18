@@ -875,30 +875,53 @@ export function WeeklyProgressSection({
   }
 
   if (template === "missed-prayers") {
-    // Mock week data based on the images
-    const mockWeek = {
-      weekDays: [
-        { day: "Sun", prayersLogged: 0, isLogged: true },
-        { day: "Mon", prayersLogged: 5, isLogged: true, isBestDay: true },
-        { day: "Tue", prayersLogged: 2, isLogged: true },
-        { day: "Wed", prayersLogged: 0, isLogged: false },
-        { day: "Thu", prayersLogged: 0, isLogged: false },
-        { day: "Fri", prayersLogged: 2, isLogged: true },
-        { day: "Sat", prayersLogged: 9, isLogged: true }, // Sat 4 is selected in UI, 9 prayers gets us to 18 total
-      ],
-      weekRangeLabel: "Nov 29 — Dec 5",
-      weekFraction: "1/4",
-      totalPrayersThisWeek: 18,
-      streakDays: 2,
-    };
+    const frame = prayerFrame?.frame;
+    if (frame) {
+      const totalWeeks = frame.cycle.totalWeeks;
+      const currentWeek = frame.cycle.weekNumber;
+
+      const canPrev = currentWeek > 1;
+      const canNext = currentWeek < totalWeeks;
+
+      const handlePrevWeek = canPrev
+        ? () => {
+            prayerFrame?.setWeekNumber(currentWeek - 1);
+          }
+        : undefined;
+
+      const handleNextWeek = canNext
+        ? () => {
+            prayerFrame?.setWeekNumber(currentWeek + 1);
+          }
+        : undefined;
+
+      return (
+        <MissedPrayersWeeklyProgressDashboard
+          weekDays={mapPrayerFrameWeekDays(frame)}
+          weekRangeLabel={formatPrayerFrameWeekRange(
+            frame.cycle.weekStart,
+            frame.cycle.weekEnd,
+          )}
+          weekFraction={getPrayerFrameWeekFraction(frame)}
+          totalPrayersThisWeek={frame.week.thisWeekTotal}
+          streakDays={frame.week.currentStreak}
+          selectedDayIndex={getPrayerFrameTodayIndex(frame)}
+          statsIcon="ticket-confirmation"
+          onPrevWeek={handlePrevWeek}
+          onNextWeek={handleNextWeek}
+        />
+      );
+    }
 
     return (
       <MissedPrayersWeeklyProgressDashboard
-        weekDays={mockWeek.weekDays}
-        weekRangeLabel={mockWeek.weekRangeLabel}
-        weekFraction={mockWeek.weekFraction}
-        totalPrayersThisWeek={mockWeek.totalPrayersThisWeek}
-        streakDays={mockWeek.streakDays}
+        weekDays={[]}
+        weekRangeLabel="---"
+        weekFraction="---"
+        totalPrayersThisWeek={0}
+        streakDays={0}
+        motivationalQuote="---"
+        loading={prayerFrame?.isLoading || (!frame && !prayerFrame?.isError)}
       />
     );
   }

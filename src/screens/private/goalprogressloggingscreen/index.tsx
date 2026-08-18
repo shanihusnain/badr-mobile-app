@@ -19,7 +19,7 @@ import { HeaderWithCrossTitleDynamicIcon } from "@/components/atoms/HeaderWithCr
 import { useTranslation } from "react-i18next";
 import { LoggingFlowSlot } from "./components/LoggingFlowSlot";
 import { getLoggingFlowTemplate } from "./loggingFlowRegistry";
-import type { LoggingFlowTemplate, ProgressLogEntry } from "./types";
+import type { LoggingFlowTemplate } from "./types";
 import { WeeklyProgressSection } from "./components/WeeklyProgressSection";
 import { PastAchievementsSection } from "./components/PastAchievementsSection";
 import { MemorisationSurahProvider } from "./memorisationSurahContext";
@@ -145,8 +145,14 @@ function GoalProgressLoggingBody({
   const [weekViewPercent, setWeekViewPercent] = useState<number | null>(null);
   const template = getLoggingFlowTemplate(goalId);
   const prayerFrame = useOptionalPrayerGoalFrameContext();
-  const isTahiyatFrameGoal =
-    template === "tahiyat-ul-wudhu" || template === "tahiyat-al-masjid";
+  const isPrayerFrameRingGoal =
+    template === "tahiyat-ul-wudhu" ||
+    template === "tahiyat-al-masjid" ||
+    template === "missed-prayers";
+  const frameLoading =
+    isPrayerFrameRingGoal &&
+    (prayerFrame?.isLoading ||
+      (!prayerFrame?.frame && !prayerFrame?.isError));
   const liveGoalData = useMemo(
     () => getResolvedGoalById(goalId) ?? goalData,
     [goalData, goalId, weeklyRefreshKey],
@@ -154,7 +160,7 @@ function GoalProgressLoggingBody({
 
   const isMondayThursdayFasts = isMondayThursdayFastsGoalId(goalId);
   const frameAchievementPct = prayerFrame?.frame?.goal.achievementPct;
-  const displayPercentage = isTahiyatFrameGoal
+  const displayPercentage = isPrayerFrameRingGoal
     ? frameAchievementPct != null
       ? `${frameAchievementPct}%`
       : "0%"
@@ -173,7 +179,7 @@ function GoalProgressLoggingBody({
     if (!isMondayThursdayFasts) return undefined;
     return getMondayThursdayFastRingSegments(mondayThursdayCompletedCount);
   }, [isMondayThursdayFasts, mondayThursdayCompletedCount]);
-  const percentageNum = displayPercentage.replace("%", "");
+  const percentageNum = frameLoading ? "---" : displayPercentage.replace("%", "");
   const frameGoalLabel = prayerFrame?.frame?.goal.label;
   const cleanLabel = frameGoalLabel
     ? frameGoalLabel
@@ -182,7 +188,7 @@ function GoalProgressLoggingBody({
       : liveGoalData.label.startsWith("/")
         ? liveGoalData.label.substring(1)
         : liveGoalData.label;
-  const ringGoalLabel = isTahiyatFrameGoal
+  const ringGoalLabel = isPrayerFrameRingGoal
     ? prayerFrame?.frame
       ? t("homeScreen.weeklyProgress_goalLabel", {
           label: getPrayerFrameRingGoalCountLabel(
@@ -190,7 +196,7 @@ function GoalProgressLoggingBody({
             t("progressLogging.unitPrayers"),
           ),
         })
-      : t("homeScreen.weeklyProgress_goalLabel", { label: "" })
+      : "---"
     : isMissedRamadanFastsGoalId(goalId)
       ? t("progressLogging.missedRamadanRingGoal", {
           count: liveGoalData.target ?? cleanLabel,
@@ -204,7 +210,6 @@ function GoalProgressLoggingBody({
   return (
     <>
       <View style={styles.goalInfoContainer}>
-        {/* Illuminated ring colors itself by percentage stage, not category. */}
         <TaperedCircleBorder
           percentage={displayPercentage}
           borderColor={Colors.light.dullWhiteOpacity}
@@ -212,10 +217,31 @@ function GoalProgressLoggingBody({
           variant="illuminated"
         >
           <View style={styles.largeCircleInner}>
-            <Text style={styles.circleGoalText}>{ringGoalLabel}</Text>
+            <Text
+              style={[
+                styles.circleGoalText,
+                frameLoading && styles.loadingPlaceholderText,
+              ]}
+            >
+              {frameLoading ? "---" : ringGoalLabel}
+            </Text>
             <View style={styles.circlePercentRow}>
-              <Text style={styles.circlePercentNumber}>{percentageNum}</Text>
-              <Text style={styles.circlePercentSymbol}>%</Text>
+              <Text
+                style={[
+                  styles.circlePercentNumber,
+                  frameLoading && styles.loadingPlaceholderText,
+                ]}
+              >
+                {percentageNum}
+              </Text>
+              <Text
+                style={[
+                  styles.circlePercentSymbol,
+                  frameLoading && styles.loadingPlaceholderText,
+                ]}
+              >
+                %
+              </Text>
             </View>
           </View>
         </TaperedCircleBorder>
@@ -224,8 +250,7 @@ function GoalProgressLoggingBody({
       <LoggingFlowSlot
         goalData={liveGoalData}
         onDropdownOpenChange={onDropdownOpenChange}
-        onLogComplete={(entry: ProgressLogEntry) => {
-          console.log("Logged progress:", entry);
+        onLogComplete={() => {
           setWeeklyRefreshKey((current) => current + 1);
         }}
       />
@@ -314,7 +339,6 @@ export const GoalProgressLoggingScreen = ({
 }: GoalProgressLoggingScreenProps) => {
   const goalId = (goalIdParam || "") as GoalId;
   const goalData = getResolvedGoalById(goalId);
-  console.log("goalData", goalData);
   const [screenScrollEnabled, setScreenScrollEnabled] = useState(true);
   const navigation = useNavigation();
   const infoSheetRef = useRef<BottomSheet>(null);

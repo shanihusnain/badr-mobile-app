@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { api } from "..";
 import { resolvePrayerType } from "@/src/utils/prayerGoalMap";
 import type { PrayerGoalFrameStatus } from "@/src/utils/prayerGoalFrameMap";
@@ -71,5 +71,6 @@ export const useGetPrayerGoalFrame = (
     ],
     queryFn: () => getPrayerGoalFrame(prayerType, options?.weekNumber),
     enabled,
+    placeholderData: keepPreviousData,
   });
 };

@@ -33,6 +33,16 @@ export const styles = StyleSheet.create({
     paddingBottom: 4,
     position: "relative",
   },
+  loadingPlaceholderText: {
+    opacity: 0.35,
+  },
+  loadingDashText: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.regular,
+    fontSize: 16,
+    fontWeight: "400",
+    opacity: 0.4,
+  },
   ringCheckmark: {
     position: "absolute",
     top: 0,

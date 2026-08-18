@@ -3,6 +3,12 @@ import MoonProgress from "@/components/atoms/MoonProgress";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { Colors } from "@/constants/theme";
 import { globalStyles } from "@/src/globalstyles/globalstyles";
+import {
+  BlurMask,
+  Canvas,
+  Text as SkiaText,
+  useFont,
+} from "@shopify/react-native-skia";
 import { ImageSource } from "expo-image";
 import { useTranslation } from "react-i18next";
 import { useCallback, useEffect, useState } from "react";
@@ -34,26 +40,91 @@ function easeOutCubic(t: number) {
   return 1 - Math.pow(1 - t, 3);
 }
 
+const PERCENT_FONT_SIZE = 18;
+/** Extra canvas padding so the glyph blur is never clipped into a box. */
+const GLOW_PAD = 22;
+
 /**
- * Progress % text color stages:
- * Silver (0–33) → Blue (34–66) → Gold (67–99) → Glowing Gold (100)
+ * Figma neon: white glyphs + colored outer glow that follows letter shapes.
+ * Silver (0–33) → Cyan (34–66) → Gold (67–99) → Glowing Gold (100)
  */
-function getProgressPercentStyle(percent: number) {
+function getProgressGlow(percent: number) {
   if (percent >= 100) {
-    return {
-      color: Colors.light.goldenBright,
-      textShadowColor: Colors.light.goldenGlow,
-      textShadowOffset: { width: 0, height: 0 },
-      textShadowRadius: 10,
-    };
+    return { glow: Colors.light.golden, radius: 8 };
   }
   if (percent >= 67) {
-    return { color: Colors.light.gold };
+    return { glow: Colors.light.gold, radius: 6.5 };
   }
   if (percent >= 34) {
-    return { color: Colors.light.lightblue };
+    return { glow: Colors.light.lightblue, radius: 6.5 };
   }
-  return { color: Colors.light.dullWhite };
+  return { glow: Colors.light.white, radius: 6 };
+}
+
+function GlowingProgressPercent({ percent }: { percent: number }) {
+  const font = useFont(
+    require("@/assets/fonts/SF-Pro-Text-Semibold.otf"),
+    PERCENT_FONT_SIZE,
+  );
+  const label = `${percent}%`;
+  const { glow, radius } = getProgressGlow(percent);
+
+  if (!font) {
+    return <Text style={styles.statValue}>{label}</Text>;
+  }
+
+  // Keep canvas size and glyph x locked to "100%" so 0% → 100% never shifts.
+  const maxBounds = font.measureText("100%");
+  const bounds = font.measureText(label);
+  const metrics = font.getMetrics();
+  const width = Math.ceil(maxBounds.width + GLOW_PAD * 2);
+  const height = Math.ceil(-metrics.ascent + metrics.descent + GLOW_PAD * 2);
+  const x = GLOW_PAD + (maxBounds.width - bounds.width) / 2 - bounds.x;
+  const y = GLOW_PAD - metrics.ascent;
+
+  return (
+    <Canvas
+      opaque={false}
+      style={[
+        styles.percentCanvas,
+        {
+          width,
+          height,
+        },
+      ]}
+    >
+      <SkiaText
+        text={label}
+        x={x}
+        y={y}
+        font={font}
+        color={glow}
+        opacity={0.35}
+      >
+        <BlurMask blur={radius * 2.2} style="solid" />
+      </SkiaText>
+      <SkiaText
+        text={label}
+        x={x}
+        y={y}
+        font={font}
+        color={glow}
+        opacity={0.55}
+      >
+        <BlurMask blur={radius * 1.25} style="solid" />
+      </SkiaText>
+      <SkiaText text={label} x={x} y={y} font={font} color={glow} opacity={0.9}>
+        <BlurMask blur={radius * 0.55} style="solid" />
+      </SkiaText>
+      <SkiaText
+        text={label}
+        x={x}
+        y={y}
+        font={font}
+        color={Colors.light.white}
+      />
+    </Canvas>
+  );
 }
 
 export const GoalProgressCard = ({
@@ -191,9 +262,7 @@ export const GoalProgressCard = ({
           <Text style={styles.statLabel}>
             {t("setpersonalizedgoals.overall progress")}
           </Text>
-          <Text
-            style={[styles.statValue, getProgressPercentStyle(displayProgress)]}
-          >{`${displayProgress}%`}</Text>
+          <GlowingProgressPercent percent={displayProgress} />
         </View>
       </View>
     </View>
@@ -232,6 +301,7 @@ const styles = StyleSheet.create({
   },
   statItem: {
     alignItems: "center",
+    overflow: "visible",
   },
   statLabel: {
     fontWeight: "500",
@@ -246,5 +316,9 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.semiBold,
     fontSize: 18,
     color: Colors.light.white,
+  },
+  percentCanvas: {
+    marginVertical: -GLOW_PAD + 2,
+    marginHorizontal: -GLOW_PAD / 3,
   },
 });

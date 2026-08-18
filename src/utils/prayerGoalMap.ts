@@ -110,6 +110,11 @@ export type PrayerGoalApiItem = {
   beforeAsrRakahOption?: number;
   isFlexible?: boolean;
   trackTahajjud?: boolean;
+  qiyamConfig?: {
+    isFlexible?: boolean;
+    unitTarget?: number;
+    trackTahajjud?: boolean;
+  };
 };
 
 export type PrayerGoalListItem = PrayerGoalApiItem & {
@@ -147,7 +152,9 @@ function pickSavedNumber(
   return typeof value === "number" && value > 0 ? value : fallback;
 }
 
-export function hasConfiguredTargets(goal: PrayerGoalApiItem | undefined): boolean {
+export function hasConfiguredTargets(
+  goal: { targets?: PrayerGoalApiItem["targets"] } | undefined,
+): boolean {
   if (!goal?.targets) return false;
 
   const {
@@ -232,29 +239,74 @@ export function getSunnahInitial(goal: PrayerGoalApiItem | undefined) {
   };
 }
 
-export function getQiyamInitial(goal: PrayerGoalApiItem | undefined) {
-  if (!hasConfiguredTargets(goal)) {
+const QIYAM_DEFAULT_UNIT_TARGET = 1;
+
+type QiyamInitialSource = {
+  isFlexible?: boolean;
+  trackTahajjud?: boolean;
+  targets?: PrayerGoalApiItem["targets"];
+  qiyamConfig?: PrayerGoalApiItem["qiyamConfig"];
+};
+
+function getQiyamUnitTarget(goal: QiyamInitialSource | undefined): number | undefined {
+  const fromConfig = goal?.qiyamConfig?.unitTarget;
+  if (typeof fromConfig === "number" && fromConfig > 0) return fromConfig;
+
+  const isFlexible = Boolean(goal?.qiyamConfig?.isFlexible ?? goal?.isFlexible);
+  return isFlexible
+    ? goal?.targets?.unitTarget
+    : goal?.targets?.targetPerNight ?? goal?.targets?.unitTarget;
+}
+
+function getQiyamTrackTahajjud(
+  goal: QiyamInitialSource | undefined,
+): boolean | undefined {
+  if (typeof goal?.qiyamConfig?.trackTahajjud === "boolean") {
+    return goal.qiyamConfig.trackTahajjud;
+  }
+  if (typeof goal?.trackTahajjud === "boolean") {
+    return goal.trackTahajjud;
+  }
+  return undefined;
+}
+
+/** Backend seeds `{ unitTarget: 2, trackTahajjud: false }` before the user saves. */
+function isUnsavedQiyamDefaults(goal: QiyamInitialSource | undefined): boolean {
+  if (!goal) return true;
+  if (!hasConfiguredTargets(goal) && goal.qiyamConfig == null) return true;
+
+  const isFlexible = Boolean(goal.qiyamConfig?.isFlexible ?? goal.isFlexible);
+  if (isFlexible) return false;
+
+  const unitTarget = getQiyamUnitTarget(goal);
+  const trackTahajjud = getQiyamTrackTahajjud(goal);
+  if (trackTahajjud === true) return false;
+  if (typeof unitTarget === "number" && unitTarget > 0 && unitTarget !== 2) {
+    return false;
+  }
+  return true;
+}
+
+export function getQiyamInitial(goal: QiyamInitialSource | undefined) {
+  if (isUnsavedQiyamDefaults(goal)) {
     return {
       isFlexible: false,
-      unitTarget: 1,
+      unitTarget: QIYAM_DEFAULT_UNIT_TARGET,
       witrTarget: 0,
       trackTahajjud: true,
     };
   }
 
-  const isFlexible = Boolean(goal?.isFlexible);
-  const unitTarget = isFlexible
-    ? pickSavedNumber(goal?.targets?.unitTarget, 1)
-    : pickSavedNumber(
-        goal?.targets?.targetPerNight ?? goal?.targets?.unitTarget,
-        1,
-      );
+  const isFlexible = Boolean(goal?.qiyamConfig?.isFlexible ?? goal?.isFlexible);
 
   return {
     isFlexible,
-    unitTarget,
+    unitTarget: pickSavedNumber(
+      getQiyamUnitTarget(goal),
+      QIYAM_DEFAULT_UNIT_TARGET,
+    ),
     witrTarget: goal?.targets?.witrTarget ?? 0,
-    trackTahajjud: Boolean(goal?.trackTahajjud),
+    trackTahajjud: getQiyamTrackTahajjud(goal) ?? true,
   };
 }
 

@@ -35,10 +35,21 @@ export function PrayerGoalFrameProvider({
   children: ReactNode;
 }) {
   const prayerType = resolvePrayerTypeFromGoalId(goalId);
-  const [weekNumber, setWeekNumber] = React.useState<number | null>(null);
+  const [weekNumber, setWeekNumberState] = React.useState<number | null>(null);
+  /** Only send `week` after the user taps prev/next — not after hydrating from the first response. */
+  const [hasUserSelectedWeek, setHasUserSelectedWeek] = React.useState(false);
+
+  React.useEffect(() => {
+    setWeekNumberState(null);
+    setHasUserSelectedWeek(false);
+  }, [goalId]);
+
   const { data, isLoading, isError, refetch } = useGetPrayerGoalFrame(
     prayerType,
-    { enabled: !!prayerType, weekNumber: weekNumber ?? undefined },
+    {
+      enabled: !!prayerType,
+      weekNumber: hasUserSelectedWeek ? (weekNumber ?? undefined) : undefined,
+    },
   );
 
   useEffect(() => {
@@ -50,8 +61,13 @@ export function PrayerGoalFrameProvider({
   useEffect(() => {
     if (weekNumber != null) return;
     if (!data?.cycle?.weekNumber) return;
-    setWeekNumber(data.cycle.weekNumber);
+    setWeekNumberState(data.cycle.weekNumber);
   }, [data, weekNumber]);
+
+  const setWeekNumber = React.useCallback((nextWeek: number) => {
+    setHasUserSelectedWeek(true);
+    setWeekNumberState(nextWeek);
+  }, []);
 
   const value = useMemo(
     () => ({
@@ -62,7 +78,7 @@ export function PrayerGoalFrameProvider({
       weekNumber,
       setWeekNumber,
     }),
-    [data, isLoading, isError, refetch, weekNumber],
+    [data, isLoading, isError, refetch, weekNumber, setWeekNumber],
   );
 
   return (

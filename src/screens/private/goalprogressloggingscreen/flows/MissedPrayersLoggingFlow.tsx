@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Pressable,
   Text,
@@ -20,6 +20,17 @@ import { styles as commonStyles } from "../components/DailyProgressLogging.style
 import { fonts } from "@/assets/fonts";
 import type { ProgressLogEntry } from "../types";
 import { PrayerName } from "../progressLoggingConfig";
+import { useOptionalPrayerGoalFrameContext } from "../prayerGoalFrameContext";
+import {
+  getPrayerFrameAchievementLabel,
+  prayerFrameShowsInsights,
+} from "@/src/utils/prayerGoalFrameMap";
+import {
+  AddLoggingFlowIcon,
+  CalendarFlippingIcon,
+  WhiteClockIcon,
+  WhiteTimerIcon,
+} from "@/assets/icons";
 
 type MissedPrayersStepId = "date" | "prayers-qty" | "start-time" | "time-spent";
 const STEPS: MissedPrayersStepId[] = ["date", "prayers-qty", "start-time", "time-spent"];
@@ -71,24 +82,49 @@ export default function MissedPrayersLoggingFlow({
   const [durationHours, setDurationHours] = useState("0");
   const [durationMinutes, setDurationMinutes] = useState("10");
 
-  // MOCK DATA — fixed until backend is connected
-  const MOCK_PERCENTAGE = 12; // based on goalsData.ts mock
-  const totalPrayersRequired = 280;
-  const mockTitle = `56 Days of Missed Obligatory Prayers`;
+  const prayerFrame = useOptionalPrayerGoalFrameContext();
+  const frame = prayerFrame?.frame;
+  const frameLoading =
+    prayerFrame?.isLoading || (!frame && !prayerFrame?.isError);
 
-  // hasLogged: false = show "In Progress", true = show fixed percentage
-  const [hasLogged, setHasLogged] = useState(false);
+  const cycleStartHijri = frame?.cycle?.cycleStart
+    ? toDateString(new Date(frame.cycle.cycleStart))
+    : undefined;
+  const cycleEndHijri = frame?.cycle?.cycleEnd
+    ? toDateString(new Date(frame.cycle.cycleEnd))
+    : undefined;
 
-  const getBadgeStatus = () => {
-    if (!hasLogged) return { text: "In Progress", type: "in-progress" };
-    if (MOCK_PERCENTAGE >= 100) return { text: "100% Achieved!", type: "completed" };
-    return { text: `${MOCK_PERCENTAGE}% Achieved`, type: "completed" }; // using green badge styling
-  };
+  const badgeStatus = useMemo(() => {
+    if (!frame) {
+      return {
+        text: "---",
+        type: "in-progress" as const,
+      };
+    }
+    return getPrayerFrameAchievementLabel(frame, t);
+  }, [frame, t]);
 
-  const badgeStatus = getBadgeStatus();
-  const isCompleted = hasLogged;
+  const isCompleted = (frame?.goal.achievementPct ?? 0) >= 100;
+  const showInsights = frame ? prayerFrameShowsInsights(frame) : false;
+
+  const goalLabel = frame?.goal.label ?? "---";
+  const totalPrayersRequired = frame?.goal.targetCount;
+  const qtyStepTotal = frame?.goal.targetCount ?? 0;
 
   const todayString = toDateString(new Date());
+  const maxSelectableDate = cycleEndHijri
+    ? cycleEndHijri < todayString
+      ? cycleEndHijri
+      : todayString
+    : todayString;
+
+  useEffect(() => {
+    if (!cycleStartHijri || !cycleEndHijri) return;
+    if (selectedDate < cycleStartHijri) setSelectedDate(cycleStartHijri);
+    else if (selectedDate > maxSelectableDate) {
+      setSelectedDate(maxSelectableDate);
+    }
+  }, [cycleStartHijri, cycleEndHijri, maxSelectableDate]);
   const currentStep = STEPS[stepIndex];
   const isLastStep = stepIndex === STEPS.length - 1;
 
@@ -101,7 +137,10 @@ export default function MissedPrayersLoggingFlow({
     const next = moment(selectedDate, "YYYY-MM-DD")
       .add(direction, "days")
       .format("YYYY-MM-DD");
-    if (direction === 1 && next > todayString) return;
+
+    if (cycleStartHijri && direction === -1 && next < cycleStartHijri) return;
+    if (direction === 1 && next > maxSelectableDate) return;
+
     setSelectedDate(next);
   };
 
@@ -119,11 +158,11 @@ export default function MissedPrayersLoggingFlow({
   }, []);
 
   const handleConfirm = () => {
-    // Mark as logged so badge switches from "In Progress" to the fixed percentage.
-    setHasLogged(true);
-    
     // Sum all selected prayers
-    const totalSelected = Object.values(quantities).reduce((acc, curr) => acc + curr, 0);
+    const totalSelected = Object.values(quantities).reduce(
+      (acc, curr) => acc + curr,
+      0,
+    );
 
     onLogComplete?.({
       type: "missed-prayers",
@@ -135,7 +174,9 @@ export default function MissedPrayersLoggingFlow({
       durationMinutes,
       prayerQuantities: quantities,
     } as any);
-    
+
+    prayerFrame?.refetch();
+
     resetFlow();
   };
 
@@ -152,29 +193,36 @@ export default function MissedPrayersLoggingFlow({
   };
 
   const handleOpenFlow = useCallback(() => {
+    if (isCompleted) return;
     setFlowMode("active");
-  }, []);
+  }, [isCompleted]);
 
   const getStepHeader = (step: MissedPrayersStepId) => {
     switch (step) {
       case "date":
         return {
-          icon: <Ionicons name="calendar-outline" size={15} color={Colors.light.white} />,
+          icon: <CalendarFlippingIcon />,
           label: "Which day are you logging for?",
         };
       case "prayers-qty":
         return {
-          icon: <Ionicons name="apps-outline" size={15} color={Colors.light.white} />,
+          icon: (
+            <Ionicons
+              name="apps-outline"
+              size={15}
+              color={Colors.light.white}
+            />
+          ),
           label: "Tap prayers multiple times to update qty.",
         };
       case "start-time":
         return {
-          icon: <Ionicons name="time-outline" size={15} color={Colors.light.white} />,
+          icon: <WhiteClockIcon />,
           label: "Enter start time.",
         };
       case "time-spent":
         return {
-          icon: <Ionicons name="timer-outline" size={15} color={Colors.light.white} />,
+          icon: <WhiteTimerIcon />,
           label: "Enter time spent.",
         };
     }
@@ -198,7 +246,7 @@ export default function MissedPrayersLoggingFlow({
             quantities={quantities}
             onIncrement={handleIncrementPrayer}
             categoryColor={Colors.light.green}
-            totalRequired={56}
+            totalRequired={qtyStepTotal}
           />
         );
       case "start-time":
@@ -231,79 +279,137 @@ export default function MissedPrayersLoggingFlow({
   const stepHeader = getStepHeader(currentStep);
 
   return (
-    <View style={commonStyles.section}>
-      <Text style={commonStyles.sectionTitle}>{t("progressLogging.myProgress")}</Text>
-      
-      <View style={commonStyles.cardAnchor}>
-        {flowMode === "active" && (
-          <Pressable style={commonStyles.backdrop} onPress={resetFlow} />
-        )}
-        {flowMode === "active" && (
-          <TouchableOpacity
-            style={commonStyles.cancelButton}
-            onPress={resetFlow}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="close" size={20} color={Colors.light.white} />
-          </TouchableOpacity>
-        )}
+    <>
+      {flowMode === "active" && (
+        <TouchableOpacity
+          style={commonStyles.cancelButton}
+          onPress={resetFlow}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="close" size={20} color={Colors.light.white} />
+        </TouchableOpacity>
+      )}
 
-        {flowMode === "collapsed" ? (
-          <View style={localStyles.summaryCard}>
-            <View style={localStyles.summaryBody}>
-              <View style={localStyles.summaryIconCircle}>
-                 <MaterialCommunityIcons name="calendar-remove" size={18} color={Colors.light.white} />
-              </View>
-              <View style={localStyles.titleContainer}>
-                <View style={[localStyles.badge, badgeStatus.type === "completed" ? localStyles.badgeCompleted : localStyles.badgeInProgress, { alignSelf: "flex-start", marginBottom: 4 }]}>
-                  <Text style={[localStyles.badgeText, badgeStatus.type === "completed" ? localStyles.badgeTextCompleted : localStyles.badgeTextInProgress]}>
-                    {badgeStatus.text}
+      <View style={commonStyles.section}>
+        <Text style={commonStyles.sectionTitle}>
+          {t("progressLogging.myProgress")}
+        </Text>
+
+        <View style={commonStyles.cardAnchor}>
+          {flowMode === "collapsed" ? (
+            <View style={localStyles.summaryCard}>
+              <View style={localStyles.summaryBody}>
+                <View style={localStyles.summaryIconCircle}>
+                  <MaterialCommunityIcons
+                    name="calendar-remove"
+                    size={18}
+                    color={Colors.light.white}
+                  />
+                </View>
+                <View style={localStyles.titleContainer}>
+                  <View
+                    style={[
+                      localStyles.badge,
+                      badgeStatus.type === "completed"
+                        ? localStyles.badgeCompleted
+                        : badgeStatus.type === "not-started"
+                          ? localStyles.badgeNotStarted
+                          : localStyles.badgeInProgress,
+                      { alignSelf: "flex-start", marginBottom: 4 },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        localStyles.badgeText,
+                        badgeStatus.type === "completed"
+                          ? localStyles.badgeTextCompleted
+                          : badgeStatus.type === "not-started"
+                            ? localStyles.badgeTextNotStarted
+                            : localStyles.badgeTextInProgress,
+                      ]}
+                    >
+                      {badgeStatus.text}
+                    </Text>
+                  </View>
+                  <Text
+                    style={localStyles.summaryTitle}
+                    numberOfLines={2}
+                  >
+                    {goalLabel}
+                  </Text>
+                  <Text
+                    style={[
+                      localStyles.summarySubtitle,
+                      frameLoading && localStyles.loadingPlaceholderText,
+                    ]}
+                  >
+                    {totalPrayersRequired != null ? (
+                      <>
+                        (total{" "}
+                        <Text style={localStyles.subtitleBold}>
+                          {totalPrayersRequired}
+                        </Text>{" "}
+                        prayers)
+                      </>
+                    ) : (
+                      "---"
+                    )}
                   </Text>
                 </View>
-                <Text style={localStyles.summaryTitle}>
-                  {mockTitle}
-                </Text>
-                <Text style={localStyles.summarySubtitle}>
-                  (total <Text style={localStyles.subtitleBold}>{totalPrayersRequired}</Text> prayers)
-                </Text>
               </View>
-            </View>
 
-            <View style={localStyles.footerRow}>
-                {isCompleted ? (
-                    <TouchableOpacity style={localStyles.insightsBtn}>
-                        <Text style={localStyles.insightsText}>VIEW INSIGHTS</Text>
-                        <Ionicons name="chevron-forward" size={22} color={Colors.light.white} />
-                    </TouchableOpacity>
-                ) : <View style={localStyles.spacer} />}
+              <View style={localStyles.footerRow}>
+                {showInsights ? (
+                  <TouchableOpacity style={localStyles.insightsBtn}>
+                    <Text style={localStyles.insightsText}>VIEW INSIGHTS</Text>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={22}
+                      color={Colors.light.white}
+                    />
+                  </TouchableOpacity>
+                ) : (
+                  <View style={localStyles.spacer} />
+                )}
+              </View>
 
-                <TouchableOpacity
-                  style={localStyles.addButton}
-                  onPress={handleOpenFlow}
-                  activeOpacity={0.8}
-                >
-                  <Ionicons name="add" size={22} color={Colors.light.white} />
-                </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  localStyles.addButton,
+                  frameLoading && localStyles.addButtonDisabled,
+                  isCompleted && localStyles.addButtonDisabled,
+                ]}
+                onPress={handleOpenFlow}
+                activeOpacity={0.8}
+                disabled={frameLoading || isCompleted}
+              >
+                <AddLoggingFlowIcon />
+              </TouchableOpacity>
             </View>
-          </View>
-        ) : (
-          <View style={commonStyles.flowCardLayer}>
-            <FlowCard
-              headerIcon={stepHeader.icon}
-              headerLabel={stepHeader.label}
-              onBack={handleBack}
-              onForward={handleForward}
-              onConfirm={handleConfirm}
-              canGoForward={!isLastStep}
-              styles={commonStyles}
-              style={commonStyles.inPlaceFlowCard}
-            >
-              {renderStepContent(currentStep)}
-            </FlowCard>
-          </View>
-        )}
+          ) : (
+            <View style={commonStyles.flowCardLayer}>
+              <FlowCard
+                headerIcon={stepHeader.icon}
+                headerLabel={stepHeader.label}
+                onBack={handleBack}
+                onForward={handleForward}
+                onConfirm={handleConfirm}
+                canGoForward={!isLastStep}
+                canConfirm={isLastStep && !isCompleted}
+                styles={commonStyles}
+                style={commonStyles.inPlaceFlowCard}
+              >
+                {renderStepContent(currentStep)}
+              </FlowCard>
+            </View>
+          )}
+        </View>
       </View>
-    </View>
+
+      {flowMode === "active" && (
+        <Pressable style={commonStyles.backdrop} onPress={resetFlow} />
+      )}
+    </>
   );
 }
 
@@ -312,9 +418,12 @@ const localStyles = StyleSheet.create({
     backgroundColor: Colors.light.green,
     borderRadius: 14,
     padding: 16,
-    gap: 12,
+    paddingBottom: 12,
+    gap: 8,
     height: 145,
-    justifyContent: 'space-between',
+    justifyContent: "space-between",
+    overflow: "hidden",
+    position: "relative",
   },
   badge: {
     paddingHorizontal: 8,
@@ -327,6 +436,9 @@ const localStyles = StyleSheet.create({
   badgeCompleted: {
     backgroundColor: Colors.light.lightgreenbadgecolor,
   },
+  badgeNotStarted: {
+    backgroundColor: Colors.light.paginationInactiveDot,
+  },
   badgeText: {
     fontFamily: fonts.primary.semiBold,
     fontSize: 10,
@@ -337,6 +449,9 @@ const localStyles = StyleSheet.create({
   },
   badgeTextCompleted: {
     color: Colors.light.green,
+  },
+  badgeTextNotStarted: {
+    color: Colors.light.notStartedTextColor,
   },
   summaryBody: {
     flexDirection: "row",
@@ -355,6 +470,7 @@ const localStyles = StyleSheet.create({
     flex: 1,
     flexDirection: "column",
     gap: 2,
+    paddingRight: 8,
   },
   summaryTitle: {
     color: Colors.light.white,
@@ -363,6 +479,9 @@ const localStyles = StyleSheet.create({
     fontWeight: "600",
     lineHeight: 18,
     letterSpacing: 0,
+  },
+  loadingPlaceholderText: {
+    opacity: 0.35,
   },
   summarySubtitle: {
     color: Colors.light.white,
@@ -379,13 +498,13 @@ const localStyles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "flex-end",
     marginTop: 4,
+    paddingRight: 40,
   },
   insightsBtn: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
     paddingBottom: 4,
-    transform: [{ translateY: -4 }],
   },
   insightsText: {
     color: Colors.light.white,
@@ -394,14 +513,17 @@ const localStyles = StyleSheet.create({
     fontWeight: "700",
   },
   addButton: {
+    position: "absolute",
+    right: 16,
+    bottom: 12,
     width: 32,
     height: 32,
     borderRadius: 16,
-    borderWidth: 1.5,
-    borderColor: Colors.light.white,
     alignItems: "center",
     justifyContent: "center",
-    transform: [{ translateY: -4 }],
+  },
+  addButtonDisabled: {
+    opacity: 0.35,
   },
   badgeRow: {
     flexDirection: "row",

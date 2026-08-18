@@ -174,7 +174,12 @@ const PRAYER_GOAL_LOADING_PLACEHOLDERS = Object.keys(PRAYER_TYPE_TO_UI_ID).map(
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 export type Tab =
-  "cycle" | "prayer" | "quran" | "fasting" | "sadaqah" | "review";
+  | "cycle"
+  | "prayer"
+  | "quran"
+  | "fasting"
+  | "sadaqah"
+  | "review";
 
 const TABS: { id: Tab; label: string; chip?: string }[] = [
   { id: "cycle", label: "Select Cycle Start Date" },
@@ -362,10 +367,13 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
     const selectedGoalsRef = useRef(selectedGoals);
     selectedGoalsRef.current = selectedGoals;
 
-    const registerGoalItemLayout = useCallback((goalId: string, height: number) => {
-      if (!goalId || height <= 0) return;
-      goalItemHeightsRef.current[goalId] = height;
-    }, []);
+    const registerGoalItemLayout = useCallback(
+      (goalId: string, height: number) => {
+        if (!goalId || height <= 0) return;
+        goalItemHeightsRef.current[goalId] = height;
+      },
+      [],
+    );
 
     const scrollToGoalItemIdRef = useRef<(goalId: string) => void>(() => {});
 
@@ -443,7 +451,10 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
 
     const quranGoals = useMemo(() => {
       const data = allQuranGoalsResponse as
-        { goals?: QuranGoalApiItem[] } | QuranGoalApiItem[] | null | undefined;
+        | { goals?: QuranGoalApiItem[] }
+        | QuranGoalApiItem[]
+        | null
+        | undefined;
       if (!data) return mapQuranGoalsFromApi([]);
       // Transition / bad cache: older clients stored the bare array or envelope
       if (Array.isArray(data)) return mapQuranGoalsFromApi(data);
@@ -1732,7 +1743,6 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
       }
       goToNextTab();
     }, [activeTab, goToNextTab]);
-
     // Render the appropriate editor/selection component for a goal when it's being edited
     const renderGoalEditor = (goal: any) => {
       if (!goal) return null;
@@ -1747,7 +1757,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
             qiyamConfig?: any;
           }
         | undefined;
-
+      console.log("the goal is ", goal);
       switch (key) {
         case "tahayyat-ul-wudhu":
           return (
@@ -2199,7 +2209,6 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
           return (
             <DailyPrayerGoalSelection
               openOnMount={true}
-
               cycleStartDate={cycleStartDate ?? undefined}
               initialValues={
                 sourcePrayer?.fiveDailyConfig
@@ -2254,7 +2263,6 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
           return (
             <SunnahRawatibGoalSelection
               openOnMount={true}
-
               initialValues={
                 sourcePrayer?.sunnahRawatibConfig
                   ? {
@@ -2317,7 +2325,6 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
           return (
             <TahiyyatMasjidGoalSelection
               openOnMount={true}
-
               initialValue={sourcePrayer?.targetCount ?? 1}
               isSaving={isSavingPrayer}
               onSave={(value, onDone, onFail) => {
@@ -2334,7 +2341,6 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
           return (
             <MissedPrayerGoalSelection
               openOnMount={true}
-
               initialValue={
                 sourcePrayer?.targetDays ?? sourcePrayer?.targetCount ?? 3
               }
@@ -2359,7 +2365,6 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
           return (
             <DuhaPrayerGoalSelection
               openOnMount={true}
-
               initialValue={sourcePrayer?.targetCount ?? 1}
               isSaving={isSavingPrayer}
               onSave={(value, onDone, onFail) => {
@@ -2371,7 +2376,6 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
           return (
             <TawbahPrayerGoalSelection
               openOnMount={true}
-
               initialValue={sourcePrayer?.targetCount ?? 1}
               isSaving={isSavingPrayer}
               onSave={(value, onDone, onFail) => {
@@ -2383,7 +2387,6 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
           return (
             <IstikharaPrayerGoalSelection
               openOnMount={true}
-
               initialValue={sourcePrayer?.targetCount ?? 1}
               isSaving={isSavingPrayer}
               onSave={(value, onDone, onFail) => {
@@ -2395,7 +2398,6 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
           return (
             <ShukarPrayerGoalSelection
               openOnMount={true}
-
               initialValue={sourcePrayer?.targetCount ?? 1}
               isSaving={isSavingPrayer}
               onSave={(value, onDone, onFail) => {
@@ -2407,20 +2409,11 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
           return (
             <QiyamalLaylGoalSelection
               openOnMount={true}
-
-              initialValues={
-                sourcePrayer?.qiyamConfig
-                  ? {
-                      isFlexible: Boolean(sourcePrayer.qiyamConfig.isFlexible),
-                      unitTarget:
-                        Number(sourcePrayer.qiyamConfig.unitTarget) > 0
-                          ? Number(sourcePrayer.qiyamConfig.unitTarget)
-                          : 1,
-                      trackTahajjud:
-                        sourcePrayer.qiyamConfig.trackTahajjud ?? true,
-                    }
-                  : undefined
-              }
+              initialValues={getQiyamInitial({
+                qiyamConfig: sourcePrayer?.qiyamConfig,
+                isFlexible: sourcePrayer?.qiyamConfig?.isFlexible,
+                trackTahajjud: sourcePrayer?.qiyamConfig?.trackTahajjud,
+              })}
               isSaving={isSavingPrayer}
               onSave={(
                 payload: {
@@ -2542,8 +2535,8 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
             onScrollToIndexFailed={({ index, averageItemLength }) => {
               const fallbackOffset = Math.max(
                 0,
-                (averageItemLength || GOAL_ITEM_ESTIMATED_HEIGHT + GOAL_LIST_ITEM_GAP) *
-                  index,
+                (averageItemLength ||
+                  GOAL_ITEM_ESTIMATED_HEIGHT + GOAL_LIST_ITEM_GAP) * index,
               );
               listRef.current?.scrollToOffset({
                 offset: fallbackOffset,
@@ -2704,7 +2697,6 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                       <View style={styles.goalSelectionBelowCard}>
                         <DailyPrayerGoalSelection
                           openOnMount={true}
-
                           cycleStartDate={cycleStartDate ?? undefined}
                           initialValues={getFiveDailyInitial(prayer)}
                           isSaving={
@@ -2748,7 +2740,6 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                       <View style={styles.goalSelectionBelowCard}>
                         <SunnahRawatibGoalSelection
                           openOnMount={true}
-
                           initialValues={getSunnahInitial(prayer)}
                           isSaving={
                             isSavingPrayer &&
@@ -2785,7 +2776,6 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                       <View style={styles.goalSelectionBelowCard}>
                         <TahiyyatMasjidGoalSelection
                           openOnMount={true}
-
                           initialValue={getSimpleTargetCount(prayer, 1)}
                           isSaving={
                             isSavingPrayer &&
@@ -2806,7 +2796,6 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                       <View style={styles.goalSelectionBelowCard}>
                         <MissedPrayerGoalSelection
                           openOnMount={true}
-
                           initialValue={getMissedTargetDays(prayer, 3)}
                           isSaving={
                             isSavingPrayer &&
@@ -2833,7 +2822,6 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                       <View style={styles.goalSelectionBelowCard}>
                         <DuhaPrayerGoalSelection
                           openOnMount={true}
-
                           initialValue={getSimpleTargetCount(prayer, 1)}
                           isSaving={
                             isSavingPrayer &&
@@ -2854,7 +2842,6 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                       <View style={styles.goalSelectionBelowCard}>
                         <TawbahPrayerGoalSelection
                           openOnMount={true}
-
                           initialValue={getSimpleTargetCount(prayer, 1)}
                           isSaving={
                             isSavingPrayer &&
@@ -2875,7 +2862,6 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                       <View style={styles.goalSelectionBelowCard}>
                         <IstikharaPrayerGoalSelection
                           openOnMount={true}
-
                           initialValue={getSimpleTargetCount(prayer, 1)}
                           isSaving={
                             isSavingPrayer &&
@@ -2896,7 +2882,6 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                       <View style={styles.goalSelectionBelowCard}>
                         <ShukarPrayerGoalSelection
                           openOnMount={true}
-
                           initialValue={getSimpleTargetCount(prayer, 1)}
                           isSaving={
                             isSavingPrayer &&
@@ -2917,7 +2902,6 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                       <View style={styles.goalSelectionBelowCard}>
                         <QiyamalLaylGoalSelection
                           openOnMount={true}
-
                           initialValues={getQiyamInitial(prayer)}
                           isSaving={
                             isSavingPrayer &&

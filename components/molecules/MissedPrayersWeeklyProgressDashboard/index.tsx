@@ -31,6 +31,7 @@ export type MissedPrayersWeeklyProgressDashboardProps = {
   onDayPress?: (index: number) => void;
   onPrevWeek?: () => void;
   onNextWeek?: () => void;
+  loading?: boolean;
 };
 
 const CARD_HORIZONTAL_PADDING = 16;
@@ -93,6 +94,7 @@ export function MissedPrayersWeeklyProgressDashboard({
   onDayPress,
   onPrevWeek,
   onNextWeek,
+  loading = false,
 }: MissedPrayersWeeklyProgressDashboardProps) {
   const { t } = useTranslation();
   const { width: screenWidth } = useWindowDimensions();
@@ -111,6 +113,14 @@ export function MissedPrayersWeeklyProgressDashboard({
     onDayPress?.(index);
   };
 
+  const displayWeekDays = loading
+    ? ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => ({
+        day,
+        prayersLogged: 0,
+        isLogged: false,
+      }))
+    : weekDays;
+
   return (
     <View style={styles.card}>
       <View style={styles.headerRow}>
@@ -121,7 +131,7 @@ export function MissedPrayersWeeklyProgressDashboard({
             color={Colors.light.seagreen}
           />
           <Text style={styles.weekFractionText} numberOfLines={1}>
-            {weekFraction} WEEKS
+            {loading ? "---" : `${weekFraction} WEEKS`}
           </Text>
         </View>
 
@@ -138,7 +148,7 @@ export function MissedPrayersWeeklyProgressDashboard({
             />
           </TouchableOpacity>
           <Text style={styles.weekRangeText} numberOfLines={1}>
-            {weekRangeLabel}
+            {loading ? "---" : weekRangeLabel}
           </Text>
           <TouchableOpacity
             onPress={onNextWeek}
@@ -155,7 +165,7 @@ export function MissedPrayersWeeklyProgressDashboard({
       </View>
 
       <View style={styles.daysRow}>
-        {weekDays.map((day, index) => {
+        {displayWeekDays.map((day, index) => {
           const isSelected = index === activeDayIndex;
           const hasLog = day.prayersLogged > 0 || !!day.isLogged;
 
@@ -180,7 +190,7 @@ export function MissedPrayersWeeklyProgressDashboard({
                   ]}
                   numberOfLines={1}
                 >
-                  {day.isBestDay ? "BEST DAY!" : day.day}
+                  {loading ? "---" : day.isBestDay ? "BEST DAY!" : day.day}
                 </Text>
 
                 <View style={styles.durationSlot}>
@@ -195,7 +205,13 @@ export function MissedPrayersWeeklyProgressDashboard({
                     ]}
                     numberOfLines={1}
                   >
-                    {day.isBestDay ? day.prayersLogged.toString() : (day.prayersLogged > 0 ? day.prayersLogged.toString() : "")}
+                    {loading
+                      ? "---"
+                      : day.isBestDay
+                        ? day.prayersLogged.toString()
+                        : day.prayersLogged > 0
+                          ? day.prayersLogged.toString()
+                          : ""}
                   </Text>
                 </View>
               </View>
@@ -212,9 +228,9 @@ export function MissedPrayersWeeklyProgressDashboard({
         />
         <Text style={styles.statsText} numberOfLines={1}>
           <Text style={styles.statsCount}>
-            {totalPrayersThisWeek}
+            {loading ? "---" : totalPrayersThisWeek}
           </Text>
-          {" prayers this week"}
+          {loading ? "" : " prayers this week"}
         </Text>
       </View>
 
@@ -222,7 +238,7 @@ export function MissedPrayersWeeklyProgressDashboard({
         <View style={styles.streakBadge}>
           <Ionicons name="flash" size={13} color={Colors.light.yellow} />
           <Text style={styles.streakText}>
-            {streakDays}-day streak
+            {loading ? "---" : `${streakDays}-day streak`}
           </Text>
         </View>
 
@@ -232,7 +248,12 @@ export function MissedPrayersWeeklyProgressDashboard({
             size={14}
             color={Colors.light.seagreen}
           />
-          <Text style={styles.quoteText}>{motivationalQuote || "Masha'Allah, may your prayers bring you endless blessings and peace."}</Text>
+          <Text style={styles.quoteText}>
+            {loading
+              ? "---"
+              : motivationalQuote ||
+                "Masha'Allah, may your prayers bring you endless blessings and peace."}
+          </Text>
         </View>
       </View>
     </View>
