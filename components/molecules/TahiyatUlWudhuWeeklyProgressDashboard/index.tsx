@@ -15,7 +15,7 @@ import { LighteningIcon } from "@/assets/icons/LighteningIcon";
 import {
   AimIcon,
   BestdayStarIcon,
-  CalendarIcon,
+  DashBoardCalenderIcon,
   PrayerMatIcon,
   ShootIcon,
 } from "@/assets/icons";
@@ -103,7 +103,7 @@ export function TahiyatUlWudhuWeeklyProgressDashboard({
   onNextWeek,
 }: TahiyatUlWudhuWeeklyProgressDashboardProps) {
   const { t } = useTranslation();
-  const { width: screenWidth } = useWindowDimensions();
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
 
   const availableWidth =
     screenWidth * WRAPPER_WIDTH_RATIO - CARD_HORIZONTAL_PADDING;
@@ -125,10 +125,18 @@ export function TahiyatUlWudhuWeeklyProgressDashboard({
   };
 
   return (
-    <View style={styles.card}>
+    <View
+      style={[
+        styles.card,
+        {
+          paddingVertical: Math.max(16, screenHeight * 0.025),
+          gap: Math.max(16, screenHeight * 0.03),
+        },
+      ]}
+    >
       <View style={styles.headerRow}>
         <View style={styles.headerLeft}>
-          <CalendarIcon size={24} color={Colors.light.graylightshade} />
+          <DashBoardCalenderIcon size={24} color={Colors.light.graylightshade} />
           <Text style={styles.weekFractionText} numberOfLines={1}>
             {weekFraction} WEEKS
           </Text>
@@ -201,7 +209,6 @@ export function TahiyatUlWudhuWeeklyProgressDashboard({
                               : Colors.light.subtext,
                     },
                   ]}
-                  numberOfLines={1}
                 >
                   {day.isBestDay ? "BEST DAY!" : day.day}
                 </Text>
@@ -231,29 +238,31 @@ export function TahiyatUlWudhuWeeklyProgressDashboard({
         })}
       </View>
 
-      <View style={styles.statsRow}>
-        <PrayerMatIcon />
-        <Text style={styles.statsText} numberOfLines={1}>
-          <Text style={styles.statsCount}>{totalPrayersThisWeek}</Text>
-          {" prayers this week"}
-        </Text>
-      </View>
-
-      <View style={styles.footerRow}>
-        <View style={styles.streakBadge}>
-          <LighteningIcon />
-          <Text style={styles.streakText}>
-            <Text style={styles.streakCount}>{streakDays}</Text>
-            <Text>-day streak</Text>
+      <View style={styles.statsAndFooterContainer}>
+        <View style={styles.statsRow}>
+          <PrayerMatIcon />
+          <Text style={styles.statsText} numberOfLines={1}>
+            <Text style={styles.statsCount}>{totalPrayersThisWeek}</Text>
+            {" prayers this week"}
           </Text>
         </View>
 
-        <View style={styles.quoteBlock}>
-          <AimIcon />
-          <Text style={styles.quoteText}>
-            {motivationalQuote ||
-              "Masha'Allah, may Allah always fill your heart with His love and light!"}
-          </Text>
+        <View style={styles.footerRow}>
+          <View style={styles.streakBadge}>
+            <LighteningIcon />
+            <Text style={styles.streakText}>
+              <Text style={styles.streakCount}>{streakDays}</Text>
+              <Text>-day streak</Text>
+            </Text>
+          </View>
+
+          <View style={styles.quoteBlock}>
+            <AimIcon />
+            <Text style={styles.quoteText}>
+              {motivationalQuote ||
+                "Masha'Allah, may Allah always fill your heart with His love and light!"}
+            </Text>
+          </View>
         </View>
       </View>
     </View>
@@ -280,6 +289,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 5,
+    marginLeft: -6,
   },
   weekFractionText: {
     color: Colors.light.white,
@@ -317,15 +327,19 @@ const styles = StyleSheet.create({
   },
   dayItemWrapper: {
     alignItems: "center",
-    paddingHorizontal: 2,
-    borderRadius: 8,
+    justifyContent: "flex-start",
+    paddingHorizontal: 4,
+    paddingVertical: 12,
+    borderRadius: 6,
+    width: "100%",
+   
   },
   dayItemSelected: {
     backgroundColor: Colors.light.dayProgressCardBg,
   },
   bestDayLabel: {
     color: Colors.light.green,
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: "700",
     fontFamily: fonts.primary.bold,
     textAlign: "center",
@@ -393,6 +407,9 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: fonts.primary.bold,
   },
+  statsAndFooterContainer: {
+    gap: 8,
+  },
   footerRow: {
     flexDirection: "row",
     alignItems: "flex-start",
@@ -427,7 +444,8 @@ const styles = StyleSheet.create({
     flex: 1,
     color: Colors.light.white,
     fontSize: 13,
-    lineHeight: 16,
+    lineHeight: 15,
+    letterSpacing: -0.1,
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
   },

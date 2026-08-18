@@ -41,7 +41,7 @@ import {
   shiftPrayerAchievementsPeriodStart,
 } from "@/src/utils/prayerGoalAchievementsMap";
 import { resolvePrayerTypeFromGoalId } from "@/src/utils/prayerGoalMap";
-import { NegativeProgressIcon, PositiveProgressIcon } from "@/assets/icons";
+import { NegativeProgressIcon, PositiveProgressIcon, AchivementArrowIcon } from "@/assets/icons";
 
 type Props = {
   goalId: GoalId;
@@ -538,14 +538,14 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
 
     const cards = isTahiyyat
       ? mapApiKeyInsightsToCards(
-          achievementsApiData,
-          period,
-          t,
-          showPlaceholders,
-        )
+        achievementsApiData,
+        period,
+        t,
+        showPlaceholders,
+      )
       : PRAYER_INSIGHT_CARDS[goalId]?.[
-          period as "monthly" | "threeMonths" | "sixMonths"
-        ];
+      period as "monthly" | "threeMonths" | "sixMonths"
+      ];
 
     if (!cards || cards.length === 0) return null;
 
@@ -582,11 +582,7 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
     <View style={styles.section}>
       <View style={styles.card}>
         <View style={styles.cardHeader}>
-          <MaterialCommunityIcons
-            name="trending-up"
-            size={19}
-            color={Colors.light.subtext}
-          />
+          <AchivementArrowIcon size={15} color={Colors.light.subtext} />
           <Text style={styles.sectionTitle}>
             {t("progressLogging.pastGoalAchievements")}
           </Text>
@@ -830,7 +826,7 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
             <Text style={styles.goalPillValue}>
               {showPlaceholders
                 ? LOADING_DASH
-                : formatNumber(resolvedBaseAchievement.goalPrayers)}{" "}
+                : formatNumber(resolvedBaseAchievement.goalPrayers)}
             </Text>
             <View style={styles.goalPill}>
               <Text style={styles.goalPillText}>prayers</Text>
@@ -967,7 +963,7 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
             <Text
               style={
                 analyticsView === "completedVsTimeSpent" ||
-                analyticsView === "completedByCategory"
+                  analyticsView === "completedByCategory"
                   ? styles.statValueTimeSpent
                   : styles.statValueIncomplete
               }
@@ -991,7 +987,7 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
               isDetailed && !showPlaceholders ? selectedBarIndex : null
             }
             onBarPress={
-              isDetailed && !showPlaceholders ? handleBarPress : () => {}
+              isDetailed && !showPlaceholders ? handleBarPress : () => { }
             }
             chartKey={`${goalId}-${period}-${analyticsView}-${selectedPrayerTab}-${showPlaceholders ? "loading" : "ready"}`}
             yMax={resolvedAchievement.yMax}
@@ -1037,16 +1033,17 @@ const styles = StyleSheet.create({
   cardHeader: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    gap: 4,
   },
   sectionTitle: {
     color: Colors.light.white,
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
-    letterSpacing: 0.4,
+    letterSpacing: 0,
     textTransform: "uppercase",
     flexShrink: 1,
+    marginLeft: 6,
   },
   topRow: {
     flexDirection: "row",
@@ -1081,7 +1078,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 4,
     backgroundColor: Colors.light.calendarBg,
-    borderRadius: 6,
+    borderRadius: 2,
     paddingHorizontal: 10,
     paddingVertical: 4,
     marginTop: 2,
@@ -1096,7 +1093,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.subtext,
   },
   deltaText: {
-    color: Colors.light.greentextbutton,
+    color: Colors.light.white,
     fontSize: 11,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
@@ -1113,7 +1110,7 @@ const styles = StyleSheet.create({
   periodToggle: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 3,
+    padding: 2,
     backgroundColor: Colors.light.blackBackground,
     borderRadius: 6,
     width: "100%",
@@ -1134,9 +1131,9 @@ const styles = StyleSheet.create({
   },
   periodButtonText: {
     color: Colors.light.grey,
-    fontSize: 12,
-    fontFamily: fonts.primary.semiBold,
-    fontWeight: "600",
+    fontSize: 13,
+    fontFamily: fonts.primary.medium,
+    fontWeight: "500",
   },
   periodButtonTextActive: {
     color: Colors.light.green,
@@ -1161,7 +1158,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   summaryText: {
-    color: Colors.light.grey,
+    color: Colors.light.white,
     fontSize: 14,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
@@ -1216,40 +1213,41 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginTop: 2,
     backgroundColor: Colors.light.blackBackground,
-    paddingHorizontal: 10,
-    paddingVertical: 10,
+    paddingLeft: 10,
+    paddingRight: 4,
+    paddingVertical: 8,
     borderRadius: 10,
   },
   goalLabel: {
     color: Colors.light.subtext,
-    fontSize: 11,
-    fontFamily: fonts.primary.semiBold,
+    fontSize: 14,
+    fontFamily: fonts.primary.bold,
     fontWeight: "600",
-    letterSpacing: 0.5,
     textTransform: "uppercase",
+    lineHeight: 20,
   },
   goalValueRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    gap: 4,
   },
   goalPill: {
     backgroundColor: Colors.light.calendarBg,
-    borderRadius: 8,
-    paddingHorizontal: 6,
-    paddingVertical: 5,
+    borderRadius: 4,
+    paddingHorizontal: 4,
+    paddingVertical: 3,
+    marginLeft: -1,
   },
   goalPillText: {
     color: Colors.light.white,
     fontSize: 10,
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
-    opacity: 0.6,
   },
   goalPillValue: {
     color: Colors.light.white,
     fontWeight: "600",
-    fontFamily: fonts.primary.semiBold,
+    fontFamily: fonts.primary.bold,
     fontSize: 22,
   },
   analyticsToggle: {
@@ -1290,22 +1288,21 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     color: Colors.light.subtext,
-    fontSize: 10,
+    fontSize: 11,
     fontFamily: fonts.primary.semiBold,
-    fontWeight: "600",
-    letterSpacing: 0.4,
+    fontWeight: "400",
     textTransform: "uppercase",
   },
   statValueCompleted: {
     color: Colors.light.green,
     fontSize: 22,
-    fontFamily: fonts.primary.semiBold,
+    fontFamily: fonts.primary.bold,
     fontWeight: "700",
   },
   statValueIncomplete: {
     color: INCOMPLETE_BAR_COLOR,
     fontSize: 22,
-    fontFamily: fonts.primary.semiBold,
+    fontFamily: fonts.primary.bold,
     fontWeight: "700",
   },
   statValueTimeSpent: {
