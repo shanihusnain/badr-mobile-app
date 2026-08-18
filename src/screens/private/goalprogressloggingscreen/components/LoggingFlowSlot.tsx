@@ -14,6 +14,7 @@ import { isSurahMemorisationGoalId } from "../quranMemorisationTarget";
 import { CompletionRecitationLoggingSection } from "./CompletionRecitationLoggingSection";
 import { JuzRecitationLoggingSection } from "./JuzRecitationLoggingSection";
 import TahiyatUlWudhuLoggingFlow from "../flows/TahiyatUlWudhuLoggingFlow";
+import FiveDailyPrayersLoggingFlow from "../flows/FiveDailyPrayersLoggingFlow";
 import MissedPrayersLoggingFlow from "../flows/MissedPrayersLoggingFlow";
 import TahiyatAlMasjidLoggingFlow from "../flows/TahiyatAlMasjidLoggingFlow";
 import DuhaPrayerLoggingFlow from "../flows/DuhaPrayerLoggingFlow";
@@ -112,6 +113,15 @@ export function LoggingFlowSlot({
   if (template === "tahiyat-ul-wudhu") {
     return (
       <TahiyatUlWudhuLoggingFlow
+        goalData={goalData}
+        onLogComplete={onLogComplete}
+      />
+    );
+  }
+
+  if (template === "five-daily-prayers") {
+    return (
+      <FiveDailyPrayersLoggingFlow
         goalData={goalData}
         onLogComplete={onLogComplete}
       />

@@ -49,7 +49,7 @@ function HomeFabSpeedDialComponent({
   );
 
   const menuBottomStyle = useMemo(
-    () => ({ bottom: bottomInset + 80 }),
+    () => ({ bottom: bottomInset + 100 }),
     [bottomInset],
   );
 

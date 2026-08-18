@@ -31,6 +31,7 @@ export type LoggingFlowTemplate =
   | "quran-completion"
   | "quran-juz"
   | "tahiyat-ul-wudhu"
+  | "five-daily-prayers"
   | "missed-prayers"
   | "tahiyat-al-masjid"
   | "duha-prayer"

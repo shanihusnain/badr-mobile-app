@@ -70,6 +70,8 @@ function getLoggingBackgroundSource(
   switch (template) {
     case "tahiyat-ul-wudhu":
       return tahiyyatwudhudetailimage;
+    case "five-daily-prayers":
+      return fivedailyprayerbottomsheetimage;
     case "tahiyat-al-masjid":
       return tahiyyatmasjiddetailimage;
     case "missed-prayers":
@@ -148,7 +150,8 @@ function GoalProgressLoggingBody({
   const isPrayerFrameRingGoal =
     template === "tahiyat-ul-wudhu" ||
     template === "tahiyat-al-masjid" ||
-    template === "missed-prayers";
+    template === "missed-prayers" ||
+    template === "five-daily-prayers";
   const frameLoading =
     isPrayerFrameRingGoal &&
     (prayerFrame?.isLoading ||

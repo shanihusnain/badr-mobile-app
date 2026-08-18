@@ -332,7 +332,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
       if (ref && typeof ref !== "function") {
         ref.current?.dismiss();
       }
-      router.replace("/(tabs)");
+      router.replace("/(tabs)/(home)");
     }, [ref]);
 
     const handleSeeMorePress = useCallback(
