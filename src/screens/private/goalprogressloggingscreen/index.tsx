@@ -283,10 +283,12 @@ function GoalProgressLoggingContent({
   goalData,
   goalId,
   onDropdownOpenChange,
+  onOpenInsights,
 }: {
   goalData: NonNullable<ReturnType<typeof getResolvedGoalById>>;
   goalId: GoalId;
   onDropdownOpenChange?: (open: boolean) => void;
+  onOpenInsights?: () => void;
 }) {
   const [weeklyRefreshKey, setWeeklyRefreshKey] = useState(0);
   const template = getLoggingFlowTemplate(goalId);
@@ -329,7 +331,11 @@ function GoalProgressLoggingContent({
 
   if (goalData.category === "PRAYER") {
     return (
-      <PrayerGoalFrameProvider goalId={goalId} refreshKey={weeklyRefreshKey}>
+      <PrayerGoalFrameProvider
+        goalId={goalId}
+        refreshKey={weeklyRefreshKey}
+        onOpenInsights={onOpenInsights}
+      >
         {body}
       </PrayerGoalFrameProvider>
     );
@@ -429,6 +435,7 @@ export const GoalProgressLoggingScreen = ({
           goalData={goalData}
           goalId={goalId}
           onDropdownOpenChange={(open) => setScreenScrollEnabled(!open)}
+          onOpenInsights={openInsightsSheet}
         />
       </ScrollView>
       {prayerType ? (

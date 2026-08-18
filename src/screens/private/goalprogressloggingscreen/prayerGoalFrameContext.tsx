@@ -19,6 +19,7 @@ type PrayerGoalFrameContextValue = {
   refetch: () => void;
   weekNumber: number | null;
   setWeekNumber: (weekNumber: number) => void;
+  openInsights?: () => void;
 };
 
 const PrayerGoalFrameContext = createContext<PrayerGoalFrameContextValue | null>(
@@ -29,10 +30,12 @@ export function PrayerGoalFrameProvider({
   goalId,
   refreshKey = 0,
   children,
+  onOpenInsights,
 }: {
   goalId: GoalId;
   refreshKey?: number;
   children: ReactNode;
+  onOpenInsights?: () => void;
 }) {
   const prayerType = resolvePrayerTypeFromGoalId(goalId);
   const [weekNumber, setWeekNumberState] = React.useState<number | null>(null);
@@ -77,8 +80,9 @@ export function PrayerGoalFrameProvider({
       refetch,
       weekNumber,
       setWeekNumber,
+      openInsights: onOpenInsights,
     }),
-    [data, isLoading, isError, refetch, weekNumber, setWeekNumber],
+    [data, isLoading, isError, refetch, weekNumber, setWeekNumber, onOpenInsights],
   );
 
   return (

@@ -364,7 +364,11 @@ export default function TahiyatUlWudhuLoggingFlow({
 
               <View style={localStyles.footerRow}>
                 {showInsights ? (
-                  <TouchableOpacity style={localStyles.insightsBtn}>
+                  <TouchableOpacity
+                    style={localStyles.insightsBtn}
+                    onPress={prayerFrame?.openInsights}
+                    activeOpacity={0.8}
+                  >
                     <Text style={localStyles.insightsText}>VIEW INSIGHTS</Text>
                     <Ionicons
                       name="chevron-forward"
