@@ -265,8 +265,8 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     backgroundColor: Colors.light.greybuttonBackground,
     paddingHorizontal: 8,
-    paddingVertical: 14,
-    gap: 16,
+    paddingVertical: 16,
+    gap: 24,
     zIndex: 150,
   },
   headerRow: {
