@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -8,7 +8,6 @@ import {
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import { useTranslation } from "react-i18next";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import { LighteningIcon } from "@/assets/icons/LighteningIcon";
@@ -27,6 +26,8 @@ export type TahiyatUlWudhuDayProgress = {
   isLogged?: boolean;
   prayersLogged: number;
   isBestDay?: boolean;
+  isFuture?: boolean;
+  isToday?: boolean;
 };
 
 export type TahiyatUlWudhuWeeklyProgressDashboardProps = {
@@ -52,6 +53,7 @@ type DayRingProps = {
   hasLog: boolean;
   isBestDay: boolean;
   isSelected: boolean;
+  isFuture: boolean;
 };
 
 function TahiyatUlWudhuDayRing({
@@ -59,6 +61,7 @@ function TahiyatUlWudhuDayRing({
   hasLog,
   isBestDay,
   isSelected,
+  isFuture,
 }: DayRingProps) {
   return (
     <View
@@ -80,10 +83,19 @@ function TahiyatUlWudhuDayRing({
             height: size,
             borderRadius: size / 2,
           },
-          hasLog ? styles.ringInnerLogged : styles.ringInnerEmpty,
+          isFuture
+            ? styles.ringInnerFuture
+            : hasLog
+              ? [
+                  styles.ringInnerLogged,
+                  isSelected && styles.ringInnerLoggedToday,
+                ]
+              : isSelected
+                ? styles.ringInnerFuture
+                : styles.ringInnerEmpty,
         ]}
       >
-        {isBestDay && <BestdayStarIcon />}
+        {isBestDay && !isFuture && <BestdayStarIcon />}
       </View>
     </View>
   );
@@ -102,7 +114,6 @@ export function TahiyatUlWudhuWeeklyProgressDashboard({
   onPrevWeek,
   onNextWeek,
 }: TahiyatUlWudhuWeeklyProgressDashboardProps) {
-  const { t } = useTranslation();
   const { width: screenWidth } = useWindowDimensions();
 
   const availableWidth =
@@ -111,18 +122,6 @@ export function TahiyatUlWudhuWeeklyProgressDashboard({
     RING_SIZE_MAX,
     Math.floor((availableWidth / 7) * 0.62),
   );
-
-  const [activeDayIndex, setActiveDayIndex] = useState(selectedDayIndex);
-
-  // Keep highlight synced when `selectedDayIndex` changes (e.g. week navigation / refetch).
-  React.useEffect(() => {
-    setActiveDayIndex(selectedDayIndex);
-  }, [selectedDayIndex]);
-
-  const handleDayPress = (index: number) => () => {
-    setActiveDayIndex(index);
-    onDayPress?.(index);
-  };
 
   return (
     <View style={styles.card}>
@@ -164,15 +163,24 @@ export function TahiyatUlWudhuWeeklyProgressDashboard({
       </View>
       <View style={styles.daysRow}>
         {weekDays.map((day, index) => {
-          const isSelected = index === activeDayIndex;
+          const isToday = !!day.isToday;
+          const isSelected = isToday;
           const hasLog = day.prayersLogged > 0 || !!day.isLogged;
+          const isFuture = !!day.isFuture;
 
           return (
             <TouchableOpacity
               key={`${day.day}-${index}`}
-              style={styles.dayColumn}
-              onPress={handleDayPress(index)}
-              activeOpacity={0.75}
+              style={[
+                styles.dayColumn,
+                day.isBestDay && !isFuture && { zIndex: 2 },
+              ]}
+              onPress={() => {
+                if (isFuture) return;
+                onDayPress?.(index);
+              }}
+              activeOpacity={isFuture ? 1 : 0.75}
+              disabled={isFuture}
             >
               <View
                 style={[
@@ -185,14 +193,18 @@ export function TahiyatUlWudhuWeeklyProgressDashboard({
                   hasLog={hasLog}
                   isBestDay={!!day.isBestDay}
                   isSelected={isSelected}
+                  isFuture={isFuture}
                 />
 
                 <Text
                   style={[
-                    day.isBestDay ? styles.bestDayLabel : styles.dayLabel,
+                    day.isBestDay && !isFuture
+                      ? styles.bestDayLabel
+                      : styles.dayLabel,
                     {
-                      color:
-                        isSelected && day.isBestDay
+                      color: isFuture
+                        ? "rgba(255, 255, 255, 0.35)"
+                        : isSelected && day.isBestDay
                           ? Colors.light.green
                           : day.isBestDay
                             ? Colors.light.green
@@ -201,8 +213,9 @@ export function TahiyatUlWudhuWeeklyProgressDashboard({
                               : Colors.light.subtext,
                     },
                   ]}
+                  numberOfLines={1}
                 >
-                  {day.isBestDay ? "BEST DAY!" : day.day}
+                  {day.isBestDay && !isFuture ? "BEST DAY!" : day.day}
                 </Text>
 
                 <View style={styles.durationSlot}>
@@ -211,13 +224,15 @@ export function TahiyatUlWudhuWeeklyProgressDashboard({
                       {
                         color: day.isBestDay
                           ? Colors.light.green
-                          : Colors.light.grey,
+                          : isSelected
+                            ? Colors.light.white
+                            : Colors.light.grey,
                       },
                       styles.durationText,
                     ]}
                     numberOfLines={1}
                   >
-                    {day.isBestDay
+                    {day.isBestDay && !isFuture
                       ? day.prayersLogged.toString()
                       : day.prayersLogged > 0
                         ? day.prayersLogged.toString()
@@ -312,30 +327,34 @@ const styles = StyleSheet.create({
   daysRow: {
     flexDirection: "row",
     alignItems: "flex-start",
+    overflow: "visible",
   },
   dayColumn: {
     flex: 1,
     alignItems: "center",
+    overflow: "visible",
   },
   dayItemWrapper: {
     alignItems: "center",
     justifyContent: "flex-start",
-    paddingHorizontal: 4,
-    paddingVertical: 12,
+    paddingHorizontal: 2,
+    paddingVertical: 10,
     borderRadius: 6,
     width: "100%",
-   
+    overflow: "visible",
   },
   dayItemSelected: {
     backgroundColor: Colors.light.dayProgressCardBg,
   },
   bestDayLabel: {
     color: Colors.light.green,
-    fontSize: 11,
+    fontSize: 9,
     fontWeight: "700",
     fontFamily: fonts.primary.bold,
     textAlign: "center",
     marginTop: 4,
+    width: 64,
+    marginHorizontal: -14,
   },
   ringOuter: {
     alignItems: "center",
@@ -352,11 +371,22 @@ const styles = StyleSheet.create({
   ringInnerLogged: {
     backgroundColor: Colors.light.green,
   },
+  ringInnerLoggedToday: {
+    borderWidth: 1.5,
+    borderColor: Colors.light.bordercolortodayselectedring,
+  
+  },
   ringInnerMenstruation: {
     backgroundColor: Colors.light.red,
   },
   ringInnerEmpty: {
     backgroundColor: "rgba(255, 255, 255, 0.1)",
+  },
+  ringInnerFuture: {
+    backgroundColor: "transparent",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.35)",
+
   },
   dayLabel: {
     color: Colors.light.subtext,
@@ -405,7 +435,7 @@ const styles = StyleSheet.create({
   footerRow: {
     flexDirection: "row",
     alignItems: "flex-start",
-    gap: 12,
+    gap: 13,
   },
   streakBadge: {
     flexDirection: "row",

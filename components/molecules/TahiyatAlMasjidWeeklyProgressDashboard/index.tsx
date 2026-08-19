@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -11,14 +11,20 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import { LighteningIcon } from "@/assets/icons/LighteningIcon";
-import { AimIcon, BestdayStarIcon, CalendarIcon } from "@/assets/icons";
+import {
+  AimIcon,
+  BestdayStarIcon,
+  DashBoardCalenderIcon,
+  PrayerMatIcon,
+} from "@/assets/icons";
 
 export type TahiyatAlMasjidDayProgress = {
   day: string;
   isLogged?: boolean;
   prayersLogged: number;
   isBestDay?: boolean;
-  isMenstruation?: boolean;
+  isFuture?: boolean;
+  isToday?: boolean;
 };
 
 export type TahiyatAlMasjidWeeklyProgressDashboardProps = {
@@ -44,12 +50,15 @@ type DayRingProps = {
   hasLog: boolean;
   isBestDay: boolean;
   isSelected: boolean;
+  isFuture: boolean;
 };
 
 function TahiyatAlMasjidDayRing({
   size,
   hasLog,
   isBestDay,
+  isSelected,
+  isFuture,
 }: DayRingProps) {
   return (
     <View
@@ -60,6 +69,7 @@ function TahiyatAlMasjidDayRing({
           height: size + 5,
           borderRadius: 8,
         },
+        isSelected && styles.ringOuterSelected,
       ]}
     >
       <View
@@ -70,10 +80,19 @@ function TahiyatAlMasjidDayRing({
             height: size,
             borderRadius: size / 2,
           },
-          hasLog ? styles.ringInnerLogged : styles.ringInnerEmpty,
+          isFuture
+            ? styles.ringInnerFuture
+            : hasLog
+              ? [
+                  styles.ringInnerLogged,
+                  isSelected && styles.ringInnerLoggedToday,
+                ]
+              : isSelected
+                ? styles.ringInnerFuture
+                : styles.ringInnerEmpty,
         ]}
       >
-        {isBestDay && <BestdayStarIcon />}
+        {isBestDay && !isFuture && <BestdayStarIcon />}
       </View>
     </View>
   );
@@ -81,13 +100,11 @@ function TahiyatAlMasjidDayRing({
 
 export function TahiyatAlMasjidWeeklyProgressDashboard({
   weekDays,
-  weekRangeLabel = "",
-  weekFraction = "—",
+  weekRangeLabel = "Nov 29 — Dec 5",
+  weekFraction = "1/4",
   totalPrayersThisWeek = 0,
   streakDays = 0,
   motivationalQuote = "",
-  selectedDayIndex = 6,
-  statsIcon = "mosque",
   onDayPress,
   onPrevWeek,
   onNextWeek,
@@ -101,22 +118,11 @@ export function TahiyatAlMasjidWeeklyProgressDashboard({
     Math.floor((availableWidth / 7) * 0.62),
   );
 
-  const [activeDayIndex, setActiveDayIndex] = useState(selectedDayIndex);
-
-  React.useEffect(() => {
-    setActiveDayIndex(selectedDayIndex);
-  }, [selectedDayIndex]);
-
-  const handleDayPress = (index: number) => () => {
-    setActiveDayIndex(index);
-    onDayPress?.(index);
-  };
-
   return (
     <View style={styles.card}>
       <View style={styles.headerRow}>
         <View style={styles.headerLeft}>
-          <CalendarIcon size={24} color={Colors.light.graylightshade} />
+          <DashBoardCalenderIcon size={24} color={Colors.light.graylightshade} />
           <Text style={styles.weekFractionText} numberOfLines={1}>
             {weekFraction} WEEKS
           </Text>
@@ -152,15 +158,24 @@ export function TahiyatAlMasjidWeeklyProgressDashboard({
       </View>
       <View style={styles.daysRow}>
         {weekDays.map((day, index) => {
-          const isSelected = index === activeDayIndex;
+          const isToday = !!day.isToday;
+          const isSelected = isToday;
           const hasLog = day.prayersLogged > 0 || !!day.isLogged;
+          const isFuture = !!day.isFuture;
 
           return (
             <TouchableOpacity
               key={`${day.day}-${index}`}
-              style={styles.dayColumn}
-              onPress={handleDayPress(index)}
-              activeOpacity={0.75}
+              style={[
+                styles.dayColumn,
+                day.isBestDay && !isFuture && { zIndex: 2 },
+              ]}
+              onPress={() => {
+                if (isFuture) return;
+                onDayPress?.(index);
+              }}
+              activeOpacity={isFuture ? 1 : 0.75}
+              disabled={isFuture}
             >
               <View
                 style={[
@@ -173,14 +188,18 @@ export function TahiyatAlMasjidWeeklyProgressDashboard({
                   hasLog={hasLog}
                   isBestDay={!!day.isBestDay}
                   isSelected={isSelected}
+                  isFuture={isFuture}
                 />
 
                 <Text
                   style={[
-                    day.isBestDay ? styles.bestDayLabel : styles.dayLabel,
+                    day.isBestDay && !isFuture
+                      ? styles.bestDayLabel
+                      : styles.dayLabel,
                     {
-                      color:
-                        isSelected && day.isBestDay
+                      color: isFuture
+                        ? "rgba(255, 255, 255, 0.35)"
+                        : isSelected && day.isBestDay
                           ? Colors.light.green
                           : day.isBestDay
                             ? Colors.light.green
@@ -191,7 +210,7 @@ export function TahiyatAlMasjidWeeklyProgressDashboard({
                   ]}
                   numberOfLines={1}
                 >
-                  {day.isBestDay ? "BEST DAY!" : day.day}
+                  {day.isBestDay && !isFuture ? "BEST DAY!" : day.day}
                 </Text>
 
                 <View style={styles.durationSlot}>
@@ -200,13 +219,15 @@ export function TahiyatAlMasjidWeeklyProgressDashboard({
                       {
                         color: day.isBestDay
                           ? Colors.light.green
-                          : Colors.light.grey,
+                          : isSelected
+                            ? Colors.light.white
+                            : Colors.light.grey,
                       },
                       styles.durationText,
                     ]}
                     numberOfLines={1}
                   >
-                    {day.isBestDay
+                    {day.isBestDay && !isFuture
                       ? day.prayersLogged.toString()
                       : day.prayersLogged > 0
                         ? day.prayersLogged.toString()
@@ -219,33 +240,31 @@ export function TahiyatAlMasjidWeeklyProgressDashboard({
         })}
       </View>
 
-      <View style={styles.statsRow}>
-        <MaterialCommunityIcons
-          name={statsIcon}
-          size={22}
-          color={Colors.light.lightblue}
-        />
-        <Text style={styles.statsText} numberOfLines={1}>
-          <Text style={styles.statsCount}>{totalPrayersThisWeek}</Text>
-          {" prayers this week"}
-        </Text>
-      </View>
-
-      <View style={styles.footerRow}>
-        <View style={styles.streakBadge}>
-          <LighteningIcon />
-          <Text style={styles.streakText}>
-            <Text style={styles.streakCount}>{streakDays}</Text>
-            <Text>-day streak</Text>
+      <View style={styles.statsAndFooterContainer}>
+        <View style={styles.statsRow}>
+          <PrayerMatIcon />
+          <Text style={styles.statsText} numberOfLines={1}>
+            <Text style={styles.statsCount}>{totalPrayersThisWeek}</Text>
+            {" prayers this week"}
           </Text>
         </View>
 
-        <View style={styles.quoteBlock}>
-          <AimIcon />
-          <Text style={styles.quoteText}>
-            {motivationalQuote ||
-              "Masha'Allah, may Allah always fill your heart with His love and light!"}
-          </Text>
+        <View style={styles.footerRow}>
+          <View style={styles.streakBadge}>
+            <LighteningIcon />
+            <Text style={styles.streakText}>
+              <Text style={styles.streakCount}>{streakDays}</Text>
+              <Text>-day streak</Text>
+            </Text>
+          </View>
+
+          <View style={styles.quoteBlock}>
+            <AimIcon />
+            <Text style={styles.quoteText}>
+              {motivationalQuote ||
+                "Masha'Allah, may Allah always fill your heart with His love and light!"}
+            </Text>
+          </View>
         </View>
       </View>
     </View>
@@ -257,8 +276,8 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     backgroundColor: Colors.light.greybuttonBackground,
     paddingHorizontal: 8,
-    paddingVertical: 14,
-    gap: 16,
+    paddingVertical: 16,
+    gap: 24,
     zIndex: 150,
   },
   headerRow: {
@@ -272,6 +291,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 5,
+    marginLeft: -6,
   },
   weekFractionText: {
     color: Colors.light.white,
@@ -302,15 +322,21 @@ const styles = StyleSheet.create({
   daysRow: {
     flexDirection: "row",
     alignItems: "flex-start",
+    overflow: "visible",
   },
   dayColumn: {
     flex: 1,
     alignItems: "center",
+    overflow: "visible",
   },
   dayItemWrapper: {
     alignItems: "center",
+    justifyContent: "flex-start",
     paddingHorizontal: 2,
-    borderRadius: 8,
+    paddingVertical: 10,
+    borderRadius: 6,
+    width: "100%",
+    overflow: "visible",
   },
   dayItemSelected: {
     backgroundColor: Colors.light.dayProgressCardBg,
@@ -322,12 +348,15 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.bold,
     textAlign: "center",
     marginTop: 4,
+    width: 64,
+    marginHorizontal: -14,
   },
   ringOuter: {
     alignItems: "center",
     justifyContent: "center",
     borderColor: "transparent",
   },
+  ringOuterSelected: {},
   ringInner: {
     alignItems: "center",
     justifyContent: "center",
@@ -335,8 +364,17 @@ const styles = StyleSheet.create({
   ringInnerLogged: {
     backgroundColor: Colors.light.green,
   },
+  ringInnerLoggedToday: {
+    borderWidth: 1.5,
+    borderColor: Colors.light.bordercolortodayselectedring,
+  },
   ringInnerEmpty: {
     backgroundColor: "rgba(255, 255, 255, 0.1)",
+  },
+  ringInnerFuture: {
+    backgroundColor: "transparent",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.35)",
   },
   dayLabel: {
     color: Colors.light.subtext,
@@ -379,10 +417,13 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: fonts.primary.bold,
   },
+  statsAndFooterContainer: {
+    gap: 8,
+  },
   footerRow: {
     flexDirection: "row",
     alignItems: "flex-start",
-    gap: 12,
+    gap: 13,
   },
   streakBadge: {
     flexDirection: "row",
@@ -413,7 +454,8 @@ const styles = StyleSheet.create({
     flex: 1,
     color: Colors.light.white,
     fontSize: 13,
-    lineHeight: 16,
+    lineHeight: 15,
+    letterSpacing: -0.1,
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
   },

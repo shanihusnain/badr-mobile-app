@@ -8,7 +8,6 @@ import {
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import moment from "moment-hijri";
 import { Colors } from "@/constants/theme";
 import { GoalData } from "../../home/components/goalsData";
@@ -28,10 +27,12 @@ import { useLogTahiyatAlMasjidGoal } from "@/src/api/mutations/useLogTahiyatAlMa
 import {
   AddLoggingFlowIcon,
   CalendarFlippingIcon,
+  FlowCardMosqueIcon,
   WhiteClockIcon,
   WhitePrayerMatIcon,
   WhiteTimerIcon,
 } from "@/assets/icons";
+import { Icon } from "expo-router";
 
 type TahiyatAlMasjidStepId =
   | "date"
@@ -113,8 +114,8 @@ export default function TahiyatAlMasjidLoggingFlow({
   };
 
   const buildDurationMinutesForApi = () => {
-    const h = parseInt(durationHours || "0", 10) || 0;
-    const m = parseInt(durationMinutes || "0", 10) || 0;
+    const h = parseInt(durationHours || "0", 0) || 0;
+    const m = parseInt(durationMinutes || "0", 0) || 0;
     return h * 60 + m;
   };
 
@@ -161,7 +162,7 @@ export default function TahiyatAlMasjidLoggingFlow({
     setStartMinute("15");
     setStartPeriod("am");
     setDurationHours("0");
-    setDurationMinutes("10");
+    setDurationMinutes("0");
     setIsPeriodDropdownOpen(false);
   }, []);
 
@@ -224,21 +225,22 @@ export default function TahiyatAlMasjidLoggingFlow({
       case "date":
         return {
           icon: <CalendarFlippingIcon />,
+          Icon: <CalendarFlippingIcon size={26} />,
           label: "Which day are you logging for?",
         };
       case "prayer-right-after":
         return {
-          icon: <WhitePrayerMatIcon />,
+          icon: <WhitePrayerMatIcon size={26} />,
           label: "Did you pray right after entering the mosque?",
         };
       case "start-time":
         return {
-          icon: <WhiteClockIcon />,
+          icon: <WhiteClockIcon size={26} />,
           label: "Enter start time.",
         };
       case "time-spent":
         return {
-          icon: <WhiteTimerIcon />,
+          icon: <WhiteTimerIcon size={26} />,
           label: "Enter time spent.",
         };
     }
@@ -317,11 +319,7 @@ export default function TahiyatAlMasjidLoggingFlow({
             <View style={localStyles.summaryCard}>
               <View style={localStyles.summaryBody}>
                 <View style={localStyles.summaryIconCircle}>
-                  <MaterialCommunityIcons
-                    name="mosque"
-                    size={18}
-                    color={Colors.light.white}
-                  />
+                  <FlowCardMosqueIcon size={21} />
                 </View>
                 <View style={{ flex: 1, gap: 4 }}>
                   <View
@@ -456,9 +454,10 @@ const localStyles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: Colors.light.blackBackground,
+    backgroundColor: Colors.light.selectcategory,
     alignItems: "center",
     justifyContent: "center",
+    marginTop: 19,
   },
   summaryTitle: {
     color: Colors.light.white,

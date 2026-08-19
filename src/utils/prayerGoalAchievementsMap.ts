@@ -47,13 +47,14 @@ export function mapPrayerGoalAchievementsToUi(
   data: PrayerGoalAchievementsData,
 ): PrayerPastAchievement {
   const timeByLabel = new Map(
-    (data.timeData ?? []).map((item) => [item.weekLabel, item.minutesSpent]),
+    (data.timeData ?? []).map((item) => [item.weekLabel, item]),
   );
 
   const chartData = (data.chartData ?? []).map((item, index) => {
     const completed = item.completed ?? 0;
     const incomplete = item.incomplete ?? 0;
-    const timeSpentMinutes = timeByLabel.get(item.weekLabel) ?? 0;
+    const timeItem = timeByLabel.get(item.weekLabel);
+    const timeSpentMinutes = timeItem?.minutesSpent ?? 0;
     const stackTotalPrayers = completed + incomplete;
 
     return {
@@ -68,6 +69,7 @@ export function mapPrayerGoalAchievementsToUi(
       timeSpentMinutes,
       stackTotalPrayers,
       completedDeltaPct: item.completedDeltaPct ?? null,
+      timeSpentDeltaPct: timeItem?.timeSpentDeltaPct ?? null,
     } as PrayerPastAchievement["chartData"][number];
   });
 

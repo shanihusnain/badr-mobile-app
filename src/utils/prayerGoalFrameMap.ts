@@ -20,6 +20,8 @@ export function mapPrayerFrameWeekDays(
     prayersLogged: day.count,
     isLogged: !day.isFuture && day.count > 0,
     isBestDay: day.isBestDay,
+    isFuture: day.isFuture,
+    isToday: day.isToday,
   }));
 }
 

@@ -1,7 +1,8 @@
 import * as React from "react";
 import Svg, { G, Path, Defs, ClipPath } from "react-native-svg";
-export const WhiteClockIcon = () => (
-  <Svg width={20} height={20} fill="none">
+
+export const WhiteClockIcon = ({ size = 20 }: { size?: number }) => (
+  <Svg width={size} height={size} viewBox="0 0 20 20" fill="none">
     <G clipPath="url(#a)">
       <Path
         fill="#fff"

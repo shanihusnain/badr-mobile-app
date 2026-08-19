@@ -136,6 +136,15 @@ function formatInsightDuration(totalMinutes: number): string {
   return `${Math.floor(safe / 60)}h ${safe % 60}m`;
 }
 
+function minutesAsPeriodPercent(minutes: number, days: number): number {
+  const totalMinutes = Math.max(days, 1) * 24 * 60;
+  const raw = (Math.max(0, minutes) / totalMinutes) * 100;
+  if (raw === 0) return 0;
+  if (raw < 1) return Math.round(raw * 100) / 100;
+  if (raw < 10) return Math.round(raw * 10) / 10;
+  return Math.round(raw);
+}
+
 function metricCard({
   title,
   iconFamily,
@@ -541,21 +550,42 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
     baseAchievement?.totalTimeSpentMinutes ??
     0;
 
+  const isTimeSpentView = analyticsView === "completedVsTimeSpent";
+  const timeMetricDays =
+    selectedBarIndex !== null
+      ? period === "monthly"
+        ? 7
+        : 28
+      : period === "monthly"
+        ? 28
+        : period === "threeMonths"
+          ? 84
+          : 168;
+  const timeSpentPercent = minutesAsPeriodPercent(
+    displayTimeSpent,
+    timeMetricDays,
+  );
+
   const resolvedBaseAchievement = baseAchievement ?? EMPTY_PRAYER_ACHIEVEMENT;
   const resolvedAchievement =
     achievement ??
     applyPrayerAnalyticsView(EMPTY_PRAYER_ACHIEVEMENT, analyticsView);
 
-  const barDeltaPct = selectedBaseWeek?.completedDeltaPct as
-    | number
-    | null
-    | undefined;
+  const barDeltaPct = (
+    isTimeSpentView
+      ? selectedBaseWeek?.timeSpentDeltaPct
+      : selectedBaseWeek?.completedDeltaPct
+  ) as number | null | undefined;
   const displayedDeltaPct =
     selectedBarIndex !== null && selectedBaseWeek
       ? barDeltaPct === undefined
-        ? resolvedBaseAchievement.previousPeriodDeltaPercent
+        ? isTimeSpentView
+          ? null
+          : resolvedBaseAchievement.previousPeriodDeltaPercent
         : barDeltaPct
-      : resolvedBaseAchievement.previousPeriodDeltaPercent;
+      : isTimeSpentView
+        ? null
+        : resolvedBaseAchievement.previousPeriodDeltaPercent;
   const showDeltaChip = !showPlaceholders && displayedDeltaPct !== null;
   const deltaIsZero = displayedDeltaPct === 0;
   const deltaIsPositive = (displayedDeltaPct ?? 0) > 0;
@@ -629,7 +659,10 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
         <View style={styles.cardHeader}>
           <AchivementArrowIcon size={15} color={Colors.light.subtext} />
           <Text style={styles.sectionTitle}>
-            {t("progressLogging.pastGoalAchievements")}
+            {t("progressLogging.pastGoalAchievements").replace(
+              "ACHIEVEMENTS",
+              "ACHIEVEMENTS",
+            )}
           </Text>
           {!isDetailed && (
             <TouchableOpacity
@@ -657,22 +690,22 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
             justifyContent: "space-between",
           }}
         >
-          <View
-            style={
-              {
-                // flex: 1,
-              }
-            }
-          >
+          <View style={styles.achievementBlock}>
             <Text style={styles.achievementCaption}>
-              {t("progressLogging.achievementsLabel").toUpperCase()}
+              {isTimeSpentView
+                ? t("progressLogging.timeSpentLabel").toUpperCase()
+                : "ACHIEVEMENT"}
             </Text>
             <Text style={styles.achievementPercent}>
               {showPlaceholders ? (
                 LOADING_DASH
               ) : (
                 <>
-                  {formatNumber(resolvedAchievement.achievementPercent)}
+                  {formatNumber(
+                    isTimeSpentView
+                      ? timeSpentPercent
+                      : resolvedAchievement.achievementPercent,
+                  )}
                   <Text style={styles.achievementPercentSymbol}>%</Text>
                 </>
               )}
@@ -907,6 +940,7 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
+          style={styles.analyticsToggleScroll}
           contentContainerStyle={styles.analyticsToggle}
         >
           {ANALYTICS_VIEWS.filter((v) => {
@@ -1121,7 +1155,8 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   achievementBlock: {
-    gap: 2,
+    gap: 8,
+    marginBottom: 4,
   },
   achievementCaption: {
     color: Colors.light.subtext,
@@ -1138,6 +1173,7 @@ const styles = StyleSheet.create({
     lineHeight: 28,
     letterSpacing: 0,
     textTransform: "uppercase",
+    marginBottom: 6,
   },
   achievementPercentSymbol: {
     fontSize: 16,
@@ -1334,10 +1370,14 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.bold,
     fontSize: 22,
   },
+  analyticsToggleScroll: {
+    marginHorizontal: -14,
+  },
   analyticsToggle: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
+    paddingHorizontal: 14,
   },
   analyticsButton: {
     // flex: 1,
