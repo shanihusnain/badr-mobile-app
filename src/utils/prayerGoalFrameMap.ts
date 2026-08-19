@@ -1,6 +1,8 @@
 import moment from "moment-hijri";
 import type { PrayerGoalFrameData } from "@/src/api/queries/useGetPrayerGoalFrame";
 import type { TahiyatUlWudhuDayProgress } from "@/components/molecules/TahiyatUlWudhuWeeklyProgressDashboard";
+import type { DayProgress } from "@/components/molecules/WeeklyProgressDashboard";
+import type { PrayerStatus } from "@/components/molecules/PrayerProgressTrackerRing";
 
 export function formatPrayerFrameWeekRange(weekStart: string, weekEnd: string) {
   const start = moment(weekStart, "YYYY-MM-DD");

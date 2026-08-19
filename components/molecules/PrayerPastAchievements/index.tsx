@@ -1217,12 +1217,11 @@ const styles = StyleSheet.create({
     height: 24,
   },
   periodNavRow: {
-    width: 190,
+    width: 185,
     height: 24,
     justifyContent: "center",
     alignItems: "stretch",
     flexShrink: 0,
-    marginRight: 20,
     marginTop: -10,
   },
   periodToggle: {

@@ -8,9 +8,17 @@ import Svg, {
   FeGaussianBlur,
   G,
 } from "react-native-svg";
+import {
+  Blur,
+  Canvas,
+  Circle as SkiaCircle,
+  Path as SkiaPath,
+  Skia,
+} from "@shopify/react-native-skia";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import { GoldenTickIcon } from "@/assets/icons/GoldenTickIcon";
+import { getProgressGlow, PROGRESS_GLOW_LAYERS } from "@/src/utils/progressGlow";
 
 export type RingSegment = {
   value: number;
@@ -27,7 +35,7 @@ interface TaperedCircleBorderProps {
   /**
    * - default: core + glow use `progressColor` (home cards, habit rings, etc.)
    * - golden: full white ring with golden bloom
-   * - illuminated: white tapered core + stage-colored glow (logging hero only)
+   * - illuminated: white tapered core + GoalProgressCard neon glow
    */
   variant?: "default" | "golden" | "illuminated";
   style?: ViewStyle;
@@ -43,10 +51,12 @@ const CORE_WIDTH = 2.4;
  * arc: max core ≈ 0.046 × ring radius — a delicate thin line; the wide
  * soft glow is what gives the ring its weight.
  */
-const ILLUMINATED_CORE_WIDTH = 1.6;
+const ILLUMINATED_CORE_WIDTH = 0.9;
 
 const FIGMA_GOLDEN = Colors.light.golden;
 const GLOW_PAD = 16;
+const ILLUMINATED_TRACK_WIDTH = 0.75;
+const ILLUMINATED_GLOW_PAD = 36;
 
 /** Soft, generous colored bloom (blurred) — Figma neon look. */
 const GLOW_LAYERS = [
@@ -80,9 +90,9 @@ const RIBBON_SAMPLES = 64;
 const CAP_SAMPLES = 10;
 
 export function parsePercent(value?: string | number): number {
-  const n = Number.parseInt(String(value ?? "0").replace("%", ""), 10);
+  const n = Number.parseFloat(String(value ?? "0").replace("%", ""));
   if (Number.isNaN(n)) return 0;
-  return Math.min(100, Math.max(0, n));
+  return Math.min(100, Math.max(0, Math.round(n)));
 }
 
 export function getGlowSlab(percent: number): 0 | 1 | 2 | 3 {
@@ -92,16 +102,8 @@ export function getGlowSlab(percent: number): 0 | 1 | 2 | 3 {
   return 3;
 }
 
-/**
- * Stage glow colors for the illuminated ring (logging hero):
- * Silver (1–33) → Blue (34–66) → Gold (67–99) → Glowing Gold (100).
- * Ring color follows progress percentage, never the goal category.
- */
 export function getIlluminationGlowColor(percent: number): string {
-  if (percent >= 100) return Colors.light.goldenBright;
-  if (percent >= 67) return Colors.light.gold;
-  if (percent >= 34) return Colors.light.darkblue;
-  return Colors.light.dullWhite;
+  return getProgressGlow(percent).glow;
 }
 
 function polarToCartesian(r: number, angleDeg: number) {
@@ -232,20 +234,99 @@ function taperedRibbonPath(
 /** Path glyph sits inset in the 22×22 viewBox (drawn ~4–18). */
 const TICK_PATH_INSET = 14 / 22;
 
-function IlluminatedProgressArc({
+function useScaledPath(d: string | undefined, scale: number) {
+  return useMemo(() => {
+    if (!d) return null;
+    const path = Skia.Path.MakeFromSVGString(d);
+    if (!path) return null;
+    path.transform(Skia.Matrix().scale(scale, scale));
+    return path;
+  }, [d, scale]);
+}
+
+function NeonFill({
+  path,
+  color,
+  opacity,
+  blur,
+}: {
+  path: ReturnType<typeof Skia.Path.MakeFromSVGString>;
+  color: string;
+  opacity?: number;
+  blur?: number;
+}) {
+  if (!path) return null;
+  if (blur) {
+    return (
+      <SkiaPath path={path} color={color} opacity={opacity ?? 1} style="fill">
+        <Blur blur={blur} mode="decal" />
+      </SkiaPath>
+    );
+  }
+  return (
+    <SkiaPath path={path} color={color} opacity={opacity ?? 1} style="fill" />
+  );
+}
+
+function NeonStrokeCircle({
+  cx,
+  cy,
+  r,
+  strokeWidth,
+  color,
+  opacity,
+  blur,
+}: {
+  cx: number;
+  cy: number;
+  r: number;
+  strokeWidth: number;
+  color: string;
+  opacity?: number;
+  blur?: number;
+}) {
+  if (blur) {
+    return (
+      <SkiaCircle
+        cx={cx}
+        cy={cy}
+        r={r}
+        color={color}
+        style="stroke"
+        strokeWidth={strokeWidth}
+        opacity={opacity ?? 1}
+      >
+        <Blur blur={blur} mode="decal" />
+      </SkiaCircle>
+    );
+  }
+  return (
+    <SkiaCircle
+      cx={cx}
+      cy={cy}
+      r={r}
+      color={color}
+      style="stroke"
+      strokeWidth={strokeWidth}
+      opacity={opacity ?? 1}
+    />
+  );
+}
+
+/** Same 3-blur + white core stack as GoalProgressCard, on the Figma comet path. */
+function IlluminatedProgressGlow({
   sweep,
-  glowColor,
-  blurId,
-  glowStrength,
+  percent,
+  canvasSize,
+  canvasOffset,
   openAtTop = false,
   topGapDeg = 0,
 }: {
   sweep: number;
-  glowColor: string;
-  blurId: string;
-  glowStrength: number;
+  percent: number;
+  canvasSize: number;
+  canvasOffset: number;
   openAtTop?: boolean;
-  /** Angular gap at 12 o'clock; only used when `openAtTop` (100% check). */
   topGapDeg?: number;
 }) {
   const gapDeg = openAtTop ? Math.max(8, topGapDeg) : 0;
@@ -254,107 +335,86 @@ function IlluminatedProgressArc({
     ? Math.min(Math.max(sweep - gapDeg, 0.01), 360 - gapDeg)
     : sweep;
   const isClosedRing = !openAtTop && sweep >= 359.5;
-
-  // Each layer is ONE filled ribbon — no overlapping strokes, no beading.
-  const paths = useMemo(() => {
-    if (isClosedRing || arcSweep <= 0) return null;
-    return {
-      glowOuter: taperedRibbonPath(
-        arcSweep,
-        ILLUMINATED_CORE_WIDTH * 3.4,
-        startDeg,
-        openAtTop,
-      ),
-      glowMid: taperedRibbonPath(
-        arcSweep,
-        ILLUMINATED_CORE_WIDTH * 2,
-        startDeg,
-        openAtTop,
-      ),
-      band: taperedRibbonPath(
-        arcSweep,
-        ILLUMINATED_CORE_WIDTH * 1.4,
-        startDeg,
-        openAtTop,
-      ),
-      core: taperedRibbonPath(
-        arcSweep,
-        ILLUMINATED_CORE_WIDTH,
-        startDeg,
-        openAtTop,
-      ),
-    };
-  }, [arcSweep, isClosedRing, openAtTop, startDeg]);
-
-  // 100% without a check: one continuous circle with an even bloom.
-  if (isClosedRing) {
-    return (
-      <>
-        <G filter={`url(#${blurId})`}>
-          <Circle
-            cx={CX}
-            cy={CY}
-            r={RADIUS}
-            stroke={glowColor}
-            strokeWidth={ILLUMINATED_CORE_WIDTH * 2.8}
-            fill="none"
-            opacity={0.14 * glowStrength}
-          />
-          <Circle
-            cx={CX}
-            cy={CY}
-            r={RADIUS}
-            stroke={glowColor}
-            strokeWidth={ILLUMINATED_CORE_WIDTH * 1.8}
-            fill="none"
-            opacity={0.26 * glowStrength}
-          />
-        </G>
-        <Circle
-          cx={CX}
-          cy={CY}
-          r={RADIUS}
-          stroke={glowColor}
-          strokeWidth={ILLUMINATED_CORE_WIDTH * 1.3}
-          fill="none"
-          opacity={0.22 * glowStrength}
-        />
-        <Circle
-          cx={CX}
-          cy={CY}
-          r={RADIUS}
-          stroke={Colors.light.white}
-          strokeWidth={ILLUMINATED_CORE_WIDTH}
-          fill="none"
-        />
-      </>
-    );
-  }
-
-  if (!paths) return null;
+  const scale = canvasSize / 80;
+  const { glow, radius } = getProgressGlow(percent);
+  const glowD =
+    isClosedRing || arcSweep <= 0
+      ? undefined
+      : taperedRibbonPath(
+          arcSweep,
+          ILLUMINATED_CORE_WIDTH * 3.4,
+          startDeg,
+          openAtTop,
+        );
+  const coreD =
+    isClosedRing || arcSweep <= 0
+      ? undefined
+      : taperedRibbonPath(
+          arcSweep,
+          ILLUMINATED_CORE_WIDTH,
+          startDeg,
+          openAtTop,
+        );
+  const glowPath = useScaledPath(glowD, scale);
+  const corePath = useScaledPath(coreD, scale);
+  const cx = CX * scale;
+  const cy = CY * scale;
+  const r = RADIUS * scale;
+  const stroke = ILLUMINATED_CORE_WIDTH * scale;
+  const glowStroke = stroke * 3.4;
 
   return (
-    <>
-      {/* Neon bloom, blurred — wide soft halo plus tighter saturated band. */}
-      <G filter={`url(#${blurId})`}>
-        <Path
-          d={paths.glowOuter}
-          fill={glowColor}
-          opacity={0.2 * glowStrength}
-        />
-        <Path
-          d={paths.glowMid}
-          fill={glowColor}
-          opacity={0.35 * glowStrength}
-        />
-      </G>
-
-      {/* Tight unblurred color band hugging the core. */}
-      <Path d={paths.band} fill={glowColor} opacity={0.28 * glowStrength} />
-
-      {/* Crisp white tapered core on top. */}
-      <Path d={paths.core} fill={Colors.light.white} />
-    </>
+    <Canvas
+      opaque={false}
+      pointerEvents="none"
+      style={[
+        styles.svg,
+        {
+          width: canvasSize,
+          height: canvasSize,
+          top: canvasOffset,
+          left: canvasOffset,
+          zIndex: 1,
+        },
+      ]}
+    >
+      {isClosedRing ? (
+        <>
+          {PROGRESS_GLOW_LAYERS.map((layer) => (
+            <NeonStrokeCircle
+              key={`glow-ring-${layer.blurMul}`}
+              cx={cx}
+              cy={cy}
+              r={r}
+              strokeWidth={glowStroke}
+              color={glow}
+              opacity={layer.opacity}
+              blur={radius * layer.blurMul}
+            />
+          ))}
+          <NeonStrokeCircle
+            cx={cx}
+            cy={cy}
+            r={r}
+            strokeWidth={stroke}
+            color={Colors.light.white}
+          />
+        </>
+      ) : (
+        <>
+          {PROGRESS_GLOW_LAYERS.map((layer) => (
+            <NeonFill
+              key={`glow-arc-${layer.blurMul}`}
+              path={glowPath}
+              color={glow}
+              opacity={layer.opacity}
+              blur={radius * layer.blurMul}
+            />
+          ))}
+          <NeonFill path={corePath} color={Colors.light.white} />
+        </>
+      )}
+    </Canvas>
   );
 }
 
@@ -475,28 +535,26 @@ export const TaperedCircleBorder: React.FC<TaperedCircleBorderProps> = ({
   // Segments keep the existing multi-color path; illuminated is for solid arcs only.
   const useSegments = !isGolden && !isIlluminated && segmentTotal > 0;
   const slab = isGolden ? 3 : getGlowSlab(percent);
+  const progressGlow = getProgressGlow(percent);
   const glowColor = isGolden
     ? FIGMA_GOLDEN
     : isIlluminated
-      ? getIlluminationGlowColor(percent)
+      ? progressGlow.glow
       : progressColor;
   const coreColor = isGolden ? Colors.light.white : progressColor;
   const showArc = isGolden || isIlluminated || (percent > 0 && !!progressColor);
   const hasGlow = !!glowColor && slab > 0;
 
-  // Higher percentage → stronger bloom.
-  const glowStrength = isGolden
-    ? 1
-    : isIlluminated
-      ? 0.6 + (slab / 3) * 0.4
-      : 0.6 + (slab / 3) * 0.4;
+  // Higher percentage → stronger bloom (non-illuminated only).
+  const glowStrength = isGolden ? 1 : 0.6 + (slab / 3) * 0.4;
   const sweep = isGolden ? 360 : (percent / 100) * 360;
 
   const uid = useId().replace(/:/g, "");
   const blurId = `glowBlur-${uid}`;
 
-  const svgSize = size + GLOW_PAD * 2;
-  const svgOffset = -GLOW_PAD;
+  const glowPad = isIlluminated ? ILLUMINATED_GLOW_PAD : GLOW_PAD;
+  const svgSize = size + glowPad * 2;
+  const svgOffset = -glowPad;
   const radiusPx = (RADIUS / 80) * svgSize;
   const arcD = arcPath(RADIUS, 0, sweep);
   const segmentArcs =
@@ -531,10 +589,7 @@ export const TaperedCircleBorder: React.FC<TaperedCircleBorderProps> = ({
       >
         <Defs>
           <Filter id={blurId} x="-90%" y="-90%" width="280%" height="280%">
-            <FeGaussianBlur
-              in="SourceGraphic"
-              stdDeviation={isIlluminated ? 2 : GLOW_BLUR_STD}
-            />
+            <FeGaussianBlur in="SourceGraphic" stdDeviation={GLOW_BLUR_STD} />
           </Filter>
         </Defs>
 
@@ -544,7 +599,7 @@ export const TaperedCircleBorder: React.FC<TaperedCircleBorderProps> = ({
             cy={CY}
             r={RADIUS}
             stroke={borderColor}
-            strokeWidth={TRACK_WIDTH}
+            strokeWidth={isIlluminated ? ILLUMINATED_TRACK_WIDTH : TRACK_WIDTH}
             fill="none"
           />
         ) : null}
@@ -563,17 +618,6 @@ export const TaperedCircleBorder: React.FC<TaperedCircleBorderProps> = ({
               </G>
             ))
           : null}
-
-        {isIlluminated && showArc && hasGlow && glowColor ? (
-          <IlluminatedProgressArc
-            sweep={sweep}
-            glowColor={glowColor}
-            blurId={blurId}
-            glowStrength={glowStrength}
-            openAtTop={showCompleteCheck}
-            topGapDeg={checkGapDeg}
-          />
-        ) : null}
 
         {!isIlluminated && !useSegments && hasGlow ? (
           <G filter={`url(#${blurId})`}>
@@ -612,6 +656,17 @@ export const TaperedCircleBorder: React.FC<TaperedCircleBorderProps> = ({
           />
         ) : null}
       </Svg>
+
+      {isIlluminated && showArc && hasGlow && glowColor ? (
+        <IlluminatedProgressGlow
+          sweep={sweep}
+          percent={percent}
+          canvasSize={svgSize}
+          canvasOffset={svgOffset}
+          openAtTop={showCompleteCheck}
+          topGapDeg={checkGapDeg}
+        />
+      ) : null}
 
       <View
         style={[styles.textContainer, { width: size, height: size }]}

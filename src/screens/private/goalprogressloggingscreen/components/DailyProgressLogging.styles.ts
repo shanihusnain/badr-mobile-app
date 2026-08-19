@@ -1,21 +1,22 @@
-import { StyleSheet } from "react-native";
+import { StyleSheet, Dimensions } from "react-native";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 
 export const FLOW_CARD_HEIGHT = 145;
 
+const OVERLAY_COVER_HEIGHT = Dimensions.get("window").height * 4;
+
 export const styles = StyleSheet.create({
   backdrop: {
-    flex: 1,
     backgroundColor: Colors.light.overlayBlackColor,
     zIndex: 90,
-    height: "100%",
+    elevation: 8,
     width: "100%",
     position: "absolute",
     top: -19,
     left: 0,
     right: 0,
-    bottom: 0,
+    height: OVERLAY_COVER_HEIGHT,
   },
   section: {
     width: "100%",
@@ -35,11 +36,13 @@ export const styles = StyleSheet.create({
     minHeight: 155,
     position: "relative",
     zIndex: 101,
+    elevation: 12,
     overflow: "visible",
   },
   flowCardLayer: {
     position: "relative",
     zIndex: 101,
+    elevation: 12,
   },
   flowCardLayerDropdownOpen: {
     zIndex: 200,
@@ -57,6 +60,7 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     zIndex: 110,
+    elevation: 16,
   },
   sectionTitle: {
     color: Colors.light.white,

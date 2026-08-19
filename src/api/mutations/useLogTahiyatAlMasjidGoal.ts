@@ -27,6 +27,7 @@ export const useLogTahiyatAlMasjidGoal = () => {
       queryClient.invalidateQueries({ queryKey: ["prayer-goal-frame"] });
       queryClient.invalidateQueries({ queryKey: ["prayer-goal-achievements"] });
       queryClient.invalidateQueries({ queryKey: ["all-prayer-goals"] });
+      queryClient.invalidateQueries({ queryKey: ["prayer-goal-insights"] });
       showToast("success", "Prayer logged successfully");
     },
     onError: (error) => {

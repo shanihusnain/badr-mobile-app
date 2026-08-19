@@ -23,7 +23,10 @@ import { FidyaWeeklyProgressDashboard } from "@/components/molecules/FidyaWeekly
 import { LillahWeeklyProgressDashboard } from "@/components/molecules/LillahWeeklyProgressDashboard";
 import { SadaqahJariyahWeeklyProgressDashboard } from "@/components/molecules/SadaqahJariyahWeeklyProgressDashboard";
 import { VolunteeringWeeklyProgressDashboard } from "@/components/molecules/VolunteeringWeeklyProgressDashboard";
-import { SunnahPrayerConfig, SunnahDayData } from "@/components/molecules/SunnahRawatibDayRing";
+import {
+  SunnahPrayerConfig,
+  SunnahDayData,
+} from "@/components/molecules/SunnahRawatibDayRing";
 import {
   SunnahRawatibWeeklyProgressDashboard,
   type SunnahRawatibDayProgress,
@@ -119,6 +122,7 @@ import {
   formatPrayerFrameWeekRange,
   getPrayerFrameTodayIndex,
   getPrayerFrameWeekFraction,
+  mapFiveDailyFrameWeekDays,
   mapPrayerFrameWeekDays,
 } from "@/src/utils/prayerGoalFrameMap";
 
@@ -403,9 +407,7 @@ export function WeeklyProgressSection({
 
   const prophetDawoodWeek = useMemo(() => {
     if (!prophetDawoodCycle) return null;
-    return prophetDawoodCycle.weeks[
-      clampProphetDawoodFastWeekIndex(weekIndex)
-    ];
+    return prophetDawoodCycle.weeks[clampProphetDawoodFastWeekIndex(weekIndex)];
   }, [prophetDawoodCycle, weekIndex]);
 
   useEffect(() => {
@@ -926,6 +928,78 @@ export function WeeklyProgressSection({
     );
   }
 
+  if (template === "five-daily-prayers") {
+    const frame = prayerFrame?.frame;
+    const frameLoading =
+      prayerFrame?.isLoading || (!frame && !prayerFrame?.isError);
+
+    if (frame) {
+      const totalWeeks = frame.cycle.totalWeeks;
+      const currentWeek = frame.cycle.weekNumber;
+      const canPrev = currentWeek > 1;
+      const canNext = currentWeek < totalWeeks;
+
+      return (
+        <WeeklyProgressDashboard
+          weekDays={mapFiveDailyFrameWeekDays(frame)}
+          weekRangeLabel={formatPrayerFrameWeekRange(
+            frame.cycle.weekStart,
+            frame.cycle.weekEnd,
+          )}
+          weekFraction={getPrayerFrameWeekFraction(frame)}
+          onTimePrayersCount={frame.week.thisWeekOnTime ?? 0}
+          streakDays={frame.week.currentStreak}
+          motivationalQuote={frame.week.motivationalMessage}
+          selectedDayIndex={getPrayerFrameTodayIndex(frame)}
+          onPrevWeek={
+            canPrev
+              ? () => prayerFrame?.setWeekNumber(currentWeek - 1)
+              : undefined
+          }
+          onNextWeek={
+            canNext
+              ? () => prayerFrame?.setWeekNumber(currentWeek + 1)
+              : undefined
+          }
+          renderRing={(day: DayProgress, size: number) => (
+            <PrayerProgressTrackerRing
+              statuses={day.statuses}
+              isMenstruating={day.isMenstruating}
+              size={size}
+              strokeWidth={2.5}
+            />
+          )}
+        />
+      );
+    }
+
+    return (
+      <WeeklyProgressDashboard
+        weekDays={[
+          { day: "Sun", statuses: ["none", "none", "none", "none", "none"] },
+          { day: "Mon", statuses: ["none", "none", "none", "none", "none"] },
+          { day: "Tue", statuses: ["none", "none", "none", "none", "none"] },
+          { day: "Wed", statuses: ["none", "none", "none", "none", "none"] },
+          { day: "Thu", statuses: ["none", "none", "none", "none", "none"] },
+          { day: "Fri", statuses: ["none", "none", "none", "none", "none"] },
+          { day: "Sat", statuses: ["none", "none", "none", "none", "none"] },
+        ]}
+        weekRangeLabel={frameLoading ? "---" : ""}
+        weekFraction={frameLoading ? "---" : "—"}
+        onTimePrayersCount={0}
+        streakDays={0}
+        motivationalQuote={frameLoading ? "---" : ""}
+        renderRing={(day: DayProgress, size: number) => (
+          <PrayerProgressTrackerRing
+            statuses={day.statuses}
+            size={size}
+            strokeWidth={2.5}
+          />
+        )}
+      />
+    );
+  }
+
   if (template === "tahiyat-al-masjid") {
     const frame = prayerFrame?.frame;
     if (frame) {
@@ -1282,7 +1356,13 @@ export function WeeklyProgressSection({
           { day: "Sun", amountLogged: 0, isFuture: false },
           { day: "Mon", amountLogged: 5, isFuture: false, isLogged: true },
           { day: "Tue", amountLogged: 10, isFuture: false, isLogged: true },
-          { day: "Wed", amountLogged: 15, isFuture: false, isLogged: true, isBestDay: true },
+          {
+            day: "Wed",
+            amountLogged: 15,
+            isFuture: false,
+            isLogged: true,
+            isBestDay: true,
+          },
           { day: "Thu", amountLogged: 0, isFuture: true },
           { day: "Fri", amountLogged: 0, isFuture: true },
           { day: "Sat", amountLogged: 0, isFuture: true },
@@ -1298,7 +1378,13 @@ export function WeeklyProgressSection({
         days: [
           { day: "Sun", amountLogged: 0, isFuture: false },
           { day: "Mon", amountLogged: 0, isFuture: false },
-          { day: "Tue", amountLogged: 30, isFuture: false, isLogged: true, isBestDay: true },
+          {
+            day: "Tue",
+            amountLogged: 30,
+            isFuture: false,
+            isLogged: true,
+            isBestDay: true,
+          },
           { day: "Wed", amountLogged: 0, isFuture: false },
           { day: "Thu", amountLogged: 0, isFuture: false },
           { day: "Fri", amountLogged: 0, isFuture: false },
@@ -1334,7 +1420,13 @@ export function WeeklyProgressSection({
           { day: "Mon", amountLogged: 10, isFuture: false, isLogged: true },
           { day: "Tue", amountLogged: 10, isFuture: false, isLogged: true },
           { day: "Wed", amountLogged: 5, isFuture: false, isLogged: true },
-          { day: "Thu", amountLogged: 5, isFuture: false, isLogged: true, isBestDay: true },
+          {
+            day: "Thu",
+            amountLogged: 5,
+            isFuture: false,
+            isLogged: true,
+            isBestDay: true,
+          },
           { day: "Fri", amountLogged: 0, isFuture: true },
           { day: "Sat", amountLogged: 0, isFuture: true },
         ],
@@ -1354,7 +1446,9 @@ export function WeeklyProgressSection({
         remainingAmount={zakatWeek.remainingAmount}
         selectedDayIndex={zakatWeek.selectedDayIndex}
         onPrevWeek={() => setZakatWeekIndex((i) => Math.max(0, i - 1))}
-        onNextWeek={() => setZakatWeekIndex((i) => Math.min(ZAKAT_WEEKS.length - 1, i + 1))}
+        onNextWeek={() =>
+          setZakatWeekIndex((i) => Math.min(ZAKAT_WEEKS.length - 1, i + 1))
+        }
       />
     );
   }
@@ -1368,7 +1462,12 @@ export function WeeklyProgressSection({
         streakDays: 1,
         selectedDayIndex: 6,
         days: [
-          { day: "Sun", category: "clothes" as const, count: 2, isToday: false },
+          {
+            day: "Sun",
+            category: "clothes" as const,
+            count: 2,
+            isToday: false,
+          },
           { day: "Mon", category: null, count: 0 },
           { day: "Tue", category: null, count: 0 },
           { day: "Wed", category: "meals" as const, count: 2, isToday: false },
@@ -1384,7 +1483,12 @@ export function WeeklyProgressSection({
         streakDays: 3,
         selectedDayIndex: 3,
         days: [
-          { day: "Sun", category: "clothes" as const, count: 3, isBestDay: true },
+          {
+            day: "Sun",
+            category: "clothes" as const,
+            count: 3,
+            isBestDay: true,
+          },
           { day: "Mon", category: "meals" as const, count: 2 },
           { day: "Tue", category: "meals" as const, count: 1 },
           { day: "Wed", category: "clothes" as const, count: 2, isToday: true },
@@ -1440,7 +1544,11 @@ export function WeeklyProgressSection({
         selectedDayIndex={kaffarahWeek.selectedDayIndex}
         motivationalQuote="Kaffarah is a reminder of Allah's mercy—keep it up and stay inspired!"
         onPrevWeek={() => setKaffarahWeekIndex((i) => Math.max(0, i - 1))}
-        onNextWeek={() => setKaffarahWeekIndex((i) => Math.min(KAFFARAH_WEEKS.length - 1, i + 1))}
+        onNextWeek={() =>
+          setKaffarahWeekIndex((i) =>
+            Math.min(KAFFARAH_WEEKS.length - 1, i + 1),
+          )
+        }
       />
     );
   }
@@ -1525,7 +1633,9 @@ export function WeeklyProgressSection({
         streakDays={fidyaWeek.streakDays}
         selectedDayIndex={fidyaWeek.selectedDayIndex}
         onPrevWeek={() => setFidyaWeekIndex((i) => Math.max(0, i - 1))}
-        onNextWeek={() => setFidyaWeekIndex((i) => Math.min(FIDYA_WEEKS.length - 1, i + 1))}
+        onNextWeek={() =>
+          setFidyaWeekIndex((i) => Math.min(FIDYA_WEEKS.length - 1, i + 1))
+        }
       />
     );
   }
@@ -1541,7 +1651,12 @@ export function WeeklyProgressSection({
         days: [
           { day: "Sun", category: "household-essentials" as const, amount: 50 },
           { day: "Mon", category: null, amount: 0 },
-          { day: "Tue", category: "food-relief" as const, amount: 140, isBestDay: true },
+          {
+            day: "Tue",
+            category: "food-relief" as const,
+            amount: 140,
+            isBestDay: true,
+          },
           { day: "Wed", category: "qurbani" as const, amount: 100 },
           { day: "Thu", category: null, amount: 0 },
           { day: "Fri", category: "food-relief" as const, amount: 60 },
@@ -1555,10 +1670,20 @@ export function WeeklyProgressSection({
         streakDays: 3,
         selectedDayIndex: 3,
         days: [
-          { day: "Sun", category: "qard-hassan" as const, amount: 60, isBestDay: true },
+          {
+            day: "Sun",
+            category: "qard-hassan" as const,
+            amount: 60,
+            isBestDay: true,
+          },
           { day: "Mon", category: "debt-assistance" as const, amount: 20 },
           { day: "Tue", category: "food-relief" as const, amount: 20 },
-          { day: "Wed", category: "household-essentials" as const, amount: 20, isToday: true },
+          {
+            day: "Wed",
+            category: "household-essentials" as const,
+            amount: 20,
+            isToday: true,
+          },
           { day: "Thu", category: null, amount: 0, isFuture: true },
           { day: "Fri", category: null, amount: 0, isFuture: true },
           { day: "Sat", category: null, amount: 0, isFuture: true },
@@ -1587,11 +1712,21 @@ export function WeeklyProgressSection({
         streakDays: 5,
         selectedDayIndex: 4,
         days: [
-          { day: "Sun", category: "qurbani" as const, amount: 40, isBestDay: true },
+          {
+            day: "Sun",
+            category: "qurbani" as const,
+            amount: 40,
+            isBestDay: true,
+          },
           { day: "Mon", category: "household-essentials" as const, amount: 20 },
           { day: "Tue", category: "food-relief" as const, amount: 20 },
           { day: "Wed", category: "qard-hassan" as const, amount: 20 },
-          { day: "Thu", category: "debt-assistance" as const, amount: 0, isBlurDay: true },
+          {
+            day: "Thu",
+            category: "debt-assistance" as const,
+            amount: 0,
+            isBlurDay: true,
+          },
           { day: "Fri", category: null, amount: 0, isBlurDay: true },
           { day: "Sat", category: null, amount: 0, isBlurDay: true },
         ],
@@ -1610,7 +1745,9 @@ export function WeeklyProgressSection({
         streakDays={lillahWeek.streakDays}
         selectedDayIndex={lillahWeek.selectedDayIndex}
         onPrevWeek={() => setLillahWeekIndex((i) => Math.max(0, i - 1))}
-        onNextWeek={() => setLillahWeekIndex((i) => Math.min(LILLAH_WEEKS.length - 1, i + 1))}
+        onNextWeek={() =>
+          setLillahWeekIndex((i) => Math.min(LILLAH_WEEKS.length - 1, i + 1))
+        }
       />
     );
   }
@@ -1626,7 +1763,12 @@ export function WeeklyProgressSection({
         days: [
           { day: "Sun", category: "honoring-parents" as const, amount: 50 },
           { day: "Mon", category: null, amount: 0 },
-          { day: "Tue", category: "sponsoring-orphans" as const, amount: 140, isBestDay: true },
+          {
+            day: "Tue",
+            category: "sponsoring-orphans" as const,
+            amount: 140,
+            isBestDay: true,
+          },
           { day: "Wed", category: "building-wells" as const, amount: 100 },
           { day: "Thu", category: null, amount: 0 },
           { day: "Fri", category: "sponsoring-orphans" as const, amount: 60 },
@@ -1640,10 +1782,20 @@ export function WeeklyProgressSection({
         streakDays: 3,
         selectedDayIndex: 3,
         days: [
-          { day: "Sun", category: "teaching-quran" as const, amount: 60, isBestDay: true },
+          {
+            day: "Sun",
+            category: "teaching-quran" as const,
+            amount: 60,
+            isBestDay: true,
+          },
           { day: "Mon", category: "planting-trees" as const, amount: 20 },
           { day: "Tue", category: "providing-clothing" as const, amount: 20 },
-          { day: "Wed", category: "honoring-parents" as const, amount: 20, isToday: true },
+          {
+            day: "Wed",
+            category: "honoring-parents" as const,
+            amount: 20,
+            isToday: true,
+          },
           { day: "Thu", category: null, amount: 0, isFuture: true },
           { day: "Fri", category: null, amount: 0, isFuture: true },
           { day: "Sat", category: null, amount: 0, isFuture: true },
@@ -1672,11 +1824,21 @@ export function WeeklyProgressSection({
         streakDays: 5,
         selectedDayIndex: 4,
         days: [
-          { day: "Sun", category: "building-wells" as const, amount: 40, isBestDay: true },
+          {
+            day: "Sun",
+            category: "building-wells" as const,
+            amount: 40,
+            isBestDay: true,
+          },
           { day: "Mon", category: "honoring-parents" as const, amount: 20 },
           { day: "Tue", category: "sponsoring-orphans" as const, amount: 20 },
           { day: "Wed", category: "teaching-quran" as const, amount: 20 },
-          { day: "Thu", category: "planting-trees" as const, amount: 0, isBlurDay: true },
+          {
+            day: "Thu",
+            category: "planting-trees" as const,
+            amount: 0,
+            isBlurDay: true,
+          },
           { day: "Fri", category: null, amount: 0, isBlurDay: true },
           { day: "Sat", category: null, amount: 0, isBlurDay: true },
         ],
@@ -1695,7 +1857,11 @@ export function WeeklyProgressSection({
         streakDays={sjWeek.streakDays}
         selectedDayIndex={sjWeek.selectedDayIndex}
         onPrevWeek={() => setSadaqahJariyahWeekIndex((i) => Math.max(0, i - 1))}
-        onNextWeek={() => setSadaqahJariyahWeekIndex((i) => Math.min(SADAQAH_JARIYAH_WEEKS.length - 1, i + 1))}
+        onNextWeek={() =>
+          setSadaqahJariyahWeekIndex((i) =>
+            Math.min(SADAQAH_JARIYAH_WEEKS.length - 1, i + 1),
+          )
+        }
       />
     );
   }
@@ -1709,10 +1875,23 @@ export function WeeklyProgressSection({
         streakDays: 0,
         selectedDayIndex: 6,
         days: [
-          { day: "Sun", category: "distributing-food" as const, minutesLogged: 60, isBestDay: true },
+          {
+            day: "Sun",
+            category: "distributing-food" as const,
+            minutesLogged: 60,
+            isBestDay: true,
+          },
           { day: "Mon", category: null, minutesLogged: 0 },
-          { day: "Tue", category: "shaping-futures" as const, minutesLogged: 60 },
-          { day: "Wed", category: "offering-compassion" as const, minutesLogged: 30 },
+          {
+            day: "Tue",
+            category: "shaping-futures" as const,
+            minutesLogged: 60,
+          },
+          {
+            day: "Wed",
+            category: "offering-compassion" as const,
+            minutesLogged: 30,
+          },
           { day: "Thu", category: null, minutesLogged: 0 },
           { day: "Fri", category: null, minutesLogged: 0 },
           { day: "Sat", category: null, minutesLogged: 0, isFuture: true },
@@ -1725,9 +1904,22 @@ export function WeeklyProgressSection({
         streakDays: 1,
         selectedDayIndex: 3,
         days: [
-          { day: "Sun", category: "distributing-food" as const, minutesLogged: 30, isBestDay: true },
-          { day: "Mon", category: "shaping-futures" as const, minutesLogged: 15 },
-          { day: "Tue", category: "offering-compassion" as const, minutesLogged: 15 },
+          {
+            day: "Sun",
+            category: "distributing-food" as const,
+            minutesLogged: 30,
+            isBestDay: true,
+          },
+          {
+            day: "Mon",
+            category: "shaping-futures" as const,
+            minutesLogged: 15,
+          },
+          {
+            day: "Tue",
+            category: "offering-compassion" as const,
+            minutesLogged: 15,
+          },
           { day: "Wed", category: null, minutesLogged: 0, isToday: true },
           { day: "Thu", category: null, minutesLogged: 0, isFuture: true },
           { day: "Fri", category: null, minutesLogged: 0, isFuture: true },
@@ -1757,11 +1949,33 @@ export function WeeklyProgressSection({
         streakDays: 5,
         selectedDayIndex: 4,
         days: [
-          { day: "Sun", category: "shaping-futures" as const, minutesLogged: 60, isBestDay: true },
-          { day: "Mon", category: "distributing-food" as const, minutesLogged: 45 },
-          { day: "Tue", category: "offering-compassion" as const, minutesLogged: 45 },
-          { day: "Wed", category: "shaping-futures" as const, minutesLogged: 30 },
-          { day: "Thu", category: "distributing-food" as const, minutesLogged: 30, isBlurDay: true },
+          {
+            day: "Sun",
+            category: "shaping-futures" as const,
+            minutesLogged: 60,
+            isBestDay: true,
+          },
+          {
+            day: "Mon",
+            category: "distributing-food" as const,
+            minutesLogged: 45,
+          },
+          {
+            day: "Tue",
+            category: "offering-compassion" as const,
+            minutesLogged: 45,
+          },
+          {
+            day: "Wed",
+            category: "shaping-futures" as const,
+            minutesLogged: 30,
+          },
+          {
+            day: "Thu",
+            category: "distributing-food" as const,
+            minutesLogged: 30,
+            isBlurDay: true,
+          },
           { day: "Fri", category: null, minutesLogged: 0, isBlurDay: true },
           { day: "Sat", category: null, minutesLogged: 0, isBlurDay: true },
         ],
@@ -1780,7 +1994,11 @@ export function WeeklyProgressSection({
         streakDays={volWeek.streakDays}
         selectedDayIndex={volWeek.selectedDayIndex}
         onPrevWeek={() => setVolunteeringWeekIndex((i) => Math.max(0, i - 1))}
-        onNextWeek={() => setVolunteeringWeekIndex((i) => Math.min(VOLUNTEERING_WEEKS.length - 1, i + 1))}
+        onNextWeek={() =>
+          setVolunteeringWeekIndex((i) =>
+            Math.min(VOLUNTEERING_WEEKS.length - 1, i + 1),
+          )
+        }
       />
     );
   }

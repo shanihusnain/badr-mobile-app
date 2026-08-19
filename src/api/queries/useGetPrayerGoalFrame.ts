@@ -6,10 +6,15 @@ import type { PrayerGoalFrameStatus } from "@/src/utils/prayerGoalFrameMap";
 export type PrayerGoalFrameDay = {
   date: string;
   dayLabel: string;
-  count: number;
-  isBestDay: boolean;
   isToday: boolean;
   isFuture: boolean;
+  count?: number;
+  isBestDay?: boolean;
+  slotsOnTime?: number;
+  slotsQadha?: number;
+  totalLogged?: number;
+  allFiveOnTime?: boolean;
+  hasQadha?: boolean;
 };
 
 export type PrayerGoalFrameData = {
@@ -33,7 +38,8 @@ export type PrayerGoalFrameData = {
     cycleEnd: string;
   };
   week: {
-    thisWeekTotal: number;
+    thisWeekTotal?: number;
+    thisWeekOnTime?: number;
     vsLastWeek: number;
     currentStreak: number;
     motivationalMessage: string;
