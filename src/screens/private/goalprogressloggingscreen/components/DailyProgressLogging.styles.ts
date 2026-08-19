@@ -245,10 +245,14 @@ export const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1.5,
     borderColor: Colors.light.white + "99",
-    backgroundColor: Colors.light.white + "26",
+    backgroundColor: Colors.light.white + "29",
     alignItems: "center",
     justifyContent: "center",
     transform: [{ translateY: -6 }],
+  },
+  confirmButtonActive: {
+    borderColor: Colors.light.white,
+    backgroundColor: Colors.light.white + "10",
   },
   dateRow: {
     flexDirection: "row",
@@ -355,7 +359,7 @@ export const styles = StyleSheet.create({
   },
   timeInput: {
     borderWidth: 1.5,
-    borderColor: Colors.light.dullWhiteOpacity,
+    borderColor: Colors.light.white + "66",
     borderRadius: 6,
     width: 34,
     height: 26,
@@ -429,7 +433,7 @@ export const styles = StyleSheet.create({
   },
   periodSelector: {
     borderWidth: 1.5,
-    borderColor: Colors.light.dullWhiteOpacity,
+    borderColor: Colors.light.white + "66",
     borderRadius: 6,
     height: 26,
     width: 47,

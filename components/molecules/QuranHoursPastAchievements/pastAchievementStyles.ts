@@ -90,6 +90,7 @@ export const pastAchievementStyles = StyleSheet.create({
     color: Colors.light.grey,
     fontFamily: fonts.primary.medium,
     fontSize: 9,
+    lineHeight: 11,
     textAlign: "center",
   },
   xAxisDateLabelSelected: {

@@ -31,6 +31,17 @@ export function formatPrayerAchievementsDateRange(
   return `${start.format("MMM D, YY")} — ${end.format("MMM D, YY")}`;
 }
 
+/** Two-line x-axis labels for 6M bars, e.g. "Jun 14—" / "Jul 11" or "Nov 1—" / "28". */
+export function formatSixMonthChartBarDateLabel(weekLabel: string): string {
+  const raw = weekLabel.trim().replace(/\r\n/g, "\n");
+  if (!raw || raw.includes("\n")) return raw;
+
+  const parts = raw.split(/\s*[—–−-]\s*/).filter(Boolean);
+  if (parts.length < 2) return raw;
+
+  return `${parts[0].trim()}—\n${parts.slice(1).join("—").trim()}`;
+}
+
 /** Shift a period window by one full window length (back = -1, forward = +1). */
 export function shiftPrayerAchievementsPeriodStart(
   periodStart: string,
@@ -59,7 +70,10 @@ export function mapPrayerGoalAchievementsToUi(
 
     return {
       xLabel: `w${index + 1}`,
-      dateLabel: item.weekLabel,
+      dateLabel:
+        data.period === "6M" || data.period === "sixMonths"
+          ? formatSixMonthChartBarDateLabel(item.weekLabel)
+          : item.weekLabel,
       completedHours: completed,
       incompleteHours: incomplete,
       hours: completed,
