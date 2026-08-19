@@ -61,6 +61,7 @@ import {
 } from "@/assets/images";
 import { InformationSheet } from "@/components/molecules/informationsheet";
 import { HeaderInfoIcon } from "@/assets/icons";
+import { TopSpace } from "@/components/atoms/TopSpace";
 
 /** Hero background per prayer / Quran / fasting / sadaqah logging goal. */
 function getLoggingBackgroundSource(
@@ -278,7 +279,7 @@ function GoalProgressLoggingBody({
           setWeeklyRefreshKey((current) => current + 1);
         }}
       />
-
+      <TopSpace top={10} />
       <View
         style={styles.weeklyDashboardWrapper}
         onLayout={
