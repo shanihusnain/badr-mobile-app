@@ -17,6 +17,7 @@ export const HeaderWithCrossTitleDynamicIcon = ({
   rightIcon,
   onRightPress,
   leftButtonBackground,
+  forloggingFlow = false,
 }: {
   title: string;
   navigation: any;
@@ -32,6 +33,7 @@ export const HeaderWithCrossTitleDynamicIcon = ({
   rightIcon?: ReactNode;
   onRightPress?: () => void;
   leftButtonBackground?: string;
+  forloggingFlow?: boolean;
 }) => (
   <View
     style={{
@@ -116,7 +118,7 @@ export const HeaderWithCrossTitleDynamicIcon = ({
           height: 36,
           borderRadius: 18,
           backgroundColor: rightIcon
-            ? "transparent"
+            ? Colors.light.dullestWhite
             : Colors.light.greybuttonBackground,
           justifyContent: "center",
           alignItems: "center",

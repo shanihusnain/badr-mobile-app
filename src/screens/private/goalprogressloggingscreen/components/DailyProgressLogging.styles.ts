@@ -4,18 +4,18 @@ import { fonts } from "@/assets/fonts";
 
 export const FLOW_CARD_HEIGHT = 145;
 
-const OVERLAY_COVER_HEIGHT = Dimensions.get("window").height * 4;
+const WINDOW = Dimensions.get("window");
+const OVERLAY_COVER_HEIGHT = WINDOW.height * 4;
 
 export const styles = StyleSheet.create({
   backdrop: {
     backgroundColor: Colors.light.overlayBlackColor,
+    position: "absolute",
     zIndex: 90,
     elevation: 8,
-    width: "100%",
-    position: "absolute",
-    top: -19,
-    left: 0,
-    right: 0,
+    top: -WINDOW.height,
+    left: -WINDOW.width,
+    width: WINDOW.width * 3,
     height: OVERLAY_COVER_HEIGHT,
   },
   section: {
@@ -497,7 +497,7 @@ export const styles = StyleSheet.create({
     marginLeft: -1,
     marginRight: 9,
     fontWeight: "400",
-    opacity: 0.80,
+    opacity: 0.8,
   },
   recitationCounterRow: {
     alignItems: "center",

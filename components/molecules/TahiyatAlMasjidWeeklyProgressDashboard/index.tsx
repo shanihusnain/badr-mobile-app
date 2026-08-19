@@ -131,13 +131,16 @@ export function TahiyatAlMasjidWeeklyProgressDashboard({
         <View style={styles.headerNav}>
           <TouchableOpacity
             onPress={onPrevWeek}
-            activeOpacity={0.7}
+            disabled={!onPrevWeek}
+            activeOpacity={onPrevWeek ? 0.7 : 1}
             style={styles.navBtn}
           >
             <Ionicons
               name="chevron-back"
               size={20}
-              color={Colors.light.dullWhite}
+              color={
+                onPrevWeek ? Colors.light.dullWhite : Colors.light.dullWhite + "4D"
+              }
             />
           </TouchableOpacity>
           <Text style={styles.weekRangeText} numberOfLines={1}>
@@ -145,13 +148,16 @@ export function TahiyatAlMasjidWeeklyProgressDashboard({
           </Text>
           <TouchableOpacity
             onPress={onNextWeek}
-            activeOpacity={0.7}
+            disabled={!onNextWeek}
+            activeOpacity={onNextWeek ? 0.7 : 1}
             style={styles.navBtn}
           >
             <Ionicons
               name="chevron-forward"
               size={20}
-              color={Colors.light.dullWhite}
+              color={
+                onNextWeek ? Colors.light.dullWhite : Colors.light.dullWhite + "4D"
+              }
             />
           </TouchableOpacity>
         </View>

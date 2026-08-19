@@ -238,7 +238,7 @@ function GoalProgressLoggingBody({
         <TaperedCircleBorder
           percentage={displayPercentage}
           borderColor={Colors.light.dullWhiteOpacity}
-          size={170}
+          size={150}
           variant="illuminated"
         >
           <View style={styles.largeCircleInner}>
@@ -271,7 +271,7 @@ function GoalProgressLoggingBody({
           </View>
         </TaperedCircleBorder>
       </View>
-
+      <TopSpace top={20} />
       <LoggingFlowSlot
         goalData={liveGoalData}
         onDropdownOpenChange={onDropdownOpenChange}

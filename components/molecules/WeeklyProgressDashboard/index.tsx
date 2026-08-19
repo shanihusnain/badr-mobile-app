@@ -149,25 +149,31 @@ export const WeeklyProgressDashboard: React.FC<
         <View style={styles.headerNav}>
           <TouchableOpacity
             onPress={onPrevWeek}
-            activeOpacity={0.7}
+            disabled={!onPrevWeek}
+            activeOpacity={onPrevWeek ? 0.7 : 1}
             style={styles.navBtn}
           >
             <Ionicons
               name={i18n.language === "ar" ? "chevron-forward" : "chevron-back"}
               size={16}
-              color={Colors.light.dullWhite}
+              color={
+                onPrevWeek ? Colors.light.dullWhite : Colors.light.dullWhite + "4D"
+              }
             />
           </TouchableOpacity>
           <Text style={styles.weekRangeText}>{weekRangeLabel}</Text>
           <TouchableOpacity
             onPress={onNextWeek}
-            activeOpacity={0.7}
+            disabled={!onNextWeek}
+            activeOpacity={onNextWeek ? 0.7 : 1}
             style={styles.navBtn}
           >
             <Ionicons
               name={i18n.language === "ar" ? "chevron-back" : "chevron-forward"}
               size={16}
-              color={Colors.light.dullWhite}
+              color={
+                onNextWeek ? Colors.light.dullWhite : Colors.light.dullWhite + "4D"
+              }
             />
           </TouchableOpacity>
         </View>
