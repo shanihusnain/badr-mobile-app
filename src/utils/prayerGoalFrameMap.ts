@@ -17,52 +17,14 @@ export function formatPrayerFrameWeekRange(weekStart: string, weekEnd: string) {
 export function mapPrayerFrameWeekDays(
   frame: PrayerGoalFrameData,
 ): TahiyatUlWudhuDayProgress[] {
-  return frame.week.days.map((day) => {
-    const count = day.count ?? day.totalLogged ?? 0;
-    return {
-      day: day.dayLabel,
-      prayersLogged: count,
-      isLogged: !day.isFuture && count > 0,
-      isBestDay: Boolean(day.isBestDay),
-    };
-  });
-}
-
-function clampSlotCount(value: number | undefined): number {
-  if (typeof value !== "number" || Number.isNaN(value)) return 0;
-  return Math.max(0, Math.min(5, Math.round(value)));
-}
-
-export function mapFiveDailyFrameWeekDays(
-  frame: PrayerGoalFrameData,
-): DayProgress[] {
-  return frame.week.days.map((day) => {
-    if (day.isFuture) {
-      return {
-        day: day.dayLabel,
-        statuses: ["none", "none", "none", "none", "none"],
-      };
-    }
-
-    if (day.allFiveOnTime) {
-      return {
-        day: day.dayLabel,
-        statuses: ["onTime", "onTime", "onTime", "onTime", "onTime"],
-      };
-    }
-
-    const onTime = clampSlotCount(day.slotsOnTime);
-    const qadha = Math.min(5 - onTime, clampSlotCount(day.slotsQadha));
-    const statuses: PrayerStatus[] = [];
-    for (let i = 0; i < onTime; i += 1) statuses.push("onTime");
-    for (let i = 0; i < qadha; i += 1) statuses.push("missed");
-    while (statuses.length < 5) statuses.push("none");
-
-    return {
-      day: day.dayLabel,
-      statuses,
-    };
-  });
+  return frame.week.days.map((day) => ({
+    day: day.dayLabel,
+    prayersLogged: day.count,
+    isLogged: !day.isFuture && day.count > 0,
+    isBestDay: day.isBestDay,
+    isFuture: day.isFuture,
+    isToday: day.isToday,
+  }));
 }
 
 export function getPrayerFrameTodayIndex(frame: PrayerGoalFrameData): number {

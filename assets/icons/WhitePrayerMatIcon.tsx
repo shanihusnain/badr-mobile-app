@@ -1,7 +1,8 @@
 import * as React from "react";
 import Svg, { Path } from "react-native-svg";
-export const WhitePrayerMatIcon = () => (
-  <Svg width={13} height={21} fill="none">
+
+export const WhitePrayerMatIcon = ({ size = 21 }: { size?: number }) => (
+  <Svg width={(13 / 21) * size} height={size} viewBox="0 0 13 21" fill="none">
     <Path
       fill="#fff"
       stroke="#fff"

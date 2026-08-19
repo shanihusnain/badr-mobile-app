@@ -1,7 +1,12 @@
 import Svg, { Path } from "react-native-svg";
 
-export const CalendarFlippingIcon = () => (
-  <Svg width={19} height={18} fill="none">
+export const CalendarFlippingIcon = ({ size = 18 }: { size?: number }) => (
+  <Svg
+    width={(19 / 18) * size}
+    height={size}
+    viewBox="0 0 19 18"
+    fill="none"
+  >
     <Path
       fill="#fff"
       stroke="#2F4054"

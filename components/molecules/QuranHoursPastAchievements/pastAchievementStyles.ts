@@ -20,8 +20,8 @@ export const pastAchievementStyles = StyleSheet.create({
   },
   chartHintOverlay: {
     position: "absolute",
-    left: 60,
-    bottom: 240,
+    left: 80,
+    bottom: 200,
     width: "45%",
     maxWidth: 140,
     zIndex: 3,

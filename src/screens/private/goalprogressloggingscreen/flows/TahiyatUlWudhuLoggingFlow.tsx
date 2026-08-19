@@ -170,7 +170,7 @@ export default function TahiyatUlWudhuLoggingFlow({
     setStartMinute("15");
     setStartPeriod("am");
     setDurationHours("0");
-    setDurationMinutes("10");
+    setDurationMinutes("0");
     setIsPeriodDropdownOpen(false);
   }, []);
 
@@ -233,22 +233,22 @@ export default function TahiyatUlWudhuLoggingFlow({
     switch (step) {
       case "date":
         return {
-          icon: <CalendarFlippingIcon />,
+          icon: <CalendarFlippingIcon size={24} />,
           label: "Which day are you logging for?",
         };
       case "prayer-right-after":
         return {
-          icon: <WhitePrayerMatIcon />, // Using a generic icon for rug representation
+          icon: <WhitePrayerMatIcon size={26} />,
           label: "Did you pray right after performing wudhu?",
         };
       case "start-time":
         return {
-          icon: <WhiteClockIcon />,
+          icon: <WhiteClockIcon size={26} />,
           label: "Enter start time.",
         };
       case "time-spent":
         return {
-          icon: <WhiteTimerIcon />,
+          icon: <WhiteTimerIcon size={26} />,
           label: "Enter time spent.",
         };
     }
@@ -327,7 +327,7 @@ export default function TahiyatUlWudhuLoggingFlow({
             <View style={localStyles.summaryCard}>
               <View style={localStyles.summaryBody}>
                 <View style={localStyles.summaryIconCircle}>
-                  <Ionicons name="water" size={18} color={Colors.light.white} />
+                  <Ionicons name="water" size={25} color={Colors.light.white} />
                 </View>
                 <View style={{ flex: 1, gap: 4 }}>
                   <View
@@ -468,9 +468,10 @@ const localStyles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: Colors.light.blackBackground, // Dark grey background for teardrop
+    backgroundColor: Colors.light.selectcategory,
     alignItems: "center",
     justifyContent: "center",
+    marginTop: 22,
   },
   summaryTitle: {
     color: Colors.light.white,

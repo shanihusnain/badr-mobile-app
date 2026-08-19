@@ -36,6 +36,7 @@ import { FlowCardCallender } from "./FlowCardCallender";
 import { FlowCardWalletIcon } from "./FlowCardWalletIcon";
 import { FlowCardClockIcon } from "./FlowCardClockIcon";
 import { FlowCardQardHassanIcon } from "./FlowCardQardHassanIcon";
+import { FlowCardMosqueIcon } from "./FlowCardMosqueIcon";
 import { FlowCardFoodReliefIcon } from "./FlowCardFoodReleifIcon";
 import { FlowCardHandHeartIcon } from "./FlowCardHandHeartIcon";
 import { FlowCardZakatIcon } from "./FlowCardZakatIcon";
@@ -371,6 +372,7 @@ export {
   DotsWithCircle,
   PencilIcon,
   FlowCardQardHassanIcon,
+  FlowCardMosqueIcon,
   FlowCardHandHeartIcon,
   FlowCardShirtIcon,
   FlowCardZakatIcon,
