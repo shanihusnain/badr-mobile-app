@@ -224,8 +224,8 @@ export default function TahiyatAlMasjidLoggingFlow({
     switch (step) {
       case "date":
         return {
-          icon: <CalendarFlippingIcon />,
-          Icon: <CalendarFlippingIcon size={26} />,
+          icon: <CalendarFlippingIcon size={24} />,
+
           label: "Which day are you logging for?",
         };
       case "prayer-right-after":
@@ -390,6 +390,7 @@ export default function TahiyatAlMasjidLoggingFlow({
                 onForward={handleForward}
                 onConfirm={handleConfirm}
                 canGoForward={!isLastStep}
+                canGoBack={stepIndex > 0}
                 canConfirm={isLastStep && !isLogging}
                 styles={commonStyles}
                 style={commonStyles.inPlaceFlowCard}

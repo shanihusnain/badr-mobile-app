@@ -35,6 +35,7 @@ function getInnerPadding(barCount: number): number {
 function getLabelWidth(barCount: number): number {
   if (barCount <= 3) return 76;
   if (barCount <= 4) return 62;
+  if (barCount <= 6) return 52;
   return 48;
 }
 

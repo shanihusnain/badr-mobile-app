@@ -19,6 +19,7 @@ type FlowCardProps = {
   onForward: () => void;
   onConfirm: () => void;
   canGoForward: boolean;
+  canGoBack?: boolean;
   canConfirm?: boolean;
   styles: any;
   style?: StyleProp<ViewStyle>;
@@ -33,6 +34,7 @@ export const FlowCard: React.FC<FlowCardProps> = ({
   onForward,
   onConfirm,
   canGoForward,
+  canGoBack = true,
   canConfirm = true,
   styles,
   style,
@@ -56,14 +58,15 @@ export const FlowCard: React.FC<FlowCardProps> = ({
       <View style={styles.flowFooter}>
         <View style={styles.navGroup}>
           <TouchableOpacity
-            style={styles.navButton}
+            style={[styles.navButton, !canGoBack && styles.navButtonDisabled]}
             onPress={onBack}
+            disabled={!canGoBack}
             activeOpacity={0.8}
           >
             <FontAwesome
               name={i18n.language === "ar" ? "chevron-right" : "chevron-left"}
               size={12}
-              color={Colors.light.white}
+              color={canGoBack ? Colors.light.white : Colors.light.subtext }
             />
           </TouchableOpacity>
           <TouchableOpacity
@@ -83,6 +86,7 @@ export const FlowCard: React.FC<FlowCardProps> = ({
         <TouchableOpacity
           style={[
             styles.confirmButton,
+            canConfirm && styles.confirmButtonActive,
             !canConfirm && styles.navButtonDisabled,
           ]}
           onPress={onConfirm}
@@ -92,7 +96,7 @@ export const FlowCard: React.FC<FlowCardProps> = ({
           <Ionicons
             name="checkmark"
             size={18}
-            color={canConfirm ? Colors.light.white : Colors.light.subtext}
+            color={canConfirm ? Colors.light.white : Colors.light.white + "CC"}
           />
         </TouchableOpacity>
       </View>

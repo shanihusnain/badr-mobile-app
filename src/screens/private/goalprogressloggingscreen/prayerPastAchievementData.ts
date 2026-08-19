@@ -170,12 +170,12 @@ const THREE_MONTHS_ACHIEVEMENT: PrayerPastAchievement = {
 
 const SIX_MONTHS_CHART = buildPeriodChart(
   [
-    { xLabel: "m1", dateLabel: "Jun 14—Jul 11", completed: 15, timeSpent: 75 },
-    { xLabel: "m2", dateLabel: "Jul 12—Aug 8", completed: 18, timeSpent: 90 },
-    { xLabel: "m3", dateLabel: "Aug 9—Sep 5", completed: 20, timeSpent: 100 },
-    { xLabel: "m4", dateLabel: "Sept 6—Oct 3", completed: 18, timeSpent: 90 },
-    { xLabel: "m5", dateLabel: "Oct 4—31", completed: 20, timeSpent: 100 },
-    { xLabel: "m6", dateLabel: "Nov 1—28", completed: 22, timeSpent: 110 },
+    { xLabel: "m1", dateLabel: "Jun 14—\nJul 11", completed: 15, timeSpent: 75 },
+    { xLabel: "m2", dateLabel: "Jul 12—\nAug 8", completed: 18, timeSpent: 90 },
+    { xLabel: "m3", dateLabel: "Aug 9—\nSep 5", completed: 20, timeSpent: 100 },
+    { xLabel: "m4", dateLabel: "Sept 6—\nOct 3", completed: 18, timeSpent: 90 },
+    { xLabel: "m5", dateLabel: "Oct 4—\n31", completed: 20, timeSpent: 100 },
+    { xLabel: "m6", dateLabel: "Nov 1—\n28", completed: 22, timeSpent: 110 },
   ],
   132
 );

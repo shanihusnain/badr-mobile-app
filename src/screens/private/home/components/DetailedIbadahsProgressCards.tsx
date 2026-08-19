@@ -1,11 +1,11 @@
 import React from "react";
 import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import { TaperedCircleBorder } from "@/components/atoms/TaperedCircleBorder";
 import { GoalId } from "./goalsData";
-import { TahiyyatWudhuDropIcon } from "@/assets/icons/TahiyyatAlWudhuDetailedIbadahIcon";
 import { FiveDailyPrayerIDetailedIbadhasIcon } from "@/assets/icons/FiveDailyPrayerIDetailedIbadhasIcon";
 import { SunnahRawatibDetailedIbadhasIcon } from "@/assets/icons/SunnahRawatibDetailedIbadhasIcon";
 import { TahiyyatMasjidDetailedIbadhasIcon } from "@/assets/icons/TahiyyatMasjidDetailedIbadhasIcon";
@@ -36,7 +36,7 @@ export function getDetailedIbadahIcon(
 ): React.ReactNode {
   switch (goalId) {
     case "prayer-tahiyyat":
-      return <TahiyyatWudhuDropIcon color={color} size={size} />;
+      return <Ionicons name="water" size={25} color={color} />;
     case "prayer-fiveDailyPrayers":
       return <FiveDailyPrayerIDetailedIbadhasIcon color={color} size={size} />;
     case "prayer-sunnah":

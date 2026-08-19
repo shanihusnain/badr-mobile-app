@@ -639,7 +639,8 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
               key={i}
               {...c}
               icon={
-                goalId === "prayer-tahiyyat"
+                goalId === "prayer-tahiyyat" ||
+                goalId === "prayer-tahiyyatMasjid"
                   ? getTahiyyatAlWudhuInsightIcon(c)
                   : undefined
               }
@@ -1153,10 +1154,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+  
   },
   achievementBlock: {
-    gap: 8,
-    marginBottom: 4,
+    gap: 6,
+    marginTop: 6,
+    marginBottom: -2,
   },
   achievementCaption: {
     color: Colors.light.subtext,
@@ -1423,7 +1426,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   statValueIncomplete: {
-    color: INCOMPLETE_BAR_COLOR,
+    color: Colors.light.yellow,
     fontSize: 22,
     fontFamily: fonts.primary.bold,
     fontWeight: "700",
