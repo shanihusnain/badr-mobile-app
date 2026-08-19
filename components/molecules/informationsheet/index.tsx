@@ -75,14 +75,18 @@ function StatRow({
 export const InformationSheet = forwardRef<BottomSheet, Props>(
   function InformationSheet({ prayerType, onClose }, ref) {
     const { t } = useTranslation();
-    const { data, isLoading, isError } = useGetPrayerGoalInsights(prayerType, {
-      enabled: !!prayerType,
-    });
+    const { data, isLoading, isError, refetch } = useGetPrayerGoalInsights(
+      prayerType,
+      {
+        enabled: !!prayerType,
+      },
+    );
     const { data: frame } = useGetPrayerGoalFrame(prayerType, {
       enabled: !!prayerType,
     });
 
-    const achievementPct = data?.achievementPct ?? 0;
+    const achievementPct =
+      frame?.goal.achievementPct ?? data?.achievementPct ?? 0;
     const goalCount = frame?.goal.targetCount;
     const stats = data?.stats;
 
@@ -104,6 +108,11 @@ export const InformationSheet = forwardRef<BottomSheet, Props>(
         snapPoints={["85%"]}
         bgColor={Colors.light.blackBackground}
         onClose={onClose}
+        onChange={(index) => {
+          if (index >= 0) {
+            void refetch();
+          }
+        }}
       >
         {isLoading ? (
           <View style={styles.centered}>

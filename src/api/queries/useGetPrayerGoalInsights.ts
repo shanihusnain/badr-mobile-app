@@ -41,5 +41,7 @@ export const useGetPrayerGoalInsights = (
     queryKey: ["prayer-goal-insights", prayerType],
     queryFn: () => getPrayerGoalInsights(prayerType),
     enabled,
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 };

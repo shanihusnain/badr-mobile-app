@@ -2,6 +2,7 @@ import { fonts } from "@/assets/fonts";
 import MoonProgress from "@/components/atoms/MoonProgress";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { Colors } from "@/constants/theme";
+import { getProgressGlow, PROGRESS_GLOW_LAYERS } from "@/src/utils/progressGlow";
 import { globalStyles } from "@/src/globalstyles/globalstyles";
 import {
   BlurMask,
@@ -44,23 +45,6 @@ const PERCENT_FONT_SIZE = 18;
 /** Extra canvas padding so the glyph blur is never clipped into a box. */
 const GLOW_PAD = 22;
 
-/**
- * Figma neon: white glyphs + colored outer glow that follows letter shapes.
- * Silver (0–33) → Cyan (34–66) → Gold (67–99) → Glowing Gold (100)
- */
-function getProgressGlow(percent: number) {
-  if (percent >= 100) {
-    return { glow: Colors.light.golden, radius: 8 };
-  }
-  if (percent >= 67) {
-    return { glow: Colors.light.gold, radius: 6.5 };
-  }
-  if (percent >= 34) {
-    return { glow: Colors.light.lightblue, radius: 6.5 };
-  }
-  return { glow: Colors.light.white, radius: 6 };
-}
-
 function GlowingProgressPercent({ percent }: { percent: number }) {
   const font = useFont(
     require("@/assets/fonts/SF-Pro-Text-Semibold.otf"),
@@ -93,29 +77,19 @@ function GlowingProgressPercent({ percent }: { percent: number }) {
         },
       ]}
     >
-      <SkiaText
-        text={label}
-        x={x}
-        y={y}
-        font={font}
-        color={glow}
-        opacity={0.35}
-      >
-        <BlurMask blur={radius * 2.2} style="solid" />
-      </SkiaText>
-      <SkiaText
-        text={label}
-        x={x}
-        y={y}
-        font={font}
-        color={glow}
-        opacity={0.55}
-      >
-        <BlurMask blur={radius * 1.25} style="solid" />
-      </SkiaText>
-      <SkiaText text={label} x={x} y={y} font={font} color={glow} opacity={0.9}>
-        <BlurMask blur={radius * 0.55} style="solid" />
-      </SkiaText>
+      {PROGRESS_GLOW_LAYERS.map((layer) => (
+        <SkiaText
+          key={`glow-${layer.blurMul}`}
+          text={label}
+          x={x}
+          y={y}
+          font={font}
+          color={glow}
+          opacity={layer.opacity}
+        >
+          <BlurMask blur={radius * layer.blurMul} style="solid" />
+        </SkiaText>
+      ))}
       <SkiaText
         text={label}
         x={x}

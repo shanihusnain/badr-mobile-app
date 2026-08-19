@@ -61,6 +61,7 @@ export const HeaderWithCrossTitleDynamicIcon = ({
             fontFamily: fonts.primary.semiBold,
             fontSize: 14,
             letterSpacing: letterSpacing,
+            textAlign: "center",
           }}
         >
           {!!titleHighlight && (
@@ -94,7 +95,8 @@ export const HeaderWithCrossTitleDynamicIcon = ({
         width: 36,
         height: 36,
         borderRadius: 18,
-        backgroundColor: leftButtonBackground ?? Colors.light.greybuttonBackground,
+        backgroundColor:
+          leftButtonBackground ?? Colors.light.greybuttonBackground,
         justifyContent: "center",
         alignItems: "center",
         zIndex: 10,
@@ -124,11 +126,7 @@ export const HeaderWithCrossTitleDynamicIcon = ({
         hitSlop={8}
       >
         {rightIcon ?? (
-          <Feather
-            name={rightIconName!}
-            size={18}
-            color={Colors.light.white}
-          />
+          <Feather name={rightIconName!} size={18} color={Colors.light.white} />
         )}
       </Pressable>
     ) : null}

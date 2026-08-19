@@ -38,6 +38,8 @@ import {
   WhiteTimerIcon,
 } from "@/assets/icons";
 import { FiveDailyPrayerIDetailedIbadhasIcon } from "@/assets/icons/FiveDailyPrayerIDetailedIbadhasIcon";
+import { useLogFiveDailyPrayersGoal } from "@/src/api/mutations/useLogFiveDailyPrayersGoal";
+import type { FiveDailyPrayerSlot } from "@/src/api/mutations/useLogFiveDailyPrayersGoal";
 
 const STEPS: LogStepId[] = [
   "date",
@@ -55,6 +57,14 @@ type Props = {
 
 type FlowMode = "collapsed" | "active";
 
+const PRAYER_TO_SLOT: Record<PrayerName, FiveDailyPrayerSlot> = {
+  fajr: "FAJR",
+  dhuhr: "DHUHR",
+  asr: "ASR",
+  maghrib: "MAGHRIB",
+  isha: "ISHA",
+};
+
 const toDateString = (date: Date) => moment(date).format("YYYY-MM-DD");
 
 export default function FiveDailyPrayersLoggingFlow({
@@ -62,6 +72,8 @@ export default function FiveDailyPrayersLoggingFlow({
   onLogComplete,
 }: Props) {
   const { t } = useTranslation();
+  const { mutateAsync: logFiveDailyPrayers, isPending: isLogging } =
+    useLogFiveDailyPrayersGoal();
 
   const [flowMode, setFlowMode] = useState<FlowMode>("collapsed");
   const [stepIndex, setStepIndex] = useState(0);
@@ -152,19 +164,60 @@ export default function FiveDailyPrayersLoggingFlow({
     setDurationMinutes("10");
   }, []);
 
+  const formatStartTimeForApi = () => {
+    const hourNum = parseInt(startHour || "0", 10) || 0;
+    const minuteNum = parseInt(startMinute || "0", 10) || 0;
+
+    let hour24 = hourNum % 12;
+    if (startPeriod === "pm") hour24 += 12;
+
+    const hh = String(Math.max(0, hour24)).padStart(2, "0");
+    const mm = String(Math.max(0, minuteNum)).padStart(2, "0");
+    return `${hh}:${mm}`;
+  };
+
+  const buildDurationMinutesForApi = () => {
+    const h = parseInt(durationHours || "0", 10) || 0;
+    const m = parseInt(durationMinutes || "0", 10) || 0;
+    return h * 60 + m;
+  };
+
   const handleConfirm = () => {
-    onLogComplete?.({
-      type: "five-daily-prayers",
-      goalId: goalData.id,
-      date: selectedDate,
-      prayer: selectedPrayer,
-      timing,
-      congregation,
-      startTime: `${startHour}:${startMinute} ${startPeriod}`,
-      duration: `${durationHours}h ${durationMinutes}m`,
-    });
-    prayerFrame?.refetch();
-    resetFlow();
+    if (isLogging) return;
+
+    const run = async () => {
+      const prayedOnTime = timing === "onTime";
+      const payload = {
+        date: selectedDate,
+        prayerSlot: PRAYER_TO_SLOT[selectedPrayer],
+        prayedOnTime,
+        wasQadha: !prayedOnTime,
+        wasCongregational: congregation === "yes",
+        startTime: formatStartTimeForApi(),
+        durationMinutes: buildDurationMinutesForApi(),
+      };
+
+      try {
+        await logFiveDailyPrayers(payload);
+        await prayerFrame?.refetch();
+
+        onLogComplete?.({
+          type: "five-daily-prayers",
+          goalId: goalData.id,
+          date: selectedDate,
+          prayer: selectedPrayer,
+          timing,
+          congregation,
+          startTime: payload.startTime,
+          duration: `${durationHours}h ${durationMinutes}m`,
+        });
+        resetFlow();
+      } catch {
+        // onError handler already shows toast.
+      }
+    };
+
+    void run();
   };
 
   const handleBack = () => {
@@ -426,7 +479,7 @@ export default function FiveDailyPrayersLoggingFlow({
                 onForward={handleForward}
                 onConfirm={handleConfirm}
                 canGoForward={!isLastStep}
-                canConfirm={isLastStep}
+                canConfirm={isLastStep && !isLogging && !isFullyAchieved}
                 styles={commonStyles}
                 style={commonStyles.inPlaceFlowCard}
               >

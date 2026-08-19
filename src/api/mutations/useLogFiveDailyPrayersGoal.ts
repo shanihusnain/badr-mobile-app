@@ -2,29 +2,36 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "..";
 import { getApiErrorMessage, showToast } from "@/src/config/toastConfig";
 
-export type LogTahiyatAlWudhuPayload = {
+export type FiveDailyPrayerSlot =
+  | "FAJR"
+  | "DHUHR"
+  | "ASR"
+  | "MAGHRIB"
+  | "ISHA";
+
+export type LogFiveDailyPrayersPayload = {
   date: string; // YYYY-MM-DD
-  count: number;
-  prayedAfterWudhu: boolean;
+  prayerSlot: FiveDailyPrayerSlot;
+  prayedOnTime: boolean;
+  wasQadha: boolean;
+  wasCongregational: boolean;
   startTime: string; // HH:mm (24h)
   durationMinutes: number;
-  notes?: string;
 };
 
-const logTahiyatAlWudhu = async (payload: LogTahiyatAlWudhuPayload) => {
+const logFiveDailyPrayers = async (payload: LogFiveDailyPrayersPayload) => {
   const response = await api.post(
-    "api/goal-cycles/current/prayer-goals/TAHIYYAT_AL_WUDHU/log",
+    "api/goal-cycles/current/prayer-goals/FIVE_DAILY_PRAYERS/log",
     payload,
   );
   return response.data;
 };
 
-export const useLogTahiyatAlWudhuGoal = () => {
+export const useLogFiveDailyPrayersGoal = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: logTahiyatAlWudhu,
+    mutationFn: logFiveDailyPrayers,
     onSuccess: () => {
-      // Green card (frame/week) and dashboard should update after logging.
       queryClient.invalidateQueries({ queryKey: ["prayer-goal-frame"] });
       queryClient.invalidateQueries({ queryKey: ["prayer-goal-achievements"] });
       queryClient.invalidateQueries({ queryKey: ["all-prayer-goals"] });
@@ -39,4 +46,3 @@ export const useLogTahiyatAlWudhuGoal = () => {
     },
   });
 };
-
