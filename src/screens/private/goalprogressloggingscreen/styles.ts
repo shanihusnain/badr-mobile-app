@@ -39,6 +39,10 @@ export const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
   },
+  heroBackgroundScrim: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0, 0, 0, 0.55)",
+  },
   goalInfoContainer: {
     alignItems: "center",
     justifyContent: "center",

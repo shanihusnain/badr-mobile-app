@@ -16,7 +16,10 @@ import { DateStep } from "../components/DateStep";
 import { MissedPrayersQuantityStep } from "../components/MissedPrayersQuantityStep";
 import { StartTimeStep, DurationStep } from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
-import { styles as commonStyles } from "../components/DailyProgressLogging.styles";
+import {
+  styles as commonStyles,
+  FLOW_CARD_HEIGHT,
+} from "../components/DailyProgressLogging.styles";
 import { fonts } from "@/assets/fonts";
 import type { ProgressLogEntry } from "../types";
 import { PrayerName } from "../progressLoggingConfig";
@@ -333,13 +336,7 @@ export default function MissedPrayersLoggingFlow({
   return (
     <>
       {flowMode === "active" && (
-        <TouchableOpacity
-          style={commonStyles.cancelButton}
-          onPress={resetFlow}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="close" size={20} color={Colors.light.white} />
-        </TouchableOpacity>
+        <Pressable style={commonStyles.backdrop} onPress={resetFlow} />
       )}
 
       <View style={commonStyles.section}>
@@ -424,20 +421,20 @@ export default function MissedPrayersLoggingFlow({
                 ) : (
                   <View style={localStyles.spacer} />
                 )}
-              </View>
 
-              <TouchableOpacity
-                style={[
-                  localStyles.addButton,
-                  frameLoading && localStyles.addButtonDisabled,
-                  isCompleted && localStyles.addButtonDisabled,
-                ]}
-                onPress={handleOpenFlow}
-                activeOpacity={0.8}
-                disabled={frameLoading || isCompleted}
-              >
-                <AddLoggingFlowIcon />
-              </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    localStyles.addButton,
+                    frameLoading && localStyles.addButtonDisabled,
+                    isCompleted && localStyles.addButtonDisabled,
+                  ]}
+                  onPress={handleOpenFlow}
+                  activeOpacity={0.8}
+                  disabled={frameLoading || isCompleted}
+                >
+                  <AddLoggingFlowIcon />
+                </TouchableOpacity>
+              </View>
             </View>
           ) : (
             <View style={commonStyles.flowCardLayer}>
@@ -463,10 +460,6 @@ export default function MissedPrayersLoggingFlow({
           )}
         </View>
       </View>
-
-      {flowMode === "active" && (
-        <Pressable style={commonStyles.backdrop} onPress={resetFlow} />
-      )}
     </>
   );
 }
@@ -474,14 +467,12 @@ export default function MissedPrayersLoggingFlow({
 const localStyles = StyleSheet.create({
   summaryCard: {
     backgroundColor: Colors.light.green,
-    borderRadius: 14,
+    borderRadius: 8,
     padding: 16,
-    paddingBottom: 12,
-    gap: 8,
-    height: 145,
+    gap: 12,
+    height: FLOW_CARD_HEIGHT,
+    width: "100%",
     justifyContent: "space-between",
-    overflow: "hidden",
-    position: "relative",
   },
   badge: {
     paddingHorizontal: 8,
@@ -520,9 +511,10 @@ const localStyles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: Colors.light.blackBackground, // Dark grey background for icon
+    backgroundColor: Colors.light.selectcategory,
     alignItems: "center",
     justifyContent: "center",
+    marginTop: 22,
   },
   titleContainer: {
     flex: 1,
@@ -556,7 +548,6 @@ const localStyles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "flex-end",
     marginTop: 4,
-    paddingRight: 40,
   },
   insightsBtn: {
     flexDirection: "row",
@@ -571,9 +562,6 @@ const localStyles = StyleSheet.create({
     fontWeight: "700",
   },
   addButton: {
-    position: "absolute",
-    right: 16,
-    bottom: 12,
     width: 32,
     height: 32,
     borderRadius: 16,

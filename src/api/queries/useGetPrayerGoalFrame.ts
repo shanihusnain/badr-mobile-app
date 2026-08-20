@@ -40,7 +40,7 @@ export type PrayerGoalFrameData = {
   week: {
     thisWeekTotal?: number;
     thisWeekOnTime?: number;
-    vsLastWeek: number;
+    vsLastWeek: number | null;
     currentStreak: number;
     motivationalMessage: string;
     days: PrayerGoalFrameDay[];
@@ -58,7 +58,7 @@ const getPrayerGoalFrame = async (
       params: week != null ? { week } : undefined,
     },
   );
-  console.log("response", response.data?.data);
+  console.log("response", JSON.stringify(response.data?.data, null, 2));
   return response.data?.data ?? null;
 };
 

@@ -21,6 +21,7 @@ import tawbahprayerbottomsheetimage from "./tawbahprayerbottomsheetimage.png";
 import istikharaprayerbottomsheetimage from "./istikharaprayerbottomsheetimage.png";
 import shukarprayerbottomsheetimage from "./shukarprayerbottomsheetimage.png";
 import fivedailyprayerbottomsheetimage from "./fivedailyprayerbottomsheetimage.png";
+import fivedailyprayerdetailimage from "./fivedailyprayerdetailimage.png";
 import qiyamallaylbottomsheetimage from "./qiyamallaylbottomsheetimage.png";
 import quranlisteningbottomsheetimage from "./quranlisteningbottomsheetimage.png";
 import quranrecitationbottomsheetimage from "./quranrecitationbottomsheetimage.png";
@@ -70,6 +71,7 @@ export {
   istikharaprayerbottomsheetimage,
   shukarprayerbottomsheetimage,
   fivedailyprayerbottomsheetimage,
+  fivedailyprayerdetailimage,
   qiyamallaylbottomsheetimage,
   qiyamallayldetailimage,
   duhaprayerdetailimage,
