@@ -144,9 +144,9 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   iconWrapper: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
     marginRight: 12,
@@ -187,6 +187,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     alignSelf: "center",
+    marginRight: 10,
   },
   percentTextContainer: {
     flexDirection: "row",

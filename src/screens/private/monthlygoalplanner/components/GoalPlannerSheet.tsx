@@ -1691,13 +1691,6 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         const next = goals[index + 1];
         if (!next?.id || next.isLoadingPlaceholder) return;
 
-        const alreadyOn = Boolean(
-          selectedGoalsRef.current[next.id] ?? next.isSelected,
-        );
-        if (!alreadyOn) {
-          enableGoalInActiveTabRef.current(next);
-        }
-
         setTimeout(() => scrollToGoalItemIdRef.current(next.id), 450);
         setTimeout(() => scrollToGoalItemIdRef.current(next.id), 950);
         setTimeout(() => scrollToGoalItemIdRef.current(next.id), 1500);
@@ -2556,7 +2549,6 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                   selectedStartDate={cycleStartDate}
                   selectedEndDate={cycleEndDate}
                   backendStartDate={goalCycleDetail?.startDate ?? null}
-                  showCycleRangeFooter={hasCommittedCycle}
                   onDateSelect={handleCycleDateSelect}
                   onCommit={() => {
                     setHasCommittedCycle(true);

@@ -8,10 +8,9 @@ import {
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import { TaperedCircleBorder } from "@/components/atoms/TaperedCircleBorder";
 import { useTypedTranslation } from "@/i18next/useTypedTranslation";
 import { styles } from "../styles";
-import { ShootIcon } from "@/assets/icons/ShootIcon";
+import { FabButtonShootIcon } from "@/assets/icons/FabButtonShootIcon";
 import { JournalBookIconGoldenFabButtonIcon } from "@/assets/icons/JournalBookIconGoldenFabButtonIcon";
 import { HomeScreenGlowyMinusIcon, PlusGlowyIcon } from "@/assets/icons";
 
@@ -20,6 +19,13 @@ const FAB_SPRING_CONFIG = {
   tension: 40,
   useNativeDriver: true as const,
 };
+
+const FAB_SIZE = 95;
+const FAB_RIGHT =9;
+const FAB_BOTTOM_OFFSET = 9;
+const OPTION_SIZE = 44;
+const MENU_GAP_ABOVE_FAB = -3;
+const MENU_ROW_GAP = 17;
 
 type Props = {
   bottomInset: number;
@@ -49,12 +55,18 @@ function HomeFabSpeedDialComponent({
   );
 
   const menuBottomStyle = useMemo(
-    () => ({ bottom: bottomInset + 100 }),
+    () => ({
+      bottom: bottomInset + FAB_BOTTOM_OFFSET + FAB_SIZE + MENU_GAP_ABOVE_FAB,
+      right: FAB_RIGHT + (FAB_SIZE - OPTION_SIZE) / 2,
+    }),
     [bottomInset],
   );
 
   const fabBottomStyle = useMemo(
-    () => ({ bottom: bottomInset + 20 }),
+    () => ({
+      bottom: bottomInset + FAB_BOTTOM_OFFSET,
+      right: FAB_RIGHT,
+    }),
     [bottomInset],
   );
 
@@ -126,6 +138,7 @@ function HomeFabSpeedDialComponent({
             {
               opacity: fabAnimation,
               transform: [{ translateY: fabTranslateY }],
+              gap: MENU_ROW_GAP,
             },
           ]}
         >
@@ -138,7 +151,7 @@ function HomeFabSpeedDialComponent({
               {t("homeScreen.setNextMonthsGoals")}
             </Text>
             <View style={styles.fabOptionIconContainer}>
-              <ShootIcon size={28} Color="white" />
+              <FabButtonShootIcon size={22} color="white" />
             </View>
           </TouchableOpacity>
 
@@ -151,7 +164,17 @@ function HomeFabSpeedDialComponent({
               {t("homeScreen.completeYourJournal")}
             </Text>
             <View style={styles.fabOptionIconContainer}>
-              <JournalBookIconGoldenFabButtonIcon size={24} color="white" />
+              <View
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  transform: [{ translateX: 3 }],
+                }}
+              >
+                <JournalBookIconGoldenFabButtonIcon size={23} color="white" />
+              </View>
             </View>
           </TouchableOpacity>
 
@@ -164,7 +187,7 @@ function HomeFabSpeedDialComponent({
               {t("homeScreen.addDailyProgress")}
             </Text>
             <View style={styles.fabOptionIconContainer}>
-              <Ionicons name="add" size={24} color="white" />
+              <MaterialCommunityIcons name="plus" size={26} color="white" />
             </View>
           </TouchableOpacity>
         </Animated.View>
@@ -177,12 +200,6 @@ function HomeFabSpeedDialComponent({
         accessibilityRole="button"
         accessibilityState={{ expanded: isExpanded }}
       >
-        {/* <TaperedCircleBorder variant="golden" size={30}>
-          <View style={styles.goldenFabInner}>
-            <Text style={styles.goldenFabPlus}>{isExpanded ? "−" : "+"}</Text>
-          </View>
-        </TaperedCircleBorder> */}
-
         {!isExpanded ? <PlusGlowyIcon /> : <HomeScreenGlowyMinusIcon />}
       </TouchableOpacity>
     </>

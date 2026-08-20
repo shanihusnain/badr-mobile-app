@@ -72,6 +72,7 @@ export const IbadahsProgressCard = ({
 const styles = StyleSheet.create({
     cardContainer: {
         width: "100%",
+        //height: 72,
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
@@ -88,9 +89,9 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     iconWrapper: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
+        width: 32,
+        height: 32,
+        borderRadius: 16,
         alignItems: "center",
         justifyContent: "center",
         marginRight: 12,
@@ -102,7 +103,7 @@ const styles = StyleSheet.create({
         color: Colors.light.white,
         fontFamily: fonts.primary.semiBold,
         fontWeight: "700",
-        fontSize: 14,
+        fontSize: 15,
         letterSpacing: 0.5,
         textTransform: "uppercase",
         marginBottom: 2,
@@ -110,7 +111,7 @@ const styles = StyleSheet.create({
     subtitle: {
         color: Colors.light.subtext,
         fontFamily: fonts.primary.regular,
-        fontSize: 13,
+        fontSize: 14,
     },
     rightSection: {
         justifyContent: "center",
