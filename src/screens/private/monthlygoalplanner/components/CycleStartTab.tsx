@@ -24,8 +24,6 @@ type Props = {
   selectedEndDate?: string | null;
   /** Original cycle start date from the backend (YYYY-MM-DD). */
   backendStartDate?: string | null;
-  /** Show the "cycle will run from X to Y" line after the user has committed. */
-  showCycleRangeFooter?: boolean;
 };
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -36,7 +34,6 @@ export const CycleStartTab = ({
   selectedStartDate = null,
   selectedEndDate = null,
   backendStartDate = null,
-  showCycleRangeFooter = false,
 }: Props) => {
   const { t, i18n } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -44,12 +41,13 @@ export const CycleStartTab = ({
     () => moment().add(1, "day").format("YYYY-MM-DD"),
     [],
   );
-  const [localCycleStartDate, setLocalCycleStartDate] = useState<string>(
-    selectedStartDate ?? tomorrowDateString,
+  const [localCycleStartDate, setLocalCycleStartDate] = useState<string | null>(
+    selectedStartDate,
   );
   const cycleStartDate = selectedStartDate ?? localCycleStartDate;
-  const [windowStartDate, setWindowStartDate] =
-    useState<string>(cycleStartDate);
+  const [windowStartDate, setWindowStartDate] = useState<string>(
+    selectedStartDate ?? tomorrowDateString,
+  );
   const [changeCycleModalVisible, setChangeCycleModalVisible] = useState(false);
 
   const { mutateAsync: startEditCycle, isPending: isStartEditCyclePending } =
@@ -80,15 +78,6 @@ export const CycleStartTab = ({
     setLocalCycleStartDate(selectedStartDate);
     setWindowStartDate(selectedStartDate);
   }, [selectedStartDate]);
-
-  // New user path: default cycle starts tomorrow and is lifted to parent once.
-  useEffect(() => {
-    if (selectedStartDate) return;
-    const endDate = moment(localCycleStartDate, "YYYY-MM-DD")
-      .add(27, "days")
-      .format("YYYY-MM-DD");
-    onDateSelect?.(localCycleStartDate, endDate);
-  }, [localCycleStartDate, onDateSelect, selectedStartDate]);
 
   const handleDayPress = useCallback(
     (dateString: string) => {
@@ -281,7 +270,7 @@ export const CycleStartTab = ({
         endDate={cycleEndDateString ?? undefined}
         onDayPress={handleDayPress}
         footer={
-          showCycleRangeFooter && cycleStartDate ? (
+          cycleStartDate ? (
             <Text
               style={[
                 styles.infoText,
