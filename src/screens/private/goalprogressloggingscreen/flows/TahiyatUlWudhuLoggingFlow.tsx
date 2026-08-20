@@ -15,7 +15,10 @@ import { DateStep } from "../components/DateStep";
 import { OptionSelectStep } from "../components/OptionSelectStep";
 import { StartTimeStep, DurationStep } from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
-import { styles as commonStyles } from "../components/DailyProgressLogging.styles";
+import {
+  styles as commonStyles,
+  FLOW_CARD_HEIGHT,
+} from "../components/DailyProgressLogging.styles";
 import { fonts } from "@/assets/fonts";
 import type { ProgressLogEntry } from "../types";
 import { useOptionalPrayerGoalFrameContext } from "../prayerGoalFrameContext";
@@ -309,14 +312,9 @@ export default function TahiyatUlWudhuLoggingFlow({
   return (
     <>
       {flowMode === "active" && (
-        <TouchableOpacity
-          style={commonStyles.cancelButton}
-          onPress={resetFlow}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="close" size={20} color={Colors.light.white} />
-        </TouchableOpacity>
+        <Pressable style={commonStyles.backdrop} onPress={resetFlow} />
       )}
+
       <View style={commonStyles.section}>
         <Text style={commonStyles.sectionTitle}>
           {t("progressLogging.myProgress")}
@@ -413,10 +411,6 @@ export default function TahiyatUlWudhuLoggingFlow({
           )}
         </View>
       </View>
-
-      {flowMode === "active" && (
-        <Pressable style={commonStyles.backdrop} onPress={resetFlow} />
-      )}
     </>
   );
 }
@@ -424,10 +418,11 @@ export default function TahiyatUlWudhuLoggingFlow({
 const localStyles = StyleSheet.create({
   summaryCard: {
     backgroundColor: Colors.light.green,
-    borderRadius: 14,
+    borderRadius: 8,
     padding: 16,
     gap: 12,
-    height: 145,
+    height: FLOW_CARD_HEIGHT,
+    width: "100%",
     justifyContent: "space-between",
   },
   badge: {

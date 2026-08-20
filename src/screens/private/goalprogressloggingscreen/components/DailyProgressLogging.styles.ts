@@ -2,10 +2,9 @@ import { StyleSheet, Dimensions } from "react-native";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 
-export const FLOW_CARD_HEIGHT = 145;
-
 const WINDOW = Dimensions.get("window");
 const OVERLAY_COVER_HEIGHT = WINDOW.height * 4;
+export const FLOW_CARD_HEIGHT = WINDOW.height * 0.19;
 
 export const styles = StyleSheet.create({
   backdrop: {
@@ -20,29 +19,37 @@ export const styles = StyleSheet.create({
   },
   section: {
     width: "100%",
-    paddingHorizontal: 16,
+    alignSelf: "stretch",
+    paddingHorizontal: 0,
     marginTop: 8,
     overflow: "visible",
-    flexGrow: 1,
+    marginBottom: 10,
   },
   activeSection: {
     zIndex: 100,
     position: "relative",
     overflow: "visible",
   },
+  /**
+   * Shared card frame for collapsed + active logging cards.
+   * Other goal-card components also reuse this anchor.
+   */
   cardAnchor: {
-    width: "72%",
-    alignSelf: "flex-start",
-    minHeight: 155,
+    width: "66%",
+    alignSelf: "stretch",
+    height: FLOW_CARD_HEIGHT,
     position: "relative",
     zIndex: 101,
     elevation: 12,
     overflow: "visible",
+    paddingLeft: 16,
   },
   flowCardLayer: {
     position: "relative",
     zIndex: 101,
     elevation: 12,
+    width: "100%",
+    height: FLOW_CARD_HEIGHT,
   },
   flowCardLayerDropdownOpen: {
     zIndex: 200,
@@ -70,12 +77,13 @@ export const styles = StyleSheet.create({
     lineHeight: 20,
     marginBottom: 12,
     marginLeft: 4,
+    paddingHorizontal: 16,
   },
   summaryCard: {
     backgroundColor: Colors.light.green,
-    borderRadius: 12,
+    borderRadius: 8,
     padding: 14,
-    minHeight: 155,
+    height: FLOW_CARD_HEIGHT,
     position: "relative",
     width: "100%",
   },
@@ -152,22 +160,21 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
   },
   flowCard: {
-    backgroundColor: Colors.light.green,
+    backgroundColor: Colors.light.mildGreen,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingTop: 8,
     paddingBottom: 6,
+    width: "100%",
+    alignSelf: "stretch",
     height: FLOW_CARD_HEIGHT,
-    width: "80%",
-    alignSelf: "flex-start",
-    marginLeft: -8,
-    overflow: "visible",
+    overflow: "hidden",
   },
   inPlaceFlowCard: {
     width: "100%",
     marginLeft: 0,
     height: FLOW_CARD_HEIGHT,
-    overflow: "visible",
+    overflow: "hidden",
   },
   flowCardDropdownOpen: {
     overflow: "visible",
@@ -272,11 +279,13 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    paddingHorizontal: 2,
+    width: "100%",
+    paddingHorizontal: 0,
   },
   prayerColumn: {
+    flex: 1,
     alignItems: "center",
-    width: 44,
+    minWidth: 0,
     position: "relative",
   },
   prayerLabel: {
@@ -315,7 +324,8 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 32,
+    gap: 20,
+    width: "100%",
   },
   timingOption: {
     flexDirection: "row",

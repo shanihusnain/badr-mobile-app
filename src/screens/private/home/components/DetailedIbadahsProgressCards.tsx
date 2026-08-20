@@ -56,9 +56,7 @@ export function getDetailedIbadahIcon(
     case "prayer-qiyam":
       return <QiyamAlLaylDetailedIbadhasIcon color={color} size={size} />;
     default:
-      return (
-        <FontAwesome6 name="person-praying" size={size} color={color} />
-      );
+      return <FontAwesome6 name="person-praying" size={size} color={color} />;
   }
 }
 
@@ -109,9 +107,9 @@ export const DetailedIbadahsProgressCard = ({
       <View style={styles.rightSection}>
         <TaperedCircleBorder
           percentage={percentage}
-          progressColor={progressColor}
           borderColor={Colors.light.dullWhiteOpacity}
-          size={25}
+          size={50}
+          variant="illuminated"
         >
           <View style={styles.percentTextContainer}>
             <Text style={styles.percentText}>{percentNum}</Text>
@@ -135,6 +133,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 19,
     marginBottom: 12,
+    overflow: "hidden",
   },
   leftSection: {
     flexDirection: "row",
@@ -188,6 +187,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     alignSelf: "center",
     marginRight: 10,
+    overflow: "visible",
   },
   percentTextContainer: {
     flexDirection: "row",
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
   percentText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: "600",
   },
   percentSymbol: {

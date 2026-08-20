@@ -328,20 +328,6 @@ export default function DailyProgressLogging({
       <Text style={styles.sectionTitle}>{t("progressLogging.myProgress")}</Text>
 
       <View style={styles.cardAnchor}>
-        {flowMode === "active" && (
-          <Pressable style={styles.backdrop} onPress={resetFlow} />
-        )}
-
-        {flowMode === "active" && (
-          <TouchableOpacity
-            style={styles.cancelButton}
-            onPress={resetFlow}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="close" size={20} color={Colors.light.white} />
-          </TouchableOpacity>
-        )}
-
         {flowMode === "collapsed" ? (
           <View style={styles.summaryCard}>
             <View style={styles.badge}>
@@ -386,20 +372,32 @@ export default function DailyProgressLogging({
             </TouchableOpacity>
           </View>
         ) : (
-          <View style={styles.flowCardLayer}>
-            <FlowCard
-              headerIcon={header.icon}
-              headerLabel={header.label}
-              onBack={handleBack}
-              onForward={handleForward}
-              onConfirm={handleConfirm}
-              canGoForward={!isLastStep}
-              styles={styles}
-              style={styles.inPlaceFlowCard}
+          <>
+            <Pressable style={styles.backdrop} onPress={resetFlow} />
+
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={resetFlow}
+              activeOpacity={0.8}
             >
-              {renderStepContent(currentStep)}
-            </FlowCard>
-          </View>
+              <Ionicons name="close" size={20} color={Colors.light.white} />
+            </TouchableOpacity>
+
+            <View style={styles.flowCardLayer}>
+              <FlowCard
+                headerIcon={header.icon}
+                headerLabel={header.label}
+                onBack={handleBack}
+                onForward={handleForward}
+                onConfirm={handleConfirm}
+                canGoForward={!isLastStep}
+                styles={styles}
+                style={styles.inPlaceFlowCard}
+              >
+                {renderStepContent(currentStep)}
+              </FlowCard>
+            </View>
+          </>
         )}
       </View>
     </View>
