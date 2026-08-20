@@ -234,14 +234,17 @@ function taperedRibbonPath(
 /** Path glyph sits inset in the 22×22 viewBox (drawn ~4–18). */
 const TICK_PATH_INSET = 14 / 22;
 
-function useScaledPath(d: string | undefined, scale: number) {
+function useScaledPath(d: string | undefined, scale: number, translate = 0) {
   return useMemo(() => {
     if (!d) return null;
     const path = Skia.Path.MakeFromSVGString(d);
     if (!path) return null;
     path.transform(Skia.Matrix().scale(scale, scale));
+    if (translate) {
+      path.offset(translate, translate);
+    }
     return path;
-  }, [d, scale]);
+  }, [d, scale, translate]);
 }
 
 function NeonFill({
@@ -319,15 +322,19 @@ function IlluminatedProgressGlow({
   percent,
   canvasSize,
   canvasOffset,
+  contentSize,
   openAtTop = false,
   topGapDeg = 0,
+  blurScale = 1,
 }: {
   sweep: number;
   percent: number;
   canvasSize: number;
   canvasOffset: number;
+  contentSize?: number;
   openAtTop?: boolean;
   topGapDeg?: number;
+  blurScale?: number;
 }) {
   const gapDeg = openAtTop ? Math.max(8, topGapDeg) : 0;
   const startDeg = gapDeg / 2;
@@ -335,7 +342,9 @@ function IlluminatedProgressGlow({
     ? Math.min(Math.max(sweep - gapDeg, 0.01), 360 - gapDeg)
     : sweep;
   const isClosedRing = !openAtTop && sweep >= 359.5;
-  const scale = canvasSize / 80;
+  const ringSize = contentSize ?? canvasSize;
+  const origin = (canvasSize - ringSize) / 2;
+  const scale = ringSize / 80;
   const { glow, radius } = getProgressGlow(percent);
   const glowD =
     isClosedRing || arcSweep <= 0
@@ -355,13 +364,14 @@ function IlluminatedProgressGlow({
           startDeg,
           openAtTop,
         );
-  const glowPath = useScaledPath(glowD, scale);
-  const corePath = useScaledPath(coreD, scale);
-  const cx = CX * scale;
-  const cy = CY * scale;
+  const glowPath = useScaledPath(glowD, scale, origin);
+  const corePath = useScaledPath(coreD, scale, origin);
+  const cx = CX * scale + origin;
+  const cy = CY * scale + origin;
   const r = RADIUS * scale;
   const stroke = ILLUMINATED_CORE_WIDTH * scale;
   const glowStroke = stroke * 3.4;
+  const blur = (mul: number) => radius * mul * blurScale;
 
   return (
     <Canvas
@@ -389,7 +399,7 @@ function IlluminatedProgressGlow({
               strokeWidth={glowStroke}
               color={glow}
               opacity={layer.opacity}
-              blur={radius * layer.blurMul}
+              blur={blur(layer.blurMul)}
             />
           ))}
           <NeonStrokeCircle
@@ -408,7 +418,7 @@ function IlluminatedProgressGlow({
               path={glowPath}
               color={glow}
               opacity={layer.opacity}
-              blur={radius * layer.blurMul}
+              blur={blur(layer.blurMul)}
             />
           ))}
           <NeonFill path={corePath} color={Colors.light.white} />
@@ -552,15 +562,26 @@ export const TaperedCircleBorder: React.FC<TaperedCircleBorderProps> = ({
   const uid = useId().replace(/:/g, "");
   const blurId = `glowBlur-${uid}`;
 
-  const glowPad = isIlluminated ? ILLUMINATED_GLOW_PAD : GLOW_PAD;
+  // Compact rings get the same Skia neon, with a smaller pad so the
+  // canvas stays inside the card instead of size + 72.
+  const compactIlluminated = isIlluminated && size < 80;
+  const glowPad = isIlluminated
+    ? compactIlluminated
+      ? Math.max(10, Math.round(size * 0.32))
+      : ILLUMINATED_GLOW_PAD
+    : GLOW_PAD;
   const svgSize = size + glowPad * 2;
   const svgOffset = -glowPad;
-  const radiusPx = (RADIUS / 80) * svgSize;
+  const trackSize = compactIlluminated ? size : svgSize;
+  const trackOffset = compactIlluminated ? 0 : svgOffset;
+  const useSvgGlowFilter = !isIlluminated && hasGlow;
+  const radiusPx = (RADIUS / 80) * (compactIlluminated ? size : svgSize);
   const arcD = arcPath(RADIUS, 0, sweep);
   const segmentArcs =
     useSegments && segments ? buildSegmentArcs(segments, segmentTotal) : [];
   // Check + top gap: 100% illuminated rings only. Never at 99% or below.
-  const showCompleteCheck = isIlluminated && percent === 100;
+  const showCompleteCheck =
+    isIlluminated && !compactIlluminated && percent === 100;
   const checkSize = Math.max(28, Math.round(size * (34 / 174)));
   const visualTickPx = checkSize * TICK_PATH_INSET;
   // Arc gap slightly smaller than the glyph so both ends tuck into the icon.
@@ -582,16 +603,18 @@ export const TaperedCircleBorder: React.FC<TaperedCircleBorderProps> = ({
       ) : null}
 
       <Svg
-        width={svgSize}
-        height={svgSize}
+        width={trackSize}
+        height={trackSize}
         viewBox="0 0 80 80"
-        style={[styles.svg, { top: svgOffset, left: svgOffset }]}
+        style={[styles.svg, { top: trackOffset, left: trackOffset }]}
       >
-        <Defs>
-          <Filter id={blurId} x="-90%" y="-90%" width="280%" height="280%">
-            <FeGaussianBlur in="SourceGraphic" stdDeviation={GLOW_BLUR_STD} />
-          </Filter>
-        </Defs>
+        {useSvgGlowFilter ? (
+          <Defs>
+            <Filter id={blurId} x="-20%" y="-20%" width="140%" height="140%">
+              <FeGaussianBlur in="SourceGraphic" stdDeviation={GLOW_BLUR_STD} />
+            </Filter>
+          </Defs>
+        ) : null}
 
         {!isGolden && !useSegments && !showCompleteCheck ? (
           <Circle
@@ -663,8 +686,10 @@ export const TaperedCircleBorder: React.FC<TaperedCircleBorderProps> = ({
           percent={percent}
           canvasSize={svgSize}
           canvasOffset={svgOffset}
+          contentSize={compactIlluminated ? size : svgSize}
           openAtTop={showCompleteCheck}
           topGapDeg={checkGapDeg}
+          blurScale={compactIlluminated ? 0.5 : 1}
         />
       ) : null}
 

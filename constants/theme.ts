@@ -81,7 +81,8 @@ export const Colors = {
     greentextbutton: "#1DBF73",
     notStartedTextColor: "#6E6D6D",
     arrowTransparentBg: "gba(255, 255, 255, 0.10)",
-    bordercolortodayselectedring:"#525F6E",
+    bordercolortodayselectedring: "#525F6E",
+    mildGreen: "#1CBF71",
   },
   dark: {
     text: "#ECEDEE",

@@ -178,7 +178,7 @@ export default function MoreScreen() {
 
   return (
     <BlackScreenWrapper edges={["top"]}>
-      <FlatList
+      {/* <FlatList
         data={DATA}
         keyExtractor={(item) => item.key}
         renderItem={renderItem}
@@ -187,7 +187,19 @@ export default function MoreScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.contentContainer}
         style={styles.container}
-      />
+      /> */}
+      <View style={styles.logoutContainer}>
+        <SecondaryButton
+          text="LOGOUT"
+          onPress={handleLogout}
+          variant="green"
+          disabled={loggingOut}
+          isLoading={loggingOut}
+        />
+        <Text style={styles.versionText}>
+          APP VERSION: 1.2.197 (BUILD 1938)
+        </Text>
+      </View>
     </BlackScreenWrapper>
   );
 }

@@ -36,6 +36,8 @@ export const useLogFiveDailyPrayersGoal = () => {
       queryClient.invalidateQueries({ queryKey: ["prayer-goal-achievements"] });
       queryClient.invalidateQueries({ queryKey: ["all-prayer-goals"] });
       queryClient.invalidateQueries({ queryKey: ["prayer-goal-insights"] });
+      queryClient.invalidateQueries({ queryKey: ["goal-cycle-categories"] });
+      queryClient.invalidateQueries({ queryKey: ["goal-cycle-category-goals"] });
       showToast("success", "Prayer logged successfully");
     },
     onError: (error) => {

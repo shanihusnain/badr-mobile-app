@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
@@ -8,7 +8,6 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { IbadhasPrayerProgressCardsIcon } from "@/assets/icons/IbadhasPrayerProgressCardsIcon";
 import { IbadhasQuranProgressCardsIcon } from "@/assets/icons/IbadhasQuranProgressCardsIcon";
 import { IbadhasFastingProgressCardsIcon } from "@/assets/icons/IbadhasFastingProgressCardsIcon";
-import { HeartOnHandIcon } from "@/assets/icons/HeartOnHandIcon";
 import { DashBoardHandHeartIcon } from "@/assets/icons/DashBoardHandHeartIcon";
 import { useRouter } from "expo-router";
 import { IbadahsProgressCard } from "./IbadahsProgressCard";
@@ -16,13 +15,16 @@ import {
   DetailedIbadahsProgressCard,
   getDetailedIbadahIcon,
 } from "./DetailedIbadahsProgressCards";
-import {
-  getResolvedGoalsByCategory,
-  type GoalData,
-  type GoalId,
-} from "./goalsData";
+import type { GoalId } from "./goalsData";
 import BackButton from "@/components/atoms/Backbutton";
 import { useTypedTranslation } from "@/i18next/useTypedTranslation";
+import { useGetGoalCycleCategories } from "@/src/api/queries/useGetGoalCycleCategories";
+import { useGetGoalCycleCategoryGoals } from "@/src/api/queries/useGetGoalCycleCategoryGoals";
+import {
+  goalTypeToGoalId,
+  toUiIbadahCategory,
+  type UiIbadahCategory,
+} from "@/src/utils/goalCycleCategoryMap";
 
 type ViewType = "main" | "categories" | "detail";
 
@@ -30,14 +32,14 @@ type Props = {
   onClose?: () => void;
 };
 
-const CATEGORY_ICON_COLOR: Record<string, string> = {
+const CATEGORY_ICON_COLOR: Record<UiIbadahCategory, string> = {
   PRAYER: Colors.light.ringPrayer,
   QURAN: Colors.light.ringQuran,
   FASTING: Colors.light.green,
   SADAQAH: Colors.light.ringSadaqah,
 };
 
-function getCategoryGoalIcon(category: string, color: string) {
+function getCategoryGoalIcon(category: UiIbadahCategory, color: string) {
   switch (category) {
     case "QURAN":
       return <Ionicons name="book" size={18} color={color} />;
@@ -57,17 +59,24 @@ function getCategoryGoalIcon(category: string, color: string) {
   }
 }
 
-function getGoalDisplayTitle(
-  goal: GoalData,
-  t: ReturnType<typeof useTypedTranslation>["t"],
-): string {
-  if (goal.id === "quran-recitationBySurah-daily") {
-    return t("homeScreen.quranRecitationBySurahDaily");
+function getCategoryCardIcon(category: UiIbadahCategory) {
+  switch (category) {
+    case "QURAN":
+      return (
+        <IbadhasQuranProgressCardsIcon color={Colors.light.white} size={20} />
+      );
+    case "FASTING":
+      return (
+        <IbadhasFastingProgressCardsIcon color={Colors.light.white} size={20} />
+      );
+    case "SADAQAH":
+      return <DashBoardHandHeartIcon color={Colors.light.white} size={18} />;
+    case "PRAYER":
+    default:
+      return (
+        <IbadhasPrayerProgressCardsIcon color={Colors.light.white} size={20} />
+      );
   }
-  if (goal.id === "quran-recitationBySurah-weekly") {
-    return t("homeScreen.quranRecitationBySurahWeekly");
-  }
-  return goal.title;
 }
 
 export const DailyProgressBottomSheet = ({ onClose }: Props) => {
@@ -80,53 +89,74 @@ export const DailyProgressBottomSheet = ({ onClose }: Props) => {
     null,
   );
 
-  const categories = [
-    {
-      key: "PRAYER",
-      title: t("homeScreen.prayerCategory"),
-      subtitle: t("homeScreen.prayer10Goals"),
-      icon: <IbadhasPrayerProgressCardsIcon color={Colors.light.white} size={20} />,
-      iconBgColor: Colors.light.calendarBg,
-      percentage: "34%",
-      progressColor: Colors.light.ringPrayer,
-    },
-    {
-      key: "QURAN",
-      title: t("homeScreen.quranCategory"),
-      subtitle: t("homeScreen.quran7Goals"),
-      icon: <IbadhasQuranProgressCardsIcon color={Colors.light.white} size={20} />,
-      iconBgColor: Colors.light.calendarBg,
-      percentage: "40%",
-      progressColor: Colors.light.ringQuran,
-    },
-    {
-      key: "FASTING",
-      title: t("homeScreen.fastingCategory"),
-      subtitle: t("homeScreen.fasting4Goals"),
-      icon: <IbadhasFastingProgressCardsIcon color={Colors.light.white} size={20} />,
-      iconBgColor: Colors.light.calendarBg,
-      percentage: "65%",
-      progressColor: Colors.light.green,
-    },
-    {
-      key: "SADAQAH",
-      title: t("homeScreen.sadaqahCategory"),
-      subtitle: t("homeScreen.sadaqah6Goals"),
-      icon: <DashBoardHandHeartIcon color={Colors.light.white} size={18} />,
-      iconBgColor: Colors.light.calendarBg,
-      percentage: "85%",
-      progressColor: Colors.light.ringSadaqah,
-    },
-  ];
+  const { data: categorySummaries = [] } = useGetGoalCycleCategories({
+    enabled: currentView === "categories" || currentView === "detail",
+  });
+  const { data: categoryGoals } = useGetGoalCycleCategoryGoals(
+    selectedCategory,
+    { enabled: currentView === "detail" && !!selectedCategory },
+  );
 
-  const getCategoryTitle = (category: string): string => {
-    const map: Record<string, string> = {
+  const categories = useMemo(() => {
+    const titleMap: Record<UiIbadahCategory, string> = {
+      PRAYER: t("homeScreen.prayerCategory"),
+      QURAN: t("homeScreen.quranCategory"),
+      FASTING: t("homeScreen.fastingCategory"),
+      SADAQAH: t("homeScreen.sadaqahCategory"),
+    };
+
+    return categorySummaries.flatMap((item) => {
+      const uiCategory = toUiIbadahCategory(item.category);
+      const total = item.totalGoals ?? 0;
+      if (!uiCategory || total <= 0) return [];
+      return [
+        {
+          key: item.category.toLowerCase(),
+          uiCategory,
+          title: titleMap[uiCategory],
+          subtitle: `${total} ${total === 1 ? "goal" : "goals"}`,
+          icon: getCategoryCardIcon(uiCategory),
+          iconBgColor: Colors.light.calendarBg,
+          percentage: `${Math.round(item.completedPct ?? 0)}%`,
+          progressColor: CATEGORY_ICON_COLOR[uiCategory],
+        },
+      ];
+    });
+  }, [categorySummaries, t]);
+
+  const detailGoals = useMemo(() => {
+    const goals = categoryGoals?.goals ?? [];
+    const categorySlug = selectedCategory ?? "";
+    return goals.flatMap((goal) => {
+      const goalId = goalTypeToGoalId(categorySlug, goal.goalType);
+      const target = goal.target ?? 0;
+      if (!goalId || target <= 0) return [];
+      return [
+        {
+          goalId,
+          title: goal.displayName,
+          completed: goal.completed ?? 0,
+          target: goal.target ?? 0,
+          unit: goal.unit ?? "",
+          percentage: `${Math.round(goal.completedPct ?? 0)}%`,
+        },
+      ];
+    });
+  }, [categoryGoals?.goals, selectedCategory]);
+
+  const selectedUiCategory = selectedCategory
+    ? toUiIbadahCategory(selectedCategory)
+    : null;
+
+  const getCategoryTitle = (apiCategory: string): string => {
+    const ui = toUiIbadahCategory(apiCategory);
+    const map: Record<UiIbadahCategory, string> = {
       PRAYER: t("homeScreen.selectPrayerGoal"),
       QURAN: t("homeScreen.selectQuranGoal"),
       FASTING: t("homeScreen.selectFastingGoal"),
       SADAQAH: t("homeScreen.selectSadaqahGoal"),
     };
-    return map[category] ?? "";
+    return ui ? map[ui] : "";
   };
 
   const handleBack = () => {
@@ -214,33 +244,30 @@ export const DailyProgressBottomSheet = ({ onClose }: Props) => {
         </View>
       )}
 
-      {currentView === "detail" && selectedCategory && (
+      {currentView === "detail" && selectedUiCategory && (
         <View style={styles.listContainer}>
-          {getResolvedGoalsByCategory(
-            selectedCategory as "PRAYER" | "QURAN" | "FASTING" | "SADAQAH",
-          ).map((goal) => (
+          {detailGoals.map((goal) => (
             <DetailedIbadahsProgressCard
-              key={goal.id}
-              title={getGoalDisplayTitle(goal, t)}
-              subtitleCount={goal.count}
-              subtitleLabel={goal.label}
+              key={goal.goalId}
+              title={goal.title}
+              subtitleCount={String(goal.completed)}
+              subtitleLabel={`/${goal.target} ${goal.unit}`.trim()}
               icon={
-                selectedCategory === "PRAYER"
-                  ? getDetailedIbadahIcon(goal.id, Colors.light.white)
+                selectedUiCategory === "PRAYER"
+                  ? getDetailedIbadahIcon(goal.goalId, Colors.light.white)
                   : getCategoryGoalIcon(
-                      selectedCategory,
-                      CATEGORY_ICON_COLOR[selectedCategory],
+                      selectedUiCategory,
+                      CATEGORY_ICON_COLOR[selectedUiCategory],
                     )
               }
-              iconBgColor={CATEGORY_ICON_COLOR[selectedCategory] + "22"}
+              iconBgColor={CATEGORY_ICON_COLOR[selectedUiCategory] + "22"}
               percentage={goal.percentage}
-              progressColor={goal.progressColor}
-              isSelected={selectedDetailCard === goal.id}
+              progressColor={CATEGORY_ICON_COLOR[selectedUiCategory]}
+              isSelected={selectedDetailCard === goal.goalId}
               onPress={() => {
-                setSelectedDetailCard(goal.id);
-                handleGoalPress(goal.id);
+                setSelectedDetailCard(goal.goalId);
+                handleGoalPress(goal.goalId);
               }}
-              titleFontSize={goal.titleFontSize}
             />
           ))}
         </View>
