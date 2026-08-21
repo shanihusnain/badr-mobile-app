@@ -13,52 +13,72 @@ export type PrayerStatus =
 export interface PrayerProgressTrackerRingProps {
   statuses?: PrayerStatus[];
   isMenstruating?: boolean;
+  /** Today: empty arcs are white (upcoming). Past empty arcs stay dim. */
+  isToday?: boolean;
   size?: number;
   strokeWidth?: number;
 }
 
+const SLOT_COUNT = 5;
+
+/**
+ * Always renders exactly 5 separate arcs (FAJR → ISHA).
+ * FAJR starts at 1 o'clock; remaining slots continue clockwise.
+ */
 export const PrayerProgressTrackerRing: React.FC<
   PrayerProgressTrackerRingProps
 > = ({
   statuses = ["none", "none", "none", "none", "none"],
   isMenstruating = false,
+  isToday = false,
   size = 50,
   strokeWidth = 5,
 }) => {
-  const STATUS_COLORS: Record<PrayerStatus, string> = {
-    none: "rgba(255, 255, 255, 0.2)",
-    onTime: Colors.light.green, // Green
-    congregation: Colors.light.lightblue, // Blue
-    missed: Colors.light.yellow, // Yellow
-    menstruation: Colors.light.red, // Red
-  };
-
   const radius = (size - strokeWidth) / 3;
   const circumference = 2 * Math.PI * radius;
-  const segmentWidth = circumference / 5;
-  const gapSize = 4; // Gap in pixels between segments
+  const segmentWidth = circumference / SLOT_COUNT;
+  const gapSize = 4;
   const dashLength = segmentWidth - gapSize;
 
-  // If menstruating, override all 5 segments to red
   const finalStatuses = isMenstruating
-    ? Array<PrayerStatus>(5).fill("menstruation")
-    : [...statuses, ...Array<PrayerStatus>(5).fill("none")].slice(0, 5);
+    ? Array<PrayerStatus>(SLOT_COUNT).fill("menstruation")
+    : [...statuses, ...Array<PrayerStatus>(SLOT_COUNT).fill("none")].slice(
+        0,
+        SLOT_COUNT,
+      );
+
+  const colorForStatus = (status: PrayerStatus): string => {
+    switch (status) {
+      case "onTime":
+        // Logged on-time → green (today and past)
+        return Colors.light.green;
+      case "congregation":
+        return Colors.light.seagreen;
+      case "missed":
+        return Colors.light.yellow;
+      case "menstruation":
+        return Colors.light.red;
+      case "none":
+      default:
+        // Upcoming today (not logged) → white; past/future empty → dim
+        return isToday ? Colors.light.white : "rgba(255, 255, 255, 0.22)";
+    }
+  };
 
   return (
     <View style={{ width: size, height: size }}>
       <Svg width={size} height={size} style={styles.svg}>
         {finalStatuses.map((status, index) => {
-          const strokeColor = STATUS_COLORS[status] || STATUS_COLORS.none;
           const offset = -(index * segmentWidth);
 
           return (
             <Circle
-              key={index}
+              key={`prayer-arc-${index}`}
               cx={size / 2}
               cy={size / 2}
               r={radius}
-              fill="transparent"
-              stroke={strokeColor}
+              fill="none"
+              stroke={colorForStatus(status)}
               strokeWidth={strokeWidth}
               strokeDasharray={`${dashLength} ${circumference - dashLength}`}
               strokeDashoffset={offset}
@@ -73,6 +93,7 @@ export const PrayerProgressTrackerRing: React.FC<
 
 const styles = StyleSheet.create({
   svg: {
-    transform: [{ rotate: "-140deg" }], // Rotate so segments start at the top
+    // SVG stroke starts at 3 o'clock; -60deg puts FAJR (index 0) at 1 o'clock.
+    transform: [{ rotate: "-60deg" }],
   },
 });

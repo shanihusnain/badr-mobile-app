@@ -18,7 +18,10 @@ import {
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import { GoldenTickIcon } from "@/assets/icons/GoldenTickIcon";
-import { getProgressGlow, PROGRESS_GLOW_LAYERS } from "@/src/utils/progressGlow";
+import {
+  getProgressGlow,
+  PROGRESS_GLOW_LAYERS,
+} from "@/src/utils/progressGlow";
 
 export type RingSegment = {
   value: number;
@@ -530,7 +533,7 @@ function buildSegmentArcs(segments: RingSegment[], segmentTotal: number) {
 export const TaperedCircleBorder: React.FC<TaperedCircleBorderProps> = ({
   percentage,
   size = 70,
-  borderColor = Colors.light.calendarBg,
+  borderColor = Colors.light.inactiveTaperedBorder,
   progressColor,
   segments,
   children,
@@ -585,8 +588,7 @@ export const TaperedCircleBorder: React.FC<TaperedCircleBorderProps> = ({
   const checkSize = Math.max(28, Math.round(size * (34 / 174)));
   const visualTickPx = checkSize * TICK_PATH_INSET;
   // Arc gap slightly smaller than the glyph so both ends tuck into the icon.
-  const checkGapDeg =
-    ((visualTickPx * 1.2) / (2 * Math.PI * radiusPx)) * 360;
+  const checkGapDeg = ((visualTickPx * 1.2) / (2 * Math.PI * radiusPx)) * 360;
   const checkTop = size / 2 - radiusPx - checkSize / 2;
 
   return (
@@ -621,7 +623,7 @@ export const TaperedCircleBorder: React.FC<TaperedCircleBorderProps> = ({
             cx={CX}
             cy={CY}
             r={RADIUS}
-            stroke={borderColor}
+            stroke={Colors.light.inactiveTaperedBorder}
             strokeWidth={isIlluminated ? ILLUMINATED_TRACK_WIDTH : TRACK_WIDTH}
             fill="none"
           />

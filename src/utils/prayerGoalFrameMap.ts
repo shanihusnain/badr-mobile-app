@@ -1,8 +1,21 @@
 import moment from "moment-hijri";
-import type { PrayerGoalFrameData } from "@/src/api/queries/useGetPrayerGoalFrame";
+import type {
+  FiveDailyPrayerSlot,
+  FiveDailyPrayerSlotKey,
+  PrayerGoalFrameData,
+  PrayerGoalFrameDay,
+} from "@/src/api/queries/useGetPrayerGoalFrame";
 import type { TahiyatUlWudhuDayProgress } from "@/components/molecules/TahiyatUlWudhuWeeklyProgressDashboard";
 import type { DayProgress } from "@/components/molecules/WeeklyProgressDashboard";
 import type { PrayerStatus } from "@/components/molecules/PrayerProgressTrackerRing";
+
+const FIVE_DAILY_SLOT_ORDER: FiveDailyPrayerSlotKey[] = [
+  "FAJR",
+  "DHUHR",
+  "ASR",
+  "MAGHRIB",
+  "ISHA",
+];
 
 export function formatPrayerFrameWeekRange(weekStart: string, weekEnd: string) {
   const start = moment(weekStart, "YYYY-MM-DD");
@@ -24,7 +37,7 @@ export function mapPrayerFrameWeekDays(
       prayersLogged: count,
       isLogged: !day.isFuture && count > 0,
       isBestDay: Boolean(day.isBestDay),
-      isFuture: day.isFuture,
+      isFuture: day.isFuture || Boolean(day.isFutureDay),
       isToday: day.isToday,
     };
   });
@@ -35,38 +48,96 @@ function clampSlotCount(value: number | undefined): number {
   return Math.max(0, Math.min(5, Math.round(value)));
 }
 
+function mapFiveDailySlotToStatus(
+  slot: FiveDailyPrayerSlot | undefined,
+): PrayerStatus {
+  if (!slot) return "none";
+  if (slot.isMenstruationSlot) return "menstruation";
+  if (!slot.logged) return "none";
+  if (slot.wasQadha) return "missed";
+  if (slot.wasCongregational) return "congregation";
+  if (slot.prayedOnTime) return "onTime";
+  return "missed";
+}
+
+function mapFiveDailyStatusesFromCounts(day: PrayerGoalFrameDay): PrayerStatus[] {
+  if (day.allFiveOnTime) {
+    return ["onTime", "onTime", "onTime", "onTime", "onTime"];
+  }
+
+  const onTime = clampSlotCount(day.slotsOnTime);
+  const qadha = Math.min(5 - onTime, clampSlotCount(day.slotsQadha));
+  const statuses: PrayerStatus[] = [];
+  for (let i = 0; i < onTime; i += 1) statuses.push("onTime");
+  for (let i = 0; i < qadha; i += 1) statuses.push("missed");
+  while (statuses.length < 5) statuses.push("none");
+  return statuses;
+}
+
 /**
- * Five Daily frame week: on-time slots → green (`onTime`),
- * qadha slots → yellow (`missed`), remaining → empty.
+ * Five Daily frame week: always 5 arcs from FAJR→ISHA slots.
+ * Colors (Figma):
+ * - menstruation → red
+ * - qadha → orange (missed)
+ * - congregational → teal
+ * - on-time → white today / green past (ring chooses via isToday)
+ * - empty → dim arc
  */
 export function mapFiveDailyFrameWeekDays(
   frame: PrayerGoalFrameData,
 ): DayProgress[] {
   return frame.week.days.map((day) => {
-    if (day.isFuture) {
+    const isFuture = Boolean(day.isFuture || day.isFutureDay);
+    const isToday = Boolean(day.isToday);
+    const isMenstruating = Boolean(day.isMenstruationDay);
+
+    if (isFuture) {
       return {
         day: day.dayLabel,
         statuses: ["none", "none", "none", "none", "none"],
+        isToday: false,
+        isFuture: true,
+        isMenstruating: false,
       };
     }
 
-    if (day.allFiveOnTime) {
+    if (day.slots) {
+      const statuses = FIVE_DAILY_SLOT_ORDER.map((key) =>
+        mapFiveDailySlotToStatus(day.slots?.[key]),
+      );
+      const anyLogged = statuses.some(
+        (s) => s !== "none" && s !== "menstruation",
+      );
+
       return {
         day: day.dayLabel,
-        statuses: ["onTime", "onTime", "onTime", "onTime", "onTime"],
+        statuses:
+          isMenstruating && !anyLogged
+            ? Array<PrayerStatus>(5).fill("menstruation")
+            : statuses,
+        isToday,
+        isFuture: false,
+        isMenstruating:
+          isMenstruating || statuses.every((s) => s === "menstruation"),
       };
     }
 
-    const onTime = clampSlotCount(day.slotsOnTime);
-    const qadha = Math.min(5 - onTime, clampSlotCount(day.slotsQadha));
-    const statuses: PrayerStatus[] = [];
-    for (let i = 0; i < onTime; i += 1) statuses.push("onTime");
-    for (let i = 0; i < qadha; i += 1) statuses.push("missed");
-    while (statuses.length < 5) statuses.push("none");
+    if (isMenstruating) {
+      return {
+        day: day.dayLabel,
+        statuses: Array<PrayerStatus>(5).fill("menstruation"),
+        isToday,
+        isFuture: false,
+        isMenstruating: true,
+      };
+    }
 
     return {
       day: day.dayLabel,
-      statuses,
+      statuses: mapFiveDailyStatusesFromCounts(day),
+      isToday,
+      isFuture: false,
+      isMenstruating: false,
     };
   });
 }

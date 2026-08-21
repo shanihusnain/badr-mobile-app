@@ -949,6 +949,7 @@ export function WeeklyProgressSection({
           weekFraction={getPrayerFrameWeekFraction(frame)}
           onTimePrayersCount={frame.week.thisWeekOnTime ?? 0}
           streakDays={frame.week.currentStreak}
+          vsLastWeek={frame.week.vsLastWeek}
           motivationalQuote={frame.week.motivationalMessage}
           selectedDayIndex={getPrayerFrameTodayIndex(frame)}
           onPrevWeek={
@@ -965,6 +966,7 @@ export function WeeklyProgressSection({
             <PrayerProgressTrackerRing
               statuses={day.statuses}
               isMenstruating={day.isMenstruating}
+              isToday={day.isToday}
               size={size}
               strokeWidth={2.5}
             />
@@ -984,11 +986,12 @@ export function WeeklyProgressSection({
           { day: "Fri", statuses: ["none", "none", "none", "none", "none"] },
           { day: "Sat", statuses: ["none", "none", "none", "none", "none"] },
         ]}
-        weekRangeLabel={frameLoading ? "---" : ""}
-        weekFraction={frameLoading ? "---" : "—"}
+        weekRangeLabel="---"
+        weekFraction="---"
         onTimePrayersCount={0}
         streakDays={0}
-        motivationalQuote={frameLoading ? "---" : ""}
+        motivationalQuote="---"
+        loading={frameLoading}
         renderRing={(day: DayProgress, size: number) => (
           <PrayerProgressTrackerRing
             statuses={day.statuses}
@@ -2009,6 +2012,7 @@ export function WeeklyProgressSection({
         <PrayerProgressTrackerRing
           statuses={day.statuses}
           isMenstruating={day.isMenstruating}
+          isToday={day.isToday}
           size={size}
           strokeWidth={2.5}
         />
