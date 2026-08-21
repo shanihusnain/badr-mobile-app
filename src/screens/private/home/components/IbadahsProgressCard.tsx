@@ -47,7 +47,11 @@ export const IbadahsProgressCard = ({
             { backgroundColor: iconBgColor || Colors.light.calendarBg },
           ]}
         >
-          {icon}
+          {loading ? (
+            <Text style={styles.iconPlaceholder}>---</Text>
+          ) : (
+            icon
+          )}
         </View>
         <View style={styles.textWrapper}>
           <Text style={styles.title}>{title}</Text>
@@ -104,6 +108,12 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
         marginRight: 12,
+    },
+    iconPlaceholder: {
+        color: Colors.light.white,
+        fontFamily: fonts.primary.semiBold,
+        fontWeight: "600",
+        fontSize: 11,
     },
     textWrapper: {
         justifyContent: "center",

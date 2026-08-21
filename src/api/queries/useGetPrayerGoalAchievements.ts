@@ -74,6 +74,7 @@ const getPrayerGoalAchievements = async (
   prayerType: string,
   period: PrayerAchievementsPeriodCode,
   periodStart?: string | null,
+  prayer?: string | null,
 ): Promise<PrayerGoalAchievementsData | null> => {
   const response = await api.get(
     `api/goal-cycles/current/prayer-goals/${prayerType}/achievements`,
@@ -81,6 +82,7 @@ const getPrayerGoalAchievements = async (
       params: {
         period,
         ...(periodStart ? { periodStart } : {}),
+        ...(prayer ? { prayer } : {}),
       },
     },
   );
@@ -92,12 +94,15 @@ export const useGetPrayerGoalAchievements = (
   options: {
     period: PastAchievementPeriod;
     periodStart?: string | null;
+    /** Five-daily filter: all | fajr | dhuhr | asr | maghrib | isha */
+    prayer?: string | null;
     enabled?: boolean;
   },
 ) => {
   const prayerType = prayerTypeInput ? resolvePrayerType(prayerTypeInput) : "";
   const periodCode = PAST_ACHIEVEMENT_PERIOD_TO_API[options.period];
   const periodStart = options.periodStart ?? null;
+  const prayer = options.prayer ?? null;
   const enabled = !!prayerType && (options.enabled ?? true);
 
   return useQuery({
@@ -106,9 +111,10 @@ export const useGetPrayerGoalAchievements = (
       prayerType,
       periodCode,
       periodStart ?? "latest",
+      prayer ?? "all",
     ],
     queryFn: () =>
-      getPrayerGoalAchievements(prayerType, periodCode, periodStart),
+      getPrayerGoalAchievements(prayerType, periodCode, periodStart, prayer),
     enabled,
   });
 };

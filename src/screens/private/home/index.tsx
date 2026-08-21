@@ -682,7 +682,7 @@ export default function HomeScreen() {
         </View> */}
 
         {/* Log menstruation */}
-        {/* <TouchableOpacity
+        <TouchableOpacity
           activeOpacity={isFemaleUser ? 0.8 : 1}
           disabled={!isFemaleUser}
           style={[
@@ -705,7 +705,7 @@ export default function HomeScreen() {
               {t("homeScreen.logMenstruation")}
             </Text>
           </View>
-        </TouchableOpacity> */}
+        </TouchableOpacity>
 
         {/* Customize journal */}
         {/* <View style={styles.journalContainer}>

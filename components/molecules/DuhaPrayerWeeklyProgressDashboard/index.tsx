@@ -626,12 +626,6 @@ const styles = StyleSheet.create({
     width: "100%",
     marginTop: 4,
   },
-  quoteBlockInline: {
-    flex: 1,
-    width: undefined,
-    minWidth: 0,
-    marginTop: 0,
-  },
   quoteTextWrap: {
     flex: 1,
     flexShrink: 1,

@@ -102,6 +102,23 @@ const PERIOD_PHRASE: Record<PastAchievementPeriod, string> = {
 };
 
 const MISSED_PRAYER_TABS = ["All", "Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"];
+/** Same labels as missed; maps to achievements `prayer` query for five-daily. */
+const FIVE_DAILY_PRAYER_TABS = [
+  "All",
+  "Fajr",
+  "Dhuhr",
+  "Asr",
+  "Maghrib",
+  "Isha",
+] as const;
+const FIVE_DAILY_TAB_TO_PRAYER_PARAM: Record<string, string> = {
+  All: "all",
+  Fajr: "fajr",
+  Dhuhr: "dhuhr",
+  Asr: "asr",
+  Maghrib: "maghrib",
+  Isha: "isha",
+};
 const SUNNAH_RAWATIB_TABS = [
   "All",
   "Before Fajr",
@@ -446,13 +463,19 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
     goalId === "prayer-duha" ||
     goalId === "prayer-tawbah" ||
     goalId === "prayer-istikhara" ||
-    goalId === "prayer-shukr";
+    goalId === "prayer-shukr" ||
+    goalId === "prayer-fiveDailyPrayers";
   const prayerType = resolvePrayerTypeFromGoalId(goalId);
-
+  const fiveDailyPrayerParam =
+    goalId === "prayer-fiveDailyPrayers"
+      ? (FIVE_DAILY_TAB_TO_PRAYER_PARAM[selectedPrayerTab] ?? "all")
+      : null;
   const { data: achievementsApiData, isLoading: isAchievementsLoading } =
     useGetPrayerGoalAchievements(prayerType, {
       period,
       periodStart: periodStartParam,
+      prayer:
+        goalId === "prayer-fiveDailyPrayers" ? fiveDailyPrayerParam : null,
       enabled: usesAchievementsApi && !!prayerType,
     });
   const showPlaceholders =
@@ -467,10 +490,14 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
       setSelectedPrayerTab("After Isha");
     }
   }, [goalId, analyticsView, selectedPrayerTab]);
-
   useEffect(() => {
     setPeriodStartParam(null);
   }, [period, goalId]);
+  useEffect(() => {
+    if (goalId === "prayer-fiveDailyPrayers") {
+      setSelectedPrayerTab("All");
+    }
+  }, [goalId]);
 
   const baseAchievementRaw = useMemo((): PrayerPastAchievement | null => {
     if (usesAchievementsApi) {
@@ -547,7 +574,7 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
   useEffect(() => {
     setSelectedBarIndex(null);
     setHintDismissed(false);
-  }, [period, goalId, analyticsView, periodStartParam]);
+  }, [period, goalId, analyticsView, periodStartParam, selectedPrayerTab]);
 
   const handleBarPress = useCallback((index: number | null) => {
     setHintDismissed(true);
@@ -570,7 +597,8 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
   }, [usesAchievementsApi, achievementsApiData]);
 
   const handleNavigateForward = useCallback(() => {
-    if (!usesAchievementsApi || !achievementsApiData?.canNavigateForward) return;
+    if (!usesAchievementsApi || !achievementsApiData?.canNavigateForward)
+      return;
     const nextStart = shiftPrayerAchievementsPeriodStart(
       achievementsApiData.periodStart,
       achievementsApiData.periodEnd,
@@ -858,6 +886,7 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
               <View style={styles.deltaBadgePlaceholder} />
             )}
           </View>
+
           <View style={styles.periodNavRow}>
             <View style={styles.dateNavRow}>
               <TouchableOpacity
@@ -904,7 +933,6 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
             </View>
           </View>
         </View>
-
         {isDetailed && !showPlaceholders && (
           <>
             <Text style={styles.summaryText}>
@@ -1013,6 +1041,43 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
               contentContainerStyle={styles.missedPrayerTabsContainer}
             >
               {MISSED_PRAYER_TABS.map((prayer) => {
+                const isActive = selectedPrayerTab === prayer;
+                return (
+                  <TouchableOpacity
+                    key={prayer}
+                    onPress={() => setSelectedPrayerTab(prayer)}
+                    style={[
+                      styles.missedPrayerTab,
+                      isActive
+                        ? styles.missedPrayerTabActive
+                        : styles.missedPrayerTabInactive,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.missedPrayerTabText,
+                        isActive
+                          ? styles.missedPrayerTabTextActive
+                          : styles.missedPrayerTabTextInactive,
+                      ]}
+                    >
+                      {prayer}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        )}
+
+        {goalId === "prayer-fiveDailyPrayers" && (
+          <View style={styles.missedPrayerTabsWrapper}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.missedPrayerTabsContainer}
+            >
+              {FIVE_DAILY_PRAYER_TABS.map((prayer) => {
                 const isActive = selectedPrayerTab === prayer;
                 return (
                   <TouchableOpacity
@@ -1298,7 +1363,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-  
   },
   achievementBlock: {
     gap: 6,
