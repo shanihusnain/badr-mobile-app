@@ -79,6 +79,7 @@ function DuhaPrayerDayRing({ size, day, isSelected }: DayRingProps) {
   };
 
   const renderInner = () => {
+    console.log("day", day);
     if (day.isMenstruation) {
       return (
         <View
@@ -315,38 +316,23 @@ export function DuhaPrayerWeeklyProgressDashboard({
               />
             ) : null}
             <Text style={styles.comparisonText}>
-              {vsLastWeekMagnitude === 0 ? (
-                t("homeScreen.weeklyProgress_samePrayersAsLastWeek")
-              ) : (
-                <>
-                  <Text style={styles.comparisonCount}>
-                    {vsLastWeekMagnitude}
-                  </Text>
-                  {` ${t("homeScreen.weeklyProgress_prayersVsLastWeek")}`}
-                </>
-              )}
+              <Text style={styles.comparisonCount}>{vsLastWeekMagnitude}</Text>
+              {` ${t("homeScreen.weeklyProgress_prayersVsLastWeek")}`}
             </Text>
           </View>
         ) : (
-          <View style={[styles.quoteBlock, styles.quoteBlockInline]}>
-            <AimIcon />
-            <View style={styles.quoteTextWrap}>
-              <Text style={styles.quoteText}>
-                {loading ? "---" : motivationalQuote}
-              </Text>
-            </View>
-          </View>
+          <View style={styles.comparisonBadge} />
         )}
       </View>
 
-      {showComparison ? (
-        <View style={styles.quoteBlock}>
-          <AimIcon />
-          <View style={styles.quoteTextWrap}>
-            <Text style={styles.quoteText}>{motivationalQuote}</Text>
-          </View>
+      <View style={styles.quoteBlock}>
+        <AimIcon />
+        <View style={styles.quoteTextWrap}>
+          <Text style={styles.quoteText}>
+            {loading ? "---" : motivationalQuote}
+          </Text>
         </View>
-      ) : null}
+      </View>
     </View>
   );
 }
@@ -491,7 +477,7 @@ const styles = StyleSheet.create({
   },
   footerRow: {
     flexDirection: "row",
-    alignItems: "flex-start",
+    alignItems: "center",
     gap: 16,
   },
   streakBadge: {
@@ -504,6 +490,7 @@ const styles = StyleSheet.create({
     color: Colors.light.green,
     fontSize: 12,
     fontWeight: "600",
+    lineHeight: 16,
   },
   comparisonBadge: {
     flex: 1,
@@ -518,7 +505,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "400",
     fontFamily: fonts.primary.regular,
-    lineHeight: 14,
+    lineHeight: 16,
     letterSpacing: 0.1,
   },
   comparisonCount: {
@@ -526,7 +513,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
-    lineHeight: 14,
+    lineHeight: 16,
     letterSpacing: 0.1,
   },
   quoteBlock: {
@@ -537,12 +524,6 @@ const styles = StyleSheet.create({
     minWidth: 0,
     width: "100%",
     marginTop: 4,
-  },
-  quoteBlockInline: {
-    flex: 1,
-    width: undefined,
-    minWidth: 0,
-    marginTop: 0,
   },
   quoteTextWrap: {
     flex: 1,

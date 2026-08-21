@@ -2,7 +2,10 @@ import { fonts } from "@/assets/fonts";
 import MoonProgress from "@/components/atoms/MoonProgress";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { Colors } from "@/constants/theme";
-import { getProgressGlow, PROGRESS_GLOW_LAYERS } from "@/src/utils/progressGlow";
+import {
+  getProgressGlow,
+  PROGRESS_GLOW_LAYERS,
+} from "@/src/utils/progressGlow";
 import { globalStyles } from "@/src/globalstyles/globalstyles";
 import {
   BlurMask,
@@ -219,10 +222,10 @@ export const GoalProgressCard = ({
           justifyContent: "center",
         }}
       >
-        {/* <MoonProgress
+        <MoonProgress
           progressPercent={moonProgress}
           onReady={animate ? handleMoonReady : undefined}
-        /> */}
+        />
       </View>
 
       {/* ── Stats row ── */}
