@@ -38,6 +38,8 @@ export type MissedPrayersWeeklyProgressDashboardProps = {
   onPrevWeek?: () => void;
   onNextWeek?: () => void;
   loading?: boolean;
+  /** When true, remaining unlogged cycle days render as empty outlined circles. */
+  isGoalCompleted?: boolean;
 };
 
 const CARD_HORIZONTAL_PADDING = 16;
@@ -50,6 +52,7 @@ type DayRingProps = {
   isBestDay: boolean;
   isSelected: boolean;
   isFuture: boolean;
+  showEmptyOutline: boolean;
 };
 
 function MissedPrayersDayRing({
@@ -58,6 +61,7 @@ function MissedPrayersDayRing({
   isBestDay,
   isSelected,
   isFuture,
+  showEmptyOutline,
 }: DayRingProps) {
   return (
     <View
@@ -79,7 +83,7 @@ function MissedPrayersDayRing({
             height: size,
             borderRadius: size / 2,
           },
-          isFuture
+          isFuture || showEmptyOutline
             ? styles.ringInnerFuture
             : hasLog
               ? [
@@ -91,7 +95,7 @@ function MissedPrayersDayRing({
                 : styles.ringInnerEmpty,
         ]}
       >
-        {isBestDay && !isFuture && <BestdayStarIcon />}
+        {isBestDay && !isFuture && !showEmptyOutline && <BestdayStarIcon />}
       </View>
     </View>
   );
@@ -108,6 +112,7 @@ export function MissedPrayersWeeklyProgressDashboard({
   onPrevWeek,
   onNextWeek,
   loading = false,
+  isGoalCompleted = false,
 }: MissedPrayersWeeklyProgressDashboardProps) {
   const { width: screenWidth } = useWindowDimensions();
 
@@ -118,11 +123,12 @@ export function MissedPrayersWeeklyProgressDashboard({
     Math.floor((availableWidth / 7) * 0.62),
   );
 
-  const displayWeekDays = loading
+  const displayWeekDays: MissedPrayersDayProgress[] = loading
     ? ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => ({
         day,
         prayersLogged: 0,
         isLogged: false,
+        isBestDay: false,
         isFuture: false,
         isToday: false,
       }))
@@ -183,13 +189,16 @@ export function MissedPrayersWeeklyProgressDashboard({
           const isSelected = isToday;
           const hasLog = day.prayersLogged > 0 || !!day.isLogged;
           const isFuture = !!day.isFuture;
+          const showEmptyOutline =
+            !loading && isGoalCompleted && !hasLog;
+          const isInactiveOutline = isFuture || showEmptyOutline;
 
           return (
             <TouchableOpacity
               key={`${day.day}-${index}`}
               style={[
                 styles.dayColumn,
-                day.isBestDay && !isFuture && { zIndex: 2 },
+                day.isBestDay && !isInactiveOutline && { zIndex: 2 },
               ]}
               onPress={() => {
                 if (isFuture || loading) return;
@@ -210,30 +219,33 @@ export function MissedPrayersWeeklyProgressDashboard({
                   isBestDay={!!day.isBestDay}
                   isSelected={isSelected}
                   isFuture={isFuture}
+                  showEmptyOutline={showEmptyOutline}
                 />
 
                 <Text
                   style={[
-                    day.isBestDay && !isFuture
+                    day.isBestDay && !isInactiveOutline
                       ? styles.bestDayLabel
                       : styles.dayLabel,
                     {
-                      color: isFuture
-                        ? "rgba(255, 255, 255, 0.35)"
-                        : isSelected && day.isBestDay
-                          ? Colors.light.green
-                          : day.isBestDay
+                      color: loading
+                        ? Colors.light.subtext
+                        : isInactiveOutline
+                          ? "rgba(255, 255, 255, 0.1)"
+                          : isSelected && day.isBestDay
                             ? Colors.light.green
-                            : isSelected
-                              ? Colors.light.white
-                              : Colors.light.subtext,
+                            : day.isBestDay
+                              ? Colors.light.green
+                              : isSelected
+                                ? Colors.light.white
+                                : Colors.light.subtext,
                     },
                   ]}
                   numberOfLines={1}
                 >
                   {loading
                     ? "---"
-                    : day.isBestDay && !isFuture
+                    : day.isBestDay && !isInactiveOutline
                       ? "BEST DAY!"
                       : day.day}
                 </Text>
@@ -242,11 +254,15 @@ export function MissedPrayersWeeklyProgressDashboard({
                   <Text
                     style={[
                       {
-                        color: day.isBestDay
-                          ? Colors.light.green
-                          : isSelected
-                            ? Colors.light.white
-                            : Colors.light.grey,
+                        color: loading
+                          ? Colors.light.grey
+                          : isInactiveOutline
+                            ? "transparent"
+                            : day.isBestDay
+                              ? Colors.light.green
+                              : isSelected
+                                ? Colors.light.white
+                                : Colors.light.grey,
                       },
                       styles.durationText,
                     ]}
@@ -254,11 +270,13 @@ export function MissedPrayersWeeklyProgressDashboard({
                   >
                     {loading
                       ? "---"
-                      : day.isBestDay && !isFuture
-                        ? day.prayersLogged.toString()
-                        : day.prayersLogged > 0
+                      : isInactiveOutline
+                        ? ""
+                        : day.isBestDay
                           ? day.prayersLogged.toString()
-                          : ""}
+                          : day.prayersLogged > 0
+                            ? day.prayersLogged.toString()
+                            : ""}
                   </Text>
                 </View>
               </View>
@@ -411,7 +429,7 @@ const styles = StyleSheet.create({
   ringInnerFuture: {
     backgroundColor: "transparent",
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.35)",
+    borderColor: "rgba(255, 255, 255, 0.08)",
   },
   dayLabel: {
     color: Colors.light.subtext,

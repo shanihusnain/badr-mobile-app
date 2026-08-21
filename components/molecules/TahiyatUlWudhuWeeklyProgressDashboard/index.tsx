@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -18,13 +18,13 @@ import {
   DashBoardCalenderIcon,
   PrayerMatIcon,
 } from "@/assets/icons";
-import { TopSpace } from "@/components/atoms/TopSpace";
 
 export type TahiyatUlWudhuDayProgress = {
   day: string;
   isLogged?: boolean;
   prayersLogged: number;
   isBestDay?: boolean;
+  isMenstruation?: boolean;
   isFuture?: boolean;
   isToday?: boolean;
 };
@@ -46,11 +46,28 @@ export type TahiyatUlWudhuWeeklyProgressDashboardProps = {
   onDayPress?: (index: number) => void;
   onPrevWeek?: () => void;
   onNextWeek?: () => void;
+  loading?: boolean;
+  /** When true, remaining unlogged cycle days render as empty outlined circles. */
+  isGoalCompleted?: boolean;
 };
 
 const CARD_HORIZONTAL_PADDING = 16;
 const WRAPPER_WIDTH_RATIO = 0.92;
 const RING_SIZE_MAX = 24;
+
+const LOADING_WEEK: TahiyatUlWudhuDayProgress[] = [
+  "Sun",
+  "Mon",
+  "Tue",
+  "Wed",
+  "Thu",
+  "Fri",
+  "Sat",
+].map((day) => ({
+  day,
+  prayersLogged: 0,
+  isLogged: false,
+}));
 
 type DayRingProps = {
   size: number;
@@ -58,6 +75,8 @@ type DayRingProps = {
   isBestDay: boolean;
   isSelected: boolean;
   isFuture: boolean;
+  isMenstruation: boolean;
+  showEmptyOutline: boolean;
 };
 
 function TahiyatUlWudhuDayRing({
@@ -66,6 +85,8 @@ function TahiyatUlWudhuDayRing({
   isBestDay,
   isSelected,
   isFuture,
+  isMenstruation,
+  showEmptyOutline,
 }: DayRingProps) {
   return (
     <View
@@ -87,19 +108,25 @@ function TahiyatUlWudhuDayRing({
             height: size,
             borderRadius: size / 2,
           },
-          isFuture
-            ? styles.ringInnerFuture
-            : hasLog
-              ? [
-                  styles.ringInnerLogged,
-                  isSelected && styles.ringInnerLoggedToday,
-                ]
-              : isSelected
+          isMenstruation
+            ? styles.ringInnerMenstruation
+            : showEmptyOutline
+              ? styles.ringInnerDimOutline
+              : isFuture
                 ? styles.ringInnerFuture
-                : styles.ringInnerEmpty,
+                : hasLog
+                  ? [
+                      styles.ringInnerLogged,
+                      isSelected && styles.ringInnerLoggedToday,
+                    ]
+                  : isSelected
+                    ? styles.ringInnerSelectedEmpty
+                    : styles.ringInnerEmpty,
         ]}
       >
-        {isBestDay && !isFuture && <BestdayStarIcon />}
+        {isBestDay && !isFuture && !showEmptyOutline && !isMenstruation && (
+          <BestdayStarIcon />
+        )}
       </View>
     </View>
   );
@@ -114,16 +141,25 @@ export function TahiyatUlWudhuWeeklyProgressDashboard({
   vsLastWeek = null,
   motivationalQuote = "",
   selectedDayIndex = 6,
-  statsIcon = "rug", // or similar suitable icon
   onDayPress,
   onPrevWeek,
   onNextWeek,
+  loading = false,
+  isGoalCompleted = false,
 }: TahiyatUlWudhuWeeklyProgressDashboardProps) {
   const { t } = useTranslation();
   const { width: screenWidth } = useWindowDimensions();
-  const showComparison = vsLastWeek != null;
+
+  const displayWeekDays = loading ? LOADING_WEEK : weekDays;
+  const showComparison = !loading && vsLastWeek != null;
   const vsLastWeekMagnitude = Math.abs(vsLastWeek ?? 0);
   const vsLastWeekImproved = (vsLastWeek ?? 0) > 0;
+
+  const [activeDayIndex, setActiveDayIndex] = useState(selectedDayIndex);
+
+  useEffect(() => {
+    setActiveDayIndex(selectedDayIndex);
+  }, [selectedDayIndex]);
 
   const availableWidth =
     screenWidth * WRAPPER_WIDTH_RATIO - CARD_HORIZONTAL_PADDING;
@@ -138,64 +174,86 @@ export function TahiyatUlWudhuWeeklyProgressDashboard({
         <View style={styles.headerLeft}>
           <DashBoardCalenderIcon size={24} color={Colors.light.graylightshade} />
           <Text style={styles.weekFractionText} numberOfLines={1}>
-            {weekFraction} WEEKS
+            {loading
+              ? "---"
+              : `${weekFraction} ${t("homeScreen.weeklyProgress_weeks")}`}
           </Text>
         </View>
 
         <View style={styles.headerNav}>
           <TouchableOpacity
             onPress={onPrevWeek}
-            disabled={!onPrevWeek}
-            activeOpacity={onPrevWeek ? 0.7 : 1}
+            disabled={!onPrevWeek || loading}
+            activeOpacity={onPrevWeek && !loading ? 0.7 : 1}
             style={styles.navBtn}
           >
             <Ionicons
               name="chevron-back"
               size={20}
               color={
-                onPrevWeek ? Colors.light.dullWhite : Colors.light.dullWhite + "4D"
+                onPrevWeek && !loading
+                  ? Colors.light.dullWhite
+                  : Colors.light.dullWhite + "4D"
               }
             />
           </TouchableOpacity>
-          <Text style={styles.weekRangeText} numberOfLines={1}>
-            {weekRangeLabel}
-          </Text>
+          <View style={styles.weekRangeTextWrap}>
+            <Text
+              style={styles.weekRangeText}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+              adjustsFontSizeToFit
+              minimumFontScale={0.75}
+            >
+              {loading ? "---" : weekRangeLabel}
+            </Text>
+          </View>
           <TouchableOpacity
             onPress={onNextWeek}
-            disabled={!onNextWeek}
-            activeOpacity={onNextWeek ? 0.7 : 1}
+            disabled={!onNextWeek || loading}
+            activeOpacity={onNextWeek && !loading ? 0.7 : 1}
             style={styles.navBtn}
           >
             <Ionicons
               name="chevron-forward"
               size={20}
               color={
-                onNextWeek ? Colors.light.dullWhite : Colors.light.dullWhite + "4D"
+                onNextWeek && !loading
+                  ? Colors.light.dullWhite
+                  : Colors.light.dullWhite + "4D"
               }
             />
           </TouchableOpacity>
         </View>
       </View>
+
       <View style={styles.daysRow}>
-        {weekDays.map((day, index) => {
-          const isToday = !!day.isToday;
-          const isSelected = isToday;
+        {displayWeekDays.map((day, index) => {
+          const isSelected = !loading && index === activeDayIndex;
           const hasLog = day.prayersLogged > 0 || !!day.isLogged;
           const isFuture = !!day.isFuture;
+          const isMenstruation = !!day.isMenstruation;
+          const showEmptyOutline =
+            !loading &&
+            isGoalCompleted &&
+            !hasLog &&
+            !isMenstruation;
+          const isInactiveOutline = isFuture || showEmptyOutline;
 
           return (
             <TouchableOpacity
               key={`${day.day}-${index}`}
               style={[
                 styles.dayColumn,
-                day.isBestDay && !isFuture && { zIndex: 2 },
+                day.isBestDay && !isInactiveOutline && { zIndex: 2 },
               ]}
               onPress={() => {
-                if (isFuture) return;
+                if (loading || isFuture) return;
+                setActiveDayIndex(index);
                 onDayPress?.(index);
               }}
-              activeOpacity={isFuture ? 1 : 0.75}
-              disabled={isFuture}
+              activeOpacity={loading || isFuture ? 1 : 0.75}
+              disabled={loading || isFuture}
             >
               <View
                 style={[
@@ -209,49 +267,65 @@ export function TahiyatUlWudhuWeeklyProgressDashboard({
                   isBestDay={!!day.isBestDay}
                   isSelected={isSelected}
                   isFuture={isFuture}
+                  isMenstruation={isMenstruation}
+                  showEmptyOutline={showEmptyOutline}
                 />
 
                 <Text
                   style={[
-                    day.isBestDay && !isFuture
+                    day.isBestDay && !isInactiveOutline && !loading
                       ? styles.bestDayLabel
                       : styles.dayLabel,
                     {
-                      color: isFuture
-                        ? "rgba(255, 255, 255, 0.35)"
-                        : isSelected && day.isBestDay
-                          ? Colors.light.green
-                          : day.isBestDay
-                            ? Colors.light.green
-                            : isSelected
-                              ? Colors.light.white
-                              : Colors.light.subtext,
+                      color: loading
+                        ? Colors.light.subtext
+                        : showEmptyOutline
+                          ? "rgba(255, 255, 255, 0.12)"
+                          : isFuture
+                            ? "rgba(255, 255, 255, 0.45)"
+                            : day.isBestDay
+                              ? Colors.light.green
+                              : isSelected
+                                ? Colors.light.white
+                                : Colors.light.subtext,
                     },
                   ]}
                   numberOfLines={1}
                 >
-                  {day.isBestDay && !isFuture ? "BEST DAY!" : day.day}
+                  {loading
+                    ? "---"
+                    : day.isBestDay && !isInactiveOutline
+                      ? "BEST DAY!"
+                      : day.day}
                 </Text>
 
                 <View style={styles.durationSlot}>
                   <Text
                     style={[
                       {
-                        color: day.isBestDay
-                          ? Colors.light.green
-                          : isSelected
-                            ? Colors.light.white
-                            : Colors.light.grey,
+                        color: loading
+                          ? Colors.light.grey
+                          : isInactiveOutline
+                            ? "transparent"
+                            : day.isBestDay
+                              ? Colors.light.green
+                              : isSelected
+                                ? Colors.light.white
+                                : Colors.light.grey,
                       },
                       styles.durationText,
                     ]}
                     numberOfLines={1}
                   >
-                    {day.isBestDay && !isFuture
-                      ? day.prayersLogged.toString()
-                      : day.prayersLogged > 0
-                        ? day.prayersLogged.toString()
-                        : ""}
+                    {loading
+                      ? "---"
+                      : isInactiveOutline
+                        ? ""
+                        : day.isBestDay
+                          ? day.prayersLogged.toString()
+                          : day.prayersLogged > 0
+                            ? day.prayersLogged.toString()
+                            : ""}
                   </Text>
                 </View>
               </View>
@@ -264,16 +338,27 @@ export function TahiyatUlWudhuWeeklyProgressDashboard({
         <View style={styles.statsRow}>
           <PrayerMatIcon />
           <Text style={styles.statsText} numberOfLines={1}>
-            <Text style={styles.statsCount}>{totalPrayersThisWeek}</Text>
-            {" prayers this week"}
+            <Text style={styles.statsCount}>
+              {loading ? "---" : totalPrayersThisWeek}
+            </Text>
+            {loading ? "" : " prayers this week"}
           </Text>
         </View>
 
-        <View style={styles.footerRow}>
+        <View
+          style={[
+            styles.footerRow,
+            showComparison && styles.footerRowWithComparison,
+          ]}
+        >
           <View style={styles.streakBadge}>
             <LighteningIcon />
             <Text style={styles.streakText}>
-              {t("homeScreen.weeklyProgress_dayStreak", { count: streakDays })}
+              {loading
+                ? "---"
+                : t("homeScreen.weeklyProgress_dayStreak", {
+                    count: streakDays,
+                  })}
             </Text>
           </View>
 
@@ -306,8 +391,10 @@ export function TahiyatUlWudhuWeeklyProgressDashboard({
               <AimIcon />
               <View style={styles.quoteTextWrap}>
                 <Text style={styles.quoteText}>
-                  {motivationalQuote ||
-                    "Masha'Allah, may Allah always fill your heart with His love and light!"}
+                  {loading
+                    ? "---"
+                    : motivationalQuote ||
+                      "Masha'Allah, may Allah always fill your heart with His love and light!"}
                 </Text>
               </View>
             </View>
@@ -342,15 +429,17 @@ const styles = StyleSheet.create({
   headerRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    gap: 8,
-    paddingHorizontal: 15,
+    justifyContent: "flex-start",
+    gap: 6,
+    paddingHorizontal: 10,
+    minWidth: 0,
+    width: "100%",
   },
   headerLeft: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 5,
-    marginLeft: -6,
+    gap: 12,
+    flexShrink: 0,
   },
   weekFractionText: {
     color: Colors.light.white,
@@ -358,16 +447,24 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
     lineHeight: 19,
-    marginLeft: 10,
+    marginLeft: 0,
   },
   headerNav: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    flexShrink: 0,
+    gap: 2,
+    flexShrink: 1,
+    minWidth: 0,
+    flexGrow: 1,
   },
   navBtn: {
     padding: 2,
+    flexShrink: 0,
+  },
+  weekRangeTextWrap: {
+    flexShrink: 1,
+    minWidth: 0,
+    flexGrow: 1,
   },
   weekRangeText: {
     color: Colors.light.white,
@@ -391,14 +488,17 @@ const styles = StyleSheet.create({
   dayItemWrapper: {
     alignItems: "center",
     justifyContent: "flex-start",
-    paddingHorizontal: 2,
-    paddingVertical: 10,
-    borderRadius: 6,
+    paddingHorizontal: 4,
+    paddingTop: 2,
+    paddingBottom: 4,
+    borderRadius: 8,
     width: "100%",
     overflow: "visible",
   },
   dayItemSelected: {
     backgroundColor: Colors.light.dayProgressCardBg,
+    paddingTop: 3,
+    paddingBottom: 18,
   },
   bestDayLabel: {
     color: Colors.light.green,
@@ -415,9 +515,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderColor: "transparent",
   },
-  ringOuterSelected: {
-    // No outer border needed based on the design, it uses background instead
-  },
+  ringOuterSelected: {},
   ringInner: {
     alignItems: "center",
     justifyContent: "center",
@@ -428,7 +526,6 @@ const styles = StyleSheet.create({
   ringInnerLoggedToday: {
     borderWidth: 1.5,
     borderColor: Colors.light.bordercolortodayselectedring,
-  
   },
   ringInnerMenstruation: {
     backgroundColor: Colors.light.red,
@@ -436,11 +533,22 @@ const styles = StyleSheet.create({
   ringInnerEmpty: {
     backgroundColor: "rgba(255, 255, 255, 0.1)",
   },
+  ringInnerSelectedEmpty: {
+    backgroundColor: "transparent",
+    borderWidth: 1.5,
+    borderColor: "rgba(255, 255, 255, 0.28)",
+  },
+  /** Upcoming days while goal is still in progress (not 100%). */
   ringInnerFuture: {
     backgroundColor: "transparent",
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.35)",
-
+    borderColor: "rgba(255, 255, 255, 0.32)",
+  },
+  /** Remaining days after goal is 100% — same outline style, much dimmer. */
+  ringInnerDimOutline: {
+    backgroundColor: "transparent",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.08)",
   },
   dayLabel: {
     color: Colors.light.subtext,
@@ -451,10 +559,11 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   durationSlot: {
-    height: 14,
-    justifyContent: "center",
+    height: 18,
+    justifyContent: "flex-start",
     alignItems: "center",
     width: "100%",
+    marginTop: 4,
   },
   durationText: {
     fontSize: 11,
@@ -491,6 +600,11 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     gap: 13,
   },
+  footerRowWithComparison: {
+    justifyContent: "flex-end",
+    gap: 16,
+    paddingRight: 18,
+  },
   streakBadge: {
     flexDirection: "row",
     alignItems: "center",
@@ -502,12 +616,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "500",
     fontFamily: fonts.primary.medium,
-  },
-  streakCount: {
-    color: Colors.light.white,
-    fontSize: 13,
-    fontWeight: "700",
-    fontFamily: fonts.primary.bold,
   },
   quoteBlock: {
     flexDirection: "row",
@@ -530,14 +638,12 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   comparisonBadge: {
-    flex: 1,
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    minWidth: 0,
+    flexShrink: 1,
   },
   comparisonText: {
-    flex: 1,
     color: Colors.light.white,
     fontSize: 13,
     fontWeight: "400",

@@ -86,7 +86,7 @@ export const styles = StyleSheet.create({
   },
   circlePercentRow: {
     flexDirection: "row",
-    alignItems: "flex-start",
+    alignItems: "flex-end",
     justifyContent: "center",
   },
   circlePercentNumber: {
@@ -102,7 +102,8 @@ export const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "500",
     marginLeft: 1,
-    marginTop: 4,
+    marginBottom: 4,
+    lineHeight: 18,
   },
   weeklyDashboardWrapper: {
     width: "92%",

@@ -861,6 +861,7 @@ export function WeeklyProgressSection({
           statsIcon="rug"
           onPrevWeek={handlePrevWeek}
           onNextWeek={handleNextWeek}
+          isGoalCompleted={(frame.goal.achievementPct ?? 0) >= 100}
         />
       );
     }
@@ -868,10 +869,12 @@ export function WeeklyProgressSection({
     return (
       <TahiyatUlWudhuWeeklyProgressDashboard
         weekDays={[]}
-        weekRangeLabel=""
-        weekFraction="—"
+        weekRangeLabel="---"
+        weekFraction="---"
         totalPrayersThisWeek={0}
         streakDays={0}
+        motivationalQuote="---"
+        loading={prayerFrame?.isLoading || (!frame && !prayerFrame?.isError)}
         statsIcon="rug"
       />
     );
@@ -912,6 +915,7 @@ export function WeeklyProgressSection({
           motivationalQuote={frame.week.motivationalMessage}
           onPrevWeek={handlePrevWeek}
           onNextWeek={handleNextWeek}
+          isGoalCompleted={(frame.goal.achievementPct ?? 0) >= 100}
         />
       );
     }
@@ -1041,6 +1045,7 @@ export function WeeklyProgressSection({
           statsIcon="mosque"
           onPrevWeek={handlePrevWeek}
           onNextWeek={handleNextWeek}
+          isGoalCompleted={(frame.goal.achievementPct ?? 0) >= 100}
         />
       );
     }
@@ -1091,6 +1096,7 @@ export function WeeklyProgressSection({
           vsLastWeek={frame.week.vsLastWeek}
           motivationalQuote={frame.week.motivationalMessage}
           selectedDayIndex={getPrayerFrameTodayIndex(frame)}
+          isGoalCompleted={(frame.goal.achievementPct ?? 0) >= 100}
           statsIcon="weather-partly-cloudy"
           onPrevWeek={handlePrevWeek}
           onNextWeek={handleNextWeek}

@@ -37,6 +37,7 @@ export function mapPrayerFrameWeekDays(
       prayersLogged: count,
       isLogged: !day.isFuture && count > 0,
       isBestDay: Boolean(day.isBestDay),
+      isMenstruation: Boolean(day.isMenstruationDay),
       isFuture: day.isFuture || Boolean(day.isFutureDay),
       isToday: day.isToday,
     };
