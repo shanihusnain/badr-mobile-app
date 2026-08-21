@@ -59,7 +59,7 @@ export const styles = StyleSheet.create({
   cancelButton: {
     position: "absolute",
     right: "5%",
-    top: "6%",
+    top: "8%",
     width: 36,
     height: 36,
     borderRadius: 18,

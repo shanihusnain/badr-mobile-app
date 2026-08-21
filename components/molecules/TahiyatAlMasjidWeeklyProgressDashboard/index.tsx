@@ -45,6 +45,8 @@ export type TahiyatAlMasjidWeeklyProgressDashboardProps = {
   onDayPress?: (index: number) => void;
   onPrevWeek?: () => void;
   onNextWeek?: () => void;
+  /** When true, remaining unlogged cycle days render as empty outlined circles. */
+  isGoalCompleted?: boolean;
 };
 
 const CARD_HORIZONTAL_PADDING = 16;
@@ -57,6 +59,7 @@ type DayRingProps = {
   isBestDay: boolean;
   isSelected: boolean;
   isFuture: boolean;
+  showEmptyOutline: boolean;
 };
 
 function TahiyatAlMasjidDayRing({
@@ -65,6 +68,7 @@ function TahiyatAlMasjidDayRing({
   isBestDay,
   isSelected,
   isFuture,
+  showEmptyOutline,
 }: DayRingProps) {
   return (
     <View
@@ -86,7 +90,7 @@ function TahiyatAlMasjidDayRing({
             height: size,
             borderRadius: size / 2,
           },
-          isFuture
+          isFuture || showEmptyOutline
             ? styles.ringInnerFuture
             : hasLog
               ? [
@@ -98,7 +102,7 @@ function TahiyatAlMasjidDayRing({
                 : styles.ringInnerEmpty,
         ]}
       >
-        {isBestDay && !isFuture && <BestdayStarIcon />}
+        {isBestDay && !isFuture && !showEmptyOutline && <BestdayStarIcon />}
       </View>
     </View>
   );
@@ -116,6 +120,7 @@ export function TahiyatAlMasjidWeeklyProgressDashboard({
   onDayPress,
   onPrevWeek,
   onNextWeek,
+  isGoalCompleted = false,
 }: TahiyatAlMasjidWeeklyProgressDashboardProps) {
   const { t } = useTranslation();
   const { width: screenWidth } = useWindowDimensions();
@@ -180,13 +185,15 @@ export function TahiyatAlMasjidWeeklyProgressDashboard({
           const isSelected = isToday;
           const hasLog = day.prayersLogged > 0 || !!day.isLogged;
           const isFuture = !!day.isFuture;
+          const showEmptyOutline = isGoalCompleted && !hasLog;
+          const isInactiveOutline = isFuture || showEmptyOutline;
 
           return (
             <TouchableOpacity
               key={`${day.day}-${index}`}
               style={[
                 styles.dayColumn,
-                day.isBestDay && !isFuture && { zIndex: 2 },
+                day.isBestDay && !isInactiveOutline && { zIndex: 2 },
               ]}
               onPress={() => {
                 if (isFuture) return;
@@ -207,16 +214,17 @@ export function TahiyatAlMasjidWeeklyProgressDashboard({
                   isBestDay={!!day.isBestDay}
                   isSelected={isSelected}
                   isFuture={isFuture}
+                  showEmptyOutline={showEmptyOutline}
                 />
 
                 <Text
                   style={[
-                    day.isBestDay && !isFuture
+                    day.isBestDay && !isInactiveOutline
                       ? styles.bestDayLabel
                       : styles.dayLabel,
                     {
-                      color: isFuture
-                        ? "rgba(255, 255, 255, 0.35)"
+                      color: isInactiveOutline
+                        ? "rgba(255, 255, 255, 0.1)"
                         : isSelected && day.isBestDay
                           ? Colors.light.green
                           : day.isBestDay
@@ -228,28 +236,32 @@ export function TahiyatAlMasjidWeeklyProgressDashboard({
                   ]}
                   numberOfLines={1}
                 >
-                  {day.isBestDay && !isFuture ? "BEST DAY!" : day.day}
+                  {day.isBestDay && !isInactiveOutline ? "BEST DAY!" : day.day}
                 </Text>
 
                 <View style={styles.durationSlot}>
                   <Text
                     style={[
                       {
-                        color: day.isBestDay
-                          ? Colors.light.green
-                          : isSelected
-                            ? Colors.light.white
-                            : Colors.light.grey,
+                        color: isInactiveOutline
+                          ? "transparent"
+                          : day.isBestDay
+                            ? Colors.light.green
+                            : isSelected
+                              ? Colors.light.white
+                              : Colors.light.grey,
                       },
                       styles.durationText,
                     ]}
                     numberOfLines={1}
                   >
-                    {day.isBestDay && !isFuture
-                      ? day.prayersLogged.toString()
-                      : day.prayersLogged > 0
+                    {isInactiveOutline
+                      ? ""
+                      : day.isBestDay
                         ? day.prayersLogged.toString()
-                        : ""}
+                        : day.prayersLogged > 0
+                          ? day.prayersLogged.toString()
+                          : ""}
                   </Text>
                 </View>
               </View>
@@ -415,7 +427,7 @@ const styles = StyleSheet.create({
   ringInnerFuture: {
     backgroundColor: "transparent",
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.35)",
+    borderColor: "rgba(255, 255, 255, 0.08)",
   },
   dayLabel: {
     color: Colors.light.subtext,

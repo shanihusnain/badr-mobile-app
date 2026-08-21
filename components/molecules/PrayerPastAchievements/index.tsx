@@ -637,6 +637,12 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
     displayBaseIncomplete,
   );
 
+  /** Hide detailed-stats chevron until the user has logged at least one prayer. */
+  const showDetailedStatsChevron =
+    !isDetailed &&
+    !showPlaceholders &&
+    (baseAchievement?.completedPrayers ?? 0) > 0;
+
   const displayTimeSpent =
     selectedBaseWeek?.timeSpentMinutes ??
     baseAchievement?.totalTimeSpentMinutes ??
@@ -769,7 +775,7 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
               "ACHIEVEMENTS",
             )}
           </Text>
-          {!isDetailed && (
+          {showDetailedStatsChevron && (
             <TouchableOpacity
               onPress={() =>
                 router.push({
@@ -1372,7 +1378,7 @@ const styles = StyleSheet.create({
   },
   achievementPercentRow: {
     flexDirection: "row",
-    alignItems: "flex-start",
+    alignItems: "flex-end",
     marginBottom: 6,
   },
   achievementPercent: {
@@ -1390,7 +1396,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.bold,
     fontWeight: "700",
     lineHeight: 16,
-    marginTop: 7,
+    marginBottom: 1,
     marginLeft: 2,
   },
   deltaBadge: {

@@ -315,6 +315,15 @@ export default function TahiyatAlMasjidLoggingFlow({
       {flowMode === "active" && (
         <Pressable style={commonStyles.backdrop} onPress={resetFlow} />
       )}
+      {flowMode === "active" && (
+        <TouchableOpacity
+          style={commonStyles.cancelButton}
+          onPress={resetFlow}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="close" size={20} color={Colors.light.white} />
+        </TouchableOpacity>
+      )}
 
       <View style={commonStyles.section}>
         <Text style={commonStyles.sectionTitle}>
