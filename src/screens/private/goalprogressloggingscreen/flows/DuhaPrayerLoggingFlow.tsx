@@ -30,10 +30,11 @@ import { useLogDuhaPrayerGoal } from "@/src/api/mutations/useLogDuhaPrayerGoal";
 import {
   AddLoggingFlowIcon,
   CalendarFlippingIcon,
+  FlowCardDuhaPrayerIcon,
   WhiteClockIcon,
+  WhitePrayerMatIcon,
   WhiteTimerIcon,
 } from "@/assets/icons";
-import { DuhaPrayerDetailedIbadhasIcon } from "@/assets/icons/DuhaPrayerDetailedIbadhasIcon";
 
 type DuhaPrayerStepId =
   | "date"
@@ -226,12 +227,7 @@ export default function DuhaPrayerLoggingFlow({
         };
       case "prayers-quantity":
         return {
-          icon: (
-            <DuhaPrayerDetailedIbadhasIcon
-              color={Colors.light.white}
-              size={18}
-            />
-          ),
+          icon: <WhitePrayerMatIcon size={26} />,
           label: "How many 2-rak'ah prayers did you pray?",
         };
       case "start-time":
@@ -312,7 +308,7 @@ export default function DuhaPrayerLoggingFlow({
             <View style={localStyles.summaryCard}>
               <View style={localStyles.summaryBody}>
                 <View style={localStyles.summaryIconCircle}>
-                  <DuhaPrayerDetailedIbadhasIcon
+                  <FlowCardDuhaPrayerIcon
                     color={Colors.light.white}
                     size={18}
                   />

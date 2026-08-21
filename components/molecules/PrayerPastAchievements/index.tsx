@@ -40,6 +40,10 @@ import {
   mapPrayerGoalAchievementsToUi,
   shiftPrayerAchievementsPeriodStart,
 } from "@/src/utils/prayerGoalAchievementsMap";
+import {
+  PAST_ACHIEVEMENT_NO_DATA,
+  isPastAchievementBarEmpty,
+} from "@/src/utils/pastAchievementNoData";
 import { resolvePrayerTypeFromGoalId } from "@/src/utils/prayerGoalMap";
 import {
   NegativeProgressIcon,
@@ -51,6 +55,7 @@ import {
   InsightCardWeeklyAverageIcon,
   InsightCardTimeSpentIcon,
   InsightCardGoalTrackedIcon,
+  InsightCardArrowReverseIcon,
 } from "@/assets/icons";
 
 type Props = {
@@ -201,6 +206,13 @@ function getTahiyyatAlWudhuInsightIcon(card: InsightCardData) {
   if (name === "calendar-outline" || title.includes("GOAL TRACKED")) {
     return <InsightCardGoalTrackedIcon size={TAHIYYAT_INSIGHT_ICON_SIZE} />;
   }
+  if (
+    name === "restore" ||
+    title.includes("PERIOD MADE-UP") ||
+    title.includes("MADE-UP")
+  ) {
+    return <InsightCardArrowReverseIcon size={TAHIYYAT_INSIGHT_ICON_SIZE} />;
+  }
   if (name === "checkmark-circle-outline" || title.includes("COMPLETED")) {
     return <InsightCardTickIcon size={TAHIYYAT_INSIGHT_ICON_SIZE} />;
   }
@@ -224,6 +236,7 @@ function mapApiKeyInsightsToCards(
   period: PastAchievementPeriod,
   t: (key: string, options?: Record<string, string | number>) => string,
   isLoading = false,
+  goalId?: string,
 ): InsightCardData[] {
   const insights = data?.keyInsights ?? {};
   const noDataLabel = t("progressLogging.insightNoData");
@@ -267,6 +280,45 @@ function mapApiKeyInsightsToCards(
       noDataLabel,
     }),
   );
+
+  if (goalId === "prayer-missed") {
+    const staticMadeUp = PRAYER_INSIGHT_CARDS["prayer-missed"]?.[period]?.find(
+      (card) => card.title === "PERIOD MADE-UP",
+    );
+    const periodMadeUp =
+      firstNumber(
+        insights.periodMadeUpDays,
+        (insights as { periodMadeUp?: number | null }).periodMadeUp,
+        (insights as { daysMadeUp?: number | null }).daysMadeUp,
+      ) ??
+      (staticMadeUp && !isLoading
+        ? Number.parseInt(staticMadeUp.value, 10) || 0
+        : 0);
+    const periodMadeUpDelta =
+      firstNumber(
+        insights.periodMadeUpDelta,
+        (insights as { daysMadeUpDelta?: number | null }).daysMadeUpDelta,
+      ) ??
+      (staticMadeUp?.trendDirection === "up"
+        ? Number.parseInt(staticMadeUp.trendValue ?? "0", 10) || null
+        : staticMadeUp?.trendDirection === "down"
+          ? -(Number.parseInt(staticMadeUp.trendValue ?? "0", 10) || 0)
+          : null);
+
+    cards.push(
+      metricCard({
+        title: t("progressLogging.periodMadeUp"),
+        iconFamily: "MaterialCommunityIcons",
+        iconName: "restore",
+        value: periodMadeUp,
+        subValue: t("progressLogging.daysLabel"),
+        delta: periodMadeUpDelta,
+        formatDelta: dayTrendLabel,
+        noData: isLoading,
+        noDataLabel,
+      }),
+    );
+  }
 
   cards.push(
     metricCard({
@@ -540,13 +592,22 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
       : null;
 
   const displayBaseCompleted =
-    selectedBaseWeek?.completedPrayers ??
-    baseAchievement?.completedPrayers ??
-    0;
+    selectedBarIndex !== null
+      ? (selectedBaseWeek?.completedPrayers ??
+        selectedBaseWeek?.completedHours ??
+        0)
+      : (baseAchievement?.completedPrayers ?? 0);
   const displayBaseIncomplete =
-    selectedBaseWeek?.incompletePrayers ??
-    baseAchievement?.incompletePrayers ??
-    0;
+    selectedBarIndex !== null
+      ? (selectedBaseWeek?.incompletePrayers ??
+        selectedBaseWeek?.incompleteHours ??
+        0)
+      : (baseAchievement?.incompletePrayers ?? 0);
+
+  const showNoDataDash = isPastAchievementBarEmpty(
+    displayBaseCompleted,
+    displayBaseIncomplete,
+  );
 
   const displayTimeSpent =
     selectedBaseWeek?.timeSpentMinutes ??
@@ -611,6 +672,7 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
           period,
           t,
           showPlaceholders,
+          goalId,
         )
       : PRAYER_INSIGHT_CARDS[goalId]?.[
           period as "monthly" | "threeMonths" | "sixMonths"
@@ -644,6 +706,7 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
               icon={
                 goalId === "prayer-tahiyyat" ||
                 goalId === "prayer-tahiyyatMasjid" ||
+                goalId === "prayer-missed" ||
                 goalId === "prayer-duha" ||
                 goalId === "prayer-tawbah" ||
                 goalId === "prayer-istikhara" ||
@@ -651,7 +714,13 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
                   ? getTahiyyatAlWudhuInsightIcon(c)
                   : undefined
               }
-              style={styles.insightCardFixed}
+              style={{
+                ...styles.insightCardFixed,
+                // % of screen — string % expands in horizontal ScrollView
+                width: width * 0.42,
+                maxWidth: width * 0.42,
+                minWidth: width * 0.42,
+              }}
             />
           ))}
         </ScrollView>
@@ -704,20 +773,22 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
                 ? t("progressLogging.timeSpentLabel").toUpperCase()
                 : "ACHIEVEMENT"}
             </Text>
-            <Text style={styles.achievementPercent}>
-              {showPlaceholders ? (
-                LOADING_DASH
-              ) : (
-                <>
-                  {formatNumber(
-                    isTimeSpentView
-                      ? timeSpentPercent
-                      : resolvedAchievement.achievementPercent,
-                  )}
-                  <Text style={styles.achievementPercentSymbol}>%</Text>
-                </>
-              )}
-            </Text>
+            <View style={styles.achievementPercentRow}>
+              <Text style={styles.achievementPercent}>
+                {showPlaceholders
+                  ? LOADING_DASH
+                  : showNoDataDash
+                    ? PAST_ACHIEVEMENT_NO_DATA
+                    : formatNumber(
+                        isTimeSpentView
+                          ? timeSpentPercent
+                          : resolvedAchievement.achievementPercent,
+                      )}
+              </Text>
+              {!showPlaceholders ? (
+                <Text style={styles.achievementPercentSymbol}>%</Text>
+              ) : null}
+            </View>
           </View>
           <View style={styles.periodToggle}>
             {PERIODS.map((item) => {
@@ -889,17 +960,14 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
               )}
             </Text>
 
-            {(goalId === "prayer-missed" || goalId === "prayer-sunnah") && (
+            {goalId === "prayer-sunnah" && (
               <View style={styles.missedPrayerTabsWrapper}>
                 <ScrollView
                   horizontal
                   showsHorizontalScrollIndicator={false}
                   contentContainerStyle={styles.missedPrayerTabsContainer}
                 >
-                  {(goalId === "prayer-missed"
-                    ? MISSED_PRAYER_TABS
-                    : SUNNAH_RAWATIB_TABS
-                  ).map((prayer) => {
+                  {SUNNAH_RAWATIB_TABS.map((prayer) => {
                     const isActive = selectedPrayerTab === prayer;
                     return (
                       <TouchableOpacity
@@ -931,13 +999,52 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
           </>
         )}
 
+        {goalId === "prayer-missed" && !showPlaceholders && (
+          <View style={styles.missedPrayerTabsWrapper}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.missedPrayerTabsContainer}
+            >
+              {MISSED_PRAYER_TABS.map((prayer) => {
+                const isActive = selectedPrayerTab === prayer;
+                return (
+                  <TouchableOpacity
+                    key={prayer}
+                    onPress={() => setSelectedPrayerTab(prayer)}
+                    style={[
+                      styles.missedPrayerTab,
+                      isActive
+                        ? styles.missedPrayerTabActive
+                        : styles.missedPrayerTabInactive,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.missedPrayerTabText,
+                        isActive
+                          ? styles.missedPrayerTabTextActive
+                          : styles.missedPrayerTabTextInactive,
+                      ]}
+                    >
+                      {prayer}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        )}
+
         <View style={styles.goalHeader}>
           <Text style={styles.goalLabel}>{t("progressLogging.goal")}</Text>
           <View style={styles.goalValueRow}>
             <Text style={styles.goalPillValue}>
               {showPlaceholders
                 ? LOADING_DASH
-                : formatNumber(resolvedBaseAchievement.goalPrayers)}
+                : showNoDataDash
+                  ? PAST_ACHIEVEMENT_NO_DATA
+                  : formatNumber(resolvedBaseAchievement.goalPrayers)}
             </Text>
             <View style={styles.goalPill}>
               <Text style={styles.goalPillText}>prayers</Text>
@@ -1053,11 +1160,19 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
                 analyticsView === "inMosqueVsOutOfMosque" && {
                   color: "#00E5FF",
                 },
+                goalId === "prayer-missed" &&
+                  analyticsView === "completedVsIncomplete" &&
+                  !showPlaceholders &&
+                  !showNoDataDash && {
+                    color: Colors.light.green,
+                  },
               ]}
             >
               {showPlaceholders
                 ? LOADING_DASH
-                : formatPrayerCountLabel(displayBaseCompleted)}
+                : showNoDataDash
+                  ? PAST_ACHIEVEMENT_NO_DATA
+                  : formatPrayerCountLabel(displayBaseCompleted)}
             </Text>
           </View>
           <View style={styles.statColumn}>
@@ -1073,18 +1188,26 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
                     : t("progressLogging.incomplete")}
             </Text>
             <Text
-              style={
+              style={[
                 analyticsView === "completedVsTimeSpent" ||
                 analyticsView === "completedByCategory"
                   ? styles.statValueTimeSpent
-                  : styles.statValueIncomplete
-              }
+                  : styles.statValueIncomplete,
+                goalId === "prayer-missed" &&
+                  analyticsView === "completedVsIncomplete" &&
+                  !showPlaceholders &&
+                  !showNoDataDash && {
+                    color: Colors.light.warning,
+                  },
+              ]}
             >
               {showPlaceholders
                 ? LOADING_DASH
-                : analyticsView === "completedVsTimeSpent"
-                  ? formatPrayerTimeSpentLabel(displayTimeSpent)
-                  : formatPrayerCountLabel(displayBaseIncomplete)}
+                : showNoDataDash
+                  ? PAST_ACHIEVEMENT_NO_DATA
+                  : analyticsView === "completedVsTimeSpent"
+                    ? formatPrayerTimeSpentLabel(displayTimeSpent)
+                    : formatPrayerCountLabel(displayBaseIncomplete)}
             </Text>
           </View>
         </View>
@@ -1121,6 +1244,14 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
             isPrayerGoal={true}
             showPagination={isDetailed && !showPlaceholders}
             showBarLine={goalId === "prayer-qiyam"}
+            barColors={
+              isTimeSpentView
+                ? [Colors.light.white, Colors.light.white]
+                : goalId === "prayer-missed"
+                  ? [Colors.light.green, Colors.light.warning]
+                  : [Colors.light.white, "rgba(255, 255, 255, 0.4)"]
+            }
+            valueLabelColor={Colors.light.white}
           />
         </View>
       </View>
@@ -1175,6 +1306,11 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     //textTransform: "uppercase",
   },
+  achievementPercentRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginBottom: 6,
+  },
   achievementPercent: {
     color: Colors.light.white,
     fontSize: 28,
@@ -1183,10 +1319,15 @@ const styles = StyleSheet.create({
     lineHeight: 28,
     letterSpacing: 0,
     textTransform: "uppercase",
-    marginBottom: 6,
   },
   achievementPercentSymbol: {
+    color: Colors.light.white,
     fontSize: 16,
+    fontFamily: fonts.primary.bold,
+    fontWeight: "700",
+    lineHeight: 16,
+    marginTop: 7,
+    marginLeft: 2,
   },
   deltaBadge: {
     flexDirection: "row",
@@ -1305,11 +1446,11 @@ const styles = StyleSheet.create({
   missedPrayerTabsWrapper: {
     marginTop: 6,
     marginBottom: 6,
-    marginHorizontal: -16, // to allow scroll bleeding if container has padding
+    marginHorizontal: -14,
   },
   missedPrayerTabsContainer: {
-    paddingHorizontal: 16,
-    gap: 8,
+    paddingHorizontal: 14,
+    gap: 5,
   },
   missedPrayerTab: {
     paddingVertical: 6,
@@ -1427,13 +1568,13 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
   },
   statValueCompleted: {
-    color: Colors.light.green,
+    color: Colors.light.white,
     fontSize: 22,
     fontFamily: fonts.primary.bold,
     fontWeight: "700",
   },
   statValueIncomplete: {
-    color: Colors.light.yellow,
+    color: Colors.light.white,
     fontSize: 22,
     fontFamily: fonts.primary.bold,
     fontWeight: "700",
@@ -1445,7 +1586,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   insightsSection: {
-    marginTop: 8,
+    marginTop: 20,
   },
   insightsDottedDivider: {
     height: 1,
@@ -1481,8 +1622,8 @@ const styles = StyleSheet.create({
     paddingRight: 20, // Add some padding to the end of the scroll
   },
   insightCardFixed: {
-    width: 176,
     flex: 0,
-    minWidth: "auto",
+    flexGrow: 0,
+    flexShrink: 0,
   },
 });

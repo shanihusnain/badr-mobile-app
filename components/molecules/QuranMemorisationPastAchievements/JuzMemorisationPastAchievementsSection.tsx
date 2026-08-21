@@ -32,6 +32,10 @@ import {
 import type { MemorisationAnalyticsView } from "@/src/screens/private/goalprogressloggingscreen/quranMemorisationSurahPastAchievementData";
 import { applyTimeSpentOnlyGreenChart } from "@/src/screens/private/goalprogressloggingscreen/quranRecitationPastAchievementData";
 import type { PastAchievementPeriod } from "@/src/screens/private/goalprogressloggingscreen/quranHoursPastAchievementData";
+import {
+  PAST_ACHIEVEMENT_NO_DATA,
+  isPastAchievementBarEmpty,
+} from "@/src/utils/pastAchievementNoData";
 import type { JuzMemorisationGoalId } from "@/src/screens/private/goalprogressloggingscreen/types";
 import { useOptionalMemorisationJuzContext } from "@/src/screens/private/goalprogressloggingscreen/memorisationJuzContext";
 import { QuranHoursPastAchievementChartBlock } from "../QuranHoursPastAchievements/QuranHoursPastAchievementChartBlock";
@@ -203,6 +207,11 @@ const juzContext = useOptionalMemorisationJuzContext();
   const displayBaseIncomplete =
     selectedBaseBar?.incompleteHours ?? baseAchievement.incompleteHours;
 
+  const showNoDataDash = isPastAchievementBarEmpty(
+    displayBaseCompleted,
+    displayBaseIncomplete,
+  );
+
   const selectedPeriodTimeSpentMinutes =
     selectedBarIndex !== null
       ? (timeSpentByPeriod[selectedBarIndex] ?? 0)
@@ -267,7 +276,9 @@ const juzContext = useOptionalMemorisationJuzContext();
   }, [analyticsView, goalId, period, router, selectedJuzId]);
 
   const formatStatCount = (value: number) =>
-    formatJuzMemorisationCountLabel(value);
+    showNoDataDash
+      ? PAST_ACHIEVEMENT_NO_DATA
+      : formatJuzMemorisationCountLabel(value);
 
   const showChartHint =
     isDetailed && !hintDismissed && selectedBarIndex === null;
@@ -419,6 +430,9 @@ if (!isDetailed) {
       selectedBar?.completedHours ?? compactAchievement.memorizedAyahs;
     const displayRemaining =
       selectedBar?.incompleteHours ?? compactAchievement.remainingAyahs;
+    const compactShowNoDataDash =
+      selectedBarIndex !== null &&
+      isPastAchievementBarEmpty(displayMemorized, displayRemaining);
     const compactChartHint = !hintDismissed && selectedBarIndex === null;
 
     return (
@@ -451,7 +465,9 @@ if (!isDetailed) {
                 {t("progressLogging.memorisationCumulativeProgress")}
               </Text>
               <Text style={styles.achievementPercent}>
-                {formatNumber(compactAchievement.progressPercent)}
+                {compactShowNoDataDash
+                  ? PAST_ACHIEVEMENT_NO_DATA
+                  : formatNumber(compactAchievement.progressPercent)}
                 <Text style={styles.achievementPercentSymbol}>%</Text>
               </Text>
               {compactAchievement.completed ? (
@@ -483,7 +499,9 @@ if (!isDetailed) {
             </Text>
             <View style={styles.goalPillRow}>
               <Text style={styles.goalPillValue}>
-                {formatNumber(compactAchievement.totalAyahs)}{" "}
+                {compactShowNoDataDash
+                  ? PAST_ACHIEVEMENT_NO_DATA
+                  : formatNumber(compactAchievement.totalAyahs)}{" "}
               </Text>
               <View style={styles.goalPill}>
                 <Text style={styles.goalPillText}>
@@ -499,7 +517,9 @@ if (!isDetailed) {
                 {t("progressLogging.completed")}
               </Text>
               <Text style={styles.statValueCompleted}>
-                {formatMemorisationAyahLabel(displayMemorized)}
+                {compactShowNoDataDash
+                  ? PAST_ACHIEVEMENT_NO_DATA
+                  : formatMemorisationAyahLabel(displayMemorized)}
               </Text>
             </View>
             <View style={styles.statColumn}>
@@ -507,7 +527,9 @@ if (!isDetailed) {
                 {t("progressLogging.remaining")}
               </Text>
               <Text style={styles.statValueIncomplete}>
-                {formatMemorisationAyahLabel(displayRemaining)}
+                {compactShowNoDataDash
+                  ? PAST_ACHIEVEMENT_NO_DATA
+                  : formatMemorisationAyahLabel(displayRemaining)}
               </Text>
             </View>
           </View>
@@ -579,7 +601,9 @@ if (!isDetailed) {
                 styles.achievementPercentDetailed,
               ]}
             >
-              {formatNumber(baseAchievement.achievementPercent)}
+              {showNoDataDash
+                ? PAST_ACHIEVEMENT_NO_DATA
+                : formatNumber(baseAchievement.achievementPercent)}
               <Text style={styles.achievementPercentSymbolDetailed}>%</Text>
             </Text>
             <View
@@ -667,7 +691,9 @@ if (!isDetailed) {
           </Text>
           <View style={styles.goalPillRow}>
             <Text style={styles.goalPillValue}>
-              {formatNumber(periodSlice.totalAyahs)}{" "}
+              {showNoDataDash
+                ? PAST_ACHIEVEMENT_NO_DATA
+                : formatNumber(periodSlice.totalAyahs)}{" "}
             </Text>
             <View style={styles.goalPill}>
               <Text style={styles.goalPillText}>
@@ -712,7 +738,11 @@ if (!isDetailed) {
           totalTimeMinutes={selectedPeriodTimeSpentMinutes}
           longestStreak={0}
           formatCount={formatStatCount}
-          formatTimeChip={formatMemorisationJuzTimeSpentChip}
+          formatTimeChip={(minutes) =>
+            showNoDataDash
+              ? PAST_ACHIEVEMENT_NO_DATA
+              : formatMemorisationJuzTimeSpentChip(minutes)
+          }
           completedLabel={t("progressLogging.completed")}
           incompleteLabel={t("progressLogging.incomplete")}
           timeSpentLabel={t("progressLogging.timeSpentLabel")}

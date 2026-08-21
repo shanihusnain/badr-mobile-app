@@ -475,11 +475,7 @@ function buildSixMonthSlice(anchorDate: string): MissedRamadanPeriodSlice {
 function buildPeriodBar(
   period: MissedRamadanPeriodSlice["chartPeriods"][number],
 ): QuranPastChartItem {
-  const stackTotalHours = Math.max(
-    period.completed + period.incomplete,
-    period.completed,
-    1,
-  );
+  const stackTotalHours = period.completed + period.incomplete;
 
   return {
     xLabel: period.xLabel,

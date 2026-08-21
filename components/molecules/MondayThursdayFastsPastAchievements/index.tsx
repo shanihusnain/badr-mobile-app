@@ -33,6 +33,10 @@ import {
 } from "@/src/screens/private/goalprogressloggingscreen/mondayThursdayFastsPastAchievementData";
 import { applyTimeSpentOnlyGreenChart } from "@/src/screens/private/goalprogressloggingscreen/quranRecitationPastAchievementData";
 import type { PastAchievementPeriod } from "@/src/screens/private/goalprogressloggingscreen/quranHoursPastAchievementData";
+import {
+  PAST_ACHIEVEMENT_NO_DATA,
+  isPastAchievementBarEmpty,
+} from "@/src/utils/pastAchievementNoData";
 import { QuranHoursPastAchievementChartBlock } from "../QuranHoursPastAchievements/QuranHoursPastAchievementChartBlock";
 import { GraphBarSelectionFooter } from "../QuranHoursPastAchievements/GraphBarSelectionFooter";
 import { TopSpace } from "@/components/atoms/TopSpace";
@@ -77,8 +81,8 @@ const PERIOD_DELTA_LABEL_KEYS: Record<PastAchievementPeriod, string> = {
 };
 
 const MON_THU_BAR_COLORS: [string, string] = [
-  Colors.light.ringMonThu,
-  Colors.light.warning,
+  Colors.light.white,
+  "rgba(255, 255, 255, 0.4)",
 ];
 export function MondayThursdayFastsPastAchievements({
   refreshKey = 0,
@@ -167,27 +171,30 @@ export function MondayThursdayFastsPastAchievements({
     });
   }, [analyticsView, period, router]);
 
-  const selectedBasePeriod =
-    selectedBarIndex !== null
-      ? periodSlice.chartPeriods[selectedBarIndex]
-      : null;
-
   const displayCompleted = selectedCalendarDate
     ? isMondayThursdayFastCompletedOnDate(selectedCalendarDate)
       ? 1
       : 0
-    : (selectedBasePeriod?.completed ?? periodSlice.completedFasts);
+    : selectedBarIndex !== null
+      ? (periodSlice.chartPeriods[selectedBarIndex]?.completed ?? 0)
+      : periodSlice.completedFasts;
   const displayIncomplete = selectedCalendarDate
     ? isMondayThursdayFastMissedOnDate(selectedCalendarDate, periodSlice)
       ? 1
       : 0
-    : (selectedBasePeriod?.incomplete ?? periodSlice.incompleteFasts);
+    : selectedBarIndex !== null
+      ? (periodSlice.chartPeriods[selectedBarIndex]?.incomplete ?? 0)
+      : periodSlice.incompleteFasts;
 
   const selectedPeriodTimeSpentMinutes = selectedCalendarDate
     ? getMondayThursdayFastTimeSpentForDate(selectedCalendarDate)
     : selectedBarIndex !== null
       ? (timeSpentByPeriod[selectedBarIndex] ?? 0)
       : totalTimeSpentMinutes;
+
+  const showNoDataDash =
+    selectedCalendarDate == null &&
+    isPastAchievementBarEmpty(displayCompleted, displayIncomplete);
 
   const showCalendar = isDetailed
     ? period === "monthly"
@@ -335,7 +342,9 @@ export function MondayThursdayFastsPastAchievements({
                 isDetailed && styles.achievementPercentDetailed,
               ]}
             >
-              {formatNumber(baseAchievement.achievementPercent)}
+              {showNoDataDash
+                ? PAST_ACHIEVEMENT_NO_DATA
+                : formatNumber(baseAchievement.achievementPercent)}
               <Text
                 style={
                   isDetailed
@@ -451,7 +460,9 @@ export function MondayThursdayFastsPastAchievements({
           <Text style={styles.goalLabel}>{t("progressLogging.goal")}</Text>
           <View style={styles.goalValueRow}>
             <Text style={styles.goalPillValue}>
-              {formatNumber(periodSlice.targetFasts)}{" "}
+              {showNoDataDash
+                ? PAST_ACHIEVEMENT_NO_DATA
+                : formatNumber(periodSlice.targetFasts)}{" "}
             </Text>
             <View style={styles.goalPill}>
               <Text style={styles.goalPillText}>
@@ -495,7 +506,9 @@ export function MondayThursdayFastsPastAchievements({
               {t("progressLogging.completed")}
             </Text>
             <Text style={styles.statValueCompleted}>
-              {formatMondayThursdayFastCountLabel(displayCompleted)}
+              {showNoDataDash
+                ? PAST_ACHIEVEMENT_NO_DATA
+                : formatMondayThursdayFastCountLabel(displayCompleted)}
             </Text>
           </View>
           <View style={styles.statColumn}>
@@ -511,11 +524,13 @@ export function MondayThursdayFastsPastAchievements({
                   : styles.statValueIncomplete
               }
             >
-              {analyticsView === "completedVsTime"
-                ? formatMondayThursdayFastTimeLabel(
-                  selectedPeriodTimeSpentMinutes,
-                )
-                : formatMondayThursdayFastCountLabel(displayIncomplete)}
+              {showNoDataDash
+                ? PAST_ACHIEVEMENT_NO_DATA
+                : analyticsView === "completedVsTime"
+                  ? formatMondayThursdayFastTimeLabel(
+                      selectedPeriodTimeSpentMinutes,
+                    )
+                  : formatMondayThursdayFastCountLabel(displayIncomplete)}
             </Text>
           </View>
         </View>
@@ -599,10 +614,10 @@ export function MondayThursdayFastsPastAchievements({
               formatBarValue={chartFormatBarValue}
               barColors={
                 analyticsView === "completedVsTime"
-                  ? [Colors.light.ringMonThu, Colors.light.ringMonThu]
+                  ? [Colors.light.white, Colors.light.white]
                   : MON_THU_BAR_COLORS
               }
-              valueLabelColor={Colors.light.ringMonThu}
+              valueLabelColor={Colors.light.white}
               showPagination={isDetailed}
             />
             {isDetailed ? (
@@ -690,6 +705,8 @@ const styles = StyleSheet.create({
   },
   achievementPercentSymbol: {
     fontSize: 22,
+    lineHeight: 22,
+    transform: [{ translateY: -8 }],
   },
   achievementPercentDetailed: {
     fontSize: 48,
@@ -697,6 +714,8 @@ const styles = StyleSheet.create({
   },
   achievementPercentSymbolDetailed: {
     fontSize: 24,
+    lineHeight: 24,
+    transform: [{ translateY: -10 }],
   },
   deltaBadge: {
     flexDirection: "row",
@@ -879,13 +898,13 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
   },
   statValueCompleted: {
-    color: Colors.light.green,
+    color: Colors.light.white,
     fontSize: 22,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "700",
   },
   statValueIncomplete: {
-    color: Colors.light.warning,
+    color: Colors.light.white,
     fontSize: 22,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "700",

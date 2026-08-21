@@ -8,13 +8,16 @@ import {
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import moment from "moment-hijri";
 import { Colors } from "@/constants/theme";
 import { GoalData } from "../../home/components/goalsData";
 import { DateStep } from "../components/DateStep";
 import { MissedPrayersQuantityStep } from "../components/MissedPrayersQuantityStep";
-import { StartTimeStep, DurationStep } from "../components/TimePickerSteps";
+import {
+  StartTimeStep,
+  DurationStep,
+  getCurrentStartTimeParts,
+} from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
 import {
   styles as commonStyles,
@@ -31,6 +34,8 @@ import {
   prayerFrameShowsInsights,
 } from "@/src/utils/prayerGoalFrameMap";
 import {
+  WhitePrayerMatIcon,
+  MissedPastPrayerCalenderIcon,
   AddLoggingFlowIcon,
   CalendarFlippingIcon,
   WhiteClockIcon,
@@ -93,14 +98,20 @@ export default function MissedPrayersLoggingFlow({
   }, []);
 
   // Step 3: Start Time
-  const [startHour, setStartHour] = useState("06");
-  const [startMinute, setStartMinute] = useState("15");
-  const [startPeriod, setStartPeriod] = useState<"am" | "pm">("am");
+  const [startHour, setStartHour] = useState(
+    () => getCurrentStartTimeParts().hour,
+  );
+  const [startMinute, setStartMinute] = useState(
+    () => getCurrentStartTimeParts().minute,
+  );
+  const [startPeriod, setStartPeriod] = useState<"am" | "pm">(
+    () => getCurrentStartTimeParts().period,
+  );
   const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
 
   // Step 4: Time Spent
   const [durationHours, setDurationHours] = useState("0");
-  const [durationMinutes, setDurationMinutes] = useState("10");
+  const [durationMinutes, setDurationMinutes] = useState("0");
 
   const prayerFrame = useOptionalPrayerGoalFrameContext();
   const frame = prayerFrame?.frame;
@@ -127,8 +138,11 @@ export default function MissedPrayersLoggingFlow({
   const isCompleted = (frame?.goal.achievementPct ?? 0) >= 100;
   const showInsights = frame ? prayerFrameShowsInsights(frame) : false;
 
-  const goalLabel = frame?.goal.label ?? "---";
+  const rawGoalLabel = frame?.goal.label ?? "---";
   const totalPrayersRequired = frame?.goal.targetCount;
+  const goalLabel = rawGoalLabel
+    .replace(/\s*\(total\s+\d+\s+prayers?\)\s*/i, "")
+    .trim() || "---";
 
   const todayString = toDateString(new Date());
   const maxSelectableDate = cycleEndHijri
@@ -164,15 +178,16 @@ export default function MissedPrayersLoggingFlow({
   };
 
   const resetFlow = useCallback(() => {
+    const now = getCurrentStartTimeParts();
     setFlowMode("collapsed");
     setStepIndex(0);
     setSelectedDate(toDateString(new Date()));
     setQuantities({ fajr: 0, dhuhr: 0, asr: 0, maghrib: 0, isha: 0 });
-    setStartHour("06");
-    setStartMinute("15");
-    setStartPeriod("am");
+    setStartHour(now.hour);
+    setStartMinute(now.minute);
+    setStartPeriod(now.period);
     setDurationHours("0");
-    setDurationMinutes("10");
+    setDurationMinutes("0");
     setIsPeriodDropdownOpen(false);
   }, []);
 
@@ -250,6 +265,10 @@ export default function MissedPrayersLoggingFlow({
 
   const handleOpenFlow = useCallback(() => {
     if (isCompleted) return;
+    const now = getCurrentStartTimeParts();
+    setStartHour(now.hour);
+    setStartMinute(now.minute);
+    setStartPeriod(now.period);
     setFlowMode("active");
   }, [isCompleted]);
 
@@ -257,28 +276,28 @@ export default function MissedPrayersLoggingFlow({
     switch (step) {
       case "date":
         return {
-          icon: <CalendarFlippingIcon />,
+          icon: <CalendarFlippingIcon size={24} />,
           label: "Which day are you logging for?",
         };
       case "prayers-qty":
         return {
           icon: (
-            <Ionicons
-              name="apps-outline"
-              size={15}
-              color={Colors.light.white}
+            <WhitePrayerMatIcon
+              
+              size={26}
+             
             />
           ),
           label: "Tap prayers multiple times to update qty.",
         };
       case "start-time":
         return {
-          icon: <WhiteClockIcon />,
+          icon: <WhiteClockIcon size={26} />,
           label: "Enter start time.",
         };
       case "time-spent":
         return {
-          icon: <WhiteTimerIcon />,
+          icon: <WhiteTimerIcon size={26} />,
           label: "Enter time spent.",
         };
     }
@@ -349,22 +368,19 @@ export default function MissedPrayersLoggingFlow({
             <View style={localStyles.summaryCard}>
               <View style={localStyles.summaryBody}>
                 <View style={localStyles.summaryIconCircle}>
-                  <MaterialCommunityIcons
-                    name="calendar-remove"
-                    size={18}
-                    color={Colors.light.white}
-                  />
+                  <MissedPastPrayerCalenderIcon size={21} />
                 </View>
-                <View style={localStyles.titleContainer}>
+                <View style={{ flex: 1, gap: 9 }}>
                   <View
                     style={[
                       localStyles.badge,
                       badgeStatus.type === "completed"
                         ? localStyles.badgeCompleted
-                        : badgeStatus.type === "not-started"
-                          ? localStyles.badgeNotStarted
-                          : localStyles.badgeInProgress,
-                      { alignSelf: "flex-start", marginBottom: 4 },
+                        : localStyles.badgeInProgress,
+                      badgeStatus.type === "not-started"
+                        ? localStyles.badgeNotStarted
+                        : localStyles.badgeInProgress,
+                      { alignSelf: "flex-start" },
                     ]}
                   >
                     <Text
@@ -372,35 +388,38 @@ export default function MissedPrayersLoggingFlow({
                         localStyles.badgeText,
                         badgeStatus.type === "completed"
                           ? localStyles.badgeTextCompleted
-                          : badgeStatus.type === "not-started"
-                            ? localStyles.badgeTextNotStarted
-                            : localStyles.badgeTextInProgress,
+                          : localStyles.badgeTextInProgress,
+                        badgeStatus.type === "not-started"
+                          ? localStyles.badgeTextNotStarted
+                          : localStyles.badgeTextInProgress,
                       ]}
                     >
                       {badgeStatus.text}
                     </Text>
                   </View>
-                  <Text style={localStyles.summaryTitle} numberOfLines={2}>
-                    {goalLabel}
-                  </Text>
-                  <Text
-                    style={[
-                      localStyles.summarySubtitle,
-                      frameLoading && localStyles.loadingPlaceholderText,
-                    ]}
-                  >
-                    {totalPrayersRequired != null ? (
-                      <>
-                        (total{" "}
-                        <Text style={localStyles.subtitleBold}>
-                          {totalPrayersRequired}
-                        </Text>{" "}
-                        prayers)
-                      </>
-                    ) : (
-                      "---"
-                    )}
-                  </Text>
+                  <View style={localStyles.titleBlock}>
+                    <Text style={[localStyles.summaryTitle, { flex: undefined }]}>
+                      {goalLabel}
+                    </Text>
+                    <Text
+                      style={[
+                        localStyles.summarySubtitle,
+                        frameLoading && localStyles.loadingPlaceholderText,
+                      ]}
+                    >
+                      {totalPrayersRequired != null ? (
+                        <>
+                          (total{" "}
+                          <Text style={localStyles.subtitleBold}>
+                            {totalPrayersRequired}
+                          </Text>{" "}
+                          prayers)
+                        </>
+                      ) : (
+                        "---"
+                      )}
+                    </Text>
+                  </View>
                 </View>
               </View>
 
@@ -445,6 +464,7 @@ export default function MissedPrayersLoggingFlow({
                 onForward={handleForward}
                 onConfirm={handleConfirm}
                 canGoForward={!isLastStep}
+                canGoBack={stepIndex > 0}
                 canConfirm={
                   isLastStep &&
                   !isCompleted &&
@@ -473,6 +493,7 @@ const localStyles = StyleSheet.create({
     height: FLOW_CARD_HEIGHT,
     width: "100%",
     justifyContent: "space-between",
+    position: "relative",
   },
   badge: {
     paddingHorizontal: 8,
@@ -505,7 +526,7 @@ const localStyles = StyleSheet.create({
   summaryBody: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    gap: 8,
   },
   summaryIconCircle: {
     width: 36,
@@ -514,7 +535,7 @@ const localStyles = StyleSheet.create({
     backgroundColor: Colors.light.selectcategory,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 22,
+    marginTop: 14,
   },
   titleContainer: {
     flex: 1,
@@ -529,19 +550,28 @@ const localStyles = StyleSheet.create({
     fontWeight: "600",
     lineHeight: 18,
     letterSpacing: 0,
+    flex: 1,
+  },
+  titleBlock: {
+    gap: 4,
   },
   loadingPlaceholderText: {
     opacity: 0.35,
   },
   summarySubtitle: {
     color: Colors.light.white,
-    fontFamily: fonts.primary.medium,
+    fontFamily: fonts.primary.regular,
+    fontWeight: "400",
     fontSize: 12,
-    fontWeight: "500",
+    lineHeight: 14,
+    letterSpacing: 0,
   },
   subtitleBold: {
+    color: Colors.light.white,
     fontFamily: fonts.primary.bold,
     fontWeight: "700",
+    fontSize: 12,
+    lineHeight: 14,
   },
   footerRow: {
     flexDirection: "row",
@@ -562,8 +592,11 @@ const localStyles = StyleSheet.create({
     fontWeight: "700",
   },
   addButton: {
-    width: 32,
-    height: 32,
+    position: "absolute",
+    right: 10,
+    bottom: 10,
+    width: 34,
+    height: 34,
     borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",

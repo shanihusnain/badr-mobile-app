@@ -909,7 +909,7 @@ export function WeeklyProgressSection({
           totalPrayersThisWeek={frame.week.thisWeekTotal}
           streakDays={frame.week.currentStreak}
           selectedDayIndex={getPrayerFrameTodayIndex(frame)}
-          statsIcon="ticket-confirmation"
+          motivationalQuote={frame.week.motivationalMessage}
           onPrevWeek={handlePrevWeek}
           onNextWeek={handleNextWeek}
         />
