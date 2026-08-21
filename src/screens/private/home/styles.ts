@@ -1059,6 +1059,20 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  goldenFabGlowWrap: {
+    width: 95,
+    height: 95,
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "visible",
+  },
+  goldenFabGlowDisc: {
+    position: "absolute",
+    width: 2,
+    height: 2,
+    borderRadius: 1,
+    backgroundColor: Colors.light.golden,
+  },
   goldenFabInner: {
     width: 36,
     height: 36,

@@ -11,7 +11,9 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Colors } from "@/constants/theme";
 import { PrayerStatus } from "@/components/molecules/PrayerProgressTrackerRing";
 import { useTranslation } from "react-i18next";
-import { PrayerMatIcon } from "@/assets/icons";
+import { AimIcon, LighteningIcon, PrayerMatIcon } from "@/assets/icons";
+import { fonts } from "@/assets/fonts";
+import { TopSpace } from "@/components/atoms/TopSpace";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -22,6 +24,8 @@ export interface DayProgress {
   statuses: PrayerStatus[];
   /** True when all 5 prayers are in menstruation cycle */
   isMenstruating?: boolean;
+  isToday?: boolean;
+  isFuture?: boolean;
 }
 
 export interface WeeklyProgressDashboardProps {
@@ -35,6 +39,11 @@ export interface WeeklyProgressDashboardProps {
   onTimePrayersCount?: number;
   /** Streak count in days */
   streakDays?: number;
+  /**
+   * On-time prayer delta vs the previous week.
+   * `null` / omitted on week 1 (no comparison slot). Present from week 2 onward.
+   */
+  vsLastWeek?: number | null;
   /** Motivational quote shown at the bottom */
   motivationalQuote?: string;
   /** Index (0-6) of the currently highlighted/selected day */
@@ -50,9 +59,24 @@ export interface WeeklyProgressDashboardProps {
    * <PrayerProgressTrackerRing /> without coupling this component to it.
    */
   renderRing: (day: DayProgress, size: number) => React.ReactNode;
+  /** Show "---" placeholders until the prayer-goal frame API responds. */
+  loading?: boolean;
 }
 
 // ─── Dummy data (used when no props are supplied) ─────────────────────────────
+
+const LOADING_WEEK: DayProgress[] = [
+  "Sun",
+  "Mon",
+  "Tue",
+  "Wed",
+  "Thu",
+  "Fri",
+  "Sat",
+].map((day) => ({
+  day,
+  statuses: ["none", "none", "none", "none", "none"] as PrayerStatus[],
+}));
 
 const DUMMY_WEEK: DayProgress[] = [
   {
@@ -104,16 +128,22 @@ export const WeeklyProgressDashboard: React.FC<
   weekFraction = "1/4",
   onTimePrayersCount = 30,
   streakDays = 5,
+  vsLastWeek = null,
   motivationalQuote = "Prayer brings blessings to\nyour day—answer its call\nwith devotion.",
   selectedDayIndex,
   onDayPress,
   onPrevWeek,
   onNextWeek,
   renderRing,
+  loading = false,
 }) => {
   const { width: screenWidth } = useWindowDimensions();
   const { t, i18n } = useTranslation();
-
+  const displayWeekDays = loading ? LOADING_WEEK : weekDays;
+  const showComparison = !loading && vsLastWeek != null;
+  const vsLastWeekMagnitude = Math.abs(vsLastWeek ?? 0);
+  const vsLastWeekImproved = (vsLastWeek ?? 0) > 0;
+  console.log("week days in the weeklyprogressDashboard", weekDays);
   // Dynamically compute ring size so all 7 columns fit inside the card
   const availableWidth = screenWidth - TOTAL_HORIZONTAL_PADDING;
   const ringSize = Math.floor((availableWidth / 7) * 0.75); // 0.75 scale for smaller rings
@@ -141,7 +171,9 @@ export const WeeklyProgressDashboard: React.FC<
             color={Colors.light.seagreen}
           />
           <Text style={styles.weekFractionText}>
-            {weekFraction} {t("homeScreen.weeklyProgress_weeks")}
+            {loading
+              ? "---"
+              : `${weekFraction} ${t("homeScreen.weeklyProgress_weeks")}`}
           </Text>
         </View>
 
@@ -149,30 +181,36 @@ export const WeeklyProgressDashboard: React.FC<
         <View style={styles.headerNav}>
           <TouchableOpacity
             onPress={onPrevWeek}
-            disabled={!onPrevWeek}
-            activeOpacity={onPrevWeek ? 0.7 : 1}
+            disabled={!onPrevWeek || loading}
+            activeOpacity={onPrevWeek && !loading ? 0.7 : 1}
             style={styles.navBtn}
           >
             <Ionicons
               name={i18n.language === "ar" ? "chevron-forward" : "chevron-back"}
               size={16}
               color={
-                onPrevWeek ? Colors.light.dullWhite : Colors.light.dullWhite + "4D"
+                onPrevWeek && !loading
+                  ? Colors.light.dullWhite
+                  : Colors.light.dullWhite + "4D"
               }
             />
           </TouchableOpacity>
-          <Text style={styles.weekRangeText}>{weekRangeLabel}</Text>
+          <Text style={styles.weekRangeText}>
+            {loading ? "---" : weekRangeLabel}
+          </Text>
           <TouchableOpacity
             onPress={onNextWeek}
-            disabled={!onNextWeek}
-            activeOpacity={onNextWeek ? 0.7 : 1}
+            disabled={!onNextWeek || loading}
+            activeOpacity={onNextWeek && !loading ? 0.7 : 1}
             style={styles.navBtn}
           >
             <Ionicons
               name={i18n.language === "ar" ? "chevron-back" : "chevron-forward"}
               size={16}
               color={
-                onNextWeek ? Colors.light.dullWhite : Colors.light.dullWhite + "4D"
+                onNextWeek && !loading
+                  ? Colors.light.dullWhite
+                  : Colors.light.dullWhite + "4D"
               }
             />
           </TouchableOpacity>
@@ -181,14 +219,15 @@ export const WeeklyProgressDashboard: React.FC<
 
       {/* ── Days row ───────────────────────────────────────────────────────── */}
       <View style={styles.daysRow}>
-        {weekDays.map((day, idx) => {
-          const isActive = idx === activeDayIndex;
+        {displayWeekDays.map((day, idx) => {
+          const isActive = day.isToday;
           return (
             <TouchableOpacity
-              key={day.day}
+              key={`${day.day}-${idx}`}
               style={[styles.dayColumn, isActive && styles.dayColumnActive]}
               onPress={handleDayPress(idx)}
               activeOpacity={0.75}
+              disabled={loading}
             >
               {/* Ring placeholder — parent injects <PrayerProgressTrackerRing> */}
               <View
@@ -202,10 +241,12 @@ export const WeeklyProgressDashboard: React.FC<
               <Text
                 style={[styles.dayLabel, isActive && styles.dayLabelActive]}
               >
-                {t(
-                  (DAY_TRANSLATION_KEYS[day.day] ??
-                    "homeScreen.weeklyProgress_daySun") as any,
-                )}
+                {loading
+                  ? "---"
+                  : t(
+                      (DAY_TRANSLATION_KEYS[day.day] ??
+                        "homeScreen.weeklyProgress_daySun") as any,
+                    )}
               </Text>
             </TouchableOpacity>
           );
@@ -213,36 +254,76 @@ export const WeeklyProgressDashboard: React.FC<
       </View>
 
       {/* ── Divider ────────────────────────────────────────────────────────── */}
-
+      <TopSpace top={25} />
       {/* ── Stats row ──────────────────────────────────────────────────────── */}
       <View style={styles.statsRow}>
         <PrayerMatIcon />
         <Text style={styles.statsText}>
-          <Text style={styles.statsCount}>{onTimePrayersCount}</Text>{" "}
-          {t("homeScreen.weeklyProgress_onTimePrayers")}
+          <Text style={styles.statsCount}>
+            {loading ? "---" : onTimePrayersCount}
+          </Text>
+          {loading ? "" : ` ${t("homeScreen.weeklyProgress_onTimePrayers")}`}
         </Text>
       </View>
-
       {/* ── Footer row ─────────────────────────────────────────────────────── */}
+      <TopSpace top={8} />
       <View style={styles.footerRow}>
-        {/* Streak */}
         <View style={styles.streakBadge}>
-          <Ionicons name="flash" size={13} color={Colors.light.green} />
+          <LighteningIcon />
           <Text style={styles.streakText}>
-            {t("homeScreen.weeklyProgress_dayStreak", { count: streakDays })}
+            {loading
+              ? "---"
+              : t("homeScreen.weeklyProgress_dayStreak", { count: streakDays })}
           </Text>
         </View>
 
-        {/* Quote */}
-        <View style={styles.quoteBlock}>
-          <MaterialCommunityIcons
-            name="recycle"
-            size={13}
-            color={Colors.light.seagreen}
-          />
-          <Text style={styles.quoteText}>{motivationalQuote}</Text>
-        </View>
+        {showComparison ? (
+          <View style={styles.comparisonBadge}>
+            {vsLastWeekMagnitude > 0 ? (
+              <Ionicons
+                name={vsLastWeekImproved ? "caret-up" : "caret-down"}
+                size={13}
+                color={
+                  vsLastWeekImproved ? Colors.light.green : Colors.light.grey
+                }
+              />
+            ) : null}
+            <Text style={styles.comparisonText}>
+              {vsLastWeekMagnitude === 0 ? (
+                t("homeScreen.weeklyProgress_sameAsLastWeek")
+              ) : (
+                <>
+                  <Text style={styles.comparisonCount}>
+                    {vsLastWeekMagnitude}
+                  </Text>
+                  {` ${t("homeScreen.weeklyProgress_vsLastWeek")}`}
+                </>
+              )}
+            </Text>
+          </View>
+        ) : (
+          <>
+            <TopSpace top={8} />
+            <View style={[styles.quoteBlock, styles.quoteBlockInline]}>
+              <AimIcon />
+              <View style={styles.quoteTextWrap}>
+                <Text style={styles.quoteText}>
+                  {loading ? "---" : motivationalQuote}
+                </Text>
+              </View>
+            </View>
+          </>
+        )}
       </View>
+
+      {showComparison ? (
+        <View style={styles.quoteBlock}>
+          <AimIcon />
+          <View style={styles.quoteTextWrap}>
+            <Text style={styles.quoteText}>{motivationalQuote}</Text>
+          </View>
+        </View>
+      ) : null}
     </View>
   );
 };
@@ -254,8 +335,9 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     backgroundColor: Colors.light.greybuttonBackground,
     paddingHorizontal: 8,
-    paddingVertical: 24,
-    gap: 20,
+    paddingVertical: 16,
+    width: "100%",
+    alignSelf: "stretch",
   },
 
   // Header
@@ -302,6 +384,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 2,
     borderRadius: 10,
     overflow: "hidden",
+    marginTop: 24,
   },
   dayColumnActive: {
     backgroundColor: "rgba(255, 255, 255, 0.08)",
@@ -314,12 +397,12 @@ const styles = StyleSheet.create({
     color: Colors.light.subtext,
     fontSize: 11,
     fontWeight: "600",
-    fontFamily: "fonts.primary.semibold",
+    fontFamily: fonts.primary.semiBold,
   },
   dayLabelActive: {
     color: Colors.light.white,
     fontWeight: "700",
-    fontFamily: "fonts.primary.bold",
+    fontFamily: fonts.primary.bold,
   },
 
   statsRow: {
@@ -327,11 +410,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 6,
-    marginTop: 22,
   },
   statsText: {
-    color: Colors.light.dullWhite,
-    fontSize: 12,
+    color: Colors.light.white,
+    fontSize: 13,
+    fontFamily: fonts.primary.medium,
+    fontWeight: "500",
+    letterSpacing: 0.1,
   },
   statsCount: {
     color: Colors.light.white,
@@ -348,22 +433,61 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
+    flexShrink: 0,
   },
   streakText: {
     color: Colors.light.green,
     fontSize: 12,
     fontWeight: "600",
   },
-  quoteBlock: {
+  comparisonBadge: {
     flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    minWidth: 0,
+  },
+  comparisonText: {
+    flex: 1,
+    color: Colors.light.white,
+    fontSize: 13,
+    fontWeight: "400",
+    fontFamily: fonts.primary.regular,
+    lineHeight: 14,
+    letterSpacing: 0.1,
+  },
+  comparisonCount: {
+    color: Colors.light.white,
+    fontSize: 13,
+    fontWeight: "600",
+    fontFamily: fonts.primary.semiBold,
+    lineHeight: 14,
+    letterSpacing: 0.1,
+  },
+  quoteBlock: {
     flexDirection: "row",
     alignItems: "flex-start",
     gap: 5,
+    alignSelf: "stretch",
+    minWidth: 0,
+    width: "100%",
+    marginTop: 4,
+  },
+  quoteBlockInline: {
+    flex: 1,
+    width: undefined,
+    minWidth: 0,
+  },
+  quoteTextWrap: {
+    flex: 1,
+    flexShrink: 1,
+    minWidth: 0,
   },
   quoteText: {
-    flex: 1,
-    color: Colors.light.subtext,
+    color: Colors.light.white,
     fontSize: 13,
     lineHeight: 16,
+    fontFamily: fonts.primary.regular,
+    fontWeight: "400",
   },
 });

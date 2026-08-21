@@ -83,6 +83,8 @@ export const Colors = {
     arrowTransparentBg: "gba(255, 255, 255, 0.10)",
     bordercolortodayselectedring: "#525F6E",
     mildGreen: "#1CBF71",
+    idlePrayerBox: "rgba(255, 255, 255, 0.5)",
+    inactiveTaperedBorder: "#374556",
   },
   dark: {
     text: "#ECEDEE",

@@ -16,6 +16,7 @@ import {
   CongregationOption,
   LogStepId,
   PrayerName,
+  PRAYER_OPTIONS,
   TimingOption,
 } from "../progressLoggingConfig";
 import { DateStep } from "../components/DateStep";
@@ -23,7 +24,10 @@ import { PrayerSelectStep } from "../components/PrayerSelectStep";
 import { OptionSelectStep } from "../components/OptionSelectStep";
 import { StartTimeStep, DurationStep } from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
-import { styles as commonStyles } from "../components/DailyProgressLogging.styles";
+import {
+  styles as commonStyles,
+  FLOW_CARD_HEIGHT,
+} from "../components/DailyProgressLogging.styles";
 import { fonts } from "@/assets/fonts";
 import type { ProgressLogEntry } from "../types";
 import { useOptionalPrayerGoalFrameContext } from "../prayerGoalFrameContext";
@@ -41,11 +45,19 @@ import { FiveDailyPrayerIDetailedIbadhasIcon } from "@/assets/icons/FiveDailyPra
 import { useLogFiveDailyPrayersGoal } from "@/src/api/mutations/useLogFiveDailyPrayersGoal";
 import type { FiveDailyPrayerSlot } from "@/src/api/mutations/useLogFiveDailyPrayersGoal";
 
-const STEPS: LogStepId[] = [
+const STEPS_WITH_CONGREGATION: LogStepId[] = [
   "date",
   "prayerSelect",
   "timing",
   "congregation",
+  "startTime",
+  "duration",
+];
+
+const STEPS_WITHOUT_CONGREGATION: LogStepId[] = [
+  "date",
+  "prayerSelect",
+  "timing",
   "startTime",
   "duration",
 ];
@@ -66,6 +78,13 @@ const PRAYER_TO_SLOT: Record<PrayerName, FiveDailyPrayerSlot> = {
 };
 
 const toDateString = (date: Date) => moment(date).format("YYYY-MM-DD");
+
+const getNextUnloggedPrayer = (
+  loggedPrayers: readonly PrayerName[],
+): PrayerName => {
+  const logged = new Set(loggedPrayers);
+  return PRAYER_OPTIONS.find((prayer) => !logged.has(prayer)) ?? "fajr";
+};
 
 export default function FiveDailyPrayersLoggingFlow({
   goalData,
@@ -92,6 +111,23 @@ export default function FiveDailyPrayersLoggingFlow({
   const frame = prayerFrame?.frame;
   const frameLoading =
     prayerFrame?.isLoading || (!frame && !prayerFrame?.isError);
+
+  const isCongregationalTracked = Boolean(
+    frame?.isCongregationalTracked ?? frame?.goal?.isCongregationalTracked,
+  );
+
+  const showJumuahForDhuhr = useMemo(() => {
+    if (!isCongregationalTracked) return false;
+    return moment(selectedDate, "YYYY-MM-DD").day() === 5; // Friday
+  }, [isCongregationalTracked, selectedDate]);
+
+  const steps = useMemo(() => {
+    // Congregation step only when tracking is on and user chose on-time.
+    if (isCongregationalTracked && timing === "onTime") {
+      return STEPS_WITH_CONGREGATION;
+    }
+    return STEPS_WITHOUT_CONGREGATION;
+  }, [isCongregationalTracked, timing]);
 
   const cycleStartHijri = frame?.cycle?.cycleStart
     ? toDateString(new Date(frame.cycle.cycleStart))
@@ -130,8 +166,42 @@ export default function FiveDailyPrayersLoggingFlow({
     }
   }, [cycleStartHijri, cycleEndHijri, maxSelectableDate]);
 
-  const currentStep = STEPS[stepIndex];
-  const isLastStep = stepIndex === STEPS.length - 1;
+  const loggedPrayersForSelectedDate = useMemo((): PrayerName[] => {
+    const day = frame?.week.days.find(
+      (d) => d.date === selectedDate || d.date.startsWith(`${selectedDate}`),
+    );
+    if (!day?.slots) return [];
+    return PRAYER_OPTIONS.filter(
+      (prayer) => day.slots?.[PRAYER_TO_SLOT[prayer]]?.logged === true,
+    );
+  }, [frame, selectedDate]);
+
+  const hasSelectablePrayer =
+    loggedPrayersForSelectedDate.length < PRAYER_OPTIONS.length;
+
+  const previousSelectedDateRef = React.useRef(selectedDate);
+
+  // Pre-select the next unlogged prayer when the day changes, or when the
+  // current selection becomes unavailable after a refetch.
+  useEffect(() => {
+    const dateChanged = previousSelectedDateRef.current !== selectedDate;
+    previousSelectedDateRef.current = selectedDate;
+
+    setSelectedPrayer((current) => {
+      if (dateChanged || loggedPrayersForSelectedDate.includes(current)) {
+        return getNextUnloggedPrayer(loggedPrayersForSelectedDate);
+      }
+      return current;
+    });
+  }, [selectedDate, loggedPrayersForSelectedDate]);
+
+  // Keep step index valid when congregation is inserted/removed from the flow.
+  useEffect(() => {
+    setStepIndex((index) => Math.min(index, Math.max(0, steps.length - 1)));
+  }, [steps]);
+
+  const currentStep = steps[stepIndex] ?? steps[0];
+  const isLastStep = stepIndex === steps.length - 1;
 
   const dateLabel =
     selectedDate === todayString
@@ -187,12 +257,16 @@ export default function FiveDailyPrayersLoggingFlow({
 
     const run = async () => {
       const prayedOnTime = timing === "onTime";
+      const includeCongregation =
+        isCongregationalTracked && prayedOnTime;
       const payload = {
         date: selectedDate,
         prayerSlot: PRAYER_TO_SLOT[selectedPrayer],
         prayedOnTime,
         wasQadha: !prayedOnTime,
-        wasCongregational: congregation === "yes",
+        wasCongregational: includeCongregation
+          ? congregation === "yes"
+          : false,
         startTime: formatStartTimeForApi(),
         durationMinutes: buildDurationMinutesForApi(),
       };
@@ -207,7 +281,7 @@ export default function FiveDailyPrayersLoggingFlow({
           date: selectedDate,
           prayer: selectedPrayer,
           timing,
-          congregation,
+          congregation: includeCongregation ? congregation : "no",
           startTime: payload.startTime,
           duration: `${durationHours}h ${durationMinutes}m`,
         });
@@ -229,13 +303,21 @@ export default function FiveDailyPrayersLoggingFlow({
   };
 
   const handleForward = () => {
+    if (currentStep === "prayerSelect" && !hasSelectablePrayer) return;
+    if (
+      currentStep === "prayerSelect" &&
+      loggedPrayersForSelectedDate.includes(selectedPrayer)
+    ) {
+      return;
+    }
     if (!isLastStep) setStepIndex((index) => index + 1);
   };
 
   const handleOpenFlow = useCallback(() => {
     if (frameLoading || isFullyAchieved) return;
+    setSelectedPrayer(getNextUnloggedPrayer(loggedPrayersForSelectedDate));
     setFlowMode("active");
-  }, [frameLoading, isFullyAchieved]);
+  }, [frameLoading, isFullyAchieved, loggedPrayersForSelectedDate]);
 
   const getTimingLabel = useCallback(
     (option: TimingOption) =>
@@ -320,6 +402,8 @@ export default function FiveDailyPrayersLoggingFlow({
             selectedPrayer={selectedPrayer}
             onSelectPrayer={setSelectedPrayer}
             categoryColor={Colors.light.green}
+            loggedPrayers={loggedPrayersForSelectedDate}
+            showJumuahForDhuhr={showJumuahForDhuhr}
             t={t}
             styles={commonStyles}
           />
@@ -380,13 +464,7 @@ export default function FiveDailyPrayersLoggingFlow({
   return (
     <>
       {flowMode === "active" && (
-        <TouchableOpacity
-          style={commonStyles.cancelButton}
-          onPress={resetFlow}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="close" size={20} color={Colors.light.white} />
-        </TouchableOpacity>
+        <Pressable style={commonStyles.backdrop} onPress={resetFlow} />
       )}
 
       <View style={commonStyles.section}>
@@ -395,6 +473,16 @@ export default function FiveDailyPrayersLoggingFlow({
         </Text>
 
         <View style={commonStyles.cardAnchor}>
+          {flowMode === "active" && (
+            <TouchableOpacity
+              style={commonStyles.cancelButton}
+              onPress={resetFlow}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="close" size={20} color={Colors.light.white} />
+            </TouchableOpacity>
+          )}
+
           {flowMode === "collapsed" ? (
             <View style={localStyles.summaryCard}>
               <View style={localStyles.summaryBody}>
@@ -444,7 +532,11 @@ export default function FiveDailyPrayersLoggingFlow({
 
               <View style={localStyles.footerRow}>
                 {showInsights ? (
-                  <TouchableOpacity style={localStyles.insightsBtn}>
+                  <TouchableOpacity
+                    style={localStyles.insightsBtn}
+                    onPress={prayerFrame?.openInsights}
+                    activeOpacity={0.8}
+                  >
                     <Text style={localStyles.insightsText}>VIEW INSIGHTS</Text>
                     <Ionicons
                       name="chevron-forward"
@@ -478,7 +570,14 @@ export default function FiveDailyPrayersLoggingFlow({
                 onBack={handleBack}
                 onForward={handleForward}
                 onConfirm={handleConfirm}
-                canGoForward={!isLastStep}
+                canGoForward={
+                  !isLastStep &&
+                  !(
+                    currentStep === "prayerSelect" &&
+                    (!hasSelectablePrayer ||
+                      loggedPrayersForSelectedDate.includes(selectedPrayer))
+                  )
+                }
                 canConfirm={isLastStep && !isLogging && !isFullyAchieved}
                 styles={commonStyles}
                 style={commonStyles.inPlaceFlowCard}
@@ -489,10 +588,6 @@ export default function FiveDailyPrayersLoggingFlow({
           )}
         </View>
       </View>
-
-      {flowMode === "active" && (
-        <Pressable style={commonStyles.backdrop} onPress={resetFlow} />
-      )}
     </>
   );
 }
@@ -500,10 +595,11 @@ export default function FiveDailyPrayersLoggingFlow({
 const localStyles = StyleSheet.create({
   summaryCard: {
     backgroundColor: Colors.light.green,
-    borderRadius: 14,
+    borderRadius: 8,
     padding: 16,
     gap: 12,
-    height: 145,
+    height: FLOW_CARD_HEIGHT,
+    width: "100%",
     justifyContent: "space-between",
   },
   badge: {
@@ -543,9 +639,10 @@ const localStyles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: Colors.light.blackBackground,
+    backgroundColor: Colors.light.selectcategory,
     alignItems: "center",
     justifyContent: "center",
+    marginTop: 22,
   },
   summaryTitle: {
     color: Colors.light.white,

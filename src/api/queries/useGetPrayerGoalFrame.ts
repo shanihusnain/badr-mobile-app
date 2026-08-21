@@ -3,11 +3,29 @@ import { api } from "..";
 import { resolvePrayerType } from "@/src/utils/prayerGoalMap";
 import type { PrayerGoalFrameStatus } from "@/src/utils/prayerGoalFrameMap";
 
+export type FiveDailyPrayerSlotKey =
+  | "FAJR"
+  | "DHUHR"
+  | "ASR"
+  | "MAGHRIB"
+  | "ISHA";
+
+export type FiveDailyPrayerSlot = {
+  logged: boolean;
+  prayedOnTime: boolean;
+  wasCongregational: boolean;
+  wasQadha: boolean;
+  isMenstruationSlot: boolean;
+};
+
 export type PrayerGoalFrameDay = {
   date: string;
   dayLabel: string;
   isToday: boolean;
   isFuture: boolean;
+  isFutureDay?: boolean;
+  hasActivity?: boolean;
+  isMenstruationDay?: boolean;
   count?: number;
   isBestDay?: boolean;
   slotsOnTime?: number;
@@ -15,18 +33,22 @@ export type PrayerGoalFrameDay = {
   totalLogged?: number;
   allFiveOnTime?: boolean;
   hasQadha?: boolean;
+  slots?: Partial<Record<FiveDailyPrayerSlotKey, FiveDailyPrayerSlot>>;
 };
 
 export type PrayerGoalFrameData = {
   prayerType: string;
   title: string;
   imageUrl: string | null;
+  /** When true, logging flow asks if the prayer was in congregation. */
+  isCongregationalTracked?: boolean;
   goal: {
     targetCount: number;
     completedCount: number;
     achievementPct: number;
     status: PrayerGoalFrameStatus | string;
     label: string;
+    isCongregationalTracked?: boolean;
   };
   cycle: {
     id: string;
@@ -40,7 +62,7 @@ export type PrayerGoalFrameData = {
   week: {
     thisWeekTotal?: number;
     thisWeekOnTime?: number;
-    vsLastWeek: number;
+    vsLastWeek: number | null;
     currentStreak: number;
     motivationalMessage: string;
     days: PrayerGoalFrameDay[];
@@ -58,7 +80,7 @@ const getPrayerGoalFrame = async (
       params: week != null ? { week } : undefined,
     },
   );
-  console.log("response", response.data?.data);
+  console.log("response", JSON.stringify(response.data?.data, null, 2));
   return response.data?.data ?? null;
 };
 

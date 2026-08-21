@@ -75,7 +75,7 @@ import { InsightCardArrowReverseIcon } from "./InsightCardArrowReverseIcon";
 
 //J
 import { JournalBookIcon } from "./JournalBookIcon";
-
+import { JummaIcon } from "./JummaIcon";
 //B
 
 //C
@@ -116,6 +116,7 @@ import { GiftIconWithMoon } from "./GiftIconWithMoon";
 import { GoatIcon } from "./GoatIcon";
 import { GoogleIcon } from "./GoogleIcon";
 import { GoldenTickIcon } from "./GoldenTickIcon";
+import { GreenTickIcon } from "./GreenTickIcon";
 //H
 import { HomeBondIcon } from "./HomeBondIcon";
 import { HomeTabIcon } from "./HomeTabIcon";
@@ -176,6 +177,11 @@ import { SadaqahJariyahMedicalAidIcon } from "./SadaqahJariyahMedicalAidIcon";
 import { SadaqahJariyahCloathIcon } from "./SadaqahJariyahCloathIcon";
 import { SadaqahJariyahEducationalIcon } from "./SadaqahJariyahEducationalIcon";
 import { SadaqahJariyahTreePlantIcon } from "./SadaqahJariyahTreePlantIcon";
+import { SunriseIcon } from "./SunriseIcon";
+import { SunIcon } from "./SunIcon";
+import { AsrIcon } from "./AsrIcon";
+import { MaghribIcon } from "./MaghribIcon";
+import { IshaIcon } from "./IshaIcon";
 //T
 import { TravelingIcon } from "./TravelingIcon";
 import { MoreTabIcon } from "./MoreTabIcon";
@@ -456,4 +462,11 @@ export {
   HeaderInfoIcon,
   PositiveProgressIcon,
   NegativeProgressIcon,
+  SunriseIcon,
+  SunIcon,
+  AsrIcon,
+  MaghribIcon,
+  IshaIcon,
+  GreenTickIcon,
+  JummaIcon,
 };

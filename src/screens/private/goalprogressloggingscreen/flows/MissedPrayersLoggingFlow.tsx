@@ -440,20 +440,20 @@ export default function MissedPrayersLoggingFlow({
                 ) : (
                   <View style={localStyles.spacer} />
                 )}
-              </View>
 
-              <TouchableOpacity
-                style={[
-                  localStyles.addButton,
-                  frameLoading && localStyles.addButtonDisabled,
-                  isCompleted && localStyles.addButtonDisabled,
-                ]}
-                onPress={handleOpenFlow}
-                activeOpacity={0.8}
-                disabled={frameLoading || isCompleted}
-              >
-                <AddLoggingFlowIcon />
-              </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    localStyles.addButton,
+                    frameLoading && localStyles.addButtonDisabled,
+                    isCompleted && localStyles.addButtonDisabled,
+                  ]}
+                  onPress={handleOpenFlow}
+                  activeOpacity={0.8}
+                  disabled={frameLoading || isCompleted}
+                >
+                  <AddLoggingFlowIcon />
+                </TouchableOpacity>
+              </View>
             </View>
           ) : (
             <View style={commonStyles.flowCardLayer}>
@@ -536,7 +536,12 @@ const localStyles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginTop: 14,
-   
+  },
+  titleContainer: {
+    flex: 1,
+    flexDirection: "column",
+    gap: 2,
+    paddingRight: 8,
   },
   summaryTitle: {
     color: Colors.light.white,
@@ -573,7 +578,6 @@ const localStyles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "flex-end",
     marginTop: 4,
-    paddingRight: 40,
   },
   insightsBtn: {
     flexDirection: "row",

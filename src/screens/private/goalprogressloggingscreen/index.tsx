@@ -53,7 +53,7 @@ import {
   shukarprayerdetailimage,
   qiyamallayldetailimage,
   sunnahrawatibdetailimage,
-  fivedailyprayerbottomsheetimage,
+  fivedailyprayerdetailimage,
   quranlisteningbottomsheetimage,
   qurantajweedbottomsheetimage,
   quranrecitationbottomsheetimage,
@@ -72,7 +72,7 @@ function getLoggingBackgroundSource(
     case "tahiyat-ul-wudhu":
       return tahiyyatwudhudetailimage;
     case "five-daily-prayers":
-      return fivedailyprayerbottomsheetimage;
+      return fivedailyprayerdetailimage;
     case "tahiyat-al-masjid":
       return tahiyyatmasjiddetailimage;
     case "missed-prayers":
@@ -121,7 +121,7 @@ function getLoggingBackgroundSource(
       return require("@/assets/images/zakatbackgroundimage.png");
     default:
       if (goalId === "prayer-fiveDailyPrayers") {
-        return fivedailyprayerbottomsheetimage;
+        return fivedailyprayerdetailimage;
       }
       return undefined;
   }
@@ -189,6 +189,7 @@ function GoalProgressLoggingBody({
     ? "---"
     : displayPercentage.replace("%", "");
   const hasHeroBackground = backgroundSource != null;
+  const needsHeroDarkScrim = template === "missed-prayers";
   const [heroBottom, setHeroBottom] = useState(0);
   const frameGoalLabel = prayerFrame?.frame?.goal.label;
   const cleanLabel = frameGoalLabel
@@ -232,6 +233,9 @@ function GoalProgressLoggingBody({
             style={styles.heroBackgroundImage}
             resizeMode="cover"
           />
+          {needsHeroDarkScrim ? (
+            <View style={styles.heroBackgroundScrim} pointerEvents="none" />
+          ) : null}
         </View>
       ) : null}
 
