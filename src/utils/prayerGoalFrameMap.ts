@@ -217,12 +217,25 @@ export function getPrayerFrameAchievementLabel(
   }
 }
 
-/** Show insights once the user has started logging progress. */
+/**
+ * Show VIEW INSIGHTS when:
+ * 1) the goal ring is at 100% (goal completed), or
+ * 2) today is on/after the last day of the 28-day cycle.
+ */
 export function prayerFrameShowsInsights(frame: PrayerGoalFrameData): boolean {
-  const status = normalizePrayerGoalFrameStatus(frame.goal.status);
   const pct = frame.goal.achievementPct ?? 0;
+  if (pct >= 100) return true;
+
+  const status = normalizePrayerGoalFrameStatus(frame.goal.status);
   if (status === "COMPLETED") return true;
-  if (status === "IN_PROGRESS") return pct > 0;
+
+  const cycleEnd = frame.cycle?.cycleEnd;
+  if (cycleEnd) {
+    const today = moment().format("YYYY-MM-DD");
+    const end = moment(cycleEnd).format("YYYY-MM-DD");
+    if (end && today >= end) return true;
+  }
+
   return false;
 }
 

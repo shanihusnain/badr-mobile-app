@@ -41,11 +41,6 @@ export const FlowCard: React.FC<FlowCardProps> = ({
   contentStyle,
 }) => {
   const { i18n } = useTranslation();
-  const iconColorsDecider = () =>
-    canGoForward ? Colors.light.white : Colors.light.subtext;
-  const forwardBtnStyleDecider = () => {
-    return [styles.navButton, !canGoForward && styles.navButtonDisabled];
-  };
   return (
     <View style={[styles.flowCard, style]}>
       <View style={styles.flowHeader}>
@@ -58,28 +53,38 @@ export const FlowCard: React.FC<FlowCardProps> = ({
       <View style={styles.flowFooter}>
         <View style={styles.navGroup}>
           <TouchableOpacity
-            style={[styles.navButton, !canGoBack && styles.navButtonDisabled]}
+            style={[styles.navButton, !canGoBack && { opacity: 0.65 }]}
             onPress={onBack}
             disabled={!canGoBack}
             activeOpacity={0.8}
           >
-            <FontAwesome
-              name={i18n.language === "ar" ? "chevron-right" : "chevron-left"}
-              size={12}
-              color={canGoBack ? Colors.light.white : Colors.light.subtext }
-            />
+            <View style={styles.navButtonIconWrap}>
+              <FontAwesome
+                name={i18n.language === "ar" ? "chevron-right" : "chevron-left"}
+                size={12}
+                color={
+                  canGoBack ? Colors.light.white : Colors.light.white + "E6"
+                }
+                style={styles.navButtonIcon}
+              />
+            </View>
           </TouchableOpacity>
           <TouchableOpacity
-            style={forwardBtnStyleDecider()}
+            style={[styles.navButton, !canGoForward && { opacity: 0.65 }]}
             onPress={onForward}
             disabled={!canGoForward}
             activeOpacity={0.8}
           >
-            <FontAwesome
-              name={i18n.language === "ar" ? "chevron-left" : "chevron-right"}
-              size={12}
-              color={iconColorsDecider()}
-            />
+            <View style={styles.navButtonIconWrap}>
+              <FontAwesome
+                name={i18n.language === "ar" ? "chevron-left" : "chevron-right"}
+                size={12}
+                color={
+                  canGoForward ? Colors.light.white : Colors.light.white + "E6"
+                }
+                style={styles.navButtonIcon}
+              />
+            </View>
           </TouchableOpacity>
         </View>
 
@@ -95,7 +100,7 @@ export const FlowCard: React.FC<FlowCardProps> = ({
         >
           <Ionicons
             name="checkmark"
-            size={18}
+            size={17}
             color={canConfirm ? Colors.light.white : Colors.light.white + "CC"}
           />
         </TouchableOpacity>

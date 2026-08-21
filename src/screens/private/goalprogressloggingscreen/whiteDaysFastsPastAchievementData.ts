@@ -372,11 +372,7 @@ function buildSixMonthSlice(anchorDate: string): WhiteDaysPeriodSlice {
 function buildPeriodBar(
   period: WhiteDaysPeriodSlice["chartPeriods"][number],
 ): QuranPastChartItem {
-  const stackTotal = Math.max(
-    period.completed + period.incomplete,
-    period.completed,
-    1,
-  );
+  const stackTotal = period.completed + period.incomplete;
 
   return {
     xLabel: period.xLabel,

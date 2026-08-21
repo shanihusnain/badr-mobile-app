@@ -32,6 +32,10 @@ import {
   isMissedRamadanFastSkippedOnDate,
   type MissedRamadanAnalyticsView,
 } from "@/src/screens/private/goalprogressloggingscreen/missedRamadanFastsPastAchievementData";
+import {
+  PAST_ACHIEVEMENT_NO_DATA,
+  isPastAchievementBarEmpty,
+} from "@/src/utils/pastAchievementNoData";
 import { applyTimeSpentOnlyGreenChart } from "@/src/screens/private/goalprogressloggingscreen/quranRecitationPastAchievementData";
 import type { PastAchievementPeriod } from "@/src/screens/private/goalprogressloggingscreen/quranHoursPastAchievementData";
 import { QuranHoursPastAchievementChartBlock } from "../QuranHoursPastAchievements/QuranHoursPastAchievementChartBlock";
@@ -103,12 +107,12 @@ const PERIOD_DELTA_LABEL_KEYS: Record<PastAchievementPeriod, string> = {
 };
 
 const RAMADAN_BAR_COLORS: [string, string] = [
-  Colors.light.ringRamadan,
-  Colors.light.warning,
+  Colors.light.white,
+  "rgba(255, 255, 255, 0.4)",
 ];
 const DAWOOD_BAR_COLORS: [string, string] = [
-  Colors.light.ringDawood,
-  Colors.light.warning,
+  Colors.light.white,
+  "rgba(255, 255, 255, 0.4)",
 ];
 export function MissedRamadanFastsPastAchievements({
   refreshKey = 0,
@@ -267,11 +271,6 @@ export function MissedRamadanFastsPastAchievements({
     });
   }, [activeAnalyticsView, isDawood, period, router]);
 
-  const selectedBasePeriod =
-    selectedBarIndex !== null
-      ? periodSlice.chartPeriods[selectedBarIndex]
-      : null;
-
   const displayCompleted = selectedCalendarDate
     ? isDawood
       ? isProphetDawoodFastCompletedOnDate(selectedCalendarDate)
@@ -280,7 +279,9 @@ export function MissedRamadanFastsPastAchievements({
       : isMissedRamadanFastCompletedOnDate(selectedCalendarDate)
         ? 1
         : 0
-    : (selectedBasePeriod?.completed ?? periodSlice.completedFasts);
+    : selectedBarIndex !== null
+      ? (periodSlice.chartPeriods[selectedBarIndex]?.completed ?? 0)
+      : periodSlice.completedFasts;
   const displayIncomplete = selectedCalendarDate
     ? isDawood
       ? dawoodPeriodSlice &&
@@ -290,7 +291,13 @@ export function MissedRamadanFastsPastAchievements({
       : isMissedRamadanFastSkippedOnDate(selectedCalendarDate)
         ? 1
         : 0
-    : (selectedBasePeriod?.incomplete ?? periodSlice.incompleteFasts);
+    : selectedBarIndex !== null
+      ? (periodSlice.chartPeriods[selectedBarIndex]?.incomplete ?? 0)
+      : periodSlice.incompleteFasts;
+
+  const showNoDataDash =
+    selectedCalendarDate == null &&
+    isPastAchievementBarEmpty(displayCompleted, displayIncomplete);
 
   const selectedPeriodTimeSpentMinutes = selectedCalendarDate
     ? isDawood
@@ -505,7 +512,9 @@ export function MissedRamadanFastsPastAchievements({
                 isDetailed && styles.achievementPercentDetailed,
               ]}
             >
-              {formatNumber(baseAchievement.achievementPercent)}
+              {showNoDataDash
+                ? PAST_ACHIEVEMENT_NO_DATA
+                : formatNumber(baseAchievement.achievementPercent)}
               <Text
                 style={
                   isDetailed
@@ -626,7 +635,9 @@ export function MissedRamadanFastsPastAchievements({
           <Text style={styles.goalLabel}>{t("progressLogging.goal")}</Text>
           <View style={styles.goalValueRow}>
             <Text style={styles.goalPillValue}>
-              {formatNumber(periodSlice.targetFasts)}{" "}
+              {showNoDataDash
+                ? PAST_ACHIEVEMENT_NO_DATA
+                : formatNumber(periodSlice.targetFasts)}{" "}
             </Text>
             <View style={styles.goalPill}>
               <Text style={styles.goalPillText}>
@@ -682,9 +693,11 @@ export function MissedRamadanFastsPastAchievements({
                     : styles.statValueCompleted
               }
             >
-              {isDawood
-                ? formatProphetDawoodFastCountLabel(displayCompleted)
-                : formatMissedRamadanFastCountLabel(displayCompleted)}
+              {showNoDataDash
+                ? PAST_ACHIEVEMENT_NO_DATA
+                : isDawood
+                  ? formatProphetDawoodFastCountLabel(displayCompleted)
+                  : formatMissedRamadanFastCountLabel(displayCompleted)}
             </Text>
           </View>
           <View style={styles.statColumn}>
@@ -703,17 +716,19 @@ export function MissedRamadanFastsPastAchievements({
                   : styles.statValueIncomplete
               }
             >
-              {!isDawood && analyticsView === "completedVsTime"
-                ? formatMissedRamadanFastTimeLabel(
-                  selectedPeriodTimeSpentMinutes,
-                )
-                : isDawood && dawoodAnalyticsView === "completedVsTime"
-                  ? formatProphetDawoodFastTimeLabel(
-                    selectedPeriodTimeSpentMinutes,
-                  )
-                  : isDawood
-                    ? formatProphetDawoodFastCountLabel(displayIncomplete)
-                    : formatMissedRamadanFastCountLabel(displayIncomplete)}
+              {showNoDataDash
+                ? PAST_ACHIEVEMENT_NO_DATA
+                : !isDawood && analyticsView === "completedVsTime"
+                  ? formatMissedRamadanFastTimeLabel(
+                      selectedPeriodTimeSpentMinutes,
+                    )
+                  : isDawood && dawoodAnalyticsView === "completedVsTime"
+                    ? formatProphetDawoodFastTimeLabel(
+                        selectedPeriodTimeSpentMinutes,
+                      )
+                    : isDawood
+                      ? formatProphetDawoodFastCountLabel(displayIncomplete)
+                      : formatMissedRamadanFastCountLabel(displayIncomplete)}
             </Text>
           </View>
         </View>
@@ -873,15 +888,13 @@ export function MissedRamadanFastsPastAchievements({
               barColors={
                 isDawood
                   ? activeAnalyticsView === "completedVsTime"
-                    ? [Colors.light.ringDawood, Colors.light.ringDawood]
+                    ? [Colors.light.white, Colors.light.white]
                     : DAWOOD_BAR_COLORS
                   : activeAnalyticsView === "completedVsTime"
-                    ? [Colors.light.ringRamadan, Colors.light.ringRamadan]
+                    ? [Colors.light.white, Colors.light.white]
                     : RAMADAN_BAR_COLORS
               }
-              valueLabelColor={
-                isDawood ? Colors.light.ringDawood : Colors.light.ringRamadan
-              }
+              valueLabelColor={Colors.light.white}
               showPagination={isDetailed}
             />
             {isDetailed ? (
@@ -969,6 +982,8 @@ const styles = StyleSheet.create({
   },
   achievementPercentSymbol: {
     fontSize: 22,
+    lineHeight: 22,
+    transform: [{ translateY: -8 }],
   },
   achievementPercentDetailed: {
     fontSize: 48,
@@ -976,6 +991,8 @@ const styles = StyleSheet.create({
   },
   achievementPercentSymbolDetailed: {
     fontSize: 24,
+    lineHeight: 24,
+    transform: [{ translateY: -10 }],
   },
   deltaBadge: {
     flexDirection: "row",
@@ -1158,25 +1175,25 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
   },
   statValueCompleted: {
-    color: Colors.light.green,
+    color: Colors.light.white,
     fontSize: 22,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "700",
   },
   statValueCompletedRamadan: {
-    color: Colors.light.ringRamadan,
+    color: Colors.light.white,
     fontSize: 22,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "700",
   },
   statValueCompletedDawood: {
-    color: Colors.light.ringDawood,
+    color: Colors.light.white,
     fontSize: 22,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "700",
   },
   statValueIncomplete: {
-    color: Colors.light.warning,
+    color: Colors.light.white,
     fontSize: 22,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "700",

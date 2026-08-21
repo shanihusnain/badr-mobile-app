@@ -53,9 +53,9 @@ function MetricChip({ label, value, tone }: MetricChipProps) {
           styles.chipValue,
           toneTextStyles[tone],
           tone === "completed"
-            ? { color: Colors.light.green }
+            ? { color: Colors.light.white }
             : tone === "incomplete"
-              ? { color: INCOMPLETE_BAR_COLOR }
+              ? { color: Colors.light.white }
               : {},
         ]}
       >

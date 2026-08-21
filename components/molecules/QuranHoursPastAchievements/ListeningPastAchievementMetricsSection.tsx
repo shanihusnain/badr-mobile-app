@@ -92,9 +92,9 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   chipValueCompleted: {
-    color: Colors.light.green,
+    color: Colors.light.white,
   },
   chipValueIncomplete: {
-    color: INCOMPLETE_BAR_COLOR,
+    color: Colors.light.white,
   },
 });

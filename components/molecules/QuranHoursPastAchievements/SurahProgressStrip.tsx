@@ -43,10 +43,10 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   completed: {
-    backgroundColor: Colors.light.ringSuccess,
+    backgroundColor: Colors.light.white,
   },
   incomplete: {
-    backgroundColor: Colors.light.warning,
+    backgroundColor: "rgba(255, 255, 255, 0.4)",
   },
   pending: {
     backgroundColor: "transparent",

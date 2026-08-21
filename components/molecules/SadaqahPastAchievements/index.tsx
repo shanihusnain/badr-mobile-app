@@ -27,6 +27,10 @@ import { QuranHoursPastAchievementChartBlock } from "../QuranHoursPastAchievemen
 import { getGoalById, type GoalId } from "@/src/screens/private/home/components/goalsData";
 import { PastAchievementStudyMaterial } from "@/components/molecules/PastAchievementStudyMaterial";
 import { formatTotalTime } from "@/src/screens/private/home/timeSpentData";
+import {
+  PAST_ACHIEVEMENT_NO_DATA,
+  isPastAchievementBarEmpty,
+} from "@/src/utils/pastAchievementNoData";
 import { InsightCard } from "../InsightCard";
 import { SADAQAH_INSIGHT_CARDS } from "./insightCardsData";
 
@@ -200,6 +204,11 @@ const baseAchievementRaw = useMemo(
   const displayTimeSpentMinutes =
     selectedBaseWeek?.timeSpentMinutes ?? baseAchievement.totalTimeSpentMinutes;
 
+  const showNoDataDash = isPastAchievementBarEmpty(
+    displayBaseCompleted,
+    displayBaseIncomplete,
+  );
+
   const renderInsights = () => {
     const cards = SADAQAH_INSIGHT_CARDS[goalId]?.[period as "monthly" | "threeMonths" | "sixMonths"];
     if (!cards || !isDetailed) return null;
@@ -325,7 +334,9 @@ const baseAchievementRaw = useMemo(
         <View style={styles.statColumn}>
           <Text style={styles.statLabel}>TIME SPENT</Text>
           <Text style={styles.statValueIncomplete}>
-            {formatTotalTime(displayTimeSpentMinutes / 60)}
+            {showNoDataDash
+              ? PAST_ACHIEVEMENT_NO_DATA
+              : formatTotalTime(displayTimeSpentMinutes / 60)}
           </Text>
         </View>
       );
@@ -334,9 +345,11 @@ const baseAchievementRaw = useMemo(
       <View style={styles.statColumn}>
         <Text style={styles.statLabel}>INCOMPLETE</Text>
         <Text style={styles.statValueIncomplete}>
-          {isCountGoal
-            ? `${Math.round(displayBaseIncomplete)}`
-            : formatSadaqahAmountLabel(displayBaseIncomplete, isVolunteering)}
+          {showNoDataDash
+            ? PAST_ACHIEVEMENT_NO_DATA
+            : isCountGoal
+              ? `${Math.round(displayBaseIncomplete)}`
+              : formatSadaqahAmountLabel(displayBaseIncomplete, isVolunteering)}
         </Text>
       </View>
     );
@@ -379,7 +392,9 @@ const baseAchievementRaw = useMemo(
           <View style={styles.achievementBlock}>
             <Text style={styles.achievementCaption}>{topMetricLabel}</Text>
             <Text style={styles.achievementPercent}>
-              {formatNumber(topMetricValue)}
+              {showNoDataDash
+                ? PAST_ACHIEVEMENT_NO_DATA
+                : formatNumber(topMetricValue)}
               <Text style={styles.achievementPercentSymbol}>%</Text>
             </Text>
             {deltaIsZero ? (
@@ -494,11 +509,13 @@ const baseAchievementRaw = useMemo(
           <Text style={styles.goalLabel}>{t("progressLogging.goal")}</Text>
           <View style={styles.goalValueRow}>
             <Text style={styles.goalValue}>
-              {isVolunteering
-                ? `${baseAchievement.goalAmount} hours`
-                : isCountGoal
-                  ? `${baseAchievement.goalAmount}`
-                  : formatSadaqahAmountLabel(baseAchievement.goalAmount, false)}
+              {showNoDataDash
+                ? PAST_ACHIEVEMENT_NO_DATA
+                : isVolunteering
+                  ? `${baseAchievement.goalAmount} hours`
+                  : isCountGoal
+                    ? `${baseAchievement.goalAmount}`
+                    : formatSadaqahAmountLabel(baseAchievement.goalAmount, false)}
             </Text>
             {(isFidya || isKaffarah) && (
               <View style={styles.goalUnitPill}>
@@ -619,9 +636,11 @@ const baseAchievementRaw = useMemo(
           <View style={styles.statColumn}>
             <Text style={styles.statLabel}>COMPLETED</Text>
             <Text style={styles.statValueCompleted}>
-              {isCountGoal
-                ? `${Math.round(displayBaseCompleted)}`
-                : formatSadaqahAmountLabel(displayBaseCompleted, isVolunteering)}
+              {showNoDataDash
+                ? PAST_ACHIEVEMENT_NO_DATA
+                : isCountGoal
+                  ? `${Math.round(displayBaseCompleted)}`
+                  : formatSadaqahAmountLabel(displayBaseCompleted, isVolunteering)}
             </Text>
           </View>
           {renderSecondStat()}
@@ -925,13 +944,13 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
   },
   statValueCompleted: {
-    color: Colors.light.green,
+    color: Colors.light.white,
     fontSize: 22,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "700",
   },
   statValueIncomplete: {
-    color: INCOMPLETE_BAR_COLOR,
+    color: Colors.light.white,
     fontSize: 22,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "700",

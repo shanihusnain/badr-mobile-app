@@ -429,18 +429,17 @@ function buildSixMonthSlice(anchorDate: string): ProphetDawoodPeriodSlice {
 function buildPeriodBar(
   period: ProphetDawoodPeriodSlice["chartPeriods"][number],
 ): QuranPastChartItem {
-  const stackTotal = Math.max(
-    period.completed + period.incomplete,
-    period.completed,
-    1,
-  );
+  const completed = period.completed;
+  const incomplete = period.incomplete;
+  const stackTotal = completed + incomplete;
 
   return {
     xLabel: period.xLabel,
     dateLabel: period.dateLabel,
-    completedHours: period.completed,
-    incompleteHours: period.incomplete,
-    hours: period.completed,
+    completedHours: completed,
+    incompleteHours: incomplete,
+    hours: completed,
+    // Keep empty periods at 0 so the chart has no bar (no fake 1-unit stub).
     stackTotalHours: stackTotal,
   };
 }
