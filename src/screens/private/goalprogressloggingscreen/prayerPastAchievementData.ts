@@ -8,6 +8,8 @@ export type PrayerAnalyticsView = "completedVsIncomplete" | "completedVsTimeSpen
 
 export type PrayerPastChartItem = QuranPastChartItem & {
   completedDeltaPct?: number | null;
+  /** Per-bucket copy from achievements API (five-daily). */
+  bucketSummaryText?: string | null;
 };
 
 export type PrayerPastAchievement = {
@@ -20,6 +22,8 @@ export type PrayerPastAchievement = {
   completedPrayers: number;
   incompletePrayers: number;
   totalTimeSpentMinutes: number;
+  /** Period-level summary from achievements API when present. */
+  summaryText?: string | null;
   yMax: number;
   yTicks: number[];
   pageCount: number;

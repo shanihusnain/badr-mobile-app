@@ -102,7 +102,7 @@ const PERIOD_PHRASE: Record<PastAchievementPeriod, string> = {
 };
 
 const MISSED_PRAYER_TABS = ["All", "Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"];
-/** Same labels as missed; maps to achievements `prayer` query for five-daily. */
+/** Same labels as missed; maps to achievements `slot` query for five-daily. */
 const FIVE_DAILY_PRAYER_TABS = [
   "All",
   "Fajr",
@@ -111,13 +111,13 @@ const FIVE_DAILY_PRAYER_TABS = [
   "Maghrib",
   "Isha",
 ] as const;
-const FIVE_DAILY_TAB_TO_PRAYER_PARAM: Record<string, string> = {
+const FIVE_DAILY_TAB_TO_SLOT_PARAM: Record<string, string> = {
   All: "all",
-  Fajr: "fajr",
-  Dhuhr: "dhuhr",
-  Asr: "asr",
-  Maghrib: "maghrib",
-  Isha: "isha",
+  Fajr: "FAJR",
+  Dhuhr: "DHUHR",
+  Asr: "ASR",
+  Maghrib: "MAGHRIB",
+  Isha: "ISHA",
 };
 const SUNNAH_RAWATIB_TABS = [
   "All",
@@ -466,16 +466,15 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
     goalId === "prayer-shukr" ||
     goalId === "prayer-fiveDailyPrayers";
   const prayerType = resolvePrayerTypeFromGoalId(goalId);
-  const fiveDailyPrayerParam =
+  const fiveDailySlotParam =
     goalId === "prayer-fiveDailyPrayers"
-      ? (FIVE_DAILY_TAB_TO_PRAYER_PARAM[selectedPrayerTab] ?? "all")
+      ? (FIVE_DAILY_TAB_TO_SLOT_PARAM[selectedPrayerTab] ?? "all")
       : null;
   const { data: achievementsApiData, isLoading: isAchievementsLoading } =
     useGetPrayerGoalAchievements(prayerType, {
       period,
       periodStart: periodStartParam,
-      prayer:
-        goalId === "prayer-fiveDailyPrayers" ? fiveDailyPrayerParam : null,
+      slot: goalId === "prayer-fiveDailyPrayers" ? fiveDailySlotParam : null,
       enabled: usesAchievementsApi && !!prayerType,
     });
   const showPlaceholders =
@@ -502,10 +501,19 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
   const baseAchievementRaw = useMemo((): PrayerPastAchievement | null => {
     if (usesAchievementsApi) {
       if (!achievementsApiData) return null;
-      return mapPrayerGoalAchievementsToUi(achievementsApiData);
+      return mapPrayerGoalAchievementsToUi(
+        achievementsApiData,
+        analyticsView,
+      );
     }
     return getPrayerPastAchievement(goalId, period);
-  }, [usesAchievementsApi, achievementsApiData, goalId, period]);
+  }, [
+    usesAchievementsApi,
+    achievementsApiData,
+    goalId,
+    period,
+    analyticsView,
+  ]);
 
   const baseAchievement = useMemo(() => {
     if (!baseAchievementRaw) return null;
@@ -936,61 +944,77 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
         {isDetailed && !showPlaceholders && (
           <>
             <Text style={styles.summaryText}>
-              <Text>{PERIOD_PHRASE[period]}, you achieved </Text>
-              <Text style={styles.summaryBold}>
-                {formatNumber(resolvedBaseAchievement.achievementPercent)}%
-              </Text>
-              <Text> of your {cleanGoalLabel} prayer goals</Text>
-              {resolvedBaseAchievement.previousPeriodDeltaPercent !== null ? (
-                resolvedBaseAchievement.previousPeriodDeltaPercent === 0 ? (
-                  <Text>
-                    {" "}
-                    — the same as the previous {period === "monthly" && "month"}
-                    {period === "threeMonths" && (
-                      <>
-                        <Text style={styles.summaryBold}>3M</Text> period
-                      </>
-                    )}
-                    {period === "sixMonths" && (
-                      <>
-                        <Text style={styles.summaryBold}>6M</Text> period
-                      </>
-                    )}
-                    .
-                  </Text>
-                ) : (
-                  <>
-                    <Text> — </Text>
-                    <Text style={styles.summaryBold}>
-                      {formatNumber(
-                        Math.abs(
-                          resolvedBaseAchievement.previousPeriodDeltaPercent,
-                        ),
-                      )}
-                      %
-                    </Text>
-                    <Text>
-                      {" "}
-                      {resolvedBaseAchievement.previousPeriodDeltaPercent > 0
-                        ? "more"
-                        : "less"}{" "}
-                      than the previous {period === "monthly" && "month"}
-                      {period === "threeMonths" && (
-                        <>
-                          <Text style={styles.summaryBold}>3M</Text> period
-                        </>
-                      )}
-                      {period === "sixMonths" && (
-                        <>
-                          <Text style={styles.summaryBold}>6M</Text> period
-                        </>
-                      )}
-                      .
-                    </Text>
-                  </>
-                )
+              {selectedBarIndex !== null &&
+              selectedBaseWeek?.bucketSummaryText ? (
+                <Text>{selectedBaseWeek.bucketSummaryText}</Text>
+              ) : resolvedBaseAchievement.summaryText ? (
+                <Text>{resolvedBaseAchievement.summaryText}</Text>
               ) : (
-                <Text>.</Text>
+                <>
+                  <Text>{PERIOD_PHRASE[period]}, you achieved </Text>
+                  <Text style={styles.summaryBold}>
+                    {formatNumber(
+                      resolvedBaseAchievement.achievementPercent,
+                    )}
+                    %
+                  </Text>
+                  <Text> of your {cleanGoalLabel} prayer goals</Text>
+                  {resolvedBaseAchievement.previousPeriodDeltaPercent !==
+                  null ? (
+                    resolvedBaseAchievement.previousPeriodDeltaPercent ===
+                    0 ? (
+                      <Text>
+                        {" "}
+                        — the same as the previous{" "}
+                        {period === "monthly" && "month"}
+                        {period === "threeMonths" && (
+                          <>
+                            <Text style={styles.summaryBold}>3M</Text> period
+                          </>
+                        )}
+                        {period === "sixMonths" && (
+                          <>
+                            <Text style={styles.summaryBold}>6M</Text> period
+                          </>
+                        )}
+                        .
+                      </Text>
+                    ) : (
+                      <>
+                        <Text> — </Text>
+                        <Text style={styles.summaryBold}>
+                          {formatNumber(
+                            Math.abs(
+                              resolvedBaseAchievement.previousPeriodDeltaPercent,
+                            ),
+                          )}
+                          %
+                        </Text>
+                        <Text>
+                          {" "}
+                          {resolvedBaseAchievement.previousPeriodDeltaPercent >
+                          0
+                            ? "more"
+                            : "less"}{" "}
+                          than the previous {period === "monthly" && "month"}
+                          {period === "threeMonths" && (
+                            <>
+                              <Text style={styles.summaryBold}>3M</Text> period
+                            </>
+                          )}
+                          {period === "sixMonths" && (
+                            <>
+                              <Text style={styles.summaryBold}>6M</Text> period
+                            </>
+                          )}
+                          .
+                        </Text>
+                      </>
+                    )
+                  ) : (
+                    <Text>.</Text>
+                  )}
+                </>
               )}
             </Text>
 

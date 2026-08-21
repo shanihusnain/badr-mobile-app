@@ -5,6 +5,7 @@ import type { PastAchievementPeriod } from "@/src/screens/private/goalprogresslo
 
 export type PrayerAchievementsPeriodCode = "M" | "3M" | "6M";
 
+/** Legacy chart series (non–five-daily / older payloads). */
 export type PrayerAchievementsChartItem = {
   weekLabel: string;
   completed: number;
@@ -17,6 +18,51 @@ export type PrayerAchievementsTimeItem = {
   weekLabel: string;
   minutesSpent: number;
   timeSpentDeltaPct?: number | null;
+};
+
+export type FiveDailyOnTimeVsQadhaItem = {
+  weekLabel: string;
+  bucketStartDate?: string;
+  bucketEndDate?: string;
+  onTime: number;
+  qadha: number;
+  incomplete?: number;
+  bucketGoal?: number | null;
+  hasCycleData?: boolean;
+  bucketPct?: number | null;
+  completedDeltaPct?: number | null;
+  bucketSummaryText?: string | null;
+  menstruationDays?: number;
+};
+
+export type FiveDailyMosqueVsHomeItem = {
+  weekLabel: string;
+  bucketStartDate?: string;
+  bucketEndDate?: string;
+  mosque: number;
+  home: number;
+  bucketSummaryText?: string | null;
+  menstruationDays?: number;
+};
+
+export type FiveDailyTimeSpentItem = {
+  weekLabel: string;
+  bucketStartDate?: string;
+  bucketEndDate?: string;
+  onTime?: number;
+  qadha?: number;
+  barLabel?: string;
+  minutesSpent: number;
+  bucketTimeSpentPct?: number | null;
+  timeSpentDeltaPct?: number | null;
+  bucketTimeSpentSummaryText?: string | null;
+  menstruationDays?: number;
+};
+
+export type FiveDailyChartViews = {
+  onTimeVsQadha?: FiveDailyOnTimeVsQadhaItem[];
+  inMosqueVsHome?: FiveDailyMosqueVsHomeItem[];
+  timeSpent?: FiveDailyTimeSpentItem[];
 };
 
 export type PrayerAchievementsKeyInsights = {
@@ -43,19 +89,30 @@ export type PrayerAchievementsKeyInsights = {
 };
 
 export type PrayerGoalAchievementsData = {
+  prayerType?: string;
   period: PrayerAchievementsPeriodCode | string;
   periodStart: string;
   periodEnd: string;
-  activeSlot: string;
+  activeSlot?: string;
   achievementPct: number;
   previousPeriodPct: number;
   delta: number | null;
   goal: number;
   completedCount: number;
   incompleteCount: number;
-  chartData: PrayerAchievementsChartItem[];
-  timeData: PrayerAchievementsTimeItem[];
+  qadhaCount?: number;
+  mosqueCount?: number;
+  homeCount?: number;
+  /** Legacy series — still used by non–five-daily goals. */
+  chartData?: PrayerAchievementsChartItem[];
+  timeData?: PrayerAchievementsTimeItem[];
+  /** Five-daily (and newer) view-specific chart series. */
+  chartViews?: FiveDailyChartViews | null;
+  summaryText?: string | null;
+  mosqueSummaryText?: string | null;
+  timeSpentSummaryText?: string | null;
   totalMinutesSpent: number;
+  timeSpentPct?: number | null;
   keyInsights?: PrayerAchievementsKeyInsights | null;
   canNavigateBack: boolean;
   canNavigateForward: boolean;
@@ -74,7 +131,7 @@ const getPrayerGoalAchievements = async (
   prayerType: string,
   period: PrayerAchievementsPeriodCode,
   periodStart?: string | null,
-  prayer?: string | null,
+  slot?: string | null,
 ): Promise<PrayerGoalAchievementsData | null> => {
   const response = await api.get(
     `api/goal-cycles/current/prayer-goals/${prayerType}/achievements`,
@@ -82,7 +139,7 @@ const getPrayerGoalAchievements = async (
       params: {
         period,
         ...(periodStart ? { periodStart } : {}),
-        ...(prayer ? { prayer } : {}),
+        ...(slot ? { slot } : {}),
       },
     },
   );
@@ -94,15 +151,15 @@ export const useGetPrayerGoalAchievements = (
   options: {
     period: PastAchievementPeriod;
     periodStart?: string | null;
-    /** Five-daily filter: all | fajr | dhuhr | asr | maghrib | isha */
-    prayer?: string | null;
+    /** Five-daily filter: all | FAJR | DHUHR | ASR | MAGHRIB | ISHA */
+    slot?: string | null;
     enabled?: boolean;
   },
 ) => {
   const prayerType = prayerTypeInput ? resolvePrayerType(prayerTypeInput) : "";
   const periodCode = PAST_ACHIEVEMENT_PERIOD_TO_API[options.period];
   const periodStart = options.periodStart ?? null;
-  const prayer = options.prayer ?? null;
+  const slot = options.slot ?? null;
   const enabled = !!prayerType && (options.enabled ?? true);
 
   return useQuery({
@@ -111,10 +168,10 @@ export const useGetPrayerGoalAchievements = (
       prayerType,
       periodCode,
       periodStart ?? "latest",
-      prayer ?? "all",
+      slot ?? "all",
     ],
     queryFn: () =>
-      getPrayerGoalAchievements(prayerType, periodCode, periodStart, prayer),
+      getPrayerGoalAchievements(prayerType, periodCode, periodStart, slot),
     enabled,
   });
 };
