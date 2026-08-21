@@ -32,6 +32,10 @@ import {
 } from "@/src/screens/private/goalprogressloggingscreen/quranRecitationJuzPastAchievementData";
 import { applyTimeSpentOnlyGreenChart } from "@/src/screens/private/goalprogressloggingscreen/quranRecitationPastAchievementData";
 import type { PastAchievementPeriod } from "@/src/screens/private/goalprogressloggingscreen/quranHoursPastAchievementData";
+import {
+  PAST_ACHIEVEMENT_NO_DATA,
+  isPastAchievementBarEmpty,
+} from "@/src/utils/pastAchievementNoData";
 import type { JuzRecitationGoalId } from "@/src/screens/private/goalprogressloggingscreen/types";
 import { INCOMPLETE_BAR_COLOR } from "../QuranHoursPastAchievements/pastAchievementStyles";
 import { QuranHoursPastAchievementChartBlock } from "../QuranHoursPastAchievements/QuranHoursPastAchievementChartBlock";
@@ -213,6 +217,11 @@ const [period, setPeriod] = useState<PastAchievementPeriod>(initialPeriod);
     selectedBaseWeek?.completedHours ?? baseAchievement.completedHours;
   const displayBaseIncomplete =
     selectedBaseWeek?.incompleteHours ?? baseAchievement.incompleteHours;
+
+  const showNoDataDash = isPastAchievementBarEmpty(
+    displayBaseCompleted,
+    displayBaseIncomplete,
+  );
 
   const selectedPeriodTimeSpentMinutes =
     selectedBarIndex !== null
@@ -568,7 +577,9 @@ return (
                 isDetailed && styles.achievementPercentDetailed,
               ]}
             >
-              {formatNumber(achievement.achievementPercent)}
+              {showNoDataDash
+                ? PAST_ACHIEVEMENT_NO_DATA
+                : formatNumber(achievement.achievementPercent)}
               <Text
                 style={[
                   styles.achievementPercentSymbol,
@@ -717,7 +728,9 @@ return (
           </Text>
           <View style={styles.goalValueRow}>
             <Text style={styles.goalPillValue}>
-              {formatNumber(displayGoalTotal)}{" "}
+              {showNoDataDash
+                ? PAST_ACHIEVEMENT_NO_DATA
+                : formatNumber(displayGoalTotal)}{" "}
             </Text>
             <View style={styles.goalPill}>
               <Text style={styles.goalPillText}>
@@ -762,8 +775,16 @@ return (
             incomplete={displayBaseIncomplete}
             totalTimeMinutes={selectedPeriodTimeSpentMinutes}
             longestStreak={0}
-            formatCount={formatJuzCountLabel}
-            formatTimeChip={formatJuzTimeSpentChip}
+            formatCount={(value) =>
+              showNoDataDash
+                ? PAST_ACHIEVEMENT_NO_DATA
+                : formatJuzCountLabel(value)
+            }
+            formatTimeChip={(minutes) =>
+              showNoDataDash
+                ? PAST_ACHIEVEMENT_NO_DATA
+                : formatJuzTimeSpentChip(minutes)
+            }
             completedLabel={t("progressLogging.completed")}
             incompleteLabel={t("progressLogging.incomplete")}
             timeSpentLabel={t("progressLogging.timeSpentLabel")}
@@ -777,7 +798,9 @@ return (
                 {t("progressLogging.completed")}
               </Text>
               <Text style={styles.statValueCompleted}>
-                {formatJuzCountLabel(displayBaseCompleted)}
+                {showNoDataDash
+                  ? PAST_ACHIEVEMENT_NO_DATA
+                  : formatJuzCountLabel(displayBaseCompleted)}
               </Text>
             </View>
             <View style={styles.statColumn}>
@@ -793,9 +816,11 @@ return (
                     : styles.statValueIncomplete
                 }
               >
-                {analyticsView === "completedVsTimeSpent"
-                  ? formatJuzTimeSpentLabel(selectedPeriodTimeSpentMinutes)
-                  : formatJuzCountLabel(displayBaseIncomplete)}
+                {showNoDataDash
+                  ? PAST_ACHIEVEMENT_NO_DATA
+                  : analyticsView === "completedVsTimeSpent"
+                    ? formatJuzTimeSpentLabel(selectedPeriodTimeSpentMinutes)
+                    : formatJuzCountLabel(displayBaseIncomplete)}
               </Text>
             </View>
           </View>
@@ -1233,13 +1258,13 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
   },
   statValueCompleted: {
-    color: Colors.light.green,
+    color: Colors.light.white,
     fontSize: 22,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "700",
   },
   statValueIncomplete: {
-    color: INCOMPLETE_BAR_COLOR,
+    color: Colors.light.white,
     fontSize: 22,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "700",

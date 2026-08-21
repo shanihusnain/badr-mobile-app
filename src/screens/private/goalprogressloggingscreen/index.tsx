@@ -154,7 +154,8 @@ function GoalProgressLoggingBody({
     template === "tahiyat-ul-wudhu" ||
     template === "tahiyat-al-masjid" ||
     template === "missed-prayers" ||
-    template === "five-daily-prayers";
+    template === "five-daily-prayers" ||
+    template === "duha-prayer";
   const frameLoading =
     isPrayerFrameRingGoal &&
     (prayerFrame?.isLoading || (!prayerFrame?.frame && !prayerFrame?.isError));
@@ -247,6 +248,9 @@ function GoalProgressLoggingBody({
                 styles.circleGoalText,
                 frameLoading && styles.loadingPlaceholderText,
               ]}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.8}
             >
               {frameLoading ? "---" : ringGoalLabel}
             </Text>
@@ -259,14 +263,9 @@ function GoalProgressLoggingBody({
               >
                 {percentageNum}
               </Text>
-              <Text
-                style={[
-                  styles.circlePercentSymbol,
-                  frameLoading && styles.loadingPlaceholderText,
-                ]}
-              >
-                %
-              </Text>
+              {!frameLoading ? (
+                <Text style={styles.circlePercentSymbol}>%</Text>
+              ) : null}
             </View>
           </View>
         </TaperedCircleBorder>

@@ -219,10 +219,10 @@ export const GoalProgressCard = ({
           justifyContent: "center",
         }}
       >
-        <MoonProgress
+        {/* <MoonProgress
           progressPercent={moonProgress}
           onReady={animate ? handleMoonReady : undefined}
-        />
+        /> */}
       </View>
 
       {/* ── Stats row ── */}

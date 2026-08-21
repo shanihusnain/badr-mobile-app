@@ -13,7 +13,7 @@ import { Colors } from "@/constants/theme";
 import { GoalData } from "../../home/components/goalsData";
 import { DateStep } from "../components/DateStep";
 import { OptionSelectStep } from "../components/OptionSelectStep";
-import { StartTimeStep, DurationStep } from "../components/TimePickerSteps";
+import { StartTimeStep, DurationStep, getCurrentStartTimeParts } from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
 import {
   styles as commonStyles,
@@ -35,7 +35,6 @@ import {
   WhitePrayerMatIcon,
   WhiteTimerIcon,
 } from "@/assets/icons";
-import { Icon } from "expo-router";
 
 type TahiyatAlMasjidStepId =
   | "date"
@@ -69,12 +68,18 @@ export default function TahiyatAlMasjidLoggingFlow({
 
   const [selectedDate, setSelectedDate] = useState(toDateString(new Date()));
   const [prayedRightAfter, setPrayedRightAfter] = useState<"Yes" | "No">("Yes");
-  const [startHour, setStartHour] = useState("06");
-  const [startMinute, setStartMinute] = useState("15");
-  const [startPeriod, setStartPeriod] = useState<"am" | "pm">("am");
+  const [startHour, setStartHour] = useState(
+    () => getCurrentStartTimeParts().hour,
+  );
+  const [startMinute, setStartMinute] = useState(
+    () => getCurrentStartTimeParts().minute,
+  );
+  const [startPeriod, setStartPeriod] = useState<"am" | "pm">(
+    () => getCurrentStartTimeParts().period,
+  );
   const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
   const [durationHours, setDurationHours] = useState("0");
-  const [durationMinutes, setDurationMinutes] = useState("10");
+  const [durationMinutes, setDurationMinutes] = useState("0");
 
   const prayerFrame = useOptionalPrayerGoalFrameContext();
   const frame = prayerFrame?.frame;
@@ -157,13 +162,14 @@ export default function TahiyatAlMasjidLoggingFlow({
   };
 
   const resetFlow = useCallback(() => {
+    const now = getCurrentStartTimeParts();
     setFlowMode("collapsed");
     setStepIndex(0);
     setSelectedDate(toDateString(new Date()));
     setPrayedRightAfter("Yes");
-    setStartHour("06");
-    setStartMinute("15");
-    setStartPeriod("am");
+    setStartHour(now.hour);
+    setStartMinute(now.minute);
+    setStartPeriod(now.period);
     setDurationHours("0");
     setDurationMinutes("0");
     setIsPeriodDropdownOpen(false);
@@ -220,6 +226,10 @@ export default function TahiyatAlMasjidLoggingFlow({
 
   const handleOpenFlow = useCallback(() => {
     if (isFullyAchieved) return;
+    const now = getCurrentStartTimeParts();
+    setStartHour(now.hour);
+    setStartMinute(now.minute);
+    setStartPeriod(now.period);
     setFlowMode("active");
   }, [isFullyAchieved]);
 
@@ -228,7 +238,6 @@ export default function TahiyatAlMasjidLoggingFlow({
       case "date":
         return {
           icon: <CalendarFlippingIcon size={24} />,
-
           label: "Which day are you logging for?",
         };
       case "prayer-right-after":
@@ -319,7 +328,7 @@ export default function TahiyatAlMasjidLoggingFlow({
                 <View style={localStyles.summaryIconCircle}>
                   <FlowCardMosqueIcon size={21} />
                 </View>
-                <View style={{ flex: 1, gap: 4 }}>
+                <View style={{ flex: 1, gap: 9 }}>
                   <View
                     style={[
                       localStyles.badge,
@@ -422,9 +431,11 @@ const localStyles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 4,
   },
+  // "In Progress" chip — light purple bg, dark blue text
   badgeInProgress: {
     backgroundColor: Colors.light.lightpurple,
   },
+  // "X% Achieved" / "100% Achieved!" chip — light green bg, green text
   badgeCompleted: {
     backgroundColor: Colors.light.lightgreenbadgecolor,
   },
@@ -490,11 +501,18 @@ const localStyles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
+    // borderWidth: 1.5,
+    // borderColor: Colors.light.white,
     alignItems: "center",
     justifyContent: "center",
+    marginBottom: 1,
   },
   addButtonDisabled: {
     opacity: 0.35,
+  },
+  badgeRow: {
+    flexDirection: "row",
+    marginLeft: 14,
   },
   spacer: {
     flex: 1,

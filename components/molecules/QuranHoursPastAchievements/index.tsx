@@ -24,6 +24,10 @@ import {
   type PastAchievementPeriod,
 } from "@/src/screens/private/goalprogressloggingscreen/quranHoursPastAchievementData";
 import type { QuranHoursGoalId } from "@/src/screens/private/goalprogressloggingscreen/types";
+import {
+  PAST_ACHIEVEMENT_NO_DATA,
+  isPastAchievementBarEmpty,
+} from "@/src/utils/pastAchievementNoData";
 import { INCOMPLETE_BAR_COLOR } from "./pastAchievementStyles";
 import { QuranHoursPastAchievementChartBlock } from "./QuranHoursPastAchievementChartBlock";
 import { GraphBarSelectionFooter } from "./GraphBarSelectionFooter";
@@ -177,6 +181,11 @@ const goalData = getGoalById(goalId);
   const displayGoalHours = selectedWeek
     ? selectedWeek.completedHours + selectedWeek.incompleteHours
     : achievement.goalHours;
+
+  const showNoDataDash = isPastAchievementBarEmpty(
+    displayCompletedHours,
+    displayIncompleteHours,
+  );
 
   const selectedBarGoalTotal = useMemo(() => {
     if (selectedBarIndex === null) {
@@ -373,7 +382,9 @@ const formatChartBarValue = useCallback(
                 isDetailed && styles.achievementPercentDetailed,
               ]}
             >
-              {formatNumber(achievement.achievementPercent)}
+              {showNoDataDash
+                ? PAST_ACHIEVEMENT_NO_DATA
+                : formatNumber(achievement.achievementPercent)}
               <Text
                 style={[
                   styles.achievementPercentSymbol,
@@ -479,7 +490,9 @@ const formatChartBarValue = useCallback(
             <View style={styles.goalValueRow}>
               <View style={styles.goalValueBlock}>
                 <Text style={styles.goalPillValue}>
-                  {formatGoalHoursLabel(displayGoalHours)}
+                  {showNoDataDash
+                    ? PAST_ACHIEVEMENT_NO_DATA
+                    : formatGoalHoursLabel(displayGoalHours)}
                 </Text>
                 <View style={styles.goalPill}>
                   <Text style={styles.goalPillText}>
@@ -497,7 +510,9 @@ const formatChartBarValue = useCallback(
               }}
             >
               <Text style={styles.goalPillValue}>
-                {formatNumber(achievement.goalHours)}{" "}
+                {showNoDataDash
+                  ? PAST_ACHIEVEMENT_NO_DATA
+                  : formatNumber(achievement.goalHours)}{" "}
               </Text>
               <View style={styles.goalPill}>
                 <Text style={styles.goalPillText}>
@@ -512,7 +527,11 @@ const formatChartBarValue = useCallback(
           <ListeningPastAchievementMetricsSection
             completedMinutes={displayCompletedMinutes}
             incompleteMinutes={displayIncompleteMinutes}
-            formatDuration={formatDuration}
+            formatDuration={
+              showNoDataDash
+                ? () => PAST_ACHIEVEMENT_NO_DATA
+                : formatDuration
+            }
             completedLabel={t("progressLogging.completed")}
             incompleteLabel={t("progressLogging.incomplete")}
           />
@@ -523,7 +542,9 @@ const formatChartBarValue = useCallback(
                 {t("progressLogging.completed")}
               </Text>
               <Text style={styles.statValueCompleted}>
-                {formatGoalHoursLabel(displayCompletedHours)}
+                {showNoDataDash
+                  ? PAST_ACHIEVEMENT_NO_DATA
+                  : formatGoalHoursLabel(displayCompletedHours)}
               </Text>
             </View>
             <View style={styles.statColumn}>
@@ -531,7 +552,9 @@ const formatChartBarValue = useCallback(
                 {t("progressLogging.incomplete")}
               </Text>
               <Text style={styles.statValueIncomplete}>
-                {formatGoalHoursLabel(displayIncompleteHours)}
+                {showNoDataDash
+                  ? PAST_ACHIEVEMENT_NO_DATA
+                  : formatGoalHoursLabel(displayIncompleteHours)}
               </Text>
             </View>
           </View>
@@ -558,7 +581,7 @@ const formatChartBarValue = useCallback(
             activePageIndex={selectedBarIndex ?? achievement.activePageIndex}
             formatBarValue={isDetailed ? formatChartBarValue : undefined}
             showPagination={isDetailed}
-            barColors={[Colors.light.green, INCOMPLETE_BAR_COLOR]}
+            barColors={[Colors.light.white, "rgba(255, 255, 255, 0.4)"]}
           />
         </View>
 
@@ -656,9 +679,13 @@ const styles = StyleSheet.create({
   },
   achievementPercentSymbol: {
     fontSize: 22,
+    lineHeight: 22,
+    transform: [{ translateY: -8 }],
   },
   achievementPercentSymbolDetailed: {
     fontSize: 16,
+    lineHeight: 16,
+    transform: [{ translateY: -6 }],
   },
   deltaBadge: {
     flexDirection: "row",
@@ -815,13 +842,13 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
   },
   statValueCompleted: {
-    color: Colors.light.green,
+    color: Colors.light.white,
     fontSize: 22,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "700",
   },
   statValueIncomplete: {
-    color: INCOMPLETE_BAR_COLOR,
+    color: Colors.light.white,
     fontSize: 22,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "700",

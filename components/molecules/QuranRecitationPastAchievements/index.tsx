@@ -36,8 +36,12 @@ import {
   type RecitationAnalyticsView,
   type SurahFilterId,
 } from "@/src/screens/private/goalprogressloggingscreen/quranRecitationPastAchievementData";
-import type { PastAchievementPeriod } from "@/src/screens/private/goalprogressloggingscreen/quranHoursPastAchievementData";
 import type { SurahRecitationGoalId } from "@/src/screens/private/goalprogressloggingscreen/quranRecitationTarget";
+import {
+  PAST_ACHIEVEMENT_NO_DATA,
+  isPastAchievementBarEmpty,
+} from "@/src/utils/pastAchievementNoData";
+import type { PastAchievementPeriod } from "@/src/screens/private/goalprogressloggingscreen/quranHoursPastAchievementData";
 import {
   getActiveRecitationSurahGoal,
   useOptionalRecitationSurahContext,
@@ -399,12 +403,19 @@ const surahContext = useOptionalRecitationSurahContext();
   }, []);
 
   const showEmptyAchievement = isSurahDrillDown && !hasLogs;
-  const displayAchievementPercent = showEmptyAchievement
-    ? "--"
-    : formatNumber(achievement.achievementPercent);
+  const showNoDataDash = isPastAchievementBarEmpty(
+    displayBaseCompleted,
+    displayBaseIncomplete,
+  );
+  const displayAchievementPercent =
+    showEmptyAchievement || showNoDataDash
+      ? PAST_ACHIEVEMENT_NO_DATA
+      : formatNumber(achievement.achievementPercent);
 
   const formatStatCount = (value: number) =>
-    showEmptyAchievement ? "--" : formatGoalRecitationsLabel(value);
+    showEmptyAchievement || showNoDataDash
+      ? PAST_ACHIEVEMENT_NO_DATA
+      : formatGoalRecitationsLabel(value);
 
   const showChartHint =
     isDetailed && !hintDismissed && selectedBarIndex === null;
@@ -934,7 +945,9 @@ return (
             >
               <View style={styles.goalValueBlock}>
                 <Text style={styles.goalPillValue}>
-                  {showEmptyAchievement ? "--" : formatNumber(displayGoalTotal)}
+                  {showEmptyAchievement || showNoDataDash
+                    ? PAST_ACHIEVEMENT_NO_DATA
+                    : formatNumber(displayGoalTotal)}
                 </Text>
                 {selectedSurahId === "all" ? (
                   <View style={styles.goalPill}>
@@ -963,7 +976,9 @@ return (
               }}
             >
               <Text style={styles.goalPillValue}>
-                {formatNumber(baseAchievement.goalHours)}{" "}
+                {showEmptyAchievement || showNoDataDash
+                  ? PAST_ACHIEVEMENT_NO_DATA
+                  : formatNumber(baseAchievement.goalHours)}{" "}
               </Text>
               <View style={styles.goalPill}>
                 <Text style={styles.goalPillText}>{t(UNIT_LABEL_KEY)}</Text>
@@ -1008,7 +1023,11 @@ return (
             totalTimeMinutes={selectedPeriodTimeSpentMinutes}
             longestStreak={periodSlice.longestStreak}
             formatCount={formatStatCount}
-            formatTimeChip={formatRecitationTimeSpentChip}
+            formatTimeChip={(minutes) =>
+              showEmptyAchievement || showNoDataDash
+                ? PAST_ACHIEVEMENT_NO_DATA
+                : formatRecitationTimeSpentChip(minutes)
+            }
             completedLabel={t("progressLogging.completed")}
             incompleteLabel={t("progressLogging.incomplete")}
             timeSpentLabel={t("progressLogging.timeSpentLabel")}
@@ -1024,7 +1043,7 @@ return (
                 {t("progressLogging.completed")}
               </Text>
               <Text style={styles.statValueCompleted}>
-                {formatGoalRecitationsLabel(displayBaseCompleted)}
+                {formatStatCount(displayBaseCompleted)}
               </Text>
             </View>
             <View style={styles.statColumn}>
@@ -1041,10 +1060,12 @@ return (
                 }
               >
                 {analyticsView === "completedVsTimeSpent"
-                  ? formatRecitationTimeSpentLabel(
-                      selectedPeriodTimeSpentMinutes,
-                    )
-                  : formatGoalRecitationsLabel(displayBaseIncomplete)}
+                  ? showEmptyAchievement || showNoDataDash
+                    ? PAST_ACHIEVEMENT_NO_DATA
+                    : formatRecitationTimeSpentLabel(
+                        selectedPeriodTimeSpentMinutes,
+                      )
+                  : formatStatCount(displayBaseIncomplete)}
               </Text>
             </View>
           </View>
@@ -1623,13 +1644,13 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
   },
   statValueCompleted: {
-    color: Colors.light.green,
+    color: Colors.light.white,
     fontSize: 22,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "700",
   },
   statValueIncomplete: {
-    color: INCOMPLETE_BAR_COLOR,
+    color: Colors.light.white,
     fontSize: 22,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "700",

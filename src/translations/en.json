@@ -571,6 +571,7 @@
     "periodComparisonSixMonths": "6M period",
     "keyInsights": "KEY INSIGHTS",
     "completedIn": "COMPLETED IN",
+    "periodMadeUp": "PERIOD MADE-UP",
     "longestStreak": "LONGEST STREAK",
     "activeDays": "{{count}} active days",
     "streakDays": "{{count}} days",

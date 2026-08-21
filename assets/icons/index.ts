@@ -40,6 +40,12 @@ import { FlowCardMosqueIcon } from "./FlowCardMosqueIcon";
 import { FlowCardFoodReliefIcon } from "./FlowCardFoodReleifIcon";
 import { FlowCardHandHeartIcon } from "./FlowCardHandHeartIcon";
 import { FlowCardZakatIcon } from "./FlowCardZakatIcon";
+import { FlowCardFajrIcon } from "./FlowCardFajrIcon";
+import { FlowCardDuhrIcon } from "./FlowCardDuhrIcon";
+import { FlowCardAsrIcon } from "./FlowCardAsrIcon";
+import { FlowCardMaghrebIcon } from "./FlowCardMaghrebIcon";
+import { FlowCardIshaIcon } from "./FlowCardIshaIcon";
+import { FlowCardDuhaPrayerIcon } from "./FlowCardDuhaPrayerIcon";
 import { MissedZakatCalculateIcon } from "./MissedZakatCalculateIcon";
 import { FastingFlowCardRamadanCalender } from "./FastingFlowCardRamadanCalender";
 import { FastingDashboardIcon } from "./FastingDashboardIcon";
@@ -65,6 +71,7 @@ import { InsightCardGoodDayIcon } from "./InsightCardGoodDayIcon";
 import { InsightCardWeeklyAverageIcon } from "./InsightCardWeeklyAverageIcon";
 import { InsightCardTimeSpentIcon } from "./InsightCardTimeSpentIcon";
 import { InsightCardGoalTrackedIcon } from "./InsightCardGoalTrackedIcon";
+import { InsightCardArrowReverseIcon } from "./InsightCardArrowReverseIcon";
 
 //J
 import { JournalBookIcon } from "./JournalBookIcon";
@@ -139,6 +146,7 @@ import { DhuharFardPrayerIcon } from "./DhuharFardParyerIcon";
 import { AsrFardPrayerIcon } from "./AsrFardPrayerIcon";
 import { MaghrebFardPrayerIcon } from "./MaghrebFardParyerIcon";
 import { IshaFardPrayerIcon } from "./IshaFardPrayerIcon";
+import { MissedPastPrayerCalenderIcon } from "./MissedPastPrayerCalenderIcon";
 //N
 import { NotificationIcon } from "./NotificationIcon";
 import { NegativeProgressIcon } from "./NegativeProgressIcon";
@@ -284,6 +292,7 @@ export {
   VolunteeringServicesCharityEventIcon,
   AllahNameIcon,
   Volunteeringservicesheart,
+  MissedPastPrayerCalenderIcon,
   FlashIcon,
   FlowCardClockIcon,
   EmailAddressMailIcon,
@@ -324,6 +333,7 @@ export {
   InsightCardWeeklyAverageIcon,
   InsightCardTimeSpentIcon,
   InsightCardGoalTrackedIcon,
+  InsightCardArrowReverseIcon,
   DebtAssistanceIcon,
   JournalBookIcon,
   NotificationIcon,
@@ -376,6 +386,12 @@ export {
   FlowCardHandHeartIcon,
   FlowCardShirtIcon,
   FlowCardZakatIcon,
+  FlowCardFajrIcon,
+  FlowCardDuhrIcon,
+  FlowCardAsrIcon,
+  FlowCardMaghrebIcon,
+  FlowCardIshaIcon,
+  FlowCardDuhaPrayerIcon,
   FreeTrialScreenBookIcon,
   FreeTrialScreenCommunityIcon,
   FreeTrialScreenHeadPhoneIcon,

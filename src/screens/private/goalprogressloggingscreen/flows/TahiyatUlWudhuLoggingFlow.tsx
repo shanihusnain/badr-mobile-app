@@ -13,7 +13,7 @@ import { Colors } from "@/constants/theme";
 import { GoalData } from "../../home/components/goalsData";
 import { DateStep } from "../components/DateStep";
 import { OptionSelectStep } from "../components/OptionSelectStep";
-import { StartTimeStep, DurationStep } from "../components/TimePickerSteps";
+import { StartTimeStep, DurationStep, getCurrentStartTimeParts } from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
 import {
   styles as commonStyles,
@@ -71,13 +71,19 @@ export default function TahiyatUlWudhuLoggingFlow({
   // Step 2: Did you pray right after performing wudhu?
   const [prayedRightAfter, setPrayedRightAfter] = useState<"Yes" | "No">("Yes");
   // Step 3: Start Time
-  const [startHour, setStartHour] = useState("06");
-  const [startMinute, setStartMinute] = useState("15");
-  const [startPeriod, setStartPeriod] = useState<"am" | "pm">("am");
+  const [startHour, setStartHour] = useState(
+    () => getCurrentStartTimeParts().hour,
+  );
+  const [startMinute, setStartMinute] = useState(
+    () => getCurrentStartTimeParts().minute,
+  );
+  const [startPeriod, setStartPeriod] = useState<"am" | "pm">(
+    () => getCurrentStartTimeParts().period,
+  );
   const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
   // Step 4: Time Spent
   const [durationHours, setDurationHours] = useState("0");
-  const [durationMinutes, setDurationMinutes] = useState("10");
+  const [durationMinutes, setDurationMinutes] = useState("0");
 
   const prayerFrame = useOptionalPrayerGoalFrameContext();
   const frame = prayerFrame?.frame;
@@ -165,13 +171,14 @@ export default function TahiyatUlWudhuLoggingFlow({
   };
 
   const resetFlow = useCallback(() => {
+    const now = getCurrentStartTimeParts();
     setFlowMode("collapsed");
     setStepIndex(0);
     setSelectedDate(toDateString(new Date()));
     setPrayedRightAfter("Yes");
-    setStartHour("06");
-    setStartMinute("15");
-    setStartPeriod("am");
+    setStartHour(now.hour);
+    setStartMinute(now.minute);
+    setStartPeriod(now.period);
     setDurationHours("0");
     setDurationMinutes("0");
     setIsPeriodDropdownOpen(false);
@@ -229,6 +236,10 @@ export default function TahiyatUlWudhuLoggingFlow({
 
   const handleOpenFlow = useCallback(() => {
     if (isFullyAchieved) return;
+    const now = getCurrentStartTimeParts();
+    setStartHour(now.hour);
+    setStartMinute(now.minute);
+    setStartPeriod(now.period);
     setFlowMode("active");
   }, [isFullyAchieved]);
 
@@ -327,7 +338,7 @@ export default function TahiyatUlWudhuLoggingFlow({
                 <View style={localStyles.summaryIconCircle}>
                   <Ionicons name="water" size={25} color={Colors.light.white} />
                 </View>
-                <View style={{ flex: 1, gap: 4 }}>
+                <View style={{ flex: 1, gap: 9 }}>
                   <View
                     style={[
                       localStyles.badge,
@@ -504,6 +515,7 @@ const localStyles = StyleSheet.create({
     // borderColor: Colors.light.white,
     alignItems: "center",
     justifyContent: "center",
+    marginBottom: 1,
   },
   addButtonDisabled: {
     opacity: 0.35,

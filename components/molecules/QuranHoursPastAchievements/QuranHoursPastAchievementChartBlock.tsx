@@ -18,7 +18,6 @@ import {
   type PointsArray,
 } from "victory-native";
 import {
-  INCOMPLETE_BAR_COLOR,
   pastAchievementStyles as styles,
 } from "./pastAchievementStyles";
 
@@ -156,7 +155,7 @@ type ChartStackedBarsProps = {
   selectedBarIndex: number | null;
   barCount: number;
   chartKey?: string;
-  barColors?: [string, string];
+  colors?: [string, string];
 };
 
 function ChartStackedBars({
@@ -166,23 +165,19 @@ function ChartStackedBars({
   selectedBarIndex,
   barCount,
   chartKey = "",
-  barColors = [Colors.light.green, INCOMPLETE_BAR_COLOR],
+  colors,
 }: ChartStackedBarsProps) {
   const isTimeSpentView = chartKey.includes("completedVsTimeSpent");
   const isInMosqueView = chartKey.includes("inMosqueVsOutOfMosque");
-  const isQiyamGoal = chartKey.includes("prayer-qiyam");
   const isCategoryView = chartKey.includes("completedByCategory");
 
   let barPoints = [completedPoints, incompletePoints];
+  let barColors: [string, string] =
+    colors ?? [Colors.light.white, "rgba(255, 255, 255, 0.4)"];
 
-  if (isTimeSpentView || isCategoryView) {
-    barColors = [Colors.light.green, Colors.light.green];
-  } else if (isQiyamGoal) {
-    // Qiyam: green (completed) at bottom, gold (incomplete) on top — line tracks the border
-    barColors = [Colors.light.green, Colors.light.golden];
+  if ((isTimeSpentView || isCategoryView) && !colors) {
+    barColors = [Colors.light.white, Colors.light.white];
   } else if (isInMosqueView) {
-    // Top segment (cyan) = In-Mosque (completed), Bottom segment (green) = Out-of-Mosque (incomplete)
-    barColors = [Colors.light.green, Colors.light.achievementbarblue];
     barPoints = [incompletePoints, completedPoints];
   }
 
@@ -505,7 +500,7 @@ export function QuranHoursPastAchievementChartBlock({
                   selectedBarIndex={selectedBarIndex}
                   barCount={chartData.length}
                   chartKey={chartKey}
-                  barColors={barColors}
+                  colors={barColors}
                 />
               );
             }}
@@ -570,8 +565,8 @@ export function QuranHoursPastAchievementChartBlock({
       />
 
       {showPagination && isPrayerGoal && selectedBarIndex !== null ? (
-        <View style={{ marginTop: 16, paddingHorizontal: 8 }}>
-          <View style={[styles.paginationRow, { marginBottom: 12 }]}>
+        <View style={{ marginTop: 3, paddingHorizontal: 8 }}>
+          <View style={[styles.paginationRow, { marginTop: 0, marginBottom: 24 }]}>
             {Array.from({ length: chartData.length }, (_, index) => (
               <View
                 key={`page-dot-${index}`}

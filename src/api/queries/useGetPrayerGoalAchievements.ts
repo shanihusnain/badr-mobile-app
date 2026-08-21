@@ -38,6 +38,8 @@ export type PrayerAchievementsKeyInsights = {
   timeSpentMinutes?: number | null;
   timeSpentDeltaMinutes?: number | null;
   timeSpentDelta?: number | null;
+  periodMadeUpDays?: number | null;
+  periodMadeUpDelta?: number | null;
 };
 
 export type PrayerGoalAchievementsData = {

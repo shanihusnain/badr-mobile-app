@@ -908,7 +908,7 @@ export function WeeklyProgressSection({
           totalPrayersThisWeek={frame.week.thisWeekTotal}
           streakDays={frame.week.currentStreak}
           selectedDayIndex={getPrayerFrameTodayIndex(frame)}
-          statsIcon="ticket-confirmation"
+          motivationalQuote={frame.week.motivationalMessage}
           onPrevWeek={handlePrevWeek}
           onNextWeek={handleNextWeek}
         />
@@ -1053,29 +1053,51 @@ export function WeeklyProgressSection({
   }
 
   if (template === "duha-prayer") {
-    const mockWeek = {
-      weekDays: [
-        { day: "Sun", prayersLogged: 2, isLogged: true },
-        { day: "Mon", prayersLogged: 4, isLogged: true, isBestDay: true },
-        { day: "Tue", prayersLogged: 2, isLogged: true },
-        { day: "Wed", prayersLogged: 0, isLogged: false },
-        { day: "Thu", prayersLogged: 0, isLogged: false },
-        { day: "Fri", prayersLogged: 2, isLogged: true },
-        { day: "Sat", prayersLogged: 2, isLogged: true },
-      ],
-      weekRangeLabel: "Nov 29 — Dec 5",
-      weekFraction: "1/4",
-      totalPrayersThisWeek: 12,
-      streakDays: 2,
-    };
+    const frame = prayerFrame?.frame;
+    if (frame) {
+      const totalWeeks = frame.cycle.totalWeeks;
+      const currentWeek = frame.cycle.weekNumber;
+
+      const canPrev = currentWeek > 1;
+      const canNext = currentWeek < totalWeeks;
+
+      const handlePrevWeek = canPrev
+        ? () => {
+            prayerFrame?.setWeekNumber(currentWeek - 1);
+          }
+        : undefined;
+
+      const handleNextWeek = canNext
+        ? () => {
+            prayerFrame?.setWeekNumber(currentWeek + 1);
+          }
+        : undefined;
+
+      return (
+        <DuhaPrayerWeeklyProgressDashboard
+          weekDays={mapPrayerFrameWeekDays(frame)}
+          weekRangeLabel={formatPrayerFrameWeekRange(
+            frame.cycle.weekStart,
+            frame.cycle.weekEnd,
+          )}
+          weekFraction={getPrayerFrameWeekFraction(frame)}
+          totalPrayersThisWeek={frame.week.thisWeekTotal}
+          streakDays={frame.week.currentStreak}
+          motivationalQuote={frame.week.motivationalMessage}
+          selectedDayIndex={getPrayerFrameTodayIndex(frame)}
+          onPrevWeek={handlePrevWeek}
+          onNextWeek={handleNextWeek}
+        />
+      );
+    }
+
     return (
       <DuhaPrayerWeeklyProgressDashboard
-        weekDays={mockWeek.weekDays}
-        weekRangeLabel={mockWeek.weekRangeLabel}
-        weekFraction={mockWeek.weekFraction}
-        totalPrayersThisWeek={mockWeek.totalPrayersThisWeek}
-        streakDays={mockWeek.streakDays}
-        statsIcon="weather-partly-cloudy"
+        weekDays={[]}
+        weekRangeLabel=""
+        weekFraction="—"
+        totalPrayersThisWeek={0}
+        streakDays={0}
       />
     );
   }
