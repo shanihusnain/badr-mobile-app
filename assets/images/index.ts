@@ -45,7 +45,7 @@ import tahiyyatwudhudetailimage from "./tahiyyatwudhudetailimage.png";
 import tahiyyatmasjiddetailimage from "./tahiyyatmasjiddetailimage.png";
 import sunnahrawatibdetailimage from "./sunnahrawatibdetailimage.png";
 import missedprayerdetailimage from "./missedprayerdetailimage.png";
-import shukarprayerdetailimage from "./shukarprayerdetailimage.png";
+import shukarprayerdetailimage from "./shukarprayerdetailimage.jpg";
 import BadrTreeImage from "./badrtreeimage.png";
 export {
   Icon,

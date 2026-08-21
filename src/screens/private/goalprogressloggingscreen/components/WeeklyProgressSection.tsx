@@ -855,6 +855,7 @@ export function WeeklyProgressSection({
           weekFraction={getPrayerFrameWeekFraction(frame)}
           totalPrayersThisWeek={frame.week.thisWeekTotal}
           streakDays={frame.week.currentStreak}
+          vsLastWeek={frame.week.vsLastWeek}
           motivationalQuote={frame.week.motivationalMessage}
           selectedDayIndex={getPrayerFrameTodayIndex(frame)}
           statsIcon="rug"
@@ -1034,6 +1035,7 @@ export function WeeklyProgressSection({
           weekFraction={getPrayerFrameWeekFraction(frame)}
           totalPrayersThisWeek={frame.week.thisWeekTotal}
           streakDays={frame.week.currentStreak}
+          vsLastWeek={frame.week.vsLastWeek}
           motivationalQuote={frame.week.motivationalMessage}
           selectedDayIndex={getPrayerFrameTodayIndex(frame)}
           statsIcon="mosque"
@@ -1056,112 +1058,220 @@ export function WeeklyProgressSection({
   }
 
   if (template === "duha-prayer") {
-    const mockWeek = {
-      weekDays: [
-        { day: "Sun", prayersLogged: 2, isLogged: true },
-        { day: "Mon", prayersLogged: 4, isLogged: true, isBestDay: true },
-        { day: "Tue", prayersLogged: 2, isLogged: true },
-        { day: "Wed", prayersLogged: 0, isLogged: false },
-        { day: "Thu", prayersLogged: 0, isLogged: false },
-        { day: "Fri", prayersLogged: 2, isLogged: true },
-        { day: "Sat", prayersLogged: 2, isLogged: true },
-      ],
-      weekRangeLabel: "Nov 29 — Dec 5",
-      weekFraction: "1/4",
-      totalPrayersThisWeek: 12,
-      streakDays: 2,
-    };
+    const frame = prayerFrame?.frame;
+    if (frame) {
+      const totalWeeks = frame.cycle.totalWeeks;
+      const currentWeek = frame.cycle.weekNumber;
+
+      const canPrev = currentWeek > 1;
+      const canNext = currentWeek < totalWeeks;
+
+      const handlePrevWeek = canPrev
+        ? () => {
+            prayerFrame?.setWeekNumber(currentWeek - 1);
+          }
+        : undefined;
+
+      const handleNextWeek = canNext
+        ? () => {
+            prayerFrame?.setWeekNumber(currentWeek + 1);
+          }
+        : undefined;
+
+      return (
+        <DuhaPrayerWeeklyProgressDashboard
+          weekDays={mapPrayerFrameWeekDays(frame)}
+          weekRangeLabel={formatPrayerFrameWeekRange(
+            frame.cycle.weekStart,
+            frame.cycle.weekEnd,
+          )}
+          weekFraction={getPrayerFrameWeekFraction(frame)}
+          totalPrayersThisWeek={frame.week.thisWeekTotal}
+          streakDays={frame.week.currentStreak}
+          vsLastWeek={frame.week.vsLastWeek}
+          motivationalQuote={frame.week.motivationalMessage}
+          selectedDayIndex={getPrayerFrameTodayIndex(frame)}
+          statsIcon="weather-partly-cloudy"
+          onPrevWeek={handlePrevWeek}
+          onNextWeek={handleNextWeek}
+        />
+      );
+    }
+
     return (
       <DuhaPrayerWeeklyProgressDashboard
-        weekDays={mockWeek.weekDays}
-        weekRangeLabel={mockWeek.weekRangeLabel}
-        weekFraction={mockWeek.weekFraction}
-        totalPrayersThisWeek={mockWeek.totalPrayersThisWeek}
-        streakDays={mockWeek.streakDays}
+        weekDays={[]}
+        weekRangeLabel="---"
+        weekFraction="---"
+        totalPrayersThisWeek={0}
+        streakDays={0}
+        motivationalQuote="---"
+        loading={prayerFrame?.isLoading || (!frame && !prayerFrame?.isError)}
         statsIcon="weather-partly-cloudy"
       />
     );
   }
 
   if (template === "tawbah-prayer") {
-    const mockWeek = {
-      weekDays: [
-        { day: "Sun", prayersLogged: 1, isLogged: true },
-        { day: "Mon", prayersLogged: 2, isLogged: true, isBestDay: true },
-        { day: "Tue", prayersLogged: 1, isLogged: true },
-        { day: "Wed", prayersLogged: 0, isLogged: false },
-        { day: "Thu", prayersLogged: 1, isLogged: true },
-        { day: "Fri", prayersLogged: 1, isLogged: true },
-        { day: "Sat", prayersLogged: 1, isLogged: true },
-      ],
-      weekRangeLabel: "Nov 29 — Dec 5",
-      weekFraction: "1/4",
-      totalPrayersThisWeek: 7,
-      streakDays: 3,
-    };
+    const frame = prayerFrame?.frame;
+    if (frame) {
+      const totalWeeks = frame.cycle.totalWeeks;
+      const currentWeek = frame.cycle.weekNumber;
+
+      const canPrev = currentWeek > 1;
+      const canNext = currentWeek < totalWeeks;
+
+      const handlePrevWeek = canPrev
+        ? () => {
+            prayerFrame?.setWeekNumber(currentWeek - 1);
+          }
+        : undefined;
+
+      const handleNextWeek = canNext
+        ? () => {
+            prayerFrame?.setWeekNumber(currentWeek + 1);
+          }
+        : undefined;
+
+      return (
+        <TawbahPrayerWeeklyProgressDashboard
+          weekDays={mapPrayerFrameWeekDays(frame)}
+          weekRangeLabel={formatPrayerFrameWeekRange(
+            frame.cycle.weekStart,
+            frame.cycle.weekEnd,
+          )}
+          weekFraction={getPrayerFrameWeekFraction(frame)}
+          totalPrayersThisWeek={frame.week.thisWeekTotal}
+          streakDays={frame.week.currentStreak}
+          vsLastWeek={frame.week.vsLastWeek}
+          motivationalQuote={frame.week.motivationalMessage}
+          selectedDayIndex={getPrayerFrameTodayIndex(frame)}
+          statsIcon="hand-heart"
+          onPrevWeek={handlePrevWeek}
+          onNextWeek={handleNextWeek}
+        />
+      );
+    }
+
     return (
       <TawbahPrayerWeeklyProgressDashboard
-        weekDays={mockWeek.weekDays}
-        weekRangeLabel={mockWeek.weekRangeLabel}
-        weekFraction={mockWeek.weekFraction}
-        totalPrayersThisWeek={mockWeek.totalPrayersThisWeek}
-        streakDays={mockWeek.streakDays}
+        weekDays={[]}
+        weekRangeLabel="---"
+        weekFraction="---"
+        totalPrayersThisWeek={0}
+        streakDays={0}
+        motivationalQuote="---"
+        loading={prayerFrame?.isLoading || (!frame && !prayerFrame?.isError)}
         statsIcon="hand-heart"
       />
     );
   }
 
   if (template === "istikhara-prayer") {
-    const mockWeek = {
-      weekDays: [
-        { day: "Sun", prayersLogged: 1, isLogged: true },
-        { day: "Mon", prayersLogged: 0, isLogged: false },
-        { day: "Tue", prayersLogged: 1, isLogged: true },
-        { day: "Wed", prayersLogged: 1, isLogged: true },
-        { day: "Thu", prayersLogged: 0, isLogged: false },
-        { day: "Fri", prayersLogged: 1, isLogged: true, isBestDay: true },
-        { day: "Sat", prayersLogged: 1, isLogged: true },
-      ],
-      weekRangeLabel: "Nov 29 — Dec 5",
-      weekFraction: "1/4",
-      totalPrayersThisWeek: 5,
-      streakDays: 3,
-    };
+    const frame = prayerFrame?.frame;
+    if (frame) {
+      const totalWeeks = frame.cycle.totalWeeks;
+      const currentWeek = frame.cycle.weekNumber;
+
+      const canPrev = currentWeek > 1;
+      const canNext = currentWeek < totalWeeks;
+
+      const handlePrevWeek = canPrev
+        ? () => {
+            prayerFrame?.setWeekNumber(currentWeek - 1);
+          }
+        : undefined;
+
+      const handleNextWeek = canNext
+        ? () => {
+            prayerFrame?.setWeekNumber(currentWeek + 1);
+          }
+        : undefined;
+
+      return (
+        <IstikharaPrayerWeeklyProgressDashboard
+          weekDays={mapPrayerFrameWeekDays(frame)}
+          weekRangeLabel={formatPrayerFrameWeekRange(
+            frame.cycle.weekStart,
+            frame.cycle.weekEnd,
+          )}
+          weekFraction={getPrayerFrameWeekFraction(frame)}
+          totalPrayersThisWeek={frame.week.thisWeekTotal}
+          streakDays={frame.week.currentStreak}
+          vsLastWeek={frame.week.vsLastWeek}
+          motivationalQuote={frame.week.motivationalMessage}
+          selectedDayIndex={getPrayerFrameTodayIndex(frame)}
+          statsIcon="star-crescent"
+          onPrevWeek={handlePrevWeek}
+          onNextWeek={handleNextWeek}
+        />
+      );
+    }
+
     return (
       <IstikharaPrayerWeeklyProgressDashboard
-        weekDays={mockWeek.weekDays}
-        weekRangeLabel={mockWeek.weekRangeLabel}
-        weekFraction={mockWeek.weekFraction}
-        totalPrayersThisWeek={mockWeek.totalPrayersThisWeek}
-        streakDays={mockWeek.streakDays}
+        weekDays={[]}
+        weekRangeLabel="---"
+        weekFraction="---"
+        totalPrayersThisWeek={0}
+        streakDays={0}
+        motivationalQuote="---"
+        loading={prayerFrame?.isLoading || (!frame && !prayerFrame?.isError)}
         statsIcon="star-crescent"
       />
     );
   }
 
   if (template === "shukr-prayer") {
-    const mockWeek = {
-      weekDays: [
-        { day: "Sun", prayersLogged: 2, isLogged: true },
-        { day: "Mon", prayersLogged: 2, isLogged: true, isBestDay: true },
-        { day: "Tue", prayersLogged: 1, isLogged: true },
-        { day: "Wed", prayersLogged: 2, isLogged: true },
-        { day: "Thu", prayersLogged: 0, isLogged: false },
-        { day: "Fri", prayersLogged: 2, isLogged: true },
-        { day: "Sat", prayersLogged: 2, isLogged: true },
-      ],
-      weekRangeLabel: "Nov 29 — Dec 5",
-      weekFraction: "2/4",
-      totalPrayersThisWeek: 11,
-      streakDays: 4,
-    };
+    const frame = prayerFrame?.frame;
+    if (frame) {
+      const totalWeeks = frame.cycle.totalWeeks;
+      const currentWeek = frame.cycle.weekNumber;
+
+      const canPrev = currentWeek > 1;
+      const canNext = currentWeek < totalWeeks;
+
+      const handlePrevWeek = canPrev
+        ? () => {
+            prayerFrame?.setWeekNumber(currentWeek - 1);
+          }
+        : undefined;
+
+      const handleNextWeek = canNext
+        ? () => {
+            prayerFrame?.setWeekNumber(currentWeek + 1);
+          }
+        : undefined;
+
+      return (
+        <ShukrPrayerWeeklyProgressDashboard
+          weekDays={mapPrayerFrameWeekDays(frame)}
+          weekRangeLabel={formatPrayerFrameWeekRange(
+            frame.cycle.weekStart,
+            frame.cycle.weekEnd,
+          )}
+          weekFraction={getPrayerFrameWeekFraction(frame)}
+          totalPrayersThisWeek={frame.week.thisWeekTotal}
+          streakDays={frame.week.currentStreak}
+          vsLastWeek={frame.week.vsLastWeek}
+          motivationalQuote={frame.week.motivationalMessage}
+          selectedDayIndex={getPrayerFrameTodayIndex(frame)}
+          statsIcon="heart"
+          onPrevWeek={handlePrevWeek}
+          onNextWeek={handleNextWeek}
+        />
+      );
+    }
+
     return (
       <ShukrPrayerWeeklyProgressDashboard
-        weekDays={mockWeek.weekDays}
-        weekRangeLabel={mockWeek.weekRangeLabel}
-        weekFraction={mockWeek.weekFraction}
-        totalPrayersThisWeek={mockWeek.totalPrayersThisWeek}
-        streakDays={mockWeek.streakDays}
+        weekDays={[]}
+        weekRangeLabel="---"
+        weekFraction="---"
+        totalPrayersThisWeek={0}
+        streakDays={0}
+        motivationalQuote="---"
+        loading={prayerFrame?.isLoading || (!frame && !prayerFrame?.isError)}
         statsIcon="heart"
       />
     );

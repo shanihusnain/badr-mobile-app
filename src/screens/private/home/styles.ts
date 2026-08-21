@@ -1107,7 +1107,7 @@ export const styles = StyleSheet.create({
   fabOptionLabel: {
     flex: 1,
     color: Colors.light.white,
-    fontFamily: fonts.primary.semiBold || "SF Pro Text",
+    fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
     fontSize: 14,
     textTransform: "uppercase",

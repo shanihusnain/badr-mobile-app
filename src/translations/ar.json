@@ -3581,6 +3581,8 @@
     "weeklyProgress_dayStreakLabel": " يوم متواصل",
     "weeklyProgress_vsLastWeek": "صلاة في وقتها مقارنة بالأسبوع الماضي",
     "weeklyProgress_sameAsLastWeek": "نفس عدد الصلوات في وقتها كالأسبوع الماضي",
+    "weeklyProgress_prayersVsLastWeek": "صلوات مقارنة بالأسبوع الماضي",
+    "weeklyProgress_samePrayersAsLastWeek": "نفس عدد الصلوات كالأسبوع الماضي",
     "weeklyProgress_goalLabel": "الهدف: {{label}}",
     "weeklyProgress_daySun": "أحد",
     "weeklyProgress_dayMon": "إثن",

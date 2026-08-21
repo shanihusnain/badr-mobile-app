@@ -154,7 +154,11 @@ function GoalProgressLoggingBody({
     template === "tahiyat-ul-wudhu" ||
     template === "tahiyat-al-masjid" ||
     template === "missed-prayers" ||
-    template === "five-daily-prayers";
+    template === "five-daily-prayers" ||
+    template === "duha-prayer" ||
+    template === "tawbah-prayer" ||
+    template === "istikhara-prayer" ||
+    template === "shukr-prayer";
   const frameLoading =
     isPrayerFrameRingGoal &&
     (prayerFrame?.isLoading || (!prayerFrame?.frame && !prayerFrame?.isError));

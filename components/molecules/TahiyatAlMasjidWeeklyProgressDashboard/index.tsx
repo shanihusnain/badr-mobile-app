@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { useTranslation } from "react-i18next";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import { LighteningIcon } from "@/assets/icons/LighteningIcon";
@@ -33,6 +34,11 @@ export type TahiyatAlMasjidWeeklyProgressDashboardProps = {
   weekFraction?: string;
   totalPrayersThisWeek?: number;
   streakDays?: number;
+  /**
+   * Prayer delta vs the previous week.
+   * `null` / omitted on week 1 (no comparison slot). Present from week 2 onward.
+   */
+  vsLastWeek?: number | null;
   motivationalQuote?: string;
   selectedDayIndex?: number;
   statsIcon?: keyof typeof MaterialCommunityIcons.glyphMap;
@@ -104,12 +110,18 @@ export function TahiyatAlMasjidWeeklyProgressDashboard({
   weekFraction = "1/4",
   totalPrayersThisWeek = 0,
   streakDays = 0,
+  vsLastWeek = null,
   motivationalQuote = "",
+  selectedDayIndex = 6,
   onDayPress,
   onPrevWeek,
   onNextWeek,
 }: TahiyatAlMasjidWeeklyProgressDashboardProps) {
+  const { t } = useTranslation();
   const { width: screenWidth } = useWindowDimensions();
+  const showComparison = vsLastWeek != null;
+  const vsLastWeekMagnitude = Math.abs(vsLastWeek ?? 0);
+  const vsLastWeekImproved = (vsLastWeek ?? 0) > 0;
 
   const availableWidth =
     screenWidth * WRAPPER_WIDTH_RATIO - CARD_HORIZONTAL_PADDING;
@@ -259,19 +271,58 @@ export function TahiyatAlMasjidWeeklyProgressDashboard({
           <View style={styles.streakBadge}>
             <LighteningIcon />
             <Text style={styles.streakText}>
-              <Text style={styles.streakCount}>{streakDays}</Text>
-              <Text>-day streak</Text>
+              {t("homeScreen.weeklyProgress_dayStreak", { count: streakDays })}
             </Text>
           </View>
 
+          {showComparison ? (
+            <View style={styles.comparisonBadge}>
+              {vsLastWeekMagnitude > 0 ? (
+                <Ionicons
+                  name={vsLastWeekImproved ? "caret-up" : "caret-down"}
+                  size={13}
+                  color={
+                    vsLastWeekImproved ? Colors.light.green : Colors.light.grey
+                  }
+                />
+              ) : null}
+              <Text style={styles.comparisonText}>
+                {vsLastWeekMagnitude === 0 ? (
+                  t("homeScreen.weeklyProgress_samePrayersAsLastWeek")
+                ) : (
+                  <>
+                    <Text style={styles.comparisonCount}>
+                      {vsLastWeekMagnitude}
+                    </Text>
+                    {` ${t("homeScreen.weeklyProgress_prayersVsLastWeek")}`}
+                  </>
+                )}
+              </Text>
+            </View>
+          ) : (
+            <View style={[styles.quoteBlock, styles.quoteBlockInline]}>
+              <AimIcon />
+              <View style={styles.quoteTextWrap}>
+                <Text style={styles.quoteText}>
+                  {motivationalQuote ||
+                    "Masha'Allah, may Allah always fill your heart with His love and light!"}
+                </Text>
+              </View>
+            </View>
+          )}
+        </View>
+
+        {showComparison ? (
           <View style={styles.quoteBlock}>
             <AimIcon />
-            <Text style={styles.quoteText}>
-              {motivationalQuote ||
-                "Masha'Allah, may Allah always fill your heart with His love and light!"}
-            </Text>
+            <View style={styles.quoteTextWrap}>
+              <Text style={styles.quoteText}>
+                {motivationalQuote ||
+                  "Masha'Allah, may Allah always fill your heart with His love and light!"}
+              </Text>
+            </View>
           </View>
-        </View>
+        ) : null}
       </View>
     </View>
   );
@@ -450,14 +501,50 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.bold,
   },
   quoteBlock: {
-    flex: 1,
     flexDirection: "row",
     alignItems: "flex-start",
     gap: 4,
+    alignSelf: "stretch",
+    minWidth: 0,
+    width: "100%",
+    marginTop: 4,
+  },
+  quoteBlockInline: {
+    flex: 1,
+    width: undefined,
+    minWidth: 0,
+    marginTop: 0,
+  },
+  quoteTextWrap: {
+    flex: 1,
+    flexShrink: 1,
     minWidth: 0,
   },
-  quoteText: {
+  comparisonBadge: {
     flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    minWidth: 0,
+  },
+  comparisonText: {
+    flex: 1,
+    color: Colors.light.white,
+    fontSize: 13,
+    fontWeight: "400",
+    fontFamily: fonts.primary.regular,
+    lineHeight: 14,
+    letterSpacing: 0.1,
+  },
+  comparisonCount: {
+    color: Colors.light.white,
+    fontSize: 13,
+    fontWeight: "600",
+    fontFamily: fonts.primary.semiBold,
+    lineHeight: 14,
+    letterSpacing: 0.1,
+  },
+  quoteText: {
     color: Colors.light.white,
     fontSize: 13,
     lineHeight: 15,

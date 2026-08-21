@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -11,9 +11,12 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTranslation } from "react-i18next";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
+import { AimIcon, LighteningIcon } from "@/assets/icons";
+import { TopSpace } from "@/components/atoms/TopSpace";
 
 export type DuhaPrayerDayProgress = {
   day: string;
+  isToday?: boolean;
   isLogged?: boolean;
   prayersLogged: number;
   isBestDay?: boolean;
@@ -28,17 +31,37 @@ export type DuhaPrayerWeeklyProgressDashboardProps = {
   weekFraction?: string;
   totalPrayersThisWeek?: number;
   streakDays?: number;
+  /**
+   * Prayer delta vs the previous week.
+   * `null` / omitted on week 1 (no comparison slot). Present from week 2 onward.
+   */
+  vsLastWeek?: number | null;
   motivationalQuote?: string;
   selectedDayIndex?: number;
   statsIcon?: keyof typeof MaterialCommunityIcons.glyphMap;
   onDayPress?: (index: number) => void;
   onPrevWeek?: () => void;
   onNextWeek?: () => void;
+  loading?: boolean;
 };
 
 const CARD_HORIZONTAL_PADDING = 16;
 const WRAPPER_WIDTH_RATIO = 0.92;
 const RING_SIZE_MAX = 34;
+
+const LOADING_WEEK: DuhaPrayerDayProgress[] = [
+  "Sun",
+  "Mon",
+  "Tue",
+  "Wed",
+  "Thu",
+  "Fri",
+  "Sat",
+].map((day) => ({
+  day,
+  prayersLogged: 0,
+  isLogged: false,
+}));
 
 type DayRingProps = {
   size: number;
@@ -46,11 +69,7 @@ type DayRingProps = {
   isSelected: boolean;
 };
 
-function DuhaPrayerDayRing({
-  size,
-  day,
-  isSelected,
-}: DayRingProps) {
+function DuhaPrayerDayRing({ size, day, isSelected }: DayRingProps) {
   const hasLog = day.prayersLogged > 0 || !!day.isLogged;
 
   const innerSizeStyle = {
@@ -61,18 +80,30 @@ function DuhaPrayerDayRing({
 
   const renderInner = () => {
     if (day.isMenstruation) {
-      return <View style={[innerSizeStyle, styles.ringInner, styles.ringInnerMenstruation]} />;
+      return (
+        <View
+          style={[
+            innerSizeStyle,
+            styles.ringInner,
+            styles.ringInnerMenstruation,
+          ]}
+        />
+      );
     }
     if (hasLog) {
       return (
-        <View style={[innerSizeStyle, styles.ringInner, styles.ringInnerLogged]}>
+        <View
+          style={[innerSizeStyle, styles.ringInner, styles.ringInnerLogged]}
+        >
           {day.isBestDay && (
             <Ionicons name="star" size={16} color={Colors.light.yellow} />
           )}
         </View>
       );
     }
-    return <View style={[innerSizeStyle, styles.ringInner, styles.ringInnerEmpty]} />;
+    return (
+      <View style={[innerSizeStyle, styles.ringInner, styles.ringInnerEmpty]} />
+    );
   };
 
   return (
@@ -95,12 +126,14 @@ export function DuhaPrayerWeeklyProgressDashboard({
   weekFraction = "4/4",
   totalPrayersThisWeek = 3,
   streakDays = 2,
+  vsLastWeek = null,
   motivationalQuote = "Tabarak'Allah, goal achieved! May your heart forever savor the eternal sweetness of prayer.",
   selectedDayIndex = 1,
   statsIcon = "rug",
   onDayPress,
   onPrevWeek,
   onNextWeek,
+  loading = false,
 }: DuhaPrayerWeeklyProgressDashboardProps) {
   const { t } = useTranslation();
   const { width: screenWidth } = useWindowDimensions();
@@ -109,12 +142,22 @@ export function DuhaPrayerWeeklyProgressDashboard({
     screenWidth * WRAPPER_WIDTH_RATIO - CARD_HORIZONTAL_PADDING;
   const ringSize = Math.min(
     RING_SIZE_MAX,
-    Math.floor((availableWidth / 7) * 0.62)
+    Math.floor((availableWidth / 7) * 0.62),
   );
+
+  const displayWeekDays = loading ? LOADING_WEEK : weekDays;
+  const showComparison = !loading && vsLastWeek != null;
+  const vsLastWeekMagnitude = Math.abs(vsLastWeek ?? 0);
+  const vsLastWeekImproved = (vsLastWeek ?? 0) > 0;
 
   const [activeDayIndex, setActiveDayIndex] = useState(selectedDayIndex);
 
+  useEffect(() => {
+    setActiveDayIndex(selectedDayIndex);
+  }, [selectedDayIndex]);
+
   const handleDayPress = (index: number) => () => {
+    if (loading) return;
     setActiveDayIndex(index);
     onDayPress?.(index);
   };
@@ -129,43 +172,54 @@ export function DuhaPrayerWeeklyProgressDashboard({
             color={Colors.light.seagreen}
           />
           <Text style={styles.weekFractionText} numberOfLines={1}>
-            {weekFraction} WEEKS
+            {loading
+              ? "---"
+              : `${weekFraction} ${t("homeScreen.weeklyProgress_weeks")}`}
           </Text>
         </View>
 
         <View style={styles.headerNav}>
           <TouchableOpacity
             onPress={onPrevWeek}
-            activeOpacity={0.7}
+            disabled={!onPrevWeek || loading}
+            activeOpacity={onPrevWeek && !loading ? 0.7 : 1}
             style={styles.navBtn}
           >
             <Ionicons
               name="chevron-back"
               size={14}
-              color={Colors.light.dullWhite}
+              color={
+                onPrevWeek && !loading
+                  ? Colors.light.dullWhite
+                  : Colors.light.dullWhite + "4D"
+              }
             />
           </TouchableOpacity>
           <Text style={styles.weekRangeText} numberOfLines={1}>
-            {weekRangeLabel}
+            {loading ? "---" : weekRangeLabel}
           </Text>
           <TouchableOpacity
             onPress={onNextWeek}
-            activeOpacity={0.7}
+            disabled={!onNextWeek || loading}
+            activeOpacity={onNextWeek && !loading ? 0.7 : 1}
             style={styles.navBtn}
           >
             <Ionicons
               name="chevron-forward"
               size={14}
-              color={Colors.light.dullWhite}
+              color={
+                onNextWeek && !loading
+                  ? Colors.light.dullWhite
+                  : Colors.light.dullWhite + "4D"
+              }
             />
           </TouchableOpacity>
         </View>
       </View>
 
       <View style={styles.daysRow}>
-        {weekDays.map((day, index) => {
-          const isSelected = index === activeDayIndex;
-          const hasLog = day.prayersLogged > 0 || !!day.isLogged;
+        {displayWeekDays.map((day, index) => {
+          const isSelected = day.isToday;
 
           return (
             <TouchableOpacity
@@ -173,32 +227,48 @@ export function DuhaPrayerWeeklyProgressDashboard({
               style={styles.dayColumn}
               onPress={handleDayPress(index)}
               activeOpacity={0.75}
+              disabled={loading}
             >
-              <View style={[styles.dayItemWrapper, isSelected && styles.dayItemSelected]}>
+              <View
+                style={[
+                  styles.dayItemWrapper,
+                  isSelected && styles.dayItemSelected,
+                ]}
+              >
                 <DuhaPrayerDayRing
                   size={ringSize}
                   day={day}
-                  isSelected={isSelected}
+                  isSelected={isSelected ?? false}
                 />
 
                 <Text
                   style={[
-                    day.isBestDay ? styles.bestDayLabel : styles.dayLabel,
+                    day.isBestDay && !loading
+                      ? styles.bestDayLabel
+                      : styles.dayLabel,
                   ]}
                   numberOfLines={1}
                 >
-                  {day.isBestDay ? "BEST DAY!" : day.day}
+                  {loading ? "---" : day.isBestDay ? "BEST DAY!" : day.day}
                 </Text>
 
                 <View style={styles.durationSlot}>
                   <Text
                     style={[
-                      day.isBestDay ? styles.durationTextBest : styles.durationTextNormal,
+                      day.isBestDay
+                        ? styles.durationTextBest
+                        : styles.durationTextNormal,
                       styles.durationText,
                     ]}
                     numberOfLines={1}
                   >
-                    {day.isBestDay ? day.prayersLogged.toString() : (day.prayersLogged > 0 ? day.prayersLogged.toString() : "")}
+                    {loading
+                      ? "---"
+                      : day.isBestDay
+                        ? day.prayersLogged.toString()
+                        : day.prayersLogged > 0
+                          ? day.prayersLogged.toString()
+                          : ""}
                   </Text>
                 </View>
               </View>
@@ -207,6 +277,7 @@ export function DuhaPrayerWeeklyProgressDashboard({
         })}
       </View>
 
+      <TopSpace top={25} />
       <View style={styles.statsRow}>
         <MaterialCommunityIcons
           name={statsIcon}
@@ -215,36 +286,67 @@ export function DuhaPrayerWeeklyProgressDashboard({
         />
         <Text style={styles.statsText} numberOfLines={1}>
           <Text style={styles.statsCount}>
-            {totalPrayersThisWeek}
+            {loading ? "---" : totalPrayersThisWeek}
           </Text>
-          {" total prayers this week"}
+          {loading ? "" : " total prayers this week"}
         </Text>
       </View>
 
+      <TopSpace top={8} />
       <View style={styles.footerRow}>
         <View style={styles.streakBadge}>
-          <Ionicons name="flash" size={13} color={Colors.light.yellow} />
+          <LighteningIcon />
           <Text style={styles.streakText}>
-            {streakDays}-day streak
+            {loading
+              ? "---"
+              : t("homeScreen.weeklyProgress_dayStreak", { count: streakDays })}
           </Text>
         </View>
 
-        <View style={styles.streakBadge}>
-          <Ionicons name="caret-down" size={13} color={Colors.light.grey} />
-          <Text style={styles.streakText}>
-            3 prayers vs. last week
-          </Text>
+        {showComparison ? (
+          <View style={styles.comparisonBadge}>
+            {vsLastWeekMagnitude > 0 ? (
+              <Ionicons
+                name={vsLastWeekImproved ? "caret-up" : "caret-down"}
+                size={13}
+                color={
+                  vsLastWeekImproved ? Colors.light.green : Colors.light.grey
+                }
+              />
+            ) : null}
+            <Text style={styles.comparisonText}>
+              {vsLastWeekMagnitude === 0 ? (
+                t("homeScreen.weeklyProgress_samePrayersAsLastWeek")
+              ) : (
+                <>
+                  <Text style={styles.comparisonCount}>
+                    {vsLastWeekMagnitude}
+                  </Text>
+                  {` ${t("homeScreen.weeklyProgress_prayersVsLastWeek")}`}
+                </>
+              )}
+            </Text>
+          </View>
+        ) : (
+          <View style={[styles.quoteBlock, styles.quoteBlockInline]}>
+            <AimIcon />
+            <View style={styles.quoteTextWrap}>
+              <Text style={styles.quoteText}>
+                {loading ? "---" : motivationalQuote}
+              </Text>
+            </View>
+          </View>
+        )}
+      </View>
+
+      {showComparison ? (
+        <View style={styles.quoteBlock}>
+          <AimIcon />
+          <View style={styles.quoteTextWrap}>
+            <Text style={styles.quoteText}>{motivationalQuote}</Text>
+          </View>
         </View>
-      </View>
-      
-      <View style={styles.quoteBlock}>
-        <MaterialCommunityIcons
-          name="target"
-          size={14}
-          color={Colors.light.seagreen}
-        />
-        <Text style={styles.quoteText}>{motivationalQuote}</Text>
-      </View>
+      ) : null}
     </View>
   );
 }
@@ -254,8 +356,9 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     backgroundColor: Colors.light.greybuttonBackground,
     paddingHorizontal: 8,
-    paddingVertical: 20,
-    gap: 16,
+    paddingVertical: 16,
+    width: "100%",
+    alignSelf: "stretch",
   },
   headerRow: {
     flexDirection: "row",
@@ -294,6 +397,7 @@ const styles = StyleSheet.create({
   daysRow: {
     flexDirection: "row",
     alignItems: "flex-start",
+    marginTop: 24,
   },
   dayColumn: {
     flex: 1,
@@ -322,9 +426,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderColor: "transparent",
   },
-  ringOuterSelected: {
-    // No outer border needed based on the design, it uses background instead
-  },
+  ringOuterSelected: {},
   ringInner: {
     alignItems: "center",
     justifyContent: "center",
@@ -390,7 +492,7 @@ const styles = StyleSheet.create({
   footerRow: {
     flexDirection: "row",
     alignItems: "flex-start",
-    gap: 12,
+    gap: 16,
   },
   streakBadge: {
     flexDirection: "row",
@@ -399,18 +501,55 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   streakText: {
+    color: Colors.light.green,
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  comparisonBadge: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    minWidth: 0,
+  },
+  comparisonText: {
+    flex: 1,
     color: Colors.light.white,
     fontSize: 13,
-    fontWeight: "500",
-    fontFamily: fonts.primary.medium,
+    fontWeight: "400",
+    fontFamily: fonts.primary.regular,
+    lineHeight: 14,
+    letterSpacing: 0.1,
+  },
+  comparisonCount: {
+    color: Colors.light.white,
+    fontSize: 13,
+    fontWeight: "600",
+    fontFamily: fonts.primary.semiBold,
+    lineHeight: 14,
+    letterSpacing: 0.1,
   },
   quoteBlock: {
     flexDirection: "row",
     alignItems: "flex-start",
-    gap: 4,
+    gap: 5,
+    alignSelf: "stretch",
+    minWidth: 0,
+    width: "100%",
+    marginTop: 4,
+  },
+  quoteBlockInline: {
+    flex: 1,
+    width: undefined,
+    minWidth: 0,
+    marginTop: 0,
+  },
+  quoteTextWrap: {
+    flex: 1,
+    flexShrink: 1,
+    minWidth: 0,
   },
   quoteText: {
-    flex: 1,
     color: Colors.light.white,
     fontSize: 13,
     lineHeight: 16,

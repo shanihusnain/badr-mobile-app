@@ -39,6 +39,15 @@ const CATEGORY_ICON_COLOR: Record<UiIbadahCategory, string> = {
   SADAQAH: Colors.light.ringSadaqah,
 };
 
+const LOADING_CATEGORY_KEYS: UiIbadahCategory[] = [
+  "PRAYER",
+  "QURAN",
+  "FASTING",
+  "SADAQAH",
+];
+
+const DETAIL_LOADING_PLACEHOLDER_COUNT = 4;
+
 function getCategoryGoalIcon(category: UiIbadahCategory, color: string) {
   switch (category) {
     case "QURAN":
@@ -89,13 +98,14 @@ export const DailyProgressBottomSheet = ({ onClose }: Props) => {
     null,
   );
 
-  const { data: categorySummaries = [] } = useGetGoalCycleCategories({
-    enabled: currentView === "categories" || currentView === "detail",
-  });
-  const { data: categoryGoals } = useGetGoalCycleCategoryGoals(
-    selectedCategory,
-    { enabled: currentView === "detail" && !!selectedCategory },
-  );
+  const { data: categorySummaries = [], isLoading: isCategoriesLoading } =
+    useGetGoalCycleCategories({
+      enabled: currentView === "categories" || currentView === "detail",
+    });
+  const { data: categoryGoals, isLoading: isCategoryGoalsLoading } =
+    useGetGoalCycleCategoryGoals(selectedCategory, {
+      enabled: currentView === "detail" && !!selectedCategory,
+    });
 
   const categories = useMemo(() => {
     const titleMap: Record<UiIbadahCategory, string> = {
@@ -104,6 +114,20 @@ export const DailyProgressBottomSheet = ({ onClose }: Props) => {
       FASTING: t("homeScreen.fastingCategory"),
       SADAQAH: t("homeScreen.sadaqahCategory"),
     };
+
+    if (isCategoriesLoading) {
+      return LOADING_CATEGORY_KEYS.map((uiCategory) => ({
+        key: uiCategory.toLowerCase(),
+        uiCategory,
+        title: titleMap[uiCategory],
+        subtitle: "---",
+        icon: getCategoryCardIcon(uiCategory),
+        iconBgColor: Colors.light.calendarBg,
+        percentage: "0%",
+        progressColor: CATEGORY_ICON_COLOR[uiCategory],
+        loading: true,
+      }));
+    }
 
     return categorySummaries.flatMap((item) => {
       const uiCategory = toUiIbadahCategory(item.category);
@@ -119,12 +143,34 @@ export const DailyProgressBottomSheet = ({ onClose }: Props) => {
           iconBgColor: Colors.light.calendarBg,
           percentage: `${Math.round(item.completedPct ?? 0)}%`,
           progressColor: CATEGORY_ICON_COLOR[uiCategory],
+          loading: false,
         },
       ];
     });
-  }, [categorySummaries, t]);
+  }, [categorySummaries, isCategoriesLoading, t]);
+
+  const selectedCategoryTotalGoals = useMemo(() => {
+    if (!selectedCategory) return DETAIL_LOADING_PLACEHOLDER_COUNT;
+    const match = categorySummaries.find(
+      (item) => item.category.toLowerCase() === selectedCategory.toLowerCase(),
+    );
+    const total = match?.totalGoals ?? 0;
+    return total > 0 ? total : DETAIL_LOADING_PLACEHOLDER_COUNT;
+  }, [categorySummaries, selectedCategory]);
 
   const detailGoals = useMemo(() => {
+    if (isCategoryGoalsLoading) {
+      return Array.from({ length: selectedCategoryTotalGoals }, (_, index) => ({
+        goalId: `loading-${index}` as GoalId,
+        title: "---",
+        completed: 0,
+        target: 0,
+        unit: "",
+        percentage: "0%",
+        loading: true,
+      }));
+    }
+
     const goals = categoryGoals?.goals ?? [];
     const categorySlug = selectedCategory ?? "";
     return goals.flatMap((goal) => {
@@ -139,10 +185,16 @@ export const DailyProgressBottomSheet = ({ onClose }: Props) => {
           target: goal.target ?? 0,
           unit: goal.unit ?? "",
           percentage: `${Math.round(goal.completedPct ?? 0)}%`,
+          loading: false,
         },
       ];
     });
-  }, [categoryGoals?.goals, selectedCategory]);
+  }, [
+    categoryGoals?.goals,
+    isCategoryGoalsLoading,
+    selectedCategory,
+    selectedCategoryTotalGoals,
+  ]);
 
   const selectedUiCategory = selectedCategory
     ? toUiIbadahCategory(selectedCategory)
@@ -238,7 +290,12 @@ export const DailyProgressBottomSheet = ({ onClose }: Props) => {
               percentage={category.percentage}
               progressColor={category.progressColor}
               isSelected={selectedCard === category.key}
-              onPress={() => handleCategoryPress(category.key)}
+              loading={category.loading}
+              onPress={
+                category.loading
+                  ? undefined
+                  : () => handleCategoryPress(category.key)
+              }
             />
           ))}
         </View>
@@ -253,21 +310,31 @@ export const DailyProgressBottomSheet = ({ onClose }: Props) => {
               subtitleCount={String(goal.completed)}
               subtitleLabel={`/${goal.target} ${goal.unit}`.trim()}
               icon={
-                selectedUiCategory === "PRAYER"
-                  ? getDetailedIbadahIcon(goal.goalId, Colors.light.white)
-                  : getCategoryGoalIcon(
+                goal.loading
+                  ? getCategoryGoalIcon(
                       selectedUiCategory,
                       CATEGORY_ICON_COLOR[selectedUiCategory],
                     )
+                  : selectedUiCategory === "PRAYER"
+                    ? getDetailedIbadahIcon(goal.goalId, Colors.light.white)
+                    : getCategoryGoalIcon(
+                        selectedUiCategory,
+                        CATEGORY_ICON_COLOR[selectedUiCategory],
+                      )
               }
               iconBgColor={CATEGORY_ICON_COLOR[selectedUiCategory] + "22"}
               percentage={goal.percentage}
               progressColor={CATEGORY_ICON_COLOR[selectedUiCategory]}
               isSelected={selectedDetailCard === goal.goalId}
-              onPress={() => {
-                setSelectedDetailCard(goal.goalId);
-                handleGoalPress(goal.goalId);
-              }}
+              loading={goal.loading}
+              onPress={
+                goal.loading
+                  ? undefined
+                  : () => {
+                      setSelectedDetailCard(goal.goalId);
+                      handleGoalPress(goal.goalId);
+                    }
+              }
             />
           ))}
         </View>

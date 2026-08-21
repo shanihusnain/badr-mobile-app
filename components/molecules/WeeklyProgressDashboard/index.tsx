@@ -143,7 +143,6 @@ export const WeeklyProgressDashboard: React.FC<
   const showComparison = !loading && vsLastWeek != null;
   const vsLastWeekMagnitude = Math.abs(vsLastWeek ?? 0);
   const vsLastWeekImproved = (vsLastWeek ?? 0) > 0;
-  console.log("week days in the weeklyprogressDashboard", weekDays);
   // Dynamically compute ring size so all 7 columns fit inside the card
   const availableWidth = screenWidth - TOTAL_HORIZONTAL_PADDING;
   const ringSize = Math.floor((availableWidth / 7) * 0.75); // 0.75 scale for smaller rings
@@ -302,17 +301,14 @@ export const WeeklyProgressDashboard: React.FC<
             </Text>
           </View>
         ) : (
-          <>
-            <TopSpace top={8} />
-            <View style={[styles.quoteBlock, styles.quoteBlockInline]}>
-              <AimIcon />
-              <View style={styles.quoteTextWrap}>
-                <Text style={styles.quoteText}>
-                  {loading ? "---" : motivationalQuote}
-                </Text>
-              </View>
+          <View style={[styles.quoteBlock, styles.quoteBlockInline]}>
+            <AimIcon />
+            <View style={styles.quoteTextWrap}>
+              <Text style={styles.quoteText}>
+                {loading ? "---" : motivationalQuote}
+              </Text>
             </View>
-          </>
+          </View>
         )}
       </View>
 
@@ -477,6 +473,7 @@ const styles = StyleSheet.create({
     flex: 1,
     width: undefined,
     minWidth: 0,
+    marginTop: 0,
   },
   quoteTextWrap: {
     flex: 1,

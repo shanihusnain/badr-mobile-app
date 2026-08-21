@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTypedTranslation } from "@/i18next/useTypedTranslation";
 import { styles } from "../styles";
@@ -21,7 +20,7 @@ const FAB_SPRING_CONFIG = {
 };
 
 const FAB_SIZE = 95;
-const FAB_RIGHT =9;
+const FAB_RIGHT = 9;
 const FAB_BOTTOM_OFFSET = 9;
 const OPTION_SIZE = 44;
 const MENU_GAP_ABOVE_FAB = -3;

@@ -3650,6 +3650,8 @@
     "weeklyProgress_dayStreakLabel": "-day streak",
     "weeklyProgress_vsLastWeek": "on-time prayers vs. last week",
     "weeklyProgress_sameAsLastWeek": "Same on-time prayers as last week",
+    "weeklyProgress_prayersVsLastWeek": "prayers vs. last week",
+    "weeklyProgress_samePrayersAsLastWeek": "Same prayers as last week",
     "weeklyProgress_goalLabel": "Goal: {{label}}",
     "weeklyProgress_daySun": "Sun",
     "weeklyProgress_dayMon": "Mon",

@@ -387,21 +387,24 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
   const [hintDismissed, setHintDismissed] = useState(false);
   const goalData = getGoalById(goalId);
   const cleanGoalLabel = goalData?.title || "";
-  const isTahiyyat =
+  const usesAchievementsApi =
     goalId === "prayer-tahiyyat" ||
     goalId === "prayer-tahiyyatMasjid" ||
-    goalId === "prayer-missed";
+    goalId === "prayer-missed" ||
+    goalId === "prayer-duha" ||
+    goalId === "prayer-tawbah" ||
+    goalId === "prayer-istikhara" ||
+    goalId === "prayer-shukr";
   const prayerType = resolvePrayerTypeFromGoalId(goalId);
 
   const { data: achievementsApiData, isLoading: isAchievementsLoading } =
     useGetPrayerGoalAchievements(prayerType, {
       period,
       periodStart: periodStartParam,
-      enabled: isTahiyyat && !!prayerType,
+      enabled: usesAchievementsApi && !!prayerType,
     });
-  console.log("achievementsApiData", achievementsApiData);
   const showPlaceholders =
-    isTahiyyat && (!achievementsApiData || isAchievementsLoading);
+    usesAchievementsApi && (!achievementsApiData || isAchievementsLoading);
 
   useEffect(() => {
     if (
@@ -418,12 +421,12 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
   }, [period, goalId]);
 
   const baseAchievementRaw = useMemo((): PrayerPastAchievement | null => {
-    if (isTahiyyat) {
+    if (usesAchievementsApi) {
       if (!achievementsApiData) return null;
       return mapPrayerGoalAchievementsToUi(achievementsApiData);
     }
     return getPrayerPastAchievement(goalId, period);
-  }, [isTahiyyat, achievementsApiData, goalId, period]);
+  }, [usesAchievementsApi, achievementsApiData, goalId, period]);
 
   const baseAchievement = useMemo(() => {
     if (!baseAchievementRaw) return null;
@@ -505,29 +508,29 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
   }, []);
 
   const handleNavigateBack = useCallback(() => {
-    if (!isTahiyyat || !achievementsApiData?.canNavigateBack) return;
+    if (!usesAchievementsApi || !achievementsApiData?.canNavigateBack) return;
     const nextStart = shiftPrayerAchievementsPeriodStart(
       achievementsApiData.periodStart,
       achievementsApiData.periodEnd,
       -1,
     );
     setPeriodStartParam(nextStart);
-  }, [isTahiyyat, achievementsApiData]);
+  }, [usesAchievementsApi, achievementsApiData]);
 
   const handleNavigateForward = useCallback(() => {
-    if (!isTahiyyat || !achievementsApiData?.canNavigateForward) return;
+    if (!usesAchievementsApi || !achievementsApiData?.canNavigateForward) return;
     const nextStart = shiftPrayerAchievementsPeriodStart(
       achievementsApiData.periodStart,
       achievementsApiData.periodEnd,
       1,
     );
     setPeriodStartParam(nextStart);
-  }, [isTahiyyat, achievementsApiData]);
+  }, [usesAchievementsApi, achievementsApiData]);
 
-  const canNavigateBack = isTahiyyat
+  const canNavigateBack = usesAchievementsApi
     ? !showPlaceholders && !!achievementsApiData?.canNavigateBack
     : true;
-  const canNavigateForward = isTahiyyat
+  const canNavigateForward = usesAchievementsApi
     ? !showPlaceholders && !!achievementsApiData?.canNavigateForward
     : true;
 
@@ -595,14 +598,14 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
       : PERIOD_DELTA_LABEL_KEYS[period],
   );
 
-  if (!isTahiyyat && (!baseAchievement || !achievement)) {
+  if (!usesAchievementsApi && (!baseAchievement || !achievement)) {
     return null;
   }
 
   const renderInsights = () => {
-    if (!isDetailed && !isTahiyyat) return null;
+    if (!isDetailed && !usesAchievementsApi) return null;
 
-    const cards = isTahiyyat
+    const cards = usesAchievementsApi
       ? mapApiKeyInsightsToCards(
           achievementsApiData,
           period,
@@ -640,7 +643,11 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
               {...c}
               icon={
                 goalId === "prayer-tahiyyat" ||
-                goalId === "prayer-tahiyyatMasjid"
+                goalId === "prayer-tahiyyatMasjid" ||
+                goalId === "prayer-duha" ||
+                goalId === "prayer-tawbah" ||
+                goalId === "prayer-istikhara" ||
+                goalId === "prayer-shukr"
                   ? getTahiyyatAlWudhuInsightIcon(c)
                   : undefined
               }

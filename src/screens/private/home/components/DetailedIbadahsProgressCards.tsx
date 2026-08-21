@@ -27,6 +27,8 @@ type Props = {
   isSelected?: boolean;
   onPress?: () => void;
   titleFontSize?: number;
+  /** Show "---" for progress count + ring until the category goals API responds. */
+  loading?: boolean;
 };
 
 export function getDetailedIbadahIcon(
@@ -71,6 +73,7 @@ export const DetailedIbadahsProgressCard = ({
   isSelected = false,
   onPress,
   titleFontSize = 15,
+  loading = false,
 }: Props) => {
   const percentNum = percentage.replace("%", "");
 
@@ -82,7 +85,7 @@ export const DetailedIbadahsProgressCard = ({
       ]}
       onPress={onPress}
       activeOpacity={onPress ? 0.7 : 1}
-      disabled={!onPress}
+      disabled={!onPress || loading}
     >
       <View style={styles.leftSection}>
         <View
@@ -95,25 +98,37 @@ export const DetailedIbadahsProgressCard = ({
         </View>
         <View style={styles.textWrapper}>
           <Text style={[styles.title, { fontSize: titleFontSize }]}>
-            {title}
+            {loading ? "---" : title}
           </Text>
           <Text style={styles.subtitle}>
-            <Text style={styles.boldText}>{subtitleCount}</Text>
-            <Text style={styles.regularText}>{subtitleLabel}</Text>
+            {loading ? (
+              <Text style={styles.boldText}>---</Text>
+            ) : (
+              <>
+                <Text style={styles.boldText}>{subtitleCount}</Text>
+                <Text style={styles.regularText}>{subtitleLabel}</Text>
+              </>
+            )}
           </Text>
         </View>
       </View>
 
       <View style={styles.rightSection}>
         <TaperedCircleBorder
-          percentage={percentage}
+          percentage={loading ? "0%" : percentage}
           borderColor={Colors.light.dullWhiteOpacity}
           size={50}
           variant="illuminated"
         >
           <View style={styles.percentTextContainer}>
-            <Text style={styles.percentText}>{percentNum}</Text>
-            <Text style={styles.percentSymbol}>%</Text>
+            {loading ? (
+              <Text style={styles.percentText}>---</Text>
+            ) : (
+              <>
+                <Text style={styles.percentText}>{percentNum}</Text>
+                <Text style={styles.percentSymbol}>%</Text>
+              </>
+            )}
           </View>
         </TaperedCircleBorder>
       </View>

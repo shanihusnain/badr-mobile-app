@@ -13,6 +13,8 @@ type Props = {
   progressColor: string;
   isSelected?: boolean;
   onPress?: () => void;
+  /** Show "---" for goals count + ring until the categories API responds. */
+  loading?: boolean;
 };
 
 export const IbadahsProgressCard = ({
@@ -24,6 +26,7 @@ export const IbadahsProgressCard = ({
   progressColor,
   isSelected = false,
   onPress,
+  loading = false,
 }: Props) => {
   const percentNum = percentage.replace("%", "");
 
@@ -35,7 +38,7 @@ export const IbadahsProgressCard = ({
       ]}
       onPress={onPress}
       activeOpacity={onPress ? 0.7 : 1}
-      disabled={!onPress}
+      disabled={!onPress || loading}
     >
       <View style={styles.leftSection}>
         <View
@@ -48,20 +51,26 @@ export const IbadahsProgressCard = ({
         </View>
         <View style={styles.textWrapper}>
           <Text style={styles.title}>{title}</Text>
-          <Text style={styles.subtitle}>{subtitle}</Text>
+          <Text style={styles.subtitle}>{loading ? "---" : subtitle}</Text>
         </View>
       </View>
 
       <View style={styles.rightSection}>
         <TaperedCircleBorder
-          percentage={percentage}
+          percentage={loading ? "0%" : percentage}
           borderColor={Colors.light.dullWhiteOpacity}
           size={50}
           variant="illuminated"
         >
           <View style={styles.percentTextContainer}>
-            <Text style={styles.percentText}>{percentNum}</Text>
-            <Text style={styles.percentSymbol}>%</Text>
+            {loading ? (
+              <Text style={styles.percentText}>---</Text>
+            ) : (
+              <>
+                <Text style={styles.percentText}>{percentNum}</Text>
+                <Text style={styles.percentSymbol}>%</Text>
+              </>
+            )}
           </View>
         </TaperedCircleBorder>
       </View>
