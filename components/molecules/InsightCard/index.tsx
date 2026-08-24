@@ -62,7 +62,7 @@ export function InsightCard({
       </View>
 
       <View style={styles.valueContainer}>
-        <Text style={styles.value}>{noData ? "-- --" : value}</Text>
+        <Text style={styles.value}>{noData ? "--" : value}</Text>
         {!noData && subValue ? (
           <Text style={styles.subValue}>{subValue}</Text>
         ) : null}

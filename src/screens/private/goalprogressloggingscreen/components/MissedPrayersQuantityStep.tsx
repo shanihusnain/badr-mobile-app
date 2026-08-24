@@ -40,28 +40,6 @@ interface MissedPrayersQuantityStepProps {
   categoryColor: string;
 }
 
-function getIconBoxRadius(isFirst: boolean, isLast: boolean) {
-  if (isFirst) {
-    return {
-      borderTopLeftRadius: 8,
-      borderBottomLeftRadius: 8,
-      borderTopRightRadius: 2,
-      borderBottomRightRadius: 2,
-    };
-  }
-  if (isLast) {
-    return {
-      borderTopLeftRadius: 2,
-      borderBottomLeftRadius: 2,
-      borderTopRightRadius: 8,
-      borderBottomRightRadius: 8,
-    };
-  }
-  return {
-    borderRadius: 2,
-  };
-}
-
 const PrayerItem = React.memo(
   ({
     prayer,
@@ -71,8 +49,6 @@ const PrayerItem = React.memo(
     canIncrement,
     onIncrement,
     categoryColor,
-    isFirst,
-    isLast,
   }: {
     prayer: PrayerName;
     quantity: number;
@@ -81,8 +57,6 @@ const PrayerItem = React.memo(
     canIncrement: boolean;
     onIncrement: (prayer: PrayerName) => void;
     categoryColor: string;
-    isFirst: boolean;
-    isLast: boolean;
   }) => {
     const handlePress = React.useCallback(() => {
       if (!canIncrement) return;
@@ -113,15 +87,20 @@ const PrayerItem = React.memo(
         <View
           style={[
             localStyles.prayerIconBox,
-            getIconBoxRadius(isFirst, isLast),
             hasQuantity
               ? localStyles.prayerIconBoxSelected
               : localStyles.prayerIconBoxIdle,
+            {
+              borderTopLeftRadius: prayer === "fajr" ? 10 : 0,
+              borderBottomLeftRadius: prayer === "fajr" ? 10 : 0,
+              borderTopRightRadius: prayer === "isha" ? 10 : 0,
+              borderBottomRightRadius: prayer === "isha" ? 10 : 0,
+            },
             !canIncrement && !loading && localStyles.prayerIconBoxDisabled,
           ]}
         >
           <Icon
-            size={13}
+            size={14}
             color={hasQuantity ? categoryColor : Colors.light.white}
           />
         </View>
@@ -161,7 +140,7 @@ export const MissedPrayersQuantityStep: React.FC<
 
   return (
     <View style={localStyles.prayerGrid}>
-      {PRAYER_OPTIONS.map((prayer, index) => {
+      {PRAYER_OPTIONS.map((prayer) => {
         const slot = slotProgress?.[PRAYER_TO_SLOT_KEY[prayer]];
         const completed = slot?.completed ?? 0;
         const target = slot?.target ?? 0;
@@ -179,8 +158,6 @@ export const MissedPrayersQuantityStep: React.FC<
             canIncrement={!slotLoading && sessionQty < remaining}
             onIncrement={handleIncrement}
             categoryColor={categoryColor}
-            isFirst={index === 0}
-            isLast={index === PRAYER_OPTIONS.length - 1}
           />
         );
       })}
@@ -191,14 +168,14 @@ export const MissedPrayersQuantityStep: React.FC<
 const localStyles = StyleSheet.create({
   prayerGrid: {
     flexDirection: "row",
-    justifyContent: "center",
+    justifyContent: "space-between",
     alignItems: "flex-start",
-    gap: 5,
+    width: "100%",
   },
   prayerColumn: {
-    width: 34,
+    flex: 1,
     alignItems: "center",
-    gap: 3,
+    minWidth: 0,
   },
   prayerLabel: {
     width: "100%",
@@ -210,6 +187,7 @@ const localStyles = StyleSheet.create({
     fontWeight: "600",
     includeFontPadding: false,
     textAlignVertical: "center",
+    marginBottom: 6,
   },
   prayerLabelIdle: {
     color: "rgba(255, 255, 255, 0.55)",
@@ -218,17 +196,17 @@ const localStyles = StyleSheet.create({
     color: Colors.light.white,
   },
   prayerIconBox: {
-    width: 36,
-    height: 18,
+    width: "90%",
+    paddingVertical: 3,
+    borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
-    overflow: "hidden",
   },
   prayerIconBoxSelected: {
     backgroundColor: Colors.light.white,
   },
   prayerIconBoxIdle: {
-    backgroundColor: "rgba(255, 255, 255, 0.35)",
+    backgroundColor: Colors.light.idlePrayerBox,
   },
   prayerIconBoxDisabled: {
     opacity: 0.45,
@@ -240,6 +218,7 @@ const localStyles = StyleSheet.create({
     fontSize: 9,
     fontWeight: "600",
     includeFontPadding: false,
+    marginTop: 3,
   },
   qtyLabelIdle: {
     color: "rgba(255, 255, 255, 0.55)",
