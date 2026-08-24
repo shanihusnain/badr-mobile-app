@@ -267,6 +267,8 @@ export default function TawbahPrayerLoggingFlow({
             dateLabel={dateLabel}
             selectedDate={selectedDate}
             todayString={todayString}
+            minSelectableDate={cycleStartHijri}
+            maxSelectableDate={maxSelectableDate}
             onShiftDate={shiftDate}
             styles={commonStyles}
           />
@@ -335,7 +337,7 @@ export default function TawbahPrayerLoggingFlow({
                 <View style={localStyles.summaryIconCircle}>
                   <TawbahPrayerDetailedIbadhasIcon
                     color={Colors.light.white}
-                    size={18}
+                    size={24}
                   />
                 </View>
                 <View style={{ flex: 1, gap: 4 }}>
@@ -344,10 +346,9 @@ export default function TawbahPrayerLoggingFlow({
                       localStyles.badge,
                       badgeStatus.type === "completed"
                         ? localStyles.badgeCompleted
-                        : localStyles.badgeInProgress,
-                      badgeStatus.type === "not-started"
-                        ? localStyles.badgeNotStarted
-                        : localStyles.badgeInProgress,
+                        : badgeStatus.type === "not-started"
+                          ? localStyles.badgeNotStarted
+                          : localStyles.badgeInProgress,
                       { alignSelf: "flex-start" },
                     ]}
                   >
@@ -356,10 +357,9 @@ export default function TawbahPrayerLoggingFlow({
                         localStyles.badgeText,
                         badgeStatus.type === "completed"
                           ? localStyles.badgeTextCompleted
-                          : localStyles.badgeTextInProgress,
-                        badgeStatus.type === "not-started"
-                          ? localStyles.badgeTextNotStarted
-                          : localStyles.badgeTextInProgress,
+                          : badgeStatus.type === "not-started"
+                            ? localStyles.badgeTextNotStarted
+                            : localStyles.badgeTextInProgress,
                       ]}
                     >
                       {badgeStatus.text}

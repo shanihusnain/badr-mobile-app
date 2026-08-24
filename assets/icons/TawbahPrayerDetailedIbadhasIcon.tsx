@@ -4,9 +4,9 @@ import { Colors } from "@/constants/theme";
 
 export const TawbahPrayerDetailedIbadhasIcon = ({ color = Colors.light.white, size = 20 }: { color?: string; size?: number }) => (
   <Svg
-    
     width={size}
     height={size}
+    viewBox="0 0 20 20"
     fill="none"
   >
     <Path

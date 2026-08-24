@@ -267,6 +267,8 @@ export default function ShukrPrayerLoggingFlow({
             dateLabel={dateLabel}
             selectedDate={selectedDate}
             todayString={todayString}
+            minSelectableDate={cycleStartHijri}
+            maxSelectableDate={maxSelectableDate}
             onShiftDate={shiftDate}
             styles={commonStyles}
           />
@@ -344,10 +346,9 @@ export default function ShukrPrayerLoggingFlow({
                       localStyles.badge,
                       badgeStatus.type === "completed"
                         ? localStyles.badgeCompleted
-                        : localStyles.badgeInProgress,
-                      badgeStatus.type === "not-started"
-                        ? localStyles.badgeNotStarted
-                        : localStyles.badgeInProgress,
+                        : badgeStatus.type === "not-started"
+                          ? localStyles.badgeNotStarted
+                          : localStyles.badgeInProgress,
                       { alignSelf: "flex-start" },
                     ]}
                   >
@@ -356,10 +357,9 @@ export default function ShukrPrayerLoggingFlow({
                         localStyles.badgeText,
                         badgeStatus.type === "completed"
                           ? localStyles.badgeTextCompleted
-                          : localStyles.badgeTextInProgress,
-                        badgeStatus.type === "not-started"
-                          ? localStyles.badgeTextNotStarted
-                          : localStyles.badgeTextInProgress,
+                          : badgeStatus.type === "not-started"
+                            ? localStyles.badgeTextNotStarted
+                            : localStyles.badgeTextInProgress,
                       ]}
                     >
                       {badgeStatus.text}

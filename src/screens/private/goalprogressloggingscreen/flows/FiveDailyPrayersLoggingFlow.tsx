@@ -396,6 +396,8 @@ export default function FiveDailyPrayersLoggingFlow({
             dateLabel={dateLabel}
             selectedDate={selectedDate}
             todayString={todayString}
+            minSelectableDate={cycleStartHijri}
+            maxSelectableDate={maxSelectableDate}
             onShiftDate={shiftDate}
             styles={commonStyles}
           />
