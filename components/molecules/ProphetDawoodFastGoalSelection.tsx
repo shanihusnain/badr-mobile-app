@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useGoalSelectionOpenState } from "@/hooks/useGoalSelectionOpenState";
 import {
   StyleSheet,
   Text,
@@ -29,7 +30,7 @@ export default function ProphetDawoodFastGoalSelection({
 }) {
   const formatNumber = useLocaleNumber();
   const { mutate: upsertFastingGoal, isPending } = useUpsertFastingGoals();
-  const [isOpen, setIsOpen] = useState(openOnMount);
+  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount);
   const [selectedStartDay, setSelectedStartDay] = useState<1 | 2>(1);
 
   const toggleDropdown = () => {

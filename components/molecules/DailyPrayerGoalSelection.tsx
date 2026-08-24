@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useGoalSelectionOpenState } from "@/hooks/useGoalSelectionOpenState";
 import {
   StyleSheet,
   Text,
@@ -102,7 +103,7 @@ export default function DailyPrayerGoalSelection({
   const [isha, setIsha] = useState(
     () => initialValues?.isha ?? congregationalAdjustments.prayerDefaults.isha,
   );
-  const [isOpen, setIsOpen] = useState(openOnMount);
+  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount);
   const [isTrackingCongregation, setIsTrackingCongregation] = useState(
     Boolean(initialValues?.congregationalTracking),
   );
@@ -157,6 +158,13 @@ export default function DailyPrayerGoalSelection({
   ]);
 
   const handleSave = (markSaved: () => void, markFailed?: () => void) => {
+    const handleSaved = () => {
+      markSaved();
+      setTimeout(() => {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+        setIsOpen(false);
+      }, 2000);
+    };
     onSave?.(
       fajr,
       dhuhr,
@@ -165,7 +173,7 @@ export default function DailyPrayerGoalSelection({
       isha,
       isTrackingCongregation ? jumuahCountInCycle : 0,
       isTrackingCongregation,
-      markSaved,
+      handleSaved,
       markFailed,
     );
   };

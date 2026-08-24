@@ -53,6 +53,7 @@ export const HeaderWithCrossTitleDynamicIcon = ({
         bottom: 0,
         justifyContent: "center",
         alignItems: "center",
+        zIndex: 11,
       }}
       pointerEvents="none"
     >

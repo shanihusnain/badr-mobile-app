@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useGoalSelectionOpenState } from "@/hooks/useGoalSelectionOpenState";
 import {
   StyleSheet,
   Text,
@@ -40,7 +41,7 @@ export default function MondayThursdayFastGoalSelection({
 }) {
   const formatNumber = useLocaleNumber();
   const { mutate: upsertFastingGoal, isPending } = useUpsertFastingGoals();
-  const [isOpen, setIsOpen] = useState(openOnMount);
+  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount);
   const [selectedMonThuDates, setSelectedMonThuDates] = useState<string[]>(() =>
     initialMonThuDates(calendarWindow),
   );

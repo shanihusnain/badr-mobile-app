@@ -37,7 +37,7 @@ export const MissedZakats = ({
   openOnMount?: boolean;
 }) => {
   const { t } = useTranslation();
-  const [isOpen, setIsOpen] = useState(openOnMount);
+  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount);
   const selectedCurrency = useWatch({ control, name });
   const hasCurrency = Boolean(String(selectedCurrency ?? "").trim());
   const toggleDropdown = () => {

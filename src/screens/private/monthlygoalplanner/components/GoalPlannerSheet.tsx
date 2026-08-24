@@ -24,6 +24,7 @@ import {
   Pressable,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { FullWindowOverlay } from "react-native-screens";
@@ -225,6 +226,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
   ({ onClose, initialTab }, ref) => {
     const { t } = useTranslation();
     const insets = useSafeAreaInsets();
+    const { height: windowHeight } = useWindowDimensions();
     const [activeTab, setActiveTab] = useState<Tab>(initialTab ?? "cycle");
     const [cycleStartDate, setCycleStartDate] = useState<string | null>(null);
     const [cycleEndDate, setCycleEndDate] = useState<string | null>(null);
@@ -267,6 +269,18 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
      * multiple of those can stay on. Only one unfinished toggle per category.
      */
     const [pendingUnconfiguredGoalId, setPendingUnconfiguredGoalId] = useState<{
+      prayer: string | null;
+      quran: string | null;
+      fasting: string | null;
+      sadaqah: string | null;
+    }>({
+      prayer: null,
+      quran: null,
+      fasting: null,
+      sadaqah: null,
+    });
+    /** Which goal's selection panel should be expanded (toggle ON opens; save closes). */
+    const [expandedGoalSelectionId, setExpandedGoalSelectionId] = useState<{
       prayer: string | null;
       quran: string | null;
       fasting: string | null;
@@ -387,6 +401,12 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
       setSelectedGoals({});
       setLocallyConfiguredGoalIds({});
       setPendingUnconfiguredGoalId({
+        prayer: null,
+        quran: null,
+        fasting: null,
+        sadaqah: null,
+      });
+      setExpandedGoalSelectionId({
         prayer: null,
         quran: null,
         fasting: null,
@@ -607,12 +627,36 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
       [],
     );
 
+    const setExpandedSelectionForCategory = useCallback(
+      (
+        category: "prayer" | "quran" | "fasting" | "sadaqah",
+        goalId: string | null,
+      ) => {
+        setExpandedGoalSelectionId((prev) => ({ ...prev, [category]: goalId }));
+        if (goalId) {
+          setTimeout(() => scrollToGoalItemIdRef.current(goalId), 150);
+        }
+      },
+      [],
+    );
+
     const markGoalConfigured = useCallback((goalId: string) => {
       if (!goalId) return;
       setLocallyConfiguredGoalIds((prev) =>
         prev[goalId] ? prev : { ...prev, [goalId]: true },
       );
       setPendingUnconfiguredGoalId((prev) => {
+        const next = { ...prev };
+        let changed = false;
+        (["prayer", "quran", "fasting", "sadaqah"] as const).forEach((key) => {
+          if (next[key] === goalId) {
+            next[key] = null;
+            changed = true;
+          }
+        });
+        return changed ? next : prev;
+      });
+      setExpandedGoalSelectionId((prev) => {
         const next = { ...prev };
         let changed = false;
         (["prayer", "quran", "fasting", "sadaqah"] as const).forEach((key) => {
@@ -805,23 +849,37 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
 
     const handleTabPress = useCallback(
       (tabId: Tab) => {
-        if (tabId !== "cycle" && !cycleStartDate) return;
+        if (tabId !== "cycle" && !hasCommittedCycle) return;
         setActiveTab(tabId);
       },
-      [cycleStartDate],
+      [hasCommittedCycle],
     );
 
-    // Sync tab when sheet is opened with a different initialTab.
-    // Other tabs stay locked on the cycle tab until a cycle date is selected.
+    // Keep user on the cycle tab until they tap Commit (selecting a date alone must not advance).
     useEffect(() => {
       if (!cycleStartDate) {
         setActiveTab("cycle");
-        return;
       }
-      if (initialTab) setActiveTab(initialTab);
-    }, [initialTab, cycleStartDate]);
+    }, [cycleStartDate]);
 
-    const snapPoints = useMemo(() => ["20%", "45%", "95%"], []);
+    // When opening the sheet from a step, honor that tab only if the cycle is already committed.
+    useEffect(() => {
+      if (!initialTab) return;
+      if (initialTab === "cycle" || hasCommittedCycle) {
+        setActiveTab(initialTab);
+      } else {
+        setActiveTab("cycle");
+      }
+    }, [initialTab]);
+
+    const snapPoints = useMemo(
+      () => [
+        Math.round(windowHeight * 0.28),
+        Math.round(windowHeight * 0.58),
+        Math.round(windowHeight - insets.top + 24),
+      ],
+      [windowHeight, insets.top],
+    );
 
     const renderBackdrop = useCallback(
       (props: BottomSheetDefaultBackdropProps) => (
@@ -956,6 +1014,13 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
           return;
         }
         handleGoalToggle(prayerId, isSelected);
+        if (isSelected) {
+          setExpandedSelectionForCategory("prayer", prayerId);
+        } else {
+          setExpandedGoalSelectionId((prev) =>
+            prev.prayer === prayerId ? { ...prev, prayer: null } : prev,
+          );
+        }
         trackPendingOnToggle(
           "prayer",
           prayerId,
@@ -967,6 +1032,9 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
           {
             onError: () => {
               handleGoalToggle(prayerId, !isSelected);
+              if (isSelected) {
+                setExpandedSelectionForCategory("prayer", null);
+              }
               trackPendingOnToggle(
                 "prayer",
                 prayerId,
@@ -981,6 +1049,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         canEnableGoalInCategory,
         handleGoalToggle,
         isPrayerGoalConfigured,
+        setExpandedSelectionForCategory,
         togglePrayerGoalByType,
         trackPendingOnToggle,
       ],
@@ -996,6 +1065,13 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
           return;
         }
         handleGoalToggle(quranId, isSelected);
+        if (isSelected) {
+          setExpandedSelectionForCategory("quran", quranId);
+        } else {
+          setExpandedGoalSelectionId((prev) =>
+            prev.quran === quranId ? { ...prev, quran: null } : prev,
+          );
+        }
         trackPendingOnToggle(
           "quran",
           quranId,
@@ -1019,6 +1095,9 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
           );
         } catch {
           handleGoalToggle(quranId, !isSelected);
+          if (isSelected) {
+            setExpandedSelectionForCategory("quran", null);
+          }
           trackPendingOnToggle(
             "quran",
             quranId,
@@ -1031,6 +1110,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         canEnableGoalInCategory,
         handleGoalToggle,
         isQuranGoalConfigured,
+        setExpandedSelectionForCategory,
         toggleQuranGoalByType,
         trackPendingOnToggle,
       ],
@@ -1047,6 +1127,13 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         }
         const type = resolveFastingType(fastingType || fastingId);
         handleGoalToggle(fastingId, isSelected);
+        if (isSelected) {
+          setExpandedSelectionForCategory("fasting", fastingId);
+        } else {
+          setExpandedGoalSelectionId((prev) =>
+            prev.fasting === fastingId ? { ...prev, fasting: null } : prev,
+          );
+        }
         trackPendingOnToggle(
           "fasting",
           fastingId,
@@ -1058,6 +1145,9 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
           {
             onError: (error: any) => {
               handleGoalToggle(fastingId, !isSelected);
+              if (isSelected) {
+                setExpandedSelectionForCategory("fasting", null);
+              }
               trackPendingOnToggle(
                 "fasting",
                 fastingId,
@@ -1076,6 +1166,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         canEnableGoalInCategory,
         handleGoalToggle,
         isFastingGoalConfigured,
+        setExpandedSelectionForCategory,
         toggleFastingGoalByType,
         trackPendingOnToggle,
       ],
@@ -1100,6 +1191,13 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         }
         const type = resolveSadaqahType(sadaqahType || sadaqahId);
         handleGoalToggle(sadaqahId, isSelected);
+        if (isSelected) {
+          setExpandedSelectionForCategory("sadaqah", sadaqahId);
+        } else {
+          setExpandedGoalSelectionId((prev) =>
+            prev.sadaqah === sadaqahId ? { ...prev, sadaqah: null } : prev,
+          );
+        }
         trackPendingOnToggle(
           "sadaqah",
           sadaqahId,
@@ -1111,6 +1209,13 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
           {
             onError: () => {
               handleGoalToggle(sadaqahId, !isSelected);
+              if (isSelected) {
+                setExpandedGoalSelectionId((prev) =>
+                  prev.sadaqah === sadaqahId
+                    ? { ...prev, sadaqah: null }
+                    : prev,
+                );
+              }
               trackPendingOnToggle(
                 "sadaqah",
                 sadaqahId,
@@ -1125,6 +1230,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         canEnableGoalInCategory,
         handleGoalToggle,
         isSadaqahGoalConfigured,
+        setExpandedSelectionForCategory,
         toggleSadaqahGoalByType,
         trackPendingOnToggle,
       ],
@@ -2446,6 +2552,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         ref={ref}
           index={2}
         snapPoints={snapPoints}
+          topInset={insets.top}
           bottomInset={insets.bottom}
         enablePanDownToClose
           enableHandlePanningGesture
@@ -2465,7 +2572,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
           {localizedTabs.map((tab) => {
             const isActive = activeTab === tab.id;
             const hasChip = !!tab.chip;
-              const isDisabled = tab.id !== "cycle" && !isCycleDateSelected;
+              const isDisabled = tab.id !== "cycle" && !hasCommittedCycle;
             return (
               <Pressable
                 key={tab.id}
@@ -2668,7 +2775,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {prayer.id === "tahayyat-ul-wudhu" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                         <TahiyatWuduGoalSelection
-                          openOnMount={true}
+                          openOnMount={expandedGoalSelectionId.prayer === prayer.id}
                           initialValue={getSimpleTargetCount(prayer, 1)}
                           isSaving={
                             isSavingPrayer &&
@@ -2688,7 +2795,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {prayer.id === "fiveDailyPrayers" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                         <DailyPrayerGoalSelection
-                          openOnMount={true}
+                          openOnMount={expandedGoalSelectionId.prayer === prayer.id}
                           cycleStartDate={cycleStartDate ?? undefined}
                           initialValues={getFiveDailyInitial(prayer)}
                           isSaving={
@@ -2731,7 +2838,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {prayer.id === "sunnahRawatib" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                         <SunnahRawatibGoalSelection
-                          openOnMount={true}
+                          openOnMount={expandedGoalSelectionId.prayer === prayer.id}
                           initialValues={getSunnahInitial(prayer)}
                           isSaving={
                             isSavingPrayer &&
@@ -2767,7 +2874,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {prayer.id === "thayyat-ul-masjid" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                         <TahiyyatMasjidGoalSelection
-                          openOnMount={true}
+                          openOnMount={expandedGoalSelectionId.prayer === prayer.id}
                           initialValue={getSimpleTargetCount(prayer, 1)}
                           isSaving={
                             isSavingPrayer &&
@@ -2787,7 +2894,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {prayer.id === "missedPastPrayers" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                         <MissedPrayerGoalSelection
-                          openOnMount={true}
+                          openOnMount={expandedGoalSelectionId.prayer === prayer.id}
                           initialValue={getMissedTargetDays(prayer, 3)}
                           isSaving={
                             isSavingPrayer &&
@@ -2813,7 +2920,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {prayer.id === "duhaPrayer" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                         <DuhaPrayerGoalSelection
-                          openOnMount={true}
+                          openOnMount={expandedGoalSelectionId.prayer === prayer.id}
                           initialValue={getSimpleTargetCount(prayer, 1)}
                           isSaving={
                             isSavingPrayer &&
@@ -2833,7 +2940,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {prayer.id === "tawbaPrayer" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                         <TawbahPrayerGoalSelection
-                          openOnMount={true}
+                          openOnMount={expandedGoalSelectionId.prayer === prayer.id}
                           initialValue={getSimpleTargetCount(prayer, 1)}
                           isSaving={
                             isSavingPrayer &&
@@ -2853,7 +2960,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {prayer.id === "istikharah" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                         <IstikharaPrayerGoalSelection
-                          openOnMount={true}
+                          openOnMount={expandedGoalSelectionId.prayer === prayer.id}
                           initialValue={getSimpleTargetCount(prayer, 1)}
                           isSaving={
                             isSavingPrayer &&
@@ -2873,7 +2980,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {prayer.id === "shukrPrayer" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                         <ShukarPrayerGoalSelection
-                          openOnMount={true}
+                          openOnMount={expandedGoalSelectionId.prayer === prayer.id}
                           initialValue={getSimpleTargetCount(prayer, 1)}
                           isSaving={
                             isSavingPrayer &&
@@ -2893,7 +3000,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {prayer.id === "qiyamalLail" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                         <QiyamalLaylGoalSelection
-                          openOnMount={true}
+                          openOnMount={expandedGoalSelectionId.prayer === prayer.id}
                           initialValues={getQiyamInitial(prayer)}
                           isSaving={
                             isSavingPrayer &&
@@ -2986,7 +3093,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {quran.id === "quran-listening" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                       <QuranTimeSelection
-                          openOnMount={true}
+                          openOnMount={expandedGoalSelectionId.quran === quran.id}
                         title={t("monthlyGoalPlanner.selectNumHours")}
                           descriptionKey="monthlyGoalPlanner.hoursQuranListening"
                           quranGoalType="LISTENING"
@@ -3009,7 +3116,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {quran.id === "quran-tajweed" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                     <QuranTimeSelection
-                          openOnMount={true}
+                          openOnMount={expandedGoalSelectionId.quran === quran.id}
                       title={t("monthlyGoalPlanner.selectNumHours")}
                           descriptionKey="monthlyGoalPlanner.hoursQuranTajweed"
                           quranGoalType="TAJWEED"
@@ -3032,7 +3139,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {quran.id === "quran-recitation" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                       <QuranRecitationGoalSelection
-                          openOnMount={true}
+                          openOnMount={expandedGoalSelectionId.quran === quran.id}
                           {...quranReferenceProps}
                         title={t("monthlyGoalPlanner.selectTrackingMetric")}
                           onMetricsChange={handleQuranMetricsChange}
@@ -3065,7 +3172,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {quran.id === "quran-memorization" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                       <QuranRecitationGoalSelection
-                          openOnMount={true}
+                          openOnMount={expandedGoalSelectionId.quran === quran.id}
                           {...quranReferenceProps}
                         title={t("monthlyGoalPlanner.selectTrackingMetric")}
                           onMetricsChange={handleQuranMetricsChange}
@@ -3156,7 +3263,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {fasting.id === "missed-fasts" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                         <MissedRamadanFastGoalSelection
-                          openOnMount={true}
+                          openOnMount={expandedGoalSelectionId.fasting === fasting.id}
                           calendarWindow={fastingCalendarWindow}
                           onSave={(selectedDates: string[]) => {
                             setFastingMetrics((prev) => ({
@@ -3172,7 +3279,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {fasting.id === "dawood-fasts" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                         <ProphetDawoodFastGoalSelection
-                          openOnMount={true}
+                          openOnMount={expandedGoalSelectionId.fasting === fasting.id}
                           calendarWindow={fastingCalendarWindow}
                           onSave={() => {
                             markGoalConfigured(fasting.id);
@@ -3183,7 +3290,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {fasting.id === "monday-and-thursday-fasts" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                         <MondayThursdayFastGoalSelection
-                          openOnMount={true}
+                          openOnMount={expandedGoalSelectionId.fasting === fasting.id}
                           calendarWindow={fastingCalendarWindow}
                           onSave={(selectedDates: string[]) => {
                             setFastingMetrics((prev) => ({
@@ -3200,7 +3307,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {fasting.id === "white-days-fasts" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                         <WhiteDaysFastGoalSelection
-                          openOnMount={true}
+                          openOnMount={expandedGoalSelectionId.fasting === fasting.id}
                           calendarWindow={fastingCalendarWindow}
                           onSave={() => {
                             setFastingMetrics((prev) => {
@@ -3281,7 +3388,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {sadaqah.id === "missed-zakat" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                       <MissedZakats
-                          openOnMount={true}
+                          openOnMount={expandedGoalSelectionId.sadaqah === sadaqah.id}
                         count={missedZakatAmount}
                         setCount={setMissedZakatAmount}
                         control={control}
@@ -3308,7 +3415,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {sadaqah.id === "kafarah-for-breaking-fasts" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                       <KafarahForBreakingFastsOrOAthSelector
-                          openOnMount={true}
+                          openOnMount={expandedGoalSelectionId.sadaqah === sadaqah.id}
                         mealCount={kafarahMeals}
                         setMealCount={setKafarahMeals}
                         clothCount={kafarahCloths}
@@ -3335,7 +3442,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {sadaqah.id === "fidya" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                     <FidyaSelector
-                          openOnMount={true}
+                          openOnMount={expandedGoalSelectionId.sadaqah === sadaqah.id}
                       count={fidyaMeals}
                       setCount={setFidyaMeals}
                       handleDecrease={() => {
@@ -3356,7 +3463,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {sadaqah.id === "lilah-donations" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                       <MissedZakats
-                          openOnMount={true}
+                          openOnMount={expandedGoalSelectionId.sadaqah === sadaqah.id}
                         count={lillahAmount}
                         setCount={setLillahAmount}
                         control={control}
@@ -3381,7 +3488,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {sadaqah.id === "volunteering-services" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                       <FidyaSelector
-                          openOnMount={true}
+                          openOnMount={expandedGoalSelectionId.sadaqah === sadaqah.id}
                         count={volunteeringHours}
                         setCount={setVolunteeringHours}
                         handleDecrease={() => {
@@ -3404,7 +3511,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     {sadaqah.id === "sadaqah-jariyah" && isOn && (
                       <View style={styles.goalSelectionBelowCard}>
                       <MissedZakats
-                          openOnMount={true}
+                          openOnMount={expandedGoalSelectionId.sadaqah === sadaqah.id}
                         count={sadaqahJariyahAmount}
                         setCount={setSadaqahJariyahAmount}
                         control={control}

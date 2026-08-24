@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useGoalSelectionOpenState } from "@/hooks/useGoalSelectionOpenState";
 import {
   StyleSheet,
   Text,
@@ -31,7 +32,7 @@ export default function CongregationalPrayerGoalSelection({
   const [maghrib, setMaghrib] = useState(28);
   const [isha, setIsha] = useState(28);
   const [jumuah, setJumuah] = useState(4);
-  const [isOpen, setIsOpen] = useState(openOnMount);
+  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount);
 
   const toggleDropdown = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);

@@ -71,7 +71,7 @@ export const QuranRecitationGoalSelection = ({
   isSaving = false,
 }: QuranRecitationGoalSelectionProps) => {
   const { t } = useTranslation();
-  const [isOpen, setIsOpen] = useState(!!openOnMount);
+  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount);
   const handleToggleDropdown = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setIsOpen(!isOpen);
