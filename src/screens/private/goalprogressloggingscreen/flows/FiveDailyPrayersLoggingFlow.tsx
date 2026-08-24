@@ -22,7 +22,7 @@ import {
 import { DateStep } from "../components/DateStep";
 import { PrayerSelectStep } from "../components/PrayerSelectStep";
 import { OptionSelectStep } from "../components/OptionSelectStep";
-import { StartTimeStep, DurationStep } from "../components/TimePickerSteps";
+import { StartTimeStep, DurationStep, getCurrentStartTimeParts } from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
 import {
   styles as commonStyles,
@@ -105,12 +105,18 @@ export default function FiveDailyPrayersLoggingFlow({
   const [selectedPrayer, setSelectedPrayer] = useState<PrayerName>("fajr");
   const [timing, setTiming] = useState<TimingOption>("onTime");
   const [congregation, setCongregation] = useState<CongregationOption>("yes");
-  const [startHour, setStartHour] = useState("06");
-  const [startMinute, setStartMinute] = useState("15");
-  const [startPeriod, setStartPeriod] = useState<"am" | "pm">("am");
+  const [startHour, setStartHour] = useState(
+    () => getCurrentStartTimeParts().hour,
+  );
+  const [startMinute, setStartMinute] = useState(
+    () => getCurrentStartTimeParts().minute,
+  );
+  const [startPeriod, setStartPeriod] = useState<"am" | "pm">(
+    () => getCurrentStartTimeParts().period,
+  );
   const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
   const [durationHours, setDurationHours] = useState("0");
-  const [durationMinutes, setDurationMinutes] = useState("10");
+  const [durationMinutes, setDurationMinutes] = useState("0");
 
   const prayerFrame = useOptionalPrayerGoalFrameContext();
   const frame = prayerFrame?.frame;
@@ -235,15 +241,16 @@ export default function FiveDailyPrayersLoggingFlow({
   };
 
   const resetFlow = useCallback(() => {
+    const now = getCurrentStartTimeParts();
     setFlowMode("collapsed");
     setStepIndex(0);
     setSelectedDate(toDateString(new Date()));
     setSelectedPrayer("fajr");
     setTiming("onTime");
     setCongregation("yes");
-    setStartHour("06");
-    setStartMinute("15");
-    setStartPeriod("am");
+    setStartHour(now.hour);
+    setStartMinute(now.minute);
+    setStartPeriod(now.period);
     setIsPeriodDropdownOpen(false);
     setDurationHours("0");
     setDurationMinutes("10");

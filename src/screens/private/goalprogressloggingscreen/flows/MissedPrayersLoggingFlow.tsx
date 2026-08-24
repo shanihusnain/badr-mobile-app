@@ -379,9 +379,9 @@ export default function MissedPrayersLoggingFlow({
             <View style={localStyles.summaryCard}>
               <View style={localStyles.summaryBody}>
                 <View style={localStyles.summaryIconCircle}>
-                  <MissedPastPrayerCalenderIcon size={21} />
+                  <MissedPastPrayerCalenderIcon size={18} />
                 </View>
-                <View style={{ flex: 1, gap: 9 }}>
+                <View style={{ flex: 1, gap: 4 }}>
                   <View
                     style={[
                       localStyles.badge,
@@ -407,7 +407,14 @@ export default function MissedPrayersLoggingFlow({
                     </Text>
                   </View>
                   <View style={localStyles.titleBlock}>
-                    <Text style={[localStyles.summaryTitle, { flex: undefined }]}>
+                    <Text
+                      style={[
+                        localStyles.summaryTitle,
+                        { flex: undefined },
+                        frameLoading && localStyles.loadingPlaceholderText,
+                      ]}
+                      numberOfLines={2}
+                    >
                       {goalLabel}
                     </Text>
                     <Text
@@ -502,7 +509,6 @@ const localStyles = StyleSheet.create({
     height: FLOW_CARD_HEIGHT,
     width: "100%",
     justifyContent: "space-between",
-    position: "relative",
   },
   badge: {
     paddingHorizontal: 8,
@@ -536,7 +542,7 @@ const localStyles = StyleSheet.create({
   summaryBody: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: 6,
   },
   summaryIconCircle: {
     width: 36,
@@ -545,13 +551,7 @@ const localStyles = StyleSheet.create({
     backgroundColor: Colors.light.selectcategory,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 14,
-  },
-  titleContainer: {
-    flex: 1,
-    flexDirection: "column",
-    gap: 2,
-    paddingRight: 8,
+    marginTop: 22,
   },
   summaryTitle: {
     color: Colors.light.white,
@@ -602,21 +602,14 @@ const localStyles = StyleSheet.create({
     fontWeight: "700",
   },
   addButton: {
-    position: "absolute",
-    right: 10,
-    bottom: 10,
-    width: 34,
-    height: 34,
+    width: 32,
+    height: 32,
     borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
   },
   addButtonDisabled: {
     opacity: 0.35,
-  },
-  badgeRow: {
-    flexDirection: "row",
-    marginLeft: 14,
   },
   spacer: {
     flex: 1,

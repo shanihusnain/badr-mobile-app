@@ -196,7 +196,7 @@ function metricCard({
       iconFamily,
       iconName,
       title,
-      value: "-- --",
+      value: "--",
       noData: true,
       footerText: noDataLabel,
     };
