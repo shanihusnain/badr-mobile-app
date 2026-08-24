@@ -278,7 +278,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     position: "absolute",
     bottom: -10,
-    right: 10,
   },
   dayItemWrapper: {
     alignItems: "center",

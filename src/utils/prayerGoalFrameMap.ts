@@ -98,6 +98,7 @@ export function mapFiveDailyFrameWeekDays(
     if (isFuture) {
       return {
         day: day.dayLabel,
+        date: day.date,
         statuses: ["none", "none", "none", "none", "none"],
         isToday: false,
         isFuture: true,
@@ -115,6 +116,7 @@ export function mapFiveDailyFrameWeekDays(
 
       return {
         day: day.dayLabel,
+        date: day.date,
         statuses:
           isMenstruating && !anyLogged
             ? Array<PrayerStatus>(5).fill("menstruation")
@@ -129,6 +131,7 @@ export function mapFiveDailyFrameWeekDays(
     if (isMenstruating) {
       return {
         day: day.dayLabel,
+        date: day.date,
         statuses: Array<PrayerStatus>(5).fill("menstruation"),
         isToday,
         isFuture: false,
@@ -138,6 +141,7 @@ export function mapFiveDailyFrameWeekDays(
 
     return {
       day: day.dayLabel,
+      date: day.date,
       statuses: mapFiveDailyStatusesFromCounts(day),
       isToday,
       isFuture: false,
