@@ -135,6 +135,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 4,
     flexShrink: 0,
+    marginLeft: 9,
   },
   streakText: {
     color: Colors.light.white,

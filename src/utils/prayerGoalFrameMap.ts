@@ -182,43 +182,26 @@ export function getPrayerFrameAchievementLabel(
 ): PrayerFrameBadge {
   const status = normalizePrayerGoalFrameStatus(frame.goal.status);
   const pct = frame.goal.achievementPct ?? 0;
+  const completed = frame.goal.completedCount ?? 0;
 
-  switch (status) {
-    case "NOT_STARTED":
-      return {
-        text: t("progressLogging.notStarted"),
-        type: "not-started",
-      };
-    case "IN_PROGRESS":
-      // If backend says "in progress" but progress is still 0, show the purple "In Progress" chip
-      // and hide insights (matches Figma).
-      if (pct <= 0 || pct <= 90) {
-        return {
-          text: t("progressLogging.inProgress"),
-          type: "in-progress",
-        };
-      }
-      if (pct >= 100) {
-        return {
-          text: t("progressLogging.fullyAchieved"),
-          type: "completed",
-        };
-      }
-      return {
-        text: t("progressLogging.surahStatusAchieved", { percent: pct }),
-        type: "completed",
-      };
-    case "COMPLETED":
-      return {
-        text: t("progressLogging.fullyAchieved"),
-        type: "completed",
-      };
-    default:
-      return {
-        text: t("progressLogging.inProgress"),
-        type: "in-progress",
-      };
+  if (status === "COMPLETED" || pct >= 100) {
+    return {
+      text: t("progressLogging.fullyAchieved"),
+      type: "completed",
+    };
   }
+
+  if (completed > 0 || pct > 0) {
+    return {
+      text: t("progressLogging.inProgress"),
+      type: "in-progress",
+    };
+  }
+
+  return {
+    text: t("progressLogging.notStarted"),
+    type: "not-started",
+  };
 }
 
 /**
