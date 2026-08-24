@@ -394,22 +394,20 @@ export default function TahiyatUlWudhuLoggingFlow({
                       color={Colors.light.white}
                     />
                   </TouchableOpacity>
-                ) : (
-                  <View style={localStyles.spacer} />
-                )}
-
-                <TouchableOpacity
-                  style={[
-                    localStyles.addButton,
-                    isFullyAchieved && localStyles.addButtonDisabled,
-                  ]}
-                  onPress={handleOpenFlow}
-                  activeOpacity={0.8}
-                  disabled={isFullyAchieved}
-                >
-                  <AddLoggingFlowIcon />
-                </TouchableOpacity>
+                ) : null}
               </View>
+
+              <TouchableOpacity
+                style={[
+                  localStyles.addButton,
+                  isFullyAchieved && localStyles.addButtonDisabled,
+                ]}
+                onPress={handleOpenFlow}
+                activeOpacity={0.8}
+                disabled={isFullyAchieved}
+              >
+                <AddLoggingFlowIcon />
+              </TouchableOpacity>
             </View>
           ) : (
             <View style={commonStyles.flowCardLayer}>
@@ -444,6 +442,7 @@ const localStyles = StyleSheet.create({
     height: FLOW_CARD_HEIGHT,
     width: "100%",
     justifyContent: "space-between",
+    position: "relative",
   },
   badge: {
     paddingHorizontal: 8,
@@ -500,7 +499,6 @@ const localStyles = StyleSheet.create({
   },
   footerRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "flex-end",
     marginTop: 4,
   },
@@ -517,14 +515,14 @@ const localStyles = StyleSheet.create({
     fontWeight: "700",
   },
   addButton: {
+    position: "absolute",
+    right: 16,
+    bottom: 11,
     width: 32,
     height: 32,
     borderRadius: 16,
-    // borderWidth: 1.5,
-    // borderColor: Colors.light.white,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 1,
   },
   addButtonDisabled: {
     opacity: 0.35,

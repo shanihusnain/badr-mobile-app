@@ -337,7 +337,7 @@ export default function FiveDailyPrayersLoggingFlow({
     switch (step) {
       case "date":
         return {
-          icon: <CalendarFlippingIcon />,
+          icon: <CalendarFlippingIcon size={24} />,
           label: t("progressLogging.whichDay"),
         };
       case "prayerSelect":
@@ -345,7 +345,7 @@ export default function FiveDailyPrayersLoggingFlow({
           icon: (
             <FontAwesome6
               name="person-praying"
-              size={13}
+              size={26}
               color={Colors.light.white}
             />
           ),
@@ -356,7 +356,7 @@ export default function FiveDailyPrayersLoggingFlow({
           icon: (
             <Ionicons
               name="checkmark-circle-outline"
-              size={15}
+              size={26}
               color={Colors.light.white}
             />
           ),
@@ -365,18 +365,18 @@ export default function FiveDailyPrayersLoggingFlow({
       case "congregation":
         return {
           icon: (
-            <FontAwesome6 name="mosque" size={13} color={Colors.light.white} />
+            <FontAwesome6 name="mosque" size={26} color={Colors.light.white} />
           ),
           label: t("progressLogging.prayedInMosque"),
         };
       case "startTime":
         return {
-          icon: <WhiteClockIcon />,
+          icon: <WhiteClockIcon size={26} />,
           label: t("progressLogging.enterStartTime"),
         };
       case "duration":
         return {
-          icon: <WhiteTimerIcon />,
+          icon: <WhiteTimerIcon size={26} />,
           label: t("progressLogging.enterTimeSpent"),
         };
       default:
@@ -466,6 +466,15 @@ export default function FiveDailyPrayersLoggingFlow({
       {flowMode === "active" && (
         <Pressable style={commonStyles.backdrop} onPress={resetFlow} />
       )}
+      {flowMode === "active" && (
+        <TouchableOpacity
+          style={commonStyles.cancelButton}
+          onPress={resetFlow}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="close" size={20} color={Colors.light.white} />
+        </TouchableOpacity>
+      )}
 
       <View style={commonStyles.section}>
         <Text style={commonStyles.sectionTitle}>
@@ -473,15 +482,6 @@ export default function FiveDailyPrayersLoggingFlow({
         </Text>
 
         <View style={commonStyles.cardAnchor}>
-          {flowMode === "active" && (
-            <TouchableOpacity
-              style={commonStyles.cancelButton}
-              onPress={resetFlow}
-              activeOpacity={0.8}
-            >
-              <Ionicons name="close" size={20} color={Colors.light.white} />
-            </TouchableOpacity>
-          )}
 
           {flowMode === "collapsed" ? (
             <View style={localStyles.summaryCard}>
