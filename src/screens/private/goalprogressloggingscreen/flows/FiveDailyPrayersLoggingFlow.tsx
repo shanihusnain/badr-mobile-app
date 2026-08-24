@@ -130,26 +130,31 @@ export default function FiveDailyPrayersLoggingFlow({
 
   const todayString = toDateString(new Date());
 
-  /** Week that contains today — independent of weekly-dashboard week selection. */
-  const todayWeekNumber = useMemo(() => {
+  const cycleStart = frame?.cycle?.cycleStart?.slice(0, 10);
+  const cycleEnd = frame?.cycle?.cycleEnd?.slice(0, 10);
+
+  const maxSelectableDate =
+    cycleEnd && cycleEnd < todayString ? cycleEnd : todayString;
+
+  const selectedDateWeekNumber = useMemo(() => {
     const start = frame?.cycle?.cycleStart;
     const totalWeeks = frame?.cycle?.totalWeeks;
     if (!start) return undefined;
     const week =
       Math.floor(
-        moment(todayString, "YYYY-MM-DD").diff(
+        moment(selectedDate, "YYYY-MM-DD").diff(
           moment(start, "YYYY-MM-DD"),
           "days",
         ) / 7,
       ) + 1;
     if (totalWeeks != null) return Math.min(Math.max(1, week), totalWeeks);
     return Math.max(1, week);
-  }, [frame?.cycle?.cycleStart, frame?.cycle?.totalWeeks, todayString]);
+  }, [frame?.cycle?.cycleStart, frame?.cycle?.totalWeeks, selectedDate]);
 
-  const { data: todayWeekFrame, refetch: refetchTodayWeek } =
+  const { data: selectedDateWeekFrame, refetch: refetchSelectedDateWeek } =
     useGetPrayerGoalFrame(prayerType, {
-      weekNumber: todayWeekNumber,
-      enabled: todayWeekNumber != null,
+      weekNumber: selectedDateWeekNumber,
+      enabled: selectedDateWeekNumber != null,
     });
 
   const isCongregationalTracked = Boolean(
@@ -158,8 +163,8 @@ export default function FiveDailyPrayersLoggingFlow({
 
   const showJumuahForDhuhr = useMemo(() => {
     if (!isCongregationalTracked) return false;
-    return moment(todayString, "YYYY-MM-DD").day() === 5; // Friday
-  }, [isCongregationalTracked, todayString]);
+    return moment(selectedDate, "YYYY-MM-DD").day() === 5; // Friday
+  }, [isCongregationalTracked, selectedDate]);
 
   const steps = useMemo(() => {
     // Congregation step only when tracking is on and user chose on-time.
@@ -195,34 +200,43 @@ export default function FiveDailyPrayersLoggingFlow({
   const isFullyAchieved = (frame?.goal.achievementPct ?? 0) >= 100;
 
   useEffect(() => {
-    setSelectedDate(todayString);
-  }, [todayString]);
+    if (cycleStart && selectedDate < cycleStart) {
+      setSelectedDate(cycleStart);
+      return;
+    }
+    if (selectedDate > maxSelectableDate) {
+      setSelectedDate(maxSelectableDate);
+    }
+  }, [cycleStart, maxSelectableDate, selectedDate]);
 
-  const loggedPrayersForToday = useMemo((): PrayerName[] => {
-    const day = todayWeekFrame?.week.days.find(
-      (d) =>
-        d.isToday ||
-        d.date === todayString ||
-        d.date.startsWith(`${todayString}`),
+  const loggedPrayersForSelectedDate = useMemo((): PrayerName[] => {
+    const day = selectedDateWeekFrame?.week.days.find(
+      (d) => d.date === selectedDate || d.date.startsWith(`${selectedDate}`),
     );
     if (!day?.slots) return [];
     return PRAYER_OPTIONS.filter(
       (prayer) => day.slots?.[PRAYER_TO_SLOT[prayer]]?.logged === true,
     );
-  }, [todayWeekFrame, todayString]);
+  }, [selectedDateWeekFrame, selectedDate]);
 
   const hasSelectablePrayer =
-    loggedPrayersForToday.length < PRAYER_OPTIONS.length;
+    loggedPrayersForSelectedDate.length < PRAYER_OPTIONS.length;
 
-  // Pre-select the next unlogged prayer when today's logs change after refetch.
+  const previousSelectedDateRef = React.useRef(selectedDate);
+
+  // Pre-select the next unlogged prayer when the day changes, or when the
+  // current selection becomes unavailable after a refetch.
   useEffect(() => {
+    const dateChanged = previousSelectedDateRef.current !== selectedDate;
+    previousSelectedDateRef.current = selectedDate;
+
     setSelectedPrayer((current) => {
-      if (loggedPrayersForToday.includes(current)) {
-        return getNextUnloggedPrayer(loggedPrayersForToday);
+      if (dateChanged || loggedPrayersForSelectedDate.includes(current)) {
+        return getNextUnloggedPrayer(loggedPrayersForSelectedDate);
       }
       return current;
     });
-  }, [loggedPrayersForToday]);
+  }, [selectedDate, loggedPrayersForSelectedDate]);
 
   // Keep step index valid when congregation is inserted/removed from the flow.
   useEffect(() => {
@@ -232,7 +246,21 @@ export default function FiveDailyPrayersLoggingFlow({
   const currentStep = steps[stepIndex] ?? steps[0];
   const isLastStep = stepIndex === steps.length - 1;
 
-  const dateLabel = t("progressLogging.today");
+  const dateLabel =
+    selectedDate === todayString
+      ? t("progressLogging.today")
+      : moment(selectedDate, "YYYY-MM-DD").format("MMM DD");
+
+  const shiftDate = (direction: -1 | 1) => {
+    const next = moment(selectedDate, "YYYY-MM-DD")
+      .add(direction, "days")
+      .format("YYYY-MM-DD");
+
+    if (cycleStart && direction === -1 && next < cycleStart) return;
+    if (direction === 1 && next > maxSelectableDate) return;
+
+    setSelectedDate(next);
+  };
 
   const resetFlow = useCallback(() => {
     const now = getCurrentStartTimeParts();
@@ -275,7 +303,7 @@ export default function FiveDailyPrayersLoggingFlow({
       const prayedOnTime = timing === "onTime";
       const includeCongregation = isCongregationalTracked && prayedOnTime;
       const payload = {
-        date: todayString,
+        date: selectedDate,
         prayerSlot: PRAYER_TO_SLOT[selectedPrayer],
         prayedOnTime,
         wasQadha: !prayedOnTime,
@@ -286,12 +314,12 @@ export default function FiveDailyPrayersLoggingFlow({
 
       try {
         await logFiveDailyPrayers(payload);
-        await Promise.all([prayerFrame?.refetch(), refetchTodayWeek()]);
+        await Promise.all([prayerFrame?.refetch(), refetchSelectedDateWeek()]);
 
         onLogComplete?.({
           type: "five-daily-prayers",
           goalId: goalData.id,
-          date: todayString,
+          date: selectedDate,
           prayer: selectedPrayer,
           timing,
           congregation: includeCongregation ? congregation : "no",
@@ -319,7 +347,7 @@ export default function FiveDailyPrayersLoggingFlow({
     if (currentStep === "prayerSelect" && !hasSelectablePrayer) return;
     if (
       currentStep === "prayerSelect" &&
-      loggedPrayersForToday.includes(selectedPrayer)
+      loggedPrayersForSelectedDate.includes(selectedPrayer)
     ) {
       return;
     }
@@ -328,9 +356,9 @@ export default function FiveDailyPrayersLoggingFlow({
 
   const handleOpenFlow = useCallback(() => {
     if (frameLoading || isFullyAchieved) return;
-    setSelectedPrayer(getNextUnloggedPrayer(loggedPrayersForToday));
+    setSelectedPrayer(getNextUnloggedPrayer(loggedPrayersForSelectedDate));
     setFlowMode("active");
-  }, [frameLoading, isFullyAchieved, loggedPrayersForToday]);
+  }, [frameLoading, isFullyAchieved, loggedPrayersForSelectedDate]);
 
   const getTimingLabel = useCallback(
     (option: TimingOption) =>
@@ -395,11 +423,11 @@ export default function FiveDailyPrayersLoggingFlow({
         return (
           <DateStep
             dateLabel={dateLabel}
-            selectedDate={todayString}
+            selectedDate={selectedDate}
             todayString={todayString}
-            minSelectableDate={todayString}
-            maxSelectableDate={todayString}
-            onShiftDate={() => {}}
+            minSelectableDate={cycleStart}
+            maxSelectableDate={maxSelectableDate}
+            onShiftDate={shiftDate}
             styles={commonStyles}
           />
         );
@@ -409,7 +437,7 @@ export default function FiveDailyPrayersLoggingFlow({
             selectedPrayer={selectedPrayer}
             onSelectPrayer={setSelectedPrayer}
             categoryColor={Colors.light.green}
-            loggedPrayers={loggedPrayersForToday}
+            loggedPrayers={loggedPrayersForSelectedDate}
             showJumuahForDhuhr={showJumuahForDhuhr}
             t={t}
             styles={commonStyles}
@@ -605,7 +633,7 @@ export default function FiveDailyPrayersLoggingFlow({
                   !(
                     currentStep === "prayerSelect" &&
                     (!hasSelectablePrayer ||
-                      loggedPrayersForToday.includes(selectedPrayer))
+                      loggedPrayersForSelectedDate.includes(selectedPrayer))
                   )
                 }
                 canConfirm={isLastStep && !isLogging && !isFullyAchieved}
