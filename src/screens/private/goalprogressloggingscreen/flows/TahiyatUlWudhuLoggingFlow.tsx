@@ -477,7 +477,7 @@ const localStyles = StyleSheet.create({
   summaryBody: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    gap: 6,
   },
   summaryIconCircle: {
     width: 36,
@@ -486,7 +486,7 @@ const localStyles = StyleSheet.create({
     backgroundColor: Colors.light.selectcategory,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 22,
+    marginTop: 26,
   },
   summaryTitle: {
     color: Colors.light.white,

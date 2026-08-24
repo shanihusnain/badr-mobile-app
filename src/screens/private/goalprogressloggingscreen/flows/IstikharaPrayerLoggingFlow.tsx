@@ -13,7 +13,7 @@ import { Colors } from "@/constants/theme";
 import { GoalData } from "../../home/components/goalsData";
 import { DateStep } from "../components/DateStep";
 import { PrayerQuantityInputStep } from "../components/PrayerQuantityInputStep";
-import { StartTimeStep, DurationStep } from "../components/TimePickerSteps";
+import { StartTimeStep, DurationStep, getCurrentStartTimeParts } from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
 import {
   styles as commonStyles,
@@ -31,6 +31,7 @@ import {
   AddLoggingFlowIcon,
   CalendarFlippingIcon,
   WhiteClockIcon,
+  WhitePrayerMatIcon,
   WhiteTimerIcon,
 } from "@/assets/icons";
 import { IstikharaPrayerDetailedIcon } from "@/assets/icons/IstikharaPrayerDetailedIcon";
@@ -55,6 +56,10 @@ type Props = {
 type FlowMode = "collapsed" | "active";
 
 const toDateString = (date: Date) => moment(date).format("YYYY-MM-DD");
+const toCalendarDate = (value: string) => {
+  const match = String(value).match(/^(\d{4}-\d{2}-\d{2})/);
+  return match ? match[1] : moment(value).format("YYYY-MM-DD");
+};
 
 export default function IstikharaPrayerLoggingFlow({
   goalData,
@@ -66,13 +71,19 @@ export default function IstikharaPrayerLoggingFlow({
   const [flowMode, setFlowMode] = useState<FlowMode>("collapsed");
   const [stepIndex, setStepIndex] = useState(0);
   const [selectedDate, setSelectedDate] = useState(toDateString(new Date()));
-  const [prayersCount, setPrayersCount] = useState("2");
-  const [startHour, setStartHour] = useState("06");
-  const [startMinute, setStartMinute] = useState("15");
-  const [startPeriod, setStartPeriod] = useState<"am" | "pm">("am");
+  const [prayersCount, setPrayersCount] = useState("1");
+  const [startHour, setStartHour] = useState(
+    () => getCurrentStartTimeParts().hour,
+  );
+  const [startMinute, setStartMinute] = useState(
+    () => getCurrentStartTimeParts().minute,
+  );
+  const [startPeriod, setStartPeriod] = useState<"am" | "pm">(
+    () => getCurrentStartTimeParts().period,
+  );
   const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
   const [durationHours, setDurationHours] = useState("0");
-  const [durationMinutes, setDurationMinutes] = useState("10");
+  const [durationMinutes, setDurationMinutes] = useState("0");
 
   const prayerFrame = useOptionalPrayerGoalFrameContext();
   const frame = prayerFrame?.frame;
@@ -80,10 +91,10 @@ export default function IstikharaPrayerLoggingFlow({
     prayerFrame?.isLoading || (!frame && !prayerFrame?.isError);
 
   const cycleStartHijri = frame?.cycle?.cycleStart
-    ? toDateString(new Date(frame.cycle.cycleStart))
+    ? toCalendarDate(frame.cycle.cycleStart)
     : undefined;
   const cycleEndHijri = frame?.cycle?.cycleEnd
-    ? toDateString(new Date(frame.cycle.cycleEnd))
+    ? toCalendarDate(frame.cycle.cycleEnd)
     : undefined;
 
   const goalLabel = frame?.goal.label ?? "---";
@@ -110,12 +121,17 @@ export default function IstikharaPrayerLoggingFlow({
     : todayString;
 
   React.useEffect(() => {
-    if (!cycleStartHijri || !cycleEndHijri) return;
-    if (selectedDate < cycleStartHijri) setSelectedDate(cycleStartHijri);
-    else if (selectedDate > maxSelectableDate) {
-      setSelectedDate(maxSelectableDate);
-    }
-  }, [cycleStartHijri, cycleEndHijri, maxSelectableDate, selectedDate]);
+    if (!cycleStartHijri) return;
+    const minDate =
+      cycleStartHijri <= maxSelectableDate
+        ? cycleStartHijri
+        : maxSelectableDate;
+    setSelectedDate((prev) => {
+      if (prev < minDate) return minDate;
+      if (prev > maxSelectableDate) return maxSelectableDate;
+      return prev;
+    });
+  }, [cycleStartHijri, maxSelectableDate]);
 
   const currentStep = STEPS[stepIndex];
   const isLastStep = stepIndex === STEPS.length - 1;
@@ -155,13 +171,14 @@ export default function IstikharaPrayerLoggingFlow({
   };
 
   const resetFlow = useCallback(() => {
+    const now = getCurrentStartTimeParts();
     setFlowMode("collapsed");
     setStepIndex(0);
     setSelectedDate(toDateString(new Date()));
-    setPrayersCount("2");
-    setStartHour("06");
-    setStartMinute("15");
-    setStartPeriod("am");
+    setPrayersCount("1");
+    setStartHour(now.hour);
+    setStartMinute(now.minute);
+    setStartPeriod(now.period);
     setDurationHours("0");
     setDurationMinutes("10");
     setIsPeriodDropdownOpen(false);
@@ -226,12 +243,7 @@ export default function IstikharaPrayerLoggingFlow({
         };
       case "prayers-quantity":
         return {
-          icon: (
-            <IstikharaPrayerDetailedIcon
-              color={Colors.light.white}
-              size={18}
-            />
-          ),
+          icon: <WhitePrayerMatIcon size={26} />,
           label: "How many 2-rak'ah prayers did you pray?",
         };
       case "start-time":
@@ -466,7 +478,7 @@ const localStyles = StyleSheet.create({
   summaryBody: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    gap: 6,
   },
   summaryIconCircle: {
     width: 36,

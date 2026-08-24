@@ -1209,6 +1209,7 @@ export function WeeklyProgressSection({
           vsLastWeek={frame.week.vsLastWeek}
           motivationalQuote={frame.week.motivationalMessage}
           selectedDayIndex={getPrayerFrameTodayIndex(frame)}
+          isGoalCompleted={(frame.goal.achievementPct ?? 0) >= 100}
           statsIcon="star-crescent"
           onPrevWeek={handlePrevWeek}
           onNextWeek={handleNextWeek}

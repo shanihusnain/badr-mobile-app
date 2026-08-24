@@ -10,7 +10,7 @@ export type TahiyatUlWudhuDayProgress = SinglePrayerDayProgress;
 
 export type TahiyatUlWudhuWeeklyProgressDashboardProps =
   SinglePrayerWeeklyProgressDashboardProps & {
-    statsIcon?: keyof typeof MaterialCommunityIcons.glyphMap;
+  statsIcon?: keyof typeof MaterialCommunityIcons.glyphMap;
   };
 
 export function TahiyatUlWudhuWeeklyProgressDashboard({

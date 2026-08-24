@@ -261,10 +261,10 @@ export function MissedPrayersWeeklyProgressDashboard({
                           : isInactiveOutline
                             ? "transparent"
                             : day.isBestDay
-                              ? Colors.light.green
+                          ? Colors.light.green
                               : isSelected
                                 ? Colors.light.white
-                                : Colors.light.grey,
+                          : Colors.light.grey,
                       },
                       styles.durationText,
                     ]}
@@ -274,11 +274,11 @@ export function MissedPrayersWeeklyProgressDashboard({
                       ? "---"
                       : isInactiveOutline
                         ? ""
-                        : day.isBestDay
+                      : day.isBestDay
+                        ? day.prayersLogged.toString()
+                        : day.prayersLogged > 0
                           ? day.prayersLogged.toString()
-                          : day.prayersLogged > 0
-                            ? day.prayersLogged.toString()
-                            : ""}
+                          : ""}
                   </Text>
                 </View>
               </View>
@@ -288,20 +288,20 @@ export function MissedPrayersWeeklyProgressDashboard({
       </View>
 
       <View style={styles.statsAndFooterContainer}>
-        <View style={styles.statsRow}>
+      <View style={styles.statsRow}>
           <PrayerMatIcon />
-          <Text style={styles.statsText} numberOfLines={1}>
-            <Text style={styles.statsCount}>
-              {loading ? "---" : totalPrayersThisWeek}
-            </Text>
-            {loading ? "" : " prayers this week"}
+        <Text style={styles.statsText} numberOfLines={1}>
+          <Text style={styles.statsCount}>
+            {loading ? "---" : totalPrayersThisWeek}
           </Text>
-        </View>
+          {loading ? "" : " prayers this week"}
+        </Text>
+      </View>
 
-        <View style={styles.footerRow}>
-          <View style={styles.streakBadge}>
+      <View style={styles.footerRow}>
+        <View style={styles.streakBadge}>
             <LighteningIcon />
-            <Text style={styles.streakText}>
+          <Text style={styles.streakText}>
               {loading ? (
                 "---"
               ) : (
@@ -310,17 +310,17 @@ export function MissedPrayersWeeklyProgressDashboard({
                   <Text>-day streak</Text>
                 </>
               )}
-            </Text>
-          </View>
+          </Text>
+        </View>
 
-          <View style={styles.quoteBlock}>
+        <View style={styles.quoteBlock}>
             <AimIcon />
-            <Text style={styles.quoteText}>
-              {loading
-                ? "---"
-                : motivationalQuote ||
+          <Text style={styles.quoteText}>
+            {loading
+              ? "---"
+              : motivationalQuote ||
                   "Masha'Allah, may Allah always fill your heart with His love and light!"}
-            </Text>
+          </Text>
           </View>
         </View>
       </View>
