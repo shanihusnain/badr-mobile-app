@@ -229,7 +229,7 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
 
 const localStyles = StyleSheet.create({
   summaryCard: { backgroundColor: Colors.light.green, borderRadius: 14, padding: 16, gap: 12, height: 145, justifyContent: 'space-between' },
-  badge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4 },
+  badge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4, marginTop: -6 },
   badgeInProgress: { backgroundColor: Colors.light.lightpurple },
   badgeCompleted: { backgroundColor: Colors.light.lightgreenbadgecolor },
   badgeText: { fontFamily: fonts.primary.semiBold, fontSize: 10, fontWeight: "600" },
