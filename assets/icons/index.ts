@@ -83,12 +83,14 @@ import { ConfirmPasswordEyeIcon } from "./ConfirmPasswordEyeIcon";
 import { CresentAndStarIcon } from "./CresentAndStarIcon";
 import { ConnectTabIcon } from "./ConnectTabIcon";
 import { CheckIcon } from "./CheckIcon";
+import { CheckCircleOutlineIcon } from "./CheckCircleOutlineIcon";
 import { PlusAddIcon } from "./PlusAddIcon";
 import { CrossIcon } from "./CrossIcon";
 import { CheckBox } from "./CheckBox";
 import { CrossBox } from "./CrossBox";
 import { ChangePasswordIcon } from "./ChangePasswordIcon";
 import { CalendarFlippingIcon } from "./CalendarFlippingIcon";
+import { CongregationalMosqueIcon } from "./CongregationalMosqueIcon";
 //D
 import { DocumentLockIcon } from "./DocumentLockIcon";
 import { DebtAssistanceIcon } from "./DebtAssistanceIcon";
@@ -369,6 +371,7 @@ export {
   ConnectTabIcon,
   MoreTabIcon,
   CheckIcon,
+  CheckCircleOutlineIcon,
   PlusAddIcon,
   CrossIcon,
   ExerciseIcon,
@@ -469,4 +472,5 @@ export {
   IshaIcon,
   GreenTickIcon,
   JummaIcon,
+  CongregationalMosqueIcon,
 };

@@ -38,6 +38,8 @@ import {
 import {
   AddLoggingFlowIcon,
   CalendarFlippingIcon,
+  CheckCircleOutlineIcon,
+  CongregationalMosqueIcon,
   PrayerMatIcon,
   WhiteClockIcon,
   WhitePrayerMatIcon,
@@ -46,6 +48,7 @@ import {
 import { FiveDailyPrayerIDetailedIbadhasIcon } from "@/assets/icons/FiveDailyPrayerIDetailedIbadhasIcon";
 import { useLogFiveDailyPrayersGoal } from "@/src/api/mutations/useLogFiveDailyPrayersGoal";
 import type { FiveDailyPrayerSlot } from "@/src/api/mutations/useLogFiveDailyPrayersGoal";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 const STEPS_WITH_CONGREGATION: LogStepId[] = [
   "date",
@@ -139,6 +142,16 @@ export default function FiveDailyPrayersLoggingFlow({
     : undefined;
 
   const goalLabel = frame?.goal.label ?? "---";
+  const goalLabelParts = useMemo(() => {
+    const match = goalLabel.match(/^(.*?)\s*(\(total\s+\d+\s+prayers?\))\s*$/i);
+    if (!match) {
+      return { title: goalLabel, totalSuffix: null as string | null };
+    }
+    return {
+      title: match[1].trim(),
+      totalSuffix: match[2],
+    };
+  }, [goalLabel]);
 
   const badgeStatus = useMemo(() => {
     if (!frame) {
@@ -347,9 +360,9 @@ export default function FiveDailyPrayersLoggingFlow({
       case "timing":
         return {
           icon: (
-            <Ionicons
-              name="checkmark-circle-outline"
-              size={26}
+            <MaterialCommunityIcons
+              name="clock-check-outline"
+              size={24}
               color={Colors.light.white}
             />
           ),
@@ -357,9 +370,7 @@ export default function FiveDailyPrayersLoggingFlow({
         };
       case "congregation":
         return {
-          icon: (
-            <FontAwesome6 name="mosque" size={26} color={Colors.light.white} />
-          ),
+          icon: <CongregationalMosqueIcon />,
           label: t("progressLogging.prayedInMosque"),
         };
       case "startTime":
@@ -508,16 +519,41 @@ export default function FiveDailyPrayersLoggingFlow({
                       {badgeStatus.text}
                     </Text>
                   </View>
-                  <Text
-                    style={[
-                      localStyles.summaryTitle,
-                      { flex: undefined },
-                      frameLoading && localStyles.loadingPlaceholderText,
-                    ]}
-                    numberOfLines={2}
-                  >
-                    {goalLabel}
-                  </Text>
+                  <View style={localStyles.summaryTitleBlock}>
+                    <Text
+                      style={[
+                        localStyles.summaryTitle,
+                        frameLoading && localStyles.loadingPlaceholderText,
+                      ]}
+                      numberOfLines={2}
+                    >
+                      {goalLabelParts.title}
+                    </Text>
+                    {goalLabelParts.totalSuffix ? (
+                      <Text
+                        style={[
+                          localStyles.summaryTotalLine,
+                          frameLoading && localStyles.loadingPlaceholderText,
+                        ]}
+                        numberOfLines={1}
+                      >
+                        {goalLabelParts.totalSuffix
+                          .split(/(\d+)/)
+                          .map((part, index) =>
+                            /^\d+$/.test(part) ? (
+                              <Text
+                                key={`${part}-${index}`}
+                                style={localStyles.summaryTotalCount}
+                              >
+                                {part}
+                              </Text>
+                            ) : (
+                              part
+                            ),
+                          )}
+                      </Text>
+                    ) : null}
+                  </View>
                 </View>
               </View>
 
@@ -642,7 +678,23 @@ const localStyles = StyleSheet.create({
     fontWeight: "600",
     lineHeight: 18,
     letterSpacing: 0,
-    flex: 1,
+  },
+  summaryTitleBlock: {
+    gap: 2,
+  },
+  summaryTotalLine: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.regular,
+    fontSize: 12,
+    fontWeight: "400",
+    lineHeight: 14,
+  },
+  summaryTotalCount: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.semiBold,
+    fontSize: 12,
+    fontWeight: "600",
+    lineHeight: 14,
   },
   loadingPlaceholderText: {
     opacity: 0.35,

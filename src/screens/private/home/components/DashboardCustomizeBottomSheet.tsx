@@ -466,7 +466,7 @@ export const DashboardCustomizeBottomSheet = forwardRef<BottomSheet, Props>(
     return (
       <BottomSheetWrapper
         ref={ref}
-        snapPoints={["50%", "92%"]}
+        snapPoints={["80%", "92%"]}
         onClose={onClose}
         onChange={onChange}
         scrollable={false}

@@ -135,7 +135,7 @@ export const JournalCustomizeBottomSheet = forwardRef<
   return (
     <BottomSheetWrapper
       ref={ref}
-      snapPoints={["50%", "92%"]}
+      snapPoints={["80%", "92%"]}
       bgColor={Colors.light.darkgrey}
       onClose={onClose}
       onChange={onChange}
