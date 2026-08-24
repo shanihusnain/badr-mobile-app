@@ -38,7 +38,9 @@ import {
 import {
   AddLoggingFlowIcon,
   CalendarFlippingIcon,
+  PrayerMatIcon,
   WhiteClockIcon,
+  WhitePrayerMatIcon,
   WhiteTimerIcon,
 } from "@/assets/icons";
 import { FiveDailyPrayerIDetailedIbadhasIcon } from "@/assets/icons/FiveDailyPrayerIDetailedIbadhasIcon";
@@ -257,16 +259,13 @@ export default function FiveDailyPrayersLoggingFlow({
 
     const run = async () => {
       const prayedOnTime = timing === "onTime";
-      const includeCongregation =
-        isCongregationalTracked && prayedOnTime;
+      const includeCongregation = isCongregationalTracked && prayedOnTime;
       const payload = {
         date: selectedDate,
         prayerSlot: PRAYER_TO_SLOT[selectedPrayer],
         prayedOnTime,
         wasQadha: !prayedOnTime,
-        wasCongregational: includeCongregation
-          ? congregation === "yes"
-          : false,
+        wasCongregational: includeCongregation ? congregation === "yes" : false,
         startTime: formatStartTimeForApi(),
         durationMinutes: buildDurationMinutesForApi(),
       };
@@ -342,13 +341,7 @@ export default function FiveDailyPrayersLoggingFlow({
         };
       case "prayerSelect":
         return {
-          icon: (
-            <FontAwesome6
-              name="person-praying"
-              size={26}
-              color={Colors.light.white}
-            />
-          ),
+          icon: <WhitePrayerMatIcon />,
           label: t("progressLogging.selectPrayer"),
         };
       case "timing":
@@ -475,14 +468,12 @@ export default function FiveDailyPrayersLoggingFlow({
           <Ionicons name="close" size={20} color={Colors.light.white} />
         </TouchableOpacity>
       )}
-
       <View style={commonStyles.section}>
         <Text style={commonStyles.sectionTitle}>
           {t("progressLogging.myProgress")}
         </Text>
 
         <View style={commonStyles.cardAnchor}>
-
           {flowMode === "collapsed" ? (
             <View style={localStyles.summaryCard}>
               <View style={localStyles.summaryBody}>
