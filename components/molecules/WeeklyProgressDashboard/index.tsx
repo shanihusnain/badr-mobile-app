@@ -5,22 +5,36 @@ import {
   TouchableOpacity,
   StyleSheet,
   useWindowDimensions,
+  Pressable,
 } from "react-native";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Colors } from "@/constants/theme";
 import { PrayerStatus } from "@/components/molecules/PrayerProgressTrackerRing";
 import { useTranslation } from "react-i18next";
-import { PrayerMatIcon } from "@/assets/icons";
+import { BinIcon, PrayerMatIcon } from "@/assets/icons";
 import { fonts } from "@/assets/fonts";
-import { TopSpace } from "@/components/atoms/TopSpace";
 import { PrayerWeeklyProgressFooter } from "@/components/molecules/PrayerWeeklyProgressFooter";
+import { PrayerWeeklyProgressHeader } from "@/components/molecules/SinglePrayerWeeklyProgressDashboard/PrayerWeeklyProgressHeader";
+import { useDeletePrayerLog } from "@/src/api/mutations/useDeletePrayerLog";
+import { useOptionalPrayerGoalFrameContext } from "@/src/screens/private/goalprogressloggingscreen/prayerGoalFrameContext";
+
+// Layout spacing matches SinglePrayerWeeklyProgressDashboard.
+// Arc rings need a larger size than the solid 24px single-prayer circles.
+const TOTAL_HORIZONTAL_PADDING = 24;
+const FIVE_DAILY_RING_SCALE = 0.75;
+
+function dayHasLoggedPrayer(statuses: PrayerStatus[]): boolean {
+  return statuses.some(
+    (status) => status !== "none" && status !== "menstruation",
+  );
+}
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface DayProgress {
   /** Short day label: Sun, Mon … Sat */
   day: string;
+  /** YYYY-MM-DD — used for delete log */
+  date?: string;
   /** Five prayer statuses for the day */
   statuses: PrayerStatus[];
   /** True when all 5 prayers are in menstruation cycle */
@@ -114,13 +128,6 @@ const DAY_TRANSLATION_KEYS: Record<string, string> = {
   Sat: "homeScreen.weeklyProgress_daySat",
 };
 
-// ─── Component ────────────────────────────────────────────────────────────────
-
-// Card outer padding (left+right): wrapperPadding(4*2) + cardPadding(8*2)
-const TOTAL_HORIZONTAL_PADDING = 24;
-// Per-column internal padding (2px each side) * 7 columns
-const COLUMN_PADDING_TOTAL = 4 * 7;
-
 export const WeeklyProgressDashboard: React.FC<
   WeeklyProgressDashboardProps
 > = ({
@@ -139,145 +146,146 @@ export const WeeklyProgressDashboard: React.FC<
   loading = false,
 }) => {
   const { width: screenWidth } = useWindowDimensions();
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
+  const prayerFrame = useOptionalPrayerGoalFrameContext();
+  const { mutate: deletePrayerLog, isPending: isDeletingLog } =
+    useDeletePrayerLog();
+  const [selectForDeletion, setSelectForDeletion] = useState("");
   const displayWeekDays = loading ? LOADING_WEEK : weekDays;
 
-  // Dynamically compute ring size so all 7 columns fit inside the card
   const availableWidth = screenWidth - TOTAL_HORIZONTAL_PADDING;
-  const ringSize = Math.floor((availableWidth / 7) * 0.75); // 0.75 scale for smaller rings
+  const ringSize = Math.floor((availableWidth / 7) * FIVE_DAILY_RING_SCALE);
 
-  // If no controlled selectedDayIndex is passed, manage it internally
-  const todayIndex = new Date().getDay(); // 0 = Sun
+  const todayIndex = new Date().getDay();
   const [internalSelected, setInternalSelected] = useState(todayIndex);
-
-  const activeDayIndex = selectedDayIndex ?? internalSelected;
-
-  const handleDayPress = (idx: number) => () => {
-    setInternalSelected(idx);
-    onDayPress?.(idx);
-  };
 
   return (
     <View style={styles.card}>
-      {/* ── Header row ─────────────────────────────────────────────────────── */}
-      <View style={styles.headerRow}>
-        {/* Calendar icon + week fraction */}
-        <View style={styles.headerLeft}>
-          <MaterialCommunityIcons
-            name="calendar-month-outline"
-            size={18}
-            color={Colors.light.seagreen}
-          />
-          <Text style={styles.weekFractionText}>
-            {loading
-              ? "---"
-              : `${weekFraction} ${t("homeScreen.weeklyProgress_weeks")}`}
-          </Text>
-        </View>
+      <PrayerWeeklyProgressHeader
+        weekFraction={weekFraction}
+        weekRangeLabel={weekRangeLabel}
+        loading={loading}
+        onPrevWeek={onPrevWeek}
+        onNextWeek={onNextWeek}
+      />
 
-        {/* Week range navigation */}
-        <View style={styles.headerNav}>
-          <TouchableOpacity
-            onPress={onPrevWeek}
-            disabled={!onPrevWeek || loading}
-            activeOpacity={onPrevWeek && !loading ? 0.7 : 1}
-            style={styles.navBtn}
-          >
-            <Ionicons
-              name={i18n.language === "ar" ? "chevron-forward" : "chevron-back"}
-              size={16}
-              color={
-                onPrevWeek && !loading
-                  ? Colors.light.dullWhite
-                  : Colors.light.dullWhite + "4D"
-              }
-            />
-          </TouchableOpacity>
-          <Text style={styles.weekRangeText}>
-            {loading ? "---" : weekRangeLabel}
-          </Text>
-          <TouchableOpacity
-            onPress={onNextWeek}
-            disabled={!onNextWeek || loading}
-            activeOpacity={onNextWeek && !loading ? 0.7 : 1}
-            style={styles.navBtn}
-          >
-            <Ionicons
-              name={i18n.language === "ar" ? "chevron-back" : "chevron-forward"}
-              size={16}
-              color={
-                onNextWeek && !loading
-                  ? Colors.light.dullWhite
-                  : Colors.light.dullWhite + "4D"
-              }
-            />
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* ── Days row ───────────────────────────────────────────────────────── */}
       <View style={styles.daysRow}>
         {displayWeekDays.map((day, idx) => {
-          const isActive = day.isToday;
+          const isSelected = day.isToday === true;
+          const isFuture = !!day.isFuture;
+          const hasLog = dayHasLoggedPrayer(day.statuses);
+          const isMarkedForDeletion =
+            !!day.date && selectForDeletion === day.date;
+
           return (
             <TouchableOpacity
               key={`${day.day}-${idx}`}
-              style={[styles.dayColumn, isActive && styles.dayColumnActive]}
-              onPress={handleDayPress(idx)}
-              activeOpacity={0.75}
-              disabled={loading}
+              style={[
+                styles.dayColumn,
+                isMarkedForDeletion ? { zIndex: 2 } : null,
+                isMarkedForDeletion && styles.dayColumnMarkedForDeletion,
+              ]}
+              onLongPress={() => {
+                if (loading || isFuture || !day.date || !hasLog) return;
+                setSelectForDeletion((prev) =>
+                  prev === day.date ? "" : (day.date ?? ""),
+                );
+              }}
+              onPress={() => {
+                if (loading || isFuture) return;
+                if (selectForDeletion) {
+                  setSelectForDeletion("");
+                  return;
+                }
+                setInternalSelected(idx);
+                onDayPress?.(idx);
+              }}
+              activeOpacity={loading || isFuture ? 1 : 0.75}
+              disabled={loading || isFuture}
             >
-              {/* Ring placeholder — parent injects <PrayerProgressTrackerRing> */}
               <View
                 style={[
-                  styles.ringWrapper,
-                  { width: ringSize, height: ringSize },
+                  styles.dayItemWrapper,
+                  isSelected && styles.dayItemSelected,
                 ]}
               >
-                {renderRing(day, ringSize)}
+                <View
+                  style={[
+                    styles.ringWrapper,
+                    { width: ringSize, height: ringSize },
+                  ]}
+                >
+                  {renderRing(day, ringSize)}
+                </View>
+                <Text
+                  style={[
+                    styles.dayLabel,
+                    {
+                      color: loading
+                        ? Colors.light.subtext
+                        : isSelected
+                          ? Colors.light.white
+                          : Colors.light.subtext,
+                    },
+                  ]}
+                  numberOfLines={1}
+                >
+                  {loading
+                    ? "---"
+                    : t(
+                        (DAY_TRANSLATION_KEYS[day.day] ??
+                          "homeScreen.weeklyProgress_daySun") as any,
+                      )}
+                </Text>
+                <View style={styles.durationSlot} />
               </View>
-              <Text
-                style={[styles.dayLabel, isActive && styles.dayLabelActive]}
-              >
-                {loading
-                  ? "---"
-                  : t(
-                      (DAY_TRANSLATION_KEYS[day.day] ??
-                        "homeScreen.weeklyProgress_daySun") as any,
-                    )}
-              </Text>
+              {isMarkedForDeletion ? (
+                <Pressable
+                  style={styles.deleteButton}
+                  disabled={isDeletingLog || !prayerFrame?.frame?.prayerType}
+                  onPress={() => {
+                    const prayerType = prayerFrame?.frame?.prayerType;
+                    if (!prayerType || !day.date || isDeletingLog) return;
+                    deletePrayerLog(
+                      { prayerType, date: day.date },
+                      {
+                        onSuccess: () => {
+                          setSelectForDeletion("");
+                        },
+                      },
+                    );
+                  }}
+                >
+                  <BinIcon />
+                </Pressable>
+              ) : null}
             </TouchableOpacity>
           );
         })}
       </View>
 
-      {/* ── Divider ────────────────────────────────────────────────────────── */}
-      <TopSpace top={25} />
-      {/* ── Stats row ──────────────────────────────────────────────────────── */}
-      <View style={styles.statsRow}>
-        <PrayerMatIcon />
-        <Text style={styles.statsText}>
-          <Text style={styles.statsCount}>
-            {loading ? "---" : onTimePrayersCount}
+      <View style={styles.statsAndFooterContainer}>
+        <View style={styles.statsRow}>
+          <PrayerMatIcon />
+          <Text style={styles.statsText} numberOfLines={1}>
+            <Text style={styles.statsCount}>
+              {loading ? "---" : onTimePrayersCount}
+            </Text>
+            {loading ? "" : ` ${t("homeScreen.weeklyProgress_onTimePrayers")}`}
           </Text>
-          {loading ? "" : ` ${t("homeScreen.weeklyProgress_onTimePrayers")}`}
-        </Text>
+        </View>
+        <PrayerWeeklyProgressFooter
+          loading={loading}
+          streakDays={streakDays}
+          vsLastWeek={vsLastWeek}
+          motivationalQuote={motivationalQuote}
+          comparisonVariant="onTime"
+          streakVariant="default"
+        />
       </View>
-      {/* ── Footer row ─────────────────────────────────────────────────────── */}
-      <TopSpace top={8} />
-      <PrayerWeeklyProgressFooter
-        loading={loading}
-        streakDays={streakDays}
-        vsLastWeek={vsLastWeek}
-        motivationalQuote={motivationalQuote}
-        comparisonVariant="onTime"
-        streakVariant="default"
-      />
     </View>
   );
 };
-
-// ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
   card: {
@@ -285,58 +293,51 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.greybuttonBackground,
     paddingHorizontal: 8,
     paddingVertical: 16,
+    gap: 24,
     width: "100%",
     alignSelf: "stretch",
   },
-
-  // Header
-  headerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  headerLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  weekFractionText: {
-    color: Colors.light.white,
-    fontSize: 16,
-    fontWeight: "600",
-    fontFamily: "fonts.primary.semibold",
-  },
-  headerNav: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  navBtn: {
-    padding: 2,
-  },
-  weekRangeText: {
-    color: Colors.light.white,
-    fontSize: 16,
-    fontWeight: "500",
-  },
-
-  // Days
   daysRow: {
     flexDirection: "row",
-    alignItems: "flex-end",
+    alignItems: "flex-start",
+    overflow: "visible",
   },
   dayColumn: {
     flex: 1,
     alignItems: "center",
-    gap: 5,
-    paddingVertical: 5,
-    paddingHorizontal: 2,
-    borderRadius: 10,
-    overflow: "hidden",
-    marginTop: 24,
+    overflow: "visible",
   },
-  dayColumnActive: {
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
+  dayColumnMarkedForDeletion: {
+    borderWidth: 1,
+    borderColor: Colors.light.red,
+    borderRadius: 6,
+    backgroundColor: Colors.light.dullRed,
+  },
+  deleteButton: {
+    height: 20,
+    width: 24,
+    backgroundColor: Colors.light.red,
+    borderRadius: 5,
+    zIndex: 1000,
+    alignSelf: "center",
+    justifyContent: "center",
+    alignItems: "center",
+    position: "absolute",
+    bottom: -10,
+  },
+  dayItemWrapper: {
+    alignItems: "center",
+    justifyContent: "flex-start",
+    paddingHorizontal: 4,
+    paddingTop: 3,
+    paddingBottom: 18,
+    borderRadius: 8,
+    width: "100%",
+    overflow: "visible",
+  },
+  dayItemSelected: {
+    backgroundColor: Colors.light.dayProgressCardBg,
+    borderRadius: 6,
   },
   ringWrapper: {
     alignItems: "center",
@@ -344,26 +345,31 @@ const styles = StyleSheet.create({
   },
   dayLabel: {
     color: Colors.light.subtext,
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
+    marginTop: 4,
+    textAlign: "center",
   },
-  dayLabelActive: {
-    color: Colors.light.white,
-    fontWeight: "700",
-    fontFamily: fonts.primary.bold,
+  durationSlot: {
+    height: 18,
+    justifyContent: "flex-start",
+    alignItems: "center",
+    width: "100%",
+    marginTop: 4,
   },
-
   statsRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 6,
+    gap: 8,
+    flexWrap: "nowrap",
   },
   statsText: {
     color: Colors.light.white,
     fontSize: 13,
     fontFamily: fonts.primary.medium,
+    flexShrink: 1,
     fontWeight: "500",
     letterSpacing: 0.1,
   },
@@ -371,5 +377,9 @@ const styles = StyleSheet.create({
     color: Colors.light.white,
     fontWeight: "700",
     fontSize: 20,
+    fontFamily: fonts.primary.bold,
+  },
+  statsAndFooterContainer: {
+    gap: 8,
   },
 });
