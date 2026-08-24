@@ -1053,10 +1053,12 @@ export function WeeklyProgressSection({
     return (
       <TahiyatAlMasjidWeeklyProgressDashboard
         weekDays={[]}
-        weekRangeLabel=""
-        weekFraction="—"
+        weekRangeLabel="---"
+        weekFraction="---"
         totalPrayersThisWeek={0}
         streakDays={0}
+        motivationalQuote="---"
+        loading={prayerFrame?.isLoading || (!frame && !prayerFrame?.isError)}
         statsIcon="mosque"
       />
     );
