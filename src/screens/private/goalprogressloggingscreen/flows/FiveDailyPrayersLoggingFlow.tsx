@@ -336,7 +336,7 @@ export default function FiveDailyPrayersLoggingFlow({
     switch (step) {
       case "date":
         return {
-          icon: <CalendarFlippingIcon />,
+          icon: <CalendarFlippingIcon size={24} />,
           label: t("progressLogging.whichDay"),
         };
       case "prayerSelect":
@@ -349,7 +349,7 @@ export default function FiveDailyPrayersLoggingFlow({
           icon: (
             <Ionicons
               name="checkmark-circle-outline"
-              size={15}
+              size={26}
               color={Colors.light.white}
             />
           ),
@@ -358,18 +358,18 @@ export default function FiveDailyPrayersLoggingFlow({
       case "congregation":
         return {
           icon: (
-            <FontAwesome6 name="mosque" size={13} color={Colors.light.white} />
+            <FontAwesome6 name="mosque" size={26} color={Colors.light.white} />
           ),
           label: t("progressLogging.prayedInMosque"),
         };
       case "startTime":
         return {
-          icon: <WhiteClockIcon />,
+          icon: <WhiteClockIcon size={26} />,
           label: t("progressLogging.enterStartTime"),
         };
       case "duration":
         return {
-          icon: <WhiteTimerIcon />,
+          icon: <WhiteTimerIcon size={26} />,
           label: t("progressLogging.enterTimeSpent"),
         };
       default:
