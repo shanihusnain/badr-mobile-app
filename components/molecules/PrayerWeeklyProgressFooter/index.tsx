@@ -35,8 +35,9 @@ export function PrayerWeeklyProgressFooter({
   const vsLastWeekMagnitude = Math.abs(vsLastWeek ?? 0);
   const vsLastWeekImproved = (vsLastWeek ?? 0) > 0;
 
-  const resolvedQuote =
-    loading ? "---" : motivationalQuote || defaultMotivationalQuote;
+  const resolvedQuote = loading
+    ? "---"
+    : motivationalQuote || defaultMotivationalQuote;
 
   const comparisonSuffixKey =
     comparisonVariant === "onTime"
@@ -122,7 +123,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   footerRowWithComparison: {
-    justifyContent: "flex-end",
+    justifyContent: "flex-start",
     gap: 16,
     paddingRight: 18,
   },
