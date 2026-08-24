@@ -11,13 +11,12 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTranslation } from "react-i18next";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
-import { LighteningIcon } from "@/assets/icons/LighteningIcon";
 import {
-  AimIcon,
   BestdayStarIcon,
   DashBoardCalenderIcon,
   PrayerMatIcon,
 } from "@/assets/icons";
+import { PrayerWeeklyProgressFooter } from "@/components/molecules/PrayerWeeklyProgressFooter";
 
 export type TahiyatAlMasjidDayProgress = {
   day: string;
@@ -126,9 +125,6 @@ export function TahiyatAlMasjidWeeklyProgressDashboard({
 }: TahiyatAlMasjidWeeklyProgressDashboardProps) {
   const { t } = useTranslation();
   const { width: screenWidth } = useWindowDimensions();
-  const showComparison = vsLastWeek != null;
-  const vsLastWeekMagnitude = Math.abs(vsLastWeek ?? 0);
-  const vsLastWeekImproved = (vsLastWeek ?? 0) > 0;
 
   const availableWidth =
     screenWidth * WRAPPER_WIDTH_RATIO - CARD_HORIZONTAL_PADDING;
@@ -281,46 +277,13 @@ export function TahiyatAlMasjidWeeklyProgressDashboard({
           </Text>
         </View>
 
-        <View style={styles.footerRow}>
-          <View style={styles.streakBadge}>
-            <LighteningIcon />
-            <Text style={styles.streakText}>
-              {t("homeScreen.weeklyProgress_dayStreak", { count: streakDays })}
-            </Text>
-          </View>
-
-          {showComparison ? (
-            <View style={styles.comparisonBadge}>
-              {vsLastWeekMagnitude > 0 ? (
-                <Ionicons
-                  name={vsLastWeekImproved ? "caret-up" : "caret-down"}
-                  size={13}
-                  color={
-                    vsLastWeekImproved ? Colors.light.green : Colors.light.grey
-                  }
-                />
-              ) : null}
-              <Text style={styles.comparisonText}>
-                <Text style={styles.comparisonCount}>
-                  {vsLastWeekMagnitude}
-                </Text>
-                {` ${t("homeScreen.weeklyProgress_prayersVsLastWeek")}`}
-              </Text>
-            </View>
-          ) : (
-            <View style={styles.comparisonPlaceholder} />
-          )}
-        </View>
-
-        <View style={styles.quoteBlock}>
-          <AimIcon />
-          <View style={styles.quoteTextWrap}>
-            <Text style={styles.quoteText}>
-              {motivationalQuote ||
-                "Masha'Allah, may Allah always fill your heart with His love and light!"}
-            </Text>
-          </View>
-        </View>
+        <PrayerWeeklyProgressFooter
+          loading={loading}
+          streakDays={streakDays}
+          vsLastWeek={vsLastWeek}
+          motivationalQuote={motivationalQuote}
+          defaultMotivationalQuote="Masha'Allah, may Allah always fill your heart with His love and light!"
+        />
       </View>
     </View>
   );
@@ -480,77 +443,10 @@ const styles = StyleSheet.create({
   statsAndFooterContainer: {
     gap: 8,
   },
-  footerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 13,
-  },
-  streakBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    flexShrink: 0,
-  },
-  streakText: {
-    color: Colors.light.white,
-    fontSize: 13,
-    fontWeight: "500",
-    fontFamily: fonts.primary.medium,
-  },
   streakCount: {
     color: Colors.light.white,
     fontSize: 13,
     fontWeight: "700",
     fontFamily: fonts.primary.bold,
-  },
-  quoteBlock: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 4,
-    alignSelf: "stretch",
-    minWidth: 0,
-    width: "100%",
-    marginTop: 4,
-  },
-  quoteTextWrap: {
-    flex: 1,
-    flexShrink: 1,
-    minWidth: 0,
-  },
-  comparisonBadge: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    minWidth: 0,
-  },
-  comparisonPlaceholder: {
-    flex: 1,
-    minWidth: 0,
-  },
-  comparisonText: {
-    flex: 1,
-    color: Colors.light.white,
-    fontSize: 13,
-    fontWeight: "400",
-    fontFamily: fonts.primary.regular,
-    lineHeight: 16,
-    letterSpacing: 0.1,
-  },
-  comparisonCount: {
-    color: Colors.light.white,
-    fontSize: 13,
-    fontWeight: "600",
-    fontFamily: fonts.primary.semiBold,
-    lineHeight: 16,
-    letterSpacing: 0.1,
-  },
-  quoteText: {
-    color: Colors.light.white,
-    fontSize: 13,
-    lineHeight: 15,
-    letterSpacing: -0.1,
-    fontFamily: fonts.primary.regular,
-    fontWeight: "400",
   },
 });

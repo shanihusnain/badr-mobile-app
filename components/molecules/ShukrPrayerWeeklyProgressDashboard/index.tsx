@@ -11,8 +11,8 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTranslation } from "react-i18next";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
-import { AimIcon, LighteningIcon } from "@/assets/icons";
 import { TopSpace } from "@/components/atoms/TopSpace";
+import { PrayerWeeklyProgressFooter } from "@/components/molecules/PrayerWeeklyProgressFooter";
 
 export type ShukrPrayerDayProgress = {
   day: string;
@@ -146,9 +146,6 @@ export function ShukrPrayerWeeklyProgressDashboard({
   );
 
   const displayWeekDays = loading ? LOADING_WEEK : weekDays;
-  const showComparison = !loading && vsLastWeek != null;
-  const vsLastWeekMagnitude = Math.abs(vsLastWeek ?? 0);
-  const vsLastWeekImproved = (vsLastWeek ?? 0) > 0;
 
   const [activeDayIndex, setActiveDayIndex] = useState(selectedDayIndex);
 
@@ -293,47 +290,13 @@ export function ShukrPrayerWeeklyProgressDashboard({
       </View>
 
       <TopSpace top={8} />
-      <View style={styles.footerRow}>
-        <View style={styles.streakBadge}>
-          <LighteningIcon />
-          <Text style={styles.streakText}>
-            {loading
-              ? "---"
-              : t("homeScreen.weeklyProgress_dayStreak", { count: streakDays })}
-          </Text>
-        </View>
-
-        {showComparison ? (
-          <View style={styles.comparisonBadge}>
-            {vsLastWeekMagnitude > 0 ? (
-              <Ionicons
-                name={vsLastWeekImproved ? "caret-up" : "caret-down"}
-                size={13}
-                color={
-                  vsLastWeekImproved ? Colors.light.green : Colors.light.grey
-                }
-              />
-            ) : null}
-            <Text style={styles.comparisonText}>
-              <Text style={styles.comparisonCount}>
-                {vsLastWeekMagnitude}
-              </Text>
-              {` ${t("homeScreen.weeklyProgress_prayersVsLastWeek")}`}
-            </Text>
-          </View>
-        ) : (
-          <View style={styles.comparisonPlaceholder} />
-        )}
-      </View>
-
-      <View style={styles.quoteBlock}>
-        <AimIcon />
-        <View style={styles.quoteTextWrap}>
-          <Text style={styles.quoteText}>
-            {loading ? "---" : motivationalQuote}
-          </Text>
-        </View>
-      </View>
+      <PrayerWeeklyProgressFooter
+        loading={loading}
+        streakDays={streakDays}
+        vsLastWeek={vsLastWeek}
+        motivationalQuote={motivationalQuote}
+        streakVariant="green"
+      />
     </View>
   );
 }
@@ -475,67 +438,5 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontSize: 22,
     fontFamily: fonts.primary.bold,
-  },
-  footerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 16,
-  },
-  streakBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    flexShrink: 0,
-  },
-  streakText: {
-    color: Colors.light.green,
-    fontSize: 12,
-    fontWeight: "600",
-    lineHeight: 16,
-  },
-  comparisonBadge: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    minWidth: 0,
-  },
-  comparisonText: {
-    flex: 1,
-    color: Colors.light.white,
-    fontSize: 13,
-    fontWeight: "400",
-    fontFamily: fonts.primary.regular,
-    lineHeight: 16,
-    letterSpacing: 0.1,
-  },
-  comparisonCount: {
-    color: Colors.light.white,
-    fontSize: 13,
-    fontWeight: "600",
-    fontFamily: fonts.primary.semiBold,
-    lineHeight: 16,
-    letterSpacing: 0.1,
-  },
-  quoteBlock: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 5,
-    alignSelf: "stretch",
-    minWidth: 0,
-    width: "100%",
-    marginTop: 4,
-  },
-  quoteTextWrap: {
-    flex: 1,
-    flexShrink: 1,
-    minWidth: 0,
-  },
-  quoteText: {
-    color: Colors.light.white,
-    fontSize: 13,
-    lineHeight: 16,
-    fontFamily: fonts.primary.regular,
-    fontWeight: "400",
   },
 });

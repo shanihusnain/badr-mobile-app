@@ -11,13 +11,12 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTranslation } from "react-i18next";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
-import { LighteningIcon } from "@/assets/icons/LighteningIcon";
 import {
-  AimIcon,
   BestdayStarIcon,
   DashBoardCalenderIcon,
   PrayerMatIcon,
 } from "@/assets/icons";
+import { PrayerWeeklyProgressFooter } from "@/components/molecules/PrayerWeeklyProgressFooter";
 
 export type TahiyatUlWudhuDayProgress = {
   day: string;
@@ -153,10 +152,6 @@ export function TahiyatUlWudhuWeeklyProgressDashboard({
   const { width: screenWidth } = useWindowDimensions();
 
   const displayWeekDays = loading ? LOADING_WEEK : weekDays;
-  const showComparison = !loading && vsLastWeek != null;
-  const vsLastWeekMagnitude = Math.abs(vsLastWeek ?? 0);
-  const vsLastWeekImproved = (vsLastWeek ?? 0) > 0;
-
   const [activeDayIndex, setActiveDayIndex] = useState(selectedDayIndex);
 
   useEffect(() => {
@@ -174,7 +169,10 @@ export function TahiyatUlWudhuWeeklyProgressDashboard({
     <View style={styles.card}>
       <View style={styles.headerRow}>
         <View style={styles.headerLeft}>
-          <DashBoardCalenderIcon size={24} color={Colors.light.graylightshade} />
+          <DashBoardCalenderIcon
+            size={24}
+            color={Colors.light.graylightshade}
+          />
           <Text style={styles.weekFractionText} numberOfLines={1}>
             {loading
               ? "---"
@@ -236,10 +234,7 @@ export function TahiyatUlWudhuWeeklyProgressDashboard({
           const isFuture = !!day.isFuture;
           const isMenstruation = !!day.isMenstruation;
           const showEmptyOutline =
-            !loading &&
-            isGoalCompleted &&
-            !hasLog &&
-            !isMenstruation;
+            !loading && isGoalCompleted && !hasLog && !isMenstruation;
           const isInactiveOutline = isFuture || showEmptyOutline;
 
           return (
@@ -347,65 +342,12 @@ export function TahiyatUlWudhuWeeklyProgressDashboard({
           </Text>
         </View>
 
-        <View
-          style={[
-            styles.footerRow,
-            showComparison && styles.footerRowWithComparison,
-          ]}
-        >
-          <View style={styles.streakBadge}>
-            <LighteningIcon />
-            <Text style={styles.streakText}>
-              {loading
-                ? "---"
-                : t("homeScreen.weeklyProgress_dayStreak", {
-                    count: streakDays,
-                  })}
-            </Text>
-          </View>
-
-          {showComparison ? (
-            <View style={styles.comparisonBadge}>
-              {vsLastWeekMagnitude > 0 ? (
-                <Ionicons
-                  name={vsLastWeekImproved ? "caret-up" : "caret-down"}
-                  size={13}
-                  color={
-                    vsLastWeekImproved ? Colors.light.green : Colors.light.grey
-                  }
-                />
-              ) : null}
-              <Text style={styles.comparisonText}>
-                <Text style={styles.comparisonCount}>
-                  {vsLastWeekMagnitude}
-                </Text>
-                {` ${t("homeScreen.weeklyProgress_prayersVsLastWeek")}`}
-              </Text>
-            </View>
-          ) : (
-            <View style={[styles.quoteBlock, styles.quoteBlockInline]}>
-              <AimIcon />
-              <View style={styles.quoteTextWrap}>
-                <Text style={styles.quoteText}>
-                  {loading
-                    ? "---"
-                    : motivationalQuote ||
-                      "Masha'Allah, may Allah always fill your heart with His love and light!"}
-                </Text>
-              </View>
-            </View>
-          )}
-        </View>
-
-        <View style={styles.quoteBlock}>
-          <AimIcon />
-          <View style={styles.quoteTextWrap}>
-            <Text style={styles.quoteText}>
-              {motivationalQuote ||
-                "Masha'Allah, may Allah always fill your heart with His love and light!"}
-            </Text>
-          </View>
-        </View>
+        <PrayerWeeklyProgressFooter
+          loading={loading}
+          streakDays={streakDays}
+          vsLastWeek={vsLastWeek}
+          motivationalQuote={motivationalQuote}
+        />
       </View>
     </View>
   );
@@ -588,83 +530,5 @@ const styles = StyleSheet.create({
   },
   statsAndFooterContainer: {
     gap: 8,
-  },
-  footerRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 13,
-    minWidth: 0,
-    width: "100%",
-    paddingHorizontal: 4,
-  },
-  footerRowWithComparison: {
-    justifyContent: "flex-end",
-    gap: 16,
-    paddingRight: 18,
-  },
-  streakBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    flexShrink: 0,
-  },
-  streakText: {
-    color: Colors.light.white,
-    fontSize: 13,
-    fontWeight: "500",
-    fontFamily: fonts.primary.medium,
-  },
-  quoteBlock: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 4,
-    alignSelf: "stretch",
-    minWidth: 0,
-    width: "100%",
-    marginTop: 4,
-  },
-  quoteBlockInline: {
-    flex: 1,
-    width: undefined,
-    minWidth: 0,
-    marginTop: 0,
-  },
-  quoteTextWrap: {
-    flex: 1,
-    flexShrink: 1,
-    minWidth: 0,
-  },
-  comparisonBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    flexShrink: 1,
-    minWidth: 0,
-  },
-  comparisonText: {
-    color: Colors.light.white,
-    fontSize: 13,
-    fontWeight: "400",
-    fontFamily: fonts.primary.regular,
-    lineHeight: 16,
-    letterSpacing: 0.1,
-    flexShrink: 1,
-  },
-  comparisonCount: {
-    color: Colors.light.white,
-    fontSize: 13,
-    fontWeight: "600",
-    fontFamily: fonts.primary.semiBold,
-    lineHeight: 16,
-    letterSpacing: 0.1,
-  },
-  quoteText: {
-    color: Colors.light.white,
-    fontSize: 13,
-    lineHeight: 16,
-    letterSpacing: -0.1,
-    fontFamily: fonts.primary.regular,
-    fontWeight: "400",
-    flexShrink: 1,
   },
 });
