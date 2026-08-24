@@ -40,6 +40,7 @@ export function mapPrayerFrameWeekDays(
       isMenstruation: Boolean(day.isMenstruationDay),
       isFuture: day.isFuture || Boolean(day.isFutureDay),
       isToday: day.isToday,
+      date: day.date,
     };
   });
 }
@@ -61,7 +62,9 @@ function mapFiveDailySlotToStatus(
   return "missed";
 }
 
-function mapFiveDailyStatusesFromCounts(day: PrayerGoalFrameDay): PrayerStatus[] {
+function mapFiveDailyStatusesFromCounts(
+  day: PrayerGoalFrameDay,
+): PrayerStatus[] {
   if (day.allFiveOnTime) {
     return ["onTime", "onTime", "onTime", "onTime", "onTime"];
   }

@@ -6,6 +6,7 @@ export type SinglePrayerDayProgress = {
   isMenstruation?: boolean;
   isFuture?: boolean;
   isToday?: boolean;
+  date?: string;
 };
 
 export type SinglePrayerWeeklyProgressDashboardProps = {

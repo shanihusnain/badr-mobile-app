@@ -5,11 +5,14 @@ import {
   TouchableOpacity,
   StyleSheet,
   useWindowDimensions,
+  Pressable,
 } from "react-native";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
-import { PrayerMatIcon } from "@/assets/icons";
+import { BinIcon, PrayerMatIcon } from "@/assets/icons";
 import { PrayerWeeklyProgressFooter } from "@/components/molecules/PrayerWeeklyProgressFooter";
+import { useDeletePrayerLog } from "@/src/api/mutations/useDeletePrayerLog";
+import { useOptionalPrayerGoalFrameContext } from "@/src/screens/private/goalprogressloggingscreen/prayerGoalFrameContext";
 import { PrayerWeeklyProgressHeader } from "./PrayerWeeklyProgressHeader";
 import { SinglePrayerDayRing } from "./SinglePrayerDayRing";
 import {
@@ -42,7 +45,10 @@ export function SinglePrayerWeeklyProgressDashboard({
   isGoalCompleted = false,
 }: SinglePrayerWeeklyProgressDashboardProps) {
   const { width: screenWidth } = useWindowDimensions();
-
+  const prayerFrame = useOptionalPrayerGoalFrameContext();
+  const { mutate: deletePrayerLog, isPending: isDeletingLog } =
+    useDeletePrayerLog();
+  const [selectForDeletion, setSelectForDeletion] = useState("");
   const displayWeekDays = loading ? LOADING_WEEK : weekDays;
   const [activeDayIndex, setActiveDayIndex] = useState(selectedDayIndex);
 
@@ -76,16 +82,34 @@ export function SinglePrayerWeeklyProgressDashboard({
           const showEmptyOutline =
             !loading && isGoalCompleted && !hasLog && !isMenstruation;
           const isInactiveOutline = isFuture || showEmptyOutline;
+          const isMarkedForDeletion =
+            !!day.date && selectForDeletion === day.date;
 
           return (
             <TouchableOpacity
               key={`${day.day}-${index}`}
               style={[
                 styles.dayColumn,
-                day.isBestDay && !isInactiveOutline && { zIndex: 2 },
+                (day.isBestDay && !isInactiveOutline) || isMarkedForDeletion
+                  ? { zIndex: 2 }
+                  : null,
+                isMarkedForDeletion && styles.dayColumnMarkedForDeletion,
               ]}
+              onLongPress={() => {
+                if (loading || isFuture || !day.date) return;
+
+                if (day.prayersLogged > 0) {
+                  setSelectForDeletion((prev) =>
+                    prev === day.date ? "" : (day.date ?? ""),
+                  );
+                }
+              }}
               onPress={() => {
                 if (loading || isFuture) return;
+                if (selectForDeletion) {
+                  setSelectForDeletion("");
+                  return;
+                }
                 setActiveDayIndex(index);
                 onDayPress?.(index);
               }}
@@ -166,6 +190,26 @@ export function SinglePrayerWeeklyProgressDashboard({
                   </Text>
                 </View>
               </View>
+              {isMarkedForDeletion ? (
+                <Pressable
+                  style={styles.deleteButton}
+                  disabled={isDeletingLog || !prayerFrame?.frame?.prayerType}
+                  onPress={() => {
+                    const prayerType = prayerFrame?.frame?.prayerType;
+                    if (!prayerType || !day.date || isDeletingLog) return;
+                    deletePrayerLog(
+                      { prayerType, date: day.date },
+                      {
+                        onSuccess: () => {
+                          setSelectForDeletion("");
+                        },
+                      },
+                    );
+                  }}
+                >
+                  <BinIcon />
+                </Pressable>
+              ) : null}
             </TouchableOpacity>
           );
         })}
@@ -216,6 +260,25 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     overflow: "visible",
+  },
+  dayColumnMarkedForDeletion: {
+    borderWidth: 1,
+    borderColor: Colors.light.red,
+    borderRadius: 6,
+    backgroundColor: Colors.light.dullRed,
+  },
+  deleteButton: {
+    height: 20,
+    width: 24,
+    backgroundColor: Colors.light.red,
+    borderRadius: 5,
+    zIndex: 1000,
+    alignSelf: "center",
+    justifyContent: "center",
+    alignItems: "center",
+    position: "absolute",
+    bottom: -10,
+    right: 10,
   },
   dayItemWrapper: {
     alignItems: "center",

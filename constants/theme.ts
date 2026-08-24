@@ -85,6 +85,7 @@ export const Colors = {
     mildGreen: "#1CBF71",
     idlePrayerBox: "rgba(255, 255, 255, 0.5)",
     inactiveTaperedBorder: "#374556",
+    dullRed: "rgba(255, 64, 70, 0.1)",
   },
   dark: {
     text: "#ECEDEE",
