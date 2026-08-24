@@ -334,7 +334,7 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 20,
+    gap: 46,
     width: "100%",
   },
   timingOption: {

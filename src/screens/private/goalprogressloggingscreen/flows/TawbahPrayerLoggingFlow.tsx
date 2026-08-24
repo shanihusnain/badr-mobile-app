@@ -55,6 +55,10 @@ type Props = {
 type FlowMode = "collapsed" | "active";
 
 const toDateString = (date: Date) => moment(date).format("YYYY-MM-DD");
+const toCalendarDate = (value: string) => {
+  const match = String(value).match(/^(\d{4}-\d{2}-\d{2})/);
+  return match ? match[1] : moment(value).format("YYYY-MM-DD");
+};
 
 export default function TawbahPrayerLoggingFlow({
   goalData,
@@ -80,10 +84,10 @@ export default function TawbahPrayerLoggingFlow({
     prayerFrame?.isLoading || (!frame && !prayerFrame?.isError);
 
   const cycleStartHijri = frame?.cycle?.cycleStart
-    ? toDateString(new Date(frame.cycle.cycleStart))
+    ? toCalendarDate(frame.cycle.cycleStart)
     : undefined;
   const cycleEndHijri = frame?.cycle?.cycleEnd
-    ? toDateString(new Date(frame.cycle.cycleEnd))
+    ? toCalendarDate(frame.cycle.cycleEnd)
     : undefined;
 
   const goalLabel = frame?.goal.label ?? "---";
@@ -110,12 +114,17 @@ export default function TawbahPrayerLoggingFlow({
     : todayString;
 
   React.useEffect(() => {
-    if (!cycleStartHijri || !cycleEndHijri) return;
-    if (selectedDate < cycleStartHijri) setSelectedDate(cycleStartHijri);
-    else if (selectedDate > maxSelectableDate) {
-      setSelectedDate(maxSelectableDate);
-    }
-  }, [cycleStartHijri, cycleEndHijri, maxSelectableDate, selectedDate]);
+    if (!cycleStartHijri) return;
+    const minDate =
+      cycleStartHijri <= maxSelectableDate
+        ? cycleStartHijri
+        : maxSelectableDate;
+    setSelectedDate((prev) => {
+      if (prev < minDate) return minDate;
+      if (prev > maxSelectableDate) return maxSelectableDate;
+      return prev;
+    });
+  }, [cycleStartHijri, maxSelectableDate]);
 
   const currentStep = STEPS[stepIndex];
   const isLastStep = stepIndex === STEPS.length - 1;

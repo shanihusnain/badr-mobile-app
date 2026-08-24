@@ -178,7 +178,11 @@ export function SinglePrayerWeeklyProgressDashboard({
             <Text style={styles.statsCount}>
               {loading ? "---" : totalPrayersThisWeek}
             </Text>
-            {loading ? "" : " prayers this week"}
+            {loading
+              ? ""
+              : totalPrayersThisWeek > 1
+                ? " prayers this week"
+                : " prayer this week"}
           </Text>
         </View>
 

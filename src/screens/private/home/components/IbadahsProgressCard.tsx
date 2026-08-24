@@ -63,7 +63,7 @@ export const IbadahsProgressCard = ({
         <TaperedCircleBorder
           percentage={loading ? "0%" : percentage}
           borderColor={Colors.light.dullWhiteOpacity}
-          size={50}
+          size={70}
           variant="illuminated"
         >
           <View style={styles.percentTextContainer}>
@@ -136,6 +136,9 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         marginRight: 13,
+        width: 50,
+        height: 50,
+        overflow: "visible",
     },
     percentTextContainer: {
         flexDirection: "row",

@@ -13,7 +13,7 @@ import { Colors } from "@/constants/theme";
 import { GoalData } from "../../home/components/goalsData";
 import { DateStep } from "../components/DateStep";
 import { PrayerQuantityInputStep } from "../components/PrayerQuantityInputStep";
-import { StartTimeStep, DurationStep } from "../components/TimePickerSteps";
+import { StartTimeStep, DurationStep, getCurrentStartTimeParts } from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
 import {
   styles as commonStyles,
@@ -56,6 +56,10 @@ type Props = {
 type FlowMode = "collapsed" | "active";
 
 const toDateString = (date: Date) => moment(date).format("YYYY-MM-DD");
+const toCalendarDate = (value: string) => {
+  const match = String(value).match(/^(\d{4}-\d{2}-\d{2})/);
+  return match ? match[1] : moment(value).format("YYYY-MM-DD");
+};
 
 export default function DuhaPrayerLoggingFlow({
   goalData,
@@ -67,13 +71,19 @@ export default function DuhaPrayerLoggingFlow({
   const [flowMode, setFlowMode] = useState<FlowMode>("collapsed");
   const [stepIndex, setStepIndex] = useState(0);
   const [selectedDate, setSelectedDate] = useState(toDateString(new Date()));
-  const [prayersCount, setPrayersCount] = useState("2");
-  const [startHour, setStartHour] = useState("06");
-  const [startMinute, setStartMinute] = useState("15");
-  const [startPeriod, setStartPeriod] = useState<"am" | "pm">("am");
+  const [prayersCount, setPrayersCount] = useState("1");
+  const [startHour, setStartHour] = useState(
+    () => getCurrentStartTimeParts().hour,
+  );
+  const [startMinute, setStartMinute] = useState(
+    () => getCurrentStartTimeParts().minute,
+  );
+  const [startPeriod, setStartPeriod] = useState<"am" | "pm">(
+    () => getCurrentStartTimeParts().period,
+  );
   const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
   const [durationHours, setDurationHours] = useState("0");
-  const [durationMinutes, setDurationMinutes] = useState("10");
+  const [durationMinutes, setDurationMinutes] = useState("0");
 
   const prayerFrame = useOptionalPrayerGoalFrameContext();
   const frame = prayerFrame?.frame;
@@ -81,10 +91,10 @@ export default function DuhaPrayerLoggingFlow({
     prayerFrame?.isLoading || (!frame && !prayerFrame?.isError);
 
   const cycleStartHijri = frame?.cycle?.cycleStart
-    ? toDateString(new Date(frame.cycle.cycleStart))
+    ? toCalendarDate(frame.cycle.cycleStart)
     : undefined;
   const cycleEndHijri = frame?.cycle?.cycleEnd
-    ? toDateString(new Date(frame.cycle.cycleEnd))
+    ? toCalendarDate(frame.cycle.cycleEnd)
     : undefined;
 
   const goalLabel = frame?.goal.label ?? "---";
@@ -111,12 +121,17 @@ export default function DuhaPrayerLoggingFlow({
     : todayString;
 
   React.useEffect(() => {
-    if (!cycleStartHijri || !cycleEndHijri) return;
-    if (selectedDate < cycleStartHijri) setSelectedDate(cycleStartHijri);
-    else if (selectedDate > maxSelectableDate) {
-      setSelectedDate(maxSelectableDate);
-    }
-  }, [cycleStartHijri, cycleEndHijri, maxSelectableDate, selectedDate]);
+    if (!cycleStartHijri) return;
+    const minDate =
+      cycleStartHijri <= maxSelectableDate
+        ? cycleStartHijri
+        : maxSelectableDate;
+    setSelectedDate((prev) => {
+      if (prev < minDate) return minDate;
+      if (prev > maxSelectableDate) return maxSelectableDate;
+      return prev;
+    });
+  }, [cycleStartHijri, maxSelectableDate]);
 
   const currentStep = STEPS[stepIndex];
   const isLastStep = stepIndex === STEPS.length - 1;
@@ -156,13 +171,14 @@ export default function DuhaPrayerLoggingFlow({
   };
 
   const resetFlow = useCallback(() => {
+    const now = getCurrentStartTimeParts();
     setFlowMode("collapsed");
     setStepIndex(0);
     setSelectedDate(toDateString(new Date()));
-    setPrayersCount("2");
-    setStartHour("06");
-    setStartMinute("15");
-    setStartPeriod("am");
+    setPrayersCount("1");
+    setStartHour(now.hour);
+    setStartMinute(now.minute);
+    setStartPeriod(now.period);
     setDurationHours("0");
     setDurationMinutes("10");
     setIsPeriodDropdownOpen(false);
@@ -183,15 +199,15 @@ export default function DuhaPrayerLoggingFlow({
         await logDuha(payload);
         await prayerFrame?.refetch();
 
-        onLogComplete?.({
-          type: "duha-prayer",
-          goalId: goalData.id,
-          date: selectedDate,
-          prayersCount,
+    onLogComplete?.({
+      type: "duha-prayer",
+      goalId: goalData.id,
+      date: selectedDate,
+      prayersCount,
           startTime: payload.startTime,
           durationMinutes: payload.durationMinutes,
-        } as any);
-        resetFlow();
+    } as any);
+    resetFlow();
       } catch {
         // onError handler already shows toast.
       }
@@ -294,18 +310,18 @@ export default function DuhaPrayerLoggingFlow({
 
   return (
     <>
-      {flowMode === "active" && (
-        <Pressable style={commonStyles.backdrop} onPress={resetFlow} />
-      )}
-      {flowMode === "active" && (
+        {flowMode === "active" && (
+          <Pressable style={commonStyles.backdrop} onPress={resetFlow} />
+        )}
+        {flowMode === "active" && (
         <TouchableOpacity
           style={commonStyles.cancelButton}
           onPress={resetFlow}
           activeOpacity={0.8}
         >
-          <Ionicons name="close" size={20} color={Colors.light.white} />
-        </TouchableOpacity>
-      )}
+            <Ionicons name="close" size={20} color={Colors.light.white} />
+          </TouchableOpacity>
+        )}
 
       <View style={commonStyles.section}>
         <Text style={commonStyles.sectionTitle}>
@@ -313,16 +329,16 @@ export default function DuhaPrayerLoggingFlow({
         </Text>
 
         <View style={commonStyles.cardAnchor}>
-          {flowMode === "collapsed" ? (
-            <View style={localStyles.summaryCard}>
-              <View style={localStyles.summaryBody}>
-                <View style={localStyles.summaryIconCircle}>
+        {flowMode === "collapsed" ? (
+          <View style={localStyles.summaryCard}>
+            <View style={localStyles.summaryBody}>
+              <View style={localStyles.summaryIconCircle}>
                   <FlowCardDuhaPrayerIcon
                     color={Colors.light.white}
                     size={18}
                   />
-                </View>
-                <View style={{ flex: 1, gap: 4 }}>
+              </View>
+              <View style={{ flex: 1, gap: 4 }}>
                   <View
                     style={[
                       localStyles.badge,
@@ -346,7 +362,7 @@ export default function DuhaPrayerLoggingFlow({
                           : localStyles.badgeTextInProgress,
                       ]}
                     >
-                      {badgeStatus.text}
+                    {badgeStatus.text}
                     </Text>
                   </View>
                   <Text
@@ -358,18 +374,18 @@ export default function DuhaPrayerLoggingFlow({
                     numberOfLines={2}
                   >
                     {goalLabel}
-                  </Text>
-                </View>
+                </Text>
               </View>
+            </View>
 
-              <View style={localStyles.footerRow}>
+            <View style={localStyles.footerRow}>
                 {showInsights ? (
                   <TouchableOpacity
                     style={localStyles.insightsBtn}
                     onPress={prayerFrame?.openInsights}
                     activeOpacity={0.8}
                   >
-                    <Text style={localStyles.insightsText}>VIEW INSIGHTS</Text>
+                  <Text style={localStyles.insightsText}>VIEW INSIGHTS</Text>
                     <Ionicons
                       name="chevron-forward"
                       size={22}
@@ -393,30 +409,30 @@ export default function DuhaPrayerLoggingFlow({
                   <AddLoggingFlowIcon />
                 </TouchableOpacity>
               </View>
-            </View>
-          ) : (
-            <View style={commonStyles.flowCardLayer}>
-              <FlowCard
-                headerIcon={stepHeader.icon}
-                headerLabel={stepHeader.label}
-                onBack={handleBack}
-                onForward={handleForward}
-                onConfirm={handleConfirm}
+          </View>
+        ) : (
+          <View style={commonStyles.flowCardLayer}>
+            <FlowCard
+              headerIcon={stepHeader.icon}
+              headerLabel={stepHeader.label}
+              onBack={handleBack}
+              onForward={handleForward}
+              onConfirm={handleConfirm}
                 canGoForward={
                   !isLastStep &&
                   !(currentStep === "prayers-quantity" && quantityValue < 1)
                 }
                 canGoBack={stepIndex > 0}
                 canConfirm={isLastStep && !isLogging && quantityValue >= 1}
-                styles={commonStyles}
-                style={commonStyles.inPlaceFlowCard}
-              >
-                {renderStepContent(currentStep)}
-              </FlowCard>
-            </View>
-          )}
-        </View>
+              styles={commonStyles}
+              style={commonStyles.inPlaceFlowCard}
+            >
+              {renderStepContent(currentStep)}
+            </FlowCard>
+          </View>
+        )}
       </View>
+    </View>
     </>
   );
 }
@@ -462,7 +478,7 @@ const localStyles = StyleSheet.create({
   summaryBody: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    gap: 6,
   },
   summaryIconCircle: {
     width: 36,
