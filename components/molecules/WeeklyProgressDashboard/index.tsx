@@ -271,7 +271,7 @@ export const WeeklyProgressDashboard: React.FC<
         vsLastWeek={vsLastWeek}
         motivationalQuote={motivationalQuote}
         comparisonVariant="onTime"
-        streakVariant="green"
+        streakVariant="default"
       />
     </View>
   );
@@ -372,5 +372,4 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontSize: 20,
   },
-
 });

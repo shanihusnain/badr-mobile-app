@@ -229,7 +229,7 @@ export function TahiyatUlWudhuWeeklyProgressDashboard({
 
       <View style={styles.daysRow}>
         {displayWeekDays.map((day, index) => {
-          const isSelected = !loading && index === activeDayIndex;
+          const isSelected = day?.isToday === true;
           const hasLog = day.prayersLogged > 0 || !!day.isLogged;
           const isFuture = !!day.isFuture;
           const isMenstruation = !!day.isMenstruation;
@@ -426,7 +426,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     paddingHorizontal: 4,
     paddingTop: 2,
-    paddingBottom: 4,
+    paddingBottom: 18,
     borderRadius: 8,
     width: "100%",
     overflow: "visible",
@@ -435,6 +435,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.dayProgressCardBg,
     paddingTop: 3,
     paddingBottom: 18,
+    borderRadius: 6,
   },
   bestDayLabel: {
     color: Colors.light.green,
