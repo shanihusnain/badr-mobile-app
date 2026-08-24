@@ -451,6 +451,7 @@ const localStyles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
+    marginTop: -6,
   },
   badgeInProgress: {
     backgroundColor: Colors.light.lightpurple,

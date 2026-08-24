@@ -448,6 +448,7 @@ const localStyles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
+    marginTop: -6,
   },
   // "In Progress" chip — light purple bg, dark blue text
   badgeInProgress: {

@@ -94,6 +94,7 @@ export const styles = StyleSheet.create({
     borderRadius: 4,
     paddingHorizontal: 6,
     paddingVertical: 5,
+    marginTop: -4,
     marginBottom: 10,
   },
   badgeText: {
