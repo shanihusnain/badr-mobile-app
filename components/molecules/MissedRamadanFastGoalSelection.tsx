@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { useGoalSelectionOpenState } from "@/hooks/useGoalSelectionOpenState";
 import {
   StyleSheet,
   Text,
@@ -35,7 +36,7 @@ export default function MissedRamadanFastGoalSelection({
   const [selectedDates, setSelectedDates] = useState<string[]>(
     () => calendarWindow?.missedRamadanDates ?? [],
   );
-  const [isOpen, setIsOpen] = useState(openOnMount);
+  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount);
 
   const legendItems = useMemo(
     () =>

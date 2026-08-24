@@ -45,6 +45,7 @@ import {
   isPastAchievementBarEmpty,
 } from "@/src/utils/pastAchievementNoData";
 import { resolvePrayerTypeFromGoalId } from "@/src/utils/prayerGoalMap";
+import { useOptionalPrayerGoalFrameContext } from "@/src/screens/private/goalprogressloggingscreen/prayerGoalFrameContext";
 import {
   NegativeProgressIcon,
   PositiveProgressIcon,
@@ -446,6 +447,7 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
   const formatNumber = useLocaleNumber();
   const { width } = useWindowDimensions();
   const router = useRouter();
+  const prayerFrame = useOptionalPrayerGoalFrameContext();
   const [selectedPrayerTab, setSelectedPrayerTab] = useState<string>("All");
   const [period, setPeriod] = useState<PastAchievementPeriod>("monthly");
   const [periodStartParam, setPeriodStartParam] = useState<string | null>(null);
@@ -637,11 +639,35 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
     displayBaseIncomplete,
   );
 
-  /** Hide detailed-stats chevron until the user has logged at least one prayer. */
+  /** Show detailed-stats chevron once the user has any logged prayer activity. */
+  const hasLoggedPrayerActivity = useMemo(() => {
+    const frame = prayerFrame?.frame;
+    if (frame) {
+      if ((frame.goal.achievementPct ?? 0) > 0) return true;
+      if ((frame.week.thisWeekTotal ?? 0) > 0) return true;
+      if (
+        frame.week.days.some(
+          (day) => (day.count ?? day.totalLogged ?? 0) > 0,
+        )
+      ) {
+        return true;
+      }
+    }
+
+    if (!baseAchievement) return false;
+    if ((baseAchievement.completedPrayers ?? 0) > 0) return true;
+    if ((baseAchievement.achievementPercent ?? 0) > 0) return true;
+    return baseAchievement.chartData.some((item) => {
+      const row = item as {
+        completedPrayers?: number;
+        completedHours?: number;
+      };
+      return (row.completedPrayers ?? 0) > 0 || (row.completedHours ?? 0) > 0;
+    });
+  }, [baseAchievement, prayerFrame?.frame]);
+
   const showDetailedStatsChevron =
-    !isDetailed &&
-    !showPlaceholders &&
-    (baseAchievement?.completedPrayers ?? 0) > 0;
+    !isDetailed && hasLoggedPrayerActivity;
 
   const displayTimeSpent =
     selectedBaseWeek?.timeSpentMinutes ??

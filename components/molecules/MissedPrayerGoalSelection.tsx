@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useGoalSelectionOpenState } from "@/hooks/useGoalSelectionOpenState";
 import {
   StyleSheet,
   Text,
@@ -32,7 +33,7 @@ export default function MissedPrayerGoalSelection({
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
   const [sliderValue, setSliderValue] = useState(initialValue);
-  const [isOpen, setIsOpen] = useState(openOnMount);
+  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount);
 
   const toggleDropdown = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);

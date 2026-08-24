@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useGoalSelectionOpenState } from "@/hooks/useGoalSelectionOpenState";
 import {
   StyleSheet,
   Text,
@@ -50,7 +51,7 @@ export default function QiyamalLaylGoalSelection({
 }) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
-  const [isOpen, setIsOpen] = useState(openOnMount);
+  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount);
   const [commitment, setCommitment] = useState<"every_night" | "flexible">(
     initialValues?.isFlexible ? "flexible" : "every_night",
   );

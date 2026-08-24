@@ -27,13 +27,19 @@ export const styles = StyleSheet.create({
   },
   scrollContentWithHero: {
     marginTop: 0,
-    paddingTop: 100,
+    paddingTop: 0,
   },
   heroBackground: {
     position: "absolute",
     top: 0,
     left: 0,
     right: 0,
+    zIndex: 0,
+  },
+  scrollHeader: {
+    zIndex: 20,
+    elevation: 20,
+    position: "relative",
   },
   heroBackgroundImage: {
     width: "100%",
@@ -69,14 +75,14 @@ export const styles = StyleSheet.create({
   largeCircleInner: {
     alignItems: "center",
     justifyContent: "center",
-    gap: 2,
+    gap: 7,
     width: "100%",
     height: "100%",
   },
   circleGoalText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
-    fontSize: 13,
+    fontSize: 14,
     opacity: 0.95,
     letterSpacing: -0.2,
     marginBottom: 0,
@@ -91,9 +97,9 @@ export const styles = StyleSheet.create({
   },
   circlePercentNumber: {
     color: Colors.light.white,
-    fontFamily: fonts.primary.bold,
-    fontSize: 36,
-    fontWeight: "700",
+    fontFamily: fonts.primary.regular,
+    fontSize: 32,
+    fontWeight: "400",
     lineHeight: 40,
   },
   circlePercentSymbol: {

@@ -34,7 +34,7 @@ export const KafarahForBreakingFastsOrOAthSelector = ({
   openOnMount?: boolean;
 }) => {
   const { t } = useTranslation();
-  const [isOpen, setIsOpen] = useState(openOnMount);
+  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount);
   const toggleDropdown = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setIsOpen(!isOpen);

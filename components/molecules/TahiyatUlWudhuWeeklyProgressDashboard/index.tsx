@@ -111,7 +111,9 @@ function TahiyatUlWudhuDayRing({
           isMenstruation
             ? styles.ringInnerMenstruation
             : showEmptyOutline
-              ? styles.ringInnerDimOutline
+              ? isSelected
+                ? styles.ringInnerSelectedEmpty
+                : styles.ringInnerDimOutline
               : isFuture
                 ? styles.ringInnerFuture
                 : hasLog
@@ -526,8 +528,8 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255, 255, 255, 0.1)",
   },
   ringInnerSelectedEmpty: {
-    backgroundColor: "transparent",
-    borderWidth: 1.5,
+    backgroundColor: Colors.light.greybuttonBackground,
+    borderWidth: 1.2,
     borderColor: "rgba(255, 255, 255, 0.28)",
   },
   /** Upcoming days while goal is still in progress (not 100%). */
@@ -589,8 +591,11 @@ const styles = StyleSheet.create({
   },
   footerRow: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     gap: 13,
+    minWidth: 0,
+    width: "100%",
+    paddingHorizontal: 4,
   },
   footerRowWithComparison: {
     justifyContent: "flex-end",
@@ -618,6 +623,12 @@ const styles = StyleSheet.create({
     width: "100%",
     marginTop: 4,
   },
+  quoteBlockInline: {
+    flex: 1,
+    width: undefined,
+    minWidth: 0,
+    marginTop: 0,
+  },
   quoteTextWrap: {
     flex: 1,
     flexShrink: 1,
@@ -628,6 +639,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 4,
     flexShrink: 1,
+    minWidth: 0,
   },
   comparisonText: {
     color: Colors.light.white,
@@ -636,6 +648,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.regular,
     lineHeight: 16,
     letterSpacing: 0.1,
+    flexShrink: 1,
   },
   comparisonCount: {
     color: Colors.light.white,
@@ -648,9 +661,10 @@ const styles = StyleSheet.create({
   quoteText: {
     color: Colors.light.white,
     fontSize: 13,
-    lineHeight: 15,
+    lineHeight: 16,
     letterSpacing: -0.1,
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
+    flexShrink: 1,
   },
 });

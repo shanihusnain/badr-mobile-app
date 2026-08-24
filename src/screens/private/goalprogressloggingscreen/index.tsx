@@ -402,33 +402,8 @@ export const GoalProgressLoggingScreen = ({
   };
 
   useLayoutEffect(() => {
-    if (!goalData) {
-      navigation.setOptions({ headerShown: false });
-      return;
-    }
-    if (shouldUseBackground) {
-      navigation.setOptions({
-        headerShown: true,
-        headerTransparent: true,
-        header: () => (
-          <HeaderWithCrossTitleDynamicIcon
-            title={
-              goalData.title?.toUpperCase() ?? goalData.label.toUpperCase()
-            }
-            navigation={navigation}
-            bgcolor="transparent"
-            iconName="chevron-left"
-            leftButtonBackground="rgba(255,255,255,0.08)"
-            onBackPress={() => navigation.goBack()}
-            rightIcon={<HeaderInfoIcon />}
-            onRightPress={prayerType ? openInsightsSheet : undefined}
-          />
-        ),
-      });
-    } else {
-      navigation.setOptions({ headerShown: false });
-    }
-  }, [navigation, shouldUseBackground, goalData, prayerType]);
+    navigation.setOptions({ headerShown: false });
+  }, [navigation]);
 
   if (!goalData) {
     return (
@@ -458,6 +433,22 @@ export const GoalProgressLoggingScreen = ({
         scrollEnabled={screenScrollEnabled}
         nestedScrollEnabled
       >
+        {shouldUseBackground ? (
+          <View style={styles.scrollHeader} pointerEvents="box-none">
+            <HeaderWithCrossTitleDynamicIcon
+              title={
+                goalData.title?.toUpperCase() ?? goalData.label.toUpperCase()
+              }
+              navigation={navigation}
+              bgcolor="transparent"
+              iconName="chevron-left"
+              leftButtonBackground="rgba(255,255,255,0.08)"
+              onBackPress={() => navigation.goBack()}
+              rightIcon={<HeaderInfoIcon />}
+              onRightPress={prayerType ? openInsightsSheet : undefined}
+            />
+          </View>
+        ) : null}
         <GoalProgressLoggingContent
           goalData={goalData}
           goalId={goalId}

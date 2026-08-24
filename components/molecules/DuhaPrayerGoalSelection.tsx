@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useGoalSelectionOpenState } from "@/hooks/useGoalSelectionOpenState";
 import {
   StyleSheet,
   Text,
@@ -32,7 +33,7 @@ export default function DuhaPrayerGoalSelection({
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
   const [sliderValue, setSliderValue] = useState(initialValue);
-  const [isOpen, setIsOpen] = useState(openOnMount);
+  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount);
 
   const toggleDropdown = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -66,7 +67,16 @@ export default function DuhaPrayerGoalSelection({
             <GoalSelectionSaveButton
               text={t("prayerGoals.save").toLocaleUpperCase()}
               onPress={(markSaved, markFailed) => {
-                onSave?.(sliderValue, markSaved, markFailed);
+                const handleSaved = () => {
+                  markSaved?.();
+                  setTimeout(() => {
+                    LayoutAnimation.configureNext(
+                      LayoutAnimation.Presets.easeInEaseOut,
+                    );
+                    setIsOpen(false);
+                  }, 2000);
+                };
+                onSave?.(sliderValue, handleSaved, markFailed);
               }}
               isLoading={isSaving}
               disabled={isSaving}

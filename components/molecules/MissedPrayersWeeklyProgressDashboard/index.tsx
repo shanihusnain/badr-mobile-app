@@ -84,14 +84,16 @@ function MissedPrayersDayRing({
             borderRadius: size / 2,
           },
           isFuture || showEmptyOutline
-            ? styles.ringInnerFuture
+            ? isSelected
+              ? styles.ringInnerSelectedEmpty
+              : styles.ringInnerFuture
             : hasLog
               ? [
                   styles.ringInnerLogged,
                   isSelected && styles.ringInnerLoggedToday,
                 ]
               : isSelected
-                ? styles.ringInnerFuture
+                ? styles.ringInnerSelectedEmpty
                 : styles.ringInnerEmpty,
         ]}
       >
@@ -425,6 +427,11 @@ const styles = StyleSheet.create({
   },
   ringInnerEmpty: {
     backgroundColor: "rgba(255, 255, 255, 0.1)",
+  },
+  ringInnerSelectedEmpty: {
+    backgroundColor: Colors.light.greybuttonBackground,
+    borderWidth: 1.2,
+    borderColor: "rgba(255, 255, 255, 0.28)",
   },
   ringInnerFuture: {
     backgroundColor: "transparent",

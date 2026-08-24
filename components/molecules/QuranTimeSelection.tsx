@@ -37,7 +37,7 @@ export const QuranTimeSelection = ({
   openOnMount?: boolean;
 }) => {
   const { t } = useTranslation();
-  const [isOpen, setIsOpen] = useState(openOnMount);
+  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount);
   const [inputValue, setInputValue] = useState<string>("");
   const [hydrated, setHydrated] = useState(false);
 
