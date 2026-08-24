@@ -1724,17 +1724,18 @@ const styles = StyleSheet.create({
   },
   insightsTitleLabel: {
     color: Colors.light.white,
-    fontSize: 11,
+    fontSize: 12,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
-    letterSpacing: 0.5,
+   
   },
   insightsSubtitleLabel: {
     color: Colors.light.subtext,
-    fontSize: 10,
+    fontSize: 12,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
-    letterSpacing: 0.5,
+  
+    marginRight: 10,
   },
   insightsScrollContent: {
     flexDirection: "row",

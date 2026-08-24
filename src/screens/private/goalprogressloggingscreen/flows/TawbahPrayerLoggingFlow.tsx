@@ -13,7 +13,7 @@ import { Colors } from "@/constants/theme";
 import { GoalData } from "../../home/components/goalsData";
 import { DateStep } from "../components/DateStep";
 import { PrayerQuantityInputStep } from "../components/PrayerQuantityInputStep";
-import { StartTimeStep, DurationStep } from "../components/TimePickerSteps";
+import { StartTimeStep, DurationStep, getCurrentStartTimeParts } from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
 import {
   styles as commonStyles,
@@ -31,6 +31,7 @@ import {
   AddLoggingFlowIcon,
   CalendarFlippingIcon,
   WhiteClockIcon,
+  WhitePrayerMatIcon,
   WhiteTimerIcon,
 } from "@/assets/icons";
 import { TawbahPrayerDetailedIbadhasIcon } from "@/assets/icons/TawbahPrayerDetailedIbadhasIcon";
@@ -70,13 +71,19 @@ export default function TawbahPrayerLoggingFlow({
   const [flowMode, setFlowMode] = useState<FlowMode>("collapsed");
   const [stepIndex, setStepIndex] = useState(0);
   const [selectedDate, setSelectedDate] = useState(toDateString(new Date()));
-  const [prayersCount, setPrayersCount] = useState("2");
-  const [startHour, setStartHour] = useState("06");
-  const [startMinute, setStartMinute] = useState("15");
-  const [startPeriod, setStartPeriod] = useState<"am" | "pm">("am");
+  const [prayersCount, setPrayersCount] = useState("1");
+  const [startHour, setStartHour] = useState(
+    () => getCurrentStartTimeParts().hour,
+  );
+  const [startMinute, setStartMinute] = useState(
+    () => getCurrentStartTimeParts().minute,
+  );
+  const [startPeriod, setStartPeriod] = useState<"am" | "pm">(
+    () => getCurrentStartTimeParts().period,
+  );
   const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
   const [durationHours, setDurationHours] = useState("0");
-  const [durationMinutes, setDurationMinutes] = useState("10");
+  const [durationMinutes, setDurationMinutes] = useState("0");
 
   const prayerFrame = useOptionalPrayerGoalFrameContext();
   const frame = prayerFrame?.frame;
@@ -164,13 +171,14 @@ export default function TawbahPrayerLoggingFlow({
   };
 
   const resetFlow = useCallback(() => {
+    const now = getCurrentStartTimeParts();
     setFlowMode("collapsed");
     setStepIndex(0);
     setSelectedDate(toDateString(new Date()));
-    setPrayersCount("2");
-    setStartHour("06");
-    setStartMinute("15");
-    setStartPeriod("am");
+    setPrayersCount("1");
+    setStartHour(now.hour);
+    setStartMinute(now.minute);
+    setStartPeriod(now.period);
     setDurationHours("0");
     setDurationMinutes("10");
     setIsPeriodDropdownOpen(false);
@@ -235,12 +243,7 @@ export default function TawbahPrayerLoggingFlow({
         };
       case "prayers-quantity":
         return {
-          icon: (
-            <TawbahPrayerDetailedIbadhasIcon
-              color={Colors.light.white}
-              size={18}
-            />
-          ),
+          icon: <WhitePrayerMatIcon size={26} />,
           label: "How many 2-rak'ah prayers did you pray?",
         };
       case "start-time":
@@ -475,7 +478,7 @@ const localStyles = StyleSheet.create({
   summaryBody: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    gap: 6,
   },
   summaryIconCircle: {
     width: 36,
