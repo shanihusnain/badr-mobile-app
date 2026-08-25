@@ -664,9 +664,9 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
   }, [baseAchievement, prayerFrame?.frame]);
 
   const showDetailedStatsChevron =
-    !isDetailed &&
-    hasLoggedPrayerActivity &&
-    (achievementsApiData?.achievementPct ?? 0) > 0;
+    !isDetailed && achievementsApiData?.chartData &&
+  achievementsApiData?.chartData.some((item) => item?.completed >0)
+    achievementsApiData?.achievementPct && achievementsApiData?.achievementPct  > 0;
 
   const displayTimeSpent =
     selectedBaseWeek?.timeSpentMinutes ??
