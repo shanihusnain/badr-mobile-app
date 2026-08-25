@@ -76,6 +76,9 @@ export const DetailedIbadahsProgressCard = ({
   loading = false,
 }: Props) => {
   const percentNum = percentage.replace("%", "");
+  const displayTitle = loading
+    ? "---"
+    : title.replace(/\bPRAYER\b/gi, "").trim();
 
   return (
     <TouchableOpacity
@@ -102,7 +105,7 @@ export const DetailedIbadahsProgressCard = ({
         </View>
         <View style={styles.textWrapper}>
           <Text style={[styles.title, { fontSize: titleFontSize }]}>
-            {loading ? "---" : title}
+            {displayTitle}
           </Text>
           <Text style={styles.subtitle}>
             {loading ? (
@@ -199,12 +202,12 @@ const styles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "700",
-    fontSize: 13,
+    fontSize: 14,
   },
   regularText: {
     color: Colors.light.subtext,
     fontFamily: fonts.primary.regular,
-    fontSize: 13,
+    fontSize: 14,
   },
   rightSection: {
     flexShrink: 0,
