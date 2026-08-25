@@ -1411,6 +1411,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontFamily: fonts.primary.heavy,
     fontWeight: "800",
+    marginTop: 10,
     //textTransform: "uppercase",
   },
   achievementPercentRow: {
@@ -1442,7 +1443,7 @@ const styles = StyleSheet.create({
     gap: 4,
     backgroundColor: Colors.light.calendarBg,
     borderRadius: 2,
-    paddingHorizontal: 10,
+    paddingHorizontal: 2,
     paddingVertical: 4,
     height: 24,
   },
@@ -1468,7 +1469,7 @@ const styles = StyleSheet.create({
     color: Colors.light.subtext,
   },
   deltaSlot: {
-    flex: 1,
+    // flex: 1,
     minWidth: 0,
     marginRight: 8,
     justifyContent: "center",

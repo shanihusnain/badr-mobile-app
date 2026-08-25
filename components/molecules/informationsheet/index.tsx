@@ -1,23 +1,30 @@
 import React, { forwardRef, type ReactNode } from "react";
-import { ActivityIndicator, StyleSheet, Text, View, type StyleProp, type TextStyle } from "react-native";
+import {
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  View,
+  type StyleProp,
+  type TextStyle,
+} from "react-native";
 import BottomSheet from "@gorhom/bottom-sheet";
-import Ionicons from "@expo/vector-icons/Ionicons";
 import { useTranslation } from "react-i18next";
 import { BottomSheetWrapper } from "../BottomSheetWrapper";
 import { TaperedCircleBorder } from "@/components/atoms/TaperedCircleBorder";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import { BestdayStarIcon } from "@/assets/icons/BestdayStarIcon";
-import { ClockIcon } from "@/assets/icons/ClockIcon";
 import { useGetPrayerGoalInsights } from "@/src/api/queries/useGetPrayerGoalInsights";
 import { useGetPrayerGoalFrame } from "@/src/api/queries/useGetPrayerGoalFrame";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import {
   FilledWallClock,
+  FlowCardMosqueIcon,
   GoldenTickIcon,
   LighteningIcon,
   WeighBalanceIcon,
 } from "@/assets/icons";
+import { resolvePrayerType } from "@/src/utils/prayerGoalMap";
 
 type Props = {
   prayerType: string;
@@ -50,31 +57,58 @@ function formatTimeSpent(totalMinutes: number): string {
   return `${minutes}m`;
 }
 
+function parseJumuahFraction(fraction: string | undefined): {
+  done: number;
+  total: number;
+} {
+  if (!fraction) return { done: 0, total: 0 };
+  const [doneRaw, totalRaw] = fraction.split("/");
+  const done = Number.parseInt(doneRaw ?? "0", 10);
+  const total = Number.parseInt(totalRaw ?? "0", 10);
+  return {
+    done: Number.isFinite(done) ? done : 0,
+    total: Number.isFinite(total) ? total : 0,
+  };
+}
+
 function StatRow({
   icon,
-  label,
-  value,
+  children,
 }: {
   icon: ReactNode;
-  label: string;
-  value: string;
+  children: ReactNode;
 }) {
   return (
     <View style={styles.statRow}>
       <View style={styles.statIcon}>{icon}</View>
-      <Text style={styles.statText}>
-        {`${label} `}
-        <Text style={styles.statValue}>
-          {renderWithNumberStyle(value, styles.statValueNumber)}
-        </Text>
-      </Text>
+      <Text style={styles.statText}>{children}</Text>
     </View>
+  );
+}
+
+function StatLabelValue({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <>
+      {`${label} `}
+      <Text style={styles.statValue}>
+        {renderWithNumberStyle(value, styles.statValueNumber)}
+      </Text>
+    </>
   );
 }
 
 export const InformationSheet = forwardRef<BottomSheet, Props>(
   function InformationSheet({ prayerType, onClose }, ref) {
     const { t } = useTranslation();
+    const resolvedType = resolvePrayerType(prayerType);
+    const isFiveDaily = resolvedType === "FIVE_DAILY_PRAYERS";
+
     const { data, isLoading, isError, refetch } = useGetPrayerGoalInsights(
       prayerType,
       {
@@ -101,6 +135,8 @@ export const InformationSheet = forwardRef<BottomSheet, Props>(
           : t("progressLogging.insightsCompletedInActiveDays", {
               count: stats.activeDaysCount,
             });
+
+    const jumuah = parseJumuahFraction(stats?.jumuahFraction);
 
     return (
       <BottomSheetWrapper
@@ -165,45 +201,131 @@ export const InformationSheet = forwardRef<BottomSheet, Props>(
               {renderWithNumberStyle(data.body, styles.boldNumber)}
             </Text>
             <Text style={styles.closing}>
-              {renderWithNumberStyle(data.motivationalClosing, styles.boldNumber)}
+              {renderWithNumberStyle(
+                data.motivationalClosing,
+                styles.boldNumber,
+              )}
             </Text>
 
             {stats ? (
               <View style={styles.statsList}>
-                <StatRow
-                  icon={<GoldenTickIcon size={22} />}
-                  label={t("progressLogging.insightsCompletedInLabel")}
-                  value={completedInValue}
-                />
-                <StatRow
-                  icon={<LighteningIcon />}
-                  label={t("progressLogging.insightsLongestStreakLabel")}
-                  value={t("progressLogging.insightsDayCount", {
-                    count: stats.longestStreak,
-                  })}
-                />
-                <StatRow
-                  icon={<BestdayStarIcon />}
-                  label={t("progressLogging.insightsPersonalBestLabel")}
-                  value={t("progressLogging.insightsPersonalBestValue", {
-                    count: stats.personalBest,
-                    daysLabel: t("progressLogging.insightsDayCount", {
-                      count: stats.personalBestDaysCount,
-                    }),
-                  })}
-                />
-                <StatRow
-                  icon={<WeighBalanceIcon />}
-                  label={t("progressLogging.insightsWeeklyAverageLabel")}
-                  value={t("progressLogging.insightsWeeklyAverageValue", {
-                    count: stats.weeklyAverage,
-                  })}
-                />
-                <StatRow
-                  icon={<FilledWallClock />}
-                  label={t("progressLogging.insightsTimeSpentLabel")}
-                  value={formatTimeSpent(stats.timeSpentMinutes)}
-                />
+                <StatRow icon={<GoldenTickIcon size={22} />}>
+                  <StatLabelValue
+                    label={t("progressLogging.insightsCompletedInLabel")}
+                    value={completedInValue}
+                  />
+                </StatRow>
+
+                {isFiveDaily ? (
+                  <>
+                    {stats.mosqueCount != null ? (
+                      <StatRow
+                        icon={
+                          <FlowCardMosqueIcon
+                            size={22}
+                            color={Colors.light.lightblue}
+                          />
+                        }
+                      >
+                        <Text style={styles.statValue}>
+                          {renderWithNumberStyle(
+                            t("progressLogging.insightsFiveDailyMosqueRow", {
+                              mosqueCount: stats.mosqueCount,
+                              jumuahDone: jumuah.done,
+                              jumuahTotal: jumuah.total,
+                            }),
+                            styles.statValueNumber,
+                          )}
+                        </Text>
+                      </StatRow>
+                    ) : null}
+
+                    <StatRow icon={<LighteningIcon />}>
+                      <Text style={styles.statValue}>
+                        {renderWithNumberStyle(
+                          t("progressLogging.insightsFiveDailyStreakRow", {
+                            streak: stats.longestStreak,
+                          }),
+                          styles.statValueNumber,
+                        )}
+                      </Text>
+                    </StatRow>
+
+                    <StatRow icon={<FilledWallClock />}>
+                      <StatLabelValue
+                        label={t("progressLogging.insightsTimeSpentLabel")}
+                        value={formatTimeSpent(stats.timeSpentMinutes)}
+                      />
+                    </StatRow>
+
+                    <StatRow icon={<WeighBalanceIcon />}>
+                      <StatLabelValue
+                        label={t(
+                          "progressLogging.insightsWeeklyAveragePerPrayerLabel",
+                        )}
+                        value={t(
+                          "progressLogging.insightsWeeklyAverageValue",
+                          {
+                            count: stats.weeklyAverage,
+                          },
+                        )}
+                      />
+                    </StatRow>
+                  </>
+                ) : (
+                  <>
+                    <StatRow icon={<LighteningIcon />}>
+                      <StatLabelValue
+                        label={t("progressLogging.insightsLongestStreakLabel")}
+                        value={t("progressLogging.insightsDayCount", {
+                          count: stats.longestStreak,
+                        })}
+                      />
+                    </StatRow>
+
+                    {stats.personalBest != null &&
+                    stats.personalBestDaysCount != null ? (
+                      <StatRow icon={<BestdayStarIcon />}>
+                        <StatLabelValue
+                          label={t(
+                            "progressLogging.insightsPersonalBestLabel",
+                          )}
+                          value={t(
+                            "progressLogging.insightsPersonalBestValue",
+                            {
+                              count: stats.personalBest,
+                              daysLabel: t(
+                                "progressLogging.insightsDayCount",
+                                {
+                                  count: stats.personalBestDaysCount,
+                                },
+                              ),
+                            },
+                          )}
+                        />
+                      </StatRow>
+                    ) : null}
+
+                    <StatRow icon={<WeighBalanceIcon />}>
+                      <StatLabelValue
+                        label={t("progressLogging.insightsWeeklyAverageLabel")}
+                        value={t(
+                          "progressLogging.insightsWeeklyAverageValue",
+                          {
+                            count: stats.weeklyAverage,
+                          },
+                        )}
+                      />
+                    </StatRow>
+
+                    <StatRow icon={<FilledWallClock />}>
+                      <StatLabelValue
+                        label={t("progressLogging.insightsTimeSpentLabel")}
+                        value={formatTimeSpent(stats.timeSpentMinutes)}
+                      />
+                    </StatRow>
+                  </>
+                )}
               </View>
             ) : null}
           </View>
@@ -321,6 +443,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
     fontSize: 14,
+    color: Colors.light.white,
   },
   statValueNumber: {
     fontFamily: fonts.primary.medium,

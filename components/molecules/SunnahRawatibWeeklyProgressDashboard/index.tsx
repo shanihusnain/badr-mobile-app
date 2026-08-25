@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -8,14 +8,19 @@ import {
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import { useTranslation } from "react-i18next";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
-import { SunnahRawatibDayRing, SunnahDayData } from "../SunnahRawatibDayRing";
+import { SunnahRawatibDayRing, type SunnahDayData } from "../SunnahRawatibDayRing";
 
 export type SunnahRawatibDayProgress = {
   day: string;
   data: SunnahDayData;
+  /** YYYY-MM-DD from frame */
+  date?: string;
+  isToday?: boolean;
+  isFuture?: boolean;
+  /** Day total from frame when per-slot logs are absent */
+  count?: number;
 };
 
 export type SunnahRawatibWeeklyProgressDashboardProps = {
@@ -30,6 +35,7 @@ export type SunnahRawatibWeeklyProgressDashboardProps = {
   onDayPress?: (index: number) => void;
   onPrevWeek?: () => void;
   onNextWeek?: () => void;
+  loading?: boolean;
 };
 
 const CARD_HORIZONTAL_PADDING = 16;
@@ -48,8 +54,8 @@ export function SunnahRawatibWeeklyProgressDashboard({
   onDayPress,
   onPrevWeek,
   onNextWeek,
+  loading = false,
 }: SunnahRawatibWeeklyProgressDashboardProps) {
-  const { t } = useTranslation();
   const { width: screenWidth } = useWindowDimensions();
 
   const availableWidth = screenWidth * WRAPPER_WIDTH_RATIO - CARD_HORIZONTAL_PADDING;
@@ -57,7 +63,12 @@ export function SunnahRawatibWeeklyProgressDashboard({
 
   const [activeDayIndex, setActiveDayIndex] = useState(selectedDayIndex);
 
-  const handleDayPress = (index: number) => () => {
+  useEffect(() => {
+    setActiveDayIndex(selectedDayIndex);
+  }, [selectedDayIndex]);
+
+  const handleDayPress = (index: number, isFuture: boolean) => () => {
+    if (loading || isFuture) return;
     setActiveDayIndex(index);
     onDayPress?.(index);
   };
@@ -67,15 +78,29 @@ export function SunnahRawatibWeeklyProgressDashboard({
       <View style={styles.headerRow}>
         <View style={styles.headerLeft}>
           <MaterialCommunityIcons name="calendar-month-outline" size={16} color={Colors.light.seagreen} />
-          <Text style={styles.weekFractionText} numberOfLines={1}>{weekFraction} WEEKS</Text>
+          <Text style={styles.weekFractionText} numberOfLines={1}>
+            {loading ? "---" : `${weekFraction} WEEKS`}
+          </Text>
         </View>
 
         <View style={styles.headerNav}>
-          <TouchableOpacity onPress={onPrevWeek} activeOpacity={0.7} style={styles.navBtn}>
+          <TouchableOpacity
+            onPress={onPrevWeek}
+            activeOpacity={0.7}
+            style={styles.navBtn}
+            disabled={!onPrevWeek || loading}
+          >
             <Ionicons name="chevron-back" size={14} color={Colors.light.dullWhite} />
           </TouchableOpacity>
-          <Text style={styles.weekRangeText} numberOfLines={1}>{weekRangeLabel}</Text>
-          <TouchableOpacity onPress={onNextWeek} activeOpacity={0.7} style={styles.navBtn}>
+          <Text style={styles.weekRangeText} numberOfLines={1}>
+            {loading ? "---" : weekRangeLabel}
+          </Text>
+          <TouchableOpacity
+            onPress={onNextWeek}
+            activeOpacity={0.7}
+            style={styles.navBtn}
+            disabled={!onNextWeek || loading}
+          >
             <Ionicons name="chevron-forward" size={14} color={Colors.light.dullWhite} />
           </TouchableOpacity>
         </View>
@@ -84,24 +109,33 @@ export function SunnahRawatibWeeklyProgressDashboard({
       <View style={styles.daysRow}>
         {weekDays.map((day, index) => {
           const isSelected = index === activeDayIndex;
-          
-          // Calculate total prayers logged for the day text
+          const isFuture = !!day.isFuture;
+
           let dayTotal = 0;
-          Object.values(day.data.logged).forEach((v) => {
-            if (typeof v === "number") dayTotal += v;
-          });
+          if (typeof day.count === "number") {
+            dayTotal = day.count;
+          } else {
+            Object.values(day.data.logged).forEach((v) => {
+              if (typeof v === "number") dayTotal += v;
+            });
+          }
 
           return (
             <TouchableOpacity
               key={`${day.day}-${index}`}
               style={styles.dayColumn}
-              onPress={handleDayPress(index)}
-              activeOpacity={0.75}
+              onPress={handleDayPress(index, isFuture)}
+              activeOpacity={loading || isFuture ? 1 : 0.75}
+              disabled={loading || isFuture}
             >
               <View style={[styles.dayItemWrapper, isSelected && styles.dayItemSelected]}>
                 <SunnahRawatibDayRing size={ringSize} data={day.data} isSelected={isSelected} />
-                <Text style={styles.dayLabel} numberOfLines={1}>{day.day}</Text>
-                <Text style={styles.dayNumberLabel} numberOfLines={1}>{dayTotal}</Text>
+                <Text style={styles.dayLabel} numberOfLines={1}>
+                  {loading ? "---" : day.day}
+                </Text>
+                <Text style={styles.dayNumberLabel} numberOfLines={1}>
+                  {loading ? "---" : dayTotal > 0 ? String(dayTotal) : ""}
+                </Text>
               </View>
             </TouchableOpacity>
           );
@@ -111,20 +145,26 @@ export function SunnahRawatibWeeklyProgressDashboard({
       <View style={styles.statsRow}>
         <MaterialCommunityIcons name={statsIcon} size={24} color={Colors.light.lightblue} />
         <Text style={styles.statsText} numberOfLines={1}>
-          <Text style={styles.statsCount}>{totalPrayersThisWeek}</Text>
-          {" total Sunnah prayers this week"}
+          <Text style={styles.statsCount}>
+            {loading ? "---" : totalPrayersThisWeek}
+          </Text>
+          {loading ? "" : " total Sunnah prayers this week"}
         </Text>
       </View>
 
       <View style={styles.footerRow}>
         <View style={styles.streakBadge}>
           <Ionicons name="flash" size={13} color={Colors.light.yellow} />
-          <Text style={styles.streakText}>{streakDays}-day streak</Text>
+          <Text style={styles.streakText}>
+            {loading ? "---" : `${streakDays}-day streak`}
+          </Text>
         </View>
 
         <View style={styles.quoteBlock}>
           <MaterialCommunityIcons name="target" size={14} color={Colors.light.seagreen} />
-          <Text style={styles.quoteText}>{motivationalQuote}</Text>
+          <Text style={styles.quoteText}>
+            {loading ? "---" : motivationalQuote}
+          </Text>
         </View>
       </View>
     </View>

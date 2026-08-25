@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Pressable,
   ScrollView,
@@ -20,6 +20,11 @@ import { OptionSelectStep } from "../components/OptionSelectStep";
 import { FlowCard } from "../components/FlowCard";
 import { styles as commonStyles } from "../components/DailyProgressLogging.styles";
 import type { ProgressLogEntry } from "../types";
+import { useOptionalPrayerGoalFrameContext } from "../prayerGoalFrameContext";
+import {
+  getPrayerFrameAchievementLabel,
+  prayerFrameShowsInsights,
+} from "@/src/utils/prayerGoalFrameMap";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -49,21 +54,18 @@ type Props = {
 
 const toDateString = (date: Date) => moment(date).format("YYYY-MM-DD");
 
-const MOCK_TOTAL_PRAYERS = 248;
-const MOCK_PERCENTAGE = 67;
-
 const SUNNAH_OPTIONS: {
   id: SunnahPrayerId;
   label: string;
   icon: keyof typeof MaterialCommunityIcons.glyphMap;
 }[] = [
-    { id: "before_fajr", label: "BEFORE\nFAJR", icon: "weather-sunset-up" },
-    { id: "before_dhuhr", label: "BEFORE\nDUHR", icon: "white-balance-sunny" },
-    { id: "after_dhuhr", label: "AFTER\nDUHR", icon: "white-balance-sunny" },
-    { id: "before_asr", label: "BEFORE\nASR", icon: "weather-partly-cloudy" },
-    { id: "after_maghrib", label: "AFTER\nMAGHRIB", icon: "weather-sunset" },
-    { id: "after_isha", label: "AFTER\nISHA", icon: "weather-night" },
-  ];
+  { id: "before_fajr", label: "BEFORE\nFAJR", icon: "weather-sunset-up" },
+  { id: "before_dhuhr", label: "BEFORE\nDUHR", icon: "white-balance-sunny" },
+  { id: "after_dhuhr", label: "AFTER\nDUHR", icon: "white-balance-sunny" },
+  { id: "before_asr", label: "BEFORE\nASR", icon: "weather-partly-cloudy" },
+  { id: "after_maghrib", label: "AFTER\nMAGHRIB", icon: "weather-sunset" },
+  { id: "after_isha", label: "AFTER\nISHA", icon: "weather-night" },
+];
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -89,34 +91,26 @@ export default function SunnahRawatibLoggingFlow({
   const [durationHours, setDurationHours] = useState("0");
   const [durationMinutes, setDurationMinutes] = useState("10");
 
-  const [hasLogged, setHasLogged] = useState(false);
+  const prayerFrame = useOptionalPrayerGoalFrameContext();
+  const frame = prayerFrame?.frame;
+  const slotConfig = frame?.slotConfig;
 
-  // ─── Mock Backend Data ─────────────────────────────────────────────────────
+  const beforeAsrEnabled = Boolean(slotConfig?.beforeAsrEnabled);
+  const afterDhuhrTwoUnits = (slotConfig?.afterDhuhrRakahOption ?? 2) === 2;
+  const beforeAsrTwoUnits = (slotConfig?.beforeAsrRakahOption ?? 2) === 2;
 
-  // MOCK: This represents data coming from the backend indicating if the user 
-  // selected 2 prayers (4 rak'ahs total) after Dhuhr in their goal setting.
-  const userConfiguredTwoPrayersAfterDhuhr = true;
-
-  // MOCK: This represents data coming from the backend indicating if the user 
-  // selected 2 prayers (4 rak'ahs total) before Asr in their goal setting.
-  const userConfiguredTwoPrayersBeforeAsr = true;
-
-  // MOCK: This represents data coming from the backend indicating if the user 
-  // even HAS "Before Asr" as a Sunnah goal.
-  const userHasBeforeAsrGoal = false;
-
-  // ─── Filtered Options ──────────────────────────────────────────────────────
-
-  const availableSunnahOptions = SUNNAH_OPTIONS.filter((option) => {
-    if (option.id === "before_asr" && !userHasBeforeAsrGoal) return false;
-    return true;
-  });
-
-  // ─── Dynamic steps ─────────────────────────────────────────────────────────
+  const availableSunnahOptions = useMemo(
+    () =>
+      SUNNAH_OPTIONS.filter((option) => {
+        if (option.id === "before_asr" && !beforeAsrEnabled) return false;
+        return true;
+      }),
+    [beforeAsrEnabled],
+  );
 
   const requiresRakahSelection =
-    (selectedPrayer === "after_dhuhr" && userConfiguredTwoPrayersAfterDhuhr) ||
-    (selectedPrayer === "before_asr" && userConfiguredTwoPrayersBeforeAsr);
+    (selectedPrayer === "after_dhuhr" && afterDhuhrTwoUnits) ||
+    (selectedPrayer === "before_asr" && beforeAsrTwoUnits);
 
   const STEPS: SunnahPrayerStepId[] = requiresRakahSelection
     ? ["date", "select-prayer", "rakahs-quantity", "start-time", "time-spent"]
@@ -125,27 +119,53 @@ export default function SunnahRawatibLoggingFlow({
   const currentStep = STEPS[stepIndex];
   const isLastStep = stepIndex === STEPS.length - 1;
 
-  // ─── Badge ─────────────────────────────────────────────────────────────────
+  const goalLabel = frame?.goal.label ?? "---";
+  const goalLabelParts = useMemo(() => {
+    const match = goalLabel.match(/^(.*?)\s*(\(total\s+\d+\s+prayers?\))\s*$/i);
+    if (!match) {
+      return { title: goalLabel, totalSuffix: null as string | null };
+    }
+    return {
+      title: match[1].trim(),
+      totalSuffix: match[2],
+    };
+  }, [goalLabel]);
 
-  const badgeText = hasLogged
-    ? MOCK_PERCENTAGE >= 100
-      ? "100% Achieved"
-      : `${MOCK_PERCENTAGE}% Achieved`
-    : "In Progress";
+  const badgeStatus = useMemo(() => {
+    if (!frame) {
+      return {
+        text: "---",
+        type: "in-progress" as const,
+      };
+    }
+    return getPrayerFrameAchievementLabel(frame, t);
+  }, [frame, t]);
 
-  const badgeType = hasLogged ? "completed" : "in-progress";
-  const badgeContainerStyle =
-    badgeType === "completed"
-      ? localStyles.badgeCompleted
-      : localStyles.badgeInProgress;
-  const badgeTextStyle =
-    badgeType === "completed"
-      ? localStyles.badgeTextCompleted
-      : localStyles.badgeTextInProgress;
+  const showInsights = frame ? prayerFrameShowsInsights(frame) : false;
+  const isFullyAchieved = (frame?.goal.achievementPct ?? 0) >= 100;
 
-  // ─── Date helpers ──────────────────────────────────────────────────────────
+  const cycleStart = frame?.cycle?.cycleStart
+    ? moment(frame.cycle.cycleStart).format("YYYY-MM-DD")
+    : undefined;
+  const cycleEnd = frame?.cycle?.cycleEnd
+    ? moment(frame.cycle.cycleEnd).format("YYYY-MM-DD")
+    : undefined;
 
   const todayString = toDateString(new Date());
+  const maxSelectableDate = cycleEnd
+    ? cycleEnd < todayString
+      ? cycleEnd
+      : todayString
+    : todayString;
+
+  useEffect(() => {
+    setSelectedDate((current) => {
+      if (cycleStart && current < cycleStart) return cycleStart;
+      if (maxSelectableDate && current > maxSelectableDate)
+        return maxSelectableDate;
+      return current;
+    });
+  }, [cycleStart, maxSelectableDate]);
 
   const dateLabel =
     selectedDate === todayString
@@ -156,7 +176,8 @@ export default function SunnahRawatibLoggingFlow({
     const next = moment(selectedDate, "YYYY-MM-DD")
       .add(direction, "days")
       .format("YYYY-MM-DD");
-    if (direction === 1 && next > todayString) return;
+    if (cycleStart && direction === -1 && next < cycleStart) return;
+    if (direction === 1 && next > maxSelectableDate) return;
     setSelectedDate(next);
   };
 
@@ -193,7 +214,6 @@ export default function SunnahRawatibLoggingFlow({
   };
 
   const handleConfirm = () => {
-    setHasLogged(true);
     onLogComplete?.({
       type: "sunnah-rawatib",
       goalId: goalData.id,
@@ -204,6 +224,7 @@ export default function SunnahRawatibLoggingFlow({
       durationHours,
       durationMinutes,
     } as any);
+    void prayerFrame?.refetch();
     resetFlow();
   };
 
@@ -407,7 +428,6 @@ export default function SunnahRawatibLoggingFlow({
 
         {flowMode === "collapsed" ? (
           <View style={localStyles.summaryCard}>
-            {/* Icon + text block (badge + title + subtitle) */}
             <View style={localStyles.summaryBody}>
               <View style={localStyles.summaryIconCircle}>
                 <MaterialCommunityIcons
@@ -417,28 +437,61 @@ export default function SunnahRawatibLoggingFlow({
                 />
               </View>
               <View style={localStyles.summaryTextBlock}>
-                <View style={[localStyles.badge, badgeContainerStyle, { alignSelf: "flex-start", marginBottom: 2 }]}>
-                  <Text style={[localStyles.badgeText, badgeTextStyle]}>
-                    {badgeText}
+                <View
+                  style={[
+                    localStyles.badge,
+                    badgeStatus.type === "completed"
+                      ? localStyles.badgeCompleted
+                      : badgeStatus.type === "not-started"
+                        ? localStyles.badgeNotStarted
+                        : localStyles.badgeInProgress,
+                    { alignSelf: "flex-start", marginBottom: 2 },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      localStyles.badgeText,
+                      badgeStatus.type === "completed"
+                        ? localStyles.badgeTextCompleted
+                        : badgeStatus.type === "not-started"
+                          ? localStyles.badgeTextNotStarted
+                          : localStyles.badgeTextInProgress,
+                    ]}
+                  >
+                    {badgeStatus.text}
                   </Text>
                 </View>
                 <Text style={localStyles.summaryTitle}>
-                  Sunnah Rawatib{"\n"}Prayers
+                  {goalLabelParts.title}
                 </Text>
-                <Text style={localStyles.summarySubtitle}>
-                  {"(total "}
-                  <Text style={localStyles.summarySubtitleBold}>
-                    {MOCK_TOTAL_PRAYERS}
+                {goalLabelParts.totalSuffix ? (
+                  <Text style={localStyles.summarySubtitle} numberOfLines={1}>
+                    {goalLabelParts.totalSuffix
+                      .split(/(\d+)/)
+                      .map((part, index) =>
+                        /^\d+$/.test(part) ? (
+                          <Text
+                            key={`${part}-${index}`}
+                            style={localStyles.summarySubtitleBold}
+                          >
+                            {part}
+                          </Text>
+                        ) : (
+                          part
+                        ),
+                      )}
                   </Text>
-                  {"  prayers)"}
-                </Text>
+                ) : null}
               </View>
             </View>
 
-            {/* Footer */}
             <View style={localStyles.footerRow}>
-              {hasLogged ? (
-                <TouchableOpacity style={localStyles.insightsBtn}>
+              {showInsights ? (
+                <TouchableOpacity
+                  style={localStyles.insightsBtn}
+                  onPress={prayerFrame?.openInsights}
+                  activeOpacity={0.8}
+                >
                   <Text style={localStyles.insightsText}>VIEW INSIGHTS</Text>
                   <Ionicons
                     name="chevron-forward"
@@ -451,9 +504,13 @@ export default function SunnahRawatibLoggingFlow({
               )}
 
               <TouchableOpacity
-                style={localStyles.addButton}
+                style={[
+                  localStyles.addButton,
+                  isFullyAchieved && localStyles.addButtonDisabled,
+                ]}
                 onPress={handleOpenFlow}
                 activeOpacity={0.8}
+                disabled={isFullyAchieved}
               >
                 <Ionicons name="add" size={22} color={Colors.light.white} />
               </TouchableOpacity>
@@ -507,6 +564,9 @@ const localStyles = StyleSheet.create({
   badgeCompleted: {
     backgroundColor: Colors.light.lightgreenbadgecolor,
   },
+  badgeNotStarted: {
+    backgroundColor: Colors.light.paginationInactiveDot,
+  },
   badgeText: {
     fontFamily: fonts.primary.semiBold,
     fontSize: 10,
@@ -516,6 +576,9 @@ const localStyles = StyleSheet.create({
   },
   badgeTextCompleted: {
     color: Colors.light.green,
+  },
+  badgeTextNotStarted: {
+    color: Colors.light.notStartedTextColor,
   },
   summaryBody: {
     flexDirection: "row",
@@ -580,6 +643,9 @@ const localStyles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     transform: [{ translateY: -8 }],
+  },
+  addButtonDisabled: {
+    opacity: 0.4,
   },
   prayerSelectContainer: {
     alignItems: "center",

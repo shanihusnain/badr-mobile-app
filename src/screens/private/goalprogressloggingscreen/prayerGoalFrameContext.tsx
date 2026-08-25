@@ -22,9 +22,8 @@ type PrayerGoalFrameContextValue = {
   openInsights?: () => void;
 };
 
-const PrayerGoalFrameContext = createContext<PrayerGoalFrameContextValue | null>(
-  null,
-);
+const PrayerGoalFrameContext =
+  createContext<PrayerGoalFrameContextValue | null>(null);
 
 export function PrayerGoalFrameProvider({
   goalId,
@@ -82,7 +81,15 @@ export function PrayerGoalFrameProvider({
       setWeekNumber,
       openInsights: onOpenInsights,
     }),
-    [data, isLoading, isError, refetch, weekNumber, setWeekNumber, onOpenInsights],
+    [
+      data,
+      isLoading,
+      isError,
+      refetch,
+      weekNumber,
+      setWeekNumber,
+      onOpenInsights,
+    ],
   );
 
   return (

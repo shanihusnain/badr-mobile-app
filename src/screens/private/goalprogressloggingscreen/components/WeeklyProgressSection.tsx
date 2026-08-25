@@ -24,10 +24,6 @@ import { LillahWeeklyProgressDashboard } from "@/components/molecules/LillahWeek
 import { SadaqahJariyahWeeklyProgressDashboard } from "@/components/molecules/SadaqahJariyahWeeklyProgressDashboard";
 import { VolunteeringWeeklyProgressDashboard } from "@/components/molecules/VolunteeringWeeklyProgressDashboard";
 import {
-  SunnahPrayerConfig,
-  SunnahDayData,
-} from "@/components/molecules/SunnahRawatibDayRing";
-import {
   SunnahRawatibWeeklyProgressDashboard,
   type SunnahRawatibDayProgress,
 } from "@/components/molecules/SunnahRawatibWeeklyProgressDashboard";
@@ -124,6 +120,7 @@ import {
   getPrayerFrameWeekFraction,
   mapFiveDailyFrameWeekDays,
   mapPrayerFrameWeekDays,
+  mapSunnahFrameWeekDays,
 } from "@/src/utils/prayerGoalFrameMap";
 
 type Props = {
@@ -1349,121 +1346,65 @@ export function WeeklyProgressSection({
   }
 
   if (template === "sunnah-rawatib") {
-    const mockGoal: SunnahPrayerConfig[] = [
-      { id: "before_fajr", weight: 1 },
-      { id: "before_dhuhr", weight: 2 },
-      { id: "after_dhuhr", weight: 2 },
-      { id: "before_asr", weight: 2 },
-      { id: "after_maghrib", weight: 1 },
-      { id: "after_isha", weight: 1 },
-    ];
-    const mockWeekDays: SunnahRawatibDayProgress[] = [
-      {
-        day: "Sun",
-        data: {
-          goal: mockGoal,
-          logged: {
-            before_fajr: 1,
-            before_dhuhr: 2,
-            after_dhuhr: 2,
-            before_asr: 0,
-            after_maghrib: 1,
-            after_isha: 0,
-          },
-        },
-      },
-      {
-        day: "Mon",
-        data: {
-          goal: mockGoal,
-          logged: {
-            before_fajr: 1,
-            before_dhuhr: 2,
-            after_dhuhr: 2,
-            before_asr: 2,
-            after_maghrib: 1,
-            after_isha: 0,
-          },
-        },
-      },
-      {
-        day: "Tue",
-        data: {
-          goal: mockGoal,
-          logged: {
-            before_fajr: 1,
-            before_dhuhr: 2,
-            after_dhuhr: 2,
-            before_asr: 2,
-            after_maghrib: 1,
-            after_isha: 1,
-          },
-        },
-      },
-      {
-        day: "Wed",
-        data: {
-          goal: mockGoal,
-          logged: {
-            before_fajr: 1,
-            before_dhuhr: 2,
-            after_dhuhr: 2,
-            before_asr: 2,
-            after_maghrib: 1,
-            after_isha: 1,
-          },
-        },
-      },
-      {
-        day: "Thu",
-        data: {
-          goal: mockGoal,
-          logged: {
-            before_fajr: 1,
-            before_dhuhr: 2,
-            after_dhuhr: 2,
-            before_asr: 2,
-            after_maghrib: 1,
-            after_isha: 0,
-          },
-        },
-      },
-      {
-        day: "Fri",
-        data: {
-          goal: mockGoal,
-          logged: {
-            before_fajr: 1,
-            before_dhuhr: 2,
-            after_dhuhr: 2,
-            before_asr: 2,
-            after_maghrib: 1,
-            after_isha: 1,
-          },
-        },
-      },
-      {
-        day: "Sat",
-        data: {
-          goal: mockGoal,
-          logged: {
-            before_fajr: 0,
-            before_dhuhr: 2,
-            after_dhuhr: 1,
-            before_asr: 1,
-            after_maghrib: 1,
-          },
-        },
-      },
-    ];
+    const frame = prayerFrame?.frame;
+    const frameLoading =
+      prayerFrame?.isLoading || (!frame && !prayerFrame?.isError);
+
+    if (frame) {
+      const totalWeeks = frame.cycle.totalWeeks;
+      const currentWeek = frame.cycle.weekNumber;
+      const canPrev = currentWeek > 1;
+      const canNext = currentWeek < totalWeeks;
+
+      return (
+        <SunnahRawatibWeeklyProgressDashboard
+          weekDays={mapSunnahFrameWeekDays(frame)}
+          weekRangeLabel={formatPrayerFrameWeekRange(
+            frame.cycle.weekStart,
+            frame.cycle.weekEnd,
+          )}
+          weekFraction={getPrayerFrameWeekFraction(frame)}
+          totalPrayersThisWeek={frame.week.thisWeekTotal ?? 0}
+          streakDays={frame.week.currentStreak}
+          motivationalQuote={frame.week.motivationalMessage}
+          selectedDayIndex={getPrayerFrameTodayIndex(frame)}
+          onPrevWeek={
+            canPrev
+              ? () => prayerFrame?.setWeekNumber(currentWeek - 1)
+              : undefined
+          }
+          onNextWeek={
+            canNext
+              ? () => prayerFrame?.setWeekNumber(currentWeek + 1)
+              : undefined
+          }
+        />
+      );
+    }
+
+    const emptyWeekDays: SunnahRawatibDayProgress[] = [
+      "Sun",
+      "Mon",
+      "Tue",
+      "Wed",
+      "Thu",
+      "Fri",
+      "Sat",
+    ].map((day) => ({
+      day,
+      count: 0,
+      data: { goal: [], logged: {} },
+    }));
+
     return (
       <SunnahRawatibWeeklyProgressDashboard
-        weekDays={mockWeekDays}
-        weekRangeLabel="Nov 29 — Dec 5"
-        weekFraction="1/4"
-        totalPrayersThisWeek={55}
-        streakDays={2}
-        selectedDayIndex={6}
+        weekDays={emptyWeekDays}
+        weekRangeLabel="---"
+        weekFraction="---"
+        totalPrayersThisWeek={0}
+        streakDays={0}
+        motivationalQuote="---"
+        loading={frameLoading}
       />
     );
   }

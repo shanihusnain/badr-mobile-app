@@ -4,10 +4,16 @@ import type {
   FiveDailyPrayerSlotKey,
   PrayerGoalFrameData,
   PrayerGoalFrameDay,
+  SunnahRawatibSlotConfig,
 } from "@/src/api/queries/useGetPrayerGoalFrame";
 import type { TahiyatUlWudhuDayProgress } from "@/components/molecules/TahiyatUlWudhuWeeklyProgressDashboard";
 import type { DayProgress } from "@/components/molecules/WeeklyProgressDashboard";
 import type { PrayerStatus } from "@/components/molecules/PrayerProgressTrackerRing";
+import type {
+  SunnahPrayerConfig,
+  SunnahPrayerId,
+} from "@/components/molecules/SunnahRawatibDayRing";
+import type { SunnahRawatibDayProgress } from "@/components/molecules/SunnahRawatibWeeklyProgressDashboard";
 
 const FIVE_DAILY_SLOT_ORDER: FiveDailyPrayerSlotKey[] = [
   "FAJR",
@@ -146,6 +152,71 @@ export function mapFiveDailyFrameWeekDays(
       isToday,
       isFuture: false,
       isMenstruating: false,
+    };
+  });
+}
+
+function sunnahRakahOptionToWeight(option: number | undefined): 1 | 2 {
+  return option === 1 ? 1 : 2;
+}
+
+/**
+ * Arc set + lengths for Sunnah Rawatib day rings from frame `slotConfig`.
+ * Fixed slots always included; Before Asr only when enabled; dual-option
+ * slots use weight 1 (2 rak'ahs) or 2 (4 rak'ahs).
+ */
+export function buildSunnahGoalFromSlotConfig(
+  slotConfig?: SunnahRawatibSlotConfig | null,
+): SunnahPrayerConfig[] {
+  const goal: SunnahPrayerConfig[] = [
+    { id: "before_fajr", weight: 1 },
+    { id: "before_dhuhr", weight: 2 },
+    {
+      id: "after_dhuhr",
+      weight: sunnahRakahOptionToWeight(slotConfig?.afterDhuhrRakahOption),
+    },
+  ];
+
+  if (slotConfig?.beforeAsrEnabled) {
+    goal.push({
+      id: "before_asr",
+      weight: sunnahRakahOptionToWeight(slotConfig?.beforeAsrRakahOption),
+    });
+  }
+
+  goal.push(
+    { id: "after_maghrib", weight: 1 },
+    { id: "after_isha", weight: 1 },
+  );
+
+  return goal;
+}
+
+/**
+ * Map frame week days for Sunnah Rawatib rings.
+ * Arc geometry from `slotConfig`; per-slot fills empty until day.slots exist.
+ * Day total prefers `count` / `totalLogged`.
+ */
+export function mapSunnahFrameWeekDays(
+  frame: PrayerGoalFrameData,
+): SunnahRawatibDayProgress[] {
+  const goal = buildSunnahGoalFromSlotConfig(frame.slotConfig);
+
+  return frame.week.days.map((day) => {
+    const count = day.count ?? day.totalLogged ?? 0;
+    const isFuture = Boolean(day.isFuture || day.isFutureDay);
+
+    return {
+      day: day.dayLabel,
+      date: day.date,
+      isToday: Boolean(day.isToday),
+      isFuture,
+      count,
+      data: {
+        goal,
+        logged: {} as Partial<Record<SunnahPrayerId, number>>,
+        isMenstruation: Boolean(day.isMenstruationDay),
+      },
     };
   });
 }

@@ -160,7 +160,8 @@ function GoalProgressLoggingBody({
     template === "duha-prayer" ||
     template === "tawbah-prayer" ||
     template === "istikhara-prayer" ||
-    template === "shukr-prayer";
+    template === "shukr-prayer" ||
+    template === "sunnah-rawatib";
   const frameLoading =
     isPrayerFrameRingGoal &&
     (prayerFrame?.isLoading || (!prayerFrame?.frame && !prayerFrame?.isError));
@@ -390,6 +391,7 @@ export const GoalProgressLoggingScreen = ({
   goalId: goalIdParam,
 }: GoalProgressLoggingScreenProps) => {
   const goalId = (goalIdParam || "") as GoalId;
+
   const goalData = getResolvedGoalById(goalId);
   const [screenScrollEnabled, setScreenScrollEnabled] = useState(true);
   const navigation = useNavigation();

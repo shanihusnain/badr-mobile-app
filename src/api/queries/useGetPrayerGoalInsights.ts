@@ -2,14 +2,21 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "..";
 import { resolvePrayerType } from "@/src/utils/prayerGoalMap";
 
+/** Shared + prayer-specific insight stats. Five-daily omits personalBest*; others omit mosque/jumuah. */
 export type PrayerGoalInsightsStats = {
   activeDaysCount: number;
   dayGoalCompleted: number | null;
   longestStreak: number;
-  personalBest: number;
-  personalBestDaysCount: number;
   weeklyAverage: number;
   timeSpentMinutes: number;
+  /** Other prayer goals */
+  personalBest?: number;
+  personalBestDaysCount?: number;
+  /** Five daily prayers */
+  allFiveDaysCount?: number;
+  mosqueCount?: number;
+  /** e.g. "0/2" */
+  jumuahFraction?: string;
 };
 
 export type PrayerGoalInsightsData = {

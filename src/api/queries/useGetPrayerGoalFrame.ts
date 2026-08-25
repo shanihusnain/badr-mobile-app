@@ -26,6 +26,15 @@ export type PrayerGoalFrameSlotProgress = {
   target: number;
 };
 
+/** Variable Sunnah Rawatib goal options from frame `slotConfig`. */
+export type SunnahRawatibSlotConfig = {
+  beforeAsrEnabled?: boolean;
+  /** 1 = one 2-rak'ah unit; 2 = two units (4 rak'ahs). */
+  afterDhuhrRakahOption?: number;
+  /** 1 = one 2-rak'ah unit; 2 = two units (4 rak'ahs). */
+  beforeAsrRakahOption?: number;
+};
+
 export type PrayerGoalFrameDay = {
   date: string;
   dayLabel: string;
@@ -79,6 +88,8 @@ export type PrayerGoalFrameData = {
     motivationalMessage: string;
     days: PrayerGoalFrameDay[];
   };
+  /** Present for SUNNAH_RAWATIB — drives day-ring arc set / weights. */
+  slotConfig?: SunnahRawatibSlotConfig | null;
   articles: unknown[];
 };
 
