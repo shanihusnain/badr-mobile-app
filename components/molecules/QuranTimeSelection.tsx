@@ -13,6 +13,7 @@ import { TopSpace } from "../atoms/TopSpace";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import { useEffect, useState } from "react";
+import { useGoalSelectionOpenState } from "@/hooks/useGoalSelectionOpenState";
 import GoalSelectionSaveButton from "@/components/molecules/GoalSelectionSaveButton";
 import { useGetQuranGoalByType } from "@/src/api/queries/useGetQuranGoalByType";
 import { getHoursFromDetail } from "@/src/utils/quranGoalMap";

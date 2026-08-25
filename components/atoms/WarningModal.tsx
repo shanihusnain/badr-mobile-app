@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     backgroundColor: Colors.light.darkgrey,
-    borderRadius: 12,
+    borderRadius: 8,
     paddingHorizontal: 24,
     paddingVertical: 30,
     width: "100%",
