@@ -218,7 +218,7 @@ export const WeeklyProgressDashboard: React.FC<
                 >
                   {renderRing(day, ringSize)}
                 </View>
-                <TopSpace top={10} />
+                <TopSpace top={8} />
                 <Text
                   style={[
                     styles.dayLabel,
