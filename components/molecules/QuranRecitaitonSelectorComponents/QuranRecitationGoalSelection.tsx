@@ -1,6 +1,7 @@
 import { LayoutAnimation, StyleSheet, Text, View } from "react-native";
 import { GoalSelectionOpenCloseButton } from "../GoalSelectionOpenCloseButton";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useGoalSelectionOpenState } from "@/hooks/useGoalSelectionOpenState";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import { Divider } from "../../atoms/Divider";

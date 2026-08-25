@@ -107,11 +107,12 @@ export const SetPersonalizedGoalsScreen = () => {
   }, []);
 
   return (
-    <BlackScreenWrapper>
+    <BlackScreenWrapper edges={["bottom", "left", "right"]}>
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{ flexGrow: 1, paddingBottom: 24 }}
         showsVerticalScrollIndicator={false}
+        bounces={false}
       >
         {/* ── Frame 1 sub-header ── */}
         {activeFrame === 2 && (
@@ -122,14 +123,21 @@ export const SetPersonalizedGoalsScreen = () => {
             <TopSpace top={14} />
           </>
         )}
-        <View style={globalStyles.rowCenter}>
+        <View
+          style={[
+            globalStyles.rowCenter,
+            {
+              marginTop: 14,
+            },
+          ]}
+        >
           <GreenDash />
           <Text style={styles.howItWorksText}>
             {t("setpersonalizedgoals.howItWorks")}
           </Text>
         </View>
         <FrameIndicator total={2} active={activeFrame} />
-        {/* {activeFrame === 1 && (
+        {activeFrame === 1 && (
           <GoalProgressCard
             currentDay={28}
             totalDays={28}
@@ -137,7 +145,7 @@ export const SetPersonalizedGoalsScreen = () => {
             overallProgress={100}
             animate
           />
-        )} */}
+        )}
         {activeFrame === 1 && (
           <>
             <TopSpace top={20} />
@@ -152,21 +160,21 @@ export const SetPersonalizedGoalsScreen = () => {
             <TutorialVideoPlayer onSkip={handleSkipTutorial} />
           </>
         )}
-        {activeFrame === 1 && (
-          <View style={{ alignSelf: "center", marginTop: "auto" }}>
-            <Pressable
-              onPress={onWatchTutorialPress}
-              style={{
-                alignSelf: "center",
-              }}
-            >
-              <Text style={globalStyles.greenCTA}>
-                {t("setpersonalizedgoals.watchTutorial")}
-              </Text>
-            </Pressable>
-          </View>
-        )}
       </ScrollView>
+      {activeFrame === 1 && (
+        <View style={{ alignSelf: "center", marginTop: "auto" }}>
+          <Pressable
+            onPress={onWatchTutorialPress}
+            style={{
+              alignSelf: "center",
+            }}
+          >
+            <Text style={globalStyles.greenCTA}>
+              {t("setpersonalizedgoals.watchTutorial")}
+            </Text>
+          </Pressable>
+        </View>
+      )}
     </BlackScreenWrapper>
   );
 };

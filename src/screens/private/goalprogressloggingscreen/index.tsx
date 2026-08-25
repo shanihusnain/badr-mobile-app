@@ -434,6 +434,7 @@ export const GoalProgressLoggingScreen = ({
         keyboardShouldPersistTaps="handled"
         scrollEnabled={screenScrollEnabled}
         nestedScrollEnabled
+        bounces={false}
       >
         {shouldUseBackground ? (
           <View

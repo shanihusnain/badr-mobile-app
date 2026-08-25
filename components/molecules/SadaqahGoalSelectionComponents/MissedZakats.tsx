@@ -3,8 +3,8 @@ import GoalSelectionSaveButton from "@/components/molecules/GoalSelectionSaveBut
 import { CurrencyAndAmountSelector } from "../CurrencyAndAmountSelector";
 import { Counter } from "../Counter";
 import { LayoutAnimation, View } from "react-native";
-import { useState } from "react";
 import { useWatch } from "react-hook-form";
+import { useGoalSelectionOpenState } from "@/hooks/useGoalSelectionOpenState";
 import { GoalSelectionOpenCloseButton } from "../GoalSelectionOpenCloseButton";
 import { globalStyles } from "@/src/globalstyles/globalstyles";
 import { useTranslation } from "react-i18next";

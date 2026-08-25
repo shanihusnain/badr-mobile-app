@@ -3,8 +3,8 @@ import { globalStyles } from "@/src/globalstyles/globalstyles";
 import { LayoutAnimation, View } from "react-native";
 import { GoalSelectionOpenCloseButton } from "../GoalSelectionOpenCloseButton";
 import { Counter } from "../Counter";
-import { useState } from "react";
 import { TopSpace } from "@/components/atoms/TopSpace";
+import { useGoalSelectionOpenState } from "@/hooks/useGoalSelectionOpenState";
 import GoalSelectionSaveButton from "@/components/molecules/GoalSelectionSaveButton";
 import { useTranslation } from "react-i18next";
 
