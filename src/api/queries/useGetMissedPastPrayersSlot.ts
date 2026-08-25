@@ -19,17 +19,22 @@ export type MissedPastPrayersSlotData = {
   targetCount: number;
 };
 
-const getPastPrayersSlots =
-  async (): Promise<MissedPastPrayersSlotData | null> => {
-    const response = await api.get(
-      "api/goal-cycles/current/prayer-goals/MISSED_PAST_PRAYERS/slot-progress",
-    );
-    return response.data?.data ?? null;
-  };
+const getPastPrayersSlots = async (
+  date?: string,
+): Promise<MissedPastPrayersSlotData | null> => {
+  const response = await api.get(
+    "api/goal-cycles/current/prayer-goals/MISSED_PAST_PRAYERS/slot-progress",
+    {
+      params: date ? { date } : undefined,
+    },
+  );
+  console.log("response of missed past prayer slot data", response.data);
+  return response.data?.data ?? null;
+};
 
-export const useGetMissedPastPrayersSlot = () => {
+export const useGetMissedPastPrayersSlot = (date?: string) => {
   return useQuery({
-    queryKey: ["missed-past-prayers-slot"],
-    queryFn: getPastPrayersSlots,
+    queryKey: ["missed-past-prayers-slot", date ?? "cycle"],
+    queryFn: () => getPastPrayersSlots(date),
   });
 };

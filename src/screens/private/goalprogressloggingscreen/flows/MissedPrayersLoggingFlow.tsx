@@ -25,10 +25,16 @@ import {
 } from "../components/DailyProgressLogging.styles";
 import { fonts } from "@/assets/fonts";
 import type { ProgressLogEntry } from "../types";
-import { PrayerName } from "../progressLoggingConfig";
+import { PrayerName, PRAYER_OPTIONS } from "../progressLoggingConfig";
 import { useOptionalPrayerGoalFrameContext } from "../prayerGoalFrameContext";
 import { useLogMissedPastPrayersGoal } from "@/src/api/mutations/useLogMissedPastPrayersGoal";
 import type { MissedPastPrayerSlotKey } from "@/src/api/queries/useGetMissedPastPrayersSlot";
+import {
+  useGetPrayerGoalFrame,
+  type FiveDailyPrayerSlot,
+  type FiveDailyPrayerSlotKey,
+} from "@/src/api/queries/useGetPrayerGoalFrame";
+import { resolvePrayerTypeFromGoalId } from "@/src/utils/prayerGoalMap";
 import {
   getPrayerFrameAchievementLabel,
   prayerFrameShowsInsights,
@@ -65,7 +71,22 @@ const PRAYER_TO_SLOT_KEY: Record<PrayerName, MissedPastPrayerSlotKey> = {
   isha: "ISHA",
 };
 
+const EMPTY_SLOT_COUNTS: Record<PrayerName, number> = {
+  fajr: 0,
+  dhuhr: 0,
+  asr: 0,
+  maghrib: 0,
+  isha: 0,
+};
+
 const toDateString = (date: Date) => moment(date).format("YYYY-MM-DD");
+
+const getSlotLoggedCount = (slot: FiveDailyPrayerSlot | undefined): number => {
+  if (!slot) return 0;
+  if (typeof slot.count === "number") return Math.max(0, slot.count);
+  if (typeof slot.completed === "number") return Math.max(0, slot.completed);
+  return slot.logged ? 1 : 0;
+};
 
 export default function MissedPrayersLoggingFlow({
   goalData,
@@ -118,12 +139,42 @@ export default function MissedPrayersLoggingFlow({
   const frameLoading =
     prayerFrame?.isLoading || (!frame && !prayerFrame?.isError);
 
-  const cycleStartHijri = frame?.cycle?.cycleStart
-    ? toDateString(new Date(frame.cycle.cycleStart))
-    : undefined;
-  const cycleEndHijri = frame?.cycle?.cycleEnd
-    ? toDateString(new Date(frame.cycle.cycleEnd))
-    : undefined;
+  const prayerType =
+    resolvePrayerTypeFromGoalId(goalData.id) ?? "MISSED_PAST_PRAYERS";
+
+  const cycleStart = frame?.cycle?.cycleStart?.slice(0, 10);
+  const cycleEnd = frame?.cycle?.cycleEnd?.slice(0, 10);
+
+  const todayString = toDateString(new Date());
+  const maxSelectableDate =
+    cycleEnd && cycleEnd < todayString ? cycleEnd : todayString;
+
+  const selectedDateWeekNumber = useMemo(() => {
+    const start = frame?.cycle?.cycleStart;
+    const totalWeeks = frame?.cycle?.totalWeeks;
+    if (!start) return undefined;
+    const week =
+      Math.floor(
+        moment(selectedDate, "YYYY-MM-DD").diff(
+          moment(start, "YYYY-MM-DD"),
+          "days",
+        ) / 7,
+      ) + 1;
+    if (totalWeeks != null) return Math.min(Math.max(1, week), totalWeeks);
+    return Math.max(1, week);
+  }, [frame?.cycle?.cycleStart, frame?.cycle?.totalWeeks, selectedDate]);
+
+  const {
+    data: selectedDateWeekFrame,
+    isLoading: selectedDateWeekLoading,
+    isFetching: selectedDateWeekFetching,
+    refetch: refetchSelectedDateWeek,
+  } = useGetPrayerGoalFrame(prayerType, {
+    weekNumber: selectedDateWeekNumber,
+    enabled: selectedDateWeekNumber != null,
+  });
+
+  const slotSourceFrame = selectedDateWeekFrame ?? frame;
 
   const badgeStatus = useMemo(() => {
     if (!frame) {
@@ -140,24 +191,71 @@ export default function MissedPrayersLoggingFlow({
 
   const rawGoalLabel = frame?.goal.label ?? "---";
   const totalPrayersRequired = frame?.goal.targetCount;
-  const goalLabel = rawGoalLabel
-    .replace(/\s*\(total\s+\d+\s+prayers?\)\s*/i, "")
-    .trim() || "---";
-
-  const todayString = toDateString(new Date());
-  const maxSelectableDate = cycleEndHijri
-    ? cycleEndHijri < todayString
-      ? cycleEndHijri
-      : todayString
-    : todayString;
+  const goalLabel =
+    rawGoalLabel.replace(/\s*\(total\s+\d+\s+prayers?\)\s*/i, "").trim() ||
+    "---";
 
   useEffect(() => {
-    if (!cycleStartHijri || !cycleEndHijri) return;
-    if (selectedDate < cycleStartHijri) setSelectedDate(cycleStartHijri);
-    else if (selectedDate > maxSelectableDate) {
+    if (cycleStart && selectedDate < cycleStart) {
+      setSelectedDate(cycleStart);
+      return;
+    }
+    if (selectedDate > maxSelectableDate) {
       setSelectedDate(maxSelectableDate);
     }
-  }, [cycleStartHijri, cycleEndHijri, maxSelectableDate]);
+  }, [cycleStart, maxSelectableDate, selectedDate]);
+
+  const selectedDay = useMemo(() => {
+    return selectedDateWeekFrame?.week.days.find(
+      (d) => d.date === selectedDate || d.date.startsWith(`${selectedDate}`),
+    );
+  }, [selectedDateWeekFrame, selectedDate]);
+
+  const loggedCountsForSelectedDate = useMemo((): Record<
+    PrayerName,
+    number
+  > => {
+    if (!selectedDay?.slots) return { ...EMPTY_SLOT_COUNTS };
+
+    const next = { ...EMPTY_SLOT_COUNTS };
+    for (const prayer of PRAYER_OPTIONS) {
+      const slotKey = PRAYER_TO_SLOT_KEY[prayer] as FiveDailyPrayerSlotKey;
+      next[prayer] = getSlotLoggedCount(selectedDay.slots[slotKey]);
+    }
+    return next;
+  }, [selectedDay]);
+  console.log("loggedCountsForSelectedDate", loggedCountsForSelectedDate);
+  const slotTargets = useMemo((): Record<PrayerName, number> => {
+    const progress = slotSourceFrame?.goal.slotProgress;
+    const targets = slotSourceFrame?.goal.slotTargets;
+    const next = { ...EMPTY_SLOT_COUNTS };
+    for (const prayer of PRAYER_OPTIONS) {
+      const slotKey = PRAYER_TO_SLOT_KEY[prayer] as FiveDailyPrayerSlotKey;
+      next[prayer] = progress?.[slotKey]?.target ?? targets?.[slotKey] ?? 0;
+    }
+    return next;
+  }, [slotSourceFrame]);
+
+  const cycleCompletedCounts = useMemo((): Record<PrayerName, number> => {
+    const progress = slotSourceFrame?.goal.slotProgress;
+    const next = { ...EMPTY_SLOT_COUNTS };
+    for (const prayer of PRAYER_OPTIONS) {
+      const slotKey = PRAYER_TO_SLOT_KEY[prayer] as FiveDailyPrayerSlotKey;
+      next[prayer] = progress?.[slotKey]?.completed ?? 0;
+    }
+    return next;
+  }, [slotSourceFrame]);
+
+  const slotCountsLoading =
+    selectedDateWeekNumber != null &&
+    (selectedDateWeekLoading ||
+      (selectedDateWeekFetching && !selectedDateWeekFrame));
+
+  // Fresh session quantities whenever the selected day changes.
+  useEffect(() => {
+    setQuantities({ ...EMPTY_SLOT_COUNTS });
+  }, [selectedDate]);
+
   const currentStep = STEPS[stepIndex];
   const isLastStep = stepIndex === STEPS.length - 1;
 
@@ -171,7 +269,7 @@ export default function MissedPrayersLoggingFlow({
       .add(direction, "days")
       .format("YYYY-MM-DD");
 
-    if (cycleStartHijri && direction === -1 && next < cycleStartHijri) return;
+    if (cycleStart && direction === -1 && next < cycleStart) return;
     if (direction === 1 && next > maxSelectableDate) return;
 
     setSelectedDate(next);
@@ -182,7 +280,7 @@ export default function MissedPrayersLoggingFlow({
     setFlowMode("collapsed");
     setStepIndex(0);
     setSelectedDate(toDateString(new Date()));
-    setQuantities({ fajr: 0, dhuhr: 0, asr: 0, maghrib: 0, isha: 0 });
+    setQuantities({ ...EMPTY_SLOT_COUNTS });
     setStartHour(now.hour);
     setStartMinute(now.minute);
     setStartPeriod(now.period);
@@ -231,7 +329,7 @@ export default function MissedPrayersLoggingFlow({
 
       try {
         await logMissedPastPrayers(payload);
-        await prayerFrame?.refetch();
+        await Promise.all([prayerFrame?.refetch(), refetchSelectedDateWeek()]);
 
         onLogComplete?.({
           type: "missed-prayers",
@@ -281,13 +379,7 @@ export default function MissedPrayersLoggingFlow({
         };
       case "prayers-qty":
         return {
-          icon: (
-            <WhitePrayerMatIcon
-              
-              size={26}
-             
-            />
-          ),
+          icon: <WhitePrayerMatIcon size={26} />,
           label: "Tap prayers multiple times to update qty.",
         };
       case "start-time":
@@ -311,7 +403,7 @@ export default function MissedPrayersLoggingFlow({
             dateLabel={dateLabel}
             selectedDate={selectedDate}
             todayString={todayString}
-            minSelectableDate={cycleStartHijri}
+            minSelectableDate={cycleStart}
             maxSelectableDate={maxSelectableDate}
             onShiftDate={shiftDate}
             styles={commonStyles}
@@ -323,6 +415,10 @@ export default function MissedPrayersLoggingFlow({
             quantities={quantities}
             onIncrement={handleIncrementPrayer}
             categoryColor={Colors.light.green}
+            loggedCounts={loggedCountsForSelectedDate}
+            targets={slotTargets}
+            cycleCompleted={cycleCompletedCounts}
+            loading={slotCountsLoading || frameLoading}
           />
         );
       case "start-time":

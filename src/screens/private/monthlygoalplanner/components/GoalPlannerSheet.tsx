@@ -2553,7 +2553,10 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
           index={1}
           snapPoints={snapPoints}
           topInset={insets.top}
-          bottomInset={insets.bottom}
+          // Keep sheet flush to the screen bottom. Safe-area is handled via
+          // footer/content paddingBottom (insets.bottom), not bottomInset —
+          // bottomInset lifts the whole sheet and leaves a gap on iOS.
+          bottomInset={0}
           enableDynamicSizing={false}
           enablePanDownToClose
           enableHandlePanningGesture

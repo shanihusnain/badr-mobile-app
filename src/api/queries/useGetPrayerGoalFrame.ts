@@ -11,11 +11,19 @@ export type FiveDailyPrayerSlotKey =
   | "ISHA";
 
 export type FiveDailyPrayerSlot = {
-  logged: boolean;
-  prayedOnTime: boolean;
-  wasCongregational: boolean;
-  wasQadha: boolean;
-  isMenstruationSlot: boolean;
+  logged?: boolean;
+  prayedOnTime?: boolean;
+  wasCongregational?: boolean;
+  wasQadha?: boolean;
+  isMenstruationSlot?: boolean;
+  /** Missed-past (and similar): how many of this slot were logged that day. */
+  count?: number;
+  completed?: number;
+};
+
+export type PrayerGoalFrameSlotProgress = {
+  completed: number;
+  target: number;
 };
 
 export type PrayerGoalFrameDay = {
@@ -49,6 +57,10 @@ export type PrayerGoalFrameData = {
     status: PrayerGoalFrameStatus | string;
     label: string;
     isCongregationalTracked?: boolean;
+    slotTargets?: Partial<Record<FiveDailyPrayerSlotKey, number>>;
+    slotProgress?: Partial<
+      Record<FiveDailyPrayerSlotKey, PrayerGoalFrameSlotProgress>
+    >;
   };
   cycle: {
     id: string;

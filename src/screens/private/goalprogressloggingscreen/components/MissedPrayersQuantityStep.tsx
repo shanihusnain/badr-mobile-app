@@ -4,10 +4,6 @@ import { Colors } from "@/constants/theme";
 import { PrayerName, PRAYER_OPTIONS } from "../progressLoggingConfig";
 import { fonts } from "@/assets/fonts";
 import {
-  useGetMissedPastPrayersSlot,
-  type MissedPastPrayerSlotKey,
-} from "@/src/api/queries/useGetMissedPastPrayersSlot";
-import {
   FlowCardFajrIcon,
   FlowCardDuhrIcon,
   FlowCardAsrIcon,
@@ -26,18 +22,17 @@ const PRAYER_ICONS: Record<
   isha: FlowCardIshaIcon,
 };
 
-const PRAYER_TO_SLOT_KEY: Record<PrayerName, MissedPastPrayerSlotKey> = {
-  fajr: "FAJR",
-  dhuhr: "DHUHR",
-  asr: "ASR",
-  maghrib: "MAGHRIB",
-  isha: "ISHA",
-};
-
 interface MissedPrayersQuantityStepProps {
   quantities: Record<PrayerName, number>;
   onIncrement: (prayer: PrayerName) => void;
   categoryColor: string;
+  /** Already-logged counts for the selected date (not cycle totals). */
+  loggedCounts: Record<PrayerName, number>;
+  /** Cycle targets per prayer slot. */
+  targets: Record<PrayerName, number>;
+  /** Cycle completed totals — used to cap how many more can be logged. */
+  cycleCompleted: Record<PrayerName, number>;
+  loading?: boolean;
 }
 
 const PrayerItem = React.memo(
@@ -122,31 +117,34 @@ const PrayerItem = React.memo(
 
 export const MissedPrayersQuantityStep: React.FC<
   MissedPrayersQuantityStepProps
-> = ({ quantities, onIncrement, categoryColor }) => {
-  const { data, isLoading, isError } = useGetMissedPastPrayersSlot();
-  const slotLoading = isLoading || (!data && !isError);
-  const slotProgress = data?.slotProgress;
-
+> = ({
+  quantities,
+  onIncrement,
+  categoryColor,
+  loggedCounts,
+  targets,
+  cycleCompleted,
+  loading = false,
+}) => {
   const handleIncrement = React.useCallback(
     (prayer: PrayerName) => {
-      const slot = slotProgress?.[PRAYER_TO_SLOT_KEY[prayer]];
-      if (!slot) return;
-      const remaining = Math.max(0, slot.target - slot.completed);
+      const target = targets[prayer] ?? 0;
+      const completed = cycleCompleted[prayer] ?? 0;
+      const remaining = Math.max(0, target - completed);
       if ((quantities[prayer] || 0) >= remaining) return;
       onIncrement(prayer);
     },
-    [onIncrement, quantities, slotProgress],
+    [cycleCompleted, onIncrement, quantities, targets],
   );
 
   return (
     <View style={localStyles.prayerGrid}>
       {PRAYER_OPTIONS.map((prayer) => {
-        const slot = slotProgress?.[PRAYER_TO_SLOT_KEY[prayer]];
-        const completed = slot?.completed ?? 0;
-        const target = slot?.target ?? 0;
+        const target = targets[prayer] ?? 0;
+        const completedCycle = cycleCompleted[prayer] ?? 0;
         const sessionQty = quantities[prayer] || 0;
-        const displayedQty = completed + sessionQty;
-        const remaining = Math.max(0, target - completed);
+        const displayedQty = (loggedCounts[prayer] || 0) + sessionQty;
+        const remaining = Math.max(0, target - completedCycle);
 
         return (
           <PrayerItem
@@ -154,8 +152,8 @@ export const MissedPrayersQuantityStep: React.FC<
             prayer={prayer}
             quantity={displayedQty}
             target={target}
-            loading={slotLoading}
-            canIncrement={!slotLoading && sessionQty < remaining}
+            loading={loading}
+            canIncrement={!loading && sessionQty < remaining}
             onIncrement={handleIncrement}
             categoryColor={categoryColor}
           />
