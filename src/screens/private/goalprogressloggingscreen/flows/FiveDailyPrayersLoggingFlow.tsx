@@ -199,15 +199,18 @@ export default function FiveDailyPrayersLoggingFlow({
   const showInsights = frame ? prayerFrameShowsInsights(frame) : false;
   const isFullyAchieved = (frame?.goal.achievementPct ?? 0) >= 100;
 
+  // Clamp `selectedDate` into the valid cycle range when the cycle bounds
+  // change. Use functional setState and avoid depending on `selectedDate`
+  // itself to prevent an effect <-> state update loop.
   useEffect(() => {
-    if (cycleStart && selectedDate < cycleStart) {
-      setSelectedDate(cycleStart);
-      return;
-    }
-    if (selectedDate > maxSelectableDate) {
-      setSelectedDate(maxSelectableDate);
-    }
-  }, [cycleStart, maxSelectableDate, selectedDate]);
+    setSelectedDate((current) => {
+      if (cycleStart && current < cycleStart) return cycleStart;
+      if (maxSelectableDate && current > maxSelectableDate)
+        return maxSelectableDate;
+      return current;
+    });
+    // Intentionally only depend on cycle bounds
+  }, [cycleStart, maxSelectableDate]);
 
   const loggedPrayersForSelectedDate = useMemo((): PrayerName[] => {
     const day = selectedDateWeekFrame?.week.days.find(

@@ -147,14 +147,14 @@ const styles = StyleSheet.create({
     },
     percentText: {
         color: Colors.light.white,
-        fontFamily: fonts.primary.semiBold,
-        fontSize: 12,
+        fontFamily: fonts.primary.medium,
+        fontSize: 14,
         fontWeight: "600",
     },
     percentSymbol: {
         color: Colors.light.white,
         fontFamily: fonts.primary.regular,
-        fontSize: 6.5,
+        fontSize: 9,
         marginLeft: 1,
     },
 });
