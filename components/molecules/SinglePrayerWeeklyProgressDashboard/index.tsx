@@ -22,6 +22,7 @@ import {
   WRAPPER_WIDTH_RATIO,
   type SinglePrayerWeeklyProgressDashboardProps,
 } from "./types";
+import { TopSpace } from "@/components/atoms/TopSpace";
 
 export type {
   SinglePrayerDayProgress,
@@ -119,7 +120,7 @@ export function SinglePrayerWeeklyProgressDashboard({
               <View
                 style={[
                   styles.dayItemWrapper,
-                  isSelected && styles.dayItemSelected,
+                  isSelected && !isMarkedForDeletion && styles.dayItemSelected,
                 ]}
               >
                 <SinglePrayerDayRing
@@ -131,7 +132,7 @@ export function SinglePrayerWeeklyProgressDashboard({
                   isMenstruation={isMenstruation}
                   showEmptyOutline={showEmptyOutline}
                 />
-
+                <TopSpace top={10} />
                 <Text
                   style={[
                     day.isBestDay && !isInactiveOutline && !loading
@@ -266,6 +267,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.light.red,
     borderRadius: 6,
     backgroundColor: Colors.light.dullRed,
+    zIndex: 99999,
   },
   deleteButton: {
     height: 20,

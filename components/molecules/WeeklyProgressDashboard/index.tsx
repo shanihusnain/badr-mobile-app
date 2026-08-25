@@ -16,6 +16,7 @@ import { PrayerWeeklyProgressFooter } from "@/components/molecules/PrayerWeeklyP
 import { PrayerWeeklyProgressHeader } from "@/components/molecules/SinglePrayerWeeklyProgressDashboard/PrayerWeeklyProgressHeader";
 import { useDeletePrayerLog } from "@/src/api/mutations/useDeletePrayerLog";
 import { useOptionalPrayerGoalFrameContext } from "@/src/screens/private/goalprogressloggingscreen/prayerGoalFrameContext";
+import { TopSpace } from "@/components/atoms/TopSpace";
 
 // Layout spacing matches SinglePrayerWeeklyProgressDashboard.
 // Arc rings need a larger size than the solid 24px single-prayer circles.
@@ -206,7 +207,7 @@ export const WeeklyProgressDashboard: React.FC<
               <View
                 style={[
                   styles.dayItemWrapper,
-                  isSelected && styles.dayItemSelected,
+                  isSelected && !isMarkedForDeletion && styles.dayItemSelected,
                 ]}
               >
                 <View
@@ -217,6 +218,7 @@ export const WeeklyProgressDashboard: React.FC<
                 >
                   {renderRing(day, ringSize)}
                 </View>
+                <TopSpace top={10} />
                 <Text
                   style={[
                     styles.dayLabel,
