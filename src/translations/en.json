@@ -261,6 +261,10 @@
       "dhulH": "Dhul H."
     },
     "selectCurrency": "Select Currency",
+    "currencyUpdatedTitle": "CURRENCY UPDATED!",
+    "currencyUpdatedMessage": "Would you like to use this currency as your default for all future sadaqah spending goals?",
+    "currencyUpdatedYes": "Yes",
+    "currencyUpdatedNo": "No",
     "selectCurrencyRequired": "Please select a currency",
     "save": "Save",
     "amount": "Amount",

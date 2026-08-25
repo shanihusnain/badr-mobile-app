@@ -1,6 +1,8 @@
 import { Colors } from "@/constants/theme";
 import { StyleSheet, View } from "react-native";
+import { useState } from "react";
 import CustomDropdown from "../atoms/CustomDropdown";
+import WarningModal from "../atoms/WarningModal";
 import { fonts } from "@/assets/fonts";
 import { setDefaultSadaqahCurrency } from "@/src/storage/sadaqahCurrencyStorage";
 import { useTranslation } from "react-i18next";
@@ -77,10 +79,32 @@ export const CurrencyAndAmountSelector = ({
 }: {
   control: any;
   name: string;
-  /** Called when a currency is selected so it can be applied to all sadaqah goals. */
+  /** Called when user confirms using this currency as default for all sadaqah goals. */
   onSetAsDefaultCurrency?: (currencyOptionValue: string) => void;
 }) => {
   const { t } = useTranslation();
+  const [defaultCurrencyModalVisible, setDefaultCurrencyModalVisible] =
+    useState(false);
+  const [pendingCurrency, setPendingCurrency] = useState<string | null>(null);
+
+  const closeDefaultCurrencyModal = () => {
+    setDefaultCurrencyModalVisible(false);
+    setPendingCurrency(null);
+  };
+
+  const confirmDefaultCurrency = async () => {
+    if (!pendingCurrency) {
+      closeDefaultCurrencyModal();
+      return;
+    }
+    try {
+      await setDefaultSadaqahCurrency(pendingCurrency);
+    } catch {
+      // Still apply in-session even if persistence fails
+    }
+    onSetAsDefaultCurrency?.(pendingCurrency);
+    closeDefaultCurrencyModal();
+  };
 
   return (
     <View style={styles.wrapper}>
@@ -93,10 +117,8 @@ export const CurrencyAndAmountSelector = ({
           onSelect={(option) => {
             const value = typeof option === "string" ? option : String(option);
             if (!value) return;
-            void setDefaultSadaqahCurrency(value).catch(() => {
-              // Still apply in-session even if persistence fails
-            });
-            onSetAsDefaultCurrency?.(value);
+            setPendingCurrency(value);
+            setDefaultCurrencyModalVisible(true);
           }}
           selectedTextStyle={styles.selectedTextStyle}
           containerStyle={styles.triggerStyle}
@@ -105,6 +127,20 @@ export const CurrencyAndAmountSelector = ({
           placeholder={t("monthlyGoalPlanner.selectCurrency")}
         />
       </View>
+
+      <WarningModal
+        visible={defaultCurrencyModalVisible}
+        title={t("monthlyGoalPlanner.currencyUpdatedTitle")}
+        message={t("monthlyGoalPlanner.currencyUpdatedMessage")}
+        primaryButtonText={t("monthlyGoalPlanner.currencyUpdatedYes")}
+        secondaryButtonText={t("monthlyGoalPlanner.currencyUpdatedNo")}
+        primaryButtonVariant="green"
+        onPrimaryPress={confirmDefaultCurrency}
+        onSecondaryPress={closeDefaultCurrencyModal}
+        onBackdropPress={closeDefaultCurrencyModal}
+        secondaryButtonTextStyle={{ color: Colors.light.white }}
+        primaryButtonSize="compact"
+      />
     </View>
   );
 };

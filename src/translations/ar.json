@@ -261,6 +261,10 @@
       "dhulH": "ذو الحجة"
     },
     "selectCurrency": "اختر العملة",
+    "currencyUpdatedTitle": "تم تحديث العملة!",
+    "currencyUpdatedMessage": "هل تريد استخدام هذه العملة كإعداد افتراضي لجميع أهداف الصدقة المالية المستقبلية؟",
+    "currencyUpdatedYes": "نعم",
+    "currencyUpdatedNo": "لا",
     "selectCurrencyRequired": "يرجى اختيار العملة",
     "save": "حفظ",
     "amount": "المبلغ",
