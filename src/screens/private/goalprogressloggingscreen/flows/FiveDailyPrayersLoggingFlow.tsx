@@ -104,7 +104,7 @@ export default function FiveDailyPrayersLoggingFlow({
   const [flowMode, setFlowMode] = useState<FlowMode>("collapsed");
   const [stepIndex, setStepIndex] = useState(0);
   const [selectedDate, setSelectedDate] = useState(toDateString(new Date()));
-  const [selectedPrayer, setSelectedPrayer] = useState<PrayerName>("fajr");
+  const [selectedPrayer, setSelectedPrayer] = useState<PrayerName | null>(null);
   const [timing, setTiming] = useState<TimingOption>("onTime");
   const [congregation, setCongregation] = useState<CongregationOption>("yes");
   const [startHour, setStartHour] = useState(
@@ -225,21 +225,7 @@ export default function FiveDailyPrayersLoggingFlow({
   const hasSelectablePrayer =
     loggedPrayersForSelectedDate.length < PRAYER_OPTIONS.length;
 
-  const previousSelectedDateRef = React.useRef(selectedDate);
-
-  // Pre-select the next unlogged prayer when the day changes, or when the
-  // current selection becomes unavailable after a refetch.
-  useEffect(() => {
-    const dateChanged = previousSelectedDateRef.current !== selectedDate;
-    previousSelectedDateRef.current = selectedDate;
-
-    setSelectedPrayer((current) => {
-      if (dateChanged || loggedPrayersForSelectedDate.includes(current)) {
-        return getNextUnloggedPrayer(loggedPrayersForSelectedDate);
-      }
-      return current;
-    });
-  }, [selectedDate, loggedPrayersForSelectedDate]);
+  // No automatic pre-selection: user must pick a prayer explicitly.
 
   // Keep step index valid when congregation is inserted/removed from the flow.
   useEffect(() => {
@@ -270,7 +256,7 @@ export default function FiveDailyPrayersLoggingFlow({
     setFlowMode("collapsed");
     setStepIndex(0);
     setSelectedDate(toDateString(new Date()));
-    setSelectedPrayer("fajr");
+    setSelectedPrayer(null);
     setTiming("onTime");
     setCongregation("yes");
     setStartHour(now.hour);
@@ -301,6 +287,7 @@ export default function FiveDailyPrayersLoggingFlow({
 
   const handleConfirm = () => {
     if (isLogging) return;
+    if (!selectedPrayer) return;
 
     const run = async () => {
       const prayedOnTime = timing === "onTime";
@@ -347,21 +334,18 @@ export default function FiveDailyPrayersLoggingFlow({
   };
 
   const handleForward = () => {
-    if (currentStep === "prayerSelect" && !hasSelectablePrayer) return;
-    if (
-      currentStep === "prayerSelect" &&
-      loggedPrayersForSelectedDate.includes(selectedPrayer)
-    ) {
-      return;
+    if (currentStep === "prayerSelect") {
+      if (!hasSelectablePrayer) return;
+      if (!selectedPrayer) return;
+      if (selectedPrayer && loggedPrayersForSelectedDate.includes(selectedPrayer)) return;
     }
     if (!isLastStep) setStepIndex((index) => index + 1);
   };
 
   const handleOpenFlow = useCallback(() => {
     if (frameLoading || isFullyAchieved) return;
-    setSelectedPrayer(getNextUnloggedPrayer(loggedPrayersForSelectedDate));
     setFlowMode("active");
-  }, [frameLoading, isFullyAchieved, loggedPrayersForSelectedDate]);
+  }, [frameLoading, isFullyAchieved]);
 
   const getTimingLabel = useCallback(
     (option: TimingOption) =>
@@ -635,8 +619,8 @@ export default function FiveDailyPrayersLoggingFlow({
                   !isLastStep &&
                   !(
                     currentStep === "prayerSelect" &&
-                    (!hasSelectablePrayer ||
-                      loggedPrayersForSelectedDate.includes(selectedPrayer))
+                    (!hasSelectablePrayer || !selectedPrayer ||
+                      (selectedPrayer ? loggedPrayersForSelectedDate.includes(selectedPrayer) : false))
                   )
                 }
                 canConfirm={isLastStep && !isLogging && !isFullyAchieved}
