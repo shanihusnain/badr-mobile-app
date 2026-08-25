@@ -107,7 +107,7 @@ export const GOALS_DATA: Record<GoalId, GoalData> = {
   "prayer-tawbah": {
     id: "prayer-tawbah",
     category: "PRAYER",
-    title: "Tawbah Prayer",
+    title: "AL-Tawbah Prayer",
     count: "4",
     label: "/10 prayers",
     percentage: "40%",
@@ -119,7 +119,7 @@ export const GOALS_DATA: Record<GoalId, GoalData> = {
   "prayer-istikhara": {
     id: "prayer-istikhara",
     category: "PRAYER",
-    title: "Istikhara Prayer",
+    title: "Istikhara",
     count: "2",
     label: "/9 prayers",
     percentage: "22%",
@@ -131,7 +131,7 @@ export const GOALS_DATA: Record<GoalId, GoalData> = {
   "prayer-shukr": {
     id: "prayer-shukr",
     category: "PRAYER",
-    title: "Shukr Prayer",
+    title: "Shukr",
     count: "3",
     label: "/8 prayers",
     percentage: "37%",
@@ -155,7 +155,7 @@ export const GOALS_DATA: Record<GoalId, GoalData> = {
   "prayer-duha": {
     id: "prayer-duha",
     category: "PRAYER",
-    title: "Duha Prayer",
+    title: "Duha",
     count: "11",
     label: "/22 prayers",
     percentage: "50%",
