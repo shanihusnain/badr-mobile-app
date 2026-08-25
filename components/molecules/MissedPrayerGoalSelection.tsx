@@ -21,7 +21,7 @@ import { Divider } from "../atoms/Divider";
 
 export default function MissedPrayerGoalSelection({
   onSave,
-  initialValue = 3,
+  initialValue = 1,
   isSaving = false,
   openOnMount = false,
 }: {

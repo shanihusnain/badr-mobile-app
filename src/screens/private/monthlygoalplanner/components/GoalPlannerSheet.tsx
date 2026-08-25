@@ -2728,7 +2728,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                         ? t("monthlyGoalPlanner.finishAndSaveGoals")
                         : "NEXT"
                     }
-                    disabled={false}
+                    disabled={!canPressFooterPrimary}
                     onPress={handleFooterPrimaryPress}
                   />
                 </View>
