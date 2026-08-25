@@ -143,6 +143,10 @@ const getPrayerGoalAchievements = async (
       },
     },
   );
+  console.log(
+    "response of past achievement",
+    JSON.stringify(response.data?.data, null, 2),
+  );
   return response.data?.data ?? null;
 };
 

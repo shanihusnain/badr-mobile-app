@@ -5,6 +5,7 @@ import {
   ScrollView,
   Image,
   type ImageSourcePropType,
+  Platform,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import {
@@ -62,6 +63,7 @@ import {
 import { InformationSheet } from "@/components/molecules/informationsheet";
 import { HeaderInfoIcon } from "@/assets/icons";
 import { TopSpace } from "@/components/atoms/TopSpace";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 /** Hero background per prayer / Quran / fasting / sadaqah logging goal. */
 function getLoggingBackgroundSource(
@@ -396,7 +398,7 @@ export const GoalProgressLoggingScreen = ({
   const template = getLoggingFlowTemplate(goalId);
   const backgroundSource = getLoggingBackgroundSource(goalId, template);
   const shouldUseBackground = backgroundSource != null;
-
+  const insets = useSafeAreaInsets();
   const openInsightsSheet = () => {
     infoSheetRef.current?.expand();
   };
@@ -434,7 +436,13 @@ export const GoalProgressLoggingScreen = ({
         nestedScrollEnabled
       >
         {shouldUseBackground ? (
-          <View style={styles.scrollHeader} pointerEvents="box-none">
+          <View
+            style={[
+              styles.scrollHeader,
+              { paddingTop: Platform.OS === "ios" ? insets.top - 40 : 0 },
+            ]}
+            pointerEvents="box-none"
+          >
             <HeaderWithCrossTitleDynamicIcon
               title={
                 goalData.title?.toUpperCase() ?? goalData.label.toUpperCase()

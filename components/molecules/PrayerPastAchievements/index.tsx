@@ -503,19 +503,10 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
   const baseAchievementRaw = useMemo((): PrayerPastAchievement | null => {
     if (usesAchievementsApi) {
       if (!achievementsApiData) return null;
-      return mapPrayerGoalAchievementsToUi(
-        achievementsApiData,
-        analyticsView,
-      );
+      return mapPrayerGoalAchievementsToUi(achievementsApiData, analyticsView);
     }
     return getPrayerPastAchievement(goalId, period);
-  }, [
-    usesAchievementsApi,
-    achievementsApiData,
-    goalId,
-    period,
-    analyticsView,
-  ]);
+  }, [usesAchievementsApi, achievementsApiData, goalId, period, analyticsView]);
 
   const baseAchievement = useMemo(() => {
     if (!baseAchievementRaw) return null;
@@ -654,9 +645,7 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
       if ((frame.goal.achievementPct ?? 0) > 0) return true;
       if ((frame.week.thisWeekTotal ?? 0) > 0) return true;
       if (
-        frame.week.days.some(
-          (day) => (day.count ?? day.totalLogged ?? 0) > 0,
-        )
+        frame.week.days.some((day) => (day.count ?? day.totalLogged ?? 0) > 0)
       ) {
         return true;
       }
@@ -675,7 +664,9 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
   }, [baseAchievement, prayerFrame?.frame]);
 
   const showDetailedStatsChevron =
-    !isDetailed && hasLoggedPrayerActivity;
+    !isDetailed &&
+    hasLoggedPrayerActivity &&
+    (achievementsApiData?.achievementPct ?? 0) > 0;
 
   const displayTimeSpent =
     selectedBaseWeek?.timeSpentMinutes ??
@@ -979,16 +970,12 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
                 <>
                   <Text>{PERIOD_PHRASE[period]}, you achieved </Text>
                   <Text style={styles.summaryBold}>
-                    {formatNumber(
-                      resolvedBaseAchievement.achievementPercent,
-                    )}
-                    %
+                    {formatNumber(resolvedBaseAchievement.achievementPercent)}%
                   </Text>
                   <Text> of your {cleanGoalLabel} prayer goals</Text>
                   {resolvedBaseAchievement.previousPeriodDeltaPercent !==
                   null ? (
-                    resolvedBaseAchievement.previousPeriodDeltaPercent ===
-                    0 ? (
+                    resolvedBaseAchievement.previousPeriodDeltaPercent === 0 ? (
                       <Text>
                         {" "}
                         — the same as the previous{" "}
@@ -1727,14 +1714,13 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
-   
   },
   insightsSubtitleLabel: {
     color: Colors.light.subtext,
     fontSize: 12,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
-  
+
     marginRight: 10,
   },
   insightsScrollContent: {

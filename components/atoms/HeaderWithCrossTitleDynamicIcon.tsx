@@ -4,6 +4,9 @@ import { Feather } from "@expo/vector-icons";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 
+/** Some goal titles embed `\n` for multi-line cards; headers always stay one line. */
+const toSingleLine = (value: string) => value.replace(/\s*\n\s*/g, " ").trim();
+
 export const HeaderWithCrossTitleDynamicIcon = ({
   title,
   navigation,
@@ -34,106 +37,122 @@ export const HeaderWithCrossTitleDynamicIcon = ({
   onRightPress?: () => void;
   leftButtonBackground?: string;
   forloggingFlow?: boolean;
-}) => (
-  <View
-    style={{
-      height: 100,
-      position: "relative",
-      paddingTop: 40,
-      backgroundColor: bgcolor ?? Colors.light.blackBackground,
-    }}
-  >
-    {/* Centered title */}
+}) => {
+  const singleLineTitle = toSingleLine(title);
+  const singleLineSecondTitle = secondTitle ? toSingleLine(secondTitle) : "";
+
+  return (
     <View
       style={{
-        position: "absolute",
-        left: 0,
-        right: 0,
-        top: 40,
-        bottom: 0,
-        justifyContent: "center",
-        alignItems: "center",
-        zIndex: 11,
+        height: 100,
+        position: "relative",
+        paddingTop: 40,
+        backgroundColor: bgcolor ?? Colors.light.blackBackground,
       }}
-      pointerEvents="none"
     >
-      {!!title || !!titleHighlight ? (
-        <Text
-          style={{
-            color: Colors.light.white,
-            fontFamily: fonts.primary.semiBold,
-            fontSize: 14,
-            letterSpacing: letterSpacing,
-            textAlign: "center",
-          }}
-        >
-          {!!titleHighlight && (
-            <Text style={{ color: Colors.light.green }}>{titleHighlight} </Text>
-          )}
-          {title}
-        </Text>
-      ) : null}
-      {!!secondTitle && (
-        <Text
-          style={{
-            color: Colors.light.white,
-            fontFamily: fonts.primary.semiBold,
-            fontSize: 16,
-            letterSpacing: letterSpacing,
-            marginTop: 2,
-            textTransform: "uppercase",
-          }}
-        >
-          {secondTitle}
-        </Text>
-      )}
-    </View>
+      {/* Centered title — inset so it clears the side buttons */}
+      <View
+        style={{
+          position: "absolute",
+          left: 62,
+          right: 62,
+          top: 40,
+          bottom: 0,
+          justifyContent: "center",
+          alignItems: "center",
+          zIndex: 11,
+        }}
+        pointerEvents="none"
+      >
+        {!!singleLineTitle || !!titleHighlight ? (
+          <Text
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.75}
+            style={{
+              color: Colors.light.white,
+              fontFamily: fonts.primary.semiBold,
+              fontSize: 14,
+              letterSpacing: letterSpacing,
+              textAlign: "center",
+              width: "100%",
+            }}
+          >
+            {!!titleHighlight && (
+              <Text style={{ color: Colors.light.green }}>
+                {titleHighlight}{" "}
+              </Text>
+            )}
+            {singleLineTitle}
+          </Text>
+        ) : null}
+        {!!singleLineSecondTitle && (
+          <Text
+            numberOfLines={1}
+            style={{
+              color: Colors.light.white,
+              fontFamily: fonts.primary.semiBold,
+              fontSize: 16,
+              letterSpacing: letterSpacing,
+              marginTop: 2,
+              textTransform: "uppercase",
+            }}
+          >
+            {singleLineSecondTitle}
+          </Text>
+        )}
+      </View>
 
-    {/* Close button — fixed top-left position */}
-    <Pressable
-      style={{
-        position: "absolute",
-        left: 18,
-        top: 52,
-        width: 36,
-        height: 36,
-        borderRadius: 18,
-        backgroundColor:
-          leftButtonBackground ?? Colors.light.greybuttonBackground,
-        justifyContent: "center",
-        alignItems: "center",
-        zIndex: 10,
-      }}
-      onPress={() => (onBackPress ? onBackPress() : navigation.goBack())}
-    >
-      <Feather name={iconName} size={20} color={Colors.light.white} />
-    </Pressable>
-
-    {rightIcon || rightIconName ? (
+      {/* Close button — fixed top-left position */}
       <Pressable
         style={{
           position: "absolute",
-          right: 18,
+          left: 18,
           top: 52,
           width: 36,
           height: 36,
           borderRadius: 18,
-          backgroundColor: rightIcon
-            ? Colors.light.dullestWhite
-            : Colors.light.greybuttonBackground,
+          backgroundColor:
+            leftButtonBackground ?? Colors.light.greybuttonBackground,
           justifyContent: "center",
           alignItems: "center",
           zIndex: 10,
         }}
-        onPress={onRightPress}
-        hitSlop={8}
+        onPress={() => (onBackPress ? onBackPress() : navigation.goBack())}
       >
-        {rightIcon ?? (
-          <Feather name={rightIconName!} size={18} color={Colors.light.white} />
-        )}
+        <Feather name={iconName} size={20} color={Colors.light.white} />
       </Pressable>
-    ) : null}
-  </View>
-);
+
+      {rightIcon || rightIconName ? (
+        <Pressable
+          style={{
+            position: "absolute",
+            right: 18,
+            top: 52,
+            width: 36,
+            height: 36,
+            borderRadius: 18,
+            backgroundColor: rightIcon
+              ? Colors.light.dullestWhite
+              : Colors.light.greybuttonBackground,
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 10,
+          }}
+          onPress={onRightPress}
+          hitSlop={8}
+        >
+          {rightIcon ?? (
+            <Feather
+              name={rightIconName!}
+              size={18}
+              color={Colors.light.white}
+            />
+          )}
+        </Pressable>
+      ) : null}
+    </View>
+  );
+};
 
 export default HeaderWithCrossTitleDynamicIcon;
