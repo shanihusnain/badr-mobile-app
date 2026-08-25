@@ -237,6 +237,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
       goalName: string;
     }>({ visible: false, goalName: "" });
     const [finishSaveModalVisible, setFinishSaveModalVisible] = useState(false);
+    const [selectGoalModalVisible, setSelectGoalModalVisible] = useState(false);
     const [sheetScrollEnabled, setSheetScrollEnabled] = useState(true);
     /**
      * Goal toggled on in a category but not yet saved/configured.
@@ -825,6 +826,24 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
     const handleTabPress = useCallback(
       (tabId: Tab) => {
         if (tabId !== "cycle" && !hasCommittedCycle) return;
+
+        // If switching away from a goal category (prayer/quran/fasting/sadaqah)
+        // and the current tab has no selected goals, prevent switching and
+        // ask the user to select at least one goal.
+        const current = activeTabRef.current;
+        const goalTabs = ["prayer", "quran", "fasting", "sadaqah"] as Tab[];
+        if (current && goalTabs.includes(current) && tabId !== current) {
+          const goals = tabDataRef.current ?? [];
+          const hasSelection = goals.some((item: any) => {
+            if (!item || !item.id) return false;
+            return Boolean(selectedGoalsRef.current[item.id]) || Boolean(item.isSelected);
+          });
+          if (!hasSelection) {
+            setSelectGoalModalVisible(true);
+            return;
+          }
+        }
+
         setActiveTab(tabId);
       },
       [hasCommittedCycle],
@@ -1837,12 +1856,17 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
     }, [activeTab, cycleStartDate, tabOrder]);
 
     const handleFooterPrimaryPress = useCallback(() => {
+      if (activeTab !== "cycle" && !canPressFooterPrimary) {
+        // Show modal asking user to select at least one goal
+        setSelectGoalModalVisible(true);
+        return;
+      }
       if (activeTab === "review") {
         setFinishSaveModalVisible(true);
         return;
       }
       goToNextTab();
-    }, [activeTab, goToNextTab]);
+    }, [activeTab, canPressFooterPrimary, goToNextTab]);
     // Render the appropriate editor/selection component for a goal when it's being edited
     const renderGoalEditor = (goal: any) => {
       if (!goal) return null;
@@ -2704,7 +2728,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                         ? t("monthlyGoalPlanner.finishAndSaveGoals")
                         : "NEXT"
                     }
-                    disabled={!canPressFooterPrimary}
+                    disabled={false}
                     onPress={handleFooterPrimaryPress}
                   />
                 </View>
@@ -3758,6 +3782,18 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
           secondaryButtonTextStyle={{
             color: Colors.light.subtext,
           }}
+        />
+        <WarningModal
+          visible={selectGoalModalVisible}
+          title={"SELECT YOUR GOAL"}
+          message={"Please select at least one goal to continue."}
+          primaryButtonText={"Ok"}
+          secondaryButtonText={null}
+          primaryButtonVariant="green"
+          primaryButtonSize="modal"
+          onPrimaryPress={() => setSelectGoalModalVisible(false)}
+          onBackdropPress={() => setSelectGoalModalVisible(false)}
+          primaryButtonStyle={styles.modalPrimaryButton}
         />
       </>
     );
