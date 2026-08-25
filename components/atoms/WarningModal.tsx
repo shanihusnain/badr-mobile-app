@@ -4,11 +4,13 @@ import {
   Text,
   StyleSheet,
   Modal,
+  Platform,
   Pressable,
   StyleProp,
   TextStyle,
   ViewStyle,
 } from "react-native";
+import { FullWindowOverlay } from "react-native-screens";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import SecondaryButton from "./Secondary-button";
@@ -55,60 +57,79 @@ export default function WarningModal({
   const hasMessage = message != null && message !== "" && message !== false;
   const showSecondaryButton = Boolean(secondaryButtonText);
 
+  if (!visible) return null;
+
+  const body = (
+    <Pressable style={styles.overlay} onPress={handleBackdropPress}>
+      <Pressable
+        style={styles.modalContainer}
+        onPress={(e) => e.stopPropagation()}
+      >
+        <Text style={[styles.title, !hasMessage && styles.titleOnly]}>
+          {title}
+        </Text>
+        {hasMessage ? (
+          <View style={styles.messageContainer}>
+            {typeof message === "string" ? (
+              <Text style={styles.message}>{message}</Text>
+            ) : (
+              message
+            )}
+          </View>
+        ) : null}
+
+        <View style={styles.buttonContainer}>
+          <SecondaryButton
+            text={primaryButtonText}
+            onPress={onPrimaryPress}
+            variant={primaryButtonVariant}
+            size={primaryButtonSize}
+            style={primaryButtonStyle}
+            textStyle={primaryButtonTextStyle}
+          />
+          {showSecondaryButton ? (
+            <Pressable
+              style={styles.secondaryButton}
+              onPress={onSecondaryPress}
+            >
+              <Text
+                style={[styles.secondaryButtonText, secondaryButtonTextStyle]}
+              >
+                {secondaryButtonText}
+              </Text>
+            </Pressable>
+          ) : null}
+        </View>
+      </Pressable>
+    </Pressable>
+  );
+
+  // Goal planner (and similar) host sheets in FullWindowOverlay on iOS.
+  // RN Modal presents below that overlay, so warnings must use the same layer.
+  if (Platform.OS === "ios") {
+    return (
+      <FullWindowOverlay>
+        <View style={styles.iosOverlayRoot}>{body}</View>
+      </FullWindowOverlay>
+    );
+  }
+
   return (
     <Modal
-      transparent={true}
+      transparent
       animationType="fade"
       visible={visible}
       onRequestClose={handleBackdropPress}
     >
-      <Pressable style={styles.overlay} onPress={handleBackdropPress}>
-        <Pressable
-          style={styles.modalContainer}
-          onPress={(e) => e.stopPropagation()}
-        >
-          <Text style={[styles.title, !hasMessage && styles.titleOnly]}>
-            {title}
-          </Text>
-          {hasMessage ? (
-            <View style={styles.messageContainer}>
-              {typeof message === "string" ? (
-                <Text style={styles.message}>{message}</Text>
-              ) : (
-                message
-              )}
-            </View>
-          ) : null}
-
-          <View style={styles.buttonContainer}>
-            <SecondaryButton
-              text={primaryButtonText}
-              onPress={onPrimaryPress}
-              variant={primaryButtonVariant}
-              size={primaryButtonSize}
-              style={primaryButtonStyle}
-              textStyle={primaryButtonTextStyle}
-            />
-            {showSecondaryButton ? (
-              <Pressable
-                style={styles.secondaryButton}
-                onPress={onSecondaryPress}
-              >
-                <Text
-                  style={[styles.secondaryButtonText, secondaryButtonTextStyle]}
-                >
-                  {secondaryButtonText}
-                </Text>
-              </Pressable>
-            ) : null}
-          </View>
-        </Pressable>
-      </Pressable>
+      {body}
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
+  iosOverlayRoot: {
+    ...StyleSheet.absoluteFillObject,
+  },
   overlay: {
     flex: 1,
     backgroundColor: Colors.light.overlayBlackColor,

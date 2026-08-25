@@ -1,6 +1,5 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
-import { BlurView } from "expo-blur";
 import {
   BottomSheetBackdrop,
   BottomSheetFlatList,
@@ -195,30 +194,6 @@ type Props = {
   onClose: () => void;
   initialTab?: Tab;
 };
-
-function GoalPlannerSheetContainer({ children }: { children?: ReactNode }) {
-  const content = (
-    <GestureHandlerRootView style={styles.sheetOverlayRoot}>
-      {children}
-    </GestureHandlerRootView>
-  );
-
-  if (Platform.OS === "ios") {
-    return <FullWindowOverlay>{content}</FullWindowOverlay>;
-  }
-
-  return (
-    <Modal
-      visible
-      transparent
-      statusBarTranslucent
-      animationType="none"
-      presentationStyle="overFullScreen"
-    >
-      {content}
-    </Modal>
-  );
-}
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
@@ -875,10 +850,42 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
     const snapPoints = useMemo(
       () => [
         Math.round(windowHeight * 0.28),
-        Math.round(windowHeight * 0.9),
+        Platform.OS === "ios"
+          ? Math.round(windowHeight * 0.87)
+          : Math.round(windowHeight * 0.9),
         Math.round(windowHeight - insets.top + 24),
       ],
       [windowHeight, insets.top],
+    );
+
+    const containerComponent = useCallback(
+      ({ children }: { children?: ReactNode }) => {
+        const content = (
+          <GestureHandlerRootView style={styles.sheetOverlayRoot}>
+            {children}
+          </GestureHandlerRootView>
+        );
+
+        // iOS: FullWindowOverlay keeps the sheet above native stack UI.
+        // Keep this wrapper minimal — absoluteFill / negative bottom insets
+        // here have caused native layout thrash + JSI teardown crashes.
+        if (Platform.OS === "ios") {
+          return <FullWindowOverlay>{content}</FullWindowOverlay>;
+        }
+
+        return (
+          <Modal
+            visible
+            transparent
+            statusBarTranslucent
+            animationType="none"
+            presentationStyle="overFullScreen"
+          >
+            {content}
+          </Modal>
+        );
+      },
+      [],
     );
 
     const renderBackdrop = useCallback(
@@ -889,15 +896,9 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
           appearsOnIndex={0}
           pressBehavior="close"
           opacity={1}
-          // Transparent host so BlurView can soft-blur the screen behind (incl. header).
+          // Dim overlay (BlurView needs a native rebuild with ExpoBlur linked).
           style={[props.style, styles.backdropHost]}
         >
-          <BlurView
-            intensity={22}
-            tint="dark"
-            style={StyleSheet.absoluteFillObject}
-          />
-
           <View style={styles.backdropDim} />
         </BottomSheetBackdrop>
       ),
@@ -2565,7 +2566,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
           backdropComponent={renderBackdrop}
           backgroundStyle={styles.sheetBg}
           handleIndicatorStyle={styles.handle}
-          containerComponent={GoalPlannerSheetContainer}
+          containerComponent={containerComponent}
         >
           <RNScrollView
             horizontal
@@ -3786,7 +3787,7 @@ const styles = StyleSheet.create({
   },
   backdropDim: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(8, 26, 47, 0.55)",
+    backgroundColor: "rgba(8, 26, 47, 0.72)",
   },
   handle: {
     backgroundColor: Colors.light.white,
