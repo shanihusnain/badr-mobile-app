@@ -24,7 +24,7 @@ const PRAYER_ICON_COMPONENTS: Record<
 };
 
 interface PrayerSelectStepProps {
-  selectedPrayer: PrayerName;
+  selectedPrayer: PrayerName | null;
   onSelectPrayer: (prayer: PrayerName) => void;
   categoryColor: string;
   t: (key: string) => string;

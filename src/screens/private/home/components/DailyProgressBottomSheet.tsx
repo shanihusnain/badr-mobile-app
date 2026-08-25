@@ -258,7 +258,17 @@ export const DailyProgressBottomSheet = ({ onClose }: Props) => {
             <Ionicons name="close" size={18} color={Colors.light.white} />
           </TouchableOpacity>
         ) : (
-          <BackButton onPress={handleBack} />
+          <TouchableOpacity
+            style={styles.headerBackButton}
+            onPress={handleBack}
+            activeOpacity={0.7}
+          >
+            <Ionicons
+              name={i18n.language === "ar" ? "chevron-forward" : "chevron-back"}
+              size={22}
+              color={Colors.light.white}
+            />
+          </TouchableOpacity>
         )}
         <Text style={styles.sheetTitle}>{getTitle()}</Text>
         <View style={styles.headerSpacer} />
@@ -364,10 +374,18 @@ const styles = StyleSheet.create({
     marginBottom: 28,
   },
   headerSpacer: { width: 30 },
+  headerBackButton: {
+    width: 30,
+    height: 40,
+    borderRadius: 16,
+    backgroundColor: Colors.light.buttonBackground,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   closeButton: {
     width: 30,
     height: 30,
-    borderRadius: 15,
+    borderRadius: 16,
     backgroundColor: Colors.light.buttonBackground,
     justifyContent: "center",
     alignItems: "center",

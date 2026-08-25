@@ -76,9 +76,7 @@ export const DetailedIbadahsProgressCard = ({
   loading = false,
 }: Props) => {
   const percentNum = percentage.replace("%", "");
-  const displayTitle = loading
-    ? "---"
-    : title.replace(/\bPRAYER\b/gi, "").trim();
+  const displayTitle = loading ? "---" : title.toUpperCase();
 
   return (
     <TouchableOpacity
