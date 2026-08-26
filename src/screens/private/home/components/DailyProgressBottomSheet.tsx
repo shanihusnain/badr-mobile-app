@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
@@ -30,6 +30,9 @@ type ViewType = "main" | "categories" | "detail";
 
 type Props = {
   onClose?: () => void;
+  /** Re-open on select-goal after returning from the logging screen. */
+  resumeTarget?: { view: "detail"; category: string } | null;
+  onResumeConsumed?: () => void;
 };
 
 const CATEGORY_ICON_COLOR: Record<UiIbadahCategory, string> = {
@@ -88,7 +91,11 @@ function getCategoryCardIcon(category: UiIbadahCategory) {
   }
 }
 
-export const DailyProgressBottomSheet = ({ onClose }: Props) => {
+export const DailyProgressBottomSheet = ({
+  onClose,
+  resumeTarget,
+  onResumeConsumed,
+}: Props) => {
   const router = useRouter();
   const { t, i18n } = useTypedTranslation();
   const [currentView, setCurrentView] = useState<ViewType>("main");
@@ -97,6 +104,15 @@ export const DailyProgressBottomSheet = ({ onClose }: Props) => {
   const [selectedDetailCard, setSelectedDetailCard] = useState<string | null>(
     null,
   );
+
+  useEffect(() => {
+    if (!resumeTarget?.category || resumeTarget.view !== "detail") return;
+    setSelectedCategory(resumeTarget.category);
+    setSelectedCard(resumeTarget.category);
+    setSelectedDetailCard(null);
+    setCurrentView("detail");
+    onResumeConsumed?.();
+  }, [resumeTarget, onResumeConsumed]);
 
   const { data: categorySummaries = [], isLoading: isCategoriesLoading } =
     useGetGoalCycleCategories({
@@ -180,7 +196,11 @@ export const DailyProgressBottomSheet = ({ onClose }: Props) => {
       return [
         {
           goalId,
-          title: goal.displayName,
+          // Tahiyyat Al-Masjid: API may append " Prayer"; hide it only on these detail cards.
+          title:
+            goalId === "prayer-tahiyyatMasjid"
+              ? goal.displayName.replace(/\s+Prayer$/i, "")
+              : goal.displayName,
           completed: goal.completed ?? 0,
           target: goal.target ?? 0,
           unit: goal.unit ?? "",
@@ -233,7 +253,11 @@ export const DailyProgressBottomSheet = ({ onClose }: Props) => {
   const handleGoalPress = (goalId: GoalId) => {
     router.push({
       pathname: "/goalprogressloggingscreen/[goalId]" as any,
-      params: { goalId },
+      params: {
+        goalId,
+        fromDailyProgress: "1",
+        ...(selectedCategory ? { dailyProgressCategory: selectedCategory } : {}),
+      },
     });
     onClose?.();
   };

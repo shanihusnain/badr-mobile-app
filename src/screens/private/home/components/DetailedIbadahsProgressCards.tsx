@@ -118,7 +118,7 @@ export const DetailedIbadahsProgressCard = ({
         <TaperedCircleBorder
           percentage={loading ? "0%" : percentage}
           borderColor={Colors.light.dullWhiteOpacity}
-          size={70}
+          size={64}
           variant="illuminated"
         >
           <View style={styles.percentTextContainer}>
@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     paddingHorizontal: 16,
     paddingVertical: 19,
-    marginBottom: 12,
+    marginBottom: 16,
     overflow: "hidden",
   },
   leftSection: {
@@ -195,13 +195,14 @@ const styles = StyleSheet.create({
   boldText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontWeight: "700",
+    fontWeight: "600",
     fontSize: 14,
   },
   regularText: {
     color: Colors.light.subtext,
     fontFamily: fonts.primary.regular,
     fontSize: 14,
+    fontWeight: "500",
   },
   rightSection: {
     flexShrink: 0,
@@ -210,8 +211,8 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     marginRight: 10,
     overflow: "visible",
-    width: 50,
-    height: 50,
+    width: 40,
+    height: 40,
   },
   percentTextContainer: {
     flexDirection: "row",
@@ -221,13 +222,13 @@ const styles = StyleSheet.create({
   percentText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
-    fontSize: 14,
-    fontWeight: "600",
+    fontSize: 13,
+    fontWeight: "500",
   },
   percentSymbol: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: 9,
+    fontSize: 8,
     marginLeft: 0.5,
   },
 });

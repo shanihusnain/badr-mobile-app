@@ -40,7 +40,7 @@ import { NamazGoalBottomSheet } from "@/components/molecules/NamazGoalBottomShee
 import { BottomSheetWrapper } from "@/components/molecules/BottomSheetWrapper";
 
 import { DashboardCustomizeBottomSheet } from "./components/DashboardCustomizeBottomSheet";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
@@ -53,6 +53,7 @@ import {
   getVisibleDashboardSubGoals,
 } from "./dashboardSubGoals";
 // import { TodayGoalProgressCard } from "./components/TodayGoalProgressCard";
+import { consumeDailyProgressSheetReturn } from "./dailyProgressSheetReturn";
 // import { SwipeToDeleteRow } from "./components/SwipeToDeleteRow";
 // import {
 //   TODAY_GOALS_PROGRESS,
@@ -218,6 +219,10 @@ export default function HomeScreen() {
   const [scrollCollapseThreshold, setScrollCollapseThreshold] = useState(260);
   const [showDailyProgress, setShowDailyProgress] = useState(false);
   const [isAnyBottomSheetOpen, setIsAnyBottomSheetOpen] = useState(false);
+  const [dailyProgressResume, setDailyProgressResume] = useState<{
+    view: "detail";
+    category: string;
+  } | null>(null);
   const openBottomSheetsRef = useRef(new Set<string>());
   const scrollY = useRef(new Animated.Value(0)).current;
   const { user } = useAuth();
@@ -235,6 +240,22 @@ export default function HomeScreen() {
   const handleAddDailyProgress = useCallback(() => {
     goldenBottomSheetRef.current?.expand();
   }, []);
+
+  const handleDailyProgressResumeConsumed = useCallback(() => {
+    setDailyProgressResume(null);
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      const target = consumeDailyProgressSheetReturn();
+      if (!target) return;
+      setDailyProgressResume(target);
+      // Expand after state is set so the sheet opens on select-goal.
+      requestAnimationFrame(() => {
+        goldenBottomSheetRef.current?.expand();
+      });
+    }, []),
+  );
 
   const handleCompleteJournal = useCallback(() => {
     router.push("/(private)/journalfilling");
@@ -905,6 +926,8 @@ export default function HomeScreen() {
       >
         <DailyProgressBottomSheet
           onClose={() => goldenBottomSheetRef.current?.close()}
+          resumeTarget={dailyProgressResume}
+          onResumeConsumed={handleDailyProgressResumeConsumed}
         />
       </BottomSheetWrapper>
 
