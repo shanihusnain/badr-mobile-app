@@ -187,7 +187,8 @@ export default function CustomSlider({
             style={[
               styles.customProgressTrack,
               {
-                opacity: locked ? 0.4 : 1,
+                // Keep the slider locked (no gestures) but use bright green like other unlocked sliders.
+                opacity: 1,
               },
               {
                 width: progressWidth,
