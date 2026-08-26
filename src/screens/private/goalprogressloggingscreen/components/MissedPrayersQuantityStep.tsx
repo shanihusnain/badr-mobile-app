@@ -86,10 +86,10 @@ const PrayerItem = React.memo(
               ? localStyles.prayerIconBoxSelected
               : localStyles.prayerIconBoxIdle,
             {
-              borderTopLeftRadius: prayer === "fajr" ? 10 : 0,
-              borderBottomLeftRadius: prayer === "fajr" ? 10 : 0,
-              borderTopRightRadius: prayer === "isha" ? 10 : 0,
-              borderBottomRightRadius: prayer === "isha" ? 10 : 0,
+              borderTopLeftRadius: prayer === "fajr" ? 4 : 0,
+              borderBottomLeftRadius: prayer === "fajr" ? 4 : 0,
+              borderTopRightRadius: prayer === "isha" ? 4 : 0,
+              borderBottomRightRadius: prayer === "isha" ? 4 : 0,
             },
             !canIncrement && !loading && localStyles.prayerIconBoxDisabled,
           ]}

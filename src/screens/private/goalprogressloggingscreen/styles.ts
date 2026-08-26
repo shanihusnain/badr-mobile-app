@@ -53,7 +53,7 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 16,
-    paddingTop: 30,
+    paddingTop: 45,
     paddingBottom: 4,
     position: "relative",
   },

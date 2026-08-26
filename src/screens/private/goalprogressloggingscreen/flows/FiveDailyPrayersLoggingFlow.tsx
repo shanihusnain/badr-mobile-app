@@ -22,7 +22,12 @@ import {
 import { DateStep } from "../components/DateStep";
 import { PrayerSelectStep } from "../components/PrayerSelectStep";
 import { OptionSelectStep } from "../components/OptionSelectStep";
-import { StartTimeStep, DurationStep, getCurrentStartTimeParts, isDurationEntered } from "../components/TimePickerSteps";
+import {
+  StartTimeStep,
+  DurationStep,
+  getCurrentStartTimeParts,
+  isDurationEntered,
+} from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
 import {
   styles as commonStyles,
@@ -337,7 +342,11 @@ export default function FiveDailyPrayersLoggingFlow({
     if (currentStep === "prayerSelect") {
       if (!hasSelectablePrayer) return;
       if (!selectedPrayer) return;
-      if (selectedPrayer && loggedPrayersForSelectedDate.includes(selectedPrayer)) return;
+      if (
+        selectedPrayer &&
+        loggedPrayersForSelectedDate.includes(selectedPrayer)
+      )
+        return;
     }
     if (!isLastStep) setStepIndex((index) => index + 1);
   };
@@ -619,8 +628,11 @@ export default function FiveDailyPrayersLoggingFlow({
                   !isLastStep &&
                   !(
                     currentStep === "prayerSelect" &&
-                    (!hasSelectablePrayer || !selectedPrayer ||
-                      (selectedPrayer ? loggedPrayersForSelectedDate.includes(selectedPrayer) : false))
+                    (!hasSelectablePrayer ||
+                      !selectedPrayer ||
+                      (selectedPrayer
+                        ? loggedPrayersForSelectedDate.includes(selectedPrayer)
+                        : false))
                   )
                 }
                 canConfirm={

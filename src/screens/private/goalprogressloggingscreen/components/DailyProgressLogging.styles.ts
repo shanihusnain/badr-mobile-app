@@ -4,7 +4,7 @@ import { fonts } from "@/assets/fonts";
 
 const WINDOW = Dimensions.get("window");
 const OVERLAY_COVER_HEIGHT = WINDOW.height * 4;
-export const FLOW_CARD_HEIGHT = WINDOW.height * 0.19;
+export const FLOW_CARD_HEIGHT = WINDOW.height * 0.175;
 
 export const styles = StyleSheet.create({
   backdrop: {
@@ -162,7 +162,7 @@ export const styles = StyleSheet.create({
   },
   flowCard: {
     backgroundColor: Colors.light.mildGreen,
-    borderRadius: 12,
+    borderRadius: 8,
     paddingHorizontal: 16,
     paddingTop: 8,
     paddingBottom: 6,
@@ -176,6 +176,7 @@ export const styles = StyleSheet.create({
     marginLeft: 0,
     height: FLOW_CARD_HEIGHT,
     overflow: "hidden",
+    paddingTop: 16,
   },
   flowCardDropdownOpen: {
     overflow: "visible",

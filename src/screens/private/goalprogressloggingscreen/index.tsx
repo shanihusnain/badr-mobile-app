@@ -249,7 +249,7 @@ function GoalProgressLoggingBody({
         <TaperedCircleBorder
           percentage={displayPercentage}
           borderColor={Colors.light.dullWhiteOpacity}
-          size={150}
+          size={145}
           variant="illuminated"
         >
           <View style={styles.largeCircleInner}>

@@ -153,7 +153,7 @@ export const InformationSheet = forwardRef<BottomSheet, Props>(
             style={{
               backgroundColor: Colors.light.darkgrey,
               alignSelf: "center",
-              marginTop: 40,
+              marginTop: 75,
               borderRadius: 16,
               paddingVertical: 20,
               paddingHorizontal: 14,
@@ -163,7 +163,7 @@ export const InformationSheet = forwardRef<BottomSheet, Props>(
               <TaperedCircleBorder
                 percentage={`${achievementPct}%`}
                 borderColor={Colors.light.dullWhiteOpacity}
-                size={174}
+                size={160}
                 variant="illuminated"
               >
                 <View style={styles.ringInner}>
@@ -329,7 +329,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingTop: 40,
-    paddingBottom: 20,
+    paddingBottom: 30,
     position: "relative",
   },
   ringInner: {
