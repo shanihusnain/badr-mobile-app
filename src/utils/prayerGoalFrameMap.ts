@@ -33,18 +33,29 @@ export function formatPrayerFrameWeekRange(weekStart: string, weekEnd: string) {
   return `${start.format("MMM D")} — ${end.format("MMM D")}`;
 }
 
+/** Prefer calendar date so past empty days are never treated as future. */
+function resolveIsFutureDay(day: PrayerGoalFrameDay): boolean {
+  if (day.isToday) return false;
+  if (day.date) {
+    const date = moment(day.date, "YYYY-MM-DD");
+    if (date.isValid()) return date.isAfter(moment(), "day");
+  }
+  return Boolean(day.isFuture || day.isFutureDay);
+}
+
 export function mapPrayerFrameWeekDays(
   frame: PrayerGoalFrameData,
 ): TahiyatUlWudhuDayProgress[] {
   return frame.week.days.map((day) => {
     const count = day.count ?? day.totalLogged ?? 0;
+    const isFuture = resolveIsFutureDay(day);
     return {
       day: day.dayLabel,
       prayersLogged: count,
-      isLogged: !day.isFuture && count > 0,
+      isLogged: !isFuture && count > 0,
       isBestDay: Boolean(day.isBestDay),
       isMenstruation: Boolean(day.isMenstruationDay),
-      isFuture: day.isFuture || Boolean(day.isFutureDay),
+      isFuture,
       isToday: day.isToday,
       date: day.date,
     };
@@ -97,7 +108,7 @@ export function mapFiveDailyFrameWeekDays(
   frame: PrayerGoalFrameData,
 ): DayProgress[] {
   return frame.week.days.map((day) => {
-    const isFuture = Boolean(day.isFuture || day.isFutureDay);
+    const isFuture = resolveIsFutureDay(day);
     const isToday = Boolean(day.isToday);
     const isMenstruating = Boolean(day.isMenstruationDay);
 
@@ -204,7 +215,7 @@ export function mapSunnahFrameWeekDays(
 
   return frame.week.days.map((day) => {
     const count = day.count ?? day.totalLogged ?? 0;
-    const isFuture = Boolean(day.isFuture || day.isFutureDay);
+    const isFuture = resolveIsFutureDay(day);
 
     return {
       day: day.dayLabel,

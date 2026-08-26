@@ -46,6 +46,8 @@ import { FlowCardAsrIcon } from "./FlowCardAsrIcon";
 import { FlowCardMaghrebIcon } from "./FlowCardMaghrebIcon";
 import { FlowCardIshaIcon } from "./FlowCardIshaIcon";
 import { FlowCardDuhaPrayerIcon } from "./FlowCardDuhaPrayerIcon";
+import { FlowCardChevronBackIcon } from "./FlowCardChevronBackIcon";
+import { FlowCardChevronForwardIcon } from "./FlowCardChevronForwardIcon";
 import { MissedZakatCalculateIcon } from "./MissedZakatCalculateIcon";
 import { FastingFlowCardRamadanCalender } from "./FastingFlowCardRamadanCalender";
 import { FastingDashboardIcon } from "./FastingDashboardIcon";
@@ -401,6 +403,8 @@ export {
   FlowCardMaghrebIcon,
   FlowCardIshaIcon,
   FlowCardDuhaPrayerIcon,
+  FlowCardChevronBackIcon,
+  FlowCardChevronForwardIcon,
   FreeTrialScreenBookIcon,
   FreeTrialScreenCommunityIcon,
   FreeTrialScreenHeadPhoneIcon,

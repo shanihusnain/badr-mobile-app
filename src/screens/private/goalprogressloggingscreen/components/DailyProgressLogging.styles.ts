@@ -59,7 +59,7 @@ export const styles = StyleSheet.create({
   cancelButton: {
     position: "absolute",
     right: "5%",
-    top: "8%",
+    top: "7%",
     width: 36,
     height: 36,
     borderRadius: 18,
@@ -242,7 +242,6 @@ export const styles = StyleSheet.create({
     backgroundColor: Colors.light.white + "4D",
     alignItems: "center",
     justifyContent: "center",
-    overflow: "hidden",
   },
   navButtonIconWrap: {
     width: "100%",

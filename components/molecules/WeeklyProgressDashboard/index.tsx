@@ -7,6 +7,7 @@ import {
   useWindowDimensions,
   Pressable,
 } from "react-native";
+import moment from "moment-hijri";
 import { Colors } from "@/constants/theme";
 import { PrayerStatus } from "@/components/molecules/PrayerProgressTrackerRing";
 import { useTranslation } from "react-i18next";
@@ -42,6 +43,14 @@ export interface DayProgress {
   isMenstruating?: boolean;
   isToday?: boolean;
   isFuture?: boolean;
+}
+
+function isFutureDayProgress(day: DayProgress): boolean {
+  if (day.isToday) return false;
+  if (day.isFuture) return true;
+  if (!day.date) return false;
+  const date = moment(day.date, "YYYY-MM-DD");
+  return date.isValid() && date.isAfter(moment(), "day");
 }
 
 export interface WeeklyProgressDashboardProps {
@@ -173,10 +182,11 @@ export const WeeklyProgressDashboard: React.FC<
       <View style={styles.daysRow}>
         {displayWeekDays.map((day, idx) => {
           const isSelected = day.isToday === true;
-          const isFuture = !!day.isFuture;
+          const isFuture = isFutureDayProgress(day);
           const hasLog = dayHasLoggedPrayer(day.statuses);
           const isMarkedForDeletion =
             !!day.date && selectForDeletion === day.date;
+          const ringDay: DayProgress = { ...day, isFuture };
 
           return (
             <TouchableOpacity
@@ -208,6 +218,7 @@ export const WeeklyProgressDashboard: React.FC<
                 style={[
                   styles.dayItemWrapper,
                   isSelected && !isMarkedForDeletion && styles.dayItemSelected,
+                  isFuture && styles.dayItemFutureBlur,
                 ]}
               >
                 <View
@@ -216,7 +227,7 @@ export const WeeklyProgressDashboard: React.FC<
                     { width: ringSize, height: ringSize },
                   ]}
                 >
-                  {renderRing(day, ringSize)}
+                  {renderRing(ringDay, ringSize)}
                 </View>
                 <TopSpace top={8} />
                 <Text
@@ -340,6 +351,9 @@ const styles = StyleSheet.create({
   dayItemSelected: {
     backgroundColor: Colors.light.dayProgressCardBg,
     borderRadius: 6,
+  },
+  dayItemFutureBlur: {
+    opacity: 0.45,
   },
   ringWrapper: {
     alignItems: "center",

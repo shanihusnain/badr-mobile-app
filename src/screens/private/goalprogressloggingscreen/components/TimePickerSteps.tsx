@@ -141,6 +141,13 @@ interface DurationStepProps {
   styles: any;
 }
 
+/** True when hours or minutes has a value greater than zero. */
+export function isDurationEntered(hours: string, minutes: string): boolean {
+  const h = Number.parseInt(hours || "0", 10) || 0;
+  const m = Number.parseInt(minutes || "0", 10) || 0;
+  return h > 0 || m > 0;
+}
+
 export const DurationStep: React.FC<DurationStepProps> = ({
   durationHours,
   setDurationHours,
@@ -150,6 +157,20 @@ export const DurationStep: React.FC<DurationStepProps> = ({
 }) => {
   const [isHourFocused, setIsHourFocused] = React.useState(false);
   const [isMinuteFocused, setIsMinuteFocused] = React.useState(false);
+
+  const sanitizeDigits = (text: string) => text.replace(/[^0-9]/g, "").slice(0, 2);
+
+  const clearDefaultZero = (value: string, setValue: (v: string) => void) => {
+    if (value === "0" || value === "00") {
+      setValue("");
+    }
+  };
+
+  const restoreZeroIfEmpty = (value: string, setValue: (v: string) => void) => {
+    if (value === "") {
+      setValue("0");
+    }
+  };
 
   return (
     <View style={styles.timePickerContainer}>
@@ -161,18 +182,19 @@ export const DurationStep: React.FC<DurationStepProps> = ({
             isHourFocused && { borderColor: Colors.light.white },
           ]}
           value={durationHours}
-          onChangeText={(text) => {
-            const cleaned = text.replace(/[^0-9]/g, "");
-            if (cleaned.length <= 2) {
-              setDurationHours(cleaned);
-            }
+          onChangeText={(text) => setDurationHours(sanitizeDigits(text))}
+          onFocus={() => {
+            setIsHourFocused(true);
+            clearDefaultZero(durationHours, setDurationHours);
           }}
-          onFocus={() => setIsHourFocused(true)}
-          onBlur={() => setIsHourFocused(false)}
+          onBlur={() => {
+            setIsHourFocused(false);
+            restoreZeroIfEmpty(durationHours, setDurationHours);
+          }}
           keyboardType="number-pad"
           maxLength={2}
-          placeholder="0"
-          placeholderTextColor={Colors.light.subtext}
+          placeholder=""
+          selectTextOnFocus={false}
         />
         <Text style={styles.timeUnitLabel}>h</Text>
 
@@ -183,18 +205,19 @@ export const DurationStep: React.FC<DurationStepProps> = ({
             isMinuteFocused && { borderColor: Colors.light.white },
           ]}
           value={durationMinutes}
-          onChangeText={(text) => {
-            const cleaned = text.replace(/[^0-9]/g, "");
-            if (cleaned.length <= 2) {
-              setDurationMinutes(cleaned);
-            }
+          onChangeText={(text) => setDurationMinutes(sanitizeDigits(text))}
+          onFocus={() => {
+            setIsMinuteFocused(true);
+            clearDefaultZero(durationMinutes, setDurationMinutes);
           }}
-          onFocus={() => setIsMinuteFocused(true)}
-          onBlur={() => setIsMinuteFocused(false)}
+          onBlur={() => {
+            setIsMinuteFocused(false);
+            restoreZeroIfEmpty(durationMinutes, setDurationMinutes);
+          }}
           keyboardType="number-pad"
           maxLength={2}
-          placeholder="0"
-          placeholderTextColor={Colors.light.subtext}
+          placeholder=""
+          selectTextOnFocus={false}
         />
         <Text style={styles.timeUnitLabel}>m</Text>
       </View>

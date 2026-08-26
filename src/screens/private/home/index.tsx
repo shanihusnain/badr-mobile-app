@@ -899,6 +899,8 @@ export default function HomeScreen() {
         ref={goldenBottomSheetRef}
         snapPoints={["50%", "92%"]}
         bgColor={Colors.light.blackBackground}
+        borderRadius={30}
+        handleTopInset={15}
         onChange={(index) => handleBottomSheetChange("dailyProgress", index)}
       >
         <DailyProgressBottomSheet

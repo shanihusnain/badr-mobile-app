@@ -7,9 +7,12 @@ import {
   StyleProp,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { Colors } from "@/constants/theme";
 import { useTranslation } from "react-i18next";
+import {
+  FlowCardChevronBackIcon,
+  FlowCardChevronForwardIcon,
+} from "@/assets/icons";
 
 type FlowCardProps = {
   headerIcon: React.ReactNode;
@@ -41,6 +44,12 @@ export const FlowCard: React.FC<FlowCardProps> = ({
   contentStyle,
 }) => {
   const { i18n } = useTranslation();
+  const isRtl = i18n.language === "ar";
+  const BackIcon = isRtl ? FlowCardChevronForwardIcon : FlowCardChevronBackIcon;
+  const ForwardIcon = isRtl
+    ? FlowCardChevronBackIcon
+    : FlowCardChevronForwardIcon;
+
   return (
     <View style={[styles.flowCard, style]}>
       <View style={styles.flowHeader}>
@@ -59,13 +68,9 @@ export const FlowCard: React.FC<FlowCardProps> = ({
             activeOpacity={0.8}
           >
             <View style={styles.navButtonIconWrap}>
-              <FontAwesome
-                name={i18n.language === "ar" ? "chevron-right" : "chevron-left"}
-                size={12}
-                color={
-                  canGoBack ? Colors.light.white : Colors.light.white + "E6"
-                }
-                style={styles.navButtonIcon}
+              <BackIcon
+                Size={7}
+                Color={canGoBack ? Colors.light.white : Colors.light.white + "E6"}
               />
             </View>
           </TouchableOpacity>
@@ -76,13 +81,11 @@ export const FlowCard: React.FC<FlowCardProps> = ({
             activeOpacity={0.8}
           >
             <View style={styles.navButtonIconWrap}>
-              <FontAwesome
-                name={i18n.language === "ar" ? "chevron-left" : "chevron-right"}
-                size={12}
-                color={
+              <ForwardIcon
+                Size={7}
+                Color={
                   canGoForward ? Colors.light.white : Colors.light.white + "E6"
                 }
-                style={styles.navButtonIcon}
               />
             </View>
           </TouchableOpacity>
