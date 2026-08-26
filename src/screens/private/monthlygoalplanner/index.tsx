@@ -3,7 +3,7 @@ import { TopSpace } from "@/components/atoms/TopSpace";
 import { Colors } from "@/constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useRef, useState } from "react";
-import { FlatList, Pressable, Text, View } from "react-native";
+import { FlatList, Platform, Pressable, Text, View } from "react-native";
 import type { GoalCardData } from "./components/GoalCard";
 import { GoalCardCarousel } from "./components/GoalCardCarousel";
 import { GoalPlannerSummary } from "./components/GoalPlannerSummary";
@@ -188,7 +188,7 @@ export const MonthlyGoalPlannerScreen = () => {
 
   return (
     <View style={{ flex: 1 }}>
-      <BlackScreenWrapper edges={["bottom", "left", "right"]}>
+      <BlackScreenWrapper edges={["left", "right"]}>
         <FlatList
           data={steps}
           keyExtractor={keyExtractor}
@@ -214,7 +214,11 @@ export const MonthlyGoalPlannerScreen = () => {
         />
         <Pressable
           onPress={handleBeginNowPress}
-          style={{ alignSelf: "center", marginBottom: 16, paddingTop: 16 }}
+          style={{
+            alignSelf: "center",
+            marginBottom: 16,
+            paddingTop: Platform.OS === "ios" ? 8 : 16,
+          }}
         >
           <Text style={globalStyles.greenCTA}>BEGIN NOW</Text>
         </Pressable>

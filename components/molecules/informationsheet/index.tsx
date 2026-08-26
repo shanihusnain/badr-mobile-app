@@ -71,13 +71,7 @@ function parseJumuahFraction(fraction: string | undefined): {
   };
 }
 
-function StatRow({
-  icon,
-  children,
-}: {
-  icon: ReactNode;
-  children: ReactNode;
-}) {
+function StatRow({ icon, children }: { icon: ReactNode; children: ReactNode }) {
   return (
     <View style={styles.statRow}>
       <View style={styles.statIcon}>{icon}</View>
@@ -86,13 +80,7 @@ function StatRow({
   );
 }
 
-function StatLabelValue({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
+function StatLabelValue({ label, value }: { label: string; value: string }) {
   return (
     <>
       {`${label} `}
@@ -263,12 +251,9 @@ export const InformationSheet = forwardRef<BottomSheet, Props>(
                         label={t(
                           "progressLogging.insightsWeeklyAveragePerPrayerLabel",
                         )}
-                        value={t(
-                          "progressLogging.insightsWeeklyAverageValue",
-                          {
-                            count: stats.weeklyAverage,
-                          },
-                        )}
+                        value={t("progressLogging.insightsWeeklyAverageValue", {
+                          count: stats.weeklyAverage,
+                        })}
                       />
                     </StatRow>
                   </>
@@ -287,19 +272,14 @@ export const InformationSheet = forwardRef<BottomSheet, Props>(
                     stats.personalBestDaysCount != null ? (
                       <StatRow icon={<BestdayStarIcon />}>
                         <StatLabelValue
-                          label={t(
-                            "progressLogging.insightsPersonalBestLabel",
-                          )}
+                          label={t("progressLogging.insightsPersonalBestLabel")}
                           value={t(
                             "progressLogging.insightsPersonalBestValue",
                             {
                               count: stats.personalBest,
-                              daysLabel: t(
-                                "progressLogging.insightsDayCount",
-                                {
-                                  count: stats.personalBestDaysCount,
-                                },
-                              ),
+                              daysLabel: t("progressLogging.insightsDayCount", {
+                                count: stats.personalBestDaysCount,
+                              }),
                             },
                           )}
                         />
@@ -309,12 +289,9 @@ export const InformationSheet = forwardRef<BottomSheet, Props>(
                     <StatRow icon={<WeighBalanceIcon />}>
                       <StatLabelValue
                         label={t("progressLogging.insightsWeeklyAverageLabel")}
-                        value={t(
-                          "progressLogging.insightsWeeklyAverageValue",
-                          {
-                            count: stats.weeklyAverage,
-                          },
-                        )}
+                        value={t("progressLogging.insightsWeeklyAverageValue", {
+                          count: stats.weeklyAverage,
+                        })}
                       />
                     </StatRow>
 
@@ -351,7 +328,7 @@ const styles = StyleSheet.create({
   ringWrap: {
     alignItems: "center",
     justifyContent: "center",
-    paddingTop: 8,
+    paddingTop: 40,
     paddingBottom: 20,
     position: "relative",
   },

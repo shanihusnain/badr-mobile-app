@@ -238,20 +238,10 @@ export const styles = StyleSheet.create({
   navButton: {
     width: 20,
     height: 20,
-    borderRadius: 10,
+    borderRadius: 20,
     backgroundColor: Colors.light.white + "4D",
     alignItems: "center",
     justifyContent: "center",
-  },
-  navButtonIconWrap: {
-    width: "100%",
-    height: "100%",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  navButtonIcon: {
-    textAlign: "center",
-    includeFontPadding: false,
   },
   navButtonDisabled: {
     opacity: 0.6,

@@ -67,12 +67,10 @@ export const FlowCard: React.FC<FlowCardProps> = ({
             disabled={!canGoBack}
             activeOpacity={0.8}
           >
-            <View style={styles.navButtonIconWrap}>
-              <BackIcon
-                Size={7}
-                Color={canGoBack ? Colors.light.white : Colors.light.white + "E6"}
-              />
-            </View>
+            <BackIcon
+              Size={8}
+              Color={canGoBack ? Colors.light.white : Colors.light.white + "E6"}
+            />
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.navButton, !canGoForward && { opacity: 0.65 }]}
@@ -80,14 +78,12 @@ export const FlowCard: React.FC<FlowCardProps> = ({
             disabled={!canGoForward}
             activeOpacity={0.8}
           >
-            <View style={styles.navButtonIconWrap}>
-              <ForwardIcon
-                Size={7}
-                Color={
-                  canGoForward ? Colors.light.white : Colors.light.white + "E6"
-                }
-              />
-            </View>
+            <ForwardIcon
+              Size={8}
+              Color={
+                canGoForward ? Colors.light.white : Colors.light.white + "E6"
+              }
+            />
           </TouchableOpacity>
         </View>
 
