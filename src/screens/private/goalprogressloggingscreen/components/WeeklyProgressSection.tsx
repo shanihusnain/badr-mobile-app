@@ -970,6 +970,7 @@ export function WeeklyProgressSection({
               statuses={day.statuses}
               isMenstruating={day.isMenstruating}
               isToday={day.isToday}
+              isFuture={day.isFuture}
               size={size}
               strokeWidth={2.5}
             />
@@ -998,6 +999,8 @@ export function WeeklyProgressSection({
         renderRing={(day: DayProgress, size: number) => (
           <PrayerProgressTrackerRing
             statuses={day.statuses}
+            isToday={day.isToday}
+            isFuture={day.isFuture}
             size={size}
             strokeWidth={2.5}
           />
@@ -2076,6 +2079,7 @@ export function WeeklyProgressSection({
           statuses={day.statuses}
           isMenstruating={day.isMenstruating}
           isToday={day.isToday}
+          isFuture={day.isFuture}
           size={size}
           strokeWidth={2.5}
         />

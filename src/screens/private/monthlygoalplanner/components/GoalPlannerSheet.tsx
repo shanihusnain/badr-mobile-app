@@ -405,7 +405,8 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
 
     const { data: prayerGoalsFromApi, isLoading: loadingPrayerGoals } =
       useGetAllPrayerGoals({
-        enabled: activeTab === "prayer" || activeTab === "review",
+        // Load after cycle commit so Review & Confirm can validate all categories
+        enabled: hasCommittedCycle,
         userId,
       });
 
@@ -415,24 +416,24 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
       isError: errorLoadingQuranGoals,
       refetch: refetchQuranGoals,
     } = useGetAllQuranGoals({
-      enabled: activeTab === "quran" || activeTab === "review",
+      enabled: hasCommittedCycle,
       userId,
     });
 
     const { data: allFastingGoalsResponse, isLoading: loadingFastingGoals } =
       useGetAllFastingGoals({
-        enabled: activeTab === "fasting" || activeTab === "review",
+        enabled: hasCommittedCycle,
         userId,
       });
 
     const { data: allSadaqahGoalsResponse, isLoading: loadingSadaqahGoals } =
       useGetAllSadaqahGoals({
-        enabled: activeTab === "sadaqah" || activeTab === "review",
+        enabled: hasCommittedCycle,
         userId,
       });
 
     const { data: fastingCalendarPreview } = useGetFastingCalendarPreview({
-      enabled: activeTab === "fasting" || activeTab === "review",
+      enabled: hasCommittedCycle,
     });
 
     const fastingCalendarWindow = useMemo(
@@ -836,7 +837,10 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
           const goals = tabDataRef.current ?? [];
           const hasSelection = goals.some((item: any) => {
             if (!item || !item.id) return false;
-            return Boolean(selectedGoalsRef.current[item.id]) || Boolean(item.isSelected);
+            return (
+              Boolean(selectedGoalsRef.current[item.id]) ||
+              Boolean(item.isSelected)
+            );
           });
           if (!hasSelection) {
             setSelectGoalModalVisible(true);
@@ -1836,24 +1840,104 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
       [localizedTabs],
     );
 
+    /** At least one toggled-on goal in the given category list. */
+    const categoryHasSelectedGoal = useCallback(
+      (
+        goals: Array<{
+          id?: string;
+          isSelected?: boolean;
+          isActive?: boolean;
+          isLoadingPlaceholder?: boolean;
+        }>,
+      ) =>
+        goals.some((item) => {
+          if (!item?.id || item.isLoadingPlaceholder) return false;
+          if (selectedGoals[item.id] !== undefined) {
+            return Boolean(selectedGoals[item.id]);
+          }
+          return Boolean(item.isSelected ?? item.isActive);
+        }),
+      [selectedGoals],
+    );
+
+    /**
+     * Review & Confirm / Finish & Save require ≥1 goal from each of
+     * prayer, quran, fasting, and sadaqah.
+     */
+    const hasGoalInEveryCategory = useMemo(() => {
+      const prayerList =
+        prayerGoals.length > 0
+          ? prayerGoals
+          : ((goalCycleDetail?.prayerGoals as any[]) ?? []);
+      const quranList =
+        quranGoals.length > 0
+          ? quranGoals
+          : ((goalCycleDetail?.quranGoals as any[]) ?? []);
+      const fastingList =
+        fastingGoals.length > 0
+          ? fastingGoals
+          : fastingData.length > 0
+            ? fastingData
+            : ((goalCycleDetail?.fastingGoals as any[]) ?? []);
+      const sadaqahList =
+        sadaqahGoals.length > 0
+          ? sadaqahGoals
+          : sadaqahData.length > 0
+            ? sadaqahData
+            : ((goalCycleDetail?.sadaqahGoals as any[]) ?? []);
+
+      return (
+        categoryHasSelectedGoal(prayerList) &&
+        categoryHasSelectedGoal(quranList) &&
+        categoryHasSelectedGoal(fastingList) &&
+        categoryHasSelectedGoal(sadaqahList)
+      );
+    }, [
+      categoryHasSelectedGoal,
+      prayerGoals,
+      quranGoals,
+      fastingGoals,
+      fastingData,
+      sadaqahGoals,
+      sadaqahData,
+      goalCycleDetail?.prayerGoals,
+      goalCycleDetail?.quranGoals,
+      goalCycleDetail?.fastingGoals,
+      goalCycleDetail?.sadaqahGoals,
+    ]);
+
     const canPressFooterPrimary = useMemo(() => {
       if (activeTab === "review") return true;
       if (activeTab === "cycle") return isCycleDateSelected;
 
-      return tabData.some(
+      const currentTabHasGoal = tabData.some(
         (item) =>
           !item?.isLoadingPlaceholder &&
           (selectedGoals[item.id] ?? item.isSelected),
       );
-    }, [activeTab, isCycleDateSelected, selectedGoals, tabData]);
+      if (!currentTabHasGoal) return false;
+
+      // Sadaqah NEXT leads to Review — only when Review tab is unlocked
+      if (activeTab === "sadaqah") return hasGoalInEveryCategory;
+
+      return true;
+    }, [
+      activeTab,
+      isCycleDateSelected,
+      selectedGoals,
+      tabData,
+      hasGoalInEveryCategory,
+    ]);
 
     const goToNextTab = useCallback(() => {
       const currentIndex = tabOrder.indexOf(activeTab);
       if (currentIndex < 0 || currentIndex >= tabOrder.length - 1) return;
       const nextTab = tabOrder[currentIndex + 1];
       if (nextTab !== "cycle" && !cycleStartDate) return;
+      // Don't enter Review until every category has ≥1 goal (tab is also locked)
+      if (nextTab === "review" && !hasGoalInEveryCategory) return;
       setActiveTab(nextTab);
-    }, [activeTab, cycleStartDate, tabOrder]);
+    }, [activeTab, cycleStartDate, tabOrder, hasGoalInEveryCategory]);
 
     const handleFooterPrimaryPress = useCallback(() => {
       if (activeTab !== "cycle" && !canPressFooterPrimary) {
@@ -2589,6 +2673,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
           onDismiss={onClose}
           backdropComponent={renderBackdrop}
           backgroundStyle={styles.sheetBg}
+          handleStyle={styles.handleContainer}
           handleIndicatorStyle={styles.handle}
           containerComponent={containerComponent}
         >
@@ -2601,7 +2686,9 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
             {localizedTabs.map((tab) => {
               const isActive = activeTab === tab.id;
               const hasChip = !!tab.chip;
-              const isDisabled = tab.id !== "cycle" && !hasCommittedCycle;
+              const isDisabled =
+                (tab.id !== "cycle" && !hasCommittedCycle) ||
+                (tab.id === "review" && !hasGoalInEveryCategory);
               return (
                 <Pressable
                   key={tab.id}
@@ -2934,7 +3021,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                           openOnMount={
                             expandedGoalSelectionId.prayer === prayer.id
                           }
-                          initialValue={getMissedTargetDays(prayer, 3)}
+                          initialValue={getMissedTargetDays(prayer, 1)}
                           isSaving={
                             isSavingPrayer &&
                             savingPrayerType === prayer.prayerType
@@ -3817,6 +3904,8 @@ const styles = StyleSheet.create({
   },
   sheetBg: {
     backgroundColor: Colors.light.blackBackground,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
   },
   backdropHost: {
     backgroundColor: "transparent",
@@ -3824,6 +3913,10 @@ const styles = StyleSheet.create({
   backdropDim: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(8, 26, 47, 0.72)",
+  },
+  handleContainer: {
+    paddingTop: 14,
+    paddingBottom: 4,
   },
   handle: {
     backgroundColor: Colors.light.white,

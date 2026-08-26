@@ -255,7 +255,7 @@ export const DailyProgressBottomSheet = ({ onClose }: Props) => {
             onPress={handleBack}
             activeOpacity={0.7}
           >
-            <Ionicons name="close" size={18} color={Colors.light.white} />
+            <Ionicons name="close" size={20} color={Colors.light.white} />
           </TouchableOpacity>
         ) : (
           <TouchableOpacity
@@ -373,7 +373,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginBottom: 28,
   },
-  headerSpacer: { width: 30 },
+  headerSpacer: { width: 36 },
   headerBackButton: {
     width: 30,
     height: 40,
@@ -383,9 +383,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   closeButton: {
-    width: 30,
-    height: 30,
-    borderRadius: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: Colors.light.buttonBackground,
     justifyContent: "center",
     alignItems: "center",

@@ -13,7 +13,7 @@ import { Colors } from "@/constants/theme";
 import { GoalData } from "../../home/components/goalsData";
 import { DateStep } from "../components/DateStep";
 import { OptionSelectStep } from "../components/OptionSelectStep";
-import { StartTimeStep, DurationStep, getCurrentStartTimeParts } from "../components/TimePickerSteps";
+import { StartTimeStep, DurationStep, getCurrentStartTimeParts, isDurationEntered } from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
 import {
   styles as commonStyles,
@@ -411,7 +411,11 @@ export default function TahiyatAlMasjidLoggingFlow({
                 onConfirm={handleConfirm}
                 canGoForward={!isLastStep}
                 canGoBack={stepIndex > 0}
-                canConfirm={isLastStep && !isLogging}
+                canConfirm={
+                  isLastStep &&
+                  !isLogging &&
+                  isDurationEntered(durationHours, durationMinutes)
+                }
                 styles={commonStyles}
                 style={commonStyles.inPlaceFlowCard}
               >

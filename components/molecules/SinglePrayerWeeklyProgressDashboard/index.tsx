@@ -80,8 +80,14 @@ export function SinglePrayerWeeklyProgressDashboard({
           const hasLog = day.prayersLogged > 0 || !!day.isLogged;
           const isFuture = !!day.isFuture;
           const isMenstruation = !!day.isMenstruation;
+          // Past empty days stay filled grey; only remaining (future) days
+          // become dim outlines once the goal is already completed.
           const showEmptyOutline =
-            !loading && isGoalCompleted && !hasLog && !isMenstruation;
+            !loading &&
+            isGoalCompleted &&
+            !hasLog &&
+            !isMenstruation &&
+            isFuture;
           const isInactiveOutline = isFuture || showEmptyOutline;
           const isMarkedForDeletion =
             !!day.date && selectForDeletion === day.date;
@@ -225,9 +231,9 @@ export function SinglePrayerWeeklyProgressDashboard({
             </Text>
             {loading
               ? ""
-              : totalPrayersThisWeek > 1
-                ? " prayers this week"
-                : " prayer this week"}
+              : totalPrayersThisWeek === 1
+                ? " total prayer this week"
+                : " total prayers this week"}
           </Text>
         </View>
 

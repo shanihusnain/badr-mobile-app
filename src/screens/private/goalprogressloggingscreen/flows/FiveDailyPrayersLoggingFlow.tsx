@@ -22,7 +22,7 @@ import {
 import { DateStep } from "../components/DateStep";
 import { PrayerSelectStep } from "../components/PrayerSelectStep";
 import { OptionSelectStep } from "../components/OptionSelectStep";
-import { StartTimeStep, DurationStep, getCurrentStartTimeParts } from "../components/TimePickerSteps";
+import { StartTimeStep, DurationStep, getCurrentStartTimeParts, isDurationEntered } from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
 import {
   styles as commonStyles,
@@ -623,7 +623,12 @@ export default function FiveDailyPrayersLoggingFlow({
                       (selectedPrayer ? loggedPrayersForSelectedDate.includes(selectedPrayer) : false))
                   )
                 }
-                canConfirm={isLastStep && !isLogging && !isFullyAchieved}
+                canConfirm={
+                  isLastStep &&
+                  !isLogging &&
+                  !isFullyAchieved &&
+                  isDurationEntered(durationHours, durationMinutes)
+                }
                 styles={commonStyles}
                 style={commonStyles.inPlaceFlowCard}
               >

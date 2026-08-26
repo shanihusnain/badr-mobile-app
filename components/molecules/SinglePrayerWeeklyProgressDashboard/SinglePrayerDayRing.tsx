@@ -88,7 +88,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.red,
   },
   ringInnerEmpty: {
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    // Past day with no activity — solid muted grey fill
+    backgroundColor: "rgba(255, 255, 255, 0.18)",
   },
   ringInnerSelectedEmpty: {
     backgroundColor: Colors.light.greybuttonBackground,

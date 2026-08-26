@@ -13,7 +13,7 @@ import { Colors } from "@/constants/theme";
 import { GoalData } from "../../home/components/goalsData";
 import { DateStep } from "../components/DateStep";
 import { PrayerQuantityInputStep } from "../components/PrayerQuantityInputStep";
-import { StartTimeStep, DurationStep, getCurrentStartTimeParts } from "../components/TimePickerSteps";
+import { StartTimeStep, DurationStep, getCurrentStartTimeParts, isDurationEntered } from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
 import {
   styles as commonStyles,
@@ -423,7 +423,12 @@ export default function IstikharaPrayerLoggingFlow({
                   !(currentStep === "prayers-quantity" && quantityValue < 1)
                 }
                 canGoBack={stepIndex > 0}
-                canConfirm={isLastStep && !isLogging && quantityValue >= 1}
+                canConfirm={
+                  isLastStep &&
+                  !isLogging &&
+                  quantityValue >= 1 &&
+                  isDurationEntered(durationHours, durationMinutes)
+                }
                 styles={commonStyles}
                 style={commonStyles.inPlaceFlowCard}
               >

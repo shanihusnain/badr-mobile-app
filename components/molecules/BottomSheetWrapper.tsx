@@ -23,6 +23,10 @@ type Props = {
   scrollable?: boolean;
   footerComponent?: React.FC<BottomSheetFooterProps>;
   bgColor?: string;
+  /** Top corner radius of the sheet. Default: 24 */
+  borderRadius?: number;
+  /** Extra top padding under the sheet edge so the grey handle sits lower. */
+  handleTopInset?: number;
 };
 
 function parseSnapRatio(snap: string | number, screenHeight: number): number {
@@ -45,6 +49,8 @@ export const BottomSheetWrapper = forwardRef<BottomSheet, Props>(
       scrollable = true,
       footerComponent,
       bgColor,
+      borderRadius = 24,
+      handleTopInset = 0,
     },
     ref,
   ) {
@@ -79,6 +85,26 @@ export const BottomSheetWrapper = forwardRef<BottomSheet, Props>(
     const scrollContentStyle = useMemo(
       () => [styles.content, { minHeight: contentMinHeight }],
       [contentMinHeight],
+    );
+
+    const sheetBackgroundStyle = useMemo(
+      () => [
+        styles.sheetBackground,
+        bgColor ? { backgroundColor: bgColor } : null,
+        {
+          borderTopLeftRadius: borderRadius,
+          borderTopRightRadius: borderRadius,
+        },
+      ],
+      [bgColor, borderRadius],
+    );
+
+    const handleContainerStyle = useMemo(
+      () => [
+        styles.handleContainer,
+        handleTopInset > 0 ? { paddingTop: handleTopInset } : null,
+      ],
+      [handleTopInset],
     );
 
     useImperativeHandle(
@@ -123,9 +149,8 @@ export const BottomSheetWrapper = forwardRef<BottomSheet, Props>(
         onChange={onChange}
         footerComponent={footerComponent}
         backdropComponent={renderBackdrop}
-        backgroundStyle={
-          bgColor ? { backgroundColor: bgColor } : styles.sheetBackground
-        }
+        backgroundStyle={sheetBackgroundStyle}
+        handleStyle={handleContainerStyle}
         handleIndicatorStyle={styles.handle}
       >
         {scrollable ? (
@@ -146,6 +171,10 @@ export const BottomSheetWrapper = forwardRef<BottomSheet, Props>(
 const styles = StyleSheet.create({
   sheetBackground: {
     backgroundColor: Colors.light.greybuttonBackground,
+  },
+  handleContainer: {
+    paddingTop: 8,
+    paddingBottom: 4,
   },
   handle: {
     backgroundColor: Colors.light.grey,
