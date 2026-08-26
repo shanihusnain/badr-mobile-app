@@ -120,7 +120,7 @@ export const HeaderWithCrossTitleDynamicIcon = ({
         }}
         onPress={() => (onBackPress ? onBackPress() : navigation.goBack())}
       >
-        <Feather name={iconName} size={20} color={Colors.light.white} />
+        <Feather name={iconName} size={22} color={Colors.light.white} />
       </Pressable>
 
       {rightIcon || rightIconName ? (
