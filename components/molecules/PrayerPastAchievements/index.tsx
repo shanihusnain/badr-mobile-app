@@ -1283,7 +1283,7 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
                   : formatPrayerCountLabel(displayBaseCompleted)}
             </Text>
           </View>
-          <View style={styles.statColumn}>
+          <View style={[styles.statColumn, styles.statColumnEnd]}>
             <Text style={styles.statLabel}>
               {analyticsView === "completedVsTimeSpent"
                 ? t("progressLogging.timeSpentLabel")
@@ -1466,7 +1466,8 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   deltaTextNegative: {
-    color: Colors.light.subtext,
+    color: Colors.light.white,
+    opacity: 0.8,
   },
   deltaSlot: {
     // flex: 1,
@@ -1594,7 +1595,7 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
     paddingRight: 10,
     paddingVertical: 8,
-    borderRadius: 10,
+    borderRadius: 12,
   },
   goalLabel: {
     color: Colors.light.subtext,
@@ -1651,7 +1652,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.blackBackground,
   },
   analyticsButtonText: {
-    color: Colors.light.grey,
+    color: Colors.light.dullWhite,
+
     fontSize: 14,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
@@ -1667,6 +1669,10 @@ const styles = StyleSheet.create({
   },
   statColumn: {
     gap: 4,
+  },
+  statColumnEnd: {
+    marginRight: 24,
+    alignItems: "flex-start",
   },
   statLabel: {
     color: Colors.light.subtext,

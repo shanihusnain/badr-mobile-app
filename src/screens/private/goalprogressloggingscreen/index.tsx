@@ -64,6 +64,7 @@ import { InformationSheet } from "@/components/molecules/informationsheet";
 import { HeaderInfoIcon } from "@/assets/icons";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { setDailyProgressSheetReturn } from "@/src/screens/private/home/dailyProgressSheetReturn";
 
 /** Hero background per prayer / Quran / fasting / sadaqah logging goal. */
 function getLoggingBackgroundSource(
@@ -131,6 +132,8 @@ function getLoggingBackgroundSource(
 
 interface GoalProgressLoggingScreenProps {
   goalId: string;
+  fromDailyProgress?: boolean;
+  dailyProgressCategory?: string;
 }
 
 function GoalProgressLoggingBody({
@@ -389,6 +392,8 @@ function GoalProgressLoggingContent({
 
 export const GoalProgressLoggingScreen = ({
   goalId: goalIdParam,
+  fromDailyProgress = false,
+  dailyProgressCategory,
 }: GoalProgressLoggingScreenProps) => {
   const goalId = (goalIdParam || "") as GoalId;
 
@@ -405,9 +410,30 @@ export const GoalProgressLoggingScreen = ({
     infoSheetRef.current?.expand();
   };
 
+  const handleHeaderBack = () => {
+    if (fromDailyProgress && dailyProgressCategory) {
+      setDailyProgressSheetReturn({
+        view: "detail",
+        category: dailyProgressCategory,
+      });
+    }
+    navigation.goBack();
+  };
+
   useLayoutEffect(() => {
     navigation.setOptions({ headerShown: false });
   }, [navigation]);
+
+  useLayoutEffect(() => {
+    if (!fromDailyProgress || !dailyProgressCategory) return;
+    const unsubscribe = navigation.addListener("beforeRemove", () => {
+      setDailyProgressSheetReturn({
+        view: "detail",
+        category: dailyProgressCategory,
+      });
+    });
+    return unsubscribe;
+  }, [navigation, fromDailyProgress, dailyProgressCategory]);
 
   if (!goalData) {
     return (
@@ -454,7 +480,7 @@ export const GoalProgressLoggingScreen = ({
               bgcolor="transparent"
               iconName="chevron-left"
               leftButtonBackground="rgba(255,255,255,0.08)"
-              onBackPress={() => navigation.goBack()}
+              onBackPress={handleHeaderBack}
               rightIcon={<HeaderInfoIcon />}
               onRightPress={prayerType ? openInsightsSheet : undefined}
             />

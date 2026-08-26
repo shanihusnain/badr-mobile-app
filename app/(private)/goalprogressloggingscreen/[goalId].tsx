@@ -30,9 +30,22 @@ class ErrorBoundary extends React.Component<
 
 export default function GoalProgressLoggingScreenRoute() {
   const params = useLocalSearchParams();
+  const fromDailyProgress =
+    params.fromDailyProgress === "1" || params.fromDailyProgress === "true";
+  const dailyProgressCategory =
+    typeof params.dailyProgressCategory === "string"
+      ? params.dailyProgressCategory
+      : Array.isArray(params.dailyProgressCategory)
+        ? params.dailyProgressCategory[0]
+        : undefined;
+
   return (
     <ErrorBoundary>
-      <GoalProgressLoggingScreen goalId={params.goalId as string} />
+      <GoalProgressLoggingScreen
+        goalId={params.goalId as string}
+        fromDailyProgress={fromDailyProgress}
+        dailyProgressCategory={dailyProgressCategory}
+      />
     </ErrorBoundary>
   );
 }

@@ -16,6 +16,9 @@ export function PrayerQuantityInputStep({
 }: PrayerQuantityInputStepProps) {
   const [isFocused, setIsFocused] = React.useState(false);
 
+  const sanitizeDigits = (text: string) =>
+    text.replace(/[^0-9]/g, "").slice(0, 2);
+
   return (
     <View style={[commonStyles.timePickerContainer, localStyles.container]}>
       <View style={commonStyles.timePickerRow}>
@@ -25,11 +28,24 @@ export function PrayerQuantityInputStep({
             isFocused && { borderColor: Colors.light.white },
           ]}
           value={quantity}
-          onChangeText={setQuantity}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
+          onChangeText={(text) => setQuantity(sanitizeDigits(text))}
+          onFocus={() => {
+            setIsFocused(true);
+            // Clear default so typing can replace with a 2-digit value.
+            if (quantity === "1") {
+              setQuantity("");
+            }
+          }}
+          onBlur={() => {
+            setIsFocused(false);
+            if (quantity === "") {
+              setQuantity("1");
+            }
+          }}
           keyboardType="number-pad"
           maxLength={2}
+          placeholder=""
+          selectTextOnFocus={false}
           cursorColor={Colors.light.white}
           selectionColor="rgba(255,255,255,0.3)"
         />
