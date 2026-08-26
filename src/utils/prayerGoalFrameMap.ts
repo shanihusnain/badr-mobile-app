@@ -156,31 +156,65 @@ export function mapFiveDailyFrameWeekDays(
   });
 }
 
-function sunnahRakahOptionToWeight(option: number | undefined): 1 | 2 {
-  return option === 1 ? 1 : 2;
+function sunnahPrayersPerDayToWeight(prayersPerDay: number): 1 | 2 {
+  return prayersPerDay === 2 ? 2 : 1;
+}
+
+/** After Dhuhr: 1 or 2 prayers/day from frame slotConfig. */
+export function getSunnahAfterDhuhrPrayersPerDay(
+  slotConfig?: SunnahRawatibSlotConfig | null,
+): 1 | 2 {
+  const raw =
+    slotConfig?.afterDhuhrPrayersPerDay ?? slotConfig?.afterDhuhrRakahOption;
+  return raw === 2 ? 2 : 1;
 }
 
 /**
- * Arc set + lengths for Sunnah Rawatib day rings from frame `slotConfig`.
- * Fixed slots always included; Before Asr only when enabled; dual-option
- * slots use weight 1 (2 rak'ahs) or 2 (4 rak'ahs).
+ * Before Asr: 0 (off), 1, or 2 prayers/day from frame slotConfig.
+ */
+export function getSunnahBeforeAsrPrayersPerDay(
+  slotConfig?: SunnahRawatibSlotConfig | null,
+): 0 | 1 | 2 {
+  if (slotConfig?.beforeAsrPrayersPerDay != null) {
+    const v = slotConfig.beforeAsrPrayersPerDay;
+    if (v <= 0) return 0;
+    if (v >= 2) return 2;
+    return 1;
+  }
+  // Legacy: enabled flag + rakah option
+  if (slotConfig?.beforeAsrEnabled === false) return 0;
+  if (slotConfig?.beforeAsrEnabled || slotConfig?.beforeAsrRakahOption != null) {
+    return slotConfig.beforeAsrRakahOption === 2 ? 2 : 1;
+  }
+  return 0;
+}
+
+/**
+ * Arc set for Sunnah Rawatib day rings from frame `slotConfig`.
+ * `weight` = prayers/day (1 or 2) → proportional arc length + fill target.
+ * Before Asr omitted when prayers/day is 0.
+ * Order clockwise from ~1 o'clock: Before Fajr → After Isha.
  */
 export function buildSunnahGoalFromSlotConfig(
   slotConfig?: SunnahRawatibSlotConfig | null,
 ): SunnahPrayerConfig[] {
+  const afterDhuhr = getSunnahAfterDhuhrPrayersPerDay(slotConfig);
+  const beforeAsr = getSunnahBeforeAsrPrayersPerDay(slotConfig);
+
   const goal: SunnahPrayerConfig[] = [
     { id: "before_fajr", weight: 1 },
+    // Always two prayers/day in the monthly goal.
     { id: "before_dhuhr", weight: 2 },
     {
       id: "after_dhuhr",
-      weight: sunnahRakahOptionToWeight(slotConfig?.afterDhuhrRakahOption),
+      weight: sunnahPrayersPerDayToWeight(afterDhuhr),
     },
   ];
 
-  if (slotConfig?.beforeAsrEnabled) {
+  if (beforeAsr > 0) {
     goal.push({
       id: "before_asr",
-      weight: sunnahRakahOptionToWeight(slotConfig?.beforeAsrRakahOption),
+      weight: sunnahPrayersPerDayToWeight(beforeAsr),
     });
   }
 
@@ -192,9 +226,64 @@ export function buildSunnahGoalFromSlotConfig(
   return goal;
 }
 
+const SUNNAH_UI_TO_API_SLOT: Record<SunnahPrayerId, string> = {
+  before_fajr: "BEFORE_FAJR",
+  before_dhuhr: "BEFORE_DHUHR",
+  after_dhuhr: "AFTER_DHUHR",
+  before_asr: "BEFORE_ASR",
+  after_maghrib: "AFTER_MAGHRIB",
+  after_isha: "AFTER_ISHA",
+};
+
+function readSunnahSlotUnits(
+  slots: PrayerGoalFrameDay["slots"],
+  prayerId: SunnahPrayerId,
+): number | undefined {
+  if (!slots) return undefined;
+  const apiKey = SUNNAH_UI_TO_API_SLOT[prayerId];
+  const raw = (slots as Record<string, unknown>)[apiKey];
+  if (typeof raw === "number" && Number.isFinite(raw)) {
+    return Math.max(0, raw);
+  }
+  return undefined;
+}
+
+/**
+ * Map frame day `slots` → ring `logged` units (1 unit = one 2-rak'ah prayer).
+ * - Future: empty → dim arcs
+ * - Today: filled slots green/partial; missing → bright white (upcoming)
+ * - Past with no activity: empty → dim (not missed)
+ * - Past with activity: missing slots → 0 (yellow / missed)
+ */
+function mapSunnahLoggedFromDay(
+  day: PrayerGoalFrameDay,
+  goal: SunnahPrayerConfig[],
+): Partial<Record<SunnahPrayerId, number>> {
+  const isFuture = Boolean(day.isFuture || day.isFutureDay);
+  if (isFuture) return {};
+
+  const slotEntries = day.slots ?? {};
+  const hasActivity =
+    (day.count ?? day.totalLogged ?? 0) > 0 ||
+    Object.keys(slotEntries).length > 0;
+
+  const logged: Partial<Record<SunnahPrayerId, number>> = {};
+
+  for (const prayer of goal) {
+    const units = readSunnahSlotUnits(day.slots, prayer.id);
+    if (units !== undefined) {
+      logged[prayer.id] = Math.min(prayer.weight, units);
+    } else if (!day.isToday && hasActivity) {
+      logged[prayer.id] = 0;
+    }
+  }
+
+  return logged;
+}
+
 /**
  * Map frame week days for Sunnah Rawatib rings.
- * Arc geometry from `slotConfig`; per-slot fills empty until day.slots exist.
+ * Arc geometry from `slotConfig`; fills from day.slots unit counts.
  * Day total prefers `count` / `totalLogged`.
  */
 export function mapSunnahFrameWeekDays(
@@ -214,8 +303,9 @@ export function mapSunnahFrameWeekDays(
       count,
       data: {
         goal,
-        logged: {} as Partial<Record<SunnahPrayerId, number>>,
+        logged: mapSunnahLoggedFromDay(day, goal),
         isMenstruation: Boolean(day.isMenstruationDay),
+        isToday: Boolean(day.isToday),
       },
     };
   });

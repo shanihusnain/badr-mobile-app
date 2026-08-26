@@ -50,9 +50,7 @@ export const DateStep: React.FC<DateStepProps> = ({
         <Ionicons
           name={i18n.language === "ar" ? "chevron-forward" : "chevron-back"}
           size={32}
-          color={
-            canGoPrev ? Colors.light.white : Colors.light.dullWhiteOpacity
-          }
+          color={canGoPrev ? Colors.light.white : Colors.light.dullWhiteOpacity}
         />
       </TouchableOpacity>
       <Text style={styles.dateMainText}>{dateLabel}</Text>
@@ -64,9 +62,7 @@ export const DateStep: React.FC<DateStepProps> = ({
         <Ionicons
           name={i18n.language === "ar" ? "chevron-back" : "chevron-forward"}
           size={32}
-          color={
-            canGoNext ? Colors.light.white : Colors.light.dullWhiteOpacity
-          }
+          color={canGoNext ? Colors.light.white : Colors.light.dullWhiteOpacity}
         />
       </TouchableOpacity>
     </View>

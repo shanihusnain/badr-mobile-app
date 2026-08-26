@@ -28,12 +28,34 @@ export type PrayerGoalFrameSlotProgress = {
 
 /** Variable Sunnah Rawatib goal options from frame `slotConfig`. */
 export type SunnahRawatibSlotConfig = {
+  /**
+   * Before Asr in goal. Prefer `beforeAsrPrayersPerDay` (0 = off).
+   * Kept for older payloads.
+   */
   beforeAsrEnabled?: boolean;
-  /** 1 = one 2-rak'ah unit; 2 = two units (4 rak'ahs). */
+  /**
+   * After Dhuhr: prayers per day (1 or 2).
+   * Legacy alias: `afterDhuhrRakahOption`.
+   */
+  afterDhuhrPrayersPerDay?: number;
+  /**
+   * Before Asr: prayers per day (0 = not selected, 1 or 2).
+   * Legacy alias: `beforeAsrRakahOption` + `beforeAsrEnabled`.
+   */
+  beforeAsrPrayersPerDay?: number;
+  /** @deprecated Use afterDhuhrPrayersPerDay */
   afterDhuhrRakahOption?: number;
-  /** 1 = one 2-rak'ah unit; 2 = two units (4 rak'ahs). */
+  /** @deprecated Use beforeAsrPrayersPerDay */
   beforeAsrRakahOption?: number;
 };
+
+export type SunnahRawatibSlotKey =
+  | "BEFORE_FAJR"
+  | "BEFORE_DHUHR"
+  | "AFTER_DHUHR"
+  | "BEFORE_ASR"
+  | "AFTER_MAGHRIB"
+  | "AFTER_ISHA";
 
 export type PrayerGoalFrameDay = {
   date: string;
@@ -50,7 +72,14 @@ export type PrayerGoalFrameDay = {
   totalLogged?: number;
   allFiveOnTime?: boolean;
   hasQadha?: boolean;
-  slots?: Partial<Record<FiveDailyPrayerSlotKey, FiveDailyPrayerSlot>>;
+  /**
+   * Five Daily: slot objects. Sunnah Rawatib: numeric unit counts per slot
+   * (e.g. `{ BEFORE_FAJR: 1, BEFORE_DHUHR: 2 }`).
+   */
+  slots?: Partial<
+    Record<FiveDailyPrayerSlotKey, FiveDailyPrayerSlot> &
+      Record<SunnahRawatibSlotKey, number>
+  >;
 };
 
 export type PrayerGoalFrameData = {

@@ -7,6 +7,7 @@ export type SunnahPrayerId = "before_fajr" | "before_dhuhr" | "after_dhuhr" | "b
 
 export type SunnahPrayerConfig = {
   id: SunnahPrayerId;
+  /** Prayers/day for this slot — drives both arc length and fill target (1 or 2). */
   weight: 1 | 2;
 };
 
@@ -14,6 +15,8 @@ export type SunnahDayData = {
   goal: SunnahPrayerConfig[];
   logged: Partial<Record<SunnahPrayerId, number>>;
   isMenstruation?: boolean;
+  /** Today: unlogged arcs render brighter (upcoming). */
+  isToday?: boolean;
 };
 
 export type SunnahRawatibDayRingProps = {
@@ -41,7 +44,11 @@ export function SunnahRawatibDayRing({ size, data, isSelected }: SunnahRawatibDa
         ]}
       >
         <View style={{ width: size, height: size }}>
-          <Svg width={size} height={size} style={{ transform: [{ rotate: "-90deg" }] }}>
+          <Svg
+            width={size}
+            height={size}
+            style={{ transform: [{ rotate: "-60deg" }] }}
+          >
             <Circle
               cx={size / 2}
               cy={size / 2}
@@ -66,7 +73,7 @@ export function SunnahRawatibDayRing({ size, data, isSelected }: SunnahRawatibDa
   let currentOffset = 0;
 
   data.goal.forEach((prayer) => {
-    // Total arc for this prayer (including gap)
+    // Arc length proportional to prayers/day from slotConfig (1 or 2).
     const prayerArcLength = (prayer.weight / totalWeight) * circumference;
 
     if (data.isMenstruation) {
@@ -79,9 +86,11 @@ export function SunnahRawatibDayRing({ size, data, isSelected }: SunnahRawatibDa
       const loggedValue = data.logged[prayer.id];
 
       if (loggedValue === undefined) {
-        // Not come yet -> white (dim)
+        // Not logged yet — today upcoming = bright white; else dim
         segments.push({
-          color: Colors.light.dullWhiteOpacity,
+          color: data.isToday
+            ? Colors.light.white
+            : Colors.light.dullWhiteOpacity,
           length: prayerArcLength - gapSize,
           offset: currentOffset,
         });
@@ -92,7 +101,7 @@ export function SunnahRawatibDayRing({ size, data, isSelected }: SunnahRawatibDa
           length: prayerArcLength - gapSize,
           offset: currentOffset,
         });
-      } else if (loggedValue === prayer.weight) {
+      } else if (loggedValue >= prayer.weight) {
         // Fully prayed -> green
         segments.push({
           color: Colors.light.green,
@@ -100,19 +109,15 @@ export function SunnahRawatibDayRing({ size, data, isSelected }: SunnahRawatibDa
           offset: currentOffset,
         });
       } else {
-        // Partially prayed (weight is 2, logged is 1)
-        // Divide the segment into two smaller segments (green then yellow)
-        // Note: gapSize is applied at the end of the total prayer arc.
+        // Partially prayed (weight 2, logged 1): split this slot's arc in half
         const halfLength = (prayerArcLength - gapSize) / 2;
 
-        // Green part
         segments.push({
           color: Colors.light.green,
           length: halfLength,
           offset: currentOffset,
         });
 
-        // Yellow part
         segments.push({
           color: Colors.light.yellow,
           length: halfLength,
@@ -133,7 +138,12 @@ export function SunnahRawatibDayRing({ size, data, isSelected }: SunnahRawatibDa
       ]}
     >
       <View style={{ width: size, height: size }}>
-        <Svg width={size} height={size} style={{ transform: [{ rotate: "-90deg" }] }}>
+        <Svg
+          width={size}
+          height={size}
+          // SVG stroke starts at 3 o'clock; -60deg puts Before Fajr (index 0) at 1 o'clock.
+          style={{ transform: [{ rotate: "-60deg" }] }}
+        >
           {segments.map((segment, index) => (
             <Circle
               key={index}

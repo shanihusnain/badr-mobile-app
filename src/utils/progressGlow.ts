@@ -39,7 +39,7 @@ export function getProgressGlow(percent: number) {
   if (percent >= 34) {
     return { glow: neonPaint(FIGMA_RING_GLOW_BLUE), radius: 10 };
   }
-  return { glow: neonPaint(FIGMA_RING_GLOW_BLUE), radius: 8 };
+  return { glow: neonPaint(Colors.light.white), radius: 8 };
 }
 
 /** Same three outer-glow passes used by GlowingProgressPercent. */
