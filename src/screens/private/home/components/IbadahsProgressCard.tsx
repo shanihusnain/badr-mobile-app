@@ -47,11 +47,7 @@ export const IbadahsProgressCard = ({
             { backgroundColor: iconBgColor || Colors.light.calendarBg },
           ]}
         >
-          {loading ? (
-            <Text style={styles.iconPlaceholder}>---</Text>
-          ) : (
-            icon
-          )}
+          {loading ? <Text style={styles.iconPlaceholder}>---</Text> : icon}
         </View>
         <View style={styles.textWrapper}>
           <Text style={styles.title}>{title}</Text>
@@ -83,78 +79,78 @@ export const IbadahsProgressCard = ({
 };
 
 const styles = StyleSheet.create({
-    cardContainer: {
-        width: "100%",
-        //height: 72,
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        backgroundColor: Colors.light.greybuttonBackground,
-        borderRadius: 12,
-        borderWidth: 1,
-        paddingHorizontal: 16,
-        paddingVertical: 19,
-        marginBottom: 18,
-    },
-    leftSection: {
-        flexDirection: "row",
-        alignItems: "center",
-        flex: 1,
-    },
-    iconWrapper: {
-        width: 32,
-        height: 32,
-        borderRadius: 16,
-        alignItems: "center",
-        justifyContent: "center",
-        marginRight: 12,
-    },
-    iconPlaceholder: {
-        color: Colors.light.white,
-        fontFamily: fonts.primary.semiBold,
-        fontWeight: "600",
-        fontSize: 11,
-    },
-    textWrapper: {
-        justifyContent: "center",
-    },
-    title: {
-        color: Colors.light.white,
-        fontFamily: fonts.primary.semiBold,
-        fontWeight: "600",
-        fontSize: 15,
-        textTransform: "uppercase",
-        marginBottom: 2,
-    },
-    subtitle: {
-        color: Colors.light.white,
-        opacity: 0.8,
-        fontFamily: fonts.primary.regular,
-        fontSize: 14,
-    },
-    rightSection: {
-        justifyContent: "center",
-        alignItems: "center",
-        marginRight: 10,
-        width: 40,
-        height: 40,
-        overflow: "visible",
-    },
-    percentTextContainer: {
-        flexDirection: "row",
-        alignItems: "baseline",
-        justifyContent: "center",
-    },
-    percentText: {
-        color: Colors.light.white,
-        fontFamily: fonts.primary.medium,
-        fontSize: 13,
-        fontWeight: "500",
-    },
-    percentSymbol: {
-        color: Colors.light.white,
-        fontFamily: fonts.primary.regular,
-        fontSize: 8,
-        marginLeft: 0.8,
-    },
+  cardContainer: {
+    width: "100%",
+    //height: 72,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: Colors.light.greybuttonBackground,
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    marginBottom: 18,
+  },
+  leftSection: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  iconWrapper: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+  iconPlaceholder: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.semiBold,
+    fontWeight: "600",
+    fontSize: 11,
+  },
+  textWrapper: {
+    justifyContent: "center",
+  },
+  title: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.semiBold,
+    fontWeight: "600",
+    fontSize: 15,
+    textTransform: "uppercase",
+    marginBottom: 2,
+  },
+  subtitle: {
+    color: Colors.light.white,
+    opacity: 0.9,
+    fontFamily: fonts.primary.regular,
+    fontSize: 14,
+  },
+  rightSection: {
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 10,
+    width: 40,
+    height: 40,
+    overflow: "visible",
+  },
+  percentTextContainer: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    justifyContent: "center",
+  },
+  percentText: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.medium,
+    fontSize: 13,
+    fontWeight: "500",
+  },
+  percentSymbol: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.regular,
+    fontSize: 8,
+    marginLeft: 0.8,
+  },
 });
