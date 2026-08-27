@@ -5,12 +5,16 @@ import {
   TouchableOpacity,
   StyleSheet,
   useWindowDimensions,
+  Pressable,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
+import { BinIcon } from "@/assets/icons";
 import { SunnahRawatibDayRing, type SunnahDayData } from "../SunnahRawatibDayRing";
+import { useDeletePrayerLog } from "@/src/api/mutations/useDeletePrayerLog";
+import { useOptionalPrayerGoalFrameContext } from "@/src/screens/private/goalprogressloggingscreen/prayerGoalFrameContext";
 
 export type SunnahRawatibDayProgress = {
   day: string;
@@ -42,6 +46,13 @@ const CARD_HORIZONTAL_PADDING = 16;
 const WRAPPER_WIDTH_RATIO = 0.92;
 const RING_SIZE_MAX = 34;
 
+function dayHasSunnahLog(day: SunnahRawatibDayProgress): boolean {
+  if ((day.count ?? 0) > 0) return true;
+  return Object.values(day.data.logged).some(
+    (v) => typeof v === "number" && v > 0,
+  );
+}
+
 export function SunnahRawatibWeeklyProgressDashboard({
   weekDays,
   weekRangeLabel = "Nov 29 — Dec 5",
@@ -57,9 +68,17 @@ export function SunnahRawatibWeeklyProgressDashboard({
   loading = false,
 }: SunnahRawatibWeeklyProgressDashboardProps) {
   const { width: screenWidth } = useWindowDimensions();
+  const prayerFrame = useOptionalPrayerGoalFrameContext();
+  const { mutate: deletePrayerLog, isPending: isDeletingLog } =
+    useDeletePrayerLog();
+  const [selectForDeletion, setSelectForDeletion] = useState("");
 
-  const availableWidth = screenWidth * WRAPPER_WIDTH_RATIO - CARD_HORIZONTAL_PADDING;
-  const ringSize = Math.min(RING_SIZE_MAX, Math.floor((availableWidth / 7) * 0.62));
+  const availableWidth =
+    screenWidth * WRAPPER_WIDTH_RATIO - CARD_HORIZONTAL_PADDING;
+  const ringSize = Math.min(
+    RING_SIZE_MAX,
+    Math.floor((availableWidth / 7) * 0.62),
+  );
 
   const [activeDayIndex, setActiveDayIndex] = useState(selectedDayIndex);
 
@@ -67,17 +86,19 @@ export function SunnahRawatibWeeklyProgressDashboard({
     setActiveDayIndex(selectedDayIndex);
   }, [selectedDayIndex]);
 
-  const handleDayPress = (index: number, isFuture: boolean) => () => {
-    if (loading || isFuture) return;
-    setActiveDayIndex(index);
-    onDayPress?.(index);
-  };
+  useEffect(() => {
+    setSelectForDeletion("");
+  }, [weekDays]);
 
   return (
     <View style={styles.card}>
       <View style={styles.headerRow}>
         <View style={styles.headerLeft}>
-          <MaterialCommunityIcons name="calendar-month-outline" size={16} color={Colors.light.seagreen} />
+          <MaterialCommunityIcons
+            name="calendar-month-outline"
+            size={16}
+            color={Colors.light.seagreen}
+          />
           <Text style={styles.weekFractionText} numberOfLines={1}>
             {loading ? "---" : `${weekFraction} WEEKS`}
           </Text>
@@ -90,7 +111,11 @@ export function SunnahRawatibWeeklyProgressDashboard({
             style={styles.navBtn}
             disabled={!onPrevWeek || loading}
           >
-            <Ionicons name="chevron-back" size={14} color={Colors.light.dullWhite} />
+            <Ionicons
+              name="chevron-back"
+              size={14}
+              color={Colors.light.dullWhite}
+            />
           </TouchableOpacity>
           <Text style={styles.weekRangeText} numberOfLines={1}>
             {loading ? "---" : weekRangeLabel}
@@ -101,7 +126,11 @@ export function SunnahRawatibWeeklyProgressDashboard({
             style={styles.navBtn}
             disabled={!onNextWeek || loading}
           >
-            <Ionicons name="chevron-forward" size={14} color={Colors.light.dullWhite} />
+            <Ionicons
+              name="chevron-forward"
+              size={14}
+              color={Colors.light.dullWhite}
+            />
           </TouchableOpacity>
         </View>
       </View>
@@ -110,6 +139,9 @@ export function SunnahRawatibWeeklyProgressDashboard({
         {weekDays.map((day, index) => {
           const isSelected = index === activeDayIndex;
           const isFuture = !!day.isFuture;
+          const hasLog = dayHasSunnahLog(day);
+          const isMarkedForDeletion =
+            !!day.date && selectForDeletion === day.date;
 
           let dayTotal = 0;
           if (typeof day.count === "number") {
@@ -123,13 +155,40 @@ export function SunnahRawatibWeeklyProgressDashboard({
           return (
             <TouchableOpacity
               key={`${day.day}-${index}`}
-              style={styles.dayColumn}
-              onPress={handleDayPress(index, isFuture)}
+              style={[
+                styles.dayColumn,
+                isMarkedForDeletion ? { zIndex: 2 } : null,
+                isMarkedForDeletion && styles.dayColumnMarkedForDeletion,
+              ]}
+              onLongPress={() => {
+                if (loading || isFuture || !day.date || !hasLog) return;
+                setSelectForDeletion((prev) =>
+                  prev === day.date ? "" : (day.date ?? ""),
+                );
+              }}
+              onPress={() => {
+                if (loading || isFuture) return;
+                if (selectForDeletion) {
+                  setSelectForDeletion("");
+                  return;
+                }
+                setActiveDayIndex(index);
+                onDayPress?.(index);
+              }}
               activeOpacity={loading || isFuture ? 1 : 0.75}
               disabled={loading || isFuture}
             >
-              <View style={[styles.dayItemWrapper, isSelected && styles.dayItemSelected]}>
-                <SunnahRawatibDayRing size={ringSize} data={day.data} isSelected={isSelected} />
+              <View
+                style={[
+                  styles.dayItemWrapper,
+                  isSelected && !isMarkedForDeletion && styles.dayItemSelected,
+                ]}
+              >
+                <SunnahRawatibDayRing
+                  size={ringSize}
+                  data={day.data}
+                  isSelected={isSelected}
+                />
                 <Text style={styles.dayLabel} numberOfLines={1}>
                   {loading ? "---" : day.day}
                 </Text>
@@ -137,13 +196,37 @@ export function SunnahRawatibWeeklyProgressDashboard({
                   {loading ? "---" : dayTotal > 0 ? String(dayTotal) : ""}
                 </Text>
               </View>
+              {isMarkedForDeletion ? (
+                <Pressable
+                  style={styles.deleteButton}
+                  disabled={isDeletingLog || !prayerFrame?.frame?.prayerType}
+                  onPress={() => {
+                    const prayerType = prayerFrame?.frame?.prayerType;
+                    if (!prayerType || !day.date || isDeletingLog) return;
+                    deletePrayerLog(
+                      { prayerType, date: day.date },
+                      {
+                        onSuccess: () => {
+                          setSelectForDeletion("");
+                        },
+                      },
+                    );
+                  }}
+                >
+                  <BinIcon />
+                </Pressable>
+              ) : null}
             </TouchableOpacity>
           );
         })}
       </View>
 
       <View style={styles.statsRow}>
-        <MaterialCommunityIcons name={statsIcon} size={24} color={Colors.light.lightblue} />
+        <MaterialCommunityIcons
+          name={statsIcon}
+          size={24}
+          color={Colors.light.lightblue}
+        />
         <Text style={styles.statsText} numberOfLines={1}>
           <Text style={styles.statsCount}>
             {loading ? "---" : totalPrayersThisWeek}
@@ -161,7 +244,11 @@ export function SunnahRawatibWeeklyProgressDashboard({
         </View>
 
         <View style={styles.quoteBlock}>
-          <MaterialCommunityIcons name="target" size={14} color={Colors.light.seagreen} />
+          <MaterialCommunityIcons
+            name="target"
+            size={14}
+            color={Colors.light.seagreen}
+          />
           <Text style={styles.quoteText}>
             {loading ? "---" : motivationalQuote}
           </Text>
@@ -178,6 +265,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 20,
     gap: 16,
+    zIndex: 150,
   },
   headerRow: {
     flexDirection: "row",
@@ -217,11 +305,32 @@ const styles = StyleSheet.create({
   daysRow: {
     flexDirection: "row",
     alignItems: "flex-start",
+    overflow: "visible",
   },
   dayColumn: {
     flex: 1,
     alignItems: "center",
     minWidth: 0,
+    overflow: "visible",
+  },
+  dayColumnMarkedForDeletion: {
+    borderWidth: 1,
+    borderColor: Colors.light.red,
+    borderRadius: 6,
+    backgroundColor: Colors.light.dullRed,
+    zIndex: 99999,
+  },
+  deleteButton: {
+    height: 20,
+    width: 24,
+    backgroundColor: Colors.light.red,
+    borderRadius: 5,
+    zIndex: 1000,
+    alignSelf: "center",
+    justifyContent: "center",
+    alignItems: "center",
+    position: "absolute",
+    bottom: -10,
   },
   dayItemWrapper: {
     alignItems: "center",
@@ -229,6 +338,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 2,
     borderRadius: 8,
     minHeight: 80,
+    width: "100%",
+    overflow: "visible",
   },
   dayItemSelected: {
     backgroundColor: "rgba(255,255,255,0.08)",

@@ -155,7 +155,7 @@ export const useGetPrayerGoalAchievements = (
   options: {
     period: PastAchievementPeriod;
     periodStart?: string | null;
-    /** Five-daily filter: all | FAJR | DHUHR | ASR | MAGHRIB | ISHA */
+    /** Five-daily / sunnah filter: all | FAJR | … | BEFORE_FAJR | … */
     slot?: string | null;
     enabled?: boolean;
   },

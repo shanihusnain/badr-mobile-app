@@ -65,7 +65,10 @@ export function LoggingFlowSlot({
     );
   }
 
-  if (template === "quran-memorisation" && isJuzMemorisationGoalId(goalData.id)) {
+  if (
+    template === "quran-memorisation" &&
+    isJuzMemorisationGoalId(goalData.id)
+  ) {
     return (
       <JuzMemorisationLoggingSection
         goalData={goalData}
@@ -74,7 +77,10 @@ export function LoggingFlowSlot({
     );
   }
 
-  if (template === "quran-memorisation" && isHizbMemorisationGoalId(goalData.id)) {
+  if (
+    template === "quran-memorisation" &&
+    isHizbMemorisationGoalId(goalData.id)
+  ) {
     return (
       <HizbMemorisationLoggingSection
         goalData={goalData}
@@ -83,7 +89,10 @@ export function LoggingFlowSlot({
     );
   }
 
-  if (template === "quran-memorisation" && isSurahMemorisationGoalId(goalData.id)) {
+  if (
+    template === "quran-memorisation" &&
+    isSurahMemorisationGoalId(goalData.id)
+  ) {
     return (
       <SurahMemorisationLoggingSection
         goalData={goalData}
@@ -239,7 +248,10 @@ export function LoggingFlowSlot({
 
   if (template === "missed-zakat") {
     return (
-      <MissedZakatLoggingFlow goalData={goalData} onLogComplete={onLogComplete} />
+      <MissedZakatLoggingFlow
+        goalData={goalData}
+        onLogComplete={onLogComplete}
+      />
     );
   }
 

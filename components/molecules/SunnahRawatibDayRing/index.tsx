@@ -3,7 +3,13 @@ import { View, StyleSheet } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 import { Colors } from "@/constants/theme";
 
-export type SunnahPrayerId = "before_fajr" | "before_dhuhr" | "after_dhuhr" | "before_asr" | "after_maghrib" | "after_isha";
+export type SunnahPrayerId =
+  | "before_fajr"
+  | "before_dhuhr"
+  | "after_dhuhr"
+  | "before_asr"
+  | "after_maghrib"
+  | "after_isha";
 
 export type SunnahPrayerConfig = {
   id: SunnahPrayerId;
@@ -25,7 +31,11 @@ export type SunnahRawatibDayRingProps = {
   isSelected?: boolean;
 };
 
-export function SunnahRawatibDayRing({ size, data, isSelected }: SunnahRawatibDayRingProps) {
+export function SunnahRawatibDayRing({
+  size,
+  data,
+  isSelected,
+}: SunnahRawatibDayRingProps) {
   const strokeWidth = 3.0;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -109,8 +119,12 @@ export function SunnahRawatibDayRing({ size, data, isSelected }: SunnahRawatibDa
           offset: currentOffset,
         });
       } else {
-        // Partially prayed (weight 2, logged 1): split this slot's arc in half
+        // Partial (e.g. weight 2, logged 1): logged half green;
+        // remaining = white if today (still upcoming), yellow if past (missed).
         const halfLength = (prayerArcLength - gapSize) / 2;
+        const remainingColor = data.isToday
+          ? Colors.light.white
+          : Colors.light.yellow;
 
         segments.push({
           color: Colors.light.green,
@@ -119,7 +133,7 @@ export function SunnahRawatibDayRing({ size, data, isSelected }: SunnahRawatibDa
         });
 
         segments.push({
-          color: Colors.light.yellow,
+          color: remainingColor,
           length: halfLength,
           offset: currentOffset + halfLength,
         });
@@ -142,7 +156,7 @@ export function SunnahRawatibDayRing({ size, data, isSelected }: SunnahRawatibDa
           width={size}
           height={size}
           // SVG stroke starts at 3 o'clock; -60deg puts Before Fajr (index 0) at 1 o'clock.
-          style={{ transform: [{ rotate: "-60deg" }] }}
+          style={{ transform: [{ rotate: "-75deg" }] }}
         >
           {segments.map((segment, index) => (
             <Circle

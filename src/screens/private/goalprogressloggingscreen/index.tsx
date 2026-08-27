@@ -172,7 +172,10 @@ function GoalProgressLoggingBody({
     () => getResolvedGoalById(goalId) ?? goalData,
     [goalData, goalId, weeklyRefreshKey],
   );
-
+  console.log(
+    "liveGoalData in side the goal progress logging body",
+    liveGoalData,
+  );
   const isMondayThursdayFasts = isMondayThursdayFastsGoalId(goalId);
   const frameAchievementPct = prayerFrame?.frame?.goal.achievementPct;
   const displayPercentage = isPrayerFrameRingGoal

@@ -45,6 +45,7 @@ import {
   isPastAchievementBarEmpty,
 } from "@/src/utils/pastAchievementNoData";
 import { resolvePrayerTypeFromGoalId } from "@/src/utils/prayerGoalMap";
+import { getSunnahBeforeAsrPrayersPerDay } from "@/src/utils/prayerGoalFrameMap";
 import { useOptionalPrayerGoalFrameContext } from "@/src/screens/private/goalprogressloggingscreen/prayerGoalFrameContext";
 import {
   NegativeProgressIcon,
@@ -128,7 +129,18 @@ const SUNNAH_RAWATIB_TABS = [
   "Before Asr",
   "After Maghrib",
   "After Isha",
-];
+] as const;
+type SunnahRawatibTab = (typeof SUNNAH_RAWATIB_TABS)[number];
+/** Achievements `slot` query for sunnah-rawatib. */
+const SUNNAH_TAB_TO_SLOT_PARAM: Record<SunnahRawatibTab, string> = {
+  All: "all",
+  "Before Fajr": "BEFORE_FAJR",
+  "Before Dhuhr": "BEFORE_DHUHR",
+  "After Dhuhr": "AFTER_DHUHR",
+  "Before Asr": "BEFORE_ASR",
+  "After Maghrib": "AFTER_MAGHRIB",
+  "After Isha": "AFTER_ISHA",
+};
 const QIYAM_TABS = ["All", "After Isha", "Tahajjud"];
 
 const LOADING_DASH = "---";
@@ -466,17 +478,32 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
     goalId === "prayer-tawbah" ||
     goalId === "prayer-istikhara" ||
     goalId === "prayer-shukr" ||
-    goalId === "prayer-fiveDailyPrayers";
+    goalId === "prayer-fiveDailyPrayers" ||
+    goalId === "prayer-sunnah";
   const prayerType = resolvePrayerTypeFromGoalId(goalId);
-  const fiveDailySlotParam =
-    goalId === "prayer-fiveDailyPrayers"
-      ? (FIVE_DAILY_TAB_TO_SLOT_PARAM[selectedPrayerTab] ?? "all")
-      : null;
+  const beforeAsrInSunnahGoal =
+    getSunnahBeforeAsrPrayersPerDay(prayerFrame?.frame?.slotConfig) > 0;
+  const sunnahTabs = useMemo((): SunnahRawatibTab[] => {
+    return SUNNAH_RAWATIB_TABS.filter(
+      (tab) => tab !== "Before Asr" || beforeAsrInSunnahGoal,
+    );
+  }, [beforeAsrInSunnahGoal]);
+  const achievementsSlotParam = useMemo(() => {
+    if (goalId === "prayer-fiveDailyPrayers") {
+      return FIVE_DAILY_TAB_TO_SLOT_PARAM[selectedPrayerTab] ?? "all";
+    }
+    if (goalId === "prayer-sunnah") {
+      return (
+        SUNNAH_TAB_TO_SLOT_PARAM[selectedPrayerTab as SunnahRawatibTab] ?? "all"
+      );
+    }
+    return null;
+  }, [goalId, selectedPrayerTab]);
   const { data: achievementsApiData, isLoading: isAchievementsLoading } =
     useGetPrayerGoalAchievements(prayerType, {
       period,
       periodStart: periodStartParam,
-      slot: goalId === "prayer-fiveDailyPrayers" ? fiveDailySlotParam : null,
+      slot: achievementsSlotParam,
       enabled: usesAchievementsApi && !!prayerType,
     });
   const showPlaceholders =
@@ -495,10 +522,19 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
     setPeriodStartParam(null);
   }, [period, goalId]);
   useEffect(() => {
-    if (goalId === "prayer-fiveDailyPrayers") {
+    if (
+      goalId === "prayer-fiveDailyPrayers" ||
+      goalId === "prayer-sunnah"
+    ) {
       setSelectedPrayerTab("All");
     }
   }, [goalId]);
+  useEffect(() => {
+    if (goalId !== "prayer-sunnah") return;
+    if (selectedPrayerTab === "Before Asr" && !beforeAsrInSunnahGoal) {
+      setSelectedPrayerTab("All");
+    }
+  }, [goalId, selectedPrayerTab, beforeAsrInSunnahGoal]);
 
   const baseAchievementRaw = useMemo((): PrayerPastAchievement | null => {
     if (usesAchievementsApi) {
@@ -516,7 +552,12 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
     const isSunnah = goalId === "prayer-sunnah";
     const isQiyam = goalId === "prayer-qiyam";
 
-    if ((isMissed || isSunnah || isQiyam) && selectedPrayerTab !== "All") {
+    // Client-side tab scaling only for mock data. Sunnah/five-daily use API `slot`.
+    if (
+      !usesAchievementsApi &&
+      (isMissed || isSunnah || isQiyam) &&
+      selectedPrayerTab !== "All"
+    ) {
       const multipliers: Record<string, number> = {
         Fajr: 0.25,
         Dhuhr: 0.35,
@@ -562,7 +603,7 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
       };
     }
     return data;
-  }, [baseAchievementRaw, goalId, selectedPrayerTab]);
+  }, [baseAchievementRaw, goalId, selectedPrayerTab, usesAchievementsApi]);
 
   const achievement = useMemo(
     () =>
@@ -1030,44 +1071,44 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
                 </>
               )}
             </Text>
-
-            {goalId === "prayer-sunnah" && (
-              <View style={styles.missedPrayerTabsWrapper}>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.missedPrayerTabsContainer}
-                >
-                  {SUNNAH_RAWATIB_TABS.map((prayer) => {
-                    const isActive = selectedPrayerTab === prayer;
-                    return (
-                      <TouchableOpacity
-                        key={prayer}
-                        onPress={() => setSelectedPrayerTab(prayer)}
-                        style={[
-                          styles.missedPrayerTab,
-                          isActive
-                            ? styles.missedPrayerTabActive
-                            : styles.missedPrayerTabInactive,
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.missedPrayerTabText,
-                            isActive
-                              ? styles.missedPrayerTabTextActive
-                              : styles.missedPrayerTabTextInactive,
-                          ]}
-                        >
-                          {prayer}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </ScrollView>
-              </View>
-            )}
           </>
+        )}
+
+        {goalId === "prayer-sunnah" && (
+          <View style={styles.missedPrayerTabsWrapper}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.missedPrayerTabsContainer}
+            >
+              {sunnahTabs.map((prayer) => {
+                const isActive = selectedPrayerTab === prayer;
+                return (
+                  <TouchableOpacity
+                    key={prayer}
+                    onPress={() => setSelectedPrayerTab(prayer)}
+                    style={[
+                      styles.missedPrayerTab,
+                      isActive
+                        ? styles.missedPrayerTabActive
+                        : styles.missedPrayerTabInactive,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.missedPrayerTabText,
+                        isActive
+                          ? styles.missedPrayerTabTextActive
+                          : styles.missedPrayerTabTextInactive,
+                      ]}
+                    >
+                      {prayer}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
         )}
 
         {goalId === "prayer-missed" && !showPlaceholders && (

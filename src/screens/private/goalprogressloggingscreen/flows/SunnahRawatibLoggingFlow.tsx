@@ -33,7 +33,10 @@ import {
 } from "../components/TimePickerSteps";
 import { OptionSelectStep } from "../components/OptionSelectStep";
 import { FlowCard } from "../components/FlowCard";
-import { styles as commonStyles, FLOW_CARD_HEIGHT } from "../components/DailyProgressLogging.styles";
+import {
+  styles as commonStyles,
+  FLOW_CARD_HEIGHT,
+} from "../components/DailyProgressLogging.styles";
 import type { ProgressLogEntry } from "../types";
 import { useOptionalPrayerGoalFrameContext } from "../prayerGoalFrameContext";
 import {
@@ -44,6 +47,7 @@ import {
 } from "@/src/utils/prayerGoalFrameMap";
 import { resolvePrayerTypeFromGoalId } from "@/src/utils/prayerGoalMap";
 import { useGetPrayerGoalFrame } from "@/src/api/queries/useGetPrayerGoalFrame";
+import type { PrayerGoalFrameData } from "@/src/api/queries/useGetPrayerGoalFrame";
 import {
   useLogSunnahRawatibGoal,
   type LogSunnahRawatibPayload,
@@ -129,7 +133,6 @@ export default function SunnahRawatibLoggingFlow({
   onLogComplete,
 }: Props) {
   const { t } = useTranslation();
-
   const [flowMode, setFlowMode] = useState<FlowMode>("collapsed");
   const [stepIndex, setStepIndex] = useState(0);
 
@@ -243,9 +246,21 @@ export default function SunnahRawatibLoggingFlow({
       enabled: selectedDateWeekNumber != null,
     });
 
+  /** Prefer week query; fall back to dashboard frame when it already has this date. */
+  const frameForSelectedDate = useMemo(() => {
+    const dateIn = (candidate?: PrayerGoalFrameData | null) =>
+      candidate?.week.days.some(
+        (d) => d.date === selectedDate || d.date.startsWith(`${selectedDate}`),
+      );
+
+    if (dateIn(selectedDateWeekFrame)) return selectedDateWeekFrame;
+    if (dateIn(frame)) return frame;
+    return selectedDateWeekFrame ?? frame;
+  }, [selectedDateWeekFrame, frame, selectedDate]);
+
   /** Prayer units already logged per slot for the selected date. */
   const slotLoggedCountsForSelectedDate = useMemo(() => {
-    const day = selectedDateWeekFrame?.week.days.find(
+    const day = frameForSelectedDate?.week.days.find(
       (d) => d.date === selectedDate || d.date.startsWith(`${selectedDate}`),
     );
     const counts: Partial<Record<SunnahPrayerId, number>> = {};
@@ -255,12 +270,12 @@ export default function SunnahRawatibLoggingFlow({
       const raw = (day.slots as Record<string, unknown>)[
         SUNNAH_UI_TO_API_SLOT[id]
       ];
-      if (typeof raw === "number" && Number.isFinite(raw)) {
+      if (typeof raw === "number" && Number.isFinite(raw) && raw > 0) {
         counts[id] = Math.max(0, raw);
       }
     }
     return counts;
-  }, [selectedDateWeekFrame, selectedDate, availableSunnahOptions]);
+  }, [frameForSelectedDate, selectedDate, availableSunnahOptions]);
 
   const isPrayerFullyLogged = useCallback(
     (prayerId: SunnahPrayerId) => {
@@ -268,6 +283,15 @@ export default function SunnahRawatibLoggingFlow({
       return logged >= getSlotTargetCount(prayerId);
     },
     [slotLoggedCountsForSelectedDate, getSlotTargetCount],
+  );
+
+  /** Slots with any logged units for this date — show tick (Five Daily style). */
+  const alreadyLoggedPrayers = useMemo(
+    () =>
+      availableSunnahOptions.filter(
+        (id) => (slotLoggedCountsForSelectedDate[id] ?? 0) > 0,
+      ),
+    [availableSunnahOptions, slotLoggedCountsForSelectedDate],
   );
 
   const fullyLoggedPrayersForSelectedDate = useMemo(
@@ -282,11 +306,7 @@ export default function SunnahRawatibLoggingFlow({
     const target = getSlotTargetCount(selectedPrayer);
     const logged = slotLoggedCountsForSelectedDate[selectedPrayer] ?? 0;
     return Math.max(0, target - logged);
-  }, [
-    getSlotTargetCount,
-    selectedPrayer,
-    slotLoggedCountsForSelectedDate,
-  ]);
+  }, [getSlotTargetCount, selectedPrayer, slotLoggedCountsForSelectedDate]);
 
   /**
    * Count step only when user can still choose 1 or 2 (variable dual slots with
@@ -300,7 +320,13 @@ export default function SunnahRawatibLoggingFlow({
   const STEPS: SunnahPrayerStepId[] = useMemo(
     () =>
       requiresPrayerCountStep
-        ? ["date", "select-prayer", "rakahs-quantity", "start-time", "time-spent"]
+        ? [
+            "date",
+            "select-prayer",
+            "rakahs-quantity",
+            "start-time",
+            "time-spent",
+          ]
         : ["date", "select-prayer", "start-time", "time-spent"],
     [requiresPrayerCountStep],
   );
@@ -341,7 +367,7 @@ export default function SunnahRawatibLoggingFlow({
   const dateLabel =
     selectedDate === todayString
       ? t("progressLogging.today")
-      : moment(selectedDate, "YYYY-MM-DD").format("MMM DD");
+      : moment(selectedDate, "YYYY-MM-DD").format("ddd, MMM D");
 
   const shiftDate = (direction: -1 | 1) => {
     const next = moment(selectedDate, "YYYY-MM-DD")
@@ -440,17 +466,13 @@ export default function SunnahRawatibLoggingFlow({
     void (async () => {
       try {
         await logSunnah(payload);
-        await Promise.all([
-          prayerFrame?.refetch(),
-          refetchSelectedDateWeek(),
-        ]);
+        await Promise.all([prayerFrame?.refetch(), refetchSelectedDateWeek()]);
         onLogComplete?.({
           type: "sunnah-rawatib",
           goalId: goalData.id,
           date: selectedDate,
           prayer: selectedPrayer,
-          rakahsQuantity:
-            payload.count === 2 ? "Two" : "One",
+          rakahsQuantity: payload.count === 2 ? "Two" : "One",
           startTime: payload.startTime,
           durationMinutes: payload.durationMinutes,
         } as any);
@@ -514,7 +536,8 @@ export default function SunnahRawatibLoggingFlow({
     }
   }, [prayerPageCount, prayerSelectPage]);
 
-  const renderPrayerSelectStep = () => {
+  const renderPrayerSelectStep = (loggedPrayers: readonly SunnahPrayerId[]) => {
+    const loggedSet = new Set(loggedPrayers);
     const pageOptions = paginatePrayerSelect
       ? availableSunnahOptions.slice(
           prayerSelectPage * PRAYER_PAGE_SIZE,
@@ -554,8 +577,10 @@ export default function SunnahRawatibLoggingFlow({
           {pageOptions.map((id) => {
             const globalIndex = availableSunnahOptions.indexOf(id);
             const isSelected = selectedPrayer === id;
+            const isLogged = loggedSet.has(id);
             const isFullyLogged = isPrayerFullyLogged(id);
-            const showHighlight = isSelected || isFullyLogged;
+            // Tick + green for any logged slot; disable only when target is met.
+            const showHighlight = isSelected || isLogged;
             const isFirst = globalIndex === 0;
             const isLast = globalIndex === availableSunnahOptions.length - 1;
             const Icon = SUNNAH_ICON_COMPONENTS[id];
@@ -604,9 +629,8 @@ export default function SunnahRawatibLoggingFlow({
                   />
                 </View>
 
-                {/* Tick only for fully logged slots; reserve height for layout */}
                 <View style={localStyles.prayerCheckSlot}>
-                  {isFullyLogged ? (
+                  {isLogged ? (
                     <View style={localStyles.prayerCheckBadge}>
                       <GreenTickIcon color={Colors.light.green} size={8} />
                     </View>
@@ -659,7 +683,7 @@ export default function SunnahRawatibLoggingFlow({
           />
         );
       case "select-prayer":
-        return renderPrayerSelectStep();
+        return renderPrayerSelectStep(alreadyLoggedPrayers);
       case "rakahs-quantity":
         return (
           <OptionSelectStep<PrayerCountOption>
@@ -945,7 +969,7 @@ const localStyles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
-    fontSize: 8,
+    fontSize: 10,
     lineHeight: 10,
     textAlign: "center",
     width: "100%",

@@ -186,6 +186,7 @@ export function getSunnahAfterDhuhrPrayersPerDay(
 export function getSunnahBeforeAsrPrayersPerDay(
   slotConfig?: SunnahRawatibSlotConfig | null,
 ): 0 | 1 | 2 {
+  if (slotConfig?.beforeAsrEnabled === false) return 0;
   if (slotConfig?.beforeAsrPrayersPerDay != null) {
     const v = slotConfig.beforeAsrPrayersPerDay;
     if (v <= 0) return 0;
@@ -193,7 +194,6 @@ export function getSunnahBeforeAsrPrayersPerDay(
     return 1;
   }
   // Legacy: enabled flag + rakah option
-  if (slotConfig?.beforeAsrEnabled === false) return 0;
   if (slotConfig?.beforeAsrEnabled || slotConfig?.beforeAsrRakahOption != null) {
     return slotConfig.beforeAsrRakahOption === 2 ? 2 : 1;
   }
