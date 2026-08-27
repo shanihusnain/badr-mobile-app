@@ -750,8 +750,11 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
       : isTimeSpentView
         ? null
         : resolvedBaseAchievement.previousPeriodDeltaPercent;
-  const showDeltaChip = !showPlaceholders && displayedDeltaPct !== null;
-  const deltaIsZero = displayedDeltaPct === 0;
+  const showDeltaChip =
+    !showPlaceholders &&
+    !showNoDataDash &&
+    displayedDeltaPct !== null &&
+    Math.abs(displayedDeltaPct) > 0;
   const deltaIsPositive = (displayedDeltaPct ?? 0) > 0;
   const deltaPeriodLabel = t(
     selectedBarIndex !== null && period === "monthly"
@@ -926,28 +929,16 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
         >
           <View style={styles.deltaSlot}>
             {showDeltaChip ? (
-              deltaIsZero ? (
-                <View style={[styles.deltaBadge, styles.deltaBadgeNeutral]}>
-                  <View style={styles.deltaDot} />
-                  <Text
-                    style={[styles.deltaText, styles.deltaTextNegative]}
-                    numberOfLines={1}
-                  >
-                    {`${formatNumber(0)}% ${deltaPeriodLabel}`}
-                  </Text>
-                </View>
-              ) : (
-                <View style={styles.deltaBadge}>
-                  {deltaIsPositive ? (
-                    <PositiveProgressIcon />
-                  ) : (
-                    <NegativeProgressIcon />
-                  )}
-                  <Text style={styles.deltaText} numberOfLines={1}>
-                    {`${formatNumber(Math.abs(displayedDeltaPct ?? 0))}% ${deltaPeriodLabel}`}
-                  </Text>
-                </View>
-              )
+              <View style={styles.deltaBadge}>
+                {deltaIsPositive ? (
+                  <PositiveProgressIcon />
+                ) : (
+                  <NegativeProgressIcon />
+                )}
+                <Text style={styles.deltaText} numberOfLines={1}>
+                  {`${formatNumber(Math.abs(displayedDeltaPct ?? 0))}% ${deltaPeriodLabel}`}
+                </Text>
+              </View>
             ) : (
               <View style={styles.deltaBadgePlaceholder} />
             )}
@@ -1523,7 +1514,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "stretch",
     flexShrink: 0,
-    marginTop: -10,
+    marginTop: -26,
   },
   periodToggle: {
     flex: 1,
@@ -1625,7 +1616,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   missedPrayerTabTextInactive: {
-    color: Colors.light.grey,
+    color: Colors.light.dullWhite,
   },
   goalHeader: {
     flexDirection: "row",

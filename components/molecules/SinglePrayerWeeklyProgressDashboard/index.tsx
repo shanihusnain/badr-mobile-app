@@ -222,7 +222,12 @@ export function SinglePrayerWeeklyProgressDashboard({
         })}
       </View>
 
-      <View style={styles.statsAndFooterContainer}>
+      <View
+        style={[
+          styles.statsAndFooterContainer,
+          vsLastWeek != null && styles.statsAndFooterContainerLaterWeek,
+        ]}
+      >
         <View style={styles.statsRow}>
           <PrayerMatIcon />
           <Text style={styles.statsText} numberOfLines={1}>
@@ -232,8 +237,8 @@ export function SinglePrayerWeeklyProgressDashboard({
             {loading
               ? ""
               : totalPrayersThisWeek === 1
-                ? " total prayer this week"
-                : " total prayers this week"}
+                ? " prayer this week"
+                : " prayers this week"}
           </Text>
         </View>
 
@@ -303,7 +308,7 @@ const styles = StyleSheet.create({
   },
   bestDayLabel: {
     color: Colors.light.green,
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: "700",
     fontFamily: fonts.primary.bold,
     textAlign: "center",
@@ -313,10 +318,10 @@ const styles = StyleSheet.create({
   },
   dayLabel: {
     color: Colors.light.subtext,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
-    marginTop: 4,
+    marginTop: 3,
     textAlign: "center",
   },
   durationSlot: {
@@ -338,6 +343,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 8,
     flexWrap: "nowrap",
+    paddingLeft: 7,
   },
   statsText: {
     color: Colors.light.white,
@@ -349,11 +355,18 @@ const styles = StyleSheet.create({
   },
   statsCount: {
     color: Colors.light.white,
-    fontWeight: "700",
+    fontWeight: "600",
     fontSize: 20,
     fontFamily: fonts.primary.bold,
+    letterSpacing: 0.1,
   },
+  // Week 1 keeps natural height — do not constrain this.
   statsAndFooterContainer: {
-    gap: 8,
+    gap: 3,
+  },
+  // Weeks 2–4 only: pull stats + footer up so card height matches week 1.
+  statsAndFooterContainerLaterWeek: {
+    marginTop: -19,
+    gap: 2,
   },
 });

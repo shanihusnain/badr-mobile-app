@@ -11,7 +11,7 @@ export type PrayerWeeklyProgressFooterComparisonVariant = "onTime" | "prayers";
 export type PrayerWeeklyProgressFooterProps = {
   loading?: boolean;
   streakDays?: number;
-  /** `null` / omitted on week 1 — no vs-last-week row. */
+  /** `null` / omitted on week 1 — quote sits beside streak. Weeks 2–4 show vs-last-week. */
   vsLastWeek?: number | null;
   motivationalQuote?: string;
   defaultMotivationalQuote?: string;
@@ -31,7 +31,9 @@ export function PrayerWeeklyProgressFooter({
   streakVariant = "default",
 }: PrayerWeeklyProgressFooterProps) {
   const { t } = useTranslation();
-  const showComparison = !loading && vsLastWeek != null;
+  // Week 1: no comparison → streak + quote side by side.
+  // Weeks 2–4: streak + vs last week, quote on its own row below.
+  const isWeekOneLayout = loading || vsLastWeek == null;
   const vsLastWeekMagnitude = Math.abs(vsLastWeek ?? 0);
   const vsLastWeekImproved = (vsLastWeek ?? 0) > 0;
 
@@ -44,104 +46,110 @@ export function PrayerWeeklyProgressFooter({
       ? "homeScreen.weeklyProgress_vsLastWeek"
       : "homeScreen.weeklyProgress_prayersVsLastWeek";
 
-  return (
-    <View style={styles.footerSection}>
-      <View
+  const streakLabel = (
+    <View style={styles.streakBadge}>
+      <LighteningIcon />
+      <Text
         style={[
-          styles.footerRow,
-          showComparison && styles.footerRowWithComparison,
-          !showComparison && styles.footerRowWeekOne,
+          styles.streakText,
+          streakVariant === "green" && styles.streakTextGreen,
         ]}
       >
-        <View style={styles.streakBadge}>
-          <LighteningIcon />
-          <Text
-            style={[
-              styles.streakText,
-              streakVariant === "green" && styles.streakTextGreen,
-            ]}
-          >
-            {loading
-              ? "---"
-              : t("homeScreen.weeklyProgress_dayStreak", { count: streakDays })}
-          </Text>
-        </View>
+        {loading
+          ? "---"
+          : t("homeScreen.weeklyProgress_dayStreak", { count: streakDays })}
+      </Text>
+    </View>
+  );
 
-        {showComparison ? (
-          <View style={styles.comparisonBadge}>
-            {vsLastWeekMagnitude > 0 ? (
-              <Ionicons
-                name={vsLastWeekImproved ? "caret-up" : "caret-down"}
-                size={13}
-                color={
-                  vsLastWeekImproved ? Colors.light.green : Colors.light.grey
-                }
-              />
-            ) : null}
-            <Text style={styles.comparisonText}>
-              <Text style={styles.comparisonCount}>{vsLastWeekMagnitude}</Text>
-              {` ${t(comparisonSuffixKey)}`}
-            </Text>
-          </View>
-        ) : (
-          <View style={[styles.quoteBlock, styles.quoteBlockInline]}>
+  if (isWeekOneLayout) {
+    return (
+      <View style={styles.footerSectionWeekOne}>
+        <View style={styles.footerRowWeekOne}>
+          {streakLabel}
+          <View style={styles.quoteBlockInline}>
             <AimIcon />
-            <View style={[styles.quoteTextWrap, styles.quoteTextWrapInline]}>
-              <Text
-                style={[styles.quoteText, styles.quoteTextInline]}
-                numberOfLines={3}
-              >
+            <View style={styles.quoteTextWrapInline}>
+              <Text style={styles.quoteText} numberOfLines={2}>
                 {resolvedQuote}
               </Text>
             </View>
           </View>
-        )}
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.footerSectionLaterWeeks}>
+      <View style={styles.footerRowLaterWeeks}>
+        {streakLabel}
+        <View style={styles.comparisonBadge}>
+          {vsLastWeekMagnitude > 0 ? (
+            <Ionicons
+              name={vsLastWeekImproved ? "caret-up" : "caret-down"}
+              size={13}
+              color={
+                vsLastWeekImproved ? Colors.light.green : Colors.light.grey
+              }
+            />
+          ) : null}
+          <Text style={styles.comparisonText}>
+            <Text style={styles.comparisonCount}>{vsLastWeekMagnitude}</Text>
+            {` ${t(comparisonSuffixKey)}`}
+          </Text>
+        </View>
       </View>
 
-      {showComparison ? (
-        <View style={styles.quoteBlock}>
-          <AimIcon />
-          <View style={styles.quoteTextWrap}>
-            <Text style={styles.quoteText}>{resolvedQuote}</Text>
-          </View>
+      <View style={styles.quoteBlockFull}>
+        <AimIcon />
+        <View style={styles.quoteTextWrapFull}>
+          <Text style={styles.quoteText} numberOfLines={2}>
+            {resolvedQuote}
+          </Text>
         </View>
-      ) : null}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  footerSection: {
-    minHeight: 54,
-  },
-  footerRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 13,
-    minWidth: 0,
+  footerSectionWeekOne: {
     width: "100%",
-    paddingHorizontal: 4,
   },
-  footerRowWithComparison: {
-    justifyContent: "flex-start",
-    gap: 16,
-    paddingRight: 18,
+  footerSectionLaterWeeks: {
+    width: "100%",
+    gap: 2,
   },
   footerRowWeekOne: {
-    minHeight: 54,
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 12,
+    width: "100%",
+    minWidth: 0,
+    paddingHorizontal: 4,
+  },
+  footerRowLaterWeeks: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    flexWrap: "wrap",
+    gap: 10,
+    width: "100%",
+    minWidth: 0,
+    paddingHorizontal: 4,
   },
   streakBadge: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
     flexShrink: 0,
-    marginLeft: 9,
   },
   streakText: {
     color: Colors.light.white,
     fontSize: 13,
-    fontWeight: "500",
-    fontFamily: fonts.primary.medium,
+    fontWeight: "600",
+    fontFamily: fonts.primary.semiBold,
   },
   streakTextGreen: {
     color: Colors.light.green,
@@ -169,42 +177,38 @@ const styles = StyleSheet.create({
   comparisonCount: {
     color: Colors.light.white,
     fontSize: 13,
-    fontWeight: "600",
-    fontFamily: fonts.primary.semiBold,
+    fontWeight: "700",
+    fontFamily: fonts.primary.bold,
     lineHeight: 16,
     letterSpacing: 0.1,
   },
-  quoteBlock: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 4,
-    alignSelf: "stretch",
-    minWidth: 0,
-    width: "100%",
-    marginTop: 4,
-  },
   quoteBlockInline: {
     flex: 1,
-    width: undefined,
-    minWidth: 0,
-    marginTop: 0,
-  },
-  quoteTextWrap: {
-    flex: 1,
-    flexShrink: 1,
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 6,
     minWidth: 0,
   },
   quoteTextWrapInline: {
-    minHeight: 48,
+    flex: 1,
+    minWidth: 0,
   },
-  quoteTextInline: {
-    minHeight: 48,
-    width: "90%",
+  quoteBlockFull: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 6,
+    width: "100%",
+    minWidth: 0,
+    paddingHorizontal: 4,
+  },
+  quoteTextWrapFull: {
+    flex: 1,
+    minWidth: 0,
   },
   quoteText: {
     color: Colors.light.white,
     fontSize: 13,
-    lineHeight: 16,
+    lineHeight: 14,
     letterSpacing: -0.1,
     fontFamily: fonts.primary.regular,
     fontWeight: "400",

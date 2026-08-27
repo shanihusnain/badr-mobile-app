@@ -13,6 +13,9 @@ type SinglePrayerDayRingProps = {
   showEmptyOutline: boolean;
 };
 
+/** Best day is only slightly larger than a normal day circle. */
+const BEST_DAY_SIZE_BOOST = 4;
+
 export function SinglePrayerDayRing({
   size,
   hasLog,
@@ -22,13 +25,22 @@ export function SinglePrayerDayRing({
   isMenstruation,
   showEmptyOutline,
 }: SinglePrayerDayRingProps) {
+  const showBestDayStar =
+    isBestDay &&
+    hasLog &&
+    !isFuture &&
+    !showEmptyOutline &&
+    !isMenstruation;
+  const circleSize = showBestDayStar ? size + BEST_DAY_SIZE_BOOST : size;
+  const starSize = Math.max(10, Math.round(circleSize * 0.62));
+
   return (
     <View
       style={[
         styles.ringOuter,
         {
-          width: size + 5,
-          height: size + 5,
+          width: size + BEST_DAY_SIZE_BOOST + 5,
+          height: size + BEST_DAY_SIZE_BOOST + 5,
           borderRadius: 8,
         },
       ]}
@@ -37,9 +49,9 @@ export function SinglePrayerDayRing({
         style={[
           styles.ringInner,
           {
-            width: size,
-            height: size,
-            borderRadius: size / 2,
+            width: circleSize,
+            height: circleSize,
+            borderRadius: circleSize / 2,
           },
           isMenstruation
             ? styles.ringInnerMenstruation
@@ -59,9 +71,15 @@ export function SinglePrayerDayRing({
                     : styles.ringInnerEmpty,
         ]}
       >
-        {isBestDay && !isFuture && !showEmptyOutline && !isMenstruation && (
-          <BestdayStarIcon />
-        )}
+        {showBestDayStar ? (
+          <View
+            pointerEvents="none"
+            style={styles.starWrap}
+            collapsable={false}
+          >
+            <BestdayStarIcon Size={starSize} />
+          </View>
+        ) : null}
       </View>
     </View>
   );
@@ -74,6 +92,12 @@ const styles = StyleSheet.create({
     borderColor: "transparent",
   },
   ringInner: {
+    alignItems: "center",
+    justifyContent: "center",
+    // Keep visible so the star isn't clipped when there is no selected border.
+    overflow: "visible",
+  },
+  starWrap: {
     alignItems: "center",
     justifyContent: "center",
   },
