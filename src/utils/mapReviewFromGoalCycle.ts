@@ -586,6 +586,14 @@ function mapQuranGoal(
         ? parsedTarget
         : items.reduce((sum, item) => sum + (item.targetCount ?? 0), 0);
 
+  // Hide unselected recitation/memorization metrics (e.g. "0 juz", "0 completions")
+  // so Review & Confirm only lists goals the user actually configured.
+  const hasConfiguredContent =
+    selectedGoals.length > 0 ||
+    (Number.isFinite(totalValue) && totalValue > 0) ||
+    items.length > 0;
+  if (!hasConfiguredContent) return null;
+
   return {
     id: goal.id ?? index + 1,
     title,

@@ -133,6 +133,5 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.medium,
     textAlign: "center",
     lineHeight: 20,
-    letterSpacing: 0.1,
   },
 });

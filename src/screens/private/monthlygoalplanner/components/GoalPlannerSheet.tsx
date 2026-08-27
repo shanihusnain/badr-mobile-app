@@ -183,10 +183,10 @@ export type Tab =
 
 const TABS: { id: Tab; label: string; chip?: string }[] = [
   { id: "cycle", label: "Select Cycle Start Date" },
-  { id: "prayer", label: "Prayer Goals", chip: "Category 1" },
-  { id: "quran", label: "Quran Goals", chip: "Category 2" },
-  { id: "fasting", label: "Fasting Goals", chip: "Category 3" },
-  { id: "sadaqah", label: "Sadaqah Goals", chip: "Category 4" },
+  { id: "prayer", label: "Prayer Goals", chip: "Step 1" },
+  { id: "quran", label: "Quran Goals", chip: "Step 2" },
+  { id: "fasting", label: "Fasting Goals", chip: "Step 3" },
+  { id: "sadaqah", label: "Sadaqah Goals", chip: "Step 4" },
   { id: "review", label: "Review & Confirm" },
 ];
 
