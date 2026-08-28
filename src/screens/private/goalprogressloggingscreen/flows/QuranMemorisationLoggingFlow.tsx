@@ -7,6 +7,7 @@ import moment from "moment-hijri";
 import { Colors } from "@/constants/theme";
 import { GoalData } from "../../home/components/goalsData";
 import { DateStep } from "../components/DateStep";
+import { formatProgressLoggingDateLabel } from "../progressLoggingConfig";
 import { DurationStep, StartTimeStep } from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
 import { MemorisationAyahCountStep } from "../components/MemorisationAyahCountStep";
@@ -203,10 +204,11 @@ export default function QuranMemorisationLoggingFlow({
   if (hideCollapsedSummary && !embedded && flowMode === "collapsed")
     return null;
 
-  const dateLabel =
-    selectedDate === todayString
-      ? t("progressLogging.today")
-      : moment(selectedDate, "YYYY-MM-DD").format("MMM DD");
+  const dateLabel = formatProgressLoggingDateLabel(
+    selectedDate,
+    todayString,
+    t("progressLogging.today"),
+  );
 
   const shiftDate = (direction: -1 | 1) => {
     const next = moment(selectedDate, "YYYY-MM-DD")

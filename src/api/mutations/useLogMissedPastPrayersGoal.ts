@@ -29,6 +29,7 @@ export const useLogMissedPastPrayersGoal = () => {
     mutationFn: logMissedPastPrayers,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["prayer-goal-frame"] });
+      queryClient.invalidateQueries({ queryKey: ["prayer-goal-day-detail"] });
       queryClient.invalidateQueries({ queryKey: ["prayer-goal-achievements"] });
       queryClient.invalidateQueries({ queryKey: ["all-prayer-goals"] });
       queryClient.invalidateQueries({ queryKey: ["missed-past-prayers-slot"] });

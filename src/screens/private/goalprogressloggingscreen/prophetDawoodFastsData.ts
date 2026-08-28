@@ -219,7 +219,7 @@ export function formatProphetDawoodFastDateLabel(
   const yesterday = addDays(today, -1);
   if (normalized === yesterday) return "Yesterday";
 
-  return moment(normalized, "YYYY-MM-DD").format("ddd MMM D");
+  return moment(normalized, "YYYY-MM-DD").format("ddd, MMM D");
 }
 
 export function formatProphetDawoodFastTimeLabel(

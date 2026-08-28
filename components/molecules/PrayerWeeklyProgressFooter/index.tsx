@@ -39,7 +39,7 @@ export function PrayerWeeklyProgressFooter({
 
   const resolvedQuote = loading
     ? "---"
-    : motivationalQuote || defaultMotivationalQuote;
+    : (motivationalQuote ?? defaultMotivationalQuote);
 
   const comparisonSuffixKey =
     comparisonVariant === "onTime"

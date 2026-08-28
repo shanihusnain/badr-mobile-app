@@ -12,6 +12,7 @@ import moment from "moment-hijri";
 import { Colors } from "@/constants/theme";
 import { GoalData } from "../../home/components/goalsData";
 import { DateStep } from "../components/DateStep";
+import { formatProgressLoggingDateLabel } from "../progressLoggingConfig";
 import { OptionSelectStep } from "../components/OptionSelectStep";
 import { StartTimeStep, DurationStep, getCurrentStartTimeParts, isDurationEntered } from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
@@ -145,10 +146,11 @@ export default function TahiyatAlMasjidLoggingFlow({
   const currentStep = STEPS[stepIndex];
   const isLastStep = stepIndex === STEPS.length - 1;
 
-  const dateLabel =
-    selectedDate === todayString
-      ? t("progressLogging.today")
-      : moment(selectedDate, "YYYY-MM-DD").format("MMM DD");
+  const dateLabel = formatProgressLoggingDateLabel(
+    selectedDate,
+    todayString,
+    t("progressLogging.today"),
+  );
 
   const shiftDate = (direction: -1 | 1) => {
     const next = moment(selectedDate, "YYYY-MM-DD")

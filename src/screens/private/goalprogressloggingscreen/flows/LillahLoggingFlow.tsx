@@ -10,6 +10,7 @@ import { AllahNameIcon } from "@/assets/icons/AllahNameIcon";
 
 import { FlowCard } from "../components/FlowCard";
 import { DateStep } from "../components/DateStep";
+import { formatProgressLoggingDateLabel } from "../progressLoggingConfig";
 import { LillahCategoryStep } from "../components/LillahCategoryStep";
 import { AmountStep } from "../components/AmountStep";
 import { StartTimeStep, DurationStep } from "../components/TimePickerSteps";
@@ -101,10 +102,11 @@ export default function LillahLoggingFlow({ goalData, onLogComplete }: Props) {
   const currentStep = STEPS[stepIndex];
   const isLastStep = stepIndex === STEPS.length - 1;
 
-  const dateLabel =
-    selectedDate === todayString
-      ? t("progressLogging.today")
-      : moment(selectedDate, "YYYY-MM-DD").format("MMM DD");
+  const dateLabel = formatProgressLoggingDateLabel(
+    selectedDate,
+    todayString,
+    t("progressLogging.today"),
+  );
 
   const shiftDate = (direction: -1 | 1) => {
     const next = moment(selectedDate, "YYYY-MM-DD")

@@ -59,7 +59,7 @@ export function SunnahRawatibWeeklyProgressDashboard({
   weekFraction = "1/4",
   totalPrayersThisWeek = 55,
   streakDays = 2,
-  motivationalQuote = "May Allah accept your prayer, elevate your rank, and fill your day with endless blessings!",
+  motivationalQuote = "",
   selectedDayIndex = 6,
   statsIcon = "rug",
   onDayPress,

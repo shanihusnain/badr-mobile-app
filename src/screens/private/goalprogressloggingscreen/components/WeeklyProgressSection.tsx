@@ -122,12 +122,62 @@ import {
   mapPrayerFrameWeekDays,
   mapSunnahFrameWeekDays,
 } from "@/src/utils/prayerGoalFrameMap";
+import type { PrayerGoalFrameData } from "@/src/api/queries/useGetPrayerGoalFrame";
 
 type Props = {
   goalData: GoalData;
   refreshKey?: number;
   onWeekProgressPercentChange?: (percent: number | null) => void;
 };
+
+function isPrayerFrameDashboardLoading(
+  prayerFrame: ReturnType<typeof useOptionalPrayerGoalFrameContext>,
+  frame: unknown,
+) {
+  if (!prayerFrame) return true;
+  if (prayerFrame.isLoading) return true;
+  if (!frame && !prayerFrame.isError) return true;
+
+  const frameData = frame as PrayerGoalFrameData | null | undefined;
+  const requestedWeek = prayerFrame.weekNumber;
+  const displayedWeek = frameData?.cycle?.weekNumber;
+
+  // keepPreviousData keeps the prior week visible until the new week resolves.
+  if (
+    requestedWeek != null &&
+    displayedWeek != null &&
+    requestedWeek !== displayedWeek &&
+    (prayerFrame.isFetching || prayerFrame.isPlaceholderData)
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+function getPrayerFrameActiveWeek(
+  prayerFrame: ReturnType<typeof useOptionalPrayerGoalFrameContext>,
+  frame: PrayerGoalFrameData,
+) {
+  return prayerFrame?.weekNumber ?? frame.cycle.weekNumber;
+}
+
+function shiftPrayerFrameWeek(
+  prayerFrame: ReturnType<typeof useOptionalPrayerGoalFrameContext>,
+  frame: PrayerGoalFrameData,
+  direction: -1 | 1,
+) {
+  if (!prayerFrame) return;
+  const activeWeek = getPrayerFrameActiveWeek(prayerFrame, frame);
+  prayerFrame.setWeekNumber(activeWeek + direction);
+}
+
+/** Weekly dashboard quote — prefers weekSummaryMessage when API sends it. */
+function getPrayerFrameMotivationalQuote(frame: PrayerGoalFrameData) {
+  const summary = frame.week.weekSummaryMessage?.trim();
+  if (summary) return summary;
+  return frame.week.motivationalMessage?.trim() ?? "";
+}
 
 export function WeeklyProgressSection({
   goalData,
@@ -825,25 +875,21 @@ export function WeeklyProgressSection({
     const frame = prayerFrame?.frame;
     if (frame) {
       const totalWeeks = frame.cycle.totalWeeks;
-      const currentWeek = frame.cycle.weekNumber;
-
-      const canPrev = currentWeek > 1;
-      const canNext = currentWeek < totalWeeks;
+      const activeWeek = getPrayerFrameActiveWeek(prayerFrame, frame);
+      const canPrev = activeWeek > 1;
+      const canNext = activeWeek < totalWeeks;
 
       const handlePrevWeek = canPrev
-        ? () => {
-            prayerFrame?.setWeekNumber(currentWeek - 1);
-          }
+        ? () => shiftPrayerFrameWeek(prayerFrame, frame, -1)
         : undefined;
 
       const handleNextWeek = canNext
-        ? () => {
-            prayerFrame?.setWeekNumber(currentWeek + 1);
-          }
+        ? () => shiftPrayerFrameWeek(prayerFrame, frame, 1)
         : undefined;
 
       return (
         <TahiyatUlWudhuWeeklyProgressDashboard
+          key={frame.cycle.weekNumber}
           weekDays={mapPrayerFrameWeekDays(frame)}
           weekRangeLabel={formatPrayerFrameWeekRange(
             frame.cycle.weekStart,
@@ -853,7 +899,8 @@ export function WeeklyProgressSection({
           totalPrayersThisWeek={frame.week.thisWeekTotal}
           streakDays={frame.week.currentStreak}
           vsLastWeek={frame.week.vsLastWeek}
-          motivationalQuote={frame.week.motivationalMessage}
+          motivationalQuote={getPrayerFrameMotivationalQuote(frame)}
+          loading={isPrayerFrameDashboardLoading(prayerFrame, frame)}
           selectedDayIndex={getPrayerFrameTodayIndex(frame)}
           statsIcon="rug"
           onPrevWeek={handlePrevWeek}
@@ -871,7 +918,7 @@ export function WeeklyProgressSection({
         totalPrayersThisWeek={0}
         streakDays={0}
         motivationalQuote="---"
-        loading={prayerFrame?.isLoading || (!frame && !prayerFrame?.isError)}
+        loading={isPrayerFrameDashboardLoading(prayerFrame, frame)}
         statsIcon="rug"
       />
     );
@@ -881,25 +928,21 @@ export function WeeklyProgressSection({
     const frame = prayerFrame?.frame;
     if (frame) {
       const totalWeeks = frame.cycle.totalWeeks;
-      const currentWeek = frame.cycle.weekNumber;
-
-      const canPrev = currentWeek > 1;
-      const canNext = currentWeek < totalWeeks;
+      const activeWeek = getPrayerFrameActiveWeek(prayerFrame, frame);
+      const canPrev = activeWeek > 1;
+      const canNext = activeWeek < totalWeeks;
 
       const handlePrevWeek = canPrev
-        ? () => {
-            prayerFrame?.setWeekNumber(currentWeek - 1);
-          }
+        ? () => shiftPrayerFrameWeek(prayerFrame, frame, -1)
         : undefined;
 
       const handleNextWeek = canNext
-        ? () => {
-            prayerFrame?.setWeekNumber(currentWeek + 1);
-          }
+        ? () => shiftPrayerFrameWeek(prayerFrame, frame, 1)
         : undefined;
 
       return (
         <MissedPrayersWeeklyProgressDashboard
+          key={frame.cycle.weekNumber}
           weekDays={mapPrayerFrameWeekDays(frame)}
           weekRangeLabel={formatPrayerFrameWeekRange(
             frame.cycle.weekStart,
@@ -910,7 +953,8 @@ export function WeeklyProgressSection({
           streakDays={frame.week.currentStreak}
           vsLastWeek={frame.week.vsLastWeek}
           selectedDayIndex={getPrayerFrameTodayIndex(frame)}
-          motivationalQuote={frame.week.motivationalMessage}
+          motivationalQuote={getPrayerFrameMotivationalQuote(frame)}
+          loading={isPrayerFrameDashboardLoading(prayerFrame, frame)}
           onPrevWeek={handlePrevWeek}
           onNextWeek={handleNextWeek}
           isGoalCompleted={(frame.goal.achievementPct ?? 0) >= 100}
@@ -926,24 +970,24 @@ export function WeeklyProgressSection({
         totalPrayersThisWeek={0}
         streakDays={0}
         motivationalQuote="---"
-        loading={prayerFrame?.isLoading || (!frame && !prayerFrame?.isError)}
+        loading={isPrayerFrameDashboardLoading(prayerFrame, frame)}
       />
     );
   }
 
   if (template === "five-daily-prayers") {
     const frame = prayerFrame?.frame;
-    const frameLoading =
-      prayerFrame?.isLoading || (!frame && !prayerFrame?.isError);
+    const frameLoading = isPrayerFrameDashboardLoading(prayerFrame, frame);
 
     if (frame) {
       const totalWeeks = frame.cycle.totalWeeks;
-      const currentWeek = frame.cycle.weekNumber;
-      const canPrev = currentWeek > 1;
-      const canNext = currentWeek < totalWeeks;
+      const activeWeek = getPrayerFrameActiveWeek(prayerFrame, frame);
+      const canPrev = activeWeek > 1;
+      const canNext = activeWeek < totalWeeks;
 
       return (
         <WeeklyProgressDashboard
+          key={frame.cycle.weekNumber}
           weekDays={mapFiveDailyFrameWeekDays(frame)}
           weekRangeLabel={formatPrayerFrameWeekRange(
             frame.cycle.weekStart,
@@ -953,16 +997,17 @@ export function WeeklyProgressSection({
           onTimePrayersCount={frame.week.thisWeekOnTime ?? 0}
           streakDays={frame.week.currentStreak}
           vsLastWeek={frame.week.vsLastWeek}
-          motivationalQuote={frame.week.motivationalMessage}
+          motivationalQuote={getPrayerFrameMotivationalQuote(frame)}
           selectedDayIndex={getPrayerFrameTodayIndex(frame)}
+          loading={isPrayerFrameDashboardLoading(prayerFrame, frame)}
           onPrevWeek={
             canPrev
-              ? () => prayerFrame?.setWeekNumber(currentWeek - 1)
+              ? () => shiftPrayerFrameWeek(prayerFrame, frame, -1)
               : undefined
           }
           onNextWeek={
             canNext
-              ? () => prayerFrame?.setWeekNumber(currentWeek + 1)
+              ? () => shiftPrayerFrameWeek(prayerFrame, frame, 1)
               : undefined
           }
           renderRing={(day: DayProgress, size: number) => (
@@ -1013,25 +1058,21 @@ export function WeeklyProgressSection({
     const frame = prayerFrame?.frame;
     if (frame) {
       const totalWeeks = frame.cycle.totalWeeks;
-      const currentWeek = frame.cycle.weekNumber;
-
-      const canPrev = currentWeek > 1;
-      const canNext = currentWeek < totalWeeks;
+      const activeWeek = getPrayerFrameActiveWeek(prayerFrame, frame);
+      const canPrev = activeWeek > 1;
+      const canNext = activeWeek < totalWeeks;
 
       const handlePrevWeek = canPrev
-        ? () => {
-            prayerFrame?.setWeekNumber(currentWeek - 1);
-          }
+        ? () => shiftPrayerFrameWeek(prayerFrame, frame, -1)
         : undefined;
 
       const handleNextWeek = canNext
-        ? () => {
-            prayerFrame?.setWeekNumber(currentWeek + 1);
-          }
+        ? () => shiftPrayerFrameWeek(prayerFrame, frame, 1)
         : undefined;
 
       return (
         <TahiyatAlMasjidWeeklyProgressDashboard
+          key={frame.cycle.weekNumber}
           weekDays={mapPrayerFrameWeekDays(frame)}
           weekRangeLabel={formatPrayerFrameWeekRange(
             frame.cycle.weekStart,
@@ -1041,7 +1082,8 @@ export function WeeklyProgressSection({
           totalPrayersThisWeek={frame.week.thisWeekTotal}
           streakDays={frame.week.currentStreak}
           vsLastWeek={frame.week.vsLastWeek}
-          motivationalQuote={frame.week.motivationalMessage}
+          motivationalQuote={getPrayerFrameMotivationalQuote(frame)}
+          loading={isPrayerFrameDashboardLoading(prayerFrame, frame)}
           selectedDayIndex={getPrayerFrameTodayIndex(frame)}
           statsIcon="mosque"
           onPrevWeek={handlePrevWeek}
@@ -1059,7 +1101,7 @@ export function WeeklyProgressSection({
         totalPrayersThisWeek={0}
         streakDays={0}
         motivationalQuote="---"
-        loading={prayerFrame?.isLoading || (!frame && !prayerFrame?.isError)}
+        loading={isPrayerFrameDashboardLoading(prayerFrame, frame)}
         statsIcon="mosque"
       />
     );
@@ -1069,25 +1111,21 @@ export function WeeklyProgressSection({
     const frame = prayerFrame?.frame;
     if (frame) {
       const totalWeeks = frame.cycle.totalWeeks;
-      const currentWeek = frame.cycle.weekNumber;
-
-      const canPrev = currentWeek > 1;
-      const canNext = currentWeek < totalWeeks;
+      const activeWeek = getPrayerFrameActiveWeek(prayerFrame, frame);
+      const canPrev = activeWeek > 1;
+      const canNext = activeWeek < totalWeeks;
 
       const handlePrevWeek = canPrev
-        ? () => {
-            prayerFrame?.setWeekNumber(currentWeek - 1);
-          }
+        ? () => shiftPrayerFrameWeek(prayerFrame, frame, -1)
         : undefined;
 
       const handleNextWeek = canNext
-        ? () => {
-            prayerFrame?.setWeekNumber(currentWeek + 1);
-          }
+        ? () => shiftPrayerFrameWeek(prayerFrame, frame, 1)
         : undefined;
 
       return (
         <DuhaPrayerWeeklyProgressDashboard
+          key={frame.cycle.weekNumber}
           weekDays={mapPrayerFrameWeekDays(frame)}
           weekRangeLabel={formatPrayerFrameWeekRange(
             frame.cycle.weekStart,
@@ -1097,7 +1135,8 @@ export function WeeklyProgressSection({
           totalPrayersThisWeek={frame.week.thisWeekTotal}
           streakDays={frame.week.currentStreak}
           vsLastWeek={frame.week.vsLastWeek}
-          motivationalQuote={frame.week.motivationalMessage}
+          motivationalQuote={getPrayerFrameMotivationalQuote(frame)}
+          loading={isPrayerFrameDashboardLoading(prayerFrame, frame)}
           selectedDayIndex={getPrayerFrameTodayIndex(frame)}
           isGoalCompleted={(frame.goal.achievementPct ?? 0) >= 100}
           statsIcon="weather-partly-cloudy"
@@ -1115,7 +1154,7 @@ export function WeeklyProgressSection({
         totalPrayersThisWeek={0}
         streakDays={0}
         motivationalQuote="---"
-        loading={prayerFrame?.isLoading || (!frame && !prayerFrame?.isError)}
+        loading={isPrayerFrameDashboardLoading(prayerFrame, frame)}
         statsIcon="weather-partly-cloudy"
       />
     );
@@ -1125,25 +1164,21 @@ export function WeeklyProgressSection({
     const frame = prayerFrame?.frame;
     if (frame) {
       const totalWeeks = frame.cycle.totalWeeks;
-      const currentWeek = frame.cycle.weekNumber;
-
-      const canPrev = currentWeek > 1;
-      const canNext = currentWeek < totalWeeks;
+      const activeWeek = getPrayerFrameActiveWeek(prayerFrame, frame);
+      const canPrev = activeWeek > 1;
+      const canNext = activeWeek < totalWeeks;
 
       const handlePrevWeek = canPrev
-        ? () => {
-            prayerFrame?.setWeekNumber(currentWeek - 1);
-          }
+        ? () => shiftPrayerFrameWeek(prayerFrame, frame, -1)
         : undefined;
 
       const handleNextWeek = canNext
-        ? () => {
-            prayerFrame?.setWeekNumber(currentWeek + 1);
-          }
+        ? () => shiftPrayerFrameWeek(prayerFrame, frame, 1)
         : undefined;
 
       return (
         <TawbahPrayerWeeklyProgressDashboard
+          key={frame.cycle.weekNumber}
           weekDays={mapPrayerFrameWeekDays(frame)}
           weekRangeLabel={formatPrayerFrameWeekRange(
             frame.cycle.weekStart,
@@ -1153,7 +1188,8 @@ export function WeeklyProgressSection({
           totalPrayersThisWeek={frame.week.thisWeekTotal}
           streakDays={frame.week.currentStreak}
           vsLastWeek={frame.week.vsLastWeek}
-          motivationalQuote={frame.week.motivationalMessage}
+          motivationalQuote={getPrayerFrameMotivationalQuote(frame)}
+          loading={isPrayerFrameDashboardLoading(prayerFrame, frame)}
           selectedDayIndex={getPrayerFrameTodayIndex(frame)}
           isGoalCompleted={(frame.goal.achievementPct ?? 0) >= 100}
           statsIcon="hand-heart"
@@ -1171,7 +1207,7 @@ export function WeeklyProgressSection({
         totalPrayersThisWeek={0}
         streakDays={0}
         motivationalQuote="---"
-        loading={prayerFrame?.isLoading || (!frame && !prayerFrame?.isError)}
+        loading={isPrayerFrameDashboardLoading(prayerFrame, frame)}
         statsIcon="hand-heart"
       />
     );
@@ -1181,25 +1217,21 @@ export function WeeklyProgressSection({
     const frame = prayerFrame?.frame;
     if (frame) {
       const totalWeeks = frame.cycle.totalWeeks;
-      const currentWeek = frame.cycle.weekNumber;
-
-      const canPrev = currentWeek > 1;
-      const canNext = currentWeek < totalWeeks;
+      const activeWeek = getPrayerFrameActiveWeek(prayerFrame, frame);
+      const canPrev = activeWeek > 1;
+      const canNext = activeWeek < totalWeeks;
 
       const handlePrevWeek = canPrev
-        ? () => {
-            prayerFrame?.setWeekNumber(currentWeek - 1);
-          }
+        ? () => shiftPrayerFrameWeek(prayerFrame, frame, -1)
         : undefined;
 
       const handleNextWeek = canNext
-        ? () => {
-            prayerFrame?.setWeekNumber(currentWeek + 1);
-          }
+        ? () => shiftPrayerFrameWeek(prayerFrame, frame, 1)
         : undefined;
 
       return (
         <IstikharaPrayerWeeklyProgressDashboard
+          key={frame.cycle.weekNumber}
           weekDays={mapPrayerFrameWeekDays(frame)}
           weekRangeLabel={formatPrayerFrameWeekRange(
             frame.cycle.weekStart,
@@ -1209,7 +1241,8 @@ export function WeeklyProgressSection({
           totalPrayersThisWeek={frame.week.thisWeekTotal}
           streakDays={frame.week.currentStreak}
           vsLastWeek={frame.week.vsLastWeek}
-          motivationalQuote={frame.week.motivationalMessage}
+          motivationalQuote={getPrayerFrameMotivationalQuote(frame)}
+          loading={isPrayerFrameDashboardLoading(prayerFrame, frame)}
           selectedDayIndex={getPrayerFrameTodayIndex(frame)}
           isGoalCompleted={(frame.goal.achievementPct ?? 0) >= 100}
           statsIcon="star-crescent"
@@ -1227,7 +1260,7 @@ export function WeeklyProgressSection({
         totalPrayersThisWeek={0}
         streakDays={0}
         motivationalQuote="---"
-        loading={prayerFrame?.isLoading || (!frame && !prayerFrame?.isError)}
+        loading={isPrayerFrameDashboardLoading(prayerFrame, frame)}
         statsIcon="star-crescent"
       />
     );
@@ -1237,25 +1270,21 @@ export function WeeklyProgressSection({
     const frame = prayerFrame?.frame;
     if (frame) {
       const totalWeeks = frame.cycle.totalWeeks;
-      const currentWeek = frame.cycle.weekNumber;
-
-      const canPrev = currentWeek > 1;
-      const canNext = currentWeek < totalWeeks;
+      const activeWeek = getPrayerFrameActiveWeek(prayerFrame, frame);
+      const canPrev = activeWeek > 1;
+      const canNext = activeWeek < totalWeeks;
 
       const handlePrevWeek = canPrev
-        ? () => {
-            prayerFrame?.setWeekNumber(currentWeek - 1);
-          }
+        ? () => shiftPrayerFrameWeek(prayerFrame, frame, -1)
         : undefined;
 
       const handleNextWeek = canNext
-        ? () => {
-            prayerFrame?.setWeekNumber(currentWeek + 1);
-          }
+        ? () => shiftPrayerFrameWeek(prayerFrame, frame, 1)
         : undefined;
 
       return (
         <ShukrPrayerWeeklyProgressDashboard
+          key={frame.cycle.weekNumber}
           weekDays={mapPrayerFrameWeekDays(frame)}
           weekRangeLabel={formatPrayerFrameWeekRange(
             frame.cycle.weekStart,
@@ -1265,7 +1294,8 @@ export function WeeklyProgressSection({
           totalPrayersThisWeek={frame.week.thisWeekTotal}
           streakDays={frame.week.currentStreak}
           vsLastWeek={frame.week.vsLastWeek}
-          motivationalQuote={frame.week.motivationalMessage}
+          motivationalQuote={getPrayerFrameMotivationalQuote(frame)}
+          loading={isPrayerFrameDashboardLoading(prayerFrame, frame)}
           selectedDayIndex={getPrayerFrameTodayIndex(frame)}
           isGoalCompleted={(frame.goal.achievementPct ?? 0) >= 100}
           statsIcon="heart"
@@ -1283,7 +1313,7 @@ export function WeeklyProgressSection({
         totalPrayersThisWeek={0}
         streakDays={0}
         motivationalQuote="---"
-        loading={prayerFrame?.isLoading || (!frame && !prayerFrame?.isError)}
+        loading={isPrayerFrameDashboardLoading(prayerFrame, frame)}
         statsIcon="heart"
       />
     );
@@ -1350,17 +1380,17 @@ export function WeeklyProgressSection({
 
   if (template === "sunnah-rawatib") {
     const frame = prayerFrame?.frame;
-    const frameLoading =
-      prayerFrame?.isLoading || (!frame && !prayerFrame?.isError);
+    const frameLoading = isPrayerFrameDashboardLoading(prayerFrame, frame);
 
     if (frame) {
       const totalWeeks = frame.cycle.totalWeeks;
-      const currentWeek = frame.cycle.weekNumber;
-      const canPrev = currentWeek > 1;
-      const canNext = currentWeek < totalWeeks;
+      const activeWeek = getPrayerFrameActiveWeek(prayerFrame, frame);
+      const canPrev = activeWeek > 1;
+      const canNext = activeWeek < totalWeeks;
 
       return (
         <SunnahRawatibWeeklyProgressDashboard
+          key={frame.cycle.weekNumber}
           weekDays={mapSunnahFrameWeekDays(frame)}
           weekRangeLabel={formatPrayerFrameWeekRange(
             frame.cycle.weekStart,
@@ -1369,16 +1399,17 @@ export function WeeklyProgressSection({
           weekFraction={getPrayerFrameWeekFraction(frame)}
           totalPrayersThisWeek={frame.week.thisWeekTotal ?? 0}
           streakDays={frame.week.currentStreak}
-          motivationalQuote={frame.week.motivationalMessage}
+          motivationalQuote={getPrayerFrameMotivationalQuote(frame)}
           selectedDayIndex={getPrayerFrameTodayIndex(frame)}
+          loading={frameLoading}
           onPrevWeek={
             canPrev
-              ? () => prayerFrame?.setWeekNumber(currentWeek - 1)
+              ? () => shiftPrayerFrameWeek(prayerFrame, frame, -1)
               : undefined
           }
           onNextWeek={
             canNext
-              ? () => prayerFrame?.setWeekNumber(currentWeek + 1)
+              ? () => shiftPrayerFrameWeek(prayerFrame, frame, 1)
               : undefined
           }
         />

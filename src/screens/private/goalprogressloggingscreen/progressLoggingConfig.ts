@@ -1,3 +1,4 @@
+import moment from "moment-hijri";
 import { GoalId } from "../home/components/goalsData";
 
 export type LogStepId = "date" | "prayerSelect" | "timing" | "congregation" | "startTime" | "duration";
@@ -100,3 +101,13 @@ export const PRAYER_OPTIONS: PrayerName[] = [
   "maghrib",
   "isha",
 ];
+
+/** Date step label: "Today" or past dates like "Sun, Aug 27". */
+export function formatProgressLoggingDateLabel(
+  selectedDate: string,
+  todayString: string,
+  todayLabel: string,
+): string {
+  if (selectedDate === todayString) return todayLabel;
+  return moment(selectedDate, "YYYY-MM-DD").format("ddd, MMM D");
+}

@@ -18,6 +18,7 @@ import {
   PrayerName,
   PRAYER_OPTIONS,
   TimingOption,
+  formatProgressLoggingDateLabel,
 } from "../progressLoggingConfig";
 import { DateStep } from "../components/DateStep";
 import { PrayerSelectStep } from "../components/PrayerSelectStep";
@@ -37,6 +38,11 @@ import { fonts } from "@/assets/fonts";
 import type { ProgressLogEntry } from "../types";
 import { useOptionalPrayerGoalFrameContext } from "../prayerGoalFrameContext";
 import { useGetPrayerGoalFrame } from "@/src/api/queries/useGetPrayerGoalFrame";
+import {
+  isFiveDailyDayDetail,
+  isPrayerGoalDayDetailForDate,
+  useGetPrayerGoalDayDetail,
+} from "@/src/api/queries/useGetPrayerGoalDayDetail";
 import { resolvePrayerTypeFromGoalId } from "@/src/utils/prayerGoalMap";
 import {
   getPrayerFrameAchievementLabel,
@@ -162,6 +168,56 @@ export default function FiveDailyPrayersLoggingFlow({
       enabled: selectedDateWeekNumber != null,
     });
 
+  const {
+    data: dayDetailRaw,
+    isLoading: dayDetailLoading,
+    isFetching: dayDetailFetching,
+    refetch: refetchDayDetail,
+  } = useGetPrayerGoalDayDetail(prayerType, selectedDate, {
+    enabled: flowMode === "active" && !!selectedDate,
+  });
+
+  const dayDetail =
+    isFiveDailyDayDetail(dayDetailRaw) &&
+    isPrayerGoalDayDetailForDate(dayDetailRaw, selectedDate)
+      ? dayDetailRaw
+      : null;
+
+  const loggedPrayersForSelectedDate = useMemo((): PrayerName[] => {
+    if (!dayDetail?.slots) return [];
+    return PRAYER_OPTIONS.filter(
+      (prayer) => dayDetail.slots?.[PRAYER_TO_SLOT[prayer]]?.logged === true,
+    );
+  }, [dayDetail]);
+
+  const lockedPrayersForSelectedDate = useMemo((): PrayerName[] => {
+    if (!dayDetail?.slots) return [];
+    return PRAYER_OPTIONS.filter((prayer) => {
+      const slot = dayDetail.slots?.[PRAYER_TO_SLOT[prayer]];
+      if (!slot || slot.logged) return false;
+      // Only backend `canLog: false` locks a slot (e.g. before today's window opens).
+      // After the window passes, unlogged slots stay selectable so the user can
+      // still log a forgotten on-time prayer as on-time vs qadha.
+      return slot.canLog === false;
+    });
+  }, [dayDetail]);
+
+  const selectablePrayers = useMemo(
+    () =>
+      PRAYER_OPTIONS.filter(
+        (prayer) =>
+          !loggedPrayersForSelectedDate.includes(prayer) &&
+          !lockedPrayersForSelectedDate.includes(prayer),
+      ),
+    [loggedPrayersForSelectedDate, lockedPrayersForSelectedDate],
+  );
+
+  const hasSelectablePrayer = selectablePrayers.length > 0;
+
+  const dayDetailLoadingState =
+    flowMode === "active" &&
+    (dayDetailLoading || dayDetailFetching || dayDetail == null);
+
   const isCongregationalTracked = Boolean(
     frame?.isCongregationalTracked ?? frame?.goal?.isCongregationalTracked,
   );
@@ -217,21 +273,6 @@ export default function FiveDailyPrayersLoggingFlow({
     // Intentionally only depend on cycle bounds
   }, [cycleStart, maxSelectableDate]);
 
-  const loggedPrayersForSelectedDate = useMemo((): PrayerName[] => {
-    const day = selectedDateWeekFrame?.week.days.find(
-      (d) => d.date === selectedDate || d.date.startsWith(`${selectedDate}`),
-    );
-    if (!day?.slots) return [];
-    return PRAYER_OPTIONS.filter(
-      (prayer) => day.slots?.[PRAYER_TO_SLOT[prayer]]?.logged === true,
-    );
-  }, [selectedDateWeekFrame, selectedDate]);
-
-  const hasSelectablePrayer =
-    loggedPrayersForSelectedDate.length < PRAYER_OPTIONS.length;
-
-  // No automatic pre-selection: user must pick a prayer explicitly.
-
   // Keep step index valid when congregation is inserted/removed from the flow.
   useEffect(() => {
     setStepIndex((index) => Math.min(index, Math.max(0, steps.length - 1)));
@@ -240,10 +281,11 @@ export default function FiveDailyPrayersLoggingFlow({
   const currentStep = steps[stepIndex] ?? steps[0];
   const isLastStep = stepIndex === steps.length - 1;
 
-  const dateLabel =
-    selectedDate === todayString
-      ? t("progressLogging.today")
-      : moment(selectedDate, "YYYY-MM-DD").format("MMM DD");
+  const dateLabel = formatProgressLoggingDateLabel(
+    selectedDate,
+    todayString,
+    t("progressLogging.today"),
+  );
 
   const shiftDate = (direction: -1 | 1) => {
     const next = moment(selectedDate, "YYYY-MM-DD")
@@ -309,7 +351,11 @@ export default function FiveDailyPrayersLoggingFlow({
 
       try {
         await logFiveDailyPrayers(payload);
-        await Promise.all([prayerFrame?.refetch(), refetchSelectedDateWeek()]);
+        await Promise.all([
+          prayerFrame?.refetch(),
+          refetchSelectedDateWeek(),
+          refetchDayDetail(),
+        ]);
 
         onLogComplete?.({
           type: "five-daily-prayers",
@@ -340,13 +386,11 @@ export default function FiveDailyPrayersLoggingFlow({
 
   const handleForward = () => {
     if (currentStep === "prayerSelect") {
+      if (dayDetailLoadingState) return;
       if (!hasSelectablePrayer) return;
       if (!selectedPrayer) return;
-      if (
-        selectedPrayer &&
-        loggedPrayersForSelectedDate.includes(selectedPrayer)
-      )
-        return;
+      if (loggedPrayersForSelectedDate.includes(selectedPrayer)) return;
+      if (lockedPrayersForSelectedDate.includes(selectedPrayer)) return;
     }
     if (!isLastStep) setStepIndex((index) => index + 1);
   };
@@ -434,6 +478,7 @@ export default function FiveDailyPrayersLoggingFlow({
             onSelectPrayer={setSelectedPrayer}
             categoryColor={Colors.light.green}
             loggedPrayers={loggedPrayersForSelectedDate}
+            lockedPrayers={lockedPrayersForSelectedDate}
             showJumuahForDhuhr={showJumuahForDhuhr}
             t={t}
             styles={commonStyles}
@@ -628,10 +673,12 @@ export default function FiveDailyPrayersLoggingFlow({
                   !isLastStep &&
                   !(
                     currentStep === "prayerSelect" &&
-                    (!hasSelectablePrayer ||
+                    (dayDetailLoadingState ||
+                      !hasSelectablePrayer ||
                       !selectedPrayer ||
                       (selectedPrayer
-                        ? loggedPrayersForSelectedDate.includes(selectedPrayer)
+                        ? loggedPrayersForSelectedDate.includes(selectedPrayer) ||
+                          lockedPrayersForSelectedDate.includes(selectedPrayer)
                         : false))
                   )
                 }

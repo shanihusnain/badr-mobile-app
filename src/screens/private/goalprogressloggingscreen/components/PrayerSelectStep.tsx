@@ -35,6 +35,8 @@ interface PrayerSelectStepProps {
    * When omitted, legacy behavior: tick appears on the selected prayer.
    */
   loggedPrayers?: readonly PrayerName[];
+  /** Not loggable for this date (e.g. today's window not open / already passed). Dimmed, no tick. */
+  lockedPrayers?: readonly PrayerName[];
   /** Friday + congregational tracking: show Jumu'ah label/icon in place of Dhuhr. */
   showJumuahForDhuhr?: boolean;
 }
@@ -43,6 +45,7 @@ interface PrayerItemProps {
   prayer: PrayerName;
   isSelected: boolean;
   isLogged: boolean;
+  isLocked: boolean;
   onSelectPrayer: (prayer: PrayerName) => void;
   categoryColor: string;
   t: (key: string) => string;
@@ -56,6 +59,7 @@ const PrayerItem = React.memo(
     prayer,
     isSelected,
     isLogged,
+    isLocked,
     onSelectPrayer,
     categoryColor,
     t,
@@ -64,10 +68,11 @@ const PrayerItem = React.memo(
     showJumuahForDhuhr,
   }: PrayerItemProps) => {
     const handlePress = React.useCallback(() => {
-      if (isLogged) return;
+      if (isLogged || isLocked) return;
       onSelectPrayer(prayer);
-    }, [isLogged, onSelectPrayer, prayer]);
+    }, [isLocked, isLogged, onSelectPrayer, prayer]);
 
+    const isDisabled = isLogged || isLocked;
     const showHighlight = isSelected || isLogged;
     const iconColor = showHighlight ? categoryColor : Colors.light.white;
     const showTick = tickOnlyWhenLogged ? isLogged : isSelected;
@@ -81,14 +86,14 @@ const PrayerItem = React.memo(
       <TouchableOpacity
         style={styles.prayerColumn}
         onPress={handlePress}
-        activeOpacity={isLogged ? 1 : 0.8}
-        disabled={isLogged}
+        activeOpacity={isDisabled ? 1 : 0.8}
+        disabled={isDisabled}
       >
         <Text
           style={[
             styles.prayerLabel,
             {
-              opacity: showHighlight ? 1 : 0.8,
+              opacity: showHighlight ? 1 : isLocked ? 0.35 : 0.8,
             },
           ]}
         >
@@ -100,6 +105,7 @@ const PrayerItem = React.memo(
             showHighlight
               ? styles.prayerIconBoxSelected
               : styles.prayerIconBoxIdle,
+            isLocked && !isLogged && { opacity: 0.35 },
             {
               borderTopLeftRadius: prayer === "fajr" ? 4 : 0,
               borderBottomLeftRadius: prayer === "fajr" ? 4 : 0,
@@ -127,12 +133,17 @@ export const PrayerSelectStep: React.FC<PrayerSelectStepProps> = ({
   t,
   styles,
   loggedPrayers,
+  lockedPrayers,
   showJumuahForDhuhr = false,
 }) => {
   const tickOnlyWhenLogged = loggedPrayers !== undefined;
   const loggedSet = React.useMemo(
     () => new Set<PrayerName>(loggedPrayers ?? []),
     [loggedPrayers],
+  );
+  const lockedSet = React.useMemo(
+    () => new Set<PrayerName>(lockedPrayers ?? []),
+    [lockedPrayers],
   );
 
   return (
@@ -143,6 +154,7 @@ export const PrayerSelectStep: React.FC<PrayerSelectStepProps> = ({
           prayer={prayer}
           isSelected={selectedPrayer === prayer}
           isLogged={loggedSet.has(prayer)}
+          isLocked={lockedSet.has(prayer)}
           onSelectPrayer={onSelectPrayer}
           categoryColor={categoryColor}
           t={t}

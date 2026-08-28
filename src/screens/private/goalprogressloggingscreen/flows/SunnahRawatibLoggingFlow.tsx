@@ -26,6 +26,7 @@ import {
 import { SunnahRawatibDetailedIbadhasIcon } from "@/assets/icons/SunnahRawatibDetailedIbadhasIcon";
 import { GoalData } from "../../home/components/goalsData";
 import { DateStep } from "../components/DateStep";
+import { formatProgressLoggingDateLabel } from "../progressLoggingConfig";
 import {
   StartTimeStep,
   DurationStep,
@@ -364,10 +365,11 @@ export default function SunnahRawatibLoggingFlow({
     });
   }, [availableSunnahOptions, isPrayerFullyLogged, selectedDate]);
 
-  const dateLabel =
-    selectedDate === todayString
-      ? t("progressLogging.today")
-      : moment(selectedDate, "YYYY-MM-DD").format("ddd, MMM D");
+  const dateLabel = formatProgressLoggingDateLabel(
+    selectedDate,
+    todayString,
+    t("progressLogging.today"),
+  );
 
   const shiftDate = (direction: -1 | 1) => {
     const next = moment(selectedDate, "YYYY-MM-DD")

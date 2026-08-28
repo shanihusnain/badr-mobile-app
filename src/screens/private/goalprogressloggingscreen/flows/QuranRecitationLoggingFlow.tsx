@@ -8,6 +8,7 @@ import { Colors } from "@/constants/theme";
 import { GoalData } from "../../home/components/goalsData";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import { DateStep } from "../components/DateStep";
+import { formatProgressLoggingDateLabel } from "../progressLoggingConfig";
 import { DurationStep, StartTimeStep } from "../components/TimePickerSteps";
 import { RecitationCountStep } from "../components/RecitationCountStep";
 import { FlowCard } from "../components/FlowCard";
@@ -187,10 +188,11 @@ export default function QuranRecitationLoggingFlow({
   if (hideCollapsedSummary && !embedded && flowMode === "collapsed")
     return null;
 
-  const dateLabel =
-    selectedDate === todayString
-      ? t("progressLogging.today")
-      : moment(selectedDate, "YYYY-MM-DD").format("MMM DD");
+  const dateLabel = formatProgressLoggingDateLabel(
+    selectedDate,
+    todayString,
+    t("progressLogging.today"),
+  );
 
   const frequencyLabelKey =
     config.frequency === "daily"

@@ -147,7 +147,7 @@ export const WeeklyProgressDashboard: React.FC<
   onTimePrayersCount = 30,
   streakDays = 5,
   vsLastWeek = null,
-  motivationalQuote = "Prayer brings blessings to\nyour day—answer its call\nwith devotion.",
+  motivationalQuote = "",
   selectedDayIndex,
   onDayPress,
   onPrevWeek,

@@ -272,7 +272,7 @@ export function formatWhiteDaysFastDateLabel(
     return "Yesterday";
   }
 
-  return moment(normalized, "YYYY-MM-DD").format("ddd MMM D");
+  return moment(normalized, "YYYY-MM-DD").format("ddd, MMM D");
 }
 
 export function formatWhiteDaysFastTimeLabel(

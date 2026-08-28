@@ -20,7 +20,6 @@ export function ShukrPrayerWeeklyProgressDashboard({
   return (
     <SinglePrayerWeeklyProgressDashboard
       {...props}
-      defaultMotivationalQuote="Masha'Allah, may Allah always fill your heart with His love and light!"
     />
   );
 }

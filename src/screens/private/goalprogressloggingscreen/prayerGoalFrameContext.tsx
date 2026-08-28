@@ -15,6 +15,10 @@ import type { GoalId } from "../home/components/goalsData";
 type PrayerGoalFrameContextValue = {
   frame: PrayerGoalFrameData | null | undefined;
   isLoading: boolean;
+  /** True while refetching another week (placeholder data may still be visible). */
+  isFetching: boolean;
+  /** True when displayed frame data is placeholder from the previous week query. */
+  isPlaceholderData: boolean;
   isError: boolean;
   refetch: () => void;
   weekNumber: number | null;
@@ -46,13 +50,11 @@ export function PrayerGoalFrameProvider({
     setHasUserSelectedWeek(false);
   }, [goalId]);
 
-  const { data, isLoading, isError, refetch } = useGetPrayerGoalFrame(
-    prayerType,
-    {
+  const { data, isLoading, isFetching, isPlaceholderData, isError, refetch } =
+    useGetPrayerGoalFrame(prayerType, {
       enabled: !!prayerType,
       weekNumber: hasUserSelectedWeek ? (weekNumber ?? undefined) : undefined,
-    },
-  );
+    });
 
   useEffect(() => {
     if (refreshKey > 0) {
@@ -75,6 +77,8 @@ export function PrayerGoalFrameProvider({
     () => ({
       frame: data,
       isLoading,
+      isFetching,
+      isPlaceholderData,
       isError,
       refetch,
       weekNumber,
@@ -84,6 +88,8 @@ export function PrayerGoalFrameProvider({
     [
       data,
       isLoading,
+      isFetching,
+      isPlaceholderData,
       isError,
       refetch,
       weekNumber,

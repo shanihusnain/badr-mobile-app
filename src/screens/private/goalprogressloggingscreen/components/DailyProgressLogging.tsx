@@ -14,6 +14,7 @@ import {
   PRAYER_OPTIONS,
   TimingOption,
   CongregationOption,
+  formatProgressLoggingDateLabel,
 } from "../progressLoggingConfig";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import { DateStep } from "./DateStep";
@@ -98,10 +99,11 @@ export default function DailyProgressLogging({
   const currentStep = steps[stepIndex];
   const isLastStep = stepIndex === steps.length - 1;
 
-  const dateLabel =
-    selectedDate === todayString
-      ? t("progressLogging.today")
-      : moment(selectedDate, "YYYY-MM-DD").format("MMM DD");
+  const dateLabel = formatProgressLoggingDateLabel(
+    selectedDate,
+    todayString,
+    t("progressLogging.today"),
+  );
 
   const shiftDate = (direction: -1 | 1) => {
     const next = moment(selectedDate, "YYYY-MM-DD")

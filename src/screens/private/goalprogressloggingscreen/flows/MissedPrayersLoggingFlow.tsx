@@ -25,13 +25,17 @@ import {
 } from "../components/DailyProgressLogging.styles";
 import { fonts } from "@/assets/fonts";
 import type { ProgressLogEntry } from "../types";
-import { PrayerName, PRAYER_OPTIONS } from "../progressLoggingConfig";
+import { PrayerName, PRAYER_OPTIONS, formatProgressLoggingDateLabel } from "../progressLoggingConfig";
 import { useOptionalPrayerGoalFrameContext } from "../prayerGoalFrameContext";
 import { useLogMissedPastPrayersGoal } from "@/src/api/mutations/useLogMissedPastPrayersGoal";
 import type { MissedPastPrayerSlotKey } from "@/src/api/queries/useGetMissedPastPrayersSlot";
 import {
+  isMissedPastPrayerDayDetail,
+  isPrayerGoalDayDetailForDate,
+  useGetPrayerGoalDayDetail,
+} from "@/src/api/queries/useGetPrayerGoalDayDetail";
+import {
   useGetPrayerGoalFrame,
-  type FiveDailyPrayerSlot,
   type FiveDailyPrayerSlotKey,
 } from "@/src/api/queries/useGetPrayerGoalFrame";
 import { resolvePrayerTypeFromGoalId } from "@/src/utils/prayerGoalMap";
@@ -80,13 +84,6 @@ const EMPTY_SLOT_COUNTS: Record<PrayerName, number> = {
 };
 
 const toDateString = (date: Date) => moment(date).format("YYYY-MM-DD");
-
-const getSlotLoggedCount = (slot: FiveDailyPrayerSlot | undefined): number => {
-  if (!slot) return 0;
-  if (typeof slot.count === "number") return Math.max(0, slot.count);
-  if (typeof slot.completed === "number") return Math.max(0, slot.completed);
-  return slot.logged ? 1 : 0;
-};
 
 export default function MissedPrayersLoggingFlow({
   goalData,
@@ -166,13 +163,26 @@ export default function MissedPrayersLoggingFlow({
 
   const {
     data: selectedDateWeekFrame,
-    isLoading: selectedDateWeekLoading,
-    isFetching: selectedDateWeekFetching,
     refetch: refetchSelectedDateWeek,
   } = useGetPrayerGoalFrame(prayerType, {
     weekNumber: selectedDateWeekNumber,
     enabled: selectedDateWeekNumber != null,
   });
+
+  const {
+    data: dayDetailRaw,
+    isLoading: dayDetailLoading,
+    isFetching: dayDetailFetching,
+    refetch: refetchDayDetail,
+  } = useGetPrayerGoalDayDetail(prayerType, selectedDate, {
+    enabled: flowMode === "active" && !!selectedDate,
+  });
+
+  const dayDetail =
+    isMissedPastPrayerDayDetail(dayDetailRaw) &&
+    isPrayerGoalDayDetailForDate(dayDetailRaw, selectedDate)
+      ? dayDetailRaw
+      : null;
 
   const slotSourceFrame = selectedDateWeekFrame ?? frame;
 
@@ -205,27 +215,33 @@ export default function MissedPrayersLoggingFlow({
     }
   }, [cycleStart, maxSelectableDate, selectedDate]);
 
-  const selectedDay = useMemo(() => {
-    return selectedDateWeekFrame?.week.days.find(
-      (d) => d.date === selectedDate || d.date.startsWith(`${selectedDate}`),
-    );
-  }, [selectedDateWeekFrame, selectedDate]);
-
   const loggedCountsForSelectedDate = useMemo((): Record<
     PrayerName,
     number
   > => {
-    if (!selectedDay?.slots) return { ...EMPTY_SLOT_COUNTS };
+    if (!dayDetail?.slots) return { ...EMPTY_SLOT_COUNTS };
 
     const next = { ...EMPTY_SLOT_COUNTS };
     for (const prayer of PRAYER_OPTIONS) {
-      const slotKey = PRAYER_TO_SLOT_KEY[prayer] as FiveDailyPrayerSlotKey;
-      next[prayer] = getSlotLoggedCount(selectedDay.slots[slotKey]);
+      const slotKey = PRAYER_TO_SLOT_KEY[prayer];
+      next[prayer] = dayDetail.slots[slotKey]?.loggedCount ?? 0;
     }
     return next;
-  }, [selectedDay]);
-  console.log("loggedCountsForSelectedDate", loggedCountsForSelectedDate);
+  }, [dayDetail]);
+
   const slotTargets = useMemo((): Record<PrayerName, number> => {
+    if (dayDetail?.slotProgress) {
+      const next = { ...EMPTY_SLOT_COUNTS };
+      for (const prayer of PRAYER_OPTIONS) {
+        const slotKey = PRAYER_TO_SLOT_KEY[prayer];
+        next[prayer] =
+          dayDetail.slotProgress[slotKey]?.target ??
+          dayDetail.goal.slotTarget ??
+          0;
+      }
+      return next;
+    }
+
     const progress = slotSourceFrame?.goal.slotProgress;
     const targets = slotSourceFrame?.goal.slotTargets;
     const next = { ...EMPTY_SLOT_COUNTS };
@@ -234,9 +250,18 @@ export default function MissedPrayersLoggingFlow({
       next[prayer] = progress?.[slotKey]?.target ?? targets?.[slotKey] ?? 0;
     }
     return next;
-  }, [slotSourceFrame]);
+  }, [dayDetail, slotSourceFrame]);
 
   const cycleCompletedCounts = useMemo((): Record<PrayerName, number> => {
+    if (dayDetail?.slotProgress) {
+      const next = { ...EMPTY_SLOT_COUNTS };
+      for (const prayer of PRAYER_OPTIONS) {
+        const slotKey = PRAYER_TO_SLOT_KEY[prayer];
+        next[prayer] = dayDetail.slotProgress[slotKey]?.completed ?? 0;
+      }
+      return next;
+    }
+
     const progress = slotSourceFrame?.goal.slotProgress;
     const next = { ...EMPTY_SLOT_COUNTS };
     for (const prayer of PRAYER_OPTIONS) {
@@ -244,12 +269,11 @@ export default function MissedPrayersLoggingFlow({
       next[prayer] = progress?.[slotKey]?.completed ?? 0;
     }
     return next;
-  }, [slotSourceFrame]);
+  }, [dayDetail, slotSourceFrame]);
 
   const slotCountsLoading =
-    selectedDateWeekNumber != null &&
-    (selectedDateWeekLoading ||
-      (selectedDateWeekFetching && !selectedDateWeekFrame));
+    flowMode === "active" &&
+    (dayDetailLoading || dayDetailFetching || dayDetail == null);
 
   // Fresh session quantities whenever the selected day changes.
   useEffect(() => {
@@ -259,10 +283,11 @@ export default function MissedPrayersLoggingFlow({
   const currentStep = STEPS[stepIndex];
   const isLastStep = stepIndex === STEPS.length - 1;
 
-  const dateLabel =
-    selectedDate === todayString
-      ? t("progressLogging.today")
-      : moment(selectedDate, "YYYY-MM-DD").format("MMM DD");
+  const dateLabel = formatProgressLoggingDateLabel(
+    selectedDate,
+    todayString,
+    t("progressLogging.today"),
+  );
 
   const shiftDate = (direction: -1 | 1) => {
     const next = moment(selectedDate, "YYYY-MM-DD")
@@ -329,7 +354,11 @@ export default function MissedPrayersLoggingFlow({
 
       try {
         await logMissedPastPrayers(payload);
-        await Promise.all([prayerFrame?.refetch(), refetchSelectedDateWeek()]);
+        await Promise.all([
+          prayerFrame?.refetch(),
+          refetchSelectedDateWeek(),
+          refetchDayDetail(),
+        ]);
 
         onLogComplete?.({
           type: "missed-prayers",

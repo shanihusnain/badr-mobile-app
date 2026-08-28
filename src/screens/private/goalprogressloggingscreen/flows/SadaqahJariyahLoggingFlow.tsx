@@ -15,6 +15,7 @@ import { fonts } from "@/assets/fonts";
 
 import { FlowCard } from "../components/FlowCard";
 import { DateStep } from "../components/DateStep";
+import { formatProgressLoggingDateLabel } from "../progressLoggingConfig";
 import { SadaqahJariyahCategoryStep } from "../components/SadaqahJariyahCategoryStep";
 import { AmountStep } from "../components/AmountStep";
 import { StartTimeStep, DurationStep } from "../components/TimePickerSteps";
@@ -134,10 +135,11 @@ export default function SadaqahJariyahLoggingFlow({
   const currentStep = STEPS[stepIndex];
   const isLastStep = stepIndex === STEPS.length - 1;
 
-  const dateLabel =
-    selectedDate === todayString
-      ? t("progressLogging.today")
-      : moment(selectedDate, "YYYY-MM-DD").format("MMM DD");
+  const dateLabel = formatProgressLoggingDateLabel(
+    selectedDate,
+    todayString,
+    t("progressLogging.today"),
+  );
 
   const shiftDate = (direction: -1 | 1) => {
     const next = moment(selectedDate, "YYYY-MM-DD")

@@ -115,6 +115,8 @@ export type PrayerGoalFrameData = {
     vsLastWeek: number | null;
     currentStreak: number;
     motivationalMessage: string;
+    /** Past-week summary copy when viewing a different week in the cycle. */
+    weekSummaryMessage?: string | null;
     days: PrayerGoalFrameDay[];
   };
   /** Present for SUNNAH_RAWATIB — drives day-ring arc set / weights. */
@@ -132,8 +134,11 @@ const getPrayerGoalFrame = async (
       params: week != null ? { week } : undefined,
     },
   );
-  console.log("response", JSON.stringify(response.data?.data, null, 2));
-  return response.data?.data ?? null;
+  const payload = response.data?.data ?? null;
+  console.log(
+    `[prayer-frame] requestedWeek=${week ?? "current"} returnedWeek=${payload?.cycle?.weekNumber ?? "?"} motivationalMessage=${JSON.stringify(payload?.week?.motivationalMessage ?? null)} weekSummaryMessage=${JSON.stringify(payload?.week?.weekSummaryMessage ?? null)}`,
+  );
+  return payload;
 };
 
 export const useGetPrayerGoalFrame = (
