@@ -35,7 +35,7 @@ export const styles = StyleSheet.create({
    * Other goal-card components also reuse this anchor.
    */
   cardAnchor: {
-    width: "66%",
+    width: "62%",
     alignSelf: "stretch",
     height: FLOW_CARD_HEIGHT,
     position: "relative",

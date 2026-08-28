@@ -406,7 +406,7 @@ export default function TahiyatUlWudhuLoggingFlow({
                 activeOpacity={0.8}
                 disabled={isFullyAchieved}
               >
-                <AddLoggingFlowIcon />
+                <AddLoggingFlowIcon size={32} />
               </TouchableOpacity>
             </View>
           ) : (
@@ -452,7 +452,7 @@ const localStyles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
-    marginTop: -6,
+    marginTop: 3,
   },
   // "In Progress" chip — light purple bg, dark blue text
   badgeInProgress: {
@@ -466,9 +466,11 @@ const localStyles = StyleSheet.create({
     backgroundColor: Colors.light.paginationInactiveDot,
   },
   badgeText: {
-    fontFamily: fonts.primary.semiBold,
-    fontSize: 10,
-    fontWeight: "600",
+    fontFamily: fonts.primary.medium,
+    fontSize: 12,
+    fontWeight: "500",
+    lineHeight: 12.5,
+    
   },
   badgeTextInProgress: {
     color: Colors.light.darkblue,
@@ -491,7 +493,7 @@ const localStyles = StyleSheet.create({
     backgroundColor: Colors.light.selectcategory,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 26,
+    marginTop: 33,
   },
   summaryTitle: {
     color: Colors.light.white,
@@ -522,10 +524,7 @@ const localStyles = StyleSheet.create({
   addButton: {
     position: "absolute",
     right: 16,
-    bottom: 11,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    bottom: 15,
     alignItems: "center",
     justifyContent: "center",
   },

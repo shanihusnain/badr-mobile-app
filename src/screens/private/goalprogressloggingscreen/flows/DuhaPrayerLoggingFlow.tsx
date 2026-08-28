@@ -335,80 +335,78 @@ export default function DuhaPrayerLoggingFlow({
           <View style={localStyles.summaryCard}>
             <View style={localStyles.summaryBody}>
               <View style={localStyles.summaryIconCircle}>
-                  <FlowCardDuhaPrayerIcon
-                    color={Colors.light.white}
-                    size={18}
-                  />
+                <FlowCardDuhaPrayerIcon
+                  color={Colors.light.white}
+                  size={25}
+                />
               </View>
-              <View style={{ flex: 1, gap: 4 }}>
-                  <View
-                    style={[
-                      localStyles.badge,
-                      badgeStatus.type === "completed"
-                        ? localStyles.badgeCompleted
-                        : badgeStatus.type === "not-started"
-                          ? localStyles.badgeNotStarted
-                          : localStyles.badgeInProgress,
-                      { alignSelf: "flex-start" },
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        localStyles.badgeText,
-                        badgeStatus.type === "completed"
-                          ? localStyles.badgeTextCompleted
-                          : badgeStatus.type === "not-started"
-                            ? localStyles.badgeTextNotStarted
-                            : localStyles.badgeTextInProgress,
-                      ]}
-                    >
-                    {badgeStatus.text}
-                    </Text>
-                  </View>
+              <View style={{ flex: 1, gap: 9 }}>
+                <View
+                  style={[
+                    localStyles.badge,
+                    badgeStatus.type === "completed"
+                      ? localStyles.badgeCompleted
+                      : badgeStatus.type === "not-started"
+                        ? localStyles.badgeNotStarted
+                        : localStyles.badgeInProgress,
+                    { alignSelf: "flex-start" },
+                  ]}
+                >
                   <Text
                     style={[
-                      localStyles.summaryTitle,
-                      { flex: undefined },
-                      frameLoading && localStyles.loadingPlaceholderText,
+                      localStyles.badgeText,
+                      badgeStatus.type === "completed"
+                        ? localStyles.badgeTextCompleted
+                        : badgeStatus.type === "not-started"
+                          ? localStyles.badgeTextNotStarted
+                          : localStyles.badgeTextInProgress,
                     ]}
-                    numberOfLines={2}
                   >
-                    {goalLabel}
+                    {badgeStatus.text}
+                  </Text>
+                </View>
+                <Text
+                  style={[
+                    localStyles.summaryTitle,
+                    { flex: undefined },
+                    frameLoading && localStyles.loadingPlaceholderText,
+                  ]}
+                  numberOfLines={2}
+                >
+                  {goalLabel}
                 </Text>
               </View>
             </View>
 
             <View style={localStyles.footerRow}>
-                {showInsights ? (
-                  <TouchableOpacity
-                    style={localStyles.insightsBtn}
-                    onPress={prayerFrame?.openInsights}
-                    activeOpacity={0.8}
-                  >
-                  <Text style={localStyles.insightsText}>VIEW INSIGHTS</Text>
-                    <Ionicons
-                      name="chevron-forward"
-                      size={22}
-                      color={Colors.light.white}
-                    />
-                  </TouchableOpacity>
-                ) : (
-                  <View style={localStyles.spacer} />
-                )}
-
+              {showInsights ? (
                 <TouchableOpacity
-                  style={[
-                    localStyles.addButton,
-                    (frameLoading || isFullyAchieved) &&
-                      localStyles.addButtonDisabled,
-                  ]}
-                  onPress={handleOpenFlow}
+                  style={localStyles.insightsBtn}
+                  onPress={prayerFrame?.openInsights}
                   activeOpacity={0.8}
-                  disabled={frameLoading || isFullyAchieved}
                 >
-                  <AddLoggingFlowIcon />
+                  <Text style={localStyles.insightsText}>VIEW INSIGHTS</Text>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={22}
+                    color={Colors.light.white}
+                  />
                 </TouchableOpacity>
-              </View>
+              ) : null}
+            </View>
+
+            <TouchableOpacity
+              style={[
+                localStyles.addButton,
+                (frameLoading || isFullyAchieved) &&
+                  localStyles.addButtonDisabled,
+              ]}
+              onPress={handleOpenFlow}
+              activeOpacity={0.8}
+              disabled={frameLoading || isFullyAchieved}
+            >
+              <AddLoggingFlowIcon size={32} />
+            </TouchableOpacity>
           </View>
         ) : (
           <View style={commonStyles.flowCardLayer}>
@@ -451,12 +449,13 @@ const localStyles = StyleSheet.create({
     height: FLOW_CARD_HEIGHT,
     width: "100%",
     justifyContent: "space-between",
+    position: "relative",
   },
   badge: {
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
-    marginTop: -6,
+    marginTop: 3,
   },
   badgeInProgress: {
     backgroundColor: Colors.light.lightpurple,
@@ -468,9 +467,10 @@ const localStyles = StyleSheet.create({
     backgroundColor: Colors.light.paginationInactiveDot,
   },
   badgeText: {
-    fontFamily: fonts.primary.semiBold,
-    fontSize: 10,
-    fontWeight: "600",
+    fontFamily: fonts.primary.medium,
+    fontSize: 12,
+    fontWeight: "500",
+    lineHeight: 12.5,
   },
   badgeTextInProgress: {
     color: Colors.light.darkblue,
@@ -493,7 +493,7 @@ const localStyles = StyleSheet.create({
     backgroundColor: Colors.light.selectcategory,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 22,
+    marginTop: 33,
   },
   summaryTitle: {
     color: Colors.light.white,
@@ -509,7 +509,6 @@ const localStyles = StyleSheet.create({
   },
   footerRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "flex-end",
     marginTop: 4,
   },
@@ -526,9 +525,9 @@ const localStyles = StyleSheet.create({
     fontWeight: "700",
   },
   addButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    position: "absolute",
+    right: 16,
+    bottom: 15,
     alignItems: "center",
     justifyContent: "center",
   },

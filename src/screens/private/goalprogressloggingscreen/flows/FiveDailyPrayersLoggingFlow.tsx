@@ -518,10 +518,10 @@ export default function FiveDailyPrayersLoggingFlow({
                 <View style={localStyles.summaryIconCircle}>
                   <FiveDailyPrayerIDetailedIbadhasIcon
                     color={Colors.light.white}
-                    size={18}
+                    size={25}
                   />
                 </View>
-                <View style={{ flex: 1, gap: 4 }}>
+                <View style={{ flex: 1, gap: 9 }}>
                   <View
                     style={[
                       localStyles.badge,
@@ -598,23 +598,21 @@ export default function FiveDailyPrayersLoggingFlow({
                       color={Colors.light.white}
                     />
                   </TouchableOpacity>
-                ) : (
-                  <View style={localStyles.spacer} />
-                )}
-
-                <TouchableOpacity
-                  style={[
-                    localStyles.addButton,
-                    (frameLoading || isFullyAchieved) &&
-                      localStyles.addButtonDisabled,
-                  ]}
-                  onPress={handleOpenFlow}
-                  activeOpacity={0.8}
-                  disabled={frameLoading || isFullyAchieved}
-                >
-                  <AddLoggingFlowIcon />
-                </TouchableOpacity>
+                ) : null}
               </View>
+
+              <TouchableOpacity
+                style={[
+                  localStyles.addButton,
+                  (frameLoading || isFullyAchieved) &&
+                    localStyles.addButtonDisabled,
+                ]}
+                onPress={handleOpenFlow}
+                activeOpacity={0.8}
+                disabled={frameLoading || isFullyAchieved}
+              >
+                <AddLoggingFlowIcon size={32} />
+              </TouchableOpacity>
             </View>
           ) : (
             <View style={commonStyles.flowCardLayer}>
@@ -663,12 +661,13 @@ const localStyles = StyleSheet.create({
     height: FLOW_CARD_HEIGHT,
     width: "100%",
     justifyContent: "space-between",
+    position: "relative",
   },
   badge: {
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
-    marginTop: -6,
+    marginTop: 3,
   },
   badgeInProgress: {
     backgroundColor: Colors.light.lightpurple,
@@ -680,9 +679,10 @@ const localStyles = StyleSheet.create({
     backgroundColor: Colors.light.paginationInactiveDot,
   },
   badgeText: {
-    fontFamily: fonts.primary.semiBold,
-    fontSize: 10,
-    fontWeight: "600",
+    fontFamily: fonts.primary.medium,
+    fontSize: 12,
+    fontWeight: "500",
+    lineHeight: 12.5,
   },
   badgeTextInProgress: {
     color: Colors.light.darkblue,
@@ -696,7 +696,7 @@ const localStyles = StyleSheet.create({
   summaryBody: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    gap: 6,
   },
   summaryIconCircle: {
     width: 36,
@@ -705,7 +705,7 @@ const localStyles = StyleSheet.create({
     backgroundColor: Colors.light.selectcategory,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 22,
+    marginTop: 33,
   },
   summaryTitle: {
     color: Colors.light.white,
@@ -737,7 +737,6 @@ const localStyles = StyleSheet.create({
   },
   footerRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "flex-end",
     marginTop: 4,
   },
@@ -754,9 +753,9 @@ const localStyles = StyleSheet.create({
     fontWeight: "700",
   },
   addButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    position: "absolute",
+    right: 16,
+    bottom: 15,
     alignItems: "center",
     justifyContent: "center",
   },
