@@ -11,8 +11,9 @@ import { formatProgressLoggingDateLabel } from "../progressLoggingConfig";
 import { PrayerQuantityInputStep } from "../components/PrayerQuantityInputStep";
 import { StartTimeStep, DurationStep } from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
-import { styles as commonStyles } from "../components/DailyProgressLogging.styles";
+import { styles as commonStyles, FLOW_CARD_HEIGHT } from "../components/DailyProgressLogging.styles";
 import { fonts } from "@/assets/fonts";
+import { AddLoggingFlowIcon } from "@/assets/icons";
 import type { ProgressLogEntry } from "../types";
 
 const QiyamTimingStep = ({
@@ -202,19 +203,59 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
           <View style={localStyles.summaryCard}>
             <View style={localStyles.summaryBody}>
               <View style={localStyles.summaryIconCircle}>
-                <MaterialCommunityIcons name="star-crescent" size={18} color={Colors.light.white} />
+                <MaterialCommunityIcons
+                  name="star-crescent"
+                  size={25}
+                  color={Colors.light.white}
+                />
               </View>
-              <View style={{ flex: 1, gap: 4 }}>
-                <View style={[localStyles.badge, badgeStatus.type === "completed" ? localStyles.badgeCompleted : localStyles.badgeInProgress, { alignSelf: "flex-start" }]}>
-                  <Text style={[localStyles.badgeText, badgeStatus.type === "completed" ? localStyles.badgeTextCompleted : localStyles.badgeTextInProgress]}>{badgeStatus.text}</Text>
+              <View style={{ flex: 1, gap: 9 }}>
+                <View
+                  style={[
+                    localStyles.badge,
+                    badgeStatus.type === "completed"
+                      ? localStyles.badgeCompleted
+                      : localStyles.badgeInProgress,
+                    { alignSelf: "flex-start" },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      localStyles.badgeText,
+                      badgeStatus.type === "completed"
+                        ? localStyles.badgeTextCompleted
+                        : localStyles.badgeTextInProgress,
+                    ]}
+                  >
+                    {badgeStatus.text}
+                  </Text>
                 </View>
-                <Text style={[localStyles.summaryTitle, { flex: undefined }]}>{mockTitle}</Text>
+                <Text style={[localStyles.summaryTitle, { flex: undefined }]}>
+                  {mockTitle}
+                </Text>
               </View>
             </View>
+
             <View style={localStyles.footerRow}>
-              {isCompleted ? (<TouchableOpacity style={localStyles.insightsBtn}><Text style={localStyles.insightsText}>VIEW INSIGHTS</Text><Ionicons name="chevron-forward" size={22} color={Colors.light.white} /></TouchableOpacity>) : <View style={localStyles.spacer} />}
-              <TouchableOpacity style={localStyles.addButton} onPress={handleOpenFlow} activeOpacity={0.8}><Ionicons name="add" size={22} color={Colors.light.white} /></TouchableOpacity>
+              {isCompleted ? (
+                <TouchableOpacity style={localStyles.insightsBtn}>
+                  <Text style={localStyles.insightsText}>VIEW INSIGHTS</Text>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={22}
+                    color={Colors.light.white}
+                  />
+                </TouchableOpacity>
+              ) : null}
             </View>
+
+            <TouchableOpacity
+              style={localStyles.addButton}
+              onPress={handleOpenFlow}
+              activeOpacity={0.8}
+            >
+              <AddLoggingFlowIcon size={32} />
+            </TouchableOpacity>
           </View>
         ) : (
           <View style={commonStyles.flowCardLayer}>
@@ -229,20 +270,92 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
 }
 
 const localStyles = StyleSheet.create({
-  summaryCard: { backgroundColor: Colors.light.green, borderRadius: 14, padding: 16, gap: 12, height: 145, justifyContent: 'space-between' },
-  badge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4, marginTop: -6 },
-  badgeInProgress: { backgroundColor: Colors.light.lightpurple },
-  badgeCompleted: { backgroundColor: Colors.light.lightgreenbadgecolor },
-  badgeText: { fontFamily: fonts.primary.semiBold, fontSize: 10, fontWeight: "600" },
-  badgeTextInProgress: { color: Colors.light.darkblue },
-  badgeTextCompleted: { color: Colors.light.green },
-  summaryBody: { flexDirection: "row", alignItems: "center", gap: 12 },
-  summaryIconCircle: { width: 36, height: 36, borderRadius: 18, backgroundColor: Colors.light.blackBackground, alignItems: "center", justifyContent: "center" },
-  summaryTitle: { color: Colors.light.white, fontFamily: fonts.primary.semiBold, fontSize: 14, fontWeight: "600", lineHeight: 18, letterSpacing: 0, flex: 1 },
-  footerRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end", marginTop: 4 },
-  insightsBtn: { flexDirection: "row", alignItems: "center", gap: 4, paddingBottom: 4 },
-  insightsText: { color: Colors.light.white, fontFamily: fonts.primary.bold, fontSize: 16, fontWeight: "700" },
-  addButton: { width: 32, height: 32, borderRadius: 16, borderWidth: 1.5, borderColor: Colors.light.white, alignItems: "center", justifyContent: "center" },
-  badgeRow: { flexDirection: "row", marginLeft: 14 },
-  spacer: { flex: 1 },
+  summaryCard: {
+    backgroundColor: Colors.light.green,
+    borderRadius: 8,
+    padding: 16,
+    gap: 12,
+    height: FLOW_CARD_HEIGHT,
+    width: "100%",
+    justifyContent: "space-between",
+    position: "relative",
+  },
+  badge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+    marginTop: 3,
+  },
+  badgeInProgress: {
+    backgroundColor: Colors.light.lightpurple,
+  },
+  badgeCompleted: {
+    backgroundColor: Colors.light.lightgreenbadgecolor,
+  },
+  badgeText: {
+    fontFamily: fonts.primary.medium,
+    fontSize: 12,
+    fontWeight: "500",
+    lineHeight: 12.5,
+  },
+  badgeTextInProgress: {
+    color: Colors.light.darkblue,
+  },
+  badgeTextCompleted: {
+    color: Colors.light.green,
+  },
+  summaryBody: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  summaryIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.light.selectcategory,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 33,
+  },
+  summaryTitle: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.semiBold,
+    fontSize: 14,
+    fontWeight: "600",
+    lineHeight: 18,
+    letterSpacing: 0,
+    flex: 1,
+  },
+  footerRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    marginTop: 4,
+  },
+  insightsBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingBottom: 4,
+  },
+  insightsText: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.bold,
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  addButton: {
+    position: "absolute",
+    right: 16,
+    bottom: 15,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  badgeRow: {
+    flexDirection: "row",
+    marginLeft: 14,
+  },
+  spacer: {
+    flex: 1,
+  },
 });
