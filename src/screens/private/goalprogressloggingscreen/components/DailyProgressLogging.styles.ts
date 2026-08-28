@@ -300,7 +300,7 @@ export const styles = StyleSheet.create({
   },
   prayerIconBox: {
     width: "90%",
-    paddingVertical: 3,
+    paddingVertical: 2,
     borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
