@@ -616,10 +616,10 @@ export default function SunnahRawatibLoggingFlow({
                       ? commonStyles.prayerIconBoxSelected
                       : commonStyles.prayerIconBoxIdle,
                     {
-                      borderTopLeftRadius: isFirst ? 10 : 0,
-                      borderBottomLeftRadius: isFirst ? 10 : 0,
-                      borderTopRightRadius: isLast ? 10 : 0,
-                      borderBottomRightRadius: isLast ? 10 : 0,
+                      borderTopLeftRadius: isFirst ? 5 : 0,
+                      borderBottomLeftRadius: isFirst ? 5 : 0,
+                      borderTopRightRadius: isLast ? 5 : 0,
+                      borderBottomRightRadius: isLast ? 5 : 0,
                     },
                   ]}
                 >
@@ -960,7 +960,7 @@ const localStyles = StyleSheet.create({
     opacity: 0.35,
   },
   prayerLabelBlock: {
-    height: 22,
+    height: 26,
     width: "100%",
     alignItems: "center",
     justifyContent: "flex-end",
@@ -968,31 +968,38 @@ const localStyles = StyleSheet.create({
   },
   prayerLabelLine: {
     color: Colors.light.white,
-    fontFamily: fonts.primary.semiBold,
+    fontFamily: fonts.primary.bold,
     fontWeight: "600",
     fontSize: 10,
     lineHeight: 10,
     textAlign: "center",
     width: "100%",
+    letterSpacing: -0.6,
   },
   prayerSelectRow: {
     flexDirection: "row",
     alignItems: "center",
-    width: "100%",
+    alignSelf: "stretch",
+    width: "95%",
+    marginLeft: 4,
+    marginRight: -10,
+    justifyContent: "space-between",
   },
   prayerPageArrow: {
-    width: 22,
+    width: 16,
+    flexShrink: 0,
     alignItems: "center",
     justifyContent: "center",
     // Nudge to icon-box vertical center (below 2-line labels)
-    marginTop: 8,
+    marginTop: 14,
   },
   prayerPageArrowDisabled: {
-    opacity: 0.4,
+    opacity: 0.6,
   },
   prayerPageGrid: {
     flex: 1,
     width: undefined,
+    paddingHorizontal: 18,
   },
   prayerCheckSlot: {
     width: "100%",
