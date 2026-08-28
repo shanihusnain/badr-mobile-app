@@ -91,16 +91,20 @@ export function SinglePrayerWeeklyProgressDashboard({
           const isInactiveOutline = isFuture || showEmptyOutline;
           const isMarkedForDeletion =
             !!day.date && selectForDeletion === day.date;
+          const isBestDayVisible =
+            !!day.isBestDay && !isInactiveOutline && !loading;
+          // Overflowing "BEST DAY!" cells need deletion chrome on the
+          // inner wrapper; all other days keep it on the column.
+          const showColumnDeletion = isMarkedForDeletion && !isBestDayVisible;
+          const showWrapperDeletion = isMarkedForDeletion && isBestDayVisible;
 
           return (
             <TouchableOpacity
               key={`${day.day}-${index}`}
               style={[
                 styles.dayColumn,
-                (day.isBestDay && !isInactiveOutline) || isMarkedForDeletion
-                  ? { zIndex: 2 }
-                  : null,
-                isMarkedForDeletion && styles.dayColumnMarkedForDeletion,
+                (isBestDayVisible || isMarkedForDeletion) && { zIndex: 2 },
+                showColumnDeletion && styles.dayColumnMarkedForDeletion,
               ]}
               onLongPress={() => {
                 if (loading || isFuture || !day.date) return;
@@ -127,6 +131,8 @@ export function SinglePrayerWeeklyProgressDashboard({
                 style={[
                   styles.dayItemWrapper,
                   isSelected && !isMarkedForDeletion && styles.dayItemSelected,
+                  isBestDayVisible && styles.dayItemBestDay,
+                  showWrapperDeletion && styles.deletingBestDay,
                 ]}
               >
                 <SinglePrayerDayRing
@@ -141,9 +147,7 @@ export function SinglePrayerWeeklyProgressDashboard({
                 <TopSpace top={10} />
                 <Text
                   style={[
-                    day.isBestDay && !isInactiveOutline && !loading
-                      ? styles.bestDayLabel
-                      : styles.dayLabel,
+                    isBestDayVisible ? styles.bestDayLabel : styles.dayLabel,
                     {
                       color: loading
                         ? Colors.light.subtext
@@ -151,7 +155,7 @@ export function SinglePrayerWeeklyProgressDashboard({
                           ? "rgba(255, 255, 255, 0.12)"
                           : isFuture
                             ? "rgba(255, 255, 255, 0.45)"
-                            : day.isBestDay
+                            : isBestDayVisible
                               ? Colors.light.green
                               : isSelected
                                 ? Colors.light.white
@@ -160,11 +164,7 @@ export function SinglePrayerWeeklyProgressDashboard({
                   ]}
                   numberOfLines={1}
                 >
-                  {loading
-                    ? "---"
-                    : day.isBestDay && !isInactiveOutline
-                      ? "BEST DAY!"
-                      : day.day}
+                  {loading ? "---" : isBestDayVisible ? "BEST DAY!" : day.day}
                 </Text>
 
                 <View style={styles.durationSlot}>
@@ -175,7 +175,7 @@ export function SinglePrayerWeeklyProgressDashboard({
                           ? Colors.light.grey
                           : isInactiveOutline
                             ? "transparent"
-                            : day.isBestDay
+                            : isBestDayVisible
                               ? Colors.light.green
                               : isSelected
                                 ? Colors.light.white
@@ -189,11 +189,9 @@ export function SinglePrayerWeeklyProgressDashboard({
                       ? "---"
                       : isInactiveOutline
                         ? ""
-                        : day.isBestDay
+                        : day.prayersLogged > 0
                           ? day.prayersLogged.toString()
-                          : day.prayersLogged > 0
-                            ? day.prayersLogged.toString()
-                            : ""}
+                          : ""}
                   </Text>
                 </View>
               </View>
@@ -305,6 +303,17 @@ const styles = StyleSheet.create({
   dayItemSelected: {
     backgroundColor: Colors.light.dayProgressCardBg,
     borderRadius: 6,
+  },
+  dayItemBestDay: {
+    width: "120%",
+  },
+  deletingBestDay: {
+    borderWidth: 1,
+    borderColor: Colors.light.red,
+    borderRadius: 6,
+    backgroundColor: Colors.light.dullRed,
+    zIndex: 99999,
+    width: "125%",
   },
   bestDayLabel: {
     color: Colors.light.green,
