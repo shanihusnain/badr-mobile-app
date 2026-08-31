@@ -1,16 +1,26 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
   useWindowDimensions,
+  Pressable,
 } from "react-native";
-import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import { useTranslation } from "react-i18next";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
+import { BinIcon, PrayerMatIcon } from "@/assets/icons";
+import { TopSpace } from "@/components/atoms/TopSpace";
+import { PrayerWeeklyProgressFooter } from "@/components/molecules/PrayerWeeklyProgressFooter";
+import { PrayerWeeklyProgressHeader } from "@/components/molecules/SinglePrayerWeeklyProgressDashboard/PrayerWeeklyProgressHeader";
+import {
+  CARD_HORIZONTAL_PADDING,
+  RING_SIZE_MAX,
+  WRAPPER_WIDTH_RATIO,
+} from "@/components/molecules/SinglePrayerWeeklyProgressDashboard/types";
+import { useDeletePrayerLog } from "@/src/api/mutations/useDeletePrayerLog";
+import { useOptionalPrayerGoalFrameContext } from "@/src/screens/private/goalprogressloggingscreen/prayerGoalFrameContext";
 
 export type QiyamDayProgress = {
   day: string;
@@ -19,9 +29,10 @@ export type QiyamDayProgress = {
   isBestDay?: boolean;
   isMenstruation?: boolean;
   isFuture?: boolean;
+  isToday?: boolean;
+  date?: string;
   isMissedStrict?: boolean;
   isMissedFlexible?: boolean;
-  
   loggedTime?: "after-isha" | "before-fajr" | "both";
   gender?: "male" | "female";
   isWitrPending?: boolean;
@@ -33,83 +44,116 @@ export type QiyamWeeklyProgressDashboardProps = {
   weekFraction?: string;
   totalPrayersThisWeek?: number;
   streakDays?: number;
+  vsLastWeek?: number | null;
   motivationalQuote?: string;
+  defaultMotivationalQuote?: string;
   selectedDayIndex?: number;
-  statsIcon?: keyof typeof MaterialCommunityIcons.glyphMap;
   onDayPress?: (index: number) => void;
   onPrevWeek?: () => void;
   onNextWeek?: () => void;
+  loading?: boolean;
 };
 
-const CARD_HORIZONTAL_PADDING = 16;
-const WRAPPER_WIDTH_RATIO = 0.92;
-const RING_SIZE_MAX = 34;
+const LOADING_WEEK: QiyamDayProgress[] = [
+  "Sun",
+  "Mon",
+  "Tue",
+  "Wed",
+  "Thu",
+  "Fri",
+  "Sat",
+].map((day) => ({
+  day,
+  prayersLogged: 0,
+  isLogged: false,
+}));
+
+const BEST_DAY_SIZE_BOOST = 4;
 
 type DayIconProps = {
   day: QiyamDayProgress;
   size: number;
+  isBestDayVisible: boolean;
+  isSelected: boolean;
 };
 
-function QiyamDayIcon({ day, size }: DayIconProps) {
+function QiyamDayIcon({
+  day,
+  size,
+  isBestDayVisible,
+  isSelected,
+}: DayIconProps) {
+  const circleSize = isBestDayVisible ? size + BEST_DAY_SIZE_BOOST : size;
+  const iconSize = Math.max(10, Math.round(circleSize * 0.52));
+
   const innerSizeStyle = {
-    width: size,
-    height: size,
-    borderRadius: size / 2,
+    width: circleSize,
+    height: circleSize,
+    borderRadius: circleSize / 2,
     justifyContent: "center" as const,
     alignItems: "center" as const,
   };
 
+  let ringStyle = styles.ringEmpty;
+
   if (day.isMenstruation) {
-    return (
-      <View style={[innerSizeStyle, styles.ringMenstruation]} />
-    );
-  }
-
-  if (day.isFuture) {
-    return (
-      <View style={[innerSizeStyle, styles.ringFuture]} />
-    );
-  }
-
-  if (day.isMissedStrict) {
-    return (
-      <View style={[innerSizeStyle, styles.ringMissedStrict]} />
-    );
-  }
-
-  if (day.isMissedFlexible) {
-    return (
-      <View style={[innerSizeStyle, styles.ringMissedFlexible]} />
-    );
-  }
-
-  if (day.isLogged || day.loggedTime) {
-    const isWitrPending = day.isWitrPending;
-    return (
-      <View style={[
-        innerSizeStyle,
-        styles.ringLogged,
-        isWitrPending && styles.ringWitrPending
-      ]}>
-        {renderLoggedIcon(day)}
-      </View>
-    );
+    ringStyle = styles.ringMenstruation;
+  } else if (day.isFuture) {
+    ringStyle = styles.ringFuture;
+  } else if (day.isMissedStrict) {
+    ringStyle = styles.ringMissedStrict;
+  } else if (day.isMissedFlexible) {
+    ringStyle = styles.ringMissedFlexible;
+  } else if (day.isLogged || day.loggedTime) {
+    ringStyle = day.isWitrPending
+      ? styles.ringWitrPending
+      : isSelected
+        ? styles.ringLoggedSelected
+        : styles.ringLogged;
+  } else if (isSelected) {
+    ringStyle = styles.ringSelectedEmpty;
   }
 
   return (
-    <View style={[innerSizeStyle, styles.ringEmpty]} />
+    <View
+      style={[
+        styles.ringOuter,
+        {
+          width: size + BEST_DAY_SIZE_BOOST + 5,
+          height: size + BEST_DAY_SIZE_BOOST + 5,
+          borderRadius: 8,
+        },
+      ]}
+    >
+      <View style={[innerSizeStyle, ringStyle]}>
+        {(day.isLogged || day.loggedTime) &&
+        !day.isMenstruation &&
+        !day.isFuture &&
+        !day.isMissedStrict &&
+        !day.isMissedFlexible
+          ? renderLoggedIcon(day, iconSize)
+          : null}
+      </View>
+    </View>
   );
 }
 
-function renderLoggedIcon(day: QiyamDayProgress) {
+function renderLoggedIcon(day: QiyamDayProgress, iconSize: number) {
   const iconColor = Colors.light.white;
-  const iconSize = 14;
-
-  const moonIcon = <MaterialCommunityIcons name="star-crescent" size={iconSize} color={iconColor} />;
-  const malePrayIcon = <MaterialCommunityIcons name="human-handsdown" size={iconSize} color={iconColor} />;
-  const femalePrayIcon = <MaterialCommunityIcons name="human-female" size={iconSize} color={iconColor} />; // Alternative: just use prayer beads or something if needed, but human-female provides distinction. Actually, if they are the same in the library, we can just use "pray" or "human-handsdown" for both if gender specific doesn't exist, but we have "human-female" as a fallback. Let's use human-handsdown for both if no female specific praying exists, or human-female for female. Let's use human-handsdown as it represents praying best.
-
-  const prayingIcon = day.gender === "female" ? femalePrayIcon : malePrayIcon;
+  const moonIcon = (
+    <MaterialCommunityIcons
+      name="star-crescent"
+      size={iconSize}
+      color={iconColor}
+    />
+  );
+  const prayingIcon = (
+    <MaterialCommunityIcons
+      name={day.gender === "female" ? "human-female" : "human-handsdown"}
+      size={iconSize}
+      color={iconColor}
+    />
+  );
 
   if (day.loggedTime === "after-isha") {
     return moonIcon;
@@ -118,10 +162,20 @@ function renderLoggedIcon(day: QiyamDayProgress) {
     return prayingIcon;
   }
   if (day.loggedTime === "both") {
+    const compactSize = Math.max(8, iconSize - 2);
     return (
-      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <MaterialCommunityIcons name="star-crescent" size={10} color={iconColor} style={{ marginRight: -2 }} />
-        <MaterialCommunityIcons name={day.gender === "female" ? "human-female" : "human-handsdown"} size={10} color={iconColor} />
+      <View style={styles.bothIconsRow}>
+        <MaterialCommunityIcons
+          name="star-crescent"
+          size={compactSize}
+          color={iconColor}
+          style={styles.bothIconLeft}
+        />
+        <MaterialCommunityIcons
+          name={day.gender === "female" ? "human-female" : "human-handsdown"}
+          size={compactSize}
+          color={iconColor}
+        />
       </View>
     );
   }
@@ -132,147 +186,203 @@ export function QiyamWeeklyProgressDashboard({
   weekDays,
   weekRangeLabel = "Nov 29 — Dec 5",
   weekFraction = "1/4",
-  totalPrayersThisWeek = 8,
-  streakDays = 7,
-  motivationalQuote = "Your Qiyam prayer is a beautiful act. May Allah reward you.",
-  selectedDayIndex = 6,
-  statsIcon = "rug",
+  totalPrayersThisWeek = 0,
+  streakDays = 0,
+  vsLastWeek = null,
+  motivationalQuote = "",
+  defaultMotivationalQuote = "",
   onDayPress,
   onPrevWeek,
   onNextWeek,
+  loading = false,
 }: QiyamWeeklyProgressDashboardProps) {
-  const { t } = useTranslation();
   const { width: screenWidth } = useWindowDimensions();
+  const prayerFrame = useOptionalPrayerGoalFrameContext();
+  const { mutate: deletePrayerLog, isPending: isDeletingLog } =
+    useDeletePrayerLog();
+  const [selectForDeletion, setSelectForDeletion] = useState("");
+  const displayWeekDays = loading ? LOADING_WEEK : weekDays;
+
+  useEffect(() => {
+    setSelectForDeletion("");
+  }, [weekDays]);
 
   const availableWidth =
     screenWidth * WRAPPER_WIDTH_RATIO - CARD_HORIZONTAL_PADDING;
   const ringSize = Math.min(
     RING_SIZE_MAX,
-    Math.floor((availableWidth / 7) * 0.62)
+    Math.floor((availableWidth / 7) * 0.62),
   );
-
-  const [activeDayIndex, setActiveDayIndex] = useState(selectedDayIndex);
-
-  const handleDayPress = (index: number) => () => {
-    setActiveDayIndex(index);
-    onDayPress?.(index);
-  };
 
   return (
     <View style={styles.card}>
-      <View style={styles.headerRow}>
-        <View style={styles.headerLeft}>
-          <MaterialCommunityIcons
-            name="calendar-month-outline"
-            size={16}
-            color={Colors.light.seagreen}
-          />
-          <Text style={styles.weekFractionText} numberOfLines={1}>
-            {weekFraction} WEEKS
-          </Text>
-        </View>
-
-        <View style={styles.headerNav}>
-          <TouchableOpacity
-            onPress={onPrevWeek}
-            activeOpacity={0.7}
-            style={styles.navBtn}
-          >
-            <Ionicons
-              name="chevron-back"
-              size={14}
-              color={Colors.light.dullWhite}
-            />
-          </TouchableOpacity>
-          <Text style={styles.weekRangeText} numberOfLines={1}>
-            {weekRangeLabel}
-          </Text>
-          <TouchableOpacity
-            onPress={onNextWeek}
-            activeOpacity={0.7}
-            style={styles.navBtn}
-          >
-            <Ionicons
-              name="chevron-forward"
-              size={14}
-              color={Colors.light.dullWhite}
-            />
-          </TouchableOpacity>
-        </View>
-      </View>
+      <PrayerWeeklyProgressHeader
+        weekFraction={weekFraction}
+        weekRangeLabel={weekRangeLabel}
+        loading={loading}
+        onPrevWeek={onPrevWeek}
+        onNextWeek={onNextWeek}
+      />
 
       <View style={styles.daysRow}>
-        {weekDays.map((day, index) => {
-          const isSelected = index === activeDayIndex;
+        {displayWeekDays.map((day, index) => {
+          const isSelected = day?.isToday === true;
+          const hasLog = day.prayersLogged > 0 || !!day.isLogged;
+          const isFuture = !!day.isFuture;
+          const isMenstruation = !!day.isMenstruation;
+          const isInactiveOutline =
+            isFuture || !!day.isMissedStrict || !!day.isMissedFlexible;
+          const isBestDayVisible =
+            !!day.isBestDay && !isInactiveOutline && !loading && !isMenstruation;
+          const isMarkedForDeletion =
+            !!day.date && selectForDeletion === day.date;
+          const showColumnDeletion = isMarkedForDeletion && !isBestDayVisible;
+          const showWrapperDeletion = isMarkedForDeletion && isBestDayVisible;
 
           return (
             <TouchableOpacity
               key={`${day.day}-${index}`}
-              style={styles.dayColumn}
-              onPress={handleDayPress(index)}
-              activeOpacity={0.75}
+              style={[
+                styles.dayColumn,
+                (isBestDayVisible || isMarkedForDeletion) && { zIndex: 2 },
+                showColumnDeletion && styles.dayColumnMarkedForDeletion,
+              ]}
+              onLongPress={() => {
+                if (loading || isFuture || !day.date) return;
+                if (hasLog) {
+                  setSelectForDeletion((prev) =>
+                    prev === day.date ? "" : (day.date ?? ""),
+                  );
+                }
+              }}
+              onPress={() => {
+                if (loading || isFuture) return;
+                if (selectForDeletion) {
+                  setSelectForDeletion("");
+                  return;
+                }
+                onDayPress?.(index);
+              }}
+              activeOpacity={loading || isFuture ? 1 : 0.75}
+              disabled={loading || isFuture}
             >
-              <View style={[styles.dayItemWrapper, isSelected && styles.dayItemSelected]}>
-                <QiyamDayIcon day={day} size={ringSize} />
-
+              <View
+                style={[
+                  styles.dayItemWrapper,
+                  isSelected && !isMarkedForDeletion && styles.dayItemSelected,
+                  isBestDayVisible && styles.dayItemBestDay,
+                  showWrapperDeletion && styles.deletingBestDay,
+                ]}
+              >
+                <QiyamDayIcon
+                  day={day}
+                  size={ringSize}
+                  isBestDayVisible={isBestDayVisible}
+                  isSelected={isSelected}
+                />
+                <TopSpace top={10} />
                 <Text
                   style={[
-                    day.isBestDay ? styles.bestDayLabel : styles.dayLabel,
+                    isBestDayVisible ? styles.bestDayLabel : styles.dayLabel,
+                    {
+                      color: loading
+                        ? Colors.light.subtext
+                        : isFuture
+                          ? "rgba(255, 255, 255, 0.45)"
+                          : isBestDayVisible
+                            ? Colors.light.green
+                            : isSelected
+                              ? Colors.light.white
+                              : Colors.light.subtext,
+                    },
                   ]}
                   numberOfLines={1}
                 >
-                  {day.isBestDay ? "BEST DAY!" : day.day}
+                  {loading ? "---" : isBestDayVisible ? "BEST DAY!" : day.day}
                 </Text>
 
                 <View style={styles.durationSlot}>
-                  {!day.isMenstruation && !day.isFuture && !day.isMissedStrict && !day.isMissedFlexible && (
-                    <Text
-                      style={[
-                        day.isBestDay ? styles.durationTextBest : styles.durationTextNormal,
-                        styles.durationText,
-                      ]}
-                      numberOfLines={1}
-                    >
-                      {day.isBestDay ? day.prayersLogged.toString() : (day.prayersLogged > 0 ? day.prayersLogged.toString() : "")}
-                    </Text>
-                  )}
+                  <Text
+                    style={[
+                      {
+                        color: loading
+                          ? Colors.light.grey
+                          : isInactiveOutline || isMenstruation
+                            ? "transparent"
+                            : isBestDayVisible
+                              ? Colors.light.green
+                              : isSelected
+                                ? Colors.light.white
+                                : Colors.light.grey,
+                      },
+                      styles.durationText,
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {loading
+                      ? "---"
+                      : isInactiveOutline || isMenstruation
+                        ? ""
+                        : day.prayersLogged > 0
+                          ? day.prayersLogged.toString()
+                          : ""}
+                  </Text>
                 </View>
               </View>
+              {isMarkedForDeletion ? (
+                <Pressable
+                  style={styles.deleteButton}
+                  disabled={isDeletingLog || !prayerFrame?.frame?.prayerType}
+                  onPress={() => {
+                    const prayerType = prayerFrame?.frame?.prayerType;
+                    if (!prayerType || !day.date || isDeletingLog) return;
+                    deletePrayerLog(
+                      { prayerType, date: day.date },
+                      {
+                        onSuccess: () => {
+                          setSelectForDeletion("");
+                        },
+                      },
+                    );
+                  }}
+                >
+                  <BinIcon />
+                </Pressable>
+              ) : null}
             </TouchableOpacity>
           );
         })}
       </View>
 
-      <View style={styles.statsRow}>
-        <MaterialCommunityIcons
-          name={statsIcon}
-          size={24}
-          color={Colors.light.lightblue}
+      <View
+        style={[
+          styles.statsAndFooterContainer,
+          vsLastWeek == null
+            ? styles.statsAndFooterContainerWeekOne
+            : styles.statsAndFooterContainerLaterWeek,
+        ]}
+      >
+        <View style={styles.statsRow}>
+          <PrayerMatIcon />
+          <Text style={styles.statsText} numberOfLines={1}>
+            <Text style={styles.statsCount}>
+              {loading ? "---" : totalPrayersThisWeek}
+            </Text>
+            {loading
+              ? ""
+              : totalPrayersThisWeek === 1
+                ? " prayer this week"
+                : " prayers this week"}
+          </Text>
+        </View>
+
+        <PrayerWeeklyProgressFooter
+          loading={loading}
+          streakDays={streakDays}
+          vsLastWeek={vsLastWeek}
+          motivationalQuote={motivationalQuote}
+          defaultMotivationalQuote={defaultMotivationalQuote}
         />
-        <Text style={styles.statsText} numberOfLines={1}>
-          <Text style={styles.statsCount}>
-            {totalPrayersThisWeek}
-          </Text>
-          {totalPrayersThisWeek === 1 ? " total prayer this week" : " total prayers this week"}
-        </Text>
-      </View>
-
-      <View style={styles.footerRow}>
-        <View style={styles.streakBadge}>
-          <Ionicons name="flash" size={13} color={Colors.light.yellow} />
-          <Text style={styles.streakText}>
-            {streakDays}-day streak
-          </Text>
-        </View>
-
-        <View style={styles.quoteBlock}>
-          <MaterialCommunityIcons
-            name="target"
-            size={14}
-            color={Colors.light.seagreen}
-          />
-          <Text style={styles.quoteText}>{motivationalQuote}</Text>
-        </View>
       </View>
     </View>
   );
@@ -283,63 +393,68 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     backgroundColor: Colors.light.greybuttonBackground,
     paddingHorizontal: 8,
-    paddingVertical: 20,
-    gap: 16,
-  },
-  headerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 8,
-  },
-  headerLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    flexShrink: 1,
-  },
-  weekFractionText: {
-    color: Colors.light.white,
-    fontSize: 13,
-    fontWeight: "600",
-    fontFamily: fonts.primary.semiBold,
-  },
-  headerNav: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 2,
-    flexShrink: 0,
-  },
-  navBtn: {
-    padding: 2,
-  },
-  weekRangeText: {
-    color: Colors.light.white,
-    fontSize: 14,
-    fontWeight: "500",
-    fontFamily: fonts.primary.medium,
-    textAlign: "center",
+    paddingVertical: 16,
+    gap: 24,
+    zIndex: 150,
   },
   daysRow: {
     flexDirection: "row",
     alignItems: "flex-start",
+    overflow: "visible",
   },
   dayColumn: {
     flex: 1,
     alignItems: "center",
-    minWidth: 0,
+    overflow: "visible",
+  },
+  dayColumnMarkedForDeletion: {
+    borderWidth: 1,
+    borderColor: Colors.light.red,
+    borderRadius: 6,
+    backgroundColor: Colors.light.dullRed,
+    zIndex: 99999,
+  },
+  deleteButton: {
+    height: 20,
+    width: 24,
+    backgroundColor: Colors.light.red,
+    borderRadius: 5,
+    zIndex: 1000,
+    alignSelf: "center",
+    justifyContent: "center",
+    alignItems: "center",
+    position: "absolute",
+    bottom: -10,
   },
   dayItemWrapper: {
     alignItems: "center",
-    paddingVertical: 12, // Increased padding to make a distinct box
+    justifyContent: "flex-start",
     paddingHorizontal: 4,
+    paddingTop: 3,
+    paddingBottom: 18,
     borderRadius: 8,
+    width: "100%",
+    overflow: "visible",
   },
   dayItemSelected: {
     backgroundColor: Colors.light.dayProgressCardBg,
+    borderRadius: 6,
   },
-  ringInnerMenstruation: {
-    backgroundColor: Colors.light.red,
+  dayItemBestDay: {
+    width: "120%",
+  },
+  deletingBestDay: {
+    borderWidth: 1,
+    borderColor: Colors.light.red,
+    borderRadius: 6,
+    backgroundColor: Colors.light.dullRed,
+    zIndex: 99999,
+    width: "125%",
+  },
+  ringOuter: {
+    alignItems: "center",
+    justifyContent: "center",
+    borderColor: "transparent",
   },
   ringMenstruation: {
     backgroundColor: Colors.light.red,
@@ -347,46 +462,66 @@ const styles = StyleSheet.create({
   ringFuture: {
     backgroundColor: "transparent",
     borderWidth: 1,
-    borderColor: Colors.light.selectcategory,
+    borderColor: "rgba(255, 255, 255, 0.32)",
   },
   ringMissedStrict: {
-    backgroundColor: Colors.light.golden, // Orange equivalent
+    backgroundColor: Colors.light.golden,
   },
   ringMissedFlexible: {
-    backgroundColor: Colors.light.selectcategory, // Grey equivalent
+    backgroundColor: Colors.light.selectcategory,
   },
   ringLogged: {
     backgroundColor: Colors.light.green,
   },
+  ringLoggedSelected: {
+    backgroundColor: Colors.light.green,
+    borderWidth: 1.5,
+    borderColor: Colors.light.bordercolortodayselectedring,
+  },
   ringWitrPending: {
+    backgroundColor: Colors.light.green,
     borderWidth: 2,
     borderColor: Colors.light.yellow,
   },
   ringEmpty: {
-    backgroundColor: Colors.light.dullWhiteOpacity,
+    backgroundColor: "rgba(255, 255, 255, 0.18)",
+  },
+  ringSelectedEmpty: {
+    backgroundColor: Colors.light.greybuttonBackground,
+    borderWidth: 1.2,
+    borderColor: "rgba(255, 255, 255, 0.28)",
+  },
+  bothIconsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  bothIconLeft: {
+    marginRight: -2,
   },
   bestDayLabel: {
     color: Colors.light.green,
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: "700",
     fontFamily: fonts.primary.bold,
     textAlign: "center",
-    marginTop: 8,
+    marginTop: 4,
+    width: 64,
+    marginHorizontal: -14,
   },
   dayLabel: {
     color: Colors.light.subtext,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
-    marginTop: 8,
+    marginTop: 3,
     textAlign: "center",
   },
   durationSlot: {
-    height: 14,
-    justifyContent: "center",
+    height: 18,
+    justifyContent: "flex-start",
     alignItems: "center",
     width: "100%",
-    marginTop: 2,
+    marginTop: 4,
   },
   durationText: {
     fontSize: 11,
@@ -394,61 +529,38 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.bold,
     textAlign: "center",
   },
-  durationTextBest: {
-    color: Colors.light.green,
-  },
-  durationTextNormal: {
-    color: Colors.light.grey,
-  },
   statsRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 6,
+    gap: 8,
     flexWrap: "nowrap",
+    paddingLeft: 7,
   },
   statsText: {
     color: Colors.light.white,
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: fonts.primary.medium,
     flexShrink: 1,
     fontWeight: "500",
+    letterSpacing: 0.1,
   },
   statsCount: {
     color: Colors.light.white,
-    fontWeight: "700",
-    fontSize: 22,
+    fontWeight: "600",
+    fontSize: 20,
     fontFamily: fonts.primary.bold,
+    letterSpacing: 0.1,
   },
-  footerRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 12,
+  statsAndFooterContainer: {
+    gap: 3,
   },
-  streakBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    flexShrink: 0,
+  statsAndFooterContainerWeekOne: {
+    marginTop: 1,
+    gap: 2,
   },
-  streakText: {
-    color: Colors.light.white,
-    fontSize: 13,
-    fontWeight: "500",
-    fontFamily: fonts.primary.medium,
-  },
-  quoteBlock: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 4,
-    flex: 1,
-  },
-  quoteText: {
-    flex: 1,
-    color: Colors.light.white,
-    fontSize: 13,
-    lineHeight: 16,
-    fontFamily: fonts.primary.regular,
-    fontWeight: "400",
+  statsAndFooterContainerLaterWeek: {
+    gap: 8,
+    marginTop: -28,
   },
 });

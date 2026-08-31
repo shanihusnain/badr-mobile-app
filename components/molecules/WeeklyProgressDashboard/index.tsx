@@ -277,7 +277,14 @@ export const WeeklyProgressDashboard: React.FC<
         })}
       </View>
 
-      <View style={styles.statsAndFooterContainer}>
+      <View
+        style={[
+          styles.statsAndFooterContainer,
+          vsLastWeek == null
+            ? styles.statsAndFooterContainerWeekOne
+            : styles.statsAndFooterContainerLaterWeek,
+        ]}
+      >
         <View style={styles.statsRow}>
           <PrayerMatIcon />
           <Text style={styles.statsText} numberOfLines={1}>
@@ -396,6 +403,16 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.bold,
   },
   statsAndFooterContainer: {
+    gap: 3,
+  },
+  // Week 1: pull stats + footer up slightly to tighten card height.
+  statsAndFooterContainerWeekOne: {
+    marginTop: 1,
+    gap: 2,
+  },
+  // Weeks 2–4: extra row gaps; marginTop offsets so card height matches week 1.
+  statsAndFooterContainerLaterWeek: {
     gap: 8,
+    marginTop: -28,
   },
 });

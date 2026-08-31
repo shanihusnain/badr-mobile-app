@@ -24,6 +24,8 @@ type FlowCardProps = {
   canGoForward: boolean;
   canGoBack?: boolean;
   canConfirm?: boolean;
+  /** When false, hides the checkmark confirm button (e.g. mid-flow steps). */
+  showConfirmButton?: boolean;
   styles: any;
   style?: StyleProp<ViewStyle>;
   contentStyle?: StyleProp<ViewStyle>;
@@ -39,6 +41,7 @@ export const FlowCard: React.FC<FlowCardProps> = ({
   canGoForward,
   canGoBack = true,
   canConfirm = true,
+  showConfirmButton = true,
   styles,
   style,
   contentStyle,
@@ -87,22 +90,26 @@ export const FlowCard: React.FC<FlowCardProps> = ({
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity
-          style={[
-            styles.confirmButton,
-            canConfirm && styles.confirmButtonActive,
-            !canConfirm && styles.navButtonDisabled,
-          ]}
-          onPress={onConfirm}
-          disabled={!canConfirm}
-          activeOpacity={0.8}
-        >
-          <Ionicons
-            name="checkmark"
-            size={17}
-            color={canConfirm ? Colors.light.white : Colors.light.white + "CC"}
-          />
-        </TouchableOpacity>
+        {showConfirmButton ? (
+          <TouchableOpacity
+            style={[
+              styles.confirmButton,
+              canConfirm && styles.confirmButtonActive,
+              !canConfirm && styles.navButtonDisabled,
+            ]}
+            onPress={onConfirm}
+            disabled={!canConfirm}
+            activeOpacity={0.8}
+          >
+            <Ionicons
+              name="checkmark"
+              size={17}
+              color={canConfirm ? Colors.light.white : Colors.light.white + "CC"}
+            />
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.confirmButtonPlaceholder} pointerEvents="none" />
+        )}
       </View>
     </View>
   );

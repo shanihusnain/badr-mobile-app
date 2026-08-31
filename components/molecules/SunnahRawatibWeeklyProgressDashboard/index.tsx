@@ -7,12 +7,17 @@ import {
   useWindowDimensions,
   Pressable,
 } from "react-native";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { useTranslation } from "react-i18next";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
-import { BinIcon } from "@/assets/icons";
-import { SunnahRawatibDayRing, type SunnahDayData } from "../SunnahRawatibDayRing";
+import { BinIcon, PrayerMatIcon } from "@/assets/icons";
+import { TopSpace } from "@/components/atoms/TopSpace";
+import { PrayerWeeklyProgressFooter } from "@/components/molecules/PrayerWeeklyProgressFooter";
+import { PrayerWeeklyProgressHeader } from "@/components/molecules/SinglePrayerWeeklyProgressDashboard/PrayerWeeklyProgressHeader";
+import {
+  SunnahRawatibDayRing,
+  type SunnahDayData,
+} from "../SunnahRawatibDayRing";
 import { useDeletePrayerLog } from "@/src/api/mutations/useDeletePrayerLog";
 import { useOptionalPrayerGoalFrameContext } from "@/src/screens/private/goalprogressloggingscreen/prayerGoalFrameContext";
 
@@ -33,9 +38,10 @@ export type SunnahRawatibWeeklyProgressDashboardProps = {
   weekFraction?: string;
   totalPrayersThisWeek?: number;
   streakDays?: number;
+  vsLastWeek?: number | null;
   motivationalQuote?: string;
+  defaultMotivationalQuote?: string;
   selectedDayIndex?: number;
-  statsIcon?: keyof typeof MaterialCommunityIcons.glyphMap;
   onDayPress?: (index: number) => void;
   onPrevWeek?: () => void;
   onNextWeek?: () => void;
@@ -44,7 +50,21 @@ export type SunnahRawatibWeeklyProgressDashboardProps = {
 
 const CARD_HORIZONTAL_PADDING = 16;
 const WRAPPER_WIDTH_RATIO = 0.92;
-const RING_SIZE_MAX = 34;
+const RING_SIZE_MAX = 24;
+
+const LOADING_WEEK: SunnahRawatibDayProgress[] = [
+  "Sun",
+  "Mon",
+  "Tue",
+  "Wed",
+  "Thu",
+  "Fri",
+  "Sat",
+].map((day) => ({
+  day,
+  count: 0,
+  data: { goal: [], logged: {} },
+}));
 
 function dayHasSunnahLog(day: SunnahRawatibDayProgress): boolean {
   if ((day.count ?? 0) > 0) return true;
@@ -53,25 +73,40 @@ function dayHasSunnahLog(day: SunnahRawatibDayProgress): boolean {
   );
 }
 
+function getDayTotal(day: SunnahRawatibDayProgress): number {
+  if (typeof day.count === "number") return day.count;
+  let total = 0;
+  Object.values(day.data.logged).forEach((v) => {
+    if (typeof v === "number") total += v;
+  });
+  return total;
+}
+
 export function SunnahRawatibWeeklyProgressDashboard({
   weekDays,
   weekRangeLabel = "Nov 29 — Dec 5",
   weekFraction = "1/4",
-  totalPrayersThisWeek = 55,
-  streakDays = 2,
+  totalPrayersThisWeek = 0,
+  streakDays = 0,
+  vsLastWeek = null,
   motivationalQuote = "",
-  selectedDayIndex = 6,
-  statsIcon = "rug",
+  defaultMotivationalQuote = "",
   onDayPress,
   onPrevWeek,
   onNextWeek,
   loading = false,
 }: SunnahRawatibWeeklyProgressDashboardProps) {
+  const { t } = useTranslation();
   const { width: screenWidth } = useWindowDimensions();
   const prayerFrame = useOptionalPrayerGoalFrameContext();
   const { mutate: deletePrayerLog, isPending: isDeletingLog } =
     useDeletePrayerLog();
   const [selectForDeletion, setSelectForDeletion] = useState("");
+  const displayWeekDays = loading ? LOADING_WEEK : weekDays;
+
+  useEffect(() => {
+    setSelectForDeletion("");
+  }, [weekDays]);
 
   const availableWidth =
     screenWidth * WRAPPER_WIDTH_RATIO - CARD_HORIZONTAL_PADDING;
@@ -80,84 +115,32 @@ export function SunnahRawatibWeeklyProgressDashboard({
     Math.floor((availableWidth / 7) * 0.62),
   );
 
-  const [activeDayIndex, setActiveDayIndex] = useState(selectedDayIndex);
-
-  useEffect(() => {
-    setActiveDayIndex(selectedDayIndex);
-  }, [selectedDayIndex]);
-
-  useEffect(() => {
-    setSelectForDeletion("");
-  }, [weekDays]);
-
   return (
     <View style={styles.card}>
-      <View style={styles.headerRow}>
-        <View style={styles.headerLeft}>
-          <MaterialCommunityIcons
-            name="calendar-month-outline"
-            size={16}
-            color={Colors.light.seagreen}
-          />
-          <Text style={styles.weekFractionText} numberOfLines={1}>
-            {loading ? "---" : `${weekFraction} WEEKS`}
-          </Text>
-        </View>
-
-        <View style={styles.headerNav}>
-          <TouchableOpacity
-            onPress={onPrevWeek}
-            activeOpacity={0.7}
-            style={styles.navBtn}
-            disabled={!onPrevWeek || loading}
-          >
-            <Ionicons
-              name="chevron-back"
-              size={14}
-              color={Colors.light.dullWhite}
-            />
-          </TouchableOpacity>
-          <Text style={styles.weekRangeText} numberOfLines={1}>
-            {loading ? "---" : weekRangeLabel}
-          </Text>
-          <TouchableOpacity
-            onPress={onNextWeek}
-            activeOpacity={0.7}
-            style={styles.navBtn}
-            disabled={!onNextWeek || loading}
-          >
-            <Ionicons
-              name="chevron-forward"
-              size={14}
-              color={Colors.light.dullWhite}
-            />
-          </TouchableOpacity>
-        </View>
-      </View>
+      <PrayerWeeklyProgressHeader
+        weekFraction={weekFraction}
+        weekRangeLabel={weekRangeLabel}
+        loading={loading}
+        onPrevWeek={onPrevWeek}
+        onNextWeek={onNextWeek}
+      />
 
       <View style={styles.daysRow}>
-        {weekDays.map((day, index) => {
-          const isSelected = index === activeDayIndex;
+        {displayWeekDays.map((day, index) => {
+          const isSelected = day?.isToday === true;
           const isFuture = !!day.isFuture;
-          const hasLog = dayHasSunnahLog(day);
+          const hasLog = !loading && dayHasSunnahLog(day);
+          const isInactiveOutline = isFuture;
+          const dayTotal = getDayTotal(day);
           const isMarkedForDeletion =
             !!day.date && selectForDeletion === day.date;
-
-          let dayTotal = 0;
-          if (typeof day.count === "number") {
-            dayTotal = day.count;
-          } else {
-            Object.values(day.data.logged).forEach((v) => {
-              if (typeof v === "number") dayTotal += v;
-            });
-          }
 
           return (
             <TouchableOpacity
               key={`${day.day}-${index}`}
               style={[
                 styles.dayColumn,
-                isMarkedForDeletion ? { zIndex: 2 } : null,
+                isMarkedForDeletion && { zIndex: 2 },
                 isMarkedForDeletion && styles.dayColumnMarkedForDeletion,
               ]}
               onLongPress={() => {
@@ -172,7 +155,6 @@ export function SunnahRawatibWeeklyProgressDashboard({
                   setSelectForDeletion("");
                   return;
                 }
-                setActiveDayIndex(index);
                 onDayPress?.(index);
               }}
               activeOpacity={loading || isFuture ? 1 : 0.75}
@@ -189,12 +171,50 @@ export function SunnahRawatibWeeklyProgressDashboard({
                   data={day.data}
                   isSelected={isSelected}
                 />
-                <Text style={styles.dayLabel} numberOfLines={1}>
+                <TopSpace top={4} />
+                <Text
+                  style={[
+                    styles.dayLabel,
+                    {
+                      color: loading
+                        ? Colors.light.subtext
+                        : isFuture
+                          ? "rgba(255, 255, 255, 0.45)"
+                          : isSelected
+                            ? Colors.light.white
+                            : Colors.light.subtext,
+                    },
+                  ]}
+                  numberOfLines={1}
+                >
                   {loading ? "---" : day.day}
                 </Text>
-                <Text style={styles.dayNumberLabel} numberOfLines={1}>
-                  {loading ? "---" : dayTotal > 0 ? String(dayTotal) : ""}
-                </Text>
+
+                <View style={styles.durationSlot}>
+                  <Text
+                    style={[
+                      styles.durationText,
+                      {
+                        color: loading
+                          ? Colors.light.grey
+                          : isInactiveOutline
+                            ? "transparent"
+                            : isSelected
+                              ? Colors.light.white
+                              : Colors.light.grey,
+                      },
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {loading
+                      ? "---"
+                      : isInactiveOutline
+                        ? ""
+                        : dayTotal > 0
+                          ? String(dayTotal)
+                          : ""}
+                  </Text>
+                </View>
               </View>
               {isMarkedForDeletion ? (
                 <Pressable
@@ -221,38 +241,35 @@ export function SunnahRawatibWeeklyProgressDashboard({
         })}
       </View>
 
-      <View style={styles.statsRow}>
-        <MaterialCommunityIcons
-          name={statsIcon}
-          size={24}
-          color={Colors.light.lightblue}
+      <View
+        style={[
+          styles.statsAndFooterContainer,
+          vsLastWeek == null
+            ? styles.statsAndFooterContainerWeekOne
+            : styles.statsAndFooterContainerLaterWeek,
+        ]}
+      >
+        <View style={styles.statsRow}>
+          <PrayerMatIcon />
+          <Text style={styles.statsText} numberOfLines={2}>
+            <Text style={styles.statsCount}>
+              {loading ? "---" : totalPrayersThisWeek}
+            </Text>
+            {loading
+              ? ""
+              : totalPrayersThisWeek === 1
+                ? t("homeScreen.weeklyProgress_sunnahTotalThisWeek_one")
+                : t("homeScreen.weeklyProgress_sunnahTotalThisWeek")}
+          </Text>
+        </View>
+
+        <PrayerWeeklyProgressFooter
+          loading={loading}
+          streakDays={streakDays}
+          vsLastWeek={vsLastWeek}
+          motivationalQuote={motivationalQuote}
+          defaultMotivationalQuote={defaultMotivationalQuote}
         />
-        <Text style={styles.statsText} numberOfLines={1}>
-          <Text style={styles.statsCount}>
-            {loading ? "---" : totalPrayersThisWeek}
-          </Text>
-          {loading ? "" : " total Sunnah prayers this week"}
-        </Text>
-      </View>
-
-      <View style={styles.footerRow}>
-        <View style={styles.streakBadge}>
-          <Ionicons name="flash" size={13} color={Colors.light.yellow} />
-          <Text style={styles.streakText}>
-            {loading ? "---" : `${streakDays}-day streak`}
-          </Text>
-        </View>
-
-        <View style={styles.quoteBlock}>
-          <MaterialCommunityIcons
-            name="target"
-            size={14}
-            color={Colors.light.seagreen}
-          />
-          <Text style={styles.quoteText}>
-            {loading ? "---" : motivationalQuote}
-          </Text>
-        </View>
       </View>
     </View>
   );
@@ -263,44 +280,9 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     backgroundColor: Colors.light.greybuttonBackground,
     paddingHorizontal: 8,
-    paddingVertical: 20,
-    gap: 16,
+    paddingVertical: 16,
+    gap: 24,
     zIndex: 150,
-  },
-  headerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 8,
-    paddingHorizontal: 8,
-  },
-  headerLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    flexShrink: 1,
-  },
-  weekFractionText: {
-    color: Colors.light.white,
-    fontSize: 13,
-    fontWeight: "600",
-    fontFamily: fonts.primary.semiBold,
-  },
-  headerNav: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 2,
-    flexShrink: 0,
-  },
-  navBtn: {
-    padding: 2,
-  },
-  weekRangeText: {
-    color: Colors.light.white,
-    fontSize: 14,
-    fontWeight: "500",
-    fontFamily: fonts.primary.medium,
-    textAlign: "center",
   },
   daysRow: {
     flexDirection: "row",
@@ -310,7 +292,6 @@ const styles = StyleSheet.create({
   dayColumn: {
     flex: 1,
     alignItems: "center",
-    minWidth: 0,
     overflow: "visible",
   },
   dayColumnMarkedForDeletion: {
@@ -334,82 +315,71 @@ const styles = StyleSheet.create({
   },
   dayItemWrapper: {
     alignItems: "center",
-    paddingVertical: 4,
-    paddingHorizontal: 2,
+    justifyContent: "flex-start",
+    paddingHorizontal: 4,
+    paddingTop: 3,
+    paddingBottom: 18,
     borderRadius: 8,
-    minHeight: 80,
     width: "100%",
     overflow: "visible",
   },
   dayItemSelected: {
-    backgroundColor: "rgba(255,255,255,0.08)",
+    backgroundColor: Colors.light.dayProgressCardBg,
+    borderRadius: 6,
   },
   dayLabel: {
     color: Colors.light.subtext,
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
-    marginTop: 4,
+    marginTop: 0,
     textAlign: "center",
   },
-  dayNumberLabel: {
-    color: Colors.light.subtext,
-    fontSize: 10,
-    fontFamily: fonts.primary.regular,
-    marginTop: 2,
+  durationSlot: {
+    height: 18,
+    justifyContent: "flex-start",
+    alignItems: "center",
+    width: "100%",
+    marginTop: 4,
+  },
+  durationText: {
+    fontSize: 11,
+    fontWeight: "700",
+    fontFamily: fonts.primary.bold,
     textAlign: "center",
   },
   statsRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 6,
+    gap: 8,
     flexWrap: "nowrap",
+    paddingLeft: 7,
   },
   statsText: {
     color: Colors.light.white,
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: fonts.primary.medium,
     flexShrink: 1,
     fontWeight: "500",
+    letterSpacing: 0.1,
   },
   statsCount: {
     color: Colors.light.white,
-    fontWeight: "700",
-    fontSize: 22,
+    fontWeight: "600",
+    fontSize: 20,
     fontFamily: fonts.primary.bold,
+    letterSpacing: 0.1,
   },
-  footerRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    justifyContent: "flex-start",
-    paddingHorizontal: 16,
-    gap: 12,
+  statsAndFooterContainer: {
+    gap: 3,
   },
-  streakBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    flexShrink: 0,
+  statsAndFooterContainerWeekOne: {
+    marginTop: 1,
+    gap: 2,
   },
-  streakText: {
-    color: Colors.light.white,
-    fontSize: 13,
-    fontWeight: "500",
-    fontFamily: fonts.primary.medium,
-  },
-  quoteBlock: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 6,
-  },
-  quoteText: {
-    flex: 1,
-    color: Colors.light.white,
-    fontSize: 13,
-    lineHeight: 18,
-    fontFamily: fonts.primary.regular,
-    fontWeight: "400",
+  statsAndFooterContainerLaterWeek: {
+    gap: 8,
+    marginTop: -28,
   },
 });

@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { Pressable, Text, TouchableOpacity, View, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -9,109 +9,235 @@ import { GoalData } from "../../home/components/goalsData";
 import { DateStep } from "../components/DateStep";
 import { formatProgressLoggingDateLabel } from "../progressLoggingConfig";
 import { PrayerQuantityInputStep } from "../components/PrayerQuantityInputStep";
-import { StartTimeStep, DurationStep } from "../components/TimePickerSteps";
+import {
+  StartTimeStep,
+  DurationStep,
+  getCurrentStartTimeParts,
+} from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
-import { styles as commonStyles, FLOW_CARD_HEIGHT } from "../components/DailyProgressLogging.styles";
+import { OptionSelectStep } from "../components/OptionSelectStep";
+import { useGetMe } from "@/src/api/queries/useGetMe";
+import {
+  styles as commonStyles,
+  FLOW_CARD_HEIGHT,
+} from "../components/DailyProgressLogging.styles";
 import { fonts } from "@/assets/fonts";
-import { AddLoggingFlowIcon } from "@/assets/icons";
+import {
+  AddLoggingFlowIcon,
+  CalendarFlippingIcon,
+  WhiteClockIcon,
+  WhitePrayerMatIcon,
+  WhiteTimerIcon,
+} from "@/assets/icons";
+import { QiyamAfterIshaIcon } from "@/assets/icons/QiyamAfterIshaIcon";
+import { QiyamFemaleUserIcon } from "@/assets/icons/QiyamFemaleUser";
+import { QiyamMaleUserIcon } from "@/assets/icons/QiyamMaleUser";
+import { QiyamWhenDidYouPrayIcon } from "@/assets/icons/QiyamWhenDidYouPrayIcon";
 import type { ProgressLogEntry } from "../types";
+
+type QiyamLoggedTime = "after-isha" | "before-fajr";
+
+type QiyamTimingOption = {
+  value: QiyamLoggedTime;
+  label: string;
+  description: string;
+  renderIcon: () => React.ReactNode;
+};
+
+const getQiyamTimingOptions = (isFemale: boolean): QiyamTimingOption[] => [
+  {
+    value: "after-isha",
+    label: "After Isha",
+    description:
+      "(Concluding your day with Qiyam after the\nIsha prayer and before going to sleep.)",
+    renderIcon: () => <QiyamAfterIshaIcon size={16} outline />,
+  },
+  {
+    value: "before-fajr",
+    label: "Before Fajr (Tahajjud)",
+    description:
+      "(Rising from sleep in the final third of the night to pray before the Fajr Adhan.)",
+    renderIcon: () =>
+      isFemale ? (
+        <QiyamFemaleUserIcon size={16} outline />
+      ) : (
+        <QiyamMaleUserIcon size={16} outline />
+      ),
+  },
+];
 
 const QiyamTimingStep = ({
   loggedTime,
   setLoggedTime,
   isOpen,
   setIsOpen,
+  timingOptions,
+  styles: commonStyles,
 }: {
-  loggedTime: "after-isha" | "before-fajr";
-  setLoggedTime: (val: "after-isha" | "before-fajr") => void;
+  loggedTime: QiyamLoggedTime;
+  setLoggedTime: (val: QiyamLoggedTime) => void;
   isOpen: boolean;
   setIsOpen: (val: boolean) => void;
-  styles: any;
+  timingOptions: QiyamTimingOption[];
+  styles: typeof import("../components/DailyProgressLogging.styles").styles;
 }) => {
-  const options = [
-    { value: "after-isha", label: "After Isha", icon: "star-crescent" },
-    { value: "before-fajr", label: "Before Fajr (Tahajjud)", icon: "human-handsdown" },
-  ];
-
-  const selectedOption = options.find(o => o.value === loggedTime);
+  const selectedOption =
+    timingOptions.find((option) => option.value === loggedTime) ??
+    timingOptions[0];
+  const alternateOptions = timingOptions.filter(
+    (option) => option.value !== loggedTime,
+  );
 
   return (
-    <View style={{ width: '100%', marginTop: 8 }}>
-      <TouchableOpacity
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          borderWidth: 1,
-          borderColor: Colors.light.white,
-          borderRadius: 6,
-          paddingHorizontal: 12,
-          paddingVertical: 8,
-        }}
-        onPress={() => setIsOpen(!isOpen)}
-        activeOpacity={0.8}
+    <View style={timingStepStyles.container}>
+      <View
+        style={[
+          commonStyles.flowDropdownWrapper,
+          isOpen && { zIndex: 30 },
+        ]}
       >
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 0, marginRight: 8 }}>
-          <MaterialCommunityIcons name={selectedOption?.icon as any} size={16} color={Colors.light.white} />
-          <Text style={{ color: Colors.light.white, fontFamily: fonts.primary.semiBold, fontSize: 13, fontWeight: '600', flexShrink: 1 }} numberOfLines={1}>
-            {selectedOption?.label}
-          </Text>
-        </View>
-        <Ionicons name="chevron-down" size={14} color={Colors.light.white} />
-      </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            commonStyles.flowDropdownSelector,
+            timingStepStyles.selector,
+          ]}
+          onPress={() => setIsOpen(!isOpen)}
+          activeOpacity={0.8}
+        >
+          <View style={timingStepStyles.selectorLeading}>
+            {selectedOption.renderIcon()}
+            <Text style={timingStepStyles.selectorLabel} numberOfLines={1}>
+              {selectedOption.label}
+            </Text>
+          </View>
+          <Ionicons name="chevron-down" size={12} color={Colors.light.white} />
+        </TouchableOpacity>
 
-      {isOpen && (
-        <View style={{
-          backgroundColor: Colors.light.blackBackground,
-          borderRadius: 6,
-          marginTop: 10,
-        }}>
-          {options.filter(opt => opt.value !== loggedTime).map((opt) => (
-            <TouchableOpacity
-              key={opt.value}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                paddingHorizontal: 10,
-                paddingVertical: 10,
-                gap: 8,
-              }}
-              onPress={() => {
-                setLoggedTime(opt.value as any);
-                setIsOpen(false);
-              }}
-              activeOpacity={0.8}
-            >
-              <View style={{
-                width: 14, height: 14, borderRadius: 7,
-                borderWidth: 1.5, borderColor: Colors.light.green,
-                alignItems: 'center', justifyContent: 'center'
-              }}>
-                <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: Colors.light.green }} />
-              </View>
-              <MaterialCommunityIcons name={opt.icon as any} size={15} color={Colors.light.white} />
-              <Text style={{ color: Colors.light.white, fontFamily: fonts.primary.semiBold, fontSize: 13, fontWeight: '600' }}>
-                {opt.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      )}
+        {isOpen ? (
+          <View style={[commonStyles.flowDropdownMenu, timingStepStyles.dropdownMenu]}>
+            {alternateOptions.map((option) => (
+              <TouchableOpacity
+                key={option.value}
+                style={[
+                  commonStyles.flowDropdownOption,
+                  timingStepStyles.dropdownOption,
+                ]}
+                onPress={() => {
+                  setLoggedTime(option.value);
+                  setIsOpen(false);
+                }}
+                activeOpacity={0.8}
+              >
+                <View
+                  style={[
+                    commonStyles.dropdownRadioOuter,
+                    { borderColor: Colors.light.grey },
+                  ]}
+                >
+                  <View
+                    style={[
+                      commonStyles.dropdownRadioInner,
+                      { backgroundColor: Colors.light.green },
+                    ]}
+                  />
+                </View>
+                {option.renderIcon()}
+                <Text style={timingStepStyles.dropdownLabel} numberOfLines={2}>
+                  {option.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        ) : null}
+      </View>
 
-      {!isOpen && (
-        <Text style={{ color: Colors.light.white, fontFamily: fonts.primary.regular, fontSize: 11, lineHeight: 15, opacity: 0.9, marginTop: 6 }}>
-          {loggedTime === "before-fajr"
-            ? "(Rising from sleep in the final third of the night to pray before the Fajr Adhan.)"
-            : "(Praying in the early part of the night, before sleeping.)"
-          }
+      {!isOpen ? (
+        <Text style={timingStepStyles.description} numberOfLines={2}>
+          {selectedOption.description}
         </Text>
-      )}
+      ) : null}
     </View>
   );
 };
 
-type QiyamStepId = "date" | "prayers-quantity" | "when-pray" | "start-time" | "time-spent";
-const STEPS: QiyamStepId[] = ["date", "prayers-quantity", "when-pray", "start-time", "time-spent"];
+const timingStepStyles = StyleSheet.create({
+  container: {
+    width: "100%",
+    gap: 2,
+    paddingTop: 12,
+  },
+  selector: {
+    minHeight: 26,
+    height: 26,
+    paddingHorizontal: 8,
+    paddingVertical: 0,
+    borderColor: Colors.light.dullWhite + "66",
+  },
+  selectorLeading: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    minWidth: 0,
+    marginRight: 6,
+  },
+  selectorLabel: {
+    flex: 1,
+    color: Colors.light.white,
+    fontFamily: fonts.primary.semiBold,
+    fontSize: 14,
+    fontWeight: "500",
+    lineHeight: 18,
+    letterSpacing: -0.3,
+  },
+  dropdownMenu: {
+    marginTop: 2,
+    paddingVertical: 4,
+    paddingHorizontal: 4,
+  },
+  dropdownOption: {
+    gap: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 4,
+    minHeight: 26,
+  },
+  dropdownLabel: {
+    flex: 1,
+    color: Colors.light.white,
+    fontFamily: fonts.primary.medium,
+    fontSize: 12,
+    fontWeight: "500",
+    lineHeight: 16,
+    letterSpacing: -0.3,
+  },
+  description: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.regular,
+    fontSize: 10,
+    lineHeight: 14,
+    opacity: 0.8,
+    textAlign: "left",
+    alignSelf: "stretch",
+    width: "100%",
+    marginTop: -2,
+  },
+});
+
+type QiyamStepId =
+  | "date"
+  | "prayers-quantity"
+  | "when-pray"
+  | "start-time"
+  | "time-spent"
+  | "witr";
+const STEPS: QiyamStepId[] = [
+  "date",
+  "prayers-quantity",
+  "when-pray",
+  "start-time",
+  "time-spent",
+  "witr",
+];
 
 type Props = { goalData: GoalData; onLogComplete?: (entry: ProgressLogEntry) => void; };
 type FlowMode = "collapsed" | "active";
@@ -119,18 +245,31 @@ const toDateString = (date: Date) => moment(date).format("YYYY-MM-DD");
 
 export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
   const { t } = useTranslation();
+  const { data: me } = useGetMe();
+  const isFemale = me?.gender?.toUpperCase() === "FEMALE";
+  const timingOptions = useMemo(
+    () => getQiyamTimingOptions(isFemale),
+    [isFemale],
+  );
   const [flowMode, setFlowMode] = useState<FlowMode>("collapsed");
   const [stepIndex, setStepIndex] = useState(0);
   const [selectedDate, setSelectedDate] = useState(toDateString(new Date()));
   const [prayersCount, setPrayersCount] = useState("4");
   const [loggedTime, setLoggedTime] = useState<"after-isha" | "before-fajr">("before-fajr");
   const [isTimingDropdownOpen, setIsTimingDropdownOpen] = useState(false);
-  const [startHour, setStartHour] = useState("02");
-  const [startMinute, setStartMinute] = useState("00");
-  const [startPeriod, setStartPeriod] = useState<"am" | "pm">("am");
+  const [startHour, setStartHour] = useState(
+    () => getCurrentStartTimeParts().hour,
+  );
+  const [startMinute, setStartMinute] = useState(
+    () => getCurrentStartTimeParts().minute,
+  );
+  const [startPeriod, setStartPeriod] = useState<"am" | "pm">(
+    () => getCurrentStartTimeParts().period,
+  );
   const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
   const [durationHours, setDurationHours] = useState("0");
   const [durationMinutes, setDurationMinutes] = useState("20");
+  const [concludedWithWitr, setConcludedWithWitr] = useState<"Yes" | "No">("No");
   const MOCK_PERCENTAGE = 40;
   const totalPrayersRequired = 40;
   const mockTitle = `${totalPrayersRequired} 2-Rak'ah Qiyam Al-Layl Prayers`;
@@ -156,28 +295,101 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
   };
 
   const resetFlow = useCallback(() => {
-    setFlowMode("collapsed"); setStepIndex(0); setSelectedDate(toDateString(new Date()));
-    setPrayersCount("4"); setLoggedTime("before-fajr"); setIsTimingDropdownOpen(false); setStartHour("02"); setStartMinute("00"); setStartPeriod("am");
-    setDurationHours("0"); setDurationMinutes("20"); setIsPeriodDropdownOpen(false);
+    const now = getCurrentStartTimeParts();
+    setFlowMode("collapsed");
+    setStepIndex(0);
+    setSelectedDate(toDateString(new Date()));
+    setPrayersCount("0");
+    setLoggedTime("before-fajr");
+    setIsTimingDropdownOpen(false);
+    setStartHour(now.hour);
+    setStartMinute(now.minute);
+    setStartPeriod(now.period);
+    setDurationHours("0");
+    setDurationMinutes("0");
+    setConcludedWithWitr("No");
+    setIsPeriodDropdownOpen(false);
   }, []);
 
   const handleConfirm = () => {
     setHasLogged(true);
-    onLogComplete?.({ type: "qiyam-al-layl", goalId: goalData.id, date: selectedDate, prayersCount, loggedTime, startTime: `${startHour}:${startMinute} ${startPeriod}`, durationHours, durationMinutes } as any);
+    onLogComplete?.({
+      type: "qiyam-al-layl",
+      goalId: goalData.id,
+      date: selectedDate,
+      prayersCount,
+      loggedTime,
+      startTime: `${startHour}:${startMinute} ${startPeriod}`,
+      durationHours,
+      durationMinutes,
+      concludedWithWitr: concludedWithWitr === "Yes",
+    } as ProgressLogEntry);
     resetFlow();
   };
 
-  const handleBack = () => { if (stepIndex === 0) { resetFlow(); return; } setStepIndex((i) => i - 1); };
-  const handleForward = () => { if (!isLastStep) setStepIndex((i) => i + 1); };
-  const handleOpenFlow = useCallback(() => { setFlowMode("active"); }, []);
+  const handleBack = () => {
+    setIsTimingDropdownOpen(false);
+    if (stepIndex === 0) {
+      resetFlow();
+      return;
+    }
+    setStepIndex((i) => i - 1);
+  };
+  const handleForward = () => {
+    setIsTimingDropdownOpen(false);
+    if (!isLastStep) setStepIndex((i) => i + 1);
+  };
+  const handleOpenFlow = useCallback(() => {
+    const now = getCurrentStartTimeParts();
+    setStartHour(now.hour);
+    setStartMinute(now.minute);
+    setStartPeriod(now.period);
+    setFlowMode("active");
+  }, []);
+
+  const isDropdownOpen =
+    flowMode === "active" &&
+    currentStep === "when-pray" &&
+    isTimingDropdownOpen;
 
   const getStepHeader = (step: QiyamStepId) => {
     switch (step) {
-      case "date": return { icon: <Ionicons name="calendar-outline" size={15} color={Colors.light.white} />, label: "Which night are you logging for?" };
-      case "prayers-quantity": return { icon: <MaterialCommunityIcons name="star-crescent" size={16} color={Colors.light.white} />, label: "How many 2-rak'ah prayers did you pray?" };
-      case "when-pray": return { icon: <MaterialCommunityIcons name="star-crescent" size={16} color={Colors.light.white} />, label: "When did you pray?" };
-      case "start-time": return { icon: <Ionicons name="time-outline" size={15} color={Colors.light.white} />, label: "Enter start time." };
-      case "time-spent": return { icon: <Ionicons name="timer-outline" size={15} color={Colors.light.white} />, label: "Enter time spent." };
+      case "date":
+        return {
+          icon: <CalendarFlippingIcon size={24} />,
+          label: "Which night are you logging for?",
+        };
+      case "prayers-quantity":
+        return {
+          icon: (
+            <MaterialCommunityIcons
+              name="star-crescent"
+              size={26}
+              color={Colors.light.white}
+            />
+          ),
+          label: "How many 2-rak'ah prayers did you pray?",
+        };
+      case "start-time":
+        return {
+          icon: <WhiteClockIcon size={26} />,
+          label: "Enter start time.",
+        };
+      case "time-spent":
+        return {
+          icon: <WhiteTimerIcon size={26} />,
+          label: "Enter time spent.",
+        };
+      case "when-pray":
+        return {
+          icon: <QiyamWhenDidYouPrayIcon size={20} />,
+          label: "When did you pray?",
+        };
+      case "witr":
+        return {
+          icon: <WhitePrayerMatIcon size={26} />,
+          label: "Did you conclude with Witr?",
+        };
     }
   };
 
@@ -185,20 +397,61 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
     switch (step) {
       case "date": return <DateStep dateLabel={dateLabel} selectedDate={selectedDate} todayString={todayString} onShiftDate={shiftDate} styles={commonStyles} />;
       case "prayers-quantity": return <PrayerQuantityInputStep quantity={prayersCount} setQuantity={setPrayersCount} styles={commonStyles} />;
-      case "when-pray": return <QiyamTimingStep loggedTime={loggedTime} setLoggedTime={setLoggedTime} isOpen={isTimingDropdownOpen} setIsOpen={setIsTimingDropdownOpen} styles={commonStyles} />;
       case "start-time": return <StartTimeStep startHour={startHour} setStartHour={setStartHour} startMinute={startMinute} setStartMinute={setStartMinute} startPeriod={startPeriod} setStartPeriod={setStartPeriod} isPeriodDropdownOpen={isPeriodDropdownOpen} setIsPeriodDropdownOpen={setIsPeriodDropdownOpen} styles={commonStyles} />;
       case "time-spent": return <DurationStep durationHours={durationHours} setDurationHours={setDurationHours} durationMinutes={durationMinutes} setDurationMinutes={setDurationMinutes} styles={commonStyles} />;
+      case "when-pray":
+        return (
+          <QiyamTimingStep
+            loggedTime={loggedTime}
+            setLoggedTime={setLoggedTime}
+            isOpen={isTimingDropdownOpen}
+            setIsOpen={setIsTimingDropdownOpen}
+            timingOptions={timingOptions}
+            styles={commonStyles}
+          />
+        );
+      case "witr":
+        return (
+          <OptionSelectStep<"Yes" | "No">
+            options={["Yes", "No"]}
+            selectedValue={concludedWithWitr}
+            onSelectValue={setConcludedWithWitr}
+            getLabel={(option) => option}
+            radioInnerColor={Colors.light.white}
+            styles={commonStyles}
+          />
+        );
     }
   };
 
   const stepHeader = getStepHeader(currentStep);
 
   return (
-    <View style={commonStyles.section}>
-      <Text style={commonStyles.sectionTitle}>{t("progressLogging.myProgress")}</Text>
-      <View style={commonStyles.cardAnchor}>
-        {flowMode === "active" && <Pressable style={commonStyles.backdrop} onPress={resetFlow} />}
-        {flowMode === "active" && <TouchableOpacity style={commonStyles.cancelButton} onPress={resetFlow} activeOpacity={0.8}><Ionicons name="close" size={20} color={Colors.light.white} /></TouchableOpacity>}
+    <>
+      {flowMode === "active" && (
+        <Pressable style={commonStyles.backdrop} onPress={resetFlow} />
+      )}
+      {flowMode === "active" && (
+        <TouchableOpacity
+          style={commonStyles.cancelButton}
+          onPress={resetFlow}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="close" size={20} color={Colors.light.white} />
+        </TouchableOpacity>
+      )}
+
+      <View style={commonStyles.section}>
+        <Text style={commonStyles.sectionTitle}>
+          {t("progressLogging.myProgress")}
+        </Text>
+
+        <View
+          style={[
+            commonStyles.cardAnchor,
+            isDropdownOpen && commonStyles.flowCardLayerDropdownOpen,
+          ]}
+        >
         {flowMode === "collapsed" ? (
           <View style={localStyles.summaryCard}>
             <View style={localStyles.summaryBody}>
@@ -258,14 +511,45 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
             </TouchableOpacity>
           </View>
         ) : (
-          <View style={commonStyles.flowCardLayer}>
-            <FlowCard headerIcon={stepHeader.icon} headerLabel={stepHeader.label} onBack={handleBack} onForward={handleForward} onConfirm={handleConfirm} canGoForward={!isLastStep} styles={commonStyles} style={[commonStyles.inPlaceFlowCard, currentStep === "when-pray" ? { height: 210 } : {}]}>
+          <View
+            style={[
+              commonStyles.flowCardLayer,
+              isDropdownOpen && commonStyles.flowCardLayerDropdownOpen,
+            ]}
+          >
+            <FlowCard
+              headerIcon={stepHeader.icon}
+              headerLabel={stepHeader.label}
+              onBack={handleBack}
+              onForward={handleForward}
+              onConfirm={handleConfirm}
+              canGoForward={!isLastStep}
+              canGoBack={stepIndex > 0}
+              canConfirm={isLastStep}
+              showConfirmButton={currentStep !== "when-pray"}
+              styles={commonStyles}
+              style={[
+                commonStyles.inPlaceFlowCard,
+                isDropdownOpen && commonStyles.flowCardDropdownOpen,
+              ]}
+              contentStyle={
+                currentStep === "when-pray"
+                  ? [
+                      localStyles.whenPrayFlowContent,
+                      isDropdownOpen && commonStyles.flowContentDropdownOpen,
+                    ]
+                  : isDropdownOpen
+                    ? commonStyles.flowContentDropdownOpen
+                    : undefined
+              }
+            >
               {renderStepContent(currentStep)}
             </FlowCard>
           </View>
         )}
+        </View>
       </View>
-    </View>
+    </>
   );
 }
 
@@ -357,5 +641,11 @@ const localStyles = StyleSheet.create({
   },
   spacer: {
     flex: 1,
+  },
+  whenPrayFlowContent: {
+    justifyContent: "flex-start",
+    paddingTop: 0,
+    marginBottom: 0,
+    paddingBottom: 0,
   },
 });

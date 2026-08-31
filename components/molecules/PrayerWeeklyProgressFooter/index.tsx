@@ -21,6 +21,11 @@ export type PrayerWeeklyProgressFooterProps = {
   streakVariant?: "green" | "default";
 };
 
+/** Fixed quote block height — keeps week 1 / 2–4 dashboard cards the same size. */
+const QUOTE_LINE_HEIGHT = 16;
+const QUOTE_LINE_COUNT = 3;
+const QUOTE_BLOCK_MIN_HEIGHT = QUOTE_LINE_HEIGHT * QUOTE_LINE_COUNT;
+
 export function PrayerWeeklyProgressFooter({
   loading = false,
   streakDays = 0,
@@ -70,7 +75,7 @@ export function PrayerWeeklyProgressFooter({
           <View style={styles.quoteBlockInline}>
             <AimIcon />
             <View style={styles.quoteTextWrapInline}>
-              <Text style={styles.quoteText} numberOfLines={2}>
+              <Text style={styles.quoteText} numberOfLines={QUOTE_LINE_COUNT}>
                 {resolvedQuote}
               </Text>
             </View>
@@ -101,10 +106,10 @@ export function PrayerWeeklyProgressFooter({
         </View>
       </View>
 
-      <View style={styles.quoteBlockFull}>
+        <View style={styles.quoteBlockFull}>
         <AimIcon />
         <View style={styles.quoteTextWrapFull}>
-          <Text style={styles.quoteText} numberOfLines={2}>
+          <Text style={styles.quoteText} numberOfLines={QUOTE_LINE_COUNT}>
             {resolvedQuote}
           </Text>
         </View>
@@ -119,7 +124,7 @@ const styles = StyleSheet.create({
   },
   footerSectionLaterWeeks: {
     width: "100%",
-    gap: 2,
+    gap: 6,
   },
   footerRowWeekOne: {
     flexDirection: "row",
@@ -192,6 +197,8 @@ const styles = StyleSheet.create({
   quoteTextWrapInline: {
     flex: 1,
     minWidth: 0,
+    minHeight: QUOTE_BLOCK_MIN_HEIGHT,
+    justifyContent: "flex-start",
   },
   quoteBlockFull: {
     flexDirection: "row",
@@ -204,11 +211,13 @@ const styles = StyleSheet.create({
   quoteTextWrapFull: {
     flex: 1,
     minWidth: 0,
+    minHeight: QUOTE_BLOCK_MIN_HEIGHT,
+    justifyContent: "flex-start",
   },
   quoteText: {
     color: Colors.light.white,
     fontSize: 13,
-    lineHeight: 14,
+    lineHeight: QUOTE_LINE_HEIGHT,
     letterSpacing: -0.1,
     fontFamily: fonts.primary.regular,
     fontWeight: "400",

@@ -223,7 +223,9 @@ export function SinglePrayerWeeklyProgressDashboard({
       <View
         style={[
           styles.statsAndFooterContainer,
-          vsLastWeek != null && styles.statsAndFooterContainerLaterWeek,
+          vsLastWeek == null
+            ? styles.statsAndFooterContainerWeekOne
+            : styles.statsAndFooterContainerLaterWeek,
         ]}
       >
         <View style={styles.statsRow}>
@@ -369,13 +371,17 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.bold,
     letterSpacing: 0.1,
   },
-  // Week 1 keeps natural height — do not constrain this.
   statsAndFooterContainer: {
     gap: 3,
   },
-  // Weeks 2–4 only: pull stats + footer up so card height matches week 1.
-  statsAndFooterContainerLaterWeek: {
-    marginTop: -19,
+  // Week 1: pull stats + footer up slightly to tighten card height.
+  statsAndFooterContainerWeekOne: {
+    marginTop: 1,
     gap: 2,
+  },
+  // Weeks 2–4: extra row gaps; marginTop offsets so card height matches week 1.
+  statsAndFooterContainerLaterWeek: {
+    gap: 8,
+    marginTop: -28,
   },
 });
