@@ -105,7 +105,12 @@ export const StartTimeStep: React.FC<StartTimeStepProps> = ({
             activeOpacity={0.8}
           >
             <Text style={styles.periodText}>{startPeriod}</Text>
-            <Ionicons name="chevron-down" size={14} color={Colors.light.white} style={{ marginTop: 2 }} />
+            <Ionicons
+              name="chevron-down"
+              size={14}
+              color={Colors.light.white}
+              style={{ marginTop: 2 }}
+            />
           </TouchableOpacity>
 
           {isPeriodDropdownOpen && (
@@ -158,7 +163,8 @@ export const DurationStep: React.FC<DurationStepProps> = ({
   const [isHourFocused, setIsHourFocused] = React.useState(false);
   const [isMinuteFocused, setIsMinuteFocused] = React.useState(false);
 
-  const sanitizeDigits = (text: string) => text.replace(/[^0-9]/g, "").slice(0, 2);
+  const sanitizeDigits = (text: string) =>
+    text.replace(/[^0-9]/g, "").slice(0, 2);
 
   const clearDefaultZero = (value: string, setValue: (v: string) => void) => {
     if (value === "0" || value === "00") {

@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { api } from "..";
 import { resolvePrayerType } from "@/src/utils/prayerGoalMap";
+import type { SunnahRawatibSlotKey } from "./useGetPrayerGoalFrame";
 
 export type FiveDailyPrayerSlotKey =
   | "FAJR"
@@ -66,9 +67,101 @@ export type MissedPastPrayerDayDetail = {
   slots: Partial<Record<FiveDailyPrayerSlotKey, MissedPastPrayerDayDetailSlot>>;
 };
 
+export type SunnahRawatibDayDetailSlot = {
+  display?: string;
+  enabled?: boolean;
+  dailyTarget?: number;
+  logged: boolean;
+  loggedCount: number;
+  prayedOnTime?: boolean | null;
+  wasQadha?: boolean | null;
+  wasCongregational?: boolean | null;
+  mosqueName?: string | null;
+  prayerStartTime?: string | null;
+  durationMinutes?: number | null;
+  notes?: string | null;
+  loggedAt?: string | null;
+  canLog?: boolean;
+};
+
+export type SunnahRawatibDayDetail = {
+  date: string;
+  hasLoggedAnyPrayer: boolean;
+  goal: {
+    targetCount: number;
+    completedCount: number;
+    achievementPct: number;
+    status: string;
+  };
+  slots: Partial<Record<SunnahRawatibSlotKey, SunnahRawatibDayDetailSlot>>;
+};
+
 export type PrayerGoalDayDetail =
   | FiveDailyPrayerDayDetail
-  | MissedPastPrayerDayDetail;
+  | MissedPastPrayerDayDetail
+  | SunnahRawatibDayDetail;
+
+const SUNNAH_RAWATIB_SLOT_KEYS: SunnahRawatibSlotKey[] = [
+  "BEFORE_FAJR",
+  "BEFORE_DHUHR",
+  "AFTER_DHUHR",
+  "BEFORE_ASR",
+  "AFTER_MAGHRIB",
+  "AFTER_ISHA",
+];
+
+function recordHasSunnahSlotKey(
+  record: Record<string, unknown> | null | undefined,
+): boolean {
+  if (!record) return false;
+  return SUNNAH_RAWATIB_SLOT_KEYS.some((key) => key in record);
+}
+
+/** Units logged for a Sunnah Rawatib slot from day-detail payload. */
+export function readSunnahRawatibSlotLoggedCount(
+  slot: SunnahRawatibDayDetailSlot | undefined,
+): number {
+  if (!slot) return 0;
+  if (
+    typeof slot.loggedCount === "number" &&
+    Number.isFinite(slot.loggedCount)
+  ) {
+    return Math.max(0, slot.loggedCount);
+  }
+  return slot.logged ? 1 : 0;
+}
+
+/** Daily target (prayer units) for a Sunnah Rawatib slot. */
+export function readSunnahRawatibSlotDailyTarget(
+  slot: SunnahRawatibDayDetailSlot | undefined,
+): number {
+  if (!slot) return 0;
+  if (
+    typeof slot.dailyTarget === "number" &&
+    Number.isFinite(slot.dailyTarget)
+  ) {
+    return Math.max(0, slot.dailyTarget);
+  }
+  return 0;
+}
+
+/** True when the slot is part of the user's goal (ignores logging window). */
+export function isSunnahRawatibSlotInGoal(
+  slot: SunnahRawatibDayDetailSlot | undefined,
+): boolean {
+  if (!slot) return false;
+  if (slot.enabled === false) return false;
+  return readSunnahRawatibSlotDailyTarget(slot) > 0;
+}
+
+/** True when the slot is part of the goal and currently open for logging. */
+export function isSunnahRawatibSlotSelectable(
+  slot: SunnahRawatibDayDetailSlot | undefined,
+): boolean {
+  if (!isSunnahRawatibSlotInGoal(slot)) return false;
+  if (slot?.canLog === false) return false;
+  return true;
+}
 
 const postPrayerGoalDayDetail = async (
   prayerType: string,
@@ -79,6 +172,13 @@ const postPrayerGoalDayDetail = async (
     `api/goal-cycles/current/prayer-goals/${resolved}/day-detail`,
     { date },
   );
+  console.log("================================================");
+  console.log(
+    "the day detail is",
+    JSON.stringify(response.data?.data, null, 2),
+  );
+  console.log("================================================");
+
   return response.data?.data ?? null;
 };
 
@@ -97,8 +197,7 @@ export const useGetPrayerGoalDayDetail = (
   options?: { enabled?: boolean },
 ) => {
   const prayerType = prayerTypeInput ? resolvePrayerType(prayerTypeInput) : "";
-  const enabled =
-    !!prayerType && !!date && (options?.enabled ?? true);
+  const enabled = !!prayerType && !!date && (options?.enabled ?? true);
 
   return useQuery({
     queryKey: ["prayer-goal-day-detail", prayerType, date],
@@ -109,14 +208,27 @@ export const useGetPrayerGoalDayDetail = (
   });
 };
 
+export function isSunnahRawatibDayDetail(
+  data: PrayerGoalDayDetail | null | undefined,
+): data is SunnahRawatibDayDetail {
+  return recordHasSunnahSlotKey(
+    (data as SunnahRawatibDayDetail | null | undefined)?.slots as Record<
+      string,
+      unknown
+    >,
+  );
+}
+
 export function isMissedPastPrayerDayDetail(
   data: PrayerGoalDayDetail | null | undefined,
 ): data is MissedPastPrayerDayDetail {
-  return !!data && "slotProgress" in data;
+  return !!data && "slotProgress" in data && !isSunnahRawatibDayDetail(data);
 }
 
 export function isFiveDailyDayDetail(
   data: PrayerGoalDayDetail | null | undefined,
 ): data is FiveDailyPrayerDayDetail {
-  return !!data && !("slotProgress" in data);
+  return (
+    !!data && !("slotProgress" in data) && !isSunnahRawatibDayDetail(data)
+  );
 }

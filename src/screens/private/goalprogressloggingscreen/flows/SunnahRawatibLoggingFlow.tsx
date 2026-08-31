@@ -31,6 +31,7 @@ import {
   StartTimeStep,
   DurationStep,
   getCurrentStartTimeParts,
+  isDurationEntered,
 } from "../components/TimePickerSteps";
 import { OptionSelectStep } from "../components/OptionSelectStep";
 import { FlowCard } from "../components/FlowCard";
@@ -49,6 +50,16 @@ import {
 import { resolvePrayerTypeFromGoalId } from "@/src/utils/prayerGoalMap";
 import { useGetPrayerGoalFrame } from "@/src/api/queries/useGetPrayerGoalFrame";
 import type { PrayerGoalFrameData } from "@/src/api/queries/useGetPrayerGoalFrame";
+import {
+  isFiveDailyDayDetail,
+  isMissedPastPrayerDayDetail,
+  isPrayerGoalDayDetailForDate,
+  isSunnahRawatibSlotInGoal,
+  readSunnahRawatibSlotDailyTarget,
+  readSunnahRawatibSlotLoggedCount,
+  useGetPrayerGoalDayDetail,
+  type SunnahRawatibDayDetail,
+} from "@/src/api/queries/useGetPrayerGoalDayDetail";
 import {
   useLogSunnahRawatibGoal,
   type LogSunnahRawatibPayload,
@@ -151,7 +162,7 @@ export default function SunnahRawatibLoggingFlow({
   const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
 
   const [durationHours, setDurationHours] = useState("0");
-  const [durationMinutes, setDurationMinutes] = useState("10");
+  const [durationMinutes, setDurationMinutes] = useState("0");
   const [prayerSelectPage, setPrayerSelectPage] = useState(0);
 
   const { mutateAsync: logSunnah, isPending: isLogging } =
@@ -169,7 +180,7 @@ export default function SunnahRawatibLoggingFlow({
   const beforeAsrPrayersPerDay = getSunnahBeforeAsrPrayersPerDay(slotConfig);
   const beforeAsrInGoal = beforeAsrPrayersPerDay > 0;
 
-  const availableSunnahOptions = useMemo(
+  const frameAvailableSunnahOptions = useMemo(
     () =>
       SUNNAH_OPTION_IDS.filter((id) => {
         if (id === "before_asr" && !beforeAsrInGoal) return false;
@@ -178,7 +189,7 @@ export default function SunnahRawatibLoggingFlow({
     [beforeAsrInGoal],
   );
 
-  /** Fixed / max prayer count for a slot (target for "fully logged"). */
+  /** Fixed / max prayer count for a slot (frame fallback before day-detail loads). */
   const getSlotTargetCount = useCallback(
     (prayerId: SunnahPrayerId): number => {
       switch (prayerId) {
@@ -247,6 +258,36 @@ export default function SunnahRawatibLoggingFlow({
       enabled: selectedDateWeekNumber != null,
     });
 
+  const {
+    data: dayDetailRaw,
+    isLoading: dayDetailLoading,
+    isFetching: dayDetailFetching,
+    refetch: refetchDayDetail,
+  } = useGetPrayerGoalDayDetail(prayerType, selectedDate, {
+    enabled: flowMode === "active" && !!selectedDate,
+  });
+
+  const dayDetail = useMemo((): SunnahRawatibDayDetail | null => {
+    if (!isPrayerGoalDayDetailForDate(dayDetailRaw, selectedDate)) return null;
+    if (
+      isFiveDailyDayDetail(dayDetailRaw) ||
+      isMissedPastPrayerDayDetail(dayDetailRaw)
+    ) {
+      return null;
+    }
+    return dayDetailRaw as SunnahRawatibDayDetail;
+  }, [dayDetailRaw, selectedDate]);
+
+  /** Goal slots for this date — from day-detail `enabled` + `dailyTarget`. */
+  const availableSunnahOptions = useMemo(() => {
+    if (dayDetail?.slots) {
+      return SUNNAH_OPTION_IDS.filter((id) =>
+        isSunnahRawatibSlotInGoal(dayDetail.slots[SUNNAH_UI_TO_API_SLOT[id]]),
+      );
+    }
+    return frameAvailableSunnahOptions;
+  }, [dayDetail, frameAvailableSunnahOptions]);
+
   /** Prefer week query; fall back to dashboard frame when it already has this date. */
   const frameForSelectedDate = useMemo(() => {
     const dateIn = (candidate?: PrayerGoalFrameData | null) =>
@@ -259,31 +300,87 @@ export default function SunnahRawatibLoggingFlow({
     return selectedDateWeekFrame ?? frame;
   }, [selectedDateWeekFrame, frame, selectedDate]);
 
+  /** Slot targets for the selected date (day-detail `dailyTarget`, then frame config). */
+  const slotTargetsForSelectedDate = useMemo(() => {
+    const targets: Partial<Record<SunnahPrayerId, number>> = {};
+    for (const id of availableSunnahOptions) {
+      const apiKey = SUNNAH_UI_TO_API_SLOT[id];
+      const fromDetail = readSunnahRawatibSlotDailyTarget(
+        dayDetail?.slots?.[apiKey],
+      );
+      targets[id] = fromDetail > 0 ? fromDetail : getSlotTargetCount(id);
+    }
+    return targets;
+  }, [availableSunnahOptions, dayDetail, getSlotTargetCount]);
+
   /** Prayer units already logged per slot for the selected date. */
   const slotLoggedCountsForSelectedDate = useMemo(() => {
+    const counts: Partial<Record<SunnahPrayerId, number>> = {};
+    const optionIds = dayDetail?.slots
+      ? SUNNAH_OPTION_IDS.filter((id) =>
+          isSunnahRawatibSlotInGoal(dayDetail.slots[SUNNAH_UI_TO_API_SLOT[id]]),
+        )
+      : availableSunnahOptions;
+
+    if (dayDetail?.slots) {
+      for (const id of optionIds) {
+        const apiKey = SUNNAH_UI_TO_API_SLOT[id];
+        counts[id] = readSunnahRawatibSlotLoggedCount(dayDetail.slots[apiKey]);
+      }
+      return counts;
+    }
+
     const day = frameForSelectedDate?.week.days.find(
       (d) => d.date === selectedDate || d.date.startsWith(`${selectedDate}`),
     );
-    const counts: Partial<Record<SunnahPrayerId, number>> = {};
     if (!day?.slots) return counts;
 
-    for (const id of availableSunnahOptions) {
+    for (const id of optionIds) {
       const raw = (day.slots as Record<string, unknown>)[
         SUNNAH_UI_TO_API_SLOT[id]
       ];
-      if (typeof raw === "number" && Number.isFinite(raw) && raw > 0) {
+      if (typeof raw === "number" && Number.isFinite(raw)) {
         counts[id] = Math.max(0, raw);
       }
     }
     return counts;
-  }, [frameForSelectedDate, selectedDate, availableSunnahOptions]);
+  }, [dayDetail, frameForSelectedDate, selectedDate, availableSunnahOptions]);
+
+  const lockedPrayersForSelectedDate = useMemo(() => {
+    if (!dayDetail?.slots) return [] as SunnahPrayerId[];
+    return availableSunnahOptions.filter((id) => {
+      const slot = dayDetail.slots?.[SUNNAH_UI_TO_API_SLOT[id]];
+      if (!slot) return false;
+      const logged = readSunnahRawatibSlotLoggedCount(slot);
+      const target = slotTargetsForSelectedDate[id] ?? getSlotTargetCount(id);
+      if (logged >= target) return false;
+      return slot.canLog === false;
+    });
+  }, [
+    dayDetail,
+    availableSunnahOptions,
+    slotTargetsForSelectedDate,
+    getSlotTargetCount,
+  ]);
+
+  /** Block only the initial day-detail fetch — not background refetches. */
+  const dayDetailLoadingState =
+    flowMode === "active" &&
+    dayDetail == null &&
+    (dayDetailLoading || dayDetailFetching);
 
   const isPrayerFullyLogged = useCallback(
     (prayerId: SunnahPrayerId) => {
       const logged = slotLoggedCountsForSelectedDate[prayerId] ?? 0;
-      return logged >= getSlotTargetCount(prayerId);
+      const target =
+        slotTargetsForSelectedDate[prayerId] ?? getSlotTargetCount(prayerId);
+      return logged >= target;
     },
-    [slotLoggedCountsForSelectedDate, getSlotTargetCount],
+    [
+      slotLoggedCountsForSelectedDate,
+      slotTargetsForSelectedDate,
+      getSlotTargetCount,
+    ],
   );
 
   /** Slots with any logged units for this date — show tick (Five Daily style). */
@@ -295,28 +392,45 @@ export default function SunnahRawatibLoggingFlow({
     [availableSunnahOptions, slotLoggedCountsForSelectedDate],
   );
 
-  const fullyLoggedPrayersForSelectedDate = useMemo(
-    () => availableSunnahOptions.filter((id) => isPrayerFullyLogged(id)),
-    [availableSunnahOptions, isPrayerFullyLogged],
+  const hasSelectablePrayer = useMemo(
+    () =>
+      availableSunnahOptions.some(
+        (id) =>
+          !isPrayerFullyLogged(id) &&
+          !lockedPrayersForSelectedDate.includes(id),
+      ),
+    [availableSunnahOptions, isPrayerFullyLogged, lockedPrayersForSelectedDate],
   );
 
-  const hasSelectablePrayer =
-    fullyLoggedPrayersForSelectedDate.length < availableSunnahOptions.length;
-
   const remainingCountForSelected = useMemo(() => {
-    const target = getSlotTargetCount(selectedPrayer);
+    const target =
+      slotTargetsForSelectedDate[selectedPrayer] ??
+      getSlotTargetCount(selectedPrayer);
     const logged = slotLoggedCountsForSelectedDate[selectedPrayer] ?? 0;
     return Math.max(0, target - logged);
-  }, [getSlotTargetCount, selectedPrayer, slotLoggedCountsForSelectedDate]);
+  }, [
+    slotTargetsForSelectedDate,
+    getSlotTargetCount,
+    selectedPrayer,
+    slotLoggedCountsForSelectedDate,
+  ]);
 
   /**
-   * Count step only when user can still choose 1 or 2 (variable dual slots with
-   * full remaining capacity). Fixed / partially filled slots skip and auto-count.
+   * Count step only on the first log for a dual-capacity slot (target ≥ 2, logged 0).
+   * If the user already logged 1 of 2, the remaining 1 is implied — skip the step.
    */
-  const requiresPrayerCountStep =
-    remainingCountForSelected >= 2 &&
-    ((selectedPrayer === "after_dhuhr" && afterDhuhrPrayersPerDay === 2) ||
-      (selectedPrayer === "before_asr" && beforeAsrPrayersPerDay === 2));
+  const requiresPrayerCountStep = useMemo(() => {
+    const target =
+      slotTargetsForSelectedDate[selectedPrayer] ??
+      getSlotTargetCount(selectedPrayer);
+    const logged = slotLoggedCountsForSelectedDate[selectedPrayer] ?? 0;
+    return target >= 2 && logged === 0;
+  }, [
+    slotTargetsForSelectedDate,
+    getSlotTargetCount,
+    selectedPrayer,
+    slotLoggedCountsForSelectedDate,
+  ]);
 
   const STEPS: SunnahPrayerStepId[] = useMemo(
     () =>
@@ -394,7 +508,7 @@ export default function SunnahRawatibLoggingFlow({
     setStartMinute(now.minute);
     setStartPeriod(now.period);
     setDurationHours("0");
-    setDurationMinutes("10");
+    setDurationMinutes("0");
     setIsPeriodDropdownOpen(false);
   }, [availableSunnahOptions]);
 
@@ -402,6 +516,11 @@ export default function SunnahRawatibLoggingFlow({
     if (isFullyAchieved) return;
     setFlowMode("active");
   }, [isFullyAchieved]);
+
+  useEffect(() => {
+    if (flowMode !== "active" || !selectedDate) return;
+    void refetchDayDetail();
+  }, [flowMode, selectedDate, refetchDayDetail]);
 
   const handleBack = () => {
     if (stepIndex === 0) {
@@ -413,14 +532,17 @@ export default function SunnahRawatibLoggingFlow({
 
   const handleForward = () => {
     if (currentStep === "select-prayer") {
+      if (dayDetailLoadingState) return;
       if (!hasSelectablePrayer) return;
       if (isPrayerFullyLogged(selectedPrayer)) return;
+      if (lockedPrayersForSelectedDate.includes(selectedPrayer)) return;
     }
     if (!isLastStep) setStepIndex((i) => i + 1);
   };
 
   const handleSelectPrayer = (id: SunnahPrayerId) => {
     if (isPrayerFullyLogged(id)) return;
+    if (lockedPrayersForSelectedDate.includes(id)) return;
     setSelectedPrayer(id);
     setPrayerCount("1");
   };
@@ -443,14 +565,14 @@ export default function SunnahRawatibLoggingFlow({
 
   const getCountToLog = () => {
     if (requiresPrayerCountStep) return Number(prayerCount);
+    const target =
+      slotTargetsForSelectedDate[selectedPrayer] ??
+      getSlotTargetCount(selectedPrayer);
     // Partial dual slot: only log remaining; otherwise log the slot target.
-    if (
-      remainingCountForSelected > 0 &&
-      remainingCountForSelected < getSlotTargetCount(selectedPrayer)
-    ) {
+    if (remainingCountForSelected > 0 && remainingCountForSelected < target) {
       return remainingCountForSelected;
     }
-    return getSlotTargetCount(selectedPrayer);
+    return target;
   };
 
   const handleConfirm = () => {
@@ -468,7 +590,11 @@ export default function SunnahRawatibLoggingFlow({
     void (async () => {
       try {
         await logSunnah(payload);
-        await Promise.all([prayerFrame?.refetch(), refetchSelectedDateWeek()]);
+        await Promise.all([
+          prayerFrame?.refetch(),
+          refetchSelectedDateWeek(),
+          refetchDayDetail(),
+        ]);
         onLogComplete?.({
           type: "sunnah-rawatib",
           goalId: goalData.id,
@@ -540,6 +666,7 @@ export default function SunnahRawatibLoggingFlow({
 
   const renderPrayerSelectStep = (loggedPrayers: readonly SunnahPrayerId[]) => {
     const loggedSet = new Set(loggedPrayers);
+    const lockedSet = new Set(lockedPrayersForSelectedDate);
     const pageOptions = paginatePrayerSelect
       ? availableSunnahOptions.slice(
           prayerSelectPage * PRAYER_PAGE_SIZE,
@@ -581,7 +708,8 @@ export default function SunnahRawatibLoggingFlow({
             const isSelected = selectedPrayer === id;
             const isLogged = loggedSet.has(id);
             const isFullyLogged = isPrayerFullyLogged(id);
-            // Tick + green for any logged slot; disable only when target is met.
+            const isLocked = lockedSet.has(id);
+            // Tick + green for any logged slot; disable when target met or locked.
             const showHighlight = isSelected || isLogged;
             const isFirst = globalIndex === 0;
             const isLast = globalIndex === availableSunnahOptions.length - 1;
@@ -592,8 +720,8 @@ export default function SunnahRawatibLoggingFlow({
                 key={id}
                 style={commonStyles.prayerColumn}
                 onPress={() => handleSelectPrayer(id)}
-                activeOpacity={isFullyLogged ? 1 : 0.8}
-                disabled={isFullyLogged}
+                activeOpacity={isFullyLogged || isLocked ? 1 : 0.8}
+                disabled={isFullyLogged || isLocked}
               >
                 <View
                   style={[
@@ -837,15 +965,19 @@ export default function SunnahRawatibLoggingFlow({
                   !isLastStep &&
                   !(
                     currentStep === "select-prayer" &&
-                    (!hasSelectablePrayer ||
-                      isPrayerFullyLogged(selectedPrayer))
+                    (dayDetailLoadingState ||
+                      !hasSelectablePrayer ||
+                      isPrayerFullyLogged(selectedPrayer) ||
+                      lockedPrayersForSelectedDate.includes(selectedPrayer))
                   )
                 }
                 canGoBack={stepIndex > 0}
                 canConfirm={
                   isLastStep &&
                   !isLogging &&
-                  !isPrayerFullyLogged(selectedPrayer)
+                  !isPrayerFullyLogged(selectedPrayer) &&
+                  !lockedPrayersForSelectedDate.includes(selectedPrayer) &&
+                  isDurationEntered(durationHours, durationMinutes)
                 }
                 styles={commonStyles}
                 style={commonStyles.inPlaceFlowCard}

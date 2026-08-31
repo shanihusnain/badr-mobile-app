@@ -6,11 +6,9 @@ import {
   View,
   TouchableOpacity,
   LayoutAnimation,
-  Platform,
   type TextLayoutEventData,
   type NativeSyntheticEvent,
 } from "react-native";
-import { Feather } from "@expo/vector-icons";
 import { Colors } from "../../constants/theme";
 import { fonts } from "../../assets/fonts";
 import CustomSlider from "../atoms/CustomSlider";
@@ -395,13 +393,13 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.medium,
     fontSize: 12,
     fontWeight: "500",
-    lineHeight: 18,
+    lineHeight: 13,
   },
   greyDescription: {
     color: Colors.light.dullDescriptionText,
     fontFamily: fonts.primary.regular,
     fontSize: 10,
-    lineHeight: 15,
+    // lineHeight: 15,
     fontWeight: "400",
   },
   resultContainer: {
@@ -420,7 +418,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.medium,
     fontSize: 14,
     fontWeight: "500",
-    lineHeight: 20,
+    // lineHeight: 20,
     marginBottom: 8,
     textAlign: "center",
   },

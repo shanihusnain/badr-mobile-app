@@ -268,8 +268,7 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
   );
   const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
   const [durationHours, setDurationHours] = useState("0");
-  const [durationMinutes, setDurationMinutes] = useState("20");
-  const [concludedWithWitr, setConcludedWithWitr] = useState<"Yes" | "No">("No");
+  const [durationMinutes, setDurationMinutes] = useState("0");
   const MOCK_PERCENTAGE = 40;
   const totalPrayersRequired = 40;
   const mockTitle = `${totalPrayersRequired} 2-Rak'ah Qiyam Al-Layl Prayers`;
@@ -295,20 +294,9 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
   };
 
   const resetFlow = useCallback(() => {
-    const now = getCurrentStartTimeParts();
-    setFlowMode("collapsed");
-    setStepIndex(0);
-    setSelectedDate(toDateString(new Date()));
-    setPrayersCount("0");
-    setLoggedTime("before-fajr");
-    setIsTimingDropdownOpen(false);
-    setStartHour(now.hour);
-    setStartMinute(now.minute);
-    setStartPeriod(now.period);
-    setDurationHours("0");
-    setDurationMinutes("0");
-    setConcludedWithWitr("No");
-    setIsPeriodDropdownOpen(false);
+    setFlowMode("collapsed"); setStepIndex(0); setSelectedDate(toDateString(new Date()));
+    setPrayersCount("4"); setLoggedTime("before-fajr"); setIsTimingDropdownOpen(false); setStartHour("02"); setStartMinute("00"); setStartPeriod("am");
+    setDurationHours("0"); setDurationMinutes("0"); setIsPeriodDropdownOpen(false);
   }, []);
 
   const handleConfirm = () => {

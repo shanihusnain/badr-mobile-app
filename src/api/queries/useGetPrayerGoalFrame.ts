@@ -138,6 +138,9 @@ const getPrayerGoalFrame = async (
   console.log(
     `[prayer-frame] requestedWeek=${week ?? "current"} returnedWeek=${payload?.cycle?.weekNumber ?? "?"} motivationalMessage=${JSON.stringify(payload?.week?.motivationalMessage ?? null)} weekSummaryMessage=${JSON.stringify(payload?.week?.weekSummaryMessage ?? null)}`,
   );
+  console.log("================================================");
+  console.log("the week detail is", JSON.stringify(payload, null, 2));
+  console.log("================================================");
   return payload;
 };
 

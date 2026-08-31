@@ -182,7 +182,7 @@ export default function TawbahPrayerLoggingFlow({
     setStartMinute(now.minute);
     setStartPeriod(now.period);
     setDurationHours("0");
-    setDurationMinutes("10");
+    setDurationMinutes("0");
     setIsPeriodDropdownOpen(false);
   }, []);
 

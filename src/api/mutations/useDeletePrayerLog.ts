@@ -30,6 +30,9 @@ export const useDeletePrayerLog = () => {
       queryClient.invalidateQueries({
         queryKey: ["prayer-goal-frame", prayerType],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["prayer-goal-day-detail", prayerType],
+      });
       queryClient.invalidateQueries({ queryKey: ["prayer-goal-achievements"] });
       queryClient.invalidateQueries({ queryKey: ["all-prayer-goals"] });
       queryClient.invalidateQueries({ queryKey: ["prayer-goal-insights"] });
