@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Pressable, Text, TouchableOpacity, View, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -17,6 +17,9 @@ import {
 import { FlowCard } from "../components/FlowCard";
 import { OptionSelectStep } from "../components/OptionSelectStep";
 import { useGetMe } from "@/src/api/queries/useGetMe";
+import { useGetAllPrayerGoals } from "@/src/api/queries/useGetAllPrayerGoals";
+import { useAuth } from "@/provider/useAuth";
+import { getQiyamInitial } from "@/src/utils/prayerGoalMap";
 import {
   styles as commonStyles,
   FLOW_CARD_HEIGHT,
@@ -227,17 +230,26 @@ type QiyamStepId =
   | "date"
   | "prayers-quantity"
   | "when-pray"
+  | "prayed-witr"
   | "start-time"
   | "time-spent"
   | "witr";
-const STEPS: QiyamStepId[] = [
-  "date",
-  "prayers-quantity",
-  "when-pray",
-  "start-time",
-  "time-spent",
-  "witr",
-];
+
+function parsePrayersCount(value: string): number {
+  return Number.parseInt(value || "0", 10) || 0;
+}
+
+/** Flexible goal + 0 prayers: Witr first, then when-pray, no final Witr step. */
+function buildQiyamFlowSteps(isFlexible: boolean, prayersCount: string): QiyamStepId[] {
+  const count = parsePrayersCount(prayersCount);
+  const timeSteps: QiyamStepId[] = ["start-time", "time-spent"];
+
+  if (isFlexible && count === 0) {
+    return ["date", "prayers-quantity", "prayed-witr", "when-pray", ...timeSteps];
+  }
+
+  return ["date", "prayers-quantity", "when-pray", ...timeSteps, "witr"];
+}
 
 type Props = { goalData: GoalData; onLogComplete?: (entry: ProgressLogEntry) => void; };
 type FlowMode = "collapsed" | "active";
@@ -245,7 +257,17 @@ const toDateString = (date: Date) => moment(date).format("YYYY-MM-DD");
 
 export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const { data: me } = useGetMe();
+  const { data: allPrayerGoals } = useGetAllPrayerGoals({
+    enabled: true,
+    userId: user?.id,
+  });
+  const qiyamGoalConfig = useMemo(() => {
+    const goal = allPrayerGoals?.find((item) => item.prayerType === "QIYAM_AL_LAYL");
+    return getQiyamInitial(goal);
+  }, [allPrayerGoals]);
+  const isFlexibleGoal = qiyamGoalConfig.isFlexible;
   const isFemale = me?.gender?.toUpperCase() === "FEMALE";
   const timingOptions = useMemo(
     () => getQiyamTimingOptions(isFemale),
@@ -269,9 +291,28 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
   const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
   const [durationHours, setDurationHours] = useState("0");
   const [durationMinutes, setDurationMinutes] = useState("0");
+  const [prayedWitr, setPrayedWitr] = useState<"Yes" | "No">("No");
+  const [concludedWithWitr, setConcludedWithWitr] = useState<"Yes" | "No">("No");
   const MOCK_PERCENTAGE = 40;
-  const totalPrayersRequired = 40;
-  const mockTitle = `${totalPrayersRequired} 2-Rak'ah Qiyam Al-Layl Prayers`;
+  const flowSteps = useMemo(
+    () => buildQiyamFlowSteps(isFlexibleGoal, prayersCount),
+    [isFlexibleGoal, prayersCount],
+  );
+  const isFlexibleZeroFlow =
+    isFlexibleGoal && parsePrayersCount(prayersCount) === 0;
+  const mockTitle = useMemo(() => {
+    const unitTarget = qiyamGoalConfig.unitTarget;
+    const rakahLabel =
+      unitTarget === 1
+        ? t("prayerGoals.rakahPrayer")
+        : t("prayerGoals.rakahPrayers");
+
+    if (isFlexibleGoal) {
+      return `${unitTarget}${rakahLabel}${t("prayerGoals.plusWitrFlexible")}`;
+    }
+
+    return `${unitTarget} 2-Rak'ah Prayers + ${qiyamGoalConfig.witrTarget || 28} Witr`;
+  }, [isFlexibleGoal, qiyamGoalConfig.unitTarget, qiyamGoalConfig.witrTarget, t]);
   const [hasLogged, setHasLogged] = useState(false);
 
   const getBadgeStatus = () => {
@@ -283,9 +324,19 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
   const badgeStatus = getBadgeStatus();
   const isCompleted = hasLogged;
   const todayString = toDateString(new Date());
-  const currentStep = STEPS[stepIndex];
-  const isLastStep = stepIndex === STEPS.length - 1;
+  const currentStep = flowSteps[stepIndex] ?? flowSteps[0];
+  const isLastStep = stepIndex === flowSteps.length - 1;
+  /** Flexible + 0 prayers: selecting No on Witr means nothing left to log. */
+  const isWitrStepBlocked =
+    currentStep === "prayed-witr" && prayedWitr === "No";
+  const canGoForward = !isLastStep && !isWitrStepBlocked;
   const dateLabel = formatProgressLoggingDateLabel(selectedDate, todayString, t("progressLogging.today"));
+
+  useEffect(() => {
+    if (stepIndex >= flowSteps.length) {
+      setStepIndex(Math.max(0, flowSteps.length - 1));
+    }
+  }, [flowSteps.length, stepIndex]);
 
   const shiftDate = (direction: -1 | 1) => {
     const next = moment(selectedDate, "YYYY-MM-DD").add(direction, "days").format("YYYY-MM-DD");
@@ -296,7 +347,7 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
   const resetFlow = useCallback(() => {
     setFlowMode("collapsed"); setStepIndex(0); setSelectedDate(toDateString(new Date()));
     setPrayersCount("4"); setLoggedTime("before-fajr"); setIsTimingDropdownOpen(false); setStartHour("02"); setStartMinute("00"); setStartPeriod("am");
-    setDurationHours("0"); setDurationMinutes("0"); setIsPeriodDropdownOpen(false);
+    setDurationHours("0"); setDurationMinutes("0"); setPrayedWitr("No"); setConcludedWithWitr("No"); setIsPeriodDropdownOpen(false);
   }, []);
 
   const handleConfirm = () => {
@@ -310,7 +361,8 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
       startTime: `${startHour}:${startMinute} ${startPeriod}`,
       durationHours,
       durationMinutes,
-      concludedWithWitr: concludedWithWitr === "Yes",
+      prayedWitr: isFlexibleZeroFlow ? prayedWitr === "Yes" : undefined,
+      concludedWithWitr: !isFlexibleZeroFlow ? concludedWithWitr === "Yes" : undefined,
     } as ProgressLogEntry);
     resetFlow();
   };
@@ -325,7 +377,8 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
   };
   const handleForward = () => {
     setIsTimingDropdownOpen(false);
-    if (!isLastStep) setStepIndex((i) => i + 1);
+    if (!canGoForward) return;
+    setStepIndex((i) => i + 1);
   };
   const handleOpenFlow = useCallback(() => {
     const now = getCurrentStartTimeParts();
@@ -373,6 +426,11 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
           icon: <QiyamWhenDidYouPrayIcon size={20} />,
           label: "When did you pray?",
         };
+      case "prayed-witr":
+        return {
+          icon: <WhitePrayerMatIcon size={26} />,
+          label: "Did you pray Witr?",
+        };
       case "witr":
         return {
           icon: <WhitePrayerMatIcon size={26} />,
@@ -395,6 +453,17 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
             isOpen={isTimingDropdownOpen}
             setIsOpen={setIsTimingDropdownOpen}
             timingOptions={timingOptions}
+            styles={commonStyles}
+          />
+        );
+      case "prayed-witr":
+        return (
+          <OptionSelectStep<"Yes" | "No">
+            options={["Yes", "No"]}
+            selectedValue={prayedWitr}
+            onSelectValue={setPrayedWitr}
+            getLabel={(option) => option}
+            radioInnerColor={Colors.light.white}
             styles={commonStyles}
           />
         );
@@ -511,10 +580,12 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
               onBack={handleBack}
               onForward={handleForward}
               onConfirm={handleConfirm}
-              canGoForward={!isLastStep}
+              canGoForward={canGoForward}
               canGoBack={stepIndex > 0}
               canConfirm={isLastStep}
-              showConfirmButton={currentStep !== "when-pray"}
+              showConfirmButton={
+                currentStep !== "when-pray" && currentStep !== "prayed-witr"
+              }
               styles={commonStyles}
               style={[
                 commonStyles.inPlaceFlowCard,
