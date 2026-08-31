@@ -97,9 +97,11 @@ function QiyamDayIcon({
   isDeleting,
 }: DayIconProps) {
   const isPastDay = !day.isToday && !day.isFuture;
+  const isMissedDay = !!day.isMissedStrict || !!day.isMissedFlexible;
+  const shouldDimPast = isPastDay && !isMissedDay;
   const circleSize =
     (isBestDayVisible ? size + BEST_DAY_SIZE_BOOST : size) -
-    (isPastDay ? PAST_DAY_SIZE_REDUCTION : 0);
+    (shouldDimPast ? PAST_DAY_SIZE_REDUCTION : 0);
   const iconSize = Math.max(10, Math.round(circleSize * 0.52));
 
   const innerSizeStyle = {
@@ -139,7 +141,7 @@ function QiyamDayIcon({
           height: size + BEST_DAY_SIZE_BOOST + 5,
           borderRadius: 8,
         },
-        isPastDay && styles.pastDayIconWrap,
+        shouldDimPast && styles.pastDayIconWrap,
       ]}
     >
       <View style={[innerSizeStyle, ringStyle]}>

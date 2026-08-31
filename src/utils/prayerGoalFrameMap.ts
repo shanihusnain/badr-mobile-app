@@ -125,7 +125,7 @@ function resolveQiyamMissedFlags(
     return { isMissedStrict: false, isMissedFlexible: true };
   }
 
-  if (!day.isToday && !day.hasActivity && countIsZero(day)) {
+  if (!day.isToday && !isFuture && countIsZero(day) && !day.isMenstruationDay) {
     return isFlexibleGoal
       ? { isMissedStrict: false, isMissedFlexible: true }
       : { isMissedStrict: true, isMissedFlexible: false };
