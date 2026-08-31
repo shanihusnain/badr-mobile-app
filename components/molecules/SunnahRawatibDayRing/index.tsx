@@ -119,12 +119,8 @@ export function SunnahRawatibDayRing({
           offset: currentOffset,
         });
       } else {
-        // Partial (e.g. weight 2, logged 1): logged half green;
-        // remaining = white if today (still upcoming), yellow if past (missed).
+        // Partial (e.g. 1 of 2): logged portion green, remaining yellow.
         const halfLength = (prayerArcLength - gapSize) / 2;
-        const remainingColor = data.isToday
-          ? Colors.light.white
-          : Colors.light.yellow;
 
         segments.push({
           color: Colors.light.green,
@@ -133,7 +129,7 @@ export function SunnahRawatibDayRing({
         });
 
         segments.push({
-          color: remainingColor,
+          color: Colors.light.yellow,
           length: halfLength,
           offset: currentOffset + halfLength,
         });

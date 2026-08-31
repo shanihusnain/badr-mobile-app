@@ -40,6 +40,7 @@ import { useOptionalPrayerGoalFrameContext } from "../prayerGoalFrameContext";
 import { useGetPrayerGoalFrame } from "@/src/api/queries/useGetPrayerGoalFrame";
 import {
   isFiveDailyDayDetail,
+  isFiveDailySlotSelectable,
   isPrayerGoalDayDetailForDate,
   useGetPrayerGoalDayDetail,
 } from "@/src/api/queries/useGetPrayerGoalDayDetail";
@@ -191,25 +192,20 @@ export default function FiveDailyPrayersLoggingFlow({
   }, [dayDetail]);
 
   const lockedPrayersForSelectedDate = useMemo((): PrayerName[] => {
-    if (!dayDetail?.slots) return [];
+    if (!dayDetail?.slots) return [...PRAYER_OPTIONS];
     return PRAYER_OPTIONS.filter((prayer) => {
       const slot = dayDetail.slots?.[PRAYER_TO_SLOT[prayer]];
       if (!slot || slot.logged) return false;
-      // Only backend `canLog: false` locks a slot (e.g. before today's window opens).
-      // After the window passes, unlogged slots stay selectable so the user can
-      // still log a forgotten on-time prayer as on-time vs qadha.
-      return slot.canLog === false;
+      return !isFiveDailySlotSelectable(slot);
     });
   }, [dayDetail]);
 
   const selectablePrayers = useMemo(
     () =>
-      PRAYER_OPTIONS.filter(
-        (prayer) =>
-          !loggedPrayersForSelectedDate.includes(prayer) &&
-          !lockedPrayersForSelectedDate.includes(prayer),
+      PRAYER_OPTIONS.filter((prayer) =>
+        isFiveDailySlotSelectable(dayDetail?.slots?.[PRAYER_TO_SLOT[prayer]]),
       ),
-    [loggedPrayersForSelectedDate, lockedPrayersForSelectedDate],
+    [dayDetail],
   );
 
   const hasSelectablePrayer = selectablePrayers.length > 0;
@@ -277,6 +273,21 @@ export default function FiveDailyPrayersLoggingFlow({
   useEffect(() => {
     setStepIndex((index) => Math.min(index, Math.max(0, steps.length - 1)));
   }, [steps]);
+
+  // Drop selection when day-detail marks the slot as not loggable.
+  useEffect(() => {
+    if (!selectedPrayer) return;
+    if (
+      loggedPrayersForSelectedDate.includes(selectedPrayer) ||
+      lockedPrayersForSelectedDate.includes(selectedPrayer)
+    ) {
+      setSelectedPrayer(null);
+    }
+  }, [
+    selectedPrayer,
+    loggedPrayersForSelectedDate,
+    lockedPrayersForSelectedDate,
+  ]);
 
   const currentStep = steps[stepIndex] ?? steps[0];
   const isLastStep = stepIndex === steps.length - 1;

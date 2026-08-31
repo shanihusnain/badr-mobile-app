@@ -96,6 +96,11 @@ export type PrayerGoalFrameDay = {
     Record<FiveDailyPrayerSlotKey, FiveDailyPrayerSlot> &
       Record<SunnahRawatibSlotKey, number>
   >;
+  /** Qiyam Al-Layl — when the prayer was logged. */
+  loggedTime?: "after-isha" | "before-fajr" | "both";
+  isMissedStrict?: boolean;
+  isMissedFlexible?: boolean;
+  isWitrPending?: boolean;
 };
 
 export type PrayerGoalFrameData = {
@@ -137,11 +142,11 @@ export type PrayerGoalFrameData = {
   };
   /** Present for SUNNAH_RAWATIB — drives day-ring arc set / weights. */
   slotConfig?: SunnahRawatibSlotConfig | null;
-  /** Present for QIYAM_AL_LAYL — drives missed-day styling. */
+  /** Present for QIYAM_AL_LAYL — strict vs flexible commitment. */
   qiyamConfig?: {
     isFlexible?: boolean;
-    trackTahajjud?: boolean;
     unitTarget?: number;
+    trackTahajjud?: boolean;
   } | null;
   articles: unknown[];
 };

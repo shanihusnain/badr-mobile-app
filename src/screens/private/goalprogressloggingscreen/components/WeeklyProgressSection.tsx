@@ -15,7 +15,10 @@ import { DuhaPrayerWeeklyProgressDashboard } from "@/components/molecules/DuhaPr
 import { TawbahPrayerWeeklyProgressDashboard } from "@/components/molecules/TawbahPrayerWeeklyProgressDashboard";
 import { IstikharaPrayerWeeklyProgressDashboard } from "@/components/molecules/IstikharaPrayerWeeklyProgressDashboard";
 import { ShukrPrayerWeeklyProgressDashboard } from "@/components/molecules/ShukrPrayerWeeklyProgressDashboard";
-import { QiyamWeeklyProgressDashboard } from "@/components/molecules/QiyamWeeklyProgressDashboard";
+import {
+  QiyamWeeklyProgressDashboard,
+  type QiyamDayProgress,
+} from "@/components/molecules/QiyamWeeklyProgressDashboard";
 
 import { MissedZakatWeeklyProgressDashboard } from "@/components/molecules/MissedZakatWeeklyProgressDashboard";
 import { KaffarahWeeklyProgressDashboard } from "@/components/molecules/KaffarahWeeklyProgressDashboard";
@@ -1326,24 +1329,18 @@ export function WeeklyProgressSection({
 
   if (template === "qiyam-al-layl") {
     const frame = prayerFrame?.frame;
+    const frameLoading = isPrayerFrameDashboardLoading(prayerFrame, frame);
+
     if (frame) {
       const totalWeeks = frame.cycle.totalWeeks;
       const activeWeek = getPrayerFrameActiveWeek(prayerFrame, frame);
       const canPrev = activeWeek > 1;
       const canNext = activeWeek < totalWeeks;
 
-      const handlePrevWeek = canPrev
-        ? () => shiftPrayerFrameWeek(prayerFrame, frame, -1)
-        : undefined;
-
-      const handleNextWeek = canNext
-        ? () => shiftPrayerFrameWeek(prayerFrame, frame, 1)
-        : undefined;
-
       return (
         <QiyamWeeklyProgressDashboard
           key={frame.cycle.weekNumber}
-          weekDays={mapQiyamFrameWeekDays(frame, { gender: qiyamGender })}
+          weekDays={mapQiyamFrameWeekDays(frame)}
           weekRangeLabel={formatPrayerFrameWeekRange(
             frame.cycle.weekStart,
             frame.cycle.weekEnd,
@@ -1353,24 +1350,44 @@ export function WeeklyProgressSection({
           streakDays={frame.week.currentStreak}
           vsLastWeek={frame.week.vsLastWeek}
           motivationalQuote={getPrayerFrameMotivationalQuote(frame)}
-          loading={isPrayerFrameDashboardLoading(prayerFrame, frame)}
           selectedDayIndex={getPrayerFrameTodayIndex(frame)}
-          isGoalCompleted={(frame.goal.achievementPct ?? 0) >= 100}
-          onPrevWeek={handlePrevWeek}
-          onNextWeek={handleNextWeek}
+          loading={frameLoading}
+          onPrevWeek={
+            canPrev
+              ? () => shiftPrayerFrameWeek(prayerFrame, frame, -1)
+              : undefined
+          }
+          onNextWeek={
+            canNext
+              ? () => shiftPrayerFrameWeek(prayerFrame, frame, 1)
+              : undefined
+          }
         />
       );
     }
 
+    const emptyWeekDays: QiyamDayProgress[] = [
+      "Sun",
+      "Mon",
+      "Tue",
+      "Wed",
+      "Thu",
+      "Fri",
+      "Sat",
+    ].map((day) => ({
+      day,
+      prayersLogged: 0,
+    }));
+
     return (
       <QiyamWeeklyProgressDashboard
-        weekDays={[]}
+        weekDays={emptyWeekDays}
         weekRangeLabel="---"
         weekFraction="---"
         totalPrayersThisWeek={0}
         streakDays={0}
         motivationalQuote="---"
-        loading={isPrayerFrameDashboardLoading(prayerFrame, frame)}
+        loading={frameLoading}
       />
     );
   }
