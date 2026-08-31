@@ -245,17 +245,38 @@ type QiyamInitialSource = {
   isFlexible?: boolean;
   trackTahajjud?: boolean;
   targets?: PrayerGoalApiItem["targets"];
-  qiyamConfig?: PrayerGoalApiItem["qiyamConfig"];
+  qiyamConfig?: PrayerGoalApiItem["qiyamConfig"] & {
+    targets?: {
+      unitTarget?: number;
+      witrTarget?: number;
+      targetPerNight?: number;
+    };
+  };
 };
+
+function getQiyamTargets(
+  goal: QiyamInitialSource | undefined,
+): PrayerGoalApiItem["targets"] | undefined {
+  if (!goal) return undefined;
+  return {
+    ...goal.qiyamConfig?.targets,
+    ...goal.targets,
+  };
+}
 
 function getQiyamUnitTarget(goal: QiyamInitialSource | undefined): number | undefined {
   const fromConfig = goal?.qiyamConfig?.unitTarget;
   if (typeof fromConfig === "number" && fromConfig > 0) return fromConfig;
 
-  const isFlexible = Boolean(goal?.qiyamConfig?.isFlexible ?? goal?.isFlexible);
-  return isFlexible
-    ? goal?.targets?.unitTarget
-    : goal?.targets?.targetPerNight ?? goal?.targets?.unitTarget;
+  const targets = getQiyamTargets(goal);
+  const fromTargets = targets?.unitTarget;
+  if (typeof fromTargets === "number" && fromTargets > 0) return fromTargets;
+
+  // Fallback for legacy payloads that only store a per-night count.
+  const perNight = targets?.targetPerNight;
+  if (typeof perNight === "number" && perNight > 0) return perNight;
+
+  return undefined;
 }
 
 function getQiyamTrackTahajjud(
@@ -273,7 +294,8 @@ function getQiyamTrackTahajjud(
 /** Backend seeds `{ unitTarget: 2, trackTahajjud: false }` before the user saves. */
 function isUnsavedQiyamDefaults(goal: QiyamInitialSource | undefined): boolean {
   if (!goal) return true;
-  if (!hasConfiguredTargets(goal) && goal.qiyamConfig == null) return true;
+  const targets = getQiyamTargets(goal);
+  if (!hasConfiguredTargets({ targets }) && goal.qiyamConfig == null) return true;
 
   const isFlexible = Boolean(goal.qiyamConfig?.isFlexible ?? goal.isFlexible);
   if (isFlexible) return false;
@@ -305,7 +327,7 @@ export function getQiyamInitial(goal: QiyamInitialSource | undefined) {
       getQiyamUnitTarget(goal),
       QIYAM_DEFAULT_UNIT_TARGET,
     ),
-    witrTarget: goal?.targets?.witrTarget ?? 0,
+    witrTarget: getQiyamTargets(goal)?.witrTarget ?? 0,
     trackTahajjud: getQiyamTrackTahajjud(goal) ?? true,
   };
 }

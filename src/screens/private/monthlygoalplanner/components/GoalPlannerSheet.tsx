@@ -2617,11 +2617,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
           return (
             <QiyamalLaylGoalSelection
               openOnMount={true}
-              initialValues={getQiyamInitial({
-                qiyamConfig: sourcePrayer?.qiyamConfig,
-                isFlexible: sourcePrayer?.qiyamConfig?.isFlexible,
-                trackTahajjud: sourcePrayer?.qiyamConfig?.trackTahajjud,
-              })}
+              initialValues={getQiyamInitial(sourcePrayer)}
               isSaving={isSavingPrayer}
               onSave={(
                 payload: {

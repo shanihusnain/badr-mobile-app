@@ -35,7 +35,19 @@ export type CyclePrayerGoal = {
     isFlexible?: boolean;
     unitTarget?: number;
     trackTahajjud?: boolean;
+    targets?: {
+      unitTarget?: number;
+      witrTarget?: number;
+      targetPerNight?: number;
+    };
   } | null;
+  targets?: {
+    unitTarget?: number;
+    witrTarget?: number;
+    targetPerNight?: number;
+  };
+  isFlexible?: boolean;
+  trackTahajjud?: boolean;
 };
 
 export type CycleQuranGoalItem = {
