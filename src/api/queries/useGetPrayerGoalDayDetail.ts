@@ -96,10 +96,29 @@ export type SunnahRawatibDayDetail = {
   slots: Partial<Record<SunnahRawatibSlotKey, SunnahRawatibDayDetailSlot>>;
 };
 
+export type QiyamDayDetail = {
+  date: string;
+  hasLoggedAnyPrayer: boolean;
+  /** Witr already logged for this Islamic night — hide Witr steps on re-log. */
+  witrLogged?: boolean;
+  includesWitrLogged?: boolean;
+  witrAlreadyLogged?: boolean;
+  trackTahajjud?: boolean;
+  canLog?: boolean;
+  loggedCount?: number;
+  goal: {
+    targetCount: number;
+    completedCount: number;
+    achievementPct: number;
+    status: string;
+  };
+};
+
 export type PrayerGoalDayDetail =
   | FiveDailyPrayerDayDetail
   | MissedPastPrayerDayDetail
-  | SunnahRawatibDayDetail;
+  | SunnahRawatibDayDetail
+  | QiyamDayDetail;
 
 const SUNNAH_RAWATIB_SLOT_KEYS: SunnahRawatibSlotKey[] = [
   "BEFORE_FAJR",
@@ -185,6 +204,17 @@ export function isSunnahRawatibSlotSelectable(
   return slot.canLog === true;
 }
 
+/** True when Witr was already logged for the selected Islamic night. */
+export function isQiyamWitrLoggedForNight(
+  dayDetail: QiyamDayDetail | null | undefined,
+): boolean {
+  if (!dayDetail) return false;
+  if (dayDetail.witrLogged === true) return true;
+  if (dayDetail.includesWitrLogged === true) return true;
+  if (dayDetail.witrAlreadyLogged === true) return true;
+  return false;
+}
+
 const postPrayerGoalDayDetail = async (
   prayerType: string,
   date: string,
@@ -241,6 +271,23 @@ export function isSunnahRawatibDayDetail(
   );
 }
 
+export function isQiyamDayDetail(
+  data: PrayerGoalDayDetail | null | undefined,
+): data is QiyamDayDetail {
+  if (!data) return false;
+  if (isSunnahRawatibDayDetail(data)) return false;
+  if ("slotProgress" in data) return false;
+  if ("slots" in data && data.slots && Object.keys(data.slots).length > 0) {
+    return false;
+  }
+  return (
+    "witrLogged" in data ||
+    "includesWitrLogged" in data ||
+    "witrAlreadyLogged" in data ||
+    "trackTahajjud" in data
+  );
+}
+
 export function isMissedPastPrayerDayDetail(
   data: PrayerGoalDayDetail | null | undefined,
 ): data is MissedPastPrayerDayDetail {
@@ -251,6 +298,10 @@ export function isFiveDailyDayDetail(
   data: PrayerGoalDayDetail | null | undefined,
 ): data is FiveDailyPrayerDayDetail {
   return (
-    !!data && !("slotProgress" in data) && !isSunnahRawatibDayDetail(data)
+    !!data &&
+    !("slotProgress" in data) &&
+    !isSunnahRawatibDayDetail(data) &&
+    !isQiyamDayDetail(data) &&
+    "slots" in data
   );
 }

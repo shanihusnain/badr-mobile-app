@@ -8,16 +8,41 @@ export type PrayerAchievementsPeriodCode = "M" | "3M" | "6M";
 /** Legacy chart series (non–five-daily / older payloads). */
 export type PrayerAchievementsChartItem = {
   weekLabel: string;
+  bucketStartDate?: string;
+  bucketEndDate?: string;
   completed: number;
   incomplete: number;
   completedDeltaPct: number | null;
   hasCycleData?: boolean;
+  bucketSummaryText?: string | null;
+  nights?: number;
+  bucketGoal?: number | null;
+  bucketPct?: number | null;
+  menstruationDays?: number;
 };
 
 export type PrayerAchievementsTimeItem = {
   weekLabel: string;
   minutesSpent: number;
   timeSpentDeltaPct?: number | null;
+  bucketTimeSpentPct?: number | null;
+  bucketTimeSpentSummaryText?: string | null;
+};
+
+export type QiyamCategoryAchievements = {
+  completed: number;
+  nights: number;
+  achievementPct: number;
+  previousPeriodPct: number;
+  delta: number;
+  summaryText?: string | null;
+  chartData: PrayerAchievementsChartItem[];
+};
+
+export type QiyamTimeData = {
+  all?: PrayerAchievementsTimeItem[];
+  afterIsha?: PrayerAchievementsTimeItem[];
+  tahajjud?: PrayerAchievementsTimeItem[];
 };
 
 export type FiveDailyOnTimeVsQadhaItem = {
@@ -66,6 +91,14 @@ export type FiveDailyChartViews = {
 };
 
 export type PrayerAchievementsKeyInsights = {
+  /** Qiyam: nights with any logged activity. */
+  completedIn?: number | null;
+  completedInDelta?: number | null;
+  /** Qiyam: nights with prayers logged. */
+  withPrayers?: number | null;
+  withPrayersDelta?: number | null;
+  totalMinutesSpent?: number | null;
+  totalMinutesSpentDelta?: number | null;
   activeDaysCount?: number | null;
   activeDaysDelta?: number | null;
   goalTrackedMonths?: number | null;
@@ -105,7 +138,13 @@ export type PrayerGoalAchievementsData = {
   homeCount?: number;
   /** Legacy series — still used by non–five-daily goals. */
   chartData?: PrayerAchievementsChartItem[];
-  timeData?: PrayerAchievementsTimeItem[];
+  /** Legacy array or Qiyam `{ all, afterIsha, tahajjud }`. */
+  timeData?: PrayerAchievementsTimeItem[] | QiyamTimeData;
+  /** Qiyam Al-Layl per-session category breakdown. */
+  completedByCategoryData?: {
+    AFTER_ISHA?: QiyamCategoryAchievements;
+    TAHAJJUD?: QiyamCategoryAchievements;
+  } | null;
   /** Five-daily (and newer) view-specific chart series. */
   chartViews?: FiveDailyChartViews | null;
   summaryText?: string | null;

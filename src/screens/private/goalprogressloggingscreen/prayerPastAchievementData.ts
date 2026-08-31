@@ -10,6 +10,9 @@ export type PrayerPastChartItem = QuranPastChartItem & {
   completedDeltaPct?: number | null;
   /** Per-bucket copy from achievements API (five-daily). */
   bucketSummaryText?: string | null;
+  /** Qiyam: nights count for line overlay and category stats. */
+  nights?: number;
+  lineValue?: number;
 };
 
 export type PrayerPastAchievement = {

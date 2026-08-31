@@ -142,6 +142,11 @@ const SUNNAH_TAB_TO_SLOT_PARAM: Record<SunnahRawatibTab, string> = {
   "After Isha": "AFTER_ISHA",
 };
 const QIYAM_TABS = ["All", "After Isha", "Tahajjud"];
+const QIYAM_TAB_TO_SLOT_PARAM: Record<string, string> = {
+  All: "all",
+  "After Isha": "AFTER_ISHA",
+  Tahajjud: "TAHAJJUD",
+};
 
 const LOADING_DASH = "---";
 
@@ -302,14 +307,46 @@ function mapApiKeyInsightsToCards(
       title: t("progressLogging.completedIn"),
       iconFamily: "Ionicons",
       iconName: "checkmark-circle-outline",
-      value: firstNumber(insights.activeDaysCount) ?? 0,
-      subValue: t("progressLogging.recitationInsightActiveDays"),
-      delta: insights.activeDaysDelta,
-      formatDelta: dayTrendLabel,
+      value:
+        goalId === "prayer-qiyam"
+          ? (firstNumber(insights.completedIn, insights.activeDaysCount) ?? 0)
+          : (firstNumber(insights.activeDaysCount) ?? 0),
+      subValue:
+        goalId === "prayer-qiyam"
+          ? "active nights"
+          : t("progressLogging.recitationInsightActiveDays"),
+      delta:
+        goalId === "prayer-qiyam"
+          ? firstNumber(insights.completedInDelta, insights.activeDaysDelta)
+          : insights.activeDaysDelta,
+      formatDelta:
+        goalId === "prayer-qiyam"
+          ? (abs) => `${abs} ${abs === 1 ? "night" : "nights"}`
+          : dayTrendLabel,
       noData: isLoading,
       noDataLabel,
     }),
   );
+
+  if (goalId === "prayer-qiyam") {
+    const withPrayers = firstNumber(insights.withPrayers) ?? 0;
+    const completedIn =
+      firstNumber(insights.completedIn, insights.activeDaysCount) ?? 0;
+    cards.push(
+      metricCard({
+        title: "WITR PRAYED",
+        iconFamily: "MaterialCommunityIcons",
+        iconName: "cursor-pointer",
+        value: withPrayers,
+        subValue:
+          completedIn > 0 ? `of ${completedIn} nights` : "of 0 nights",
+        delta: insights.withPrayersDelta,
+        formatDelta: (abs) => `${abs} ${abs === 1 ? "night" : "nights"}`,
+        noData: isLoading,
+        noDataLabel,
+      }),
+    );
+  }
 
   if (goalId === "prayer-missed") {
     const staticMadeUp = PRAYER_INSIGHT_CARDS["prayer-missed"]?.[period]?.find(
@@ -414,10 +451,15 @@ function mapApiKeyInsightsToCards(
   }
 
   const timeSpent =
-    firstNumber(insights.timeSpentMinutes, data?.totalMinutesSpent) ?? 0;
+    firstNumber(
+      insights.timeSpentMinutes,
+      insights.totalMinutesSpent,
+      data?.totalMinutesSpent,
+    ) ?? 0;
   const timeDelta = firstNumber(
     insights.timeSpentDeltaMinutes,
     insights.timeSpentDelta,
+    insights.totalMinutesSpentDelta,
   );
   cards.push({
     ...metricCard({
@@ -479,7 +521,8 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
     goalId === "prayer-istikhara" ||
     goalId === "prayer-shukr" ||
     goalId === "prayer-fiveDailyPrayers" ||
-    goalId === "prayer-sunnah";
+    goalId === "prayer-sunnah" ||
+    goalId === "prayer-qiyam";
   const prayerType = resolvePrayerTypeFromGoalId(goalId);
   const beforeAsrInSunnahGoal =
     getSunnahBeforeAsrPrayersPerDay(prayerFrame?.frame?.slotConfig) > 0;
@@ -497,8 +540,32 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
         SUNNAH_TAB_TO_SLOT_PARAM[selectedPrayerTab as SunnahRawatibTab] ?? "all"
       );
     }
+    if (goalId === "prayer-qiyam" && analyticsView !== "completedByCategory") {
+      return QIYAM_TAB_TO_SLOT_PARAM[selectedPrayerTab] ?? "all";
+    }
     return null;
-  }, [goalId, selectedPrayerTab]);
+  }, [goalId, selectedPrayerTab, analyticsView]);
+  const qiyamAchievementsMapOptions = useMemo(() => {
+    if (goalId !== "prayer-qiyam") return undefined;
+    if (analyticsView === "completedByCategory") {
+      return {
+        qiyamCategoryKey:
+          selectedPrayerTab === "Tahajjud"
+            ? ("TAHAJJUD" as const)
+            : ("AFTER_ISHA" as const),
+      };
+    }
+    const timeKey =
+      selectedPrayerTab === "After Isha"
+        ? ("afterIsha" as const)
+        : selectedPrayerTab === "Tahajjud"
+          ? ("tahajjud" as const)
+          : ("all" as const);
+    if (analyticsView === "completedVsTimeSpent") {
+      return { qiyamTimeKey: timeKey };
+    }
+    return { qiyamTimeKey: timeKey };
+  }, [goalId, analyticsView, selectedPrayerTab]);
   const { data: achievementsApiData, isLoading: isAchievementsLoading } =
     useGetPrayerGoalAchievements(prayerType, {
       period,
@@ -539,10 +606,21 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
   const baseAchievementRaw = useMemo((): PrayerPastAchievement | null => {
     if (usesAchievementsApi) {
       if (!achievementsApiData) return null;
-      return mapPrayerGoalAchievementsToUi(achievementsApiData, analyticsView);
+      return mapPrayerGoalAchievementsToUi(
+        achievementsApiData,
+        analyticsView,
+        qiyamAchievementsMapOptions,
+      );
     }
     return getPrayerPastAchievement(goalId, period);
-  }, [usesAchievementsApi, achievementsApiData, goalId, period, analyticsView]);
+  }, [
+    usesAchievementsApi,
+    achievementsApiData,
+    goalId,
+    period,
+    analyticsView,
+    qiyamAchievementsMapOptions,
+  ]);
 
   const baseAchievement = useMemo(() => {
     if (!baseAchievementRaw) return null;
@@ -667,11 +745,16 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
         selectedBaseWeek?.completedHours ??
         0)
       : (baseAchievement?.completedPrayers ?? 0);
+  const isQiyamCategoryNights =
+    goalId === "prayer-qiyam" && analyticsView === "completedByCategory";
+
   const displayBaseIncomplete =
     selectedBarIndex !== null
-      ? (selectedBaseWeek?.incompletePrayers ??
-        selectedBaseWeek?.incompleteHours ??
-        0)
+      ? isQiyamCategoryNights
+        ? ((selectedBaseWeek as { nights?: number })?.nights ?? 0)
+        : (selectedBaseWeek?.incompletePrayers ??
+          selectedBaseWeek?.incompleteHours ??
+          0)
       : (baseAchievement?.incompletePrayers ?? 0);
 
   const showNoDataDash = isPastAchievementBarEmpty(
@@ -1383,11 +1466,11 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
             formatBarValue={formatPrayerCountLabel}
             isPrayerGoal={true}
             showPagination={isDetailed && !showPlaceholders}
-            showBarLine={goalId === "prayer-qiyam"}
+            showBarLine={goalId === "prayer-qiyam" && !isTimeSpentView}
             barColors={
               isTimeSpentView
                 ? [Colors.light.white, Colors.light.white]
-                : goalId === "prayer-missed"
+                : goalId === "prayer-missed" || goalId === "prayer-qiyam"
                   ? [Colors.light.green, Colors.light.warning]
                   : [Colors.light.white, "rgba(255, 255, 255, 0.4)"]
             }

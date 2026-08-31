@@ -222,11 +222,15 @@ function BarConnectorLine({
   const LINE_COLOR = Colors.light.barlinecolor;
   const DOT_RADIUS = 4;
 
-  // Collect (x, y) points — line tracks the middle of the completedHours level
+  // Collect (x, y) points — line tracks `lineValue` (nights) or completed bar level
   const points: { x: number; y: number }[] = barCenterXs.map((x, i) => {
-    const item = chartData[i];
-    const value = item ? (item.completedHours ?? 0) : 0;
-    const y = chartBounds.bottom - (value / 2 / yMax) * chartHeight;
+    const item = chartData[i] as QuranPastChartItem & { lineValue?: number };
+    const lineValue = item?.lineValue;
+    const value =
+      lineValue != null ? lineValue : (item?.completedHours ?? 0);
+    const normalized =
+      lineValue != null ? value / yMax : value / 2 / yMax;
+    const y = chartBounds.bottom - normalized * chartHeight;
     return { x, y };
   });
 

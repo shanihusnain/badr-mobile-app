@@ -4,15 +4,52 @@ import type {
   FiveDailyOnTimeVsQadhaItem,
   FiveDailyMosqueVsHomeItem,
   FiveDailyTimeSpentItem,
+  PrayerAchievementsChartItem,
+  PrayerAchievementsTimeItem,
+  QiyamTimeData,
 } from "@/src/api/queries/useGetPrayerGoalAchievements";
 import type {
   PrayerAnalyticsView,
   PrayerPastAchievement,
 } from "@/src/screens/private/goalprogressloggingscreen/prayerPastAchievementData";
 
-function computeYAxis(stackTotals: number[]) {
+export type QiyamAchievementsMapOptions = {
+  qiyamCategoryKey?: "AFTER_ISHA" | "TAHAJJUD";
+  qiyamTimeKey?: "all" | "afterIsha" | "tahajjud";
+};
+
+function isQiyamTimeData(
+  timeData: PrayerGoalAchievementsData["timeData"],
+): timeData is QiyamTimeData {
+  return (
+    !!timeData &&
+    !Array.isArray(timeData) &&
+    ("all" in timeData || "afterIsha" in timeData || "tahajjud" in timeData)
+  );
+}
+
+function resolveQiyamTimeSeries(
+  data: PrayerGoalAchievementsData,
+  timeKey: QiyamAchievementsMapOptions["qiyamTimeKey"] = "all",
+): PrayerAchievementsTimeItem[] {
+  const timeData = data.timeData;
+  if (!timeData) return [];
+  if (Array.isArray(timeData)) return timeData;
+  if (!isQiyamTimeData(timeData)) return [];
+  if (timeKey === "afterIsha") return timeData.afterIsha ?? timeData.all ?? [];
+  if (timeKey === "tahajjud") return timeData.tahajjud ?? timeData.all ?? [];
+  return timeData.all ?? [];
+}
+
+function isQiyamAchievementsData(data: PrayerGoalAchievementsData): boolean {
+  return data.completedByCategoryData != null;
+}
+
+function computeYAxis(stackTotals: number[], lineValues: number[] = []) {
   const maxStack = Math.max(...stackTotals, 0);
-  const yMax = Math.max(10, Math.ceil(maxStack / 5) * 5);
+  const maxLine = Math.max(...lineValues, 0);
+  const maxVal = Math.max(maxStack, maxLine);
+  const yMax = Math.max(10, Math.ceil(maxVal / 5) * 5);
   const step = yMax <= 15 ? 5 : yMax <= 25 ? 5 : 10;
   const yTicks = Array.from(
     { length: Math.floor(yMax / step) + 1 },
@@ -79,8 +116,12 @@ function finalizeAchievement(
   summaryText?: string | null,
 ): PrayerPastAchievement {
   const barCount = Math.max(chartData.length, 1);
+  const lineValues = chartData.map(
+    (item) => (item as { lineValue?: number }).lineValue ?? 0,
+  );
   const { yMax, yTicks } = computeYAxis(
     chartData.map((item) => item.stackTotalHours),
+    lineValues,
   );
 
   return {
@@ -208,12 +249,155 @@ function mapTimeSpentView(
   );
 }
 
+function mapQiyamChartBuckets(
+  data: PrayerGoalAchievementsData,
+  items: PrayerAchievementsChartItem[],
+  timeSeries: PrayerAchievementsTimeItem[],
+  completedTotal: number,
+  incompleteTotal: number,
+  summaryText?: string | null,
+): PrayerPastAchievement {
+  const timeByLabel = new Map(timeSeries.map((item) => [item.weekLabel, item]));
+
+  const chartData = items.map((item, index) => {
+    const completed = item.completed ?? 0;
+    const incomplete = item.incomplete ?? 0;
+    const nights = item.nights ?? 0;
+    const timeItem = timeByLabel.get(item.weekLabel);
+    const timeSpentMinutes = timeItem?.minutesSpent ?? 0;
+    const stackTotalPrayers = completed + incomplete;
+
+    return {
+      xLabel: `w${index + 1}`,
+      dateLabel: weekDateLabel(item.weekLabel, data.period),
+      completedHours: completed,
+      incompleteHours: incomplete,
+      hours: completed,
+      stackTotalHours: stackTotalPrayers,
+      completedPrayers: completed,
+      incompletePrayers: incomplete,
+      nights,
+      lineValue: nights,
+      timeSpentMinutes,
+      stackTotalPrayers,
+      completedDeltaPct: item.completedDeltaPct ?? null,
+      timeSpentDeltaPct: timeItem?.timeSpentDeltaPct ?? null,
+      bucketSummaryText: item.bucketSummaryText ?? null,
+    } as PrayerPastAchievement["chartData"][number];
+  });
+
+  return finalizeAchievement(
+    data,
+    chartData,
+    completedTotal,
+    incompleteTotal,
+    summaryText,
+  );
+}
+
+function mapQiyamCategoryView(
+  data: PrayerGoalAchievementsData,
+  categoryKey: "AFTER_ISHA" | "TAHAJJUD",
+): PrayerPastAchievement {
+  const category = data.completedByCategoryData?.[categoryKey];
+  if (!category) {
+    return mapQiyamChartBuckets(
+      data,
+      data.chartData ?? [],
+      resolveQiyamTimeSeries(data),
+      data.completedCount ?? 0,
+      data.incompleteCount ?? 0,
+      data.summaryText,
+    );
+  }
+
+  return mapQiyamChartBuckets(
+    data,
+    category.chartData ?? [],
+    [],
+    category.completed ?? 0,
+    category.nights ?? 0,
+    category.summaryText,
+  );
+}
+
+function mapQiyamTimeSpentView(
+  data: PrayerGoalAchievementsData,
+  timeKey: QiyamAchievementsMapOptions["qiyamTimeKey"] = "all",
+): PrayerPastAchievement {
+  const timeSeries = resolveQiyamTimeSeries(data, timeKey);
+  const chartItems = data.chartData ?? [];
+
+  const chartData = chartItems.map((item, index) => {
+    const completed = item.completed ?? 0;
+    const incomplete = item.incomplete ?? 0;
+    const nights = item.nights ?? 0;
+    const timeItem = timeSeries.find((t) => t.weekLabel === item.weekLabel);
+    const minutes = timeItem?.minutesSpent ?? 0;
+    const stack = completed + incomplete;
+
+    return {
+      xLabel: `w${index + 1}`,
+      dateLabel: weekDateLabel(item.weekLabel, data.period),
+      completedHours: completed,
+      incompleteHours: incomplete,
+      hours: completed,
+      stackTotalHours: stack,
+      completedPrayers: completed,
+      incompletePrayers: incomplete,
+      nights,
+      lineValue: nights,
+      timeSpentMinutes: minutes,
+      stackTotalPrayers: stack,
+      completedDeltaPct: item.completedDeltaPct ?? null,
+      timeSpentDeltaPct: timeItem?.timeSpentDeltaPct ?? null,
+      bucketSummaryText:
+        timeItem?.bucketTimeSpentSummaryText ?? item.bucketSummaryText ?? null,
+    } as PrayerPastAchievement["chartData"][number];
+  });
+
+  return finalizeAchievement(
+    data,
+    chartData,
+    data.completedCount ?? 0,
+    data.incompleteCount ?? 0,
+    data.timeSpentSummaryText,
+  );
+}
+
+function mapQiyamAchievements(
+  data: PrayerGoalAchievementsData,
+  analyticsView: PrayerAnalyticsView,
+  options?: QiyamAchievementsMapOptions,
+): PrayerPastAchievement {
+  if (analyticsView === "completedByCategory" && options?.qiyamCategoryKey) {
+    return mapQiyamCategoryView(data, options.qiyamCategoryKey);
+  }
+  if (analyticsView === "completedVsTimeSpent") {
+    return mapQiyamTimeSpentView(data, options?.qiyamTimeKey ?? "all");
+  }
+
+  return mapQiyamChartBuckets(
+    data,
+    data.chartData ?? [],
+    resolveQiyamTimeSeries(data, options?.qiyamTimeKey ?? "all"),
+    data.completedCount ?? 0,
+    data.incompleteCount ?? 0,
+    data.summaryText,
+  );
+}
+
 function mapLegacyChartData(
   data: PrayerGoalAchievementsData,
 ): PrayerPastAchievement {
-  const timeByLabel = new Map(
-    (data.timeData ?? []).map((item) => [item.weekLabel, item]),
-  );
+  const timeData = data.timeData;
+  const timeSeries = Array.isArray(timeData)
+    ? timeData
+    : isQiyamTimeData(timeData)
+      ? timeData.all ?? []
+      : [];
+
+  const timeByLabel = new Map(timeSeries.map((item) => [item.weekLabel, item]));
 
   const chartData = (data.chartData ?? []).map((item, index) => {
     const completed = item.completed ?? 0;
@@ -235,6 +419,7 @@ function mapLegacyChartData(
       stackTotalPrayers,
       completedDeltaPct: item.completedDeltaPct ?? null,
       timeSpentDeltaPct: timeItem?.timeSpentDeltaPct ?? null,
+      bucketSummaryText: item.bucketSummaryText ?? null,
     } as PrayerPastAchievement["chartData"][number];
   });
 
@@ -254,7 +439,12 @@ function mapLegacyChartData(
 export function mapPrayerGoalAchievementsToUi(
   data: PrayerGoalAchievementsData,
   analyticsView: PrayerAnalyticsView = "completedVsIncomplete",
+  options?: QiyamAchievementsMapOptions,
 ): PrayerPastAchievement {
+  if (isQiyamAchievementsData(data)) {
+    return mapQiyamAchievements(data, analyticsView, options);
+  }
+
   const views = data.chartViews;
   if (views) {
     if (
