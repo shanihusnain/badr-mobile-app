@@ -174,19 +174,13 @@ function GoalProgressLoggingBody({
     () => getResolvedGoalById(goalId) ?? goalData,
     [goalData, goalId, weeklyRefreshKey],
   );
-  const qiyamUseMockRing =
-    isQiyamTemplate && !prayerFrame?.frame && !frameLoading;
-  const qiyamMockGoalCount = liveGoalData?.target ?? 52;
-  const qiyamMockPercent = parsePercent(liveGoalData?.percentage) || 15;
 
   const isMondayThursdayFasts = isMondayThursdayFastsGoalId(goalId);
   const frameAchievementPct = prayerFrame?.frame?.goal.achievementPct;
   const displayPercentage = isPrayerFrameRingGoal
     ? frameAchievementPct != null
       ? `${frameAchievementPct}%`
-      : qiyamUseMockRing
-        ? `${qiyamMockPercent}%`
-        : "0%"
+      : "0%"
     : isMondayThursdayFasts && weekViewPercent !== null
       ? `${weekViewPercent}%`
       : frameAchievementPct != null
@@ -224,11 +218,7 @@ function GoalProgressLoggingBody({
             t("progressLogging.unitPrayers"),
           ),
         })
-      : qiyamUseMockRing
-        ? t("homeScreen.weeklyProgress_goalLabel", {
-            label: `${qiyamMockGoalCount} ${t("progressLogging.unitPrayers")}`,
-          })
-        : "---"
+      : "---"
     : isMissedRamadanFastsGoalId(goalId)
       ? t("progressLogging.missedRamadanRingGoal", {
           count: liveGoalData.target ?? cleanLabel,

@@ -55,6 +55,8 @@ import {
   isMissedPastPrayerDayDetail,
   isPrayerGoalDayDetailForDate,
   isSunnahRawatibSlotInGoal,
+  isSunnahRawatibSlotPartiallyLogged,
+  isSunnahRawatibSlotSelectable,
   readSunnahRawatibSlotDailyTarget,
   readSunnahRawatibSlotLoggedCount,
   useGetPrayerGoalDayDetail,
@@ -346,29 +348,6 @@ export default function SunnahRawatibLoggingFlow({
     return counts;
   }, [dayDetail, frameForSelectedDate, selectedDate, availableSunnahOptions]);
 
-  const lockedPrayersForSelectedDate = useMemo(() => {
-    if (!dayDetail?.slots) return [] as SunnahPrayerId[];
-    return availableSunnahOptions.filter((id) => {
-      const slot = dayDetail.slots?.[SUNNAH_UI_TO_API_SLOT[id]];
-      if (!slot) return false;
-      const logged = readSunnahRawatibSlotLoggedCount(slot);
-      const target = slotTargetsForSelectedDate[id] ?? getSlotTargetCount(id);
-      if (logged >= target) return false;
-      return slot.canLog === false;
-    });
-  }, [
-    dayDetail,
-    availableSunnahOptions,
-    slotTargetsForSelectedDate,
-    getSlotTargetCount,
-  ]);
-
-  /** Block only the initial day-detail fetch — not background refetches. */
-  const dayDetailLoadingState =
-    flowMode === "active" &&
-    dayDetail == null &&
-    (dayDetailLoading || dayDetailFetching);
-
   const isPrayerFullyLogged = useCallback(
     (prayerId: SunnahPrayerId) => {
       const logged = slotLoggedCountsForSelectedDate[prayerId] ?? 0;
@@ -383,13 +362,48 @@ export default function SunnahRawatibLoggingFlow({
     ],
   );
 
-  /** Slots with any logged units for this date — show tick (Five Daily style). */
-  const alreadyLoggedPrayers = useMemo(
-    () =>
-      availableSunnahOptions.filter(
-        (id) => (slotLoggedCountsForSelectedDate[id] ?? 0) > 0,
-      ),
-    [availableSunnahOptions, slotLoggedCountsForSelectedDate],
+  const isPrayerPartiallyLogged = useCallback(
+    (prayerId: SunnahPrayerId) => {
+      const slot = dayDetail?.slots?.[SUNNAH_UI_TO_API_SLOT[prayerId]];
+      if (slot) return isSunnahRawatibSlotPartiallyLogged(slot);
+      const logged = slotLoggedCountsForSelectedDate[prayerId] ?? 0;
+      const target =
+        slotTargetsForSelectedDate[prayerId] ?? getSlotTargetCount(prayerId);
+      return logged > 0 && target > 0 && logged < target;
+    },
+    [
+      dayDetail,
+      slotLoggedCountsForSelectedDate,
+      slotTargetsForSelectedDate,
+      getSlotTargetCount,
+    ],
+  );
+
+  const lockedPrayersForSelectedDate = useMemo(() => {
+    if (!dayDetail?.slots) return [...availableSunnahOptions];
+    return availableSunnahOptions.filter((id) => {
+      const slot = dayDetail.slots?.[SUNNAH_UI_TO_API_SLOT[id]];
+      if (isPrayerFullyLogged(id)) return false;
+      return !isSunnahRawatibSlotSelectable(slot);
+    });
+  }, [dayDetail, availableSunnahOptions, isPrayerFullyLogged]);
+
+  /** Block only the initial day-detail fetch — not background refetches. */
+  const dayDetailLoadingState =
+    flowMode === "active" &&
+    dayDetail == null &&
+    (dayDetailLoading || dayDetailFetching);
+
+  /** Slots fully completed for this date — green tick on prayer select. */
+  const fullyLoggedPrayers = useMemo(
+    () => availableSunnahOptions.filter((id) => isPrayerFullyLogged(id)),
+    [availableSunnahOptions, isPrayerFullyLogged],
+  );
+
+  /** Slots with loggedCount < dailyTarget — green icon, still selectable. */
+  const partiallyLoggedPrayers = useMemo(
+    () => availableSunnahOptions.filter((id) => isPrayerPartiallyLogged(id)),
+    [availableSunnahOptions, isPrayerPartiallyLogged],
   );
 
   const hasSelectablePrayer = useMemo(
@@ -397,9 +411,11 @@ export default function SunnahRawatibLoggingFlow({
       availableSunnahOptions.some(
         (id) =>
           !isPrayerFullyLogged(id) &&
-          !lockedPrayersForSelectedDate.includes(id),
+          isSunnahRawatibSlotSelectable(
+            dayDetail?.slots?.[SUNNAH_UI_TO_API_SLOT[id]],
+          ),
       ),
-    [availableSunnahOptions, isPrayerFullyLogged, lockedPrayersForSelectedDate],
+    [availableSunnahOptions, dayDetail, isPrayerFullyLogged],
   );
 
   const remainingCountForSelected = useMemo(() => {
@@ -464,20 +480,33 @@ export default function SunnahRawatibLoggingFlow({
     });
   }, [cycleStart, maxSelectableDate]);
 
-  // Keep selection on an available (not fully logged) prayer for this date.
+  // Keep selection on a slot the backend marks as loggable for this date.
   useEffect(() => {
     setSelectedPrayer((current) => {
+      const currentSlot = dayDetail?.slots?.[SUNNAH_UI_TO_API_SLOT[current]];
       const stillValid =
         availableSunnahOptions.includes(current) &&
-        !isPrayerFullyLogged(current);
+        !isPrayerFullyLogged(current) &&
+        isSunnahRawatibSlotSelectable(currentSlot);
       if (stillValid) return current;
       return (
-        availableSunnahOptions.find((id) => !isPrayerFullyLogged(id)) ??
+        availableSunnahOptions.find(
+          (id) =>
+            !isPrayerFullyLogged(id) &&
+            isSunnahRawatibSlotSelectable(
+              dayDetail?.slots?.[SUNNAH_UI_TO_API_SLOT[id]],
+            ),
+        ) ??
         availableSunnahOptions[0] ??
         "before_fajr"
       );
     });
-  }, [availableSunnahOptions, isPrayerFullyLogged, selectedDate]);
+  }, [
+    availableSunnahOptions,
+    dayDetail,
+    isPrayerFullyLogged,
+    selectedDate,
+  ]);
 
   const dateLabel = formatProgressLoggingDateLabel(
     selectedDate,
@@ -664,8 +693,9 @@ export default function SunnahRawatibLoggingFlow({
     }
   }, [prayerPageCount, prayerSelectPage]);
 
-  const renderPrayerSelectStep = (loggedPrayers: readonly SunnahPrayerId[]) => {
-    const loggedSet = new Set(loggedPrayers);
+  const renderPrayerSelectStep = () => {
+    const fullyLoggedSet = new Set(fullyLoggedPrayers);
+    const partiallyLoggedSet = new Set(partiallyLoggedPrayers);
     const lockedSet = new Set(lockedPrayersForSelectedDate);
     const pageOptions = paginatePrayerSelect
       ? availableSunnahOptions.slice(
@@ -706,11 +736,15 @@ export default function SunnahRawatibLoggingFlow({
           {pageOptions.map((id) => {
             const globalIndex = availableSunnahOptions.indexOf(id);
             const isSelected = selectedPrayer === id;
-            const isLogged = loggedSet.has(id);
-            const isFullyLogged = isPrayerFullyLogged(id);
+            const isFullyLogged = fullyLoggedSet.has(id);
+            const isPartiallyLogged = partiallyLoggedSet.has(id);
             const isLocked = lockedSet.has(id);
-            // Tick + green for any logged slot; disable when target met or locked.
-            const showHighlight = isSelected || isLogged;
+            const showHighlight =
+              isSelected || isFullyLogged || isPartiallyLogged;
+            const iconColor =
+              isFullyLogged || isPartiallyLogged || isSelected
+                ? Colors.light.green
+                : Colors.light.white;
             const isFirst = globalIndex === 0;
             const isLast = globalIndex === availableSunnahOptions.length - 1;
             const Icon = SUNNAH_ICON_COMPONENTS[id];
@@ -726,7 +760,9 @@ export default function SunnahRawatibLoggingFlow({
                 <View
                   style={[
                     localStyles.prayerLabelBlock,
-                    { opacity: showHighlight ? 1 : 0.8 },
+                    {
+                      opacity: showHighlight ? 1 : isLocked ? 0.35 : 0.8,
+                    },
                   ]}
                 >
                   <Text style={localStyles.prayerLabelLine} numberOfLines={1}>
@@ -743,6 +779,7 @@ export default function SunnahRawatibLoggingFlow({
                     showHighlight
                       ? commonStyles.prayerIconBoxSelected
                       : commonStyles.prayerIconBoxIdle,
+                    isLocked && !showHighlight && { opacity: 0.35 },
                     {
                       borderTopLeftRadius: isFirst ? 5 : 0,
                       borderBottomLeftRadius: isFirst ? 5 : 0,
@@ -751,16 +788,11 @@ export default function SunnahRawatibLoggingFlow({
                     },
                   ]}
                 >
-                  <Icon
-                    color={
-                      showHighlight ? Colors.light.green : Colors.light.white
-                    }
-                    size={14}
-                  />
+                  <Icon color={iconColor} size={14} />
                 </View>
 
                 <View style={localStyles.prayerCheckSlot}>
-                  {isLogged ? (
+                  {isFullyLogged ? (
                     <View style={localStyles.prayerCheckBadge}>
                       <GreenTickIcon color={Colors.light.green} size={8} />
                     </View>
@@ -813,7 +845,7 @@ export default function SunnahRawatibLoggingFlow({
           />
         );
       case "select-prayer":
-        return renderPrayerSelectStep(alreadyLoggedPrayers);
+        return renderPrayerSelectStep();
       case "rakahs-quantity":
         return (
           <OptionSelectStep<PrayerCountOption>

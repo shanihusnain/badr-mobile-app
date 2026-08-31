@@ -14,6 +14,7 @@ import type {
   SunnahPrayerId,
 } from "@/components/molecules/SunnahRawatibDayRing";
 import type { SunnahRawatibDayProgress } from "@/components/molecules/SunnahRawatibWeeklyProgressDashboard";
+import type { QiyamDayProgress } from "@/components/molecules/QiyamWeeklyProgressDashboard";
 
 const FIVE_DAILY_SLOT_ORDER: FiveDailyPrayerSlotKey[] = [
   "FAJR",
@@ -262,7 +263,7 @@ function readSunnahSlotUnits(
 /**
  * Map frame day `slots` → ring `logged` units (1 unit = one 2-rak'ah prayer).
  * - Future: empty → dim arcs
- * - Today: filled slots green/partial; missing → bright white (upcoming)
+ * - Today: filled slots green; partial → green + yellow; missing → bright white
  * - Past with no activity: empty → dim (not missed)
  * - Past with activity: missing slots → 0 (yellow / missed)
  */
@@ -318,6 +319,71 @@ export function mapSunnahFrameWeekDays(
         isMenstruation: Boolean(day.isMenstruationDay),
         isToday: Boolean(day.isToday),
       },
+    };
+  });
+}
+
+type QiyamLoggedTime = QiyamDayProgress["loggedTime"];
+
+function readQiyamSlotLogged(
+  slots: Record<string, unknown> | undefined,
+  key: string,
+): boolean {
+  if (!slots) return false;
+  const raw = slots[key];
+  if (typeof raw === "number") return raw > 0;
+  if (typeof raw === "boolean") return raw;
+  if (raw && typeof raw === "object") {
+    const obj = raw as { logged?: boolean; count?: number; completed?: number };
+    if (typeof obj.logged === "boolean") return obj.logged;
+    const n = obj.count ?? obj.completed ?? 0;
+    return n > 0;
+  }
+  return false;
+}
+
+function inferQiyamLoggedTime(
+  slots: Record<string, unknown> | undefined,
+): QiyamLoggedTime | undefined {
+  if (!slots) return undefined;
+  const afterIsha =
+    readQiyamSlotLogged(slots, "AFTER_ISHA") ||
+    readQiyamSlotLogged(slots, "afterIsha");
+  const beforeFajr =
+    readQiyamSlotLogged(slots, "BEFORE_FAJR") ||
+    readQiyamSlotLogged(slots, "beforeFajr") ||
+    readQiyamSlotLogged(slots, "TAHAJJUD") ||
+    readQiyamSlotLogged(slots, "tahajjud");
+  if (afterIsha && beforeFajr) return "both";
+  if (afterIsha) return "after-isha";
+  if (beforeFajr) return "before-fajr";
+  return undefined;
+}
+
+/** Map frame week days for Qiyam Al-Layl rings. */
+export function mapQiyamFrameWeekDays(
+  frame: PrayerGoalFrameData,
+): QiyamDayProgress[] {
+  return frame.week.days.map((day) => {
+    const count = day.count ?? day.totalLogged ?? 0;
+    const isFuture = resolveIsFutureDay(day);
+    const loggedTime =
+      day.loggedTime ??
+      inferQiyamLoggedTime(day.slots as Record<string, unknown> | undefined);
+
+    return {
+      day: day.dayLabel,
+      date: day.date,
+      prayersLogged: count,
+      isLogged: !isFuture && count > 0,
+      isBestDay: Boolean(day.isBestDay),
+      isMenstruation: Boolean(day.isMenstruationDay),
+      isFuture,
+      isToday: Boolean(day.isToday),
+      loggedTime,
+      isMissedStrict: day.isMissedStrict,
+      isMissedFlexible: day.isMissedFlexible,
+      isWitrPending: day.isWitrPending,
     };
   });
 }

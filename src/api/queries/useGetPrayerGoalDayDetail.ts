@@ -154,13 +154,35 @@ export function isSunnahRawatibSlotInGoal(
   return readSunnahRawatibSlotDailyTarget(slot) > 0;
 }
 
+/** True when some but not all daily target units are logged. */
+export function isSunnahRawatibSlotPartiallyLogged(
+  slot: SunnahRawatibDayDetailSlot | undefined,
+): boolean {
+  if (!slot) return false;
+  const logged = readSunnahRawatibSlotLoggedCount(slot);
+  const target = readSunnahRawatibSlotDailyTarget(slot);
+  return logged > 0 && target > 0 && logged < target;
+}
+
+/** True when an unlogged Five Daily slot is open for logging per day-detail. */
+export function isFiveDailySlotSelectable(
+  slot: FiveDailyDayDetailSlot | undefined,
+): boolean {
+  if (!slot || slot.logged) return false;
+  return slot.canLog === true;
+}
+
 /** True when the slot is part of the goal and currently open for logging. */
 export function isSunnahRawatibSlotSelectable(
   slot: SunnahRawatibDayDetailSlot | undefined,
 ): boolean {
-  if (!isSunnahRawatibSlotInGoal(slot)) return false;
-  if (slot?.canLog === false) return false;
-  return true;
+  if (!slot || !isSunnahRawatibSlotInGoal(slot)) return false;
+  const logged = readSunnahRawatibSlotLoggedCount(slot);
+  const target = readSunnahRawatibSlotDailyTarget(slot);
+  if (logged >= target) return false;
+  // Partial slot (e.g. 1 of 2): always allow logging the remaining unit(s).
+  if (logged > 0 && logged < target) return true;
+  return slot.canLog === true;
 }
 
 const postPrayerGoalDayDetail = async (
