@@ -75,14 +75,14 @@ export const styles = StyleSheet.create({
   largeCircleInner: {
     alignItems: "center",
     justifyContent: "center",
-    gap: 7,
+    gap: 2,
     width: "100%",
     height: "100%",
   },
   circleGoalText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
-    fontSize: 14,
+    fontSize: 13,
     opacity: 0.95,
     letterSpacing: -0.2,
     marginBottom: 0,
@@ -97,9 +97,9 @@ export const styles = StyleSheet.create({
   },
   circlePercentNumber: {
     color: Colors.light.white,
-    fontFamily: fonts.primary.regular,
-    fontSize: 32,
-    fontWeight: "400",
+    fontFamily: fonts.primary.bold,
+    fontSize: 36,
+    fontWeight: "700",
     lineHeight: 40,
   },
   circlePercentSymbol: {

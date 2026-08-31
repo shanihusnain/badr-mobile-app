@@ -3671,6 +3671,8 @@
     "weeklyProgress_vsLastWeek": "on-time prayers vs. last week",
     "weeklyProgress_sameAsLastWeek": "Same on-time prayers as last week",
     "weeklyProgress_prayersVsLastWeek": "prayers vs. last week",
+    "weeklyProgress_sunnahTotalThisWeek": " total Sunnah prayers this week",
+    "weeklyProgress_sunnahTotalThisWeek_one": " total Sunnah prayer this week",
     "weeklyProgress_samePrayersAsLastWeek": "Same prayers as last week",
     "weeklyProgress_goalLabel": "Goal: {{label}}",
     "weeklyProgress_daySun": "Sun",

@@ -170,6 +170,7 @@ export const styles = StyleSheet.create({
     alignSelf: "stretch",
     height: FLOW_CARD_HEIGHT,
     overflow: "hidden",
+    flexDirection: "column",
   },
   inPlaceFlowCard: {
     width: "100%",
@@ -236,6 +237,9 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
     transform: [{ translateX: 14 }],
   },
+  navGroupNoConfirm: {
+    transform: [{ translateX: 0 }],
+  },
   navButton: {
     width: 20,
     height: 20,
@@ -261,6 +265,11 @@ export const styles = StyleSheet.create({
   confirmButtonActive: {
     borderColor: Colors.light.white,
     backgroundColor: Colors.light.white + "10",
+  },
+  confirmButtonPlaceholder: {
+    width: 30,
+    height: 30,
+    transform: [{ translateY: -6 }],
   },
   dateRow: {
     flexDirection: "row",
@@ -422,7 +431,7 @@ export const styles = StyleSheet.create({
     left: 0,
     right: 0,
     backgroundColor: Colors.light.blackBackground,
-    borderRadius: 6,
+    borderRadius: 4,
     marginTop: 4,
     paddingVertical: 8,
     paddingHorizontal: 6,

@@ -1365,6 +1365,9 @@ export function WeeklyProgressSection({
       weekFraction: "2/4",
       totalPrayersThisWeek: 28,
       streakDays: 5,
+      vsLastWeek: 12,
+      motivationalQuote:
+        "Your Qiyam prayer is a beautiful act. May Allah reward you.",
     };
     return (
       <QiyamWeeklyProgressDashboard
@@ -1373,7 +1376,8 @@ export function WeeklyProgressSection({
         weekFraction={mockWeek.weekFraction}
         totalPrayersThisWeek={mockWeek.totalPrayersThisWeek}
         streakDays={mockWeek.streakDays}
-        statsIcon="rug"
+        vsLastWeek={mockWeek.vsLastWeek}
+        motivationalQuote={mockWeek.motivationalQuote}
       />
     );
   }
@@ -1399,6 +1403,7 @@ export function WeeklyProgressSection({
           weekFraction={getPrayerFrameWeekFraction(frame)}
           totalPrayersThisWeek={frame.week.thisWeekTotal ?? 0}
           streakDays={frame.week.currentStreak}
+          vsLastWeek={frame.week.vsLastWeek}
           motivationalQuote={getPrayerFrameMotivationalQuote(frame)}
           selectedDayIndex={getPrayerFrameTodayIndex(frame)}
           loading={frameLoading}

@@ -3602,6 +3602,8 @@
     "weeklyProgress_vsLastWeek": "صلاة في وقتها مقارنة بالأسبوع الماضي",
     "weeklyProgress_sameAsLastWeek": "نفس عدد الصلوات في وقتها كالأسبوع الماضي",
     "weeklyProgress_prayersVsLastWeek": "صلوات مقارنة بالأسبوع الماضي",
+    "weeklyProgress_sunnahTotalThisWeek": " إجمالي صلوات السنن هذا الأسبوع",
+    "weeklyProgress_sunnahTotalThisWeek_one": " إجمالي صلاة سنة هذا الأسبوع",
     "weeklyProgress_samePrayersAsLastWeek": "نفس عدد الصلوات كالأسبوع الماضي",
     "weeklyProgress_goalLabel": "الهدف: {{label}}",
     "weeklyProgress_daySun": "أحد",

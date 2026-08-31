@@ -168,9 +168,10 @@ export const GOALS_DATA: Record<GoalId, GoalData> = {
     id: "prayer-qiyam",
     category: "PRAYER",
     title: "Qiyam Al-Layl",
-    count: "3",
-    label: "/10 prayers",
-    percentage: "30%",
+    count: "8",
+    label: "/52 prayers",
+    target: 52,
+    percentage: "15%",
     progressColor: Colors.light.ringPrayer,
     description:
       "Qiyam Al-Layl is the night prayer performed in the latter part of the night. It brings the soul closer to Allah and fills the heart with tranquility.",
