@@ -217,7 +217,7 @@ const timingStepStyles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
     fontSize: 10,
-    lineHeight: 14,
+    lineHeight: 13,
     opacity: 0.8,
     textAlign: "left",
     alignSelf: "stretch",
@@ -276,7 +276,7 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
   const [flowMode, setFlowMode] = useState<FlowMode>("collapsed");
   const [stepIndex, setStepIndex] = useState(0);
   const [selectedDate, setSelectedDate] = useState(toDateString(new Date()));
-  const [prayersCount, setPrayersCount] = useState("4");
+  const [prayersCount, setPrayersCount] = useState("0");
   const [loggedTime, setLoggedTime] = useState<"after-isha" | "before-fajr">("before-fajr");
   const [isTimingDropdownOpen, setIsTimingDropdownOpen] = useState(false);
   const [startHour, setStartHour] = useState(
@@ -346,7 +346,7 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
 
   const resetFlow = useCallback(() => {
     setFlowMode("collapsed"); setStepIndex(0); setSelectedDate(toDateString(new Date()));
-    setPrayersCount("4"); setLoggedTime("before-fajr"); setIsTimingDropdownOpen(false); setStartHour("02"); setStartMinute("00"); setStartPeriod("am");
+    setPrayersCount("0"); setLoggedTime("before-fajr"); setIsTimingDropdownOpen(false); setStartHour("02"); setStartMinute("00"); setStartPeriod("am");
     setDurationHours("0"); setDurationMinutes("0"); setPrayedWitr("No"); setConcludedWithWitr("No"); setIsPeriodDropdownOpen(false);
   }, []);
 

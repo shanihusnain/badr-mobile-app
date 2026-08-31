@@ -117,7 +117,7 @@ export const DetailedIbadahsProgressCard = ({
       <View style={styles.rightSection}>
         <TaperedCircleBorder
           percentage={loading ? "0%" : percentage}
-          borderColor={Colors.light.dullWhiteOpacity}
+          borderColor={Colors.light.ringTrackEmpty}
           size={64}
           variant="illuminated"
         >

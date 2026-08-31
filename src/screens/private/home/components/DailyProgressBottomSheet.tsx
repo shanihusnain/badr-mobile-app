@@ -16,7 +16,6 @@ import {
   getDetailedIbadahIcon,
 } from "./DetailedIbadahsProgressCards";
 import type { GoalId } from "./goalsData";
-import BackButton from "@/components/atoms/Backbutton";
 import { useTypedTranslation } from "@/i18next/useTypedTranslation";
 import { useGetGoalCycleCategories } from "@/src/api/queries/useGetGoalCycleCategories";
 import { useGetGoalCycleCategoryGoals } from "@/src/api/queries/useGetGoalCycleCategoryGoals";
@@ -399,9 +398,9 @@ const styles = StyleSheet.create({
   },
   headerSpacer: { width: 36 },
   headerBackButton: {
-    width: 30,
-    height: 40,
-    borderRadius: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: Colors.light.buttonBackground,
     justifyContent: "center",
     alignItems: "center",

@@ -164,8 +164,12 @@ import { PencilIcon } from "./PencilIcon";
 import { PasswordEyeIcon } from "./PasswordEyeIcon";
 import { PrayerMatIcon } from "./PrayerMatIcon";
 //Q
-
-//R
+import { QiyamAfterIshaIcon } from "./QiyamAfterIshaIcon";
+import { QiyamBestDayIcon } from "./QiyamBestDay";
+import { QiyamFemaleBothIshaAndTahajudIcon } from "./QiyamFemaleBothIshaAndTahajudBothicon";
+import { QiyamFemaleUserIcon } from "./QiyamFemaleUser";
+import { QiyamMaleBothIshaAndTahajudIcon } from "./QiyamMaleBothIshaAndTahajudBothicon";
+import { QiyamMaleUserIcon } from "./QiyamMaleUser";
 import { ReferFriendIcon } from "./ReferFriendIcon";
 import { ReferFriendTabIcon } from "./ReferFriendTabIcon";
 import { RedeemGiftIcon } from "./RedeemGiftIcon";
@@ -454,6 +458,12 @@ export {
   // TickIconWithCircle,
   WhiteTick,
   PrayerMatIcon,
+  QiyamAfterIshaIcon,
+  QiyamBestDayIcon,
+  QiyamFemaleBothIshaAndTahajudIcon,
+  QiyamFemaleUserIcon,
+  QiyamMaleBothIshaAndTahajudIcon,
+  QiyamMaleUserIcon,
   LighteningIcon,
   BestdayStarIcon,
   CalendarFlippingIcon,

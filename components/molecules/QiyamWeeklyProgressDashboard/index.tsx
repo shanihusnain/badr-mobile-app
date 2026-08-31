@@ -7,10 +7,18 @@ import {
   useWindowDimensions,
   Pressable,
 } from "react-native";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
-import { BinIcon, PrayerMatIcon } from "@/assets/icons";
+import {
+  BinIcon,
+  PrayerMatIcon,
+  QiyamAfterIshaIcon,
+  QiyamBestDayIcon,
+  QiyamFemaleBothIshaAndTahajudIcon,
+  QiyamFemaleUserIcon,
+  QiyamMaleBothIshaAndTahajudIcon,
+  QiyamMaleUserIcon,
+} from "@/assets/icons";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { PrayerWeeklyProgressFooter } from "@/components/molecules/PrayerWeeklyProgressFooter";
 import { PrayerWeeklyProgressHeader } from "@/components/molecules/SinglePrayerWeeklyProgressDashboard/PrayerWeeklyProgressHeader";
@@ -52,6 +60,7 @@ export type QiyamWeeklyProgressDashboardProps = {
   onPrevWeek?: () => void;
   onNextWeek?: () => void;
   loading?: boolean;
+  isGoalCompleted?: boolean;
 };
 
 const LOADING_WEEK: QiyamDayProgress[] = [
@@ -69,12 +78,15 @@ const LOADING_WEEK: QiyamDayProgress[] = [
 }));
 
 const BEST_DAY_SIZE_BOOST = 4;
+const PAST_DAY_SIZE_REDUCTION = 3;
+const PAST_DAY_ICON_OPACITY = 0.45;
 
 type DayIconProps = {
   day: QiyamDayProgress;
   size: number;
   isBestDayVisible: boolean;
   isSelected: boolean;
+  isDeleting: boolean;
 };
 
 function QiyamDayIcon({
@@ -82,8 +94,12 @@ function QiyamDayIcon({
   size,
   isBestDayVisible,
   isSelected,
+  isDeleting,
 }: DayIconProps) {
-  const circleSize = isBestDayVisible ? size + BEST_DAY_SIZE_BOOST : size;
+  const isPastDay = !day.isToday && !day.isFuture;
+  const circleSize =
+    (isBestDayVisible ? size + BEST_DAY_SIZE_BOOST : size) -
+    (isPastDay ? PAST_DAY_SIZE_REDUCTION : 0);
   const iconSize = Math.max(10, Math.round(circleSize * 0.52));
 
   const innerSizeStyle = {
@@ -123,6 +139,7 @@ function QiyamDayIcon({
           height: size + BEST_DAY_SIZE_BOOST + 5,
           borderRadius: 8,
         },
+        isPastDay && styles.pastDayIconWrap,
       ]}
     >
       <View style={[innerSizeStyle, ringStyle]}>
@@ -131,55 +148,46 @@ function QiyamDayIcon({
         !day.isFuture &&
         !day.isMissedStrict &&
         !day.isMissedFlexible
-          ? renderLoggedIcon(day, iconSize)
+          ? renderLoggedIcon(day, iconSize, isDeleting)
           : null}
       </View>
     </View>
   );
 }
 
-function renderLoggedIcon(day: QiyamDayProgress, iconSize: number) {
-  const iconColor = Colors.light.white;
-  const moonIcon = (
-    <MaterialCommunityIcons
-      name="star-crescent"
-      size={iconSize}
-      color={iconColor}
-    />
-  );
-  const prayingIcon = (
-    <MaterialCommunityIcons
-      name={day.gender === "female" ? "human-female" : "human-handsdown"}
-      size={iconSize}
-      color={iconColor}
-    />
-  );
+function renderLoggedIcon(
+  day: QiyamDayProgress,
+  iconSize: number,
+  isDeleting: boolean,
+) {
+  if (isDeleting) {
+    return <QiyamAfterIshaIcon size={iconSize} />;
+  }
 
-  if (day.loggedTime === "after-isha") {
-    return moonIcon;
-  }
-  if (day.loggedTime === "before-fajr") {
-    return prayingIcon;
-  }
-  if (day.loggedTime === "both") {
-    const compactSize = Math.max(8, iconSize - 2);
-    return (
-      <View style={styles.bothIconsRow}>
-        <MaterialCommunityIcons
-          name="star-crescent"
-          size={compactSize}
-          color={iconColor}
-          style={styles.bothIconLeft}
-        />
-        <MaterialCommunityIcons
-          name={day.gender === "female" ? "human-female" : "human-handsdown"}
-          size={compactSize}
-          color={iconColor}
-        />
-      </View>
+  const isFemale = day.gender === "female";
+  const timing = day.loggedTime;
+
+  if (timing === "both") {
+    return isFemale ? (
+      <QiyamFemaleBothIshaAndTahajudIcon size={iconSize} />
+    ) : (
+      <QiyamMaleBothIshaAndTahajudIcon size={iconSize} />
     );
   }
-  return null;
+
+  if (timing === "before-fajr") {
+    return isFemale ? (
+      <QiyamFemaleUserIcon size={iconSize} />
+    ) : (
+      <QiyamMaleUserIcon size={iconSize} />
+    );
+  }
+
+  if (day.isBestDay) {
+    return <QiyamBestDayIcon size={iconSize} />;
+  }
+
+  return <QiyamAfterIshaIcon size={iconSize} />;
 }
 
 export function QiyamWeeklyProgressDashboard({
@@ -195,6 +203,7 @@ export function QiyamWeeklyProgressDashboard({
   onPrevWeek,
   onNextWeek,
   loading = false,
+  isGoalCompleted = false,
 }: QiyamWeeklyProgressDashboardProps) {
   const { width: screenWidth } = useWindowDimensions();
   const prayerFrame = useOptionalPrayerGoalFrameContext();
@@ -230,8 +239,17 @@ export function QiyamWeeklyProgressDashboard({
           const hasLog = day.prayersLogged > 0 || !!day.isLogged;
           const isFuture = !!day.isFuture;
           const isMenstruation = !!day.isMenstruation;
+          const showEmptyOutline =
+            !loading &&
+            isGoalCompleted &&
+            !hasLog &&
+            !isMenstruation &&
+            isFuture;
           const isInactiveOutline =
-            isFuture || !!day.isMissedStrict || !!day.isMissedFlexible;
+            isFuture ||
+            !!day.isMissedStrict ||
+            !!day.isMissedFlexible ||
+            showEmptyOutline;
           const isBestDayVisible =
             !!day.isBestDay && !isInactiveOutline && !loading && !isMenstruation;
           const isMarkedForDeletion =
@@ -279,6 +297,7 @@ export function QiyamWeeklyProgressDashboard({
                   size={ringSize}
                   isBestDayVisible={isBestDayVisible}
                   isSelected={isSelected}
+                  isDeleting={isMarkedForDeletion}
                 />
                 <TopSpace top={10} />
                 <Text
@@ -465,7 +484,7 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255, 255, 255, 0.32)",
   },
   ringMissedStrict: {
-    backgroundColor: Colors.light.golden,
+    backgroundColor: Colors.light.yellow,
   },
   ringMissedFlexible: {
     backgroundColor: Colors.light.selectcategory,
@@ -491,12 +510,8 @@ const styles = StyleSheet.create({
     borderWidth: 1.2,
     borderColor: "rgba(255, 255, 255, 0.28)",
   },
-  bothIconsRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  bothIconLeft: {
-    marginRight: -2,
+  pastDayIconWrap: {
+    opacity: PAST_DAY_ICON_OPACITY,
   },
   bestDayLabel: {
     color: Colors.light.green,

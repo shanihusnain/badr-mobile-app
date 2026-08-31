@@ -623,7 +623,7 @@ export const TaperedCircleBorder: React.FC<TaperedCircleBorderProps> = ({
             cx={CX}
             cy={CY}
             r={RADIUS}
-            stroke={Colors.light.inactiveTaperedBorder}
+            stroke={borderColor}
             strokeWidth={isIlluminated ? ILLUMINATED_TRACK_WIDTH : TRACK_WIDTH}
             fill="none"
           />

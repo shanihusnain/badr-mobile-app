@@ -2619,16 +2619,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
               openOnMount={true}
               initialValues={getQiyamInitial(sourcePrayer)}
               isSaving={isSavingPrayer}
-              onSave={(
-                payload: {
-                  commitment: "every_night" | "flexible";
-                  twoRakahPrayers: number;
-                  witrPrayers: number;
-                  trackTahajjud: "yes" | "no";
-                },
-                onDone,
-                onFail,
-              ) => {
+              onSave={(payload, onDone, onFail) => {
                 persistPrayerGoal(
                   {
                     prayerType: "QIYAM_AL_LAYL",
@@ -2636,7 +2627,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                     qiyamConfig: {
                       isFlexible: payload.commitment === "flexible",
                       unitTarget: payload.twoRakahPrayers,
-                      trackTahajjud: payload.trackTahajjud === "yes",
+                      trackTahajjud: true,
                     },
                   },
                   undefined,
@@ -3146,8 +3137,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                                 qiyamConfig: {
                                   isFlexible: payload.commitment === "flexible",
                                   unitTarget: payload.twoRakahPrayers,
-                                  trackTahajjud:
-                                    payload.trackTahajjud === "yes",
+                                  trackTahajjud: true,
                                 },
                               },
                               undefined,

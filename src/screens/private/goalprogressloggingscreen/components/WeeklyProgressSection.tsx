@@ -120,8 +120,10 @@ import {
   getPrayerFrameWeekFraction,
   mapFiveDailyFrameWeekDays,
   mapPrayerFrameWeekDays,
+  mapQiyamFrameWeekDays,
   mapSunnahFrameWeekDays,
 } from "@/src/utils/prayerGoalFrameMap";
+import { useAuth } from "@/provider/useAuth";
 import type { PrayerGoalFrameData } from "@/src/api/queries/useGetPrayerGoalFrame";
 
 type Props = {
@@ -187,6 +189,9 @@ export function WeeklyProgressSection({
   const { t } = useTranslation();
   const template = getLoggingFlowTemplate(goalData.id);
   const prayerFrame = useOptionalPrayerGoalFrameContext();
+  const { user } = useAuth();
+  const qiyamGender: "male" | "female" =
+    user?.gender === "FEMALE" ? "female" : "male";
   const memorisationContext = useOptionalMemorisationSurahContext();
   const hizbMemorisationContext = useOptionalMemorisationHizbContext();
   const juzMemorisationContext = useOptionalMemorisationJuzContext();
@@ -1320,64 +1325,52 @@ export function WeeklyProgressSection({
   }
 
   if (template === "qiyam-al-layl") {
-    const mockWeek = {
-      weekDays: [
-        {
-          day: "Sun",
-          prayersLogged: 4,
-          isLogged: true,
-          loggedTime: "after-isha" as const,
-        },
-        {
-          day: "Mon",
-          prayersLogged: 8,
-          isLogged: true,
-          isBestDay: true,
-          loggedTime: "both" as const,
-        },
-        {
-          day: "Tue",
-          prayersLogged: 4,
-          isLogged: true,
-          loggedTime: "before-fajr" as const,
-        },
-        { day: "Wed", prayersLogged: 0, isMissedStrict: true },
-        {
-          day: "Thu",
-          prayersLogged: 4,
-          isLogged: true,
-          loggedTime: "after-isha" as const,
-        },
-        {
-          day: "Fri",
-          prayersLogged: 4,
-          isLogged: true,
-          loggedTime: "after-isha" as const,
-        },
-        {
-          day: "Sat",
-          prayersLogged: 4,
-          isLogged: true,
-          loggedTime: "after-isha" as const,
-        },
-      ],
-      weekRangeLabel: "Nov 29 — Dec 5",
-      weekFraction: "2/4",
-      totalPrayersThisWeek: 28,
-      streakDays: 5,
-      vsLastWeek: 12,
-      motivationalQuote:
-        "Your Qiyam prayer is a beautiful act. May Allah reward you.",
-    };
+    const frame = prayerFrame?.frame;
+    if (frame) {
+      const totalWeeks = frame.cycle.totalWeeks;
+      const activeWeek = getPrayerFrameActiveWeek(prayerFrame, frame);
+      const canPrev = activeWeek > 1;
+      const canNext = activeWeek < totalWeeks;
+
+      const handlePrevWeek = canPrev
+        ? () => shiftPrayerFrameWeek(prayerFrame, frame, -1)
+        : undefined;
+
+      const handleNextWeek = canNext
+        ? () => shiftPrayerFrameWeek(prayerFrame, frame, 1)
+        : undefined;
+
+      return (
+        <QiyamWeeklyProgressDashboard
+          key={frame.cycle.weekNumber}
+          weekDays={mapQiyamFrameWeekDays(frame, { gender: qiyamGender })}
+          weekRangeLabel={formatPrayerFrameWeekRange(
+            frame.cycle.weekStart,
+            frame.cycle.weekEnd,
+          )}
+          weekFraction={getPrayerFrameWeekFraction(frame)}
+          totalPrayersThisWeek={frame.week.thisWeekTotal ?? 0}
+          streakDays={frame.week.currentStreak}
+          vsLastWeek={frame.week.vsLastWeek}
+          motivationalQuote={getPrayerFrameMotivationalQuote(frame)}
+          loading={isPrayerFrameDashboardLoading(prayerFrame, frame)}
+          selectedDayIndex={getPrayerFrameTodayIndex(frame)}
+          isGoalCompleted={(frame.goal.achievementPct ?? 0) >= 100}
+          onPrevWeek={handlePrevWeek}
+          onNextWeek={handleNextWeek}
+        />
+      );
+    }
+
     return (
       <QiyamWeeklyProgressDashboard
-        weekDays={mockWeek.weekDays}
-        weekRangeLabel={mockWeek.weekRangeLabel}
-        weekFraction={mockWeek.weekFraction}
-        totalPrayersThisWeek={mockWeek.totalPrayersThisWeek}
-        streakDays={mockWeek.streakDays}
-        vsLastWeek={mockWeek.vsLastWeek}
-        motivationalQuote={mockWeek.motivationalQuote}
+        weekDays={[]}
+        weekRangeLabel="---"
+        weekFraction="---"
+        totalPrayersThisWeek={0}
+        streakDays={0}
+        motivationalQuote="---"
+        loading={isPrayerFrameDashboardLoading(prayerFrame, frame)}
       />
     );
   }

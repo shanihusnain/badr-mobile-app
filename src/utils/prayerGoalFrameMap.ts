@@ -8,6 +8,7 @@ import type {
 } from "@/src/api/queries/useGetPrayerGoalFrame";
 import type { TahiyatUlWudhuDayProgress } from "@/components/molecules/TahiyatUlWudhuWeeklyProgressDashboard";
 import type { DayProgress } from "@/components/molecules/WeeklyProgressDashboard";
+import type { QiyamDayProgress } from "@/components/molecules/QiyamWeeklyProgressDashboard";
 import type { PrayerStatus } from "@/components/molecules/PrayerProgressTrackerRing";
 import type {
   SunnahPrayerConfig,
@@ -58,6 +59,120 @@ export function mapPrayerFrameWeekDays(
       isFuture,
       isToday: day.isToday,
       date: day.date,
+    };
+  });
+}
+
+function normalizeQiyamLoggedTime(
+  day: PrayerGoalFrameDay,
+): QiyamDayProgress["loggedTime"] | undefined {
+  const raw = day.prayerTiming ?? day.loggedTiming ?? day.timing;
+  if (raw) {
+    const normalized = String(raw).toUpperCase().replace(/-/g, "_");
+    if (normalized === "BOTH" || normalized.includes("BOTH")) return "both";
+    if (
+      normalized.includes("BEFORE") ||
+      normalized.includes("FAJR") ||
+      normalized.includes("TAHAJJUD")
+    ) {
+      return "before-fajr";
+    }
+    if (normalized.includes("ISHA") || normalized.includes("AFTER")) {
+      return "after-isha";
+    }
+  }
+
+  const slots = day.slots as Record<string, unknown> | undefined;
+  const prayedAfterIsha = Boolean(slots?.AFTER_ISHA ?? slots?.afterIsha);
+  const prayedBeforeFajr = Boolean(
+    slots?.BEFORE_FAJR ?? slots?.beforeFajr ?? slots?.TAHAJJUD,
+  );
+  if (prayedAfterIsha && prayedBeforeFajr) return "both";
+  if (prayedBeforeFajr) return "before-fajr";
+  if (prayedAfterIsha) return "after-isha";
+  return undefined;
+}
+
+function resolveQiyamWitrPending(day: PrayerGoalFrameDay, hasLog: boolean) {
+  if (!hasLog) return false;
+  if (day.isWitrPending === true || day.witrPending === true) return true;
+  if (day.concludedWithWitr === false) return true;
+  return false;
+}
+
+function resolveQiyamMissedFlags(
+  day: PrayerGoalFrameDay,
+  isFlexibleGoal: boolean,
+  isFuture: boolean,
+  hasLog: boolean,
+): { isMissedStrict: boolean; isMissedFlexible: boolean } {
+  if (isFuture || hasLog || day.isMenstruationDay) {
+    return { isMissedStrict: false, isMissedFlexible: false };
+  }
+
+  if (day.isMissedStrict === true || day.isMissedCommitted === true) {
+    return { isMissedStrict: true, isMissedFlexible: false };
+  }
+  if (day.isMissedFlexible === true) {
+    return { isMissedStrict: false, isMissedFlexible: true };
+  }
+
+  const status = (day.status ?? "").toUpperCase().replace(/-/g, "_");
+  if (status === "MISSED_STRICT" || status === "MISSED_COMMITTED") {
+    return { isMissedStrict: true, isMissedFlexible: false };
+  }
+  if (status === "MISSED_FLEXIBLE") {
+    return { isMissedStrict: false, isMissedFlexible: true };
+  }
+
+  if (!day.isToday && !day.hasActivity && countIsZero(day)) {
+    return isFlexibleGoal
+      ? { isMissedStrict: false, isMissedFlexible: true }
+      : { isMissedStrict: true, isMissedFlexible: false };
+  }
+
+  return { isMissedStrict: false, isMissedFlexible: false };
+}
+
+function countIsZero(day: PrayerGoalFrameDay) {
+  const count = day.count ?? day.totalLogged ?? 0;
+  return count <= 0;
+}
+
+/** Map prayer frame week days for the Qiyam al Layl dashboard. */
+export function mapQiyamFrameWeekDays(
+  frame: PrayerGoalFrameData,
+  options?: { gender?: "male" | "female" },
+): QiyamDayProgress[] {
+  const isFlexibleGoal = Boolean(frame.qiyamConfig?.isFlexible);
+  const gender = options?.gender ?? "male";
+
+  return frame.week.days.map((day) => {
+    const count = day.count ?? day.totalLogged ?? 0;
+    const isFuture = resolveIsFutureDay(day);
+    const hasLog = !isFuture && count > 0;
+    const loggedTime = hasLog ? normalizeQiyamLoggedTime(day) : undefined;
+    const missed = resolveQiyamMissedFlags(
+      day,
+      isFlexibleGoal,
+      isFuture,
+      hasLog,
+    );
+
+    return {
+      day: day.dayLabel,
+      date: day.date,
+      prayersLogged: count,
+      isLogged: hasLog,
+      isBestDay: Boolean(day.isBestDay),
+      isMenstruation: Boolean(day.isMenstruationDay),
+      isFuture,
+      isToday: day.isToday,
+      loggedTime,
+      gender,
+      isWitrPending: resolveQiyamWitrPending(day, hasLog),
+      isMissedStrict: missed.isMissedStrict,
+      isMissedFlexible: missed.isMissedFlexible,
     };
   });
 }

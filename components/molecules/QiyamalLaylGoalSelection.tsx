@@ -33,7 +33,6 @@ export default function QiyamalLaylGoalSelection({
       commitment: "every_night" | "flexible";
       twoRakahPrayers: number;
       witrPrayers: number;
-      trackTahajjud: "yes" | "no";
     },
     onDone?: () => void,
     onFail?: () => void,
@@ -55,9 +54,6 @@ export default function QiyamalLaylGoalSelection({
   );
   const [sliderValue, setSliderValue] = useState(
     initialValues?.unitTarget ?? 1,
-  );
-  const [trackTahajjud, setTrackTahajjud] = useState<"yes" | "no">(
-    initialValues?.trackTahajjud === false ? "no" : "yes",
   );
   const [summaryTextWidth, setSummaryTextWidth] = useState<number | null>(null);
 
@@ -92,7 +88,6 @@ export default function QiyamalLaylGoalSelection({
         commitment,
         twoRakahPrayers: sliderValue,
         witrPrayers: 28,
-        trackTahajjud,
       },
       handleSavedSuccess,
       markFailed,
@@ -172,58 +167,6 @@ export default function QiyamalLaylGoalSelection({
               initialDays={sliderValue}
               onChange={(val) => setSliderValue(val)}
             />
-          </View>
-
-          {/* STEP 3 */}
-          <View
-            style={[
-              styles.stepBadge,
-              {
-                marginTop: 0,
-              },
-            ]}
-          >
-            <Text style={styles.stepBadgeText}>{t("prayerGoals.step3")}</Text>
-          </View>
-          <Text style={styles.stepTitle}>
-            {t("prayerGoals.qiyamTrackQuestion")}
-          </Text>
-          <View style={styles.radioCol}>
-            <TouchableOpacity
-              style={styles.radioOptionCol}
-              onPress={() => setTrackTahajjud("yes")}
-              activeOpacity={0.7}
-            >
-              <View style={styles.radioOuterCol}>
-                {trackTahajjud === "yes" && (
-                  <View style={styles.radioInnerCol} />
-                )}
-              </View>
-              <Text style={styles.radioTextCol}>
-                {t("prayerGoals.yes")}{" "}
-                <Text style={styles.greyDescription}>
-                  {t("prayerGoals.yesDesc")}
-                </Text>
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.radioOptionCol}
-              onPress={() => setTrackTahajjud("no")}
-              activeOpacity={0.7}
-            >
-              <View style={styles.radioOuterCol}>
-                {trackTahajjud === "no" && (
-                  <View style={styles.radioInnerCol} />
-                )}
-              </View>
-              <Text style={styles.radioTextCol}>
-                {t("prayerGoals.no")}{" "}
-                <Text style={styles.greyDescription}>
-                  {t("prayerGoals.noDesc")}
-                </Text>
-              </Text>
-            </TouchableOpacity>
           </View>
 
           {/* Result / Save area */}
@@ -357,43 +300,6 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.medium,
     fontSize: 12,
     fontWeight: "500",
-  },
-  radioCol: {
-    flexDirection: "column",
-    alignItems: "flex-start",
-    gap: 12,
-    marginVertical: 8,
-    width: "100%",
-  },
-  radioOptionCol: {
-    flexDirection: "row",
-    alignItems: "center",
-    width: "100%",
-  },
-  radioOuterCol: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    borderWidth: 1,
-    borderColor: Colors.light.grey,
-    backgroundColor: Colors.light.calendarBg,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-  },
-  radioInnerCol: {
-    width: 8,
-    height: 8,
-    borderRadius: 8,
-    backgroundColor: Colors.light.green,
-  },
-  radioTextCol: {
-    flex: 1,
-    color: Colors.light.white,
-    fontFamily: fonts.primary.medium,
-    fontSize: 12,
-    fontWeight: "500",
-    lineHeight: 13,
   },
   greyDescription: {
     color: Colors.light.dullDescriptionText,
