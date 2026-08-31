@@ -134,6 +134,6 @@ export const PrayerProgressTrackerRing: React.FC<
 const styles = StyleSheet.create({
   svg: {
     // SVG stroke starts at 3 o'clock; -60deg puts FAJR (index 0) at 1 o'clock.
-    transform: [{ rotate: "-60deg" }],
+    transform: [{ rotate: "-110deg" }],
   },
 });

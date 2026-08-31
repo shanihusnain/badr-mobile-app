@@ -311,7 +311,7 @@ export default function FiveDailyPrayersLoggingFlow({
     setStartPeriod(now.period);
     setIsPeriodDropdownOpen(false);
     setDurationHours("0");
-    setDurationMinutes("10");
+    setDurationMinutes("0");
   }, []);
 
   const formatStartTimeForApi = () => {
