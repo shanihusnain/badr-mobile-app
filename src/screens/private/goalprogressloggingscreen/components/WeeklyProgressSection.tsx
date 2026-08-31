@@ -126,6 +126,7 @@ import {
   mapQiyamFrameWeekDays,
   mapSunnahFrameWeekDays,
 } from "@/src/utils/prayerGoalFrameMap";
+import { useAuth } from "@/provider/useAuth";
 import type { PrayerGoalFrameData } from "@/src/api/queries/useGetPrayerGoalFrame";
 
 type Props = {
@@ -191,6 +192,9 @@ export function WeeklyProgressSection({
   const { t } = useTranslation();
   const template = getLoggingFlowTemplate(goalData.id);
   const prayerFrame = useOptionalPrayerGoalFrameContext();
+  const { user } = useAuth();
+  const qiyamGender: "male" | "female" =
+    user?.gender === "FEMALE" ? "female" : "male";
   const memorisationContext = useOptionalMemorisationSurahContext();
   const hizbMemorisationContext = useOptionalMemorisationHizbContext();
   const juzMemorisationContext = useOptionalMemorisationJuzContext();

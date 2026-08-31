@@ -62,6 +62,7 @@ export const Colors = {
     darkblue: "#3448FF",
     lightblue: "#00B0E8",
     yellow: "#E0A739",
+    qiyamIconGold: "#E4D27E",
     overlayBlackColor: "rgba(0, 0, 0, 0.6)",
     lightgreenbadgecolor: "#C1F0C1",
     achievementbarblue: "#00E5FF",

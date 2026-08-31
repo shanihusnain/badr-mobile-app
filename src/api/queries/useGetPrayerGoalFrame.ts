@@ -57,6 +57,8 @@ export type SunnahRawatibSlotKey =
   | "AFTER_MAGHRIB"
   | "AFTER_ISHA";
 
+export type QiyamPrayerTiming = "AFTER_ISHA" | "BEFORE_FAJR" | "BOTH";
+
 export type PrayerGoalFrameDay = {
   date: string;
   dayLabel: string;
@@ -67,6 +69,20 @@ export type PrayerGoalFrameDay = {
   isMenstruationDay?: boolean;
   count?: number;
   isBestDay?: boolean;
+  /** Qiyam al Layl — when the user prayed (API may use any of these keys). */
+  prayerTiming?: QiyamPrayerTiming | string;
+  loggedTiming?: QiyamPrayerTiming | string;
+  timing?: QiyamPrayerTiming | string;
+  /** Qiyam — true when Witr was not concluded for a logged night. */
+  isWitrPending?: boolean;
+  witrPending?: boolean;
+  concludedWithWitr?: boolean;
+  /** Qiyam — committed goal missed night (orange ring). */
+  isMissedStrict?: boolean;
+  isMissedCommitted?: boolean;
+  /** Qiyam — flexible goal with no log on a past night (grey ring). */
+  isMissedFlexible?: boolean;
+  status?: string;
   slotsOnTime?: number;
   slotsQadha?: number;
   totalLogged?: number;
