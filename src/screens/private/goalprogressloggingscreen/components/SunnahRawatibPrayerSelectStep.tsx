@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import {
@@ -80,6 +81,10 @@ const SunnahPrayerItem = React.memo(
     const Icon = SUNNAH_ICON_COMPONENTS[prayerId];
     const [line1, line2] = t(SUNNAH_LABEL_KEYS[prayerId]).split("\n");
     const labelOpacity = showHighlight ? 1 : isLocked ? 0.35 : 0.8;
+    // Paginated pages: After Dhuhr / Before Asr sit at page edges but use sharp
+    // middle-style boxes like Before Dhuhr and After Maghrib (Figma).
+    const suppressEdgeRounding =
+      prayerId === "after_dhuhr" || prayerId === "before_asr";
 
     return (
       <TouchableOpacity
@@ -114,10 +119,10 @@ const SunnahPrayerItem = React.memo(
               : styles.prayerIconBoxIdle,
             isLocked && !showHighlight && { opacity: 0.35 },
             {
-              borderTopLeftRadius: isFirst ? 4 : 0,
-              borderBottomLeftRadius: isFirst ? 4 : 0,
-              borderTopRightRadius: isLast ? 4 : 0,
-              borderBottomRightRadius: isLast ? 4 : 0,
+              borderTopLeftRadius: isFirst && !suppressEdgeRounding ? 4 : 0,
+              borderBottomLeftRadius: isFirst && !suppressEdgeRounding ? 4 : 0,
+              borderTopRightRadius: isLast && !suppressEdgeRounding ? 4 : 0,
+              borderBottomRightRadius: isLast && !suppressEdgeRounding ? 4 : 0,
             },
           ]}
         >
@@ -132,6 +137,16 @@ const SunnahPrayerItem = React.memo(
     );
   },
 );
+
+/** When all 6 Sunnah slots are in the goal, show 3 per page with side arrows. */
+const PRAYER_PAGE_SIZE = 3;
+const PAGINATE_MIN_OPTIONS = 6;
+const PAGE_CHEVRON_SIZE = 14;
+const PAGE_CHEVRON_ICON_ROW_TOP = 23;
+const PAGE_CHEVRON_ICON_ROW_HEIGHT = 18;
+
+const pageChevronColor = (enabled: boolean) =>
+  enabled ? Colors.light.white : Colors.light.graylightshade;
 
 interface SunnahRawatibPrayerSelectStepProps {
   options: readonly SunnahPrayerId[];
@@ -171,28 +186,103 @@ export const SunnahRawatibPrayerSelectStep: React.FC<
     [lockedPrayers],
   );
 
+  const paginate = options.length >= PAGINATE_MIN_OPTIONS;
+  const pageCount = paginate
+    ? Math.ceil(options.length / PRAYER_PAGE_SIZE)
+    : 1;
+  const [page, setPage] = React.useState(0);
+
+  React.useEffect(() => {
+    if (!paginate) {
+      setPage(0);
+      return;
+    }
+    const selectedIndex = options.indexOf(selectedPrayer);
+    if (selectedIndex >= 0) {
+      setPage(Math.floor(selectedIndex / PRAYER_PAGE_SIZE));
+    }
+  }, [options, paginate, selectedPrayer]);
+
+  React.useEffect(() => {
+    if (page > pageCount - 1) {
+      setPage(Math.max(0, pageCount - 1));
+    }
+  }, [page, pageCount]);
+
+  const pageOptions = paginate
+    ? options.slice(
+        page * PRAYER_PAGE_SIZE,
+        page * PRAYER_PAGE_SIZE + PRAYER_PAGE_SIZE,
+      )
+    : options;
+
+  const canGoPrevPage = paginate && page > 0;
+  const canGoNextPage = paginate && page < pageCount - 1;
+
+  const renderItems = (ids: readonly SunnahPrayerId[]) =>
+    ids.map((id, index) => (
+      <SunnahPrayerItem
+        key={id}
+        prayerId={id}
+        isSelected={selectedPrayer === id}
+        isFullyLogged={fullyLoggedSet.has(id)}
+        isPartiallyLogged={partiallyLoggedSet.has(id)}
+        isLocked={lockedSet.has(id)}
+        isFirst={index === 0}
+        isLast={index === ids.length - 1}
+        onSelectPrayer={onSelectPrayer}
+        categoryColor={categoryColor}
+        t={t}
+        styles={styles}
+      />
+    ));
+
+  if (!paginate) {
+    return <View style={styles.prayerGrid}>{renderItems(options)}</View>;
+  }
+
   return (
-    <View style={styles.prayerGrid}>
-      {options.map((id, index) => (
-        <SunnahPrayerItem
-          key={id}
-          prayerId={id}
-          isSelected={selectedPrayer === id}
-          isFullyLogged={fullyLoggedSet.has(id)}
-          isPartiallyLogged={partiallyLoggedSet.has(id)}
-          isLocked={lockedSet.has(id)}
-          isFirst={index === 0}
-          isLast={index === options.length - 1}
-          onSelectPrayer={onSelectPrayer}
-          categoryColor={categoryColor}
-          t={t}
-          styles={styles}
+    <View style={localStyles.prayerSelectRow}>
+      <TouchableOpacity
+        style={localStyles.prayerPageArrow}
+        onPress={() => {
+          if (!canGoPrevPage) return;
+          setPage((p) => p - 1);
+        }}
+        activeOpacity={canGoPrevPage ? 0.7 : 1}
+        disabled={!canGoPrevPage}
+        hitSlop={10}
+      >
+        <Ionicons
+          name="chevron-back"
+          size={PAGE_CHEVRON_SIZE}
+          color={pageChevronColor(canGoPrevPage)}
         />
-      ))}
+      </TouchableOpacity>
+
+      <View style={[styles.prayerGrid, localStyles.prayerPageGrid]}>
+        {renderItems(pageOptions)}
+      </View>
+
+      <TouchableOpacity
+        style={localStyles.prayerPageArrow}
+        onPress={() => {
+          if (!canGoNextPage) return;
+          setPage((p) => p + 1);
+        }}
+        activeOpacity={canGoNextPage ? 0.7 : 1}
+        disabled={!canGoNextPage}
+        hitSlop={10}
+      >
+        <Ionicons
+          name="chevron-forward"
+          size={PAGE_CHEVRON_SIZE}
+          color={pageChevronColor(canGoNextPage)}
+        />
+      </TouchableOpacity>
     </View>
   );
 };
-
 const localStyles = StyleSheet.create({
   labelBlock: {
     width: "100%",
@@ -212,5 +302,27 @@ const localStyles = StyleSheet.create({
   },
   labelLineSecond: {
     marginTop: -1,
+  },
+  prayerSelectRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    alignSelf: "stretch",
+    width: "95%",
+    marginLeft: 4,
+    marginRight: -10,
+    justifyContent: "space-between",
+  },
+  prayerPageArrow: {
+    width: 16,
+    flexShrink: 0,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: PAGE_CHEVRON_ICON_ROW_TOP,
+    height: PAGE_CHEVRON_ICON_ROW_HEIGHT,
+  },
+  prayerPageGrid: {
+    flex: 1,
+    width: undefined,
+    paddingHorizontal: 18,
   },
 });
