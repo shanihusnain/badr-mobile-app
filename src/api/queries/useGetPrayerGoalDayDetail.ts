@@ -96,6 +96,47 @@ export type SunnahRawatibDayDetail = {
   slots: Partial<Record<SunnahRawatibSlotKey, SunnahRawatibDayDetailSlot>>;
 };
 
+export type QiyamSessionTypeKey = "AFTER_ISHA" | "TAHAJJUD" | "BOTH";
+
+export type QiyamDayDetailSession = {
+  display?: string;
+  logged?: boolean;
+  unitsLogged?: number;
+  rakahCount?: number;
+  witrLogged?: boolean;
+  minutesSpent?: number;
+  entries?: unknown[];
+};
+
+export type QiyamDayDetailNight = {
+  unitsLogged?: number;
+  rakahCount?: number;
+  witrLogged?: boolean;
+  nightTarget?: number;
+  remaining?: number;
+  isComplete?: boolean;
+  afterIsha?: boolean;
+  beforeFajr?: boolean;
+  sessionTypes?: string[];
+  unitsWithUnknownWindow?: number;
+  totalMinutesSpent?: number;
+  startTime?: string | null;
+  firstLoggedAt?: string | null;
+  lastLoggedAt?: string | null;
+  isMenstruationDay?: boolean;
+  canLog?: boolean;
+  canLogWitr?: boolean;
+};
+
+export type QiyamDayDetailWitr = {
+  logged?: boolean;
+  sessionType?: string | null;
+  startTime?: string | null;
+  durationMinutes?: number | null;
+  loggedAt?: string | null;
+  canLog?: boolean;
+};
+
 export type QiyamDayDetail = {
   date: string;
   hasLoggedAnyPrayer: boolean;
@@ -111,7 +152,16 @@ export type QiyamDayDetail = {
     completedCount: number;
     achievementPct: number;
     status: string;
+    label?: string;
+    isFlexible?: boolean;
+    unitTarget?: number;
+    witrTarget?: number;
+    targetPerNight?: number;
+    trackTahajjud?: boolean;
   };
+  night?: QiyamDayDetailNight;
+  witr?: QiyamDayDetailWitr;
+  sessions?: Partial<Record<QiyamSessionTypeKey, QiyamDayDetailSession>>;
 };
 
 export type PrayerGoalDayDetail =
@@ -209,9 +259,19 @@ export function isQiyamWitrLoggedForNight(
   dayDetail: QiyamDayDetail | null | undefined,
 ): boolean {
   if (!dayDetail) return false;
+  if (dayDetail.witr?.logged === true) return true;
+  if (dayDetail.night?.witrLogged === true) return true;
   if (dayDetail.witrLogged === true) return true;
   if (dayDetail.includesWitrLogged === true) return true;
   if (dayDetail.witrAlreadyLogged === true) return true;
+  const sessions = dayDetail.sessions;
+  if (
+    sessions?.AFTER_ISHA?.witrLogged === true ||
+    sessions?.TAHAJJUD?.witrLogged === true ||
+    sessions?.BOTH?.witrLogged === true
+  ) {
+    return true;
+  }
   return false;
 }
 
@@ -277,6 +337,21 @@ export function isQiyamDayDetail(
   if (!data) return false;
   if (isSunnahRawatibDayDetail(data)) return false;
   if ("slotProgress" in data) return false;
+
+  const qiyam = data as QiyamDayDetail;
+  if (qiyam.night && typeof qiyam.night === "object") return true;
+  if (qiyam.witr && typeof qiyam.witr === "object") return true;
+  if (qiyam.sessions && typeof qiyam.sessions === "object") {
+    const keys = Object.keys(qiyam.sessions);
+    if (
+      keys.some(
+        (key) => key === "TAHAJJUD" || key === "BOTH" || key === "AFTER_ISHA",
+      )
+    ) {
+      return true;
+    }
+  }
+
   if ("slots" in data && data.slots && Object.keys(data.slots).length > 0) {
     return false;
   }

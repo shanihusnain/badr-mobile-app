@@ -78,8 +78,6 @@ const LOADING_WEEK: QiyamDayProgress[] = [
 }));
 
 const BEST_DAY_SIZE_BOOST = 4;
-const PAST_DAY_SIZE_REDUCTION = 3;
-const PAST_DAY_ICON_OPACITY = 0.45;
 
 function resolveHasLog(day: QiyamDayProgress): boolean {
   return day.prayersLogged > 0 || Boolean(day.isLogged) || Boolean(day.loggedTime);
@@ -101,12 +99,7 @@ function QiyamDayIcon({
   isGoalCompleted,
 }: DayIconProps) {
   const isBlurredFuture = Boolean(day.isFuture && isGoalCompleted);
-  const isPastDay = !day.isToday && !day.isFuture;
-  const isMissedDay = !!day.isMissedStrict || !!day.isMissedFlexible;
-  const shouldDimPast = isPastDay && !isMissedDay;
-  const circleSize =
-    (isBestDayVisible ? size + BEST_DAY_SIZE_BOOST : size) -
-    (shouldDimPast ? PAST_DAY_SIZE_REDUCTION : 0);
+  const circleSize = isBestDayVisible ? size + BEST_DAY_SIZE_BOOST : size;
   const iconSize = Math.max(10, Math.round(circleSize * 0.52));
   const hasLog = resolveHasLog(day);
 
@@ -144,7 +137,6 @@ function QiyamDayIcon({
           borderRadius: 8,
         },
         isBlurredFuture && styles.blurredDayIconWrap,
-        shouldDimPast && styles.pastDayIconWrap,
       ]}
     >
       <View style={[innerSizeStyle, ringStyle]}>
@@ -160,7 +152,7 @@ function QiyamDayIcon({
   );
 }
 
-/** Figma: today + normal log → white; past / best day → gold; both-prayers → white. */
+/** Figma: both (non–best day) → white; today + normal log → white; past / best day → gold. */
 function resolveQiyamLoggedIconColor(
   day: QiyamDayProgress,
   isBestDayVisible: boolean,
@@ -557,9 +549,6 @@ const styles = StyleSheet.create({
   },
   blurredDayIconWrap: {
     opacity: 0.28,
-  },
-  pastDayIconWrap: {
-    opacity: PAST_DAY_ICON_OPACITY,
   },
   bestDayLabel: {
     color: Colors.light.green,

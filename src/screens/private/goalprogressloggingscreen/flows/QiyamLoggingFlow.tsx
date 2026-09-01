@@ -339,6 +339,8 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
 
   const {
     data: dayDetailRaw,
+    isLoading: dayDetailLoading,
+    isError: dayDetailError,
     refetch: refetchDayDetail,
   } = useGetPrayerGoalDayDetail("QIYAM_AL_LAYL", selectedDate, {
     enabled: flowMode === "active" && !!selectedDate,
@@ -349,9 +351,17 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
     return isQiyamDayDetail(dayDetailRaw) ? dayDetailRaw : null;
   }, [dayDetailRaw, selectedDate]);
 
+  const dayDetailLoadingState =
+    flowMode === "active" &&
+    !dayDetailError &&
+    (dayDetailLoading || dayDetail == null);
+
   const witrAlreadyLogged = isQiyamWitrLoggedForNight(dayDetail);
   const trackTahajjudForFlow =
-    dayDetail?.trackTahajjud ?? trackTahajjud ?? true;
+    dayDetail?.goal?.trackTahajjud ??
+    dayDetail?.trackTahajjud ??
+    trackTahajjud ??
+    true;
 
   const flowSteps = useMemo(
     () =>
@@ -423,6 +433,11 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
   }, [flowMode, selectedDate, refetchDayDetail]);
 
   useEffect(() => {
+    setPrayedWitr("No");
+    setConcludedWithWitr("No");
+  }, [selectedDate]);
+
+  useEffect(() => {
     if (stepIndex >= flowSteps.length) {
       setStepIndex(Math.max(0, flowSteps.length - 1));
     }
@@ -435,6 +450,7 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
   const isWitrStepBlocked =
     currentStep === "prayed-witr" && prayedWitr === "No";
   const canGoForward =
+    !dayDetailLoadingState &&
     !isLastStep &&
     !isWitrStepBlocked &&
     !(currentStep === "prayers-quantity" && isZeroPrayersNothingToLog);
@@ -460,7 +476,7 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
   }, []);
 
   const handleConfirm = () => {
-    if (isLogging || isFullyAchieved) return;
+    if (isLogging || isFullyAchieved || dayDetailLoadingState) return;
     if (isZeroPrayersFlow) {
       if (prayedWitr === "No" || witrAlreadyLogged) return;
     } else if (prayersCountValue < 1) {
@@ -736,6 +752,7 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
               canGoBack={stepIndex > 0}
               canConfirm={
                 isLastStep &&
+                !dayDetailLoadingState &&
                 !isLogging &&
                 !isFullyAchieved &&
                 (!requiresDuration ||
