@@ -73,6 +73,11 @@ export type PrayerGoalFrameDay = {
   prayerTiming?: QiyamPrayerTiming | string;
   loggedTiming?: QiyamPrayerTiming | string;
   timing?: QiyamPrayerTiming | string;
+  /** Qiyam — session flags from frame week day payload. */
+  afterIsha?: boolean;
+  beforeFajr?: boolean;
+  witrLogged?: boolean;
+  gender?: string;
   /** Qiyam — true when Witr was not concluded for a logged night. */
   isWitrPending?: boolean;
   witrPending?: boolean;
@@ -98,9 +103,6 @@ export type PrayerGoalFrameDay = {
   >;
   /** Qiyam Al-Layl — when the prayer was logged. */
   loggedTime?: "after-isha" | "before-fajr" | "both";
-  isMissedStrict?: boolean;
-  isMissedFlexible?: boolean;
-  isWitrPending?: boolean;
 };
 
 export type PrayerGoalFrameData = {
@@ -149,6 +151,8 @@ export type PrayerGoalFrameData = {
     trackTahajjud?: boolean;
   } | null;
   articles: unknown[];
+  isGoalCompletedFully?: boolean;
+  isCycleEndReached?: boolean;
 };
 
 const getPrayerGoalFrame = async (

@@ -63,9 +63,28 @@ export function mapPrayerFrameWeekDays(
   });
 }
 
+function normalizeQiyamDayGender(
+  day: PrayerGoalFrameDay,
+  fallback: "male" | "female",
+): "male" | "female" {
+  const raw = day.gender;
+  if (!raw) return fallback;
+  return String(raw).toUpperCase() === "FEMALE" ? "female" : "male";
+}
+
 function normalizeQiyamLoggedTime(
   day: PrayerGoalFrameDay,
 ): QiyamDayProgress["loggedTime"] | undefined {
+  if (day.afterIsha !== undefined || day.beforeFajr !== undefined) {
+    const prayedAfterIsha = Boolean(day.afterIsha);
+    const prayedBeforeFajr = Boolean(day.beforeFajr);
+    if (prayedAfterIsha || prayedBeforeFajr) {
+      if (prayedAfterIsha && prayedBeforeFajr) return "both";
+      if (prayedBeforeFajr) return "before-fajr";
+      return "after-isha";
+    }
+  }
+
   const raw = day.prayerTiming ?? day.loggedTiming ?? day.timing;
   if (raw) {
     const normalized = String(raw).toUpperCase().replace(/-/g, "_");
@@ -95,6 +114,8 @@ function normalizeQiyamLoggedTime(
 
 function resolveQiyamWitrPending(day: PrayerGoalFrameDay, hasLog: boolean) {
   if (!hasLog) return false;
+  if (day.witrLogged === true) return false;
+  if (day.witrLogged === false) return true;
   if (day.isWitrPending === true || day.witrPending === true) return true;
   if (day.concludedWithWitr === false) return true;
   return false;
@@ -150,8 +171,18 @@ export function mapQiyamFrameWeekDays(
   return frame.week.days.map((day) => {
     const count = day.count ?? day.totalLogged ?? 0;
     const isFuture = resolveIsFutureDay(day);
-    const hasLog = !isFuture && count > 0;
-    const loggedTime = hasLog ? normalizeQiyamLoggedTime(day) : undefined;
+    const hasActivity =
+      count > 0 ||
+      Boolean(day.afterIsha) ||
+      Boolean(day.beforeFajr) ||
+      Boolean(day.witrLogged);
+    const hasLog = !isFuture && hasActivity;
+    let loggedTime = hasLog
+      ? (normalizeQiyamLoggedTime(day) ?? undefined)
+      : undefined;
+    if (hasLog && !loggedTime) {
+      loggedTime = "after-isha";
+    }
     const missed = resolveQiyamMissedFlags(
       day,
       isFlexibleGoal,
@@ -169,7 +200,7 @@ export function mapQiyamFrameWeekDays(
       isFuture,
       isToday: day.isToday,
       loggedTime,
-      gender,
+      gender: normalizeQiyamDayGender(day, gender),
       isWitrPending: resolveQiyamWitrPending(day, hasLog),
       isMissedStrict: missed.isMissedStrict,
       isMissedFlexible: missed.isMissedFlexible,

@@ -78,29 +78,30 @@ const LOADING_WEEK: QiyamDayProgress[] = [
 }));
 
 const BEST_DAY_SIZE_BOOST = 4;
-const PAST_DAY_SIZE_REDUCTION = 3;
-const PAST_DAY_ICON_OPACITY = 0.45;
+
+function resolveHasLog(day: QiyamDayProgress): boolean {
+  return day.prayersLogged > 0 || Boolean(day.isLogged) || Boolean(day.loggedTime);
+}
 
 type DayIconProps = {
   day: QiyamDayProgress;
   size: number;
   isBestDayVisible: boolean;
-  isSelected: boolean;
   isDeleting: boolean;
+  isGoalCompleted: boolean;
 };
 
 function QiyamDayIcon({
   day,
   size,
   isBestDayVisible,
-  isSelected,
   isDeleting,
+  isGoalCompleted,
 }: DayIconProps) {
-  const isPastDay = !day.isToday && !day.isFuture;
-  const circleSize =
-    (isBestDayVisible ? size + BEST_DAY_SIZE_BOOST : size) -
-    (isPastDay ? PAST_DAY_SIZE_REDUCTION : 0);
+  const isBlurredFuture = Boolean(day.isFuture && isGoalCompleted);
+  const circleSize = isBestDayVisible ? size + BEST_DAY_SIZE_BOOST : size;
   const iconSize = Math.max(10, Math.round(circleSize * 0.52));
+  const hasLog = resolveHasLog(day);
 
   const innerSizeStyle = {
     width: circleSize,
@@ -114,20 +115,16 @@ function QiyamDayIcon({
 
   if (day.isMenstruation) {
     ringStyle = styles.ringMenstruation;
+  } else if (isBlurredFuture) {
+    ringStyle = styles.ringBlurred;
   } else if (day.isFuture) {
     ringStyle = styles.ringFuture;
   } else if (day.isMissedStrict) {
     ringStyle = styles.ringMissedStrict;
   } else if (day.isMissedFlexible) {
     ringStyle = styles.ringMissedFlexible;
-  } else if (day.isLogged || day.loggedTime) {
-    ringStyle = day.isWitrPending
-      ? styles.ringWitrPending
-      : isSelected
-        ? styles.ringLoggedSelected
-        : styles.ringLogged;
-  } else if (isSelected) {
-    ringStyle = styles.ringSelectedEmpty;
+  } else if (hasLog || day.loggedTime) {
+    ringStyle = day.isWitrPending ? styles.ringWitrPending : styles.ringLogged;
   }
 
   return (
@@ -139,55 +136,107 @@ function QiyamDayIcon({
           height: size + BEST_DAY_SIZE_BOOST + 5,
           borderRadius: 8,
         },
-        isPastDay && styles.pastDayIconWrap,
+        isBlurredFuture && styles.blurredDayIconWrap,
       ]}
     >
       <View style={[innerSizeStyle, ringStyle]}>
-        {(day.isLogged || day.loggedTime) &&
+        {hasLog &&
         !day.isMenstruation &&
         !day.isFuture &&
         !day.isMissedStrict &&
         !day.isMissedFlexible
-          ? renderLoggedIcon(day, iconSize, isDeleting)
+          ? renderLoggedIcon(day, iconSize, isDeleting, isBestDayVisible)
           : null}
       </View>
     </View>
   );
 }
 
+/** Figma: today + normal log → white; past / best day → gold; both-prayers → white. */
+function resolveQiyamLoggedIconColor(
+  day: QiyamDayProgress,
+  isBestDayVisible: boolean,
+): string {
+  const timing = day.loggedTime ?? "after-isha";
+
+  if (timing === "both") {
+    return isBestDayVisible
+      ? Colors.light.qiyamIconGold
+      : Colors.light.white;
+  }
+
+  if (isBestDayVisible || !day.isToday) {
+    return Colors.light.qiyamIconGold;
+  }
+
+  return Colors.light.white;
+}
+
 function renderLoggedIcon(
   day: QiyamDayProgress,
   iconSize: number,
   isDeleting: boolean,
+  isBestDayVisible: boolean,
 ) {
   if (isDeleting) {
-    return <QiyamAfterIshaIcon size={iconSize} />;
+    return isBestDayVisible ? (
+      <QiyamBestDayIcon size={iconSize} />
+    ) : (
+      <QiyamAfterIshaIcon size={iconSize} color={Colors.light.white} />
+    );
   }
 
   const isFemale = day.gender === "female";
-  const timing = day.loggedTime;
+  const timing = day.loggedTime ?? "after-isha";
+  const iconColor = resolveQiyamLoggedIconColor(day, isBestDayVisible);
 
   if (timing === "both") {
     return isFemale ? (
-      <QiyamFemaleBothIshaAndTahajudIcon size={iconSize} />
+      <QiyamFemaleBothIshaAndTahajudIcon size={iconSize} color={iconColor} />
     ) : (
-      <QiyamMaleBothIshaAndTahajudIcon size={iconSize} />
+      <QiyamMaleBothIshaAndTahajudIcon size={iconSize} color={iconColor} />
     );
   }
 
   if (timing === "before-fajr") {
     return isFemale ? (
-      <QiyamFemaleUserIcon size={iconSize} />
+      <QiyamFemaleUserIcon size={iconSize} color={iconColor} />
     ) : (
-      <QiyamMaleUserIcon size={iconSize} />
+      <QiyamMaleUserIcon size={iconSize} color={iconColor} />
     );
   }
 
-  if (day.isBestDay) {
-    return <QiyamBestDayIcon size={iconSize} />;
-  }
+  return <QiyamAfterIshaIcon size={iconSize} color={iconColor} />;
+}
 
-  return <QiyamAfterIshaIcon size={iconSize} />;
+function getDayLabelColor(options: {
+  loading: boolean;
+  isBlurredFuture: boolean;
+  isFuture: boolean;
+  isBestDayVisible: boolean;
+  isToday: boolean;
+  isMenstruation: boolean;
+}): string {
+  if (options.loading) return Colors.light.subtext;
+  if (options.isBlurredFuture) return "rgba(255, 255, 255, 0.22)";
+  if (options.isFuture) return "rgba(255, 255, 255, 0.45)";
+  if (options.isBestDayVisible) return Colors.light.green;
+  if (options.isToday) return Colors.light.white;
+  if (options.isMenstruation) return Colors.light.subtext;
+  return Colors.light.subtext;
+}
+
+function getCountLabelColor(options: {
+  loading: boolean;
+  hideCount: boolean;
+  isBestDayVisible: boolean;
+  isToday: boolean;
+}): string {
+  if (options.loading) return Colors.light.grey;
+  if (options.hideCount) return "transparent";
+  if (options.isBestDayVisible) return Colors.light.green;
+  if (options.isToday) return Colors.light.white;
+  return Colors.light.grey;
 }
 
 export function QiyamWeeklyProgressDashboard({
@@ -235,9 +284,10 @@ export function QiyamWeeklyProgressDashboard({
 
       <View style={styles.daysRow}>
         {displayWeekDays.map((day, index) => {
-          const isSelected = day?.isToday === true;
-          const hasLog = day.prayersLogged > 0 || !!day.isLogged;
+          const isToday = day?.isToday === true;
+          const hasLog = resolveHasLog(day);
           const isFuture = !!day.isFuture;
+          const isBlurredFuture = isGoalCompleted && isFuture;
           const isMenstruation = !!day.isMenstruation;
           const showEmptyOutline =
             !loading &&
@@ -256,6 +306,21 @@ export function QiyamWeeklyProgressDashboard({
             !!day.date && selectForDeletion === day.date;
           const showColumnDeletion = isMarkedForDeletion && !isBestDayVisible;
           const showWrapperDeletion = isMarkedForDeletion && isBestDayVisible;
+          const hideCount = isInactiveOutline || isMenstruation;
+          const labelColor = getDayLabelColor({
+            loading,
+            isBlurredFuture,
+            isFuture,
+            isBestDayVisible,
+            isToday,
+            isMenstruation,
+          });
+          const countColor = getCountLabelColor({
+            loading,
+            hideCount,
+            isBestDayVisible,
+            isToday,
+          });
 
           return (
             <TouchableOpacity
@@ -287,7 +352,7 @@ export function QiyamWeeklyProgressDashboard({
               <View
                 style={[
                   styles.dayItemWrapper,
-                  isSelected && !isMarkedForDeletion && styles.dayItemSelected,
+                  isToday && !isMarkedForDeletion && styles.dayItemSelected,
                   isBestDayVisible && styles.dayItemBestDay,
                   showWrapperDeletion && styles.deletingBestDay,
                 ]}
@@ -296,24 +361,14 @@ export function QiyamWeeklyProgressDashboard({
                   day={day}
                   size={ringSize}
                   isBestDayVisible={isBestDayVisible}
-                  isSelected={isSelected}
                   isDeleting={isMarkedForDeletion}
+                  isGoalCompleted={isGoalCompleted}
                 />
                 <TopSpace top={10} />
                 <Text
                   style={[
                     isBestDayVisible ? styles.bestDayLabel : styles.dayLabel,
-                    {
-                      color: loading
-                        ? Colors.light.subtext
-                        : isFuture
-                          ? "rgba(255, 255, 255, 0.45)"
-                          : isBestDayVisible
-                            ? Colors.light.green
-                            : isSelected
-                              ? Colors.light.white
-                              : Colors.light.subtext,
-                    },
+                    { color: labelColor },
                   ]}
                   numberOfLines={1}
                 >
@@ -322,25 +377,12 @@ export function QiyamWeeklyProgressDashboard({
 
                 <View style={styles.durationSlot}>
                   <Text
-                    style={[
-                      {
-                        color: loading
-                          ? Colors.light.grey
-                          : isInactiveOutline || isMenstruation
-                            ? "transparent"
-                            : isBestDayVisible
-                              ? Colors.light.green
-                              : isSelected
-                                ? Colors.light.white
-                                : Colors.light.grey,
-                      },
-                      styles.durationText,
-                    ]}
+                    style={[styles.durationText, { color: countColor }]}
                     numberOfLines={1}
                   >
                     {loading
                       ? "---"
-                      : isInactiveOutline || isMenstruation
+                      : hideCount
                         ? ""
                         : day.prayersLogged > 0
                           ? day.prayersLogged.toString()
@@ -483,6 +525,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(255, 255, 255, 0.32)",
   },
+  ringBlurred: {
+    backgroundColor: "transparent",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.14)",
+  },
   ringMissedStrict: {
     backgroundColor: Colors.light.yellow,
   },
@@ -492,11 +539,6 @@ const styles = StyleSheet.create({
   ringLogged: {
     backgroundColor: Colors.light.green,
   },
-  ringLoggedSelected: {
-    backgroundColor: Colors.light.green,
-    borderWidth: 1.5,
-    borderColor: Colors.light.bordercolortodayselectedring,
-  },
   ringWitrPending: {
     backgroundColor: Colors.light.green,
     borderWidth: 2,
@@ -505,13 +547,8 @@ const styles = StyleSheet.create({
   ringEmpty: {
     backgroundColor: "rgba(255, 255, 255, 0.18)",
   },
-  ringSelectedEmpty: {
-    backgroundColor: Colors.light.greybuttonBackground,
-    borderWidth: 1.2,
-    borderColor: "rgba(255, 255, 255, 0.28)",
-  },
-  pastDayIconWrap: {
-    opacity: PAST_DAY_ICON_OPACITY,
+  blurredDayIconWrap: {
+    opacity: 0.28,
   },
   bestDayLabel: {
     color: Colors.light.green,

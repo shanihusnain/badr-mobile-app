@@ -25,9 +25,11 @@ export type CyclePrayerGoal = {
     beforeDhuhrTarget?: number;
     afterDhuhrTarget?: number;
     afterDhuhrRakahOption?: number;
+    afterDhuhrPrayersPerDay?: number;
     beforeAsrEnabled?: boolean;
     beforeAsrTarget?: number;
     beforeAsrRakahOption?: number;
+    beforeAsrPrayersPerDay?: number;
     afterMaghribTarget?: number;
     afterIshaTarget?: number;
   } | null;

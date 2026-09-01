@@ -253,9 +253,8 @@ function parsePrayersCount(value: string): number {
   return Number.parseInt(value || "0", 10) || 0;
 }
 
-/** Flexible goal + 0 prayers: Witr first, then when-pray, no final Witr step. */
+/** 0 prayers: Witr-only path — skip time steps (any goal type). */
 function buildQiyamFlowSteps(
-  isFlexible: boolean,
   prayersCount: string,
   options: { witrAlreadyLogged: boolean; trackTahajjud: boolean },
 ): QiyamStepId[] {
@@ -267,14 +266,8 @@ function buildQiyamFlowSteps(
     ? []
     : ["prayed-witr"];
 
-  if (isFlexible && count === 0) {
-    return [
-      "date",
-      "prayers-quantity",
-      ...prayedWitrStep,
-      ...whenStep,
-      ...timeSteps,
-    ];
+  if (count === 0) {
+    return ["date", "prayers-quantity", ...prayedWitrStep, ...whenStep];
   }
 
   return ["date", "prayers-quantity", ...whenStep, ...timeSteps, ...witrStep];
@@ -362,11 +355,11 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
 
   const flowSteps = useMemo(
     () =>
-      buildQiyamFlowSteps(isFlexibleGoal, prayersCount, {
+      buildQiyamFlowSteps(prayersCount, {
         witrAlreadyLogged,
         trackTahajjud: trackTahajjudForFlow,
       }),
-    [isFlexibleGoal, prayersCount, witrAlreadyLogged, trackTahajjudForFlow],
+    [prayersCount, witrAlreadyLogged, trackTahajjudForFlow],
   );
 
   const cycleStart = frame?.cycle?.cycleStart
@@ -403,8 +396,9 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
   const showInsights = frame ? prayerFrameShowsInsights(frame) : false;
   const isFullyAchieved = (frame?.goal.achievementPct ?? 0) >= 100;
   const prayersCountValue = parsePrayersCount(prayersCount);
-  const isFlexibleZeroFlow =
-    isFlexibleGoal && prayersCountValue === 0;
+  const isZeroPrayersFlow = prayersCountValue === 0;
+  const skipsTimeSteps = isZeroPrayersFlow;
+  const requiresDuration = !skipsTimeSteps;
   const todayString = toDateString(new Date());
   const maxSelectableDate = cycleEnd
     ? cycleEnd < todayString
@@ -435,10 +429,15 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
   }, [flowSteps.length, stepIndex]);
   const currentStep = flowSteps[stepIndex] ?? flowSteps[0];
   const isLastStep = stepIndex === flowSteps.length - 1;
-  /** Flexible + 0 prayers: selecting No on Witr means nothing left to log. */
+  /** 0 prayers + Witr already logged: nothing left to submit. */
+  const isZeroPrayersNothingToLog =
+    isZeroPrayersFlow && witrAlreadyLogged;
   const isWitrStepBlocked =
     currentStep === "prayed-witr" && prayedWitr === "No";
-  const canGoForward = !isLastStep && !isWitrStepBlocked;
+  const canGoForward =
+    !isLastStep &&
+    !isWitrStepBlocked &&
+    !(currentStep === "prayers-quantity" && isZeroPrayersNothingToLog);
   const dateLabel = formatProgressLoggingDateLabel(selectedDate, todayString, t("progressLogging.today"));
 
   const buildDurationMinutesForApi = () => {
@@ -462,12 +461,15 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
 
   const handleConfirm = () => {
     if (isLogging || isFullyAchieved) return;
-    if (isFlexibleZeroFlow && prayedWitr === "No") return;
-    if (!isFlexibleGoal && prayersCountValue < 1) return;
+    if (isZeroPrayersFlow) {
+      if (prayedWitr === "No" || witrAlreadyLogged) return;
+    } else if (prayersCountValue < 1) {
+      return;
+    }
 
     const includesWitr = witrAlreadyLogged
       ? false
-      : isFlexibleZeroFlow
+      : isZeroPrayersFlow
         ? prayedWitr === "Yes"
         : concludedWithWitr === "Yes";
 
@@ -495,9 +497,9 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
           prayersCount,
           loggedTime,
           durationMinutes: String(durationMinutes),
-          prayedWitr: isFlexibleZeroFlow ? prayedWitr === "Yes" : undefined,
+          prayedWitr: isZeroPrayersFlow ? prayedWitr === "Yes" : undefined,
           concludedWithWitr:
-            !isFlexibleZeroFlow && !witrAlreadyLogged
+            !isZeroPrayersFlow && !witrAlreadyLogged
               ? concludedWithWitr === "Yes"
               : undefined,
         } as ProgressLogEntry);
@@ -519,10 +521,6 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
   const handleForward = () => {
     setIsTimingDropdownOpen(false);
     if (!canGoForward) return;
-    if (currentStep === "prayers-quantity") {
-      if (!isFlexibleGoal && prayersCountValue < 1) return;
-      if (isFlexibleZeroFlow && prayedWitr === "No") return;
-    }
     setStepIndex((i) => i + 1);
   };
   const handleOpenFlow = useCallback(() => {
@@ -740,12 +738,16 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
                 isLastStep &&
                 !isLogging &&
                 !isFullyAchieved &&
-                isDurationEntered(durationHours, durationMinutes) &&
-                !(isFlexibleZeroFlow && prayedWitr === "No") &&
-                (isFlexibleGoal || prayersCountValue >= 1)
+                (!requiresDuration ||
+                  isDurationEntered(durationHours, durationMinutes)) &&
+                !(isZeroPrayersFlow && prayedWitr === "No") &&
+                !isZeroPrayersNothingToLog &&
+                (prayersCountValue >= 1 ||
+                  (isZeroPrayersFlow && prayedWitr === "Yes"))
               }
               showConfirmButton={
-                currentStep !== "when-pray" && currentStep !== "prayed-witr"
+                isLastStep ||
+                (currentStep !== "when-pray" && currentStep !== "prayed-witr")
               }
               styles={commonStyles}
               style={[

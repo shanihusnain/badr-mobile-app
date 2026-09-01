@@ -106,15 +106,33 @@ export type PrayerGoalApiItem = {
   congregationalTracking?: boolean;
   menstruationApplied?: boolean;
   afterDhuhrRakahOption?: number;
+  afterDhuhrPrayersPerDay?: number;
   beforeAsrEnabled?: boolean;
   beforeAsrRakahOption?: number;
+  beforeAsrPrayersPerDay?: number;
   isFlexible?: boolean;
   trackTahajjud?: boolean;
+  sunnahRawatibConfig?: SunnahRawatibConfig | null;
+  sunnahConfig?: SunnahRawatibConfig | null;
   qiyamConfig?: {
     isFlexible?: boolean;
     unitTarget?: number;
     trackTahajjud?: boolean;
   };
+};
+
+export type SunnahRawatibConfig = {
+  beforeFajrTarget?: number;
+  beforeDhuhrTarget?: number;
+  afterDhuhrTarget?: number;
+  afterDhuhrRakahOption?: number;
+  afterDhuhrPrayersPerDay?: number;
+  beforeAsrEnabled?: boolean;
+  beforeAsrTarget?: number;
+  beforeAsrRakahOption?: number;
+  beforeAsrPrayersPerDay?: number;
+  afterMaghribTarget?: number;
+  afterIshaTarget?: number;
 };
 
 export type PrayerGoalListItem = PrayerGoalApiItem & {
@@ -219,23 +237,167 @@ export function getFiveDailyInitial(goal: PrayerGoalApiItem | undefined) {
   };
 }
 
-export function getSunnahInitial(goal: PrayerGoalApiItem | undefined) {
-  if (!hasConfiguredTargets(goal)) return undefined;
+type SunnahInitialSource = {
+  targets?: PrayerGoalApiItem["targets"];
+  sunnahRawatibConfig?: SunnahRawatibConfig | null;
+  sunnahConfig?: SunnahRawatibConfig | null;
+  afterDhuhrRakahOption?: number;
+  afterDhuhrPrayersPerDay?: number;
+  beforeAsrEnabled?: boolean;
+  beforeAsrRakahOption?: number;
+  beforeAsrPrayersPerDay?: number;
+};
 
+function getSunnahConfig(
+  goal: SunnahInitialSource | undefined,
+): SunnahRawatibConfig | undefined {
+  const cfg = goal?.sunnahRawatibConfig ?? goal?.sunnahConfig;
+  if (!cfg || typeof cfg !== "object") return undefined;
+  return cfg;
+}
+
+function hasConfiguredSunnah(goal: SunnahInitialSource | undefined): boolean {
+  if (hasConfiguredTargets(goal)) return true;
+  const cfg = getSunnahConfig(goal);
+  if (
+    cfg &&
+    Object.values(cfg).some((value) => value !== undefined && value !== null)
+  ) {
+    return true;
+  }
+  return (
+    goal?.afterDhuhrRakahOption != null ||
+    goal?.afterDhuhrPrayersPerDay != null ||
+    goal?.beforeAsrEnabled != null ||
+    goal?.beforeAsrRakahOption != null ||
+    goal?.beforeAsrPrayersPerDay != null
+  );
+}
+
+function getSunnahSlotTarget(
+  cfg: SunnahRawatibConfig | undefined,
+  targets: PrayerGoalApiItem["targets"] | undefined,
+  configKey: keyof SunnahRawatibConfig,
+  ...targetKeys: string[]
+): number | undefined {
+  const fromConfig = cfg?.[configKey];
+  if (typeof fromConfig === "number") return fromConfig;
+  for (const key of targetKeys) {
+    const n = asBucket(targets?.[key]).targetCount;
+    if (typeof n === "number") return n;
+  }
+  return undefined;
+}
+
+function resolveAfterDhuhrRakahOption(
+  cfg: SunnahRawatibConfig | undefined,
+  goal: SunnahInitialSource | undefined,
+  afterDhuhrTarget: number | undefined,
+): 1 | 2 {
+  const raw =
+    cfg?.afterDhuhrPrayersPerDay ??
+    cfg?.afterDhuhrRakahOption ??
+    goal?.afterDhuhrPrayersPerDay ??
+    goal?.afterDhuhrRakahOption;
+  if (raw === 1) return 1;
+  if (raw === 2) return 2;
+  if (typeof afterDhuhrTarget === "number" && afterDhuhrTarget > 0) {
+    return afterDhuhrTarget <= 28 ? 1 : 2;
+  }
+  return 2;
+}
+
+function resolveBeforeAsrSelection(
+  cfg: SunnahRawatibConfig | undefined,
+  goal: SunnahInitialSource | undefined,
+  beforeAsrTarget: number | undefined,
+): { enabled: boolean; option: 1 | 2 } {
+  const prayersPerDay =
+    cfg?.beforeAsrPrayersPerDay ?? goal?.beforeAsrPrayersPerDay;
+  if (typeof prayersPerDay === "number") {
+    if (prayersPerDay <= 0) return { enabled: false, option: 2 };
+    return { enabled: true, option: prayersPerDay >= 2 ? 2 : 1 };
+  }
+
+  const enabled = cfg?.beforeAsrEnabled ?? goal?.beforeAsrEnabled;
+  if (enabled === false || beforeAsrTarget === 0) {
+    return { enabled: false, option: 2 };
+  }
+
+  const rawOption = cfg?.beforeAsrRakahOption ?? goal?.beforeAsrRakahOption;
+  if (rawOption === 1) return { enabled: enabled ?? true, option: 1 };
+  if (rawOption === 2) return { enabled: enabled ?? true, option: 2 };
+  if (typeof beforeAsrTarget === "number" && beforeAsrTarget > 0) {
+    return { enabled: true, option: beforeAsrTarget <= 28 ? 1 : 2 };
+  }
+  return { enabled: enabled ?? true, option: 2 };
+}
+
+export function getSunnahInitial(goal: SunnahInitialSource | undefined) {
+  if (!hasConfiguredSunnah(goal)) return undefined;
+
+  const cfg = getSunnahConfig(goal);
   const targets = goal?.targets ?? {};
+  const afterDhuhrTarget = getSunnahSlotTarget(
+    cfg,
+    targets,
+    "afterDhuhrTarget",
+    "afterDhuhr",
+    "AFTER_DHUHR",
+  );
+  const beforeAsrTarget = getSunnahSlotTarget(
+    cfg,
+    targets,
+    "beforeAsrTarget",
+    "beforeAsr",
+    "BEFORE_ASR",
+  );
+  const afterDhuhrRakahOption = resolveAfterDhuhrRakahOption(
+    cfg,
+    goal,
+    afterDhuhrTarget,
+  );
+  const beforeAsr = resolveBeforeAsrSelection(cfg, goal, beforeAsrTarget);
+
   return {
-    beforeFajr: pickSavedNumber(asBucket(targets.beforeFajr).targetCount, 28),
-    beforeDhuhr: pickSavedNumber(asBucket(targets.beforeDhuhr).targetCount, 56),
-    afterDhuhr: pickSavedNumber(asBucket(targets.afterDhuhr).targetCount, 56),
-    beforeAsr: pickSavedNumber(asBucket(targets.beforeAsr).targetCount, 56),
-    afterMaghrib: pickSavedNumber(
-      asBucket(targets.afterMaghrib).targetCount,
+    beforeFajr: pickSavedNumber(
+      getSunnahSlotTarget(cfg, targets, "beforeFajrTarget", "beforeFajr", "BEFORE_FAJR"),
       28,
     ),
-    afterIsha: pickSavedNumber(asBucket(targets.afterIsha).targetCount, 28),
-    afterDhuhrRakahOption: goal?.afterDhuhrRakahOption === 1 ? 1 : 2,
-    beforeAsrEnabled: goal?.beforeAsrEnabled ?? true,
-    beforeAsrRakahOption: goal?.beforeAsrRakahOption === 1 ? 1 : 2,
+    beforeDhuhr: pickSavedNumber(
+      getSunnahSlotTarget(
+        cfg,
+        targets,
+        "beforeDhuhrTarget",
+        "beforeDhuhr",
+        "BEFORE_DHUHR",
+      ),
+      56,
+    ),
+    afterDhuhr: pickSavedNumber(
+      afterDhuhrTarget,
+      afterDhuhrRakahOption === 1 ? 28 : 56,
+    ),
+    beforeAsr: beforeAsr.enabled
+      ? pickSavedNumber(beforeAsrTarget, beforeAsr.option === 1 ? 28 : 56)
+      : 0,
+    afterMaghrib: pickSavedNumber(
+      getSunnahSlotTarget(
+        cfg,
+        targets,
+        "afterMaghribTarget",
+        "afterMaghrib",
+        "AFTER_MAGHRIB",
+      ),
+      28,
+    ),
+    afterIsha: pickSavedNumber(
+      getSunnahSlotTarget(cfg, targets, "afterIshaTarget", "afterIsha", "AFTER_ISHA"),
+      28,
+    ),
+    afterDhuhrRakahOption,
+    beforeAsrEnabled: beforeAsr.enabled,
+    beforeAsrRakahOption: beforeAsr.option,
   };
 }
 

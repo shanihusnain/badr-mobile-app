@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useGoalSelectionOpenState } from "@/hooks/useGoalSelectionOpenState";
 import {
   StyleSheet,
@@ -132,6 +132,36 @@ export default function SunnahRawatibGoalSelection({
     initialValues?.beforeAsrEnabled ?? true,
   );
   const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount);
+
+  useEffect(() => {
+    if (!initialValues) return;
+    setBeforeFajar(initialValues.beforeFajr ?? 28);
+    setBeforeDuhr(initialValues.beforeDhuhr ?? 56);
+    setAfterDuhr(initialValues.afterDhuhr ?? 56);
+    setBeforeAsar(initialValues.beforeAsr ?? 56);
+    setAfterMaghrib(initialValues.afterMaghrib ?? 28);
+    setAfterIsha(initialValues.afterIsha ?? 28);
+    setAfterDuhrOption(
+      initialValues.afterDhuhrRakahOption === 1 ? "one" : "two",
+    );
+    setBeforeAsarOption(
+      initialValues.beforeAsrRakahOption === 1 ? "one" : "two",
+    );
+    const asrEnabled = initialValues.beforeAsrEnabled ?? true;
+    setIsBeforeAsarEnabled(asrEnabled);
+    beforeAsarEnabled.value = asrEnabled;
+  }, [
+    beforeAsarEnabled,
+    initialValues?.afterDhuhr,
+    initialValues?.afterDhuhrRakahOption,
+    initialValues?.afterIsha,
+    initialValues?.afterMaghrib,
+    initialValues?.beforeAsr,
+    initialValues?.beforeAsrEnabled,
+    initialValues?.beforeAsrRakahOption,
+    initialValues?.beforeDhuhr,
+    initialValues?.beforeFajr,
+  ]);
 
   const toggleDropdown = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);

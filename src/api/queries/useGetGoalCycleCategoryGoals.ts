@@ -22,6 +22,11 @@ const getGoalCycleCategoryGoals = async (
     `api/goal-cycles/current/categories/${category}`,
   );
   const data = response.data?.data;
+
+  console.log(
+    "data of the goal cycle category goals api",
+    JSON.stringify(data, null, 2),
+  );
   return {
     category: typeof data?.category === "string" ? data.category : category,
     goals: Array.isArray(data?.goals) ? data.goals : [],

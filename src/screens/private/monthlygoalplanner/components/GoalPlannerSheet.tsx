@@ -651,6 +651,9 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
       (goalId: string) => {
         if (locallyConfiguredGoalIds[goalId]) return true;
         const goal = prayerGoals.find((item) => item.id === goalId);
+        if (goalId === "sunnahRawatib" || goal?.prayerType === "SUNNAH_RAWATIB") {
+          return getSunnahInitial(goal) != null;
+        }
         return hasConfiguredTargets(goal);
       },
       [locallyConfiguredGoalIds, prayerGoals],
@@ -2471,39 +2474,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
           return (
             <SunnahRawatibGoalSelection
               openOnMount={true}
-              initialValues={
-                sourcePrayer?.sunnahRawatibConfig
-                  ? {
-                      beforeFajr:
-                        sourcePrayer.sunnahRawatibConfig.beforeFajrTarget ?? 28,
-                      beforeDhuhr:
-                        sourcePrayer.sunnahRawatibConfig.beforeDhuhrTarget ??
-                        56,
-                      afterDhuhr:
-                        sourcePrayer.sunnahRawatibConfig.afterDhuhrTarget ?? 56,
-                      beforeAsr:
-                        sourcePrayer.sunnahRawatibConfig.beforeAsrTarget ?? 56,
-                      afterMaghrib:
-                        sourcePrayer.sunnahRawatibConfig.afterMaghribTarget ??
-                        28,
-                      afterIsha:
-                        sourcePrayer.sunnahRawatibConfig.afterIshaTarget ?? 28,
-                      afterDhuhrRakahOption:
-                        sourcePrayer.sunnahRawatibConfig
-                          .afterDhuhrRakahOption === 1
-                          ? 1
-                          : 2,
-                      beforeAsrEnabled:
-                        sourcePrayer.sunnahRawatibConfig.beforeAsrEnabled ??
-                        true,
-                      beforeAsrRakahOption:
-                        sourcePrayer.sunnahRawatibConfig
-                          .beforeAsrRakahOption === 1
-                          ? 1
-                          : 2,
-                    }
-                  : undefined
-              }
+              initialValues={getSunnahInitial(sourcePrayer)}
               isSaving={isSavingPrayer}
               onSave={(payload, onDone, onFail) => {
                 persistPrayerGoal(

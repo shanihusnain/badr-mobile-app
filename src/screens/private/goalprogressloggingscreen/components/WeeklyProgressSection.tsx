@@ -1340,7 +1340,7 @@ export function WeeklyProgressSection({
       return (
         <QiyamWeeklyProgressDashboard
           key={frame.cycle.weekNumber}
-          weekDays={mapQiyamFrameWeekDays(frame)}
+          weekDays={mapQiyamFrameWeekDays(frame, { gender: qiyamGender })}
           weekRangeLabel={formatPrayerFrameWeekRange(
             frame.cycle.weekStart,
             frame.cycle.weekEnd,
@@ -1352,6 +1352,10 @@ export function WeeklyProgressSection({
           motivationalQuote={getPrayerFrameMotivationalQuote(frame)}
           selectedDayIndex={getPrayerFrameTodayIndex(frame)}
           loading={frameLoading}
+          isGoalCompleted={
+            Boolean(frame.isGoalCompletedFully) ||
+            (frame.goal.achievementPct ?? 0) >= 100
+          }
           onPrevWeek={
             canPrev
               ? () => shiftPrayerFrameWeek(prayerFrame, frame, -1)
