@@ -12,13 +12,8 @@ import moment from "moment-hijri";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import {
-  AsrIcon,
+
   CalendarFlippingIcon,
-  GreenTickIcon,
-  IshaIcon,
-  MaghribIcon,
-  SunIcon,
-  SunriseIcon,
   WhiteClockIcon,
   WhitePrayerMatIcon,
   WhiteTimerIcon,
@@ -35,6 +30,10 @@ import {
 } from "../components/TimePickerSteps";
 import { OptionSelectStep } from "../components/OptionSelectStep";
 import { FlowCard } from "../components/FlowCard";
+import {
+  SunnahRawatibPrayerSelectStep,
+  type SunnahPrayerId,
+} from "../components/SunnahRawatibPrayerSelectStep";
 import {
   styles as commonStyles,
   FLOW_CARD_HEIGHT,
@@ -71,14 +70,6 @@ import { AddLoggingFlowIcon } from "@/assets/icons";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type SunnahPrayerId =
-  | "before_fajr"
-  | "before_dhuhr"
-  | "after_dhuhr"
-  | "before_asr"
-  | "after_maghrib"
-  | "after_isha";
-
 type SunnahPrayerStepId =
   | "date"
   | "select-prayer"
@@ -99,18 +90,6 @@ type Props = {
 
 const toDateString = (date: Date) => moment(date).format("YYYY-MM-DD");
 
-const SUNNAH_ICON_COMPONENTS: Record<
-  SunnahPrayerId,
-  React.ComponentType<{ color: string; size: number }>
-> = {
-  before_fajr: SunriseIcon,
-  before_dhuhr: SunIcon,
-  after_dhuhr: SunIcon,
-  before_asr: AsrIcon,
-  after_maghrib: MaghribIcon,
-  after_isha: IshaIcon,
-};
-
 const SUNNAH_OPTION_IDS: SunnahPrayerId[] = [
   "before_fajr",
   "before_dhuhr",
@@ -120,15 +99,6 @@ const SUNNAH_OPTION_IDS: SunnahPrayerId[] = [
   "after_isha",
 ];
 
-const SUNNAH_LABEL_KEYS: Record<SunnahPrayerId, string> = {
-  before_fajr: "progressLogging.sunnahSlotBeforeFajr",
-  before_dhuhr: "progressLogging.sunnahSlotBeforeDhuhr",
-  after_dhuhr: "progressLogging.sunnahSlotAfterDhuhr",
-  before_asr: "progressLogging.sunnahSlotBeforeAsr",
-  after_maghrib: "progressLogging.sunnahSlotAfterMaghrib",
-  after_isha: "progressLogging.sunnahSlotAfterIsha",
-};
-
 const SUNNAH_UI_TO_API_SLOT: Record<SunnahPrayerId, SunnahRawatibSlot> = {
   before_fajr: "BEFORE_FAJR",
   before_dhuhr: "BEFORE_DHUHR",
@@ -137,8 +107,6 @@ const SUNNAH_UI_TO_API_SLOT: Record<SunnahPrayerId, SunnahRawatibSlot> = {
   after_maghrib: "AFTER_MAGHRIB",
   after_isha: "AFTER_ISHA",
 };
-
-const PRAYER_PAGE_SIZE = 3;
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -165,7 +133,6 @@ export default function SunnahRawatibLoggingFlow({
 
   const [durationHours, setDurationHours] = useState("0");
   const [durationMinutes, setDurationMinutes] = useState("0");
-  const [prayerSelectPage, setPrayerSelectPage] = useState(0);
 
   const { mutateAsync: logSunnah, isPending: isLogging } =
     useLogSunnahRawatibGoal();
@@ -208,17 +175,22 @@ export default function SunnahRawatibLoggingFlow({
     [afterDhuhrPrayersPerDay, beforeAsrPrayersPerDay],
   );
 
-  const goalLabel = frame?.goal.label ?? "---";
   const goalLabelParts = useMemo(() => {
-    const match = goalLabel.match(/^(.*?)\s*(\(total\s+\d+\s+prayers?\))\s*$/i);
-    if (!match) {
-      return { title: goalLabel, totalSuffix: null as string | null };
-    }
+    const rawLabel = frame?.goal.label ?? "";
+    const targetCount = frame?.goal.targetCount;
+    const match = rawLabel.match(/^(.*?)\s*(\(total\s+\d+\s+prayers?\))\s*$/i);
+
+    const totalSuffix =
+      match?.[2] ??
+      (targetCount != null
+        ? `(total ${targetCount} ${targetCount === 1 ? "prayer" : "prayers"})`
+        : null);
+
     return {
-      title: match[1].trim(),
-      totalSuffix: match[2],
+      title: t("progressLogging.sunnahRawatibPrayers"),
+      totalSuffix,
     };
-  }, [goalLabel]);
+  }, [frame?.goal.label, frame?.goal.targetCount, t]);
 
   const badgeStatus = useMemo(() => {
     if (!frame) {
@@ -380,7 +352,7 @@ export default function SunnahRawatibLoggingFlow({
   );
 
   const lockedPrayersForSelectedDate = useMemo(() => {
-    if (!dayDetail?.slots) return [...availableSunnahOptions];
+    if (!dayDetail?.slots) return [];
     return availableSunnahOptions.filter((id) => {
       const slot = dayDetail.slots?.[SUNNAH_UI_TO_API_SLOT[id]];
       if (isPrayerFullyLogged(id)) return false;
@@ -388,11 +360,23 @@ export default function SunnahRawatibLoggingFlow({
     });
   }, [dayDetail, availableSunnahOptions, isPrayerFullyLogged]);
 
-  /** Block only the initial day-detail fetch — not background refetches. */
+  /** Wait for day-detail before prayer select / forward (same as Five Daily). */
   const dayDetailLoadingState =
     flowMode === "active" &&
-    dayDetail == null &&
-    (dayDetailLoading || dayDetailFetching);
+    (dayDetailLoading || dayDetailFetching || dayDetail == null);
+
+  /** Forward from select-prayer: slot in goal and not fully logged (canLog gates confirm). */
+  const canProceedFromPrayerSelect = useMemo(() => {
+    if (dayDetailLoadingState) return false;
+    if (!availableSunnahOptions.includes(selectedPrayer)) return false;
+    if (isPrayerFullyLogged(selectedPrayer)) return false;
+    return true;
+  }, [
+    dayDetailLoadingState,
+    availableSunnahOptions,
+    selectedPrayer,
+    isPrayerFullyLogged,
+  ]);
 
   /** Slots fully completed for this date — green tick on prayer select. */
   const fullyLoggedPrayers = useMemo(
@@ -404,18 +388,6 @@ export default function SunnahRawatibLoggingFlow({
   const partiallyLoggedPrayers = useMemo(
     () => availableSunnahOptions.filter((id) => isPrayerPartiallyLogged(id)),
     [availableSunnahOptions, isPrayerPartiallyLogged],
-  );
-
-  const hasSelectablePrayer = useMemo(
-    () =>
-      availableSunnahOptions.some(
-        (id) =>
-          !isPrayerFullyLogged(id) &&
-          isSunnahRawatibSlotSelectable(
-            dayDetail?.slots?.[SUNNAH_UI_TO_API_SLOT[id]],
-          ),
-      ),
-    [availableSunnahOptions, dayDetail, isPrayerFullyLogged],
   );
 
   const remainingCountForSelected = useMemo(() => {
@@ -532,7 +504,6 @@ export default function SunnahRawatibLoggingFlow({
     setSelectedDate(toDateString(new Date()));
     setSelectedPrayer(availableSunnahOptions[0] ?? "before_fajr");
     setPrayerCount("1");
-    setPrayerSelectPage(0);
     setStartHour(now.hour);
     setStartMinute(now.minute);
     setStartPeriod(now.period);
@@ -560,12 +531,7 @@ export default function SunnahRawatibLoggingFlow({
   };
 
   const handleForward = () => {
-    if (currentStep === "select-prayer") {
-      if (dayDetailLoadingState) return;
-      if (!hasSelectablePrayer) return;
-      if (isPrayerFullyLogged(selectedPrayer)) return;
-      if (lockedPrayersForSelectedDate.includes(selectedPrayer)) return;
-    }
+    if (currentStep === "select-prayer" && !canProceedFromPrayerSelect) return;
     if (!isLastStep) setStepIndex((i) => i + 1);
   };
 
@@ -679,155 +645,6 @@ export default function SunnahRawatibLoggingFlow({
     }
   };
 
-  // ─── Prayer select step ────────────────────────────────────────────────────
-
-  const prayerPageCount = Math.max(
-    1,
-    Math.ceil(availableSunnahOptions.length / PRAYER_PAGE_SIZE),
-  );
-  const paginatePrayerSelect = availableSunnahOptions.length > PRAYER_PAGE_SIZE;
-
-  useEffect(() => {
-    if (prayerSelectPage > prayerPageCount - 1) {
-      setPrayerSelectPage(Math.max(0, prayerPageCount - 1));
-    }
-  }, [prayerPageCount, prayerSelectPage]);
-
-  const renderPrayerSelectStep = () => {
-    const fullyLoggedSet = new Set(fullyLoggedPrayers);
-    const partiallyLoggedSet = new Set(partiallyLoggedPrayers);
-    const lockedSet = new Set(lockedPrayersForSelectedDate);
-    const pageOptions = paginatePrayerSelect
-      ? availableSunnahOptions.slice(
-          prayerSelectPage * PRAYER_PAGE_SIZE,
-          prayerSelectPage * PRAYER_PAGE_SIZE + PRAYER_PAGE_SIZE,
-        )
-      : availableSunnahOptions;
-
-    const canGoPrevPage = paginatePrayerSelect && prayerSelectPage > 0;
-    const canGoNextPage =
-      paginatePrayerSelect && prayerSelectPage < prayerPageCount - 1;
-
-    return (
-      <View style={localStyles.prayerSelectRow}>
-        {paginatePrayerSelect ? (
-          <TouchableOpacity
-            style={[
-              localStyles.prayerPageArrow,
-              !canGoPrevPage && localStyles.prayerPageArrowDisabled,
-            ]}
-            onPress={() => {
-              if (!canGoPrevPage) return;
-              setPrayerSelectPage((p) => p - 1);
-            }}
-            activeOpacity={canGoPrevPage ? 0.7 : 1}
-            disabled={!canGoPrevPage}
-            hitSlop={10}
-          >
-            <Ionicons
-              name="chevron-back"
-              size={20}
-              color={Colors.light.white}
-            />
-          </TouchableOpacity>
-        ) : null}
-
-        <View style={[commonStyles.prayerGrid, localStyles.prayerPageGrid]}>
-          {pageOptions.map((id) => {
-            const globalIndex = availableSunnahOptions.indexOf(id);
-            const isSelected = selectedPrayer === id;
-            const isFullyLogged = fullyLoggedSet.has(id);
-            const isPartiallyLogged = partiallyLoggedSet.has(id);
-            const isLocked = lockedSet.has(id);
-            const showHighlight =
-              isSelected || isFullyLogged || isPartiallyLogged;
-            const iconColor =
-              isFullyLogged || isPartiallyLogged || isSelected
-                ? Colors.light.green
-                : Colors.light.white;
-            const isFirst = globalIndex === 0;
-            const isLast = globalIndex === availableSunnahOptions.length - 1;
-            const Icon = SUNNAH_ICON_COMPONENTS[id];
-            const [line1, line2] = t(SUNNAH_LABEL_KEYS[id]).split("\n");
-            return (
-              <TouchableOpacity
-                key={id}
-                style={commonStyles.prayerColumn}
-                onPress={() => handleSelectPrayer(id)}
-                activeOpacity={isFullyLogged || isLocked ? 1 : 0.8}
-                disabled={isFullyLogged || isLocked}
-              >
-                <View
-                  style={[
-                    localStyles.prayerLabelBlock,
-                    {
-                      opacity: showHighlight ? 1 : isLocked ? 0.35 : 0.8,
-                    },
-                  ]}
-                >
-                  <Text style={localStyles.prayerLabelLine} numberOfLines={1}>
-                    {line1}
-                  </Text>
-                  <Text style={localStyles.prayerLabelLine} numberOfLines={1}>
-                    {line2 ?? " "}
-                  </Text>
-                </View>
-
-                <View
-                  style={[
-                    commonStyles.prayerIconBox,
-                    showHighlight
-                      ? commonStyles.prayerIconBoxSelected
-                      : commonStyles.prayerIconBoxIdle,
-                    isLocked && !showHighlight && { opacity: 0.35 },
-                    {
-                      borderTopLeftRadius: isFirst ? 5 : 0,
-                      borderBottomLeftRadius: isFirst ? 5 : 0,
-                      borderTopRightRadius: isLast ? 5 : 0,
-                      borderBottomRightRadius: isLast ? 5 : 0,
-                    },
-                  ]}
-                >
-                  <Icon color={iconColor} size={14} />
-                </View>
-
-                <View style={localStyles.prayerCheckSlot}>
-                  {isFullyLogged ? (
-                    <View style={localStyles.prayerCheckBadge}>
-                      <GreenTickIcon color={Colors.light.green} size={8} />
-                    </View>
-                  ) : null}
-                </View>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-
-        {paginatePrayerSelect ? (
-          <TouchableOpacity
-            style={[
-              localStyles.prayerPageArrow,
-              !canGoNextPage && localStyles.prayerPageArrowDisabled,
-            ]}
-            onPress={() => {
-              if (!canGoNextPage) return;
-              setPrayerSelectPage((p) => p + 1);
-            }}
-            activeOpacity={canGoNextPage ? 0.7 : 1}
-            disabled={!canGoNextPage}
-            hitSlop={10}
-          >
-            <Ionicons
-              name="chevron-forward"
-              size={20}
-              color={Colors.light.white}
-            />
-          </TouchableOpacity>
-        ) : null}
-      </View>
-    );
-  };
-
   // ─── Step content ──────────────────────────────────────────────────────────
 
   const renderStepContent = (step: SunnahPrayerStepId) => {
@@ -845,7 +662,19 @@ export default function SunnahRawatibLoggingFlow({
           />
         );
       case "select-prayer":
-        return renderPrayerSelectStep();
+        return (
+          <SunnahRawatibPrayerSelectStep
+            options={availableSunnahOptions}
+            selectedPrayer={selectedPrayer}
+            onSelectPrayer={handleSelectPrayer}
+            categoryColor={Colors.light.green}
+            fullyLoggedPrayers={fullyLoggedPrayers}
+            partiallyLoggedPrayers={partiallyLoggedPrayers}
+            lockedPrayers={lockedPrayersForSelectedDate}
+            t={t}
+            styles={commonStyles}
+          />
+        );
       case "rakahs-quantity":
         return (
           <OptionSelectStep<PrayerCountOption>
@@ -947,12 +776,29 @@ export default function SunnahRawatibLoggingFlow({
                       {badgeStatus.text}
                     </Text>
                   </View>
-                  <Text style={localStyles.summaryTitle} numberOfLines={2}>
-                    {goalLabelParts.title}
-                    {goalLabelParts.totalSuffix
-                      ? ` ${goalLabelParts.totalSuffix}`
-                      : ""}
-                  </Text>
+                  <View style={localStyles.summaryTitleBlock}>
+                    <Text style={localStyles.summaryTitle} numberOfLines={2}>
+                      {goalLabelParts.title}
+                    </Text>
+                    {goalLabelParts.totalSuffix ? (
+                      <Text style={localStyles.summaryTotalLine} numberOfLines={1}>
+                        {goalLabelParts.totalSuffix
+                          .split(/(\d+)/)
+                          .map((part, index) =>
+                            /^\d+$/.test(part) ? (
+                              <Text
+                                key={`${part}-${index}`}
+                                style={localStyles.summaryTotalCount}
+                              >
+                                {part}
+                              </Text>
+                            ) : (
+                              part
+                            ),
+                          )}
+                      </Text>
+                    ) : null}
+                  </View>
                 </View>
               </View>
 
@@ -996,11 +842,7 @@ export default function SunnahRawatibLoggingFlow({
                 canGoForward={
                   !isLastStep &&
                   !(
-                    currentStep === "select-prayer" &&
-                    (dayDetailLoadingState ||
-                      !hasSelectablePrayer ||
-                      isPrayerFullyLogged(selectedPrayer) ||
-                      lockedPrayersForSelectedDate.includes(selectedPrayer))
+                    currentStep === "select-prayer" && !canProceedFromPrayerSelect
                   )
                 }
                 canGoBack={stepIndex > 0}
@@ -1008,7 +850,6 @@ export default function SunnahRawatibLoggingFlow({
                   isLastStep &&
                   !isLogging &&
                   !isPrayerFullyLogged(selectedPrayer) &&
-                  !lockedPrayersForSelectedDate.includes(selectedPrayer) &&
                   isDurationEntered(durationHours, durationMinutes)
                 }
                 styles={commonStyles}
@@ -1079,7 +920,7 @@ const localStyles = StyleSheet.create({
     backgroundColor: Colors.light.selectcategory,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 33,
+    marginTop: 17,
   },
   summaryTextBlock: {
     flex: 1,
@@ -1092,6 +933,24 @@ const localStyles = StyleSheet.create({
     fontWeight: "600",
     lineHeight: 18,
     letterSpacing: 0,
+  },
+  summaryTitleBlock: {
+    gap: 2,
+  },
+  summaryTotalLine: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.regular,
+    fontSize: 12,
+    fontWeight: "400",
+    lineHeight: 14,
+    marginTop: 4,
+  },
+  summaryTotalCount: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.semiBold,
+    fontSize: 12,
+    fontWeight: "600",
+    lineHeight: 14,
   },
   footerRow: {
     flexDirection: "row",
@@ -1122,63 +981,5 @@ const localStyles = StyleSheet.create({
   },
   addButtonDisabled: {
     opacity: 0.35,
-  },
-  prayerLabelBlock: {
-    height: 26,
-    width: "100%",
-    alignItems: "center",
-    justifyContent: "flex-end",
-    marginBottom: 6,
-  },
-  prayerLabelLine: {
-    color: Colors.light.white,
-    fontFamily: fonts.primary.bold,
-    fontWeight: "600",
-    fontSize: 10,
-    lineHeight: 10,
-    textAlign: "center",
-    width: "100%",
-    letterSpacing: -0.6,
-  },
-  prayerSelectRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    alignSelf: "stretch",
-    width: "95%",
-    marginLeft: 4,
-    marginRight: -10,
-    justifyContent: "space-between",
-  },
-  prayerPageArrow: {
-    width: 16,
-    flexShrink: 0,
-    alignItems: "center",
-    justifyContent: "center",
-    // Nudge to icon-box vertical center (below 2-line labels)
-    marginTop: 14,
-  },
-  prayerPageArrowDisabled: {
-    opacity: 0.6,
-  },
-  prayerPageGrid: {
-    flex: 1,
-    width: undefined,
-    paddingHorizontal: 18,
-  },
-  prayerCheckSlot: {
-    width: "100%",
-    height: 18,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  prayerCheckBadge: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    backgroundColor: Colors.light.white,
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 4,
-    overflow: "hidden",
   },
 });

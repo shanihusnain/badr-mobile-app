@@ -137,12 +137,13 @@ const styles = StyleSheet.create({
   footerRowLaterWeeks: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "flex-start",
     flexWrap: "wrap",
     gap: 10,
     width: "100%",
     minWidth: 0,
-    paddingHorizontal: 4,
+    paddingLeft: 21,
+    paddingRight: 4,
   },
   streakBadge: {
     flexDirection: "row",
@@ -169,6 +170,7 @@ const styles = StyleSheet.create({
     gap: 4,
     flexShrink: 1,
     minWidth: 0,
+    marginLeft: 12,
   },
   comparisonText: {
     color: Colors.light.white,
@@ -206,7 +208,8 @@ const styles = StyleSheet.create({
     gap: 6,
     width: "100%",
     minWidth: 0,
-    paddingHorizontal: 4,
+    paddingLeft: 7,
+    paddingRight: 4,
   },
   quoteTextWrapFull: {
     flex: 1,
