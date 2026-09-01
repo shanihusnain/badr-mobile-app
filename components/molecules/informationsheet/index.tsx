@@ -14,14 +14,18 @@ import { TaperedCircleBorder } from "@/components/atoms/TaperedCircleBorder";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import { BestdayStarIcon } from "@/assets/icons/BestdayStarIcon";
-import { useGetPrayerGoalInsights } from "@/src/api/queries/useGetPrayerGoalInsights";
+import { useGetPrayerGoalInsights, isQiyamAlLaylInsights, type PrayerGoalInsightsStats } from "@/src/api/queries/useGetPrayerGoalInsights";
 import { useGetPrayerGoalFrame } from "@/src/api/queries/useGetPrayerGoalFrame";
 import { TopSpace } from "@/components/atoms/TopSpace";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import {
   FilledWallClock,
   FlowCardMosqueIcon,
   GoldenTickIcon,
   LighteningIcon,
+  QiyamAfterIshaIcon,
+  QiyamMaleBothIshaAndTahajudIcon,
+  QiyamMaleUserIcon,
   WeighBalanceIcon,
 } from "@/assets/icons";
 import { resolvePrayerType } from "@/src/utils/prayerGoalMap";
@@ -91,6 +95,148 @@ function StatLabelValue({ label, value }: { label: string; value: string }) {
   );
 }
 
+function QiyamInsightStatRows({
+  stats,
+  t,
+}: {
+  stats: PrayerGoalInsightsStats;
+  t: ReturnType<typeof useTranslation>["t"];
+}) {
+  const nightLabel = (count: number) =>
+    t("progressLogging.insightsNightCount", { count });
+
+  return (
+    <>
+      <StatRow icon={<LighteningIcon />}>
+        <StatLabelValue
+          label={t("progressLogging.insightsLongestStreakLabel")}
+          value={nightLabel(stats.longestStreak)}
+        />
+      </StatRow>
+
+      {stats.personalBest != null && stats.personalBestDaysCount != null ? (
+        <StatRow icon={<BestdayStarIcon />}>
+          <StatLabelValue
+            label={t("progressLogging.insightsPersonalBestLabel")}
+            value={t("progressLogging.insightsPersonalBestValue", {
+              count: stats.personalBest,
+              daysLabel: t("progressLogging.insightsDayCount", {
+                count: stats.personalBestDaysCount,
+              }),
+            })}
+          />
+        </StatRow>
+      ) : null}
+
+      <StatRow icon={<WeighBalanceIcon />}>
+        <StatLabelValue
+          label={t("progressLogging.insightsWeeklyAverageLabel")}
+          value={t("progressLogging.insightsWeeklyAverageValue", {
+            count: stats.weeklyAverage,
+          })}
+        />
+      </StatRow>
+
+      <StatRow icon={<FilledWallClock />}>
+        <StatLabelValue
+          label={t("progressLogging.insightsTimeSpentLabel")}
+          value={formatTimeSpent(stats.timeSpentMinutes)}
+        />
+      </StatRow>
+    </>
+  );
+}
+
+function QiyamTimingStatRows({
+  stats,
+  t,
+}: {
+  stats: PrayerGoalInsightsStats;
+  t: ReturnType<typeof useTranslation>["t"];
+}) {
+  return (
+    <>
+      {stats.afterIshaStats ? (
+        <StatRow
+          icon={
+            <QiyamAfterIshaIcon
+              size={20}
+              color={Colors.light.qiyamIconGold}
+            />
+          }
+        >
+          <Text style={styles.statValue}>
+            {renderWithNumberStyle(
+              t("progressLogging.insightsQiyamAfterIshaRow", {
+                nights: stats.afterIshaStats.nights,
+                total: stats.afterIshaStats.total,
+              }),
+              styles.statValueNumber,
+            )}
+          </Text>
+        </StatRow>
+      ) : null}
+
+      {stats.tahajjudStats ? (
+        <StatRow
+          icon={
+            <QiyamMaleUserIcon size={20} color={Colors.light.green} />
+          }
+        >
+          <Text style={styles.statValue}>
+            {renderWithNumberStyle(
+              t("progressLogging.insightsQiyamTahajjudRow", {
+                nights: stats.tahajjudStats.nights,
+                total: stats.tahajjudStats.total,
+              }),
+              styles.statValueNumber,
+            )}
+          </Text>
+        </StatRow>
+      ) : null}
+
+      {stats.bothStats ? (
+        <StatRow
+          icon={
+            <QiyamMaleBothIshaAndTahajudIcon size={20} color={Colors.light.green} />
+          }
+        >
+          <Text style={styles.statValue}>
+            {renderWithNumberStyle(
+              t("progressLogging.insightsQiyamBothRow", {
+                nights: stats.bothStats.nights,
+              }),
+              styles.statValueNumber,
+            )}
+          </Text>
+        </StatRow>
+      ) : null}
+
+      {stats.witrStats ? (
+        <StatRow
+          icon={
+            <MaterialCommunityIcons
+              name="candle"
+              size={20}
+              color={Colors.light.white}
+            />
+          }
+        >
+          <Text style={styles.statValue}>
+            {renderWithNumberStyle(
+              t("progressLogging.insightsQiyamWitrRow", {
+                withWitr: stats.witrStats.nightsWithWitr,
+                total: stats.witrStats.totalNights,
+              }),
+              styles.statValueNumber,
+            )}
+          </Text>
+        </StatRow>
+      ) : null}
+    </>
+  );
+}
+
 export const InformationSheet = forwardRef<BottomSheet, Props>(
   function InformationSheet({ prayerType, onClose }, ref) {
     const { t } = useTranslation();
@@ -103,6 +249,7 @@ export const InformationSheet = forwardRef<BottomSheet, Props>(
         enabled: !!prayerType,
       },
     );
+    const isQiyam = isQiyamAlLaylInsights(data);
     const { data: frame } = useGetPrayerGoalFrame(prayerType, {
       enabled: !!prayerType,
     });
@@ -115,14 +262,21 @@ export const InformationSheet = forwardRef<BottomSheet, Props>(
     const completedInValue =
       stats == null
         ? ""
-        : stats.dayGoalCompleted != null
-          ? t("progressLogging.insightsCompletedInDaysOnDay", {
-              days: stats.activeDaysCount,
-              day: stats.dayGoalCompleted,
-            })
-          : t("progressLogging.insightsCompletedInActiveDays", {
+        : isQiyam
+          ? t("progressLogging.insightsCompletedInActiveNights", {
               count: stats.activeDaysCount,
-            });
+            })
+          : stats.dayGoalCompleted != null
+            ? t("progressLogging.insightsCompletedInDaysOnDay", {
+                days: stats.activeDaysCount,
+                day: stats.dayGoalCompleted,
+              })
+            : t("progressLogging.insightsCompletedInActiveDays", {
+                count: stats.activeDaysCount,
+              });
+
+    const ringVariant =
+      isQiyam && achievementPct >= 100 ? "golden" : "illuminated";
 
     const jumuah = parseJumuahFraction(stats?.jumuahFraction);
 
@@ -164,7 +318,7 @@ export const InformationSheet = forwardRef<BottomSheet, Props>(
                 percentage={`${achievementPct}%`}
                 borderColor={Colors.light.dullWhiteOpacity}
                 size={160}
-                variant="illuminated"
+                variant={ringVariant}
               >
                 <View style={styles.ringInner}>
                   {goalCount != null ? (
@@ -256,6 +410,11 @@ export const InformationSheet = forwardRef<BottomSheet, Props>(
                         })}
                       />
                     </StatRow>
+                  </>
+                ) : isQiyam ? (
+                  <>
+                    <QiyamTimingStatRows stats={stats} t={t} />
+                    <QiyamInsightStatRows stats={stats} t={t} />
                   </>
                 ) : (
                   <>
