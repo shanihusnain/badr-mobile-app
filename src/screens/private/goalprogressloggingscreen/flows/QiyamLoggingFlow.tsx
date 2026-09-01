@@ -47,6 +47,7 @@ import {
   WhiteTimerIcon,
 } from "@/assets/icons";
 import { QiyamAfterIshaIcon } from "@/assets/icons/QiyamAfterIshaIcon";
+import { QiyamMainFlowCardIcon } from "@/assets/icons/QiyamMainFlowCardIcon";
 import { QiyamFemaleUserIcon } from "@/assets/icons/QiyamFemaleUser";
 import { QiyamMaleUserIcon } from "@/assets/icons/QiyamMaleUser";
 import { QiyamWhenDidYouPrayIcon } from "@/assets/icons/QiyamWhenDidYouPrayIcon";
@@ -602,7 +603,15 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
   const renderStepContent = (step: QiyamStepId) => {
     switch (step) {
       case "date": return <DateStep dateLabel={dateLabel} selectedDate={selectedDate} todayString={todayString} minSelectableDate={cycleStart} maxSelectableDate={maxSelectableDate} onShiftDate={shiftDate} styles={commonStyles} />;
-      case "prayers-quantity": return <PrayerQuantityInputStep quantity={prayersCount} setQuantity={setPrayersCount} styles={commonStyles} />;
+      case "prayers-quantity":
+        return (
+          <PrayerQuantityInputStep
+            quantity={prayersCount}
+            setQuantity={setPrayersCount}
+            styles={commonStyles}
+            emptyFallback="0"
+          />
+        );
       case "start-time": return <StartTimeStep startHour={startHour} setStartHour={setStartHour} startMinute={startMinute} setStartMinute={setStartMinute} startPeriod={startPeriod} setStartPeriod={setStartPeriod} isPeriodDropdownOpen={isPeriodDropdownOpen} setIsPeriodDropdownOpen={setIsPeriodDropdownOpen} styles={commonStyles} />;
       case "time-spent": return <DurationStep durationHours={durationHours} setDurationHours={setDurationHours} durationMinutes={durationMinutes} setDurationMinutes={setDurationMinutes} styles={commonStyles} />;
       case "when-pray":
@@ -673,9 +682,8 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
           <View style={localStyles.summaryCard}>
             <View style={localStyles.summaryBody}>
               <View style={localStyles.summaryIconCircle}>
-                <MaterialCommunityIcons
-                  name="star-crescent"
-                  size={25}
+                <QiyamMainFlowCardIcon
+                  size={28}
                   color={Colors.light.white}
                 />
               </View>
@@ -839,7 +847,7 @@ const localStyles = StyleSheet.create({
     backgroundColor: Colors.light.selectcategory,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 33,
+    marginTop: 16,
   },
   summaryTitle: {
     color: Colors.light.white,

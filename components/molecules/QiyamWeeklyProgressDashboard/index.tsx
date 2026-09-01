@@ -13,7 +13,6 @@ import {
   BinIcon,
   PrayerMatIcon,
   QiyamAfterIshaIcon,
-  QiyamBestDayIcon,
   QiyamFemaleBothIshaAndTahajudIcon,
   QiyamFemaleUserIcon,
   QiyamMaleBothIshaAndTahajudIcon,
@@ -89,7 +88,6 @@ type DayIconProps = {
   day: QiyamDayProgress;
   size: number;
   isBestDayVisible: boolean;
-  isDeleting: boolean;
   isGoalCompleted: boolean;
 };
 
@@ -97,7 +95,6 @@ function QiyamDayIcon({
   day,
   size,
   isBestDayVisible,
-  isDeleting,
   isGoalCompleted,
 }: DayIconProps) {
   const isBlurredFuture = Boolean(day.isFuture && isGoalCompleted);
@@ -147,7 +144,7 @@ function QiyamDayIcon({
         !day.isFuture &&
         !day.isMissedStrict &&
         !day.isMissedFlexible
-          ? renderLoggedIcon(day, iconSize, isDeleting, isBestDayVisible)
+          ? renderLoggedIcon(day, iconSize, isBestDayVisible)
           : null}
       </View>
     </View>
@@ -160,6 +157,47 @@ function resolveQiyamLoggedIconColor(
   isBestDayVisible: boolean,
 ): string {
   const timing = day.loggedTime ?? "after-isha";
+  const isAfterIshaOnly = timing === "after-isha";
+
+  // Figma case 1: After Isha today, Witr pending.
+  const isAfterIshaWitrPendingToday =
+    Boolean(day.isWitrPending) && Boolean(day.isToday) && isAfterIshaOnly;
+
+  // Figma case 2: After Isha on a past day (before today), Witr pending.
+  const isAfterIshaWitrPendingPast =
+    Boolean(day.isWitrPending) &&
+    !day.isToday &&
+    !day.isFuture &&
+    isAfterIshaOnly;
+
+  if (
+    !isBestDayVisible &&
+    (isAfterIshaWitrPendingToday || isAfterIshaWitrPendingPast)
+  ) {
+    return Colors.light.white;
+  }
+
+  // Figma: After Isha on a past day, Witr logged — white icon in green ring.
+  const isAfterIshaPastWitrLogged =
+    isAfterIshaOnly &&
+    !day.isToday &&
+    !day.isFuture &&
+    !day.isWitrPending;
+
+  if (!isBestDayVisible && isAfterIshaPastWitrLogged) {
+    return Colors.light.white;
+  }
+
+  // Figma: female user, before Fajr (Tahajjud), past day — white icon in green ring.
+  const isFemaleBeforeFajrPast =
+    day.gender === "female" &&
+    timing === "before-fajr" &&
+    !day.isToday &&
+    !day.isFuture;
+
+  if (!isBestDayVisible && isFemaleBeforeFajrPast) {
+    return Colors.light.white;
+  }
 
   if (timing === "both") {
     return isBestDayVisible ? Colors.light.qiyamIconGold : Colors.light.white;
@@ -175,17 +213,8 @@ function resolveQiyamLoggedIconColor(
 function renderLoggedIcon(
   day: QiyamDayProgress,
   iconSize: number,
-  isDeleting: boolean,
   isBestDayVisible: boolean,
 ) {
-  if (isDeleting) {
-    return isBestDayVisible ? (
-      <QiyamBestDayIcon size={iconSize} />
-    ) : (
-      <QiyamAfterIshaIcon size={iconSize} color={Colors.light.white} />
-    );
-  }
-
   const isFemale = day.gender === "female";
   const timing = day.loggedTime ?? "after-isha";
   const iconColor = resolveQiyamLoggedIconColor(day, isBestDayVisible);
@@ -364,7 +393,6 @@ export function QiyamWeeklyProgressDashboard({
                   day={day}
                   size={ringSize}
                   isBestDayVisible={isBestDayVisible}
-                  isDeleting={isMarkedForDeletion}
                   isGoalCompleted={isGoalCompleted}
                 />
                 <TopSpace top={10} />

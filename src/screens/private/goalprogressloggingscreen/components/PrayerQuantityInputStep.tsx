@@ -7,12 +7,15 @@ interface PrayerQuantityInputStepProps {
   quantity: string;
   setQuantity: (val: string) => void;
   styles: any;
+  /** Restored on blur when empty; also cleared on focus when shown. */
+  emptyFallback?: string;
 }
 
 export function PrayerQuantityInputStep({
   quantity,
   setQuantity,
   styles: commonStyles,
+  emptyFallback = "1",
 }: PrayerQuantityInputStepProps) {
   const [isFocused, setIsFocused] = React.useState(false);
 
@@ -31,15 +34,15 @@ export function PrayerQuantityInputStep({
           onChangeText={(text) => setQuantity(sanitizeDigits(text))}
           onFocus={() => {
             setIsFocused(true);
-            // Clear default so typing can replace with a 2-digit value.
-            if (quantity === "1") {
+            // Clear placeholder default so typing starts fresh.
+            if (quantity === emptyFallback) {
               setQuantity("");
             }
           }}
           onBlur={() => {
             setIsFocused(false);
             if (quantity === "") {
-              setQuantity("1");
+              setQuantity(emptyFallback);
             }
           }}
           keyboardType="number-pad"
