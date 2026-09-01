@@ -80,7 +80,9 @@ const LOADING_WEEK: QiyamDayProgress[] = [
 const BEST_DAY_SIZE_BOOST = 4;
 
 function resolveHasLog(day: QiyamDayProgress): boolean {
-  return day.prayersLogged > 0 || Boolean(day.isLogged) || Boolean(day.loggedTime);
+  return (
+    day.prayersLogged > 0 || Boolean(day.isLogged) || Boolean(day.loggedTime)
+  );
 }
 
 type DayIconProps = {
@@ -100,7 +102,7 @@ function QiyamDayIcon({
 }: DayIconProps) {
   const isBlurredFuture = Boolean(day.isFuture && isGoalCompleted);
   const circleSize = isBestDayVisible ? size + BEST_DAY_SIZE_BOOST : size;
-  const iconSize = Math.max(10, Math.round(circleSize * 0.52));
+  const iconSize = Math.max(18, Math.round(circleSize * 0.52));
   const hasLog = resolveHasLog(day);
 
   const innerSizeStyle = {
@@ -160,9 +162,7 @@ function resolveQiyamLoggedIconColor(
   const timing = day.loggedTime ?? "after-isha";
 
   if (timing === "both") {
-    return isBestDayVisible
-      ? Colors.light.qiyamIconGold
-      : Colors.light.white;
+    return isBestDayVisible ? Colors.light.qiyamIconGold : Colors.light.white;
   }
 
   if (isBestDayVisible || !day.isToday) {
@@ -301,7 +301,10 @@ export function QiyamWeeklyProgressDashboard({
             !!day.isMissedFlexible ||
             showEmptyOutline;
           const isBestDayVisible =
-            !!day.isBestDay && !isInactiveOutline && !loading && !isMenstruation;
+            !!day.isBestDay &&
+            !isInactiveOutline &&
+            !loading &&
+            !isMenstruation;
           const isMarkedForDeletion =
             !!day.date && selectForDeletion === day.date;
           const showColumnDeletion = isMarkedForDeletion && !isBestDayVisible;
