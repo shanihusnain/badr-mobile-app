@@ -1,5 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Pressable, Text, TouchableOpacity, View, StyleSheet } from "react-native";
+import {
+  Pressable,
+  Text,
+  TouchableOpacity,
+  View,
+  StyleSheet,
+} from "react-native";
 import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
@@ -109,16 +115,10 @@ const QiyamTimingStep = ({
   return (
     <View style={timingStepStyles.container}>
       <View
-        style={[
-          commonStyles.flowDropdownWrapper,
-          isOpen && { zIndex: 30 },
-        ]}
+        style={[commonStyles.flowDropdownWrapper, isOpen && { zIndex: 30 }]}
       >
         <TouchableOpacity
-          style={[
-            commonStyles.flowDropdownSelector,
-            timingStepStyles.selector,
-          ]}
+          style={[commonStyles.flowDropdownSelector, timingStepStyles.selector]}
           onPress={() => setIsOpen(!isOpen)}
           activeOpacity={0.8}
         >
@@ -132,7 +132,12 @@ const QiyamTimingStep = ({
         </TouchableOpacity>
 
         {isOpen ? (
-          <View style={[commonStyles.flowDropdownMenu, timingStepStyles.dropdownMenu]}>
+          <View
+            style={[
+              commonStyles.flowDropdownMenu,
+              timingStepStyles.dropdownMenu,
+            ]}
+          >
             {alternateOptions.map((option) => (
               <TouchableOpacity
                 key={option.value}
@@ -200,7 +205,6 @@ const timingStepStyles = StyleSheet.create({
     marginRight: 6,
   },
   selectorLabel: {
-    flex: 1,
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
     fontSize: 14,
@@ -278,7 +282,10 @@ function mapQiyamSessionType(loggedTime: QiyamLoggedTime): QiyamSessionType {
   return loggedTime === "before-fajr" ? "TAHAJJUD" : "AFTER_ISHA";
 }
 
-type Props = { goalData: GoalData; onLogComplete?: (entry: ProgressLogEntry) => void; };
+type Props = {
+  goalData: GoalData;
+  onLogComplete?: (entry: ProgressLogEntry) => void;
+};
 type FlowMode = "collapsed" | "active";
 const toDateString = (date: Date) => moment(date).format("YYYY-MM-DD");
 const toCalendarDate = (value: string) => {
@@ -296,19 +303,12 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
     prayerFrame?.isLoading || (!frame && !prayerFrame?.isError);
 
   const qiyamGoalConfig = useMemo(() => {
-    const fromFrame = frame?.qiyamConfig;
-    if (fromFrame) {
-      return getQiyamInitial({
-        isFlexible: fromFrame.isFlexible,
-        qiyamConfig: {
-          isFlexible: fromFrame.isFlexible,
-          unitTarget: fromFrame.unitTarget,
-          trackTahajjud: fromFrame.trackTahajjud,
-        },
-      });
-    }
-    return getQiyamInitial(undefined);
-  }, [frame?.qiyamConfig]);
+    if (!frame) return getQiyamInitial(undefined);
+    return getQiyamInitial({
+      isFlexible: frame.goal.isFlexible ?? frame.qiyamConfig?.isFlexible,
+      qiyamConfig: frame.qiyamConfig ?? undefined,
+    });
+  }, [frame]);
 
   const isFlexibleGoal = qiyamGoalConfig.isFlexible;
   const trackTahajjud = qiyamGoalConfig.trackTahajjud;
@@ -321,7 +321,9 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
   const [stepIndex, setStepIndex] = useState(0);
   const [selectedDate, setSelectedDate] = useState(toDateString(new Date()));
   const [prayersCount, setPrayersCount] = useState("0");
-  const [loggedTime, setLoggedTime] = useState<"after-isha" | "before-fajr">("before-fajr");
+  const [loggedTime, setLoggedTime] = useState<"after-isha" | "before-fajr">(
+    "before-fajr",
+  );
   const [isTimingDropdownOpen, setIsTimingDropdownOpen] = useState(false);
   const [startHour, setStartHour] = useState(
     () => getCurrentStartTimeParts().hour,
@@ -336,7 +338,9 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
   const [durationHours, setDurationHours] = useState("0");
   const [durationMinutes, setDurationMinutes] = useState("0");
   const [prayedWitr, setPrayedWitr] = useState<"Yes" | "No">("No");
-  const [concludedWithWitr, setConcludedWithWitr] = useState<"Yes" | "No">("No");
+  const [concludedWithWitr, setConcludedWithWitr] = useState<"Yes" | "No">(
+    "No",
+  );
 
   const {
     data: dayDetailRaw,
@@ -446,8 +450,7 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
   const currentStep = flowSteps[stepIndex] ?? flowSteps[0];
   const isLastStep = stepIndex === flowSteps.length - 1;
   /** 0 prayers + Witr already logged: nothing left to submit. */
-  const isZeroPrayersNothingToLog =
-    isZeroPrayersFlow && witrAlreadyLogged;
+  const isZeroPrayersNothingToLog = isZeroPrayersFlow && witrAlreadyLogged;
   const isWitrStepBlocked =
     currentStep === "prayed-witr" && prayedWitr === "No";
   const canGoForward =
@@ -455,7 +458,11 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
     !isLastStep &&
     !isWitrStepBlocked &&
     !(currentStep === "prayers-quantity" && isZeroPrayersNothingToLog);
-  const dateLabel = formatProgressLoggingDateLabel(selectedDate, todayString, t("progressLogging.today"));
+  const dateLabel = formatProgressLoggingDateLabel(
+    selectedDate,
+    todayString,
+    t("progressLogging.today"),
+  );
 
   const buildDurationMinutesForApi = () => {
     const h = parseInt(durationHours || "0", 10) || 0;
@@ -464,16 +471,29 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
   };
 
   const shiftDate = (direction: -1 | 1) => {
-    const next = moment(selectedDate, "YYYY-MM-DD").add(direction, "days").format("YYYY-MM-DD");
+    const next = moment(selectedDate, "YYYY-MM-DD")
+      .add(direction, "days")
+      .format("YYYY-MM-DD");
     if (cycleStart && direction === -1 && next < cycleStart) return;
     if (direction === 1 && next > maxSelectableDate) return;
     setSelectedDate(next);
   };
 
   const resetFlow = useCallback(() => {
-    setFlowMode("collapsed"); setStepIndex(0); setSelectedDate(toDateString(new Date()));
-    setPrayersCount("0"); setLoggedTime("before-fajr"); setIsTimingDropdownOpen(false); setStartHour("02"); setStartMinute("00"); setStartPeriod("am");
-    setDurationHours("0"); setDurationMinutes("0"); setPrayedWitr("No"); setConcludedWithWitr("No"); setIsPeriodDropdownOpen(false);
+    setFlowMode("collapsed");
+    setStepIndex(0);
+    setSelectedDate(toDateString(new Date()));
+    setPrayersCount("0");
+    setLoggedTime("before-fajr");
+    setIsTimingDropdownOpen(false);
+    setStartHour("02");
+    setStartMinute("00");
+    setStartPeriod("am");
+    setDurationHours("0");
+    setDurationMinutes("0");
+    setPrayedWitr("No");
+    setConcludedWithWitr("No");
+    setIsPeriodDropdownOpen(false);
   }, []);
 
   const handleConfirm = () => {
@@ -602,7 +622,18 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
 
   const renderStepContent = (step: QiyamStepId) => {
     switch (step) {
-      case "date": return <DateStep dateLabel={dateLabel} selectedDate={selectedDate} todayString={todayString} minSelectableDate={cycleStart} maxSelectableDate={maxSelectableDate} onShiftDate={shiftDate} styles={commonStyles} />;
+      case "date":
+        return (
+          <DateStep
+            dateLabel={dateLabel}
+            selectedDate={selectedDate}
+            todayString={todayString}
+            minSelectableDate={cycleStart}
+            maxSelectableDate={maxSelectableDate}
+            onShiftDate={shiftDate}
+            styles={commonStyles}
+          />
+        );
       case "prayers-quantity":
         return (
           <PrayerQuantityInputStep
@@ -612,8 +643,30 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
             emptyFallback="0"
           />
         );
-      case "start-time": return <StartTimeStep startHour={startHour} setStartHour={setStartHour} startMinute={startMinute} setStartMinute={setStartMinute} startPeriod={startPeriod} setStartPeriod={setStartPeriod} isPeriodDropdownOpen={isPeriodDropdownOpen} setIsPeriodDropdownOpen={setIsPeriodDropdownOpen} styles={commonStyles} />;
-      case "time-spent": return <DurationStep durationHours={durationHours} setDurationHours={setDurationHours} durationMinutes={durationMinutes} setDurationMinutes={setDurationMinutes} styles={commonStyles} />;
+      case "start-time":
+        return (
+          <StartTimeStep
+            startHour={startHour}
+            setStartHour={setStartHour}
+            startMinute={startMinute}
+            setStartMinute={setStartMinute}
+            startPeriod={startPeriod}
+            setStartPeriod={setStartPeriod}
+            isPeriodDropdownOpen={isPeriodDropdownOpen}
+            setIsPeriodDropdownOpen={setIsPeriodDropdownOpen}
+            styles={commonStyles}
+          />
+        );
+      case "time-spent":
+        return (
+          <DurationStep
+            durationHours={durationHours}
+            setDurationHours={setDurationHours}
+            durationMinutes={durationMinutes}
+            setDurationMinutes={setDurationMinutes}
+            styles={commonStyles}
+          />
+        );
       case "when-pray":
         return (
           <QiyamTimingStep
@@ -699,101 +752,111 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
                 >
                   <Text
                     style={[
-                      localStyles.badgeText,
+                      localStyles.badge,
                       badgeStatus.type === "completed"
-                        ? localStyles.badgeTextCompleted
-                        : localStyles.badgeTextInProgress,
+                        ? localStyles.badgeCompleted
+                        : localStyles.badgeInProgress,
+                      { alignSelf: "flex-start" },
                     ]}
                   >
-                    {badgeStatus.text}
+                    <Text
+                      style={[
+                        localStyles.badgeText,
+                        badgeStatus.type === "completed"
+                          ? localStyles.badgeTextCompleted
+                          : localStyles.badgeTextInProgress,
+                      ]}
+                    >
+                      {badgeStatus.text}
+                    </Text>
+                  </View>
+                  <Text style={[localStyles.summaryTitle, { flex: undefined }]}>
+                    {summaryTitle}
                   </Text>
                 </View>
-                <Text style={[localStyles.summaryTitle, { flex: undefined }]}>
-                  {summaryTitle}
-                </Text>
               </View>
-            </View>
 
-            <View style={localStyles.footerRow}>
-              {showInsights ? (
-                <TouchableOpacity
-                  style={localStyles.insightsBtn}
-                  onPress={() => prayerFrame?.openInsights?.()}
-                  activeOpacity={0.8}
-                >
-                  <Text style={localStyles.insightsText}>VIEW INSIGHTS</Text>
-                  <Ionicons
-                    name="chevron-forward"
-                    size={22}
-                    color={Colors.light.white}
-                  />
-                </TouchableOpacity>
-              ) : null}
-            </View>
+              <View style={localStyles.footerRow}>
+                {showInsights ? (
+                  <TouchableOpacity
+                    style={localStyles.insightsBtn}
+                    onPress={() => prayerFrame?.openInsights?.()}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={localStyles.insightsText}>VIEW INSIGHTS</Text>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={22}
+                      color={Colors.light.white}
+                    />
+                  </TouchableOpacity>
+                ) : null}
+              </View>
 
-            <TouchableOpacity
+              <TouchableOpacity
+                style={[
+                  localStyles.addButton,
+                  (frameLoading || isFullyAchieved) &&
+                    localStyles.addButtonDisabled,
+                ]}
+                onPress={handleOpenFlow}
+                activeOpacity={0.8}
+                disabled={frameLoading || isFullyAchieved}
+              >
+                <AddLoggingFlowIcon size={32} />
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View
               style={[
-                localStyles.addButton,
-                (frameLoading || isFullyAchieved) && localStyles.addButtonDisabled,
+                commonStyles.flowCardLayer,
+                isDropdownOpen && commonStyles.flowCardLayerDropdownOpen,
               ]}
-              onPress={handleOpenFlow}
-              activeOpacity={0.8}
-              disabled={frameLoading || isFullyAchieved}
             >
-              <AddLoggingFlowIcon size={32} />
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <View
-            style={[
-              commonStyles.flowCardLayer,
-              isDropdownOpen && commonStyles.flowCardLayerDropdownOpen,
-            ]}
-          >
-            <FlowCard
-              headerIcon={stepHeader.icon}
-              headerLabel={stepHeader.label}
-              onBack={handleBack}
-              onForward={handleForward}
-              onConfirm={handleConfirm}
-              canGoForward={canGoForward}
-              canGoBack={stepIndex > 0}
-              canConfirm={
-                isLastStep &&
-                !dayDetailLoadingState &&
-                !isLogging &&
-                !isFullyAchieved &&
-                (!requiresDuration ||
-                  isDurationEntered(durationHours, durationMinutes)) &&
-                !(isZeroPrayersFlow && prayedWitr === "No") &&
-                !isZeroPrayersNothingToLog &&
-                (prayersCountValue >= 1 ||
-                  (isZeroPrayersFlow && prayedWitr === "Yes"))
-              }
-              showConfirmButton={
-                isLastStep ||
-                (currentStep !== "when-pray" && currentStep !== "prayed-witr")
-              }
-              styles={commonStyles}
-              style={[
-                commonStyles.inPlaceFlowCard,
-                isDropdownOpen && commonStyles.flowCardDropdownOpen,
-              ]}
-              contentStyle={
-                currentStep === "when-pray"
-                  ? [
-                      localStyles.whenPrayFlowContent,
-                      isDropdownOpen && commonStyles.flowContentDropdownOpen,
-                    ]
-                  : isDropdownOpen
-                    ? commonStyles.flowContentDropdownOpen
-                    : undefined
-              }
-            >
-              {renderStepContent(currentStep)}
-            </FlowCard>
-          </View>
-        )}
+              <FlowCard
+                headerIcon={stepHeader.icon}
+                headerLabel={stepHeader.label}
+                onBack={handleBack}
+                onForward={handleForward}
+                onConfirm={handleConfirm}
+                canGoForward={canGoForward}
+                canGoBack={stepIndex > 0}
+                canConfirm={
+                  isLastStep &&
+                  !dayDetailLoadingState &&
+                  !isLogging &&
+                  !isFullyAchieved &&
+                  (!requiresDuration ||
+                    isDurationEntered(durationHours, durationMinutes)) &&
+                  !(isZeroPrayersFlow && prayedWitr === "No") &&
+                  !isZeroPrayersNothingToLog &&
+                  (prayersCountValue >= 1 ||
+                    (isZeroPrayersFlow && prayedWitr === "Yes"))
+                }
+                showConfirmButton={
+                  isLastStep ||
+                  (currentStep !== "when-pray" && currentStep !== "prayed-witr")
+                }
+                styles={commonStyles}
+                style={[
+                  commonStyles.inPlaceFlowCard,
+                  isDropdownOpen && commonStyles.flowCardDropdownOpen,
+                ]}
+                contentStyle={
+                  currentStep === "when-pray"
+                    ? [
+                        localStyles.whenPrayFlowContent,
+                        isDropdownOpen && commonStyles.flowContentDropdownOpen,
+                      ]
+                    : isDropdownOpen
+                      ? commonStyles.flowContentDropdownOpen
+                      : undefined
+                }
+              >
+                {renderStepContent(currentStep)}
+              </FlowCard>
+            </View>
+          )}
         </View>
       </View>
     </>

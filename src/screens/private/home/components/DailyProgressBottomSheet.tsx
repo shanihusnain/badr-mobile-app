@@ -1,5 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  ActivityIndicator,
+} from "react-native";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -55,18 +61,12 @@ function getCategoryGoalIcon(category: UiIbadahCategory, color: string) {
     case "QURAN":
       return <Ionicons name="book" size={18} color={color} />;
     case "FASTING":
-      return (
-        <MaterialCommunityIcons name="food-off" size={18} color={color} />
-      );
+      return <MaterialCommunityIcons name="food-off" size={18} color={color} />;
     case "SADAQAH":
-      return (
-        <FontAwesome6 name="hand-holding-heart" size={16} color={color} />
-      );
+      return <FontAwesome6 name="hand-holding-heart" size={16} color={color} />;
     case "PRAYER":
     default:
-      return (
-        <FontAwesome6 name="person-praying" size={18} color={color} />
-      );
+      return <FontAwesome6 name="person-praying" size={18} color={color} />;
   }
 }
 
@@ -255,7 +255,9 @@ export const DailyProgressBottomSheet = ({
       params: {
         goalId,
         fromDailyProgress: "1",
-        ...(selectedCategory ? { dailyProgressCategory: selectedCategory } : {}),
+        ...(selectedCategory
+          ? { dailyProgressCategory: selectedCategory }
+          : {}),
       },
     });
     onClose?.();
@@ -323,30 +325,41 @@ export const DailyProgressBottomSheet = ({
 
       {currentView === "categories" && (
         <View style={styles.listContainer}>
-          {categories.map((category) => (
-            <IbadahsProgressCard
-              key={category.key}
-              title={category.title}
-              subtitle={category.subtitle}
-              icon={category.icon}
-              iconBgColor={category.iconBgColor}
-              percentage={category.percentage}
-              progressColor={category.progressColor}
-              isSelected={selectedCard === category.key}
-              loading={category.loading}
-              onPress={
-                category.loading
-                  ? undefined
-                  : () => handleCategoryPress(category.key)
-              }
-            />
-          ))}
+          {isCategoriesLoading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator color={Colors.light.green} size="large" />
+            </View>
+          ) : (
+            categories.map((category) => (
+              <IbadahsProgressCard
+                key={category.key}
+                title={category.title}
+                subtitle={category.subtitle}
+                icon={category.icon}
+                iconBgColor={category.iconBgColor}
+                percentage={category.percentage}
+                progressColor={category.progressColor}
+                isSelected={selectedCard === category.key}
+                loading={category.loading}
+                onPress={
+                  category.loading
+                    ? undefined
+                    : () => handleCategoryPress(category.key)
+                }
+              />
+            ))
+          )}
         </View>
       )}
 
       {currentView === "detail" && selectedUiCategory && (
         <View style={styles.listContainer}>
-          {detailGoals.map((goal) => (
+          {isCategoryGoalsLoading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator color={Colors.light.green} size="large" />
+            </View>
+          ) : (
+            detailGoals.map((goal) => (
             <DetailedIbadahsProgressCard
               key={goal.goalId}
               title={goal.title}
@@ -379,7 +392,8 @@ export const DailyProgressBottomSheet = ({
                     }
               }
             />
-          ))}
+          ))
+          )}
         </View>
       )}
     </View>
@@ -450,4 +464,10 @@ const styles = StyleSheet.create({
     marginLeft: 14,
   },
   listContainer: { paddingBottom: 20 },
+  loadingContainer: {
+    minHeight: 160,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 32,
+  },
 });

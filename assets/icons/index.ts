@@ -173,6 +173,7 @@ import { QiyamMaleUserIcon } from "./QiyamMaleUser";
 import { ReferFriendIcon } from "./ReferFriendIcon";
 import { ReferFriendTabIcon } from "./ReferFriendTabIcon";
 import { RedeemGiftIcon } from "./RedeemGiftIcon";
+import { QiyamBothIshaAnadTahajudInsightIcon } from "./QiyamBothIshaAnadTahajudInsightIcon";
 //S
 import { SettingIcon } from "./SettingIcon";
 import { ShootIcon } from "./ShootIcon";
@@ -239,6 +240,7 @@ import { WhiteTick } from "./WhiteTick";
 import { WhitePrayerMatIcon } from "./WhitePrayerMatIcon";
 import { WhiteTimerIcon } from "./WhiteTimerIcon";
 import { WeighBalanceIcon } from "./WeighBalanceIcon";
+import { WitrUpIcon } from "./WitrUpIcon";
 //X
 
 //Y
@@ -487,4 +489,6 @@ export {
   GreenTickIcon,
   JummaIcon,
   CongregationalMosqueIcon,
+  QiyamBothIshaAnadTahajudInsightIcon,
+  WitrUpIcon,
 };
