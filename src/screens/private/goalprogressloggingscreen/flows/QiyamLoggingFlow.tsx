@@ -731,26 +731,14 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
             isDropdownOpen && commonStyles.flowCardLayerDropdownOpen,
           ]}
         >
-        {flowMode === "collapsed" ? (
-          <View style={localStyles.summaryCard}>
-            <View style={localStyles.summaryBody}>
-              <View style={localStyles.summaryIconCircle}>
-                <QiyamMainFlowCardIcon
-                  size={28}
-                  color={Colors.light.white}
-                />
-              </View>
-              <View style={localStyles.summaryTextColumn}>
-                <View
-                  style={[
-                    localStyles.badge,
-                    badgeStatus.type === "completed"
-                      ? localStyles.badgeCompleted
-                      : localStyles.badgeInProgress,
-                    { alignSelf: "flex-start" },
-                  ]}
-                >
-                  <Text
+          {flowMode === "collapsed" ? (
+            <View style={localStyles.summaryCard}>
+              <View style={localStyles.summaryBody}>
+                <View style={localStyles.summaryIconCircle}>
+                  <QiyamMainFlowCardIcon size={28} color={Colors.light.white} />
+                </View>
+                <View style={localStyles.summaryTextColumn}>
+                  <View
                     style={[
                       localStyles.badge,
                       badgeStatus.type === "completed"
@@ -761,13 +749,23 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
                   >
                     <Text
                       style={[
-                        localStyles.badgeText,
+                        localStyles.badge,
                         badgeStatus.type === "completed"
-                          ? localStyles.badgeTextCompleted
-                          : localStyles.badgeTextInProgress,
+                          ? localStyles.badgeCompleted
+                          : localStyles.badgeInProgress,
+                        { alignSelf: "flex-start" },
                       ]}
                     >
-                      {badgeStatus.text}
+                      <Text
+                        style={[
+                          localStyles.badgeText,
+                          badgeStatus.type === "completed"
+                            ? localStyles.badgeTextCompleted
+                            : localStyles.badgeTextInProgress,
+                        ]}
+                      >
+                        {badgeStatus.text}
+                      </Text>
                     </Text>
                   </View>
                   <Text style={[localStyles.summaryTitle, { flex: undefined }]}>
