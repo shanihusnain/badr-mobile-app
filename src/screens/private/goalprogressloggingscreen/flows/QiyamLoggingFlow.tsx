@@ -737,7 +737,7 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
                 <View style={localStyles.summaryIconCircle}>
                   <QiyamMainFlowCardIcon size={28} color={Colors.light.white} />
                 </View>
-                <View style={localStyles.summaryTextColumn}>
+                <View style={localStyles.summaryTextBlock}>
                   <View
                     style={[
                       localStyles.badge,
@@ -749,28 +749,16 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
                   >
                     <Text
                       style={[
-                        localStyles.badge,
+                        localStyles.badgeText,
                         badgeStatus.type === "completed"
-                          ? localStyles.badgeCompleted
-                          : localStyles.badgeInProgress,
-                        { alignSelf: "flex-start" },
+                          ? localStyles.badgeTextCompleted
+                          : localStyles.badgeTextInProgress,
                       ]}
                     >
-                      <Text
-                        style={[
-                          localStyles.badgeText,
-                          badgeStatus.type === "completed"
-                            ? localStyles.badgeTextCompleted
-                            : localStyles.badgeTextInProgress,
-                        ]}
-                      >
-                        {badgeStatus.text}
-                      </Text>
+                      {badgeStatus.text}
                     </Text>
                   </View>
-                  <Text style={[localStyles.summaryTitle, { flex: undefined }]}>
-                    {summaryTitle}
-                  </Text>
+                  <Text style={localStyles.summaryTitle}>{summaryTitle}</Text>
                 </View>
               </View>
 
@@ -901,7 +889,7 @@ const localStyles = StyleSheet.create({
     alignItems: "flex-start",
     gap: 6,
   },
-  summaryTextColumn: {
+  summaryTextBlock: {
     flex: 1,
     gap: 9,
   },
@@ -912,7 +900,6 @@ const localStyles = StyleSheet.create({
     backgroundColor: Colors.light.selectcategory,
     alignItems: "center",
     justifyContent: "center",
-    // Offset past badge so icon aligns with title text, not the chip.
     marginTop: 33,
   },
   summaryTitle: {
@@ -922,7 +909,6 @@ const localStyles = StyleSheet.create({
     fontWeight: "600",
     lineHeight: 18,
     letterSpacing: 0,
-    flex: 1,
   },
   footerRow: {
     flexDirection: "row",
