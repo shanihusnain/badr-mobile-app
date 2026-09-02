@@ -337,12 +337,14 @@ export default function IstikharaPrayerLoggingFlow({
             <View style={localStyles.summaryCard}>
               <View style={localStyles.summaryBody}>
                 <View style={localStyles.summaryIconCircle}>
-                  <IstikharaPrayerDetailedIcon
-                    color={Colors.light.white}
-                    size={25}
-                  />
+                  <View style={localStyles.summaryIconGraphic}>
+                    <IstikharaPrayerDetailedIcon
+                      color={Colors.light.white}
+                      size={26}
+                    />
+                  </View>
                 </View>
-                <View style={{ flex: 1, gap: 9 }}>
+                <View style={localStyles.summaryTextBlock}>
                   <View
                     style={[
                       localStyles.badge,
@@ -370,7 +372,6 @@ export default function IstikharaPrayerLoggingFlow({
                   <Text
                     style={[
                       localStyles.summaryTitle,
-                      { flex: undefined },
                       frameLoading && localStyles.loadingPlaceholderText,
                     ]}
                     numberOfLines={2}
@@ -485,8 +486,12 @@ const localStyles = StyleSheet.create({
   },
   summaryBody: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     gap: 6,
+  },
+  summaryTextBlock: {
+    flex: 1,
+    gap: 9,
   },
   summaryIconCircle: {
     width: 36,
@@ -497,6 +502,9 @@ const localStyles = StyleSheet.create({
     justifyContent: "center",
     marginTop: 33,
   },
+  summaryIconGraphic: {
+    transform: [{ translateX: 0.5 }, { translateY: 1.5 }],
+  },
   summaryTitle: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
@@ -504,7 +512,6 @@ const localStyles = StyleSheet.create({
     fontWeight: "600",
     lineHeight: 18,
     letterSpacing: 0,
-    flex: 1,
   },
   loadingPlaceholderText: {
     opacity: 0.35,
