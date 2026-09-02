@@ -160,12 +160,19 @@ function countIsZero(day: PrayerGoalFrameDay) {
   return count <= 0;
 }
 
+/** Flexible Qiyam goal: `goal.isFlexible` (frame API) with legacy `qiyamConfig` fallback. */
+export function resolveQiyamFrameIsFlexible(
+  frame: Pick<PrayerGoalFrameData, "goal" | "qiyamConfig">,
+): boolean {
+  return Boolean(frame.goal.isFlexible ?? frame.qiyamConfig?.isFlexible);
+}
+
 /** Map prayer frame week days for the Qiyam al Layl dashboard. */
 export function mapQiyamFrameWeekDays(
   frame: PrayerGoalFrameData,
   options?: { gender?: "male" | "female" },
 ): QiyamDayProgress[] {
-  const isFlexibleGoal = Boolean(frame.qiyamConfig?.isFlexible);
+  const isFlexibleGoal = resolveQiyamFrameIsFlexible(frame);
   const gender = options?.gender ?? "male";
 
   return frame.week.days.map((day) => {

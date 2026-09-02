@@ -14,7 +14,11 @@ import { TaperedCircleBorder } from "@/components/atoms/TaperedCircleBorder";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import { BestdayStarIcon } from "@/assets/icons/BestdayStarIcon";
-import { useGetPrayerGoalInsights, isQiyamAlLaylInsights, type PrayerGoalInsightsStats } from "@/src/api/queries/useGetPrayerGoalInsights";
+import {
+  useGetPrayerGoalInsights,
+  isQiyamAlLaylInsights,
+  type PrayerGoalInsightsStats,
+} from "@/src/api/queries/useGetPrayerGoalInsights";
 import { useGetPrayerGoalFrame } from "@/src/api/queries/useGetPrayerGoalFrame";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
@@ -24,9 +28,11 @@ import {
   GoldenTickIcon,
   LighteningIcon,
   QiyamAfterIshaIcon,
+  QiyamBothIshaAnadTahajudInsightIcon,
   QiyamMaleBothIshaAndTahajudIcon,
   QiyamMaleUserIcon,
   WeighBalanceIcon,
+  WitrUpIcon,
 } from "@/assets/icons";
 import { resolvePrayerType } from "@/src/utils/prayerGoalMap";
 
@@ -159,10 +165,7 @@ function QiyamTimingStatRows({
       {stats.afterIshaStats ? (
         <StatRow
           icon={
-            <QiyamAfterIshaIcon
-              size={20}
-              color={Colors.light.qiyamIconGold}
-            />
+            <QiyamAfterIshaIcon size={20} color={Colors.light.qiyamIconGold} />
           }
         >
           <Text style={styles.statValue}>
@@ -179,9 +182,7 @@ function QiyamTimingStatRows({
 
       {stats.tahajjudStats ? (
         <StatRow
-          icon={
-            <QiyamMaleUserIcon size={20} color={Colors.light.green} />
-          }
+          icon={<QiyamMaleUserIcon size={20} color={Colors.light.green} />}
         >
           <Text style={styles.statValue}>
             {renderWithNumberStyle(
@@ -196,11 +197,7 @@ function QiyamTimingStatRows({
       ) : null}
 
       {stats.bothStats ? (
-        <StatRow
-          icon={
-            <QiyamMaleBothIshaAndTahajudIcon size={20} color={Colors.light.green} />
-          }
-        >
+        <StatRow icon={<QiyamBothIshaAnadTahajudInsightIcon />}>
           <Text style={styles.statValue}>
             {renderWithNumberStyle(
               t("progressLogging.insightsQiyamBothRow", {
@@ -213,15 +210,7 @@ function QiyamTimingStatRows({
       ) : null}
 
       {stats.witrStats ? (
-        <StatRow
-          icon={
-            <MaterialCommunityIcons
-              name="candle"
-              size={20}
-              color={Colors.light.white}
-            />
-          }
-        >
+        <StatRow icon={<WitrUpIcon />}>
           <Text style={styles.statValue}>
             {renderWithNumberStyle(
               t("progressLogging.insightsQiyamWitrRow", {

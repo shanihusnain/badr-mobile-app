@@ -117,6 +117,8 @@ export type PrayerGoalFrameData = {
     achievementPct: number;
     status: PrayerGoalFrameStatus | string;
     label: string;
+    /** Qiyam al Layl — flexible vs every-night commitment. */
+    isFlexible?: boolean;
     isCongregationalTracked?: boolean;
     slotTargets?: Partial<Record<FiveDailyPrayerSlotKey, number>>;
     slotProgress?: Partial<

@@ -101,7 +101,7 @@ function QiyamDayIcon({
   const circleSize = isBestDayVisible ? size + BEST_DAY_SIZE_BOOST : size;
   const iconSize = Math.max(18, Math.round(circleSize * 0.52));
   const hasLog = resolveHasLog(day);
-
+  console.log("day", day);
   const innerSizeStyle = {
     width: circleSize,
     height: circleSize,
@@ -179,10 +179,7 @@ function resolveQiyamLoggedIconColor(
 
   // Figma: After Isha on a past day, Witr logged — white icon in green ring.
   const isAfterIshaPastWitrLogged =
-    isAfterIshaOnly &&
-    !day.isToday &&
-    !day.isFuture &&
-    !day.isWitrPending;
+    isAfterIshaOnly && !day.isToday && !day.isFuture && !day.isWitrPending;
 
   if (!isBestDayVisible && isAfterIshaPastWitrLogged) {
     return Colors.light.white;
