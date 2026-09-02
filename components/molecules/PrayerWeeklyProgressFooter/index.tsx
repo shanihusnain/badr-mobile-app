@@ -21,10 +21,23 @@ export type PrayerWeeklyProgressFooterProps = {
   streakVariant?: "green" | "default";
 };
 
+/** Space between the stats row ("prayers this week") and the footer content below. */
+export const PRAYER_WEEKLY_STATS_FOOTER_GAP = 8;
+
+/**
+ * Pull weeks 2–4 stats+footer block up so card height matches week 1
+ * (extra comparison row vs inline 3-line quote on week 1).
+ */
+export const PRAYER_WEEKLY_LATER_WEEK_MARGIN_TOP_ADJUSTMENT = -6.8;
+
 /** Fixed quote block height — keeps week 1 / 2–4 dashboard cards the same size. */
 const QUOTE_LINE_HEIGHT = 16;
-const QUOTE_LINE_COUNT = 3;
-const QUOTE_BLOCK_MIN_HEIGHT = QUOTE_LINE_HEIGHT * QUOTE_LINE_COUNT;
+const WEEK_ONE_QUOTE_LINE_COUNT = 3;
+const LATER_WEEK_QUOTE_LINE_COUNT = 2;
+const WEEK_ONE_QUOTE_BLOCK_MIN_HEIGHT =
+  QUOTE_LINE_HEIGHT * WEEK_ONE_QUOTE_LINE_COUNT;
+const LATER_WEEK_QUOTE_BLOCK_MIN_HEIGHT =
+  QUOTE_LINE_HEIGHT * LATER_WEEK_QUOTE_LINE_COUNT;
 
 export function PrayerWeeklyProgressFooter({
   loading = false,
@@ -75,7 +88,10 @@ export function PrayerWeeklyProgressFooter({
           <View style={styles.quoteBlockInline}>
             <AimIcon />
             <View style={styles.quoteTextWrapInline}>
-              <Text style={styles.quoteText} numberOfLines={QUOTE_LINE_COUNT}>
+              <Text
+                style={styles.quoteText}
+                numberOfLines={WEEK_ONE_QUOTE_LINE_COUNT}
+              >
                 {resolvedQuote}
               </Text>
             </View>
@@ -106,10 +122,13 @@ export function PrayerWeeklyProgressFooter({
         </View>
       </View>
 
-        <View style={styles.quoteBlockFull}>
+      <View style={styles.quoteBlockFull}>
         <AimIcon />
         <View style={styles.quoteTextWrapFull}>
-          <Text style={styles.quoteText} numberOfLines={QUOTE_LINE_COUNT}>
+          <Text
+            style={styles.quoteText}
+            numberOfLines={LATER_WEEK_QUOTE_LINE_COUNT}
+          >
             {resolvedQuote}
           </Text>
         </View>
@@ -121,9 +140,11 @@ export function PrayerWeeklyProgressFooter({
 const styles = StyleSheet.create({
   footerSectionWeekOne: {
     width: "100%",
+    paddingTop: PRAYER_WEEKLY_STATS_FOOTER_GAP,
   },
   footerSectionLaterWeeks: {
     width: "100%",
+    paddingTop: PRAYER_WEEKLY_STATS_FOOTER_GAP,
     gap: 6,
   },
   footerRowWeekOne: {
@@ -199,7 +220,7 @@ const styles = StyleSheet.create({
   quoteTextWrapInline: {
     flex: 1,
     minWidth: 0,
-    minHeight: QUOTE_BLOCK_MIN_HEIGHT,
+    minHeight: WEEK_ONE_QUOTE_BLOCK_MIN_HEIGHT,
     justifyContent: "flex-start",
   },
   quoteBlockFull: {
@@ -214,7 +235,7 @@ const styles = StyleSheet.create({
   quoteTextWrapFull: {
     flex: 1,
     minWidth: 0,
-    minHeight: QUOTE_BLOCK_MIN_HEIGHT,
+    minHeight: LATER_WEEK_QUOTE_BLOCK_MIN_HEIGHT,
     justifyContent: "flex-start",
   },
   quoteText: {

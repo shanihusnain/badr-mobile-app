@@ -19,7 +19,7 @@ import {
   QiyamMaleUserIcon,
 } from "@/assets/icons";
 import { TopSpace } from "@/components/atoms/TopSpace";
-import { PrayerWeeklyProgressFooter } from "@/components/molecules/PrayerWeeklyProgressFooter";
+import { WeeklyProgressStatsFooterSection } from "@/components/molecules/PrayerWeeklyProgressFooter/WeeklyProgressStatsFooterSection";
 import { PrayerWeeklyProgressHeader } from "@/components/molecules/SinglePrayerWeeklyProgressDashboard/PrayerWeeklyProgressHeader";
 import {
   CARD_HORIZONTAL_PADDING,
@@ -443,36 +443,30 @@ export function QiyamWeeklyProgressDashboard({
         })}
       </View>
 
-      <View
-        style={[
-          styles.statsAndFooterContainer,
-          vsLastWeek == null
-            ? styles.statsAndFooterContainerWeekOne
-            : styles.statsAndFooterContainerLaterWeek,
-        ]}
-      >
-        <View style={styles.statsRow}>
-          <PrayerMatIcon />
-          <Text style={styles.statsText} numberOfLines={1}>
-            <Text style={styles.statsCount}>
-              {loading ? "---" : totalPrayersThisWeek}
+      <WeeklyProgressStatsFooterSection
+        vsLastWeek={vsLastWeek}
+        statsRow={
+          <View style={styles.statsRow}>
+            <PrayerMatIcon />
+            <Text style={styles.statsText} numberOfLines={1}>
+              <Text style={styles.statsCount}>
+                {loading ? "---" : totalPrayersThisWeek}
+              </Text>
+              {loading
+                ? ""
+                : totalPrayersThisWeek === 1
+                  ? " prayer this week"
+                  : " total prayers this week"}
             </Text>
-            {loading
-              ? ""
-              : totalPrayersThisWeek === 1
-                ? " prayer this week"
-                : " prayers this week"}
-          </Text>
-        </View>
-
-        <PrayerWeeklyProgressFooter
-          loading={loading}
-          streakDays={streakDays}
-          vsLastWeek={vsLastWeek}
-          motivationalQuote={motivationalQuote}
-          defaultMotivationalQuote={defaultMotivationalQuote}
-        />
-      </View>
+          </View>
+        }
+        footerProps={{
+          loading,
+          streakDays,
+          motivationalQuote,
+          defaultMotivationalQuote,
+        }}
+      />
     </View>
   );
 }
@@ -631,16 +625,5 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: fonts.primary.bold,
     letterSpacing: 0.1,
-  },
-  statsAndFooterContainer: {
-    gap: 3,
-  },
-  statsAndFooterContainerWeekOne: {
-    marginTop: 1,
-    gap: 2,
-  },
-  statsAndFooterContainerLaterWeek: {
-    gap: 8,
-    marginTop: -28,
   },
 });

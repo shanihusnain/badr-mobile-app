@@ -11,6 +11,7 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTranslation } from "react-i18next";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
+import { WeeklyProgressStatsFooterSection } from "@/components/molecules/PrayerWeeklyProgressFooter/WeeklyProgressStatsFooterSection";
 import type { QuranHoursDayProgress } from "@/src/screens/private/goalprogressloggingscreen/quranHoursWeeklyData";
 import {
   formatDayDuration,
@@ -23,6 +24,7 @@ export type QuranHoursWeeklyProgressDashboardProps = {
   weekFraction?: string;
   totalMinutesThisWeek?: number;
   streakDays?: number;
+  vsLastWeek?: number | null;
   motivationalQuote?: string;
   /** Defaults to Saturday (index 6) to match design mock. */
   selectedDayIndex?: number;
@@ -87,6 +89,7 @@ export function QuranHoursWeeklyProgressDashboard({
   weekFraction = "1/4",
   totalMinutesThisWeek = 0,
   streakDays = 0,
+  vsLastWeek = null,
   motivationalQuote = "",
   selectedDayIndex = 6,
   statsIcon = "headphones",
@@ -225,37 +228,29 @@ export function QuranHoursWeeklyProgressDashboard({
         })}
       </View>
 
-      <View style={styles.statsRow}>
-        <MaterialCommunityIcons
-          name={statsIcon}
-          size={20}
-          color={Colors.light.lightblue}
-        />
-        <Text style={styles.statsText} numberOfLines={1}>
-          <Text style={styles.statsCount}>
-            {hours}h {minutes}m
-          </Text>
-          {" " + t("progressLogging.totalHoursThisWeek")}
-        </Text>
-      </View>
-
-      <View style={styles.footerRow}>
-        <View style={styles.streakBadge}>
-          <Ionicons name="flash" size={13} color={Colors.light.green} />
-          <Text style={styles.streakText}>
-            {t("progressLogging.dayStreak", { count: streakDays })}
-          </Text>
-        </View>
-
-        <View style={styles.quoteBlock}>
-          <MaterialCommunityIcons
-            name="format-quote-close"
-            size={12}
-            color={Colors.light.seagreen}
-          />
-          <Text style={styles.quoteText}>{motivationalQuote}</Text>
-        </View>
-      </View>
+      <WeeklyProgressStatsFooterSection
+        vsLastWeek={vsLastWeek}
+        statsRow={
+          <View style={styles.statsRow}>
+            <MaterialCommunityIcons
+              name={statsIcon}
+              size={20}
+              color={Colors.light.lightblue}
+            />
+            <Text style={styles.statsText} numberOfLines={1}>
+              <Text style={styles.statsCount}>
+                {hours}h {minutes}m
+              </Text>
+              {" " + t("progressLogging.totalHoursThisWeek")}
+            </Text>
+          </View>
+        }
+        footerProps={{
+          streakDays,
+          motivationalQuote,
+          streakVariant: "green",
+        }}
+      />
     </View>
   );
 }
@@ -390,37 +385,5 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontSize: 28,
     fontFamily: fonts.primary.bold,
-  },
-  footerRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 12,
-  },
-  streakBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    flexShrink: 0,
-  },
-  streakText: {
-    color: Colors.light.white,
-    fontSize: 13,
-    fontWeight: "400",
-    fontFamily: fonts.primary.regular,
-  },
-  quoteBlock: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 4,
-    minWidth: 0,
-  },
-  quoteText: {
-    flex: 1,
-    color: Colors.light.white,
-    fontSize: 13,
-    lineHeight: 14,
-    fontFamily: fonts.primary.regular,
-    fontWeight: "400",
   },
 });

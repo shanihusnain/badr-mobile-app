@@ -13,7 +13,7 @@ import { PrayerStatus } from "@/components/molecules/PrayerProgressTrackerRing";
 import { useTranslation } from "react-i18next";
 import { BinIcon, PrayerMatIcon } from "@/assets/icons";
 import { fonts } from "@/assets/fonts";
-import { PrayerWeeklyProgressFooter } from "@/components/molecules/PrayerWeeklyProgressFooter";
+import { WeeklyProgressStatsFooterSection } from "@/components/molecules/PrayerWeeklyProgressFooter/WeeklyProgressStatsFooterSection";
 import { PrayerWeeklyProgressHeader } from "@/components/molecules/SinglePrayerWeeklyProgressDashboard/PrayerWeeklyProgressHeader";
 import { useDeletePrayerLog } from "@/src/api/mutations/useDeletePrayerLog";
 import { useOptionalPrayerGoalFrameContext } from "@/src/screens/private/goalprogressloggingscreen/prayerGoalFrameContext";
@@ -277,32 +277,27 @@ export const WeeklyProgressDashboard: React.FC<
         })}
       </View>
 
-      <View
-        style={[
-          styles.statsAndFooterContainer,
-          vsLastWeek == null
-            ? styles.statsAndFooterContainerWeekOne
-            : styles.statsAndFooterContainerLaterWeek,
-        ]}
-      >
-        <View style={styles.statsRow}>
-          <PrayerMatIcon />
-          <Text style={styles.statsText} numberOfLines={1}>
-            <Text style={styles.statsCount}>
-              {loading ? "---" : onTimePrayersCount}
+      <WeeklyProgressStatsFooterSection
+        vsLastWeek={vsLastWeek}
+        statsRow={
+          <View style={styles.statsRow}>
+            <PrayerMatIcon />
+            <Text style={styles.statsText} numberOfLines={1}>
+              <Text style={styles.statsCount}>
+                {loading ? "---" : onTimePrayersCount}
+              </Text>
+              {loading ? "" : ` ${t("homeScreen.weeklyProgress_onTimePrayers")}`}
             </Text>
-            {loading ? "" : ` ${t("homeScreen.weeklyProgress_onTimePrayers")}`}
-          </Text>
-        </View>
-        <PrayerWeeklyProgressFooter
-          loading={loading}
-          streakDays={streakDays}
-          vsLastWeek={vsLastWeek}
-          motivationalQuote={motivationalQuote}
-          comparisonVariant="onTime"
-          streakVariant="default"
-        />
-      </View>
+          </View>
+        }
+        footerProps={{
+          loading,
+          streakDays,
+          motivationalQuote,
+          comparisonVariant: "onTime",
+          streakVariant: "default",
+        }}
+      />
     </View>
   );
 };
@@ -401,18 +396,5 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontSize: 20,
     fontFamily: fonts.primary.bold,
-  },
-  statsAndFooterContainer: {
-    gap: 3,
-  },
-  // Week 1: pull stats + footer up slightly to tighten card height.
-  statsAndFooterContainerWeekOne: {
-    marginTop: 1,
-    gap: 2,
-  },
-  // Weeks 2–4: extra row gaps; marginTop offsets so card height matches week 1.
-  statsAndFooterContainerLaterWeek: {
-    gap: 8,
-    marginTop: -28,
   },
 });

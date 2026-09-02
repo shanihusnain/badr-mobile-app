@@ -11,6 +11,7 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTranslation } from "react-i18next";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
+import { WeeklyProgressStatsFooterSection } from "@/components/molecules/PrayerWeeklyProgressFooter/WeeklyProgressStatsFooterSection";
 import type {
   QuranRecitationDayProgress,
   WeeklySurahDashboardItem,
@@ -30,6 +31,7 @@ export type QuranWeeklyRecitationProgressDashboardProps = {
   /** When set, stats row uses this as the period target (weekly goals). */
   weekRecitationTarget?: number;
   streakDays?: number;
+  vsLastWeek?: number | null;
   motivationalQuote?: string;
   visualizationMode?: "daily" | "weekly" | "completion" | "juz";
   weeklySurahItems?: WeeklySurahDashboardItem[];
@@ -53,6 +55,7 @@ export function QuranWeeklyRecitationProgressDashboard({
   dailyTarget = 1,
   weekRecitationTarget,
   streakDays = 0,
+  vsLastWeek = null,
   motivationalQuote = "",
   visualizationMode = "daily",
   weeklySurahItems = [],
@@ -284,41 +287,35 @@ export function QuranWeeklyRecitationProgressDashboard({
         </View>
       )}
 
-      <View style={styles.statsRow}>
-        <MaterialCommunityIcons
-          name="book-open-page-variant"
-          size={20}
-          color={Colors.light.lightblue}
-        />
-        <Text style={styles.statsText} numberOfLines={1}>
-          <Text style={styles.statsCount}>
-            {displayTotalRecitations}/{periodRecitationTarget}
-          </Text>
-          {" " + t(statsLabelKey)}
-        </Text>
-      </View>
+      <WeeklyProgressStatsFooterSection
+        vsLastWeek={vsLastWeek}
+        statsRow={
+          <>
+            <View style={styles.statsRow}>
+              <MaterialCommunityIcons
+                name="book-open-page-variant"
+                size={20}
+                color={Colors.light.lightblue}
+              />
+              <Text style={styles.statsText} numberOfLines={1}>
+                <Text style={styles.statsCount}>
+                  {displayTotalRecitations}/{periodRecitationTarget}
+                </Text>
+                {" " + t(statsLabelKey)}
+              </Text>
+            </View>
 
-      {surahContextLabel ? (
-        <Text style={styles.surahContextLabel}>{surahContextLabel}</Text>
-      ) : null}
-
-      <View style={styles.footerRow}>
-        <View style={styles.streakBadge}>
-          <Ionicons name="flash" size={13} color={Colors.light.green} />
-          <Text style={styles.streakText}>
-            {t("progressLogging.dayStreak", { count: streakDays })}
-          </Text>
-        </View>
-
-        <View style={styles.quoteBlock}>
-          <MaterialCommunityIcons
-            name="format-quote-close"
-            size={12}
-            color={Colors.light.seagreen}
-          />
-          <Text style={styles.quoteText}>{motivationalQuote}</Text>
-        </View>
-      </View>
+            {surahContextLabel ? (
+              <Text style={styles.surahContextLabel}>{surahContextLabel}</Text>
+            ) : null}
+          </>
+        }
+        footerProps={{
+          streakDays,
+          motivationalQuote,
+          streakVariant: "green",
+        }}
+      />
     </View>
   );
 }
@@ -431,37 +428,5 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
     textAlign: "center",
-  },
-  footerRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 12,
-  },
-  streakBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    flexShrink: 0,
-  },
-  streakText: {
-    color: Colors.light.white,
-    fontSize: 13,
-    fontWeight: "400",
-    fontFamily: fonts.primary.regular,
-  },
-  quoteBlock: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 4,
-    minWidth: 0,
-  },
-  quoteText: {
-    flex: 1,
-    color: Colors.light.white,
-    fontSize: 13,
-    lineHeight: 14,
-    fontFamily: fonts.primary.regular,
-    fontWeight: "400",
   },
 });
