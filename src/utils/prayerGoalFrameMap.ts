@@ -412,8 +412,8 @@ function readSunnahSlotUnits(
  * Map frame day `slots` → ring `logged` units (1 unit = one 2-rak'ah prayer).
  * - Future: empty → dim arcs
  * - Today: filled slots green; partial → green + yellow; missing → bright white
- * - Past with no activity: empty → dim (not missed)
- * - Past with activity: missing slots → 0 (yellow / missed)
+ * - Past with no activity: all slots → 0 (qadha / missed color)
+ * - Past with activity: missing slots → 0 (yellow / qadha)
  */
 function mapSunnahLoggedFromDay(
   day: PrayerGoalFrameDay,
@@ -422,18 +422,14 @@ function mapSunnahLoggedFromDay(
   const isFuture = Boolean(day.isFuture || day.isFutureDay);
   if (isFuture) return {};
 
-  const slotEntries = day.slots ?? {};
-  const hasActivity =
-    (day.count ?? day.totalLogged ?? 0) > 0 ||
-    Object.keys(slotEntries).length > 0;
-
   const logged: Partial<Record<SunnahPrayerId, number>> = {};
 
   for (const prayer of goal) {
     const units = readSunnahSlotUnits(day.slots, prayer.id);
     if (units !== undefined) {
       logged[prayer.id] = Math.min(prayer.weight, units);
-    } else if (!day.isToday && hasActivity) {
+    } else if (!day.isToday) {
+      // Past day — unlogged slots use qadha color (including no-activity days).
       logged[prayer.id] = 0;
     }
   }
