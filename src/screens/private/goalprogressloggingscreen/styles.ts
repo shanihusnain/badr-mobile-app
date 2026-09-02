@@ -19,6 +19,11 @@ export const styles = StyleSheet.create({
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
   },
+  loadingContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
 
   scrollContent: {
     paddingBottom: 32,

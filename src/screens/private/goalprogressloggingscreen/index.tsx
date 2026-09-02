@@ -6,6 +6,7 @@ import {
   Image,
   type ImageSourcePropType,
   Platform,
+  ActivityIndicator,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import {
@@ -324,20 +325,43 @@ function GoalProgressLoggingBody({
   );
 }
 
+function GoalProgressLoggingPrayerLoadingGate({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const prayerFrame = useOptionalPrayerGoalFrameContext();
+  const isGoalDataLoading =
+    prayerFrame != null &&
+    (prayerFrame.isLoading ||
+      (!prayerFrame.frame && !prayerFrame.isError));
+
+  if (isGoalDataLoading) {
+    return (
+      <View style={[styles.container, styles.loadingContainer]}>
+        <ActivityIndicator size="large" color={Colors.light.green} />
+      </View>
+    );
+  }
+
+  return <>{children}</>;
+}
+
 function GoalProgressLoggingContent({
   goalData,
   goalId,
   onDropdownOpenChange,
-  onOpenInsights,
   backgroundSource,
+  weeklyRefreshKey,
+  setWeeklyRefreshKey,
 }: {
   goalData: NonNullable<ReturnType<typeof getResolvedGoalById>>;
   goalId: GoalId;
   onDropdownOpenChange?: (open: boolean) => void;
-  onOpenInsights?: () => void;
   backgroundSource?: ImageSourcePropType;
+  weeklyRefreshKey: number;
+  setWeeklyRefreshKey: React.Dispatch<React.SetStateAction<number>>;
 }) {
-  const [weeklyRefreshKey, setWeeklyRefreshKey] = useState(0);
   const template = getLoggingFlowTemplate(goalId);
   const isSurahMemorisation =
     template === "quran-memorisation" && isSurahMemorisationGoalId(goalId);
@@ -377,18 +401,6 @@ function GoalProgressLoggingContent({
     );
   }
 
-  if (goalData.category === "PRAYER") {
-    return (
-      <PrayerGoalFrameProvider
-        goalId={goalId}
-        refreshKey={weeklyRefreshKey}
-        onOpenInsights={onOpenInsights}
-      >
-        {body}
-      </PrayerGoalFrameProvider>
-    );
-  }
-
   return body;
 }
 
@@ -399,7 +411,8 @@ export const GoalProgressLoggingScreen = ({
 }: GoalProgressLoggingScreenProps) => {
   const goalId = (goalIdParam || "") as GoalId;
 
-  const goalData = getResolvedGoalById(goalId);
+  const goalData = goalId ? getResolvedGoalById(goalId) : null;
+  const [weeklyRefreshKey, setWeeklyRefreshKey] = useState(0);
   const [screenScrollEnabled, setScreenScrollEnabled] = useState(true);
   const navigation = useNavigation();
   const infoSheetRef = useRef<BottomSheet>(null);
@@ -437,6 +450,14 @@ export const GoalProgressLoggingScreen = ({
     return unsubscribe;
   }, [navigation, fromDailyProgress, dailyProgressCategory]);
 
+  if (!goalId) {
+    return (
+      <View style={[styles.container, styles.loadingContainer]}>
+        <ActivityIndicator size="large" color={Colors.light.green} />
+      </View>
+    );
+  }
+
   if (!goalData) {
     return (
       <View style={styles.container}>
@@ -449,7 +470,9 @@ export const GoalProgressLoggingScreen = ({
     );
   }
 
-  return (
+  const isPrayerGoal = goalData.category === "PRAYER";
+
+  const screenShell = (
     <View style={styles.container}>
       <ScrollView
         style={[
@@ -492,8 +515,9 @@ export const GoalProgressLoggingScreen = ({
           goalData={goalData}
           goalId={goalId}
           onDropdownOpenChange={(open) => setScreenScrollEnabled(!open)}
-          onOpenInsights={openInsightsSheet}
           backgroundSource={backgroundSource}
+          weeklyRefreshKey={weeklyRefreshKey}
+          setWeeklyRefreshKey={setWeeklyRefreshKey}
         />
       </ScrollView>
       {prayerType ? (
@@ -505,4 +529,20 @@ export const GoalProgressLoggingScreen = ({
       ) : null}
     </View>
   );
+
+  if (isPrayerGoal) {
+    return (
+      <PrayerGoalFrameProvider
+        goalId={goalId}
+        refreshKey={weeklyRefreshKey}
+        onOpenInsights={openInsightsSheet}
+      >
+        <GoalProgressLoggingPrayerLoadingGate>
+          {screenShell}
+        </GoalProgressLoggingPrayerLoadingGate>
+      </PrayerGoalFrameProvider>
+    );
+  }
+
+  return screenShell;
 };
