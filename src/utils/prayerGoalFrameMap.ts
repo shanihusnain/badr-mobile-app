@@ -415,26 +415,46 @@ function readSunnahSlotUnits(
   return undefined;
 }
 
+function readSunnahAutoQadhaUnits(
+  autoQadhaSlots: PrayerGoalFrameDay["autoQadhaSlots"],
+  prayerId: SunnahPrayerId,
+): number | undefined {
+  if (!autoQadhaSlots) return undefined;
+  const apiKey = SUNNAH_UI_TO_API_SLOT[prayerId];
+  const raw = autoQadhaSlots[apiKey as keyof typeof autoQadhaSlots];
+  if (typeof raw === "number" && Number.isFinite(raw)) {
+    return Math.max(0, raw);
+  }
+  return undefined;
+}
+
 /**
- * Map frame day `slots` → ring `logged` units (1 unit = one 2-rak'ah prayer).
+ * Map frame day `slots` + `autoQadhaSlots` → ring `logged` units (1 unit = one 2-rak'ah prayer).
  * - Future: empty → dim arcs
- * - Today: filled slots green; partial → green + yellow; missing → bright white
- * - Past with no activity: all slots → 0 (qadha / missed color)
- * - Past with activity: missing slots → 0 (yellow / qadha)
+ * - Today: logged slots green; autoQadha slots yellow; remaining → bright white
+ * - Past: logged slots green; autoQadha / unlogged slots → yellow (qadha)
  */
 function mapSunnahLoggedFromDay(
   day: PrayerGoalFrameDay,
   goal: SunnahPrayerConfig[],
 ): Partial<Record<SunnahPrayerId, number>> {
-  const isFuture = Boolean(day.isFuture || day.isFutureDay);
+  const isFuture = resolveIsFutureDay(day);
   if (isFuture) return {};
 
   const logged: Partial<Record<SunnahPrayerId, number>> = {};
 
   for (const prayer of goal) {
-    const units = readSunnahSlotUnits(day.slots, prayer.id);
-    if (units !== undefined) {
-      logged[prayer.id] = Math.min(prayer.weight, units);
+    const slotUnits = readSunnahSlotUnits(day.slots, prayer.id);
+    const autoQadhaUnits = readSunnahAutoQadhaUnits(
+      day.autoQadhaSlots,
+      prayer.id,
+    );
+
+    if (slotUnits !== undefined) {
+      logged[prayer.id] = Math.min(prayer.weight, slotUnits);
+    } else if (autoQadhaUnits !== undefined && autoQadhaUnits > 0) {
+      // Backend auto-marked this window as qadha (missed).
+      logged[prayer.id] = 0;
     } else if (!day.isToday) {
       // Past day — unlogged slots use qadha color (including no-activity days).
       logged[prayer.id] = 0;
@@ -446,7 +466,7 @@ function mapSunnahLoggedFromDay(
 
 /**
  * Map frame week days for Sunnah Rawatib rings.
- * Arc geometry from `slotConfig`; fills from day.slots unit counts.
+ * Arc geometry from `slotConfig`; fills from day.slots and day.autoQadhaSlots.
  * Day total prefers `count` / `totalLogged`.
  */
 export function mapSunnahFrameWeekDays(

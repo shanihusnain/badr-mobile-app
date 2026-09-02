@@ -50,7 +50,7 @@ export type SunnahRawatibWeeklyProgressDashboardProps = {
 
 const CARD_HORIZONTAL_PADDING = 16;
 const WRAPPER_WIDTH_RATIO = 0.92;
-const RING_SIZE_MAX = 24;
+const RING_SIZE_MAX = 25;
 
 const LOADING_WEEK: SunnahRawatibDayProgress[] = [
   "Sun",

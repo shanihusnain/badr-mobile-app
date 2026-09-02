@@ -101,6 +101,10 @@ export type PrayerGoalFrameDay = {
     Record<FiveDailyPrayerSlotKey, FiveDailyPrayerSlot> &
       Record<SunnahRawatibSlotKey, number>
   >;
+  /** Sunnah Rawatib — total prayer units auto-marked as qadha for the day. */
+  autoQadhaCount?: number;
+  /** Sunnah Rawatib — per-slot units auto-marked as qadha (missed windows). */
+  autoQadhaSlots?: Partial<Record<SunnahRawatibSlotKey, number>>;
   /** Qiyam Al-Layl — when the prayer was logged. */
   loggedTime?: "after-isha" | "before-fajr" | "both";
 };

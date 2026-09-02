@@ -36,7 +36,7 @@ export function SunnahRawatibDayRing({
   data,
   isSelected,
 }: SunnahRawatibDayRingProps) {
-  const strokeWidth = 3.0;
+  const strokeWidth = 2.5;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const gapSize = 5;
