@@ -731,14 +731,26 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
             isDropdownOpen && commonStyles.flowCardLayerDropdownOpen,
           ]}
         >
-          {flowMode === "collapsed" ? (
-            <View style={localStyles.summaryCard}>
-              <View style={localStyles.summaryBody}>
-                <View style={localStyles.summaryIconCircle}>
-                  <QiyamMainFlowCardIcon size={28} color={Colors.light.white} />
-                </View>
-                <View style={{ flex: 1, gap: 9 }}>
-                  <View
+        {flowMode === "collapsed" ? (
+          <View style={localStyles.summaryCard}>
+            <View style={localStyles.summaryBody}>
+              <View style={localStyles.summaryIconCircle}>
+                <QiyamMainFlowCardIcon
+                  size={28}
+                  color={Colors.light.white}
+                />
+              </View>
+              <View style={localStyles.summaryTextColumn}>
+                <View
+                  style={[
+                    localStyles.badge,
+                    badgeStatus.type === "completed"
+                      ? localStyles.badgeCompleted
+                      : localStyles.badgeInProgress,
+                    { alignSelf: "flex-start" },
+                  ]}
+                >
+                  <Text
                     style={[
                       localStyles.badge,
                       badgeStatus.type === "completed"
@@ -888,8 +900,12 @@ const localStyles = StyleSheet.create({
   },
   summaryBody: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     gap: 6,
+  },
+  summaryTextColumn: {
+    flex: 1,
+    gap: 9,
   },
   summaryIconCircle: {
     width: 36,
@@ -898,7 +914,8 @@ const localStyles = StyleSheet.create({
     backgroundColor: Colors.light.selectcategory,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 16,
+    // Offset past badge so icon aligns with title text, not the chip.
+    marginTop: 33,
   },
   summaryTitle: {
     color: Colors.light.white,
