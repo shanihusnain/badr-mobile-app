@@ -44,7 +44,7 @@ export function SurahRecitationLoggingSection({
       ]}
     >
       <Text style={styles.sectionTitle}>{t("progressLogging.myProgress")}</Text>
-      <View style={{ marginTop: 4 }}>
+      <View>
         <SurahRecitationGoalsList
           goalData={goalData}
           activeFlowGoalId={activeFlowGoalId}

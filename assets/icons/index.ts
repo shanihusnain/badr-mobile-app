@@ -249,6 +249,7 @@ import { WitrUpIcon } from "./WitrUpIcon";
 import { StarSparkleIcon } from "./StarSparkleIcon";
 import { IshaMoonIcon } from "./IshaMoonIcon";
 import { QuranImageIcon } from "./QuranImageIcon";
+import { QuranRecitationBySurahFlowCardImage } from "./QuranRecitationBySurahFlowCardImage";
 import { ManDuaIcon } from "./ManDuaIcon";
 import { IstikharaClockIcon } from "./IstikharaClockIcon";
 import { QuranListeningMoon } from "./QuranListeningMoon";
@@ -423,6 +424,7 @@ export {
   FastingFlowCardProphetDawoodCalender,
   FajarSunIcon,
   QuranImageIcon,
+  QuranRecitationBySurahFlowCardImage,
   ManDuaIcon,
   IstikharaClockIcon,
   QuranListeningMoon,

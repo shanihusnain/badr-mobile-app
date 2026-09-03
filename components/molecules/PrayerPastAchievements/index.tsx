@@ -1466,7 +1466,12 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
             formatBarValue={formatPrayerCountLabel}
             isPrayerGoal={true}
             showPagination={isDetailed && !showPlaceholders}
-            showBarLine={goalId === "prayer-qiyam" && !isTimeSpentView}
+            showBarLine={
+              goalId === "prayer-qiyam" &&
+              !isTimeSpentView &&
+              !showPlaceholders &&
+              !showNoDataDash
+            }
             barColors={
               isTimeSpentView
                 ? [Colors.light.white, Colors.light.white]

@@ -6,7 +6,10 @@ import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import { AimIcon, LighteningIcon } from "@/assets/icons";
 
-export type PrayerWeeklyProgressFooterComparisonVariant = "onTime" | "prayers";
+export type PrayerWeeklyProgressFooterComparisonVariant =
+  | "onTime"
+  | "prayers"
+  | "recitations";
 
 export type PrayerWeeklyProgressFooterProps = {
   loading?: boolean;
@@ -62,7 +65,9 @@ export function PrayerWeeklyProgressFooter({
   const comparisonSuffixKey =
     comparisonVariant === "onTime"
       ? "homeScreen.weeklyProgress_vsLastWeek"
-      : "homeScreen.weeklyProgress_prayersVsLastWeek";
+      : comparisonVariant === "recitations"
+        ? "homeScreen.weeklyProgress_recitationsVsLastWeek"
+        : "homeScreen.weeklyProgress_prayersVsLastWeek";
 
   const streakLabel = (
     <View style={styles.streakBadge}>
