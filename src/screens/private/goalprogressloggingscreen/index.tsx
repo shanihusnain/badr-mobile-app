@@ -56,6 +56,7 @@ import {
   qiyamallayldetailimage,
   sunnahrawatibdetailimage,
   fivedailyprayerdetailimage,
+  quranrecitationbysurahbackgroundimage,
   quranlisteningbottomsheetimage,
   qurantajweedbottomsheetimage,
   quranrecitationbottomsheetimage,
@@ -98,6 +99,7 @@ function getLoggingBackgroundSource(
         ? qurantajweedbottomsheetimage
         : quranlisteningbottomsheetimage;
     case "quran-recitation":
+      return quranrecitationbysurahbackgroundimage;
     case "quran-completion":
     case "quran-juz":
       return quranrecitationbottomsheetimage;
@@ -499,7 +501,10 @@ export const GoalProgressLoggingScreen = ({
           >
             <HeaderWithCrossTitleDynamicIcon
               title={
-                goalData.title?.toUpperCase() ?? goalData.label.toUpperCase()
+                isSurahRecitationGoalId(goalId)
+                  ? "QURAN RECITATION BY SURAH"
+                  : (goalData.title?.toUpperCase() ??
+                    goalData.label.toUpperCase())
               }
               navigation={navigation}
               bgcolor="transparent"

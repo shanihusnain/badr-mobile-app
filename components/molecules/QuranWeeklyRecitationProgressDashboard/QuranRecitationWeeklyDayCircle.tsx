@@ -2,7 +2,6 @@ import React from "react";
 import { StyleSheet, View } from "react-native";
 import { Colors } from "@/constants/theme";
 import type { WeeklySurahDayStatus } from "@/src/screens/private/goalprogressloggingscreen/quranRecitationWeeklyData";
-import { getWeeklyDayCircleColors } from "@/src/screens/private/goalprogressloggingscreen/quranRecitationWeeklyData";
 
 type Props = {
   status: WeeklySurahDayStatus;
@@ -10,36 +9,46 @@ type Props = {
   isSelected?: boolean;
 };
 
+/** Matches SinglePrayerDayRing outer frame padding. */
+const RING_FRAME_PAD = 5;
+
 export function QuranRecitationWeeklyDayCircle({
   status,
   size,
   isSelected = false,
 }: Props) {
-  const colors = getWeeklyDayCircleColors(status);
+  const isCompleted = status === "completed";
+  const isPending = status === "pending";
+  const isNotLogged = status === "not_logged";
 
   return (
     <View
       style={[
-        styles.outer,
+        styles.ringOuter,
         {
-          width: size + 6,
-          height: size + 6,
-          borderRadius: (size + 6) / 2,
+          width: size + RING_FRAME_PAD,
+          height: size + RING_FRAME_PAD,
+          borderRadius: 8,
         },
-        isSelected && styles.outerSelected,
       ]}
     >
       <View
         style={[
-          styles.circle,
+          styles.ringInner,
           {
             width: size,
             height: size,
             borderRadius: size / 2,
-            backgroundColor: colors.backgroundColor,
-            borderWidth: colors.borderWidth,
-            borderColor: colors.borderColor,
           },
+          isCompleted
+            ? [styles.ringInnerLogged, isSelected && styles.ringInnerLoggedToday]
+            : isPending
+              ? styles.ringInnerFuture
+              : isNotLogged
+                ? isSelected
+                  ? styles.ringInnerSelectedEmpty
+                  : styles.ringInnerEmpty
+                : styles.ringInnerEmpty,
         ]}
       />
     </View>
@@ -47,15 +56,35 @@ export function QuranRecitationWeeklyDayCircle({
 }
 
 const styles = StyleSheet.create({
-  outer: {
+  // Matches SinglePrayerDayRing
+  ringOuter: {
     alignItems: "center",
     justifyContent: "center",
+    borderColor: "transparent",
   },
-  outerSelected: {
-    transform: [{ scale: 1.04 }],
-  },
-  circle: {
+  ringInner: {
     alignItems: "center",
     justifyContent: "center",
+    overflow: "visible",
+  },
+  ringInnerLogged: {
+    backgroundColor: Colors.light.green,
+  },
+  ringInnerLoggedToday: {
+    borderWidth: 1.5,
+    borderColor: Colors.light.bordercolortodayselectedring,
+  },
+  ringInnerEmpty: {
+    backgroundColor: "rgba(255, 255, 255, 0.18)",
+  },
+  ringInnerSelectedEmpty: {
+    backgroundColor: Colors.light.greybuttonBackground,
+    borderWidth: 1.2,
+    borderColor: "rgba(255, 255, 255, 0.28)",
+  },
+  ringInnerFuture: {
+    backgroundColor: "transparent",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.32)",
   },
 });
