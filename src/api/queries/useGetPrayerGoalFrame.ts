@@ -15,10 +15,13 @@ export type FiveDailyPrayerSlot = {
   prayedOnTime?: boolean;
   wasCongregational?: boolean;
   wasQadha?: boolean;
+  /** True when the system auto-marked this slot as qadha (may have logged: false). */
+  isAutoQadha?: boolean;
   isMenstruationSlot?: boolean;
   /** Missed-past (and similar): how many of this slot were logged that day. */
   count?: number;
   completed?: number;
+  message?: string | null;
 };
 
 export type PrayerGoalFrameSlotProgress = {
@@ -90,6 +93,8 @@ export type PrayerGoalFrameDay = {
   status?: string;
   slotsOnTime?: number;
   slotsQadha?: number;
+  /** Five Daily — count of slots auto-marked as qadha (may not be user-logged). */
+  slotsAutoQadha?: number;
   totalLogged?: number;
   allFiveOnTime?: boolean;
   hasQadha?: boolean;
@@ -143,11 +148,25 @@ export type PrayerGoalFrameData = {
     thisWeekOnTime?: number;
     vsLastWeek: number | null;
     currentStreak: number;
+    /** Best streak achieved during the viewed week (prefer for weekly dashboard). */
+    bestStreak?: number;
     motivationalMessage: string;
     /** Past-week summary copy when viewing a different week in the cycle. */
     weekSummaryMessage?: string | null;
     days: PrayerGoalFrameDay[];
   };
+  /** Optional cycle-level streak summary (per-week best streaks, etc.). */
+  streaks?: {
+    currentStreak?: number;
+    cycleBestStreak?: number;
+    weeks?: Array<{
+      weekNumber: number;
+      weekStart: string;
+      weekEnd: string;
+      bestStreak: number;
+      isCurrentWeek: boolean;
+    }>;
+  } | null;
   /** Present for SUNNAH_RAWATIB — drives day-ring arc set / weights. */
   slotConfig?: SunnahRawatibSlotConfig | null;
   /** Present for QIYAM_AL_LAYL — strict vs flexible commitment. */

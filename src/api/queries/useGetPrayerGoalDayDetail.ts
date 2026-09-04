@@ -16,13 +16,18 @@ export type FiveDailyDayDetailSlot = {
   prayedOnTime?: boolean | null;
   wasQadha?: boolean | null;
   wasCongregational?: boolean | null;
+  /** True when the slot was auto-filled as qadha (still editable while canLog). */
+  isAutoQadha?: boolean;
   isJumuah?: boolean;
   mosqueName?: string | null;
   prayerStartTime?: string | null;
   durationMinutes?: number | null;
   notes?: string | null;
   loggedAt?: string | null;
-  /** When false, slot cannot be selected for logging (e.g. today's window not open / already passed). */
+  /**
+   * When false, an *unlogged* slot cannot be selected yet (window not open /
+   * already passed). Logged slots remain editable regardless of this flag.
+   */
   canLog?: boolean;
   /** True when only qadha logging is allowed (past date or today's window passed). */
   isQadhaOnly?: boolean;
@@ -164,11 +169,39 @@ export type QiyamDayDetail = {
   sessions?: Partial<Record<QiyamSessionTypeKey, QiyamDayDetailSession>>;
 };
 
+/**
+ * Flat day-detail for single-prayer goals
+ * (Duha, Tawbah, Istikhara, Shukr, Tahiyat al-Wudhu / Masjid).
+ */
+export type SinglePrayerDayDetail = {
+  date: string;
+  hasLoggedAnyPrayer?: boolean;
+  logged?: boolean;
+  count?: number;
+  loggedCount?: number;
+  prayerStartTime?: string | null;
+  /** Some payloads use 24h `HH:mm` instead of `prayerStartTime`. */
+  startTime?: string | null;
+  durationMinutes?: number | null;
+  canLog?: boolean;
+  prayedAfterWudhu?: boolean | null;
+  prayedAfterEntering?: boolean | null;
+  notes?: string | null;
+  goal?: {
+    targetCount?: number;
+    completedCount?: number;
+    achievementPct?: number;
+    status?: string;
+    label?: string;
+  };
+};
+
 export type PrayerGoalDayDetail =
   | FiveDailyPrayerDayDetail
   | MissedPastPrayerDayDetail
   | SunnahRawatibDayDetail
-  | QiyamDayDetail;
+  | QiyamDayDetail
+  | SinglePrayerDayDetail;
 
 const SUNNAH_RAWATIB_SLOT_KEYS: SunnahRawatibSlotKey[] = [
   "BEFORE_FAJR",
@@ -233,11 +266,16 @@ export function isSunnahRawatibSlotPartiallyLogged(
   return logged > 0 && target > 0 && logged < target;
 }
 
-/** True when an unlogged Five Daily slot is open for logging per day-detail. */
+/**
+ * True when a Five Daily slot can be selected for logging or editing.
+ * - Already logged → always editable (even if `canLog` is false).
+ * - Not logged → only when `canLog: true` (window open / allowed).
+ */
 export function isFiveDailySlotSelectable(
   slot: FiveDailyDayDetailSlot | undefined,
 ): boolean {
-  if (!slot || slot.logged) return false;
+  if (!slot) return false;
+  if (slot.logged === true) return true;
   return slot.canLog === true;
 }
 
@@ -379,4 +417,16 @@ export function isFiveDailyDayDetail(
     !isQiyamDayDetail(data) &&
     "slots" in data
   );
+}
+
+/** Flat day-detail for Duha / Tawbah / Istikhara / Shukr / Tahiyat goals. */
+export function isSinglePrayerDayDetail(
+  data: PrayerGoalDayDetail | null | undefined,
+): data is SinglePrayerDayDetail {
+  if (!data) return false;
+  if (isSunnahRawatibDayDetail(data)) return false;
+  if (isMissedPastPrayerDayDetail(data)) return false;
+  if (isQiyamDayDetail(data)) return false;
+  if (isFiveDailyDayDetail(data)) return false;
+  return true;
 }

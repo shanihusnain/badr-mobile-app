@@ -98,12 +98,47 @@ const PRAYER_TO_SLOT: Record<PrayerName, FiveDailyPrayerSlot> = {
 
 const toDateString = (date: Date) => moment(date).format("YYYY-MM-DD");
 
-const getNextUnloggedPrayer = (
-  loggedPrayers: readonly PrayerName[],
-): PrayerName => {
-  const logged = new Set(loggedPrayers);
-  return PRAYER_OPTIONS.find((prayer) => !logged.has(prayer)) ?? "fajr";
-};
+/** Parse day-detail `prayerStartTime` like "5:47 PM" into picker parts. */
+function parsePrayerStartTimeParts(
+  value: string | null | undefined,
+): { hour: string; minute: string; period: "am" | "pm" } | null {
+  if (!value) return null;
+  const match = String(value)
+    .trim()
+    .match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (!match) return null;
+  const hourNum = Number.parseInt(match[1], 10);
+  const minuteNum = Number.parseInt(match[2], 10);
+  if (
+    !Number.isFinite(hourNum) ||
+    !Number.isFinite(minuteNum) ||
+    hourNum < 1 ||
+    hourNum > 12 ||
+    minuteNum < 0 ||
+    minuteNum > 59
+  ) {
+    return null;
+  }
+  return {
+    hour: String(hourNum).padStart(2, "0"),
+    minute: String(minuteNum).padStart(2, "0"),
+    period: match[3].toLowerCase() === "pm" ? "pm" : "am",
+  };
+}
+
+function durationPartsFromMinutes(totalMinutes: number | null | undefined): {
+  hours: string;
+  minutes: string;
+} {
+  const total =
+    typeof totalMinutes === "number" && Number.isFinite(totalMinutes)
+      ? Math.max(0, Math.floor(totalMinutes))
+      : 0;
+  return {
+    hours: String(Math.floor(total / 60)),
+    minutes: String(total % 60),
+  };
+}
 
 export default function FiveDailyPrayersLoggingFlow({
   goalData,
@@ -193,11 +228,10 @@ export default function FiveDailyPrayersLoggingFlow({
 
   const lockedPrayersForSelectedDate = useMemo((): PrayerName[] => {
     if (!dayDetail?.slots) return [...PRAYER_OPTIONS];
-    return PRAYER_OPTIONS.filter((prayer) => {
-      const slot = dayDetail.slots?.[PRAYER_TO_SLOT[prayer]];
-      if (!slot || slot.logged) return false;
-      return !isFiveDailySlotSelectable(slot);
-    });
+    return PRAYER_OPTIONS.filter(
+      (prayer) =>
+        !isFiveDailySlotSelectable(dayDetail.slots?.[PRAYER_TO_SLOT[prayer]]),
+    );
   }, [dayDetail]);
 
   const selectablePrayers = useMemo(
@@ -210,9 +244,12 @@ export default function FiveDailyPrayersLoggingFlow({
 
   const hasSelectablePrayer = selectablePrayers.length > 0;
 
+  // Only block while we don't have day-detail yet — background refetch
+  // must not keep Next disabled after the user selects a prayer.
   const dayDetailLoadingState =
     flowMode === "active" &&
-    (dayDetailLoading || dayDetailFetching || dayDetail == null);
+    dayDetail == null &&
+    (dayDetailLoading || dayDetailFetching);
 
   const isCongregationalTracked = Boolean(
     frame?.isCongregationalTracked ?? frame?.goal?.isCongregationalTracked,
@@ -274,20 +311,68 @@ export default function FiveDailyPrayersLoggingFlow({
     setStepIndex((index) => Math.min(index, Math.max(0, steps.length - 1)));
   }, [steps]);
 
-  // Drop selection when day-detail marks the slot as not loggable.
+  // Drop selection when day-detail marks the slot as not loggable/editable.
   useEffect(() => {
     if (!selectedPrayer) return;
-    if (
-      loggedPrayersForSelectedDate.includes(selectedPrayer) ||
-      lockedPrayersForSelectedDate.includes(selectedPrayer)
-    ) {
+    if (lockedPrayersForSelectedDate.includes(selectedPrayer)) {
       setSelectedPrayer(null);
     }
-  }, [
-    selectedPrayer,
-    loggedPrayersForSelectedDate,
-    lockedPrayersForSelectedDate,
-  ]);
+  }, [selectedPrayer, lockedPrayersForSelectedDate]);
+
+  const applySlotDefaultsForPrayer = useCallback(
+    (prayer: PrayerName) => {
+      const slot = dayDetail?.slots?.[PRAYER_TO_SLOT[prayer]];
+      const now = getCurrentStartTimeParts();
+
+      if (!slot) {
+        setTiming("onTime");
+        setCongregation("yes");
+        setStartHour(now.hour);
+        setStartMinute(now.minute);
+        setStartPeriod(now.period);
+        setDurationHours("0");
+        setDurationMinutes("0");
+        return;
+      }
+
+      const forceQadha = slot.isQadhaOnly === true || slot.isAutoQadha === true;
+      if (forceQadha || slot.wasQadha === true || slot.prayedOnTime === false) {
+        setTiming("qadha");
+      } else if (slot.prayedOnTime === true) {
+        setTiming("onTime");
+      } else {
+        setTiming("onTime");
+      }
+
+      setCongregation(slot.wasCongregational === true ? "yes" : "no");
+
+      const startParts = parsePrayerStartTimeParts(slot.prayerStartTime);
+      if (startParts) {
+        setStartHour(startParts.hour);
+        setStartMinute(startParts.minute);
+        setStartPeriod(startParts.period);
+      } else {
+        setStartHour(now.hour);
+        setStartMinute(now.minute);
+        setStartPeriod(now.period);
+      }
+
+      const durationParts = durationPartsFromMinutes(slot.durationMinutes);
+      setDurationHours(durationParts.hours);
+      setDurationMinutes(durationParts.minutes);
+    },
+    [dayDetail],
+  );
+
+  const handleSelectPrayer = useCallback(
+    (prayer: PrayerName | null) => {
+      setSelectedPrayer(prayer);
+      if (prayer) {
+        applySlotDefaultsForPrayer(prayer);
+      }
+    },
+    [applySlotDefaultsForPrayer],
+  );
 
   const currentStep = steps[stepIndex] ?? steps[0];
   const isLastStep = stepIndex === steps.length - 1;
@@ -400,7 +485,6 @@ export default function FiveDailyPrayersLoggingFlow({
       if (dayDetailLoadingState) return;
       if (!hasSelectablePrayer) return;
       if (!selectedPrayer) return;
-      if (loggedPrayersForSelectedDate.includes(selectedPrayer)) return;
       if (lockedPrayersForSelectedDate.includes(selectedPrayer)) return;
     }
     if (!isLastStep) setStepIndex((index) => index + 1);
@@ -486,7 +570,7 @@ export default function FiveDailyPrayersLoggingFlow({
         return (
           <PrayerSelectStep
             selectedPrayer={selectedPrayer}
-            onSelectPrayer={setSelectedPrayer}
+            onSelectPrayer={handleSelectPrayer}
             categoryColor={Colors.light.green}
             loggedPrayers={loggedPrayersForSelectedDate}
             lockedPrayers={lockedPrayersForSelectedDate}
@@ -688,8 +772,7 @@ export default function FiveDailyPrayersLoggingFlow({
                       !hasSelectablePrayer ||
                       !selectedPrayer ||
                       (selectedPrayer
-                        ? loggedPrayersForSelectedDate.includes(selectedPrayer) ||
-                          lockedPrayersForSelectedDate.includes(selectedPrayer)
+                        ? lockedPrayersForSelectedDate.includes(selectedPrayer)
                         : false))
                   )
                 }

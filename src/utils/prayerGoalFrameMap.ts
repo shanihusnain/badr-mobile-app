@@ -225,8 +225,10 @@ function mapFiveDailySlotToStatus(
 ): PrayerStatus {
   if (!slot) return "none";
   if (slot.isMenstruationSlot) return "menstruation";
+  // Auto-qadha often arrives with logged:false + wasQadha/isAutoQadha:true.
+  // Treat those as missed (orange) before the logged gate.
+  if (slot.wasQadha || slot.isAutoQadha) return "missed";
   if (!slot.logged) return "none";
-  if (slot.wasQadha) return "missed";
   if (slot.wasCongregational) return "congregation";
   if (slot.prayedOnTime) return "onTime";
   return "missed";
@@ -240,7 +242,13 @@ function mapFiveDailyStatusesFromCounts(
   }
 
   const onTime = clampSlotCount(day.slotsOnTime);
-  const qadha = Math.min(5 - onTime, clampSlotCount(day.slotsQadha));
+  const qadha = Math.min(
+    5 - onTime,
+    Math.max(
+      clampSlotCount(day.slotsQadha),
+      clampSlotCount(day.slotsAutoQadha),
+    ),
+  );
   const statuses: PrayerStatus[] = [];
   for (let i = 0; i < onTime; i += 1) statuses.push("onTime");
   for (let i = 0; i < qadha; i += 1) statuses.push("missed");
@@ -501,6 +509,18 @@ export function getPrayerFrameTodayIndex(frame: PrayerGoalFrameData): number {
 
 export function getPrayerFrameWeekFraction(frame: PrayerGoalFrameData): string {
   return `${frame.cycle.weekNumber}/${frame.cycle.totalWeeks}`;
+}
+
+/**
+ * Streak shown on the weekly dashboard for the viewed week.
+ * Prefer `week.bestStreak` (that week's peak); fall back to `currentStreak`.
+ */
+export function getPrayerFrameWeekStreakDays(frame: PrayerGoalFrameData): number {
+  const best = frame.week.bestStreak;
+  if (typeof best === "number" && Number.isFinite(best)) {
+    return Math.max(0, best);
+  }
+  return Math.max(0, frame.week.currentStreak ?? 0);
 }
 
 export type PrayerGoalFrameStatus = "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED";

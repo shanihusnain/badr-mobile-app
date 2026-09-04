@@ -28,6 +28,9 @@ import {
   prayerFrameShowsInsights,
 } from "@/src/utils/prayerGoalFrameMap";
 import { useLogTahiyatAlMasjidGoal } from "@/src/api/mutations/useLogTahiyatAlMasjidGoal";
+import { resolvePrayerTypeFromGoalId } from "@/src/utils/prayerGoalMap";
+import { useSinglePrayerDayDetailPrefill } from "../hooks/useSinglePrayerDayDetailPrefill";
+import type { SinglePrayerDayDetailPrefill } from "@/src/utils/prayerDayDetailPrefill";
 import {
   AddLoggingFlowIcon,
   CalendarFlippingIcon,
@@ -84,6 +87,33 @@ export default function TahiyatAlMasjidLoggingFlow({
 
   const prayerFrame = useOptionalPrayerGoalFrameContext();
   const frame = prayerFrame?.frame;
+  const prayerType =
+    resolvePrayerTypeFromGoalId(goalData.id) ?? "TAHIYYAT_AL_MASJID";
+
+  const applyDayDetailPrefill = useCallback(
+    (prefill: SinglePrayerDayDetailPrefill) => {
+      setPrayedRightAfter(
+        prefill.prayedAfterEntering == null
+          ? "Yes"
+          : prefill.prayedAfterEntering
+            ? "Yes"
+            : "No",
+      );
+      setStartHour(prefill.startHour);
+      setStartMinute(prefill.startMinute);
+      setStartPeriod(prefill.startPeriod);
+      setDurationHours(prefill.durationHours);
+      setDurationMinutes(prefill.durationMinutes);
+    },
+    [],
+  );
+
+  const { dayDetailLoadingState } = useSinglePrayerDayDetailPrefill({
+    prayerType,
+    selectedDate,
+    enabled: flowMode === "active",
+    onPrefill: applyDayDetailPrefill,
+  });
 
   const cycleStartHijri = frame?.cycle?.cycleStart
     ? toDateString(new Date(frame.cycle.cycleStart))
@@ -178,7 +208,7 @@ export default function TahiyatAlMasjidLoggingFlow({
   }, []);
 
   const handleConfirm = () => {
-    if (isLogging) return;
+    if (isLogging || dayDetailLoadingState) return;
 
     const run = async () => {
       const payload = {
@@ -223,6 +253,7 @@ export default function TahiyatAlMasjidLoggingFlow({
   };
 
   const handleForward = () => {
+    if (dayDetailLoadingState) return;
     if (!isLastStep) setStepIndex((index) => index + 1);
   };
 
@@ -409,10 +440,11 @@ export default function TahiyatAlMasjidLoggingFlow({
                 onBack={handleBack}
                 onForward={handleForward}
                 onConfirm={handleConfirm}
-                canGoForward={!isLastStep}
+                canGoForward={!dayDetailLoadingState && !isLastStep}
                 canGoBack={stepIndex > 0}
                 canConfirm={
                   isLastStep &&
+                  !dayDetailLoadingState &&
                   !isLogging &&
                   isDurationEntered(durationHours, durationMinutes)
                 }

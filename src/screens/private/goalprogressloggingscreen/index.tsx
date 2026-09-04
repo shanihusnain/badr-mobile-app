@@ -6,7 +6,6 @@ import {
   Image,
   type ImageSourcePropType,
   Platform,
-  ActivityIndicator,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import {
@@ -66,6 +65,7 @@ import { HeaderInfoIcon } from "@/assets/icons";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { setDailyProgressSheetReturn } from "@/src/screens/private/home/dailyProgressSheetReturn";
+import { LoadingComponent } from "@/components/atoms/LoadingComponent";
 
 /** Hero background per prayer / Quran / fasting / sadaqah logging goal. */
 function getLoggingBackgroundSource(
@@ -333,13 +333,12 @@ function GoalProgressLoggingPrayerLoadingGate({
   const prayerFrame = useOptionalPrayerGoalFrameContext();
   const isGoalDataLoading =
     prayerFrame != null &&
-    (prayerFrame.isLoading ||
-      (!prayerFrame.frame && !prayerFrame.isError));
+    (prayerFrame.isLoading || (!prayerFrame.frame && !prayerFrame.isError));
 
   if (isGoalDataLoading) {
     return (
       <View style={[styles.container, styles.loadingContainer]}>
-        <ActivityIndicator size="large" color={Colors.light.green} />
+        <LoadingComponent size="large" />
       </View>
     );
   }
@@ -453,7 +452,7 @@ export const GoalProgressLoggingScreen = ({
   if (!goalId) {
     return (
       <View style={[styles.container, styles.loadingContainer]}>
-        <ActivityIndicator size="large" color={Colors.light.green} />
+        <LoadingComponent size="large" />
       </View>
     );
   }

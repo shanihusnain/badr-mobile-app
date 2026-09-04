@@ -26,6 +26,7 @@ export const useLogTahiyatAlWudhuGoal = () => {
     onSuccess: () => {
       // Green card (frame/week) and dashboard should update after logging.
       queryClient.invalidateQueries({ queryKey: ["prayer-goal-frame"] });
+      queryClient.invalidateQueries({ queryKey: ["prayer-goal-day-detail"] });
       queryClient.invalidateQueries({ queryKey: ["prayer-goal-achievements"] });
       queryClient.invalidateQueries({ queryKey: ["all-prayer-goals"] });
       queryClient.invalidateQueries({ queryKey: ["prayer-goal-insights"] });

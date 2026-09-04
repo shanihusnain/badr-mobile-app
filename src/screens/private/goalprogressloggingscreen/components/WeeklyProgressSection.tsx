@@ -121,6 +121,7 @@ import {
   formatPrayerFrameWeekRange,
   getPrayerFrameTodayIndex,
   getPrayerFrameWeekFraction,
+  getPrayerFrameWeekStreakDays,
   mapFiveDailyFrameWeekDays,
   mapPrayerFrameWeekDays,
   mapQiyamFrameWeekDays,
@@ -905,7 +906,7 @@ export function WeeklyProgressSection({
           )}
           weekFraction={getPrayerFrameWeekFraction(frame)}
           totalPrayersThisWeek={frame.week.thisWeekTotal}
-          streakDays={frame.week.currentStreak}
+          streakDays={getPrayerFrameWeekStreakDays(frame)}
           vsLastWeek={frame.week.vsLastWeek}
           motivationalQuote={getPrayerFrameMotivationalQuote(frame)}
           loading={isPrayerFrameDashboardLoading(prayerFrame, frame)}
@@ -958,7 +959,7 @@ export function WeeklyProgressSection({
           )}
           weekFraction={getPrayerFrameWeekFraction(frame)}
           totalPrayersThisWeek={frame.week.thisWeekTotal}
-          streakDays={frame.week.currentStreak}
+          streakDays={getPrayerFrameWeekStreakDays(frame)}
           vsLastWeek={frame.week.vsLastWeek}
           selectedDayIndex={getPrayerFrameTodayIndex(frame)}
           motivationalQuote={getPrayerFrameMotivationalQuote(frame)}
@@ -1003,7 +1004,7 @@ export function WeeklyProgressSection({
           )}
           weekFraction={getPrayerFrameWeekFraction(frame)}
           onTimePrayersCount={frame.week.thisWeekOnTime ?? 0}
-          streakDays={frame.week.currentStreak}
+          streakDays={getPrayerFrameWeekStreakDays(frame)}
           vsLastWeek={frame.week.vsLastWeek}
           motivationalQuote={getPrayerFrameMotivationalQuote(frame)}
           selectedDayIndex={getPrayerFrameTodayIndex(frame)}
@@ -1088,7 +1089,7 @@ export function WeeklyProgressSection({
           )}
           weekFraction={getPrayerFrameWeekFraction(frame)}
           totalPrayersThisWeek={frame.week.thisWeekTotal}
-          streakDays={frame.week.currentStreak}
+          streakDays={getPrayerFrameWeekStreakDays(frame)}
           vsLastWeek={frame.week.vsLastWeek}
           motivationalQuote={getPrayerFrameMotivationalQuote(frame)}
           loading={isPrayerFrameDashboardLoading(prayerFrame, frame)}
@@ -1141,7 +1142,7 @@ export function WeeklyProgressSection({
           )}
           weekFraction={getPrayerFrameWeekFraction(frame)}
           totalPrayersThisWeek={frame.week.thisWeekTotal}
-          streakDays={frame.week.currentStreak}
+          streakDays={getPrayerFrameWeekStreakDays(frame)}
           vsLastWeek={frame.week.vsLastWeek}
           motivationalQuote={getPrayerFrameMotivationalQuote(frame)}
           loading={isPrayerFrameDashboardLoading(prayerFrame, frame)}
@@ -1194,7 +1195,7 @@ export function WeeklyProgressSection({
           )}
           weekFraction={getPrayerFrameWeekFraction(frame)}
           totalPrayersThisWeek={frame.week.thisWeekTotal}
-          streakDays={frame.week.currentStreak}
+          streakDays={getPrayerFrameWeekStreakDays(frame)}
           vsLastWeek={frame.week.vsLastWeek}
           motivationalQuote={getPrayerFrameMotivationalQuote(frame)}
           loading={isPrayerFrameDashboardLoading(prayerFrame, frame)}
@@ -1247,7 +1248,7 @@ export function WeeklyProgressSection({
           )}
           weekFraction={getPrayerFrameWeekFraction(frame)}
           totalPrayersThisWeek={frame.week.thisWeekTotal}
-          streakDays={frame.week.currentStreak}
+          streakDays={getPrayerFrameWeekStreakDays(frame)}
           vsLastWeek={frame.week.vsLastWeek}
           motivationalQuote={getPrayerFrameMotivationalQuote(frame)}
           loading={isPrayerFrameDashboardLoading(prayerFrame, frame)}
@@ -1300,7 +1301,7 @@ export function WeeklyProgressSection({
           )}
           weekFraction={getPrayerFrameWeekFraction(frame)}
           totalPrayersThisWeek={frame.week.thisWeekTotal}
-          streakDays={frame.week.currentStreak}
+          streakDays={getPrayerFrameWeekStreakDays(frame)}
           vsLastWeek={frame.week.vsLastWeek}
           motivationalQuote={getPrayerFrameMotivationalQuote(frame)}
           loading={isPrayerFrameDashboardLoading(prayerFrame, frame)}
@@ -1347,7 +1348,7 @@ export function WeeklyProgressSection({
           )}
           weekFraction={getPrayerFrameWeekFraction(frame)}
           totalPrayersThisWeek={frame.week.thisWeekTotal ?? 0}
-          streakDays={frame.week.currentStreak}
+          streakDays={getPrayerFrameWeekStreakDays(frame)}
           vsLastWeek={frame.week.vsLastWeek}
           motivationalQuote={getPrayerFrameMotivationalQuote(frame)}
           selectedDayIndex={getPrayerFrameTodayIndex(frame)}
@@ -1416,7 +1417,7 @@ export function WeeklyProgressSection({
           )}
           weekFraction={getPrayerFrameWeekFraction(frame)}
           totalPrayersThisWeek={frame.week.thisWeekTotal ?? 0}
-          streakDays={frame.week.currentStreak}
+          streakDays={getPrayerFrameWeekStreakDays(frame)}
           vsLastWeek={frame.week.vsLastWeek}
           motivationalQuote={getPrayerFrameMotivationalQuote(frame)}
           selectedDayIndex={getPrayerFrameTodayIndex(frame)}

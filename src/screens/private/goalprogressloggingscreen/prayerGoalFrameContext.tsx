@@ -24,6 +24,11 @@ type PrayerGoalFrameContextValue = {
   weekNumber: number | null;
   setWeekNumber: (weekNumber: number) => void;
   openInsights?: () => void;
+  /**
+   * Five Daily / Sunnah Rawatib: open the slot-picker delete sheet for a day.
+   * Other prayer goals leave this unset and delete the day log directly.
+   */
+  openDeletePrayerLogOptions?: (date: string) => void;
 };
 
 const PrayerGoalFrameContext =
@@ -34,11 +39,13 @@ export function PrayerGoalFrameProvider({
   refreshKey = 0,
   children,
   onOpenInsights,
+  onOpenDeletePrayerLogOptions,
 }: {
   goalId: GoalId;
   refreshKey?: number;
   children: ReactNode;
   onOpenInsights?: () => void;
+  onOpenDeletePrayerLogOptions?: (date: string) => void;
 }) {
   const prayerType = resolvePrayerTypeFromGoalId(goalId);
   const [weekNumber, setWeekNumberState] = React.useState<number | null>(null);
@@ -84,6 +91,7 @@ export function PrayerGoalFrameProvider({
       weekNumber,
       setWeekNumber,
       openInsights: onOpenInsights,
+      openDeletePrayerLogOptions: onOpenDeletePrayerLogOptions,
     }),
     [
       data,
@@ -95,6 +103,7 @@ export function PrayerGoalFrameProvider({
       weekNumber,
       setWeekNumber,
       onOpenInsights,
+      onOpenDeletePrayerLogOptions,
     ],
   );
 

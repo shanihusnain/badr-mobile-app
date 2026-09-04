@@ -20,6 +20,7 @@ import {
 } from "../SunnahRawatibDayRing";
 import { useDeletePrayerLog } from "@/src/api/mutations/useDeletePrayerLog";
 import { useOptionalPrayerGoalFrameContext } from "@/src/screens/private/goalprogressloggingscreen/prayerGoalFrameContext";
+import { PrayerWeeklyDashboardBody } from "@/components/molecules/PrayerWeeklyDashboardBody";
 
 export type SunnahRawatibDayProgress = {
   day: string;
@@ -51,20 +52,6 @@ export type SunnahRawatibWeeklyProgressDashboardProps = {
 const CARD_HORIZONTAL_PADDING = 16;
 const WRAPPER_WIDTH_RATIO = 0.92;
 const RING_SIZE_MAX = 25;
-
-const LOADING_WEEK: SunnahRawatibDayProgress[] = [
-  "Sun",
-  "Mon",
-  "Tue",
-  "Wed",
-  "Thu",
-  "Fri",
-  "Sat",
-].map((day) => ({
-  day,
-  count: 0,
-  data: { goal: [], logged: {} },
-}));
 
 function dayHasSunnahLog(day: SunnahRawatibDayProgress): boolean {
   if ((day.count ?? 0) > 0) return true;
@@ -102,7 +89,7 @@ export function SunnahRawatibWeeklyProgressDashboard({
   const { mutate: deletePrayerLog, isPending: isDeletingLog } =
     useDeletePrayerLog();
   const [selectForDeletion, setSelectForDeletion] = useState("");
-  const displayWeekDays = loading ? LOADING_WEEK : weekDays;
+  const displayWeekDays = weekDays;
 
   useEffect(() => {
     setSelectForDeletion("");
@@ -125,11 +112,14 @@ export function SunnahRawatibWeeklyProgressDashboard({
         onNextWeek={onNextWeek}
       />
 
+      <PrayerWeeklyDashboardBody loading={loading}>
+        {!loading ? (
+        <>
       <View style={styles.daysRow}>
         {displayWeekDays.map((day, index) => {
           const isSelected = day?.isToday === true;
           const isFuture = !!day.isFuture;
-          const hasLog = !loading && dayHasSunnahLog(day);
+          const hasLog = dayHasSunnahLog(day);
           const isInactiveOutline = isFuture;
           const dayTotal = getDayTotal(day);
           const isMarkedForDeletion =
@@ -144,21 +134,21 @@ export function SunnahRawatibWeeklyProgressDashboard({
                 isMarkedForDeletion && styles.dayColumnMarkedForDeletion,
               ]}
               onLongPress={() => {
-                if (loading || isFuture || !day.date || !hasLog) return;
+                if (isFuture || !day.date || !hasLog) return;
                 setSelectForDeletion((prev) =>
                   prev === day.date ? "" : (day.date ?? ""),
                 );
               }}
               onPress={() => {
-                if (loading || isFuture) return;
+                if (isFuture) return;
                 if (selectForDeletion) {
                   setSelectForDeletion("");
                   return;
                 }
                 onDayPress?.(index);
               }}
-              activeOpacity={loading || isFuture ? 1 : 0.75}
-              disabled={loading || isFuture}
+              activeOpacity={isFuture ? 1 : 0.75}
+              disabled={isFuture}
             >
               <View
                 style={[
@@ -176,18 +166,16 @@ export function SunnahRawatibWeeklyProgressDashboard({
                   style={[
                     styles.dayLabel,
                     {
-                      color: loading
-                        ? Colors.light.subtext
-                        : isFuture
-                          ? "rgba(255, 255, 255, 0.45)"
-                          : isSelected
-                            ? Colors.light.white
-                            : Colors.light.subtext,
+                      color: isFuture
+                        ? "rgba(255, 255, 255, 0.45)"
+                        : isSelected
+                          ? Colors.light.white
+                          : Colors.light.subtext,
                     },
                   ]}
                   numberOfLines={1}
                 >
-                  {loading ? "---" : day.day}
+                  {day.day}
                 </Text>
 
                 <View style={styles.durationSlot}>
@@ -195,34 +183,40 @@ export function SunnahRawatibWeeklyProgressDashboard({
                     style={[
                       styles.durationText,
                       {
-                        color: loading
-                          ? Colors.light.grey
-                          : isInactiveOutline
-                            ? "transparent"
-                            : isSelected
-                              ? Colors.light.white
-                              : Colors.light.grey,
+                        color: isInactiveOutline
+                          ? "transparent"
+                          : isSelected
+                            ? Colors.light.white
+                            : Colors.light.grey,
                       },
                     ]}
                     numberOfLines={1}
                   >
-                    {loading
-                      ? "---"
-                      : isInactiveOutline
-                        ? ""
-                        : dayTotal > 0
-                          ? String(dayTotal)
-                          : ""}
+                    {isInactiveOutline
+                      ? ""
+                      : dayTotal > 0
+                        ? String(dayTotal)
+                        : ""}
                   </Text>
                 </View>
               </View>
               {isMarkedForDeletion ? (
                 <Pressable
                   style={styles.deleteButton}
-                  disabled={isDeletingLog || !prayerFrame?.frame?.prayerType}
+                  disabled={
+                    isDeletingLog ||
+                    (!prayerFrame?.openDeletePrayerLogOptions &&
+                      !prayerFrame?.frame?.prayerType)
+                  }
                   onPress={() => {
+                    if (!day.date) return;
+                    if (prayerFrame?.openDeletePrayerLogOptions) {
+                      prayerFrame.openDeletePrayerLogOptions(day.date);
+                      setSelectForDeletion("");
+                      return;
+                    }
                     const prayerType = prayerFrame?.frame?.prayerType;
-                    if (!prayerType || !day.date || isDeletingLog) return;
+                    if (!prayerType || isDeletingLog) return;
                     deletePrayerLog(
                       { prayerType, date: day.date },
                       {
@@ -247,27 +241,27 @@ export function SunnahRawatibWeeklyProgressDashboard({
           <View style={styles.statsRow}>
             <PrayerMatIcon />
             <Text style={styles.statsText} numberOfLines={2}>
-              <Text style={styles.statsCount}>
-                {loading ? "---" : totalPrayersThisWeek}
-              </Text>
-              {loading
-                ? ""
-                : totalPrayersThisWeek === 1
-                  ? t("homeScreen.weeklyProgress_sunnahTotalThisWeek_one")
-                  : t("homeScreen.weeklyProgress_sunnahTotalThisWeek")}
+              <Text style={styles.statsCount}>{totalPrayersThisWeek}</Text>
+              {totalPrayersThisWeek === 1
+                ? t("homeScreen.weeklyProgress_sunnahTotalThisWeek_one")
+                : t("homeScreen.weeklyProgress_sunnahTotalThisWeek")}
             </Text>
           </View>
         }
         footerProps={{
-          loading,
+          loading: false,
           streakDays,
           motivationalQuote,
           defaultMotivationalQuote,
         }}
       />
+        </>
+        ) : null}
+      </PrayerWeeklyDashboardBody>
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   card: {

@@ -258,21 +258,28 @@ function parsePrayersCount(value: string): number {
   return Number.parseInt(value || "0", 10) || 0;
 }
 
-/** 0 prayers: Witr-only path — skip time steps (any goal type). */
+/** 0 prayers: always ask Witr; Yes (or already-logged) continues to when + time. */
 function buildQiyamFlowSteps(
   prayersCount: string,
-  options: { witrAlreadyLogged: boolean; trackTahajjud: boolean },
+  options: {
+    witrAlreadyLogged: boolean;
+    trackTahajjud: boolean;
+    prayedWitr?: "Yes" | "No";
+  },
 ): QiyamStepId[] {
   const count = parsePrayersCount(prayersCount);
   const timeSteps: QiyamStepId[] = ["start-time", "time-spent"];
   const whenStep: QiyamStepId[] = options.trackTahajjud ? ["when-pray"] : [];
+  // 1+ prayers: skip "conclude with Witr" only when already logged (non-edit path).
   const witrStep: QiyamStepId[] = options.witrAlreadyLogged ? [] : ["witr"];
-  const prayedWitrStep: QiyamStepId[] = options.witrAlreadyLogged
-    ? []
-    : ["prayed-witr"];
 
   if (count === 0) {
-    return ["date", "prayers-quantity", ...prayedWitrStep, ...whenStep];
+    // Always show "Did you pray Witr?" — Yes is pre-selected when already logged.
+    const base: QiyamStepId[] = ["date", "prayers-quantity", "prayed-witr"];
+    if (options.prayedWitr === "Yes") {
+      return [...base, ...whenStep, ...timeSteps];
+    }
+    return base;
   }
 
   return ["date", "prayers-quantity", ...whenStep, ...timeSteps, ...witrStep];
@@ -368,13 +375,29 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
     trackTahajjud ??
     true;
 
+  const prayersCountValue = parsePrayersCount(prayersCount);
+  const isZeroPrayersFlow = prayersCountValue === 0;
+  /** 0 prayers editing an existing Witr log for that night. */
+  const isZeroPrayersWitrEdit = isZeroPrayersFlow && witrAlreadyLogged;
+  const requiresDuration =
+    prayersCountValue >= 1 ||
+    (isZeroPrayersFlow && prayedWitr === "Yes") ||
+    isZeroPrayersWitrEdit;
+
   const flowSteps = useMemo(
     () =>
       buildQiyamFlowSteps(prayersCount, {
         witrAlreadyLogged,
         trackTahajjud: trackTahajjudForFlow,
+        prayedWitr: isZeroPrayersFlow ? prayedWitr : undefined,
       }),
-    [prayersCount, witrAlreadyLogged, trackTahajjudForFlow],
+    [
+      prayersCount,
+      witrAlreadyLogged,
+      trackTahajjudForFlow,
+      isZeroPrayersFlow,
+      prayedWitr,
+    ],
   );
 
   const cycleStart = frame?.cycle?.cycleStart
@@ -410,10 +433,6 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
 
   const showInsights = frame ? prayerFrameShowsInsights(frame) : false;
   const isFullyAchieved = (frame?.goal.achievementPct ?? 0) >= 100;
-  const prayersCountValue = parsePrayersCount(prayersCount);
-  const isZeroPrayersFlow = prayersCountValue === 0;
-  const skipsTimeSteps = isZeroPrayersFlow;
-  const requiresDuration = !skipsTimeSteps;
   const todayString = toDateString(new Date());
   const maxSelectableDate = cycleEnd
     ? cycleEnd < todayString
@@ -438,9 +457,63 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
   }, [flowMode, selectedDate, refetchDayDetail]);
 
   useEffect(() => {
-    setPrayedWitr("No");
-    setConcludedWithWitr("No");
-  }, [selectedDate]);
+    setPrayedWitr(witrAlreadyLogged ? "Yes" : "No");
+    setConcludedWithWitr(witrAlreadyLogged ? "Yes" : "No");
+  }, [selectedDate, witrAlreadyLogged]);
+
+  // Prefill timing / duration when editing an existing Witr-only log.
+  useEffect(() => {
+    if (!isZeroPrayersWitrEdit || !dayDetail) return;
+
+    const sessionType =
+      dayDetail.witr?.sessionType ??
+      (dayDetail.night?.beforeFajr
+        ? "TAHAJJUD"
+        : dayDetail.night?.afterIsha
+          ? "AFTER_ISHA"
+          : null);
+    if (sessionType === "TAHAJJUD" || sessionType === "BEFORE_FAJR") {
+      setLoggedTime("before-fajr");
+    } else if (sessionType === "AFTER_ISHA") {
+      setLoggedTime("after-isha");
+    }
+
+    const duration =
+      dayDetail.witr?.durationMinutes ??
+      dayDetail.night?.totalMinutesSpent ??
+      null;
+    if (typeof duration === "number" && Number.isFinite(duration) && duration > 0) {
+      setDurationHours(String(Math.floor(duration / 60)));
+      setDurationMinutes(String(duration % 60));
+    }
+
+    const startRaw =
+      dayDetail.witr?.startTime ?? dayDetail.night?.startTime ?? null;
+    if (startRaw) {
+      const match = String(startRaw)
+        .trim()
+        .match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i);
+      if (match) {
+        let hourNum = Number.parseInt(match[1], 10);
+        const minuteNum = Number.parseInt(match[2], 10);
+        let period: "am" | "pm" =
+          match[3]?.toLowerCase() === "pm"
+            ? "pm"
+            : match[3]?.toLowerCase() === "am"
+              ? "am"
+              : "am";
+        if (!match[3] && hourNum >= 0 && hourNum <= 23) {
+          period = hourNum >= 12 ? "pm" : "am";
+          hourNum = hourNum % 12 || 12;
+        }
+        if (hourNum >= 1 && hourNum <= 12 && minuteNum >= 0 && minuteNum <= 59) {
+          setStartHour(String(hourNum).padStart(2, "0"));
+          setStartMinute(String(minuteNum).padStart(2, "0"));
+          setStartPeriod(period);
+        }
+      }
+    }
+  }, [isZeroPrayersWitrEdit, dayDetail]);
 
   useEffect(() => {
     if (stepIndex >= flowSteps.length) {
@@ -449,20 +522,27 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
   }, [flowSteps.length, stepIndex]);
   const currentStep = flowSteps[stepIndex] ?? flowSteps[0];
   const isLastStep = stepIndex === flowSteps.length - 1;
-  /** 0 prayers + Witr already logged: nothing left to submit. */
-  const isZeroPrayersNothingToLog = isZeroPrayersFlow && witrAlreadyLogged;
   const isWitrStepBlocked =
     currentStep === "prayed-witr" && prayedWitr === "No";
   const canGoForward =
-    !dayDetailLoadingState &&
-    !isLastStep &&
-    !isWitrStepBlocked &&
-    !(currentStep === "prayers-quantity" && isZeroPrayersNothingToLog);
+    !dayDetailLoadingState && !isLastStep && !isWitrStepBlocked;
   const dateLabel = formatProgressLoggingDateLabel(
     selectedDate,
     todayString,
     t("progressLogging.today"),
   );
+
+  const formatStartTimeForApi = () => {
+    const hourNum = parseInt(startHour || "0", 10) || 0;
+    const minuteNum = parseInt(startMinute || "0", 10) || 0;
+
+    let hour24 = hourNum % 12;
+    if (startPeriod === "pm") hour24 += 12;
+
+    const hh = String(Math.max(0, hour24)).padStart(2, "0");
+    const mm = String(Math.max(0, minuteNum)).padStart(2, "0");
+    return `${hh}:${mm}`;
+  };
 
   const buildDurationMinutesForApi = () => {
     const h = parseInt(durationHours || "0", 10) || 0;
@@ -499,15 +579,16 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
   const handleConfirm = () => {
     if (isLogging || isFullyAchieved || dayDetailLoadingState) return;
     if (isZeroPrayersFlow) {
-      if (prayedWitr === "No" || witrAlreadyLogged) return;
+      // New Witr-only log requires Yes; edit path already has Witr logged.
+      if (!witrAlreadyLogged && prayedWitr === "No") return;
     } else if (prayersCountValue < 1) {
       return;
     }
 
-    const includesWitr = witrAlreadyLogged
-      ? false
-      : isZeroPrayersFlow
-        ? prayedWitr === "Yes"
+    const includesWitr = isZeroPrayersFlow
+      ? witrAlreadyLogged || prayedWitr === "Yes"
+      : witrAlreadyLogged
+        ? false
         : concludedWithWitr === "Yes";
 
     const sessionType: QiyamSessionType = trackTahajjudForFlow
@@ -515,11 +596,13 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
       : "AFTER_ISHA";
 
     const durationMinutes = buildDurationMinutesForApi();
+    const startTime = formatStartTimeForApi();
     const payload = {
       date: selectedDate,
       count: prayersCountValue,
       sessionType,
       includesWitr,
+      startTime,
       ...(durationMinutes > 0 ? { durationMinutes } : {}),
     };
 
@@ -533,8 +616,11 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
           date: selectedDate,
           prayersCount,
           loggedTime,
+          startTime,
           durationMinutes: String(durationMinutes),
-          prayedWitr: isZeroPrayersFlow ? prayedWitr === "Yes" : undefined,
+          prayedWitr: isZeroPrayersFlow
+            ? witrAlreadyLogged || prayedWitr === "Yes"
+            : undefined,
           concludedWithWitr:
             !isZeroPrayersFlow && !witrAlreadyLogged
               ? concludedWithWitr === "Yes"
@@ -814,10 +900,14 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
                   !isFullyAchieved &&
                   (!requiresDuration ||
                     isDurationEntered(durationHours, durationMinutes)) &&
-                  !(isZeroPrayersFlow && prayedWitr === "No") &&
-                  !isZeroPrayersNothingToLog &&
+                  !(
+                    isZeroPrayersFlow &&
+                    !witrAlreadyLogged &&
+                    prayedWitr === "No"
+                  ) &&
                   (prayersCountValue >= 1 ||
-                    (isZeroPrayersFlow && prayedWitr === "Yes"))
+                    (isZeroPrayersFlow &&
+                      (prayedWitr === "Yes" || witrAlreadyLogged)))
                 }
                 showConfirmButton={
                   isLastStep ||

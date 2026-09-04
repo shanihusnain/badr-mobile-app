@@ -25,17 +25,18 @@ const PRAYER_ICON_COMPONENTS: Record<
 
 interface PrayerSelectStepProps {
   selectedPrayer: PrayerName | null;
-  onSelectPrayer: (prayer: PrayerName) => void;
+  /** Pass `null` when the user taps the already-selected prayer to deselect. */
+  onSelectPrayer: (prayer: PrayerName | null) => void;
   categoryColor: string;
   t: (key: string) => string;
   styles: any;
   /**
-   * When provided, already-logged prayers show a tick + green icon and cannot be
-   * selected. The current selection shows a green icon without a tick.
-   * When omitted, legacy behavior: tick appears on the selected prayer.
+   * When provided, already-logged prayers show a tick + green icon.
+   * Logged prayers stay tappable so details can be edited.
+   * Selection is only blocked for unlogged `lockedPrayers` (canLog === false).
    */
   loggedPrayers?: readonly PrayerName[];
-  /** Not loggable for this date (e.g. today's window not open / already passed). Dimmed, no tick. */
+  /** Unlogged and not open for logging yet. Dimmed; cannot be selected. */
   lockedPrayers?: readonly PrayerName[];
   /** Friday + congregational tracking: show Jumu'ah label/icon in place of Dhuhr. */
   showJumuahForDhuhr?: boolean;
@@ -46,7 +47,7 @@ interface PrayerItemProps {
   isSelected: boolean;
   isLogged: boolean;
   isLocked: boolean;
-  onSelectPrayer: (prayer: PrayerName) => void;
+  onSelectPrayer: (prayer: PrayerName | null) => void;
   categoryColor: string;
   t: (key: string) => string;
   styles: any;
@@ -68,13 +69,17 @@ const PrayerItem = React.memo(
     showJumuahForDhuhr,
   }: PrayerItemProps) => {
     const handlePress = React.useCallback(() => {
-      if (isLogged || isLocked) return;
-      onSelectPrayer(prayer);
-    }, [isLocked, isLogged, onSelectPrayer, prayer]);
+      if (isLocked) return;
+      // Tap again on the current selection to clear it.
+      onSelectPrayer(isSelected ? null : prayer);
+    }, [isLocked, isSelected, onSelectPrayer, prayer]);
 
-    const isDisabled = isLogged || isLocked;
-    const showHighlight = isSelected || isLogged;
-    const iconColor = showHighlight ? categoryColor : Colors.light.white;
+    const isDisabled = isLocked;
+    // White "selected" box only when actively chosen — logged tick alone must
+    // not look selected, or Next stays disabled with no visual feedback.
+    const showSelectedBox = isSelected;
+    const iconColor =
+      isSelected || isLogged ? categoryColor : Colors.light.white;
     const showTick = tickOnlyWhenLogged ? isLogged : isSelected;
     const isJumuahSlot = showJumuahForDhuhr && prayer === "dhuhr";
     const Icon = isJumuahSlot ? JummaIcon : PRAYER_ICON_COMPONENTS[prayer];
@@ -93,7 +98,7 @@ const PrayerItem = React.memo(
           style={[
             styles.prayerLabel,
             {
-              opacity: showHighlight ? 1 : isLocked ? 0.35 : 0.8,
+              opacity: isSelected || isLogged ? 1 : isLocked ? 0.35 : 0.8,
             },
           ]}
         >
@@ -102,7 +107,7 @@ const PrayerItem = React.memo(
         <View
           style={[
             styles.prayerIconBox,
-            showHighlight
+            showSelectedBox
               ? styles.prayerIconBoxSelected
               : styles.prayerIconBoxIdle,
             isLocked && !isLogged && { opacity: 0.35 },
@@ -116,10 +121,12 @@ const PrayerItem = React.memo(
         >
           <Icon color={iconColor} size={14} />
         </View>
-        {showTick && (
+        {showTick ? (
           <View style={styles.prayerCheckBadge}>
             <GreenTickIcon color={Colors.light.green} size={8} />
           </View>
+        ) : (
+          <View style={[styles.prayerCheckBadge, { opacity: 0 }]} />
         )}
       </TouchableOpacity>
     );

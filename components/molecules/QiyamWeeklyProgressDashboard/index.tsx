@@ -28,6 +28,7 @@ import {
 } from "@/components/molecules/SinglePrayerWeeklyProgressDashboard/types";
 import { useDeletePrayerLog } from "@/src/api/mutations/useDeletePrayerLog";
 import { useOptionalPrayerGoalFrameContext } from "@/src/screens/private/goalprogressloggingscreen/prayerGoalFrameContext";
+import { PrayerWeeklyDashboardBody } from "@/components/molecules/PrayerWeeklyDashboardBody";
 
 export type QiyamDayProgress = {
   day: string;
@@ -62,19 +63,6 @@ export type QiyamWeeklyProgressDashboardProps = {
   isGoalCompleted?: boolean;
 };
 
-const LOADING_WEEK: QiyamDayProgress[] = [
-  "Sun",
-  "Mon",
-  "Tue",
-  "Wed",
-  "Thu",
-  "Fri",
-  "Sat",
-].map((day) => ({
-  day,
-  prayersLogged: 0,
-  isLogged: false,
-}));
 
 const BEST_DAY_SIZE_BOOST = 4;
 
@@ -285,7 +273,7 @@ export function QiyamWeeklyProgressDashboard({
   const { mutate: deletePrayerLog, isPending: isDeletingLog } =
     useDeletePrayerLog();
   const [selectForDeletion, setSelectForDeletion] = useState("");
-  const displayWeekDays = loading ? LOADING_WEEK : weekDays;
+  const displayWeekDays = weekDays;
 
   useEffect(() => {
     setSelectForDeletion("");
@@ -308,6 +296,9 @@ export function QiyamWeeklyProgressDashboard({
         onNextWeek={onNextWeek}
       />
 
+      <PrayerWeeklyDashboardBody loading={loading}>
+        {!loading ? (
+        <>
       <View style={styles.daysRow}>
         {displayWeekDays.map((day, index) => {
           const isToday = day?.isToday === true;
@@ -449,27 +440,27 @@ export function QiyamWeeklyProgressDashboard({
           <View style={styles.statsRow}>
             <PrayerMatIcon />
             <Text style={styles.statsText} numberOfLines={1}>
-              <Text style={styles.statsCount}>
-                {loading ? "---" : totalPrayersThisWeek}
-              </Text>
-              {loading
-                ? ""
-                : totalPrayersThisWeek === 1
-                  ? " prayer this week"
-                  : " total prayers this week"}
+              <Text style={styles.statsCount}>{totalPrayersThisWeek}</Text>
+              {totalPrayersThisWeek === 1
+                ? " prayer this week"
+                : " total prayers this week"}
             </Text>
           </View>
         }
         footerProps={{
-          loading,
+          loading: false,
           streakDays,
           motivationalQuote,
           defaultMotivationalQuote,
         }}
       />
+        </>
+        ) : null}
+      </PrayerWeeklyDashboardBody>
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   card: {

@@ -18,6 +18,7 @@ import { PrayerWeeklyProgressHeader } from "@/components/molecules/SinglePrayerW
 import { useDeletePrayerLog } from "@/src/api/mutations/useDeletePrayerLog";
 import { useOptionalPrayerGoalFrameContext } from "@/src/screens/private/goalprogressloggingscreen/prayerGoalFrameContext";
 import { TopSpace } from "@/components/atoms/TopSpace";
+import { PrayerWeeklyDashboardBody } from "@/components/molecules/PrayerWeeklyDashboardBody";
 
 // Layout spacing matches SinglePrayerWeeklyProgressDashboard.
 // Arc rings need a larger size than the solid 24px single-prayer circles.
@@ -90,19 +91,6 @@ export interface WeeklyProgressDashboardProps {
 
 // ─── Dummy data (used when no props are supplied) ─────────────────────────────
 
-const LOADING_WEEK: DayProgress[] = [
-  "Sun",
-  "Mon",
-  "Tue",
-  "Wed",
-  "Thu",
-  "Fri",
-  "Sat",
-].map((day) => ({
-  day,
-  statuses: ["none", "none", "none", "none", "none"] as PrayerStatus[],
-}));
-
 const DUMMY_WEEK: DayProgress[] = [
   {
     day: "Sun",
@@ -161,7 +149,7 @@ export const WeeklyProgressDashboard: React.FC<
   const { mutate: deletePrayerLog, isPending: isDeletingLog } =
     useDeletePrayerLog();
   const [selectForDeletion, setSelectForDeletion] = useState("");
-  const displayWeekDays = loading ? LOADING_WEEK : weekDays;
+  const displayWeekDays = weekDays;
 
   const availableWidth = screenWidth - TOTAL_HORIZONTAL_PADDING;
   const ringSize = Math.floor((availableWidth / 7) * FIVE_DAILY_RING_SCALE);
@@ -179,6 +167,9 @@ export const WeeklyProgressDashboard: React.FC<
         onNextWeek={onNextWeek}
       />
 
+      <PrayerWeeklyDashboardBody loading={loading}>
+        {!loading ? (
+        <>
       <View style={styles.daysRow}>
         {displayWeekDays.map((day, idx) => {
           const isSelected = day.isToday === true;
@@ -234,31 +225,37 @@ export const WeeklyProgressDashboard: React.FC<
                   style={[
                     styles.dayLabel,
                     {
-                      color: loading
-                        ? Colors.light.subtext
-                        : isSelected
-                          ? Colors.light.white
-                          : Colors.light.subtext,
+                      color: isSelected
+                        ? Colors.light.white
+                        : Colors.light.subtext,
                     },
                   ]}
                   numberOfLines={1}
                 >
-                  {loading
-                    ? "---"
-                    : t(
-                        (DAY_TRANSLATION_KEYS[day.day] ??
-                          "homeScreen.weeklyProgress_daySun") as any,
-                      )}
+                  {t(
+                    (DAY_TRANSLATION_KEYS[day.day] ??
+                      "homeScreen.weeklyProgress_daySun") as any,
+                  )}
                 </Text>
                 <View style={styles.durationSlot} />
               </View>
               {isMarkedForDeletion ? (
                 <Pressable
                   style={styles.deleteButton}
-                  disabled={isDeletingLog || !prayerFrame?.frame?.prayerType}
+                  disabled={
+                    isDeletingLog ||
+                    (!prayerFrame?.openDeletePrayerLogOptions &&
+                      !prayerFrame?.frame?.prayerType)
+                  }
                   onPress={() => {
+                    if (!day.date) return;
+                    if (prayerFrame?.openDeletePrayerLogOptions) {
+                      prayerFrame.openDeletePrayerLogOptions(day.date);
+                      setSelectForDeletion("");
+                      return;
+                    }
                     const prayerType = prayerFrame?.frame?.prayerType;
-                    if (!prayerType || !day.date || isDeletingLog) return;
+                    if (!prayerType || isDeletingLog) return;
                     deletePrayerLog(
                       { prayerType, date: day.date },
                       {
@@ -283,24 +280,26 @@ export const WeeklyProgressDashboard: React.FC<
           <View style={styles.statsRow}>
             <PrayerMatIcon />
             <Text style={styles.statsText} numberOfLines={1}>
-              <Text style={styles.statsCount}>
-                {loading ? "---" : onTimePrayersCount}
-              </Text>
-              {loading ? "" : ` ${t("homeScreen.weeklyProgress_onTimePrayers")}`}
+              <Text style={styles.statsCount}>{onTimePrayersCount}</Text>
+              {` ${t("homeScreen.weeklyProgress_onTimePrayers")}`}
             </Text>
           </View>
         }
         footerProps={{
-          loading,
+          loading: false,
           streakDays,
           motivationalQuote,
           comparisonVariant: "onTime",
           streakVariant: "default",
         }}
       />
+        </>
+        ) : null}
+      </PrayerWeeklyDashboardBody>
     </View>
   );
 };
+
 
 const styles = StyleSheet.create({
   card: {

@@ -17,12 +17,13 @@ import { PrayerWeeklyProgressHeader } from "./PrayerWeeklyProgressHeader";
 import { SinglePrayerDayRing } from "./SinglePrayerDayRing";
 import {
   CARD_HORIZONTAL_PADDING,
-  LOADING_WEEK,
   RING_SIZE_MAX,
   WRAPPER_WIDTH_RATIO,
   type SinglePrayerWeeklyProgressDashboardProps,
 } from "./types";
+
 import { TopSpace } from "@/components/atoms/TopSpace";
+import { PrayerWeeklyDashboardBody } from "@/components/molecules/PrayerWeeklyDashboardBody";
 
 export type {
   SinglePrayerDayProgress,
@@ -50,7 +51,7 @@ export function SinglePrayerWeeklyProgressDashboard({
   const { mutate: deletePrayerLog, isPending: isDeletingLog } =
     useDeletePrayerLog();
   const [selectForDeletion, setSelectForDeletion] = useState("");
-  const displayWeekDays = loading ? LOADING_WEEK : weekDays;
+  const displayWeekDays = weekDays;
   const [activeDayIndex, setActiveDayIndex] = useState(selectedDayIndex);
 
   useEffect(() => {
@@ -74,6 +75,9 @@ export function SinglePrayerWeeklyProgressDashboard({
         onNextWeek={onNextWeek}
       />
 
+      <PrayerWeeklyDashboardBody loading={loading}>
+        {!loading ? (
+        <>
       <View style={styles.daysRow}>
         {displayWeekDays.map((day, index) => {
           const isSelected = day?.isToday === true;
@@ -238,15 +242,19 @@ export function SinglePrayerWeeklyProgressDashboard({
           </View>
         }
         footerProps={{
-          loading,
+          loading: false,
           streakDays,
           motivationalQuote,
           defaultMotivationalQuote,
         }}
       />
+        </>
+        ) : null}
+      </PrayerWeeklyDashboardBody>
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   card: {

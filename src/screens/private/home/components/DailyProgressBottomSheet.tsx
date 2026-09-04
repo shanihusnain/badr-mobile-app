@@ -4,7 +4,7 @@ import {
   Text,
   View,
   TouchableOpacity,
-  ActivityIndicator,
+  useWindowDimensions,
 } from "react-native";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
@@ -30,6 +30,7 @@ import {
   toUiIbadahCategory,
   type UiIbadahCategory,
 } from "@/src/utils/goalCycleCategoryMap";
+import { LoadingComponent } from "@/components/atoms/LoadingComponent";
 
 type ViewType = "main" | "categories" | "detail";
 
@@ -97,6 +98,9 @@ export const DailyProgressBottomSheet = ({
 }: Props) => {
   const router = useRouter();
   const { t, i18n } = useTypedTranslation();
+  const { height: windowHeight } = useWindowDimensions();
+  /** Fill most of the visible sheet so the loader can sit in the vertical center. */
+  const loadingMinHeight = Math.max(280, Math.round(windowHeight * 0.42));
   const [currentView, setCurrentView] = useState<ViewType>("main");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
@@ -326,8 +330,8 @@ export const DailyProgressBottomSheet = ({
       {currentView === "categories" && (
         <View style={styles.listContainer}>
           {isCategoriesLoading ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator color={Colors.light.green} size="large" />
+            <View style={[styles.loadingContainer, { minHeight: loadingMinHeight }]}>
+              <LoadingComponent size="medium" />
             </View>
           ) : (
             categories.map((category) => (
@@ -355,44 +359,44 @@ export const DailyProgressBottomSheet = ({
       {currentView === "detail" && selectedUiCategory && (
         <View style={styles.listContainer}>
           {isCategoryGoalsLoading ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator color={Colors.light.green} size="large" />
+            <View style={[styles.loadingContainer, { minHeight: loadingMinHeight }]}>
+              <LoadingComponent size="medium" />
             </View>
           ) : (
             detailGoals.map((goal) => (
-            <DetailedIbadahsProgressCard
-              key={goal.goalId}
-              title={goal.title}
-              subtitleCount={String(goal.completed)}
-              subtitleLabel={`/${goal.target} ${goal.unit}`.trim()}
-              icon={
-                goal.loading
-                  ? getCategoryGoalIcon(
-                      selectedUiCategory,
-                      CATEGORY_ICON_COLOR[selectedUiCategory],
-                    )
-                  : selectedUiCategory === "PRAYER"
-                    ? getDetailedIbadahIcon(goal.goalId, Colors.light.white)
-                    : getCategoryGoalIcon(
+              <DetailedIbadahsProgressCard
+                key={goal.goalId}
+                title={goal.title}
+                subtitleCount={String(goal.completed)}
+                subtitleLabel={`/${goal.target} ${goal.unit}`.trim()}
+                icon={
+                  goal.loading
+                    ? getCategoryGoalIcon(
                         selectedUiCategory,
                         CATEGORY_ICON_COLOR[selectedUiCategory],
                       )
-              }
-              iconBgColor={CATEGORY_ICON_COLOR[selectedUiCategory] + "22"}
-              percentage={goal.percentage}
-              progressColor={CATEGORY_ICON_COLOR[selectedUiCategory]}
-              isSelected={selectedDetailCard === goal.goalId}
-              loading={goal.loading}
-              onPress={
-                goal.loading
-                  ? undefined
-                  : () => {
-                      setSelectedDetailCard(goal.goalId);
-                      handleGoalPress(goal.goalId);
-                    }
-              }
-            />
-          ))
+                    : selectedUiCategory === "PRAYER"
+                      ? getDetailedIbadahIcon(goal.goalId, Colors.light.white)
+                      : getCategoryGoalIcon(
+                          selectedUiCategory,
+                          CATEGORY_ICON_COLOR[selectedUiCategory],
+                        )
+                }
+                iconBgColor={CATEGORY_ICON_COLOR[selectedUiCategory] + "22"}
+                percentage={goal.percentage}
+                progressColor={CATEGORY_ICON_COLOR[selectedUiCategory]}
+                isSelected={selectedDetailCard === goal.goalId}
+                loading={goal.loading}
+                onPress={
+                  goal.loading
+                    ? undefined
+                    : () => {
+                        setSelectedDetailCard(goal.goalId);
+                        handleGoalPress(goal.goalId);
+                      }
+                }
+              />
+            ))
           )}
         </View>
       )}
@@ -465,9 +469,8 @@ const styles = StyleSheet.create({
   },
   listContainer: { paddingBottom: 20 },
   loadingContainer: {
-    minHeight: 160,
+    width: "100%",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 32,
   },
 });

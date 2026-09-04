@@ -28,6 +28,9 @@ import {
   prayerFrameShowsInsights,
 } from "@/src/utils/prayerGoalFrameMap";
 import { useLogTahiyatAlWudhuGoal } from "@/src/api/mutations/useLogTahiyatAlWudhuGoal";
+import { resolvePrayerTypeFromGoalId } from "@/src/utils/prayerGoalMap";
+import { useSinglePrayerDayDetailPrefill } from "../hooks/useSinglePrayerDayDetailPrefill";
+import type { SinglePrayerDayDetailPrefill } from "@/src/utils/prayerDayDetailPrefill";
 import {
   AddLoggingFlowIcon,
   CalendarFlippingIcon,
@@ -88,6 +91,33 @@ export default function TahiyatUlWudhuLoggingFlow({
 
   const prayerFrame = useOptionalPrayerGoalFrameContext();
   const frame = prayerFrame?.frame;
+  const prayerType =
+    resolvePrayerTypeFromGoalId(goalData.id) ?? "TAHIYYAT_AL_WUDHU";
+
+  const applyDayDetailPrefill = useCallback(
+    (prefill: SinglePrayerDayDetailPrefill) => {
+      setPrayedRightAfter(
+        prefill.prayedAfterWudhu == null
+          ? "Yes"
+          : prefill.prayedAfterWudhu
+            ? "Yes"
+            : "No",
+      );
+      setStartHour(prefill.startHour);
+      setStartMinute(prefill.startMinute);
+      setStartPeriod(prefill.startPeriod);
+      setDurationHours(prefill.durationHours);
+      setDurationMinutes(prefill.durationMinutes);
+    },
+    [],
+  );
+
+  const { dayDetailLoadingState } = useSinglePrayerDayDetailPrefill({
+    prayerType,
+    selectedDate,
+    enabled: flowMode === "active",
+    onPrefill: applyDayDetailPrefill,
+  });
 
   const cycleStartHijri = frame?.cycle?.cycleStart
     ? toDateString(new Date(frame.cycle.cycleStart))
@@ -187,7 +217,7 @@ export default function TahiyatUlWudhuLoggingFlow({
   }, []);
 
   const handleConfirm = () => {
-    if (isLogging) return;
+    if (isLogging || dayDetailLoadingState) return;
 
     const run = async () => {
       const payload = {
@@ -233,6 +263,7 @@ export default function TahiyatUlWudhuLoggingFlow({
   };
 
   const handleForward = () => {
+    if (dayDetailLoadingState) return;
     if (!isLastStep) setStepIndex((index) => index + 1);
   };
 
@@ -419,10 +450,11 @@ export default function TahiyatUlWudhuLoggingFlow({
                 onBack={handleBack}
                 onForward={handleForward}
                 onConfirm={handleConfirm}
-                canGoForward={!isLastStep}
+                canGoForward={!dayDetailLoadingState && !isLastStep}
                 canGoBack={stepIndex > 0}
                 canConfirm={
                   isLastStep &&
+                  !dayDetailLoadingState &&
                   !isLogging &&
                   isDurationEntered(durationHours, durationMinutes)
                 }

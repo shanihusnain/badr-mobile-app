@@ -6,15 +6,32 @@ import { resolvePrayerType } from "@/src/utils/prayerGoalMap";
 export type DeletePrayerLogPayload = {
   prayerType: string;
   date: string;
+  /** Five Daily — remove a single slot for the day (omit to clear the whole day). */
+  prayerSlot?: string;
+  /** Sunnah Rawatib — remove a single slot for the day. */
+  sunnahSlot?: string;
+  /** Sunnah — how many units to remove from that slot (1 or 2). */
+  count?: number;
+  /** When true, skip the success toast (e.g. mid multi-slot delete). */
+  suppressSuccessToast?: boolean;
 };
 
 const deletePrayerLog = async ({
   prayerType,
   date,
+  prayerSlot,
+  sunnahSlot,
+  count,
 }: DeletePrayerLogPayload) => {
   const resolvedPrayerType = resolvePrayerType(prayerType);
+  const params = new URLSearchParams({ date });
+  if (prayerSlot) params.set("prayerSlot", prayerSlot);
+  if (sunnahSlot) params.set("sunnahSlot", sunnahSlot);
+  if (typeof count === "number" && count > 0) {
+    params.set("count", String(count));
+  }
   const response = await api.delete(
-    `api/goal-cycles/current/prayer-goals/${resolvedPrayerType}/log?date=${date}`,
+    `api/goal-cycles/current/prayer-goals/${resolvedPrayerType}/log?${params.toString()}`,
   );
   return response.data;
 };
@@ -39,7 +56,9 @@ export const useDeletePrayerLog = () => {
       queryClient.invalidateQueries({ queryKey: ["goal-cycle-categories"] });
       queryClient.invalidateQueries({ queryKey: ["goal-cycle-category-goals"] });
       queryClient.invalidateQueries({ queryKey: ["prayer-logs"] });
-      showToast("success", "Prayer log deleted");
+      if (!variables.suppressSuccessToast) {
+        showToast("success", "Prayer log deleted");
+      }
     },
     onError: (error) => {
       showToast(

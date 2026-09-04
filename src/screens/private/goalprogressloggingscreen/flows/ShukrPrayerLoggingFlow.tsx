@@ -28,6 +28,9 @@ import {
   prayerFrameShowsInsights,
 } from "@/src/utils/prayerGoalFrameMap";
 import { useLogShukrPrayerGoal } from "@/src/api/mutations/useLogShukrPrayerGoal";
+import { resolvePrayerTypeFromGoalId } from "@/src/utils/prayerGoalMap";
+import { useSinglePrayerDayDetailPrefill } from "../hooks/useSinglePrayerDayDetailPrefill";
+import type { SinglePrayerDayDetailPrefill } from "@/src/utils/prayerDayDetailPrefill";
 import {
   AddLoggingFlowIcon,
   CalendarFlippingIcon,
@@ -90,6 +93,26 @@ export default function ShukrPrayerLoggingFlow({
   const frame = prayerFrame?.frame;
   const frameLoading =
     prayerFrame?.isLoading || (!frame && !prayerFrame?.isError);
+  const prayerType = resolvePrayerTypeFromGoalId(goalData.id) ?? "SHUKR";
+
+  const applyDayDetailPrefill = useCallback(
+    (prefill: SinglePrayerDayDetailPrefill) => {
+      setPrayersCount(prefill.count);
+      setStartHour(prefill.startHour);
+      setStartMinute(prefill.startMinute);
+      setStartPeriod(prefill.startPeriod);
+      setDurationHours(prefill.durationHours);
+      setDurationMinutes(prefill.durationMinutes);
+    },
+    [],
+  );
+
+  const { dayDetailLoadingState } = useSinglePrayerDayDetailPrefill({
+    prayerType,
+    selectedDate,
+    enabled: flowMode === "active",
+    onPrefill: applyDayDetailPrefill,
+  });
 
   const cycleStartHijri = frame?.cycle?.cycleStart
     ? toCalendarDate(frame.cycle.cycleStart)
@@ -187,7 +210,7 @@ export default function ShukrPrayerLoggingFlow({
   }, []);
 
   const handleConfirm = () => {
-    if (isLogging || quantityValue < 1) return;
+    if (isLogging || dayDetailLoadingState || quantityValue < 1) return;
 
     const run = async () => {
       const payload = {
@@ -227,6 +250,7 @@ export default function ShukrPrayerLoggingFlow({
   };
 
   const handleForward = () => {
+    if (dayDetailLoadingState) return;
     if (currentStep === "prayers-quantity" && quantityValue < 1) return;
     if (!isLastStep) setStepIndex((index) => index + 1);
   };
@@ -419,12 +443,14 @@ export default function ShukrPrayerLoggingFlow({
                 onForward={handleForward}
                 onConfirm={handleConfirm}
                 canGoForward={
+                  !dayDetailLoadingState &&
                   !isLastStep &&
                   !(currentStep === "prayers-quantity" && quantityValue < 1)
                 }
                 canGoBack={stepIndex > 0}
                 canConfirm={
                   isLastStep &&
+                  !dayDetailLoadingState &&
                   !isLogging &&
                   quantityValue >= 1 &&
                   isDurationEntered(durationHours, durationMinutes)
