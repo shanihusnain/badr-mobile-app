@@ -39,6 +39,11 @@ export type QuranRecitationWeekSummary = {
   frequency?: RecitationProgressFrequency;
   streakDays: number;
   motivationalQuoteKey: string;
+  /**
+   * Delta vs previous week. `null` on week 1 (no comparison row).
+   * Weeks 2–4 show the vs-last-week footer layout.
+   */
+  vsLastWeek?: number | null;
 };
 
 export type RecitationCycleWeekRecord = {
@@ -104,7 +109,7 @@ const MOTIVATIONAL_QUOTE_KEY =
 
 export const RECITATION_DASHBOARD_WIDTH_RATIO = 0.92;
 export const RECITATION_DASHBOARD_HORIZONTAL_PADDING = 16;
-export const RECITATION_DAY_RING_SIZE_MAX = 34;
+export const RECITATION_DAY_RING_SIZE_MAX = 24;
 export const RECITATION_DAYS_PER_WEEK = 7;
 
 export function getRecitationDashboardAvailableWidth(screenWidth: number): number {
@@ -220,6 +225,7 @@ function cycleWeekToSummary(
   ringTarget: number,
   frequency: RecitationProgressFrequency,
   weekRecitationTarget?: number,
+  vsLastWeek: number | null = null,
 ): QuranRecitationWeekSummary {
   return {
     weekDays: week.weekDays,
@@ -231,7 +237,20 @@ function cycleWeekToSummary(
     frequency,
     streakDays: week.streakDays,
     motivationalQuoteKey: MOTIVATIONAL_QUOTE_KEY,
+    vsLastWeek,
   };
+}
+
+/** Week 1 → null; weeks 2–4 → current completed − previous completed. */
+export function getRecitationVsLastWeek(
+  weeks: RecitationCycleWeekRecord[],
+  weekIndex: number,
+): number | null {
+  if (weekIndex <= 0) return null;
+  const current = weeks[weekIndex];
+  const previous = weeks[weekIndex - 1];
+  if (!current || !previous) return null;
+  return current.completed - previous.completed;
 }
 
 const DAILY_CYCLE_WEEKS: RecitationCycleWeekRecord[] = [
@@ -514,6 +533,8 @@ export function getDailySurahRecitationWeekSummary(
     week,
     goal?.quantity ?? cycle.dailyTarget,
     "daily",
+    undefined,
+    getRecitationVsLastWeek(surahWeeks, clampedIndex),
   );
 }
 
@@ -589,6 +610,7 @@ export function cycleSummaryToWeekSummary(
 ): QuranRecitationWeekSummary {
   const clampedIndex = clampRecitationWeekIndex(weekIndex, cycle);
   const week = cycle.weeks[clampedIndex];
+  const vsLastWeek = getRecitationVsLastWeek(cycle.weeks, clampedIndex);
 
   if (cycle.type === "weekly") {
     return cycleWeekToSummary(
@@ -596,10 +618,17 @@ export function cycleSummaryToWeekSummary(
       cycle.weeklyTarget,
       "weekly",
       cycle.weeklyTarget,
+      vsLastWeek,
     );
   }
 
-  return cycleWeekToSummary(week, cycle.dailyTarget, "daily");
+  return cycleWeekToSummary(
+    week,
+    cycle.dailyTarget,
+    "daily",
+    undefined,
+    vsLastWeek,
+  );
 }
 
 /** @deprecated Use getQuranRecitationCycleSummary + cycleSummaryToWeekSummary */

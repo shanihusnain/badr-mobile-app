@@ -3,6 +3,7 @@ import { Pressable, Text, TouchableOpacity, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "@/constants/theme";
+import { QuranRecitationBySurahFlowCardImage } from "@/assets/icons";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import { GoalData } from "../../home/components/goalsData";
 import QuranRecitationLoggingFlow from "../flows/QuranRecitationLoggingFlow";
@@ -11,7 +12,7 @@ import {
   type SurahRecitationGoal,
 } from "../quranRecitationSurahGoals";
 import type { QuranRecitationLogEntry } from "../types";
-import { styles } from "./DailyProgressLogging.styles";
+import { FLOW_CARD_HEIGHT, styles } from "./DailyProgressLogging.styles";
 import { surahGoalStyles } from "./SurahRecitationGoals.styles";
 
 type Props = {
@@ -37,7 +38,7 @@ export function SurahRecitationGoalCard({
 }: Props) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
-  console.log("goal", goal);
+
   const statusLabel = useMemo(() => {
     switch (goal.status) {
       case "not-started":
@@ -51,12 +52,56 @@ export function SurahRecitationGoalCard({
     }
   }, [formatNumber, goal.achievementPercent, goal.status, t]);
 
-  const frequencyText = t(
+  const quantityLabel = formatNumber(goal.quantity);
+  const cycleTotalLabel = formatNumber(goal.cycleTotal);
+
+  const frequencyLine = t(
     goal.frequency === "daily"
       ? "progressLogging.surahTimesDaily"
       : "progressLogging.surahTimesWeekly",
-    { count: formatNumber(goal.quantity) },
+    { count: quantityLabel },
   );
+
+  const totalLine = `(${t("progressLogging.total")} ${cycleTotalLabel} ${t(
+    "progressLogging.unitRecitations",
+  )})`;
+
+  const renderLineWithBoldNumber = (
+    line: string,
+    number: string,
+    keepOnOneLine = false,
+  ) => {
+    const index = line.indexOf(number);
+    if (index < 0) {
+      return (
+        <Text
+          style={surahGoalStyles.metaRegular}
+          numberOfLines={keepOnOneLine ? 1 : undefined}
+          adjustsFontSizeToFit={keepOnOneLine}
+          minimumFontScale={0.85}
+        >
+          {line}
+        </Text>
+      );
+    }
+
+    return (
+      <Text
+        style={surahGoalStyles.metaText}
+        numberOfLines={keepOnOneLine ? 1 : undefined}
+        adjustsFontSizeToFit={keepOnOneLine}
+        minimumFontScale={0.85}
+      >
+        <Text style={surahGoalStyles.metaRegular}>
+          {line.slice(0, index)}
+        </Text>
+        <Text style={surahGoalStyles.metaBold}>{number}</Text>
+        <Text style={surahGoalStyles.metaRegular}>
+          {line.slice(index + number.length)}
+        </Text>
+      </Text>
+    );
+  };
 
   const handleLogProgress = () => {
     onStartFlow(goal.id);
@@ -71,11 +116,11 @@ export function SurahRecitationGoalCard({
   return (
     <View
       style={[
-        { width: cardWidth },
+        { width: cardWidth, height: FLOW_CARD_HEIGHT },
         isFlowActive ? styles.activeSection : undefined,
       ]}
     >
-      <View style={[styles.cardAnchor, { width: "100%" }]}>
+      <View style={surahGoalStyles.cardAnchor}>
         {isFlowActive && (
           <Pressable style={styles.backdrop} onPress={onFlowClose} />
         )}
@@ -93,32 +138,47 @@ export function SurahRecitationGoalCard({
           <View
             style={[
               surahGoalStyles.card,
-              { width: "100%" },
               isInView
                 ? surahGoalStyles.cardActive
                 : surahGoalStyles.cardInactive,
             ]}
           >
             <View style={surahGoalStyles.cardContent}>
-              <View style={surahGoalStyles.statusChip}>
-                <Text style={surahGoalStyles.statusChipText}>
-                  {statusLabel}
-                </Text>
-              </View>
+              <View style={surahGoalStyles.bodyRow}>
+                <View style={surahGoalStyles.iconCircle}>
+                  <QuranRecitationBySurahFlowCardImage
+                    size={20}
+                    color={Colors.light.white}
+                  />
+                </View>
 
-              <Text style={surahGoalStyles.surahName}>
-                {t("progressLogging.surahNameLabel", { name: goal.surahName })}
-              </Text>
-              <Text style={surahGoalStyles.frequencyText}>{frequencyText}</Text>
-              <Text style={surahGoalStyles.totalText}>
-                {t("progressLogging.surahTotalRecitations", {
-                  total: formatNumber(goal.cycleTotal),
-                })}
-              </Text>
+                <View style={surahGoalStyles.textColumn}>
+                  <View style={surahGoalStyles.statusChip}>
+                    <Text style={surahGoalStyles.statusChipText}>
+                      {statusLabel}
+                    </Text>
+                  </View>
+
+                  <View style={surahGoalStyles.textLines}>
+                    <Text style={surahGoalStyles.surahName}>
+                      {t("progressLogging.surahNameLabel", {
+                        name: goal.surahName,
+                      })}
+                    </Text>
+
+                    {renderLineWithBoldNumber(frequencyLine, quantityLabel)}
+                    {renderLineWithBoldNumber(
+                      totalLine,
+                      cycleTotalLabel,
+                      true,
+                    )}
+                  </View>
+                </View>
+              </View>
             </View>
 
             <TouchableOpacity
-              style={styles.addButton}
+              style={surahGoalStyles.addButton}
               onPress={handleLogProgress}
               activeOpacity={0.8}
             >

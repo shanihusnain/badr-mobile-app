@@ -46,6 +46,7 @@ import tahiyyatmasjiddetailimage from "./tahiyyatmasjiddetailimage.png";
 import sunnahrawatibdetailimage from "./sunnahrawatibdetailimage.png";
 import missedprayerdetailimage from "./missedprayerdetailimage.png";
 import shukarprayerdetailimage from "./shukarprayerdetailimage.jpg";
+import quranrecitationbysurahbackgroundimage from "./quranrecitationbysurahbackgroundimage.jpg";
 import BadrTreeImage from "./badrtreeimage.png";
 export {
   Icon,
@@ -82,6 +83,7 @@ export {
   sunnahrawatibdetailimage,
   missedprayerdetailimage,
   shukarprayerdetailimage,
+  quranrecitationbysurahbackgroundimage,
   quranlisteningbottomsheetimage,
   quranrecitationbottomsheetimage,
   quranmemorizationbottomsheetimage,

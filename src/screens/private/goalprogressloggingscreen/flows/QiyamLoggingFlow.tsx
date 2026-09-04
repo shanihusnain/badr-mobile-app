@@ -236,7 +236,7 @@ const timingStepStyles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
     fontSize: 10,
-    lineHeight: 13,
+    lineHeight: 11,
     opacity: 0.8,
     textAlign: "left",
     alignSelf: "stretch",
@@ -346,7 +346,7 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
   const [durationMinutes, setDurationMinutes] = useState("0");
   const [prayedWitr, setPrayedWitr] = useState<"Yes" | "No">("No");
   const [concludedWithWitr, setConcludedWithWitr] = useState<"Yes" | "No">(
-    "No",
+    "Yes",
   );
 
   const {
@@ -572,7 +572,7 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
     setDurationHours("0");
     setDurationMinutes("0");
     setPrayedWitr("No");
-    setConcludedWithWitr("No");
+    setConcludedWithWitr("Yes");
     setIsPeriodDropdownOpen(false);
   }, []);
 

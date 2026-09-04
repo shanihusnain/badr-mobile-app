@@ -205,7 +205,7 @@ export function mapQiyamFrameWeekDays(
       isBestDay: Boolean(day.isBestDay),
       isMenstruation: Boolean(day.isMenstruationDay),
       isFuture,
-      isToday: day.isToday,
+      isToday: Boolean(day.isToday),
       loggedTime,
       gender: normalizeQiyamDayGender(day, gender),
       isWitrPending: resolveQiyamWitrPending(day, hasLog),

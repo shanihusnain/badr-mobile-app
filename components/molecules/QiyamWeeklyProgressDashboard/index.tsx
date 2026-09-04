@@ -77,6 +77,7 @@ type DayIconProps = {
   size: number;
   isBestDayVisible: boolean;
   isGoalCompleted: boolean;
+  isToday?: boolean;
 };
 
 function QiyamDayIcon({
@@ -84,12 +85,12 @@ function QiyamDayIcon({
   size,
   isBestDayVisible,
   isGoalCompleted,
+  isToday = false,
 }: DayIconProps) {
   const isBlurredFuture = Boolean(day.isFuture && isGoalCompleted);
   const circleSize = isBestDayVisible ? size + BEST_DAY_SIZE_BOOST : size;
   const iconSize = Math.max(18, Math.round(circleSize * 0.52));
   const hasLog = resolveHasLog(day);
-  console.log("day", day);
   const innerSizeStyle = {
     width: circleSize,
     height: circleSize,
@@ -112,6 +113,9 @@ function QiyamDayIcon({
     ringStyle = styles.ringMissedFlexible;
   } else if (hasLog || day.loggedTime) {
     ringStyle = day.isWitrPending ? styles.ringWitrPending : styles.ringLogged;
+  } else if (isToday) {
+    // Today with no activity — darker circle inside the selected chip (Figma Sat).
+    ringStyle = styles.ringTodayEmpty;
   }
 
   return (
@@ -262,6 +266,7 @@ export function QiyamWeeklyProgressDashboard({
   vsLastWeek = null,
   motivationalQuote = "",
   defaultMotivationalQuote = "",
+  selectedDayIndex,
   onDayPress,
   onPrevWeek,
   onNextWeek,
@@ -301,7 +306,9 @@ export function QiyamWeeklyProgressDashboard({
         <>
       <View style={styles.daysRow}>
         {displayWeekDays.map((day, index) => {
-          const isToday = day?.isToday === true;
+          const isToday =
+            day?.isToday === true ||
+            (selectedDayIndex != null && selectedDayIndex === index);
           const hasLog = resolveHasLog(day);
           const isFuture = !!day.isFuture;
           const isBlurredFuture = isGoalCompleted && isFuture;
@@ -382,6 +389,7 @@ export function QiyamWeeklyProgressDashboard({
                   size={ringSize}
                   isBestDayVisible={isBestDayVisible}
                   isGoalCompleted={isGoalCompleted}
+                  isToday={isToday}
                 />
                 <TopSpace top={10} />
                 <Text
@@ -559,6 +567,11 @@ const styles = StyleSheet.create({
   },
   ringEmpty: {
     backgroundColor: "rgba(255, 255, 255, 0.18)",
+  },
+  ringTodayEmpty: {
+    backgroundColor: Colors.light.greybuttonBackground,
+    borderWidth: 1.2,
+    borderColor: "rgba(255, 255, 255, 0.28)",
   },
   blurredDayIconWrap: {
     opacity: 0.28,

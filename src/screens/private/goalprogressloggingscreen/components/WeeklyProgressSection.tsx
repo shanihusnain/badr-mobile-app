@@ -385,11 +385,20 @@ export function WeeklyProgressSection({
         );
         const baseWeek = cycleSummaryToWeekSummary(recitationCycle, weekIndex);
         if (item) {
+          const previousItem =
+            weekIndex > 0
+              ? getWeeklySurahDashboardItemForSurah(activeSurahId, weekIndex - 1)
+              : undefined;
           return {
             ...baseWeek,
             totalRecitationsThisWeek: item.completedThisWeek,
             weekRecitationTarget: item.weeklyTarget,
             frequency: "weekly" as const,
+            vsLastWeek:
+              weekIndex <= 0
+                ? null
+                : item.completedThisWeek -
+                  (previousItem?.completedThisWeek ?? 0),
           };
         }
       } else {
@@ -774,6 +783,7 @@ export function WeeklyProgressSection({
         surahContextLabel={activeRecitationSurahName}
         lockSurahSelection={isSurahRecitationGoalId(goalData.id)}
         streakDays={quranRecitationWeek.streakDays}
+        vsLastWeek={quranRecitationWeek.vsLastWeek ?? null}
         motivationalQuote={t(quranRecitationWeek.motivationalQuoteKey)}
         onPrevWeek={
           canNavigateRecitationWeek(weekIndex, recitationCycle, "prev")

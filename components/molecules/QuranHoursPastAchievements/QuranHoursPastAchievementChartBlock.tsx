@@ -223,16 +223,21 @@ function BarConnectorLine({
   const DOT_RADIUS = 4;
 
   // Collect (x, y) points — line tracks `lineValue` (nights) or completed bar level
-  const points: { x: number; y: number }[] = barCenterXs.map((x, i) => {
-    const item = chartData[i] as QuranPastChartItem & { lineValue?: number };
-    const lineValue = item?.lineValue;
-    const value =
-      lineValue != null ? lineValue : (item?.completedHours ?? 0);
-    const normalized =
-      lineValue != null ? value / yMax : value / 2 / yMax;
-    const y = chartBounds.bottom - normalized * chartHeight;
-    return { x, y };
-  });
+  const points: { x: number; y: number; value: number }[] = barCenterXs.map(
+    (x, i) => {
+      const item = chartData[i] as QuranPastChartItem & { lineValue?: number };
+      const lineValue = item?.lineValue;
+      const value =
+        lineValue != null ? lineValue : (item?.completedHours ?? 0);
+      const normalized =
+        lineValue != null ? value / yMax : value / 2 / yMax;
+      const y = chartBounds.bottom - normalized * chartHeight;
+      return { x, y, value };
+    },
+  );
+
+  // No line when every point is empty (no nights / no completed data).
+  if (!points.some((point) => point.value > 0)) return null;
 
   // Build a path connecting all points
   const linePath = Skia.Path.Make();
@@ -438,6 +443,21 @@ export function QuranHoursPastAchievementChartBlock({
   const plotLeft = chartBounds?.left ?? 48;
   const plotRight = chartBounds?.right ?? 280;
 
+  // Y-axis is derived from bar heights — hide it when there is nothing to plot.
+  const hasGraphData = chartData.some(
+    (item) =>
+      (Number(item.stackTotalHours) || 0) > 0 ||
+      (Number(item.completedHours) || 0) > 0 ||
+      (Number(item.incompleteHours) || 0) > 0,
+  );
+  // Qiyam nights line — only draw when at least one point has a real value.
+  const hasBarLineData = chartData.some((item) => {
+    const lineValue = (item as QuranPastChartItem & { lineValue?: number })
+      .lineValue;
+    if (lineValue != null) return Number(lineValue) > 0;
+    return (Number(item.completedHours) || 0) > 0;
+  });
+
   return (
     <View style={styles.chartSection}>
       <View
@@ -460,7 +480,7 @@ export function QuranHoursPastAchievementChartBlock({
             data={chartData}
             xKey="xLabel"
             yKeys={["completedHours", "incompleteHours"]}
-            domain={{ y: [0, yMax] }}
+            domain={{ y: [0, hasGraphData ? yMax : 1] }}
             padding={{ left: 0, right: 10, top: 22, bottom: 4 }}
             domainPadding={{ left: 48, right: 28, top: 10 }}
             xAxis={{
@@ -469,16 +489,29 @@ export function QuranHoursPastAchievementChartBlock({
               lineColor: "transparent",
               labelColor: "transparent",
             }}
-            yAxis={[
-              {
-                font: axisFont,
-                tickValues: yTicks,
-                formatYLabel: (value) => String(value),
-                labelColor: Colors.light.grey,
-                lineColor: "rgba(160, 160, 160, 0.25)",
-                lineWidth: 1,
-              },
-            ]}
+            yAxis={
+              hasGraphData
+                ? [
+                    {
+                      font: axisFont,
+                      tickValues: yTicks,
+                      formatYLabel: (value) => String(value),
+                      labelColor: Colors.light.grey,
+                      lineColor: "rgba(160, 160, 160, 0.25)",
+                      lineWidth: 1,
+                    },
+                  ]
+                : [
+                    {
+                      font: axisFont,
+                      tickValues: [],
+                      formatYLabel: () => "",
+                      labelColor: "transparent",
+                      lineColor: "transparent",
+                      lineWidth: 0,
+                    },
+                  ]
+            }
             frame={{ lineColor: "transparent" }}
           >
             {({ points, chartBounds: bounds }) => {
@@ -531,7 +564,11 @@ export function QuranHoursPastAchievementChartBlock({
           ) : null}
         </View>
 
-        {showBarLine && chartBounds && barCenterXs.length > 0 ? (
+        {showBarLine &&
+        hasGraphData &&
+        hasBarLineData &&
+        chartBounds &&
+        barCenterXs.length > 0 ? (
           <BarConnectorLine
             barCenterXs={barCenterXs}
             chartData={chartData}

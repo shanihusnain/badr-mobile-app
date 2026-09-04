@@ -12,7 +12,13 @@ import {
   type SurahRecitationGoal,
 } from "../quranRecitationSurahGoals";
 import type { QuranRecitationLogEntry } from "../types";
-import { CARD_GAP, CARD_WIDTH_RATIO } from "./SurahRecitationGoals.styles";
+import { FLOW_CARD_HEIGHT } from "./DailyProgressLogging.styles";
+import {
+  CARD_ANCHOR_PADDING_LEFT,
+  CARD_GAP,
+  FLOW_CARD_WIDTH_RATIO,
+  surahGoalStyles,
+} from "./SurahRecitationGoals.styles";
 import { SurahRecitationGoalCard } from "./SurahRecitationGoalCard";
 import { useOptionalRecitationSurahContext } from "../recitationSurahContext";
 
@@ -42,7 +48,7 @@ export function SurahRecitationGoalsList({
     const frequency = getSurahRecitationCycleMode(goalData.id);
     return allGoals.filter((goal) => goal.frequency === frequency);
   }, [goalData.id]);
-  const cardWidth = screenWidth * CARD_WIDTH_RATIO;
+  const cardWidth = screenWidth * FLOW_CARD_WIDTH_RATIO - CARD_ANCHOR_PADDING_LEFT;
   const [activeGoalId, setActiveGoalId] = useState(
     () => recitationContext?.activeSurahId ?? goals[0]?.id ?? "",
   );
@@ -110,8 +116,8 @@ export function SurahRecitationGoalsList({
       snapToInterval={cardWidth + CARD_GAP}
       snapToAlignment="start"
       removeClippedSubviews={false}
-      style={{ overflow: "visible" }}
-      contentContainerStyle={{ paddingRight: 16 }}
+      style={{ overflow: "visible", height: FLOW_CARD_HEIGHT }}
+      contentContainerStyle={surahGoalStyles.listContent}
     />
   );
 }
