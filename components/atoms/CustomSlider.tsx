@@ -67,8 +67,8 @@ export default function CustomSlider({
 
   // Base dimensions (will be scaled uniformly)
   const baseTrackHeight = 8;
-  const baseRingSize = 7;
-  const baseThumbSize = 16; // 👈 Reduced base size for a smaller, compact white pointer
+  const baseRingSize = 9;
+  const baseThumbSize = 19; // White pointer thumb diameter
 
   // Scaled dimensions
   const trackHeight = baseTrackHeight * scale;

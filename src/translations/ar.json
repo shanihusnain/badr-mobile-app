@@ -149,6 +149,7 @@
     "confirmPasswordRequired": "يرجى تأكيد كلمة المرور",
     "genderRequired": "يرجى اختيار الجنس",
     "dobRequired": "يرجى اختيار تاريخ الميلاد",
+    "dobMinimumAge": "يجب أن يكون عمرك {{age}} سنة على الأقل",
     "countryRequired": "يرجى اختيار الدولة",
     "dateViewRequired": "يرجى اختيار عرض التاريخ",
     "weekRequired": "يرجى اختيار بداية الأسبوع",
@@ -438,6 +439,8 @@
     "afterIshaHeading": "بعد العشاء (ركعتان)",
     "oneRakahOption": "صلاة ركعتين",
     "twoRakahOption": "صلاتين ركعتين (أربع ركعات)",
+    "onePrayerOption": "صلاة واحدة",
+    "twoPrayerOption": "صلاتان",
     "sunnahSuffix": " صلاة سنن رواتب"
   },
   "progressLogging": {

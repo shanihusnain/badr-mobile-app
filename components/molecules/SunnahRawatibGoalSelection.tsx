@@ -286,15 +286,15 @@ export default function SunnahRawatibGoalSelection({
           <View style={styles.sliderGroup}>
             <SliderHeading text={t("prayerGoals.afterDhuhrHeading")} />
             <TopSpace top={20} />
-            <View style={styles.radioRow}>
+            <View style={[styles.radioRow, styles.radioRowCentered]}>
               <RadioOption
                 selected={afterDuhrOption === "one"}
-                label={t("prayerGoals.oneRakahOption")}
+                label={t("prayerGoals.onePrayerOption")}
                 onPress={() => handleAfterDuhrOptionChange("one")}
               />
               <RadioOption
                 selected={afterDuhrOption === "two"}
-                label={t("prayerGoals.twoRakahOption")}
+                label={t("prayerGoals.twoPrayerOption")}
                 onPress={() => handleAfterDuhrOptionChange("two")}
               />
             </View>
@@ -329,16 +329,16 @@ export default function SunnahRawatibGoalSelection({
               style={!isBeforeAsarEnabled ? styles.disabledControls : undefined}
               pointerEvents={isBeforeAsarEnabled ? "auto" : "none"}
             >
-              <View style={styles.radioRow}>
+              <View style={[styles.radioRow, styles.radioRowCentered]}>
                 <RadioOption
                   selected={isBeforeAsarEnabled && beforeAsarOption === "one"}
-                  label={t("prayerGoals.oneRakahOption")}
+                  label={t("prayerGoals.onePrayerOption")}
                   onPress={() => handleBeforeAsarOptionChange("one")}
                   disabled={!isBeforeAsarEnabled}
                 />
                 <RadioOption
                   selected={isBeforeAsarEnabled && beforeAsarOption === "two"}
-                  label={t("prayerGoals.twoRakahOption")}
+                  label={t("prayerGoals.twoPrayerOption")}
                   onPress={() => handleBeforeAsarOptionChange("two")}
                   disabled={!isBeforeAsarEnabled}
                 />
@@ -470,6 +470,9 @@ const styles = StyleSheet.create({
     gap: 20,
     marginBottom: 12,
     width: "100%",
+  },
+  radioRowCentered: {
+    justifyContent: "center",
   },
   radioOption: {
     flexDirection: "row",

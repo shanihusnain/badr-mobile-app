@@ -36,8 +36,7 @@ const MONTHS = [
   "December",
 ];
 
-const CURRENT_YEAR = new Date().getFullYear();
-const YEARS = Array.from({ length: 100 }, (_, i) => String(CURRENT_YEAR - i));
+const MINIMUM_AGE_YEARS = 13;
 
 type DropdownType = "month" | "year" | null;
 
@@ -50,6 +49,8 @@ interface DOBCalendarProps {
   onSave?: (date: string) => void;
   /** Called when Cancel is pressed. */
   onCancel?: () => void;
+  /** Minimum allowed age in years. Defaults to 13. */
+  minimumAgeYears?: number;
 }
 
 const parseCalendarDate = (value?: string): Date | null => {
@@ -69,15 +70,31 @@ const parseCalendarDate = (value?: string): Date | null => {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export const DOBCalendar = ({ onSave, onCancel, value }: DOBCalendarProps) => {
-  const today = new Date();
+export const DOBCalendar = ({
+  onSave,
+  onCancel,
+  value,
+  minimumAgeYears = MINIMUM_AGE_YEARS,
+}: DOBCalendarProps) => {
+  // Allow the full cutoff year (e.g. all of 2013 when "13+" means born in 2013 or earlier).
+  // Do not clamp to today's month/day inside that year.
+  const maxAllowedDate = moment()
+    .subtract(minimumAgeYears, "years")
+    .endOf("year");
+  const maxAllowedDateString = maxAllowedDate.format("YYYY-MM-DD");
+  const defaultViewDate = moment().subtract(minimumAgeYears, "years");
   const initialDate = parseCalendarDate(value);
-  const startDate = initialDate ?? today;
+  const startDate =
+    initialDate && moment(initialDate).isSameOrBefore(maxAllowedDate, "day")
+      ? initialDate
+      : defaultViewDate.toDate();
 
   const [currentMonth, setCurrentMonth] = useState(startDate.getMonth());
   const [currentYear, setCurrentYear] = useState(startDate.getFullYear());
   const [selectedDate, setSelectedDate] = useState<string | undefined>(
-    initialDate ? moment(initialDate).format("YYYY-MM-DD") : undefined,
+    initialDate && moment(initialDate).isSameOrBefore(maxAllowedDate, "day")
+      ? moment(initialDate).format("YYYY-MM-DD")
+      : undefined,
   );
   const [openDropdown, setOpenDropdown] = useState<DropdownType>(null);
   const [dropdownAnchor, setDropdownAnchor] = useState<{
@@ -92,9 +109,14 @@ export const DOBCalendar = ({ onSave, onCancel, value }: DOBCalendarProps) => {
   const rootRef = useRef<View>(null);
 
   const currentDate = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-01`;
-  const todayString = moment().format("YYYY-MM-DD");
+  const yearOptions = Array.from({ length: 100 }, (_, i) =>
+    String(maxAllowedDate.year() - i),
+  );
 
   const handleDayPress = (dateString: string) => {
+    if (moment(dateString, "YYYY-MM-DD").isAfter(maxAllowedDate, "day")) {
+      return;
+    }
     setSelectedDate(dateString);
     const picked = moment(dateString, "YYYY-MM-DD");
     setCurrentMonth(picked.month());
@@ -119,14 +141,24 @@ export const DOBCalendar = ({ onSave, onCancel, value }: DOBCalendarProps) => {
   };
 
   const selectMonth = (index: number) => {
+    const next = moment({ year: currentYear, month: index, day: 1 });
+    if (next.isAfter(maxAllowedDate, "month")) return;
     setCurrentMonth(index);
     setOpenDropdown(null);
   };
   const selectYear = (year: string) => {
-    setCurrentYear(Number(year));
+    const nextYear = Number(year);
+    if (nextYear > maxAllowedDate.year()) return;
+    setCurrentYear(nextYear);
+    if (
+      nextYear === maxAllowedDate.year() &&
+      currentMonth > maxAllowedDate.month()
+    ) {
+      setCurrentMonth(maxAllowedDate.month());
+    }
     setOpenDropdown(null);
   };
-  const dropdownData = openDropdown === "month" ? MONTHS : YEARS;
+  const dropdownData = openDropdown === "month" ? MONTHS : yearOptions;
 
   // ── Month navigation ────────────────────────────────────────────────────────
 
@@ -137,6 +169,11 @@ export const DOBCalendar = ({ onSave, onCancel, value }: DOBCalendarProps) => {
     } else setCurrentMonth((m) => m - 1);
   };
   const goToNextMonth = () => {
+    const next =
+      currentMonth === 11
+        ? moment({ year: currentYear + 1, month: 0, day: 1 })
+        : moment({ year: currentYear, month: currentMonth + 1, day: 1 });
+    if (next.isAfter(maxAllowedDate, "month")) return;
     if (currentMonth === 11) {
       setCurrentMonth(0);
       setCurrentYear((y) => y + 1);
@@ -183,7 +220,11 @@ export const DOBCalendar = ({ onSave, onCancel, value }: DOBCalendarProps) => {
   // ── OK / Cancel ─────────────────────────────────────────────────────────────
 
   const handleOk = () => {
-    if (selectedDate) onSave?.(selectedDate);
+    if (!selectedDate) return;
+    if (moment(selectedDate, "YYYY-MM-DD").isAfter(maxAllowedDate, "day")) {
+      return;
+    }
+    onSave?.(selectedDate);
   };
   const handleCancel = () => {
     setSelectedDate(undefined);
@@ -266,50 +307,52 @@ export const DOBCalendar = ({ onSave, onCancel, value }: DOBCalendarProps) => {
         <Text style={styles.islamicDateText}>{islamicDateLabel}</Text>
       </View>
 
-      {/* ── Calendar grid ── */}
+      {/* ── Calendar grid + OK / Cancel ── */}
       <CalendarGrid
         mode="dob"
         currentDate={currentDate}
         selectedDate={selectedDate}
-        maxDate={todayString}
+        maxDate={maxAllowedDateString}
         onDayPress={handleDayPress}
-      />
-
-      {/* ── Footer: OK / Cancel ── */}
-      <View style={styles.footer}>
-        <View style={styles.actionRow}>
-          <TouchableOpacity
-            style={[
-              styles.okBtn,
-              !selectedDate && styles.cancelBtnDisabled,
-              {
-                borderWidth: !selectedDate ? 0 : 1,
-              },
-            ]}
-            onPress={handleOk}
-            activeOpacity={0.7}
-            disabled={!selectedDate}
-          >
-            <Text
+        borderBottomLeftRadius={12}
+        borderBottomRightRadius={12}
+        footer={
+          <View style={styles.actionRow}>
+            <TouchableOpacity
               style={[
-                styles.okText,
+                styles.okBtn,
+                !selectedDate && styles.cancelBtnDisabled,
                 {
-                  color: !selectedDate ? Colors.light.grey : Colors.light.green,
+                  borderWidth: !selectedDate ? 0 : 1,
                 },
               ]}
+              onPress={handleOk}
+              activeOpacity={0.7}
+              disabled={!selectedDate}
             >
-              Ok
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.cancelBtn, !selectedDate && styles.okBtnDisabled]}
-            onPress={handleCancel}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.cancelText}>Cancel</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+              <Text
+                style={[
+                  styles.okText,
+                  {
+                    color: !selectedDate
+                      ? Colors.light.white
+                      : Colors.light.green,
+                  },
+                ]}
+              >
+                Ok
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.cancelBtn, !selectedDate && styles.okBtnDisabled]}
+              onPress={handleCancel}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.cancelText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        }
+      />
 
       {/* ── Dropdown modal ── */}
       <Modal
@@ -463,14 +506,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
 
-  footer: {
-    backgroundColor: Colors.light.calendarBg,
-    borderBottomLeftRadius: 12,
-    borderBottomRightRadius: 12,
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 16,
-  },
   actionRow: {
     flexDirection: "row",
 
@@ -494,9 +529,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  cancelBtnDisabled: { opacity: 0.4 },
+  cancelBtnDisabled: { opacity: 0.70 },
 
-  okBtnDisabled: { opacity: 0.4 },
+  okBtnDisabled: { opacity: 0.70 },
   okText: {
     color: Colors.light.white,
     fontSize: 12,

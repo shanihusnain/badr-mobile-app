@@ -157,6 +157,7 @@ const styles = StyleSheet.create({
   },
   icon: {
     marginLeft: 4,
+    marginTop: -3,
   },
   divider: {
     height: 1,

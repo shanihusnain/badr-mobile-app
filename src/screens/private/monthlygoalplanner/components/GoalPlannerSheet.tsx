@@ -4050,6 +4050,8 @@ const styles = StyleSheet.create({
   },
   // ── Footer & Review styles
   footerContainer: {
+    width: "92%",
+    alignSelf: "center",
     paddingVertical: 20,
   },
 });
