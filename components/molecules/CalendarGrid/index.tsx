@@ -827,6 +827,7 @@ export const CalendarGrid = ({
           style={[
             styles.dayCell,
             mode === "cycle_start" && styles.cycleStartDayCell,
+            mode === "dob" && styles.dobDayCell,
             mode !== "cycle_start" ? cellBg : null,
             { opacity: cellOpacity },
           ]}
@@ -952,6 +953,7 @@ export const CalendarGrid = ({
                 style={[
                   styles.weekdayLabel,
                   isCycleStartMode && styles.cycleStartWeekdayLabel,
+                  mode === "dob" && styles.dobWeekdayLabel,
                 ]}
               >
                 {t(key as any)}
@@ -975,6 +977,7 @@ export const CalendarGrid = ({
                       style={[
                         styles.paddingDayCell,
                         isCycleStartMode && styles.cycleStartPaddingDayCell,
+                        mode === "dob" && styles.dobPaddingDayCell,
                       ]}
                     />
                   )}
@@ -987,7 +990,9 @@ export const CalendarGrid = ({
               style={
                 isCycleStartMode
                   ? styles.cycleStartFooter
-                  : styles.calendarFooter
+                  : mode === "dob"
+                    ? styles.dobFooter
+                    : styles.calendarFooter
               }
             >
               {footer}
@@ -1024,6 +1029,10 @@ const styles = StyleSheet.create({
   },
   calendarFooter: {
     paddingTop: 12,
+    paddingBottom: 16,
+  },
+  dobFooter: {
+    paddingTop: 24,
     paddingBottom: 16,
   },
   cycleStartFooter: {
@@ -1071,6 +1080,17 @@ const styles = StyleSheet.create({
     borderRadius: 0,
     marginBottom: 7,
   },
+  /** DOB: shorter rows (same width), tighter vertical gap */
+  dobDayCell: {
+    height: 44,
+    marginBottom: 2,
+  },
+  dobPaddingDayCell: {
+    height: 40,
+  },
+  dobWeekdayLabel: {
+    marginBottom: 4,
+  },
   dayMarkerWrap: {
     width: DAY_MARKER_SLOT_WIDTH,
     height: DAY_MARKER_SLOT_HEIGHT,
@@ -1113,7 +1133,7 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
-    lineHeight: 20,
+    lineHeight: 14,
     textAlign: "center",
   },
   dayGregorianAboveDot: {
@@ -1123,8 +1143,8 @@ const styles = StyleSheet.create({
   dayHijri: {
     fontSize: 10,
     color: Colors.light.grey,
-    marginTop: 4,
-    lineHeight: 18,
+    marginTop: 0,
+    lineHeight: 12,
     fontWeight: "400",
     fontFamily: fonts.primary.regular,
     textAlign: "center",

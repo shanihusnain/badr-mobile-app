@@ -320,7 +320,8 @@ export default function createStyles() {
       fontSize: 12,
     },
     btnWrapper: {
-      width: "100%",
+      width: "92%",
+      alignSelf: "center",
       marginTop: hp(3),
       zIndex: 1000,
       borderRadius: 28,

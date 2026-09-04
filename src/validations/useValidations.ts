@@ -1,5 +1,28 @@
 import z from "zod";
 import { useTranslation } from "react-i18next";
+import moment from "moment-hijri";
+
+const MINIMUM_SIGNUP_AGE_YEARS = 13;
+
+const parseDobMoment = (value: string) => {
+  if (!value) return null;
+  if (value.includes("/")) {
+    const parsed = moment(value, "DD/MM/YYYY", true);
+    return parsed.isValid() ? parsed : null;
+  }
+  const parsed = moment(value, "YYYY-MM-DD", true);
+  return parsed.isValid() ? parsed : null;
+};
+
+const isAtLeastMinimumAge = (value: string) => {
+  const dob = parseDobMoment(value);
+  if (!dob) return false;
+  // Full cutoff year is allowed (e.g. any date in 2013 when min age is 13 in 2026).
+  const maxAllowedDob = moment()
+    .subtract(MINIMUM_SIGNUP_AGE_YEARS, "years")
+    .endOf("year");
+  return dob.isSameOrBefore(maxAllowedDob, "day");
+};
 
 export const useValidations = () => {
   const { t } = useTranslation();
@@ -16,6 +39,15 @@ export const useValidations = () => {
       t("validations.mustContainSpecialChar"),
     );
 
+  const dobSchema = z
+    .string()
+    .min(1, t("validations.dobRequired"))
+    .refine(isAtLeastMinimumAge, {
+      message: t("validations.dobMinimumAge", {
+        age: MINIMUM_SIGNUP_AGE_YEARS,
+      }),
+    });
+
   const createAccountSchema = z
     .object({
       name: z.string().min(1, t("validations.nameRequired")),
@@ -28,7 +60,7 @@ export const useValidations = () => {
         .min(1, t("validations.emailRequired"))
         .email(t("validations.invalidEmail")),
       gender: z.string().min(1, t("validations.genderRequired")),
-      dob: z.string().min(1, t("validations.dobRequired")),
+      dob: dobSchema,
       country: z.string().min(1, t("validations.countryRequired")),
       dateView: z.string().min(1, t("validations.dateViewRequired")),
       week: z.string().min(1, t("validations.weekRequired")),
@@ -48,7 +80,7 @@ export const useValidations = () => {
       .min(1, t("validations.emailRequired"))
       .email(t("validations.invalidEmail")),
     gender: z.string().min(1, t("validations.genderRequired")),
-    dob: z.string().min(1, t("validations.dobRequired")),
+    dob: dobSchema,
     country: z.string().min(1, t("validations.countryRequired")),
     dateView: z.string().min(1, t("validations.dateViewRequired")),
     week: z.string().min(1, t("validations.weekRequired")),

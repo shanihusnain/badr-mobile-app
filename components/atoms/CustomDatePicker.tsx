@@ -27,6 +27,8 @@ interface CustomDatePickerProps {
   textStyle?: TextStyle;
   minimumDate?: Date;
   maximumDate?: Date;
+  /** Minimum allowed age for DOB. Defaults to 13. */
+  minimumAgeYears?: number;
 }
 
 const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
@@ -40,6 +42,7 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
   textStyle,
   minimumDate,
   maximumDate,
+  minimumAgeYears = 13,
 }) => {
   const [show, setShow] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null | string>("");
@@ -114,6 +117,7 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
               <TopSpace top={8} />
               <DOBCalendar
                 value={value ? String(value) : undefined}
+                minimumAgeYears={minimumAgeYears}
                 onSave={(data) => {
                   setSelectedDate(data);
                   onChange(data);
