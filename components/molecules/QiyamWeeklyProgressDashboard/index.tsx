@@ -398,6 +398,8 @@ export function QiyamWeeklyProgressDashboard({
                     { color: labelColor },
                   ]}
                   numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.65}
                 >
                   {loading ? "---" : isBestDayVisible ? "BEST DAY!" : day.day}
                 </Text>
@@ -523,7 +525,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   dayItemBestDay: {
-    width: "120%",
+    width: "100%",
   },
   deletingBestDay: {
     borderWidth: 1,
@@ -531,7 +533,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     backgroundColor: Colors.light.dullRed,
     zIndex: 99999,
-    width: "125%",
+    width: "100%",
   },
   ringOuter: {
     alignItems: "center",
@@ -583,8 +585,8 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.bold,
     textAlign: "center",
     marginTop: 4,
-    width: 64,
-    marginHorizontal: -14,
+    width: "100%",
+    overflow: "hidden",
   },
   dayLabel: {
     color: Colors.light.subtext,

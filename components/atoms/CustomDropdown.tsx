@@ -221,8 +221,8 @@ const styles = StyleSheet.create({
   },
   trigger: {
     backgroundColor: Colors.light.greybuttonBackground,
-    borderRadius: 8,
-    paddingHorizontal: 16,
+    borderRadius: 6,
+    paddingHorizontal: 12,
     height: 48,
     width: "100%",
     marginTop: hp(1),
@@ -247,10 +247,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   placeholderText: {
-    color: Colors.light.placeholder,
-    fontFamily: fonts.primary.medium,
-    fontWeight: "500",
-    fontSize: 15,
+    color: Colors.light.icon,
+    fontFamily: fonts.primary.semiBold,
+    fontSize: 12,
   },
   optionIcon: {
     fontSize: 14,

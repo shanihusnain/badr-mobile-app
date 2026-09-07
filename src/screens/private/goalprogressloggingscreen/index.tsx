@@ -52,7 +52,7 @@ import {
   tawbahprayerdetailimage,
   istikharaprayerdetailimage,
   shukarprayerdetailimage,
-  qiyamallayldetailimage,
+  qiyamallaylflowbackgroundimage,
   sunnahrawatibdetailimage,
   fivedailyprayerdetailimage,
   quranrecitationbysurahbackgroundimage,
@@ -91,7 +91,7 @@ function getLoggingBackgroundSource(
     case "shukr-prayer":
       return shukarprayerdetailimage;
     case "qiyam-al-layl":
-      return qiyamallayldetailimage;
+      return qiyamallaylflowbackgroundimage;
     case "sunnah-rawatib":
       return sunnahrawatibdetailimage;
     case "quran-hours":

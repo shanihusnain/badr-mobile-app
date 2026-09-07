@@ -97,8 +97,8 @@ export function SinglePrayerWeeklyProgressDashboard({
             !!day.date && selectForDeletion === day.date;
           const isBestDayVisible =
             !!day.isBestDay && !isInactiveOutline && !loading;
-          // Overflowing "BEST DAY!" cells need deletion chrome on the
-          // inner wrapper; all other days keep it on the column.
+          // Best-day label is clipped/scaled to the column; deletion chrome
+          // stays on the inner wrapper for best day, column for other days.
           const showColumnDeletion = isMarkedForDeletion && !isBestDayVisible;
           const showWrapperDeletion = isMarkedForDeletion && isBestDayVisible;
 
@@ -167,6 +167,8 @@ export function SinglePrayerWeeklyProgressDashboard({
                     },
                   ]}
                   numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.80}
                 >
                   {loading ? "---" : isBestDayVisible ? "BEST DAY!" : day.day}
                 </Text>
@@ -309,7 +311,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   dayItemBestDay: {
-    width: "120%",
+    width: "108%",
   },
   deletingBestDay: {
     borderWidth: 1,
@@ -317,7 +319,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     backgroundColor: Colors.light.dullRed,
     zIndex: 99999,
-    width: "125%",
+    width: "110%",
   },
   bestDayLabel: {
     color: Colors.light.green,
@@ -326,8 +328,8 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.bold,
     textAlign: "center",
     marginTop: 4,
-    width: 64,
-    marginHorizontal: -14,
+    width: "106%",
+    overflow: "hidden",
   },
   dayLabel: {
     color: Colors.light.subtext,
