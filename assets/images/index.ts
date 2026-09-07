@@ -38,6 +38,7 @@ import lillahdonationbottomsheetimage from "./lillahdonationbottomsheetimage.png
 import volunteeringservicesbottomsheetimage from "./volunteeringservicesbottomsheetimage.png";
 import sadaqahjariyahbottomsheetimage from "./sadaqahjariyahbottomsheetimage.png";
 import qiyamallayldetailimage from "./qiyamallayldetailimage.png";
+import qiyamallaylflowbackgroundimage from "./qiyamallaylflowbackgroundimage.jpg";
 import duhaprayerdetailimage from "./duhaprayerdetailimage.png";
 import istikharaprayerdetailimage from "./istikharaprayerdetailimage.png";
 import tawbahprayerdetailimage from "./tawbahprayerdetailimage.png";
@@ -75,6 +76,7 @@ export {
   fivedailyprayerdetailimage,
   qiyamallaylbottomsheetimage,
   qiyamallayldetailimage,
+  qiyamallaylflowbackgroundimage,
   duhaprayerdetailimage,
   istikharaprayerdetailimage,
   tawbahprayerdetailimage,
