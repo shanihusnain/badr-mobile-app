@@ -1,5 +1,8 @@
 import { getCurrentStartTimeParts } from "@/src/screens/private/goalprogressloggingscreen/components/TimePickerSteps";
-import type { SinglePrayerDayDetail } from "@/src/api/queries/useGetPrayerGoalDayDetail";
+import type {
+  SinglePrayerDayDetail,
+  SinglePrayerDayDetailEntry,
+} from "@/src/api/queries/useGetPrayerGoalDayDetail";
 
 export type PrayerStartTimeParts = {
   hour: string;
@@ -75,16 +78,66 @@ export function durationPartsFromMinutes(
   };
 }
 
+/** Prefer the most recently logged entry when editing a past day. */
+export function getLatestSinglePrayerEntry(
+  detail: SinglePrayerDayDetail | null | undefined,
+): SinglePrayerDayDetailEntry | null {
+  const entries = detail?.entries;
+  if (!Array.isArray(entries) || entries.length === 0) return null;
+
+  let latest: SinglePrayerDayDetailEntry | null = null;
+  let latestTs = Number.NEGATIVE_INFINITY;
+
+  for (const entry of entries) {
+    if (!entry) continue;
+    const ts = entry.loggedAt ? Date.parse(entry.loggedAt) : Number.NaN;
+    if (Number.isFinite(ts)) {
+      if (ts >= latestTs) {
+        latestTs = ts;
+        latest = entry;
+      }
+      continue;
+    }
+    if (!latest) latest = entry;
+  }
+
+  return latest;
+}
+
 export function readSinglePrayerLoggedCount(
   detail: SinglePrayerDayDetail | null | undefined,
 ): number {
   if (!detail) return 0;
+
+  const dayLogged = detail.day?.loggedCount;
+  if (typeof dayLogged === "number" && Number.isFinite(dayLogged)) {
+    return Math.max(0, Math.floor(dayLogged));
+  }
+
   if (typeof detail.loggedCount === "number" && Number.isFinite(detail.loggedCount)) {
     return Math.max(0, Math.floor(detail.loggedCount));
   }
   if (typeof detail.count === "number" && Number.isFinite(detail.count)) {
     return Math.max(0, Math.floor(detail.count));
   }
+
+  const entryCount = detail.day?.entryCount;
+  if (typeof entryCount === "number" && Number.isFinite(entryCount) && entryCount > 0) {
+    return Math.max(0, Math.floor(entryCount));
+  }
+
+  if (Array.isArray(detail.entries) && detail.entries.length > 0) {
+    const summed = detail.entries.reduce((sum, entry) => {
+      const n =
+        typeof entry?.count === "number" && Number.isFinite(entry.count)
+          ? entry.count
+          : 0;
+      return sum + Math.max(0, Math.floor(n));
+    }, 0);
+    if (summed > 0) return summed;
+    return detail.entries.length;
+  }
+
   if (detail.logged === true || detail.hasLoggedAnyPrayer === true) return 1;
   return 0;
 }
@@ -129,11 +182,55 @@ export function buildSinglePrayerDayDetailPrefill(
     };
   }
 
+  const latest = getLatestSinglePrayerEntry(detail);
+
   const startParts =
+    parsePrayerDayDetailStartTime(latest?.prayerStartTime) ??
+    parsePrayerDayDetailStartTime(latest?.startTime) ??
     parsePrayerDayDetailStartTime(detail.prayerStartTime) ??
     parsePrayerDayDetailStartTime(detail.startTime) ??
+    parsePrayerDayDetailStartTime(detail.day?.startTime) ??
     now;
-  const duration = durationPartsFromMinutes(detail.durationMinutes);
+
+  const durationMinutes =
+    (typeof latest?.durationMinutes === "number" &&
+    Number.isFinite(latest.durationMinutes)
+      ? latest.durationMinutes
+      : null) ??
+    (typeof detail.durationMinutes === "number" &&
+    Number.isFinite(detail.durationMinutes)
+      ? detail.durationMinutes
+      : null) ??
+    (typeof detail.day?.totalMinutesSpent === "number" &&
+    Number.isFinite(detail.day.totalMinutesSpent)
+      ? detail.day.totalMinutesSpent
+      : null);
+
+  const duration = durationPartsFromMinutes(durationMinutes);
+
+  let prayedAfterWudhu: boolean | null = null;
+  if (typeof latest?.prayedAfterWudhu === "boolean") {
+    prayedAfterWudhu = latest.prayedAfterWudhu;
+  } else if (typeof detail.prayedAfterWudhu === "boolean") {
+    prayedAfterWudhu = detail.prayedAfterWudhu;
+  } else if (
+    typeof detail.day?.prayedAfterWudhuCount === "number" &&
+    detail.day.prayedAfterWudhuCount > 0
+  ) {
+    prayedAfterWudhu = true;
+  }
+
+  let prayedAfterEntering: boolean | null = null;
+  if (typeof latest?.prayedAfterEntering === "boolean") {
+    prayedAfterEntering = latest.prayedAfterEntering;
+  } else if (typeof detail.prayedAfterEntering === "boolean") {
+    prayedAfterEntering = detail.prayedAfterEntering;
+  } else if (
+    typeof detail.day?.prayedAfterEnteringCount === "number" &&
+    detail.day.prayedAfterEnteringCount > 0
+  ) {
+    prayedAfterEntering = true;
+  }
 
   return {
     count: String(Math.max(1, loggedCount)),
@@ -142,14 +239,8 @@ export function buildSinglePrayerDayDetailPrefill(
     startPeriod: startParts.period,
     durationHours: duration.hours,
     durationMinutes: duration.minutes,
-    prayedAfterWudhu:
-      typeof detail.prayedAfterWudhu === "boolean"
-        ? detail.prayedAfterWudhu
-        : null,
-    prayedAfterEntering:
-      typeof detail.prayedAfterEntering === "boolean"
-        ? detail.prayedAfterEntering
-        : null,
+    prayedAfterWudhu,
+    prayedAfterEntering,
     hasExistingLog: true,
   };
 }

@@ -44,6 +44,7 @@ const login = async ({
     email,
     password,
   });
+  console.log("response of login api call", response.data);
   return response.data;
 };
 

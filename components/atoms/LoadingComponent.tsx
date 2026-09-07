@@ -19,7 +19,7 @@ export const LoadingComponent = ({
     return () => clearInterval(interval);
   }, []);
 
-  const ringSize = size === "small" ? 45 : size === "medium" ? 90 : 145;
+  const ringSize = size === "small" ? 20 : size === "medium" ? 60 : 100;
   const fontSize = size === "small" ? 10 : size === "medium" ? 14 : 28;
 
   return (
@@ -38,8 +38,9 @@ export const LoadingComponent = ({
         borderColor={Colors.light.dullWhiteOpacity}
         size={ringSize}
         variant="illuminated"
+        glowColorOverride={Colors.light.golden}
       >
-        <Text
+        {/* <Text
           style={{
             color: Colors.light.white,
             fontSize,
@@ -50,7 +51,8 @@ export const LoadingComponent = ({
           adjustsFontSizeToFit
         >
           Loading...
-        </Text>
+        </Text> */}
+        <Text></Text>
       </TaperedCircleBorder>
     </View>
   );

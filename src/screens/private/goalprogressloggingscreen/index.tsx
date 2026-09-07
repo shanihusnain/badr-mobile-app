@@ -1,4 +1,10 @@
-import React, { useMemo, useState, useLayoutEffect, useRef } from "react";
+import React, {
+  useMemo,
+  useState,
+  useLayoutEffect,
+  useRef,
+  useCallback,
+} from "react";
 import {
   View,
   Text,
@@ -62,6 +68,7 @@ import {
   quranmemorizationbottomsheetimage,
 } from "@/assets/images";
 import { InformationSheet } from "@/components/molecules/informationsheet";
+import { DeletePrayerGoalOptions } from "@/components/molecules/DeletePrayerLogOptions";
 import { HeaderInfoIcon } from "@/assets/icons";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -417,14 +424,33 @@ export const GoalProgressLoggingScreen = ({
   const [screenScrollEnabled, setScreenScrollEnabled] = useState(true);
   const navigation = useNavigation();
   const infoSheetRef = useRef<BottomSheet>(null);
+  const deletePrayerSheetRef = useRef<BottomSheet>(null);
+  const [deletePrayerLogDate, setDeletePrayerLogDate] = useState<string | null>(
+    null,
+  );
   const prayerType = resolvePrayerTypeFromGoalId(goalId);
   const template = getLoggingFlowTemplate(goalId);
   const backgroundSource = getLoggingBackgroundSource(goalId, template);
   const shouldUseBackground = backgroundSource != null;
   const insets = useSafeAreaInsets();
+  const supportsDeletePrayerOptions =
+    prayerType === "FIVE_DAILY_PRAYERS" || prayerType === "SUNNAH_RAWATIB";
+
   const openInsightsSheet = () => {
     infoSheetRef.current?.expand();
   };
+
+  const openDeletePrayerLogOptions = useCallback((date: string) => {
+    setDeletePrayerLogDate(date);
+    requestAnimationFrame(() => {
+      deletePrayerSheetRef.current?.expand();
+    });
+  }, []);
+
+  const closeDeletePrayerLogOptions = useCallback(() => {
+    deletePrayerSheetRef.current?.close();
+    setDeletePrayerLogDate(null);
+  }, []);
 
   const handleHeaderBack = () => {
     if (fromDailyProgress && dailyProgressCategory) {
@@ -531,6 +557,14 @@ export const GoalProgressLoggingScreen = ({
           onClose={() => infoSheetRef.current?.close()}
         />
       ) : null}
+      {supportsDeletePrayerOptions ? (
+        <DeletePrayerGoalOptions
+          ref={deletePrayerSheetRef}
+          date={deletePrayerLogDate}
+          onClose={closeDeletePrayerLogOptions}
+          onDeleted={() => setWeeklyRefreshKey((k) => k + 1)}
+        />
+      ) : null}
     </View>
   );
 
@@ -540,6 +574,9 @@ export const GoalProgressLoggingScreen = ({
         goalId={goalId}
         refreshKey={weeklyRefreshKey}
         onOpenInsights={openInsightsSheet}
+        onOpenDeletePrayerLogOptions={
+          supportsDeletePrayerOptions ? openDeletePrayerLogOptions : undefined
+        }
       >
         <GoalProgressLoggingPrayerLoadingGate>
           {screenShell}

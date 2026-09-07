@@ -57,7 +57,8 @@ import {
   isSunnahRawatibSlotPartiallyLogged,
   isSunnahRawatibSlotSelectable,
   readSunnahRawatibSlotDailyTarget,
-  readSunnahRawatibSlotLoggedCount,
+  readSunnahRawatibSlotRemaining,
+  readSunnahRawatibSlotUserLoggedCount,
   useGetPrayerGoalDayDetail,
   type SunnahRawatibDayDetail,
 } from "@/src/api/queries/useGetPrayerGoalDayDetail";
@@ -287,7 +288,7 @@ export default function SunnahRawatibLoggingFlow({
     return targets;
   }, [availableSunnahOptions, dayDetail, getSlotTargetCount]);
 
-  /** Prayer units already logged per slot for the selected date. */
+  /** User-logged units per slot for the selected date (excludes auto-qadha). */
   const slotLoggedCountsForSelectedDate = useMemo(() => {
     const counts: Partial<Record<SunnahPrayerId, number>> = {};
     const optionIds = dayDetail?.slots
@@ -299,7 +300,9 @@ export default function SunnahRawatibLoggingFlow({
     if (dayDetail?.slots) {
       for (const id of optionIds) {
         const apiKey = SUNNAH_UI_TO_API_SLOT[id];
-        counts[id] = readSunnahRawatibSlotLoggedCount(dayDetail.slots[apiKey]);
+        counts[id] = readSunnahRawatibSlotUserLoggedCount(
+          dayDetail.slots[apiKey],
+        );
       }
       return counts;
     }
@@ -325,7 +328,7 @@ export default function SunnahRawatibLoggingFlow({
       const logged = slotLoggedCountsForSelectedDate[prayerId] ?? 0;
       const target =
         slotTargetsForSelectedDate[prayerId] ?? getSlotTargetCount(prayerId);
-      return logged >= target;
+      return logged >= target && target > 0;
     },
     [
       slotLoggedCountsForSelectedDate,
@@ -365,38 +368,44 @@ export default function SunnahRawatibLoggingFlow({
     flowMode === "active" &&
     (dayDetailLoading || dayDetailFetching || dayDetail == null);
 
-  /** Forward from select-prayer: slot in goal and not fully logged (canLog gates confirm). */
+  /** Forward from select-prayer: slot in goal and not fully user-logged. */
   const canProceedFromPrayerSelect = useMemo(() => {
     if (dayDetailLoadingState) return false;
     if (!availableSunnahOptions.includes(selectedPrayer)) return false;
     if (isPrayerFullyLogged(selectedPrayer)) return false;
+    const slot = dayDetail?.slots?.[SUNNAH_UI_TO_API_SLOT[selectedPrayer]];
+    if (slot && !isSunnahRawatibSlotSelectable(slot)) return false;
     return true;
   }, [
     dayDetailLoadingState,
     availableSunnahOptions,
     selectedPrayer,
     isPrayerFullyLogged,
+    dayDetail,
   ]);
 
-  /** Slots fully completed for this date — green tick on prayer select. */
+  /** Slots fully completed by the user for this date — green tick on prayer select. */
   const fullyLoggedPrayers = useMemo(
     () => availableSunnahOptions.filter((id) => isPrayerFullyLogged(id)),
     [availableSunnahOptions, isPrayerFullyLogged],
   );
 
-  /** Slots with loggedCount < dailyTarget — green icon, still selectable. */
+  /** Slots with user partial progress — green icon, still selectable. */
   const partiallyLoggedPrayers = useMemo(
     () => availableSunnahOptions.filter((id) => isPrayerPartiallyLogged(id)),
     [availableSunnahOptions, isPrayerPartiallyLogged],
   );
 
   const remainingCountForSelected = useMemo(() => {
+    const slot = dayDetail?.slots?.[SUNNAH_UI_TO_API_SLOT[selectedPrayer]];
+    if (slot) return readSunnahRawatibSlotRemaining(slot);
     const target =
       slotTargetsForSelectedDate[selectedPrayer] ??
       getSlotTargetCount(selectedPrayer);
     const logged = slotLoggedCountsForSelectedDate[selectedPrayer] ?? 0;
     return Math.max(0, target - logged);
   }, [
+    dayDetail,
     slotTargetsForSelectedDate,
     getSlotTargetCount,
     selectedPrayer,
@@ -404,8 +413,8 @@ export default function SunnahRawatibLoggingFlow({
   ]);
 
   /**
-   * Count step only on the first log for a dual-capacity slot (target ≥ 2, logged 0).
-   * If the user already logged 1 of 2, the remaining 1 is implied — skip the step.
+   * Count step only on the first user log for a dual-capacity slot
+   * (target ≥ 2, user logged 0). Auto-qadha alone still shows the count step.
    */
   const requiresPrayerCountStep = useMemo(() => {
     const target =

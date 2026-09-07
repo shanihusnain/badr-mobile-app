@@ -215,20 +215,6 @@ export default function MissedPrayersLoggingFlow({
     }
   }, [cycleStart, maxSelectableDate, selectedDate]);
 
-  const loggedCountsForSelectedDate = useMemo((): Record<
-    PrayerName,
-    number
-  > => {
-    if (!dayDetail?.slots) return { ...EMPTY_SLOT_COUNTS };
-
-    const next = { ...EMPTY_SLOT_COUNTS };
-    for (const prayer of PRAYER_OPTIONS) {
-      const slotKey = PRAYER_TO_SLOT_KEY[prayer];
-      next[prayer] = dayDetail.slots[slotKey]?.loggedCount ?? 0;
-    }
-    return next;
-  }, [dayDetail]);
-
   const slotTargets = useMemo((): Record<PrayerName, number> => {
     if (dayDetail?.slotProgress) {
       const next = { ...EMPTY_SLOT_COUNTS };
@@ -271,8 +257,15 @@ export default function MissedPrayersLoggingFlow({
     return next;
   }, [dayDetail, slotSourceFrame]);
 
+  const hasSlotProgressData =
+    !!dayDetail?.slotProgress ||
+    !!slotSourceFrame?.goal?.slotProgress ||
+    !!slotSourceFrame?.goal?.slotTargets;
+
+  // Placeholder only until we have slotProgress (day-detail preferred; frame while waiting).
   const slotCountsLoading =
     flowMode === "active" &&
+    !hasSlotProgressData &&
     (dayDetailLoading || dayDetailFetching || dayDetail == null);
 
   // Fresh session quantities whenever the selected day changes.
@@ -444,10 +437,9 @@ export default function MissedPrayersLoggingFlow({
             quantities={quantities}
             onIncrement={handleIncrementPrayer}
             categoryColor={Colors.light.green}
-            loggedCounts={loggedCountsForSelectedDate}
             targets={slotTargets}
             cycleCompleted={cycleCompletedCounts}
-            loading={slotCountsLoading || frameLoading}
+            loading={slotCountsLoading}
           />
         );
       case "start-time":

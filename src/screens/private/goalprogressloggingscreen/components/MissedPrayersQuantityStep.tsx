@@ -26,11 +26,9 @@ interface MissedPrayersQuantityStepProps {
   quantities: Record<PrayerName, number>;
   onIncrement: (prayer: PrayerName) => void;
   categoryColor: string;
-  /** Already-logged counts for the selected date (not cycle totals). */
-  loggedCounts: Record<PrayerName, number>;
-  /** Cycle targets per prayer slot. */
+  /** Cycle targets per prayer slot (from day-detail slotProgress). */
   targets: Record<PrayerName, number>;
-  /** Cycle completed totals — used to cap how many more can be logged. */
+  /** Cycle completed totals — label numerator base + remaining cap. */
   cycleCompleted: Record<PrayerName, number>;
   loading?: boolean;
 }
@@ -121,7 +119,6 @@ export const MissedPrayersQuantityStep: React.FC<
   quantities,
   onIncrement,
   categoryColor,
-  loggedCounts,
   targets,
   cycleCompleted,
   loading = false,
@@ -131,6 +128,7 @@ export const MissedPrayersQuantityStep: React.FC<
       const target = targets[prayer] ?? 0;
       const completed = cycleCompleted[prayer] ?? 0;
       const remaining = Math.max(0, target - completed);
+      if (completed >= target) return;
       if ((quantities[prayer] || 0) >= remaining) return;
       onIncrement(prayer);
     },
@@ -143,7 +141,7 @@ export const MissedPrayersQuantityStep: React.FC<
         const target = targets[prayer] ?? 0;
         const completedCycle = cycleCompleted[prayer] ?? 0;
         const sessionQty = quantities[prayer] || 0;
-        const displayedQty = (loggedCounts[prayer] || 0) + sessionQty;
+        const displayedQty = completedCycle + sessionQty;
         const remaining = Math.max(0, target - completedCycle);
 
         return (
@@ -153,7 +151,9 @@ export const MissedPrayersQuantityStep: React.FC<
             quantity={displayedQty}
             target={target}
             loading={loading}
-            canIncrement={!loading && sessionQty < remaining}
+            canIncrement={
+              !loading && completedCycle < target && sessionQty < remaining
+            }
             onIncrement={handleIncrement}
             categoryColor={categoryColor}
           />

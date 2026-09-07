@@ -522,10 +522,7 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
   }, [flowSteps.length, stepIndex]);
   const currentStep = flowSteps[stepIndex] ?? flowSteps[0];
   const isLastStep = stepIndex === flowSteps.length - 1;
-  const isWitrStepBlocked =
-    currentStep === "prayed-witr" && prayedWitr === "No";
-  const canGoForward =
-    !dayDetailLoadingState && !isLastStep && !isWitrStepBlocked;
+  const canGoForward = !dayDetailLoadingState && !isLastStep;
   const dateLabel = formatProgressLoggingDateLabel(
     selectedDate,
     todayString,
@@ -578,13 +575,9 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
 
   const handleConfirm = () => {
     if (isLogging || isFullyAchieved || dayDetailLoadingState) return;
-    if (isZeroPrayersFlow) {
-      // New Witr-only log requires Yes; edit path already has Witr logged.
-      if (!witrAlreadyLogged && prayedWitr === "No") return;
-    } else if (prayersCountValue < 1) {
-      return;
-    }
+    if (!isZeroPrayersFlow && prayersCountValue < 1) return;
 
+    // 0 prayers + No → includesWitr false (backend omits Witr for that night).
     const includesWitr = isZeroPrayersFlow
       ? witrAlreadyLogged || prayedWitr === "Yes"
       : witrAlreadyLogged
@@ -602,8 +595,13 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
       count: prayersCountValue,
       sessionType,
       includesWitr,
-      startTime,
-      ...(durationMinutes > 0 ? { durationMinutes } : {}),
+      // Timing only matters when logging prayers or an actual Witr.
+      ...(includesWitr || prayersCountValue > 0
+        ? {
+            startTime,
+            ...(durationMinutes > 0 ? { durationMinutes } : {}),
+          }
+        : {}),
     };
 
     void (async () => {
@@ -900,14 +898,7 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
                   !isFullyAchieved &&
                   (!requiresDuration ||
                     isDurationEntered(durationHours, durationMinutes)) &&
-                  !(
-                    isZeroPrayersFlow &&
-                    !witrAlreadyLogged &&
-                    prayedWitr === "No"
-                  ) &&
-                  (prayersCountValue >= 1 ||
-                    (isZeroPrayersFlow &&
-                      (prayedWitr === "Yes" || witrAlreadyLogged)))
+                  (prayersCountValue >= 1 || isZeroPrayersFlow)
                 }
                 showConfirmButton={
                   isLastStep ||

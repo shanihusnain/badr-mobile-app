@@ -24,6 +24,7 @@ import { fonts } from "@/assets/fonts";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { globalStyles } from "@/src/globalstyles/globalstyles";
 import { useDeletePrayerLog } from "@/src/api/mutations/useDeletePrayerLog";
+import { useDeletePrayerSlot } from "@/src/api/mutations/useDeletePrayerSlot";
 import { useOptionalPrayerGoalFrameContext } from "@/src/screens/private/goalprogressloggingscreen/prayerGoalFrameContext";
 import type {
   FiveDailyPrayerSlotKey,
@@ -155,7 +156,11 @@ export const DeletePrayerGoalOptions = forwardRef<BottomSheet, Props>(
   function DeletePrayerGoalOptions({ date, onClose, onDeleted }, ref) {
     const insets = useSafeAreaInsets();
     const prayerFrame = useOptionalPrayerGoalFrameContext();
-    const { mutateAsync: deletePrayerLog, isPending } = useDeletePrayerLog();
+    const { mutateAsync: deletePrayerLog, isPending: isDeletingDay } =
+      useDeletePrayerLog();
+    const { mutateAsync: deletePrayerSlot, isPending: isDeletingSlots } =
+      useDeletePrayerSlot();
+    const isPending = isDeletingDay || isDeletingSlots;
     const [isOpen, setIsOpen] = useState(true);
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
@@ -214,7 +219,7 @@ export const DeletePrayerGoalOptions = forwardRef<BottomSheet, Props>(
         if (selected.length === options.length) {
           await deletePrayerLog({ prayerType, date });
         } else if (isSunnah) {
-          // Group by slot; `count` = how many units to remove from that slot.
+          // Group by slot; count = how many units to remove from that slot.
           const bySlot = new Map<string, number>();
           for (const option of selected) {
             bySlot.set(
@@ -222,29 +227,15 @@ export const DeletePrayerGoalOptions = forwardRef<BottomSheet, Props>(
               (bySlot.get(option.slotValue) ?? 0) + 1,
             );
           }
-          const entries = Array.from(bySlot.entries());
-          for (let i = 0; i < entries.length; i += 1) {
-            const [sunnahSlot, count] = entries[i];
-            const isLast = i === entries.length - 1;
-            await deletePrayerLog({
-              prayerType,
-              date,
-              sunnahSlot,
-              count,
-              suppressSuccessToast: !isLast,
-            });
-          }
+          const sunnahSlots = Array.from(bySlot.entries()).map(
+            ([slot, count]) => ({ slot, count }),
+          );
+          await deletePrayerSlot({ prayerType, date, sunnahSlots });
         } else {
-          for (let i = 0; i < selected.length; i += 1) {
-            const option = selected[i];
-            const isLast = i === selected.length - 1;
-            await deletePrayerLog({
-              prayerType,
-              date,
-              prayerSlot: option.slotValue,
-              suppressSuccessToast: !isLast,
-            });
-          }
+          const slots = Array.from(
+            new Set(selected.map((option) => option.slotValue)),
+          );
+          await deletePrayerSlot({ prayerType, date, slots });
         }
         handleClose();
         onDeleted?.();
@@ -259,6 +250,7 @@ export const DeletePrayerGoalOptions = forwardRef<BottomSheet, Props>(
       options,
       isSunnah,
       deletePrayerLog,
+      deletePrayerSlot,
       handleClose,
       onDeleted,
     ]);

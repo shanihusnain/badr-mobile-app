@@ -41,6 +41,8 @@ interface TaperedCircleBorderProps {
    * - illuminated: white tapered core + GoalProgressCard neon glow
    */
   variant?: "default" | "golden" | "illuminated";
+  /** When set with `illuminated`, bloom tint stays this color (e.g. loading = golden). */
+  glowColorOverride?: string;
   style?: ViewStyle;
 }
 
@@ -329,6 +331,7 @@ function IlluminatedProgressGlow({
   openAtTop = false,
   topGapDeg = 0,
   blurScale = 1,
+  glowColorOverride,
 }: {
   sweep: number;
   percent: number;
@@ -338,6 +341,7 @@ function IlluminatedProgressGlow({
   openAtTop?: boolean;
   topGapDeg?: number;
   blurScale?: number;
+  glowColorOverride?: string;
 }) {
   const gapDeg = openAtTop ? Math.max(8, topGapDeg) : 0;
   const startDeg = gapDeg / 2;
@@ -348,7 +352,9 @@ function IlluminatedProgressGlow({
   const ringSize = contentSize ?? canvasSize;
   const origin = (canvasSize - ringSize) / 2;
   const scale = ringSize / 80;
-  const { glow, radius } = getProgressGlow(percent);
+  const progressGlow = getProgressGlow(percent);
+  const glow = glowColorOverride ?? progressGlow.glow;
+  const radius = progressGlow.radius;
   const glowD =
     isClosedRing || arcSweep <= 0
       ? undefined
@@ -538,6 +544,7 @@ export const TaperedCircleBorder: React.FC<TaperedCircleBorderProps> = ({
   segments,
   children,
   variant = "default",
+  glowColorOverride,
   style,
 }) => {
   const isGolden = variant === "golden";
@@ -549,10 +556,11 @@ export const TaperedCircleBorder: React.FC<TaperedCircleBorderProps> = ({
   const useSegments = !isGolden && !isIlluminated && segmentTotal > 0;
   const slab = isGolden ? 3 : getGlowSlab(percent);
   const progressGlow = getProgressGlow(percent);
+
   const glowColor = isGolden
     ? FIGMA_GOLDEN
     : isIlluminated
-      ? progressGlow.glow
+      ? (glowColorOverride ?? progressGlow.glow)
       : progressColor;
   const coreColor = isGolden ? Colors.light.white : progressColor;
   const showArc = isGolden || isIlluminated || (percent > 0 && !!progressColor);
@@ -692,6 +700,7 @@ export const TaperedCircleBorder: React.FC<TaperedCircleBorderProps> = ({
           openAtTop={showCompleteCheck}
           topGapDeg={checkGapDeg}
           blurScale={compactIlluminated ? 0.5 : 1}
+          glowColorOverride={glowColorOverride}
         />
       ) : null}
 
