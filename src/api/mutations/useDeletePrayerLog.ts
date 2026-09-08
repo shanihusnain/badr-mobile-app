@@ -54,13 +54,16 @@ export const useDeletePrayerLog = () => {
       queryClient.invalidateQueries({ queryKey: ["all-prayer-goals"] });
       queryClient.invalidateQueries({ queryKey: ["prayer-goal-insights"] });
       queryClient.invalidateQueries({ queryKey: ["goal-cycle-categories"] });
-      queryClient.invalidateQueries({ queryKey: ["goal-cycle-category-goals"] });
+      queryClient.invalidateQueries({
+        queryKey: ["goal-cycle-category-goals"],
+      });
       queryClient.invalidateQueries({ queryKey: ["prayer-logs"] });
       if (!variables.suppressSuccessToast) {
         showToast("success", "Prayer log deleted");
       }
     },
     onError: (error) => {
+      console.log("error", error);
       showToast(
         "error",
         getApiErrorMessage(error, "Failed to delete prayer log"),

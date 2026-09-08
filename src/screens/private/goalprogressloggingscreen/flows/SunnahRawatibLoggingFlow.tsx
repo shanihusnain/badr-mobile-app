@@ -67,6 +67,7 @@ import {
   type LogSunnahRawatibPayload,
   type SunnahRawatibSlot,
 } from "@/src/api/mutations/useLogSunnahRawatibGoal";
+import { getApiErrorMessage } from "@/src/config/toastConfig";
 import { AddLoggingFlowIcon } from "@/assets/icons";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -90,6 +91,24 @@ type Props = {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const toDateString = (date: Date) => moment(date).format("YYYY-MM-DD");
+
+/** API 400 when startTime is outside the allowed prayer window. */
+function isSunnahStartTimeOutsideWindowError(error: unknown): boolean {
+  const message = getApiErrorMessage(error, "").toLowerCase();
+  return (
+    message.includes("falls outside") ||
+    message.includes("outside the") ||
+    message.includes("only be logged within") ||
+    message.includes("only be logged between") ||
+    message.includes("has not begun yet") ||
+    message.includes("wait until") ||
+    (message.includes("starttime") &&
+      (message.includes("window") ||
+        message.includes("before") ||
+        message.includes("after") ||
+        message.includes("between")))
+  );
+}
 
 const SUNNAH_OPTION_IDS: SunnahPrayerId[] = [
   "before_fajr",
@@ -134,6 +153,33 @@ export default function SunnahRawatibLoggingFlow({
 
   const [durationHours, setDurationHours] = useState("0");
   const [durationMinutes, setDurationMinutes] = useState("0");
+  const [startTimeInvalid, setStartTimeInvalid] = useState(false);
+
+  const clearStartTimeInvalid = useCallback(() => {
+    setStartTimeInvalid(false);
+  }, []);
+
+  const handleSetStartHour = useCallback(
+    (h: string) => {
+      clearStartTimeInvalid();
+      setStartHour(h);
+    },
+    [clearStartTimeInvalid],
+  );
+  const handleSetStartMinute = useCallback(
+    (m: string) => {
+      clearStartTimeInvalid();
+      setStartMinute(m);
+    },
+    [clearStartTimeInvalid],
+  );
+  const handleSetStartPeriod = useCallback(
+    (p: "am" | "pm") => {
+      clearStartTimeInvalid();
+      setStartPeriod(p);
+    },
+    [clearStartTimeInvalid],
+  );
 
   const { mutateAsync: logSunnah, isPending: isLogging } =
     useLogSunnahRawatibGoal();
@@ -501,6 +547,7 @@ export default function SunnahRawatibLoggingFlow({
       .format("YYYY-MM-DD");
     if (cycleStart && direction === -1 && next < cycleStart) return;
     if (direction === 1 && next > maxSelectableDate) return;
+    setStartTimeInvalid(false);
     setSelectedDate(next);
   };
 
@@ -519,7 +566,17 @@ export default function SunnahRawatibLoggingFlow({
     setDurationHours("0");
     setDurationMinutes("0");
     setIsPeriodDropdownOpen(false);
+    setStartTimeInvalid(false);
   }, [availableSunnahOptions]);
+
+  const goToStartTimeStepWithError = useCallback(() => {
+    const startTimeIndex = STEPS.indexOf("start-time");
+    if (startTimeIndex >= 0) {
+      setStepIndex(startTimeIndex);
+    }
+    setStartTimeInvalid(true);
+    setIsPeriodDropdownOpen(false);
+  }, [STEPS]);
 
   const handleOpenFlow = useCallback(() => {
     if (isFullyAchieved) return;
@@ -547,6 +604,7 @@ export default function SunnahRawatibLoggingFlow({
   const handleSelectPrayer = (id: SunnahPrayerId) => {
     if (isPrayerFullyLogged(id)) return;
     if (lockedPrayersForSelectedDate.includes(id)) return;
+    setStartTimeInvalid(false);
     setSelectedPrayer(id);
     setPrayerCount("1");
   };
@@ -609,8 +667,11 @@ export default function SunnahRawatibLoggingFlow({
           durationMinutes: payload.durationMinutes,
         } as any);
         resetFlow();
-      } catch {
+      } catch (error) {
         // Toast handled in mutation onError
+        if (isSunnahStartTimeOutsideWindowError(error)) {
+          goToStartTimeStepWithError();
+        }
       }
     })();
   };
@@ -703,14 +764,15 @@ export default function SunnahRawatibLoggingFlow({
         return (
           <StartTimeStep
             startHour={startHour}
-            setStartHour={setStartHour}
+            setStartHour={handleSetStartHour}
             startMinute={startMinute}
-            setStartMinute={setStartMinute}
+            setStartMinute={handleSetStartMinute}
             startPeriod={startPeriod}
-            setStartPeriod={setStartPeriod}
+            setStartPeriod={handleSetStartPeriod}
             isPeriodDropdownOpen={isPeriodDropdownOpen}
             setIsPeriodDropdownOpen={setIsPeriodDropdownOpen}
             styles={commonStyles}
+            hasError={startTimeInvalid}
           />
         );
       case "time-spent":

@@ -31,6 +31,8 @@ interface StartTimeStepProps {
   isPeriodDropdownOpen: boolean;
   setIsPeriodDropdownOpen: (open: boolean) => void;
   styles: any;
+  /** Highlight hour / minute / period borders in red (e.g. outside allowed window). */
+  hasError?: boolean;
 }
 
 export const StartTimeStep: React.FC<StartTimeStepProps> = ({
@@ -43,9 +45,11 @@ export const StartTimeStep: React.FC<StartTimeStepProps> = ({
   isPeriodDropdownOpen,
   setIsPeriodDropdownOpen,
   styles,
+  hasError = false,
 }) => {
   const [isHourFocused, setIsHourFocused] = React.useState(false);
   const [isMinuteFocused, setIsMinuteFocused] = React.useState(false);
+  const errorBorder = hasError ? { borderColor: Colors.light.red } : null;
 
   return (
     <View style={styles.timePickerContainer}>
@@ -55,6 +59,7 @@ export const StartTimeStep: React.FC<StartTimeStepProps> = ({
           style={[
             styles.timeInput,
             isHourFocused && { borderColor: Colors.light.white },
+            errorBorder,
           ]}
           value={startHour}
           onChangeText={(text) => {
@@ -78,6 +83,7 @@ export const StartTimeStep: React.FC<StartTimeStepProps> = ({
           style={[
             styles.timeInput,
             isMinuteFocused && { borderColor: Colors.light.white },
+            errorBorder,
           ]}
           value={startMinute}
           onChangeText={(text) => {
@@ -100,6 +106,7 @@ export const StartTimeStep: React.FC<StartTimeStepProps> = ({
             style={[
               styles.periodSelector,
               isPeriodDropdownOpen && { borderColor: Colors.light.white },
+              errorBorder,
             ]}
             onPress={() => setIsPeriodDropdownOpen(!isPeriodDropdownOpen)}
             activeOpacity={0.8}

@@ -49,6 +49,7 @@ import {
   getPrayerFrameAchievementLabel,
   prayerFrameShowsInsights,
 } from "@/src/utils/prayerGoalFrameMap";
+import { getApiErrorMessage } from "@/src/config/toastConfig";
 import {
   AddLoggingFlowIcon,
   CalendarFlippingIcon,
@@ -97,6 +98,24 @@ const PRAYER_TO_SLOT: Record<PrayerName, FiveDailyPrayerSlot> = {
 };
 
 const toDateString = (date: Date) => moment(date).format("YYYY-MM-DD");
+
+/** API 400 when startTime is outside the allowed prayer window. */
+function isFiveDailyStartTimeOutsideWindowError(error: unknown): boolean {
+  const message = getApiErrorMessage(error, "").toLowerCase();
+  return (
+    message.includes("falls outside") ||
+    message.includes("outside the") ||
+    message.includes("only be logged within") ||
+    message.includes("only be logged between") ||
+    message.includes("has not begun yet") ||
+    message.includes("wait until") ||
+    (message.includes("starttime") &&
+      (message.includes("window") ||
+        message.includes("before") ||
+        message.includes("after") ||
+        message.includes("between")))
+  );
+}
 
 /** Parse day-detail `prayerStartTime` like "5:47 PM" into picker parts. */
 function parsePrayerStartTimeParts(
@@ -166,6 +185,33 @@ export default function FiveDailyPrayersLoggingFlow({
   const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
   const [durationHours, setDurationHours] = useState("0");
   const [durationMinutes, setDurationMinutes] = useState("0");
+  const [startTimeInvalid, setStartTimeInvalid] = useState(false);
+
+  const clearStartTimeInvalid = useCallback(() => {
+    setStartTimeInvalid(false);
+  }, []);
+
+  const handleSetStartHour = useCallback(
+    (h: string) => {
+      clearStartTimeInvalid();
+      setStartHour(h);
+    },
+    [clearStartTimeInvalid],
+  );
+  const handleSetStartMinute = useCallback(
+    (m: string) => {
+      clearStartTimeInvalid();
+      setStartMinute(m);
+    },
+    [clearStartTimeInvalid],
+  );
+  const handleSetStartPeriod = useCallback(
+    (p: "am" | "pm") => {
+      clearStartTimeInvalid();
+      setStartPeriod(p);
+    },
+    [clearStartTimeInvalid],
+  );
 
   const prayerFrame = useOptionalPrayerGoalFrameContext();
   const frame = prayerFrame?.frame;
@@ -323,6 +369,7 @@ export default function FiveDailyPrayersLoggingFlow({
     (prayer: PrayerName) => {
       const slot = dayDetail?.slots?.[PRAYER_TO_SLOT[prayer]];
       const now = getCurrentStartTimeParts();
+      setStartTimeInvalid(false);
 
       if (!slot) {
         setTiming("onTime");
@@ -391,6 +438,7 @@ export default function FiveDailyPrayersLoggingFlow({
     if (cycleStart && direction === -1 && next < cycleStart) return;
     if (direction === 1 && next > maxSelectableDate) return;
 
+    setStartTimeInvalid(false);
     setSelectedDate(next);
   };
 
@@ -408,7 +456,17 @@ export default function FiveDailyPrayersLoggingFlow({
     setIsPeriodDropdownOpen(false);
     setDurationHours("0");
     setDurationMinutes("0");
+    setStartTimeInvalid(false);
   }, []);
+
+  const goToStartTimeStepWithError = useCallback(() => {
+    const startTimeIndex = steps.indexOf("startTime");
+    if (startTimeIndex >= 0) {
+      setStepIndex(startTimeIndex);
+    }
+    setStartTimeInvalid(true);
+    setIsPeriodDropdownOpen(false);
+  }, [steps]);
 
   const formatStartTimeForApi = () => {
     const hourNum = parseInt(startHour || "0", 10) || 0;
@@ -464,8 +522,11 @@ export default function FiveDailyPrayersLoggingFlow({
           duration: `${durationHours}h ${durationMinutes}m`,
         });
         resetFlow();
-      } catch {
+      } catch (error) {
         // onError handler already shows toast.
+        if (isFiveDailyStartTimeOutsideWindowError(error)) {
+          goToStartTimeStepWithError();
+        }
       }
     };
 
@@ -605,14 +666,15 @@ export default function FiveDailyPrayersLoggingFlow({
         return (
           <StartTimeStep
             startHour={startHour}
-            setStartHour={setStartHour}
+            setStartHour={handleSetStartHour}
             startMinute={startMinute}
-            setStartMinute={setStartMinute}
+            setStartMinute={handleSetStartMinute}
             startPeriod={startPeriod}
-            setStartPeriod={setStartPeriod}
+            setStartPeriod={handleSetStartPeriod}
             isPeriodDropdownOpen={isPeriodDropdownOpen}
             setIsPeriodDropdownOpen={setIsPeriodDropdownOpen}
             styles={commonStyles}
+            hasError={startTimeInvalid}
           />
         );
       case "duration":

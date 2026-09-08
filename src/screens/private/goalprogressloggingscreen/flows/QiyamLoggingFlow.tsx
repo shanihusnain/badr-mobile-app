@@ -40,6 +40,7 @@ import {
   useLogQiyamGoal,
   type QiyamSessionType,
 } from "@/src/api/mutations/useLogQiyamGoal";
+import { getApiErrorMessage } from "@/src/config/toastConfig";
 import {
   styles as commonStyles,
   FLOW_CARD_HEIGHT,
@@ -289,6 +290,18 @@ function mapQiyamSessionType(loggedTime: QiyamLoggedTime): QiyamSessionType {
   return loggedTime === "before-fajr" ? "TAHAJJUD" : "AFTER_ISHA";
 }
 
+/** API 400 when startTime / night window is invalid for Qiyam logging. */
+function isQiyamStartTimeOutsideWindowError(error: unknown): boolean {
+  const message = getApiErrorMessage(error, "").toLowerCase();
+  return (
+    message.includes("falls outside") ||
+    message.includes("only be logged within") ||
+    message.includes("has not begun yet") ||
+    message.includes("can be logged from isha") ||
+    message.includes("wait until isha")
+  );
+}
+
 type Props = {
   goalData: GoalData;
   onLogComplete?: (entry: ProgressLogEntry) => void;
@@ -347,6 +360,33 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
   const [prayedWitr, setPrayedWitr] = useState<"Yes" | "No">("No");
   const [concludedWithWitr, setConcludedWithWitr] = useState<"Yes" | "No">(
     "Yes",
+  );
+  const [startTimeInvalid, setStartTimeInvalid] = useState(false);
+
+  const clearStartTimeInvalid = useCallback(() => {
+    setStartTimeInvalid(false);
+  }, []);
+
+  const handleSetStartHour = useCallback(
+    (h: string) => {
+      clearStartTimeInvalid();
+      setStartHour(h);
+    },
+    [clearStartTimeInvalid],
+  );
+  const handleSetStartMinute = useCallback(
+    (m: string) => {
+      clearStartTimeInvalid();
+      setStartMinute(m);
+    },
+    [clearStartTimeInvalid],
+  );
+  const handleSetStartPeriod = useCallback(
+    (p: "am" | "pm") => {
+      clearStartTimeInvalid();
+      setStartPeriod(p);
+    },
+    [clearStartTimeInvalid],
   );
 
   const {
@@ -553,6 +593,7 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
       .format("YYYY-MM-DD");
     if (cycleStart && direction === -1 && next < cycleStart) return;
     if (direction === 1 && next > maxSelectableDate) return;
+    setStartTimeInvalid(false);
     setSelectedDate(next);
   };
 
@@ -571,7 +612,18 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
     setPrayedWitr("No");
     setConcludedWithWitr("Yes");
     setIsPeriodDropdownOpen(false);
+    setStartTimeInvalid(false);
   }, []);
+
+  const goToStartTimeStepWithError = useCallback(() => {
+    const startTimeIndex = flowSteps.indexOf("start-time");
+    if (startTimeIndex >= 0) {
+      setStepIndex(startTimeIndex);
+    }
+    setStartTimeInvalid(true);
+    setIsPeriodDropdownOpen(false);
+    setIsTimingDropdownOpen(false);
+  }, [flowSteps]);
 
   const handleConfirm = () => {
     if (isLogging || isFullyAchieved || dayDetailLoadingState) return;
@@ -625,8 +677,11 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
               : undefined,
         } as ProgressLogEntry);
         resetFlow();
-      } catch {
+      } catch (error) {
         // Toast handled in mutation onError
+        if (isQiyamStartTimeOutsideWindowError(error)) {
+          goToStartTimeStepWithError();
+        }
       }
     })();
   };
@@ -731,14 +786,15 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
         return (
           <StartTimeStep
             startHour={startHour}
-            setStartHour={setStartHour}
+            setStartHour={handleSetStartHour}
             startMinute={startMinute}
-            setStartMinute={setStartMinute}
+            setStartMinute={handleSetStartMinute}
             startPeriod={startPeriod}
-            setStartPeriod={setStartPeriod}
+            setStartPeriod={handleSetStartPeriod}
             isPeriodDropdownOpen={isPeriodDropdownOpen}
             setIsPeriodDropdownOpen={setIsPeriodDropdownOpen}
             styles={commonStyles}
+            hasError={startTimeInvalid}
           />
         );
       case "time-spent":
