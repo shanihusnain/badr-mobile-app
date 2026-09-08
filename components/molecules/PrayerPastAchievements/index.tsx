@@ -58,6 +58,7 @@ import {
   InsightCardTimeSpentIcon,
   InsightCardGoalTrackedIcon,
   InsightCardArrowReverseIcon,
+  QiyamBothIshaAnadTahajudInsightIcon,
 } from "@/assets/icons";
 
 type Props = {
@@ -250,6 +251,12 @@ function getTahiyyatAlWudhuInsightIcon(card: InsightCardData) {
   }
   if (name === "checkmark-circle-outline" || title.includes("COMPLETED")) {
     return <InsightCardTickIcon size={TAHIYYAT_INSIGHT_ICON_SIZE} />;
+  }
+  if (
+    name === "cursor-pointer" ||
+    title.includes("WITR")
+  ) {
+    return <QiyamBothIshaAnadTahajudInsightIcon />;
   }
   if (name === "flash" || title.includes("STREAK")) {
     return <InsightCardFlashIcon size={TAHIYYAT_INSIGHT_ICON_SIZE} />;
@@ -896,7 +903,8 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
                 goalId === "prayer-duha" ||
                 goalId === "prayer-tawbah" ||
                 goalId === "prayer-istikhara" ||
-                goalId === "prayer-shukr"
+                goalId === "prayer-shukr" ||
+                goalId === "prayer-qiyam"
                   ? getTahiyyatAlWudhuInsightIcon(c)
                   : undefined
               }
