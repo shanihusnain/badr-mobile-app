@@ -56,7 +56,7 @@ export default function NotificationsScreen() {
 
   return (
     <BlackScreenWrapper>
-      <ScrollView style={styles.content}>
+      {/* <ScrollView style={styles.content}>
         {notifications.map((item) => (
           <NotificationItemCard
             key={item.title}
@@ -66,7 +66,18 @@ export default function NotificationsScreen() {
             onToggle={item.onToggle}
           />
         ))}
-      </ScrollView>
+      </ScrollView> */}
+      <Text
+        style={{
+          fontSize: 20,
+          fontWeight: "bold",
+          textAlign: "center",
+          marginTop: 100,
+          color: "white",
+        }}
+      >
+        Coming soon...
+      </Text>
     </BlackScreenWrapper>
   );
 }

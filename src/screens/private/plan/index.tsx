@@ -7,6 +7,7 @@ import { PlanTabBar } from "./components/PlanTabBar";
 import { usePlanProps } from "./usePlanProps";
 import BottomSheet from "@gorhom/bottom-sheet";
 import { useCallback, useRef } from "react";
+import { Text } from "react-native";
 
 export default function PlanScreen() {
   const {
@@ -37,7 +38,7 @@ export default function PlanScreen() {
 
   return (
     <BlackScreenWrapper edges={["top"]}>
-      <PlanTabBar
+      {/* <PlanTabBar
         tabs={tabs}
         selectedTab={selectedTab}
         onSelectTab={setSelectedTab}
@@ -65,7 +66,18 @@ export default function PlanScreen() {
         selectedJournalTab={selectedJournalTab}
         onSelectJournalTab={setSelectedJournalTab}
         onCustomizePress={handleCustomizePress}
-      />
+      /> */}
+      <Text
+        style={{
+          fontSize: 20,
+          fontWeight: "bold",
+          textAlign: "center",
+          marginTop: 100,
+          color: "white",
+        }}
+      >
+        Coming soon...
+      </Text>
     </BlackScreenWrapper>
   );
 }
