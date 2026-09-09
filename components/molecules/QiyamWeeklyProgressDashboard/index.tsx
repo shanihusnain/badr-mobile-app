@@ -63,7 +63,6 @@ export type QiyamWeeklyProgressDashboardProps = {
   isGoalCompleted?: boolean;
 };
 
-
 const BEST_DAY_SIZE_BOOST = 4;
 
 function resolveHasLog(day: QiyamDayProgress): boolean {
@@ -303,174 +302,187 @@ export function QiyamWeeklyProgressDashboard({
 
       <PrayerWeeklyDashboardBody loading={loading}>
         {!loading ? (
-        <>
-      <View style={styles.daysRow}>
-        {displayWeekDays.map((day, index) => {
-          const isToday =
-            day?.isToday === true ||
-            (selectedDayIndex != null && selectedDayIndex === index);
-          const hasLog = resolveHasLog(day);
-          const isFuture = !!day.isFuture;
-          const isBlurredFuture = isGoalCompleted && isFuture;
-          const isMenstruation = !!day.isMenstruation;
-          const showEmptyOutline =
-            !loading &&
-            isGoalCompleted &&
-            !hasLog &&
-            !isMenstruation &&
-            isFuture;
-          const isInactiveOutline =
-            isFuture ||
-            !!day.isMissedStrict ||
-            !!day.isMissedFlexible ||
-            showEmptyOutline;
-          const isBestDayVisible =
-            !!day.isBestDay &&
-            !isInactiveOutline &&
-            !loading &&
-            !isMenstruation;
-          const isMarkedForDeletion =
-            !!day.date && selectForDeletion === day.date;
-          const showColumnDeletion = isMarkedForDeletion && !isBestDayVisible;
-          const showWrapperDeletion = isMarkedForDeletion && isBestDayVisible;
-          const hideCount = isInactiveOutline || isMenstruation;
-          const labelColor = getDayLabelColor({
-            loading,
-            isBlurredFuture,
-            isFuture,
-            isBestDayVisible,
-            isToday,
-            isMenstruation,
-          });
-          const countColor = getCountLabelColor({
-            loading,
-            hideCount,
-            isBestDayVisible,
-            isToday,
-          });
+          <>
+            <View style={styles.daysRow}>
+              {displayWeekDays.map((day, index) => {
+                const isToday = day?.isToday === true;
+                const hasLog = resolveHasLog(day);
+                const isFuture = !!day.isFuture;
+                const isBlurredFuture = isGoalCompleted && isFuture;
+                const isMenstruation = !!day.isMenstruation;
+                const showEmptyOutline =
+                  !loading &&
+                  isGoalCompleted &&
+                  !hasLog &&
+                  !isMenstruation &&
+                  isFuture;
+                const isInactiveOutline =
+                  isFuture ||
+                  !!day.isMissedStrict ||
+                  !!day.isMissedFlexible ||
+                  showEmptyOutline;
+                const isBestDayVisible =
+                  !!day.isBestDay &&
+                  !isInactiveOutline &&
+                  !loading &&
+                  !isMenstruation;
+                const isMarkedForDeletion =
+                  !!day.date && selectForDeletion === day.date;
+                const showColumnDeletion =
+                  isMarkedForDeletion && !isBestDayVisible;
+                const showWrapperDeletion =
+                  isMarkedForDeletion && isBestDayVisible;
+                const hideCount = isInactiveOutline || isMenstruation;
+                const labelColor = getDayLabelColor({
+                  loading,
+                  isBlurredFuture,
+                  isFuture,
+                  isBestDayVisible,
+                  isToday,
+                  isMenstruation,
+                });
+                const countColor = getCountLabelColor({
+                  loading,
+                  hideCount,
+                  isBestDayVisible,
+                  isToday,
+                });
 
-          return (
-            <TouchableOpacity
-              key={`${day.day}-${index}`}
-              style={[
-                styles.dayColumn,
-                (isBestDayVisible || isMarkedForDeletion) && { zIndex: 2 },
-                showColumnDeletion && styles.dayColumnMarkedForDeletion,
-              ]}
-              onLongPress={() => {
-                if (loading || isFuture || !day.date) return;
-                if (hasLog) {
-                  setSelectForDeletion((prev) =>
-                    prev === day.date ? "" : (day.date ?? ""),
-                  );
-                }
-              }}
-              onPress={() => {
-                if (loading || isFuture) return;
-                if (selectForDeletion) {
-                  setSelectForDeletion("");
-                  return;
-                }
-                onDayPress?.(index);
-              }}
-              activeOpacity={loading || isFuture ? 1 : 0.75}
-              disabled={loading || isFuture}
-            >
-              <View
-                style={[
-                  styles.dayItemWrapper,
-                  isToday && !isMarkedForDeletion && styles.dayItemSelected,
-                  isBestDayVisible && styles.dayItemBestDay,
-                  showWrapperDeletion && styles.deletingBestDay,
-                ]}
-              >
-                <QiyamDayIcon
-                  day={day}
-                  size={ringSize}
-                  isBestDayVisible={isBestDayVisible}
-                  isGoalCompleted={isGoalCompleted}
-                  isToday={isToday}
-                />
-                <TopSpace top={10} />
-                <Text
-                  style={[
-                    isBestDayVisible ? styles.bestDayLabel : styles.dayLabel,
-                    { color: labelColor },
-                  ]}
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                  minimumFontScale={0.65}
-                >
-                  {loading ? "---" : isBestDayVisible ? "BEST DAY!" : day.day}
-                </Text>
-
-                <View style={styles.durationSlot}>
-                  <Text
-                    style={[styles.durationText, { color: countColor }]}
-                    numberOfLines={1}
+                return (
+                  <TouchableOpacity
+                    key={`${day.day}-${index}`}
+                    style={[
+                      styles.dayColumn,
+                      (isBestDayVisible || isMarkedForDeletion) && {
+                        zIndex: 2,
+                      },
+                      showColumnDeletion && styles.dayColumnMarkedForDeletion,
+                    ]}
+                    onLongPress={() => {
+                      if (loading || isFuture || !day.date) return;
+                      if (hasLog) {
+                        setSelectForDeletion((prev) =>
+                          prev === day.date ? "" : (day.date ?? ""),
+                        );
+                      }
+                    }}
+                    onPress={() => {
+                      if (loading || isFuture) return;
+                      if (selectForDeletion) {
+                        setSelectForDeletion("");
+                        return;
+                      }
+                      onDayPress?.(index);
+                    }}
+                    activeOpacity={loading || isFuture ? 1 : 0.75}
+                    disabled={loading || isFuture}
                   >
-                    {loading
-                      ? "---"
-                      : hideCount
-                        ? ""
-                        : day.prayersLogged > 0
-                          ? day.prayersLogged.toString()
-                          : ""}
+                    <View
+                      style={[
+                        styles.dayItemWrapper,
+                        isToday &&
+                          !isMarkedForDeletion &&
+                          styles.dayItemSelected,
+                        isBestDayVisible && styles.dayItemBestDay,
+                        showWrapperDeletion && styles.deletingBestDay,
+                      ]}
+                    >
+                      <QiyamDayIcon
+                        day={day}
+                        size={ringSize}
+                        isBestDayVisible={isBestDayVisible}
+                        isGoalCompleted={isGoalCompleted}
+                        isToday={isToday}
+                      />
+                      <TopSpace top={10} />
+                      <Text
+                        style={[
+                          isBestDayVisible
+                            ? styles.bestDayLabel
+                            : styles.dayLabel,
+                          { color: labelColor },
+                        ]}
+                        numberOfLines={1}
+                        adjustsFontSizeToFit
+                        minimumFontScale={0.65}
+                      >
+                        {loading
+                          ? "---"
+                          : isBestDayVisible
+                            ? "BEST DAY!"
+                            : day.day}
+                      </Text>
+
+                      <View style={styles.durationSlot}>
+                        <Text
+                          style={[styles.durationText, { color: countColor }]}
+                          numberOfLines={1}
+                        >
+                          {loading
+                            ? "---"
+                            : hideCount
+                              ? ""
+                              : day.prayersLogged > 0
+                                ? day.prayersLogged.toString()
+                                : ""}
+                        </Text>
+                      </View>
+                    </View>
+                    {isMarkedForDeletion ? (
+                      <Pressable
+                        style={styles.deleteButton}
+                        disabled={
+                          isDeletingLog || !prayerFrame?.frame?.prayerType
+                        }
+                        onPress={() => {
+                          const prayerType = prayerFrame?.frame?.prayerType;
+                          if (!prayerType || !day.date || isDeletingLog) return;
+                          deletePrayerLog(
+                            { prayerType, date: day.date },
+                            {
+                              onSuccess: () => {
+                                setSelectForDeletion("");
+                              },
+                            },
+                          );
+                        }}
+                      >
+                        <BinIcon />
+                      </Pressable>
+                    ) : null}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            <WeeklyProgressStatsFooterSection
+              vsLastWeek={vsLastWeek}
+              statsRow={
+                <View style={styles.statsRow}>
+                  <PrayerMatIcon />
+                  <Text style={styles.statsText} numberOfLines={1}>
+                    <Text style={styles.statsCount}>
+                      {totalPrayersThisWeek}
+                    </Text>
+                    {totalPrayersThisWeek === 1
+                      ? " prayer this week"
+                      : " total prayers this week"}
                   </Text>
                 </View>
-              </View>
-              {isMarkedForDeletion ? (
-                <Pressable
-                  style={styles.deleteButton}
-                  disabled={isDeletingLog || !prayerFrame?.frame?.prayerType}
-                  onPress={() => {
-                    const prayerType = prayerFrame?.frame?.prayerType;
-                    if (!prayerType || !day.date || isDeletingLog) return;
-                    deletePrayerLog(
-                      { prayerType, date: day.date },
-                      {
-                        onSuccess: () => {
-                          setSelectForDeletion("");
-                        },
-                      },
-                    );
-                  }}
-                >
-                  <BinIcon />
-                </Pressable>
-              ) : null}
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-
-      <WeeklyProgressStatsFooterSection
-        vsLastWeek={vsLastWeek}
-        statsRow={
-          <View style={styles.statsRow}>
-            <PrayerMatIcon />
-            <Text style={styles.statsText} numberOfLines={1}>
-              <Text style={styles.statsCount}>{totalPrayersThisWeek}</Text>
-              {totalPrayersThisWeek === 1
-                ? " prayer this week"
-                : " total prayers this week"}
-            </Text>
-          </View>
-        }
-        footerProps={{
-          loading: false,
-          streakDays,
-          motivationalQuote,
-          defaultMotivationalQuote,
-        }}
-      />
-        </>
+              }
+              footerProps={{
+                loading: false,
+                streakDays,
+                motivationalQuote,
+                defaultMotivationalQuote,
+              }}
+            />
+          </>
         ) : null}
       </PrayerWeeklyDashboardBody>
     </View>
   );
 }
-
 
 const styles = StyleSheet.create({
   card: {

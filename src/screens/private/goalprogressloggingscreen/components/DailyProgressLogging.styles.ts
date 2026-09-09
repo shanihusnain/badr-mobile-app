@@ -177,7 +177,7 @@ export const styles = StyleSheet.create({
     marginLeft: 0,
     height: FLOW_CARD_HEIGHT,
     overflow: "hidden",
-    paddingTop: 16,
+    paddingTop: 10,
   },
   flowCardDropdownOpen: {
     overflow: "visible",

@@ -188,7 +188,7 @@ const timingStepStyles = StyleSheet.create({
   container: {
     width: "100%",
     gap: 2,
-    paddingTop: 12,
+    paddingTop: 8,
   },
   selector: {
     minHeight: 26,
@@ -237,12 +237,10 @@ const timingStepStyles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
     fontSize: 10,
-    lineHeight: 11,
     opacity: 0.8,
     textAlign: "left",
     alignSelf: "stretch",
     width: "100%",
-    marginTop: -2,
   },
 });
 
@@ -308,6 +306,11 @@ type Props = {
 };
 type FlowMode = "collapsed" | "active";
 const toDateString = (date: Date) => moment(date).format("YYYY-MM-DD");
+
+/** Default log date: yesterday — today's night usually hasn't opened yet (pre-Isha). */
+const getDefaultQiyamLogDate = () =>
+  moment().subtract(1, "day").format("YYYY-MM-DD");
+
 const toCalendarDate = (value: string) => {
   const match = String(value).match(/^(\d{4}-\d{2}-\d{2})/);
   return match ? match[1] : moment(value).format("YYYY-MM-DD");
@@ -339,7 +342,7 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
   );
   const [flowMode, setFlowMode] = useState<FlowMode>("collapsed");
   const [stepIndex, setStepIndex] = useState(0);
-  const [selectedDate, setSelectedDate] = useState(toDateString(new Date()));
+  const [selectedDate, setSelectedDate] = useState(getDefaultQiyamLogDate);
   const [prayersCount, setPrayersCount] = useState("0");
   const [loggedTime, setLoggedTime] = useState<"after-isha" | "before-fajr">(
     "before-fajr",
@@ -522,7 +525,11 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
       dayDetail.witr?.durationMinutes ??
       dayDetail.night?.totalMinutesSpent ??
       null;
-    if (typeof duration === "number" && Number.isFinite(duration) && duration > 0) {
+    if (
+      typeof duration === "number" &&
+      Number.isFinite(duration) &&
+      duration > 0
+    ) {
       setDurationHours(String(Math.floor(duration / 60)));
       setDurationMinutes(String(duration % 60));
     }
@@ -546,7 +553,12 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
           period = hourNum >= 12 ? "pm" : "am";
           hourNum = hourNum % 12 || 12;
         }
-        if (hourNum >= 1 && hourNum <= 12 && minuteNum >= 0 && minuteNum <= 59) {
+        if (
+          hourNum >= 1 &&
+          hourNum <= 12 &&
+          minuteNum >= 0 &&
+          minuteNum <= 59
+        ) {
           setStartHour(String(hourNum).padStart(2, "0"));
           setStartMinute(String(minuteNum).padStart(2, "0"));
           setStartPeriod(period);
@@ -563,11 +575,18 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
   const currentStep = flowSteps[stepIndex] ?? flowSteps[0];
   const isLastStep = stepIndex === flowSteps.length - 1;
   const canGoForward = !dayDetailLoadingState && !isLastStep;
-  const dateLabel = formatProgressLoggingDateLabel(
-    selectedDate,
-    todayString,
-    t("progressLogging.today"),
-  );
+  const dateLabel = useMemo(() => {
+    if (selectedDate === todayString) return t("progressLogging.today");
+    const yesterdayString = moment(todayString, "YYYY-MM-DD")
+      .subtract(1, "day")
+      .format("YYYY-MM-DD");
+    if (selectedDate === yesterdayString) return t("progressLogging.yesterday");
+    return formatProgressLoggingDateLabel(
+      selectedDate,
+      todayString,
+      t("progressLogging.today"),
+    );
+  }, [selectedDate, todayString, t]);
 
   const formatStartTimeForApi = () => {
     const hourNum = parseInt(startHour || "0", 10) || 0;
@@ -600,7 +619,7 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
   const resetFlow = useCallback(() => {
     setFlowMode("collapsed");
     setStepIndex(0);
-    setSelectedDate(toDateString(new Date()));
+    setSelectedDate(getDefaultQiyamLogDate());
     setPrayersCount("0");
     setLoggedTime("before-fajr");
     setIsTimingDropdownOpen(false);
