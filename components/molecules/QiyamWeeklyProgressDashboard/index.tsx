@@ -395,23 +395,25 @@ export function QiyamWeeklyProgressDashboard({
                         isToday={isToday}
                       />
                       <TopSpace top={10} />
-                      <Text
-                        style={[
-                          isBestDayVisible
-                            ? styles.bestDayLabel
-                            : styles.dayLabel,
-                          { color: labelColor },
-                        ]}
-                        numberOfLines={1}
-                        adjustsFontSizeToFit
-                        minimumFontScale={0.65}
-                      >
-                        {loading
-                          ? "---"
-                          : isBestDayVisible
-                            ? "BEST DAY!"
-                            : day.day}
-                      </Text>
+                      <View style={styles.dayLabelSlot}>
+                        <Text
+                          style={[
+                            isBestDayVisible
+                              ? styles.bestDayLabel
+                              : styles.dayLabel,
+                            { color: labelColor },
+                          ]}
+                          numberOfLines={1}
+                          adjustsFontSizeToFit={isBestDayVisible}
+                          minimumFontScale={0.9}
+                        >
+                          {loading
+                            ? "---"
+                            : isBestDayVisible
+                              ? "BEST DAY!"
+                              : day.day}
+                        </Text>
+                      </View>
 
                       <View style={styles.durationSlot}>
                         <Text
@@ -590,13 +592,24 @@ const styles = StyleSheet.create({
   blurredDayIconWrap: {
     opacity: 0.28,
   },
+  /** Keeps BEST DAY! and day names on the same vertical band so counts align. */
+  dayLabelSlot: {
+    height: 14,
+    width: "100%",
+    marginTop: 3,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   bestDayLabel: {
     color: Colors.light.green,
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: "700",
     fontFamily: fonts.primary.bold,
+    fontStyle: "normal",
+    lineHeight: 11,
+    letterSpacing: -0.44,
     textAlign: "center",
-    marginTop: 4,
+    textTransform: "uppercase",
     width: "100%",
     overflow: "hidden",
   },
@@ -605,8 +618,10 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
-    marginTop: 3,
+    lineHeight: 14,
     textAlign: "center",
+    width: "100%",
+    includeFontPadding: false,
   },
   durationSlot: {
     height: 18,
@@ -620,6 +635,8 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontFamily: fonts.primary.bold,
     textAlign: "center",
+    lineHeight: 11,
+    includeFontPadding: false,
   },
   statsRow: {
     flexDirection: "row",

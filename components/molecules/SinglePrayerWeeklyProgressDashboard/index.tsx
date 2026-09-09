@@ -102,6 +102,26 @@ export function SinglePrayerWeeklyProgressDashboard({
           const showColumnDeletion = isMarkedForDeletion && !isBestDayVisible;
           const showWrapperDeletion = isMarkedForDeletion && isBestDayVisible;
 
+          // Only when today sits next to BEST DAY: shrink today so the red
+          // delete chrome on best day doesn't overlap the today chip.
+          const isNeighborBestDayVisible = (
+            neighbor: (typeof displayWeekDays)[number] | undefined,
+          ) =>
+            !!neighbor?.isBestDay &&
+            !loading &&
+            !neighbor.isFuture &&
+            !neighbor.isMenstruation;
+          const bestDayOnLeft = isNeighborBestDayVisible(
+            displayWeekDays[index - 1],
+          );
+          const bestDayOnRight = isNeighborBestDayVisible(
+            displayWeekDays[index + 1],
+          );
+          const shrinkTodayBesideBestDay =
+            isSelected &&
+            !isMarkedForDeletion &&
+            (bestDayOnLeft || bestDayOnRight);
+
           return (
             <TouchableOpacity
               key={`${day.day}-${index}`}
@@ -135,6 +155,10 @@ export function SinglePrayerWeeklyProgressDashboard({
                 style={[
                   styles.dayItemWrapper,
                   isSelected && !isMarkedForDeletion && styles.dayItemSelected,
+                  shrinkTodayBesideBestDay && styles.dayItemSelectedBesideBestDay,
+                  shrinkTodayBesideBestDay && {
+                    alignSelf: bestDayOnLeft ? "flex-end" : "flex-start",
+                  },
                   isBestDayVisible && styles.dayItemBestDay,
                   showWrapperDeletion && styles.deletingBestDay,
                 ]}
@@ -166,9 +190,17 @@ export function SinglePrayerWeeklyProgressDashboard({
                                 : Colors.light.subtext,
                     },
                   ]}
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                  minimumFontScale={0.80}
+                  {...(isBestDayVisible
+                    ? {
+                        numberOfLines: 1 as const,
+                        adjustsFontSizeToFit: true,
+                        minimumFontScale: 0.8,
+                      }
+                    : {
+                        numberOfLines: 1 as const,
+                        adjustsFontSizeToFit: true,
+                        minimumFontScale: 0.9,
+                      })}
                 >
                   {loading ? "---" : isBestDayVisible ? "BEST DAY!" : day.day}
                 </Text>
@@ -310,8 +342,15 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.dayProgressCardBg,
     borderRadius: 6,
   },
+  /** Today only, and only when BEST DAY is an immediate neighbor. */
+  dayItemSelectedBesideBestDay: {
+    width: "84%",
+  },
   dayItemBestDay: {
     width: "108%",
+    // Reserve border box so delete chrome doesn't reflow / shrink the label.
+    borderWidth: 1,
+    borderColor: "transparent",
   },
   deletingBestDay: {
     borderWidth: 1,
@@ -319,17 +358,17 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     backgroundColor: Colors.light.dullRed,
     zIndex: 99999,
-    width: "110%",
+    width: "108%",
   },
   bestDayLabel: {
     color: Colors.light.green,
-    fontSize: 11,
+    fontSize: 10.5,
     fontWeight: "700",
     fontFamily: fonts.primary.bold,
     textAlign: "center",
     marginTop: 4,
-    width: "106%",
-    overflow: "hidden",
+    letterSpacing: -0.3,
+    width: "100%",
   },
   dayLabel: {
     color: Colors.light.subtext,
