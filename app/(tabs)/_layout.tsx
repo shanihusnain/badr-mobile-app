@@ -10,6 +10,7 @@ import {
   PlanTabIcon,
 } from "@/assets/icons";
 import { ProtectedRoute } from "@/provider/ProtectedRoute";
+import { Platform } from "react-native";
 
 export default function TabLayout() {
   return (
@@ -27,7 +28,7 @@ export default function TabLayout() {
             shadowOpacity: 0,
           },
           tabBarItemStyle: {
-            paddingTop: 4,
+            paddingTop: 2,
           },
           headerStyle: {
             backgroundColor: Colors.light.background,

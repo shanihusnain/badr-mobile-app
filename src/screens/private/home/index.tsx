@@ -205,7 +205,7 @@ export default function HomeScreen() {
   const timeSpentSheetRef = useRef<BottomSheet>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const [isPrayerCardVisible, setIsPrayerCardVisible] = useState(true);
+  const [isPrayerCardVisible, setIsPrayerCardVisible] = useState(false);
   const [activeInspirationIndex, setActiveInspirationIndex] = useState(0);
   const [selectedDashboardCategory, setSelectedDashboardCategory] =
     useState("All");
@@ -423,7 +423,7 @@ export default function HomeScreen() {
   return (
     <BlackScreenWrapper edges={["top"]}>
       {/* Sticky collapsed category bar (fades in as big rings scroll away) */}
-      {!isAnyBottomSheetOpen ? (
+      {/* {!isAnyBottomSheetOpen ? (
         <Animated.View
           pointerEvents="box-none"
           style={[
@@ -457,7 +457,7 @@ export default function HomeScreen() {
             ))}
           </View>
         </Animated.View>
-      ) : null}
+      ) : null} */}
 
       <Animated.ScrollView
         style={{ width: "100%" }}
@@ -547,7 +547,7 @@ export default function HomeScreen() {
               style={styles.prayerCardContainer}
               imageStyle={{ borderRadius: 16 }}
             >
-              <View style={styles.prayerCardTopRow}>
+              {/* <View style={styles.prayerCardTopRow}>
                 <View style={styles.prayerDetailsLeft}>
                   <Text style={styles.upcomingText}>
                     {t("homeScreen.upcoming")}
@@ -562,10 +562,20 @@ export default function HomeScreen() {
                     {t("homeScreen.juneDate")}
                   </Text>
                 </View>
-              </View>
-
+              </View> */}
+              <Text
+                style={{
+                  fontSize: 20,
+                  fontWeight: "bold",
+                  textAlign: "center",
+                  marginTop: 100,
+                  color: "white",
+                }}
+              >
+                Coming soon...
+              </Text>
               {/* Timeline */}
-              {(() => {
+              {/* {(() => {
                 const currentPrayer = "fajr"; // Placeholder logic for now
                 const getIconColor = (prayerName: string) =>
                   currentPrayer === prayerName
@@ -607,7 +617,7 @@ export default function HomeScreen() {
                     </View>
                   </View>
                 );
-              })()}
+              })()} */}
             </ImageBackground>
           </View>
         )}

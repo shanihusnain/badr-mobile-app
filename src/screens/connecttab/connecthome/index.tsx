@@ -223,7 +223,7 @@ export const ConnectHome = () => {
 
   return (
     <BlackScreenWrapper edges={["top"]}>
-      <FlatList
+      {/* <FlatList
         data={sections}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
@@ -266,7 +266,18 @@ export const ConnectHome = () => {
         team={selectedTeam}
         onClose={closeEditRankSheet}
         onApply={handleApplyDisplayRank}
-      />
+      /> */}
+      <Text
+        style={{
+          fontSize: 20,
+          fontWeight: "bold",
+          textAlign: "center",
+          marginTop: 100,
+          color: "white",
+        }}
+      >
+        Coming soon...
+      </Text>
     </BlackScreenWrapper>
   );
 };

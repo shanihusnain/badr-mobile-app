@@ -199,7 +199,6 @@ export const DailyProgressBottomSheet = ({
       return [
         {
           goalId,
-          // Tahiyyat Al-Masjid: API may append " Prayer"; hide it only on these detail cards.
           title:
             goalId === "prayer-tahiyyatMasjid"
               ? goal.displayName.replace(/\s+Prayer$/i, "")
@@ -218,7 +217,10 @@ export const DailyProgressBottomSheet = ({
     selectedCategory,
     selectedCategoryTotalGoals,
   ]);
-
+  console.log(
+    "detailGoalsdetailGoalsdetailGoals",
+    JSON.stringify(detailGoals, null, 2),
+  );
   const selectedUiCategory = selectedCategory
     ? toUiIbadahCategory(selectedCategory)
     : null;
@@ -330,7 +332,9 @@ export const DailyProgressBottomSheet = ({
       {currentView === "categories" && (
         <View style={styles.listContainer}>
           {isCategoriesLoading ? (
-            <View style={[styles.loadingContainer, { minHeight: loadingMinHeight }]}>
+            <View
+              style={[styles.loadingContainer, { minHeight: loadingMinHeight }]}
+            >
               <LoadingComponent size="medium" />
             </View>
           ) : (
@@ -359,7 +363,9 @@ export const DailyProgressBottomSheet = ({
       {currentView === "detail" && selectedUiCategory && (
         <View style={styles.listContainer}>
           {isCategoryGoalsLoading ? (
-            <View style={[styles.loadingContainer, { minHeight: loadingMinHeight }]}>
+            <View
+              style={[styles.loadingContainer, { minHeight: loadingMinHeight }]}
+            >
               <LoadingComponent size="medium" />
             </View>
           ) : (
