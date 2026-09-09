@@ -58,7 +58,7 @@ import {
   InsightCardTimeSpentIcon,
   InsightCardGoalTrackedIcon,
   InsightCardArrowReverseIcon,
-  QiyamBothIshaAnadTahajudInsightIcon,
+  QiyamAlLaylWitrInsightCardIcon,
 } from "@/assets/icons";
 
 type Props = {
@@ -256,7 +256,12 @@ function getTahiyyatAlWudhuInsightIcon(card: InsightCardData) {
     name === "cursor-pointer" ||
     title.includes("WITR")
   ) {
-    return <QiyamBothIshaAnadTahajudInsightIcon />;
+    return (
+      <QiyamAlLaylWitrInsightCardIcon
+        size={19}
+        color="#A0A0A0"
+      />
+    );
   }
   if (name === "flash" || title.includes("STREAK")) {
     return <InsightCardFlashIcon size={TAHIYYAT_INSIGHT_ICON_SIZE} />;

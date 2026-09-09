@@ -97,6 +97,18 @@ const PRAYER_TO_SLOT: Record<PrayerName, FiveDailyPrayerSlot> = {
   isha: "ISHA",
 };
 
+/** On-time AM/PM limits; Qadha always allows both. */
+function getFiveDailyAllowedPeriods(
+  prayer: PrayerName | null,
+  timing: TimingOption,
+): ReadonlyArray<"am" | "pm"> {
+  if (timing === "qadha" || !prayer) return ["am", "pm"];
+  if (prayer === "fajr") return ["am"];
+  if (prayer === "isha") return ["am", "pm"];
+  // dhuhr, asr, maghrib
+  return ["pm"];
+}
+
 const toDateString = (date: Date) => moment(date).format("YYYY-MM-DD");
 
 /** API 400 when startTime is outside the allowed prayer window. */
@@ -212,6 +224,18 @@ export default function FiveDailyPrayersLoggingFlow({
     },
     [clearStartTimeInvalid],
   );
+
+  const allowedStartPeriods = useMemo(
+    () => getFiveDailyAllowedPeriods(selectedPrayer, timing),
+    [selectedPrayer, timing],
+  );
+
+  useEffect(() => {
+    if (!allowedStartPeriods.includes(startPeriod)) {
+      setStartPeriod(allowedStartPeriods[0] ?? "am");
+      setIsPeriodDropdownOpen(false);
+    }
+  }, [allowedStartPeriods, startPeriod]);
 
   const prayerFrame = useOptionalPrayerGoalFrameContext();
   const frame = prayerFrame?.frame;
@@ -675,6 +699,7 @@ export default function FiveDailyPrayersLoggingFlow({
             setIsPeriodDropdownOpen={setIsPeriodDropdownOpen}
             styles={commonStyles}
             hasError={startTimeInvalid}
+            allowedPeriods={allowedStartPeriods}
           />
         );
       case "duration":
