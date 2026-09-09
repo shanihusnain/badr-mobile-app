@@ -271,6 +271,8 @@ import { MondayAndThursdayFastsHabitualIcon } from "./MondayAndThursdayFastsHabi
 import { MondayAndThursdayAllahRememberenceIcon } from "./MondayAndThursdayAllahRememberenceIcon";
 import { MissedZakatAccountabilityIcon } from "./MissedZakatAccountabilityIcon";
 import { MissedZakatSocialIcon } from "./MissedZakatSocialIcon";
+import { ZakatCoummunityIcon } from "./ZakatCoummunityIcon";
+import { ZakatRedemptionIcon } from "./ZakatRedemptionIcon";
 import { CheckBoxTickIcon } from "./CheckBoxTickIcon";
 import { WhiteClockIcon } from "./WhiteClockIcon";
 
@@ -446,6 +448,8 @@ export {
   MondayAndThursdayAllahRememberenceIcon,
   MissedZakatAccountabilityIcon,
   MissedZakatSocialIcon,
+  ZakatCoummunityIcon,
+  ZakatRedemptionIcon,
   FacebookIcon,
   GoogleIcon,
   PasswordEyeIcon,

@@ -2724,7 +2724,7 @@
             {
               "type": "text",
               "style": "body",
-              "icon": "MissedZakatSocialIcon",
+              "icon": "ZakatCoummunityIcon",
               "content": "At its core, Zakat is a profound expression of empathy and social responsibility. It is designed to bridge the gap between the wealthy and the less fortunate, fostering a sense of unity and care within the community. The Quran highlights the duty of the affluent to support those in need:"
             },
             {
@@ -2746,7 +2746,7 @@
             {
               "type": "text",
               "style": "body",
-              "icon": "HeartBreakIcon",
+              "icon": "ZakatRedemptionIcon",
               "content": "For those who have delayed or missed their Zakat payments, Islam offers a path to redemption. Believers are encouraged to calculate and fulfill their missed obligations as soon as possible, seeking forgiveness from Allah for any negligence. The Quran reassures believers of Allah's mercy:"
             },
             {

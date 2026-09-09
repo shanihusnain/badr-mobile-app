@@ -83,6 +83,8 @@ import {
   MissedZakatAccountabilityIcon,
   MissedZakatSocialIcon,
   MissedZakatCalculateIcon,
+  ZakatCoummunityIcon,
+  ZakatRedemptionIcon,
   LillahDonationGiverIcon,
   LillahDonationRecipientIcon,
   VolunteeringServicesCharityEventIcon,
@@ -155,6 +157,8 @@ const READ_MORE_ICON_MAP: Record<string, ComponentType<any>> = {
   MissedZakatAccountabilityIcon,
   MissedZakatSocialIcon,
   MissedZakatCalculateIcon,
+  ZakatCoummunityIcon,
+  ZakatRedemptionIcon,
   LillahDonationGiverIcon,
   LillahDonationRecipientIcon,
   VolunteeringServicesCharityEventIcon,
@@ -530,36 +534,21 @@ const renderReadMoreItem = (
           ? Colors.light.green
           : Colors.light.dullWhite;
       let iconSize = 30;
+      const floatContent = item.content
+        ? `**${item.prefix}** ${item.content}`
+        : `**${item.prefix}**`;
       return (
-        <View
+        <TextWithFloatingIcon
           key={`bold-prefix-${index}`}
-          style={[
-            { flexDirection: "row", alignItems: "flex-start", width: "100%" },
-            spacingStyle,
-          ]}
-        >
-          <View style={{ marginRight: 12, marginTop: 4 }}>
-            <IconComp color={iconColor} size={iconSize} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text
-              style={[
-                getReadMoreTextStyle(item.style, readMoreStyles),
-                { textAlign: itemTextAlign, width: undefined },
-              ]}
-            >
-              <Text
-                style={{
-                  fontWeight: "600",
-                  fontFamily: fonts.primary.semiBold,
-                }}
-              >
-                {item.prefix}{" "}
-              </Text>
-              {renderParsedContent(item.content)}
-            </Text>
-          </View>
-        </View>
+          content={floatContent}
+          textStyle={getReadMoreTextStyle(item.style, readMoreStyles)}
+          textAlign={itemTextAlign}
+          spacingStyle={spacingStyle}
+          IconComponent={IconComp}
+          iconColor={iconColor}
+          iconSize={iconSize}
+          iconMarginTop={4}
+        />
       );
     }
 
@@ -604,36 +593,21 @@ const renderReadMoreItem = (
           ? Colors.light.green
           : Colors.light.dullWhite;
       let iconSize = 30;
+      const floatContent = item.content
+        ? `${item.content} **${item.suffix}**`
+        : `**${item.suffix}**`;
       return (
-        <View
+        <TextWithFloatingIcon
           key={`bold-suffix-${index}`}
-          style={[
-            { flexDirection: "row", alignItems: "flex-start", width: "100%" },
-            spacingStyle,
-          ]}
-        >
-          <View style={{ marginRight: 12, marginTop: 4 }}>
-            <IconComp color={iconColor} size={iconSize} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text
-              style={[
-                getReadMoreTextStyle(item.style, readMoreStyles),
-                { textAlign: itemTextAlign, width: undefined },
-              ]}
-            >
-              {renderParsedContent(item.content)}{" "}
-              <Text
-                style={{
-                  fontWeight: "600",
-                  fontFamily: fonts.primary.semiBold,
-                }}
-              >
-                {item.suffix}
-              </Text>
-            </Text>
-          </View>
-        </View>
+          content={floatContent}
+          textStyle={getReadMoreTextStyle(item.style, readMoreStyles)}
+          textAlign={itemTextAlign}
+          spacingStyle={spacingStyle}
+          IconComponent={IconComp}
+          iconColor={iconColor}
+          iconSize={iconSize}
+          iconMarginTop={4}
+        />
       );
     }
 
