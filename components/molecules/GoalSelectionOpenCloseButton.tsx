@@ -7,19 +7,27 @@ export const GoalSelectionOpenCloseButton = ({
   isOpen,
   title,
   toggleDropdown,
+  /** When true: open → chevron-down, closed → chevron-up. */
+  chevronDownWhenOpen = false,
+  chevronOpacity = 1,
 }: {
   isOpen: boolean;
   title: string;
   toggleDropdown: () => void;
+  chevronDownWhenOpen?: boolean;
+  chevronOpacity?: number;
 }) => {
+  const openIcon = chevronDownWhenOpen ? "chevron-down" : "chevron-up";
+  const closedIcon = chevronDownWhenOpen ? "chevron-up" : "chevron-down";
+
   return (
     <Pressable style={styles.headerRow} onPress={toggleDropdown}>
       <Text style={styles.titleText}>{title}</Text>
       <Feather
-        name={isOpen ? "chevron-up" : "chevron-down"}
+        name={isOpen ? openIcon : closedIcon}
         size={18}
         color={Colors.light.white}
-        style={styles.icon}
+        style={[styles.icon, { opacity: chevronOpacity }]}
       />
     </Pressable>
   );
