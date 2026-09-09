@@ -74,7 +74,12 @@ export default function LoginScreen() {
       }
 
       await signIn(accessToken, refreshToken, user);
-      router.replace("/(private)/greetingsscreen");
+
+      if (result?.data?.hasActiveGoalCycle === true) {
+        router.replace("/(tabs)/(home)");
+      } else {
+        router.replace("/(private)/greetingsscreen");
+      }
     } catch {
       // Toast is handled in useLogin
     }

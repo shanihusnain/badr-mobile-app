@@ -21,6 +21,7 @@ export type LoginUser = {
 };
 
 export type LoginAuthData = {
+  hasActiveGoalCycle: boolean;
   accessToken: string;
   refreshToken: string;
   user: LoginUser;
