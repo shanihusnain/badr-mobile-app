@@ -395,25 +395,31 @@ export function QiyamWeeklyProgressDashboard({
                         isToday={isToday}
                       />
                       <TopSpace top={10} />
-                      <View style={styles.dayLabelSlot}>
-                        <Text
-                          style={[
-                            isBestDayVisible
-                              ? styles.bestDayLabel
-                              : styles.dayLabel,
-                            { color: labelColor },
-                          ]}
-                          numberOfLines={1}
-                          adjustsFontSizeToFit={isBestDayVisible}
-                          minimumFontScale={0.9}
-                        >
-                          {loading
-                            ? "---"
-                            : isBestDayVisible
-                              ? "BEST DAY!"
-                              : day.day}
-                        </Text>
-                      </View>
+                      <Text
+                        style={[
+                          isBestDayVisible
+                            ? styles.bestDayLabel
+                            : styles.dayLabel,
+                          { color: labelColor },
+                        ]}
+                        {...(isBestDayVisible
+                          ? {
+                              numberOfLines: 1 as const,
+                              adjustsFontSizeToFit: true,
+                              minimumFontScale: 0.8,
+                            }
+                          : {
+                              numberOfLines: 1 as const,
+                              adjustsFontSizeToFit: true,
+                              minimumFontScale: 0.9,
+                            })}
+                      >
+                        {loading
+                          ? "---"
+                          : isBestDayVisible
+                            ? "BEST DAY!"
+                            : day.day}
+                      </Text>
 
                       <View style={styles.durationSlot}>
                         <Text
@@ -539,7 +545,10 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   dayItemBestDay: {
-    width: "100%",
+    width: "108%",
+    // Reserve border box so delete chrome doesn't reflow / shrink the label.
+    borderWidth: 1,
+    borderColor: "transparent",
   },
   deletingBestDay: {
     borderWidth: 1,
@@ -547,7 +556,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     backgroundColor: Colors.light.dullRed,
     zIndex: 99999,
-    width: "100%",
+    width: "108%",
   },
   ringOuter: {
     alignItems: "center",
@@ -592,36 +601,23 @@ const styles = StyleSheet.create({
   blurredDayIconWrap: {
     opacity: 0.28,
   },
-  /** Keeps BEST DAY! and day names on the same vertical band so counts align. */
-  dayLabelSlot: {
-    height: 14,
-    width: "100%",
-    marginTop: 3,
-    justifyContent: "center",
-    alignItems: "center",
-  },
   bestDayLabel: {
     color: Colors.light.green,
-    fontSize: 14,
+    fontSize: 10.5,
     fontWeight: "700",
     fontFamily: fonts.primary.bold,
-    fontStyle: "normal",
-    lineHeight: 11,
-    letterSpacing: -0.44,
     textAlign: "center",
-    textTransform: "uppercase",
+    marginTop: 4,
+    letterSpacing: -0.3,
     width: "100%",
-    overflow: "hidden",
   },
   dayLabel: {
     color: Colors.light.subtext,
     fontSize: 11,
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
-    lineHeight: 14,
+    marginTop: 3,
     textAlign: "center",
-    width: "100%",
-    includeFontPadding: false,
   },
   durationSlot: {
     height: 18,
