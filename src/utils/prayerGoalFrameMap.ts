@@ -278,6 +278,7 @@ export function mapFiveDailyFrameWeekDays(
         day: day.dayLabel,
         date: day.date,
         statuses: ["none", "none", "none", "none", "none"],
+        hasUserLog: false,
         isToday: false,
         isFuture: true,
         isMenstruating: false,
@@ -288,7 +289,10 @@ export function mapFiveDailyFrameWeekDays(
       const statuses = FIVE_DAILY_SLOT_ORDER.map((key) =>
         mapFiveDailySlotToStatus(day.slots?.[key]),
       );
-      const anyLogged = statuses.some(
+      const hasUserLog = FIVE_DAILY_SLOT_ORDER.some(
+        (key) => day.slots?.[key]?.logged === true,
+      );
+      const anyActivity = statuses.some(
         (s) => s !== "none" && s !== "menstruation",
       );
 
@@ -296,9 +300,10 @@ export function mapFiveDailyFrameWeekDays(
         day: day.dayLabel,
         date: day.date,
         statuses:
-          isMenstruating && !anyLogged
+          isMenstruating && !anyActivity
             ? Array<PrayerStatus>(5).fill("menstruation")
             : statuses,
+        hasUserLog,
         isToday,
         isFuture: false,
         isMenstruating:
@@ -311,16 +316,25 @@ export function mapFiveDailyFrameWeekDays(
         day: day.dayLabel,
         date: day.date,
         statuses: Array<PrayerStatus>(5).fill("menstruation"),
+        hasUserLog: false,
         isToday,
         isFuture: false,
         isMenstruating: true,
       };
     }
 
+    const onTime = clampSlotCount(day.slotsOnTime);
+    const autoQadha = clampSlotCount(day.slotsAutoQadha);
+    const qadha = clampSlotCount(day.slotsQadha);
+    // User-logged qadha is typically slotsQadha beyond auto-qadha.
+    const hasUserLog =
+      Boolean(day.allFiveOnTime) || onTime > 0 || qadha > autoQadha;
+
     return {
       day: day.dayLabel,
       date: day.date,
       statuses: mapFiveDailyStatusesFromCounts(day),
+      hasUserLog,
       isToday,
       isFuture: false,
       isMenstruating: false,

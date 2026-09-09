@@ -152,7 +152,7 @@ export function SunnahRawatibDayRing({
           width={size}
           height={size}
           // SVG stroke starts at 3 o'clock; -60deg puts Before Fajr (index 0) at 1 o'clock.
-          style={{ transform: [{ rotate: "-75deg" }] }}
+          style={{ transform: [{ rotate: "-70deg" }] }}
         >
           {segments.map((segment, index) => (
             <Circle

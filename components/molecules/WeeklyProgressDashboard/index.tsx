@@ -25,12 +25,6 @@ import { PrayerWeeklyDashboardBody } from "@/components/molecules/PrayerWeeklyDa
 const TOTAL_HORIZONTAL_PADDING = 24;
 const FIVE_DAILY_RING_SCALE = 0.75;
 
-function dayHasLoggedPrayer(statuses: PrayerStatus[]): boolean {
-  return statuses.some(
-    (status) => status !== "none" && status !== "menstruation",
-  );
-}
-
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface DayProgress {
@@ -40,6 +34,11 @@ export interface DayProgress {
   date?: string;
   /** Five prayer statuses for the day */
   statuses: PrayerStatus[];
+  /**
+   * True when the user has logged at least one slot (not auto-qadha alone).
+   * Used to gate long-press delete.
+   */
+  hasUserLog?: boolean;
   /** True when all 5 prayers are in menstruation cycle */
   isMenstruating?: boolean;
   isToday?: boolean;
@@ -52,6 +51,15 @@ function isFutureDayProgress(day: DayProgress): boolean {
   if (!day.date) return false;
   const date = moment(day.date, "YYYY-MM-DD");
   return date.isValid() && date.isAfter(moment(), "day");
+}
+
+/** Delete only when the user has logged (auto-qadha alone does not count). */
+function dayAllowsDelete(day: DayProgress): boolean {
+  if (typeof day.hasUserLog === "boolean") return day.hasUserLog;
+  // Fallback without frame flag: on-time / congregation only (not missed/auto-qadha).
+  return day.statuses.some(
+    (status) => status === "onTime" || status === "congregation",
+  );
 }
 
 export interface WeeklyProgressDashboardProps {
@@ -169,137 +177,140 @@ export const WeeklyProgressDashboard: React.FC<
 
       <PrayerWeeklyDashboardBody loading={loading}>
         {!loading ? (
-        <>
-      <View style={styles.daysRow}>
-        {displayWeekDays.map((day, idx) => {
-          const isSelected = day.isToday === true;
-          const isFuture = isFutureDayProgress(day);
-          const hasLog = dayHasLoggedPrayer(day.statuses);
-          const isMarkedForDeletion =
-            !!day.date && selectForDeletion === day.date;
-          const ringDay: DayProgress = { ...day, isFuture };
+          <>
+            <View style={styles.daysRow}>
+              {displayWeekDays.map((day, idx) => {
+                const isSelected = day.isToday === true;
+                const isFuture = isFutureDayProgress(day);
+                const canDelete = dayAllowsDelete(day);
+                const isMarkedForDeletion =
+                  canDelete &&
+                  !!day.date &&
+                  selectForDeletion === day.date;
+                const ringDay: DayProgress = { ...day, isFuture };
 
-          return (
-            <TouchableOpacity
-              key={`${day.day}-${idx}`}
-              style={[
-                styles.dayColumn,
-                isMarkedForDeletion ? { zIndex: 2 } : null,
-                isMarkedForDeletion && styles.dayColumnMarkedForDeletion,
-              ]}
-              onLongPress={() => {
-                if (loading || isFuture || !day.date || !hasLog) return;
-                setSelectForDeletion((prev) =>
-                  prev === day.date ? "" : (day.date ?? ""),
+                return (
+                  <TouchableOpacity
+                    key={`${day.day}-${idx}`}
+                    style={[
+                      styles.dayColumn,
+                      isMarkedForDeletion ? { zIndex: 2 } : null,
+                      isMarkedForDeletion && styles.dayColumnMarkedForDeletion,
+                    ]}
+                    onLongPress={() => {
+                      if (loading || isFuture || !day.date || !canDelete) return;
+                      setSelectForDeletion((prev) =>
+                        prev === day.date ? "" : (day.date ?? ""),
+                      );
+                    }}
+                    onPress={() => {
+                      if (loading || isFuture) return;
+                      if (selectForDeletion) {
+                        setSelectForDeletion("");
+                        return;
+                      }
+                      setInternalSelected(idx);
+                      onDayPress?.(idx);
+                    }}
+                    activeOpacity={loading || isFuture ? 1 : 0.75}
+                    disabled={loading || isFuture}
+                  >
+                    <View
+                      style={[
+                        styles.dayItemWrapper,
+                        isSelected &&
+                          !isMarkedForDeletion &&
+                          styles.dayItemSelected,
+                        isFuture && styles.dayItemFutureBlur,
+                      ]}
+                    >
+                      <View
+                        style={[
+                          styles.ringWrapper,
+                          { width: ringSize, height: ringSize },
+                        ]}
+                      >
+                        {renderRing(ringDay, ringSize)}
+                      </View>
+                      <TopSpace top={8} />
+                      <Text
+                        style={[
+                          styles.dayLabel,
+                          {
+                            color: isSelected
+                              ? Colors.light.white
+                              : Colors.light.subtext,
+                          },
+                        ]}
+                        numberOfLines={1}
+                      >
+                        {t(
+                          (DAY_TRANSLATION_KEYS[day.day] ??
+                            "homeScreen.weeklyProgress_daySun") as any,
+                        )}
+                      </Text>
+                      <View style={styles.durationSlot} />
+                    </View>
+                    {isMarkedForDeletion ? (
+                      <Pressable
+                        style={styles.deleteButton}
+                        disabled={
+                          isDeletingLog ||
+                          (!prayerFrame?.openDeletePrayerLogOptions &&
+                            !prayerFrame?.frame?.prayerType)
+                        }
+                        onPress={() => {
+                          if (!day.date) return;
+                          if (prayerFrame?.openDeletePrayerLogOptions) {
+                            prayerFrame.openDeletePrayerLogOptions(day.date);
+                            setSelectForDeletion("");
+                            return;
+                          }
+                          const prayerType = prayerFrame?.frame?.prayerType;
+                          if (!prayerType || isDeletingLog) return;
+                          deletePrayerLog(
+                            { prayerType, date: day.date },
+                            {
+                              onSuccess: () => {
+                                setSelectForDeletion("");
+                              },
+                            },
+                          );
+                        }}
+                      >
+                        <BinIcon />
+                      </Pressable>
+                    ) : null}
+                  </TouchableOpacity>
                 );
-              }}
-              onPress={() => {
-                if (loading || isFuture) return;
-                if (selectForDeletion) {
-                  setSelectForDeletion("");
-                  return;
-                }
-                setInternalSelected(idx);
-                onDayPress?.(idx);
-              }}
-              activeOpacity={loading || isFuture ? 1 : 0.75}
-              disabled={loading || isFuture}
-            >
-              <View
-                style={[
-                  styles.dayItemWrapper,
-                  isSelected && !isMarkedForDeletion && styles.dayItemSelected,
-                  isFuture && styles.dayItemFutureBlur,
-                ]}
-              >
-                <View
-                  style={[
-                    styles.ringWrapper,
-                    { width: ringSize, height: ringSize },
-                  ]}
-                >
-                  {renderRing(ringDay, ringSize)}
-                </View>
-                <TopSpace top={8} />
-                <Text
-                  style={[
-                    styles.dayLabel,
-                    {
-                      color: isSelected
-                        ? Colors.light.white
-                        : Colors.light.subtext,
-                    },
-                  ]}
-                  numberOfLines={1}
-                >
-                  {t(
-                    (DAY_TRANSLATION_KEYS[day.day] ??
-                      "homeScreen.weeklyProgress_daySun") as any,
-                  )}
-                </Text>
-                <View style={styles.durationSlot} />
-              </View>
-              {isMarkedForDeletion ? (
-                <Pressable
-                  style={styles.deleteButton}
-                  disabled={
-                    isDeletingLog ||
-                    (!prayerFrame?.openDeletePrayerLogOptions &&
-                      !prayerFrame?.frame?.prayerType)
-                  }
-                  onPress={() => {
-                    if (!day.date) return;
-                    if (prayerFrame?.openDeletePrayerLogOptions) {
-                      prayerFrame.openDeletePrayerLogOptions(day.date);
-                      setSelectForDeletion("");
-                      return;
-                    }
-                    const prayerType = prayerFrame?.frame?.prayerType;
-                    if (!prayerType || isDeletingLog) return;
-                    deletePrayerLog(
-                      { prayerType, date: day.date },
-                      {
-                        onSuccess: () => {
-                          setSelectForDeletion("");
-                        },
-                      },
-                    );
-                  }}
-                >
-                  <BinIcon />
-                </Pressable>
-              ) : null}
-            </TouchableOpacity>
-          );
-        })}
-      </View>
+              })}
+            </View>
 
-      <WeeklyProgressStatsFooterSection
-        vsLastWeek={vsLastWeek}
-        statsRow={
-          <View style={styles.statsRow}>
-            <PrayerMatIcon />
-            <Text style={styles.statsText} numberOfLines={1}>
-              <Text style={styles.statsCount}>{onTimePrayersCount}</Text>
-              {` ${t("homeScreen.weeklyProgress_onTimePrayers")}`}
-            </Text>
-          </View>
-        }
-        footerProps={{
-          loading: false,
-          streakDays,
-          motivationalQuote,
-          comparisonVariant: "onTime",
-          streakVariant: "default",
-        }}
-      />
-        </>
+            <WeeklyProgressStatsFooterSection
+              vsLastWeek={vsLastWeek}
+              statsRow={
+                <View style={styles.statsRow}>
+                  <PrayerMatIcon />
+                  <Text style={styles.statsText} numberOfLines={1}>
+                    <Text style={styles.statsCount}>{onTimePrayersCount}</Text>
+                    {` ${t("homeScreen.weeklyProgress_onTimePrayers")}`}
+                  </Text>
+                </View>
+              }
+              footerProps={{
+                loading: false,
+                streakDays,
+                motivationalQuote,
+                comparisonVariant: "onTime",
+                streakVariant: "default",
+              }}
+            />
+          </>
         ) : null}
       </PrayerWeeklyDashboardBody>
     </View>
   );
 };
-
 
 const styles = StyleSheet.create({
   card: {
