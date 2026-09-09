@@ -33,6 +33,8 @@ interface StartTimeStepProps {
   styles: any;
   /** Highlight hour / minute / period borders in red (e.g. outside allowed window). */
   hasError?: boolean;
+  /** Limit AM/PM choices (e.g. Fajr on-time → am only). Defaults to both. */
+  allowedPeriods?: ReadonlyArray<"am" | "pm">;
 }
 
 export const StartTimeStep: React.FC<StartTimeStepProps> = ({
@@ -46,10 +48,14 @@ export const StartTimeStep: React.FC<StartTimeStepProps> = ({
   setIsPeriodDropdownOpen,
   styles,
   hasError = false,
+  allowedPeriods = ["am", "pm"],
 }) => {
   const [isHourFocused, setIsHourFocused] = React.useState(false);
   const [isMinuteFocused, setIsMinuteFocused] = React.useState(false);
   const errorBorder = hasError ? { borderColor: Colors.light.red } : null;
+  const canTogglePeriod = allowedPeriods.length > 1;
+  const alternatePeriod =
+    allowedPeriods.find((period) => period !== startPeriod) ?? null;
 
   return (
     <View style={styles.timePickerContainer}>
@@ -105,27 +111,34 @@ export const StartTimeStep: React.FC<StartTimeStepProps> = ({
           <TouchableOpacity
             style={[
               styles.periodSelector,
-              isPeriodDropdownOpen && { borderColor: Colors.light.white },
+              isPeriodDropdownOpen &&
+                canTogglePeriod && { borderColor: Colors.light.white },
               errorBorder,
             ]}
-            onPress={() => setIsPeriodDropdownOpen(!isPeriodDropdownOpen)}
-            activeOpacity={0.8}
+            onPress={() => {
+              if (!canTogglePeriod) return;
+              setIsPeriodDropdownOpen(!isPeriodDropdownOpen);
+            }}
+            activeOpacity={canTogglePeriod ? 0.8 : 1}
+            disabled={!canTogglePeriod}
           >
             <Text style={styles.periodText}>{startPeriod}</Text>
-            <Ionicons
-              name="chevron-down"
-              size={14}
-              color={Colors.light.white}
-              style={{ marginTop: 2 }}
-            />
+            {canTogglePeriod ? (
+              <Ionicons
+                name="chevron-down"
+                size={14}
+                color={Colors.light.white}
+                style={{ marginTop: 2 }}
+              />
+            ) : null}
           </TouchableOpacity>
 
-          {isPeriodDropdownOpen && (
+          {isPeriodDropdownOpen && canTogglePeriod && alternatePeriod ? (
             <View style={styles.periodDropdown}>
               <TouchableOpacity
                 style={styles.dropdownOption}
                 onPress={() => {
-                  setStartPeriod(startPeriod === "am" ? "pm" : "am");
+                  setStartPeriod(alternatePeriod);
                   setIsPeriodDropdownOpen(false);
                 }}
                 activeOpacity={0.8}
@@ -133,12 +146,10 @@ export const StartTimeStep: React.FC<StartTimeStepProps> = ({
                 <View style={styles.dropdownRadioOuter}>
                   <View style={styles.dropdownRadioInner} />
                 </View>
-                <Text style={styles.dropdownOptionText}>
-                  {startPeriod === "am" ? "pm" : "am"}
-                </Text>
+                <Text style={styles.dropdownOptionText}>{alternatePeriod}</Text>
               </TouchableOpacity>
             </View>
-          )}
+          ) : null}
         </View>
       </View>
     </View>

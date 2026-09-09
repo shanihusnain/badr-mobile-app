@@ -174,6 +174,7 @@ import { ReferFriendIcon } from "./ReferFriendIcon";
 import { ReferFriendTabIcon } from "./ReferFriendTabIcon";
 import { RedeemGiftIcon } from "./RedeemGiftIcon";
 import { QiyamBothIshaAnadTahajudInsightIcon } from "./QiyamBothIshaAnadTahajudInsightIcon";
+import { QiyamAlLaylWitrInsightCardIcon } from "./QiyamAlLaylWitrInsightCardIcon";
 //S
 import { SettingIcon } from "./SettingIcon";
 import { ShootIcon } from "./ShootIcon";
@@ -492,5 +493,6 @@ export {
   JummaIcon,
   CongregationalMosqueIcon,
   QiyamBothIshaAnadTahajudInsightIcon,
+  QiyamAlLaylWitrInsightCardIcon,
   WitrUpIcon,
 };
