@@ -276,7 +276,12 @@ export const DeletePrayerGoalOptions = forwardRef<BottomSheet, Props>(
               )}
             </Pressable>
             <TopSpace top={12} />
-            <SecondaryButton text="CANCEL" onPress={handleClose} />
+            <SecondaryButton
+              text="CANCEL"
+              onPress={handleClose}
+              style={styles.cancelButton}
+              textStyle={styles.cancelButtonText}
+            />
           </View>
         </BottomSheetFooter>
       ),
@@ -305,6 +310,8 @@ export const DeletePrayerGoalOptions = forwardRef<BottomSheet, Props>(
             isOpen={isOpen}
             title={instructionTitle}
             toggleDropdown={toggleDropdown}
+            chevronDownWhenOpen
+            chevronOpacity={0.45}
           />
         </View>
         <TopSpace top={20} />
@@ -443,5 +450,11 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     fontSize: 14,
     letterSpacing: 0.4,
+  },
+  cancelButton: {
+    borderColor: Colors.light.dullDescriptionText,
+  },
+  cancelButtonText: {
+    color: Colors.light.dullDescriptionText,
   },
 });
