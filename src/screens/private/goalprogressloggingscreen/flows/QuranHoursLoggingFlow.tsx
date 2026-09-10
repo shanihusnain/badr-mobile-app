@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Pressable,
   Text,
@@ -15,6 +15,8 @@ import { fonts } from "@/assets/fonts";
 import { AddLoggingFlowIcon, HeadPhoneQuranListeningIcon, ManQuranTajweedIcon } from "@/assets/icons";
 import { GoalData } from "../../home/components/goalsData";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
+import { useLogQuranHoursGoal } from "@/src/api/mutations/useLogQuranHoursGoal";
+import { resolveQuranTypeFromGoalId } from "@/src/utils/quranGoalMap";
 import { DateStep } from "../components/DateStep";
 import { formatProgressLoggingDateLabel } from "../progressLoggingConfig";
 import { DurationStep, StartTimeStep } from "../components/TimePickerSteps";
@@ -25,6 +27,14 @@ import {
 } from "../components/DailyProgressLogging.styles";
 import { getQuranHoursFlowDefinition } from "../loggingFlowRegistry";
 import type { QuranHoursLogEntry } from "../types";
+import { useOptionalQuranGoalFrameContext } from "../quranGoalFrameContext";
+import {
+  getQuranFrameAchievementLabel,
+  getQuranFrameCycleEnd,
+  getQuranFrameCycleStart,
+  getQuranFrameGoalTitle,
+  getQuranFrameTargetHours,
+} from "@/src/utils/quranGoalFrameMap";
 
 type QuranHoursStepId = "date" | "startTime" | "duration";
 
@@ -49,6 +59,11 @@ export default function QuranHoursLoggingFlow({
     () => getQuranHoursFlowDefinition(goalData.id),
     [goalData.id],
   );
+  const quranFrame = useOptionalQuranGoalFrameContext();
+  const frame = quranFrame?.frame;
+  const { mutateAsync: logQuranHours, isPending: isLogging } =
+    useLogQuranHoursGoal();
+  const quranGoalType = resolveQuranTypeFromGoalId(goalData.id);
 
   const [flowMode, setFlowMode] = useState<FlowMode>("collapsed");
   const [stepIndex, setStepIndex] = useState(0);
@@ -60,7 +75,45 @@ export default function QuranHoursLoggingFlow({
   const [durationHours, setDurationHours] = useState("0");
   const [durationMinutes, setDurationMinutes] = useState("10");
 
+  const durationTotalMinutes = useMemo(() => {
+    const hours = Number.parseInt(durationHours || "0", 10) || 0;
+    const minutes = Number.parseInt(durationMinutes || "0", 10) || 0;
+    return Math.max(0, hours * 60 + minutes);
+  }, [durationHours, durationMinutes]);
+
+  const cycleStart = frame
+    ? getQuranFrameCycleStart(frame) || undefined
+    : undefined;
+  const cycleEnd = frame ? getQuranFrameCycleEnd(frame) || undefined : undefined;
   const todayString = toDateString(new Date());
+  const maxSelectableDate =
+    cycleEnd && cycleEnd < todayString ? cycleEnd : todayString;
+  // Only clamp to cycle start once it is on/before the latest selectable day.
+  // A future cycleStart must not freeze the picker on "today" with a dead back button.
+  const minSelectableDate =
+    cycleStart && cycleStart <= maxSelectableDate ? cycleStart : undefined;
+
+  useEffect(() => {
+    setSelectedDate((prev) => {
+      if (minSelectableDate && prev < minSelectableDate) return minSelectableDate;
+      if (prev > maxSelectableDate) return maxSelectableDate;
+      return prev;
+    });
+  }, [minSelectableDate, maxSelectableDate]);
+
+  const badgeStatus = useMemo(() => {
+    if (!frame) {
+      return {
+        text: t("progressLogging.inProgress"),
+        type: "in-progress" as const,
+      };
+    }
+    return getQuranFrameAchievementLabel(frame, t);
+  }, [frame, t]);
+
+  const frameTargetHours = frame ? getQuranFrameTargetHours(frame) : null;
+  const frameGoalTitle = frame ? getQuranFrameGoalTitle(frame) : null;
+
   const currentStep = STEPS[stepIndex];
   const isLastStep = stepIndex === STEPS.length - 1;
 
@@ -78,7 +131,9 @@ export default function QuranHoursLoggingFlow({
     const next = moment(selectedDate, "YYYY-MM-DD")
       .add(direction, "days")
       .format("YYYY-MM-DD");
-    if (direction === 1 && next > todayString) return;
+    if (minSelectableDate && direction === -1 && next < minSelectableDate)
+      return;
+    if (direction === 1 && next > maxSelectableDate) return;
     setSelectedDate(next);
   };
 
@@ -94,24 +149,60 @@ export default function QuranHoursLoggingFlow({
     setDurationMinutes("10");
   }, []);
 
-  const handleConfirm = () => {
-    const hours = Number.parseInt(durationHours || "0", 10) || 0;
-    const minutes = Number.parseInt(durationMinutes || "0", 10) || 0;
-    const startTime = `${startHour}:${startMinute} ${startPeriod}`;
-
-    onLogComplete?.({
-      type: "quran-hours",
-      goalId: flowDefinition.goalId,
-      date: selectedDate,
-      startTime,
-      hours,
-      minutes,
-      durationLabel: `${hours}h ${minutes}m`,
-    });
+  const handleCancel = () => {
+    if (isLogging) return;
     resetFlow();
   };
 
+  const formatSessionStartTimeForApi = () => {
+    const hourNum = Number.parseInt(startHour || "0", 10) || 0;
+    const minuteNum = Number.parseInt(startMinute || "0", 10) || 0;
+
+    let hour24 = hourNum % 12;
+    if (startPeriod === "pm") hour24 += 12;
+
+    const hh = String(Math.max(0, hour24)).padStart(2, "0");
+    const mm = String(Math.max(0, minuteNum)).padStart(2, "0");
+    return `${hh}:${mm}`;
+  };
+
+  const handleConfirm = () => {
+    if (isLogging || !quranGoalType || durationTotalMinutes < 1) return;
+
+    const run = async () => {
+      const hours = Number.parseInt(durationHours || "0", 10) || 0;
+      const minutes = Number.parseInt(durationMinutes || "0", 10) || 0;
+      const sessionStartTime = formatSessionStartTimeForApi();
+
+      try {
+        await logQuranHours({
+          quranGoalType,
+          date: selectedDate,
+          sessionStartTime,
+          durationMinutes: durationTotalMinutes,
+        });
+        await quranFrame?.refetch();
+
+        onLogComplete?.({
+          type: "quran-hours",
+          goalId: flowDefinition.goalId,
+          date: selectedDate,
+          startTime: `${startHour}:${startMinute} ${startPeriod}`,
+          hours,
+          minutes,
+          durationLabel: `${hours}h ${minutes}m`,
+        });
+        resetFlow();
+      } catch {
+        // Mutation onError already shows toast.
+      }
+    };
+
+    void run();
+  };
+
   const handleBack = () => {
+    if (isLogging) return;
     if (stepIndex === 0) {
       resetFlow();
       return;
@@ -120,7 +211,8 @@ export default function QuranHoursLoggingFlow({
   };
 
   const handleForward = () => {
-    if (!isLastStep) setStepIndex((index) => index + 1);
+    if (isLogging || isLastStep) return;
+    setStepIndex((index) => index + 1);
   };
 
   const summaryIcon =
@@ -130,10 +222,12 @@ export default function QuranHoursLoggingFlow({
       <ManQuranTajweedIcon color={Colors.light.white} size={25} />
     );
 
-  const goalLabel = t(config.summaryTitleKey, {
-    count: formatNumber(config.totalHours),
-    defaultValue: goalData.title,
-  });
+  const goalLabel =
+    frameGoalTitle ||
+    t(config.summaryTitleKey, {
+      count: formatNumber(frameTargetHours ?? config.totalHours),
+      defaultValue: goalData.title,
+    });
 
   const getStepHeader = (step: QuranHoursStepId) => {
     switch (step) {
@@ -181,6 +275,8 @@ export default function QuranHoursLoggingFlow({
             dateLabel={dateLabel}
             selectedDate={selectedDate}
             todayString={todayString}
+            minSelectableDate={minSelectableDate}
+            maxSelectableDate={maxSelectableDate}
             onShiftDate={shiftDate}
             styles={commonStyles}
           />
@@ -217,13 +313,18 @@ export default function QuranHoursLoggingFlow({
   return (
     <>
       {flowMode === "active" && (
-        <Pressable style={commonStyles.backdrop} onPress={resetFlow} />
+        <Pressable
+          style={commonStyles.backdrop}
+          onPress={handleCancel}
+          disabled={isLogging}
+        />
       )}
       {flowMode === "active" && (
         <TouchableOpacity
           style={commonStyles.cancelButton}
-          onPress={resetFlow}
+          onPress={handleCancel}
           activeOpacity={0.8}
+          disabled={isLogging}
         >
           <Ionicons name="close" size={20} color={Colors.light.white} />
         </TouchableOpacity>
@@ -243,17 +344,25 @@ export default function QuranHoursLoggingFlow({
                   <View
                     style={[
                       localStyles.badge,
-                      localStyles.badgeInProgress,
+                      badgeStatus.type === "completed"
+                        ? localStyles.badgeCompleted
+                        : badgeStatus.type === "not-started"
+                          ? localStyles.badgeNotStarted
+                          : localStyles.badgeInProgress,
                       { alignSelf: "flex-start" },
                     ]}
                   >
                     <Text
                       style={[
                         localStyles.badgeText,
-                        localStyles.badgeTextInProgress,
+                        badgeStatus.type === "completed"
+                          ? localStyles.badgeTextCompleted
+                          : badgeStatus.type === "not-started"
+                            ? localStyles.badgeTextNotStarted
+                            : localStyles.badgeTextInProgress,
                       ]}
                     >
-                      {t("progressLogging.inProgress")}
+                      {badgeStatus.text}
                     </Text>
                   </View>
                   <Text
@@ -283,7 +392,14 @@ export default function QuranHoursLoggingFlow({
                 onBack={handleBack}
                 onForward={handleForward}
                 onConfirm={handleConfirm}
-                canGoForward={!isLastStep}
+                canGoForward={!isLastStep && !isLogging}
+                canGoBack={!isLogging}
+                canConfirm={
+                  isLastStep &&
+                  !isLogging &&
+                  !!quranGoalType &&
+                  durationTotalMinutes >= 1
+                }
                 styles={commonStyles}
                 style={commonStyles.inPlaceFlowCard}
               >
@@ -317,6 +433,12 @@ const localStyles = StyleSheet.create({
   badgeInProgress: {
     backgroundColor: Colors.light.lightpurple,
   },
+  badgeCompleted: {
+    backgroundColor: Colors.light.white,
+  },
+  badgeNotStarted: {
+    backgroundColor: Colors.light.dullWhiteOpacity,
+  },
   badgeText: {
     fontFamily: fonts.primary.medium,
     fontSize: 12,
@@ -325,6 +447,12 @@ const localStyles = StyleSheet.create({
   },
   badgeTextInProgress: {
     color: Colors.light.darkblue,
+  },
+  badgeTextCompleted: {
+    color: Colors.light.green,
+  },
+  badgeTextNotStarted: {
+    color: Colors.light.white,
   },
   summaryBody: {
     flexDirection: "row",

@@ -24,6 +24,8 @@ export type SinglePrayerWeeklyProgressDashboardProps = {
    * `null` / omitted on week 1 (no comparison slot). Present from week 2 onward.
    */
   vsLastWeek?: number | null;
+  /** When set, shown instead of the numeric magnitude (e.g. Quran "2h 0m"). */
+  vsLastWeekDisplay?: string | null;
   motivationalQuote?: string;
   defaultMotivationalQuote?: string;
   selectedDayIndex?: number;
@@ -37,6 +39,7 @@ export type SinglePrayerWeeklyProgressDashboardProps = {
   statsRow?: ReactNode;
   /** When false, long-press delete chrome is disabled (e.g. Quran hours). Default true. */
   allowLogDeletion?: boolean;
+  comparisonVariant?: "onTime" | "prayers" | "recitations" | "hours";
 };
 
 export const LOADING_WEEK: SinglePrayerDayProgress[] = [

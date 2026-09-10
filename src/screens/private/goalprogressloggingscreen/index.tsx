@@ -46,8 +46,14 @@ import {
   PrayerGoalFrameProvider,
   useOptionalPrayerGoalFrameContext,
 } from "./prayerGoalFrameContext";
+import {
+  QuranGoalFrameProvider,
+  useOptionalQuranGoalFrameContext,
+} from "./quranGoalFrameContext";
 import { getPrayerFrameRingGoalCountLabel } from "@/src/utils/prayerGoalFrameMap";
+import { getQuranFrameRingGoalCountLabel, getQuranFrameGoalTitle } from "@/src/utils/quranGoalFrameMap";
 import { resolvePrayerTypeFromGoalId } from "@/src/utils/prayerGoalMap";
+import { isQuranHoursGoalId } from "./types";
 import BottomSheet from "@gorhom/bottom-sheet";
 import {
   tahiyyatwudhudetailimage,
@@ -165,6 +171,7 @@ function GoalProgressLoggingBody({
   const [weekViewPercent, setWeekViewPercent] = useState<number | null>(null);
   const template = getLoggingFlowTemplate(goalId);
   const prayerFrame = useOptionalPrayerGoalFrameContext();
+  const quranFrame = useOptionalQuranGoalFrameContext();
   const isQiyamTemplate = template === "qiyam-al-layl";
   const isPrayerFrameRingGoal =
     template === "tahiyat-ul-wudhu" ||
@@ -177,25 +184,36 @@ function GoalProgressLoggingBody({
     template === "shukr-prayer" ||
     template === "sunnah-rawatib" ||
     isQiyamTemplate;
+  const isQuranHoursFrameGoal =
+    template === "quran-hours" && isQuranHoursGoalId(goalId);
   const frameLoading =
-    isPrayerFrameRingGoal &&
-    (prayerFrame?.isLoading || (!prayerFrame?.frame && !prayerFrame?.isError));
+    (isPrayerFrameRingGoal &&
+      (prayerFrame?.isLoading ||
+        (!prayerFrame?.frame && !prayerFrame?.isError))) ||
+    (isQuranHoursFrameGoal &&
+      (quranFrame?.isLoading || (!quranFrame?.frame && !quranFrame?.isError)));
   const liveGoalData = useMemo(
     () => getResolvedGoalById(goalId) ?? goalData,
     [goalData, goalId, weeklyRefreshKey],
   );
 
   const isMondayThursdayFasts = isMondayThursdayFastsGoalId(goalId);
-  const frameAchievementPct = prayerFrame?.frame?.goal.achievementPct;
+  const frameAchievementPct =
+    prayerFrame?.frame?.goal.achievementPct ??
+    quranFrame?.frame?.goal.achievementPct;
   const displayPercentage = isPrayerFrameRingGoal
     ? frameAchievementPct != null
       ? `${frameAchievementPct}%`
       : "0%"
-    : isMondayThursdayFasts && weekViewPercent !== null
-      ? `${weekViewPercent}%`
-      : frameAchievementPct != null
+    : isQuranHoursFrameGoal
+      ? frameAchievementPct != null
         ? `${frameAchievementPct}%`
-        : liveGoalData.percentage;
+        : "0%"
+      : isMondayThursdayFasts && weekViewPercent !== null
+        ? `${weekViewPercent}%`
+        : frameAchievementPct != null
+          ? `${frameAchievementPct}%`
+          : liveGoalData.percentage;
   const mondayThursdayCompletedCount = useMemo(() => {
     if (!isMondayThursdayFasts) return 0;
     const total = getMondayThursdayFastGoalTarget();
@@ -209,7 +227,9 @@ function GoalProgressLoggingBody({
   const percentageNum = frameLoading
     ? "---"
     : displayPercentage.replace("%", "");
-  const frameGoalLabel = prayerFrame?.frame?.goal.label;
+  const frameGoalLabel =
+    prayerFrame?.frame?.goal.label ??
+    (quranFrame?.frame ? getQuranFrameGoalTitle(quranFrame.frame) : undefined);
   const cleanLabel = frameGoalLabel
     ? frameGoalLabel
     : liveGoalData.target
@@ -226,15 +246,24 @@ function GoalProgressLoggingBody({
           ),
         })
       : "---"
-    : isMissedRamadanFastsGoalId(goalId)
-      ? t("progressLogging.missedRamadanRingGoal", {
-          count: liveGoalData.target ?? cleanLabel,
-        })
-      : isMondayThursdayFastsGoalId(goalId)
-        ? t("progressLogging.mondayThursdayRingGoal", {
+    : isQuranHoursFrameGoal
+      ? quranFrame?.frame
+        ? t("homeScreen.weeklyProgress_goalLabel", {
+            label: getQuranFrameRingGoalCountLabel(
+              quranFrame.frame,
+              t("progressLogging.unitHours"),
+            ),
+          })
+        : "---"
+      : isMissedRamadanFastsGoalId(goalId)
+        ? t("progressLogging.missedRamadanRingGoal", {
             count: liveGoalData.target ?? cleanLabel,
           })
-        : t("homeScreen.weeklyProgress_goalLabel", { label: cleanLabel });
+        : isMondayThursdayFastsGoalId(goalId)
+          ? t("progressLogging.mondayThursdayRingGoal", {
+              count: liveGoalData.target ?? cleanLabel,
+            })
+          : t("homeScreen.weeklyProgress_goalLabel", { label: cleanLabel });
 
   return (
     <>
@@ -323,6 +352,27 @@ function GoalProgressLoggingPrayerLoadingGate({
   const isGoalDataLoading =
     prayerFrame != null &&
     (prayerFrame.isLoading || (!prayerFrame.frame && !prayerFrame.isError));
+
+  if (isGoalDataLoading) {
+    return (
+      <View style={[styles.container, styles.loadingContainer]}>
+        <LoadingComponent size="large" />
+      </View>
+    );
+  }
+
+  return <>{children}</>;
+}
+
+function GoalProgressLoggingQuranHoursLoadingGate({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const quranFrame = useOptionalQuranGoalFrameContext();
+  const isGoalDataLoading =
+    quranFrame != null &&
+    (quranFrame.isLoading || (!quranFrame.frame && !quranFrame.isError));
 
   if (isGoalDataLoading) {
     return (
@@ -594,6 +644,20 @@ export const GoalProgressLoggingScreen = ({
           {screenShell}
         </GoalProgressLoggingPrayerLoadingGate>
       </PrayerGoalFrameProvider>
+    );
+  }
+
+  if (isQuranHoursGoalId(goalId)) {
+    return (
+      <QuranGoalFrameProvider
+        goalId={goalId}
+        refreshKey={weeklyRefreshKey}
+        onOpenInsights={openInsightsSheet}
+      >
+        <GoalProgressLoggingQuranHoursLoadingGate>
+          {screenShell}
+        </GoalProgressLoggingQuranHoursLoadingGate>
+      </QuranGoalFrameProvider>
     );
   }
 
