@@ -252,16 +252,8 @@ function getTahiyyatAlWudhuInsightIcon(card: InsightCardData) {
   if (name === "checkmark-circle-outline" || title.includes("COMPLETED")) {
     return <InsightCardTickIcon size={TAHIYYAT_INSIGHT_ICON_SIZE} />;
   }
-  if (
-    name === "cursor-pointer" ||
-    title.includes("WITR")
-  ) {
-    return (
-      <QiyamAlLaylWitrInsightCardIcon
-        size={19}
-        color="#A0A0A0"
-      />
-    );
+  if (name === "cursor-pointer" || title.includes("WITR")) {
+    return <QiyamAlLaylWitrInsightCardIcon size={19} color="#A0A0A0" />;
   }
   if (name === "flash" || title.includes("STREAK")) {
     return <InsightCardFlashIcon size={TAHIYYAT_INSIGHT_ICON_SIZE} />;
@@ -350,8 +342,7 @@ function mapApiKeyInsightsToCards(
         iconFamily: "MaterialCommunityIcons",
         iconName: "cursor-pointer",
         value: withPrayers,
-        subValue:
-          completedIn > 0 ? `of ${completedIn} nights` : "of 0 nights",
+        subValue: completedIn > 0 ? `of ${completedIn} nights` : "of 0 nights",
         delta: insights.withPrayersDelta,
         formatDelta: (abs) => `${abs} ${abs === 1 ? "night" : "nights"}`,
         noData: isLoading,
@@ -601,10 +592,7 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
     setPeriodStartParam(null);
   }, [period, goalId]);
   useEffect(() => {
-    if (
-      goalId === "prayer-fiveDailyPrayers" ||
-      goalId === "prayer-sunnah"
-    ) {
+    if (goalId === "prayer-fiveDailyPrayers" || goalId === "prayer-sunnah") {
       setSelectedPrayerTab("All");
     }
   }, [goalId]);
@@ -800,9 +788,11 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
   }, [baseAchievement, prayerFrame?.frame]);
 
   const showDetailedStatsChevron =
-    !isDetailed && achievementsApiData?.chartData &&
-  achievementsApiData?.chartData.some((item) => item?.completed >0)
-    achievementsApiData?.achievementPct && achievementsApiData?.achievementPct  > 0;
+    !isDetailed &&
+    achievementsApiData?.chartData &&
+    achievementsApiData?.chartData.some((item) => item?.completed > 0);
+  achievementsApiData?.achievementPct &&
+    achievementsApiData?.achievementPct > 0;
 
   const displayTimeSpent =
     selectedBaseWeek?.timeSpentMinutes ??
@@ -1493,10 +1483,10 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
             }
             barColors={
               isTimeSpentView
-                ? [Colors.light.white, Colors.light.white]
+                ? [Colors.light.green, Colors.light.green]
                 : goalId === "prayer-missed" || goalId === "prayer-qiyam"
                   ? [Colors.light.green, Colors.light.warning]
-                  : [Colors.light.white, "rgba(255, 255, 255, 0.4)"]
+                  : [Colors.light.green, Colors.light.yellow]
             }
             valueLabelColor={Colors.light.white}
           />
@@ -1821,19 +1811,19 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
   },
   statValueCompleted: {
-    color: Colors.light.white,
+    color: Colors.light.green,
     fontSize: 22,
     fontFamily: fonts.primary.bold,
     fontWeight: "700",
   },
   statValueIncomplete: {
-    color: Colors.light.white,
+    color: Colors.light.yellow,
     fontSize: 22,
     fontFamily: fonts.primary.bold,
     fontWeight: "700",
   },
   statValueTimeSpent: {
-    color: Colors.light.white,
+    color: Colors.light.green,
     fontSize: 22,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "700",
