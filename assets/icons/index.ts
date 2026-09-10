@@ -254,6 +254,7 @@ import { QuranRecitationBySurahFlowCardImage } from "./QuranRecitationBySurahFlo
 import { ManDuaIcon } from "./ManDuaIcon";
 import { IstikharaClockIcon } from "./IstikharaClockIcon";
 import { QuranListeningMoon } from "./QuranListeningMoon";
+import { HeadPhoneQuranListeningIcon } from "./HeadPhoneQuranListeningIcon";
 import { QuranMemorizationIcon } from "./QuranMemorizationIcon";
 import { QuranTajweedIcon } from "./QuranTajweedIcon";
 import { MissedRamadanFastsHandsIcon } from "./MissedRamadanFastsHandsIcon";
@@ -431,6 +432,7 @@ export {
   ManDuaIcon,
   IstikharaClockIcon,
   QuranListeningMoon,
+  HeadPhoneQuranListeningIcon,
   QuranMemorizationIcon,
   QuranTajweedIcon,
   MissedRamadanFastsHandsIcon,
