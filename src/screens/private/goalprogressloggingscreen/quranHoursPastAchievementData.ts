@@ -13,6 +13,11 @@ export type QuranPastChartItem = {
   hours: number;
   /** Total stacked bar height (completed + incomplete toward period goal). */
   stackTotalHours: number;
+  /** Prefer API minutes when present (avoids float drift from hours). */
+  completedMinutes?: number;
+  incompleteMinutes?: number;
+  narrative?: string;
+  achievementPct?: number;
 };
 
 export type QuranHoursPastAchievement = {
@@ -24,6 +29,9 @@ export type QuranHoursPastAchievement = {
   periodGoalHours: number;
   completedHours: number;
   incompleteHours: number;
+  /** Prefer API totals when mapped from achievements endpoint. */
+  completedMinutes?: number;
+  incompleteMinutes?: number;
   activeDays: number;
   activeDaysPrevious: number;
   longestStreak: number;
@@ -369,17 +377,23 @@ export function toHoursPastAchievementSummary(
     (item, index) => ({
       id: `${item.xLabel}-${index}`,
       label: item.dateLabel,
-      completedMinutes: hoursToMinutes(item.completedHours),
-      incompleteMinutes: hoursToMinutes(item.incompleteHours),
+      completedMinutes:
+        item.completedMinutes ?? hoursToMinutes(item.completedHours),
+      incompleteMinutes:
+        item.incompleteMinutes ?? hoursToMinutes(item.incompleteHours),
     }),
   );
 
-  const totalCompletedMinutes = hoursToMinutes(achievement.completedHours);
+  const totalCompletedMinutes =
+    achievement.completedMinutes ?? hoursToMinutes(achievement.completedHours);
+  const totalIncompleteMinutes =
+    achievement.incompleteMinutes ??
+    hoursToMinutes(achievement.incompleteHours);
   const goalTrackedMonths = getHoursGoalTrackedMonths(period, achievement);
 
   return {
     totalCompletedMinutes,
-    totalIncompleteMinutes: hoursToMinutes(achievement.incompleteHours),
+    totalIncompleteMinutes,
     goalTracked: formatHoursGoalTracked(goalTrackedMonths),
     totalActiveHours: getHoursGoalTotalActiveHours(totalCompletedMinutes),
     achievements,

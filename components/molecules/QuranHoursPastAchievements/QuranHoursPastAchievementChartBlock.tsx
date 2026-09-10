@@ -17,9 +17,7 @@ import {
   type ChartBounds,
   type PointsArray,
 } from "victory-native";
-import {
-  pastAchievementStyles as styles,
-} from "./pastAchievementStyles";
+import { pastAchievementStyles as styles } from "./pastAchievementStyles";
 
 const DIMMED_BAR_OPACITY = 0.3;
 const BAR_HIT_WIDTH = 44;
@@ -172,8 +170,10 @@ function ChartStackedBars({
   const isCategoryView = chartKey.includes("completedByCategory");
 
   let barPoints = [completedPoints, incompletePoints];
-  let barColors: [string, string] =
-    colors ?? [Colors.light.white, "rgba(255, 255, 255, 0.4)"];
+  let barColors: [string, string] = colors ?? [
+    Colors.light.white,
+    "rgba(255, 255, 255, 0.4)",
+  ];
 
   if ((isTimeSpentView || isCategoryView) && !colors) {
     barColors = [Colors.light.white, Colors.light.white];
@@ -227,10 +227,8 @@ function BarConnectorLine({
     (x, i) => {
       const item = chartData[i] as QuranPastChartItem & { lineValue?: number };
       const lineValue = item?.lineValue;
-      const value =
-        lineValue != null ? lineValue : (item?.completedHours ?? 0);
-      const normalized =
-        lineValue != null ? value / yMax : value / 2 / yMax;
+      const value = lineValue != null ? lineValue : (item?.completedHours ?? 0);
+      const normalized = lineValue != null ? value / yMax : value / 2 / yMax;
       const y = chartBounds.bottom - normalized * chartHeight;
       return { x, y, value };
     },
@@ -607,7 +605,9 @@ export function QuranHoursPastAchievementChartBlock({
 
       {showPagination && isPrayerGoal && selectedBarIndex !== null ? (
         <View style={{ marginTop: 3, paddingHorizontal: 8 }}>
-          <View style={[styles.paginationRow, { marginTop: 0, marginBottom: 24 }]}>
+          <View
+            style={[styles.paginationRow, { marginTop: 0, marginBottom: 24 }]}
+          >
             {Array.from({ length: chartData.length }, (_, index) => (
               <View
                 key={`page-dot-${index}`}

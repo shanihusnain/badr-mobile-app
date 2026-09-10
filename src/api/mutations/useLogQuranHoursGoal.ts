@@ -36,6 +36,7 @@ export const useLogQuranHoursGoal = () => {
     mutationFn: logQuranHours,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["quran-goal-frame"] });
+      queryClient.invalidateQueries({ queryKey: ["quran-goal-achievements"] });
       queryClient.invalidateQueries({ queryKey: ["all-quran-goals"] });
       queryClient.invalidateQueries({ queryKey: ["goal-cycle-categories"] });
       queryClient.invalidateQueries({ queryKey: ["goal-cycle-category-goals"] });
