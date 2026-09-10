@@ -12,7 +12,7 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import moment from "moment-hijri";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
-import { AddLoggingFlowIcon, HeadPhoneQuranListeningIcon } from "@/assets/icons";
+import { AddLoggingFlowIcon, HeadPhoneQuranListeningIcon, ManQuranTajweedIcon } from "@/assets/icons";
 import { GoalData } from "../../home/components/goalsData";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import { DateStep } from "../components/DateStep";
@@ -125,16 +125,9 @@ export default function QuranHoursLoggingFlow({
 
   const summaryIcon =
     config.icon === "headphones" ? (
-      <HeadPhoneQuranListeningIcon
-        color={Colors.light.white}
-        size={25}
-      />
+      <HeadPhoneQuranListeningIcon color={Colors.light.white} size={25} />
     ) : (
-      <MaterialCommunityIcons
-        name="book-open-page-variant"
-        size={25}
-        color={Colors.light.white}
-      />
+      <ManQuranTajweedIcon color={Colors.light.white} size={25} />
     );
 
   const goalLabel = t(config.summaryTitleKey, {

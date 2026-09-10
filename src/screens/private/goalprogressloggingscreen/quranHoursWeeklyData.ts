@@ -52,7 +52,7 @@ const TAJWEED_WEEK: QuranHoursWeekSummary = {
     { day: "Wed", minutesLogged: 150, isBestDay: true },
     { day: "Thu", minutesLogged: 55 },
     { day: "Fri", minutesLogged: 0 },
-    { day: "Sat", minutesLogged: 0 },
+    { day: "Sat", minutesLogged: 0, isToday: true },
   ],
 };
 
