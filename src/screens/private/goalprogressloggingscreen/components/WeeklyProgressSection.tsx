@@ -1,6 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { View } from "react-native";
 import { useTranslation } from "react-i18next";
+import { Colors } from "@/constants/theme";
+import {
+  IbadhasQuranProgressCardsIcon,
+} from "@/assets/icons/IbadhasQuranProgressCardsIcon";
 import { WeeklyProgressDashboard } from "@/components/molecules/WeeklyProgressDashboard";
 import { QuranHoursWeeklyProgressDashboard } from "@/components/molecules/QuranHoursWeeklyProgressDashboard";
 import { QuranWeeklyRecitationProgressDashboard } from "@/components/molecules/QuranWeeklyRecitationProgressDashboard";
@@ -688,10 +692,7 @@ export function WeeklyProgressSection({
   }
 
   if (template === "quran-hours" && quranWeek && quranFlow) {
-    const statsIcon =
-      quranFlow.config.icon === "headphones"
-        ? "headphones"
-        : "book-open-page-variant";
+    const isListening = quranFlow.config.icon === "headphones";
 
     return (
       <QuranHoursWeeklyProgressDashboard
@@ -701,7 +702,13 @@ export function WeeklyProgressSection({
         totalMinutesThisWeek={quranWeek.totalMinutesThisWeek}
         streakDays={quranWeek.streakDays}
         motivationalQuote={t(quranWeek.motivationalQuoteKey)}
-        statsIcon={statsIcon}
+        statsIcon={isListening ? "headphones" : "book-open-page-variant"}
+        statsIconNode={
+          <IbadhasQuranProgressCardsIcon
+            color={Colors.light.lightblue}
+            size={20}
+          />
+        }
       />
     );
   }

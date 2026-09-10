@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, type ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTranslation } from "react-i18next";
@@ -24,12 +24,14 @@ export type QuranHoursWeeklyProgressDashboardProps = {
   motivationalQuote?: string;
   /** Defaults to Saturday (index 6) to match design mock. */
   selectedDayIndex?: number;
+  /** Fallback Material icon when `statsIconNode` is not provided. */
   statsIcon?: keyof typeof MaterialCommunityIcons.glyphMap;
+  /** Custom stats leading icon (listening / tajweed). */
+  statsIconNode?: ReactNode;
   onDayPress?: (index: number) => void;
   onPrevWeek?: () => void;
   onNextWeek?: () => void;
 };
-
 function mapQuranDayToSinglePrayerDay(
   day: QuranHoursDayProgress,
   index: number,
@@ -63,6 +65,7 @@ export function QuranHoursWeeklyProgressDashboard({
   motivationalQuote = "",
   selectedDayIndex = 6,
   statsIcon = "headphones",
+  statsIconNode,
   onDayPress,
   onPrevWeek,
   onNextWeek,
@@ -97,11 +100,13 @@ export function QuranHoursWeeklyProgressDashboard({
       allowLogDeletion={false}
       statsRow={
         <View style={styles.statsRow}>
-          <MaterialCommunityIcons
-            name={statsIcon}
-            size={20}
-            color={Colors.light.lightblue}
-          />
+          {statsIconNode ?? (
+            <MaterialCommunityIcons
+              name={statsIcon}
+              size={20}
+              color={Colors.light.lightblue}
+            />
+          )}
           <Text style={styles.statsText} numberOfLines={1}>
             <Text style={styles.statsCount}>
               {hours}h {minutes}m

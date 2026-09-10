@@ -96,11 +96,18 @@ export const CycleStartTab = ({
 
   const goToPrevMonth = useCallback(() => {
     setWindowStartDate((prev) => {
+      const today = moment().format("YYYY-MM-DD");
+      // Already at/before today — nowhere earlier is allowed.
+      if (!moment(prev, "YYYY-MM-DD").isAfter(moment(), "day")) {
+        return today;
+      }
       const next = moment(prev, "YYYY-MM-DD")
         .subtract(1, "month")
         .format("YYYY-MM-DD");
-      // Don't navigate into a window that starts before today.
-      if (moment(next, "YYYY-MM-DD").isBefore(moment(), "day")) return prev;
+      // Month step may jump before today — clamp to today so current day stays reachable.
+      if (moment(next, "YYYY-MM-DD").isBefore(moment(), "day")) {
+        return today;
+      }
       return next;
     });
   }, []);
@@ -112,10 +119,8 @@ export const CycleStartTab = ({
   }, []);
 
   const canGoPrevMonth = useMemo(() => {
-    const prevWindowStart = moment(windowStartDate, "YYYY-MM-DD")
-      .subtract(1, "month")
-      .format("YYYY-MM-DD");
-    return !moment(prevWindowStart, "YYYY-MM-DD").isBefore(moment(), "day");
+    // Disable only when the window already starts on today (past days are not allowed).
+    return moment(windowStartDate, "YYYY-MM-DD").isAfter(moment(), "day");
   }, [windowStartDate]);
 
   const commitCycle = useCallback(

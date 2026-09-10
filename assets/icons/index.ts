@@ -257,6 +257,7 @@ import { QuranListeningMoon } from "./QuranListeningMoon";
 import { HeadPhoneQuranListeningIcon } from "./HeadPhoneQuranListeningIcon";
 import { QuranMemorizationIcon } from "./QuranMemorizationIcon";
 import { QuranTajweedIcon } from "./QuranTajweedIcon";
+import { ManQuranTajweedIcon } from "./ManQuranTajweedIcon";
 import { MissedRamadanFastsHandsIcon } from "./MissedRamadanFastsHandsIcon";
 import { MissedRamadanFastsPlatesIcon } from "./MissedRamadanFastsPlatesIcon";
 import { ProphetDawoodFastsConnectionWithAllah } from "./ProphetDawoodFastsConnectionWithAllah";
@@ -435,6 +436,7 @@ export {
   HeadPhoneQuranListeningIcon,
   QuranMemorizationIcon,
   QuranTajweedIcon,
+  ManQuranTajweedIcon,
   MissedRamadanFastsHandsIcon,
   MissedRamadanFastsPlatesIcon,
   ProphetDawoodFastsConnectionWithAllah,
