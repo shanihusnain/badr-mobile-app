@@ -27,6 +27,7 @@ import quranlisteningbottomsheetimage from "./quranlisteningbottomsheetimage.png
 import quranrecitationbottomsheetimage from "./quranrecitationbottomsheetimage.png";
 import quranmemorizationbottomsheetimage from "./quranmemorizationbottomsheetimage.png";
 import qurantajweedbottomsheetimage from "./qurantajweedbottomsheetimage.png";
+import qurantajweedbackgroundimage from "./qurantajweedbackgroundimage.png";
 import missedramadanfastsbottomsheetimage from "./missedramadanfastsbottomsheetimage.png";
 import thefastsofprophetdawoodbottomsheetimage from "./thefastsofprophetdawood(a.s)bottomsheetimage.png";
 import mondayandthursdayfastsbottomsheetimage from "./mondayandthursdayfastsbottomsheetimage.png";
@@ -90,6 +91,7 @@ export {
   quranrecitationbottomsheetimage,
   quranmemorizationbottomsheetimage,
   qurantajweedbottomsheetimage,
+  qurantajweedbackgroundimage,
   missedramadanfastsbottomsheetimage,
   thefastsofprophetdawoodbottomsheetimage,
   mondayandthursdayfastsbottomsheetimage,
