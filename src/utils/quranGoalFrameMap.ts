@@ -81,6 +81,7 @@ export function mapQuranHoursFrameWeekDays(
       showDurationLabel: minutesLogged > 0 || !!apiDuration,
       date: day.date,
       durationLabel: apiDuration,
+      canDelete: day.canDelete !== false && (minutesLogged > 0 || isLogged),
     };
   });
 }
