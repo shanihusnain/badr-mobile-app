@@ -34,15 +34,22 @@ export type QuranHoursWeeklyProgressDashboardProps = {
   loading?: boolean;
   isGoalCompleted?: boolean;
 };
+function getLocalTodayString(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
 function mapQuranDayToSinglePrayerDay(
   day: QuranHoursDayProgress,
-  index: number,
-  selectedDayIndex: number,
-  hasExplicitToday: boolean,
 ): SinglePrayerDayProgress {
   const showDuration =
     (day.minutesLogged > 0 || !!day.durationLabel) &&
     day.showDurationLabel !== false;
+
+  // Grey "today" tab: only the real calendar day — never selectedDayIndex.
+  const isToday = day.date
+    ? day.date === getLocalTodayString()
+    : !!day.isToday;
 
   return {
     day: day.day,
@@ -50,7 +57,7 @@ function mapQuranDayToSinglePrayerDay(
     prayersLogged: day.minutesLogged,
     isLogged: !!day.isLogged || day.minutesLogged > 0,
     isBestDay: day.isBestDay,
-    isToday: hasExplicitToday ? !!day.isToday : index === selectedDayIndex,
+    isToday,
     isFuture: day.isFuture,
     durationLabel: showDuration
       ? day.durationLabel || formatDayDuration(day.minutesLogged)
@@ -79,17 +86,10 @@ export function QuranHoursWeeklyProgressDashboard({
   const { t } = useTranslation();
   const { hours, minutes } = formatWeeklyHoursTotal(totalMinutesThisWeek);
 
-  const mappedWeekDays = useMemo(() => {
-    const hasExplicitToday = weekDays.some((day) => day.isToday === true);
-    return weekDays.map((day, index) =>
-      mapQuranDayToSinglePrayerDay(
-        day,
-        index,
-        selectedDayIndex,
-        hasExplicitToday,
-      ),
-    );
-  }, [weekDays, selectedDayIndex]);
+  const mappedWeekDays = useMemo(
+    () => weekDays.map((day) => mapQuranDayToSinglePrayerDay(day)),
+    [weekDays],
+  );
 
   return (
     <SinglePrayerWeeklyProgressDashboard
