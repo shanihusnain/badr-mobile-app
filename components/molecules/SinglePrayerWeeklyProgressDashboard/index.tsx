@@ -37,6 +37,7 @@ export function SinglePrayerWeeklyProgressDashboard({
   totalPrayersThisWeek = 0,
   streakDays = 0,
   vsLastWeek = null,
+  vsLastWeekDisplay = null,
   motivationalQuote = "",
   defaultMotivationalQuote = "",
   selectedDayIndex = 6,
@@ -47,6 +48,7 @@ export function SinglePrayerWeeklyProgressDashboard({
   isGoalCompleted = false,
   statsRow,
   allowLogDeletion = true,
+  comparisonVariant = "prayers",
 }: SinglePrayerWeeklyProgressDashboardProps) {
   const { width: screenWidth } = useWindowDimensions();
   const prayerFrame = useOptionalPrayerGoalFrameContext();
@@ -79,222 +81,239 @@ export function SinglePrayerWeeklyProgressDashboard({
 
       <PrayerWeeklyDashboardBody loading={loading}>
         {!loading ? (
-        <>
-      <View style={styles.daysRow}>
-        {displayWeekDays.map((day, index) => {
-          const isSelected = day?.isToday === true;
-          const hasLog = day.prayersLogged > 0 || !!day.isLogged;
-          const isFuture = !!day.isFuture;
-          const isMenstruation = !!day.isMenstruation;
-          // Past empty days stay filled grey; only remaining (future) days
-          // become dim outlines once the goal is already completed.
-          const showEmptyOutline =
-            !loading &&
-            isGoalCompleted &&
-            !hasLog &&
-            !isMenstruation &&
-            isFuture;
-          const isInactiveOutline = isFuture || showEmptyOutline;
-          const isMarkedForDeletion =
-            !!day.date && selectForDeletion === day.date;
-          const isBestDayVisible =
-            !!day.isBestDay && !isInactiveOutline && !loading;
-          // Best-day label is clipped/scaled to the column; deletion chrome
-          // stays on the inner wrapper for best day, column for other days.
-          const showColumnDeletion = isMarkedForDeletion && !isBestDayVisible;
-          const showWrapperDeletion = isMarkedForDeletion && isBestDayVisible;
+          <>
+            <View style={styles.daysRow}>
+              {displayWeekDays.map((day, index) => {
+                const isSelected = day?.isToday === true;
+                const hasLog = day.prayersLogged > 0 || !!day.isLogged;
+                const isFuture = !!day.isFuture;
+                const isMenstruation = !!day.isMenstruation;
+                // Past empty days stay filled grey; only remaining (future) days
+                // become dim outlines once the goal is already completed.
+                const showEmptyOutline =
+                  !loading &&
+                  isGoalCompleted &&
+                  !hasLog &&
+                  !isMenstruation &&
+                  isFuture;
+                const isInactiveOutline = isFuture || showEmptyOutline;
+                const isMarkedForDeletion =
+                  !!day.date && selectForDeletion === day.date;
+                const isBestDayVisible =
+                  !!day.isBestDay && !isInactiveOutline && !loading;
+                // Best-day label is clipped/scaled to the column; deletion chrome
+                // stays on the inner wrapper for best day, column for other days.
+                const showColumnDeletion =
+                  isMarkedForDeletion && !isBestDayVisible;
+                const showWrapperDeletion =
+                  isMarkedForDeletion && isBestDayVisible;
 
-          // Only when today sits next to BEST DAY: shrink today so the red
-          // delete chrome on best day doesn't overlap the today chip.
-          const isNeighborBestDayVisible = (
-            neighbor: (typeof displayWeekDays)[number] | undefined,
-          ) =>
-            !!neighbor?.isBestDay &&
-            !loading &&
-            !neighbor.isFuture &&
-            !neighbor.isMenstruation;
-          const bestDayOnLeft = isNeighborBestDayVisible(
-            displayWeekDays[index - 1],
-          );
-          const bestDayOnRight = isNeighborBestDayVisible(
-            displayWeekDays[index + 1],
-          );
-          const shrinkTodayBesideBestDay =
-            isSelected &&
-            !isMarkedForDeletion &&
-            (bestDayOnLeft || bestDayOnRight);
+                // Only when today sits next to BEST DAY: shrink today so the red
+                // delete chrome on best day doesn't overlap the today chip.
+                const isNeighborBestDayVisible = (
+                  neighbor: (typeof displayWeekDays)[number] | undefined,
+                ) =>
+                  !!neighbor?.isBestDay &&
+                  !loading &&
+                  !neighbor.isFuture &&
+                  !neighbor.isMenstruation;
+                const bestDayOnLeft = isNeighborBestDayVisible(
+                  displayWeekDays[index - 1],
+                );
+                const bestDayOnRight = isNeighborBestDayVisible(
+                  displayWeekDays[index + 1],
+                );
+                const shrinkTodayBesideBestDay =
+                  isSelected &&
+                  !isMarkedForDeletion &&
+                  (bestDayOnLeft || bestDayOnRight);
 
-          return (
-            <TouchableOpacity
-              key={`${day.day}-${index}`}
-              style={[
-                styles.dayColumn,
-                (isBestDayVisible || isMarkedForDeletion) && { zIndex: 2 },
-                showColumnDeletion && styles.dayColumnMarkedForDeletion,
-              ]}
-              onLongPress={() => {
-                if (!allowLogDeletion || loading || isFuture || !day.date) return;
-
-                if (day.prayersLogged > 0) {
-                  setSelectForDeletion((prev) =>
-                    prev === day.date ? "" : (day.date ?? ""),
-                  );
-                }
-              }}
-              onPress={() => {
-                if (loading || isFuture) return;
-                if (selectForDeletion) {
-                  setSelectForDeletion("");
-                  return;
-                }
-                setActiveDayIndex(index);
-                onDayPress?.(index);
-              }}
-              activeOpacity={loading || isFuture ? 1 : 0.75}
-              disabled={loading || isFuture}
-            >
-              <View
-                style={[
-                  styles.dayItemWrapper,
-                  isSelected && !isMarkedForDeletion && styles.dayItemSelected,
-                  shrinkTodayBesideBestDay && styles.dayItemSelectedBesideBestDay,
-                  shrinkTodayBesideBestDay && {
-                    alignSelf: bestDayOnLeft ? "flex-end" : "flex-start",
-                  },
-                  isBestDayVisible && styles.dayItemBestDay,
-                  showWrapperDeletion && styles.deletingBestDay,
-                ]}
-              >
-                <SinglePrayerDayRing
-                  size={ringSize}
-                  hasLog={hasLog}
-                  isBestDay={!!day.isBestDay}
-                  isSelected={isSelected}
-                  isFuture={isFuture}
-                  isMenstruation={isMenstruation}
-                  showEmptyOutline={showEmptyOutline}
-                />
-                <TopSpace top={10} />
-                <Text
-                  style={[
-                    isBestDayVisible ? styles.bestDayLabel : styles.dayLabel,
-                    {
-                      color: loading
-                        ? Colors.light.subtext
-                        : showEmptyOutline
-                          ? "rgba(255, 255, 255, 0.12)"
-                          : isFuture
-                            ? "rgba(255, 255, 255, 0.45)"
-                            : isBestDayVisible
-                              ? Colors.light.green
-                              : isSelected
-                                ? Colors.light.white
-                                : Colors.light.subtext,
-                    },
-                  ]}
-                  {...(isBestDayVisible
-                    ? {
-                        numberOfLines: 1 as const,
-                        adjustsFontSizeToFit: true,
-                        minimumFontScale: 0.8,
-                      }
-                    : {
-                        numberOfLines: 1 as const,
-                        adjustsFontSizeToFit: true,
-                        minimumFontScale: 0.9,
-                      })}
-                >
-                  {loading ? "---" : isBestDayVisible ? "BEST DAY!" : day.day}
-                </Text>
-
-                <View style={styles.durationSlot}>
-                  <Text
+                return (
+                  <TouchableOpacity
+                    key={`${day.day}-${index}`}
                     style={[
-                      {
-                        color: loading
-                          ? Colors.light.grey
-                          : isInactiveOutline
-                            ? "transparent"
-                            : isBestDayVisible
-                              ? Colors.light.green
-                              : isSelected
-                                ? Colors.light.white
-                                : Colors.light.grey,
+                      styles.dayColumn,
+                      (isBestDayVisible || isMarkedForDeletion) && {
+                        zIndex: 2,
                       },
-                      styles.durationText,
+                      showColumnDeletion && styles.dayColumnMarkedForDeletion,
                     ]}
-                    numberOfLines={1}
-                  >
-                    {loading
-                      ? "---"
-                      : isInactiveOutline
-                        ? ""
-                        : day.durationLabel
-                          ? day.durationLabel
-                          : day.prayersLogged > 0
-                            ? day.prayersLogged.toString()
-                            : ""}
-                  </Text>
-                </View>
-              </View>
-              {isMarkedForDeletion ? (
-                <Pressable
-                  style={styles.deleteButton}
-                  disabled={isDeletingLog || !prayerFrame?.frame?.prayerType}
-                  onPress={() => {
-                    const prayerType = prayerFrame?.frame?.prayerType;
-                    if (!prayerType || !day.date || isDeletingLog) return;
-                    deletePrayerLog(
-                      { prayerType, date: day.date },
-                      {
-                        onSuccess: () => {
-                          setSelectForDeletion("");
-                        },
-                      },
-                    );
-                  }}
-                >
-                  <BinIcon />
-                </Pressable>
-              ) : null}
-            </TouchableOpacity>
-          );
-        })}
-      </View>
+                    onLongPress={() => {
+                      if (!allowLogDeletion || loading || isFuture || !day.date)
+                        return;
 
-      <WeeklyProgressStatsFooterSection
-        vsLastWeek={vsLastWeek}
-        statsRow={
-          statsRow ?? (
-            <View style={styles.statsRow}>
-              <PrayerMatIcon />
-              <Text style={styles.statsText} numberOfLines={1}>
-                <Text style={styles.statsCount}>
-                  {loading ? "---" : totalPrayersThisWeek}
-                </Text>
-                {loading
-                  ? ""
-                  : totalPrayersThisWeek === 1
-                    ? " prayer this week"
-                    : " total prayers this week"}
-              </Text>
+                      if (day.prayersLogged > 0) {
+                        setSelectForDeletion((prev) =>
+                          prev === day.date ? "" : (day.date ?? ""),
+                        );
+                      }
+                    }}
+                    onPress={() => {
+                      if (loading || isFuture) return;
+                      if (selectForDeletion) {
+                        setSelectForDeletion("");
+                        return;
+                      }
+                      setActiveDayIndex(index);
+                      onDayPress?.(index);
+                    }}
+                    activeOpacity={loading || isFuture ? 1 : 0.75}
+                    disabled={loading || isFuture}
+                  >
+                    <View
+                      style={[
+                        styles.dayItemWrapper,
+                        isSelected &&
+                          !isMarkedForDeletion &&
+                          styles.dayItemSelected,
+                        shrinkTodayBesideBestDay &&
+                          styles.dayItemSelectedBesideBestDay,
+                        shrinkTodayBesideBestDay && {
+                          alignSelf: bestDayOnLeft ? "flex-end" : "flex-start",
+                        },
+                        isBestDayVisible && styles.dayItemBestDay,
+                        showWrapperDeletion && styles.deletingBestDay,
+                      ]}
+                    >
+                      <SinglePrayerDayRing
+                        size={ringSize}
+                        hasLog={hasLog}
+                        isBestDay={!!day.isBestDay}
+                        isSelected={isSelected}
+                        isFuture={isFuture}
+                        isMenstruation={isMenstruation}
+                        showEmptyOutline={showEmptyOutline}
+                      />
+                      <TopSpace top={10} />
+                      <Text
+                        style={[
+                          isBestDayVisible
+                            ? styles.bestDayLabel
+                            : styles.dayLabel,
+                          {
+                            color: loading
+                              ? Colors.light.subtext
+                              : showEmptyOutline
+                                ? "rgba(255, 255, 255, 0.12)"
+                                : isFuture
+                                  ? "rgba(255, 255, 255, 0.45)"
+                                  : isBestDayVisible
+                                    ? Colors.light.green
+                                    : isSelected
+                                      ? Colors.light.white
+                                      : Colors.light.subtext,
+                          },
+                        ]}
+                        {...(isBestDayVisible
+                          ? {
+                              numberOfLines: 1 as const,
+                              adjustsFontSizeToFit: true,
+                              minimumFontScale: 0.8,
+                            }
+                          : {
+                              numberOfLines: 1 as const,
+                              adjustsFontSizeToFit: true,
+                              minimumFontScale: 0.9,
+                            })}
+                      >
+                        {loading
+                          ? "---"
+                          : isBestDayVisible
+                            ? "BEST DAY!"
+                            : day.day}
+                      </Text>
+
+                      <View style={styles.durationSlot}>
+                        <Text
+                          style={[
+                            {
+                              color: loading
+                                ? Colors.light.grey
+                                : isInactiveOutline
+                                  ? "transparent"
+                                  : isBestDayVisible
+                                    ? Colors.light.green
+                                    : isSelected
+                                      ? Colors.light.white
+                                      : Colors.light.grey,
+                            },
+                            styles.durationText,
+                          ]}
+                          numberOfLines={1}
+                        >
+                          {loading
+                            ? "---"
+                            : isInactiveOutline
+                              ? ""
+                              : day.durationLabel
+                                ? day.durationLabel
+                                : day.prayersLogged > 0
+                                  ? day.prayersLogged.toString()
+                                  : ""}
+                        </Text>
+                      </View>
+                    </View>
+                    {isMarkedForDeletion ? (
+                      <Pressable
+                        style={styles.deleteButton}
+                        disabled={
+                          isDeletingLog || !prayerFrame?.frame?.prayerType
+                        }
+                        onPress={() => {
+                          const prayerType = prayerFrame?.frame?.prayerType;
+                          if (!prayerType || !day.date || isDeletingLog) return;
+                          deletePrayerLog(
+                            { prayerType, date: day.date },
+                            {
+                              onSuccess: () => {
+                                setSelectForDeletion("");
+                              },
+                            },
+                          );
+                        }}
+                      >
+                        <BinIcon />
+                      </Pressable>
+                    ) : null}
+                  </TouchableOpacity>
+                );
+              })}
             </View>
-          )
-        }
-        footerProps={{
-          loading: false,
-          streakDays,
-          motivationalQuote,
-          defaultMotivationalQuote,
-        }}
-      />
-        </>
+
+            <WeeklyProgressStatsFooterSection
+              vsLastWeek={vsLastWeek}
+              vsLastWeekDisplay={vsLastWeekDisplay}
+              statsRow={
+                statsRow ?? (
+                  <View style={styles.statsRow}>
+                    <PrayerMatIcon />
+                    <Text style={styles.statsText} numberOfLines={1}>
+                      <Text style={styles.statsCount}>
+                        {loading ? "---" : totalPrayersThisWeek}
+                      </Text>
+                      {loading
+                        ? ""
+                        : totalPrayersThisWeek === 1
+                          ? " prayer this week"
+                          : " total prayers this week"}
+                    </Text>
+                  </View>
+                )
+              }
+              footerProps={{
+                loading: false,
+                streakDays,
+                motivationalQuote,
+                defaultMotivationalQuote,
+                comparisonVariant,
+              }}
+            />
+          </>
         ) : null}
       </PrayerWeeklyDashboardBody>
     </View>
   );
 }
-
 
 const styles = StyleSheet.create({
   card: {

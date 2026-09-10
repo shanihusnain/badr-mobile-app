@@ -40,6 +40,24 @@ export function resolveQuranType(goalKey: string): string {
   return UI_ID_TO_QURAN_TYPE[goalKey] ?? goalKey;
 }
 
+/**
+ * Logging / progress-screen goal ids → backend quranGoalType.
+ * Note: tajweed logging id is `quran-Tajweed` (capital T), not `quran-tajweed`.
+ */
+export const GOAL_ID_TO_QURAN_TYPE: Record<string, string> = {
+  "quran-listening": "LISTENING",
+  "quran-Tajweed": "TAJWEED",
+  "quran-tajweed": "TAJWEED",
+};
+
+export function resolveQuranTypeFromGoalId(
+  goalId: string | null | undefined,
+): string | null {
+  if (!goalId) return null;
+  if (QURAN_TYPE_TO_UI_ID[goalId]) return goalId;
+  return GOAL_ID_TO_QURAN_TYPE[goalId] ?? UI_ID_TO_QURAN_TYPE[goalId] ?? null;
+}
+
 export function resolveQuranUiId(goalKey: string): string {
   if (UI_ID_TO_QURAN_TYPE[goalKey]) return goalKey;
   return QURAN_TYPE_TO_UI_ID[goalKey] ?? goalKey;

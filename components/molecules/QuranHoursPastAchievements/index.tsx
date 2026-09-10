@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Pressable,
   ScrollView,
+  useWindowDimensions,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
@@ -15,9 +16,16 @@ import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import {
+  InsightCardFlashIcon,
+  InsightCardGoalTrackedIcon,
+  InsightCardGoodDayIcon,
+  InsightCardTickIcon,
+  InsightCardTimeSpentIcon,
+  InsightCardWeeklyAverageIcon,
+} from "@/assets/icons";
+import {
   formatDuration,
   formatGoalHoursLabel,
-  getHoursGoalTrackedMonths,
   getQuranHoursPastAchievement,
   hoursToMinutes,
   toHoursPastAchievementSummary,
@@ -33,9 +41,19 @@ import { QuranHoursPastAchievementChartBlock } from "./QuranHoursPastAchievement
 import { GraphBarSelectionFooter } from "./GraphBarSelectionFooter";
 import { ListeningPastAchievementMetricsSection } from "./ListeningPastAchievementMetricsSection";
 import { InsightCard } from "../InsightCard";
+import type { InsightCardData } from "../PrayerPastAchievements/insightCardsData";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { getGoalById } from "@/src/screens/private/home/components/goalsData";
 import { PastAchievementStudyMaterial } from "@/components/molecules/PastAchievementStudyMaterial";
+import { useGetQuranGoalAchievements } from "@/src/api/queries/useGetQuranGoalAchievements";
+import { resolveQuranTypeFromGoalId } from "@/src/utils/quranGoalMap";
+import {
+  createEmptyQuranHoursAchievement,
+  mapQuranApiKeyInsightsToCards,
+  mapQuranGoalAchievementsToUi,
+  type MappedQuranHoursAchievements,
+} from "@/src/utils/quranHoursGoalAchievementsMap";
+import { shiftPrayerAchievementsPeriodStart } from "@/src/utils/prayerGoalAchievementsMap";
 
 type Props = {
   goalId: QuranHoursGoalId;
@@ -95,15 +113,37 @@ const PERIOD_INSIGHT_SUBTITLE: Record<PastAchievementPeriod, string> = {
   sixMonths: "VS. LAST 6 MONTHS",
 };
 
-const TOTAL_TIME_INSIGHT_TITLE_KEYS: Record<QuranHoursGoalId, string> = {
-  "quran-listening": "progressLogging.listeningInsightTotalListeningTime",
-  "quran-Tajweed": "progressLogging.tajweedInsightTotalTime",
-};
-
 const GOAL_TYPE_KEYS: Record<QuranHoursGoalId, string> = {
   "quran-listening": "quran_listening",
   "quran-Tajweed": "quran_tajweed",
 };
+
+const LOADING_DASH = "---";
+const QURAN_INSIGHT_ICON_SIZE = 14;
+
+function getQuranHoursInsightIcon(card: InsightCardData) {
+  const title = card.title.toUpperCase();
+  const name = card.iconName;
+  if (name === "calendar-outline" || title.includes("GOAL TRACKED")) {
+    return <InsightCardGoalTrackedIcon size={QURAN_INSIGHT_ICON_SIZE} />;
+  }
+  if (name === "checkmark-circle-outline" || title.includes("COMPLETED")) {
+    return <InsightCardTickIcon size={QURAN_INSIGHT_ICON_SIZE} />;
+  }
+  if (name === "flash" || title.includes("STREAK")) {
+    return <InsightCardFlashIcon size={QURAN_INSIGHT_ICON_SIZE} />;
+  }
+  if (name === "sparkles" || title.includes("BEST")) {
+    return <InsightCardGoodDayIcon size={QURAN_INSIGHT_ICON_SIZE} />;
+  }
+  if (name === "scale-balance" || title.includes("AVERAGE")) {
+    return <InsightCardWeeklyAverageIcon size={QURAN_INSIGHT_ICON_SIZE} />;
+  }
+  if (name === "time-outline" || title.includes("TIME")) {
+    return <InsightCardTimeSpentIcon size={QURAN_INSIGHT_ICON_SIZE} />;
+  }
+  return undefined;
+}
 
 export function QuranHoursPastAchievements({
   goalId,
@@ -112,29 +152,94 @@ export function QuranHoursPastAchievements({
 }: Props) {
   const router = useRouter();
   const { t } = useTranslation();
+  const { width } = useWindowDimensions();
   const formatNumber = useLocaleNumber();
   const [period, setPeriod] = useState<PastAchievementPeriod>(initialPeriod);
+  const [periodStartParam, setPeriodStartParam] = useState<string | null>(null);
   const [selectedBarIndex, setSelectedBarIndex] = useState<number | null>(null);
   const [hintDismissed, setHintDismissed] = useState(false);
-const goalData = getGoalById(goalId);
+  const goalData = getGoalById(goalId);
   const studyMaterial = goalData?.studyMaterial ?? [];
-  const achievement = useMemo(
-    () => getQuranHoursPastAchievement(goalId, period),
-    [goalId, period],
-  );
+
+  const quranGoalType = resolveQuranTypeFromGoalId(goalId);
+  const usesAchievementsApi =
+    quranGoalType === "LISTENING" || quranGoalType === "TAJWEED";
+
+  const { data: achievementsApiData, isLoading: isAchievementsLoading } =
+    useGetQuranGoalAchievements(quranGoalType, {
+      period,
+      periodStart: periodStartParam,
+      enabled: usesAchievementsApi && !!quranGoalType,
+    });
+
+  const showPlaceholders =
+    usesAchievementsApi && (!achievementsApiData || isAchievementsLoading);
+
+  const achievement = useMemo(() => {
+    if (usesAchievementsApi) {
+      if (!achievementsApiData) return createEmptyQuranHoursAchievement();
+      return mapQuranGoalAchievementsToUi(achievementsApiData, period);
+    }
+    return getQuranHoursPastAchievement(goalId, period);
+  }, [usesAchievementsApi, achievementsApiData, goalId, period]);
+
   const hoursGoalSummary = useMemo(
     () => toHoursPastAchievementSummary(achievement, period),
-    [achievement, period],
-  );
-  const goalTrackedMonths = useMemo(
-    () => getHoursGoalTrackedMonths(period, achievement),
     [achievement, period],
   );
 
   useEffect(() => {
     setSelectedBarIndex(null);
     setHintDismissed(false);
-  }, [period, goalId]);
+  }, [period, goalId, periodStartParam]);
+
+  const handlePeriodChange = useCallback((next: PastAchievementPeriod) => {
+    setPeriod(next);
+    setPeriodStartParam(null);
+  }, []);
+
+  const handleNavigateBack = useCallback(() => {
+    if (!usesAchievementsApi || !achievementsApiData) return;
+    const canBack =
+      achievementsApiData.canNavigateBack ??
+      achievementsApiData.hasPrevious ??
+      false;
+    if (!canBack) return;
+    const nextStart = shiftPrayerAchievementsPeriodStart(
+      achievementsApiData.periodStart,
+      achievementsApiData.periodEnd,
+      -1,
+    );
+    setPeriodStartParam(nextStart);
+  }, [usesAchievementsApi, achievementsApiData]);
+
+  const handleNavigateForward = useCallback(() => {
+    if (!usesAchievementsApi || !achievementsApiData) return;
+    const canForward =
+      achievementsApiData.canNavigateForward ??
+      achievementsApiData.hasNext ??
+      false;
+    if (!canForward) return;
+    const nextStart = shiftPrayerAchievementsPeriodStart(
+      achievementsApiData.periodStart,
+      achievementsApiData.periodEnd,
+      1,
+    );
+    setPeriodStartParam(nextStart);
+  }, [usesAchievementsApi, achievementsApiData]);
+
+  const canNavigateBack = usesAchievementsApi
+    ? !showPlaceholders &&
+      !!(
+        achievementsApiData?.canNavigateBack ?? achievementsApiData?.hasPrevious
+      )
+    : true;
+  const canNavigateForward = usesAchievementsApi
+    ? !showPlaceholders &&
+      !!(
+        achievementsApiData?.canNavigateForward ?? achievementsApiData?.hasNext
+      )
+    : true;
 
   const handleBarPressCompact = useCallback((index: number | null) => {
     setHintDismissed(true);
@@ -162,9 +267,11 @@ const goalData = getGoalById(goalId);
   }, [goalId, period, router]);
 
   const selectedWeek =
-    selectedBarIndex !== null ? achievement.chartData[selectedBarIndex] : null;
+    !showPlaceholders && selectedBarIndex !== null
+      ? achievement.chartData[selectedBarIndex]
+      : null;
   const selectedPeriodAchievement =
-    selectedBarIndex !== null
+    !showPlaceholders && selectedBarIndex !== null
       ? hoursGoalSummary.achievements[selectedBarIndex]
       : null;
 
@@ -182,10 +289,29 @@ const goalData = getGoalById(goalId);
     ? selectedWeek.completedHours + selectedWeek.incompleteHours
     : achievement.goalHours;
 
-  const showNoDataDash = isPastAchievementBarEmpty(
-    displayCompletedHours,
-    displayIncompleteHours,
-  );
+  const showNoDataDash =
+    showPlaceholders ||
+    isPastAchievementBarEmpty(displayCompletedHours, displayIncompleteHours);
+
+  const mappedAchievement = achievement as MappedQuranHoursAchievements;
+  const apiNarrative =
+    typeof mappedAchievement.narrative === "string"
+      ? mappedAchievement.narrative
+      : null;
+  const selectedBucketNarrative = selectedWeek?.narrative;
+  const keyInsightsHeader =
+    typeof mappedAchievement.keyInsightsHeader === "string"
+      ? mappedAchievement.keyInsightsHeader
+      : null;
+
+  const insightCards = useMemo(() => {
+    if (!usesAchievementsApi) return [];
+    return mapQuranApiKeyInsightsToCards(achievementsApiData, {
+      period,
+      noDataLabel: t("progressLogging.insightNoData"),
+      isLoading: showPlaceholders,
+    });
+  }, [usesAchievementsApi, achievementsApiData, period, showPlaceholders, t]);
 
   const selectedBarGoalTotal = useMemo(() => {
     if (selectedBarIndex === null) {
@@ -214,21 +340,46 @@ const goalData = getGoalById(goalId);
   const deltaIsPositive = achievement.previousPeriodDeltaPercent >= 0;
 
   const renderDetailedSummary = () => {
+    if (showPlaceholders) {
+      return <Text style={styles.summaryTextDetailed}>{LOADING_DASH}</Text>;
+    }
+
+    if (selectedBucketNarrative?.trim()) {
+      return (
+        <Text style={styles.summaryTextDetailed}>
+          {selectedBucketNarrative.trim()}
+        </Text>
+      );
+    }
+
+    if (
+      selectedBarIndex === null &&
+      typeof apiNarrative === "string" &&
+      apiNarrative.trim()
+    ) {
+      return (
+        <Text style={styles.summaryTextDetailed}>{apiNarrative.trim()}</Text>
+      );
+    }
+
     if (selectedBarIndex !== null && selectedWeek && period === "monthly") {
       const weeklyGoal = achievement.periodGoalHours;
-      const weekPercent = Math.min(
-        100,
-        Math.round(
-          (selectedWeek.completedHours / Math.max(weeklyGoal, 1)) * 100,
-        ),
-      );
+      const weekPercent =
+        selectedWeek.achievementPct ??
+        Math.min(
+          100,
+          Math.round(
+            (selectedWeek.completedHours / Math.max(weeklyGoal, 1)) * 100,
+          ),
+        );
 
       return (
         <Text style={styles.summaryTextDetailed}>
           {t(DETAILED_SUMMARY_WEEK_KEYS[goalId], {
             week: formatNumber(selectedBarIndex + 1),
             completed: formatDuration(
-              hoursToMinutes(selectedWeek.completedHours),
+              selectedWeek.completedMinutes ??
+                hoursToMinutes(selectedWeek.completedHours),
             ),
             percent: formatNumber(weekPercent),
           })}
@@ -239,19 +390,22 @@ const goalData = getGoalById(goalId);
     if (selectedBarIndex !== null && selectedWeek && period !== "monthly") {
       const periodTotal =
         selectedWeek.completedHours + selectedWeek.incompleteHours;
-      const monthPercent = Math.min(
-        100,
-        Math.round(
-          (selectedWeek.completedHours / Math.max(periodTotal, 1)) * 100,
-        ),
-      );
+      const monthPercent =
+        selectedWeek.achievementPct ??
+        Math.min(
+          100,
+          Math.round(
+            (selectedWeek.completedHours / Math.max(periodTotal, 1)) * 100,
+          ),
+        );
 
       return (
         <Text style={styles.summaryTextDetailed}>
           {t(DETAILED_SUMMARY_MONTH_BAR_KEYS[goalId], {
-            range: selectedWeek.dateLabel,
+            range: selectedWeek.dateLabel.replace(/\n/g, " "),
             completed: formatDuration(
-              hoursToMinutes(selectedWeek.completedHours),
+              selectedWeek.completedMinutes ??
+                hoursToMinutes(selectedWeek.completedHours),
             ),
             percent: formatNumber(monthPercent),
           })}
@@ -276,30 +430,14 @@ const goalData = getGoalById(goalId);
       </Text>
     );
   };
-const formatChartBarValue = useCallback(
+  const formatChartBarValue = useCallback(
     (hours: number) => formatDuration(hoursToMinutes(hours)),
     [],
   );
 
   const renderInsights = () => {
-    if (!isDetailed) {
-      return null;
-    }
-
-    const insightCards = [
-      {
-        iconName: "calendar-outline" as const,
-        title: t("progressLogging.recitationInsightGoalTracked"),
-        value: formatNumber(goalTrackedMonths),
-        subValue: t("progressLogging.recitationInsightMonths"),
-      },
-      {
-        iconName: "time-outline" as const,
-        title: t(TOTAL_TIME_INSIGHT_TITLE_KEYS[goalId]),
-        value: formatNumber(hoursGoalSummary.totalActiveHours),
-        subValue: t("progressLogging.listeningInsightActiveHrs"),
-      },
-    ];
+    if (!usesAchievementsApi) return null;
+    if (!insightCards.length) return null;
 
     return (
       <View style={styles.insightsSection}>
@@ -308,22 +446,26 @@ const formatChartBarValue = useCallback(
             {t("progressLogging.keyInsights")}
           </Text>
           <Text style={styles.insightsSubtitleLabel}>
-            {PERIOD_INSIGHT_SUBTITLE[period]}
+            {keyInsightsHeader?.trim() || PERIOD_INSIGHT_SUBTITLE[period]}
           </Text>
         </View>
         <ScrollView
           horizontal
+          nestedScrollEnabled
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.insightsScrollContent}
         >
-          {insightCards.map((card) => (
+          {insightCards.map((card, index) => (
             <InsightCard
-              key={card.title}
-              iconName={card.iconName}
-              title={card.title}
-              value={card.value}
-              subValue={card.subValue}
-              style={styles.insightCardFixed}
+              key={`${card.title}-${index}`}
+              {...card}
+              icon={getQuranHoursInsightIcon(card)}
+              style={{
+                ...styles.insightCardFixed,
+                width: width * 0.42,
+                maxWidth: width * 0.42,
+                minWidth: width * 0.42,
+              }}
             />
           ))}
         </ScrollView>
@@ -382,42 +524,50 @@ const formatChartBarValue = useCallback(
                 isDetailed && styles.achievementPercentDetailed,
               ]}
             >
-              {showNoDataDash
-                ? PAST_ACHIEVEMENT_NO_DATA
-                : formatNumber(achievement.achievementPercent)}
-              <Text
-                style={[
-                  styles.achievementPercentSymbol,
-                  isDetailed && styles.achievementPercentSymbolDetailed,
-                ]}
-              >
-                %
-              </Text>
+              {showPlaceholders
+                ? LOADING_DASH
+                : showNoDataDash
+                  ? PAST_ACHIEVEMENT_NO_DATA
+                  : formatNumber(achievement.achievementPercent)}
+              {!showPlaceholders ? (
+                <Text
+                  style={[
+                    styles.achievementPercentSymbol,
+                    isDetailed && styles.achievementPercentSymbolDetailed,
+                  ]}
+                >
+                  %
+                </Text>
+              ) : null}
             </Text>
-            <View
-              style={[
-                styles.deltaBadge,
-                !deltaIsPositive && styles.deltaBadgeNegative,
-              ]}
-            >
-              <Ionicons
-                name={deltaIsPositive ? "arrow-up" : "arrow-down"}
-                size={11}
-                color={
-                  deltaIsPositive ? Colors.light.green : Colors.light.subtext
-                }
-              />
-              <Text
+            {!showPlaceholders ? (
+              <View
                 style={[
-                  styles.deltaText,
-                  !deltaIsPositive && styles.deltaTextNegative,
+                  styles.deltaBadge,
+                  !deltaIsPositive && styles.deltaBadgeNegative,
                 ]}
               >
-                {deltaIsPositive ? "+" : ""}
-                {formatNumber(achievement.previousPeriodDeltaPercent)}%{" "}
-                {t(PERIOD_DELTA_LABEL_KEYS[period])}
-              </Text>
-            </View>
+                <Ionicons
+                  name={deltaIsPositive ? "arrow-up" : "arrow-down"}
+                  size={11}
+                  color={
+                    deltaIsPositive ? Colors.light.green : Colors.light.subtext
+                  }
+                />
+                <Text
+                  style={[
+                    styles.deltaText,
+                    !deltaIsPositive && styles.deltaTextNegative,
+                  ]}
+                >
+                  {deltaIsPositive ? "+" : ""}
+                  {formatNumber(
+                    Math.abs(achievement.previousPeriodDeltaPercent),
+                  )}
+                  % {t(PERIOD_DELTA_LABEL_KEYS[period])}
+                </Text>
+              </View>
+            ) : null}
           </View>
           <View style={styles.periodNavRow}>
             <View style={styles.periodToggle}>
@@ -426,7 +576,7 @@ const formatChartBarValue = useCallback(
                 return (
                   <Pressable
                     key={item}
-                    onPress={() => setPeriod(item)}
+                    onPress={() => handlePeriodChange(item)}
                     style={[
                       styles.periodButton,
                       isActive
@@ -448,21 +598,39 @@ const formatChartBarValue = useCallback(
             </View>
 
             <View style={styles.dateNavRow}>
-              <TouchableOpacity activeOpacity={0.7} style={styles.navBtn}>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                style={styles.navBtn}
+                onPress={handleNavigateBack}
+                disabled={!canNavigateBack}
+              >
                 <Ionicons
                   name="chevron-back"
                   size={isDetailed ? 24 : 14}
-                  color={Colors.light.dullWhite}
+                  color={
+                    canNavigateBack
+                      ? Colors.light.dullWhite
+                      : Colors.light.subtext
+                  }
                 />
               </TouchableOpacity>
               <Text style={styles.dateRange} numberOfLines={1}>
-                {achievement.dateRangeLabel}
+                {showPlaceholders ? LOADING_DASH : achievement.dateRangeLabel}
               </Text>
-              <TouchableOpacity activeOpacity={0.7} style={styles.navBtn}>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                style={styles.navBtn}
+                onPress={handleNavigateForward}
+                disabled={!canNavigateForward}
+              >
                 <Ionicons
                   name="chevron-forward"
                   size={isDetailed ? 24 : 14}
-                  color={Colors.light.dullWhite}
+                  color={
+                    canNavigateForward
+                      ? Colors.light.dullWhite
+                      : Colors.light.subtext
+                  }
                 />
               </TouchableOpacity>
             </View>
@@ -473,10 +641,16 @@ const formatChartBarValue = useCallback(
           renderDetailedSummary()
         ) : (
           <Text style={styles.summaryText}>
-            {t(GOAL_SUMMARY_KEY[goalId], {
-              percent: formatNumber(achievement.achievementPercent),
-              delta: formatNumber(achievement.previousPeriodDeltaPercent),
-            })}
+            {showPlaceholders
+              ? LOADING_DASH
+              : typeof apiNarrative === "string" && apiNarrative.trim()
+                ? apiNarrative.trim()
+                : t(GOAL_SUMMARY_KEY[goalId], {
+                    percent: formatNumber(achievement.achievementPercent),
+                    delta: formatNumber(
+                      Math.abs(achievement.previousPeriodDeltaPercent),
+                    ),
+                  })}
           </Text>
         )}
 
@@ -528,9 +702,7 @@ const formatChartBarValue = useCallback(
             completedMinutes={displayCompletedMinutes}
             incompleteMinutes={displayIncompleteMinutes}
             formatDuration={
-              showNoDataDash
-                ? () => PAST_ACHIEVEMENT_NO_DATA
-                : formatDuration
+              showNoDataDash ? () => PAST_ACHIEVEMENT_NO_DATA : formatDuration
             }
             completedLabel={t("progressLogging.completed")}
             incompleteLabel={t("progressLogging.incomplete")}
@@ -565,15 +737,19 @@ const formatChartBarValue = useCallback(
           onMoveShouldSetResponder={() => false}
         >
           <QuranHoursPastAchievementChartBlock
-            chartData={achievement.chartData}
-            selectedBarIndex={selectedBarIndex}
-            onBarPress={
-              isDetailed ? handleBarPressDetailed : handleBarPressCompact
+            chartData={showPlaceholders ? [] : achievement.chartData}
+            selectedBarIndex={
+              isDetailed && !showPlaceholders ? selectedBarIndex : null
             }
-            chartKey={`${goalId}-${period}${isDetailed ? "-detailed" : ""}`}
+            onBarPress={
+              isDetailed && !showPlaceholders
+                ? handleBarPressDetailed
+                : handleBarPressCompact
+            }
+            chartKey={`${goalId}-${period}-${periodStartParam ?? "latest"}${isDetailed ? "-detailed" : ""}-${showPlaceholders ? "loading" : "ready"}`}
             yMax={achievement.yMax}
             yTicks={achievement.yTicks}
-            showHint={showChartHint}
+            showHint={showChartHint && !showPlaceholders}
             onDismissHint={() => setHintDismissed(true)}
             hintText={t("progressLogging.chartTapHint")}
             hintActionText={t("progressLogging.okGotIt")}
@@ -581,7 +757,7 @@ const formatChartBarValue = useCallback(
             activePageIndex={selectedBarIndex ?? achievement.activePageIndex}
             formatBarValue={isDetailed ? formatChartBarValue : undefined}
             showPagination={isDetailed}
-            barColors={[Colors.light.white, "rgba(255, 255, 255, 0.4)"]}
+            barColors={[Colors.light.green, Colors.light.yellow]}
           />
         </View>
 
@@ -596,8 +772,11 @@ const formatChartBarValue = useCallback(
         ) : null}
       </View>
       {renderInsights()}
-
-      <PastAchievementStudyMaterial items={studyMaterial} isDetailed={isDetailed} />
+      {/* 
+      <PastAchievementStudyMaterial
+        items={studyMaterial}
+        isDetailed={isDetailed}
+      /> */}
     </View>
   );
 }
@@ -842,18 +1021,18 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
   },
   statValueCompleted: {
-    color: Colors.light.white,
+    color: Colors.light.green,
     fontSize: 22,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "700",
   },
   statValueIncomplete: {
-    color: Colors.light.white,
+    color: Colors.light.yellow,
     fontSize: 22,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "700",
   },
-insightsTitle: {
+  insightsTitle: {
     color: Colors.light.white,
     fontSize: 16,
     fontFamily: fonts.primary.semiBold,

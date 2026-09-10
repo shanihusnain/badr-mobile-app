@@ -8,6 +8,7 @@ import {
 
 export type WeeklyProgressStatsFooterSectionProps = {
   vsLastWeek?: number | null;
+  vsLastWeekDisplay?: string | null;
   statsRow: ReactNode;
   footerProps: PrayerWeeklyProgressFooterProps;
 };
@@ -15,6 +16,7 @@ export type WeeklyProgressStatsFooterSectionProps = {
 /** Shared stats row + footer block with consistent week 1 / 2–4 spacing. */
 export function WeeklyProgressStatsFooterSection({
   vsLastWeek = null,
+  vsLastWeekDisplay = null,
   statsRow,
   footerProps,
 }: WeeklyProgressStatsFooterSectionProps) {
@@ -28,7 +30,11 @@ export function WeeklyProgressStatsFooterSection({
       ]}
     >
       {statsRow}
-      <PrayerWeeklyProgressFooter {...footerProps} vsLastWeek={vsLastWeek} />
+      <PrayerWeeklyProgressFooter
+        {...footerProps}
+        vsLastWeek={vsLastWeek}
+        vsLastWeekDisplay={vsLastWeekDisplay}
+      />
     </View>
   );
 }

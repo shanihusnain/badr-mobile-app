@@ -21,8 +21,8 @@ export type QuranHoursWeeklyProgressDashboardProps = {
   totalMinutesThisWeek?: number;
   streakDays?: number;
   vsLastWeek?: number | null;
+  vsLastWeekDisplay?: string | null;
   motivationalQuote?: string;
-  /** Defaults to Saturday (index 6) to match design mock. */
   selectedDayIndex?: number;
   /** Fallback Material icon when `statsIconNode` is not provided. */
   statsIcon?: keyof typeof MaterialCommunityIcons.glyphMap;
@@ -31,6 +31,8 @@ export type QuranHoursWeeklyProgressDashboardProps = {
   onDayPress?: (index: number) => void;
   onPrevWeek?: () => void;
   onNextWeek?: () => void;
+  loading?: boolean;
+  isGoalCompleted?: boolean;
 };
 function mapQuranDayToSinglePrayerDay(
   day: QuranHoursDayProgress,
@@ -39,29 +41,31 @@ function mapQuranDayToSinglePrayerDay(
   hasExplicitToday: boolean,
 ): SinglePrayerDayProgress {
   const showDuration =
-    day.minutesLogged > 0 && day.showDurationLabel !== false;
+    (day.minutesLogged > 0 || !!day.durationLabel) &&
+    day.showDurationLabel !== false;
 
   return {
     day: day.day,
+    date: day.date,
     prayersLogged: day.minutesLogged,
     isLogged: !!day.isLogged || day.minutesLogged > 0,
     isBestDay: day.isBestDay,
     isToday: hasExplicitToday ? !!day.isToday : index === selectedDayIndex,
     isFuture: day.isFuture,
-    // Only Quran hours passes this — prayer dashboards omit it and keep counts.
     durationLabel: showDuration
-      ? formatDayDuration(day.minutesLogged)
+      ? day.durationLabel || formatDayDuration(day.minutesLogged)
       : undefined,
   };
 }
 
 export function QuranHoursWeeklyProgressDashboard({
   weekDays,
-  weekRangeLabel = "Nov 29 — Dec 5",
-  weekFraction = "1/4",
+  weekRangeLabel = "---",
+  weekFraction = "---",
   totalMinutesThisWeek = 0,
   streakDays = 0,
   vsLastWeek = null,
+  vsLastWeekDisplay = null,
   motivationalQuote = "",
   selectedDayIndex = 6,
   statsIcon = "headphones",
@@ -69,6 +73,8 @@ export function QuranHoursWeeklyProgressDashboard({
   onDayPress,
   onPrevWeek,
   onNextWeek,
+  loading = false,
+  isGoalCompleted = false,
 }: QuranHoursWeeklyProgressDashboardProps) {
   const { t } = useTranslation();
   const { hours, minutes } = formatWeeklyHoursTotal(totalMinutesThisWeek);
@@ -92,12 +98,16 @@ export function QuranHoursWeeklyProgressDashboard({
       weekFraction={weekFraction}
       streakDays={streakDays}
       vsLastWeek={vsLastWeek}
+      vsLastWeekDisplay={vsLastWeekDisplay}
       motivationalQuote={motivationalQuote}
       selectedDayIndex={selectedDayIndex}
       onDayPress={onDayPress}
       onPrevWeek={onPrevWeek}
       onNextWeek={onNextWeek}
+      loading={loading}
+      isGoalCompleted={isGoalCompleted}
       allowLogDeletion={false}
+      comparisonVariant="hours"
       statsRow={
         <View style={styles.statsRow}>
           {statsIconNode ?? (
@@ -109,9 +119,9 @@ export function QuranHoursWeeklyProgressDashboard({
           )}
           <Text style={styles.statsText} numberOfLines={1}>
             <Text style={styles.statsCount}>
-              {hours}h {minutes}m
+              {loading ? "---" : `${hours}h ${minutes}m`}
             </Text>
-            {" " + t("progressLogging.totalHoursThisWeek")}
+            {loading ? "" : " " + t("progressLogging.totalHoursThisWeek")}
           </Text>
         </View>
       }

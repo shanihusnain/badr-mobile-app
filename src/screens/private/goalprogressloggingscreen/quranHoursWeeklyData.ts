@@ -11,6 +11,10 @@ export type QuranHoursDayProgress = {
   isFuture?: boolean;
   /** When false, duration is hidden even if minutesLogged > 0. */
   showDurationLabel?: boolean;
+  /** YYYY-MM-DD when provided by the frame API. */
+  date?: string;
+  /** Prefer API `valueDisplay` (e.g. "2:00") over computed minutes. */
+  durationLabel?: string;
 };
 
 export type QuranHoursWeekSummary = {
