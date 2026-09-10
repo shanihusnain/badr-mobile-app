@@ -3,6 +3,7 @@ import { api } from "..";
 import { resolveQuranType } from "@/src/utils/quranGoalMap";
 import type { PastAchievementPeriod } from "@/src/screens/private/goalprogressloggingscreen/quranHoursPastAchievementData";
 import { PAST_ACHIEVEMENT_PERIOD_TO_API } from "./useGetPrayerGoalAchievements";
+import { CrossBox } from "@/assets/icons";
 
 export type QuranAchievementsPeriodCode = "M" | "3M" | "6M";
 
@@ -85,6 +86,10 @@ const getQuranGoalAchievements = async (
         ...(periodStart ? { periodStart } : {}),
       },
     },
+  );
+  console.log(
+    "response.data of the quran goal achievements",
+    JSON.stringify(response.data?.data, null, 2),
   );
   return response.data?.data ?? null;
 };

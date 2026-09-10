@@ -48,12 +48,15 @@ export function SinglePrayerWeeklyProgressDashboard({
   isGoalCompleted = false,
   statsRow,
   allowLogDeletion = true,
+  onDeleteLog,
+  isDeletingLog: isDeletingLogProp,
   comparisonVariant = "prayers",
 }: SinglePrayerWeeklyProgressDashboardProps) {
   const { width: screenWidth } = useWindowDimensions();
   const prayerFrame = useOptionalPrayerGoalFrameContext();
-  const { mutate: deletePrayerLog, isPending: isDeletingLog } =
+  const { mutate: deletePrayerLog, isPending: isDeletingPrayerLog } =
     useDeletePrayerLog();
+  const isDeletingLog = isDeletingLogProp ?? isDeletingPrayerLog;
   const [selectForDeletion, setSelectForDeletion] = useState("");
   const displayWeekDays = weekDays;
   const [activeDayIndex, setActiveDayIndex] = useState(selectedDayIndex);
@@ -141,8 +144,9 @@ export function SinglePrayerWeeklyProgressDashboard({
                     onLongPress={() => {
                       if (!allowLogDeletion || loading || isFuture || !day.date)
                         return;
+                      if (day.canDelete === false) return;
 
-                      if (day.prayersLogged > 0) {
+                      if (day.prayersLogged > 0 || !!day.isLogged) {
                         setSelectForDeletion((prev) =>
                           prev === day.date ? "" : (day.date ?? ""),
                         );
@@ -257,11 +261,26 @@ export function SinglePrayerWeeklyProgressDashboard({
                       <Pressable
                         style={styles.deleteButton}
                         disabled={
-                          isDeletingLog || !prayerFrame?.frame?.prayerType
+                          isDeletingLog ||
+                          (!onDeleteLog && !prayerFrame?.frame?.prayerType)
                         }
                         onPress={() => {
+                          if (!day.date || isDeletingLog) return;
+
+                          if (onDeleteLog) {
+                            void (async () => {
+                              try {
+                                await Promise.resolve(onDeleteLog(day.date!));
+                                setSelectForDeletion("");
+                              } catch {
+                                // Mutation onError already shows toast.
+                              }
+                            })();
+                            return;
+                          }
+
                           const prayerType = prayerFrame?.frame?.prayerType;
-                          if (!prayerType || !day.date || isDeletingLog) return;
+                          if (!prayerType) return;
                           deletePrayerLog(
                             { prayerType, date: day.date },
                             {

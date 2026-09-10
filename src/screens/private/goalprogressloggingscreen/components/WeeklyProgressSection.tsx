@@ -778,6 +778,7 @@ export function WeeklyProgressSection({
             motivationalQuote={getQuranFrameMotivationalQuote(frame)}
             selectedDayIndex={getQuranFrameTodayIndex(frame)}
             statsIcon={statsIcon}
+            quranGoalType={frame.quranGoalType}
             loading={frameLoading}
             isGoalCompleted={(frame.goal.achievementPct ?? 0) >= 100}
             onPrevWeek={

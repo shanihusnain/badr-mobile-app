@@ -15,6 +15,8 @@ export type QuranHoursDayProgress = {
   date?: string;
   /** Prefer API `valueDisplay` (e.g. "2:00") over computed minutes. */
   durationLabel?: string;
+  /** From frame day `canDelete` — gates long-press delete. */
+  canDelete?: boolean;
 };
 
 export type QuranHoursWeekSummary = {
