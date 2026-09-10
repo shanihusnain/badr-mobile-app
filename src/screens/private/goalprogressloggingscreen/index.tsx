@@ -68,7 +68,7 @@ import {
   fivedailyprayerdetailimage,
   quranrecitationbysurahbackgroundimage,
   quranlisteningbottomsheetimage,
-  qurantajweedbottomsheetimage,
+  qurantajweedbackgroundimage,
   quranrecitationbottomsheetimage,
   quranmemorizationbottomsheetimage,
 } from "@/assets/images";
@@ -108,7 +108,7 @@ function getLoggingBackgroundSource(
       return sunnahrawatibdetailimage;
     case "quran-hours":
       return goalId === "quran-Tajweed"
-        ? qurantajweedbottomsheetimage
+        ? qurantajweedbackgroundimage
         : quranlisteningbottomsheetimage;
     case "quran-recitation":
       return quranrecitationbysurahbackgroundimage;
