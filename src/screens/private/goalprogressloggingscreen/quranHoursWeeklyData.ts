@@ -7,6 +7,8 @@ export type QuranHoursDayProgress = {
   /** Show filled green circle without a duration (e.g. logged but time not tracked). */
   isLogged?: boolean;
   isBestDay?: boolean;
+  isToday?: boolean;
+  isFuture?: boolean;
   /** When false, duration is hidden even if minutesLogged > 0. */
   showDurationLabel?: boolean;
 };
@@ -27,13 +29,13 @@ const LISTENING_WEEK: QuranHoursWeekSummary = {
   streakDays: 2,
   motivationalQuoteKey: "progressLogging.quranListeningWeekQuote",
   weekDays: [
-    { day: "Sun", minutesLogged: 100 },
-    { day: "Mon", minutesLogged: 0, isLogged: true, showDurationLabel: false },
+    { day: "Sun", minutesLogged: 0 },
+    { day: "Mon", minutesLogged: 100 },
     { day: "Tue", minutesLogged: 0 },
     { day: "Wed", minutesLogged: 0 },
     { day: "Thu", minutesLogged: 150 },
     { day: "Fri", minutesLogged: 285, isBestDay: true },
-    { day: "Sat", minutesLogged: 0 },
+    { day: "Sat", minutesLogged: 0, isToday: true },
   ],
 };
 
@@ -50,7 +52,7 @@ const TAJWEED_WEEK: QuranHoursWeekSummary = {
     { day: "Wed", minutesLogged: 150, isBestDay: true },
     { day: "Thu", minutesLogged: 55 },
     { day: "Fri", minutesLogged: 0 },
-    { day: "Sat", minutesLogged: 0 },
+    { day: "Sat", minutesLogged: 0, isToday: true },
   ],
 };
 

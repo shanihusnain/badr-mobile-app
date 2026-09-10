@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 export type SinglePrayerDayProgress = {
   day: string;
   isLogged?: boolean;
@@ -7,6 +9,8 @@ export type SinglePrayerDayProgress = {
   isFuture?: boolean;
   isToday?: boolean;
   date?: string;
+  /** When set (e.g. Quran hours), shown under the day instead of the count. */
+  durationLabel?: string;
 };
 
 export type SinglePrayerWeeklyProgressDashboardProps = {
@@ -29,6 +33,10 @@ export type SinglePrayerWeeklyProgressDashboardProps = {
   loading?: boolean;
   /** When true, remaining unlogged cycle days render as empty outlined circles. */
   isGoalCompleted?: boolean;
+  /** Optional override for the stats row (icon + totals). */
+  statsRow?: ReactNode;
+  /** When false, long-press delete chrome is disabled (e.g. Quran hours). Default true. */
+  allowLogDeletion?: boolean;
 };
 
 export const LOADING_WEEK: SinglePrayerDayProgress[] = [

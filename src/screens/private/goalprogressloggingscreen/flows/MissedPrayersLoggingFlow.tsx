@@ -25,7 +25,11 @@ import {
 } from "../components/DailyProgressLogging.styles";
 import { fonts } from "@/assets/fonts";
 import type { ProgressLogEntry } from "../types";
-import { PrayerName, PRAYER_OPTIONS, formatProgressLoggingDateLabel } from "../progressLoggingConfig";
+import {
+  PrayerName,
+  PRAYER_OPTIONS,
+  formatProgressLoggingDateLabel,
+} from "../progressLoggingConfig";
 import { useOptionalPrayerGoalFrameContext } from "../prayerGoalFrameContext";
 import { useLogMissedPastPrayersGoal } from "@/src/api/mutations/useLogMissedPastPrayersGoal";
 import type { MissedPastPrayerSlotKey } from "@/src/api/queries/useGetMissedPastPrayersSlot";
@@ -161,13 +165,11 @@ export default function MissedPrayersLoggingFlow({
     return Math.max(1, week);
   }, [frame?.cycle?.cycleStart, frame?.cycle?.totalWeeks, selectedDate]);
 
-  const {
-    data: selectedDateWeekFrame,
-    refetch: refetchSelectedDateWeek,
-  } = useGetPrayerGoalFrame(prayerType, {
-    weekNumber: selectedDateWeekNumber,
-    enabled: selectedDateWeekNumber != null,
-  });
+  const { data: selectedDateWeekFrame, refetch: refetchSelectedDateWeek } =
+    useGetPrayerGoalFrame(prayerType, {
+      weekNumber: selectedDateWeekNumber,
+      enabled: selectedDateWeekNumber != null,
+    });
 
   const {
     data: dayDetailRaw,
@@ -205,15 +207,20 @@ export default function MissedPrayersLoggingFlow({
     rawGoalLabel.replace(/\s*\(total\s+\d+\s+prayers?\)\s*/i, "").trim() ||
     "---";
 
+  // Clamp into the valid range when cycle bounds change. Use functional
+  // setState and omit `selectedDate` from deps to avoid an update loop when
+  // cycleStart is after maxSelectableDate (would otherwise ping-pong).
   useEffect(() => {
-    if (cycleStart && selectedDate < cycleStart) {
-      setSelectedDate(cycleStart);
-      return;
-    }
-    if (selectedDate > maxSelectableDate) {
-      setSelectedDate(maxSelectableDate);
-    }
-  }, [cycleStart, maxSelectableDate, selectedDate]);
+    const minDate =
+      cycleStart && cycleStart <= maxSelectableDate
+        ? cycleStart
+        : maxSelectableDate;
+    setSelectedDate((current) => {
+      if (current < minDate) return minDate;
+      if (current > maxSelectableDate) return maxSelectableDate;
+      return current;
+    });
+  }, [cycleStart, maxSelectableDate]);
 
   const slotTargets = useMemo((): Record<PrayerName, number> => {
     if (dayDetail?.slotProgress) {

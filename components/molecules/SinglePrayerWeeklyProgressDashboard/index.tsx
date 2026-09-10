@@ -45,6 +45,8 @@ export function SinglePrayerWeeklyProgressDashboard({
   onNextWeek,
   loading = false,
   isGoalCompleted = false,
+  statsRow,
+  allowLogDeletion = true,
 }: SinglePrayerWeeklyProgressDashboardProps) {
   const { width: screenWidth } = useWindowDimensions();
   const prayerFrame = useOptionalPrayerGoalFrameContext();
@@ -131,7 +133,7 @@ export function SinglePrayerWeeklyProgressDashboard({
                 showColumnDeletion && styles.dayColumnMarkedForDeletion,
               ]}
               onLongPress={() => {
-                if (loading || isFuture || !day.date) return;
+                if (!allowLogDeletion || loading || isFuture || !day.date) return;
 
                 if (day.prayersLogged > 0) {
                   setSelectForDeletion((prev) =>
@@ -227,9 +229,11 @@ export function SinglePrayerWeeklyProgressDashboard({
                       ? "---"
                       : isInactiveOutline
                         ? ""
-                        : day.prayersLogged > 0
-                          ? day.prayersLogged.toString()
-                          : ""}
+                        : day.durationLabel
+                          ? day.durationLabel
+                          : day.prayersLogged > 0
+                            ? day.prayersLogged.toString()
+                            : ""}
                   </Text>
                 </View>
               </View>
@@ -261,19 +265,21 @@ export function SinglePrayerWeeklyProgressDashboard({
       <WeeklyProgressStatsFooterSection
         vsLastWeek={vsLastWeek}
         statsRow={
-          <View style={styles.statsRow}>
-            <PrayerMatIcon />
-            <Text style={styles.statsText} numberOfLines={1}>
-              <Text style={styles.statsCount}>
-                {loading ? "---" : totalPrayersThisWeek}
+          statsRow ?? (
+            <View style={styles.statsRow}>
+              <PrayerMatIcon />
+              <Text style={styles.statsText} numberOfLines={1}>
+                <Text style={styles.statsCount}>
+                  {loading ? "---" : totalPrayersThisWeek}
+                </Text>
+                {loading
+                  ? ""
+                  : totalPrayersThisWeek === 1
+                    ? " prayer this week"
+                    : " total prayers this week"}
               </Text>
-              {loading
-                ? ""
-                : totalPrayersThisWeek === 1
-                  ? " prayer this week"
-                  : " total prayers this week"}
-            </Text>
-          </View>
+            </View>
+          )
         }
         footerProps={{
           loading: false,

@@ -254,8 +254,10 @@ import { QuranRecitationBySurahFlowCardImage } from "./QuranRecitationBySurahFlo
 import { ManDuaIcon } from "./ManDuaIcon";
 import { IstikharaClockIcon } from "./IstikharaClockIcon";
 import { QuranListeningMoon } from "./QuranListeningMoon";
+import { HeadPhoneQuranListeningIcon } from "./HeadPhoneQuranListeningIcon";
 import { QuranMemorizationIcon } from "./QuranMemorizationIcon";
 import { QuranTajweedIcon } from "./QuranTajweedIcon";
+import { ManQuranTajweedIcon } from "./ManQuranTajweedIcon";
 import { MissedRamadanFastsHandsIcon } from "./MissedRamadanFastsHandsIcon";
 import { MissedRamadanFastsPlatesIcon } from "./MissedRamadanFastsPlatesIcon";
 import { ProphetDawoodFastsConnectionWithAllah } from "./ProphetDawoodFastsConnectionWithAllah";
@@ -431,8 +433,10 @@ export {
   ManDuaIcon,
   IstikharaClockIcon,
   QuranListeningMoon,
+  HeadPhoneQuranListeningIcon,
   QuranMemorizationIcon,
   QuranTajweedIcon,
+  ManQuranTajweedIcon,
   MissedRamadanFastsHandsIcon,
   MissedRamadanFastsPlatesIcon,
   ProphetDawoodFastsConnectionWithAllah,

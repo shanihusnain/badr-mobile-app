@@ -1,17 +1,28 @@
 import React, { useCallback, useMemo, useState } from "react";
-import { Pressable, Text, TouchableOpacity, View } from "react-native";
+import {
+  Pressable,
+  Text,
+  TouchableOpacity,
+  View,
+  StyleSheet,
+} from "react-native";
 import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import moment from "moment-hijri";
 import { Colors } from "@/constants/theme";
+import { fonts } from "@/assets/fonts";
+import { AddLoggingFlowIcon, HeadPhoneQuranListeningIcon, ManQuranTajweedIcon } from "@/assets/icons";
 import { GoalData } from "../../home/components/goalsData";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import { DateStep } from "../components/DateStep";
 import { formatProgressLoggingDateLabel } from "../progressLoggingConfig";
 import { DurationStep, StartTimeStep } from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
-import { styles } from "../components/DailyProgressLogging.styles";
+import {
+  styles as commonStyles,
+  FLOW_CARD_HEIGHT,
+} from "../components/DailyProgressLogging.styles";
 import { getQuranHoursFlowDefinition } from "../loggingFlowRegistry";
 import type { QuranHoursLogEntry } from "../types";
 
@@ -114,18 +125,15 @@ export default function QuranHoursLoggingFlow({
 
   const summaryIcon =
     config.icon === "headphones" ? (
-      <MaterialCommunityIcons
-        name="headphones"
-        size={20}
-        color={Colors.light.white}
-      />
+      <HeadPhoneQuranListeningIcon color={Colors.light.white} size={25} />
     ) : (
-      <MaterialCommunityIcons
-        name="book-open-page-variant"
-        size={20}
-        color={Colors.light.white}
-      />
+      <ManQuranTajweedIcon color={Colors.light.white} size={25} />
     );
+
+  const goalLabel = t(config.summaryTitleKey, {
+    count: formatNumber(config.totalHours),
+    defaultValue: goalData.title,
+  });
 
   const getStepHeader = (step: QuranHoursStepId) => {
     switch (step) {
@@ -174,7 +182,7 @@ export default function QuranHoursLoggingFlow({
             selectedDate={selectedDate}
             todayString={todayString}
             onShiftDate={shiftDate}
-            styles={styles}
+            styles={commonStyles}
           />
         );
       case "startTime":
@@ -188,7 +196,7 @@ export default function QuranHoursLoggingFlow({
             setStartPeriod={setStartPeriod}
             isPeriodDropdownOpen={isPeriodDropdownOpen}
             setIsPeriodDropdownOpen={setIsPeriodDropdownOpen}
-            styles={styles}
+            styles={commonStyles}
           />
         );
       case "duration":
@@ -198,7 +206,7 @@ export default function QuranHoursLoggingFlow({
             setDurationHours={setDurationHours}
             durationMinutes={durationMinutes}
             setDurationMinutes={setDurationMinutes}
-            styles={styles}
+            styles={commonStyles}
           />
         );
     }
@@ -207,80 +215,150 @@ export default function QuranHoursLoggingFlow({
   const stepHeader = getStepHeader(currentStep);
 
   return (
-    <View
-      style={[styles.section, flowMode === "active" && styles.activeSection]}
-    >
-      <Text style={styles.sectionTitle}>{t("progressLogging.myProgress")}</Text>
-      <View style={styles.cardAnchor}>
-        {flowMode === "active" && (
-          <Pressable style={styles.backdrop} onPress={resetFlow} />
-        )}
-        {flowMode === "active" && (
-          <TouchableOpacity
-            style={styles.cancelButton}
-            onPress={resetFlow}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="close" size={20} color={Colors.light.white} />
-          </TouchableOpacity>
-        )}
+    <>
+      {flowMode === "active" && (
+        <Pressable style={commonStyles.backdrop} onPress={resetFlow} />
+      )}
+      {flowMode === "active" && (
+        <TouchableOpacity
+          style={commonStyles.cancelButton}
+          onPress={resetFlow}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="close" size={20} color={Colors.light.white} />
+        </TouchableOpacity>
+      )}
 
-        {flowMode === "collapsed" ? (
-          <View style={styles.summaryCard}>
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>
-                {t("progressLogging.inProgress")}
-              </Text>
-            </View>
+      <View style={commonStyles.section}>
+        <Text style={commonStyles.sectionTitle}>
+          {t("progressLogging.myProgress")}
+        </Text>
 
-            <View style={styles.summaryBody}>
-              <View style={styles.summaryIconCircle}>{summaryIcon}</View>
-              <View style={styles.summaryTextBlock}>
-                <Text style={styles.summaryTitle}>
-                  {t(config.summaryTitleKey, {
-                    count: formatNumber(config.totalHours),
-                    defaultValue: goalData.title,
-                  })}
-                </Text>
-                <Text style={styles.summarySubtext}>
-                  <Text style={styles.summarySubtextRegular}>
-                    ({t("progressLogging.total")}{" "}
+        <View style={commonStyles.cardAnchor}>
+          {flowMode === "collapsed" ? (
+            <View style={localStyles.summaryCard}>
+              <View style={localStyles.summaryBody}>
+                <View style={localStyles.summaryIconCircle}>{summaryIcon}</View>
+                <View style={{ flex: 1, gap: 9 }}>
+                  <View
+                    style={[
+                      localStyles.badge,
+                      localStyles.badgeInProgress,
+                      { alignSelf: "flex-start" },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        localStyles.badgeText,
+                        localStyles.badgeTextInProgress,
+                      ]}
+                    >
+                      {t("progressLogging.inProgress")}
+                    </Text>
+                  </View>
+                  <Text
+                    style={[localStyles.summaryTitle, { flex: undefined }]}
+                    numberOfLines={2}
+                  >
+                    {goalLabel}
                   </Text>
-                  <Text style={styles.summarySubtextBold}>
-                    {formatNumber(config.totalHours)}{" "}
-                  </Text>
-                  <Text style={styles.summarySubtextRegular}>
-                    {t("progressLogging.unitHours")})
-                  </Text>
-                </Text>
+                </View>
               </View>
-            </View>
 
-            <TouchableOpacity
-              style={styles.addButton}
-              onPress={() => setFlowMode("active")}
-              activeOpacity={0.8}
-            >
-              <Ionicons name="add" size={22} color={Colors.light.white} />
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <View style={styles.flowCardLayer}>
-            <FlowCard
-              headerIcon={stepHeader.icon}
-              headerLabel={stepHeader.label}
-              onBack={handleBack}
-              onForward={handleForward}
-              onConfirm={handleConfirm}
-              canGoForward={!isLastStep}
-              styles={styles}
-              style={styles.inPlaceFlowCard}
-            >
-              {renderStepContent(currentStep)}
-            </FlowCard>
-          </View>
-        )}
+              <View style={localStyles.footerRow} />
+
+              <TouchableOpacity
+                style={localStyles.addButton}
+                onPress={() => setFlowMode("active")}
+                activeOpacity={0.8}
+              >
+                <AddLoggingFlowIcon size={32} />
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={commonStyles.flowCardLayer}>
+              <FlowCard
+                headerIcon={stepHeader.icon}
+                headerLabel={stepHeader.label}
+                onBack={handleBack}
+                onForward={handleForward}
+                onConfirm={handleConfirm}
+                canGoForward={!isLastStep}
+                styles={commonStyles}
+                style={commonStyles.inPlaceFlowCard}
+              >
+                {renderStepContent(currentStep)}
+              </FlowCard>
+            </View>
+          )}
+        </View>
       </View>
-    </View>
+    </>
   );
 }
+
+const localStyles = StyleSheet.create({
+  summaryCard: {
+    backgroundColor: Colors.light.green,
+    borderRadius: 8,
+    padding: 16,
+    gap: 12,
+    height: FLOW_CARD_HEIGHT,
+    width: "100%",
+    justifyContent: "space-between",
+    position: "relative",
+  },
+  badge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+    marginTop: 3,
+  },
+  badgeInProgress: {
+    backgroundColor: Colors.light.lightpurple,
+  },
+  badgeText: {
+    fontFamily: fonts.primary.medium,
+    fontSize: 12,
+    fontWeight: "500",
+    lineHeight: 12.5,
+  },
+  badgeTextInProgress: {
+    color: Colors.light.darkblue,
+  },
+  summaryBody: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  summaryIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.light.selectcategory,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 33,
+  },
+  summaryTitle: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.semiBold,
+    fontSize: 14,
+    fontWeight: "600",
+    lineHeight: 18,
+    letterSpacing: 0,
+    flex: 1,
+  },
+  footerRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    marginTop: 4,
+  },
+  addButton: {
+    position: "absolute",
+    right: 16,
+    bottom: 15,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});

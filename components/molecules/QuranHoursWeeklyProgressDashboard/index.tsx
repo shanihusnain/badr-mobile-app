@@ -1,17 +1,13 @@
-import React, { useState } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  useWindowDimensions,
-} from "react-native";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import React, { useMemo, type ReactNode } from "react";
+import { StyleSheet, Text, View } from "react-native";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTranslation } from "react-i18next";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
-import { WeeklyProgressStatsFooterSection } from "@/components/molecules/PrayerWeeklyProgressFooter/WeeklyProgressStatsFooterSection";
+import {
+  SinglePrayerWeeklyProgressDashboard,
+  type SinglePrayerDayProgress,
+} from "@/components/molecules/SinglePrayerWeeklyProgressDashboard";
 import type { QuranHoursDayProgress } from "@/src/screens/private/goalprogressloggingscreen/quranHoursWeeklyData";
 import {
   formatDayDuration,
@@ -28,59 +24,35 @@ export type QuranHoursWeeklyProgressDashboardProps = {
   motivationalQuote?: string;
   /** Defaults to Saturday (index 6) to match design mock. */
   selectedDayIndex?: number;
+  /** Fallback Material icon when `statsIconNode` is not provided. */
   statsIcon?: keyof typeof MaterialCommunityIcons.glyphMap;
+  /** Custom stats leading icon (listening / tajweed). */
+  statsIconNode?: ReactNode;
   onDayPress?: (index: number) => void;
   onPrevWeek?: () => void;
   onNextWeek?: () => void;
 };
+function mapQuranDayToSinglePrayerDay(
+  day: QuranHoursDayProgress,
+  index: number,
+  selectedDayIndex: number,
+  hasExplicitToday: boolean,
+): SinglePrayerDayProgress {
+  const showDuration =
+    day.minutesLogged > 0 && day.showDurationLabel !== false;
 
-const CARD_HORIZONTAL_PADDING = 16;
-const WRAPPER_WIDTH_RATIO = 0.92;
-const DURATION_SLOT_HEIGHT = 14;
-const RING_SIZE_MAX = 34;
-
-type DayRingProps = {
-  size: number;
-  hasLog: boolean;
-  isBestDay: boolean;
-  isSelected: boolean;
-};
-
-function QuranHoursDayRing({
-  size,
-  hasLog,
-  isBestDay,
-  isSelected,
-}: DayRingProps) {
-  return (
-    <View
-      style={[
-        styles.ringOuter,
-        {
-          width: size + 6,
-          height: size + 6,
-          borderRadius: (size + 6) / 2,
-        },
-        isSelected && styles.ringOuterSelected,
-      ]}
-    >
-      <View
-        style={[
-          styles.ringInner,
-          {
-            width: size,
-            height: size,
-            borderRadius: size / 2,
-          },
-          hasLog ? styles.ringInnerLogged : styles.ringInnerEmpty,
-        ]}
-      >
-        {isBestDay && (
-          <Ionicons name="star" size={18} color={Colors.light.yellow} />
-        )}
-      </View>
-    </View>
-  );
+  return {
+    day: day.day,
+    prayersLogged: day.minutesLogged,
+    isLogged: !!day.isLogged || day.minutesLogged > 0,
+    isBestDay: day.isBestDay,
+    isToday: hasExplicitToday ? !!day.isToday : index === selectedDayIndex,
+    isFuture: day.isFuture,
+    // Only Quran hours passes this — prayer dashboards omit it and keep counts.
+    durationLabel: showDuration
+      ? formatDayDuration(day.minutesLogged)
+      : undefined,
+  };
 }
 
 export function QuranHoursWeeklyProgressDashboard({
@@ -93,297 +65,82 @@ export function QuranHoursWeeklyProgressDashboard({
   motivationalQuote = "",
   selectedDayIndex = 6,
   statsIcon = "headphones",
+  statsIconNode,
   onDayPress,
   onPrevWeek,
   onNextWeek,
 }: QuranHoursWeeklyProgressDashboardProps) {
   const { t } = useTranslation();
-  const { width: screenWidth } = useWindowDimensions();
-  console.log(
-    "chekcing props of quran hours weekly progress dashboard",
-    weekDays,
-    weekRangeLabel,
-    weekFraction,
-    totalMinutesThisWeek,
-    streakDays,
-    motivationalQuote,
-    selectedDayIndex,
-    statsIcon,
-    onDayPress,
-    onPrevWeek,
-    onNextWeek,
-  );
-  const availableWidth =
-    screenWidth * WRAPPER_WIDTH_RATIO - CARD_HORIZONTAL_PADDING;
-  const ringSize = Math.min(
-    RING_SIZE_MAX,
-    Math.floor((availableWidth / 7) * 0.62),
-  );
-
-  const [activeDayIndex, setActiveDayIndex] = useState(selectedDayIndex);
-
   const { hours, minutes } = formatWeeklyHoursTotal(totalMinutesThisWeek);
 
-  const handleDayPress = (index: number) => () => {
-    setActiveDayIndex(index);
-    onDayPress?.(index);
-  };
+  const mappedWeekDays = useMemo(() => {
+    const hasExplicitToday = weekDays.some((day) => day.isToday === true);
+    return weekDays.map((day, index) =>
+      mapQuranDayToSinglePrayerDay(
+        day,
+        index,
+        selectedDayIndex,
+        hasExplicitToday,
+      ),
+    );
+  }, [weekDays, selectedDayIndex]);
 
   return (
-    <View style={styles.card}>
-      <View style={styles.headerRow}>
-        <View style={styles.headerLeft}>
-          <MaterialCommunityIcons
-            name="calendar-month-outline"
-            size={16}
-            color={Colors.light.seagreen}
-          />
-          <Text style={styles.weekFractionText} numberOfLines={1}>
-            {weekFraction} WEEKS
-          </Text>
-        </View>
-
-        <View style={styles.headerNav}>
-          <TouchableOpacity
-            onPress={onPrevWeek}
-            activeOpacity={0.7}
-            style={styles.navBtn}
-          >
-            <Ionicons
-              name="chevron-back"
-              size={14}
-              color={Colors.light.dullWhite}
-            />
-          </TouchableOpacity>
-          <Text style={styles.weekRangeText} numberOfLines={1}>
-            {weekRangeLabel}
-          </Text>
-          <TouchableOpacity
-            onPress={onNextWeek}
-            activeOpacity={0.7}
-            style={styles.navBtn}
-          >
-            <Ionicons
-              name="chevron-forward"
-              size={14}
-              color={Colors.light.dullWhite}
-            />
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      <View style={styles.daysRow}>
-        {weekDays.map((day, index) => {
-          const isSelected = index === activeDayIndex;
-          const hasLog = day.minutesLogged > 0 || !!day.isLogged;
-          const showDuration =
-            day.minutesLogged > 0 && day.showDurationLabel !== false;
-          const durationLabel = showDuration
-            ? formatDayDuration(day.minutesLogged)
-            : "";
-
-          return (
-            <TouchableOpacity
-              key={`${day.day}-${index}`}
-              style={[styles.dayColumn, isSelected && styles.dayColumnActive]}
-              onPress={handleDayPress(index)}
-              activeOpacity={0.75}
-            >
-              <QuranHoursDayRing
-                size={ringSize}
-                hasLog={hasLog}
-                isBestDay={!!day.isBestDay}
-                isSelected={isSelected}
-              />
-
-              <Text
-                style={[
-                  day.isBestDay ? styles.bestDayLabel : styles.dayLabel,
-                  !day.isBestDay && isSelected && styles.dayLabelActive,
-                ]}
-                numberOfLines={1}
-              >
-                {day.isBestDay ? t("progressLogging.bestDay") : day.day}
-              </Text>
-
-              <View style={styles.durationSlot}>
-                {durationLabel ? (
-                  <Text
-                    style={[
-                      {
-                        color: day.isBestDay
-                          ? Colors.light.green
-                          : Colors.light.grey,
-                      },
-                      styles.durationText,
-                    ]}
-                    numberOfLines={1}
-                  >
-                    {durationLabel}
-                  </Text>
-                ) : null}
-              </View>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-
-      <WeeklyProgressStatsFooterSection
-        vsLastWeek={vsLastWeek}
-        statsRow={
-          <View style={styles.statsRow}>
+    <SinglePrayerWeeklyProgressDashboard
+      weekDays={mappedWeekDays}
+      weekRangeLabel={weekRangeLabel}
+      weekFraction={weekFraction}
+      streakDays={streakDays}
+      vsLastWeek={vsLastWeek}
+      motivationalQuote={motivationalQuote}
+      selectedDayIndex={selectedDayIndex}
+      onDayPress={onDayPress}
+      onPrevWeek={onPrevWeek}
+      onNextWeek={onNextWeek}
+      allowLogDeletion={false}
+      statsRow={
+        <View style={styles.statsRow}>
+          {statsIconNode ?? (
             <MaterialCommunityIcons
               name={statsIcon}
               size={20}
               color={Colors.light.lightblue}
             />
-            <Text style={styles.statsText} numberOfLines={1}>
-              <Text style={styles.statsCount}>
-                {hours}h {minutes}m
-              </Text>
-              {" " + t("progressLogging.totalHoursThisWeek")}
+          )}
+          <Text style={styles.statsText} numberOfLines={1}>
+            <Text style={styles.statsCount}>
+              {hours}h {minutes}m
             </Text>
-          </View>
-        }
-        footerProps={{
-          streakDays,
-          motivationalQuote,
-          streakVariant: "green",
-        }}
-      />
-    </View>
+            {" " + t("progressLogging.totalHoursThisWeek")}
+          </Text>
+        </View>
+      }
+    />
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    borderRadius: 14,
-    backgroundColor: Colors.light.greybuttonBackground,
-    paddingHorizontal: 8,
-    paddingVertical: 20,
-    gap: 16,
-  },
-  headerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 8,
-  },
-  headerLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    flexShrink: 1,
-  },
-  weekFractionText: {
-    color: Colors.light.white,
-    fontSize: 13,
-    fontWeight: "600",
-    fontFamily: fonts.primary.semiBold,
-  },
-  headerNav: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 2,
-    flexShrink: 0,
-  },
-  navBtn: {
-    padding: 2,
-  },
-  weekRangeText: {
-    color: Colors.light.white,
-    fontSize: 12,
-    fontWeight: "500",
-    fontFamily: fonts.primary.medium,
-    maxWidth: 110,
-    textAlign: "center",
-  },
-  daysRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-  },
-  dayColumn: {
-    flex: 1,
-    alignItems: "center",
-    minWidth: 0,
-    paddingVertical: 4,
-    borderRadius: 10,
-  },
-  dayColumnActive: {
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
-  },
-  bestDayLabel: {
-    color: Colors.light.green,
-    fontSize: 7,
-    fontWeight: "700",
-    fontFamily: fonts.primary.bold,
-    letterSpacing: 0.15,
-    textAlign: "center",
-    marginTop: 4,
-  },
-  ringOuter: {
-    alignItems: "center",
-    justifyContent: "center",
-    // borderWidth: 2,
-    borderColor: "transparent",
-  },
-  ringOuterSelected: {
-    // borderColor: Colors.light.ringQuran,
-  },
-  ringInner: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  ringInnerLogged: {
-    backgroundColor: Colors.light.green,
-  },
-  ringInnerEmpty: {
-    backgroundColor: Colors.light.calendarBg,
-  },
-  dayLabel: {
-    color: Colors.light.subtext,
-    fontSize: 10,
-    fontWeight: "600",
-    fontFamily: fonts.primary.semiBold,
-    marginTop: 4,
-    textAlign: "center",
-  },
-  dayLabelActive: {
-    color: Colors.light.white,
-    fontWeight: "700",
-    fontFamily: fonts.primary.bold,
-  },
-  durationSlot: {
-    height: DURATION_SLOT_HEIGHT,
-    justifyContent: "center",
-    alignItems: "center",
-    width: "100%",
-  },
-  durationText: {
-    fontSize: 9,
-    fontWeight: "600",
-    fontFamily: fonts.primary.semiBold,
-    lineHeight: 11,
-    textAlign: "center",
-  },
   statsRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 6,
+    gap: 8,
     flexWrap: "nowrap",
+    paddingLeft: 7,
   },
   statsText: {
-    color: Colors.light.dullWhite,
-    fontSize: 14,
+    color: Colors.light.white,
+    fontSize: 13,
     fontFamily: fonts.primary.medium,
     flexShrink: 1,
     fontWeight: "500",
+    letterSpacing: 0.1,
   },
   statsCount: {
     color: Colors.light.white,
-    fontWeight: "700",
-    fontSize: 28,
+    fontWeight: "600",
+    fontSize: 20,
     fontFamily: fonts.primary.bold,
+    letterSpacing: 0.1,
   },
 });
