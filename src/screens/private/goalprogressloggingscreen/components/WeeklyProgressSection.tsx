@@ -117,6 +117,7 @@ import {
   getProphetDawoodFastTodayIndexInWeek,
 } from "../prophetDawoodFastsWeeklyData";
 import { useOptionalPrayerGoalFrameContext } from "../prayerGoalFrameContext";
+import { useOptionalQuranGoalFrameContext } from "../quranGoalFrameContext";
 import {
   formatPrayerFrameWeekRange,
   getPrayerFrameTodayIndex,
@@ -127,8 +128,20 @@ import {
   mapQiyamFrameWeekDays,
   mapSunnahFrameWeekDays,
 } from "@/src/utils/prayerGoalFrameMap";
+import {
+  getQuranFrameMotivationalQuote,
+  getQuranFrameTodayIndex,
+  getQuranFrameWeekFraction,
+  getQuranFrameWeekRangeLabel,
+  getQuranFrameWeekStreakDays,
+  getQuranFrameWeekTotalMinutes,
+  getQuranFrameVsLastWeekDelta,
+  getQuranFrameVsLastWeekDisplay,
+  mapQuranHoursFrameWeekDays,
+} from "@/src/utils/quranGoalFrameMap";
 import { useAuth } from "@/provider/useAuth";
 import type { PrayerGoalFrameData } from "@/src/api/queries/useGetPrayerGoalFrame";
+import type { QuranGoalFrameData } from "@/src/api/queries/useGetQuranGoalFrame";
 
 type Props = {
   goalData: GoalData;
@@ -178,6 +191,47 @@ function shiftPrayerFrameWeek(
   prayerFrame.setWeekNumber(activeWeek + direction);
 }
 
+function isQuranFrameDashboardLoading(
+  quranFrame: ReturnType<typeof useOptionalQuranGoalFrameContext>,
+  frame: unknown,
+) {
+  if (!quranFrame) return true;
+  if (quranFrame.isLoading) return true;
+  if (!frame && !quranFrame.isError) return true;
+
+  const frameData = frame as QuranGoalFrameData | null | undefined;
+  const requestedWeek = quranFrame.weekNumber;
+  const displayedWeek = frameData?.week?.weekNumber;
+
+  if (
+    requestedWeek != null &&
+    displayedWeek != null &&
+    requestedWeek !== displayedWeek &&
+    (quranFrame.isFetching || quranFrame.isPlaceholderData)
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+function getQuranFrameActiveWeek(
+  quranFrame: ReturnType<typeof useOptionalQuranGoalFrameContext>,
+  frame: QuranGoalFrameData,
+) {
+  return quranFrame?.weekNumber ?? frame.week.weekNumber;
+}
+
+function shiftQuranFrameWeek(
+  quranFrame: ReturnType<typeof useOptionalQuranGoalFrameContext>,
+  frame: QuranGoalFrameData,
+  direction: -1 | 1,
+) {
+  if (!quranFrame) return;
+  const activeWeek = getQuranFrameActiveWeek(quranFrame, frame);
+  quranFrame.setWeekNumber(activeWeek + direction);
+}
+
 /** Weekly dashboard quote — prefers weekSummaryMessage when API sends it. */
 function getPrayerFrameMotivationalQuote(frame: PrayerGoalFrameData) {
   const summary = frame.week.weekSummaryMessage?.trim();
@@ -193,6 +247,7 @@ export function WeeklyProgressSection({
   const { t } = useTranslation();
   const template = getLoggingFlowTemplate(goalData.id);
   const prayerFrame = useOptionalPrayerGoalFrameContext();
+  const quranFrame = useOptionalQuranGoalFrameContext();
   const { user } = useAuth();
   const qiyamGender: "male" | "female" =
     user?.gender === "FEMALE" ? "female" : "male";
@@ -268,9 +323,11 @@ export function WeeklyProgressSection({
     return juzMemorisationCycle.weeks[clampJuzMemorisationWeekIndex(weekIndex)];
   }, [juzMemorisationCycle, weekIndex]);
   const quranWeek = useMemo(() => {
+    // Prefer live frame when available; fall back to mock for offline/dev.
     if (!isQuranHoursGoalId(goalData.id)) return null;
+    if (quranFrame?.frame) return null;
     return getQuranHoursWeekSummary(goalData.id);
-  }, [goalData.id]);
+  }, [goalData.id, quranFrame?.frame]);
 
   const recitationCycle = useMemo(() => {
     if (!isSurahRecitationGoalId(goalData.id)) return null;
@@ -687,23 +744,81 @@ export function WeeklyProgressSection({
     );
   }
 
-  if (template === "quran-hours" && quranWeek && quranFlow) {
+  if (template === "quran-hours" && quranFlow) {
     const statsIcon =
       quranFlow.config.icon === "headphones"
         ? "headphones"
         : "book-open-page-variant";
+    const frame = quranFrame?.frame;
+    const frameLoading = isQuranFrameDashboardLoading(quranFrame, frame);
 
-    return (
-      <QuranHoursWeeklyProgressDashboard
-        weekDays={quranWeek.weekDays}
-        weekRangeLabel={quranWeek.weekRangeLabel}
-        weekFraction={quranWeek.weekFraction}
-        totalMinutesThisWeek={quranWeek.totalMinutesThisWeek}
-        streakDays={quranWeek.streakDays}
-        motivationalQuote={t(quranWeek.motivationalQuoteKey)}
-        statsIcon={statsIcon}
-      />
-    );
+    // Frame context is mounted for listening/tajweed — drive the weekly
+    // dashboard from GET .../quran-goals/{type}/frame (not mock data).
+    if (quranFrame) {
+      if (frame) {
+        const activeWeek = getQuranFrameActiveWeek(quranFrame, frame);
+        const canPrev = frame.week.hasPrevious ?? activeWeek > 1;
+        const canNext =
+          frame.week.hasNext ?? activeWeek < frame.week.totalWeeks;
+
+        return (
+          <QuranHoursWeeklyProgressDashboard
+            key={frame.week.weekNumber}
+            weekDays={mapQuranHoursFrameWeekDays(frame)}
+            weekRangeLabel={getQuranFrameWeekRangeLabel(frame)}
+            weekFraction={getQuranFrameWeekFraction(frame)}
+            totalMinutesThisWeek={getQuranFrameWeekTotalMinutes(frame)}
+            streakDays={getQuranFrameWeekStreakDays(frame)}
+            vsLastWeek={getQuranFrameVsLastWeekDelta(frame)}
+            vsLastWeekDisplay={getQuranFrameVsLastWeekDisplay(frame)}
+            motivationalQuote={getQuranFrameMotivationalQuote(frame)}
+            selectedDayIndex={getQuranFrameTodayIndex(frame)}
+            statsIcon={statsIcon}
+            loading={frameLoading}
+            isGoalCompleted={(frame.goal.achievementPct ?? 0) >= 100}
+            onPrevWeek={
+              canPrev
+                ? () => shiftQuranFrameWeek(quranFrame, frame, -1)
+                : undefined
+            }
+            onNextWeek={
+              canNext
+                ? () => shiftQuranFrameWeek(quranFrame, frame, 1)
+                : undefined
+            }
+          />
+        );
+      }
+
+      return (
+        <QuranHoursWeeklyProgressDashboard
+          weekDays={[]}
+          weekRangeLabel="---"
+          weekFraction="---"
+          totalMinutesThisWeek={0}
+          streakDays={0}
+          motivationalQuote="---"
+          statsIcon={statsIcon}
+          loading={frameLoading || !quranFrame.isError}
+        />
+      );
+    }
+
+    if (quranWeek) {
+      return (
+        <QuranHoursWeeklyProgressDashboard
+          weekDays={quranWeek.weekDays}
+          weekRangeLabel={quranWeek.weekRangeLabel}
+          weekFraction={quranWeek.weekFraction}
+          totalMinutesThisWeek={quranWeek.totalMinutesThisWeek}
+          streakDays={quranWeek.streakDays}
+          motivationalQuote={t(quranWeek.motivationalQuoteKey)}
+          statsIcon={statsIcon}
+        />
+      );
+    }
+
+    return null;
   }
 
   if (template === "quran-juz" && quranJuzWeek && juzCycle) {

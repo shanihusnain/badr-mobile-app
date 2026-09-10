@@ -9,13 +9,16 @@ import { AimIcon, LighteningIcon } from "@/assets/icons";
 export type PrayerWeeklyProgressFooterComparisonVariant =
   | "onTime"
   | "prayers"
-  | "recitations";
+  | "recitations"
+  | "hours";
 
 export type PrayerWeeklyProgressFooterProps = {
   loading?: boolean;
   streakDays?: number;
   /** `null` / omitted on week 1 — quote sits beside streak. Weeks 2–4 show vs-last-week. */
   vsLastWeek?: number | null;
+  /** When set, shown instead of the numeric magnitude (e.g. Quran "2h 0m"). */
+  vsLastWeekDisplay?: string | null;
   motivationalQuote?: string;
   defaultMotivationalQuote?: string;
   /** Five-daily uses on-time wording; other prayer goals use prayers wording. */
@@ -46,6 +49,7 @@ export function PrayerWeeklyProgressFooter({
   loading = false,
   streakDays = 0,
   vsLastWeek = null,
+  vsLastWeekDisplay = null,
   motivationalQuote = "",
   defaultMotivationalQuote = "",
   comparisonVariant = "prayers",
@@ -57,6 +61,8 @@ export function PrayerWeeklyProgressFooter({
   const isWeekOneLayout = loading || vsLastWeek == null;
   const vsLastWeekMagnitude = Math.abs(vsLastWeek ?? 0);
   const vsLastWeekImproved = (vsLastWeek ?? 0) > 0;
+  const comparisonCountLabel =
+    vsLastWeekDisplay?.trim() || String(vsLastWeekMagnitude);
 
   const resolvedQuote = loading
     ? "---"
@@ -67,7 +73,9 @@ export function PrayerWeeklyProgressFooter({
       ? "homeScreen.weeklyProgress_vsLastWeek"
       : comparisonVariant === "recitations"
         ? "homeScreen.weeklyProgress_recitationsVsLastWeek"
-        : "homeScreen.weeklyProgress_prayersVsLastWeek";
+        : comparisonVariant === "hours"
+          ? "homeScreen.weeklyProgress_hoursVsLastWeek"
+          : "homeScreen.weeklyProgress_prayersVsLastWeek";
 
   const streakLabel = (
     <View style={styles.streakBadge}>
@@ -121,7 +129,7 @@ export function PrayerWeeklyProgressFooter({
             />
           ) : null}
           <Text style={styles.comparisonText}>
-            <Text style={styles.comparisonCount}>{vsLastWeekMagnitude}</Text>
+            <Text style={styles.comparisonCount}>{comparisonCountLabel}</Text>
             {` ${t(comparisonSuffixKey)}`}
           </Text>
         </View>
