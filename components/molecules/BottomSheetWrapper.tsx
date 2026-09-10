@@ -1,0 +1,222 @@
+import React, {
+  forwardRef,
+  useCallback,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { StyleSheet, useWindowDimensions } from "react-native";
+import BottomSheet, {
+  BottomSheetBackdrop,
+  BottomSheetScrollView,
+} from "@gorhom/bottom-sheet";
+import type { BottomSheetDefaultBackdropProps } from "@gorhom/bottom-sheet/lib/typescript/components/bottomSheetBackdrop/types";
+import type { BottomSheetFooterProps } from "@gorhom/bottom-sheet/lib/typescript/components/bottomSheetFooter/types";
+import { Colors } from "@/constants/theme";
+
+type Props = {
+  children: React.ReactNode;
+  snapPoints?: (string | number)[];
+  onClose?: () => void;
+  onChange?: (index: number) => void;
+  /** When false, children render directly (e.g. BottomSheetFlatList). Default: true */
+  scrollable?: boolean;
+  footerComponent?: React.FC<BottomSheetFooterProps>;
+  bgColor?: string;
+  /** Top corner radius of the sheet. Default: 24 */
+  borderRadius?: number;
+  /** Extra top padding under the sheet edge so the grey handle sits lower. */
+  handleTopInset?: number;
+};
+
+function parseSnapRatio(snap: string | number, screenHeight: number): number {
+  if (typeof snap === "number") {
+    return snap / screenHeight;
+  }
+  const percentMatch = /^(\d+(?:\.\d+)?)%$/.exec(snap);
+  if (percentMatch) return Number(percentMatch[1]) / 100;
+  const asNumber = Number(snap);
+  return Number.isFinite(asNumber) ? asNumber / screenHeight : 0.8;
+}
+
+export const BottomSheetWrapper = forwardRef<BottomSheet, Props>(
+  function BottomSheetWrapper(
+    {
+      children,
+      snapPoints,
+      onClose,
+      onChange,
+      scrollable = true,
+      footerComponent,
+      bgColor,
+      borderRadius = 24,
+      handleTopInset = 0,
+    },
+    ref,
+  ) {
+    const sheetRef = useRef<BottomSheet>(null);
+    const { height: screenHeight } = useWindowDimensions();
+    // Closed sheets still mount a full-screen absolute container. On some
+    // Android OEMs (MIUI) that layer eats all touches unless we disable it.
+    const [sheetIndex, setSheetIndex] = useState(-1);
+
+    const resolvedSnapPoints = useMemo(
+      () => snapPoints ?? ["80%"],
+      [snapPoints],
+    );
+
+    /** Prefer the snap closest to 80% so `.expand()` opens at that height. */
+    const openSnapIndex = useMemo(() => {
+      let bestIndex = 0;
+      let bestDelta = Number.POSITIVE_INFINITY;
+      resolvedSnapPoints.forEach((snap, index) => {
+        const delta = Math.abs(parseSnapRatio(snap, screenHeight) - 0.8);
+        if (delta < bestDelta) {
+          bestDelta = delta;
+          bestIndex = index;
+        }
+      });
+      return bestIndex;
+    }, [resolvedSnapPoints, screenHeight]);
+
+    const contentMinHeight = useMemo(() => {
+      const openSnap = resolvedSnapPoints[openSnapIndex] ?? "80%";
+      const ratio = parseSnapRatio(openSnap, screenHeight);
+      return screenHeight * ratio - 24;
+    }, [openSnapIndex, resolvedSnapPoints, screenHeight]);
+
+    const scrollContentStyle = useMemo(
+      () => [styles.content, { minHeight: contentMinHeight }],
+      [contentMinHeight],
+    );
+
+    const sheetBackgroundStyle = useMemo(
+      () => [
+        styles.sheetBackground,
+        bgColor ? { backgroundColor: bgColor } : null,
+        {
+          borderTopLeftRadius: borderRadius,
+          borderTopRightRadius: borderRadius,
+        },
+      ],
+      [bgColor, borderRadius],
+    );
+
+    const handleContainerStyle = useMemo(
+      () => [
+        styles.handleContainer,
+        handleTopInset > 0 ? { paddingTop: handleTopInset } : null,
+      ],
+      [handleTopInset],
+    );
+
+    const containerStyle = useMemo(
+      () => ({
+        pointerEvents: sheetIndex >= 0 ? ("auto" as const) : ("none" as const),
+      }),
+      [sheetIndex],
+    );
+
+    useImperativeHandle(
+      ref,
+      () =>
+        new Proxy({} as BottomSheet, {
+          get(_, prop) {
+            if (prop === "expand") {
+              return () => {
+                // Enable hit-testing before snap so MIUI doesn't keep the
+                // closed `pointerEvents: 'none'` layer through open.
+                setSheetIndex(openSnapIndex);
+                sheetRef.current?.snapToIndex(openSnapIndex);
+              };
+            }
+            if (prop === "close") {
+              return () => {
+                setSheetIndex(-1);
+                sheetRef.current?.close();
+              };
+            }
+            const sheet = sheetRef.current as BottomSheet | null;
+            if (!sheet) return undefined;
+            const value = (sheet as any)[prop];
+            return typeof value === "function" ? value.bind(sheet) : value;
+          },
+        }),
+      [openSnapIndex],
+    );
+
+    const renderBackdrop = useCallback(
+      (props: BottomSheetDefaultBackdropProps) => (
+        <BottomSheetBackdrop
+          {...props}
+          disappearsOnIndex={-1}
+          appearsOnIndex={0}
+          pressBehavior="close"
+        />
+      ),
+      [],
+    );
+
+    const handleChange = useCallback(
+      (index: number) => {
+        setSheetIndex(index);
+        onChange?.(index);
+      },
+      [onChange],
+    );
+
+    const handleClose = useCallback(() => {
+      setSheetIndex(-1);
+      onClose?.();
+    }, [onClose]);
+
+    return (
+      <BottomSheet
+        ref={sheetRef}
+        index={-1}
+        snapPoints={resolvedSnapPoints}
+        enableDynamicSizing={false}
+        enablePanDownToClose
+        onClose={handleClose}
+        onChange={handleChange}
+        footerComponent={footerComponent}
+        backdropComponent={renderBackdrop}
+        backgroundStyle={sheetBackgroundStyle}
+        handleStyle={handleContainerStyle}
+        handleIndicatorStyle={styles.handle}
+        containerStyle={containerStyle}
+      >
+        {scrollable ? (
+          <BottomSheetScrollView
+            contentContainerStyle={scrollContentStyle}
+            showsVerticalScrollIndicator={false}
+          >
+            {children}
+          </BottomSheetScrollView>
+        ) : (
+          children
+        )}
+      </BottomSheet>
+    );
+  },
+);
+
+const styles = StyleSheet.create({
+  sheetBackground: {
+    backgroundColor: Colors.light.greybuttonBackground,
+  },
+  handleContainer: {
+    paddingTop: 8,
+    paddingBottom: 4,
+  },
+  handle: {
+    backgroundColor: Colors.light.grey,
+    width: 102,
+  },
+  content: {
+    paddingHorizontal: 20,
+    paddingBottom: 40,
+    flexGrow: 1,
+  },
+});

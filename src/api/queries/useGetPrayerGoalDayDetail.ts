@@ -1,0 +1,529 @@
+import { useQuery } from "@tanstack/react-query";
+import { api } from "..";
+import { resolvePrayerType } from "@/src/utils/prayerGoalMap";
+import type { SunnahRawatibSlotKey } from "./useGetPrayerGoalFrame";
+
+export type FiveDailyPrayerSlotKey =
+  | "FAJR"
+  | "DHUHR"
+  | "ASR"
+  | "MAGHRIB"
+  | "ISHA";
+
+export type FiveDailyDayDetailSlot = {
+  logged: boolean;
+  count?: number;
+  prayedOnTime?: boolean | null;
+  wasQadha?: boolean | null;
+  wasCongregational?: boolean | null;
+  /** True when the slot was auto-filled as qadha (still loggable even if canLog is false). */
+  isAutoQadha?: boolean;
+  isJumuah?: boolean;
+  mosqueName?: string | null;
+  prayerStartTime?: string | null;
+  durationMinutes?: number | null;
+  notes?: string | null;
+  loggedAt?: string | null;
+  /**
+   * When false, an *unlogged* slot cannot be selected yet (window not open /
+   * already passed). Logged slots remain editable regardless of this flag.
+   */
+  canLog?: boolean;
+  /** True when only qadha logging is allowed (past date or today's window passed). */
+  isQadhaOnly?: boolean;
+  /** True while the Adhan prayer window is currently open (today only). */
+  isWithinPrayerWindow?: boolean;
+};
+
+export type FiveDailyPrayerDayDetail = {
+  date: string;
+  hasLoggedAnyPrayer: boolean;
+  goal: {
+    targetCount: number;
+    completedCount: number;
+    achievementPct: number;
+    status: string;
+  };
+  slotTargets?: Partial<Record<FiveDailyPrayerSlotKey | "JUMUAH", number>>;
+  slots: Partial<Record<FiveDailyPrayerSlotKey, FiveDailyDayDetailSlot>>;
+};
+
+export type MissedPastPrayerDayDetailSlot = {
+  logged: boolean;
+  loggedCount: number;
+  entries: unknown[];
+  canLog?: boolean;
+};
+
+export type MissedPastPrayerDayDetail = {
+  date: string;
+  hasLoggedAnyPrayer: boolean;
+  goal: {
+    targetCount: number;
+    completedCount: number;
+    achievementPct: number;
+    status: string;
+    slotTarget: number;
+  };
+  slotProgress: Record<
+    FiveDailyPrayerSlotKey,
+    { completed: number; target: number }
+  >;
+  slots: Partial<Record<FiveDailyPrayerSlotKey, MissedPastPrayerDayDetailSlot>>;
+};
+
+export type SunnahRawatibDayDetailSlot = {
+  display?: string;
+  enabled?: boolean;
+  dailyTarget?: number;
+  logged: boolean;
+  /** Total units counted for the slot (may include auto-qadha). */
+  loggedCount: number;
+  /** Units the user actually logged (excludes auto-qadha). */
+  userLoggedCount?: number;
+  /** Units system-filled as auto-qadha. */
+  autoQadhaCount?: number;
+  /**
+   * System auto-filled this slot as qadha/missed. Not a real user log —
+   * user must still be able to log remaining units.
+   */
+  isAutoQadha?: boolean;
+  /** Units the user can still log toward dailyTarget. */
+  remaining?: number;
+  isComplete?: boolean;
+  prayedOnTime?: boolean | null;
+  wasQadha?: boolean | null;
+  wasCongregational?: boolean | null;
+  mosqueName?: string | null;
+  prayerStartTime?: string | null;
+  durationMinutes?: number | null;
+  notes?: string | null;
+  loggedAt?: string | null;
+  canLog?: boolean;
+};
+
+export type SunnahRawatibDayDetail = {
+  date: string;
+  hasLoggedAnyPrayer: boolean;
+  goal: {
+    targetCount: number;
+    completedCount: number;
+    achievementPct: number;
+    status: string;
+  };
+  slots: Partial<Record<SunnahRawatibSlotKey, SunnahRawatibDayDetailSlot>>;
+};
+
+export type QiyamSessionTypeKey = "AFTER_ISHA" | "TAHAJJUD" | "BOTH";
+
+export type QiyamDayDetailSession = {
+  display?: string;
+  logged?: boolean;
+  unitsLogged?: number;
+  rakahCount?: number;
+  witrLogged?: boolean;
+  minutesSpent?: number;
+  entries?: unknown[];
+};
+
+export type QiyamDayDetailNight = {
+  unitsLogged?: number;
+  rakahCount?: number;
+  witrLogged?: boolean;
+  nightTarget?: number;
+  remaining?: number;
+  isComplete?: boolean;
+  afterIsha?: boolean;
+  beforeFajr?: boolean;
+  sessionTypes?: string[];
+  unitsWithUnknownWindow?: number;
+  totalMinutesSpent?: number;
+  startTime?: string | null;
+  firstLoggedAt?: string | null;
+  lastLoggedAt?: string | null;
+  isMenstruationDay?: boolean;
+  /** System marked Witr as missed for this night (often with witr.isAutoQadha). */
+  witrMissed?: boolean;
+  canLog?: boolean;
+  canLogWitr?: boolean;
+};
+
+export type QiyamDayDetailWitr = {
+  logged?: boolean;
+  /**
+   * System auto-filled Witr as qadha/missed. Not a real user log —
+   * user must still be able to log Witr (even when canLog is false).
+   */
+  isAutoQadha?: boolean;
+  sessionType?: string | null;
+  startTime?: string | null;
+  durationMinutes?: number | null;
+  loggedAt?: string | null;
+  canLog?: boolean;
+};
+
+export type QiyamDayDetail = {
+  date: string;
+  hasLoggedAnyPrayer: boolean;
+  /** Witr already logged for this Islamic night — hide Witr steps on re-log. */
+  witrLogged?: boolean;
+  includesWitrLogged?: boolean;
+  witrAlreadyLogged?: boolean;
+  trackTahajjud?: boolean;
+  canLog?: boolean;
+  loggedCount?: number;
+  goal: {
+    targetCount: number;
+    completedCount: number;
+    achievementPct: number;
+    status: string;
+    label?: string;
+    isFlexible?: boolean;
+    unitTarget?: number;
+    witrTarget?: number;
+    targetPerNight?: number;
+    trackTahajjud?: boolean;
+  };
+  night?: QiyamDayDetailNight;
+  witr?: QiyamDayDetailWitr;
+  sessions?: Partial<Record<QiyamSessionTypeKey, QiyamDayDetailSession>>;
+};
+
+/**
+ * Flat day-detail for single-prayer goals
+ * (Duha, Tawbah, Istikhara, Shukr, Tahiyat al-Wudhu / Masjid).
+ * API may nest aggregates under `day` and per-log rows under `entries`.
+ */
+export type SinglePrayerDayDetailEntry = {
+  count?: number;
+  prayerSlot?: string | null;
+  prayerStartTime?: string | null;
+  startTime?: string | null;
+  durationMinutes?: number | null;
+  notes?: string | null;
+  loggedAt?: string | null;
+  prayedAfterWudhu?: boolean | null;
+  prayedAfterEntering?: boolean | null;
+};
+
+export type SinglePrayerDayDetailDay = {
+  display?: string;
+  loggedCount?: number;
+  rakahCount?: number;
+  entryCount?: number;
+  totalMinutesSpent?: number | null;
+  startTime?: string | null;
+  firstLoggedAt?: string | null;
+  lastLoggedAt?: string | null;
+  isMenstruationDay?: boolean;
+  canLog?: boolean;
+  maxLoggableCount?: number;
+  prayedAfterWudhuCount?: number;
+  prayedAfterEnteringCount?: number;
+};
+
+export type SinglePrayerDayDetail = {
+  date: string;
+  hasLoggedAnyPrayer?: boolean;
+  logged?: boolean;
+  count?: number;
+  loggedCount?: number;
+  prayerStartTime?: string | null;
+  /** Some payloads use 24h `HH:mm` instead of `prayerStartTime`. */
+  startTime?: string | null;
+  durationMinutes?: number | null;
+  canLog?: boolean;
+  prayedAfterWudhu?: boolean | null;
+  prayedAfterEntering?: boolean | null;
+  notes?: string | null;
+  day?: SinglePrayerDayDetailDay;
+  entries?: SinglePrayerDayDetailEntry[];
+  goal?: {
+    targetCount?: number;
+    completedCount?: number;
+    achievementPct?: number;
+    status?: string;
+    label?: string;
+  };
+};
+
+export type PrayerGoalDayDetail =
+  | FiveDailyPrayerDayDetail
+  | MissedPastPrayerDayDetail
+  | SunnahRawatibDayDetail
+  | QiyamDayDetail
+  | SinglePrayerDayDetail;
+
+const SUNNAH_RAWATIB_SLOT_KEYS: SunnahRawatibSlotKey[] = [
+  "BEFORE_FAJR",
+  "BEFORE_DHUHR",
+  "AFTER_DHUHR",
+  "BEFORE_ASR",
+  "AFTER_MAGHRIB",
+  "AFTER_ISHA",
+];
+
+function recordHasSunnahSlotKey(
+  record: Record<string, unknown> | null | undefined,
+): boolean {
+  if (!record) return false;
+  return SUNNAH_RAWATIB_SLOT_KEYS.some((key) => key in record);
+}
+
+/** Units logged for a Sunnah Rawatib slot from day-detail payload (includes auto-qadha). */
+export function readSunnahRawatibSlotLoggedCount(
+  slot: SunnahRawatibDayDetailSlot | undefined,
+): number {
+  if (!slot) return 0;
+  if (
+    typeof slot.loggedCount === "number" &&
+    Number.isFinite(slot.loggedCount)
+  ) {
+    return Math.max(0, slot.loggedCount);
+  }
+  return slot.logged ? 1 : 0;
+}
+
+/**
+ * Units the user actually logged (excludes auto-qadha fills).
+ * Prefer `userLoggedCount`; when only auto-qadha exists, treat as 0.
+ */
+export function readSunnahRawatibSlotUserLoggedCount(
+  slot: SunnahRawatibDayDetailSlot | undefined,
+): number {
+  if (!slot) return 0;
+  if (
+    typeof slot.userLoggedCount === "number" &&
+    Number.isFinite(slot.userLoggedCount)
+  ) {
+    return Math.max(0, Math.floor(slot.userLoggedCount));
+  }
+  // Auto-qadha alone must not count as user progress.
+  if (slot.isAutoQadha === true) return 0;
+  return readSunnahRawatibSlotLoggedCount(slot);
+}
+
+/** Daily target (prayer units) for a Sunnah Rawatib slot. */
+export function readSunnahRawatibSlotDailyTarget(
+  slot: SunnahRawatibDayDetailSlot | undefined,
+): number {
+  if (!slot) return 0;
+  if (
+    typeof slot.dailyTarget === "number" &&
+    Number.isFinite(slot.dailyTarget)
+  ) {
+    return Math.max(0, slot.dailyTarget);
+  }
+  return 0;
+}
+
+/** How many units the user can still log for this slot. */
+export function readSunnahRawatibSlotRemaining(
+  slot: SunnahRawatibDayDetailSlot | undefined,
+): number {
+  if (!slot) return 0;
+  if (typeof slot.remaining === "number" && Number.isFinite(slot.remaining)) {
+    return Math.max(0, Math.floor(slot.remaining));
+  }
+  const target = readSunnahRawatibSlotDailyTarget(slot);
+  const userLogged = readSunnahRawatibSlotUserLoggedCount(slot);
+  return Math.max(0, target - userLogged);
+}
+
+/** True when the slot is part of the user's goal (ignores logging window). */
+export function isSunnahRawatibSlotInGoal(
+  slot: SunnahRawatibDayDetailSlot | undefined,
+): boolean {
+  if (!slot) return false;
+  if (slot.enabled === false) return false;
+  return readSunnahRawatibSlotDailyTarget(slot) > 0;
+}
+
+/** True when user logged some but not all daily target units. */
+export function isSunnahRawatibSlotPartiallyLogged(
+  slot: SunnahRawatibDayDetailSlot | undefined,
+): boolean {
+  if (!slot) return false;
+  const logged = readSunnahRawatibSlotUserLoggedCount(slot);
+  const target = readSunnahRawatibSlotDailyTarget(slot);
+  return logged > 0 && target > 0 && logged < target;
+}
+
+/**
+ * True when a Five Daily slot can be selected for logging or editing.
+ * - Already logged → always editable (even if `canLog` is false).
+ * - Auto-qadha → always loggable (system miss; user can still record the prayer).
+ * - Not logged → only when `canLog: true` (window open / allowed).
+ */
+export function isFiveDailySlotSelectable(
+  slot: FiveDailyDayDetailSlot | undefined,
+): boolean {
+  if (!slot) return false;
+  if (slot.logged === true) return true;
+  if (slot.isAutoQadha === true || slot.wasQadha === true) return true;
+  return slot.canLog === true;
+}
+
+/**
+ * True when the slot is part of the goal and currently open for logging.
+ * Uses user-logged units (not auto-qadha-filled loggedCount).
+ */
+export function isSunnahRawatibSlotSelectable(
+  slot: SunnahRawatibDayDetailSlot | undefined,
+): boolean {
+  if (!slot || !isSunnahRawatibSlotInGoal(slot)) return false;
+  const userLogged = readSunnahRawatibSlotUserLoggedCount(slot);
+  const target = readSunnahRawatibSlotDailyTarget(slot);
+  if (target <= 0) return false;
+  if (userLogged >= target) return false;
+  // Auto-qadha-only: still allow the user to record real units.
+  if (slot.isAutoQadha === true) return true;
+  // Partial user progress: always allow logging the remaining unit(s).
+  if (userLogged > 0 && userLogged < target) return true;
+  return slot.canLog === true;
+}
+
+/**
+ * True when Witr was already logged by the user for the selected Islamic night.
+ * Auto-qadha is a system miss — it must NOT hide Witr steps or block logging.
+ */
+export function isQiyamWitrLoggedForNight(
+  dayDetail: QiyamDayDetail | null | undefined,
+): boolean {
+  if (!dayDetail) return false;
+  // Auto-qadha: treat as not logged so the user can still record Witr.
+  if (dayDetail.witr?.isAutoQadha === true) return false;
+
+  if (dayDetail.witr?.logged === true) return true;
+  if (dayDetail.night?.witrLogged === true) return true;
+  if (dayDetail.witrLogged === true) return true;
+  if (dayDetail.includesWitrLogged === true) return true;
+  if (dayDetail.witrAlreadyLogged === true) return true;
+  const sessions = dayDetail.sessions;
+  if (
+    sessions?.AFTER_ISHA?.witrLogged === true ||
+    sessions?.TAHAJJUD?.witrLogged === true ||
+    sessions?.BOTH?.witrLogged === true
+  ) {
+    return true;
+  }
+  return false;
+}
+
+const postPrayerGoalDayDetail = async (
+  prayerType: string,
+  date: string,
+): Promise<PrayerGoalDayDetail | null> => {
+  const resolved = resolvePrayerType(prayerType);
+  const response = await api.post(
+    `api/goal-cycles/current/prayer-goals/${resolved}/day-detail`,
+    { date },
+  );
+  console.log("================================================");
+  console.log(
+    "the day detail is",
+    JSON.stringify(response.data?.data, null, 2),
+  );
+  console.log("================================================");
+
+  return response.data?.data ?? null;
+};
+
+/** True when day-detail payload is for the date the UI is showing. */
+export function isPrayerGoalDayDetailForDate(
+  data: PrayerGoalDayDetail | null | undefined,
+  date: string | undefined,
+): boolean {
+  if (!data?.date || !date) return false;
+  return data.date.slice(0, 10) === date.slice(0, 10);
+}
+
+export const useGetPrayerGoalDayDetail = (
+  prayerTypeInput: string | null | undefined,
+  date: string | undefined,
+  options?: { enabled?: boolean },
+) => {
+  const prayerType = prayerTypeInput ? resolvePrayerType(prayerTypeInput) : "";
+  const enabled = !!prayerType && !!date && (options?.enabled ?? true);
+
+  return useQuery({
+    queryKey: ["prayer-goal-day-detail", prayerType, date],
+    queryFn: () => postPrayerGoalDayDetail(prayerType, date!),
+    enabled,
+    staleTime: 0,
+    refetchOnMount: "always",
+  });
+};
+
+export function isSunnahRawatibDayDetail(
+  data: PrayerGoalDayDetail | null | undefined,
+): data is SunnahRawatibDayDetail {
+  return recordHasSunnahSlotKey(
+    (data as SunnahRawatibDayDetail | null | undefined)?.slots as Record<
+      string,
+      unknown
+    >,
+  );
+}
+
+export function isQiyamDayDetail(
+  data: PrayerGoalDayDetail | null | undefined,
+): data is QiyamDayDetail {
+  if (!data) return false;
+  if (isSunnahRawatibDayDetail(data)) return false;
+  if ("slotProgress" in data) return false;
+
+  const qiyam = data as QiyamDayDetail;
+  if (qiyam.night && typeof qiyam.night === "object") return true;
+  if (qiyam.witr && typeof qiyam.witr === "object") return true;
+  if (qiyam.sessions && typeof qiyam.sessions === "object") {
+    const keys = Object.keys(qiyam.sessions);
+    if (
+      keys.some(
+        (key) => key === "TAHAJJUD" || key === "BOTH" || key === "AFTER_ISHA",
+      )
+    ) {
+      return true;
+    }
+  }
+
+  if ("slots" in data && data.slots && Object.keys(data.slots).length > 0) {
+    return false;
+  }
+  return (
+    "witrLogged" in data ||
+    "includesWitrLogged" in data ||
+    "witrAlreadyLogged" in data ||
+    "trackTahajjud" in data
+  );
+}
+
+export function isMissedPastPrayerDayDetail(
+  data: PrayerGoalDayDetail | null | undefined,
+): data is MissedPastPrayerDayDetail {
+  return !!data && "slotProgress" in data && !isSunnahRawatibDayDetail(data);
+}
+
+export function isFiveDailyDayDetail(
+  data: PrayerGoalDayDetail | null | undefined,
+): data is FiveDailyPrayerDayDetail {
+  return (
+    !!data &&
+    !("slotProgress" in data) &&
+    !isSunnahRawatibDayDetail(data) &&
+    !isQiyamDayDetail(data) &&
+    "slots" in data
+  );
+}
+
+/** Flat day-detail for Duha / Tawbah / Istikhara / Shukr / Tahiyat goals. */
+export function isSinglePrayerDayDetail(
+  data: PrayerGoalDayDetail | null | undefined,
+): data is SinglePrayerDayDetail {
+  if (!data) return false;
+  if (isSunnahRawatibDayDetail(data)) return false;
+  if (isMissedPastPrayerDayDetail(data)) return false;
+  if (isQiyamDayDetail(data)) return false;
+  if (isFiveDailyDayDetail(data)) return false;
+  return true;
+}

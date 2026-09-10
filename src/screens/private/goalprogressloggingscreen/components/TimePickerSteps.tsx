@@ -1,0 +1,250 @@
+import React from "react";
+import { View, Text, TextInput, TouchableOpacity } from "react-native";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { Colors } from "@/constants/theme";
+
+export function getCurrentStartTimeParts(): {
+  hour: string;
+  minute: string;
+  period: "am" | "pm";
+} {
+  const now = new Date();
+  let hour24 = now.getHours();
+  const minute = now.getMinutes();
+  const period: "am" | "pm" = hour24 >= 12 ? "pm" : "am";
+  let hour12 = hour24 % 12;
+  if (hour12 === 0) hour12 = 12;
+  return {
+    hour: String(hour12).padStart(2, "0"),
+    minute: String(minute).padStart(2, "0"),
+    period,
+  };
+}
+
+interface StartTimeStepProps {
+  startHour: string;
+  setStartHour: (h: string) => void;
+  startMinute: string;
+  setStartMinute: (m: string) => void;
+  startPeriod: "am" | "pm";
+  setStartPeriod: (p: "am" | "pm") => void;
+  isPeriodDropdownOpen: boolean;
+  setIsPeriodDropdownOpen: (open: boolean) => void;
+  styles: any;
+  /** Highlight hour / minute / period borders in red (e.g. outside allowed window). */
+  hasError?: boolean;
+  /** Limit AM/PM choices (e.g. Fajr on-time → am only). Defaults to both. */
+  allowedPeriods?: ReadonlyArray<"am" | "pm">;
+}
+
+export const StartTimeStep: React.FC<StartTimeStepProps> = ({
+  startHour,
+  setStartHour,
+  startMinute,
+  setStartMinute,
+  startPeriod,
+  setStartPeriod,
+  isPeriodDropdownOpen,
+  setIsPeriodDropdownOpen,
+  styles,
+  hasError = false,
+  allowedPeriods = ["am", "pm"],
+}) => {
+  const [isHourFocused, setIsHourFocused] = React.useState(false);
+  const [isMinuteFocused, setIsMinuteFocused] = React.useState(false);
+  const errorBorder = hasError ? { borderColor: Colors.light.red } : null;
+  const canTogglePeriod = allowedPeriods.length > 1;
+  const alternatePeriod =
+    allowedPeriods.find((period) => period !== startPeriod) ?? null;
+
+  return (
+    <View style={styles.timePickerContainer}>
+      <View style={styles.timePickerRow}>
+        {/* Hour Input */}
+        <TextInput
+          style={[
+            styles.timeInput,
+            isHourFocused && { borderColor: Colors.light.white },
+            errorBorder,
+          ]}
+          value={startHour}
+          onChangeText={(text) => {
+            const cleaned = text.replace(/[^0-9]/g, "");
+            if (cleaned.length <= 2) {
+              setStartHour(cleaned);
+            }
+          }}
+          onFocus={() => setIsHourFocused(true)}
+          onBlur={() => setIsHourFocused(false)}
+          keyboardType="number-pad"
+          maxLength={2}
+          placeholder="06"
+          placeholderTextColor={Colors.light.subtext}
+        />
+
+        <Text style={styles.timeSeparator}>:</Text>
+
+        {/* Minute Input */}
+        <TextInput
+          style={[
+            styles.timeInput,
+            isMinuteFocused && { borderColor: Colors.light.white },
+            errorBorder,
+          ]}
+          value={startMinute}
+          onChangeText={(text) => {
+            const cleaned = text.replace(/[^0-9]/g, "");
+            if (cleaned.length <= 2) {
+              setStartMinute(cleaned);
+            }
+          }}
+          onFocus={() => setIsMinuteFocused(true)}
+          onBlur={() => setIsMinuteFocused(false)}
+          keyboardType="number-pad"
+          maxLength={2}
+          placeholder="15"
+          placeholderTextColor={Colors.light.subtext}
+        />
+
+        {/* Period Dropdown Selector */}
+        <View style={styles.dropdownWrapper}>
+          <TouchableOpacity
+            style={[
+              styles.periodSelector,
+              isPeriodDropdownOpen &&
+                canTogglePeriod && { borderColor: Colors.light.white },
+              errorBorder,
+            ]}
+            onPress={() => {
+              if (!canTogglePeriod) return;
+              setIsPeriodDropdownOpen(!isPeriodDropdownOpen);
+            }}
+            activeOpacity={canTogglePeriod ? 0.8 : 1}
+            disabled={!canTogglePeriod}
+          >
+            <Text style={styles.periodText}>{startPeriod}</Text>
+            {canTogglePeriod ? (
+              <Ionicons
+                name="chevron-down"
+                size={14}
+                color={Colors.light.white}
+                style={{ marginTop: 2 }}
+              />
+            ) : null}
+          </TouchableOpacity>
+
+          {isPeriodDropdownOpen && canTogglePeriod && alternatePeriod ? (
+            <View style={styles.periodDropdown}>
+              <TouchableOpacity
+                style={styles.dropdownOption}
+                onPress={() => {
+                  setStartPeriod(alternatePeriod);
+                  setIsPeriodDropdownOpen(false);
+                }}
+                activeOpacity={0.8}
+              >
+                <View style={styles.dropdownRadioOuter}>
+                  <View style={styles.dropdownRadioInner} />
+                </View>
+                <Text style={styles.dropdownOptionText}>{alternatePeriod}</Text>
+              </TouchableOpacity>
+            </View>
+          ) : null}
+        </View>
+      </View>
+    </View>
+  );
+};
+
+interface DurationStepProps {
+  durationHours: string;
+  setDurationHours: (h: string) => void;
+  durationMinutes: string;
+  setDurationMinutes: (m: string) => void;
+  styles: any;
+}
+
+/** True when hours or minutes has a value greater than zero. */
+export function isDurationEntered(hours: string, minutes: string): boolean {
+  const h = Number.parseInt(hours || "0", 10) || 0;
+  const m = Number.parseInt(minutes || "0", 10) || 0;
+  return h > 0 || m > 0;
+}
+
+export const DurationStep: React.FC<DurationStepProps> = ({
+  durationHours,
+  setDurationHours,
+  durationMinutes,
+  setDurationMinutes,
+  styles,
+}) => {
+  const [isHourFocused, setIsHourFocused] = React.useState(false);
+  const [isMinuteFocused, setIsMinuteFocused] = React.useState(false);
+
+  const sanitizeDigits = (text: string) =>
+    text.replace(/[^0-9]/g, "").slice(0, 2);
+
+  const clearDefaultZero = (value: string, setValue: (v: string) => void) => {
+    if (value === "0" || value === "00") {
+      setValue("");
+    }
+  };
+
+  const restoreZeroIfEmpty = (value: string, setValue: (v: string) => void) => {
+    if (value === "") {
+      setValue("0");
+    }
+  };
+
+  return (
+    <View style={styles.timePickerContainer}>
+      <View style={styles.timePickerRow}>
+        {/* Hour Input */}
+        <TextInput
+          style={[
+            styles.timeInput,
+            isHourFocused && { borderColor: Colors.light.white },
+          ]}
+          value={durationHours}
+          onChangeText={(text) => setDurationHours(sanitizeDigits(text))}
+          onFocus={() => {
+            setIsHourFocused(true);
+            clearDefaultZero(durationHours, setDurationHours);
+          }}
+          onBlur={() => {
+            setIsHourFocused(false);
+            restoreZeroIfEmpty(durationHours, setDurationHours);
+          }}
+          keyboardType="number-pad"
+          maxLength={2}
+          placeholder=""
+          selectTextOnFocus={false}
+        />
+        <Text style={styles.timeUnitLabel}>h</Text>
+
+        {/* Minute Input */}
+        <TextInput
+          style={[
+            styles.timeInput,
+            isMinuteFocused && { borderColor: Colors.light.white },
+          ]}
+          value={durationMinutes}
+          onChangeText={(text) => setDurationMinutes(sanitizeDigits(text))}
+          onFocus={() => {
+            setIsMinuteFocused(true);
+            clearDefaultZero(durationMinutes, setDurationMinutes);
+          }}
+          onBlur={() => {
+            setIsMinuteFocused(false);
+            restoreZeroIfEmpty(durationMinutes, setDurationMinutes);
+          }}
+          keyboardType="number-pad"
+          maxLength={2}
+          placeholder=""
+          selectTextOnFocus={false}
+        />
+        <Text style={styles.timeUnitLabel}>m</Text>
+      </View>
+    </View>
+  );
+};

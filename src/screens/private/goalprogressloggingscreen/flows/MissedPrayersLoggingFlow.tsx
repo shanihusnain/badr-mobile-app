@@ -1,0 +1,733 @@
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  Pressable,
+  Text,
+  TouchableOpacity,
+  View,
+  StyleSheet,
+} from "react-native";
+import { useTranslation } from "react-i18next";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import moment from "moment-hijri";
+import { Colors } from "@/constants/theme";
+import { GoalData } from "../../home/components/goalsData";
+import { DateStep } from "../components/DateStep";
+import { MissedPrayersQuantityStep } from "../components/MissedPrayersQuantityStep";
+import {
+  StartTimeStep,
+  DurationStep,
+  getCurrentStartTimeParts,
+} from "../components/TimePickerSteps";
+import { FlowCard } from "../components/FlowCard";
+import {
+  styles as commonStyles,
+  FLOW_CARD_HEIGHT,
+} from "../components/DailyProgressLogging.styles";
+import { fonts } from "@/assets/fonts";
+import type { ProgressLogEntry } from "../types";
+import { PrayerName, PRAYER_OPTIONS, formatProgressLoggingDateLabel } from "../progressLoggingConfig";
+import { useOptionalPrayerGoalFrameContext } from "../prayerGoalFrameContext";
+import { useLogMissedPastPrayersGoal } from "@/src/api/mutations/useLogMissedPastPrayersGoal";
+import type { MissedPastPrayerSlotKey } from "@/src/api/queries/useGetMissedPastPrayersSlot";
+import {
+  isMissedPastPrayerDayDetail,
+  isPrayerGoalDayDetailForDate,
+  useGetPrayerGoalDayDetail,
+} from "@/src/api/queries/useGetPrayerGoalDayDetail";
+import {
+  useGetPrayerGoalFrame,
+  type FiveDailyPrayerSlotKey,
+} from "@/src/api/queries/useGetPrayerGoalFrame";
+import { resolvePrayerTypeFromGoalId } from "@/src/utils/prayerGoalMap";
+import {
+  getPrayerFrameAchievementLabel,
+  prayerFrameShowsInsights,
+} from "@/src/utils/prayerGoalFrameMap";
+import {
+  WhitePrayerMatIcon,
+  MissedPastPrayerCalenderIcon,
+  AddLoggingFlowIcon,
+  CalendarFlippingIcon,
+  WhiteClockIcon,
+  WhiteTimerIcon,
+} from "@/assets/icons";
+
+type MissedPrayersStepId = "date" | "prayers-qty" | "start-time" | "time-spent";
+const STEPS: MissedPrayersStepId[] = [
+  "date",
+  "prayers-qty",
+  "start-time",
+  "time-spent",
+];
+
+type Props = {
+  goalData: GoalData;
+  onLogComplete?: (entry: ProgressLogEntry) => void;
+};
+
+type FlowMode = "collapsed" | "active";
+
+const PRAYER_TO_SLOT_KEY: Record<PrayerName, MissedPastPrayerSlotKey> = {
+  fajr: "FAJR",
+  dhuhr: "DHUHR",
+  asr: "ASR",
+  maghrib: "MAGHRIB",
+  isha: "ISHA",
+};
+
+const EMPTY_SLOT_COUNTS: Record<PrayerName, number> = {
+  fajr: 0,
+  dhuhr: 0,
+  asr: 0,
+  maghrib: 0,
+  isha: 0,
+};
+
+const toDateString = (date: Date) => moment(date).format("YYYY-MM-DD");
+
+export default function MissedPrayersLoggingFlow({
+  goalData,
+  onLogComplete,
+}: Props) {
+  const { t } = useTranslation();
+  const { mutateAsync: logMissedPastPrayers, isPending: isLogging } =
+    useLogMissedPastPrayersGoal();
+
+  const [flowMode, setFlowMode] = useState<FlowMode>("collapsed");
+  const [stepIndex, setStepIndex] = useState(0);
+
+  // Step 1: Date
+  const [selectedDate, setSelectedDate] = useState(toDateString(new Date()));
+
+  // Step 2: Prayers Quantities
+  const [quantities, setQuantities] = useState<Record<PrayerName, number>>({
+    fajr: 0,
+    dhuhr: 0,
+    asr: 0,
+    maghrib: 0,
+    isha: 0,
+  });
+
+  const handleIncrementPrayer = useCallback((prayer: PrayerName) => {
+    setQuantities((prev) => ({
+      ...prev,
+      [prayer]: (prev[prayer] || 0) + 1,
+    }));
+  }, []);
+
+  // Step 3: Start Time
+  const [startHour, setStartHour] = useState(
+    () => getCurrentStartTimeParts().hour,
+  );
+  const [startMinute, setStartMinute] = useState(
+    () => getCurrentStartTimeParts().minute,
+  );
+  const [startPeriod, setStartPeriod] = useState<"am" | "pm">(
+    () => getCurrentStartTimeParts().period,
+  );
+  const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
+
+  // Step 4: Time Spent
+  const [durationHours, setDurationHours] = useState("0");
+  const [durationMinutes, setDurationMinutes] = useState("0");
+
+  const prayerFrame = useOptionalPrayerGoalFrameContext();
+  const frame = prayerFrame?.frame;
+  const frameLoading =
+    prayerFrame?.isLoading || (!frame && !prayerFrame?.isError);
+
+  const prayerType =
+    resolvePrayerTypeFromGoalId(goalData.id) ?? "MISSED_PAST_PRAYERS";
+
+  const cycleStart = frame?.cycle?.cycleStart?.slice(0, 10);
+  const cycleEnd = frame?.cycle?.cycleEnd?.slice(0, 10);
+
+  const todayString = toDateString(new Date());
+  const maxSelectableDate =
+    cycleEnd && cycleEnd < todayString ? cycleEnd : todayString;
+
+  const selectedDateWeekNumber = useMemo(() => {
+    const start = frame?.cycle?.cycleStart;
+    const totalWeeks = frame?.cycle?.totalWeeks;
+    if (!start) return undefined;
+    const week =
+      Math.floor(
+        moment(selectedDate, "YYYY-MM-DD").diff(
+          moment(start, "YYYY-MM-DD"),
+          "days",
+        ) / 7,
+      ) + 1;
+    if (totalWeeks != null) return Math.min(Math.max(1, week), totalWeeks);
+    return Math.max(1, week);
+  }, [frame?.cycle?.cycleStart, frame?.cycle?.totalWeeks, selectedDate]);
+
+  const {
+    data: selectedDateWeekFrame,
+    refetch: refetchSelectedDateWeek,
+  } = useGetPrayerGoalFrame(prayerType, {
+    weekNumber: selectedDateWeekNumber,
+    enabled: selectedDateWeekNumber != null,
+  });
+
+  const {
+    data: dayDetailRaw,
+    isLoading: dayDetailLoading,
+    isFetching: dayDetailFetching,
+    refetch: refetchDayDetail,
+  } = useGetPrayerGoalDayDetail(prayerType, selectedDate, {
+    enabled: flowMode === "active" && !!selectedDate,
+  });
+
+  const dayDetail =
+    isMissedPastPrayerDayDetail(dayDetailRaw) &&
+    isPrayerGoalDayDetailForDate(dayDetailRaw, selectedDate)
+      ? dayDetailRaw
+      : null;
+
+  const slotSourceFrame = selectedDateWeekFrame ?? frame;
+
+  const badgeStatus = useMemo(() => {
+    if (!frame) {
+      return {
+        text: "---",
+        type: "in-progress" as const,
+      };
+    }
+    return getPrayerFrameAchievementLabel(frame, t);
+  }, [frame, t]);
+
+  const isCompleted = (frame?.goal.achievementPct ?? 0) >= 100;
+  const showInsights = frame ? prayerFrameShowsInsights(frame) : false;
+
+  const rawGoalLabel = frame?.goal.label ?? "---";
+  const totalPrayersRequired = frame?.goal.targetCount;
+  const goalLabel =
+    rawGoalLabel.replace(/\s*\(total\s+\d+\s+prayers?\)\s*/i, "").trim() ||
+    "---";
+
+  useEffect(() => {
+    if (cycleStart && selectedDate < cycleStart) {
+      setSelectedDate(cycleStart);
+      return;
+    }
+    if (selectedDate > maxSelectableDate) {
+      setSelectedDate(maxSelectableDate);
+    }
+  }, [cycleStart, maxSelectableDate, selectedDate]);
+
+  const slotTargets = useMemo((): Record<PrayerName, number> => {
+    if (dayDetail?.slotProgress) {
+      const next = { ...EMPTY_SLOT_COUNTS };
+      for (const prayer of PRAYER_OPTIONS) {
+        const slotKey = PRAYER_TO_SLOT_KEY[prayer];
+        next[prayer] =
+          dayDetail.slotProgress[slotKey]?.target ??
+          dayDetail.goal.slotTarget ??
+          0;
+      }
+      return next;
+    }
+
+    const progress = slotSourceFrame?.goal.slotProgress;
+    const targets = slotSourceFrame?.goal.slotTargets;
+    const next = { ...EMPTY_SLOT_COUNTS };
+    for (const prayer of PRAYER_OPTIONS) {
+      const slotKey = PRAYER_TO_SLOT_KEY[prayer] as FiveDailyPrayerSlotKey;
+      next[prayer] = progress?.[slotKey]?.target ?? targets?.[slotKey] ?? 0;
+    }
+    return next;
+  }, [dayDetail, slotSourceFrame]);
+
+  const cycleCompletedCounts = useMemo((): Record<PrayerName, number> => {
+    if (dayDetail?.slotProgress) {
+      const next = { ...EMPTY_SLOT_COUNTS };
+      for (const prayer of PRAYER_OPTIONS) {
+        const slotKey = PRAYER_TO_SLOT_KEY[prayer];
+        next[prayer] = dayDetail.slotProgress[slotKey]?.completed ?? 0;
+      }
+      return next;
+    }
+
+    const progress = slotSourceFrame?.goal.slotProgress;
+    const next = { ...EMPTY_SLOT_COUNTS };
+    for (const prayer of PRAYER_OPTIONS) {
+      const slotKey = PRAYER_TO_SLOT_KEY[prayer] as FiveDailyPrayerSlotKey;
+      next[prayer] = progress?.[slotKey]?.completed ?? 0;
+    }
+    return next;
+  }, [dayDetail, slotSourceFrame]);
+
+  const hasSlotProgressData =
+    !!dayDetail?.slotProgress ||
+    !!slotSourceFrame?.goal?.slotProgress ||
+    !!slotSourceFrame?.goal?.slotTargets;
+
+  // Placeholder only until we have slotProgress (day-detail preferred; frame while waiting).
+  const slotCountsLoading =
+    flowMode === "active" &&
+    !hasSlotProgressData &&
+    (dayDetailLoading || dayDetailFetching || dayDetail == null);
+
+  // Fresh session quantities whenever the selected day changes.
+  useEffect(() => {
+    setQuantities({ ...EMPTY_SLOT_COUNTS });
+  }, [selectedDate]);
+
+  const currentStep = STEPS[stepIndex];
+  const isLastStep = stepIndex === STEPS.length - 1;
+
+  const dateLabel = formatProgressLoggingDateLabel(
+    selectedDate,
+    todayString,
+    t("progressLogging.today"),
+  );
+
+  const shiftDate = (direction: -1 | 1) => {
+    const next = moment(selectedDate, "YYYY-MM-DD")
+      .add(direction, "days")
+      .format("YYYY-MM-DD");
+
+    if (cycleStart && direction === -1 && next < cycleStart) return;
+    if (direction === 1 && next > maxSelectableDate) return;
+
+    setSelectedDate(next);
+  };
+
+  const resetFlow = useCallback(() => {
+    const now = getCurrentStartTimeParts();
+    setFlowMode("collapsed");
+    setStepIndex(0);
+    setSelectedDate(toDateString(new Date()));
+    setQuantities({ ...EMPTY_SLOT_COUNTS });
+    setStartHour(now.hour);
+    setStartMinute(now.minute);
+    setStartPeriod(now.period);
+    setDurationHours("0");
+    setDurationMinutes("0");
+    setIsPeriodDropdownOpen(false);
+  }, []);
+
+  const formatStartTimeForApi = () => {
+    const hourNum = parseInt(startHour || "0", 10) || 0;
+    const minuteNum = parseInt(startMinute || "0", 10) || 0;
+
+    let hour24 = hourNum % 12;
+    if (startPeriod === "pm") hour24 += 12;
+
+    const hh = String(Math.max(0, hour24)).padStart(2, "0");
+    const mm = String(Math.max(0, minuteNum)).padStart(2, "0");
+    return `${hh}:${mm}`;
+  };
+
+  const buildDurationMinutesForApi = () => {
+    const h = parseInt(durationHours || "0", 10) || 0;
+    const m = parseInt(durationMinutes || "0", 10) || 0;
+    return h * 60 + m;
+  };
+
+  const handleConfirm = () => {
+    if (isLogging) return;
+
+    const slots = (Object.entries(quantities) as [PrayerName, number][])
+      .filter(([, count]) => count > 0)
+      .map(([prayer, count]) => ({
+        prayerSlot: PRAYER_TO_SLOT_KEY[prayer],
+        count,
+      }));
+
+    if (slots.length === 0) return;
+
+    const run = async () => {
+      const payload = {
+        date: selectedDate,
+        slots,
+        startTime: formatStartTimeForApi(),
+        durationMinutes: buildDurationMinutesForApi(),
+      };
+
+      try {
+        await logMissedPastPrayers(payload);
+        await Promise.all([
+          prayerFrame?.refetch(),
+          refetchSelectedDateWeek(),
+          refetchDayDetail(),
+        ]);
+
+        onLogComplete?.({
+          type: "missed-prayers",
+          goalId: goalData.id,
+          date: selectedDate,
+          prayersCount: slots.reduce((acc, slot) => acc + slot.count, 0),
+          startTime: payload.startTime,
+          durationMinutes: payload.durationMinutes,
+          prayerQuantities: quantities,
+        } as any);
+        resetFlow();
+      } catch {
+        // onError handler already shows toast.
+      }
+    };
+
+    void run();
+  };
+
+  const handleBack = () => {
+    if (stepIndex === 0) {
+      resetFlow();
+      return;
+    }
+    setStepIndex((index) => index - 1);
+  };
+
+  const handleForward = () => {
+    if (!isLastStep) setStepIndex((index) => index + 1);
+  };
+
+  const handleOpenFlow = useCallback(() => {
+    if (isCompleted) return;
+    const now = getCurrentStartTimeParts();
+    setStartHour(now.hour);
+    setStartMinute(now.minute);
+    setStartPeriod(now.period);
+    setFlowMode("active");
+  }, [isCompleted]);
+
+  const getStepHeader = (step: MissedPrayersStepId) => {
+    switch (step) {
+      case "date":
+        return {
+          icon: <CalendarFlippingIcon size={24} />,
+          label: "Which day are you logging for?",
+        };
+      case "prayers-qty":
+        return {
+          icon: <WhitePrayerMatIcon size={26} />,
+          label: "Tap prayers multiple times to update qty.",
+        };
+      case "start-time":
+        return {
+          icon: <WhiteClockIcon size={26} />,
+          label: "Enter start time.",
+        };
+      case "time-spent":
+        return {
+          icon: <WhiteTimerIcon size={26} />,
+          label: "Enter time spent.",
+        };
+    }
+  };
+
+  const renderStepContent = (step: MissedPrayersStepId) => {
+    switch (step) {
+      case "date":
+        return (
+          <DateStep
+            dateLabel={dateLabel}
+            selectedDate={selectedDate}
+            todayString={todayString}
+            minSelectableDate={cycleStart}
+            maxSelectableDate={maxSelectableDate}
+            onShiftDate={shiftDate}
+            styles={commonStyles}
+          />
+        );
+      case "prayers-qty":
+        return (
+          <MissedPrayersQuantityStep
+            quantities={quantities}
+            onIncrement={handleIncrementPrayer}
+            categoryColor={Colors.light.green}
+            targets={slotTargets}
+            cycleCompleted={cycleCompletedCounts}
+            loading={slotCountsLoading}
+          />
+        );
+      case "start-time":
+        return (
+          <StartTimeStep
+            startHour={startHour}
+            setStartHour={setStartHour}
+            startMinute={startMinute}
+            setStartMinute={setStartMinute}
+            startPeriod={startPeriod}
+            setStartPeriod={setStartPeriod}
+            isPeriodDropdownOpen={isPeriodDropdownOpen}
+            setIsPeriodDropdownOpen={setIsPeriodDropdownOpen}
+            styles={commonStyles}
+          />
+        );
+      case "time-spent":
+        return (
+          <DurationStep
+            durationHours={durationHours}
+            setDurationHours={setDurationHours}
+            durationMinutes={durationMinutes}
+            setDurationMinutes={setDurationMinutes}
+            styles={commonStyles}
+          />
+        );
+    }
+  };
+
+  const stepHeader = getStepHeader(currentStep);
+
+  return (
+    <>
+      {flowMode === "active" && (
+        <Pressable style={commonStyles.backdrop} onPress={resetFlow} />
+      )}
+      {flowMode === "active" && (
+        <TouchableOpacity
+          style={commonStyles.cancelButton}
+          onPress={resetFlow}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="close" size={20} color={Colors.light.white} />
+        </TouchableOpacity>
+      )}
+
+      <View style={commonStyles.section}>
+        <Text style={commonStyles.sectionTitle}>
+          {t("progressLogging.myProgress")}
+        </Text>
+
+        <View style={commonStyles.cardAnchor}>
+          {flowMode === "collapsed" ? (
+            <View style={localStyles.summaryCard}>
+              <View style={localStyles.summaryBody}>
+                <View style={localStyles.summaryIconCircle}>
+                  <MissedPastPrayerCalenderIcon size={25} />
+                </View>
+                <View style={{ flex: 1, gap: 9 }}>
+                  <View
+                    style={[
+                      localStyles.badge,
+                      badgeStatus.type === "completed"
+                        ? localStyles.badgeCompleted
+                        : badgeStatus.type === "not-started"
+                          ? localStyles.badgeNotStarted
+                          : localStyles.badgeInProgress,
+                      { alignSelf: "flex-start" },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        localStyles.badgeText,
+                        badgeStatus.type === "completed"
+                          ? localStyles.badgeTextCompleted
+                          : badgeStatus.type === "not-started"
+                            ? localStyles.badgeTextNotStarted
+                            : localStyles.badgeTextInProgress,
+                      ]}
+                    >
+                      {badgeStatus.text}
+                    </Text>
+                  </View>
+                  <View style={localStyles.titleBlock}>
+                    <Text
+                      style={[
+                        localStyles.summaryTitle,
+                        { flex: undefined },
+                        frameLoading && localStyles.loadingPlaceholderText,
+                      ]}
+                      numberOfLines={2}
+                    >
+                      {goalLabel}
+                    </Text>
+                    <Text
+                      style={[
+                        localStyles.summarySubtitle,
+                        frameLoading && localStyles.loadingPlaceholderText,
+                      ]}
+                    >
+                      {totalPrayersRequired != null ? (
+                        <>
+                          (total{" "}
+                          <Text style={localStyles.subtitleBold}>
+                            {totalPrayersRequired}
+                          </Text>{" "}
+                          prayers)
+                        </>
+                      ) : (
+                        "---"
+                      )}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+
+              <View style={localStyles.footerRow}>
+                {showInsights ? (
+                  <TouchableOpacity
+                    style={localStyles.insightsBtn}
+                    onPress={prayerFrame?.openInsights}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={localStyles.insightsText}>VIEW INSIGHTS</Text>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={22}
+                      color={Colors.light.white}
+                    />
+                  </TouchableOpacity>
+                ) : null}
+              </View>
+
+              <TouchableOpacity
+                style={[
+                  localStyles.addButton,
+                  frameLoading && localStyles.addButtonDisabled,
+                  isCompleted && localStyles.addButtonDisabled,
+                ]}
+                onPress={handleOpenFlow}
+                activeOpacity={0.8}
+                disabled={frameLoading || isCompleted}
+              >
+                <AddLoggingFlowIcon size={32} />
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={commonStyles.flowCardLayer}>
+              <FlowCard
+                headerIcon={stepHeader.icon}
+                headerLabel={stepHeader.label}
+                onBack={handleBack}
+                onForward={handleForward}
+                onConfirm={handleConfirm}
+                canGoForward={!isLastStep}
+                canGoBack={stepIndex > 0}
+                canConfirm={
+                  isLastStep &&
+                  !isCompleted &&
+                  !isLogging &&
+                  Object.values(quantities).some((count) => count > 0)
+                }
+                styles={commonStyles}
+                style={commonStyles.inPlaceFlowCard}
+              >
+                {renderStepContent(currentStep)}
+              </FlowCard>
+            </View>
+          )}
+        </View>
+      </View>
+    </>
+  );
+}
+
+const localStyles = StyleSheet.create({
+  summaryCard: {
+    backgroundColor: Colors.light.green,
+    borderRadius: 8,
+    padding: 16,
+    gap: 12,
+    height: FLOW_CARD_HEIGHT,
+    width: "100%",
+    justifyContent: "space-between",
+    position: "relative",
+  },
+  badge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+    marginTop: 3,
+  },
+  badgeInProgress: {
+    backgroundColor: Colors.light.lightpurple,
+  },
+  badgeCompleted: {
+    backgroundColor: Colors.light.lightgreenbadgecolor,
+  },
+  badgeNotStarted: {
+    backgroundColor: Colors.light.paginationInactiveDot,
+  },
+  badgeText: {
+    fontFamily: fonts.primary.medium,
+    fontSize: 12,
+    fontWeight: "500",
+    lineHeight: 12.5,
+  },
+  badgeTextInProgress: {
+    color: Colors.light.darkblue,
+  },
+  badgeTextCompleted: {
+    color: Colors.light.green,
+  },
+  badgeTextNotStarted: {
+    color: Colors.light.notStartedTextColor,
+  },
+  summaryBody: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  summaryIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.light.selectcategory,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 20,
+  },
+  summaryTitle: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.semiBold,
+    fontSize: 14,
+    fontWeight: "600",
+    lineHeight: 18,
+    letterSpacing: 0,
+    flex: 1,
+  },
+  titleBlock: {
+    gap: 4,
+  },
+  loadingPlaceholderText: {
+    opacity: 0.35,
+  },
+  summarySubtitle: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.regular,
+    fontWeight: "400",
+    fontSize: 12,
+    lineHeight: 14,
+    letterSpacing: 0,
+  },
+  subtitleBold: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.bold,
+    fontWeight: "700",
+    fontSize: 12,
+    lineHeight: 14,
+  },
+  footerRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    marginTop: 4,
+  },
+  insightsBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingBottom: 4,
+  },
+  insightsText: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.bold,
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  addButton: {
+    position: "absolute",
+    right: 16,
+    bottom: 15,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  addButtonDisabled: {
+    opacity: 0.35,
+  },
+  spacer: {
+    flex: 1,
+  },
+});

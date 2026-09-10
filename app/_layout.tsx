@@ -1,80 +1,92 @@
-import {
-  DarkTheme,
-  DefaultTheme,
-  ThemeProvider,
-} from "@react-navigation/native";
+import { DarkTheme, ThemeProvider } from "@react-navigation/native";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Colors } from "@/constants/theme";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import * as SystemUI from "expo-system-ui";
 import "react-native-reanimated";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { Provider } from "react-redux";
 
 import { fontAssets } from "@/assets/fonts";
-import Header from "@/components/Header";
-import { useColorScheme } from "@/hooks/use-color-scheme";
 import { store } from "@/src/store/store";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { AuthProvider } from "@/provider/AuthProvider";
+import "@/i18next/i18next";
+import Toast from "react-native-toast-message";
+import { toastConfig } from "@/src/config/toastConfig";
 
 export const unstable_settings = {
-  anchor: "welcome",
+  initialRouteName: "index",
+};
+
+const AppTheme = {
+  ...DarkTheme,
+  colors: {
+    ...DarkTheme.colors,
+    background: Colors.light.blackBackground,
+    card: Colors.light.blackBackground,
+  },
 };
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
   const [loaded, error] = useFonts(fontAssets);
+  const [queryClient] = useState(() => new QueryClient());
 
   useEffect(() => {
-    if (loaded || error) {
-      SplashScreen.hideAsync(); // ← hide splash once fonts ready
-    }
+    if (!loaded && !error) return;
+
+    // AnimatedSplash hides the native splash when the .riv is ready.
+    // Fallback so we never stay stuck if the Rive screen fails to mount.
+    const fallback = setTimeout(() => {
+      SplashScreen.hideAsync();
+    }, 4000);
+
+    return () => clearTimeout(fallback);
   }, [loaded, error]);
 
-  if (!loaded && !error) return null;
+  useEffect(() => {
+    SystemUI.setBackgroundColorAsync(Colors.light.blackBackground);
+  }, []);
 
+  if (!loaded && !error) return null;
   return (
-    <Provider store={store}>
-      <SafeAreaProvider>
-        <ThemeProvider
-          value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-        >
-          <Stack>
-            <Stack.Screen name="welcome" options={{ headerShown: false }} />
-            <Stack.Screen name="intro" options={{ headerShown: false }} />
-            <Stack.Screen name="free_trial" options={{ headerShown: false }} />
-            <Stack.Screen name="login" options={{ headerShown: false }} />
-            <Stack.Screen name="otp" options={{ headerShown: false }} />
-            <Stack.Screen
-              name="createaccount"
-              options={{
-                headerShown: true,
-                header: () => <Header title="CREATE ACCOUNT" />,
-              }}
-            />
-            <Stack.Screen
-              name="paymentMethod"
-              options={{
-                headerShown: true,
-                header: () => <Header title="" />,
-              }}
-            />
-            <Stack.Screen
-              name="debitCredit"
-              options={{
-                headerShown: false,
-              }}
-            />
-            <Stack.Screen
-              name="modal"
-              options={{ presentation: "modal", title: "Modal" }}
-            />
-          </Stack>
-          <StatusBar style="light" />
-        </ThemeProvider>
-      </SafeAreaProvider>
-    </Provider>
+    <GestureHandlerRootView
+      style={{ flex: 1, backgroundColor: Colors.light.blackBackground }}
+    >
+      <QueryClientProvider client={queryClient}>
+        <Provider store={store}>
+          <AuthProvider>
+            <SafeAreaProvider>
+              <ThemeProvider value={AppTheme}>
+                <BottomSheetModalProvider>
+                  <Stack screenOptions={{ headerShown: false }}>
+                    <Stack.Screen name="index" />
+                    {/* <Stack.Screen name="(tabs)" /> */}
+                    <Stack.Screen name="(auth)" />
+                    <Stack.Screen name="(private)" />
+                    <Stack.Screen
+                      name="modal"
+                      options={{ presentation: "modal", title: "Modal" }}
+                    />
+                  </Stack>
+                  <StatusBar
+                    style="light"
+                    backgroundColor={Colors.light.blackBackground}
+                  />
+                  <Toast config={toastConfig} />
+                </BottomSheetModalProvider>
+              </ThemeProvider>
+            </SafeAreaProvider>
+          </AuthProvider>
+        </Provider>
+      </QueryClientProvider>
+    </GestureHandlerRootView>
   );
 }

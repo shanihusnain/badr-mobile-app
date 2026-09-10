@@ -1,0 +1,31 @@
+import * as React from "react";
+import Svg, { Path, Rect } from "react-native-svg";
+import { Colors } from "@/constants/theme";
+
+export const ConfirmPasswordEyeIcon = ({
+  color = Colors.light.white,
+  size = 24,
+}: {
+  color?: string;
+  size?: number;
+}) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      fill={color}
+      d="M22.823 10.536c-.192-.216-4.8-5.304-10.824-5.304-6.048-.025-10.632 5.087-10.824 5.304a2.231 2.231 0 0 0 0 2.952C1.2 13.511 5.927 18.79 12 18.79s10.8-5.255 10.824-5.303a2.18 2.18 0 0 0 0-2.952Zm-1.248 1.824c-.048.048-4.248 4.752-9.576 4.752s-9.528-4.704-9.576-4.752a.544.544 0 0 1 0-.696C2.471 11.592 6.72 6.887 12 6.887s9.528 4.705 9.576 4.753a.522.522 0 0 1 0 .72Z"
+    />
+    <Path
+      fill={color}
+      d="M12.002 8.256A3.749 3.749 0 0 0 8.258 12a3.749 3.749 0 0 0 3.744 3.744A3.749 3.749 0 0 0 15.746 12a3.749 3.749 0 0 0-3.744-3.744Zm0 5.808A2.08 2.08 0 0 1 9.938 12a2.08 2.08 0 0 1 2.064-2.064A2.08 2.08 0 0 1 14.066 12a2.08 2.08 0 0 1-2.064 2.064Z"
+    />
+    <Rect
+      width={1.5}
+      height={24}
+      x={17.5}
+      y={1.107}
+      fill={color}
+      rx={0.75}
+      transform="rotate(30 17.5 1.107)"
+    />
+  </Svg>
+);

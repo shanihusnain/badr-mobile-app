@@ -1,35 +1,78 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
+import { Tabs } from "expo-router";
+import React from "react";
 
-import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { HapticTab } from "@/components/haptic-tab";
+import { Colors } from "@/constants/theme";
+import {
+  ConnectTabIcon,
+  HomeTabIcon,
+  MoreTabIcon,
+  PlanTabIcon,
+} from "@/assets/icons";
+import { ProtectedRoute } from "@/provider/ProtectedRoute";
+import { Platform } from "react-native";
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
-        tabBarButton: HapticTab,
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+    <ProtectedRoute>
+      <Tabs
+        screenOptions={{
+          tabBarActiveTintColor: Colors.light.green,
+          tabBarInactiveTintColor: Colors.light.white,
+          headerShown: false,
+          tabBarButton: HapticTab,
+          tabBarStyle: {
+            backgroundColor: Colors.light.greybuttonBackground,
+            borderTopWidth: 0,
+            elevation: 0,
+            shadowOpacity: 0,
+          },
+          tabBarItemStyle: {
+            paddingTop: 2,
+          },
+          headerStyle: {
+            backgroundColor: Colors.light.background,
+          },
+          headerShadowVisible: false,
         }}
-      />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
-        }}
-      />
-    </Tabs>
+      >
+        <Tabs.Screen
+          name="(home)"
+          options={{
+            title: "Home",
+            headerShown: false,
+            tabBarIcon: ({ color }) => <HomeTabIcon size={21} color={color} />,
+          }}
+        />
+        <Tabs.Screen
+          name="(plan)"
+          options={{
+            title: "Plan",
+            headerShown: false,
+            tabBarIcon: ({ color }) => <PlanTabIcon size={20} color={color} />,
+          }}
+        />
+        <Tabs.Screen
+          name="(connect)"
+          options={{
+            title: "Connect",
+            // Leaving Connect (or opening it via deep link into learnmore) was
+            // leaving learnmorescreen on the nested stack. Reset to index on blur.
+            popToTopOnBlur: true,
+            tabBarIcon: ({ color }) => (
+              <ConnectTabIcon size={20} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="(more)"
+          options={{
+            title: "More",
+
+            tabBarIcon: ({ color }) => <MoreTabIcon size={20} color={color} />,
+          }}
+        />
+      </Tabs>
+    </ProtectedRoute>
   );
 }
