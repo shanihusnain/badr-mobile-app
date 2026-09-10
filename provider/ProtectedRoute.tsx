@@ -8,7 +8,7 @@ type ProtectedRouteProps = {
 };
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
 
   if (isLoading) {
     return (
@@ -20,6 +20,21 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   if (!isAuthenticated) {
     return <Redirect href="/(auth)/welcome" />;
+  }
+
+  // Register returns tokens before OTP; block private/tabs until verified.
+  if (user?.emailVerified === false) {
+    return (
+      <Redirect
+        href={{
+          pathname: "/(auth)/verifyemail/[fromsignup]",
+          params: {
+            fromsignup: "true",
+            ...(user?.email ? { email: user.email } : {}),
+          },
+        }}
+      />
+    );
   }
 
   return <>{children}</>;

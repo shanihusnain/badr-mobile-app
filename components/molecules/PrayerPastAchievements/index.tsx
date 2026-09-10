@@ -894,6 +894,7 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
         </View>
         <ScrollView
           horizontal
+          nestedScrollEnabled
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.insightsScrollContent}
         >
@@ -1165,6 +1166,7 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
           <View style={styles.missedPrayerTabsWrapper}>
             <ScrollView
               horizontal
+              nestedScrollEnabled
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.missedPrayerTabsContainer}
             >
@@ -1202,6 +1204,7 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
           <View style={styles.missedPrayerTabsWrapper}>
             <ScrollView
               horizontal
+              nestedScrollEnabled
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.missedPrayerTabsContainer}
             >
@@ -1239,6 +1242,7 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
           <View style={styles.missedPrayerTabsWrapper}>
             <ScrollView
               horizontal
+              nestedScrollEnabled
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.missedPrayerTabsContainer}
             >
@@ -1290,6 +1294,7 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
 
         <ScrollView
           horizontal
+          nestedScrollEnabled
           showsHorizontalScrollIndicator={false}
           style={styles.analyticsToggleScroll}
           contentContainerStyle={styles.analyticsToggle}
@@ -1345,6 +1350,7 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
             <View style={[styles.missedPrayerTabsWrapper, { marginTop: 12 }]}>
               <ScrollView
                 horizontal
+                nestedScrollEnabled
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.missedPrayerTabsContainer}
               >

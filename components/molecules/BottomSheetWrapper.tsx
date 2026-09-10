@@ -4,6 +4,7 @@ import React, {
   useImperativeHandle,
   useMemo,
   useRef,
+  useState,
 } from "react";
 import { StyleSheet, useWindowDimensions } from "react-native";
 import BottomSheet, {
@@ -56,6 +57,9 @@ export const BottomSheetWrapper = forwardRef<BottomSheet, Props>(
   ) {
     const sheetRef = useRef<BottomSheet>(null);
     const { height: screenHeight } = useWindowDimensions();
+    // Closed sheets still mount a full-screen absolute container. On some
+    // Android OEMs (MIUI) that layer eats all touches unless we disable it.
+    const [sheetIndex, setSheetIndex] = useState(-1);
 
     const resolvedSnapPoints = useMemo(
       () => snapPoints ?? ["80%"],
@@ -107,6 +111,13 @@ export const BottomSheetWrapper = forwardRef<BottomSheet, Props>(
       [handleTopInset],
     );
 
+    const containerStyle = useMemo(
+      () => ({
+        pointerEvents: sheetIndex >= 0 ? ("auto" as const) : ("none" as const),
+      }),
+      [sheetIndex],
+    );
+
     useImperativeHandle(
       ref,
       () =>
@@ -114,7 +125,16 @@ export const BottomSheetWrapper = forwardRef<BottomSheet, Props>(
           get(_, prop) {
             if (prop === "expand") {
               return () => {
+                // Enable hit-testing before snap so MIUI doesn't keep the
+                // closed `pointerEvents: 'none'` layer through open.
+                setSheetIndex(openSnapIndex);
                 sheetRef.current?.snapToIndex(openSnapIndex);
+              };
+            }
+            if (prop === "close") {
+              return () => {
+                setSheetIndex(-1);
+                sheetRef.current?.close();
               };
             }
             const sheet = sheetRef.current as BottomSheet | null;
@@ -138,6 +158,19 @@ export const BottomSheetWrapper = forwardRef<BottomSheet, Props>(
       [],
     );
 
+    const handleChange = useCallback(
+      (index: number) => {
+        setSheetIndex(index);
+        onChange?.(index);
+      },
+      [onChange],
+    );
+
+    const handleClose = useCallback(() => {
+      setSheetIndex(-1);
+      onClose?.();
+    }, [onClose]);
+
     return (
       <BottomSheet
         ref={sheetRef}
@@ -145,13 +178,14 @@ export const BottomSheetWrapper = forwardRef<BottomSheet, Props>(
         snapPoints={resolvedSnapPoints}
         enableDynamicSizing={false}
         enablePanDownToClose
-        onClose={onClose}
-        onChange={onChange}
+        onClose={handleClose}
+        onChange={handleChange}
         footerComponent={footerComponent}
         backdropComponent={renderBackdrop}
         backgroundStyle={sheetBackgroundStyle}
         handleStyle={handleContainerStyle}
         handleIndicatorStyle={styles.handle}
+        containerStyle={containerStyle}
       >
         {scrollable ? (
           <BottomSheetScrollView

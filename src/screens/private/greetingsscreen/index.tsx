@@ -5,15 +5,14 @@ import { TopSpace } from "@/components/atoms/TopSpace";
 import { Colors } from "@/constants/theme";
 import { useAuth } from "@/provider/useAuth";
 import { globalStyles } from "@/src/globalstyles/globalstyles";
+import { setPendingOnboardingRoute } from "@/src/storage/onboardingRouteStorage";
 import { router } from "expo-router";
 import { useEffect } from "react";
 import { Pressable, Text, View } from "react-native";
 
 export const GreetingsScreen = () => {
   useEffect(() => {
-    // setTimeout(() => {
-    //   router.push("/(private)/setpersonalizedgoals");
-    // }, 5000);
+    void setPendingOnboardingRoute("/(private)/greetingsscreen");
   }, []);
 
   const { user } = useAuth();

@@ -33,6 +33,7 @@ import { GoalCardWithDescriptionAndOptionToSelectGoal } from "./GoalCardWithDesc
 import { CycleStartTab } from "./CycleStartTab";
 import { useTranslation } from "react-i18next";
 import { router } from "expo-router";
+import { clearPendingOnboardingRoute } from "@/src/storage/onboardingRouteStorage";
 import {
   tahiyyatalwudhubottomsheetimage,
   missedpastprayerbottomsheetimage,
@@ -322,6 +323,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
       if (ref && typeof ref !== "function") {
         ref.current?.dismiss();
       }
+      void clearPendingOnboardingRoute();
       router.replace("/(tabs)/(home)");
     }, [ref]);
 
@@ -341,7 +343,23 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
     const { data: meUser } = useGetMe();
     const userId = meUser?.id ?? null;
     const goalCycleId = meUser?.goalCycleId ?? null;
-    const { data: goalCycleDetail } = useGetGoalCycleById(goalCycleId);
+    const {
+      data: goalCycleDetail,
+      isError: isGoalCycleError,
+      error: goalCycleError,
+      isLoading: isGoalCycleLoading,
+    } = useGetGoalCycleById(goalCycleId);
+    if (__DEV__ && goalCycleId && (isGoalCycleError || isGoalCycleLoading)) {
+      console.log("[goal-cycle]", {
+        goalCycleId,
+        isGoalCycleLoading,
+        isGoalCycleError,
+        status: (goalCycleError as any)?.response?.status,
+        message:
+          (goalCycleError as any)?.response?.data?.message ??
+          (goalCycleError as Error | undefined)?.message,
+      });
+    }
     const locallyToggledGoalIdsRef = useRef<Record<string, boolean>>({});
     const listRef = useRef<BottomSheetFlatListMethods>(null);
     const goalItemHeightsRef = useRef<Record<string, number>>({});
@@ -651,7 +669,10 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
       (goalId: string) => {
         if (locallyConfiguredGoalIds[goalId]) return true;
         const goal = prayerGoals.find((item) => item.id === goalId);
-        if (goalId === "sunnahRawatib" || goal?.prayerType === "SUNNAH_RAWATIB") {
+        if (
+          goalId === "sunnahRawatib" ||
+          goal?.prayerType === "SUNNAH_RAWATIB"
+        ) {
           return getSunnahInitial(goal) != null;
         }
         return hasConfiguredTargets(goal);

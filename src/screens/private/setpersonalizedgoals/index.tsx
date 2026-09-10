@@ -27,6 +27,7 @@ import { styles } from "./styles";
 import Header from "@/components/Header";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
+import { setPendingOnboardingRoute } from "@/src/storage/onboardingRouteStorage";
 
 export const SetPersonalizedGoalsScreen = () => {
   const { t, i18n } = useTranslation();
@@ -36,7 +37,7 @@ export const SetPersonalizedGoalsScreen = () => {
   const [activeFrame, setActiveFrame] = useState(1);
 
   useEffect(() => {
-    console.log("🔵 SetPersonalizedGoalsScreen mounted");
+    void setPendingOnboardingRoute("/(private)/setpersonalizedgoals");
   }, []);
 
   const handleLanguageChange = useCallback(
@@ -137,7 +138,7 @@ export const SetPersonalizedGoalsScreen = () => {
           </Text>
         </View>
         <FrameIndicator total={2} active={activeFrame} />
-        {/* {activeFrame === 1 && (
+        {activeFrame === 1 && (
           <GoalProgressCard
             currentDay={28}
             totalDays={28}
@@ -145,7 +146,7 @@ export const SetPersonalizedGoalsScreen = () => {
             overallProgress={100}
             animate
           />
-        )} */}
+        )}
         {activeFrame === 1 && (
           <>
             <TopSpace top={20} />

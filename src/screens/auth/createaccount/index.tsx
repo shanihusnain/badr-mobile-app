@@ -390,7 +390,12 @@ export default function CreateAccountScreen() {
         }
 
         // Required for authenticated avatar upload; private stack only after OTP.
-        let nextUser = { ...(user ?? {}) };
+        // Persist unverified explicitly so cold start stays on OTP (tokens exist early).
+        let nextUser = {
+          ...(user ?? {}),
+          email: user?.email ?? data.email.trim(),
+          emailVerified: user?.emailVerified ?? false,
+        };
 
         await signIn(accessToken, refreshToken, nextUser);
 

@@ -37,8 +37,8 @@ export const CycleStartTab = ({
 }: Props) => {
   const { t, i18n } = useTranslation();
   const insets = useSafeAreaInsets();
-  const tomorrowDateString = useMemo(
-    () => moment().add(1, "day").format("YYYY-MM-DD"),
+  const todayDateString = useMemo(
+    () => moment().format("YYYY-MM-DD"),
     [],
   );
   const [localCycleStartDate, setLocalCycleStartDate] = useState<string | null>(
@@ -46,7 +46,7 @@ export const CycleStartTab = ({
   );
   const cycleStartDate = selectedStartDate ?? localCycleStartDate;
   const [windowStartDate, setWindowStartDate] = useState<string>(
-    selectedStartDate ?? tomorrowDateString,
+    selectedStartDate ?? todayDateString,
   );
   const [changeCycleModalVisible, setChangeCycleModalVisible] = useState(false);
 
@@ -81,6 +81,9 @@ export const CycleStartTab = ({
 
   const handleDayPress = useCallback(
     (dateString: string) => {
+      // Past days are not valid cycle starts.
+      if (moment(dateString, "YYYY-MM-DD").isBefore(moment(), "day")) return;
+
       const endDate = moment(dateString, "YYYY-MM-DD")
         .add(27, "days")
         .format("YYYY-MM-DD");
@@ -92,9 +95,14 @@ export const CycleStartTab = ({
   );
 
   const goToPrevMonth = useCallback(() => {
-    setWindowStartDate((prev) =>
-      moment(prev, "YYYY-MM-DD").subtract(1, "month").format("YYYY-MM-DD"),
-    );
+    setWindowStartDate((prev) => {
+      const next = moment(prev, "YYYY-MM-DD")
+        .subtract(1, "month")
+        .format("YYYY-MM-DD");
+      // Don't navigate into a window that starts before today.
+      if (moment(next, "YYYY-MM-DD").isBefore(moment(), "day")) return prev;
+      return next;
+    });
   }, []);
 
   const goToNextMonth = useCallback(() => {
@@ -102,6 +110,13 @@ export const CycleStartTab = ({
       moment(prev, "YYYY-MM-DD").add(1, "month").format("YYYY-MM-DD"),
     );
   }, []);
+
+  const canGoPrevMonth = useMemo(() => {
+    const prevWindowStart = moment(windowStartDate, "YYYY-MM-DD")
+      .subtract(1, "month")
+      .format("YYYY-MM-DD");
+    return !moment(prevWindowStart, "YYYY-MM-DD").isBefore(moment(), "day");
+  }, [windowStartDate]);
 
   const commitCycle = useCallback(
     async (startDate: string) => {
@@ -229,11 +244,14 @@ export const CycleStartTab = ({
             onPress={goToPrevMonth}
             style={styles.navBtn}
             activeOpacity={0.7}
+            disabled={!canGoPrevMonth}
           >
             <Ionicons
               name={i18n.language === "ar" ? "chevron-forward" : "chevron-back"}
               size={15}
-              color={Colors.light.white}
+              color={
+                canGoPrevMonth ? Colors.light.white : Colors.light.grey
+              }
             />
           </TouchableOpacity>
 
@@ -268,6 +286,7 @@ export const CycleStartTab = ({
         windowEndDate={windowEndMoment.format("YYYY-MM-DD")}
         selectedDate={cycleStartDate ?? undefined}
         endDate={cycleEndDateString ?? undefined}
+        minDate={moment().format("YYYY-MM-DD")}
         onDayPress={handleDayPress}
         footer={
           cycleStartDate ? (

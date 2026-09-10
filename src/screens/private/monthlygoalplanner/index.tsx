@@ -2,7 +2,7 @@ import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { Colors } from "@/constants/theme";
 import { Ionicons } from "@expo/vector-icons";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { FlatList, Platform, Pressable, Text, View } from "react-native";
 import type { GoalCardData } from "./components/GoalCard";
 import { GoalCardCarousel } from "./components/GoalCardCarousel";
@@ -21,6 +21,7 @@ import { MonthlyGoalPlannerPlanIcon } from "@/assets/icons/MonthlyGoalPlannerPla
 import { globalStyles } from "@/src/globalstyles/globalstyles";
 import { TickIconWithCircle } from "@/assets/icons/TickIconWithCircle";
 import { WhiteTick } from "@/assets/icons";
+import { setPendingOnboardingRoute } from "@/src/storage/onboardingRouteStorage";
 
 type StepItem = {
   id: number;
@@ -76,6 +77,10 @@ export const MonthlyGoalPlannerScreen = () => {
 
   const bottomSheetRef = useRef<BottomSheetModal>(null);
   const [selectedTab, setSelectedTab] = useState<Tab>("cycle");
+
+  useEffect(() => {
+    void setPendingOnboardingRoute("/(private)/monthlygoalplanner");
+  }, []);
 
   // Map each step id to its corresponding sheet tab
   const STEP_TAB_MAP: Record<number, Tab> = {

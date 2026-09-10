@@ -75,6 +75,17 @@ export default function LoginScreen() {
 
       await signIn(accessToken, refreshToken, user);
 
+      if (user?.emailVerified === false) {
+        router.replace({
+          pathname: "/(auth)/verifyemail/[fromsignup]",
+          params: {
+            fromsignup: "true",
+            email: user.email ?? data.email.trim(),
+          },
+        });
+        return;
+      }
+
       if (result?.data?.hasActiveGoalCycle === true) {
         router.replace("/(tabs)/(home)");
       } else {

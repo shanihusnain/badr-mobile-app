@@ -143,5 +143,6 @@ export const useGetGoalCycleById = (
     queryKey: ["goal-cycle", goalCycleId],
     queryFn: () => getGoalCycleById(goalCycleId!),
     enabled: (options?.enabled ?? true) && !!goalCycleId,
+    retry: 1,
   });
 };

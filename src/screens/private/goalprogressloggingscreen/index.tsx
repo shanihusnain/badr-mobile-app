@@ -13,7 +13,6 @@ import {
   type ImageSourcePropType,
   Platform,
 } from "react-native";
-import Ionicons from "@expo/vector-icons/Ionicons";
 import {
   TaperedCircleBorder,
   parsePercent,
@@ -152,14 +151,15 @@ function GoalProgressLoggingBody({
   onDropdownOpenChange,
   weeklyRefreshKey,
   setWeeklyRefreshKey,
-  backgroundSource,
+  onHeroExtentChange,
 }: {
   goalData: NonNullable<ReturnType<typeof getResolvedGoalById>>;
   goalId: GoalId;
   onDropdownOpenChange?: (open: boolean) => void;
   weeklyRefreshKey: number;
   setWeeklyRefreshKey: React.Dispatch<React.SetStateAction<number>>;
-  backgroundSource?: ImageSourcePropType;
+  /** Height of ring + flow + weekly (parent adds header for full hero). */
+  onHeroExtentChange?: (height: number) => void;
 }) {
   const { t } = useTranslation();
   const [weekViewPercent, setWeekViewPercent] = useState<number | null>(null);
@@ -209,9 +209,6 @@ function GoalProgressLoggingBody({
   const percentageNum = frameLoading
     ? "---"
     : displayPercentage.replace("%", "");
-  const hasHeroBackground = backgroundSource != null;
-  const needsHeroDarkScrim = template === "missed-prayers";
-  const [heroBottom, setHeroBottom] = useState(0);
   const frameGoalLabel = prayerFrame?.frame?.goal.label;
   const cleanLabel = frameGoalLabel
     ? frameGoalLabel
@@ -241,87 +238,70 @@ function GoalProgressLoggingBody({
 
   return (
     <>
-      {hasHeroBackground && backgroundSource ? (
-        <View
-          style={[
-            styles.heroBackground,
-            heroBottom > 0 ? { height: heroBottom } : undefined,
-          ]}
-          pointerEvents="none"
-        >
-          <Image
-            source={backgroundSource}
-            style={styles.heroBackgroundImage}
-            resizeMode="cover"
-          />
-          {needsHeroDarkScrim ? (
-            <View style={styles.heroBackgroundScrim} pointerEvents="none" />
-          ) : null}
-        </View>
-      ) : null}
-
-      <View style={styles.goalInfoContainer}>
-        <TaperedCircleBorder
-          percentage={displayPercentage}
-          borderColor={Colors.light.dullWhiteOpacity}
-          size={145}
-          variant="illuminated"
-        >
-          <View style={styles.largeCircleInner}>
-            <Text
-              style={[
-                styles.circleGoalText,
-                frameLoading && styles.loadingPlaceholderText,
-              ]}
-              numberOfLines={1}
-              adjustsFontSizeToFit
-              minimumFontScale={0.8}
-            >
-              {frameLoading ? "---" : ringGoalLabel}
-            </Text>
-            <View style={styles.circlePercentRow}>
-              <Text
-                style={[
-                  styles.circlePercentNumber,
-                  frameLoading && styles.loadingPlaceholderText,
-                ]}
-              >
-                {percentageNum}
-              </Text>
-              {!frameLoading ? (
-                <Text style={styles.circlePercentSymbol}>%</Text>
-              ) : null}
-            </View>
-          </View>
-        </TaperedCircleBorder>
-      </View>
-      <TopSpace top={20} />
-      <LoggingFlowSlot
-        goalData={liveGoalData}
-        onDropdownOpenChange={onDropdownOpenChange}
-        onLogComplete={() => {
-          setWeeklyRefreshKey((current) => current + 1);
-        }}
-      />
-      <TopSpace top={10} />
       <View
-        style={styles.weeklyDashboardWrapper}
+        style={styles.scrollForeground}
+        collapsable={false}
         onLayout={
-          hasHeroBackground
+          onHeroExtentChange
             ? (event) => {
-                const { y, height } = event.nativeEvent.layout;
-                setHeroBottom(y + height);
+                onHeroExtentChange(event.nativeEvent.layout.height);
               }
             : undefined
         }
       >
-        <WeeklyProgressSection
+        <View style={styles.goalInfoContainer}>
+          <TaperedCircleBorder
+            percentage={displayPercentage}
+            borderColor={Colors.light.dullWhiteOpacity}
+            size={145}
+            variant="illuminated"
+          >
+            <View style={styles.largeCircleInner}>
+              <Text
+                style={[
+                  styles.circleGoalText,
+                  frameLoading && styles.loadingPlaceholderText,
+                ]}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.8}
+              >
+                {frameLoading ? "---" : ringGoalLabel}
+              </Text>
+              <View style={styles.circlePercentRow}>
+                <Text
+                  style={[
+                    styles.circlePercentNumber,
+                    frameLoading && styles.loadingPlaceholderText,
+                  ]}
+                >
+                  {percentageNum}
+                </Text>
+                {!frameLoading ? (
+                  <Text style={styles.circlePercentSymbol}>%</Text>
+                ) : null}
+              </View>
+            </View>
+          </TaperedCircleBorder>
+        </View>
+        <TopSpace top={20} />
+        <LoggingFlowSlot
           goalData={liveGoalData}
-          refreshKey={weeklyRefreshKey}
-          onWeekProgressPercentChange={
-            isMondayThursdayFasts ? setWeekViewPercent : undefined
-          }
+          onDropdownOpenChange={onDropdownOpenChange}
+          onLogComplete={() => {
+            setWeeklyRefreshKey((current) => current + 1);
+          }}
         />
+        <TopSpace top={10} />
+        <View style={styles.weeklyDashboardWrapper}>
+          <WeeklyProgressSection
+            goalData={liveGoalData}
+            refreshKey={weeklyRefreshKey}
+            onWeekProgressPercentChange={
+              isMondayThursdayFasts ? setWeekViewPercent : undefined
+            }
+          />
+        </View>
       </View>
 
       <View style={styles.pastAchievementsWrapper}>
@@ -359,16 +339,16 @@ function GoalProgressLoggingContent({
   goalData,
   goalId,
   onDropdownOpenChange,
-  backgroundSource,
   weeklyRefreshKey,
   setWeeklyRefreshKey,
+  onHeroExtentChange,
 }: {
   goalData: NonNullable<ReturnType<typeof getResolvedGoalById>>;
   goalId: GoalId;
   onDropdownOpenChange?: (open: boolean) => void;
-  backgroundSource?: ImageSourcePropType;
   weeklyRefreshKey: number;
   setWeeklyRefreshKey: React.Dispatch<React.SetStateAction<number>>;
+  onHeroExtentChange?: (height: number) => void;
 }) {
   const template = getLoggingFlowTemplate(goalId);
   const isSurahMemorisation =
@@ -387,7 +367,7 @@ function GoalProgressLoggingContent({
       onDropdownOpenChange={onDropdownOpenChange}
       weeklyRefreshKey={weeklyRefreshKey}
       setWeeklyRefreshKey={setWeeklyRefreshKey}
-      backgroundSource={backgroundSource}
+      onHeroExtentChange={onHeroExtentChange}
     />
   );
 
@@ -432,6 +412,13 @@ export const GoalProgressLoggingScreen = ({
   const template = getLoggingFlowTemplate(goalId);
   const backgroundSource = getLoggingBackgroundSource(goalId, template);
   const shouldUseBackground = backgroundSource != null;
+  const needsHeroDarkScrim = template === "missed-prayers";
+  const [headerHeight, setHeaderHeight] = useState(0);
+  const [heroContentHeight, setHeroContentHeight] = useState(0);
+  const heroBottom =
+    shouldUseBackground && headerHeight + heroContentHeight > 0
+      ? headerHeight + heroContentHeight
+      : 0;
   const insets = useSafeAreaInsets();
   const supportsDeletePrayerOptions =
     prayerType === "FIVE_DAILY_PRAYERS" || prayerType === "SUNNAH_RAWATIB";
@@ -501,9 +488,28 @@ export const GoalProgressLoggingScreen = ({
 
   const screenShell = (
     <View style={styles.container}>
+      {shouldUseBackground && backgroundSource ? (
+        <View
+          style={[
+            styles.heroBackgroundFixed,
+            heroBottom > 0 ? { height: heroBottom } : undefined,
+          ]}
+          pointerEvents="none"
+          collapsable={false}
+        >
+          <Image
+            source={backgroundSource}
+            style={styles.heroBackgroundImage}
+            resizeMode="cover"
+          />
+          {needsHeroDarkScrim ? (
+            <View style={styles.heroBackgroundScrim} pointerEvents="none" />
+          ) : null}
+        </View>
+      ) : null}
       <ScrollView
         style={[
-          styles.container,
+          styles.scrollView,
           shouldUseBackground && styles.transparentBackground,
         ]}
         contentContainerStyle={[
@@ -515,6 +521,7 @@ export const GoalProgressLoggingScreen = ({
         scrollEnabled={screenScrollEnabled}
         nestedScrollEnabled
         bounces={false}
+        removeClippedSubviews={false}
       >
         {shouldUseBackground ? (
           <View
@@ -523,6 +530,9 @@ export const GoalProgressLoggingScreen = ({
               { paddingTop: Platform.OS === "ios" ? insets.top - 40 : 0 },
             ]}
             pointerEvents="box-none"
+            onLayout={(event) => {
+              setHeaderHeight(event.nativeEvent.layout.height);
+            }}
           >
             <HeaderWithCrossTitleDynamicIcon
               title={
@@ -545,9 +555,11 @@ export const GoalProgressLoggingScreen = ({
           goalData={goalData}
           goalId={goalId}
           onDropdownOpenChange={(open) => setScreenScrollEnabled(!open)}
-          backgroundSource={backgroundSource}
           weeklyRefreshKey={weeklyRefreshKey}
           setWeeklyRefreshKey={setWeeklyRefreshKey}
+          onHeroExtentChange={
+            shouldUseBackground ? setHeroContentHeight : undefined
+          }
         />
       </ScrollView>
       {prayerType ? (

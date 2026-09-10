@@ -128,7 +128,7 @@ export type CalendarGridProps = {
   selectedDate?: string;
   /** Cycle mode: the end date of the 28-day range (highlighted with a green ring). */
   endDate?: string;
-  /** DOB mode: earliest selectable date (YYYY-MM-DD). */
+  /** DOB / cycle_start: earliest selectable date (YYYY-MM-DD). */
   minDate?: string;
   /** DOB mode: latest selectable date (YYYY-MM-DD). */
   maxDate?: string;
@@ -287,6 +287,14 @@ export const CalendarGrid = ({
     return false;
   };
 
+  /** Cycle start: block dates before today (or before minDate when provided). */
+  const isCycleStartDateDisabled = (ds: string) => {
+    if (mode !== "cycle_start") return false;
+    const day = moment(ds, "YYYY-MM-DD");
+    const earliest = minDate ?? moment().format("YYYY-MM-DD");
+    return day.isBefore(earliest, "day");
+  };
+
   const isInSelectedRange = (ds: string) => {
     if (!selectedDate || !endDate) return false;
     const day = moment(ds, "YYYY-MM-DD");
@@ -302,6 +310,7 @@ export const CalendarGrid = ({
     const isEndDate = !!endDate && ds === endDate;
     const dayOfWeek = new Date(ds + "T12:00:00").getDay(); // 0=Sun 1=Mon … 4=Thu
     const isDisabledDobDate = isDobDateDisabled(ds);
+    const isDisabledCycleStartDate = isCycleStartDateDisabled(ds);
     const isInRange = isInSelectedRange(ds);
 
     // ── Per-mode styles ───────────────────────────────────────────────
@@ -342,7 +351,10 @@ export const CalendarGrid = ({
 
       // ── Cycle Start (28-day) — Figma: only start day highlighted ─────
       case "cycle_start": {
-        // Selection bg is applied on the compact inner marker, not the cell.
+        if (isDisabledCycleStartDate) {
+          cellOpacity = 0.35;
+          textStyle = { color: Colors.light.grey };
+        }
         break;
       }
 
@@ -807,7 +819,7 @@ export const CalendarGrid = ({
 
     const isTappable =
       (mode === "dob" && !isDisabledDobDate) ||
-      mode === "cycle_start" ||
+      (mode === "cycle_start" && !isDisabledCycleStartDate) ||
       isRamadanTappable ||
       isMonThuTappable ||
       isWhiteDayTappable;
@@ -836,13 +848,17 @@ export const CalendarGrid = ({
             <View
               style={[
                 styles.cycleStartMarker,
-                isSelected && styles.cycleStartMarkerSelected,
+                isSelected &&
+                  !isDisabledCycleStartDate &&
+                  styles.cycleStartMarkerSelected,
               ]}
             >
               <Text
                 style={[
                   styles.cycleStartDayGregorian,
-                  isSelected && styles.cycleStartDayGregorianSelected,
+                  isSelected &&
+                    !isDisabledCycleStartDate &&
+                    styles.cycleStartDayGregorianSelected,
                   textStyle,
                 ]}
               >

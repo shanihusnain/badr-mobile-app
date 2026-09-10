@@ -6,7 +6,11 @@ export const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.light.blackBackground,
-    overflow: "visible",
+  },
+  scrollView: {
+    flex: 1,
+    backgroundColor: Colors.light.blackBackground,
+    zIndex: 1,
   },
   emptyState: {
     alignItems: "center",
@@ -28,13 +32,13 @@ export const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 32,
     marginTop: 20,
-    overflow: "visible",
   },
   scrollContentWithHero: {
     marginTop: 0,
     paddingTop: 0,
   },
-  heroBackground: {
+  /** Sibling behind ScrollView — never inside it (MIUI touch freeze). */
+  heroBackgroundFixed: {
     position: "absolute",
     top: 0,
     left: 0,
@@ -42,8 +46,8 @@ export const styles = StyleSheet.create({
     zIndex: 0,
   },
   scrollHeader: {
-    zIndex: 20,
-    elevation: 20,
+    zIndex: 2,
+    elevation: 0,
     position: "relative",
   },
   heroBackgroundImage: {
@@ -53,6 +57,11 @@ export const styles = StyleSheet.create({
   heroBackgroundScrim: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(0, 0, 0, 0.55)",
+  },
+  scrollForeground: {
+    position: "relative",
+    zIndex: 1,
+    elevation: 0,
   },
   goalInfoContainer: {
     alignItems: "center",
@@ -121,8 +130,10 @@ export const styles = StyleSheet.create({
     alignSelf: "center",
     paddingTop: 12,
     paddingBottom: 16,
-    zIndex: 95,
-    elevation: 10,
+    // Keep below logging-flow overlays, but avoid Android elevation —
+    // elevated siblings steal vertical pans on some OEMs (e.g. MIUI).
+    zIndex: 1,
+    elevation: 0,
   },
   pastAchievementsWrapper: {
     width: "92%",
