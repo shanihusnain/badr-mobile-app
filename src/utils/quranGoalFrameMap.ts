@@ -31,6 +31,22 @@ export function getQuranFrameDayMinutes(day: QuranGoalFrameDay): number {
   return minutes != null && minutes >= 0 ? Math.round(minutes) : 0;
 }
 
+function normalizeFrameDate(value?: string | null): string | null {
+  if (!value) return null;
+  const raw = String(value).trim();
+  // Prefer plain YYYY-MM-DD — moment-hijri breaks on moment.ISO_8601 formats.
+  const slice = raw.slice(0, 10);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(slice)) return slice;
+  const parsed = moment(raw, "YYYY-MM-DD", true);
+  return parsed.isValid() ? parsed.format("YYYY-MM-DD") : null;
+}
+
+function resolveIsToday(day: QuranGoalFrameDay): boolean {
+  const dateKey = normalizeFrameDate(day.date);
+  if (dateKey) return dateKey === moment().format("YYYY-MM-DD");
+  return Boolean(day.isToday);
+}
+
 function hasQuranFrameDayActivity(day: QuranGoalFrameDay): boolean {
   const state = String(day.state ?? "").toUpperCase();
   return (
@@ -44,19 +60,20 @@ function hasQuranFrameDayActivity(day: QuranGoalFrameDay): boolean {
 }
 
 /**
- * Prefer API activity/state over calendar "after today".
- * Device date can lag the cycle (e.g. Fri logged while "today" is still Thu),
- * and that must not blank the duration slot via `isFuture` → `isInactiveOutline`.
+ * Prefer calendar date for today/future so:
+ * - grey tab only on real today
+ * - past empty days stay solid grey (not future outlines)
+ * - past logged days stay green + muted (no today chrome)
  */
 function resolveIsFutureDay(day: QuranGoalFrameDay): boolean {
-  if (day.isToday) return false;
+  if (resolveIsToday(day)) return false;
   if (hasQuranFrameDayActivity(day)) return false;
 
   const state = String(day.state ?? "").toUpperCase();
   if (state === "UPCOMING") return true;
-  if (day.date) {
-    const date = moment(day.date, "YYYY-MM-DD");
-    if (date.isValid()) return date.isAfter(moment(), "day");
+  const dateKey = normalizeFrameDate(day.date);
+  if (dateKey) {
+    return moment(dateKey, "YYYY-MM-DD").isAfter(moment(), "day");
   }
   return false;
 }
@@ -66,6 +83,7 @@ export function mapQuranHoursFrameWeekDays(
 ): QuranHoursDayProgress[] {
   return frame.week.days.map((day) => {
     const minutesLogged = getQuranFrameDayMinutes(day);
+    const isToday = resolveIsToday(day);
     const isFuture = resolveIsFutureDay(day);
     const state = String(day.state ?? "").toUpperCase();
     const isLogged = !isFuture && hasQuranFrameDayActivity(day);
@@ -76,10 +94,10 @@ export function mapQuranHoursFrameWeekDays(
       minutesLogged,
       isLogged,
       isBestDay: Boolean(day.isBestDay) || state === "BEST_DAY",
-      isToday: Boolean(day.isToday),
+      isToday,
       isFuture,
       showDurationLabel: minutesLogged > 0 || !!apiDuration,
-      date: day.date,
+      date: normalizeFrameDate(day.date) ?? day.date,
       durationLabel: apiDuration,
       canDelete: day.canDelete !== false && (minutesLogged > 0 || isLogged),
     };
@@ -87,8 +105,9 @@ export function mapQuranHoursFrameWeekDays(
 }
 
 export function getQuranFrameTodayIndex(frame: QuranGoalFrameData): number {
-  const todayIndex = frame.week.days.findIndex((day) => day.isToday);
-  return todayIndex >= 0 ? todayIndex : frame.week.days.length - 1;
+  const days = mapQuranHoursFrameWeekDays(frame);
+  const todayIndex = days.findIndex((day) => day.isToday);
+  return todayIndex >= 0 ? todayIndex : days.length - 1;
 }
 
 export function getQuranFrameWeekFraction(frame: QuranGoalFrameData): string {

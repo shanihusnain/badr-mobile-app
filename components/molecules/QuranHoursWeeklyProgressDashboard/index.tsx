@@ -1,9 +1,9 @@
 import React, { useCallback, useMemo, type ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTranslation } from "react-i18next";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
+import { QuranBlueIcon } from "@/assets/icons";
 import {
   SinglePrayerWeeklyProgressDashboard,
   type SinglePrayerDayProgress,
@@ -25,9 +25,9 @@ export type QuranHoursWeeklyProgressDashboardProps = {
   vsLastWeekDisplay?: string | null;
   motivationalQuote?: string;
   selectedDayIndex?: number;
-  /** Fallback Material icon when `statsIconNode` is not provided. */
-  statsIcon?: keyof typeof MaterialCommunityIcons.glyphMap;
-  /** Custom stats leading icon (listening / tajweed). */
+  /** @deprecated Prefer `statsIconNode`. QuranBlueIcon is used by default. */
+  statsIcon?: string;
+  /** Custom stats leading icon; defaults to QuranBlueIcon. */
   statsIconNode?: ReactNode;
   /** Backend type e.g. LISTENING — enables long-press delete when set. */
   quranGoalType?: string | null;
@@ -42,6 +42,12 @@ function getLocalTodayString(): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
+function normalizeDayDate(value?: string): string | null {
+  if (!value) return null;
+  const slice = value.slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(slice) ? slice : null;
+}
+
 function mapQuranDayToSinglePrayerDay(
   day: QuranHoursDayProgress,
 ): SinglePrayerDayProgress {
@@ -49,19 +55,23 @@ function mapQuranDayToSinglePrayerDay(
     (day.minutesLogged > 0 || !!day.durationLabel) &&
     day.showDurationLabel !== false;
 
-  // Grey "today" tab: only the real calendar day — never selectedDayIndex.
-  const isToday = day.date
-    ? day.date === getLocalTodayString()
+  const dateKey = normalizeDayDate(day.date);
+  // Cases:
+  // - Today + log → grey tab + white labels (isToday)
+  // - Past + log → green circle, muted labels, no tab
+  // - Past + empty → solid grey circle, muted label, no tab
+  const isToday = dateKey
+    ? dateKey === getLocalTodayString()
     : !!day.isToday;
 
   return {
     day: day.day,
-    date: day.date,
+    date: dateKey ?? day.date,
     prayersLogged: day.minutesLogged,
     isLogged: !!day.isLogged || day.minutesLogged > 0,
     isBestDay: day.isBestDay,
     isToday,
-    isFuture: day.isFuture,
+    isFuture: isToday ? false : !!day.isFuture,
     canDelete: day.canDelete,
     durationLabel: showDuration
       ? day.durationLabel || formatDayDuration(day.minutesLogged)
@@ -79,7 +89,6 @@ export function QuranHoursWeeklyProgressDashboard({
   vsLastWeekDisplay = null,
   motivationalQuote = "",
   selectedDayIndex = 6,
-  statsIcon = "headphones",
   statsIconNode,
   quranGoalType = null,
   onDayPress,
@@ -129,13 +138,7 @@ export function QuranHoursWeeklyProgressDashboard({
       comparisonVariant="hours"
       statsRow={
         <View style={styles.statsRow}>
-          {statsIconNode ?? (
-            <MaterialCommunityIcons
-              name={statsIcon}
-              size={20}
-              color={Colors.light.lightblue}
-            />
-          )}
+          {statsIconNode ?? <QuranBlueIcon size={22} />}
           <Text style={styles.statsText} numberOfLines={1}>
             <Text style={styles.statsCount}>
               {loading ? "---" : `${hours}h ${minutes}m`}

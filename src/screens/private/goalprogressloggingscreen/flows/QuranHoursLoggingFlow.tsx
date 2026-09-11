@@ -381,7 +381,7 @@ export default function QuranHoursLoggingFlow({
                 onForward={handleForward}
                 onConfirm={handleConfirm}
                 canGoForward={!isLastStep && !isLogging}
-                canGoBack={!isLogging}
+                canGoBack={stepIndex > 0 && !isLogging}
                 canConfirm={
                   isLastStep &&
                   !isLogging &&

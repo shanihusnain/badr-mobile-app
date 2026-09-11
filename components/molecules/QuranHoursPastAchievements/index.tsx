@@ -9,7 +9,6 @@ import {
   useWindowDimensions,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Colors } from "@/constants/theme";
@@ -73,19 +72,10 @@ const PERIOD_LABEL_KEYS: Record<PastAchievementPeriod, string> = {
   threeMonths: "progressLogging.periodThreeMonths",
   sixMonths: "progressLogging.periodSixMonths",
 };
-const PERIOD_DELTA_LABEL_KEYS: Record<PastAchievementPeriod, string> = {
-  monthly: "progressLogging.previousMonth",
-  threeMonths: "progressLogging.previousThreeMonths",
-  sixMonths: "progressLogging.previousSixMonths",
-};
 const PERIOD_DELTA_LABEL_KEYS_TAJWEED: Record<PastAchievementPeriod, string> = {
   monthly: "progressLogging.previousMonth",
   threeMonths: "progressLogging.previousThreeMonthsShort",
   sixMonths: "progressLogging.previousSixMonthsShort",
-};
-const GOAL_SUMMARY_KEY: Record<QuranHoursGoalId, string> = {
-  "quran-listening": "progressLogging.achievementSummaryListening",
-  "quran-Tajweed": "progressLogging.achievementSummaryTajweed",
 };
 
 const DETAILED_SUMMARY_KEYS: Record<
@@ -173,7 +163,6 @@ export function QuranHoursPastAchievements({
   const [periodStartParam, setPeriodStartParam] = useState<string | null>(null);
   const [selectedBarIndex, setSelectedBarIndex] = useState<number | null>(null);
   const [hintDismissed, setHintDismissed] = useState(false);
-  const isTajweed = goalId === "quran-Tajweed";
   const goalData = getGoalById(goalId);
   const studyMaterial = goalData?.studyMaterial ?? [];
 
@@ -454,11 +443,8 @@ export function QuranHoursPastAchievements({
     );
   };
   const formatChartBarValue = useCallback(
-    (hours: number) =>
-      isTajweed
-        ? formatHoursAsClockLabel(hours)
-        : formatDuration(hoursToMinutes(hours)),
-    [isTajweed],
+    (hours: number) => formatHoursAsClockLabel(hours),
+    [],
   );
 
   const renderInsights = () => {
@@ -502,8 +488,6 @@ export function QuranHoursPastAchievements({
   return (
     <View style={[styles.section, isDetailed && styles.sectionDetailed]}>
       <View style={styles.card}>
-        {isTajweed ? (
-          <>
             <View style={styles.cardHeader}>
               <AchivementArrowIcon size={15} color={Colors.light.subtext} />
               <Text style={styles.sectionTitleTajweed}>
@@ -656,235 +640,6 @@ export function QuranHoursPastAchievements({
                 </View>
               </View>
             </View>
-          </>
-        ) : (
-          <>
-            <View style={styles.cardHeaderBlock}>
-              <View style={styles.cardHeader}>
-                <MaterialCommunityIcons
-                  name={isDetailed ? "trending-up" : "trophy-outline"}
-                  size={isDetailed ? 19 : 16}
-                  color={isDetailed ? Colors.light.subtext : Colors.light.white}
-                />
-                <Text
-                  style={[
-                    styles.sectionTitle,
-                    isDetailed && styles.sectionTitleDetailed,
-                  ]}
-                >
-                  {t("progressLogging.pastGoalAchievements")}
-                </Text>
-                {!isDetailed && showDetailedStatsChevron ? (
-                  <TouchableOpacity
-                    onPress={handleNavigateToDetailed}
-                    style={{ marginLeft: "auto", padding: 4 }}
-                  >
-                    <Ionicons
-                      name="chevron-forward"
-                      size={20}
-                      color={Colors.light.white}
-                    />
-                  </TouchableOpacity>
-                ) : null}
-              </View>
-            </View>
-
-            <View style={isDetailed ? styles.topRow : styles.compactTopRow}>
-              <View style={[styles.achievementBlock]}>
-                <Text
-                  style={[
-                    styles.achievementCaption,
-                    isDetailed && styles.achievementCaptionDetailed,
-                  ]}
-                >
-                  {isDetailed
-                    ? t("progressLogging.achievementsLabel").toUpperCase()
-                    : t("progressLogging.achievementsLabel")}
-                </Text>
-                <Text
-                  style={[
-                    styles.achievementPercent,
-                    isDetailed && styles.achievementPercentDetailed,
-                  ]}
-                >
-                  {showPlaceholders
-                    ? LOADING_DASH
-                    : showNoDataDash
-                      ? PAST_ACHIEVEMENT_NO_DATA
-                      : formatNumber(achievement.achievementPercent)}
-                  {!showPlaceholders ? (
-                    <Text
-                      style={[
-                        styles.achievementPercentSymbol,
-                        isDetailed && styles.achievementPercentSymbolDetailed,
-                      ]}
-                    >
-                      %
-                    </Text>
-                  ) : null}
-                </Text>
-                {!showPlaceholders ? (
-                  <View
-                    style={[
-                      styles.deltaBadge,
-                      !deltaIsPositive && styles.deltaBadgeNegative,
-                    ]}
-                  >
-                    <Ionicons
-                      name={deltaIsPositive ? "arrow-up" : "arrow-down"}
-                      size={11}
-                      color={
-                        deltaIsPositive
-                          ? Colors.light.green
-                          : Colors.light.subtext
-                      }
-                    />
-                    <Text
-                      style={[
-                        styles.deltaText,
-                        !deltaIsPositive && styles.deltaTextNegative,
-                      ]}
-                    >
-                      {deltaIsPositive ? "+" : ""}
-                      {formatNumber(
-                        Math.abs(achievement.previousPeriodDeltaPercent),
-                      )}
-                      % {t(PERIOD_DELTA_LABEL_KEYS[period])}
-                    </Text>
-                  </View>
-                ) : null}
-              </View>
-              <View style={styles.periodNavRow}>
-                <View style={styles.periodToggle}>
-                  {PERIODS.map((item) => {
-                    const isActive = period === item;
-                    return (
-                      <Pressable
-                        key={item}
-                        onPress={() => handlePeriodChange(item)}
-                        style={[
-                          styles.periodButton,
-                          isActive
-                            ? styles.periodButtonActive
-                            : styles.periodButtonInactive,
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.periodButtonText,
-                            isActive && styles.periodButtonTextActive,
-                          ]}
-                        >
-                          {t(PERIOD_LABEL_KEYS[item])}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-
-                <View style={styles.dateNavRow}>
-                  <TouchableOpacity
-                    activeOpacity={0.7}
-                    style={styles.navBtn}
-                    onPress={handleNavigateBack}
-                    disabled={!canNavigateBack}
-                  >
-                    <Ionicons
-                      name="chevron-back"
-                      size={isDetailed ? 24 : 14}
-                      color={
-                        canNavigateBack
-                          ? Colors.light.dullWhite
-                          : Colors.light.subtext
-                      }
-                    />
-                  </TouchableOpacity>
-                  <Text style={styles.dateRange} numberOfLines={1}>
-                    {showPlaceholders
-                      ? LOADING_DASH
-                      : achievement.dateRangeLabel}
-                  </Text>
-                  <TouchableOpacity
-                    activeOpacity={0.7}
-                    style={styles.navBtn}
-                    onPress={handleNavigateForward}
-                    disabled={!canNavigateForward}
-                  >
-                    <Ionicons
-                      name="chevron-forward"
-                      size={isDetailed ? 24 : 14}
-                      color={
-                        canNavigateForward
-                          ? Colors.light.dullWhite
-                          : Colors.light.subtext
-                      }
-                    />
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </View>
-
-            {isDetailed ? (
-              renderDetailedSummary()
-            ) : (
-              <Text style={styles.summaryText}>
-                {showPlaceholders
-                  ? LOADING_DASH
-                  : typeof apiNarrative === "string" && apiNarrative.trim()
-                    ? apiNarrative.trim()
-                    : t(GOAL_SUMMARY_KEY[goalId], {
-                        percent: formatNumber(achievement.achievementPercent),
-                        delta: formatNumber(
-                          Math.abs(achievement.previousPeriodDeltaPercent),
-                        ),
-                      })}
-              </Text>
-            )}
-
-            <View style={styles.goalHeader}>
-              <Text style={styles.goalLabel}>
-                {isDetailed
-                  ? t("progressLogging.recitationGoalTotalLabel")
-                  : t("progressLogging.goal")}
-              </Text>
-              {isDetailed ? (
-                <View style={styles.goalValueRow}>
-                  <View style={styles.goalValueBlock}>
-                    <Text style={styles.goalPillValue}>
-                      {showNoDataDash
-                        ? PAST_ACHIEVEMENT_NO_DATA
-                        : formatGoalHoursLabel(displayGoalHours)}
-                    </Text>
-                    <View style={styles.goalPill}>
-                      <Text style={styles.goalPillText}>
-                        {t("progressLogging.unitHours")}
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-              ) : (
-                <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 6,
-                  }}
-                >
-                  <Text style={styles.goalPillValue}>
-                    {showNoDataDash
-                      ? PAST_ACHIEVEMENT_NO_DATA
-                      : formatNumber(achievement.goalHours)}{" "}
-                  </Text>
-                  <View style={styles.goalPill}>
-                    <Text style={styles.goalPillText}>
-                      {t("progressLogging.unitHours")}
-                    </Text>
-                  </View>
-                </View>
-              )}
-            </View>
-          </>
-        )}
 
         {isDetailed ? (
           <ListeningPastAchievementMetricsSection
@@ -895,12 +650,8 @@ export function QuranHoursPastAchievements({
             }
             completedLabel={t("progressLogging.completed")}
             incompleteLabel={t("progressLogging.incomplete")}
-            completedValueColor={
-              isTajweed ? Colors.light.green : Colors.light.white
-            }
-            incompleteValueColor={
-              isTajweed ? Colors.light.yellow : Colors.light.white
-            }
+            completedValueColor={Colors.light.green}
+            incompleteValueColor={Colors.light.yellow}
           />
         ) : (
           <View style={styles.statsRow}>
@@ -950,12 +701,10 @@ export function QuranHoursPastAchievements({
             hintActionText={t("progressLogging.okGotIt")}
             pageCount={achievement.pageCount}
             activePageIndex={selectedBarIndex ?? achievement.activePageIndex}
-            formatBarValue={
-              isTajweed || isDetailed ? formatChartBarValue : undefined
-            }
+            formatBarValue={formatChartBarValue}
             showPagination={isDetailed}
-            showAllBarValueLabels={isTajweed && !showPlaceholders}
-            valueLabelColor={isTajweed ? Colors.light.green : undefined}
+            showAllBarValueLabels={!showPlaceholders}
+            valueLabelColor={Colors.light.green}
             barColors={[Colors.light.green, Colors.light.yellow]}
           />
         </View>
