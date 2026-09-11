@@ -16,6 +16,7 @@ import {
   Animated,
   type LayoutChangeEvent,
   ImageBackground,
+  Pressable,
 } from "react-native";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
@@ -40,7 +41,7 @@ import { NamazGoalBottomSheet } from "@/components/molecules/NamazGoalBottomShee
 import { BottomSheetWrapper } from "@/components/molecules/BottomSheetWrapper";
 
 import { DashboardCustomizeBottomSheet } from "./components/DashboardCustomizeBottomSheet";
-import { useRouter, useFocusEffect } from "expo-router";
+import { useRouter, useFocusEffect, Color } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
@@ -62,7 +63,6 @@ import { consumeDailyProgressSheetReturn } from "./dailyProgressSheetReturn";
 //   getVisibleTodayGoalProgress,
 //   type TodayGoalProgressEntry,
 // } from "./todayGoalsProgress";
-import { fonts } from "@/assets/fonts";
 import {
   FastingOverviewCalendarSection,
   HOME_FASTING_TRACK_TABS,
@@ -75,6 +75,19 @@ import { JournalingHistoryWeekDashboard } from "./components/JournalingHistoryWe
 import { JournalingHistoryWeekDays } from "./journalingHistory";
 import { useAuth } from "@/provider/useAuth";
 import { Image } from "expo-image";
+import {
+  BackChevron,
+  CrossIcon,
+  Forwardchevron,
+} from "@/assets/icons";
+import HeaderWithCrossTitleDynamicIcon from "@/components/atoms/HeaderWithCrossTitleDynamicIcon";
+import { CategoryProgressBottomSheet } from "./components/CategoryProgressBottomSheet";
+import { useGetGoalCycleCategories } from "@/src/api/queries/useGetGoalCycleCategories";
+import {
+  UI_CATEGORY_TO_API,
+  type UiIbadahCategory,
+} from "@/src/utils/goalCycleCategoryMap";
+
 type TextPart = { text: string; highlighted: boolean };
 
 type CategoryItem = {
@@ -175,12 +188,27 @@ function buildTextParts(text: string, highlightedTexts: string[]): TextPart[] {
 function getCategoryTranslationKey(title: string): any {
   const keyMap: Record<string, string> = {
     PRAYERS: "homeScreen.prayers",
+    PRAYER: "homeScreen.prayers",
     QURAN: "homeScreen.quran",
     FASTING: "homeScreen.fasting",
     SADAQAH: "homeScreen.sadaqah",
   };
   return keyMap[title] || title;
 }
+
+const HOME_RING_ORDER: UiIbadahCategory[] = [
+  "PRAYER",
+  "QURAN",
+  "FASTING",
+  "SADAQAH",
+];
+
+const HOME_RING_COLORS: Record<UiIbadahCategory, string> = {
+  PRAYER: Colors.light.ringPrayer,
+  QURAN: Colors.light.ringQuran,
+  FASTING: Colors.light.ringFasting,
+  SADAQAH: Colors.light.ringSadaqah,
+};
 
 // Helper function to map filter tab to translation key
 function getFilterTabTranslationKey(tab: string): any {
@@ -203,7 +231,11 @@ export default function HomeScreen() {
   const goldenBottomSheetRef = useRef<BottomSheet>(null);
   const dashboardSheetRef = useRef<BottomSheet>(null);
   const timeSpentSheetRef = useRef<BottomSheet>(null);
+  const categoryBottomSheetRef = useRef<BottomSheet>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedSheetCategory, setSelectedSheetCategory] = useState<
+    string | null
+  >(null);
 
   const [isPrayerCardVisible, setIsPrayerCardVisible] = useState(false);
   const [activeInspirationIndex, setActiveInspirationIndex] = useState(0);
@@ -243,6 +275,36 @@ export default function HomeScreen() {
 
   const handleDailyProgressResumeConsumed = useCallback(() => {
     setDailyProgressResume(null);
+  }, []);
+
+  const { data: categorySummaries = [] } = useGetGoalCycleCategories();
+
+  const homeCategoryRings = useMemo(() => {
+    return HOME_RING_ORDER.map((uiCategory) => {
+      const apiSlug = UI_CATEGORY_TO_API[uiCategory];
+      const match = categorySummaries.find(
+        (item) => item.category.toLowerCase() === apiSlug,
+      );
+      return {
+        key: apiSlug,
+        uiCategory,
+        title: uiCategory,
+        percentage: `${Math.round(match?.completedPct ?? 0)}`,
+        progressColor: HOME_RING_COLORS[uiCategory],
+        totalGoals: match?.totalGoals ?? 0,
+        completedPct: Math.round(match?.completedPct ?? 0),
+      };
+    });
+  }, [categorySummaries]);
+
+  const handleOpenCategorySheet = useCallback((apiSlug: string) => {
+    setSelectedSheetCategory(apiSlug);
+    categoryBottomSheetRef.current?.expand();
+  }, []);
+
+  const handleCloseCategorySheet = useCallback(() => {
+    categoryBottomSheetRef.current?.close();
+    setSelectedSheetCategory(null);
   }, []);
 
   useFocusEffect(
@@ -338,7 +400,7 @@ export default function HomeScreen() {
     [],
   );
 
-  const quranCategory = GOAL_CATEGORIES.find((c) => c.title === "QURAN");
+  const quranCategory = homeCategoryRings.find((c) => c.uiCategory === "QURAN");
 
   const visibleDashboardSubGoals = useMemo(() => {
     const goals = DASHBOARD_SUB_GOALS.map((goal) =>
@@ -630,8 +692,12 @@ export default function HomeScreen() {
             { opacity: categorySectionOpacity },
           ]}
         >
-          {/* {GOAL_CATEGORIES.map((category) => (
-            <View key={category.title} style={styles.categoryItemWrapper}>
+          {homeCategoryRings.map((category) => (
+            <Pressable
+              key={category.key}
+              style={styles.categoryItemWrapper}
+              onPress={() => handleOpenCategorySheet(category.key)}
+            >
               <TaperedCircleBorder
                 percentage={category.percentage}
                 borderColor={Colors.light.calendarBg}
@@ -643,16 +709,11 @@ export default function HomeScreen() {
                 <Text style={styles.categoryLabel}>
                   {t(getCategoryTranslationKey(category.title))}
                 </Text>
-                <MaterialIcons
-                  name={
-                    i18n.language === "ar" ? "chevron-left" : "chevron-right"
-                  }
-                  size={16}
-                  color={Colors.light.white}
-                />
+
+                {i18n.language === "ar" ? <BackChevron /> : <Forwardchevron />}
               </View>
-            </View>
-          ))} */}
+            </Pressable>
+          ))}
         </Animated.View>
 
         {/* Welcome / info card deck */}
@@ -941,6 +1002,15 @@ export default function HomeScreen() {
         />
       </BottomSheetWrapper>
 
+      <CategoryProgressBottomSheet
+        ref={categoryBottomSheetRef}
+        category={selectedSheetCategory}
+        onClose={handleCloseCategorySheet}
+        onChange={(index) => {
+          handleBottomSheetChange("category", index);
+          if (index === -1) setSelectedSheetCategory(null);
+        }}
+      />
       {!isAnyBottomSheetOpen ? (
         <HomeFabSpeedDial
           bottomInset={0}

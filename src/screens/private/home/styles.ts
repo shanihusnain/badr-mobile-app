@@ -1426,4 +1426,16 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     gap: 6,
   },
+  commitmentDescription: {
+    textAlign: "left",
+    fontSize: 14,
+    fontWeight: "500",
+    fontFamily: fonts.primary.medium,
+    color: Colors.light.white,
+    lineHeight: 20,
+  },
+  boldDigits: {
+    fontWeight: "700",
+    fontFamily: fonts.primary.bold,
+  },
 });
