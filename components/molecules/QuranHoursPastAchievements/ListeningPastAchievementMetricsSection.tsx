@@ -2,7 +2,6 @@ import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
-import { INCOMPLETE_BAR_COLOR } from "./pastAchievementStyles";
 
 type ListeningPastAchievementMetricsSectionProps = {
   completedMinutes: number;
@@ -10,28 +9,21 @@ type ListeningPastAchievementMetricsSectionProps = {
   formatDuration: (totalMinutes: number) => string;
   completedLabel: string;
   incompleteLabel: string;
+  completedValueColor?: string;
+  incompleteValueColor?: string;
 };
 
 type MetricChipProps = {
   label: string;
   value: string;
-  tone: "completed" | "incomplete";
+  valueColor: string;
 };
 
-function MetricChip({ label, value, tone }: MetricChipProps) {
-  const isCompleted = tone === "completed";
-
+function MetricChip({ label, value, valueColor }: MetricChipProps) {
   return (
     <View style={styles.chip}>
       <Text style={styles.chipLabel}>{label}</Text>
-      <Text
-        style={[
-          styles.chipValue,
-          isCompleted ? styles.chipValueCompleted : styles.chipValueIncomplete,
-        ]}
-      >
-        {value}
-      </Text>
+      <Text style={[styles.chipValue, { color: valueColor }]}>{value}</Text>
     </View>
   );
 }
@@ -42,6 +34,8 @@ export function ListeningPastAchievementMetricsSection({
   formatDuration,
   completedLabel,
   incompleteLabel,
+  completedValueColor = Colors.light.white,
+  incompleteValueColor = Colors.light.white,
 }: ListeningPastAchievementMetricsSectionProps) {
   return (
     <View style={styles.section}>
@@ -49,12 +43,12 @@ export function ListeningPastAchievementMetricsSection({
         <MetricChip
           label={completedLabel}
           value={formatDuration(completedMinutes)}
-          tone="completed"
+          valueColor={completedValueColor}
         />
         <MetricChip
           label={incompleteLabel}
           value={formatDuration(incompleteMinutes)}
-          tone="incomplete"
+          valueColor={incompleteValueColor}
         />
       </View>
     </View>
@@ -90,11 +84,5 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
-  },
-  chipValueCompleted: {
-    color: Colors.light.white,
-  },
-  chipValueIncomplete: {
-    color: Colors.light.white,
   },
 });

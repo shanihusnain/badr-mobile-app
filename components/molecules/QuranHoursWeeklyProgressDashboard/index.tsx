@@ -1,9 +1,9 @@
-import React, { useMemo, type ReactNode } from "react";
+import React, { useCallback, useMemo, type ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTranslation } from "react-i18next";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
+import { QuranBlueIcon } from "@/assets/icons";
 import {
   SinglePrayerWeeklyProgressDashboard,
   type SinglePrayerDayProgress,
@@ -13,6 +13,7 @@ import {
   formatDayDuration,
   formatWeeklyHoursTotal,
 } from "@/src/screens/private/goalprogressloggingscreen/quranHoursWeeklyData";
+import { useDeleteQuranHoursLog } from "@/src/api/mutations/useDeleteQuranHoursLog";
 
 export type QuranHoursWeeklyProgressDashboardProps = {
   weekDays: QuranHoursDayProgress[];
@@ -21,69 +22,100 @@ export type QuranHoursWeeklyProgressDashboardProps = {
   totalMinutesThisWeek?: number;
   streakDays?: number;
   vsLastWeek?: number | null;
+  vsLastWeekDisplay?: string | null;
   motivationalQuote?: string;
-  /** Defaults to Saturday (index 6) to match design mock. */
   selectedDayIndex?: number;
-  /** Fallback Material icon when `statsIconNode` is not provided. */
-  statsIcon?: keyof typeof MaterialCommunityIcons.glyphMap;
-  /** Custom stats leading icon (listening / tajweed). */
+  /** @deprecated Prefer `statsIconNode`. QuranBlueIcon is used by default. */
+  statsIcon?: string;
+  /** Custom stats leading icon; defaults to QuranBlueIcon. */
   statsIconNode?: ReactNode;
+  /** Backend type e.g. LISTENING — enables long-press delete when set. */
+  quranGoalType?: string | null;
   onDayPress?: (index: number) => void;
   onPrevWeek?: () => void;
   onNextWeek?: () => void;
+  loading?: boolean;
+  isGoalCompleted?: boolean;
 };
+function getLocalTodayString(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function normalizeDayDate(value?: string): string | null {
+  if (!value) return null;
+  const slice = value.slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(slice) ? slice : null;
+}
+
 function mapQuranDayToSinglePrayerDay(
   day: QuranHoursDayProgress,
-  index: number,
-  selectedDayIndex: number,
-  hasExplicitToday: boolean,
 ): SinglePrayerDayProgress {
   const showDuration =
-    day.minutesLogged > 0 && day.showDurationLabel !== false;
+    (day.minutesLogged > 0 || !!day.durationLabel) &&
+    day.showDurationLabel !== false;
+
+  const dateKey = normalizeDayDate(day.date);
+  // Cases:
+  // - Today + log → grey tab + white labels (isToday)
+  // - Past + log → green circle, muted labels, no tab
+  // - Past + empty → solid grey circle, muted label, no tab
+  const isToday = dateKey
+    ? dateKey === getLocalTodayString()
+    : !!day.isToday;
 
   return {
     day: day.day,
+    date: dateKey ?? day.date,
     prayersLogged: day.minutesLogged,
     isLogged: !!day.isLogged || day.minutesLogged > 0,
     isBestDay: day.isBestDay,
-    isToday: hasExplicitToday ? !!day.isToday : index === selectedDayIndex,
-    isFuture: day.isFuture,
-    // Only Quran hours passes this — prayer dashboards omit it and keep counts.
+    isToday,
+    isFuture: isToday ? false : !!day.isFuture,
+    canDelete: day.canDelete,
     durationLabel: showDuration
-      ? formatDayDuration(day.minutesLogged)
+      ? day.durationLabel || formatDayDuration(day.minutesLogged)
       : undefined,
   };
 }
 
 export function QuranHoursWeeklyProgressDashboard({
   weekDays,
-  weekRangeLabel = "Nov 29 — Dec 5",
-  weekFraction = "1/4",
+  weekRangeLabel = "---",
+  weekFraction = "---",
   totalMinutesThisWeek = 0,
   streakDays = 0,
   vsLastWeek = null,
+  vsLastWeekDisplay = null,
   motivationalQuote = "",
   selectedDayIndex = 6,
-  statsIcon = "headphones",
   statsIconNode,
+  quranGoalType = null,
   onDayPress,
   onPrevWeek,
   onNextWeek,
+  loading = false,
+  isGoalCompleted = false,
 }: QuranHoursWeeklyProgressDashboardProps) {
   const { t } = useTranslation();
   const { hours, minutes } = formatWeeklyHoursTotal(totalMinutesThisWeek);
+  const { mutateAsync: deleteQuranHoursLog, isPending: isDeletingLog } =
+    useDeleteQuranHoursLog();
 
-  const mappedWeekDays = useMemo(() => {
-    const hasExplicitToday = weekDays.some((day) => day.isToday === true);
-    return weekDays.map((day, index) =>
-      mapQuranDayToSinglePrayerDay(
-        day,
-        index,
-        selectedDayIndex,
-        hasExplicitToday,
-      ),
-    );
-  }, [weekDays, selectedDayIndex]);
+  const allowLogDeletion = !!quranGoalType;
+
+  const handleDeleteLog = useCallback(
+    async (date: string) => {
+      if (!quranGoalType) return;
+      await deleteQuranHoursLog({ quranGoalType, date });
+    },
+    [deleteQuranHoursLog, quranGoalType],
+  );
+
+  const mappedWeekDays = useMemo(
+    () => weekDays.map((day) => mapQuranDayToSinglePrayerDay(day)),
+    [weekDays],
+  );
 
   return (
     <SinglePrayerWeeklyProgressDashboard
@@ -92,26 +124,26 @@ export function QuranHoursWeeklyProgressDashboard({
       weekFraction={weekFraction}
       streakDays={streakDays}
       vsLastWeek={vsLastWeek}
+      vsLastWeekDisplay={vsLastWeekDisplay}
       motivationalQuote={motivationalQuote}
       selectedDayIndex={selectedDayIndex}
       onDayPress={onDayPress}
       onPrevWeek={onPrevWeek}
       onNextWeek={onNextWeek}
-      allowLogDeletion={false}
+      loading={loading}
+      isGoalCompleted={isGoalCompleted}
+      allowLogDeletion={allowLogDeletion}
+      onDeleteLog={allowLogDeletion ? handleDeleteLog : undefined}
+      isDeletingLog={isDeletingLog}
+      comparisonVariant="hours"
       statsRow={
         <View style={styles.statsRow}>
-          {statsIconNode ?? (
-            <MaterialCommunityIcons
-              name={statsIcon}
-              size={20}
-              color={Colors.light.lightblue}
-            />
-          )}
+          {statsIconNode ?? <QuranBlueIcon size={22} />}
           <Text style={styles.statsText} numberOfLines={1}>
             <Text style={styles.statsCount}>
-              {hours}h {minutes}m
+              {loading ? "---" : `${hours}h ${minutes}m`}
             </Text>
-            {" " + t("progressLogging.totalHoursThisWeek")}
+            {loading ? "" : " " + t("progressLogging.totalHoursThisWeek")}
           </Text>
         </View>
       }

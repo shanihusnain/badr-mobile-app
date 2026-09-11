@@ -11,6 +11,8 @@ export type SinglePrayerDayProgress = {
   date?: string;
   /** When set (e.g. Quran hours), shown under the day instead of the count. */
   durationLabel?: string;
+  /** When false, long-press delete is disabled for this day. */
+  canDelete?: boolean;
 };
 
 export type SinglePrayerWeeklyProgressDashboardProps = {
@@ -24,6 +26,8 @@ export type SinglePrayerWeeklyProgressDashboardProps = {
    * `null` / omitted on week 1 (no comparison slot). Present from week 2 onward.
    */
   vsLastWeek?: number | null;
+  /** When set, shown instead of the numeric magnitude (e.g. Quran "2h 0m"). */
+  vsLastWeekDisplay?: string | null;
   motivationalQuote?: string;
   defaultMotivationalQuote?: string;
   selectedDayIndex?: number;
@@ -35,8 +39,16 @@ export type SinglePrayerWeeklyProgressDashboardProps = {
   isGoalCompleted?: boolean;
   /** Optional override for the stats row (icon + totals). */
   statsRow?: ReactNode;
-  /** When false, long-press delete chrome is disabled (e.g. Quran hours). Default true. */
+  /** When false, long-press delete chrome is disabled (e.g. mock Quran hours). Default true. */
   allowLogDeletion?: boolean;
+  /**
+   * Optional delete handler (Quran hours). When set, used instead of prayer
+   * frame delete. May return a Promise — selection clears after it resolves.
+   */
+  onDeleteLog?: (date: string) => void | Promise<void>;
+  /** Pending state for `onDeleteLog`. */
+  isDeletingLog?: boolean;
+  comparisonVariant?: "onTime" | "prayers" | "recitations" | "hours";
 };
 
 export const LOADING_WEEK: SinglePrayerDayProgress[] = [

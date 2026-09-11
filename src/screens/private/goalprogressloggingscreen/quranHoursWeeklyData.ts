@@ -11,6 +11,12 @@ export type QuranHoursDayProgress = {
   isFuture?: boolean;
   /** When false, duration is hidden even if minutesLogged > 0. */
   showDurationLabel?: boolean;
+  /** YYYY-MM-DD when provided by the frame API. */
+  date?: string;
+  /** Prefer API `valueDisplay` (e.g. "2:00") over computed minutes. */
+  durationLabel?: string;
+  /** From frame day `canDelete` — gates long-press delete. */
+  canDelete?: boolean;
 };
 
 export type QuranHoursWeekSummary = {
@@ -22,21 +28,33 @@ export type QuranHoursWeekSummary = {
   motivationalQuoteKey: string;
 };
 
+const WEEKDAY_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
+
+function withCalendarTodayFlag(
+  weekDays: QuranHoursDayProgress[],
+): QuranHoursDayProgress[] {
+  const todayName = WEEKDAY_SHORT[new Date().getDay()];
+  return weekDays.map((day) => ({
+    ...day,
+    isToday: day.day === todayName,
+  }));
+}
+
 const LISTENING_WEEK: QuranHoursWeekSummary = {
   weekFraction: "1/4",
   weekRangeLabel: "Nov 29 — Dec 5",
   totalMinutesThisWeek: 8 * 60 + 55,
   streakDays: 2,
   motivationalQuoteKey: "progressLogging.quranListeningWeekQuote",
-  weekDays: [
+  weekDays: withCalendarTodayFlag([
     { day: "Sun", minutesLogged: 0 },
     { day: "Mon", minutesLogged: 100 },
     { day: "Tue", minutesLogged: 0 },
     { day: "Wed", minutesLogged: 0 },
     { day: "Thu", minutesLogged: 150 },
     { day: "Fri", minutesLogged: 285, isBestDay: true },
-    { day: "Sat", minutesLogged: 0, isToday: true },
-  ],
+    { day: "Sat", minutesLogged: 0 },
+  ]),
 };
 
 const TAJWEED_WEEK: QuranHoursWeekSummary = {
@@ -45,15 +63,15 @@ const TAJWEED_WEEK: QuranHoursWeekSummary = {
   totalMinutesThisWeek: 4 * 60 + 10,
   streakDays: 1,
   motivationalQuoteKey: "progressLogging.quranTajweedWeekQuote",
-  weekDays: [
+  weekDays: withCalendarTodayFlag([
     { day: "Sun", minutesLogged: 0 },
     { day: "Mon", minutesLogged: 45 },
     { day: "Tue", minutesLogged: 60 },
     { day: "Wed", minutesLogged: 150, isBestDay: true },
     { day: "Thu", minutesLogged: 55 },
     { day: "Fri", minutesLogged: 0 },
-    { day: "Sat", minutesLogged: 0, isToday: true },
-  ],
+    { day: "Sat", minutesLogged: 0 },
+  ]),
 };
 
 export function getQuranHoursWeekSummary(

@@ -147,18 +147,37 @@ export default function OtpScreen() {
   };
 
   const navigation = useNavigation();
+  const isLeavingVerifyRef = useRef(false);
+
+  const leaveVerifyEmail = () => {
+    if (isLeavingVerifyRef.current) return;
+    isLeavingVerifyRef.current = true;
+    if (fromsignup === "true") {
+      router.replace("/(auth)/createaccount");
+      return;
+    }
+    router.replace("/(auth)/forgotpassword");
+  };
 
   useEffect(() => {
-    if (fromsignup === "true") {
-      navigation.setOptions({
-        title: t("otpScreen.verifyEmailTitle"),
-      });
-    } else {
-      navigation.setOptions({
-        title: t("otpScreen.forgotPasswordTitle"),
-      });
-    }
+    navigation.setOptions({
+      title:
+        fromsignup === "true"
+          ? t("otpScreen.verifyEmailTitle")
+          : t("otpScreen.forgotPasswordTitle"),
+    });
   }, [navigation, fromsignup, t]);
+
+  // Hardware / gesture back: same destinations as header (createaccount / forgotpassword).
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("beforeRemove", (event) => {
+      if (isLeavingVerifyRef.current) return;
+      event.preventDefault();
+      leaveVerifyEmail();
+    });
+
+    return unsubscribe;
+  }, [navigation, fromsignup]);
 
   return (
     <View style={styles.container}>

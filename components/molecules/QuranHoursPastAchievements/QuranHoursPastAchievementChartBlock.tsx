@@ -17,9 +17,7 @@ import {
   type ChartBounds,
   type PointsArray,
 } from "victory-native";
-import {
-  pastAchievementStyles as styles,
-} from "./pastAchievementStyles";
+import { pastAchievementStyles as styles } from "./pastAchievementStyles";
 
 const DIMMED_BAR_OPACITY = 0.3;
 const BAR_HIT_WIDTH = 44;
@@ -172,8 +170,10 @@ function ChartStackedBars({
   const isCategoryView = chartKey.includes("completedByCategory");
 
   let barPoints = [completedPoints, incompletePoints];
-  let barColors: [string, string] =
-    colors ?? [Colors.light.white, "rgba(255, 255, 255, 0.4)"];
+  let barColors: [string, string] = colors ?? [
+    Colors.light.white,
+    "rgba(255, 255, 255, 0.4)",
+  ];
 
   if ((isTimeSpentView || isCategoryView) && !colors) {
     barColors = [Colors.light.white, Colors.light.white];
@@ -227,10 +227,8 @@ function BarConnectorLine({
     (x, i) => {
       const item = chartData[i] as QuranPastChartItem & { lineValue?: number };
       const lineValue = item?.lineValue;
-      const value =
-        lineValue != null ? lineValue : (item?.completedHours ?? 0);
-      const normalized =
-        lineValue != null ? value / yMax : value / 2 / yMax;
+      const value = lineValue != null ? lineValue : (item?.completedHours ?? 0);
+      const normalized = lineValue != null ? value / yMax : value / 2 / yMax;
       const y = chartBounds.bottom - normalized * chartHeight;
       return { x, y, value };
     },
@@ -332,6 +330,7 @@ type BarValueLabelsProps = {
   yMax: number;
   formatBarValue?: (value: number) => string;
   valueLabelColor?: string;
+  showAllBarValueLabels?: boolean;
 };
 
 function BarValueLabels({
@@ -342,31 +341,48 @@ function BarValueLabels({
   yMax,
   formatBarValue = formatHoursToTimeLabel,
   valueLabelColor,
+  showAllBarValueLabels = false,
 }: BarValueLabelsProps) {
-  if (selectedBarIndex === null) return null;
-
-  const item = chartData[selectedBarIndex];
-  const x = barCenterXs[selectedBarIndex];
-  if (!item || x == null) return null;
+  if (!showAllBarValueLabels && selectedBarIndex === null) return null;
 
   const chartHeight = chartBounds.bottom - chartBounds.top;
-  const barTop =
-    chartBounds.bottom - (item.stackTotalHours / yMax) * chartHeight - 20;
+  const indices = showAllBarValueLabels
+    ? chartData.map((_, index) => index)
+    : [selectedBarIndex as number];
 
   return (
-    <Text
-      style={[
-        styles.barValueLabel,
-        styles.barValueLabelSelected,
-        valueLabelColor ? { color: valueLabelColor } : null,
-        {
-          left: x,
-          top: Math.max(chartBounds.top, barTop),
-        },
-      ]}
-    >
-      {formatBarValue(item.hours)}
-    </Text>
+    <>
+      {indices.map((index) => {
+        const item = chartData[index];
+        const x = barCenterXs[index];
+        if (!item || x == null || item.hours <= 0) return null;
+
+        const labelHeight = item.hours;
+        const barTop =
+          chartBounds.bottom - (labelHeight / yMax) * chartHeight - 20;
+        const isSelected = selectedBarIndex === index;
+        const isDimmed =
+          selectedBarIndex !== null && selectedBarIndex !== index;
+
+        return (
+          <Text
+            key={`bar-value-${index}`}
+            style={[
+              styles.barValueLabel,
+              isSelected ? styles.barValueLabelSelected : null,
+              isDimmed ? styles.barValueLabelDimmed : null,
+              valueLabelColor ? { color: valueLabelColor } : null,
+              {
+                left: x,
+                top: Math.max(chartBounds.top, barTop),
+              },
+            ]}
+          >
+            {formatBarValue(item.hours)}
+          </Text>
+        );
+      })}
+    </>
   );
 }
 
@@ -389,6 +405,7 @@ type QuranHoursPastAchievementChartBlockProps = {
   showBarLine?: boolean;
   barColors?: [string, string];
   valueLabelColor?: string;
+  showAllBarValueLabels?: boolean;
 };
 
 export function QuranHoursPastAchievementChartBlock({
@@ -410,6 +427,7 @@ export function QuranHoursPastAchievementChartBlock({
   showBarLine = false,
   barColors,
   valueLabelColor,
+  showAllBarValueLabels = false,
 }: QuranHoursPastAchievementChartBlockProps) {
   const [barCenterXs, setBarCenterXs] = useState<number[]>([]);
   const [chartBounds, setChartBounds] = useState<ChartBounds | null>(null);
@@ -560,6 +578,7 @@ export function QuranHoursPastAchievementChartBlock({
               yMax={yMax}
               formatBarValue={formatBarValue}
               valueLabelColor={valueLabelColor}
+              showAllBarValueLabels={showAllBarValueLabels}
             />
           ) : null}
         </View>
@@ -607,7 +626,9 @@ export function QuranHoursPastAchievementChartBlock({
 
       {showPagination && isPrayerGoal && selectedBarIndex !== null ? (
         <View style={{ marginTop: 3, paddingHorizontal: 8 }}>
-          <View style={[styles.paginationRow, { marginTop: 0, marginBottom: 24 }]}>
+          <View
+            style={[styles.paginationRow, { marginTop: 0, marginBottom: 24 }]}
+          >
             {Array.from({ length: chartData.length }, (_, index) => (
               <View
                 key={`page-dot-${index}`}
