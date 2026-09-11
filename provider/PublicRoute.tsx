@@ -1,4 +1,4 @@
-import { Redirect, usePathname } from "expo-router";
+import { Redirect, usePathname, type Href } from "expo-router";
 import { ActivityIndicator, View } from "react-native";
 
 import { useAuth } from "./useAuth";
@@ -8,7 +8,7 @@ type PublicRouteProps = {
 };
 
 export function PublicRoute({ children }: PublicRouteProps) {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
   const pathname = usePathname();
 
   if (isLoading) {
@@ -23,8 +23,12 @@ export function PublicRoute({ children }: PublicRouteProps) {
   const isCompletingSignup =
     pathname.includes("createaccount") || pathname.includes("verifyemail");
 
-  if (isAuthenticated && !isCompletingSignup) {
-    return <Redirect href="/(tabs)" />;
+  // Tokens exist before OTP; never dump unverified users into private tabs
+  // (that loops: tabs → ProtectedRoute → verifyemail again).
+  const isUnverifiedEmail = user?.emailVerified === false;
+
+  if (isAuthenticated && !isCompletingSignup && !isUnverifiedEmail) {
+    return <Redirect href={"/(tabs)" as Href} />;
   }
 
   return <>{children}</>;

@@ -1,4 +1,4 @@
-import { Stack } from "expo-router";
+import { router, Stack } from "expo-router";
 
 import Header from "@/components/Header";
 import { PublicRoute } from "@/provider/PublicRoute";
@@ -39,13 +39,29 @@ export default function AuthLayout() {
           name="verifyemail/[fromsignup]"
           options={{
             ...transparentAuthScreenOptions,
-            header: ({ options }: { options: { title?: string } }) => (
-              <Header
-                title={options?.title ?? ""}
-                backgroundColor="transparent"
-                arrowBg={Colors.light.arrowTransparentBg}
-              />
-            ),
+            header: ({
+              options,
+              route,
+            }: {
+              options: { title?: string };
+              route: { params?: { fromsignup?: string } };
+            }) => {
+              const fromSignup = route.params?.fromsignup === "true";
+              return (
+                <Header
+                  title={options?.title ?? ""}
+                  backgroundColor="transparent"
+                  arrowBg={Colors.light.arrowTransparentBg}
+                  onBackPress={() => {
+                    if (fromSignup) {
+                      router.replace("/(auth)/createaccount");
+                      return;
+                    }
+                    router.replace("/(auth)/forgotpassword");
+                  }}
+                />
+              );
+            },
           }}
         />
         <Stack.Screen
