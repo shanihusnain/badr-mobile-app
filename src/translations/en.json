@@ -599,6 +599,7 @@
     "daysLabel": "days",
     "goal": "GOAL",
     "insightsGoalRingLabel": "Goal: {{count}} prayers",
+    "insightsGoalRingHoursLabel": "Goal: {{count}} hours",
     "insightsCompletedInLabel": "Completed in:",
     "insightsCompletedInActiveDays_one": "{{count}} active day",
     "insightsCompletedInActiveDays_other": "{{count}} active days",

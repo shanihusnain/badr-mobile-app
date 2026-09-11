@@ -73,12 +73,14 @@ import {
   quranmemorizationbottomsheetimage,
 } from "@/assets/images";
 import { InformationSheet } from "@/components/molecules/informationsheet";
+import { QuranHoursInformationSheet } from "@/components/molecules/QuranHoursInformationSheet";
 import { DeletePrayerGoalOptions } from "@/components/molecules/DeletePrayerLogOptions";
 import { HeaderInfoIcon } from "@/assets/icons";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { setDailyProgressSheetReturn } from "@/src/screens/private/home/dailyProgressSheetReturn";
 import { LoadingComponent } from "@/components/atoms/LoadingComponent";
+import { resolveQuranTypeFromGoalId } from "@/src/utils/quranGoalMap";
 
 /** Hero background per prayer / Quran / fasting / sadaqah logging goal. */
 function getLoggingBackgroundSource(
@@ -459,6 +461,9 @@ export const GoalProgressLoggingScreen = ({
     null,
   );
   const prayerType = resolvePrayerTypeFromGoalId(goalId);
+  const quranHoursType = isQuranHoursGoalId(goalId)
+    ? resolveQuranTypeFromGoalId(goalId)
+    : null;
   const template = getLoggingFlowTemplate(goalId);
   const backgroundSource = getLoggingBackgroundSource(goalId, template);
   const shouldUseBackground = backgroundSource != null;
@@ -597,7 +602,9 @@ export const GoalProgressLoggingScreen = ({
               leftButtonBackground="rgba(255,255,255,0.08)"
               onBackPress={handleHeaderBack}
               rightIcon={<HeaderInfoIcon />}
-              onRightPress={prayerType ? openInsightsSheet : undefined}
+              onRightPress={
+                prayerType || quranHoursType ? openInsightsSheet : undefined
+              }
             />
           </View>
         ) : null}
@@ -616,6 +623,13 @@ export const GoalProgressLoggingScreen = ({
         <InformationSheet
           ref={infoSheetRef}
           prayerType={prayerType}
+          onClose={() => infoSheetRef.current?.close()}
+        />
+      ) : null}
+      {quranHoursType ? (
+        <QuranHoursInformationSheet
+          ref={infoSheetRef}
+          quranGoalType={quranHoursType}
           onClose={() => infoSheetRef.current?.close()}
         />
       ) : null}

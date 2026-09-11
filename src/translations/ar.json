@@ -599,6 +599,7 @@
     "daysLabel": "أيام",
     "goal": "الهدف",
     "insightsGoalRingLabel": "الهدف: {{count}} صلاة",
+    "insightsGoalRingHoursLabel": "الهدف: {{count}} ساعة",
     "insightsCompletedInLabel": "أُنجز في:",
     "insightsCompletedInActiveDays_one": "يوم نشط واحد",
     "insightsCompletedInActiveDays_other": "{{count}} أيام نشطة",

@@ -11,14 +11,25 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import moment from "moment-hijri";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
-import { AddLoggingFlowIcon, CalendarFlippingIcon, HeadPhoneQuranListeningIcon, ManQuranTajweedIcon, WhiteClockIcon, WhiteTimerIcon } from "@/assets/icons";
+import {
+  AddLoggingFlowIcon,
+  CalendarFlippingIcon,
+  HeadPhoneQuranListeningIcon,
+  ManQuranTajweedIcon,
+  WhiteClockIcon,
+  WhiteTimerIcon,
+} from "@/assets/icons";
 import { GoalData } from "../../home/components/goalsData";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import { useLogQuranHoursGoal } from "@/src/api/mutations/useLogQuranHoursGoal";
 import { resolveQuranTypeFromGoalId } from "@/src/utils/quranGoalMap";
 import { DateStep } from "../components/DateStep";
 import { formatProgressLoggingDateLabel } from "../progressLoggingConfig";
-import { DurationStep, StartTimeStep, getCurrentStartTimeParts } from "../components/TimePickerSteps";
+import {
+  DurationStep,
+  StartTimeStep,
+  getCurrentStartTimeParts,
+} from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
 import {
   styles as commonStyles,
@@ -33,6 +44,7 @@ import {
   getQuranFrameCycleStart,
   getQuranFrameGoalTitle,
   getQuranFrameTargetHours,
+  quranFrameShowsInsights,
 } from "@/src/utils/quranGoalFrameMap";
 
 type QuranHoursStepId = "date" | "startTime" | "duration";
@@ -89,7 +101,9 @@ export default function QuranHoursLoggingFlow({
   const cycleStart = frame
     ? getQuranFrameCycleStart(frame) || undefined
     : undefined;
-  const cycleEnd = frame ? getQuranFrameCycleEnd(frame) || undefined : undefined;
+  const cycleEnd = frame
+    ? getQuranFrameCycleEnd(frame) || undefined
+    : undefined;
   const todayString = toDateString(new Date());
   const maxSelectableDate =
     cycleEnd && cycleEnd < todayString ? cycleEnd : todayString;
@@ -100,7 +114,8 @@ export default function QuranHoursLoggingFlow({
 
   useEffect(() => {
     setSelectedDate((prev) => {
-      if (minSelectableDate && prev < minSelectableDate) return minSelectableDate;
+      if (minSelectableDate && prev < minSelectableDate)
+        return minSelectableDate;
       if (prev > maxSelectableDate) return maxSelectableDate;
       return prev;
     });
@@ -116,6 +131,8 @@ export default function QuranHoursLoggingFlow({
     return getQuranFrameAchievementLabel(frame, t);
   }, [frame, t]);
 
+  const showInsights = frame ? quranFrameShowsInsights(frame) : false;
+  const isFullyAchieved = (frame?.goal.achievementPct ?? 0) >= 100;
   const frameTargetHours = frame ? getQuranFrameTargetHours(frame) : null;
   const frameGoalTitle = frame ? getQuranFrameGoalTitle(frame) : null;
 
@@ -362,12 +379,33 @@ export default function QuranHoursLoggingFlow({
                 </View>
               </View>
 
-              <View style={localStyles.footerRow} />
+              <View style={localStyles.footerRow}>
+                {showInsights ? (
+                  <TouchableOpacity
+                    style={localStyles.insightsBtn}
+                    onPress={() => quranFrame?.openInsights?.()}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={localStyles.insightsText}>
+                      {t("progressLogging.viewInsights")}
+                    </Text>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={22}
+                      color={Colors.light.white}
+                    />
+                  </TouchableOpacity>
+                ) : null}
+              </View>
 
               <TouchableOpacity
-                style={localStyles.addButton}
+                style={[
+                  localStyles.addButton,
+                  isFullyAchieved && localStyles.addButtonDisabled,
+                ]}
                 onPress={() => setFlowMode("active")}
                 activeOpacity={0.8}
+                disabled={isLogging || isFullyAchieved}
               >
                 <AddLoggingFlowIcon size={32} />
               </TouchableOpacity>
@@ -470,11 +508,26 @@ const localStyles = StyleSheet.create({
     alignItems: "flex-end",
     marginTop: 4,
   },
+  insightsBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingBottom: 4,
+  },
+  insightsText: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.bold,
+    fontSize: 16,
+    fontWeight: "700",
+  },
   addButton: {
     position: "absolute",
     right: 16,
     bottom: 15,
     alignItems: "center",
     justifyContent: "center",
+  },
+  addButtonDisabled: {
+    opacity: 0.35,
   },
 });

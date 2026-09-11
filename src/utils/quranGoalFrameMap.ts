@@ -240,14 +240,29 @@ export function getQuranFrameRingGoalCountLabel(
   return `${count} ${unitLabel}`;
 }
 
+/**
+ * Show VIEW INSIGHTS when:
+ * 1) the goal ring is at 100% (goal completed), or
+ * 2) today is on/after the last day of the 28-day cycle.
+ * Ignore `items[].showInsights` — API may set it before those conditions.
+ */
 export function quranFrameShowsInsights(frame: QuranGoalFrameData): boolean {
-  if (frame.items?.some((item) => item.showInsights)) return true;
-
   const pct = frame.goal.achievementPct ?? 0;
   if (pct >= 100) return true;
 
   const status = normalizeQuranGoalFrameStatus(frame.goal.status);
   if (status === "COMPLETED") return true;
+
+  const dayNumber = frame.cycle?.dayNumber;
+  const totalDays = frame.cycle?.totalDays;
+  if (
+    dayNumber != null &&
+    totalDays != null &&
+    totalDays > 0 &&
+    dayNumber >= totalDays
+  ) {
+    return true;
+  }
 
   if (frame.cycle?.isEnded) return true;
 

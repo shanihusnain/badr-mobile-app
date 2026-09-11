@@ -113,7 +113,13 @@ export const BottomSheetWrapper = forwardRef<BottomSheet, Props>(
 
     const containerStyle = useMemo(
       () => ({
+        // Closed sheets still mount a full-screen absolute container. On some
+        // Android OEMs (MIUI) that layer eats all touches unless we disable it.
         pointerEvents: sheetIndex >= 0 ? ("auto" as const) : ("none" as const),
+        // Logging screens (and others) give ScrollView zIndex ≥ 1; without a
+        // higher stack order the sheet paints behind the page content.
+        zIndex: 1000,
+        elevation: sheetIndex >= 0 ? 1000 : 0,
       }),
       [sheetIndex],
     );

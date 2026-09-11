@@ -31,6 +31,7 @@ export const useDeleteQuranHoursLog = () => {
         queryKey: ["quran-goal-frame", type],
       });
       queryClient.invalidateQueries({ queryKey: ["quran-goal-achievements"] });
+      queryClient.invalidateQueries({ queryKey: ["quran-goal-insights", type] });
       queryClient.invalidateQueries({ queryKey: ["all-quran-goals"] });
       queryClient.invalidateQueries({ queryKey: ["goal-cycle-categories"] });
       queryClient.invalidateQueries({
