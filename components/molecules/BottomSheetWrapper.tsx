@@ -116,9 +116,9 @@ export const BottomSheetWrapper = forwardRef<BottomSheet, Props>(
         // Closed sheets still mount a full-screen absolute container. On some
         // Android OEMs (MIUI) that layer eats all touches unless we disable it.
         pointerEvents: sheetIndex >= 0 ? ("auto" as const) : ("none" as const),
-        // Logging screens (and others) give ScrollView zIndex ≥ 1; without a
-        // higher stack order the sheet paints behind the page content.
-        zIndex: 1000,
+        // Only elevate while open. A permanent high zIndex made closed sheets
+        // paint over logging UI (and look like they auto-opened on entry).
+        zIndex: sheetIndex >= 0 ? 1000 : 0,
         elevation: sheetIndex >= 0 ? 1000 : 0,
       }),
       [sheetIndex],
@@ -183,6 +183,7 @@ export const BottomSheetWrapper = forwardRef<BottomSheet, Props>(
         index={-1}
         snapPoints={resolvedSnapPoints}
         enableDynamicSizing={false}
+        animateOnMount={false}
         enablePanDownToClose
         onClose={handleClose}
         onChange={handleChange}

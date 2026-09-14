@@ -51,7 +51,10 @@ import {
   useOptionalQuranGoalFrameContext,
 } from "./quranGoalFrameContext";
 import { getPrayerFrameRingGoalCountLabel } from "@/src/utils/prayerGoalFrameMap";
-import { getQuranFrameRingGoalCountLabel, getQuranFrameGoalTitle } from "@/src/utils/quranGoalFrameMap";
+import {
+  getQuranFrameRingGoalCountLabel,
+  getQuranFrameGoalTitle,
+} from "@/src/utils/quranGoalFrameMap";
 import { resolvePrayerTypeFromGoalId } from "@/src/utils/prayerGoalMap";
 import { isQuranHoursGoalId } from "./types";
 import BottomSheet from "@gorhom/bottom-sheet";
@@ -166,7 +169,7 @@ function GoalProgressLoggingBody({
   onDropdownOpenChange?: (open: boolean) => void;
   weeklyRefreshKey: number;
   setWeeklyRefreshKey: React.Dispatch<React.SetStateAction<number>>;
-  /** Height of ring + flow + weekly (parent adds header for full hero). */
+  /** Height of ring + logging card (parent adds header for full hero). */
   onHeroExtentChange?: (height: number) => void;
 }) {
   const { t } = useTranslation();
@@ -269,6 +272,7 @@ function GoalProgressLoggingBody({
 
   return (
     <>
+      {/* Hero measure: ring + logging card only — weekly sits on solid bg. */}
       <View
         style={styles.scrollForeground}
         collapsable={false}
@@ -323,16 +327,17 @@ function GoalProgressLoggingBody({
             setWeeklyRefreshKey((current) => current + 1);
           }}
         />
-        <TopSpace top={10} />
-        <View style={styles.weeklyDashboardWrapper}>
-          <WeeklyProgressSection
-            goalData={liveGoalData}
-            refreshKey={weeklyRefreshKey}
-            onWeekProgressPercentChange={
-              isMondayThursdayFasts ? setWeekViewPercent : undefined
-            }
-          />
-        </View>
+      </View>
+
+      <TopSpace top={10} />
+      <View style={styles.weeklyDashboardWrapper}>
+        <WeeklyProgressSection
+          goalData={liveGoalData}
+          refreshKey={weeklyRefreshKey}
+          onWeekProgressPercentChange={
+            isMondayThursdayFasts ? setWeekViewPercent : undefined
+          }
+        />
       </View>
 
       <View style={styles.pastAchievementsWrapper}>
@@ -460,6 +465,9 @@ export const GoalProgressLoggingScreen = ({
   const [deletePrayerLogDate, setDeletePrayerLogDate] = useState<string | null>(
     null,
   );
+  /** Mount insights sheet only after the user opens it (avoids mount-open glitches). */
+  const [insightsSheetMounted, setInsightsSheetMounted] = useState(false);
+  const pendingInsightsOpenRef = useRef(false);
   const prayerType = resolvePrayerTypeFromGoalId(goalId);
   const quranHoursType = isQuranHoursGoalId(goalId)
     ? resolveQuranTypeFromGoalId(goalId)
@@ -478,9 +486,27 @@ export const GoalProgressLoggingScreen = ({
   const supportsDeletePrayerOptions =
     prayerType === "FIVE_DAILY_PRAYERS" || prayerType === "SUNNAH_RAWATIB";
 
-  const openInsightsSheet = () => {
-    infoSheetRef.current?.expand();
-  };
+  const openInsightsSheet = useCallback(() => {
+    if (insightsSheetMounted) {
+      infoSheetRef.current?.expand();
+      return;
+    }
+    pendingInsightsOpenRef.current = true;
+    setInsightsSheetMounted(true);
+  }, [insightsSheetMounted]);
+
+  useLayoutEffect(() => {
+    if (!insightsSheetMounted || !pendingInsightsOpenRef.current) return;
+    pendingInsightsOpenRef.current = false;
+    const frame = requestAnimationFrame(() => {
+      infoSheetRef.current?.expand();
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [insightsSheetMounted]);
+
+  const closeInsightsSheet = useCallback(() => {
+    infoSheetRef.current?.close();
+  }, []);
 
   const openDeletePrayerLogOptions = useCallback((date: string) => {
     setDeletePrayerLogDate(date);
@@ -543,12 +569,9 @@ export const GoalProgressLoggingScreen = ({
 
   const screenShell = (
     <View style={styles.container}>
-      {shouldUseBackground && backgroundSource ? (
+      {shouldUseBackground && backgroundSource && heroBottom > 0 ? (
         <View
-          style={[
-            styles.heroBackgroundFixed,
-            heroBottom > 0 ? { height: heroBottom } : undefined,
-          ]}
+          style={[styles.heroBackgroundFixed, { height: heroBottom }]}
           pointerEvents="none"
           collapsable={false}
         >
@@ -619,18 +642,18 @@ export const GoalProgressLoggingScreen = ({
           }
         />
       </ScrollView>
-      {prayerType ? (
+      {insightsSheetMounted && prayerType ? (
         <InformationSheet
           ref={infoSheetRef}
           prayerType={prayerType}
-          onClose={() => infoSheetRef.current?.close()}
+          onClose={closeInsightsSheet}
         />
       ) : null}
-      {quranHoursType ? (
+      {insightsSheetMounted && quranHoursType ? (
         <QuranHoursInformationSheet
           ref={infoSheetRef}
           quranGoalType={quranHoursType}
-          onClose={() => infoSheetRef.current?.close()}
+          onClose={closeInsightsSheet}
         />
       ) : null}
       {supportsDeletePrayerOptions ? (

@@ -44,6 +44,7 @@ export const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 0,
+    overflow: "hidden",
   },
   scrollHeader: {
     zIndex: 2,
