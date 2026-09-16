@@ -178,7 +178,7 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
                   gap: 10,
                   backgroundColor: Colors.light.greybuttonBackground,
                   marginHorizontal: 12,
-                  paddingVertical: 10,
+                  height: 44,
                   borderRadius: 6,
                   paddingHorizontal: 12,
                 }}
