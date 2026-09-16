@@ -49,6 +49,10 @@ export type QuranGoalFrameItem = {
     state?: string;
     label?: string;
   } | null;
+  /** Verses (or units) completed for this item — MEMORIZATION_SURAH. */
+  completed?: number | null;
+  /** Verses (or units) target for this item — MEMORIZATION_SURAH. */
+  target?: number | null;
   achievementPct?: number;
   dailyTarget?: number | null;
   canLog?: boolean;
@@ -125,12 +129,16 @@ export type QuranGoalFrameData = {
 
 const getQuranGoalFrame = async (
   quranGoalType: string,
-  week?: number,
+  options?: { week?: number; itemNumber?: number },
 ): Promise<QuranGoalFrameData | null> => {
+  const params: Record<string, number> = {};
+  if (options?.week != null) params.week = options.week;
+  if (options?.itemNumber != null) params.itemNumber = options.itemNumber;
+
   const response = await api.get(
     `api/goal-cycles/current/quran-goals/${quranGoalType}/frame`,
     {
-      params: week != null ? { week } : undefined,
+      params: Object.keys(params).length > 0 ? params : undefined,
     },
   );
   console.log(
@@ -142,7 +150,12 @@ const getQuranGoalFrame = async (
 
 export const useGetQuranGoalFrame = (
   quranGoalTypeInput: string | null | undefined,
-  options?: { enabled?: boolean; weekNumber?: number },
+  options?: {
+    enabled?: boolean;
+    weekNumber?: number;
+    /** Surah / juz / hizb number — required for multi-item goals e.g. MEMORIZATION_SURAH. */
+    itemNumber?: number;
+  },
 ) => {
   const quranGoalType = quranGoalTypeInput
     ? resolveQuranType(quranGoalTypeInput)
@@ -154,8 +167,13 @@ export const useGetQuranGoalFrame = (
       "quran-goal-frame",
       quranGoalType,
       options?.weekNumber ?? "current",
+      options?.itemNumber ?? "all",
     ],
-    queryFn: () => getQuranGoalFrame(quranGoalType, options?.weekNumber),
+    queryFn: () =>
+      getQuranGoalFrame(quranGoalType, {
+        week: options?.weekNumber,
+        itemNumber: options?.itemNumber,
+      }),
     enabled,
     placeholderData: keepPreviousData,
   });

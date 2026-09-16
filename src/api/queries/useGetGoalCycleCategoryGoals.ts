@@ -18,19 +18,34 @@ export type GoalCycleCategoryGoalsData = {
 const getGoalCycleCategoryGoals = async (
   category: string,
 ): Promise<GoalCycleCategoryGoalsData> => {
-  const response = await api.get(
-    `api/goal-cycles/current/categories/${category}`,
-  );
-  const data = response.data?.data;
+  try {
+    const response = await api.get(
+      `api/goal-cycles/current/categories/${category}`,
+    );
 
-  console.log(
-    "data of the goal cycle category goals api",
-    JSON.stringify(data, null, 2),
-  );
-  return {
-    category: typeof data?.category === "string" ? data.category : category,
-    goals: Array.isArray(data?.goals) ? data.goals : [],
-  };
+    const data = response.data?.data;
+
+    console.log(
+      "data of the goal cycle category goals api",
+      JSON.stringify(data, null, 2),
+    );
+    return {
+      category: typeof data?.category === "string" ? data.category : category,
+      goals: Array.isArray(data?.goals) ? data.goals : [],
+    };
+  } catch (error: any) {
+    console.error(
+      "[goal-cycle-category-goals] error",
+      {
+        category,
+        message: error?.message,
+        status: error?.response?.status,
+        data: error?.response?.data,
+      },
+      error,
+    );
+    throw error;
+  }
 };
 
 export const goalCycleCategoryGoalsQueryKey = (category: string) =>

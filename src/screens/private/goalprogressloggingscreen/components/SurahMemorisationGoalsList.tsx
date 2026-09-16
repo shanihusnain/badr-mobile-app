@@ -35,8 +35,8 @@ export function SurahMemorisationGoalsList({
   const { width: screenWidth } = useWindowDimensions();
   const memorisationContext = useOptionalMemorisationSurahContext();
   const goals = useMemo(
-    () => getSurahMemorisationGoals(),
-    [refreshKey],
+    () => memorisationContext?.goals ?? getSurahMemorisationGoals(),
+    [memorisationContext?.goals, refreshKey, memorisationContext?.refreshKey],
   );
   const cardWidth = screenWidth * CARD_WIDTH_RATIO;
   const [activeGoalId, setActiveGoalId] = useState(
@@ -109,6 +109,7 @@ export function SurahMemorisationGoalsList({
       snapToInterval={cardWidth + CARD_GAP}
       snapToAlignment="start"
       removeClippedSubviews={false}
+      scrollEnabled={!activeFlowGoalId}
       style={{ overflow: "visible" }}
       contentContainerStyle={{ paddingRight: 16 }}
     />

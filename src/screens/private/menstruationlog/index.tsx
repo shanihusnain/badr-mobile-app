@@ -51,7 +51,8 @@ export default function MenstruationLog({
   const [selectedStartTime, setSelectedStartTime] = useState<string>("");
   const [selectedEndTime, setSelectedEndTime] = useState<string>("");
 
-  const { mutateAsync: saveMenstruation, isPending } = useSaveMenstruationPeriod();
+  const { mutateAsync: saveMenstruation, isPending } =
+    useSaveMenstruationPeriod();
 
   // useAuth has the user from login stored in AsyncStorage
   const { user } = useAuth();
@@ -60,14 +61,9 @@ export default function MenstruationLog({
 
   // The backend is fixed and is the source of truth. Always prioritize `meData`.
   const menstruationPeriodId =
-    meData?.menstruationPeriodId ??
-    user?.menstruationPeriodId ??
-    null;
+    meData?.menstruationPeriodId ?? user?.menstruationPeriodId ?? null;
 
-  const goalCycleId =
-    meData?.goalCycleId ??
-    user?.goalCycleId ??
-    null;
+  const goalCycleId = meData?.goalCycleId ?? user?.goalCycleId ?? null;
 
   // Fetch the existing menstruation period using the ID
   const { data: periodData } = useGetMenstruationPeriod(menstruationPeriodId);
@@ -88,16 +84,10 @@ export default function MenstruationLog({
   useFocusEffect(
     useCallback(() => {
       hasInitialized.current = false;
-    }, [])
+    }, []),
   );
 
   useEffect(() => {
-    console.log("=== LOAD DEBUG ===");
-    console.log("meData:", meData);
-    console.log("menstruationPeriodId:", menstruationPeriodId);
-    console.log("periodData?.data:", periodData?.data);
-    console.log("hasInitialized:", hasInitialized.current);
-
     // Skip if already initialized or no data yet
     if (hasInitialized.current || !periodData?.data) return;
     hasInitialized.current = true;
@@ -141,8 +131,8 @@ export default function MenstruationLog({
   const cycleStart = goalCycleData?.data?.startDate
     ? moment(goalCycleData.data.startDate).startOf("day")
     : cycleStartDate
-    ? moment(cycleStartDate, "YYYY-MM-DD").startOf("day")
-    : moment(today).startOf("day");
+      ? moment(cycleStartDate, "YYYY-MM-DD").startOf("day")
+      : moment(today).startOf("day");
   const cycleEnd = cycleStart.clone().add(CYCLE_LENGTH_DAYS - 1, "days");
 
   // Strictly bind dates to the Goal Cycle's 28 days.
@@ -217,16 +207,16 @@ export default function MenstruationLog({
 
   const startQuestionText = dateExplicitlyPicked
     ? t("homeScreen.menstruationLog_whenDidItStart", {
-      date: moment(selectedDate, "YYYY-MM-DD").locale(locale).format("MMM D"),
-    })
+        date: moment(selectedDate, "YYYY-MM-DD").locale(locale).format("MMM D"),
+      })
     : t("homeScreen.menstruationLog_whenDidItStartToday");
 
   const endQuestionText = endDateExplicitlyPicked
     ? t("homeScreen.menstruationLog_whenDidItEnd", {
-      date: moment(selectedEndDate, "YYYY-MM-DD")
-        .locale(locale)
-        .format("MMM D"),
-    })
+        date: moment(selectedEndDate, "YYYY-MM-DD")
+          .locale(locale)
+          .format("MMM D"),
+      })
     : t("homeScreen.menstruationLog_whenDidItEndToday");
 
   return (
@@ -284,7 +274,10 @@ export default function MenstruationLog({
                 setSelectedEndTime("");
               }
             }}
-            trackColors={{ off: Colors.light.subtext, on: Colors.light.dullWhiteOpacity }}
+            trackColors={{
+              off: Colors.light.subtext,
+              on: Colors.light.dullWhiteOpacity,
+            }}
             thumbColors={{ off: Colors.light.white, on: Colors.light.green }}
             size="small"
             style={styles.switchButton}
@@ -319,7 +312,7 @@ export default function MenstruationLog({
                 style={[
                   styles.todayText,
                   dateExplicitlyPicked &&
-                  menstruating && { color: Colors.light.white },
+                    menstruating && { color: Colors.light.white },
                 ]}
               >
                 {todayButtonLabel}
@@ -458,7 +451,7 @@ export default function MenstruationLog({
                 style={[
                   styles.todayText,
                   endDateExplicitlyPicked &&
-                  isEndDateActive && { color: Colors.light.white },
+                    isEndDateActive && { color: Colors.light.white },
                 ]}
               >
                 {endDateButtonLabel}
@@ -546,7 +539,10 @@ export default function MenstruationLog({
                 setSelectedEndDate(selectableMaxString);
               }
             }}
-            trackColors={{ off: Colors.light.subtext, on: Colors.light.dullWhiteOpacity }}
+            trackColors={{
+              off: Colors.light.subtext,
+              on: Colors.light.dullWhiteOpacity,
+            }}
             thumbColors={{ off: Colors.light.white, on: Colors.light.green }}
             size="small"
             style={[styles.switchButton, !menstruating && { opacity: 0.4 }]}
@@ -595,14 +591,28 @@ export default function MenstruationLog({
               // error handled in mutation
             }
           }}
-          disabled={!menstruating || selectedStartTime === "" || (!stillMenstruating && selectedEndTime === "") || isPending || !goalCycleId}
+          disabled={
+            !menstruating ||
+            selectedStartTime === "" ||
+            (!stillMenstruating && selectedEndTime === "") ||
+            isPending ||
+            !goalCycleId
+          }
           isLoading={isPending}
           style={({ pressed }) => {
-            const isDisabled = !menstruating || selectedStartTime === "" || (!stillMenstruating && selectedEndTime === "") || isPending || !goalCycleId;
+            const isDisabled =
+              !menstruating ||
+              selectedStartTime === "" ||
+              (!stillMenstruating && selectedEndTime === "") ||
+              isPending ||
+              !goalCycleId;
             return [
               { marginTop: 24 },
               isDisabled
-                ? { backgroundColor: Colors.light.greybuttonBackground, borderColor: Colors.light.greybuttonBackground }
+                ? {
+                    backgroundColor: Colors.light.greybuttonBackground,
+                    borderColor: Colors.light.greybuttonBackground,
+                  }
                 : {},
             ];
           }}

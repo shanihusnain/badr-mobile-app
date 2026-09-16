@@ -5,6 +5,7 @@ import type {
   QuranGoalFrameStatus,
 } from "@/src/api/queries/useGetQuranGoalFrame";
 import type { QuranHoursDayProgress } from "@/src/screens/private/goalprogressloggingscreen/quranHoursWeeklyData";
+import type { MemorisationDayProgress } from "@/src/screens/private/goalprogressloggingscreen/quranMemorisationWeeklyData";
 
 export function formatQuranFrameWeekRange(weekStart: string, weekEnd: string) {
   const start = moment(weekStart, "YYYY-MM-DD");
@@ -49,13 +50,13 @@ function resolveIsToday(day: QuranGoalFrameDay): boolean {
 
 function hasQuranFrameDayActivity(day: QuranGoalFrameDay): boolean {
   const state = String(day.state ?? "").toUpperCase();
+  // MISSED / UPCOMING / EMPTY / NONE are not logged activity — do not paint green.
   return (
     getQuranFrameDayMinutes(day) > 0 ||
     state === "LOGGED" ||
     state === "COMPLETE" ||
     state === "BEST_DAY" ||
-    state === "PARTIAL" ||
-    state === "MISSED"
+    state === "PARTIAL"
   );
 }
 
@@ -86,7 +87,8 @@ export function mapQuranHoursFrameWeekDays(
     const isToday = resolveIsToday(day);
     const isFuture = resolveIsFutureDay(day);
     const state = String(day.state ?? "").toUpperCase();
-    const isLogged = !isFuture && hasQuranFrameDayActivity(day);
+    const isMissed = state === "MISSED";
+    const isLogged = !isFuture && !isMissed && hasQuranFrameDayActivity(day);
     const apiDuration = day.valueDisplay?.trim() || undefined;
 
     return {
@@ -96,12 +98,112 @@ export function mapQuranHoursFrameWeekDays(
       isBestDay: Boolean(day.isBestDay) || state === "BEST_DAY",
       isToday,
       isFuture,
-      showDurationLabel: minutesLogged > 0 || !!apiDuration,
+      showDurationLabel: !isMissed && (minutesLogged > 0 || !!apiDuration),
       date: normalizeFrameDate(day.date) ?? day.date,
       durationLabel: apiDuration,
-      canDelete: day.canDelete !== false && (minutesLogged > 0 || isLogged),
+      canDelete:
+        !isMissed &&
+        day.canDelete !== false &&
+        (minutesLogged > 0 || isLogged),
     };
   });
+}
+
+/** Map MEMORIZATION_* frame week days → memorisation weekly rings. */
+export function mapQuranMemorisationFrameWeekDays(
+  frame: QuranGoalFrameData,
+): MemorisationDayProgress[] {
+  return frame.week.days.map((day) => {
+    const ayahsLogged = getQuranFrameDayMinutes(day);
+    const isToday = resolveIsToday(day);
+    const isFuture = resolveIsFutureDay(day);
+    const state = String(day.state ?? "").toUpperCase();
+    const isMissed = state === "MISSED";
+    const isLogged = !isFuture && !isMissed && hasQuranFrameDayActivity(day);
+    const countLabel = day.valueDisplay?.trim() || undefined;
+
+    return {
+      day: day.dayLabel,
+      date: normalizeFrameDate(day.date) ?? day.date,
+      ayahsLogged,
+      isLogged,
+      isBestDay: Boolean(day.isBestDay) || state === "BEST_DAY",
+      isToday,
+      isFuture,
+      countLabel,
+      canDelete:
+        !isMissed &&
+        day.canDelete !== false &&
+        (ayahsLogged > 0 || isLogged),
+    };
+  });
+}
+
+export function getQuranFrameMemorisationItem(frame: QuranGoalFrameData) {
+  return frame.items?.[0] ?? null;
+}
+
+export function getQuranFrameMemorisationSurahName(
+  frame: QuranGoalFrameData,
+): string {
+  const item = getQuranFrameMemorisationItem(frame);
+  const title = item?.title?.trim();
+  if (title) {
+    // "Al-Fatihah (The Opening)" → "Al-Fatihah"
+    const bare = title.replace(/\s*\([^)]*\)\s*$/, "").trim();
+    return bare || title;
+  }
+  return frame.title?.trim() || "";
+}
+
+export function getQuranFrameMemorisationProgress(frame: QuranGoalFrameData) {
+  const item = getQuranFrameMemorisationItem(frame);
+  const memorizedAyahs = Math.max(
+    0,
+    Math.round(toFiniteNumber(item?.completed) ?? 0),
+  );
+  const totalAyahs = Math.max(
+    0,
+    Math.round(toFiniteNumber(item?.target) ?? 0),
+  );
+  const progressPercent = Math.max(
+    0,
+    Math.min(
+      100,
+      Math.round(
+        toFiniteNumber(item?.achievementPct) ??
+          toFiniteNumber(frame.goal.achievementPct) ??
+          0,
+      ),
+    ),
+  );
+  const remainingAyahs = Math.max(0, totalAyahs - memorizedAyahs);
+  const completed =
+    progressPercent >= 100 ||
+    (totalAyahs > 0 && memorizedAyahs >= totalAyahs);
+
+  return {
+    memorizedAyahs,
+    totalAyahs,
+    remainingAyahs,
+    progressPercent,
+    completed,
+  };
+}
+
+/** Ring label for memorisation — prefer API targetLabel ("Goal: 1 surah"). */
+export function getQuranFrameMemorisationRingLabel(
+  frame: QuranGoalFrameData,
+): string {
+  const label = frame.goal.targetLabel?.trim();
+  if (label) {
+    return label.replace(/^Goal:\s*/i, "").trim() || label;
+  }
+  const target = toFiniteNumber(frame.goal.target);
+  if (target != null && target > 0) {
+    return target === 1 ? "1 surah" : `${target} surahs`;
+  }
+  return getQuranFrameGoalTitle(frame);
 }
 
 export function getQuranFrameTodayIndex(frame: QuranGoalFrameData): number {
@@ -145,6 +247,18 @@ export function getQuranFrameWeekTotalMinutes(
     (sum, day) => sum + getQuranFrameDayMinutes(day),
     0,
   );
+}
+
+export function getQuranFrameWeekTotalLabel(
+  frame: QuranGoalFrameData,
+): string | null {
+  return frame.week.totalLabel?.trim() || null;
+}
+
+export function getQuranFrameWeekTotalDisplay(
+  frame: QuranGoalFrameData,
+): string | null {
+  return frame.week.totalDisplay?.trim() || null;
 }
 
 export function getQuranFrameMotivationalQuote(

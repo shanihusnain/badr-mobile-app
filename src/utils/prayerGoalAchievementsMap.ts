@@ -59,11 +59,23 @@ function computeYAxis(stackTotals: number[], lineValues: number[] = []) {
 }
 
 export function formatPrayerAchievementsDateRange(
-  periodStart: string,
-  periodEnd: string,
+  periodStart: string | null | undefined,
+  periodEnd: string | null | undefined,
 ): string {
-  const start = moment(periodStart, "YYYY-MM-DD");
-  const end = moment(periodEnd, "YYYY-MM-DD");
+  // API may send null/0 for empty periods — moment(0) becomes "Jan 1, 00".
+  if (
+    periodStart == null ||
+    periodEnd == null ||
+    periodStart === "" ||
+    periodEnd === "" ||
+    typeof periodStart === "number" ||
+    typeof periodEnd === "number"
+  ) {
+    return "";
+  }
+
+  const start = moment(String(periodStart), "YYYY-MM-DD", true);
+  const end = moment(String(periodEnd), "YYYY-MM-DD", true);
   if (!start.isValid() || !end.isValid()) return "";
 
   const year = end.format("YY");

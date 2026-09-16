@@ -57,10 +57,12 @@ import {
 import {
   getQuranFrameRingGoalCountLabel,
   getQuranFrameGoalTitle,
+  getQuranFrameMemorisationRingLabel,
 } from "@/src/utils/quranGoalFrameMap";
 import { resolvePrayerTypeFromGoalId } from "@/src/utils/prayerGoalMap";
 import { resolveGoalDescriptionParamFromLoggingGoalId } from "@/src/utils/goalDescriptionMap";
 import { isQuranHoursGoalId } from "./types";
+import { resolveQuranTypeFromGoalId } from "@/src/utils/quranGoalMap";
 import BottomSheet from "@gorhom/bottom-sheet";
 import {
   tahiyyatwudhudetailimage,
@@ -87,7 +89,6 @@ import { TopSpace } from "@/components/atoms/TopSpace";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { setDailyProgressSheetReturn } from "@/src/screens/private/home/dailyProgressSheetReturn";
 import { LoadingComponent } from "@/components/atoms/LoadingComponent";
-import { resolveQuranTypeFromGoalId } from "@/src/utils/quranGoalMap";
 
 /** Hero background per prayer / Quran / fasting / sadaqah logging goal. */
 function getLoggingBackgroundSource(
@@ -197,11 +198,15 @@ function GoalProgressLoggingBody({
     isQiyamTemplate;
   const isQuranHoursFrameGoal =
     template === "quran-hours" && isQuranHoursGoalId(goalId);
+  const isSurahMemorisationFrameGoal =
+    template === "quran-memorisation" && isSurahMemorisationGoalId(goalId);
+  const isQuranFrameGoal =
+    isQuranHoursFrameGoal || isSurahMemorisationFrameGoal;
   const frameLoading =
     (isPrayerFrameRingGoal &&
       (prayerFrame?.isLoading ||
         (!prayerFrame?.frame && !prayerFrame?.isError))) ||
-    (isQuranHoursFrameGoal &&
+    (isQuranFrameGoal &&
       (quranFrame?.isLoading || (!quranFrame?.frame && !quranFrame?.isError)));
   const liveGoalData = useMemo(
     () => getResolvedGoalById(goalId) ?? goalData,
@@ -216,7 +221,7 @@ function GoalProgressLoggingBody({
     ? frameAchievementPct != null
       ? `${frameAchievementPct}%`
       : "0%"
-    : isQuranHoursFrameGoal
+    : isQuranFrameGoal
       ? frameAchievementPct != null
         ? `${frameAchievementPct}%`
         : "0%"
@@ -268,15 +273,21 @@ function GoalProgressLoggingBody({
             ),
           })
         : "---"
-      : isMissedRamadanFastsGoalId(goalId)
-        ? t("progressLogging.missedRamadanRingGoal", {
-            count: liveGoalData.target ?? cleanLabel,
-          })
-        : isMondayThursdayFastsGoalId(goalId)
-          ? t("progressLogging.mondayThursdayRingGoal", {
+      : isSurahMemorisationFrameGoal
+        ? quranFrame?.frame
+          ? t("homeScreen.weeklyProgress_goalLabel", {
+              label: getQuranFrameMemorisationRingLabel(quranFrame.frame),
+            })
+          : "---"
+        : isMissedRamadanFastsGoalId(goalId)
+          ? t("progressLogging.missedRamadanRingGoal", {
               count: liveGoalData.target ?? cleanLabel,
             })
-          : t("homeScreen.weeklyProgress_goalLabel", { label: cleanLabel });
+          : isMondayThursdayFastsGoalId(goalId)
+            ? t("progressLogging.mondayThursdayRingGoal", {
+                count: liveGoalData.target ?? cleanLabel,
+              })
+            : t("homeScreen.weeklyProgress_goalLabel", { label: cleanLabel });
 
   return (
     <>
@@ -696,7 +707,7 @@ export const GoalProgressLoggingScreen = ({
     );
   }
 
-  if (isQuranHoursGoalId(goalId)) {
+  if (isQuranHoursGoalId(goalId) || isSurahMemorisationGoalId(goalId)) {
     return (
       <QuranGoalFrameProvider
         goalId={goalId}

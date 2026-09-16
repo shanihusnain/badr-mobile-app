@@ -21,7 +21,13 @@ type Props = {
   juz: number;
   startAyat: number;
   endAyat: number;
+  /** Lowest ayah the start thumb may select (default 1). */
   minStartAyat?: number;
+  /**
+   * When true, start thumb is fixed at minStartAyat (already-logged boundary).
+   * Only the end thumb is draggable.
+   */
+  freezeStartHandle?: boolean;
   verseCount?: number;
   formatVerseLabel?: (ayat: number) => string;
   onChangeStartAyat: (value: number) => void;
@@ -32,20 +38,27 @@ type Props = {
 type ActiveHandle = "start" | "end" | null;
 
 const THUMB_SIZE = 22;
+const THUMB_HIT_SIZE = 44;
 const THUMB_RADIUS = THUMB_SIZE / 2;
+const THUMB_HIT_RADIUS = THUMB_HIT_SIZE / 2;
 /** Horizontal inset so thumbs stay fully visible at min/max. */
 const TRACK_HORIZONTAL_INSET = THUMB_RADIUS;
-const TRACK_HEIGHT = 8;
+const TRACK_HEIGHT = 6;
+/** Figma: white vertical tick at ayah 1 / track start. */
+const START_BAR_WIDTH = 2;
+const START_BAR_HEIGHT = 16;
 const LABEL_LINE_HEIGHT = 12;
 const LABEL_PADDING_V = 2;
 const LABEL_ROW_HEIGHT = LABEL_LINE_HEIGHT + LABEL_PADDING_V * 2;
-const LABEL_TO_TRACK_GAP = 5;
+const LABEL_TO_TRACK_GAP = 6;
 const TRACK_CENTER_Y =
   LABEL_ROW_HEIGHT + LABEL_TO_TRACK_GAP + THUMB_RADIUS;
-const SLIDER_HEIGHT = TRACK_CENTER_Y + THUMB_RADIUS;
-const LABEL_WIDTH = 88;
+const SLIDER_HEIGHT = TRACK_CENTER_Y + THUMB_HIT_RADIUS;
+/** Compact dark pill above each thumb (Figma). */
+const LABEL_WIDTH = 28;
 const LABEL_TOP = 0;
 const THUMB_TOP = TRACK_CENTER_Y - THUMB_RADIUS;
+const THUMB_HIT_TOP = TRACK_CENTER_Y - THUMB_HIT_RADIUS;
 const TRACK_TOP = TRACK_CENTER_Y - TRACK_HEIGHT / 2;
 
 function getLabelLeft(handleX: number, containerWidth: number): number {
@@ -63,6 +76,7 @@ export function QuranAyatRangeSlider({
   startAyat,
   endAyat,
   minStartAyat = 1,
+  freezeStartHandle = false,
   verseCount,
   formatVerseLabel,
   onChangeStartAyat,
@@ -77,8 +91,69 @@ export function QuranAyatRangeSlider({
 
   const maxAyat = Math.max(verseCount ?? getJuzVerseCountFromMap(juz), 1);
   const safeMinStart = Math.min(Math.max(Math.round(minStartAyat), 1), maxAyat);
-  const safeStart = Math.min(Math.max(startAyat, safeMinStart), maxAyat);
+  const safeStart = freezeStartHandle
+    ? safeMinStart
+    : Math.min(Math.max(startAyat, safeMinStart), maxAyat);
   const safeEnd = Math.min(Math.max(endAyat, safeStart), maxAyat);
+
+  // Keep parent state aligned when start is frozen at the logged boundary.
+  useEffect(() => {
+    if (!freezeStartHandle) return;
+    if (startAyat !== safeMinStart) {
+      onChangeStartAyat(safeMinStart);
+    }
+  }, [freezeStartHandle, onChangeStartAyat, safeMinStart, startAyat]);
+
+  const trackWidth = Math.max(width - TRACK_HORIZONTAL_INSET * 2, 1);
+
+  /**
+   * Full surah track (1 → maxAyat). minStartAyat only locks the start thumb —
+   * it must not compress the scale, or both thumbs stack on the left when
+   * only a few ayahs remain (e.g. 5–7 of 7).
+   */
+  const valueToX = useCallback(
+    (value: number) => {
+      if (maxAyat <= 1) return 0;
+      const clamped = Math.min(Math.max(value, 1), maxAyat);
+      return ((clamped - 1) / (maxAyat - 1)) * trackWidth;
+    },
+    [maxAyat, trackWidth],
+  );
+
+  const xToValue = useCallback(
+    (x: number) => {
+      if (maxAyat <= 1) return 1;
+      const percent = Math.max(0, Math.min(x / trackWidth, 1));
+      return Math.round(1 + percent * (maxAyat - 1));
+    },
+    [maxAyat, trackWidth],
+  );
+
+  const startX = valueToX(safeStart);
+  const endX = valueToX(safeEnd);
+
+  // Keep drag math on refs so pan gestures stay stable (no recreate each frame).
+  const startXRef = useRef(startX);
+  const endXRef = useRef(endX);
+  const safeStartRef = useRef(safeStart);
+  const safeEndRef = useRef(safeEnd);
+  const safeMinStartRef = useRef(safeMinStart);
+  const maxAyatRef = useRef(maxAyat);
+  const trackWidthRef = useRef(trackWidth);
+  const xToValueRef = useRef(xToValue);
+  const onChangeStartRef = useRef(onChangeStartAyat);
+  const onChangeEndRef = useRef(onChangeEndAyat);
+
+  startXRef.current = startX;
+  endXRef.current = endX;
+  safeStartRef.current = safeStart;
+  safeEndRef.current = safeEnd;
+  safeMinStartRef.current = safeMinStart;
+  maxAyatRef.current = maxAyat;
+  trackWidthRef.current = trackWidth;
+  xToValueRef.current = xToValue;
+  onChangeStartRef.current = onChangeStartAyat;
+  onChangeEndRef.current = onChangeEndAyat;
 
   useEffect(() => {
     isMounted.current = true;
@@ -87,30 +162,10 @@ export function QuranAyatRangeSlider({
     };
   }, []);
 
-  const trackWidth = Math.max(width - TRACK_HORIZONTAL_INSET * 2, 1);
-
-  const valueToX = useCallback(
-    (value: number) => {
-      if (maxAyat <= safeMinStart) return 0;
-      return ((value - safeMinStart) / (maxAyat - safeMinStart)) * trackWidth;
-    },
-    [maxAyat, safeMinStart, trackWidth],
-  );
-
-  const xToValue = useCallback(
-    (x: number) => {
-      if (maxAyat <= safeMinStart) return safeMinStart;
-      const percent = Math.max(0, Math.min(x / trackWidth, 1));
-      return Math.round(safeMinStart + percent * (maxAyat - safeMinStart));
-    },
-    [maxAyat, safeMinStart, trackWidth],
-  );
-
-  const startX = valueToX(safeStart);
-  const endX = valueToX(safeEnd);
-
   const startThumbLeft = TRACK_HORIZONTAL_INSET + startX - THUMB_RADIUS;
   const endThumbLeft = TRACK_HORIZONTAL_INSET + endX - THUMB_RADIUS;
+  const startHitLeft = TRACK_HORIZONTAL_INSET + startX - THUMB_HIT_RADIUS;
+  const endHitLeft = TRACK_HORIZONTAL_INSET + endX - THUMB_HIT_RADIUS;
 
   const startLabelLeft = getLabelLeft(startX, width);
   const endLabelLeft = getLabelLeft(endX, width);
@@ -145,91 +200,109 @@ export function QuranAyatRangeSlider({
     () =>
       Gesture.Pan()
         .runOnJS(true)
-        .activeOffsetX([-4, 4])
+        // Claim horizontal pans quickly so parent carousels don't steal them.
+        .activeOffsetX([-1, 1])
+        .failOffsetY([-16, 16])
+        .shouldCancelWhenOutside(false)
         .onBegin(() => {
           setActiveHandle("start");
         })
         .onStart(() => {
-          dragOriginX.current = startX;
+          dragOriginX.current = startXRef.current;
         })
         .onUpdate((event) => {
+          const maxX = trackWidthRef.current;
           const nextX = Math.max(
             0,
-            Math.min(dragOriginX.current + event.translationX, trackWidth),
+            Math.min(dragOriginX.current + event.translationX, maxX),
           );
           const nextValue = Math.min(
-            Math.max(xToValue(nextX), safeMinStart),
-            safeEnd,
+            Math.max(xToValueRef.current(nextX), safeMinStartRef.current),
+            safeEndRef.current,
           );
-          onChangeStartAyat(nextValue);
+          if (nextValue !== safeStartRef.current) {
+            onChangeStartRef.current(nextValue);
+          }
         })
         .onFinalize(() => {
           setActiveHandle((current) => (current === "start" ? null : current));
         }),
-    [onChangeStartAyat, safeEnd, safeMinStart, startX, trackWidth, xToValue],
+    [],
   );
 
   const endPan = useMemo(
     () =>
       Gesture.Pan()
         .runOnJS(true)
-        .activeOffsetX([-4, 4])
+        .activeOffsetX([-1, 1])
+        .failOffsetY([-16, 16])
+        .shouldCancelWhenOutside(false)
         .onBegin(() => {
           setActiveHandle("end");
         })
         .onStart(() => {
-          dragOriginX.current = endX;
+          dragOriginX.current = endXRef.current;
         })
         .onUpdate((event) => {
+          const maxX = trackWidthRef.current;
           const nextX = Math.max(
             0,
-            Math.min(dragOriginX.current + event.translationX, trackWidth),
+            Math.min(dragOriginX.current + event.translationX, maxX),
           );
-          const nextValue = Math.max(xToValue(nextX), safeStart);
-          onChangeEndAyat(nextValue);
+          const nextValue = Math.min(
+            Math.max(xToValueRef.current(nextX), safeStartRef.current),
+            maxAyatRef.current,
+          );
+          if (nextValue !== safeEndRef.current) {
+            onChangeEndRef.current(nextValue);
+          }
         })
         .onFinalize(() => {
           setActiveHandle((current) => (current === "end" ? null : current));
         }),
-    [endX, onChangeEndAyat, safeStart, trackWidth, xToValue],
+    [],
   );
 
   return (
-    <View style={localStyles.root} onLayout={onLayout}>
-      <View style={[localStyles.sliderArea, { height: SLIDER_HEIGHT }]}>
-        {activeHandle === "start" ? (
-          <View
-            style={[
-              localStyles.labelPill,
-              {
-                left: startLabelLeft,
-                width: LABEL_WIDTH,
-                top: LABEL_TOP,
-              },
-            ]}
-          >
-            <Text style={localStyles.labelText} numberOfLines={1}>
-              {startLabel}
-            </Text>
-          </View>
-        ) : null}
+    <View style={localStyles.root} onLayout={onLayout} collapsable={false}>
+      <View
+        style={[localStyles.sliderArea, { height: SLIDER_HEIGHT }]}
+        collapsable={false}
+      >
+        {/* Figma: ayah number pills stay visible above both thumbs */}
+        <View
+          pointerEvents="none"
+          style={[
+            localStyles.labelPill,
+            {
+              left: startLabelLeft,
+              width: LABEL_WIDTH,
+              top: LABEL_TOP,
+              zIndex: activeHandle === "start" ? 7 : 5,
+            },
+          ]}
+        >
+          <Text style={localStyles.labelText} numberOfLines={1}>
+            {startLabel}
+          </Text>
+        </View>
 
-        {activeHandle === "end" ? (
-          <View
-            style={[
-              localStyles.labelPill,
-              {
-                left: endLabelLeft,
-                width: LABEL_WIDTH,
-                top: LABEL_TOP,
-              },
-            ]}
-          >
-            <Text style={localStyles.labelText} numberOfLines={1}>
-              {endLabel}
-            </Text>
-          </View>
-        ) : null}
+        <View
+          pointerEvents="none"
+          style={[
+            localStyles.labelPill,
+            {
+              left: endLabelLeft,
+              width: LABEL_WIDTH,
+              top: LABEL_TOP,
+              zIndex: activeHandle === "end" ? 7 : 5,
+            },
+          ]}
+        >
+          <Text style={localStyles.labelText} numberOfLines={1}>
+            {endLabel}
+          </Text>
+        </View>
 
         <View
           style={[
@@ -242,6 +315,19 @@ export function QuranAyatRangeSlider({
           ]}
           pointerEvents="none"
         >
+          {safeMinStart > 1 ? (
+            <View
+              style={[
+                localStyles.trackLocked,
+                {
+                  left: 0,
+                  // Extend through the frozen start thumb so the wash reads
+                  // continuous up to the selection boundary.
+                  width: Math.max(startX, 0),
+                },
+              ]}
+            />
+          ) : null}
           <View
             style={[
               localStyles.trackActive,
@@ -253,39 +339,92 @@ export function QuranAyatRangeSlider({
           />
         </View>
 
-        <GestureDetector gesture={startPan}>
+        {/* Figma: white vertical bar at far-left track start */}
+        <View
+          pointerEvents="none"
+          style={[
+            localStyles.startBar,
+            {
+              left: TRACK_HORIZONTAL_INSET,
+              top: TRACK_CENTER_Y - START_BAR_HEIGHT / 2,
+            },
+          ]}
+        />
+
+        {freezeStartHandle ? (
           <View
+            pointerEvents="none"
+            collapsable={false}
             style={[
-              localStyles.thumb,
+              localStyles.thumbHit,
               {
-                left: startThumbLeft,
-                top: THUMB_TOP,
+                left: startHitLeft,
+                top: THUMB_HIT_TOP,
+                zIndex: 11,
               },
             ]}
           >
-            <Ionicons
-              name="chevron-forward"
-              size={12}
-              color={Colors.light.green}
-            />
+            <View style={localStyles.thumb}>
+              <Ionicons
+                name="chevron-forward"
+                size={12}
+                color={Colors.light.green}
+              />
+            </View>
           </View>
-        </GestureDetector>
+        ) : (
+          <GestureDetector gesture={startPan}>
+            <View
+              collapsable={false}
+              style={[
+                localStyles.thumbHit,
+                {
+                  left: startHitLeft,
+                  top: THUMB_HIT_TOP,
+                  zIndex: activeHandle === "start" ? 14 : 11,
+                },
+              ]}
+            >
+              <View
+                style={[
+                  localStyles.thumb,
+                  activeHandle === "start" && localStyles.thumbActive,
+                ]}
+              >
+                <Ionicons
+                  name="chevron-forward"
+                  size={12}
+                  color={Colors.light.green}
+                />
+              </View>
+            </View>
+          </GestureDetector>
+        )}
 
         <GestureDetector gesture={endPan}>
           <View
+            collapsable={false}
             style={[
-              localStyles.thumb,
+              localStyles.thumbHit,
               {
-                left: endThumbLeft,
-                top: THUMB_TOP,
+                left: endHitLeft,
+                top: THUMB_HIT_TOP,
+                zIndex: activeHandle === "end" ? 14 : 12,
               },
             ]}
           >
-            <Ionicons
-              name="chevron-back"
-              size={12}
-              color={Colors.light.green}
-            />
+            <View
+              style={[
+                localStyles.thumb,
+                activeHandle === "end" && localStyles.thumbActive,
+              ]}
+            >
+              <Ionicons
+                name="chevron-back"
+                size={12}
+                color={Colors.light.green}
+              />
+            </View>
           </View>
         </GestureDetector>
       </View>
@@ -316,11 +455,10 @@ const localStyles = StyleSheet.create({
     position: "absolute",
     backgroundColor: Colors.light.darkgrey,
     borderRadius: 4,
-    paddingHorizontal: 5,
+    paddingHorizontal: 4,
     paddingVertical: LABEL_PADDING_V,
     alignItems: "center",
     justifyContent: "center",
-    zIndex: 5,
   },
   labelText: {
     color: Colors.light.white,
@@ -334,25 +472,49 @@ const localStyles = StyleSheet.create({
     position: "absolute",
     height: TRACK_HEIGHT,
     borderRadius: TRACK_HEIGHT / 2,
-    backgroundColor: "#5A5A5A",
+    // Figma remaining track: muted dark green on the card.
+    backgroundColor: "rgba(26, 55, 42, 0.55)",
     overflow: "hidden",
   },
+  // Already-logged: softer pale mint wash (lighter / more translucent).
+  trackLocked: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    backgroundColor: "rgba(255, 255, 255, 0.28)",
+  },
+  // Current selection: brighter, more opaque light fill.
   trackActive: {
     position: "absolute",
     top: 0,
     bottom: 0,
-    backgroundColor: "rgba(255, 255, 255, 0.5)",
-    borderRadius: TRACK_HEIGHT / 2,
+    backgroundColor: "rgba(255, 255, 255, 0.58)",
+  },
+  startBar: {
+    position: "absolute",
+    width: START_BAR_WIDTH,
+    height: START_BAR_HEIGHT,
+    borderRadius: 1,
+    backgroundColor: Colors.light.white,
+    zIndex: 13,
+  },
+  thumbHit: {
+    position: "absolute",
+    width: THUMB_HIT_SIZE,
+    height: THUMB_HIT_SIZE,
+    alignItems: "center",
+    justifyContent: "center",
   },
   thumb: {
-    position: "absolute",
     width: THUMB_SIZE,
     height: THUMB_SIZE,
     borderRadius: THUMB_SIZE / 2,
     backgroundColor: Colors.light.white,
     alignItems: "center",
     justifyContent: "center",
-    zIndex: 10,
+  },
+  thumbActive: {
+    transform: [{ scale: 1.08 }],
   },
   summaryText: {
     color: Colors.light.white,
