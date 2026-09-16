@@ -1,6 +1,10 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
-import { ImageBackground, ImageSource } from "expo-image";
+import {
+  ImageBackground,
+  ImageContentPosition,
+  ImageSource,
+} from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { StyleSheet, Text, View } from "react-native";
 import Header from "../Header";
@@ -15,6 +19,8 @@ type Props = {
   imageSource?: ImageSource | any;
   onBackPress?: () => void;
   imageHeight?: number;
+  /** Shift which part of the image stays visible under contentFit="cover" */
+  contentPosition?: ImageContentPosition;
 };
 
 export const HeaderWithImageAndDescription = ({
@@ -24,12 +30,14 @@ export const HeaderWithImageAndDescription = ({
   imageSource,
   onBackPress,
   imageHeight = 360,
+  contentPosition = "center",
 }: Props) => {
   return (
     <ImageBackground
       source={imageSource}
       style={[styles.imageBackground, { height: imageHeight }]}
       contentFit="cover"
+      contentPosition={contentPosition}
     >
       {/* Dark gradient overlay: transparent top → blackBackground at bottom */}
       <LinearGradient
