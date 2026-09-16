@@ -921,6 +921,15 @@ export const GoalDescriptionDetails = ({ goal }: { goal: string }) => {
     return undefined;
   };
 
+  const getImageContentPosition = () => {
+    // Mosque/minarets sit in the lower third of the asset; bias the crop
+    // downward so they sit higher in the hero (matches design).
+    if (goalUiId === "sunnahRawatib") {
+      return { top: "68%", left: "50%" } as const;
+    }
+    return undefined;
+  };
+
   const renderHeader = () => (
     <HeaderWithImageAndDescription
       heroTitle={heroTitle}
@@ -928,6 +937,7 @@ export const GoalDescriptionDetails = ({ goal }: { goal: string }) => {
       description={description || summaryDescription}
       imageSource={getImageSource()}
       imageHeight={getImageHeight()}
+      contentPosition={getImageContentPosition()}
       onBackPress={() => navigation.goBack()}
     />
   );

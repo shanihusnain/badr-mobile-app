@@ -126,6 +126,9 @@ export const MetricSelectionComponent = ({
   onDirtyChangeRef.current = onDirtyChange;
   const cleanBaselineRef = useRef<string>("");
   const lastMetricPayloadRef = useRef<string>("");
+  /** Skip applying markClean/discard on remount when nonce is already > 0. */
+  const prevMarkCleanNonceRef = useRef(markCleanNonce);
+  const prevDiscardNonceRef = useRef(discardNonce);
 
   useEffect(() => {
     return () => {
@@ -366,6 +369,8 @@ export const MetricSelectionComponent = ({
   // Discard unsaved local edits → restore last saved/initial values
   useEffect(() => {
     if (discardNonce < 1) return;
+    if (prevDiscardNonceRef.current === discardNonce) return;
+    prevDiscardNonceRef.current = discardNonce;
     const nextSurahs = initialSelectedSurahs ?? [];
     const nextSettings = initialSurahSettings ?? {};
     const nextStart = initialJuzRange?.start ?? 0;
@@ -402,9 +407,14 @@ export const MetricSelectionComponent = ({
     onDirtyChangeRef.current?.(false);
   }, [discardNonce]);
 
-  // After Save / upsert, treat current values as clean
+  // After Save / upsert, treat current values as clean.
+  // Do not run on remount just because markCleanNonce is already > 0 — that
+  // would overwrite the hydrated baseline with empty local state and leave
+  // the metric stuck "dirty", blocking Surah → Juz switches after save.
   useEffect(() => {
     if (markCleanNonce < 1) return;
+    if (prevMarkCleanNonceRef.current === markCleanNonce) return;
+    prevMarkCleanNonceRef.current = markCleanNonce;
     cleanBaselineRef.current = buildDirtySnapshot(
       selectedSurahs,
       surahSettings,
