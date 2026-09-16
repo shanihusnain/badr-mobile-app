@@ -50,7 +50,7 @@ export function JuzRecitationGoalCard({
     <View style={isFlowActive ? styles.activeSection : undefined}>
       <View style={[styles.cardAnchor, { width: "100%" }]}>
         {isFlowActive && (
-          <Pressable style={styles.backdrop} onPress={onFlowClose} />
+          <Pressable style={styles.backdrop} />
         )}
         {isFlowActive && (
           <TouchableOpacity

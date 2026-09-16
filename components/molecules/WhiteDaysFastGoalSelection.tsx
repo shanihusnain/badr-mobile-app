@@ -18,6 +18,7 @@ import type { FastingCalendarWindow } from "@/src/utils/fastingCalendarPreview";
 import { useUpsertFastingGoals } from "@/src/api/mutations/useUpsertFastingGoals";
 import { showToast } from "@/src/config/toastConfig";
 import { TopSpace } from "../atoms/TopSpace";
+import { useTranslation } from "react-i18next";
 
 export default function WhiteDaysFastGoalSelection({
   calendarWindow,
@@ -28,6 +29,7 @@ export default function WhiteDaysFastGoalSelection({
   onSave?: (selectedDates: string[]) => void;
   openOnMount?: boolean;
 }) {
+  const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
   const { mutate: upsertFastingGoal, isPending } = useUpsertFastingGoals();
   const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount);
@@ -114,7 +116,11 @@ export default function WhiteDaysFastGoalSelection({
 
           <Text style={styles.valueText}>
             {formatNumber(selectedDates.length)}
-            <Text style={styles.whiteText}> White Days Fasts</Text>
+            <Text style={styles.whiteText}>
+              {t("monthlyGoalPlanner.whiteDaysFastSuffix", {
+                count: selectedDates.length,
+              })}
+            </Text>
           </Text>
 
           <View style={styles.buttonContainer}>

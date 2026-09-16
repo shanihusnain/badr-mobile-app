@@ -287,7 +287,7 @@ export const CalendarGrid = ({
     return false;
   };
 
-  /** Cycle start: block dates before today (or before minDate when provided). */
+  /** Cycle start: block dates before minDate (defaults to today if omitted). */
   const isCycleStartDateDisabled = (ds: string) => {
     if (mode !== "cycle_start") return false;
     const day = moment(ds, "YYYY-MM-DD");

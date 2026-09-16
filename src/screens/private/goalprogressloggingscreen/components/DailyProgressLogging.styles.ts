@@ -318,7 +318,8 @@ export const styles = StyleSheet.create({
     backgroundColor: Colors.light.white,
   },
   prayerIconBoxIdle: {
-    backgroundColor: Colors.light.idlePrayerBox,
+    // Slightly muted vs solid white so idle chips match the design reference.
+    backgroundColor: "rgba(255, 255, 255, 0.35)",
   },
   prayerCheckBadge: {
     width: 14,

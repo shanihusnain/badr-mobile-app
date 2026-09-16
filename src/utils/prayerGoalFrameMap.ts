@@ -34,6 +34,21 @@ export function formatPrayerFrameWeekRange(weekStart: string, weekEnd: string) {
   return `${start.format("MMM D")} — ${end.format("MMM D")}`;
 }
 
+/**
+ * Flow-card titles from the API often include "2-Rak'ah". Strip that so cards
+ * read e.g. "50 Prayers + Witr..." instead of "50 2-Rak'ah Prayers + Witr...".
+ */
+export function formatPrayerGoalFlowCardLabel(label: string): string {
+  if (!label) return label;
+  return label
+    .replace(/\b2[\s-]*[Rr]ak['’]?ahs?\b/g, "")
+    .replace(/\b2[\s-]*[Rr]akahs?\b/g, "")
+    .replace(/\bركعتين\b/g, "")
+    .replace(/\s{2,}/g, " ")
+    .replace(/\s+([,+])/g, " $1")
+    .trim();
+}
+
 /** Prefer calendar date so past empty days are never treated as future. */
 function resolveIsFutureDay(day: PrayerGoalFrameDay): boolean {
   if (day.isToday) return false;

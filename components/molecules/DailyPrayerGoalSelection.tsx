@@ -55,6 +55,7 @@ type Props = {
   ) => void;
   isSaving?: boolean;
   openOnMount?: boolean;
+  onInputFocus?: () => void;
 };
 
 export default function DailyPrayerGoalSelection({
@@ -63,6 +64,7 @@ export default function DailyPrayerGoalSelection({
   initialValues,
   isSaving = false,
   openOnMount = false,
+  onInputFocus,
 }: Props) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
@@ -103,7 +105,7 @@ export default function DailyPrayerGoalSelection({
   const [isha, setIsha] = useState(
     () => initialValues?.isha ?? congregationalAdjustments.prayerDefaults.isha,
   );
-  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount);
+  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount, onInputFocus);
   const [isTrackingCongregation, setIsTrackingCongregation] = useState(
     Boolean(initialValues?.congregationalTracking),
   );
@@ -294,7 +296,7 @@ export default function DailyPrayerGoalSelection({
           <Text style={styles.valueText}>
             {formatNumber(totalPrayers)}
             <Text style={styles.whiteText}>
-              {t("prayerGoals.dailyPrayersSuffix")}
+              {t("prayerGoals.dailyPrayersSuffix", { count: totalPrayers })}
             </Text>
           </Text>
 

@@ -75,8 +75,8 @@ const PrayerItem = React.memo(
     }, [isLocked, isSelected, onSelectPrayer, prayer]);
 
     const isDisabled = isLocked;
-    // White "selected" box only when actively chosen — logged tick alone must
-    // not look selected, or Next stays disabled with no visual feedback.
+    // Only an explicit selection (or logged tick) should stand out. Locked and
+    // unlocked idle slots share the same look so Fajr is never “pre-selected”.
     const showSelectedBox = isSelected;
     const iconColor =
       isSelected || isLogged ? categoryColor : Colors.light.white;
@@ -98,9 +98,12 @@ const PrayerItem = React.memo(
           style={[
             styles.prayerLabel,
             {
-              opacity: isSelected || isLogged ? 1 : isLocked ? 0.35 : 0.8,
+              opacity: isSelected || isLogged ? 1 : 0.75,
             },
           ]}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.7}
         >
           {label.toUpperCase()}
         </Text>
@@ -110,7 +113,6 @@ const PrayerItem = React.memo(
             showSelectedBox
               ? styles.prayerIconBoxSelected
               : styles.prayerIconBoxIdle,
-            isLocked && !isLogged && { opacity: 0.35 },
             {
               borderTopLeftRadius: prayer === "fajr" ? 4 : 0,
               borderBottomLeftRadius: prayer === "fajr" ? 4 : 0,

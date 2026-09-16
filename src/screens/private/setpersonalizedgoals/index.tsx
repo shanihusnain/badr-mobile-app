@@ -75,7 +75,7 @@ export const SetPersonalizedGoalsScreen = () => {
         headerShown: true,
         header: () => (
           <Header
-            title={t("setpersonalizedgoals.tutorial")}
+            title={t("setpersonalizedgoals.intro")}
             onBackPress={() => setActiveFrame(1)}
           />
         ),
@@ -109,71 +109,49 @@ export const SetPersonalizedGoalsScreen = () => {
 
   return (
     <BlackScreenWrapper edges={["bottom", "left", "right"]}>
-      <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{ flexGrow: 1, paddingBottom: 24 }}
-        showsVerticalScrollIndicator={false}
-        bounces={false}
-      >
-        {/* ── Frame 1 sub-header ── */}
-        {activeFrame === 2 && (
-          <>
-            <Text style={globalStyles.onboardingHeading}>
-              {t("setpersonalizedgoals.Setyourperosnalizedgoals")}
-            </Text>
-            <TopSpace top={14} />
-          </>
-        )}
-        <View
-          style={[
-            globalStyles.rowCenter,
-            {
-              marginTop: 14,
-            },
-          ]}
-        >
-          <GreenDash />
-          <Text style={styles.howItWorksText}>
-            {t("setpersonalizedgoals.howItWorks")}
-          </Text>
-        </View>
-        <FrameIndicator total={2} active={activeFrame} />
-        {activeFrame === 1 && (
-          <GoalProgressCard
-            currentDay={28}
-            totalDays={28}
-            lastActiveDays={28}
-            overallProgress={100}
-            animate
-          />
-        )}
-        {activeFrame === 1 && (
-          <>
+      {activeFrame === 1 ? (
+        <>
+          <ScrollView
+            style={{ flex: 1 }}
+            contentContainerStyle={{ flexGrow: 1, paddingBottom: 24 }}
+            showsVerticalScrollIndicator={false}
+            bounces={false}
+          >
+            <View
+              style={[
+                globalStyles.rowCenter,
+                {
+                  marginTop: 14,
+                },
+              ]}
+            >
+              <GreenDash />
+              <Text style={styles.howItWorksText}>
+                {t("setpersonalizedgoals.howItWorks")}
+              </Text>
+            </View>
+            <FrameIndicator total={2} active={activeFrame} />
             <TopSpace top={20} />
             <Text style={styles.descriptionText}>
               {t("setpersonalizedgoals.setPersonalizedDescription")}
             </Text>
-          </>
-        )}
-        {activeFrame === 2 && (
-          <>
-            {console.log("▶️ Rendering tutorial video player")}
-            <TutorialVideoPlayer onSkip={handleSkipTutorial} />
-          </>
-        )}
-      </ScrollView>
-      {activeFrame === 1 && (
-        <View style={{ alignSelf: "center", marginTop: "auto" }}>
-          <Pressable
-            onPress={onWatchTutorialPress}
-            style={{
-              alignSelf: "center",
-            }}
-          >
-            <Text style={globalStyles.greenCTA}>
-              {t("setpersonalizedgoals.watchTutorial")}
-            </Text>
-          </Pressable>
+          </ScrollView>
+          <View style={{ alignSelf: "center", marginTop: "auto" }}>
+            <Pressable
+              onPress={onWatchTutorialPress}
+              style={{
+                alignSelf: "center",
+              }}
+            >
+              <Text style={globalStyles.greenCTA}>
+                {t("setpersonalizedgoals.watchTutorial")}
+              </Text>
+            </Pressable>
+          </View>
+        </>
+      ) : (
+        <View style={styles.introVideoScreen}>
+          <TutorialVideoPlayer onSkip={handleSkipTutorial} />
         </View>
       )}
     </BlackScreenWrapper>

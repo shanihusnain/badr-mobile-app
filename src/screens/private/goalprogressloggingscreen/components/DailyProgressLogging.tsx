@@ -84,7 +84,7 @@ export default function DailyProgressLogging({
   const [flowMode, setFlowMode] = useState<FlowMode>("collapsed");
   const [stepIndex, setStepIndex] = useState(0);
   const [selectedDate, setSelectedDate] = useState(toDateString(new Date()));
-  const [selectedPrayer, setSelectedPrayer] = useState<PrayerName>("fajr");
+  const [selectedPrayer, setSelectedPrayer] = useState<PrayerName | null>(null);
   const [timing, setTiming] = useState<TimingOption>("onTime");
   const [congregation, setCongregation] = useState<CongregationOption>("yes");
   const [startHour, setStartHour] = useState("06");
@@ -121,7 +121,7 @@ export default function DailyProgressLogging({
     setFlowMode("collapsed");
     setStepIndex(0);
     setSelectedDate(toDateString(new Date()));
-    setSelectedPrayer("fajr");
+    setSelectedPrayer(null);
     setTiming("onTime");
     setCongregation("yes");
     setStartHour("06");
@@ -133,7 +133,9 @@ export default function DailyProgressLogging({
   }, []);
   const handleConfirm = () => {
     const entry: ProgressLogEntry = { date: selectedDate };
-    if (steps.includes("prayerSelect")) entry.prayer = selectedPrayer;
+    if (steps.includes("prayerSelect") && selectedPrayer) {
+      entry.prayer = selectedPrayer;
+    }
     if (steps.includes("timing")) entry.timing = timing;
     if (steps.includes("congregation")) entry.congregation = congregation;
     if (steps.includes("startTime")) {
@@ -156,6 +158,7 @@ export default function DailyProgressLogging({
   };
 
   const handleForward = () => {
+    if (currentStep === "prayerSelect" && !selectedPrayer) return;
     if (!isLastStep) setStepIndex((i) => i + 1);
   };
 
@@ -375,7 +378,7 @@ export default function DailyProgressLogging({
           </View>
         ) : (
           <>
-            <Pressable style={styles.backdrop} onPress={resetFlow} />
+            <Pressable style={styles.backdrop} />
 
             <TouchableOpacity
               style={styles.cancelButton}
@@ -392,7 +395,11 @@ export default function DailyProgressLogging({
                 onBack={handleBack}
                 onForward={handleForward}
                 onConfirm={handleConfirm}
-                canGoForward={!isLastStep}
+                canGoForward={
+                  !isLastStep &&
+                  !(currentStep === "prayerSelect" && !selectedPrayer)
+                }
+                canGoBack={stepIndex > 0}
                 styles={styles}
                 style={styles.inPlaceFlowCard}
               >

@@ -27,6 +27,7 @@ export default function QiyamalLaylGoalSelection({
   initialValues,
   isSaving = false,
   openOnMount = false,
+  onInputFocus,
 }: {
   onSave?: (
     value: {
@@ -45,10 +46,11 @@ export default function QiyamalLaylGoalSelection({
   };
   isSaving?: boolean;
   openOnMount?: boolean;
+  onInputFocus?: () => void;
 }) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
-  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount);
+  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount, onInputFocus);
   const [commitment, setCommitment] = useState<"every_night" | "flexible">(
     initialValues?.isFlexible ? "flexible" : "every_night",
   );

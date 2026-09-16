@@ -20,7 +20,7 @@ import {
 import { Colors } from "@/constants/theme";
 import { getResolvedGoalById, GoalId } from "../home/components/goalsData";
 import { styles } from "./styles";
-import { useNavigation } from "expo-router";
+import { router, useNavigation } from "expo-router";
 import { HeaderWithCrossTitleDynamicIcon } from "@/components/atoms/HeaderWithCrossTitleDynamicIcon";
 import { useTranslation } from "react-i18next";
 import { LoggingFlowSlot } from "./components/LoggingFlowSlot";
@@ -50,13 +50,17 @@ import {
   QuranGoalFrameProvider,
   useOptionalQuranGoalFrameContext,
 } from "./quranGoalFrameContext";
-import { getPrayerFrameRingGoalCountLabel } from "@/src/utils/prayerGoalFrameMap";
+import {
+  formatPrayerGoalFlowCardLabel,
+  getPrayerFrameRingGoalCountLabel,
+} from "@/src/utils/prayerGoalFrameMap";
 import {
   getQuranFrameRingGoalCountLabel,
   getQuranFrameGoalTitle,
   getQuranFrameMemorisationRingLabel,
 } from "@/src/utils/quranGoalFrameMap";
 import { resolvePrayerTypeFromGoalId } from "@/src/utils/prayerGoalMap";
+import { resolveGoalDescriptionParamFromLoggingGoalId } from "@/src/utils/goalDescriptionMap";
 import { isQuranHoursGoalId } from "./types";
 import { resolveQuranTypeFromGoalId } from "@/src/utils/quranGoalMap";
 import BottomSheet from "@gorhom/bottom-sheet";
@@ -163,19 +167,21 @@ function GoalProgressLoggingBody({
   onDropdownOpenChange,
   weeklyRefreshKey,
   setWeeklyRefreshKey,
-  onHeroExtentChange,
+  backgroundSource,
 }: {
   goalData: NonNullable<ReturnType<typeof getResolvedGoalById>>;
   goalId: GoalId;
   onDropdownOpenChange?: (open: boolean) => void;
   weeklyRefreshKey: number;
   setWeeklyRefreshKey: React.Dispatch<React.SetStateAction<number>>;
-  /** Height of ring + logging card (parent adds header for full hero). */
-  onHeroExtentChange?: (height: number) => void;
+  backgroundSource?: ImageSourcePropType;
 }) {
   const { t } = useTranslation();
   const [weekViewPercent, setWeekViewPercent] = useState<number | null>(null);
   const template = getLoggingFlowTemplate(goalId);
+  const hasHeroBackground = backgroundSource != null;
+  const needsHeroDarkScrim = template === "missed-prayers";
+  const [heroBottom, setHeroBottom] = useState(0);
   const prayerFrame = useOptionalPrayerGoalFrameContext();
   const quranFrame = useOptionalQuranGoalFrameContext();
   const isQiyamTemplate = template === "qiyam-al-layl";
@@ -237,9 +243,11 @@ function GoalProgressLoggingBody({
   const percentageNum = frameLoading
     ? "---"
     : displayPercentage.replace("%", "");
-  const frameGoalLabel =
-    prayerFrame?.frame?.goal.label ??
-    (quranFrame?.frame ? getQuranFrameGoalTitle(quranFrame.frame) : undefined);
+  const frameGoalLabel = prayerFrame?.frame?.goal.label
+    ? formatPrayerGoalFlowCardLabel(prayerFrame.frame.goal.label)
+    : quranFrame?.frame
+      ? getQuranFrameGoalTitle(quranFrame.frame)
+      : undefined;
   const cleanLabel = frameGoalLabel
     ? frameGoalLabel
     : liveGoalData.target
@@ -283,18 +291,27 @@ function GoalProgressLoggingBody({
 
   return (
     <>
-      {/* Hero measure: ring + logging card only — weekly sits on solid bg. */}
-      <View
-        style={styles.scrollForeground}
-        collapsable={false}
-        onLayout={
-          onHeroExtentChange
-            ? (event) => {
-                onHeroExtentChange(event.nativeEvent.layout.height);
-              }
-            : undefined
-        }
-      >
+      {hasHeroBackground && backgroundSource ? (
+        <View
+          style={[
+            styles.heroBackground,
+            heroBottom > 0 ? { height: heroBottom } : undefined,
+          ]}
+          pointerEvents="none"
+          collapsable={false}
+        >
+          <Image
+            source={backgroundSource}
+            style={styles.heroBackgroundImage}
+            resizeMode="cover"
+          />
+          {needsHeroDarkScrim ? (
+            <View style={styles.heroBackgroundScrim} pointerEvents="none" />
+          ) : null}
+        </View>
+      ) : null}
+
+      <View style={styles.scrollForeground} collapsable={false}>
         <View style={styles.goalInfoContainer}>
           <TaperedCircleBorder
             percentage={displayPercentage}
@@ -341,7 +358,17 @@ function GoalProgressLoggingBody({
       </View>
 
       <TopSpace top={10} />
-      <View style={styles.weeklyDashboardWrapper}>
+      <View
+        style={styles.weeklyDashboardWrapper}
+        onLayout={
+          hasHeroBackground
+            ? (event) => {
+                const { y, height } = event.nativeEvent.layout;
+                setHeroBottom(y + height);
+              }
+            : undefined
+        }
+      >
         <WeeklyProgressSection
           goalData={liveGoalData}
           refreshKey={weeklyRefreshKey}
@@ -409,14 +436,14 @@ function GoalProgressLoggingContent({
   onDropdownOpenChange,
   weeklyRefreshKey,
   setWeeklyRefreshKey,
-  onHeroExtentChange,
+  backgroundSource,
 }: {
   goalData: NonNullable<ReturnType<typeof getResolvedGoalById>>;
   goalId: GoalId;
   onDropdownOpenChange?: (open: boolean) => void;
   weeklyRefreshKey: number;
   setWeeklyRefreshKey: React.Dispatch<React.SetStateAction<number>>;
-  onHeroExtentChange?: (height: number) => void;
+  backgroundSource?: ImageSourcePropType;
 }) {
   const template = getLoggingFlowTemplate(goalId);
   const isSurahMemorisation =
@@ -435,7 +462,7 @@ function GoalProgressLoggingContent({
       onDropdownOpenChange={onDropdownOpenChange}
       weeklyRefreshKey={weeklyRefreshKey}
       setWeeklyRefreshKey={setWeeklyRefreshKey}
-      onHeroExtentChange={onHeroExtentChange}
+      backgroundSource={backgroundSource}
     />
   );
 
@@ -486,13 +513,6 @@ export const GoalProgressLoggingScreen = ({
   const template = getLoggingFlowTemplate(goalId);
   const backgroundSource = getLoggingBackgroundSource(goalId, template);
   const shouldUseBackground = backgroundSource != null;
-  const needsHeroDarkScrim = template === "missed-prayers";
-  const [headerHeight, setHeaderHeight] = useState(0);
-  const [heroContentHeight, setHeroContentHeight] = useState(0);
-  const heroBottom =
-    shouldUseBackground && headerHeight + heroContentHeight > 0
-      ? headerHeight + heroContentHeight
-      : 0;
   const insets = useSafeAreaInsets();
   const supportsDeletePrayerOptions =
     prayerType === "FIVE_DAILY_PRAYERS" || prayerType === "SUNNAH_RAWATIB";
@@ -505,6 +525,17 @@ export const GoalProgressLoggingScreen = ({
     pendingInsightsOpenRef.current = true;
     setInsightsSheetMounted(true);
   }, [insightsSheetMounted]);
+
+  const goalDescriptionParam =
+    resolveGoalDescriptionParamFromLoggingGoalId(goalId);
+
+  const openGoalDescription = useCallback(() => {
+    if (!goalDescriptionParam) return;
+    router.push({
+      pathname: "/(private)/goaldescriptiondetails/[goal]",
+      params: { goal: goalDescriptionParam },
+    });
+  }, [goalDescriptionParam]);
 
   useLayoutEffect(() => {
     if (!insightsSheetMounted || !pendingInsightsOpenRef.current) return;
@@ -580,22 +611,6 @@ export const GoalProgressLoggingScreen = ({
 
   const screenShell = (
     <View style={styles.container}>
-      {shouldUseBackground && backgroundSource && heroBottom > 0 ? (
-        <View
-          style={[styles.heroBackgroundFixed, { height: heroBottom }]}
-          pointerEvents="none"
-          collapsable={false}
-        >
-          <Image
-            source={backgroundSource}
-            style={styles.heroBackgroundImage}
-            resizeMode="cover"
-          />
-          {needsHeroDarkScrim ? (
-            <View style={styles.heroBackgroundScrim} pointerEvents="none" />
-          ) : null}
-        </View>
-      ) : null}
       <ScrollView
         style={[
           styles.scrollView,
@@ -612,46 +627,43 @@ export const GoalProgressLoggingScreen = ({
         bounces={false}
         removeClippedSubviews={false}
       >
-        {shouldUseBackground ? (
-          <View
-            style={[
-              styles.scrollHeader,
-              { paddingTop: Platform.OS === "ios" ? insets.top - 40 : 0 },
-            ]}
-            pointerEvents="box-none"
-            onLayout={(event) => {
-              setHeaderHeight(event.nativeEvent.layout.height);
-            }}
-          >
-            <HeaderWithCrossTitleDynamicIcon
-              title={
-                isSurahRecitationGoalId(goalId)
-                  ? "QURAN RECITATION BY SURAH"
-                  : (goalData.title?.toUpperCase() ??
-                    goalData.label.toUpperCase())
-              }
-              navigation={navigation}
-              bgcolor="transparent"
-              iconName="chevron-left"
-              leftButtonBackground="rgba(255,255,255,0.08)"
-              onBackPress={handleHeaderBack}
-              rightIcon={<HeaderInfoIcon />}
-              onRightPress={
-                prayerType || quranHoursType ? openInsightsSheet : undefined
-              }
-            />
-          </View>
-        ) : null}
-        <GoalProgressLoggingContent
-          goalData={goalData}
-          goalId={goalId}
-          onDropdownOpenChange={(open) => setScreenScrollEnabled(!open)}
-          weeklyRefreshKey={weeklyRefreshKey}
-          setWeeklyRefreshKey={setWeeklyRefreshKey}
-          onHeroExtentChange={
-            shouldUseBackground ? setHeroContentHeight : undefined
-          }
-        />
+        <View style={styles.heroScrollScope}>
+          {shouldUseBackground ? (
+            <View
+              style={[
+                styles.scrollHeader,
+                { paddingTop: Platform.OS === "ios" ? insets.top - 40 : 0 },
+              ]}
+              pointerEvents="box-none"
+            >
+              <HeaderWithCrossTitleDynamicIcon
+                title={
+                  isSurahRecitationGoalId(goalId)
+                    ? "QURAN RECITATION BY SURAH"
+                    : (goalData.title?.toUpperCase() ??
+                      goalData.label.toUpperCase())
+                }
+                navigation={navigation}
+                bgcolor="transparent"
+                iconName="chevron-left"
+                leftButtonBackground="rgba(255,255,255,0.08)"
+                onBackPress={handleHeaderBack}
+                rightIcon={<HeaderInfoIcon />}
+                onRightPress={
+                  goalDescriptionParam ? openGoalDescription : undefined
+                }
+              />
+            </View>
+          ) : null}
+          <GoalProgressLoggingContent
+            goalData={goalData}
+            goalId={goalId}
+            onDropdownOpenChange={(open) => setScreenScrollEnabled(!open)}
+            weeklyRefreshKey={weeklyRefreshKey}
+            setWeeklyRefreshKey={setWeeklyRefreshKey}
+            backgroundSource={backgroundSource}
+          />
+        </View>
       </ScrollView>
       {insightsSheetMounted && prayerType ? (
         <InformationSheet

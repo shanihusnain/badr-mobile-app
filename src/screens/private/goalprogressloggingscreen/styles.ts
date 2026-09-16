@@ -37,8 +37,12 @@ export const styles = StyleSheet.create({
     marginTop: 0,
     paddingTop: 0,
   },
-  /** Sibling behind ScrollView — never inside it (MIUI touch freeze). */
-  heroBackgroundFixed: {
+  /** Positions the scrollable hero image relative to header + body. */
+  heroScrollScope: {
+    position: "relative",
+  },
+  /** Scrolls with content; height ends at weekly dashboard bottom. */
+  heroBackground: {
     position: "absolute",
     top: 0,
     left: 0,

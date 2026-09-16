@@ -54,6 +54,8 @@ export type QuranRecitationGoalSelectionProps = {
   /** Disable parent bottom-sheet scroll while the nested metric list is scrolling. */
   onNestedScrollActiveChange?: (active: boolean) => void;
   isSaving?: boolean;
+  /** Scroll parent list so metric inputs stay visible above the keyboard. */
+  onInputFocus?: () => void;
 };
 
 export const QuranRecitationGoalSelection = ({
@@ -70,9 +72,13 @@ export const QuranRecitationGoalSelection = ({
   isReferenceLoading = false,
   onNestedScrollActiveChange,
   isSaving = false,
+  onInputFocus,
 }: QuranRecitationGoalSelectionProps) => {
   const { t } = useTranslation();
-  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount);
+  const [isOpen, setIsOpen] = useGoalSelectionOpenState(
+    openOnMount,
+    onInputFocus,
+  );
   const handleToggleDropdown = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setIsOpen(!isOpen);
@@ -369,6 +375,7 @@ export const QuranRecitationGoalSelection = ({
                   onNestedScrollActiveChange={
                     isActiveMetric ? onNestedScrollActiveChange : undefined
                   }
+                  onInputFocus={isActiveMetric ? onInputFocus : undefined}
                 />
               );
             })}

@@ -27,6 +27,7 @@ import { useGetMe } from "@/src/api/queries/useGetMe";
 import { getQiyamInitial } from "@/src/utils/prayerGoalMap";
 import { useOptionalPrayerGoalFrameContext } from "../prayerGoalFrameContext";
 import {
+  formatPrayerGoalFlowCardLabel,
   getPrayerFrameAchievementLabel,
   prayerFrameShowsInsights,
 } from "@/src/utils/prayerGoalFrameMap";
@@ -450,7 +451,7 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
     ? toCalendarDate(frame.cycle.cycleEnd)
     : undefined;
 
-  const goalLabel = frame?.goal.label ?? "---";
+  const goalLabel = formatPrayerGoalFlowCardLabel(frame?.goal.label ?? "---");
   const summaryTitle = goalLabel !== "---" ? goalLabel : mockTitleFallback();
 
   function mockTitleFallback() {
@@ -464,7 +465,7 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
       return `${unitTarget}${rakahLabel}${t("prayerGoals.plusWitrFlexible")}`;
     }
 
-    return `${unitTarget} 2-Rak'ah Prayers + ${qiyamGoalConfig.witrTarget || 28} Witr`;
+    return `${unitTarget}${rakahLabel} + ${qiyamGoalConfig.witrTarget || 28} Witr`;
   }
 
   const badgeStatus = useMemo(() => {
@@ -867,7 +868,7 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
   return (
     <>
       {flowMode === "active" && (
-        <Pressable style={commonStyles.backdrop} onPress={resetFlow} />
+        <Pressable style={commonStyles.backdrop} />
       )}
       {flowMode === "active" && (
         <TouchableOpacity

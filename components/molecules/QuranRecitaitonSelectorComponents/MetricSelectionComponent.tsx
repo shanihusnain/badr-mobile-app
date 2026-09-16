@@ -10,9 +10,9 @@ import {
   StyleSheet,
   Text,
   View,
-  TextInput,
 } from "react-native";
 import { FlatList } from "react-native-gesture-handler";
+import { BottomSheetTextInput } from "@gorhom/bottom-sheet";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTranslation } from "react-i18next";
@@ -62,6 +62,7 @@ export const MetricSelectionComponent = ({
   markCleanNonce = 0,
   onNestedScrollActiveChange,
   isSaved = false,
+  onInputFocus,
 }: {
   item: {
     id: number;
@@ -99,6 +100,8 @@ export const MetricSelectionComponent = ({
   onNestedScrollActiveChange?: (active: boolean) => void;
   /** True when this metric has been successfully saved (persists after collapsing). */
   isSaved?: boolean;
+  /** Scroll parent list so this input stays visible above the keyboard. */
+  onInputFocus?: () => void;
 }) => {
   const { t } = useTranslation();
   const isMemorizationSurah =
@@ -116,6 +119,7 @@ export const MetricSelectionComponent = ({
   const hizbData = hizbOptions ?? EMPTY_HIZBS;
   const juzData = juzOptions ?? EMPTY_JUZS;
   const hydratedForTypeRef = useRef<string | null>(null);
+  const surahListRef = useRef<FlatList>(null);
   const onMetricChangeRef = useRef(onMetricChange);
   onMetricChangeRef.current = onMetricChange;
   const onDirtyChangeRef = useRef(onDirtyChange);
@@ -894,6 +898,7 @@ export const MetricSelectionComponent = ({
             onTouchCancel={() => onNestedScrollActiveChange?.(false)}
           >
             <FlatList
+              ref={surahListRef}
               data={surahData}
               keyExtractor={(s) => s.id.toString()}
               style={styles.metricOptionsListInner}
@@ -902,11 +907,18 @@ export const MetricSelectionComponent = ({
               removeClippedSubviews={false}
               showsVerticalScrollIndicator
               keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="none"
               bounces
+              onScrollToIndexFailed={({ index }) => {
+                surahListRef.current?.scrollToOffset({
+                  offset: Math.max(0, index * 120),
+                  animated: true,
+                });
+              }}
               ListEmptyComponent={
                 <Text style={styles.emptyOptionsText}>No surahs available</Text>
               }
-              renderItem={({ item: s }) => {
+              renderItem={({ item: s, index: surahIndex }) => {
                 const checked = selectedSurahs.includes(s.id);
                 const setting = surahSettings[s.id] || {
                   frequency: "daily",
@@ -1053,7 +1065,7 @@ export const MetricSelectionComponent = ({
 
                         <TopSpace top={8} />
                         <View style={styles.surahTimesInputRow}>
-                          <TextInput
+                          <BottomSheetTextInput
                             value={String(timesValue)}
                             onChangeText={(v) => {
                               const n = parseInt(v || "0", 10);
@@ -1063,9 +1075,27 @@ export const MetricSelectionComponent = ({
                               updateSurahSetting(s.id, { times: clamped });
                             }}
                             keyboardType="numeric"
-                            onFocus={() =>
-                              setInputFocused(`surah-${s.id}`, true)
-                            }
+                            onFocus={() => {
+                              setInputFocused(`surah-${s.id}`, true);
+                              // Parent sheet scroll is disabled while touching this
+                              // nested list — turn it back on, then scroll both lists.
+                              onNestedScrollActiveChange?.(false);
+                              onInputFocus?.();
+                              requestAnimationFrame(() => {
+                                try {
+                                  surahListRef.current?.scrollToIndex({
+                                    index: surahIndex,
+                                    animated: true,
+                                    viewPosition: 0.15,
+                                  });
+                                } catch {
+                                  surahListRef.current?.scrollToOffset({
+                                    offset: Math.max(0, surahIndex * 120),
+                                    animated: true,
+                                  });
+                                }
+                              });
+                            }}
                             onBlur={() =>
                               setInputFocused(`surah-${s.id}`, false)
                             }
@@ -1261,7 +1291,7 @@ export const MetricSelectionComponent = ({
               >
                 {t("monthlyGoalPlanner.quranMetrics.fromJuz")}
               </Text>
-              <TextInput
+              <BottomSheetTextInput
                 value={String(juzStart)}
                 onChangeText={(v) => {
                   if (v === "") {
@@ -1285,7 +1315,11 @@ export const MetricSelectionComponent = ({
                 }}
                 keyboardType="numeric"
                 maxLength={2}
-                onFocus={() => setInputFocused("juz-start", true)}
+                onFocus={() => {
+                  setInputFocused("juz-start", true);
+                  onNestedScrollActiveChange?.(false);
+                  onInputFocus?.();
+                }}
                 onBlur={() => {
                   setInputFocused("juz-start", false);
                   enforceJuzStart(String(juzStart));
@@ -1308,14 +1342,18 @@ export const MetricSelectionComponent = ({
               >
                 {t("monthlyGoalPlanner.quranMetrics.toJuz")}
               </Text>
-              <TextInput
+              <BottomSheetTextInput
                 value={
                   focusedInputs["juz-end"] ? juzEndText : juzEndText || "0"
                 }
                 onChangeText={handleJuzEndChange}
                 keyboardType="numeric"
                 maxLength={2}
-                onFocus={() => setInputFocused("juz-end", true)}
+                onFocus={() => {
+                  setInputFocused("juz-end", true);
+                  onNestedScrollActiveChange?.(false);
+                  onInputFocus?.();
+                }}
                 onBlur={() => {
                   setInputFocused("juz-end", false);
                   enforceJuzEnd();
@@ -1347,10 +1385,12 @@ export const MetricSelectionComponent = ({
                   displayJuzEnd === undefined
                 )
                   return t("monthlyGoalPlanner.quranMetrics.totalJuz", {
-                    total: 0,
+                    count: 0,
                   });
                 const total = Math.max(0, displayJuzEnd - displayJuzStart + 1);
-                return t("monthlyGoalPlanner.quranMetrics.totalJuz", { total });
+                return t("monthlyGoalPlanner.quranMetrics.totalJuz", {
+                  count: total,
+                });
               })()}
             </Text>
             <TopSpace top={16} />
@@ -1405,7 +1445,7 @@ export const MetricSelectionComponent = ({
                 alignSelf: "center",
               }}
             >
-              <TextInput
+              <BottomSheetTextInput
                 value={String(quranCompletion)}
                 onChangeText={(v) => {
                   const n = parseInt(v || "0", 10);
@@ -1415,7 +1455,11 @@ export const MetricSelectionComponent = ({
                   setQuranCompletion(clamped);
                 }}
                 keyboardType="numeric"
-                onFocus={() => setInputFocused(`completion`, true)}
+                onFocus={() => {
+                  setInputFocused(`completion`, true);
+                  onNestedScrollActiveChange?.(false);
+                  onInputFocus?.();
+                }}
                 onBlur={() => setInputFocused(`completion`, false)}
                 textAlignVertical="center"
                 style={[
@@ -1435,7 +1479,9 @@ export const MetricSelectionComponent = ({
                   lineHeight: 20,
                 }}
               >
-                {t("monthlyGoalPlanner.quranMetrics.fullCompletions")}
+                {t("monthlyGoalPlanner.quranMetrics.fullCompletions", {
+                  count: quranCompletion || 0,
+                })}
               </Text>
             </View>
             <TopSpace top={16} />

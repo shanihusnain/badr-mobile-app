@@ -44,6 +44,7 @@ import {
 } from "@/src/api/queries/useGetPrayerGoalFrame";
 import { resolvePrayerTypeFromGoalId } from "@/src/utils/prayerGoalMap";
 import {
+  formatPrayerGoalFlowCardLabel,
   getPrayerFrameAchievementLabel,
   prayerFrameShowsInsights,
 } from "@/src/utils/prayerGoalFrameMap";
@@ -201,7 +202,7 @@ export default function MissedPrayersLoggingFlow({
   const isCompleted = (frame?.goal.achievementPct ?? 0) >= 100;
   const showInsights = frame ? prayerFrameShowsInsights(frame) : false;
 
-  const rawGoalLabel = frame?.goal.label ?? "---";
+  const rawGoalLabel = formatPrayerGoalFlowCardLabel(frame?.goal.label ?? "---");
   const totalPrayersRequired = frame?.goal.targetCount;
   const goalLabel =
     rawGoalLabel.replace(/\s*\(total\s+\d+\s+prayers?\)\s*/i, "").trim() ||
@@ -481,7 +482,7 @@ export default function MissedPrayersLoggingFlow({
   return (
     <>
       {flowMode === "active" && (
-        <Pressable style={commonStyles.backdrop} onPress={resetFlow} />
+        <Pressable style={commonStyles.backdrop} />
       )}
       {flowMode === "active" && (
         <TouchableOpacity

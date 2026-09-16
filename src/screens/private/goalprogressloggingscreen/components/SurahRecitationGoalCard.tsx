@@ -122,7 +122,7 @@ export function SurahRecitationGoalCard({
     >
       <View style={surahGoalStyles.cardAnchor}>
         {isFlowActive && (
-          <Pressable style={styles.backdrop} onPress={onFlowClose} />
+          <Pressable style={styles.backdrop} />
         )}
         {isFlowActive && (
           <TouchableOpacity

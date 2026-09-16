@@ -21,6 +21,7 @@ import {
 import { useUpsertFastingGoals } from "@/src/api/mutations/useUpsertFastingGoals";
 import { showToast } from "@/src/config/toastConfig";
 import { TopSpace } from "../atoms/TopSpace";
+import { useTranslation } from "react-i18next";
 
 export default function MissedRamadanFastGoalSelection({
   calendarWindow,
@@ -31,6 +32,7 @@ export default function MissedRamadanFastGoalSelection({
   onSave?: (selectedDates: string[]) => void;
   openOnMount?: boolean;
 }) {
+  const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
   const { mutate: upsertFastingGoal, isPending } = useUpsertFastingGoals();
   const [selectedDates, setSelectedDates] = useState<string[]>(
@@ -151,7 +153,11 @@ export default function MissedRamadanFastGoalSelection({
 
           <Text style={styles.valueText}>
             {formatNumber(selectedDates.length)}
-            <Text style={styles.whiteText}> Missed Ramadan Fasts</Text>
+            <Text style={styles.whiteText}>
+              {t("monthlyGoalPlanner.missedRamadanFastSuffix", {
+                count: selectedDates.length,
+              })}
+            </Text>
           </Text>
 
           <View style={styles.buttonContainer}>

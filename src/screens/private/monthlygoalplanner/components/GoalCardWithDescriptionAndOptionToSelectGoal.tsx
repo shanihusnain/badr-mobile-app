@@ -57,8 +57,8 @@ export const GoalCardWithDescriptionAndOptionToSelectGoal = ({
     }, 50);
   };
 
-  const displayTitle = isLoading ? "-" : title;
-  const displayDescription = isLoading ? "----" : description;
+  const displayTitle = isLoading ? "" : title;
+  const displayDescription = isLoading ? "" : description;
 
   return (
     <View style={styles.conatiner}>
