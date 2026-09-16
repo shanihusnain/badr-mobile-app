@@ -145,6 +145,7 @@ import {
   extractCurrencyCode,
 } from "@/src/utils/sadaqahGoalMap";
 import { currencyOptionFromCode } from "@/components/molecules/CurrencyAndAmountSelector";
+import { useGetCurrencies } from "@/src/api/queries/useGetCountries";
 import { buildFastingCalendarWindow } from "@/src/utils/fastingCalendarPreview";
 import { showToast } from "@/src/config/toastConfig";
 
@@ -204,6 +205,16 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
     const { t } = useTranslation();
     const insets = useSafeAreaInsets();
     const { height: windowHeight } = useWindowDimensions();
+    const { data: apiCurrencies } = useGetCurrencies();
+    const sadaqahCurrencyOptions = useMemo(() => {
+      if (apiCurrencies?.length) {
+        return apiCurrencies.map((item) => ({
+          label: item.label,
+          value: item.value,
+        }));
+      }
+      return undefined;
+    }, [apiCurrencies]);
     const [activeTab, setActiveTab] = useState<Tab>(initialTab ?? "cycle");
     const [cycleStartDate, setCycleStartDate] = useState<string | null>(null);
     const [cycleEndDate, setCycleEndDate] = useState<string | null>(null);
@@ -1617,7 +1628,10 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         if (!currencyCode) return;
         const current = getValues(field);
         if (current && String(current).trim().length > 0) return;
-        const option = currencyOptionFromCode(currencyCode);
+        const option = currencyOptionFromCode(
+          currencyCode,
+          sadaqahCurrencyOptions,
+        );
         if (!option) return;
         setValue(field, option, {
           shouldDirty: false,
@@ -1682,6 +1696,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
       goalCycleId,
       getValues,
       setValue,
+      sadaqahCurrencyOptions,
     ]);
 
     const applyDefaultSadaqahCurrency = useCallback(

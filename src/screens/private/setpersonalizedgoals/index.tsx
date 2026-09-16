@@ -112,8 +112,8 @@ export const SetPersonalizedGoalsScreen = () => {
       {activeFrame === 1 ? (
         <>
           <ScrollView
-            style={{ flex: 1 }}
-            contentContainerStyle={{ flexGrow: 1, paddingBottom: 24 }}
+            style={{}}
+            contentContainerStyle={{}}
             showsVerticalScrollIndicator={false}
             bounces={false}
           >
@@ -131,23 +131,37 @@ export const SetPersonalizedGoalsScreen = () => {
               </Text>
             </View>
             <FrameIndicator total={2} active={activeFrame} />
+            {activeFrame === 1 && (
+              <GoalProgressCard
+                currentDay={28}
+                totalDays={28}
+                lastActiveDays={28}
+                overallProgress={100}
+                animate
+              />
+            )}
             <TopSpace top={20} />
             <Text style={styles.descriptionText}>
               {t("setpersonalizedgoals.setPersonalizedDescription")}
             </Text>
-          </ScrollView>
-          <View style={{ alignSelf: "center", marginTop: "auto" }}>
-            <Pressable
-              onPress={onWatchTutorialPress}
+            <View
               style={{
                 alignSelf: "center",
+                marginTop: 40,
               }}
             >
-              <Text style={globalStyles.greenCTA}>
-                {t("setpersonalizedgoals.watchTutorial")}
-              </Text>
-            </Pressable>
-          </View>
+              <Pressable
+                onPress={onWatchTutorialPress}
+                style={{
+                  alignSelf: "center",
+                }}
+              >
+                <Text style={globalStyles.greenCTA}>
+                  {t("setpersonalizedgoals.watchTutorial")}
+                </Text>
+              </Pressable>
+            </View>
+          </ScrollView>
         </>
       ) : (
         <View style={styles.introVideoScreen}>

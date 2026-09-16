@@ -152,6 +152,7 @@ import { AsrFardPrayerIcon } from "./AsrFardPrayerIcon";
 import { MaghrebFardPrayerIcon } from "./MaghrebFardParyerIcon";
 import { IshaFardPrayerIcon } from "./IshaFardPrayerIcon";
 import { MissedPastPrayerCalenderIcon } from "./MissedPastPrayerCalenderIcon";
+import { MagnifyingGlassIcon } from "./MagnifyingGlassICon";
 //N
 import { NotificationIcon } from "./NotificationIcon";
 import { NegativeProgressIcon } from "./NegativeProgressIcon";
@@ -505,4 +506,5 @@ export {
   QiyamBothIshaAnadTahajudInsightIcon,
   QiyamAlLaylWitrInsightCardIcon,
   WitrUpIcon,
+  MagnifyingGlassIcon,
 };

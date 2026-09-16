@@ -1,12 +1,14 @@
 import { Colors } from "@/constants/theme";
 import { StyleSheet, View } from "react-native";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import CustomDropdown from "../atoms/CustomDropdown";
 import WarningModal from "../atoms/WarningModal";
 import { fonts } from "@/assets/fonts";
 import { setDefaultSadaqahCurrency } from "@/src/storage/sadaqahCurrencyStorage";
 import { useTranslation } from "react-i18next";
+import { useGetCurrencies } from "@/src/api/queries/useGetCountries";
 
+/** Offline / API-failure fallback — keep previous sadaqah shortlist. */
 export const SADAQAH_CURRENCY_OPTIONS = [
   {
     label: "🇸🇦 SAR – Saudi Riyal (ر.س)",
@@ -60,12 +62,15 @@ export const SADAQAH_CURRENCY_OPTIONS = [
 /** Map ISO code (e.g. "SAR") to the dropdown option value string. */
 export function currencyOptionFromCode(
   code: string | null | undefined,
+  options?: readonly { value: string }[] | null,
   fallbackCode = "",
 ): string {
   if (!code && !fallbackCode) return "";
   const normalized = (code || fallbackCode).trim().toUpperCase();
   if (!/^[A-Z]{3}$/.test(normalized)) return "";
-  const match = SADAQAH_CURRENCY_OPTIONS.find((opt) => {
+  const list =
+    options && options.length > 0 ? options : SADAQAH_CURRENCY_OPTIONS;
+  const match = list.find((opt) => {
     const found = opt.value.match(/\b([A-Z]{3})\b/);
     return found?.[1] === normalized;
   });
@@ -83,9 +88,20 @@ export const CurrencyAndAmountSelector = ({
   onSetAsDefaultCurrency?: (currencyOptionValue: string) => void;
 }) => {
   const { t } = useTranslation();
+  const { data: apiCurrencies } = useGetCurrencies();
   const [defaultCurrencyModalVisible, setDefaultCurrencyModalVisible] =
     useState(false);
   const [pendingCurrency, setPendingCurrency] = useState<string | null>(null);
+
+  const currencyOptions = useMemo(() => {
+    if (apiCurrencies?.length) {
+      return apiCurrencies.map((item) => ({
+        label: item.label,
+        value: item.value,
+      }));
+    }
+    return [...SADAQAH_CURRENCY_OPTIONS];
+  }, [apiCurrencies]);
 
   const closeDefaultCurrencyModal = () => {
     setDefaultCurrencyModalVisible(false);
@@ -113,7 +129,7 @@ export const CurrencyAndAmountSelector = ({
           control={control}
           name={name}
           label=""
-          options={[...SADAQAH_CURRENCY_OPTIONS]}
+          options={currencyOptions}
           onSelect={(option) => {
             const value = typeof option === "string" ? option : String(option);
             if (!value) return;
@@ -125,6 +141,9 @@ export const CurrencyAndAmountSelector = ({
           menuStyle={styles.menuStyle}
           borderColor={Colors.light.white}
           placeholder={t("monthlyGoalPlanner.selectCurrency")}
+          searchable
+          searchPlaceholder={t("monthlyGoalPlanner.currencySearchPlaceholder")}
+          emptySearchText={t("monthlyGoalPlanner.currencySearchEmpty")}
         />
       </View>
 

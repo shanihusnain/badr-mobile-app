@@ -10,7 +10,14 @@ import {
 } from "expo-video";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  Dimensions,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
 /** Bundled scenic placeholder (CC0 nature clip) until the real tutorial is wired. */
 const PLACEHOLDER_VIDEO_SOURCE: VideoSource = require("@/assets/videos/tutorial-scenery.mp4");
@@ -24,7 +31,10 @@ const SCREEN_SIDE_INSET = 8;
 const { width: WINDOW_WIDTH, height: WINDOW_HEIGHT } = Dimensions.get("window");
 const PLAYER_WIDTH = WINDOW_WIDTH - SCREEN_SIDE_INSET * 2;
 /** Tall portrait player — matches intro screen Figma. */
-const PLAYER_HEIGHT = Math.round(WINDOW_HEIGHT * 0.84);
+const PLAYER_HEIGHT =
+  Platform.OS === "android"
+    ? Math.round(WINDOW_HEIGHT * 0.84)
+    : Math.round(WINDOW_HEIGHT * 0.74);
 
 interface TutorialVideoPlayerProps {
   videoUrl?: string;

@@ -495,11 +495,12 @@ export default function SunnahRawatibLoggingFlow({
   ]);
 
   /**
-   * Count step only on the first user log for a dual-capacity slot
-   * (target ≥ 2, user logged 0). Auto-qadha alone still shows the count step.
+   * Count step only for dual-capacity slots the user can choose 1|2 on
+   * (after Dhuhr / before Asr). Before Dhuhr is always 2 — skip the question.
    */
   const requiresPrayerCountStep = useMemo(() => {
     if (!selectedPrayer) return false;
+    if (selectedPrayer === "before_dhuhr") return false;
     const target =
       slotTargetsForSelectedDate[selectedPrayer] ??
       getSlotTargetCount(selectedPrayer);

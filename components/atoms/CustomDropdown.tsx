@@ -1,11 +1,12 @@
 import { fonts } from "@/assets/fonts";
-import { DownArrowIcon } from "@/assets/icons";
+import { DownArrowIcon, MagnifyingGlassIcon } from "@/assets/icons";
 import { Colors } from "@/constants/theme";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Controller } from "react-hook-form";
 import {
   StyleSheet,
   Text,
+  TextInput,
   TextStyle,
   TouchableOpacity,
   View,
@@ -37,6 +38,10 @@ interface CustomDropdownProps {
   value?: string | number;
   onSelect?: (value: any) => void;
   borderColor?: string;
+  /** Shows a search field inside the open menu. */
+  searchable?: boolean;
+  searchPlaceholder?: string;
+  emptySearchText?: string;
 }
 
 const CustomDropdown: React.FC<CustomDropdownProps> = ({
@@ -55,8 +60,12 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
   value: controlledValue,
   onSelect,
   borderColor,
+  searchable = false,
+  searchPlaceholder = "Search...",
+  emptySearchText = "No results found",
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedValue, setSelectedValue] = useState<
     string | number | undefined
   >(controlledValue);
@@ -67,6 +76,23 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
     }
   }, [controlledValue]);
 
+  useEffect(() => {
+    if (!isOpen) setSearchQuery("");
+  }, [isOpen]);
+
+  const filteredOptions = useMemo(() => {
+    if (!searchable || !searchQuery.trim()) return options;
+    const query = searchQuery.trim().toLowerCase();
+    return options.filter((item) => {
+      const label = typeof item === "string" ? item : item.label;
+      const value = typeof item === "string" ? item : String(item.value);
+      return (
+        label.toLowerCase().includes(query) ||
+        value.toLowerCase().includes(query)
+      );
+    });
+  }, [options, searchQuery, searchable]);
+
   const renderDropdown = (
     currentValue: string | number | undefined,
     onChange?: (value: any) => void,
@@ -75,6 +101,7 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
       if (onChange) onChange(itemValue);
       else setSelectedValue(itemValue);
       setIsOpen(false);
+      setSearchQuery("");
       if (onSelect) onSelect(itemValue);
     };
 
@@ -125,7 +152,9 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
             {selectedOption &&
             typeof selectedOption !== "string" &&
             selectedOption.icon ? (
-              <View style={styles.iconWrapper}>{selectedOption.icon}</View>
+              <View style={styles.triggerIconWrapper}>
+                {selectedOption.icon}
+              </View>
             ) : null}
             <Text
               style={[
@@ -140,44 +169,73 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
         </TouchableOpacity>
 
         {isOpen && (
-          <ScrollView
-            nestedScrollEnabled={true}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={true}
-            style={[
-              styles.menu,
-              menuStyle,
-              {
-                maxHeight: 300,
-              },
-            ]}
-          >
-            {options.map((item, index) => {
-              const itemLabel = typeof item === "string" ? item : item.label;
-              const itemValue = typeof item === "string" ? item : item.value;
-              const itemIcon = typeof item === "string" ? undefined : item.icon;
-              const isSelected = currentValue === itemValue;
+          <View style={[styles.menu, menuStyle]}>
+            {searchable ? (
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 10,
+                  backgroundColor: Colors.light.greybuttonBackground,
+                  marginHorizontal: 12,
+                  paddingVertical: 15,
+                  borderRadius: 6,
+                  paddingHorizontal: 12,
+                }}
+              >
+                <MagnifyingGlassIcon />
+                <TextInput
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                  placeholder={searchPlaceholder}
+                  placeholderTextColor={Colors.light.white}
+                  style={styles.searchInput}
+                  autoCorrect={false}
+                  autoCapitalize="none"
+                  clearButtonMode="while-editing"
+                />
+              </View>
+            ) : null}
+            <ScrollView
+              nestedScrollEnabled={true}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={true}
+              style={styles.menuScroll}
+            >
+              {filteredOptions.length === 0 ? (
+                <Text style={styles.emptySearchText}>{emptySearchText}</Text>
+              ) : (
+                filteredOptions.map((item, index) => {
+                  const itemLabel =
+                    typeof item === "string" ? item : item.label;
+                  const itemValue =
+                    typeof item === "string" ? item : item.value;
+                  const itemIcon =
+                    typeof item === "string" ? undefined : item.icon;
+                  const isSelected = currentValue === itemValue;
 
-              return (
-                <TouchableOpacity
-                  key={index}
-                  style={[styles.option, optionStyle]}
-                  onPress={() => handleSelect(itemValue)}
-                  activeOpacity={0.7}
-                >
-                  <View style={styles.radioOuter}>
-                    {isSelected && <View style={styles.radioInner} />}
-                  </View>
-                  {itemIcon ? (
-                    <View style={styles.iconWrapper}>{itemIcon}</View>
-                  ) : null}
-                  <Text style={[styles.optionText, optionTextStyle]}>
-                    {itemLabel}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
+                  return (
+                    <TouchableOpacity
+                      key={`${String(itemValue)}-${index}`}
+                      style={[styles.option, optionStyle]}
+                      onPress={() => handleSelect(itemValue)}
+                      activeOpacity={0.7}
+                    >
+                      <View style={styles.radioOuter}>
+                        {isSelected && <View style={styles.radioInner} />}
+                      </View>
+                      {itemIcon ? (
+                        <View style={styles.iconWrapper}>{itemIcon}</View>
+                      ) : null}
+                      <Text style={[styles.optionText, optionTextStyle]}>
+                        {itemLabel}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })
+              )}
+            </ScrollView>
+          </View>
         )}
 
         {errors.length > 0 && (
@@ -240,6 +298,10 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 8,
   },
+  triggerIconWrapper: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
   triggerText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
@@ -268,10 +330,26 @@ const styles = StyleSheet.create({
   menu: {
     backgroundColor: Colors.light.calendarBg,
     borderRadius: 8,
-    //borderWidth: 1,
-    //borderColor: Colors.light.border,
     marginTop: 10,
     paddingVertical: 5,
+    maxHeight: 300,
+  },
+  menuScroll: {
+    maxHeight: 250,
+  },
+  searchInput: {
+    backgroundColor: Colors.light.greybuttonBackground,
+    color: Colors.light.white,
+    fontFamily: fonts.primary.medium,
+    fontSize: 13,
+  },
+  emptySearchText: {
+    color: Colors.light.grey,
+    fontFamily: fonts.primary.regular,
+    fontSize: 13,
+    textAlign: "center",
+    paddingVertical: 16,
+    paddingHorizontal: 12,
   },
   option: {
     flexDirection: "row",
