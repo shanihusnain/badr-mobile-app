@@ -56,15 +56,37 @@ export const memorisationPastAchievementStyles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
+  achievementPeriodRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  deltaDateRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
   achievementBlock: {
     alignItems: "flex-start",
     gap: 4,
+  },
+  achievementBlockCompact: {
+    gap: 6,
+    marginTop: 6,
+    marginBottom: -2,
   },
   achievementCaption: {
     color: Colors.light.subtext,
     fontSize: 13,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
+  },
+  achievementCaptionCompact: {
+    color: Colors.light.subtext,
+    fontSize: 11,
+    fontFamily: fonts.primary.heavy,
+    fontWeight: "800",
+    marginTop: 10,
   },
   achievementCaptionDetailed: {
     fontSize: 11,
@@ -80,6 +102,20 @@ export const memorisationPastAchievementStyles = StyleSheet.create({
     fontWeight: "400",
     lineHeight: 44,
   },
+  achievementPercentRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    marginBottom: 6,
+  },
+  achievementPercentCompact: {
+    color: Colors.light.white,
+    fontSize: 28,
+    fontFamily: fonts.primary.bold,
+    fontWeight: "700",
+    lineHeight: 28,
+    letterSpacing: 0,
+    textTransform: "uppercase",
+  },
   achievementPercentDetailed: {
     fontSize: 48,
     lineHeight: 52,
@@ -87,8 +123,23 @@ export const memorisationPastAchievementStyles = StyleSheet.create({
   achievementPercentSymbol: {
     fontSize: 22,
   },
+  achievementPercentSymbolCompact: {
+    color: Colors.light.white,
+    fontSize: 16,
+    fontFamily: fonts.primary.bold,
+    fontWeight: "700",
+    lineHeight: 16,
+    marginBottom: 1,
+    marginLeft: 2,
+  },
   achievementPercentSymbolDetailed: {
     fontSize: 24,
+  },
+  deltaSlot: {
+    minWidth: 0,
+    marginRight: 8,
+    justifyContent: "center",
+    height: 24,
   },
   deltaBadge: {
     flexDirection: "row",
@@ -99,6 +150,19 @@ export const memorisationPastAchievementStyles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 3,
   },
+  deltaBadgeCompact: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: Colors.light.calendarBg,
+    borderRadius: 2,
+    paddingHorizontal: 2,
+    paddingVertical: 4,
+    height: 24,
+  },
+  deltaBadgePlaceholder: {
+    height: 24,
+  },
   deltaBadgeNegative: {
     backgroundColor: Colors.light.calendarBg,
   },
@@ -108,55 +172,104 @@ export const memorisationPastAchievementStyles = StyleSheet.create({
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
   },
-  deltaTextNegative: {
-    color: Colors.light.subtext,
-  },
-  periodNavRow: {
-    alignItems: "flex-end",
-    gap: 8,
-  },
-  periodToggle: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: Colors.light.blackBackground,
-    borderRadius: 8,
-    padding: 3,
-    gap: 2,
-  },
-  periodButton: {
-    borderRadius: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-  },
-  periodButtonActive: {
-    backgroundColor: Colors.light.green,
-  },
-  periodButtonInactive: {
-    backgroundColor: "transparent",
-  },
-  periodButtonText: {
-    color: Colors.light.grey,
-    fontSize: 11,
-    fontFamily: fonts.primary.semiBold,
-    fontWeight: "600",
-  },
-  periodButtonTextActive: {
-    color: Colors.light.white,
-  },
-  dateNavRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  navBtn: {
-    padding: 2,
-  },
-  dateRange: {
+  deltaTextCompact: {
     color: Colors.light.white,
     fontSize: 11,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
-    maxWidth: 110,
+  },
+  deltaTextNegative: {
+    color: Colors.light.subtext,
+  },
+  periodNavRow: {
+    flex: 1,
+    alignItems: "flex-end",
+    justifyContent: "center",
+    gap: 8,
+    minWidth: 0,
+    paddingLeft: 8,
+  },
+  periodNavUnderToggle: {
+    width: 185,
+    height: 24,
+    justifyContent: "center",
+    alignItems: "stretch",
+    flexShrink: 0,
+    marginTop: -26,
+  },
+  periodToggle: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 3,
+    backgroundColor: Colors.light.blackBackground,
+    borderRadius: 6,
+    flexShrink: 0,
+  },
+  periodToggleListening: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 2,
+    backgroundColor: Colors.light.blackBackground,
+    borderRadius: 6,
+    maxWidth: "70%",
+  },
+  periodButton: {
+    borderRadius: 5,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    minWidth: 36,
+    alignItems: "center",
+  },
+  periodButtonListening: {
+    flex: 1,
+    borderRadius: 5,
+    paddingHorizontal: 0,
+    paddingVertical: 8,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  periodButtonActive: {
+    backgroundColor: Colors.light.greybuttonBackground,
+  },
+  periodButtonInactive: {
+    backgroundColor: Colors.light.blackBackground,
+  },
+  periodButtonText: {
+    color: Colors.light.grey,
+    fontSize: 12,
+    fontFamily: fonts.primary.medium,
+    fontWeight: "500",
+  },
+  periodButtonTextListening: {
+    color: Colors.light.grey,
+    fontSize: 13,
+    fontFamily: fonts.primary.medium,
+    fontWeight: "500",
+  },
+  periodButtonTextActive: {
+    color: Colors.light.green,
+    fontFamily: fonts.primary.semiBold,
+    fontWeight: "600",
+  },
+  dateNavRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
+  },
+  navBtn: {
+    width: 24,
+    height: 24,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  dateRange: {
+    flex: 1,
+    minWidth: 0,
+    color: Colors.light.white,
+    fontSize: 13,
+    fontFamily: fonts.primary.medium,
+    fontWeight: "500",
     textAlign: "center",
   },
   summaryText: {
@@ -177,6 +290,8 @@ export const memorisationPastAchievementStyles = StyleSheet.create({
     flexDirection: "row",
     gap: 8,
     paddingVertical: 2,
+    marginTop: 4,
+    marginBottom: 4,
   },
   surahTab: {
     borderRadius: 8,

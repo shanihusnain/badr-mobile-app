@@ -109,6 +109,7 @@ export function JuzMemorisationGoalsList({
       snapToInterval={cardWidth + CARD_GAP}
       snapToAlignment="start"
       removeClippedSubviews={false}
+      scrollEnabled={!activeFlowGoalId}
       style={{ overflow: "visible" }}
       contentContainerStyle={{ paddingRight: 16 }}
     />

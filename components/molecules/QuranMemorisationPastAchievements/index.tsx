@@ -52,11 +52,31 @@ import { MemorisationSurahDetailCard } from "../QuranHoursPastAchievements/Memor
 import { HizbMemorisationPastAchievements } from "./HizbMemorisationPastAchievementsSection";
 import { memorisationPastAchievementStyles as styles } from "./memorisationPastAchievementsStyles";
 import { InsightCard } from "../InsightCard";
+import type { InsightCardData } from "../PrayerPastAchievements/insightCardsData";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import {
   getGoalById,
 } from "@/src/screens/private/home/components/goalsData";
 import { PastAchievementStudyMaterial } from "@/components/molecules/PastAchievementStudyMaterial";
+import { useGetQuranGoalAchievements } from "@/src/api/queries/useGetQuranGoalAchievements";
+import { resolveQuranTypeFromGoalId } from "@/src/utils/quranGoalMap";
+import { shiftPrayerAchievementsPeriodStart } from "@/src/utils/prayerGoalAchievementsMap";
+import { mapQuranApiKeyInsightsToCards } from "@/src/utils/quranHoursGoalAchievementsMap";
+import {
+  buildMemorisationSurahAchievementFilters,
+  createEmptyMemorisationSurahAchievements,
+  mapMemorisationSurahAchievementsToUi,
+} from "@/src/utils/quranMemorisationSurahAchievementsMap";
+import {
+  InsightCardFlashIcon,
+  InsightCardGoalTrackedIcon,
+  InsightCardGoodDayIcon,
+  InsightCardTickIcon,
+  InsightCardTimeSpentIcon,
+  InsightCardWeeklyAverageIcon,
+  NegativeProgressIcon,
+  PositiveProgressIcon,
+} from "@/assets/icons";
 
 export type QuranMemorisationPastAchievementsProps = {
   goalId: SurahMemorisationGoalId | HizbMemorisationGoalId;
@@ -93,9 +113,50 @@ const ANALYTICS_VIEW_LABEL_KEYS: Record<MemorisationAnalyticsView, string> = {
 
 const PERIOD_DELTA_LABEL_KEYS: Record<PastAchievementPeriod, string> = {
   monthly: "progressLogging.previousMonth",
-  threeMonths: "progressLogging.previousThreeMonths",
-  sixMonths: "progressLogging.previousSixMonths",
+  threeMonths: "progressLogging.previousThreeMonthsShort",
+  sixMonths: "progressLogging.previousSixMonthsShort",
 };
+
+const PERIOD_INSIGHT_SUBTITLE: Record<PastAchievementPeriod, string> = {
+  monthly: "VS. LAST MONTH",
+  threeMonths: "VS. LAST 3 MONTHS",
+  sixMonths: "VS. LAST 6 MONTHS",
+};
+
+const LOADING_DASH = "---";
+const QURAN_INSIGHT_ICON_SIZE = 14;
+
+function getMemorisationInsightIcon(card: InsightCardData) {
+  const title = card.title.toUpperCase();
+  const name = card.iconName;
+  if (name === "calendar-outline" || title.includes("GOAL TRACKED")) {
+    return <InsightCardGoalTrackedIcon size={QURAN_INSIGHT_ICON_SIZE} />;
+  }
+  if (
+    name === "checkmark-circle-outline" ||
+    title.includes("COMPLETED") ||
+    title.includes("MEMORIZED")
+  ) {
+    return <InsightCardTickIcon size={QURAN_INSIGHT_ICON_SIZE} />;
+  }
+  if (name === "flash" || title.includes("STREAK")) {
+    return <InsightCardFlashIcon size={QURAN_INSIGHT_ICON_SIZE} />;
+  }
+  if (name === "sparkles" || title.includes("BEST")) {
+    return <InsightCardGoodDayIcon size={QURAN_INSIGHT_ICON_SIZE} />;
+  }
+  if (name === "scale-balance" || title.includes("AVERAGE")) {
+    return <InsightCardWeeklyAverageIcon size={QURAN_INSIGHT_ICON_SIZE} />;
+  }
+  if (
+    name === "time-outline" ||
+    title.includes("TIME") ||
+    name === "book-outline"
+  ) {
+    return <InsightCardTimeSpentIcon size={QURAN_INSIGHT_ICON_SIZE} />;
+  }
+  return undefined;
+}
 
 function SurahMemorisationPastAchievements({
   goalId,
@@ -113,53 +174,135 @@ function SurahMemorisationPastAchievements({
   const router = useRouter();
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
-const surahContext = useOptionalMemorisationSurahContext();
+  const surahContext = useOptionalMemorisationSurahContext();
   const [period, setPeriod] = useState<PastAchievementPeriod>(initialPeriod);
+  const [periodStartParam, setPeriodStartParam] = useState<string | null>(null);
   const [analyticsView, setAnalyticsView] =
     useState<MemorisationAnalyticsView>(initialAnalyticsView);
-  const [detailedSurahFilter, setDetailedSurahFilter] =
-    useState<MemorisationSurahFilterId>(initialSurahId ?? "all");
+  const [surahFilter, setSurahFilter] = useState<MemorisationSurahFilterId>(
+    initialSurahId ?? "all",
+  );
   const [selectedBarIndex, setSelectedBarIndex] = useState<number | null>(null);
   const [hintDismissed, setHintDismissed] = useState(false);
   const goalData = getGoalById(goalId);
   const studyMaterial = goalData?.studyMaterial ?? [];
 
-  const surahFilters = useMemo(() => getMemorisationPastAchievementFilters(), []);
-  const selectedSurahId: MemorisationSurahFilterId = isDetailed
-    ? detailedSurahFilter
-    : (surahContext?.activeSurahId ?? "all");
+  const quranGoalType = resolveQuranTypeFromGoalId(goalId);
+  const usesAchievementsApi = quranGoalType === "MEMORIZATION_SURAH";
+
+  // Same All / Surah tabs on goal-logging compact + detailed screens.
+  const selectedSurahId: MemorisationSurahFilterId = surahFilter;
   const refreshKey = surahContext?.refreshKey ?? 0;
+  const contextGoals = surahContext?.goals ?? [];
   const isSurahDrillDown = isDetailed && selectedSurahId !== "all";
+
+  const selectedItemNumber = useMemo(() => {
+    // All → no itemNumber (…/achievements?period=M)
+    if (selectedSurahId === "all") return null;
+    const fromGoal = contextGoals.find((goal) => goal.id === selectedSurahId)
+      ?.itemNumber;
+    if (fromGoal != null && Number.isFinite(fromGoal)) return fromGoal;
+    const fromId = Number(selectedSurahId);
+    return Number.isFinite(fromId) && fromId > 0 ? fromId : null;
+  }, [contextGoals, selectedSurahId]);
+
+  const achievementsChartParam =
+    isDetailed && analyticsView === "completedVsTimeSpent"
+      ? "COMPLETED_VS_TIME"
+      : null;
+
+  const { data: achievementsApiData, isLoading: isAchievementsLoading } =
+    useGetQuranGoalAchievements(quranGoalType, {
+      period,
+      periodStart: periodStartParam,
+      itemNumber: selectedItemNumber,
+      chart: achievementsChartParam,
+      enabled: usesAchievementsApi && !!quranGoalType,
+    });
+
+  const showPlaceholders =
+    usesAchievementsApi && (!achievementsApiData || isAchievementsLoading);
+
+  const surahFilters = useMemo(() => {
+    if (contextGoals.length > 0) {
+      return buildMemorisationSurahAchievementFilters(contextGoals);
+    }
+    return getMemorisationPastAchievementFilters();
+  }, [contextGoals, refreshKey]);
+
+  const goalUnitLabel = useMemo(() => {
+    const unit = String(achievementsApiData?.goal?.unit ?? "")
+      .trim()
+      .toLowerCase();
+    if (unit.includes("surah")) return "surahs";
+    if (unit.includes("ayah") || unit.includes("verse")) {
+      return t("progressLogging.unitAyahs");
+    }
+    // Aggregate "All" view is surah-scoped in Figma.
+    if (selectedSurahId === "all") return "surahs";
+    return t("progressLogging.unitAyahs");
+  }, [achievementsApiData?.goal?.unit, selectedSurahId, t]);
 
   const surahDisplayName =
     surahFilters.find((filter) => filter.id === selectedSurahId)?.surahName ??
     "";
 
-  const allPeriodSlice = useMemo(
-    () => getQuranMemorisationSurahPastAchievementSlice(period, "all"),
-    [period, refreshKey],
-  );
+  const mappedApi = useMemo(() => {
+    if (!usesAchievementsApi) return null;
+    if (!achievementsApiData) {
+      return createEmptyMemorisationSurahAchievements(
+        selectedSurahId,
+        surahDisplayName || "All Surahs",
+      );
+    }
+    return mapMemorisationSurahAchievementsToUi(achievementsApiData, period, {
+      surahId: selectedSurahId,
+      surahName: surahDisplayName || "All Surahs",
+      goals: contextGoals,
+    });
+  }, [
+    achievementsApiData,
+    contextGoals,
+    period,
+    selectedSurahId,
+    surahDisplayName,
+    usesAchievementsApi,
+  ]);
 
-  const periodSlice = useMemo(
-    () =>
-      getQuranMemorisationSurahPastAchievementSlice(period, selectedSurahId),
-    [period, selectedSurahId, refreshKey],
-  );
+  const allPeriodSlice = useMemo(() => {
+    if (usesAchievementsApi && mappedApi) return mappedApi.slice;
+    return getQuranMemorisationSurahPastAchievementSlice(period, "all");
+  }, [mappedApi, period, refreshKey, usesAchievementsApi]);
 
-  const hasLogs = useMemo(
-    () => hasMemorisationPastAchievementLogs(periodSlice),
-    [periodSlice],
-  );
+  const periodSlice = useMemo(() => {
+    if (usesAchievementsApi && mappedApi) return mappedApi.slice;
+    return getQuranMemorisationSurahPastAchievementSlice(
+      period,
+      selectedSurahId,
+    );
+  }, [mappedApi, period, refreshKey, selectedSurahId, usesAchievementsApi]);
 
-  const baseAchievement = useMemo(
-    () => getQuranMemorisationSurahPastAchievement(period, selectedSurahId),
-    [period, selectedSurahId, refreshKey],
-  );
+  const hasLogs = useMemo(() => {
+    if (usesAchievementsApi) {
+      return (
+        periodSlice.memorizedAyahs > 0 ||
+        periodSlice.chartPeriods.some(
+          (item) => item.completed > 0 || item.timeSpentMinutes > 0,
+        )
+      );
+    }
+    return hasMemorisationPastAchievementLogs(periodSlice);
+  }, [periodSlice, usesAchievementsApi]);
 
-  const compactAchievement = useMemo(
-    () => getMemorisationPastAchievement(selectedSurahId),
-    [selectedSurahId, refreshKey],
-  );
+  const baseAchievement = useMemo(() => {
+    if (usesAchievementsApi && mappedApi) return mappedApi.achievement;
+    return getQuranMemorisationSurahPastAchievement(period, selectedSurahId);
+  }, [mappedApi, period, refreshKey, selectedSurahId, usesAchievementsApi]);
+
+  const compactAchievement = useMemo(() => {
+    if (usesAchievementsApi && mappedApi) return mappedApi.compact;
+    return getMemorisationPastAchievement(selectedSurahId);
+  }, [mappedApi, refreshKey, selectedSurahId, usesAchievementsApi]);
 
   const timeSpentByPeriod = useMemo(
     () => getMemorisationTimeSpentByPeriod(periodSlice),
@@ -211,24 +354,22 @@ const surahContext = useOptionalMemorisationSurahContext();
   const goalTrackedMonths = getMemorisationGoalTrackedMonths(period);
   const totalMemorizedVerses = getTotalMemorizedVerses(periodSlice);
 
-  const progressRailRows = useMemo(
-    () =>
-      isDetailed
-        ? getMemorisationProgressRailRows(
-            allPeriodSlice,
-            periodSlice,
-            selectedSurahId,
-            selectedBarIndex,
-          )
-        : [],
-    [
+  const progressRailRows = useMemo(() => {
+    if (usesAchievementsApi && mappedApi) return mappedApi.progressRailRows;
+    return getMemorisationProgressRailRows(
       allPeriodSlice,
-      isDetailed,
       periodSlice,
-      selectedBarIndex,
       selectedSurahId,
-    ],
-  );
+      selectedBarIndex,
+    );
+  }, [
+    allPeriodSlice,
+    mappedApi,
+    periodSlice,
+    selectedBarIndex,
+    selectedSurahId,
+    usesAchievementsApi,
+  ]);
 
   const selectedBaseBar =
     selectedBarIndex !== null
@@ -240,10 +381,9 @@ const surahContext = useOptionalMemorisationSurahContext();
   const displayBaseIncomplete =
     selectedBaseBar?.incompleteHours ?? baseAchievement.incompleteHours;
 
-  const showNoDataDash = isPastAchievementBarEmpty(
-    displayBaseCompleted,
-    displayBaseIncomplete,
-  );
+  const showNoDataDash =
+    showPlaceholders ||
+    isPastAchievementBarEmpty(displayBaseCompleted, displayBaseIncomplete);
 
   const selectedPeriodTimeSpentMinutes =
     selectedBarIndex !== null
@@ -268,16 +408,85 @@ const surahContext = useOptionalMemorisationSurahContext();
     selectedBaseBar,
   ]);
 
+  const canNavigateBack = usesAchievementsApi
+    ? !showPlaceholders &&
+      (achievementsApiData?.canNavigateBack ??
+        achievementsApiData?.hasPrevious ??
+        false)
+    : false;
+  const canNavigateForward = usesAchievementsApi
+    ? !showPlaceholders &&
+      (achievementsApiData?.canNavigateForward ??
+        achievementsApiData?.hasNext ??
+        false)
+    : false;
+
+  const apiNarrative =
+    mappedApi?.achievement.narrative ?? null;
+  const selectedBucketNarrative = selectedBaseBar?.narrative;
+  const keyInsightsHeader = mappedApi?.achievement.keyInsightsHeader ?? null;
+
+  const insightCards = useMemo(() => {
+    if (!usesAchievementsApi) return [];
+    return mapQuranApiKeyInsightsToCards(achievementsApiData, {
+      period,
+      noDataLabel: t("progressLogging.insightNoData"),
+      isLoading: showPlaceholders,
+    });
+  }, [
+    achievementsApiData,
+    period,
+    showPlaceholders,
+    t,
+    usesAchievementsApi,
+  ]);
+
   useEffect(() => {
-    if (isDetailed && initialSurahId) {
-      setDetailedSurahFilter(initialSurahId);
+    if (initialSurahId) {
+      setSurahFilter(initialSurahId);
     }
-  }, [initialSurahId, isDetailed]);
+  }, [initialSurahId]);
 
   useEffect(() => {
     setSelectedBarIndex(null);
     setHintDismissed(false);
-  }, [period, goalId, selectedSurahId, analyticsView]);
+  }, [period, goalId, selectedSurahId, analyticsView, periodStartParam]);
+
+  useEffect(() => {
+    // Switching chart mode refetches; clear period cursor so latest loads.
+    if (!isDetailed) return;
+    setPeriodStartParam(null);
+  }, [analyticsView, isDetailed]);
+
+  const handlePeriodChange = useCallback((next: PastAchievementPeriod) => {
+    setPeriod(next);
+    setPeriodStartParam(null);
+  }, []);
+
+  const handleNavigateBack = useCallback(() => {
+    if (!usesAchievementsApi || !achievementsApiData || !canNavigateBack) return;
+    if (!achievementsApiData.periodStart || !achievementsApiData.periodEnd)
+      return;
+    const nextStart = shiftPrayerAchievementsPeriodStart(
+      achievementsApiData.periodStart,
+      achievementsApiData.periodEnd,
+      -1,
+    );
+    setPeriodStartParam(nextStart);
+  }, [achievementsApiData, canNavigateBack, usesAchievementsApi]);
+
+  const handleNavigateForward = useCallback(() => {
+    if (!usesAchievementsApi || !achievementsApiData || !canNavigateForward)
+      return;
+    if (!achievementsApiData.periodStart || !achievementsApiData.periodEnd)
+      return;
+    const nextStart = shiftPrayerAchievementsPeriodStart(
+      achievementsApiData.periodStart,
+      achievementsApiData.periodEnd,
+      1,
+    );
+    setPeriodStartParam(nextStart);
+  }, [achievementsApiData, canNavigateForward, usesAchievementsApi]);
 
   const handleBarPressCompact = useCallback((index: number | null) => {
     setHintDismissed(true);
@@ -293,6 +502,15 @@ const surahContext = useOptionalMemorisationSurahContext();
     setSelectedBarIndex(null);
   }, []);
 
+  const handleSelectSurahFilter = useCallback(
+    (id: MemorisationSurahFilterId) => {
+      setSurahFilter(id);
+      setPeriodStartParam(null);
+      setSelectedBarIndex(null);
+    },
+    [],
+  );
+
   const handleNavigateToDetailed = useCallback(() => {
     router.push({
       pathname: "/(private)/pastachievementdetailedstatistics",
@@ -302,8 +520,7 @@ const surahContext = useOptionalMemorisationSurahContext();
         analyticsView,
         goalCategory: "surah",
         goalType: "quran_memorisation",
-        selectedSurahId:
-          selectedSurahId === "all" ? undefined : selectedSurahId,
+        selectedSurahId,
       },
     });
   }, [analyticsView, goalId, period, router, selectedSurahId]);
@@ -314,16 +531,94 @@ const surahContext = useOptionalMemorisationSurahContext();
       : formatMemorisationAyahCountLabel(value);
 
   const showChartHint =
-    isDetailed && !hintDismissed && selectedBarIndex === null;
+    isDetailed &&
+    !hintDismissed &&
+    selectedBarIndex === null &&
+    !showPlaceholders;
   const deltaIsPositive = baseAchievement.previousPeriodDeltaPercent >= 0;
 
+  // Always allow opening detailed stats.
+  const showDetailedStatsChevron = !isDetailed;
+
+  const renderPeriodToggle = () => (
+    <View style={styles.periodToggleListening}>
+      {PERIODS.map((item) => {
+        const isActive = period === item;
+        return (
+          <Pressable
+            key={item}
+            onPress={() => handlePeriodChange(item)}
+            style={[
+              styles.periodButtonListening,
+              isActive
+                ? styles.periodButtonActive
+                : styles.periodButtonInactive,
+            ]}
+          >
+            <Text
+              style={[
+                styles.periodButtonTextListening,
+                isActive && styles.periodButtonTextActive,
+              ]}
+            >
+              {t(PERIOD_LABEL_KEYS[item])}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+
+  const renderDateNav = () => (
+    <View style={styles.dateNavRow}>
+      <TouchableOpacity
+        activeOpacity={0.7}
+        style={styles.navBtn}
+        disabled={!canNavigateBack}
+        onPress={handleNavigateBack}
+      >
+        <Ionicons
+          name="chevron-back"
+          size={24}
+          color={
+            canNavigateBack ? Colors.light.dullWhite : Colors.light.subtext
+          }
+        />
+      </TouchableOpacity>
+      <Text
+        style={styles.dateRange}
+        numberOfLines={1}
+        ellipsizeMode="tail"
+      >
+        {showPlaceholders
+          ? LOADING_DASH
+          : baseAchievement.dateRangeLabel || LOADING_DASH}
+      </Text>
+      <TouchableOpacity
+        activeOpacity={0.7}
+        style={styles.navBtn}
+        disabled={!canNavigateForward}
+        onPress={handleNavigateForward}
+      >
+        <Ionicons
+          name="chevron-forward"
+          size={24}
+          color={
+            canNavigateForward ? Colors.light.dullWhite : Colors.light.subtext
+          }
+        />
+      </TouchableOpacity>
+    </View>
+  );
+
   const renderSurahFilterTabs = () => {
-    if (!isDetailed) return null;
+    if (surahFilters.length === 0) return null;
 
     return (
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
+        nestedScrollEnabled
         contentContainerStyle={styles.surahTabsRow}
       >
         {surahFilters.map((filter) => {
@@ -337,7 +632,7 @@ const surahContext = useOptionalMemorisationSurahContext();
             <TouchableOpacity
               key={filter.id}
               activeOpacity={0.7}
-              onPress={() => setDetailedSurahFilter(filter.id)}
+              onPress={() => handleSelectSurahFilter(filter.id)}
               style={[
                 styles.surahTab,
                 isActive ? styles.surahTabActive : styles.surahTabInactive,
@@ -359,6 +654,28 @@ const surahContext = useOptionalMemorisationSurahContext();
   };
 
   const renderDetailedSummary = () => {
+    if (showPlaceholders) {
+      return <Text style={styles.summaryTextDetailed}>{LOADING_DASH}</Text>;
+    }
+
+    if (selectedBucketNarrative?.trim()) {
+      return (
+        <Text style={styles.summaryTextDetailed}>
+          {selectedBucketNarrative.trim()}
+        </Text>
+      );
+    }
+
+    if (
+      selectedBarIndex === null &&
+      typeof apiNarrative === "string" &&
+      apiNarrative.trim()
+    ) {
+      return (
+        <Text style={styles.summaryTextDetailed}>{apiNarrative.trim()}</Text>
+      );
+    }
+
     if (
       selectedBarIndex !== null &&
       periodSlice.chartPeriods[selectedBarIndex]
@@ -415,7 +732,43 @@ const surahContext = useOptionalMemorisationSurahContext();
   };
 
   const renderInsights = () => {
-    if (!isDetailed) return null;
+    if (usesAchievementsApi && insightCards.length > 0) {
+      return (
+        <View style={styles.insightsSection}>
+          <View style={styles.insightsHeader}>
+            <Text style={styles.insightsTitleLabel}>
+              {t("progressLogging.keyInsights")}
+            </Text>
+            <Text style={styles.insightsSubtitleLabel}>
+              {keyInsightsHeader?.trim() || PERIOD_INSIGHT_SUBTITLE[period]}
+            </Text>
+          </View>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            nestedScrollEnabled
+            contentContainerStyle={styles.insightsScrollContent}
+          >
+            {insightCards.map((card, index) => (
+              <InsightCard
+                key={`${card.title}-${index}`}
+                iconName={card.iconName}
+                icon={getMemorisationInsightIcon(card)}
+                title={card.title}
+                value={card.value}
+                subValue={card.subValue}
+                trendValue={card.trendValue}
+                trendDirection={card.trendDirection}
+                footerText={card.footerText}
+                footerNeutral={card.footerNeutral}
+                noData={card.noData}
+                style={styles.insightCardFixed}
+              />
+            ))}
+          </ScrollView>
+        </View>
+      );
+    }
 
     return (
       <View style={styles.insightsSection}>
@@ -424,29 +777,32 @@ const surahContext = useOptionalMemorisationSurahContext();
             {t("progressLogging.keyInsights")}
           </Text>
           <Text style={styles.insightsSubtitleLabel}>
-            {period === "monthly"
-              ? "VS. LAST MONTH"
-              : period === "threeMonths"
-                ? "VS. LAST 3 MONTHS"
-                : "VS. LAST 6 MONTHS"}
+            {PERIOD_INSIGHT_SUBTITLE[period]}
           </Text>
         </View>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
+          nestedScrollEnabled
           contentContainerStyle={styles.insightsScrollContent}
         >
           <InsightCard
             iconName="calendar-outline"
             title={t("progressLogging.recitationInsightGoalTracked")}
-            value={formatNumber(goalTrackedMonths)}
+            value={
+              showPlaceholders ? LOADING_DASH : formatNumber(goalTrackedMonths)
+            }
             subValue={t("progressLogging.recitationInsightMonths")}
             style={styles.insightCardFixed}
           />
           <InsightCard
             iconName="book-outline"
             title={t("progressLogging.memorisationInsightTotalMemorized")}
-            value={formatNumber(totalMemorizedVerses)}
+            value={
+              showPlaceholders
+                ? LOADING_DASH
+                : formatNumber(totalMemorizedVerses)
+            }
             subValue={t("progressLogging.memorisationInsightVersesMemorized")}
             style={styles.insightCardFixed}
           />
@@ -464,9 +820,11 @@ if (!isDetailed) {
     const displayRemaining =
       selectedBar?.incompleteHours ?? compactAchievement.remainingAyahs;
     const compactShowNoDataDash =
-      selectedBarIndex !== null &&
-      isPastAchievementBarEmpty(displayMemorized, displayRemaining);
-    const compactChartHint = !hintDismissed && selectedBarIndex === null;
+      showPlaceholders ||
+      (selectedBarIndex !== null &&
+        isPastAchievementBarEmpty(displayMemorized, displayRemaining));
+    const compactChartHint =
+      !hintDismissed && selectedBarIndex === null && !showPlaceholders;
 
     return (
       <View style={styles.section}>
@@ -480,51 +838,91 @@ if (!isDetailed) {
             <Text style={styles.sectionTitle}>
               {t("progressLogging.pastGoalAchievements")}
             </Text>
-            <TouchableOpacity
-              onPress={handleNavigateToDetailed}
-              style={{ marginLeft: "auto", padding: 4 }}
-            >
-              <Ionicons
-                name="chevron-forward"
-                size={20}
-                color={Colors.light.white}
-              />
-            </TouchableOpacity>
+            {showDetailedStatsChevron ? (
+              <TouchableOpacity
+                onPress={handleNavigateToDetailed}
+                style={{ marginLeft: "auto", padding: 4 }}
+              >
+                <Ionicons
+                  name="chevron-forward"
+                  size={20}
+                  color={Colors.light.white}
+                />
+              </TouchableOpacity>
+            ) : (
+              <View style={{ marginLeft: "auto", width: 28 }} />
+            )}
           </View>
 
-          <View style={styles.achievementRow}>
-            <View style={styles.achievementBlock}>
-              <Text style={styles.achievementCaption}>
-                {t("progressLogging.memorisationCumulativeProgress")}
+          <View style={styles.achievementPeriodRow}>
+            <View style={styles.achievementBlockCompact}>
+              <Text style={styles.achievementCaptionCompact}>
+                {t("progressLogging.achievementsLabel").toUpperCase()}
               </Text>
-              <Text style={styles.achievementPercent}>
-                {compactShowNoDataDash
-                  ? PAST_ACHIEVEMENT_NO_DATA
-                  : formatNumber(compactAchievement.progressPercent)}
-                <Text style={styles.achievementPercentSymbol}>%</Text>
-              </Text>
-              {compactAchievement.completed ? (
-                <View style={styles.completedBadge}>
-                  <Ionicons
-                    name="checkmark-circle"
-                    size={12}
-                    color={Colors.light.green}
-                  />
-                  <Text style={styles.completedBadgeText}>
-                    {t("progressLogging.surahStatusCompleted")}
+              <View style={styles.achievementPercentRow}>
+                <Text style={styles.achievementPercentCompact}>
+                  {showPlaceholders
+                    ? LOADING_DASH
+                    : compactShowNoDataDash
+                      ? PAST_ACHIEVEMENT_NO_DATA
+                      : formatNumber(compactAchievement.progressPercent)}
+                </Text>
+                {!showPlaceholders ? (
+                  <Text style={styles.achievementPercentSymbolCompact}>%</Text>
+                ) : null}
+              </View>
+            </View>
+            {renderPeriodToggle()}
+          </View>
+
+          <View style={styles.deltaDateRow}>
+            <View style={styles.deltaSlot}>
+              {!showPlaceholders ? (
+                <View style={styles.deltaBadgeCompact}>
+                  {deltaIsPositive ? (
+                    <PositiveProgressIcon />
+                  ) : (
+                    <NegativeProgressIcon />
+                  )}
+                  <Text style={styles.deltaTextCompact} numberOfLines={1}>
+                    {`${formatNumber(Math.abs(baseAchievement.previousPeriodDeltaPercent))}% ${t(PERIOD_DELTA_LABEL_KEYS[period])}`}
                   </Text>
                 </View>
-              ) : null}
+              ) : (
+                <View style={styles.deltaBadgePlaceholder} />
+              )}
             </View>
+            <View style={styles.periodNavUnderToggle}>{renderDateNav()}</View>
           </View>
 
+          {!showPlaceholders && compactAchievement.completed ? (
+            <View style={styles.completedBadge}>
+              <Ionicons
+                name="checkmark-circle"
+                size={12}
+                color={Colors.light.green}
+              />
+              <Text style={styles.completedBadgeText}>
+                {t("progressLogging.surahStatusCompleted")}
+              </Text>
+            </View>
+          ) : null}
+
           <Text style={styles.summaryText}>
-            {t("progressLogging.memorisationCumulativeSummary", {
-              memorized: formatNumber(compactAchievement.memorizedAyahs),
-              total: formatNumber(compactAchievement.totalAyahs),
-              surah: compactAchievement.surahName,
-            })}
+            {showPlaceholders
+              ? LOADING_DASH
+              : apiNarrative?.trim() ||
+                t("progressLogging.memorisationCumulativeSummary", {
+                  memorized: formatNumber(compactAchievement.memorizedAyahs),
+                  total: formatNumber(compactAchievement.totalAyahs),
+                  surah:
+                    selectedSurahId === "all"
+                      ? t("progressLogging.memorisationAllSurahsTitle")
+                      : compactAchievement.surahName || surahDisplayName,
+                })}
           </Text>
+
+          {renderSurahFilterTabs()}
 
           <View style={styles.goalHeader}>
             <Text style={styles.goalLabel}>
@@ -538,7 +936,7 @@ if (!isDetailed) {
               </Text>
               <View style={styles.goalPill}>
                 <Text style={styles.goalPillText}>
-                  {t("progressLogging.unitAyahs")}
+                  {goalUnitLabel}
                 </Text>
               </View>
             </View>
@@ -572,10 +970,10 @@ if (!isDetailed) {
             onMoveShouldSetResponder={() => false}
           >
             <QuranHoursPastAchievementChartBlock
-              chartData={compactAchievement.chartData}
+              chartData={showPlaceholders ? [] : compactAchievement.chartData}
               selectedBarIndex={selectedBarIndex}
               onBarPress={handleBarPressCompact}
-              chartKey={`${goalId}-${selectedSurahId}-${refreshKey}`}
+              chartKey={`${goalId}-${period}-${selectedSurahId}-${periodStartParam ?? "latest"}-${showPlaceholders ? "loading" : "ready"}-${refreshKey}`}
               yMax={compactAchievement.yMax}
               yTicks={compactAchievement.yTicks}
               showHint={compactChartHint}
@@ -587,7 +985,34 @@ if (!isDetailed) {
               formatBarValue={chartFormatBarValue}
             />
           </View>
+
+          <GraphBarSelectionFooter
+            visible={selectedBarIndex !== null && !showPlaceholders}
+            completed={displayMemorized}
+            incomplete={displayRemaining}
+            goalTotal={Math.max(
+              displayMemorized + displayRemaining,
+              compactAchievement.totalAyahs,
+              1,
+            )}
+            onClose={handleCloseBarSelection}
+          />
+
+          {progressRailRows.length > 0 && !showPlaceholders ? (
+            <View style={styles.progressRailSection}>
+              {progressRailRows.map((row) => (
+                <MemorisationSurahDetailCard
+                  key={`memorisation-rail-compact-${row.surahId}`}
+                  row={row}
+                  analyticsView="completedVsIncomplete"
+                  formatTimeChip={formatMemorisationTimeSpentChip}
+                />
+              ))}
+            </View>
+          ) : null}
         </View>
+
+        {renderInsights()}
 
         <PastAchievementStudyMaterial items={studyMaterial} showSeeAll={false} />
       </View>
@@ -618,101 +1043,45 @@ if (!isDetailed) {
           ) : null}
         </View>
 
-        <View style={styles.topRow}>
-          <View style={styles.achievementBlock}>
-            <Text
-              style={[
-                styles.achievementCaption,
-                styles.achievementCaptionDetailed,
-              ]}
-            >
+        <View style={styles.achievementPeriodRow}>
+          <View style={styles.achievementBlockCompact}>
+            <Text style={styles.achievementCaptionCompact}>
               {t("progressLogging.achievementsLabel").toUpperCase()}
             </Text>
-            <Text
-              style={[
-                styles.achievementPercent,
-                styles.achievementPercentDetailed,
-              ]}
-            >
-              {showNoDataDash
-                ? PAST_ACHIEVEMENT_NO_DATA
-                : formatNumber(baseAchievement.achievementPercent)}
-              <Text style={styles.achievementPercentSymbolDetailed}>%</Text>
-            </Text>
-            <View
-              style={[
-                styles.deltaBadge,
-                !deltaIsPositive && styles.deltaBadgeNegative,
-              ]}
-            >
-              <Ionicons
-                name={deltaIsPositive ? "arrow-up" : "arrow-down"}
-                size={11}
-                color={
-                  deltaIsPositive ? Colors.light.green : Colors.light.subtext
-                }
-              />
-              <Text
-                style={[
-                  styles.deltaText,
-                  !deltaIsPositive && styles.deltaTextNegative,
-                ]}
-              >
-                {deltaIsPositive ? "+" : ""}
-                {formatNumber(baseAchievement.previousPeriodDeltaPercent)}%{" "}
-                {t(PERIOD_DELTA_LABEL_KEYS[period])}
+            <View style={styles.achievementPercentRow}>
+              <Text style={styles.achievementPercentCompact}>
+                {showPlaceholders
+                  ? LOADING_DASH
+                  : showNoDataDash
+                    ? PAST_ACHIEVEMENT_NO_DATA
+                    : formatNumber(baseAchievement.achievementPercent)}
               </Text>
+              {!showPlaceholders ? (
+                <Text style={styles.achievementPercentSymbolCompact}>%</Text>
+              ) : null}
             </View>
           </View>
+          {renderPeriodToggle()}
+        </View>
 
-          <View style={styles.periodNavRow}>
-            <View style={styles.periodToggle}>
-              {PERIODS.map((item) => {
-                const isActive = period === item;
-                return (
-                  <Pressable
-                    key={item}
-                    onPress={() => setPeriod(item)}
-                    style={[
-                      styles.periodButton,
-                      isActive
-                        ? styles.periodButtonActive
-                        : styles.periodButtonInactive,
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.periodButtonText,
-                        isActive && styles.periodButtonTextActive,
-                      ]}
-                    >
-                      {t(PERIOD_LABEL_KEYS[item])}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-
-            <View style={styles.dateNavRow}>
-              <TouchableOpacity activeOpacity={0.7} style={styles.navBtn}>
-                <Ionicons
-                  name="chevron-back"
-                  size={24}
-                  color={Colors.light.dullWhite}
-                />
-              </TouchableOpacity>
-              <Text style={styles.dateRange} numberOfLines={1}>
-                {baseAchievement.dateRangeLabel}
-              </Text>
-              <TouchableOpacity activeOpacity={0.7} style={styles.navBtn}>
-                <Ionicons
-                  name="chevron-forward"
-                  size={24}
-                  color={Colors.light.dullWhite}
-                />
-              </TouchableOpacity>
-            </View>
+        <View style={styles.deltaDateRow}>
+          <View style={styles.deltaSlot}>
+            {!showPlaceholders ? (
+              <View style={styles.deltaBadgeCompact}>
+                {deltaIsPositive ? (
+                  <PositiveProgressIcon />
+                ) : (
+                  <NegativeProgressIcon />
+                )}
+                <Text style={styles.deltaTextCompact} numberOfLines={1}>
+                  {`${formatNumber(Math.abs(baseAchievement.previousPeriodDeltaPercent))}% ${t(PERIOD_DELTA_LABEL_KEYS[period])}`}
+                </Text>
+              </View>
+            ) : (
+              <View style={styles.deltaBadgePlaceholder} />
+            )}
           </View>
+          <View style={styles.periodNavUnderToggle}>{renderDateNav()}</View>
         </View>
 
         {renderDetailedSummary()}
@@ -729,9 +1098,7 @@ if (!isDetailed) {
                 : formatNumber(periodSlice.totalAyahs)}{" "}
             </Text>
             <View style={styles.goalPill}>
-              <Text style={styles.goalPillText}>
-                {t("progressLogging.unitAyahs")}
-              </Text>
+              <Text style={styles.goalPillText}>{goalUnitLabel}</Text>
             </View>
           </View>
         </View>
@@ -783,7 +1150,7 @@ if (!isDetailed) {
           showStreak={false}
         />
 
-        {isSurahDrillDown && !hasLogs ? (
+        {isSurahDrillDown && !hasLogs && !showPlaceholders ? (
           <View style={styles.emptyStateInline}>
             <Text style={styles.emptyStateText}>
               {t("progressLogging.memorisationNoDataForPeriod")}
@@ -796,10 +1163,14 @@ if (!isDetailed) {
           onMoveShouldSetResponder={() => false}
         >
           <QuranHoursPastAchievementChartBlock
-            chartData={chartAchievement?.chartData ?? []}
-            selectedBarIndex={selectedBarIndex}
+            chartData={
+              showPlaceholders ? [] : (chartAchievement?.chartData ?? [])
+            }
+            selectedBarIndex={
+              isDetailed && !showPlaceholders ? selectedBarIndex : null
+            }
             onBarPress={handleBarPressDetailed}
-            chartKey={`${goalId}-${period}-${selectedSurahId}-${analyticsView}`}
+            chartKey={`${goalId}-${period}-${selectedSurahId}-${analyticsView}-${periodStartParam ?? "latest"}-${showPlaceholders ? "loading" : "ready"}`}
             yMax={chartAchievement?.yMax ?? 10}
             yTicks={chartAchievement?.yTicks ?? [0, 5, 10]}
             showHint={showChartHint}
@@ -821,14 +1192,14 @@ if (!isDetailed) {
         </View>
 
         <GraphBarSelectionFooter
-          visible={selectedBarIndex !== null}
+          visible={selectedBarIndex !== null && !showPlaceholders}
           completed={displayBaseCompleted}
           incomplete={displayBaseIncomplete}
           goalTotal={selectedBarGoalTotal}
           onClose={handleCloseBarSelection}
         />
 
-        {progressRailRows.length > 0 ? (
+        {progressRailRows.length > 0 && !showPlaceholders ? (
           <View style={styles.progressRailSection}>
             {progressRailRows.map((row) => (
               <MemorisationSurahDetailCard

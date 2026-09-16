@@ -11,6 +11,10 @@ export type MemorisationDayProgress = {
   isLogged: boolean;
   isBestDay?: boolean;
   isToday?: boolean;
+  isFuture?: boolean;
+  /** Prefer API `valueDisplay` (e.g. "1-4") when present. */
+  countLabel?: string;
+  canDelete?: boolean;
 };
 
 export type MemorisationWeekSummary = {

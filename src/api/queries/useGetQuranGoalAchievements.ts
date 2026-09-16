@@ -3,7 +3,6 @@ import { api } from "..";
 import { resolveQuranType } from "@/src/utils/quranGoalMap";
 import type { PastAchievementPeriod } from "@/src/screens/private/goalprogressloggingscreen/quranHoursPastAchievementData";
 import { PAST_ACHIEVEMENT_PERIOD_TO_API } from "./useGetPrayerGoalAchievements";
-import { CrossBox } from "@/assets/icons";
 
 export type QuranAchievementsPeriodCode = "M" | "3M" | "6M";
 
@@ -14,16 +13,24 @@ export type QuranAchievementsDelta = {
 } | null;
 
 export type QuranAchievementsBucket = {
-  start: string;
-  end: string;
+  start: string | null;
+  end: string | null;
   label?: string;
   range?: string;
+  /** Hours goals use minutes; memorisation may reuse this field for ayah counts. */
   completedMinutes: number;
-  completedLabel?: string | null;
   incompleteMinutes: number;
+  /** Explicit verse/ayah fields when the backend sends them. */
+  completedVerses?: number | null;
+  incompleteVerses?: number | null;
+  completedAyahs?: number | null;
+  incompleteAyahs?: number | null;
+  timeSpentMinutes?: number | null;
+  completedLabel?: string | null;
   incompleteLabel?: string | null;
   goalMinutes?: number | null;
   goalHours?: number | null;
+  goalAyahs?: number | null;
   achievementPct?: number | null;
   delta?: QuranAchievementsDelta;
   narrative?: string | null;
@@ -41,8 +48,8 @@ export type QuranAchievementsKeyInsight = {
 export type QuranGoalAchievementsData = {
   quranGoalType?: string;
   period: QuranAchievementsPeriodCode | string;
-  periodStart: string;
-  periodEnd: string;
+  periodStart: string | null;
+  periodEnd: string | null;
   periodLabel?: string | null;
   hasPrevious?: boolean;
   hasNext?: boolean;
@@ -62,6 +69,12 @@ export type QuranGoalAchievementsData = {
     completedDisplay?: string | null;
     incompleteMinutes?: number;
     incompleteDisplay?: string | null;
+    /** Memorisation / verse goals. */
+    completedVerses?: number;
+    incompleteVerses?: number;
+    completedAyahs?: number;
+    incompleteAyahs?: number;
+    timeSpentMinutes?: number;
   } | null;
   chart?: {
     mode?: string;
@@ -73,17 +86,32 @@ export type QuranGoalAchievementsData = {
   keyInsights?: QuranAchievementsKeyInsight[] | null;
 };
 
+export type QuranAchievementsChartMode =
+  | "COMPLETED_VS_INCOMPLETE"
+  | "COMPLETED_VS_TIME"
+  | string;
+
 const getQuranGoalAchievements = async (
   quranGoalType: string,
   period: QuranAchievementsPeriodCode,
-  periodStart?: string | null,
+  options?: {
+    periodStart?: string | null;
+    itemNumber?: number | null;
+    chart?: QuranAchievementsChartMode | null;
+  },
 ): Promise<QuranGoalAchievementsData | null> => {
+  const periodStart = options?.periodStart ?? null;
+  const itemNumber = options?.itemNumber ?? null;
+  const chart = options?.chart ?? null;
+
   const response = await api.get(
     `api/goal-cycles/current/quran-goals/${quranGoalType}/achievements`,
     {
       params: {
         period,
         ...(periodStart ? { periodStart } : {}),
+        ...(itemNumber != null ? { itemNumber } : {}),
+        ...(chart ? { chart } : {}),
       },
     },
   );
@@ -99,6 +127,13 @@ export const useGetQuranGoalAchievements = (
   options: {
     period: PastAchievementPeriod;
     periodStart?: string | null;
+    /** Surah / juz / hizb number for multi-item goals (e.g. MEMORIZATION_SURAH). */
+    itemNumber?: number | null;
+    /**
+     * Chart mode for memorisation etc.
+     * e.g. COMPLETED_VS_TIME — omit for default completed vs incomplete.
+     */
+    chart?: QuranAchievementsChartMode | null;
     enabled?: boolean;
   },
 ) => {
@@ -107,6 +142,8 @@ export const useGetQuranGoalAchievements = (
     : "";
   const periodCode = PAST_ACHIEVEMENT_PERIOD_TO_API[options.period];
   const periodStart = options.periodStart ?? null;
+  const itemNumber = options.itemNumber ?? null;
+  const chart = options.chart ?? null;
   const enabled = !!quranGoalType && (options.enabled ?? true);
 
   return useQuery({
@@ -115,9 +152,15 @@ export const useGetQuranGoalAchievements = (
       quranGoalType,
       periodCode,
       periodStart ?? "latest",
+      itemNumber ?? "all",
+      chart ?? "COMPLETED_VS_INCOMPLETE",
     ],
     queryFn: () =>
-      getQuranGoalAchievements(quranGoalType, periodCode, periodStart),
+      getQuranGoalAchievements(quranGoalType, periodCode, {
+        periodStart,
+        itemNumber,
+        chart,
+      }),
     enabled,
   });
 };

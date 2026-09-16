@@ -18,11 +18,19 @@ export type SurahMemorisationStatusKind =
 
 export type SurahMemorisationGoal = {
   id: string;
+  /** Quran chapter number — frame API `itemNumber`. */
+  itemNumber?: number;
   surahName: string;
+  /** Frame `items[].subtitle`, e.g. "(total 7 verses)". */
+  subtitle?: string;
+  /** Frame `items[].pill.label`, e.g. "57% Achieved". */
+  pillLabel?: string;
   totalAyahs: number;
   memorizedAyahs: number;
   progressPercentage: number;
   completed: boolean;
+  /** Frame `items[].canLog` — when false, hide/disable log CTA. */
+  canLog?: boolean;
   status: SurahMemorisationStatusKind;
 };
 
@@ -44,6 +52,14 @@ function deriveSurahMemorisationStatus(
   return "not-started";
 }
 
+/** Mock fallback itemNumbers for local SELECTED_SURAH_GOALS ids. */
+const MOCK_SURAH_ITEM_NUMBERS: Record<string, number> = {
+  "surah-al-baqarah": 2,
+  "surah-aal-imran": 3,
+  "surah-an-nisa": 4,
+  "surah-al-maidah": 5,
+};
+
 function buildGoal(id: string, surahName: string): SurahMemorisationGoal {
   const totalAyahs = getSurahVerseCount(id);
   const memorizedAyahs = getMemorizedAyahCount(id);
@@ -52,6 +68,7 @@ function buildGoal(id: string, surahName: string): SurahMemorisationGoal {
 
   return {
     id,
+    itemNumber: MOCK_SURAH_ITEM_NUMBERS[id],
     surahName,
     totalAyahs,
     memorizedAyahs,

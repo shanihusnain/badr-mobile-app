@@ -7,7 +7,6 @@ import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import { GoalData } from "../../home/components/goalsData";
 import QuranMemorisationLoggingFlow from "../flows/QuranMemorisationLoggingFlow";
 import {
-  toSurahMemorisationTargetConfig,
   type SurahMemorisationGoal,
 } from "../quranMemorisationSurahGoals";
 import type { QuranMemorisationLogEntry } from "../types";
@@ -39,6 +38,7 @@ export function SurahMemorisationGoalCard({
   const formatNumber = useLocaleNumber();
 
   const statusLabel = useMemo(() => {
+    if (goal.pillLabel?.trim()) return goal.pillLabel.trim();
     switch (goal.status) {
       case "not-started":
         return t("progressLogging.surahStatusNotStarted");
@@ -47,13 +47,16 @@ export function SurahMemorisationGoalCard({
       case "completed":
         return t("progressLogging.surahStatusCompleted");
     }
-  }, [goal.status, t]);
+  }, [goal.pillLabel, goal.status, t]);
 
-  const progressText = t("progressLogging.memorisationCardProgress", {
-    memorized: formatNumber(goal.memorizedAyahs),
-    total: formatNumber(goal.totalAyahs),
-    percent: formatNumber(goal.progressPercentage),
-  });
+  const progressText =
+    goal.totalAyahs > 0
+      ? t("progressLogging.memorisationCardProgress", {
+          memorized: formatNumber(goal.memorizedAyahs),
+          total: formatNumber(goal.totalAyahs),
+          percent: formatNumber(goal.progressPercentage),
+        })
+      : goal.subtitle?.trim() || "";
 
   const handleLogProgress = () => {
     onStartFlow(goal.id);
@@ -64,6 +67,8 @@ export function SurahMemorisationGoalCard({
       onFlowClose();
     }
   };
+
+  const canLog = goal.canLog !== false && !goal.completed;
 
   return (
     <View
@@ -102,22 +107,26 @@ export function SurahMemorisationGoalCard({
               <Text style={surahGoalStyles.surahName}>
                 {t("progressLogging.surahNameLabel", { name: goal.surahName })}
               </Text>
-              <Text style={surahGoalStyles.frequencyText}>{progressText}</Text>
+              {progressText ? (
+                <Text style={surahGoalStyles.frequencyText}>{progressText}</Text>
+              ) : null}
             </View>
 
-            <TouchableOpacity
-              style={styles.addButton}
-              onPress={handleLogProgress}
-              activeOpacity={0.8}
-              disabled={goal.completed}
-            >
-              <Ionicons name="add" size={22} color={Colors.light.white} />
-            </TouchableOpacity>
+            {canLog ? (
+              <TouchableOpacity
+                style={styles.addButton}
+                onPress={handleLogProgress}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="add" size={22} color={Colors.light.white} />
+              </TouchableOpacity>
+            ) : null}
           </View>
         ) : (
           <QuranMemorisationLoggingFlow
             goalData={goalData}
             preselectedSurahId={goal.id}
+            activeSurahGoal={goal}
             hideCollapsedSummary
             embedded
             suppressOverlay

@@ -1,5 +1,4 @@
 import React, { useCallback } from "react";
-import { useTranslation } from "react-i18next";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import { QuranAyatRangeSlider } from "./QuranAyatRangeSlider";
 
@@ -15,7 +14,6 @@ type Props = {
 };
 
 export function MemorisationAyahCountStep({
-  surahName,
   totalAyahs,
   minStartAyah,
   startAyah,
@@ -24,28 +22,25 @@ export function MemorisationAyahCountStep({
   onChangeEndAyah,
   styles,
 }: Props) {
-  const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
 
   const formatVerseLabel = useCallback(
-    (ayah: number) =>
-      t("progressLogging.memorisationAyahLabel", {
-        ayah: formatNumber(ayah),
-      }),
-    [formatNumber, t],
+    (ayah: number) => formatNumber(ayah),
+    [formatNumber],
   );
 
   return (
     <QuranAyatRangeSlider
-        juz={1}
-        startAyat={startAyah}
-        endAyat={endAyah}
-        minStartAyat={minStartAyah}
-        verseCount={totalAyahs}
-        formatVerseLabel={formatVerseLabel}
-        onChangeStartAyat={onChangeStartAyah}
-        onChangeEndAyat={onChangeEndAyah}
-        styles={styles}
+      juz={1}
+      startAyat={startAyah}
+      endAyat={endAyah}
+      minStartAyat={minStartAyah}
+      freezeStartHandle
+      verseCount={totalAyahs}
+      formatVerseLabel={formatVerseLabel}
+      onChangeStartAyat={onChangeStartAyah}
+      onChangeEndAyat={onChangeEndAyah}
+      styles={styles}
     />
   );
 }
