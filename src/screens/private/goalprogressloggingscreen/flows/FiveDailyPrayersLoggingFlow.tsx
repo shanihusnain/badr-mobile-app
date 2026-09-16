@@ -46,6 +46,7 @@ import {
 } from "@/src/api/queries/useGetPrayerGoalDayDetail";
 import { resolvePrayerTypeFromGoalId } from "@/src/utils/prayerGoalMap";
 import {
+  formatPrayerGoalFlowCardLabel,
   getPrayerFrameAchievementLabel,
   prayerFrameShowsInsights,
 } from "@/src/utils/prayerGoalFrameMap";
@@ -97,15 +98,19 @@ const PRAYER_TO_SLOT: Record<PrayerName, FiveDailyPrayerSlot> = {
   isha: "ISHA",
 };
 
-/** On-time AM/PM limits; Qadha always allows both. */
+/**
+ * On-time AM/PM limits by prayer:
+ * Fajr → AM; Dhuhr → AM|PM; Asr → PM; Maghrib → PM; Isha → AM|PM.
+ * Qadha always allows both.
+ */
 function getFiveDailyAllowedPeriods(
   prayer: PrayerName | null,
   timing: TimingOption,
 ): ReadonlyArray<"am" | "pm"> {
   if (timing === "qadha" || !prayer) return ["am", "pm"];
   if (prayer === "fajr") return ["am"];
-  if (prayer === "isha") return ["am", "pm"];
-  // dhuhr, asr, maghrib
+  if (prayer === "dhuhr" || prayer === "isha") return ["am", "pm"];
+  // asr, maghrib
   return ["pm"];
 }
 
@@ -338,7 +343,7 @@ export default function FiveDailyPrayersLoggingFlow({
     return STEPS_WITHOUT_CONGREGATION;
   }, [isCongregationalTracked, timing]);
 
-  const goalLabel = frame?.goal.label ?? "---";
+  const goalLabel = formatPrayerGoalFlowCardLabel(frame?.goal.label ?? "---");
   const goalLabelParts = useMemo(() => {
     const match = goalLabel.match(/^(.*?)\s*(\(total\s+\d+\s+prayers?\))\s*$/i);
     if (!match) {
@@ -388,6 +393,11 @@ export default function FiveDailyPrayersLoggingFlow({
       setSelectedPrayer(null);
     }
   }, [selectedPrayer, lockedPrayersForSelectedDate]);
+
+  // Changing the log date should not keep a prior prayer highlighted.
+  useEffect(() => {
+    setSelectedPrayer(null);
+  }, [selectedDate]);
 
   const applySlotDefaultsForPrayer = useCallback(
     (prayer: PrayerName) => {
@@ -566,6 +576,9 @@ export default function FiveDailyPrayersLoggingFlow({
   };
 
   const handleForward = () => {
+    if (currentStep === "date") {
+      setSelectedPrayer(null);
+    }
     if (currentStep === "prayerSelect") {
       if (dayDetailLoadingState) return;
       if (!hasSelectablePrayer) return;
@@ -577,6 +590,7 @@ export default function FiveDailyPrayersLoggingFlow({
 
   const handleOpenFlow = useCallback(() => {
     if (frameLoading || isFullyAchieved) return;
+    setSelectedPrayer(null);
     setFlowMode("active");
   }, [frameLoading, isFullyAchieved]);
 
@@ -722,7 +736,7 @@ export default function FiveDailyPrayersLoggingFlow({
   return (
     <>
       {flowMode === "active" && (
-        <Pressable style={commonStyles.backdrop} onPress={resetFlow} />
+        <Pressable style={commonStyles.backdrop} />
       )}
       {flowMode === "active" && (
         <TouchableOpacity
@@ -863,6 +877,7 @@ export default function FiveDailyPrayersLoggingFlow({
                         : false))
                   )
                 }
+                canGoBack={stepIndex > 0}
                 canConfirm={
                   isLastStep &&
                   !isLogging &&

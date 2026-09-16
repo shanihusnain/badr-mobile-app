@@ -60,26 +60,3 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 });
-borderRadius: 8,
-  paddingVertical: 8,
-    paddingHorizontal: 12,
-      backgroundColor: "rgba(255,255,255,0.04)",
-  },
-gregorianLabel: {
-  fontSize: 14,
-    fontFamily: fonts.primary.semiBold,
-      fontWeight: "600",
-        color: Colors.light.white,
-          textAlign: "center",
-            letterSpacing: 0.4,
-              textTransform: "uppercase",
-  },
-islamicLabel: {
-  fontSize: 12,
-    fontFamily: fonts.primary.regular,
-      fontWeight: "400",
-        color: Colors.light.seagreen,
-          textAlign: "center",
-            marginTop: 3,
-  },
-});

@@ -773,7 +773,7 @@ export default function MissedRamadanFastsLoggingFlow({
         ]}
       >
         {flowMode === "active" && (
-          <Pressable style={commonStyles.backdrop} onPress={resetFlow} />
+          <Pressable style={commonStyles.backdrop} />
         )}
         {flowMode === "active" && (
           <TouchableOpacity
@@ -865,6 +865,7 @@ export default function MissedRamadanFastsLoggingFlow({
               onForward={handleForward}
               onConfirm={handleConfirm}
               canGoForward={!isLastStep && canProceed}
+                canGoBack={stepIndex > 0}
               canConfirm={canConfirm}
               styles={commonStyles}
               style={[

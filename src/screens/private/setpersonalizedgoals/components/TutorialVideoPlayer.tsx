@@ -21,7 +21,10 @@ const TUTORIAL_DURATION_SEC = 45;
 /** Match BlackScreenWrapper padding so the player can span nearly full width. */
 const PARENT_HORIZONTAL_PADDING = 16;
 const SCREEN_SIDE_INSET = 8;
-const PLAYER_WIDTH = Dimensions.get("window").width - SCREEN_SIDE_INSET * 2;
+const { width: WINDOW_WIDTH, height: WINDOW_HEIGHT } = Dimensions.get("window");
+const PLAYER_WIDTH = WINDOW_WIDTH - SCREEN_SIDE_INSET * 2;
+/** Tall portrait player — matches intro screen Figma. */
+const PLAYER_HEIGHT = Math.round(WINDOW_HEIGHT * 0.84);
 
 interface TutorialVideoPlayerProps {
   videoUrl?: string;
@@ -128,9 +131,10 @@ const PLAY_SIZE = 64;
 
 const styles = StyleSheet.create({
   wrapper: {
-    marginTop: 16,
     flex: 1,
     width: PLAYER_WIDTH,
+    height: PLAYER_HEIGHT,
+    maxHeight: PLAYER_HEIGHT,
     marginHorizontal: -(PARENT_HORIZONTAL_PADDING - SCREEN_SIDE_INSET),
     alignSelf: "center",
     borderRadius: 18,
@@ -138,6 +142,8 @@ const styles = StyleSheet.create({
   player: {
     flex: 1,
     width: "100%",
+    height: "100%",
+    minHeight: PLAYER_HEIGHT,
     borderRadius: 18,
     overflow: "hidden",
     backgroundColor: Colors.light.calendarBg,

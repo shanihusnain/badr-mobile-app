@@ -414,6 +414,7 @@ export default function QuranMemorisationLoggingFlow({
         onForward={handleForward}
         onConfirm={handleConfirm}
         canGoForward={canGoForward}
+                canGoBack={stepIndex > 0}
         styles={styles}
         style={styles.inPlaceFlowCard}
         contentStyle={
@@ -434,7 +435,7 @@ export default function QuranMemorisationLoggingFlow({
       style={[styles.section, flowMode === "active" && styles.activeSection]}
     >
       <View style={styles.cardAnchor}>
-        {showOverlay && <Pressable style={styles.backdrop} onPress={resetFlow} />}
+        {showOverlay && <Pressable style={styles.backdrop} />}
         {showOverlay && (
           <TouchableOpacity
             style={styles.cancelButton}

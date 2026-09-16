@@ -8,6 +8,7 @@ export interface TranslationKeys {
     watchTutorial: string;
     skip: string;
     tutorial: string;
+    intro: string;
     setPersonalizedDescription: string;
   };
   monthlyGoalPlanner: {

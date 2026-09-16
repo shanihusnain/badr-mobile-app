@@ -434,6 +434,7 @@ export default function QuranRecitationLoggingFlow({
         onForward={handleForward}
         onConfirm={handleConfirm}
         canGoForward={canGoForward}
+                canGoBack={stepIndex > 0}
         styles={styles}
         style={styles.inPlaceFlowCard}
       >
@@ -448,7 +449,7 @@ export default function QuranRecitationLoggingFlow({
 
   const flowLayer = (
     <>
-      {showOverlay && <Pressable style={styles.backdrop} onPress={resetFlow} />}
+      {showOverlay && <Pressable style={styles.backdrop} />}
       {showOverlay && (
         <TouchableOpacity
           style={styles.cancelButton}

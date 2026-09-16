@@ -24,16 +24,18 @@ export default function TahiyatWuduGoalSelection({
   initialValue = 1,
   isSaving = false,
   openOnMount = false,
+  onInputFocus,
 }: {
   onSave?: (value: number, onDone?: () => void, onFail?: () => void) => void;
   initialValue?: number;
   isSaving?: boolean;
   openOnMount?: boolean;
+  onInputFocus?: () => void;
 }) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
   const [sliderValue, setSliderValue] = useState(initialValue);
-  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount);
+  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount, onInputFocus);
 
   const toggleDropdown = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -67,7 +69,7 @@ export default function TahiyatWuduGoalSelection({
           <Text style={styles.valueText}>
             {formatNumber(sliderValue)}
             <Text style={styles.whiteText}>
-              {t("prayerGoals.tahiyaWuduSuffix")}
+              {t("prayerGoals.tahiyaWuduSuffix", { count: sliderValue })}
             </Text>
           </Text>
 

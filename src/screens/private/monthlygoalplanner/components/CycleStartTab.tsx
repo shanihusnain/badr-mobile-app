@@ -6,7 +6,7 @@ import { TopSpace } from "@/components/atoms/TopSpace";
 import { Colors } from "@/constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 import moment from "moment-hijri";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -37,18 +37,20 @@ export const CycleStartTab = ({
 }: Props) => {
   const { t, i18n } = useTranslation();
   const insets = useSafeAreaInsets();
-  const todayDateString = useMemo(
-    () => moment().format("YYYY-MM-DD"),
+  const earliestStartDateString = useMemo(
+    () => moment().add(1, "day").format("YYYY-MM-DD"),
     [],
   );
   const [localCycleStartDate, setLocalCycleStartDate] = useState<string | null>(
     selectedStartDate,
   );
-  const cycleStartDate = selectedStartDate ?? localCycleStartDate;
+  const cycleStartDate =
+    selectedStartDate ?? localCycleStartDate ?? earliestStartDateString;
   const [windowStartDate, setWindowStartDate] = useState<string>(
-    selectedStartDate ?? todayDateString,
+    selectedStartDate ?? earliestStartDateString,
   );
   const [changeCycleModalVisible, setChangeCycleModalVisible] = useState(false);
+  const didApplyDefaultTomorrowRef = useRef(false);
 
   const { mutateAsync: startEditCycle, isPending: isStartEditCyclePending } =
     useStartEditCycleMutation();
@@ -79,10 +81,36 @@ export const CycleStartTab = ({
     setWindowStartDate(selectedStartDate);
   }, [selectedStartDate]);
 
+  // New users: pre-select tomorrow and show the cycle footer range.
+  useEffect(() => {
+    if (didApplyDefaultTomorrowRef.current) return;
+    if (selectedStartDate || backendStartDate) return;
+    didApplyDefaultTomorrowRef.current = true;
+    const start = earliestStartDateString;
+    const end = moment(start, "YYYY-MM-DD")
+      .add(27, "days")
+      .format("YYYY-MM-DD");
+    setLocalCycleStartDate(start);
+    setWindowStartDate(start);
+    onDateSelect?.(start, end);
+  }, [
+    backendStartDate,
+    earliestStartDateString,
+    onDateSelect,
+    selectedStartDate,
+  ]);
+
   const handleDayPress = useCallback(
     (dateString: string) => {
-      // Past days are not valid cycle starts.
-      if (moment(dateString, "YYYY-MM-DD").isBefore(moment(), "day")) return;
+      // Today and past days are not valid cycle starts — earliest is tomorrow.
+      if (
+        moment(dateString, "YYYY-MM-DD").isBefore(
+          moment().add(1, "day"),
+          "day",
+        )
+      ) {
+        return;
+      }
 
       const endDate = moment(dateString, "YYYY-MM-DD")
         .add(27, "days")
@@ -96,17 +124,17 @@ export const CycleStartTab = ({
 
   const goToPrevMonth = useCallback(() => {
     setWindowStartDate((prev) => {
-      const today = moment().format("YYYY-MM-DD");
-      // Already at/before today — nowhere earlier is allowed.
-      if (!moment(prev, "YYYY-MM-DD").isAfter(moment(), "day")) {
-        return today;
+      const earliest = moment().add(1, "day").format("YYYY-MM-DD");
+      // Already at/before earliest future day — nowhere earlier is allowed.
+      if (!moment(prev, "YYYY-MM-DD").isAfter(moment().add(1, "day"), "day")) {
+        return earliest;
       }
       const next = moment(prev, "YYYY-MM-DD")
         .subtract(1, "month")
         .format("YYYY-MM-DD");
-      // Month step may jump before today — clamp to today so current day stays reachable.
-      if (moment(next, "YYYY-MM-DD").isBefore(moment(), "day")) {
-        return today;
+      // Month step may jump before earliest — clamp so tomorrow stays reachable.
+      if (moment(next, "YYYY-MM-DD").isBefore(moment().add(1, "day"), "day")) {
+        return earliest;
       }
       return next;
     });
@@ -119,8 +147,11 @@ export const CycleStartTab = ({
   }, []);
 
   const canGoPrevMonth = useMemo(() => {
-    // Disable only when the window already starts on today (past days are not allowed).
-    return moment(windowStartDate, "YYYY-MM-DD").isAfter(moment(), "day");
+    // Disable when the window already starts on the earliest future day.
+    return moment(windowStartDate, "YYYY-MM-DD").isAfter(
+      moment().add(1, "day"),
+      "day",
+    );
   }, [windowStartDate]);
 
   const commitCycle = useCallback(
@@ -291,7 +322,7 @@ export const CycleStartTab = ({
         windowEndDate={windowEndMoment.format("YYYY-MM-DD")}
         selectedDate={cycleStartDate ?? undefined}
         endDate={cycleEndDateString ?? undefined}
-        minDate={moment().format("YYYY-MM-DD")}
+        minDate={earliestStartDateString}
         onDayPress={handleDayPress}
         footer={
           cycleStartDate ? (

@@ -320,7 +320,6 @@ export default function QuranHoursLoggingFlow({
       {flowMode === "active" && (
         <Pressable
           style={commonStyles.backdrop}
-          onPress={handleCancel}
           disabled={isLogging}
         />
       )}

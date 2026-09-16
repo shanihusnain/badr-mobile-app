@@ -20,6 +20,7 @@ export const KafarahForBreakingFastsOrOAthSelector = ({
   onSave,
   isSaving,
   openOnMount = false,
+  onInputFocus,
 }: {
   mealCount: number;
   setMealCount: (count: number) => void;
@@ -32,9 +33,10 @@ export const KafarahForBreakingFastsOrOAthSelector = ({
   onSave?: (onDone?: () => void, onFail?: () => void) => void;
   isSaving?: boolean;
   openOnMount?: boolean;
+  onInputFocus?: () => void;
 }) => {
   const { t } = useTranslation();
-  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount);
+  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount, onInputFocus);
   const toggleDropdown = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setIsOpen(!isOpen);
@@ -66,8 +68,9 @@ export const KafarahForBreakingFastsOrOAthSelector = ({
               setCount={setMealCount}
               handleDecrease={handleMealDecrease}
               handleIncrease={handleMealIncrease}
-              countTitle={t("monthlyGoalPlanner.meals")}
+              countTitle={t("monthlyGoalPlanner.meals", { count: mealCount })}
               width={"50%"}
+              onInputFocus={onInputFocus}
             />
 
             <Counter
@@ -75,8 +78,9 @@ export const KafarahForBreakingFastsOrOAthSelector = ({
               setCount={setClothCount}
               handleDecrease={handleClothDecrease}
               handleIncrease={handleClothIncrease}
-              countTitle={t("monthlyGoalPlanner.cloths")}
+              countTitle={t("monthlyGoalPlanner.cloths", { count: clothCount })}
               width={"50%"}
+              onInputFocus={onInputFocus}
             />
           </View>
           {onSave ? (

@@ -3,10 +3,9 @@ import { TopSpace } from "@/components/atoms/TopSpace";
 import { Colors } from "@/constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { FlatList, Platform, Pressable, Text, View } from "react-native";
+import { FlatList, Pressable, Text, View } from "react-native";
 import type { GoalCardData } from "./components/GoalCard";
 import { GoalCardCarousel } from "./components/GoalCardCarousel";
-import { GoalPlannerSummary } from "./components/GoalPlannerSummary";
 import { styles } from "./styles";
 import { useTranslation } from "react-i18next";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
@@ -199,31 +198,18 @@ export const MonthlyGoalPlannerScreen = () => {
           keyExtractor={keyExtractor}
           renderItem={renderItem}
           ItemSeparatorComponent={ItemSeparator}
-          style={[styles.stepsList, { flex: 1 }]}
+          style={styles.stepsList}
           contentContainerStyle={styles.stepsContent}
           ListHeaderComponent={
             <>
-              <Text style={globalStyles.onboardingHeading}>
-                {t("monthlyGoalPlanner.heading")}
-              </Text>
-              <TopSpace top={16} />
-              <Text style={styles.subheading}>
-                {t("monthlyGoalPlanner.subheading")}
-              </Text>
-              <TopSpace top={24} />
               <GoalCardCarousel data={goalCards} />
-              <GoalPlannerSummary />
-              <TopSpace top={10} />
+              <TopSpace top={28} />
             </>
           }
         />
         <Pressable
           onPress={handleBeginNowPress}
-          style={{
-            alignSelf: "center",
-            marginBottom: 16,
-            paddingTop: Platform.OS === "ios" ? 8 : 16,
-          }}
+          style={styles.beginNowButton}
         >
           <Text style={globalStyles.greenCTA}>BEGIN NOW</Text>
         </Pressable>

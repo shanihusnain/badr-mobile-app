@@ -221,7 +221,7 @@ export default function LillahLoggingFlow({ goalData, onLogComplete }: Props) {
 
       <View style={commonStyles.cardAnchor}>
         {flowMode === "active" && (
-          <Pressable style={commonStyles.backdrop} onPress={resetFlow} />
+          <Pressable style={commonStyles.backdrop} />
         )}
         {flowMode === "active" && (
           <TouchableOpacity style={commonStyles.cancelButton} onPress={resetFlow} activeOpacity={0.8}>
@@ -286,6 +286,7 @@ export default function LillahLoggingFlow({ goalData, onLogComplete }: Props) {
               onForward={handleForward}
               onConfirm={handleConfirm}
               canGoForward={!isLastStep}
+                canGoBack={stepIndex > 0}
               styles={commonStyles}
               style={commonStyles.inPlaceFlowCard}
             >
