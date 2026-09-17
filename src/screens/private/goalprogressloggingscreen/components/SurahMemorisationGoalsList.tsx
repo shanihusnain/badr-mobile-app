@@ -46,6 +46,7 @@ export function SurahMemorisationGoalsList({
   );
   const cardWidth =
     screenWidth * FLOW_CARD_WIDTH_RATIO - CARD_ANCHOR_PADDING_LEFT;
+  const snapInterval = cardWidth + CARD_GAP;
   const [activeGoalId, setActiveGoalId] = useState(
     () => memorisationContext?.activeSurahId ?? goals[0]?.id ?? "",
   );

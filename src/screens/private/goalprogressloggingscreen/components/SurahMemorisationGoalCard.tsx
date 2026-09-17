@@ -2,10 +2,7 @@ import React, { useMemo } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Colors } from "@/constants/theme";
-import {
-  AddLoggingFlowIcon,
-  QuranMemorizationIcon,
-} from "@/assets/icons";
+import { AddLoggingFlowIcon, QuranMemorizationIcon } from "@/assets/icons";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import { GoalData } from "../../home/components/goalsData";
 import QuranMemorisationLoggingFlow from "../flows/QuranMemorisationLoggingFlow";
@@ -13,7 +10,6 @@ import { type SurahMemorisationGoal } from "../quranMemorisationSurahGoals";
 import type { QuranMemorisationLogEntry } from "../types";
 import { FLOW_CARD_HEIGHT, styles } from "./DailyProgressLogging.styles";
 import { surahGoalStyles } from "./SurahRecitationGoals.styles";
-import { stripEnglishParenthetical } from "@/src/utils/quranGoalMap";
 
 type Props = {
   goal: SurahMemorisationGoal;
@@ -55,8 +51,6 @@ export function SurahMemorisationGoalCard({
     goal.totalAyahs > 0
       ? `(total ${formatNumber(goal.totalAyahs)} ayahs)`
       : goal.subtitle?.trim() || "";
-
-  const totalAyahsLabel = formatNumber(goal.totalAyahs);
 
   const handleLogProgress = () => {
     onStartFlow(goal.id);
@@ -103,12 +97,16 @@ export function SurahMemorisationGoalCard({
                     </Text>
                   </View>
 
-              <Text style={surahGoalStyles.surahName}>
-                {t("progressLogging.surahNameLabel", { name: goal.surahName })}
-              </Text>
-              {progressText ? (
-                <Text style={surahGoalStyles.metaBold}>{progressText}</Text>
-              ) : null}
+                  <Text style={surahGoalStyles.surahName}>
+                    {t("progressLogging.surahNameLabel", {
+                      name: goal.surahName,
+                    })}
+                  </Text>
+                  {progressText ? (
+                    <Text style={surahGoalStyles.metaBold}>{progressText}</Text>
+                  ) : null}
+                </View>
+              </View>
             </View>
 
             {canLog ? (
