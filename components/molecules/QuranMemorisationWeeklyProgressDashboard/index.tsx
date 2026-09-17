@@ -7,11 +7,10 @@ import {
   useWindowDimensions,
   Pressable,
 } from "react-native";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTranslation } from "react-i18next";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
-import { BinIcon } from "@/assets/icons";
+import { BinIcon, QuranBlueIcon } from "@/assets/icons";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import { WeeklyProgressStatsFooterSection } from "@/components/molecules/PrayerWeeklyProgressFooter/WeeklyProgressStatsFooterSection";
 import { PrayerWeeklyProgressHeader } from "@/components/molecules/SinglePrayerWeeklyProgressDashboard/PrayerWeeklyProgressHeader";
@@ -289,16 +288,14 @@ export function QuranMemorisationWeeklyProgressDashboard({
               statsRow={
                 <>
                   <View style={styles.statsRow}>
-                    <MaterialCommunityIcons
-                      name="brain"
-                      size={20}
-                      color={Colors.light.lightblue}
-                    />
+                    <QuranBlueIcon size={23} />
                     <Text style={styles.statsText} numberOfLines={1}>
                       <Text style={styles.statsCount}>
-                        {formatNumber(totalAyahsThisWeek)}
+                        {loading ? "---" : formatNumber(totalAyahsThisWeek)}
                       </Text>
-                      {" " + t("progressLogging.totalAyahsThisWeek")}
+                      {loading
+                        ? ""
+                        : " " + t("progressLogging.totalAyahsThisWeek")}
                     </Text>
                   </View>
 
@@ -315,7 +312,7 @@ export function QuranMemorisationWeeklyProgressDashboard({
                 loading: false,
                 streakDays,
                 motivationalQuote,
-                streakVariant: "green",
+                streakVariant: "default",
               }}
             />
           </>

@@ -10,6 +10,7 @@ import { type SurahMemorisationGoal } from "../quranMemorisationSurahGoals";
 import type { QuranMemorisationLogEntry } from "../types";
 import { FLOW_CARD_HEIGHT, styles } from "./DailyProgressLogging.styles";
 import { surahGoalStyles } from "./SurahRecitationGoals.styles";
+import { stripEnglishParenthetical } from "@/src/utils/quranGoalMap";
 
 type Props = {
   goal: SurahMemorisationGoal;
@@ -47,10 +48,9 @@ export function SurahMemorisationGoalCard({
     }
   }, [goal.pillLabel, goal.status, t]);
 
-  const progressText =
-    goal.totalAyahs > 0
-      ? `(total ${formatNumber(goal.totalAyahs)} ayahs)`
-      : goal.subtitle?.trim() || "";
+  const totalAyahsLabel = formatNumber(goal.totalAyahs);
+  const showTotalAyahs = goal.totalAyahs > 0;
+  const fallbackSubtitle = goal.subtitle?.trim() || "";
 
   const handleLogProgress = () => {
     onStartFlow(goal.id);
@@ -81,33 +81,44 @@ export function SurahMemorisationGoalCard({
                 : surahGoalStyles.cardInactive,
             ]}
           >
-            <View style={surahGoalStyles.cardContent}>
-              <View style={surahGoalStyles.bodyRow}>
-                <View style={surahGoalStyles.iconCircle}>
-                  <QuranMemorizationIcon
-                    color={Colors.light.white}
-                    size={22}
-                  />
+            {/* Same structure as Istikhara summaryBody + textBlock */}
+            <View style={surahGoalStyles.bodyRow}>
+              <View style={surahGoalStyles.iconCircle}>
+                <QuranMemorizationIcon color={Colors.light.white} size={26} />
+              </View>
+
+              <View style={surahGoalStyles.textColumn}>
+                <View style={surahGoalStyles.statusChip}>
+                  <Text style={surahGoalStyles.statusChipText}>
+                    {statusLabel}
+                  </Text>
                 </View>
 
-                <View style={surahGoalStyles.textColumn}>
-                  <View style={surahGoalStyles.statusChip}>
-                    <Text style={surahGoalStyles.statusChipText}>
-                      {statusLabel}
-                    </Text>
-                  </View>
-
-                  <Text style={surahGoalStyles.surahName}>
+                <View style={surahGoalStyles.textLines}>
+                  <Text style={surahGoalStyles.surahName} numberOfLines={2}>
                     {t("progressLogging.surahNameLabel", {
-                      name: goal.surahName,
+                      name: stripEnglishParenthetical(goal.surahName),
                     })}
                   </Text>
-                  {progressText ? (
-                    <Text style={surahGoalStyles.metaBold}>{progressText}</Text>
+                  {showTotalAyahs ? (
+                    <Text style={surahGoalStyles.metaRegular}>
+                      {`(total `}
+                      <Text style={surahGoalStyles.metaBold}>
+                        {totalAyahsLabel}
+                      </Text>
+                      {` ayahs)`}
+                    </Text>
+                  ) : fallbackSubtitle ? (
+                    <Text style={surahGoalStyles.metaRegular}>
+                      {fallbackSubtitle}
+                    </Text>
                   ) : null}
                 </View>
               </View>
             </View>
+
+            {/* Matches Istikhara footerRow for space-between spacing */}
+            <View style={surahGoalStyles.footerRow} />
 
             {canLog ? (
               <TouchableOpacity
