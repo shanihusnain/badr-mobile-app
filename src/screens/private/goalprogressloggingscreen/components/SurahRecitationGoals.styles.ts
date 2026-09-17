@@ -128,6 +128,14 @@ export const surahGoalStyles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  /** For `AddLoggingFlowIcon` which already draws its own ring. */
+  addButtonIconOnly: {
+    position: "absolute",
+    right: 16,
+    bottom: 15,
+    alignItems: "center",
+    justifyContent: "center",
+  },
 });
 
 export const weeklySurahProgressStyles = StyleSheet.create({

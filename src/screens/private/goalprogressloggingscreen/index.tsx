@@ -566,6 +566,58 @@ export const GoalProgressLoggingScreen = ({
     setDeletePrayerLogDate(null);
   }, []);
 
+  const isMemorisationGoal =
+    isSurahMemorisationGoalId(goalId) ||
+    isHizbMemorisationGoalId(goalId) ||
+    isJuzMemorisationGoalId(goalId);
+
+  const memorisationHeaderTitle = isMemorisationGoal
+    ? "QURAN MEMORIZATION"
+    : null;
+
+  const memorisationHeaderSecondTitle = isSurahMemorisationGoalId(goalId)
+    ? "BY SURAH"
+    : isHizbMemorisationGoalId(goalId)
+      ? "BY HIZB"
+      : isJuzMemorisationGoalId(goalId)
+        ? "BY JUZ"
+        : undefined;
+
+  const memorisationTitleOptions = isMemorisationGoal
+    ? [
+        {
+          value: "quran-memorisationBySurah",
+          label: "QURAN MEMORIZATION BY SURAH",
+        },
+        {
+          value: "quran-memorisationByHizb",
+          label: "QURAN MEMORIZATION BY HIZB",
+        },
+        {
+          value: "quran-memorisationByJuz",
+          label: "QURAN MEMORIZATION BY JUZ",
+        },
+      ]
+    : undefined;
+
+  const handleMemorisationFlowSelect = useCallback(
+    (nextGoalId: string) => {
+      if (nextGoalId === goalId) return;
+      router.setParams({
+        goalId: nextGoalId,
+        ...(fromDailyProgress
+          ? {
+              fromDailyProgress: "1",
+              ...(dailyProgressCategory
+                ? { dailyProgressCategory }
+                : {}),
+            }
+          : {}),
+      });
+    },
+    [dailyProgressCategory, fromDailyProgress, goalId],
+  );
+
   const handleHeaderBack = () => {
     if (fromDailyProgress && dailyProgressCategory) {
       setDailyProgressSheetReturn({
@@ -642,10 +694,22 @@ export const GoalProgressLoggingScreen = ({
             >
               <HeaderWithCrossTitleDynamicIcon
                 title={
-                  isSurahRecitationGoalId(goalId)
-                    ? "QURAN RECITATION BY SURAH"
-                    : (goalData.title?.toUpperCase() ??
-                      goalData.label.toUpperCase())
+                  memorisationHeaderTitle
+                    ? memorisationHeaderTitle
+                    : isSurahRecitationGoalId(goalId)
+                      ? "QURAN RECITATION BY SURAH"
+                      : (goalData.title?.toUpperCase() ??
+                        goalData.label.toUpperCase())
+                }
+                secondTitle={memorisationHeaderSecondTitle}
+                titleDropdownOptions={memorisationTitleOptions}
+                selectedTitleValue={
+                  isMemorisationGoal ? goalId : undefined
+                }
+                onTitleOptionSelect={
+                  isMemorisationGoal
+                    ? handleMemorisationFlowSelect
+                    : undefined
                 }
                 navigation={navigation}
                 bgcolor="transparent"

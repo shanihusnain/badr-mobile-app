@@ -3,6 +3,7 @@ import { Text, TouchableOpacity, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "@/constants/theme";
+import { stripEnglishParenthetical } from "@/src/utils/quranGoalMap";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import type { SurahMemorisationGoal } from "../quranMemorisationSurahGoals";
 
@@ -51,7 +52,9 @@ export function MemorisationSurahSelectionStep({
           >
             <View style={{ flex: 1, gap: 4 }}>
               <Text style={{ color: Colors.light.white, fontSize: 15 }}>
-                {t("progressLogging.surahNameLabel", { name: goal.surahName })}
+                {t("progressLogging.surahNameLabel", {
+                  name: stripEnglishParenthetical(goal.surahName),
+                })}
               </Text>
               <Text style={{ color: Colors.light.grey, fontSize: 12 }}>
                 {t("progressLogging.memorisationProgressLabel", {

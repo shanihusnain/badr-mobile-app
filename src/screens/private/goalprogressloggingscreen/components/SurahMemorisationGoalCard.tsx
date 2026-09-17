@@ -1,15 +1,19 @@
 import React, { useMemo } from "react";
-import { Pressable, Text, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 import { useTranslation } from "react-i18next";
-import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "@/constants/theme";
+import {
+  AddLoggingFlowIcon,
+  QuranMemorizationIcon,
+} from "@/assets/icons";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import { GoalData } from "../../home/components/goalsData";
 import QuranMemorisationLoggingFlow from "../flows/QuranMemorisationLoggingFlow";
 import { type SurahMemorisationGoal } from "../quranMemorisationSurahGoals";
 import type { QuranMemorisationLogEntry } from "../types";
-import { styles } from "./DailyProgressLogging.styles";
+import { FLOW_CARD_HEIGHT, styles } from "./DailyProgressLogging.styles";
 import { surahGoalStyles } from "./SurahRecitationGoals.styles";
+import { stripEnglishParenthetical } from "@/src/utils/quranGoalMap";
 
 type Props = {
   goal: SurahMemorisationGoal;
@@ -52,6 +56,8 @@ export function SurahMemorisationGoalCard({
       ? `(total ${formatNumber(goal.totalAyahs)} ayahs)`
       : goal.subtitle?.trim() || "";
 
+  const totalAyahsLabel = formatNumber(goal.totalAyahs);
+
   const handleLogProgress = () => {
     onStartFlow(goal.id);
   };
@@ -67,38 +73,35 @@ export function SurahMemorisationGoalCard({
   return (
     <View
       style={[
-        { width: cardWidth },
+        { width: cardWidth, height: FLOW_CARD_HEIGHT },
         isFlowActive ? styles.activeSection : undefined,
       ]}
     >
-      <View style={[styles.cardAnchor, { width: "100%" }]}>
-        {isFlowActive && <Pressable style={styles.backdrop} />}
-        {isFlowActive && (
-          <TouchableOpacity
-            style={styles.cancelButton}
-            onPress={onFlowClose}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="close" size={20} color={Colors.light.white} />
-          </TouchableOpacity>
-        )}
-
+      <View style={surahGoalStyles.cardAnchor}>
         {!isFlowActive ? (
           <View
             style={[
               surahGoalStyles.card,
-              { width: "100%" },
               isInView
                 ? surahGoalStyles.cardActive
                 : surahGoalStyles.cardInactive,
             ]}
           >
             <View style={surahGoalStyles.cardContent}>
-              <View style={surahGoalStyles.statusChip}>
-                <Text style={surahGoalStyles.statusChipText}>
-                  {statusLabel}
-                </Text>
-              </View>
+              <View style={surahGoalStyles.bodyRow}>
+                <View style={surahGoalStyles.iconCircle}>
+                  <QuranMemorizationIcon
+                    color={Colors.light.white}
+                    size={22}
+                  />
+                </View>
+
+                <View style={surahGoalStyles.textColumn}>
+                  <View style={surahGoalStyles.statusChip}>
+                    <Text style={surahGoalStyles.statusChipText}>
+                      {statusLabel}
+                    </Text>
+                  </View>
 
               <Text style={surahGoalStyles.surahName}>
                 {t("progressLogging.surahNameLabel", { name: goal.surahName })}
@@ -110,11 +113,11 @@ export function SurahMemorisationGoalCard({
 
             {canLog ? (
               <TouchableOpacity
-                style={styles.addButton}
+                style={surahGoalStyles.addButtonIconOnly}
                 onPress={handleLogProgress}
                 activeOpacity={0.8}
               >
-                <Ionicons name="add" size={22} color={Colors.light.white} />
+                <AddLoggingFlowIcon size={32} />
               </TouchableOpacity>
             ) : null}
           </View>

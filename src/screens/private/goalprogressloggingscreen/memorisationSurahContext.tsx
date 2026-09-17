@@ -9,6 +9,7 @@ import React, {
 import { useGetQuranGoalByType } from "@/src/api/queries/useGetQuranGoalByType";
 import type { QuranGoalFrameItem } from "@/src/api/queries/useGetQuranGoalFrame";
 import type { QuranGoalDetailItem } from "@/src/utils/quranGoalMap";
+import { stripEnglishParenthetical } from "@/src/utils/quranGoalMap";
 import { useOptionalQuranGoalFrameContext } from "./quranGoalFrameContext";
 import {
   getSurahMemorisationGoals,
@@ -110,7 +111,9 @@ function mapDetailItemToGoal(item: QuranGoalDetailItem): SurahMemorisationGoal {
   const completed =
     String(item.status ?? "").toUpperCase() === "COMPLETED" ||
     (totalAyahs > 0 && memorizedAyahs >= totalAyahs);
-  const surahName = String(item.surahName ?? `Surah ${itemNumber}`);
+  const surahName = stripEnglishParenthetical(
+    String(item.surahName ?? `Surah ${itemNumber}`),
+  );
 
   return {
     id,
