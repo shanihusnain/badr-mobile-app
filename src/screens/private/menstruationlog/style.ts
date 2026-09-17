@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
     letterSpacing: 0,
-    color: Colors.light.subtext,
+    color: Colors.light.white,
     textAlign: "center",
     textTransform: "uppercase",
     fontVariant: ["small-caps"],
@@ -157,6 +157,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0,
     color: Colors.light.subtext,
     textAlign: "center",
+    marginTop: 6,
   },
   startTimesContainer: {
     marginTop: 16,

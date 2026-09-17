@@ -414,7 +414,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: fonts.primary.medium,
     textAlign: "center",
-    marginTop: 2,
+    marginTop: 8,
     fontWeight: "500",
   },
   navBtn: {

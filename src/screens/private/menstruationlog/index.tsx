@@ -133,34 +133,57 @@ export default function MenstruationLog({
     : cycleStartDate
       ? moment(cycleStartDate, "YYYY-MM-DD").startOf("day")
       : moment(today).startOf("day");
-  const cycleEnd = cycleStart.clone().add(CYCLE_LENGTH_DAYS - 1, "days");
+  const cycleEnd = goalCycleData?.data?.endDate
+    ? moment(goalCycleData.data.endDate).startOf("day")
+    : cycleStart.clone().add(CYCLE_LENGTH_DAYS - 1, "days");
 
   // Strictly bind dates to the Goal Cycle's 28 days.
   const startDateMinimum = cycleStart.toDate();
   const selectableMax = cycleEnd.toDate();
   const selectableMaxString = toDateString(selectableMax);
+  const cycleStartString = cycleStart.format("YYYY-MM-DD");
+  const cycleEndString = cycleEnd.format("YYYY-MM-DD");
 
-  const [selectedDate, setSelectedDate] = useState(selectableMaxString);
+  // Default menstruation start to the selected cycle start date (e.g. Sep 18).
+  const [selectedDate, setSelectedDate] = useState(cycleStartString);
   const [showDatePicker, setShowDatePicker] = useState(false);
 
-  const [selectedEndDate, setSelectedEndDate] = useState(selectableMaxString);
+  const [selectedEndDate, setSelectedEndDate] = useState(cycleStartString);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
 
-  const dateExplicitlyPicked = selectedDate !== selectableMaxString;
-  const endDateExplicitlyPicked = selectedEndDate !== selectableMaxString;
+  // When goal-cycle bounds load/change, keep picks inside the 28-day window
+  // and default to cycle start (unless an ongoing period already prefilled).
+  useEffect(() => {
+    if (hasInitialized.current) return;
+    setSelectedDate((prev) => {
+      if (prev < cycleStartString || prev > cycleEndString) {
+        return cycleStartString;
+      }
+      return prev;
+    });
+    setSelectedEndDate((prev) => {
+      if (prev < cycleStartString || prev > cycleEndString) {
+        return cycleStartString;
+      }
+      return prev;
+    });
+  }, [cycleStartString, cycleEndString]);
+
+  const dateExplicitlyPicked = selectedDate !== todayString;
+  const endDateExplicitlyPicked = selectedEndDate !== todayString;
 
   const todayButtonLabel =
     selectedDate === todayString
       ? t("homeScreen.menstruationLog_today")
-      : moment(selectedDate, "YYYY-MM-DD").locale(locale).format("MMM DD");
+      : moment(selectedDate, "YYYY-MM-DD").locale(locale).format("MMM D");
 
   const endDateButtonLabel =
     selectedEndDate === todayString
       ? t("homeScreen.menstruationLog_today")
-      : moment(selectedEndDate, "YYYY-MM-DD").locale(locale).format("MMM DD");
+      : moment(selectedEndDate, "YYYY-MM-DD").locale(locale).format("MMM D");
 
-  const startMoment = moment(selectedDate, "YYYY-MM-DD").locale(locale);
-  const endMoment = startMoment.clone().add(27, "days").locale(locale);
+  const startMoment = cycleStart.clone().locale(locale);
+  const endMoment = cycleEnd.clone().locale(locale);
   const gregorianRange = `${startMoment.format("MMM DD").toUpperCase()} - ${endMoment.format("MMM DD, YYYY").toUpperCase()}`;
   const islamicMonthNames = [
     t("homeScreen.islamicMonth_muharram"),
@@ -240,14 +263,7 @@ export default function MenstruationLog({
         </View>
 
         <View style={styles.menstruatingContainer}>
-          <Text
-            style={[
-              styles.menstruatingText,
-              {
-                color: menstruating ? Colors.light.white : Colors.light.subtext,
-              },
-            ]}
-          >
+          <Text style={styles.menstruatingText}>
             {t("homeScreen.menstruationLog_imMenstruating")}
           </Text>
           <SwitchButton
@@ -262,10 +278,10 @@ export default function MenstruationLog({
               setMenstruating(newValue);
               if (!newValue) {
                 setShowDatePicker(false);
-                setSelectedDate(selectableMaxString);
+                setSelectedDate(cycleStartString);
 
                 setShowEndDatePicker(false);
-                setSelectedEndDate(selectableMaxString);
+                setSelectedEndDate(cycleStartString);
 
                 isStillMenstruating.value = false;
                 setStillMenstruating(false);
@@ -302,7 +318,7 @@ export default function MenstruationLog({
           >
             <View
               style={[
-                dateExplicitlyPicked && menstruating
+                menstruating
                   ? styles.todayContainerActive
                   : styles.todayContainer,
                 !menstruating && { opacity: 0.4 },
@@ -311,8 +327,7 @@ export default function MenstruationLog({
               <Text
                 style={[
                   styles.todayText,
-                  dateExplicitlyPicked &&
-                    menstruating && { color: Colors.light.white },
+                  menstruating && { color: Colors.light.white },
                 ]}
               >
                 {todayButtonLabel}
@@ -394,21 +409,11 @@ export default function MenstruationLog({
               >
                 {gregorianRange}
               </Text>
-              <Text
-                style={[
-                  styles.islamicDateText,
-                  {
-                    color: menstruating
-                      ? Colors.light.white
-                      : Colors.light.subtext,
-                  },
-                ]}
-              >
-                {islamicRange}
-              </Text>
+              <Text style={styles.islamicDateText}>{islamicRange}</Text>
             </View>
             <MenstruationCalendar
-              currentDate={selectedDate}
+              cycleStartDate={cycleStartString}
+              cycleEndDate={cycleEndString}
               selectedDate={selectedDate}
               onDayPress={(dateString) => {
                 setSelectedDate(dateString);

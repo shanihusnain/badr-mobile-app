@@ -1186,7 +1186,7 @@ const styles = StyleSheet.create({
   },
   cycleStartDayCell: {
     width: 36,
-    height: 48,
+    height: 52,
     paddingVertical: 0,
     borderRadius: 0,
     marginBottom: 7,
@@ -1219,8 +1219,8 @@ const styles = StyleSheet.create({
   },
   cycleStartDayHijri: {
     fontSize: 10,
-    marginTop: 2,
-    lineHeight: 18,
+    marginTop: 8,
+    lineHeight: 14,
     color: Colors.light.grey,
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
@@ -1228,6 +1228,6 @@ const styles = StyleSheet.create({
   },
   cycleStartPaddingDayCell: {
     width: 36,
-    height: 48,
+    height: 52,
   },
 });

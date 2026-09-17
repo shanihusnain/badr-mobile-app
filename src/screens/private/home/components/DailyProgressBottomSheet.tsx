@@ -381,7 +381,9 @@ export const DailyProgressBottomSheet = ({
                         selectedUiCategory,
                         CATEGORY_ICON_COLOR[selectedUiCategory],
                       )
-                    : selectedUiCategory === "PRAYER"
+                    : selectedUiCategory === "PRAYER" ||
+                        goal.goalId === "quran-listening" ||
+                        goal.goalId === "quran-Tajweed"
                       ? getDetailedIbadahIcon(goal.goalId, Colors.light.white)
                       : getCategoryGoalIcon(
                           selectedUiCategory,
