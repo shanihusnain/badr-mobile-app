@@ -1,143 +1,160 @@
 import { Colors } from "@/constants/theme";
-import React from "react";
+import React, { useMemo } from "react";
 import {
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  ViewStyle,
 } from "react-native";
-import { Calendar, DateData, LocaleConfig } from "react-native-calendars";
 import moment from "moment-hijri";
 import { fonts } from "@/assets/fonts";
-import { useTranslation } from "react-i18next";
+import { useTypedTranslation } from "@/i18next/useTypedTranslation";
 
-// Ensure the Arabic locale definitions exist at module load time so
-// `react-native-calendars` doesn't attempt to read `dayNamesShort` from
-// an undefined locale when components render before React effects run.
-if (!LocaleConfig.locales) {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  LocaleConfig.locales = {};
-}
-if (!LocaleConfig.locales["ar"]) {
-  LocaleConfig.locales["ar"] = {
-    monthNames: ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"],
-    monthNamesShort: ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"],
-    dayNames: ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"],
-    dayNamesShort: ["أحد", "إثن", "ثلا", "أرب", "خمي", "جمع", "سبت"],
-    today: "اليوم",
-  };
-}
+const WEEKDAY_KEYS = [
+  "homeScreen.calendar_weekday_mon",
+  "homeScreen.calendar_weekday_tue",
+  "homeScreen.calendar_weekday_wed",
+  "homeScreen.calendar_weekday_thu",
+  "homeScreen.calendar_weekday_fri",
+  "homeScreen.calendar_weekday_sat",
+  "homeScreen.calendar_weekday_sun",
+] as const;
 
-// Ensure English locale is also present to avoid undefined access for the
-// default 'en' locale on initial renders.
-if (!LocaleConfig.locales["en"]) {
-  LocaleConfig.locales["en"] = {
-    monthNames: ["January","February","March","April","May","June","July","August","September","October","November","December"],
-    monthNamesShort: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
-    dayNames: ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],
-    dayNamesShort: ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],
-    today: "Today",
-  };
+function buildCycleWeeks(
+  windowStart: moment.Moment,
+  windowEnd: moment.Moment,
+): (string | null)[][] {
+  const weeks: (string | null)[][] = [];
+  // isoWeek starts on Monday so columns match WEEKDAY_KEYS.
+  const cursor = windowStart.clone().startOf("isoWeek");
+  const gridEnd = windowEnd.clone().endOf("isoWeek");
+
+  while (cursor.isSameOrBefore(gridEnd, "day")) {
+    const week: (string | null)[] = [];
+    for (let i = 0; i < 7; i++) {
+      const ds = cursor.format("YYYY-MM-DD");
+      if (
+        cursor.isBefore(windowStart, "day") ||
+        cursor.isAfter(windowEnd, "day")
+      ) {
+        week.push(null);
+      } else {
+        week.push(ds);
+      }
+      cursor.add(1, "day");
+    }
+    weeks.push(week);
+  }
+
+  return weeks;
 }
 
 export type MenstruationCalendarProps = {
-  currentDate: string;
+  /** Start of the active 28-day goal cycle (YYYY-MM-DD). */
+  cycleStartDate: string;
+  /** End of the active 28-day goal cycle (YYYY-MM-DD). */
+  cycleEndDate: string;
   onDayPress?: (dateString: string) => void;
   selectedDate?: string;
   isMenstruating: boolean;
 };
 
 export const MenstruationCalendar = ({
-  currentDate,
+  cycleStartDate,
+  cycleEndDate,
   onDayPress,
   selectedDate,
   isMenstruating,
 }: MenstruationCalendarProps) => {
   const today = moment().format("YYYY-MM-DD");
-  const { i18n } = useTranslation();
-  const isArabic = i18n.language === "ar";
+  const { t } = useTypedTranslation();
   // When switch is OFF, always lock selection to today
   const effectiveSelected = isMenstruating ? (selectedDate ?? today) : today;
-  const textColor = isMenstruating ? Colors.light.white : Colors.light.subtext;
 
-  React.useEffect(() => {
-    if (!LocaleConfig.locales) {
-      // Ensure locales object exists (defensive for environments where it's undefined)
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      LocaleConfig.locales = {};
-    }
-
-    if (isArabic) {
-      if (!LocaleConfig.locales["ar"]) {
-        LocaleConfig.locales["ar"] = {
-          monthNames: ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"],
-          monthNamesShort: ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"],
-          dayNames: ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"],
-          dayNamesShort: ["أحد", "إثن", "ثلا", "أرب", "خمي", "جمع", "سبت"],
-          today: "اليوم"
-        };
-      }
-      LocaleConfig.defaultLocale = "ar";
-    } else {
-      LocaleConfig.defaultLocale = "en";
-    }
-  }, [isArabic]);
+  const weeks = useMemo(() => {
+    const start = moment(cycleStartDate, "YYYY-MM-DD").startOf("day");
+    const end = moment(cycleEndDate, "YYYY-MM-DD").startOf("day");
+    return buildCycleWeeks(start, end);
+  }, [cycleStartDate, cycleEndDate]);
 
   return (
     <View style={styles.wrapper}>
-      <Calendar
-        key={`${currentDate}-${isMenstruating}-${effectiveSelected}-${i18n.language}`}
-        current={currentDate}
-        hideArrows
-        renderHeader={() => null}
-        markingType="custom"
-        markedDates={{}}
-        theme={{
-          calendarBackground: Colors.light.calendarBg,
-          dayTextColor: textColor,
-          textDisabledColor: Colors.light.grey,
-          monthTextColor: textColor,
-          textSectionTitleColor: textColor,
-          todayTextColor: isMenstruating ? Colors.light.white : Colors.light.subtext,
-          selectedDayBackgroundColor: Colors.light.green,
-          selectedDayTextColor: Colors.light.white,
-        }}
-        dayComponent={({ date }: { date?: DateData }) => {
-          if (!date) return null;
-          const ds = date.dateString;
+      <View style={styles.weekdayHeader}>
+        {WEEKDAY_KEYS.map((key, index) => (
+          <Text
+            key={`${key}-${index}`}
+            style={[
+              styles.weekdayLabel,
+              !isMenstruating && styles.weekdayLabelDimmed,
+            ]}
+          >
+            {t(key as any)}
+          </Text>
+        ))}
+      </View>
 
-          const hijriDay = moment(ds, "YYYY-MM-DD").iDate();
-          const isSelected = ds === effectiveSelected;
-
-          let cellBg: ViewStyle = {};
-          if (isSelected) {
-            cellBg = { backgroundColor: Colors.light.calendarTodayBg };
-          }
-
-          return (
-            <TouchableOpacity
-              onPress={() => {
-                if (isMenstruating) onDayPress?.(ds);
-              }}
-              activeOpacity={isMenstruating ? 0.7 : 1}
-              disabled={!isMenstruating}
-            >
-              <View style={[styles.dayCell, cellBg]}>
-                {isSelected && <View style={styles.redDot} />}
-                <View style={styles.circle}>
-                  <Text style={[styles.dayGregorian, { color: textColor }]}>
-                    {date.day}
-                  </Text>
+      {weeks.map((week, weekIndex) => (
+        <View key={`week-${weekIndex}`} style={styles.weekRow}>
+          {week.map((dateString, dayIndex) => {
+            if (!dateString) {
+              return (
+                <View
+                  key={`pad-${weekIndex}-${dayIndex}`}
+                  style={styles.daySlot}
+                >
+                  <View style={styles.paddingDayCell} />
                 </View>
-                <Text style={[styles.dayHijri, { color: textColor }]}>{hijriDay}</Text>
+              );
+            }
+
+            const gregorianDay = moment(dateString, "YYYY-MM-DD").date();
+            const hijriDay = moment(dateString, "YYYY-MM-DD").iDate();
+            const isSelected = dateString === effectiveSelected;
+
+            return (
+              <View
+                key={dateString}
+                style={styles.daySlot}
+              >
+                <TouchableOpacity
+                  onPress={() => {
+                    if (isMenstruating) onDayPress?.(dateString);
+                  }}
+                  activeOpacity={isMenstruating ? 0.7 : 1}
+                  disabled={!isMenstruating}
+                  style={styles.dayPressable}
+                >
+                  <View
+                    style={[
+                      styles.dayCell,
+                      isSelected && styles.dayCellSelected,
+                      !isMenstruating && styles.dayCellDimmed,
+                    ]}
+                  >
+                    {isSelected && <View style={styles.redDot} />}
+                    <Text
+                      style={[
+                        styles.dayGregorian,
+                        !isMenstruating && styles.dayGregorianDimmed,
+                      ]}
+                    >
+                      {gregorianDay}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.dayHijri,
+                        !isMenstruating && styles.dayHijriDimmed,
+                      ]}
+                    >
+                      {Number.isFinite(hijriDay) ? hijriDay : ""}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
               </View>
-            </TouchableOpacity>
-          );
-        }}
-      />
+            );
+          })}
+        </View>
+      ))}
     </View>
   );
 };
@@ -147,15 +164,57 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 12,
     borderBottomRightRadius: 12,
     overflow: "hidden",
+    backgroundColor: Colors.light.calendarBg,
+    paddingHorizontal: 8,
+    paddingBottom: 12,
+  },
+  weekdayHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 8,
+    paddingHorizontal: 2,
+  },
+  weekdayLabel: {
+    flex: 1,
+    textAlign: "center",
+    color: Colors.light.white,
+    fontSize: 12,
+    fontFamily: fonts.primary.regular,
+    fontWeight: "400",
+  },
+  weekdayLabelDimmed: {
+    color: Colors.light.subtext,
+  },
+  weekRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 4,
+  },
+  daySlot: {
+    flex: 1,
+    alignItems: "center",
+  },
+  dayPressable: {
+    width: 36,
   },
   dayCell: {
     alignItems: "center",
     justifyContent: "center",
     width: 36,
-    height: 48,
-    paddingVertical: 2,
+    minHeight: 52,
+    paddingVertical: 4,
     borderRadius: 6,
     position: "relative",
+  },
+  dayCellSelected: {
+    backgroundColor: Colors.light.calendarTodayBg,
+  },
+  dayCellDimmed: {
+    opacity: 0.55,
+  },
+  paddingDayCell: {
+    width: 36,
+    height: 48,
   },
   redDot: {
     width: 4,
@@ -163,27 +222,31 @@ const styles = StyleSheet.create({
     borderRadius: 2,
     backgroundColor: Colors.light.red,
     position: "absolute",
-    top: 2,
-    right: 6,
-  },
-  circle: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    alignItems: "center",
-    justifyContent: "center",
-    overflow: "hidden",
+    top: 3,
+    right: 5,
   },
   dayGregorian: {
     fontSize: 14,
+    lineHeight: 18,
     fontWeight: "500",
     fontFamily: fonts.primary.semiBold,
+    color: Colors.light.white,
+    textAlign: "center",
+  },
+  dayGregorianDimmed: {
+    color: Colors.light.subtext,
   },
   dayHijri: {
     fontSize: 10,
-    marginTop: 2,
-    fontWeight: "500",
-    fontFamily: fonts.primary.semiBold,
+    lineHeight: 14,
+    marginTop: 8,
+    fontWeight: "400",
+    fontFamily: fonts.primary.regular,
+    color: Colors.light.subtext,
+    textAlign: "center",
+  },
+  dayHijriDimmed: {
+    color: Colors.light.grey,
   },
 });
 
