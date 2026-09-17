@@ -22,6 +22,13 @@ export const surahGoalStyles = StyleSheet.create({
     elevation: 12,
     overflow: "visible",
   },
+  frequencyText: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.regular,
+    fontWeight: "400",
+    fontSize: 13,
+    lineHeight: 18,
+  },
   // Matches TahiyatUlWudhuLoggingFlow `summaryCard`
   card: {
     backgroundColor: Colors.light.green,

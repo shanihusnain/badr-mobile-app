@@ -6,9 +6,7 @@ import { Colors } from "@/constants/theme";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import { GoalData } from "../../home/components/goalsData";
 import QuranMemorisationLoggingFlow from "../flows/QuranMemorisationLoggingFlow";
-import {
-  type SurahMemorisationGoal,
-} from "../quranMemorisationSurahGoals";
+import { type SurahMemorisationGoal } from "../quranMemorisationSurahGoals";
 import type { QuranMemorisationLogEntry } from "../types";
 import { styles } from "./DailyProgressLogging.styles";
 import { surahGoalStyles } from "./SurahRecitationGoals.styles";
@@ -78,9 +76,7 @@ export function SurahMemorisationGoalCard({
       ]}
     >
       <View style={[styles.cardAnchor, { width: "100%" }]}>
-        {isFlowActive && (
-          <Pressable style={styles.backdrop} />
-        )}
+        {isFlowActive && <Pressable style={styles.backdrop} />}
         {isFlowActive && (
           <TouchableOpacity
             style={styles.cancelButton}
@@ -96,19 +92,25 @@ export function SurahMemorisationGoalCard({
             style={[
               surahGoalStyles.card,
               { width: "100%" },
-              isInView ? surahGoalStyles.cardActive : surahGoalStyles.cardInactive,
+              isInView
+                ? surahGoalStyles.cardActive
+                : surahGoalStyles.cardInactive,
             ]}
           >
             <View style={surahGoalStyles.cardContent}>
               <View style={surahGoalStyles.statusChip}>
-                <Text style={surahGoalStyles.statusChipText}>{statusLabel}</Text>
+                <Text style={surahGoalStyles.statusChipText}>
+                  {statusLabel}
+                </Text>
               </View>
 
               <Text style={surahGoalStyles.surahName}>
                 {t("progressLogging.surahNameLabel", { name: goal.surahName })}
               </Text>
               {progressText ? (
-                <Text style={surahGoalStyles.frequencyText}>{progressText}</Text>
+                <Text style={surahGoalStyles.metaBold}>
+                  {`(total ${formatNumber(goal.totalAyahs)} ayahs)`}
+                </Text>
               ) : null}
             </View>
 

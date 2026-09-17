@@ -496,7 +496,7 @@ export default function QuranMemorisationLoggingFlow({
         onForward={handleForward}
         onConfirm={handleConfirm}
         canGoForward={canGoForward}
-                canGoBack={stepIndex > 0}
+        canGoBack={stepIndex > 0}
         styles={styles}
         style={styles.inPlaceFlowCard}
         contentStyle={isAyahRangeStep ? styles.flowContentAyahRange : undefined}
