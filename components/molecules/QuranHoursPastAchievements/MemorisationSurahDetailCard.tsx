@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
+import { InsightCardFlashIcon } from "@/assets/icons";
 import type { MemorisationAnalyticsView } from "@/src/screens/private/goalprogressloggingscreen/quranMemorisationSurahPastAchievementData";
 import type { MemorisationProgressRailRow } from "@/src/screens/private/goalprogressloggingscreen/quranMemorisationSurahPastAchievementData";
 
@@ -22,35 +23,33 @@ export function MemorisationSurahDetailCard({
   const formatNumber = useLocaleNumber();
   const isTimeSpentView = analyticsView === "completedVsTimeSpent";
   const incompleteVerses = Math.max(0, row.totalVerses - row.completedVerses);
+  const longestStreak = row.longestStreak ?? 0;
 
   return (
     <View style={styles.card}>
       <View style={styles.metaRow}>
         <Text style={styles.metaTitle} numberOfLines={2}>
-          {t("progressLogging.surahNameLabel", { name: row.surahName })}
+          {row.surahName}
         </Text>
-        <View style={styles.activeBadge}>
-          {isTimeSpentView ? (
-            <Text style={[styles.activeBadgeText, styles.activeBadgeTimeSpent]}>
+        {isTimeSpentView ? (
+          <View style={styles.timeBadge}>
+            <Text style={styles.timeBadgeText}>
               {formatTimeChip(row.timeSpentMinutes)}
             </Text>
-          ) : (
-            <Text
-              style={[
-                styles.activeBadgeText,
-                {
-                  color: row.isCompleted
-                    ? Colors.light.green
-                    : Colors.light.warning,
-                },
-              ]}
-            >
-              {row.isCompleted
-                ? t("progressLogging.completed")
-                : t("progressLogging.incomplete")}
+          </View>
+        ) : row.isCompleted ? (
+          <View style={styles.completedBadge}>
+            <Text style={styles.completedBadgeText}>
+              {t("progressLogging.completed")}
             </Text>
-          )}
-        </View>
+          </View>
+        ) : (
+          <View style={styles.incompleteBadge}>
+            <Text style={styles.incompleteBadgeText}>
+              {t("progressLogging.incomplete")}
+            </Text>
+          </View>
+        )}
       </View>
 
       <View style={styles.progressTrack}>
@@ -76,12 +75,22 @@ export function MemorisationSurahDetailCard({
         ) : null}
       </View>
 
-      <Text style={styles.verseCount}>
-        <Text style={styles.verseCountCompleted}>
-          {formatNumber(row.completedVerses)}
+      <View style={styles.statsRow}>
+        <Text style={styles.verseCount}>
+          <Text style={styles.verseCountCompleted}>
+            {formatNumber(row.completedVerses)}
+          </Text>
+          {` / ${formatNumber(row.totalVerses)} ${t("progressLogging.juzVerseProgressUnit")}`}
         </Text>
-        {` / ${formatNumber(row.totalVerses)} ${t("progressLogging.juzVerseProgressUnit")}`}
-      </Text>
+        <View style={styles.streakRow}>
+          <InsightCardFlashIcon size={12} color={Colors.light.green} />
+          <Text style={styles.streakText}>
+            {t("progressLogging.recitationLongestStreak", {
+              count: formatNumber(longestStreak),
+            })}
+          </Text>
+        </View>
+      </View>
     </View>
   );
 }
@@ -106,23 +115,45 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
   },
-  activeBadge: {
+  completedBadge: {
     borderRadius: 6,
-    backgroundColor: Colors.light.white,
+    backgroundColor: Colors.light.green,
     paddingHorizontal: 10,
     paddingVertical: 4,
   },
-  activeBadgeText: {
+  completedBadgeText: {
+    color: Colors.light.white,
     fontSize: 10,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
     letterSpacing: 0.4,
     textTransform: "uppercase",
   },
-  activeBadgeTimeSpent: {
+  incompleteBadge: {
+    borderRadius: 6,
+    backgroundColor: Colors.light.white,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  incompleteBadgeText: {
+    color: Colors.light.warning,
+    fontSize: 10,
+    fontFamily: fonts.primary.semiBold,
+    fontWeight: "600",
+    letterSpacing: 0.4,
+    textTransform: "uppercase",
+  },
+  timeBadge: {
+    borderRadius: 6,
+    backgroundColor: Colors.light.white,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  timeBadgeText: {
     color: Colors.light.green,
-    textTransform: "none",
-    letterSpacing: 0,
+    fontSize: 10,
+    fontFamily: fonts.primary.semiBold,
+    fontWeight: "600",
   },
   progressTrack: {
     width: "100%",
@@ -144,13 +175,31 @@ const styles = StyleSheet.create({
   progressTimeSpent: {
     backgroundColor: Colors.light.blackBackground,
   },
+  statsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 10,
+  },
   verseCount: {
     color: Colors.light.white,
     fontSize: 12,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
+    flexShrink: 1,
   },
   verseCountCompleted: {
     color: Colors.light.green,
+  },
+  streakRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    flexShrink: 0,
+  },
+  streakText: {
+    color: Colors.light.white,
+    fontSize: 10,
+    fontFamily: fonts.primary.regular,
   },
 });

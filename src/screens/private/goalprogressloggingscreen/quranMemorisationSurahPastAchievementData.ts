@@ -75,6 +75,7 @@ export type MemorisationProgressRailRow = {
   totalVerses: number;
   isCompleted: boolean;
   timeSpentMinutes: number;
+  longestStreak?: number;
 };
 
 const MOTIVATIONAL_SUMMARY_KEY =

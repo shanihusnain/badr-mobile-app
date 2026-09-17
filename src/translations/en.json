@@ -691,7 +691,7 @@
     "quranMemorisationHizbWeekQuote": "Each ayah in your hizb brings you closer to completing it—keep going.",
     "quranMemorisationJuzWeekQuote": "Each ayah in your juz brings you closer to completing it—keep going.",
     "memorisationThisWeek": "This week",
-    "totalAyahsThisWeek": "ayahs this week",
+    "totalAyahsThisWeek": "total verses memorized this week",
     "surahStatusNotStarted": "Not Started",
     "surahStatusInProgress": "In Progress",
     "surahStatusAchieved": "{{percent}}% Achieved",

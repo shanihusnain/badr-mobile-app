@@ -646,7 +646,7 @@
     "quranMemorisationHizbWeekQuote": "كل آية في حزبك تقربك من إتمامه — واصل.",
     "quranMemorisationJuzWeekQuote": "كل آية في جزئك تقربك من إتمامه — واصل.",
     "memorisationThisWeek": "هذا الأسبوع",
-    "totalAyahsThisWeek": "آية هذا الأسبوع",
+    "totalAyahsThisWeek": "إجمالي الآيات المحفوظة هذا الأسبوع",
     "surahStatusNotStarted": "لم يبدأ",
     "surahStatusInProgress": "قيد التقدم",
     "surahStatusAchieved": "أُنجز {{percent}}%",

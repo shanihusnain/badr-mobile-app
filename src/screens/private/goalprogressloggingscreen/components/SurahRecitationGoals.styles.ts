@@ -62,7 +62,7 @@ export const surahGoalStyles = StyleSheet.create({
     backgroundColor: Colors.light.selectcategory,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 32,
+    marginTop: 33,
   },
   textColumn: {
     flex: 1,
@@ -85,6 +85,13 @@ export const surahGoalStyles = StyleSheet.create({
   },
   textLines: {
     gap: 2,
+  },
+  /** Matches Istikhara `footerRow` — keeps space-between layout consistent. */
+  footerRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    marginTop: 4,
+    minHeight: 1,
   },
   // Matches Tahiyat `summaryTitle`
   surahName: {
@@ -128,7 +135,7 @@ export const surahGoalStyles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  /** For `AddLoggingFlowIcon` which already draws its own ring. */
+  /** For `AddLoggingFlowIcon` which already draws its own ring — matches Istikhara addButton. */
   addButtonIconOnly: {
     position: "absolute",
     right: 16,

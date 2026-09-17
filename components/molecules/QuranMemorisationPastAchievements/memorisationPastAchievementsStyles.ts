@@ -405,13 +405,13 @@ export const memorisationPastAchievementStyles = StyleSheet.create({
     textTransform: "uppercase",
   },
   statValueCompleted: {
-    color: Colors.light.white,
+    color: Colors.light.green,
     fontSize: 22,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
   },
   statValueIncomplete: {
-    color: Colors.light.white,
+    color: Colors.light.warning,
     fontSize: 22,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
