@@ -7,6 +7,7 @@ import React, {
   useState,
 } from "react";
 import { useGetQuranGoalByType } from "@/src/api/queries/useGetQuranGoalByType";
+import type { QuranGoalFrameItem } from "@/src/api/queries/useGetQuranGoalFrame";
 import type { QuranGoalDetailItem } from "@/src/utils/quranGoalMap";
 import {
   getQuranFrameMemorisationItem,
@@ -47,17 +48,67 @@ function deriveStatus(
   return "not-started";
 }
 
+function bareTitle(title: string | null | undefined, fallback: string) {
+  const raw = title?.trim();
+  if (!raw) return fallback;
+  const bare = raw.replace(/\s*\([^)]*\)\s*$/, "").trim();
+  return bare || raw;
+}
+
+function mapFrameItemToGoal(item: QuranGoalFrameItem): HizbMemorisationGoal {
+  const itemNumber = Number(item.itemNumber);
+  const memorizedAyahs = Math.max(0, Math.round(Number(item.completed) || 0));
+  const totalAyahs = Math.max(0, Math.round(Number(item.target) || 0));
+  const progressPercentage =
+    typeof item.achievementPct === "number"
+      ? Math.min(100, Math.max(0, Math.round(item.achievementPct)))
+      : totalAyahs > 0
+        ? Math.min(100, Math.round((memorizedAyahs / totalAyahs) * 100))
+        : 0;
+  const pillState = String(item.pill?.state ?? "").toUpperCase();
+  const completed =
+    pillState === "COMPLETED" ||
+    (totalAyahs > 0 && memorizedAyahs >= totalAyahs);
+  const hizbName = bareTitle(
+    item.title,
+    getHizbDisplayName(String(itemNumber)) || `Hizb ${itemNumber}`,
+  );
+
+  return {
+    id: String(itemNumber),
+    itemNumber,
+    hizbName,
+    rangeLabel: item.subtitle?.trim() || "",
+    displayName: hizbName,
+    subtitle: item.subtitle?.trim() || undefined,
+    pillLabel: item.pill?.label?.trim() || undefined,
+    totalAyahs,
+    memorizedAyahs,
+    progressPercentage,
+    completed,
+    canLog: item.canLog !== false,
+    status: deriveStatus(memorizedAyahs, totalAyahs, completed),
+  };
+}
+
 function mapDetailItemToGoal(item: QuranGoalDetailItem): HizbMemorisationGoal {
   const itemNumber = Number(item.itemNumber);
   const id = String(itemNumber);
-  const memorizedAyahs = Math.max(0, Number(item.completedCount ?? 0) || 0);
+  const raw = item as QuranGoalDetailItem & {
+    completed?: number | null;
+    target?: number | null;
+  };
+  const memorizedAyahs = Math.max(
+    0,
+    Number(raw.completedCount ?? raw.completed ?? 0) || 0,
+  );
   const totalFromVerses =
     item.verseStart != null && item.verseEnd != null
       ? Math.max(0, Number(item.verseEnd) - Number(item.verseStart) + 1)
       : 0;
   const totalAyahs = Math.max(
     0,
-    Number(item.targetCount ?? 0) || totalFromVerses || 0,
+    Number(raw.targetCount ?? raw.target ?? 0) || totalFromVerses || 0,
   );
   const progressPercentage =
     totalAyahs > 0
@@ -104,6 +155,14 @@ export function MemorisationHizbProvider({
   const quranFrame = useOptionalQuranGoalFrameContext();
   const { data: detail } = useGetQuranGoalByType("MEMORIZATION_HIZB");
 
+  const frameGoals = useMemo(() => {
+    const items = quranFrame?.frame?.items ?? [];
+    if (items.length === 0) return null;
+    return items
+      .map(mapFrameItemToGoal)
+      .filter((goal) => goal.itemNumber != null && goal.itemNumber > 0);
+  }, [quranFrame?.frame?.items]);
+
   const detailGoals = useMemo(() => {
     const items = detail?.items ?? [];
     if (items.length === 0) return null;
@@ -114,17 +173,13 @@ export function MemorisationHizbProvider({
 
   const frameActiveGoal = useMemo((): HizbMemorisationGoal | null => {
     const frame = quranFrame?.frame;
-    if (!frame) return null;
-    const item = getQuranFrameMemorisationItem(frame);
-    const itemNumber =
-      typeof item?.itemNumber === "number"
-        ? item.itemNumber
-        : quranFrame?.itemNumber;
-    if (itemNumber == null || itemNumber <= 0) return null;
+    const itemNumber = quranFrame?.itemNumber;
+    if (!frame || itemNumber == null || itemNumber <= 0) return null;
 
-    const progress = getQuranFrameMemorisationProgress(frame);
+    const item = getQuranFrameMemorisationItem(frame, itemNumber);
+    const progress = getQuranFrameMemorisationProgress(frame, itemNumber);
     const hizbName =
-      getQuranFrameMemorisationSurahName(frame) ||
+      getQuranFrameMemorisationSurahName(frame, itemNumber) ||
       item?.title?.trim() ||
       getHizbDisplayName(String(itemNumber)) ||
       `Hizb ${itemNumber}`;
@@ -155,14 +210,16 @@ export function MemorisationHizbProvider({
 
   const goals = useMemo(() => {
     const base =
-      detailGoals && detailGoals.length > 0
-        ? detailGoals
-        : frameActiveGoal
-          ? [frameActiveGoal]
-          : getHizbMemorisationGoals();
+      frameGoals && frameGoals.length > 0
+        ? frameGoals
+        : detailGoals && detailGoals.length > 0
+          ? detailGoals
+          : frameActiveGoal
+            ? [frameActiveGoal]
+            : getHizbMemorisationGoals();
 
     return base.map((goal) => enrichGoalFromFrame(goal, frameActiveGoal));
-  }, [detailGoals, frameActiveGoal]);
+  }, [detailGoals, frameActiveGoal, frameGoals]);
 
   const [activeHizbId, setActiveHizbIdState] =
     useState<MemorisationHizbFilterId>("all");
