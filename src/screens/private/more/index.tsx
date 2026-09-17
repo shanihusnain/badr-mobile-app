@@ -23,6 +23,8 @@ import {
 } from "@/assets/icons";
 import MoreActionButton from "@/components/atoms/MoreActionButton";
 import { useLogout } from "@/src/api/mutations/useLogout";
+import PrimaryButton from "@/components/atoms/Primary-button";
+import { TopSpace } from "@/components/atoms/TopSpace";
 
 export default function MoreScreen() {
   const router = useRouter();
@@ -189,6 +191,13 @@ export default function MoreScreen() {
         style={styles.container}
       /> */}
       <View style={styles.logoutContainer}>
+        <PrimaryButton
+          text="testing button"
+          onPress={() => {
+            router.push("/(private)/monthlygoalplanner");
+          }}
+        />
+        <TopSpace top={16} />
         <SecondaryButton
           text="LOGOUT"
           onPress={handleLogout}

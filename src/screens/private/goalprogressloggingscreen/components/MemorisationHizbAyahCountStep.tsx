@@ -1,9 +1,9 @@
 import React, { useCallback } from "react";
-import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import { QuranAyatRangeSlider } from "./QuranAyatRangeSlider";
+import { formatHizbVerseLabel } from "../quranJuzVerseMap";
 
 type Props = {
-  surahName: string;
+  hizbId: string;
   totalAyahs: number;
   minStartAyah: number;
   startAyah: number;
@@ -13,7 +13,8 @@ type Props = {
   styles: any;
 };
 
-export function MemorisationAyahCountStep({
+export function MemorisationHizbAyahCountStep({
+  hizbId,
   totalAyahs,
   minStartAyah,
   startAyah,
@@ -22,11 +23,9 @@ export function MemorisationAyahCountStep({
   onChangeEndAyah,
   styles,
 }: Props) {
-  const formatNumber = useLocaleNumber();
-
   const formatVerseLabel = useCallback(
-    (ayah: number) => formatNumber(ayah),
-    [formatNumber],
+    (ayah: number) => formatHizbVerseLabel(hizbId, ayah),
+    [hizbId],
   );
 
   return (
