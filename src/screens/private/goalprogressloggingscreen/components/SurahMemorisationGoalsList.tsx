@@ -102,19 +102,30 @@ export function SurahMemorisationGoalsList({
     [],
   );
 
+  const getItemLayout = useCallback(
+    (_: ArrayLike<SurahMemorisationGoal> | null | undefined, index: number) => ({
+      length: cardWidth,
+      offset: index * snapInterval,
+      index,
+    }),
+    [cardWidth, snapInterval],
+  );
+
   return (
     <FlatList
       horizontal
       data={goals}
       keyExtractor={keyExtractor}
       renderItem={renderItem}
+      getItemLayout={getItemLayout}
       showsHorizontalScrollIndicator={false}
       ItemSeparatorComponent={itemSeparator}
       onViewableItemsChanged={onViewableItemsChanged}
       viewabilityConfig={viewabilityConfig}
       decelerationRate="fast"
-      snapToInterval={cardWidth + CARD_GAP}
+      snapToInterval={snapInterval}
       snapToAlignment="start"
+      disableIntervalMomentum
       removeClippedSubviews={false}
       scrollEnabled={!activeFlowGoalId}
       style={{ overflow: "visible", height: FLOW_CARD_HEIGHT }}

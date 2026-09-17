@@ -53,11 +53,7 @@ export function SurahMemorisationGoalCard({
 
   const progressText =
     goal.totalAyahs > 0
-      ? t("progressLogging.memorisationCardProgress", {
-          memorized: formatNumber(goal.memorizedAyahs),
-          total: formatNumber(goal.totalAyahs),
-          percent: formatNumber(goal.progressPercentage),
-        })
+      ? `(total ${formatNumber(goal.totalAyahs)} ayahs)`
       : goal.subtitle?.trim() || "";
 
   const totalAyahsLabel = formatNumber(goal.totalAyahs);
@@ -107,24 +103,12 @@ export function SurahMemorisationGoalCard({
                     </Text>
                   </View>
 
-                  <View style={surahGoalStyles.textLines}>
-                    <Text style={surahGoalStyles.surahName}>
-                      {t("progressLogging.surahNameLabel", {
-                        name: stripEnglishParenthetical(goal.surahName),
-                      })}
-                    </Text>
-                    {progressText ? (
-                      <Text style={surahGoalStyles.metaRegular}>
-                        {`(total `}
-                        <Text style={surahGoalStyles.metaBold}>
-                          {totalAyahsLabel}
-                        </Text>
-                        {` ayahs)`}
-                      </Text>
-                    ) : null}
-                  </View>
-                </View>
-              </View>
+              <Text style={surahGoalStyles.surahName}>
+                {t("progressLogging.surahNameLabel", { name: goal.surahName })}
+              </Text>
+              {progressText ? (
+                <Text style={surahGoalStyles.metaBold}>{progressText}</Text>
+              ) : null}
             </View>
 
             {canLog ? (

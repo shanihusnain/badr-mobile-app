@@ -1,3 +1,5 @@
+import { getHizbVerseCountFromMap } from "./quranJuzVerseMap";
+
 export type HizbDefinition = {
   id: string;
   hizbName: string;
@@ -41,7 +43,10 @@ export function getHizbDefinition(hizbId: string): HizbDefinition | undefined {
 }
 
 export function getHizbVerseCount(hizbId: string): number {
-  return getHizbDefinition(hizbId)?.totalAyahs ?? 0;
+  const fromDefinitions = getHizbDefinition(hizbId)?.totalAyahs;
+  if (fromDefinitions && fromDefinitions > 0) return fromDefinitions;
+  // API ids are numeric ("1", "2"); fall back to Hafs map counts.
+  return getHizbVerseCountFromMap(hizbId) || 0;
 }
 
 export function getHizbDisplayName(hizbId: string): string {

@@ -178,6 +178,58 @@ export function formatJuzVerseLabel(juz: number, position: number): string {
   return `${getSurahName(verse.surah)}:${verse.ayah}`;
 }
 
+const hizbVerseCache = new Map<number, VerseRef[]>();
+
+/**
+ * Build hizb verse lists from juz geography: each juz is two hizbs
+ * (first half / second half). Labels stay aligned with `formatJuzVerseLabel`.
+ */
+function getHizbVerses(hizb: number): VerseRef[] {
+  const clamped = Math.min(Math.max(hizb, 1), 60);
+  const cached = hizbVerseCache.get(clamped);
+  if (cached) return cached;
+
+  const juzVerses = getJuzVerses(Math.ceil(clamped / 2));
+  const mid = Math.ceil(juzVerses.length / 2);
+  const verses =
+    clamped % 2 === 1 ? juzVerses.slice(0, mid) : juzVerses.slice(mid);
+
+  hizbVerseCache.set(clamped, verses);
+  return verses;
+}
+
+export function parseHizbNumber(hizbId: string | number): number {
+  if (typeof hizbId === "number" && Number.isFinite(hizbId)) {
+    return Math.min(Math.max(Math.round(hizbId), 1), 60);
+  }
+  const raw = String(hizbId).trim();
+  const asNum = Number(raw);
+  if (Number.isFinite(asNum) && asNum > 0) {
+    return Math.min(Math.max(Math.round(asNum), 1), 60);
+  }
+  const match = /^hizb-(\d+)$/i.exec(raw);
+  if (match) {
+    return Math.min(Math.max(Number(match[1]), 1), 60);
+  }
+  return 1;
+}
+
+/** Slider pill format: `Al-Baqarah:16` */
+export function formatHizbVerseLabel(
+  hizbId: string | number,
+  position: number,
+): string {
+  const verses = getHizbVerses(parseHizbNumber(hizbId));
+  const index = Math.min(Math.max(position, 1), verses.length) - 1;
+  const verse = verses[index];
+  if (!verse) return `:${position}`;
+  return `${getSurahName(verse.surah)}:${verse.ayah}`;
+}
+
+export function getHizbVerseCountFromMap(hizbId: string | number): number {
+  return getHizbVerses(parseHizbNumber(hizbId)).length;
+}
+
 export function getJuzEndLabel(juz: number): string {
   const verses = getJuzVerses(juz);
   const last = verses[verses.length - 1];

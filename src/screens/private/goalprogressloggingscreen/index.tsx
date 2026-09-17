@@ -200,8 +200,12 @@ function GoalProgressLoggingBody({
     template === "quran-hours" && isQuranHoursGoalId(goalId);
   const isSurahMemorisationFrameGoal =
     template === "quran-memorisation" && isSurahMemorisationGoalId(goalId);
+  const isHizbMemorisationFrameGoal =
+    template === "quran-memorisation" && isHizbMemorisationGoalId(goalId);
   const isQuranFrameGoal =
-    isQuranHoursFrameGoal || isSurahMemorisationFrameGoal;
+    isQuranHoursFrameGoal ||
+    isSurahMemorisationFrameGoal ||
+    isHizbMemorisationFrameGoal;
   const frameLoading =
     (isPrayerFrameRingGoal &&
       (prayerFrame?.isLoading ||
@@ -273,7 +277,7 @@ function GoalProgressLoggingBody({
             ),
           })
         : "---"
-      : isSurahMemorisationFrameGoal
+      : isSurahMemorisationFrameGoal || isHizbMemorisationFrameGoal
         ? quranFrame?.frame
           ? t("homeScreen.weeklyProgress_goalLabel", {
               label: getQuranFrameMemorisationRingLabel(quranFrame.frame),
@@ -771,7 +775,11 @@ export const GoalProgressLoggingScreen = ({
     );
   }
 
-  if (isQuranHoursGoalId(goalId) || isSurahMemorisationGoalId(goalId)) {
+  if (
+    isQuranHoursGoalId(goalId) ||
+    isSurahMemorisationGoalId(goalId) ||
+    isHizbMemorisationGoalId(goalId)
+  ) {
     return (
       <QuranGoalFrameProvider
         goalId={goalId}

@@ -7,6 +7,7 @@ import React, {
   useState,
 } from "react";
 import { useGetQuranGoalByType } from "@/src/api/queries/useGetQuranGoalByType";
+import type { QuranGoalFrameItem } from "@/src/api/queries/useGetQuranGoalFrame";
 import type { QuranGoalDetailItem } from "@/src/utils/quranGoalMap";
 import { stripEnglishParenthetical } from "@/src/utils/quranGoalMap";
 import { useOptionalQuranGoalFrameContext } from "./quranGoalFrameContext";
@@ -47,17 +48,61 @@ function deriveStatus(
   return "not-started";
 }
 
+function bareSurahTitle(title: string | null | undefined, fallback: string) {
+  const raw = title?.trim();
+  if (!raw) return fallback;
+  const bare = raw.replace(/\s*\([^)]*\)\s*$/, "").trim();
+  return bare || raw;
+}
+
+function mapFrameItemToGoal(item: QuranGoalFrameItem): SurahMemorisationGoal {
+  const itemNumber = Number(item.itemNumber);
+  const memorizedAyahs = Math.max(0, Math.round(Number(item.completed) || 0));
+  const totalAyahs = Math.max(0, Math.round(Number(item.target) || 0));
+  const progressPercentage =
+    typeof item.achievementPct === "number"
+      ? Math.min(100, Math.max(0, Math.round(item.achievementPct)))
+      : totalAyahs > 0
+        ? Math.min(100, Math.round((memorizedAyahs / totalAyahs) * 100))
+        : 0;
+  const pillState = String(item.pill?.state ?? "").toUpperCase();
+  const completed =
+    pillState === "COMPLETED" ||
+    (totalAyahs > 0 && memorizedAyahs >= totalAyahs);
+
+  return {
+    id: String(itemNumber),
+    itemNumber,
+    surahName: bareSurahTitle(item.title, `Surah ${itemNumber}`),
+    subtitle: item.subtitle?.trim() || undefined,
+    pillLabel: item.pill?.label?.trim() || undefined,
+    totalAyahs,
+    memorizedAyahs,
+    progressPercentage,
+    completed,
+    canLog: item.canLog !== false,
+    status: deriveStatus(memorizedAyahs, totalAyahs, completed),
+  };
+}
+
 function mapDetailItemToGoal(item: QuranGoalDetailItem): SurahMemorisationGoal {
   const itemNumber = Number(item.itemNumber);
   const id = String(itemNumber);
-  const memorizedAyahs = Math.max(0, Number(item.completedCount ?? 0) || 0);
+  const raw = item as QuranGoalDetailItem & {
+    completed?: number | null;
+    target?: number | null;
+  };
+  const memorizedAyahs = Math.max(
+    0,
+    Number(raw.completedCount ?? raw.completed ?? 0) || 0,
+  );
   const totalFromVerses =
     item.verseStart != null && item.verseEnd != null
       ? Math.max(0, Number(item.verseEnd) - Number(item.verseStart) + 1)
       : 0;
   const totalAyahs = Math.max(
     0,
-    Number(item.targetCount ?? 0) || totalFromVerses || 0,
+    Number(raw.targetCount ?? raw.target ?? 0) || totalFromVerses || 0,
   );
   const progressPercentage =
     totalAyahs > 0
@@ -98,6 +143,14 @@ export function MemorisationSurahProvider({
   const quranFrame = useOptionalQuranGoalFrameContext();
   const { data: detail } = useGetQuranGoalByType("MEMORIZATION_SURAH");
 
+  const frameGoals = useMemo(() => {
+    const items = quranFrame?.frame?.items ?? [];
+    if (items.length === 0) return null;
+    return items
+      .map(mapFrameItemToGoal)
+      .filter((goal) => goal.itemNumber != null && goal.itemNumber > 0);
+  }, [quranFrame?.frame?.items]);
+
   const detailGoals = useMemo(() => {
     const items = detail?.items ?? [];
     if (items.length === 0) return null;
@@ -108,20 +161,15 @@ export function MemorisationSurahProvider({
 
   const frameActiveGoal = useMemo((): SurahMemorisationGoal | null => {
     const frame = quranFrame?.frame;
-    if (!frame) return null;
-    const item = getQuranFrameMemorisationItem(frame);
-    const itemNumber =
-      typeof item?.itemNumber === "number"
-        ? item.itemNumber
-        : quranFrame?.itemNumber;
-    if (itemNumber == null || itemNumber <= 0) return null;
+    const itemNumber = quranFrame?.itemNumber;
+    if (!frame || itemNumber == null || itemNumber <= 0) return null;
 
-    const progress = getQuranFrameMemorisationProgress(frame);
-    const surahName = stripEnglishParenthetical(
-      getQuranFrameMemorisationSurahName(frame) ||
-        item?.title?.trim() ||
-        `Surah ${itemNumber}`,
-    );
+    const item = getQuranFrameMemorisationItem(frame, itemNumber);
+    const progress = getQuranFrameMemorisationProgress(frame, itemNumber);
+    const surahName =
+      getQuranFrameMemorisationSurahName(frame, itemNumber) ||
+      item?.title?.trim() ||
+      `Surah ${itemNumber}`;
     const pillLabel = item?.pill?.label?.trim() || undefined;
     const subtitle = item?.subtitle?.trim() || undefined;
     const canLog = item?.canLog !== false;
@@ -146,15 +194,18 @@ export function MemorisationSurahProvider({
   }, [quranFrame?.frame, quranFrame?.itemNumber]);
 
   const goals = useMemo(() => {
+    // Frame `items` carry the correct per-surah `completed` / `target` ayah counts.
     const base =
-      detailGoals && detailGoals.length > 0
-        ? detailGoals
-        : frameActiveGoal
-          ? [frameActiveGoal]
-          : getSurahMemorisationGoals();
+      frameGoals && frameGoals.length > 0
+        ? frameGoals
+        : detailGoals && detailGoals.length > 0
+          ? detailGoals
+          : frameActiveGoal
+            ? [frameActiveGoal]
+            : getSurahMemorisationGoals();
 
     return base.map((goal) => enrichGoalFromFrame(goal, frameActiveGoal));
-  }, [detailGoals, frameActiveGoal]);
+  }, [detailGoals, frameActiveGoal, frameGoals]);
 
   const [activeSurahId, setActiveSurahIdState] =
     useState<MemorisationSurahFilterId>("all");

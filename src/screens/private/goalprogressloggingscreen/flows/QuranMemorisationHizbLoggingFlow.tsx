@@ -5,20 +5,18 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import moment from "moment-hijri";
 import { Colors } from "@/constants/theme";
+import { useLogQuranMemorisationHizbGoal } from "@/src/api/mutations/useLogQuranMemorisationHizbGoal";
 import { GoalData } from "../../home/components/goalsData";
 import { DateStep } from "../components/DateStep";
 import { formatProgressLoggingDateLabel } from "../progressLoggingConfig";
 import { DurationStep, StartTimeStep } from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
-import { MemorisationAyahCountStep } from "../components/MemorisationAyahCountStep";
+import { MemorisationHizbAyahCountStep } from "../components/MemorisationHizbAyahCountStep";
 import { MemorisationHizbSelectionStep } from "../components/MemorisationHizbSelectionStep";
 import { styles } from "../components/DailyProgressLogging.styles";
 import { getQuranMemorisationHizbFlowDefinition } from "../loggingFlowRegistry";
 import {
-  appendHizbMemorisationLog,
-  buildHizbMemorisationLogFromEntry,
   getMemorizedHizbAyahCount,
-  getRemainingHizbAyahCount,
   getHizbMemorisationProgressPercent,
   isHizbFullyMemorized,
 } from "../quranMemorisationHizbData";
@@ -28,12 +26,16 @@ import {
   getMemorisationTargetConfigForHizb,
   getNextHizbMemorisationAyah,
   isValidHizbMemorisationAyahRange,
+  toMemorisationTargetConfigFromHizbGoal,
   type QuranMemorisationHizbStepId,
 } from "../quranMemorisationHizbTarget";
 import {
   getHizbMemorisationGoals,
+  type HizbMemorisationGoal,
   type MemorisationHizbFilterId,
 } from "../quranMemorisationHizbGoals";
+import { useOptionalMemorisationHizbContext } from "../memorisationHizbContext";
+import { useOptionalQuranGoalFrameContext } from "../quranGoalFrameContext";
 import {
   isValidStartTime,
   isValidTimeSpent,
@@ -45,6 +47,8 @@ type FlowMode = "collapsed" | "active";
 type Props = {
   goalData: GoalData;
   preselectedHizbId?: MemorisationHizbFilterId;
+  /** Prefer this when carousel/frame provides the active hizb (API itemNumber ids). */
+  activeHizbGoal?: HizbMemorisationGoal | null;
   hideCollapsedSummary?: boolean;
   embedded?: boolean;
   suppressOverlay?: boolean;
@@ -58,6 +62,7 @@ const toDateString = (date: Date) => moment(date).format("YYYY-MM-DD");
 export default function QuranMemorisationHizbLoggingFlow({
   goalData,
   preselectedHizbId = "all",
+  activeHizbGoal = null,
   hideCollapsedSummary = false,
   embedded = false,
   suppressOverlay = false,
@@ -66,13 +71,20 @@ export default function QuranMemorisationHizbLoggingFlow({
   onLogComplete,
 }: Props) {
   const { t } = useTranslation();
+  const memorisationContext = useOptionalMemorisationHizbContext();
+  const quranFrame = useOptionalQuranGoalFrameContext();
+  const { mutateAsync: logMemorisationHizb, isPending: isLogging } =
+    useLogQuranMemorisationHizbGoal();
   const flowDefinition = useMemo(
     () => getQuranMemorisationHizbFlowDefinition(goalData.id),
     [goalData.id],
   );
 
   const includeHizbSelection = preselectedHizbId === "all";
-  const goals = useMemo(() => getHizbMemorisationGoals(), []);
+  const goals = useMemo(
+    () => memorisationContext?.goals ?? getHizbMemorisationGoals(),
+    [memorisationContext?.goals],
+  );
   const incompleteGoals = useMemo(
     () => goals.filter((goal) => !goal.completed),
     [goals],
@@ -84,15 +96,38 @@ export default function QuranMemorisationHizbLoggingFlow({
       : (incompleteGoals[0]?.id ?? "");
 
   const [selectedHizbId, setSelectedHizbId] = useState(initialHizbId);
-  const config = useMemo(
-    () => getMemorisationTargetConfigForHizb(selectedHizbId),
-    [selectedHizbId],
-  );
+  const config = useMemo(() => {
+    const fromActive =
+      activeHizbGoal && activeHizbGoal.id === selectedHizbId
+        ? toMemorisationTargetConfigFromHizbGoal(activeHizbGoal)
+        : null;
+    if (fromActive) return fromActive;
+
+    const fromList = goals.find((goal) => goal.id === selectedHizbId);
+    if (fromList) return toMemorisationTargetConfigFromHizbGoal(fromList);
+
+    return getMemorisationTargetConfigForHizb(selectedHizbId, activeHizbGoal);
+  }, [activeHizbGoal, goals, selectedHizbId]);
 
   const hizbId = config?.hizbId ?? "";
   const totalAyahs = config?.totalAyahs ?? 0;
-  const remainingAyahs = getRemainingHizbAyahCount(hizbId);
-  const minStartAyah = getNextHizbMemorisationAyah(hizbId);
+  const memorizedAyahs =
+    config?.memorizedAyahs != null
+      ? config.memorizedAyahs
+      : getMemorizedHizbAyahCount(hizbId);
+  const remainingAyahs = Math.max(0, totalAyahs - memorizedAyahs);
+  const minStartAyah = getNextHizbMemorisationAyah(hizbId, memorizedAyahs);
+  const itemNumber = useMemo(() => {
+    const fromActive =
+      activeHizbGoal?.id === selectedHizbId
+        ? activeHizbGoal.itemNumber
+        : undefined;
+    const fromList = goals.find(
+      (goal) => goal.id === selectedHizbId,
+    )?.itemNumber;
+    const fromId = Number(hizbId);
+    return fromActive ?? fromList ?? (Number.isFinite(fromId) ? fromId : NaN);
+  }, [activeHizbGoal, goals, hizbId, selectedHizbId]);
 
   const [internalFlowMode, setInternalFlowMode] =
     useState<FlowMode>("collapsed");
@@ -115,7 +150,9 @@ export default function QuranMemorisationHizbLoggingFlow({
   const [startPeriod, setStartPeriod] = useState<"am" | "pm">("am");
   const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
   const [startAyah, setStartAyah] = useState(minStartAyah);
-  const [endAyah, setEndAyah] = useState(minStartAyah);
+  const [endAyah, setEndAyah] = useState(() =>
+    Math.max(minStartAyah, totalAyahs || minStartAyah),
+  );
   const [durationHours, setDurationHours] = useState("0");
   const [durationMinutes, setDurationMinutes] = useState("10");
 
@@ -138,10 +175,10 @@ export default function QuranMemorisationHizbLoggingFlow({
   }, [incompleteGoals, preselectedHizbId, selectedHizbId]);
 
   useEffect(() => {
-    const nextStartAyah = getNextHizbMemorisationAyah(hizbId);
+    const nextStartAyah = getNextHizbMemorisationAyah(hizbId, memorizedAyahs);
     setStartAyah(nextStartAyah);
-    setEndAyah(nextStartAyah);
-  }, [hizbId]);
+    setEndAyah(Math.max(nextStartAyah, totalAyahs || nextStartAyah));
+  }, [hizbId, memorizedAyahs, totalAyahs]);
 
   const resetFlow = useCallback(() => {
     setFlowMode("collapsed");
@@ -153,9 +190,10 @@ export default function QuranMemorisationHizbLoggingFlow({
     setIsPeriodDropdownOpen(false);
     const nextStartAyah = getNextHizbMemorisationAyah(
       preselectedHizbId !== "all" ? preselectedHizbId : selectedHizbId,
+      memorizedAyahs,
     );
     setStartAyah(nextStartAyah);
-    setEndAyah(nextStartAyah);
+    setEndAyah(Math.max(nextStartAyah, totalAyahs || nextStartAyah));
     setDurationHours("0");
     setDurationMinutes("10");
     if (preselectedHizbId !== "all") {
@@ -163,7 +201,14 @@ export default function QuranMemorisationHizbLoggingFlow({
     } else {
       setSelectedHizbId(incompleteGoals[0]?.id ?? "");
     }
-  }, [incompleteGoals, preselectedHizbId, selectedHizbId, setFlowMode]);
+  }, [
+    incompleteGoals,
+    memorizedAyahs,
+    preselectedHizbId,
+    selectedHizbId,
+    setFlowMode,
+    totalAyahs,
+  ]);
 
   const isStepValid = useCallback(
     (step: QuranMemorisationHizbStepId) => {
@@ -175,7 +220,10 @@ export default function QuranMemorisationHizbLoggingFlow({
         case "startTime":
           return isValidStartTime(startHour, startMinute, startPeriod);
         case "ayahCount":
-          return isValidHizbMemorisationAyahRange(hizbId, startAyah, endAyah);
+          return isValidHizbMemorisationAyahRange(hizbId, startAyah, endAyah, {
+            totalAyahs,
+            memorizedAyahs,
+          });
         case "timeSpent":
           return isValidTimeSpent(durationHours, durationMinutes);
         default:
@@ -187,6 +235,7 @@ export default function QuranMemorisationHizbLoggingFlow({
       durationMinutes,
       endAyah,
       hizbId,
+      memorizedAyahs,
       remainingAyahs,
       selectedDate,
       selectedHizbId,
@@ -194,10 +243,11 @@ export default function QuranMemorisationHizbLoggingFlow({
       startHour,
       startMinute,
       startPeriod,
+      totalAyahs,
     ],
   );
 
-  const canGoForward = !isLastStep && isStepValid(currentStep);
+  const canGoForward = !isLastStep && isStepValid(currentStep) && !isLogging;
 
   if (!flowDefinition || !config) return null;
   if (embedded && flowMode !== "active") return null;
@@ -231,56 +281,82 @@ export default function QuranMemorisationHizbLoggingFlow({
     setStepIndex((index) => index + 1);
   };
 
+  const formatSessionStartTimeForApi = () => {
+    const hourNum = Number.parseInt(startHour || "0", 10) || 0;
+    const minuteNum = Number.parseInt(startMinute || "0", 10) || 0;
+
+    let hour24 = hourNum % 12;
+    if (startPeriod === "pm") hour24 += 12;
+
+    const hh = String(Math.max(0, hour24)).padStart(2, "0");
+    const mm = String(Math.max(0, minuteNum)).padStart(2, "0");
+    return `${hh}:${mm}`;
+  };
+
   const handleConfirm = () => {
+    if (isLogging) return;
     if (!isLastStep) {
       handleForward();
       return;
     }
 
     if (!steps.every((step) => isStepValid(step))) return;
+    if (!Number.isFinite(itemNumber) || itemNumber < 1) return;
 
-    const ayahsMemorizedToday = getHizbAyahsMemorizedFromRange(
-      startAyah,
-      endAyah,
-    );
-    const hours = Number.parseInt(durationHours || "0", 10) || 0;
-    const minutes = Number.parseInt(durationMinutes || "0", 10) || 0;
-    const startTime = `${startHour}:${startMinute} ${startPeriod}`;
-
-    appendHizbMemorisationLog(
-      buildHizbMemorisationLogFromEntry({
-        hizbId,
-        date: selectedDate,
-        ayahsMemorizedToday,
-        startTime,
-        hours,
-        minutes,
+    const run = async () => {
+      const ayahsMemorizedToday = getHizbAyahsMemorizedFromRange(
         startAyah,
         endAyah,
-      }),
-    );
+      );
+      const hours = Number.parseInt(durationHours || "0", 10) || 0;
+      const minutes = Number.parseInt(durationMinutes || "0", 10) || 0;
+      const durationTotalMinutes = hours * 60 + minutes;
+      if (durationTotalMinutes < 1) return;
 
-    onLogComplete?.({
-      type: "quran-memorisation",
-      goalType: "memorization",
-      trackingType: "hizb",
-      goalId: flowDefinition.goalId,
-      hizbId,
-      hizbName: config.hizbName,
-      totalAyahs,
-      date: selectedDate,
-      startTime,
-      startAyah,
-      endAyah,
-      ayahsMemorizedToday,
-      hours,
-      minutes,
-      durationLabel: `${hours}h ${minutes}m`,
-      memorizedAyahs: getMemorizedHizbAyahCount(hizbId),
-      progressPercentage: getHizbMemorisationProgressPercent(hizbId),
-      completed: isHizbFullyMemorized(hizbId),
-    });
-    resetFlow();
+      const startTime = `${startHour}:${startMinute} ${startPeriod}`;
+      const sessionStartTime = formatSessionStartTimeForApi();
+
+      try {
+        await logMemorisationHizb({
+          quranGoalType: "MEMORIZATION_HIZB",
+          date: selectedDate,
+          sessionStartTime,
+          durationMinutes: durationTotalMinutes,
+          itemType: "HIZB",
+          itemNumber,
+          fromAyah: startAyah,
+          toAyah: endAyah,
+        });
+        await quranFrame?.refetch();
+        memorisationContext?.bumpRefresh();
+
+        onLogComplete?.({
+          type: "quran-memorisation",
+          goalType: "memorization",
+          trackingType: "hizb",
+          goalId: flowDefinition.goalId,
+          hizbId,
+          hizbName: config.hizbName,
+          totalAyahs,
+          date: selectedDate,
+          startTime,
+          startAyah,
+          endAyah,
+          ayahsMemorizedToday,
+          hours,
+          minutes,
+          durationLabel: `${hours}h ${minutes}m`,
+          memorizedAyahs: memorizedAyahs + ayahsMemorizedToday,
+          progressPercentage: getHizbMemorisationProgressPercent(hizbId),
+          completed: isHizbFullyMemorized(hizbId),
+        });
+        resetFlow();
+      } catch {
+        // Mutation onError already shows toast.
+      }
+    };
+
+    void run();
   };
 
   const getStepHeader = (step: QuranMemorisationHizbStepId) => {
@@ -380,8 +456,8 @@ export default function QuranMemorisationHizbLoggingFlow({
         );
       case "ayahCount":
         return (
-          <MemorisationAyahCountStep
-            surahName={config.hizbName}
+          <MemorisationHizbAyahCountStep
+            hizbId={hizbId}
             totalAyahs={totalAyahs}
             minStartAyah={minStartAyah}
             startAyah={startAyah}

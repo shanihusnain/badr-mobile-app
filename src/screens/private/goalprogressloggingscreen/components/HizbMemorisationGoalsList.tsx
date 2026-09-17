@@ -35,10 +35,13 @@ export function HizbMemorisationGoalsList({
   const { width: screenWidth } = useWindowDimensions();
   const memorisationContext = useOptionalMemorisationHizbContext();
   const goals = useMemo(
-    () => getHizbMemorisationGoals(),
-    [refreshKey],
+    () => memorisationContext?.goals ?? getHizbMemorisationGoals(),
+    [memorisationContext?.goals, refreshKey, memorisationContext?.refreshKey],
   );
   const cardWidth = screenWidth * CARD_WIDTH_RATIO;
+  const snapInterval = cardWidth + CARD_GAP;
+  /** Enough trailing space so any card can snap to the first card’s start position. */
+  const trailingInset = Math.max(16, screenWidth - cardWidth);
   const [activeGoalId, setActiveGoalId] = useState(
     () => memorisationContext?.activeHizbId ?? goals[0]?.id ?? "",
   );
@@ -95,23 +98,34 @@ export function HizbMemorisationGoalsList({
     [],
   );
 
+  const getItemLayout = useCallback(
+    (_: ArrayLike<HizbMemorisationGoal> | null | undefined, index: number) => ({
+      length: cardWidth,
+      offset: index * snapInterval,
+      index,
+    }),
+    [cardWidth, snapInterval],
+  );
+
   return (
     <FlatList
       horizontal
       data={goals}
       keyExtractor={keyExtractor}
       renderItem={renderItem}
+      getItemLayout={getItemLayout}
       showsHorizontalScrollIndicator={false}
       ItemSeparatorComponent={itemSeparator}
       onViewableItemsChanged={onViewableItemsChanged}
       viewabilityConfig={viewabilityConfig}
       decelerationRate="fast"
-      snapToInterval={cardWidth + CARD_GAP}
+      snapToInterval={snapInterval}
       snapToAlignment="start"
+      disableIntervalMomentum
       removeClippedSubviews={false}
       scrollEnabled={!activeFlowGoalId}
       style={{ overflow: "visible" }}
-      contentContainerStyle={{ paddingRight: 16 }}
+      contentContainerStyle={{ paddingRight: trailingInset }}
     />
   );
 }

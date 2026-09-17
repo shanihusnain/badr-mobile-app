@@ -139,14 +139,26 @@ export function mapQuranMemorisationFrameWeekDays(
   });
 }
 
-export function getQuranFrameMemorisationItem(frame: QuranGoalFrameData) {
-  return frame.items?.[0] ?? null;
+export function getQuranFrameMemorisationItem(
+  frame: QuranGoalFrameData,
+  itemNumber?: number | null,
+) {
+  const items = frame.items ?? [];
+  if (items.length === 0) return null;
+  if (itemNumber != null && itemNumber > 0) {
+    const match = items.find(
+      (item) => Number(item.itemNumber) === Number(itemNumber),
+    );
+    if (match) return match;
+  }
+  return items[0] ?? null;
 }
 
 export function getQuranFrameMemorisationSurahName(
   frame: QuranGoalFrameData,
+  itemNumber?: number | null,
 ): string {
-  const item = getQuranFrameMemorisationItem(frame);
+  const item = getQuranFrameMemorisationItem(frame, itemNumber);
   const title = item?.title?.trim();
   if (title) {
     // "Al-Fatihah (The Opening)" → "Al-Fatihah"
@@ -156,8 +168,11 @@ export function getQuranFrameMemorisationSurahName(
   return frame.title?.trim() || "";
 }
 
-export function getQuranFrameMemorisationProgress(frame: QuranGoalFrameData) {
-  const item = getQuranFrameMemorisationItem(frame);
+export function getQuranFrameMemorisationProgress(
+  frame: QuranGoalFrameData,
+  itemNumber?: number | null,
+) {
+  const item = getQuranFrameMemorisationItem(frame, itemNumber);
   const memorizedAyahs = Math.max(
     0,
     Math.round(toFiniteNumber(item?.completed) ?? 0),
@@ -172,8 +187,9 @@ export function getQuranFrameMemorisationProgress(frame: QuranGoalFrameData) {
       100,
       Math.round(
         toFiniteNumber(item?.achievementPct) ??
-          toFiniteNumber(frame.goal.achievementPct) ??
-          0,
+          (totalAyahs > 0
+            ? (memorizedAyahs / totalAyahs) * 100
+            : toFiniteNumber(frame.goal.achievementPct) ?? 0),
       ),
     ),
   );

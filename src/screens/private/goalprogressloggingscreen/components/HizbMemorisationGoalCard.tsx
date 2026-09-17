@@ -36,6 +36,7 @@ export function HizbMemorisationGoalCard({
   const formatNumber = useLocaleNumber();
 
   const statusLabel = useMemo(() => {
+    if (goal.pillLabel?.trim()) return goal.pillLabel.trim();
     switch (goal.status) {
       case "not-started":
         return t("progressLogging.surahStatusNotStarted");
@@ -44,13 +45,16 @@ export function HizbMemorisationGoalCard({
       case "completed":
         return t("progressLogging.surahStatusCompleted");
     }
-  }, [goal.status, t]);
+  }, [goal.pillLabel, goal.status, t]);
 
-  const progressText = t("progressLogging.memorisationCardProgress", {
-    memorized: formatNumber(goal.memorizedAyahs),
-    total: formatNumber(goal.totalAyahs),
-    percent: formatNumber(goal.progressPercentage),
-  });
+  const progressText =
+    goal.totalAyahs > 0
+      ? t("progressLogging.memorisationCardProgress", {
+          memorized: formatNumber(goal.memorizedAyahs),
+          total: formatNumber(goal.totalAyahs),
+          percent: formatNumber(goal.progressPercentage),
+        })
+      : goal.subtitle?.trim() || goal.rangeLabel || "";
 
   const handleLogProgress = () => {
     onStartFlow(goal.id);
@@ -61,6 +65,8 @@ export function HizbMemorisationGoalCard({
       onFlowClose();
     }
   };
+
+  const canLog = goal.canLog !== false && !goal.completed;
 
   return (
     <View
@@ -97,31 +103,37 @@ export function HizbMemorisationGoalCard({
               </View>
 
               <Text style={surahGoalStyles.surahName}>{goal.hizbName}</Text>
-              <Text
-                style={[
-                  surahGoalStyles.frequencyText,
-                  { fontSize: 12, marginTop: 2 },
-                ]}
-                numberOfLines={2}
-              >
-                {goal.rangeLabel}
-              </Text>
-              <Text style={surahGoalStyles.frequencyText}>{progressText}</Text>
+              {goal.rangeLabel ? (
+                <Text
+                  style={[
+                    surahGoalStyles.frequencyText,
+                    { fontSize: 12, marginTop: 2 },
+                  ]}
+                  numberOfLines={2}
+                >
+                  {goal.rangeLabel}
+                </Text>
+              ) : null}
+              {progressText ? (
+                <Text style={surahGoalStyles.frequencyText}>{progressText}</Text>
+              ) : null}
             </View>
 
-            <TouchableOpacity
-              style={styles.addButton}
-              onPress={handleLogProgress}
-              activeOpacity={0.8}
-              disabled={goal.completed}
-            >
-              <Ionicons name="add" size={22} color={Colors.light.white} />
-            </TouchableOpacity>
+            {canLog ? (
+              <TouchableOpacity
+                style={styles.addButton}
+                onPress={handleLogProgress}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="add" size={22} color={Colors.light.white} />
+              </TouchableOpacity>
+            ) : null}
           </View>
         ) : (
           <QuranMemorisationHizbLoggingFlow
             goalData={goalData}
             preselectedHizbId={goal.id}
+            activeHizbGoal={goal}
             hideCollapsedSummary
             embedded
             suppressOverlay

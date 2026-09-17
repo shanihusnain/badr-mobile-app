@@ -57,18 +57,41 @@ const SLIDER_HEIGHT = TRACK_CENTER_Y + THUMB_HIT_RADIUS;
 /** Compact dark pill above each thumb (Figma). */
 const LABEL_WIDTH = 28;
 const LABEL_TOP = 0;
+const CARET_HALF = 4;
 const THUMB_TOP = TRACK_CENTER_Y - THUMB_RADIUS;
 const THUMB_HIT_TOP = TRACK_CENTER_Y - THUMB_HIT_RADIUS;
 const TRACK_TOP = TRACK_CENTER_Y - TRACK_HEIGHT / 2;
 
-function getLabelLeft(handleX: number, containerWidth: number): number {
+function estimateLabelWidth(text: string): number {
+  // Wide enough for `Al-Baqarah:286`; still capped so pills don't collide.
+  return Math.min(Math.max(Math.ceil(text.length * 6.4) + 12, LABEL_WIDTH), 112);
+}
+
+function getLabelLeft(
+  handleX: number,
+  containerWidth: number,
+  labelWidth: number,
+): number {
   return Math.max(
     0,
     Math.min(
-      TRACK_HORIZONTAL_INSET + handleX - LABEL_WIDTH / 2,
-      containerWidth - LABEL_WIDTH,
+      TRACK_HORIZONTAL_INSET + handleX - labelWidth / 2,
+      containerWidth - labelWidth,
     ),
   );
+}
+
+/** Keep the caret tip centered on the thumb even when the pill is edge-clamped. */
+function getCaretLeft(
+  handleX: number,
+  labelLeft: number,
+  labelWidth: number,
+): number {
+  const handleCenter = TRACK_HORIZONTAL_INSET + handleX;
+  const ideal = handleCenter - labelLeft - CARET_HALF;
+  const min = 2;
+  const max = Math.max(min, labelWidth - CARET_HALF * 2 - 2);
+  return Math.max(min, Math.min(ideal, max));
 }
 
 export function QuranAyatRangeSlider({
@@ -167,9 +190,6 @@ export function QuranAyatRangeSlider({
   const startHitLeft = TRACK_HORIZONTAL_INSET + startX - THUMB_HIT_RADIUS;
   const endHitLeft = TRACK_HORIZONTAL_INSET + endX - THUMB_HIT_RADIUS;
 
-  const startLabelLeft = getLabelLeft(startX, width);
-  const endLabelLeft = getLabelLeft(endX, width);
-
   const completedCount = safeEnd - safeStart + 1;
   const percentCompleted =
     maxAyat > 0 ? Math.round((completedCount / maxAyat) * 100) : 0;
@@ -188,6 +208,13 @@ export function QuranAyatRangeSlider({
         : formatJuzVerseLabel(juz, safeEnd),
     [formatVerseLabel, juz, safeEnd],
   );
+
+  const startLabelWidth = estimateLabelWidth(startLabel);
+  const endLabelWidth = estimateLabelWidth(endLabel);
+  const startLabelLeft = getLabelLeft(startX, width, startLabelWidth);
+  const endLabelLeft = getLabelLeft(endX, width, endLabelWidth);
+  const startCaretLeft = getCaretLeft(startX, startLabelLeft, startLabelWidth);
+  const endCaretLeft = getCaretLeft(endX, endLabelLeft, endLabelWidth);
 
   const onLayout = (event: LayoutChangeEvent) => {
     const layoutWidth = event.nativeEvent.layout.width;
@@ -276,7 +303,7 @@ export function QuranAyatRangeSlider({
             localStyles.labelPill,
             {
               left: startLabelLeft,
-              width: LABEL_WIDTH,
+              width: startLabelWidth,
               top: LABEL_TOP,
               zIndex: activeHandle === "start" ? 7 : 5,
             },
@@ -285,6 +312,7 @@ export function QuranAyatRangeSlider({
           <Text style={localStyles.labelText} numberOfLines={1}>
             {startLabel}
           </Text>
+          <View style={[localStyles.labelCaret, { left: startCaretLeft }]} />
         </View>
 
         <View
@@ -293,7 +321,7 @@ export function QuranAyatRangeSlider({
             localStyles.labelPill,
             {
               left: endLabelLeft,
-              width: LABEL_WIDTH,
+              width: endLabelWidth,
               top: LABEL_TOP,
               zIndex: activeHandle === "end" ? 7 : 5,
             },
@@ -302,6 +330,7 @@ export function QuranAyatRangeSlider({
           <Text style={localStyles.labelText} numberOfLines={1}>
             {endLabel}
           </Text>
+          <View style={[localStyles.labelCaret, { left: endCaretLeft }]} />
         </View>
 
         <View
@@ -455,10 +484,22 @@ const localStyles = StyleSheet.create({
     position: "absolute",
     backgroundColor: Colors.light.darkgrey,
     borderRadius: 4,
-    paddingHorizontal: 4,
+    paddingHorizontal: 6,
     paddingVertical: LABEL_PADDING_V,
     alignItems: "center",
     justifyContent: "center",
+  },
+  labelCaret: {
+    position: "absolute",
+    bottom: -4,
+    width: 0,
+    height: 0,
+    borderLeftWidth: CARET_HALF,
+    borderRightWidth: CARET_HALF,
+    borderTopWidth: CARET_HALF,
+    borderLeftColor: "transparent",
+    borderRightColor: "transparent",
+    borderTopColor: Colors.light.darkgrey,
   },
   labelText: {
     color: Colors.light.white,
