@@ -11,9 +11,15 @@ import {
   type SurahMemorisationGoal,
 } from "../quranMemorisationSurahGoals";
 import type { QuranMemorisationLogEntry } from "../types";
-import { CARD_GAP, CARD_WIDTH_RATIO } from "./SurahRecitationGoals.styles";
+import {
+  CARD_ANCHOR_PADDING_LEFT,
+  CARD_GAP,
+  FLOW_CARD_WIDTH_RATIO,
+  surahGoalStyles,
+} from "./SurahRecitationGoals.styles";
 import { SurahMemorisationGoalCard } from "./SurahMemorisationGoalCard";
 import { useOptionalMemorisationSurahContext } from "../memorisationSurahContext";
+import { FLOW_CARD_HEIGHT } from "./DailyProgressLogging.styles";
 
 type Props = {
   goalData: GoalData;
@@ -38,7 +44,8 @@ export function SurahMemorisationGoalsList({
     () => memorisationContext?.goals ?? getSurahMemorisationGoals(),
     [memorisationContext?.goals, refreshKey, memorisationContext?.refreshKey],
   );
-  const cardWidth = screenWidth * CARD_WIDTH_RATIO;
+  const cardWidth =
+    screenWidth * FLOW_CARD_WIDTH_RATIO - CARD_ANCHOR_PADDING_LEFT;
   const [activeGoalId, setActiveGoalId] = useState(
     () => memorisationContext?.activeSurahId ?? goals[0]?.id ?? "",
   );
@@ -110,8 +117,8 @@ export function SurahMemorisationGoalsList({
       snapToAlignment="start"
       removeClippedSubviews={false}
       scrollEnabled={!activeFlowGoalId}
-      style={{ overflow: "visible" }}
-      contentContainerStyle={{ paddingRight: 16 }}
+      style={{ overflow: "visible", height: FLOW_CARD_HEIGHT }}
+      contentContainerStyle={surahGoalStyles.listContent}
     />
   );
 }

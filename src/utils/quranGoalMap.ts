@@ -201,8 +201,8 @@ function pickString(...values: unknown[]): string | undefined {
   return undefined;
 }
 
-/** Remove English glosses like "(The Opening)" from surah/hizb labels */
-function stripEnglishParenthetical(label: string): string {
+/** Remove English glosses like "(The Opening)" / "(Women)" from surah/hizb labels */
+export function stripEnglishParenthetical(label: string): string {
   return label.replace(/\s*\([^)]*\)/g, "").replace(/\s{2,}/g, " ").trim();
 }
 

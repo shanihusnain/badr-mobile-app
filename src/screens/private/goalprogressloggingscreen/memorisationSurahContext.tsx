@@ -8,6 +8,7 @@ import React, {
 } from "react";
 import { useGetQuranGoalByType } from "@/src/api/queries/useGetQuranGoalByType";
 import type { QuranGoalDetailItem } from "@/src/utils/quranGoalMap";
+import { stripEnglishParenthetical } from "@/src/utils/quranGoalMap";
 import { useOptionalQuranGoalFrameContext } from "./quranGoalFrameContext";
 import {
   getSurahMemorisationGoals,
@@ -65,7 +66,9 @@ function mapDetailItemToGoal(item: QuranGoalDetailItem): SurahMemorisationGoal {
   const completed =
     String(item.status ?? "").toUpperCase() === "COMPLETED" ||
     (totalAyahs > 0 && memorizedAyahs >= totalAyahs);
-  const surahName = String(item.surahName ?? `Surah ${itemNumber}`);
+  const surahName = stripEnglishParenthetical(
+    String(item.surahName ?? `Surah ${itemNumber}`),
+  );
 
   return {
     id,
@@ -114,10 +117,11 @@ export function MemorisationSurahProvider({
     if (itemNumber == null || itemNumber <= 0) return null;
 
     const progress = getQuranFrameMemorisationProgress(frame);
-    const surahName =
+    const surahName = stripEnglishParenthetical(
       getQuranFrameMemorisationSurahName(frame) ||
-      item?.title?.trim() ||
-      `Surah ${itemNumber}`;
+        item?.title?.trim() ||
+        `Surah ${itemNumber}`,
+    );
     const pillLabel = item?.pill?.label?.trim() || undefined;
     const subtitle = item?.subtitle?.trim() || undefined;
     const canLog = item?.canLog !== false;
