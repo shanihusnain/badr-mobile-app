@@ -625,33 +625,98 @@ export function WeeklyProgressSection({
 
   if (
     template === "quran-memorisation" &&
-    isJuzMemorisationGoalId(goalData.id) &&
-    juzMemorisationWeek
+    isJuzMemorisationGoalId(goalData.id)
   ) {
+    const frame = quranFrame?.frame;
+    const frameLoading = isQuranFrameDashboardLoading(quranFrame, frame);
+
+    if (quranFrame && frame) {
+      const activeWeek = getQuranFrameActiveWeek(quranFrame, frame);
+      const canPrev = frame.week.hasPrevious ?? activeWeek > 1;
+      const canNext = frame.week.hasNext ?? activeWeek < frame.week.totalWeeks;
+      const progress = getQuranFrameMemorisationProgress(frame);
+      const weekFraction = getQuranFrameWeekFraction(frame);
+
+      return (
+        <QuranMemorisationWeeklyProgressDashboard
+          key={frame.week.weekNumber}
+          weekDays={mapQuranMemorisationFrameWeekDays(frame)}
+          weekRangeLabel={getQuranFrameWeekRangeLabel(frame)}
+          weekFraction={weekFraction}
+          currentWeek={frame.week.weekNumber}
+          totalWeeks={frame.week.totalWeeks}
+          surahName={getQuranFrameMemorisationSurahName(frame)}
+          totalAyahsThisWeek={getQuranFrameWeekTotalMinutes(frame)}
+          memorizedAyahs={progress.memorizedAyahs}
+          totalAyahs={progress.totalAyahs}
+          remainingAyahs={progress.remainingAyahs}
+          progressPercent={progress.progressPercent}
+          completed={progress.completed}
+          streakDays={getQuranFrameWeekStreakDays(frame)}
+          vsLastWeek={getQuranFrameVsLastWeekDelta(frame)}
+          motivationalQuote={getQuranFrameMotivationalQuote(frame)}
+          selectedDayIndex={getQuranFrameTodayIndex(frame)}
+          loading={frameLoading}
+          quranGoalType={frame.quranGoalType || "MEMORIZATION_JUZ"}
+          onPrevWeek={
+            canPrev
+              ? () => shiftQuranFrameWeek(quranFrame, frame, -1)
+              : undefined
+          }
+          onNextWeek={
+            canNext
+              ? () => shiftQuranFrameWeek(quranFrame, frame, 1)
+              : undefined
+          }
+        />
+      );
+    }
+
+    if (juzMemorisationWeek) {
+      return (
+        <QuranMemorisationWeeklyProgressDashboard
+          weekDays={juzMemorisationWeek.weekDays}
+          weekRangeLabel={juzMemorisationWeek.weekRangeLabel}
+          weekFraction={juzMemorisationWeek.weekFraction}
+          surahName={juzMemorisationWeek.juzName}
+          totalAyahsThisWeek={juzMemorisationWeek.totalAyahsThisWeek}
+          memorizedAyahs={juzMemorisationWeek.memorizedAyahs}
+          totalAyahs={juzMemorisationWeek.totalAyahs}
+          remainingAyahs={juzMemorisationWeek.remainingAyahs}
+          progressPercent={juzMemorisationWeek.progressPercent}
+          completed={juzMemorisationWeek.completed}
+          streakDays={juzMemorisationWeek.streakDays}
+          motivationalQuote={t(juzMemorisationWeek.motivationalQuoteKey)}
+          currentWeek={juzMemorisationWeek.currentWeek}
+          loading={quranFrame ? frameLoading || !quranFrame.isError : false}
+          quranGoalType="MEMORIZATION_JUZ"
+          onPrevWeek={
+            canNavigateJuzMemorisationWeek(weekIndex, "prev")
+              ? handleJuzMemorisationPrevWeek
+              : undefined
+          }
+          onNextWeek={
+            canNavigateJuzMemorisationWeek(weekIndex, "next")
+              ? handleJuzMemorisationNextWeek
+              : undefined
+          }
+        />
+      );
+    }
+
     return (
       <QuranMemorisationWeeklyProgressDashboard
-        weekDays={juzMemorisationWeek.weekDays}
-        weekRangeLabel={juzMemorisationWeek.weekRangeLabel}
-        surahName={juzMemorisationWeek.juzName}
-        totalAyahsThisWeek={juzMemorisationWeek.totalAyahsThisWeek}
-        memorizedAyahs={juzMemorisationWeek.memorizedAyahs}
-        totalAyahs={juzMemorisationWeek.totalAyahs}
-        remainingAyahs={juzMemorisationWeek.remainingAyahs}
-        progressPercent={juzMemorisationWeek.progressPercent}
-        completed={juzMemorisationWeek.completed}
-        streakDays={juzMemorisationWeek.streakDays}
-        motivationalQuote={t(juzMemorisationWeek.motivationalQuoteKey)}
-        currentWeek={juzMemorisationWeek.currentWeek}
-        onPrevWeek={
-          canNavigateJuzMemorisationWeek(weekIndex, "prev")
-            ? handleJuzMemorisationPrevWeek
-            : undefined
-        }
-        onNextWeek={
-          canNavigateJuzMemorisationWeek(weekIndex, "next")
-            ? handleJuzMemorisationNextWeek
-            : undefined
-        }
+        weekDays={[]}
+        weekRangeLabel="---"
+        weekFraction="---"
+        surahName="---"
+        totalAyahsThisWeek={0}
+        streakDays={0}
+        motivationalQuote="---"
+        loading={quranFrame ? frameLoading || !quranFrame.isError : true}
+        currentWeek={1}
+        totalWeeks={4}
+        quranGoalType="MEMORIZATION_JUZ"
       />
     );
   }

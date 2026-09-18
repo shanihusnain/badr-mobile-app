@@ -11,9 +11,14 @@ import {
   type JuzMemorisationGoal,
 } from "../quranMemorisationJuzGoals";
 import type { QuranMemorisationJuzLogEntry } from "../types";
-import { CARD_GAP, CARD_WIDTH_RATIO } from "./SurahRecitationGoals.styles";
+import {
+  CARD_ANCHOR_PADDING_LEFT,
+  CARD_GAP,
+  FLOW_CARD_WIDTH_RATIO,
+} from "./SurahRecitationGoals.styles";
 import { JuzMemorisationGoalCard } from "./JuzMemorisationGoalCard";
 import { useOptionalMemorisationJuzContext } from "../memorisationJuzContext";
+import { FLOW_CARD_HEIGHT } from "./DailyProgressLogging.styles";
 
 type Props = {
   goalData: GoalData;
@@ -36,12 +41,19 @@ export function JuzMemorisationGoalsList({
   const memorisationContext = useOptionalMemorisationJuzContext();
   const goals = useMemo(
     () => getJuzMemorisationGoals(),
-    [refreshKey],
+    [refreshKey, memorisationContext?.refreshKey],
   );
-  const cardWidth = screenWidth * CARD_WIDTH_RATIO;
+  const listWidth = screenWidth - CARD_ANCHOR_PADDING_LEFT;
+  const cardWidth = Math.min(
+    listWidth * FLOW_CARD_WIDTH_RATIO,
+    screenWidth * FLOW_CARD_WIDTH_RATIO - CARD_ANCHOR_PADDING_LEFT,
+  );
   const snapInterval = cardWidth + CARD_GAP;
-  /** Enough trailing space so any card can snap to the first card’s start position. */
-  const trailingInset = Math.max(16, screenWidth - cardWidth);
+  const trailingInset = Math.max(CARD_ANCHOR_PADDING_LEFT, listWidth - cardWidth);
+  const snapToOffsets = useMemo(
+    () => goals.map((_, index) => index * snapInterval),
+    [goals, snapInterval],
+  );
   const [activeGoalId, setActiveGoalId] = useState(
     () => memorisationContext?.activeJuzId ?? goals[0]?.id ?? "",
   );
@@ -108,24 +120,31 @@ export function JuzMemorisationGoalsList({
   );
 
   return (
-    <FlatList
-      horizontal
-      data={goals}
-      keyExtractor={keyExtractor}
-      renderItem={renderItem}
-      getItemLayout={getItemLayout}
-      showsHorizontalScrollIndicator={false}
-      ItemSeparatorComponent={itemSeparator}
-      onViewableItemsChanged={onViewableItemsChanged}
-      viewabilityConfig={viewabilityConfig}
-      decelerationRate="fast"
-      snapToInterval={snapInterval}
-      snapToAlignment="start"
-      disableIntervalMomentum
-      removeClippedSubviews={false}
-      scrollEnabled={!activeFlowGoalId}
-      style={{ overflow: "visible" }}
-      contentContainerStyle={{ paddingRight: trailingInset }}
-    />
+    <View
+      style={{
+        paddingLeft: CARD_ANCHOR_PADDING_LEFT,
+        overflow: "hidden",
+      }}
+    >
+      <FlatList
+        horizontal
+        data={goals}
+        keyExtractor={keyExtractor}
+        renderItem={renderItem}
+        getItemLayout={getItemLayout}
+        showsHorizontalScrollIndicator={false}
+        ItemSeparatorComponent={itemSeparator}
+        onViewableItemsChanged={onViewableItemsChanged}
+        viewabilityConfig={viewabilityConfig}
+        decelerationRate="fast"
+        snapToOffsets={snapToOffsets}
+        snapToAlignment="start"
+        disableIntervalMomentum
+        removeClippedSubviews={false}
+        scrollEnabled={!activeFlowGoalId}
+        style={{ overflow: "visible", height: FLOW_CARD_HEIGHT }}
+        contentContainerStyle={{ paddingRight: trailingInset }}
+      />
+    </View>
   );
 }

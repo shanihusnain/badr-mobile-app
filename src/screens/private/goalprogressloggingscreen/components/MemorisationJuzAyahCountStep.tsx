@@ -39,15 +39,16 @@ export function MemorisationJuzAyahCountStep({
 
   return (
     <QuranAyatRangeSlider
-        juz={juzNumber}
-        startAyat={startAyah}
-        endAyat={endAyah}
-        minStartAyat={minStartAyah}
-        verseCount={totalAyahs}
-        formatVerseLabel={formatVerseLabel}
-        onChangeStartAyat={onChangeStartAyah}
-        onChangeEndAyat={onChangeEndAyah}
-        styles={styles}
+      juz={juzNumber}
+      startAyat={startAyah}
+      endAyat={endAyah}
+      minStartAyat={minStartAyah}
+      freezeStartHandle={minStartAyah > 1}
+      verseCount={totalAyahs}
+      formatVerseLabel={formatVerseLabel}
+      onChangeStartAyat={onChangeStartAyah}
+      onChangeEndAyat={onChangeEndAyah}
+      styles={styles}
     />
   );
 }

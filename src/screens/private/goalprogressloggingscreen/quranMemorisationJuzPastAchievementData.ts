@@ -97,6 +97,7 @@ export type MemorisationJuzProgressRailRow = {
   totalVerses: number;
   isCompleted: boolean;
   timeSpentMinutes: number;
+  longestStreak?: number;
 };
 
 export const MEMORISATION_JUZ_SUMMARY_KEY =
@@ -675,6 +676,7 @@ function buildProgressRailRowForUnit(
       selectedBarIndex !== null
         ? (unit.chartPeriods[selectedBarIndex]?.timeSpentMinutes ?? 0)
         : unit.totalTimeSpentMinutes,
+    longestStreak: 0,
   };
 }
 
@@ -688,6 +690,7 @@ function buildEmptyProgressRailRow(goal: JuzMemorisationGoal): MemorisationJuzPr
     totalVerses: goal.totalAyahs,
     isCompleted: false,
     timeSpentMinutes: 0,
+    longestStreak: 0,
   };
 }
 
