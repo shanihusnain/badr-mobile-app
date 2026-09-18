@@ -1,6 +1,8 @@
 import React, { useCallback, useState } from "react";
-import { Text, View } from "react-native";
+import { Pressable, Text, TouchableOpacity, View } from "react-native";
 import { useTranslation } from "react-i18next";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { Colors } from "@/constants/theme";
 import { GoalData } from "../../home/components/goalsData";
 import type { QuranMemorisationHizbLogEntry } from "../types";
 import { styles } from "./DailyProgressLogging.styles";
@@ -39,23 +41,38 @@ export function HizbMemorisationLoggingSection({
   );
 
   return (
-    <View
-      style={[
-        styles.section,
-        activeFlowGoalId ? styles.activeSection : undefined,
-      ]}
-    >
-      <Text style={styles.sectionTitle}>{t("progressLogging.myProgress")}</Text>
-      <View style={{ marginTop: 4 }}>
-        <HizbMemorisationGoalsList
-          goalData={goalData}
-          activeFlowGoalId={activeFlowGoalId}
-          refreshKey={refreshKey}
-          onStartFlow={handleStartFlow}
-          onFlowClose={handleFlowClose}
-          onLogComplete={handleLogComplete}
-        />
+    <>
+      {activeFlowGoalId ? <Pressable style={styles.backdrop} /> : null}
+      {activeFlowGoalId ? (
+        <TouchableOpacity
+          style={styles.cancelButton}
+          onPress={handleFlowClose}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="close" size={20} color={Colors.light.white} />
+        </TouchableOpacity>
+      ) : null}
+
+      <View
+        style={[
+          styles.section,
+          activeFlowGoalId ? styles.activeSection : undefined,
+        ]}
+      >
+        <Text style={styles.sectionTitle}>
+          {t("progressLogging.myProgress")}
+        </Text>
+        <View style={{ marginTop: 4 }}>
+          <HizbMemorisationGoalsList
+            goalData={goalData}
+            activeFlowGoalId={activeFlowGoalId}
+            refreshKey={refreshKey}
+            onStartFlow={handleStartFlow}
+            onFlowClose={handleFlowClose}
+            onLogComplete={handleLogComplete}
+          />
+        </View>
       </View>
-    </View>
+    </>
   );
 }

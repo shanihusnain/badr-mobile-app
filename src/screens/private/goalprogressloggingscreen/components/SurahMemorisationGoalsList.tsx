@@ -44,9 +44,18 @@ export function SurahMemorisationGoalsList({
     () => memorisationContext?.goals ?? getSurahMemorisationGoals(),
     [memorisationContext?.goals, refreshKey, memorisationContext?.refreshKey],
   );
-  const cardWidth =
-    screenWidth * FLOW_CARD_WIDTH_RATIO - CARD_ANCHOR_PADDING_LEFT;
+  /** Viewport is inset by left padding; clip peeks of the previous card. */
+  const listWidth = screenWidth - CARD_ANCHOR_PADDING_LEFT;
+  const cardWidth = Math.min(
+    listWidth * FLOW_CARD_WIDTH_RATIO,
+    screenWidth * FLOW_CARD_WIDTH_RATIO - CARD_ANCHOR_PADDING_LEFT,
+  );
   const snapInterval = cardWidth + CARD_GAP;
+  const trailingInset = Math.max(CARD_ANCHOR_PADDING_LEFT, listWidth - cardWidth);
+  const snapToOffsets = useMemo(
+    () => goals.map((_, index) => index * snapInterval),
+    [goals, snapInterval],
+  );
   const [activeGoalId, setActiveGoalId] = useState(
     () => memorisationContext?.activeSurahId ?? goals[0]?.id ?? "",
   );
@@ -113,24 +122,31 @@ export function SurahMemorisationGoalsList({
   );
 
   return (
-    <FlatList
-      horizontal
-      data={goals}
-      keyExtractor={keyExtractor}
-      renderItem={renderItem}
-      getItemLayout={getItemLayout}
-      showsHorizontalScrollIndicator={false}
-      ItemSeparatorComponent={itemSeparator}
-      onViewableItemsChanged={onViewableItemsChanged}
-      viewabilityConfig={viewabilityConfig}
-      decelerationRate="fast"
-      snapToInterval={snapInterval}
-      snapToAlignment="start"
-      disableIntervalMomentum
-      removeClippedSubviews={false}
-      scrollEnabled={!activeFlowGoalId}
-      style={{ overflow: "visible", height: FLOW_CARD_HEIGHT }}
-      contentContainerStyle={surahGoalStyles.listContent}
-    />
+    <View
+      style={{
+        paddingLeft: CARD_ANCHOR_PADDING_LEFT,
+        overflow: "hidden",
+      }}
+    >
+      <FlatList
+        horizontal
+        data={goals}
+        keyExtractor={keyExtractor}
+        renderItem={renderItem}
+        getItemLayout={getItemLayout}
+        showsHorizontalScrollIndicator={false}
+        ItemSeparatorComponent={itemSeparator}
+        onViewableItemsChanged={onViewableItemsChanged}
+        viewabilityConfig={viewabilityConfig}
+        decelerationRate="fast"
+        snapToOffsets={snapToOffsets}
+        snapToAlignment="start"
+        disableIntervalMomentum
+        removeClippedSubviews={false}
+        scrollEnabled={!activeFlowGoalId}
+        style={{ overflow: "visible", height: FLOW_CARD_HEIGHT }}
+        contentContainerStyle={{ paddingRight: trailingInset }}
+      />
+    </View>
   );
 }
