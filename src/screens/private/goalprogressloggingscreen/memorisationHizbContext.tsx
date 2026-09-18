@@ -69,18 +69,31 @@ function mapFrameItemToGoal(item: QuranGoalFrameItem): HizbMemorisationGoal {
   const completed =
     pillState === "COMPLETED" ||
     (totalAyahs > 0 && memorizedAyahs >= totalAyahs);
-  const hizbName = bareTitle(
+  const hizbNameRaw = bareTitle(
     item.title,
-    getHizbDisplayName(String(itemNumber)) || `Hizb ${itemNumber}`,
+    `Hizb ${itemNumber}`,
   );
+  const rangeFromApi = item.subtitle?.trim() || "";
+  const localDisplay =
+    getHizbDisplayName(`hizb-${itemNumber}`) ||
+    getHizbDisplayName(String(itemNumber));
+  const rangeFromLocal =
+    localDisplay.includes("|")
+      ? localDisplay.split("|").slice(1).join("|").trim()
+      : "";
+  const rangeLabel = rangeFromApi || rangeFromLocal;
+  const hizbName = hizbNameRaw.includes("|")
+    ? hizbNameRaw.split("|")[0]!.trim()
+    : hizbNameRaw;
+  const displayName = rangeLabel ? `${hizbName} | ${rangeLabel}` : hizbName;
 
   return {
     id: String(itemNumber),
     itemNumber,
     hizbName,
-    rangeLabel: item.subtitle?.trim() || "",
-    displayName: hizbName,
-    subtitle: item.subtitle?.trim() || undefined,
+    rangeLabel,
+    displayName,
+    subtitle: rangeLabel || undefined,
     pillLabel: item.pill?.label?.trim() || undefined,
     totalAyahs,
     memorizedAyahs,
@@ -178,22 +191,37 @@ export function MemorisationHizbProvider({
 
     const item = getQuranFrameMemorisationItem(frame, itemNumber);
     const progress = getQuranFrameMemorisationProgress(frame, itemNumber);
-    const hizbName =
+    const rawName =
       getQuranFrameMemorisationSurahName(frame, itemNumber) ||
       item?.title?.trim() ||
-      getHizbDisplayName(String(itemNumber)) ||
       `Hizb ${itemNumber}`;
+    const hizbName = rawName.includes("|")
+      ? rawName.split("|")[0]!.trim()
+      : bareTitle(rawName, `Hizb ${itemNumber}`);
+    const localDisplay =
+      getHizbDisplayName(`hizb-${itemNumber}`) ||
+      getHizbDisplayName(String(itemNumber));
+    const rangeFromLocal =
+      localDisplay.includes("|")
+        ? localDisplay.split("|").slice(1).join("|").trim()
+        : "";
+    const rangeLabel =
+      item?.subtitle?.trim() ||
+      (rawName.includes("|")
+        ? rawName.split("|").slice(1).join("|").trim()
+        : "") ||
+      rangeFromLocal;
     const pillLabel = item?.pill?.label?.trim() || undefined;
-    const subtitle = item?.subtitle?.trim() || undefined;
     const canLog = item?.canLog !== false;
+    const displayName = rangeLabel ? `${hizbName} | ${rangeLabel}` : hizbName;
 
     return {
       id: String(itemNumber),
       itemNumber,
       hizbName,
-      rangeLabel: subtitle ?? "",
-      displayName: hizbName,
-      subtitle,
+      rangeLabel,
+      displayName,
+      subtitle: rangeLabel || undefined,
       pillLabel,
       totalAyahs: progress.totalAyahs,
       memorizedAyahs: progress.memorizedAyahs,

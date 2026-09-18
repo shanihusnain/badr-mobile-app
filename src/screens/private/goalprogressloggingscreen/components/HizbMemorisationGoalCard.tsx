@@ -1,14 +1,14 @@
 import React, { useMemo } from "react";
-import { Pressable, Text, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 import { useTranslation } from "react-i18next";
-import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "@/constants/theme";
+import { AddLoggingFlowIcon, QuranMemorizationIcon } from "@/assets/icons";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import { GoalData } from "../../home/components/goalsData";
 import QuranMemorisationHizbLoggingFlow from "../flows/QuranMemorisationHizbLoggingFlow";
 import type { HizbMemorisationGoal } from "../quranMemorisationHizbGoals";
 import type { QuranMemorisationHizbLogEntry } from "../types";
-import { styles } from "./DailyProgressLogging.styles";
+import { FLOW_CARD_HEIGHT, styles } from "./DailyProgressLogging.styles";
 import { surahGoalStyles } from "./SurahRecitationGoals.styles";
 
 type Props = {
@@ -47,14 +47,40 @@ export function HizbMemorisationGoalCard({
     }
   }, [goal.pillLabel, goal.status, t]);
 
-  const progressText =
-    goal.totalAyahs > 0
-      ? t("progressLogging.memorisationCardProgress", {
-          memorized: formatNumber(goal.memorizedAyahs),
-          total: formatNumber(goal.totalAyahs),
-          percent: formatNumber(goal.progressPercentage),
-        })
-      : goal.subtitle?.trim() || goal.rangeLabel || "";
+  const totalAyahsLabel = formatNumber(goal.totalAyahs);
+  const showTotalAyahs = goal.totalAyahs > 0;
+
+  /** Figma: "Hizb 1 | Al-Fatiha 1:1 - Al-Baqarah 2:74" */
+  const titleLabel = useMemo(() => {
+    const isTotalVersesLabel = (value: string) =>
+      /^\(?\s*total\b/i.test(value) || /\bverses?\s*\)?\s*$/i.test(value);
+
+    const name = goal.hizbName?.trim() || "";
+    const rawRange = goal.rangeLabel?.trim() || goal.subtitle?.trim() || "";
+    const range = isTotalVersesLabel(rawRange) ? "" : rawRange;
+
+    if (name.includes("|")) {
+      const [left, ...rest] = name.split("|");
+      const right = rest.join("|").trim();
+      if (right && !isTotalVersesLabel(right)) return name;
+      return left?.trim() || name;
+    }
+    if (goal.displayName?.includes("|")) {
+      const display = goal.displayName.trim();
+      const [left, ...rest] = display.split("|");
+      const right = rest.join("|").trim();
+      if (right && !isTotalVersesLabel(right)) return display;
+      if (left?.trim() && range) return `${left.trim()} | ${range}`;
+      return left?.trim() || display;
+    }
+    if (name && range) return `${name} | ${range}`;
+    return name || goal.displayName?.trim() || "";
+  }, [
+    goal.displayName,
+    goal.hizbName,
+    goal.rangeLabel,
+    goal.subtitle,
+  ]);
 
   const handleLogProgress = () => {
     onStartFlow(goal.id);
@@ -71,61 +97,56 @@ export function HizbMemorisationGoalCard({
   return (
     <View
       style={[
-        { width: cardWidth },
+        { width: cardWidth, height: FLOW_CARD_HEIGHT },
         isFlowActive ? styles.activeSection : undefined,
       ]}
     >
-      <View style={[styles.cardAnchor, { width: "100%" }]}>
-        {isFlowActive && (
-          <Pressable style={styles.backdrop} />
-        )}
-        {isFlowActive && (
-          <TouchableOpacity
-            style={styles.cancelButton}
-            onPress={onFlowClose}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="close" size={20} color={Colors.light.white} />
-          </TouchableOpacity>
-        )}
-
+      <View style={surahGoalStyles.cardAnchor}>
         {!isFlowActive ? (
           <View
             style={[
               surahGoalStyles.card,
-              { width: "100%" },
-              isInView ? surahGoalStyles.cardActive : surahGoalStyles.cardInactive,
+              isInView
+                ? surahGoalStyles.cardActive
+                : surahGoalStyles.cardInactive,
             ]}
           >
-            <View style={surahGoalStyles.cardContent}>
-              <View style={surahGoalStyles.statusChip}>
-                <Text style={surahGoalStyles.statusChipText}>{statusLabel}</Text>
+            <View style={surahGoalStyles.bodyRow}>
+              <View style={surahGoalStyles.iconCircle}>
+                <QuranMemorizationIcon color={Colors.light.white} size={26} />
               </View>
 
-              <Text style={surahGoalStyles.surahName}>{goal.hizbName}</Text>
-              {goal.rangeLabel ? (
-                <Text
-                  style={[
-                    surahGoalStyles.frequencyText,
-                    { fontSize: 12, marginTop: 2 },
-                  ]}
-                  numberOfLines={2}
-                >
-                  {goal.rangeLabel}
-                </Text>
-              ) : null}
-              {progressText ? (
-                <Text style={surahGoalStyles.frequencyText}>{progressText}</Text>
-              ) : null}
+              <View style={surahGoalStyles.textColumn}>
+                <View style={surahGoalStyles.statusChip}>
+                  <Text style={surahGoalStyles.statusChipText}>
+                    {statusLabel}
+                  </Text>
+                </View>
+
+                <View style={surahGoalStyles.textLines}>
+                  <Text style={surahGoalStyles.surahName} numberOfLines={2}>
+                    {titleLabel}
+                  </Text>
+                  {showTotalAyahs ? (
+                    <Text style={surahGoalStyles.metaRegular}>
+                      {t("progressLogging.memorisationJuzTotalVerses", {
+                        count: totalAyahsLabel,
+                      })}
+                    </Text>
+                  ) : null}
+                </View>
+              </View>
             </View>
+
+            <View style={surahGoalStyles.footerRow} />
 
             {canLog ? (
               <TouchableOpacity
-                style={styles.addButton}
+                style={surahGoalStyles.addButtonIconOnly}
                 onPress={handleLogProgress}
                 activeOpacity={0.8}
               >
-                <Ionicons name="add" size={22} color={Colors.light.white} />
+                <AddLoggingFlowIcon size={32} />
               </TouchableOpacity>
             ) : null}
           </View>

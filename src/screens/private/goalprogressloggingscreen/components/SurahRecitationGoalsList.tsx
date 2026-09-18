@@ -17,7 +17,6 @@ import {
   CARD_ANCHOR_PADDING_LEFT,
   CARD_GAP,
   FLOW_CARD_WIDTH_RATIO,
-  surahGoalStyles,
 } from "./SurahRecitationGoals.styles";
 import { SurahRecitationGoalCard } from "./SurahRecitationGoalCard";
 import { useOptionalRecitationSurahContext } from "../recitationSurahContext";
@@ -48,7 +47,18 @@ export function SurahRecitationGoalsList({
     const frequency = getSurahRecitationCycleMode(goalData.id);
     return allGoals.filter((goal) => goal.frequency === frequency);
   }, [goalData.id]);
-  const cardWidth = screenWidth * FLOW_CARD_WIDTH_RATIO - CARD_ANCHOR_PADDING_LEFT;
+  /** Viewport is inset by left padding; clip peeks of the previous card. */
+  const listWidth = screenWidth - CARD_ANCHOR_PADDING_LEFT;
+  const cardWidth = Math.min(
+    listWidth * FLOW_CARD_WIDTH_RATIO,
+    screenWidth * FLOW_CARD_WIDTH_RATIO - CARD_ANCHOR_PADDING_LEFT,
+  );
+  const snapInterval = cardWidth + CARD_GAP;
+  const trailingInset = Math.max(CARD_ANCHOR_PADDING_LEFT, listWidth - cardWidth);
+  const snapToOffsets = useMemo(
+    () => goals.map((_, index) => index * snapInterval),
+    [goals, snapInterval],
+  );
   const [activeGoalId, setActiveGoalId] = useState(
     () => recitationContext?.activeSurahId ?? goals[0]?.id ?? "",
   );
@@ -103,21 +113,29 @@ export function SurahRecitationGoalsList({
   );
 
   return (
-    <FlatList
-      horizontal
-      data={goals}
-      keyExtractor={keyExtractor}
-      renderItem={renderItem}
-      showsHorizontalScrollIndicator={false}
-      ItemSeparatorComponent={itemSeparator}
-      onViewableItemsChanged={onViewableItemsChanged}
-      viewabilityConfig={viewabilityConfig}
-      decelerationRate="fast"
-      snapToInterval={cardWidth + CARD_GAP}
-      snapToAlignment="start"
-      removeClippedSubviews={false}
-      style={{ overflow: "visible", height: FLOW_CARD_HEIGHT }}
-      contentContainerStyle={surahGoalStyles.listContent}
-    />
+    <View
+      style={{
+        paddingLeft: CARD_ANCHOR_PADDING_LEFT,
+        overflow: "hidden",
+      }}
+    >
+      <FlatList
+        horizontal
+        data={goals}
+        keyExtractor={keyExtractor}
+        renderItem={renderItem}
+        showsHorizontalScrollIndicator={false}
+        ItemSeparatorComponent={itemSeparator}
+        onViewableItemsChanged={onViewableItemsChanged}
+        viewabilityConfig={viewabilityConfig}
+        decelerationRate="fast"
+        snapToOffsets={snapToOffsets}
+        snapToAlignment="start"
+        disableIntervalMomentum
+        removeClippedSubviews={false}
+        style={{ overflow: "visible", height: FLOW_CARD_HEIGHT }}
+        contentContainerStyle={{ paddingRight: trailingInset }}
+      />
+    </View>
   );
 }

@@ -78,6 +78,7 @@ export type MemorisationHizbProgressRailRow = {
   totalVerses: number;
   isCompleted: boolean;
   timeSpentMinutes: number;
+  longestStreak?: number;
 };
 
 const THREE_MONTH_LABELS = [
@@ -632,6 +633,7 @@ function buildProgressRailRowForUnit(
       selectedBarIndex !== null
         ? (unit.chartPeriods[selectedBarIndex]?.timeSpentMinutes ?? 0)
         : unit.totalTimeSpentMinutes,
+    longestStreak: 0,
   };
 }
 
@@ -647,6 +649,7 @@ function buildEmptyProgressRailRow(
     totalVerses: goal.totalAyahs,
     isCompleted: false,
     timeSpentMinutes: 0,
+    longestStreak: 0,
   };
 }
 
