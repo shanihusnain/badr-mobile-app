@@ -72,7 +72,7 @@ export default function MenstruationLog({
 
   const reversePrayerMap: Record<string, string> = {
     FAJR: "Before Fajr",
-    DUHR: "Before Duhr",
+    DUHR: "Before Dhuhr",
     ASR: "Before Asr",
     MAGHRIB: "Before Maghrib",
     ISHA: "Before Isha",
@@ -357,7 +357,7 @@ export default function MenstruationLog({
                   transKey: "homeScreen.menstruationLog_beforeFajr",
                 },
                 {
-                  label: "Before Duhr",
+                  label: "Before Dhuhr",
                   transKey: "homeScreen.menstruationLog_beforeDuhr",
                 },
                 {
@@ -400,10 +400,9 @@ export default function MenstruationLog({
               <Text
                 style={[
                   styles.gregorianDateText,
-                  {
-                    color: menstruating
-                      ? Colors.light.white
-                      : Colors.light.subtext,
+                  !menstruating && {
+                    color: Colors.light.dullWhite,
+                    opacity: 0.9,
                   },
                 ]}
               >
@@ -415,6 +414,14 @@ export default function MenstruationLog({
               cycleStartDate={cycleStartString}
               cycleEndDate={cycleEndString}
               selectedDate={selectedDate}
+              periodStartDate={selectedDate}
+              periodEndDate={
+                stillMenstruating
+                  ? todayString < cycleEndString
+                    ? todayString
+                    : cycleEndString
+                  : selectedEndDate
+              }
               onDayPress={(dateString) => {
                 setSelectedDate(dateString);
                 if (dateString > selectedEndDate) {
@@ -484,7 +491,7 @@ export default function MenstruationLog({
                   transKey: "homeScreen.menstruationLog_beforeFajr",
                 },
                 {
-                  label: "Before Duhr",
+                  label: "Before Dhuhr",
                   transKey: "homeScreen.menstruationLog_beforeDuhr",
                 },
                 {
@@ -521,7 +528,7 @@ export default function MenstruationLog({
           </View>
         )}
 
-        <View style={styles.menstruatingContainer}>
+        <View style={styles.stillMenstruatingContainer}>
           <Text
             style={[
               styles.menstruatingText,
@@ -564,7 +571,7 @@ export default function MenstruationLog({
 
             const prayerMap: Record<string, string> = {
               "Before Fajr": "FAJR",
-              "Before Duhr": "DUHR",
+              "Before Dhuhr": "DUHR",
               "Before Asr": "ASR",
               "Before Maghrib": "MAGHRIB",
               "Before Isha": "ISHA",
@@ -604,23 +611,7 @@ export default function MenstruationLog({
             !goalCycleId
           }
           isLoading={isPending}
-          style={({ pressed }) => {
-            const isDisabled =
-              !menstruating ||
-              selectedStartTime === "" ||
-              (!stillMenstruating && selectedEndTime === "") ||
-              isPending ||
-              !goalCycleId;
-            return [
-              { marginTop: 24 },
-              isDisabled
-                ? {
-                    backgroundColor: Colors.light.greybuttonBackground,
-                    borderColor: Colors.light.greybuttonBackground,
-                  }
-                : {},
-            ];
-          }}
+          style={{ marginTop: 56 }}
         />
       </ScrollView>
     </BlackScreenWrapper>
