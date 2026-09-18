@@ -778,7 +778,8 @@ export const GoalProgressLoggingScreen = ({
   if (
     isQuranHoursGoalId(goalId) ||
     isSurahMemorisationGoalId(goalId) ||
-    isHizbMemorisationGoalId(goalId)
+    isHizbMemorisationGoalId(goalId) ||
+    isJuzMemorisationGoalId(goalId)
   ) {
     return (
       <QuranGoalFrameProvider

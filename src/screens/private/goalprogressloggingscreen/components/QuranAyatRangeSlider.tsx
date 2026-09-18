@@ -24,8 +24,9 @@ type Props = {
   /** Lowest ayah the start thumb may select (default 1). */
   minStartAyat?: number;
   /**
-   * When true, start thumb is fixed at minStartAyat (already-logged boundary).
-   * Only the end thumb is draggable.
+   * When true (continuing after prior logs), start thumb is locked at
+   * minStartAyat with a "||" marker for yesterday’s boundary. End thumb
+   * starts at max and is dragged back to select today’s verses.
    */
   freezeStartHandle?: boolean;
   verseCount?: number;
@@ -393,12 +394,12 @@ export function QuranAyatRangeSlider({
               },
             ]}
           >
-            <View style={localStyles.thumb}>
-              <Ionicons
-                name="chevron-forward"
-                size={12}
-                color={Colors.light.green}
-              />
+            {/* Locked at yesterday’s boundary — two lines, not a chevron */}
+            <View style={[localStyles.thumb, localStyles.thumbLocked]}>
+              <View style={localStyles.lockBars}>
+                <View style={localStyles.lockBar} />
+                <View style={localStyles.lockBar} />
+              </View>
             </View>
           </View>
         ) : (
@@ -421,7 +422,7 @@ export function QuranAyatRangeSlider({
                 ]}
               >
                 <Ionicons
-                  name="chevron-forward"
+                  name="chevron-back"
                   size={12}
                   color={Colors.light.green}
                 />
@@ -449,7 +450,7 @@ export function QuranAyatRangeSlider({
               ]}
             >
               <Ionicons
-                name="chevron-back"
+                name={freezeStartHandle ? "chevron-back" : "chevron-forward"}
                 size={12}
                 color={Colors.light.green}
               />
@@ -553,6 +554,21 @@ const localStyles = StyleSheet.create({
     backgroundColor: Colors.light.white,
     alignItems: "center",
     justifyContent: "center",
+  },
+  thumbLocked: {
+    opacity: 1,
+  },
+  lockBars: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 3,
+  },
+  lockBar: {
+    width: 2,
+    height: 10,
+    borderRadius: 1,
+    backgroundColor: Colors.light.green,
   },
   thumbActive: {
     transform: [{ scale: 1.08 }],
