@@ -44,6 +44,15 @@ import type { InsightCardData } from "../PrayerPastAchievements/insightCardsData
 import { getGoalById } from "@/src/screens/private/home/components/goalsData";
 import { PastAchievementStudyMaterial } from "@/components/molecules/PastAchievementStudyMaterial";
 import { memorisationPastAchievementStyles as styles } from "./memorisationPastAchievementsStyles";
+import { useGetQuranGoalAchievements } from "@/src/api/queries/useGetQuranGoalAchievements";
+import { resolveQuranTypeFromGoalId } from "@/src/utils/quranGoalMap";
+import { shiftPrayerAchievementsPeriodStart } from "@/src/utils/prayerGoalAchievementsMap";
+import { mapQuranApiKeyInsightsToCards } from "@/src/utils/quranHoursGoalAchievementsMap";
+import {
+  buildMemorisationHizbAchievementFilters,
+  createEmptyMemorisationHizbAchievements,
+  mapMemorisationHizbAchievementsToUi,
+} from "@/src/utils/quranMemorisationHizbAchievementsMap";
 import {
   AchivementArrowIcon,
   InsightCardFlashIcon,
@@ -55,6 +64,8 @@ import {
   NegativeProgressIcon,
   PositiveProgressIcon,
 } from "@/assets/icons";
+
+const LOADING_DASH = "—";
 
 const PERIODS: PastAchievementPeriod[] = ["monthly", "threeMonths", "sixMonths"];
 
@@ -138,6 +149,7 @@ export function HizbMemorisationPastAchievements({
   const formatNumber = useLocaleNumber();
   const hizbContext = useOptionalMemorisationHizbContext();
   const [period, setPeriod] = useState<PastAchievementPeriod>(initialPeriod);
+  const [periodStartParam, setPeriodStartParam] = useState<string | null>(null);
   const [analyticsView, setAnalyticsView] =
     useState<MemorisationAnalyticsView>(initialAnalyticsView);
   const [hizbFilter, setHizbFilter] = useState<MemorisationHizbFilterId>(
@@ -148,50 +160,117 @@ export function HizbMemorisationPastAchievements({
   const goalData = getGoalById(goalId);
   const studyMaterial = goalData?.studyMaterial ?? [];
 
+  const quranGoalType = resolveQuranTypeFromGoalId(goalId);
+  const usesAchievementsApi = quranGoalType === "MEMORIZATION_HIZB";
+
   const selectedHizbId: MemorisationHizbFilterId = hizbFilter;
   const refreshKey = hizbContext?.refreshKey ?? 0;
+  const contextGoals = hizbContext?.goals ?? [];
   const isHizbDrillDown = isDetailed && selectedHizbId !== "all";
 
-  const hizbFilters = useMemo(
-    () => getMemorisationHizbPastAchievementFilters(),
-    [refreshKey],
-  );
+  const selectedItemNumber = useMemo(() => {
+    if (selectedHizbId === "all") return null;
+    const fromGoal = contextGoals.find((goal) => goal.id === selectedHizbId)
+      ?.itemNumber;
+    if (fromGoal != null && Number.isFinite(fromGoal)) return fromGoal;
+    const fromId = Number(selectedHizbId);
+    return Number.isFinite(fromId) && fromId > 0 ? fromId : null;
+  }, [contextGoals, selectedHizbId]);
+
+  const achievementsModeParam =
+    isDetailed && analyticsView === "completedVsTimeSpent" ? "TIME" : null;
+
+  const { data: achievementsApiData, isLoading: isAchievementsLoading } =
+    useGetQuranGoalAchievements(quranGoalType, {
+      period,
+      periodStart: periodStartParam,
+      itemNumber: selectedItemNumber,
+      mode: achievementsModeParam,
+      enabled: usesAchievementsApi && !!quranGoalType,
+    });
+
+  const showPlaceholders =
+    usesAchievementsApi && (!achievementsApiData || isAchievementsLoading);
+
+  const hizbFilters = useMemo(() => {
+    if (contextGoals.length > 0) {
+      return buildMemorisationHizbAchievementFilters(contextGoals);
+    }
+    return getMemorisationHizbPastAchievementFilters();
+  }, [contextGoals, refreshKey]);
 
   const hizbDisplayName =
     hizbFilters.find((filter) => filter.id === selectedHizbId)?.hizbName ?? "";
 
   const goalUnitLabel = useMemo(() => {
+    const unit = String(achievementsApiData?.goal?.unit ?? "")
+      .trim()
+      .toLowerCase();
+    if (unit.includes("hizb")) {
+      return t("monthlyGoalPlanner.hizbUnit_other");
+    }
+    if (unit.includes("ayah") || unit.includes("verse")) {
+      return t("progressLogging.unitAyahs");
+    }
     if (selectedHizbId === "all") {
       return t("monthlyGoalPlanner.hizbUnit_other");
     }
     return t("progressLogging.unitAyahs");
-  }, [selectedHizbId, t]);
+  }, [achievementsApiData?.goal?.unit, selectedHizbId, t]);
 
-  const allPeriodSlice = useMemo(
-    () => getQuranMemorisationHizbPastAchievementSlice(period, "all"),
-    [period, refreshKey],
-  );
+  const mappedApi = useMemo(() => {
+    if (!usesAchievementsApi) return null;
+    if (!achievementsApiData) {
+      return createEmptyMemorisationHizbAchievements(
+        selectedHizbId,
+        hizbDisplayName || "All Hizbs",
+      );
+    }
+    return mapMemorisationHizbAchievementsToUi(achievementsApiData, period, {
+      hizbId: selectedHizbId,
+      hizbName: hizbDisplayName || "All Hizbs",
+      goals: contextGoals,
+    });
+  }, [
+    achievementsApiData,
+    contextGoals,
+    hizbDisplayName,
+    period,
+    selectedHizbId,
+    usesAchievementsApi,
+  ]);
 
-  const periodSlice = useMemo(
-    () =>
-      getQuranMemorisationHizbPastAchievementSlice(period, selectedHizbId),
-    [period, selectedHizbId, refreshKey],
-  );
+  const allPeriodSlice = useMemo(() => {
+    if (usesAchievementsApi && mappedApi) return mappedApi.slice;
+    return getQuranMemorisationHizbPastAchievementSlice(period, "all");
+  }, [mappedApi, period, refreshKey, usesAchievementsApi]);
 
-  const hasLogs = useMemo(
-    () => hasMemorisationHizbPastAchievementLogs(periodSlice),
-    [periodSlice],
-  );
+  const periodSlice = useMemo(() => {
+    if (usesAchievementsApi && mappedApi) return mappedApi.slice;
+    return getQuranMemorisationHizbPastAchievementSlice(period, selectedHizbId);
+  }, [mappedApi, period, refreshKey, selectedHizbId, usesAchievementsApi]);
 
-  const baseAchievement = useMemo(
-    () => getQuranMemorisationHizbPastAchievement(period, selectedHizbId),
-    [period, selectedHizbId, refreshKey],
-  );
+  const hasLogs = useMemo(() => {
+    if (usesAchievementsApi) {
+      return (
+        periodSlice.memorizedAyahs > 0 ||
+        periodSlice.chartPeriods.some(
+          (item) => item.completed > 0 || item.timeSpentMinutes > 0,
+        )
+      );
+    }
+    return hasMemorisationHizbPastAchievementLogs(periodSlice);
+  }, [periodSlice, usesAchievementsApi]);
 
-  const compactAchievement = useMemo(
-    () => getHizbMemorisationPastAchievement(selectedHizbId),
-    [selectedHizbId, refreshKey],
-  );
+  const baseAchievement = useMemo(() => {
+    if (usesAchievementsApi && mappedApi) return mappedApi.achievement;
+    return getQuranMemorisationHizbPastAchievement(period, selectedHizbId);
+  }, [mappedApi, period, refreshKey, selectedHizbId, usesAchievementsApi]);
+
+  const compactAchievement = useMemo(() => {
+    if (usesAchievementsApi && mappedApi) return mappedApi.compact;
+    return getHizbMemorisationPastAchievement(selectedHizbId);
+  }, [mappedApi, refreshKey, selectedHizbId, usesAchievementsApi]);
 
   const timeSpentByPeriod = useMemo(
     () => getMemorisationHizbTimeSpentByPeriod(periodSlice),
@@ -234,16 +313,22 @@ export function HizbMemorisationPastAchievements({
   const goalTrackedMonths = getMemorisationHizbGoalTrackedMonths(period);
   const totalMemorizedVerses = getTotalHizbMemorizedVerses(periodSlice);
 
-  const progressRailRows = useMemo(
-    () =>
-      getMemorisationHizbProgressRailRows(
-        allPeriodSlice,
-        periodSlice,
-        selectedHizbId,
-        selectedBarIndex,
-      ),
-    [allPeriodSlice, periodSlice, selectedBarIndex, selectedHizbId],
-  );
+  const progressRailRows = useMemo(() => {
+    if (usesAchievementsApi && mappedApi) return mappedApi.progressRailRows;
+    return getMemorisationHizbProgressRailRows(
+      allPeriodSlice,
+      periodSlice,
+      selectedHizbId,
+      selectedBarIndex,
+    );
+  }, [
+    allPeriodSlice,
+    mappedApi,
+    periodSlice,
+    selectedBarIndex,
+    selectedHizbId,
+    usesAchievementsApi,
+  ]);
 
   const selectedBaseBar =
     selectedBarIndex !== null
@@ -255,10 +340,9 @@ export function HizbMemorisationPastAchievements({
   const displayBaseIncomplete =
     selectedBaseBar?.incompleteHours ?? baseAchievement.incompleteHours;
 
-  const showNoDataDash = isPastAchievementBarEmpty(
-    displayBaseCompleted,
-    displayBaseIncomplete,
-  );
+  const showNoDataDash =
+    showPlaceholders ||
+    isPastAchievementBarEmpty(displayBaseCompleted, displayBaseIncomplete);
 
   const selectedPeriodTimeSpentMinutes =
     selectedBarIndex !== null
@@ -283,6 +367,36 @@ export function HizbMemorisationPastAchievements({
     selectedBaseBar,
   ]);
 
+  const canNavigateBack = usesAchievementsApi
+    ? !showPlaceholders &&
+      (achievementsApiData?.canNavigateBack ??
+        achievementsApiData?.hasPrevious ??
+        false)
+    : false;
+  const canNavigateForward = usesAchievementsApi
+    ? !showPlaceholders &&
+      (achievementsApiData?.canNavigateForward ??
+        achievementsApiData?.hasNext ??
+        false)
+    : false;
+
+  const keyInsightsHeader = mappedApi?.achievement.keyInsightsHeader ?? null;
+
+  const insightCards = useMemo(() => {
+    if (!usesAchievementsApi) return [];
+    return mapQuranApiKeyInsightsToCards(achievementsApiData, {
+      period,
+      noDataLabel: t("progressLogging.insightNoData"),
+      isLoading: showPlaceholders,
+    });
+  }, [
+    achievementsApiData,
+    period,
+    showPlaceholders,
+    t,
+    usesAchievementsApi,
+  ]);
+
   useEffect(() => {
     if (initialHizbId) {
       setHizbFilter(initialHizbId);
@@ -292,11 +406,42 @@ export function HizbMemorisationPastAchievements({
   useEffect(() => {
     setSelectedBarIndex(null);
     setHintDismissed(false);
-  }, [period, goalId, selectedHizbId, analyticsView]);
+  }, [period, goalId, selectedHizbId, analyticsView, periodStartParam]);
+
+  useEffect(() => {
+    if (!isDetailed) return;
+    setPeriodStartParam(null);
+  }, [analyticsView, isDetailed]);
 
   const handlePeriodChange = useCallback((next: PastAchievementPeriod) => {
     setPeriod(next);
+    setPeriodStartParam(null);
   }, []);
+
+  const handleNavigateBack = useCallback(() => {
+    if (!usesAchievementsApi || !achievementsApiData || !canNavigateBack) return;
+    if (!achievementsApiData.periodStart || !achievementsApiData.periodEnd)
+      return;
+    const nextStart = shiftPrayerAchievementsPeriodStart(
+      achievementsApiData.periodStart,
+      achievementsApiData.periodEnd,
+      -1,
+    );
+    setPeriodStartParam(nextStart);
+  }, [achievementsApiData, canNavigateBack, usesAchievementsApi]);
+
+  const handleNavigateForward = useCallback(() => {
+    if (!usesAchievementsApi || !achievementsApiData || !canNavigateForward)
+      return;
+    if (!achievementsApiData.periodStart || !achievementsApiData.periodEnd)
+      return;
+    const nextStart = shiftPrayerAchievementsPeriodStart(
+      achievementsApiData.periodStart,
+      achievementsApiData.periodEnd,
+      1,
+    );
+    setPeriodStartParam(nextStart);
+  }, [achievementsApiData, canNavigateForward, usesAchievementsApi]);
 
   const handleBarPressDetailed = useCallback((index: number | null) => {
     setHintDismissed(true);
@@ -309,6 +454,7 @@ export function HizbMemorisationPastAchievements({
 
   const handleSelectHizbFilter = useCallback((id: MemorisationHizbFilterId) => {
     setHizbFilter(id);
+    setPeriodStartParam(null);
     setSelectedBarIndex(null);
   }, []);
 
@@ -333,6 +479,7 @@ export function HizbMemorisationPastAchievements({
 
   const showDetailedStatsChevron = useMemo(() => {
     if (isDetailed) return false;
+    if (showPlaceholders) return false;
     if ((compactAchievement.memorizedAyahs ?? 0) > 0) return true;
     if ((compactAchievement.progressPercent ?? 0) > 0) return true;
     return compactAchievement.chartData.some(
@@ -343,9 +490,11 @@ export function HizbMemorisationPastAchievements({
     compactAchievement.memorizedAyahs,
     compactAchievement.progressPercent,
     isDetailed,
+    showPlaceholders,
   ]);
 
   const showDeltaChip =
+    !showPlaceholders &&
     !showNoDataDash &&
     Math.abs(baseAchievement.previousPeriodDeltaPercent) > 0;
 
@@ -459,21 +608,35 @@ export function HizbMemorisationPastAchievements({
 
   const renderDateNav = () => (
     <View style={styles.dateNavRow}>
-      <TouchableOpacity activeOpacity={0.7} style={styles.navBtn} disabled>
+      <TouchableOpacity
+        activeOpacity={0.7}
+        style={styles.navBtn}
+        disabled={!canNavigateBack}
+        onPress={handleNavigateBack}
+      >
         <Ionicons
           name="chevron-back"
           size={24}
-          color={Colors.light.subtext}
+          color={canNavigateBack ? Colors.light.white : Colors.light.subtext}
         />
       </TouchableOpacity>
       <Text style={styles.dateRange} numberOfLines={1} ellipsizeMode="tail">
-        {baseAchievement.dateRangeLabel}
+        {showPlaceholders
+          ? LOADING_DASH
+          : baseAchievement.dateRangeLabel}
       </Text>
-      <TouchableOpacity activeOpacity={0.7} style={styles.navBtn} disabled>
+      <TouchableOpacity
+        activeOpacity={0.7}
+        style={styles.navBtn}
+        disabled={!canNavigateForward}
+        onPress={handleNavigateForward}
+      >
         <Ionicons
           name="chevron-forward"
           size={24}
-          color={Colors.light.subtext}
+          color={
+            canNavigateForward ? Colors.light.white : Colors.light.subtext
+          }
         />
       </TouchableOpacity>
     </View>
@@ -577,51 +740,103 @@ export function HizbMemorisationPastAchievements({
     );
   };
 
-  const renderInsights = () => (
-    <View style={styles.insightsSection}>
-      <View style={styles.insightsHeader}>
-        <Text style={styles.insightsTitleLabel}>
-          {t("progressLogging.keyInsights")}
-        </Text>
-        <Text style={styles.insightsSubtitleLabel}>
-          {PERIOD_INSIGHT_SUBTITLE[period]}
-        </Text>
+  const renderInsights = () => {
+    if (usesAchievementsApi) {
+      if (insightCards.length === 0 && !showPlaceholders) return null;
+      return (
+        <View style={styles.insightsSection}>
+          <View style={styles.insightsHeader}>
+            <Text style={styles.insightsTitleLabel}>
+              {t("progressLogging.keyInsights")}
+            </Text>
+            <Text style={styles.insightsSubtitleLabel}>
+              {keyInsightsHeader?.trim() || PERIOD_INSIGHT_SUBTITLE[period]}
+            </Text>
+          </View>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            nestedScrollEnabled
+            contentContainerStyle={styles.insightsScrollContent}
+          >
+            {(insightCards.length > 0
+              ? insightCards
+              : [
+                  {
+                    iconFamily: "Ionicons" as const,
+                    iconName: "calendar-outline",
+                    title: t("progressLogging.recitationInsightGoalTracked"),
+                    value: LOADING_DASH,
+                  },
+                  {
+                    iconFamily: "Ionicons" as const,
+                    iconName: "book-outline",
+                    title: t("progressLogging.memorisationInsightTotalMemorized"),
+                    value: LOADING_DASH,
+                  },
+                ]
+            ).map((card, index) => (
+              <InsightCard
+                key={`${card.title}-${index}`}
+                iconName={card.iconName}
+                icon={getMemorisationInsightIcon(card)}
+                title={card.title}
+                value={String(card.value ?? LOADING_DASH)}
+                subValue={card.subValue}
+                style={styles.insightCardFixed}
+              />
+            ))}
+          </ScrollView>
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.insightsSection}>
+        <View style={styles.insightsHeader}>
+          <Text style={styles.insightsTitleLabel}>
+            {t("progressLogging.keyInsights")}
+          </Text>
+          <Text style={styles.insightsSubtitleLabel}>
+            {PERIOD_INSIGHT_SUBTITLE[period]}
+          </Text>
+        </View>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          nestedScrollEnabled
+          contentContainerStyle={styles.insightsScrollContent}
+        >
+          <InsightCard
+            iconName="calendar-outline"
+            icon={getMemorisationInsightIcon({
+              iconFamily: "Ionicons",
+              iconName: "calendar-outline",
+              title: t("progressLogging.recitationInsightGoalTracked"),
+              value: String(goalTrackedMonths),
+            })}
+            title={t("progressLogging.recitationInsightGoalTracked")}
+            value={formatNumber(goalTrackedMonths)}
+            subValue={t("progressLogging.recitationInsightMonths")}
+            style={styles.insightCardFixed}
+          />
+          <InsightCard
+            iconName="book-outline"
+            icon={getMemorisationInsightIcon({
+              iconFamily: "Ionicons",
+              iconName: "book-outline",
+              title: t("progressLogging.memorisationInsightTotalMemorized"),
+              value: String(totalMemorizedVerses),
+            })}
+            title={t("progressLogging.memorisationInsightTotalMemorized")}
+            value={formatNumber(totalMemorizedVerses)}
+            subValue={t("progressLogging.memorisationInsightVersesMemorized")}
+            style={styles.insightCardFixed}
+          />
+        </ScrollView>
       </View>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        nestedScrollEnabled
-        contentContainerStyle={styles.insightsScrollContent}
-      >
-        <InsightCard
-          iconName="calendar-outline"
-          icon={getMemorisationInsightIcon({
-            iconFamily: "Ionicons",
-            iconName: "calendar-outline",
-            title: t("progressLogging.recitationInsightGoalTracked"),
-            value: String(goalTrackedMonths),
-          })}
-          title={t("progressLogging.recitationInsightGoalTracked")}
-          value={formatNumber(goalTrackedMonths)}
-          subValue={t("progressLogging.recitationInsightMonths")}
-          style={styles.insightCardFixed}
-        />
-        <InsightCard
-          iconName="book-outline"
-          icon={getMemorisationInsightIcon({
-            iconFamily: "Ionicons",
-            iconName: "book-outline",
-            title: t("progressLogging.memorisationInsightTotalMemorized"),
-            value: String(totalMemorizedVerses),
-          })}
-          title={t("progressLogging.memorisationInsightTotalMemorized")}
-          value={formatNumber(totalMemorizedVerses)}
-          subValue={t("progressLogging.memorisationInsightVersesMemorized")}
-          style={styles.insightCardFixed}
-        />
-      </ScrollView>
-    </View>
-  );
+    );
+  };
 
   if (!isDetailed) {
     return (
@@ -653,11 +868,13 @@ export function HizbMemorisationPastAchievements({
               </Text>
               <View style={styles.achievementPercentRow}>
                 <Text style={styles.achievementPercentCompact}>
-                  {showNoDataDash
-                    ? PAST_ACHIEVEMENT_NO_DATA
-                    : formatNumber(baseAchievement.achievementPercent)}
+                  {showPlaceholders
+                    ? LOADING_DASH
+                    : showNoDataDash
+                      ? PAST_ACHIEVEMENT_NO_DATA
+                      : formatNumber(baseAchievement.achievementPercent)}
                 </Text>
-                {!showNoDataDash ? (
+                {!showPlaceholders && !showNoDataDash ? (
                   <Text style={styles.achievementPercentSymbolCompact}>%</Text>
                 ) : null}
               </View>
@@ -687,17 +904,19 @@ export function HizbMemorisationPastAchievements({
 
           {renderGoalHeader()}
           {renderAnalyticsToggle()}
-          {renderCompletedIncompleteStats(showNoDataDash)}
+          {renderCompletedIncompleteStats(showPlaceholders || showNoDataDash)}
 
           <View
             onStartShouldSetResponder={() => true}
             onMoveShouldSetResponder={() => false}
           >
             <QuranHoursPastAchievementChartBlock
-              chartData={chartAchievement?.chartData ?? []}
+              chartData={
+                showPlaceholders ? [] : (chartAchievement?.chartData ?? [])
+              }
               selectedBarIndex={null}
               onBarPress={() => {}}
-              chartKey={`${goalId}-${period}-${selectedHizbId}-${analyticsView}-${refreshKey}`}
+              chartKey={`${goalId}-${period}-${selectedHizbId}-${analyticsView}-${periodStartParam ?? "latest"}-${showPlaceholders ? "loading" : "ready"}-${refreshKey}`}
               yMax={chartAchievement?.yMax ?? compactAchievement.yMax}
               yTicks={chartAchievement?.yTicks ?? compactAchievement.yTicks}
               showHint={false}
@@ -752,11 +971,13 @@ export function HizbMemorisationPastAchievements({
             </Text>
             <View style={styles.achievementPercentRow}>
               <Text style={styles.achievementPercentCompact}>
-                {showNoDataDash
-                  ? PAST_ACHIEVEMENT_NO_DATA
-                  : formatNumber(baseAchievement.achievementPercent)}
+                {showPlaceholders
+                  ? LOADING_DASH
+                  : showNoDataDash
+                    ? PAST_ACHIEVEMENT_NO_DATA
+                    : formatNumber(baseAchievement.achievementPercent)}
               </Text>
-              {!showNoDataDash ? (
+              {!showPlaceholders && !showNoDataDash ? (
                 <Text style={styles.achievementPercentSymbolCompact}>%</Text>
               ) : null}
             </View>
@@ -789,9 +1010,9 @@ export function HizbMemorisationPastAchievements({
 
         {renderGoalHeader()}
         {renderAnalyticsToggle()}
-        {renderCompletedIncompleteStats(showNoDataDash)}
+        {renderCompletedIncompleteStats(showPlaceholders || showNoDataDash)}
 
-        {isHizbDrillDown && !hasLogs ? (
+        {isHizbDrillDown && !hasLogs && !showPlaceholders ? (
           <View style={styles.emptyStateInline}>
             <Text style={styles.emptyStateText}>
               {t("progressLogging.memorisationHizbNoDataForPeriod")}
@@ -804,13 +1025,15 @@ export function HizbMemorisationPastAchievements({
           onMoveShouldSetResponder={() => false}
         >
           <QuranHoursPastAchievementChartBlock
-            chartData={chartAchievement?.chartData ?? []}
+            chartData={
+              showPlaceholders ? [] : (chartAchievement?.chartData ?? [])
+            }
             selectedBarIndex={selectedBarIndex}
             onBarPress={handleBarPressDetailed}
-            chartKey={`${goalId}-${period}-${selectedHizbId}-${analyticsView}`}
+            chartKey={`${goalId}-${period}-${selectedHizbId}-${analyticsView}-${periodStartParam ?? "latest"}-${showPlaceholders ? "loading" : "ready"}`}
             yMax={chartAchievement?.yMax ?? 10}
             yTicks={chartAchievement?.yTicks ?? [0, 5, 10]}
-            showHint={showChartHint}
+            showHint={showChartHint && !showPlaceholders}
             onDismissHint={() => setHintDismissed(true)}
             hintText={t("progressLogging.chartTapHint")}
             hintActionText={t("progressLogging.okGotIt")}

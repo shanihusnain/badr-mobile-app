@@ -48,12 +48,10 @@ const CATEGORY_ICON_COLOR: Record<UiIbadahCategory, string> = {
   SADAQAH: Colors.light.ringSadaqah,
 };
 
-const LOADING_CATEGORY_KEYS: UiIbadahCategory[] = [
-  "PRAYER",
-  "QURAN",
-  "FASTING",
-  "SADAQAH",
-];
+const LOADING_CATEGORY_KEYS: UiIbadahCategory[] = ["PRAYER", "QURAN"];
+
+/** Temporarily hide until fasting/sadaqah progress APIs are ready. */
+const HIDDEN_PROGRESS_CATEGORIES = new Set(["fasting", "sadaqah"]);
 
 const DETAIL_LOADING_PLACEHOLDER_COUNT = 4;
 
@@ -149,12 +147,14 @@ export const DailyProgressBottomSheet = ({
     }
 
     return categorySummaries.flatMap((item) => {
+      const categoryKey = String(item.category ?? "").toLowerCase();
+      if (HIDDEN_PROGRESS_CATEGORIES.has(categoryKey)) return [];
       const uiCategory = toUiIbadahCategory(item.category);
       const total = item.totalGoals ?? 0;
       if (!uiCategory || total <= 0) return [];
       return [
         {
-          key: item.category.toLowerCase(),
+          key: categoryKey,
           uiCategory,
           title: titleMap[uiCategory],
           subtitle: `${total} ${total === 1 ? "goal" : "goals"}`,

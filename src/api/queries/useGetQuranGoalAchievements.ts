@@ -91,6 +91,9 @@ export type QuranAchievementsChartMode =
   | "COMPLETED_VS_TIME"
   | string;
 
+/** Backend `mode` query (e.g. MEMORIZATION_HIZB uses `mode=TIME`). */
+export type QuranAchievementsMode = "TIME" | string;
+
 const getQuranGoalAchievements = async (
   quranGoalType: string,
   period: QuranAchievementsPeriodCode,
@@ -98,11 +101,13 @@ const getQuranGoalAchievements = async (
     periodStart?: string | null;
     itemNumber?: number | null;
     chart?: QuranAchievementsChartMode | null;
+    mode?: QuranAchievementsMode | null;
   },
 ): Promise<QuranGoalAchievementsData | null> => {
   const periodStart = options?.periodStart ?? null;
   const itemNumber = options?.itemNumber ?? null;
   const chart = options?.chart ?? null;
+  const mode = options?.mode ?? null;
 
   const response = await api.get(
     `api/goal-cycles/current/quran-goals/${quranGoalType}/achievements`,
@@ -112,6 +117,7 @@ const getQuranGoalAchievements = async (
         ...(periodStart ? { periodStart } : {}),
         ...(itemNumber != null ? { itemNumber } : {}),
         ...(chart ? { chart } : {}),
+        ...(mode ? { mode } : {}),
       },
     },
   );
@@ -134,6 +140,8 @@ export const useGetQuranGoalAchievements = (
      * e.g. COMPLETED_VS_TIME — omit for default completed vs incomplete.
      */
     chart?: QuranAchievementsChartMode | null;
+    /** Alternate mode param used by some types (e.g. MEMORIZATION_HIZB `mode=TIME`). */
+    mode?: QuranAchievementsMode | null;
     enabled?: boolean;
   },
 ) => {
@@ -144,6 +152,7 @@ export const useGetQuranGoalAchievements = (
   const periodStart = options.periodStart ?? null;
   const itemNumber = options.itemNumber ?? null;
   const chart = options.chart ?? null;
+  const mode = options.mode ?? null;
   const enabled = !!quranGoalType && (options.enabled ?? true);
 
   return useQuery({
@@ -154,12 +163,14 @@ export const useGetQuranGoalAchievements = (
       periodStart ?? "latest",
       itemNumber ?? "all",
       chart ?? "COMPLETED_VS_INCOMPLETE",
+      mode ?? "default",
     ],
     queryFn: () =>
       getQuranGoalAchievements(quranGoalType, periodCode, {
         periodStart,
         itemNumber,
         chart,
+        mode,
       }),
     enabled,
   });
