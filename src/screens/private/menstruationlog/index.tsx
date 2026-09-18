@@ -357,7 +357,7 @@ export default function MenstruationLog({
                   transKey: "homeScreen.menstruationLog_beforeFajr",
                 },
                 {
-                  label: "Before Duhr",
+                  label: "Before Dhuhr",
                   transKey: "homeScreen.menstruationLog_beforeDuhr",
                 },
                 {
@@ -484,7 +484,7 @@ export default function MenstruationLog({
                   transKey: "homeScreen.menstruationLog_beforeFajr",
                 },
                 {
-                  label: "Before Duhr",
+                  label: "Before Dhuhr",
                   transKey: "homeScreen.menstruationLog_beforeDuhr",
                 },
                 {
