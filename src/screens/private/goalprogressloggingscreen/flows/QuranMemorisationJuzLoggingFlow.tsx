@@ -6,11 +6,13 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import moment from "moment-hijri";
 import { Colors } from "@/constants/theme";
 import { GoalData } from "../../home/components/goalsData";
-import { DurationStep, StartTimeStep } from "../components/TimePickerSteps";
+import { DurationStep, StartTimeStep, getCurrentStartTimeParts } from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
 import { MemorisationJuzAyahCountStep } from "../components/MemorisationJuzAyahCountStep";
 import { MemorisationJuzSelectionStep } from "../components/MemorisationJuzSelectionStep";
 import { styles } from "../components/DailyProgressLogging.styles";
+import { QuranIconForSlider } from "@/assets/icons/QuranIconForSlider";
+import { WhiteClockIcon, WhiteTimerIcon } from "@/assets/icons";
 import { getQuranMemorisationJuzFlowDefinition } from "../loggingFlowRegistry";
 import {
   appendJuzMemorisationLog,
@@ -107,16 +109,19 @@ export default function QuranMemorisationJuzLoggingFlow({
   );
 
   const [stepIndex, setStepIndex] = useState(0);
-  const [startHour, setStartHour] = useState("06");
-  const [startMinute, setStartMinute] = useState("15");
-  const [startPeriod, setStartPeriod] = useState<"am" | "pm">("am");
+  const initialStartTime = getCurrentStartTimeParts();
+  const [startHour, setStartHour] = useState(initialStartTime.hour);
+  const [startMinute, setStartMinute] = useState(initialStartTime.minute);
+  const [startPeriod, setStartPeriod] = useState<"am" | "pm">(
+    initialStartTime.period,
+  );
   const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
   const [startAyah, setStartAyah] = useState(minStartAyah);
   const [endAyah, setEndAyah] = useState(() =>
     Math.max(minStartAyah, totalAyahs || minStartAyah),
   );
   const [durationHours, setDurationHours] = useState("0");
-  const [durationMinutes, setDurationMinutes] = useState("10");
+  const [durationMinutes, setDurationMinutes] = useState("0");
 
   const todayString = toDateString(new Date());
   const selectedDate = todayString;
@@ -153,12 +158,13 @@ export default function QuranMemorisationJuzLoggingFlow({
     const nextEndAyah = Math.max(nextStartAyah, totalAyahs || nextStartAyah);
     setStartAyah(nextStartAyah);
     setEndAyah(nextEndAyah);
-    setStartHour("06");
-    setStartMinute("15");
-    setStartPeriod("am");
+    const now = getCurrentStartTimeParts();
+    setStartHour(now.hour);
+    setStartMinute(now.minute);
+    setStartPeriod(now.period);
     setIsPeriodDropdownOpen(false);
     setDurationHours("0");
-    setDurationMinutes("10");
+    setDurationMinutes("0");
     if (preselectedJuzId !== "all") {
       setSelectedJuzId(preselectedJuzId);
     } else {
@@ -222,10 +228,7 @@ export default function QuranMemorisationJuzLoggingFlow({
   };
 
   const handleConfirm = () => {
-    if (!isLastStep) {
-      handleForward();
-      return;
-    }
+    if (!isLastStep) return;
 
     if (!steps.every((step) => isStepValid(step))) return;
 
@@ -284,7 +287,7 @@ export default function QuranMemorisationJuzLoggingFlow({
           icon: (
             <MaterialCommunityIcons
               name="book-open-page-variant"
-              size={16}
+              size={24}
               color={Colors.light.white}
             />
           ),
@@ -293,34 +296,18 @@ export default function QuranMemorisationJuzLoggingFlow({
       case "ayahCount":
         return {
           icon: (
-            <MaterialCommunityIcons
-              name="format-list-numbered"
-              size={16}
-              color={Colors.light.white}
-            />
+            <QuranIconForSlider size={24} Color={Colors.light.white} />
           ),
           label: t("progressLogging.selectAyatRange"),
         };
       case "startTime":
         return {
-          icon: (
-            <Ionicons
-              name="time-outline"
-              size={15}
-              color={Colors.light.white}
-            />
-          ),
+          icon: <WhiteClockIcon size={26} />,
           label: t("progressLogging.enterStartTime"),
         };
       case "timeSpent":
         return {
-          icon: (
-            <MaterialCommunityIcons
-              name="history"
-              size={16}
-              color={Colors.light.white}
-            />
-          ),
+          icon: <WhiteTimerIcon size={26} />,
           label: t("progressLogging.enterTimeSpent"),
         };
     }
@@ -391,7 +378,10 @@ export default function QuranMemorisationJuzLoggingFlow({
         onForward={handleForward}
         onConfirm={handleConfirm}
         canGoForward={canGoForward}
-                canGoBack={stepIndex > 0}
+        canGoBack={stepIndex > 0}
+        canConfirm={
+          isLastStep && steps.every((step) => isStepValid(step))
+        }
         styles={styles}
         style={styles.inPlaceFlowCard}
         contentStyle={

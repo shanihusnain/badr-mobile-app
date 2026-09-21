@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Pressable,
   ScrollView,
+  useWindowDimensions,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
@@ -115,8 +116,15 @@ export function QuranRecitationPastAchievements({
 }: QuranRecitationPastAchievementsProps) {
   const router = useRouter();
   const { t } = useTranslation();
+  const { width } = useWindowDimensions();
   const formatNumber = useLocaleNumber();
-const surahContext = useOptionalRecitationSurahContext();
+  const insightCardStyle = {
+    ...styles.insightCardFixed,
+    width: width * 0.42,
+    maxWidth: width * 0.42,
+    minWidth: width * 0.42,
+  };
+  const surahContext = useOptionalRecitationSurahContext();
   const [period, setPeriod] = useState<PastAchievementPeriod>(initialPeriod);
   const [analyticsView, setAnalyticsView] =
     useState<RecitationAnalyticsView>(initialAnalyticsView);
@@ -595,7 +603,12 @@ const surahContext = useOptionalRecitationSurahContext();
             {PERIOD_INSIGHT_SUBTITLE[period]}
           </Text>
         </View>
-        <View style={styles.insightsPairRow}>
+        <ScrollView
+          horizontal
+          nestedScrollEnabled
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.insightsScrollContent}
+        >
           {insightCards.map((card) => (
             <InsightCard
               key={card.title}
@@ -603,10 +616,10 @@ const surahContext = useOptionalRecitationSurahContext();
               title={card.title}
               value={card.value}
               subValue={card.subValue}
-              style={styles.insightCardHalf}
+              style={insightCardStyle}
             />
           ))}
-        </View>
+        </ScrollView>
       </View>
     );
   };

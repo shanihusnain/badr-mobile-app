@@ -133,7 +133,7 @@ export const styles = StyleSheet.create({
   weeklyDashboardWrapper: {
     width: "92%",
     alignSelf: "center",
-    paddingTop: 12,
+    paddingTop: 4,
     paddingBottom: 16,
     // Keep below logging-flow overlays, but avoid Android elevation —
     // elevated siblings steal vertical pans on some OEMs (e.g. MIUI).

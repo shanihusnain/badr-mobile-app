@@ -120,7 +120,7 @@ export function createDefaultDurations(
 ): RecitationDurationValue[] {
   return Array.from({ length: count }, () => ({
     hours: "0",
-    minutes: "10",
+    minutes: "0",
   }));
 }
 

@@ -59,7 +59,7 @@ export function buildCompletionSteps(
 }
 
 export function createDefaultDuration(): CompletionDurationValue {
-  return { hours: "0", minutes: "10" };
+  return { hours: "0", minutes: "0" };
 }
 
 export function isValidJuzRange(startJuz: number, endJuz: number): boolean {

@@ -9,10 +9,15 @@ import { GoalData } from "../../home/components/goalsData";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import { DateStep } from "../components/DateStep";
 import { formatProgressLoggingDateLabel } from "../progressLoggingConfig";
-import { DurationStep, StartTimeStep } from "../components/TimePickerSteps";
+import { DurationStep, StartTimeStep, getCurrentStartTimeParts } from "../components/TimePickerSteps";
 import { RecitationCountStep } from "../components/RecitationCountStep";
 import { FlowCard } from "../components/FlowCard";
 import { styles } from "../components/DailyProgressLogging.styles";
+import {
+  CalendarFlippingIcon,
+  WhiteClockIcon,
+  WhiteTimerIcon,
+} from "@/assets/icons";
 import { getQuranRecitationFlowDefinition } from "../loggingFlowRegistry";
 import {
   buildRecitationSteps,
@@ -98,9 +103,12 @@ export default function QuranRecitationLoggingFlow({
   );
   const [stepIndex, setStepIndex] = useState(0);
   const [selectedDate, setSelectedDate] = useState(toDateString(new Date()));
-  const [startHour, setStartHour] = useState("06");
-  const [startMinute, setStartMinute] = useState("15");
-  const [startPeriod, setStartPeriod] = useState<"am" | "pm">("am");
+  const initialStartTime = getCurrentStartTimeParts();
+  const [startHour, setStartHour] = useState(initialStartTime.hour);
+  const [startMinute, setStartMinute] = useState(initialStartTime.minute);
+  const [startPeriod, setStartPeriod] = useState<"am" | "pm">(
+    initialStartTime.period,
+  );
   const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
   const [recitationCount, setRecitationCount] = useState(1);
   const [committedRecitationCount, setCommittedRecitationCount] = useState(1);
@@ -123,7 +131,7 @@ export default function QuranRecitationLoggingFlow({
     setDurations((prev) => {
       const next = [...prev];
       while (next.length < recitationCountForSteps) {
-        next.push({ hours: "0", minutes: "10" });
+        next.push({ hours: "0", minutes: "0" });
       }
       while (next.length > recitationCountForSteps) {
         next.pop();
@@ -143,9 +151,10 @@ export default function QuranRecitationLoggingFlow({
     setFlowMode("collapsed");
     setStepIndex(0);
     setSelectedDate(toDateString(new Date()));
-    setStartHour("06");
-    setStartMinute("15");
-    setStartPeriod("am");
+    const now = getCurrentStartTimeParts();
+    setStartHour(now.hour);
+    setStartMinute(now.minute);
+    setStartPeriod(now.period);
     setIsPeriodDropdownOpen(false);
     setRecitationCount(1);
     setCommittedRecitationCount(1);
@@ -308,24 +317,12 @@ export default function QuranRecitationLoggingFlow({
     switch (step) {
       case "date":
         return {
-          icon: (
-            <Ionicons
-              name="calendar-outline"
-              size={15}
-              color={Colors.light.white}
-            />
-          ),
+          icon: <CalendarFlippingIcon size={24} />,
           label: t("progressLogging.whichDay"),
         };
       case "startTime":
         return {
-          icon: (
-            <Ionicons
-              name="time-outline"
-              size={15}
-              color={Colors.light.white}
-            />
-          ),
+          icon: <WhiteClockIcon size={26} />,
           label: t("progressLogging.enterStartTime"),
         };
       case "recitationCount":
@@ -333,7 +330,7 @@ export default function QuranRecitationLoggingFlow({
           icon: (
             <MaterialCommunityIcons
               name="book-open-page-variant"
-              size={16}
+              size={24}
               color={Colors.light.white}
             />
           ),
@@ -342,13 +339,7 @@ export default function QuranRecitationLoggingFlow({
       default: {
         const durationIndex = parseDurationStepIndex(step);
         return {
-          icon: (
-            <MaterialCommunityIcons
-              name="history"
-              size={16}
-              color={Colors.light.white}
-            />
-          ),
+          icon: <WhiteTimerIcon size={26} />,
           label: t("progressLogging.enterTimeSpent"),
         };
       }

@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Pressable,
   ScrollView,
+  useWindowDimensions,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
@@ -96,8 +97,15 @@ export function QuranJuzPastAchievements({
 }: QuranJuzPastAchievementsProps) {
   const router = useRouter();
   const { t } = useTranslation();
+  const { width } = useWindowDimensions();
   const formatNumber = useLocaleNumber();
-const [period, setPeriod] = useState<PastAchievementPeriod>(initialPeriod);
+  const insightCardStyle = {
+    ...styles.insightCardFixed,
+    width: width * 0.42,
+    maxWidth: width * 0.42,
+    minWidth: width * 0.42,
+  };
+  const [period, setPeriod] = useState<PastAchievementPeriod>(initialPeriod);
   const [selectedJuzFilter, setSelectedJuzFilter] =
     useState<JuzFilterId>(initialJuzFilter);
   const [analyticsView, setAnalyticsView] = useState<JuzAnalyticsView>(
@@ -307,6 +315,7 @@ const [period, setPeriod] = useState<PastAchievementPeriod>(initialPeriod);
         </View>
         <ScrollView
           horizontal
+          nestedScrollEnabled
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.insightsScrollContent}
         >
@@ -315,20 +324,20 @@ const [period, setPeriod] = useState<PastAchievementPeriod>(initialPeriod);
             title={t("progressLogging.completed")}
             value={formatNumber(baseAchievement.completedHours)}
             subValue={t("progressLogging.unitJuz")}
-            style={styles.insightCardFixed}
+            style={insightCardStyle}
           />
           <InsightCard
             iconName="book-outline"
             title="AYAT RECITED"
             value={formatNumber(selectedJuzRecord?.completedAyatCount ?? 0)}
             subValue={`of ${formatNumber(selectedJuzRecord?.totalAyatCount ?? 0)}`}
-            style={styles.insightCardFixed}
+            style={insightCardStyle}
           />
           <InsightCard
             iconName="time-outline"
             title={t("progressLogging.timeSpentLabel")}
             value={formatJuzTimeSpentLabel(totalTimeSpentMinutes)}
-            style={styles.insightCardFixed}
+            style={insightCardStyle}
           />
         </ScrollView>
       </View>
