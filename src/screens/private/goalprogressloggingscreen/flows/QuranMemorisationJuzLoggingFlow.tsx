@@ -7,7 +7,11 @@ import moment from "moment-hijri";
 import { Colors } from "@/constants/theme";
 import { useLogQuranMemorisationJuzGoal } from "@/src/api/mutations/useLogQuranMemorisationJuzGoal";
 import { GoalData } from "../../home/components/goalsData";
-import { DurationStep, StartTimeStep, getCurrentStartTimeParts } from "../components/TimePickerSteps";
+import {
+  DurationStep,
+  StartTimeStep,
+  getCurrentStartTimeParts,
+} from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
 import { MemorisationJuzAyahCountStep } from "../components/MemorisationJuzAyahCountStep";
 import { MemorisationJuzSelectionStep } from "../components/MemorisationJuzSelectionStep";
@@ -36,11 +40,10 @@ import {
 } from "../quranMemorisationJuzGoals";
 import { useOptionalMemorisationJuzContext } from "../memorisationJuzContext";
 import { useOptionalQuranGoalFrameContext } from "../quranGoalFrameContext";
-import {
-  isValidStartTime,
-  isValidTimeSpent,
-} from "../quranRecitationTarget";
+import { isValidStartTime, isValidTimeSpent } from "../quranRecitationTarget";
 import type { QuranMemorisationJuzLogEntry } from "../types";
+import { DateStep } from "../components/DateStep";
+import { formatProgressLoggingDateLabel } from "../progressLoggingConfig";
 
 type FlowMode = "collapsed" | "active";
 
@@ -112,8 +115,7 @@ export default function QuranMemorisationJuzLoggingFlow({
   const juzId = config?.juzId ?? "";
   const juzName = config?.juzName ?? "";
   const juzNumber =
-    config?.juzNumber ??
-    (Number(String(juzId).replace(/^juz-/i, "")) || 1);
+    config?.juzNumber ?? (Number(String(juzId).replace(/^juz-/i, "")) || 1);
   const totalAyahs = config?.totalAyahs ?? 0;
   const memorizedAyahs =
     config?.memorizedAyahs != null
@@ -153,6 +155,7 @@ export default function QuranMemorisationJuzLoggingFlow({
   );
 
   const [stepIndex, setStepIndex] = useState(0);
+  const [selectedDate, setSelectedDate] = useState(toDateString(new Date()));
   const initialStartTime = getCurrentStartTimeParts();
   const [startHour, setStartHour] = useState(initialStartTime.hour);
   const [startMinute, setStartMinute] = useState(initialStartTime.minute);
@@ -194,8 +197,10 @@ export default function QuranMemorisationJuzLoggingFlow({
   const resetFlow = useCallback(() => {
     setFlowMode("collapsed");
     setStepIndex(0);
+    setSelectedDate(toDateString(new Date()));
     const nextStartAyah = getNextJuzMemorisationAyah(
       preselectedJuzId !== "all" ? preselectedJuzId : selectedJuzId,
+      memorizedAyahs,
     );
     const nextEndAyah = Math.max(nextStartAyah, totalAyahs || nextStartAyah);
     setStartAyah(nextStartAyah);
@@ -205,12 +210,6 @@ export default function QuranMemorisationJuzLoggingFlow({
     setStartMinute(now.minute);
     setStartPeriod(now.period);
     setIsPeriodDropdownOpen(false);
-    const nextStartAyah = getNextJuzMemorisationAyah(
-      preselectedJuzId !== "all" ? preselectedJuzId : selectedJuzId,
-      memorizedAyahs,
-    );
-    setStartAyah(nextStartAyah);
-    setEndAyah(Math.max(nextStartAyah, totalAyahs || nextStartAyah));
     setDurationHours("0");
     setDurationMinutes("0");
     if (preselectedJuzId !== "all") {
@@ -389,9 +388,7 @@ export default function QuranMemorisationJuzLoggingFlow({
         };
       case "date":
         return {
-          icon: (
-            <QuranIconForSlider size={24} Color={Colors.light.white} />
-          ),
+          icon: <QuranIconForSlider size={24} Color={Colors.light.white} />,
           label: t("progressLogging.whichDay"),
         };
       case "startTime":
@@ -494,14 +491,10 @@ export default function QuranMemorisationJuzLoggingFlow({
         onConfirm={handleConfirm}
         canGoForward={canGoForward}
         canGoBack={stepIndex > 0}
-        canConfirm={
-          isLastStep && steps.every((step) => isStepValid(step))
-        }
+        canConfirm={isLastStep && steps.every((step) => isStepValid(step))}
         styles={styles}
         style={styles.inPlaceFlowCard}
-        contentStyle={
-          isAyahRangeStep ? styles.flowContentAyahRange : undefined
-        }
+        contentStyle={isAyahRangeStep ? styles.flowContentAyahRange : undefined}
       >
         {renderStepContent(currentStep)}
       </FlowCard>
