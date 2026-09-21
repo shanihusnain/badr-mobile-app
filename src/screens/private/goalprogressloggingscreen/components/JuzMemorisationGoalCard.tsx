@@ -36,6 +36,7 @@ export function JuzMemorisationGoalCard({
   const formatNumber = useLocaleNumber();
 
   const statusLabel = useMemo(() => {
+    if (goal.pillLabel?.trim()) return goal.pillLabel.trim();
     switch (goal.status) {
       case "not-started":
         return t("progressLogging.surahStatusNotStarted");
@@ -44,15 +45,42 @@ export function JuzMemorisationGoalCard({
       case "completed":
         return t("progressLogging.surahStatusCompleted");
     }
-  }, [goal.status, t]);
+  }, [goal.pillLabel, goal.status, t]);
 
   const totalAyahsLabel = formatNumber(goal.totalAyahs);
   const showTotalAyahs = goal.totalAyahs > 0;
 
-  const titleLabel = t("progressLogging.memorisationJuzCardTitle", {
-    juz: goal.juzName,
-    range: goal.rangeLabel,
-  });
+  /** Figma: "Juz 1 | Al-Fatiha 1:1 - Al-Baqarah 2:74" */
+  const titleLabel = useMemo(() => {
+    const isTotalVersesLabel = (value: string) =>
+      /^\(?\s*total\b/i.test(value) || /\bverses?\s*\)?\s*$/i.test(value);
+
+    const name = goal.juzName?.trim() || "";
+    const rawRange = goal.rangeLabel?.trim() || goal.subtitle?.trim() || "";
+    const range = isTotalVersesLabel(rawRange) ? "" : rawRange;
+
+    if (name.includes("|")) {
+      const [left, ...rest] = name.split("|");
+      const right = rest.join("|").trim();
+      if (right && !isTotalVersesLabel(right)) return name;
+      return left?.trim() || name;
+    }
+    if (goal.displayName?.includes("|")) {
+      const display = goal.displayName.trim();
+      const [left, ...rest] = display.split("|");
+      const right = rest.join("|").trim();
+      if (right && !isTotalVersesLabel(right)) return display;
+      if (left?.trim() && range) return `${left.trim()} | ${range}`;
+      return left?.trim() || display;
+    }
+    if (name && range) return `${name} | ${range}`;
+    return name || goal.displayName?.trim() || "";
+  }, [
+    goal.displayName,
+    goal.juzName,
+    goal.rangeLabel,
+    goal.subtitle,
+  ]);
 
   const handleLogProgress = () => {
     onStartFlow(goal.id);
@@ -64,7 +92,7 @@ export function JuzMemorisationGoalCard({
     }
   };
 
-  const canLog = !goal.completed;
+  const canLog = goal.canLog !== false && !goal.completed;
 
   return (
     <View
@@ -126,6 +154,7 @@ export function JuzMemorisationGoalCard({
           <QuranMemorisationJuzLoggingFlow
             goalData={goalData}
             preselectedJuzId={goal.id}
+            activeJuzGoal={goal}
             hideCollapsedSummary
             embedded
             suppressOverlay

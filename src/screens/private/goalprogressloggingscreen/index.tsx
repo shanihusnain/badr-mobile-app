@@ -202,10 +202,13 @@ function GoalProgressLoggingBody({
     template === "quran-memorisation" && isSurahMemorisationGoalId(goalId);
   const isHizbMemorisationFrameGoal =
     template === "quran-memorisation" && isHizbMemorisationGoalId(goalId);
+  const isJuzMemorisationFrameGoal =
+    template === "quran-memorisation" && isJuzMemorisationGoalId(goalId);
   const isQuranFrameGoal =
     isQuranHoursFrameGoal ||
     isSurahMemorisationFrameGoal ||
-    isHizbMemorisationFrameGoal;
+    isHizbMemorisationFrameGoal ||
+    isJuzMemorisationFrameGoal;
   const frameLoading =
     (isPrayerFrameRingGoal &&
       (prayerFrame?.isLoading ||

@@ -1,10 +1,9 @@
 import React, { useCallback } from "react";
-import { useTranslation } from "react-i18next";
-import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import { QuranAyatRangeSlider } from "./QuranAyatRangeSlider";
+import { formatJuzVerseLabel } from "../quranJuzVerseMap";
 
 type Props = {
-  juzName: string;
+  juzId: string;
   juzNumber: number;
   totalAyahs: number;
   minStartAyah: number;
@@ -16,7 +15,7 @@ type Props = {
 };
 
 export function MemorisationJuzAyahCountStep({
-  juzName,
+  juzId,
   juzNumber,
   totalAyahs,
   minStartAyah,
@@ -26,15 +25,9 @@ export function MemorisationJuzAyahCountStep({
   onChangeEndAyah,
   styles,
 }: Props) {
-  const { t } = useTranslation();
-  const formatNumber = useLocaleNumber();
-
   const formatVerseLabel = useCallback(
-    (ayah: number) =>
-      t("progressLogging.memorisationAyahLabel", {
-        ayah: formatNumber(ayah),
-      }),
-    [formatNumber, t],
+    (ayah: number) => formatJuzVerseLabel(juzNumber, ayah),
+    [juzNumber],
   );
 
   return (
