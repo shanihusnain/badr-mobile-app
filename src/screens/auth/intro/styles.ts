@@ -24,7 +24,7 @@ export const styles = StyleSheet.create({
 
   introText: {
     height: 60,
-    color: Colors.dark.text,
+    color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
     fontSize: 20,
@@ -38,7 +38,7 @@ export const styles = StyleSheet.create({
   subtitleText: {
     width: 343,
     height: 60,
-    color: Colors.dark.text,
+    color: Colors.light.white,
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
     fontSize: 14,

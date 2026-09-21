@@ -37,7 +37,7 @@ export default function MoreActionButton({
 }: MoreActionButtonProps): ReactElement {
   const isSheetVariant = variant === "outline" || variant === "sheet";
   const iconColor = isHighlighted
-    ? Colors.light.text
+    ? Colors.light.white
     : isSheetVariant
       ? Colors.light.white
       : Colors.light.icon;
@@ -189,7 +189,7 @@ export const styles = StyleSheet.create({
     fontWeight: "600",
   },
   titleHighlighted: {
-    color: Colors.light.text,
+    color: Colors.light.white,
   },
   description: {
     color: Colors.light.subtext,
