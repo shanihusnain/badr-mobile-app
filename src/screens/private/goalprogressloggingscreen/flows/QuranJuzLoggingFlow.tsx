@@ -129,9 +129,8 @@ export default function QuranJuzLoggingFlow({
     const maxAyat = getJuzVerseCountFromMap(partialJuz);
     const nextStart = Math.min(Math.max(minAyatStart, 1), maxAyat);
     setStartAyat(nextStart);
-    setEndAyat((prev) =>
-      Math.min(Math.max(prev, nextStart), maxAyat),
-    );
+    // After prior progress, park end at max so the back chevron slides left.
+    setEndAyat(minAyatStart > 1 ? maxAyat : Math.min(Math.max(nextStart, 1), maxAyat));
   }, [partialJuz, minAyatStart]);
 
   useEffect(() => {
@@ -465,6 +464,7 @@ export default function QuranJuzLoggingFlow({
             startAyat={startAyat}
             endAyat={endAyat}
             minStartAyat={minAyatStart}
+            freezeStartHandle={minAyatStart > 1}
             onChangeStartAyat={setStartAyat}
             onChangeEndAyat={setEndAyat}
             styles={styles}

@@ -7,9 +7,9 @@ import React, {
 } from "react";
 import { LayoutChangeEvent, StyleSheet, Text, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
+import { FilledChevronIconForQuranGoal } from "@/assets/icons/FilledChevronIconForQuranGoal";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import { useTranslation } from "react-i18next";
 import {
@@ -24,9 +24,9 @@ type Props = {
   /** Lowest ayah the start thumb may select (default 1). */
   minStartAyat?: number;
   /**
-   * When true (continuing after prior logs), start thumb is locked at
-   * minStartAyat with a "||" marker for yesterday’s boundary. End thumb
-   * starts at max and is dragged back to select today’s verses.
+   * Continue-after-progress mode:
+   * - Start thumb is locked (same filled chevron, right-facing) at minStartAyat
+   * - End thumb starts at max with a left-facing chevron to slide back
    */
   freezeStartHandle?: boolean;
   verseCount?: number;
@@ -42,6 +42,9 @@ const THUMB_SIZE = 22;
 const THUMB_HIT_SIZE = 44;
 const THUMB_RADIUS = THUMB_SIZE / 2;
 const THUMB_HIT_RADIUS = THUMB_HIT_SIZE / 2;
+/** Keep thumb circles from stacking when ayah values map close together. */
+const MIN_THUMB_CENTER_GAP = THUMB_SIZE + 4;
+const LABEL_GAP = 4;
 /** Horizontal inset so thumbs stay fully visible at min/max. */
 const TRACK_HORIZONTAL_INSET = THUMB_RADIUS;
 const TRACK_HEIGHT = 6;
@@ -59,7 +62,6 @@ const SLIDER_HEIGHT = TRACK_CENTER_Y + THUMB_HIT_RADIUS;
 const LABEL_WIDTH = 28;
 const LABEL_TOP = 0;
 const CARET_HALF = 4;
-const THUMB_TOP = TRACK_CENTER_Y - THUMB_RADIUS;
 const THUMB_HIT_TOP = TRACK_CENTER_Y - THUMB_HIT_RADIUS;
 const TRACK_TOP = TRACK_CENTER_Y - TRACK_HEIGHT / 2;
 
@@ -95,6 +97,45 @@ function getCaretLeft(
   return Math.max(min, Math.min(ideal, max));
 }
 
+/**
+ * Keep thumb circles from overlapping by pushing the *end* thumb forward only.
+ * The start thumb stays fixed so it never slides backward to “make room”.
+ */
+function separateThumbCenters(
+  startX: number,
+  endX: number,
+  trackWidth: number,
+): { renderStartX: number; renderEndX: number } {
+  if (endX - startX >= MIN_THUMB_CENTER_GAP) {
+    return { renderStartX: startX, renderEndX: endX };
+  }
+
+  return {
+    renderStartX: startX,
+    renderEndX: Math.min(trackWidth, startX + MIN_THUMB_CENTER_GAP),
+  };
+}
+
+/** Keep ayah pills from covering each other — start pill stays put. */
+function separateLabelLefts(
+  startLeft: number,
+  startWidth: number,
+  endLeft: number,
+  endWidth: number,
+  containerWidth: number,
+): { startLabelLeft: number; endLabelLeft: number } {
+  if (endLeft >= startLeft + startWidth + LABEL_GAP) {
+    return { startLabelLeft: startLeft, endLabelLeft: endLeft };
+  }
+
+  const nextEnd = Math.min(
+    Math.max(0, containerWidth - endWidth),
+    startLeft + startWidth + LABEL_GAP,
+  );
+
+  return { startLabelLeft: startLeft, endLabelLeft: nextEnd };
+}
+
 export function QuranAyatRangeSlider({
   juz,
   startAyat,
@@ -120,13 +161,20 @@ export function QuranAyatRangeSlider({
     : Math.min(Math.max(startAyat, safeMinStart), maxAyat);
   const safeEnd = Math.min(Math.max(endAyat, safeStart), maxAyat);
 
-  // Keep parent state aligned when start is frozen at the logged boundary.
+  // Continue mode: lock start at yesterday’s boundary.
   useEffect(() => {
     if (!freezeStartHandle) return;
     if (startAyat !== safeMinStart) {
       onChangeStartAyat(safeMinStart);
     }
   }, [freezeStartHandle, onChangeStartAyat, safeMinStart, startAyat]);
+
+  // Park the movable (back-chevron) thumb at max when continue mode starts
+  // or the logged boundary changes — not while the user is dragging it.
+  useEffect(() => {
+    if (!freezeStartHandle) return;
+    onChangeEndAyat(maxAyat);
+  }, [freezeStartHandle, maxAyat, onChangeEndAyat, safeMinStart]);
 
   const trackWidth = Math.max(width - TRACK_HORIZONTAL_INSET * 2, 1);
 
@@ -155,6 +203,11 @@ export function QuranAyatRangeSlider({
 
   const startX = valueToX(safeStart);
   const endX = valueToX(safeEnd);
+  const { renderStartX, renderEndX } = separateThumbCenters(
+    startX,
+    endX,
+    trackWidth,
+  );
 
   // Keep drag math on refs so pan gestures stay stable (no recreate each frame).
   const startXRef = useRef(startX);
@@ -186,10 +239,8 @@ export function QuranAyatRangeSlider({
     };
   }, []);
 
-  const startThumbLeft = TRACK_HORIZONTAL_INSET + startX - THUMB_RADIUS;
-  const endThumbLeft = TRACK_HORIZONTAL_INSET + endX - THUMB_RADIUS;
-  const startHitLeft = TRACK_HORIZONTAL_INSET + startX - THUMB_HIT_RADIUS;
-  const endHitLeft = TRACK_HORIZONTAL_INSET + endX - THUMB_HIT_RADIUS;
+  const startHitLeft = TRACK_HORIZONTAL_INSET + renderStartX - THUMB_HIT_RADIUS;
+  const endHitLeft = TRACK_HORIZONTAL_INSET + renderEndX - THUMB_HIT_RADIUS;
 
   const completedCount = safeEnd - safeStart + 1;
   const percentCompleted =
@@ -212,10 +263,25 @@ export function QuranAyatRangeSlider({
 
   const startLabelWidth = estimateLabelWidth(startLabel);
   const endLabelWidth = estimateLabelWidth(endLabel);
-  const startLabelLeft = getLabelLeft(startX, width, startLabelWidth);
-  const endLabelLeft = getLabelLeft(endX, width, endLabelWidth);
-  const startCaretLeft = getCaretLeft(startX, startLabelLeft, startLabelWidth);
-  const endCaretLeft = getCaretLeft(endX, endLabelLeft, endLabelWidth);
+  const rawStartLabelLeft = getLabelLeft(
+    renderStartX,
+    width,
+    startLabelWidth,
+  );
+  const rawEndLabelLeft = getLabelLeft(renderEndX, width, endLabelWidth);
+  const { startLabelLeft, endLabelLeft } = separateLabelLefts(
+    rawStartLabelLeft,
+    startLabelWidth,
+    rawEndLabelLeft,
+    endLabelWidth,
+    width,
+  );
+  const startCaretLeft = getCaretLeft(
+    renderStartX,
+    startLabelLeft,
+    startLabelWidth,
+  );
+  const endCaretLeft = getCaretLeft(renderEndX, endLabelLeft, endLabelWidth);
 
   const onLayout = (event: LayoutChangeEvent) => {
     const layoutWidth = event.nativeEvent.layout.width;
@@ -394,12 +460,13 @@ export function QuranAyatRangeSlider({
               },
             ]}
           >
-            {/* Locked at yesterday’s boundary — two lines, not a chevron */}
+            {/* Locked start — same filled chevron, fixed in place */}
             <View style={[localStyles.thumb, localStyles.thumbLocked]}>
-              <View style={localStyles.lockBars}>
-                <View style={localStyles.lockBar} />
-                <View style={localStyles.lockBar} />
-              </View>
+              <FilledChevronIconForQuranGoal
+                direction="right"
+                size={10}
+                color={Colors.light.green}
+              />
             </View>
           </View>
         ) : (
@@ -421,9 +488,9 @@ export function QuranAyatRangeSlider({
                   activeHandle === "start" && localStyles.thumbActive,
                 ]}
               >
-                <Ionicons
-                  name="chevron-back"
-                  size={12}
+                <FilledChevronIconForQuranGoal
+                  direction="right"
+                  size={10}
                   color={Colors.light.green}
                 />
               </View>
@@ -449,9 +516,9 @@ export function QuranAyatRangeSlider({
                 activeHandle === "end" && localStyles.thumbActive,
               ]}
             >
-              <Ionicons
-                name={freezeStartHandle ? "chevron-back" : "chevron-forward"}
-                size={12}
+              <FilledChevronIconForQuranGoal
+                direction="left"
+                size={10}
                 color={Colors.light.green}
               />
             </View>
@@ -514,23 +581,25 @@ const localStyles = StyleSheet.create({
     position: "absolute",
     height: TRACK_HEIGHT,
     borderRadius: TRACK_HEIGHT / 2,
-    // Figma remaining track: muted dark green on the card.
-    backgroundColor: "rgba(26, 55, 42, 0.55)",
+    // Empty remaining track (after end thumb) — theme #627666
+    backgroundColor: Colors.light.switchOnTrackColor,
     overflow: "hidden",
   },
-  // Already-logged: softer pale mint wash (lighter / more translucent).
+  // Already-logged wash before the locked start thumb
   trackLocked: {
     position: "absolute",
     top: 0,
     bottom: 0,
-    backgroundColor: "rgba(255, 255, 255, 0.28)",
+    backgroundColor: Colors.light.white,
+    opacity: 0.5,
   },
-  // Current selection: brighter, more opaque light fill.
+  // Selected range between thumbs
   trackActive: {
     position: "absolute",
     top: 0,
     bottom: 0,
-    backgroundColor: "rgba(255, 255, 255, 0.58)",
+    backgroundColor: Colors.light.white,
+    opacity: 0.5,
   },
   startBar: {
     position: "absolute",
@@ -557,18 +626,6 @@ const localStyles = StyleSheet.create({
   },
   thumbLocked: {
     opacity: 1,
-  },
-  lockBars: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 3,
-  },
-  lockBar: {
-    width: 2,
-    height: 10,
-    borderRadius: 1,
-    backgroundColor: Colors.light.green,
   },
   thumbActive: {
     transform: [{ scale: 1.08 }],
