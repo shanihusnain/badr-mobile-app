@@ -112,7 +112,9 @@ export default function QuranMemorisationJuzLoggingFlow({
   const [startPeriod, setStartPeriod] = useState<"am" | "pm">("am");
   const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
   const [startAyah, setStartAyah] = useState(minStartAyah);
-  const [endAyah, setEndAyah] = useState(minStartAyah);
+  const [endAyah, setEndAyah] = useState(() =>
+    Math.max(minStartAyah, totalAyahs || minStartAyah),
+  );
   const [durationHours, setDurationHours] = useState("0");
   const [durationMinutes, setDurationMinutes] = useState("10");
 
@@ -137,9 +139,10 @@ export default function QuranMemorisationJuzLoggingFlow({
 
   useEffect(() => {
     const nextStartAyah = getNextJuzMemorisationAyah(juzId);
+    const nextEndAyah = Math.max(nextStartAyah, totalAyahs || nextStartAyah);
     setStartAyah(nextStartAyah);
-    setEndAyah(nextStartAyah);
-  }, [juzId]);
+    setEndAyah(nextEndAyah);
+  }, [juzId, totalAyahs]);
 
   const resetFlow = useCallback(() => {
     setFlowMode("collapsed");
@@ -147,8 +150,9 @@ export default function QuranMemorisationJuzLoggingFlow({
     const nextStartAyah = getNextJuzMemorisationAyah(
       preselectedJuzId !== "all" ? preselectedJuzId : selectedJuzId,
     );
+    const nextEndAyah = Math.max(nextStartAyah, totalAyahs || nextStartAyah);
     setStartAyah(nextStartAyah);
-    setEndAyah(nextStartAyah);
+    setEndAyah(nextEndAyah);
     setStartHour("06");
     setStartMinute("15");
     setStartPeriod("am");
@@ -160,7 +164,13 @@ export default function QuranMemorisationJuzLoggingFlow({
     } else {
       setSelectedJuzId(incompleteGoals[0]?.id ?? "");
     }
-  }, [incompleteGoals, preselectedJuzId, setFlowMode]);
+  }, [
+    incompleteGoals,
+    preselectedJuzId,
+    selectedJuzId,
+    setFlowMode,
+    totalAyahs,
+  ]);
 
   const isStepValid = useCallback(
     (step: QuranMemorisationJuzStepId) => {
