@@ -41,8 +41,8 @@ export function JuzMemorisationGoalsList({
   const { width: screenWidth } = useWindowDimensions();
   const memorisationContext = useOptionalMemorisationJuzContext();
   const goals = useMemo(
-    () => getJuzMemorisationGoals(),
-    [refreshKey, memorisationContext?.refreshKey],
+    () => memorisationContext?.goals ?? getJuzMemorisationGoals(),
+    [memorisationContext?.goals, refreshKey, memorisationContext?.refreshKey],
   );
   const listWidth = screenWidth - CARD_ANCHOR_PADDING_LEFT;
   const cardWidth = Math.min(

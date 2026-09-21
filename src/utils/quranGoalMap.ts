@@ -50,6 +50,7 @@ export const GOAL_ID_TO_QURAN_TYPE: Record<string, string> = {
   "quran-tajweed": "TAJWEED",
   "quran-memorisationBySurah": "MEMORIZATION_SURAH",
   "quran-memorisationByHizb": "MEMORIZATION_HIZB",
+  "quran-memorisationByJuz": "MEMORIZATION_JUZ",
 };
 
 export function resolveQuranTypeFromGoalId(

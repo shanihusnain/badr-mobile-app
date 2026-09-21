@@ -44,6 +44,15 @@ import type { InsightCardData } from "../PrayerPastAchievements/insightCardsData
 import { getGoalById } from "@/src/screens/private/home/components/goalsData";
 import { PastAchievementStudyMaterial } from "@/components/molecules/PastAchievementStudyMaterial";
 import { memorisationPastAchievementStyles as styles } from "./memorisationPastAchievementsStyles";
+import { useGetQuranGoalAchievements } from "@/src/api/queries/useGetQuranGoalAchievements";
+import { resolveQuranTypeFromGoalId } from "@/src/utils/quranGoalMap";
+import { shiftPrayerAchievementsPeriodStart } from "@/src/utils/prayerGoalAchievementsMap";
+import { mapQuranApiKeyInsightsToCards } from "@/src/utils/quranHoursGoalAchievementsMap";
+import {
+  buildMemorisationJuzAchievementFilters,
+  createEmptyMemorisationJuzAchievements,
+  mapMemorisationJuzAchievementsToUi,
+} from "@/src/utils/quranMemorisationJuzAchievementsMap";
 import {
   AchivementArrowIcon,
   InsightCardFlashIcon,
@@ -144,7 +153,12 @@ export function JuzMemorisationPastAchievements({
     minWidth: width * 0.42,
   };
   const juzContext = useOptionalMemorisationJuzContext();
-  const [period, setPeriod] = useState<PastAchievementPeriod>(initialPeriod);
+  const [period, setPeriodState] = useState<PastAchievementPeriod>(initialPeriod);
+  const setPeriod = useCallback((next: PastAchievementPeriod) => {
+    setPeriodState(next);
+    setPeriodStartParam(null);
+  }, []);
+  const [periodStartParam, setPeriodStartParam] = useState<string | null>(null);
   const [analyticsView, setAnalyticsView] =
     useState<MemorisationAnalyticsView>(initialAnalyticsView);
   const [detailedJuzFilter, setDetailedJuzFilter] =
@@ -154,52 +168,155 @@ export function JuzMemorisationPastAchievements({
   const goalData = getGoalById(goalId);
   const studyMaterial = goalData?.studyMaterial ?? [];
 
+  const quranGoalType = resolveQuranTypeFromGoalId(goalId);
+  const usesAchievementsApi = quranGoalType === "MEMORIZATION_JUZ";
+
   const selectedJuzId: MemorisationJuzFilterId = isDetailed
     ? detailedJuzFilter
     : (juzContext?.activeJuzId ?? "all");
   const refreshKey = juzContext?.refreshKey ?? 0;
+  const contextGoals = juzContext?.goals ?? [];
   const isJuzDrillDown = isDetailed && selectedJuzId !== "all";
 
-  const juzFilters = useMemo(
-    () => getJuzMemorisationPastAchievementFilters(),
-    [refreshKey],
-  );
+  const selectedItemNumber = useMemo(() => {
+    if (selectedJuzId === "all") return null;
+    const fromGoal = contextGoals.find((goal) => goal.id === selectedJuzId)
+      ?.itemNumber ?? contextGoals.find((goal) => goal.id === selectedJuzId)?.juzNumber;
+    if (fromGoal != null && Number.isFinite(fromGoal)) return fromGoal;
+    const fromId = Number(String(selectedJuzId).replace(/^juz-/i, ""));
+    return Number.isFinite(fromId) && fromId > 0 ? fromId : null;
+  }, [contextGoals, selectedJuzId]);
+
+  const achievementsModeParam =
+    isDetailed && analyticsView === "completedVsTimeSpent" ? "TIME" : null;
+
+  const { data: achievementsApiData, isLoading: isAchievementsLoading } =
+    useGetQuranGoalAchievements(quranGoalType, {
+      period,
+      periodStart: periodStartParam,
+      itemNumber: selectedItemNumber,
+      mode: achievementsModeParam,
+      enabled: usesAchievementsApi && !!quranGoalType,
+    });
+
+  const showPlaceholders =
+    usesAchievementsApi && (!achievementsApiData || isAchievementsLoading);
+
+  const juzFilters = useMemo(() => {
+    if (contextGoals.length > 0) {
+      return buildMemorisationJuzAchievementFilters(contextGoals);
+    }
+    return getJuzMemorisationPastAchievementFilters();
+  }, [contextGoals, refreshKey]);
 
   const juzDisplayName =
     juzFilters.find((filter) => filter.id === selectedJuzId)?.label ?? "";
 
   const goalUnitLabel = useMemo(() => {
+    const unit = String(achievementsApiData?.goal?.unit ?? "")
+      .trim()
+      .toLowerCase();
+    if (unit.includes("juz")) {
+      return t("monthlyGoalPlanner.juzUnit_other");
+    }
+    if (unit.includes("ayah") || unit.includes("verse")) {
+      return t("progressLogging.unitAyahs");
+    }
     if (selectedJuzId === "all") {
       return t("monthlyGoalPlanner.juzUnit_other");
     }
     return t("progressLogging.unitAyahs");
-  }, [selectedJuzId, t]);
+  }, [achievementsApiData?.goal?.unit, selectedJuzId, t]);
 
-  const allPeriodSlice = useMemo(
-    () => getJuzMemorisationPastAchievementSlice(period, "all"),
-    [period, refreshKey],
-  );
+  const mappedApi = useMemo(() => {
+    if (!usesAchievementsApi) return null;
+    if (!achievementsApiData) {
+      return createEmptyMemorisationJuzAchievements(
+        selectedJuzId,
+        juzDisplayName || "All Juzs",
+      );
+    }
+    return mapMemorisationJuzAchievementsToUi(achievementsApiData, period, {
+      juzId: selectedJuzId,
+      juzName: juzDisplayName || "All Juzs",
+      goals: contextGoals,
+    });
+  }, [
+    achievementsApiData,
+    contextGoals,
+    juzDisplayName,
+    period,
+    selectedJuzId,
+    usesAchievementsApi,
+  ]);
 
-  const periodSlice = useMemo(
-    () =>
-      getJuzMemorisationPastAchievementSlice(period, selectedJuzId),
-    [period, selectedJuzId, refreshKey],
-  );
+  const allPeriodSlice = useMemo(() => {
+    if (usesAchievementsApi && mappedApi) return mappedApi.slice;
+    return getJuzMemorisationPastAchievementSlice(period, "all");
+  }, [mappedApi, period, refreshKey, usesAchievementsApi]);
 
-  const hasLogs = useMemo(
-    () => hasMemorisationJuzPastAchievementLogs(periodSlice),
-    [periodSlice],
-  );
+  const periodSlice = useMemo(() => {
+    if (usesAchievementsApi && mappedApi) return mappedApi.slice;
+    return getJuzMemorisationPastAchievementSlice(period, selectedJuzId);
+  }, [mappedApi, period, refreshKey, selectedJuzId, usesAchievementsApi]);
 
-  const baseAchievement = useMemo(
-    () => getJuzMemorisationPastAchievement(period, selectedJuzId),
-    [period, selectedJuzId, refreshKey],
-  );
 
-  const compactAchievement = useMemo(
-    () => getJuzMemorisationCompactPastAchievement(selectedJuzId),
-    [selectedJuzId, refreshKey],
-  );
+  const canNavigateBack = usesAchievementsApi
+    ? Boolean(mappedApi?.achievement.canNavigateBack)
+    : false;
+  const canNavigateForward = usesAchievementsApi
+    ? Boolean(mappedApi?.achievement.canNavigateForward)
+    : false;
+
+  const insightCards = useMemo(() => {
+    if (!usesAchievementsApi) return [];
+    return mapQuranApiKeyInsightsToCards(achievementsApiData, {
+      period,
+      noDataLabel: t("progressLogging.insightNoData"),
+      isLoading: showPlaceholders,
+    });
+  }, [achievementsApiData, period, showPlaceholders, t, usesAchievementsApi]);
+
+  const handlePreviousPeriod = useCallback(() => {
+    if (!usesAchievementsApi || !achievementsApiData || !canNavigateBack) return;
+    if (!achievementsApiData.periodStart || !achievementsApiData.periodEnd) return;
+    const nextStart = shiftPrayerAchievementsPeriodStart(
+      achievementsApiData.periodStart,
+      achievementsApiData.periodEnd,
+      -1,
+    );
+    setPeriodStartParam(nextStart);
+  }, [achievementsApiData, canNavigateBack, usesAchievementsApi]);
+
+  const handleNextPeriod = useCallback(() => {
+    if (!usesAchievementsApi || !achievementsApiData || !canNavigateForward)
+      return;
+    if (!achievementsApiData.periodStart || !achievementsApiData.periodEnd) return;
+    const nextStart = shiftPrayerAchievementsPeriodStart(
+      achievementsApiData.periodStart,
+      achievementsApiData.periodEnd,
+      1,
+    );
+    setPeriodStartParam(nextStart);
+  }, [achievementsApiData, canNavigateForward, usesAchievementsApi]);
+
+
+  const hasLogs = useMemo(() => {
+    if (usesAchievementsApi) {
+      return (mappedApi?.achievement.chartData.length ?? 0) > 0;
+    }
+    return hasMemorisationJuzPastAchievementLogs(periodSlice);
+  }, [mappedApi, periodSlice, usesAchievementsApi]);
+
+  const baseAchievement = useMemo(() => {
+    if (usesAchievementsApi && mappedApi) return mappedApi.achievement;
+    return getJuzMemorisationPastAchievement(period, selectedJuzId);
+  }, [mappedApi, period, refreshKey, selectedJuzId, usesAchievementsApi]);
+
+  const compactAchievement = useMemo(() => {
+    if (usesAchievementsApi && mappedApi) return mappedApi.compact;
+    return getJuzMemorisationCompactPastAchievement(selectedJuzId);
+  }, [mappedApi, refreshKey, selectedJuzId, usesAchievementsApi]);
 
   const timeSpentByPeriod = useMemo(
     () => getJuzMemorisationTimeSpentByPeriod(periodSlice),
@@ -242,16 +359,22 @@ export function JuzMemorisationPastAchievements({
   const goalTrackedMonths = getMemorisationJuzGoalTrackedMonths(period);
   const totalMemorizedVerses = getTotalJuzMemorizedVerses(periodSlice);
 
-  const progressRailRows = useMemo(
-    () =>
-      getMemorisationJuzProgressRailRows(
-        allPeriodSlice,
-        periodSlice,
-        selectedJuzId,
-        selectedBarIndex,
-      ),
-    [allPeriodSlice, periodSlice, selectedBarIndex, selectedJuzId],
-  );
+  const progressRailRows = useMemo(() => {
+    if (usesAchievementsApi && mappedApi) return mappedApi.progressRailRows;
+    return getMemorisationJuzProgressRailRows(
+      allPeriodSlice,
+      periodSlice,
+      selectedJuzId,
+      selectedBarIndex,
+    );
+  }, [
+    allPeriodSlice,
+    mappedApi,
+    periodSlice,
+    selectedBarIndex,
+    selectedJuzId,
+    usesAchievementsApi,
+  ]);
 
   const selectedBaseBar =
     selectedBarIndex !== null
