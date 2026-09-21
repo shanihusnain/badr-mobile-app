@@ -145,6 +145,29 @@ export const surahGoalStyles = StyleSheet.create({
   },
 });
 
+export const flowCardCarouselDotsStyles = StyleSheet.create({
+  dotsRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 6,
+    marginTop: 18,
+    paddingHorizontal: 16,
+  },
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  dotActive: {
+    backgroundColor: Colors.light.green,
+  },
+  dotInactive: {
+    backgroundColor: Colors.light.paginationInactiveDot,
+  },
+});
+
 export const weeklySurahProgressStyles = StyleSheet.create({
   card: {
     borderRadius: 12,

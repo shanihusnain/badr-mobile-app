@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   Pressable,
   ScrollView,
+  useWindowDimensions,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
@@ -147,6 +148,13 @@ export function HizbMemorisationPastAchievements({
   const router = useRouter();
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
+  const { width } = useWindowDimensions();
+  const insightCardStyle = {
+    ...styles.insightCardFixed,
+    width: width * 0.42,
+    maxWidth: width * 0.42,
+    minWidth: width * 0.42,
+  };
   const hizbContext = useOptionalMemorisationHizbContext();
   const [period, setPeriod] = useState<PastAchievementPeriod>(initialPeriod);
   const [periodStartParam, setPeriodStartParam] = useState<string | null>(null);
@@ -499,7 +507,13 @@ export function HizbMemorisationPastAchievements({
     Math.abs(baseAchievement.previousPeriodDeltaPercent) > 0;
 
   const renderAnalyticsToggle = () => (
-    <View style={styles.analyticsToggle}>
+    <ScrollView
+      horizontal
+      nestedScrollEnabled
+      showsHorizontalScrollIndicator={false}
+      style={styles.analyticsToggleScroll}
+      contentContainerStyle={styles.analyticsToggle}
+    >
       {ANALYTICS_VIEWS.map((view) => {
         const isActive = analyticsView === view;
         return (
@@ -525,7 +539,7 @@ export function HizbMemorisationPastAchievements({
           </Pressable>
         );
       })}
-    </View>
+    </ScrollView>
   );
 
   const renderCompletedIncompleteStats = (noData: boolean) => (
@@ -783,7 +797,7 @@ export function HizbMemorisationPastAchievements({
                 title={card.title}
                 value={String(card.value ?? LOADING_DASH)}
                 subValue={card.subValue}
-                style={styles.insightCardFixed}
+                style={insightCardStyle}
               />
             ))}
           </ScrollView>
@@ -818,7 +832,7 @@ export function HizbMemorisationPastAchievements({
             title={t("progressLogging.recitationInsightGoalTracked")}
             value={formatNumber(goalTrackedMonths)}
             subValue={t("progressLogging.recitationInsightMonths")}
-            style={styles.insightCardFixed}
+            style={insightCardStyle}
           />
           <InsightCard
             iconName="book-outline"
@@ -831,7 +845,7 @@ export function HizbMemorisationPastAchievements({
             title={t("progressLogging.memorisationInsightTotalMemorized")}
             value={formatNumber(totalMemorizedVerses)}
             subValue={t("progressLogging.memorisationInsightVersesMemorized")}
-            style={styles.insightCardFixed}
+            style={insightCardStyle}
           />
         </ScrollView>
       </View>

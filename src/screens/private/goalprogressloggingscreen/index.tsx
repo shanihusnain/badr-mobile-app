@@ -364,7 +364,7 @@ function GoalProgressLoggingBody({
         />
       </View>
 
-      <TopSpace top={10} />
+      <TopSpace top={2} />
       <View
         style={styles.weeklyDashboardWrapper}
         onLayout={

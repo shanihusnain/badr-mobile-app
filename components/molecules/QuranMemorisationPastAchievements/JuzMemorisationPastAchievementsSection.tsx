@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   Pressable,
   ScrollView,
+  useWindowDimensions,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
@@ -144,6 +145,13 @@ export function JuzMemorisationPastAchievements({
   const router = useRouter();
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
+  const { width } = useWindowDimensions();
+  const insightCardStyle = {
+    ...styles.insightCardFixed,
+    width: width * 0.42,
+    maxWidth: width * 0.42,
+    minWidth: width * 0.42,
+  };
   const juzContext = useOptionalMemorisationJuzContext();
   const [period, setPeriodState] = useState<PastAchievementPeriod>(initialPeriod);
   const setPeriod = useCallback((next: PastAchievementPeriod) => {
@@ -470,7 +478,13 @@ export function JuzMemorisationPastAchievements({
     Math.abs(baseAchievement.previousPeriodDeltaPercent) > 0;
 
   const renderAnalyticsToggle = () => (
-    <View style={styles.analyticsToggle}>
+    <ScrollView
+      horizontal
+      nestedScrollEnabled
+      showsHorizontalScrollIndicator={false}
+      style={styles.analyticsToggleScroll}
+      contentContainerStyle={styles.analyticsToggle}
+    >
       {ANALYTICS_VIEWS.map((view) => {
         const isActive = analyticsView === view;
         return (
@@ -496,7 +510,7 @@ export function JuzMemorisationPastAchievements({
           </Pressable>
         );
       })}
-    </View>
+    </ScrollView>
   );
 
   const renderCompletedIncompleteStats = (noData: boolean) => (
@@ -724,7 +738,7 @@ export function JuzMemorisationPastAchievements({
           title={t("progressLogging.recitationInsightGoalTracked")}
           value={formatNumber(goalTrackedMonths)}
           subValue={t("progressLogging.recitationInsightMonths")}
-          style={styles.insightCardFixed}
+            style={insightCardStyle}
         />
         <InsightCard
           iconName="book-outline"
@@ -737,7 +751,7 @@ export function JuzMemorisationPastAchievements({
           title={t("progressLogging.memorisationInsightTotalMemorized")}
           value={formatNumber(totalMemorizedVerses)}
           subValue={t("progressLogging.memorisationInsightVersesMemorized")}
-          style={styles.insightCardFixed}
+            style={insightCardStyle}
         />
       </ScrollView>
     </View>

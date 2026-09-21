@@ -24,7 +24,7 @@ import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import { useLogQuranHoursGoal } from "@/src/api/mutations/useLogQuranHoursGoal";
 import { resolveQuranTypeFromGoalId } from "@/src/utils/quranGoalMap";
 import { DateStep } from "../components/DateStep";
-import { formatProgressLoggingDateLabel } from "../progressLoggingConfig";
+import { formatProgressLoggingDateLabel, getQuranLoggingSelectableDateBounds } from "../progressLoggingConfig";
 import {
   DurationStep,
   StartTimeStep,
@@ -105,12 +105,8 @@ export default function QuranHoursLoggingFlow({
     ? getQuranFrameCycleEnd(frame) || undefined
     : undefined;
   const todayString = toDateString(new Date());
-  const maxSelectableDate =
-    cycleEnd && cycleEnd < todayString ? cycleEnd : todayString;
-  // Only clamp to cycle start once it is on/before the latest selectable day.
-  // A future cycleStart must not freeze the picker on "today" with a dead back button.
-  const minSelectableDate =
-    cycleStart && cycleStart <= maxSelectableDate ? cycleStart : undefined;
+  const { minSelectableDate, maxSelectableDate } =
+    getQuranLoggingSelectableDateBounds(cycleStart, cycleEnd, todayString);
 
   useEffect(() => {
     setSelectedDate((prev) => {
@@ -147,6 +143,7 @@ export default function QuranHoursLoggingFlow({
     selectedDate,
     todayString,
     t("progressLogging.today"),
+    t("progressLogging.tomorrow"),
   );
 
   const shiftDate = (direction: -1 | 1) => {
@@ -163,14 +160,14 @@ export default function QuranHoursLoggingFlow({
     const now = getCurrentStartTimeParts();
     setFlowMode("collapsed");
     setStepIndex(0);
-    setSelectedDate(toDateString(new Date()));
+    setSelectedDate(maxSelectableDate);
     setStartHour(now.hour);
     setStartMinute(now.minute);
     setStartPeriod(now.period);
     setIsPeriodDropdownOpen(false);
     setDurationHours("0");
     setDurationMinutes("0");
-  }, []);
+  }, [maxSelectableDate]);
 
   const handleCancel = () => {
     if (isLogging) return;

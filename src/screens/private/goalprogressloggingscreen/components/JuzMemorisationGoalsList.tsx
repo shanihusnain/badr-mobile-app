@@ -17,6 +17,7 @@ import {
   FLOW_CARD_WIDTH_RATIO,
 } from "./SurahRecitationGoals.styles";
 import { JuzMemorisationGoalCard } from "./JuzMemorisationGoalCard";
+import { FlowCardCarouselDots } from "./FlowCardCarouselDots";
 import { useOptionalMemorisationJuzContext } from "../memorisationJuzContext";
 import { FLOW_CARD_HEIGHT } from "./DailyProgressLogging.styles";
 
@@ -119,32 +120,40 @@ export function JuzMemorisationGoalsList({
     [cardWidth, snapInterval],
   );
 
+  const activeIndex = Math.max(
+    0,
+    goals.findIndex((goal) => goal.id === activeGoalId),
+  );
+
   return (
-    <View
-      style={{
-        paddingLeft: CARD_ANCHOR_PADDING_LEFT,
-        overflow: "hidden",
-      }}
-    >
-      <FlatList
-        horizontal
-        data={goals}
-        keyExtractor={keyExtractor}
-        renderItem={renderItem}
-        getItemLayout={getItemLayout}
-        showsHorizontalScrollIndicator={false}
-        ItemSeparatorComponent={itemSeparator}
-        onViewableItemsChanged={onViewableItemsChanged}
-        viewabilityConfig={viewabilityConfig}
-        decelerationRate="fast"
-        snapToOffsets={snapToOffsets}
-        snapToAlignment="start"
-        disableIntervalMomentum
-        removeClippedSubviews={false}
-        scrollEnabled={!activeFlowGoalId}
-        style={{ overflow: "visible", height: FLOW_CARD_HEIGHT }}
-        contentContainerStyle={{ paddingRight: trailingInset }}
-      />
+    <View>
+      <View
+        style={{
+          paddingLeft: CARD_ANCHOR_PADDING_LEFT,
+          overflow: "hidden",
+        }}
+      >
+        <FlatList
+          horizontal
+          data={goals}
+          keyExtractor={keyExtractor}
+          renderItem={renderItem}
+          getItemLayout={getItemLayout}
+          showsHorizontalScrollIndicator={false}
+          ItemSeparatorComponent={itemSeparator}
+          onViewableItemsChanged={onViewableItemsChanged}
+          viewabilityConfig={viewabilityConfig}
+          decelerationRate="fast"
+          snapToOffsets={snapToOffsets}
+          snapToAlignment="start"
+          disableIntervalMomentum
+          removeClippedSubviews={false}
+          scrollEnabled={!activeFlowGoalId}
+          style={{ overflow: "visible", height: FLOW_CARD_HEIGHT }}
+          contentContainerStyle={{ paddingRight: trailingInset }}
+        />
+      </View>
+      <FlowCardCarouselDots count={goals.length} activeIndex={activeIndex} />
     </View>
   );
 }

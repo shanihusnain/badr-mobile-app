@@ -9,13 +9,19 @@ import { GoalData } from "../../home/components/goalsData";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import { DateStep } from "../components/DateStep";
 import { formatProgressLoggingDateLabel } from "../progressLoggingConfig";
-import { DurationStep, StartTimeStep } from "../components/TimePickerSteps";
+import { DurationStep, StartTimeStep, getCurrentStartTimeParts } from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
 import { JuzLoggingTypeStep } from "../components/JuzLoggingTypeStep";
 import { JuzRangeStep } from "../components/JuzRangeStep";
 import { JuzStepper } from "../components/JuzStepper";
 import { QuranAyatRangeSlider } from "../components/QuranAyatRangeSlider";
 import { styles } from "../components/DailyProgressLogging.styles";
+import { QuranIconForSlider } from "@/assets/icons/QuranIconForSlider";
+import {
+  CalendarFlippingIcon,
+  WhiteClockIcon,
+  WhiteTimerIcon,
+} from "@/assets/icons";
 import { getQuranJuzFlowDefinition } from "../loggingFlowRegistry";
 import { getJuzVerseCountFromMap } from "../quranJuzVerseMap";
 import {
@@ -86,9 +92,12 @@ export default function QuranJuzLoggingFlow({
 
   const [stepIndex, setStepIndex] = useState(0);
   const [selectedDate, setSelectedDate] = useState(toDateString(new Date()));
-  const [startHour, setStartHour] = useState("06");
-  const [startMinute, setStartMinute] = useState("15");
-  const [startPeriod, setStartPeriod] = useState<"am" | "pm">("am");
+  const initialStartTime = getCurrentStartTimeParts();
+  const [startHour, setStartHour] = useState(initialStartTime.hour);
+  const [startMinute, setStartMinute] = useState(initialStartTime.minute);
+  const [startPeriod, setStartPeriod] = useState<"am" | "pm">(
+    initialStartTime.period,
+  );
   const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
   const [loggingType, setLoggingType] = useState<JuzCompletionType>("full");
   const [committedLoggingType, setCommittedLoggingType] =
@@ -144,9 +153,10 @@ export default function QuranJuzLoggingFlow({
     setFlowMode("collapsed");
     setStepIndex(0);
     setSelectedDate(toDateString(new Date()));
-    setStartHour("06");
-    setStartMinute("15");
-    setStartPeriod("am");
+    const now = getCurrentStartTimeParts();
+    setStartHour(now.hour);
+    setStartMinute(now.minute);
+    setStartPeriod(now.period);
     setIsPeriodDropdownOpen(false);
     setLoggingType("full");
     setCommittedLoggingType("full");
@@ -309,24 +319,12 @@ export default function QuranJuzLoggingFlow({
     switch (step) {
       case "date":
         return {
-          icon: (
-            <Ionicons
-              name="calendar-outline"
-              size={15}
-              color={Colors.light.white}
-            />
-          ),
+          icon: <CalendarFlippingIcon size={24} />,
           label: t("progressLogging.whichDay"),
         };
       case "startTime":
         return {
-          icon: (
-            <Ionicons
-              name="time-outline"
-              size={15}
-              color={Colors.light.white}
-            />
-          ),
+          icon: <WhiteClockIcon size={26} />,
           label: t("progressLogging.enterStartTime"),
         };
       case "completionType":
@@ -334,7 +332,7 @@ export default function QuranJuzLoggingFlow({
           icon: (
             <MaterialCommunityIcons
               name="book-open-page-variant"
-              size={16}
+              size={24}
               color={Colors.light.white}
             />
           ),
@@ -345,7 +343,7 @@ export default function QuranJuzLoggingFlow({
           icon: (
             <MaterialCommunityIcons
               name="book-open-variant"
-              size={16}
+              size={24}
               color={Colors.light.white}
             />
           ),
@@ -356,7 +354,7 @@ export default function QuranJuzLoggingFlow({
           icon: (
             <MaterialCommunityIcons
               name="book-open-variant"
-              size={16}
+              size={24}
               color={Colors.light.white}
             />
           ),
@@ -365,23 +363,13 @@ export default function QuranJuzLoggingFlow({
       case "ayatRange":
         return {
           icon: (
-            <MaterialCommunityIcons
-              name="format-list-numbered"
-              size={16}
-              color={Colors.light.white}
-            />
+            <QuranIconForSlider size={24} Color={Colors.light.white} />
           ),
           label: t("progressLogging.selectAyatRange"),
         };
       case "timeSpentFull":
         return {
-          icon: (
-            <MaterialCommunityIcons
-              name="history"
-              size={16}
-              color={Colors.light.white}
-            />
-          ),
+          icon: <WhiteTimerIcon size={26} />,
           label:
             committedLoggingType === "both"
               ? t("progressLogging.enterTimeSpentFullJuz")
@@ -389,13 +377,7 @@ export default function QuranJuzLoggingFlow({
         };
       case "timeSpentPartial":
         return {
-          icon: (
-            <MaterialCommunityIcons
-              name="history"
-              size={16}
-              color={Colors.light.white}
-            />
-          ),
+          icon: <WhiteTimerIcon size={26} />,
           label:
             committedLoggingType === "partial"
               ? t("progressLogging.enterTimeSpent")

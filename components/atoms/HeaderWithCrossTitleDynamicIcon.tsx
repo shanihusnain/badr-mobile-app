@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
   },
   dropdownAnchor: {
-    marginTop: 96,
+    marginTop: 66,
     alignItems: "center",
     paddingHorizontal: 18,
   },

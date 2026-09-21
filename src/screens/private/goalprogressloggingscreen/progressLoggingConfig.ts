@@ -102,12 +102,44 @@ export const PRAYER_OPTIONS: PrayerName[] = [
   "isha",
 ];
 
-/** Date step label: "Today" or past dates like "Sun, Aug 27". */
+/** Date step label — always includes the calendar date (prayer style). */
 export function formatProgressLoggingDateLabel(
   selectedDate: string,
   todayString: string,
   todayLabel: string,
+  tomorrowLabel?: string,
 ): string {
-  if (selectedDate === todayString) return todayLabel;
+  const datePart = moment(selectedDate, "YYYY-MM-DD").format("MMM D");
+  if (selectedDate === todayString) return `${todayLabel}, ${datePart}`;
+  const tomorrowString = moment(todayString, "YYYY-MM-DD")
+    .add(1, "day")
+    .format("YYYY-MM-DD");
+  if (selectedDate === tomorrowString && tomorrowLabel) {
+    return `${tomorrowLabel}, ${datePart}`;
+  }
   return moment(selectedDate, "YYYY-MM-DD").format("ddd, MMM D");
+}
+
+/**
+ * Selectable date window for Quran logging flows.
+ * - Cycle starts in the future (e.g. tomorrow): only that day — label "Tomorrow", today blocked.
+ * - Cycle already running: from cycle start through today (past days show "Sun, Sep 21").
+ */
+export function getQuranLoggingSelectableDateBounds(
+  cycleStart: string | undefined | null,
+  cycleEnd: string | undefined | null,
+  todayString: string,
+): { minSelectableDate?: string; maxSelectableDate: string } {
+  const start = cycleStart?.slice(0, 10) || undefined;
+  const end = cycleEnd?.slice(0, 10) || undefined;
+
+  if (start && start > todayString) {
+    return { minSelectableDate: start, maxSelectableDate: start };
+  }
+
+  const maxSelectableDate = end && end < todayString ? end : todayString;
+  const minSelectableDate =
+    start && start <= maxSelectableDate ? start : undefined;
+
+  return { minSelectableDate, maxSelectableDate };
 }

@@ -925,11 +925,8 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
       <View style={styles.card}>
         <View style={styles.cardHeader}>
           <AchivementArrowIcon size={15} color={Colors.light.subtext} />
-          <Text style={styles.sectionTitle}>
-            {t("progressLogging.pastGoalAchievements").replace(
-              "ACHIEVEMENTS",
-              "ACHIEVEMENTS",
-            )}
+            <Text style={styles.sectionTitle}>
+            {t("progressLogging.pastGoalAchievements")}
           </Text>
           {showDetailedStatsChevron && (
             <TouchableOpacity
