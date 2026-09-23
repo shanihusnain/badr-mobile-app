@@ -17,8 +17,11 @@ export type MenstruationPeriodResponse = {
   data: MenstruationPeriod;
 };
 
-const getMenstruationPeriod = async (id: string): Promise<MenstruationPeriodResponse> => {
+const getMenstruationPeriod = async (
+  id: string,
+): Promise<MenstruationPeriodResponse> => {
   const response = await api.get(`api/menstruation-periods/${id}`);
+  console.log("response", response.data);
   return response.data;
 };
 
@@ -26,8 +29,8 @@ export const useGetMenstruationPeriod = (id?: string | null) => {
   return useQuery({
     queryKey: ["menstruationPeriod", id],
     queryFn: () => getMenstruationPeriod(id!),
-    enabled: !!id,         // Only run if an ID is available
-    staleTime: 0,          // Always treat data as stale so it refetches on mount
+    enabled: !!id, // Only run if an ID is available
+    staleTime: 0, // Always treat data as stale so it refetches on mount
     refetchOnMount: true,
   });
 };

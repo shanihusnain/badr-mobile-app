@@ -10,6 +10,8 @@ export type PrayerWeeklyProgressFooterComparisonVariant =
   | "onTime"
   | "prayers"
   | "recitations"
+  | "quranRecitations"
+  | "quranMemorizations"
   | "hours";
 
 export type PrayerWeeklyProgressFooterProps = {
@@ -71,11 +73,15 @@ export function PrayerWeeklyProgressFooter({
   const comparisonSuffixKey =
     comparisonVariant === "onTime"
       ? "homeScreen.weeklyProgress_vsLastWeek"
-      : comparisonVariant === "recitations"
-        ? "homeScreen.weeklyProgress_recitationsVsLastWeek"
-        : comparisonVariant === "hours"
-          ? "homeScreen.weeklyProgress_hoursVsLastWeek"
-          : "homeScreen.weeklyProgress_prayersVsLastWeek";
+      : comparisonVariant === "quranRecitations"
+        ? "homeScreen.weeklyProgress_quranRecitationsVsLastWeek"
+        : comparisonVariant === "quranMemorizations"
+          ? "homeScreen.weeklyProgress_quranMemorizationsVsLastWeek"
+          : comparisonVariant === "recitations"
+            ? "homeScreen.weeklyProgress_recitationsVsLastWeek"
+            : comparisonVariant === "hours"
+              ? "homeScreen.weeklyProgress_hoursVsLastWeek"
+              : "homeScreen.weeklyProgress_prayersVsLastWeek";
 
   const streakLabel = (
     <View style={styles.streakBadge}>

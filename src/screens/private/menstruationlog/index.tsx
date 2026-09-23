@@ -64,7 +64,8 @@ export default function MenstruationLog({
     meData?.menstruationPeriodId ?? user?.menstruationPeriodId ?? null;
 
   const goalCycleId = meData?.goalCycleId ?? user?.goalCycleId ?? null;
-
+  console.log("meData", meData);
+  console.log("goalCycleId", goalCycleId);
   // Fetch the existing menstruation period using the ID
   const { data: periodData } = useGetMenstruationPeriod(menstruationPeriodId);
   // Fetch the active Goal Cycle
@@ -137,37 +138,79 @@ export default function MenstruationLog({
     ? moment(goalCycleData.data.endDate).startOf("day")
     : cycleStart.clone().add(CYCLE_LENGTH_DAYS - 1, "days");
 
-  // Strictly bind dates to the Goal Cycle's 28 days.
-  const startDateMinimum = cycleStart.toDate();
+  // Start date can begin up to 10 days before the goal-cycle start.
+  const earliestStart = cycleStart.clone().subtract(10, "days");
+  const earliestStartString = earliestStart.format("YYYY-MM-DD");
+  const startDateMinimum = earliestStart.toDate();
   const selectableMax = cycleEnd.toDate();
   const selectableMaxString = toDateString(selectableMax);
   const cycleStartString = cycleStart.format("YYYY-MM-DD");
   const cycleEndString = cycleEnd.format("YYYY-MM-DD");
 
-  // Default menstruation start to the selected cycle start date (e.g. Sep 18).
-  const [selectedDate, setSelectedDate] = useState(cycleStartString);
+  const clampDateToSelectable = useCallback(
+    (dateString: string) => {
+      if (dateString < earliestStartString) return earliestStartString;
+      if (dateString > cycleEndString) return cycleEndString;
+      return dateString;
+    },
+    [cycleEndString, earliestStartString],
+  );
+
+  const defaultSelectedDate = clampDateToSelectable(todayString);
+
+  // Default to today (clamped into the selectable window).
+  const [selectedDate, setSelectedDate] = useState(defaultSelectedDate);
   const [showDatePicker, setShowDatePicker] = useState(false);
 
-  const [selectedEndDate, setSelectedEndDate] = useState(cycleStartString);
+  const [selectedEndDate, setSelectedEndDate] = useState(defaultSelectedDate);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
 
-  // When goal-cycle bounds load/change, keep picks inside the 28-day window
-  // and default to cycle start (unless an ongoing period already prefilled).
+  const startCollapseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+  const endCollapseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+
+  const clearStartCollapseTimer = useCallback(() => {
+    if (startCollapseTimerRef.current) {
+      clearTimeout(startCollapseTimerRef.current);
+      startCollapseTimerRef.current = null;
+    }
+  }, []);
+
+  const clearEndCollapseTimer = useCallback(() => {
+    if (endCollapseTimerRef.current) {
+      clearTimeout(endCollapseTimerRef.current);
+      endCollapseTimerRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      clearStartCollapseTimer();
+      clearEndCollapseTimer();
+    };
+  }, [clearEndCollapseTimer, clearStartCollapseTimer]);
+
+  // When goal-cycle bounds load/change, keep picks inside the selectable window
+  // (unless an ongoing period already prefilled).
   useEffect(() => {
     if (hasInitialized.current) return;
+    const fallback = clampDateToSelectable(todayString);
     setSelectedDate((prev) => {
-      if (prev < cycleStartString || prev > cycleEndString) {
-        return cycleStartString;
+      if (prev < earliestStartString || prev > cycleEndString) {
+        return fallback;
       }
       return prev;
     });
     setSelectedEndDate((prev) => {
-      if (prev < cycleStartString || prev > cycleEndString) {
-        return cycleStartString;
+      if (prev < earliestStartString || prev > cycleEndString) {
+        return fallback;
       }
       return prev;
     });
-  }, [cycleStartString, cycleEndString]);
+  }, [clampDateToSelectable, cycleEndString, earliestStartString, todayString]);
 
   const dateExplicitlyPicked = selectedDate !== todayString;
   const endDateExplicitlyPicked = selectedEndDate !== todayString;
@@ -203,12 +246,25 @@ export default function MenstruationLog({
 
   const handleTodayPress = () => {
     if (!menstruating) return;
-    setShowDatePicker((prev) => !prev);
+    if (showDatePicker) {
+      clearStartCollapseTimer();
+      setShowDatePicker(false);
+      return;
+    }
+    // Opening: keep the current selection (today by default; a prior pick otherwise).
+    clearStartCollapseTimer();
+    setShowDatePicker(true);
   };
 
   const handleEndDatePress = () => {
     if (!menstruating || stillMenstruating) return;
-    setShowEndDatePicker((prev) => !prev);
+    if (showEndDatePicker) {
+      clearEndCollapseTimer();
+      setShowEndDatePicker(false);
+      return;
+    }
+    clearEndCollapseTimer();
+    setShowEndDatePicker(true);
   };
 
   const handleStartDateWheelChange = (dateString: string) => {
@@ -216,10 +272,20 @@ export default function MenstruationLog({
     if (selectedEndDate < dateString) {
       setSelectedEndDate(dateString);
     }
+    clearStartCollapseTimer();
+    startCollapseTimerRef.current = setTimeout(() => {
+      setShowDatePicker(false);
+      startCollapseTimerRef.current = null;
+    }, 2000);
   };
 
   const handleEndDateWheelChange = (dateString: string) => {
     setSelectedEndDate(dateString);
+    clearEndCollapseTimer();
+    endCollapseTimerRef.current = setTimeout(() => {
+      setShowEndDatePicker(false);
+      endCollapseTimerRef.current = null;
+    }, 2000);
   };
 
   const isEndDateActive = menstruating && !stillMenstruating;
@@ -277,11 +343,13 @@ export default function MenstruationLog({
               isMenstruating.value = newValue;
               setMenstruating(newValue);
               if (!newValue) {
+                clearStartCollapseTimer();
+                clearEndCollapseTimer();
                 setShowDatePicker(false);
-                setSelectedDate(cycleStartString);
+                setSelectedDate(defaultSelectedDate);
 
                 setShowEndDatePicker(false);
-                setSelectedEndDate(cycleStartString);
+                setSelectedEndDate(defaultSelectedDate);
 
                 isStillMenstruating.value = false;
                 setStillMenstruating(false);
@@ -394,7 +462,7 @@ export default function MenstruationLog({
           </View>
         )}
 
-        <View style={styles.calendarSection}>
+        {/* <View style={styles.calendarSection}>
           <View style={styles.calendarContainer}>
             <View style={styles.dateLabelsContainer}>
               <Text
@@ -431,7 +499,7 @@ export default function MenstruationLog({
               isMenstruating={menstruating}
             />
           </View>
-        </View>
+        </View> */}
 
         <View style={styles.startDateContainer}>
           <Text
@@ -547,6 +615,7 @@ export default function MenstruationLog({
               isStillMenstruating.value = newValue;
               setStillMenstruating(newValue);
               if (newValue) {
+                clearEndCollapseTimer();
                 setShowEndDatePicker(false);
                 setSelectedEndDate(selectableMaxString);
               }
@@ -571,7 +640,7 @@ export default function MenstruationLog({
 
             const prayerMap: Record<string, string> = {
               "Before Fajr": "FAJR",
-              "Before Dhuhr": "DUHR",
+              "Before Dhuhr": "DHUHR",
               "Before Asr": "ASR",
               "Before Maghrib": "MAGHRIB",
               "Before Isha": "ISHA",

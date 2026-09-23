@@ -992,9 +992,7 @@ export function WeeklyProgressSection({
     );
     const dailyTarget = Math.max(
       1,
-      activeGoal?.quantity ??
-        quranRecitationWeek?.dailyTarget ??
-        1,
+      activeGoal?.quantity ?? quranRecitationWeek?.dailyTarget ?? 1,
     );
 
     if (quranFrame && frame) {
@@ -1011,9 +1009,7 @@ export function WeeklyProgressSection({
           totalRecitationsThisWeek={getQuranFrameWeekTotalMinutes(frame)}
           dailyTarget={dailyTarget}
           weekRecitationTarget={
-            activeGoal?.frequency === "weekly"
-              ? activeGoal.quantity
-              : undefined
+            activeGoal?.frequency === "weekly" ? activeGoal.quantity : undefined
           }
           visualizationMode="daily"
           selectedDayIndex={getQuranFrameTodayIndex(frame)}
@@ -1042,7 +1038,9 @@ export function WeeklyProgressSection({
           weekDays={quranRecitationWeek.weekDays}
           weekRangeLabel={quranRecitationWeek.weekRangeLabel}
           weekFraction={quranRecitationWeek.weekFraction}
-          totalRecitationsThisWeek={quranRecitationWeek.totalRecitationsThisWeek}
+          totalRecitationsThisWeek={
+            quranRecitationWeek.totalRecitationsThisWeek
+          }
           dailyTarget={quranRecitationWeek.dailyTarget}
           weekRecitationTarget={quranRecitationWeek.weekRecitationTarget}
           visualizationMode={isWeeklySurahDashboard ? "weekly" : "daily"}
@@ -1082,7 +1080,11 @@ export function WeeklyProgressSection({
     );
   }
 
-  if (template === "quran-recitation" && quranRecitationWeek && recitationCycle) {
+  if (
+    template === "quran-recitation" &&
+    quranRecitationWeek &&
+    recitationCycle
+  ) {
     return (
       <QuranWeeklyRecitationProgressDashboard
         weekDays={quranRecitationWeek.weekDays}

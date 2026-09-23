@@ -50,5 +50,6 @@ export const useGetMe = (options?: { enabled?: boolean }) => {
     queryKey: ["me"],
     queryFn: getMe,
     enabled: options?.enabled ?? true,
+    refetchOnWindowFocus: true,
   });
 };

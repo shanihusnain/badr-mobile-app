@@ -3609,6 +3609,8 @@
     "weeklyProgress_vsLastWeek": "صلاة في وقتها مقارنة بالأسبوع الماضي",
     "weeklyProgress_sameAsLastWeek": "نفس عدد الصلوات في وقتها كالأسبوع الماضي",
     "weeklyProgress_prayersVsLastWeek": "صلوات مقارنة بالأسبوع الماضي",
+    "weeklyProgress_quranRecitationsVsLastWeek": "تلاوة مقارنة بالأسبوع الماضي",
+    "weeklyProgress_quranMemorizationsVsLastWeek": "آيات مقارنة بالأسبوع الماضي",
     "weeklyProgress_hoursVsLastWeek": "مقارنة بالأسبوع الماضي",
     "weeklyProgress_recitationsVsLastWeek": "تلاوات مقارنة بالأسبوع الماضي",
     "weeklyProgress_sunnahTotalThisWeek": " إجمالي صلوات السنن هذا الأسبوع",

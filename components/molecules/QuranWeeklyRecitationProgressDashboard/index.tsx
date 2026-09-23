@@ -216,7 +216,7 @@ export function QuranWeeklyRecitationProgressDashboard({
       loading={loading}
       isGoalCompleted={isGoalCompleted}
       allowLogDeletion={false}
-      comparisonVariant="recitations"
+      comparisonVariant="quranRecitations"
       statsRow={
         <View style={styles.statsRow}>
           <QuranRecitationBySurahFlowCardImage

@@ -53,9 +53,7 @@ function mapMemorisationDayToSinglePrayerDay(
   formatNumber: (value: number) => string,
 ): SinglePrayerDayProgress {
   const dateKey = normalizeDayDate(day.date);
-  const isToday = dateKey
-    ? dateKey === getLocalTodayString()
-    : !!day.isToday;
+  const isToday = dateKey ? dateKey === getLocalTodayString() : !!day.isToday;
 
   // Prefer API ayah range (e.g. "1-7"); fall back to logged count.
   const ayatLabel =
@@ -136,7 +134,7 @@ export function QuranMemorisationWeeklyProgressDashboard({
       allowLogDeletion={allowLogDeletion}
       onDeleteLog={allowLogDeletion ? handleDeleteLog : undefined}
       isDeletingLog={isDeletingLog}
-      comparisonVariant="recitations"
+      comparisonVariant="quranMemorizations"
       statsRow={
         <View style={styles.statsRow}>
           <QuranBlueIcon size={23} />

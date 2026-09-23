@@ -48,7 +48,13 @@ export type SinglePrayerWeeklyProgressDashboardProps = {
   onDeleteLog?: (date: string) => void | Promise<void>;
   /** Pending state for `onDeleteLog`. */
   isDeletingLog?: boolean;
-  comparisonVariant?: "onTime" | "prayers" | "recitations" | "hours";
+  comparisonVariant?:
+    | "onTime"
+    | "prayers"
+    | "recitations"
+    | "quranRecitations"
+    | "quranMemorizations"
+    | "hours";
 };
 
 export const LOADING_WEEK: SinglePrayerDayProgress[] = [
