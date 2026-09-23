@@ -714,6 +714,9 @@ export const GoalProgressLoggingScreen = ({
                     ? handleMemorisationFlowSelect
                     : undefined
                 }
+                titleOffsetY={
+                  template.startsWith("quran-") ? 4 : 0
+                }
                 navigation={navigation}
                 bgcolor="transparent"
                 iconName="chevron-left"

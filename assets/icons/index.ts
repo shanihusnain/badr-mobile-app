@@ -74,6 +74,7 @@ import { InsightCardWeeklyAverageIcon } from "./InsightCardWeeklyAverageIcon";
 import { InsightCardTimeSpentIcon } from "./InsightCardTimeSpentIcon";
 import { InsightCardGoalTrackedIcon } from "./InsightCardGoalTrackedIcon";
 import { InsightCardArrowReverseIcon } from "./InsightCardArrowReverseIcon";
+import { InsightGreenClockIcon } from "./InsightGreenClockIcon";
 
 //J
 import { JournalBookIcon } from "./JournalBookIcon";
@@ -358,6 +359,7 @@ export {
   InsightCardTimeSpentIcon,
   InsightCardGoalTrackedIcon,
   InsightCardArrowReverseIcon,
+  InsightGreenClockIcon,
   DebtAssistanceIcon,
   JournalBookIcon,
   NotificationIcon,

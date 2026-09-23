@@ -15,6 +15,7 @@ import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import {
   applyJuzMemorisationAnalyticsView,
   formatMemorisationJuzTimeSpentChip,
+  formatJuzMemorisationTimeSpentLabel,
   getJuzMemorisationCompactPastAchievement,
   getMemorisationJuzGoalTrackedMonths,
   getJuzMemorisationPastAchievementFilters,
@@ -233,6 +234,7 @@ export function JuzMemorisationPastAchievements({
       return createEmptyMemorisationJuzAchievements(
         selectedJuzId,
         juzDisplayName || "All Juzs",
+        period,
       );
     }
     return mapMemorisationJuzAchievementsToUi(achievementsApiData, period, {
@@ -801,6 +803,22 @@ export function JuzMemorisationPastAchievements({
             subValue={t("progressLogging.memorisationInsightVersesMemorized")}
             style={insightCardStyle}
           />
+          <InsightCard
+            iconName="time-outline"
+            icon={getMemorisationInsightIcon({
+              iconFamily: "Ionicons",
+              iconName: "time-outline",
+              title: t("progressLogging.timeSpentLabel"),
+              value: formatJuzMemorisationTimeSpentLabel(totalTimeSpentMinutes),
+            })}
+            title={t("progressLogging.timeSpentLabel").toUpperCase()}
+            value={
+              showPlaceholders
+                ? LOADING_DASH
+                : formatJuzMemorisationTimeSpentLabel(totalTimeSpentMinutes)
+            }
+            style={insightCardStyle}
+          />
         </ScrollView>
       </View>
     );
@@ -877,9 +895,7 @@ export function JuzMemorisationPastAchievements({
             onMoveShouldSetResponder={() => false}
           >
             <QuranHoursPastAchievementChartBlock
-              chartData={
-                showNoDataDash ? [] : (chartAchievement?.chartData ?? [])
-              }
+              chartData={chartAchievement?.chartData ?? []}
               selectedBarIndex={null}
               onBarPress={() => {}}
               chartKey={`${goalId}-${period}-${selectedJuzId}-${analyticsView}-${refreshKey}`}
@@ -890,10 +906,8 @@ export function JuzMemorisationPastAchievements({
               hintText={t("progressLogging.chartTapHint")}
               hintActionText={t("progressLogging.okGotIt")}
               pageCount={
-                showNoDataDash
-                  ? 0
-                  : (chartAchievement?.pageCount ??
-                    compactAchievement.chartData.length)
+                chartAchievement?.pageCount ??
+                compactAchievement.chartData.length
               }
               activePageIndex={0}
               formatBarValue={chartFormatBarValue}
@@ -991,9 +1005,7 @@ export function JuzMemorisationPastAchievements({
           onMoveShouldSetResponder={() => false}
         >
           <QuranHoursPastAchievementChartBlock
-            chartData={
-              showNoDataDash ? [] : (chartAchievement?.chartData ?? [])
-            }
+            chartData={chartAchievement?.chartData ?? []}
             selectedBarIndex={showNoDataDash ? null : selectedBarIndex}
             onBarPress={handleBarPressDetailed}
             chartKey={`${goalId}-${period}-${selectedJuzId}-${analyticsView}`}
@@ -1003,9 +1015,7 @@ export function JuzMemorisationPastAchievements({
             onDismissHint={() => setHintDismissed(true)}
             hintText={t("progressLogging.chartTapHint")}
             hintActionText={t("progressLogging.okGotIt")}
-            pageCount={
-              showNoDataDash ? 0 : (chartAchievement?.pageCount ?? 1)
-            }
+            pageCount={chartAchievement?.pageCount ?? 1}
             activePageIndex={
               selectedBarIndex ?? chartAchievement?.activePageIndex ?? 0
             }

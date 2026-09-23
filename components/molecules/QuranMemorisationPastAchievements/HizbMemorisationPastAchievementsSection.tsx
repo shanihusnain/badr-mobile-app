@@ -230,6 +230,7 @@ export function HizbMemorisationPastAchievements({
       return createEmptyMemorisationHizbAchievements(
         selectedHizbId,
         hizbDisplayName || "All Hizbs",
+        period,
       );
     }
     return mapMemorisationHizbAchievementsToUi(achievementsApiData, period, {
@@ -634,7 +635,7 @@ export function HizbMemorisationPastAchievements({
         />
       </TouchableOpacity>
       <Text style={styles.dateRange} numberOfLines={1} ellipsizeMode="tail">
-        {showPlaceholders
+        {showPlaceholders && !baseAchievement.dateRangeLabel
           ? LOADING_DASH
           : baseAchievement.dateRangeLabel}
       </Text>
@@ -789,6 +790,12 @@ export function HizbMemorisationPastAchievements({
                     ),
                     value: LOADING_DASH,
                   },
+                  {
+                    iconFamily: "Ionicons" as const,
+                    iconName: "time-outline",
+                    title: t("progressLogging.timeSpentLabel").toUpperCase(),
+                    value: LOADING_DASH,
+                  },
                 ]
             ).map((card, index) => (
               <InsightCard
@@ -851,6 +858,18 @@ export function HizbMemorisationPastAchievements({
             title={t("progressLogging.memorisationInsightTotalMemorized")}
             value={formatNumber(totalMemorizedVerses)}
             subValue={t("progressLogging.memorisationInsightVersesMemorized")}
+            style={insightCardStyle}
+          />
+          <InsightCard
+            iconName="time-outline"
+            icon={getMemorisationInsightIcon({
+              iconFamily: "Ionicons",
+              iconName: "time-outline",
+              title: t("progressLogging.timeSpentLabel"),
+              value: formatMemorisationHizbTimeSpentLabel(totalTimeSpentMinutes),
+            })}
+            title={t("progressLogging.timeSpentLabel").toUpperCase()}
+            value={formatMemorisationHizbTimeSpentLabel(totalTimeSpentMinutes)}
             style={insightCardStyle}
           />
         </ScrollView>
@@ -932,7 +951,7 @@ export function HizbMemorisationPastAchievements({
           >
             <QuranHoursPastAchievementChartBlock
               chartData={
-                showPlaceholders || showNoDataDash
+                showPlaceholders && !(chartAchievement?.chartData?.length)
                   ? []
                   : (chartAchievement?.chartData ?? [])
               }
@@ -946,10 +965,8 @@ export function HizbMemorisationPastAchievements({
               hintText={t("progressLogging.chartTapHint")}
               hintActionText={t("progressLogging.okGotIt")}
               pageCount={
-                showNoDataDash
-                  ? 0
-                  : (chartAchievement?.pageCount ??
-                    compactAchievement.chartData.length)
+                chartAchievement?.pageCount ??
+                compactAchievement.chartData.length
               }
               activePageIndex={0}
               formatBarValue={chartFormatBarValue}
@@ -1050,7 +1067,7 @@ export function HizbMemorisationPastAchievements({
         >
           <QuranHoursPastAchievementChartBlock
             chartData={
-              showPlaceholders || showNoDataDash
+              showPlaceholders && !(chartAchievement?.chartData?.length)
                 ? []
                 : (chartAchievement?.chartData ?? [])
             }
@@ -1065,9 +1082,7 @@ export function HizbMemorisationPastAchievements({
             onDismissHint={() => setHintDismissed(true)}
             hintText={t("progressLogging.chartTapHint")}
             hintActionText={t("progressLogging.okGotIt")}
-            pageCount={
-              showNoDataDash ? 0 : (chartAchievement?.pageCount ?? 1)
-            }
+            pageCount={chartAchievement?.pageCount ?? 1}
             activePageIndex={
               selectedBarIndex ?? chartAchievement?.activePageIndex ?? 0
             }
