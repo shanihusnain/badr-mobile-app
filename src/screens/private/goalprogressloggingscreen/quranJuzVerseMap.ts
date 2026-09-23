@@ -230,6 +230,15 @@ export function getHizbVerseCountFromMap(hizbId: string | number): number {
   return getHizbVerses(parseHizbNumber(hizbId)).length;
 }
 
+/** Card title range: `Al-Fatiha 1:1 - Al-Baqarah 2:74` */
+export function getHizbRangeLabel(hizbId: string | number): string {
+  const verses = getHizbVerses(parseHizbNumber(hizbId));
+  if (verses.length === 0) return "";
+  const first = verses[0]!;
+  const last = verses[verses.length - 1]!;
+  return `${formatJuzVerseRefLabel(first)} - ${formatJuzVerseRefLabel(last)}`;
+}
+
 export function getJuzEndLabel(juz: number): string {
   const verses = getJuzVerses(juz);
   const last = verses[verses.length - 1];

@@ -6,7 +6,10 @@ import {
   type ViewToken,
 } from "react-native";
 import { GoalData } from "../../home/components/goalsData";
-import { isSurahRecitationGoalId, getSurahRecitationCycleMode } from "../quranRecitationTarget";
+import {
+  getSurahRecitationCycleMode,
+  isSurahRecitationGoalId,
+} from "../quranRecitationTarget";
 import {
   getSurahRecitationGoals,
   type SurahRecitationGoal,
@@ -25,6 +28,7 @@ import { useOptionalRecitationSurahContext } from "../recitationSurahContext";
 type Props = {
   goalData: GoalData;
   activeFlowGoalId: string | null;
+  refreshKey?: number;
   onStartFlow: (goalId: string) => void;
   onFlowClose: () => void;
   onLogComplete?: (entry: QuranRecitationLogEntry) => void;
@@ -33,6 +37,7 @@ type Props = {
 export function SurahRecitationGoalsList({
   goalData,
   activeFlowGoalId,
+  refreshKey = 0,
   onStartFlow,
   onFlowClose,
   onLogComplete,
@@ -40,14 +45,22 @@ export function SurahRecitationGoalsList({
   const { width: screenWidth } = useWindowDimensions();
   const recitationContext = useOptionalRecitationSurahContext();
   const goals = useMemo(() => {
+    if (recitationContext?.goals?.length) {
+      return recitationContext.goals;
+    }
     const allGoals = getSurahRecitationGoals();
     if (!isSurahRecitationGoalId(goalData.id)) {
       return allGoals;
     }
-
     const frequency = getSurahRecitationCycleMode(goalData.id);
     return allGoals.filter((goal) => goal.frequency === frequency);
-  }, [goalData.id]);
+  }, [
+    goalData.id,
+    recitationContext?.goals,
+    refreshKey,
+    recitationContext?.refreshKey,
+  ]);
+
   /** Viewport is inset by left padding; clip peeks of the previous card. */
   const listWidth = screenWidth - CARD_ANCHOR_PADDING_LEFT;
   const cardWidth = Math.min(
@@ -83,18 +96,29 @@ export function SurahRecitationGoalsList({
   }).current;
 
   const renderItem = useCallback(
-    ({ item }: { item: SurahRecitationGoal }) => (
-      <SurahRecitationGoalCard
-        goal={item}
-        goalData={goalData}
-        cardWidth={cardWidth}
-        isInView={item.id === activeGoalId}
-        isFlowActive={item.id === activeFlowGoalId}
-        onStartFlow={onStartFlow}
-        onFlowClose={onFlowClose}
-        onLogComplete={onLogComplete}
-      />
-    ),
+    ({ item }: { item: SurahRecitationGoal }) => {
+      if (activeFlowGoalId && item.id !== activeFlowGoalId) {
+        return (
+          <View
+            style={{ width: cardWidth, height: FLOW_CARD_HEIGHT }}
+            pointerEvents="none"
+          />
+        );
+      }
+
+      return (
+        <SurahRecitationGoalCard
+          goal={item}
+          goalData={goalData}
+          cardWidth={cardWidth}
+          isInView={item.id === activeGoalId}
+          isFlowActive={item.id === activeFlowGoalId}
+          onStartFlow={onStartFlow}
+          onFlowClose={onFlowClose}
+          onLogComplete={onLogComplete}
+        />
+      );
+    },
     [
       activeFlowGoalId,
       activeGoalId,
@@ -118,19 +142,34 @@ export function SurahRecitationGoalsList({
     goals.findIndex((goal) => goal.id === activeGoalId),
   );
 
+  const getItemLayout = useCallback(
+    (_: ArrayLike<SurahRecitationGoal> | null | undefined, index: number) => ({
+      length: cardWidth,
+      offset: index * snapInterval,
+      index,
+    }),
+    [cardWidth, snapInterval],
+  );
+
   return (
     <View>
       <View
-        style={{
-          paddingLeft: CARD_ANCHOR_PADDING_LEFT,
-          overflow: "hidden",
-        }}
+        style={[
+          {
+            paddingLeft: CARD_ANCHOR_PADDING_LEFT,
+            overflow: "hidden",
+          },
+          activeFlowGoalId
+            ? { zIndex: 101, elevation: 12, position: "relative" as const }
+            : undefined,
+        ]}
       >
         <FlatList
           horizontal
           data={goals}
           keyExtractor={keyExtractor}
           renderItem={renderItem}
+          getItemLayout={getItemLayout}
           showsHorizontalScrollIndicator={false}
           ItemSeparatorComponent={itemSeparator}
           onViewableItemsChanged={onViewableItemsChanged}
@@ -140,6 +179,7 @@ export function SurahRecitationGoalsList({
           snapToAlignment="start"
           disableIntervalMomentum
           removeClippedSubviews={false}
+          scrollEnabled={!activeFlowGoalId}
           style={{ overflow: "visible", height: FLOW_CARD_HEIGHT }}
           contentContainerStyle={{ paddingRight: trailingInset }}
         />

@@ -1,12 +1,18 @@
 import React, { useMemo } from "react";
-import { Pressable, Text, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "@/constants/theme";
-import { QuranRecitationBySurahFlowCardImage } from "@/assets/icons";
+import {
+  AddLoggingFlowIcon,
+  QuranRecitationBySurahFlowCardImage,
+} from "@/assets/icons";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
+import { quranFrameShowsInsights } from "@/src/utils/quranGoalFrameMap";
+import { stripEnglishParenthetical } from "@/src/utils/quranGoalMap";
 import { GoalData } from "../../home/components/goalsData";
 import QuranRecitationLoggingFlow from "../flows/QuranRecitationLoggingFlow";
+import { useOptionalQuranGoalFrameContext } from "../quranGoalFrameContext";
 import {
   toSurahTargetConfig,
   type SurahRecitationGoal,
@@ -38,8 +44,17 @@ export function SurahRecitationGoalCard({
 }: Props) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
+  const quranFrame = useOptionalQuranGoalFrameContext();
+  const showInsights = quranFrame?.frame
+    ? quranFrameShowsInsights(quranFrame.frame)
+    : false;
+  const isFullyAchieved =
+    (quranFrame?.frame?.goal.achievementPct ?? 0) >= 100 ||
+    goal.completed === true ||
+    goal.status === "achieved";
 
   const statusLabel = useMemo(() => {
+    if (goal.pillLabel?.trim()) return goal.pillLabel.trim();
     switch (goal.status) {
       case "not-started":
         return t("progressLogging.surahStatusNotStarted");
@@ -50,10 +65,11 @@ export function SurahRecitationGoalCard({
           percent: formatNumber(goal.achievementPercent ?? 0),
         });
     }
-  }, [formatNumber, goal.achievementPercent, goal.status, t]);
+  }, [formatNumber, goal.achievementPercent, goal.pillLabel, goal.status, t]);
 
   const quantityLabel = formatNumber(goal.quantity);
   const cycleTotalLabel = formatNumber(goal.cycleTotal);
+  const fallbackSubtitle = goal.subtitle?.trim() || "";
 
   const frequencyLine = t(
     goal.frequency === "daily"
@@ -61,47 +77,6 @@ export function SurahRecitationGoalCard({
       : "progressLogging.surahTimesWeekly",
     { count: quantityLabel },
   );
-
-  const totalLine = `(${t("progressLogging.total")} ${cycleTotalLabel} ${t(
-    "progressLogging.unitRecitations",
-  )})`;
-
-  const renderLineWithBoldNumber = (
-    line: string,
-    number: string,
-    keepOnOneLine = false,
-  ) => {
-    const index = line.indexOf(number);
-    if (index < 0) {
-      return (
-        <Text
-          style={surahGoalStyles.metaRegular}
-          numberOfLines={keepOnOneLine ? 1 : undefined}
-          adjustsFontSizeToFit={keepOnOneLine}
-          minimumFontScale={0.85}
-        >
-          {line}
-        </Text>
-      );
-    }
-
-    return (
-      <Text
-        style={surahGoalStyles.metaText}
-        numberOfLines={keepOnOneLine ? 1 : undefined}
-        adjustsFontSizeToFit={keepOnOneLine}
-        minimumFontScale={0.85}
-      >
-        <Text style={surahGoalStyles.metaRegular}>
-          {line.slice(0, index)}
-        </Text>
-        <Text style={surahGoalStyles.metaBold}>{number}</Text>
-        <Text style={surahGoalStyles.metaRegular}>
-          {line.slice(index + number.length)}
-        </Text>
-      </Text>
-    );
-  };
 
   const handleLogProgress = () => {
     onStartFlow(goal.id);
@@ -113,6 +88,8 @@ export function SurahRecitationGoalCard({
     }
   };
 
+  const canLog = goal.canLog !== false && !isFullyAchieved;
+
   return (
     <View
       style={[
@@ -121,19 +98,6 @@ export function SurahRecitationGoalCard({
       ]}
     >
       <View style={surahGoalStyles.cardAnchor}>
-        {isFlowActive && (
-          <Pressable style={styles.backdrop} />
-        )}
-        {isFlowActive && (
-          <TouchableOpacity
-            style={styles.cancelButton}
-            onPress={onFlowClose}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="close" size={20} color={Colors.light.white} />
-          </TouchableOpacity>
-        )}
-
         {!isFlowActive ? (
           <View
             style={[
@@ -143,47 +107,97 @@ export function SurahRecitationGoalCard({
                 : surahGoalStyles.cardInactive,
             ]}
           >
-            <View style={surahGoalStyles.cardContent}>
-              <View style={surahGoalStyles.bodyRow}>
-                <View style={surahGoalStyles.iconCircle}>
-                  <QuranRecitationBySurahFlowCardImage
-                    size={20}
-                    color={Colors.light.white}
-                  />
+            <View style={surahGoalStyles.bodyRow}>
+              <View style={surahGoalStyles.iconCircle}>
+                <QuranRecitationBySurahFlowCardImage
+                  size={26}
+                  color={Colors.light.white}
+                />
+              </View>
+
+              <View style={surahGoalStyles.textColumn}>
+                <View style={surahGoalStyles.statusChip}>
+                  <Text style={surahGoalStyles.statusChipText}>
+                    {statusLabel}
+                  </Text>
                 </View>
 
-                <View style={surahGoalStyles.textColumn}>
-                  <View style={surahGoalStyles.statusChip}>
-                    <Text style={surahGoalStyles.statusChipText}>
-                      {statusLabel}
+                <View style={surahGoalStyles.textLines}>
+                  <Text style={surahGoalStyles.surahName} numberOfLines={2}>
+                    {t("progressLogging.surahNameLabel", {
+                      name: stripEnglishParenthetical(goal.surahName),
+                    })}
+                  </Text>
+                  {fallbackSubtitle ? (
+                    <Text style={surahGoalStyles.metaRegular}>
+                      {fallbackSubtitle}
                     </Text>
-                  </View>
-
-                  <View style={surahGoalStyles.textLines}>
-                    <Text style={surahGoalStyles.surahName}>
-                      {t("progressLogging.surahNameLabel", {
-                        name: goal.surahName,
-                      })}
-                    </Text>
-
-                    {renderLineWithBoldNumber(frequencyLine, quantityLabel)}
-                    {renderLineWithBoldNumber(
-                      totalLine,
-                      cycleTotalLabel,
-                      true,
-                    )}
-                  </View>
+                  ) : (
+                    <>
+                      <Text style={surahGoalStyles.metaRegular}>
+                        {frequencyLine.includes(quantityLabel) ? (
+                          <>
+                            {frequencyLine.slice(
+                              0,
+                              frequencyLine.indexOf(quantityLabel),
+                            )}
+                            <Text style={surahGoalStyles.metaBold}>
+                              {quantityLabel}
+                            </Text>
+                            {frequencyLine.slice(
+                              frequencyLine.indexOf(quantityLabel) +
+                                quantityLabel.length,
+                            )}
+                          </>
+                        ) : (
+                          frequencyLine
+                        )}
+                      </Text>
+                      <Text style={surahGoalStyles.metaRegular}>
+                        {`(total `}
+                        <Text style={surahGoalStyles.metaBold}>
+                          {cycleTotalLabel}
+                        </Text>
+                        {` ${t("progressLogging.unitRecitations")})`}
+                      </Text>
+                    </>
+                  )}
                 </View>
               </View>
             </View>
 
-            <TouchableOpacity
-              style={surahGoalStyles.addButton}
-              onPress={handleLogProgress}
-              activeOpacity={0.8}
-            >
-              <Ionicons name="add" size={22} color={Colors.light.white} />
-            </TouchableOpacity>
+            <View style={surahGoalStyles.footerRow}>
+              {showInsights ? (
+                <TouchableOpacity
+                  style={surahGoalStyles.insightsBtn}
+                  onPress={() => quranFrame?.openInsights?.()}
+                  activeOpacity={0.8}
+                >
+                  <Text style={surahGoalStyles.insightsText}>
+                    {t("progressLogging.viewInsights")}
+                  </Text>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={22}
+                    color={Colors.light.white}
+                  />
+                </TouchableOpacity>
+              ) : null}
+            </View>
+
+            {canLog ? (
+              <TouchableOpacity
+                style={[
+                  surahGoalStyles.addButtonIconOnly,
+                  isFullyAchieved && surahGoalStyles.addButtonDisabled,
+                ]}
+                onPress={handleLogProgress}
+                activeOpacity={0.8}
+                disabled={isFullyAchieved}
+              >
+                <AddLoggingFlowIcon size={32} />
+              </TouchableOpacity>
+            ) : null}
           </View>
         ) : (
           <QuranRecitationLoggingFlow

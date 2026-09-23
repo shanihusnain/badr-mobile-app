@@ -101,7 +101,7 @@ function mapBucketsToAyahChart(
 ): QuranPastChartItem[] {
   const prefix = period === "monthly" ? "w" : "m";
 
-  return buckets.map((bucket, index) => {
+  const mapped = buckets.map((bucket, index) => {
     const completedAyahs = bucketCompletedAyahs(bucket);
     const incompleteAyahs = bucketIncompleteAyahs(bucket);
     const stackTotalHours = completedAyahs + incompleteAyahs;
@@ -120,6 +120,19 @@ function mapBucketsToAyahChart(
       achievementPct: toFiniteNumber(bucket.achievementPct) ?? undefined,
     };
   });
+
+  // Match prayer empty chart: no logged progress → no bars, axes, or W1/W2 labels.
+  const hasLoggedProgress = mapped.some(
+    (item) => (item.completedHours ?? 0) > 0,
+  );
+  const hasTimeSpent = buckets.some(
+    (bucket) => bucketTimeSpentMinutes(bucket) > 0,
+  );
+  if (!hasLoggedProgress && !hasTimeSpent) {
+    return [];
+  }
+
+  return mapped;
 }
 
 export type MappedMemorisationSurahAchievements = {
@@ -256,7 +269,7 @@ export function mapMemorisationSurahAchievementsToUi(
     longestStreak: 0,
     longestStreakPrevious: 0,
     ...yAxis,
-    pageCount: 1,
+    pageCount: chartData.length > 0 ? 1 : 0,
     activePageIndex: 0,
     narrative: data.narrative ?? null,
     keyInsightsHeader: data.keyInsightsHeader ?? null,
@@ -296,7 +309,7 @@ export function mapMemorisationSurahAchievementsToUi(
     achievementPercent,
     previousPeriodDeltaPercent,
     dateRangeLabel,
-    pageCount: 1,
+    pageCount: chartData.length > 0 ? 1 : 0,
     activePageIndex: 0,
     surahRecords,
     perSurah: {},

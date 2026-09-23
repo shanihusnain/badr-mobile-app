@@ -58,16 +58,17 @@ const LABEL_TO_TRACK_GAP = 6;
 const TRACK_CENTER_Y =
   LABEL_ROW_HEIGHT + LABEL_TO_TRACK_GAP + THUMB_RADIUS;
 const SLIDER_HEIGHT = TRACK_CENTER_Y + THUMB_HIT_RADIUS;
-/** Compact dark pill above each thumb (Figma). */
-const LABEL_WIDTH = 28;
+/** Compact dark pill above each thumb (Figma). Min fits 3-digit ayahs. */
+const LABEL_WIDTH = 36;
 const LABEL_TOP = 0;
 const CARET_HALF = 4;
 const THUMB_HIT_TOP = TRACK_CENTER_Y - THUMB_HIT_RADIUS;
 const TRACK_TOP = TRACK_CENTER_Y - TRACK_HEIGHT / 2;
 
 function estimateLabelWidth(text: string): number {
-  // Wide enough for `Al-Baqarah:286`; still capped so pills don't collide.
-  return Math.min(Math.max(Math.ceil(text.length * 6.4) + 12, LABEL_WIDTH), 112);
+  // Size to content so 3-digit ayahs (e.g. 286) never ellipsize.
+  // ~8px/glyph at 10pt medium + horizontal padding (6*2).
+  return Math.min(Math.max(Math.ceil(text.length * 8) + 16, LABEL_WIDTH), 120);
 }
 
 function getLabelLeft(
@@ -203,6 +204,8 @@ export function QuranAyatRangeSlider({
 
   const startX = valueToX(safeStart);
   const endX = valueToX(safeEnd);
+  /** End of already-logged range (previous session) — same scale as thumbs. */
+  const previousBoundaryX = valueToX(safeMinStart);
   const { renderStartX, renderEndX } = separateThumbCenters(
     startX,
     endX,
@@ -417,9 +420,8 @@ export function QuranAyatRangeSlider({
                 localStyles.trackLocked,
                 {
                   left: 0,
-                  // Extend through the frozen start thumb so the wash reads
-                  // continuous up to the selection boundary.
-                  width: Math.max(startX, 0),
+                  // Wash fills previous logging range up to the boundary tick.
+                  width: Math.max(previousBoundaryX, 0),
                 },
               ]}
             />
@@ -446,6 +448,25 @@ export function QuranAyatRangeSlider({
             },
           ]}
         />
+
+        {/* Figma: 2nd tick — end of previous logging range (before start thumb) */}
+        {safeMinStart > 1 ? (
+          <View
+            pointerEvents="none"
+            style={[
+              localStyles.startBar,
+              {
+                left: Math.max(
+                  TRACK_HORIZONTAL_INSET + START_BAR_WIDTH + 2,
+                  TRACK_HORIZONTAL_INSET +
+                    previousBoundaryX -
+                    THUMB_RADIUS,
+                ),
+                top: TRACK_CENTER_Y - START_BAR_HEIGHT / 2,
+              },
+            ]}
+          />
+        ) : null}
 
         {freezeStartHandle ? (
           <View
@@ -638,6 +659,7 @@ const localStyles = StyleSheet.create({
     lineHeight: 12,
     textAlign: "center",
     opacity: 0.95,
-    marginTop: 2,
+    // Pull closer to the thumbs so the slider sits lower toward this line.
+    marginTop: -8,
   },
 });

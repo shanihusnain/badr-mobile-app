@@ -42,8 +42,6 @@ import { GraphBarSelectionFooter } from "../QuranHoursPastAchievements/GraphBarS
 import { MemorisationHizbDetailCard } from "../QuranHoursPastAchievements/MemorisationHizbDetailCard";
 import { InsightCard } from "../InsightCard";
 import type { InsightCardData } from "../PrayerPastAchievements/insightCardsData";
-import { getGoalById } from "@/src/screens/private/home/components/goalsData";
-import { PastAchievementStudyMaterial } from "@/components/molecules/PastAchievementStudyMaterial";
 import { memorisationPastAchievementStyles as styles } from "./memorisationPastAchievementsStyles";
 import { useGetQuranGoalAchievements } from "@/src/api/queries/useGetQuranGoalAchievements";
 import { resolveQuranTypeFromGoalId } from "@/src/utils/quranGoalMap";
@@ -150,7 +148,9 @@ export function HizbMemorisationPastAchievements({
   const formatNumber = useLocaleNumber();
   const { width } = useWindowDimensions();
   const insightCardStyle = {
-    ...styles.insightCardFixed,
+    flex: 0,
+    flexGrow: 0,
+    flexShrink: 0,
     width: width * 0.42,
     maxWidth: width * 0.42,
     minWidth: width * 0.42,
@@ -165,8 +165,6 @@ export function HizbMemorisationPastAchievements({
   );
   const [selectedBarIndex, setSelectedBarIndex] = useState<number | null>(null);
   const [hintDismissed, setHintDismissed] = useState(false);
-  const goalData = getGoalById(goalId);
-  const studyMaterial = goalData?.studyMaterial ?? [];
 
   const quranGoalType = resolveQuranTypeFromGoalId(goalId);
   const usesAchievementsApi = quranGoalType === "MEMORIZATION_HIZB";
@@ -350,6 +348,7 @@ export function HizbMemorisationPastAchievements({
 
   const showNoDataDash =
     showPlaceholders ||
+    !hasLogs ||
     isPastAchievementBarEmpty(displayBaseCompleted, displayBaseIncomplete);
 
   const selectedPeriodTimeSpentMinutes =
@@ -785,7 +784,9 @@ export function HizbMemorisationPastAchievements({
                   {
                     iconFamily: "Ionicons" as const,
                     iconName: "book-outline",
-                    title: t("progressLogging.memorisationInsightTotalMemorized"),
+                    title: t(
+                      "progressLogging.memorisationInsightTotalMemorized",
+                    ),
                     value: LOADING_DASH,
                   },
                 ]
@@ -797,6 +798,11 @@ export function HizbMemorisationPastAchievements({
                 title={card.title}
                 value={String(card.value ?? LOADING_DASH)}
                 subValue={card.subValue}
+                trendValue={card.trendValue}
+                trendDirection={card.trendDirection}
+                footerText={card.footerText}
+                footerNeutral={card.footerNeutral}
+                noData={card.noData}
                 style={insightCardStyle}
               />
             ))}
@@ -926,7 +932,9 @@ export function HizbMemorisationPastAchievements({
           >
             <QuranHoursPastAchievementChartBlock
               chartData={
-                showPlaceholders ? [] : (chartAchievement?.chartData ?? [])
+                showPlaceholders || showNoDataDash
+                  ? []
+                  : (chartAchievement?.chartData ?? [])
               }
               selectedBarIndex={null}
               onBarPress={() => {}}
@@ -938,10 +946,14 @@ export function HizbMemorisationPastAchievements({
               hintText={t("progressLogging.chartTapHint")}
               hintActionText={t("progressLogging.okGotIt")}
               pageCount={
-                chartAchievement?.pageCount ?? compactAchievement.chartData.length
+                showNoDataDash
+                  ? 0
+                  : (chartAchievement?.pageCount ??
+                    compactAchievement.chartData.length)
               }
               activePageIndex={0}
               formatBarValue={chartFormatBarValue}
+              showPagination={!showNoDataDash}
               barColors={
                 analyticsView === "completedVsTimeSpent"
                   ? [Colors.light.green, Colors.light.green]
@@ -952,8 +964,6 @@ export function HizbMemorisationPastAchievements({
         </View>
 
         {renderInsights()}
-
-        <PastAchievementStudyMaterial items={studyMaterial} showSeeAll={false} />
       </View>
     );
   }
@@ -1040,23 +1050,29 @@ export function HizbMemorisationPastAchievements({
         >
           <QuranHoursPastAchievementChartBlock
             chartData={
-              showPlaceholders ? [] : (chartAchievement?.chartData ?? [])
+              showPlaceholders || showNoDataDash
+                ? []
+                : (chartAchievement?.chartData ?? [])
             }
-            selectedBarIndex={selectedBarIndex}
+            selectedBarIndex={
+              showPlaceholders || showNoDataDash ? null : selectedBarIndex
+            }
             onBarPress={handleBarPressDetailed}
             chartKey={`${goalId}-${period}-${selectedHizbId}-${analyticsView}-${periodStartParam ?? "latest"}-${showPlaceholders ? "loading" : "ready"}`}
             yMax={chartAchievement?.yMax ?? 10}
             yTicks={chartAchievement?.yTicks ?? [0, 5, 10]}
-            showHint={showChartHint && !showPlaceholders}
+            showHint={showChartHint && !showPlaceholders && !showNoDataDash}
             onDismissHint={() => setHintDismissed(true)}
             hintText={t("progressLogging.chartTapHint")}
             hintActionText={t("progressLogging.okGotIt")}
-            pageCount={chartAchievement?.pageCount ?? 1}
+            pageCount={
+              showNoDataDash ? 0 : (chartAchievement?.pageCount ?? 1)
+            }
             activePageIndex={
               selectedBarIndex ?? chartAchievement?.activePageIndex ?? 0
             }
             formatBarValue={chartFormatBarValue}
-            showPagination
+            showPagination={!showNoDataDash}
             barColors={
               analyticsView === "completedVsTimeSpent"
                 ? [Colors.light.green, Colors.light.green]

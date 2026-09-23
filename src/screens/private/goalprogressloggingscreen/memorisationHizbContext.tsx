@@ -21,7 +21,7 @@ import {
   type HizbMemorisationStatusKind,
   type MemorisationHizbFilterId,
 } from "./quranMemorisationHizbGoals";
-import { getHizbDisplayName } from "./quranHizbVerseMap";
+import { getHizbVerseCount, resolveHizbRangeLabel } from "./quranHizbVerseMap";
 
 type MemorisationHizbContextValue = {
   activeHizbId: MemorisationHizbFilterId;
@@ -55,6 +55,19 @@ function bareTitle(title: string | null | undefined, fallback: string) {
   return bare || raw;
 }
 
+/** API sometimes puts "(total N verses)" in subtitle — that is not a range. */
+function isTotalVersesLabel(value: string) {
+  return /^\(?\s*total\b/i.test(value) || /\bverses?\s*\)?\s*$/i.test(value);
+}
+
+function pickRangeLabel(...candidates: Array<string | undefined | null>) {
+  for (const candidate of candidates) {
+    const value = candidate?.trim();
+    if (value && !isTotalVersesLabel(value)) return value;
+  }
+  return "";
+}
+
 function mapFrameItemToGoal(item: QuranGoalFrameItem): HizbMemorisationGoal {
   const itemNumber = Number(item.itemNumber);
   const memorizedAyahs = Math.max(0, Math.round(Number(item.completed) || 0));
@@ -69,19 +82,15 @@ function mapFrameItemToGoal(item: QuranGoalFrameItem): HizbMemorisationGoal {
   const completed =
     pillState === "COMPLETED" ||
     (totalAyahs > 0 && memorizedAyahs >= totalAyahs);
-  const hizbNameRaw = bareTitle(
-    item.title,
-    `Hizb ${itemNumber}`,
+  const hizbNameRaw = bareTitle(item.title, `Hizb ${itemNumber}`);
+  const rangeFromTitle = hizbNameRaw.includes("|")
+    ? hizbNameRaw.split("|").slice(1).join("|").trim()
+    : "";
+  const rangeLabel = pickRangeLabel(
+    item.subtitle,
+    rangeFromTitle,
+    resolveHizbRangeLabel(itemNumber),
   );
-  const rangeFromApi = item.subtitle?.trim() || "";
-  const localDisplay =
-    getHizbDisplayName(`hizb-${itemNumber}`) ||
-    getHizbDisplayName(String(itemNumber));
-  const rangeFromLocal =
-    localDisplay.includes("|")
-      ? localDisplay.split("|").slice(1).join("|").trim()
-      : "";
-  const rangeLabel = rangeFromApi || rangeFromLocal;
   const hizbName = hizbNameRaw.includes("|")
     ? hizbNameRaw.split("|")[0]!.trim()
     : hizbNameRaw;
@@ -95,7 +104,8 @@ function mapFrameItemToGoal(item: QuranGoalFrameItem): HizbMemorisationGoal {
     displayName,
     subtitle: rangeLabel || undefined,
     pillLabel: item.pill?.label?.trim() || undefined,
-    totalAyahs,
+    totalAyahs:
+      totalAyahs > 0 ? totalAyahs : getHizbVerseCount(String(itemNumber)),
     memorizedAyahs,
     progressPercentage,
     completed,
@@ -130,21 +140,24 @@ function mapDetailItemToGoal(item: QuranGoalDetailItem): HizbMemorisationGoal {
   const completed =
     String(item.status ?? "").toUpperCase() === "COMPLETED" ||
     (totalAyahs > 0 && memorizedAyahs >= totalAyahs);
-  const hizbName = String(
-    item.surahName?.trim() || getHizbDisplayName(id) || `Hizb ${itemNumber}`,
+  const fallbackName = `Hizb ${itemNumber}`;
+  const rawName = String(item.surahName?.trim() || fallbackName);
+  const hizbName = bareTitle(
+    rawName.includes("|") ? rawName.split("|")[0]!.trim() : rawName,
+    fallbackName,
   );
-  const rangeLabel =
-    item.verseStart != null && item.verseEnd != null
-      ? `Ayah ${item.verseStart}–${item.verseEnd}`
-      : "";
+  const rangeLabel = pickRangeLabel(
+    rawName.includes("|") ? rawName.split("|").slice(1).join("|").trim() : "",
+    resolveHizbRangeLabel(itemNumber),
+  );
 
   return {
     id,
     itemNumber,
     hizbName,
     rangeLabel,
-    displayName: hizbName,
-    totalAyahs,
+    displayName: rangeLabel ? `${hizbName} | ${rangeLabel}` : hizbName,
+    totalAyahs: totalAyahs > 0 ? totalAyahs : getHizbVerseCount(id),
     memorizedAyahs,
     progressPercentage,
     completed,
@@ -198,19 +211,11 @@ export function MemorisationHizbProvider({
     const hizbName = rawName.includes("|")
       ? rawName.split("|")[0]!.trim()
       : bareTitle(rawName, `Hizb ${itemNumber}`);
-    const localDisplay =
-      getHizbDisplayName(`hizb-${itemNumber}`) ||
-      getHizbDisplayName(String(itemNumber));
-    const rangeFromLocal =
-      localDisplay.includes("|")
-        ? localDisplay.split("|").slice(1).join("|").trim()
-        : "";
-    const rangeLabel =
-      item?.subtitle?.trim() ||
-      (rawName.includes("|")
-        ? rawName.split("|").slice(1).join("|").trim()
-        : "") ||
-      rangeFromLocal;
+    const rangeLabel = pickRangeLabel(
+      item?.subtitle,
+      rawName.includes("|") ? rawName.split("|").slice(1).join("|").trim() : "",
+      resolveHizbRangeLabel(itemNumber),
+    );
     const pillLabel = item?.pill?.label?.trim() || undefined;
     const canLog = item?.canLog !== false;
     const displayName = rangeLabel ? `${hizbName} | ${rangeLabel}` : hizbName;
@@ -223,7 +228,10 @@ export function MemorisationHizbProvider({
       displayName,
       subtitle: rangeLabel || undefined,
       pillLabel,
-      totalAyahs: progress.totalAyahs,
+      totalAyahs:
+        progress.totalAyahs > 0
+          ? progress.totalAyahs
+          : getHizbVerseCount(String(itemNumber)),
       memorizedAyahs: progress.memorizedAyahs,
       progressPercentage: progress.progressPercent,
       completed: progress.completed,

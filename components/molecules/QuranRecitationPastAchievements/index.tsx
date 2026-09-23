@@ -47,6 +47,14 @@ import {
   getActiveRecitationSurahGoal,
   useOptionalRecitationSurahContext,
 } from "@/src/screens/private/goalprogressloggingscreen/recitationSurahContext";
+import { resolveQuranTypeFromGoalId } from "@/src/utils/quranGoalMap";
+import { useGetQuranGoalAchievements } from "@/src/api/queries/useGetQuranGoalAchievements";
+import {
+  buildMemorisationSurahAchievementFilters,
+  createEmptyMemorisationSurahAchievements,
+  mapMemorisationSurahAchievementsToUi,
+} from "@/src/utils/quranMemorisationSurahAchievementsMap";
+import type { SurahMemorisationGoal } from "@/src/screens/private/goalprogressloggingscreen/quranMemorisationSurahGoals";
 import { INCOMPLETE_BAR_COLOR } from "../QuranHoursPastAchievements/pastAchievementStyles";
 import { RecitationPastAchievementProgressSection } from "../QuranHoursPastAchievements/RecitationPastAchievementProgressSection";
 import { RecitationSurahBreakdownList } from "../QuranHoursPastAchievements/RecitationSurahBreakdownList";
@@ -55,11 +63,16 @@ import { GraphBarSelectionFooter } from "../QuranHoursPastAchievements/GraphBarS
 import { SurahProgressStrip } from "../QuranHoursPastAchievements/SurahProgressStrip";
 import { QuranHoursPastAchievementChartBlock } from "../QuranHoursPastAchievements/QuranHoursPastAchievementChartBlock";
 import { InsightCard } from "../InsightCard";
-import {
-  getGoalById,
-} from "@/src/screens/private/home/components/goalsData";
-import { PastAchievementStudyMaterial } from "@/components/molecules/PastAchievementStudyMaterial";
+import type { InsightCardData } from "../PrayerPastAchievements/insightCardsData";
 import { TopSpace } from "@/components/atoms/TopSpace";
+import {
+  InsightCardFlashIcon,
+  InsightCardGoalTrackedIcon,
+  InsightCardGoodDayIcon,
+  InsightCardTickIcon,
+  InsightCardTimeSpentIcon,
+  InsightCardWeeklyAverageIcon,
+} from "@/assets/icons";
 
 export type QuranRecitationPastAchievementsProps = {
   goalId: SurahRecitationGoalId;
@@ -107,6 +120,44 @@ const PERIOD_INSIGHT_SUBTITLE: Record<PastAchievementPeriod, string> = {
   sixMonths: "VS. LAST 6 MONTHS",
 };
 
+const QURAN_INSIGHT_ICON_SIZE = 14;
+
+function getRecitationInsightIcon(card: InsightCardData) {
+  const title = card.title.toUpperCase();
+  const name = card.iconName;
+  if (name === "calendar-outline" || title.includes("GOAL TRACKED")) {
+    return <InsightCardGoalTrackedIcon size={QURAN_INSIGHT_ICON_SIZE} />;
+  }
+  if (
+    name === "checkmark-circle-outline" ||
+    title.includes("COMPLETED") ||
+    title.includes("ACTIVE")
+  ) {
+    return <InsightCardTickIcon size={QURAN_INSIGHT_ICON_SIZE} />;
+  }
+  if (name === "flash" || title.includes("STREAK")) {
+    return <InsightCardFlashIcon size={QURAN_INSIGHT_ICON_SIZE} />;
+  }
+  if (name === "sparkles" || title.includes("BEST")) {
+    return <InsightCardGoodDayIcon size={QURAN_INSIGHT_ICON_SIZE} />;
+  }
+  if (
+    name === "scale-balance" ||
+    name === "stats-chart-outline" ||
+    title.includes("AVERAGE")
+  ) {
+    return <InsightCardWeeklyAverageIcon size={QURAN_INSIGHT_ICON_SIZE} />;
+  }
+  if (
+    name === "time-outline" ||
+    title.includes("TIME") ||
+    name === "book-outline"
+  ) {
+    return <InsightCardTimeSpentIcon size={QURAN_INSIGHT_ICON_SIZE} />;
+  }
+  return undefined;
+}
+
 export function QuranRecitationPastAchievements({
   goalId,
   isDetailed = false,
@@ -119,7 +170,9 @@ export function QuranRecitationPastAchievements({
   const { width } = useWindowDimensions();
   const formatNumber = useLocaleNumber();
   const insightCardStyle = {
-    ...styles.insightCardFixed,
+    flex: 0,
+    flexGrow: 0,
+    flexShrink: 0,
     width: width * 0.42,
     maxWidth: width * 0.42,
     minWidth: width * 0.42,
@@ -128,15 +181,45 @@ export function QuranRecitationPastAchievements({
   const [period, setPeriod] = useState<PastAchievementPeriod>(initialPeriod);
   const [analyticsView, setAnalyticsView] =
     useState<RecitationAnalyticsView>(initialAnalyticsView);
-  const goalData = getGoalById(goalId);
-  const studyMaterial = goalData?.studyMaterial ?? [];
   const [selectedBarIndex, setSelectedBarIndex] = useState<number | null>(null);
   const [hintDismissed, setHintDismissed] = useState(false);
 
-  const surahFilters = useMemo(
-    () => getPastAchievementSurahFilters(goalId),
-    [goalId],
-  );
+  const quranGoalType = resolveQuranTypeFromGoalId(goalId);
+  const usesAchievementsApi = quranGoalType === "RECITATION_SURAH";
+  const contextGoals = surahContext?.goals ?? [];
+
+  const memorisationShapedGoals = useMemo((): SurahMemorisationGoal[] => {
+    return contextGoals.map((goal) => {
+      const parsedId = Number(goal.id);
+      return {
+        id: goal.id,
+        itemNumber:
+          goal.itemNumber != null && goal.itemNumber > 0
+            ? goal.itemNumber
+            : Number.isFinite(parsedId)
+              ? parsedId
+              : 0,
+        surahName: goal.surahName,
+        totalAyahs: goal.cycleTotal,
+        memorizedAyahs: goal.loggedRecitations,
+        progressPercentage: goal.achievementPercent ?? 0,
+        completed: goal.completed === true || goal.status === "achieved",
+        status:
+          goal.status === "achieved"
+            ? "completed"
+            : goal.status === "in-progress"
+              ? "in-progress"
+              : "not-started",
+      };
+    });
+  }, [contextGoals]);
+
+  const surahFilters = useMemo(() => {
+    if (memorisationShapedGoals.length > 0) {
+      return buildMemorisationSurahAchievementFilters(memorisationShapedGoals);
+    }
+    return getPastAchievementSurahFilters(goalId);
+  }, [goalId, memorisationShapedGoals, surahContext?.refreshKey]);
 
   const [detailedSurahFilter, setDetailedSurahFilter] = useState<SurahFilterId>(
     () => initialSurahId ?? "all",
@@ -146,26 +229,101 @@ export function QuranRecitationPastAchievements({
     ? detailedSurahFilter
     : (surahContext?.activeSurahId ?? initialSurahId ?? "all");
   const refreshKey = surahContext?.refreshKey ?? 0;
-  const surahGoal = getActiveRecitationSurahGoal(selectedSurahId);
+  const surahGoal =
+    contextGoals.find((goal) => goal.id === selectedSurahId) ??
+    getActiveRecitationSurahGoal(selectedSurahId);
   const surahDisplayName =
     surahGoal?.surahName ??
-    getPastAchievementSurahFilters(goalId).find(
-      (filter) => filter.id === selectedSurahId,
-    )?.surahName ??
+    surahFilters.find((filter) => filter.id === selectedSurahId)?.surahName ??
     "";
 
   const isSurahDrillDown = isDetailed && selectedSurahId !== "all";
 
-  const periodSlice = useMemo(
-    () =>
-      getQuranRecitationPastAchievementSlice(goalId, period, selectedSurahId),
-    [goalId, period, selectedSurahId, refreshKey],
-  );
+  const selectedItemNumber = useMemo(() => {
+    if (selectedSurahId === "all") return null;
+    const fromGoal = contextGoals.find((goal) => goal.id === selectedSurahId)
+      ?.itemNumber;
+    if (fromGoal != null && Number.isFinite(fromGoal)) return fromGoal;
+    const fromId = Number(selectedSurahId);
+    return Number.isFinite(fromId) && fromId > 0 ? fromId : null;
+  }, [contextGoals, selectedSurahId]);
 
-  const hasLogs = useMemo(
-    () => hasRecitationPastAchievementLogs(periodSlice),
-    [periodSlice],
-  );
+  const achievementsChartParam =
+    isDetailed && analyticsView === "completedVsTimeSpent"
+      ? "COMPLETED_VS_TIME"
+      : null;
+
+  const { data: achievementsApiData, isLoading: isAchievementsLoading } =
+    useGetQuranGoalAchievements(quranGoalType, {
+      period,
+      itemNumber: selectedItemNumber,
+      chart: achievementsChartParam,
+      enabled: usesAchievementsApi && !!quranGoalType,
+    });
+
+  const showPlaceholders =
+    usesAchievementsApi && (!achievementsApiData || isAchievementsLoading);
+
+  const mappedApi = useMemo(() => {
+    if (!usesAchievementsApi) return null;
+    if (!achievementsApiData) {
+      return createEmptyMemorisationSurahAchievements(
+        selectedSurahId,
+        surahDisplayName || "All Surahs",
+      );
+    }
+    return mapMemorisationSurahAchievementsToUi(achievementsApiData, period, {
+      surahId: selectedSurahId,
+      surahName: surahDisplayName || "All Surahs",
+      goals: memorisationShapedGoals,
+    });
+  }, [
+    achievementsApiData,
+    memorisationShapedGoals,
+    period,
+    selectedSurahId,
+    surahDisplayName,
+    usesAchievementsApi,
+  ]);
+
+  const periodSlice = useMemo(() => {
+    if (usesAchievementsApi && mappedApi) {
+      return {
+        chartPeriods: mappedApi.slice.chartPeriods,
+        goalTotal: mappedApi.slice.totalAyahs,
+        achievementPercent: mappedApi.slice.achievementPercent,
+        previousPeriodDeltaPercent: mappedApi.slice.previousPeriodDeltaPercent,
+        activeDays: mappedApi.achievement.activeDays,
+        activeDaysPrevious: mappedApi.achievement.activeDaysPrevious,
+        longestStreak: mappedApi.achievement.longestStreak,
+        longestStreakPrevious: mappedApi.achievement.longestStreakPrevious,
+        dateRangeLabel: mappedApi.slice.dateRangeLabel,
+        pageCount: mappedApi.slice.pageCount,
+        activePageIndex: mappedApi.slice.activePageIndex,
+      };
+    }
+    return getQuranRecitationPastAchievementSlice(
+      goalId,
+      period,
+      selectedSurahId,
+    );
+  }, [
+    goalId,
+    mappedApi,
+    period,
+    refreshKey,
+    selectedSurahId,
+    usesAchievementsApi,
+  ]);
+
+  const hasLogs = useMemo(() => {
+    if (usesAchievementsApi && mappedApi) {
+      return mappedApi.slice.chartPeriods.some(
+        (item) => item.completed > 0 || item.incomplete > 0,
+      );
+    }
+    return hasRecitationPastAchievementLogs(periodSlice);
+  }, [mappedApi, periodSlice, usesAchievementsApi]);
 
   const displaySlice = useMemo(
     () =>
@@ -175,10 +333,19 @@ export function QuranRecitationPastAchievements({
     [hasLogs, isSurahDrillDown, periodSlice],
   );
 
-  const baseAchievement = useMemo(
-    () => getQuranRecitationPastAchievement(goalId, period, selectedSurahId),
-    [goalId, period, selectedSurahId, refreshKey],
-  );
+  const baseAchievement = useMemo(() => {
+    if (usesAchievementsApi && mappedApi) {
+      return mappedApi.achievement;
+    }
+    return getQuranRecitationPastAchievement(goalId, period, selectedSurahId);
+  }, [
+    goalId,
+    mappedApi,
+    period,
+    refreshKey,
+    selectedSurahId,
+    usesAchievementsApi,
+  ]);
 
   const chartBaseAchievement = useMemo(
     () =>
@@ -411,10 +578,9 @@ export function QuranRecitationPastAchievements({
   }, []);
 
   const showEmptyAchievement = isSurahDrillDown && !hasLogs;
-  const showNoDataDash = isPastAchievementBarEmpty(
-    displayBaseCompleted,
-    displayBaseIncomplete,
-  );
+  const showNoDataDash =
+    showPlaceholders ||
+    isPastAchievementBarEmpty(displayBaseCompleted, displayBaseIncomplete);
   const displayAchievementPercent =
     showEmptyAchievement || showNoDataDash
       ? PAST_ACHIEVEMENT_NO_DATA
@@ -613,6 +779,12 @@ export function QuranRecitationPastAchievements({
             <InsightCard
               key={card.title}
               iconName={card.iconName}
+              icon={getRecitationInsightIcon({
+                iconFamily: "Ionicons",
+                iconName: card.iconName,
+                title: card.title,
+                value: card.value,
+              })}
               title={card.title}
               value={card.value}
               subValue={card.subValue}
@@ -1095,22 +1267,36 @@ return (
           onMoveShouldSetResponder={() => false}
         >
           <QuranHoursPastAchievementChartBlock
-            chartData={chartAchievement.chartData}
-            selectedBarIndex={isDetailed ? selectedBarIndex : null}
+            chartData={
+              showEmptyAchievement || showNoDataDash
+                ? []
+                : (chartAchievement?.chartData ?? [])
+            }
+            selectedBarIndex={
+              isDetailed && !showEmptyAchievement && !showNoDataDash
+                ? selectedBarIndex
+                : null
+            }
             onBarPress={isDetailed ? handleBarPress : () => {}}
-            chartKey={`${goalId}-${period}-${selectedSurahId}-${analyticsView}-period`}
+            chartKey={`${goalId}-${period}-${selectedSurahId}-${analyticsView}-${showEmptyAchievement || showNoDataDash ? "empty" : "ready"}`}
             yMax={chartAchievement.yMax}
             yTicks={chartAchievement.yTicks}
-            showHint={showChartHint}
+            showHint={showChartHint && !showNoDataDash && !showEmptyAchievement}
             onDismissHint={() => setHintDismissed(true)}
             hintText={t("progressLogging.chartTapHint")}
             hintActionText={t("progressLogging.okGotIt")}
-            pageCount={chartAchievement.pageCount}
+            pageCount={
+              showEmptyAchievement || showNoDataDash
+                ? 0
+                : chartAchievement.pageCount
+            }
             activePageIndex={
               selectedBarIndex ?? chartAchievement.activePageIndex
             }
             formatBarValue={chartFormatBarValue}
-            showPagination={isDetailed}
+            showPagination={
+              isDetailed && !showEmptyAchievement && !showNoDataDash
+            }
             barColors={
               analyticsView === "completedVsTimeSpent"
                 ? [Colors.light.green, Colors.light.green]
@@ -1150,7 +1336,6 @@ return (
         ) : null}
       </View>
       {renderInsights()}
-      <PastAchievementStudyMaterial items={studyMaterial} isDetailed={isDetailed} />
     </View>
   );
 }
@@ -1392,8 +1577,9 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   insightCardFixed: {
-    width: 160,
-    minWidth: 160,
+    flex: 0,
+    flexGrow: 0,
+    flexShrink: 0,
   },
   sectionTitle: {
     color: Colors.light.subtext,

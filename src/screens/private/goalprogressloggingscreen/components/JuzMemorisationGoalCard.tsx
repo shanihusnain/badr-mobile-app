@@ -1,11 +1,14 @@
 import React, { useMemo } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import { useTranslation } from "react-i18next";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "@/constants/theme";
 import { AddLoggingFlowIcon, QuranMemorizationIcon } from "@/assets/icons";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
+import { quranFrameShowsInsights } from "@/src/utils/quranGoalFrameMap";
 import { GoalData } from "../../home/components/goalsData";
 import QuranMemorisationJuzLoggingFlow from "../flows/QuranMemorisationJuzLoggingFlow";
+import { useOptionalQuranGoalFrameContext } from "../quranGoalFrameContext";
 import type { JuzMemorisationGoal } from "../quranMemorisationJuzGoals";
 import type { QuranMemorisationJuzLogEntry } from "../types";
 import { FLOW_CARD_HEIGHT, styles } from "./DailyProgressLogging.styles";
@@ -34,6 +37,13 @@ export function JuzMemorisationGoalCard({
 }: Props) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
+  const quranFrame = useOptionalQuranGoalFrameContext();
+  const showInsights = quranFrame?.frame
+    ? quranFrameShowsInsights(quranFrame.frame)
+    : false;
+  const isFullyAchieved =
+    (quranFrame?.frame?.goal.achievementPct ?? 0) >= 100 ||
+    goal.completed === true;
 
   const statusLabel = useMemo(() => {
     if (goal.pillLabel?.trim()) return goal.pillLabel.trim();
@@ -138,13 +148,35 @@ export function JuzMemorisationGoalCard({
               </View>
             </View>
 
-            <View style={surahGoalStyles.footerRow} />
+            <View style={surahGoalStyles.footerRow}>
+              {showInsights ? (
+                <TouchableOpacity
+                  style={surahGoalStyles.insightsBtn}
+                  onPress={() => quranFrame?.openInsights?.()}
+                  activeOpacity={0.8}
+                  hitSlop={{ top: 12, bottom: 12, left: 8, right: 8 }}
+                >
+                  <Text style={surahGoalStyles.insightsText}>
+                    {t("progressLogging.viewInsights")}
+                  </Text>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={22}
+                    color={Colors.light.white}
+                  />
+                </TouchableOpacity>
+              ) : null}
+            </View>
 
             {canLog ? (
               <TouchableOpacity
-                style={surahGoalStyles.addButtonIconOnly}
+                style={[
+                  surahGoalStyles.addButtonIconOnly,
+                  isFullyAchieved && surahGoalStyles.addButtonDisabled,
+                ]}
                 onPress={handleLogProgress}
                 activeOpacity={0.8}
+                disabled={isFullyAchieved}
               >
                 <AddLoggingFlowIcon size={32} />
               </TouchableOpacity>

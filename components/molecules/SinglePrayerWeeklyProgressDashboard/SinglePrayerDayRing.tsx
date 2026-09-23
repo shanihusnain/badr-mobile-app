@@ -13,8 +13,8 @@ type SinglePrayerDayRingProps = {
   showEmptyOutline: boolean;
 };
 
-/** Best day is only slightly larger than a normal day circle. */
-const BEST_DAY_SIZE_BOOST = 4;
+/** Best day is a little larger than a normal day circle. */
+const BEST_DAY_SIZE_BOOST = 6;
 
 export function SinglePrayerDayRing({
   size,

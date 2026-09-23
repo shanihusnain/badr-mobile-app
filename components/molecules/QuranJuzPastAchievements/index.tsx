@@ -44,11 +44,14 @@ import { GraphBarSelectionFooter } from "../QuranHoursPastAchievements/GraphBarS
 import { RecitationPastAchievementProgressSection } from "../QuranHoursPastAchievements/RecitationPastAchievementProgressSection";
 import { RecitationJuzDetailCard } from "../QuranHoursPastAchievements/RecitationJuzDetailCard";
 import { InsightCard } from "../InsightCard";
-import {
-  getGoalById,
-} from "@/src/screens/private/home/components/goalsData";
-import { PastAchievementStudyMaterial } from "@/components/molecules/PastAchievementStudyMaterial";
 import { TopSpace } from "@/components/atoms/TopSpace";
+import {
+  InsightCardGoalTrackedIcon,
+  InsightCardTickIcon,
+  InsightCardTimeSpentIcon,
+} from "@/assets/icons";
+
+const QURAN_INSIGHT_ICON_SIZE = 14;
 
 export type QuranJuzPastAchievementsProps = {
   goalId: JuzRecitationGoalId;
@@ -100,7 +103,9 @@ export function QuranJuzPastAchievements({
   const { width } = useWindowDimensions();
   const formatNumber = useLocaleNumber();
   const insightCardStyle = {
-    ...styles.insightCardFixed,
+    flex: 0,
+    flexGrow: 0,
+    flexShrink: 0,
     width: width * 0.42,
     maxWidth: width * 0.42,
     minWidth: width * 0.42,
@@ -111,8 +116,6 @@ export function QuranJuzPastAchievements({
   const [analyticsView, setAnalyticsView] = useState<JuzAnalyticsView>(
     initialAnalyticsView,
   );
-  const goalData = getGoalById(goalId);
-  const studyMaterial = goalData?.studyMaterial ?? [];
   const [selectedBarIndex, setSelectedBarIndex] = useState<number | null>(null);
   const [hintDismissed, setHintDismissed] = useState(false);
 
@@ -321,6 +324,7 @@ export function QuranJuzPastAchievements({
         >
           <InsightCard
             iconName="calendar-outline"
+            icon={<InsightCardTickIcon size={QURAN_INSIGHT_ICON_SIZE} />}
             title={t("progressLogging.completed")}
             value={formatNumber(baseAchievement.completedHours)}
             subValue={t("progressLogging.unitJuz")}
@@ -328,6 +332,7 @@ export function QuranJuzPastAchievements({
           />
           <InsightCard
             iconName="book-outline"
+            icon={<InsightCardTimeSpentIcon size={QURAN_INSIGHT_ICON_SIZE} />}
             title="AYAT RECITED"
             value={formatNumber(selectedJuzRecord?.completedAyatCount ?? 0)}
             subValue={`of ${formatNumber(selectedJuzRecord?.totalAyatCount ?? 0)}`}
@@ -335,6 +340,7 @@ export function QuranJuzPastAchievements({
           />
           <InsightCard
             iconName="time-outline"
+            icon={<InsightCardGoalTrackedIcon size={QURAN_INSIGHT_ICON_SIZE} />}
             title={t("progressLogging.timeSpentLabel")}
             value={formatJuzTimeSpentLabel(totalTimeSpentMinutes)}
             style={insightCardStyle}
@@ -840,22 +846,24 @@ return (
           onMoveShouldSetResponder={() => false}
         >
           <QuranHoursPastAchievementChartBlock
-            chartData={chartAchievement.chartData}
-            selectedBarIndex={isDetailed ? selectedBarIndex : null}
+            chartData={showNoDataDash ? [] : chartAchievement.chartData}
+            selectedBarIndex={
+              isDetailed && !showNoDataDash ? selectedBarIndex : null
+            }
             onBarPress={
               isDetailed ? handleBarPressDetailed : handleBarPressCompact
             }
-            chartKey={`${goalId}-${period}-${selectedJuzFilter}-${analyticsView}`}
+            chartKey={`${goalId}-${period}-${selectedJuzFilter}-${analyticsView}-${showNoDataDash ? "empty" : "ready"}`}
             yMax={chartAchievement.yMax}
             yTicks={chartAchievement.yTicks}
-            showHint={showChartHint}
+            showHint={showChartHint && !showNoDataDash}
             onDismissHint={() => setHintDismissed(true)}
             hintText={t("progressLogging.chartTapHint")}
             hintActionText={t("progressLogging.okGotIt")}
-            pageCount={chartAchievement.pageCount}
+            pageCount={showNoDataDash ? 0 : chartAchievement.pageCount}
             activePageIndex={selectedBarIndex ?? chartAchievement.activePageIndex}
             formatBarValue={chartFormatBarValue}
-            showPagination={isDetailed}
+            showPagination={isDetailed && !showNoDataDash}
             barColors={
               analyticsView === "completedVsTimeSpent"
                 ? [Colors.light.green, Colors.light.green]
@@ -889,8 +897,6 @@ return (
       </View>
 
       {renderInsights()}
-
-      <PastAchievementStudyMaterial items={studyMaterial} isDetailed={isDetailed} />
     </View>
   );
 }
@@ -969,8 +975,9 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   insightCardFixed: {
-    width: 160,
-    minWidth: 160,
+    flex: 0,
+    flexGrow: 0,
+    flexShrink: 0,
   },
   sectionTitle: {
     color: Colors.light.subtext,

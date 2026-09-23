@@ -78,18 +78,29 @@ export function JuzMemorisationGoalsList({
   }).current;
 
   const renderItem = useCallback(
-    ({ item }: { item: JuzMemorisationGoal }) => (
-      <JuzMemorisationGoalCard
-        goal={item}
-        goalData={goalData}
-        cardWidth={cardWidth}
-        isInView={item.id === activeGoalId}
-        isFlowActive={item.id === activeFlowGoalId}
-        onStartFlow={onStartFlow}
-        onFlowClose={onFlowClose}
-        onLogComplete={onLogComplete}
-      />
-    ),
+    ({ item }: { item: JuzMemorisationGoal }) => {
+      if (activeFlowGoalId && item.id !== activeFlowGoalId) {
+        return (
+          <View
+            style={{ width: cardWidth, height: FLOW_CARD_HEIGHT }}
+            pointerEvents="none"
+          />
+        );
+      }
+
+      return (
+        <JuzMemorisationGoalCard
+          goal={item}
+          goalData={goalData}
+          cardWidth={cardWidth}
+          isInView={item.id === activeGoalId}
+          isFlowActive={item.id === activeFlowGoalId}
+          onStartFlow={onStartFlow}
+          onFlowClose={onFlowClose}
+          onLogComplete={onLogComplete}
+        />
+      );
+    },
     [
       activeFlowGoalId,
       activeGoalId,
@@ -128,10 +139,15 @@ export function JuzMemorisationGoalsList({
   return (
     <View>
       <View
-        style={{
-          paddingLeft: CARD_ANCHOR_PADDING_LEFT,
-          overflow: "hidden",
-        }}
+        style={[
+          {
+            paddingLeft: CARD_ANCHOR_PADDING_LEFT,
+            overflow: "hidden",
+          },
+          activeFlowGoalId
+            ? { zIndex: 101, elevation: 12, position: "relative" as const }
+            : undefined,
+        ]}
       >
         <FlatList
           horizontal

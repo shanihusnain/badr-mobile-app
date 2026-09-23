@@ -41,8 +41,6 @@ import { GraphBarSelectionFooter } from "../QuranHoursPastAchievements/GraphBarS
 import { MemorisationJuzDetailCard } from "../QuranHoursPastAchievements/MemorisationJuzDetailCard";
 import { InsightCard } from "../InsightCard";
 import type { InsightCardData } from "../PrayerPastAchievements/insightCardsData";
-import { getGoalById } from "@/src/screens/private/home/components/goalsData";
-import { PastAchievementStudyMaterial } from "@/components/molecules/PastAchievementStudyMaterial";
 import { memorisationPastAchievementStyles as styles } from "./memorisationPastAchievementsStyles";
 import { useGetQuranGoalAchievements } from "@/src/api/queries/useGetQuranGoalAchievements";
 import { resolveQuranTypeFromGoalId } from "@/src/utils/quranGoalMap";
@@ -95,6 +93,7 @@ const PERIOD_INSIGHT_SUBTITLE: Record<PastAchievementPeriod, string> = {
   sixMonths: "VS. LAST 6 MONTHS",
 };
 
+const LOADING_DASH = "---";
 const QURAN_INSIGHT_ICON_SIZE = 14;
 
 function getMemorisationInsightIcon(card: InsightCardData) {
@@ -147,7 +146,9 @@ export function JuzMemorisationPastAchievements({
   const formatNumber = useLocaleNumber();
   const { width } = useWindowDimensions();
   const insightCardStyle = {
-    ...styles.insightCardFixed,
+    flex: 0,
+    flexGrow: 0,
+    flexShrink: 0,
     width: width * 0.42,
     maxWidth: width * 0.42,
     minWidth: width * 0.42,
@@ -165,8 +166,6 @@ export function JuzMemorisationPastAchievements({
     useState<MemorisationJuzFilterId>(initialJuzId ?? "all");
   const [selectedBarIndex, setSelectedBarIndex] = useState<number | null>(null);
   const [hintDismissed, setHintDismissed] = useState(false);
-  const goalData = getGoalById(goalId);
-  const studyMaterial = goalData?.studyMaterial ?? [];
 
   const quranGoalType = resolveQuranTypeFromGoalId(goalId);
   const usesAchievementsApi = quranGoalType === "MEMORIZATION_JUZ";
@@ -267,6 +266,8 @@ export function JuzMemorisationPastAchievements({
   const canNavigateForward = usesAchievementsApi
     ? Boolean(mappedApi?.achievement.canNavigateForward)
     : false;
+
+  const keyInsightsHeader = mappedApi?.achievement.keyInsightsHeader ?? null;
 
   const insightCards = useMemo(() => {
     if (!usesAchievementsApi) return [];
@@ -386,10 +387,12 @@ export function JuzMemorisationPastAchievements({
   const displayBaseIncomplete =
     selectedBaseBar?.incompleteHours ?? baseAchievement.incompleteHours;
 
-  const showNoDataDash = isPastAchievementBarEmpty(
-    displayBaseCompleted,
-    displayBaseIncomplete,
-  );
+  const showNoDataDash =
+    !hasLogs ||
+    isPastAchievementBarEmpty(
+      displayBaseCompleted,
+      displayBaseIncomplete,
+    );
 
   const selectedPeriodTimeSpentMinutes =
     selectedBarIndex !== null
@@ -711,51 +714,97 @@ export function JuzMemorisationPastAchievements({
     );
   };
 
-  const renderInsights = () => (
-    <View style={styles.insightsSection}>
-      <View style={styles.insightsHeader}>
-        <Text style={styles.insightsTitleLabel}>
-          {t("progressLogging.keyInsights")}
-        </Text>
-        <Text style={styles.insightsSubtitleLabel}>
-          {PERIOD_INSIGHT_SUBTITLE[period]}
-        </Text>
+  const renderInsights = () => {
+    if (usesAchievementsApi && insightCards.length > 0) {
+      return (
+        <View style={styles.insightsSection}>
+          <View style={styles.insightsHeader}>
+            <Text style={styles.insightsTitleLabel}>
+              {t("progressLogging.keyInsights")}
+            </Text>
+            <Text style={styles.insightsSubtitleLabel}>
+              {keyInsightsHeader?.trim() || PERIOD_INSIGHT_SUBTITLE[period]}
+            </Text>
+          </View>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            nestedScrollEnabled
+            contentContainerStyle={styles.insightsScrollContent}
+          >
+            {insightCards.map((card, index) => (
+              <InsightCard
+                key={`${card.title}-${index}`}
+                iconName={card.iconName}
+                icon={getMemorisationInsightIcon(card)}
+                title={card.title}
+                value={card.value}
+                subValue={card.subValue}
+                trendValue={card.trendValue}
+                trendDirection={card.trendDirection}
+                footerText={card.footerText}
+                footerNeutral={card.footerNeutral}
+                noData={card.noData}
+                style={insightCardStyle}
+              />
+            ))}
+          </ScrollView>
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.insightsSection}>
+        <View style={styles.insightsHeader}>
+          <Text style={styles.insightsTitleLabel}>
+            {t("progressLogging.keyInsights")}
+          </Text>
+          <Text style={styles.insightsSubtitleLabel}>
+            {PERIOD_INSIGHT_SUBTITLE[period]}
+          </Text>
+        </View>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          nestedScrollEnabled
+          contentContainerStyle={styles.insightsScrollContent}
+        >
+          <InsightCard
+            iconName="calendar-outline"
+            icon={getMemorisationInsightIcon({
+              iconFamily: "Ionicons",
+              iconName: "calendar-outline",
+              title: t("progressLogging.recitationInsightGoalTracked"),
+              value: String(goalTrackedMonths),
+            })}
+            title={t("progressLogging.recitationInsightGoalTracked")}
+            value={
+              showPlaceholders ? LOADING_DASH : formatNumber(goalTrackedMonths)
+            }
+            subValue={t("progressLogging.recitationInsightMonths")}
+            style={insightCardStyle}
+          />
+          <InsightCard
+            iconName="book-outline"
+            icon={getMemorisationInsightIcon({
+              iconFamily: "Ionicons",
+              iconName: "book-outline",
+              title: t("progressLogging.memorisationInsightTotalMemorized"),
+              value: String(totalMemorizedVerses),
+            })}
+            title={t("progressLogging.memorisationInsightTotalMemorized")}
+            value={
+              showPlaceholders
+                ? LOADING_DASH
+                : formatNumber(totalMemorizedVerses)
+            }
+            subValue={t("progressLogging.memorisationInsightVersesMemorized")}
+            style={insightCardStyle}
+          />
+        </ScrollView>
       </View>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        nestedScrollEnabled
-        contentContainerStyle={styles.insightsScrollContent}
-      >
-        <InsightCard
-          iconName="calendar-outline"
-          icon={getMemorisationInsightIcon({
-            iconFamily: "Ionicons",
-            iconName: "calendar-outline",
-            title: t("progressLogging.recitationInsightGoalTracked"),
-            value: String(goalTrackedMonths),
-          })}
-          title={t("progressLogging.recitationInsightGoalTracked")}
-          value={formatNumber(goalTrackedMonths)}
-          subValue={t("progressLogging.recitationInsightMonths")}
-            style={insightCardStyle}
-        />
-        <InsightCard
-          iconName="book-outline"
-          icon={getMemorisationInsightIcon({
-            iconFamily: "Ionicons",
-            iconName: "book-outline",
-            title: t("progressLogging.memorisationInsightTotalMemorized"),
-            value: String(totalMemorizedVerses),
-          })}
-          title={t("progressLogging.memorisationInsightTotalMemorized")}
-          value={formatNumber(totalMemorizedVerses)}
-          subValue={t("progressLogging.memorisationInsightVersesMemorized")}
-            style={insightCardStyle}
-        />
-      </ScrollView>
-    </View>
-  );
+    );
+  };
 
   if (!isDetailed) {
     return (
@@ -828,7 +877,9 @@ export function JuzMemorisationPastAchievements({
             onMoveShouldSetResponder={() => false}
           >
             <QuranHoursPastAchievementChartBlock
-              chartData={chartAchievement?.chartData ?? []}
+              chartData={
+                showNoDataDash ? [] : (chartAchievement?.chartData ?? [])
+              }
               selectedBarIndex={null}
               onBarPress={() => {}}
               chartKey={`${goalId}-${period}-${selectedJuzId}-${analyticsView}-${refreshKey}`}
@@ -839,10 +890,14 @@ export function JuzMemorisationPastAchievements({
               hintText={t("progressLogging.chartTapHint")}
               hintActionText={t("progressLogging.okGotIt")}
               pageCount={
-                chartAchievement?.pageCount ?? compactAchievement.chartData.length
+                showNoDataDash
+                  ? 0
+                  : (chartAchievement?.pageCount ??
+                    compactAchievement.chartData.length)
               }
               activePageIndex={0}
               formatBarValue={chartFormatBarValue}
+              showPagination={!showNoDataDash}
               barColors={
                 analyticsView === "completedVsTimeSpent"
                   ? [Colors.light.green, Colors.light.green]
@@ -853,8 +908,6 @@ export function JuzMemorisationPastAchievements({
         </View>
 
         {renderInsights()}
-
-        <PastAchievementStudyMaterial items={studyMaterial} showSeeAll={false} />
       </View>
     );
   }
@@ -938,22 +991,26 @@ export function JuzMemorisationPastAchievements({
           onMoveShouldSetResponder={() => false}
         >
           <QuranHoursPastAchievementChartBlock
-            chartData={chartAchievement?.chartData ?? []}
-            selectedBarIndex={selectedBarIndex}
+            chartData={
+              showNoDataDash ? [] : (chartAchievement?.chartData ?? [])
+            }
+            selectedBarIndex={showNoDataDash ? null : selectedBarIndex}
             onBarPress={handleBarPressDetailed}
             chartKey={`${goalId}-${period}-${selectedJuzId}-${analyticsView}`}
             yMax={chartAchievement?.yMax ?? 10}
             yTicks={chartAchievement?.yTicks ?? [0, 5, 10]}
-            showHint={showChartHint}
+            showHint={showChartHint && !showNoDataDash}
             onDismissHint={() => setHintDismissed(true)}
             hintText={t("progressLogging.chartTapHint")}
             hintActionText={t("progressLogging.okGotIt")}
-            pageCount={chartAchievement?.pageCount ?? 1}
+            pageCount={
+              showNoDataDash ? 0 : (chartAchievement?.pageCount ?? 1)
+            }
             activePageIndex={
               selectedBarIndex ?? chartAchievement?.activePageIndex ?? 0
             }
             formatBarValue={chartFormatBarValue}
-            showPagination
+            showPagination={!showNoDataDash}
             barColors={
               analyticsView === "completedVsTimeSpent"
                 ? [Colors.light.green, Colors.light.green]

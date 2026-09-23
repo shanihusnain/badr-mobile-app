@@ -186,7 +186,7 @@ export const styles = StyleSheet.create({
   },
   flowContentAyahRange: {
     justifyContent: "flex-start",
-    paddingTop: 0,
+    paddingTop: 8,
     paddingBottom: 0,
     marginBottom: 0,
     overflow: "visible",

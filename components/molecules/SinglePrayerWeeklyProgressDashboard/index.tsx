@@ -188,7 +188,8 @@ export function SinglePrayerWeeklyProgressDashboard({
                         isMenstruation={isMenstruation}
                         showEmptyOutline={showEmptyOutline}
                       />
-                      <TopSpace top={10} />
+                      {/* Slightly less gap on best day so label aligns with other days */}
+                      <TopSpace top={isBestDayVisible ? 6 : 10} />
                       <Text
                         style={[
                           isBestDayVisible
@@ -391,7 +392,9 @@ const styles = StyleSheet.create({
     width: "84%",
   },
   dayItemBestDay: {
-    width: "108%",
+    width: "118%",
+    paddingTop: 6.2,
+    paddingBottom: 18,
     // Reserve border box so delete chrome doesn't reflow / shrink the label.
     borderWidth: 1,
     borderColor: "transparent",
@@ -402,7 +405,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     backgroundColor: Colors.light.dullRed,
     zIndex: 99999,
-    width: "108%",
+    width: "118%",
   },
   bestDayLabel: {
     color: Colors.light.green,
@@ -410,7 +413,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontFamily: fonts.primary.bold,
     textAlign: "center",
-    marginTop: 4,
+    marginTop: 3,
     letterSpacing: -0.3,
     width: "100%",
   },

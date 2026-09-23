@@ -143,6 +143,22 @@ export const surahGoalStyles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  insightsBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingBottom: 4,
+    zIndex: 2,
+  },
+  insightsText: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.bold,
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  addButtonDisabled: {
+    opacity: 0.35,
+  },
 });
 
 export const flowCardCarouselDotsStyles = StyleSheet.create({
