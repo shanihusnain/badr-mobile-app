@@ -44,8 +44,6 @@ import { ListeningPastAchievementMetricsSection } from "./ListeningPastAchieveme
 import { InsightCard } from "../InsightCard";
 import type { InsightCardData } from "../PrayerPastAchievements/insightCardsData";
 import { TopSpace } from "@/components/atoms/TopSpace";
-import { getGoalById } from "@/src/screens/private/home/components/goalsData";
-import { PastAchievementStudyMaterial } from "@/components/molecules/PastAchievementStudyMaterial";
 import { useGetQuranGoalAchievements } from "@/src/api/queries/useGetQuranGoalAchievements";
 import { resolveQuranTypeFromGoalId } from "@/src/utils/quranGoalMap";
 import {
@@ -163,8 +161,6 @@ export function QuranHoursPastAchievements({
   const [periodStartParam, setPeriodStartParam] = useState<string | null>(null);
   const [selectedBarIndex, setSelectedBarIndex] = useState<number | null>(null);
   const [hintDismissed, setHintDismissed] = useState(false);
-  const goalData = getGoalById(goalId);
-  const studyMaterial = goalData?.studyMaterial ?? [];
 
   const quranGoalType = resolveQuranTypeFromGoalId(goalId);
   const usesAchievementsApi =
@@ -473,7 +469,9 @@ export function QuranHoursPastAchievements({
               {...card}
               icon={getQuranHoursInsightIcon(card)}
               style={{
-                ...styles.insightCardFixed,
+                flex: 0,
+                flexGrow: 0,
+                flexShrink: 0,
                 width: width * 0.42,
                 maxWidth: width * 0.42,
                 minWidth: width * 0.42,
@@ -720,11 +718,6 @@ export function QuranHoursPastAchievements({
         ) : null}
       </View>
       {renderInsights()}
-      {/* 
-      <PastAchievementStudyMaterial
-        items={studyMaterial}
-        isDetailed={isDetailed}
-      /> */}
     </View>
   );
 }
@@ -1195,7 +1188,8 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   insightCardFixed: {
-    width: 200,
-    minWidth: 160,
+    flex: 0,
+    flexGrow: 0,
+    flexShrink: 0,
   },
 });

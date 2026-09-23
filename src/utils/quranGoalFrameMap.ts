@@ -6,6 +6,7 @@ import type {
 } from "@/src/api/queries/useGetQuranGoalFrame";
 import type { QuranHoursDayProgress } from "@/src/screens/private/goalprogressloggingscreen/quranHoursWeeklyData";
 import type { MemorisationDayProgress } from "@/src/screens/private/goalprogressloggingscreen/quranMemorisationWeeklyData";
+import type { QuranRecitationDayProgress } from "@/src/screens/private/goalprogressloggingscreen/quranRecitationWeeklyData";
 
 export function formatQuranFrameWeekRange(weekStart: string, weekEnd: string) {
   const start = moment(weekStart, "YYYY-MM-DD");
@@ -139,6 +140,24 @@ export function mapQuranMemorisationFrameWeekDays(
   });
 }
 
+/** Map RECITATION_SURAH frame week days → recitation weekly rings. */
+export function mapQuranRecitationFrameWeekDays(
+  frame: QuranGoalFrameData,
+): QuranRecitationDayProgress[] {
+  return frame.week.days.map((day) => {
+    const recitationsCompleted = getQuranFrameDayMinutes(day);
+    const isToday = resolveIsToday(day);
+    const isFuture = resolveIsFutureDay(day);
+
+    return {
+      day: day.dayLabel,
+      recitationsCompleted,
+      dayType: isToday ? "today" : isFuture ? "future" : "past",
+      isBestDay: Boolean(day.isBestDay) || String(day.state ?? "").toUpperCase() === "BEST_DAY",
+    };
+  });
+}
+
 export function getQuranFrameMemorisationItem(
   frame: QuranGoalFrameData,
   itemNumber?: number | null,
@@ -207,7 +226,7 @@ export function getQuranFrameMemorisationProgress(
   };
 }
 
-/** Ring label for memorisation — prefer API targetLabel ("Goal: 1 surah"). */
+/** Ring label for memorisation — prefer API targetLabel ("Goal: 2 juz"). */
 export function getQuranFrameMemorisationRingLabel(
   frame: QuranGoalFrameData,
 ): string {
@@ -217,6 +236,13 @@ export function getQuranFrameMemorisationRingLabel(
   }
   const target = toFiniteNumber(frame.goal.target);
   if (target != null && target > 0) {
+    const type = String(frame.quranGoalType ?? "").toUpperCase();
+    if (type.includes("JUZ")) {
+      return `${target} juz`;
+    }
+    if (type.includes("HIZB")) {
+      return target === 1 ? "1 hizb" : `${target} hizbs`;
+    }
     return target === 1 ? "1 surah" : `${target} surahs`;
   }
   return getQuranFrameGoalTitle(frame);

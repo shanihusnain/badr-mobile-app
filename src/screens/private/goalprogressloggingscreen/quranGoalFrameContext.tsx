@@ -36,7 +36,8 @@ function quranTypeRequiresItemNumber(quranGoalType: string | null): boolean {
   return (
     quranGoalType === "MEMORIZATION_SURAH" ||
     quranGoalType === "MEMORIZATION_JUZ" ||
-    quranGoalType === "MEMORIZATION_HIZB"
+    quranGoalType === "MEMORIZATION_HIZB" ||
+    quranGoalType === "RECITATION_SURAH"
   );
 }
 

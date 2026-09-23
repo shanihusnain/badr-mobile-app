@@ -80,18 +80,30 @@ export function SurahMemorisationGoalsList({
   }).current;
 
   const renderItem = useCallback(
-    ({ item }: { item: SurahMemorisationGoal }) => (
-      <SurahMemorisationGoalCard
-        goal={item}
-        goalData={goalData}
-        cardWidth={cardWidth}
-        isInView={item.id === activeGoalId}
-        isFlowActive={item.id === activeFlowGoalId}
-        onStartFlow={onStartFlow}
-        onFlowClose={onFlowClose}
-        onLogComplete={onLogComplete}
-      />
-    ),
+    ({ item }: { item: SurahMemorisationGoal }) => {
+      // Hide adjacent cards while the logging overlay is open.
+      if (activeFlowGoalId && item.id !== activeFlowGoalId) {
+        return (
+          <View
+            style={{ width: cardWidth, height: FLOW_CARD_HEIGHT }}
+            pointerEvents="none"
+          />
+        );
+      }
+
+      return (
+        <SurahMemorisationGoalCard
+          goal={item}
+          goalData={goalData}
+          cardWidth={cardWidth}
+          isInView={item.id === activeGoalId}
+          isFlowActive={item.id === activeFlowGoalId}
+          onStartFlow={onStartFlow}
+          onFlowClose={onFlowClose}
+          onLogComplete={onLogComplete}
+        />
+      );
+    },
     [
       activeFlowGoalId,
       activeGoalId,
@@ -130,10 +142,16 @@ export function SurahMemorisationGoalsList({
   return (
     <View>
       <View
-        style={{
-          paddingLeft: CARD_ANCHOR_PADDING_LEFT,
-          overflow: "hidden",
-        }}
+        style={[
+          {
+            paddingLeft: CARD_ANCHOR_PADDING_LEFT,
+            overflow: "hidden",
+          },
+          // Keep cards above the dim overlay; leave dots below it.
+          activeFlowGoalId
+            ? { zIndex: 101, elevation: 12, position: "relative" as const }
+            : undefined,
+        ]}
       >
         <FlatList
           horizontal

@@ -53,12 +53,7 @@ export function SurahMemorisationLoggingSection({
         </TouchableOpacity>
       ) : null}
 
-      <View
-        style={[
-          styles.section,
-          activeFlowGoalId ? styles.activeSection : undefined,
-        ]}
-      >
+      <View style={styles.section}>
         <Text style={styles.sectionTitle}>
           {t("progressLogging.myProgress")}
         </Text>

@@ -1,9 +1,11 @@
 import React, { useMemo } from "react";
-import { Pressable, Text, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 import { useTranslation } from "react-i18next";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Colors } from "@/constants/theme";
+import {
+  AddLoggingFlowIcon,
+  QuranRecitationBySurahFlowCardImage,
+} from "@/assets/icons";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import { GoalData } from "../../home/components/goalsData";
 import QuranJuzLoggingFlow from "../flows/QuranJuzLoggingFlow";
@@ -12,7 +14,7 @@ import {
   isJuzGoalComplete,
 } from "../quranRecitationJuzData";
 import type { QuranJuzLogEntry } from "../types";
-import { styles } from "./DailyProgressLogging.styles";
+import { FLOW_CARD_HEIGHT, styles } from "./DailyProgressLogging.styles";
 import { surahGoalStyles } from "./SurahRecitationGoals.styles";
 
 type Props = {
@@ -38,7 +40,10 @@ export function JuzRecitationGoalCard({
 
   const statusLabel = isComplete
     ? t("progressLogging.completionStatusComplete")
-    : t("progressLogging.inProgress");
+    : t("progressLogging.surahStatusInProgress");
+
+  const completedLabel = formatNumber(progress.completedJuzCount);
+  const targetLabel = formatNumber(progress.targetJuzCount);
 
   const handleFlowModeChange = (mode: "collapsed" | "active") => {
     if (mode === "collapsed") {
@@ -46,22 +51,16 @@ export function JuzRecitationGoalCard({
     }
   };
 
-  return (
-    <View style={isFlowActive ? styles.activeSection : undefined}>
-      <View style={[styles.cardAnchor, { width: "100%" }]}>
-        {isFlowActive && (
-          <Pressable style={styles.backdrop} />
-        )}
-        {isFlowActive && (
-          <TouchableOpacity
-            style={styles.cancelButton}
-            onPress={onFlowClose}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="close" size={20} color={Colors.light.white} />
-          </TouchableOpacity>
-        )}
+  const canLog = !isComplete;
 
+  return (
+    <View
+      style={[
+        { width: "100%", height: FLOW_CARD_HEIGHT },
+        isFlowActive ? styles.activeSection : undefined,
+      ]}
+    >
+      <View style={[surahGoalStyles.cardAnchor, { width: "100%" }]}>
         {!isFlowActive ? (
           <View
             style={[
@@ -70,38 +69,48 @@ export function JuzRecitationGoalCard({
               { width: "100%" },
             ]}
           >
-            <View style={surahGoalStyles.cardContent}>
-              <View style={surahGoalStyles.statusChip}>
-                <Text style={surahGoalStyles.statusChipText}>
-                  {statusLabel}
-                </Text>
-              </View>
-
-              <Text style={surahGoalStyles.surahName}>
-                {t("progressLogging.juzCardTitle", {
-                  completed: formatNumber(progress.completedJuzCount),
-                  target: formatNumber(progress.targetJuzCount),
-                })}
-              </Text>
-            </View>
-
-            {!isComplete ? (
-              <TouchableOpacity
-                style={styles.addButton}
-                onPress={onStartFlow}
-                activeOpacity={0.8}
-              >
-                <Ionicons name="add" size={22} color={Colors.light.white} />
-              </TouchableOpacity>
-            ) : (
-              <View style={styles.addButton}>
-                <MaterialCommunityIcons
-                  name="check-circle"
-                  size={22}
+            <View style={surahGoalStyles.bodyRow}>
+              <View style={surahGoalStyles.iconCircle}>
+                <QuranRecitationBySurahFlowCardImage
+                  size={26}
                   color={Colors.light.white}
                 />
               </View>
-            )}
+
+              <View style={surahGoalStyles.textColumn}>
+                <View style={surahGoalStyles.statusChip}>
+                  <Text style={surahGoalStyles.statusChipText}>
+                    {statusLabel}
+                  </Text>
+                </View>
+
+                <View style={surahGoalStyles.textLines}>
+                  <Text style={surahGoalStyles.surahName} numberOfLines={2}>
+                    {t("progressLogging.juzCardTitle", {
+                      completed: completedLabel,
+                      target: targetLabel,
+                    })}
+                  </Text>
+                  <Text style={surahGoalStyles.metaRegular}>
+                    {`(total `}
+                    <Text style={surahGoalStyles.metaBold}>{targetLabel}</Text>
+                    {` juz)`}
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            <View style={surahGoalStyles.footerRow} />
+
+            {canLog ? (
+              <TouchableOpacity
+                style={surahGoalStyles.addButtonIconOnly}
+                onPress={onStartFlow}
+                activeOpacity={0.8}
+              >
+                <AddLoggingFlowIcon size={32} />
+              </TouchableOpacity>
+            ) : null}
           </View>
         ) : (
           <QuranJuzLoggingFlow

@@ -101,7 +101,7 @@ function mapBucketsToAyahChart(
 ): QuranPastChartItem[] {
   const prefix = period === "monthly" ? "w" : "m";
 
-  return buckets.map((bucket, index) => {
+  const mapped = buckets.map((bucket, index) => {
     const completedAyahs = bucketCompletedAyahs(bucket);
     const incompleteAyahs = bucketIncompleteAyahs(bucket);
     const stackTotalHours = completedAyahs + incompleteAyahs;
@@ -119,6 +119,18 @@ function mapBucketsToAyahChart(
       achievementPct: toFiniteNumber(bucket.achievementPct) ?? undefined,
     };
   });
+
+  const hasLoggedProgress = mapped.some(
+    (item) => (item.completedHours ?? 0) > 0,
+  );
+  const hasTimeSpent = buckets.some(
+    (bucket) => bucketTimeSpentMinutes(bucket) > 0,
+  );
+  if (!hasLoggedProgress && !hasTimeSpent) {
+    return [];
+  }
+
+  return mapped;
 }
 
 export type MappedMemorisationJuzAchievements = {
@@ -259,7 +271,7 @@ export function mapMemorisationJuzAchievementsToUi(
     longestStreak: 0,
     longestStreakPrevious: 0,
     ...yAxis,
-    pageCount: 1,
+    pageCount: chartData.length > 0 ? 1 : 0,
     activePageIndex: 0,
     narrative: data.narrative ?? null,
     keyInsightsHeader: data.keyInsightsHeader ?? null,

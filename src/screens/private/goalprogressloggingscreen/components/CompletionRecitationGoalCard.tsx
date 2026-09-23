@@ -1,9 +1,11 @@
 import React, { useMemo } from "react";
-import { Pressable, Text, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 import { useTranslation } from "react-i18next";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Colors } from "@/constants/theme";
+import {
+  AddLoggingFlowIcon,
+  QuranRecitationBySurahFlowCardImage,
+} from "@/assets/icons";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import { GoalData } from "../../home/components/goalsData";
 import QuranCompletionLoggingFlow from "../flows/QuranCompletionLoggingFlow";
@@ -12,7 +14,7 @@ import {
   isCompletionGoalComplete,
 } from "../quranRecitationCompletionData";
 import type { QuranCompletionLogEntry } from "../types";
-import { styles } from "./DailyProgressLogging.styles";
+import { FLOW_CARD_HEIGHT, styles } from "./DailyProgressLogging.styles";
 import { surahGoalStyles } from "./SurahRecitationGoals.styles";
 
 type Props = {
@@ -35,17 +37,12 @@ export function CompletionRecitationGoalCard({
 
   const progress = useMemo(() => getCompletionRecitationProgress(), []);
   const isComplete = isCompletionGoalComplete(progress);
-  const currentCompletion = isComplete
-    ? null
-    : progress.completedCompletions + 1;
 
   const statusLabel = isComplete
     ? t("progressLogging.completionStatusComplete")
-    : t("progressLogging.inProgress");
-  // : t("progressLogging.completionStatusInProgress", {
-  //     current: formatNumber(currentCompletion ?? 1),
-  //     target: formatNumber(progress.targetCompletions),
-  //   });
+    : t("progressLogging.surahStatusInProgress");
+
+  const targetLabel = formatNumber(progress.targetCompletions);
 
   const handleFlowModeChange = (mode: "collapsed" | "active") => {
     if (mode === "collapsed") {
@@ -53,22 +50,16 @@ export function CompletionRecitationGoalCard({
     }
   };
 
-  return (
-    <View style={isFlowActive ? styles.activeSection : undefined}>
-      <View style={[styles.cardAnchor, { width: "100%" }]}>
-        {isFlowActive && (
-          <Pressable style={styles.backdrop} />
-        )}
-        {isFlowActive && (
-          <TouchableOpacity
-            style={styles.cancelButton}
-            onPress={onFlowClose}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="close" size={20} color={Colors.light.white} />
-          </TouchableOpacity>
-        )}
+  const canLog = !isComplete;
 
+  return (
+    <View
+      style={[
+        { width: "100%", height: FLOW_CARD_HEIGHT },
+        isFlowActive ? styles.activeSection : undefined,
+      ]}
+    >
+      <View style={[surahGoalStyles.cardAnchor, { width: "100%" }]}>
         {!isFlowActive ? (
           <View
             style={[
@@ -77,50 +68,47 @@ export function CompletionRecitationGoalCard({
               { width: "100%" },
             ]}
           >
-            <View style={surahGoalStyles.cardContent}>
-              <View style={surahGoalStyles.statusChip}>
-                <Text style={surahGoalStyles.statusChipText}>
-                  {statusLabel}
-                </Text>
-              </View>
-
-              <Text style={surahGoalStyles.surahName}>
-                {t("progressLogging.completionCardTitle", {
-                  target: formatNumber(progress.targetCompletions),
-                })}
-              </Text>
-              {/* <Text style={surahGoalStyles.frequencyText}>
-                {isComplete
-                  ? t("progressLogging.completionCardComplete")
-                  : t("progressLogging.completionCardCurrent", {
-                      completion: formatNumber(currentCompletion ?? 1),
-                    })}
-              </Text>
-              <Text style={surahGoalStyles.totalText}>
-                {t("progressLogging.completionCardProgress", {
-                  completed: formatNumber(progress.completedCompletions),
-                  target: formatNumber(progress.targetCompletions),
-                })}
-              </Text> */}
-            </View>
-
-            {!isComplete ? (
-              <TouchableOpacity
-                style={styles.addButton}
-                onPress={onStartFlow}
-                activeOpacity={0.8}
-              >
-                <Ionicons name="add" size={22} color={Colors.light.white} />
-              </TouchableOpacity>
-            ) : (
-              <View style={styles.addButton}>
-                <MaterialCommunityIcons
-                  name="check-circle"
-                  size={22}
+            <View style={surahGoalStyles.bodyRow}>
+              <View style={surahGoalStyles.iconCircle}>
+                <QuranRecitationBySurahFlowCardImage
+                  size={26}
                   color={Colors.light.white}
                 />
               </View>
-            )}
+
+              <View style={surahGoalStyles.textColumn}>
+                <View style={surahGoalStyles.statusChip}>
+                  <Text style={surahGoalStyles.statusChipText}>
+                    {statusLabel}
+                  </Text>
+                </View>
+
+                <View style={surahGoalStyles.textLines}>
+                  <Text style={surahGoalStyles.surahName} numberOfLines={2}>
+                    {t("progressLogging.completionCardTitle", {
+                      target: targetLabel,
+                    })}
+                  </Text>
+                  <Text style={surahGoalStyles.metaRegular}>
+                    {`(total `}
+                    <Text style={surahGoalStyles.metaBold}>{targetLabel}</Text>
+                    {` ${t("progressLogging.unitCompletions")})`}
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            <View style={surahGoalStyles.footerRow} />
+
+            {canLog ? (
+              <TouchableOpacity
+                style={surahGoalStyles.addButtonIconOnly}
+                onPress={onStartFlow}
+                activeOpacity={0.8}
+              >
+                <AddLoggingFlowIcon size={32} />
+              </TouchableOpacity>
+            ) : null}
           </View>
         ) : (
           <QuranCompletionLoggingFlow

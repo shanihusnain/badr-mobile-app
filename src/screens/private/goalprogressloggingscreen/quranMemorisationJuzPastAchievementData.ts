@@ -170,6 +170,17 @@ function groupByProgressEvents(
 
   if (sorted.length === 0) {
     const memorized = Math.min(cumulative, totalAyahs);
+    if (memorized <= 0) {
+      return [
+        {
+          xLabel: "e1",
+          dateLabel: "",
+          completed: 0,
+          incomplete: 0,
+          timeSpentMinutes: 0,
+        },
+      ];
+    }
     return [
       {
         xLabel: "e1",
@@ -436,7 +447,7 @@ function filterJuzPeriodSlice(
       chartPeriods: slice.chartPeriods.map((period) => ({
         ...period,
         completed: 0,
-        incomplete: totalAyahs,
+        incomplete: 0,
         timeSpentMinutes: 0,
       })),
       targetJuzCount: 1,

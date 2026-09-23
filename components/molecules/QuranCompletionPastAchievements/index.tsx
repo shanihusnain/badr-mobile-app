@@ -37,10 +37,6 @@ import { QuranHoursPastAchievementChartBlock } from "../QuranHoursPastAchievemen
 import { GraphBarSelectionFooter } from "../QuranHoursPastAchievements/GraphBarSelectionFooter";
 import { RecitationPastAchievementProgressSection } from "../QuranHoursPastAchievements/RecitationPastAchievementProgressSection";
 import { RecitationCompletionDetailCard } from "../QuranHoursPastAchievements/RecitationCompletionDetailCard";
-import {
-  getGoalById,
-} from "@/src/screens/private/home/components/goalsData";
-import { PastAchievementStudyMaterial } from "@/components/molecules/PastAchievementStudyMaterial";
 import { TopSpace } from "@/components/atoms/TopSpace";
 
 export type QuranCompletionPastAchievementsProps = {
@@ -94,8 +90,6 @@ const [period, setPeriod] = useState<PastAchievementPeriod>(initialPeriod);
   const [analyticsView, setAnalyticsView] = useState<CompletionAnalyticsView>(
     initialAnalyticsView,
   );
-  const goalData = getGoalById(goalId);
-  const studyMaterial = goalData?.studyMaterial ?? [];
   const [selectedBarIndex, setSelectedBarIndex] = useState<number | null>(null);
   const [hintDismissed, setHintDismissed] = useState(false);
 
@@ -594,22 +588,24 @@ return (
           onMoveShouldSetResponder={() => false}
         >
           <QuranHoursPastAchievementChartBlock
-            chartData={chartAchievement.chartData}
-            selectedBarIndex={isDetailed ? selectedBarIndex : null}
+            chartData={showNoDataDash ? [] : chartAchievement.chartData}
+            selectedBarIndex={
+              isDetailed && !showNoDataDash ? selectedBarIndex : null
+            }
             onBarPress={
               isDetailed ? handleBarPressDetailed : handleBarPressCompact
             }
-            chartKey={`${goalId}-${period}-${analyticsView}`}
+            chartKey={`${goalId}-${period}-${analyticsView}-${showNoDataDash ? "empty" : "ready"}`}
             yMax={chartAchievement.yMax}
             yTicks={chartAchievement.yTicks}
-            showHint={showChartHint}
+            showHint={showChartHint && !showNoDataDash}
             onDismissHint={() => setHintDismissed(true)}
             hintText={t("progressLogging.chartTapHint")}
             hintActionText={t("progressLogging.okGotIt")}
-            pageCount={chartAchievement.pageCount}
+            pageCount={showNoDataDash ? 0 : chartAchievement.pageCount}
             activePageIndex={selectedBarIndex ?? chartAchievement.activePageIndex}
             formatBarValue={chartFormatBarValue}
-            showPagination={isDetailed}
+            showPagination={isDetailed && !showNoDataDash}
             barColors={
               analyticsView === "completedVsTimeSpent"
                 ? [Colors.light.green, Colors.light.green]
@@ -642,7 +638,6 @@ return (
         ) : null}
       </View>
 
-      <PastAchievementStudyMaterial items={studyMaterial} isDetailed={isDetailed} />
     </View>
   );
 }

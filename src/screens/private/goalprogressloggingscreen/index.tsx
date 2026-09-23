@@ -280,7 +280,9 @@ function GoalProgressLoggingBody({
             ),
           })
         : "---"
-      : isSurahMemorisationFrameGoal || isHizbMemorisationFrameGoal
+      : isSurahMemorisationFrameGoal ||
+          isHizbMemorisationFrameGoal ||
+          isJuzMemorisationFrameGoal
         ? quranFrame?.frame
           ? t("homeScreen.weeklyProgress_goalLabel", {
               label: getQuranFrameMemorisationRingLabel(quranFrame.frame),
@@ -514,9 +516,7 @@ export const GoalProgressLoggingScreen = ({
   const [insightsSheetMounted, setInsightsSheetMounted] = useState(false);
   const pendingInsightsOpenRef = useRef(false);
   const prayerType = resolvePrayerTypeFromGoalId(goalId);
-  const quranHoursType = isQuranHoursGoalId(goalId)
-    ? resolveQuranTypeFromGoalId(goalId)
-    : null;
+  const quranInsightsType = resolveQuranTypeFromGoalId(goalId);
   const template = getLoggingFlowTemplate(goalId);
   const backgroundSource = getLoggingBackgroundSource(goalId, template);
   const shouldUseBackground = backgroundSource != null;
@@ -743,10 +743,10 @@ export const GoalProgressLoggingScreen = ({
           onClose={closeInsightsSheet}
         />
       ) : null}
-      {insightsSheetMounted && quranHoursType ? (
+      {insightsSheetMounted && quranInsightsType && !prayerType ? (
         <QuranHoursInformationSheet
           ref={infoSheetRef}
-          quranGoalType={quranHoursType}
+          quranGoalType={quranInsightsType}
           onClose={closeInsightsSheet}
         />
       ) : null}
@@ -782,7 +782,8 @@ export const GoalProgressLoggingScreen = ({
     isQuranHoursGoalId(goalId) ||
     isSurahMemorisationGoalId(goalId) ||
     isHizbMemorisationGoalId(goalId) ||
-    isJuzMemorisationGoalId(goalId)
+    isJuzMemorisationGoalId(goalId) ||
+    isSurahRecitationGoalId(goalId)
   ) {
     return (
       <QuranGoalFrameProvider
