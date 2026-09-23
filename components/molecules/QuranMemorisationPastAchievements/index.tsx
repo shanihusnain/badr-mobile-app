@@ -254,6 +254,7 @@ function SurahMemorisationPastAchievements({
       return createEmptyMemorisationSurahAchievements(
         selectedSurahId,
         surahDisplayName || "All Surahs",
+        period,
       );
     }
     return mapMemorisationSurahAchievementsToUi(achievementsApiData, period, {
@@ -689,7 +690,7 @@ function SurahMemorisationPastAchievements({
         numberOfLines={1}
         ellipsizeMode="tail"
       >
-        {showPlaceholders
+        {showPlaceholders && !baseAchievement.dateRangeLabel
           ? LOADING_DASH
           : baseAchievement.dateRangeLabel || LOADING_DASH}
       </Text>
@@ -917,6 +918,22 @@ function SurahMemorisationPastAchievements({
             subValue={t("progressLogging.memorisationInsightVersesMemorized")}
             style={insightCardStyle}
           />
+          <InsightCard
+            iconName="time-outline"
+            icon={getMemorisationInsightIcon({
+              iconFamily: "Ionicons",
+              iconName: "time-outline",
+              title: t("progressLogging.timeSpentLabel"),
+              value: formatMemorisationTimeSpentLabel(totalTimeSpentMinutes),
+            })}
+            title={t("progressLogging.timeSpentLabel").toUpperCase()}
+            value={
+              showPlaceholders
+                ? LOADING_DASH
+                : formatMemorisationTimeSpentLabel(totalTimeSpentMinutes)
+            }
+            style={insightCardStyle}
+          />
         </ScrollView>
       </View>
     );
@@ -996,7 +1013,8 @@ function SurahMemorisationPastAchievements({
           >
             <QuranHoursPastAchievementChartBlock
               chartData={
-                showPlaceholders || showNoDataDash
+                showPlaceholders &&
+                !(chartAchievement?.chartData?.length)
                   ? []
                   : (chartAchievement?.chartData ?? [])
               }
@@ -1010,10 +1028,8 @@ function SurahMemorisationPastAchievements({
               hintText={t("progressLogging.chartTapHint")}
               hintActionText={t("progressLogging.okGotIt")}
               pageCount={
-                showNoDataDash
-                  ? 0
-                  : (chartAchievement?.pageCount ??
-                    compactAchievement.chartData.length)
+                chartAchievement?.pageCount ??
+                compactAchievement.chartData.length
               }
               activePageIndex={0}
               formatBarValue={chartFormatBarValue}
@@ -1114,7 +1130,7 @@ function SurahMemorisationPastAchievements({
         >
           <QuranHoursPastAchievementChartBlock
             chartData={
-              showPlaceholders || showNoDataDash
+              showPlaceholders && !(chartAchievement?.chartData?.length)
                 ? []
                 : (chartAchievement?.chartData ?? [])
             }
@@ -1131,9 +1147,7 @@ function SurahMemorisationPastAchievements({
             onDismissHint={() => setHintDismissed(true)}
             hintText={t("progressLogging.chartTapHint")}
             hintActionText={t("progressLogging.okGotIt")}
-            pageCount={
-              showNoDataDash ? 0 : (chartAchievement?.pageCount ?? 1)
-            }
+            pageCount={chartAchievement?.pageCount ?? 1}
             activePageIndex={
               selectedBarIndex ?? chartAchievement?.activePageIndex ?? 0
             }

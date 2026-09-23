@@ -39,6 +39,7 @@ import {
 import {
   mapPrayerGoalAchievementsToUi,
   shiftPrayerAchievementsPeriodStart,
+  createEmptyPrayerPastAchievement,
 } from "@/src/utils/prayerGoalAchievementsMap";
 import {
   PAST_ACHIEVEMENT_NO_DATA,
@@ -483,21 +484,8 @@ function mapApiKeyInsightsToCards(
   return cards;
 }
 
-const EMPTY_PRAYER_ACHIEVEMENT: PrayerPastAchievement = {
-  dateRangeLabel: LOADING_DASH,
-  achievementPercent: 0,
-  previousPeriodDeltaPercent: 0,
-  chartData: [],
-  goalPrayers: 0,
-  periodGoalPrayers: 0,
-  completedPrayers: 0,
-  incompletePrayers: 0,
-  totalTimeSpentMinutes: 0,
-  yMax: 10,
-  yTicks: [0, 5, 10],
-  pageCount: 0,
-  activePageIndex: 0,
-};
+const EMPTY_PRAYER_ACHIEVEMENT: PrayerPastAchievement =
+  createEmptyPrayerPastAchievement("monthly");
 
 export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
   const { t } = useTranslation();
@@ -605,7 +593,9 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
 
   const baseAchievementRaw = useMemo((): PrayerPastAchievement | null => {
     if (usesAchievementsApi) {
-      if (!achievementsApiData) return null;
+      if (!achievementsApiData) {
+        return createEmptyPrayerPastAchievement(period);
+      }
       return mapPrayerGoalAchievementsToUi(
         achievementsApiData,
         analyticsView,
@@ -1051,7 +1041,7 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
                 numberOfLines={1}
                 ellipsizeMode="tail"
               >
-                {showPlaceholders
+                {showPlaceholders && !resolvedAchievement.dateRangeLabel
                   ? LOADING_DASH
                   : resolvedAchievement.dateRangeLabel}
               </Text>
@@ -1446,7 +1436,11 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
           onMoveShouldSetResponder={() => false}
         >
           <QuranHoursPastAchievementChartBlock
-            chartData={showPlaceholders ? [] : resolvedAchievement.chartData}
+            chartData={
+              showPlaceholders && !resolvedAchievement.chartData.length
+                ? []
+                : resolvedAchievement.chartData
+            }
             selectedBarIndex={
               isDetailed && !showPlaceholders ? selectedBarIndex : null
             }

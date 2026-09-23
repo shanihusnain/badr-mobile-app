@@ -21,6 +21,7 @@ import {
 import { TopSpace } from "@/components/atoms/TopSpace";
 import {
   GoldenTickIcon,
+  InsightGreenClockIcon,
   LighteningIcon,
   WeighBalanceIcon,
 } from "@/assets/icons";
@@ -55,6 +56,9 @@ function getStatIcon(icon: QuranGoalInsightsStatIcon) {
       return <LighteningIcon />;
     case "STAR":
       return <BestdayStarIcon />;
+    case "CLOCK":
+    case "TIME":
+      return <InsightGreenClockIcon size={17} />;
     case "CHART":
     default:
       return <WeighBalanceIcon />;
@@ -174,10 +178,20 @@ export const QuranHoursInformationSheet = forwardRef<BottomSheet, Props>(
                   const labelWithColon = label.endsWith(":")
                     ? label
                     : `${label}:`;
+                  const key = String(stat.key ?? "").toUpperCase();
+                  const isTimeSpent =
+                    key.includes("TIME") ||
+                    label.toUpperCase().includes("TIME SPENT");
                   return (
                     <StatRow
                       key={stat.key || `${stat.label}-${stat.value}`}
-                      icon={getStatIcon(stat.icon)}
+                      icon={
+                        isTimeSpent ? (
+                          <InsightGreenClockIcon size={14} />
+                        ) : (
+                          getStatIcon(stat.icon)
+                        )
+                      }
                     >
                       <StatLabelValue
                         label={labelWithColon}

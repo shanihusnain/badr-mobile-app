@@ -461,14 +461,15 @@ export function QuranHoursPastAchievementChartBlock({
   const plotLeft = chartBounds?.left ?? 48;
   const plotRight = chartBounds?.right ?? 280;
 
-  // Y-axis / X-axis / pagination only when there is something to plot.
+  // Keep x-axis date slots even when all bars are empty (0 completed/incomplete).
+  const hasChartSlots = chartData.length > 0;
   const hasGraphData = chartData.some(
     (item) =>
       (Number(item.stackTotalHours) || 0) > 0 ||
       (Number(item.completedHours) || 0) > 0 ||
       (Number(item.incompleteHours) || 0) > 0,
   );
-  const plotChartData = hasGraphData ? chartData : [];
+  const plotChartData = hasChartSlots ? chartData : [];
   // Qiyam nights line — only draw when at least one point has a real value.
   const hasBarLineData = chartData.some((item) => {
     const lineValue = (item as QuranPastChartItem & { lineValue?: number })
@@ -494,7 +495,7 @@ export function QuranHoursPastAchievementChartBlock({
           style={styles.chartContainer}
           onLayout={(e) => setChartContainerHeight(e.nativeEvent.layout.height)}
         >
-          {hasGraphData ? (
+          {hasChartSlots ? (
             <CartesianChart
               key={chartKey}
               data={plotChartData}
@@ -512,11 +513,16 @@ export function QuranHoursPastAchievementChartBlock({
               yAxis={[
                 {
                   font: axisFont,
-                  tickValues: yTicks,
-                  formatYLabel: (value) => String(value),
-                  labelColor: Colors.light.grey,
-                  lineColor: "rgba(160, 160, 160, 0.25)",
-                  lineWidth: 1,
+                  tickValues: hasGraphData ? yTicks : [],
+                  formatYLabel: (value) =>
+                    hasGraphData ? String(value) : "",
+                  labelColor: hasGraphData
+                    ? Colors.light.grey
+                    : "transparent",
+                  lineColor: hasGraphData
+                    ? "rgba(160, 160, 160, 0.25)"
+                    : "transparent",
+                  lineWidth: hasGraphData ? 1 : 0,
                 },
               ]}
               frame={{ lineColor: "transparent" }}
@@ -606,7 +612,7 @@ export function QuranHoursPastAchievementChartBlock({
         ) : null}
       </View>
 
-      {hasGraphData ? (
+      {hasChartSlots ? (
         <XAxisLabels
           barCenterXs={barCenterXs}
           chartData={plotChartData}

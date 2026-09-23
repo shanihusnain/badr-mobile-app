@@ -19,6 +19,8 @@ import {
 import {
   formatPrayerAchievementsDateRange,
   formatSixMonthChartBarDateLabel,
+  buildEmptyPastAchievementPeriodScaffold,
+  buildPastAchievementSlotDateLabel,
 } from "@/src/utils/prayerGoalAchievementsMap";
 
 function toFiniteNumber(value: unknown): number | null {
@@ -46,13 +48,18 @@ function computeYAxis(stackTotals: number[], apiYMax?: number | null) {
   return { yMax, yTicks };
 }
 
+function isPlaceholderSlotLabel(label: string): boolean {
+  return /^[WwMm]\d+$/.test(label.trim());
+}
+
 function bucketDateLabel(
   bucket: QuranAchievementsBucket,
   period: PastAchievementPeriod,
   index: number,
+  periodStart?: string | null,
 ): string {
   const raw = (bucket.range || bucket.label || "").trim();
-  if (raw) {
+  if (raw && !isPlaceholderSlotLabel(raw)) {
     if (period === "sixMonths") {
       return formatSixMonthChartBarDateLabel(raw.replace(/\s*[–—]\s*/g, "—"));
     }
@@ -63,10 +70,14 @@ function bucketDateLabel(
     bucket.start,
     bucket.end,
   );
-  if (fromDates) return fromDates;
+  if (fromDates) {
+    if (period === "threeMonths" || period === "sixMonths") {
+      return buildPastAchievementSlotDateLabel(period, index, periodStart);
+    }
+    return fromDates;
+  }
 
-  const prefix = period === "monthly" ? "W" : "M";
-  return `${prefix}${index + 1}`;
+  return buildPastAchievementSlotDateLabel(period, index, periodStart);
 }
 
 function bucketCompletedAyahs(bucket: QuranAchievementsBucket): number {
@@ -96,6 +107,7 @@ function bucketTimeSpentMinutes(bucket: QuranAchievementsBucket): number {
 function mapBucketsToAyahChart(
   buckets: QuranAchievementsBucket[],
   period: PastAchievementPeriod,
+  periodStart?: string | null,
 ): QuranPastChartItem[] {
   const prefix = period === "monthly" ? "w" : "m";
 
@@ -106,7 +118,7 @@ function mapBucketsToAyahChart(
 
     return {
       xLabel: `${prefix}${index + 1}`,
-      dateLabel: bucketDateLabel(bucket, period, index),
+      dateLabel: bucketDateLabel(bucket, period, index, periodStart),
       completedHours: completedAyahs,
       incompleteHours: incompleteAyahs,
       hours: completedAyahs,
@@ -118,16 +130,7 @@ function mapBucketsToAyahChart(
     };
   });
 
-  const hasLoggedProgress = mapped.some(
-    (item) => (item.completedHours ?? 0) > 0,
-  );
-  const hasTimeSpent = buckets.some(
-    (bucket) => bucketTimeSpentMinutes(bucket) > 0,
-  );
-  if (!hasLoggedProgress && !hasTimeSpent) {
-    return [];
-  }
-
+  // Keep date slots on the x-axis even when every bar is empty.
   return mapped;
 }
 
@@ -141,8 +144,15 @@ export type MappedMemorisationHizbAchievements = {
 export function createEmptyMemorisationHizbAchievements(
   hizbId: string = "all",
   hizbName: string = "All Hizbs",
+  period: PastAchievementPeriod = "monthly",
 ): MappedMemorisationHizbAchievements {
-  const achievement = createEmptyQuranHoursAchievement();
+  const scaffold = buildEmptyPastAchievementPeriodScaffold(period);
+  const achievement = {
+    ...createEmptyQuranHoursAchievement(),
+    dateRangeLabel: scaffold.dateRangeLabel,
+    chartData: scaffold.chartData,
+    pageCount: scaffold.chartData.length > 0 ? 1 : 0,
+  };
   return {
     achievement,
     compact: {
@@ -153,19 +163,25 @@ export function createEmptyMemorisationHizbAchievements(
       remainingAyahs: 0,
       progressPercent: 0,
       completed: false,
-      chartData: [],
+      chartData: scaffold.chartData,
       yMax: 1,
       yTicks: [0, 1],
       logHistory: [],
     },
     slice: {
-      chartPeriods: [],
+      chartPeriods: scaffold.chartData.map((item) => ({
+        xLabel: item.xLabel,
+        dateLabel: item.dateLabel,
+        completed: 0,
+        incomplete: 0,
+        timeSpentMinutes: 0,
+      })),
       totalAyahs: 0,
       memorizedAyahs: 0,
       remainingAyahs: 0,
       achievementPercent: 0,
       previousPeriodDeltaPercent: 0,
-      dateRangeLabel: "---",
+      dateRangeLabel: scaffold.dateRangeLabel,
       pageCount: 1,
       activePageIndex: 0,
       hizbRecords: [],
@@ -200,7 +216,10 @@ export function mapMemorisationHizbAchievementsToUi(
   const hizbName = options?.hizbName ?? "All Hizbs";
   const goals = options?.goals ?? [];
   const buckets = data.chart?.buckets ?? [];
-  const chartData = mapBucketsToAyahChart(buckets, period);
+  let chartData = mapBucketsToAyahChart(buckets, period, data.periodStart);
+  if (chartData.length === 0) {
+    chartData = buildEmptyPastAchievementPeriodScaffold(period).chartData;
+  }
 
   const memorizedAyahs = Math.max(
     0,
@@ -231,12 +250,17 @@ export function mapMemorisationHizbAchievementsToUi(
   const dateRangeLabel =
     data.periodLabel?.trim() ||
     formatPrayerAchievementsDateRange(data.periodStart, data.periodEnd) ||
-    "---";
+    formatPrayerAchievementsDateRange(
+      buckets[0]?.start,
+      buckets[buckets.length - 1]?.end,
+    ) ||
+    buildEmptyPastAchievementPeriodScaffold(period).dateRangeLabel;
 
   const chartPeriods = buckets.map((bucket, index) => ({
     xLabel: chartData[index]?.xLabel ?? `b${index + 1}`,
     dateLabel:
-      chartData[index]?.dateLabel ?? bucketDateLabel(bucket, period, index),
+      chartData[index]?.dateLabel ??
+      bucketDateLabel(bucket, period, index, data.periodStart),
     completed: bucketCompletedAyahs(bucket),
     incomplete: bucketIncompleteAyahs(bucket),
     timeSpentMinutes: bucketTimeSpentMinutes(bucket),

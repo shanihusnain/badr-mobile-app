@@ -774,7 +774,8 @@ export function applyTimeSpentOnlyGreenChart(
       ...item,
       completedHours: hours,
       incompleteHours: 0,
-      stackTotalHours: Math.max(hours, 0.01),
+      // Keep 0 when empty so the chart hides Y-axis (no fake 0.01 stacks).
+      stackTotalHours: hours,
       hours,
     };
   });

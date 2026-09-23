@@ -36,6 +36,8 @@ export const HeaderWithCrossTitleDynamicIcon = ({
   titleDropdownOptions,
   selectedTitleValue,
   onTitleOptionSelect,
+  /** Nudge the centered title down (e.g. Quran hero headers). */
+  titleOffsetY = 0,
 }: {
   title: string;
   navigation: any;
@@ -56,6 +58,7 @@ export const HeaderWithCrossTitleDynamicIcon = ({
   titleDropdownOptions?: HeaderTitleDropdownOption[];
   selectedTitleValue?: string;
   onTitleOptionSelect?: (value: string) => void;
+  titleOffsetY?: number;
 }) => {
   const singleLineTitle = toSingleLine(title);
   const singleLineSecondTitle = secondTitle ? toSingleLine(secondTitle) : "";
@@ -130,6 +133,8 @@ export const HeaderWithCrossTitleDynamicIcon = ({
           justifyContent: "center",
           alignItems: "center",
           zIndex: 11,
+          transform:
+            titleOffsetY !== 0 ? [{ translateY: titleOffsetY }] : undefined,
         }}
         pointerEvents={hasTitleDropdown ? "box-none" : "none"}
       >
@@ -316,7 +321,7 @@ const styles = StyleSheet.create({
     height: 18,
     borderRadius: 9,
     borderWidth: 1.5,
-    borderColor: Colors.light.white,
+    borderColor: Colors.light.grey,
     alignItems: "center",
     justifyContent: "center",
   },

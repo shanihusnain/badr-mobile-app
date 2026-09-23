@@ -60,6 +60,8 @@ const TRACK_CENTER_Y =
 const SLIDER_HEIGHT = TRACK_CENTER_Y + THUMB_HIT_RADIUS;
 /** Compact dark pill above each thumb (Figma). Min fits 3-digit ayahs. */
 const LABEL_WIDTH = 36;
+/** Keep pills inside the card so they never paint over the next carousel item. */
+const LABEL_EDGE_INSET = 2;
 const LABEL_TOP = 0;
 const CARET_HALF = 4;
 const THUMB_HIT_TOP = TRACK_CENTER_Y - THUMB_HIT_RADIUS;
@@ -67,8 +69,8 @@ const TRACK_TOP = TRACK_CENTER_Y - TRACK_HEIGHT / 2;
 
 function estimateLabelWidth(text: string): number {
   // Size to content so 3-digit ayahs (e.g. 286) never ellipsize.
-  // ~8px/glyph at 10pt medium + horizontal padding (6*2).
-  return Math.min(Math.max(Math.ceil(text.length * 8) + 16, LABEL_WIDTH), 120);
+  // Slightly generous glyph width so long names (Al-Baqarah:56) stay inside the pill.
+  return Math.min(Math.max(Math.ceil(text.length * 7.5) + 18, LABEL_WIDTH), 132);
 }
 
 function getLabelLeft(
@@ -76,11 +78,15 @@ function getLabelLeft(
   containerWidth: number,
   labelWidth: number,
 ): number {
+  const maxLeft = Math.max(
+    LABEL_EDGE_INSET,
+    containerWidth - labelWidth - LABEL_EDGE_INSET,
+  );
   return Math.max(
-    0,
+    LABEL_EDGE_INSET,
     Math.min(
       TRACK_HORIZONTAL_INSET + handleX - labelWidth / 2,
-      containerWidth - labelWidth,
+      maxLeft,
     ),
   );
 }
@@ -117,7 +123,7 @@ function separateThumbCenters(
   };
 }
 
-/** Keep ayah pills from covering each other — start pill stays put. */
+/** Keep ayah pills from covering each other — both stay inside the card. */
 function separateLabelLefts(
   startLeft: number,
   startWidth: number,
@@ -125,16 +131,26 @@ function separateLabelLefts(
   endWidth: number,
   containerWidth: number,
 ): { startLabelLeft: number; endLabelLeft: number } {
-  if (endLeft >= startLeft + startWidth + LABEL_GAP) {
-    return { startLabelLeft: startLeft, endLabelLeft: endLeft };
+  const maxEnd = Math.max(
+    LABEL_EDGE_INSET,
+    containerWidth - endWidth - LABEL_EDGE_INSET,
+  );
+  let nextStart = Math.max(LABEL_EDGE_INSET, startLeft);
+  let nextEnd = Math.min(Math.max(LABEL_EDGE_INSET, endLeft), maxEnd);
+
+  if (nextEnd < nextStart + startWidth + LABEL_GAP) {
+    nextEnd = Math.min(maxEnd, nextStart + startWidth + LABEL_GAP);
+    // Still overlapping — shift the pair left so both fit inside the card.
+    if (nextEnd < nextStart + startWidth + LABEL_GAP) {
+      nextStart = Math.max(
+        LABEL_EDGE_INSET,
+        containerWidth - LABEL_EDGE_INSET - endWidth - LABEL_GAP - startWidth,
+      );
+      nextEnd = Math.min(maxEnd, nextStart + startWidth + LABEL_GAP);
+    }
   }
 
-  const nextEnd = Math.min(
-    Math.max(0, containerWidth - endWidth),
-    startLeft + startWidth + LABEL_GAP,
-  );
-
-  return { startLabelLeft: startLeft, endLabelLeft: nextEnd };
+  return { startLabelLeft: nextStart, endLabelLeft: nextEnd };
 }
 
 export function QuranAyatRangeSlider({
@@ -375,11 +391,16 @@ export function QuranAyatRangeSlider({
               left: startLabelLeft,
               width: startLabelWidth,
               top: LABEL_TOP,
-              zIndex: activeHandle === "start" ? 7 : 5,
+              zIndex: activeHandle === "start" ? 40 : 35,
             },
           ]}
         >
-          <Text style={localStyles.labelText} numberOfLines={1}>
+          <Text
+            style={localStyles.labelText}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.8}
+          >
             {startLabel}
           </Text>
           <View style={[localStyles.labelCaret, { left: startCaretLeft }]} />
@@ -393,11 +414,16 @@ export function QuranAyatRangeSlider({
               left: endLabelLeft,
               width: endLabelWidth,
               top: LABEL_TOP,
-              zIndex: activeHandle === "end" ? 7 : 5,
+              zIndex: activeHandle === "end" ? 40 : 35,
             },
           ]}
         >
-          <Text style={localStyles.labelText} numberOfLines={1}>
+          <Text
+            style={localStyles.labelText}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.8}
+          >
             {endLabel}
           </Text>
           <View style={[localStyles.labelCaret, { left: endCaretLeft }]} />
@@ -410,6 +436,7 @@ export function QuranAyatRangeSlider({
               left: TRACK_HORIZONTAL_INSET,
               right: TRACK_HORIZONTAL_INSET,
               top: TRACK_TOP,
+              zIndex: 1,
             },
           ]}
           pointerEvents="none"
@@ -445,6 +472,7 @@ export function QuranAyatRangeSlider({
             {
               left: TRACK_HORIZONTAL_INSET,
               top: TRACK_CENTER_Y - START_BAR_HEIGHT / 2,
+              zIndex: 2,
             },
           ]}
         />
@@ -463,6 +491,7 @@ export function QuranAyatRangeSlider({
                     THUMB_RADIUS,
                 ),
                 top: TRACK_CENTER_Y - START_BAR_HEIGHT / 2,
+                zIndex: 2,
               },
             ]}
           />
@@ -477,17 +506,20 @@ export function QuranAyatRangeSlider({
               {
                 left: startHitLeft,
                 top: THUMB_HIT_TOP,
-                zIndex: 11,
+                zIndex: 30,
+                elevation: 12,
               },
             ]}
           >
             {/* Locked start — same filled chevron, fixed in place */}
             <View style={[localStyles.thumb, localStyles.thumbLocked]}>
-              <FilledChevronIconForQuranGoal
-                direction="right"
-                size={10}
-                color={Colors.light.green}
-              />
+              <View style={localStyles.thumbChevron}>
+                <FilledChevronIconForQuranGoal
+                  direction="right"
+                  size={10}
+                  color={Colors.light.green}
+                />
+              </View>
             </View>
           </View>
         ) : (
@@ -499,7 +531,8 @@ export function QuranAyatRangeSlider({
                 {
                   left: startHitLeft,
                   top: THUMB_HIT_TOP,
-                  zIndex: activeHandle === "start" ? 14 : 11,
+                  zIndex: activeHandle === "start" ? 32 : 30,
+                  elevation: activeHandle === "start" ? 14 : 12,
                 },
               ]}
             >
@@ -509,11 +542,13 @@ export function QuranAyatRangeSlider({
                   activeHandle === "start" && localStyles.thumbActive,
                 ]}
               >
-                <FilledChevronIconForQuranGoal
-                  direction="right"
-                  size={10}
-                  color={Colors.light.green}
-                />
+                <View style={localStyles.thumbChevron}>
+                  <FilledChevronIconForQuranGoal
+                    direction="right"
+                    size={10}
+                    color={Colors.light.green}
+                  />
+                </View>
               </View>
             </View>
           </GestureDetector>
@@ -527,7 +562,8 @@ export function QuranAyatRangeSlider({
               {
                 left: endHitLeft,
                 top: THUMB_HIT_TOP,
-                zIndex: activeHandle === "end" ? 14 : 12,
+                zIndex: activeHandle === "end" ? 32 : 30,
+                elevation: activeHandle === "end" ? 14 : 12,
               },
             ]}
           >
@@ -537,11 +573,13 @@ export function QuranAyatRangeSlider({
                 activeHandle === "end" && localStyles.thumbActive,
               ]}
             >
-              <FilledChevronIconForQuranGoal
-                direction="left"
-                size={10}
-                color={Colors.light.green}
-              />
+              <View style={localStyles.thumbChevron}>
+                <FilledChevronIconForQuranGoal
+                  direction="left"
+                  size={10}
+                  color={Colors.light.green}
+                />
+              </View>
             </View>
           </View>
         </GestureDetector>
@@ -561,13 +599,13 @@ export function QuranAyatRangeSlider({
 const localStyles = StyleSheet.create({
   root: {
     width: "100%",
-    overflow: "visible",
+    overflow: "hidden",
   },
   sliderArea: {
     position: "relative",
     width: "100%",
     marginTop: 0,
-    overflow: "visible",
+    overflow: "hidden",
   },
   labelPill: {
     position: "absolute",
@@ -577,6 +615,7 @@ const localStyles = StyleSheet.create({
     paddingVertical: LABEL_PADDING_V,
     alignItems: "center",
     justifyContent: "center",
+    overflow: "hidden",
   },
   labelCaret: {
     position: "absolute",
@@ -628,7 +667,6 @@ const localStyles = StyleSheet.create({
     height: START_BAR_HEIGHT,
     borderRadius: 1,
     backgroundColor: Colors.light.white,
-    zIndex: 13,
   },
   thumbHit: {
     position: "absolute",
@@ -644,6 +682,11 @@ const localStyles = StyleSheet.create({
     backgroundColor: Colors.light.white,
     alignItems: "center",
     justifyContent: "center",
+    overflow: "visible",
+  },
+  thumbChevron: {
+    zIndex: 2,
+    elevation: 2,
   },
   thumbLocked: {
     opacity: 1,
@@ -661,5 +704,6 @@ const localStyles = StyleSheet.create({
     opacity: 0.95,
     // Pull closer to the thumbs so the slider sits lower toward this line.
     marginTop: -8,
+    zIndex: 0,
   },
 });

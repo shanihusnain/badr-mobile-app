@@ -116,9 +116,10 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255, 255, 255, 0.18)",
   },
   ringInnerSelectedEmpty: {
+    // Same stroke as upcoming days so today doesn't look larger.
     backgroundColor: Colors.light.greybuttonBackground,
-    borderWidth: 1.2,
-    borderColor: "rgba(255, 255, 255, 0.28)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.32)",
   },
   ringInnerFuture: {
     backgroundColor: "transparent",

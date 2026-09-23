@@ -11,6 +11,7 @@ import type {
 import type {
   PrayerAnalyticsView,
   PrayerPastAchievement,
+  PastAchievementPeriod,
 } from "@/src/screens/private/goalprogressloggingscreen/prayerPastAchievementData";
 
 export type QiyamAchievementsMapOptions = {
@@ -88,6 +89,131 @@ export function formatPrayerAchievementsDateRange(
   return `${start.format("MMM D, YY")} — ${end.format("MMM D, YY")}`;
 }
 
+/**
+ * Client-side date range + empty x-axis slots for M / 3M / 6M when the API
+ * has not returned period dates or chart buckets yet.
+ */
+export function buildPastAchievementSlotDateLabel(
+  period: "monthly" | "threeMonths" | "sixMonths",
+  index: number,
+  periodStart?: string | null,
+): string {
+  let anchor =
+    periodStart != null && periodStart !== ""
+      ? moment(String(periodStart), "YYYY-MM-DD", true)
+      : null;
+
+  if (!anchor?.isValid()) {
+    if (period === "monthly") {
+      anchor = moment().startOf("month");
+    } else if (period === "threeMonths") {
+      anchor = moment().subtract(2, "months").startOf("month");
+    } else {
+      anchor = moment().subtract(5, "months").startOf("month");
+    }
+  }
+
+  if (period === "monthly") {
+    const weekStart = anchor.clone().add(index, "weeks");
+    const weekEnd = moment.min(
+      weekStart.clone().add(6, "days"),
+      anchor.clone().endOf("month"),
+    );
+    return `${weekStart.format("MMM D")}–${weekEnd.format("D")}`;
+  }
+
+  // 3M / 6M — month abbreviation only (Jul, Aug, …).
+  return anchor.clone().add(index, "months").format("MMM");
+}
+
+export function buildEmptyPastAchievementPeriodScaffold(
+  period: "monthly" | "threeMonths" | "sixMonths",
+): {
+  dateRangeLabel: string;
+  chartData: Array<{
+    xLabel: string;
+    dateLabel: string;
+    completedHours: number;
+    incompleteHours: number;
+    hours: number;
+    stackTotalHours: number;
+    completedMinutes: number;
+    incompleteMinutes: number;
+  }>;
+} {
+  const today = moment();
+
+  if (period === "monthly") {
+    const start = today.clone().startOf("month");
+    const end = today.clone().endOf("month");
+    const dateRangeLabel = formatPrayerAchievementsDateRange(
+      start.format("YYYY-MM-DD"),
+      end.format("YYYY-MM-DD"),
+    );
+    const chartData = [0, 1, 2, 3].map((index) => ({
+      xLabel: `w${index + 1}`,
+      dateLabel: buildPastAchievementSlotDateLabel(
+        period,
+        index,
+        start.format("YYYY-MM-DD"),
+      ),
+      completedHours: 0,
+      incompleteHours: 0,
+      hours: 0,
+      stackTotalHours: 0,
+      completedMinutes: 0,
+      incompleteMinutes: 0,
+    }));
+    return { dateRangeLabel, chartData };
+  }
+
+  if (period === "threeMonths") {
+    const end = today.clone().endOf("month");
+    const start = today.clone().subtract(2, "months").startOf("month");
+    const dateRangeLabel = formatPrayerAchievementsDateRange(
+      start.format("YYYY-MM-DD"),
+      end.format("YYYY-MM-DD"),
+    );
+    const chartData = [0, 1, 2].map((index) => ({
+      xLabel: `m${index + 1}`,
+      dateLabel: buildPastAchievementSlotDateLabel(
+        period,
+        index,
+        start.format("YYYY-MM-DD"),
+      ),
+      completedHours: 0,
+      incompleteHours: 0,
+      hours: 0,
+      stackTotalHours: 0,
+      completedMinutes: 0,
+      incompleteMinutes: 0,
+    }));
+    return { dateRangeLabel, chartData };
+  }
+
+  const end = today.clone().endOf("month");
+  const start = today.clone().subtract(5, "months").startOf("month");
+  const dateRangeLabel = formatPrayerAchievementsDateRange(
+    start.format("YYYY-MM-DD"),
+    end.format("YYYY-MM-DD"),
+  );
+  const chartData = [0, 1, 2, 3, 4, 5].map((index) => ({
+    xLabel: `m${index + 1}`,
+    dateLabel: buildPastAchievementSlotDateLabel(
+      period,
+      index,
+      start.format("YYYY-MM-DD"),
+    ),
+    completedHours: 0,
+    incompleteHours: 0,
+    hours: 0,
+    stackTotalHours: 0,
+    completedMinutes: 0,
+    incompleteMinutes: 0,
+  }));
+  return { dateRangeLabel, chartData };
+}
+
 /** Two-line x-axis labels for 6M bars, e.g. "Jun 14—" / "Jul 11" or "Nov 1—" / "28". */
 export function formatSixMonthChartBarDateLabel(weekLabel: string): string {
   const raw = weekLabel.trim().replace(/\r\n/g, "\n");
@@ -120,6 +246,78 @@ function weekDateLabel(
     : weekLabel;
 }
 
+function resolveUiPeriod(
+  period: string | null | undefined,
+): PastAchievementPeriod {
+  const raw = String(period ?? "").toUpperCase();
+  if (raw === "3M" || raw === "THREEMONTHS") return "threeMonths";
+  if (raw === "6M" || raw === "SIXMONTHS") return "sixMonths";
+  return "monthly";
+}
+
+function scaffoldChartItems(period: PastAchievementPeriod) {
+  return buildEmptyPastAchievementPeriodScaffold(period).chartData.map(
+    (item) => ({
+      ...item,
+      completedPrayers: 0,
+      incompletePrayers: 0,
+      timeSpentMinutes: 0,
+      stackTotalPrayers: 0,
+    }),
+  );
+}
+
+/** Empty prayer past-achievement shell with period dates + x-axis slots. */
+export function createEmptyPrayerPastAchievement(
+  period: PastAchievementPeriod = "monthly",
+): PrayerPastAchievement {
+  const scaffold = buildEmptyPastAchievementPeriodScaffold(period);
+  return {
+    dateRangeLabel: scaffold.dateRangeLabel,
+    achievementPercent: 0,
+    previousPeriodDeltaPercent: 0,
+    chartData: scaffoldChartItems(period),
+    goalPrayers: 0,
+    periodGoalPrayers: 0,
+    completedPrayers: 0,
+    incompletePrayers: 0,
+    totalTimeSpentMinutes: 0,
+    summaryText: null,
+    yMax: 1,
+    yTicks: [0, 1],
+    pageCount: 1,
+    activePageIndex: 0,
+  };
+}
+
+function withEmptyPeriodScaffold(
+  achievement: PrayerPastAchievement,
+  period: string | null | undefined,
+): PrayerPastAchievement {
+  const uiPeriod = resolveUiPeriod(period);
+  const scaffold = buildEmptyPastAchievementPeriodScaffold(uiPeriod);
+  const chartData =
+    achievement.chartData.length > 0
+      ? achievement.chartData
+      : scaffoldChartItems(uiPeriod);
+  const dateRangeLabel =
+    achievement.dateRangeLabel?.trim() || scaffold.dateRangeLabel;
+
+  return {
+    ...achievement,
+    chartData,
+    dateRangeLabel,
+    pageCount:
+      achievement.chartData.length > 0
+        ? achievement.pageCount
+        : chartData.length > 0
+          ? 1
+          : 0,
+    yMax: achievement.chartData.length > 0 ? achievement.yMax : 1,
+    yTicks: achievement.chartData.length > 0 ? achievement.yTicks : [0, 1],
+  };
+}
+
 function finalizeAchievement(
   data: PrayerGoalAchievementsData,
   chartData: PrayerPastAchievement["chartData"],
@@ -136,25 +334,28 @@ function finalizeAchievement(
     lineValues,
   );
 
-  return {
-    dateRangeLabel: formatPrayerAchievementsDateRange(
-      data.periodStart,
-      data.periodEnd,
-    ),
-    achievementPercent: data.achievementPct ?? 0,
-    previousPeriodDeltaPercent: data.delta ?? null,
-    chartData,
-    goalPrayers: data.goal ?? 0,
-    periodGoalPrayers: (data.goal ?? 0) / barCount,
-    completedPrayers,
-    incompletePrayers,
-    totalTimeSpentMinutes: data.totalMinutesSpent ?? 0,
-    summaryText: summaryText ?? null,
-    yMax,
-    yTicks,
-    pageCount: chartData.length,
-    activePageIndex: Math.max(chartData.length - 1, 0),
-  };
+  return withEmptyPeriodScaffold(
+    {
+      dateRangeLabel: formatPrayerAchievementsDateRange(
+        data.periodStart,
+        data.periodEnd,
+      ),
+      achievementPercent: data.achievementPct ?? 0,
+      previousPeriodDeltaPercent: data.delta ?? null,
+      chartData,
+      goalPrayers: data.goal ?? 0,
+      periodGoalPrayers: (data.goal ?? 0) / barCount,
+      completedPrayers,
+      incompletePrayers,
+      totalTimeSpentMinutes: data.totalMinutesSpent ?? 0,
+      summaryText: summaryText ?? null,
+      yMax,
+      yTicks,
+      pageCount: chartData.length,
+      activePageIndex: Math.max(chartData.length - 1, 0),
+    },
+    data.period,
+  );
 }
 
 function mapOnTimeVsQadha(

@@ -259,8 +259,59 @@ const DEFAULT_QURAN_HOURS_INSIGHT_KEYS = [
   "COMPLETED_IN",
   "LONGEST_STREAK",
   "BEST_DAY",
+  "WEEKLY_AVERAGE",
   "MONTHLY_AVERAGE",
+  "TIME_SPENT",
 ] as const;
+
+const TIME_SPENT_INSIGHT_KEYS = new Set(["TIME_SPENT", "TOTAL_LISTENING_TIME"]);
+
+function formatQuranInsightDuration(totalMinutes: number): string {
+  const safe = Math.max(0, Math.round(totalMinutes));
+  return `${Math.floor(safe / 60)}h ${safe % 60}m`;
+}
+
+function resolveTimeSpentMinutes(
+  data: QuranGoalAchievementsData | null | undefined,
+): number | null {
+  if (!data) return null;
+  const fromTotals = toFiniteNumber(data.totals?.timeSpentMinutes);
+  if (fromTotals != null) return Math.max(0, fromTotals);
+
+  const buckets = data.chart?.buckets;
+  if (!Array.isArray(buckets) || buckets.length === 0) return null;
+
+  let sum = 0;
+  let sawAny = false;
+  for (const bucket of buckets) {
+    const minutes = toFiniteNumber(bucket.timeSpentMinutes);
+    if (minutes == null) continue;
+    sum += Math.max(0, minutes);
+    sawAny = true;
+  }
+  return sawAny ? sum : null;
+}
+
+function buildTimeSpentInsightFallback(
+  data: QuranGoalAchievementsData | null | undefined,
+  noDataLabel: string,
+  forceNoData = false,
+): InsightCardData {
+  const minutes = resolveTimeSpentMinutes(data);
+  const hasValue = minutes != null && !forceNoData;
+  return mapSingleQuranInsightToCard(
+    {
+      key: "TIME_SPENT",
+      label: QURAN_HOURS_INSIGHT_META.TIME_SPENT.fallbackTitle,
+      value: hasValue ? formatQuranInsightDuration(minutes) : "– –",
+      unit: "",
+      previousLabel: noDataLabel,
+      direction: "NEUTRAL",
+    },
+    noDataLabel,
+    !hasValue,
+  );
+}
 
 function isQuranInsightNoDataValue(value: unknown): boolean {
   if (value == null) return true;
@@ -308,11 +359,19 @@ function mapSingleQuranInsightToCard(
     };
   }
 
+  const numericValue = toFiniteNumber(insight.value);
+  const displayValue =
+    TIME_SPENT_INSIGHT_KEYS.has(key) &&
+    numericValue != null &&
+    !String(insight.value).match(/[hm]/i)
+      ? formatQuranInsightDuration(numericValue)
+      : String(insight.value);
+
   const card: InsightCardData = {
     iconFamily: meta.iconFamily,
     iconName: meta.iconName,
     title,
-    value: String(insight.value),
+    value: displayValue,
     subValue: unit,
   };
 
@@ -330,8 +389,9 @@ function mapSingleQuranInsightToCard(
 }
 
 /**
- * Maps LISTENING / TAJWEED achievements `keyInsights[]` into InsightCard rows
- * (same UI contract as prayer past achievements).
+ * Maps LISTENING / TAJWEED / memorisation achievements `keyInsights[]` into
+ * InsightCard rows (same UI contract as prayer past achievements).
+ * Always includes a TIME SPENT card (from keyInsights or totals fallback).
  */
 export function mapQuranApiKeyInsightsToCards(
   data: QuranGoalAchievementsData | null | undefined,
@@ -345,7 +405,7 @@ export function mapQuranApiKeyInsightsToCards(
   const insights = data?.keyInsights;
 
   if (Array.isArray(insights) && insights.length > 0 && !isLoading) {
-    return insights
+    const cards = insights
       .filter((insight) => {
         const key = String(insight.key ?? "").toUpperCase();
         // Match prayer: hide GOAL TRACKED on the monthly window.
@@ -353,12 +413,24 @@ export function mapQuranApiKeyInsightsToCards(
         return true;
       })
       .map((insight) => mapSingleQuranInsightToCard(insight, noDataLabel));
+
+    const hasTimeSpent = insights.some((insight) =>
+      TIME_SPENT_INSIGHT_KEYS.has(String(insight.key ?? "").toUpperCase()),
+    );
+    if (!hasTimeSpent) {
+      cards.push(buildTimeSpentInsightFallback(data, noDataLabel));
+    }
+    return cards;
   }
 
   const placeholderKeys =
     period === "monthly"
-      ? DEFAULT_QURAN_HOURS_INSIGHT_KEYS.filter((key) => key !== "GOAL_TRACKED")
-      : DEFAULT_QURAN_HOURS_INSIGHT_KEYS;
+      ? DEFAULT_QURAN_HOURS_INSIGHT_KEYS.filter(
+          (key) => key !== "GOAL_TRACKED" && key !== "MONTHLY_AVERAGE",
+        )
+      : DEFAULT_QURAN_HOURS_INSIGHT_KEYS.filter(
+          (key) => key !== "WEEKLY_AVERAGE",
+        );
 
   return placeholderKeys.map((key) =>
     mapSingleQuranInsightToCard(
