@@ -55,7 +55,7 @@ export const useLogQuranMemorisationJuzGoal = () => {
       queryClient.invalidateQueries({ queryKey: ["all-quran-goals"] });
       queryClient.invalidateQueries({ queryKey: ["goal-cycle-categories"] });
       queryClient.invalidateQueries({ queryKey: ["goal-cycle-category-goals"] });
-      showToast("success", "Memorisation logged successfully");
+      // showToast("success", "Memorisation logged successfully");
     },
     onError: (error) => {
       showToast(
