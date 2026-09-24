@@ -34,7 +34,7 @@ export function MemorisationHizbAyahCountStep({
       startAyat={startAyah}
       endAyat={endAyah}
       minStartAyat={minStartAyah}
-      freezeStartHandle={minStartAyah > 1}
+      freezeStartHandle
       verseCount={totalAyahs}
       formatVerseLabel={formatVerseLabel}
       onChangeStartAyat={onChangeStartAyah}

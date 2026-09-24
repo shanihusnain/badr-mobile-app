@@ -117,6 +117,7 @@ import {
   formatPrayerFrameWeekRange,
   getPrayerFrameTodayIndex,
   getPrayerFrameWeekFraction,
+  canNavigatePrayerFrameWeekNext,
   getPrayerFrameWeekStreakDays,
   mapFiveDailyFrameWeekDays,
   mapPrayerFrameWeekDays,
@@ -124,6 +125,7 @@ import {
   mapSunnahFrameWeekDays,
 } from "@/src/utils/prayerGoalFrameMap";
 import {
+  canNavigateQuranFrameWeekNext,
   getQuranFrameMotivationalQuote,
   getQuranFrameTodayIndex,
   getQuranFrameWeekFraction,
@@ -186,6 +188,7 @@ function shiftPrayerFrameWeek(
   direction: -1 | 1,
 ) {
   if (!prayerFrame) return;
+  if (direction > 0 && !canNavigatePrayerFrameWeekNext(frame)) return;
   const activeWeek = getPrayerFrameActiveWeek(prayerFrame, frame);
   prayerFrame.setWeekNumber(activeWeek + direction);
 }
@@ -240,8 +243,33 @@ function shiftQuranFrameWeek(
   direction: -1 | 1,
 ) {
   if (!quranFrame) return;
+  if (direction > 0 && !canNavigateQuranFrameWeekNext(frame)) return;
   const activeWeek = getQuranFrameActiveWeek(quranFrame, frame);
   quranFrame.setWeekNumber(activeWeek + direction);
+}
+
+/** Active green-card item (surah / juz / hizb) for scoped day deletes. */
+function getQuranFrameActiveItemNumber(
+  quranFrame: ReturnType<typeof useOptionalQuranGoalFrameContext>,
+  frame: QuranGoalFrameData,
+): number | null {
+  const fromContext = quranFrame?.itemNumber;
+  if (fromContext != null && fromContext > 0) return fromContext;
+  const fromFrame = frame.items?.[0]?.itemNumber;
+  if (fromFrame != null && Number(fromFrame) > 0) {
+    return Math.round(Number(fromFrame));
+  }
+  return null;
+}
+
+function getQuranFrameActiveItemType(
+  frame: QuranGoalFrameData,
+): "SURAH" | "JUZ" | "HIZB" | null {
+  const type = String(frame.quranGoalType ?? "").toUpperCase();
+  if (type.includes("SURAH")) return "SURAH";
+  if (type.includes("HIZB")) return "HIZB";
+  if (type.includes("JUZ")) return "JUZ";
+  return null;
 }
 
 /** Weekly dashboard quote — prefers weekSummaryMessage when API sends it. */
@@ -634,13 +662,13 @@ export function WeeklyProgressSection({
     if (quranFrame && frame) {
       const activeWeek = getQuranFrameActiveWeek(quranFrame, frame);
       const canPrev = frame.week.hasPrevious ?? activeWeek > 1;
-      const canNext = frame.week.hasNext ?? activeWeek < frame.week.totalWeeks;
+      const canNext = canNavigateQuranFrameWeekNext(frame);
       const progress = getQuranFrameMemorisationProgress(frame);
       const weekFraction = getQuranFrameWeekFraction(frame);
 
       return (
         <QuranMemorisationWeeklyProgressDashboard
-          key={frame.week.weekNumber}
+          key={`${frame.week.weekNumber}-${quranFrame.itemNumber ?? frame.items?.[0]?.itemNumber ?? "all"}`}
           weekDays={mapQuranMemorisationFrameWeekDays(frame)}
           weekRangeLabel={getQuranFrameWeekRangeLabel(frame)}
           weekFraction={weekFraction}
@@ -659,6 +687,8 @@ export function WeeklyProgressSection({
           selectedDayIndex={getQuranFrameTodayIndex(frame)}
           loading={frameLoading}
           quranGoalType={frame.quranGoalType || "MEMORIZATION_JUZ"}
+          itemNumber={getQuranFrameActiveItemNumber(quranFrame, frame)}
+          itemType={getQuranFrameActiveItemType(frame) ?? "JUZ"}
           onPrevWeek={
             canPrev
               ? () => shiftQuranFrameWeek(quranFrame, frame, -1)
@@ -691,6 +721,8 @@ export function WeeklyProgressSection({
           currentWeek={juzMemorisationWeek.currentWeek}
           loading={quranFrame ? frameLoading || !quranFrame.isError : false}
           quranGoalType="MEMORIZATION_JUZ"
+          itemNumber={quranFrame?.itemNumber ?? null}
+          itemType="JUZ"
           onPrevWeek={
             canNavigateJuzMemorisationWeek(weekIndex, "prev")
               ? handleJuzMemorisationPrevWeek
@@ -732,13 +764,13 @@ export function WeeklyProgressSection({
     if (quranFrame && frame) {
       const activeWeek = getQuranFrameActiveWeek(quranFrame, frame);
       const canPrev = frame.week.hasPrevious ?? activeWeek > 1;
-      const canNext = frame.week.hasNext ?? activeWeek < frame.week.totalWeeks;
+      const canNext = canNavigateQuranFrameWeekNext(frame);
       const progress = getQuranFrameMemorisationProgress(frame);
       const weekFraction = getQuranFrameWeekFraction(frame);
 
       return (
         <QuranMemorisationWeeklyProgressDashboard
-          key={frame.week.weekNumber}
+          key={`${frame.week.weekNumber}-${quranFrame.itemNumber ?? frame.items?.[0]?.itemNumber ?? "all"}`}
           weekDays={mapQuranMemorisationFrameWeekDays(frame)}
           weekRangeLabel={getQuranFrameWeekRangeLabel(frame)}
           weekFraction={weekFraction}
@@ -757,6 +789,8 @@ export function WeeklyProgressSection({
           selectedDayIndex={getQuranFrameTodayIndex(frame)}
           loading={frameLoading}
           quranGoalType={frame.quranGoalType || "MEMORIZATION_HIZB"}
+          itemNumber={getQuranFrameActiveItemNumber(quranFrame, frame)}
+          itemType={getQuranFrameActiveItemType(frame) ?? "HIZB"}
           onPrevWeek={
             canPrev
               ? () => shiftQuranFrameWeek(quranFrame, frame, -1)
@@ -797,13 +831,13 @@ export function WeeklyProgressSection({
     if (quranFrame && frame) {
       const activeWeek = getQuranFrameActiveWeek(quranFrame, frame);
       const canPrev = frame.week.hasPrevious ?? activeWeek > 1;
-      const canNext = frame.week.hasNext ?? activeWeek < frame.week.totalWeeks;
+      const canNext = canNavigateQuranFrameWeekNext(frame);
       const progress = getQuranFrameMemorisationProgress(frame);
       const weekFraction = getQuranFrameWeekFraction(frame);
 
       return (
         <QuranMemorisationWeeklyProgressDashboard
-          key={frame.week.weekNumber}
+          key={`${frame.week.weekNumber}-${quranFrame.itemNumber ?? frame.items?.[0]?.itemNumber ?? "all"}`}
           weekDays={mapQuranMemorisationFrameWeekDays(frame)}
           weekRangeLabel={getQuranFrameWeekRangeLabel(frame)}
           weekFraction={weekFraction}
@@ -822,6 +856,8 @@ export function WeeklyProgressSection({
           selectedDayIndex={getQuranFrameTodayIndex(frame)}
           loading={frameLoading}
           quranGoalType={frame.quranGoalType || "MEMORIZATION_SURAH"}
+          itemNumber={getQuranFrameActiveItemNumber(quranFrame, frame)}
+          itemType={getQuranFrameActiveItemType(frame) ?? "SURAH"}
           onPrevWeek={
             canPrev
               ? () => shiftQuranFrameWeek(quranFrame, frame, -1)
@@ -866,8 +902,7 @@ export function WeeklyProgressSection({
       if (frame) {
         const activeWeek = getQuranFrameActiveWeek(quranFrame, frame);
         const canPrev = frame.week.hasPrevious ?? activeWeek > 1;
-        const canNext =
-          frame.week.hasNext ?? activeWeek < frame.week.totalWeeks;
+        const canNext = canNavigateQuranFrameWeekNext(frame);
 
         return (
           <QuranHoursWeeklyProgressDashboard
@@ -998,7 +1033,7 @@ export function WeeklyProgressSection({
     if (quranFrame && frame) {
       const activeWeek = getQuranFrameActiveWeek(quranFrame, frame);
       const canPrev = frame.week.hasPrevious ?? activeWeek > 1;
-      const canNext = frame.week.hasNext ?? activeWeek < frame.week.totalWeeks;
+      const canNext = canNavigateQuranFrameWeekNext(frame);
 
       return (
         <QuranWeeklyRecitationProgressDashboard
@@ -1216,7 +1251,7 @@ export function WeeklyProgressSection({
       const totalWeeks = frame.cycle.totalWeeks;
       const activeWeek = getPrayerFrameActiveWeek(prayerFrame, frame);
       const canPrev = activeWeek > 1;
-      const canNext = activeWeek < totalWeeks;
+      const canNext = canNavigatePrayerFrameWeekNext(frame);
 
       const handlePrevWeek = canPrev
         ? () => shiftPrayerFrameWeek(prayerFrame, frame, -1)
@@ -1269,7 +1304,7 @@ export function WeeklyProgressSection({
       const totalWeeks = frame.cycle.totalWeeks;
       const activeWeek = getPrayerFrameActiveWeek(prayerFrame, frame);
       const canPrev = activeWeek > 1;
-      const canNext = activeWeek < totalWeeks;
+      const canNext = canNavigatePrayerFrameWeekNext(frame);
 
       const handlePrevWeek = canPrev
         ? () => shiftPrayerFrameWeek(prayerFrame, frame, -1)
@@ -1322,7 +1357,7 @@ export function WeeklyProgressSection({
       const totalWeeks = frame.cycle.totalWeeks;
       const activeWeek = getPrayerFrameActiveWeek(prayerFrame, frame);
       const canPrev = activeWeek > 1;
-      const canNext = activeWeek < totalWeeks;
+      const canNext = canNavigatePrayerFrameWeekNext(frame);
 
       return (
         <WeeklyProgressDashboard
@@ -1399,7 +1434,7 @@ export function WeeklyProgressSection({
       const totalWeeks = frame.cycle.totalWeeks;
       const activeWeek = getPrayerFrameActiveWeek(prayerFrame, frame);
       const canPrev = activeWeek > 1;
-      const canNext = activeWeek < totalWeeks;
+      const canNext = canNavigatePrayerFrameWeekNext(frame);
 
       const handlePrevWeek = canPrev
         ? () => shiftPrayerFrameWeek(prayerFrame, frame, -1)
@@ -1452,7 +1487,7 @@ export function WeeklyProgressSection({
       const totalWeeks = frame.cycle.totalWeeks;
       const activeWeek = getPrayerFrameActiveWeek(prayerFrame, frame);
       const canPrev = activeWeek > 1;
-      const canNext = activeWeek < totalWeeks;
+      const canNext = canNavigatePrayerFrameWeekNext(frame);
 
       const handlePrevWeek = canPrev
         ? () => shiftPrayerFrameWeek(prayerFrame, frame, -1)
@@ -1505,7 +1540,7 @@ export function WeeklyProgressSection({
       const totalWeeks = frame.cycle.totalWeeks;
       const activeWeek = getPrayerFrameActiveWeek(prayerFrame, frame);
       const canPrev = activeWeek > 1;
-      const canNext = activeWeek < totalWeeks;
+      const canNext = canNavigatePrayerFrameWeekNext(frame);
 
       const handlePrevWeek = canPrev
         ? () => shiftPrayerFrameWeek(prayerFrame, frame, -1)
@@ -1558,7 +1593,7 @@ export function WeeklyProgressSection({
       const totalWeeks = frame.cycle.totalWeeks;
       const activeWeek = getPrayerFrameActiveWeek(prayerFrame, frame);
       const canPrev = activeWeek > 1;
-      const canNext = activeWeek < totalWeeks;
+      const canNext = canNavigatePrayerFrameWeekNext(frame);
 
       const handlePrevWeek = canPrev
         ? () => shiftPrayerFrameWeek(prayerFrame, frame, -1)
@@ -1611,7 +1646,7 @@ export function WeeklyProgressSection({
       const totalWeeks = frame.cycle.totalWeeks;
       const activeWeek = getPrayerFrameActiveWeek(prayerFrame, frame);
       const canPrev = activeWeek > 1;
-      const canNext = activeWeek < totalWeeks;
+      const canNext = canNavigatePrayerFrameWeekNext(frame);
 
       const handlePrevWeek = canPrev
         ? () => shiftPrayerFrameWeek(prayerFrame, frame, -1)
@@ -1666,7 +1701,7 @@ export function WeeklyProgressSection({
       const totalWeeks = frame.cycle.totalWeeks;
       const activeWeek = getPrayerFrameActiveWeek(prayerFrame, frame);
       const canPrev = activeWeek > 1;
-      const canNext = activeWeek < totalWeeks;
+      const canNext = canNavigatePrayerFrameWeekNext(frame);
 
       return (
         <QiyamWeeklyProgressDashboard
@@ -1735,7 +1770,7 @@ export function WeeklyProgressSection({
       const totalWeeks = frame.cycle.totalWeeks;
       const activeWeek = getPrayerFrameActiveWeek(prayerFrame, frame);
       const canPrev = activeWeek > 1;
-      const canNext = activeWeek < totalWeeks;
+      const canNext = canNavigatePrayerFrameWeekNext(frame);
 
       return (
         <SunnahRawatibWeeklyProgressDashboard

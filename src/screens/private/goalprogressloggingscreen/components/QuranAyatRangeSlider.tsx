@@ -24,9 +24,8 @@ type Props = {
   /** Lowest ayah the start thumb may select (default 1). */
   minStartAyat?: number;
   /**
-   * Continue-after-progress mode:
-   * - Start thumb is locked (same filled chevron, right-facing) at minStartAyat
-   * - End thumb starts at max with a left-facing chevron to slide back
+   * When false, both thumbs are movable. Default (undefined/true): start is
+   * locked at minStartAyat and only the end thumb moves.
    */
   freezeStartHandle?: boolean;
   verseCount?: number;
@@ -44,14 +43,14 @@ const THUMB_RADIUS = THUMB_SIZE / 2;
 const THUMB_HIT_RADIUS = THUMB_HIT_SIZE / 2;
 /** Keep thumb circles from stacking when ayah values map close together. */
 const MIN_THUMB_CENTER_GAP = THUMB_SIZE + 4;
-const LABEL_GAP = 4;
+const LABEL_GAP = 6;
 /** Horizontal inset so thumbs stay fully visible at min/max. */
 const TRACK_HORIZONTAL_INSET = THUMB_RADIUS;
 const TRACK_HEIGHT = 6;
 /** Figma: white vertical tick at ayah 1 / track start. */
 const START_BAR_WIDTH = 2;
 const START_BAR_HEIGHT = 16;
-const LABEL_LINE_HEIGHT = 12;
+const LABEL_LINE_HEIGHT = 11;
 const LABEL_PADDING_V = 2;
 const LABEL_ROW_HEIGHT = LABEL_LINE_HEIGHT + LABEL_PADDING_V * 2;
 const LABEL_TO_TRACK_GAP = 6;
@@ -60,17 +59,15 @@ const TRACK_CENTER_Y =
 const SLIDER_HEIGHT = TRACK_CENTER_Y + THUMB_HIT_RADIUS;
 /** Compact dark pill above each thumb (Figma). Min fits 3-digit ayahs. */
 const LABEL_WIDTH = 36;
-/** Keep pills inside the card so they never paint over the next carousel item. */
-const LABEL_EDGE_INSET = 2;
 const LABEL_TOP = 0;
 const CARET_HALF = 4;
 const THUMB_HIT_TOP = TRACK_CENTER_Y - THUMB_HIT_RADIUS;
 const TRACK_TOP = TRACK_CENTER_Y - TRACK_HEIGHT / 2;
 
 function estimateLabelWidth(text: string): number {
-  // Size to content so 3-digit ayahs (e.g. 286) never ellipsize.
-  // Slightly generous glyph width so long names (Al-Baqarah:56) stay inside the pill.
-  return Math.min(Math.max(Math.ceil(text.length * 7.5) + 18, LABEL_WIDTH), 132);
+  // Overestimate slightly so separation kicks in before pills visually collide.
+  // ~6.5px/glyph at 9pt medium + horizontal padding (5*2).
+  return Math.min(Math.max(Math.ceil(text.length * 6.5) + 14, LABEL_WIDTH), 108);
 }
 
 function getLabelLeft(
@@ -78,15 +75,11 @@ function getLabelLeft(
   containerWidth: number,
   labelWidth: number,
 ): number {
-  const maxLeft = Math.max(
-    LABEL_EDGE_INSET,
-    containerWidth - labelWidth - LABEL_EDGE_INSET,
-  );
   return Math.max(
-    LABEL_EDGE_INSET,
+    0,
     Math.min(
       TRACK_HORIZONTAL_INSET + handleX - labelWidth / 2,
-      maxLeft,
+      containerWidth - labelWidth,
     ),
   );
 }
@@ -123,34 +116,78 @@ function separateThumbCenters(
   };
 }
 
-/** Keep ayah pills from covering each other — both stay inside the card. */
+/**
+ * Keep ayah pills from covering each other.
+ * Prefer pushing the end pill right; if that hits the container edge, pull the
+ * start pill left. If both still cannot fit, shrink widths evenly.
+ */
 function separateLabelLefts(
   startLeft: number,
   startWidth: number,
   endLeft: number,
   endWidth: number,
   containerWidth: number,
-): { startLabelLeft: number; endLabelLeft: number } {
-  const maxEnd = Math.max(
-    LABEL_EDGE_INSET,
-    containerWidth - endWidth - LABEL_EDGE_INSET,
-  );
-  let nextStart = Math.max(LABEL_EDGE_INSET, startLeft);
-  let nextEnd = Math.min(Math.max(LABEL_EDGE_INSET, endLeft), maxEnd);
-
-  if (nextEnd < nextStart + startWidth + LABEL_GAP) {
-    nextEnd = Math.min(maxEnd, nextStart + startWidth + LABEL_GAP);
-    // Still overlapping — shift the pair left so both fit inside the card.
-    if (nextEnd < nextStart + startWidth + LABEL_GAP) {
-      nextStart = Math.max(
-        LABEL_EDGE_INSET,
-        containerWidth - LABEL_EDGE_INSET - endWidth - LABEL_GAP - startWidth,
-      );
-      nextEnd = Math.min(maxEnd, nextStart + startWidth + LABEL_GAP);
-    }
+): {
+  startLabelLeft: number;
+  endLabelLeft: number;
+  startLabelWidth: number;
+  endLabelWidth: number;
+} {
+  if (containerWidth <= 0) {
+    return {
+      startLabelLeft: startLeft,
+      endLabelLeft: endLeft,
+      startLabelWidth: startWidth,
+      endLabelWidth: endWidth,
+    };
   }
 
-  return { startLabelLeft: nextStart, endLabelLeft: nextEnd };
+  let startW = Math.min(startWidth, containerWidth);
+  let endW = Math.min(endWidth, containerWidth);
+  const minPair = startW + endW + LABEL_GAP;
+
+  // Shrink both when the pair is wider than the track.
+  if (minPair > containerWidth) {
+    const scale = (containerWidth - LABEL_GAP) / (startW + endW);
+    startW = Math.max(LABEL_WIDTH, Math.floor(startW * scale));
+    endW = Math.max(LABEL_WIDTH, containerWidth - LABEL_GAP - startW);
+  }
+
+  let nextStart = Math.min(startLeft, containerWidth - startW);
+  let nextEnd = Math.min(endLeft, containerWidth - endW);
+  nextStart = Math.max(0, nextStart);
+  nextEnd = Math.max(0, nextEnd);
+
+  if (nextEnd >= nextStart + startW + LABEL_GAP) {
+    return {
+      startLabelLeft: nextStart,
+      endLabelLeft: nextEnd,
+      startLabelWidth: startW,
+      endLabelWidth: endW,
+    };
+  }
+
+  // Place end just after start.
+  nextEnd = nextStart + startW + LABEL_GAP;
+  if (nextEnd + endW <= containerWidth) {
+    return {
+      startLabelLeft: nextStart,
+      endLabelLeft: nextEnd,
+      startLabelWidth: startW,
+      endLabelWidth: endW,
+    };
+  }
+
+  // Not enough room on the right — pin end to the edge and pull start left.
+  nextEnd = containerWidth - endW;
+  nextStart = Math.max(0, nextEnd - LABEL_GAP - startW);
+
+  return {
+    startLabelLeft: nextStart,
+    endLabelLeft: nextEnd,
+    startLabelWidth: startW,
+    endLabelWidth: endW,
+  };
 }
 
 export function QuranAyatRangeSlider({
@@ -158,7 +195,7 @@ export function QuranAyatRangeSlider({
   startAyat,
   endAyat,
   minStartAyat = 1,
-  freezeStartHandle = false,
+  freezeStartHandle,
   verseCount,
   formatVerseLabel,
   onChangeStartAyat,
@@ -168,30 +205,38 @@ export function QuranAyatRangeSlider({
   const formatNumber = useLocaleNumber();
   const isMounted = useRef(true);
   const dragOriginX = useRef(0);
+  const parkedBoundaryRef = useRef<number | null>(null);
   const [width, setWidth] = useState(0);
   const [activeHandle, setActiveHandle] = useState<ActiveHandle>(null);
 
   const maxAyat = Math.max(verseCount ?? getJuzVerseCountFromMap(juz), 1);
   const safeMinStart = Math.min(Math.max(Math.round(minStartAyat), 1), maxAyat);
-  const safeStart = freezeStartHandle
+  // Start thumb is always fixed at the progress boundary; only the end moves.
+  // Callers may pass freezeStartHandle={false} only for rare dual-thumb editing.
+  const isStartFrozen = freezeStartHandle !== false;
+  const safeStart = isStartFrozen
     ? safeMinStart
     : Math.min(Math.max(startAyat, safeMinStart), maxAyat);
   const safeEnd = Math.min(Math.max(endAyat, safeStart), maxAyat);
 
-  // Continue mode: lock start at yesterday’s boundary.
+  // Lock start at the progress boundary (cannot drag backward into logged ayahs).
   useEffect(() => {
-    if (!freezeStartHandle) return;
+    if (!isStartFrozen) return;
     if (startAyat !== safeMinStart) {
       onChangeStartAyat(safeMinStart);
     }
-  }, [freezeStartHandle, onChangeStartAyat, safeMinStart, startAyat]);
+  }, [isStartFrozen, onChangeStartAyat, safeMinStart, startAyat]);
 
-  // Park the movable (back-chevron) thumb at max when continue mode starts
-  // or the logged boundary changes — not while the user is dragging it.
+  // Continue mode: park end at max once per boundary so the user slides it back.
   useEffect(() => {
-    if (!freezeStartHandle) return;
+    if (!isStartFrozen || safeMinStart <= 1) {
+      parkedBoundaryRef.current = null;
+      return;
+    }
+    if (parkedBoundaryRef.current === safeMinStart) return;
+    parkedBoundaryRef.current = safeMinStart;
     onChangeEndAyat(maxAyat);
-  }, [freezeStartHandle, maxAyat, onChangeEndAyat, safeMinStart]);
+  }, [isStartFrozen, maxAyat, onChangeEndAyat, safeMinStart]);
 
   const trackWidth = Math.max(width - TRACK_HORIZONTAL_INSET * 2, 1);
 
@@ -280,19 +325,24 @@ export function QuranAyatRangeSlider({
     [formatVerseLabel, juz, safeEnd],
   );
 
-  const startLabelWidth = estimateLabelWidth(startLabel);
-  const endLabelWidth = estimateLabelWidth(endLabel);
+  const startLabelWidthRaw = estimateLabelWidth(startLabel);
+  const endLabelWidthRaw = estimateLabelWidth(endLabel);
   const rawStartLabelLeft = getLabelLeft(
     renderStartX,
     width,
-    startLabelWidth,
+    startLabelWidthRaw,
   );
-  const rawEndLabelLeft = getLabelLeft(renderEndX, width, endLabelWidth);
-  const { startLabelLeft, endLabelLeft } = separateLabelLefts(
-    rawStartLabelLeft,
+  const rawEndLabelLeft = getLabelLeft(renderEndX, width, endLabelWidthRaw);
+  const {
+    startLabelLeft,
+    endLabelLeft,
     startLabelWidth,
-    rawEndLabelLeft,
     endLabelWidth,
+  } = separateLabelLefts(
+    rawStartLabelLeft,
+    startLabelWidthRaw,
+    rawEndLabelLeft,
+    endLabelWidthRaw,
     width,
   );
   const startCaretLeft = getCaretLeft(
@@ -395,12 +445,7 @@ export function QuranAyatRangeSlider({
             },
           ]}
         >
-          <Text
-            style={localStyles.labelText}
-            numberOfLines={1}
-            adjustsFontSizeToFit
-            minimumFontScale={0.8}
-          >
+          <Text style={localStyles.labelText} numberOfLines={1}>
             {startLabel}
           </Text>
           <View style={[localStyles.labelCaret, { left: startCaretLeft }]} />
@@ -418,12 +463,7 @@ export function QuranAyatRangeSlider({
             },
           ]}
         >
-          <Text
-            style={localStyles.labelText}
-            numberOfLines={1}
-            adjustsFontSizeToFit
-            minimumFontScale={0.8}
-          >
+          <Text style={localStyles.labelText} numberOfLines={1}>
             {endLabel}
           </Text>
           <View style={[localStyles.labelCaret, { left: endCaretLeft }]} />
@@ -497,7 +537,7 @@ export function QuranAyatRangeSlider({
           />
         ) : null}
 
-        {freezeStartHandle ? (
+        {isStartFrozen ? (
           <View
             pointerEvents="none"
             collapsable={false}
@@ -511,11 +551,11 @@ export function QuranAyatRangeSlider({
               },
             ]}
           >
-            {/* Locked start — same filled chevron, fixed in place */}
+            {/* Locked start — fixed at minStart; only end thumb moves */}
             <View style={[localStyles.thumb, localStyles.thumbLocked]}>
               <View style={localStyles.thumbChevron}>
                 <FilledChevronIconForQuranGoal
-                  direction="right"
+                  direction="left"
                   size={10}
                   color={Colors.light.green}
                 />
@@ -544,7 +584,7 @@ export function QuranAyatRangeSlider({
               >
                 <View style={localStyles.thumbChevron}>
                   <FilledChevronIconForQuranGoal
-                    direction="right"
+                    direction="left"
                     size={10}
                     color={Colors.light.green}
                   />
@@ -562,8 +602,9 @@ export function QuranAyatRangeSlider({
               {
                 left: endHitLeft,
                 top: THUMB_HIT_TOP,
-                zIndex: activeHandle === "end" ? 32 : 30,
-                elevation: activeHandle === "end" ? 14 : 12,
+                // Keep end above the locked start so nearby drags always move end.
+                zIndex: activeHandle === "end" ? 34 : 33,
+                elevation: activeHandle === "end" ? 16 : 14,
               },
             ]}
           >
@@ -575,7 +616,7 @@ export function QuranAyatRangeSlider({
             >
               <View style={localStyles.thumbChevron}>
                 <FilledChevronIconForQuranGoal
-                  direction="left"
+                  direction="right"
                   size={10}
                   color={Colors.light.green}
                 />
@@ -599,19 +640,19 @@ export function QuranAyatRangeSlider({
 const localStyles = StyleSheet.create({
   root: {
     width: "100%",
-    overflow: "hidden",
+    overflow: "visible",
   },
   sliderArea: {
     position: "relative",
     width: "100%",
     marginTop: 0,
-    overflow: "hidden",
+    overflow: "visible",
   },
   labelPill: {
     position: "absolute",
     backgroundColor: Colors.light.darkgrey,
     borderRadius: 4,
-    paddingHorizontal: 6,
+    paddingHorizontal: 5,
     paddingVertical: LABEL_PADDING_V,
     alignItems: "center",
     justifyContent: "center",
@@ -633,7 +674,7 @@ const localStyles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
-    fontSize: 10,
+    fontSize: 9,
     lineHeight: LABEL_LINE_HEIGHT,
     textAlign: "center",
   },

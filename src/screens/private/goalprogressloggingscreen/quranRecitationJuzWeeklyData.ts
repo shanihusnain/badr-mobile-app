@@ -202,7 +202,8 @@ export function canNavigateJuzWeek(
   direction: "prev" | "next",
 ): boolean {
   if (direction === "prev") return weekIndex > 0;
-  return weekIndex < MOCK_JUZ_WEEKS.length - 1;
+  const activeWeekIndex = getQuranJuzCycleSummary().activeWeekIndex;
+  return weekIndex < activeWeekIndex;
 }
 
 export function getQuranJuzWeekSummary(

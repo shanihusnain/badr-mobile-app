@@ -576,7 +576,8 @@ export function canNavigateRecitationWeek(
   if (direction === "prev") {
     return weekIndex > 0;
   }
-  return weekIndex < cycle.weeks.length - 1;
+  // Do not navigate into weeks after the calendar current week.
+  return weekIndex < cycle.activeWeekIndex;
 }
 
 export function getQuranRecitationCycleSummary(

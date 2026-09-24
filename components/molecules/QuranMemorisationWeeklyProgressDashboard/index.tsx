@@ -35,6 +35,12 @@ export type QuranMemorisationWeeklyProgressDashboardProps = {
   loading?: boolean;
   /** Backend type e.g. MEMORIZATION_SURAH — enables long-press delete when set. */
   quranGoalType?: string | null;
+  /**
+   * Active carousel item (surah / juz / hizb number).
+   * Scoped into delete so only this card’s day is cleared.
+   */
+  itemNumber?: number | null;
+  itemType?: "SURAH" | "JUZ" | "HIZB" | string | null;
 };
 
 function getLocalTodayString(): string {
@@ -90,6 +96,8 @@ export function QuranMemorisationWeeklyProgressDashboard({
   totalWeeks = 4,
   loading = false,
   quranGoalType = null,
+  itemNumber = null,
+  itemType = null,
 }: QuranMemorisationWeeklyProgressDashboardProps) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
@@ -101,9 +109,14 @@ export function QuranMemorisationWeeklyProgressDashboard({
   const handleDeleteLog = useCallback(
     async (date: string) => {
       if (!quranGoalType) return;
-      await deleteQuranLog({ quranGoalType, date });
+      await deleteQuranLog({
+        quranGoalType,
+        date,
+        itemNumber,
+        itemType,
+      });
     },
-    [deleteQuranLog, quranGoalType],
+    [deleteQuranLog, itemNumber, itemType, quranGoalType],
   );
 
   const mappedWeekDays = useMemo(

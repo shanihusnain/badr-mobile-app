@@ -269,6 +269,31 @@ export function getQuranFrameWeekRangeLabel(frame: QuranGoalFrameData): string {
   return formatQuranFrameWeekRange(frame.week.weekStart, frame.week.weekEnd);
 }
 
+/** True when the viewed week includes today or is entirely in the future. */
+export function isQuranFrameWeekCurrentOrFuture(
+  frame: QuranGoalFrameData,
+): boolean {
+  const today = moment().format("YYYY-MM-DD");
+  const weekEnd = normalizeFrameDate(frame.week.weekEnd);
+  if (weekEnd && weekEnd >= today) return true;
+  const weekStart = normalizeFrameDate(frame.week.weekStart);
+  if (weekStart && weekStart > today) return true;
+  return frame.week.days.some((day) => resolveIsToday(day));
+}
+
+/**
+ * Forward week chevron: never advance past the calendar current week
+ * (e.g. Nov 29 — Dec 5 while today falls in that range).
+ */
+export function canNavigateQuranFrameWeekNext(
+  frame: QuranGoalFrameData,
+): boolean {
+  if (isQuranFrameWeekCurrentOrFuture(frame)) return false;
+  if (frame.week.hasNext === false) return false;
+  if (frame.week.hasNext === true) return true;
+  return frame.week.weekNumber < frame.week.totalWeeks;
+}
+
 export function getQuranFrameWeekStreakDays(frame: QuranGoalFrameData): number {
   const weekStreak = toFiniteNumber(frame.week.streak?.count);
   if (weekStreak != null) return Math.max(0, weekStreak);

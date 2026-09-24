@@ -296,7 +296,8 @@ export function canNavigateCompletionWeek(
   direction: "prev" | "next",
 ): boolean {
   if (direction === "prev") return weekIndex > 0;
-  return weekIndex < MOCK_COMPLETION_WEEKS.length - 1;
+  const activeWeekIndex = getQuranCompletionCycleSummary().activeWeekIndex;
+  return weekIndex < activeWeekIndex;
 }
 
 export function getQuranCompletionWeekSummary(

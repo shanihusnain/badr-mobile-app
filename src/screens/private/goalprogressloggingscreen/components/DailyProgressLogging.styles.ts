@@ -189,7 +189,7 @@ export const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 0,
     marginBottom: 0,
-    overflow: "hidden",
+    overflow: "visible",
   },
   flowHeader: {
     flexDirection: "row",

@@ -407,6 +407,7 @@ export default function QuranCompletionLoggingFlow({
             juz={partialJuz}
             startAyat={startAyat}
             endAyat={endAyat}
+            freezeStartHandle
             onChangeStartAyat={setStartAyat}
             onChangeEndAyat={setEndAyat}
             styles={styles}

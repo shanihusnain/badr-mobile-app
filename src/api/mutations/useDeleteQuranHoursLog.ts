@@ -4,9 +4,17 @@ import { getApiErrorMessage, showToast } from "@/src/config/toastConfig";
 import { resolveQuranType } from "@/src/utils/quranGoalMap";
 
 export type DeleteQuranHoursLogPayload = {
-  /** Backend type, e.g. LISTENING / TAJWEED (or UI id — resolved). */
+  /** Backend type, e.g. LISTENING / TAJWEED / MEMORIZATION_SURAH (or UI id — resolved). */
   quranGoalType: string;
   date: string;
+  /**
+   * Intended for multi-item goals (active surah / juz / hizb).
+   * NOT sent yet — DELETE .../log only accepts `date`; backend rejects
+   * `itemNumber` / `itemType` ("property … should not exist").
+   * Keep on the payload so we can wire them once the API allows them.
+   */
+  itemNumber?: number | null;
+  itemType?: "SURAH" | "JUZ" | "HIZB" | string | null;
 };
 
 const deleteQuranHoursLog = async ({
@@ -14,6 +22,8 @@ const deleteQuranHoursLog = async ({
   date,
 }: DeleteQuranHoursLogPayload) => {
   const type = resolveQuranType(quranGoalType);
+  // Backend delete DTO currently whitelists only `date`.
+  // Sending itemNumber/itemType returns: "property itemNumber should not exist…"
   const params = new URLSearchParams({ date });
   const response = await api.delete(
     `api/goal-cycles/current/quran-goals/${type}/log?${params.toString()}`,

@@ -117,10 +117,10 @@ export default function QuranMemorisationJuzLoggingFlow({
   const juzNumber =
     config?.juzNumber ?? (Number(String(juzId).replace(/^juz-/i, "")) || 1);
   const totalAyahs = config?.totalAyahs ?? 0;
-  const memorizedAyahs =
-    config?.memorizedAyahs != null
-      ? config.memorizedAyahs
-      : getMemorizedJuzAyahCount(juzId);
+  const memorizedAyahs = Math.max(
+    config?.memorizedAyahs ?? 0,
+    juzId ? getMemorizedJuzAyahCount(juzId) : 0,
+  );
   const remainingAyahs = Math.max(0, totalAyahs - memorizedAyahs);
   const minStartAyah = getNextJuzMemorisationAyah(juzId, memorizedAyahs);
   const itemNumber = useMemo(() => {

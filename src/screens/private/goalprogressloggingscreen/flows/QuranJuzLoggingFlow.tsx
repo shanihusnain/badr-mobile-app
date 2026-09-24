@@ -446,7 +446,7 @@ export default function QuranJuzLoggingFlow({
             startAyat={startAyat}
             endAyat={endAyat}
             minStartAyat={minAyatStart}
-            freezeStartHandle={minAyatStart > 1}
+            freezeStartHandle
             onChangeStartAyat={setStartAyat}
             onChangeEndAyat={setEndAyat}
             styles={styles}
