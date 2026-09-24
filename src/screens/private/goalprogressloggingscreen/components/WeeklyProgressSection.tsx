@@ -984,6 +984,7 @@ export function WeeklyProgressSection({
           selectedDayIndex={getQuranFrameTodayIndex(frame)}
           loading={frameLoading}
           isGoalCompleted={(frame.goal.achievementPct ?? 0) >= 100}
+          quranGoalType={frame.quranGoalType || "RECITATION_JUZ"}
           onPrevWeek={
             canPrev
               ? () => shiftQuranFrameWeek(quranFrame, frame, -1)
@@ -1052,6 +1053,7 @@ export function WeeklyProgressSection({
         }
         streakDays={quranCompletionWeek.streakDays}
         motivationalQuote={t(quranCompletionWeek.motivationalQuoteKey)}
+        quranGoalType="RECITATION_COMPLETION"
         onPrevWeek={
           canNavigateCompletionWeek(weekIndex, "prev")
             ? handleCompletionPrevWeek

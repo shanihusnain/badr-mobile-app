@@ -38,6 +38,17 @@ import {
   isPastAchievementBarEmpty,
 } from "@/src/utils/pastAchievementNoData";
 import type { JuzRecitationGoalId } from "@/src/screens/private/goalprogressloggingscreen/types";
+import { useGetQuranGoalAchievements } from "@/src/api/queries/useGetQuranGoalAchievements";
+import { useGetQuranGoalByType } from "@/src/api/queries/useGetQuranGoalByType";
+import { resolveQuranTypeFromGoalId } from "@/src/utils/quranGoalMap";
+import { shiftPrayerAchievementsPeriodStart } from "@/src/utils/prayerGoalAchievementsMap";
+import { mapQuranApiKeyInsightsToCards } from "@/src/utils/quranHoursGoalAchievementsMap";
+import {
+  buildRecitationJuzAchievementFilters,
+  createEmptyRecitationJuzAchievements,
+  mapRecitationJuzAchievementsToUi,
+} from "@/src/utils/quranRecitationJuzAchievementsMap";
+import type { InsightCardData } from "../PrayerPastAchievements/insightCardsData";
 import { INCOMPLETE_BAR_COLOR } from "../QuranHoursPastAchievements/pastAchievementStyles";
 import { QuranHoursPastAchievementChartBlock } from "../QuranHoursPastAchievements/QuranHoursPastAchievementChartBlock";
 import { GraphBarSelectionFooter } from "../QuranHoursPastAchievements/GraphBarSelectionFooter";
@@ -46,12 +57,54 @@ import { RecitationJuzDetailCard } from "../QuranHoursPastAchievements/Recitatio
 import { InsightCard } from "../InsightCard";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import {
+  InsightCardFlashIcon,
   InsightCardGoalTrackedIcon,
+  InsightCardGoodDayIcon,
   InsightCardTickIcon,
   InsightCardTimeSpentIcon,
+  InsightCardWeeklyAverageIcon,
 } from "@/assets/icons";
 
 const QURAN_INSIGHT_ICON_SIZE = 14;
+const LOADING_DASH = "---";
+
+const PERIOD_INSIGHT_SUBTITLE: Record<PastAchievementPeriod, string> = {
+  monthly: "VS. LAST MONTH",
+  threeMonths: "VS. LAST 3 MONTHS",
+  sixMonths: "VS. LAST 6 MONTHS",
+};
+
+function getRecitationJuzInsightIcon(card: InsightCardData) {
+  const title = card.title.toUpperCase();
+  const name = card.iconName;
+  if (name === "calendar-outline" || title.includes("GOAL TRACKED")) {
+    return <InsightCardGoalTrackedIcon size={QURAN_INSIGHT_ICON_SIZE} />;
+  }
+  if (
+    name === "checkmark-circle-outline" ||
+    title.includes("COMPLETED") ||
+    title.includes("RECITED")
+  ) {
+    return <InsightCardTickIcon size={QURAN_INSIGHT_ICON_SIZE} />;
+  }
+  if (name === "flash" || title.includes("STREAK")) {
+    return <InsightCardFlashIcon size={QURAN_INSIGHT_ICON_SIZE} />;
+  }
+  if (name === "sparkles" || title.includes("BEST")) {
+    return <InsightCardGoodDayIcon size={QURAN_INSIGHT_ICON_SIZE} />;
+  }
+  if (name === "scale-balance" || title.includes("AVERAGE")) {
+    return <InsightCardWeeklyAverageIcon size={QURAN_INSIGHT_ICON_SIZE} />;
+  }
+  if (
+    name === "time-outline" ||
+    title.includes("TIME") ||
+    name === "book-outline"
+  ) {
+    return <InsightCardTimeSpentIcon size={QURAN_INSIGHT_ICON_SIZE} />;
+  }
+  return undefined;
+}
 
 export type QuranJuzPastAchievementsProps = {
   goalId: JuzRecitationGoalId;
@@ -108,7 +161,12 @@ export function QuranJuzPastAchievements({
     maxWidth: width * 0.42,
     minWidth: width * 0.42,
   };
-  const [period, setPeriod] = useState<PastAchievementPeriod>(initialPeriod);
+  const [period, setPeriodState] = useState<PastAchievementPeriod>(initialPeriod);
+  const setPeriod = useCallback((next: PastAchievementPeriod) => {
+    setPeriodState(next);
+    setPeriodStartParam(null);
+  }, []);
+  const [periodStartParam, setPeriodStartParam] = useState<string | null>(null);
   const [selectedJuzFilter, setSelectedJuzFilter] =
     useState<JuzFilterId>(initialJuzFilter);
   const [analyticsView, setAnalyticsView] = useState<JuzAnalyticsView>(
@@ -117,24 +175,120 @@ export function QuranJuzPastAchievements({
   const [selectedBarIndex, setSelectedBarIndex] = useState<number | null>(null);
   const [hintDismissed, setHintDismissed] = useState(false);
 
-  const juzFilters = useMemo(() => getJuzPastAchievementFilters(), []);
+  const quranGoalType = resolveQuranTypeFromGoalId(goalId);
+  const usesAchievementsApi = quranGoalType === "RECITATION_JUZ";
 
-  const allPeriodSlice = useMemo(
-    () => getQuranJuzPastAchievementSlice(period, "all"),
-    [period],
+  const { data: juzGoalDetail } = useGetQuranGoalByType(
+    usesAchievementsApi ? "RECITATION_JUZ" : null,
   );
 
-  const periodSlice = useMemo(
-    () => getQuranJuzPastAchievementSlice(period, selectedJuzFilter),
-    [period, selectedJuzFilter],
-  );
+  const selectedItemNumber = useMemo(() => {
+    if (selectedJuzFilter === "all") return null;
+    const n = Number(selectedJuzFilter);
+    return Number.isFinite(n) && n > 0 ? n : null;
+  }, [selectedJuzFilter]);
+
+  const achievementsChartParam =
+    isDetailed && analyticsView === "completedVsTimeSpent"
+      ? "COMPLETED_VS_TIME"
+      : null;
+
+  const { data: achievementsApiData, isLoading: isAchievementsLoading } =
+    useGetQuranGoalAchievements(quranGoalType, {
+      period,
+      periodStart: periodStartParam,
+      itemNumber: selectedItemNumber,
+      chart: achievementsChartParam,
+      enabled: usesAchievementsApi && !!quranGoalType,
+    });
+
+  const showPlaceholders =
+    usesAchievementsApi && (!achievementsApiData || isAchievementsLoading);
+
+  const juzFilters = useMemo(() => {
+    if (usesAchievementsApi) {
+      const fromDetail = buildRecitationJuzAchievementFilters(juzGoalDetail);
+      if (fromDetail.length > 1) return fromDetail;
+    }
+    return getJuzPastAchievementFilters();
+  }, [juzGoalDetail, usesAchievementsApi]);
+
+  const mappedApi = useMemo(() => {
+    if (!usesAchievementsApi) return null;
+    if (!achievementsApiData) {
+      return createEmptyRecitationJuzAchievements(period);
+    }
+    return mapRecitationJuzAchievementsToUi(achievementsApiData, period, {
+      juzFilter: selectedJuzFilter,
+      detail: juzGoalDetail,
+    });
+  }, [
+    achievementsApiData,
+    juzGoalDetail,
+    period,
+    selectedJuzFilter,
+    usesAchievementsApi,
+  ]);
+
+  const allPeriodSlice = useMemo(() => {
+    if (usesAchievementsApi && mappedApi) return mappedApi.slice;
+    return getQuranJuzPastAchievementSlice(period, "all");
+  }, [mappedApi, period, usesAchievementsApi]);
+
+  const periodSlice = useMemo(() => {
+    if (usesAchievementsApi && mappedApi) return mappedApi.slice;
+    return getQuranJuzPastAchievementSlice(period, selectedJuzFilter);
+  }, [mappedApi, period, selectedJuzFilter, usesAchievementsApi]);
 
   const isJuzDrillDown = isDetailed && selectedJuzFilter !== "all";
 
-  const baseAchievement = useMemo(
-    () => getQuranJuzPastAchievement(period, selectedJuzFilter),
-    [period, selectedJuzFilter],
-  );
+  const canNavigateBack = usesAchievementsApi
+    ? Boolean(mappedApi?.achievement.canNavigateBack)
+    : false;
+  const canNavigateForward = usesAchievementsApi
+    ? Boolean(mappedApi?.achievement.canNavigateForward)
+    : false;
+
+  const keyInsightsHeader = mappedApi?.achievement.keyInsightsHeader ?? null;
+
+  const apiInsightCards = useMemo(() => {
+    if (!usesAchievementsApi) return [];
+    return mapQuranApiKeyInsightsToCards(achievementsApiData, {
+      period,
+      noDataLabel: t("progressLogging.insightNoData"),
+      isLoading: showPlaceholders,
+    });
+  }, [achievementsApiData, period, showPlaceholders, t, usesAchievementsApi]);
+
+  const handlePreviousPeriod = useCallback(() => {
+    if (!usesAchievementsApi || !achievementsApiData || !canNavigateBack) return;
+    if (!achievementsApiData.periodStart || !achievementsApiData.periodEnd) return;
+    setPeriodStartParam(
+      shiftPrayerAchievementsPeriodStart(
+        achievementsApiData.periodStart,
+        achievementsApiData.periodEnd,
+        -1,
+      ),
+    );
+  }, [achievementsApiData, canNavigateBack, usesAchievementsApi]);
+
+  const handleNextPeriod = useCallback(() => {
+    if (!usesAchievementsApi || !achievementsApiData || !canNavigateForward)
+      return;
+    if (!achievementsApiData.periodStart || !achievementsApiData.periodEnd) return;
+    setPeriodStartParam(
+      shiftPrayerAchievementsPeriodStart(
+        achievementsApiData.periodStart,
+        achievementsApiData.periodEnd,
+        1,
+      ),
+    );
+  }, [achievementsApiData, canNavigateForward, usesAchievementsApi]);
+
+  const baseAchievement = useMemo(() => {
+    if (usesAchievementsApi && mappedApi) return mappedApi.achievement;
+    return getQuranJuzPastAchievement(period, selectedJuzFilter);
+  }, [mappedApi, period, selectedJuzFilter, usesAchievementsApi]);
 
   const timeSpentByPeriod = useMemo(
     () => getJuzTimeSpentByPeriod(periodSlice),
@@ -167,15 +321,30 @@ export function QuranJuzPastAchievements({
     return formatJuzCountLabel;
   }, [analyticsView, isDetailed]);
 
-  const totalTimeSpentMinutes = useMemo(
-    () => getTotalJuzTimeSpentMinutes(timeSpentByPeriod),
-    [timeSpentByPeriod],
-  );
+  const totalTimeSpentMinutes = useMemo(() => {
+    const fromBuckets = getTotalJuzTimeSpentMinutes(timeSpentByPeriod);
+    if (fromBuckets > 0) return fromBuckets;
+    if (usesAchievementsApi) {
+      const fromTotals = achievementsApiData?.totals?.timeSpentMinutes;
+      if (typeof fromTotals === "number" && Number.isFinite(fromTotals)) {
+        return Math.max(0, fromTotals);
+      }
+    }
+    return fromBuckets;
+  }, [achievementsApiData?.totals?.timeSpentMinutes, timeSpentByPeriod, usesAchievementsApi]);
 
   useEffect(() => {
     setSelectedBarIndex(null);
     setHintDismissed(false);
-  }, [period, goalId, selectedJuzFilter, analyticsView]);
+  }, [period, goalId, selectedJuzFilter, analyticsView, periodStartParam]);
+
+  useEffect(() => {
+    if (!usesAchievementsApi || juzFilters.length === 0) return;
+    const stillValid = juzFilters.some(
+      (filter) => filter.id === selectedJuzFilter,
+    );
+    if (!stillValid) setSelectedJuzFilter("all");
+  }, [juzFilters, selectedJuzFilter, usesAchievementsApi]);
 
   const handleBarPressCompact = useCallback((index: number | null) => {
     setHintDismissed(true);
@@ -227,10 +396,9 @@ export function QuranJuzPastAchievements({
   const displayBaseIncomplete =
     selectedBaseWeek?.incompleteHours ?? baseAchievement.incompleteHours;
 
-  const showNoDataDash = isPastAchievementBarEmpty(
-    displayBaseCompleted,
-    displayBaseIncomplete,
-  );
+  const showNoDataDash =
+    showPlaceholders ||
+    isPastAchievementBarEmpty(displayBaseCompleted, displayBaseIncomplete);
 
   const selectedPeriodTimeSpentMinutes =
     selectedBarIndex !== null
@@ -300,6 +468,11 @@ export function QuranJuzPastAchievements({
         selectedJuzFilter === "all" || record.juzNumber === selectedJuzFilter,
     );
 
+    const insightCards =
+      usesAchievementsApi && apiInsightCards.length > 0
+        ? apiInsightCards
+        : null;
+
     return (
       <View style={styles.insightsSection}>
         <View style={styles.insightsHeader}>
@@ -307,11 +480,7 @@ export function QuranJuzPastAchievements({
             {t("progressLogging.keyInsights")}
           </Text>
           <Text style={styles.insightsSubtitleLabel}>
-            {period === "monthly"
-              ? "VS. LAST MONTH"
-              : period === "threeMonths"
-                ? "VS. LAST 3 MONTHS"
-                : "VS. LAST 6 MONTHS"}
+            {keyInsightsHeader?.trim() || PERIOD_INSIGHT_SUBTITLE[period]}
           </Text>
         </View>
         <ScrollView
@@ -320,29 +489,62 @@ export function QuranJuzPastAchievements({
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.insightsScrollContent}
         >
-          <InsightCard
-            iconName="calendar-outline"
-            icon={<InsightCardTickIcon size={QURAN_INSIGHT_ICON_SIZE} />}
-            title={t("progressLogging.completed")}
-            value={formatNumber(baseAchievement.completedHours)}
-            subValue={t("progressLogging.unitJuz")}
-            style={insightCardStyle}
-          />
-          <InsightCard
-            iconName="book-outline"
-            icon={<InsightCardTimeSpentIcon size={QURAN_INSIGHT_ICON_SIZE} />}
-            title="AYAT RECITED"
-            value={formatNumber(selectedJuzRecord?.completedAyatCount ?? 0)}
-            subValue={`of ${formatNumber(selectedJuzRecord?.totalAyatCount ?? 0)}`}
-            style={insightCardStyle}
-          />
-          <InsightCard
-            iconName="time-outline"
-            icon={<InsightCardGoalTrackedIcon size={QURAN_INSIGHT_ICON_SIZE} />}
-            title={t("progressLogging.timeSpentLabel")}
-            value={formatJuzTimeSpentLabel(totalTimeSpentMinutes)}
-            style={insightCardStyle}
-          />
+          {insightCards ? (
+            insightCards.map((card) => (
+              <InsightCard
+                key={`${card.title}-${card.value}`}
+                iconName={card.iconName}
+                iconFamily={card.iconFamily}
+                icon={getRecitationJuzInsightIcon(card)}
+                title={card.title}
+                value={card.value}
+                subValue={card.subValue}
+                style={insightCardStyle}
+              />
+            ))
+          ) : (
+            <>
+              <InsightCard
+                iconName="calendar-outline"
+                icon={<InsightCardTickIcon size={QURAN_INSIGHT_ICON_SIZE} />}
+                title={t("progressLogging.completed")}
+                value={
+                  showPlaceholders
+                    ? LOADING_DASH
+                    : formatNumber(baseAchievement.completedHours)
+                }
+                subValue={t("progressLogging.unitJuz")}
+                style={insightCardStyle}
+              />
+              <InsightCard
+                iconName="book-outline"
+                icon={
+                  <InsightCardTimeSpentIcon size={QURAN_INSIGHT_ICON_SIZE} />
+                }
+                title="AYAT RECITED"
+                value={
+                  showPlaceholders
+                    ? LOADING_DASH
+                    : formatNumber(selectedJuzRecord?.completedAyatCount ?? 0)
+                }
+                subValue={`of ${formatNumber(selectedJuzRecord?.totalAyatCount ?? 0)}`}
+                style={insightCardStyle}
+              />
+              <InsightCard
+                iconName="time-outline"
+                icon={
+                  <InsightCardGoalTrackedIcon size={QURAN_INSIGHT_ICON_SIZE} />
+                }
+                title={t("progressLogging.timeSpentLabel")}
+                value={
+                  showPlaceholders
+                    ? LOADING_DASH
+                    : formatJuzTimeSpentLabel(totalTimeSpentMinutes)
+                }
+                style={insightCardStyle}
+              />
+            </>
+          )}
         </ScrollView>
       </View>
     );
@@ -657,21 +859,46 @@ return (
             </View>
 
             <View style={styles.dateNavRow}>
-              <TouchableOpacity activeOpacity={0.7} style={styles.navBtn}>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                style={[
+                  styles.navBtn,
+                  (!canNavigateBack || showPlaceholders) && styles.navBtnDisabled,
+                ]}
+                disabled={!canNavigateBack || showPlaceholders}
+                onPress={handlePreviousPeriod}
+              >
                 <Ionicons
                   name="chevron-back"
                   size={isDetailed ? 24 : 14}
-                  color={Colors.light.dullWhite}
+                  color={
+                    canNavigateBack && !showPlaceholders
+                      ? Colors.light.dullWhite
+                      : Colors.light.subtext
+                  }
                 />
               </TouchableOpacity>
               <Text style={styles.dateRange} numberOfLines={1}>
-                {achievement.dateRangeLabel}
+                {showPlaceholders ? LOADING_DASH : achievement.dateRangeLabel}
               </Text>
-              <TouchableOpacity activeOpacity={0.7} style={styles.navBtn}>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                style={[
+                  styles.navBtn,
+                  (!canNavigateForward || showPlaceholders) &&
+                    styles.navBtnDisabled,
+                ]}
+                disabled={!canNavigateForward || showPlaceholders}
+                onPress={handleNextPeriod}
+              >
                 <Ionicons
                   name="chevron-forward"
                   size={isDetailed ? 24 : 14}
-                  color={Colors.light.dullWhite}
+                  color={
+                    canNavigateForward && !showPlaceholders
+                      ? Colors.light.dullWhite
+                      : Colors.light.subtext
+                  }
                 />
               </TouchableOpacity>
             </View>
@@ -841,7 +1068,7 @@ return (
             onBarPress={
               isDetailed ? handleBarPressDetailed : handleBarPressCompact
             }
-            chartKey={`${goalId}-${period}-${selectedJuzFilter}-${analyticsView}-${showNoDataDash ? "empty" : "ready"}`}
+            chartKey={`${goalId}-${period}-${selectedJuzFilter}-${analyticsView}-${periodStartParam ?? "latest"}-${showPlaceholders ? "loading" : showNoDataDash ? "empty" : "ready"}`}
             yMax={chartAchievement.yMax}
             yTicks={chartAchievement.yTicks}
             showHint={showChartHint && !showNoDataDash}
@@ -1089,6 +1316,9 @@ const styles = StyleSheet.create({
   },
   navBtn: {
     padding: 2,
+  },
+  navBtnDisabled: {
+    opacity: 0.4,
   },
   dateRange: {
     color: Colors.light.white,
