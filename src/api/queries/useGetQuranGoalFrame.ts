@@ -180,5 +180,6 @@ export const useGetQuranGoalFrame = (
       }),
     enabled,
     placeholderData: keepPreviousData,
+    refetchOnWindowFocus: true,
   });
 };
