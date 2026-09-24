@@ -83,6 +83,13 @@ export const surahGoalStyles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 12.5,
   },
+  /** Percentage / cycle-end chip — theme light green badge. */
+  statusChipAchieved: {
+    backgroundColor: Colors.light.lightgreenbadgecolor,
+  },
+  statusChipTextAchieved: {
+    color: Colors.light.green,
+  },
   textLines: {
     gap: 2,
   },

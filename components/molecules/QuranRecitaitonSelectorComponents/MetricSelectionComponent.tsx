@@ -690,6 +690,17 @@ export const MetricSelectionComponent = ({
     return hi >= minEnd;
   };
 
+  /**
+   * Typing over the default "0" must replace it (not append → "01" / maxLength stuck).
+   * Keeps a lone "0"; strips leading zeros once the user enters a real digit.
+   */
+  const normalizeJuzDigitDraft = (raw: string): string => {
+    const digits = raw.replace(/[^0-9]/g, "").slice(0, 2);
+    if (digits === "") return "";
+    const stripped = digits.replace(/^0+/, "");
+    return stripped === "" ? "0" : stripped;
+  };
+
   const enforceJuzStart = (raw: string) => {
     if (raw === "" || raw === "0") {
       setJuzStart(0);
@@ -729,8 +740,24 @@ export const MetricSelectionComponent = ({
     commitJuzEnd(n);
   };
 
+  const handleJuzStartChange = (v: string) => {
+    const digits = normalizeJuzDigitDraft(v);
+    if (digits === "" || digits === "0") {
+      setJuzStart(0);
+      return;
+    }
+    const n = parseInt(digits, 10);
+    if (Number.isNaN(n)) {
+      setJuzStart(0);
+      return;
+    }
+    let clamped = Math.min(Math.max(1, n), 30);
+    if (juzEnd > 0 && clamped > juzEnd) clamped = juzEnd;
+    setJuzStart(clamped);
+  };
+
   const handleJuzEndChange = (v: string) => {
-    const digits = v.replace(/[^0-9]/g, "").slice(0, 2);
+    const digits = normalizeJuzDigitDraft(v);
     if (digits === "") {
       setJuzEndText("");
       setJuzEnd(0);
@@ -1302,29 +1329,15 @@ export const MetricSelectionComponent = ({
                 {t("monthlyGoalPlanner.quranMetrics.fromJuz")}
               </Text>
               <BottomSheetTextInput
-                value={String(juzStart)}
-                onChangeText={(v) => {
-                  if (v === "") {
-                    setJuzStart(0);
-                    return;
-                  }
-                  const digits = v.replace(/[^0-9]/g, "");
-                  const n = parseInt(digits, 10);
-                  if (Number.isNaN(n)) {
-                    setJuzStart(0);
-                    return;
-                  }
-                  if (n === 0) {
-                    setJuzStart(0);
-                    return;
-                  }
-                  let clamped = Math.min(Math.max(1, n), 30);
-                  // Start juz must be lesser than or equal to end juz
-                  if (juzEnd > 0 && clamped > juzEnd) clamped = juzEnd;
-                  setJuzStart(clamped);
-                }}
+                value={
+                  focusedInputs["juz-start"] && juzStart === 0
+                    ? ""
+                    : String(juzStart)
+                }
+                onChangeText={handleJuzStartChange}
                 keyboardType="numeric"
                 maxLength={2}
+                selectTextOnFocus
                 onFocus={() => {
                   setInputFocused("juz-start", true);
                   onNestedScrollActiveChange?.(false);
@@ -1354,13 +1367,19 @@ export const MetricSelectionComponent = ({
               </Text>
               <BottomSheetTextInput
                 value={
-                  focusedInputs["juz-end"] ? juzEndText : juzEndText || "0"
+                  focusedInputs["juz-end"]
+                    ? juzEndText === "0"
+                      ? ""
+                      : juzEndText
+                    : juzEndText || "0"
                 }
                 onChangeText={handleJuzEndChange}
                 keyboardType="numeric"
                 maxLength={2}
+                selectTextOnFocus
                 onFocus={() => {
                   setInputFocused("juz-end", true);
+                  if (juzEndText === "0") setJuzEndText("");
                   onNestedScrollActiveChange?.(false);
                   onInputFocus?.();
                 }}

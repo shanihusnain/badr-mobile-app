@@ -84,7 +84,13 @@ export function QuranRecitationDayRing({
   const strokeWidth = 2.5;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-  const gapSize = target >= 5 ? 3 : 6;
+  // Round caps eat gap visually — keep openings clear at top/bottom center.
+  const gapSize =
+    target === 2
+      ? strokeWidth + 4
+      : target >= 5
+        ? strokeWidth + 2
+        : strokeWidth + 3;
   const segmentWidth = circumference / target;
   const dashLength = Math.max(segmentWidth - gapSize, 1);
 
@@ -103,7 +109,8 @@ export function QuranRecitationDayRing({
       <View style={{ width: size, height: size }}>
         <Svg width={size} height={size} style={styles.svg}>
           {segmentStates.map((state, index) => {
-            const offset = -(index * segmentWidth);
+            // Half-gap shift keeps left/right arcs upright (gaps at 12 & 6).
+            const offset = -(index * segmentWidth) - gapSize / 2;
             const strokeColor = getRecitationSegmentColor(state);
 
             return (

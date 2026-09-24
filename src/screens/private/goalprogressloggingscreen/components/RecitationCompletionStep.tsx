@@ -22,7 +22,7 @@ type Props = {
   onChangeSessionCount: (count: number) => void;
 };
 
-const RING_SIZE = 40;
+const RING_SIZE = 42;
 
 /**
  * Logging “Add completion” ring.
@@ -97,7 +97,7 @@ function SolidCompletionRing({
   dayType: QuranRecitationDayType;
   size: number;
 }) {
-  const strokeWidth = 2.5;
+  const strokeWidth = 4;
   const radius = (size - strokeWidth) / 2;
 
   if (filled) {
@@ -141,10 +141,17 @@ function SegmentedCompletionRing({
   segmentStates: RecitationSegmentVisualState[];
 }) {
   const target = segmentStates.length;
-  const strokeWidth = 2.5;
+  // Thick arcs with rounded caps; gaps centered at top & bottom (2× daily).
+  const strokeWidth = 4.2;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-  const gapSize = target >= 5 ? 3 : 6;
+  // Round caps eat ~strokeWidth of the gap visually — pad so a clear center gap remains.
+  const gapSize =
+    target === 2
+      ? strokeWidth + 5
+      : target >= 5
+        ? strokeWidth + 2
+        : strokeWidth + 3;
   const segmentWidth = circumference / target;
   const dashLength = Math.max(segmentWidth - gapSize, 1);
 
@@ -161,7 +168,8 @@ function SegmentedCompletionRing({
             stroke={getRecitationSegmentColor(state)}
             strokeWidth={strokeWidth}
             strokeDasharray={`${dashLength} ${circumference - dashLength}`}
-            strokeDashoffset={-(index * segmentWidth)}
+            // Shift by half-gap so openings sit on the vertical center (12 & 6 o'clock).
+            strokeDashoffset={-(index * segmentWidth) - gapSize / 2}
             strokeLinecap="round"
           />
         ))}

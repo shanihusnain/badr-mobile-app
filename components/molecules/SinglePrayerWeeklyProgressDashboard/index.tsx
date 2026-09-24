@@ -25,6 +25,13 @@ import {
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { PrayerWeeklyDashboardBody } from "@/components/molecules/PrayerWeeklyDashboardBody";
 
+/** "139-150" → "139-\n150" so narrow day columns show the full range (design). */
+function formatDayDurationLabel(label: string): string {
+  const match = label.trim().match(/^(\d+)\s*[-–—]\s*(\d+)$/);
+  if (match) return `${match[1]}-\n${match[2]}`;
+  return label;
+}
+
 export type {
   SinglePrayerDayProgress,
   SinglePrayerDayRingRenderArgs,
@@ -259,14 +266,16 @@ export function SinglePrayerWeeklyProgressDashboard({
                             },
                             styles.durationText,
                           ]}
-                          numberOfLines={1}
+                          numberOfLines={2}
                         >
                           {loading
                             ? "---"
                             : isInactiveOutline
                               ? ""
                               : day.durationLabel != null
-                                ? day.durationLabel
+                                ? isBestDayVisible
+                                  ? day.durationLabel
+                                  : formatDayDurationLabel(day.durationLabel)
                                 : day.prayersLogged > 0
                                   ? day.prayersLogged.toString()
                                   : ""}
@@ -408,7 +417,7 @@ const styles = StyleSheet.create({
   },
   dayItemBestDay: {
     width: "118%",
-    paddingTop: 6.2,
+    paddingTop: 3,
     paddingBottom: 18,
     // Reserve border box so delete chrome doesn't reflow / shrink the label.
     borderWidth: 1,
@@ -428,7 +437,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontFamily: fonts.primary.bold,
     textAlign: "center",
-    marginTop: 3,
+    marginTop: 7.7,
     letterSpacing: -0.3,
     width: "100%",
   },
@@ -441,7 +450,8 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   durationSlot: {
-    height: 18,
+    minHeight: 18,
+    height: 28,
     justifyContent: "flex-start",
     alignItems: "center",
     width: "100%",
@@ -452,6 +462,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontFamily: fonts.primary.bold,
     textAlign: "center",
+    lineHeight: 13,
   },
   statsRow: {
     flexDirection: "row",

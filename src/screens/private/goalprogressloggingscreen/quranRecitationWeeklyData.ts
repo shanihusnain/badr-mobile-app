@@ -19,6 +19,10 @@ export type QuranRecitationDayProgress = {
   recitationsCompleted: number;
   dayType: QuranRecitationDayType;
   isBestDay?: boolean;
+  /** YYYY-MM-DD — used for long-press delete. */
+  date?: string;
+  /** From frame day `canDelete` — gates long-press delete. */
+  canDelete?: boolean;
 };
 
 export type RecitationProgressFrequency = "daily" | "weekly";
