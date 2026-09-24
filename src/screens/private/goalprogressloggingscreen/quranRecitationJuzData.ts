@@ -20,22 +20,12 @@ export type JuzRecitationProgress = {
   logs: JuzLogRecord[];
 };
 
+/** Empty local seed — live progress comes from the RECITATION_JUZ frame. */
 const INITIAL_PROGRESS: JuzRecitationProgress = {
-  targetJuzCount: 10,
-  completedJuzCount: 3,
-  targetJuzRange: { startJuz: 1, endJuz: 10 },
-  logs: [
-    {
-      juzNumber: 5,
-      completionType: "partial",
-      fullRange: null,
-      partialJuz: 5,
-      ayatRange: { start: 1, end: 40 },
-      timeSpentFull: null,
-      timeSpentPartial: 15,
-      lastCompletedAyat: 40,
-    },
-  ],
+  targetJuzCount: 0,
+  completedJuzCount: 0,
+  targetJuzRange: { startJuz: 1, endJuz: 1 },
+  logs: [],
 };
 
 let progressState: JuzRecitationProgress = {

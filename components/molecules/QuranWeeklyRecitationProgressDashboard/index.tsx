@@ -36,6 +36,8 @@ export type QuranWeeklyRecitationProgressDashboardProps = {
   completionWeekDays?: QuranCompletionDayProgress[];
   completionTarget?: number;
   completionsLoggedThisWeek?: number;
+  /** Fractional juz covered this week — hides `/target` in the stats row. */
+  juzCompletedThisWeek?: number | null;
   selectedDayIndex?: number;
   onDayPress?: (index: number) => void;
   onPrevWeek?: () => void;
@@ -77,11 +79,11 @@ function mapCompletionDayToSinglePrayerDay(
 ): SinglePrayerDayProgress {
   const isToday = day.dayType === "today";
   const isFuture = day.dayType === "future";
+  // Completion khatma uses C# as the day label; juz AGGREGATE keeps weekday
+  // and shows juz-touch captions (j6-7 / j8*) under the ring.
   const label =
-    day.hasActivity && day.completionNumber
-      ? isJuzMode
-        ? `J${day.completionNumber}`
-        : `C${day.completionNumber}`
+    !isJuzMode && day.hasActivity && day.completionNumber
+      ? `C${day.completionNumber}`
       : day.day;
 
   return {
@@ -125,6 +127,8 @@ export function QuranWeeklyRecitationProgressDashboard({
   completionWeekDays = [],
   completionTarget = 3,
   completionsLoggedThisWeek = 0,
+  /** Fractional juz covered this week (RECITATION_JUZ AGGREGATE). */
+  juzCompletedThisWeek,
   selectedDayIndex,
   onDayPress,
   onPrevWeek,
@@ -215,16 +219,27 @@ export function QuranWeeklyRecitationProgressDashboard({
         weekRecitationTarget ??
         dailyTarget)
       : (weekRecitationTarget ?? dailyTarget * 7);
-  const displayTotalRecitations = isCompletionStyleMode
-    ? completionsLoggedThisWeek
-    : isWeeklySurahCarouselMode
-      ? (activeWeeklySurah?.completedThisWeek ?? totalRecitationsThisWeek)
-      : totalRecitationsThisWeek;
+  const displayTotalRecitations = isJuzMode
+    ? (juzCompletedThisWeek ?? completionsLoggedThisWeek)
+    : isCompletionStyleMode
+      ? completionsLoggedThisWeek
+      : isWeeklySurahCarouselMode
+        ? (activeWeeklySurah?.completedThisWeek ?? totalRecitationsThisWeek)
+        : totalRecitationsThisWeek;
+  /** RECITATION_JUZ has no weekly cadence — never print `/N`. */
+  const hideStatsDenominator = isJuzMode;
   const statsLabelKey = isJuzMode
-    ? "progressLogging.juzLoggedThisWeek"
+    ? "progressLogging.juzCompletedThisWeek"
     : isCompletionMode
       ? "progressLogging.completionsThisWeek"
       : "progressLogging.totalRecitationsThisWeek";
+
+  const formatStatsTotal = (value: number) => {
+    if (isJuzMode && !Number.isInteger(value)) {
+      return formatNumber(Number(value.toFixed(1)));
+    }
+    return formatNumber(value);
+  };
 
   const resolveWeeklyStatus = useCallback(
     (index: number): WeeklySurahDayStatus => {
@@ -272,6 +287,11 @@ export function QuranWeeklyRecitationProgressDashboard({
       weekFraction={weekFraction}
       streakDays={streakDays}
       vsLastWeek={vsLastWeek}
+      vsLastWeekDisplay={
+        isJuzMode && vsLastWeek != null && !Number.isInteger(vsLastWeek)
+          ? formatNumber(Number(Math.abs(vsLastWeek).toFixed(1)))
+          : null
+      }
       motivationalQuote={motivationalQuote}
       selectedDayIndex={defaultSelectedIndex}
       onDayPress={onDayPress}
@@ -280,7 +300,8 @@ export function QuranWeeklyRecitationProgressDashboard({
       loading={loading}
       isGoalCompleted={isGoalCompleted}
       allowLogDeletion={false}
-      comparisonVariant="quranRecitations"
+      comparisonVariant={isJuzMode ? "quranJuz" : "quranRecitations"}
+      greenActivityCaptions={isJuzMode}
       renderDayRing={isCompletionStyleMode ? undefined : renderDayRing}
       statsRow={
         <View style={styles.statsRow}>
@@ -295,11 +316,13 @@ export function QuranWeeklyRecitationProgressDashboard({
             minimumFontScale={0.85}
           >
             <Text style={styles.statsCountBold}>
-              {loading ? "---" : formatNumber(displayTotalRecitations)}
+              {loading ? "---" : formatStatsTotal(displayTotalRecitations)}
             </Text>
-            <Text style={styles.statsCountRegular}>
-              {loading ? "" : `/${formatNumber(periodRecitationTarget)}`}
-            </Text>
+            {!hideStatsDenominator ? (
+              <Text style={styles.statsCountRegular}>
+                {loading ? "" : `/${formatNumber(periodRecitationTarget)}`}
+              </Text>
+            ) : null}
             {loading ? "" : ` ${t(statsLabelKey)}`}
           </Text>
         </View>

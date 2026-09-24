@@ -14,6 +14,7 @@ interface OptionSelectStepProps<T extends string> {
 interface OptionItemProps<T extends string> {
   option: T;
   isSelected: boolean;
+  compact: boolean;
   onSelectValue: (value: T) => void;
   getLabel: (option: T) => string;
   radioInnerColor: string;
@@ -23,6 +24,7 @@ interface OptionItemProps<T extends string> {
 const OptionItem = React.memo(function OptionItem<T extends string>({
   option,
   isSelected,
+  compact,
   onSelectValue,
   getLabel,
   radioInnerColor,
@@ -34,7 +36,7 @@ const OptionItem = React.memo(function OptionItem<T extends string>({
 
   return (
     <TouchableOpacity
-      style={styles.timingOption}
+      style={[styles.timingOption, compact && styles.timingOptionCompact]}
       onPress={handlePress}
       activeOpacity={0.8}
     >
@@ -53,7 +55,9 @@ const OptionItem = React.memo(function OptionItem<T extends string>({
           />
         )}
       </View>
-      <Text style={styles.timingLabel}>{getLabel(option)}</Text>
+      <Text style={styles.timingLabel} numberOfLines={1}>
+        {getLabel(option)}
+      </Text>
     </TouchableOpacity>
   );
 }) as <T extends string>(props: OptionItemProps<T>) => React.ReactElement;
@@ -66,13 +70,16 @@ export function OptionSelectStep<T extends string>({
   radioInnerColor = Colors.light.white,
   styles,
 }: OptionSelectStepProps<T>) {
+  const compact = options.length >= 3;
+
   return (
-    <View style={styles.timingRow}>
+    <View style={[styles.timingRow, compact && styles.timingRowCompact]}>
       {options.map((option) => (
         <OptionItem
           key={option}
           option={option}
           isSelected={selectedValue === option}
+          compact={compact}
           onSelectValue={onSelectValue}
           getLabel={getLabel}
           radioInnerColor={radioInnerColor}

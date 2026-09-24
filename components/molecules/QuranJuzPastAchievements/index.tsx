@@ -73,8 +73,6 @@ const PERIOD_LABEL_KEYS: Record<PastAchievementPeriod, string> = {
   sixMonths: "progressLogging.periodSixMonths",
 };
 
-const GOAL_SUMMARY_KEY = "progressLogging.achievementSummaryRecitationJuz";
-
 const ANALYTICS_VIEWS: JuzAnalyticsView[] = [
   "completedVsIncomplete",
   "completedVsTimeSpent",
@@ -88,7 +86,7 @@ const ANALYTICS_VIEW_LABEL_KEYS: Record<JuzAnalyticsView, string> = {
 const PERIOD_DELTA_LABEL_KEYS: Record<PastAchievementPeriod, string> = {
   monthly: "progressLogging.previousMonth",
   threeMonths: "progressLogging.previousThreeMonths",
-  sixMonths: "progressLogging.previousSixMonths",
+  sixMonths: "progressLogging.previousSixMonthsShort",
 };
 
 export function QuranJuzPastAchievements({
@@ -539,7 +537,7 @@ return (
         <View style={styles.cardHeaderBlock}>
           <View style={styles.cardHeader}>
             <MaterialCommunityIcons
-              name={isDetailed ? "trending-up" : "trophy-outline"}
+              name={isDetailed ? "trending-up" : "chart-line"}
               size={isDetailed ? 19 : 16}
               color={isDetailed ? Colors.light.subtext : Colors.light.white}
             />
@@ -687,18 +685,6 @@ return (
           </>
         ) : (
           <>
-            <Text style={styles.summaryText}>
-              {t(GOAL_SUMMARY_KEY, {
-                percent: formatNumber(baseAchievement.achievementPercent),
-                delta: formatNumber(
-                  Math.abs(baseAchievement.previousPeriodDeltaPercent),
-                ),
-                direction: deltaIsPositive
-                  ? t("progressLogging.periodComparisonIncrease")
-                  : t("progressLogging.periodComparisonDecrease"),
-              })}
-            </Text>
-
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -749,7 +735,9 @@ return (
             </Text>
             <View style={styles.goalPill}>
               <Text style={styles.goalPillText}>
-                {t("progressLogging.unitJuz")}
+                {isDetailed
+                  ? t("progressLogging.unitJuzCumulative")
+                  : t("progressLogging.unitJuz")}
               </Text>
             </View>
           </View>

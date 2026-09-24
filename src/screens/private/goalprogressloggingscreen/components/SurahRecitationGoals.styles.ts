@@ -76,8 +76,23 @@ export const surahGoalStyles = StyleSheet.create({
     paddingVertical: 4,
     marginTop: 3,
   },
+  statusChipAchieved: {
+    alignSelf: "flex-start",
+    backgroundColor: Colors.light.lightgreenbadgecolor,
+    borderRadius: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    marginTop: 3,
+  },
   statusChipText: {
     color: Colors.light.darkblue,
+    fontFamily: fonts.primary.medium,
+    fontWeight: "500",
+    fontSize: 12,
+    lineHeight: 12.5,
+  },
+  statusChipTextAchieved: {
+    color: Colors.light.green,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
     fontSize: 12,

@@ -541,7 +541,7 @@ export function QuranAyatRangeSlider({
             <View style={[localStyles.thumb, localStyles.thumbLocked]}>
               <View style={localStyles.thumbChevron}>
                 <FilledChevronIconForQuranGoal
-                  direction="left"
+                  direction="right"
                   size={THUMB_CHEVRON_SIZE}
                   color={Colors.light.green}
                 />
@@ -570,7 +570,7 @@ export function QuranAyatRangeSlider({
               >
                 <View style={localStyles.thumbChevron}>
                   <FilledChevronIconForQuranGoal
-                    direction="left"
+                    direction="right"
                     size={THUMB_CHEVRON_SIZE}
                     color={Colors.light.green}
                   />
@@ -602,7 +602,7 @@ export function QuranAyatRangeSlider({
             >
               <View style={localStyles.thumbChevron}>
                 <FilledChevronIconForQuranGoal
-                  direction="right"
+                  direction="left"
                   size={THUMB_CHEVRON_SIZE}
                   color={Colors.light.green}
                 />

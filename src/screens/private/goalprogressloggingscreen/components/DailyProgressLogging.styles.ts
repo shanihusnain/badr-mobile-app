@@ -341,10 +341,22 @@ export const styles = StyleSheet.create({
     gap: 46,
     width: "100%",
   },
+  /**
+   * Full / Partial / Both (and other 3+ option rows) on the 62% flow card.
+   * Figma Step 3 is ~228px wide — large `gap` overflows past the screen.
+   */
+  timingRowCompact: {
+    justifyContent: "space-between",
+    gap: 8,
+  },
   timingOption: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
+  },
+  timingOptionCompact: {
+    flexShrink: 1,
+    gap: 6,
   },
   radioOuter: {
     width: 14,

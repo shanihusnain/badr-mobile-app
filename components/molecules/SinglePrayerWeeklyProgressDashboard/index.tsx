@@ -53,6 +53,7 @@ export function SinglePrayerWeeklyProgressDashboard({
   onDeleteLog,
   isDeletingLog: isDeletingLogProp,
   comparisonVariant = "prayers",
+  greenActivityCaptions = false,
 }: SinglePrayerWeeklyProgressDashboardProps) {
   const { width: screenWidth } = useWindowDimensions();
   const prayerFrame = useOptionalPrayerGoalFrameContext();
@@ -251,7 +252,8 @@ export function SinglePrayerWeeklyProgressDashboard({
                                 ? Colors.light.grey
                                 : isInactiveOutline
                                   ? "transparent"
-                                  : isBestDayVisible
+                                  : isBestDayVisible ||
+                                      (greenActivityCaptions && hasLog)
                                     ? Colors.light.green
                                     : isSelected
                                       ? Colors.light.white
