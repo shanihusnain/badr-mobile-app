@@ -399,11 +399,7 @@ export default function QuranMemorisationJuzLoggingFlow({
       case "ayahCount":
         return {
           icon: (
-            <MaterialCommunityIcons
-              name="format-list-numbered"
-              size={16}
-              color={Colors.light.white}
-            />
+            <QuranIconForSlider size={24} Color={Colors.light.white} />
           ),
           label: t("progressLogging.selectAyatRange"),
         };
