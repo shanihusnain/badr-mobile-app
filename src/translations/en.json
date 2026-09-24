@@ -3688,6 +3688,7 @@
     "timeSpentCategory_kaffarah-for-breaking-fasts-or-oaths": "Kaffarah for Breaking Fasts or Oaths",
     "menstruationLog_logMenstruation": "LOG MENSTRUATION",
     "menstruationLog_today": "Today",
+    "menstruationLog_ongoing": "Ongoing",
     "menstruationLog_whenDidItStart": "When did it start on {{date}}?",
     "menstruationLog_whenDidItStartToday": "When did it start today?",
     "menstruationLog_whenDidItEnd": "When did it end {{date}}?",

@@ -189,6 +189,9 @@ export const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 0,
     marginBottom: 0,
+    // Cancel flowCard paddingHorizontal so the range slider (and start chip)
+    // can sit flush with the green card edges.
+    marginHorizontal: -16,
     overflow: "visible",
   },
   flowHeader: {
