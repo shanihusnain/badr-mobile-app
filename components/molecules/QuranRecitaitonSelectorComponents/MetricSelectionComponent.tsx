@@ -39,6 +39,17 @@ const METRIC_LIST_HEIGHT = Math.min(
   Math.round(Dimensions.get("window").height * 0.4),
 );
 
+/** Fake centered caret — native caret sits left when the field is empty. */
+function JuzCenteredCaret() {
+  const [visible, setVisible] = useState(true);
+  useEffect(() => {
+    const id = setInterval(() => setVisible((v) => !v), 530);
+    return () => clearInterval(id);
+  }, []);
+  if (!visible) return null;
+  return <View pointerEvents="none" style={styles.juzCenteredCaret} />;
+}
+
 export const MetricSelectionComponent = ({
   item,
   handleMetricPress,
@@ -1328,33 +1339,43 @@ export const MetricSelectionComponent = ({
               >
                 {t("monthlyGoalPlanner.quranMetrics.fromJuz")}
               </Text>
-              <BottomSheetTextInput
-                value={
-                  focusedInputs["juz-start"] && juzStart === 0
-                    ? ""
-                    : String(juzStart)
-                }
-                onChangeText={handleJuzStartChange}
-                keyboardType="numeric"
-                maxLength={2}
-                selectTextOnFocus
-                onFocus={() => {
-                  setInputFocused("juz-start", true);
-                  onNestedScrollActiveChange?.(false);
-                  onInputFocus?.();
-                }}
-                onBlur={() => {
-                  setInputFocused("juz-start", false);
-                  enforceJuzStart(String(juzStart));
-                }}
-                textAlignVertical="center"
-                style={[
-                  styles.juzRangeInput,
-                  juzStart > 0 && styles.timesInputFilled,
-                ]}
-                placeholder="0"
-                placeholderTextColor={Colors.light.white}
-              />
+              <View style={styles.juzRangeInputWrap}>
+                <BottomSheetTextInput
+                  value={
+                    focusedInputs["juz-start"] && juzStart === 0
+                      ? ""
+                      : String(juzStart)
+                  }
+                  onChangeText={handleJuzStartChange}
+                  keyboardType="numeric"
+                  maxLength={2}
+                  selectTextOnFocus
+                  onFocus={() => {
+                    setInputFocused("juz-start", true);
+                    onNestedScrollActiveChange?.(false);
+                    onInputFocus?.();
+                  }}
+                  onBlur={() => {
+                    setInputFocused("juz-start", false);
+                    enforceJuzStart(String(juzStart));
+                  }}
+                  textAlign="center"
+                  textAlignVertical="center"
+                  caretHidden={
+                    !!focusedInputs["juz-start"] &&
+                    (juzStart === 0 || !String(juzStart))
+                  }
+                  style={[
+                    styles.juzRangeInput,
+                    juzStart > 0 && styles.timesInputFilled,
+                  ]}
+                  placeholder={focusedInputs["juz-start"] ? "" : "0"}
+                  placeholderTextColor={Colors.light.white}
+                />
+                {focusedInputs["juz-start"] && juzStart === 0 ? (
+                  <JuzCenteredCaret />
+                ) : null}
+              </View>
               <Text
                 style={{
                   fontWeight: "400",
@@ -1365,38 +1386,49 @@ export const MetricSelectionComponent = ({
               >
                 {t("monthlyGoalPlanner.quranMetrics.toJuz")}
               </Text>
-              <BottomSheetTextInput
-                value={
-                  focusedInputs["juz-end"]
-                    ? juzEndText === "0"
-                      ? ""
-                      : juzEndText
-                    : juzEndText || "0"
-                }
-                onChangeText={handleJuzEndChange}
-                keyboardType="numeric"
-                maxLength={2}
-                selectTextOnFocus
-                onFocus={() => {
-                  setInputFocused("juz-end", true);
-                  if (juzEndText === "0") setJuzEndText("");
-                  onNestedScrollActiveChange?.(false);
-                  onInputFocus?.();
-                }}
-                onBlur={() => {
-                  setInputFocused("juz-end", false);
-                  enforceJuzEnd();
-                }}
-                onEndEditing={() => enforceJuzEnd()}
-                onSubmitEditing={() => enforceJuzEnd()}
-                textAlignVertical="center"
-                style={[
-                  styles.juzRangeInput,
-                  juzEnd > 0 && styles.timesInputFilled,
-                ]}
-                placeholder="0"
-                placeholderTextColor={Colors.light.white}
-              />
+              <View style={styles.juzRangeInputWrap}>
+                <BottomSheetTextInput
+                  value={
+                    focusedInputs["juz-end"]
+                      ? juzEndText === "0"
+                        ? ""
+                        : juzEndText
+                      : juzEndText || "0"
+                  }
+                  onChangeText={handleJuzEndChange}
+                  keyboardType="numeric"
+                  maxLength={2}
+                  selectTextOnFocus
+                  onFocus={() => {
+                    setInputFocused("juz-end", true);
+                    if (juzEndText === "0") setJuzEndText("");
+                    onNestedScrollActiveChange?.(false);
+                    onInputFocus?.();
+                  }}
+                  onBlur={() => {
+                    setInputFocused("juz-end", false);
+                    enforceJuzEnd();
+                  }}
+                  onEndEditing={() => enforceJuzEnd()}
+                  onSubmitEditing={() => enforceJuzEnd()}
+                  textAlign="center"
+                  textAlignVertical="center"
+                  caretHidden={
+                    !!focusedInputs["juz-end"] &&
+                    (juzEndText === "" || juzEndText === "0")
+                  }
+                  style={[
+                    styles.juzRangeInput,
+                    juzEnd > 0 && styles.timesInputFilled,
+                  ]}
+                  placeholder={focusedInputs["juz-end"] ? "" : "0"}
+                  placeholderTextColor={Colors.light.white}
+                />
+                {focusedInputs["juz-end"] &&
+                (juzEndText === "" || juzEndText === "0") ? (
+                  <JuzCenteredCaret />
+                ) : null}
+              </View>
             </View>
             <TopSpace top={14} />
             <Text
@@ -1862,12 +1894,17 @@ const styles = StyleSheet.create({
     includeFontPadding: false,
   },
   /** Wider box so 1–30 juz numbers are fully visible */
-  juzRangeInput: {
+  juzRangeInputWrap: {
     width: 44,
-    paddingTop: 4,
-    paddingRight: 8,
-    paddingBottom: 4,
-    paddingLeft: 8,
+    height: 36,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  juzRangeInput: {
+    width: "100%",
+    height: "100%",
+    paddingHorizontal: 0,
+    paddingVertical: 0,
     justifyContent: "center",
     alignItems: "center",
     textAlign: "center",
@@ -1880,6 +1917,13 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     fontFamily: fonts.primary.medium,
     includeFontPadding: false,
+  },
+  juzCenteredCaret: {
+    position: "absolute",
+    width: 1.5,
+    height: 18,
+    borderRadius: 1,
+    backgroundColor: Colors.light.white,
   },
   timesInputFilled: {
     borderColor: Colors.light.green,
