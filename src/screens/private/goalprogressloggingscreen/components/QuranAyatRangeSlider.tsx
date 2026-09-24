@@ -761,12 +761,12 @@ const localStyles = StyleSheet.create({
     fontWeight: "400",
     fontSize: 10,
     lineHeight: 12,
-    textAlign: "center",
+    textAlign: "left",
     opacity: 0.95,
     // Pull closer to the thumbs so the slider sits lower toward this line.
     marginTop: -8,
-    // Match former flowCard inset now that ayah-range content is full-bleed.
-    paddingHorizontal: 16,
+    // Align with the track start (TRACK_HORIZONTAL_INSET).
+    paddingHorizontal: TRACK_HORIZONTAL_INSET,
     zIndex: 0,
   },
 });
