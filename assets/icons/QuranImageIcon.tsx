@@ -14,11 +14,10 @@ export const QuranImageIcon = ({
 
 
   <Svg
-
     width={size}
     height={size}
+    viewBox="0 0 28 28"
     fill="none"
-    
   >
     <Path
       fill={color}

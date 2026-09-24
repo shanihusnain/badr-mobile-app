@@ -180,7 +180,7 @@ export const GoalProgressOverView = ({ goal }: GoalProgressOverViewProps) => {
               subtitleCount={goalItem.count}
               subtitleLabel={goalItem.label}
               icon={
-                overview.category === "PRAYER"
+                overview.category === "PRAYER" || overview.category === "QURAN"
                   ? getDetailedIbadahIcon(goalItem.id, Colors.light.white)
                   : renderCategoryIcon(overview.category, categoryIconColor)
               }

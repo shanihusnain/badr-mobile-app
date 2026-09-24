@@ -19,12 +19,16 @@ const VISIBLE_ITEMS = 5;
 const PICKER_HEIGHT = ITEM_HEIGHT * VISIBLE_ITEMS;
 const EDGE_PADDING = ITEM_HEIGHT * Math.floor(VISIBLE_ITEMS / 2);
 const DAYS_BACK = 365;
+/** Sentinel value for the End Date "Ongoing" wheel row. */
+export const ONGOING_DATE_VALUE = "__ongoing__";
 
 export type InlineDateWheelPickerProps = {
   value: string;
   onChange: (dateString: string) => void;
   maximumDate?: Date;
   minimumDate?: Date;
+  /** Append an "Ongoing" row (menstruation end date). */
+  includeOngoing?: boolean;
 };
 
 type DateWheelItem = {
@@ -52,6 +56,7 @@ function buildDateItems(
   todayString: string,
   todayLabel: string,
   locale: string,
+  ongoingLabel?: string,
 ): DateWheelItem[] {
   const items: DateWheelItem[] = [];
   const cursor = new Date(
@@ -75,6 +80,14 @@ function buildDateItems(
     cursor.setDate(cursor.getDate() + 1);
   }
 
+  if (ongoingLabel) {
+    items.push({
+      key: ONGOING_DATE_VALUE,
+      dateString: ONGOING_DATE_VALUE,
+      label: ongoingLabel,
+    });
+  }
+
   return items;
 }
 
@@ -83,11 +96,13 @@ export function InlineDateWheelPicker({
   onChange,
   maximumDate = new Date(),
   minimumDate,
+  includeOngoing = false,
 }: InlineDateWheelPickerProps) {
   const scrollRef = useRef<ScrollView>(null);
   const { t, i18n } = useTranslation();
   const locale = i18n.language === "ar" ? "ar" : "en";
   const todayLabel = t("homeScreen.menstruationLog_today");
+  const ongoingLabel = t("homeScreen.menstruationLog_ongoing");
   const lastEmitted = useRef<string | null>(null);
   const didInitialScroll = useRef(false);
   const isSettling = useRef(false);
@@ -114,8 +129,24 @@ export function InlineDateWheelPicker({
   }, [maximumDateKey]);
 
   const items = useMemo(
-    () => buildDateItems(minDate, maxDate, todayString, todayLabel, locale),
-    [minDate, maxDate, todayString, todayLabel, locale],
+    () =>
+      buildDateItems(
+        minDate,
+        maxDate,
+        todayString,
+        todayLabel,
+        locale,
+        includeOngoing ? ongoingLabel : undefined,
+      ),
+    [
+      minDate,
+      maxDate,
+      todayString,
+      todayLabel,
+      locale,
+      includeOngoing,
+      ongoingLabel,
+    ],
   );
 
   const selectedIndex = useMemo(() => {
