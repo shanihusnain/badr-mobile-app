@@ -170,9 +170,12 @@ export function mapQuranRecitationFrameWeekDays(
       day: day.dayLabel,
       recitationsCompleted,
       dayType: isToday ? "today" : isFuture ? "future" : "past",
-      isBestDay:
-        Boolean(day.isBestDay) ||
-        String(day.state ?? "").toUpperCase() === "BEST_DAY",
+      isBestDay: Boolean(day.isBestDay) || state === "BEST_DAY",
+      date: normalizeFrameDate(day.date) ?? day.date,
+      canDelete:
+        !isMissed &&
+        day.canDelete !== false &&
+        (recitationsCompleted > 0 || isLogged),
     };
   });
 }

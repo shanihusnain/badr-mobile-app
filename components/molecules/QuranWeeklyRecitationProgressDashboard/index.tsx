@@ -178,7 +178,7 @@ export function QuranWeeklyRecitationProgressDashboard({
     visualizationMode === "juz" && completionWeekDays.length > 0;
   const isCompletionStyleMode = isCompletionMode || isJuzMode;
   const showDayFraction = !isWeeklyMode && dailyTarget > 1;
-  const allowLogDeletion = !!quranGoalType && !isCompletionStyleMode;
+  const allowLogDeletion = !!quranGoalType;
 
   const handleDeleteLog = useCallback(
     async (date: string) => {
@@ -343,7 +343,9 @@ export function QuranWeeklyRecitationProgressDashboard({
       onNextWeek={onNextWeek}
       loading={loading}
       isGoalCompleted={isGoalCompleted}
-      allowLogDeletion={false}
+      allowLogDeletion={allowLogDeletion}
+      onDeleteLog={allowLogDeletion ? handleDeleteLog : undefined}
+      isDeletingLog={isDeletingLog}
       comparisonVariant={isJuzMode ? "quranJuz" : "quranRecitations"}
       greenActivityCaptions={isJuzMode}
       renderDayRing={isCompletionStyleMode ? undefined : renderDayRing}
