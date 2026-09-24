@@ -212,10 +212,7 @@ export function RecitationSurahProvider({
       progress.totalAyahs,
     );
     const loggedRecitations = progress.memorizedAyahs;
-    const derived = deriveSurahRecitationStatus(
-      loggedRecitations,
-      cycleTotal,
-    );
+    const derived = deriveSurahRecitationStatus(loggedRecitations, cycleTotal);
 
     return {
       id: String(itemNumber),
@@ -246,12 +243,7 @@ export function RecitationSurahProvider({
             : getSurahRecitationGoalsForFrequency(fallbackFrequency);
 
     return base.map((goal) => enrichGoalFromFrame(goal, frameActiveGoal));
-  }, [
-    detailGoals,
-    fallbackFrequency,
-    frameActiveGoal,
-    frameGoals,
-  ]);
+  }, [detailGoals, fallbackFrequency, frameActiveGoal, frameGoals]);
 
   const [activeSurahId, setActiveSurahIdState] = useState(
     () => initialSurahId ?? "",
@@ -329,9 +321,7 @@ export function useRecitationSurahContext(): RecitationSurahContextValue {
   return context;
 }
 
-export function useOptionalRecitationSurahContext():
-  | RecitationSurahContextValue
-  | null {
+export function useOptionalRecitationSurahContext(): RecitationSurahContextValue | null {
   return useContext(RecitationSurahContext);
 }
 

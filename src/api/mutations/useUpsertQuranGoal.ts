@@ -26,17 +26,29 @@ export type BulkUpsertQuranGoalsPayload = {
 
 /** Preferred: can upsert one or many goal types; auto-activates each type. */
 const bulkUpsertQuranGoals = async (payload: BulkUpsertQuranGoalsPayload) => {
-  console.log("payload of the bulk upsert quran goals", payload);
-  const response = await api.put(
-    "api/goal-cycles/current/quran-goals/bulk",
-    payload,
-  );
-  return response.data;
+  try {
+    console.log(
+      "payload of the bulk upsert quran goals",
+      JSON.stringify(payload, null, 2),
+    );
+    const response = await api.put(
+      "api/goal-cycles/current/quran-goals/bulk",
+      payload,
+    );
+    console.log(
+      "response of the bulk upsert quran goals",
+      JSON.stringify(response.data, null, 2),
+    );
+    return response.data;
+  } catch (error) {
+    console.error("error in the bulk upsert quran goals", error);
+  }
 };
 
 /** Legacy single upsert — requires the goal to already be toggled on. */
 const upsertQuranGoal = async (payload: UpsertQuranGoalPayload) => {
   const { quranGoalType, ...body } = payload;
+  console.log("payload of the upsert quran goal", payload);
   const response = await api.put(
     `api/goal-cycles/current/quran-goals/${quranGoalType}`,
     { quranGoalType, ...body },
