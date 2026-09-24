@@ -63,7 +63,7 @@ import {
 } from "@/src/utils/quranGoalFrameMap";
 import { resolvePrayerTypeFromGoalId } from "@/src/utils/prayerGoalMap";
 import { resolveGoalDescriptionParamFromLoggingGoalId } from "@/src/utils/goalDescriptionMap";
-import { isJuzRecitationGoalId, isQuranHoursGoalId } from "./types";
+import { isQuranHoursGoalId } from "./types";
 import { resolveQuranTypeFromGoalId } from "@/src/utils/quranGoalMap";
 import BottomSheet from "@gorhom/bottom-sheet";
 import {
@@ -627,9 +627,7 @@ export const GoalProgressLoggingScreen = ({
       ]
     : undefined;
 
-  const recitationHeaderTitle = isRecitationGoal
-    ? "QURAN RECITATION"
-    : null;
+  const recitationHeaderTitle = isRecitationGoal ? "QURAN RECITATION" : null;
 
   const recitationHeaderSecondTitle = isSurahRecitationGoalId(goalId)
     ? "BY SURAH"
@@ -673,9 +671,7 @@ export const GoalProgressLoggingScreen = ({
         ...(fromDailyProgress
           ? {
               fromDailyProgress: "1",
-              ...(dailyProgressCategory
-                ? { dailyProgressCategory }
-                : {}),
+              ...(dailyProgressCategory ? { dailyProgressCategory } : {}),
             }
           : {}),
       });
@@ -697,9 +693,7 @@ export const GoalProgressLoggingScreen = ({
         ...(fromDailyProgress
           ? {
               fromDailyProgress: "1",
-              ...(dailyProgressCategory
-                ? { dailyProgressCategory }
-                : {}),
+              ...(dailyProgressCategory ? { dailyProgressCategory } : {}),
             }
           : {}),
       });
@@ -791,8 +785,7 @@ export const GoalProgressLoggingScreen = ({
                         goalData.label.toUpperCase())
                 }
                 secondTitle={
-                  memorisationHeaderSecondTitle ??
-                  recitationHeaderSecondTitle
+                  memorisationHeaderSecondTitle ?? recitationHeaderSecondTitle
                 }
                 titleDropdownOptions={
                   memorisationTitleOptions ?? recitationTitleOptions
@@ -811,9 +804,7 @@ export const GoalProgressLoggingScreen = ({
                       ? handleRecitationFlowSelect
                       : undefined
                 }
-                titleOffsetY={
-                  template.startsWith("quran-") ? 4 : 0
-                }
+                titleOffsetY={template.startsWith("quran-") ? 4 : 0}
                 navigation={navigation}
                 bgcolor="transparent"
                 iconName="chevron-left"
