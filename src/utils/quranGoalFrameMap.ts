@@ -7,6 +7,11 @@ import type {
 import type { QuranHoursDayProgress } from "@/src/screens/private/goalprogressloggingscreen/quranHoursWeeklyData";
 import type { MemorisationDayProgress } from "@/src/screens/private/goalprogressloggingscreen/quranMemorisationWeeklyData";
 import type { QuranRecitationDayProgress } from "@/src/screens/private/goalprogressloggingscreen/quranRecitationWeeklyData";
+import {
+  applyCompletionBestDayFlags,
+  buildCompletionDayProgress,
+  type QuranCompletionDayProgress,
+} from "@/src/screens/private/goalprogressloggingscreen/quranRecitationCompletionWeeklyData";
 
 export function formatQuranFrameWeekRange(weekStart: string, weekEnd: string) {
   const start = moment(weekStart, "YYYY-MM-DD");
@@ -52,12 +57,21 @@ function resolveIsToday(day: QuranGoalFrameDay): boolean {
 function hasQuranFrameDayActivity(day: QuranGoalFrameDay): boolean {
   const state = String(day.state ?? "").toUpperCase();
   // MISSED / UPCOMING / EMPTY / NONE are not logged activity — do not paint green.
+  if (
+    state === "MISSED" ||
+    state === "UPCOMING" ||
+    state === "EMPTY" ||
+    state === "NONE"
+  ) {
+    return false;
+  }
   return (
     getQuranFrameDayMinutes(day) > 0 ||
     state === "LOGGED" ||
     state === "COMPLETE" ||
     state === "BEST_DAY" ||
-    state === "PARTIAL"
+    state === "PARTIAL" ||
+    Boolean(day.valueDisplay?.trim())
   );
 }
 
@@ -155,18 +169,118 @@ export function mapQuranRecitationFrameWeekDays(
     return {
       day: day.dayLabel,
       recitationsCompleted,
-      dayType: (isToday ? "today" : isFuture ? "future" : "past") as
-        | "today"
-        | "future"
-        | "past",
-      isBestDay: Boolean(day.isBestDay) || state === "BEST_DAY",
-      date: normalizeFrameDate(day.date) ?? day.date,
-      canDelete:
-        !isMissed &&
-        day.canDelete !== false &&
-        (recitationsCompleted > 0 || isLogged),
+      dayType: isToday ? "today" : isFuture ? "future" : "past",
+      isBestDay:
+        Boolean(day.isBestDay) ||
+        String(day.state ?? "").toUpperCase() === "BEST_DAY",
     };
   });
+}
+
+function normalizeJuzCaption(raw: string): string {
+  return raw
+    .replace(/^BEST\s*DAY!?\s*/i, "")
+    .trim()
+    .replace(/J(\d)/g, "j$1")
+    .replace(/j(\d+)\s*[-–]\s*j(\d+)/i, "j$1-$2");
+}
+
+/**
+ * Parse pack captions: j5 · j5* · j6-7 · j6–7.
+ * Also accept a bare "5*" / "6-7" if the API omits the `j` prefix.
+ */
+function parseJuzWeekCaption(caption: string): {
+  fullJuzRanges?: { start: number; end: number }[];
+  partialJuz?: number[];
+} {
+  if (!caption) return {};
+
+  const rangeMatch = caption.match(/^j?(\d+)\s*[-–]\s*(\d+)$/i);
+  if (rangeMatch) {
+    return {
+      fullJuzRanges: [
+        { start: Number(rangeMatch[1]), end: Number(rangeMatch[2]) },
+      ],
+    };
+  }
+
+  const partialMatch = caption.match(/^j?(\d+)(\*?)$/i);
+  if (partialMatch) {
+    const juz = Number(partialMatch[1]);
+    if (partialMatch[2] === "*") {
+      return { partialJuz: [juz] };
+    }
+    return { fullJuzRanges: [{ start: juz, end: juz }] };
+  }
+
+  return {};
+}
+
+/** Map RECITATION_JUZ AGGREGATE frame week → juz strip (j5 / j6-7 / j8*). */
+export function mapQuranJuzFrameWeekDays(
+  frame: QuranGoalFrameData,
+): QuranCompletionDayProgress[] {
+  const days = frame.week.days.map((day, index) => {
+    const isToday = resolveIsToday(day);
+    const isFuture = resolveIsFutureDay(day);
+    const caption = normalizeJuzCaption(day.valueDisplay?.trim() || "");
+    const frameHasActivity = hasQuranFrameDayActivity(day);
+    const apiBestDay =
+      Boolean(day.isBestDay) ||
+      String(day.state ?? "").toUpperCase() === "BEST_DAY";
+
+    const parsed = parseJuzWeekCaption(caption);
+
+    const progress = buildCompletionDayProgress({
+      day: day.dayLabel,
+      dayType: isToday ? "today" : isFuture ? "future" : "past",
+      completionNumber: frameHasActivity ? index + 1 : null,
+      fullJuzRanges: parsed.fullJuzRanges,
+      partialJuz: parsed.partialJuz,
+    });
+
+    // Frame day activity is the source of truth. Caption parsing can fail
+    // (verse spans, missing `j` prefix, etc.) — still paint the day logged.
+    if (frameHasActivity) {
+      progress.hasActivity = true;
+      progress.completionNumber = progress.completionNumber ?? index + 1;
+      if (progress.activityScore < 1) {
+        progress.activityScore = 1;
+      }
+      if (caption) {
+        progress.computedLabel = caption;
+      } else if (!progress.computedLabel) {
+        const minutes = getQuranFrameDayMinutes(day);
+        progress.computedLabel =
+          minutes > 0 && !Number.isInteger(minutes)
+            ? String(Number(minutes.toFixed(1)))
+            : "";
+      }
+    }
+
+    return {
+      ...progress,
+      isBestDay: frameHasActivity && apiBestDay ? true : progress.isBestDay,
+    };
+  });
+
+  return applyCompletionBestDayFlags(days);
+}
+
+/** Fractional juz completed this week from `week.totalLabel` / `totalDisplay`. */
+export function getQuranFrameJuzCompletedThisWeek(
+  frame: QuranGoalFrameData,
+): number {
+  const label = frame.week.totalLabel?.trim() || "";
+  const display = frame.week.totalDisplay?.trim() || "";
+  const match = label.match(/([\d.]+)\s*juz/i) || display.match(/^([\d.]+)/);
+  if (match) {
+    const n = Number(match[1]);
+    if (Number.isFinite(n)) return n;
+  }
+  const raw = toFiniteNumber(frame.week.totalMinutes);
+  if (raw != null && raw >= 0) return raw;
+  return 0;
 }
 
 export function getQuranFrameMemorisationItem(
@@ -503,4 +617,32 @@ export function getQuranFrameCycleStart(frame: QuranGoalFrameData): string {
 
 export function getQuranFrameCycleEnd(frame: QuranGoalFrameData): string {
   return frame.cycle.endDate?.slice(0, 10) ?? "";
+}
+
+/**
+ * RECITATION_JUZ AGGREGATE card title: "From Juz X to Juz Y (total N Juz)".
+ * Used to constrain logging steppers when detail items are not yet loaded.
+ */
+export function getQuranFrameJuzGoalRange(
+  frame: QuranGoalFrameData | null | undefined,
+): { start: number; end: number } | null {
+  if (!frame) return null;
+  const title =
+    frame.items?.[0]?.title?.trim() || frame.title?.trim() || "";
+  const match = title.match(
+    /from\s+juz\s+(\d+)\s+to\s+juz\s+(\d+)/i,
+  );
+  if (!match) return null;
+  const start = Number(match[1]);
+  const end = Number(match[2]);
+  if (
+    !Number.isFinite(start) ||
+    !Number.isFinite(end) ||
+    start < 1 ||
+    end < start ||
+    end > 30
+  ) {
+    return null;
+  }
+  return { start, end };
 }

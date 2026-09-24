@@ -46,12 +46,11 @@ export function JuzRecitationLoggingSection({
           {t("progressLogging.myProgress")}
         </Text>
         <View
-          style={[
-            { marginTop: 4 },
+          style={
             isFlowActive
               ? { zIndex: 101, elevation: 12, position: "relative" as const }
-              : undefined,
-          ]}
+              : undefined
+          }
         >
           <JuzRecitationGoalCard
             goalData={goalData}

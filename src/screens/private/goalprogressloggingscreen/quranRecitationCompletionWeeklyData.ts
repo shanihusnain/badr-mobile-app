@@ -31,6 +31,13 @@ export type QuranCompletionWeekSummary = {
   targetCompletions: number;
   streakDays: number;
   motivationalQuoteKey: string;
+  /**
+   * RECITATION_JUZ AGGREGATE week total — fractional juz covered this week.
+   * When set, the stats row shows this value with no `/target` denominator.
+   */
+  juzCompletedThisWeek?: number | null;
+  /** Weeks 2–4: fractional juz delta vs prior week (null hides the row). */
+  vsLastWeek?: number | null;
 };
 
 export type QuranCompletionCycleSummary = {
@@ -45,7 +52,8 @@ function formatFullJuzRange(range: CompletionJuzRange): string {
   if (range.start === range.end) {
     return `j${range.start}`;
   }
-  return `j${range.start}-j${range.end}`;
+  // Pack / AGGREGATE strip: "j6-7" (not "j6-j7").
+  return `j${range.start}-${range.end}`;
 }
 
 function formatPartialJuz(juz: number): string {

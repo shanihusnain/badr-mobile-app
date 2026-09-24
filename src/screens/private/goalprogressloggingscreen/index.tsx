@@ -63,7 +63,7 @@ import {
 } from "@/src/utils/quranGoalFrameMap";
 import { resolvePrayerTypeFromGoalId } from "@/src/utils/prayerGoalMap";
 import { resolveGoalDescriptionParamFromLoggingGoalId } from "@/src/utils/goalDescriptionMap";
-import { isQuranHoursGoalId } from "./types";
+import { isJuzRecitationGoalId, isQuranHoursGoalId } from "./types";
 import { resolveQuranTypeFromGoalId } from "@/src/utils/quranGoalMap";
 import BottomSheet from "@gorhom/bottom-sheet";
 import {
@@ -123,9 +123,9 @@ function getLoggingBackgroundSource(
         ? qurantajweedbackgroundimage
         : quranlisteningbackgroundimage;
     case "quran-recitation":
+    case "quran-juz":
       return quranrecitationbysurahbackgroundimage;
     case "quran-completion":
-    case "quran-juz":
       return quranrecitationbottomsheetimage;
     case "quran-memorisation":
       return quranmemorizationbottomsheetimage;
@@ -208,12 +208,15 @@ function GoalProgressLoggingBody({
     template === "quran-memorisation" && isJuzMemorisationGoalId(goalId);
   const isSurahRecitationFrameGoal =
     template === "quran-recitation" && isSurahRecitationGoalId(goalId);
+  const isJuzRecitationFrameGoal =
+    template === "quran-juz" && isJuzRecitationGoalId(goalId);
   const isQuranFrameGoal =
     isQuranHoursFrameGoal ||
     isSurahMemorisationFrameGoal ||
     isHizbMemorisationFrameGoal ||
     isJuzMemorisationFrameGoal ||
-    isSurahRecitationFrameGoal;
+    isSurahRecitationFrameGoal ||
+    isJuzRecitationFrameGoal;
   const frameLoading =
     (isPrayerFrameRingGoal &&
       (prayerFrame?.isLoading ||
@@ -287,7 +290,8 @@ function GoalProgressLoggingBody({
         : "---"
       : isSurahMemorisationFrameGoal ||
           isHizbMemorisationFrameGoal ||
-          isJuzMemorisationFrameGoal
+          isJuzMemorisationFrameGoal ||
+          isJuzRecitationFrameGoal
         ? quranFrame?.frame
           ? t("homeScreen.weeklyProgress_goalLabel", {
               label: getQuranFrameMemorisationRingLabel(quranFrame.frame),
@@ -879,7 +883,8 @@ export const GoalProgressLoggingScreen = ({
     isSurahMemorisationGoalId(goalId) ||
     isHizbMemorisationGoalId(goalId) ||
     isJuzMemorisationGoalId(goalId) ||
-    isSurahRecitationGoalId(goalId)
+    isSurahRecitationGoalId(goalId) ||
+    isJuzRecitationGoalId(goalId)
   ) {
     return (
       <QuranGoalFrameProvider

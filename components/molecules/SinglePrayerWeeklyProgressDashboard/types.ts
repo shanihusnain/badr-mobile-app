@@ -61,11 +61,14 @@ export type SinglePrayerWeeklyProgressDashboardProps = {
   onDeleteLog?: (date: string) => void | Promise<void>;
   /** Pending state for `onDeleteLog`. */
   isDeletingLog?: boolean;
+  /** When true, activity captions (e.g. j5 / j8*) render green like the Juz pack. */
+  greenActivityCaptions?: boolean;
   comparisonVariant?:
     | "onTime"
     | "prayers"
     | "recitations"
     | "quranRecitations"
+    | "quranJuz"
     | "quranMemorizations"
     | "hours";
 };
