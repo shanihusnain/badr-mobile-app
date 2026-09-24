@@ -34,6 +34,28 @@ export function formatPrayerFrameWeekRange(weekStart: string, weekEnd: string) {
   return `${start.format("MMM D")} — ${end.format("MMM D")}`;
 }
 
+/** True when the viewed week includes today or is entirely in the future. */
+export function isPrayerFrameWeekCurrentOrFuture(
+  frame: PrayerGoalFrameData,
+): boolean {
+  const today = moment().format("YYYY-MM-DD");
+  const weekEnd = String(frame.cycle.weekEnd ?? "").slice(0, 10);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(weekEnd) && weekEnd >= today) return true;
+  const weekStart = String(frame.cycle.weekStart ?? "").slice(0, 10);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(weekStart) && weekStart > today) return true;
+  return frame.week.days.some((day) => Boolean(day.isToday));
+}
+
+/**
+ * Forward week chevron: never advance past the calendar current week.
+ */
+export function canNavigatePrayerFrameWeekNext(
+  frame: PrayerGoalFrameData,
+): boolean {
+  if (isPrayerFrameWeekCurrentOrFuture(frame)) return false;
+  return frame.cycle.weekNumber < frame.cycle.totalWeeks;
+}
+
 /**
  * Flow-card titles from the API often include "2-Rak'ah". Strip that so cards
  * read e.g. "50 Prayers + Witr..." instead of "50 2-Rak'ah Prayers + Witr...".

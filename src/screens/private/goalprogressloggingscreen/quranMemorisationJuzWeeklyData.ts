@@ -244,7 +244,9 @@ export function clampJuzMemorisationWeekIndex(weekIndex: number): number {
 export function canNavigateJuzMemorisationWeek(
   weekIndex: number,
   direction: "prev" | "next",
+  activeWeekIndex = getActiveWeekIndex(),
 ): boolean {
   if (direction === "prev") return weekIndex > 0;
-  return weekIndex < MEMORISATION_CYCLE_WEEKS - 1;
+  // Do not navigate into weeks after the calendar current week.
+  return weekIndex < activeWeekIndex;
 }

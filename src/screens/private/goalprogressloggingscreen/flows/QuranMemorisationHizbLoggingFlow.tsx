@@ -124,10 +124,10 @@ export default function QuranMemorisationHizbLoggingFlow({
 
   const hizbId = config?.hizbId ?? "";
   const totalAyahs = config?.totalAyahs ?? 0;
-  const memorizedAyahs =
-    config?.memorizedAyahs != null
-      ? config.memorizedAyahs
-      : getMemorizedHizbAyahCount(hizbId);
+  const memorizedAyahs = Math.max(
+    config?.memorizedAyahs ?? 0,
+    hizbId ? getMemorizedHizbAyahCount(hizbId) : 0,
+  );
   const remainingAyahs = Math.max(0, totalAyahs - memorizedAyahs);
   const minStartAyah = getNextHizbMemorisationAyah(hizbId, memorizedAyahs);
   const itemNumber = useMemo(() => {

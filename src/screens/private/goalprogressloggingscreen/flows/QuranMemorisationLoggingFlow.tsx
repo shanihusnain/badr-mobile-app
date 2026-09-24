@@ -124,10 +124,10 @@ export default function QuranMemorisationLoggingFlow({
 
   const surahId = config?.surahId ?? "";
   const totalAyahs = config?.totalAyahs ?? 0;
-  const memorizedAyahs =
-    config?.memorizedAyahs != null
-      ? config.memorizedAyahs
-      : getMemorizedAyahCount(surahId);
+  const memorizedAyahs = Math.max(
+    config?.memorizedAyahs ?? 0,
+    surahId ? getMemorizedAyahCount(surahId) : 0,
+  );
   const remainingAyahs = Math.max(0, totalAyahs - memorizedAyahs);
   const minStartAyah = getNextMemorisationAyah(surahId, memorizedAyahs);
   const itemNumber = useMemo(() => {
