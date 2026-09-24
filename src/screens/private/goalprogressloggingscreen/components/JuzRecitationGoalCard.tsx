@@ -118,18 +118,16 @@ export function JuzRecitationGoalCard({
 
               <View style={surahGoalStyles.textColumn}>
                 <View
-                  style={
-                    isComplete
-                      ? surahGoalStyles.statusChipAchieved
-                      : surahGoalStyles.statusChip
-                  }
+                  style={[
+                    surahGoalStyles.statusChip,
+                    isComplete && surahGoalStyles.statusChipAchieved,
+                  ]}
                 >
                   <Text
-                    style={
-                      isComplete
-                        ? surahGoalStyles.statusChipTextAchieved
-                        : surahGoalStyles.statusChipText
-                    }
+                    style={[
+                      surahGoalStyles.statusChipText,
+                      isComplete && surahGoalStyles.statusChipTextAchieved,
+                    ]}
                   >
                     {statusLabel}
                   </Text>

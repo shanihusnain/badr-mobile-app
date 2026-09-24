@@ -5,13 +5,14 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "@/constants/theme";
 import { AddLoggingFlowIcon, QuranMemorizationIcon } from "@/assets/icons";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
-import { quranFrameShowsInsights } from "@/src/utils/quranGoalFrameMap";
+import { quranFrameCycleEnded, quranFrameShowsInsights } from "@/src/utils/quranGoalFrameMap";
 import { GoalData } from "../../home/components/goalsData";
 import QuranMemorisationLoggingFlow from "../flows/QuranMemorisationLoggingFlow";
 import { useOptionalQuranGoalFrameContext } from "../quranGoalFrameContext";
 import { type SurahMemorisationGoal } from "../quranMemorisationSurahGoals";
 import type { QuranMemorisationLogEntry } from "../types";
 import { FLOW_CARD_HEIGHT, styles } from "./DailyProgressLogging.styles";
+import { resolveQuranGoalCardStatusLabel } from "./resolveQuranGoalCardStatusLabel";
 import { surahGoalStyles } from "./SurahRecitationGoals.styles";
 import { stripEnglishParenthetical } from "@/src/utils/quranGoalMap";
 
@@ -46,17 +47,29 @@ export function SurahMemorisationGoalCard({
     (quranFrame?.frame?.goal.achievementPct ?? 0) >= 100 ||
     goal.completed === true;
 
-  const statusLabel = useMemo(() => {
-    if (goal.pillLabel?.trim()) return goal.pillLabel.trim();
-    switch (goal.status) {
-      case "not-started":
-        return t("progressLogging.surahStatusNotStarted");
-      case "in-progress":
-        return t("progressLogging.surahStatusInProgress");
-      case "completed":
-        return t("progressLogging.surahStatusCompleted");
-    }
-  }, [goal.pillLabel, goal.status, t]);
+  const statusChip = useMemo(
+    () =>
+      resolveQuranGoalCardStatusLabel({
+        status: goal.status,
+        pillLabel: goal.pillLabel,
+        progressPercent: goal.progressPercentage,
+        completed: goal.completed,
+        cycleEnded: quranFrame?.frame
+          ? quranFrameCycleEnded(quranFrame.frame)
+          : false,
+        t,
+        formatNumber,
+      }),
+    [
+      formatNumber,
+      goal.completed,
+      goal.pillLabel,
+      goal.progressPercentage,
+      goal.status,
+      quranFrame?.frame,
+      t,
+    ],
+  );
 
   const totalAyahsLabel = formatNumber(goal.totalAyahs);
   const showTotalAyahs = goal.totalAyahs > 0;
@@ -98,9 +111,21 @@ export function SurahMemorisationGoalCard({
               </View>
 
               <View style={surahGoalStyles.textColumn}>
-                <View style={surahGoalStyles.statusChip}>
-                  <Text style={surahGoalStyles.statusChipText}>
-                    {statusLabel}
+                <View
+                  style={[
+                    surahGoalStyles.statusChip,
+                    statusChip.showPercent &&
+                      surahGoalStyles.statusChipAchieved,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      surahGoalStyles.statusChipText,
+                      statusChip.showPercent &&
+                        surahGoalStyles.statusChipTextAchieved,
+                    ]}
+                  >
+                    {statusChip.label}
                   </Text>
                 </View>
 
@@ -116,7 +141,7 @@ export function SurahMemorisationGoalCard({
                       <Text style={surahGoalStyles.metaBold}>
                         {totalAyahsLabel}
                       </Text>
-                      {` ayahs)`}
+                      {` verses)`}
                     </Text>
                   ) : fallbackSubtitle ? (
                     <Text style={surahGoalStyles.metaRegular}>

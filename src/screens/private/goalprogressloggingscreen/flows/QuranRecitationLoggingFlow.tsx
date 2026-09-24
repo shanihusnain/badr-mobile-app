@@ -15,6 +15,7 @@ import { FlowCard } from "../components/FlowCard";
 import { styles } from "../components/DailyProgressLogging.styles";
 import {
   CalendarFlippingIcon,
+  QuranImageIcon,
   WhiteClockIcon,
   WhiteTimerIcon,
 } from "@/assets/icons";
@@ -433,11 +434,7 @@ export default function QuranRecitationLoggingFlow({
       case "recitationCount":
         return {
           icon: (
-            <MaterialCommunityIcons
-              name="book-open-page-variant"
-              size={24}
-              color={Colors.light.white}
-            />
+            <QuranImageIcon color={Colors.light.white} size={24} />
           ),
           label: t("progressLogging.addCompletion"),
         };

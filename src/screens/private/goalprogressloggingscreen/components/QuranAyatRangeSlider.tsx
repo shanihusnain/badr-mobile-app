@@ -33,6 +33,11 @@ type Props = {
   onChangeStartAyat: (value: number) => void;
   onChangeEndAyat: (value: number) => void;
   styles: Record<string, object>;
+  /**
+   * `surah` — roomier chip padding/gap (memorisation by Surah).
+   * `default` — tight morning chips (completion / juz / hizb).
+   */
+  chipVariant?: "surah" | "default";
 };
 
 type ActiveHandle = "start" | "end" | null;
@@ -43,7 +48,6 @@ const THUMB_RADIUS = THUMB_SIZE / 2;
 const THUMB_HIT_RADIUS = THUMB_HIT_SIZE / 2;
 /** Keep thumb circles from stacking when ayah values map close together. */
 const MIN_THUMB_CENTER_GAP = THUMB_SIZE + 4;
-const LABEL_GAP = 4;
 /**
  * Inset the track from the card edges so the slider line is shorter than
  * the full-bleed chip row (chips can still touch the green border).
@@ -54,23 +58,43 @@ const TRACK_HEIGHT = 6;
 const START_BAR_WIDTH = 2;
 const START_BAR_HEIGHT = 16;
 const LABEL_LINE_HEIGHT = 11;
-const LABEL_PADDING_V = 2;
-/** Tight horizontal padding — chip hugs the verse text. */
-const LABEL_PADDING_H = 4;
-const LABEL_ROW_HEIGHT = LABEL_LINE_HEIGHT + LABEL_PADDING_V * 2;
-const LABEL_TO_TRACK_GAP = 6;
-const TRACK_CENTER_Y =
-  LABEL_ROW_HEIGHT + LABEL_TO_TRACK_GAP + THUMB_RADIUS;
-const SLIDER_HEIGHT = TRACK_CENTER_Y + THUMB_HIT_RADIUS;
-const LABEL_TOP = 0;
 const CARET_HALF = 4;
-const THUMB_HIT_TOP = TRACK_CENTER_Y - THUMB_HIT_RADIUS;
-const TRACK_TOP = TRACK_CENTER_Y - TRACK_HEIGHT / 2;
 const THUMB_CHEVRON_SIZE = 10;
 
+/** Completion / Juz / Hizb — tight morning chips. */
+const DEFAULT_CHIP = {
+  paddingH: 4,
+  paddingV: 2,
+  toTrackGap: 6,
+  labelGap: 4,
+} as const;
+
+/** Memorisation by Surah — more air between chips and above thumbs. */
+const SURAH_CHIP = {
+  paddingH: 8,
+  paddingV: 4,
+  toTrackGap: 12,
+  labelGap: 8,
+} as const;
+
+function getChipMetrics(variant: "surah" | "default") {
+  const chip = variant === "surah" ? SURAH_CHIP : DEFAULT_CHIP;
+  const labelRowHeight = LABEL_LINE_HEIGHT + chip.paddingV * 2;
+  const trackCenterY = labelRowHeight + chip.toTrackGap + THUMB_RADIUS;
+  return {
+    ...chip,
+    labelRowHeight,
+    trackCenterY,
+    sliderHeight: trackCenterY + THUMB_HIT_RADIUS,
+    labelTop: 0,
+    thumbHitTop: trackCenterY - THUMB_HIT_RADIUS,
+    trackTop: trackCenterY - TRACK_HEIGHT / 2,
+  };
+}
+
 /** Fallback estimate until onLayout measures the real chip width. */
-function estimateLabelWidth(text: string): number {
-  return Math.max(Math.ceil(text.length * 5.4) + LABEL_PADDING_H * 2, 28);
+function estimateLabelWidth(text: string, paddingH: number): number {
+  return Math.max(Math.ceil(text.length * 5.4) + paddingH * 2, 28);
 }
 
 function getLabelLeft(
@@ -129,6 +153,7 @@ function separateLabelLefts(
   endLeft: number,
   endWidth: number,
   containerWidth: number,
+  labelGap: number,
 ): { startLabelLeft: number; endLabelLeft: number } {
   if (containerWidth <= 0 || startWidth <= 0 || endWidth <= 0) {
     return { startLabelLeft: startLeft, endLabelLeft: endLeft };
@@ -137,19 +162,19 @@ function separateLabelLefts(
   let nextStart = Math.max(0, Math.min(startLeft, containerWidth - startWidth));
   let nextEnd = Math.max(0, Math.min(endLeft, containerWidth - endWidth));
 
-  if (nextEnd >= nextStart + startWidth + LABEL_GAP) {
+  if (nextEnd >= nextStart + startWidth + labelGap) {
     return { startLabelLeft: nextStart, endLabelLeft: nextEnd };
   }
 
   // Push end just after start.
-  nextEnd = nextStart + startWidth + LABEL_GAP;
+  nextEnd = nextStart + startWidth + labelGap;
   if (nextEnd + endWidth <= containerWidth) {
     return { startLabelLeft: nextStart, endLabelLeft: nextEnd };
   }
 
   // Pin end to the right edge and pull start left if needed.
   nextEnd = containerWidth - endWidth;
-  nextStart = Math.max(0, nextEnd - LABEL_GAP - startWidth);
+  nextStart = Math.max(0, nextEnd - labelGap - startWidth);
   return { startLabelLeft: nextStart, endLabelLeft: nextEnd };
 }
 
@@ -163,9 +188,11 @@ export function QuranAyatRangeSlider({
   formatVerseLabel,
   onChangeStartAyat,
   onChangeEndAyat,
+  chipVariant = "default",
 }: Props) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
+  const chip = useMemo(() => getChipMetrics(chipVariant), [chipVariant]);
   const isMounted = useRef(true);
   const dragOriginX = useRef(0);
   const parkedBoundaryRef = useRef<number | null>(null);
@@ -293,9 +320,11 @@ export function QuranAyatRangeSlider({
   const startLabelWidth =
     measuredStartLabelW > 0
       ? measuredStartLabelW
-      : estimateLabelWidth(startLabel);
+      : estimateLabelWidth(startLabel, chip.paddingH);
   const endLabelWidth =
-    measuredEndLabelW > 0 ? measuredEndLabelW : estimateLabelWidth(endLabel);
+    measuredEndLabelW > 0
+      ? measuredEndLabelW
+      : estimateLabelWidth(endLabel, chip.paddingH);
   const rawStartLabelLeft = getLabelLeft(
     renderStartX,
     width,
@@ -308,6 +337,7 @@ export function QuranAyatRangeSlider({
     rawEndLabelLeft,
     endLabelWidth,
     width,
+    chip.labelGap,
   );
   const startCaretLeft = getCaretLeft(
     renderStartX,
@@ -415,7 +445,7 @@ export function QuranAyatRangeSlider({
   return (
     <View style={localStyles.root} onLayout={onLayout} collapsable={false}>
       <View
-        style={[localStyles.sliderArea, { height: SLIDER_HEIGHT }]}
+        style={[localStyles.sliderArea, { height: chip.sliderHeight }]}
         collapsable={false}
       >
         {/* Content-sized chips — hug verse text and stay locked to each thumb */}
@@ -426,7 +456,9 @@ export function QuranAyatRangeSlider({
             localStyles.labelPill,
             {
               left: startLabelLeft,
-              top: LABEL_TOP,
+              top: chip.labelTop,
+              paddingHorizontal: chip.paddingH,
+              paddingVertical: chip.paddingV,
               zIndex: activeHandle === "start" ? 40 : 35,
             },
           ]}
@@ -444,7 +476,9 @@ export function QuranAyatRangeSlider({
             localStyles.labelPill,
             {
               left: endLabelLeft,
-              top: LABEL_TOP,
+              top: chip.labelTop,
+              paddingHorizontal: chip.paddingH,
+              paddingVertical: chip.paddingV,
               zIndex: activeHandle === "end" ? 40 : 35,
             },
           ]}
@@ -461,7 +495,7 @@ export function QuranAyatRangeSlider({
             {
               left: TRACK_HORIZONTAL_INSET,
               right: TRACK_HORIZONTAL_INSET,
-              top: TRACK_TOP,
+              top: chip.trackTop,
               zIndex: 1,
             },
           ]}
@@ -497,7 +531,7 @@ export function QuranAyatRangeSlider({
             localStyles.startBar,
             {
               left: TRACK_HORIZONTAL_INSET,
-              top: TRACK_CENTER_Y - START_BAR_HEIGHT / 2,
+              top: chip.trackCenterY - START_BAR_HEIGHT / 2,
               zIndex: 2,
             },
           ]}
@@ -516,7 +550,7 @@ export function QuranAyatRangeSlider({
                     previousBoundaryX -
                     THUMB_RADIUS,
                 ),
-                top: TRACK_CENTER_Y - START_BAR_HEIGHT / 2,
+                top: chip.trackCenterY - START_BAR_HEIGHT / 2,
                 zIndex: 2,
               },
             ]}
@@ -531,7 +565,7 @@ export function QuranAyatRangeSlider({
               localStyles.thumbHit,
               {
                 left: startHitLeft,
-                top: THUMB_HIT_TOP,
+                top: chip.thumbHitTop,
                 zIndex: 30,
                 elevation: 12,
               },
@@ -556,7 +590,7 @@ export function QuranAyatRangeSlider({
                 localStyles.thumbHit,
                 {
                   left: startHitLeft,
-                  top: THUMB_HIT_TOP,
+                  top: chip.thumbHitTop,
                   zIndex: activeHandle === "start" ? 32 : 30,
                   elevation: activeHandle === "start" ? 14 : 12,
                 },
@@ -587,7 +621,7 @@ export function QuranAyatRangeSlider({
               localStyles.thumbHit,
               {
                 left: endHitLeft,
-                top: THUMB_HIT_TOP,
+                top: chip.thumbHitTop,
                 // Keep end above the locked start so nearby drags always move end.
                 zIndex: activeHandle === "end" ? 34 : 33,
                 elevation: activeHandle === "end" ? 16 : 14,
@@ -638,8 +672,6 @@ const localStyles = StyleSheet.create({
     position: "absolute",
     backgroundColor: Colors.light.darkgrey,
     borderRadius: 4,
-    paddingHorizontal: LABEL_PADDING_H,
-    paddingVertical: LABEL_PADDING_V,
     alignItems: "center",
     justifyContent: "center",
     // Width comes from content — do not stretch the grey chip.

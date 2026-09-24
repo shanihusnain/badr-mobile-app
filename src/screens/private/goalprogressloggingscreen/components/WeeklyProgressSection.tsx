@@ -1102,6 +1102,9 @@ export function WeeklyProgressSection({
           motivationalQuote={getQuranFrameMotivationalQuote(frame)}
           loading={frameLoading}
           isGoalCompleted={(frame.goal.achievementPct ?? 0) >= 100}
+          quranGoalType={frame.quranGoalType || "RECITATION_SURAH"}
+          itemNumber={getQuranFrameActiveItemNumber(quranFrame, frame)}
+          itemType={getQuranFrameActiveItemType(frame) ?? "SURAH"}
           onPrevWeek={
             canPrev
               ? () => shiftQuranFrameWeek(quranFrame, frame, -1)

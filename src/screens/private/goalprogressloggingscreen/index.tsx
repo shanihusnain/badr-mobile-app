@@ -38,6 +38,7 @@ import { isJuzMemorisationGoalId } from "./quranMemorisationJuzTarget";
 import { isSurahMemorisationGoalId } from "./quranMemorisationTarget";
 import { isMissedRamadanFastsGoalId } from "./missedRamadanFastsTarget";
 import { isMondayThursdayFastsGoalId } from "./mondayThursdayFastsTarget";
+import { isCompletionGoalId, isJuzRecitationGoalId } from "./types";
 import {
   getMondayThursdayFastGoalTarget,
   getMondayThursdayFastRingSegments,
@@ -58,6 +59,7 @@ import {
   getQuranFrameRingGoalCountLabel,
   getQuranFrameGoalTitle,
   getQuranFrameMemorisationRingLabel,
+  getQuranFrameRecitationRingLabel,
 } from "@/src/utils/quranGoalFrameMap";
 import { resolvePrayerTypeFromGoalId } from "@/src/utils/prayerGoalMap";
 import { resolveGoalDescriptionParamFromLoggingGoalId } from "@/src/utils/goalDescriptionMap";
@@ -295,16 +297,26 @@ function GoalProgressLoggingBody({
               label: getQuranFrameMemorisationRingLabel(quranFrame.frame),
             })
           : "---"
-        : isMissedRamadanFastsGoalId(goalId)
-          ? t("progressLogging.missedRamadanRingGoal", {
-              count: liveGoalData.target ?? cleanLabel,
-            })
-          : isMondayThursdayFastsGoalId(goalId)
-            ? t("progressLogging.mondayThursdayRingGoal", {
+        : isSurahRecitationFrameGoal
+          ? quranFrame?.frame
+            ? t("homeScreen.weeklyProgress_goalLabel", {
+                label: getQuranFrameRecitationRingLabel(
+                  quranFrame.frame,
+                  t("progressLogging.unitRecitations"),
+                ),
+              })
+            : "---"
+          : isMissedRamadanFastsGoalId(goalId)
+            ? t("progressLogging.missedRamadanRingGoal", {
                 count: liveGoalData.target ?? cleanLabel,
               })
-            : t("homeScreen.weeklyProgress_goalLabel", { label: cleanLabel });
+            : isMondayThursdayFastsGoalId(goalId)
+              ? t("progressLogging.mondayThursdayRingGoal", {
+                  count: liveGoalData.target ?? cleanLabel,
+                })
+              : t("homeScreen.weeklyProgress_goalLabel", { label: cleanLabel });
 
+  const ringGoalLineCount = isSurahRecitationFrameGoal ? 2 : 1;
   return (
     <>
       {hasHeroBackground && backgroundSource ? (
@@ -341,9 +353,9 @@ function GoalProgressLoggingBody({
                   styles.circleGoalText,
                   frameLoading && styles.loadingPlaceholderText,
                 ]}
-                numberOfLines={1}
+                numberOfLines={ringGoalLineCount}
                 adjustsFontSizeToFit
-                minimumFontScale={0.8}
+                minimumFontScale={0.75}
               >
                 {frameLoading ? "---" : ringGoalLabel}
               </Text>
@@ -581,6 +593,11 @@ export const GoalProgressLoggingScreen = ({
     isHizbMemorisationGoalId(goalId) ||
     isJuzMemorisationGoalId(goalId);
 
+  const isRecitationGoal =
+    isSurahRecitationGoalId(goalId) ||
+    isCompletionGoalId(goalId) ||
+    isJuzRecitationGoalId(goalId);
+
   const memorisationHeaderTitle = isMemorisationGoal
     ? "QURAN MEMORIZATION"
     : null;
@@ -610,8 +627,70 @@ export const GoalProgressLoggingScreen = ({
       ]
     : undefined;
 
+  const recitationHeaderTitle = isRecitationGoal
+    ? "QURAN RECITATION"
+    : null;
+
+  const recitationHeaderSecondTitle = isSurahRecitationGoalId(goalId)
+    ? "BY SURAH"
+    : isCompletionGoalId(goalId)
+      ? "BY COMPLETION"
+      : isJuzRecitationGoalId(goalId)
+        ? "BY JUZ"
+        : undefined;
+
+  /** Synthetic dropdown values so daily + weekly Surah share one "BY SURAH" option. */
+  const RECITATION_SURAH_DROPDOWN_VALUE = "quran-recitationBySurah";
+
+  const recitationTitleOptions = isRecitationGoal
+    ? [
+        {
+          value: RECITATION_SURAH_DROPDOWN_VALUE,
+          label: "QURAN RECITATION BY SURAH",
+        },
+        {
+          value: "quran-recitationByCompletion",
+          label: "QURAN RECITATION BY COMPLETION",
+        },
+        {
+          value: "quran-recitationByJuz",
+          label: "QURAN RECITATION BY JUZ",
+        },
+      ]
+    : undefined;
+
+  const recitationSelectedTitleValue = isSurahRecitationGoalId(goalId)
+    ? RECITATION_SURAH_DROPDOWN_VALUE
+    : isCompletionGoalId(goalId) || isJuzRecitationGoalId(goalId)
+      ? goalId
+      : undefined;
+
   const handleMemorisationFlowSelect = useCallback(
     (nextGoalId: string) => {
+      if (nextGoalId === goalId) return;
+      router.setParams({
+        goalId: nextGoalId,
+        ...(fromDailyProgress
+          ? {
+              fromDailyProgress: "1",
+              ...(dailyProgressCategory
+                ? { dailyProgressCategory }
+                : {}),
+            }
+          : {}),
+      });
+    },
+    [dailyProgressCategory, fromDailyProgress, goalId],
+  );
+
+  const handleRecitationFlowSelect = useCallback(
+    (nextValue: string) => {
+      const nextGoalId =
+        nextValue === RECITATION_SURAH_DROPDOWN_VALUE
+          ? isSurahRecitationGoalId(goalId)
+            ? goalId
+            : "quran-recitationBySurah-daily"
+          : nextValue;
       if (nextGoalId === goalId) return;
       router.setParams({
         goalId: nextGoalId,
@@ -706,20 +785,31 @@ export const GoalProgressLoggingScreen = ({
                 title={
                   memorisationHeaderTitle
                     ? memorisationHeaderTitle
-                    : isSurahRecitationGoalId(goalId)
-                      ? "QURAN RECITATION BY SURAH"
+                    : recitationHeaderTitle
+                      ? recitationHeaderTitle
                       : (goalData.title?.toUpperCase() ??
                         goalData.label.toUpperCase())
                 }
-                secondTitle={memorisationHeaderSecondTitle}
-                titleDropdownOptions={memorisationTitleOptions}
+                secondTitle={
+                  memorisationHeaderSecondTitle ??
+                  recitationHeaderSecondTitle
+                }
+                titleDropdownOptions={
+                  memorisationTitleOptions ?? recitationTitleOptions
+                }
                 selectedTitleValue={
-                  isMemorisationGoal ? goalId : undefined
+                  isMemorisationGoal
+                    ? goalId
+                    : isRecitationGoal
+                      ? recitationSelectedTitleValue
+                      : undefined
                 }
                 onTitleOptionSelect={
                   isMemorisationGoal
                     ? handleMemorisationFlowSelect
-                    : undefined
+                    : isRecitationGoal
+                      ? handleRecitationFlowSelect
+                      : undefined
                 }
                 titleOffsetY={
                   template.startsWith("quran-") ? 4 : 0

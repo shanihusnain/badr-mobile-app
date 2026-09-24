@@ -17,6 +17,7 @@ import type {
 } from "@/src/screens/private/goalprogressloggingscreen/quranRecitationWeeklyData";
 import { mapDayProgressToWeeklyStatus } from "@/src/screens/private/goalprogressloggingscreen/quranRecitationWeeklyData";
 import type { QuranCompletionDayProgress } from "@/src/screens/private/goalprogressloggingscreen/quranRecitationCompletionWeeklyData";
+import { useDeleteQuranHoursLog } from "@/src/api/mutations/useDeleteQuranHoursLog";
 import { QuranRecitationDayRing } from "./QuranRecitationDayRing";
 import { QuranRecitationWeeklyDayCircle } from "./QuranRecitationWeeklyDayCircle";
 
@@ -47,7 +48,26 @@ export type QuranWeeklyRecitationProgressDashboardProps = {
   lockSurahSelection?: boolean;
   loading?: boolean;
   isGoalCompleted?: boolean;
+  /** Backend type e.g. RECITATION_SURAH — enables long-press delete when set. */
+  quranGoalType?: string | null;
+  /**
+   * Active carousel item (surah number).
+   * Kept on the payload for when the API supports scoped deletes.
+   */
+  itemNumber?: number | null;
+  itemType?: "SURAH" | "JUZ" | "HIZB" | string | null;
 };
+
+function getLocalTodayString(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function normalizeDayDate(value?: string): string | null {
+  if (!value) return null;
+  const slice = value.slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(slice) ? slice : null;
+}
 
 function mapRecitationDayToSinglePrayerDay(
   day: QuranRecitationDayProgress,
@@ -55,17 +75,22 @@ function mapRecitationDayToSinglePrayerDay(
   formatNumber: (value: number) => string,
   showDayFraction: boolean,
 ): SinglePrayerDayProgress {
-  const isToday = day.dayType === "today";
+  const dateKey = normalizeDayDate(day.date);
+  const isToday = dateKey
+    ? dateKey === getLocalTodayString()
+    : day.dayType === "today";
   const isFuture = day.dayType === "future";
   const logged = day.recitationsCompleted > 0;
 
   return {
     day: day.day,
+    date: dateKey ?? day.date,
     prayersLogged: day.recitationsCompleted,
     isLogged: logged,
     isBestDay: day.isBestDay,
     isToday,
     isFuture: isToday ? false : isFuture,
+    canDelete: day.canDelete,
     // Multi-arc daily rings show N/N; solid 1× and weekly circles do not.
     durationLabel: showDayFraction
       ? `${formatNumber(day.recitationsCompleted)}/${formatNumber(dailyTarget)}`
@@ -136,9 +161,14 @@ export function QuranWeeklyRecitationProgressDashboard({
   selectedSurahId,
   loading = false,
   isGoalCompleted = false,
+  quranGoalType = null,
+  itemNumber = null,
+  itemType = null,
 }: QuranWeeklyRecitationProgressDashboardProps) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
+  const { mutateAsync: deleteQuranLog, isPending: isDeletingLog } =
+    useDeleteQuranHoursLog();
   const isWeeklyMode = visualizationMode === "weekly";
   const isWeeklySurahCarouselMode =
     isWeeklyMode && weeklySurahItems.length > 0;
@@ -148,6 +178,20 @@ export function QuranWeeklyRecitationProgressDashboard({
     visualizationMode === "juz" && completionWeekDays.length > 0;
   const isCompletionStyleMode = isCompletionMode || isJuzMode;
   const showDayFraction = !isWeeklyMode && dailyTarget > 1;
+  const allowLogDeletion = !!quranGoalType && !isCompletionStyleMode;
+
+  const handleDeleteLog = useCallback(
+    async (date: string) => {
+      if (!quranGoalType) return;
+      await deleteQuranLog({
+        quranGoalType,
+        date,
+        itemNumber,
+        itemType,
+      });
+    },
+    [deleteQuranLog, itemNumber, itemType, quranGoalType],
+  );
 
   const [activeSurahId, setActiveSurahId] = useState(
     selectedSurahId ?? weeklySurahItems[0]?.surahId ?? "",

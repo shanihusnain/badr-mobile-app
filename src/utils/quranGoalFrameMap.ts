@@ -162,6 +162,9 @@ export function mapQuranRecitationFrameWeekDays(
     const recitationsCompleted = getQuranFrameDayMinutes(day);
     const isToday = resolveIsToday(day);
     const isFuture = resolveIsFutureDay(day);
+    const state = String(day.state ?? "").toUpperCase();
+    const isMissed = state === "MISSED";
+    const isLogged = !isFuture && !isMissed && hasQuranFrameDayActivity(day);
 
     return {
       day: day.dayLabel,
@@ -370,6 +373,28 @@ export function getQuranFrameMemorisationRingLabel(
   return getQuranFrameGoalTitle(frame);
 }
 
+/**
+ * Ring label for recitation — multiline to match design:
+ * "Goal: 100" / "recitations" (caller wraps with weeklyProgress_goalLabel).
+ */
+export function getQuranFrameRecitationRingLabel(
+  frame: QuranGoalFrameData,
+  unitRecitations: string,
+): string {
+  const label = frame.goal.targetLabel?.trim();
+  if (label) {
+    const cleaned = label.replace(/^Goal:\s*/i, "").trim() || label;
+    const match = cleaned.match(/^(\d+(?:\.\d+)?)\s+(.+)$/);
+    if (match) return `${match[1]}\n${match[2]}`;
+    return cleaned;
+  }
+  const target = toFiniteNumber(frame.goal.target);
+  if (target != null && target > 0) {
+    return `${Math.round(target)}\n${unitRecitations}`;
+  }
+  return getQuranFrameGoalTitle(frame);
+}
+
 export function getQuranFrameTodayIndex(frame: QuranGoalFrameData): number {
   const days = mapQuranHoursFrameWeekDays(frame);
   const todayIndex = days.findIndex((day) => day.isToday);
@@ -544,18 +569,9 @@ export function getQuranFrameRingGoalCountLabel(
 }
 
 /**
- * Show VIEW INSIGHTS when:
- * 1) the goal ring is at 100% (goal completed), or
- * 2) today is on/after the last day of the 28-day cycle.
- * Ignore `items[].showInsights` — API may set it before those conditions.
+ * True when the 28-day cycle is over (last day reached / flagged / past endDate).
  */
-export function quranFrameShowsInsights(frame: QuranGoalFrameData): boolean {
-  const pct = frame.goal.achievementPct ?? 0;
-  if (pct >= 100) return true;
-
-  const status = normalizeQuranGoalFrameStatus(frame.goal.status);
-  if (status === "COMPLETED") return true;
-
+export function quranFrameCycleEnded(frame: QuranGoalFrameData): boolean {
   const dayNumber = frame.cycle?.dayNumber;
   const totalDays = frame.cycle?.totalDays;
   if (
@@ -577,6 +593,22 @@ export function quranFrameShowsInsights(frame: QuranGoalFrameData): boolean {
   }
 
   return false;
+}
+
+/**
+ * Show VIEW INSIGHTS when:
+ * 1) the goal ring is at 100% (goal completed), or
+ * 2) today is on/after the last day of the 28-day cycle.
+ * Ignore `items[].showInsights` — API may set it before those conditions.
+ */
+export function quranFrameShowsInsights(frame: QuranGoalFrameData): boolean {
+  const pct = frame.goal.achievementPct ?? 0;
+  if (pct >= 100) return true;
+
+  const status = normalizeQuranGoalFrameStatus(frame.goal.status);
+  if (status === "COMPLETED") return true;
+
+  return quranFrameCycleEnded(frame);
 }
 
 export function getQuranFrameCycleStart(frame: QuranGoalFrameData): string {

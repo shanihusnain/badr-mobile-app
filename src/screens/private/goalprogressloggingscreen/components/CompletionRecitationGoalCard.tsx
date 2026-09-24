@@ -77,8 +77,18 @@ export function CompletionRecitationGoalCard({
               </View>
 
               <View style={surahGoalStyles.textColumn}>
-                <View style={surahGoalStyles.statusChip}>
-                  <Text style={surahGoalStyles.statusChipText}>
+                <View
+                  style={[
+                    surahGoalStyles.statusChip,
+                    isComplete && surahGoalStyles.statusChipAchieved,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      surahGoalStyles.statusChipText,
+                      isComplete && surahGoalStyles.statusChipTextAchieved,
+                    ]}
+                  >
                     {statusLabel}
                   </Text>
                 </View>

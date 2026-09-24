@@ -8,7 +8,7 @@ import {
   QuranRecitationBySurahFlowCardImage,
 } from "@/assets/icons";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
-import { quranFrameShowsInsights } from "@/src/utils/quranGoalFrameMap";
+import { quranFrameCycleEnded, quranFrameShowsInsights } from "@/src/utils/quranGoalFrameMap";
 import { stripEnglishParenthetical } from "@/src/utils/quranGoalMap";
 import { GoalData } from "../../home/components/goalsData";
 import QuranRecitationLoggingFlow from "../flows/QuranRecitationLoggingFlow";
@@ -19,6 +19,7 @@ import {
 } from "../quranRecitationSurahGoals";
 import type { QuranRecitationLogEntry } from "../types";
 import { FLOW_CARD_HEIGHT, styles } from "./DailyProgressLogging.styles";
+import { resolveQuranGoalCardStatusLabel } from "./resolveQuranGoalCardStatusLabel";
 import { surahGoalStyles } from "./SurahRecitationGoals.styles";
 
 type Props = {
@@ -53,19 +54,29 @@ export function SurahRecitationGoalCard({
     goal.completed === true ||
     goal.status === "achieved";
 
-  const statusLabel = useMemo(() => {
-    if (goal.pillLabel?.trim()) return goal.pillLabel.trim();
-    switch (goal.status) {
-      case "not-started":
-        return t("progressLogging.surahStatusNotStarted");
-      case "in-progress":
-        return t("progressLogging.surahStatusInProgress");
-      case "achieved":
-        return t("progressLogging.surahStatusAchieved", {
-          percent: formatNumber(goal.achievementPercent ?? 0),
-        });
-    }
-  }, [formatNumber, goal.achievementPercent, goal.pillLabel, goal.status, t]);
+  const statusChip = useMemo(
+    () =>
+      resolveQuranGoalCardStatusLabel({
+        status: goal.status,
+        pillLabel: goal.pillLabel,
+        progressPercent: goal.achievementPercent,
+        completed: goal.completed || goal.status === "achieved",
+        cycleEnded: quranFrame?.frame
+          ? quranFrameCycleEnded(quranFrame.frame)
+          : false,
+        t,
+        formatNumber,
+      }),
+    [
+      formatNumber,
+      goal.achievementPercent,
+      goal.completed,
+      goal.pillLabel,
+      goal.status,
+      quranFrame?.frame,
+      t,
+    ],
+  );
 
   const quantityLabel = formatNumber(goal.quantity);
   const cycleTotalLabel = formatNumber(goal.cycleTotal);
@@ -116,9 +127,21 @@ export function SurahRecitationGoalCard({
               </View>
 
               <View style={surahGoalStyles.textColumn}>
-                <View style={surahGoalStyles.statusChip}>
-                  <Text style={surahGoalStyles.statusChipText}>
-                    {statusLabel}
+                <View
+                  style={[
+                    surahGoalStyles.statusChip,
+                    statusChip.showPercent &&
+                      surahGoalStyles.statusChipAchieved,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      surahGoalStyles.statusChipText,
+                      statusChip.showPercent &&
+                        surahGoalStyles.statusChipTextAchieved,
+                    ]}
+                  >
+                    {statusChip.label}
                   </Text>
                 </View>
 

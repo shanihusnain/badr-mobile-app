@@ -40,6 +40,7 @@ export function MemorisationAyahCountStep({
       formatVerseLabel={formatVerseLabel}
       onChangeStartAyat={onChangeStartAyah}
       onChangeEndAyat={onChangeEndAyah}
+      chipVariant="surah"
       styles={styles}
     />
   );
