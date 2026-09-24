@@ -625,6 +625,7 @@
     "recitationFrequencyWeekly": "أسبوعيًا",
     "unitRecitations": "تلاوات",
     "selectRecitationCount": "كم مرة تلوت؟",
+    "addCompletion": "أضف إتمامًا.",
     "recitationMaxLabel": "الحد الأقصى: {{max}}",
     "recitationProgressLabel": "التلاوة {{current}} من {{total}}",
     "enterTimeSpentRecitation": "التلاوة {{number}} — أدخل الوقت المستغرق.",

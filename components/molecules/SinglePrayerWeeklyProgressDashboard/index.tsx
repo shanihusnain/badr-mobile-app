@@ -27,6 +27,7 @@ import { PrayerWeeklyDashboardBody } from "@/components/molecules/PrayerWeeklyDa
 
 export type {
   SinglePrayerDayProgress,
+  SinglePrayerDayRingRenderArgs,
   SinglePrayerWeeklyProgressDashboardProps,
 } from "./types";
 
@@ -47,6 +48,7 @@ export function SinglePrayerWeeklyProgressDashboard({
   loading = false,
   isGoalCompleted = false,
   statsRow,
+  renderDayRing,
   allowLogDeletion = true,
   onDeleteLog,
   isDeletingLog: isDeletingLogProp,
@@ -179,15 +181,28 @@ export function SinglePrayerWeeklyProgressDashboard({
                         showWrapperDeletion && styles.deletingBestDay,
                       ]}
                     >
-                      <SinglePrayerDayRing
-                        size={ringSize}
-                        hasLog={hasLog}
-                        isBestDay={!!day.isBestDay}
-                        isSelected={isSelected}
-                        isFuture={isFuture}
-                        isMenstruation={isMenstruation}
-                        showEmptyOutline={showEmptyOutline}
-                      />
+                      {renderDayRing ? (
+                        renderDayRing({
+                          day,
+                          index,
+                          size: ringSize,
+                          isSelected,
+                          hasLog,
+                          isFuture,
+                          isMenstruation,
+                          showEmptyOutline,
+                        })
+                      ) : (
+                        <SinglePrayerDayRing
+                          size={ringSize}
+                          hasLog={hasLog}
+                          isBestDay={!!day.isBestDay}
+                          isSelected={isSelected}
+                          isFuture={isFuture}
+                          isMenstruation={isMenstruation}
+                          showEmptyOutline={showEmptyOutline}
+                        />
+                      )}
                       {/* Slightly less gap on best day so label aligns with other days */}
                       <TopSpace top={isBestDayVisible ? 6 : 10} />
                       <Text
@@ -250,7 +265,7 @@ export function SinglePrayerWeeklyProgressDashboard({
                             ? "---"
                             : isInactiveOutline
                               ? ""
-                              : day.durationLabel
+                              : day.durationLabel != null
                                 ? day.durationLabel
                                 : day.prayersLogged > 0
                                   ? day.prayersLogged.toString()

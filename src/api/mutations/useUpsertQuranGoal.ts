@@ -8,12 +8,21 @@ export type QuranGoalItemPayload = {
   surahName?: string;
   verseStart?: number;
   verseEnd?: number;
+  /** Cycle total. Optional for RECITATION_SURAH — backend derives it from cadence. */
   targetCount?: number;
+  /**
+   * Per-item cadence for sittings goals (RECITATION_SURAH).
+   * Required by the API on every item for that goal type.
+   */
+  itemFrequency?: "DAILY" | "WEEKLY";
+  /** How many per period — the 2 in "2 times daily" / "3 times weekly". */
+  perPeriodCount?: number;
 };
 
 export type UpsertQuranGoalPayload = {
   quranGoalType: string;
   isActive?: boolean;
+  /** Goal-level cadence (MONTHLY for hours/coverage). Not used for per-surah sittings. */
   frequency?: string;
   targetHours?: number;
   completionTarget?: number;

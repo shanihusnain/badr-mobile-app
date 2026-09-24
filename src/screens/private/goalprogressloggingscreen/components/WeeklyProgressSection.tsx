@@ -1037,7 +1037,7 @@ export function WeeklyProgressSection({
 
       return (
         <QuranWeeklyRecitationProgressDashboard
-          key={`${frame.week.weekNumber}-${quranFrame.itemNumber ?? "all"}`}
+          key={`${frame.week.weekNumber}-${quranFrame.itemNumber ?? "all"}-${activeGoal?.frequency ?? "daily"}-${dailyTarget}`}
           weekDays={mapQuranRecitationFrameWeekDays(frame)}
           weekRangeLabel={getQuranFrameWeekRangeLabel(frame)}
           weekFraction={getQuranFrameWeekFraction(frame)}
@@ -1046,7 +1046,9 @@ export function WeeklyProgressSection({
           weekRecitationTarget={
             activeGoal?.frequency === "weekly" ? activeGoal.quantity : undefined
           }
-          visualizationMode="daily"
+          visualizationMode={
+            activeGoal?.frequency === "weekly" ? "weekly" : "daily"
+          }
           selectedDayIndex={getQuranFrameTodayIndex(frame)}
           streakDays={getQuranFrameWeekStreakDays(frame)}
           vsLastWeek={getQuranFrameVsLastWeekDelta(frame)}

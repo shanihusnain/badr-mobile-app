@@ -81,7 +81,7 @@ export function QuranRecitationDayRing({
     );
   }
 
-  const strokeWidth = Math.max(3.5, Math.min(2.5, size * 0.12));
+  const strokeWidth = 2.5;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const gapSize = target >= 5 ? 3 : 6;

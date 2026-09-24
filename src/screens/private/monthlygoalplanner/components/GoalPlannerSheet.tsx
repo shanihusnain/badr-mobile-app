@@ -3933,8 +3933,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
                         }));
 
                         // Recitation-by-surah: rebuild from live per-surah
-                        // settings so weekly/daily is not flattened by the
-                        // API's single goal-level frequency.
+                        // settings (itemFrequency + perPeriodCount per surah).
                         if (
                           goal.title === "quran-recitation-by-surah" &&
                           Array.isArray(quranMetrics?.surah?.selectedSurahs) &&

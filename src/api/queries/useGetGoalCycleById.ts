@@ -62,6 +62,9 @@ export type CycleQuranGoalItem = {
   targetCount?: number;
   completedCount?: number;
   status?: string;
+  /** Per-item cadence (RECITATION_SURAH). */
+  frequency?: string | null;
+  perPeriodCount?: number | null;
 };
 
 export type CycleQuranGoal = {

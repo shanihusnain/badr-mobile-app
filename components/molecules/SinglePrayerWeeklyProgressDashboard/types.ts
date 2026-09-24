@@ -15,6 +15,17 @@ export type SinglePrayerDayProgress = {
   canDelete?: boolean;
 };
 
+export type SinglePrayerDayRingRenderArgs = {
+  day: SinglePrayerDayProgress;
+  index: number;
+  size: number;
+  isSelected: boolean;
+  hasLog: boolean;
+  isFuture: boolean;
+  isMenstruation: boolean;
+  showEmptyOutline: boolean;
+};
+
 export type SinglePrayerWeeklyProgressDashboardProps = {
   weekDays: SinglePrayerDayProgress[];
   weekRangeLabel?: string;
@@ -39,6 +50,8 @@ export type SinglePrayerWeeklyProgressDashboardProps = {
   isGoalCompleted?: boolean;
   /** Optional override for the stats row (icon + totals). */
   statsRow?: ReactNode;
+  /** Optional custom day ring (e.g. Quran multi-arc / weekly circles). */
+  renderDayRing?: (args: SinglePrayerDayRingRenderArgs) => ReactNode;
   /** When false, long-press delete chrome is disabled (e.g. mock Quran hours). Default true. */
   allowLogDeletion?: boolean;
   /**

@@ -16,6 +16,8 @@ export type QuranRecitationTargetConfig = {
   surahName: string;
   frequency: RecitationFrequency;
   quantity: number;
+  /** Quran surah number for the log API (`itemNumber`). */
+  itemNumber?: number;
 };
 
 export type QuranRecitationStepId =
@@ -91,18 +93,15 @@ export function getRecitationCountForSteps(
   targetQuantity: number,
   selectedCount: number,
 ): number {
-  if (targetQuantity <= 1) return 1;
-  return Math.min(Math.max(1, selectedCount), targetQuantity);
+  return Math.min(Math.max(1, selectedCount), Math.max(1, targetQuantity));
 }
 
 export function buildRecitationSteps(
   targetQuantity: number,
   selectedRecitationCount: number,
 ): QuranRecitationStepId[] {
-  const steps: QuranRecitationStepId[] = ["date", "startTime"];
-  if (targetQuantity > 1) {
-    steps.push("recitationCount");
-  }
+  // Matches Figma: date → add completion → start time → duration(s)
+  const steps: QuranRecitationStepId[] = ["date", "recitationCount", "startTime"];
 
   const count = getRecitationCountForSteps(
     targetQuantity,
@@ -128,9 +127,8 @@ export function resolveLoggedRecitationCount(
   targetQuantity: number,
   selectedCount: number | null,
 ): number {
-  if (targetQuantity <= 1) return 1;
   const count = selectedCount ?? 0;
-  return Math.min(Math.max(1, count), targetQuantity);
+  return Math.min(Math.max(1, count), Math.max(1, targetQuantity));
 }
 
 export function isValidStartTime(
@@ -155,9 +153,9 @@ export function isValidRecitationCount(
   count: number | null,
   maxQuantity: number,
 ): boolean {
-  if (maxQuantity <= 1) return true;
   if (count === null) return false;
-  return count >= 1 && count <= maxQuantity;
+  const max = Math.max(1, maxQuantity);
+  return count >= 1 && count <= max;
 }
 
 /** Placeholder until surah planner selections are persisted for the active goal. */

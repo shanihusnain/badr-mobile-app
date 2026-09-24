@@ -10,7 +10,7 @@ import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import { DateStep } from "../components/DateStep";
 import { formatProgressLoggingDateLabel } from "../progressLoggingConfig";
 import { DurationStep, StartTimeStep, getCurrentStartTimeParts } from "../components/TimePickerSteps";
-import { RecitationCountStep } from "../components/RecitationCountStep";
+import { RecitationCompletionStep } from "../components/RecitationCompletionStep";
 import { FlowCard } from "../components/FlowCard";
 import { styles } from "../components/DailyProgressLogging.styles";
 import {
@@ -18,7 +18,10 @@ import {
   WhiteClockIcon,
   WhiteTimerIcon,
 } from "@/assets/icons";
+import { useLogQuranRecitationSurahGoal } from "@/src/api/mutations/useLogQuranRecitationSurahGoal";
 import { getQuranRecitationFlowDefinition } from "../loggingFlowRegistry";
+import { useOptionalQuranGoalFrameContext } from "../quranGoalFrameContext";
+import type { QuranRecitationDayType } from "../quranRecitationWeeklyData";
 import {
   buildRecitationSteps,
   clampRecitationQuantity,
@@ -63,6 +66,9 @@ export default function QuranRecitationLoggingFlow({
 }: Props) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
+  const quranFrame = useOptionalQuranGoalFrameContext();
+  const { mutateAsync: logRecitationSurah, isPending: isLogging } =
+    useLogQuranRecitationSurahGoal();
   const flowDefinition = useMemo(
     () => getQuranRecitationFlowDefinition(goalData.id),
     [goalData.id],
@@ -87,6 +93,13 @@ export default function QuranRecitationLoggingFlow({
   }, [flowDefinition, targetConfigOverride]);
 
   const targetQuantity = config?.quantity ?? 1;
+  const itemNumber = useMemo(() => {
+    const fromConfig = Number(config?.itemNumber ?? 0);
+    if (Number.isFinite(fromConfig) && fromConfig > 0) return fromConfig;
+    const fromFrame = Number(quranFrame?.itemNumber ?? 0);
+    if (Number.isFinite(fromFrame) && fromFrame > 0) return fromFrame;
+    return 0;
+  }, [config?.itemNumber, quranFrame?.itemNumber]);
 
   const [internalFlowMode, setInternalFlowMode] =
     useState<FlowMode>("collapsed");
@@ -110,15 +123,54 @@ export default function QuranRecitationLoggingFlow({
     initialStartTime.period,
   );
   const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
-  const [recitationCount, setRecitationCount] = useState(1);
+  const [recitationCount, setRecitationCount] = useState(0);
   const [committedRecitationCount, setCommittedRecitationCount] = useState(1);
   const [durations, setDurations] = useState<RecitationDurationValue[]>(
     createDefaultDurations(1),
   );
 
   const todayString = toDateString(new Date());
+
+  const alreadyLoggedForSelectedDate = useMemo(() => {
+    const week = quranFrame?.frame?.week;
+    if (!week) return 0;
+
+    // Weekly quota is period-wide; daily quotas are per selected day.
+    if (config?.frequency === "weekly") {
+      const fromDays = (week.days ?? []).reduce((sum, entry) => {
+        const value = Number(entry.value ?? 0);
+        return sum + (Number.isFinite(value) && value > 0 ? Math.round(value) : 0);
+      }, 0);
+      if (fromDays > 0) return fromDays;
+      const weekTotal = Number(week.totalMinutes ?? 0);
+      return Number.isFinite(weekTotal) && weekTotal > 0
+        ? Math.round(weekTotal)
+        : 0;
+    }
+
+    const day = (week.days ?? []).find((entry) => entry.date === selectedDate);
+    if (!day) return 0;
+    const value = Number(day.value ?? 0);
+    return Number.isFinite(value) && value > 0 ? Math.round(value) : 0;
+  }, [
+    config?.frequency,
+    quranFrame?.frame?.week,
+    selectedDate,
+  ]);
+
+  const completionDayType = useMemo((): QuranRecitationDayType => {
+    if (selectedDate > todayString) return "future";
+    if (selectedDate === todayString) return "today";
+    return "past";
+  }, [selectedDate, todayString]);
+
+  const remainingCapacity = Math.max(
+    0,
+    targetQuantity - alreadyLoggedForSelectedDate,
+  );
+
   const recitationCountForSteps = getRecitationCountForSteps(
-    targetQuantity,
+    remainingCapacity > 0 ? remainingCapacity : targetQuantity,
     committedRecitationCount,
   );
 
@@ -144,6 +196,12 @@ export default function QuranRecitationLoggingFlow({
     setStepIndex((index) => Math.min(index, Math.max(steps.length - 1, 0)));
   }, [steps.length]);
 
+  // New day / prior progress: clear session picks so prior green arcs show alone.
+  useEffect(() => {
+    setRecitationCount(0);
+    setCommittedRecitationCount(1);
+  }, [selectedDate, alreadyLoggedForSelectedDate]);
+
   const currentStep = steps[stepIndex];
   const isLastStep = stepIndex === steps.length - 1;
 
@@ -156,7 +214,7 @@ export default function QuranRecitationLoggingFlow({
     setStartMinute(now.minute);
     setStartPeriod(now.period);
     setIsPeriodDropdownOpen(false);
-    setRecitationCount(1);
+    setRecitationCount(0);
     setCommittedRecitationCount(1);
     setDurations(createDefaultDurations(1));
   }, [setFlowMode]);
@@ -169,7 +227,10 @@ export default function QuranRecitationLoggingFlow({
         case "startTime":
           return isValidStartTime(startHour, startMinute, startPeriod);
         case "recitationCount":
-          return isValidRecitationCount(recitationCount, targetQuantity);
+          return (
+            remainingCapacity > 0 &&
+            isValidRecitationCount(recitationCount, remainingCapacity)
+          );
         default: {
           const durationIndex = parseDurationStepIndex(step);
           if (durationIndex === null) return false;
@@ -180,9 +241,9 @@ export default function QuranRecitationLoggingFlow({
       }
     },
     [
-      targetQuantity,
       durations,
       recitationCount,
+      remainingCapacity,
       selectedDate,
       startHour,
       startMinute,
@@ -190,7 +251,7 @@ export default function QuranRecitationLoggingFlow({
     ],
   );
 
-  const canGoForward = !isLastStep && isStepValid(currentStep);
+  const canGoForward = !isLogging && !isLastStep && isStepValid(currentStep);
 
   if (!flowDefinition || !config) return null;
   if (embedded && flowMode !== "active") return null;
@@ -214,6 +275,7 @@ export default function QuranRecitationLoggingFlow({
       : "progressLogging.recitationGoalTitleWeekly";
 
   const shiftDate = (direction: -1 | 1) => {
+    if (isLogging) return;
     const next = moment(selectedDate, "YYYY-MM-DD")
       .add(direction, "days")
       .format("YYYY-MM-DD");
@@ -226,6 +288,7 @@ export default function QuranRecitationLoggingFlow({
     field: "hours" | "minutes",
     value: string,
   ) => {
+    if (isLogging) return;
     setDurations((prev) =>
       prev.map((duration, durationIndex) =>
         durationIndex === index ? { ...duration, [field]: value } : duration,
@@ -233,19 +296,40 @@ export default function QuranRecitationLoggingFlow({
     );
   };
 
+  const formatSessionStartTimeForApi = () => {
+    const hourNum = Number.parseInt(startHour || "0", 10) || 0;
+    const minuteNum = Number.parseInt(startMinute || "0", 10) || 0;
+
+    let hour24 = hourNum % 12;
+    if (startPeriod === "pm") hour24 += 12;
+
+    const hh = String(Math.max(0, hour24)).padStart(2, "0");
+    const mm = String(Math.max(0, minuteNum)).padStart(2, "0");
+    return `${hh}:${mm}`;
+  };
+
   const handleConfirm = () => {
+    if (isLogging) return;
     if (!isLastStep) {
       handleForward();
       return;
     }
 
     if (!isValidStartTime(startHour, startMinute, startPeriod)) return;
+    if (!Number.isFinite(itemNumber) || itemNumber < 1) return;
 
     const resolvedCount = resolveLoggedRecitationCount(
-      config.quantity,
+      remainingCapacity > 0 ? remainingCapacity : targetQuantity,
       committedRecitationCount,
     );
-    if (!isValidRecitationCount(resolvedCount, config.quantity)) return;
+    if (
+      !isValidRecitationCount(
+        resolvedCount,
+        remainingCapacity > 0 ? remainingCapacity : targetQuantity,
+      )
+    ) {
+      return;
+    }
 
     const recitationDurations = durations
       .slice(0, resolvedCount)
@@ -271,25 +355,47 @@ export default function QuranRecitationLoggingFlow({
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;
     const startTime = `${startHour}:${startMinute} ${startPeriod}`;
+    const sessionStartTime = formatSessionStartTimeForApi();
 
-    onLogComplete?.({
-      type: "quran-recitation",
-      goalId: flowDefinition.goalId,
-      date: selectedDate,
-      startTime,
-      recitationCount: resolvedCount,
-      hours,
-      minutes,
-      durationLabel: `${hours}h ${minutes}m`,
-      recitationDurations,
-      frequency: config.frequency,
-      targetQuantity: config.quantity,
-      surahName: config.surahName,
-    });
-    resetFlow();
+    const run = async () => {
+      try {
+        await logRecitationSurah({
+          quranGoalType: "RECITATION_SURAH",
+          date: selectedDate,
+          sessionStartTime,
+          itemType: "SURAH",
+          itemNumber,
+          recitations: recitationDurations.map((duration) => ({
+            durationMinutes: duration.hours * 60 + duration.minutes,
+          })),
+        });
+        await quranFrame?.refetch();
+
+        onLogComplete?.({
+          type: "quran-recitation",
+          goalId: flowDefinition.goalId,
+          date: selectedDate,
+          startTime,
+          recitationCount: resolvedCount,
+          hours,
+          minutes,
+          durationLabel: `${hours}h ${minutes}m`,
+          recitationDurations,
+          frequency: config.frequency,
+          targetQuantity: config.quantity,
+          surahName: config.surahName,
+        });
+        resetFlow();
+      } catch {
+        // Mutation onError already shows toast.
+      }
+    };
+
+    void run();
   };
 
   const handleBack = () => {
+    if (isLogging) return;
     if (stepIndex === 0) {
       resetFlow();
       return;
@@ -302,10 +408,9 @@ export default function QuranRecitationLoggingFlow({
 
     if (currentStep === "recitationCount") {
       const nextCount = getRecitationCountForSteps(
-        targetQuantity,
+        remainingCapacity > 0 ? remainingCapacity : targetQuantity,
         recitationCount,
       );
-      console.log("nextCount", nextCount);
       setCommittedRecitationCount(nextCount);
       setDurations(createDefaultDurations(nextCount));
     }
@@ -334,7 +439,7 @@ export default function QuranRecitationLoggingFlow({
               color={Colors.light.white}
             />
           ),
-          label: t("progressLogging.selectRecitationCount"),
+          label: t("progressLogging.addCompletion"),
         };
       default: {
         const durationIndex = parseDurationStepIndex(step);
@@ -374,11 +479,12 @@ export default function QuranRecitationLoggingFlow({
         );
       case "recitationCount":
         return (
-          <RecitationCountStep
-            maxQuantity={config.quantity}
-            count={recitationCount}
-            onChangeCount={setRecitationCount}
-            styles={styles}
+          <RecitationCompletionStep
+            target={targetQuantity}
+            alreadyLogged={alreadyLoggedForSelectedDate}
+            sessionCount={recitationCount}
+            dayType={completionDayType}
+            onChangeSessionCount={setRecitationCount}
           />
         );
       default: {
@@ -425,7 +531,8 @@ export default function QuranRecitationLoggingFlow({
         onForward={handleForward}
         onConfirm={handleConfirm}
         canGoForward={canGoForward}
-                canGoBack={stepIndex > 0}
+        canGoBack={!isLogging && stepIndex > 0}
+        canConfirm={!isLogging && isLastStep && isStepValid(currentStep)}
         styles={styles}
         style={styles.inPlaceFlowCard}
       >

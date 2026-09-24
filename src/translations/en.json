@@ -670,6 +670,7 @@
     "recitationFrequencyWeekly": "weekly",
     "unitRecitations": "recitations",
     "selectRecitationCount": "How many recitations did you complete?",
+    "addCompletion": "Add completion.",
     "recitationMaxLabel": "Max: {{max}}",
     "recitationProgressLabel": "Rec {{current}} of {{total}}",
     "enterTimeSpentRecitation": "Recitation {{number}} — Enter time spent.",

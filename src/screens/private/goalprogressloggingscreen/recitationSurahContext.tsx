@@ -56,6 +56,7 @@ function bareSurahTitle(title: string | null | undefined, fallback: string) {
 function mapFrameItemToGoal(
   item: QuranGoalFrameItem,
   fallbackFrequency: RecitationFrequency,
+  goalFrequency?: string | null,
 ): SurahRecitationGoal {
   const itemNumber = Number(item.itemNumber);
   const loggedRecitations = Math.max(
@@ -63,10 +64,17 @@ function mapFrameItemToGoal(
     Math.round(Number(item.completed) || 0),
   );
   const quantity = clampRecitationQuantity(
-    Number(item.dailyTarget ?? item.target ?? 1) || 1,
+    Number(item.perPeriodCount ?? item.dailyTarget ?? item.target ?? 1) || 1,
   );
+  const frequency =
+    resolveQuranSurahFrequency({
+      surahId: itemNumber,
+      times: quantity,
+      itemFrequency: item.frequency,
+      goalFrequency,
+    }) || fallbackFrequency;
   const cycleTotal = Math.max(
-    getRecitationCycleTotal(fallbackFrequency, quantity),
+    getRecitationCycleTotal(frequency, quantity),
     Math.round(Number(item.target) || 0),
   );
   const achievementPercent =
@@ -86,9 +94,10 @@ function mapFrameItemToGoal(
     id: String(itemNumber),
     itemNumber,
     surahName: bareSurahTitle(item.title, `Surah ${itemNumber}`),
-    subtitle: item.subtitle?.trim() || undefined,
+    // Avoid stale API subtitles that disagree with local per-surah frequency.
+    subtitle: undefined,
     pillLabel: item.pill?.label?.trim() || undefined,
-    frequency: fallbackFrequency,
+    frequency,
     quantity,
     loggedRecitations,
     cycleTotal,
@@ -120,7 +129,9 @@ function mapDetailItemToGoal(
     Number(raw.completedCount ?? raw.completed ?? 0) || 0,
   );
   const quantity = clampRecitationQuantity(
-    Number(raw.dailyTarget ?? raw.targetCount ?? raw.target ?? 1) || 1,
+    Number(
+      raw.perPeriodCount ?? raw.dailyTarget ?? raw.targetCount ?? raw.target ?? 1,
+    ) || 1,
   );
   const frequency =
     resolveQuranSurahFrequency({
@@ -175,23 +186,27 @@ export function RecitationSurahProvider({
   const { data: detail } = useGetQuranGoalByType("RECITATION_SURAH");
   const fallbackFrequency = getSurahRecitationCycleMode(goalId);
 
+  const goalFrequency = detail?.frequency ?? null;
+
   const frameGoals = useMemo(() => {
     const items = quranFrame?.frame?.items ?? [];
     if (items.length === 0) return null;
     return items
-      .map((item) => mapFrameItemToGoal(item, fallbackFrequency))
+      .map((item) =>
+        mapFrameItemToGoal(item, fallbackFrequency, goalFrequency),
+      )
       .filter((goal) => goal.itemNumber != null && goal.itemNumber > 0);
-  }, [fallbackFrequency, quranFrame?.frame?.items]);
+  }, [fallbackFrequency, goalFrequency, quranFrame?.frame?.items]);
 
   const detailGoals = useMemo(() => {
     const items = detail?.items ?? [];
     if (items.length === 0) return null;
     return items
       .map((item) =>
-        mapDetailItemToGoal(item, fallbackFrequency, detail?.frequency),
+        mapDetailItemToGoal(item, fallbackFrequency, goalFrequency),
       )
       .filter((goal) => goal.itemNumber != null && goal.itemNumber > 0);
-  }, [detail, fallbackFrequency]);
+  }, [detail?.items, fallbackFrequency, goalFrequency]);
 
   const frameActiveGoal = useMemo((): SurahRecitationGoal | null => {
     const frame = quranFrame?.frame;
@@ -205,10 +220,19 @@ export function RecitationSurahProvider({
       item?.title?.trim() ||
       `Surah ${itemNumber}`;
     const quantity = clampRecitationQuantity(
-      Number(item?.dailyTarget ?? progress.totalAyahs ?? 1) || 1,
+      Number(
+        item?.perPeriodCount ?? item?.dailyTarget ?? progress.totalAyahs ?? 1,
+      ) || 1,
     );
+    const frequency =
+      resolveQuranSurahFrequency({
+        surahId: itemNumber,
+        times: quantity,
+        itemFrequency: item?.frequency,
+        goalFrequency,
+      }) || fallbackFrequency;
     const cycleTotal = Math.max(
-      getRecitationCycleTotal(fallbackFrequency, quantity),
+      getRecitationCycleTotal(frequency, quantity),
       progress.totalAyahs,
     );
     const loggedRecitations = progress.memorizedAyahs;
@@ -218,9 +242,9 @@ export function RecitationSurahProvider({
       id: String(itemNumber),
       itemNumber,
       surahName,
-      subtitle: item?.subtitle?.trim() || undefined,
+      subtitle: undefined,
       pillLabel: item?.pill?.label?.trim() || undefined,
-      frequency: fallbackFrequency,
+      frequency,
       quantity,
       loggedRecitations,
       cycleTotal,
@@ -230,7 +254,12 @@ export function RecitationSurahProvider({
       canLog: item?.canLog !== false,
       completed: progress.completed,
     };
-  }, [fallbackFrequency, quranFrame?.frame, quranFrame?.itemNumber]);
+  }, [
+    fallbackFrequency,
+    goalFrequency,
+    quranFrame?.frame,
+    quranFrame?.itemNumber,
+  ]);
 
   const goals = useMemo(() => {
     const base =

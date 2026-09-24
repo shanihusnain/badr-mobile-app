@@ -100,11 +100,12 @@ const SURAH_NAMES: Record<number, string> = {
   4: "Al-Maidah",
 };
 
-function toApiFrequency(freq?: string): string {
-  if (!freq) return "DAILY";
-  const normalized = freq.toLowerCase();
+/** Item cadence for sittings goals — DAILY or WEEKLY only (never MONTHLY). */
+function toApiItemFrequency(freq?: string): "DAILY" | "WEEKLY" {
+  const normalized = String(freq ?? "")
+    .trim()
+    .toLowerCase();
   if (normalized === "weekly" || normalized === "week") return "WEEKLY";
-  if (normalized === "monthly" || normalized === "month") return "MONTHLY";
   return "DAILY";
 }
 
@@ -146,6 +147,9 @@ export type QuranGoalDetailItem = {
   targetCount?: number | null;
   completedCount?: number | null;
   status?: string | null;
+  /** Per-item cadence echoed from config (RECITATION_SURAH). */
+  frequency?: string | null;
+  perPeriodCount?: number | null;
 };
 
 export type QuranGoalDetail = {
@@ -579,12 +583,13 @@ export function getSurahSettingsFromDetail(
     if (String(item.itemType).toUpperCase() !== "SURAH") continue;
     const id = Number(item.itemNumber);
     if (!Number.isFinite(id) || id <= 0) continue;
-    const times = Number(item.targetCount ?? 1) || 1;
+    const times =
+      Number(item.perPeriodCount ?? item.targetCount ?? 1) || 1;
     settings[id] = {
       frequency: resolveQuranSurahFrequency({
         surahId: id,
         times,
-        itemFrequency: (item as { frequency?: string | null }).frequency,
+        itemFrequency: item.frequency,
         goalFrequency: detail?.frequency,
       }),
       times,
@@ -714,23 +719,27 @@ export function buildQuranMetricUpsertPayload(
         items,
       };
     }
-    // surah
+    // surah — per-item cadence (itemFrequency + perPeriodCount); goal-level
+    // frequency is unused for sittings and left to the API default.
     const surah = (metrics.surah ?? {}) as SurahMetricValue;
     const selected = surah.selectedSurahs ?? [];
     if (selected.length === 0) return null;
     const settings = surah.surahSettings ?? {};
     rememberQuranSurahFrequencies(settings);
-    const firstFreq = settings[selected[0]]?.frequency;
-    const items: QuranGoalItemPayload[] = selected.map((id) => ({
-      itemType: "SURAH",
-      itemNumber: id,
-      surahName: surah.surahNames?.[id] ?? SURAH_NAMES[id] ?? String(id),
-      targetCount: settings[id]?.times ?? 1,
-    }));
+    const items: QuranGoalItemPayload[] = selected.map((id) => {
+      const setting = settings[id];
+      const times = Math.max(1, Number(setting?.times ?? 1) || 1);
+      return {
+        itemType: "SURAH",
+        itemNumber: id,
+        surahName: surah.surahNames?.[id] ?? SURAH_NAMES[id] ?? String(id),
+        itemFrequency: toApiItemFrequency(setting?.frequency),
+        perPeriodCount: times,
+      };
+    });
     return {
       quranGoalType,
       isActive: true,
-      frequency: toApiFrequency(firstFreq),
       items,
     };
   }

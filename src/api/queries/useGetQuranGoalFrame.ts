@@ -55,6 +55,10 @@ export type QuranGoalFrameItem = {
   target?: number | null;
   achievementPct?: number;
   dailyTarget?: number | null;
+  /** Per-item cadence for RECITATION_SURAH (DAILY / WEEKLY). */
+  frequency?: string | null;
+  /** How many per period — the 2 in "2 times daily". */
+  perPeriodCount?: number | null;
   canLog?: boolean;
   showInsights?: boolean;
 };

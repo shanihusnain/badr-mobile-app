@@ -54,6 +54,7 @@ import {
   createEmptyMemorisationSurahAchievements,
   mapMemorisationSurahAchievementsToUi,
 } from "@/src/utils/quranMemorisationSurahAchievementsMap";
+import { mapQuranApiKeyInsightsToCards } from "@/src/utils/quranHoursGoalAchievementsMap";
 import type { SurahMemorisationGoal } from "@/src/screens/private/goalprogressloggingscreen/quranMemorisationSurahGoals";
 import { INCOMPLETE_BAR_COLOR } from "../QuranHoursPastAchievements/pastAchievementStyles";
 import { RecitationPastAchievementProgressSection } from "../QuranHoursPastAchievements/RecitationPastAchievementProgressSection";
@@ -595,6 +596,26 @@ export function QuranRecitationPastAchievements({
     isDetailed && !hintDismissed && selectedBarIndex === null;
   const deltaIsPositive = baseAchievement.previousPeriodDeltaPercent >= 0;
 
+  const keyInsightsHeader =
+    typeof mappedApi?.achievement?.keyInsightsHeader === "string"
+      ? mappedApi.achievement.keyInsightsHeader
+      : null;
+
+  const apiInsightCards = useMemo(() => {
+    if (!usesAchievementsApi) return [];
+    return mapQuranApiKeyInsightsToCards(achievementsApiData, {
+      period,
+      noDataLabel: t("progressLogging.insightNoData"),
+      isLoading: showPlaceholders,
+    });
+  }, [
+    achievementsApiData,
+    period,
+    showPlaceholders,
+    t,
+    usesAchievementsApi,
+  ]);
+
   const surahGoalLabelKey =
     isSurahDrillDown && period === "monthly" && selectedBarIndex !== null
       ? "progressLogging.goal"
@@ -665,6 +686,38 @@ export function QuranRecitationPastAchievements({
   };
 
   const renderInsights = () => {
+    if (usesAchievementsApi) {
+      if (!apiInsightCards.length) return null;
+
+      return (
+        <View style={styles.insightsSection}>
+          <View style={styles.insightsHeader}>
+            <Text style={styles.insightsTitleLabel}>
+              {t("progressLogging.keyInsights")}
+            </Text>
+            <Text style={styles.insightsSubtitleLabel}>
+              {keyInsightsHeader?.trim() || PERIOD_INSIGHT_SUBTITLE[period]}
+            </Text>
+          </View>
+          <ScrollView
+            horizontal
+            nestedScrollEnabled
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.insightsScrollContent}
+          >
+            {apiInsightCards.map((card, index) => (
+              <InsightCard
+                key={`${card.title}-${index}`}
+                {...card}
+                icon={getRecitationInsightIcon(card)}
+                style={insightCardStyle}
+              />
+            ))}
+          </ScrollView>
+        </View>
+      );
+    }
+
     if (!isDetailed) return null;
 
     const insightCards = isSurahDrillDown

@@ -99,9 +99,13 @@ export function getSurahRecitationGoalById(
 export function toSurahTargetConfig(
   goal: SurahRecitationGoal,
 ): QuranRecitationTargetConfig {
+  const fromId = Number(goal.id);
   return {
     surahName: goal.surahName,
     frequency: goal.frequency,
     quantity: goal.quantity,
+    itemNumber:
+      goal.itemNumber ??
+      (Number.isFinite(fromId) && fromId > 0 ? fromId : undefined),
   };
 }

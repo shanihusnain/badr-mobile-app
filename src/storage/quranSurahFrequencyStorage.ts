@@ -46,7 +46,8 @@ export function hydrateQuranSurahFrequencies(): void {
 
 /**
  * Persist per-surah daily/weekly choices.
- * Needed because the quran-goals API only stores one goal-level frequency.
+ * Prefer API itemFrequency/perPeriodCount when available; local cache covers
+ * the gap before a round-trip and any older responses that still omit them.
  */
 export function rememberQuranSurahFrequencies(
   settings: Record<
