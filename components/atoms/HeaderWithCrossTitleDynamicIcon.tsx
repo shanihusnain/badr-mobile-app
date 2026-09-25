@@ -209,7 +209,7 @@ export const HeaderWithCrossTitleDynamicIcon = ({
         >
           <View style={styles.dropdownBackdrop}>
             <Pressable
-              style={StyleSheet.absoluteFillObject}
+              style={StyleSheet.absoluteFill}
               onPress={() => setDropdownOpen(false)}
             />
             <View style={styles.dropdownAnchor} pointerEvents="box-none">

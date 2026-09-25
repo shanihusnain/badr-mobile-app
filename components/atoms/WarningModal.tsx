@@ -128,7 +128,7 @@ export default function WarningModal({
 
 const styles = StyleSheet.create({
   iosOverlayRoot: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   overlay: {
     flex: 1,

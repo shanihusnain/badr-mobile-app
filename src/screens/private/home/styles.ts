@@ -1087,7 +1087,7 @@ export const styles = StyleSheet.create({
     lineHeight: 30,
   },
   backdrop: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: "rgba(0, 0, 0, 0.6)",
     zIndex: 998,
   },

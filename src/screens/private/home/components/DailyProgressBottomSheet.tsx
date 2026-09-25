@@ -335,7 +335,10 @@ export const DailyProgressBottomSheet = ({
             <View
               style={[styles.loadingContainer, { minHeight: loadingMinHeight }]}
             >
-              <LoadingComponent size="medium" />
+              <LoadingComponent
+                size="medium"
+                style={styles.loadingSpinner}
+              />
             </View>
           ) : (
             categories.map((category) => (
@@ -366,7 +369,10 @@ export const DailyProgressBottomSheet = ({
             <View
               style={[styles.loadingContainer, { minHeight: loadingMinHeight }]}
             >
-              <LoadingComponent size="medium" />
+              <LoadingComponent
+                size="medium"
+                style={styles.loadingSpinner}
+              />
             </View>
           ) : (
             detailGoals.map((goal) => (
@@ -478,6 +484,11 @@ const styles = StyleSheet.create({
   loadingContainer: {
     width: "100%",
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "flex-start",
+  },
+  /** Override LoadingComponent's flex:1 so marginTop actually moves the ring. */
+  loadingSpinner: {
+    flex: 0,
+    marginTop: 260,
   },
 });

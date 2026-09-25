@@ -8,7 +8,7 @@ export const createTeamStyles = StyleSheet.create({
     backgroundColor: Colors.light.blackBackground,
   },
   heroPressArea: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     height: "42%",
   },
   heroImage: {
@@ -16,7 +16,7 @@ export const createTeamStyles = StyleSheet.create({
     height: "100%",
   },
   bottomShade: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     top: "15%",
   },
   keyboardView: {
@@ -72,7 +72,7 @@ export const createTeamStyles = StyleSheet.create({
     height: "100%",
   },
   bannerDimOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: "rgba(8, 26, 47, 0.55)",
   },
   swipeHintRow: {

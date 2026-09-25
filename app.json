@@ -3,6 +3,7 @@
     "name": "badr",
     "slug": "badr",
     "version": "1.0.1",
+    "sdkVersion": "57.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "badr",

@@ -1,6 +1,7 @@
 import { Colors } from "@/constants/theme";
 import * as React from "react"
 import Svg, { Path } from "react-native-svg"
+import type { ColorValue } from "react-native";
 
 
 
@@ -9,7 +10,7 @@ export const ReferFriendTabIcon = ({
     color = Colors.light.subtext,
 }: {
     size?: number;
-    color?: string;
+    color?: ColorValue;
 }) => (
     <Svg
         width={size}

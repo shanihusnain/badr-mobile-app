@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
     transform: [{ rotate: "-90deg" }],
   },
   bestDayStar: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     alignItems: "center",
     justifyContent: "center",
   },

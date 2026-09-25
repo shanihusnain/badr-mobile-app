@@ -80,7 +80,7 @@ export function ChooseCircularImageStep({
               Colors.light.blackBackground,
             ]}
             locations={[0, 0.55, 1]}
-            style={StyleSheet.absoluteFillObject}
+            style={StyleSheet.absoluteFill}
             pointerEvents="none"
           />
         </ImageBackground>
