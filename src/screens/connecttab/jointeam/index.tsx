@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
     height: 240,
   },
   bannerGradient: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   identityRow: {
     flexDirection: "row",

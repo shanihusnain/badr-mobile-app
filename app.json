@@ -92,7 +92,8 @@
       ],
       "expo-video",
       "expo-secure-store",
-      "expo-updates"
+      "expo-updates",
+      "expo-status-bar"
     ],
     "experiments": {
       "typedRoutes": true,

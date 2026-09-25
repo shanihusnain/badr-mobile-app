@@ -4089,7 +4089,7 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
   },
   backdropDim: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: "rgba(8, 26, 47, 0.72)",
   },
   handleContainer: {

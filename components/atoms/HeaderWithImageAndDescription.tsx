@@ -45,7 +45,7 @@ export const HeaderWithImageAndDescription = ({
         locations={[0, 0.6, 1]}
         start={[0, 0]}
         end={[0, 1]}
-        style={StyleSheet.absoluteFillObject}
+        style={StyleSheet.absoluteFill}
       />
 
       {/* Nav bar: back button + centered title */}

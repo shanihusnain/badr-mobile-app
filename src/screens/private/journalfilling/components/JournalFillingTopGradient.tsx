@@ -23,7 +23,7 @@ function JournalFillingTopGradientComponent({
         locations={[0, 0.42, 1]}
         start={{ x: 0.5, y: 0 }}
         end={{ x: 0.5, y: 1 }}
-        style={StyleSheet.absoluteFillObject}
+        style={StyleSheet.absoluteFill}
         pointerEvents="none"
       />
       <LinearGradient
@@ -35,7 +35,7 @@ function JournalFillingTopGradientComponent({
         locations={[0, 0.5, 1]}
         start={{ x: 0, y: 0.3 }}
         end={{ x: 1, y: 0.3 }}
-        style={StyleSheet.absoluteFillObject}
+        style={StyleSheet.absoluteFill}
         pointerEvents="none"
       />
       <LinearGradient
@@ -43,7 +43,7 @@ function JournalFillingTopGradientComponent({
         locations={[0.5, 1]}
         start={{ x: 0.5, y: 0 }}
         end={{ x: 0.5, y: 1 }}
-        style={StyleSheet.absoluteFillObject}
+        style={StyleSheet.absoluteFill}
         pointerEvents="none"
       />
       <View style={styles.content}>{children}</View>

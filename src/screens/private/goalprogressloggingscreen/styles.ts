@@ -60,7 +60,7 @@ export const styles = StyleSheet.create({
     height: "100%",
   },
   heroBackgroundScrim: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: "rgba(0, 0, 0, 0.55)",
   },
   scrollForeground: {

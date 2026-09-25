@@ -121,7 +121,7 @@ function HomeFabSpeedDialComponent({
       {isMenuMounted ? (
         <Animated.View style={[styles.backdrop, { opacity: fabAnimation }]}>
           <TouchableOpacity
-            style={StyleSheet.absoluteFillObject}
+            style={StyleSheet.absoluteFill}
             activeOpacity={1}
             onPress={closeMenu}
           />

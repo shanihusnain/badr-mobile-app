@@ -1,12 +1,13 @@
 import { Colors } from "@/constants/theme";
 import Svg, { Path } from "react-native-svg";
+import type { ColorValue } from "react-native";
 
 export const MoreTabIcon = ({
   size = 20,
   color = Colors.light.white,
 }: {
   size?: number;
-  color?: string;
+  color?: ColorValue;
 }) => {
   return (
     <Svg width={size} height={size} fill="none">
