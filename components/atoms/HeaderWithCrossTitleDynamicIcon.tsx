@@ -283,7 +283,7 @@ const styles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
     fontSize: 14,
-    textTransform: "uppercase",
+    //textTransform: "uppercase",
   },
   secondTitleChevron: {
     marginTop: 1,

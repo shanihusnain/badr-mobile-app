@@ -146,6 +146,9 @@ function separateThumbCenters(
 /**
  * Keep ayah chips from covering each other without inventing extra grey width.
  * Only shifts `left` — widths stay content-sized.
+ *
+ * When chips collide, spread both ways (start ←, end →) into free space so
+ * each caret can stay on its thumb. Only pins to an edge when one side is full.
  */
 function separateLabelLefts(
   startLeft: number,
@@ -154,27 +157,67 @@ function separateLabelLefts(
   endWidth: number,
   containerWidth: number,
   labelGap: number,
+  startThumbCenter: number,
+  endThumbCenter: number,
 ): { startLabelLeft: number; endLabelLeft: number } {
   if (containerWidth <= 0 || startWidth <= 0 || endWidth <= 0) {
     return { startLabelLeft: startLeft, endLabelLeft: endLeft };
   }
 
-  let nextStart = Math.max(0, Math.min(startLeft, containerWidth - startWidth));
-  let nextEnd = Math.max(0, Math.min(endLeft, containerWidth - endWidth));
+  const clamp = (left: number, width: number) =>
+    Math.max(0, Math.min(left, containerWidth - width));
+
+  // Keep the thumb center under the chip so the caret can still point at it.
+  const caretClamp = (left: number, width: number, thumbCenter: number) => {
+    const minLeft = thumbCenter - width + CARET_HALF + 2;
+    const maxLeft = thumbCenter - CARET_HALF - 2;
+    return Math.max(clamp(minLeft, width), Math.min(clamp(left, width), clamp(maxLeft, width)));
+  };
+
+  let nextStart = caretClamp(startLeft, startWidth, startThumbCenter);
+  let nextEnd = caretClamp(endLeft, endWidth, endThumbCenter);
 
   if (nextEnd >= nextStart + startWidth + labelGap) {
     return { startLabelLeft: nextStart, endLabelLeft: nextEnd };
   }
 
-  // Push end just after start.
-  nextEnd = nextStart + startWidth + labelGap;
-  if (nextEnd + endWidth <= containerWidth) {
+  // Split overlap evenly: slide start left and end right.
+  const overlap = nextStart + startWidth + labelGap - nextEnd;
+  nextStart = caretClamp(nextStart - overlap / 2, startWidth, startThumbCenter);
+  nextEnd = caretClamp(nextEnd + overlap / 2, endWidth, endThumbCenter);
+
+  if (nextEnd >= nextStart + startWidth + labelGap) {
     return { startLabelLeft: nextStart, endLabelLeft: nextEnd };
   }
 
-  // Pin end to the right edge and pull start left if needed.
-  nextEnd = containerWidth - endWidth;
-  nextStart = Math.max(0, nextEnd - labelGap - startWidth);
+  // One side hit its caret/edge limit — push the remainder to the other side.
+  let remaining = nextStart + startWidth + labelGap - nextEnd;
+  const startFloor = caretClamp(0, startWidth, startThumbCenter);
+  const endCeil = caretClamp(containerWidth - endWidth, endWidth, endThumbCenter);
+
+  const canPushStart = nextStart - startFloor;
+  const startPush = Math.min(remaining, Math.max(0, canPushStart));
+  nextStart -= startPush;
+  remaining -= startPush;
+
+  if (remaining > 0) {
+    const canPushEnd = endCeil - nextEnd;
+    const endPush = Math.min(remaining, Math.max(0, canPushEnd));
+    nextEnd += endPush;
+    remaining -= endPush;
+  }
+
+  if (remaining <= 0.5) {
+    return { startLabelLeft: nextStart, endLabelLeft: nextEnd };
+  }
+
+  // Not enough caret-safe room — allow edge pin (caret may sit at chip edge).
+  nextStart = clamp(nextStart - remaining, startWidth);
+  nextEnd = clamp(nextStart + startWidth + labelGap, endWidth);
+  if (nextEnd + endWidth > containerWidth) {
+    nextEnd = containerWidth - endWidth;
+    nextStart = Math.max(0, nextEnd - labelGap - startWidth);
+  }
   return { startLabelLeft: nextStart, endLabelLeft: nextEnd };
 }
 
@@ -338,6 +381,8 @@ export function QuranAyatRangeSlider({
     endLabelWidth,
     width,
     chip.labelGap,
+    TRACK_HORIZONTAL_INSET + renderStartX,
+    TRACK_HORIZONTAL_INSET + renderEndX,
   );
   const startCaretLeft = getCaretLeft(
     renderStartX,
@@ -661,6 +706,8 @@ const localStyles = StyleSheet.create({
   root: {
     width: "100%",
     overflow: "visible",
+    // Sit closer to the flow card header ("Select completed verses.").
+    marginTop: -4,
   },
   sliderArea: {
     position: "relative",

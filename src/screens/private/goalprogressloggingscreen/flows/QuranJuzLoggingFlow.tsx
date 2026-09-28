@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Pressable, Text, TouchableOpacity, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import moment from "moment-hijri";
 import { Colors } from "@/constants/theme";
 import { GoalData } from "../../home/components/goalsData";
@@ -19,9 +18,12 @@ import { JuzRangeStep } from "../components/JuzRangeStep";
 import { JuzStepper } from "../components/JuzStepper";
 import { QuranAyatRangeSlider } from "../components/QuranAyatRangeSlider";
 import { styles } from "../components/DailyProgressLogging.styles";
-import { QuranIconForSlider } from "@/assets/icons/QuranIconForSlider";
+import { surahGoalStyles } from "../components/SurahRecitationGoals.styles";
 import {
+  AddLoggingFlowIcon,
   CalendarFlippingIcon,
+  QuranImageIcon,
+  QuranRecitationBySurahFlowCardImage,
   WhiteClockIcon,
   WhiteTimerIcon,
 } from "@/assets/icons";
@@ -522,42 +524,22 @@ export default function QuranJuzLoggingFlow({
         };
       case "completionType":
         return {
-          icon: (
-            <MaterialCommunityIcons
-              name="book-open-page-variant"
-              size={24}
-              color={Colors.light.white}
-            />
-          ),
+          icon: <QuranImageIcon color={Colors.light.white} size={24} />,
           label: t("progressLogging.completionTypeTitle"),
         };
       case "fullJuzRange":
         return {
-          icon: (
-            <MaterialCommunityIcons
-              name="book-open-variant"
-              size={24}
-              color={Colors.light.white}
-            />
-          ),
+          icon: <QuranImageIcon color={Colors.light.white} size={24} />,
           label: t("progressLogging.selectFullJuz"),
         };
       case "partialJuz":
         return {
-          icon: (
-            <MaterialCommunityIcons
-              name="book-open-variant"
-              size={24}
-              color={Colors.light.white}
-            />
-          ),
+          icon: <QuranImageIcon color={Colors.light.white} size={24} />,
           label: t("progressLogging.selectPartialJuz"),
         };
       case "ayatRange":
         return {
-          icon: (
-            <QuranIconForSlider size={24} Color={Colors.light.white} />
-          ),
+          icon: <QuranImageIcon color={Colors.light.white} size={24} />,
           label: t("progressLogging.selectAyatRange"),
         };
       case "timeSpentFull":
@@ -623,21 +605,24 @@ export default function QuranJuzLoggingFlow({
         );
       case "partialJuz":
         return (
-          <View style={{ alignItems: "center", gap: 8 }}>
-            <JuzStepper
-              value={partialJuz}
-              min={minPartialJuz}
-              max={goalMaxJuz}
-              onChange={setPartialJuz}
-              styles={styles}
-            />
+          <View style={{ marginTop: 20, width: "100%", gap: 2 }}>
+            <View style={{ alignItems: "center" }}>
+              <JuzStepper
+                value={partialJuz}
+                min={minPartialJuz}
+                max={goalMaxJuz}
+                onChange={setPartialJuz}
+                styles={styles}
+              />
+            </View>
             <Text
               style={{
+                width: "100%",
                 color: Colors.light.white,
-                fontSize: 12,
-                fontWeight: "500",
-                textAlign: "center",
-                opacity: 0.95,
+                fontSize: 10.5,
+                fontWeight: "400",
+                textAlign: "left",
+                opacity: 0.60,
               }}
             >
               {(() => {
@@ -737,49 +722,47 @@ export default function QuranJuzLoggingFlow({
       )}
 
       {flowMode === "collapsed" && !hideCollapsedSummary ? (
-        <View style={styles.summaryCard}>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>
-              {t("progressLogging.inProgress")}
-            </Text>
-          </View>
-
-          <View style={styles.summaryBody}>
-            <View style={styles.summaryIconCircle}>
-              <MaterialCommunityIcons
-                name="book-open-page-variant"
-                size={20}
+        <View style={[surahGoalStyles.card, surahGoalStyles.cardActive]}>
+          <View style={surahGoalStyles.bodyRow}>
+            <View style={surahGoalStyles.iconCircle}>
+              <QuranRecitationBySurahFlowCardImage
+                size={25}
                 color={Colors.light.white}
               />
             </View>
-            <View style={styles.summaryTextBlock}>
-              <Text style={styles.summaryTitle}>
-                {t("progressLogging.juzGoalTitle", {
-                  completed: formatNumber(config.completedJuzCount),
-                  target: formatNumber(config.targetJuzCount),
-                  defaultValue: goalData.title,
-                })}
-              </Text>
-              <Text style={styles.summarySubtext}>
-                <Text style={styles.summarySubtextRegular}>
-                  ({t("progressLogging.total")}{" "}
+            <View style={surahGoalStyles.textColumn}>
+              <View style={surahGoalStyles.statusChip}>
+                <Text style={surahGoalStyles.statusChipText}>
+                  {t("progressLogging.inProgress")}
                 </Text>
-                <Text style={styles.summarySubtextBold}>
-                  {formatNumber(config.targetJuzCount)}{" "}
+              </View>
+              <View style={surahGoalStyles.textLines}>
+                <Text style={surahGoalStyles.surahName} numberOfLines={2}>
+                  {t("progressLogging.juzGoalTitle", {
+                    completed: formatNumber(config.completedJuzCount),
+                    target: formatNumber(config.targetJuzCount),
+                    defaultValue: goalData.title,
+                  })}
                 </Text>
-                <Text style={styles.summarySubtextRegular}>
-                  {t("progressLogging.unitJuz")})
+                <Text style={surahGoalStyles.metaRegular}>
+                  {`(total `}
+                  <Text style={surahGoalStyles.metaBold}>
+                    {formatNumber(config.targetJuzCount)}
+                  </Text>
+                  {` ${t("progressLogging.unitJuz")})`}
                 </Text>
-              </Text>
+              </View>
             </View>
           </View>
 
+          <View style={surahGoalStyles.footerRow} />
+
           <TouchableOpacity
-            style={styles.addButton}
+            style={surahGoalStyles.addButtonIconOnly}
             onPress={() => setFlowMode("active")}
             activeOpacity={0.8}
           >
-            <Ionicons name="add" size={22} color={Colors.light.white} />
+            <AddLoggingFlowIcon size={32} />
           </TouchableOpacity>
         </View>
       ) : (

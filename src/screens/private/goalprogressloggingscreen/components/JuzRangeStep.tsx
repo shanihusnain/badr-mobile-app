@@ -40,33 +40,48 @@ export function JuzRangeStep({
   };
 
   return (
-    <View style={{ alignItems: "center", gap: 8 }}>
+    <View style={{ marginTop: 12, alignItems: "center" }}>
       <View
         style={{
           flexDirection: "row",
-          alignItems: "center",
+          alignItems: "flex-start",
           justifyContent: "center",
           gap: 10,
         }}
       >
-        <JuzStepper
-          value={startJuz}
-          min={goalMin}
-          max={goalMax}
-          onChange={handleStartChange}
-          styles={styles}
-          focused={focused === "start"}
-          onFocus={() => setFocused("start")}
-        />
-        <Text
-          style={{
-            color: Colors.light.white,
-            fontSize: 16,
-            fontWeight: "600",
-          }}
-        >
-          {t("progressLogging.juzRangeTo")}
-        </Text>
+        <View style={{ alignItems: "center", gap: 4 }}>
+          <JuzStepper
+            value={startJuz}
+            min={goalMin}
+            max={goalMax}
+            onChange={handleStartChange}
+            styles={styles}
+            focused={focused === "start"}
+            onFocus={() => setFocused("start")}
+          />
+          <Text
+            style={{
+              color: Colors.light.white,
+              fontSize: 10.5,
+              fontWeight: "500",
+              opacity: 0.6,
+              textAlign: "center",
+            }}
+          >
+            {t("progressLogging.juzPrefixLegend")}
+          </Text>
+        </View>
+        <View style={{ height: 24, justifyContent: "center" }}>
+          <Text
+            style={{
+              color: Colors.light.white,
+              fontSize: 14,
+              fontWeight: "600",
+            }}
+          >
+            {t("progressLogging.juzRangeTo")}
+          </Text>
+        </View>
         <JuzStepper
           value={endJuz}
           min={Math.max(goalMin, startJuz)}
@@ -77,18 +92,6 @@ export function JuzRangeStep({
           onFocus={() => setFocused("end")}
         />
       </View>
-      <Text
-        style={{
-          color: Colors.light.white,
-          fontSize: 12,
-          fontWeight: "500",
-          opacity: 0.9,
-          alignSelf: "flex-start",
-          marginLeft: 4,
-        }}
-      >
-        {t("progressLogging.juzPrefixLegend")}
-      </Text>
     </View>
   );
 }

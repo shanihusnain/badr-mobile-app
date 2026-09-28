@@ -186,7 +186,7 @@ export const styles = StyleSheet.create({
   },
   flowContentAyahRange: {
     justifyContent: "flex-start",
-    paddingTop: 8,
+    paddingTop: 3,
     paddingBottom: 0,
     marginBottom: 0,
     // Cancel flowCard paddingHorizontal so the range slider (and start chip)

@@ -55,9 +55,10 @@ export default function Index() {
     user?.email,
   ]);
 
-  if (!splashDone || isLoading || bootHref == null) {
-    return <AnimatedSplash onFinish={() => setSplashDone(true)} />;
+if (!splashDone || isLoading || bootHref == null) {
+    return <Redirect href="/(auth)/welcome" />;
   }
 
   return <Redirect href={bootHref} />;
 }
+

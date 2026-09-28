@@ -226,11 +226,12 @@ export function mapQuranJuzFrameWeekDays(
   const days = frame.week.days.map((day, index) => {
     const isToday = resolveIsToday(day);
     const isFuture = resolveIsFutureDay(day);
+    const state = String(day.state ?? "").toUpperCase();
+    const isMissed = state === "MISSED";
     const caption = normalizeJuzCaption(day.valueDisplay?.trim() || "");
     const frameHasActivity = hasQuranFrameDayActivity(day);
     const apiBestDay =
-      Boolean(day.isBestDay) ||
-      String(day.state ?? "").toUpperCase() === "BEST_DAY";
+      Boolean(day.isBestDay) || state === "BEST_DAY";
 
     const parsed = parseJuzWeekCaption(caption);
 
@@ -263,7 +264,12 @@ export function mapQuranJuzFrameWeekDays(
 
     return {
       ...progress,
+      date: normalizeFrameDate(day.date) ?? day.date,
       isBestDay: frameHasActivity && apiBestDay ? true : progress.isBestDay,
+      canDelete:
+        !isMissed &&
+        day.canDelete !== false &&
+        (frameHasActivity || progress.hasActivity),
     };
   });
 
