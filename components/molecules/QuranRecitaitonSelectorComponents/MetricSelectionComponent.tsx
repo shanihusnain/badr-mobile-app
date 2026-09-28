@@ -1114,9 +1114,19 @@ export const MetricSelectionComponent = ({
                         <TopSpace top={8} />
                         <View style={styles.surahTimesInputRow}>
                           <BottomSheetTextInput
-                            value={String(timesValue)}
+                            value={
+                              focusedInputs[`surah-${s.id}`] &&
+                              !(timesValue > 0)
+                                ? ""
+                                : String(timesValue)
+                            }
                             onChangeText={(v) => {
-                              const n = parseInt(v || "0", 10);
+                              const digits = v.replace(/[^0-9]/g, "");
+                              if (digits === "") {
+                                updateSurahSetting(s.id, { times: 0 });
+                                return;
+                              }
+                              const n = parseInt(digits, 10);
                               const clamped = Number.isNaN(n)
                                 ? undefined
                                 : Math.min(Math.max(0, n), maxTimes);
@@ -1152,7 +1162,9 @@ export const MetricSelectionComponent = ({
                               styles.timesInput,
                               timesValue > 0 && styles.timesInputFilled,
                             ]}
-                            placeholder="0"
+                            placeholder={
+                              focusedInputs[`surah-${s.id}`] ? "" : "0"
+                            }
                             placeholderTextColor={Colors.light.white}
                           />
                           <Text style={styles.surahTimesFrequencyLabel}>
@@ -1507,9 +1519,18 @@ export const MetricSelectionComponent = ({
               }}
             >
               <BottomSheetTextInput
-                value={String(quranCompletion)}
+                value={
+                  focusedInputs.completion && !(quranCompletion > 0)
+                    ? ""
+                    : String(quranCompletion)
+                }
                 onChangeText={(v) => {
-                  const n = parseInt(v || "0", 10);
+                  const digits = v.replace(/[^0-9]/g, "");
+                  if (digits === "") {
+                    setQuranCompletion(0);
+                    return;
+                  }
+                  const n = parseInt(digits, 10);
                   const clamped = Number.isNaN(n)
                     ? 0
                     : Math.max(0, Math.min(28, n));
@@ -1527,7 +1548,7 @@ export const MetricSelectionComponent = ({
                   styles.timesInput,
                   quranCompletion > 0 && styles.timesInputFilled,
                 ]}
-                placeholder="0"
+                placeholder={focusedInputs.completion ? "" : "0"}
                 placeholderTextColor={Colors.light.white}
               />
               <Text
