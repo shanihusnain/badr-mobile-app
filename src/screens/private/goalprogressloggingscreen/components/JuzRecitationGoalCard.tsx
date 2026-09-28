@@ -111,7 +111,7 @@ export function JuzRecitationGoalCard({
             <View style={surahGoalStyles.bodyRow}>
               <View style={surahGoalStyles.iconCircle}>
                 <QuranRecitationBySurahFlowCardImage
-                  size={26}
+                  size={25}
                   color={Colors.light.white}
                 />
               </View>

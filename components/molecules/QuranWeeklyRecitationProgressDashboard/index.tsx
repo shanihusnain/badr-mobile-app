@@ -102,7 +102,10 @@ function mapCompletionDayToSinglePrayerDay(
   day: QuranCompletionDayProgress,
   isJuzMode: boolean,
 ): SinglePrayerDayProgress {
-  const isToday = day.dayType === "today";
+  const dateKey = normalizeDayDate(day.date);
+  const isToday = dateKey
+    ? dateKey === getLocalTodayString()
+    : day.dayType === "today";
   const isFuture = day.dayType === "future";
   // Completion khatma uses C# as the day label; juz AGGREGATE keeps weekday
   // and shows juz-touch captions (j6-7 / j8*) under the ring.
@@ -113,11 +116,13 @@ function mapCompletionDayToSinglePrayerDay(
 
   return {
     day: label,
+    date: dateKey ?? day.date,
     prayersLogged: day.hasActivity ? Math.max(day.activityScore, 1) : 0,
     isLogged: day.hasActivity,
     isBestDay: day.isBestDay,
     isToday,
     isFuture: isToday ? false : isFuture,
+    canDelete: day.canDelete,
     durationLabel: day.hasActivity ? day.computedLabel : undefined,
   };
 }

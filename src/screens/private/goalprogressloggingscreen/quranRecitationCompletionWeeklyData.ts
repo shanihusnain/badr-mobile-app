@@ -21,6 +21,10 @@ export type QuranCompletionDayProgress = {
   juzCoverageCount: number;
   /** True when the day includes at least one fully completed juz range. */
   hasFullCompletion: boolean;
+  /** YYYY-MM-DD — required for long-press log deletion on the weekly strip. */
+  date?: string;
+  /** When false, long-press delete is disabled for this day. */
+  canDelete?: boolean;
 };
 
 export type QuranCompletionWeekSummary = {

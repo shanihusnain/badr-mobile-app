@@ -7,12 +7,16 @@ import {
   Pressable,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
+import {
+  AchivementArrowIcon,
+  NegativeProgressIcon,
+  PositiveProgressIcon,
+} from "@/assets/icons";
 import {
   applyCompletionAnalyticsView,
   formatCompletionCountLabel,
@@ -189,10 +193,18 @@ const [period, setPeriod] = useState<PastAchievementPeriod>(initialPeriod);
   const displayBaseIncomplete =
     selectedBaseWeek?.incompleteHours ?? baseAchievement.incompleteHours;
 
-  const showNoDataDash = isPastAchievementBarEmpty(
-    displayBaseCompleted,
-    displayBaseIncomplete,
+  const hasLogs = (baseAchievement.chartData ?? []).some(
+    (item) =>
+      (item.completedHours ?? 0) > 0 || (item.incompleteHours ?? 0) > 0,
   );
+
+  const showNoDataDash =
+    !hasLogs ||
+    isPastAchievementBarEmpty(displayBaseCompleted, displayBaseIncomplete);
+
+  const showDeltaChip =
+    !showNoDataDash &&
+    Math.abs(baseAchievement.previousPeriodDeltaPercent) > 0;
 
   const selectedPeriodTimeSpentMinutes =
     selectedBarIndex !== null
@@ -325,11 +337,7 @@ return (
       <View style={styles.card}>
         <View style={styles.cardHeaderBlock}>
           <View style={styles.cardHeader}>
-            <MaterialCommunityIcons
-              name={isDetailed ? "trending-up" : "trophy-outline"}
-              size={isDetailed ? 19 : 16}
-              color={isDetailed ? Colors.light.subtext : Colors.light.white}
-            />
+            <AchivementArrowIcon size={15} color={Colors.light.subtext} />
             <Text
               style={[
                 styles.sectionTitle,
@@ -338,7 +346,7 @@ return (
             >
               {t("progressLogging.pastGoalAchievements")}
             </Text>
-            {!isDetailed ? (
+            {!isDetailed && !showNoDataDash ? (
               <TouchableOpacity
                 onPress={handleNavigateToDetailed}
                 style={{ marginLeft: "auto", padding: 4 }}
@@ -374,39 +382,43 @@ return (
               {showNoDataDash
                 ? PAST_ACHIEVEMENT_NO_DATA
                 : formatNumber(achievement.achievementPercent)}
-              <Text
-                style={[
-                  styles.achievementPercentSymbol,
-                  isDetailed && styles.achievementPercentSymbolDetailed,
-                ]}
-              >
-                %
-              </Text>
+              {!showNoDataDash ? (
+                <Text
+                  style={[
+                    styles.achievementPercentSymbol,
+                    isDetailed && styles.achievementPercentSymbolDetailed,
+                  ]}
+                >
+                  %
+                </Text>
+              ) : null}
             </Text>
-            <View
-              style={[
-                styles.deltaBadge,
-                !deltaIsPositive && styles.deltaBadgeNegative,
-              ]}
-            >
-              <Ionicons
-                name={deltaIsPositive ? "arrow-up" : "arrow-down"}
-                size={11}
-                color={
-                  deltaIsPositive ? Colors.light.green : Colors.light.subtext
-                }
-              />
-              <Text
+            {showDeltaChip ? (
+              <View
                 style={[
-                  styles.deltaText,
-                  !deltaIsPositive && styles.deltaTextNegative,
+                  styles.deltaBadge,
+                  !deltaIsPositive && styles.deltaBadgeNegative,
                 ]}
               >
-                {deltaIsPositive ? "+" : ""}
-                {formatNumber(baseAchievement.previousPeriodDeltaPercent)}%{" "}
-                {t(PERIOD_DELTA_LABEL_KEYS[period])}
-              </Text>
-            </View>
+                {deltaIsPositive ? (
+                  <PositiveProgressIcon />
+                ) : (
+                  <NegativeProgressIcon />
+                )}
+                <Text
+                  style={[
+                    styles.deltaText,
+                    !deltaIsPositive && styles.deltaTextNegative,
+                  ]}
+                >
+                  {deltaIsPositive ? "+" : ""}
+                  {formatNumber(
+                    Math.abs(baseAchievement.previousPeriodDeltaPercent),
+                  )}
+                  % {t(PERIOD_DELTA_LABEL_KEYS[period])}
+                </Text>
+              </View>
+            ) : null}
           </View>
 
           <View style={styles.periodNavRow}>
@@ -587,25 +599,32 @@ return (
           onStartShouldSetResponder={() => isDetailed}
           onMoveShouldSetResponder={() => false}
         >
+          {!hasLogs ? (
+            <View style={styles.emptyStateInline}>
+              <Text style={styles.emptyStateText}>
+                {t("progressLogging.recitationNoDataForPeriod")}
+              </Text>
+            </View>
+          ) : null}
           <QuranHoursPastAchievementChartBlock
-            chartData={showNoDataDash ? [] : chartAchievement.chartData}
+            chartData={chartAchievement?.chartData ?? []}
             selectedBarIndex={
               isDetailed && !showNoDataDash ? selectedBarIndex : null
             }
             onBarPress={
               isDetailed ? handleBarPressDetailed : handleBarPressCompact
             }
-            chartKey={`${goalId}-${period}-${analyticsView}-${showNoDataDash ? "empty" : "ready"}`}
+            chartKey={`${goalId}-${period}-${analyticsView}-ready`}
             yMax={chartAchievement.yMax}
             yTicks={chartAchievement.yTicks}
             showHint={showChartHint && !showNoDataDash}
             onDismissHint={() => setHintDismissed(true)}
             hintText={t("progressLogging.chartTapHint")}
             hintActionText={t("progressLogging.okGotIt")}
-            pageCount={showNoDataDash ? 0 : chartAchievement.pageCount}
+            pageCount={chartAchievement?.pageCount ?? 1}
             activePageIndex={selectedBarIndex ?? chartAchievement.activePageIndex}
             formatBarValue={chartFormatBarValue}
-            showPagination={isDetailed && !showNoDataDash}
+            showPagination={!showNoDataDash}
             barColors={
               analyticsView === "completedVsTimeSpent"
                 ? [Colors.light.green, Colors.light.green]
@@ -616,7 +635,7 @@ return (
 
         {isDetailed ? (
           <GraphBarSelectionFooter
-            visible={selectedBarIndex !== null}
+            visible={selectedBarIndex !== null && !showNoDataDash}
             completed={displayBaseCompleted}
             incomplete={displayBaseIncomplete}
             goalTotal={selectedBarGoalTotal}
@@ -928,5 +947,16 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     letterSpacing: 0.5,
     textTransform: "uppercase",
+  },
+  emptyStateInline: {
+    paddingVertical: 4,
+    paddingHorizontal: 4,
+  },
+  emptyStateText: {
+    color: Colors.light.subtext,
+    fontSize: 12,
+    fontFamily: fonts.primary.regular,
+    lineHeight: 17,
+    textAlign: "center",
   },
 });

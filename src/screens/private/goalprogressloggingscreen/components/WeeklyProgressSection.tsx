@@ -1028,6 +1028,7 @@ export function WeeklyProgressSection({
           vsLastWeek={null}
           motivationalQuote={t(quranJuzWeek.motivationalQuoteKey)}
           loading={Boolean(quranFrame) && !quranFrame?.isError}
+          quranGoalType="RECITATION_JUZ"
         />
       );
     }
