@@ -409,7 +409,7 @@ const styles = StyleSheet.create({
   statsCountRegular: {
     color: Colors.light.white,
     fontWeight: "500",
-    fontSize: 13,
+    fontSize: 20,
     fontFamily: fonts.primary.medium,
   },
 });
