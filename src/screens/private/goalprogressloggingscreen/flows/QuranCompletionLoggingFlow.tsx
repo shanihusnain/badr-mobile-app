@@ -5,6 +5,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import moment from "moment-hijri";
 import { Colors } from "@/constants/theme";
+import { useLogQuranRecitationCompletionGoal } from "@/src/api/mutations/useLogQuranRecitationCompletionGoal";
 import { GoalData } from "../../home/components/goalsData";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import { DateStep } from "../components/DateStep";
@@ -24,22 +25,40 @@ import {
 } from "@/assets/icons";
 import { getQuranCompletionFlowDefinition } from "../loggingFlowRegistry";
 import { getJuzVerseCountFromMap } from "../quranJuzVerseMap";
+import { useOptionalQuranGoalFrameContext } from "../quranGoalFrameContext";
+import {
+  getQuranFrameCompletionProgress,
+  getQuranFrameCompletionResumeCursor,
+} from "@/src/utils/quranGoalFrameMap";
 import {
   buildCompletionSteps,
   clampJuz,
   createDefaultDuration,
+  getCompletionMinPartialJuz,
+  getCompletionResumeCursor,
   isValidAyatRange,
+  isValidCompletionFullJuzRange,
   isValidCompletionType,
   isValidJuzRange,
   isValidStartTime,
   isValidTimeSpent,
+  MAX_JUZ,
+  MIN_JUZ,
   type CompletionDurationValue,
+  type CompletionResumeCursor,
   type CompletionType,
   type QuranCompletionStepId,
 } from "../quranRecitationCompletionTarget";
 import type { QuranCompletionLogEntry } from "../types";
+import { getCurrentCompletionNumber } from "../quranRecitationCompletionData";
 
 type FlowMode = "collapsed" | "active";
+
+const FRESH_RESUME: CompletionResumeCursor = {
+  minFullStartJuz: MIN_JUZ,
+  minPartialJuz: MIN_JUZ,
+  minStartAyat: 1,
+};
 
 type Props = {
   goalData: GoalData;
@@ -64,10 +83,42 @@ export default function QuranCompletionLoggingFlow({
 }: Props) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
-  const flowDefinition = useMemo(
-    () => getQuranCompletionFlowDefinition(goalData.id),
-    [goalData.id],
-  );
+  const quranFrame = useOptionalQuranGoalFrameContext();
+  const { mutateAsync: logRecitationCompletion, isPending: isLogging } =
+    useLogQuranRecitationCompletionGoal();
+
+  const frameProgress = useMemo(() => {
+    const frame = quranFrame?.frame;
+    if (!frame) return null;
+    return getQuranFrameCompletionProgress(frame);
+  }, [quranFrame?.frame]);
+
+  const resumeCursor = useMemo((): CompletionResumeCursor => {
+    const frame = quranFrame?.frame;
+    if (frame) return getQuranFrameCompletionResumeCursor(frame);
+    if (frameProgress) {
+      return getCompletionResumeCursor(frameProgress.completedJuz);
+    }
+    return FRESH_RESUME;
+  }, [frameProgress, quranFrame?.frame]);
+
+  const flowDefinition = useMemo(() => {
+    const base = getQuranCompletionFlowDefinition(goalData.id);
+    if (!base) return null;
+    if (!frameProgress) return base;
+    const progress = {
+      targetCompletions: frameProgress.targetCompletions,
+      completedCompletions: frameProgress.completedCompletions,
+    };
+    return {
+      ...base,
+      config: {
+        targetCompletions: progress.targetCompletions,
+        completedCompletions: progress.completedCompletions,
+        currentCompletion: getCurrentCompletionNumber(progress),
+      },
+    };
+  }, [frameProgress, goalData.id]);
 
   const [internalFlowMode, setInternalFlowMode] =
     useState<FlowMode>("collapsed");
@@ -95,11 +146,13 @@ export default function QuranCompletionLoggingFlow({
   const [completionType, setCompletionType] = useState<CompletionType>("full");
   const [committedCompletionType, setCommittedCompletionType] =
     useState<CompletionType>("full");
-  const [fullStartJuz, setFullStartJuz] = useState(1);
-  const [fullEndJuz, setFullEndJuz] = useState(1);
-  const [partialJuz, setPartialJuz] = useState(1);
-  const [startAyat, setStartAyat] = useState(1);
-  const [endAyat, setEndAyat] = useState(1);
+  const [fullStartJuz, setFullStartJuz] = useState(
+    resumeCursor.minFullStartJuz,
+  );
+  const [fullEndJuz, setFullEndJuz] = useState(resumeCursor.minFullStartJuz);
+  const [partialJuz, setPartialJuz] = useState(resumeCursor.minPartialJuz);
+  const [startAyat, setStartAyat] = useState(resumeCursor.minStartAyat);
+  const [endAyat, setEndAyat] = useState(resumeCursor.minStartAyat);
   const [fullDuration, setFullDuration] = useState<CompletionDurationValue>(
     createDefaultDuration(),
   );
@@ -113,15 +166,56 @@ export default function QuranCompletionLoggingFlow({
     [committedCompletionType],
   );
 
+  const minPartialJuz = useMemo(
+    () =>
+      getCompletionMinPartialJuz(
+        committedCompletionType,
+        fullEndJuz,
+        resumeCursor,
+      ),
+    [committedCompletionType, fullEndJuz, resumeCursor],
+  );
+
+  const minAyatStart = useMemo(() => {
+    if (partialJuz === resumeCursor.minPartialJuz) {
+      return resumeCursor.minStartAyat;
+    }
+    // Later juz inside this Khatm — start at ayah 1 (earlier juz already locked out).
+    if (partialJuz > resumeCursor.minPartialJuz) return 1;
+    return resumeCursor.minStartAyat;
+  }, [partialJuz, resumeCursor]);
+
   useEffect(() => {
     setStepIndex((index) => Math.min(index, Math.max(steps.length - 1, 0)));
   }, [steps.length]);
 
+  // Seed / clamp steppers whenever frame resume cursor advances.
+  useEffect(() => {
+    const minFull = Math.min(MAX_JUZ, resumeCursor.minFullStartJuz);
+    setFullStartJuz((prev) => Math.max(minFull, Math.min(MAX_JUZ, prev)));
+    setFullEndJuz((prev) => Math.max(minFull, Math.min(MAX_JUZ, prev)));
+    setPartialJuz((prev) =>
+      Math.max(resumeCursor.minPartialJuz, Math.min(MAX_JUZ, prev)),
+    );
+  }, [resumeCursor.minFullStartJuz, resumeCursor.minPartialJuz]);
+
   useEffect(() => {
     const maxAyat = getJuzVerseCountFromMap(partialJuz);
-    setStartAyat((prev) => Math.min(Math.max(1, prev), maxAyat));
-    setEndAyat((prev) => Math.min(Math.max(prev, 1), maxAyat));
-  }, [partialJuz]);
+    const nextStart = Math.min(Math.max(minAyatStart, 1), maxAyat);
+    setStartAyat(nextStart);
+    setEndAyat(
+      minAyatStart > 1
+        ? maxAyat
+        : Math.min(Math.max(nextStart, 1), maxAyat),
+    );
+  }, [partialJuz, minAyatStart]);
+
+  useEffect(() => {
+    if (committedCompletionType !== "both") return;
+    if (partialJuz < minPartialJuz) {
+      setPartialJuz(minPartialJuz);
+    }
+  }, [committedCompletionType, minPartialJuz, partialJuz]);
 
   const resetFlow = useCallback(() => {
     setFlowMode("collapsed");
@@ -134,14 +228,14 @@ export default function QuranCompletionLoggingFlow({
     setIsPeriodDropdownOpen(false);
     setCompletionType("full");
     setCommittedCompletionType("full");
-    setFullStartJuz(1);
-    setFullEndJuz(1);
-    setPartialJuz(1);
-    setStartAyat(1);
-    setEndAyat(1);
+    setFullStartJuz(resumeCursor.minFullStartJuz);
+    setFullEndJuz(resumeCursor.minFullStartJuz);
+    setPartialJuz(resumeCursor.minPartialJuz);
+    setStartAyat(resumeCursor.minStartAyat);
+    setEndAyat(resumeCursor.minStartAyat);
     setFullDuration(createDefaultDuration());
     setPartialDuration(createDefaultDuration());
-  }, [setFlowMode]);
+  }, [resumeCursor, setFlowMode]);
 
   const currentStep = steps[stepIndex];
   const isLastStep = stepIndex === steps.length - 1;
@@ -156,11 +250,24 @@ export default function QuranCompletionLoggingFlow({
         case "completionType":
           return isValidCompletionType(completionType);
         case "fullJuzRange":
-          return isValidJuzRange(fullStartJuz, fullEndJuz);
+          return isValidCompletionFullJuzRange(
+            fullStartJuz,
+            fullEndJuz,
+            resumeCursor.minFullStartJuz,
+          );
         case "partialJuz":
-          return isValidJuzRange(partialJuz, partialJuz);
+          return (
+            isValidJuzRange(partialJuz, partialJuz) &&
+            partialJuz >= minPartialJuz &&
+            partialJuz <= MAX_JUZ
+          );
         case "ayatRange":
-          return isValidAyatRange(partialJuz, startAyat, endAyat);
+          return isValidAyatRange(
+            partialJuz,
+            startAyat,
+            endAyat,
+            minAyatStart,
+          );
         case "timeSpentFull":
           return isValidTimeSpent(fullDuration.hours, fullDuration.minutes);
         case "timeSpentPartial":
@@ -179,9 +286,12 @@ export default function QuranCompletionLoggingFlow({
       fullDuration.minutes,
       fullEndJuz,
       fullStartJuz,
+      minAyatStart,
+      minPartialJuz,
       partialDuration.hours,
       partialDuration.minutes,
       partialJuz,
+      resumeCursor.minFullStartJuz,
       selectedDate,
       startAyat,
       startHour,
@@ -241,8 +351,15 @@ export default function QuranCompletionLoggingFlow({
     }
 
     if (!steps.every((step) => isStepValid(step))) return;
+    if (isLogging) return;
 
     const startTime = `${startHour}:${startMinute} ${startPeriod}`;
+    const hourNum = Number.parseInt(startHour, 10) || 0;
+    const minuteNum = Number.parseInt(startMinute, 10) || 0;
+    let hour24 = hourNum % 12;
+    if (startPeriod === "pm") hour24 += 12;
+    const sessionStartTime = `${String(Math.max(0, hour24)).padStart(2, "0")}:${String(Math.max(0, minuteNum)).padStart(2, "0")}`;
+
     const fullMinutes =
       (Number.parseInt(fullDuration.hours || "0", 10) || 0) * 60 +
       (Number.parseInt(fullDuration.minutes || "0", 10) || 0);
@@ -250,7 +367,7 @@ export default function QuranCompletionLoggingFlow({
       (Number.parseInt(partialDuration.hours || "0", 10) || 0) * 60 +
       (Number.parseInt(partialDuration.minutes || "0", 10) || 0);
 
-    onLogComplete?.({
+    const entry: QuranCompletionLogEntry = {
       type: "quran-completion",
       goalId: flowDefinition.goalId,
       date: selectedDate,
@@ -273,8 +390,54 @@ export default function QuranCompletionLoggingFlow({
       partialTimeSpentMinutes:
         committedCompletionType === "full" ? null : partialMinutes,
       targetCompletions: config.targetCompletions,
-    });
-    resetFlow();
+    };
+
+    const run = async () => {
+      const payload: Parameters<typeof logRecitationCompletion>[0] = {
+        quranGoalType: "RECITATION_COMPLETION",
+        date: selectedDate,
+        sessionStartTime,
+      };
+
+      if (
+        committedCompletionType === "full" ||
+        committedCompletionType === "both"
+      ) {
+        payload.fromItemNumber = clampJuz(fullStartJuz);
+        payload.toItemNumber = clampJuz(fullEndJuz);
+      }
+
+      if (
+        committedCompletionType === "partial" ||
+        committedCompletionType === "both"
+      ) {
+        payload.itemNumber = clampJuz(partialJuz);
+        payload.fromAyah = startAyat;
+        payload.toAyah = endAyat;
+      }
+
+      // API accepts a single session duration — sum full + partial for Both.
+      const durationMinutes =
+        committedCompletionType === "full"
+          ? fullMinutes
+          : committedCompletionType === "partial"
+            ? partialMinutes
+            : fullMinutes + partialMinutes;
+      if (durationMinutes > 0) {
+        payload.durationMinutes = durationMinutes;
+      }
+
+      try {
+        await logRecitationCompletion(payload);
+        await quranFrame?.refetch();
+        onLogComplete?.(entry);
+        resetFlow();
+      } catch {
+        // Mutation onError already shows toast.
+      }
+    };
+
+    void run();
   };
 
   const getStepHeader = (step: QuranCompletionStepId) => {
@@ -371,12 +534,16 @@ export default function QuranCompletionLoggingFlow({
             onChangeStartJuz={setFullStartJuz}
             onChangeEndJuz={setFullEndJuz}
             styles={styles}
+            minJuz={Math.min(MAX_JUZ, resumeCursor.minFullStartJuz)}
+            maxJuz={MAX_JUZ}
           />
         );
       case "partialJuz":
         return (
           <JuzStepper
             value={partialJuz}
+            min={minPartialJuz}
+            max={MAX_JUZ}
             onChange={setPartialJuz}
             styles={styles}
           />
@@ -387,6 +554,7 @@ export default function QuranCompletionLoggingFlow({
             juz={partialJuz}
             startAyat={startAyat}
             endAyat={endAyat}
+            minStartAyat={minAyatStart}
             freezeStartHandle
             onChangeStartAyat={setStartAyat}
             onChangeEndAyat={setEndAyat}

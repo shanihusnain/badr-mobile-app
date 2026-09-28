@@ -7,8 +7,10 @@ import {
   QuranRecitationBySurahFlowCardImage,
 } from "@/assets/icons";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
+import { getQuranFrameCompletionProgress } from "@/src/utils/quranGoalFrameMap";
 import { GoalData } from "../../home/components/goalsData";
 import QuranCompletionLoggingFlow from "../flows/QuranCompletionLoggingFlow";
+import { useOptionalQuranGoalFrameContext } from "../quranGoalFrameContext";
 import {
   getCompletionRecitationProgress,
   isCompletionGoalComplete,
@@ -25,6 +27,10 @@ type Props = {
   onLogComplete?: (entry: QuranCompletionLogEntry) => void;
 };
 
+/**
+ * RECITATION_COMPLETION My Progress card — single AGGREGATE card from the frame
+ * ("Goal: N Completions"), not mock progress.
+ */
 export function CompletionRecitationGoalCard({
   goalData,
   isFlowActive,
@@ -34,15 +40,37 @@ export function CompletionRecitationGoalCard({
 }: Props) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
+  const quranFrame = useOptionalQuranGoalFrameContext();
+  const frame = quranFrame?.frame;
 
-  const progress = useMemo(() => getCompletionRecitationProgress(), []);
-  const isComplete = isCompletionGoalComplete(progress);
+  const progress = useMemo(() => {
+    if (frame) {
+      const fromFrame = getQuranFrameCompletionProgress(frame);
+      return {
+        targetCompletions: fromFrame.targetCompletions,
+        completedCompletions: fromFrame.completedCompletions,
+        achievementPct: fromFrame.achievementPct,
+      };
+    }
+    return {
+      ...getCompletionRecitationProgress(),
+      achievementPct: 0,
+    };
+  }, [frame]);
+
+  const isComplete =
+    (frame?.goal?.achievementPct ?? progress.achievementPct) >= 100 ||
+    String(frame?.goal?.status ?? "").toUpperCase() === "COMPLETED" ||
+    isCompletionGoalComplete(progress);
 
   const statusLabel = isComplete
     ? t("progressLogging.completionStatusComplete")
-    : t("progressLogging.surahStatusInProgress");
+    : progress.completedCompletions > 0 || progress.achievementPct > 0
+      ? t("progressLogging.surahStatusInProgress")
+      : t("progressLogging.surahStatusNotStarted");
 
   const targetLabel = formatNumber(progress.targetCompletions);
+  const frameTitle = frame?.items?.[0]?.title?.trim() || frame?.title?.trim();
 
   const handleFlowModeChange = (mode: "collapsed" | "active") => {
     if (mode === "collapsed") {
@@ -54,7 +82,6 @@ export function CompletionRecitationGoalCard({
 
   return (
     <View style={isFlowActive ? styles.activeSection : undefined}>
-      {/* Width matches Surah / Juz / prayer flow cards (`cardAnchor` = 62%). */}
       <View style={styles.cardAnchor}>
         {!isFlowActive ? (
           <View style={[surahGoalStyles.card, surahGoalStyles.cardActive]}>
@@ -85,15 +112,18 @@ export function CompletionRecitationGoalCard({
 
                 <View style={surahGoalStyles.textLines}>
                   <Text style={surahGoalStyles.surahName} numberOfLines={2}>
-                    {t("progressLogging.completionCardTitle", {
-                      target: targetLabel,
-                    })}
+                    {frameTitle ||
+                      t("progressLogging.completionCardTitle", {
+                        target: targetLabel,
+                      })}
                   </Text>
-                  <Text style={surahGoalStyles.metaRegular}>
-                    {`(total `}
-                    <Text style={surahGoalStyles.metaBold}>{targetLabel}</Text>
-                    {` ${t("progressLogging.unitCompletions")})`}
-                  </Text>
+                  {!frameTitle || !/\(\s*total\b/i.test(frameTitle) ? (
+                    <Text style={surahGoalStyles.metaRegular}>
+                      {`(total `}
+                      <Text style={surahGoalStyles.metaBold}>{targetLabel}</Text>
+                      {` ${t("progressLogging.unitCompletions")})`}
+                    </Text>
+                  ) : null}
                 </View>
               </View>
             </View>

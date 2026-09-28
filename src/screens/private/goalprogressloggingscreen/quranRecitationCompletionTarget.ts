@@ -68,15 +68,106 @@ export function isValidJuzRange(startJuz: number, endJuz: number): boolean {
   return start >= MIN_JUZ && end >= start && end <= MAX_JUZ;
 }
 
+/**
+ * Resume cursor inside the open Khatm (C1/C2/…).
+ * `completedJuzTotal` is frame `goal.completed` (juz units across the goal).
+ */
+export type CompletionResumeCursor = {
+  /** First juz allowed as Full-range start (already-logged full juz are locked out). */
+  minFullStartJuz: number;
+  /** Lowest juz on the Partial stepper. */
+  minPartialJuz: number;
+  /** Locked start ayah on `minPartialJuz` (1 = start of juz). */
+  minStartAyat: number;
+};
+
+const RESUME_EPS = 1e-6;
+
+export function getCompletionResumeCursor(
+  completedJuzTotal: number,
+): CompletionResumeCursor {
+  const raw = Math.max(0, Number(completedJuzTotal) || 0);
+  // Progress within the open completion (0 → just finished prior C / fresh C).
+  let within = raw % 30;
+  if (within > 30 - RESUME_EPS) within = 0;
+
+  if (within < RESUME_EPS) {
+    return { minFullStartJuz: 1, minPartialJuz: 1, minStartAyat: 1 };
+  }
+
+  const fullDone = Math.floor(within + RESUME_EPS / 10);
+  const fraction = within - fullDone;
+
+  // Exactly N full juz logged → continue from N+1 ayah 1.
+  if (fraction < RESUME_EPS) {
+    const next = Math.min(MAX_JUZ, fullDone + 1);
+    return {
+      minFullStartJuz: next,
+      minPartialJuz: next,
+      minStartAyat: 1,
+    };
+  }
+
+  // Partial progress on juz (fullDone + 1).
+  const currentJuz = Math.min(MAX_JUZ, fullDone + 1);
+  const verseCount = Math.max(1, getJuzVerseCountFromMap(currentJuz));
+  const ayahsDone = Math.min(
+    verseCount,
+    Math.max(0, Math.floor(fraction * verseCount + RESUME_EPS)),
+  );
+
+  if (ayahsDone >= verseCount) {
+    const next = Math.min(MAX_JUZ, currentJuz + 1);
+    return {
+      minFullStartJuz: next,
+      minPartialJuz: next,
+      minStartAyat: 1,
+    };
+  }
+
+  const minStartAyat = ayahsDone + 1;
+  return {
+    // Full = whole juz only — skip the open partial juz (31 = none left).
+    minFullStartJuz: Math.min(MAX_JUZ + 1, currentJuz + 1),
+    minPartialJuz: currentJuz,
+    minStartAyat,
+  };
+}
+
+/** Partial juz min when logging Both — after the Full range and after resume. */
+export function getCompletionMinPartialJuz(
+  completionType: CompletionType,
+  fullEndJuz: number,
+  resume: CompletionResumeCursor,
+): number {
+  if (completionType !== "both") return resume.minPartialJuz;
+  return Math.min(
+    MAX_JUZ,
+    Math.max(resume.minPartialJuz, clampJuz(fullEndJuz) + 1),
+  );
+}
+
 export function isValidAyatRange(
   juz: number,
   startAyat: number,
   endAyat: number,
+  minStartAyat = 1,
 ): boolean {
   const maxAyat = getJuzVerseCountFromMap(juz);
+  const minStart = Math.min(Math.max(1, Math.round(minStartAyat)), maxAyat);
   const start = Math.round(startAyat);
   const end = Math.round(endAyat);
-  return start >= 1 && end >= start && end <= maxAyat;
+  return start >= minStart && end >= start && end <= maxAyat;
+}
+
+export function isValidCompletionFullJuzRange(
+  startJuz: number,
+  endJuz: number,
+  minFullStartJuz: number,
+): boolean {
+  if (minFullStartJuz > MAX_JUZ) return false;
+  if (!isValidJuzRange(startJuz, endJuz)) return false;
+  return clampJuz(startJuz) >= clampJuz(minFullStartJuz);
 }
 
 export function isValidCompletionType(

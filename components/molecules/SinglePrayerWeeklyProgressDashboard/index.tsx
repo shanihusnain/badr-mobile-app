@@ -259,12 +259,13 @@ export function SinglePrayerWeeklyProgressDashboard({
                                 ? Colors.light.grey
                                 : isInactiveOutline
                                   ? "transparent"
-                                  : isBestDayVisible ||
-                                      (greenActivityCaptions && hasLog)
+                                  : isBestDayVisible
                                     ? Colors.light.green
-                                    : isSelected
+                                    : greenActivityCaptions && hasLog
                                       ? Colors.light.white
-                                      : Colors.light.grey,
+                                      : isSelected
+                                        ? Colors.light.white
+                                        : Colors.light.grey,
                             },
                             styles.durationText,
                           ]}

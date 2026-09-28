@@ -133,10 +133,13 @@ import {
   getQuranFrameMemorisationProgress,
   getQuranFrameMemorisationSurahName,
   getQuranFrameJuzCompletedThisWeek,
+  getQuranFrameCompletionProgress,
+  getQuranFrameCompletionWeekStats,
   mapQuranHoursFrameWeekDays,
   mapQuranMemorisationFrameWeekDays,
   mapQuranRecitationFrameWeekDays,
   mapQuranJuzFrameWeekDays,
+  mapQuranCompletionFrameWeekDays,
 } from "@/src/utils/quranGoalFrameMap";
 import { useAuth } from "@/provider/useAuth";
 import type { PrayerGoalFrameData } from "@/src/api/queries/useGetPrayerGoalFrame";
@@ -970,6 +973,7 @@ export function WeeklyProgressSection({
           juzCompletedThisWeek={juzCompleted}
           streakDays={getQuranFrameWeekStreakDays(frame)}
           vsLastWeek={getQuranFrameVsLastWeekDelta(frame)}
+          vsLastWeekDisplay={getQuranFrameVsLastWeekDisplay(frame)}
           motivationalQuote={getQuranFrameMotivationalQuote(frame)}
           selectedDayIndex={getQuranFrameTodayIndex(frame)}
           loading={frameLoading}
@@ -1034,10 +1038,9 @@ export function WeeklyProgressSection({
       const activeWeek = getQuranFrameActiveWeek(quranFrame, frame);
       const canPrev = frame.week.hasPrevious ?? activeWeek > 1;
       const canNext = canNavigateQuranFrameWeekNext(frame);
-      const completionDays = mapQuranJuzFrameWeekDays(frame);
-      const completionsLoggedThisWeek = completionDays.filter(
-        (day) => day.hasActivity,
-      ).length;
+      const completionDays = mapQuranCompletionFrameWeekDays(frame);
+      const completionProgress = getQuranFrameCompletionProgress(frame);
+      const weekStats = getQuranFrameCompletionWeekStats(frame);
 
       return (
         <QuranWeeklyRecitationProgressDashboard
@@ -1047,14 +1050,20 @@ export function WeeklyProgressSection({
           weekFraction={getQuranFrameWeekFraction(frame)}
           visualizationMode="completion"
           completionWeekDays={completionDays}
-          completionTarget={Math.max(1, Math.round(frame.goal.target || 1))}
-          completionsLoggedThisWeek={completionsLoggedThisWeek}
+          completionTarget={Math.max(1, completionProgress.targetCompletions)}
+          completionsLoggedThisWeek={completionDays.filter(
+            (day) => day.hasActivity,
+          ).length}
+          juzCompletedThisWeek={weekStats.juzThisWeek}
+          weekStatsLabel={weekStats.totalLabel}
+          weekStatsDisplay={weekStats.totalDisplay}
           streakDays={getQuranFrameWeekStreakDays(frame)}
           vsLastWeek={getQuranFrameVsLastWeekDelta(frame)}
+          vsLastWeekDisplay={getQuranFrameVsLastWeekDisplay(frame)}
           motivationalQuote={getQuranFrameMotivationalQuote(frame)}
           selectedDayIndex={getQuranFrameTodayIndex(frame)}
           loading={frameLoading}
-          isGoalCompleted={(frame.goal.achievementPct ?? 0) >= 100}
+          isGoalCompleted={completionProgress.achievementPct >= 100}
           quranGoalType={frame.quranGoalType || "RECITATION_COMPLETION"}
           onPrevWeek={
             canPrev

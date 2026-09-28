@@ -65,6 +65,7 @@ const THUMB_CHEVRON_SIZE = 10;
 const DEFAULT_CHIP = {
   paddingH: 4,
   paddingV: 2,
+  /** Space from pill bottom → thumb top (caret sits in this gap). */
   toTrackGap: 6,
   labelGap: 4,
 } as const;
@@ -73,19 +74,21 @@ const DEFAULT_CHIP = {
 const SURAH_CHIP = {
   paddingH: 12,
   paddingV: 4,
-  toTrackGap: 12,
+  toTrackGap: 6,
   labelGap: 8,
 } as const;
 
 function getChipMetrics(variant: "surah" | "default") {
   const chip = variant === "surah" ? SURAH_CHIP : DEFAULT_CHIP;
   const labelRowHeight = LABEL_LINE_HEIGHT + chip.paddingV * 2;
+  // Layout uses the *visible* thumb (22), not the larger hit target (44).
+  // Hit boxes overflow via absolute positioning and must not push summaryText.
   const trackCenterY = labelRowHeight + chip.toTrackGap + THUMB_RADIUS;
   return {
     ...chip,
     labelRowHeight,
     trackCenterY,
-    sliderHeight: trackCenterY + THUMB_HIT_RADIUS,
+    sliderHeight: trackCenterY + THUMB_RADIUS,
     labelTop: 0,
     thumbHitTop: trackCenterY - THUMB_HIT_RADIUS,
     trackTop: trackCenterY - TRACK_HEIGHT / 2,
@@ -171,7 +174,10 @@ function separateLabelLefts(
   const caretClamp = (left: number, width: number, thumbCenter: number) => {
     const minLeft = thumbCenter - width + CARET_HALF + 2;
     const maxLeft = thumbCenter - CARET_HALF - 2;
-    return Math.max(clamp(minLeft, width), Math.min(clamp(left, width), clamp(maxLeft, width)));
+    return Math.max(
+      clamp(minLeft, width),
+      Math.min(clamp(left, width), clamp(maxLeft, width)),
+    );
   };
 
   let nextStart = caretClamp(startLeft, startWidth, startThumbCenter);
@@ -193,7 +199,11 @@ function separateLabelLefts(
   // One side hit its caret/edge limit — push the remainder to the other side.
   let remaining = nextStart + startWidth + labelGap - nextEnd;
   const startFloor = caretClamp(0, startWidth, startThumbCenter);
-  const endCeil = caretClamp(containerWidth - endWidth, endWidth, endThumbCenter);
+  const endCeil = caretClamp(
+    containerWidth - endWidth,
+    endWidth,
+    endThumbCenter,
+  );
 
   const canPushStart = nextStart - startFloor;
   const startPush = Math.min(remaining, Math.max(0, canPushStart));
@@ -368,11 +378,7 @@ export function QuranAyatRangeSlider({
     measuredEndLabelW > 0
       ? measuredEndLabelW
       : estimateLabelWidth(endLabel, chip.paddingH);
-  const rawStartLabelLeft = getLabelLeft(
-    renderStartX,
-    width,
-    startLabelWidth,
-  );
+  const rawStartLabelLeft = getLabelLeft(renderStartX, width, startLabelWidth);
   const rawEndLabelLeft = getLabelLeft(renderEndX, width, endLabelWidth);
   const { startLabelLeft, endLabelLeft } = separateLabelLefts(
     rawStartLabelLeft,
@@ -591,9 +597,7 @@ export function QuranAyatRangeSlider({
               {
                 left: Math.max(
                   TRACK_HORIZONTAL_INSET + START_BAR_WIDTH + 2,
-                  TRACK_HORIZONTAL_INSET +
-                    previousBoundaryX -
-                    THUMB_RADIUS,
+                  TRACK_HORIZONTAL_INSET + previousBoundaryX - THUMB_RADIUS,
                 ),
                 top: chip.trackCenterY - START_BAR_HEIGHT / 2,
                 zIndex: 2,
@@ -612,12 +616,17 @@ export function QuranAyatRangeSlider({
                 left: startHitLeft,
                 top: chip.thumbHitTop,
                 zIndex: 30,
-                elevation: 12,
               },
             ]}
           >
             {/* Locked start — fixed at minStart; only end thumb moves */}
-            <View style={[localStyles.thumb, localStyles.thumbLocked]}>
+            <View
+              style={[
+                localStyles.thumb,
+                localStyles.thumbLocked,
+                { elevation: 12 },
+              ]}
+            >
               <View style={localStyles.thumbChevron}>
                 <FilledChevronIconForQuranGoal
                   direction="right"
@@ -637,13 +646,13 @@ export function QuranAyatRangeSlider({
                   left: startHitLeft,
                   top: chip.thumbHitTop,
                   zIndex: activeHandle === "start" ? 32 : 30,
-                  elevation: activeHandle === "start" ? 14 : 12,
                 },
               ]}
             >
               <View
                 style={[
                   localStyles.thumb,
+                  { elevation: activeHandle === "start" ? 14 : 12 },
                   activeHandle === "start" && localStyles.thumbActive,
                 ]}
               >
@@ -669,13 +678,13 @@ export function QuranAyatRangeSlider({
                 top: chip.thumbHitTop,
                 // Keep end above the locked start so nearby drags always move end.
                 zIndex: activeHandle === "end" ? 34 : 33,
-                elevation: activeHandle === "end" ? 16 : 14,
               },
             ]}
           >
             <View
               style={[
                 localStyles.thumb,
+                { elevation: activeHandle === "end" ? 16 : 14 },
                 activeHandle === "end" && localStyles.thumbActive,
               ]}
             >
@@ -776,12 +785,18 @@ const localStyles = StyleSheet.create({
     borderRadius: 1,
     backgroundColor: Colors.light.white,
   },
+  /**
+   * Invisible oversized touch target centered on the white thumb.
+   * Absolute — must never contribute to sliderArea height / summaryText gap.
+   * No elevation here: Android paints a ghost fill under elevated views.
+   */
   thumbHit: {
     position: "absolute",
     width: THUMB_HIT_SIZE,
     height: THUMB_HIT_SIZE,
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: "transparent",
   },
   thumb: {
     width: THUMB_SIZE,
@@ -810,8 +825,8 @@ const localStyles = StyleSheet.create({
     lineHeight: 12,
     textAlign: "left",
     opacity: 0.95,
-    // Pull closer to the thumbs so the slider sits lower toward this line.
-    marginTop: -8,
+    // Gap below the visible thumb — independent of thumbHit size.
+    marginTop: 5,
     // Align with the track start (TRACK_HORIZONTAL_INSET).
     paddingHorizontal: TRACK_HORIZONTAL_INSET,
     zIndex: 0,

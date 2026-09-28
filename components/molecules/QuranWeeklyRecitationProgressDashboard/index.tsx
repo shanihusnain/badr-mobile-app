@@ -39,6 +39,15 @@ export type QuranWeeklyRecitationProgressDashboardProps = {
   completionsLoggedThisWeek?: number;
   /** Fractional juz covered this week — hides `/target` in the stats row. */
   juzCompletedThisWeek?: number | null;
+  /**
+   * Full week total from API (e.g. "1.43 juz from C1 this week").
+   * When set, stats row boldens `weekStatsDisplay` (or the leading number) + rest.
+   */
+  weekStatsLabel?: string | null;
+  /** Bold portion of weekStatsLabel (e.g. totalDisplay "1.43"). */
+  weekStatsDisplay?: string | null;
+  /** Prefer API vs-last-week display string (e.g. "1.43"). */
+  vsLastWeekDisplay?: string | null;
   selectedDayIndex?: number;
   onDayPress?: (index: number) => void;
   onPrevWeek?: () => void;
@@ -107,15 +116,17 @@ function mapCompletionDayToSinglePrayerDay(
     ? dateKey === getLocalTodayString()
     : day.dayType === "today";
   const isFuture = day.dayType === "future";
-  // Completion khatma uses C# as the day label; juz AGGREGATE keeps weekday
-  // and shows juz-touch captions (j6-7 / j8*) under the ring.
-  const label =
-    !isJuzMode && day.hasActivity && day.completionNumber
-      ? `C${day.completionNumber}`
-      : day.day;
+  // Figma: weekday stays; under-ring is C# + juz (completion) or juz only (juz mode).
+  const captionParts: string[] = [];
+  if (!isJuzMode && day.hasActivity && day.completionNumber != null) {
+    captionParts.push(`C${day.completionNumber}`);
+  }
+  if (day.hasActivity && day.computedLabel) {
+    captionParts.push(day.computedLabel);
+  }
 
   return {
-    day: label,
+    day: day.day,
     date: dateKey ?? day.date,
     prayersLogged: day.hasActivity ? Math.max(day.activityScore, 1) : 0,
     isLogged: day.hasActivity,
@@ -123,7 +134,7 @@ function mapCompletionDayToSinglePrayerDay(
     isToday,
     isFuture: isToday ? false : isFuture,
     canDelete: day.canDelete,
-    durationLabel: day.hasActivity ? day.computedLabel : undefined,
+    durationLabel: captionParts.length > 0 ? captionParts.join("\n") : undefined,
   };
 }
 
@@ -159,6 +170,9 @@ export function QuranWeeklyRecitationProgressDashboard({
   completionsLoggedThisWeek = 0,
   /** Fractional juz covered this week (RECITATION_JUZ AGGREGATE). */
   juzCompletedThisWeek,
+  weekStatsLabel = null,
+  weekStatsDisplay = null,
+  vsLastWeekDisplay: vsLastWeekDisplayProp = null,
   selectedDayIndex,
   onDayPress,
   onPrevWeek,
@@ -268,27 +282,54 @@ export function QuranWeeklyRecitationProgressDashboard({
         weekRecitationTarget ??
         dailyTarget)
       : (weekRecitationTarget ?? dailyTarget * 7);
+  const useCompletionWeekStatsLabel = Boolean(
+    isCompletionMode && weekStatsLabel?.trim(),
+  );
   const displayTotalRecitations = isJuzMode
     ? (juzCompletedThisWeek ?? completionsLoggedThisWeek)
-    : isCompletionStyleMode
-      ? completionsLoggedThisWeek
-      : isWeeklySurahCarouselMode
-        ? (activeWeeklySurah?.completedThisWeek ?? totalRecitationsThisWeek)
-        : totalRecitationsThisWeek;
-  /** RECITATION_JUZ has no weekly cadence — never print `/N`. */
-  const hideStatsDenominator = isJuzMode;
+    : isCompletionMode && juzCompletedThisWeek != null
+      ? juzCompletedThisWeek
+      : isCompletionStyleMode
+        ? completionsLoggedThisWeek
+        : isWeeklySurahCarouselMode
+          ? (activeWeeklySurah?.completedThisWeek ?? totalRecitationsThisWeek)
+          : totalRecitationsThisWeek;
+  /** RECITATION_JUZ / completion totalLabel — never print `/N`. */
+  const hideStatsDenominator = isJuzMode || useCompletionWeekStatsLabel;
   const statsLabelKey = isJuzMode
     ? "progressLogging.juzCompletedThisWeek"
-    : isCompletionMode
+    : isCompletionMode && !useCompletionWeekStatsLabel
       ? "progressLogging.completionsThisWeek"
-      : "progressLogging.totalRecitationsThisWeek";
+      : isCompletionMode
+        ? ""
+        : "progressLogging.totalRecitationsThisWeek";
+  const useJuzStyleComparison = isJuzMode || isCompletionMode;
 
   const formatStatsTotal = (value: number) => {
-    if (isJuzMode && !Number.isInteger(value)) {
-      return formatNumber(Number(value.toFixed(1)));
+    if (
+      (isJuzMode || isCompletionMode) &&
+      !Number.isInteger(value)
+    ) {
+      return formatNumber(Number(value.toFixed(2)));
     }
     return formatNumber(value);
   };
+
+  const resolvedWeekStatsBold =
+    weekStatsDisplay?.trim() ||
+    (useCompletionWeekStatsLabel
+      ? formatStatsTotal(displayTotalRecitations)
+      : null);
+  const resolvedWeekStatsRest = (() => {
+    const label = weekStatsLabel?.trim();
+    if (!label) return null;
+    const bold = resolvedWeekStatsBold;
+    if (bold && label.startsWith(bold)) {
+      return label.slice(bold.length).trimStart();
+    }
+    // Strip leading numeric token (e.g. "1.43 juz from C1…").
+    return label.replace(/^\s*[\d.,]+\s*/, "").trim() || label;
+  })();
 
   const resolveWeeklyStatus = useCallback(
     (index: number): WeeklySurahDayStatus => {
@@ -337,9 +378,12 @@ export function QuranWeeklyRecitationProgressDashboard({
       streakDays={streakDays}
       vsLastWeek={vsLastWeek}
       vsLastWeekDisplay={
-        isJuzMode && vsLastWeek != null && !Number.isInteger(vsLastWeek)
-          ? formatNumber(Number(Math.abs(vsLastWeek).toFixed(1)))
-          : null
+        vsLastWeekDisplayProp?.trim() ||
+        (useJuzStyleComparison &&
+        vsLastWeek != null &&
+        !Number.isInteger(vsLastWeek)
+          ? formatNumber(Number(Math.abs(vsLastWeek).toFixed(2)))
+          : null)
       }
       motivationalQuote={motivationalQuote}
       selectedDayIndex={defaultSelectedIndex}
@@ -351,8 +395,10 @@ export function QuranWeeklyRecitationProgressDashboard({
       allowLogDeletion={allowLogDeletion}
       onDeleteLog={allowLogDeletion ? handleDeleteLog : undefined}
       isDeletingLog={isDeletingLog}
-      comparisonVariant={isJuzMode ? "quranJuz" : "quranRecitations"}
-      greenActivityCaptions={isJuzMode}
+      comparisonVariant={
+        useJuzStyleComparison ? "quranJuz" : "quranRecitations"
+      }
+      greenActivityCaptions={useJuzStyleComparison}
       renderDayRing={isCompletionStyleMode ? undefined : renderDayRing}
       statsRow={
         <View style={styles.statsRow}>
@@ -366,15 +412,30 @@ export function QuranWeeklyRecitationProgressDashboard({
             adjustsFontSizeToFit
             minimumFontScale={0.85}
           >
-            <Text style={styles.statsCountBold}>
-              {loading ? "---" : formatStatsTotal(displayTotalRecitations)}
-            </Text>
-            {!hideStatsDenominator ? (
-              <Text style={styles.statsCountRegular}>
-                {loading ? "" : `/${formatNumber(periodRecitationTarget)}`}
-              </Text>
-            ) : null}
-            {loading ? "" : ` ${t(statsLabelKey)}`}
+            {useCompletionWeekStatsLabel ? (
+              <>
+                <Text style={styles.statsCountBold}>
+                  {loading ? "---" : (resolvedWeekStatsBold ?? "---")}
+                </Text>
+                {loading
+                  ? ""
+                  : resolvedWeekStatsRest
+                    ? ` ${resolvedWeekStatsRest}`
+                    : ""}
+              </>
+            ) : (
+              <>
+                <Text style={styles.statsCountBold}>
+                  {loading ? "---" : formatStatsTotal(displayTotalRecitations)}
+                </Text>
+                {!hideStatsDenominator ? (
+                  <Text style={styles.statsCountRegular}>
+                    {loading ? "" : `/${formatNumber(periodRecitationTarget)}`}
+                  </Text>
+                ) : null}
+                {loading || !statsLabelKey ? "" : ` ${t(statsLabelKey)}`}
+              </>
+            )}
           </Text>
         </View>
       }

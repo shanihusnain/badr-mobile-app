@@ -61,7 +61,9 @@ export type SinglePrayerWeeklyProgressDashboardProps = {
   onDeleteLog?: (date: string) => void | Promise<void>;
   /** Pending state for `onDeleteLog`. */
   isDeletingLog?: boolean;
-  /** When true, activity captions (e.g. j5 / j8*) render green like the Juz pack. */
+  /**
+   * When true, logged-day captions (e.g. j5 / C1) are white; best day stays green.
+   */
   greenActivityCaptions?: boolean;
   comparisonVariant?:
     | "onTime"
