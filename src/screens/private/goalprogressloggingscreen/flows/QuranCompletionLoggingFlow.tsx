@@ -16,9 +16,9 @@ import { JuzRangeStep } from "../components/JuzRangeStep";
 import { JuzStepper } from "../components/JuzStepper";
 import { QuranAyatRangeSlider } from "../components/QuranAyatRangeSlider";
 import { styles } from "../components/DailyProgressLogging.styles";
-import { QuranIconForSlider } from "@/assets/icons/QuranIconForSlider";
 import {
   CalendarFlippingIcon,
+  QuranImageIcon,
   WhiteClockIcon,
   WhiteTimerIcon,
 } from "@/assets/icons";
@@ -291,42 +291,22 @@ export default function QuranCompletionLoggingFlow({
         };
       case "completionType":
         return {
-          icon: (
-            <MaterialCommunityIcons
-              name="book-open-page-variant"
-              size={24}
-              color={Colors.light.white}
-            />
-          ),
+          icon: <QuranImageIcon color={Colors.light.white} size={24} />,
           label: t("progressLogging.completionTypeTitle"),
         };
       case "fullJuzRange":
         return {
-          icon: (
-            <MaterialCommunityIcons
-              name="book-open-variant"
-              size={24}
-              color={Colors.light.white}
-            />
-          ),
+          icon: <QuranImageIcon color={Colors.light.white} size={24} />,
           label: t("progressLogging.selectFullJuz"),
         };
       case "partialJuz":
         return {
-          icon: (
-            <MaterialCommunityIcons
-              name="book-open-variant"
-              size={24}
-              color={Colors.light.white}
-            />
-          ),
+          icon: <QuranImageIcon color={Colors.light.white} size={24} />,
           label: t("progressLogging.selectPartialJuz"),
         };
       case "ayatRange":
         return {
-          icon: (
-            <QuranIconForSlider size={24} Color={Colors.light.white} />
-          ),
+          icon: <QuranImageIcon color={Colors.light.white} size={24} />,
           label: t("progressLogging.selectAyatRange"),
         };
       case "timeSpentFull":

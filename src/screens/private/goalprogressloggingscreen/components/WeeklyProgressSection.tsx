@@ -51,8 +51,6 @@ import {
   getWeeklySurahDashboardItems,
 } from "../quranRecitationWeeklyData";
 import {
-  canNavigateCompletionWeek,
-  clampCompletionWeekIndex,
   getQuranCompletionCycleSummary,
   getQuranCompletionWeekSummary,
 } from "../quranRecitationCompletionWeeklyData";
@@ -572,14 +570,6 @@ export function WeeklyProgressSection({
   const isWeeklySurahDashboard =
     quranRecitationWeek?.frequency === "weekly" && weeklySurahItems.length > 0;
 
-  const handleCompletionPrevWeek = useCallback(() => {
-    setWeekIndex((current) => clampCompletionWeekIndex(current - 1));
-  }, []);
-
-  const handleCompletionNextWeek = useCallback(() => {
-    setWeekIndex((current) => clampCompletionWeekIndex(current + 1));
-  }, []);
-
   const handlePrevWeek = useCallback(() => {
     if (!recitationCycle) return;
     setWeekIndex((current) =>
@@ -1036,37 +1026,83 @@ export function WeeklyProgressSection({
     return null;
   }
 
-  if (
-    template === "quran-completion" &&
-    quranCompletionWeek &&
-    completionCycle
-  ) {
-    return (
-      <QuranWeeklyRecitationProgressDashboard
-        weekDays={[]}
-        weekRangeLabel={quranCompletionWeek.weekRangeLabel}
-        weekFraction={quranCompletionWeek.weekFraction}
-        visualizationMode="completion"
-        completionWeekDays={quranCompletionWeek.weekDays}
-        completionTarget={quranCompletionWeek.targetCompletions}
-        completionsLoggedThisWeek={
-          quranCompletionWeek.completionsLoggedThisWeek
-        }
-        streakDays={quranCompletionWeek.streakDays}
-        motivationalQuote={t(quranCompletionWeek.motivationalQuoteKey)}
-        quranGoalType="RECITATION_COMPLETION"
-        onPrevWeek={
-          canNavigateCompletionWeek(weekIndex, "prev")
-            ? handleCompletionPrevWeek
-            : undefined
-        }
-        onNextWeek={
-          canNavigateCompletionWeek(weekIndex, "next")
-            ? handleCompletionNextWeek
-            : undefined
-        }
-      />
-    );
+  if (template === "quran-completion") {
+    const frame = quranFrame?.frame;
+    const frameLoading = isQuranFrameDashboardLoading(quranFrame, frame);
+
+    if (quranFrame && frame) {
+      const activeWeek = getQuranFrameActiveWeek(quranFrame, frame);
+      const canPrev = frame.week.hasPrevious ?? activeWeek > 1;
+      const canNext = canNavigateQuranFrameWeekNext(frame);
+      const completionDays = mapQuranJuzFrameWeekDays(frame);
+      const completionsLoggedThisWeek = completionDays.filter(
+        (day) => day.hasActivity,
+      ).length;
+
+      return (
+        <QuranWeeklyRecitationProgressDashboard
+          key={`completion-frame-${frame.week.weekNumber}`}
+          weekDays={[]}
+          weekRangeLabel={getQuranFrameWeekRangeLabel(frame)}
+          weekFraction={getQuranFrameWeekFraction(frame)}
+          visualizationMode="completion"
+          completionWeekDays={completionDays}
+          completionTarget={Math.max(1, Math.round(frame.goal.target || 1))}
+          completionsLoggedThisWeek={completionsLoggedThisWeek}
+          streakDays={getQuranFrameWeekStreakDays(frame)}
+          vsLastWeek={getQuranFrameVsLastWeekDelta(frame)}
+          motivationalQuote={getQuranFrameMotivationalQuote(frame)}
+          selectedDayIndex={getQuranFrameTodayIndex(frame)}
+          loading={frameLoading}
+          isGoalCompleted={(frame.goal.achievementPct ?? 0) >= 100}
+          quranGoalType={frame.quranGoalType || "RECITATION_COMPLETION"}
+          onPrevWeek={
+            canPrev
+              ? () => shiftQuranFrameWeek(quranFrame, frame, -1)
+              : undefined
+          }
+          onNextWeek={
+            canNext
+              ? () => shiftQuranFrameWeek(quranFrame, frame, 1)
+              : undefined
+          }
+        />
+      );
+    }
+
+    // No frame yet — empty week strip (never navigate into future mock weeks).
+    if (quranCompletionWeek && completionCycle) {
+      const emptyDays = quranCompletionWeek.weekDays.map((day) => ({
+        ...day,
+        completionNumber: null,
+        fullJuzRanges: [] as string[],
+        partialJuz: [] as string[],
+        computedLabel: "",
+        hasActivity: false,
+        isBestDay: false,
+        activityScore: 0,
+        juzCoverageCount: 0,
+        hasFullCompletion: false,
+      }));
+
+      return (
+        <QuranWeeklyRecitationProgressDashboard
+          weekDays={[]}
+          weekRangeLabel={quranCompletionWeek.weekRangeLabel}
+          weekFraction={quranCompletionWeek.weekFraction}
+          visualizationMode="completion"
+          completionWeekDays={emptyDays}
+          completionTarget={quranCompletionWeek.targetCompletions}
+          completionsLoggedThisWeek={0}
+          streakDays={0}
+          motivationalQuote={t(quranCompletionWeek.motivationalQuoteKey)}
+          loading={Boolean(quranFrame) && !quranFrame?.isError}
+          quranGoalType="RECITATION_COMPLETION"
+        />
+      );
+    }
+
+    return null;
   }
 
   if (template === "quran-recitation" && isSurahRecitationGoalId(goalData.id)) {

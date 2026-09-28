@@ -71,8 +71,12 @@ export const HeaderWithCrossTitleDynamicIcon = ({
       {!!singleLineTitle || !!titleHighlight ? (
         <Text
           numberOfLines={1}
-          adjustsFontSizeToFit
-          minimumFontScale={0.75}
+          // Only auto-shrink when this is a single long line. With a second
+          // title (e.g. "BY JUZ") shrinking makes the top line look smaller
+          // even though both share fontSize 14.
+          {...(!singleLineSecondTitle
+            ? { adjustsFontSizeToFit: true, minimumFontScale: 0.75 }
+            : null)}
           style={[
             styles.titleText,
             { letterSpacing },

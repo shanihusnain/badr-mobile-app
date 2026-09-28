@@ -14,7 +14,7 @@ import {
   isCompletionGoalComplete,
 } from "../quranRecitationCompletionData";
 import type { QuranCompletionLogEntry } from "../types";
-import { FLOW_CARD_HEIGHT, styles } from "./DailyProgressLogging.styles";
+import { styles } from "./DailyProgressLogging.styles";
 import { surahGoalStyles } from "./SurahRecitationGoals.styles";
 
 type Props = {
@@ -53,25 +53,15 @@ export function CompletionRecitationGoalCard({
   const canLog = !isComplete;
 
   return (
-    <View
-      style={[
-        { width: "100%", height: FLOW_CARD_HEIGHT },
-        isFlowActive ? styles.activeSection : undefined,
-      ]}
-    >
-      <View style={[surahGoalStyles.cardAnchor, { width: "100%" }]}>
+    <View style={isFlowActive ? styles.activeSection : undefined}>
+      {/* Width matches Surah / Juz / prayer flow cards (`cardAnchor` = 62%). */}
+      <View style={styles.cardAnchor}>
         {!isFlowActive ? (
-          <View
-            style={[
-              surahGoalStyles.card,
-              surahGoalStyles.cardActive,
-              { width: "100%" },
-            ]}
-          >
+          <View style={[surahGoalStyles.card, surahGoalStyles.cardActive]}>
             <View style={surahGoalStyles.bodyRow}>
               <View style={surahGoalStyles.iconCircle}>
                 <QuranRecitationBySurahFlowCardImage
-                  size={26}
+                  size={25}
                   color={Colors.light.white}
                 />
               </View>
