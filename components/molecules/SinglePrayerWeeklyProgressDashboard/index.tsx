@@ -61,6 +61,7 @@ export function SinglePrayerWeeklyProgressDashboard({
   isDeletingLog: isDeletingLogProp,
   comparisonVariant = "prayers",
   greenActivityCaptions = false,
+  activityCaptionsMatchDayLabel = false,
 }: SinglePrayerWeeklyProgressDashboardProps) {
   const { width: screenWidth } = useWindowDimensions();
   const prayerFrame = useOptionalPrayerGoalFrameContext();
@@ -141,44 +142,43 @@ export function SinglePrayerWeeklyProgressDashboard({
                   isMarkedForDeletion &&
                   (isBestDayVisible || shrinkTodayBesideBestDay);
 
-                const deleteButton =
-                  isMarkedForDeletion ? (
-                    <Pressable
-                      style={styles.deleteButton}
-                      disabled={
-                        isDeletingLog ||
-                        (!onDeleteLog && !prayerFrame?.frame?.prayerType)
+                const deleteButton = isMarkedForDeletion ? (
+                  <Pressable
+                    style={styles.deleteButton}
+                    disabled={
+                      isDeletingLog ||
+                      (!onDeleteLog && !prayerFrame?.frame?.prayerType)
+                    }
+                    onPress={() => {
+                      if (!day.date || isDeletingLog) return;
+
+                      if (onDeleteLog) {
+                        void (async () => {
+                          try {
+                            await Promise.resolve(onDeleteLog(day.date!));
+                            setSelectForDeletion("");
+                          } catch {
+                            // Mutation onError already shows toast.
+                          }
+                        })();
+                        return;
                       }
-                      onPress={() => {
-                        if (!day.date || isDeletingLog) return;
 
-                        if (onDeleteLog) {
-                          void (async () => {
-                            try {
-                              await Promise.resolve(onDeleteLog(day.date!));
-                              setSelectForDeletion("");
-                            } catch {
-                              // Mutation onError already shows toast.
-                            }
-                          })();
-                          return;
-                        }
-
-                        const prayerType = prayerFrame?.frame?.prayerType;
-                        if (!prayerType) return;
-                        deletePrayerLog(
-                          { prayerType, date: day.date },
-                          {
-                            onSuccess: () => {
-                              setSelectForDeletion("");
-                            },
+                      const prayerType = prayerFrame?.frame?.prayerType;
+                      if (!prayerType) return;
+                      deletePrayerLog(
+                        { prayerType, date: day.date },
+                        {
+                          onSuccess: () => {
+                            setSelectForDeletion("");
                           },
-                        );
-                      }}
-                    >
-                      <BinIcon />
-                    </Pressable>
-                  ) : null;
+                        },
+                      );
+                    }}
+                  >
+                    <BinIcon />
+                  </Pressable>
+                ) : null;
 
                 return (
                   <TouchableOpacity
@@ -301,11 +301,15 @@ export function SinglePrayerWeeklyProgressDashboard({
                                   ? "transparent"
                                   : isBestDayVisible
                                     ? Colors.light.green
-                                    : greenActivityCaptions && hasLog
-                                      ? Colors.light.white
-                                      : isSelected
+                                    : activityCaptionsMatchDayLabel
+                                      ? isSelected
                                         ? Colors.light.white
-                                        : Colors.light.grey,
+                                        : Colors.light.subtext
+                                      : greenActivityCaptions && hasLog
+                                        ? Colors.light.white
+                                        : isSelected
+                                          ? Colors.light.white
+                                          : Colors.light.grey,
                             },
                             styles.durationText,
                           ]}

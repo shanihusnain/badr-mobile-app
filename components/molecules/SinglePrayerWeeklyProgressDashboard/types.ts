@@ -62,9 +62,15 @@ export type SinglePrayerWeeklyProgressDashboardProps = {
   /** Pending state for `onDeleteLog`. */
   isDeletingLog?: boolean;
   /**
-   * When true, logged-day captions (e.g. j5 / C1) are white; best day stays green.
+   * When true, logged-day captions (e.g. j5) are white; best day stays green.
    */
   greenActivityCaptions?: boolean;
+  /**
+   * When true, captions use the same colors as the weekday label
+   * (selected → white, else → subtext); best day stays green.
+   * Used by RECITATION_COMPLETION.
+   */
+  activityCaptionsMatchDayLabel?: boolean;
   comparisonVariant?:
     | "onTime"
     | "prayers"

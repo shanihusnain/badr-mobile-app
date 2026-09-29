@@ -398,7 +398,8 @@ export function QuranWeeklyRecitationProgressDashboard({
       comparisonVariant={
         useJuzStyleComparison ? "quranJuz" : "quranRecitations"
       }
-      greenActivityCaptions={useJuzStyleComparison}
+      greenActivityCaptions={isJuzMode}
+      activityCaptionsMatchDayLabel={isCompletionMode}
       renderDayRing={isCompletionStyleMode ? undefined : renderDayRing}
       statsRow={
         <View style={styles.statsRow}>
