@@ -25,10 +25,19 @@ export type QuranGoalFrameVsLastWeek = {
   label?: string;
 };
 
+export type QuranGoalFrameDayCompletion = {
+  /** e.g. "C1" */
+  attemptLabel?: string | null;
+  /** e.g. [1] or [1, 2] when multiple Khatms touched that day */
+  attempts?: number[] | null;
+  /** e.g. "j8" / "j1-4" / "j1, j2*" */
+  juzLabel?: string | null;
+};
+
 export type QuranGoalFrameDay = {
   date: string;
   dayLabel: string;
-  /** Minutes logged that day. */
+  /** Minutes logged that day (or juz units for completion/juz goals). */
   value: number;
   valueDisplay?: string | null;
   fulfilment?: string | null;
@@ -37,6 +46,8 @@ export type QuranGoalFrameDay = {
   isToday: boolean;
   isBestDay?: boolean;
   canDelete?: boolean;
+  /** RECITATION_COMPLETION — structured C# + juz captions for the day strip. */
+  completion?: QuranGoalFrameDayCompletion | null;
 };
 
 export type QuranGoalFrameItem = {

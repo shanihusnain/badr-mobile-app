@@ -14,6 +14,7 @@ import {
 } from "@/src/screens/private/goalprogressloggingscreen/quranRecitationCompletionWeeklyData";
 import {
   getCompletionResumeCursor,
+  parseJuzNumbersFromCompletionLabel,
   type CompletionResumeCursor,
 } from "@/src/screens/private/goalprogressloggingscreen/quranRecitationCompletionTarget";
 
@@ -304,8 +305,8 @@ function parseCompletionAttemptNumber(
 }
 
 /**
- * Split day valueDisplay into Khatm attempt + juz caption.
- * Live API today: "j1, j2*" (juz only). Backend will add C, e.g. "C1\nj1, j2*" / "C1 j1-12".
+ * Prefer structured `day.completion` (attemptLabel / attempts / juzLabel).
+ * Fall back to parsing `valueDisplay` for older payloads.
  */
 function parseCompletionDayCaptions(valueDisplay: string | null | undefined): {
   attempt: number | null;
@@ -336,10 +337,39 @@ function parseCompletionDayCaptions(valueDisplay: string | null | undefined): {
   };
 }
 
+function resolveCompletionDayCaptions(day: QuranGoalFrameDay): {
+  attempt: number | null;
+  juzLabel: string | null;
+} {
+  const structured = day.completion;
+  if (structured) {
+    let attempt: number | null = null;
+    const fromAttempts = structured.attempts?.find(
+      (n) => Number.isFinite(n) && n > 0,
+    );
+    if (fromAttempts != null) {
+      attempt = Number(fromAttempts);
+    } else {
+      const labelMatch = (structured.attemptLabel ?? "").match(/\bC\s*(\d+)\b/i);
+      if (labelMatch) {
+        const n = Number(labelMatch[1]);
+        if (Number.isFinite(n) && n > 0) attempt = n;
+      }
+    }
+
+    const juzRaw = structured.juzLabel?.trim() || null;
+    const juzLabel = juzRaw ? normalizeJuzCaption(juzRaw) : null;
+    if (attempt != null || juzLabel) {
+      return { attempt, juzLabel };
+    }
+  }
+
+  return parseCompletionDayCaptions(day.valueDisplay);
+}
+
 /**
- * Map RECITATION_COMPLETION frame week → weekday + optional C# / juz captions.
- * Per-day C is only taken from `valueDisplay` (backend will add it); do not invent
- * C from week.totalLabel. Juz captions like "j1, j2*" are used as-is.
+ * Map RECITATION_COMPLETION frame week → weekday + C# / juz under-ring.
+ * Prefers `day.completion` from the updated frame API.
  */
 export function mapQuranCompletionFrameWeekDays(
   frame: QuranGoalFrameData,
@@ -353,9 +383,7 @@ export function mapQuranCompletionFrameWeekDays(
     const apiBestDay =
       Boolean(day.isBestDay) || state === "BEST_DAY";
 
-    const { attempt: dayAttempt, juzLabel } = parseCompletionDayCaptions(
-      day.valueDisplay,
-    );
+    const { attempt: dayAttempt, juzLabel } = resolveCompletionDayCaptions(day);
     const attempt = frameHasActivity ? dayAttempt : null;
 
     // Merge structured tokens when possible ("j1, j2*" → full + partial).
@@ -383,7 +411,6 @@ export function mapQuranCompletionFrameWeekDays(
 
     if (frameHasActivity) {
       progress.hasActivity = true;
-      // Keep null until backend sends C on the day — Figma shows weekday + C under ring.
       progress.completionNumber = attempt;
       if (progress.activityScore < 1) {
         progress.activityScore = 1;
@@ -403,6 +430,15 @@ export function mapQuranCompletionFrameWeekDays(
         (frameHasActivity || progress.hasActivity),
     };
   });
+
+  // Prefer API BEST_DAY when present; otherwise score-based fallback.
+  const hasApiBestDay = days.some((day) => day.isBestDay);
+  if (hasApiBestDay) {
+    return days.map((day) => ({
+      ...day,
+      isBestDay: Boolean(day.isBestDay),
+    }));
+  }
 
   return applyCompletionBestDayFlags(days);
 }
@@ -471,8 +507,9 @@ export function getQuranFrameCompletionProgress(frame: QuranGoalFrameData): {
 }
 
 /**
- * Where the next log may start inside the open Khatm — derived from
- * `goal.completed` juz progress (full juz locked out; partial resumes mid-juz).
+ * Where the next log may start inside the open Khatm.
+ * Builds an excluded-juz set from `day.completion.juzLabel` so non-sequential
+ * logs (j1-4, j6, j8) cannot be selected again.
  */
 export function getQuranFrameCompletionResumeCursor(
   frame: QuranGoalFrameData,
@@ -481,7 +518,30 @@ export function getQuranFrameCompletionResumeCursor(
     toFiniteNumber(frame.goal.completed) ??
     toFiniteNumber(frame.items?.[0]?.completed) ??
     0;
-  return getCompletionResumeCursor(Math.max(0, completedJuz));
+
+  const fullyLogged = new Set<number>();
+  let openPartialJuz: number | null = null;
+
+  for (const day of frame.week.days ?? []) {
+    const label =
+      day.completion?.juzLabel?.trim() || day.valueDisplay?.trim() || "";
+    if (!label) continue;
+    const parsed = parseJuzNumbersFromCompletionLabel(label);
+    for (const juz of parsed.full) fullyLogged.add(juz);
+    if (parsed.partialJuz != null) {
+      openPartialJuz = parsed.partialJuz;
+    }
+  }
+
+  // Open partial must not also sit in the fully-logged set.
+  if (openPartialJuz != null && fullyLogged.has(openPartialJuz)) {
+    fullyLogged.delete(openPartialJuz);
+  }
+
+  return getCompletionResumeCursor(Math.max(0, completedJuz), {
+    fullyLoggedJuz: [...fullyLogged],
+    openPartialJuz,
+  });
 }
 
 /** Fractional juz completed this week from `week.totalLabel` / `totalDisplay`. */

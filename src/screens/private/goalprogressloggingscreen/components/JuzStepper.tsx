@@ -1,16 +1,23 @@
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
-import { MAX_JUZ, MIN_JUZ } from "../quranRecitationCompletionTarget";
+import {
+  MAX_JUZ,
+  MIN_JUZ,
+  snapJuzOffExcluded,
+  stepJuzSkippingExcluded,
+} from "../quranRecitationCompletionTarget";
 
 type Props = {
   value: number;
   min?: number;
   max?: number;
   onChange: (value: number) => void;
+  /** Fully logged juz — skipped by +/- and snapped off if current. */
+  excluded?: number[];
   /** Kept for call-site compatibility; compact stepper uses local styles. */
   styles?: Record<string, object>;
   showPrefix?: boolean;
@@ -31,23 +38,38 @@ export function JuzStepper({
   min = MIN_JUZ,
   max = MAX_JUZ,
   onChange,
+  excluded = [],
   showPrefix = true,
   focused = true,
   onFocus,
 }: Props) {
   const formatNumber = useLocaleNumber();
-  const clampedValue = Math.min(Math.max(value, min), max);
+  const clampedValue = snapJuzOffExcluded(value, min, max, excluded);
+  const prevAvailable = stepJuzSkippingExcluded(
+    clampedValue,
+    -1,
+    min,
+    max,
+    excluded,
+  );
+  const nextAvailable = stepJuzSkippingExcluded(
+    clampedValue,
+    1,
+    min,
+    max,
+    excluded,
+  );
 
   const handleDecrement = () => {
     onFocus?.();
-    if (clampedValue <= min) return;
-    onChange(clampedValue - 1);
+    if (prevAvailable == null) return;
+    onChange(prevAvailable);
   };
 
   const handleIncrement = () => {
     onFocus?.();
-    if (clampedValue >= max) return;
-    onChange(clampedValue + 1);
+    if (nextAvailable == null) return;
+    onChange(nextAvailable);
   };
 
   return (
@@ -61,7 +83,7 @@ export function JuzStepper({
     >
       <TouchableOpacity
         onPress={handleDecrement}
-        disabled={clampedValue <= min}
+        disabled={prevAvailable == null}
         hitSlop={{ top: 10, bottom: 10, left: 10, right: 8 }}
         activeOpacity={0.8}
         style={localStyles.iconHit}
@@ -70,7 +92,7 @@ export function JuzStepper({
           name="remove"
           size={14}
           color={
-            clampedValue <= min
+            prevAvailable == null
               ? Colors.light.dullWhiteOpacity
               : Colors.light.white
           }
@@ -85,7 +107,7 @@ export function JuzStepper({
 
       <TouchableOpacity
         onPress={handleIncrement}
-        disabled={clampedValue >= max}
+        disabled={nextAvailable == null}
         hitSlop={{ top: 10, bottom: 10, left: 8, right: 10 }}
         activeOpacity={0.8}
         style={localStyles.iconHit}
@@ -94,7 +116,7 @@ export function JuzStepper({
           name="add"
           size={14}
           color={
-            clampedValue >= max
+            nextAvailable == null
               ? Colors.light.dullWhiteOpacity
               : Colors.light.white
           }
