@@ -346,7 +346,9 @@ export default function QuranCompletionLoggingFlow({
     ],
   );
 
-  const canGoForward = !isLastStep && isStepValid(currentStep);
+  const canGoForward = !isLogging && !isLastStep && isStepValid(currentStep);
+  const canConfirm =
+    !isLogging && isLastStep && steps.every((step) => isStepValid(step));
 
   if (!flowDefinition) return null;
   if (embedded && flowMode !== "active") return null;
@@ -654,6 +656,7 @@ export default function QuranCompletionLoggingFlow({
         onConfirm={handleConfirm}
         canGoForward={canGoForward}
                 canGoBack={stepIndex > 0}
+        canConfirm={canConfirm}
         styles={styles}
         style={styles.inPlaceFlowCard}
         contentStyle={

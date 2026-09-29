@@ -157,8 +157,8 @@ function isDawoodTargetState(state: ProphetDawoodFastDayState): boolean {
   return (
     state === "completed" ||
     state === "missed" ||
-    state === "upcoming" ||
-    state === "today"
+    state === "planned" ||
+    state === "plannedToday"
   );
 }
 

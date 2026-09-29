@@ -18,10 +18,12 @@ export function getDayLabelTextStyle(
 ) {
   const { state, isToday } = day;
 
+  if (state === "goalAchieved") {
+    return prophetDawoodFastDayLabelStyles.dayLabelBlurred;
+  }
+
   if (isToday) {
-    if (state === "todayDisabled") {
-      return prophetDawoodFastDayLabelStyles.dayLabelTodayDisabled;
-    }
+    // Design: Today / Today Disable / Planned Today / Fasted Today → bold white.
     return prophetDawoodFastDayLabelStyles.dayLabelToday;
   }
 
@@ -31,11 +33,14 @@ export function getDayLabelTextStyle(
 
   switch (state as ProphetDawoodFastDayState) {
     case "completed":
-    case "upcoming":
-    case "today":
-      return prophetDawoodFastDayLabelStyles.dayLabelMuted;
+    case "planned":
+    case "plannedToday":
     case "missed":
-    case "inactive":
+      return prophetDawoodFastDayLabelStyles.dayLabelMuted;
+    case "pastNeutral":
+      return prophetDawoodFastDayLabelStyles.dayLabelPastNeutral;
+    case "future":
+    case "today":
     case "todayDisabled":
       return prophetDawoodFastDayLabelStyles.dayLabelInactive;
     default:
@@ -65,13 +70,6 @@ export const prophetDawoodFastDayLabelStyles = StyleSheet.create({
     fontFamily: fonts.primary.bold,
     textAlign: "center",
   },
-  dayLabelTodayDisabled: {
-    color: Colors.light.grey,
-    fontSize: 10,
-    fontWeight: "600",
-    fontFamily: fonts.primary.semiBold,
-    textAlign: "center",
-  },
   dayLabelActive: {
     color: Colors.light.white,
     fontSize: 10,
@@ -92,5 +90,20 @@ export const prophetDawoodFastDayLabelStyles = StyleSheet.create({
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
     textAlign: "center",
+  },
+  dayLabelPastNeutral: {
+    color: Colors.light.calendarBg,
+    fontSize: 10,
+    fontWeight: "600",
+    fontFamily: fonts.primary.semiBold,
+    textAlign: "center",
+  },
+  dayLabelBlurred: {
+    color: Colors.light.graylightshade,
+    fontSize: 10,
+    fontWeight: "600",
+    fontFamily: fonts.primary.semiBold,
+    textAlign: "center",
+    opacity: 0.35,
   },
 });
