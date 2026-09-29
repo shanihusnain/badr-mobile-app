@@ -296,7 +296,7 @@ function mapFiveDailyStatusesFromCounts(
 /**
  * Five Daily frame week: always 5 arcs from FAJR→ISHA slots.
  * Colors (Figma):
- * - menstruation → red
+ * - menstruation → red (only when `slot.isMenstruationSlot` is true)
  * - qadha → orange (missed)
  * - congregational → teal
  * - on-time → white today / green past (ring chooses via isToday)
@@ -308,7 +308,27 @@ export function mapFiveDailyFrameWeekDays(
   return frame.week.days.map((day) => {
     const isFuture = resolveIsFutureDay(day);
     const isToday = Boolean(day.isToday);
-    const isMenstruating = Boolean(day.isMenstruationDay);
+
+    if (day.slots) {
+      const statuses = FIVE_DAILY_SLOT_ORDER.map((key) =>
+        mapFiveDailySlotToStatus(day.slots?.[key]),
+      );
+      const hasUserLog = FIVE_DAILY_SLOT_ORDER.some(
+        (key) => day.slots?.[key]?.logged === true,
+      );
+      const hasMenstruationArc = statuses.some((s) => s === "menstruation");
+
+      return {
+        day: day.dayLabel,
+        date: day.date,
+        // Per-slot statuses only — never paint all 5 red from day.isMenstruationDay.
+        statuses,
+        hasUserLog,
+        isToday,
+        isFuture,
+        isMenstruating: hasMenstruationArc,
+      };
+    }
 
     if (isFuture) {
       return {
@@ -319,44 +339,6 @@ export function mapFiveDailyFrameWeekDays(
         isToday: false,
         isFuture: true,
         isMenstruating: false,
-      };
-    }
-
-    if (day.slots) {
-      const statuses = FIVE_DAILY_SLOT_ORDER.map((key) =>
-        mapFiveDailySlotToStatus(day.slots?.[key]),
-      );
-      const hasUserLog = FIVE_DAILY_SLOT_ORDER.some(
-        (key) => day.slots?.[key]?.logged === true,
-      );
-      const anyActivity = statuses.some(
-        (s) => s !== "none" && s !== "menstruation",
-      );
-
-      return {
-        day: day.dayLabel,
-        date: day.date,
-        statuses:
-          isMenstruating && !anyActivity
-            ? Array<PrayerStatus>(5).fill("menstruation")
-            : statuses,
-        hasUserLog,
-        isToday,
-        isFuture: false,
-        isMenstruating:
-          isMenstruating || statuses.every((s) => s === "menstruation"),
-      };
-    }
-
-    if (isMenstruating) {
-      return {
-        day: day.dayLabel,
-        date: day.date,
-        statuses: Array<PrayerStatus>(5).fill("menstruation"),
-        hasUserLog: false,
-        isToday,
-        isFuture: false,
-        isMenstruating: true,
       };
     }
 
@@ -471,7 +453,36 @@ function readSunnahSlotUnits(
   if (typeof raw === "number" && Number.isFinite(raw)) {
     return Math.max(0, raw);
   }
+  if (raw && typeof raw === "object") {
+    const slot = raw as {
+      logged?: boolean;
+      count?: number;
+      completed?: number;
+      isMenstruationSlot?: boolean;
+    };
+    // Menstruation windows are not "logged" prayer units.
+    if (slot.isMenstruationSlot) return undefined;
+    if (typeof slot.count === "number" && Number.isFinite(slot.count)) {
+      return Math.max(0, slot.count);
+    }
+    if (typeof slot.completed === "number" && Number.isFinite(slot.completed)) {
+      return Math.max(0, slot.completed);
+    }
+    if (slot.logged === true) return 1;
+    if (slot.logged === false) return 0;
+  }
   return undefined;
+}
+
+function readSunnahIsMenstruationSlot(
+  slots: PrayerGoalFrameDay["slots"],
+  prayerId: SunnahPrayerId,
+): boolean {
+  if (!slots) return false;
+  const apiKey = SUNNAH_UI_TO_API_SLOT[prayerId];
+  const raw = (slots as Record<string, unknown>)[apiKey];
+  if (!raw || typeof raw !== "object") return false;
+  return Boolean((raw as { isMenstruationSlot?: boolean }).isMenstruationSlot);
 }
 
 function readSunnahAutoQadhaUnits(
@@ -489,7 +500,8 @@ function readSunnahAutoQadhaUnits(
 
 /**
  * Map frame day `slots` + `autoQadhaSlots` → ring `logged` units (1 unit = one 2-rak'ah prayer).
- * - Future: empty → dim arcs
+ * - Future: empty → dim arcs (menstruation handled separately)
+ * - Menstruation day: no qadha fill (red arcs come from menstruationByPrayer)
  * - Today: logged slots green; autoQadha slots yellow; remaining → bright white
  * - Past: logged slots green; autoQadha / unlogged slots → yellow (qadha)
  */
@@ -499,10 +511,16 @@ function mapSunnahLoggedFromDay(
 ): Partial<Record<SunnahPrayerId, number>> {
   const isFuture = resolveIsFutureDay(day);
   if (isFuture) return {};
+  // Whole-day menstruation — do not paint missed/qadha yellow.
+  if (day.isMenstruationDay) return {};
 
   const logged: Partial<Record<SunnahPrayerId, number>> = {};
 
   for (const prayer of goal) {
+    if (readSunnahIsMenstruationSlot(day.slots, prayer.id)) {
+      continue;
+    }
+
     const slotUnits = readSunnahSlotUnits(day.slots, prayer.id);
     const autoQadhaUnits = readSunnahAutoQadhaUnits(
       day.autoQadhaSlots,
@@ -524,6 +542,37 @@ function mapSunnahLoggedFromDay(
 }
 
 /**
+ * Menstruation arcs for Sunnah:
+ * 1) Prefer per-slot `isMenstruationSlot` when present (same as five daily).
+ * 2) Else if `isMenstruationDay` (current Sunnah payload — empty slots),
+ *    mark every goal window red for that day.
+ */
+function mapSunnahMenstruationFromDay(
+  day: PrayerGoalFrameDay,
+  goal: SunnahPrayerConfig[],
+): Partial<Record<SunnahPrayerId, boolean>> {
+  const menstruation: Partial<Record<SunnahPrayerId, boolean>> = {};
+  let hasSlotFlags = false;
+
+  for (const prayer of goal) {
+    if (readSunnahIsMenstruationSlot(day.slots, prayer.id)) {
+      menstruation[prayer.id] = true;
+      hasSlotFlags = true;
+    }
+  }
+
+  if (hasSlotFlags) return menstruation;
+
+  if (day.isMenstruationDay) {
+    for (const prayer of goal) {
+      menstruation[prayer.id] = true;
+    }
+  }
+
+  return menstruation;
+}
+
+/**
  * Map frame week days for Sunnah Rawatib rings.
  * Arc geometry from `slotConfig`; fills from day.slots and day.autoQadhaSlots.
  * Day total prefers `count` / `totalLogged`.
@@ -536,6 +585,7 @@ export function mapSunnahFrameWeekDays(
   return frame.week.days.map((day) => {
     const count = day.count ?? day.totalLogged ?? 0;
     const isFuture = resolveIsFutureDay(day);
+    const menstruationByPrayer = mapSunnahMenstruationFromDay(day, goal);
 
     return {
       day: day.dayLabel,
@@ -546,7 +596,7 @@ export function mapSunnahFrameWeekDays(
       data: {
         goal,
         logged: mapSunnahLoggedFromDay(day, goal),
-        isMenstruation: Boolean(day.isMenstruationDay),
+        menstruationByPrayer,
         isToday: Boolean(day.isToday),
       },
     };

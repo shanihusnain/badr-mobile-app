@@ -60,6 +60,22 @@ export type SunnahRawatibSlotKey =
   | "AFTER_MAGHRIB"
   | "AFTER_ISHA";
 
+/**
+ * Sunnah day `slots` may be a logged unit count (number) or a slot object
+ * when the backend sends menstruation / qadha flags per window.
+ */
+export type SunnahRawatibSlotValue =
+  | number
+  | {
+      logged?: boolean;
+      count?: number;
+      completed?: number;
+      wasQadha?: boolean;
+      isAutoQadha?: boolean;
+      isMenstruationSlot?: boolean;
+      message?: string | null;
+    };
+
 export type QiyamPrayerTiming = "AFTER_ISHA" | "BEFORE_FAJR" | "BOTH";
 
 export type PrayerGoalFrameDay = {
@@ -99,12 +115,12 @@ export type PrayerGoalFrameDay = {
   allFiveOnTime?: boolean;
   hasQadha?: boolean;
   /**
-   * Five Daily: slot objects. Sunnah Rawatib: numeric unit counts per slot
-   * (e.g. `{ BEFORE_FAJR: 1, BEFORE_DHUHR: 2 }`).
+   * Five Daily: slot objects.
+   * Sunnah Rawatib: unit counts and/or slot objects with `isMenstruationSlot`.
    */
   slots?: Partial<
     Record<FiveDailyPrayerSlotKey, FiveDailyPrayerSlot> &
-      Record<SunnahRawatibSlotKey, number>
+      Record<SunnahRawatibSlotKey, SunnahRawatibSlotValue>
   >;
   /** Sunnah Rawatib — total prayer units auto-marked as qadha for the day. */
   autoQadhaCount?: number;
