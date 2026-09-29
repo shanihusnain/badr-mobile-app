@@ -4,16 +4,33 @@ import {
   getProphetDawoodFastCompletedDates,
   getProphetDawoodStartDay,
   isProphetDawoodFastCompletedDate,
+  isProphetDawoodFastGoalCompleted,
 } from "./prophetDawoodFastsData";
 import { getTodayDateString, normalizeDateString } from "./whiteDaysFastsData";
 
+/**
+ * Dawood weekly day ring states (design-aligned).
+ * Backend can drive these via planned dates, logs, menstruation days, and goal completion.
+ */
 export type ProphetDawoodFastDayState =
-  | "inactive"
-  | "upcoming"
-  | "completed"
-  | "missed"
+  /** Future non-fast day — grey outline */
+  | "future"
+  /** Today, not a planned fast (incl. today-disable) — grey outline + today chip */
   | "today"
-  | "todayDisabled";
+  /** Today, not a planned fast (semantic alias; same visuals as `today`) */
+  | "todayDisabled"
+  /** Past non-fast / no activity — solid muted grey */
+  | "pastNeutral"
+  /** Planned Dawood fast (future) — blue outline */
+  | "planned"
+  /** Planned Dawood fast today, not yet logged — blue outline + today chip */
+  | "plannedToday"
+  /** User fasted a planned Dawood day — solid blue */
+  | "completed"
+  /** User skipped a planned Dawood day (past) — blue outline + warning */
+  | "missed"
+  /** Days after 100% goal — blurred / dimmed */
+  | "goalAchieved";
 
 export type ProphetDawoodFastDayProgress = {
   day: string;
@@ -21,7 +38,11 @@ export type ProphetDawoodFastDayProgress = {
   state: ProphetDawoodFastDayState;
   isToday: boolean;
   isTargetDay: boolean;
+  /** Blue ring + red fill when menstruating (planned or not). */
+  isMenstruating: boolean;
   showCycleRestartIcon: boolean;
+  /** Completed log that can show delete chrome (today or past). */
+  canDelete: boolean;
 };
 
 export type ProphetDawoodFastWeekSummary = {
@@ -47,6 +68,24 @@ export type ProphetDawoodFastCycleSummary = {
 const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
 const CYCLE_WEEKS = 4;
 const CYCLE_WEEK_START = getSundayWeekStart(PLANNED_FASTS.cycleStartDate);
+
+/**
+ * Menstruating dates for the Dawood dashboard.
+ * Replace / hydrate from backend when menstruation periods are integrated.
+ */
+let prophetDawoodMenstruatingDates: string[] = [];
+
+export function setProphetDawoodMenstruatingDates(dates: string[]): void {
+  prophetDawoodMenstruatingDates = dates.map(normalizeDateString);
+}
+
+export function getProphetDawoodMenstruatingDates(): string[] {
+  return [...prophetDawoodMenstruatingDates];
+}
+
+export function isProphetDawoodMenstruatingDate(date: string): boolean {
+  return prophetDawoodMenstruatingDates.includes(normalizeDateString(date));
+}
 
 export type DawoodCycleSegment = {
   anchor: string;
@@ -231,21 +270,28 @@ function resolveDayState(
   const normalized = normalizeDateString(date);
   const normalizedToday = normalizeDateString(today);
   const activePlannedDates = history.activePlannedDates;
+  const goalCompleted = isProphetDawoodFastGoalCompleted();
+
+  // Blur all days after today once the 14-fast goal is fully achieved.
+  if (goalCompleted && normalized > normalizedToday) {
+    return "goalAchieved";
+  }
 
   if (isProphetDawoodFastCompletedDate(normalized)) {
-    return isDawoodTargetDate(normalized, history) ? "completed" : "inactive";
+    return isDawoodTargetDate(normalized, history) ? "completed" : "pastNeutral";
   }
 
   if (normalized === normalizedToday) {
     if (activePlannedDates.includes(normalized)) {
-      return "today";
+      return "plannedToday";
     }
+    // Design: today + today-disable share the same chrome (grey outline + chip).
     return "todayDisabled";
   }
 
   if (activePlannedDates.includes(normalized)) {
     if (normalized > normalizedToday) {
-      return "upcoming";
+      return "planned";
     }
     return "missed";
   }
@@ -256,17 +302,26 @@ function resolveDayState(
     if (normalized < normalizedToday) {
       return "missed";
     }
-    return "inactive";
+    return goalCompleted ? "goalAchieved" : "future";
   }
 
-  return "inactive";
+  if (normalized > normalizedToday) {
+    return "future";
+  }
+
+  // Past non-fast / no activity — solid grey day.
+  return "pastNeutral";
 }
 
 export function getProphetDawoodFastDayStateForDate(
   date: string,
   today: string = getTodayDateString(),
 ): ProphetDawoodFastDayState {
-  return resolveDayState(normalizeDateString(date), today, getDawoodCycleHistory());
+  return resolveDayState(
+    normalizeDateString(date),
+    today,
+    getDawoodCycleHistory(),
+  );
 }
 
 export function getProphetDawoodCycleRestartDate(): string | null {
@@ -368,25 +423,42 @@ function buildMotivationalQuoteMeta(
   return { motivationalQuoteKey: "inProgress" };
 }
 
+function isTargetDayState(state: ProphetDawoodFastDayState): boolean {
+  return (
+    state === "planned" ||
+    state === "plannedToday" ||
+    state === "completed" ||
+    state === "missed"
+  );
+}
+
 function buildWeekDays(
   weekStart: string,
   today: string,
   history: DawoodCycleHistory,
 ): ProphetDawoodFastDayProgress[] {
+  const normalizedToday = normalizeDateString(today);
+
   return Array.from({ length: 7 }, (_, index) => {
     const date = addDays(weekStart, index);
     const normalizedDate = normalizeDateString(date);
     const state = resolveDayState(normalizedDate, today, history);
+    const isToday = normalizedDate === normalizedToday;
+    const isMenstruating = isProphetDawoodMenstruatingDate(normalizedDate);
+    const isCompletedTarget =
+      state === "completed" && isDawoodTargetDate(normalizedDate, history);
 
     return {
       day: getDayLabel(normalizedDate),
       date: normalizedDate,
       state,
-      isToday: normalizedDate === normalizeDateString(today),
-      isTargetDay: state !== "inactive",
+      isToday,
+      isTargetDay: isTargetDayState(state),
+      isMenstruating,
       showCycleRestartIcon:
         history.cycleRestartDate !== null &&
         normalizedDate === history.cycleRestartDate,
+      canDelete: isCompletedTarget && normalizedDate <= normalizedToday,
     };
   });
 }

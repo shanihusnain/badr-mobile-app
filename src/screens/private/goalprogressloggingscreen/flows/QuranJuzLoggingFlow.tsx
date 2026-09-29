@@ -345,10 +345,7 @@ export default function QuranJuzLoggingFlow({
   const canGoForward =
     !isLastStep && isStepValid(currentStep) && !isLogging;
   const canConfirm =
-    !isLogging &&
-    (isLastStep
-      ? steps.every((step) => isStepValid(step))
-      : isStepValid(currentStep));
+    !isLogging && isLastStep && steps.every((step) => isStepValid(step));
 
   if (!flowDefinition) return null;
   if (embedded && flowMode !== "active") return null;
