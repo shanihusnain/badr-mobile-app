@@ -148,7 +148,7 @@ export const DailyProgressBottomSheet = ({
 
     return categorySummaries.flatMap((item) => {
       const categoryKey = String(item.category ?? "").toLowerCase();
-      if (HIDDEN_PROGRESS_CATEGORIES.has(categoryKey)) return [];
+      // if (HIDDEN_PROGRESS_CATEGORIES.has(categoryKey)) return [];
       const uiCategory = toUiIbadahCategory(item.category);
       const total = item.totalGoals ?? 0;
       if (!uiCategory || total <= 0) return [];
@@ -335,10 +335,7 @@ export const DailyProgressBottomSheet = ({
             <View
               style={[styles.loadingContainer, { minHeight: loadingMinHeight }]}
             >
-              <LoadingComponent
-                size="medium"
-                style={styles.loadingSpinner}
-              />
+              <LoadingComponent size="medium" style={styles.loadingSpinner} />
             </View>
           ) : (
             categories.map((category) => (
@@ -369,10 +366,7 @@ export const DailyProgressBottomSheet = ({
             <View
               style={[styles.loadingContainer, { minHeight: loadingMinHeight }]}
             >
-              <LoadingComponent
-                size="medium"
-                style={styles.loadingSpinner}
-              />
+              <LoadingComponent size="medium" style={styles.loadingSpinner} />
             </View>
           ) : (
             detailGoals.map((goal) => (
