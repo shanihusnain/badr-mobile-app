@@ -462,15 +462,16 @@ const styles = StyleSheet.create({
   },
   statsCountBold: {
     color: Colors.light.white,
-    fontWeight: "600",
+    fontWeight: "700",
     fontSize: 20,
     fontFamily: fonts.primary.bold,
     letterSpacing: 0.1,
   },
   statsCountRegular: {
     color: Colors.light.white,
-    fontWeight: "500",
+    fontWeight: "400",
     fontSize: 20,
-    fontFamily: fonts.primary.medium,
+    fontFamily: fonts.primary.regular,
+    letterSpacing: 0.1,
   },
 });

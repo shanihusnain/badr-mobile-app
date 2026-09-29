@@ -101,8 +101,8 @@ export function QuranRecitationDayRing({
         : strokeWidth + 3;
   const segmentWidth = circumference / target;
   const dashLength = Math.max(segmentWidth - gapSize, 1);
-  const starSize = Math.max(10, Math.round(size * 0.62));
 
+  // Multi-arc rings: no star inside/above the ring — "BEST DAY!" label is enough.
   return (
     <Animated.View
       style={[
@@ -138,11 +138,6 @@ export function QuranRecitationDayRing({
             );
           })}
         </Svg>
-        {showBestDayStar ? (
-          <View pointerEvents="none" style={styles.starOverlay} collapsable={false}>
-            <BestdayStarIcon Size={starSize} />
-          </View>
-        ) : null}
       </View>
     </Animated.View>
   );
@@ -162,11 +157,6 @@ const styles = StyleSheet.create({
     overflow: "visible",
   },
   starWrap: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  starOverlay: {
-    ...StyleSheet.absoluteFillObject,
     alignItems: "center",
     justifyContent: "center",
   },
