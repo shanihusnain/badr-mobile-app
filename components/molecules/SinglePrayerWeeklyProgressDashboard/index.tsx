@@ -116,13 +116,8 @@ export function SinglePrayerWeeklyProgressDashboard({
                   !!day.isBestDay && !isInactiveOutline && !loading;
                 // Best-day label is clipped/scaled to the column; deletion chrome
                 // stays on the inner wrapper for best day, column for other days.
-                const showColumnDeletion =
-                  isMarkedForDeletion && !isBestDayVisible;
-                const showWrapperDeletion =
-                  isMarkedForDeletion && isBestDayVisible;
-
-                // Only when today sits next to BEST DAY: shrink today so the red
-                // delete chrome on best day doesn't overlap the today chip.
+                // Today beside BEST DAY: keep delete chrome on the shrunk wrapper
+                // (same 84% width as the selected chip) so it doesn't overlap.
                 const isNeighborBestDayVisible = (
                   neighbor: (typeof displayWeekDays)[number] | undefined,
                 ) =>
@@ -137,9 +132,53 @@ export function SinglePrayerWeeklyProgressDashboard({
                   displayWeekDays[index + 1],
                 );
                 const shrinkTodayBesideBestDay =
-                  isSelected &&
-                  !isMarkedForDeletion &&
-                  (bestDayOnLeft || bestDayOnRight);
+                  isSelected && (bestDayOnLeft || bestDayOnRight);
+                const showColumnDeletion =
+                  isMarkedForDeletion &&
+                  !isBestDayVisible &&
+                  !shrinkTodayBesideBestDay;
+                const showWrapperDeletion =
+                  isMarkedForDeletion &&
+                  (isBestDayVisible || shrinkTodayBesideBestDay);
+
+                const deleteButton =
+                  isMarkedForDeletion ? (
+                    <Pressable
+                      style={styles.deleteButton}
+                      disabled={
+                        isDeletingLog ||
+                        (!onDeleteLog && !prayerFrame?.frame?.prayerType)
+                      }
+                      onPress={() => {
+                        if (!day.date || isDeletingLog) return;
+
+                        if (onDeleteLog) {
+                          void (async () => {
+                            try {
+                              await Promise.resolve(onDeleteLog(day.date!));
+                              setSelectForDeletion("");
+                            } catch {
+                              // Mutation onError already shows toast.
+                            }
+                          })();
+                          return;
+                        }
+
+                        const prayerType = prayerFrame?.frame?.prayerType;
+                        if (!prayerType) return;
+                        deletePrayerLog(
+                          { prayerType, date: day.date },
+                          {
+                            onSuccess: () => {
+                              setSelectForDeletion("");
+                            },
+                          },
+                        );
+                      }}
+                    >
+                      <BinIcon />
+                    </Pressable>
+                  ) : null;
 
                 return (
                   <TouchableOpacity
@@ -152,6 +191,7 @@ export function SinglePrayerWeeklyProgressDashboard({
                       showColumnDeletion && styles.dayColumnMarkedForDeletion,
                     ]}
                     onLongPress={() => {
+                      console.log("onLongPress", day.date);
                       if (!allowLogDeletion || loading || isFuture || !day.date)
                         return;
                       if (day.canDelete === false) return;
@@ -284,44 +324,10 @@ export function SinglePrayerWeeklyProgressDashboard({
                                   : ""}
                         </Text>
                       </View>
+                      {/* Keep trash centered on the chrome box (84% / 118% wrapper). */}
+                      {showWrapperDeletion ? deleteButton : null}
                     </View>
-                    {isMarkedForDeletion ? (
-                      <Pressable
-                        style={styles.deleteButton}
-                        disabled={
-                          isDeletingLog ||
-                          (!onDeleteLog && !prayerFrame?.frame?.prayerType)
-                        }
-                        onPress={() => {
-                          if (!day.date || isDeletingLog) return;
-
-                          if (onDeleteLog) {
-                            void (async () => {
-                              try {
-                                await Promise.resolve(onDeleteLog(day.date!));
-                                setSelectForDeletion("");
-                              } catch {
-                                // Mutation onError already shows toast.
-                              }
-                            })();
-                            return;
-                          }
-
-                          const prayerType = prayerFrame?.frame?.prayerType;
-                          if (!prayerType) return;
-                          deletePrayerLog(
-                            { prayerType, date: day.date },
-                            {
-                              onSuccess: () => {
-                                setSelectForDeletion("");
-                              },
-                            },
-                          );
-                        }}
-                      >
-                        <BinIcon />
-                      </Pressable>
-                    ) : null}
+                    {showColumnDeletion ? deleteButton : null}
                   </TouchableOpacity>
                 );
               })}
@@ -414,10 +420,11 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.dayProgressCardBg,
     borderRadius: 6,
   },
-  /** Today only, and only when BEST DAY is an immediate neighbor. */
+  /** Today only, and only when BEST DAY is an immediate neighbor (incl. delete chrome). */
   dayItemSelectedBesideBestDay: {
     width: "84%",
   },
+
   dayItemBestDay: {
     width: "118%",
     paddingTop: 3,
@@ -432,7 +439,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     backgroundColor: Colors.light.dullRed,
     zIndex: 99999,
-    width: "118%",
+    // width: "118%",
   },
   bestDayLabel: {
     color: Colors.light.green,

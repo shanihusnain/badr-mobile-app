@@ -87,6 +87,7 @@ export const Colors = {
     idlePrayerBox: "rgba(255, 255, 255, 0.5)",
     inactiveTaperedBorder: "#374556",
     dullRed: "rgba(255, 64, 70, 0.1)",
+    unfilledTaperred: "#374666",
   },
   dark: {
     text: "#11181C",
@@ -169,6 +170,7 @@ export const Colors = {
     idlePrayerBox: "rgba(255, 255, 255, 0.5)",
     inactiveTaperedBorder: "#374556",
     dullRed: "rgba(255, 64, 70, 0.1)",
+    unfilledTaperred: "#374666",
   },
 };
 
