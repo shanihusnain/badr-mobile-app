@@ -142,7 +142,7 @@ export type QuranGoalFrameData = {
   articles?: unknown[];
 };
 
-const getQuranGoalFrame = async (
+export const getQuranGoalFrame = async (
   quranGoalType: string,
   options?: { week?: number; itemNumber?: number },
 ): Promise<QuranGoalFrameData | null> => {
@@ -163,6 +163,20 @@ const getQuranGoalFrame = async (
   return response.data?.data ?? null;
 };
 
+/** Shared query key — keep in sync with `useGetQuranGoalFrame`. */
+export function quranGoalFrameQueryKey(
+  quranGoalType: string,
+  weekNumber?: number | "current",
+  itemNumber?: number | "all",
+) {
+  return [
+    "quran-goal-frame",
+    quranGoalType,
+    weekNumber ?? "current",
+    itemNumber ?? "all",
+  ] as const;
+}
+
 export const useGetQuranGoalFrame = (
   quranGoalTypeInput: string | null | undefined,
   options?: {
@@ -178,12 +192,11 @@ export const useGetQuranGoalFrame = (
   const enabled = !!quranGoalType && (options?.enabled ?? true);
 
   return useQuery({
-    queryKey: [
-      "quran-goal-frame",
+    queryKey: quranGoalFrameQueryKey(
       quranGoalType,
       options?.weekNumber ?? "current",
       options?.itemNumber ?? "all",
-    ],
+    ),
     queryFn: () =>
       getQuranGoalFrame(quranGoalType, {
         week: options?.weekNumber,

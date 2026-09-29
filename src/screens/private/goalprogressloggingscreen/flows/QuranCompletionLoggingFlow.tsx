@@ -98,12 +98,21 @@ export default function QuranCompletionLoggingFlow({
 
   const resumeCursor = useMemo((): CompletionResumeCursor => {
     const frame = quranFrame?.frame;
-    if (frame) return getQuranFrameCompletionResumeCursor(frame);
+    if (frame) {
+      return getQuranFrameCompletionResumeCursor(
+        frame,
+        quranFrame?.completionCycleFrames,
+      );
+    }
     if (frameProgress) {
       return getCompletionResumeCursor(frameProgress.completedJuz);
     }
     return FRESH_RESUME;
-  }, [frameProgress, quranFrame?.frame]);
+  }, [
+    frameProgress,
+    quranFrame?.completionCycleFrames,
+    quranFrame?.frame,
+  ]);
 
   const flowDefinition = useMemo(() => {
     const base = getQuranCompletionFlowDefinition(goalData.id);

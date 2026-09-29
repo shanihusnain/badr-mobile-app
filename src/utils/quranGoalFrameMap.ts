@@ -507,20 +507,15 @@ export function getQuranFrameCompletionProgress(frame: QuranGoalFrameData): {
 }
 
 /**
- * Where the next log may start inside the open Khatm.
- * Builds an excluded-juz set from `day.completion.juzLabel` so non-sequential
- * logs (j1-4, j6, j8) cannot be selected again.
+ * Juz already logged in a completion frame week (from `day.completion.juzLabel`).
+ * One week alone is not enough for resume — earlier weeks must be merged too.
  */
-export function getQuranFrameCompletionResumeCursor(
-  frame: QuranGoalFrameData,
-): CompletionResumeCursor {
-  const completedJuz =
-    toFiniteNumber(frame.goal.completed) ??
-    toFiniteNumber(frame.items?.[0]?.completed) ??
-    0;
-
+export function collectCompletionLoggedJuzFromFrame(
+  frame: QuranGoalFrameData | null | undefined,
+): { fullyLogged: number[]; openPartialJuz: number | null } {
   const fullyLogged = new Set<number>();
   let openPartialJuz: number | null = null;
+  if (!frame) return { fullyLogged: [], openPartialJuz: null };
 
   for (const day of frame.week.days ?? []) {
     const label =
@@ -533,13 +528,55 @@ export function getQuranFrameCompletionResumeCursor(
     }
   }
 
-  // Open partial must not also sit in the fully-logged set.
+  return { fullyLogged: [...fullyLogged], openPartialJuz };
+}
+
+/**
+ * Merge logged juz across multiple week frames for the open Khatm.
+ * Later frames win for `openPartialJuz` (most recent partial).
+ */
+export function mergeCompletionLoggedJuzFromFrames(
+  frames: ReadonlyArray<QuranGoalFrameData | null | undefined>,
+): { fullyLogged: number[]; openPartialJuz: number | null } {
+  const fullyLogged = new Set<number>();
+  let openPartialJuz: number | null = null;
+
+  for (const frame of frames) {
+    const collected = collectCompletionLoggedJuzFromFrame(frame);
+    for (const juz of collected.fullyLogged) fullyLogged.add(juz);
+    if (collected.openPartialJuz != null) {
+      openPartialJuz = collected.openPartialJuz;
+    }
+  }
+
   if (openPartialJuz != null && fullyLogged.has(openPartialJuz)) {
     fullyLogged.delete(openPartialJuz);
   }
 
+  return { fullyLogged: [...fullyLogged], openPartialJuz };
+}
+
+/**
+ * Where the next log may start inside the open Khatm.
+ * Prefer `cycleFrames` (weeks 1‥active) so juz logged in prior weeks are
+ * excluded; falls back to the displayed `frame` week only.
+ */
+export function getQuranFrameCompletionResumeCursor(
+  frame: QuranGoalFrameData,
+  cycleFrames?: ReadonlyArray<QuranGoalFrameData | null | undefined>,
+): CompletionResumeCursor {
+  const completedJuz =
+    toFiniteNumber(frame.goal.completed) ??
+    toFiniteNumber(frame.items?.[0]?.completed) ??
+    0;
+
+  const sources =
+    cycleFrames && cycleFrames.length > 0 ? cycleFrames : [frame];
+  const { fullyLogged, openPartialJuz } =
+    mergeCompletionLoggedJuzFromFrames(sources);
+
   return getCompletionResumeCursor(Math.max(0, completedJuz), {
-    fullyLoggedJuz: [...fullyLogged],
+    fullyLoggedJuz: fullyLogged,
     openPartialJuz,
   });
 }

@@ -5,7 +5,10 @@ import React, {
   useMemo,
   type ReactNode,
 } from "react";
+import { useQueries } from "@tanstack/react-query";
 import {
+  getQuranGoalFrame,
+  quranGoalFrameQueryKey,
   useGetQuranGoalFrame,
   type QuranGoalFrameData,
 } from "@/src/api/queries/useGetQuranGoalFrame";
@@ -25,6 +28,11 @@ type QuranGoalFrameContextValue = {
   /** Active surah/juz/hizb for multi-item frames (e.g. MEMORIZATION_SURAH). */
   itemNumber: number | null;
   setItemNumber: (itemNumber: number) => void;
+  /**
+   * RECITATION_COMPLETION — frames for weeks 1‥active (cycle-wide juz resume).
+   * Empty for other goal types.
+   */
+  completionCycleFrames: QuranGoalFrameData[];
   openInsights?: () => void;
 };
 
@@ -39,6 +47,19 @@ function quranTypeRequiresItemNumber(quranGoalType: string | null): boolean {
     quranGoalType === "MEMORIZATION_HIZB" ||
     quranGoalType === "RECITATION_SURAH"
   );
+}
+
+function resolveCycleActiveWeek(
+  frame: QuranGoalFrameData | null | undefined,
+): number | null {
+  if (!frame) return null;
+  const fromStreaks = frame.streaks?.weeks?.find(
+    (week) => week.isCurrentWeek,
+  )?.weekNumber;
+  if (typeof fromStreaks === "number" && fromStreaks > 0) return fromStreaks;
+  const fromWeek = frame.week?.weekNumber;
+  if (typeof fromWeek === "number" && fromWeek > 0) return fromWeek;
+  return null;
 }
 
 export function QuranGoalFrameProvider({
@@ -57,10 +78,15 @@ export function QuranGoalFrameProvider({
 }) {
   const quranGoalType = resolveQuranTypeFromGoalId(goalId);
   const requiresItemNumber = quranTypeRequiresItemNumber(quranGoalType);
+  const isCompletionGoal = quranGoalType === "RECITATION_COMPLETION";
   const [weekNumber, setWeekNumberState] = React.useState<number | null>(null);
   const [hasUserSelectedWeek, setHasUserSelectedWeek] = React.useState(false);
   const [itemNumber, setItemNumberState] = React.useState<number | null>(
     () => initialItemNumber ?? null,
+  );
+  /** Sticky "today" week so viewing past weeks doesn't shrink cycle prefetch. */
+  const [cycleActiveWeek, setCycleActiveWeek] = React.useState<number | null>(
+    null,
   );
 
   const {
@@ -75,6 +101,7 @@ export function QuranGoalFrameProvider({
     setWeekNumberState(null);
     setHasUserSelectedWeek(false);
     setItemNumberState(initialItemNumber ?? null);
+    setCycleActiveWeek(null);
   }, [goalId, initialItemNumber]);
 
   /** Prefer detail list so the first frame call already includes `itemNumber`. */
@@ -117,6 +144,14 @@ export function QuranGoalFrameProvider({
     setWeekNumberState(data.week.weekNumber);
   }, [data, weekNumber]);
 
+  useEffect(() => {
+    const active = resolveCycleActiveWeek(data);
+    if (active == null) return;
+    setCycleActiveWeek((prev) =>
+      prev == null ? active : Math.max(prev, active),
+    );
+  }, [data]);
+
   /** Fallback if detail had no items but frame returned one. */
   useEffect(() => {
     if (itemNumber != null) return;
@@ -125,6 +160,45 @@ export function QuranGoalFrameProvider({
       setItemNumberState(first);
     }
   }, [data, itemNumber]);
+
+  const completionWeekNumbers = useMemo(() => {
+    if (!isCompletionGoal || !frameEnabled) return [] as number[];
+    const active = cycleActiveWeek ?? resolveCycleActiveWeek(data);
+    if (active == null || active < 1) return [];
+    return Array.from({ length: active }, (_, index) => index + 1);
+  }, [isCompletionGoal, frameEnabled, cycleActiveWeek, data]);
+
+  const completionWeekQueries = useQueries({
+    queries: completionWeekNumbers.map((week) => ({
+      queryKey: quranGoalFrameQueryKey(
+        quranGoalType ?? "",
+        week,
+        itemNumber ?? "all",
+      ),
+      queryFn: () =>
+        getQuranGoalFrame(quranGoalType!, {
+          week,
+          itemNumber: itemNumber ?? undefined,
+        }),
+      enabled: Boolean(quranGoalType) && frameEnabled,
+    })),
+  });
+
+  const completionCycleFrames = useMemo(() => {
+    if (!isCompletionGoal) return [] as QuranGoalFrameData[];
+    const frames: QuranGoalFrameData[] = [];
+    for (const query of completionWeekQueries) {
+      if (query.data) frames.push(query.data);
+    }
+    // Include the primary "current" response if week queries haven't landed yet.
+    if (
+      data &&
+      !frames.some((frame) => frame.week.weekNumber === data.week.weekNumber)
+    ) {
+      frames.push(data);
+    }
+    return frames;
+  }, [isCompletionGoal, completionWeekQueries, data]);
 
   const setWeekNumber = React.useCallback((nextWeek: number) => {
     setHasUserSelectedWeek(true);
@@ -151,6 +225,7 @@ export function QuranGoalFrameProvider({
       setWeekNumber,
       itemNumber,
       setItemNumber,
+      completionCycleFrames,
       openInsights: onOpenInsights,
     }),
     [
@@ -165,6 +240,7 @@ export function QuranGoalFrameProvider({
       setWeekNumber,
       itemNumber,
       setItemNumber,
+      completionCycleFrames,
       onOpenInsights,
     ],
   );
