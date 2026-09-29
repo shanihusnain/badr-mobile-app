@@ -334,7 +334,6 @@ export default function MenstruationLog({
             value={isMenstruating}
             onPress={() => {
               if (!goalCycleId) {
-                alert("You must select a Goal Cycle before logging a period.");
                 return;
               }
               const newValue = !isMenstruating.value;
@@ -556,7 +555,6 @@ export default function MenstruationLog({
           text={t("homeScreen.menstruationLog_save")}
           onPress={async () => {
             if (!goalCycleId) {
-              alert("You must select a Goal Cycle before logging a period.");
               return;
             }
 

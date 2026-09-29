@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useRef } from "react";
 import { Animated, StyleSheet, View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
-import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "@/constants/theme";
+import { BestdayStarIcon } from "@/assets/icons";
 import {
   clampDailyRecitationTarget,
   getRecitationSegmentColor,
@@ -18,6 +18,9 @@ type Props = {
   isSelected: boolean;
 };
 
+/** Match SinglePrayerDayRing — best day circle is slightly larger. */
+const BEST_DAY_SIZE_BOOST = 6;
+
 export function QuranRecitationDayRing({
   day,
   dailyTarget,
@@ -27,6 +30,7 @@ export function QuranRecitationDayRing({
   const target = clampDailyRecitationTarget(dailyTarget);
   const isFuture = day.dayType === "future";
   const fadeAnim = useRef(new Animated.Value(isFuture ? 0.38 : 1)).current;
+  const showBestDayStar = !!day.isBestDay && !isFuture;
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -48,15 +52,17 @@ export function QuranRecitationDayRing({
       target,
       day.dayType,
     );
+    const circleSize = showBestDayStar ? size + BEST_DAY_SIZE_BOOST : size;
+    const starSize = Math.max(10, Math.round(circleSize * 0.62));
 
     return (
       <Animated.View
         style={[
           styles.ringOuter,
           {
-            width: size + 6,
-            height: size + 6,
-            borderRadius: (size + 6) / 2,
+            width: size + BEST_DAY_SIZE_BOOST + 5,
+            height: size + BEST_DAY_SIZE_BOOST + 5,
+            borderRadius: (size + BEST_DAY_SIZE_BOOST + 5) / 2,
             opacity: fadeAnim,
           },
           isSelected && styles.ringOuterSelected,
@@ -66,15 +72,17 @@ export function QuranRecitationDayRing({
           style={[
             styles.solidInner,
             {
-              width: size,
-              height: size,
-              borderRadius: size / 2,
+              width: circleSize,
+              height: circleSize,
+              borderRadius: circleSize / 2,
               backgroundColor: fillColor,
             },
           ]}
         >
-          {day.isBestDay ? (
-            <Ionicons name="star" size={16} color={Colors.light.yellow} />
+          {showBestDayStar ? (
+            <View pointerEvents="none" style={styles.starWrap} collapsable={false}>
+              <BestdayStarIcon Size={starSize} />
+            </View>
           ) : null}
         </View>
       </Animated.View>
@@ -93,6 +101,7 @@ export function QuranRecitationDayRing({
         : strokeWidth + 3;
   const segmentWidth = circumference / target;
   const dashLength = Math.max(segmentWidth - gapSize, 1);
+  const starSize = Math.max(10, Math.round(size * 0.62));
 
   return (
     <Animated.View
@@ -129,6 +138,11 @@ export function QuranRecitationDayRing({
             );
           })}
         </Svg>
+        {showBestDayStar ? (
+          <View pointerEvents="none" style={styles.starOverlay} collapsable={false}>
+            <BestdayStarIcon Size={starSize} />
+          </View>
+        ) : null}
       </View>
     </Animated.View>
   );
@@ -145,13 +159,18 @@ const styles = StyleSheet.create({
   solidInner: {
     alignItems: "center",
     justifyContent: "center",
+    overflow: "visible",
+  },
+  starWrap: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  starOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: "center",
+    justifyContent: "center",
   },
   svg: {
     transform: [{ rotate: "-90deg" }],
-  },
-  bestDayStar: {
-    ...StyleSheet.absoluteFill,
-    alignItems: "center",
-    justifyContent: "center",
   },
 });
