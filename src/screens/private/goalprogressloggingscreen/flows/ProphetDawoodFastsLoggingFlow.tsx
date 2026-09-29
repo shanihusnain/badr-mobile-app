@@ -12,11 +12,15 @@ import { Colors } from "@/constants/theme";
 import { FastingFlowCardProphetDawoodCalender } from "@/assets/icons/FastingFlowCardProphetDawoodCalender";
 import { FlowCardCallender } from "@/assets/icons/FlowCardCallender";
 import { TimeSpentIcon } from "@/assets/icons/TimeSpentIcon";
+import { AddLoggingFlowIcon } from "@/assets/icons";
 import { GoalData } from "../../home/components/goalsData";
 import { FlowCard } from "../components/FlowCard";
 import { StartTimeStep } from "../components/TimePickerSteps";
 import { WhiteDaysFastDateStep } from "../components/WhiteDaysFastDateStep";
-import { styles as commonStyles } from "../components/DailyProgressLogging.styles";
+import {
+  styles as commonStyles,
+  FLOW_CARD_HEIGHT,
+} from "../components/DailyProgressLogging.styles";
 import { fonts } from "@/assets/fonts";
 import { isValidStartTime } from "../quranRecitationTarget";
 import {
@@ -367,139 +371,140 @@ export default function ProphetDawoodFastsLoggingFlow({
   const isDropdownOpen = isStartPeriodDropdownOpen || isEndPeriodDropdownOpen;
 
   return (
-    <View
-      style={[
-        commonStyles.section,
-        flowMode === "active" && commonStyles.activeSection,
-      ]}
-    >
-      <Text style={commonStyles.sectionTitle}>
-        {t("progressLogging.myProgress")}
-      </Text>
+    <>
+      {flowMode === "active" && (
+        <Pressable style={commonStyles.backdrop} />
+      )}
+      {flowMode === "active" && (
+        <TouchableOpacity
+          style={commonStyles.cancelButton}
+          onPress={resetFlow}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="close" size={20} color={Colors.light.white} />
+        </TouchableOpacity>
+      )}
 
       <View
         style={[
-          commonStyles.cardAnchor,
-          isDropdownOpen && commonStyles.flowCardLayerDropdownOpen,
+          commonStyles.section,
+          flowMode === "active" && commonStyles.activeSection,
         ]}
       >
-        {flowMode === "active" && (
-          <Pressable style={commonStyles.backdrop} />
-        )}
-        {flowMode === "active" && (
-          <TouchableOpacity
-            style={commonStyles.cancelButton}
-            onPress={resetFlow}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="close" size={20} color={Colors.light.white} />
-          </TouchableOpacity>
-        )}
+        <Text style={commonStyles.sectionTitle}>
+          {t("progressLogging.myProgress")}
+        </Text>
 
-        {flowMode === "collapsed" ? (
-          <View style={localStyles.summaryCard}>
-            <View style={localStyles.summaryBody}>
-              <View style={localStyles.dawoodIconCircle}>
-                <FastingFlowCardProphetDawoodCalender
-                  size={20}
-                  color={Colors.light.white}
-                />
-              </View>
-              <View style={localStyles.titleContainer}>
-                <View
-                  style={[
-                    localStyles.badge,
-                    badgeStatus.type === "completed"
-                      ? localStyles.badgeCompleted
-                      : badgeStatus.type === "not-started"
-                        ? localStyles.badgeNotStarted
-                        : localStyles.badgeInProgress,
-                    { alignSelf: "flex-start", marginBottom: 4 },
-                  ]}
-                >
-                  <Text
+        <View
+          style={[
+            commonStyles.cardAnchor,
+            isDropdownOpen && commonStyles.flowCardLayerDropdownOpen,
+          ]}
+        >
+          {flowMode === "collapsed" ? (
+            <View style={localStyles.summaryCard}>
+              <View style={localStyles.summaryBody}>
+                <View style={localStyles.dawoodIconCircle}>
+                  <FastingFlowCardProphetDawoodCalender
+                    size={25}
+                    color={Colors.light.white}
+                  />
+                </View>
+                <View style={localStyles.titleContainer}>
+                  <View
                     style={[
-                      localStyles.badgeText,
+                      localStyles.badge,
                       badgeStatus.type === "completed"
-                        ? localStyles.badgeTextCompleted
+                        ? localStyles.badgeCompleted
                         : badgeStatus.type === "not-started"
-                          ? localStyles.badgeTextNotStarted
-                          : localStyles.badgeTextInProgress,
+                          ? localStyles.badgeNotStarted
+                          : localStyles.badgeInProgress,
                     ]}
                   >
-                    {badgeStatus.text}
-                  </Text>
+                    <Text
+                      style={[
+                        localStyles.badgeText,
+                        badgeStatus.type === "completed"
+                          ? localStyles.badgeTextCompleted
+                          : badgeStatus.type === "not-started"
+                            ? localStyles.badgeTextNotStarted
+                            : localStyles.badgeTextInProgress,
+                      ]}
+                    >
+                      {badgeStatus.text}
+                    </Text>
+                  </View>
+                  <Text style={localStyles.summaryTitle}>{summaryTitle}</Text>
                 </View>
-                <Text style={localStyles.summaryTitle}>{summaryTitle}</Text>
               </View>
-            </View>
 
-            <View style={localStyles.footerRow}>
-              <View style={localStyles.spacer} />
               {!goalCompleted ? (
                 <TouchableOpacity
                   style={localStyles.addButton}
                   onPress={handleOpenFlow}
                   activeOpacity={0.8}
                 >
-                  <Ionicons name="add" size={22} color={Colors.light.white} />
+                  <AddLoggingFlowIcon size={32} />
                 </TouchableOpacity>
               ) : null}
             </View>
-          </View>
-        ) : (
-          <View
-            style={[
-              commonStyles.flowCardLayer,
-              isDropdownOpen && commonStyles.flowCardLayerDropdownOpen,
-            ]}
-          >
-            <FlowCard
-              headerIcon={stepHeader.icon}
-              headerLabel={stepHeader.label}
-              onBack={handleBack}
-              onForward={handleForward}
-              onConfirm={handleConfirm}
-              canGoForward={!isLastStep && canProceed}
-                canGoBack={stepIndex > 0}
-              canConfirm={canConfirm}
-              styles={commonStyles}
+          ) : (
+            <View
               style={[
-                commonStyles.inPlaceFlowCard,
-                isDropdownOpen && commonStyles.flowCardDropdownOpen,
+                commonStyles.flowCardLayer,
+                isDropdownOpen && commonStyles.flowCardLayerDropdownOpen,
               ]}
-              contentStyle={
-                isDropdownOpen
-                  ? commonStyles.flowContentDropdownOpen
-                  : undefined
-              }
             >
-              {renderStepContent(currentStep)}
-            </FlowCard>
-          </View>
-        )}
+              <FlowCard
+                headerIcon={stepHeader.icon}
+                headerLabel={stepHeader.label}
+                onBack={handleBack}
+                onForward={handleForward}
+                onConfirm={handleConfirm}
+                canGoForward={!isLastStep && canProceed}
+                canGoBack={stepIndex > 0}
+                canConfirm={canConfirm}
+                styles={commonStyles}
+                style={[
+                  commonStyles.inPlaceFlowCard,
+                  isDropdownOpen && commonStyles.flowCardDropdownOpen,
+                ]}
+                contentStyle={
+                  isDropdownOpen
+                    ? commonStyles.flowContentDropdownOpen
+                    : undefined
+                }
+              >
+                {renderStepContent(currentStep)}
+              </FlowCard>
+            </View>
+          )}
+        </View>
       </View>
-    </View>
+    </>
   );
 }
 
 const localStyles = StyleSheet.create({
   summaryCard: {
     backgroundColor: Colors.light.green,
-    borderRadius: 14,
+    borderRadius: 8,
     padding: 16,
     gap: 12,
-    height: 145,
+    height: FLOW_CARD_HEIGHT,
+    width: "100%",
     justifyContent: "space-between",
+    position: "relative",
   },
   badge: {
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
-    marginTop: -6,
+    marginTop: 3,
+    alignSelf: "flex-start",
   },
   badgeNotStarted: {
-    backgroundColor: Colors.light.dullWhiteOpacity,
+    backgroundColor: Colors.light.paginationInactiveDot,
   },
   badgeInProgress: {
     backgroundColor: Colors.light.lightpurple,
@@ -508,12 +513,13 @@ const localStyles = StyleSheet.create({
     backgroundColor: Colors.light.lightgreenbadgecolor,
   },
   badgeText: {
-    fontFamily: fonts.primary.semiBold,
-    fontSize: 10,
-    fontWeight: "600",
+    fontFamily: fonts.primary.medium,
+    fontSize: 12,
+    fontWeight: "500",
+    lineHeight: 12.5,
   },
   badgeTextNotStarted: {
-    color: Colors.light.white,
+    color: Colors.light.notStartedTextColor,
   },
   badgeTextInProgress: {
     color: Colors.light.darkblue,
@@ -524,20 +530,21 @@ const localStyles = StyleSheet.create({
   summaryBody: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    gap: 6,
   },
   dawoodIconCircle: {
     width: 36,
     height: 36,
-    borderRadius: 38,
-    backgroundColor: Colors.light.darkgrey,
+    borderRadius: 18,
+    backgroundColor: Colors.light.selectcategory,
     alignItems: "center",
     justifyContent: "center",
+    marginTop: 33,
   },
   titleContainer: {
     flex: 1,
     flexDirection: "column",
-    gap: 2,
+    gap: 9,
   },
   summaryTitle: {
     color: Colors.light.white,
@@ -545,24 +552,13 @@ const localStyles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     lineHeight: 18,
-  },
-  footerRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-end",
-    marginTop: 4,
+    letterSpacing: 0,
   },
   addButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    borderWidth: 1.5,
-    borderColor: Colors.light.white,
+    position: "absolute",
+    right: 16,
+    bottom: 15,
     alignItems: "center",
     justifyContent: "center",
-    transform: [{ translateY: -4 }],
-  },
-  spacer: {
-    flex: 1,
   },
 });

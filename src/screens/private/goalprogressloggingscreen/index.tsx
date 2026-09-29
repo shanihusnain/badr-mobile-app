@@ -612,6 +612,12 @@ export const GoalProgressLoggingScreen = ({
         ? "BY JUZ"
         : undefined;
 
+  /** Two-line header keeps fontSize 14 (no auto-shrink) like Quran flows. */
+  const dawoodHeaderTitle =
+    goalId === "fasting-Dawwod" ? "THE FAST OF PROPHET" : null;
+  const dawoodHeaderSecondTitle =
+    goalId === "fasting-Dawwod" ? "DAWOOD (AS)" : undefined;
+
   const memorisationTitleOptions = isMemorisationGoal
     ? [
         {
@@ -783,11 +789,15 @@ export const GoalProgressLoggingScreen = ({
                     ? memorisationHeaderTitle
                     : recitationHeaderTitle
                       ? recitationHeaderTitle
-                      : (goalData.title?.toUpperCase() ??
-                        goalData.label.toUpperCase())
+                      : dawoodHeaderTitle
+                        ? dawoodHeaderTitle
+                        : (goalData.title?.toUpperCase() ??
+                          goalData.label.toUpperCase())
                 }
                 secondTitle={
-                  memorisationHeaderSecondTitle ?? recitationHeaderSecondTitle
+                  memorisationHeaderSecondTitle ??
+                  recitationHeaderSecondTitle ??
+                  dawoodHeaderSecondTitle
                 }
                 titleDropdownOptions={
                   memorisationTitleOptions ?? recitationTitleOptions

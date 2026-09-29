@@ -562,7 +562,7 @@ export const GOALS_DATA: Record<GoalId, GoalData> = {
   "fasting-Dawwod": {
     id: "fasting-Dawwod",
     category: "FASTING",
-    title: "Prophet Dawwod(AS)\nFasts",
+    title: "THE FAST OF PROPHET\nDAWOOD (AS)",
     count: "13",
     label: "/14 days",
     percentage: "93%",
