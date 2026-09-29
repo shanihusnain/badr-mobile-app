@@ -278,6 +278,19 @@ export const MetricSelectionComponent = ({
     setFocusedInputs((prev) => ({ ...prev, [key]: value }));
   };
 
+  /** Instantly clear a default "0" before React re-renders on focus. */
+  const metricInputRefs = useRef<
+    Record<string, { setNativeProps?: (p: object) => void } | null | undefined>
+  >({});
+  const clearZeroOnTouch = (key: string, isZero: boolean) => {
+    if (!isZero) return;
+    metricInputRefs.current[key]?.setNativeProps?.({
+      text: "",
+      placeholder: "",
+    });
+    setInputFocused(key, true);
+  };
+
   // Hydrate from backend detail once per goal-type load
   useEffect(() => {
     if (!isActiveMetric || isLoadingOptions) return;
@@ -1114,11 +1127,13 @@ export const MetricSelectionComponent = ({
                         <TopSpace top={8} />
                         <View style={styles.surahTimesInputRow}>
                           <BottomSheetTextInput
+                            ref={(r) => {
+                              metricInputRefs.current[`surah-${s.id}`] = r;
+                            }}
                             value={
-                              focusedInputs[`surah-${s.id}`] &&
-                              !(timesValue > 0)
-                                ? ""
-                                : String(timesValue)
+                              timesValue > 0
+                                ? String(timesValue)
+                                : ""
                             }
                             onChangeText={(v) => {
                               const digits = v.replace(/[^0-9]/g, "");
@@ -1133,6 +1148,12 @@ export const MetricSelectionComponent = ({
                               updateSurahSetting(s.id, { times: clamped });
                             }}
                             keyboardType="numeric"
+                            onTouchStart={() =>
+                              clearZeroOnTouch(
+                                `surah-${s.id}`,
+                                !(timesValue > 0),
+                              )
+                            }
                             onFocus={() => {
                               setInputFocused(`surah-${s.id}`, true);
                               // Parent sheet scroll is disabled while touching this
@@ -1353,6 +1374,9 @@ export const MetricSelectionComponent = ({
               </Text>
               <View style={styles.juzRangeInputWrap}>
                 <BottomSheetTextInput
+                  ref={(r) => {
+                    metricInputRefs.current["juz-start"] = r;
+                  }}
                   value={
                     focusedInputs["juz-start"] && juzStart === 0
                       ? ""
@@ -1362,6 +1386,9 @@ export const MetricSelectionComponent = ({
                   keyboardType="numeric"
                   maxLength={2}
                   selectTextOnFocus
+                  onTouchStart={() =>
+                    clearZeroOnTouch("juz-start", juzStart === 0)
+                  }
                   onFocus={() => {
                     setInputFocused("juz-start", true);
                     onNestedScrollActiveChange?.(false);
@@ -1400,6 +1427,9 @@ export const MetricSelectionComponent = ({
               </Text>
               <View style={styles.juzRangeInputWrap}>
                 <BottomSheetTextInput
+                  ref={(r) => {
+                    metricInputRefs.current["juz-end"] = r;
+                  }}
                   value={
                     focusedInputs["juz-end"]
                       ? juzEndText === "0"
@@ -1411,6 +1441,9 @@ export const MetricSelectionComponent = ({
                   keyboardType="numeric"
                   maxLength={2}
                   selectTextOnFocus
+                  onTouchStart={() =>
+                    clearZeroOnTouch("juz-end", juzEndText === "0" || !juzEndText)
+                  }
                   onFocus={() => {
                     setInputFocused("juz-end", true);
                     if (juzEndText === "0") setJuzEndText("");
@@ -1519,11 +1552,10 @@ export const MetricSelectionComponent = ({
               }}
             >
               <BottomSheetTextInput
-                value={
-                  focusedInputs.completion && !(quranCompletion > 0)
-                    ? ""
-                    : String(quranCompletion)
-                }
+                ref={(r) => {
+                  metricInputRefs.current.completion = r;
+                }}
+                value={quranCompletion > 0 ? String(quranCompletion) : ""}
                 onChangeText={(v) => {
                   const digits = v.replace(/[^0-9]/g, "");
                   if (digits === "") {
@@ -1537,6 +1569,9 @@ export const MetricSelectionComponent = ({
                   setQuranCompletion(clamped);
                 }}
                 keyboardType="numeric"
+                onTouchStart={() =>
+                  clearZeroOnTouch("completion", !(quranCompletion > 0))
+                }
                 onFocus={() => {
                   setInputFocused(`completion`, true);
                   onNestedScrollActiveChange?.(false);
