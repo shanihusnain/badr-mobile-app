@@ -120,6 +120,9 @@ export const BottomSheetWrapper = forwardRef<BottomSheet, Props>(
         // paint over logging UI (and look like they auto-opened on entry).
         zIndex: sheetIndex >= 0 ? 1000 : 0,
         elevation: sheetIndex >= 0 ? 1000 : 0,
+        // Hide closed sheets entirely so footers (e.g. red DELETE) never
+        // ghost-paint at the bottom of the screen on some devices.
+        opacity: sheetIndex >= 0 ? 1 : 0,
       }),
       [sheetIndex],
     );

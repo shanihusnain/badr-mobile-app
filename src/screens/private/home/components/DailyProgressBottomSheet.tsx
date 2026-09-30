@@ -389,7 +389,7 @@ export const DailyProgressBottomSheet = ({
                           CATEGORY_ICON_COLOR[selectedUiCategory],
                         )
                 }
-                iconBgColor={CATEGORY_ICON_COLOR[selectedUiCategory] + "22"}
+                iconBgColor={Colors.light.calendarBg}
                 percentage={goal.percentage}
                 progressColor={CATEGORY_ICON_COLOR[selectedUiCategory]}
                 isSelected={selectedDetailCard === goal.goalId}
