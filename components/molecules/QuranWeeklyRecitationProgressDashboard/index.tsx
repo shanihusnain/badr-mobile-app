@@ -118,8 +118,11 @@ function mapCompletionDayToSinglePrayerDay(
   const isFuture = day.dayType === "future";
   // Figma: weekday stays; under-ring is C# + juz (completion) or juz only (juz mode).
   const captionParts: string[] = [];
-  if (!isJuzMode && day.hasActivity && day.completionNumber != null) {
-    captionParts.push(`C${day.completionNumber}`);
+  if (!isJuzMode && day.hasActivity) {
+    const attemptCaption =
+      day.attemptLabel?.trim() ||
+      (day.completionNumber != null ? `C${day.completionNumber}` : "");
+    if (attemptCaption) captionParts.push(attemptCaption);
   }
   if (day.hasActivity && day.computedLabel) {
     captionParts.push(day.computedLabel);

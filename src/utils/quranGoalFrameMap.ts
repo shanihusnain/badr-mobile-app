@@ -340,32 +340,57 @@ function parseCompletionDayCaptions(valueDisplay: string | null | undefined): {
 
 function resolveCompletionDayCaptions(day: QuranGoalFrameDay): {
   attempt: number | null;
+  attempts: number[];
+  attemptLabel: string | null;
   juzLabel: string | null;
 } {
   const structured = day.completion;
   if (structured) {
-    let attempt: number | null = null;
-    const fromAttempts = structured.attempts?.find(
-      (n) => Number.isFinite(n) && n > 0,
-    );
-    if (fromAttempts != null) {
-      attempt = Number(fromAttempts);
-    } else {
-      const labelMatch = (structured.attemptLabel ?? "").match(/\bC\s*(\d+)\b/i);
-      if (labelMatch) {
-        const n = Number(labelMatch[1]);
-        if (Number.isFinite(n) && n > 0) attempt = n;
+    const attempts: number[] = [];
+    for (const raw of structured.attempts ?? []) {
+      const n = Number(raw);
+      if (Number.isFinite(n) && n > 0) attempts.push(Math.round(n));
+    }
+    if (attempts.length === 0) {
+      const labelMatches = structured.attemptLabel?.matchAll(/\bC\s*(\d+)\b/gi);
+      if (labelMatches) {
+        for (const match of labelMatches) {
+          const n = Number(match[1]);
+          if (Number.isFinite(n) && n > 0) attempts.push(Math.round(n));
+        }
       }
     }
 
+    const uniqueAttempts = [...new Set(attempts)].sort((a, b) => a - b);
+    const fromApiLabel = structured.attemptLabel?.trim() || null;
+    const attemptLabel =
+      uniqueAttempts.length > 1
+        ? uniqueAttempts.map((n) => `C${n}`).join(", ")
+        : fromApiLabel && /\bC\s*\d+/i.test(fromApiLabel)
+          ? fromApiLabel.replace(/\s+/g, " ")
+          : uniqueAttempts.length === 1
+            ? `C${uniqueAttempts[0]}`
+            : fromApiLabel;
+
     const juzRaw = structured.juzLabel?.trim() || null;
     const juzLabel = juzRaw ? normalizeJuzCaption(juzRaw) : null;
-    if (attempt != null || juzLabel) {
-      return { attempt, juzLabel };
+    if (uniqueAttempts.length > 0 || juzLabel || attemptLabel) {
+      return {
+        attempt: uniqueAttempts[0] ?? null,
+        attempts: uniqueAttempts,
+        attemptLabel,
+        juzLabel,
+      };
     }
   }
 
-  return parseCompletionDayCaptions(day.valueDisplay);
+  const parsed = parseCompletionDayCaptions(day.valueDisplay);
+  return {
+    attempt: parsed.attempt,
+    attempts: parsed.attempt != null ? [parsed.attempt] : [],
+    attemptLabel: parsed.attempt != null ? `C${parsed.attempt}` : null,
+    juzLabel: parsed.juzLabel,
+  };
 }
 
 /**
@@ -384,7 +409,11 @@ export function mapQuranCompletionFrameWeekDays(
     const apiBestDay =
       Boolean(day.isBestDay) || state === "BEST_DAY";
 
-    const { attempt: dayAttempt, juzLabel } = resolveCompletionDayCaptions(day);
+    const {
+      attempt: dayAttempt,
+      attemptLabel,
+      juzLabel,
+    } = resolveCompletionDayCaptions(day);
     const attempt = frameHasActivity ? dayAttempt : null;
 
     // Merge structured tokens when possible ("j1, j2*" → full + partial).
@@ -406,6 +435,7 @@ export function mapQuranCompletionFrameWeekDays(
       day: day.dayLabel,
       dayType: isToday ? "today" : isFuture ? "future" : "past",
       completionNumber: attempt,
+      attemptLabel: frameHasActivity ? attemptLabel : null,
       fullJuzRanges: hasStructuredJuz ? mergedRanges : undefined,
       partialJuz: hasStructuredJuz ? mergedPartial : undefined,
     });
@@ -413,6 +443,9 @@ export function mapQuranCompletionFrameWeekDays(
     if (frameHasActivity) {
       progress.hasActivity = true;
       progress.completionNumber = attempt;
+      progress.attemptLabel =
+        attemptLabel ||
+        (attempt != null ? `C${attempt}` : progress.attemptLabel);
       if (progress.activityScore < 1) {
         progress.activityScore = 1;
       }
@@ -530,21 +563,24 @@ export function collectCompletionLoggedJuzFromFrame(
 
   for (const day of frame.week.days ?? []) {
     const captions = resolveCompletionDayCaptions(day);
-    if (
-      attemptFilter != null &&
-      captions.attempt != null &&
-      captions.attempt !== attemptFilter
-    ) {
-      continue;
-    }
-    // Day has juz but no attempt tag — only include when not filtering, or when
-    // the week totalLabel implies this attempt (legacy payloads).
-    if (attemptFilter != null && captions.attempt == null) {
-      const weekAttempt = parseCompletionAttemptNumber(
-        null,
-        frame.week.totalLabel,
-      );
-      if (weekAttempt != null && weekAttempt !== attemptFilter) continue;
+    if (attemptFilter != null) {
+      const dayAttempts =
+        captions.attempts.length > 0
+          ? captions.attempts
+          : captions.attempt != null
+            ? [captions.attempt]
+            : [];
+      if (dayAttempts.length > 0) {
+        if (!dayAttempts.includes(attemptFilter)) continue;
+      } else {
+        // Day has juz but no attempt tag — only include when week totalLabel
+        // implies this attempt (legacy payloads).
+        const weekAttempt = parseCompletionAttemptNumber(
+          null,
+          frame.week.totalLabel,
+        );
+        if (weekAttempt != null && weekAttempt !== attemptFilter) continue;
+      }
     }
 
     const label =

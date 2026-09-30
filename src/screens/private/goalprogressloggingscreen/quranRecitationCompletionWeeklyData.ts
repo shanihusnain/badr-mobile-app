@@ -9,7 +9,13 @@ export type CompletionJuzRange = {
 export type QuranCompletionDayProgress = {
   day: string;
   dayType: QuranRecitationDayType;
+  /** Primary / first attempt number for the day (legacy single-C callers). */
   completionNumber: number | null;
+  /**
+   * Under-ring attempt caption — `"C2"` or `"C1, C2"` when multiple Khatms
+   * were touched that day.
+   */
+  attemptLabel?: string | null;
   fullJuzRanges: string[];
   partialJuz: string[];
   computedLabel: string;
@@ -98,6 +104,8 @@ export function buildCompletionDayProgress(input: {
   day: string;
   dayType: QuranRecitationDayType;
   completionNumber: number | null;
+  /** e.g. "C1, C2" when multiple attempts that day. */
+  attemptLabel?: string | null;
   fullJuzRanges?: CompletionJuzRange[];
   partialJuz?: number[];
 }): QuranCompletionDayProgress {
@@ -112,11 +120,17 @@ export function buildCompletionDayProgress(input: {
     fullRanges,
     partialJuzNumbers,
   );
+  const attemptLabel =
+    input.attemptLabel?.trim() ||
+    (hasActivity && input.completionNumber != null
+      ? `C${input.completionNumber}`
+      : null);
 
   return {
     day: input.day,
     dayType: input.dayType,
     completionNumber: hasActivity ? input.completionNumber : null,
+    attemptLabel: hasActivity ? attemptLabel : null,
     fullJuzRanges,
     partialJuz,
     computedLabel: buildCompletionDayLabel(fullJuzRanges, partialJuz),
