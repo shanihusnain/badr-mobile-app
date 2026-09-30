@@ -184,8 +184,18 @@ export function getCompletionResumeCursor(
   if (fullyLogged.length > 0 || openPartialJuz != null) {
     if (openPartialJuz != null) {
       const nextFull = firstAvailableJuz(excludedSet, openPartialJuz + 1);
+      // If every juz is excluded, this Khatm is done — start the next at juz 1.
+      if (nextFull > MAX_JUZ && firstAvailableJuz(excludedSet) > MAX_JUZ) {
+        return {
+          minFullStartJuz: MIN_JUZ,
+          minPartialJuz: MIN_JUZ,
+          minStartAyat: 1,
+          excludedJuz: [],
+          openPartialJuz: null,
+        };
+      }
       return {
-        minFullStartJuz: nextFull,
+        minFullStartJuz: nextFull > MAX_JUZ ? MIN_JUZ : nextFull,
         minPartialJuz: openPartialJuz,
         minStartAyat: openPartialMinAyat,
         excludedJuz: fullyLogged,
@@ -194,6 +204,16 @@ export function getCompletionResumeCursor(
     }
 
     const next = firstAvailableJuz(excludedSet);
+    // Finished Khatm (juz 1–30 all logged) must not pin the stepper on J30.
+    if (next > MAX_JUZ) {
+      return {
+        minFullStartJuz: MIN_JUZ,
+        minPartialJuz: MIN_JUZ,
+        minStartAyat: 1,
+        excludedJuz: [],
+        openPartialJuz: null,
+      };
+    }
     return {
       minFullStartJuz: next,
       minPartialJuz: next,

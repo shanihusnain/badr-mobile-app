@@ -510,17 +510,48 @@ export function getQuranFrameCompletionProgress(frame: QuranGoalFrameData): {
 /**
  * Juz already logged in a completion frame week (from `day.completion.juzLabel`).
  * One week alone is not enough for resume — earlier weeks must be merged too.
+ *
+ * When `attemptNumber` is set, only days for that Khatm (C1/C2/…) count —
+ * otherwise finishing C1 (juz 1–30 logged) would still exclude them on C2.
  */
 export function collectCompletionLoggedJuzFromFrame(
   frame: QuranGoalFrameData | null | undefined,
+  options?: { attemptNumber?: number | null },
 ): { fullyLogged: number[]; openPartialJuz: number | null } {
   const fullyLogged = new Set<number>();
   let openPartialJuz: number | null = null;
   if (!frame) return { fullyLogged: [], openPartialJuz: null };
+  const attemptFilter =
+    options?.attemptNumber != null &&
+    Number.isFinite(options.attemptNumber) &&
+    options.attemptNumber > 0
+      ? Math.round(options.attemptNumber)
+      : null;
 
   for (const day of frame.week.days ?? []) {
+    const captions = resolveCompletionDayCaptions(day);
+    if (
+      attemptFilter != null &&
+      captions.attempt != null &&
+      captions.attempt !== attemptFilter
+    ) {
+      continue;
+    }
+    // Day has juz but no attempt tag — only include when not filtering, or when
+    // the week totalLabel implies this attempt (legacy payloads).
+    if (attemptFilter != null && captions.attempt == null) {
+      const weekAttempt = parseCompletionAttemptNumber(
+        null,
+        frame.week.totalLabel,
+      );
+      if (weekAttempt != null && weekAttempt !== attemptFilter) continue;
+    }
+
     const label =
-      day.completion?.juzLabel?.trim() || day.valueDisplay?.trim() || "";
+      captions.juzLabel?.trim() ||
+      day.completion?.juzLabel?.trim() ||
+      day.valueDisplay?.trim() ||
+      "";
     if (!label) continue;
     const parsed = parseJuzNumbersFromCompletionLabel(label);
     for (const juz of parsed.full) fullyLogged.add(juz);
@@ -538,12 +569,13 @@ export function collectCompletionLoggedJuzFromFrame(
  */
 export function mergeCompletionLoggedJuzFromFrames(
   frames: ReadonlyArray<QuranGoalFrameData | null | undefined>,
+  options?: { attemptNumber?: number | null },
 ): { fullyLogged: number[]; openPartialJuz: number | null } {
   const fullyLogged = new Set<number>();
   let openPartialJuz: number | null = null;
 
   for (const frame of frames) {
-    const collected = collectCompletionLoggedJuzFromFrame(frame);
+    const collected = collectCompletionLoggedJuzFromFrame(frame, options);
     for (const juz of collected.fullyLogged) fullyLogged.add(juz);
     if (collected.openPartialJuz != null) {
       openPartialJuz = collected.openPartialJuz;
@@ -561,6 +593,9 @@ export function mergeCompletionLoggedJuzFromFrames(
  * Where the next log may start inside the open Khatm.
  * Prefer `cycleFrames` (weeks 1‥active) so juz logged in prior weeks are
  * excluded; falls back to the displayed `frame` week only.
+ *
+ * Scopes day captions to the open attempt (C2 after 30 juz, etc.) so a finished
+ * Khatm does not leave the full-juz stepper stuck on J30–J30.
  */
 export function getQuranFrameCompletionResumeCursor(
   frame: QuranGoalFrameData,
@@ -570,13 +605,18 @@ export function getQuranFrameCompletionResumeCursor(
     toFiniteNumber(frame.goal.completed) ??
     toFiniteNumber(frame.items?.[0]?.completed) ??
     0;
+  const safeCompleted = Math.max(0, completedJuz);
+  // Open Khatm index: after exactly 30 juz, C1 is done → resume for C2.
+  const openAttempt = Math.floor(safeCompleted / 30) + 1;
 
   const sources =
     cycleFrames && cycleFrames.length > 0 ? cycleFrames : [frame];
-  const { fullyLogged, openPartialJuz } =
-    mergeCompletionLoggedJuzFromFrames(sources);
+  const { fullyLogged, openPartialJuz } = mergeCompletionLoggedJuzFromFrames(
+    sources,
+    { attemptNumber: openAttempt },
+  );
 
-  return getCompletionResumeCursor(Math.max(0, completedJuz), {
+  return getCompletionResumeCursor(safeCompleted, {
     fullyLoggedJuz: fullyLogged,
     openPartialJuz,
   });
