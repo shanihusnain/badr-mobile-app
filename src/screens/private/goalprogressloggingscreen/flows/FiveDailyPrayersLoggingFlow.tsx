@@ -294,6 +294,32 @@ export default function FiveDailyPrayersLoggingFlow({
       ? dayDetailRaw
       : null;
 
+  /** Prefer week query; fall back to dashboard frame when it already has this date. */
+  const frameForSelectedDate = useMemo(() => {
+    const dateIn = (candidate?: typeof frame) =>
+      candidate?.week.days.some(
+        (d) => d.date === selectedDate || d.date.startsWith(`${selectedDate}`),
+      );
+
+    if (dateIn(selectedDateWeekFrame)) return selectedDateWeekFrame;
+    if (dateIn(frame)) return frame;
+    return selectedDateWeekFrame ?? frame;
+  }, [selectedDateWeekFrame, frame, selectedDate]);
+
+  const frameDayForSelectedDate = useMemo(
+    () =>
+      frameForSelectedDate?.week.days.find(
+        (d) => d.date === selectedDate || d.date.startsWith(`${selectedDate}`),
+      ) ?? null,
+    [frameForSelectedDate, selectedDate],
+  );
+
+  const isSlotMenstruationFromFrame = useCallback(
+    (slotKey: FiveDailyPrayerSlot) =>
+      Boolean(frameDayForSelectedDate?.slots?.[slotKey]?.isMenstruationSlot),
+    [frameDayForSelectedDate],
+  );
+
   const loggedPrayersForSelectedDate = useMemo((): PrayerName[] => {
     if (!dayDetail?.slots) return [];
     return PRAYER_OPTIONS.filter(
@@ -303,18 +329,23 @@ export default function FiveDailyPrayersLoggingFlow({
 
   const lockedPrayersForSelectedDate = useMemo((): PrayerName[] => {
     if (!dayDetail?.slots) return [...PRAYER_OPTIONS];
-    return PRAYER_OPTIONS.filter(
-      (prayer) =>
-        !isFiveDailySlotSelectable(dayDetail.slots?.[PRAYER_TO_SLOT[prayer]]),
-    );
-  }, [dayDetail]);
+    return PRAYER_OPTIONS.filter((prayer) => {
+      const slotKey = PRAYER_TO_SLOT[prayer];
+      return !isFiveDailySlotSelectable(dayDetail.slots?.[slotKey], {
+        isMenstruationSlot: isSlotMenstruationFromFrame(slotKey),
+      });
+    });
+  }, [dayDetail, isSlotMenstruationFromFrame]);
 
   const selectablePrayers = useMemo(
     () =>
-      PRAYER_OPTIONS.filter((prayer) =>
-        isFiveDailySlotSelectable(dayDetail?.slots?.[PRAYER_TO_SLOT[prayer]]),
-      ),
-    [dayDetail],
+      PRAYER_OPTIONS.filter((prayer) => {
+        const slotKey = PRAYER_TO_SLOT[prayer];
+        return isFiveDailySlotSelectable(dayDetail?.slots?.[slotKey], {
+          isMenstruationSlot: isSlotMenstruationFromFrame(slotKey),
+        });
+      }),
+    [dayDetail, isSlotMenstruationFromFrame],
   );
 
   const hasSelectablePrayer = selectablePrayers.length > 0;

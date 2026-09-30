@@ -33,7 +33,8 @@ interface PrayerSelectStepProps {
   /**
    * When provided, already-logged prayers show a tick + green icon.
    * Logged prayers stay tappable so details can be edited.
-   * Selection is only blocked for unlogged `lockedPrayers` (canLog === false).
+   * Selection is only blocked for unlogged `lockedPrayers`
+   * (`canLog === false`, excluding menstruation / auto-qadha slots).
    */
   loggedPrayers?: readonly PrayerName[];
   /** Unlogged and not open for logging yet. Dimmed; cannot be selected. */

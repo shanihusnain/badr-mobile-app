@@ -355,6 +355,34 @@ export default function SunnahRawatibLoggingFlow({
     return selectedDateWeekFrame ?? frame;
   }, [selectedDateWeekFrame, frame, selectedDate]);
 
+  const isSunnahSlotMenstruationFromFrame = useCallback(
+    (prayerId: SunnahPrayerId) => {
+      const day = frameForSelectedDate?.week.days.find(
+        (d) => d.date === selectedDate || d.date.startsWith(`${selectedDate}`),
+      );
+      if (!day) return false;
+      if (day.slots) {
+        const raw = day.slots[SUNNAH_UI_TO_API_SLOT[prayerId]];
+        if (raw && typeof raw === "object") {
+          const flagged = (raw as { isMenstruationSlot?: boolean })
+            .isMenstruationSlot;
+          if (typeof flagged === "boolean") return flagged;
+        }
+        const hasAnySlotFlag = Object.values(day.slots).some(
+          (value) =>
+            value != null &&
+            typeof value === "object" &&
+            typeof (value as { isMenstruationSlot?: boolean })
+              .isMenstruationSlot === "boolean",
+        );
+        if (hasAnySlotFlag) return false;
+      }
+      // Older Sunnah payloads: whole-day flag, no per-slot menstruation.
+      return Boolean(day.isMenstruationDay);
+    },
+    [frameForSelectedDate, selectedDate],
+  );
+
   /** Slot targets for the selected date (day-detail `dailyTarget`, then frame config). */
   const slotTargetsForSelectedDate = useMemo(() => {
     const targets: Partial<Record<SunnahPrayerId, number>> = {};
@@ -437,11 +465,19 @@ export default function SunnahRawatibLoggingFlow({
   const lockedPrayersForSelectedDate = useMemo(() => {
     if (!dayDetail?.slots) return [];
     return availableSunnahOptions.filter((id) => {
-      const slot = dayDetail.slots?.[SUNNAH_UI_TO_API_SLOT[id]];
+      const apiKey = SUNNAH_UI_TO_API_SLOT[id];
+      const slot = dayDetail.slots?.[apiKey];
       if (isPrayerFullyLogged(id)) return false;
-      return !isSunnahRawatibSlotSelectable(slot);
+      return !isSunnahRawatibSlotSelectable(slot, {
+        isMenstruationSlot: isSunnahSlotMenstruationFromFrame(id),
+      });
     });
-  }, [dayDetail, availableSunnahOptions, isPrayerFullyLogged]);
+  }, [
+    dayDetail,
+    availableSunnahOptions,
+    isPrayerFullyLogged,
+    isSunnahSlotMenstruationFromFrame,
+  ]);
 
   /** Wait for day-detail before prayer select / forward (same as Five Daily). */
   const dayDetailLoadingState =
@@ -455,7 +491,14 @@ export default function SunnahRawatibLoggingFlow({
     if (!availableSunnahOptions.includes(selectedPrayer)) return false;
     if (isPrayerFullyLogged(selectedPrayer)) return false;
     const slot = dayDetail?.slots?.[SUNNAH_UI_TO_API_SLOT[selectedPrayer]];
-    if (slot && !isSunnahRawatibSlotSelectable(slot)) return false;
+    if (
+      slot &&
+      !isSunnahRawatibSlotSelectable(slot, {
+        isMenstruationSlot: isSunnahSlotMenstruationFromFrame(selectedPrayer),
+      })
+    ) {
+      return false;
+    }
     return true;
   }, [
     dayDetailLoadingState,
@@ -463,6 +506,7 @@ export default function SunnahRawatibLoggingFlow({
     selectedPrayer,
     isPrayerFullyLogged,
     dayDetail,
+    isSunnahSlotMenstruationFromFrame,
   ]);
 
   /** Slots fully completed by the user for this date — green tick on prayer select. */
@@ -554,13 +598,20 @@ export default function SunnahRawatibLoggingFlow({
       // Keep the choice while day-detail is still loading.
       if (!dayDetail?.slots) return current;
       const currentSlot = dayDetail.slots[SUNNAH_UI_TO_API_SLOT[current]];
-      if (!isSunnahRawatibSlotSelectable(currentSlot)) return null;
+      if (
+        !isSunnahRawatibSlotSelectable(currentSlot, {
+          isMenstruationSlot: isSunnahSlotMenstruationFromFrame(current),
+        })
+      ) {
+        return null;
+      }
       return current;
     });
   }, [
     availableSunnahOptions,
     dayDetail,
     isPrayerFullyLogged,
+    isSunnahSlotMenstruationFromFrame,
   ]);
 
   // Changing the log date should not keep a prior prayer highlighted.
