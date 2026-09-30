@@ -48,6 +48,7 @@ import { useOptionalQuranGoalFrameContext } from "../quranGoalFrameContext";
 import {
   getQuranFrameCycleEnd,
   getQuranFrameCycleStart,
+  getQuranFrameMemorisationItem,
 } from "@/src/utils/quranGoalFrameMap";
 import {
   isValidStartTime,
@@ -123,13 +124,6 @@ export default function QuranMemorisationHizbLoggingFlow({
   }, [activeHizbGoal, goals, selectedHizbId]);
 
   const hizbId = config?.hizbId ?? "";
-  const totalAyahs = config?.totalAyahs ?? 0;
-  const memorizedAyahs = Math.max(
-    config?.memorizedAyahs ?? 0,
-    hizbId ? getMemorizedHizbAyahCount(hizbId) : 0,
-  );
-  const remainingAyahs = Math.max(0, totalAyahs - memorizedAyahs);
-  const minStartAyah = getNextHizbMemorisationAyah(hizbId, memorizedAyahs);
   const itemNumber = useMemo(() => {
     const fromActive =
       activeHizbGoal?.id === selectedHizbId
@@ -141,6 +135,23 @@ export default function QuranMemorisationHizbLoggingFlow({
     const fromId = Number(hizbId);
     return fromActive ?? fromList ?? (Number.isFinite(fromId) ? fromId : NaN);
   }, [activeHizbGoal, goals, hizbId, selectedHizbId]);
+  const frameItem = useMemo(() => {
+    const frame = quranFrame?.frame;
+    if (!frame || !Number.isFinite(itemNumber) || itemNumber <= 0) return null;
+    return getQuranFrameMemorisationItem(frame, itemNumber);
+  }, [itemNumber, quranFrame?.frame]);
+  /** Prefer live frame `target` over mapped goal totals (avoids stale local counts). */
+  const totalAyahs = useMemo(() => {
+    const fromFrame = Math.round(Number(frameItem?.target) || 0);
+    if (fromFrame > 0) return fromFrame;
+    return config?.totalAyahs ?? 0;
+  }, [config?.totalAyahs, frameItem?.target]);
+  const memorizedAyahs = Math.max(
+    config?.memorizedAyahs ?? 0,
+    hizbId ? getMemorizedHizbAyahCount(hizbId) : 0,
+  );
+  const remainingAyahs = Math.max(0, totalAyahs - memorizedAyahs);
+  const minStartAyah = getNextHizbMemorisationAyah(hizbId, memorizedAyahs);
 
   const [internalFlowMode, setInternalFlowMode] =
     useState<FlowMode>("collapsed");
@@ -478,11 +489,30 @@ export default function QuranMemorisationHizbLoggingFlow({
             styles={styles}
           />
         );
-      case "ayahCount":
+      case "ayahCount": {
+        const activeGoal =
+          activeHizbGoal?.id === selectedHizbId
+            ? activeHizbGoal
+            : goals.find((goal) => goal.id === selectedHizbId);
         return (
           <MemorisationHizbAyahCountStep
             hizbId={hizbId}
             totalAyahs={totalAyahs}
+            title={
+              frameItem?.title?.trim() ||
+              activeGoal?.displayName ||
+              activeGoal?.hizbName
+            }
+            subtitle={
+              frameItem?.subtitle?.trim() || activeGoal?.subtitle
+            }
+            rangeLabel={
+              activeGoal?.rangeLabel ||
+              // Fall back to anything after "|" in the live frame title.
+              (frameItem?.title?.includes("|")
+                ? frameItem.title.split("|").slice(1).join("|").trim()
+                : undefined)
+            }
             minStartAyah={minStartAyah}
             startAyah={startAyah}
             endAyah={endAyah}
@@ -491,6 +521,7 @@ export default function QuranMemorisationHizbLoggingFlow({
             styles={styles}
           />
         );
+      }
       case "timeSpent":
         return (
           <DurationStep

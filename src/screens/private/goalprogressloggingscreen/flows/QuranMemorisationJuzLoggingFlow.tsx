@@ -446,12 +446,19 @@ export default function QuranMemorisationJuzLoggingFlow({
             styles={styles}
           />
         );
-      case "ayahCount":
+      case "ayahCount": {
+        const activeGoal =
+          activeJuzGoal?.id === selectedJuzId
+            ? activeJuzGoal
+            : goals.find((goal) => goal.id === selectedJuzId);
         return (
           <MemorisationJuzAyahCountStep
             juzId={juzId}
             juzNumber={juzNumber}
             totalAyahs={totalAyahs}
+            title={activeGoal?.displayName ?? activeGoal?.juzName}
+            subtitle={activeGoal?.subtitle}
+            rangeLabel={activeGoal?.rangeLabel}
             minStartAyah={minStartAyah}
             startAyah={startAyah}
             endAyah={endAyah}
@@ -460,6 +467,7 @@ export default function QuranMemorisationJuzLoggingFlow({
             styles={styles}
           />
         );
+      }
       case "timeSpent":
         return (
           <DurationStep

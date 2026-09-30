@@ -29,10 +29,12 @@ type QuranGoalFrameContextValue = {
   itemNumber: number | null;
   setItemNumber: (itemNumber: number) => void;
   /**
-   * RECITATION_COMPLETION — frames for weeks 1‥active (cycle-wide juz resume).
-   * Empty for other goal types.
+   * RECITATION_COMPLETION + MEMORIZATION_* — frames for weeks 1‥active
+   * (cycle-wide juz/ayah resume). Empty for other goal types.
    */
   completionCycleFrames: QuranGoalFrameData[];
+  /** Alias of completionCycleFrames for memorisation callers. */
+  memorisationCycleFrames: QuranGoalFrameData[];
   openInsights?: () => void;
 };
 
@@ -79,6 +81,14 @@ export function QuranGoalFrameProvider({
   const quranGoalType = resolveQuranTypeFromGoalId(goalId);
   const requiresItemNumber = quranTypeRequiresItemNumber(quranGoalType);
   const isCompletionGoal = quranGoalType === "RECITATION_COMPLETION";
+  const isMemorisationGoal =
+    quranGoalType === "MEMORIZATION_SURAH" ||
+    quranGoalType === "MEMORIZATION_JUZ" ||
+    quranGoalType === "MEMORIZATION_HIZB";
+  const isRecitationJuzGoal = quranGoalType === "RECITATION_JUZ";
+  /** Prefetch weeks 1‥active for cycle-wide verse/juz resume. */
+  const needsCycleWeekPrefetch =
+    isCompletionGoal || isMemorisationGoal || isRecitationJuzGoal;
   const [weekNumber, setWeekNumberState] = React.useState<number | null>(null);
   const [hasUserSelectedWeek, setHasUserSelectedWeek] = React.useState(false);
   const [itemNumber, setItemNumberState] = React.useState<number | null>(
@@ -161,15 +171,15 @@ export function QuranGoalFrameProvider({
     }
   }, [data, itemNumber]);
 
-  const completionWeekNumbers = useMemo(() => {
-    if (!isCompletionGoal || !frameEnabled) return [] as number[];
+  const cycleWeekNumbers = useMemo(() => {
+    if (!needsCycleWeekPrefetch || !frameEnabled) return [] as number[];
     const active = cycleActiveWeek ?? resolveCycleActiveWeek(data);
     if (active == null || active < 1) return [];
     return Array.from({ length: active }, (_, index) => index + 1);
-  }, [isCompletionGoal, frameEnabled, cycleActiveWeek, data]);
+  }, [needsCycleWeekPrefetch, frameEnabled, cycleActiveWeek, data]);
 
-  const completionWeekQueries = useQueries({
-    queries: completionWeekNumbers.map((week) => ({
+  const cycleWeekQueries = useQueries({
+    queries: cycleWeekNumbers.map((week) => ({
       queryKey: quranGoalFrameQueryKey(
         quranGoalType ?? "",
         week,
@@ -184,10 +194,10 @@ export function QuranGoalFrameProvider({
     })),
   });
 
-  const completionCycleFrames = useMemo(() => {
-    if (!isCompletionGoal) return [] as QuranGoalFrameData[];
+  const cycleFrames = useMemo(() => {
+    if (!needsCycleWeekPrefetch) return [] as QuranGoalFrameData[];
     const frames: QuranGoalFrameData[] = [];
-    for (const query of completionWeekQueries) {
+    for (const query of cycleWeekQueries) {
       if (query.data) frames.push(query.data);
     }
     // Include the primary "current" response if week queries haven't landed yet.
@@ -198,7 +208,11 @@ export function QuranGoalFrameProvider({
       frames.push(data);
     }
     return frames;
-  }, [isCompletionGoal, completionWeekQueries, data]);
+  }, [needsCycleWeekPrefetch, cycleWeekQueries, data]);
+
+  const completionCycleFrames = cycleFrames;
+  const memorisationCycleFrames =
+    isMemorisationGoal || isRecitationJuzGoal ? cycleFrames : [];
 
   const setWeekNumber = React.useCallback((nextWeek: number) => {
     setHasUserSelectedWeek(true);
@@ -226,6 +240,7 @@ export function QuranGoalFrameProvider({
       itemNumber,
       setItemNumber,
       completionCycleFrames,
+      memorisationCycleFrames,
       openInsights: onOpenInsights,
     }),
     [
@@ -241,6 +256,7 @@ export function QuranGoalFrameProvider({
       itemNumber,
       setItemNumber,
       completionCycleFrames,
+      memorisationCycleFrames,
       onOpenInsights,
     ],
   );

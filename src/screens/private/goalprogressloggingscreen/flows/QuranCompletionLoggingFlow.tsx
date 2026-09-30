@@ -24,7 +24,7 @@ import {
   WhiteTimerIcon,
 } from "@/assets/icons";
 import { getQuranCompletionFlowDefinition } from "../loggingFlowRegistry";
-import { getJuzVerseCountFromMap } from "../quranJuzVerseMap";
+import { resolveApiJuzVerseCount } from "../quranApiVerseSpan";
 import { useOptionalQuranGoalFrameContext } from "../quranGoalFrameContext";
 import {
   getQuranFrameCompletionProgress,
@@ -178,6 +178,15 @@ export default function QuranCompletionLoggingFlow({
     [committedCompletionType],
   );
 
+  const partialJuzVerseCount = useMemo(
+    () =>
+      resolveApiJuzVerseCount({
+        juzNumber: partialJuz,
+        items: quranFrame?.frame?.items,
+      }),
+    [partialJuz, quranFrame?.frame?.items],
+  );
+
   const minPartialJuz = useMemo(
     () =>
       getCompletionMinPartialJuz(
@@ -197,10 +206,10 @@ export default function QuranCompletionLoggingFlow({
     }
     // Already-logged juz should not be selected; if they are, treat as locked.
     if (resumeCursor.excludedJuz.includes(partialJuz)) {
-      return getJuzVerseCountFromMap(partialJuz) + 1;
+      return (partialJuzVerseCount > 0 ? partialJuzVerseCount : 9999) + 1;
     }
     return 1;
-  }, [partialJuz, resumeCursor]);
+  }, [partialJuz, partialJuzVerseCount, resumeCursor]);
 
   useEffect(() => {
     setStepIndex((index) => Math.min(index, Math.max(steps.length - 1, 0)));
@@ -231,7 +240,10 @@ export default function QuranCompletionLoggingFlow({
   ]);
 
   useEffect(() => {
-    const maxAyat = getJuzVerseCountFromMap(partialJuz);
+    const maxAyat =
+      partialJuzVerseCount > 0
+        ? partialJuzVerseCount
+        : Math.max(minAyatStart, 1);
     const nextStart = Math.min(Math.max(minAyatStart, 1), maxAyat);
     setStartAyat(nextStart);
     setEndAyat(
@@ -239,7 +251,7 @@ export default function QuranCompletionLoggingFlow({
         ? maxAyat
         : Math.min(Math.max(nextStart, 1), maxAyat),
     );
-  }, [partialJuz, minAyatStart]);
+  }, [partialJuz, minAyatStart, partialJuzVerseCount]);
 
   useEffect(() => {
     if (committedCompletionType !== "both") return;
@@ -312,6 +324,9 @@ export default function QuranCompletionLoggingFlow({
             startAyat,
             endAyat,
             minAyatStart,
+            partialJuzVerseCount > 0
+              ? partialJuzVerseCount
+              : Math.max(endAyat, minAyatStart, 1),
           );
         case "timeSpentFull":
           return isValidTimeSpent(fullDuration.hours, fullDuration.minutes);
@@ -336,6 +351,7 @@ export default function QuranCompletionLoggingFlow({
       partialDuration.hours,
       partialDuration.minutes,
       partialJuz,
+      partialJuzVerseCount,
       resumeCursor.excludedJuz,
       resumeCursor.minFullStartJuz,
       selectedDate,
@@ -606,6 +622,11 @@ export default function QuranCompletionLoggingFlow({
             endAyat={endAyat}
             minStartAyat={minAyatStart}
             freezeStartHandle
+            verseCount={
+              partialJuzVerseCount > 0
+                ? partialJuzVerseCount
+                : Math.max(endAyat, minAyatStart, 1)
+            }
             onChangeStartAyat={setStartAyat}
             onChangeEndAyat={setEndAyat}
             styles={styles}

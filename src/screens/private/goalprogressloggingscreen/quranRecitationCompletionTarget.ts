@@ -329,8 +329,12 @@ export function isValidAyatRange(
   startAyat: number,
   endAyat: number,
   minStartAyat = 1,
+  verseCount?: number,
 ): boolean {
-  const maxAyat = getJuzVerseCountFromMap(juz);
+  const maxAyat =
+    verseCount != null && verseCount > 0
+      ? Math.round(verseCount)
+      : Math.max(endAyat, minStartAyat, 1);
   const minStart = Math.min(Math.max(1, Math.round(minStartAyat)), maxAyat);
   const start = Math.round(startAyat);
   const end = Math.round(endAyat);

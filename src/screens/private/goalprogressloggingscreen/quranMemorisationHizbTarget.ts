@@ -7,7 +7,6 @@ import {
   getHizbMemorisationGoalById,
   type HizbMemorisationGoal,
 } from "./quranMemorisationHizbGoals";
-import { getHizbVerseCount } from "./quranHizbVerseMap";
 
 export type HizbMemorisationGoalId = "quran-memorisationByHizb";
 
@@ -56,7 +55,7 @@ export function toMemorisationTargetConfigFromHizbGoal(
   return {
     hizbId: goal.id,
     hizbName: goal.hizbName || goal.displayName,
-    totalAyahs: Math.max(1, goal.totalAyahs || getHizbVerseCount(goal.id)),
+    totalAyahs: Math.max(0, goal.totalAyahs || 0),
     memorizedAyahs: Math.max(0, goal.memorizedAyahs ?? 0),
   };
 }
@@ -85,7 +84,7 @@ export function isValidHizbMemorisationAyahRange(
   const total =
     options?.totalAyahs != null && options.totalAyahs > 0
       ? options.totalAyahs
-      : getHizbVerseCount(hizbId);
+      : 0;
   const start = Math.round(startAyah);
   const end = Math.round(endAyah);
 
@@ -108,7 +107,7 @@ export function toHizbMemorisationTargetConfig(
   return {
     hizbId,
     hizbName,
-    totalAyahs: Math.max(1, totalAyahs ?? (getHizbVerseCount(hizbId) || 1)),
+    totalAyahs: Math.max(0, totalAyahs ?? 0),
     memorizedAyahs: Math.max(0, memorizedAyahs ?? 0),
   };
 }
@@ -124,11 +123,7 @@ export function getMemorisationTargetConfigForHizb(
   if (goal) return toMemorisationTargetConfigFromHizbGoal(goal);
   const fromId = Number(hizbId);
   if (Number.isFinite(fromId) && fromId > 0) {
-    return toHizbMemorisationTargetConfig(
-      hizbId,
-      `Hizb ${fromId}`,
-      getHizbVerseCount(hizbId) || undefined,
-    );
+    return toHizbMemorisationTargetConfig(hizbId, `Hizb ${fromId}`, 0);
   }
   return null;
 }

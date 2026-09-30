@@ -17,6 +17,7 @@ import {
   parseJuzNumbersFromCompletionLabel,
   type CompletionResumeCursor,
 } from "@/src/screens/private/goalprogressloggingscreen/quranRecitationCompletionTarget";
+import { getJuzVerseCountFromMap } from "@/src/screens/private/goalprogressloggingscreen/quranJuzVerseMap";
 
 export function formatQuranFrameWeekRange(weekStart: string, weekEnd: string) {
   const start = moment(weekStart, "YYYY-MM-DD");
@@ -581,6 +582,55 @@ export function getQuranFrameCompletionResumeCursor(
   });
 }
 
+/**
+ * RECITATION_JUZ — which juz are already fully logged / open partial across
+ * weeks 1‥active (from `j5` / `j6-7` / `j8*` day captions).
+ */
+export function getQuranFrameJuzRecitationResume(
+  frame: QuranGoalFrameData,
+  cycleFrames?: ReadonlyArray<QuranGoalFrameData | null | undefined>,
+): {
+  excludedJuz: number[];
+  openPartialJuz: number | null;
+  /** First selectable ayah when continuing the open partial juz. */
+  minStartAyat: number;
+} {
+  const sources =
+    cycleFrames && cycleFrames.length > 0 ? cycleFrames : [frame];
+  const { fullyLogged, openPartialJuz } =
+    mergeCompletionLoggedJuzFromFrames(sources);
+
+  let minStartAyat = 1;
+  if (openPartialJuz != null) {
+    const verseCount = Math.max(1, getJuzVerseCountFromMap(openPartialJuz));
+    let ayahsDone = 0;
+    for (const source of sources) {
+      if (!source) continue;
+      for (const day of source.week.days ?? []) {
+        const label =
+          day.completion?.juzLabel?.trim() || day.valueDisplay?.trim() || "";
+        const parsed = parseJuzNumbersFromCompletionLabel(label);
+        if (parsed.partialJuz !== openPartialJuz) continue;
+        const raw = toFiniteNumber(day.value);
+        if (raw == null || raw <= 0) continue;
+        if (raw < 1) {
+          ayahsDone = Math.max(ayahsDone, Math.floor(raw * verseCount));
+        } else if (raw < verseCount) {
+          // Absolute ayahs logged that sitting within the juz.
+          ayahsDone = Math.max(ayahsDone, Math.floor(raw));
+        }
+      }
+    }
+    minStartAyat = ayahsDone > 0 ? Math.min(verseCount, ayahsDone + 1) : 1;
+  }
+
+  return {
+    excludedJuz: fullyLogged,
+    openPartialJuz,
+    minStartAyat,
+  };
+}
+
 /** Fractional juz completed this week from `week.totalLabel` / `totalDisplay`. */
 export function getQuranFrameJuzCompletedThisWeek(
   frame: QuranGoalFrameData,
@@ -659,6 +709,93 @@ export function getQuranFrameMemorisationProgress(
   return {
     memorizedAyahs,
     totalAyahs,
+    remainingAyahs,
+    progressPercent,
+    completed,
+  };
+}
+
+/**
+ * Highest ayah already covered in a memorisation day caption.
+ * Prefers absolute ranges (`1-78` → 78); falls back to `day.value` as a count.
+ */
+function memorisationDayAyahHighWater(day: QuranGoalFrameDay): {
+  rangeEnd: number;
+  valueCount: number;
+} {
+  const label = day.valueDisplay?.trim() || "";
+  const range = label.match(/(\d+)\s*[-–]\s*(\d+)/);
+  if (range) {
+    const end = Number(range[2]);
+    if (Number.isFinite(end) && end > 0) {
+      return { rangeEnd: Math.round(end), valueCount: 0 };
+    }
+  }
+  const value = toFiniteNumber(day.value);
+  return {
+    rangeEnd: 0,
+    valueCount: value != null && value > 0 ? Math.round(value) : 0,
+  };
+}
+
+/**
+ * Cycle-wide memorised ayah count for a surah/juz/hizb item.
+ * Merges `item.completed` with week-day captions across weeks 1‥active so
+ * logs from prior weeks still lock the slider start (same issue as completion).
+ */
+export function getQuranFrameMemorisationProgressFromCycle(
+  frame: QuranGoalFrameData,
+  cycleFrames?: ReadonlyArray<QuranGoalFrameData | null | undefined>,
+  itemNumber?: number | null,
+) {
+  const base = getQuranFrameMemorisationProgress(frame, itemNumber);
+  const sources =
+    cycleFrames && cycleFrames.length > 0 ? cycleFrames : [frame];
+
+  let itemCompleted = 0;
+  let rangeHighWater = 0;
+  let valueSum = 0;
+  let sawAbsoluteRange = false;
+  let totalAyahs = base.totalAyahs;
+
+  for (const source of sources) {
+    if (!source) continue;
+    const item = getQuranFrameMemorisationItem(source, itemNumber);
+    const completed = Math.round(toFiniteNumber(item?.completed) ?? 0);
+    if (completed > itemCompleted) itemCompleted = completed;
+    const target = Math.round(toFiniteNumber(item?.target) ?? 0);
+    if (target > totalAyahs) totalAyahs = target;
+
+    for (const day of source.week.days ?? []) {
+      const { rangeEnd, valueCount } = memorisationDayAyahHighWater(day);
+      if (rangeEnd > 0) {
+        sawAbsoluteRange = true;
+        if (rangeEnd > rangeHighWater) rangeHighWater = rangeEnd;
+      }
+      valueSum += valueCount;
+    }
+  }
+
+  const memorizedAyahs = Math.max(
+    base.memorizedAyahs,
+    itemCompleted,
+    rangeHighWater,
+    // Only sum day.value counts when the API never sent absolute `1-N` ranges
+    // (otherwise max-of-ends is the correct high-water mark).
+    sawAbsoluteRange ? 0 : valueSum,
+  );
+  const safeTotal = Math.max(totalAyahs, base.totalAyahs);
+  const remainingAyahs = Math.max(0, safeTotal - memorizedAyahs);
+  const progressPercent =
+    safeTotal > 0
+      ? Math.min(100, Math.round((memorizedAyahs / safeTotal) * 100))
+      : base.progressPercent;
+  const completed =
+    progressPercent >= 100 || (safeTotal > 0 && memorizedAyahs >= safeTotal);
+
+  return {
+    memorizedAyahs,
+    totalAyahs: safeTotal,
     remainingAyahs,
     progressPercent,
     completed,

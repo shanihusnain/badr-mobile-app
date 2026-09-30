@@ -481,11 +481,18 @@ export default function QuranMemorisationLoggingFlow({
             styles={styles}
           />
         );
-      case "ayahCount":
+      case "ayahCount": {
+        const activeGoal =
+          activeSurahGoal?.id === selectedSurahId
+            ? activeSurahGoal
+            : goals.find((goal) => goal.id === selectedSurahId);
         return (
           <MemorisationAyahCountStep
             surahName={config.surahName}
+            surahId={surahId}
             totalAyahs={totalAyahs}
+            title={activeGoal?.surahName}
+            subtitle={activeGoal?.subtitle}
             minStartAyah={minStartAyah}
             startAyah={startAyah}
             endAyah={endAyah}
@@ -494,6 +501,7 @@ export default function QuranMemorisationLoggingFlow({
             styles={styles}
           />
         );
+      }
       case "timeSpent":
         return (
           <DurationStep

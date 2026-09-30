@@ -12,10 +12,7 @@ import { fonts } from "@/assets/fonts";
 import { FilledChevronIconForQuranGoal } from "@/assets/icons/FilledChevronIconForQuranGoal";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import { useTranslation } from "react-i18next";
-import {
-  formatJuzVerseLabel,
-  getJuzVerseCountFromMap,
-} from "../quranJuzVerseMap";
+import { formatJuzVerseLabel } from "../quranJuzVerseMap";
 
 type Props = {
   juz: number;
@@ -28,7 +25,11 @@ type Props = {
    * locked at minStartAyat and only the end thumb moves.
    */
   freezeStartHandle?: boolean;
-  verseCount?: number;
+  /**
+   * Total verses on the track. Required for memorisation / recitation ayat
+   * steps — callers must pass API (or known) totals; no silent local-map fallback.
+   */
+  verseCount: number;
   formatVerseLabel?: (ayat: number) => string;
   onChangeStartAyat: (value: number) => void;
   onChangeEndAyat: (value: number) => void;
@@ -254,7 +255,12 @@ export function QuranAyatRangeSlider({
   const [measuredStartLabelW, setMeasuredStartLabelW] = useState(0);
   const [measuredEndLabelW, setMeasuredEndLabelW] = useState(0);
 
-  const maxAyat = Math.max(verseCount ?? getJuzVerseCountFromMap(juz), 1);
+  const maxAyat = Math.max(
+    verseCount != null && Number.isFinite(verseCount) && verseCount > 0
+      ? Math.round(verseCount)
+      : 1,
+    1,
+  );
   const safeMinStart = Math.min(Math.max(Math.round(minStartAyat), 1), maxAyat);
   // Start thumb is always fixed at the progress boundary; only the end moves.
   // Callers may pass freezeStartHandle={false} only for rare dual-thumb editing.
@@ -351,7 +357,9 @@ export function QuranAyatRangeSlider({
   const startHitLeft = TRACK_HORIZONTAL_INSET + renderStartX - THUMB_HIT_RADIUS;
   const endHitLeft = TRACK_HORIZONTAL_INSET + renderEndX - THUMB_HIT_RADIUS;
 
-  const completedCount = safeEnd - safeStart + 1;
+  // Overall progress through the end thumb (ayahs 1‥end), not the selected
+  // span. On a return visit with start frozen at e.g. 16 and end at 30 → 30/67.
+  const completedCount = safeEnd;
   const percentCompleted =
     maxAyat > 0 ? Math.round((completedCount / maxAyat) * 100) : 0;
 

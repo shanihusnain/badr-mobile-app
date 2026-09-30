@@ -33,7 +33,8 @@ import {
 } from "@/src/api/mutations/useLogQuranRecitationJuzGoal";
 import { useGetQuranGoalByType } from "@/src/api/queries/useGetQuranGoalByType";
 import { getQuranJuzFlowDefinition } from "../loggingFlowRegistry";
-import { getJuzVerseCountFromMap, getJuzVerseMetadata } from "../quranJuzVerseMap";
+import { resolveApiJuzVerseCount } from "../quranApiVerseSpan";
+import { getJuzVerseMetadata } from "../quranJuzVerseMap";
 import {
   appendJuzLog,
   buildJuzLogRecordFromEntry,
@@ -44,6 +45,7 @@ import {
   getQuranFrameCycleEnd,
   getQuranFrameCycleStart,
   getQuranFrameJuzGoalRange,
+  getQuranFrameJuzRecitationResume,
 } from "@/src/utils/quranGoalFrameMap";
 import {
   getJuzRangeFromDetail,
@@ -66,6 +68,7 @@ import {
   type CompletionDurationValue,
   type QuranJuzStepId,
 } from "../quranRecitationJuzTarget";
+import { snapJuzOffExcluded } from "../quranRecitationCompletionTarget";
 import type { QuranJuzLogEntry } from "../types";
 
 function splitDurationMinutes(total: number, parts: number): number[] {
@@ -198,47 +201,107 @@ export default function QuranJuzLoggingFlow({
     });
   }, [minSelectableDate, maxSelectableDate]);
 
+  const frameResume = useMemo(() => {
+    const frame = quranFrame?.frame;
+    if (!frame) {
+      return {
+        excludedJuz: [] as number[],
+        openPartialJuz: null as number | null,
+        minStartAyat: 1,
+      };
+    }
+    return getQuranFrameJuzRecitationResume(
+      frame,
+      quranFrame?.completionCycleFrames,
+    );
+  }, [quranFrame?.completionCycleFrames, quranFrame?.frame]);
+
   const steps = useMemo(
     () => buildJuzRecitationSteps(committedLoggingType),
     [committedLoggingType],
   );
 
-  const minAyatStart = useMemo(
-    () => getMinAyatStartForJuz(partialJuz),
-    [partialJuz],
-  );
+  const partialJuzVerseCount = useMemo(() => {
+    const fromFrame = resolveApiJuzVerseCount({
+      juzNumber: partialJuz,
+      items: quranFrame?.frame?.items,
+    });
+    if (fromFrame > 0) return fromFrame;
+    return resolveApiJuzVerseCount({
+      juzNumber: partialJuz,
+      items: juzGoalDetail?.items,
+    });
+  }, [juzGoalDetail?.items, partialJuz, quranFrame?.frame?.items]);
 
-  const minPartialJuz = useMemo(
-    () =>
-      getMinPartialJuz(
-        committedLoggingType,
-        fullEndJuz,
-        goalMinJuz,
-        goalMaxJuz,
-      ),
-    [committedLoggingType, fullEndJuz, goalMaxJuz, goalMinJuz],
-  );
+  const minAyatStart = useMemo(() => {
+    const localMin = getMinAyatStartForJuz(partialJuz);
+    if (
+      frameResume.openPartialJuz != null &&
+      partialJuz === frameResume.openPartialJuz
+    ) {
+      return Math.max(localMin, frameResume.minStartAyat);
+    }
+    if (frameResume.excludedJuz.includes(partialJuz)) {
+      return (partialJuzVerseCount > 0 ? partialJuzVerseCount : 9999) + 1;
+    }
+    return localMin;
+  }, [frameResume, partialJuz, partialJuzVerseCount]);
+
+  const minPartialJuz = useMemo(() => {
+    const base = getMinPartialJuz(
+      committedLoggingType,
+      fullEndJuz,
+      goalMinJuz,
+      goalMaxJuz,
+    );
+    return snapJuzOffExcluded(
+      base,
+      goalMinJuz,
+      goalMaxJuz,
+      frameResume.excludedJuz,
+    );
+  }, [
+    committedLoggingType,
+    frameResume.excludedJuz,
+    fullEndJuz,
+    goalMaxJuz,
+    goalMinJuz,
+  ]);
 
   // Clamp steppers into the configured goal range once detail/frame loads.
   useEffect(() => {
     const clampToGoal = (value: number) =>
       Math.min(goalMaxJuz, Math.max(goalMinJuz, value));
-    setFullStartJuz((prev) => clampToGoal(prev));
-    setFullEndJuz((prev) => clampToGoal(prev));
-    setPartialJuz((prev) => clampToGoal(prev));
-  }, [goalMaxJuz, goalMinJuz]);
+    const excluded = frameResume.excludedJuz;
+    setFullStartJuz((prev) =>
+      snapJuzOffExcluded(clampToGoal(prev), goalMinJuz, goalMaxJuz, excluded),
+    );
+    setFullEndJuz((prev) =>
+      snapJuzOffExcluded(clampToGoal(prev), goalMinJuz, goalMaxJuz, excluded),
+    );
+    setPartialJuz((prev) =>
+      snapJuzOffExcluded(clampToGoal(prev), goalMinJuz, goalMaxJuz, excluded),
+    );
+  }, [frameResume.excludedJuz, goalMaxJuz, goalMinJuz]);
 
   useEffect(() => {
     setStepIndex((index) => Math.min(index, Math.max(steps.length - 1, 0)));
   }, [steps.length]);
 
   useEffect(() => {
-    const maxAyat = getJuzVerseCountFromMap(partialJuz);
+    const maxAyat =
+      partialJuzVerseCount > 0
+        ? partialJuzVerseCount
+        : Math.max(minAyatStart, 1);
     const nextStart = Math.min(Math.max(minAyatStart, 1), maxAyat);
     setStartAyat(nextStart);
     // After prior progress, park end at max so the back chevron slides left.
-    setEndAyat(minAyatStart > 1 ? maxAyat : Math.min(Math.max(nextStart, 1), maxAyat));
-  }, [partialJuz, minAyatStart]);
+    setEndAyat(
+      minAyatStart > 1
+        ? maxAyat
+        : Math.min(Math.max(nextStart, 1), maxAyat),
+    );
+  }, [partialJuz, minAyatStart, partialJuzVerseCount]);
 
   useEffect(() => {
     if (committedLoggingType !== "both") return;
@@ -288,19 +351,26 @@ export default function QuranJuzLoggingFlow({
         case "completionType":
           return isValidCompletionType(loggingType);
         case "fullJuzRange":
-          return isValidGoalJuzRange(
-            fullStartJuz,
-            fullEndJuz,
-            goalMinJuz,
-            goalMaxJuz,
+          return (
+            isValidGoalJuzRange(
+              fullStartJuz,
+              fullEndJuz,
+              goalMinJuz,
+              goalMaxJuz,
+            ) &&
+            !frameResume.excludedJuz.some(
+              (juz) => juz >= fullStartJuz && juz <= fullEndJuz,
+            )
           );
         case "partialJuz":
-          return isValidPartialJuzForType(
-            partialJuz,
-            committedLoggingType,
-            fullEndJuz,
-            goalMinJuz,
-            goalMaxJuz,
+          return (
+            isValidPartialJuzForType(
+              partialJuz,
+              committedLoggingType,
+              fullEndJuz,
+              goalMinJuz,
+              goalMaxJuz,
+            ) && !frameResume.excludedJuz.includes(partialJuz)
           );
         case "ayatRange":
           return isValidJuzAyatRange(
@@ -308,6 +378,9 @@ export default function QuranJuzLoggingFlow({
             startAyat,
             endAyat,
             minAyatStart,
+            partialJuzVerseCount > 0
+              ? partialJuzVerseCount
+              : Math.max(endAyat, minAyatStart, 1),
           );
         case "timeSpentFull":
           return isValidTimeSpent(fullDuration.hours, fullDuration.minutes);
@@ -323,6 +396,7 @@ export default function QuranJuzLoggingFlow({
     [
       committedLoggingType,
       endAyat,
+      frameResume.excludedJuz,
       fullDuration.hours,
       fullDuration.minutes,
       fullEndJuz,
@@ -334,6 +408,7 @@ export default function QuranJuzLoggingFlow({
       partialDuration.hours,
       partialDuration.minutes,
       partialJuz,
+      partialJuzVerseCount,
       selectedDate,
       startAyat,
       startHour,
@@ -460,7 +535,16 @@ export default function QuranJuzLoggingFlow({
         }
         const durations = splitDurationMinutes(fullMinutes, juzNumbers.length);
         juzNumbers.forEach((juz, index) => {
-          const toAyah = getJuzVerseCountFromMap(juz);
+          const toAyah =
+            resolveApiJuzVerseCount({
+              juzNumber: juz,
+              items: quranFrame?.frame?.items,
+            }) ||
+            resolveApiJuzVerseCount({
+              juzNumber: juz,
+              items: juzGoalDetail?.items,
+            }) ||
+            1;
           payloads.push({
             quranGoalType: "RECITATION_JUZ",
             date: selectedDate,
@@ -598,6 +682,7 @@ export default function QuranJuzLoggingFlow({
             styles={styles}
             minJuz={goalMinJuz}
             maxJuz={goalMaxJuz}
+            excludedJuz={frameResume.excludedJuz}
           />
         );
       case "partialJuz":
@@ -608,6 +693,7 @@ export default function QuranJuzLoggingFlow({
                 value={partialJuz}
                 min={minPartialJuz}
                 max={goalMaxJuz}
+                excluded={frameResume.excludedJuz}
                 onChange={setPartialJuz}
                 styles={styles}
               />
@@ -638,7 +724,12 @@ export default function QuranJuzLoggingFlow({
             startAyat={startAyat}
             endAyat={endAyat}
             minStartAyat={minAyatStart}
-            freezeStartHandle={minAyatStart > 1}
+            freezeStartHandle
+            verseCount={
+              partialJuzVerseCount > 0
+                ? partialJuzVerseCount
+                : Math.max(endAyat, minAyatStart, 1)
+            }
             onChangeStartAyat={setStartAyat}
             onChangeEndAyat={setEndAyat}
             styles={styles}

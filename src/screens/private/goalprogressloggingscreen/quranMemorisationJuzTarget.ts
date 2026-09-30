@@ -7,7 +7,6 @@ import {
   getJuzMemorisationGoalById,
   type JuzMemorisationGoal,
 } from "./quranMemorisationJuzGoals";
-import { getJuzVerseCount } from "./quranMemorisationJuzVerse";
 
 export type JuzMemorisationGoalId = "quran-memorisationByJuz";
 
@@ -69,7 +68,7 @@ export function toMemorisationTargetConfigFromJuzGoal(
     juzId: goal.id,
     juzName: goal.juzName || goal.displayName || `Juz ${juzNumber}`,
     juzNumber,
-    totalAyahs: Math.max(1, goal.totalAyahs || getJuzVerseCount(goal.id)),
+    totalAyahs: Math.max(0, goal.totalAyahs || 0),
     memorizedAyahs: Math.max(0, goal.memorizedAyahs ?? 0),
   };
 }
@@ -95,7 +94,7 @@ export function isValidJuzMemorisationAyahRange(
   const total =
     options?.totalAyahs != null && options.totalAyahs > 0
       ? options.totalAyahs
-      : getJuzVerseCount(juzId);
+      : 0;
   const start = Math.round(startAyah);
   const end = Math.round(endAyah);
 
@@ -122,7 +121,7 @@ export function toJuzMemorisationTargetConfig(
     juzId,
     juzName,
     juzNumber: n,
-    totalAyahs: Math.max(1, totalAyahs ?? (getJuzVerseCount(juzId) || 1)),
+    totalAyahs: Math.max(0, totalAyahs ?? 0),
     memorizedAyahs: Math.max(0, memorizedAyahs ?? 0),
   };
 }
@@ -138,12 +137,7 @@ export function getMemorisationTargetConfigForJuz(
   if (goal) return toMemorisationTargetConfigFromJuzGoal(goal);
   const fromId = Number(String(juzId).replace(/^juz-/i, ""));
   if (Number.isFinite(fromId) && fromId > 0) {
-    return toJuzMemorisationTargetConfig(
-      juzId,
-      `Juz ${fromId}`,
-      fromId,
-      getJuzVerseCount(juzId) || undefined,
-    );
+    return toJuzMemorisationTargetConfig(juzId, `Juz ${fromId}`, fromId, 0);
   }
   return null;
 }

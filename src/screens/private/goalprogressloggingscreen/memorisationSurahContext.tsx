@@ -19,7 +19,7 @@ import {
 } from "./quranMemorisationSurahGoals";
 import {
   getQuranFrameMemorisationItem,
-  getQuranFrameMemorisationProgress,
+  getQuranFrameMemorisationProgressFromCycle,
   getQuranFrameMemorisationSurahName,
 } from "@/src/utils/quranGoalFrameMap";
 
@@ -144,12 +144,35 @@ export function MemorisationSurahProvider({
   const { data: detail } = useGetQuranGoalByType("MEMORIZATION_SURAH");
 
   const frameGoals = useMemo(() => {
-    const items = quranFrame?.frame?.items ?? [];
-    if (items.length === 0) return null;
+    const frame = quranFrame?.frame;
+    const items = frame?.items ?? [];
+    if (!frame || items.length === 0) return null;
+    const cycleFrames = quranFrame?.memorisationCycleFrames;
     return items
-      .map(mapFrameItemToGoal)
-      .filter((goal) => goal.itemNumber != null && goal.itemNumber > 0);
-  }, [quranFrame?.frame?.items]);
+      .map((item) => {
+        const itemNumber = Number(item.itemNumber);
+        if (!Number.isFinite(itemNumber) || itemNumber <= 0) return null;
+        const progress = getQuranFrameMemorisationProgressFromCycle(
+          frame,
+          cycleFrames,
+          itemNumber,
+        );
+        const mapped = mapFrameItemToGoal(item);
+        return {
+          ...mapped,
+          memorizedAyahs: progress.memorizedAyahs,
+          totalAyahs: progress.totalAyahs || mapped.totalAyahs,
+          progressPercentage: progress.progressPercent,
+          completed: progress.completed,
+          status: deriveStatus(
+            progress.memorizedAyahs,
+            progress.totalAyahs || mapped.totalAyahs,
+            progress.completed,
+          ),
+        };
+      })
+      .filter((goal): goal is SurahMemorisationGoal => goal != null);
+  }, [quranFrame?.frame, quranFrame?.memorisationCycleFrames]);
 
   const detailGoals = useMemo(() => {
     const items = detail?.items ?? [];
@@ -165,7 +188,11 @@ export function MemorisationSurahProvider({
     if (!frame || itemNumber == null || itemNumber <= 0) return null;
 
     const item = getQuranFrameMemorisationItem(frame, itemNumber);
-    const progress = getQuranFrameMemorisationProgress(frame, itemNumber);
+    const progress = getQuranFrameMemorisationProgressFromCycle(
+      frame,
+      quranFrame?.memorisationCycleFrames,
+      itemNumber,
+    );
     const surahName =
       getQuranFrameMemorisationSurahName(frame, itemNumber) ||
       item?.title?.trim() ||
@@ -191,7 +218,11 @@ export function MemorisationSurahProvider({
         progress.completed,
       ),
     };
-  }, [quranFrame?.frame, quranFrame?.itemNumber]);
+  }, [
+    quranFrame?.frame,
+    quranFrame?.itemNumber,
+    quranFrame?.memorisationCycleFrames,
+  ]);
 
   const goals = useMemo(() => {
     // Frame `items` carry the correct per-surah `completed` / `target` ayah counts.

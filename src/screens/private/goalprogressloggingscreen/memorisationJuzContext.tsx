@@ -11,7 +11,7 @@ import type { QuranGoalFrameItem } from "@/src/api/queries/useGetQuranGoalFrame"
 import type { QuranGoalDetailItem } from "@/src/utils/quranGoalMap";
 import {
   getQuranFrameMemorisationItem,
-  getQuranFrameMemorisationProgress,
+  getQuranFrameMemorisationProgressFromCycle,
   getQuranFrameMemorisationSurahName,
 } from "@/src/utils/quranGoalFrameMap";
 import { useOptionalQuranGoalFrameContext } from "./quranGoalFrameContext";
@@ -94,16 +94,11 @@ function mapFrameItemToGoal(item: QuranGoalFrameItem): JuzMemorisationGoal {
     : juzNameRaw;
   const rangeFromTitleSpan = rangeFromTitle(juzNameRaw);
   const rangeFromSubtitle = item.subtitle?.trim() || "";
-  const localDisplay =
-    getJuzDisplayName(`juz-${itemNumber}`) ||
-    getJuzDisplayName(String(itemNumber));
-  const rangeFromLocal = rangeFromTitle(localDisplay);
   const rangeLabel =
     rangeFromTitleSpan ||
     (rangeFromSubtitle && !isTotalVersesLabel(rangeFromSubtitle)
       ? rangeFromSubtitle
-      : "") ||
-    rangeFromLocal;
+      : "");
   const displayName = rangeLabel ? `${juzName} | ${rangeLabel}` : juzName;
 
   return {
@@ -192,12 +187,35 @@ export function MemorisationJuzProvider({
   const { data: detail } = useGetQuranGoalByType("MEMORIZATION_JUZ");
 
   const frameGoals = useMemo(() => {
-    const items = quranFrame?.frame?.items ?? [];
-    if (items.length === 0) return null;
+    const frame = quranFrame?.frame;
+    const items = frame?.items ?? [];
+    if (!frame || items.length === 0) return null;
+    const cycleFrames = quranFrame?.memorisationCycleFrames;
     return items
-      .map(mapFrameItemToGoal)
-      .filter((goal) => goal.itemNumber != null && goal.itemNumber > 0);
-  }, [quranFrame?.frame?.items]);
+      .map((item) => {
+        const itemNumber = Number(item.itemNumber);
+        if (!Number.isFinite(itemNumber) || itemNumber <= 0) return null;
+        const progress = getQuranFrameMemorisationProgressFromCycle(
+          frame,
+          cycleFrames,
+          itemNumber,
+        );
+        const mapped = mapFrameItemToGoal(item);
+        return {
+          ...mapped,
+          memorizedAyahs: progress.memorizedAyahs,
+          totalAyahs: progress.totalAyahs || mapped.totalAyahs,
+          progressPercentage: progress.progressPercent,
+          completed: progress.completed,
+          status: deriveStatus(
+            progress.memorizedAyahs,
+            progress.totalAyahs || mapped.totalAyahs,
+            progress.completed,
+          ),
+        };
+      })
+      .filter((goal): goal is JuzMemorisationGoal => goal != null);
+  }, [quranFrame?.frame, quranFrame?.memorisationCycleFrames]);
 
   const detailGoals = useMemo(() => {
     const items = detail?.items ?? [];
@@ -213,7 +231,11 @@ export function MemorisationJuzProvider({
     if (!frame || itemNumber == null || itemNumber <= 0) return null;
 
     const item = getQuranFrameMemorisationItem(frame, itemNumber);
-    const progress = getQuranFrameMemorisationProgress(frame, itemNumber);
+    const progress = getQuranFrameMemorisationProgressFromCycle(
+      frame,
+      quranFrame?.memorisationCycleFrames,
+      itemNumber,
+    );
     const rawName =
       getQuranFrameMemorisationSurahName(frame, itemNumber) ||
       item?.title?.trim() ||
@@ -221,17 +243,12 @@ export function MemorisationJuzProvider({
     const juzName = rawName.includes("|")
       ? rawName.split("|")[0]!.trim()
       : bareTitle(rawName, `Juz ${itemNumber}`);
-    const localDisplay =
-      getJuzDisplayName(`juz-${itemNumber}`) ||
-      getJuzDisplayName(String(itemNumber));
-    const rangeFromLocal = rangeFromTitle(localDisplay);
     const rangeFromSubtitle = item?.subtitle?.trim() || "";
     const rangeLabel =
       rangeFromTitle(rawName) ||
       (rangeFromSubtitle && !isTotalVersesLabel(rangeFromSubtitle)
         ? rangeFromSubtitle
-        : "") ||
-      rangeFromLocal;
+        : "");
     const pillLabel = item?.pill?.label?.trim() || undefined;
     const canLog = item?.canLog !== false;
     const displayName = rangeLabel ? `${juzName} | ${rangeLabel}` : juzName;
@@ -257,7 +274,11 @@ export function MemorisationJuzProvider({
         progress.completed,
       ),
     };
-  }, [quranFrame?.frame, quranFrame?.itemNumber]);
+  }, [
+    quranFrame?.frame,
+    quranFrame?.itemNumber,
+    quranFrame?.memorisationCycleFrames,
+  ]);
 
   const goals = useMemo(() => {
     const base =

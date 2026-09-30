@@ -1,4 +1,3 @@
-import { getJuzVerseCountFromMap } from "./quranJuzVerseMap";
 import {
   getLastCompletedAyatForJuz,
   getMinAyatStartForJuz,
@@ -78,8 +77,12 @@ export function isValidJuzAyatRange(
   startAyat: number,
   endAyat: number,
   minStartAyat = 1,
+  verseCount?: number,
 ): boolean {
-  const maxAyat = getJuzVerseCountFromMap(juz);
+  const maxAyat =
+    verseCount != null && verseCount > 0
+      ? Math.round(verseCount)
+      : Math.max(endAyat, minStartAyat, 1);
   const start = Math.round(startAyat);
   const end = Math.round(endAyat);
   const minStart = Math.max(1, Math.round(minStartAyat));

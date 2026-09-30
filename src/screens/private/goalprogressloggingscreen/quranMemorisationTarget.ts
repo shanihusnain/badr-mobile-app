@@ -7,7 +7,6 @@ import {
   getSurahMemorisationGoalById,
   type SurahMemorisationGoal,
 } from "./quranMemorisationSurahGoals";
-import { getSurahVerseCount } from "./quranSurahVerseMap";
 
 export type SurahMemorisationGoalId = "quran-memorisationBySurah";
 
@@ -56,7 +55,7 @@ export function toMemorisationTargetConfigFromGoal(
   return {
     surahId: goal.id,
     surahName: goal.surahName,
-    totalAyahs: Math.max(1, goal.totalAyahs || getSurahVerseCount(goal.id)),
+    totalAyahs: Math.max(0, goal.totalAyahs || 0),
     memorizedAyahs: Math.max(0, goal.memorizedAyahs ?? 0),
   };
 }
@@ -82,11 +81,11 @@ export function isValidMemorisationAyahRange(
   const total =
     options?.totalAyahs != null && options.totalAyahs > 0
       ? options.totalAyahs
-      : getSurahVerseCount(surahId);
+      : 0;
   const start = Math.round(startAyah);
   const end = Math.round(endAyah);
 
-  return start >= minStart && end >= start && end <= total;
+  return total > 0 && start >= minStart && end >= start && end <= total;
 }
 
 export function getAyahsMemorizedFromRange(
@@ -120,7 +119,7 @@ export function toMemorisationTargetConfig(
   return {
     surahId,
     surahName,
-    totalAyahs: totalAyahs ?? getSurahVerseCount(surahId),
+    totalAyahs: Math.max(0, totalAyahs ?? 0),
     memorizedAyahs,
   };
 }
@@ -141,11 +140,7 @@ export function getMemorisationTargetConfigForSurah(
   // API carousel ids are numeric itemNumbers (e.g. "1").
   const itemNumber = Number(surahId);
   if (Number.isFinite(itemNumber) && itemNumber > 0) {
-    return toMemorisationTargetConfig(
-      surahId,
-      `Surah ${itemNumber}`,
-      getSurahVerseCount(surahId),
-    );
+    return toMemorisationTargetConfig(surahId, `Surah ${itemNumber}`, 0);
   }
 
   return null;

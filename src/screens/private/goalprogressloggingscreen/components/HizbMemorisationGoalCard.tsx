@@ -10,7 +10,6 @@ import { GoalData } from "../../home/components/goalsData";
 import QuranMemorisationHizbLoggingFlow from "../flows/QuranMemorisationHizbLoggingFlow";
 import { useOptionalQuranGoalFrameContext } from "../quranGoalFrameContext";
 import type { HizbMemorisationGoal } from "../quranMemorisationHizbGoals";
-import { resolveHizbRangeLabel } from "../quranHizbVerseMap";
 import type { QuranMemorisationHizbLogEntry } from "../types";
 import { FLOW_CARD_HEIGHT, styles } from "./DailyProgressLogging.styles";
 import { resolveQuranGoalCardStatusLabel } from "./resolveQuranGoalCardStatusLabel";
@@ -78,7 +77,7 @@ export function HizbMemorisationGoalCard({
   const totalAyahsLabel = formatNumber(goal.totalAyahs);
   const showTotalAyahs = goal.totalAyahs > 0;
 
-  /** Figma: "Hizb 1 | Al-Fatiha 1:1 - Al-Baqarah 2:74" */
+  /** Figma: "Hizb 1 | Al-Fatiha 1:1 - Al-Baqarah 2:74" — API title/range only. */
   const titleLabel = useMemo(() => {
     const name =
       goal.hizbName?.trim() ||
@@ -88,9 +87,7 @@ export function HizbMemorisationGoalCard({
       "";
     const rawRange = goal.rangeLabel?.trim() || goal.subtitle?.trim() || "";
     const range =
-      rawRange && !isTotalVersesLabel(rawRange)
-        ? rawRange
-        : resolveHizbRangeLabel(goal.itemNumber ?? goal.id);
+      rawRange && !isTotalVersesLabel(rawRange) ? rawRange : "";
 
     if (name.includes("|")) {
       const [left, ...rest] = name.split("|");
@@ -112,8 +109,6 @@ export function HizbMemorisationGoalCard({
   }, [
     goal.displayName,
     goal.hizbName,
-    goal.id,
-    goal.itemNumber,
     goal.rangeLabel,
     goal.subtitle,
   ]);

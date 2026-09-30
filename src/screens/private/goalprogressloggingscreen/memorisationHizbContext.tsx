@@ -11,7 +11,7 @@ import type { QuranGoalFrameItem } from "@/src/api/queries/useGetQuranGoalFrame"
 import type { QuranGoalDetailItem } from "@/src/utils/quranGoalMap";
 import {
   getQuranFrameMemorisationItem,
-  getQuranFrameMemorisationProgress,
+  getQuranFrameMemorisationProgressFromCycle,
   getQuranFrameMemorisationSurahName,
 } from "@/src/utils/quranGoalFrameMap";
 import { useOptionalQuranGoalFrameContext } from "./quranGoalFrameContext";
@@ -21,7 +21,6 @@ import {
   type HizbMemorisationStatusKind,
   type MemorisationHizbFilterId,
 } from "./quranMemorisationHizbGoals";
-import { getHizbVerseCount, resolveHizbRangeLabel } from "./quranHizbVerseMap";
 
 type MemorisationHizbContextValue = {
   activeHizbId: MemorisationHizbFilterId;
@@ -60,12 +59,18 @@ function isTotalVersesLabel(value: string) {
   return /^\(?\s*total\b/i.test(value) || /\bverses?\s*\)?\s*$/i.test(value);
 }
 
+function hasVerseRef(value: string) {
+  return /\d+\s*:\s*\d+/.test(value) || /^\d+\s*[–—-]\s*\d+$/.test(value);
+}
+
+/** Prefer a candidate that carries ayah numbers over a bare surah name. */
 function pickRangeLabel(...candidates: Array<string | undefined | null>) {
-  for (const candidate of candidates) {
-    const value = candidate?.trim();
-    if (value && !isTotalVersesLabel(value)) return value;
-  }
-  return "";
+  const cleaned = candidates
+    .map((candidate) => candidate?.trim() || "")
+    .filter((value) => value && !isTotalVersesLabel(value));
+  const withRef = cleaned.find(hasVerseRef);
+  if (withRef) return withRef;
+  return cleaned[0] ?? "";
 }
 
 function mapFrameItemToGoal(item: QuranGoalFrameItem): HizbMemorisationGoal {
@@ -86,15 +91,16 @@ function mapFrameItemToGoal(item: QuranGoalFrameItem): HizbMemorisationGoal {
   const rangeFromTitle = hizbNameRaw.includes("|")
     ? hizbNameRaw.split("|").slice(1).join("|").trim()
     : "";
-  const rangeLabel = pickRangeLabel(
-    item.subtitle,
-    rangeFromTitle,
-    resolveHizbRangeLabel(itemNumber),
-  );
+  // Prefer the title range over subtitle — subtitle is often "(total N verses)".
+  const rangeLabel = pickRangeLabel(rangeFromTitle, item.subtitle);
   const hizbName = hizbNameRaw.includes("|")
     ? hizbNameRaw.split("|")[0]!.trim()
     : hizbNameRaw;
-  const displayName = rangeLabel ? `${hizbName} | ${rangeLabel}` : hizbName;
+  const displayName = rangeLabel
+    ? `${hizbName} | ${rangeLabel}`
+    : hizbNameRaw.includes("|")
+      ? hizbNameRaw
+      : hizbName;
 
   return {
     id: String(itemNumber),
@@ -102,10 +108,10 @@ function mapFrameItemToGoal(item: QuranGoalFrameItem): HizbMemorisationGoal {
     hizbName,
     rangeLabel,
     displayName,
-    subtitle: rangeLabel || undefined,
+    /** Keep raw API subtitle for "(total N verses)" parsing — not the range. */
+    subtitle: item.subtitle?.trim() || undefined,
     pillLabel: item.pill?.label?.trim() || undefined,
-    totalAyahs:
-      totalAyahs > 0 ? totalAyahs : getHizbVerseCount(String(itemNumber)),
+    totalAyahs,
     memorizedAyahs,
     progressPercentage,
     completed,
@@ -148,7 +154,6 @@ function mapDetailItemToGoal(item: QuranGoalDetailItem): HizbMemorisationGoal {
   );
   const rangeLabel = pickRangeLabel(
     rawName.includes("|") ? rawName.split("|").slice(1).join("|").trim() : "",
-    resolveHizbRangeLabel(itemNumber),
   );
 
   return {
@@ -157,7 +162,7 @@ function mapDetailItemToGoal(item: QuranGoalDetailItem): HizbMemorisationGoal {
     hizbName,
     rangeLabel,
     displayName: rangeLabel ? `${hizbName} | ${rangeLabel}` : hizbName,
-    totalAyahs: totalAyahs > 0 ? totalAyahs : getHizbVerseCount(id),
+    totalAyahs,
     memorizedAyahs,
     progressPercentage,
     completed,
@@ -182,12 +187,37 @@ export function MemorisationHizbProvider({
   const { data: detail } = useGetQuranGoalByType("MEMORIZATION_HIZB");
 
   const frameGoals = useMemo(() => {
-    const items = quranFrame?.frame?.items ?? [];
-    if (items.length === 0) return null;
+    const frame = quranFrame?.frame;
+    const items = frame?.items ?? [];
+    if (!frame || items.length === 0) return null;
+    const cycleFrames = quranFrame?.memorisationCycleFrames;
     return items
-      .map(mapFrameItemToGoal)
-      .filter((goal) => goal.itemNumber != null && goal.itemNumber > 0);
-  }, [quranFrame?.frame?.items]);
+      .map((item) => {
+        const itemNumber = Number(item.itemNumber);
+        if (!Number.isFinite(itemNumber) || itemNumber <= 0) return null;
+        const progress = getQuranFrameMemorisationProgressFromCycle(
+          frame,
+          cycleFrames,
+          itemNumber,
+        );
+        const mapped = mapFrameItemToGoal(item);
+        const totalAyahs =
+          progress.totalAyahs > 0 ? progress.totalAyahs : mapped.totalAyahs;
+        return {
+          ...mapped,
+          memorizedAyahs: progress.memorizedAyahs,
+          totalAyahs,
+          progressPercentage: progress.progressPercent,
+          completed: progress.completed,
+          status: deriveStatus(
+            progress.memorizedAyahs,
+            totalAyahs,
+            progress.completed,
+          ),
+        };
+      })
+      .filter((goal): goal is HizbMemorisationGoal => goal != null);
+  }, [quranFrame?.frame, quranFrame?.memorisationCycleFrames]);
 
   const detailGoals = useMemo(() => {
     const items = detail?.items ?? [];
@@ -203,7 +233,11 @@ export function MemorisationHizbProvider({
     if (!frame || itemNumber == null || itemNumber <= 0) return null;
 
     const item = getQuranFrameMemorisationItem(frame, itemNumber);
-    const progress = getQuranFrameMemorisationProgress(frame, itemNumber);
+    const progress = getQuranFrameMemorisationProgressFromCycle(
+      frame,
+      quranFrame?.memorisationCycleFrames,
+      itemNumber,
+    );
     const rawName =
       getQuranFrameMemorisationSurahName(frame, itemNumber) ||
       item?.title?.trim() ||
@@ -212,13 +246,20 @@ export function MemorisationHizbProvider({
       ? rawName.split("|")[0]!.trim()
       : bareTitle(rawName, `Hizb ${itemNumber}`);
     const rangeLabel = pickRangeLabel(
-      item?.subtitle,
       rawName.includes("|") ? rawName.split("|").slice(1).join("|").trim() : "",
-      resolveHizbRangeLabel(itemNumber),
+      item?.subtitle,
     );
     const pillLabel = item?.pill?.label?.trim() || undefined;
     const canLog = item?.canLog !== false;
-    const displayName = rangeLabel ? `${hizbName} | ${rangeLabel}` : hizbName;
+    const displayName = rangeLabel
+      ? `${hizbName} | ${rangeLabel}`
+      : rawName.includes("|")
+        ? bareTitle(rawName, `Hizb ${itemNumber}`)
+        : hizbName;
+    const totalAyahs =
+      progress.totalAyahs > 0
+        ? progress.totalAyahs
+        : Math.max(0, Math.round(Number(item?.target) || 0));
 
     return {
       id: String(itemNumber),
@@ -226,23 +267,24 @@ export function MemorisationHizbProvider({
       hizbName,
       rangeLabel,
       displayName,
-      subtitle: rangeLabel || undefined,
+      subtitle: item?.subtitle?.trim() || undefined,
       pillLabel,
-      totalAyahs:
-        progress.totalAyahs > 0
-          ? progress.totalAyahs
-          : getHizbVerseCount(String(itemNumber)),
+      totalAyahs,
       memorizedAyahs: progress.memorizedAyahs,
       progressPercentage: progress.progressPercent,
       completed: progress.completed,
       canLog,
       status: deriveStatus(
         progress.memorizedAyahs,
-        progress.totalAyahs,
+        totalAyahs,
         progress.completed,
       ),
     };
-  }, [quranFrame?.frame, quranFrame?.itemNumber]);
+  }, [
+    quranFrame?.frame,
+    quranFrame?.itemNumber,
+    quranFrame?.memorisationCycleFrames,
+  ]);
 
   const goals = useMemo(() => {
     const base =
