@@ -536,6 +536,14 @@ export const GoalProgressLoggingScreen = ({
   /** Mount insights sheet only after the user opens it (avoids mount-open glitches). */
   const [insightsSheetMounted, setInsightsSheetMounted] = useState(false);
   const pendingInsightsOpenRef = useRef(false);
+  /**
+   * Mount delete sheet only when opened. Always-mounted footers from
+   * @gorhom/bottom-sheet can paint a ghost red DELETE at the screen bottom
+   * on some Android OEMs even while index === -1.
+   */
+  const [deletePrayerSheetMounted, setDeletePrayerSheetMounted] =
+    useState(false);
+  const pendingDeleteSheetOpenRef = useRef(false);
   const prayerType = resolvePrayerTypeFromGoalId(goalId);
   const quranInsightsType = resolveQuranTypeFromGoalId(goalId);
   const template = getLoggingFlowTemplate(goalId);
@@ -574,16 +582,34 @@ export const GoalProgressLoggingScreen = ({
     return () => cancelAnimationFrame(frame);
   }, [insightsSheetMounted]);
 
+  useLayoutEffect(() => {
+    if (!deletePrayerSheetMounted || !pendingDeleteSheetOpenRef.current)
+      return;
+    pendingDeleteSheetOpenRef.current = false;
+    const frame = requestAnimationFrame(() => {
+      deletePrayerSheetRef.current?.expand();
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [deletePrayerSheetMounted]);
+
   const closeInsightsSheet = useCallback(() => {
     infoSheetRef.current?.close();
   }, []);
 
-  const openDeletePrayerLogOptions = useCallback((date: string) => {
-    setDeletePrayerLogDate(date);
-    requestAnimationFrame(() => {
-      deletePrayerSheetRef.current?.expand();
-    });
-  }, []);
+  const openDeletePrayerLogOptions = useCallback(
+    (date: string) => {
+      setDeletePrayerLogDate(date);
+      if (deletePrayerSheetMounted) {
+        requestAnimationFrame(() => {
+          deletePrayerSheetRef.current?.expand();
+        });
+        return;
+      }
+      pendingDeleteSheetOpenRef.current = true;
+      setDeletePrayerSheetMounted(true);
+    },
+    [deletePrayerSheetMounted],
+  );
 
   const closeDeletePrayerLogOptions = useCallback(() => {
     deletePrayerSheetRef.current?.close();
@@ -853,7 +879,7 @@ export const GoalProgressLoggingScreen = ({
           onClose={closeInsightsSheet}
         />
       ) : null}
-      {supportsDeletePrayerOptions ? (
+      {supportsDeletePrayerOptions && deletePrayerSheetMounted ? (
         <DeletePrayerGoalOptions
           ref={deletePrayerSheetRef}
           date={deletePrayerLogDate}
