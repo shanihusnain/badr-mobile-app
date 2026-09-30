@@ -699,13 +699,18 @@ export default function QuranJuzLoggingFlow({
               />
             </View>
             <Text
+              numberOfLines={2}
               style={{
                 width: "100%",
                 color: Colors.light.white,
                 fontSize: 10.5,
+                lineHeight: 14,
+                // Always reserve 2-line height so the stepper doesn't shift
+                // when the range label fits on one line (e.g. j11 vs j10).
+                minHeight: 28,
                 fontWeight: "400",
                 textAlign: "left",
-                opacity: 0.60,
+                opacity: 0.6,
               }}
             >
               {(() => {
