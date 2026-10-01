@@ -60,6 +60,7 @@ import {
   getQuranFrameGoalTitle,
   getQuranFrameMemorisationRingLabel,
   getQuranFrameRecitationRingLabel,
+  getQuranFrameCompletionRingLabel,
 } from "@/src/utils/quranGoalFrameMap";
 import { resolvePrayerTypeFromGoalId } from "@/src/utils/prayerGoalMap";
 import { resolveGoalDescriptionParamFromLoggingGoalId } from "@/src/utils/goalDescriptionMap";
@@ -292,13 +293,21 @@ function GoalProgressLoggingBody({
       : isSurahMemorisationFrameGoal ||
           isHizbMemorisationFrameGoal ||
           isJuzMemorisationFrameGoal ||
-          isJuzRecitationFrameGoal ||
-          isCompletionRecitationFrameGoal
+          isJuzRecitationFrameGoal
         ? quranFrame?.frame
           ? t("homeScreen.weeklyProgress_goalLabel", {
               label: getQuranFrameMemorisationRingLabel(quranFrame.frame),
             })
           : "---"
+        : isCompletionRecitationFrameGoal
+          ? quranFrame?.frame
+            ? t("homeScreen.weeklyProgress_goalLabel", {
+                label: getQuranFrameCompletionRingLabel(
+                  quranFrame.frame,
+                  t("progressLogging.unitCompletions"),
+                ),
+              })
+            : "---"
         : isSurahRecitationFrameGoal
           ? quranFrame?.frame
             ? t("homeScreen.weeklyProgress_goalLabel", {
@@ -318,7 +327,8 @@ function GoalProgressLoggingBody({
                 })
               : t("homeScreen.weeklyProgress_goalLabel", { label: cleanLabel });
 
-  const ringGoalLineCount = isSurahRecitationFrameGoal ? 2 : 1;
+  const ringGoalLineCount =
+    isSurahRecitationFrameGoal || isCompletionRecitationFrameGoal ? 2 : 1;
   return (
     <>
       {hasHeroBackground && backgroundSource ? (
