@@ -378,7 +378,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.greybuttonBackground,
     paddingHorizontal: 8,
     paddingVertical: 16,
-    gap: 24,
+    // Tighter gap between day strip and stats ("30 juz from C2…").
+    gap: 14,
     zIndex: 150,
   },
   daysRow: {
@@ -415,7 +416,8 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     paddingHorizontal: 4,
     paddingTop: 3,
-    paddingBottom: 18,
+    // Shorter selected grey chrome under multi-line captions (C2 / j26-30).
+    paddingBottom: 8,
     borderRadius: 8,
     width: "100%",
     overflow: "visible",
@@ -432,7 +434,7 @@ const styles = StyleSheet.create({
   dayItemBestDay: {
     width: "118%",
     paddingTop: 3,
-    paddingBottom: 18,
+    paddingBottom: 8,
     // Reserve border box so delete chrome doesn't reflow / shrink the label.
     borderWidth: 1,
     borderColor: "transparent",
@@ -469,7 +471,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     alignItems: "center",
     width: "100%",
-    marginTop: 4,
+    marginTop: 2,
   },
   durationText: {
     fontSize: 11,
