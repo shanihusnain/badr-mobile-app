@@ -30,7 +30,7 @@ export function QuranRecitationDayRing({
   const target = clampDailyRecitationTarget(dailyTarget);
   const isFuture = day.dayType === "future";
   const fadeAnim = useRef(new Animated.Value(isFuture ? 0.38 : 1)).current;
-  const showBestDayStar = !!day.isBestDay && !isFuture;
+  const showBestDayStar = false;
 
   useEffect(() => {
     Animated.timing(fadeAnim, {

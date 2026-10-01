@@ -1,23 +1,23 @@
 const SURAH_NAMES: readonly string[] = [
-  "Al-Fatiha", "Al-Baqarah", "Al-Imran", "An-Nisa", "Al-Ma'idah", "Al-An'am",
+  "Al-Fatiha", "Al-Baqarah", "Al-Imran", "Al-Nisa", "Al-Ma'idah", "Al-An'am",
   "Al-A'raf", "Al-Anfal", "At-Tawbah", "Yunus", "Hud", "Yusuf", "Ar-Ra'd",
-  "Ibrahim", "Al-Hijr", "An-Nahl", "Al-Isra", "Al-Kahf", "Maryam", "Ta-Ha",
-  "Al-Anbiya", "Al-Hajj", "Al-Mu'minun", "An-Nur", "Al-Furqan", "Ash-Shu'ara",
-  "An-Naml", "Al-Qasas", "Al-Ankabut", "Ar-Rum", "Luqman", "As-Sajdah",
+  "Ibrahim", "Al-Hijr", "Al-Nahl", "Al-Isra", "Al-Kahf", "Maryam", "Ta-Ha",
+  "Al-Anbiya", "Al-Hajj", "Al-Mu'minun", "Al-Nur", "Al-Furqan", "Ash-Shu'ara",
+  "Al-Naml", "Al-Qasas", "Al-Ankabut", "Ar-Rum", "Luqman", "As-Sajdah",
   "Al-Ahzab", "Saba", "Fatir", "Ya-Sin", "As-Saffat", "Sad", "Al-Zumar",
   "Ghafir", "Fussilat", "Ash-Shura", "Az-Zukhruf", "Ad-Dukhan", "Al-Jathiyah",
   "Al-Ahqaf", "Muhammad", "Al-Fath", "Al-Hujurat", "Qaf", "Adh-Dhariyat",
-  "At-Tur", "An-Najm", "Al-Qamar", "Ar-Rahman", "Al-Waqi'ah", "Al-Hadid",
+  "At-Tur", "Al-Najm", "Al-Qamar", "Ar-Rahman", "Al-Waqi'ah", "Al-Hadid",
   "Al-Mujadila", "Al-Hashr", "Al-Mumtahanah", "As-Saff", "Al-Jumu'ah",
   "Al-Munafiqun", "At-Taghabun", "At-Talaq", "At-Tahrim", "Al-Mulk", "Al-Qalam",
   "Al-Haqqah", "Al-Ma'arij", "Nuh", "Al-Jinn", "Al-Muzzammil", "Al-Muddaththir",
-  "Al-Qiyamah", "Al-Insan", "Al-Mursalat", "An-Naba", "An-Naziat", "Abasa",
+  "Al-Qiyamah", "Al-Insan", "Al-Mursalat", "Al-Naba", "Al-Naziat", "Abasa",
   "At-Takwir", "Al-Infitar", "Al-Mutaffifin", "Al-Inshiqaq", "Al-Buruj",
   "At-Tariq", "Al-A'la", "Al-Ghashiyah", "Al-Fajr", "Al-Balad", "Ash-Shams",
   "Al-Layl", "Ad-Duha", "Ash-Sharh", "At-Tin", "Al-Alaq", "Al-Qadr",
   "Al-Bayyinah", "Az-Zalzalah", "Al-Adiyat", "Al-Qari'ah", "At-Takathur",
   "Al-Asr", "Al-Humazah", "Al-Fil", "Quraysh", "Al-Ma'un", "Al-Kawthar",
-  "Al-Kafirun", "An-Nasr", "Al-Masad", "Al-Ikhlas", "Al-Falaq", "An-Nas",
+  "Al-Kafirun", "Al-Nasr", "Al-Masad", "Al-Ikhlas", "Al-Falaq", "Al-Nas",
 ];
 
 const SURAH_AYAH_COUNTS: readonly number[] = [
@@ -150,10 +150,16 @@ export function getJuzVerseMetadata(juz: number): JuzVerseMetadata {
   const last = verses[verses.length - 1] ?? first;
   const startLabel = formatJuzVerseRefLabel(first);
   const endLabel = formatJuzVerseRefLabel(last);
+  const startSurahName = getSurahName(first.surah);
+  // Same surah: "Al-Baqarah 2: 142–252". Cross-surah: full start – end labels.
+  const rangeLabel =
+    first.surah === last.surah
+      ? `${startSurahName} ${first.surah}: ${first.ayah}–${last.ayah}`
+      : `${startLabel} – ${endLabel}`;
 
   return {
     juzNumber: juz,
-    startSurahName: getSurahName(first.surah),
+    startSurahName,
     startSurahNumber: first.surah,
     startAyah: first.ayah,
     endSurahName: getSurahName(last.surah),
@@ -162,7 +168,7 @@ export function getJuzVerseMetadata(juz: number): JuzVerseMetadata {
     totalVerses: verses.length,
     startLabel,
     endLabel,
-    rangeLabel: `${startLabel} – ${endLabel}`,
+    rangeLabel,
   };
 }
 

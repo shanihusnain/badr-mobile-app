@@ -80,9 +80,9 @@ function normalizeDayDate(value?: string): string | null {
 
 function mapRecitationDayToSinglePrayerDay(
   day: QuranRecitationDayProgress,
-  dailyTarget: number,
   formatNumber: (value: number) => string,
-  showDayFraction: boolean,
+  /** Weekly solid circles show a count; daily multi-arc rings do not. */
+  showDayCount: boolean,
 ): SinglePrayerDayProgress {
   const dateKey = normalizeDayDate(day.date);
   const isToday = dateKey
@@ -96,14 +96,17 @@ function mapRecitationDayToSinglePrayerDay(
     date: dateKey ?? day.date,
     prayersLogged: day.recitationsCompleted,
     isLogged: logged,
-    isBestDay: day.isBestDay,
+    // Recitation never surfaces BEST DAY — ignore backend flag.
+    isBestDay: false,
     isToday,
     isFuture: isToday ? false : isFuture,
     canDelete: day.canDelete,
-    // Multi-arc daily rings show N/N; solid 1× and weekly circles do not.
-    durationLabel: showDayFraction
-      ? `${formatNumber(day.recitationsCompleted)}/${formatNumber(dailyTarget)}`
-      : "",
+    // Absolute count under solid weekly circles only (arcs already show progress).
+    // Use "" (not undefined) so SinglePrayerDashboard does not fall back to prayersLogged.
+    durationLabel:
+      showDayCount && day.recitationsCompleted > 0
+        ? formatNumber(day.recitationsCompleted)
+        : "",
   };
 }
 
@@ -130,7 +133,8 @@ function mapCompletionDayToSinglePrayerDay(
     date: dateKey ?? day.date,
     prayersLogged: day.hasActivity ? Math.max(day.activityScore, 1) : 0,
     isLogged: day.hasActivity,
-    isBestDay: day.isBestDay,
+    // Recitation never surfaces BEST DAY — ignore backend flag.
+    isBestDay: false,
     isToday,
     isFuture: isToday ? false : isFuture,
     canDelete: day.canDelete,
@@ -140,16 +144,25 @@ function mapCompletionDayToSinglePrayerDay(
 
 function mapWeeklySurahDayToSinglePrayerDay(
   day: WeeklySurahDashboardItem["weekDays"][number],
+  frameDay: QuranRecitationDayProgress | undefined,
+  formatNumber: (value: number) => string,
 ): SinglePrayerDayProgress {
-  const isLogged = day.status === "completed";
+  const count = Math.max(
+    0,
+    frameDay?.recitationsCompleted ?? (day.status === "completed" ? 1 : 0),
+  );
+  const isLogged = day.status === "completed" || count > 0;
 
   return {
     day: day.day,
-    prayersLogged: isLogged ? 1 : 0,
+    date: frameDay?.date,
+    prayersLogged: count,
     isLogged,
+    isBestDay: false,
     isFuture: day.status === "pending",
-    isToday: false,
-    durationLabel: "",
+    isToday: frameDay?.dayType === "today",
+    canDelete: frameDay?.canDelete,
+    durationLabel: count > 0 ? formatNumber(count) : undefined,
   };
 }
 
@@ -196,7 +209,6 @@ export function QuranWeeklyRecitationProgressDashboard({
   const isJuzMode =
     visualizationMode === "juz" && completionWeekDays.length > 0;
   const isCompletionStyleMode = isCompletionMode || isJuzMode;
-  const showDayFraction = !isWeeklyMode && dailyTarget > 1;
   const allowLogDeletion = !!quranGoalType;
 
   const handleDeleteLog = useCallback(
@@ -241,7 +253,9 @@ export function QuranWeeklyRecitationProgressDashboard({
 
   const mappedWeekDays = useMemo((): SinglePrayerDayProgress[] => {
     if (isWeeklySurahCarouselMode && activeWeeklySurah) {
-      return activeWeeklySurah.weekDays.map(mapWeeklySurahDayToSinglePrayerDay);
+      return activeWeeklySurah.weekDays.map((day, index) =>
+        mapWeeklySurahDayToSinglePrayerDay(day, weekDays[index], formatNumber),
+      );
     }
     if (isCompletionStyleMode) {
       return completionWeekDays.map((day) =>
@@ -249,22 +263,16 @@ export function QuranWeeklyRecitationProgressDashboard({
       );
     }
     return weekDays.map((day) =>
-      mapRecitationDayToSinglePrayerDay(
-        day,
-        dailyTarget,
-        formatNumber,
-        showDayFraction,
-      ),
+      mapRecitationDayToSinglePrayerDay(day, formatNumber, isWeeklyMode),
     );
   }, [
     activeWeeklySurah,
     completionWeekDays,
-    dailyTarget,
     formatNumber,
     isCompletionStyleMode,
     isJuzMode,
+    isWeeklyMode,
     isWeeklySurahCarouselMode,
-    showDayFraction,
     weekDays,
   ]);
 

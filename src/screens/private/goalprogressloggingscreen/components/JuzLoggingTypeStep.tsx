@@ -1,5 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
+import { Colors } from "@/constants/theme";
 import { OptionSelectStep } from "./OptionSelectStep";
 import type { JuzCompletionType } from "../quranRecitationJuzData";
 
@@ -24,6 +25,7 @@ export function JuzLoggingTypeStep({
       selectedValue={selectedType}
       onSelectValue={onSelectType}
       getLabel={(option) => t(`progressLogging.completionType_${option}`)}
+      radioInnerColor={Colors.light.green}
       styles={styles}
     />
   );

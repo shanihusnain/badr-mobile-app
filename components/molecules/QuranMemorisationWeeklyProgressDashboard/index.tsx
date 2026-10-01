@@ -61,17 +61,19 @@ function mapMemorisationDayToSinglePrayerDay(
   const dateKey = normalizeDayDate(day.date);
   const isToday = dateKey ? dateKey === getLocalTodayString() : !!day.isToday;
 
-  // Prefer API ayah range (e.g. "1-7"); fall back to logged count.
+  // Prefer API ayah count under the circle; fall back to logged count.
   const ayatLabel =
-    day.countLabel?.trim() ||
-    (day.ayahsLogged > 0 ? formatNumber(day.ayahsLogged) : undefined);
+    day.ayahsLogged > 0
+      ? formatNumber(day.ayahsLogged)
+      : day.countLabel?.trim() || undefined;
 
   return {
     day: day.day,
     date: dateKey ?? day.date,
     prayersLogged: day.ayahsLogged,
     isLogged: !!day.isLogged || day.ayahsLogged > 0,
-    isBestDay: day.isBestDay,
+    // Memorisation never surfaces BEST DAY — ignore backend flag.
+    isBestDay: false,
     isToday,
     isFuture: isToday ? false : !!day.isFuture,
     canDelete: day.canDelete,

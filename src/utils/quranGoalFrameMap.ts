@@ -148,7 +148,7 @@ export function mapQuranMemorisationFrameWeekDays(
       date: normalizeFrameDate(day.date) ?? day.date,
       ayahsLogged,
       isLogged,
-      isBestDay: Boolean(day.isBestDay) || state === "BEST_DAY",
+      isBestDay: false,
       isToday,
       isFuture,
       countLabel,
@@ -176,7 +176,7 @@ export function mapQuranRecitationFrameWeekDays(
       day: day.dayLabel,
       recitationsCompleted,
       dayType: isToday ? "today" : isFuture ? "future" : "past",
-      isBestDay: Boolean(day.isBestDay) || state === "BEST_DAY",
+      isBestDay: false,
       date: normalizeFrameDate(day.date) ?? day.date,
       canDelete:
         !isMissed &&
@@ -1108,6 +1108,29 @@ export function getQuranFrameCycleStart(frame: QuranGoalFrameData): string {
 
 export function getQuranFrameCycleEnd(frame: QuranGoalFrameData): string {
   return frame.cycle.endDate?.slice(0, 10) ?? "";
+}
+
+/**
+ * 1-based cycle week for a calendar date (same math as prayer logging).
+ * Used so the weekly dashboard follows the day being logged in the green card.
+ */
+export function getQuranFrameWeekNumberForDate(
+  frame: QuranGoalFrameData,
+  date: string,
+): number | null {
+  const start = getQuranFrameCycleStart(frame);
+  if (!start || !date) return null;
+  const dayDiff = moment(date.slice(0, 10), "YYYY-MM-DD").diff(
+    moment(start, "YYYY-MM-DD"),
+    "days",
+  );
+  if (!Number.isFinite(dayDiff)) return null;
+  const week = Math.floor(dayDiff / 7) + 1;
+  const totalWeeks = frame.week?.totalWeeks;
+  if (totalWeeks != null && totalWeeks > 0) {
+    return Math.min(Math.max(1, week), totalWeeks);
+  }
+  return Math.max(1, week);
 }
 
 /**

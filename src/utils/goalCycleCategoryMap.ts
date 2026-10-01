@@ -80,3 +80,30 @@ export function goalTypeToGoalId(
       );
   }
 }
+
+/**
+ * Daily-progress detail card titles for Quran goals.
+ * Base name on line 1; metric in parentheses on line 2, e.g.
+ * "Quran Recitation\n(by Completion)".
+ */
+const QURAN_DAILY_PROGRESS_TITLES: Partial<Record<GoalId, string>> = {
+  "quran-listening": "Quran Listening",
+  "quran-Tajweed": "Quran Tajweed",
+  "quran-recitationBySurah-daily": "Quran Recitation\n(by Surah)",
+  "quran-recitationBySurah-weekly": "Quran Recitation\n(by Surah)",
+  "quran-recitationByCompletion": "Quran Recitation\n(by Completion)",
+  "quran-recitationByJuz": "Quran Recitation\n(by Juz)",
+  "quran-memorisationBySurah": "Quran Memorization\n(by Surah)",
+  "quran-memorisationByJuz": "Quran Memorization\n(by Juz)",
+  "quran-memorisationByHizb": "Quran Memorization\n(by Hizb)",
+};
+
+export function formatDailyProgressGoalTitle(
+  goalId: GoalId,
+  displayName: string,
+): string {
+  if (goalId === "prayer-tahiyyatMasjid") {
+    return displayName.replace(/\s+Prayer$/i, "");
+  }
+  return QURAN_DAILY_PROGRESS_TITLES[goalId] ?? displayName;
+}

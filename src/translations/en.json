@@ -752,6 +752,7 @@
     "completionStatusComplete": "Goal Complete",
     "unitCompletions": "completions",
     "completionTypeTitle": "Want to log full Juz, partial, or both?",
+    "completionTypeSelectTitle": "You're on C{{completion}}—select your Juz logging option.",
     "completionCurrentStep": "You are on C{{completion}}",
     "completionType_full": "Full",
     "completionType_partial": "Partial",

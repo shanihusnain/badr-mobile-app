@@ -288,8 +288,10 @@ export function formatApiVerseLabel(
 }
 
 /**
- * Prefer frame/detail `target` (or title/subtitle span) for a juz item.
- * Returns 0 when the API does not expose a count for that juz.
+ * Prefer title/subtitle verse span for a juz item.
+ * RECITATION_JUZ items often set `target: 1` (complete one juz) — that is not
+ * an ayah total, so only trust target when it looks like a real verse count.
+ * Returns 0 when the API does not expose a usable count for that juz.
  */
 export function resolveApiJuzVerseCount(input: {
   juzNumber: number;
@@ -305,34 +307,37 @@ export function resolveApiJuzVerseCount(input: {
 }): number {
   const juz = Math.round(input.juzNumber);
   if (!Number.isFinite(juz) || juz <= 0) return 0;
+  /** Smallest Hafs juz still has dozens of ayahs; below this is a unit count. */
+  const MIN_PLAUSIBLE_JUZ_AYAHS = 20;
   const items = input.items ?? [];
   for (const item of items) {
     if (!item) continue;
     const itemNumber = Number(item.itemNumber);
     if (!Number.isFinite(itemNumber) || itemNumber !== juz) continue;
+    const span = parseItemVerseSpan({
+      title: item.title,
+      subtitle: item.subtitle,
+      target: null,
+    });
+    if (span.total >= MIN_PLAUSIBLE_JUZ_AYAHS) return span.total;
+    if (
+      item.verseStart != null &&
+      item.verseEnd != null &&
+      Number(item.verseEnd) >= Number(item.verseStart)
+    ) {
+      const fromRange = Math.max(
+        0,
+        Math.round(Number(item.verseEnd) - Number(item.verseStart) + 1),
+      );
+      if (fromRange >= MIN_PLAUSIBLE_JUZ_AYAHS) return fromRange;
+    }
     const fromTarget =
       typeof item.target === "number" && item.target > 0
         ? Math.round(item.target)
         : typeof item.targetCount === "number" && item.targetCount > 0
           ? Math.round(item.targetCount)
           : 0;
-    if (fromTarget > 0) return fromTarget;
-    const span = parseItemVerseSpan({
-      title: item.title,
-      subtitle: item.subtitle,
-      target: fromTarget || null,
-    });
-    if (span.total > 0) return span.total;
-    if (
-      item.verseStart != null &&
-      item.verseEnd != null &&
-      Number(item.verseEnd) >= Number(item.verseStart)
-    ) {
-      return Math.max(
-        0,
-        Math.round(Number(item.verseEnd) - Number(item.verseStart) + 1),
-      );
-    }
+    if (fromTarget >= MIN_PLAUSIBLE_JUZ_AYAHS) return fromTarget;
   }
   return 0;
 }

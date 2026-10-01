@@ -25,10 +25,12 @@ import {
 } from "@/assets/icons";
 import { getQuranCompletionFlowDefinition } from "../loggingFlowRegistry";
 import { resolveApiJuzVerseCount } from "../quranApiVerseSpan";
+import { getJuzVerseCountFromMap } from "../quranJuzVerseMap";
 import { useOptionalQuranGoalFrameContext } from "../quranGoalFrameContext";
 import {
   getQuranFrameCompletionProgress,
   getQuranFrameCompletionResumeCursor,
+  getQuranFrameWeekNumberForDate,
 } from "@/src/utils/quranGoalFrameMap";
 import {
   buildCompletionSteps,
@@ -173,19 +175,32 @@ export default function QuranCompletionLoggingFlow({
 
   const todayString = toDateString(new Date());
 
+  /** Keep the 7-day dashboard on the same cycle week as the date being logged. */
+  const selectedDateWeekNumber = useMemo(() => {
+    const frame = quranFrame?.frame;
+    if (!frame) return null;
+    return getQuranFrameWeekNumberForDate(frame, selectedDate);
+  }, [quranFrame?.frame, selectedDate]);
+
+  useEffect(() => {
+    if (selectedDateWeekNumber == null || !quranFrame) return;
+    if (quranFrame.weekNumber === selectedDateWeekNumber) return;
+    quranFrame.setWeekNumber(selectedDateWeekNumber);
+  }, [quranFrame, selectedDateWeekNumber]);
+
   const steps = useMemo(
     () => buildCompletionSteps(committedCompletionType),
     [committedCompletionType],
   );
 
-  const partialJuzVerseCount = useMemo(
-    () =>
-      resolveApiJuzVerseCount({
-        juzNumber: partialJuz,
-        items: quranFrame?.frame?.items,
-      }),
-    [partialJuz, quranFrame?.frame?.items],
-  );
+  const partialJuzVerseCount = useMemo(() => {
+    const fromFrame = resolveApiJuzVerseCount({
+      juzNumber: partialJuz,
+      items: quranFrame?.frame?.items,
+    });
+    if (fromFrame > 0) return fromFrame;
+    return getJuzVerseCountFromMap(partialJuz);
+  }, [partialJuz, quranFrame?.frame?.items]);
 
   const minPartialJuz = useMemo(
     () =>
@@ -519,7 +534,9 @@ export default function QuranCompletionLoggingFlow({
       case "completionType":
         return {
           icon: <QuranImageIcon color={Colors.light.white} size={24} />,
-          label: t("progressLogging.completionTypeTitle"),
+          label: t("progressLogging.completionTypeSelectTitle", {
+            completion: formatNumber(currentCompletion),
+          }),
         };
       case "fullJuzRange":
         return {
@@ -584,7 +601,6 @@ export default function QuranCompletionLoggingFlow({
       case "completionType":
         return (
           <CompletionTypeStep
-            currentCompletion={currentCompletion}
             selectedType={completionType}
             onSelectType={setCompletionType}
             styles={styles}
