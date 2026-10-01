@@ -993,6 +993,38 @@ export function getQuranFrameRecitationRingLabel(
   return getQuranFrameGoalTitle(frame);
 }
 
+/**
+ * Ring label for RECITATION_COMPLETION — multiline to match design:
+ * "Goal: 3" / "Completions" (caller wraps with weeklyProgress_goalLabel).
+ */
+export function getQuranFrameCompletionRingLabel(
+  frame: QuranGoalFrameData,
+  unitCompletions: string,
+): string {
+  const unit =
+    unitCompletions.charAt(0).toUpperCase() + unitCompletions.slice(1);
+  const label = frame.goal.targetLabel?.trim();
+  if (label) {
+    const cleaned = label.replace(/^Goal:\s*/i, "").trim() || label;
+    const match = cleaned.match(/^(\d+(?:\.\d+)?)\s+(.+)$/i);
+    if (match) {
+      const count = match[1];
+      const rest = match[2]!.trim();
+      // Prefer "Completions" unit line when API says "3 Completions".
+      if (/^completions?$/i.test(rest)) return `${count}\n${unit}`;
+      return `${count}\n${rest}`;
+    }
+    return cleaned;
+  }
+  const fromProgress = getQuranFrameCompletionProgress(frame).targetCompletions;
+  if (fromProgress > 0) return `${fromProgress}\n${unit}`;
+  const target = toFiniteNumber(frame.goal.target);
+  if (target != null && target > 0) {
+    return `${Math.round(target)}\n${unit}`;
+  }
+  return getQuranFrameGoalTitle(frame);
+}
+
 export function getQuranFrameTodayIndex(frame: QuranGoalFrameData): number {
   const days = mapQuranHoursFrameWeekDays(frame);
   const todayIndex = days.findIndex((day) => day.isToday);

@@ -5,6 +5,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import moment from "moment-hijri";
 import { Colors } from "@/constants/theme";
+import { fonts } from "@/assets/fonts";
 import { useLogQuranRecitationCompletionGoal } from "@/src/api/mutations/useLogQuranRecitationCompletionGoal";
 import { GoalData } from "../../home/components/goalsData";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
@@ -25,7 +26,10 @@ import {
 } from "@/assets/icons";
 import { getQuranCompletionFlowDefinition } from "../loggingFlowRegistry";
 import { resolveApiJuzVerseCount } from "../quranApiVerseSpan";
-import { getJuzVerseCountFromMap } from "../quranJuzVerseMap";
+import {
+  getJuzVerseCountFromMap,
+  getJuzVerseMetadata,
+} from "../quranJuzVerseMap";
 import { useOptionalQuranGoalFrameContext } from "../quranGoalFrameContext";
 import {
   getQuranFrameCompletionProgress,
@@ -621,14 +625,41 @@ export default function QuranCompletionLoggingFlow({
         );
       case "partialJuz":
         return (
-          <JuzStepper
-            value={partialJuz}
-            min={minPartialJuz}
-            max={MAX_JUZ}
-            excluded={resumeCursor.excludedJuz}
-            onChange={setPartialJuz}
-            styles={styles}
-          />
+          <View style={{ marginTop: 20, width: "100%", gap: 2 }}>
+            <View style={{ alignItems: "center" }}>
+              <JuzStepper
+                value={partialJuz}
+                min={minPartialJuz}
+                max={MAX_JUZ}
+                excluded={resumeCursor.excludedJuz}
+                onChange={setPartialJuz}
+                styles={styles}
+              />
+            </View>
+            <Text
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.7}
+              style={{
+                width: "100%",
+                color: Colors.light.white,
+                fontSize: 9.5,
+                lineHeight: 14,
+                minHeight: 28,
+                fontFamily: fonts.primary.medium,
+                fontWeight: "500",
+                textAlign: "center",
+                opacity: 0.6,
+              }}
+            >
+              {(() => {
+                const meta = getJuzVerseMetadata(partialJuz);
+                return `${meta.rangeLabel} (${formatNumber(meta.totalVerses)} ${t(
+                  "progressLogging.versesCountLabel",
+                )})`;
+              })()}
+            </Text>
+          </View>
         );
       case "ayatRange":
         return (
