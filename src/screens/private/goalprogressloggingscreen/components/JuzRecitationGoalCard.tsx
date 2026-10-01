@@ -42,8 +42,17 @@ export function JuzRecitationGoalCard({
   const frameItem = frame?.items?.[0];
 
   const frameTitle = frameItem?.title?.trim() || frame?.title?.trim() || "";
-  // API title already includes "(total N Juz)" per Postman AGGREGATE contract.
-  const titleIncludesTotal = /\(\s*total\b/i.test(frameTitle);
+
+  const parsedRange = useMemo(() => {
+    const match = frameTitle.match(
+      /^From\s+Juz\s+(\d+)\s+to\s+Juz\s+(\d+)/i,
+    );
+    if (!match) return null;
+    return {
+      start: Number(match[1]),
+      end: Number(match[2]),
+    };
+  }, [frameTitle]);
 
   const rangeTitle =
     frameTitle ||
@@ -52,10 +61,20 @@ export function JuzRecitationGoalCard({
   const totalFromTitle = frameTitle.match(
     /\(\s*total\s+(\d+)\s+juz\s*\)/i,
   );
+  // Prefer title / range count. Frame `target` is often ayahs (e.g. 4362), not juz.
+  const totalFromRange =
+    parsedRange && parsedRange.end >= parsedRange.start
+      ? parsedRange.end - parsedRange.start + 1
+      : 0;
+  const totalFromTarget = (() => {
+    const raw =
+      Number(frameItem?.target) || Number(frame?.goal?.target) || 0;
+    return raw >= 1 && raw <= 30 ? raw : 0;
+  })();
   const totalJuz =
-    Number(frameItem?.target) ||
-    Number(frame?.goal?.target) ||
-    (totalFromTitle ? Number(totalFromTitle[1]) : 0);
+    (totalFromTitle ? Number(totalFromTitle[1]) : 0) ||
+    totalFromRange ||
+    totalFromTarget;
   const totalLabel = totalJuz > 0 ? formatNumber(totalJuz) : "";
 
   const achievementPct = Math.round(
@@ -134,10 +153,21 @@ export function JuzRecitationGoalCard({
                 </View>
 
                 <View style={surahGoalStyles.textLines}>
-                  <Text style={surahGoalStyles.surahName} numberOfLines={2}>
-                    {rangeTitle}
-                  </Text>
-                  {!titleIncludesTotal && totalLabel ? (
+                  {parsedRange ? (
+                    <>
+                      <Text style={surahGoalStyles.surahName} numberOfLines={1}>
+                        {`From Juz ${formatNumber(parsedRange.start)} to`}
+                      </Text>
+                      <Text style={surahGoalStyles.surahName} numberOfLines={1}>
+                        {`Juz ${formatNumber(parsedRange.end)}`}
+                      </Text>
+                    </>
+                  ) : (
+                    <Text style={surahGoalStyles.surahName} numberOfLines={2}>
+                      {rangeTitle.replace(/\s*\(\s*total\b[^)]*\)\s*$/i, "").trim()}
+                    </Text>
+                  )}
+                  {totalLabel ? (
                     <Text style={surahGoalStyles.metaRegular}>
                       {`(total `}
                       <Text style={surahGoalStyles.metaBold}>{totalLabel}</Text>

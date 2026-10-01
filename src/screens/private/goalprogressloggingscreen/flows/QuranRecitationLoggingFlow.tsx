@@ -22,6 +22,7 @@ import {
 import { useLogQuranRecitationSurahGoal } from "@/src/api/mutations/useLogQuranRecitationSurahGoal";
 import { getQuranRecitationFlowDefinition } from "../loggingFlowRegistry";
 import { useOptionalQuranGoalFrameContext } from "../quranGoalFrameContext";
+import { getQuranFrameWeekNumberForDate } from "@/src/utils/quranGoalFrameMap";
 import type { QuranRecitationDayType } from "../quranRecitationWeeklyData";
 import {
   buildRecitationSteps,
@@ -131,6 +132,19 @@ export default function QuranRecitationLoggingFlow({
   );
 
   const todayString = toDateString(new Date());
+
+  /** Keep the 7-day dashboard on the same cycle week as the date being logged. */
+  const selectedDateWeekNumber = useMemo(() => {
+    const frame = quranFrame?.frame;
+    if (!frame) return null;
+    return getQuranFrameWeekNumberForDate(frame, selectedDate);
+  }, [quranFrame?.frame, selectedDate]);
+
+  useEffect(() => {
+    if (selectedDateWeekNumber == null || !quranFrame) return;
+    if (quranFrame.weekNumber === selectedDateWeekNumber) return;
+    quranFrame.setWeekNumber(selectedDateWeekNumber);
+  }, [quranFrame, selectedDateWeekNumber]);
 
   const alreadyLoggedForSelectedDate = useMemo(() => {
     const week = quranFrame?.frame?.week;

@@ -27,6 +27,7 @@ import { useGetGoalCycleCategories } from "@/src/api/queries/useGetGoalCycleCate
 import { useGetGoalCycleCategoryGoals } from "@/src/api/queries/useGetGoalCycleCategoryGoals";
 import {
   goalTypeToGoalId,
+  formatDailyProgressGoalTitle,
   toUiIbadahCategory,
   type UiIbadahCategory,
 } from "@/src/utils/goalCycleCategoryMap";
@@ -199,10 +200,7 @@ export const DailyProgressBottomSheet = ({
       return [
         {
           goalId,
-          title:
-            goalId === "prayer-tahiyyatMasjid"
-              ? goal.displayName.replace(/\s+Prayer$/i, "")
-              : goal.displayName,
+          title: formatDailyProgressGoalTitle(goalId, goal.displayName),
           completed: goal.completed ?? 0,
           target: goal.target ?? 0,
           unit: goal.unit ?? "",

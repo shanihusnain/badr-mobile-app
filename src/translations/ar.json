@@ -707,6 +707,7 @@
     "completionStatusComplete": "اكتمل الهدف",
     "unitCompletions": "ختمات",
     "completionTypeTitle": "هل تريد تسجيل جزء كامل، جزئي، أو كلاهما؟",
+    "completionTypeSelectTitle": "أنت على C{{completion}}—اختر خيار تسجيل الجزء.",
     "completionCurrentStep": "أنت على C{{completion}}",
     "completionType_full": "كامل",
     "completionType_partial": "جزئي",

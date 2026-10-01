@@ -21,7 +21,7 @@ export function QuranCompletionDayRing({ day, size, isSelected }: Props) {
   const fadeAnim = useRef(new Animated.Value(isFuture ? 0.38 : 1)).current;
   const fillColor = getCompletionDayRingColor(day.hasActivity, day.dayType);
   const today = day.dayType === "today";
-  const showBestDayStar = !!day.isBestDay && !isFuture;
+  const showBestDayStar = false;
   const circleSize = showBestDayStar ? size + BEST_DAY_SIZE_BOOST : size;
   const starSize = Math.max(10, Math.round(circleSize * 0.62));
 

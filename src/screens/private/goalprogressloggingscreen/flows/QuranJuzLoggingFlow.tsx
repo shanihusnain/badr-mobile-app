@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import moment from "moment-hijri";
 import { Colors } from "@/constants/theme";
+import { fonts } from "@/assets/fonts";
 import { GoalData } from "../../home/components/goalsData";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import { DateStep } from "../components/DateStep";
@@ -34,7 +35,10 @@ import {
 import { useGetQuranGoalByType } from "@/src/api/queries/useGetQuranGoalByType";
 import { getQuranJuzFlowDefinition } from "../loggingFlowRegistry";
 import { resolveApiJuzVerseCount } from "../quranApiVerseSpan";
-import { getJuzVerseMetadata } from "../quranJuzVerseMap";
+import {
+  getJuzVerseCountFromMap,
+  getJuzVerseMetadata,
+} from "../quranJuzVerseMap";
 import {
   appendJuzLog,
   buildJuzLogRecordFromEntry,
@@ -46,6 +50,7 @@ import {
   getQuranFrameCycleStart,
   getQuranFrameJuzGoalRange,
   getQuranFrameJuzRecitationResume,
+  getQuranFrameWeekNumberForDate,
 } from "@/src/utils/quranGoalFrameMap";
 import {
   getJuzRangeFromDetail,
@@ -187,6 +192,19 @@ export default function QuranJuzLoggingFlow({
   const cycleEnd = quranFrame?.frame
     ? getQuranFrameCycleEnd(quranFrame.frame) || undefined
     : undefined;
+
+  /** Keep the 7-day dashboard on the same cycle week as the date being logged. */
+  const selectedDateWeekNumber = useMemo(() => {
+    const frame = quranFrame?.frame;
+    if (!frame) return null;
+    return getQuranFrameWeekNumberForDate(frame, selectedDate);
+  }, [quranFrame?.frame, selectedDate]);
+
+  useEffect(() => {
+    if (selectedDateWeekNumber == null || !quranFrame) return;
+    if (quranFrame.weekNumber === selectedDateWeekNumber) return;
+    quranFrame.setWeekNumber(selectedDateWeekNumber);
+  }, [quranFrame, selectedDateWeekNumber]);
   const { minSelectableDate, maxSelectableDate } =
     getQuranLoggingSelectableDateBounds(cycleStart, cycleEnd, todayString);
 
@@ -227,10 +245,13 @@ export default function QuranJuzLoggingFlow({
       items: quranFrame?.frame?.items,
     });
     if (fromFrame > 0) return fromFrame;
-    return resolveApiJuzVerseCount({
+    const fromDetail = resolveApiJuzVerseCount({
       juzNumber: partialJuz,
       items: juzGoalDetail?.items,
     });
+    if (fromDetail > 0) return fromDetail;
+    // AGGREGATE juz goals often omit per-juz ayah totals (or set target: 1).
+    return getJuzVerseCountFromMap(partialJuz);
   }, [juzGoalDetail?.items, partialJuz, quranFrame?.frame?.items]);
 
   const minAyatStart = useMemo(() => {
@@ -544,7 +565,7 @@ export default function QuranJuzLoggingFlow({
               juzNumber: juz,
               items: juzGoalDetail?.items,
             }) ||
-            1;
+            getJuzVerseCountFromMap(juz);
           payloads.push({
             quranGoalType: "RECITATION_JUZ",
             date: selectedDate,
@@ -699,17 +720,20 @@ export default function QuranJuzLoggingFlow({
               />
             </View>
             <Text
-              numberOfLines={2}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.7}
               style={{
                 width: "100%",
                 color: Colors.light.white,
-                fontSize: 10.5,
+                fontSize: 9.5,
                 lineHeight: 14,
                 // Always reserve 2-line height so the stepper doesn't shift
                 // when the range label fits on one line (e.g. j11 vs j10).
                 minHeight: 28,
-                fontWeight: "400",
-                textAlign: "left",
+                fontFamily: fonts.primary.medium,
+                fontWeight: "500",
+                textAlign: "center",
                 opacity: 0.6,
               }}
             >
