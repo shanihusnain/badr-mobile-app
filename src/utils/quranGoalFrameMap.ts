@@ -478,27 +478,94 @@ export function mapQuranCompletionFrameWeekDays(
 }
 
 /**
- * Week stats for completion strip — prefer API `totalLabel`
- * e.g. "1.43 juz from C1 this week" (Figma: "12 juz from C3 this week").
+ * Week stats for completion strip — prefer API `completionTotal`
+ * (segments + juz), then `totalLabel` / `totalDisplay`.
+ * e.g. segments `[{text:"1.43",emphasis:"primary"},{text:" juz from C1 this week"}]`.
  */
 export function getQuranFrameCompletionWeekStats(frame: QuranGoalFrameData): {
   totalDisplay: string | null;
   totalLabel: string | null;
   juzThisWeek: number;
+  completionsThisWeek: number;
   attemptNumber: number | null;
 } {
-  const totalLabel = frame.week.totalLabel?.trim() || null;
-  const totalDisplay = frame.week.totalDisplay?.trim() || null;
+  const completionTotal = frame.week.completionTotal ?? null;
+  const segments = completionTotal?.segments ?? null;
+
+  const primarySegment =
+    segments?.find(
+      (segment) =>
+        String(segment.emphasis ?? "").toLowerCase() === "primary" &&
+        segment.text?.trim(),
+    )?.text?.trim() ?? null;
+
+  const segmentsLabel =
+    segments && segments.length > 0
+      ? segments
+          .map((segment) => segment.text ?? "")
+          .join("")
+          .replace(/\s+/g, " ")
+          .trim() || null
+      : null;
+
+  const totalLabel =
+    segmentsLabel || frame.week.totalLabel?.trim() || null;
+
+  const juzFromTotal = toFiniteNumber(completionTotal?.juz);
+  const totalDisplay =
+    primarySegment ||
+    (juzFromTotal != null ? formatCompletionJuzDisplay(juzFromTotal) : null) ||
+    frame.week.totalDisplay?.trim() ||
+    null;
+
   const juzThisWeek =
-    toFiniteNumber(frame.week.totalMinutes) ??
+    juzFromTotal ??
     toFiniteNumber(totalDisplay) ??
+    toFiniteNumber(frame.week.totalMinutes) ??
     0;
+
+  const completionsThisWeek = Math.max(
+    0,
+    Math.floor(toFiniteNumber(completionTotal?.completions) ?? 0),
+  );
+
+  const attemptFromTotal = parseCompletionAttemptFromJuzAttempts(
+    completionTotal?.juzAttempts,
+  );
+
   return {
     totalDisplay,
     totalLabel,
     juzThisWeek,
-    attemptNumber: parseCompletionAttemptNumber(null, totalLabel),
+    completionsThisWeek,
+    attemptNumber:
+      attemptFromTotal ?? parseCompletionAttemptNumber(null, totalLabel),
   };
+}
+
+function formatCompletionJuzDisplay(juz: number): string {
+  if (!Number.isFinite(juz)) return "0";
+  if (Number.isInteger(juz)) return String(juz);
+  // Keep short fractional display (matches frame totalDisplay style).
+  return String(Number(juz.toFixed(2)));
+}
+
+function parseCompletionAttemptFromJuzAttempts(
+  juzAttempts: number | number[] | null | undefined,
+): number | null {
+  if (juzAttempts == null) return null;
+  if (typeof juzAttempts === "number") {
+    return Number.isFinite(juzAttempts) && juzAttempts > 0
+      ? Math.round(juzAttempts)
+      : null;
+  }
+  if (Array.isArray(juzAttempts)) {
+    for (const raw of juzAttempts) {
+      const n = Number(raw);
+      if (Number.isFinite(n) && n > 0) return Math.round(n);
+    }
+  }
+  return null;
 }
 
 /** Completions target / completed from frame. */
@@ -707,10 +774,14 @@ export function getQuranFrameJuzRecitationResume(
   };
 }
 
-/** Fractional juz completed this week from `week.totalLabel` / `totalDisplay`. */
+/** Fractional juz completed this week from `completionTotal` / `totalLabel` / `totalDisplay`. */
 export function getQuranFrameJuzCompletedThisWeek(
   frame: QuranGoalFrameData,
 ): number {
+  const fromCompletionTotal = toFiniteNumber(frame.week.completionTotal?.juz);
+  if (fromCompletionTotal != null && fromCompletionTotal >= 0) {
+    return fromCompletionTotal;
+  }
   const label = frame.week.totalLabel?.trim() || "";
   const display = frame.week.totalDisplay?.trim() || "";
   const match = label.match(/([\d.]+)\s*juz/i) || display.match(/^([\d.]+)/);

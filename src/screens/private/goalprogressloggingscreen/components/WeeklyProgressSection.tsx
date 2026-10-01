@@ -1051,9 +1051,11 @@ export function WeeklyProgressSection({
           visualizationMode="completion"
           completionWeekDays={completionDays}
           completionTarget={Math.max(1, completionProgress.targetCompletions)}
-          completionsLoggedThisWeek={completionDays.filter(
-            (day) => day.hasActivity,
-          ).length}
+          completionsLoggedThisWeek={
+            weekStats.completionsThisWeek > 0
+              ? weekStats.completionsThisWeek
+              : completionDays.filter((day) => day.hasActivity).length
+          }
           juzCompletedThisWeek={weekStats.juzThisWeek}
           weekStatsLabel={weekStats.totalLabel}
           weekStatsDisplay={weekStats.totalDisplay}

@@ -34,6 +34,28 @@ export type QuranGoalFrameDayCompletion = {
   juzLabel?: string | null;
 };
 
+/** Styled text pieces for the completion week total row. */
+export type QuranGoalFrameCompletionTotalSegment = {
+  text: string;
+  /** `"primary"` → bold count in the stats row. */
+  emphasis?: "primary" | string | null;
+};
+
+/**
+ * RECITATION_COMPLETION week footer totals
+ * (`week.completionTotal` from the frame API).
+ */
+export type QuranGoalFrameCompletionTotal = {
+  /** Full Khatm completions counted this week. */
+  completions?: number | null;
+  /** Juz (fractional allowed) covered this week. */
+  juz?: number | null;
+  /** Open / contributing attempt(s), e.g. 1 or [1, 2]. */
+  juzAttempts?: number | number[] | null;
+  /** Prefer for UI: primary segment is bold, rest is label. */
+  segments?: QuranGoalFrameCompletionTotalSegment[] | null;
+};
+
 export type QuranGoalFrameDay = {
   date: string;
   dayLabel: string;
@@ -113,6 +135,11 @@ export type QuranGoalFrameData = {
     totalDisplay?: string;
     weeklyTarget?: number | null;
     totalLabel?: string;
+    /**
+     * RECITATION_COMPLETION — structured week total for the stats row
+     * (prefer over parsing `totalLabel` / `totalDisplay`).
+     */
+    completionTotal?: QuranGoalFrameCompletionTotal | null;
     streak?: {
       count?: number;
       unit?: string;
