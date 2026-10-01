@@ -39,6 +39,7 @@ const OptionItem = React.memo(function OptionItem<T extends string>({
       style={[styles.timingOption, compact && styles.timingOptionCompact]}
       onPress={handlePress}
       activeOpacity={0.8}
+      hitSlop={{ top: 10, bottom: 10, left: 6, right: 6 }}
     >
       <View
         style={[

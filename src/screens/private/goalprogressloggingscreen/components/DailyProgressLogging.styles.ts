@@ -362,10 +362,11 @@ export const styles = StyleSheet.create({
     width: 14,
     height: 14,
     borderRadius: 7,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: Colors.light.white,
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: "transparent",
   },
   radioOuterSelected: {},
   radioInner: {
