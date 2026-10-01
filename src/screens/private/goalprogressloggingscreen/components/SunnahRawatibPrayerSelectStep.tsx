@@ -47,6 +47,7 @@ interface SunnahPrayerItemProps {
   isFullyLogged: boolean;
   isPartiallyLogged: boolean;
   isLocked: boolean;
+  isNotCounted: boolean;
   isFirst: boolean;
   isLast: boolean;
   onSelectPrayer: (id: SunnahPrayerId) => void;
@@ -62,6 +63,7 @@ const SunnahPrayerItem = React.memo(
     isFullyLogged,
     isPartiallyLogged,
     isLocked,
+    isNotCounted,
     isFirst,
     isLast,
     onSelectPrayer,
@@ -131,6 +133,7 @@ const SunnahPrayerItem = React.memo(
               borderBottomLeftRadius: isFirst && !suppressEdgeRounding ? 4 : 0,
               borderTopRightRadius: isLast && !suppressEdgeRounding ? 4 : 0,
               borderBottomRightRadius: isLast && !suppressEdgeRounding ? 4 : 0,
+              opacity: isNotCounted ? 0.55 : 1,
             },
           ]}
         >
@@ -141,6 +144,19 @@ const SunnahPrayerItem = React.memo(
             <GreenTickIcon color={Colors.light.green} size={8} />
           </View>
         )}
+        {isNotCounted ? (
+          <Text
+            style={{
+              color: Colors.light.subtext,
+              fontSize: 8,
+              marginTop: 2,
+              textAlign: "center",
+            }}
+            numberOfLines={1}
+          >
+            {t("homeScreen.menstruationLog_notCounted")}
+          </Text>
+        ) : null}
       </TouchableOpacity>
     );
   },
@@ -164,6 +180,7 @@ interface SunnahRawatibPrayerSelectStepProps {
   fullyLoggedPrayers?: readonly SunnahPrayerId[];
   partiallyLoggedPrayers?: readonly SunnahPrayerId[];
   lockedPrayers?: readonly SunnahPrayerId[];
+  notCountedPrayers?: readonly SunnahPrayerId[];
   t: (key: string) => string;
   styles: any;
 }
@@ -178,6 +195,7 @@ export const SunnahRawatibPrayerSelectStep: React.FC<
   fullyLoggedPrayers,
   partiallyLoggedPrayers,
   lockedPrayers,
+  notCountedPrayers,
   t,
   styles,
 }) => {
@@ -192,6 +210,10 @@ export const SunnahRawatibPrayerSelectStep: React.FC<
   const lockedSet = React.useMemo(
     () => new Set(lockedPrayers ?? []),
     [lockedPrayers],
+  );
+  const notCountedSet = React.useMemo(
+    () => new Set(notCountedPrayers ?? []),
+    [notCountedPrayers],
   );
 
   const paginate = options.length >= PAGINATE_MIN_OPTIONS;
@@ -237,6 +259,7 @@ export const SunnahRawatibPrayerSelectStep: React.FC<
         isFullyLogged={fullyLoggedSet.has(id)}
         isPartiallyLogged={partiallyLoggedSet.has(id)}
         isLocked={lockedSet.has(id)}
+        isNotCounted={notCountedSet.has(id)}
         isFirst={index === 0}
         isLast={index === ids.length - 1}
         onSelectPrayer={onSelectPrayer}

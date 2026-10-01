@@ -1,31 +1,54 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useSaveMenstruationPeriod,
+  type SaveMenstruationPayload,
+  type SaveMenstruationResponse,
+} from "./useSaveMenstruationPeriod";
+import { invalidateMenstruationRelatedQueries } from "./invalidateMenstruationCaches";
 import { api } from "../index";
 import { showToast, getApiErrorMessage } from "@/src/config/toastConfig";
-import { SaveMenstruationPayload, SaveMenstruationResponse } from "./useSaveMenstruationPeriod";
 
 export type UpdateMenstruationPayload = SaveMenstruationPayload;
 
+/**
+ * Correct an existing period by `id` via the unified POST endpoint.
+ * Prefer `useSaveMenstruationPeriod` with `{ id, … }` for new call sites.
+ */
 const updateMenstruationPeriod = async ({
   id,
   payload,
 }: {
   id: string;
-  payload: UpdateMenstruationPayload;
+  payload: Omit<UpdateMenstruationPayload, "id">;
 }): Promise<SaveMenstruationResponse> => {
-  // Backend uses POST to the base endpoint with menstruationPeriodId in the body
-  const response = await api.post(`api/menstruation-periods`, { ...payload, menstruationPeriodId: id });
+  const response = await api.post(`api/menstruation-periods`, {
+    ...payload,
+    id,
+  });
   return response.data;
 };
 
 export const useUpdateMenstruationPeriod = () => {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: updateMenstruationPeriod,
     mutationKey: ["updateMenstruationPeriod"],
     onSuccess: (data) => {
-      showToast("success", data?.message ?? "Menstruation period updated successfully");
+      showToast(
+        "success",
+        data?.message ?? "Menstruation period updated successfully",
+      );
+      invalidateMenstruationRelatedQueries(queryClient);
     },
     onError: (error) => {
-      showToast("error", getApiErrorMessage(error, "Failed to update menstruation period"));
+      showToast(
+        "error",
+        getApiErrorMessage(error, "Failed to update menstruation period"),
+      );
+      invalidateMenstruationRelatedQueries(queryClient);
     },
   });
 };
+
+/** @deprecated Prefer `useSaveMenstruationPeriod` with `{ id, … }`. */
+export { useSaveMenstruationPeriod };

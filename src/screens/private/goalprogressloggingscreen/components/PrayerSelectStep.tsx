@@ -39,6 +39,11 @@ interface PrayerSelectStepProps {
   loggedPrayers?: readonly PrayerName[];
   /** Unlogged and not open for logging yet. Dimmed; cannot be selected. */
   lockedPrayers?: readonly PrayerName[];
+  /**
+   * Logged but excluded from goal totals (menstruation window).
+   * Still tappable / deletable; shows a "Not counted" caption.
+   */
+  notCountedPrayers?: readonly PrayerName[];
   /** Friday + congregational tracking: show Jumu'ah label/icon in place of Dhuhr. */
   showJumuahForDhuhr?: boolean;
 }
@@ -48,6 +53,7 @@ interface PrayerItemProps {
   isSelected: boolean;
   isLogged: boolean;
   isLocked: boolean;
+  isNotCounted: boolean;
   onSelectPrayer: (prayer: PrayerName | null) => void;
   categoryColor: string;
   t: (key: string) => string;
@@ -62,6 +68,7 @@ const PrayerItem = React.memo(
     isSelected,
     isLogged,
     isLocked,
+    isNotCounted,
     onSelectPrayer,
     categoryColor,
     t,
@@ -119,6 +126,7 @@ const PrayerItem = React.memo(
               borderBottomLeftRadius: prayer === "fajr" ? 4 : 0,
               borderTopRightRadius: prayer === "isha" ? 4 : 0,
               borderBottomRightRadius: prayer === "isha" ? 4 : 0,
+              opacity: isNotCounted ? 0.55 : 1,
             },
           ]}
         >
@@ -131,6 +139,19 @@ const PrayerItem = React.memo(
         ) : (
           <View style={[styles.prayerCheckBadge, { opacity: 0 }]} />
         )}
+        {isNotCounted ? (
+          <Text
+            style={{
+              color: Colors.light.subtext,
+              fontSize: 8,
+              marginTop: 2,
+              textAlign: "center",
+            }}
+            numberOfLines={1}
+          >
+            {t("homeScreen.menstruationLog_notCounted")}
+          </Text>
+        ) : null}
       </TouchableOpacity>
     );
   },
@@ -144,6 +165,7 @@ export const PrayerSelectStep: React.FC<PrayerSelectStepProps> = ({
   styles,
   loggedPrayers,
   lockedPrayers,
+  notCountedPrayers,
   showJumuahForDhuhr = false,
 }) => {
   const tickOnlyWhenLogged = loggedPrayers !== undefined;
@@ -155,6 +177,10 @@ export const PrayerSelectStep: React.FC<PrayerSelectStepProps> = ({
     () => new Set<PrayerName>(lockedPrayers ?? []),
     [lockedPrayers],
   );
+  const notCountedSet = React.useMemo(
+    () => new Set<PrayerName>(notCountedPrayers ?? []),
+    [notCountedPrayers],
+  );
 
   return (
     <View style={styles.prayerGrid}>
@@ -165,6 +191,7 @@ export const PrayerSelectStep: React.FC<PrayerSelectStepProps> = ({
           isSelected={selectedPrayer === prayer}
           isLogged={loggedSet.has(prayer)}
           isLocked={lockedSet.has(prayer)}
+          isNotCounted={notCountedSet.has(prayer)}
           onSelectPrayer={onSelectPrayer}
           categoryColor={categoryColor}
           t={t}

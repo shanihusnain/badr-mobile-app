@@ -521,6 +521,16 @@ export default function SunnahRawatibLoggingFlow({
     [availableSunnahOptions, isPrayerPartiallyLogged],
   );
 
+  /** Logged slots excluded from goal totals (menstruation window). */
+  const notCountedPrayers = useMemo(() => {
+    if (!dayDetail?.slots) return [] as SunnahPrayerId[];
+    return availableSunnahOptions.filter((id) => {
+      const slot = dayDetail.slots?.[SUNNAH_UI_TO_API_SLOT[id]];
+      const userLogged = readSunnahRawatibSlotUserLoggedCount(slot);
+      return userLogged > 0 && slot?.countsTowardGoal === false;
+    });
+  }, [availableSunnahOptions, dayDetail]);
+
   const remainingCountForSelected = useMemo(() => {
     if (!selectedPrayer) return 0;
     const slot = dayDetail?.slots?.[SUNNAH_UI_TO_API_SLOT[selectedPrayer]];
@@ -831,6 +841,7 @@ export default function SunnahRawatibLoggingFlow({
             fullyLoggedPrayers={fullyLoggedPrayers}
             partiallyLoggedPrayers={partiallyLoggedPrayers}
             lockedPrayers={lockedPrayersForSelectedDate}
+            notCountedPrayers={notCountedPrayers}
             t={t}
             styles={commonStyles}
           />

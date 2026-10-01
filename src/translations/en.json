@@ -3718,6 +3718,8 @@
     "menstruationLog_imStillMenstruating": "I'M STILL MENSTRUATING",
     "menstruationLog_endDate": "End Date",
     "menstruationLog_save": "SAVE",
+    "menstruationLog_endCurrentFirst": "End your current period before logging a past one.",
+    "menstruationLog_notCounted": "Not counted",
     "islamicMonth_muharram": "Muh.",
     "islamicMonth_safar": "Saf.",
     "islamicMonth_rabiI": "Rab. I",

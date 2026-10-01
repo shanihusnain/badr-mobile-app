@@ -36,6 +36,11 @@ export type FiveDailyDayDetailSlot = {
   isQadhaOnly?: boolean;
   /** True while the Adhan prayer window is currently open (today only). */
   isWithinPrayerWindow?: boolean;
+  /**
+   * When false, a logged slot sits inside a menstruation window and no longer
+   * counts toward goal rings / streaks. Still deletable. `null` = nothing logged.
+   */
+  countsTowardGoal?: boolean | null;
 };
 
 export type FiveDailyPrayerDayDetail = {
@@ -56,6 +61,11 @@ export type MissedPastPrayerDayDetailSlot = {
   loggedCount: number;
   entries: unknown[];
   canLog?: boolean;
+  /**
+   * When false, entries sit inside menstruation and are excluded from
+   * goal totals. `null` = nothing logged.
+   */
+  countsTowardGoal?: boolean | null;
 };
 
 export type MissedPastPrayerDayDetail = {
@@ -105,6 +115,11 @@ export type SunnahRawatibDayDetailSlot = {
   canLog?: boolean;
   /** True when this prayer window falls in a menstruation period. */
   isMenstruationSlot?: boolean;
+  /**
+   * When false, logged units sit inside menstruation and are excluded from
+   * goal totals. Still deletable. `null` = nothing logged.
+   */
+  countsTowardGoal?: boolean | null;
 };
 
 export type SunnahRawatibDayDetail = {
@@ -151,6 +166,11 @@ export type QiyamDayDetailNight = {
   witrMissed?: boolean;
   canLog?: boolean;
   canLogWitr?: boolean;
+  /**
+   * When false, night logs sit inside menstruation and are excluded from
+   * goal totals. `null` = nothing logged.
+   */
+  countsTowardGoal?: boolean | null;
 };
 
 export type QiyamDayDetailWitr = {
@@ -225,6 +245,11 @@ export type SinglePrayerDayDetailDay = {
   maxLoggableCount?: number;
   prayedAfterWudhuCount?: number;
   prayedAfterEnteringCount?: number;
+  /**
+   * When false, day logs sit inside menstruation and are excluded from
+   * goal totals. `null` = nothing logged.
+   */
+  countsTowardGoal?: boolean | null;
 };
 
 export type SinglePrayerDayDetail = {

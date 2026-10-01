@@ -3604,6 +3604,8 @@
     "menstruationLog_imStillMenstruating": "ما زلت في فترة الدورة الشهرية",
     "menstruationLog_endDate": "تاريخ الانتهاء",
     "menstruationLog_save": "حفظ",
+    "menstruationLog_endCurrentFirst": "أنهي الفترة الحالية قبل تسجيل فترة سابقة.",
+    "menstruationLog_notCounted": "غير محسوبة",
     "islamicMonth_muharram": "محرم",
     "islamicMonth_safar": "صفر",
     "islamicMonth_rabiI": "ربيع الأول",

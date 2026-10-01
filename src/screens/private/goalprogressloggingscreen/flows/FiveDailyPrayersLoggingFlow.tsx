@@ -327,6 +327,15 @@ export default function FiveDailyPrayersLoggingFlow({
     );
   }, [dayDetail]);
 
+  /** Logged prayers excluded from goal totals (menstruation window). */
+  const notCountedPrayersForSelectedDate = useMemo((): PrayerName[] => {
+    if (!dayDetail?.slots) return [];
+    return PRAYER_OPTIONS.filter((prayer) => {
+      const slot = dayDetail.slots?.[PRAYER_TO_SLOT[prayer]];
+      return slot?.logged === true && slot.countsTowardGoal === false;
+    });
+  }, [dayDetail]);
+
   const lockedPrayersForSelectedDate = useMemo((): PrayerName[] => {
     if (!dayDetail?.slots) return [...PRAYER_OPTIONS];
     return PRAYER_OPTIONS.filter((prayer) => {
@@ -704,6 +713,7 @@ export default function FiveDailyPrayersLoggingFlow({
             categoryColor={Colors.light.green}
             loggedPrayers={loggedPrayersForSelectedDate}
             lockedPrayers={lockedPrayersForSelectedDate}
+            notCountedPrayers={notCountedPrayersForSelectedDate}
             showJumuahForDhuhr={showJumuahForDhuhr}
             t={t}
             styles={commonStyles}
