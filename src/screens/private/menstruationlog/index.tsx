@@ -11,6 +11,7 @@ import InlineDateWheelPicker, {
 } from "@/components/molecules/InlineDateWheelPicker";
 import { SwitchButton } from "@/components/atoms/SwitchButton";
 import PrimaryButton from "@/components/atoms/Primary-button";
+import { LoadingComponent } from "@/components/atoms/LoadingComponent";
 import { Colors } from "@/constants/theme";
 import styles from "./style";
 import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
@@ -101,16 +102,30 @@ export default function MenstruationLog(_props: MenstruationLogProps) {
     data: activeResponse,
     refetch: refetchActive,
     isFetched: activeFetched,
+    isLoading: activeLoading,
+    isFetching: activeFetching,
+    isError: activeError,
   } = useGetActiveMenstruationPeriod();
   const activePeriod = activeResponse?.data ?? null;
+  const [isFormHydrated, setIsFormHydrated] = useState(false);
 
   const hasInitialized = useRef(false);
   useFocusEffect(
     useCallback(() => {
       hasInitialized.current = false;
+      setIsFormHydrated(false);
       void refetchActive();
     }, [refetchActive]),
   );
+
+  /**
+   * Keep loader up until /active settles and the form is filled from it.
+   * Critical when a period is still ongoing — avoid flashing empty UI first.
+   */
+  const showActiveLoading =
+    !isFormHydrated &&
+    !activeError &&
+    (activeLoading || activeFetching || !activeFetched);
 
   const today = new Date();
   const todayString = toDateString(today);
@@ -176,10 +191,20 @@ export default function MenstruationLog(_props: MenstruationLogProps) {
   }, [activePeriod, clampDateToSelectable, isMenstruating, resetBlankForm]);
 
   useEffect(() => {
-    if (!activeFetched || hasInitialized.current) return;
+    // Wait for the in-flight /active fetch to finish before hydrating.
+    if (hasInitialized.current) return;
+    if (activeFetching) return;
+    if (!activeFetched && !activeError) return;
     hasInitialized.current = true;
     applyActivePeriodToForm();
-  }, [activeFetched, applyActivePeriodToForm, activePeriod?.id]);
+    setIsFormHydrated(true);
+  }, [
+    activeFetched,
+    activeFetching,
+    activeError,
+    applyActivePeriodToForm,
+    activePeriod?.id,
+  ]);
 
   const startCollapseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
@@ -413,6 +438,16 @@ export default function MenstruationLog(_props: MenstruationLogProps) {
       }
     }
   };
+
+  if (showActiveLoading) {
+    return (
+      <BlackScreenWrapper>
+        <View style={styles.loadingContainer}>
+          <LoadingComponent size="large" />
+        </View>
+      </BlackScreenWrapper>
+    );
+  }
 
   return (
     <BlackScreenWrapper>

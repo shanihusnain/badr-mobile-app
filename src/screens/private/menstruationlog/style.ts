@@ -17,6 +17,11 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 100,
   },
+  loadingContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
 
   infoContainer: {
     alignSelf: "center",
