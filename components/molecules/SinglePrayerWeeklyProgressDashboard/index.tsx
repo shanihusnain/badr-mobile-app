@@ -378,24 +378,29 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.greybuttonBackground,
     paddingHorizontal: 8,
     paddingVertical: 16,
-    // Tighter gap between day strip and stats ("30 juz from C2…").
-    gap: 14,
+    // Keep day→stats gap tight; daysRow paddingBottom reserves delete bin space.
+    gap: 4,
     zIndex: 150,
   },
   daysRow: {
     flexDirection: "row",
     alignItems: "flex-start",
     overflow: "visible",
+    // Always reserve space for the delete bin so long-press doesn't push stats down.
+    paddingBottom: 1,
+    paddingTop: 8,
   },
   dayColumn: {
     flex: 1,
     alignItems: "center",
     overflow: "visible",
+    // Match deletion chrome border width so toggling red doesn't grow the column.
+    borderWidth: 1,
+    borderColor: "transparent",
+    borderRadius: 6,
   },
   dayColumnMarkedForDeletion: {
-    borderWidth: 1,
     borderColor: Colors.light.red,
-    borderRadius: 6,
     backgroundColor: Colors.light.dullRed,
     zIndex: 99999,
   },
@@ -409,6 +414,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     position: "absolute",
+    // Sit in the reserved daysRow padding — never extend layout further.
     bottom: -10,
   },
   dayItemWrapper: {
@@ -440,12 +446,10 @@ const styles = StyleSheet.create({
     borderColor: "transparent",
   },
   deletingBestDay: {
-    borderWidth: 1,
     borderColor: Colors.light.red,
     borderRadius: 6,
     backgroundColor: Colors.light.dullRed,
     zIndex: 99999,
-    // width: "118%",
   },
   bestDayLabel: {
     color: Colors.light.green,
