@@ -116,7 +116,6 @@ export function SinglePrayerWeeklyProgressDashboard({
                   !!day.date && selectForDeletion === day.date;
                 const isBestDayVisible =
                   !!day.isBestDay && !isInactiveOutline && !loading;
-                console.log("isBestDayVisible", isBestDayVisible);
                 // Best-day label is clipped/scaled to the column; deletion chrome
                 // stays on the inner wrapper for best day, column for other days.
                 // Today beside BEST DAY: keep delete chrome on the shrunk wrapper
@@ -400,6 +399,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "transparent",
     borderRadius: 6,
+    paddingBottom: 4,
   },
   dayColumnMarkedForDeletion: {
     borderColor: Colors.light.red,
