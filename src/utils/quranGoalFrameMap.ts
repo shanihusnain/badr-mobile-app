@@ -123,9 +123,7 @@ export function mapQuranHoursFrameWeekDays(
       date: normalizeFrameDate(day.date) ?? day.date,
       durationLabel: apiDuration,
       canDelete:
-        !isMissed &&
-        day.canDelete !== false &&
-        (minutesLogged > 0 || isLogged),
+        !isMissed && day.canDelete !== false && (minutesLogged > 0 || isLogged),
     };
   });
 }
@@ -153,9 +151,7 @@ export function mapQuranMemorisationFrameWeekDays(
       isFuture,
       countLabel,
       canDelete:
-        !isMissed &&
-        day.canDelete !== false &&
-        (ayahsLogged > 0 || isLogged),
+        !isMissed && day.canDelete !== false && (ayahsLogged > 0 || isLogged),
     };
   });
 }
@@ -236,8 +232,7 @@ export function mapQuranJuzFrameWeekDays(
     const isMissed = state === "MISSED";
     const caption = normalizeJuzCaption(day.valueDisplay?.trim() || "");
     const frameHasActivity = hasQuranFrameDayActivity(day);
-    const apiBestDay =
-      Boolean(day.isBestDay) || state === "BEST_DAY";
+    const apiBestDay = Boolean(day.isBestDay) || state === "BEST_DAY";
 
     const parsed = parseJuzWeekCaption(caption);
 
@@ -406,9 +401,8 @@ export function mapQuranCompletionFrameWeekDays(
     const state = String(day.state ?? "").toUpperCase();
     const isMissed = state === "MISSED";
     const frameHasActivity = hasQuranFrameDayActivity(day);
-    const apiBestDay =
-      Boolean(day.isBestDay) || state === "BEST_DAY";
-
+    const apiBestDay = Boolean(day.isBestDay) || state === "BEST_DAY";
+    console.log("is the best day from api", apiBestDay);
     const {
       attempt: dayAttempt,
       attemptLabel,
@@ -493,11 +487,13 @@ export function getQuranFrameCompletionWeekStats(frame: QuranGoalFrameData): {
   const segments = completionTotal?.segments ?? null;
 
   const primarySegment =
-    segments?.find(
-      (segment) =>
-        String(segment.emphasis ?? "").toLowerCase() === "primary" &&
-        segment.text?.trim(),
-    )?.text?.trim() ?? null;
+    segments
+      ?.find(
+        (segment) =>
+          String(segment.emphasis ?? "").toLowerCase() === "primary" &&
+          segment.text?.trim(),
+      )
+      ?.text?.trim() ?? null;
 
   const segmentsLabel =
     segments && segments.length > 0
@@ -508,8 +504,7 @@ export function getQuranFrameCompletionWeekStats(frame: QuranGoalFrameData): {
           .trim() || null
       : null;
 
-  const totalLabel =
-    segmentsLabel || frame.week.totalLabel?.trim() || null;
+  const totalLabel = segmentsLabel || frame.week.totalLabel?.trim() || null;
 
   const juzFromTotal = toFiniteNumber(completionTotal?.juz);
   const totalDisplay =
@@ -575,9 +570,7 @@ export function getQuranFrameCompletionProgress(frame: QuranGoalFrameData): {
   completedJuz: number;
   achievementPct: number;
 } {
-  const targetFromLabel = frame.goal.targetLabel?.match(
-    /(\d+)\s*completion/i,
-  );
+  const targetFromLabel = frame.goal.targetLabel?.match(/(\d+)\s*completion/i);
   const rawTarget = toFiniteNumber(frame.goal.target) ?? 1;
   const targetCompletions = Math.max(
     1,
@@ -712,8 +705,7 @@ export function getQuranFrameCompletionResumeCursor(
   // Open Khatm index: after exactly 30 juz, C1 is done → resume for C2.
   const openAttempt = Math.floor(safeCompleted / 30) + 1;
 
-  const sources =
-    cycleFrames && cycleFrames.length > 0 ? cycleFrames : [frame];
+  const sources = cycleFrames && cycleFrames.length > 0 ? cycleFrames : [frame];
   const { fullyLogged, openPartialJuz } = mergeCompletionLoggedJuzFromFrames(
     sources,
     { attemptNumber: openAttempt },
@@ -738,8 +730,7 @@ export function getQuranFrameJuzRecitationResume(
   /** First selectable ayah when continuing the open partial juz. */
   minStartAyat: number;
 } {
-  const sources =
-    cycleFrames && cycleFrames.length > 0 ? cycleFrames : [frame];
+  const sources = cycleFrames && cycleFrames.length > 0 ? cycleFrames : [frame];
   const { fullyLogged, openPartialJuz } =
     mergeCompletionLoggedJuzFromFrames(sources);
 
@@ -832,10 +823,7 @@ export function getQuranFrameMemorisationProgress(
     0,
     Math.round(toFiniteNumber(item?.completed) ?? 0),
   );
-  const totalAyahs = Math.max(
-    0,
-    Math.round(toFiniteNumber(item?.target) ?? 0),
-  );
+  const totalAyahs = Math.max(0, Math.round(toFiniteNumber(item?.target) ?? 0));
   const progressPercent = Math.max(
     0,
     Math.min(
@@ -844,14 +832,13 @@ export function getQuranFrameMemorisationProgress(
         toFiniteNumber(item?.achievementPct) ??
           (totalAyahs > 0
             ? (memorizedAyahs / totalAyahs) * 100
-            : toFiniteNumber(frame.goal.achievementPct) ?? 0),
+            : (toFiniteNumber(frame.goal.achievementPct) ?? 0)),
       ),
     ),
   );
   const remainingAyahs = Math.max(0, totalAyahs - memorizedAyahs);
   const completed =
-    progressPercent >= 100 ||
-    (totalAyahs > 0 && memorizedAyahs >= totalAyahs);
+    progressPercent >= 100 || (totalAyahs > 0 && memorizedAyahs >= totalAyahs);
 
   return {
     memorizedAyahs,
@@ -896,8 +883,7 @@ export function getQuranFrameMemorisationProgressFromCycle(
   itemNumber?: number | null,
 ) {
   const base = getQuranFrameMemorisationProgress(frame, itemNumber);
-  const sources =
-    cycleFrames && cycleFrames.length > 0 ? cycleFrames : [frame];
+  const sources = cycleFrames && cycleFrames.length > 0 ? cycleFrames : [frame];
 
   let itemCompleted = 0;
   let rangeHighWater = 0;
@@ -1248,11 +1234,8 @@ export function getQuranFrameJuzGoalRange(
   frame: QuranGoalFrameData | null | undefined,
 ): { start: number; end: number } | null {
   if (!frame) return null;
-  const title =
-    frame.items?.[0]?.title?.trim() || frame.title?.trim() || "";
-  const match = title.match(
-    /from\s+juz\s+(\d+)\s+to\s+juz\s+(\d+)/i,
-  );
+  const title = frame.items?.[0]?.title?.trim() || frame.title?.trim() || "";
+  const match = title.match(/from\s+juz\s+(\d+)\s+to\s+juz\s+(\d+)/i);
   if (!match) return null;
   const start = Number(match[1]);
   const end = Number(match[2]);

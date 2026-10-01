@@ -70,6 +70,7 @@ export function SinglePrayerWeeklyProgressDashboard({
   const isDeletingLog = isDeletingLogProp ?? isDeletingPrayerLog;
   const [selectForDeletion, setSelectForDeletion] = useState("");
   const displayWeekDays = weekDays;
+  console.log("displayWeekDays", JSON.stringify(displayWeekDays, null, 2));
   const [activeDayIndex, setActiveDayIndex] = useState(selectedDayIndex);
 
   useEffect(() => {
@@ -115,6 +116,7 @@ export function SinglePrayerWeeklyProgressDashboard({
                   !!day.date && selectForDeletion === day.date;
                 const isBestDayVisible =
                   !!day.isBestDay && !isInactiveOutline && !loading;
+                console.log("isBestDayVisible", isBestDayVisible);
                 // Best-day label is clipped/scaled to the column; deletion chrome
                 // stays on the inner wrapper for best day, column for other days.
                 // Today beside BEST DAY: keep delete chrome on the shrunk wrapper

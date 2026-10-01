@@ -1041,7 +1041,20 @@ export function WeeklyProgressSection({
       const completionDays = mapQuranCompletionFrameWeekDays(frame);
       const completionProgress = getQuranFrameCompletionProgress(frame);
       const weekStats = getQuranFrameCompletionWeekStats(frame);
-
+      console.log(
+        "activeweek",
+        activeWeek,
+        "canPrev",
+        canPrev,
+        "canNext",
+        canNext,
+        "completionDays",
+        JSON.stringify(completionDays, null, 2),
+        "completionProgress",
+        JSON.stringify(completionProgress, null, 2),
+        "weekStats",
+        JSON.stringify(weekStats, null, 2),
+      );
       return (
         <QuranWeeklyRecitationProgressDashboard
           key={`completion-frame-${frame.week.weekNumber}`}

@@ -137,11 +137,12 @@ function mapCompletionDayToSinglePrayerDay(
     prayersLogged: day.hasActivity ? Math.max(day.activityScore, 1) : 0,
     isLogged: day.hasActivity,
     // Recitation never surfaces BEST DAY — ignore backend flag.
-    isBestDay: false,
+    isBestDay: day?.isBestDay,
     isToday,
     isFuture: isToday ? false : isFuture,
     canDelete: day.canDelete,
-    durationLabel: captionParts.length > 0 ? captionParts.join("\n") : undefined,
+    durationLabel:
+      captionParts.length > 0 ? captionParts.join("\n") : undefined,
   };
 }
 
@@ -205,8 +206,7 @@ export function QuranWeeklyRecitationProgressDashboard({
   const { mutateAsync: deleteQuranLog, isPending: isDeletingLog } =
     useDeleteQuranHoursLog();
   const isWeeklyMode = visualizationMode === "weekly";
-  const isWeeklySurahCarouselMode =
-    isWeeklyMode && weeklySurahItems.length > 0;
+  const isWeeklySurahCarouselMode = isWeeklyMode && weeklySurahItems.length > 0;
   const isCompletionMode =
     visualizationMode === "completion" && completionWeekDays.length > 0;
   const isJuzMode =
@@ -289,9 +289,7 @@ export function QuranWeeklyRecitationProgressDashboard({
   const periodRecitationTarget = isCompletionStyleMode
     ? completionTarget
     : isWeeklyMode
-      ? (activeWeeklySurah?.weeklyTarget ??
-        weekRecitationTarget ??
-        dailyTarget)
+      ? (activeWeeklySurah?.weeklyTarget ?? weekRecitationTarget ?? dailyTarget)
       : (weekRecitationTarget ?? dailyTarget * 7);
   const useCompletionWeekStatsLabel = Boolean(
     isCompletionMode && weekStatsLabel?.trim(),
@@ -317,10 +315,7 @@ export function QuranWeeklyRecitationProgressDashboard({
   const useJuzStyleComparison = isJuzMode || isCompletionMode;
 
   const formatStatsTotal = (value: number) => {
-    if (
-      (isJuzMode || isCompletionMode) &&
-      !Number.isInteger(value)
-    ) {
+    if ((isJuzMode || isCompletionMode) && !Number.isInteger(value)) {
       return formatNumber(Number(value.toFixed(2)));
     }
     return formatNumber(value);
