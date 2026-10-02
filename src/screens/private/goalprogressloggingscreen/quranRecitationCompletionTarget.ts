@@ -80,24 +80,40 @@ export type CompletionResumeCursor = {
   minPartialJuz: number;
   /** Locked start ayah on the open partial juz (1 = start of juz). */
   minStartAyat: number;
-  /** Fully logged juz numbers that must not be selectable again. */
+  /**
+   * Fully logged juz — blocked on Partial + Full.
+   * Open partials are NOT listed here so Partial can continue them.
+   */
   excludedJuz: number[];
+  /**
+   * Fully logged + open partial juz — blocked on Full only
+   * (a partially logged juz cannot be logged as Full).
+   */
+  fullExcludedJuz: number[];
   /** Juz with an open partial (verses left) — Partial only, not Full. */
   openPartialJuz: number | null;
+  /** Per-juz locked start ayah for every open partial (resume). */
+  openPartialMinAyatByJuz: Record<number, number>;
 };
 
 const RESUME_EPS = 1e-6;
 
 export function parseJuzNumbersFromCompletionLabel(
   juzLabel: string | null | undefined,
-): { full: number[]; partialJuz: number | null } {
+): { full: number[]; partialJuz: number[] } {
   const raw = (juzLabel ?? "").trim();
-  if (!raw) return { full: [], partialJuz: null };
+  if (!raw) return { full: [], partialJuz: [] };
 
   const full = new Set<number>();
-  let partialJuz: number | null = null;
+  const partial = new Set<number>();
 
-  const tokens = raw
+  // Strip Khatm tags ("C1") so "C1 j2*" still parses as partial j2.
+  const cleaned = raw
+    .replace(/\bC\s*\d+\b/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  const tokens = cleaned
     .split(/[,|\n]+/)
     .map((part) =>
       part
@@ -121,11 +137,12 @@ export function parseJuzNumbersFromCompletionLabel(
       continue;
     }
 
-    const partialMatch = token.match(/^j?(\d+)\*$/i);
+    // Allow optional space before * ("j2*" / "j2 *").
+    const partialMatch = token.match(/^j?(\d+)\s*\*+$/i);
     if (partialMatch) {
       const juz = Number(partialMatch[1]);
       if (Number.isFinite(juz) && juz >= MIN_JUZ && juz <= MAX_JUZ) {
-        partialJuz = juz;
+        partial.add(juz);
       }
       continue;
     }
@@ -139,7 +156,7 @@ export function parseJuzNumbersFromCompletionLabel(
     }
   }
 
-  return { full: [...full], partialJuz };
+  return { full: [...full], partialJuz: [...partial].sort((a, b) => a - b) };
 }
 
 function firstAvailableJuz(
@@ -157,7 +174,10 @@ export function getCompletionResumeCursor(
   options?: {
     fullyLoggedJuz?: number[];
     openPartialJuz?: number | null;
+    /** All open partial juz (for Full exclusion + per-juz ayat locks). */
+    openPartialJuzList?: number[];
     openPartialMinAyat?: number;
+    openPartialMinAyatByJuz?: Record<number, number>;
   },
 ): CompletionResumeCursor {
   const fullyLogged = [
@@ -168,58 +188,90 @@ export function getCompletionResumeCursor(
     ),
   ].sort((a, b) => a - b);
   const excludedSet = new Set(fullyLogged);
+
+  const openPartialList = [
+    ...new Set(
+      (
+        options?.openPartialJuzList ??
+        (options?.openPartialJuz != null ? [options.openPartialJuz] : [])
+      )
+        .map((n) => Math.round(n))
+        .filter(
+          (n) => n >= MIN_JUZ && n <= MAX_JUZ && !excludedSet.has(n),
+        ),
+    ),
+  ].sort((a, b) => a - b);
+
   const openPartialJuz =
     options?.openPartialJuz != null &&
     options.openPartialJuz >= MIN_JUZ &&
     options.openPartialJuz <= MAX_JUZ &&
     !excludedSet.has(options.openPartialJuz)
       ? options.openPartialJuz
-      : null;
+      : openPartialList.length > 0
+        ? openPartialList[openPartialList.length - 1]
+        : null;
+
+  const openPartialMinAyatByJuz: Record<number, number> = {
+    ...(options?.openPartialMinAyatByJuz ?? {}),
+  };
   const openPartialMinAyat = Math.max(
     1,
-    Math.round(options?.openPartialMinAyat ?? 1),
+    Math.round(
+      (openPartialJuz != null
+        ? openPartialMinAyatByJuz[openPartialJuz]
+        : undefined) ??
+        options?.openPartialMinAyat ??
+        1,
+    ),
   );
+  if (openPartialJuz != null && openPartialMinAyatByJuz[openPartialJuz] == null) {
+    openPartialMinAyatByJuz[openPartialJuz] = openPartialMinAyat;
+  }
+
+  const fullExcludedJuz = [
+    ...new Set([...fullyLogged, ...openPartialList]),
+  ].sort((a, b) => a - b);
+  const fullExcludedSet = new Set(fullExcludedJuz);
+
+  const emptyCursor = (): CompletionResumeCursor => ({
+    minFullStartJuz: MIN_JUZ,
+    minPartialJuz: MIN_JUZ,
+    minStartAyat: 1,
+    excludedJuz: [],
+    fullExcludedJuz: [],
+    openPartialJuz: null,
+    openPartialMinAyatByJuz: {},
+  });
 
   // Prefer explicit logged-juz set from the frame (supports non-sequential logs).
-  if (fullyLogged.length > 0 || openPartialJuz != null) {
+  if (fullyLogged.length > 0 || openPartialList.length > 0) {
+    const nextFull = firstAvailableJuz(fullExcludedSet);
+    if (nextFull > MAX_JUZ) {
+      return emptyCursor();
+    }
+
     if (openPartialJuz != null) {
-      const nextFull = firstAvailableJuz(excludedSet, openPartialJuz + 1);
-      // If every juz is excluded, this Khatm is done — start the next at juz 1.
-      if (nextFull > MAX_JUZ && firstAvailableJuz(excludedSet) > MAX_JUZ) {
-        return {
-          minFullStartJuz: MIN_JUZ,
-          minPartialJuz: MIN_JUZ,
-          minStartAyat: 1,
-          excludedJuz: [],
-          openPartialJuz: null,
-        };
-      }
       return {
-        minFullStartJuz: nextFull > MAX_JUZ ? MIN_JUZ : nextFull,
-        minPartialJuz: openPartialJuz,
+        minFullStartJuz: nextFull,
+        // Allow Partial to reach every non-fully-logged juz (incl. open partals).
+        minPartialJuz: firstAvailableJuz(excludedSet),
         minStartAyat: openPartialMinAyat,
         excludedJuz: fullyLogged,
+        fullExcludedJuz,
         openPartialJuz,
+        openPartialMinAyatByJuz,
       };
     }
 
-    const next = firstAvailableJuz(excludedSet);
-    // Finished Khatm (juz 1–30 all logged) must not pin the stepper on J30.
-    if (next > MAX_JUZ) {
-      return {
-        minFullStartJuz: MIN_JUZ,
-        minPartialJuz: MIN_JUZ,
-        minStartAyat: 1,
-        excludedJuz: [],
-        openPartialJuz: null,
-      };
-    }
     return {
-      minFullStartJuz: next,
-      minPartialJuz: next,
+      minFullStartJuz: nextFull,
+      minPartialJuz: nextFull,
       minStartAyat: 1,
       excludedJuz: fullyLogged,
+      fullExcludedJuz,
       openPartialJuz: null,
+      openPartialMinAyatByJuz: {},
     };
   }
 
@@ -229,13 +281,7 @@ export function getCompletionResumeCursor(
   if (within > 30 - RESUME_EPS) within = 0;
 
   if (within < RESUME_EPS) {
-    return {
-      minFullStartJuz: 1,
-      minPartialJuz: 1,
-      minStartAyat: 1,
-      excludedJuz: [],
-      openPartialJuz: null,
-    };
+    return emptyCursor();
   }
 
   const fullDone = Math.floor(within + RESUME_EPS / 10);
@@ -249,7 +295,9 @@ export function getCompletionResumeCursor(
       minPartialJuz: next,
       minStartAyat: 1,
       excludedJuz: sequentialExcluded,
+      fullExcludedJuz: sequentialExcluded,
       openPartialJuz: null,
+      openPartialMinAyatByJuz: {},
     };
   }
 
@@ -262,12 +310,15 @@ export function getCompletionResumeCursor(
 
   if (ayahsDone >= verseCount) {
     const next = Math.min(MAX_JUZ, currentJuz + 1);
+    const excluded = [...sequentialExcluded, currentJuz];
     return {
       minFullStartJuz: next,
       minPartialJuz: next,
       minStartAyat: 1,
-      excludedJuz: [...sequentialExcluded, currentJuz],
+      excludedJuz: excluded,
+      fullExcludedJuz: excluded,
       openPartialJuz: null,
+      openPartialMinAyatByJuz: {},
     };
   }
 
@@ -276,7 +327,9 @@ export function getCompletionResumeCursor(
     minPartialJuz: currentJuz,
     minStartAyat: ayahsDone + 1,
     excludedJuz: sequentialExcluded,
+    fullExcludedJuz: [...sequentialExcluded, currentJuz],
     openPartialJuz: currentJuz,
+    openPartialMinAyatByJuz: { [currentJuz]: ayahsDone + 1 },
   };
 }
 

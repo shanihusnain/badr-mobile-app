@@ -339,7 +339,9 @@ function resolveCompletionDayCaptions(day: QuranGoalFrameDay): {
   attemptLabel: string | null;
   juzLabel: string | null;
 } {
+  const fromDisplay = parseCompletionDayCaptions(day.valueDisplay);
   const structured = day.completion;
+
   if (structured) {
     const attempts: number[] = [];
     for (const raw of structured.attempts ?? []) {
@@ -355,6 +357,9 @@ function resolveCompletionDayCaptions(day: QuranGoalFrameDay): {
         }
       }
     }
+    if (attempts.length === 0 && fromDisplay.attempt != null) {
+      attempts.push(fromDisplay.attempt);
+    }
 
     const uniqueAttempts = [...new Set(attempts)].sort((a, b) => a - b);
     const fromApiLabel = structured.attemptLabel?.trim() || null;
@@ -368,10 +373,15 @@ function resolveCompletionDayCaptions(day: QuranGoalFrameDay): {
             : fromApiLabel;
 
     const juzRaw = structured.juzLabel?.trim() || null;
-    const juzLabel = juzRaw ? normalizeJuzCaption(juzRaw) : null;
+    // Fall back to valueDisplay juz tokens when API omits completion.juzLabel
+    // (common when only attempts/attemptLabel are populated).
+    const juzLabel = juzRaw
+      ? normalizeJuzCaption(juzRaw)
+      : fromDisplay.juzLabel;
+
     if (uniqueAttempts.length > 0 || juzLabel || attemptLabel) {
       return {
-        attempt: uniqueAttempts[0] ?? null,
+        attempt: uniqueAttempts[0] ?? fromDisplay.attempt,
         attempts: uniqueAttempts,
         attemptLabel,
         juzLabel,
@@ -379,12 +389,11 @@ function resolveCompletionDayCaptions(day: QuranGoalFrameDay): {
     }
   }
 
-  const parsed = parseCompletionDayCaptions(day.valueDisplay);
   return {
-    attempt: parsed.attempt,
-    attempts: parsed.attempt != null ? [parsed.attempt] : [],
-    attemptLabel: parsed.attempt != null ? `C${parsed.attempt}` : null,
-    juzLabel: parsed.juzLabel,
+    attempt: fromDisplay.attempt,
+    attempts: fromDisplay.attempt != null ? [fromDisplay.attempt] : [],
+    attemptLabel: fromDisplay.attempt != null ? `C${fromDisplay.attempt}` : null,
+    juzLabel: fromDisplay.juzLabel,
   };
 }
 
@@ -610,10 +619,10 @@ export function getQuranFrameCompletionProgress(frame: QuranGoalFrameData): {
 export function collectCompletionLoggedJuzFromFrame(
   frame: QuranGoalFrameData | null | undefined,
   options?: { attemptNumber?: number | null },
-): { fullyLogged: number[]; openPartialJuz: number | null } {
+): { fullyLogged: number[]; openPartialJuz: number[] } {
   const fullyLogged = new Set<number>();
-  let openPartialJuz: number | null = null;
-  if (!frame) return { fullyLogged: [], openPartialJuz: null };
+  const openPartialJuz = new Set<number>();
+  if (!frame) return { fullyLogged: [], openPartialJuz: [] };
   const attemptFilter =
     options?.attemptNumber != null &&
     Number.isFinite(options.attemptNumber) &&
@@ -643,46 +652,117 @@ export function collectCompletionLoggedJuzFromFrame(
       }
     }
 
-    const label =
-      captions.juzLabel?.trim() ||
-      day.completion?.juzLabel?.trim() ||
-      day.valueDisplay?.trim() ||
-      "";
-    if (!label) continue;
-    const parsed = parseJuzNumbersFromCompletionLabel(label);
-    for (const juz of parsed.full) fullyLogged.add(juz);
-    if (parsed.partialJuz != null) {
-      openPartialJuz = parsed.partialJuz;
+    const labels = [
+      captions.juzLabel,
+      day.completion?.juzLabel,
+      day.valueDisplay,
+    ];
+    for (const label of labels) {
+      if (!label?.trim()) continue;
+      const parsed = parseJuzNumbersFromCompletionLabel(label);
+      for (const juz of parsed.full) fullyLogged.add(juz);
+      for (const juz of parsed.partialJuz) openPartialJuz.add(juz);
+    }
+
+    // Day marked PARTIAL with a bare juz number (no *) → treat as open partial.
+    const state = String(day.state ?? "").toUpperCase();
+    if (state === "PARTIAL") {
+      const bare = parseJuzNumbersFromCompletionLabel(
+        captions.juzLabel || day.valueDisplay || "",
+      );
+      for (const juz of bare.full) openPartialJuz.add(juz);
+      for (const juz of bare.partialJuz) openPartialJuz.add(juz);
     }
   }
 
-  return { fullyLogged: [...fullyLogged], openPartialJuz };
+  // Open partals must not also count as fully logged (e.g. "j2" + "j2*" noise).
+  for (const juz of openPartialJuz) {
+    fullyLogged.delete(juz);
+  }
+
+  return {
+    fullyLogged: [...fullyLogged],
+    openPartialJuz: [...openPartialJuz].sort((a, b) => a - b),
+  };
 }
 
 /**
  * Merge logged juz across multiple week frames for the open Khatm.
- * Later frames win for `openPartialJuz` (most recent partial).
+ * Later frames contribute additional open partials; fully logged wins over partial.
  */
 export function mergeCompletionLoggedJuzFromFrames(
   frames: ReadonlyArray<QuranGoalFrameData | null | undefined>,
   options?: { attemptNumber?: number | null },
-): { fullyLogged: number[]; openPartialJuz: number | null } {
+): { fullyLogged: number[]; openPartialJuz: number[] } {
   const fullyLogged = new Set<number>();
-  let openPartialJuz: number | null = null;
+  const openPartialJuz = new Set<number>();
 
   for (const frame of frames) {
     const collected = collectCompletionLoggedJuzFromFrame(frame, options);
     for (const juz of collected.fullyLogged) fullyLogged.add(juz);
-    if (collected.openPartialJuz != null) {
-      openPartialJuz = collected.openPartialJuz;
+    for (const juz of collected.openPartialJuz) openPartialJuz.add(juz);
+  }
+
+  // Open partals win over "full" tags for the same juz (cannot Full-log a partial).
+  for (const juz of openPartialJuz) {
+    fullyLogged.delete(juz);
+  }
+
+  return {
+    fullyLogged: [...fullyLogged],
+    openPartialJuz: [...openPartialJuz].sort((a, b) => a - b),
+  };
+}
+
+function computeOpenPartialMinAyatByJuz(
+  sources: ReadonlyArray<QuranGoalFrameData | null | undefined>,
+  openPartialJuzList: ReadonlyArray<number>,
+): Record<number, number> {
+  const result: Record<number, number> = {};
+  if (openPartialJuzList.length === 0) return result;
+
+  const openSet = new Set(openPartialJuzList);
+  const ayahsDoneByJuz = new Map<number, number>();
+
+  for (const source of sources) {
+    if (!source) continue;
+    for (const day of source.week.days ?? []) {
+      const label =
+        day.completion?.juzLabel?.trim() ||
+        resolveCompletionDayCaptions(day).juzLabel?.trim() ||
+        day.valueDisplay?.trim() ||
+        "";
+      const parsed = parseJuzNumbersFromCompletionLabel(label);
+      for (const juz of parsed.partialJuz) {
+        if (!openSet.has(juz)) continue;
+        const verseCount = Math.max(1, getJuzVerseCountFromMap(juz));
+        const raw = toFiniteNumber(day.value);
+        if (raw == null || raw <= 0) continue;
+        let ayahsDone = 0;
+        if (raw < 1) {
+          ayahsDone = Math.floor(raw * verseCount);
+        } else if (raw <= verseCount) {
+          ayahsDone = Math.floor(raw);
+        } else {
+          // Fraction of a juz expressed as >1 absolute? treat as ayahs if plausible.
+          ayahsDone = Math.min(verseCount, Math.floor(raw));
+        }
+        ayahsDoneByJuz.set(
+          juz,
+          Math.max(ayahsDoneByJuz.get(juz) ?? 0, ayahsDone),
+        );
+      }
     }
   }
 
-  if (openPartialJuz != null && fullyLogged.has(openPartialJuz)) {
-    fullyLogged.delete(openPartialJuz);
+  for (const juz of openPartialJuzList) {
+    const verseCount = Math.max(1, getJuzVerseCountFromMap(juz));
+    const ayahsDone = ayahsDoneByJuz.get(juz) ?? 0;
+    result[juz] =
+      ayahsDone > 0 ? Math.min(verseCount, ayahsDone + 1) : 1;
   }
 
-  return { fullyLogged: [...fullyLogged], openPartialJuz };
+  return result;
 }
 
 /**
@@ -697,23 +777,51 @@ export function getQuranFrameCompletionResumeCursor(
   frame: QuranGoalFrameData,
   cycleFrames?: ReadonlyArray<QuranGoalFrameData | null | undefined>,
 ): CompletionResumeCursor {
-  const completedJuz =
-    toFiniteNumber(frame.goal.completed) ??
-    toFiniteNumber(frame.items?.[0]?.completed) ??
-    0;
-  const safeCompleted = Math.max(0, completedJuz);
-  // Open Khatm index: after exactly 30 juz, C1 is done → resume for C2.
+  const progress = getQuranFrameCompletionProgress(frame);
+  const safeCompleted = Math.max(0, progress.completedJuz);
+  // Open Khatm index from juz progress. While still inside C1 (< 30 juz),
+  // do NOT attempt-filter — otherwise missing/wrong C# tags drop open partals
+  // and Full still offers partially logged juz.
   const openAttempt = Math.floor(safeCompleted / 30) + 1;
+  const attemptOptions =
+    safeCompleted >= 30 ? { attemptNumber: openAttempt } : undefined;
 
   const sources = cycleFrames && cycleFrames.length > 0 ? cycleFrames : [frame];
-  const { fullyLogged, openPartialJuz } = mergeCompletionLoggedJuzFromFrames(
+  let { fullyLogged, openPartialJuz } = mergeCompletionLoggedJuzFromFrames(
     sources,
-    { attemptNumber: openAttempt },
+    attemptOptions,
   );
+
+  // Fallback: if attempt-scoped merge found nothing, retry unscoped so a
+  // partial like j2* still excludes juz 2 from Full.
+  if (
+    attemptOptions &&
+    fullyLogged.length === 0 &&
+    openPartialJuz.length === 0
+  ) {
+    const unscoped = mergeCompletionLoggedJuzFromFrames(sources);
+    fullyLogged = unscoped.fullyLogged;
+    openPartialJuz = unscoped.openPartialJuz;
+  }
+
+  const openPartialMinAyatByJuz = computeOpenPartialMinAyatByJuz(
+    sources,
+    openPartialJuz,
+  );
+  const primaryOpenPartial =
+    openPartialJuz.length > 0
+      ? openPartialJuz[openPartialJuz.length - 1]
+      : null;
 
   return getCompletionResumeCursor(safeCompleted, {
     fullyLoggedJuz: fullyLogged,
-    openPartialJuz,
+    openPartialJuz: primaryOpenPartial,
+    openPartialJuzList: openPartialJuz,
+    openPartialMinAyat:
+      primaryOpenPartial != null
+        ? openPartialMinAyatByJuz[primaryOpenPartial] ?? 1
+        : 1,
+    openPartialMinAyatByJuz,
   });
 }
 
@@ -731,32 +839,19 @@ export function getQuranFrameJuzRecitationResume(
   minStartAyat: number;
 } {
   const sources = cycleFrames && cycleFrames.length > 0 ? cycleFrames : [frame];
-  const { fullyLogged, openPartialJuz } =
+  const { fullyLogged, openPartialJuz: openPartialList } =
     mergeCompletionLoggedJuzFromFrames(sources);
+  const openPartialJuz =
+    openPartialList.length > 0
+      ? openPartialList[openPartialList.length - 1]
+      : null;
 
-  let minStartAyat = 1;
-  if (openPartialJuz != null) {
-    const verseCount = Math.max(1, getJuzVerseCountFromMap(openPartialJuz));
-    let ayahsDone = 0;
-    for (const source of sources) {
-      if (!source) continue;
-      for (const day of source.week.days ?? []) {
-        const label =
-          day.completion?.juzLabel?.trim() || day.valueDisplay?.trim() || "";
-        const parsed = parseJuzNumbersFromCompletionLabel(label);
-        if (parsed.partialJuz !== openPartialJuz) continue;
-        const raw = toFiniteNumber(day.value);
-        if (raw == null || raw <= 0) continue;
-        if (raw < 1) {
-          ayahsDone = Math.max(ayahsDone, Math.floor(raw * verseCount));
-        } else if (raw < verseCount) {
-          // Absolute ayahs logged that sitting within the juz.
-          ayahsDone = Math.max(ayahsDone, Math.floor(raw));
-        }
-      }
-    }
-    minStartAyat = ayahsDone > 0 ? Math.min(verseCount, ayahsDone + 1) : 1;
-  }
+  const openPartialMinAyatByJuz = computeOpenPartialMinAyatByJuz(
+    sources,
+    openPartialList,
+  );
+  const minStartAyat =
+    openPartialJuz != null ? openPartialMinAyatByJuz[openPartialJuz] ?? 1 : 1;
 
   return {
     excludedJuz: fullyLogged,
