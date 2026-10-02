@@ -8,7 +8,10 @@ import {
   QuranRecitationBySurahFlowCardImage,
 } from "@/assets/icons";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
-import { quranFrameCycleEnded, quranFrameShowsInsights } from "@/src/utils/quranGoalFrameMap";
+import {
+  quranFrameCycleEnded,
+  quranFrameShowsInsights,
+} from "@/src/utils/quranGoalFrameMap";
 import { stripEnglishParenthetical } from "@/src/utils/quranGoalMap";
 import { GoalData } from "../../home/components/goalsData";
 import QuranRecitationLoggingFlow from "../flows/QuranRecitationLoggingFlow";
@@ -84,7 +87,9 @@ export function SurahRecitationGoalCard({
 
   const frequencyLine = t(
     goal.frequency === "daily"
-      ? "progressLogging.surahTimesDaily"
+      ? quantityLabel === "1"
+        ? "progressLogging.oneTimeDaily"
+        : "progressLogging.surahTimesDaily"
       : "progressLogging.surahTimesWeekly",
     { count: quantityLabel },
   );

@@ -678,7 +678,9 @@
     "recitationCountOption_other": "{{count}} times",
     "surahNameLabel": "Surah {{name}}",
     "surahTimesDaily": "{{count}} times daily",
-    "surahTimesWeekly": "{{count}} times weekly",
+
+    "oneTimeDaily": "{{count}} time daily",
+    "surahTimesWeekly": "{{count}} times per week",
     "surahTotalRecitations": "(Total {{total}} recitations)",
     "memorisationGoalTitle": "Memorise Surah {{surah}}",
     "memorisationProgressLabel": "{{memorized}}/{{total}} ayahs memorized",
