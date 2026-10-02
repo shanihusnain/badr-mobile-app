@@ -66,7 +66,9 @@ const FRESH_RESUME: CompletionResumeCursor = {
   minPartialJuz: MIN_JUZ,
   minStartAyat: 1,
   excludedJuz: [],
+  fullExcludedJuz: [],
   openPartialJuz: null,
+  openPartialMinAyatByJuz: {},
 };
 
 type Props = {
@@ -217,16 +219,20 @@ export default function QuranCompletionLoggingFlow({
   );
 
   const minAyatStart = useMemo(() => {
-    if (
-      resumeCursor.openPartialJuz != null &&
+    const lockedForJuz =
+      resumeCursor.openPartialMinAyatByJuz[partialJuz] ??
+      (resumeCursor.openPartialJuz != null &&
       partialJuz === resumeCursor.openPartialJuz
-    ) {
-      return resumeCursor.minStartAyat;
+        ? resumeCursor.minStartAyat
+        : null);
+    if (lockedForJuz != null && lockedForJuz > 1) {
+      return lockedForJuz;
     }
     // Already-logged juz should not be selected; if they are, treat as locked.
     if (resumeCursor.excludedJuz.includes(partialJuz)) {
       return (partialJuzVerseCount > 0 ? partialJuzVerseCount : 9999) + 1;
     }
+    if (lockedForJuz != null) return lockedForJuz;
     return 1;
   }, [partialJuz, partialJuzVerseCount, resumeCursor]);
 
@@ -236,27 +242,18 @@ export default function QuranCompletionLoggingFlow({
 
   // Seed / clamp steppers whenever frame resume cursor advances.
   useEffect(() => {
-    const excluded = resumeCursor.excludedJuz;
-    const minFull = Math.min(MAX_JUZ, resumeCursor.minFullStartJuz);
+    const fullExcluded = resumeCursor.fullExcludedJuz;
+    const partialExcluded = resumeCursor.excludedJuz;
     setFullStartJuz((prev) =>
-      snapJuzOffExcluded(Math.max(minFull, prev), minFull, MAX_JUZ, excluded),
+      snapJuzOffExcluded(prev, MIN_JUZ, MAX_JUZ, fullExcluded),
     );
     setFullEndJuz((prev) =>
-      snapJuzOffExcluded(Math.max(minFull, prev), minFull, MAX_JUZ, excluded),
+      snapJuzOffExcluded(prev, MIN_JUZ, MAX_JUZ, fullExcluded),
     );
     setPartialJuz((prev) =>
-      snapJuzOffExcluded(
-        Math.max(resumeCursor.minPartialJuz, prev),
-        resumeCursor.minPartialJuz,
-        MAX_JUZ,
-        excluded,
-      ),
+      snapJuzOffExcluded(prev, MIN_JUZ, MAX_JUZ, partialExcluded),
     );
-  }, [
-    resumeCursor.excludedJuz,
-    resumeCursor.minFullStartJuz,
-    resumeCursor.minPartialJuz,
-  ]);
+  }, [resumeCursor.excludedJuz, resumeCursor.fullExcludedJuz]);
 
   useEffect(() => {
     const maxAyat =
@@ -327,8 +324,8 @@ export default function QuranCompletionLoggingFlow({
           return isValidCompletionFullJuzRange(
             fullStartJuz,
             fullEndJuz,
-            resumeCursor.minFullStartJuz,
-            resumeCursor.excludedJuz,
+            MIN_JUZ,
+            resumeCursor.fullExcludedJuz,
           );
         case "partialJuz":
           return (
@@ -372,7 +369,7 @@ export default function QuranCompletionLoggingFlow({
       partialJuz,
       partialJuzVerseCount,
       resumeCursor.excludedJuz,
-      resumeCursor.minFullStartJuz,
+      resumeCursor.fullExcludedJuz,
       selectedDate,
       startAyat,
       startHour,
@@ -618,9 +615,9 @@ export default function QuranCompletionLoggingFlow({
             onChangeStartJuz={setFullStartJuz}
             onChangeEndJuz={setFullEndJuz}
             styles={styles}
-            minJuz={Math.min(MAX_JUZ, resumeCursor.minFullStartJuz)}
+            minJuz={MIN_JUZ}
             maxJuz={MAX_JUZ}
-            excludedJuz={resumeCursor.excludedJuz}
+            excludedJuz={resumeCursor.fullExcludedJuz}
           />
         );
       case "partialJuz":
@@ -629,8 +626,9 @@ export default function QuranCompletionLoggingFlow({
             <View style={{ alignItems: "center" }}>
               <JuzStepper
                 value={partialJuz}
-                min={minPartialJuz}
+                min={MIN_JUZ}
                 max={MAX_JUZ}
+                // Fully logged only — open partals stay selectable to continue.
                 excluded={resumeCursor.excludedJuz}
                 onChange={setPartialJuz}
                 styles={styles}
