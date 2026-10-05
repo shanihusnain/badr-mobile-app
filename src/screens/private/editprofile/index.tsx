@@ -182,6 +182,9 @@ export default function EditProfileScreen() {
               name="country"
               labelStyle={styles.dropdownLabel}
               containerStyle={styles.dropdownContainer}
+              searchable
+              searchPlaceholder="Search country"
+              emptySearchText="No countries found"
             />
           </View>
 

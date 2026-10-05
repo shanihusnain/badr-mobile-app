@@ -37,13 +37,18 @@ export const styles = StyleSheet.create({
     marginTop: 0,
     paddingTop: 0,
   },
-  /** Sibling behind ScrollView — never inside it (MIUI touch freeze). */
-  heroBackgroundFixed: {
+  /** Positions the scrollable hero image relative to header + body. */
+  heroScrollScope: {
+    position: "relative",
+  },
+  /** Scrolls with content; height ends at weekly dashboard bottom. */
+  heroBackground: {
     position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     zIndex: 0,
+    overflow: "hidden",
   },
   scrollHeader: {
     zIndex: 2,
@@ -55,7 +60,7 @@ export const styles = StyleSheet.create({
     height: "100%",
   },
   heroBackgroundScrim: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: "rgba(0, 0, 0, 0.55)",
   },
   scrollForeground: {
@@ -96,13 +101,13 @@ export const styles = StyleSheet.create({
   circleGoalText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
-    fontSize: 13,
+    fontSize: 12,
     opacity: 0.95,
     letterSpacing: -0.2,
     marginBottom: 0,
     fontWeight: "500",
     textAlign: "center",
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
   },
   circlePercentRow: {
     flexDirection: "row",
@@ -111,24 +116,24 @@ export const styles = StyleSheet.create({
   },
   circlePercentNumber: {
     color: Colors.light.white,
-    fontFamily: fonts.primary.bold,
-    fontSize: 36,
+    fontFamily: fonts.primary.regular,
+    fontSize: 30,
     fontWeight: "700",
-    lineHeight: 40,
+    lineHeight: 34,
   },
   circlePercentSymbol: {
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: "500",
     marginLeft: 1,
-    marginBottom: 4,
-    lineHeight: 18,
+    marginBottom: 3,
+    lineHeight: 16,
   },
   weeklyDashboardWrapper: {
     width: "92%",
     alignSelf: "center",
-    paddingTop: 12,
+    paddingTop: 4,
     paddingBottom: 16,
     // Keep below logging-flow overlays, but avoid Android elevation —
     // elevated siblings steal vertical pans on some OEMs (e.g. MIUI).

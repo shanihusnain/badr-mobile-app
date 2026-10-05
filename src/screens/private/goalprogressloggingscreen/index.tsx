@@ -20,7 +20,7 @@ import {
 import { Colors } from "@/constants/theme";
 import { getResolvedGoalById, GoalId } from "../home/components/goalsData";
 import { styles } from "./styles";
-import { useNavigation } from "expo-router";
+import { router, useNavigation } from "expo-router";
 import { HeaderWithCrossTitleDynamicIcon } from "@/components/atoms/HeaderWithCrossTitleDynamicIcon";
 import { useTranslation } from "react-i18next";
 import { LoggingFlowSlot } from "./components/LoggingFlowSlot";
@@ -38,6 +38,7 @@ import { isJuzMemorisationGoalId } from "./quranMemorisationJuzTarget";
 import { isSurahMemorisationGoalId } from "./quranMemorisationTarget";
 import { isMissedRamadanFastsGoalId } from "./missedRamadanFastsTarget";
 import { isMondayThursdayFastsGoalId } from "./mondayThursdayFastsTarget";
+import { isCompletionGoalId, isJuzRecitationGoalId } from "./types";
 import {
   getMondayThursdayFastGoalTarget,
   getMondayThursdayFastRingSegments,
@@ -50,10 +51,21 @@ import {
   QuranGoalFrameProvider,
   useOptionalQuranGoalFrameContext,
 } from "./quranGoalFrameContext";
-import { getPrayerFrameRingGoalCountLabel } from "@/src/utils/prayerGoalFrameMap";
-import { getQuranFrameRingGoalCountLabel, getQuranFrameGoalTitle } from "@/src/utils/quranGoalFrameMap";
+import {
+  formatPrayerGoalFlowCardLabel,
+  getPrayerFrameRingGoalCountLabel,
+} from "@/src/utils/prayerGoalFrameMap";
+import {
+  getQuranFrameRingGoalCountLabel,
+  getQuranFrameGoalTitle,
+  getQuranFrameMemorisationRingLabel,
+  getQuranFrameRecitationRingLabel,
+  getQuranFrameCompletionRingLabel,
+} from "@/src/utils/quranGoalFrameMap";
 import { resolvePrayerTypeFromGoalId } from "@/src/utils/prayerGoalMap";
+import { resolveGoalDescriptionParamFromLoggingGoalId } from "@/src/utils/goalDescriptionMap";
 import { isQuranHoursGoalId } from "./types";
+import { resolveQuranTypeFromGoalId } from "@/src/utils/quranGoalMap";
 import BottomSheet from "@gorhom/bottom-sheet";
 import {
   tahiyyatwudhudetailimage,
@@ -69,10 +81,10 @@ import {
   quranrecitationbysurahbackgroundimage,
   quranlisteningbackgroundimage,
   qurantajweedbackgroundimage,
-  quranrecitationbottomsheetimage,
   quranmemorizationbottomsheetimage,
 } from "@/assets/images";
 import { InformationSheet } from "@/components/molecules/informationsheet";
+import { QuranHoursInformationSheet } from "@/components/molecules/QuranHoursInformationSheet";
 import { DeletePrayerGoalOptions } from "@/components/molecules/DeletePrayerLogOptions";
 import { HeaderInfoIcon } from "@/assets/icons";
 import { TopSpace } from "@/components/atoms/TopSpace";
@@ -111,10 +123,9 @@ function getLoggingBackgroundSource(
         ? qurantajweedbackgroundimage
         : quranlisteningbackgroundimage;
     case "quran-recitation":
-      return quranrecitationbysurahbackgroundimage;
-    case "quran-completion":
     case "quran-juz":
-      return quranrecitationbottomsheetimage;
+    case "quran-completion":
+      return quranrecitationbysurahbackgroundimage;
     case "quran-memorisation":
       return quranmemorizationbottomsheetimage;
     case "sadaqah-volunteering":
@@ -157,19 +168,21 @@ function GoalProgressLoggingBody({
   onDropdownOpenChange,
   weeklyRefreshKey,
   setWeeklyRefreshKey,
-  onHeroExtentChange,
+  backgroundSource,
 }: {
   goalData: NonNullable<ReturnType<typeof getResolvedGoalById>>;
   goalId: GoalId;
   onDropdownOpenChange?: (open: boolean) => void;
   weeklyRefreshKey: number;
   setWeeklyRefreshKey: React.Dispatch<React.SetStateAction<number>>;
-  /** Height of ring + flow + weekly (parent adds header for full hero). */
-  onHeroExtentChange?: (height: number) => void;
+  backgroundSource?: ImageSourcePropType;
 }) {
   const { t } = useTranslation();
   const [weekViewPercent, setWeekViewPercent] = useState<number | null>(null);
   const template = getLoggingFlowTemplate(goalId);
+  const hasHeroBackground = backgroundSource != null;
+  const needsHeroDarkScrim = template === "missed-prayers";
+  const [heroBottom, setHeroBottom] = useState(0);
   const prayerFrame = useOptionalPrayerGoalFrameContext();
   const quranFrame = useOptionalQuranGoalFrameContext();
   const isQiyamTemplate = template === "qiyam-al-layl";
@@ -186,11 +199,31 @@ function GoalProgressLoggingBody({
     isQiyamTemplate;
   const isQuranHoursFrameGoal =
     template === "quran-hours" && isQuranHoursGoalId(goalId);
+  const isSurahMemorisationFrameGoal =
+    template === "quran-memorisation" && isSurahMemorisationGoalId(goalId);
+  const isHizbMemorisationFrameGoal =
+    template === "quran-memorisation" && isHizbMemorisationGoalId(goalId);
+  const isJuzMemorisationFrameGoal =
+    template === "quran-memorisation" && isJuzMemorisationGoalId(goalId);
+  const isSurahRecitationFrameGoal =
+    template === "quran-recitation" && isSurahRecitationGoalId(goalId);
+  const isJuzRecitationFrameGoal =
+    template === "quran-juz" && isJuzRecitationGoalId(goalId);
+  const isCompletionRecitationFrameGoal =
+    template === "quran-completion" && isCompletionGoalId(goalId);
+  const isQuranFrameGoal =
+    isQuranHoursFrameGoal ||
+    isSurahMemorisationFrameGoal ||
+    isHizbMemorisationFrameGoal ||
+    isJuzMemorisationFrameGoal ||
+    isSurahRecitationFrameGoal ||
+    isJuzRecitationFrameGoal ||
+    isCompletionRecitationFrameGoal;
   const frameLoading =
     (isPrayerFrameRingGoal &&
       (prayerFrame?.isLoading ||
         (!prayerFrame?.frame && !prayerFrame?.isError))) ||
-    (isQuranHoursFrameGoal &&
+    (isQuranFrameGoal &&
       (quranFrame?.isLoading || (!quranFrame?.frame && !quranFrame?.isError)));
   const liveGoalData = useMemo(
     () => getResolvedGoalById(goalId) ?? goalData,
@@ -205,7 +238,7 @@ function GoalProgressLoggingBody({
     ? frameAchievementPct != null
       ? `${frameAchievementPct}%`
       : "0%"
-    : isQuranHoursFrameGoal
+    : isQuranFrameGoal
       ? frameAchievementPct != null
         ? `${frameAchievementPct}%`
         : "0%"
@@ -227,9 +260,11 @@ function GoalProgressLoggingBody({
   const percentageNum = frameLoading
     ? "---"
     : displayPercentage.replace("%", "");
-  const frameGoalLabel =
-    prayerFrame?.frame?.goal.label ??
-    (quranFrame?.frame ? getQuranFrameGoalTitle(quranFrame.frame) : undefined);
+  const frameGoalLabel = prayerFrame?.frame?.goal.label
+    ? formatPrayerGoalFlowCardLabel(prayerFrame.frame.goal.label)
+    : quranFrame?.frame
+      ? getQuranFrameGoalTitle(quranFrame.frame)
+      : undefined;
   const cleanLabel = frameGoalLabel
     ? frameGoalLabel
     : liveGoalData.target
@@ -255,34 +290,73 @@ function GoalProgressLoggingBody({
             ),
           })
         : "---"
-      : isMissedRamadanFastsGoalId(goalId)
-        ? t("progressLogging.missedRamadanRingGoal", {
-            count: liveGoalData.target ?? cleanLabel,
-          })
-        : isMondayThursdayFastsGoalId(goalId)
-          ? t("progressLogging.mondayThursdayRingGoal", {
-              count: liveGoalData.target ?? cleanLabel,
+      : isSurahMemorisationFrameGoal ||
+          isHizbMemorisationFrameGoal ||
+          isJuzMemorisationFrameGoal ||
+          isJuzRecitationFrameGoal
+        ? quranFrame?.frame
+          ? t("homeScreen.weeklyProgress_goalLabel", {
+              label: getQuranFrameMemorisationRingLabel(quranFrame.frame),
             })
-          : t("homeScreen.weeklyProgress_goalLabel", { label: cleanLabel });
+          : "---"
+        : isCompletionRecitationFrameGoal
+          ? quranFrame?.frame
+            ? t("homeScreen.weeklyProgress_goalLabel", {
+                label: getQuranFrameCompletionRingLabel(
+                  quranFrame.frame,
+                  t("progressLogging.unitCompletions"),
+                ),
+              })
+            : "---"
+        : isSurahRecitationFrameGoal
+          ? quranFrame?.frame
+            ? t("homeScreen.weeklyProgress_goalLabel", {
+                label: getQuranFrameRecitationRingLabel(
+                  quranFrame.frame,
+                  t("progressLogging.unitRecitations"),
+                ),
+              })
+            : "---"
+          : isMissedRamadanFastsGoalId(goalId)
+            ? t("progressLogging.missedRamadanRingGoal", {
+                count: liveGoalData.target ?? cleanLabel,
+              })
+            : isMondayThursdayFastsGoalId(goalId)
+              ? t("progressLogging.mondayThursdayRingGoal", {
+                  count: liveGoalData.target ?? cleanLabel,
+                })
+              : t("homeScreen.weeklyProgress_goalLabel", { label: cleanLabel });
 
+  const ringGoalLineCount =
+    isSurahRecitationFrameGoal || isCompletionRecitationFrameGoal ? 2 : 1;
   return (
     <>
-      <View
-        style={styles.scrollForeground}
-        collapsable={false}
-        onLayout={
-          onHeroExtentChange
-            ? (event) => {
-                onHeroExtentChange(event.nativeEvent.layout.height);
-              }
-            : undefined
-        }
-      >
+      {hasHeroBackground && backgroundSource ? (
+        <View
+          style={[
+            styles.heroBackground,
+            heroBottom > 0 ? { height: heroBottom } : undefined,
+          ]}
+          pointerEvents="none"
+          collapsable={false}
+        >
+          <Image
+            source={backgroundSource}
+            style={styles.heroBackgroundImage}
+            resizeMode="cover"
+          />
+          {needsHeroDarkScrim ? (
+            <View style={styles.heroBackgroundScrim} pointerEvents="none" />
+          ) : null}
+        </View>
+      ) : null}
+
+      <View style={styles.scrollForeground} collapsable={false}>
         <View style={styles.goalInfoContainer}>
           <TaperedCircleBorder
             percentage={displayPercentage}
-            borderColor={Colors.light.dullWhiteOpacity}
-            size={145}
+            borderColor={Colors.light.unfilledTaperred}
+            size={110}
             variant="illuminated"
           >
             <View style={styles.largeCircleInner}>
@@ -291,9 +365,9 @@ function GoalProgressLoggingBody({
                   styles.circleGoalText,
                   frameLoading && styles.loadingPlaceholderText,
                 ]}
-                numberOfLines={1}
+                numberOfLines={ringGoalLineCount}
                 adjustsFontSizeToFit
-                minimumFontScale={0.8}
+                minimumFontScale={0.75}
               >
                 {frameLoading ? "---" : ringGoalLabel}
               </Text>
@@ -321,16 +395,28 @@ function GoalProgressLoggingBody({
             setWeeklyRefreshKey((current) => current + 1);
           }}
         />
-        <TopSpace top={10} />
-        <View style={styles.weeklyDashboardWrapper}>
-          <WeeklyProgressSection
-            goalData={liveGoalData}
-            refreshKey={weeklyRefreshKey}
-            onWeekProgressPercentChange={
-              isMondayThursdayFasts ? setWeekViewPercent : undefined
-            }
-          />
-        </View>
+      </View>
+
+      <TopSpace top={2} />
+      <View
+        style={styles.weeklyDashboardWrapper}
+        onLayout={
+          hasHeroBackground
+            ? (event) => {
+                const { y, height } = event.nativeEvent.layout;
+                setHeroBottom(y + height);
+              }
+            : undefined
+        }
+      >
+        <WeeklyProgressSection
+          goalData={liveGoalData}
+          refreshKey={weeklyRefreshKey}
+          onDeleted={() => setWeeklyRefreshKey((current) => current + 1)}
+          onWeekProgressPercentChange={
+            isMondayThursdayFasts ? setWeekViewPercent : undefined
+          }
+        />
       </View>
 
       <View style={styles.pastAchievementsWrapper}>
@@ -391,14 +477,14 @@ function GoalProgressLoggingContent({
   onDropdownOpenChange,
   weeklyRefreshKey,
   setWeeklyRefreshKey,
-  onHeroExtentChange,
+  backgroundSource,
 }: {
   goalData: NonNullable<ReturnType<typeof getResolvedGoalById>>;
   goalId: GoalId;
   onDropdownOpenChange?: (open: boolean) => void;
   weeklyRefreshKey: number;
   setWeeklyRefreshKey: React.Dispatch<React.SetStateAction<number>>;
-  onHeroExtentChange?: (height: number) => void;
+  backgroundSource?: ImageSourcePropType;
 }) {
   const template = getLoggingFlowTemplate(goalId);
   const isSurahMemorisation =
@@ -417,7 +503,7 @@ function GoalProgressLoggingContent({
       onDropdownOpenChange={onDropdownOpenChange}
       weeklyRefreshKey={weeklyRefreshKey}
       setWeeklyRefreshKey={setWeeklyRefreshKey}
-      onHeroExtentChange={onHeroExtentChange}
+      backgroundSource={backgroundSource}
     />
   );
 
@@ -458,36 +544,207 @@ export const GoalProgressLoggingScreen = ({
   const [deletePrayerLogDate, setDeletePrayerLogDate] = useState<string | null>(
     null,
   );
+  /** Mount insights sheet only after the user opens it (avoids mount-open glitches). */
+  const [insightsSheetMounted, setInsightsSheetMounted] = useState(false);
+  const pendingInsightsOpenRef = useRef(false);
+  /**
+   * Mount delete sheet only when opened. Always-mounted footers from
+   * @gorhom/bottom-sheet can paint a ghost red DELETE at the screen bottom
+   * on some Android OEMs even while index === -1.
+   */
+  const [deletePrayerSheetMounted, setDeletePrayerSheetMounted] =
+    useState(false);
+  const pendingDeleteSheetOpenRef = useRef(false);
   const prayerType = resolvePrayerTypeFromGoalId(goalId);
+  const quranInsightsType = resolveQuranTypeFromGoalId(goalId);
   const template = getLoggingFlowTemplate(goalId);
   const backgroundSource = getLoggingBackgroundSource(goalId, template);
   const shouldUseBackground = backgroundSource != null;
-  const needsHeroDarkScrim = template === "missed-prayers";
-  const [headerHeight, setHeaderHeight] = useState(0);
-  const [heroContentHeight, setHeroContentHeight] = useState(0);
-  const heroBottom =
-    shouldUseBackground && headerHeight + heroContentHeight > 0
-      ? headerHeight + heroContentHeight
-      : 0;
   const insets = useSafeAreaInsets();
   const supportsDeletePrayerOptions =
     prayerType === "FIVE_DAILY_PRAYERS" || prayerType === "SUNNAH_RAWATIB";
 
-  const openInsightsSheet = () => {
-    infoSheetRef.current?.expand();
-  };
+  const openInsightsSheet = useCallback(() => {
+    if (insightsSheetMounted) {
+      infoSheetRef.current?.expand();
+      return;
+    }
+    pendingInsightsOpenRef.current = true;
+    setInsightsSheetMounted(true);
+  }, [insightsSheetMounted]);
 
-  const openDeletePrayerLogOptions = useCallback((date: string) => {
-    setDeletePrayerLogDate(date);
-    requestAnimationFrame(() => {
+  const goalDescriptionParam =
+    resolveGoalDescriptionParamFromLoggingGoalId(goalId);
+
+  const openGoalDescription = useCallback(() => {
+    if (!goalDescriptionParam) return;
+    router.push({
+      pathname: "/(private)/goaldescriptiondetails/[goal]",
+      params: { goal: goalDescriptionParam },
+    });
+  }, [goalDescriptionParam]);
+
+  useLayoutEffect(() => {
+    if (!insightsSheetMounted || !pendingInsightsOpenRef.current) return;
+    pendingInsightsOpenRef.current = false;
+    const frame = requestAnimationFrame(() => {
+      infoSheetRef.current?.expand();
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [insightsSheetMounted]);
+
+  useLayoutEffect(() => {
+    if (!deletePrayerSheetMounted || !pendingDeleteSheetOpenRef.current)
+      return;
+    pendingDeleteSheetOpenRef.current = false;
+    const frame = requestAnimationFrame(() => {
       deletePrayerSheetRef.current?.expand();
     });
+    return () => cancelAnimationFrame(frame);
+  }, [deletePrayerSheetMounted]);
+
+  const closeInsightsSheet = useCallback(() => {
+    infoSheetRef.current?.close();
   }, []);
+
+  const openDeletePrayerLogOptions = useCallback(
+    (date: string) => {
+      setDeletePrayerLogDate(date);
+      if (deletePrayerSheetMounted) {
+        requestAnimationFrame(() => {
+          deletePrayerSheetRef.current?.expand();
+        });
+        return;
+      }
+      pendingDeleteSheetOpenRef.current = true;
+      setDeletePrayerSheetMounted(true);
+    },
+    [deletePrayerSheetMounted],
+  );
 
   const closeDeletePrayerLogOptions = useCallback(() => {
     deletePrayerSheetRef.current?.close();
     setDeletePrayerLogDate(null);
   }, []);
+
+  const isMemorisationGoal =
+    isSurahMemorisationGoalId(goalId) ||
+    isHizbMemorisationGoalId(goalId) ||
+    isJuzMemorisationGoalId(goalId);
+
+  const isRecitationGoal =
+    isSurahRecitationGoalId(goalId) ||
+    isCompletionGoalId(goalId) ||
+    isJuzRecitationGoalId(goalId);
+
+  const memorisationHeaderTitle = isMemorisationGoal
+    ? "QURAN MEMORIZATION"
+    : null;
+
+  const memorisationHeaderSecondTitle = isSurahMemorisationGoalId(goalId)
+    ? "BY SURAH"
+    : isHizbMemorisationGoalId(goalId)
+      ? "BY HIZB"
+      : isJuzMemorisationGoalId(goalId)
+        ? "BY JUZ"
+        : undefined;
+
+  /** Two-line header keeps fontSize 14 (no auto-shrink) like Quran flows. */
+  const dawoodHeaderTitle =
+    goalId === "fasting-Dawwod" ? "THE FAST OF PROPHET" : null;
+  const dawoodHeaderSecondTitle =
+    goalId === "fasting-Dawwod" ? "DAWOOD (AS)" : undefined;
+
+  const memorisationTitleOptions = isMemorisationGoal
+    ? [
+        {
+          value: "quran-memorisationBySurah",
+          label: "QURAN MEMORIZATION BY SURAH",
+        },
+        {
+          value: "quran-memorisationByHizb",
+          label: "QURAN MEMORIZATION BY HIZB",
+        },
+        {
+          value: "quran-memorisationByJuz",
+          label: "QURAN MEMORIZATION BY JUZ",
+        },
+      ]
+    : undefined;
+
+  const recitationHeaderTitle = isRecitationGoal ? "QURAN RECITATION" : null;
+
+  const recitationHeaderSecondTitle = isSurahRecitationGoalId(goalId)
+    ? "BY SURAH"
+    : isCompletionGoalId(goalId)
+      ? "BY COMPLETION"
+      : isJuzRecitationGoalId(goalId)
+        ? "BY JUZ"
+        : undefined;
+
+  /** Synthetic dropdown values so daily + weekly Surah share one "BY SURAH" option. */
+  const RECITATION_SURAH_DROPDOWN_VALUE = "quran-recitationBySurah";
+
+  const recitationTitleOptions = isRecitationGoal
+    ? [
+        {
+          value: RECITATION_SURAH_DROPDOWN_VALUE,
+          label: "QURAN RECITATION BY SURAH",
+        },
+        {
+          value: "quran-recitationByCompletion",
+          label: "QURAN RECITATION BY COMPLETION",
+        },
+        {
+          value: "quran-recitationByJuz",
+          label: "QURAN RECITATION BY JUZ",
+        },
+      ]
+    : undefined;
+
+  const recitationSelectedTitleValue = isSurahRecitationGoalId(goalId)
+    ? RECITATION_SURAH_DROPDOWN_VALUE
+    : isCompletionGoalId(goalId) || isJuzRecitationGoalId(goalId)
+      ? goalId
+      : undefined;
+
+  const handleMemorisationFlowSelect = useCallback(
+    (nextGoalId: string) => {
+      if (nextGoalId === goalId) return;
+      router.setParams({
+        goalId: nextGoalId,
+        ...(fromDailyProgress
+          ? {
+              fromDailyProgress: "1",
+              ...(dailyProgressCategory ? { dailyProgressCategory } : {}),
+            }
+          : {}),
+      });
+    },
+    [dailyProgressCategory, fromDailyProgress, goalId],
+  );
+
+  const handleRecitationFlowSelect = useCallback(
+    (nextValue: string) => {
+      const nextGoalId =
+        nextValue === RECITATION_SURAH_DROPDOWN_VALUE
+          ? isSurahRecitationGoalId(goalId)
+            ? goalId
+            : "quran-recitationBySurah-daily"
+          : nextValue;
+      if (nextGoalId === goalId) return;
+      router.setParams({
+        goalId: nextGoalId,
+        ...(fromDailyProgress
+          ? {
+              fromDailyProgress: "1",
+              ...(dailyProgressCategory ? { dailyProgressCategory } : {}),
+            }
+          : {}),
+      });
+    },
+    [dailyProgressCategory, fromDailyProgress, goalId],
+  );
 
   const handleHeaderBack = () => {
     if (fromDailyProgress && dailyProgressCategory) {
@@ -538,25 +795,6 @@ export const GoalProgressLoggingScreen = ({
 
   const screenShell = (
     <View style={styles.container}>
-      {shouldUseBackground && backgroundSource ? (
-        <View
-          style={[
-            styles.heroBackgroundFixed,
-            heroBottom > 0 ? { height: heroBottom } : undefined,
-          ]}
-          pointerEvents="none"
-          collapsable={false}
-        >
-          <Image
-            source={backgroundSource}
-            style={styles.heroBackgroundImage}
-            resizeMode="cover"
-          />
-          {needsHeroDarkScrim ? (
-            <View style={styles.heroBackgroundScrim} pointerEvents="none" />
-          ) : null}
-        </View>
-      ) : null}
       <ScrollView
         style={[
           styles.scrollView,
@@ -573,53 +811,86 @@ export const GoalProgressLoggingScreen = ({
         bounces={false}
         removeClippedSubviews={false}
       >
-        {shouldUseBackground ? (
-          <View
-            style={[
-              styles.scrollHeader,
-              { paddingTop: Platform.OS === "ios" ? insets.top - 40 : 0 },
-            ]}
-            pointerEvents="box-none"
-            onLayout={(event) => {
-              setHeaderHeight(event.nativeEvent.layout.height);
-            }}
-          >
-            <HeaderWithCrossTitleDynamicIcon
-              title={
-                isSurahRecitationGoalId(goalId)
-                  ? "QURAN RECITATION BY SURAH"
-                  : (goalData.title?.toUpperCase() ??
-                    goalData.label.toUpperCase())
-              }
-              navigation={navigation}
-              bgcolor="transparent"
-              iconName="chevron-left"
-              leftButtonBackground="rgba(255,255,255,0.08)"
-              onBackPress={handleHeaderBack}
-              rightIcon={<HeaderInfoIcon />}
-              onRightPress={prayerType ? openInsightsSheet : undefined}
-            />
-          </View>
-        ) : null}
-        <GoalProgressLoggingContent
-          goalData={goalData}
-          goalId={goalId}
-          onDropdownOpenChange={(open) => setScreenScrollEnabled(!open)}
-          weeklyRefreshKey={weeklyRefreshKey}
-          setWeeklyRefreshKey={setWeeklyRefreshKey}
-          onHeroExtentChange={
-            shouldUseBackground ? setHeroContentHeight : undefined
-          }
-        />
+        <View style={styles.heroScrollScope}>
+          {shouldUseBackground ? (
+            <View
+              style={[
+                styles.scrollHeader,
+                { paddingTop: Platform.OS === "ios" ? insets.top - 40 : 0 },
+              ]}
+              pointerEvents="box-none"
+            >
+              <HeaderWithCrossTitleDynamicIcon
+                title={
+                  memorisationHeaderTitle
+                    ? memorisationHeaderTitle
+                    : recitationHeaderTitle
+                      ? recitationHeaderTitle
+                      : dawoodHeaderTitle
+                        ? dawoodHeaderTitle
+                        : (goalData.title?.toUpperCase() ??
+                          goalData.label.toUpperCase())
+                }
+                secondTitle={
+                  memorisationHeaderSecondTitle ??
+                  recitationHeaderSecondTitle ??
+                  dawoodHeaderSecondTitle
+                }
+                titleDropdownOptions={
+                  memorisationTitleOptions ?? recitationTitleOptions
+                }
+                selectedTitleValue={
+                  isMemorisationGoal
+                    ? goalId
+                    : isRecitationGoal
+                      ? recitationSelectedTitleValue
+                      : undefined
+                }
+                onTitleOptionSelect={
+                  isMemorisationGoal
+                    ? handleMemorisationFlowSelect
+                    : isRecitationGoal
+                      ? handleRecitationFlowSelect
+                      : undefined
+                }
+                titleOffsetY={template.startsWith("quran-") ? 4 : 0}
+                navigation={navigation}
+                bgcolor="transparent"
+                iconName="chevron-left"
+                leftButtonBackground="rgba(255,255,255,0.08)"
+                onBackPress={handleHeaderBack}
+                rightIcon={<HeaderInfoIcon />}
+                onRightPress={
+                  goalDescriptionParam ? openGoalDescription : undefined
+                }
+              />
+            </View>
+          ) : null}
+          <GoalProgressLoggingContent
+            goalData={goalData}
+            goalId={goalId}
+            onDropdownOpenChange={(open) => setScreenScrollEnabled(!open)}
+            weeklyRefreshKey={weeklyRefreshKey}
+            setWeeklyRefreshKey={setWeeklyRefreshKey}
+            backgroundSource={backgroundSource}
+          />
+        </View>
       </ScrollView>
-      {prayerType ? (
+      {insightsSheetMounted && prayerType ? (
         <InformationSheet
           ref={infoSheetRef}
           prayerType={prayerType}
-          onClose={() => infoSheetRef.current?.close()}
+          onClose={closeInsightsSheet}
         />
       ) : null}
-      {supportsDeletePrayerOptions ? (
+      {insightsSheetMounted && quranInsightsType && !prayerType ? (
+        <QuranHoursInformationSheet
+          ref={infoSheetRef}
+          quranGoalType={quranInsightsType}
+          onClose={closeInsightsSheet}
+        />
+      ) : null}
+      {supportsDeletePrayerOptions && deletePrayerSheetMounted ? (
         <DeletePrayerGoalOptions
           ref={deletePrayerSheetRef}
           date={deletePrayerLogDate}
@@ -647,7 +918,15 @@ export const GoalProgressLoggingScreen = ({
     );
   }
 
-  if (isQuranHoursGoalId(goalId)) {
+  if (
+    isQuranHoursGoalId(goalId) ||
+    isSurahMemorisationGoalId(goalId) ||
+    isHizbMemorisationGoalId(goalId) ||
+    isJuzMemorisationGoalId(goalId) ||
+    isSurahRecitationGoalId(goalId) ||
+    isJuzRecitationGoalId(goalId) ||
+    isCompletionGoalId(goalId)
+  ) {
     return (
       <QuranGoalFrameProvider
         goalId={goalId}

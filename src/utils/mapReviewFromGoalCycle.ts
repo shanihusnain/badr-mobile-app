@@ -519,7 +519,10 @@ function mapQuranGoal(
     const surahName = item.surahName ?? fallbackName;
 
     if (isSurahRecitation) {
-      const times = item.targetCount ?? 1;
+      const times = Math.max(
+        1,
+        Number(item.perPeriodCount ?? item.targetCount ?? 1) || 1,
+      );
       const frequency = resolveQuranSurahFrequency({
         surahId: itemNumber,
         times,
@@ -667,13 +670,13 @@ function mapSadaqahGoal(
       {
         id: 1,
         name: "meals",
-        label: t("monthlyGoalPlanner.meals"),
+        label: t("monthlyGoalPlanner.meals", { count: meals }),
         value: meals,
       },
       {
         id: 2,
         name: "cloths",
-        label: t("monthlyGoalPlanner.cloths"),
+        label: t("monthlyGoalPlanner.cloths", { count: items }),
         value: items,
       },
     );

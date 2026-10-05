@@ -75,6 +75,7 @@ export type MemorisationProgressRailRow = {
   totalVerses: number;
   isCompleted: boolean;
   timeSpentMinutes: number;
+  longestStreak?: number;
 };
 
 const MOTIVATIONAL_SUMMARY_KEY =
@@ -134,6 +135,18 @@ function groupByProgressEvents(
 
   if (sorted.length === 0) {
     const memorized = Math.min(cumulative, totalAyahs);
+    // No logs and no prior progress → empty chart (no axes / bars).
+    if (memorized <= 0) {
+      return [
+        {
+          xLabel: "e1",
+          dateLabel: "",
+          completed: 0,
+          incomplete: 0,
+          timeSpentMinutes: 0,
+        },
+      ];
+    }
     return [
       {
         xLabel: "e1",
@@ -396,7 +409,7 @@ function filterMemorisationSlice(
       chartPeriods: slice.chartPeriods.map((period) => ({
         ...period,
         completed: 0,
-        incomplete: totalAyahs,
+        incomplete: 0,
         timeSpentMinutes: 0,
       })),
       totalAyahs,

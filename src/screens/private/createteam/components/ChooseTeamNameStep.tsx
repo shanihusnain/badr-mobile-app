@@ -51,7 +51,7 @@ export function ChooseTeamNameStep({
               Colors.light.blackBackground,
             ]}
             locations={[0, 0.45, 0.75, 1]}
-            style={StyleSheet.absoluteFillObject}
+            style={StyleSheet.absoluteFill}
             pointerEvents="none"
           />
         </ImageBackground>

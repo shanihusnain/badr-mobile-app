@@ -15,7 +15,7 @@ export const manageTeamStyles = StyleSheet.create({
     height: 240,
   },
   bannerGradient: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   editBannerRow: {
     position: "absolute",

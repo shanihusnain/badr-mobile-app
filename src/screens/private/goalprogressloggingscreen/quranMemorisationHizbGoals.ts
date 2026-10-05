@@ -21,13 +21,18 @@ export type HizbMemorisationStatusKind =
 
 export type HizbMemorisationGoal = {
   id: string;
+  /** Hizb number — frame API `itemNumber`. */
+  itemNumber?: number;
   hizbName: string;
   rangeLabel: string;
   displayName: string;
+  subtitle?: string;
+  pillLabel?: string;
   totalAyahs: number;
   memorizedAyahs: number;
   progressPercentage: number;
   completed: boolean;
+  canLog?: boolean;
   status: HizbMemorisationStatusKind;
 };
 
@@ -58,9 +63,11 @@ function buildGoal(
   const memorizedAyahs = getMemorizedHizbAyahCount(id);
   const completed = isHizbFullyMemorized(id);
   const progressPercentage = getHizbMemorisationProgressPercent(id);
+  const itemNumber = Number(id);
 
   return {
     id,
+    itemNumber: Number.isFinite(itemNumber) && itemNumber > 0 ? itemNumber : undefined,
     hizbName,
     rangeLabel,
     displayName: getHizbDisplayName(id),

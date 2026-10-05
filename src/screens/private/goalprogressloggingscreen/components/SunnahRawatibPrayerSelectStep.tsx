@@ -47,6 +47,7 @@ interface SunnahPrayerItemProps {
   isFullyLogged: boolean;
   isPartiallyLogged: boolean;
   isLocked: boolean;
+  isNotCounted: boolean;
   isFirst: boolean;
   isLast: boolean;
   onSelectPrayer: (id: SunnahPrayerId) => void;
@@ -62,6 +63,7 @@ const SunnahPrayerItem = React.memo(
     isFullyLogged,
     isPartiallyLogged,
     isLocked,
+    isNotCounted,
     isFirst,
     isLast,
     onSelectPrayer,
@@ -75,12 +77,17 @@ const SunnahPrayerItem = React.memo(
     }, [isFullyLogged, isLocked, onSelectPrayer, prayerId]);
 
     const isDisabled = isFullyLogged || isLocked;
-    const showHighlight =
-      isSelected || isFullyLogged || isPartiallyLogged;
-    const iconColor = showHighlight ? categoryColor : Colors.light.white;
+    // White box only for explicit selection — logged ticks must not look
+    // pre-selected (same as Five Daily).
+    const showSelectedBox = isSelected;
+    const iconColor =
+      isSelected || isFullyLogged || isPartiallyLogged
+        ? categoryColor
+        : Colors.light.white;
     const Icon = SUNNAH_ICON_COMPONENTS[prayerId];
     const [line1, line2] = t(SUNNAH_LABEL_KEYS[prayerId]).split("\n");
-    const labelOpacity = showHighlight ? 1 : isLocked ? 0.35 : 0.8;
+    const labelOpacity =
+      isSelected || isFullyLogged || isPartiallyLogged ? 1 : 0.75;
     // Paginated pages: After Dhuhr / Before Asr sit at page edges but use sharp
     // middle-style boxes like Before Dhuhr and After Maghrib (Figma).
     const suppressEdgeRounding =
@@ -97,6 +104,8 @@ const SunnahPrayerItem = React.memo(
           <Text
             style={[localStyles.labelLine, { opacity: labelOpacity }]}
             numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.7}
           >
             {line1.toUpperCase()}
           </Text>
@@ -107,6 +116,8 @@ const SunnahPrayerItem = React.memo(
               { opacity: labelOpacity },
             ]}
             numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.7}
           >
             {(line2 ?? " ").toUpperCase()}
           </Text>
@@ -114,15 +125,15 @@ const SunnahPrayerItem = React.memo(
         <View
           style={[
             styles.prayerIconBox,
-            showHighlight
+            showSelectedBox
               ? styles.prayerIconBoxSelected
               : styles.prayerIconBoxIdle,
-            isLocked && !showHighlight && { opacity: 0.35 },
             {
               borderTopLeftRadius: isFirst && !suppressEdgeRounding ? 4 : 0,
               borderBottomLeftRadius: isFirst && !suppressEdgeRounding ? 4 : 0,
               borderTopRightRadius: isLast && !suppressEdgeRounding ? 4 : 0,
               borderBottomRightRadius: isLast && !suppressEdgeRounding ? 4 : 0,
+              opacity: isNotCounted ? 0.55 : 1,
             },
           ]}
         >
@@ -133,6 +144,19 @@ const SunnahPrayerItem = React.memo(
             <GreenTickIcon color={Colors.light.green} size={8} />
           </View>
         )}
+        {isNotCounted ? (
+          <Text
+            style={{
+              color: Colors.light.subtext,
+              fontSize: 8,
+              marginTop: 2,
+              textAlign: "center",
+            }}
+            numberOfLines={1}
+          >
+            {t("homeScreen.menstruationLog_notCounted")}
+          </Text>
+        ) : null}
       </TouchableOpacity>
     );
   },
@@ -150,12 +174,13 @@ const pageChevronColor = (enabled: boolean) =>
 
 interface SunnahRawatibPrayerSelectStepProps {
   options: readonly SunnahPrayerId[];
-  selectedPrayer: SunnahPrayerId;
+  selectedPrayer: SunnahPrayerId | null;
   onSelectPrayer: (id: SunnahPrayerId) => void;
   categoryColor: string;
   fullyLoggedPrayers?: readonly SunnahPrayerId[];
   partiallyLoggedPrayers?: readonly SunnahPrayerId[];
   lockedPrayers?: readonly SunnahPrayerId[];
+  notCountedPrayers?: readonly SunnahPrayerId[];
   t: (key: string) => string;
   styles: any;
 }
@@ -170,6 +195,7 @@ export const SunnahRawatibPrayerSelectStep: React.FC<
   fullyLoggedPrayers,
   partiallyLoggedPrayers,
   lockedPrayers,
+  notCountedPrayers,
   t,
   styles,
 }) => {
@@ -185,6 +211,10 @@ export const SunnahRawatibPrayerSelectStep: React.FC<
     () => new Set(lockedPrayers ?? []),
     [lockedPrayers],
   );
+  const notCountedSet = React.useMemo(
+    () => new Set(notCountedPrayers ?? []),
+    [notCountedPrayers],
+  );
 
   const paginate = options.length >= PAGINATE_MIN_OPTIONS;
   const pageCount = paginate
@@ -197,6 +227,7 @@ export const SunnahRawatibPrayerSelectStep: React.FC<
       setPage(0);
       return;
     }
+    if (!selectedPrayer) return;
     const selectedIndex = options.indexOf(selectedPrayer);
     if (selectedIndex >= 0) {
       setPage(Math.floor(selectedIndex / PRAYER_PAGE_SIZE));
@@ -228,6 +259,7 @@ export const SunnahRawatibPrayerSelectStep: React.FC<
         isFullyLogged={fullyLoggedSet.has(id)}
         isPartiallyLogged={partiallyLoggedSet.has(id)}
         isLocked={lockedSet.has(id)}
+        isNotCounted={notCountedSet.has(id)}
         isFirst={index === 0}
         isLast={index === ids.length - 1}
         onSelectPrayer={onSelectPrayer}

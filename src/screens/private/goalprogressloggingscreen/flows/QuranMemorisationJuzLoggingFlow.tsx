@@ -5,43 +5,53 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import moment from "moment-hijri";
 import { Colors } from "@/constants/theme";
+import { useLogQuranMemorisationJuzGoal } from "@/src/api/mutations/useLogQuranMemorisationJuzGoal";
 import { GoalData } from "../../home/components/goalsData";
-import { DurationStep, StartTimeStep } from "../components/TimePickerSteps";
+import {
+  DurationStep,
+  StartTimeStep,
+  getCurrentStartTimeParts,
+} from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
 import { MemorisationJuzAyahCountStep } from "../components/MemorisationJuzAyahCountStep";
 import { MemorisationJuzSelectionStep } from "../components/MemorisationJuzSelectionStep";
 import { styles } from "../components/DailyProgressLogging.styles";
+import { QuranIconForSlider } from "@/assets/icons/QuranIconForSlider";
+import { WhiteClockIcon, WhiteTimerIcon } from "@/assets/icons";
 import { getQuranMemorisationJuzFlowDefinition } from "../loggingFlowRegistry";
 import {
-  appendJuzMemorisationLog,
-  buildJuzMemorisationLogFromEntry,
   getMemorizedJuzAyahCount,
-  getRemainingJuzAyahCount,
   getJuzMemorisationProgressPercent,
   isJuzFullyMemorized,
 } from "../quranMemorisationJuzData";
-import { invalidateJuzMemorisationPastAchievementCache } from "../quranMemorisationJuzPastAchievementData";
 import {
   buildJuzMemorisationSteps,
   getJuzAyahsMemorizedFromRange,
   getMemorisationTargetConfigForJuz,
   getNextJuzMemorisationAyah,
   isValidJuzMemorisationAyahRange,
-  isValidTimeSpent,
+  toMemorisationTargetConfigFromJuzGoal,
   type QuranMemorisationJuzStepId,
 } from "../quranMemorisationJuzTarget";
 import {
   getJuzMemorisationGoals,
+  type JuzMemorisationGoal,
   type MemorisationJuzFilterId,
 } from "../quranMemorisationJuzGoals";
-import { isValidStartTime } from "../quranRecitationTarget";
+import { useOptionalMemorisationJuzContext } from "../memorisationJuzContext";
+import { useOptionalQuranGoalFrameContext } from "../quranGoalFrameContext";
+import { isValidStartTime, isValidTimeSpent } from "../quranRecitationTarget";
 import type { QuranMemorisationJuzLogEntry } from "../types";
+import { DateStep } from "../components/DateStep";
+import { formatProgressLoggingDateLabel } from "../progressLoggingConfig";
 
 type FlowMode = "collapsed" | "active";
 
 type Props = {
   goalData: GoalData;
   preselectedJuzId?: MemorisationJuzFilterId;
+  /** Prefer this when carousel/frame provides the active juz (API itemNumber ids). */
+  activeJuzGoal?: JuzMemorisationGoal | null;
   hideCollapsedSummary?: boolean;
   embedded?: boolean;
   suppressOverlay?: boolean;
@@ -55,6 +65,7 @@ const toDateString = (date: Date) => moment(date).format("YYYY-MM-DD");
 export default function QuranMemorisationJuzLoggingFlow({
   goalData,
   preselectedJuzId = "all",
+  activeJuzGoal = null,
   hideCollapsedSummary = false,
   embedded = false,
   suppressOverlay = false,
@@ -63,13 +74,20 @@ export default function QuranMemorisationJuzLoggingFlow({
   onLogComplete,
 }: Props) {
   const { t } = useTranslation();
+  const memorisationContext = useOptionalMemorisationJuzContext();
+  const quranFrame = useOptionalQuranGoalFrameContext();
+  const { mutateAsync: logMemorisationJuz, isPending: isLogging } =
+    useLogQuranMemorisationJuzGoal();
   const flowDefinition = useMemo(
     () => getQuranMemorisationJuzFlowDefinition(goalData.id),
     [goalData.id],
   );
 
   const includeJuzSelection = preselectedJuzId === "all";
-  const goals = useMemo(() => getJuzMemorisationGoals(), []);
+  const goals = useMemo(
+    () => memorisationContext?.goals ?? getJuzMemorisationGoals(),
+    [memorisationContext?.goals],
+  );
   const incompleteGoals = useMemo(
     () => goals.filter((goal) => !goal.completed),
     [goals],
@@ -81,16 +99,46 @@ export default function QuranMemorisationJuzLoggingFlow({
       : (incompleteGoals[0]?.id ?? "");
 
   const [selectedJuzId, setSelectedJuzId] = useState(initialJuzId);
-  const config = useMemo(
-    () => getMemorisationTargetConfigForJuz(selectedJuzId),
-    [selectedJuzId],
-  );
+  const config = useMemo(() => {
+    const fromActive =
+      activeJuzGoal && activeJuzGoal.id === selectedJuzId
+        ? toMemorisationTargetConfigFromJuzGoal(activeJuzGoal)
+        : null;
+    if (fromActive) return fromActive;
+
+    const fromList = goals.find((goal) => goal.id === selectedJuzId);
+    if (fromList) return toMemorisationTargetConfigFromJuzGoal(fromList);
+
+    return getMemorisationTargetConfigForJuz(selectedJuzId, activeJuzGoal);
+  }, [activeJuzGoal, goals, selectedJuzId]);
 
   const juzId = config?.juzId ?? "";
+  const juzName = config?.juzName ?? "";
+  const juzNumber =
+    config?.juzNumber ?? (Number(String(juzId).replace(/^juz-/i, "")) || 1);
   const totalAyahs = config?.totalAyahs ?? 0;
-  const juzNumber = config?.juzNumber ?? 1;
-  const remainingAyahs = getRemainingJuzAyahCount(juzId);
-  const minStartAyah = getNextJuzMemorisationAyah(juzId);
+  const memorizedAyahs = Math.max(
+    config?.memorizedAyahs ?? 0,
+    juzId ? getMemorizedJuzAyahCount(juzId) : 0,
+  );
+  const remainingAyahs = Math.max(0, totalAyahs - memorizedAyahs);
+  const minStartAyah = getNextJuzMemorisationAyah(juzId, memorizedAyahs);
+  const itemNumber = useMemo(() => {
+    const fromActive =
+      activeJuzGoal?.id === selectedJuzId
+        ? (activeJuzGoal.itemNumber ?? activeJuzGoal.juzNumber)
+        : undefined;
+    const fromList = goals.find((goal) => goal.id === selectedJuzId);
+    const fromListNumber = fromList?.itemNumber ?? fromList?.juzNumber;
+    const fromConfig = juzNumber;
+    const fromId = Number(String(juzId).replace(/^juz-/i, ""));
+    return (
+      fromActive ??
+      fromListNumber ??
+      fromConfig ??
+      (Number.isFinite(fromId) && fromId > 0 ? fromId : NaN)
+    );
+  }, [activeJuzGoal, goals, juzId, juzNumber, selectedJuzId]);
 
   const [internalFlowMode, setInternalFlowMode] =
     useState<FlowMode>("collapsed");
@@ -107,17 +155,22 @@ export default function QuranMemorisationJuzLoggingFlow({
   );
 
   const [stepIndex, setStepIndex] = useState(0);
-  const [startHour, setStartHour] = useState("06");
-  const [startMinute, setStartMinute] = useState("15");
-  const [startPeriod, setStartPeriod] = useState<"am" | "pm">("am");
+  const [selectedDate, setSelectedDate] = useState(toDateString(new Date()));
+  const initialStartTime = getCurrentStartTimeParts();
+  const [startHour, setStartHour] = useState(initialStartTime.hour);
+  const [startMinute, setStartMinute] = useState(initialStartTime.minute);
+  const [startPeriod, setStartPeriod] = useState<"am" | "pm">(
+    initialStartTime.period,
+  );
   const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
   const [startAyah, setStartAyah] = useState(minStartAyah);
-  const [endAyah, setEndAyah] = useState(minStartAyah);
+  const [endAyah, setEndAyah] = useState(() =>
+    Math.max(minStartAyah, totalAyahs || minStartAyah),
+  );
   const [durationHours, setDurationHours] = useState("0");
-  const [durationMinutes, setDurationMinutes] = useState("10");
+  const [durationMinutes, setDurationMinutes] = useState("0");
 
   const todayString = toDateString(new Date());
-  const selectedDate = todayString;
   const steps = useMemo(
     () => buildJuzMemorisationSteps(includeJuzSelection),
     [includeJuzSelection],
@@ -136,41 +189,57 @@ export default function QuranMemorisationJuzLoggingFlow({
   }, [incompleteGoals, preselectedJuzId, selectedJuzId]);
 
   useEffect(() => {
-    const nextStartAyah = getNextJuzMemorisationAyah(juzId);
+    const nextStartAyah = getNextJuzMemorisationAyah(juzId, memorizedAyahs);
     setStartAyah(nextStartAyah);
-    setEndAyah(nextStartAyah);
-  }, [juzId]);
+    setEndAyah(Math.max(nextStartAyah, totalAyahs || nextStartAyah));
+  }, [juzId, memorizedAyahs, totalAyahs]);
 
   const resetFlow = useCallback(() => {
     setFlowMode("collapsed");
     setStepIndex(0);
+    setSelectedDate(toDateString(new Date()));
     const nextStartAyah = getNextJuzMemorisationAyah(
       preselectedJuzId !== "all" ? preselectedJuzId : selectedJuzId,
+      memorizedAyahs,
     );
+    const nextEndAyah = Math.max(nextStartAyah, totalAyahs || nextStartAyah);
     setStartAyah(nextStartAyah);
-    setEndAyah(nextStartAyah);
-    setStartHour("06");
-    setStartMinute("15");
-    setStartPeriod("am");
+    setEndAyah(nextEndAyah);
+    const now = getCurrentStartTimeParts();
+    setStartHour(now.hour);
+    setStartMinute(now.minute);
+    setStartPeriod(now.period);
     setIsPeriodDropdownOpen(false);
     setDurationHours("0");
-    setDurationMinutes("10");
+    setDurationMinutes("0");
     if (preselectedJuzId !== "all") {
       setSelectedJuzId(preselectedJuzId);
     } else {
       setSelectedJuzId(incompleteGoals[0]?.id ?? "");
     }
-  }, [incompleteGoals, preselectedJuzId, setFlowMode]);
+  }, [
+    incompleteGoals,
+    memorizedAyahs,
+    preselectedJuzId,
+    selectedJuzId,
+    setFlowMode,
+    totalAyahs,
+  ]);
 
   const isStepValid = useCallback(
     (step: QuranMemorisationJuzStepId) => {
       switch (step) {
         case "juz":
           return Boolean(selectedJuzId) && remainingAyahs > 0;
-        case "ayahCount":
-          return isValidJuzMemorisationAyahRange(juzId, startAyah, endAyah);
+        case "date":
+          return Boolean(selectedDate);
         case "startTime":
           return isValidStartTime(startHour, startMinute, startPeriod);
+        case "ayahCount":
+          return isValidJuzMemorisationAyahRange(juzId, startAyah, endAyah, {
+            totalAyahs,
+            memorizedAyahs,
+          });
         case "timeSpent":
           return isValidTimeSpent(durationHours, durationMinutes);
         default:
@@ -182,21 +251,38 @@ export default function QuranMemorisationJuzLoggingFlow({
       durationMinutes,
       endAyah,
       juzId,
+      memorizedAyahs,
       remainingAyahs,
+      selectedDate,
       selectedJuzId,
       startAyah,
       startHour,
       startMinute,
       startPeriod,
+      totalAyahs,
     ],
   );
 
-  const canGoForward = !isLastStep && isStepValid(currentStep);
+  const canGoForward = !isLastStep && isStepValid(currentStep) && !isLogging;
 
   if (!flowDefinition || !config) return null;
   if (embedded && flowMode !== "active") return null;
   if (hideCollapsedSummary && !embedded && flowMode === "collapsed")
     return null;
+
+  const dateLabel = formatProgressLoggingDateLabel(
+    selectedDate,
+    todayString,
+    t("progressLogging.today"),
+  );
+
+  const shiftDate = (direction: -1 | 1) => {
+    const next = moment(selectedDate, "YYYY-MM-DD")
+      .add(direction, "days")
+      .format("YYYY-MM-DD");
+    if (direction === 1 && next > todayString) return;
+    setSelectedDate(next);
+  };
 
   const handleBack = () => {
     if (stepIndex === 0) {
@@ -211,60 +297,80 @@ export default function QuranMemorisationJuzLoggingFlow({
     setStepIndex((index) => index + 1);
   };
 
+  const formatSessionStartTimeForApi = () => {
+    const hourNum = Number.parseInt(startHour || "0", 10) || 0;
+    const minuteNum = Number.parseInt(startMinute || "0", 10) || 0;
+
+    let hour24 = hourNum % 12;
+    if (startPeriod === "pm") hour24 += 12;
+
+    const hh = String(Math.max(0, hour24)).padStart(2, "0");
+    const mm = String(Math.max(0, minuteNum)).padStart(2, "0");
+    return `${hh}:${mm}`;
+  };
+
   const handleConfirm = () => {
-    if (!isLastStep) {
-      handleForward();
-      return;
-    }
+    if (!isLastStep) return;
 
     if (!steps.every((step) => isStepValid(step))) return;
+    if (!Number.isFinite(itemNumber) || itemNumber < 1) return;
 
-    const start = Math.round(startAyah);
-    const end = Math.round(endAyah);
-    const count = getJuzAyahsMemorizedFromRange(start, end);
-    const startTime = `${startHour}:${startMinute} ${startPeriod}`;
-    const hours = Number.parseInt(durationHours || "0", 10) || 0;
-    const minutes = Number.parseInt(durationMinutes || "0", 10) || 0;
-    const timeSpentMinutes = hours * 60 + minutes;
+    const run = async () => {
+      const ayahsMemorizedToday = getJuzAyahsMemorizedFromRange(
+        startAyah,
+        endAyah,
+      );
+      const hours = Number.parseInt(durationHours || "0", 10) || 0;
+      const minutes = Number.parseInt(durationMinutes || "0", 10) || 0;
+      const durationTotalMinutes = hours * 60 + minutes;
+      if (durationTotalMinutes < 1) return;
 
-    appendJuzMemorisationLog(
-      buildJuzMemorisationLogFromEntry({
-        juzId,
-        date: selectedDate,
-        startAyah: start,
-        endAyah: end,
-        ayahsMemorizedToday: count,
-        startTime,
-        timeSpentMinutes,
-        hours,
-        minutes,
-      }),
-    );
-    invalidateJuzMemorisationPastAchievementCache();
+      const startTime = `${startHour}:${startMinute} ${startPeriod}`;
+      const sessionStartTime = formatSessionStartTimeForApi();
 
-    onLogComplete?.({
-      type: "quran-memorisation",
-      goalType: "memorization",
-      trackingType: "juz",
-      goalId: flowDefinition.goalId,
-      juzId,
-      juzName: config.juzName,
-      juzNumber: config.juzNumber,
-      totalAyahs,
-      date: selectedDate,
-      startTime,
-      startAyah: start,
-      endAyah: end,
-      ayahsMemorizedToday: count,
-      timeSpentMinutes,
-      hours,
-      minutes,
-      durationLabel: `${hours}h ${minutes}m`,
-      memorizedAyahs: getMemorizedJuzAyahCount(juzId),
-      progressPercentage: getJuzMemorisationProgressPercent(juzId),
-      completed: isJuzFullyMemorized(juzId),
-    });
-    resetFlow();
+      try {
+        await logMemorisationJuz({
+          quranGoalType: "MEMORIZATION_JUZ",
+          date: selectedDate,
+          sessionStartTime,
+          durationMinutes: durationTotalMinutes,
+          itemType: "JUZ",
+          itemNumber,
+          fromAyah: startAyah,
+          toAyah: endAyah,
+        });
+        await quranFrame?.refetch();
+        memorisationContext?.bumpRefresh();
+
+        onLogComplete?.({
+          type: "quran-memorisation",
+          goalType: "memorization",
+          trackingType: "juz",
+          goalId: flowDefinition.goalId,
+          juzId,
+          juzName: config.juzName,
+          juzNumber,
+          totalAyahs,
+          date: selectedDate,
+          startTime,
+          startAyah,
+          endAyah,
+          ayahsMemorizedToday,
+          timeSpentMinutes: durationTotalMinutes,
+          hours,
+          minutes,
+          durationLabel: `${hours}h ${minutes}m`,
+          memorizedAyahs: memorizedAyahs + ayahsMemorizedToday,
+          progressPercentage: getJuzMemorisationProgressPercent(juzId),
+          completed: isJuzFullyMemorized(juzId),
+        });
+        resetFlow();
+      } catch {
+        // Mutation onError already shows toast.
+      }
+    };
+
+    void run();
   };
 
   const getStepHeader = (step: QuranMemorisationJuzStepId) => {
@@ -274,43 +380,32 @@ export default function QuranMemorisationJuzLoggingFlow({
           icon: (
             <MaterialCommunityIcons
               name="book-open-page-variant"
-              size={16}
+              size={24}
               color={Colors.light.white}
             />
           ),
           label: t("progressLogging.memorisationSelectJuz"),
         };
-      case "ayahCount":
+      case "date":
         return {
-          icon: (
-            <MaterialCommunityIcons
-              name="format-list-numbered"
-              size={16}
-              color={Colors.light.white}
-            />
-          ),
-          label: t("progressLogging.selectAyatRange"),
+          icon: <QuranIconForSlider size={24} Color={Colors.light.white} />,
+          label: t("progressLogging.whichDay"),
         };
       case "startTime":
         return {
-          icon: (
-            <Ionicons
-              name="time-outline"
-              size={15}
-              color={Colors.light.white}
-            />
-          ),
+          icon: <WhiteClockIcon size={26} />,
           label: t("progressLogging.enterStartTime"),
+        };
+      case "ayahCount":
+        return {
+          icon: (
+            <QuranIconForSlider size={24} Color={Colors.light.white} />
+          ),
+          label: t("progressLogging.selectAyatRange"),
         };
       case "timeSpent":
         return {
-          icon: (
-            <MaterialCommunityIcons
-              name="history"
-              size={16}
-              color={Colors.light.white}
-            />
-          ),
+          icon: <WhiteTimerIcon size={26} />,
           label: t("progressLogging.enterTimeSpent"),
         };
     }
@@ -327,17 +422,13 @@ export default function QuranMemorisationJuzLoggingFlow({
             styles={styles}
           />
         );
-      case "ayahCount":
+      case "date":
         return (
-          <MemorisationJuzAyahCountStep
-            juzName={config.juzName}
-            juzNumber={juzNumber}
-            totalAyahs={totalAyahs}
-            minStartAyah={minStartAyah}
-            startAyah={startAyah}
-            endAyah={endAyah}
-            onChangeStartAyah={setStartAyah}
-            onChangeEndAyah={setEndAyah}
+          <DateStep
+            dateLabel={dateLabel}
+            selectedDate={selectedDate}
+            todayString={todayString}
+            onShiftDate={shiftDate}
             styles={styles}
           />
         );
@@ -355,6 +446,28 @@ export default function QuranMemorisationJuzLoggingFlow({
             styles={styles}
           />
         );
+      case "ayahCount": {
+        const activeGoal =
+          activeJuzGoal?.id === selectedJuzId
+            ? activeJuzGoal
+            : goals.find((goal) => goal.id === selectedJuzId);
+        return (
+          <MemorisationJuzAyahCountStep
+            juzId={juzId}
+            juzNumber={juzNumber}
+            totalAyahs={totalAyahs}
+            title={activeGoal?.displayName ?? activeGoal?.juzName}
+            subtitle={activeGoal?.subtitle}
+            rangeLabel={activeGoal?.rangeLabel}
+            minStartAyah={minStartAyah}
+            startAyah={startAyah}
+            endAyah={endAyah}
+            onChangeStartAyah={setStartAyah}
+            onChangeEndAyah={setEndAyah}
+            styles={styles}
+          />
+        );
+      }
       case "timeSpent":
         return (
           <DurationStep
@@ -381,11 +494,12 @@ export default function QuranMemorisationJuzLoggingFlow({
         onForward={handleForward}
         onConfirm={handleConfirm}
         canGoForward={canGoForward}
+        canGoBack={stepIndex > 0}
+        canConfirm={isLastStep && steps.every((step) => isStepValid(step))}
         styles={styles}
         style={styles.inPlaceFlowCard}
-        contentStyle={
-          isAyahRangeStep ? styles.flowContentAyahRange : undefined
-        }
+        contentStyle={isAyahRangeStep ? styles.flowContentAyahRange : undefined}
+        headerStyle={isAyahRangeStep ? styles.flowHeaderAyahRange : undefined}
       >
         {renderStepContent(currentStep)}
       </FlowCard>
@@ -401,7 +515,7 @@ export default function QuranMemorisationJuzLoggingFlow({
       style={[styles.section, flowMode === "active" && styles.activeSection]}
     >
       <View style={styles.cardAnchor}>
-        {showOverlay && <Pressable style={styles.backdrop} onPress={resetFlow} />}
+        {showOverlay && <Pressable style={styles.backdrop} />}
         {showOverlay && (
           <TouchableOpacity
             style={styles.cancelButton}

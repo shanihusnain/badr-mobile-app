@@ -12,12 +12,24 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Colors } from "@/constants/theme";
 import { FastingFlowCardMondayFasts } from "@/assets/icons/FastingFlowCardMondayFasts";
 import { FastingDashboardIcon } from "@/assets/icons/FastingDashboardIcon";
+import {
+  AddLoggingFlowIcon,
+  FlowCardCallender,
+  TimeSpentIcon,
+} from "@/assets/icons";
 import { GoalData } from "../../home/components/goalsData";
 import { FlowCard } from "../components/FlowCard";
 import { FlowDropdownSelect } from "../components/FlowDropdownSelect";
-import { StartTimeStep } from "../components/TimePickerSteps";
+import {
+  StartTimeStep,
+  getCurrentStartTimeParts,
+} from "../components/TimePickerSteps";
+import { WhiteDaysFastDateStep } from "../components/WhiteDaysFastDateStep";
 import { MondayThursdayFastsInsightsModal } from "../components/MondayThursdayFastsInsightsModal";
-import { styles as commonStyles } from "../components/DailyProgressLogging.styles";
+import {
+  FLOW_CARD_HEIGHT,
+  styles as commonStyles,
+} from "../components/DailyProgressLogging.styles";
 import { fonts } from "@/assets/fonts";
 import { isValidStartTime } from "../quranRecitationTarget";
 import {
@@ -106,15 +118,26 @@ export default function MondayThursdayFastsLoggingFlow({
     string | null
   >(null);
   const [isLogTypeDropdownOpen, setIsLogTypeDropdownOpen] = useState(false);
-  const [isDateDropdownOpen, setIsDateDropdownOpen] = useState(false);
-  const [startHour, setStartHour] = useState("5");
-  const [startMinute, setStartMinute] = useState("00");
-  const [startPeriod, setStartPeriod] = useState<"am" | "pm">("am");
+  const [startHour, setStartHour] = useState(
+    () => getCurrentStartTimeParts().hour,
+  );
+  const [startMinute, setStartMinute] = useState(
+    () => getCurrentStartTimeParts().minute,
+  );
+  const [startPeriod, setStartPeriod] = useState<"am" | "pm">(
+    () => getCurrentStartTimeParts().period,
+  );
   const [isStartPeriodDropdownOpen, setIsStartPeriodDropdownOpen] =
     useState(false);
-  const [endHour, setEndHour] = useState("5");
-  const [endMinute, setEndMinute] = useState("30");
-  const [endPeriod, setEndPeriod] = useState<"am" | "pm">("pm");
+  const [endHour, setEndHour] = useState(
+    () => getCurrentStartTimeParts().hour,
+  );
+  const [endMinute, setEndMinute] = useState(
+    () => getCurrentStartTimeParts().minute,
+  );
+  const [endPeriod, setEndPeriod] = useState<"am" | "pm">(
+    () => getCurrentStartTimeParts().period,
+  );
   const [isEndPeriodDropdownOpen, setIsEndPeriodDropdownOpen] = useState(false);
 
   const steps = useMemo(() => getStepsForLogType(logType), [logType]);
@@ -123,23 +146,15 @@ export default function MondayThursdayFastsLoggingFlow({
 
   const handleLogTypeDropdownOpenChange = useCallback((open: boolean) => {
     setIsLogTypeDropdownOpen(open);
-    if (open) setIsDateDropdownOpen(false);
-  }, []);
-
-  const handleDateDropdownOpenChange = useCallback((open: boolean) => {
-    setIsDateDropdownOpen(open);
-    if (open) setIsLogTypeDropdownOpen(false);
   }, []);
 
   useEffect(() => {
     onDropdownOpenChange?.(
       isLogTypeDropdownOpen ||
-      isDateDropdownOpen ||
       isStartPeriodDropdownOpen ||
       isEndPeriodDropdownOpen,
     );
   }, [
-    isDateDropdownOpen,
     isEndPeriodDropdownOpen,
     isLogTypeDropdownOpen,
     isStartPeriodDropdownOpen,
@@ -247,17 +262,69 @@ export default function MondayThursdayFastsLoggingFlow({
     [t],
   );
 
-  const toDropdownOptions = useCallback(
-    (options: MondayThursdayFastDateOption[]) =>
-      options.map((option) => ({
-        value: option.id,
-        label:
-          option.date === today
-            ? t("progressLogging.today")
-            : formatMondayThursdayFastDateLabel(option.date, today),
-      })),
+  const toDateLabel = useCallback(
+    (option: MondayThursdayFastDateOption | null | undefined) => {
+      if (!option) return "";
+      if (option.date === today) return t("progressLogging.today");
+      const raw = formatMondayThursdayFastDateLabel(option.date, today);
+      if (raw === "Yesterday") return t("progressLogging.yesterday");
+      return raw;
+    },
     [t, today],
   );
+
+  const shiftOptionId = useCallback(
+    (
+      options: MondayThursdayFastDateOption[],
+      selectedId: string | null,
+      direction: -1 | 1,
+      onSelect: (id: string) => void,
+    ) => {
+      if (options.length === 0) return;
+      const currentIndex = Math.max(
+        0,
+        options.findIndex((option) => option.id === selectedId),
+      );
+      const nextIndex = currentIndex + direction;
+      if (nextIndex < 0 || nextIndex >= options.length) return;
+      onSelect(options[nextIndex].id);
+    },
+    [],
+  );
+
+  const renderDateStep = (
+    options: MondayThursdayFastDateOption[],
+    selectedId: string | null,
+    onSelect: (id: string) => void,
+  ) => {
+    if (options.length === 0) {
+      return (
+        <View style={commonStyles.flowContent}>
+          <Text style={commonStyles.flowHeaderText}>
+            {t("progressLogging.mondayThursdayNoFastOptions")}
+          </Text>
+        </View>
+      );
+    }
+
+    const selectedIndex = options.findIndex(
+      (option) => option.id === selectedId,
+    );
+    const selectedOption =
+      (selectedIndex >= 0 ? options[selectedIndex] : options[0]) ?? null;
+
+    return (
+      <WhiteDaysFastDateStep
+        dateLabel={toDateLabel(selectedOption)}
+        canGoPrev={selectedIndex > 0}
+        canGoNext={selectedIndex >= 0 && selectedIndex < options.length - 1}
+        onShiftDate={(direction) =>
+          shiftOptionId(options, selectedId, direction, onSelect)
+        }
+        styles={commonStyles}
+      />
+    );
+  };
 
   const isStartTimeValid = isValidStartTime(
     startHour,
@@ -274,6 +341,16 @@ export default function MondayThursdayFastsLoggingFlow({
     endPeriod,
   );
 
+  const applyCurrentTimeDefaults = useCallback(() => {
+    const now = getCurrentStartTimeParts();
+    setStartHour(now.hour);
+    setStartMinute(now.minute);
+    setStartPeriod(now.period);
+    setEndHour(now.hour);
+    setEndMinute(now.minute);
+    setEndPeriod(now.period);
+  }, []);
+
   const resetFlow = useCallback(() => {
     setFlowMode("collapsed");
     setStepIndex(0);
@@ -281,18 +358,12 @@ export default function MondayThursdayFastsLoggingFlow({
     setSelectedPlannedFastId(null);
     setSelectedActualDateId(null);
     setSelectedMissedDateId(null);
-    setStartHour("5");
-    setStartMinute("00");
-    setStartPeriod("am");
-    setEndHour("5");
-    setEndMinute("30");
-    setEndPeriod("pm");
+    applyCurrentTimeDefaults();
     setIsLogTypeDropdownOpen(false);
-    setIsDateDropdownOpen(false);
     setIsStartPeriodDropdownOpen(false);
     setIsEndPeriodDropdownOpen(false);
     onDropdownOpenChange?.(false);
-  }, [onDropdownOpenChange]);
+  }, [applyCurrentTimeDefaults, onDropdownOpenChange]);
 
   const handleLogTypeChange = useCallback(
     (value: MondayThursdayFastLogType) => {
@@ -300,7 +371,6 @@ export default function MondayThursdayFastsLoggingFlow({
       setSelectedPlannedFastId(null);
       setSelectedActualDateId(null);
       setSelectedMissedDateId(null);
-      setIsDateDropdownOpen(false);
       setStepIndex(0);
     },
     [],
@@ -480,7 +550,6 @@ export default function MondayThursdayFastsLoggingFlow({
       resetFlow();
       return;
     }
-    setIsDateDropdownOpen(false);
     setIsLogTypeDropdownOpen(false);
     setIsStartPeriodDropdownOpen(false);
     setIsEndPeriodDropdownOpen(false);
@@ -507,7 +576,6 @@ export default function MondayThursdayFastsLoggingFlow({
   const handleForward = () => {
     if (isLastStep) return;
 
-    setIsDateDropdownOpen(false);
     setIsLogTypeDropdownOpen(false);
     setIsStartPeriodDropdownOpen(false);
     setIsEndPeriodDropdownOpen(false);
@@ -555,26 +623,22 @@ export default function MondayThursdayFastsLoggingFlow({
 
   const handleOpenFlow = useCallback(() => {
     if (goalCompleted || !hasMondayThursdayFastLoggingAvailable()) return;
+    applyCurrentTimeDefaults();
     setLogType(null);
     setSelectedPlannedFastId(null);
     setSelectedActualDateId(null);
     setSelectedMissedDateId(null);
     setStepIndex(0);
     setFlowMode("active");
-  }, [goalCompleted]);
+  }, [applyCurrentTimeDefaults, goalCompleted]);
 
   const getStepHeader = (step: MondayThursdayFastsStepId) => {
     const calendarIcon = (
-      <Ionicons name="calendar-outline" size={15} color={Colors.light.white} />
+      <FlowCardCallender size={18} color={Colors.light.white} />
     );
-    const timeIcon = (
-      <Ionicons name="time-outline" size={15} color={Colors.light.white} />
-    );
+    const timeIcon = <TimeSpentIcon size={19} color={Colors.light.white} />;
     const helpIcon = (
-      <FastingDashboardIcon
-        size={22}
-        color={Colors.light.white}
-      />
+      <FastingDashboardIcon size={22} color={Colors.light.white} />
     );
 
     switch (step) {
@@ -614,35 +678,6 @@ export default function MondayThursdayFastsLoggingFlow({
     }
   };
 
-  const renderDateDropdown = (
-    options: MondayThursdayFastDateOption[],
-    selectedId: string | null,
-    onSelect: (id: string) => void,
-  ) => {
-    if (options.length === 0) {
-      return (
-        <View style={commonStyles.flowContent}>
-          <Text style={commonStyles.flowHeaderText}>
-            {t("progressLogging.mondayThursdayNoFastOptions")}
-          </Text>
-        </View>
-      );
-    }
-
-    return (
-      <FlowDropdownSelect
-        options={toDropdownOptions(options)}
-        selectedValue={selectedId}
-        onSelectValue={onSelect}
-        placeholder={t("progressLogging.mondayThursdaySelectDate")}
-        isOpen={isDateDropdownOpen}
-        setIsOpen={setIsDateDropdownOpen}
-        onOpenChange={handleDateDropdownOpenChange}
-        styles={commonStyles}
-      />
-    );
-  };
-
   const renderStepContent = (step: MondayThursdayFastsStepId) => {
     switch (step) {
       case "logType":
@@ -659,50 +694,60 @@ export default function MondayThursdayFastsLoggingFlow({
           />
         );
       case "selectPlannedFast":
-        return renderDateDropdown(
+        return renderDateStep(
           plannedFastOptions,
           selectedPlannedFastId,
           setSelectedPlannedFastId,
         );
       case "selectActualDate":
-        return renderDateDropdown(
+        return renderDateStep(
           actualDateOptions,
           selectedActualDateId,
           setSelectedActualDateId,
         );
       case "selectMissedDate":
-        return renderDateDropdown(
+        return renderDateStep(
           missedOptions,
           selectedMissedDateId,
           setSelectedMissedDateId,
         );
       case "startTime":
         return (
-          <StartTimeStep
-            startHour={startHour}
-            setStartHour={setStartHour}
-            startMinute={startMinute}
-            setStartMinute={setStartMinute}
-            startPeriod={startPeriod}
-            setStartPeriod={setStartPeriod}
-            isPeriodDropdownOpen={isStartPeriodDropdownOpen}
-            setIsPeriodDropdownOpen={setIsStartPeriodDropdownOpen}
-            styles={commonStyles}
-          />
+          <View style={localStyles.timeStepWrap}>
+            <Text style={localStyles.timeSectionLabel}>
+              {t("progressLogging.mondayThursdayStartTimeLabel")}
+            </Text>
+            <StartTimeStep
+              startHour={startHour}
+              setStartHour={setStartHour}
+              startMinute={startMinute}
+              setStartMinute={setStartMinute}
+              startPeriod={startPeriod}
+              setStartPeriod={setStartPeriod}
+              isPeriodDropdownOpen={isStartPeriodDropdownOpen}
+              setIsPeriodDropdownOpen={setIsStartPeriodDropdownOpen}
+              styles={commonStyles}
+            />
+          </View>
         );
       case "endTime":
         return (
-          <StartTimeStep
-            startHour={endHour}
-            setStartHour={setEndHour}
-            startMinute={endMinute}
-            setStartMinute={setEndMinute}
-            startPeriod={endPeriod}
-            setStartPeriod={setEndPeriod}
-            isPeriodDropdownOpen={isEndPeriodDropdownOpen}
-            setIsPeriodDropdownOpen={setIsEndPeriodDropdownOpen}
-            styles={commonStyles}
-          />
+          <View style={localStyles.timeStepWrap}>
+            <Text style={localStyles.timeSectionLabel}>
+              {t("progressLogging.mondayThursdayEndTimeLabel")}
+            </Text>
+            <StartTimeStep
+              startHour={endHour}
+              setStartHour={setEndHour}
+              startMinute={endMinute}
+              setStartMinute={setEndMinute}
+              startPeriod={endPeriod}
+              setStartPeriod={setEndPeriod}
+              isPeriodDropdownOpen={isEndPeriodDropdownOpen}
+              setIsPeriodDropdownOpen={setIsEndPeriodDropdownOpen}
+              styles={commonStyles}
+            />
+          </View>
         );
     }
   };
@@ -763,159 +808,171 @@ export default function MondayThursdayFastsLoggingFlow({
     isBranchDataValid;
 
   const stepHeader = getStepHeader(currentStep);
-  const isDropdownOpen = isLogTypeDropdownOpen || isDateDropdownOpen;
+  const isDropdownOpen =
+    isLogTypeDropdownOpen ||
+    isStartPeriodDropdownOpen ||
+    isEndPeriodDropdownOpen;
 
   return (
-    <View
-      style={[
-        commonStyles.section,
-        flowMode === "active" && commonStyles.activeSection,
-      ]}
-    >
-      <Text style={commonStyles.sectionTitle}>
-        {t("progressLogging.myProgress")}
-      </Text>
+    <>
+      {flowMode === "active" && (
+        <Pressable style={commonStyles.backdrop} />
+      )}
+      {flowMode === "active" && (
+        <TouchableOpacity
+          style={commonStyles.cancelButton}
+          onPress={resetFlow}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="close" size={20} color={Colors.light.white} />
+        </TouchableOpacity>
+      )}
 
       <View
         style={[
-          commonStyles.cardAnchor,
-          isDropdownOpen && commonStyles.flowCardLayerDropdownOpen,
+          commonStyles.section,
+          flowMode === "active" && commonStyles.activeSection,
         ]}
       >
-        {flowMode === "active" && (
-          <Pressable style={commonStyles.backdrop} onPress={resetFlow} />
-        )}
-        {flowMode === "active" && (
-          <TouchableOpacity
-            style={commonStyles.cancelButton}
-            onPress={resetFlow}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="close" size={20} color={Colors.light.white} />
-          </TouchableOpacity>
-        )}
+        <Text style={commonStyles.sectionTitle}>
+          {t("progressLogging.myProgress")}
+        </Text>
 
-        {flowMode === "collapsed" ? (
-          <View style={localStyles.summaryCard}>
-            <View style={localStyles.summaryBody}>
-              <View style={localStyles.summaryIconCircle}>
-                <FastingFlowCardMondayFasts
-                  size={18}
-                  color={Colors.light.white}
-                />
-              </View>
-              <View style={localStyles.titleContainer}>
-                <View
-                  style={[
-                    localStyles.badge,
-                    badgeStatus.type === "completed"
-                      ? localStyles.badgeCompleted
-                      : localStyles.badgeInProgress,
-                    { alignSelf: "flex-start", marginBottom: 4 },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      localStyles.badgeText,
-                      badgeStatus.type === "completed"
-                        ? localStyles.badgeTextCompleted
-                        : localStyles.badgeTextInProgress,
-                    ]}
-                  >
-                    {badgeStatus.text}
-                  </Text>
-                </View>
-                <Text style={localStyles.summaryTitle}>{summaryTitle}</Text>
-              </View>
-            </View>
-
-            <View style={localStyles.footerRow}>
-              {goalCompleted ? (
-                <TouchableOpacity
-                  style={localStyles.insightsBtn}
-                  onPress={() => setInsightsVisible(true)}
-                  activeOpacity={0.8}
-                >
-                  <Text style={localStyles.insightsText}>
-                    {t("progressLogging.viewInsights")}
-                  </Text>
-                  <Ionicons
-                    name="chevron-forward"
-                    size={22}
+        <View
+          style={[
+            commonStyles.cardAnchor,
+            isDropdownOpen && commonStyles.flowCardLayerDropdownOpen,
+          ]}
+        >
+          {flowMode === "collapsed" ? (
+            <View style={localStyles.summaryCard}>
+              <View style={localStyles.summaryBody}>
+                <View style={localStyles.summaryIconCircle}>
+                  <FastingFlowCardMondayFasts
+                    size={18}
                     color={Colors.light.white}
                   />
-                </TouchableOpacity>
-              ) : (
-                <View style={localStyles.spacer} />
-              )}
+                </View>
+                <View style={localStyles.titleContainer}>
+                  <View
+                    style={[
+                      localStyles.badge,
+                      badgeStatus.type === "completed"
+                        ? localStyles.badgeCompleted
+                        : localStyles.badgeInProgress,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        localStyles.badgeText,
+                        badgeStatus.type === "completed"
+                          ? localStyles.badgeTextCompleted
+                          : localStyles.badgeTextInProgress,
+                      ]}
+                    >
+                      {badgeStatus.text}
+                    </Text>
+                  </View>
+                  <Text style={localStyles.summaryTitle} numberOfLines={2}>
+                    {summaryTitle}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={localStyles.footerRow}>
+                {goalCompleted ? (
+                  <TouchableOpacity
+                    style={localStyles.insightsBtn}
+                    onPress={() => setInsightsVisible(true)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={localStyles.insightsText}>
+                      {t("progressLogging.viewInsights")}
+                    </Text>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={22}
+                      color={Colors.light.white}
+                    />
+                  </TouchableOpacity>
+                ) : null}
+              </View>
 
               {!goalCompleted ? (
                 <TouchableOpacity
-                  style={localStyles.addButton}
+                  style={[
+                    localStyles.addButton,
+                    !hasMondayThursdayFastLoggingAvailable() &&
+                      localStyles.addButtonDisabled,
+                  ]}
                   onPress={handleOpenFlow}
                   activeOpacity={0.8}
                   disabled={!hasMondayThursdayFastLoggingAvailable()}
                 >
-                  <Ionicons name="add" size={22} color={Colors.light.white} />
+                  <AddLoggingFlowIcon size={32} />
                 </TouchableOpacity>
               ) : null}
             </View>
-          </View>
-        ) : (
-          <View
-            style={[
-              commonStyles.flowCardLayer,
-              isDropdownOpen && commonStyles.flowCardLayerDropdownOpen,
-            ]}
-          >
-            <FlowCard
-              headerIcon={stepHeader.icon}
-              headerLabel={stepHeader.label}
-              onBack={handleBack}
-              onForward={handleForward}
-              onConfirm={handleConfirm}
-              canGoForward={!isLastStep && canProceed}
-              canConfirm={canConfirm}
-              styles={commonStyles}
+          ) : (
+            <View
               style={[
-                commonStyles.inPlaceFlowCard,
-                isDropdownOpen && commonStyles.flowCardDropdownOpen,
+                commonStyles.flowCardLayer,
+                isDropdownOpen && commonStyles.flowCardLayerDropdownOpen,
               ]}
-              contentStyle={
-                isDropdownOpen
-                  ? commonStyles.flowContentDropdownOpen
-                  : undefined
-              }
             >
-              {renderStepContent(currentStep)}
-            </FlowCard>
-          </View>
-        )}
-      </View>
+              <FlowCard
+                headerIcon={stepHeader.icon}
+                headerLabel={stepHeader.label}
+                onBack={handleBack}
+                onForward={handleForward}
+                onConfirm={handleConfirm}
+                canGoForward={!isLastStep && canProceed}
+                canGoBack={stepIndex > 0}
+                canConfirm={canConfirm}
+                styles={commonStyles}
+                style={[
+                  commonStyles.inPlaceFlowCard,
+                  isDropdownOpen && commonStyles.flowCardDropdownOpen,
+                ]}
+                contentStyle={
+                  isDropdownOpen
+                    ? commonStyles.flowContentDropdownOpen
+                    : undefined
+                }
+              >
+                {renderStepContent(currentStep)}
+              </FlowCard>
+            </View>
+          )}
+        </View>
 
-      <MondayThursdayFastsInsightsModal
-        visible={insightsVisible}
-        insights={insights}
-        onClose={() => setInsightsVisible(false)}
-      />
-    </View>
+        <MondayThursdayFastsInsightsModal
+          visible={insightsVisible}
+          insights={insights}
+          onClose={() => setInsightsVisible(false)}
+        />
+      </View>
+    </>
   );
 }
 
 const localStyles = StyleSheet.create({
   summaryCard: {
     backgroundColor: Colors.light.green,
-    borderRadius: 14,
+    borderRadius: 8,
     padding: 16,
     gap: 12,
-    height: 145,
+    height: FLOW_CARD_HEIGHT,
+    width: "100%",
     justifyContent: "space-between",
+    position: "relative",
   },
   badge: {
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
-    marginTop: -6,
+    marginTop: 3,
+    alignSelf: "flex-start",
   },
   badgeInProgress: {
     backgroundColor: Colors.light.lightpurple,
@@ -924,9 +981,10 @@ const localStyles = StyleSheet.create({
     backgroundColor: Colors.light.lightgreenbadgecolor,
   },
   badgeText: {
-    fontFamily: fonts.primary.semiBold,
-    fontSize: 10,
-    fontWeight: "600",
+    fontFamily: fonts.primary.medium,
+    fontSize: 12,
+    fontWeight: "500",
+    lineHeight: 12.5,
   },
   badgeTextInProgress: {
     color: Colors.light.darkblue,
@@ -937,20 +995,21 @@ const localStyles = StyleSheet.create({
   summaryBody: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    gap: 6,
   },
   summaryIconCircle: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: Colors.light.blackBackground,
+    backgroundColor: Colors.light.selectcategory,
     alignItems: "center",
     justifyContent: "center",
+    marginTop: 33,
   },
   titleContainer: {
     flex: 1,
     flexDirection: "column",
-    gap: 2,
+    gap: 9,
   },
   summaryTitle: {
     color: Colors.light.white,
@@ -958,10 +1017,10 @@ const localStyles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     lineHeight: 18,
+    letterSpacing: 0,
   },
   footerRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "flex-end",
     marginTop: 4,
   },
@@ -970,7 +1029,6 @@ const localStyles = StyleSheet.create({
     alignItems: "center",
     gap: 4,
     paddingBottom: 4,
-    transform: [{ translateY: -4 }],
   },
   insightsText: {
     color: Colors.light.white,
@@ -979,16 +1037,28 @@ const localStyles = StyleSheet.create({
     fontWeight: "700",
   },
   addButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    borderWidth: 1.5,
-    borderColor: Colors.light.white,
+    position: "absolute",
+    right: 16,
+    bottom: 15,
     alignItems: "center",
     justifyContent: "center",
-    transform: [{ translateY: -4 }],
   },
-  spacer: {
-    flex: 1,
+  addButtonDisabled: {
+    opacity: 0.35,
+  },
+  timeStepWrap: {
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
+    gap: 6,
+  },
+  timeSectionLabel: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.medium,
+    fontWeight: "500",
+    fontSize: 10,
+    lineHeight: 13,
+    textAlign: "center",
+    opacity: 0.95,
   },
 });

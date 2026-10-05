@@ -3,19 +3,17 @@ import { TopSpace } from "@/components/atoms/TopSpace";
 import { Colors } from "@/constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { FlatList, Platform, Pressable, Text, View } from "react-native";
+import { FlatList, Pressable, Text, View } from "react-native";
 import type { GoalCardData } from "./components/GoalCard";
 import { GoalCardCarousel } from "./components/GoalCardCarousel";
-import { GoalPlannerSummary } from "./components/GoalPlannerSummary";
 import { styles } from "./styles";
 import { useTranslation } from "react-i18next";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { GoalPlannerSheet } from "./components/GoalPlannerSheet";
 import type { Tab } from "./components/GoalPlannerSheet";
-import { ShootIcon } from "@/assets/icons/ShootIcon";
-import { MonthlyGoalPlannerReviewCardIcon } from "@/assets/icons/MonthlyGoalPlannerReviewCardIcon";
-import { MonthlyGoalPlannerSaveCardIcon } from "@/assets/icons/MonthlyGoalPlannerSaveCardIcon";
-// import { TickWithCircleIcon } from "@/assets/icons/TickWithCircleIcon";
+import { GreenArrowFilledIcon } from "@/assets/icons/GreenArrowFilledIcon";
+import { MagnifierIcon } from "@/assets/icons/MagnifierIcon";
+import { BookMarkIcon } from "@/assets/icons/BookMarkIcon";
 import { MonthlyGoalPlannerComittedCardIcon } from "@/assets/icons/MonthlyGoalPlannerComittedCardIcon";
 import { MonthlyGoalPlannerPlanIcon } from "@/assets/icons/MonthlyGoalPlannerPlanIcon";
 import { globalStyles } from "@/src/globalstyles/globalstyles";
@@ -111,26 +109,19 @@ export const MonthlyGoalPlannerScreen = () => {
       id: "1",
       title: t("monthlyGoalPlanner.card1Title"),
       description: t("monthlyGoalPlanner.card1Desc"),
-      icon: <ShootIcon size={32} Color={Colors.light.green} />,
+      icon: <GreenArrowFilledIcon size={34} color={Colors.light.green} />,
     },
     {
       id: "2",
       title: t("monthlyGoalPlanner.card2Title"),
       description: t("monthlyGoalPlanner.card2Desc"),
-      icon: (
-        <MonthlyGoalPlannerReviewCardIcon
-          size={32}
-          color={Colors.light.green}
-        />
-      ),
+      icon: <MagnifierIcon size={34} color={Colors.light.green} />,
     },
     {
       id: "3",
       title: t("monthlyGoalPlanner.card3Title"),
       description: t("monthlyGoalPlanner.card3Desc"),
-      icon: (
-        <MonthlyGoalPlannerSaveCardIcon size={32} color={Colors.light.green} />
-      ),
+      icon: <BookMarkIcon size={34} color={Colors.light.green} />,
     },
     {
       id: "4",
@@ -199,31 +190,18 @@ export const MonthlyGoalPlannerScreen = () => {
           keyExtractor={keyExtractor}
           renderItem={renderItem}
           ItemSeparatorComponent={ItemSeparator}
-          style={[styles.stepsList, { flex: 1 }]}
+          style={styles.stepsList}
           contentContainerStyle={styles.stepsContent}
           ListHeaderComponent={
             <>
-              <Text style={globalStyles.onboardingHeading}>
-                {t("monthlyGoalPlanner.heading")}
-              </Text>
-              <TopSpace top={16} />
-              <Text style={styles.subheading}>
-                {t("monthlyGoalPlanner.subheading")}
-              </Text>
-              <TopSpace top={24} />
               <GoalCardCarousel data={goalCards} />
-              <GoalPlannerSummary />
-              <TopSpace top={10} />
+              <TopSpace top={28} />
             </>
           }
         />
         <Pressable
           onPress={handleBeginNowPress}
-          style={{
-            alignSelf: "center",
-            marginBottom: 16,
-            paddingTop: Platform.OS === "ios" ? 8 : 16,
-          }}
+          style={styles.beginNowButton}
         >
           <Text style={globalStyles.greenCTA}>BEGIN NOW</Text>
         </Pressable>

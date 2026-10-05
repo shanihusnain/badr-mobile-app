@@ -74,6 +74,7 @@ import { InsightCardWeeklyAverageIcon } from "./InsightCardWeeklyAverageIcon";
 import { InsightCardTimeSpentIcon } from "./InsightCardTimeSpentIcon";
 import { InsightCardGoalTrackedIcon } from "./InsightCardGoalTrackedIcon";
 import { InsightCardArrowReverseIcon } from "./InsightCardArrowReverseIcon";
+import { InsightGreenClockIcon } from "./InsightGreenClockIcon";
 
 //J
 import { JournalBookIcon } from "./JournalBookIcon";
@@ -152,6 +153,7 @@ import { AsrFardPrayerIcon } from "./AsrFardPrayerIcon";
 import { MaghrebFardPrayerIcon } from "./MaghrebFardParyerIcon";
 import { IshaFardPrayerIcon } from "./IshaFardPrayerIcon";
 import { MissedPastPrayerCalenderIcon } from "./MissedPastPrayerCalenderIcon";
+import { MagnifyingGlassIcon } from "./MagnifyingGlassICon";
 //N
 import { NotificationIcon } from "./NotificationIcon";
 import { NegativeProgressIcon } from "./NegativeProgressIcon";
@@ -357,6 +359,7 @@ export {
   InsightCardTimeSpentIcon,
   InsightCardGoalTrackedIcon,
   InsightCardArrowReverseIcon,
+  InsightGreenClockIcon,
   DebtAssistanceIcon,
   JournalBookIcon,
   NotificationIcon,
@@ -505,4 +508,5 @@ export {
   QiyamBothIshaAnadTahajudInsightIcon,
   QiyamAlLaylWitrInsightCardIcon,
   WitrUpIcon,
+  MagnifyingGlassIcon,
 };

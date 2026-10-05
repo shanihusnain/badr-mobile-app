@@ -11,6 +11,10 @@ export type MemorisationDayProgress = {
   isLogged: boolean;
   isBestDay?: boolean;
   isToday?: boolean;
+  isFuture?: boolean;
+  /** Prefer API `valueDisplay` (e.g. "1-4") when present. */
+  countLabel?: string;
+  canDelete?: boolean;
 };
 
 export type MemorisationWeekSummary = {
@@ -224,9 +228,11 @@ export function clampMemorisationWeekIndex(weekIndex: number): number {
 export function canNavigateMemorisationWeek(
   weekIndex: number,
   direction: "prev" | "next",
+  activeWeekIndex = getActiveWeekIndex(),
 ): boolean {
   if (direction === "prev") return weekIndex > 0;
-  return weekIndex < MEMORISATION_CYCLE_WEEKS - 1;
+  // Do not navigate into weeks after the calendar current week.
+  return weekIndex < activeWeekIndex;
 }
 
 export function getQuranMemorisationWeekSummary(

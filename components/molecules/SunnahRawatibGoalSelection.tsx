@@ -74,6 +74,7 @@ export default function SunnahRawatibGoalSelection({
   initialValues,
   isSaving = false,
   openOnMount = false,
+  onInputFocus,
 }: {
   onSave?: (
     payload: {
@@ -103,6 +104,7 @@ export default function SunnahRawatibGoalSelection({
   };
   isSaving?: boolean;
   openOnMount?: boolean;
+  onInputFocus?: () => void;
 }) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
@@ -131,7 +133,7 @@ export default function SunnahRawatibGoalSelection({
   const beforeAsarEnabled = useSharedValue(
     initialValues?.beforeAsrEnabled ?? true,
   );
-  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount);
+  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount, onInputFocus);
 
   useEffect(() => {
     if (!initialValues) return;
@@ -384,7 +386,7 @@ export default function SunnahRawatibGoalSelection({
           <Text style={styles.valueText}>
             {formatNumber(totalPrayers)}
             <Text style={styles.whiteText}>
-              {t("prayerGoals.sunnahSuffix")}
+              {t("prayerGoals.sunnahSuffix", { count: totalPrayers })}
             </Text>
           </Text>
 

@@ -11,11 +11,11 @@ export const pastAchievementStyles = StyleSheet.create({
   chartWrapper: {
     position: "relative",
     width: "100%",
-    height: 210,
+    height: 240,
   },
   chartContainer: {
     width: "100%",
-    height: 210,
+    height: 240,
     position: "relative",
   },
   chartHintOverlay: {

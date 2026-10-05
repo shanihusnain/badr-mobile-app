@@ -46,6 +46,7 @@ import {
 } from "@/src/api/queries/useGetPrayerGoalDayDetail";
 import { resolvePrayerTypeFromGoalId } from "@/src/utils/prayerGoalMap";
 import {
+  formatPrayerGoalFlowCardLabel,
   getPrayerFrameAchievementLabel,
   prayerFrameShowsInsights,
 } from "@/src/utils/prayerGoalFrameMap";
@@ -97,15 +98,19 @@ const PRAYER_TO_SLOT: Record<PrayerName, FiveDailyPrayerSlot> = {
   isha: "ISHA",
 };
 
-/** On-time AM/PM limits; Qadha always allows both. */
+/**
+ * On-time AM/PM limits by prayer:
+ * Fajr → AM; Dhuhr → AM|PM; Asr → PM; Maghrib → PM; Isha → AM|PM.
+ * Qadha always allows both.
+ */
 function getFiveDailyAllowedPeriods(
   prayer: PrayerName | null,
   timing: TimingOption,
 ): ReadonlyArray<"am" | "pm"> {
   if (timing === "qadha" || !prayer) return ["am", "pm"];
   if (prayer === "fajr") return ["am"];
-  if (prayer === "isha") return ["am", "pm"];
-  // dhuhr, asr, maghrib
+  if (prayer === "dhuhr" || prayer === "isha") return ["am", "pm"];
+  // asr, maghrib
   return ["pm"];
 }
 
@@ -289,6 +294,32 @@ export default function FiveDailyPrayersLoggingFlow({
       ? dayDetailRaw
       : null;
 
+  /** Prefer week query; fall back to dashboard frame when it already has this date. */
+  const frameForSelectedDate = useMemo(() => {
+    const dateIn = (candidate?: typeof frame) =>
+      candidate?.week.days.some(
+        (d) => d.date === selectedDate || d.date.startsWith(`${selectedDate}`),
+      );
+
+    if (dateIn(selectedDateWeekFrame)) return selectedDateWeekFrame;
+    if (dateIn(frame)) return frame;
+    return selectedDateWeekFrame ?? frame;
+  }, [selectedDateWeekFrame, frame, selectedDate]);
+
+  const frameDayForSelectedDate = useMemo(
+    () =>
+      frameForSelectedDate?.week.days.find(
+        (d) => d.date === selectedDate || d.date.startsWith(`${selectedDate}`),
+      ) ?? null,
+    [frameForSelectedDate, selectedDate],
+  );
+
+  const isSlotMenstruationFromFrame = useCallback(
+    (slotKey: FiveDailyPrayerSlot) =>
+      Boolean(frameDayForSelectedDate?.slots?.[slotKey]?.isMenstruationSlot),
+    [frameDayForSelectedDate],
+  );
+
   const loggedPrayersForSelectedDate = useMemo((): PrayerName[] => {
     if (!dayDetail?.slots) return [];
     return PRAYER_OPTIONS.filter(
@@ -296,20 +327,34 @@ export default function FiveDailyPrayersLoggingFlow({
     );
   }, [dayDetail]);
 
+  /** Logged prayers excluded from goal totals (menstruation window). */
+  const notCountedPrayersForSelectedDate = useMemo((): PrayerName[] => {
+    if (!dayDetail?.slots) return [];
+    return PRAYER_OPTIONS.filter((prayer) => {
+      const slot = dayDetail.slots?.[PRAYER_TO_SLOT[prayer]];
+      return slot?.logged === true && slot.countsTowardGoal === false;
+    });
+  }, [dayDetail]);
+
   const lockedPrayersForSelectedDate = useMemo((): PrayerName[] => {
     if (!dayDetail?.slots) return [...PRAYER_OPTIONS];
-    return PRAYER_OPTIONS.filter(
-      (prayer) =>
-        !isFiveDailySlotSelectable(dayDetail.slots?.[PRAYER_TO_SLOT[prayer]]),
-    );
-  }, [dayDetail]);
+    return PRAYER_OPTIONS.filter((prayer) => {
+      const slotKey = PRAYER_TO_SLOT[prayer];
+      return !isFiveDailySlotSelectable(dayDetail.slots?.[slotKey], {
+        isMenstruationSlot: isSlotMenstruationFromFrame(slotKey),
+      });
+    });
+  }, [dayDetail, isSlotMenstruationFromFrame]);
 
   const selectablePrayers = useMemo(
     () =>
-      PRAYER_OPTIONS.filter((prayer) =>
-        isFiveDailySlotSelectable(dayDetail?.slots?.[PRAYER_TO_SLOT[prayer]]),
-      ),
-    [dayDetail],
+      PRAYER_OPTIONS.filter((prayer) => {
+        const slotKey = PRAYER_TO_SLOT[prayer];
+        return isFiveDailySlotSelectable(dayDetail?.slots?.[slotKey], {
+          isMenstruationSlot: isSlotMenstruationFromFrame(slotKey),
+        });
+      }),
+    [dayDetail, isSlotMenstruationFromFrame],
   );
 
   const hasSelectablePrayer = selectablePrayers.length > 0;
@@ -338,7 +383,7 @@ export default function FiveDailyPrayersLoggingFlow({
     return STEPS_WITHOUT_CONGREGATION;
   }, [isCongregationalTracked, timing]);
 
-  const goalLabel = frame?.goal.label ?? "---";
+  const goalLabel = formatPrayerGoalFlowCardLabel(frame?.goal.label ?? "---");
   const goalLabelParts = useMemo(() => {
     const match = goalLabel.match(/^(.*?)\s*(\(total\s+\d+\s+prayers?\))\s*$/i);
     if (!match) {
@@ -388,6 +433,11 @@ export default function FiveDailyPrayersLoggingFlow({
       setSelectedPrayer(null);
     }
   }, [selectedPrayer, lockedPrayersForSelectedDate]);
+
+  // Changing the log date should not keep a prior prayer highlighted.
+  useEffect(() => {
+    setSelectedPrayer(null);
+  }, [selectedDate]);
 
   const applySlotDefaultsForPrayer = useCallback(
     (prayer: PrayerName) => {
@@ -566,6 +616,9 @@ export default function FiveDailyPrayersLoggingFlow({
   };
 
   const handleForward = () => {
+    if (currentStep === "date") {
+      setSelectedPrayer(null);
+    }
     if (currentStep === "prayerSelect") {
       if (dayDetailLoadingState) return;
       if (!hasSelectablePrayer) return;
@@ -577,6 +630,7 @@ export default function FiveDailyPrayersLoggingFlow({
 
   const handleOpenFlow = useCallback(() => {
     if (frameLoading || isFullyAchieved) return;
+    setSelectedPrayer(null);
     setFlowMode("active");
   }, [frameLoading, isFullyAchieved]);
 
@@ -659,6 +713,7 @@ export default function FiveDailyPrayersLoggingFlow({
             categoryColor={Colors.light.green}
             loggedPrayers={loggedPrayersForSelectedDate}
             lockedPrayers={lockedPrayersForSelectedDate}
+            notCountedPrayers={notCountedPrayersForSelectedDate}
             showJumuahForDhuhr={showJumuahForDhuhr}
             t={t}
             styles={commonStyles}
@@ -722,7 +777,7 @@ export default function FiveDailyPrayersLoggingFlow({
   return (
     <>
       {flowMode === "active" && (
-        <Pressable style={commonStyles.backdrop} onPress={resetFlow} />
+        <Pressable style={commonStyles.backdrop} />
       )}
       {flowMode === "active" && (
         <TouchableOpacity
@@ -863,6 +918,7 @@ export default function FiveDailyPrayersLoggingFlow({
                         : false))
                   )
                 }
+                canGoBack={stepIndex > 0}
                 canConfirm={
                   isLastStep &&
                   !isLogging &&

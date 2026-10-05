@@ -18,10 +18,16 @@ export const styles = StyleSheet.create({
   },
   stepsList: {
     marginTop: 24,
+    flexGrow: 0,
   },
   stepsContent: {
-    paddingBottom: 32,
+    paddingBottom: 8,
     gap: 6,
+  },
+  beginNowButton: {
+    alignSelf: "center",
+    marginTop: 115,
+    marginBottom: 24,
   },
   stepRow: {
     backgroundColor: Colors.light.greybuttonBackground,

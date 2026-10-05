@@ -287,7 +287,7 @@ export const CalendarGrid = ({
     return false;
   };
 
-  /** Cycle start: block dates before today (or before minDate when provided). */
+  /** Cycle start: block dates before minDate (defaults to today if omitted). */
   const isCycleStartDateDisabled = (ds: string) => {
     if (mode !== "cycle_start") return false;
     const day = moment(ds, "YYYY-MM-DD");
@@ -1186,7 +1186,7 @@ const styles = StyleSheet.create({
   },
   cycleStartDayCell: {
     width: 36,
-    height: 48,
+    height: 52,
     paddingVertical: 0,
     borderRadius: 0,
     marginBottom: 7,
@@ -1219,8 +1219,8 @@ const styles = StyleSheet.create({
   },
   cycleStartDayHijri: {
     fontSize: 10,
-    marginTop: 2,
-    lineHeight: 18,
+    marginTop: 8,
+    lineHeight: 14,
     color: Colors.light.grey,
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
@@ -1228,6 +1228,6 @@ const styles = StyleSheet.create({
   },
   cycleStartPaddingDayCell: {
     width: 36,
-    height: 48,
+    height: 52,
   },
 });

@@ -15,6 +15,17 @@ export type SinglePrayerDayProgress = {
   canDelete?: boolean;
 };
 
+export type SinglePrayerDayRingRenderArgs = {
+  day: SinglePrayerDayProgress;
+  index: number;
+  size: number;
+  isSelected: boolean;
+  hasLog: boolean;
+  isFuture: boolean;
+  isMenstruation: boolean;
+  showEmptyOutline: boolean;
+};
+
 export type SinglePrayerWeeklyProgressDashboardProps = {
   weekDays: SinglePrayerDayProgress[];
   weekRangeLabel?: string;
@@ -39,6 +50,8 @@ export type SinglePrayerWeeklyProgressDashboardProps = {
   isGoalCompleted?: boolean;
   /** Optional override for the stats row (icon + totals). */
   statsRow?: ReactNode;
+  /** Optional custom day ring (e.g. Quran multi-arc / weekly circles). */
+  renderDayRing?: (args: SinglePrayerDayRingRenderArgs) => ReactNode;
   /** When false, long-press delete chrome is disabled (e.g. mock Quran hours). Default true. */
   allowLogDeletion?: boolean;
   /**
@@ -48,7 +61,24 @@ export type SinglePrayerWeeklyProgressDashboardProps = {
   onDeleteLog?: (date: string) => void | Promise<void>;
   /** Pending state for `onDeleteLog`. */
   isDeletingLog?: boolean;
-  comparisonVariant?: "onTime" | "prayers" | "recitations" | "hours";
+  /**
+   * When true, logged-day captions (e.g. j5) are white; best day stays green.
+   */
+  greenActivityCaptions?: boolean;
+  /**
+   * When true, captions use the same colors as the weekday label
+   * (selected → white, else → subtext); best day stays green.
+   * Used by RECITATION_COMPLETION.
+   */
+  activityCaptionsMatchDayLabel?: boolean;
+  comparisonVariant?:
+    | "onTime"
+    | "prayers"
+    | "recitations"
+    | "quranRecitations"
+    | "quranJuz"
+    | "quranMemorizations"
+    | "hours";
 };
 
 export const LOADING_WEEK: SinglePrayerDayProgress[] = [

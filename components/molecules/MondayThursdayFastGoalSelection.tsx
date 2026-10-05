@@ -15,19 +15,16 @@ import GoalSelectionSaveButton from "./GoalSelectionSaveButton";
 import { useLocaleNumber } from "../../hooks/useLocaleNumber";
 import { MonThuCalendar } from "./MonThuCalendar";
 import { TopSpace } from "../atoms/TopSpace";
-import {
-  getSelectableMonThuDates,
-  type FastingCalendarWindow,
-} from "@/src/utils/fastingCalendarPreview";
+import { type FastingCalendarWindow } from "@/src/utils/fastingCalendarPreview";
 import { useUpsertFastingGoals } from "@/src/api/mutations/useUpsertFastingGoals";
 import { showToast } from "@/src/config/toastConfig";
+import { useTranslation } from "react-i18next";
 
 function initialMonThuDates(
   calendarWindow?: FastingCalendarWindow | null,
 ): string[] {
-  const planned = calendarWindow?.monThuPlannedDates ?? [];
-  if (planned.length > 0) return planned;
-  return getSelectableMonThuDates(calendarWindow);
+  // Only hydrate previously saved plans — never auto-select all Mon/Thu days.
+  return calendarWindow?.monThuPlannedDates ?? [];
 }
 
 export default function MondayThursdayFastGoalSelection({
@@ -39,6 +36,7 @@ export default function MondayThursdayFastGoalSelection({
   calendarWindow?: FastingCalendarWindow | null;
   openOnMount?: boolean;
 }) {
+  const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
   const { mutate: upsertFastingGoal, isPending } = useUpsertFastingGoals();
   const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount);
@@ -126,7 +124,11 @@ export default function MondayThursdayFastGoalSelection({
 
           <Text style={styles.valueText}>
             {formatNumber(monThuCount)}
-            <Text style={styles.whiteText}> Monday & Thursday Fasts</Text>
+            <Text style={styles.whiteText}>
+              {t("monthlyGoalPlanner.mondayThursdayFastSuffix", {
+                count: monThuCount,
+              })}
+            </Text>
           </Text>
 
           <View style={styles.buttonContainer}>

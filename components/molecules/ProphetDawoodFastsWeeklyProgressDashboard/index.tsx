@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -7,7 +7,6 @@ import {
   useWindowDimensions,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import Feather from "@expo/vector-icons/Feather";
 import { useTranslation } from "react-i18next";
 import { Colors } from "@/constants/theme";
@@ -31,6 +30,9 @@ export type ProphetDawoodFastsWeeklyProgressDashboardProps = {
   onDayPress?: (index: number) => void;
   onPrevWeek?: () => void;
   onNextWeek?: () => void;
+  /** Called when user confirms delete on a completed log day. Backend wires here. */
+  onDeleteDay?: (date: string) => void | Promise<void>;
+  isDeletingDay?: boolean;
 };
 
 const CARD_HORIZONTAL_PADDING = 16;
@@ -53,6 +55,8 @@ export function ProphetDawoodFastsWeeklyProgressDashboard({
   onDayPress,
   onPrevWeek,
   onNextWeek,
+  onDeleteDay,
+  isDeletingDay = false,
 }: ProphetDawoodFastsWeeklyProgressDashboardProps) {
   const { t, i18n } = useTranslation();
   const { width: screenWidth } = useWindowDimensions();
@@ -68,9 +72,11 @@ export function ProphetDawoodFastsWeeklyProgressDashboard({
   const [activeDayIndex, setActiveDayIndex] = useState<number | null>(
     resolvedSelectedIndex,
   );
+  const [deletingDayIndex, setDeletingDayIndex] = useState<number | null>(null);
 
   useEffect(() => {
     setActiveDayIndex(resolvedSelectedIndex);
+    setDeletingDayIndex(null);
   }, [weekSummary.weekIndex, resolvedSelectedIndex]);
 
   const availableWidth =
@@ -81,9 +87,28 @@ export function ProphetDawoodFastsWeeklyProgressDashboard({
   );
 
   const handleDayPress = (index: number) => () => {
+    if (deletingDayIndex !== null && deletingDayIndex !== index) {
+      setDeletingDayIndex(null);
+    }
     setActiveDayIndex(index);
     onDayPress?.(index);
   };
+
+  const handleDayLongPress = (index: number) => () => {
+    const day = weekSummary.weekDays[index];
+    if (!day?.canDelete || !onDeleteDay) return;
+    setActiveDayIndex(index);
+    setDeletingDayIndex(index);
+  };
+
+  const handleConfirmDelete = useCallback(
+    async (date: string) => {
+      if (!onDeleteDay || isDeletingDay) return;
+      await onDeleteDay(date);
+      setDeletingDayIndex(null);
+    },
+    [isDeletingDay, onDeleteDay],
+  );
 
   const currentDayIndex =
     selectedDayIndex !== undefined ? selectedDayIndex : activeDayIndex;
@@ -111,10 +136,7 @@ export function ProphetDawoodFastsWeeklyProgressDashboard({
     <View style={styles.card}>
       <View style={styles.headerRow}>
         <View style={styles.headerLeft}>
-          <DashBoardCalenderIcon
-            size={20}
-            color={Colors.light.subtext}
-          />
+          <DashBoardCalenderIcon size={20} color={Colors.light.subtext} />
           <Text style={styles.weekFractionText} numberOfLines={1}>
             {weekSummary.weekFraction} {t("homeScreen.weeklyProgress_weeks")}
           </Text>
@@ -153,30 +175,47 @@ export function ProphetDawoodFastsWeeklyProgressDashboard({
         {weekSummary.weekDays.map((day, index) => {
           const isSelected =
             currentDayIndex !== null && index === currentDayIndex;
+          const isMarkedForDeletion = deletingDayIndex === index;
+          const isBlurred = day.state === "goalAchieved";
 
           return (
             <TouchableOpacity
               key={`${day.day}-${day.date}`}
-              style={styles.dayColumn}
+              style={[
+                styles.dayColumn,
+                isMarkedForDeletion && styles.dayColumnMarkedForDeletion,
+              ]}
               onPress={handleDayPress(index)}
+              onLongPress={handleDayLongPress(index)}
+              delayLongPress={350}
               activeOpacity={0.75}
+              disabled={isBlurred}
             >
               <View
                 style={[
                   styles.dayItemWrapper,
                   shouldShowTodayBackground(day) &&
-                  prophetDawoodFastDayLabelStyles.dayItemTodayBackground,
+                    !isMarkedForDeletion &&
+                    prophetDawoodFastDayLabelStyles.dayItemTodayBackground,
+                  isMarkedForDeletion && styles.dayItemDeleting,
+                  isBlurred && styles.dayItemBlurred,
                 ]}
               >
                 <View style={styles.ringSlot}>
-                  <ProphetDawoodFastDayRing size={ringSize} state={day.state} />
-                  {day.showCycleRestartIcon ? (
+                  <ProphetDawoodFastDayRing
+                    size={ringSize}
+                    state={day.state}
+                    isMenstruating={day.isMenstruating}
+                  />
+                  {day.showCycleRestartIcon && !day.isMenstruating ? (
                     <View style={styles.cycleRestartIcon}>
-                      <Feather
-                        name="refresh-ccw"
-                        size={10}
-                        color={Colors.light.ringDawood}
-                      />
+                      <View style={styles.cycleRestartBadge}>
+                        <Feather
+                          name="refresh-ccw"
+                          size={8}
+                          color={Colors.light.white}
+                        />
+                      </View>
                     </View>
                   ) : null}
                 </View>
@@ -191,6 +230,22 @@ export function ProphetDawoodFastsWeeklyProgressDashboard({
                     )}
                   </Text>
                 </View>
+
+                {isMarkedForDeletion ? (
+                  <TouchableOpacity
+                    style={styles.deleteButton}
+                    onPress={() => handleConfirmDelete(day.date)}
+                    disabled={isDeletingDay}
+                    activeOpacity={0.8}
+                    hitSlop={8}
+                  >
+                    <Ionicons
+                      name="trash-outline"
+                      size={12}
+                      color={Colors.light.white}
+                    />
+                  </TouchableOpacity>
+                ) : null}
               </View>
             </TouchableOpacity>
           );
@@ -198,10 +253,7 @@ export function ProphetDawoodFastsWeeklyProgressDashboard({
       </View>
 
       <View style={styles.statsRow}>
-        <FastingDashboardIcon
-          size={22}
-          color={Colors.light.seagreen}
-        />
+        <FastingDashboardIcon size={22} color={Colors.light.seagreen} />
         <Text style={styles.statsText} numberOfLines={1}>
           <Text style={styles.statsCount}>
             {weekSummary.completedFastsThisWeek}
@@ -221,10 +273,7 @@ export function ProphetDawoodFastsWeeklyProgressDashboard({
         </View>
 
         <View style={styles.quoteBlock}>
-          <ShootIcon
-            size={14}
-            Color={Colors.light.subtext}
-          />
+          <ShootIcon size={14} Color={Colors.light.subtext} />
           <Text style={styles.quoteText}>{motivationalQuote}</Text>
         </View>
       </View>
@@ -239,6 +288,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 20,
     gap: 16,
+    overflow: "visible",
   },
   headerRow: {
     flexDirection: "row",
@@ -277,17 +327,37 @@ const styles = StyleSheet.create({
   daysRow: {
     flexDirection: "row",
     alignItems: "flex-start",
+    overflow: "visible",
   },
   dayColumn: {
     flex: 1,
     alignItems: "center",
     minWidth: 0,
+    overflow: "visible",
+  },
+  dayColumnMarkedForDeletion: {
+    zIndex: 20,
   },
   dayItemWrapper: {
     alignItems: "center",
     paddingVertical: 2,
     paddingHorizontal: 1,
+    paddingBottom: 12,
     minWidth: 0,
+    position: "relative",
+    overflow: "visible",
+  },
+  dayItemDeleting: {
+    borderWidth: 1,
+    borderColor: Colors.light.red,
+    borderRadius: 6,
+    backgroundColor: Colors.light.dullRed,
+    paddingHorizontal: 2,
+    paddingTop: 4,
+    paddingBottom: 14,
+  },
+  dayItemBlurred: {
+    opacity: 0.4,
   },
   ringSlot: {
     position: "relative",
@@ -296,8 +366,30 @@ const styles = StyleSheet.create({
   },
   cycleRestartIcon: {
     position: "absolute",
-    right: -12,
-    bottom: 2,
+    right: -4,
+    bottom: -2,
+  },
+  cycleRestartBadge: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: Colors.light.ringDawood,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: Colors.light.white,
+  },
+  deleteButton: {
+    height: 20,
+    width: 24,
+    backgroundColor: Colors.light.red,
+    borderRadius: 5,
+    zIndex: 1000,
+    alignSelf: "center",
+    justifyContent: "center",
+    alignItems: "center",
+    position: "absolute",
+    bottom: -6,
   },
   statsRow: {
     flexDirection: "row",

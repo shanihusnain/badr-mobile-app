@@ -24,6 +24,7 @@ import { fonts } from "@/assets/fonts";
 import type { ProgressLogEntry } from "../types";
 import { useOptionalPrayerGoalFrameContext } from "../prayerGoalFrameContext";
 import {
+  formatPrayerGoalFlowCardLabel,
   getPrayerFrameAchievementLabel,
   prayerFrameShowsInsights,
 } from "@/src/utils/prayerGoalFrameMap";
@@ -126,7 +127,7 @@ export default function TahiyatUlWudhuLoggingFlow({
     ? toDateString(new Date(frame.cycle.cycleEnd))
     : undefined;
 
-  const goalLabel = frame?.goal.label ?? "";
+  const goalLabel = formatPrayerGoalFlowCardLabel(frame?.goal.label ?? "");
 
   const badgeStatus = useMemo(() => {
     if (!frame) {
@@ -358,7 +359,7 @@ export default function TahiyatUlWudhuLoggingFlow({
   return (
     <>
       {flowMode === "active" && (
-        <Pressable style={commonStyles.backdrop} onPress={resetFlow} />
+        <Pressable style={commonStyles.backdrop} />
       )}
       {flowMode === "active" && (
         <TouchableOpacity

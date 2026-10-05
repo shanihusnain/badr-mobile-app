@@ -22,6 +22,7 @@ export const MissedZakats = ({
   isSaving,
   onSetAsDefaultCurrency,
   openOnMount = false,
+  onInputFocus,
 }: {
   control: any;
   name: string;
@@ -35,9 +36,10 @@ export const MissedZakats = ({
   isSaving?: boolean;
   onSetAsDefaultCurrency?: (currencyOptionValue: string) => void;
   openOnMount?: boolean;
+  onInputFocus?: () => void;
 }) => {
   const { t } = useTranslation();
-  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount);
+  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount, onInputFocus);
   const selectedCurrency = useWatch({ control, name });
   const hasCurrency = Boolean(String(selectedCurrency ?? "").trim());
   const toggleDropdown = () => {
@@ -72,6 +74,7 @@ export const MissedZakats = ({
             handleIncrease={handleIncrease}
             count={count}
             setCount={setCount}
+            onInputFocus={onInputFocus}
           />
           {onSave ? (
             <>

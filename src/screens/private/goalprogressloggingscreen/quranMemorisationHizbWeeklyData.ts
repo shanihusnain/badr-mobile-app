@@ -224,7 +224,9 @@ export function clampHizbMemorisationWeekIndex(weekIndex: number): number {
 export function canNavigateHizbMemorisationWeek(
   weekIndex: number,
   direction: "prev" | "next",
+  activeWeekIndex = getActiveWeekIndex(),
 ): boolean {
   if (direction === "prev") return weekIndex > 0;
-  return weekIndex < MEMORISATION_CYCLE_WEEKS - 1;
+  // Do not navigate into weeks after the calendar current week.
+  return weekIndex < activeWeekIndex;
 }

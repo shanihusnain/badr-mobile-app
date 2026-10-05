@@ -9,11 +9,10 @@ export const QuranMemorizationIcon = ({
     size?: number;
 }) => (
     <Svg
-
         width={size}
         height={size}
+        viewBox="0 0 28 28"
         fill="none"
-
     >
         <Path
             fill={color}

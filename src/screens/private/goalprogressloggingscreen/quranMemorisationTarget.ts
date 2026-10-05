@@ -1,7 +1,12 @@
 import { GoalId } from "../home/components/goalsData";
-import { getMemorizedAyahCount, getRemainingAyahCount } from "./quranMemorisationSurahData";
-import { getSurahMemorisationGoalById } from "./quranMemorisationSurahGoals";
-import { getSurahVerseCount } from "./quranSurahVerseMap";
+import {
+  getMemorizedAyahCount,
+  getRemainingAyahCount,
+} from "./quranMemorisationSurahData";
+import {
+  getSurahMemorisationGoalById,
+  type SurahMemorisationGoal,
+} from "./quranMemorisationSurahGoals";
 
 export type SurahMemorisationGoalId = "quran-memorisationBySurah";
 
@@ -9,6 +14,8 @@ export type QuranMemorisationTargetConfig = {
   surahId: string;
   surahName: string;
   totalAyahs: number;
+  /** Verses already memorized (from frame/API when available). */
+  memorizedAyahs?: number;
 };
 
 export type QuranMemorisationStepId =
@@ -39,21 +46,46 @@ export function buildMemorisationSteps(
   return MEMORISATION_FLOW_STEPS;
 }
 
-export function getNextMemorisationAyah(surahId: string): number {
-  return getMemorizedAyahCount(surahId) + 1;
+export function toMemorisationTargetConfigFromGoal(
+  goal: Pick<
+    SurahMemorisationGoal,
+    "id" | "surahName" | "totalAyahs" | "memorizedAyahs"
+  >,
+): QuranMemorisationTargetConfig {
+  return {
+    surahId: goal.id,
+    surahName: goal.surahName,
+    totalAyahs: Math.max(0, goal.totalAyahs || 0),
+    memorizedAyahs: Math.max(0, goal.memorizedAyahs ?? 0),
+  };
+}
+
+export function getNextMemorisationAyah(
+  surahId: string,
+  memorizedAyahsOverride?: number,
+): number {
+  const memorized =
+    memorizedAyahsOverride != null
+      ? Math.max(0, memorizedAyahsOverride)
+      : getMemorizedAyahCount(surahId);
+  return memorized + 1;
 }
 
 export function isValidMemorisationAyahRange(
   surahId: string,
   startAyah: number,
   endAyah: number,
+  options?: { totalAyahs?: number; memorizedAyahs?: number },
 ): boolean {
-  const minStart = getNextMemorisationAyah(surahId);
-  const total = getSurahVerseCount(surahId);
+  const minStart = getNextMemorisationAyah(surahId, options?.memorizedAyahs);
+  const total =
+    options?.totalAyahs != null && options.totalAyahs > 0
+      ? options.totalAyahs
+      : 0;
   const start = Math.round(startAyah);
   const end = Math.round(endAyah);
 
-  return start >= minStart && end >= start && end <= total;
+  return total > 0 && start >= minStart && end >= start && end <= total;
 }
 
 export function getAyahsMemorizedFromRange(
@@ -81,20 +113,37 @@ export function getMaxAyahsMemorizedToday(surahId: string): number {
 export function toMemorisationTargetConfig(
   surahId: string,
   surahName: string,
+  totalAyahs?: number,
+  memorizedAyahs?: number,
 ): QuranMemorisationTargetConfig {
   return {
     surahId,
     surahName,
-    totalAyahs: getSurahVerseCount(surahId),
+    totalAyahs: Math.max(0, totalAyahs ?? 0),
+    memorizedAyahs,
   };
 }
 
 export function getMemorisationTargetConfigForSurah(
   surahId: string,
+  fallbackGoal?: SurahMemorisationGoal | null,
 ): QuranMemorisationTargetConfig | null {
+  if (fallbackGoal && fallbackGoal.id === surahId) {
+    return toMemorisationTargetConfigFromGoal(fallbackGoal);
+  }
+
   const goal = getSurahMemorisationGoalById(surahId);
-  if (!goal) return null;
-  return toMemorisationTargetConfig(goal.id, goal.surahName);
+  if (goal) {
+    return toMemorisationTargetConfigFromGoal(goal);
+  }
+
+  // API carousel ids are numeric itemNumbers (e.g. "1").
+  const itemNumber = Number(surahId);
+  if (Number.isFinite(itemNumber) && itemNumber > 0) {
+    return toMemorisationTargetConfig(surahId, `Surah ${itemNumber}`, 0);
+  }
+
+  return null;
 }
 
 /** Placeholder default when no surah is pre-selected. */

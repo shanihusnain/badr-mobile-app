@@ -1,8 +1,7 @@
-import { DarkTheme, ThemeProvider } from "@react-navigation/native";
+import { DarkTheme, ThemeProvider, Stack } from "expo-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Colors } from "@/constants/theme";
 import { useFonts } from "expo-font";
-import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
@@ -76,10 +75,7 @@ export default function RootLayout() {
                       options={{ presentation: "modal", title: "Modal" }}
                     />
                   </Stack>
-                  <StatusBar
-                    style="light"
-                    backgroundColor={Colors.light.blackBackground}
-                  />
+                  <StatusBar style="light" />
                   <Toast config={toastConfig} />
                 </BottomSheetModalProvider>
               </ThemeProvider>

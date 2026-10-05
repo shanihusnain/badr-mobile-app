@@ -18,6 +18,7 @@ export const FidyaSelector = ({
   onSave,
   isSaving,
   openOnMount = false,
+  onInputFocus,
 }: {
   count: number;
   setCount: (value: number) => void;
@@ -28,9 +29,10 @@ export const FidyaSelector = ({
   onSave?: (onDone?: () => void, onFail?: () => void) => void;
   isSaving?: boolean;
   openOnMount?: boolean;
+  onInputFocus?: () => void;
 }) => {
   const { t } = useTranslation();
-  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount);
+  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount, onInputFocus);
   const toggleDropdown = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setIsOpen(!isOpen);
@@ -55,8 +57,11 @@ export const FidyaSelector = ({
             setCount={setCount}
             handleDecrease={handleDecrease}
             handleIncrease={handleIncrease}
-            countTitle={countTitle ?? t("monthlyGoalPlanner.meals")}
+            countTitle={
+              countTitle ?? t("monthlyGoalPlanner.meals", { count })
+            }
             width={"50%"}
+            onInputFocus={onInputFocus}
           />
           {onSave ? (
             <>

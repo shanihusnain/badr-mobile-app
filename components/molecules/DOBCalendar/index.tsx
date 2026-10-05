@@ -362,7 +362,7 @@ export const DOBCalendar = ({
         onRequestClose={() => setOpenDropdown(null)}
       >
         <TouchableWithoutFeedback onPress={() => setOpenDropdown(null)}>
-          <View style={StyleSheet.absoluteFillObject} />
+          <View style={StyleSheet.absoluteFill} />
         </TouchableWithoutFeedback>
 
         {dropdownAnchor !== null && (

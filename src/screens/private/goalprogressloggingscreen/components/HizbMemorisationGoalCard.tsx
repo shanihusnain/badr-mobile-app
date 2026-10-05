@@ -1,14 +1,18 @@
 import React, { useMemo } from "react";
-import { Pressable, Text, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "@/constants/theme";
+import { AddLoggingFlowIcon, QuranMemorizationIcon } from "@/assets/icons";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
+import { quranFrameCycleEnded, quranFrameShowsInsights } from "@/src/utils/quranGoalFrameMap";
 import { GoalData } from "../../home/components/goalsData";
 import QuranMemorisationHizbLoggingFlow from "../flows/QuranMemorisationHizbLoggingFlow";
+import { useOptionalQuranGoalFrameContext } from "../quranGoalFrameContext";
 import type { HizbMemorisationGoal } from "../quranMemorisationHizbGoals";
 import type { QuranMemorisationHizbLogEntry } from "../types";
-import { styles } from "./DailyProgressLogging.styles";
+import { FLOW_CARD_HEIGHT, styles } from "./DailyProgressLogging.styles";
+import { resolveQuranGoalCardStatusLabel } from "./resolveQuranGoalCardStatusLabel";
 import { surahGoalStyles } from "./SurahRecitationGoals.styles";
 
 type Props = {
@@ -22,6 +26,10 @@ type Props = {
   onLogComplete?: (entry: QuranMemorisationHizbLogEntry) => void;
 };
 
+function isTotalVersesLabel(value: string) {
+  return /^\(?\s*total\b/i.test(value) || /\bverses?\s*\)?\s*$/i.test(value);
+}
+
 export function HizbMemorisationGoalCard({
   goal,
   goalData,
@@ -34,23 +42,76 @@ export function HizbMemorisationGoalCard({
 }: Props) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
+  const quranFrame = useOptionalQuranGoalFrameContext();
+  const showInsights = quranFrame?.frame
+    ? quranFrameShowsInsights(quranFrame.frame)
+    : false;
+  const isFullyAchieved =
+    (quranFrame?.frame?.goal.achievementPct ?? 0) >= 100 ||
+    goal.completed === true;
 
-  const statusLabel = useMemo(() => {
-    switch (goal.status) {
-      case "not-started":
-        return t("progressLogging.surahStatusNotStarted");
-      case "in-progress":
-        return t("progressLogging.surahStatusInProgress");
-      case "completed":
-        return t("progressLogging.surahStatusCompleted");
+  const statusChip = useMemo(
+    () =>
+      resolveQuranGoalCardStatusLabel({
+        status: goal.status,
+        pillLabel: goal.pillLabel,
+        progressPercent: goal.progressPercentage,
+        completed: goal.completed,
+        cycleEnded: quranFrame?.frame
+          ? quranFrameCycleEnded(quranFrame.frame)
+          : false,
+        t,
+        formatNumber,
+      }),
+    [
+      formatNumber,
+      goal.completed,
+      goal.pillLabel,
+      goal.progressPercentage,
+      goal.status,
+      quranFrame?.frame,
+      t,
+    ],
+  );
+
+  const totalAyahsLabel = formatNumber(goal.totalAyahs);
+  const showTotalAyahs = goal.totalAyahs > 0;
+
+  /** Figma: "Hizb 1 | Al-Fatiha 1:1 - Al-Baqarah 2:74" — API title/range only. */
+  const titleLabel = useMemo(() => {
+    const name =
+      goal.hizbName?.trim() ||
+      (goal.displayName?.includes("|")
+        ? goal.displayName.split("|")[0]!.trim()
+        : goal.displayName?.trim()) ||
+      "";
+    const rawRange = goal.rangeLabel?.trim() || goal.subtitle?.trim() || "";
+    const range =
+      rawRange && !isTotalVersesLabel(rawRange) ? rawRange : "";
+
+    if (name.includes("|")) {
+      const [left, ...rest] = name.split("|");
+      const right = rest.join("|").trim();
+      if (right && !isTotalVersesLabel(right)) return name;
+      if (left?.trim() && range) return `${left.trim()} | ${range}`;
+      return left?.trim() || name;
     }
-  }, [goal.status, t]);
-
-  const progressText = t("progressLogging.memorisationCardProgress", {
-    memorized: formatNumber(goal.memorizedAyahs),
-    total: formatNumber(goal.totalAyahs),
-    percent: formatNumber(goal.progressPercentage),
-  });
+    if (goal.displayName?.includes("|")) {
+      const display = goal.displayName.trim();
+      const [left, ...rest] = display.split("|");
+      const right = rest.join("|").trim();
+      if (right && !isTotalVersesLabel(right)) return display;
+      if (left?.trim() && range) return `${left.trim()} | ${range}`;
+      return left?.trim() || display;
+    }
+    if (name && range) return `${name} | ${range}`;
+    return name || goal.displayName?.trim() || "";
+  }, [
+    goal.displayName,
+    goal.hizbName,
+    goal.rangeLabel,
+    goal.subtitle,
+  ]);
 
   const handleLogProgress = () => {
     onStartFlow(goal.id);
@@ -62,66 +123,105 @@ export function HizbMemorisationGoalCard({
     }
   };
 
+  const canLog = goal.canLog !== false && !goal.completed;
+
   return (
     <View
       style={[
-        { width: cardWidth },
+        { width: cardWidth, height: FLOW_CARD_HEIGHT },
         isFlowActive ? styles.activeSection : undefined,
       ]}
     >
-      <View style={[styles.cardAnchor, { width: "100%" }]}>
-        {isFlowActive && (
-          <Pressable style={styles.backdrop} onPress={onFlowClose} />
-        )}
-        {isFlowActive && (
-          <TouchableOpacity
-            style={styles.cancelButton}
-            onPress={onFlowClose}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="close" size={20} color={Colors.light.white} />
-          </TouchableOpacity>
-        )}
-
+      <View style={surahGoalStyles.cardAnchor}>
         {!isFlowActive ? (
           <View
             style={[
               surahGoalStyles.card,
-              { width: "100%" },
-              isInView ? surahGoalStyles.cardActive : surahGoalStyles.cardInactive,
+              isInView
+                ? surahGoalStyles.cardActive
+                : surahGoalStyles.cardInactive,
             ]}
           >
-            <View style={surahGoalStyles.cardContent}>
-              <View style={surahGoalStyles.statusChip}>
-                <Text style={surahGoalStyles.statusChipText}>{statusLabel}</Text>
+            <View style={surahGoalStyles.bodyRow}>
+              <View style={surahGoalStyles.iconCircle}>
+                <QuranMemorizationIcon color={Colors.light.white} size={26} />
               </View>
 
-              <Text style={surahGoalStyles.surahName}>{goal.hizbName}</Text>
-              <Text
-                style={[
-                  surahGoalStyles.frequencyText,
-                  { fontSize: 12, marginTop: 2 },
-                ]}
-                numberOfLines={2}
-              >
-                {goal.rangeLabel}
-              </Text>
-              <Text style={surahGoalStyles.frequencyText}>{progressText}</Text>
+              <View style={surahGoalStyles.textColumn}>
+                <View
+                  style={[
+                    surahGoalStyles.statusChip,
+                    statusChip.showPercent &&
+                      surahGoalStyles.statusChipAchieved,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      surahGoalStyles.statusChipText,
+                      statusChip.showPercent &&
+                        surahGoalStyles.statusChipTextAchieved,
+                    ]}
+                  >
+                    {statusChip.label}
+                  </Text>
+                </View>
+
+                <View style={surahGoalStyles.textLines}>
+                  <Text style={surahGoalStyles.surahName} numberOfLines={2}>
+                    {titleLabel}
+                  </Text>
+                  {showTotalAyahs ? (
+                    <Text style={surahGoalStyles.metaRegular}>
+                      {`(total `}
+                      <Text style={surahGoalStyles.metaBold}>
+                        {totalAyahsLabel}
+                      </Text>
+                      {` verses)`}
+                    </Text>
+                  ) : null}
+                </View>
+              </View>
             </View>
 
-            <TouchableOpacity
-              style={styles.addButton}
-              onPress={handleLogProgress}
-              activeOpacity={0.8}
-              disabled={goal.completed}
-            >
-              <Ionicons name="add" size={22} color={Colors.light.white} />
-            </TouchableOpacity>
+            <View style={surahGoalStyles.footerRow}>
+              {showInsights ? (
+                <TouchableOpacity
+                  style={surahGoalStyles.insightsBtn}
+                  onPress={() => quranFrame?.openInsights?.()}
+                  activeOpacity={0.8}
+                  hitSlop={{ top: 12, bottom: 12, left: 8, right: 8 }}
+                >
+                  <Text style={surahGoalStyles.insightsText}>
+                    {t("progressLogging.viewInsights")}
+                  </Text>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={22}
+                    color={Colors.light.white}
+                  />
+                </TouchableOpacity>
+              ) : null}
+            </View>
+
+            {canLog ? (
+              <TouchableOpacity
+                style={[
+                  surahGoalStyles.addButtonIconOnly,
+                  isFullyAchieved && surahGoalStyles.addButtonDisabled,
+                ]}
+                onPress={handleLogProgress}
+                activeOpacity={0.8}
+                disabled={isFullyAchieved}
+              >
+                <AddLoggingFlowIcon size={32} />
+              </TouchableOpacity>
+            ) : null}
           </View>
         ) : (
           <QuranMemorisationHizbLoggingFlow
             goalData={goalData}
             preselectedHizbId={goal.id}
+            activeHizbGoal={goal}
             hideCollapsedSummary
             embedded
             suppressOverlay

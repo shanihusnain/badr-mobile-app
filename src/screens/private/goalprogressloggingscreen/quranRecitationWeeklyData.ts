@@ -19,6 +19,10 @@ export type QuranRecitationDayProgress = {
   recitationsCompleted: number;
   dayType: QuranRecitationDayType;
   isBestDay?: boolean;
+  /** YYYY-MM-DD — used for long-press delete. */
+  date?: string;
+  /** From frame day `canDelete` — gates long-press delete. */
+  canDelete?: boolean;
 };
 
 export type RecitationProgressFrequency = "daily" | "weekly";
@@ -576,7 +580,8 @@ export function canNavigateRecitationWeek(
   if (direction === "prev") {
     return weekIndex > 0;
   }
-  return weekIndex < cycle.weeks.length - 1;
+  // Do not navigate into weeks after the calendar current week.
+  return weekIndex < cycle.activeWeekIndex;
 }
 
 export function getQuranRecitationCycleSummary(

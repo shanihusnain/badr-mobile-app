@@ -10,9 +10,9 @@ import {
   StyleSheet,
   Text,
   View,
-  TextInput,
 } from "react-native";
 import { FlatList } from "react-native-gesture-handler";
+import { BottomSheetTextInput } from "@gorhom/bottom-sheet";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTranslation } from "react-i18next";
@@ -39,6 +39,17 @@ const METRIC_LIST_HEIGHT = Math.min(
   Math.round(Dimensions.get("window").height * 0.4),
 );
 
+/** Fake centered caret — native caret sits left when the field is empty. */
+function JuzCenteredCaret() {
+  const [visible, setVisible] = useState(true);
+  useEffect(() => {
+    const id = setInterval(() => setVisible((v) => !v), 530);
+    return () => clearInterval(id);
+  }, []);
+  if (!visible) return null;
+  return <View pointerEvents="none" style={styles.juzCenteredCaret} />;
+}
+
 export const MetricSelectionComponent = ({
   item,
   handleMetricPress,
@@ -62,6 +73,7 @@ export const MetricSelectionComponent = ({
   markCleanNonce = 0,
   onNestedScrollActiveChange,
   isSaved = false,
+  onInputFocus,
 }: {
   item: {
     id: number;
@@ -99,6 +111,8 @@ export const MetricSelectionComponent = ({
   onNestedScrollActiveChange?: (active: boolean) => void;
   /** True when this metric has been successfully saved (persists after collapsing). */
   isSaved?: boolean;
+  /** Scroll parent list so this input stays visible above the keyboard. */
+  onInputFocus?: () => void;
 }) => {
   const { t } = useTranslation();
   const isMemorizationSurah =
@@ -116,12 +130,16 @@ export const MetricSelectionComponent = ({
   const hizbData = hizbOptions ?? EMPTY_HIZBS;
   const juzData = juzOptions ?? EMPTY_JUZS;
   const hydratedForTypeRef = useRef<string | null>(null);
+  const surahListRef = useRef<FlatList>(null);
   const onMetricChangeRef = useRef(onMetricChange);
   onMetricChangeRef.current = onMetricChange;
   const onDirtyChangeRef = useRef(onDirtyChange);
   onDirtyChangeRef.current = onDirtyChange;
   const cleanBaselineRef = useRef<string>("");
   const lastMetricPayloadRef = useRef<string>("");
+  /** Skip applying markClean/discard on remount when nonce is already > 0. */
+  const prevMarkCleanNonceRef = useRef(markCleanNonce);
+  const prevDiscardNonceRef = useRef(discardNonce);
 
   useEffect(() => {
     return () => {
@@ -260,6 +278,19 @@ export const MetricSelectionComponent = ({
     setFocusedInputs((prev) => ({ ...prev, [key]: value }));
   };
 
+  /** Instantly clear a default "0" before React re-renders on focus. */
+  const metricInputRefs = useRef<
+    Record<string, { setNativeProps?: (p: object) => void } | null | undefined>
+  >({});
+  const clearZeroOnTouch = (key: string, isZero: boolean) => {
+    if (!isZero) return;
+    metricInputRefs.current[key]?.setNativeProps?.({
+      text: "",
+      placeholder: "",
+    });
+    setInputFocused(key, true);
+  };
+
   // Hydrate from backend detail once per goal-type load
   useEffect(() => {
     if (!isActiveMetric || isLoadingOptions) return;
@@ -362,6 +393,8 @@ export const MetricSelectionComponent = ({
   // Discard unsaved local edits → restore last saved/initial values
   useEffect(() => {
     if (discardNonce < 1) return;
+    if (prevDiscardNonceRef.current === discardNonce) return;
+    prevDiscardNonceRef.current = discardNonce;
     const nextSurahs = initialSelectedSurahs ?? [];
     const nextSettings = initialSurahSettings ?? {};
     const nextStart = initialJuzRange?.start ?? 0;
@@ -398,9 +431,14 @@ export const MetricSelectionComponent = ({
     onDirtyChangeRef.current?.(false);
   }, [discardNonce]);
 
-  // After Save / upsert, treat current values as clean
+  // After Save / upsert, treat current values as clean.
+  // Do not run on remount just because markCleanNonce is already > 0 — that
+  // would overwrite the hydrated baseline with empty local state and leave
+  // the metric stuck "dirty", blocking Surah → Juz switches after save.
   useEffect(() => {
     if (markCleanNonce < 1) return;
+    if (prevMarkCleanNonceRef.current === markCleanNonce) return;
+    prevMarkCleanNonceRef.current = markCleanNonce;
     cleanBaselineRef.current = buildDirtySnapshot(
       selectedSurahs,
       surahSettings,
@@ -676,6 +714,17 @@ export const MetricSelectionComponent = ({
     return hi >= minEnd;
   };
 
+  /**
+   * Typing over the default "0" must replace it (not append → "01" / maxLength stuck).
+   * Keeps a lone "0"; strips leading zeros once the user enters a real digit.
+   */
+  const normalizeJuzDigitDraft = (raw: string): string => {
+    const digits = raw.replace(/[^0-9]/g, "").slice(0, 2);
+    if (digits === "") return "";
+    const stripped = digits.replace(/^0+/, "");
+    return stripped === "" ? "0" : stripped;
+  };
+
   const enforceJuzStart = (raw: string) => {
     if (raw === "" || raw === "0") {
       setJuzStart(0);
@@ -715,8 +764,24 @@ export const MetricSelectionComponent = ({
     commitJuzEnd(n);
   };
 
+  const handleJuzStartChange = (v: string) => {
+    const digits = normalizeJuzDigitDraft(v);
+    if (digits === "" || digits === "0") {
+      setJuzStart(0);
+      return;
+    }
+    const n = parseInt(digits, 10);
+    if (Number.isNaN(n)) {
+      setJuzStart(0);
+      return;
+    }
+    let clamped = Math.min(Math.max(1, n), 30);
+    if (juzEnd > 0 && clamped > juzEnd) clamped = juzEnd;
+    setJuzStart(clamped);
+  };
+
   const handleJuzEndChange = (v: string) => {
-    const digits = v.replace(/[^0-9]/g, "").slice(0, 2);
+    const digits = normalizeJuzDigitDraft(v);
     if (digits === "") {
       setJuzEndText("");
       setJuzEnd(0);
@@ -894,6 +959,7 @@ export const MetricSelectionComponent = ({
             onTouchCancel={() => onNestedScrollActiveChange?.(false)}
           >
             <FlatList
+              ref={surahListRef}
               data={surahData}
               keyExtractor={(s) => s.id.toString()}
               style={styles.metricOptionsListInner}
@@ -902,11 +968,18 @@ export const MetricSelectionComponent = ({
               removeClippedSubviews={false}
               showsVerticalScrollIndicator
               keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="none"
               bounces
+              onScrollToIndexFailed={({ index }) => {
+                surahListRef.current?.scrollToOffset({
+                  offset: Math.max(0, index * 120),
+                  animated: true,
+                });
+              }}
               ListEmptyComponent={
                 <Text style={styles.emptyOptionsText}>No surahs available</Text>
               }
-              renderItem={({ item: s }) => {
+              renderItem={({ item: s, index: surahIndex }) => {
                 const checked = selectedSurahs.includes(s.id);
                 const setting = surahSettings[s.id] || {
                   frequency: "daily",
@@ -1053,19 +1126,55 @@ export const MetricSelectionComponent = ({
 
                         <TopSpace top={8} />
                         <View style={styles.surahTimesInputRow}>
-                          <TextInput
-                            value={String(timesValue)}
+                          <BottomSheetTextInput
+                            ref={(r) => {
+                              metricInputRefs.current[`surah-${s.id}`] = r;
+                            }}
+                            value={
+                              timesValue > 0
+                                ? String(timesValue)
+                                : ""
+                            }
                             onChangeText={(v) => {
-                              const n = parseInt(v || "0", 10);
+                              const digits = v.replace(/[^0-9]/g, "");
+                              if (digits === "") {
+                                updateSurahSetting(s.id, { times: 0 });
+                                return;
+                              }
+                              const n = parseInt(digits, 10);
                               const clamped = Number.isNaN(n)
                                 ? undefined
                                 : Math.min(Math.max(0, n), maxTimes);
                               updateSurahSetting(s.id, { times: clamped });
                             }}
                             keyboardType="numeric"
-                            onFocus={() =>
-                              setInputFocused(`surah-${s.id}`, true)
+                            onTouchStart={() =>
+                              clearZeroOnTouch(
+                                `surah-${s.id}`,
+                                !(timesValue > 0),
+                              )
                             }
+                            onFocus={() => {
+                              setInputFocused(`surah-${s.id}`, true);
+                              // Parent sheet scroll is disabled while touching this
+                              // nested list — turn it back on, then scroll both lists.
+                              onNestedScrollActiveChange?.(false);
+                              onInputFocus?.();
+                              requestAnimationFrame(() => {
+                                try {
+                                  surahListRef.current?.scrollToIndex({
+                                    index: surahIndex,
+                                    animated: true,
+                                    viewPosition: 0.15,
+                                  });
+                                } catch {
+                                  surahListRef.current?.scrollToOffset({
+                                    offset: Math.max(0, surahIndex * 120),
+                                    animated: true,
+                                  });
+                                }
+                              });
+                            }}
                             onBlur={() =>
                               setInputFocused(`surah-${s.id}`, false)
                             }
@@ -1074,7 +1183,9 @@ export const MetricSelectionComponent = ({
                               styles.timesInput,
                               timesValue > 0 && styles.timesInputFilled,
                             ]}
-                            placeholder="0"
+                            placeholder={
+                              focusedInputs[`surah-${s.id}`] ? "" : "0"
+                            }
                             placeholderTextColor={Colors.light.white}
                           />
                           <Text style={styles.surahTimesFrequencyLabel}>
@@ -1261,43 +1372,49 @@ export const MetricSelectionComponent = ({
               >
                 {t("monthlyGoalPlanner.quranMetrics.fromJuz")}
               </Text>
-              <TextInput
-                value={String(juzStart)}
-                onChangeText={(v) => {
-                  if (v === "") {
-                    setJuzStart(0);
-                    return;
+              <View style={styles.juzRangeInputWrap}>
+                <BottomSheetTextInput
+                  ref={(r) => {
+                    metricInputRefs.current["juz-start"] = r;
+                  }}
+                  value={
+                    focusedInputs["juz-start"] && juzStart === 0
+                      ? ""
+                      : String(juzStart)
                   }
-                  const digits = v.replace(/[^0-9]/g, "");
-                  const n = parseInt(digits, 10);
-                  if (Number.isNaN(n)) {
-                    setJuzStart(0);
-                    return;
+                  onChangeText={handleJuzStartChange}
+                  keyboardType="numeric"
+                  maxLength={2}
+                  selectTextOnFocus
+                  onTouchStart={() =>
+                    clearZeroOnTouch("juz-start", juzStart === 0)
                   }
-                  if (n === 0) {
-                    setJuzStart(0);
-                    return;
+                  onFocus={() => {
+                    setInputFocused("juz-start", true);
+                    onNestedScrollActiveChange?.(false);
+                    onInputFocus?.();
+                  }}
+                  onBlur={() => {
+                    setInputFocused("juz-start", false);
+                    enforceJuzStart(String(juzStart));
+                  }}
+                  textAlign="center"
+                  textAlignVertical="center"
+                  caretHidden={
+                    !!focusedInputs["juz-start"] &&
+                    (juzStart === 0 || !String(juzStart))
                   }
-                  let clamped = Math.min(Math.max(1, n), 30);
-                  // Start juz must be lesser than or equal to end juz
-                  if (juzEnd > 0 && clamped > juzEnd) clamped = juzEnd;
-                  setJuzStart(clamped);
-                }}
-                keyboardType="numeric"
-                maxLength={2}
-                onFocus={() => setInputFocused("juz-start", true)}
-                onBlur={() => {
-                  setInputFocused("juz-start", false);
-                  enforceJuzStart(String(juzStart));
-                }}
-                textAlignVertical="center"
-                style={[
-                  styles.juzRangeInput,
-                  juzStart > 0 && styles.timesInputFilled,
-                ]}
-                placeholder="0"
-                placeholderTextColor={Colors.light.white}
-              />
+                  style={[
+                    styles.juzRangeInput,
+                    juzStart > 0 && styles.timesInputFilled,
+                  ]}
+                  placeholder={focusedInputs["juz-start"] ? "" : "0"}
+                  placeholderTextColor={Colors.light.white}
+                />
+                {focusedInputs["juz-start"] && juzStart === 0 ? (
+                  <JuzCenteredCaret />
+                ) : null}
+              </View>
               <Text
                 style={{
                   fontWeight: "400",
@@ -1308,28 +1425,55 @@ export const MetricSelectionComponent = ({
               >
                 {t("monthlyGoalPlanner.quranMetrics.toJuz")}
               </Text>
-              <TextInput
-                value={
-                  focusedInputs["juz-end"] ? juzEndText : juzEndText || "0"
-                }
-                onChangeText={handleJuzEndChange}
-                keyboardType="numeric"
-                maxLength={2}
-                onFocus={() => setInputFocused("juz-end", true)}
-                onBlur={() => {
-                  setInputFocused("juz-end", false);
-                  enforceJuzEnd();
-                }}
-                onEndEditing={() => enforceJuzEnd()}
-                onSubmitEditing={() => enforceJuzEnd()}
-                textAlignVertical="center"
-                style={[
-                  styles.juzRangeInput,
-                  juzEnd > 0 && styles.timesInputFilled,
-                ]}
-                placeholder="0"
-                placeholderTextColor={Colors.light.white}
-              />
+              <View style={styles.juzRangeInputWrap}>
+                <BottomSheetTextInput
+                  ref={(r) => {
+                    metricInputRefs.current["juz-end"] = r;
+                  }}
+                  value={
+                    focusedInputs["juz-end"]
+                      ? juzEndText === "0"
+                        ? ""
+                        : juzEndText
+                      : juzEndText || "0"
+                  }
+                  onChangeText={handleJuzEndChange}
+                  keyboardType="numeric"
+                  maxLength={2}
+                  selectTextOnFocus
+                  onTouchStart={() =>
+                    clearZeroOnTouch("juz-end", juzEndText === "0" || !juzEndText)
+                  }
+                  onFocus={() => {
+                    setInputFocused("juz-end", true);
+                    if (juzEndText === "0") setJuzEndText("");
+                    onNestedScrollActiveChange?.(false);
+                    onInputFocus?.();
+                  }}
+                  onBlur={() => {
+                    setInputFocused("juz-end", false);
+                    enforceJuzEnd();
+                  }}
+                  onEndEditing={() => enforceJuzEnd()}
+                  onSubmitEditing={() => enforceJuzEnd()}
+                  textAlign="center"
+                  textAlignVertical="center"
+                  caretHidden={
+                    !!focusedInputs["juz-end"] &&
+                    (juzEndText === "" || juzEndText === "0")
+                  }
+                  style={[
+                    styles.juzRangeInput,
+                    juzEnd > 0 && styles.timesInputFilled,
+                  ]}
+                  placeholder={focusedInputs["juz-end"] ? "" : "0"}
+                  placeholderTextColor={Colors.light.white}
+                />
+                {focusedInputs["juz-end"] &&
+                (juzEndText === "" || juzEndText === "0") ? (
+                  <JuzCenteredCaret />
+                ) : null}
+              </View>
             </View>
             <TopSpace top={14} />
             <Text
@@ -1347,10 +1491,12 @@ export const MetricSelectionComponent = ({
                   displayJuzEnd === undefined
                 )
                   return t("monthlyGoalPlanner.quranMetrics.totalJuz", {
-                    total: 0,
+                    count: 0,
                   });
                 const total = Math.max(0, displayJuzEnd - displayJuzStart + 1);
-                return t("monthlyGoalPlanner.quranMetrics.totalJuz", { total });
+                return t("monthlyGoalPlanner.quranMetrics.totalJuz", {
+                  count: total,
+                });
               })()}
             </Text>
             <TopSpace top={16} />
@@ -1405,24 +1551,39 @@ export const MetricSelectionComponent = ({
                 alignSelf: "center",
               }}
             >
-              <TextInput
-                value={String(quranCompletion)}
+              <BottomSheetTextInput
+                ref={(r) => {
+                  metricInputRefs.current.completion = r;
+                }}
+                value={quranCompletion > 0 ? String(quranCompletion) : ""}
                 onChangeText={(v) => {
-                  const n = parseInt(v || "0", 10);
+                  const digits = v.replace(/[^0-9]/g, "");
+                  if (digits === "") {
+                    setQuranCompletion(0);
+                    return;
+                  }
+                  const n = parseInt(digits, 10);
                   const clamped = Number.isNaN(n)
                     ? 0
                     : Math.max(0, Math.min(28, n));
                   setQuranCompletion(clamped);
                 }}
                 keyboardType="numeric"
-                onFocus={() => setInputFocused(`completion`, true)}
+                onTouchStart={() =>
+                  clearZeroOnTouch("completion", !(quranCompletion > 0))
+                }
+                onFocus={() => {
+                  setInputFocused(`completion`, true);
+                  onNestedScrollActiveChange?.(false);
+                  onInputFocus?.();
+                }}
                 onBlur={() => setInputFocused(`completion`, false)}
                 textAlignVertical="center"
                 style={[
                   styles.timesInput,
                   quranCompletion > 0 && styles.timesInputFilled,
                 ]}
-                placeholder="0"
+                placeholder={focusedInputs.completion ? "" : "0"}
                 placeholderTextColor={Colors.light.white}
               />
               <Text
@@ -1435,7 +1596,9 @@ export const MetricSelectionComponent = ({
                   lineHeight: 20,
                 }}
               >
-                {t("monthlyGoalPlanner.quranMetrics.fullCompletions")}
+                {t("monthlyGoalPlanner.quranMetrics.fullCompletions", {
+                  count: quranCompletion || 0,
+                })}
               </Text>
             </View>
             <TopSpace top={16} />
@@ -1769,42 +1932,59 @@ const styles = StyleSheet.create({
   },
   timesInput: {
     width: 40,
-    paddingTop: 4,
-    paddingRight: 6,
-    paddingBottom: 4,
-    paddingLeft: 6,
+    height: 36,
+    paddingHorizontal: 0,
+    paddingVertical: 0,
     justifyContent: "center",
     alignItems: "center",
     textAlign: "center",
+    textAlignVertical: "center",
     borderWidth: 1,
     borderColor: Colors.light.white,
     backgroundColor: "transparent",
     borderRadius: 4,
     color: Colors.light.white,
     fontSize: 16,
+    lineHeight: 20,
     fontWeight: "500",
     fontFamily: fonts.primary.medium,
     includeFontPadding: false,
+    overflow: "visible",
   },
   /** Wider box so 1–30 juz numbers are fully visible */
-  juzRangeInput: {
+  juzRangeInputWrap: {
     width: 44,
-    paddingTop: 4,
-    paddingRight: 8,
-    paddingBottom: 4,
-    paddingLeft: 8,
+    height: 36,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  juzRangeInput: {
+    width: "100%",
+    height: "100%",
+    paddingHorizontal: 0,
+    paddingVertical: 0,
     justifyContent: "center",
     alignItems: "center",
     textAlign: "center",
+    textAlignVertical: "center",
     borderWidth: 1,
     borderColor: Colors.light.white,
     backgroundColor: "transparent",
     borderRadius: 4,
     color: Colors.light.white,
     fontSize: 16,
+    lineHeight: 20,
     fontWeight: "500",
     fontFamily: fonts.primary.medium,
     includeFontPadding: false,
+    overflow: "visible",
+  },
+  juzCenteredCaret: {
+    position: "absolute",
+    width: 1.5,
+    height: 18,
+    borderRadius: 1,
+    backgroundColor: Colors.light.white,
   },
   timesInputFilled: {
     borderColor: Colors.light.green,

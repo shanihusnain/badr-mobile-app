@@ -6,14 +6,24 @@ import {
   TouchableOpacity,
   Pressable,
   ScrollView,
+  useWindowDimensions,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Colors } from "@/constants/theme";
-import { fonts } from "@/assets/fonts";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
+import {
+  AchivementArrowIcon,
+  InsightCardFlashIcon,
+  InsightCardGoalTrackedIcon,
+  InsightCardGoodDayIcon,
+  InsightCardTickIcon,
+  InsightCardTimeSpentIcon,
+  InsightCardWeeklyAverageIcon,
+  NegativeProgressIcon,
+  PositiveProgressIcon,
+} from "@/assets/icons";
 import {
   applyTimeSpentOnlyGreenChart,
   applyRecitationAnalyticsView,
@@ -46,19 +56,23 @@ import {
   getActiveRecitationSurahGoal,
   useOptionalRecitationSurahContext,
 } from "@/src/screens/private/goalprogressloggingscreen/recitationSurahContext";
-import { INCOMPLETE_BAR_COLOR } from "../QuranHoursPastAchievements/pastAchievementStyles";
-import { RecitationPastAchievementProgressSection } from "../QuranHoursPastAchievements/RecitationPastAchievementProgressSection";
+import { resolveQuranTypeFromGoalId } from "@/src/utils/quranGoalMap";
+import { useGetQuranGoalAchievements } from "@/src/api/queries/useGetQuranGoalAchievements";
+import {
+  buildMemorisationSurahAchievementFilters,
+  createEmptyMemorisationSurahAchievements,
+  mapMemorisationSurahAchievementsToUi,
+} from "@/src/utils/quranMemorisationSurahAchievementsMap";
+import { mapQuranApiKeyInsightsToCards } from "@/src/utils/quranHoursGoalAchievementsMap";
+import type { SurahMemorisationGoal } from "@/src/screens/private/goalprogressloggingscreen/quranMemorisationSurahGoals";
 import { RecitationSurahBreakdownList } from "../QuranHoursPastAchievements/RecitationSurahBreakdownList";
 import { RecitationSurahDetailCard } from "../QuranHoursPastAchievements/RecitationSurahDetailCard";
 import { GraphBarSelectionFooter } from "../QuranHoursPastAchievements/GraphBarSelectionFooter";
-import { SurahProgressStrip } from "../QuranHoursPastAchievements/SurahProgressStrip";
 import { QuranHoursPastAchievementChartBlock } from "../QuranHoursPastAchievements/QuranHoursPastAchievementChartBlock";
 import { InsightCard } from "../InsightCard";
-import {
-  getGoalById,
-} from "@/src/screens/private/home/components/goalsData";
-import { PastAchievementStudyMaterial } from "@/components/molecules/PastAchievementStudyMaterial";
+import type { InsightCardData } from "../PrayerPastAchievements/insightCardsData";
 import { TopSpace } from "@/components/atoms/TopSpace";
+import { memorisationPastAchievementStyles as styles } from "../QuranMemorisationPastAchievements/memorisationPastAchievementsStyles";
 
 export type QuranRecitationPastAchievementsProps = {
   goalId: SurahRecitationGoalId;
@@ -80,7 +94,6 @@ const PERIOD_LABEL_KEYS: Record<PastAchievementPeriod, string> = {
   sixMonths: "progressLogging.periodSixMonths",
 };
 
-const GOAL_SUMMARY_KEY = "progressLogging.achievementSummaryRecitationSurah";
 const UNIT_LABEL_KEY = "progressLogging.unitRecitations";
 
 const ANALYTICS_VIEWS: RecitationAnalyticsView[] = [
@@ -106,6 +119,45 @@ const PERIOD_INSIGHT_SUBTITLE: Record<PastAchievementPeriod, string> = {
   sixMonths: "VS. LAST 6 MONTHS",
 };
 
+const LOADING_DASH = "---";
+const QURAN_INSIGHT_ICON_SIZE = 14;
+
+function getRecitationInsightIcon(card: InsightCardData) {
+  const title = card.title.toUpperCase();
+  const name = card.iconName;
+  if (name === "calendar-outline" || title.includes("GOAL TRACKED")) {
+    return <InsightCardGoalTrackedIcon size={QURAN_INSIGHT_ICON_SIZE} />;
+  }
+  if (
+    name === "checkmark-circle-outline" ||
+    title.includes("COMPLETED") ||
+    title.includes("ACTIVE")
+  ) {
+    return <InsightCardTickIcon size={QURAN_INSIGHT_ICON_SIZE} />;
+  }
+  if (name === "flash" || title.includes("STREAK")) {
+    return <InsightCardFlashIcon size={QURAN_INSIGHT_ICON_SIZE} />;
+  }
+  if (name === "sparkles" || title.includes("BEST")) {
+    return <InsightCardGoodDayIcon size={QURAN_INSIGHT_ICON_SIZE} />;
+  }
+  if (
+    name === "scale-balance" ||
+    name === "stats-chart-outline" ||
+    title.includes("AVERAGE")
+  ) {
+    return <InsightCardWeeklyAverageIcon size={QURAN_INSIGHT_ICON_SIZE} />;
+  }
+  if (
+    name === "time-outline" ||
+    title.includes("TIME") ||
+    name === "book-outline"
+  ) {
+    return <InsightCardTimeSpentIcon size={QURAN_INSIGHT_ICON_SIZE} />;
+  }
+  return undefined;
+}
+
 export function QuranRecitationPastAchievements({
   goalId,
   isDetailed = false,
@@ -115,20 +167,59 @@ export function QuranRecitationPastAchievements({
 }: QuranRecitationPastAchievementsProps) {
   const router = useRouter();
   const { t } = useTranslation();
+  const { width } = useWindowDimensions();
   const formatNumber = useLocaleNumber();
-const surahContext = useOptionalRecitationSurahContext();
+  const insightCardStyle = {
+    flex: 0,
+    flexGrow: 0,
+    flexShrink: 0,
+    width: width * 0.42,
+    maxWidth: width * 0.42,
+    minWidth: width * 0.42,
+  };
+  const surahContext = useOptionalRecitationSurahContext();
   const [period, setPeriod] = useState<PastAchievementPeriod>(initialPeriod);
   const [analyticsView, setAnalyticsView] =
     useState<RecitationAnalyticsView>(initialAnalyticsView);
-  const goalData = getGoalById(goalId);
-  const studyMaterial = goalData?.studyMaterial ?? [];
   const [selectedBarIndex, setSelectedBarIndex] = useState<number | null>(null);
   const [hintDismissed, setHintDismissed] = useState(false);
 
-  const surahFilters = useMemo(
-    () => getPastAchievementSurahFilters(goalId),
-    [goalId],
-  );
+  const quranGoalType = resolveQuranTypeFromGoalId(goalId);
+  const usesAchievementsApi = quranGoalType === "RECITATION_SURAH";
+  const contextGoals = surahContext?.goals ?? [];
+
+  const memorisationShapedGoals = useMemo((): SurahMemorisationGoal[] => {
+    return contextGoals.map((goal) => {
+      const parsedId = Number(goal.id);
+      return {
+        id: goal.id,
+        itemNumber:
+          goal.itemNumber != null && goal.itemNumber > 0
+            ? goal.itemNumber
+            : Number.isFinite(parsedId)
+              ? parsedId
+              : 0,
+        surahName: goal.surahName,
+        totalAyahs: goal.cycleTotal,
+        memorizedAyahs: goal.loggedRecitations,
+        progressPercentage: goal.achievementPercent ?? 0,
+        completed: goal.completed === true || goal.status === "achieved",
+        status:
+          goal.status === "achieved"
+            ? "completed"
+            : goal.status === "in-progress"
+              ? "in-progress"
+              : "not-started",
+      };
+    });
+  }, [contextGoals]);
+
+  const surahFilters = useMemo(() => {
+    if (memorisationShapedGoals.length > 0) {
+      return buildMemorisationSurahAchievementFilters(memorisationShapedGoals);
+    }
+    return getPastAchievementSurahFilters(goalId);
+  }, [goalId, memorisationShapedGoals, surahContext?.refreshKey]);
 
   const [detailedSurahFilter, setDetailedSurahFilter] = useState<SurahFilterId>(
     () => initialSurahId ?? "all",
@@ -138,26 +229,101 @@ const surahContext = useOptionalRecitationSurahContext();
     ? detailedSurahFilter
     : (surahContext?.activeSurahId ?? initialSurahId ?? "all");
   const refreshKey = surahContext?.refreshKey ?? 0;
-  const surahGoal = getActiveRecitationSurahGoal(selectedSurahId);
+  const surahGoal =
+    contextGoals.find((goal) => goal.id === selectedSurahId) ??
+    getActiveRecitationSurahGoal(selectedSurahId);
   const surahDisplayName =
     surahGoal?.surahName ??
-    getPastAchievementSurahFilters(goalId).find(
-      (filter) => filter.id === selectedSurahId,
-    )?.surahName ??
+    surahFilters.find((filter) => filter.id === selectedSurahId)?.surahName ??
     "";
 
   const isSurahDrillDown = isDetailed && selectedSurahId !== "all";
 
-  const periodSlice = useMemo(
-    () =>
-      getQuranRecitationPastAchievementSlice(goalId, period, selectedSurahId),
-    [goalId, period, selectedSurahId, refreshKey],
-  );
+  const selectedItemNumber = useMemo(() => {
+    if (selectedSurahId === "all") return null;
+    const fromGoal = contextGoals.find((goal) => goal.id === selectedSurahId)
+      ?.itemNumber;
+    if (fromGoal != null && Number.isFinite(fromGoal)) return fromGoal;
+    const fromId = Number(selectedSurahId);
+    return Number.isFinite(fromId) && fromId > 0 ? fromId : null;
+  }, [contextGoals, selectedSurahId]);
 
-  const hasLogs = useMemo(
-    () => hasRecitationPastAchievementLogs(periodSlice),
-    [periodSlice],
-  );
+  const achievementsChartParam =
+    isDetailed && analyticsView === "completedVsTimeSpent"
+      ? "COMPLETED_VS_TIME"
+      : null;
+
+  const { data: achievementsApiData, isLoading: isAchievementsLoading } =
+    useGetQuranGoalAchievements(quranGoalType, {
+      period,
+      itemNumber: selectedItemNumber,
+      chart: achievementsChartParam,
+      enabled: usesAchievementsApi && !!quranGoalType,
+    });
+
+  const showPlaceholders =
+    usesAchievementsApi && (!achievementsApiData || isAchievementsLoading);
+
+  const mappedApi = useMemo(() => {
+    if (!usesAchievementsApi) return null;
+    if (!achievementsApiData) {
+      return createEmptyMemorisationSurahAchievements(
+        selectedSurahId,
+        surahDisplayName || "All Surahs",
+      );
+    }
+    return mapMemorisationSurahAchievementsToUi(achievementsApiData, period, {
+      surahId: selectedSurahId,
+      surahName: surahDisplayName || "All Surahs",
+      goals: memorisationShapedGoals,
+    });
+  }, [
+    achievementsApiData,
+    memorisationShapedGoals,
+    period,
+    selectedSurahId,
+    surahDisplayName,
+    usesAchievementsApi,
+  ]);
+
+  const periodSlice = useMemo(() => {
+    if (usesAchievementsApi && mappedApi) {
+      return {
+        chartPeriods: mappedApi.slice.chartPeriods,
+        goalTotal: mappedApi.slice.totalAyahs,
+        achievementPercent: mappedApi.slice.achievementPercent,
+        previousPeriodDeltaPercent: mappedApi.slice.previousPeriodDeltaPercent,
+        activeDays: mappedApi.achievement.activeDays,
+        activeDaysPrevious: mappedApi.achievement.activeDaysPrevious,
+        longestStreak: mappedApi.achievement.longestStreak,
+        longestStreakPrevious: mappedApi.achievement.longestStreakPrevious,
+        dateRangeLabel: mappedApi.slice.dateRangeLabel,
+        pageCount: mappedApi.slice.pageCount,
+        activePageIndex: mappedApi.slice.activePageIndex,
+      };
+    }
+    return getQuranRecitationPastAchievementSlice(
+      goalId,
+      period,
+      selectedSurahId,
+    );
+  }, [
+    goalId,
+    mappedApi,
+    period,
+    refreshKey,
+    selectedSurahId,
+    usesAchievementsApi,
+  ]);
+
+  const hasLogs = useMemo(() => {
+    if (usesAchievementsApi && mappedApi) {
+      return mappedApi.slice.chartPeriods.some(
+        (item) => item.completed > 0 || item.incomplete > 0,
+      );
+    }
+    return hasRecitationPastAchievementLogs(periodSlice);
+  }, [mappedApi, periodSlice, usesAchievementsApi]);
 
   const displaySlice = useMemo(
     () =>
@@ -167,10 +333,19 @@ const surahContext = useOptionalRecitationSurahContext();
     [hasLogs, isSurahDrillDown, periodSlice],
   );
 
-  const baseAchievement = useMemo(
-    () => getQuranRecitationPastAchievement(goalId, period, selectedSurahId),
-    [goalId, period, selectedSurahId, refreshKey],
-  );
+  const baseAchievement = useMemo(() => {
+    if (usesAchievementsApi && mappedApi) {
+      return mappedApi.achievement;
+    }
+    return getQuranRecitationPastAchievement(goalId, period, selectedSurahId);
+  }, [
+    goalId,
+    mappedApi,
+    period,
+    refreshKey,
+    selectedSurahId,
+    usesAchievementsApi,
+  ]);
 
   const chartBaseAchievement = useMemo(
     () =>
@@ -402,24 +577,61 @@ const surahContext = useOptionalRecitationSurahContext();
     setSelectedBarIndex(null);
   }, []);
 
-  const showEmptyAchievement = isSurahDrillDown && !hasLogs;
-  const showNoDataDash = isPastAchievementBarEmpty(
-    displayBaseCompleted,
-    displayBaseIncomplete,
-  );
-  const displayAchievementPercent =
-    showEmptyAchievement || showNoDataDash
-      ? PAST_ACHIEVEMENT_NO_DATA
-      : formatNumber(achievement.achievementPercent);
+  const showNoDataDash =
+    showPlaceholders ||
+    !hasLogs ||
+    isPastAchievementBarEmpty(displayBaseCompleted, displayBaseIncomplete);
 
   const formatStatCount = (value: number) =>
-    showEmptyAchievement || showNoDataDash
+    showNoDataDash
       ? PAST_ACHIEVEMENT_NO_DATA
       : formatGoalRecitationsLabel(value);
 
   const showChartHint =
-    isDetailed && !hintDismissed && selectedBarIndex === null;
+    isDetailed &&
+    !hintDismissed &&
+    selectedBarIndex === null &&
+    !showPlaceholders;
   const deltaIsPositive = baseAchievement.previousPeriodDeltaPercent >= 0;
+
+  const showDeltaChip =
+    !showPlaceholders &&
+    !showNoDataDash &&
+    Math.abs(baseAchievement.previousPeriodDeltaPercent) > 0;
+
+  const showDetailedStatsChevron = useMemo(() => {
+    if (isDetailed || showPlaceholders || showNoDataDash) return false;
+    if ((achievement.achievementPercent ?? 0) > 0) return true;
+    return (chartAchievement?.chartData ?? []).some(
+      (item) => (item.completedHours ?? 0) > 0,
+    );
+  }, [
+    achievement.achievementPercent,
+    chartAchievement?.chartData,
+    isDetailed,
+    showNoDataDash,
+    showPlaceholders,
+  ]);
+
+  const keyInsightsHeader =
+    typeof mappedApi?.achievement?.keyInsightsHeader === "string"
+      ? mappedApi.achievement.keyInsightsHeader
+      : null;
+
+  const apiInsightCards = useMemo(() => {
+    if (!usesAchievementsApi) return [];
+    return mapQuranApiKeyInsightsToCards(achievementsApiData, {
+      period,
+      noDataLabel: t("progressLogging.insightNoData"),
+      isLoading: showPlaceholders,
+    });
+  }, [
+    achievementsApiData,
+    period,
+    showPlaceholders,
+    t,
+    usesAchievementsApi,
+  ]);
 
   const surahGoalLabelKey =
     isSurahDrillDown && period === "monthly" && selectedBarIndex !== null
@@ -446,6 +658,226 @@ const surahContext = useOptionalRecitationSurahContext();
       },
     });
   }, [analyticsView, goalId, period, router, selectedSurahId]);
+
+  const renderPeriodToggle = () => (
+    <View style={styles.periodToggleListening}>
+      {PERIODS.map((item) => {
+        const isActive = period === item;
+        return (
+          <Pressable
+            key={item}
+            onPress={() => setPeriod(item)}
+            style={[
+              styles.periodButtonListening,
+              isActive
+                ? styles.periodButtonActive
+                : styles.periodButtonInactive,
+            ]}
+          >
+            <Text
+              style={[
+                styles.periodButtonTextListening,
+                isActive && styles.periodButtonTextActive,
+              ]}
+            >
+              {t(PERIOD_LABEL_KEYS[item])}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+
+  const renderDateNav = () => (
+    <View style={styles.dateNavRow}>
+      <TouchableOpacity activeOpacity={0.7} style={styles.navBtn}>
+        <Ionicons
+          name="chevron-back"
+          size={24}
+          color={Colors.light.dullWhite}
+        />
+      </TouchableOpacity>
+      <Text style={styles.dateRange} numberOfLines={1} ellipsizeMode="tail">
+        {showPlaceholders && !achievement.dateRangeLabel
+          ? LOADING_DASH
+          : achievement.dateRangeLabel || LOADING_DASH}
+      </Text>
+      <TouchableOpacity activeOpacity={0.7} style={styles.navBtn}>
+        <Ionicons
+          name="chevron-forward"
+          size={24}
+          color={Colors.light.dullWhite}
+        />
+      </TouchableOpacity>
+    </View>
+  );
+
+  const renderAnalyticsToggle = () => (
+    <ScrollView
+      horizontal
+      nestedScrollEnabled
+      showsHorizontalScrollIndicator={false}
+      style={styles.analyticsToggleScroll}
+      contentContainerStyle={styles.analyticsToggle}
+    >
+      {ANALYTICS_VIEWS.map((view) => {
+        const isActive = analyticsView === view;
+        return (
+          <Pressable
+            key={view}
+            onPress={() => setAnalyticsView(view)}
+            style={[
+              styles.analyticsButton,
+              isActive
+                ? styles.analyticsButtonActive
+                : styles.analyticsButtonInactive,
+            ]}
+          >
+            <Text
+              style={[
+                styles.analyticsButtonText,
+                isActive && styles.analyticsButtonTextActive,
+              ]}
+              numberOfLines={1}
+            >
+              {t(ANALYTICS_VIEW_LABEL_KEYS[view])}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </ScrollView>
+  );
+
+  const renderCompletedIncompleteStats = (noData: boolean) => (
+    <View style={styles.statsRow}>
+      <View style={styles.statColumn}>
+        <Text style={styles.statLabel}>{t("progressLogging.completed")}</Text>
+        <Text style={styles.statValueCompleted}>
+          {noData ? PAST_ACHIEVEMENT_NO_DATA : formatStatCount(displayBaseCompleted)}
+        </Text>
+      </View>
+      <View style={styles.statColumn}>
+        <Text style={styles.statLabel}>
+          {analyticsView === "completedVsTimeSpent"
+            ? t("progressLogging.timeSpentLabel")
+            : t("progressLogging.incomplete")}
+        </Text>
+        <Text
+          style={
+            analyticsView === "completedVsTimeSpent"
+              ? styles.statValueCompleted
+              : styles.statValueIncomplete
+          }
+        >
+          {analyticsView === "completedVsTimeSpent"
+            ? noData
+              ? PAST_ACHIEVEMENT_NO_DATA
+              : formatRecitationTimeSpentLabel(selectedPeriodTimeSpentMinutes)
+            : noData
+              ? PAST_ACHIEVEMENT_NO_DATA
+              : formatStatCount(displayBaseIncomplete)}
+        </Text>
+      </View>
+    </View>
+  );
+
+  const renderAchievementHeader = () => (
+    <>
+      <View style={styles.achievementPeriodRow}>
+        <View style={styles.achievementBlockCompact}>
+          <Text style={styles.achievementCaptionCompact}>
+            {t("progressLogging.achievementsLabel").toUpperCase()}
+          </Text>
+          <View style={styles.achievementPercentRow}>
+            <Text style={styles.achievementPercentCompact}>
+              {showPlaceholders
+                ? LOADING_DASH
+                : showNoDataDash
+                  ? PAST_ACHIEVEMENT_NO_DATA
+                  : formatNumber(baseAchievement.achievementPercent)}
+            </Text>
+            {!showPlaceholders ? (
+              <Text style={styles.achievementPercentSymbolCompact}>%</Text>
+            ) : null}
+          </View>
+        </View>
+        {renderPeriodToggle()}
+      </View>
+
+      <View style={styles.deltaDateRow}>
+        <View style={styles.deltaSlot}>
+          {showDeltaChip ? (
+            <View style={styles.deltaBadgeCompact}>
+              {deltaIsPositive ? (
+                <PositiveProgressIcon />
+              ) : (
+                <NegativeProgressIcon />
+              )}
+              <Text style={styles.deltaTextCompact} numberOfLines={1}>
+                {`${formatNumber(Math.abs(baseAchievement.previousPeriodDeltaPercent))}% ${t(PERIOD_DELTA_LABEL_KEYS[period])}`}
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.deltaBadgePlaceholder} />
+          )}
+        </View>
+        <View style={styles.periodNavUnderToggle}>{renderDateNav()}</View>
+      </View>
+    </>
+  );
+
+  const renderGoalHeader = () => (
+    <View style={styles.goalHeader}>
+      <Text style={styles.goalLabel}>
+        {isDetailed
+          ? isSurahDrillDown
+            ? t(surahGoalLabelKey)
+            : t("progressLogging.recitationGoalTotalLabel")
+          : t("progressLogging.goal")}
+      </Text>
+      {isDetailed ? (
+        <View
+          style={[
+            localStyles.goalValueRow,
+            isSurahDrillDown && localStyles.goalValueRowDrillDown,
+          ]}
+        >
+          <View style={localStyles.goalValueBlock}>
+            <Text style={styles.goalPillValue}>
+              {showNoDataDash
+                ? PAST_ACHIEVEMENT_NO_DATA
+                : formatNumber(displayGoalTotal)}
+            </Text>
+            {selectedSurahId === "all" ? (
+              <View style={styles.goalPill}>
+                <Text style={styles.goalPillText}>{t(UNIT_LABEL_KEY)}</Text>
+              </View>
+            ) : surahGoalUnitKey ? (
+              <View style={styles.goalPill}>
+                <Text style={styles.goalPillText}>{t(surahGoalUnitKey)}</Text>
+              </View>
+            ) : null}
+          </View>
+          {isSurahDrillDown ? (
+            <View style={styles.goalPill}>
+              <Text style={styles.goalPillText}>recitations</Text>
+            </View>
+          ) : null}
+        </View>
+      ) : (
+        <View style={styles.goalPillRow}>
+          <Text style={styles.goalPillValue}>
+            {showNoDataDash
+              ? PAST_ACHIEVEMENT_NO_DATA
+              : formatNumber(baseAchievement.goalHours)}{" "}
+          </Text>
+          <View style={styles.goalPill}>
+            <Text style={styles.goalPillText}>{t(UNIT_LABEL_KEY)}</Text>
+          </View>
+        </View>
+      )}
+    </View>
+  );
 
   const renderSurahFilterTabs = () => {
     if (!isDetailed) {
@@ -491,6 +923,38 @@ const surahContext = useOptionalRecitationSurahContext();
   };
 
   const renderInsights = () => {
+    if (usesAchievementsApi) {
+      if (!apiInsightCards.length) return null;
+
+      return (
+        <View style={styles.insightsSection}>
+          <View style={styles.insightsHeader}>
+            <Text style={styles.insightsTitleLabel}>
+              {t("progressLogging.keyInsights")}
+            </Text>
+            <Text style={styles.insightsSubtitleLabel}>
+              {keyInsightsHeader?.trim() || PERIOD_INSIGHT_SUBTITLE[period]}
+            </Text>
+          </View>
+          <ScrollView
+            horizontal
+            nestedScrollEnabled
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.insightsScrollContent}
+          >
+            {apiInsightCards.map((card, index) => (
+              <InsightCard
+                key={`${card.title}-${index}`}
+                {...card}
+                icon={getRecitationInsightIcon(card)}
+                style={insightCardStyle}
+              />
+            ))}
+          </ScrollView>
+        </View>
+      );
+    }
+
     if (!isDetailed) return null;
 
     const insightCards = isSurahDrillDown
@@ -595,18 +1059,29 @@ const surahContext = useOptionalRecitationSurahContext();
             {PERIOD_INSIGHT_SUBTITLE[period]}
           </Text>
         </View>
-        <View style={styles.insightsPairRow}>
+        <ScrollView
+          horizontal
+          nestedScrollEnabled
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.insightsScrollContent}
+        >
           {insightCards.map((card) => (
             <InsightCard
               key={card.title}
               iconName={card.iconName}
+              icon={getRecitationInsightIcon({
+                iconFamily: "Ionicons",
+                iconName: card.iconName,
+                title: card.title,
+                value: card.value,
+              })}
               title={card.title}
               value={card.value}
               subValue={card.subValue}
-              style={styles.insightCardHalf}
+              style={insightCardStyle}
             />
           ))}
-        </View>
+        </ScrollView>
       </View>
     );
   };
@@ -769,11 +1244,7 @@ return (
       <View style={styles.card}>
         <View style={styles.cardHeaderBlock}>
           <View style={styles.cardHeader}>
-            <MaterialCommunityIcons
-              name={isDetailed ? "trending-up" : "trophy-outline"}
-              size={isDetailed ? 19 : 16}
-              color={isDetailed ? Colors.light.subtext : Colors.light.white}
-            />
+            <AchivementArrowIcon size={15} color={Colors.light.subtext} />
             <Text
               style={[
                 styles.sectionTitle,
@@ -782,7 +1253,7 @@ return (
             >
               {t("progressLogging.pastGoalAchievements")}
             </Text>
-            {!isDetailed ? (
+            {!isDetailed && showDetailedStatsChevron ? (
               <TouchableOpacity
                 onPress={handleNavigateToDetailed}
                 style={{ marginLeft: "auto", padding: 4 }}
@@ -805,310 +1276,73 @@ return (
           ) : null}
         </View>
 
-        <View style={isDetailed ? styles.topRow : styles.compactTopRow}>
-          <View style={[styles.achievementBlock]}>
-            <Text
-              style={[
-                styles.achievementCaption,
-                isDetailed && styles.achievementCaptionDetailed,
-              ]}
-            >
-              {isDetailed
-                ? t("progressLogging.achievementsLabel").toUpperCase()
-                : t("progressLogging.achievementsLabel")}
-            </Text>
-            <Text
-              style={[
-                styles.achievementPercent,
-                isDetailed && styles.achievementPercentDetailed,
-              ]}
-            >
-              {displayAchievementPercent}
-              {!showEmptyAchievement ? (
-                <Text
-                  style={[
-                    styles.achievementPercentSymbol,
-                    isDetailed && styles.achievementPercentSymbolDetailed,
-                  ]}
-                >
-                  %
-                </Text>
-              ) : null}
-            </Text>
-            {!showEmptyAchievement ? (
-              <View
-                style={[
-                  styles.deltaBadge,
-                  !deltaIsPositive && styles.deltaBadgeNegative,
-                ]}
-              >
-                <Ionicons
-                  name={deltaIsPositive ? "arrow-up" : "arrow-down"}
-                  size={11}
-                  color={
-                    deltaIsPositive ? Colors.light.green : Colors.light.subtext
-                  }
-                />
-                <Text
-                  style={[
-                    styles.deltaText,
-                    !deltaIsPositive && styles.deltaTextNegative,
-                  ]}
-                >
-                  {deltaIsPositive ? "+" : ""}
-                  {formatNumber(
-                    baseAchievement.previousPeriodDeltaPercent,
-                  )}% {t(PERIOD_DELTA_LABEL_KEYS[period])}
-                </Text>
-              </View>
-            ) : null}
-          </View>
-          <View style={styles.periodNavRow}>
-            <View style={styles.periodToggle}>
-              {PERIODS.map((item) => {
-                const isActive = period === item;
-                return (
-                  <Pressable
-                    key={item}
-                    onPress={() => setPeriod(item)}
-                    style={[
-                      styles.periodButton,
-                      isActive
-                        ? styles.periodButtonActive
-                        : styles.periodButtonInactive,
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.periodButtonText,
-                        isActive && styles.periodButtonTextActive,
-                      ]}
-                    >
-                      {t(PERIOD_LABEL_KEYS[item])}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-
-            <View style={styles.dateNavRow}>
-              <TouchableOpacity activeOpacity={0.7} style={styles.navBtn}>
-                <Ionicons
-                  name="chevron-back"
-                  size={isDetailed ? 24 : 14}
-                  color={Colors.light.dullWhite}
-                />
-              </TouchableOpacity>
-              <Text style={styles.dateRange} numberOfLines={1}>
-                {achievement.dateRangeLabel}
-              </Text>
-              <TouchableOpacity activeOpacity={0.7} style={styles.navBtn}>
-                <Ionicons
-                  name="chevron-forward"
-                  size={isDetailed ? 24 : 14}
-                  color={Colors.light.dullWhite}
-                />
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
+        {renderAchievementHeader()}
 
         {isDetailed ? (
           <>
             {renderDetailedSummary()}
-
             {renderSurahFilterTabs()}
           </>
-        ) : (
-          <Text style={styles.summaryText}>
-            {t(GOAL_SUMMARY_KEY, {
-              percent: formatNumber(baseAchievement.achievementPercent),
-              delta: formatNumber(baseAchievement.previousPeriodDeltaPercent),
-            })}
-          </Text>
-        )}
-
-        <View style={styles.goalHeader}>
-          <Text style={styles.goalLabel}>
-            {isDetailed
-              ? isSurahDrillDown
-                ? t(surahGoalLabelKey)
-                : t("progressLogging.recitationGoalTotalLabel")
-              : t("progressLogging.goal")}
-          </Text>
-          {isDetailed ? (
-            <View
-              style={[
-                styles.goalValueRow,
-                isSurahDrillDown && styles.goalValueRowDrillDown,
-              ]}
-            >
-              <View style={styles.goalValueBlock}>
-                <Text style={styles.goalPillValue}>
-                  {showEmptyAchievement || showNoDataDash
-                    ? PAST_ACHIEVEMENT_NO_DATA
-                    : formatNumber(displayGoalTotal)}
-                </Text>
-                {selectedSurahId === "all" ? (
-                  <View style={styles.goalPill}>
-                    <Text style={styles.goalPillText}>{t(UNIT_LABEL_KEY)}</Text>
-                  </View>
-                ) : surahGoalUnitKey ? (
-                  <View style={styles.goalPill}>
-                    <Text style={styles.goalPillText}>
-                      {t(surahGoalUnitKey)}
-                    </Text>
-                  </View>
-                ) : null}
-              </View>
-              {isSurahDrillDown ? (
-                <View style={styles.goalPill}>
-                  <Text style={styles.goalPillText}>recitations</Text>
-                </View>
-              ) : null}
-            </View>
-          ) : (
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 6,
-              }}
-            >
-              <Text style={styles.goalPillValue}>
-                {showEmptyAchievement || showNoDataDash
-                  ? PAST_ACHIEVEMENT_NO_DATA
-                  : formatNumber(baseAchievement.goalHours)}{" "}
-              </Text>
-              <View style={styles.goalPill}>
-                <Text style={styles.goalPillText}>{t(UNIT_LABEL_KEY)}</Text>
-              </View>
-            </View>
-          )}
-        </View>
-
-        <View style={styles.analyticsToggle}>
-          {ANALYTICS_VIEWS.map((view) => {
-            const isActive = analyticsView === view;
-            return (
-              <Pressable
-                key={view}
-                onPress={() => setAnalyticsView(view)}
-                style={[
-                  styles.analyticsButton,
-                  isActive
-                    ? styles.analyticsButtonActive
-                    : styles.analyticsButtonInactive,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.analyticsButtonText,
-                    isActive && styles.analyticsButtonTextActive,
-                  ]}
-                  numberOfLines={1}
-                >
-                  {t(ANALYTICS_VIEW_LABEL_KEYS[view])}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-
-        {isDetailed ? (
-          <RecitationPastAchievementProgressSection
-            analyticsView={analyticsView}
-            completed={displayBaseCompleted}
-            incomplete={displayBaseIncomplete}
-            totalTimeMinutes={selectedPeriodTimeSpentMinutes}
-            longestStreak={periodSlice.longestStreak}
-            formatCount={formatStatCount}
-            formatTimeChip={(minutes) =>
-              showEmptyAchievement || showNoDataDash
-                ? PAST_ACHIEVEMENT_NO_DATA
-                : formatRecitationTimeSpentChip(minutes)
-            }
-            completedLabel={t("progressLogging.completed")}
-            incompleteLabel={t("progressLogging.incomplete")}
-            timeSpentLabel={t("progressLogging.timeSpentLabel")}
-            streakLabel={t("progressLogging.daysLabel")}
-            showStreak={period !== "monthly" && !isSurahDrillDown}
-          />
         ) : null}
 
-        {!isDetailed ? (
-          <View style={styles.statsRow}>
-            <View style={styles.statColumn}>
-              <Text style={styles.statLabel}>
-                {t("progressLogging.completed")}
-              </Text>
-              <Text style={styles.statValueCompleted}>
-                {formatStatCount(displayBaseCompleted)}
-              </Text>
-            </View>
-            <View style={styles.statColumn}>
-              <Text style={styles.statLabel}>
-                {analyticsView === "completedVsTimeSpent"
-                  ? t("progressLogging.timeSpentLabel")
-                  : t("progressLogging.incomplete")}
-              </Text>
-              <Text
-                style={
-                  analyticsView === "completedVsTimeSpent"
-                    ? styles.statValueTimeSpent
-                    : styles.statValueIncomplete
-                }
-              >
-                {analyticsView === "completedVsTimeSpent"
-                  ? showEmptyAchievement || showNoDataDash
-                    ? PAST_ACHIEVEMENT_NO_DATA
-                    : formatRecitationTimeSpentLabel(
-                        selectedPeriodTimeSpentMinutes,
-                      )
-                  : formatStatCount(displayBaseIncomplete)}
-              </Text>
-            </View>
-          </View>
-        ) : null}
-        {isDetailed && isSurahDrillDown && !hasLogs ? (
+        {renderGoalHeader()}
+        {renderAnalyticsToggle()}
+        {renderCompletedIncompleteStats(showPlaceholders || showNoDataDash)}
+
+        {isDetailed && isSurahDrillDown && !hasLogs && !showPlaceholders ? (
           <View style={styles.emptyStateInline}>
             <Text style={styles.emptyStateText}>
               {t("progressLogging.recitationNoDataForPeriod")}
             </Text>
           </View>
         ) : null}
+
         <View
           onStartShouldSetResponder={() => isDetailed}
           onMoveShouldSetResponder={() => false}
         >
           <QuranHoursPastAchievementChartBlock
-            chartData={chartAchievement.chartData}
-            selectedBarIndex={isDetailed ? selectedBarIndex : null}
+            chartData={
+              showPlaceholders && !(chartAchievement?.chartData?.length)
+                ? []
+                : (chartAchievement?.chartData ?? [])
+            }
+            selectedBarIndex={
+              isDetailed && !showPlaceholders && !showNoDataDash
+                ? selectedBarIndex
+                : null
+            }
             onBarPress={isDetailed ? handleBarPress : () => {}}
-            chartKey={`${goalId}-${period}-${selectedSurahId}-${analyticsView}-period`}
-            yMax={chartAchievement.yMax}
-            yTicks={chartAchievement.yTicks}
-            showHint={showChartHint}
+            chartKey={`${goalId}-${period}-${selectedSurahId}-${analyticsView}-${showPlaceholders ? "loading" : "ready"}`}
+            yMax={chartAchievement?.yMax ?? 10}
+            yTicks={chartAchievement?.yTicks ?? [0, 5, 10]}
+            showHint={showChartHint && !showNoDataDash}
             onDismissHint={() => setHintDismissed(true)}
             hintText={t("progressLogging.chartTapHint")}
             hintActionText={t("progressLogging.okGotIt")}
-            pageCount={chartAchievement.pageCount}
+            pageCount={
+              chartAchievement?.pageCount ??
+              chartAchievement?.chartData?.length ??
+              1
+            }
             activePageIndex={
-              selectedBarIndex ?? chartAchievement.activePageIndex
+              isDetailed
+                ? (selectedBarIndex ?? chartAchievement?.activePageIndex ?? 0)
+                : 0
             }
             formatBarValue={chartFormatBarValue}
-            showPagination={isDetailed}
+            showPagination={!showNoDataDash}
             barColors={
               analyticsView === "completedVsTimeSpent"
                 ? [Colors.light.green, Colors.light.green]
-                : [Colors.light.green, INCOMPLETE_BAR_COLOR]
+                : [Colors.light.green, Colors.light.warning]
             }
           />
         </View>
 
         {isDetailed ? (
           <GraphBarSelectionFooter
-            visible={selectedBarIndex !== null}
+            visible={selectedBarIndex !== null && !showPlaceholders}
             completed={displayBaseCompleted}
             incomplete={displayBaseIncomplete}
             goalTotal={selectedBarGoalTotal}
@@ -1137,438 +1371,11 @@ return (
         ) : null}
       </View>
       {renderInsights()}
-      <PastAchievementStudyMaterial items={studyMaterial} isDetailed={isDetailed} />
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  section: {
-    marginTop: 20,
-  },
-  sectionDetailed: {
-    marginTop: 0,
-  },
-  compactTopRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  card: {
-    borderRadius: 14,
-    backgroundColor: Colors.light.greybuttonBackground,
-    paddingHorizontal: 14,
-    paddingTop: 16,
-    paddingBottom: 16,
-    gap: 12,
-  },
-  cardHeaderBlock: {
-    gap: 4,
-  },
-  cardHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  drillDownHeader: {
-    color: Colors.light.subtext,
-    fontSize: 10,
-    fontFamily: fonts.primary.semiBold,
-    fontWeight: "600",
-    letterSpacing: 0.6,
-    textTransform: "uppercase",
-  },
-  goalInfoLabel: {
-    color: Colors.light.white,
-    fontSize: 18,
-    fontFamily: fonts.primary.semiBold,
-    fontWeight: "600",
-  },
-  surahContextLabel: {
-    color: Colors.light.lightblue,
-    fontSize: 15,
-    fontFamily: fonts.primary.semiBold,
-    fontWeight: "600",
-  },
-  detailedSubheader: {
-    color: Colors.light.subtext,
-    fontSize: 10,
-    fontFamily: fonts.primary.semiBold,
-    fontWeight: "600",
-    letterSpacing: 0.6,
-    textTransform: "uppercase",
-  },
-  achievementProgressTrack: {
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: Colors.light.calendarBg,
-    overflow: "hidden",
-  },
-  achievementProgressFill: {
-    height: "100%",
-    borderRadius: 3,
-    backgroundColor: Colors.light.green,
-  },
-  timeMetricsRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 8,
-    marginTop: 4,
-  },
-  timeMetricItem: {
-    flex: 1,
-    gap: 2,
-  },
-  timeMetricDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginBottom: 2,
-  },
-  timeMetricDotGreen: {
-    backgroundColor: Colors.light.green,
-  },
-  timeMetricDotWarning: {
-    backgroundColor: Colors.light.golden,
-  },
-  timeMetricLabel: {
-    color: Colors.light.subtext,
-    fontSize: 9,
-    fontFamily: fonts.primary.semiBold,
-    fontWeight: "600",
-    letterSpacing: 0.4,
-    textTransform: "uppercase",
-  },
-  timeMetricValue: {
-    color: Colors.light.white,
-    fontSize: 16,
-    fontFamily: fonts.primary.semiBold,
-    fontWeight: "700",
-  },
-  timeMetricBadge: {
-    flex: 1.2,
-    borderRadius: 8,
-    backgroundColor: Colors.light.lightgreen,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    alignItems: "center",
-    gap: 2,
-  },
-  timeMetricBadgeLabel: {
-    color: Colors.light.green,
-    fontSize: 9,
-    fontFamily: fonts.primary.semiBold,
-    fontWeight: "600",
-    letterSpacing: 0.4,
-    textTransform: "uppercase",
-  },
-  timeMetricBadgeValue: {
-    color: Colors.light.green,
-    fontSize: 14,
-    fontFamily: fonts.primary.bold,
-    fontWeight: "700",
-  },
-  insightsPairRow: {
-    flexDirection: "row",
-    gap: 10,
-  },
-  insightCardHalf: {
-    flex: 1,
-    minWidth: 0,
-  },
-  sectionTitleDetailed: {
-    color: Colors.light.white,
-    fontSize: 13,
-  },
-  topRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  achievementCaptionDetailed: {
-    fontSize: 11,
-    fontFamily: fonts.primary.heavy,
-    fontWeight: "800",
-  },
-  achievementPercentDetailed: {
-    fontSize: 28,
-    fontFamily: fonts.primary.bold,
-    fontWeight: "700",
-    lineHeight: 28,
-    textTransform: "uppercase",
-  },
-  achievementPercentSymbolDetailed: {
-    fontSize: 16,
-  },
-  deltaBadgeNegative: {
-    backgroundColor: Colors.light.dullWhiteOpacity,
-  },
-  deltaTextNegative: {
-    color: Colors.light.subtext,
-  },
-  goalAyahValue: {
-    color: Colors.light.white,
-    fontSize: 13,
-    fontFamily: fonts.primary.semiBold,
-    fontWeight: "600",
-    flexShrink: 1,
-    textAlign: "right",
-  },
-  emptyState: {
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    paddingVertical: 28,
-    paddingHorizontal: 16,
-    borderRadius: 10,
-    backgroundColor: Colors.light.blackBackground,
-  },
-  emptyStateTitle: {
-    color: Colors.light.white,
-    fontSize: 14,
-    fontFamily: fonts.primary.semiBold,
-    fontWeight: "600",
-    textAlign: "center",
-  },
-  emptyStateText: {
-    color: Colors.light.subtext,
-    fontSize: 12,
-    fontFamily: fonts.primary.regular,
-    lineHeight: 17,
-    textAlign: "center",
-  },
-  emptyStateInline: {
-    paddingVertical: 4,
-    paddingHorizontal: 4,
-  },
-  summaryBold: {
-    color: Colors.light.white,
-    fontSize: 14,
-    fontFamily: fonts.primary.bold,
-    fontWeight: "700",
-    lineHeight: 20,
-  },
-  insightsSection: {
-    marginTop: 16,
-  },
-  insightsHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 12,
-  },
-  insightsTitleLabel: {
-    color: Colors.light.white,
-    fontSize: 11,
-    fontFamily: fonts.primary.semiBold,
-    fontWeight: "600",
-    letterSpacing: 0.5,
-    textTransform: "uppercase",
-  },
-  insightsSubtitleLabel: {
-    color: Colors.light.subtext,
-    fontSize: 10,
-    fontFamily: fonts.primary.semiBold,
-    fontWeight: "600",
-    letterSpacing: 0.5,
-    textTransform: "uppercase",
-  },
-  insightsScrollContent: {
-    flexDirection: "row",
-    gap: 10,
-  },
-  insightCardFixed: {
-    width: 160,
-    minWidth: 160,
-  },
-  sectionTitle: {
-    color: Colors.light.subtext,
-    fontSize: 11,
-    fontWeight: "600",
-    fontFamily: fonts.primary.semiBold,
-    letterSpacing: 0.4,
-    textTransform: "uppercase",
-    flexShrink: 1,
-  },
-  achievementBlock: {
-    alignItems: "flex-start",
-    gap: 4,
-  },
-  achievementCaption: {
-    color: Colors.light.subtext,
-    fontSize: 13,
-    fontFamily: fonts.primary.medium,
-    fontWeight: "500",
-  },
-  achievementPercent: {
-    color: Colors.light.white,
-    fontSize: 40,
-    fontFamily: fonts.primary.regular,
-    fontWeight: "400",
-    lineHeight: 44,
-  },
-  achievementPercentSymbol: {
-    fontSize: 22,
-  },
-  deltaBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    backgroundColor: Colors.light.lightgreen,
-    borderRadius: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    marginTop: 2,
-  },
-  deltaText: {
-    color: Colors.light.green,
-    fontSize: 11,
-    fontFamily: fonts.primary.medium,
-    fontWeight: "500",
-  },
-  periodNavRow: {
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 10,
-  },
-  periodToggle: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 3,
-    backgroundColor: Colors.light.blackBackground,
-    borderRadius: 6,
-    flexShrink: 0,
-  },
-  periodButton: {
-    borderRadius: 5,
-    paddingHorizontal: 23,
-    paddingVertical: 6,
-    minWidth: 36,
-    alignItems: "center",
-  },
-  periodButtonActive: {
-    backgroundColor: Colors.light.greybuttonBackground,
-  },
-  periodButtonInactive: {
-    backgroundColor: Colors.light.blackBackground,
-  },
-  periodButtonText: {
-    color: Colors.light.grey,
-    fontSize: 12,
-    fontFamily: fonts.primary.medium,
-    fontWeight: "500",
-  },
-  periodButtonTextActive: {
-    color: Colors.light.green,
-    fontFamily: fonts.primary.semiBold,
-    fontWeight: "600",
-  },
-  dateNavRow: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "flex-end",
-    gap: 2,
-    minWidth: 0,
-  },
-  navBtn: {
-    padding: 2,
-  },
-  dateRange: {
-    color: Colors.light.white,
-    fontSize: 12,
-    fontFamily: fonts.primary.medium,
-    fontWeight: "500",
-    textAlign: "center",
-    flexShrink: 1,
-  },
-  summaryText: {
-    color: Colors.light.grey,
-    fontSize: 12,
-    fontFamily: fonts.primary.regular,
-    lineHeight: 17,
-    textAlign: "center",
-  },
-  summaryTextDetailed: {
-    color: Colors.light.grey,
-    fontSize: 14,
-    fontFamily: fonts.primary.medium,
-    fontWeight: "500",
-    lineHeight: 20,
-  },
-  surahTabsRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingVertical: 2,
-  },
-  surahTab: {
-    borderRadius: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: Colors.light.blackBackground,
-  },
-  surahTabActive: {
-    backgroundColor: Colors.light.green,
-    borderWidth: 1,
-    borderColor: Colors.light.green,
-  },
-  surahTabInactive: {
-    backgroundColor: Colors.light.blackBackground,
-  },
-  surahTabText: {
-    color: Colors.light.grey,
-    fontSize: 11,
-    fontFamily: fonts.primary.medium,
-    fontWeight: "500",
-  },
-  surahTabTextActive: {
-    color: Colors.light.white,
-    fontWeight: "600",
-  },
-  analyticsToggle: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 3,
-    backgroundColor: Colors.light.greybuttonBackground,
-    borderRadius: 6,
-    gap: 4,
-  },
-  analyticsButton: {
-    flex: 1,
-    borderRadius: 5,
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    alignItems: "center",
-  },
-  analyticsButtonActive: {
-    backgroundColor: Colors.light.green,
-  },
-  analyticsButtonInactive: {
-    backgroundColor: Colors.light.blackBackground,
-  },
-  analyticsButtonText: {
-    color: Colors.light.grey,
-    fontSize: 10,
-    fontFamily: fonts.primary.medium,
-    fontWeight: "500",
-    textAlign: "center",
-  },
-  analyticsButtonTextActive: {
-    color: Colors.light.white,
-    fontWeight: "600",
-  },
-  goalHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginTop: 2,
-    backgroundColor: Colors.light.blackBackground,
-    paddingHorizontal: 10,
-    paddingVertical: 10,
-    borderRadius: 10,
-  },
+const localStyles = StyleSheet.create({
   goalValueRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -1584,100 +1391,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 6,
   },
-  goalProgressStripWrap: {
-    flex: 1,
-    minWidth: 80,
-    maxWidth: 140,
-  },
-  weekBackRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    alignSelf: "flex-start",
-  },
-  weekBackText: {
-    color: Colors.light.lightblue,
-    fontSize: 12,
-    fontFamily: fonts.primary.medium,
-    fontWeight: "500",
-  },
-  goalLabel: {
-    color: Colors.light.subtext,
-    fontSize: 11,
-    fontFamily: fonts.primary.semiBold,
-    fontWeight: "600",
-    letterSpacing: 0.5,
-    textTransform: "uppercase",
-  },
-  goalPill: {
-    backgroundColor: Colors.light.calendarBg,
-    borderRadius: 8,
-    paddingHorizontal: 4,
-    paddingVertical: 5,
-  },
-  goalPillText: {
-    color: Colors.light.white,
-    fontSize: 10,
-    fontFamily: fonts.primary.regular,
-    fontWeight: "400",
-    opacity: 0.6,
-  },
-  goalPillValue: {
-    color: Colors.light.white,
-    fontWeight: "600",
-    fontFamily: fonts.primary.semiBold,
-    fontSize: 22,
-  },
-  statsRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  statColumn: {
-    gap: 4,
-  },
-  statLabel: {
-    color: Colors.light.subtext,
-    fontSize: 10,
-    fontFamily: fonts.primary.semiBold,
-    fontWeight: "600",
-    letterSpacing: 0.4,
-    textTransform: "uppercase",
-  },
-  statValueCompleted: {
-    color: Colors.light.white,
-    fontSize: 22,
-    fontFamily: fonts.primary.semiBold,
-    fontWeight: "700",
-  },
-  statValueIncomplete: {
-    color: Colors.light.white,
-    fontSize: 22,
-    fontFamily: fonts.primary.semiBold,
-    fontWeight: "700",
-  },
-  statValueTimeSpent: {
-    color: Colors.light.white,
-    fontSize: 22,
-    fontFamily: fonts.primary.semiBold,
-    fontWeight: "700",
-  },
-  goalProgressTrack: {
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: Colors.light.calendarBg,
-    overflow: "hidden",
-  },
-  goalProgressCompleted: {
-    height: "100%",
-    borderRadius: 5,
-    backgroundColor: Colors.light.green,
-  },
-  insightsTitle: {
-    color: Colors.light.white,
-    fontSize: 16,
-    fontFamily: fonts.primary.semiBold,
-    fontWeight: "500",
-    letterSpacing: 0.5,
-    textTransform: "uppercase",
-  },
 });
+

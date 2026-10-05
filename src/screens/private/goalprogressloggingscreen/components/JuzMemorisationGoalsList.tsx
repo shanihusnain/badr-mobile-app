@@ -11,9 +11,15 @@ import {
   type JuzMemorisationGoal,
 } from "../quranMemorisationJuzGoals";
 import type { QuranMemorisationJuzLogEntry } from "../types";
-import { CARD_GAP, CARD_WIDTH_RATIO } from "./SurahRecitationGoals.styles";
+import {
+  CARD_ANCHOR_PADDING_LEFT,
+  CARD_GAP,
+  FLOW_CARD_WIDTH_RATIO,
+} from "./SurahRecitationGoals.styles";
 import { JuzMemorisationGoalCard } from "./JuzMemorisationGoalCard";
+import { FlowCardCarouselDots } from "./FlowCardCarouselDots";
 import { useOptionalMemorisationJuzContext } from "../memorisationJuzContext";
+import { FLOW_CARD_HEIGHT } from "./DailyProgressLogging.styles";
 
 type Props = {
   goalData: GoalData;
@@ -35,10 +41,20 @@ export function JuzMemorisationGoalsList({
   const { width: screenWidth } = useWindowDimensions();
   const memorisationContext = useOptionalMemorisationJuzContext();
   const goals = useMemo(
-    () => getJuzMemorisationGoals(),
-    [refreshKey],
+    () => memorisationContext?.goals ?? getJuzMemorisationGoals(),
+    [memorisationContext?.goals, refreshKey, memorisationContext?.refreshKey],
   );
-  const cardWidth = screenWidth * CARD_WIDTH_RATIO;
+  const listWidth = screenWidth - CARD_ANCHOR_PADDING_LEFT;
+  const cardWidth = Math.min(
+    listWidth * FLOW_CARD_WIDTH_RATIO,
+    screenWidth * FLOW_CARD_WIDTH_RATIO - CARD_ANCHOR_PADDING_LEFT,
+  );
+  const snapInterval = cardWidth + CARD_GAP;
+  const trailingInset = Math.max(CARD_ANCHOR_PADDING_LEFT, listWidth - cardWidth);
+  const snapToOffsets = useMemo(
+    () => goals.map((_, index) => index * snapInterval),
+    [goals, snapInterval],
+  );
   const [activeGoalId, setActiveGoalId] = useState(
     () => memorisationContext?.activeJuzId ?? goals[0]?.id ?? "",
   );
@@ -62,18 +78,29 @@ export function JuzMemorisationGoalsList({
   }).current;
 
   const renderItem = useCallback(
-    ({ item }: { item: JuzMemorisationGoal }) => (
-      <JuzMemorisationGoalCard
-        goal={item}
-        goalData={goalData}
-        cardWidth={cardWidth}
-        isInView={item.id === activeGoalId}
-        isFlowActive={item.id === activeFlowGoalId}
-        onStartFlow={onStartFlow}
-        onFlowClose={onFlowClose}
-        onLogComplete={onLogComplete}
-      />
-    ),
+    ({ item }: { item: JuzMemorisationGoal }) => {
+      if (activeFlowGoalId && item.id !== activeFlowGoalId) {
+        return (
+          <View
+            style={{ width: cardWidth, height: FLOW_CARD_HEIGHT }}
+            pointerEvents="none"
+          />
+        );
+      }
+
+      return (
+        <JuzMemorisationGoalCard
+          goal={item}
+          goalData={goalData}
+          cardWidth={cardWidth}
+          isInView={item.id === activeGoalId}
+          isFlowActive={item.id === activeFlowGoalId}
+          onStartFlow={onStartFlow}
+          onFlowClose={onFlowClose}
+          onLogComplete={onLogComplete}
+        />
+      );
+    },
     [
       activeFlowGoalId,
       activeGoalId,
@@ -95,22 +122,54 @@ export function JuzMemorisationGoalsList({
     [],
   );
 
+  const getItemLayout = useCallback(
+    (_: ArrayLike<JuzMemorisationGoal> | null | undefined, index: number) => ({
+      length: cardWidth,
+      offset: index * snapInterval,
+      index,
+    }),
+    [cardWidth, snapInterval],
+  );
+
+  const activeIndex = Math.max(
+    0,
+    goals.findIndex((goal) => goal.id === activeGoalId),
+  );
+
   return (
-    <FlatList
-      horizontal
-      data={goals}
-      keyExtractor={keyExtractor}
-      renderItem={renderItem}
-      showsHorizontalScrollIndicator={false}
-      ItemSeparatorComponent={itemSeparator}
-      onViewableItemsChanged={onViewableItemsChanged}
-      viewabilityConfig={viewabilityConfig}
-      decelerationRate="fast"
-      snapToInterval={cardWidth + CARD_GAP}
-      snapToAlignment="start"
-      removeClippedSubviews={false}
-      style={{ overflow: "visible" }}
-      contentContainerStyle={{ paddingRight: 16 }}
-    />
+    <View>
+      <View
+        style={[
+          {
+            paddingLeft: CARD_ANCHOR_PADDING_LEFT,
+            overflow: "hidden",
+          },
+          activeFlowGoalId
+            ? { zIndex: 101, elevation: 12, position: "relative" as const }
+            : undefined,
+        ]}
+      >
+        <FlatList
+          horizontal
+          data={goals}
+          keyExtractor={keyExtractor}
+          renderItem={renderItem}
+          getItemLayout={getItemLayout}
+          showsHorizontalScrollIndicator={false}
+          ItemSeparatorComponent={itemSeparator}
+          onViewableItemsChanged={onViewableItemsChanged}
+          viewabilityConfig={viewabilityConfig}
+          decelerationRate="fast"
+          snapToOffsets={snapToOffsets}
+          snapToAlignment="start"
+          disableIntervalMomentum
+          removeClippedSubviews={false}
+          scrollEnabled={!activeFlowGoalId}
+          style={{ overflow: "visible", height: FLOW_CARD_HEIGHT }}
+          contentContainerStyle={{ paddingRight: trailingInset }}
+        />
+      </View>
+      <FlowCardCarouselDots count={goals.length} activeIndex={activeIndex} />
+    </View>
   );
 }

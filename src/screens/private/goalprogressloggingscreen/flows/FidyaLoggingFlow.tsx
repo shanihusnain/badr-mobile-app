@@ -226,7 +226,7 @@ export default function FidyaLoggingFlow({ goalData, onLogComplete }: Props) {
 
       <View style={commonStyles.cardAnchor}>
         {flowMode === "active" && (
-          <Pressable style={commonStyles.backdrop} onPress={resetFlow} />
+          <Pressable style={commonStyles.backdrop} />
         )}
         {flowMode === "active" && (
           <TouchableOpacity style={commonStyles.cancelButton} onPress={resetFlow} activeOpacity={0.8}>
@@ -291,6 +291,7 @@ export default function FidyaLoggingFlow({ goalData, onLogComplete }: Props) {
               onForward={handleForward}
               onConfirm={handleConfirm}
               canGoForward={!isLastStep && canProceed}
+                canGoBack={stepIndex > 0}
               canConfirm={canConfirm}
               styles={commonStyles}
               style={commonStyles.inPlaceFlowCard}

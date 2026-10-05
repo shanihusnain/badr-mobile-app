@@ -9,7 +9,13 @@ export type CompletionJuzRange = {
 export type QuranCompletionDayProgress = {
   day: string;
   dayType: QuranRecitationDayType;
+  /** Primary / first attempt number for the day (legacy single-C callers). */
   completionNumber: number | null;
+  /**
+   * Under-ring attempt caption — `"C2"` or `"C1, C2"` when multiple Khatms
+   * were touched that day.
+   */
+  attemptLabel?: string | null;
   fullJuzRanges: string[];
   partialJuz: string[];
   computedLabel: string;
@@ -21,6 +27,10 @@ export type QuranCompletionDayProgress = {
   juzCoverageCount: number;
   /** True when the day includes at least one fully completed juz range. */
   hasFullCompletion: boolean;
+  /** YYYY-MM-DD — required for long-press log deletion on the weekly strip. */
+  date?: string;
+  /** When false, long-press delete is disabled for this day. */
+  canDelete?: boolean;
 };
 
 export type QuranCompletionWeekSummary = {
@@ -31,6 +41,13 @@ export type QuranCompletionWeekSummary = {
   targetCompletions: number;
   streakDays: number;
   motivationalQuoteKey: string;
+  /**
+   * RECITATION_JUZ AGGREGATE week total — fractional juz covered this week.
+   * When set, the stats row shows this value with no `/target` denominator.
+   */
+  juzCompletedThisWeek?: number | null;
+  /** Weeks 2–4: fractional juz delta vs prior week (null hides the row). */
+  vsLastWeek?: number | null;
 };
 
 export type QuranCompletionCycleSummary = {
@@ -45,7 +62,8 @@ function formatFullJuzRange(range: CompletionJuzRange): string {
   if (range.start === range.end) {
     return `j${range.start}`;
   }
-  return `j${range.start}-j${range.end}`;
+  // Pack / AGGREGATE strip: "j6-7" (not "j6-j7").
+  return `j${range.start}-${range.end}`;
 }
 
 function formatPartialJuz(juz: number): string {
@@ -86,6 +104,8 @@ export function buildCompletionDayProgress(input: {
   day: string;
   dayType: QuranRecitationDayType;
   completionNumber: number | null;
+  /** e.g. "C1, C2" when multiple attempts that day. */
+  attemptLabel?: string | null;
   fullJuzRanges?: CompletionJuzRange[];
   partialJuz?: number[];
 }): QuranCompletionDayProgress {
@@ -100,11 +120,17 @@ export function buildCompletionDayProgress(input: {
     fullRanges,
     partialJuzNumbers,
   );
+  const attemptLabel =
+    input.attemptLabel?.trim() ||
+    (hasActivity && input.completionNumber != null
+      ? `C${input.completionNumber}`
+      : null);
 
   return {
     day: input.day,
     dayType: input.dayType,
     completionNumber: hasActivity ? input.completionNumber : null,
+    attemptLabel: hasActivity ? attemptLabel : null,
     fullJuzRanges,
     partialJuz,
     computedLabel: buildCompletionDayLabel(fullJuzRanges, partialJuz),
@@ -296,7 +322,8 @@ export function canNavigateCompletionWeek(
   direction: "prev" | "next",
 ): boolean {
   if (direction === "prev") return weekIndex > 0;
-  return weekIndex < MOCK_COMPLETION_WEEKS.length - 1;
+  const activeWeekIndex = getQuranCompletionCycleSummary().activeWeekIndex;
+  return weekIndex < activeWeekIndex;
 }
 
 export function getQuranCompletionWeekSummary(

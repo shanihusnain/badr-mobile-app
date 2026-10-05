@@ -14,8 +14,8 @@ export const SADAQAH_TYPE_TO_UI_ID: Record<string, string> = {
   KAFFARAH: "kafarah-for-breaking-fasts",
   FIDYA: "fidya",
   LILLAH: "lilah-donations",
-  VOLUNTEERING: "volunteering-services",
   SADAQAH_JARIYAH: "sadaqah-jariyah",
+  VOLUNTEERING: "volunteering-services",
   // SADAQAH_PARENTS: no planner card / description content yet
 };
 

@@ -15,6 +15,10 @@ import { TawbahPrayerDetailedIbadhasIcon } from "@/assets/icons/TawbahPrayerDeta
 import { IstikharaPrayerDetailedIcon } from "@/assets/icons/IstikharaPrayerDetailedIcon";
 import { ShukrPrayerDetailedIbadhasIcon } from "@/assets/icons/ShukrPrayerDetailedIbadhasIcon";
 import { QiyamAlLaylDetailedIbadhasIcon } from "@/assets/icons/QiyamAlLaylDetailedIbadhasIcon";
+import { HeadPhoneQuranListeningIcon } from "@/assets/icons/HeadPhoneQuranListeningIcon";
+import { QuranImageIcon } from "@/assets/icons/QuranImageIcon";
+import { QuranMemorizationIcon } from "@/assets/icons/QuranMemorizationIcon";
+import { ManQuranTajweedIcon } from "@/assets/icons/ManQuranTajweedIcon";
 
 type Props = {
   title: string;
@@ -57,6 +61,19 @@ export function getDetailedIbadahIcon(
       return <ShukrPrayerDetailedIbadhasIcon color={color} size={size} />;
     case "prayer-qiyam":
       return <QiyamAlLaylDetailedIbadhasIcon color={color} size={size} />;
+    case "quran-listening":
+      return <HeadPhoneQuranListeningIcon color={color} size={size} />;
+    case "quran-recitationBySurah-daily":
+    case "quran-recitationBySurah-weekly":
+    case "quran-recitationByCompletion":
+    case "quran-recitationByJuz":
+      return <QuranImageIcon color={color} size={size} />;
+    case "quran-memorisationBySurah":
+    case "quran-memorisationByHizb":
+    case "quran-memorisationByJuz":
+      return <QuranMemorizationIcon color={color} size={size} />;
+    case "quran-Tajweed":
+      return <ManQuranTajweedIcon color={color} size={size} />;
     default:
       return <FontAwesome6 name="person-praying" size={size} color={color} />;
   }

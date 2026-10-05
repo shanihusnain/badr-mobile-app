@@ -113,7 +113,16 @@ export const BottomSheetWrapper = forwardRef<BottomSheet, Props>(
 
     const containerStyle = useMemo(
       () => ({
+        // Closed sheets still mount a full-screen absolute container. On some
+        // Android OEMs (MIUI) that layer eats all touches unless we disable it.
         pointerEvents: sheetIndex >= 0 ? ("auto" as const) : ("none" as const),
+        // Only elevate while open. A permanent high zIndex made closed sheets
+        // paint over logging UI (and look like they auto-opened on entry).
+        zIndex: sheetIndex >= 0 ? 1000 : 0,
+        elevation: sheetIndex >= 0 ? 1000 : 0,
+        // Hide closed sheets entirely so footers (e.g. red DELETE) never
+        // ghost-paint at the bottom of the screen on some devices.
+        opacity: sheetIndex >= 0 ? 1 : 0,
       }),
       [sheetIndex],
     );
@@ -177,6 +186,7 @@ export const BottomSheetWrapper = forwardRef<BottomSheet, Props>(
         index={-1}
         snapPoints={resolvedSnapPoints}
         enableDynamicSizing={false}
+        animateOnMount={false}
         enablePanDownToClose
         onClose={handleClose}
         onChange={handleChange}

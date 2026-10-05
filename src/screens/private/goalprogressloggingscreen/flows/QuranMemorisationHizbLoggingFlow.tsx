@@ -5,20 +5,27 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import moment from "moment-hijri";
 import { Colors } from "@/constants/theme";
+import { useLogQuranMemorisationHizbGoal } from "@/src/api/mutations/useLogQuranMemorisationHizbGoal";
 import { GoalData } from "../../home/components/goalsData";
 import { DateStep } from "../components/DateStep";
-import { formatProgressLoggingDateLabel } from "../progressLoggingConfig";
-import { DurationStep, StartTimeStep } from "../components/TimePickerSteps";
+import {
+  formatProgressLoggingDateLabel,
+  getQuranLoggingSelectableDateBounds,
+} from "../progressLoggingConfig";
+import { DurationStep, StartTimeStep, getCurrentStartTimeParts } from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
-import { MemorisationAyahCountStep } from "../components/MemorisationAyahCountStep";
+import { MemorisationHizbAyahCountStep } from "../components/MemorisationHizbAyahCountStep";
 import { MemorisationHizbSelectionStep } from "../components/MemorisationHizbSelectionStep";
 import { styles } from "../components/DailyProgressLogging.styles";
+import { QuranIconForSlider } from "@/assets/icons/QuranIconForSlider";
+import {
+  CalendarFlippingIcon,
+  WhiteClockIcon,
+  WhiteTimerIcon,
+} from "@/assets/icons";
 import { getQuranMemorisationHizbFlowDefinition } from "../loggingFlowRegistry";
 import {
-  appendHizbMemorisationLog,
-  buildHizbMemorisationLogFromEntry,
   getMemorizedHizbAyahCount,
-  getRemainingHizbAyahCount,
   getHizbMemorisationProgressPercent,
   isHizbFullyMemorized,
 } from "../quranMemorisationHizbData";
@@ -28,12 +35,21 @@ import {
   getMemorisationTargetConfigForHizb,
   getNextHizbMemorisationAyah,
   isValidHizbMemorisationAyahRange,
+  toMemorisationTargetConfigFromHizbGoal,
   type QuranMemorisationHizbStepId,
 } from "../quranMemorisationHizbTarget";
 import {
   getHizbMemorisationGoals,
+  type HizbMemorisationGoal,
   type MemorisationHizbFilterId,
 } from "../quranMemorisationHizbGoals";
+import { useOptionalMemorisationHizbContext } from "../memorisationHizbContext";
+import { useOptionalQuranGoalFrameContext } from "../quranGoalFrameContext";
+import {
+  getQuranFrameCycleEnd,
+  getQuranFrameCycleStart,
+  getQuranFrameMemorisationItem,
+} from "@/src/utils/quranGoalFrameMap";
 import {
   isValidStartTime,
   isValidTimeSpent,
@@ -45,6 +61,8 @@ type FlowMode = "collapsed" | "active";
 type Props = {
   goalData: GoalData;
   preselectedHizbId?: MemorisationHizbFilterId;
+  /** Prefer this when carousel/frame provides the active hizb (API itemNumber ids). */
+  activeHizbGoal?: HizbMemorisationGoal | null;
   hideCollapsedSummary?: boolean;
   embedded?: boolean;
   suppressOverlay?: boolean;
@@ -58,6 +76,7 @@ const toDateString = (date: Date) => moment(date).format("YYYY-MM-DD");
 export default function QuranMemorisationHizbLoggingFlow({
   goalData,
   preselectedHizbId = "all",
+  activeHizbGoal = null,
   hideCollapsedSummary = false,
   embedded = false,
   suppressOverlay = false,
@@ -66,13 +85,20 @@ export default function QuranMemorisationHizbLoggingFlow({
   onLogComplete,
 }: Props) {
   const { t } = useTranslation();
+  const memorisationContext = useOptionalMemorisationHizbContext();
+  const quranFrame = useOptionalQuranGoalFrameContext();
+  const { mutateAsync: logMemorisationHizb, isPending: isLogging } =
+    useLogQuranMemorisationHizbGoal();
   const flowDefinition = useMemo(
     () => getQuranMemorisationHizbFlowDefinition(goalData.id),
     [goalData.id],
   );
 
   const includeHizbSelection = preselectedHizbId === "all";
-  const goals = useMemo(() => getHizbMemorisationGoals(), []);
+  const goals = useMemo(
+    () => memorisationContext?.goals ?? getHizbMemorisationGoals(),
+    [memorisationContext?.goals],
+  );
   const incompleteGoals = useMemo(
     () => goals.filter((goal) => !goal.completed),
     [goals],
@@ -84,15 +110,48 @@ export default function QuranMemorisationHizbLoggingFlow({
       : (incompleteGoals[0]?.id ?? "");
 
   const [selectedHizbId, setSelectedHizbId] = useState(initialHizbId);
-  const config = useMemo(
-    () => getMemorisationTargetConfigForHizb(selectedHizbId),
-    [selectedHizbId],
-  );
+  const config = useMemo(() => {
+    const fromActive =
+      activeHizbGoal && activeHizbGoal.id === selectedHizbId
+        ? toMemorisationTargetConfigFromHizbGoal(activeHizbGoal)
+        : null;
+    if (fromActive) return fromActive;
+
+    const fromList = goals.find((goal) => goal.id === selectedHizbId);
+    if (fromList) return toMemorisationTargetConfigFromHizbGoal(fromList);
+
+    return getMemorisationTargetConfigForHizb(selectedHizbId, activeHizbGoal);
+  }, [activeHizbGoal, goals, selectedHizbId]);
 
   const hizbId = config?.hizbId ?? "";
-  const totalAyahs = config?.totalAyahs ?? 0;
-  const remainingAyahs = getRemainingHizbAyahCount(hizbId);
-  const minStartAyah = getNextHizbMemorisationAyah(hizbId);
+  const itemNumber = useMemo(() => {
+    const fromActive =
+      activeHizbGoal?.id === selectedHizbId
+        ? activeHizbGoal.itemNumber
+        : undefined;
+    const fromList = goals.find(
+      (goal) => goal.id === selectedHizbId,
+    )?.itemNumber;
+    const fromId = Number(hizbId);
+    return fromActive ?? fromList ?? (Number.isFinite(fromId) ? fromId : NaN);
+  }, [activeHizbGoal, goals, hizbId, selectedHizbId]);
+  const frameItem = useMemo(() => {
+    const frame = quranFrame?.frame;
+    if (!frame || !Number.isFinite(itemNumber) || itemNumber <= 0) return null;
+    return getQuranFrameMemorisationItem(frame, itemNumber);
+  }, [itemNumber, quranFrame?.frame]);
+  /** Prefer live frame `target` over mapped goal totals (avoids stale local counts). */
+  const totalAyahs = useMemo(() => {
+    const fromFrame = Math.round(Number(frameItem?.target) || 0);
+    if (fromFrame > 0) return fromFrame;
+    return config?.totalAyahs ?? 0;
+  }, [config?.totalAyahs, frameItem?.target]);
+  const memorizedAyahs = Math.max(
+    config?.memorizedAyahs ?? 0,
+    hizbId ? getMemorizedHizbAyahCount(hizbId) : 0,
+  );
+  const remainingAyahs = Math.max(0, totalAyahs - memorizedAyahs);
+  const minStartAyah = getNextHizbMemorisationAyah(hizbId, memorizedAyahs);
 
   const [internalFlowMode, setInternalFlowMode] =
     useState<FlowMode>("collapsed");
@@ -110,16 +169,38 @@ export default function QuranMemorisationHizbLoggingFlow({
 
   const [stepIndex, setStepIndex] = useState(0);
   const [selectedDate, setSelectedDate] = useState(toDateString(new Date()));
-  const [startHour, setStartHour] = useState("06");
-  const [startMinute, setStartMinute] = useState("15");
-  const [startPeriod, setStartPeriod] = useState<"am" | "pm">("am");
+  const initialStartTime = getCurrentStartTimeParts();
+  const [startHour, setStartHour] = useState(initialStartTime.hour);
+  const [startMinute, setStartMinute] = useState(initialStartTime.minute);
+  const [startPeriod, setStartPeriod] = useState<"am" | "pm">(
+    initialStartTime.period,
+  );
   const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
   const [startAyah, setStartAyah] = useState(minStartAyah);
-  const [endAyah, setEndAyah] = useState(minStartAyah);
+  const [endAyah, setEndAyah] = useState(() =>
+    Math.max(minStartAyah, totalAyahs || minStartAyah),
+  );
   const [durationHours, setDurationHours] = useState("0");
-  const [durationMinutes, setDurationMinutes] = useState("10");
+  const [durationMinutes, setDurationMinutes] = useState("0");
 
   const todayString = toDateString(new Date());
+  const cycleStart = quranFrame?.frame
+    ? getQuranFrameCycleStart(quranFrame.frame) || undefined
+    : undefined;
+  const cycleEnd = quranFrame?.frame
+    ? getQuranFrameCycleEnd(quranFrame.frame) || undefined
+    : undefined;
+  const { minSelectableDate, maxSelectableDate } =
+    getQuranLoggingSelectableDateBounds(cycleStart, cycleEnd, todayString);
+
+  useEffect(() => {
+    setSelectedDate((prev) => {
+      if (minSelectableDate && prev < minSelectableDate) return minSelectableDate;
+      if (prev > maxSelectableDate) return maxSelectableDate;
+      return prev;
+    });
+  }, [minSelectableDate, maxSelectableDate]);
+
   const steps = useMemo(
     () => buildHizbMemorisationSteps(includeHizbSelection),
     [includeHizbSelection],
@@ -138,32 +219,51 @@ export default function QuranMemorisationHizbLoggingFlow({
   }, [incompleteGoals, preselectedHizbId, selectedHizbId]);
 
   useEffect(() => {
-    const nextStartAyah = getNextHizbMemorisationAyah(hizbId);
+    const nextStartAyah = getNextHizbMemorisationAyah(hizbId, memorizedAyahs);
     setStartAyah(nextStartAyah);
-    setEndAyah(nextStartAyah);
-  }, [hizbId]);
+    setEndAyah(Math.max(nextStartAyah, totalAyahs || nextStartAyah));
+  }, [hizbId, memorizedAyahs, totalAyahs]);
 
   const resetFlow = useCallback(() => {
     setFlowMode("collapsed");
     setStepIndex(0);
-    setSelectedDate(toDateString(new Date()));
-    setStartHour("06");
-    setStartMinute("15");
-    setStartPeriod("am");
+    const bounds = getQuranLoggingSelectableDateBounds(
+      quranFrame?.frame
+        ? getQuranFrameCycleStart(quranFrame.frame) || undefined
+        : undefined,
+      quranFrame?.frame
+        ? getQuranFrameCycleEnd(quranFrame.frame) || undefined
+        : undefined,
+      toDateString(new Date()),
+    );
+    setSelectedDate(bounds.maxSelectableDate);
+    const now = getCurrentStartTimeParts();
+    setStartHour(now.hour);
+    setStartMinute(now.minute);
+    setStartPeriod(now.period);
     setIsPeriodDropdownOpen(false);
     const nextStartAyah = getNextHizbMemorisationAyah(
       preselectedHizbId !== "all" ? preselectedHizbId : selectedHizbId,
+      memorizedAyahs,
     );
     setStartAyah(nextStartAyah);
-    setEndAyah(nextStartAyah);
+    setEndAyah(Math.max(nextStartAyah, totalAyahs || nextStartAyah));
     setDurationHours("0");
-    setDurationMinutes("10");
+    setDurationMinutes("0");
     if (preselectedHizbId !== "all") {
       setSelectedHizbId(preselectedHizbId);
     } else {
       setSelectedHizbId(incompleteGoals[0]?.id ?? "");
     }
-  }, [incompleteGoals, preselectedHizbId, selectedHizbId, setFlowMode]);
+  }, [
+    incompleteGoals,
+    memorizedAyahs,
+    preselectedHizbId,
+    quranFrame?.frame,
+    selectedHizbId,
+    setFlowMode,
+    totalAyahs,
+  ]);
 
   const isStepValid = useCallback(
     (step: QuranMemorisationHizbStepId) => {
@@ -175,7 +275,10 @@ export default function QuranMemorisationHizbLoggingFlow({
         case "startTime":
           return isValidStartTime(startHour, startMinute, startPeriod);
         case "ayahCount":
-          return isValidHizbMemorisationAyahRange(hizbId, startAyah, endAyah);
+          return isValidHizbMemorisationAyahRange(hizbId, startAyah, endAyah, {
+            totalAyahs,
+            memorizedAyahs,
+          });
         case "timeSpent":
           return isValidTimeSpent(durationHours, durationMinutes);
         default:
@@ -187,6 +290,7 @@ export default function QuranMemorisationHizbLoggingFlow({
       durationMinutes,
       endAyah,
       hizbId,
+      memorizedAyahs,
       remainingAyahs,
       selectedDate,
       selectedHizbId,
@@ -194,10 +298,11 @@ export default function QuranMemorisationHizbLoggingFlow({
       startHour,
       startMinute,
       startPeriod,
+      totalAyahs,
     ],
   );
 
-  const canGoForward = !isLastStep && isStepValid(currentStep);
+  const canGoForward = !isLastStep && isStepValid(currentStep) && !isLogging;
 
   if (!flowDefinition || !config) return null;
   if (embedded && flowMode !== "active") return null;
@@ -208,13 +313,16 @@ export default function QuranMemorisationHizbLoggingFlow({
     selectedDate,
     todayString,
     t("progressLogging.today"),
+    t("progressLogging.tomorrow"),
   );
 
   const shiftDate = (direction: -1 | 1) => {
     const next = moment(selectedDate, "YYYY-MM-DD")
       .add(direction, "days")
       .format("YYYY-MM-DD");
-    if (direction === 1 && next > todayString) return;
+    if (minSelectableDate && direction === -1 && next < minSelectableDate)
+      return;
+    if (direction === 1 && next > maxSelectableDate) return;
     setSelectedDate(next);
   };
 
@@ -231,56 +339,79 @@ export default function QuranMemorisationHizbLoggingFlow({
     setStepIndex((index) => index + 1);
   };
 
+  const formatSessionStartTimeForApi = () => {
+    const hourNum = Number.parseInt(startHour || "0", 10) || 0;
+    const minuteNum = Number.parseInt(startMinute || "0", 10) || 0;
+
+    let hour24 = hourNum % 12;
+    if (startPeriod === "pm") hour24 += 12;
+
+    const hh = String(Math.max(0, hour24)).padStart(2, "0");
+    const mm = String(Math.max(0, minuteNum)).padStart(2, "0");
+    return `${hh}:${mm}`;
+  };
+
   const handleConfirm = () => {
-    if (!isLastStep) {
-      handleForward();
-      return;
-    }
+    if (isLogging) return;
+    if (!isLastStep) return;
 
     if (!steps.every((step) => isStepValid(step))) return;
+    if (!Number.isFinite(itemNumber) || itemNumber < 1) return;
 
-    const ayahsMemorizedToday = getHizbAyahsMemorizedFromRange(
-      startAyah,
-      endAyah,
-    );
-    const hours = Number.parseInt(durationHours || "0", 10) || 0;
-    const minutes = Number.parseInt(durationMinutes || "0", 10) || 0;
-    const startTime = `${startHour}:${startMinute} ${startPeriod}`;
-
-    appendHizbMemorisationLog(
-      buildHizbMemorisationLogFromEntry({
-        hizbId,
-        date: selectedDate,
-        ayahsMemorizedToday,
-        startTime,
-        hours,
-        minutes,
+    const run = async () => {
+      const ayahsMemorizedToday = getHizbAyahsMemorizedFromRange(
         startAyah,
         endAyah,
-      }),
-    );
+      );
+      const hours = Number.parseInt(durationHours || "0", 10) || 0;
+      const minutes = Number.parseInt(durationMinutes || "0", 10) || 0;
+      const durationTotalMinutes = hours * 60 + minutes;
+      if (durationTotalMinutes < 1) return;
 
-    onLogComplete?.({
-      type: "quran-memorisation",
-      goalType: "memorization",
-      trackingType: "hizb",
-      goalId: flowDefinition.goalId,
-      hizbId,
-      hizbName: config.hizbName,
-      totalAyahs,
-      date: selectedDate,
-      startTime,
-      startAyah,
-      endAyah,
-      ayahsMemorizedToday,
-      hours,
-      minutes,
-      durationLabel: `${hours}h ${minutes}m`,
-      memorizedAyahs: getMemorizedHizbAyahCount(hizbId),
-      progressPercentage: getHizbMemorisationProgressPercent(hizbId),
-      completed: isHizbFullyMemorized(hizbId),
-    });
-    resetFlow();
+      const startTime = `${startHour}:${startMinute} ${startPeriod}`;
+      const sessionStartTime = formatSessionStartTimeForApi();
+
+      try {
+        await logMemorisationHizb({
+          quranGoalType: "MEMORIZATION_HIZB",
+          date: selectedDate,
+          sessionStartTime,
+          durationMinutes: durationTotalMinutes,
+          itemType: "HIZB",
+          itemNumber,
+          fromAyah: startAyah,
+          toAyah: endAyah,
+        });
+        await quranFrame?.refetch();
+        memorisationContext?.bumpRefresh();
+
+        onLogComplete?.({
+          type: "quran-memorisation",
+          goalType: "memorization",
+          trackingType: "hizb",
+          goalId: flowDefinition.goalId,
+          hizbId,
+          hizbName: config.hizbName,
+          totalAyahs,
+          date: selectedDate,
+          startTime,
+          startAyah,
+          endAyah,
+          ayahsMemorizedToday,
+          hours,
+          minutes,
+          durationLabel: `${hours}h ${minutes}m`,
+          memorizedAyahs: memorizedAyahs + ayahsMemorizedToday,
+          progressPercentage: getHizbMemorisationProgressPercent(hizbId),
+          completed: isHizbFullyMemorized(hizbId),
+        });
+        resetFlow();
+      } catch {
+        // Mutation onError already shows toast.
+      }
+    };
+
+    void run();
   };
 
   const getStepHeader = (step: QuranMemorisationHizbStepId) => {
@@ -290,7 +421,7 @@ export default function QuranMemorisationHizbLoggingFlow({
           icon: (
             <MaterialCommunityIcons
               name="book-open-page-variant"
-              size={16}
+              size={24}
               color={Colors.light.white}
             />
           ),
@@ -298,46 +429,24 @@ export default function QuranMemorisationHizbLoggingFlow({
         };
       case "date":
         return {
-          icon: (
-            <Ionicons
-              name="calendar-outline"
-              size={15}
-              color={Colors.light.white}
-            />
-          ),
+          icon: <CalendarFlippingIcon size={24} />,
           label: t("progressLogging.whichDay"),
         };
       case "startTime":
         return {
-          icon: (
-            <Ionicons
-              name="time-outline"
-              size={15}
-              color={Colors.light.white}
-            />
-          ),
+          icon: <WhiteClockIcon size={26} />,
           label: t("progressLogging.enterStartTime"),
         };
       case "ayahCount":
         return {
           icon: (
-            <MaterialCommunityIcons
-              name="format-list-numbered"
-              size={16}
-              color={Colors.light.white}
-            />
+            <QuranIconForSlider size={24} Color={Colors.light.white} />
           ),
           label: t("progressLogging.selectAyatRange"),
         };
       case "timeSpent":
         return {
-          icon: (
-            <MaterialCommunityIcons
-              name="history"
-              size={16}
-              color={Colors.light.white}
-            />
-          ),
+          icon: <WhiteTimerIcon size={26} />,
           label: t("progressLogging.enterTimeSpent"),
         };
     }
@@ -360,6 +469,8 @@ export default function QuranMemorisationHizbLoggingFlow({
             dateLabel={dateLabel}
             selectedDate={selectedDate}
             todayString={todayString}
+            minSelectableDate={minSelectableDate}
+            maxSelectableDate={maxSelectableDate}
             onShiftDate={shiftDate}
             styles={styles}
           />
@@ -378,11 +489,30 @@ export default function QuranMemorisationHizbLoggingFlow({
             styles={styles}
           />
         );
-      case "ayahCount":
+      case "ayahCount": {
+        const activeGoal =
+          activeHizbGoal?.id === selectedHizbId
+            ? activeHizbGoal
+            : goals.find((goal) => goal.id === selectedHizbId);
         return (
-          <MemorisationAyahCountStep
-            surahName={config.hizbName}
+          <MemorisationHizbAyahCountStep
+            hizbId={hizbId}
             totalAyahs={totalAyahs}
+            title={
+              frameItem?.title?.trim() ||
+              activeGoal?.displayName ||
+              activeGoal?.hizbName
+            }
+            subtitle={
+              frameItem?.subtitle?.trim() || activeGoal?.subtitle
+            }
+            rangeLabel={
+              activeGoal?.rangeLabel ||
+              // Fall back to anything after "|" in the live frame title.
+              (frameItem?.title?.includes("|")
+                ? frameItem.title.split("|").slice(1).join("|").trim()
+                : undefined)
+            }
             minStartAyah={minStartAyah}
             startAyah={startAyah}
             endAyah={endAyah}
@@ -391,6 +521,7 @@ export default function QuranMemorisationHizbLoggingFlow({
             styles={styles}
           />
         );
+      }
       case "timeSpent":
         return (
           <DurationStep
@@ -417,10 +548,19 @@ export default function QuranMemorisationHizbLoggingFlow({
         onForward={handleForward}
         onConfirm={handleConfirm}
         canGoForward={canGoForward}
+        canGoBack={stepIndex > 0}
+        canConfirm={
+          isLastStep &&
+          !isLogging &&
+          steps.every((step) => isStepValid(step))
+        }
         styles={styles}
         style={styles.inPlaceFlowCard}
         contentStyle={
           isAyahRangeStep ? styles.flowContentAyahRange : undefined
+        }
+        headerStyle={
+          isAyahRangeStep ? styles.flowHeaderAyahRange : undefined
         }
       >
         {renderStepContent(currentStep)}
@@ -437,7 +577,7 @@ export default function QuranMemorisationHizbLoggingFlow({
       style={[styles.section, flowMode === "active" && styles.activeSection]}
     >
       <View style={styles.cardAnchor}>
-        {showOverlay && <Pressable style={styles.backdrop} onPress={resetFlow} />}
+        {showOverlay && <Pressable style={styles.backdrop} />}
         {showOverlay && (
           <TouchableOpacity
             style={styles.cancelButton}

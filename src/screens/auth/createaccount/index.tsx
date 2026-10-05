@@ -543,6 +543,9 @@ export default function CreateAccountScreen() {
           selectedTextStyle={styles.countryText}
           control={control}
           name="country"
+          searchable
+          searchPlaceholder={t("createAccountScreen.countrySearchPlaceholder")}
+          emptySearchText={t("createAccountScreen.countrySearchEmpty")}
         />
         <TopSpace top={16} />
 

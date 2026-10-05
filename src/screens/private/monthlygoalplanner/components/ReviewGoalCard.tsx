@@ -211,11 +211,17 @@ export default function ReviewGoalCard({ goal, handleEditPress }: Props) {
                   if (cleanLabel.toLowerCase() === "amount")
                     return t("monthlyGoalPlanner.amount");
                   if (cleanLabel.toLowerCase() === "meals")
-                    return t("monthlyGoalPlanner.meals");
+                    return t("monthlyGoalPlanner.meals", {
+                      count: Number(subGoal?.value) || 0,
+                    });
                   if (cleanLabel.toLowerCase() === "cloths")
-                    return t("monthlyGoalPlanner.cloths");
+                    return t("monthlyGoalPlanner.cloths", {
+                      count: Number(subGoal?.value) || 0,
+                    });
                   if (cleanLabel.toLowerCase() === "hours")
-                    return t("monthlyGoalPlanner.hours");
+                    return t("monthlyGoalPlanner.hours", {
+                      count: Number(subGoal?.value) || 0,
+                    });
 
                   if (
                     key === "quran-recitation-by-juz" &&

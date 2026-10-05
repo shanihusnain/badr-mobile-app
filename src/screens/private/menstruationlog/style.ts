@@ -17,6 +17,11 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 100,
   },
+  loadingContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
 
   infoContainer: {
     alignSelf: "center",
@@ -60,6 +65,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 1,
     backgroundColor: Colors.light.grey,
+    opacity: 0.5,
   },
   // I'm Menstruating Section
   menstruatingContainer: {
@@ -69,13 +75,20 @@ const styles = StyleSheet.create({
     marginTop: hp(5),
     paddingHorizontal: wp(4),
   },
+  stillMenstruatingContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 16,
+    paddingHorizontal: wp(4),
+  },
   menstruatingText: {
     fontFamily: fonts.primary.medium || "SF Pro Text",
     fontWeight: "500",
     fontSize: 14,
     lineHeight: 20,
     letterSpacing: 0,
-    color: Colors.light.subtext,
+    color: Colors.light.white,
     textAlign: "center",
     textTransform: "uppercase",
     fontVariant: ["small-caps"],
@@ -137,7 +150,7 @@ const styles = StyleSheet.create({
   dateLabelsContainer: {
     paddingHorizontal: wp(4),
     paddingTop: 16,
-    paddingBottom: 8,
+    paddingBottom: 18,
   },
   gregorianDateText: {
     fontFamily: fonts.primary.semiBold || "SF Pro Text",
@@ -145,7 +158,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 18,
     letterSpacing: 0,
-    color: Colors.light.subtext,
+    color: Colors.light.white,
+    opacity: 1,
     textAlign: "center",
     textTransform: "uppercase",
   },
@@ -157,9 +171,10 @@ const styles = StyleSheet.create({
     letterSpacing: 0,
     color: Colors.light.subtext,
     textAlign: "center",
+    marginTop: 10,
   },
   startTimesContainer: {
-    marginTop: 16,
+    marginTop: 28,
     paddingHorizontal: wp(4),
     alignSelf: "flex-start",
     width: "100%",
@@ -182,12 +197,12 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   radioOuter: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: Colors.light.grey,
-    backgroundColor: Colors.light.calendarBg,
+    backgroundColor: Colors.light.blackBackground,
     justifyContent: "center",
     alignItems: "center",
     marginRight: 8,

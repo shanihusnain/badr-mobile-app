@@ -3,6 +3,7 @@
     "name": "badr",
     "slug": "badr",
     "version": "1.0.1",
+    "sdkVersion": "57.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "badr",
@@ -17,14 +18,9 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.badr",
+      "bundleIdentifier": "com.zielglobal.badr",
       "infoPlist": {
-        "CFBundleLocalizations": [
-          "en",
-          "ar",
-          "en",
-          "ar"
-        ],
+        "CFBundleLocalizations": ["en", "ar", "en", "ar"],
         "ITSAppUsesNonExemptEncryption": false
       }
     },
@@ -36,7 +32,7 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.badar"
+      "package": "com.zielglobal.badr"
     },
     "web": {
       "output": "static",
@@ -63,14 +59,8 @@
         "expo-localization",
         {
           "supportedLocales": {
-            "ios": [
-              "en",
-              "ar"
-            ],
-            "android": [
-              "en",
-              "ar"
-            ]
+            "ios": ["en", "ar"],
+            "android": ["en", "ar"]
           }
         }
       ],

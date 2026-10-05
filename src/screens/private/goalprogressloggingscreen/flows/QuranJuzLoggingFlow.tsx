@@ -2,27 +2,60 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Pressable, Text, TouchableOpacity, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import moment from "moment-hijri";
 import { Colors } from "@/constants/theme";
+import { fonts } from "@/assets/fonts";
 import { GoalData } from "../../home/components/goalsData";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import { DateStep } from "../components/DateStep";
-import { formatProgressLoggingDateLabel } from "../progressLoggingConfig";
-import { DurationStep, StartTimeStep } from "../components/TimePickerSteps";
+import {
+  formatProgressLoggingDateLabel,
+  getQuranLoggingSelectableDateBounds,
+} from "../progressLoggingConfig";
+import { DurationStep, StartTimeStep, getCurrentStartTimeParts } from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
 import { JuzLoggingTypeStep } from "../components/JuzLoggingTypeStep";
 import { JuzRangeStep } from "../components/JuzRangeStep";
 import { JuzStepper } from "../components/JuzStepper";
 import { QuranAyatRangeSlider } from "../components/QuranAyatRangeSlider";
 import { styles } from "../components/DailyProgressLogging.styles";
+import { surahGoalStyles } from "../components/SurahRecitationGoals.styles";
+import {
+  AddLoggingFlowIcon,
+  CalendarFlippingIcon,
+  QuranImageIcon,
+  QuranRecitationBySurahFlowCardImage,
+  WhiteClockIcon,
+  WhiteTimerIcon,
+} from "@/assets/icons";
+import {
+  useLogQuranRecitationJuzGoal,
+  type LogQuranRecitationJuzPayload,
+} from "@/src/api/mutations/useLogQuranRecitationJuzGoal";
+import { useGetQuranGoalByType } from "@/src/api/queries/useGetQuranGoalByType";
 import { getQuranJuzFlowDefinition } from "../loggingFlowRegistry";
-import { getJuzVerseCountFromMap } from "../quranJuzVerseMap";
+import { resolveApiJuzVerseCount } from "../quranApiVerseSpan";
+import {
+  getJuzVerseCountFromMap,
+  getJuzVerseMetadata,
+} from "../quranJuzVerseMap";
 import {
   appendJuzLog,
   buildJuzLogRecordFromEntry,
   type JuzCompletionType,
 } from "../quranRecitationJuzData";
+import { useOptionalQuranGoalFrameContext } from "../quranGoalFrameContext";
+import {
+  getQuranFrameCycleEnd,
+  getQuranFrameCycleStart,
+  getQuranFrameJuzGoalRange,
+  getQuranFrameJuzRecitationResume,
+  getQuranFrameWeekNumberForDate,
+} from "@/src/utils/quranGoalFrameMap";
+import {
+  getJuzRangeFromDetail,
+  getSelectedJuzIdsFromDetail,
+} from "@/src/utils/quranGoalMap";
 import {
   buildJuzRecitationSteps,
   clampJuz,
@@ -30,15 +63,28 @@ import {
   getMinAyatStartForJuz,
   getMinPartialJuz,
   isValidCompletionType,
+  isValidGoalJuzRange,
   isValidJuzAyatRange,
-  isValidJuzRange,
   isValidPartialJuzForType,
   isValidStartTime,
   isValidTimeSpent,
+  MAX_JUZ,
+  MIN_JUZ,
   type CompletionDurationValue,
   type QuranJuzStepId,
 } from "../quranRecitationJuzTarget";
+import { snapJuzOffExcluded } from "../quranRecitationCompletionTarget";
 import type { QuranJuzLogEntry } from "../types";
+
+function splitDurationMinutes(total: number, parts: number): number[] {
+  if (parts <= 0) return [];
+  if (parts === 1) return [Math.max(0, total)];
+  const base = Math.floor(total / parts);
+  const remainder = total - base * parts;
+  return Array.from({ length: parts }, (_, index) =>
+    index === parts - 1 ? base + remainder : base,
+  );
+}
 
 type FlowMode = "collapsed" | "active";
 
@@ -65,10 +111,42 @@ export default function QuranJuzLoggingFlow({
 }: Props) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
+  const quranFrame = useOptionalQuranGoalFrameContext();
+  const { data: juzGoalDetail } = useGetQuranGoalByType("RECITATION_JUZ");
+  const { mutateAsync: logRecitationJuz, isPending: isLogging } =
+    useLogQuranRecitationJuzGoal();
   const flowDefinition = useMemo(
     () => getQuranJuzFlowDefinition(goalData.id),
     [goalData.id],
   );
+
+  /** Inclusive juz bounds from goal config — never allow logging outside this. */
+  const goalJuzRange = useMemo(() => {
+    const fromDetail = getJuzRangeFromDetail(juzGoalDetail);
+    if (fromDetail) {
+      return {
+        start: fromDetail.start,
+        end: fromDetail.end,
+        allowed: new Set(getSelectedJuzIdsFromDetail(juzGoalDetail)),
+      };
+    }
+    const fromFrame = getQuranFrameJuzGoalRange(quranFrame?.frame);
+    if (fromFrame) {
+      const allowed = new Set<number>();
+      for (let juz = fromFrame.start; juz <= fromFrame.end; juz += 1) {
+        allowed.add(juz);
+      }
+      return { start: fromFrame.start, end: fromFrame.end, allowed };
+    }
+    return {
+      start: MIN_JUZ,
+      end: MAX_JUZ,
+      allowed: null as Set<number> | null,
+    };
+  }, [juzGoalDetail, quranFrame?.frame]);
+
+  const goalMinJuz = goalJuzRange.start;
+  const goalMaxJuz = goalJuzRange.end;
 
   const [internalFlowMode, setInternalFlowMode] =
     useState<FlowMode>("collapsed");
@@ -86,16 +164,19 @@ export default function QuranJuzLoggingFlow({
 
   const [stepIndex, setStepIndex] = useState(0);
   const [selectedDate, setSelectedDate] = useState(toDateString(new Date()));
-  const [startHour, setStartHour] = useState("06");
-  const [startMinute, setStartMinute] = useState("15");
-  const [startPeriod, setStartPeriod] = useState<"am" | "pm">("am");
+  const initialStartTime = getCurrentStartTimeParts();
+  const [startHour, setStartHour] = useState(initialStartTime.hour);
+  const [startMinute, setStartMinute] = useState(initialStartTime.minute);
+  const [startPeriod, setStartPeriod] = useState<"am" | "pm">(
+    initialStartTime.period,
+  );
   const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
   const [loggingType, setLoggingType] = useState<JuzCompletionType>("full");
   const [committedLoggingType, setCommittedLoggingType] =
     useState<JuzCompletionType>("full");
-  const [fullStartJuz, setFullStartJuz] = useState(1);
-  const [fullEndJuz, setFullEndJuz] = useState(1);
-  const [partialJuz, setPartialJuz] = useState(1);
+  const [fullStartJuz, setFullStartJuz] = useState(goalMinJuz);
+  const [fullEndJuz, setFullEndJuz] = useState(goalMinJuz);
+  const [partialJuz, setPartialJuz] = useState(goalMinJuz);
   const [startAyat, setStartAyat] = useState(1);
   const [endAyat, setEndAyat] = useState(1);
   const [fullDuration, setFullDuration] = useState<CompletionDurationValue>(
@@ -105,34 +186,143 @@ export default function QuranJuzLoggingFlow({
     useState<CompletionDurationValue>(createDefaultDuration());
 
   const todayString = toDateString(new Date());
+  const cycleStart = quranFrame?.frame
+    ? getQuranFrameCycleStart(quranFrame.frame) || undefined
+    : undefined;
+  const cycleEnd = quranFrame?.frame
+    ? getQuranFrameCycleEnd(quranFrame.frame) || undefined
+    : undefined;
+
+  /** Keep the 7-day dashboard on the same cycle week as the date being logged. */
+  const selectedDateWeekNumber = useMemo(() => {
+    const frame = quranFrame?.frame;
+    if (!frame) return null;
+    return getQuranFrameWeekNumberForDate(frame, selectedDate);
+  }, [quranFrame?.frame, selectedDate]);
+
+  useEffect(() => {
+    if (selectedDateWeekNumber == null || !quranFrame) return;
+    if (quranFrame.weekNumber === selectedDateWeekNumber) return;
+    quranFrame.setWeekNumber(selectedDateWeekNumber);
+  }, [quranFrame, selectedDateWeekNumber]);
+  const { minSelectableDate, maxSelectableDate } =
+    getQuranLoggingSelectableDateBounds(cycleStart, cycleEnd, todayString);
+
+  // Keep the date step inside the goal-cycle window (same as hours / memorisation).
+  useEffect(() => {
+    setSelectedDate((prev) => {
+      if (minSelectableDate && prev < minSelectableDate) {
+        return minSelectableDate;
+      }
+      if (prev > maxSelectableDate) return maxSelectableDate;
+      return prev;
+    });
+  }, [minSelectableDate, maxSelectableDate]);
+
+  const frameResume = useMemo(() => {
+    const frame = quranFrame?.frame;
+    if (!frame) {
+      return {
+        excludedJuz: [] as number[],
+        openPartialJuz: null as number | null,
+        minStartAyat: 1,
+      };
+    }
+    return getQuranFrameJuzRecitationResume(
+      frame,
+      quranFrame?.completionCycleFrames,
+    );
+  }, [quranFrame?.completionCycleFrames, quranFrame?.frame]);
 
   const steps = useMemo(
     () => buildJuzRecitationSteps(committedLoggingType),
     [committedLoggingType],
   );
 
-  const minAyatStart = useMemo(
-    () => getMinAyatStartForJuz(partialJuz),
-    [partialJuz],
-  );
+  const partialJuzVerseCount = useMemo(() => {
+    const fromFrame = resolveApiJuzVerseCount({
+      juzNumber: partialJuz,
+      items: quranFrame?.frame?.items,
+    });
+    if (fromFrame > 0) return fromFrame;
+    const fromDetail = resolveApiJuzVerseCount({
+      juzNumber: partialJuz,
+      items: juzGoalDetail?.items,
+    });
+    if (fromDetail > 0) return fromDetail;
+    // AGGREGATE juz goals often omit per-juz ayah totals (or set target: 1).
+    return getJuzVerseCountFromMap(partialJuz);
+  }, [juzGoalDetail?.items, partialJuz, quranFrame?.frame?.items]);
 
-  const minPartialJuz = useMemo(
-    () => getMinPartialJuz(committedLoggingType, fullEndJuz),
-    [committedLoggingType, fullEndJuz],
-  );
+  const minAyatStart = useMemo(() => {
+    const localMin = getMinAyatStartForJuz(partialJuz);
+    if (
+      frameResume.openPartialJuz != null &&
+      partialJuz === frameResume.openPartialJuz
+    ) {
+      return Math.max(localMin, frameResume.minStartAyat);
+    }
+    if (frameResume.excludedJuz.includes(partialJuz)) {
+      return (partialJuzVerseCount > 0 ? partialJuzVerseCount : 9999) + 1;
+    }
+    return localMin;
+  }, [frameResume, partialJuz, partialJuzVerseCount]);
+
+  const minPartialJuz = useMemo(() => {
+    const base = getMinPartialJuz(
+      committedLoggingType,
+      fullEndJuz,
+      goalMinJuz,
+      goalMaxJuz,
+    );
+    return snapJuzOffExcluded(
+      base,
+      goalMinJuz,
+      goalMaxJuz,
+      frameResume.excludedJuz,
+    );
+  }, [
+    committedLoggingType,
+    frameResume.excludedJuz,
+    fullEndJuz,
+    goalMaxJuz,
+    goalMinJuz,
+  ]);
+
+  // Clamp steppers into the configured goal range once detail/frame loads.
+  useEffect(() => {
+    const clampToGoal = (value: number) =>
+      Math.min(goalMaxJuz, Math.max(goalMinJuz, value));
+    const excluded = frameResume.excludedJuz;
+    setFullStartJuz((prev) =>
+      snapJuzOffExcluded(clampToGoal(prev), goalMinJuz, goalMaxJuz, excluded),
+    );
+    setFullEndJuz((prev) =>
+      snapJuzOffExcluded(clampToGoal(prev), goalMinJuz, goalMaxJuz, excluded),
+    );
+    setPartialJuz((prev) =>
+      snapJuzOffExcluded(clampToGoal(prev), goalMinJuz, goalMaxJuz, excluded),
+    );
+  }, [frameResume.excludedJuz, goalMaxJuz, goalMinJuz]);
 
   useEffect(() => {
     setStepIndex((index) => Math.min(index, Math.max(steps.length - 1, 0)));
   }, [steps.length]);
 
   useEffect(() => {
-    const maxAyat = getJuzVerseCountFromMap(partialJuz);
+    const maxAyat =
+      partialJuzVerseCount > 0
+        ? partialJuzVerseCount
+        : Math.max(minAyatStart, 1);
     const nextStart = Math.min(Math.max(minAyatStart, 1), maxAyat);
     setStartAyat(nextStart);
-    setEndAyat((prev) =>
-      Math.min(Math.max(prev, nextStart), maxAyat),
+    // After prior progress, park end at max so the back chevron slides left.
+    setEndAyat(
+      minAyatStart > 1
+        ? maxAyat
+        : Math.min(Math.max(nextStart, 1), maxAyat),
     );
-  }, [partialJuz, minAyatStart]);
+  }, [partialJuz, minAyatStart, partialJuzVerseCount]);
 
   useEffect(() => {
     if (committedLoggingType !== "both") return;
@@ -144,22 +334,31 @@ export default function QuranJuzLoggingFlow({
   const resetFlow = useCallback(() => {
     setFlowMode("collapsed");
     setStepIndex(0);
-    setSelectedDate(toDateString(new Date()));
-    setStartHour("06");
-    setStartMinute("15");
-    setStartPeriod("am");
+    const bounds = getQuranLoggingSelectableDateBounds(
+      quranFrame?.frame
+        ? getQuranFrameCycleStart(quranFrame.frame) || undefined
+        : undefined,
+      quranFrame?.frame
+        ? getQuranFrameCycleEnd(quranFrame.frame) || undefined
+        : undefined,
+      toDateString(new Date()),
+    );
+    setSelectedDate(bounds.maxSelectableDate);
+    const now = getCurrentStartTimeParts();
+    setStartHour(now.hour);
+    setStartMinute(now.minute);
+    setStartPeriod(now.period);
     setIsPeriodDropdownOpen(false);
     setLoggingType("full");
     setCommittedLoggingType("full");
-    setFullStartJuz(1);
-    setFullEndJuz(1);
-    setPartialJuz(1);
+    setFullStartJuz(goalMinJuz);
+    setFullEndJuz(goalMinJuz);
+    setPartialJuz(goalMinJuz);
     setStartAyat(1);
     setEndAyat(1);
     setFullDuration(createDefaultDuration());
     setPartialDuration(createDefaultDuration());
-  }, [setFlowMode]);
-
+  }, [goalMinJuz, quranFrame?.frame, setFlowMode]);
   const currentStep = steps[stepIndex];
   const isLastStep = stepIndex === steps.length - 1;
 
@@ -173,12 +372,26 @@ export default function QuranJuzLoggingFlow({
         case "completionType":
           return isValidCompletionType(loggingType);
         case "fullJuzRange":
-          return isValidJuzRange(fullStartJuz, fullEndJuz);
+          return (
+            isValidGoalJuzRange(
+              fullStartJuz,
+              fullEndJuz,
+              goalMinJuz,
+              goalMaxJuz,
+            ) &&
+            !frameResume.excludedJuz.some(
+              (juz) => juz >= fullStartJuz && juz <= fullEndJuz,
+            )
+          );
         case "partialJuz":
-          return isValidPartialJuzForType(
-            partialJuz,
-            committedLoggingType,
-            fullEndJuz,
+          return (
+            isValidPartialJuzForType(
+              partialJuz,
+              committedLoggingType,
+              fullEndJuz,
+              goalMinJuz,
+              goalMaxJuz,
+            ) && !frameResume.excludedJuz.includes(partialJuz)
           );
         case "ayatRange":
           return isValidJuzAyatRange(
@@ -186,6 +399,9 @@ export default function QuranJuzLoggingFlow({
             startAyat,
             endAyat,
             minAyatStart,
+            partialJuzVerseCount > 0
+              ? partialJuzVerseCount
+              : Math.max(endAyat, minAyatStart, 1),
           );
         case "timeSpentFull":
           return isValidTimeSpent(fullDuration.hours, fullDuration.minutes);
@@ -201,15 +417,19 @@ export default function QuranJuzLoggingFlow({
     [
       committedLoggingType,
       endAyat,
+      frameResume.excludedJuz,
       fullDuration.hours,
       fullDuration.minutes,
       fullEndJuz,
       fullStartJuz,
+      goalMaxJuz,
+      goalMinJuz,
       loggingType,
       minAyatStart,
       partialDuration.hours,
       partialDuration.minutes,
       partialJuz,
+      partialJuzVerseCount,
       selectedDate,
       startAyat,
       startHour,
@@ -218,7 +438,10 @@ export default function QuranJuzLoggingFlow({
     ],
   );
 
-  const canGoForward = !isLastStep && isStepValid(currentStep);
+  const canGoForward =
+    !isLastStep && isStepValid(currentStep) && !isLogging;
+  const canConfirm =
+    !isLogging && isLastStep && steps.every((step) => isStepValid(step));
 
   if (!flowDefinition) return null;
   if (embedded && flowMode !== "active") return null;
@@ -231,13 +454,17 @@ export default function QuranJuzLoggingFlow({
     selectedDate,
     todayString,
     t("progressLogging.today"),
+    t("progressLogging.tomorrow"),
   );
 
   const shiftDate = (direction: -1 | 1) => {
     const next = moment(selectedDate, "YYYY-MM-DD")
       .add(direction, "days")
       .format("YYYY-MM-DD");
-    if (direction === 1 && next > todayString) return;
+    if (minSelectableDate && direction === -1 && next < minSelectableDate) {
+      return;
+    }
+    if (direction === 1 && next > maxSelectableDate) return;
     setSelectedDate(next);
   };
 
@@ -259,15 +486,26 @@ export default function QuranJuzLoggingFlow({
     setStepIndex((index) => index + 1);
   };
 
+  const formatSessionStartTimeForApi = () => {
+    const hourNum = Number.parseInt(startHour || "0", 10) || 0;
+    const minuteNum = Number.parseInt(startMinute || "0", 10) || 0;
+    let hour24 = hourNum % 12;
+    if (startPeriod === "pm") hour24 += 12;
+    const hh = String(Math.max(0, hour24)).padStart(2, "0");
+    const mm = String(Math.max(0, minuteNum)).padStart(2, "0");
+    return `${hh}:${mm}`;
+  };
+
   const handleConfirm = () => {
     if (!isLastStep) {
       handleForward();
       return;
     }
 
-    if (!steps.every((step) => isStepValid(step))) return;
+    if (!canConfirm) return;
 
     const startTime = `${startHour}:${startMinute} ${startPeriod}`;
+    const sessionStartTime = formatSessionStartTimeForApi();
     const fullMinutes =
       (Number.parseInt(fullDuration.hours || "0", 10) || 0) * 60 +
       (Number.parseInt(fullDuration.minutes || "0", 10) || 0);
@@ -301,106 +539,120 @@ export default function QuranJuzLoggingFlow({
       targetJuzCount: config.targetJuzCount,
     };
 
-    appendJuzLog(buildJuzLogRecordFromEntry(entry));
-    onLogComplete?.(entry);
-    resetFlow();
+    const run = async () => {
+      const isJuzInGoal = (juz: number) =>
+        goalJuzRange.allowed
+          ? goalJuzRange.allowed.has(juz)
+          : juz >= goalMinJuz && juz <= goalMaxJuz;
+
+      const payloads: LogQuranRecitationJuzPayload[] = [];
+
+      if (committedLoggingType === "full" || committedLoggingType === "both") {
+        const start = clampJuz(fullStartJuz);
+        const end = clampJuz(fullEndJuz);
+        const juzNumbers: number[] = [];
+        for (let juz = start; juz <= end; juz += 1) {
+          if (isJuzInGoal(juz)) juzNumbers.push(juz);
+        }
+        const durations = splitDurationMinutes(fullMinutes, juzNumbers.length);
+        juzNumbers.forEach((juz, index) => {
+          const toAyah =
+            resolveApiJuzVerseCount({
+              juzNumber: juz,
+              items: quranFrame?.frame?.items,
+            }) ||
+            resolveApiJuzVerseCount({
+              juzNumber: juz,
+              items: juzGoalDetail?.items,
+            }) ||
+            getJuzVerseCountFromMap(juz);
+          payloads.push({
+            quranGoalType: "RECITATION_JUZ",
+            date: selectedDate,
+            sessionStartTime,
+            durationMinutes: durations[index] ?? 0,
+            itemType: "JUZ",
+            itemNumber: juz,
+            fromAyah: 1,
+            toAyah,
+          });
+        });
+      }
+
+      if (
+        (committedLoggingType === "partial" ||
+          committedLoggingType === "both") &&
+        isJuzInGoal(partialJuz)
+      ) {
+        payloads.push({
+          quranGoalType: "RECITATION_JUZ",
+          date: selectedDate,
+          sessionStartTime,
+          durationMinutes: partialMinutes,
+          itemType: "JUZ",
+          itemNumber: clampJuz(partialJuz),
+          fromAyah: startAyat,
+          toAyah: endAyat,
+        });
+      }
+
+      if (payloads.length === 0) return;
+
+      try {
+        await logRecitationJuz(payloads);
+        await quranFrame?.refetch();
+        appendJuzLog(buildJuzLogRecordFromEntry(entry));
+        onLogComplete?.(entry);
+        resetFlow();
+      } catch {
+        // Mutation onError already shows toast.
+      }
+    };
+
+    void run();
   };
 
   const getStepHeader = (step: QuranJuzStepId) => {
     switch (step) {
       case "date":
         return {
-          icon: (
-            <Ionicons
-              name="calendar-outline"
-              size={15}
-              color={Colors.light.white}
-            />
-          ),
+          icon: <CalendarFlippingIcon size={24} />,
           label: t("progressLogging.whichDay"),
         };
       case "startTime":
         return {
-          icon: (
-            <Ionicons
-              name="time-outline"
-              size={15}
-              color={Colors.light.white}
-            />
-          ),
+          icon: <WhiteClockIcon size={26} />,
           label: t("progressLogging.enterStartTime"),
         };
       case "completionType":
         return {
-          icon: (
-            <MaterialCommunityIcons
-              name="book-open-page-variant"
-              size={16}
-              color={Colors.light.white}
-            />
-          ),
+          icon: <QuranImageIcon color={Colors.light.white} size={24} />,
           label: t("progressLogging.completionTypeTitle"),
         };
       case "fullJuzRange":
         return {
-          icon: (
-            <MaterialCommunityIcons
-              name="book-open-variant"
-              size={16}
-              color={Colors.light.white}
-            />
-          ),
+          icon: <QuranImageIcon color={Colors.light.white} size={24} />,
           label: t("progressLogging.selectFullJuz"),
         };
       case "partialJuz":
         return {
-          icon: (
-            <MaterialCommunityIcons
-              name="book-open-variant"
-              size={16}
-              color={Colors.light.white}
-            />
-          ),
+          icon: <QuranImageIcon color={Colors.light.white} size={24} />,
           label: t("progressLogging.selectPartialJuz"),
         };
       case "ayatRange":
         return {
-          icon: (
-            <MaterialCommunityIcons
-              name="format-list-numbered"
-              size={16}
-              color={Colors.light.white}
-            />
-          ),
+          icon: <QuranImageIcon color={Colors.light.white} size={24} />,
           label: t("progressLogging.selectAyatRange"),
         };
       case "timeSpentFull":
         return {
-          icon: (
-            <MaterialCommunityIcons
-              name="history"
-              size={16}
-              color={Colors.light.white}
-            />
-          ),
-          label:
-            committedLoggingType === "both"
-              ? t("progressLogging.enterTimeSpentFullJuz")
-              : t("progressLogging.enterTimeSpent"),
+          icon: <WhiteTimerIcon size={26} />,
+          label: t("progressLogging.enterTimeSpent"),
         };
       case "timeSpentPartial":
         return {
-          icon: (
-            <MaterialCommunityIcons
-              name="history"
-              size={16}
-              color={Colors.light.white}
-            />
-          ),
-          label:
-            committedLoggingType === "partial"
-              ? t("progressLogging.enterTimeSpent")
-              : t("progressLogging.enterTimeSpentPartialJuz"),
+          icon: <WhiteTimerIcon size={26} />,
+          label: t("progressLogging.enterTimeSpent"),
         };
     }
   };
@@ -413,6 +665,8 @@ export default function QuranJuzLoggingFlow({
             dateLabel={dateLabel}
             selectedDate={selectedDate}
             todayString={todayString}
+            minSelectableDate={minSelectableDate}
+            maxSelectableDate={maxSelectableDate}
             onShiftDate={shiftDate}
             styles={styles}
           />
@@ -447,16 +701,50 @@ export default function QuranJuzLoggingFlow({
             onChangeStartJuz={setFullStartJuz}
             onChangeEndJuz={setFullEndJuz}
             styles={styles}
+            minJuz={goalMinJuz}
+            maxJuz={goalMaxJuz}
+            excludedJuz={frameResume.excludedJuz}
           />
         );
       case "partialJuz":
         return (
-          <JuzStepper
-            value={partialJuz}
-            min={minPartialJuz}
-            onChange={setPartialJuz}
-            styles={styles}
-          />
+          <View style={{ marginTop: 20, width: "100%", gap: 2 }}>
+            <View style={{ alignItems: "center" }}>
+              <JuzStepper
+                value={partialJuz}
+                min={minPartialJuz}
+                max={goalMaxJuz}
+                excluded={frameResume.excludedJuz}
+                onChange={setPartialJuz}
+                styles={styles}
+              />
+            </View>
+            <Text
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.7}
+              style={{
+                width: "100%",
+                color: Colors.light.white,
+                fontSize: 9.5,
+                lineHeight: 14,
+                // Always reserve 2-line height so the stepper doesn't shift
+                // when the range label fits on one line (e.g. j11 vs j10).
+                minHeight: 28,
+                fontFamily: fonts.primary.medium,
+                fontWeight: "500",
+                textAlign: "center",
+                opacity: 0.6,
+              }}
+            >
+              {(() => {
+                const meta = getJuzVerseMetadata(partialJuz);
+                return `${meta.rangeLabel} (${formatNumber(meta.totalVerses)} ${t(
+                  "progressLogging.versesCountLabel",
+                )})`;
+              })()}
+            </Text>
+          </View>
         );
       case "ayatRange":
         return (
@@ -465,6 +753,12 @@ export default function QuranJuzLoggingFlow({
             startAyat={startAyat}
             endAyat={endAyat}
             minStartAyat={minAyatStart}
+            freezeStartHandle
+            verseCount={
+              partialJuzVerseCount > 0
+                ? partialJuzVerseCount
+                : Math.max(endAyat, minAyatStart, 1)
+            }
             onChangeStartAyat={setStartAyat}
             onChangeEndAyat={setEndAyat}
             styles={styles}
@@ -514,10 +808,15 @@ export default function QuranJuzLoggingFlow({
         onForward={handleForward}
         onConfirm={handleConfirm}
         canGoForward={canGoForward}
+        canGoBack={stepIndex > 0 && !isLogging}
+        canConfirm={canConfirm}
         styles={styles}
         style={styles.inPlaceFlowCard}
         contentStyle={
           isAyahRangeStep ? styles.flowContentAyahRange : undefined
+        }
+        headerStyle={
+          isAyahRangeStep ? styles.flowHeaderAyahRange : undefined
         }
       >
         {renderStepContent(currentStep)}
@@ -531,7 +830,7 @@ export default function QuranJuzLoggingFlow({
 
   const flowLayer = (
     <>
-      {showOverlay && <Pressable style={styles.backdrop} onPress={resetFlow} />}
+      {showOverlay && <Pressable style={styles.backdrop} />}
       {showOverlay && (
         <TouchableOpacity
           style={styles.cancelButton}
@@ -543,49 +842,47 @@ export default function QuranJuzLoggingFlow({
       )}
 
       {flowMode === "collapsed" && !hideCollapsedSummary ? (
-        <View style={styles.summaryCard}>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>
-              {t("progressLogging.inProgress")}
-            </Text>
-          </View>
-
-          <View style={styles.summaryBody}>
-            <View style={styles.summaryIconCircle}>
-              <MaterialCommunityIcons
-                name="book-open-page-variant"
-                size={20}
+        <View style={[surahGoalStyles.card, surahGoalStyles.cardActive]}>
+          <View style={surahGoalStyles.bodyRow}>
+            <View style={surahGoalStyles.iconCircle}>
+              <QuranRecitationBySurahFlowCardImage
+                size={25}
                 color={Colors.light.white}
               />
             </View>
-            <View style={styles.summaryTextBlock}>
-              <Text style={styles.summaryTitle}>
-                {t("progressLogging.juzGoalTitle", {
-                  completed: formatNumber(config.completedJuzCount),
-                  target: formatNumber(config.targetJuzCount),
-                  defaultValue: goalData.title,
-                })}
-              </Text>
-              <Text style={styles.summarySubtext}>
-                <Text style={styles.summarySubtextRegular}>
-                  ({t("progressLogging.total")}{" "}
+            <View style={surahGoalStyles.textColumn}>
+              <View style={surahGoalStyles.statusChip}>
+                <Text style={surahGoalStyles.statusChipText}>
+                  {t("progressLogging.inProgress")}
                 </Text>
-                <Text style={styles.summarySubtextBold}>
-                  {formatNumber(config.targetJuzCount)}{" "}
+              </View>
+              <View style={surahGoalStyles.textLines}>
+                <Text style={surahGoalStyles.surahName} numberOfLines={2}>
+                  {t("progressLogging.juzGoalTitle", {
+                    completed: formatNumber(config.completedJuzCount),
+                    target: formatNumber(config.targetJuzCount),
+                    defaultValue: goalData.title,
+                  })}
                 </Text>
-                <Text style={styles.summarySubtextRegular}>
-                  {t("progressLogging.unitJuz")})
+                <Text style={surahGoalStyles.metaRegular}>
+                  {`(total `}
+                  <Text style={surahGoalStyles.metaBold}>
+                    {formatNumber(config.targetJuzCount)}
+                  </Text>
+                  {` ${t("progressLogging.unitJuz")})`}
                 </Text>
-              </Text>
+              </View>
             </View>
           </View>
 
+          <View style={surahGoalStyles.footerRow} />
+
           <TouchableOpacity
-            style={styles.addButton}
+            style={surahGoalStyles.addButtonIconOnly}
             onPress={() => setFlowMode("active")}
             activeOpacity={0.8}
           >
-            <Ionicons name="add" size={22} color={Colors.light.white} />
+            <AddLoggingFlowIcon size={32} />
           </TouchableOpacity>
         </View>
       ) : (

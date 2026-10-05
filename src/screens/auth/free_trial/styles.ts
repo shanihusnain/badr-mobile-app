@@ -32,7 +32,7 @@ export const styles = StyleSheet.create({
   },
 
   secondarytext: {
-    color: Colors.dark.text,
+    color: Colors.light.white,
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
     fontSize: hp(1.8),
@@ -50,7 +50,7 @@ export const styles = StyleSheet.create({
 
   subtitletext: {
     width: "100%",
-    color: Colors.dark.text,
+    color: Colors.light.white,
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
     fontSize: 14,
@@ -65,7 +65,7 @@ export const styles = StyleSheet.create({
   pointText: {
     width: 307,
     height: 40,
-    color: Colors.dark.text,
+    color: Colors.light.white,
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
     fontSize: hp(1.71),

@@ -21,14 +21,20 @@ export type JuzMemorisationStatusKind =
 
 export type JuzMemorisationGoal = {
   id: string;
+  /** Juz number — frame API `itemNumber`. */
+  itemNumber?: number;
   juzNumber: number;
   juzName: string;
   endLabel: string;
   rangeLabel: string;
+  displayName?: string;
+  subtitle?: string;
+  pillLabel?: string;
   totalAyahs: number;
   memorizedAyahs: number;
   progressPercentage: number;
   completed: boolean;
+  canLog?: boolean;
   status: JuzMemorisationStatusKind;
 };
 
@@ -58,10 +64,14 @@ function buildGoal(definition: JuzDefinition): JuzMemorisationGoal {
 
   return {
     id: definition.id,
+    itemNumber: definition.juzNumber,
     juzNumber: definition.juzNumber,
     juzName: definition.juzName,
     endLabel: definition.endLabel,
     rangeLabel: definition.rangeLabel,
+    displayName: definition.rangeLabel
+      ? `${definition.juzName} | ${definition.rangeLabel}`
+      : definition.juzName,
     totalAyahs,
     memorizedAyahs,
     progressPercentage,
@@ -123,5 +133,6 @@ export function toJuzMemorisationTargetConfig(goal: JuzMemorisationGoal) {
     juzName: goal.juzName,
     juzNumber: goal.juzNumber,
     totalAyahs: goal.totalAyahs,
+    memorizedAyahs: goal.memorizedAyahs,
   };
 }

@@ -19,7 +19,7 @@ export const teamProfileStyles = StyleSheet.create({
     height: 200,
   },
   bannerGradient: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   tabsRow: {
     position: "absolute",
@@ -72,11 +72,11 @@ export const teamProfileStyles = StyleSheet.create({
     marginTop: -48,
   },
   dropdownLayer: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     zIndex: 20,
   },
   dropdownBackdrop: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: "transparent",
   },
   dropdownAnchor: {

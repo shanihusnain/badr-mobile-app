@@ -52,4 +52,9 @@ export const styles = StyleSheet.create({
     fontFamily: fonts.primary.medium,
     flexWrap: "wrap",
   },
+  introVideoScreen: {
+    flex: 1,
+    paddingTop: 24,
+    paddingBottom: 16,
+  },
 });

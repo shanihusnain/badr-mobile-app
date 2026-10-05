@@ -12,6 +12,8 @@ export type SurahRecitationStatusKind =
 
 export type SurahRecitationGoal = {
   id: string;
+  /** Quran surah number for frame/detail APIs. */
+  itemNumber?: number;
   surahName: string;
   frequency: RecitationFrequency;
   quantity: number;
@@ -19,6 +21,10 @@ export type SurahRecitationGoal = {
   cycleTotal: number;
   status: SurahRecitationStatusKind;
   achievementPercent?: number;
+  pillLabel?: string;
+  subtitle?: string;
+  canLog?: boolean;
+  completed?: boolean;
 };
 
 function buildGoal(
@@ -93,9 +99,13 @@ export function getSurahRecitationGoalById(
 export function toSurahTargetConfig(
   goal: SurahRecitationGoal,
 ): QuranRecitationTargetConfig {
+  const fromId = Number(goal.id);
   return {
     surahName: goal.surahName,
     frequency: goal.frequency,
     quantity: goal.quantity,
+    itemNumber:
+      goal.itemNumber ??
+      (Number.isFinite(fromId) && fromId > 0 ? fromId : undefined),
   };
 }

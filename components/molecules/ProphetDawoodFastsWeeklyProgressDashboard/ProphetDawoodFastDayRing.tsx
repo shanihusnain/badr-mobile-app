@@ -5,40 +5,59 @@ import { Colors } from "@/constants/theme";
 import type { ProphetDawoodFastDayState } from "@/src/screens/private/goalprogressloggingscreen/prophetDawoodFastsWeeklyData";
 
 type RingVisual = {
-  variant: "outline" | "solid";
+  variant: "outline" | "solid" | "menstruating";
   borderColor: string;
   backgroundColor: string;
   opacity?: number;
   showWarning?: boolean;
+  blur?: boolean;
 };
 
-function getRingVisual(state: ProphetDawoodFastDayState): RingVisual {
+function getRingVisual(
+  state: ProphetDawoodFastDayState,
+  isMenstruating: boolean,
+): RingVisual {
+  // Menstruating overrides fill: blue ring + red inner (planned or not).
+  if (isMenstruating && state !== "goalAchieved") {
+    return {
+      variant: "menstruating",
+      borderColor: Colors.light.ringDawood,
+      backgroundColor: Colors.light.red,
+    };
+  }
+
   switch (state) {
-    case "inactive":
+    case "future":
       return {
         variant: "outline",
         borderColor: Colors.light.grey,
         backgroundColor: "transparent",
       };
-    case "upcoming":
-      return {
-        variant: "outline",
-        borderColor: Colors.light.ringDawood,
-        backgroundColor: "transparent",
-      };
     case "today":
-    case "completed":
-      return {
-        variant: "solid",
-        borderColor: Colors.light.ringDawood,
-        backgroundColor: Colors.light.ringDawood,
-      };
     case "todayDisabled":
       return {
         variant: "outline",
         borderColor: Colors.light.grey,
         backgroundColor: "transparent",
-        opacity: 0.45,
+      };
+    case "pastNeutral":
+      return {
+        variant: "solid",
+        borderColor: "rgba(255, 255, 255, 0.18)",
+        backgroundColor: "rgba(255, 255, 255, 0.18)",
+      };
+    case "planned":
+    case "plannedToday":
+      return {
+        variant: "outline",
+        borderColor: Colors.light.ringDawood,
+        backgroundColor: "transparent",
+      };
+    case "completed":
+      return {
+        variant: "solid",
+        borderColor: Colors.light.ringDawood,
+        backgroundColor: Colors.light.ringDawood,
       };
     case "missed":
       return {
@@ -46,6 +65,14 @@ function getRingVisual(state: ProphetDawoodFastDayState): RingVisual {
         borderColor: Colors.light.ringDawood,
         backgroundColor: "transparent",
         showWarning: true,
+      };
+    case "goalAchieved":
+      return {
+        variant: "outline",
+        borderColor: Colors.light.calendarBg,
+        backgroundColor: "transparent",
+        opacity: 0.35,
+        blur: true,
       };
     default:
       return {
@@ -59,20 +86,28 @@ function getRingVisual(state: ProphetDawoodFastDayState): RingVisual {
 type Props = {
   size: number;
   state: ProphetDawoodFastDayState;
+  isMenstruating?: boolean;
 };
 
-export function ProphetDawoodFastDayRing({ size, state }: Props) {
-  const visual = getRingVisual(state);
+export function ProphetDawoodFastDayRing({
+  size,
+  state,
+  isMenstruating = false,
+}: Props) {
+  const visual = getRingVisual(state, isMenstruating);
   const borderWidth = 1.5;
+  const wrapperStyle = [
+    styles.wrapper,
+    {
+      width: size + 4,
+      height: size + 4,
+      opacity: visual.opacity,
+    },
+  ];
 
   if (visual.variant === "solid") {
     return (
-      <View
-        style={[
-          styles.wrapper,
-          { width: size + 4, height: size + 4, opacity: visual.opacity },
-        ]}
-      >
+      <View style={wrapperStyle}>
         <View
           style={{
             width: size,
@@ -87,13 +122,38 @@ export function ProphetDawoodFastDayRing({ size, state }: Props) {
     );
   }
 
+  if (visual.variant === "menstruating") {
+    const innerSize = Math.max(size - borderWidth * 2 - 2, size * 0.62);
+    return (
+      <View style={wrapperStyle}>
+        <View
+          style={[
+            styles.ring,
+            {
+              width: size,
+              height: size,
+              borderRadius: size / 2,
+              borderWidth,
+              borderColor: visual.borderColor,
+              backgroundColor: "transparent",
+            },
+          ]}
+        >
+          <View
+            style={{
+              width: innerSize,
+              height: innerSize,
+              borderRadius: innerSize / 2,
+              backgroundColor: visual.backgroundColor,
+            }}
+          />
+        </View>
+      </View>
+    );
+  }
+
   return (
-    <View
-      style={[
-        styles.wrapper,
-        { width: size + 4, height: size + 4, opacity: visual.opacity },
-      ]}
-    >
+    <View style={wrapperStyle}>
       <View
         style={[
           styles.ring,

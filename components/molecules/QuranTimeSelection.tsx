@@ -4,9 +4,9 @@ import {
   LayoutAnimation,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from "react-native";
+import { BottomSheetTextInput } from "@gorhom/bottom-sheet";
 import { GoalSelectionOpenCloseButton } from "./GoalSelectionOpenCloseButton";
 import { Divider } from "../atoms/Divider";
 import { TopSpace } from "../atoms/TopSpace";
@@ -28,6 +28,7 @@ export const QuranTimeSelection = ({
   quranGoalType,
   isSaving = false,
   openOnMount = false,
+  onInputFocus,
 }: {
   title: string;
   /** i18n key with `_one` / `_other` plural forms (pass count via input). */
@@ -36,9 +37,14 @@ export const QuranTimeSelection = ({
   quranGoalType?: "LISTENING" | "TAJWEED";
   isSaving?: boolean;
   openOnMount?: boolean;
+  /** Scroll parent list so this input stays visible above the keyboard. */
+  onInputFocus?: () => void;
 }) => {
   const { t } = useTranslation();
-  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount);
+  const [isOpen, setIsOpen] = useGoalSelectionOpenState(
+    openOnMount,
+    onInputFocus,
+  );
   const [inputValue, setInputValue] = useState<string>("");
   const [hydrated, setHydrated] = useState(false);
 
@@ -101,7 +107,7 @@ export const QuranTimeSelection = ({
               <Text style={styles.header}>Enter up to {MAX_HOURS} hours.</Text>
               <TopSpace top={12} />
               <View style={styles.outerRow}>
-                <TextInput
+                <BottomSheetTextInput
                   value={inputValue}
                   onChangeText={handleHoursChange}
                   keyboardType="numeric"
@@ -109,6 +115,7 @@ export const QuranTimeSelection = ({
                   placeholderTextColor={Colors.light.white}
                   maxLength={3}
                   textAlignVertical="center"
+                  onFocus={onInputFocus}
                   style={[
                     styles.hoursInput,
                     inputValue.trim().length > 0 && styles.hoursInputFilled,
@@ -136,7 +143,9 @@ export const QuranTimeSelection = ({
                   const handleSaved = () => {
                     markSaved?.();
                     setTimeout(() => {
-                      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                      LayoutAnimation.configureNext(
+                        LayoutAnimation.Presets.easeInEaseOut,
+                      );
                       setIsOpen(false);
                     }, 2000);
                   };
@@ -172,7 +181,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     textAlign: "center",
     borderWidth: 1,
-    borderColor: Colors.light.white,
+    borderColor: "rgba(255, 255, 255, 0.35)",
     backgroundColor: "transparent",
     borderRadius: 4,
     color: Colors.light.white,

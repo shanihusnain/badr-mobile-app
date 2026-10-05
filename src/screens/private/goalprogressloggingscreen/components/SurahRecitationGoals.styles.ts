@@ -22,6 +22,13 @@ export const surahGoalStyles = StyleSheet.create({
     elevation: 12,
     overflow: "visible",
   },
+  frequencyText: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.regular,
+    fontWeight: "400",
+    fontSize: 13,
+    lineHeight: 18,
+  },
   // Matches TahiyatUlWudhuLoggingFlow `summaryCard`
   card: {
     backgroundColor: Colors.light.green,
@@ -55,7 +62,7 @@ export const surahGoalStyles = StyleSheet.create({
     backgroundColor: Colors.light.selectcategory,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 32,
+    marginTop: 33,
   },
   textColumn: {
     flex: 1,
@@ -69,6 +76,14 @@ export const surahGoalStyles = StyleSheet.create({
     paddingVertical: 4,
     marginTop: 3,
   },
+  statusChipAchieved: {
+    alignSelf: "flex-start",
+    backgroundColor: Colors.light.lightgreenbadgecolor,
+    borderRadius: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    marginTop: 3,
+  },
   statusChipText: {
     color: Colors.light.darkblue,
     fontFamily: fonts.primary.medium,
@@ -76,8 +91,22 @@ export const surahGoalStyles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 12.5,
   },
+  statusChipTextAchieved: {
+    color: Colors.light.green,
+    fontFamily: fonts.primary.medium,
+    fontWeight: "500",
+    fontSize: 12,
+    lineHeight: 12.5,
+  },
   textLines: {
     gap: 2,
+  },
+  /** Matches Istikhara `footerRow` — keeps space-between layout consistent. */
+  footerRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    marginTop: 4,
+    minHeight: 1,
   },
   // Matches Tahiyat `summaryTitle`
   surahName: {
@@ -120,6 +149,53 @@ export const surahGoalStyles = StyleSheet.create({
     borderColor: Colors.light.white,
     alignItems: "center",
     justifyContent: "center",
+  },
+  /** For `AddLoggingFlowIcon` which already draws its own ring — matches Istikhara addButton. */
+  addButtonIconOnly: {
+    position: "absolute",
+    right: 16,
+    bottom: 15,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  insightsBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingBottom: 4,
+    zIndex: 2,
+  },
+  insightsText: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.bold,
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  addButtonDisabled: {
+    opacity: 0.35,
+  },
+});
+
+export const flowCardCarouselDotsStyles = StyleSheet.create({
+  dotsRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 6,
+    marginTop: 18,
+    paddingHorizontal: 16,
+  },
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  dotActive: {
+    backgroundColor: Colors.light.green,
+  },
+  dotInactive: {
+    backgroundColor: Colors.light.paginationInactiveDot,
   },
 });
 

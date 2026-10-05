@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
   },
   pointText: {
     flex: 1,
-    color: Colors.dark.text,
+    color: Colors.light.white,
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
     fontSize: 14,

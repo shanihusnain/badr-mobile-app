@@ -18,6 +18,7 @@ import { CalendarGrid } from "./CalendarGrid";
 import type { FastingCalendarWindow } from "@/src/utils/fastingCalendarPreview";
 import { useUpsertFastingGoals } from "@/src/api/mutations/useUpsertFastingGoals";
 import { TopSpace } from "../atoms/TopSpace";
+import { useTranslation } from "react-i18next";
 
 export default function ProphetDawoodFastGoalSelection({
   calendarWindow,
@@ -28,6 +29,7 @@ export default function ProphetDawoodFastGoalSelection({
   onSave?: (dawoodStartDay: 1 | 2) => void;
   openOnMount?: boolean;
 }) {
+  const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
   const { mutate: upsertFastingGoal, isPending } = useUpsertFastingGoals();
   const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount);
@@ -196,7 +198,9 @@ export default function ProphetDawoodFastGoalSelection({
           {/* Value/Count text */}
           <Text style={styles.valueText}>
             {formatNumber(fastCount)}
-            <Text style={styles.whiteText}> Prophet Dawood (AS) Fasts</Text>
+            <Text style={styles.whiteText}>
+              {t("monthlyGoalPlanner.dawoodFastSuffix", { count: fastCount })}
+            </Text>
           </Text>
 
           {/* Save Button */}

@@ -461,13 +461,15 @@ export function QuranHoursPastAchievementChartBlock({
   const plotLeft = chartBounds?.left ?? 48;
   const plotRight = chartBounds?.right ?? 280;
 
-  // Y-axis is derived from bar heights — hide it when there is nothing to plot.
+  // Keep x-axis date slots even when all bars are empty (0 completed/incomplete).
+  const hasChartSlots = chartData.length > 0;
   const hasGraphData = chartData.some(
     (item) =>
       (Number(item.stackTotalHours) || 0) > 0 ||
       (Number(item.completedHours) || 0) > 0 ||
       (Number(item.incompleteHours) || 0) > 0,
   );
+  const plotChartData = hasChartSlots ? chartData : [];
   // Qiyam nights line — only draw when at least one point has a real value.
   const hasBarLineData = chartData.some((item) => {
     const lineValue = (item as QuranPastChartItem & { lineValue?: number })
@@ -493,75 +495,69 @@ export function QuranHoursPastAchievementChartBlock({
           style={styles.chartContainer}
           onLayout={(e) => setChartContainerHeight(e.nativeEvent.layout.height)}
         >
-          <CartesianChart
-            key={chartKey}
-            data={chartData}
-            xKey="xLabel"
-            yKeys={["completedHours", "incompleteHours"]}
-            domain={{ y: [0, hasGraphData ? yMax : 1] }}
-            padding={{ left: 0, right: 10, top: 22, bottom: 4 }}
-            domainPadding={{ left: 48, right: 28, top: 10 }}
-            xAxis={{
-              font: axisFont,
-              formatXLabel: () => "",
-              lineColor: "transparent",
-              labelColor: "transparent",
-            }}
-            yAxis={
-              hasGraphData
-                ? [
-                    {
-                      font: axisFont,
-                      tickValues: yTicks,
-                      formatYLabel: (value) => String(value),
-                      labelColor: Colors.light.grey,
-                      lineColor: "rgba(160, 160, 160, 0.25)",
-                      lineWidth: 1,
-                    },
-                  ]
-                : [
-                    {
-                      font: axisFont,
-                      tickValues: [],
-                      formatYLabel: () => "",
-                      labelColor: "transparent",
-                      lineColor: "transparent",
-                      lineWidth: 0,
-                    },
-                  ]
-            }
-            frame={{ lineColor: "transparent" }}
-          >
-            {({ points, chartBounds: bounds }) => {
-              syncBarLabelPositions(
-                points.completedHours.map((point) => point.x ?? 0),
-              );
-              queueMicrotask(() => {
-                setChartBounds((prev) =>
-                  prev?.top === bounds.top &&
-                  prev?.bottom === bounds.bottom &&
-                  prev?.left === bounds.left &&
-                  prev?.right === bounds.right
-                    ? prev
-                    : bounds,
+          {hasChartSlots ? (
+            <CartesianChart
+              key={chartKey}
+              data={plotChartData}
+              xKey="xLabel"
+              yKeys={["completedHours", "incompleteHours"]}
+              domain={{ y: [0, yMax] }}
+              padding={{ left: 0, right: 10, top: 22, bottom: 4 }}
+              domainPadding={{ left: 48, right: 28, top: 10 }}
+              xAxis={{
+                font: axisFont,
+                formatXLabel: () => "",
+                lineColor: "transparent",
+                labelColor: "transparent",
+              }}
+              yAxis={[
+                {
+                  font: axisFont,
+                  tickValues: hasGraphData ? yTicks : [],
+                  formatYLabel: (value) =>
+                    hasGraphData ? String(value) : "",
+                  labelColor: hasGraphData
+                    ? Colors.light.grey
+                    : "transparent",
+                  lineColor: hasGraphData
+                    ? "rgba(160, 160, 160, 0.25)"
+                    : "transparent",
+                  lineWidth: hasGraphData ? 1 : 0,
+                },
+              ]}
+              frame={{ lineColor: "transparent" }}
+            >
+              {({ points, chartBounds: bounds }) => {
+                syncBarLabelPositions(
+                  points.completedHours.map((point) => point.x ?? 0),
                 );
-              });
+                queueMicrotask(() => {
+                  setChartBounds((prev) =>
+                    prev?.top === bounds.top &&
+                    prev?.bottom === bounds.bottom &&
+                    prev?.left === bounds.left &&
+                    prev?.right === bounds.right
+                      ? prev
+                      : bounds,
+                  );
+                });
 
-              return (
-                <ChartStackedBars
-                  completedPoints={points.completedHours}
-                  incompletePoints={points.incompleteHours}
-                  chartBounds={bounds}
-                  selectedBarIndex={selectedBarIndex}
-                  barCount={chartData.length}
-                  chartKey={chartKey}
-                  colors={barColors}
-                />
-              );
-            }}
-          </CartesianChart>
+                return (
+                  <ChartStackedBars
+                    completedPoints={points.completedHours}
+                    incompletePoints={points.incompleteHours}
+                    chartBounds={bounds}
+                    selectedBarIndex={selectedBarIndex}
+                    barCount={plotChartData.length}
+                    chartKey={chartKey}
+                    colors={barColors}
+                  />
+                );
+              }}
+            </CartesianChart>
+          ) : null}
 
-          {barCenterXs.length > 0 ? (
+          {hasGraphData && barCenterXs.length > 0 ? (
             <BarHitAreas
               barCenterXs={barCenterXs}
               onBarPress={(index) => onBarPress(index)}
@@ -569,10 +565,10 @@ export function QuranHoursPastAchievementChartBlock({
             />
           ) : null}
 
-          {chartBounds ? (
+          {hasGraphData && chartBounds ? (
             <BarValueLabels
               barCenterXs={barCenterXs}
-              chartData={chartData}
+              chartData={plotChartData}
               selectedBarIndex={selectedBarIndex}
               chartBounds={chartBounds}
               yMax={yMax}
@@ -590,7 +586,7 @@ export function QuranHoursPastAchievementChartBlock({
         barCenterXs.length > 0 ? (
           <BarConnectorLine
             barCenterXs={barCenterXs}
-            chartData={chartData}
+            chartData={plotChartData}
             chartBounds={chartBounds}
             yMax={yMax}
             selectedBarIndex={selectedBarIndex}
@@ -616,13 +612,15 @@ export function QuranHoursPastAchievementChartBlock({
         ) : null}
       </View>
 
-      <XAxisLabels
-        barCenterXs={barCenterXs}
-        chartData={chartData}
-        selectedBarIndex={selectedBarIndex}
-        plotLeft={plotLeft}
-        plotRight={plotRight}
-      />
+      {hasChartSlots ? (
+        <XAxisLabels
+          barCenterXs={barCenterXs}
+          chartData={plotChartData}
+          selectedBarIndex={selectedBarIndex}
+          plotLeft={plotLeft}
+          plotRight={plotRight}
+        />
+      ) : null}
 
       {showPagination && isPrayerGoal && selectedBarIndex !== null ? (
         <View style={{ marginTop: 3, paddingHorizontal: 8 }}>
@@ -647,7 +645,7 @@ export function QuranHoursPastAchievementChartBlock({
         </View>
       ) : null}
 
-      {showPagination && !isPrayerGoal ? (
+      {showPagination && !isPrayerGoal && hasGraphData && pageCount > 0 ? (
         <View style={styles.paginationRow}>
           {Array.from({ length: pageCount }, (_, index) => (
             <View

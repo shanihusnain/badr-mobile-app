@@ -11,7 +11,6 @@ import { fonts } from "@/assets/fonts";
 import { CalendarGrid } from "@/components/molecules/CalendarGrid";
 import {
   getFastingLegendItems,
-  getSelectableMonThuDates,
   getFastingCollisionDates,
   type FastingCalendarWindow,
 } from "@/src/utils/fastingCalendarPreview";
@@ -81,10 +80,10 @@ export const MonThuCalendar = ({
   );
 
   const [selectedDates, setSelectedDates] = useState<Set<string>>(() => {
+    // Only hydrate previously saved plans — do not pre-select all Mon/Thu days.
     const planned =
       initialSelectedDates ?? calendarWindow?.monThuPlannedDates ?? [];
-    if (planned.length > 0) return new Set(planned);
-    return new Set(getSelectableMonThuDates(calendarWindow));
+    return new Set(planned);
   });
 
   // Hydrate from server-planned dates when calendar preview updates

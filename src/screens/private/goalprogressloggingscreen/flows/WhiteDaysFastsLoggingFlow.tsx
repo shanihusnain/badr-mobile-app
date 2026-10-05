@@ -11,11 +11,18 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "@/constants/theme";
 import { GoalData } from "../../home/components/goalsData";
 import { FlowCard } from "../components/FlowCard";
-import { StartTimeStep } from "../components/TimePickerSteps";
+import {
+  StartTimeStep,
+  getCurrentStartTimeParts,
+} from "../components/TimePickerSteps";
 import { WhiteDaysFastDateStep } from "../components/WhiteDaysFastDateStep";
 
-import { styles as commonStyles } from "../components/DailyProgressLogging.styles";
+import {
+  FLOW_CARD_HEIGHT,
+  styles as commonStyles,
+} from "../components/DailyProgressLogging.styles";
 import { fonts } from "@/assets/fonts";
+import { AddLoggingFlowIcon } from "@/assets/icons";
 import { isValidStartTime } from "../quranRecitationTarget";
 import {
   formatWhiteDaysFastDateLabel,
@@ -60,14 +67,26 @@ export default function WhiteDaysFastsLoggingFlow({
   const [refreshKey, setRefreshKey] = useState(0);
   const [insightsVisible, setInsightsVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState("");
-  const [startHour, setStartHour] = useState("5");
-  const [startMinute, setStartMinute] = useState("00");
-  const [startPeriod, setStartPeriod] = useState<"am" | "pm">("am");
+  const [startHour, setStartHour] = useState(
+    () => getCurrentStartTimeParts().hour,
+  );
+  const [startMinute, setStartMinute] = useState(
+    () => getCurrentStartTimeParts().minute,
+  );
+  const [startPeriod, setStartPeriod] = useState<"am" | "pm">(
+    () => getCurrentStartTimeParts().period,
+  );
   const [isStartPeriodDropdownOpen, setIsStartPeriodDropdownOpen] =
     useState(false);
-  const [endHour, setEndHour] = useState("5");
-  const [endMinute, setEndMinute] = useState("30");
-  const [endPeriod, setEndPeriod] = useState<"am" | "pm">("pm");
+  const [endHour, setEndHour] = useState(
+    () => getCurrentStartTimeParts().hour,
+  );
+  const [endMinute, setEndMinute] = useState(
+    () => getCurrentStartTimeParts().minute,
+  );
+  const [endPeriod, setEndPeriod] = useState<"am" | "pm">(
+    () => getCurrentStartTimeParts().period,
+  );
   const [isEndPeriodDropdownOpen, setIsEndPeriodDropdownOpen] = useState(false);
 
   const today = getTodayDateString();
@@ -140,7 +159,6 @@ export default function WhiteDaysFastsLoggingFlow({
     if (!selectedDate) return "";
     const raw = formatWhiteDaysFastDateLabel(selectedDate, today);
     if (raw === "Today") return t("progressLogging.today");
-    if (raw === "Yesterday") return t("progressLogging.yesterday");
     return raw;
   }, [selectedDate, t, today]);
 
@@ -178,20 +196,25 @@ export default function WhiteDaysFastsLoggingFlow({
     endPeriod,
   );
 
+  const applyCurrentTimeDefaults = useCallback(() => {
+    const now = getCurrentStartTimeParts();
+    setStartHour(now.hour);
+    setStartMinute(now.minute);
+    setStartPeriod(now.period);
+    setEndHour(now.hour);
+    setEndMinute(now.minute);
+    setEndPeriod(now.period);
+  }, []);
+
   const resetFlow = useCallback(() => {
     setFlowMode("collapsed");
     setStepIndex(0);
     setSelectedDate("");
-    setStartHour("5");
-    setStartMinute("00");
-    setStartPeriod("am");
-    setEndHour("5");
-    setEndMinute("30");
-    setEndPeriod("pm");
+    applyCurrentTimeDefaults();
     setIsStartPeriodDropdownOpen(false);
     setIsEndPeriodDropdownOpen(false);
     onDropdownOpenChange?.(false);
-  }, [onDropdownOpenChange]);
+  }, [applyCurrentTimeDefaults, onDropdownOpenChange]);
 
   const handleConfirm = useCallback(() => {
     if (!selectedDate) return;
@@ -255,9 +278,10 @@ export default function WhiteDaysFastsLoggingFlow({
 
   const handleOpenFlow = useCallback(() => {
     if (goalCompleted) return;
+    applyCurrentTimeDefaults();
     setStepIndex(0);
     setFlowMode("active");
-  }, [goalCompleted]);
+  }, [applyCurrentTimeDefaults, goalCompleted]);
 
   const getStepHeader = (step: WhiteDaysFastsStepId) => {
     const calendarIcon = (
@@ -300,31 +324,41 @@ export default function WhiteDaysFastsLoggingFlow({
         );
       case "startTime":
         return (
-          <StartTimeStep
-            startHour={startHour}
-            setStartHour={setStartHour}
-            startMinute={startMinute}
-            setStartMinute={setStartMinute}
-            startPeriod={startPeriod}
-            setStartPeriod={setStartPeriod}
-            isPeriodDropdownOpen={isStartPeriodDropdownOpen}
-            setIsPeriodDropdownOpen={setIsStartPeriodDropdownOpen}
-            styles={commonStyles}
-          />
+          <View style={localStyles.timeStepWrap}>
+            <Text style={localStyles.timeSectionLabel}>
+              {t("progressLogging.whiteDaysStartTimeLabel")}
+            </Text>
+            <StartTimeStep
+              startHour={startHour}
+              setStartHour={setStartHour}
+              startMinute={startMinute}
+              setStartMinute={setStartMinute}
+              startPeriod={startPeriod}
+              setStartPeriod={setStartPeriod}
+              isPeriodDropdownOpen={isStartPeriodDropdownOpen}
+              setIsPeriodDropdownOpen={setIsStartPeriodDropdownOpen}
+              styles={commonStyles}
+            />
+          </View>
         );
       case "endTime":
         return (
-          <StartTimeStep
-            startHour={endHour}
-            setStartHour={setEndHour}
-            startMinute={endMinute}
-            setStartMinute={setEndMinute}
-            startPeriod={endPeriod}
-            setStartPeriod={setEndPeriod}
-            isPeriodDropdownOpen={isEndPeriodDropdownOpen}
-            setIsPeriodDropdownOpen={setIsEndPeriodDropdownOpen}
-            styles={commonStyles}
-          />
+          <View style={localStyles.timeStepWrap}>
+            <Text style={localStyles.timeSectionLabel}>
+              {t("progressLogging.whiteDaysEndTimeLabel")}
+            </Text>
+            <StartTimeStep
+              startHour={endHour}
+              setStartHour={setEndHour}
+              startMinute={endMinute}
+              setStartMinute={setEndMinute}
+              startPeriod={endPeriod}
+              setStartPeriod={setEndPeriod}
+              isPeriodDropdownOpen={isEndPeriodDropdownOpen}
+              setIsPeriodDropdownOpen={setIsEndPeriodDropdownOpen}
+              styles={commonStyles}
+            />
+          </View>
         );
     }
   };
@@ -354,36 +388,37 @@ export default function WhiteDaysFastsLoggingFlow({
   const isDropdownOpen = isStartPeriodDropdownOpen || isEndPeriodDropdownOpen;
 
   return (
-    <View
-      style={[
-        commonStyles.section,
-        flowMode === "active" && commonStyles.activeSection,
-      ]}
-    >
-      <Text style={commonStyles.sectionTitle}>
-        {t("progressLogging.myProgress")}
-      </Text>
+    <>
+      {flowMode === "active" && (
+        <Pressable style={commonStyles.backdrop} />
+      )}
+      {flowMode === "active" && (
+        <TouchableOpacity
+          style={commonStyles.cancelButton}
+          onPress={resetFlow}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="close" size={20} color={Colors.light.white} />
+        </TouchableOpacity>
+      )}
 
       <View
         style={[
-          commonStyles.cardAnchor,
-          isDropdownOpen && commonStyles.flowCardLayerDropdownOpen,
+          commonStyles.section,
+          flowMode === "active" && commonStyles.activeSection,
         ]}
       >
-        {flowMode === "active" && (
-          <Pressable style={commonStyles.backdrop} onPress={resetFlow} />
-        )}
-        {flowMode === "active" && (
-          <TouchableOpacity
-            style={commonStyles.cancelButton}
-            onPress={resetFlow}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="close" size={20} color={Colors.light.white} />
-          </TouchableOpacity>
-        )}
+        <Text style={commonStyles.sectionTitle}>
+          {t("progressLogging.myProgress")}
+        </Text>
 
-        {flowMode === "collapsed" ? (
+        <View
+          style={[
+            commonStyles.cardAnchor,
+            isDropdownOpen && commonStyles.flowCardLayerDropdownOpen,
+          ]}
+        >
+          {flowMode === "collapsed" ? (
           <View style={localStyles.summaryCard}>
             <View style={localStyles.summaryBody}>
               <View style={localStyles.whiteDaysIconCircle} />
@@ -396,7 +431,6 @@ export default function WhiteDaysFastsLoggingFlow({
                       : badgeStatus.type === "not-started"
                         ? localStyles.badgeNotStarted
                         : localStyles.badgeInProgress,
-                    { alignSelf: "flex-start", marginBottom: 4 },
                   ]}
                 >
                   <Text
@@ -412,7 +446,9 @@ export default function WhiteDaysFastsLoggingFlow({
                     {badgeStatus.text}
                   </Text>
                 </View>
-                <Text style={localStyles.summaryTitle}>{summaryTitle}</Text>
+                <Text style={localStyles.summaryTitle} numberOfLines={2}>
+                  {summaryTitle}
+                </Text>
               </View>
             </View>
 
@@ -432,20 +468,18 @@ export default function WhiteDaysFastsLoggingFlow({
                     color={Colors.light.white}
                   />
                 </TouchableOpacity>
-              ) : (
-                <View style={localStyles.spacer} />
-              )}
-
-              {!goalCompleted ? (
-                <TouchableOpacity
-                  style={localStyles.addButton}
-                  onPress={handleOpenFlow}
-                  activeOpacity={0.8}
-                >
-                  <Ionicons name="add" size={22} color={Colors.light.white} />
-                </TouchableOpacity>
               ) : null}
             </View>
+
+            {!goalCompleted ? (
+              <TouchableOpacity
+                style={localStyles.addButton}
+                onPress={handleOpenFlow}
+                activeOpacity={0.8}
+              >
+                <AddLoggingFlowIcon size={32} />
+              </TouchableOpacity>
+            ) : null}
           </View>
         ) : (
           <View
@@ -461,6 +495,7 @@ export default function WhiteDaysFastsLoggingFlow({
               onForward={handleForward}
               onConfirm={handleConfirm}
               canGoForward={!isLastStep && canProceed}
+                canGoBack={stepIndex > 0}
               canConfirm={canConfirm}
               styles={commonStyles}
               style={[
@@ -477,34 +512,38 @@ export default function WhiteDaysFastsLoggingFlow({
             </FlowCard>
           </View>
         )}
-      </View>
+        </View>
 
-      <WhiteDaysFastsInsightsModal
-        visible={insightsVisible}
-        insights={insights}
-        onClose={() => setInsightsVisible(false)}
-      />
-    </View>
+        <WhiteDaysFastsInsightsModal
+          visible={insightsVisible}
+          insights={insights}
+          onClose={() => setInsightsVisible(false)}
+        />
+      </View>
+    </>
   );
 }
 
 const localStyles = StyleSheet.create({
   summaryCard: {
     backgroundColor: Colors.light.green,
-    borderRadius: 14,
+    borderRadius: 8,
     padding: 16,
     gap: 12,
-    height: 145,
+    height: FLOW_CARD_HEIGHT,
+    width: "100%",
     justifyContent: "space-between",
+    position: "relative",
   },
   badge: {
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
-    marginTop: -6,
+    marginTop: 3,
+    alignSelf: "flex-start",
   },
   badgeNotStarted: {
-    backgroundColor: Colors.light.dullWhiteOpacity,
+    backgroundColor: Colors.light.paginationInactiveDot,
   },
   badgeInProgress: {
     backgroundColor: Colors.light.lightpurple,
@@ -513,12 +552,13 @@ const localStyles = StyleSheet.create({
     backgroundColor: Colors.light.lightgreenbadgecolor,
   },
   badgeText: {
-    fontFamily: fonts.primary.semiBold,
-    fontSize: 10,
-    fontWeight: "600",
+    fontFamily: fonts.primary.medium,
+    fontSize: 12,
+    fontWeight: "500",
+    lineHeight: 12.5,
   },
   badgeTextNotStarted: {
-    color: Colors.light.white,
+    color: Colors.light.notStartedTextColor,
   },
   badgeTextInProgress: {
     color: Colors.light.darkblue,
@@ -529,20 +569,21 @@ const localStyles = StyleSheet.create({
   summaryBody: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    gap: 6,
   },
   whiteDaysIconCircle: {
     width: 36,
     height: 36,
     borderRadius: 18,
     backgroundColor: Colors.light.white,
-    borderWidth: 3,
+    borderWidth: 5,
     borderColor: Colors.light.selectcategory,
+    marginTop: 33,
   },
   titleContainer: {
     flex: 1,
     flexDirection: "column",
-    gap: 2,
+    gap: 9,
   },
   summaryTitle: {
     color: Colors.light.white,
@@ -550,10 +591,10 @@ const localStyles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     lineHeight: 18,
+    letterSpacing: 0,
   },
   footerRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "flex-end",
     marginTop: 4,
   },
@@ -562,7 +603,6 @@ const localStyles = StyleSheet.create({
     alignItems: "center",
     gap: 4,
     paddingBottom: 4,
-    transform: [{ translateY: -4 }],
   },
   insightsText: {
     color: Colors.light.white,
@@ -571,16 +611,25 @@ const localStyles = StyleSheet.create({
     fontWeight: "700",
   },
   addButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    borderWidth: 1.5,
-    borderColor: Colors.light.white,
+    position: "absolute",
+    right: 16,
+    bottom: 15,
     alignItems: "center",
     justifyContent: "center",
-    transform: [{ translateY: -4 }],
   },
-  spacer: {
-    flex: 1,
+  timeStepWrap: {
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
+    gap: 6,
+  },
+  timeSectionLabel: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.regular,
+    fontWeight: "400",
+    fontSize: 10,
+    lineHeight: 10,
+    textAlign: "center",
+    opacity: 0.95,
   },
 });

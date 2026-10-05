@@ -31,7 +31,7 @@ export function BehaviorDetailHero({
       <LinearGradient
         colors={["rgba(8, 26, 47, 0.72)", "rgba(8, 26, 47, 0.2)", "transparent"]}
         locations={[0, 0.45, 1]}
-        style={StyleSheet.absoluteFillObject}
+        style={StyleSheet.absoluteFill}
         pointerEvents="none"
       />
       <LinearGradient
@@ -42,7 +42,7 @@ export function BehaviorDetailHero({
           Colors.light.blackBackground,
         ]}
         locations={[0, 0.35, 0.72, 1]}
-        style={StyleSheet.absoluteFillObject}
+        style={StyleSheet.absoluteFill}
         pointerEvents="none"
       />
 

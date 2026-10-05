@@ -24,16 +24,18 @@ export default function TahiyyatMasjidGoalSelection({
   initialValue = 1,
   isSaving = false,
   openOnMount = false,
+  onInputFocus,
 }: {
   onSave?: (value: number, onDone?: () => void, onFail?: () => void) => void;
   isSaving?: boolean;
   openOnMount?: boolean;
+  onInputFocus?: () => void;
   initialValue?: number;
 }) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
   const [sliderValue, setSliderValue] = useState(initialValue);
-  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount);
+  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount, onInputFocus);
 
   const toggleDropdown = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -61,7 +63,7 @@ export default function TahiyyatMasjidGoalSelection({
           <Text style={styles.valueText}>
             {formatNumber(sliderValue)}
             <Text style={styles.whiteText}>
-              {t("prayerGoals.tahiyyatMasjidSuffix")}
+              {t("prayerGoals.tahiyyatMasjidSuffix", { count: sliderValue })}
             </Text>
           </Text>
 

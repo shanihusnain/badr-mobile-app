@@ -27,12 +27,20 @@ export type FiveDailyDayDetailSlot = {
   /**
    * When false, an *unlogged* slot cannot be selected yet (window not open /
    * already passed). Logged slots remain editable regardless of this flag.
+   * Menstruation-impacted slots remain selectable even when this is false.
    */
   canLog?: boolean;
+  /** True when this prayer window falls in a menstruation period. */
+  isMenstruationSlot?: boolean;
   /** True when only qadha logging is allowed (past date or today's window passed). */
   isQadhaOnly?: boolean;
   /** True while the Adhan prayer window is currently open (today only). */
   isWithinPrayerWindow?: boolean;
+  /**
+   * When false, a logged slot sits inside a menstruation window and no longer
+   * counts toward goal rings / streaks. Still deletable. `null` = nothing logged.
+   */
+  countsTowardGoal?: boolean | null;
 };
 
 export type FiveDailyPrayerDayDetail = {
@@ -53,6 +61,11 @@ export type MissedPastPrayerDayDetailSlot = {
   loggedCount: number;
   entries: unknown[];
   canLog?: boolean;
+  /**
+   * When false, entries sit inside menstruation and are excluded from
+   * goal totals. `null` = nothing logged.
+   */
+  countsTowardGoal?: boolean | null;
 };
 
 export type MissedPastPrayerDayDetail = {
@@ -100,6 +113,13 @@ export type SunnahRawatibDayDetailSlot = {
   notes?: string | null;
   loggedAt?: string | null;
   canLog?: boolean;
+  /** True when this prayer window falls in a menstruation period. */
+  isMenstruationSlot?: boolean;
+  /**
+   * When false, logged units sit inside menstruation and are excluded from
+   * goal totals. Still deletable. `null` = nothing logged.
+   */
+  countsTowardGoal?: boolean | null;
 };
 
 export type SunnahRawatibDayDetail = {
@@ -146,6 +166,11 @@ export type QiyamDayDetailNight = {
   witrMissed?: boolean;
   canLog?: boolean;
   canLogWitr?: boolean;
+  /**
+   * When false, night logs sit inside menstruation and are excluded from
+   * goal totals. `null` = nothing logged.
+   */
+  countsTowardGoal?: boolean | null;
 };
 
 export type QiyamDayDetailWitr = {
@@ -220,6 +245,11 @@ export type SinglePrayerDayDetailDay = {
   maxLoggableCount?: number;
   prayedAfterWudhuCount?: number;
   prayedAfterEnteringCount?: number;
+  /**
+   * When false, day logs sit inside menstruation and are excluded from
+   * goal totals. `null` = nothing logged.
+   */
+  countsTowardGoal?: boolean | null;
 };
 
 export type SinglePrayerDayDetail = {
@@ -349,27 +379,45 @@ export function isSunnahRawatibSlotPartiallyLogged(
   return logged > 0 && target > 0 && logged < target;
 }
 
+export type PrayerSlotSelectableOptions = {
+  /**
+   * Frame-week fallback when day-detail omits `isMenstruationSlot`.
+   * Menstruation-impacted prayers stay loggable.
+   */
+  isMenstruationSlot?: boolean;
+};
+
 /**
  * True when a Five Daily slot can be selected for logging or editing.
  * - Already logged → always editable (even if `canLog` is false).
  * - Auto-qadha → always loggable (system miss; user can still record the prayer).
+ * - Menstruation slot → always loggable (impacted window; user may still record).
  * - Not logged → only when `canLog: true` (window open / allowed).
  */
 export function isFiveDailySlotSelectable(
   slot: FiveDailyDayDetailSlot | undefined,
+  options?: PrayerSlotSelectableOptions,
 ): boolean {
   if (!slot) return false;
   if (slot.logged === true) return true;
   if (slot.isAutoQadha === true || slot.wasQadha === true) return true;
+  if (
+    slot.isMenstruationSlot === true ||
+    options?.isMenstruationSlot === true
+  ) {
+    return true;
+  }
   return slot.canLog === true;
 }
 
 /**
  * True when the slot is part of the goal and currently open for logging.
  * Uses user-logged units (not auto-qadha-filled loggedCount).
+ * Menstruation-impacted slots remain selectable even when `canLog` is false.
  */
 export function isSunnahRawatibSlotSelectable(
   slot: SunnahRawatibDayDetailSlot | undefined,
+  options?: PrayerSlotSelectableOptions,
 ): boolean {
   if (!slot || !isSunnahRawatibSlotInGoal(slot)) return false;
   const userLogged = readSunnahRawatibSlotUserLoggedCount(slot);
@@ -378,6 +426,13 @@ export function isSunnahRawatibSlotSelectable(
   if (userLogged >= target) return false;
   // Auto-qadha-only: still allow the user to record real units.
   if (slot.isAutoQadha === true) return true;
+  // Menstruation-impacted: still allow the user to record real units.
+  if (
+    slot.isMenstruationSlot === true ||
+    options?.isMenstruationSlot === true
+  ) {
+    return true;
+  }
   // Partial user progress: always allow logging the remaining unit(s).
   if (userLogged > 0 && userLogged < target) return true;
   return slot.canLog === true;

@@ -267,11 +267,6 @@ export function formatWhiteDaysFastDateLabel(
   const normalized = normalizeDateString(date);
   if (normalized === today) return "Today";
 
-  const current = getCurrentLoggableWhiteDay();
-  if (current && normalized === getPreviousRecoverableSkippedWhiteDay(current)) {
-    return "Yesterday";
-  }
-
   return moment(normalized, "YYYY-MM-DD").format("ddd, MMM D");
 }
 
@@ -360,6 +355,16 @@ export function submitWhiteDaysFastLog(payload: {
     remainingCount: getWhiteDaysFastRemainingCount(),
     goalCompleted: isWhiteDaysFastGoalCompleted(),
   };
+}
+
+/** Remove a completed White Day log (dashboard long-press delete). */
+export function deleteWhiteDaysFastLog(date: string): boolean {
+  const normalizedDate = normalizeDateString(date);
+  if (!completedDates.includes(normalizedDate)) return false;
+
+  completedDates = completedDates.filter((item) => item !== normalizedDate);
+  logs = logs.filter((log) => log.date !== normalizedDate);
+  return true;
 }
 
 export function getWhiteDaysFastInsights(): WhiteDaysFastInsights {

@@ -20,6 +20,12 @@ export type SunnahPrayerConfig = {
 export type SunnahDayData = {
   goal: SunnahPrayerConfig[];
   logged: Partial<Record<SunnahPrayerId, number>>;
+  /**
+   * Per-arc menstruation from backend `isMenstruationSlot`.
+   * Only those prayer ids render red — never fill the whole ring from a day flag.
+   */
+  menstruationByPrayer?: Partial<Record<SunnahPrayerId, boolean>>;
+  /** @deprecated Prefer menstruationByPrayer — kept for older call sites. */
   isMenstruation?: boolean;
   /** Today: unlogged arcs render brighter (upcoming). */
   isToday?: boolean;
@@ -85,8 +91,11 @@ export function SunnahRawatibDayRing({
   data.goal.forEach((prayer) => {
     // Arc length proportional to prayers/day from slotConfig (1 or 2).
     const prayerArcLength = (prayer.weight / totalWeight) * circumference;
+    const isMenstruationSlot = Boolean(
+      data.menstruationByPrayer?.[prayer.id],
+    );
 
-    if (data.isMenstruation) {
+    if (isMenstruationSlot) {
       segments.push({
         color: Colors.light.red,
         length: prayerArcLength - gapSize,

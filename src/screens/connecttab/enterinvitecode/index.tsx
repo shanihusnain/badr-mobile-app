@@ -47,7 +47,7 @@ export const EnterInviteCodeScreen = () => {
               Colors.light.blackBackground,
             ]}
             locations={[0, 0.45, 1]}
-            style={StyleSheet.absoluteFillObject}
+            style={StyleSheet.absoluteFill}
             pointerEvents="none"
           />
         </ImageBackground>
@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.blackBackground,
   },
   heroPressArea: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   heroImage: {
     width: "100%",

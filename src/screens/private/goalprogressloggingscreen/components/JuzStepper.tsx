@@ -1,89 +1,154 @@
 import React from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "@/constants/theme";
+import { fonts } from "@/assets/fonts";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
-import { MAX_JUZ, MIN_JUZ } from "../quranRecitationCompletionTarget";
+import {
+  MAX_JUZ,
+  MIN_JUZ,
+  snapJuzOffExcluded,
+  stepJuzSkippingExcluded,
+} from "../quranRecitationCompletionTarget";
 
 type Props = {
   value: number;
   min?: number;
   max?: number;
   onChange: (value: number) => void;
-  styles: Record<string, object>;
+  /** Fully logged juz — skipped by +/- and snapped off if current. */
+  excluded?: number[];
+  /** Kept for call-site compatibility; compact stepper uses local styles. */
+  styles?: Record<string, object>;
   showPrefix?: boolean;
+  /** Full-white border when focused; muted border when not. Default true. */
+  focused?: boolean;
+  onFocus?: () => void;
 };
 
+const BORDER_FOCUSED = Colors.light.white;
+const BORDER_MUTED = "rgba(255, 255, 255, 0.4)";
+
+/**
+ * Compact juz +/- pill — matches Figma Step 4 (~74×24 on the 228px flow card).
+ * Intentionally smaller than `recitationCounter*` used by RecitationCountStep.
+ */
 export function JuzStepper({
   value,
   min = MIN_JUZ,
   max = MAX_JUZ,
   onChange,
-  styles,
+  excluded = [],
   showPrefix = true,
+  focused = true,
+  onFocus,
 }: Props) {
   const formatNumber = useLocaleNumber();
-  const clampedValue = Math.min(Math.max(value, min), max);
+  const clampedValue = snapJuzOffExcluded(value, min, max, excluded);
+  const prevAvailable = stepJuzSkippingExcluded(
+    clampedValue,
+    -1,
+    min,
+    max,
+    excluded,
+  );
+  const nextAvailable = stepJuzSkippingExcluded(
+    clampedValue,
+    1,
+    min,
+    max,
+    excluded,
+  );
 
   const handleDecrement = () => {
-    if (clampedValue <= min) return;
-    onChange(clampedValue - 1);
+    onFocus?.();
+    if (prevAvailable == null) return;
+    onChange(prevAvailable);
   };
 
   const handleIncrement = () => {
-    if (clampedValue >= max) return;
-    onChange(clampedValue + 1);
+    onFocus?.();
+    if (nextAvailable == null) return;
+    onChange(nextAvailable);
   };
 
   return (
-    <View
+    <TouchableOpacity
+      activeOpacity={1}
+      onPress={onFocus}
       style={[
-        styles.recitationCounterRow,
-        {
-          paddingVertical: 2,
-          paddingHorizontal: 6,
-          borderRadius: 12,
-          borderWidth: 1,
-          borderColor: Colors.light.white,
-          alignSelf: "center",
-        },
+        localStyles.pill,
+        { borderColor: focused ? BORDER_FOCUSED : BORDER_MUTED },
       ]}
     >
-      <View style={styles.recitationCounterControls}>
-        <TouchableOpacity
-          onPress={handleDecrement}
-          disabled={clampedValue <= min}
-          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="remove" size={24} color={Colors.light.white} />
-        </TouchableOpacity>
+      <TouchableOpacity
+        onPress={handleDecrement}
+        disabled={prevAvailable == null}
+        hitSlop={{ top: 10, bottom: 10, left: 10, right: 8 }}
+        activeOpacity={0.8}
+        style={localStyles.iconHit}
+      >
+        <Ionicons
+          name="remove"
+          size={14}
+          color={
+            prevAvailable == null
+              ? Colors.light.dullWhiteOpacity
+              : Colors.light.white
+          }
+        />
+      </TouchableOpacity>
 
-        <View style={styles.recitationCounterValue}>
-          <Text style={styles.recitationCounterValueText}>
-            {showPrefix
-              ? `J${formatNumber(clampedValue)}`
-              : formatNumber(clampedValue)}
-          </Text>
-        </View>
+      <Text style={localStyles.valueText}>
+        {showPrefix
+          ? `j${formatNumber(clampedValue)}`
+          : formatNumber(clampedValue)}
+      </Text>
 
-        <TouchableOpacity
-          onPress={handleIncrement}
-          disabled={clampedValue >= max}
-          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-          activeOpacity={0.8}
-        >
-          <Ionicons
-            name="add"
-            size={24}
-            color={
-              clampedValue >= max
-                ? Colors.light.dullWhiteOpacity
-                : Colors.light.white
-            }
-          />
-        </TouchableOpacity>
-      </View>
-    </View>
+      <TouchableOpacity
+        onPress={handleIncrement}
+        disabled={nextAvailable == null}
+        hitSlop={{ top: 10, bottom: 10, left: 8, right: 10 }}
+        activeOpacity={0.8}
+        style={localStyles.iconHit}
+      >
+        <Ionicons
+          name="add"
+          size={14}
+          color={
+            nextAvailable == null
+              ? Colors.light.dullWhiteOpacity
+              : Colors.light.white
+          }
+        />
+      </TouchableOpacity>
+    </TouchableOpacity>
   );
 }
+
+const localStyles = StyleSheet.create({
+  pill: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    height: 24,
+    minWidth: 64,
+    paddingHorizontal: 6,
+    gap: 6,
+    borderWidth: 1,
+    borderRadius: 6,
+  },
+  iconHit: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  valueText: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.semiBold,
+    fontWeight: "600",
+    fontSize: 13,
+    lineHeight: 16,
+    textAlign: "center",
+    minWidth: 20,
+  },
+});

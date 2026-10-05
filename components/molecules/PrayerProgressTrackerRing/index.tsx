@@ -54,18 +54,20 @@ export const PrayerProgressTrackerRing: React.FC<
   const gapSize = 4;
   const dashLength = segmentWidth - gapSize;
 
-  const finalStatuses = isMenstruating
-    ? Array<PrayerStatus>(SLOT_COUNT).fill("menstruation")
-    : [...statuses, ...Array<PrayerStatus>(SLOT_COUNT).fill("none")].slice(
-        0,
-        SLOT_COUNT,
-      );
+  // Per-arc colors from statuses only — do not fill all 5 when isMenstruating.
+  const finalStatuses = [
+    ...statuses,
+    ...Array<PrayerStatus>(SLOT_COUNT).fill("none"),
+  ].slice(0, SLOT_COUNT);
 
   const hasLog = hasAnyLoggedStatus(finalStatuses);
+  const hasMenstruationArc =
+    isMenstruating || finalStatuses.some((status) => status === "menstruation");
 
   // Past only: solid grey when there was no activity before today.
   // Future days must keep the dashed arc ring (see design "Future Day").
-  if (!isMenstruating && !isToday && !isFuture && !hasLog) {
+  // Days with any menstruation arc also keep the dashed ring.
+  if (!hasMenstruationArc && !isToday && !isFuture && !hasLog) {
     return (
       <View
         style={{

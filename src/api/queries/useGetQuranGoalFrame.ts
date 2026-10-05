@@ -25,10 +25,41 @@ export type QuranGoalFrameVsLastWeek = {
   label?: string;
 };
 
+export type QuranGoalFrameDayCompletion = {
+  /** e.g. "C1" */
+  attemptLabel?: string | null;
+  /** e.g. [1] or [1, 2] when multiple Khatms touched that day */
+  attempts?: number[] | null;
+  /** e.g. "j8" / "j1-4" / "j1, j2*" */
+  juzLabel?: string | null;
+};
+
+/** Styled text pieces for the completion week total row. */
+export type QuranGoalFrameCompletionTotalSegment = {
+  text: string;
+  /** `"primary"` → bold count in the stats row. */
+  emphasis?: "primary" | string | null;
+};
+
+/**
+ * RECITATION_COMPLETION week footer totals
+ * (`week.completionTotal` from the frame API).
+ */
+export type QuranGoalFrameCompletionTotal = {
+  /** Full Khatm completions counted this week. */
+  completions?: number | null;
+  /** Juz (fractional allowed) covered this week. */
+  juz?: number | null;
+  /** Open / contributing attempt(s), e.g. 1 or [1, 2]. */
+  juzAttempts?: number | number[] | null;
+  /** Prefer for UI: primary segment is bold, rest is label. */
+  segments?: QuranGoalFrameCompletionTotalSegment[] | null;
+};
+
 export type QuranGoalFrameDay = {
   date: string;
   dayLabel: string;
-  /** Minutes logged that day. */
+  /** Minutes logged that day (or juz units for completion/juz goals). */
   value: number;
   valueDisplay?: string | null;
   fulfilment?: string | null;
@@ -37,6 +68,8 @@ export type QuranGoalFrameDay = {
   isToday: boolean;
   isBestDay?: boolean;
   canDelete?: boolean;
+  /** RECITATION_COMPLETION — structured C# + juz captions for the day strip. */
+  completion?: QuranGoalFrameDayCompletion | null;
 };
 
 export type QuranGoalFrameItem = {
@@ -49,8 +82,16 @@ export type QuranGoalFrameItem = {
     state?: string;
     label?: string;
   } | null;
+  /** Verses (or units) completed for this item — MEMORIZATION_SURAH. */
+  completed?: number | null;
+  /** Verses (or units) target for this item — MEMORIZATION_SURAH. */
+  target?: number | null;
   achievementPct?: number;
   dailyTarget?: number | null;
+  /** Per-item cadence for RECITATION_SURAH (DAILY / WEEKLY). */
+  frequency?: string | null;
+  /** How many per period — the 2 in "2 times daily". */
+  perPeriodCount?: number | null;
   canLog?: boolean;
   showInsights?: boolean;
 };
@@ -94,6 +135,11 @@ export type QuranGoalFrameData = {
     totalDisplay?: string;
     weeklyTarget?: number | null;
     totalLabel?: string;
+    /**
+     * RECITATION_COMPLETION — structured week total for the stats row
+     * (prefer over parsing `totalLabel` / `totalDisplay`).
+     */
+    completionTotal?: QuranGoalFrameCompletionTotal | null;
     streak?: {
       count?: number;
       unit?: string;
@@ -123,14 +169,18 @@ export type QuranGoalFrameData = {
   articles?: unknown[];
 };
 
-const getQuranGoalFrame = async (
+export const getQuranGoalFrame = async (
   quranGoalType: string,
-  week?: number,
+  options?: { week?: number; itemNumber?: number },
 ): Promise<QuranGoalFrameData | null> => {
+  const params: Record<string, number> = {};
+  if (options?.week != null) params.week = options.week;
+  if (options?.itemNumber != null) params.itemNumber = options.itemNumber;
+
   const response = await api.get(
     `api/goal-cycles/current/quran-goals/${quranGoalType}/frame`,
     {
-      params: week != null ? { week } : undefined,
+      params: Object.keys(params).length > 0 ? params : undefined,
     },
   );
   console.log(
@@ -140,9 +190,28 @@ const getQuranGoalFrame = async (
   return response.data?.data ?? null;
 };
 
+/** Shared query key — keep in sync with `useGetQuranGoalFrame`. */
+export function quranGoalFrameQueryKey(
+  quranGoalType: string,
+  weekNumber?: number | "current",
+  itemNumber?: number | "all",
+) {
+  return [
+    "quran-goal-frame",
+    quranGoalType,
+    weekNumber ?? "current",
+    itemNumber ?? "all",
+  ] as const;
+}
+
 export const useGetQuranGoalFrame = (
   quranGoalTypeInput: string | null | undefined,
-  options?: { enabled?: boolean; weekNumber?: number },
+  options?: {
+    enabled?: boolean;
+    weekNumber?: number;
+    /** Surah / juz / hizb number — required for multi-item goals e.g. MEMORIZATION_SURAH. */
+    itemNumber?: number;
+  },
 ) => {
   const quranGoalType = quranGoalTypeInput
     ? resolveQuranType(quranGoalTypeInput)
@@ -150,13 +219,18 @@ export const useGetQuranGoalFrame = (
   const enabled = !!quranGoalType && (options?.enabled ?? true);
 
   return useQuery({
-    queryKey: [
-      "quran-goal-frame",
+    queryKey: quranGoalFrameQueryKey(
       quranGoalType,
       options?.weekNumber ?? "current",
-    ],
-    queryFn: () => getQuranGoalFrame(quranGoalType, options?.weekNumber),
+      options?.itemNumber ?? "all",
+    ),
+    queryFn: () =>
+      getQuranGoalFrame(quranGoalType, {
+        week: options?.weekNumber,
+        itemNumber: options?.itemNumber,
+      }),
     enabled,
     placeholderData: keepPreviousData,
+    refetchOnWindowFocus: true,
   });
 };

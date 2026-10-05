@@ -1,5 +1,10 @@
 /** Ayah counts for surahs used in mock memorisation / recitation goals. */
 const SURAH_VERSE_COUNTS: Record<string, number> = {
+  "1": 7,
+  "2": 286,
+  "3": 200,
+  "4": 176,
+  "5": 120,
   "surah-al-baqarah": 286,
   "surah-al-imran": 200,
   "surah-aal-imran": 200,

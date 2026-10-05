@@ -27,6 +27,7 @@ import { useGetGoalCycleCategories } from "@/src/api/queries/useGetGoalCycleCate
 import { useGetGoalCycleCategoryGoals } from "@/src/api/queries/useGetGoalCycleCategoryGoals";
 import {
   goalTypeToGoalId,
+  formatDailyProgressGoalTitle,
   toUiIbadahCategory,
   type UiIbadahCategory,
 } from "@/src/utils/goalCycleCategoryMap";
@@ -48,12 +49,10 @@ const CATEGORY_ICON_COLOR: Record<UiIbadahCategory, string> = {
   SADAQAH: Colors.light.ringSadaqah,
 };
 
-const LOADING_CATEGORY_KEYS: UiIbadahCategory[] = [
-  "PRAYER",
-  "QURAN",
-  "FASTING",
-  "SADAQAH",
-];
+const LOADING_CATEGORY_KEYS: UiIbadahCategory[] = ["PRAYER", "QURAN"];
+
+/** Temporarily hide until fasting/sadaqah progress APIs are ready. */
+const HIDDEN_PROGRESS_CATEGORIES = new Set(["fasting", "sadaqah"]);
 
 const DETAIL_LOADING_PLACEHOLDER_COUNT = 4;
 
@@ -149,12 +148,14 @@ export const DailyProgressBottomSheet = ({
     }
 
     return categorySummaries.flatMap((item) => {
+      const categoryKey = String(item.category ?? "").toLowerCase();
+      // if (HIDDEN_PROGRESS_CATEGORIES.has(categoryKey)) return [];
       const uiCategory = toUiIbadahCategory(item.category);
       const total = item.totalGoals ?? 0;
       if (!uiCategory || total <= 0) return [];
       return [
         {
-          key: item.category.toLowerCase(),
+          key: categoryKey,
           uiCategory,
           title: titleMap[uiCategory],
           subtitle: `${total} ${total === 1 ? "goal" : "goals"}`,
@@ -199,10 +200,7 @@ export const DailyProgressBottomSheet = ({
       return [
         {
           goalId,
-          title:
-            goalId === "prayer-tahiyyatMasjid"
-              ? goal.displayName.replace(/\s+Prayer$/i, "")
-              : goal.displayName,
+          title: formatDailyProgressGoalTitle(goalId, goal.displayName),
           completed: goal.completed ?? 0,
           target: goal.target ?? 0,
           unit: goal.unit ?? "",
@@ -335,7 +333,7 @@ export const DailyProgressBottomSheet = ({
             <View
               style={[styles.loadingContainer, { minHeight: loadingMinHeight }]}
             >
-              <LoadingComponent size="medium" />
+              <LoadingComponent size="medium" style={styles.loadingSpinner} />
             </View>
           ) : (
             categories.map((category) => (
@@ -366,7 +364,7 @@ export const DailyProgressBottomSheet = ({
             <View
               style={[styles.loadingContainer, { minHeight: loadingMinHeight }]}
             >
-              <LoadingComponent size="medium" />
+              <LoadingComponent size="medium" style={styles.loadingSpinner} />
             </View>
           ) : (
             detailGoals.map((goal) => (
@@ -381,14 +379,15 @@ export const DailyProgressBottomSheet = ({
                         selectedUiCategory,
                         CATEGORY_ICON_COLOR[selectedUiCategory],
                       )
-                    : selectedUiCategory === "PRAYER"
+                    : selectedUiCategory === "PRAYER" ||
+                        selectedUiCategory === "QURAN"
                       ? getDetailedIbadahIcon(goal.goalId, Colors.light.white)
                       : getCategoryGoalIcon(
                           selectedUiCategory,
                           CATEGORY_ICON_COLOR[selectedUiCategory],
                         )
                 }
-                iconBgColor={CATEGORY_ICON_COLOR[selectedUiCategory] + "22"}
+                iconBgColor={Colors.light.calendarBg}
                 percentage={goal.percentage}
                 progressColor={CATEGORY_ICON_COLOR[selectedUiCategory]}
                 isSelected={selectedDetailCard === goal.goalId}
@@ -477,6 +476,11 @@ const styles = StyleSheet.create({
   loadingContainer: {
     width: "100%",
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "flex-start",
+  },
+  /** Override LoadingComponent's flex:1 so marginTop actually moves the ring. */
+  loadingSpinner: {
+    flex: 0,
+    marginTop: 260,
   },
 });

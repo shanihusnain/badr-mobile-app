@@ -259,7 +259,7 @@ export default function SadaqahJariyahLoggingFlow({
 
       <View style={commonStyles.cardAnchor}>
         {flowMode === "active" && (
-          <Pressable style={commonStyles.backdrop} onPress={resetFlow} />
+          <Pressable style={commonStyles.backdrop} />
         )}
         {flowMode === "active" && (
           <TouchableOpacity
@@ -340,6 +340,7 @@ export default function SadaqahJariyahLoggingFlow({
               onForward={handleForward}
               onConfirm={handleConfirm}
               canGoForward={!isLastStep}
+                canGoBack={stepIndex > 0}
               styles={commonStyles}
               style={commonStyles.inPlaceFlowCard}
             >

@@ -186,15 +186,23 @@ export const styles = StyleSheet.create({
   },
   flowContentAyahRange: {
     justifyContent: "flex-start",
-    paddingTop: 0,
+    // Figma: clear gap under "Select completed verses." before chips.
+    paddingTop: 10,
     paddingBottom: 0,
     marginBottom: 0,
+    // Cancel flowCard paddingHorizontal so the range slider (and start chip)
+    // can sit flush with the green card edges.
+    marginHorizontal: -16,
     overflow: "visible",
   },
   flowHeader: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 2,
+  },
+  /** Slightly more header→content air on the ayat-range step (Figma). */
+  flowHeaderAyahRange: {
+    marginBottom: 6,
   },
   flowIconCircle: {
     width: 36,
@@ -318,7 +326,8 @@ export const styles = StyleSheet.create({
     backgroundColor: Colors.light.white,
   },
   prayerIconBoxIdle: {
-    backgroundColor: Colors.light.idlePrayerBox,
+    // Slightly muted vs solid white so idle chips match the design reference.
+    backgroundColor: "rgba(255, 255, 255, 0.35)",
   },
   prayerCheckBadge: {
     width: 14,
@@ -337,19 +346,32 @@ export const styles = StyleSheet.create({
     gap: 46,
     width: "100%",
   },
+  /**
+   * Full / Partial / Both (and other 3+ option rows) on the 62% flow card.
+   * Figma Step 3 is ~228px wide — large `gap` overflows past the screen.
+   */
+  timingRowCompact: {
+    justifyContent: "space-between",
+    gap: 8,
+  },
   timingOption: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
   },
+  timingOptionCompact: {
+    flexShrink: 1,
+    gap: 6,
+  },
   radioOuter: {
     width: 14,
     height: 14,
     borderRadius: 7,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: Colors.light.white,
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: "transparent",
   },
   radioOuterSelected: {},
   radioInner: {

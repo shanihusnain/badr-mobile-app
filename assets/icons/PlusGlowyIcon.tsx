@@ -66,6 +66,6 @@ const styles = StyleSheet.create({
     overflow: "visible",
   },
   icon: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
 });

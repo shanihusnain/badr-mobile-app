@@ -6,19 +6,24 @@ import { useFocusEffect } from "expo-router";
 import { useSharedValue } from "react-native-reanimated";
 import moment from "moment-hijri";
 moment.locale("en");
-import { MenstruationCalendar } from "@/components/molecules/MenstruationCalendar";
-import InlineDateWheelPicker from "@/components/molecules/InlineDateWheelPicker";
+import InlineDateWheelPicker, {
+  ONGOING_DATE_VALUE,
+} from "@/components/molecules/InlineDateWheelPicker";
 import { SwitchButton } from "@/components/atoms/SwitchButton";
 import PrimaryButton from "@/components/atoms/Primary-button";
+import { LoadingComponent } from "@/components/atoms/LoadingComponent";
 import { Colors } from "@/constants/theme";
 import styles from "./style";
 import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
 import { useTypedTranslation } from "@/i18next/useTypedTranslation";
-import { useGetMenstruationPeriod } from "@/src/api/queries/useGetMenstruationPeriod";
-import { useGetGoalCycle } from "@/src/api/queries/useGetGoalCycle";
-import { useSaveMenstruationPeriod } from "@/src/api/mutations/useSaveMenstruationPeriod";
-import { useGetMe } from "@/src/api/queries/useGetMe";
-import { useAuth } from "@/provider/useAuth";
+import { useGetActiveMenstruationPeriod } from "@/src/api/queries/useGetActiveMenstruationPeriod";
+import {
+  getMenstruationApiErrorStatus,
+  toMenstruationApiDate,
+  useSaveMenstruationPeriod,
+  type SaveMenstruationPayload,
+} from "@/src/api/mutations/useSaveMenstruationPeriod";
+import { showToast } from "@/src/config/toastConfig";
 
 function toDateString(date: Date): string {
   const y = date.getFullYear();
@@ -27,207 +32,422 @@ function toDateString(date: Date): string {
   return `${y}-${m}-${d}`;
 }
 
-// Length of the goal-tracking cycle. Menstruation can only be logged for days
-// that fall inside the cycle the user is currently tracking her ibadah against.
-const CYCLE_LENGTH_DAYS = 28;
+/** Parse API DATE (`…T00:00:00.000Z`) as a local calendar YYYY-MM-DD. */
+function apiDateToLocalYmd(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const slice = value.slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(slice) ? slice : null;
+}
+
+// Users can log menstruation for today and up to this many past days — never future.
+const PAST_LOG_DAYS = 10;
+
+const PRAYER_LABEL_TO_API: Record<string, string> = {
+  "Before Fajr": "FAJR",
+  "Before Dhuhr": "DHUHR",
+  "Before Asr": "ASR",
+  "Before Maghrib": "MAGHRIB",
+  "Before Isha": "ISHA",
+};
+
+const API_TO_PRAYER_LABEL: Record<string, string> = {
+  FAJR: "Before Fajr",
+  DUHR: "Before Dhuhr",
+  DHUHR: "Before Dhuhr",
+  ASR: "Before Asr",
+  MAGHRIB: "Before Maghrib",
+  ISHA: "Before Isha",
+};
+
+const START_TIME_OPTIONS = [
+  {
+    label: "Before Fajr",
+    transKey: "homeScreen.menstruationLog_beforeFajr",
+  },
+  {
+    label: "Before Dhuhr",
+    transKey: "homeScreen.menstruationLog_beforeDuhr",
+  },
+  {
+    label: "Before Asr",
+    transKey: "homeScreen.menstruationLog_beforeAsr",
+  },
+  {
+    label: "Before Maghrib",
+    transKey: "homeScreen.menstruationLog_beforeMaghrib",
+  },
+  {
+    label: "Before Isha",
+    transKey: "homeScreen.menstruationLog_beforeIsha",
+  },
+] as const;
 
 type MenstruationLogProps = {
-  // Start of the active 28-day tracking cycle (YYYY-MM-DD). Defaults to the
-  // window that ends today when not provided by the navigation/store.
   cycleStartDate?: string;
 };
 
-export default function MenstruationLog({
-  cycleStartDate,
-}: MenstruationLogProps) {
+export default function MenstruationLog(_props: MenstruationLogProps) {
   const router = useRouter();
-  const { t } = useTypedTranslation();
-  const { i18n } = useTypedTranslation();
+  const { t, i18n } = useTypedTranslation();
   const locale = i18n.language === "ar" ? "ar" : "en";
   const isMenstruating = useSharedValue(false);
-  const isStillMenstruating = useSharedValue(false);
   const [menstruating, setMenstruating] = useState(false);
-  const [stillMenstruating, setStillMenstruating] = useState(false);
   const [selectedStartTime, setSelectedStartTime] = useState<string>("");
   const [selectedEndTime, setSelectedEndTime] = useState<string>("");
 
-  const { mutateAsync: saveMenstruation, isPending } = useSaveMenstruationPeriod();
+  const { mutateAsync: saveMenstruation, isPending } =
+    useSaveMenstruationPeriod();
 
-  // useAuth has the user from login stored in AsyncStorage
-  const { user } = useAuth();
-  // useGetMe provides the latest user data directly from the backend
-  const { data: meData } = useGetMe();
+  const {
+    data: activeResponse,
+    refetch: refetchActive,
+    isFetched: activeFetched,
+    isLoading: activeLoading,
+    isFetching: activeFetching,
+    isError: activeError,
+  } = useGetActiveMenstruationPeriod();
+  const activePeriod = activeResponse?.data ?? null;
+  const [isFormHydrated, setIsFormHydrated] = useState(false);
 
-  // The backend is fixed and is the source of truth. Always prioritize `meData`.
-  const menstruationPeriodId =
-    meData?.menstruationPeriodId ??
-    user?.menstruationPeriodId ??
-    null;
-
-  const goalCycleId =
-    meData?.goalCycleId ??
-    user?.goalCycleId ??
-    null;
-
-  // Fetch the existing menstruation period using the ID
-  const { data: periodData } = useGetMenstruationPeriod(menstruationPeriodId);
-  // Fetch the active Goal Cycle
-  const { data: goalCycleData } = useGetGoalCycle(goalCycleId);
-
-  const reversePrayerMap: Record<string, string> = {
-    FAJR: "Before Fajr",
-    DUHR: "Before Duhr",
-    ASR: "Before Asr",
-    MAGHRIB: "Before Maghrib",
-    ISHA: "Before Isha",
-  };
-
-  // Guard: only populate from backend ONCE per screen visit.
-  // Reset every time the screen comes into focus so returning users get fresh data.
   const hasInitialized = useRef(false);
   useFocusEffect(
     useCallback(() => {
       hasInitialized.current = false;
-    }, [])
+      setIsFormHydrated(false);
+      void refetchActive();
+    }, [refetchActive]),
   );
 
-  useEffect(() => {
-    console.log("=== LOAD DEBUG ===");
-    console.log("meData:", meData);
-    console.log("menstruationPeriodId:", menstruationPeriodId);
-    console.log("periodData?.data:", periodData?.data);
-    console.log("hasInitialized:", hasInitialized.current);
-
-    // Skip if already initialized or no data yet
-    if (hasInitialized.current || !periodData?.data) return;
-    hasInitialized.current = true;
-
-    const period = periodData.data;
-
-    // If the last period is closed, leave the UI blank so the user can log a new cycle.
-    if (!period.isOngoing) {
-      return;
-    }
-
-    // Turn on the first toggle since an ONGOING period record exists
-    setMenstruating(true);
-    isMenstruating.value = true;
-
-    // Set "still menstruating" toggle from backend value
-    const ongoing = !!period.isOngoing;
-    setStillMenstruating(ongoing);
-    isStillMenstruating.value = ongoing;
-
-    // Prepopulate start date
-    if (period.startDate) {
-      const dateObj = new Date(period.startDate);
-      setSelectedDate(toDateString(dateObj));
-      setSelectedEndDate(toDateString(dateObj));
-    }
-
-    // Prepopulate start prayer
-    if (period.startPrayer) {
-      setSelectedStartTime(reversePrayerMap[period.startPrayer] ?? "");
-    }
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [periodData, menstruationPeriodId]);
+  /**
+   * Keep loader up until /active settles and the form is filled from it.
+   * Critical when a period is still ongoing — avoid flashing empty UI first.
+   */
+  const showActiveLoading =
+    !isFormHydrated &&
+    !activeError &&
+    (activeLoading || activeFetching || !activeFetched);
 
   const today = new Date();
   const todayString = toDateString(today);
+  const todayMoment = moment(today).startOf("day");
 
-  // Ensure we use the Goal Cycle start date if it exists.
-  // Fallback to today if there is absolutely no goal cycle, but the form will be disabled anyway.
-  const cycleStart = goalCycleData?.data?.startDate
-    ? moment(goalCycleData.data.startDate).startOf("day")
-    : cycleStartDate
-    ? moment(cycleStartDate, "YYYY-MM-DD").startOf("day")
-    : moment(today).startOf("day");
-  const cycleEnd = cycleStart.clone().add(CYCLE_LENGTH_DAYS - 1, "days");
+  const earliestLogMoment = todayMoment.clone().subtract(PAST_LOG_DAYS, "days");
+  const earliestStartString = earliestLogMoment.format("YYYY-MM-DD");
+  const startDateMinimum = earliestLogMoment.toDate();
+  const selectableMax = todayMoment.toDate();
+  const selectableMaxString = todayString;
 
-  // Strictly bind dates to the Goal Cycle's 28 days.
-  const startDateMinimum = cycleStart.toDate();
-  const selectableMax = cycleEnd.toDate();
-  const selectableMaxString = toDateString(selectableMax);
+  const clampDateToSelectable = useCallback(
+    (dateString: string) => {
+      if (dateString < earliestStartString) return earliestStartString;
+      if (dateString > selectableMaxString) return selectableMaxString;
+      return dateString;
+    },
+    [earliestStartString, selectableMaxString],
+  );
 
-  const [selectedDate, setSelectedDate] = useState(selectableMaxString);
+  const defaultSelectedDate = clampDateToSelectable(todayString);
+
+  const [selectedDate, setSelectedDate] = useState(defaultSelectedDate);
   const [showDatePicker, setShowDatePicker] = useState(false);
-
-  const [selectedEndDate, setSelectedEndDate] = useState(selectableMaxString);
+  const [selectedEndDate, setSelectedEndDate] =
+    useState<string>(ONGOING_DATE_VALUE);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
 
-  const dateExplicitlyPicked = selectedDate !== selectableMaxString;
-  const endDateExplicitlyPicked = selectedEndDate !== selectableMaxString;
+  const isEndOngoing = selectedEndDate === ONGOING_DATE_VALUE;
+
+  const resetBlankForm = useCallback(() => {
+    setMenstruating(false);
+    isMenstruating.value = false;
+    setSelectedDate(defaultSelectedDate);
+    setSelectedEndDate(ONGOING_DATE_VALUE);
+    setSelectedStartTime("");
+    setSelectedEndTime("");
+    setShowDatePicker(false);
+    setShowEndDatePicker(false);
+  }, [defaultSelectedDate, isMenstruating]);
+
+  const applyActivePeriodToForm = useCallback(() => {
+    if (!activePeriod) {
+      resetBlankForm();
+      return;
+    }
+
+    setMenstruating(true);
+    isMenstruating.value = true;
+    setSelectedEndDate(ONGOING_DATE_VALUE);
+    setSelectedEndTime("");
+
+    const startYmd = apiDateToLocalYmd(activePeriod.startDate);
+    if (startYmd) {
+      setSelectedDate(clampDateToSelectable(startYmd));
+    }
+    if (activePeriod.startPrayer) {
+      setSelectedStartTime(
+        API_TO_PRAYER_LABEL[String(activePeriod.startPrayer).toUpperCase()] ??
+          "",
+      );
+    }
+  }, [activePeriod, clampDateToSelectable, isMenstruating, resetBlankForm]);
+
+  useEffect(() => {
+    // Wait for the in-flight /active fetch to finish before hydrating.
+    if (hasInitialized.current) return;
+    if (activeFetching) return;
+    if (!activeFetched && !activeError) return;
+    hasInitialized.current = true;
+    applyActivePeriodToForm();
+    setIsFormHydrated(true);
+  }, [
+    activeFetched,
+    activeFetching,
+    activeError,
+    applyActivePeriodToForm,
+    activePeriod?.id,
+  ]);
+
+  const startCollapseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+  const endCollapseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+
+  const clearStartCollapseTimer = useCallback(() => {
+    if (startCollapseTimerRef.current) {
+      clearTimeout(startCollapseTimerRef.current);
+      startCollapseTimerRef.current = null;
+    }
+  }, []);
+
+  const clearEndCollapseTimer = useCallback(() => {
+    if (endCollapseTimerRef.current) {
+      clearTimeout(endCollapseTimerRef.current);
+      endCollapseTimerRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      clearStartCollapseTimer();
+      clearEndCollapseTimer();
+    };
+  }, [clearEndCollapseTimer, clearStartCollapseTimer]);
+
+  useEffect(() => {
+    if (hasInitialized.current) return;
+    const fallback = clampDateToSelectable(todayString);
+    setSelectedDate((prev) => {
+      if (prev < earliestStartString || prev > selectableMaxString) {
+        return fallback;
+      }
+      return prev;
+    });
+    setSelectedEndDate((prev) => {
+      if (prev === ONGOING_DATE_VALUE) return prev;
+      if (prev < earliestStartString || prev > selectableMaxString) {
+        return ONGOING_DATE_VALUE;
+      }
+      return prev;
+    });
+  }, [
+    clampDateToSelectable,
+    earliestStartString,
+    selectableMaxString,
+    todayString,
+  ]);
 
   const todayButtonLabel =
     selectedDate === todayString
       ? t("homeScreen.menstruationLog_today")
-      : moment(selectedDate, "YYYY-MM-DD").locale(locale).format("MMM DD");
+      : moment(selectedDate, "YYYY-MM-DD").locale(locale).format("MMM D");
 
-  const endDateButtonLabel =
-    selectedEndDate === todayString
+  const endDateButtonLabel = isEndOngoing
+    ? t("homeScreen.menstruationLog_ongoing")
+    : selectedEndDate === todayString
       ? t("homeScreen.menstruationLog_today")
-      : moment(selectedEndDate, "YYYY-MM-DD").locale(locale).format("MMM DD");
-
-  const startMoment = moment(selectedDate, "YYYY-MM-DD").locale(locale);
-  const endMoment = startMoment.clone().add(27, "days").locale(locale);
-  const gregorianRange = `${startMoment.format("MMM DD").toUpperCase()} - ${endMoment.format("MMM DD, YYYY").toUpperCase()}`;
-  const islamicMonthNames = [
-    t("homeScreen.islamicMonth_muharram"),
-    t("homeScreen.islamicMonth_safar"),
-    t("homeScreen.islamicMonth_rabiI"),
-    t("homeScreen.islamicMonth_rabiII"),
-    t("homeScreen.islamicMonth_jumadaI"),
-    t("homeScreen.islamicMonth_jumadaII"),
-    t("homeScreen.islamicMonth_rajab"),
-    t("homeScreen.islamicMonth_shaban"),
-    t("homeScreen.islamicMonth_ramadan"),
-    t("homeScreen.islamicMonth_shawwal"),
-    t("homeScreen.islamicMonth_dhuAlQa"),
-    t("homeScreen.islamicMonth_dhuAlHi"),
-  ];
-  const islamicRange = `${islamicMonthNames[startMoment.iMonth()]} - ${islamicMonthNames[endMoment.iMonth()]} ${startMoment.iYear()}`;
+      : moment(selectedEndDate, "YYYY-MM-DD").locale(locale).format("MMM D");
 
   const handleTodayPress = () => {
     if (!menstruating) return;
-    setShowDatePicker((prev) => !prev);
+    if (showDatePicker) {
+      clearStartCollapseTimer();
+      setShowDatePicker(false);
+      return;
+    }
+    clearStartCollapseTimer();
+    setShowDatePicker(true);
   };
 
   const handleEndDatePress = () => {
-    if (!menstruating || stillMenstruating) return;
-    setShowEndDatePicker((prev) => !prev);
+    if (!menstruating) return;
+    if (showEndDatePicker) {
+      clearEndCollapseTimer();
+      setShowEndDatePicker(false);
+      return;
+    }
+    clearEndCollapseTimer();
+    setShowEndDatePicker(true);
   };
 
   const handleStartDateWheelChange = (dateString: string) => {
-    setSelectedDate(dateString);
-    if (selectedEndDate < dateString) {
-      setSelectedEndDate(dateString);
-    }
+    const nextStart = clampDateToSelectable(dateString);
+    setSelectedDate(nextStart);
+    setSelectedEndDate((prev) => {
+      if (prev === ONGOING_DATE_VALUE) return prev;
+      if (prev < nextStart) return nextStart;
+      if (prev > todayString) return todayString;
+      return prev;
+    });
+    clearStartCollapseTimer();
+    startCollapseTimerRef.current = setTimeout(() => {
+      setShowDatePicker(false);
+      startCollapseTimerRef.current = null;
+    }, 2000);
   };
 
   const handleEndDateWheelChange = (dateString: string) => {
-    setSelectedEndDate(dateString);
+    if (dateString === ONGOING_DATE_VALUE) {
+      setSelectedEndDate(ONGOING_DATE_VALUE);
+      setSelectedEndTime("");
+    } else {
+      const nextEnd = clampDateToSelectable(dateString);
+      const clamped = nextEnd < selectedDate ? selectedDate : nextEnd;
+      setSelectedEndDate(clamped);
+      setSelectedEndTime("");
+    }
+    clearEndCollapseTimer();
+    endCollapseTimerRef.current = setTimeout(() => {
+      setShowEndDatePicker(false);
+      endCollapseTimerRef.current = null;
+    }, 2000);
   };
 
-  const isEndDateActive = menstruating && !stillMenstruating;
+  const endDateMinimum = moment
+    .max(moment(selectedDate, "YYYY-MM-DD"), earliestLogMoment)
+    .toDate();
+  const endDateMaximum = selectableMax;
 
-  // Start date minimum is defined above as 1 year ago.
-  // end date can't precede the start date.
-  const endDateMinimum = moment(selectedDate, "YYYY-MM-DD").toDate();
+  const startQuestionText =
+    selectedDate === todayString
+      ? t("homeScreen.menstruationLog_whenDidItStartToday")
+      : t("homeScreen.menstruationLog_whenDidItStart", {
+          date: moment(selectedDate, "YYYY-MM-DD")
+            .locale(locale)
+            .format("MMM D"),
+        });
 
-  const startQuestionText = dateExplicitlyPicked
-    ? t("homeScreen.menstruationLog_whenDidItStart", {
-      date: moment(selectedDate, "YYYY-MM-DD").locale(locale).format("MMM D"),
-    })
-    : t("homeScreen.menstruationLog_whenDidItStartToday");
+  const endQuestionText =
+    selectedEndDate === todayString
+      ? t("homeScreen.menstruationLog_whenDidItEndToday")
+      : t("homeScreen.menstruationLog_whenDidItEnd", {
+          date: moment(selectedEndDate, "YYYY-MM-DD")
+            .locale(locale)
+            .format("MMM D"),
+        });
 
-  const endQuestionText = endDateExplicitlyPicked
-    ? t("homeScreen.menstruationLog_whenDidItEnd", {
-      date: moment(selectedEndDate, "YYYY-MM-DD")
-        .locale(locale)
-        .format("MMM D"),
-    })
-    : t("homeScreen.menstruationLog_whenDidItEndToday");
+  const canSave =
+    menstruating &&
+    selectedStartTime !== "" &&
+    (isEndOngoing || selectedEndTime !== "") &&
+    !isPending;
+
+  const buildPayload = (): SaveMenstruationPayload | null => {
+    const startPrayer = PRAYER_LABEL_TO_API[selectedStartTime];
+    if (!startPrayer) return null;
+
+    const startDate = toMenstruationApiDate(selectedDate);
+
+    // Ending / correcting an open period.
+    if (activePeriod) {
+      if (isEndOngoing) {
+        // Correct start only while still ongoing.
+        return {
+          id: activePeriod.id,
+          startDate,
+          startPrayer,
+        };
+      }
+      const endPrayer = PRAYER_LABEL_TO_API[selectedEndTime];
+      if (!endPrayer) return null;
+      return {
+        endDate: toMenstruationApiDate(selectedEndDate),
+        endPrayer,
+        // Harmless corrections applied while closing (v2 closes in place).
+        startDate,
+        startPrayer,
+      };
+    }
+
+    // Nothing open — start ongoing or backfill a completed past period.
+    if (isEndOngoing) {
+      return { startDate, startPrayer };
+    }
+    const endPrayer = PRAYER_LABEL_TO_API[selectedEndTime];
+    if (!endPrayer) return null;
+    return {
+      startDate,
+      startPrayer,
+      endDate: toMenstruationApiDate(selectedEndDate),
+      endPrayer,
+    };
+  };
+
+  const handleSave = async () => {
+    const payload = buildPayload();
+    if (!payload) return;
+
+    try {
+      await saveMenstruation(payload);
+      await refetchActive();
+      router.back();
+    } catch (error) {
+      const status = getMenstruationApiErrorStatus(error);
+      const { data: refreshed } = await refetchActive();
+      const refreshedActive = refreshed?.data ?? null;
+
+      if (status === 409) {
+        // Tried to start while something is open — sync UI to the open period.
+        hasInitialized.current = true;
+        if (refreshedActive) {
+          setMenstruating(true);
+          isMenstruating.value = true;
+          setSelectedEndDate(ONGOING_DATE_VALUE);
+          setSelectedEndTime("");
+          const startYmd = apiDateToLocalYmd(refreshedActive.startDate);
+          if (startYmd) setSelectedDate(clampDateToSelectable(startYmd));
+          if (refreshedActive.startPrayer) {
+            setSelectedStartTime(
+              API_TO_PRAYER_LABEL[
+                String(refreshedActive.startPrayer).toUpperCase()
+              ] ?? "",
+            );
+          }
+          showToast(
+            "error",
+            t("homeScreen.menstruationLog_endCurrentFirst"),
+          );
+        }
+        return;
+      }
+
+      if (status === 404) {
+        // End with nothing open — clear to a fresh start form.
+        hasInitialized.current = true;
+        resetBlankForm();
+      }
+    }
+  };
+
+  if (showActiveLoading) {
+    return (
+      <BlackScreenWrapper>
+        <View style={styles.loadingContainer}>
+          <LoadingComponent size="large" />
+        </View>
+      </BlackScreenWrapper>
+    );
+  }
 
   return (
     <BlackScreenWrapper>
@@ -250,41 +470,38 @@ export default function MenstruationLog({
         </View>
 
         <View style={styles.menstruatingContainer}>
-          <Text
-            style={[
-              styles.menstruatingText,
-              {
-                color: menstruating ? Colors.light.white : Colors.light.subtext,
-              },
-            ]}
-          >
+          <Text style={styles.menstruatingText}>
             {t("homeScreen.menstruationLog_imMenstruating")}
           </Text>
           <SwitchButton
             value={isMenstruating}
             onPress={() => {
-              if (!goalCycleId) {
-                alert("You must select a Goal Cycle before logging a period.");
+              // Can't clear an open period by toggling off — must set an end date.
+              if (activePeriod && isMenstruating.value) {
+                showToast(
+                  "error",
+                  t("homeScreen.menstruationLog_endCurrentFirst"),
+                );
                 return;
               }
               const newValue = !isMenstruating.value;
               isMenstruating.value = newValue;
               setMenstruating(newValue);
               if (!newValue) {
+                clearStartCollapseTimer();
+                clearEndCollapseTimer();
                 setShowDatePicker(false);
-                setSelectedDate(selectableMaxString);
-
+                setSelectedDate(defaultSelectedDate);
                 setShowEndDatePicker(false);
-                setSelectedEndDate(selectableMaxString);
-
-                isStillMenstruating.value = false;
-                setStillMenstruating(false);
-
+                setSelectedEndDate(ONGOING_DATE_VALUE);
                 setSelectedStartTime("");
                 setSelectedEndTime("");
               }
             }}
-            trackColors={{ off: Colors.light.subtext, on: Colors.light.dullWhiteOpacity }}
+            trackColors={{
+              off: Colors.light.subtext,
+              on: Colors.light.dullWhiteOpacity,
+            }}
             thumbColors={{ off: Colors.light.white, on: Colors.light.green }}
             size="small"
             style={styles.switchButton}
@@ -309,7 +526,7 @@ export default function MenstruationLog({
           >
             <View
               style={[
-                dateExplicitlyPicked && menstruating
+                menstruating && showDatePicker
                   ? styles.todayContainerActive
                   : styles.todayContainer,
                 !menstruating && { opacity: 0.4 },
@@ -318,7 +535,6 @@ export default function MenstruationLog({
               <Text
                 style={[
                   styles.todayText,
-                  dateExplicitlyPicked &&
                   menstruating && { color: Colors.light.white },
                 ]}
               >
@@ -343,28 +559,7 @@ export default function MenstruationLog({
               {startQuestionText}
             </Text>
             <View style={styles.radioOptionsList}>
-              {[
-                {
-                  label: "Before Fajr",
-                  transKey: "homeScreen.menstruationLog_beforeFajr",
-                },
-                {
-                  label: "Before Duhr",
-                  transKey: "homeScreen.menstruationLog_beforeDuhr",
-                },
-                {
-                  label: "Before Asr",
-                  transKey: "homeScreen.menstruationLog_beforeAsr",
-                },
-                {
-                  label: "Before Maghrib",
-                  transKey: "homeScreen.menstruationLog_beforeMaghrib",
-                },
-                {
-                  label: "Before Isha",
-                  transKey: "homeScreen.menstruationLog_beforeIsha",
-                },
-              ].map((timeOption) => {
+              {START_TIME_OPTIONS.map((timeOption) => {
                 const isSelected = selectedStartTime === timeOption.label;
                 return (
                   <TouchableOpacity
@@ -386,54 +581,12 @@ export default function MenstruationLog({
           </View>
         )}
 
-        <View style={styles.calendarSection}>
-          <View style={styles.calendarContainer}>
-            <View style={styles.dateLabelsContainer}>
-              <Text
-                style={[
-                  styles.gregorianDateText,
-                  {
-                    color: menstruating
-                      ? Colors.light.white
-                      : Colors.light.subtext,
-                  },
-                ]}
-              >
-                {gregorianRange}
-              </Text>
-              <Text
-                style={[
-                  styles.islamicDateText,
-                  {
-                    color: menstruating
-                      ? Colors.light.white
-                      : Colors.light.subtext,
-                  },
-                ]}
-              >
-                {islamicRange}
-              </Text>
-            </View>
-            <MenstruationCalendar
-              currentDate={selectedDate}
-              selectedDate={selectedDate}
-              onDayPress={(dateString) => {
-                setSelectedDate(dateString);
-                if (dateString > selectedEndDate) {
-                  setSelectedEndDate(dateString);
-                }
-              }}
-              isMenstruating={menstruating}
-            />
-          </View>
-        </View>
-
         <View style={styles.startDateContainer}>
           <Text
             style={[
               styles.startDateText,
               {
-                color: isEndDateActive
+                color: menstruating
                   ? Colors.light.white
                   : Colors.light.subtext,
               },
@@ -443,22 +596,21 @@ export default function MenstruationLog({
           </Text>
           <TouchableOpacity
             onPress={handleEndDatePress}
-            activeOpacity={isEndDateActive ? 0.7 : 1}
-            disabled={!isEndDateActive}
+            activeOpacity={menstruating ? 0.7 : 1}
+            disabled={!menstruating}
           >
             <View
               style={[
-                endDateExplicitlyPicked && isEndDateActive
+                menstruating && showEndDatePicker
                   ? styles.todayContainerActive
                   : styles.todayContainer,
-                !isEndDateActive && { opacity: 0.4 },
+                !menstruating && { opacity: 0.4 },
               ]}
             >
               <Text
                 style={[
                   styles.todayText,
-                  endDateExplicitlyPicked &&
-                  isEndDateActive && { color: Colors.light.white },
+                  menstruating && { color: Colors.light.white },
                 ]}
               >
                 {endDateButtonLabel}
@@ -467,41 +619,21 @@ export default function MenstruationLog({
           </TouchableOpacity>
         </View>
 
-        {showEndDatePicker && isEndDateActive && (
+        {showEndDatePicker && menstruating && (
           <InlineDateWheelPicker
             value={selectedEndDate}
             onChange={handleEndDateWheelChange}
-            maximumDate={selectableMax}
+            maximumDate={endDateMaximum}
             minimumDate={endDateMinimum}
+            includeOngoing
           />
         )}
 
-        {isEndDateActive && (
+        {menstruating && !isEndOngoing && (
           <View style={styles.startTimesContainer}>
             <Text style={styles.startTimeQuestionText}>{endQuestionText}</Text>
             <View style={styles.radioOptionsList}>
-              {[
-                {
-                  label: "Before Fajr",
-                  transKey: "homeScreen.menstruationLog_beforeFajr",
-                },
-                {
-                  label: "Before Duhr",
-                  transKey: "homeScreen.menstruationLog_beforeDuhr",
-                },
-                {
-                  label: "Before Asr",
-                  transKey: "homeScreen.menstruationLog_beforeAsr",
-                },
-                {
-                  label: "Before Maghrib",
-                  transKey: "homeScreen.menstruationLog_beforeMaghrib",
-                },
-                {
-                  label: "Before Isha",
-                  transKey: "homeScreen.menstruationLog_beforeIsha",
-                },
-              ].map((timeOption) => {
+              {START_TIME_OPTIONS.map((timeOption) => {
                 const isSelected = selectedEndTime === timeOption.label;
                 return (
                   <TouchableOpacity
@@ -523,89 +655,12 @@ export default function MenstruationLog({
           </View>
         )}
 
-        <View style={styles.menstruatingContainer}>
-          <Text
-            style={[
-              styles.menstruatingText,
-              {
-                color: menstruating ? Colors.light.white : Colors.light.subtext,
-              },
-            ]}
-          >
-            {t("homeScreen.menstruationLog_imStillMenstruating")}
-          </Text>
-          <SwitchButton
-            value={isStillMenstruating}
-            onPress={() => {
-              if (!menstruating) return;
-              const newValue = !isStillMenstruating.value;
-              isStillMenstruating.value = newValue;
-              setStillMenstruating(newValue);
-              if (newValue) {
-                setShowEndDatePicker(false);
-                setSelectedEndDate(selectableMaxString);
-              }
-            }}
-            trackColors={{ off: Colors.light.subtext, on: Colors.light.dullWhiteOpacity }}
-            thumbColors={{ off: Colors.light.white, on: Colors.light.green }}
-            size="small"
-            style={[styles.switchButton, !menstruating && { opacity: 0.4 }]}
-          />
-        </View>
-
         <PrimaryButton
           text={t("homeScreen.menstruationLog_save")}
-          onPress={async () => {
-            if (!goalCycleId) {
-              alert("You must select a Goal Cycle before logging a period.");
-              return;
-            }
-
-            const prayerMap: Record<string, string> = {
-              "Before Fajr": "FAJR",
-              "Before Duhr": "DUHR",
-              "Before Asr": "ASR",
-              "Before Maghrib": "MAGHRIB",
-              "Before Isha": "ISHA",
-            };
-            const startPrayer = prayerMap[selectedStartTime] || "FAJR";
-
-            // Note: selectedDate is "YYYY-MM-DD"
-            const isoStartDate = new Date(selectedDate).toISOString();
-
-            const payload: any = {
-              startDate: isoStartDate,
-              startPrayer: startPrayer,
-              isOngoing: stillMenstruating,
-            };
-
-            if (!stillMenstruating) {
-              payload.endDate = new Date(selectedEndDate).toISOString();
-              payload.endPrayer = prayerMap[selectedEndTime] || "FAJR";
-            }
-
-            console.log("=== SAVE DEBUG ===");
-            console.log("Saving payload:", JSON.stringify(payload));
-
-            try {
-              // Backend uses the same POST endpoint for both create and update.
-              await saveMenstruation(payload);
-              router.back();
-            } catch (error) {
-              // error handled in mutation
-            }
-          }}
-          disabled={!menstruating || selectedStartTime === "" || (!stillMenstruating && selectedEndTime === "") || isPending || !goalCycleId}
+          onPress={handleSave}
+          disabled={!canSave}
           isLoading={isPending}
-          style={({ pressed }) => {
-            const isDisabled = !menstruating || selectedStartTime === "" || (!stillMenstruating && selectedEndTime === "") || isPending || !goalCycleId;
-            return [
-              { marginTop: 24 },
-              isDisabled
-                ? { backgroundColor: Colors.light.greybuttonBackground, borderColor: Colors.light.greybuttonBackground }
-                : {},
-            ];
-          }}
+          style={{ marginTop: 56 }}
         />
       </ScrollView>
     </BlackScreenWrapper>

@@ -97,6 +97,7 @@ export type MemorisationJuzProgressRailRow = {
   totalVerses: number;
   isCompleted: boolean;
   timeSpentMinutes: number;
+  longestStreak?: number;
 };
 
 export const MEMORISATION_JUZ_SUMMARY_KEY =
@@ -169,6 +170,17 @@ function groupByProgressEvents(
 
   if (sorted.length === 0) {
     const memorized = Math.min(cumulative, totalAyahs);
+    if (memorized <= 0) {
+      return [
+        {
+          xLabel: "e1",
+          dateLabel: "",
+          completed: 0,
+          incomplete: 0,
+          timeSpentMinutes: 0,
+        },
+      ];
+    }
     return [
       {
         xLabel: "e1",
@@ -435,7 +447,7 @@ function filterJuzPeriodSlice(
       chartPeriods: slice.chartPeriods.map((period) => ({
         ...period,
         completed: 0,
-        incomplete: totalAyahs,
+        incomplete: 0,
         timeSpentMinutes: 0,
       })),
       targetJuzCount: 1,
@@ -675,6 +687,7 @@ function buildProgressRailRowForUnit(
       selectedBarIndex !== null
         ? (unit.chartPeriods[selectedBarIndex]?.timeSpentMinutes ?? 0)
         : unit.totalTimeSpentMinutes,
+    longestStreak: 0,
   };
 }
 
@@ -688,6 +701,7 @@ function buildEmptyProgressRailRow(goal: JuzMemorisationGoal): MemorisationJuzPr
     totalVerses: goal.totalAyahs,
     isCompleted: false,
     timeSpentMinutes: 0,
+    longestStreak: 0,
   };
 }
 
