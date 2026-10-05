@@ -7,19 +7,40 @@ import {
   getWhiteDayDatesForHijriMonth,
 } from "./whiteDaysFastsData";
 
+/**
+ * White Days weekly day-ring states (design-aligned).
+ * Backend can drive these via white-day plan dates, logs, and menstruation days.
+ */
 export type WhiteDaysFastDayState =
+  /** Today, not a White Day — filled muted grey + today chip */
+  | "todayDisabled"
+  /** Non–White Day (past/future) — faint grey outline */
   | "inactive"
-  | "upcoming"
-  | "today"
+  /** Future planned White Day — white outline */
+  | "planned"
+  /** Today's planned White Day, not yet logged — white outline + today chip */
+  | "plannedToday"
+  /** Logged completed White Day fast — solid white (today chip if today) */
   | "completed"
+  /** Past planned White Day skipped — white outline + warning */
   | "missed";
 
 export type WhiteDaysFastDayProgress = {
   day: string;
+  /** Calendar day-of-month for label (e.g. 14 → "Sat 14"). */
+  dayOfMonth: number;
   date: string;
   state: WhiteDaysFastDayState;
   isToday: boolean;
   isWhiteDay: boolean;
+  /**
+   * Menstruating overlay (backend-ready via setWhiteDaysMenstruatingDates):
+   * - White Day → white ring + red fill
+   * - Non–White Day → solid red
+   */
+  isMenstruating: boolean;
+  /** Completed White Day log that can show delete chrome (today or past). */
+  canDelete: boolean;
 };
 
 export type WhiteDaysFastWeekSummary = {
@@ -46,6 +67,24 @@ const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
 const CYCLE_WEEKS = 4;
 const CYCLE_WEEK_START = getSundayWeekStart(PLANNED_FASTS.cycleStartDate);
 
+/**
+ * Menstruating dates for the White Days dashboard.
+ * Replace / hydrate from backend when menstruation periods are integrated.
+ */
+let whiteDaysMenstruatingDates: string[] = [];
+
+export function setWhiteDaysMenstruatingDates(dates: string[]): void {
+  whiteDaysMenstruatingDates = dates.map(normalizeDateString);
+}
+
+export function getWhiteDaysMenstruatingDates(): string[] {
+  return [...whiteDaysMenstruatingDates];
+}
+
+export function isWhiteDaysMenstruatingDate(date: string): boolean {
+  return whiteDaysMenstruatingDates.includes(normalizeDateString(date));
+}
+
 function getSundayWeekStart(dateStr: string): string {
   const date = new Date(`${normalizeDateString(dateStr)}T12:00:00`);
   date.setDate(date.getDate() - date.getDay());
@@ -70,6 +109,10 @@ function getDayLabel(dateStr: string): string {
     `${normalizeDateString(dateStr)}T12:00:00`,
   ).getDay();
   return DAY_LABELS[dayIndex];
+}
+
+function getDayOfMonth(dateStr: string): number {
+  return new Date(`${normalizeDateString(dateStr)}T12:00:00`).getDate();
 }
 
 function formatWeekRangeLabel(start: string, end: string): string {
@@ -108,26 +151,25 @@ function getWhiteDayNumber(date: string): number {
 }
 
 function resolveDayState(date: string, today: string): WhiteDaysFastDayState {
-  if (!isHijriWhiteDay(date)) {
-    return "inactive";
-  }
-
   const normalized = normalizeDateString(date);
   const normalizedToday = normalizeDateString(today);
+  const isWhiteDay = isHijriWhiteDay(normalized);
 
-  if (isWhiteDaysFastCompletedDate(normalized)) {
+  if (isWhiteDaysFastCompletedDate(normalized) && isWhiteDay) {
     return "completed";
   }
 
-  if (normalized > normalizedToday) {
-    return "upcoming";
+  if (isWhiteDay) {
+    if (normalized > normalizedToday) return "planned";
+    if (normalized === normalizedToday) return "plannedToday";
+    return "missed";
   }
 
   if (normalized === normalizedToday) {
-    return "today";
+    return "todayDisabled";
   }
 
-  return "missed";
+  return "inactive";
 }
 
 function countCompletedWhiteDaysInWeek(
@@ -246,17 +288,24 @@ function buildWeekDays(
   weekStart: string,
   today: string,
 ): WhiteDaysFastDayProgress[] {
+  const normalizedToday = normalizeDateString(today);
+
   return Array.from({ length: 7 }, (_, index) => {
     const date = addDays(weekStart, index);
     const normalizedDate = normalizeDateString(date);
     const isWhiteDay = isHijriWhiteDay(normalizedDate);
+    const state = resolveDayState(normalizedDate, today);
+    const isCompleted = state === "completed";
 
     return {
       day: getDayLabel(normalizedDate),
+      dayOfMonth: getDayOfMonth(normalizedDate),
       date: normalizedDate,
-      state: resolveDayState(normalizedDate, today),
-      isToday: normalizedDate === normalizeDateString(today),
+      state,
+      isToday: normalizedDate === normalizedToday,
       isWhiteDay,
+      isMenstruating: isWhiteDaysMenstruatingDate(normalizedDate),
+      canDelete: isCompleted && normalizedDate <= normalizedToday,
     };
   });
 }

@@ -356,7 +356,7 @@ function GoalProgressLoggingBody({
           <TaperedCircleBorder
             percentage={displayPercentage}
             borderColor={Colors.light.unfilledTaperred}
-            size={145}
+            size={110}
             variant="illuminated"
           >
             <View style={styles.largeCircleInner}>
@@ -412,6 +412,7 @@ function GoalProgressLoggingBody({
         <WeeklyProgressSection
           goalData={liveGoalData}
           refreshKey={weeklyRefreshKey}
+          onDeleted={() => setWeeklyRefreshKey((current) => current + 1)}
           onWeekProgressPercentChange={
             isMondayThursdayFasts ? setWeekViewPercent : undefined
           }

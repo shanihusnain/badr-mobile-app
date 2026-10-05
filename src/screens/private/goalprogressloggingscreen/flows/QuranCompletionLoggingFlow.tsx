@@ -728,6 +728,9 @@ export default function QuranCompletionLoggingFlow({
         contentStyle={
           isAyahRangeStep ? styles.flowContentAyahRange : undefined
         }
+        headerStyle={
+          isAyahRangeStep ? styles.flowHeaderAyahRange : undefined
+        }
       >
         {renderStepContent(currentStep)}
       </FlowCard>

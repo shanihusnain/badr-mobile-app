@@ -149,6 +149,8 @@ type Props = {
   goalData: GoalData;
   refreshKey?: number;
   onWeekProgressPercentChange?: (percent: number | null) => void;
+  /** Bump parent refresh after in-memory dashboard deletes (e.g. White Days). */
+  onDeleted?: () => void;
 };
 
 function isPrayerFrameDashboardLoading(
@@ -284,6 +286,7 @@ export function WeeklyProgressSection({
   goalData,
   refreshKey = 0,
   onWeekProgressPercentChange,
+  onDeleted,
 }: Props) {
   const { t } = useTranslation();
   const template = getLoggingFlowTemplate(goalData.id);
@@ -1323,6 +1326,7 @@ export function WeeklyProgressSection({
       <WhiteDaysFastsWeeklyProgressDashboard
         weekSummary={whiteDaysWeek}
         selectedDayIndex={whiteDaysTodayIndex}
+        onDeleted={onDeleted}
         onPrevWeek={
           canNavigateWhiteDaysFastWeek(weekIndex, "prev")
             ? handleWhiteDaysPrevWeek

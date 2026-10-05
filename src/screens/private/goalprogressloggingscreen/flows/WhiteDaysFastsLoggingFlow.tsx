@@ -11,7 +11,10 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "@/constants/theme";
 import { GoalData } from "../../home/components/goalsData";
 import { FlowCard } from "../components/FlowCard";
-import { StartTimeStep } from "../components/TimePickerSteps";
+import {
+  StartTimeStep,
+  getCurrentStartTimeParts,
+} from "../components/TimePickerSteps";
 import { WhiteDaysFastDateStep } from "../components/WhiteDaysFastDateStep";
 
 import {
@@ -64,14 +67,26 @@ export default function WhiteDaysFastsLoggingFlow({
   const [refreshKey, setRefreshKey] = useState(0);
   const [insightsVisible, setInsightsVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState("");
-  const [startHour, setStartHour] = useState("5");
-  const [startMinute, setStartMinute] = useState("00");
-  const [startPeriod, setStartPeriod] = useState<"am" | "pm">("am");
+  const [startHour, setStartHour] = useState(
+    () => getCurrentStartTimeParts().hour,
+  );
+  const [startMinute, setStartMinute] = useState(
+    () => getCurrentStartTimeParts().minute,
+  );
+  const [startPeriod, setStartPeriod] = useState<"am" | "pm">(
+    () => getCurrentStartTimeParts().period,
+  );
   const [isStartPeriodDropdownOpen, setIsStartPeriodDropdownOpen] =
     useState(false);
-  const [endHour, setEndHour] = useState("5");
-  const [endMinute, setEndMinute] = useState("30");
-  const [endPeriod, setEndPeriod] = useState<"am" | "pm">("pm");
+  const [endHour, setEndHour] = useState(
+    () => getCurrentStartTimeParts().hour,
+  );
+  const [endMinute, setEndMinute] = useState(
+    () => getCurrentStartTimeParts().minute,
+  );
+  const [endPeriod, setEndPeriod] = useState<"am" | "pm">(
+    () => getCurrentStartTimeParts().period,
+  );
   const [isEndPeriodDropdownOpen, setIsEndPeriodDropdownOpen] = useState(false);
 
   const today = getTodayDateString();
@@ -144,7 +159,6 @@ export default function WhiteDaysFastsLoggingFlow({
     if (!selectedDate) return "";
     const raw = formatWhiteDaysFastDateLabel(selectedDate, today);
     if (raw === "Today") return t("progressLogging.today");
-    if (raw === "Yesterday") return t("progressLogging.yesterday");
     return raw;
   }, [selectedDate, t, today]);
 
@@ -182,20 +196,25 @@ export default function WhiteDaysFastsLoggingFlow({
     endPeriod,
   );
 
+  const applyCurrentTimeDefaults = useCallback(() => {
+    const now = getCurrentStartTimeParts();
+    setStartHour(now.hour);
+    setStartMinute(now.minute);
+    setStartPeriod(now.period);
+    setEndHour(now.hour);
+    setEndMinute(now.minute);
+    setEndPeriod(now.period);
+  }, []);
+
   const resetFlow = useCallback(() => {
     setFlowMode("collapsed");
     setStepIndex(0);
     setSelectedDate("");
-    setStartHour("5");
-    setStartMinute("00");
-    setStartPeriod("am");
-    setEndHour("5");
-    setEndMinute("30");
-    setEndPeriod("pm");
+    applyCurrentTimeDefaults();
     setIsStartPeriodDropdownOpen(false);
     setIsEndPeriodDropdownOpen(false);
     onDropdownOpenChange?.(false);
-  }, [onDropdownOpenChange]);
+  }, [applyCurrentTimeDefaults, onDropdownOpenChange]);
 
   const handleConfirm = useCallback(() => {
     if (!selectedDate) return;
@@ -259,9 +278,10 @@ export default function WhiteDaysFastsLoggingFlow({
 
   const handleOpenFlow = useCallback(() => {
     if (goalCompleted) return;
+    applyCurrentTimeDefaults();
     setStepIndex(0);
     setFlowMode("active");
-  }, [goalCompleted]);
+  }, [applyCurrentTimeDefaults, goalCompleted]);
 
   const getStepHeader = (step: WhiteDaysFastsStepId) => {
     const calendarIcon = (
@@ -556,7 +576,7 @@ const localStyles = StyleSheet.create({
     height: 36,
     borderRadius: 18,
     backgroundColor: Colors.light.white,
-    borderWidth: 3,
+    borderWidth: 5,
     borderColor: Colors.light.selectcategory,
     marginTop: 33,
   },
@@ -605,10 +625,10 @@ const localStyles = StyleSheet.create({
   },
   timeSectionLabel: {
     color: Colors.light.white,
-    fontFamily: fonts.primary.medium,
-    fontWeight: "500",
-    fontSize: 12,
-    lineHeight: 16,
+    fontFamily: fonts.primary.regular,
+    fontWeight: "400",
+    fontSize: 10,
+    lineHeight: 10,
     textAlign: "center",
     opacity: 0.95,
   },

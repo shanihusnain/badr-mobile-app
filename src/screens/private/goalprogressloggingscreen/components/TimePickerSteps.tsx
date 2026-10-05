@@ -3,14 +3,15 @@ import { View, Text, TextInput, TouchableOpacity } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "@/constants/theme";
 
-export function getCurrentStartTimeParts(): {
+export type StartTimeParts = {
   hour: string;
   minute: string;
   period: "am" | "pm";
-} {
-  const now = new Date();
-  let hour24 = now.getHours();
-  const minute = now.getMinutes();
+};
+
+function startTimePartsFromDate(date: Date): StartTimeParts {
+  const hour24 = date.getHours();
+  const minute = date.getMinutes();
   const period: "am" | "pm" = hour24 >= 12 ? "pm" : "am";
   let hour12 = hour24 % 12;
   if (hour12 === 0) hour12 = 12;
@@ -19,6 +20,10 @@ export function getCurrentStartTimeParts(): {
     minute: String(minute).padStart(2, "0"),
     period,
   };
+}
+
+export function getCurrentStartTimeParts(): StartTimeParts {
+  return startTimePartsFromDate(new Date());
 }
 
 interface StartTimeStepProps {

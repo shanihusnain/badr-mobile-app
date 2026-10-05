@@ -186,7 +186,8 @@ export const styles = StyleSheet.create({
   },
   flowContentAyahRange: {
     justifyContent: "flex-start",
-    paddingTop: 3,
+    // Figma: clear gap under "Select completed verses." before chips.
+    paddingTop: 10,
     paddingBottom: 0,
     marginBottom: 0,
     // Cancel flowCard paddingHorizontal so the range slider (and start chip)
@@ -198,6 +199,10 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 2,
+  },
+  /** Slightly more header→content air on the ayat-range step (Figma). */
+  flowHeaderAyahRange: {
+    marginBottom: 6,
   },
   flowIconCircle: {
     width: 36,

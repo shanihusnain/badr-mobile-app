@@ -815,6 +815,9 @@ export default function QuranJuzLoggingFlow({
         contentStyle={
           isAyahRangeStep ? styles.flowContentAyahRange : undefined
         }
+        headerStyle={
+          isAyahRangeStep ? styles.flowHeaderAyahRange : undefined
+        }
       >
         {renderStepContent(currentStep)}
       </FlowCard>

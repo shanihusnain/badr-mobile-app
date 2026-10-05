@@ -29,6 +29,7 @@ type FlowCardProps = {
   styles: any;
   style?: StyleProp<ViewStyle>;
   contentStyle?: StyleProp<ViewStyle>;
+  headerStyle?: StyleProp<ViewStyle>;
 };
 
 export const FlowCard: React.FC<FlowCardProps> = ({
@@ -45,6 +46,7 @@ export const FlowCard: React.FC<FlowCardProps> = ({
   styles,
   style,
   contentStyle,
+  headerStyle,
 }) => {
   const { i18n } = useTranslation();
   const isRtl = i18n.language === "ar";
@@ -55,7 +57,7 @@ export const FlowCard: React.FC<FlowCardProps> = ({
 
   return (
     <View style={[styles.flowCard, style]}>
-      <View style={styles.flowHeader}>
+      <View style={[styles.flowHeader, headerStyle]}>
         <View style={styles.flowIconCircle}>{headerIcon}</View>
         <Text style={styles.flowHeaderText}>{headerLabel}</Text>
       </View>
