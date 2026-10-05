@@ -25,6 +25,12 @@
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "ios": {
+        "ascApiKeyPath": "/Users/husnainshakir/.appstoreconnect/private_keys/AuthKey_548R4CZ7HK.p8",
+        "ascApiKeyIssuerId": "67fe6a6c-6e34-4d74-8b0c-d761ae53d5d0",
+        "ascApiKeyId": "548R4CZ7HK"
+      }
+    }
   }
 }
