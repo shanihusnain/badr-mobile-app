@@ -62,20 +62,20 @@ const LABEL_LINE_HEIGHT = 11;
 const CARET_HALF = 4;
 const THUMB_CHEVRON_SIZE = 10;
 
-/** Completion / Juz / Hizb — tight morning chips. */
+/** Completion / Juz / Hizb — Figma-matched chip padding above thumbs. */
 const DEFAULT_CHIP = {
-  paddingH: 4,
-  paddingV: 2,
+  paddingH: 8,
+  paddingV: 3,
   /** Space from pill bottom → thumb top (caret sits in this gap). */
-  toTrackGap: 6,
-  labelGap: 4,
+  toTrackGap: 4,
+  labelGap: 6,
 } as const;
 
 /** Memorisation by Surah — roomier chip width / gap above thumbs. */
 const SURAH_CHIP = {
   paddingH: 12,
   paddingV: 4,
-  toTrackGap: 6,
+  toTrackGap: 4,
   labelGap: 8,
 } as const;
 
@@ -723,8 +723,8 @@ const localStyles = StyleSheet.create({
   root: {
     width: "100%",
     overflow: "visible",
-    // Sit closer to the flow card header ("Select completed verses.").
-    marginTop: -4,
+    // Figma: sit below the header with a small breathing gap (not pulled up).
+    marginTop: -1,
   },
   sliderArea: {
     position: "relative",
@@ -833,8 +833,8 @@ const localStyles = StyleSheet.create({
     lineHeight: 12,
     textAlign: "left",
     opacity: 0.95,
-    // Gap below the visible thumb — independent of thumbHit size.
-    marginTop: 5,
+    // Gap below the visible thumb — pull summary slightly closer to the track.
+    marginTop: -0.5,
     // Align with the track start (TRACK_HORIZONTAL_INSET).
     paddingHorizontal: TRACK_HORIZONTAL_INSET,
     zIndex: 0,

@@ -20,7 +20,10 @@ import {
 import { GoalData } from "../../home/components/goalsData";
 import { FlowCard } from "../components/FlowCard";
 import { FlowDropdownSelect } from "../components/FlowDropdownSelect";
-import { StartTimeStep } from "../components/TimePickerSteps";
+import {
+  StartTimeStep,
+  getCurrentStartTimeParts,
+} from "../components/TimePickerSteps";
 import { WhiteDaysFastDateStep } from "../components/WhiteDaysFastDateStep";
 import { MondayThursdayFastsInsightsModal } from "../components/MondayThursdayFastsInsightsModal";
 import {
@@ -115,14 +118,26 @@ export default function MondayThursdayFastsLoggingFlow({
     string | null
   >(null);
   const [isLogTypeDropdownOpen, setIsLogTypeDropdownOpen] = useState(false);
-  const [startHour, setStartHour] = useState("5");
-  const [startMinute, setStartMinute] = useState("00");
-  const [startPeriod, setStartPeriod] = useState<"am" | "pm">("am");
+  const [startHour, setStartHour] = useState(
+    () => getCurrentStartTimeParts().hour,
+  );
+  const [startMinute, setStartMinute] = useState(
+    () => getCurrentStartTimeParts().minute,
+  );
+  const [startPeriod, setStartPeriod] = useState<"am" | "pm">(
+    () => getCurrentStartTimeParts().period,
+  );
   const [isStartPeriodDropdownOpen, setIsStartPeriodDropdownOpen] =
     useState(false);
-  const [endHour, setEndHour] = useState("5");
-  const [endMinute, setEndMinute] = useState("30");
-  const [endPeriod, setEndPeriod] = useState<"am" | "pm">("pm");
+  const [endHour, setEndHour] = useState(
+    () => getCurrentStartTimeParts().hour,
+  );
+  const [endMinute, setEndMinute] = useState(
+    () => getCurrentStartTimeParts().minute,
+  );
+  const [endPeriod, setEndPeriod] = useState<"am" | "pm">(
+    () => getCurrentStartTimeParts().period,
+  );
   const [isEndPeriodDropdownOpen, setIsEndPeriodDropdownOpen] = useState(false);
 
   const steps = useMemo(() => getStepsForLogType(logType), [logType]);
@@ -326,6 +341,16 @@ export default function MondayThursdayFastsLoggingFlow({
     endPeriod,
   );
 
+  const applyCurrentTimeDefaults = useCallback(() => {
+    const now = getCurrentStartTimeParts();
+    setStartHour(now.hour);
+    setStartMinute(now.minute);
+    setStartPeriod(now.period);
+    setEndHour(now.hour);
+    setEndMinute(now.minute);
+    setEndPeriod(now.period);
+  }, []);
+
   const resetFlow = useCallback(() => {
     setFlowMode("collapsed");
     setStepIndex(0);
@@ -333,17 +358,12 @@ export default function MondayThursdayFastsLoggingFlow({
     setSelectedPlannedFastId(null);
     setSelectedActualDateId(null);
     setSelectedMissedDateId(null);
-    setStartHour("5");
-    setStartMinute("00");
-    setStartPeriod("am");
-    setEndHour("5");
-    setEndMinute("30");
-    setEndPeriod("pm");
+    applyCurrentTimeDefaults();
     setIsLogTypeDropdownOpen(false);
     setIsStartPeriodDropdownOpen(false);
     setIsEndPeriodDropdownOpen(false);
     onDropdownOpenChange?.(false);
-  }, [onDropdownOpenChange]);
+  }, [applyCurrentTimeDefaults, onDropdownOpenChange]);
 
   const handleLogTypeChange = useCallback(
     (value: MondayThursdayFastLogType) => {
@@ -603,13 +623,14 @@ export default function MondayThursdayFastsLoggingFlow({
 
   const handleOpenFlow = useCallback(() => {
     if (goalCompleted || !hasMondayThursdayFastLoggingAvailable()) return;
+    applyCurrentTimeDefaults();
     setLogType(null);
     setSelectedPlannedFastId(null);
     setSelectedActualDateId(null);
     setSelectedMissedDateId(null);
     setStepIndex(0);
     setFlowMode("active");
-  }, [goalCompleted]);
+  }, [applyCurrentTimeDefaults, goalCompleted]);
 
   const getStepHeader = (step: MondayThursdayFastsStepId) => {
     const calendarIcon = (
@@ -1035,8 +1056,8 @@ const localStyles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: 10,
+    lineHeight: 13,
     textAlign: "center",
     opacity: 0.95,
   },

@@ -537,6 +537,7 @@ export default function QuranMemorisationLoggingFlow({
         styles={styles}
         style={styles.inPlaceFlowCard}
         contentStyle={isAyahRangeStep ? styles.flowContentAyahRange : undefined}
+        headerStyle={isAyahRangeStep ? styles.flowHeaderAyahRange : undefined}
       >
         {renderStepContent(currentStep)}
       </FlowCard>
