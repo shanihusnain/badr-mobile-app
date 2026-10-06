@@ -921,6 +921,7 @@
     "whiteDaysLegendCompletedFast": "Completed Fast",
     "whiteDaysLegendMissedFast": "Missed Fast",
     "whiteDaysLegendUpcomingFast": "Upcoming Fast",
+    "whiteDaysLegendMenstruation": "Menstruation",
     "whiteDaysDetailedSummaryMonthly": "This month, you completed {{completed}} of {{total}} White Days fasts — {{percent}}% progress, {{delta}}% {{direction}} than last month.",
     "whiteDaysDetailedSummaryThreeMonths": "Over the last 3 months, you completed {{completed}} of {{total}} White Days fasts — {{percent}}% progress, {{delta}}% {{direction}} than the previous period.",
     "whiteDaysDetailedSummarySixMonths": "Over the last 6 months, you completed {{completed}} of {{total}} White Days fasts — {{percent}}% progress, {{delta}}% {{direction}} than the previous period.",

@@ -53,9 +53,28 @@ export type FastingGoalListItem = FastingGoalApiItem & {
   image?: ImageSourcePropType;
 };
 
+/** Logging screen GoalId → backend fastingType */
+export const GOAL_ID_TO_FASTING_TYPE: Record<string, string> = {
+  "fasting-whiteDays": "WHITE_DAYS",
+  "fasting-mondayThursday": "MONDAY_THURSDAY",
+  "fasting-Dawwod": "PROPHET_DAWOOD",
+  "fasting-ramadan": "MISSED_RAMADAN",
+};
+
 export function resolveFastingType(goalKey: string): string {
   if (FASTING_TYPE_TO_UI_ID[goalKey]) return goalKey;
   return UI_ID_TO_FASTING_TYPE[goalKey] ?? goalKey;
+}
+
+export function resolveFastingTypeFromGoalId(
+  goalId: string | null | undefined,
+): string | null {
+  if (!goalId) return null;
+  return (
+    GOAL_ID_TO_FASTING_TYPE[goalId] ??
+    UI_ID_TO_FASTING_TYPE[goalId] ??
+    (FASTING_TYPE_TO_UI_ID[goalId] ? goalId : null)
+  );
 }
 
 export function resolveFastingUiId(goalKey: string): string {

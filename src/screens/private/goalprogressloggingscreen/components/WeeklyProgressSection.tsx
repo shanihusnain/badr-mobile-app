@@ -100,6 +100,7 @@ import {
   clampWhiteDaysFastWeekIndex,
   getWhiteDaysFastCycleSummary,
   getWhiteDaysFastTodayIndexInWeek,
+  type WhiteDaysFastWeekSummary,
 } from "../whiteDaysFastsWeeklyData";
 import {
   canNavigateProphetDawoodFastWeek,
@@ -109,6 +110,13 @@ import {
 } from "../prophetDawoodFastsWeeklyData";
 import { useOptionalPrayerGoalFrameContext } from "../prayerGoalFrameContext";
 import { useOptionalQuranGoalFrameContext } from "../quranGoalFrameContext";
+import { useOptionalFastingGoalFrameContext } from "../fastingGoalFrameContext";
+import {
+  canNavigateFastingFrameWeekNext,
+  getFastingFrameTodayIndex,
+  mapWhiteDaysFrameWeekSummary,
+} from "@/src/utils/fastingGoalFrameMap";
+import type { FastingGoalFrameData } from "@/src/api/queries/useGetFastingGoalFrame";
 import {
   formatPrayerFrameWeekRange,
   getPrayerFrameTodayIndex,
@@ -282,6 +290,64 @@ function getPrayerFrameMotivationalQuote(frame: PrayerGoalFrameData) {
   return frame.week.motivationalMessage?.trim() ?? "";
 }
 
+function isFastingFrameDashboardLoading(
+  fastingFrame: ReturnType<typeof useOptionalFastingGoalFrameContext>,
+  frame: unknown,
+) {
+  if (!fastingFrame) return true;
+  if (fastingFrame.isLoading) return true;
+  if (!frame && !fastingFrame.isError) return true;
+
+  const frameData = frame as FastingGoalFrameData | null | undefined;
+  const requestedWeek = fastingFrame.weekNumber;
+  const displayedWeek = frameData?.week?.weekNumber;
+
+  if (
+    requestedWeek != null &&
+    displayedWeek != null &&
+    requestedWeek !== displayedWeek &&
+    (fastingFrame.isFetching || fastingFrame.isPlaceholderData)
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+const WHITE_DAYS_LOADING_WEEK_SUMMARY: WhiteDaysFastWeekSummary = {
+  weekDays: [],
+  weekRangeLabel: "---",
+  weekFraction: "---",
+  weekIndex: 0,
+  completedFastsThisWeek: 0,
+  monthlyStreak: 0,
+  motivationalQuoteKey: "upcoming",
+  motivationalQuote: "---",
+};
+
+function getFastingFrameActiveWeek(
+  fastingFrame: ReturnType<typeof useOptionalFastingGoalFrameContext>,
+  frame: FastingGoalFrameData,
+) {
+  return (
+    fastingFrame?.weekNumber ??
+    frame.week.weekNumber ??
+    frame.cycle.weekNumber ??
+    1
+  );
+}
+
+function shiftFastingFrameWeek(
+  fastingFrame: ReturnType<typeof useOptionalFastingGoalFrameContext>,
+  frame: FastingGoalFrameData,
+  direction: -1 | 1,
+) {
+  if (!fastingFrame) return;
+  if (direction > 0 && !canNavigateFastingFrameWeekNext(frame)) return;
+  const activeWeek = getFastingFrameActiveWeek(fastingFrame, frame);
+  fastingFrame.setWeekNumber(activeWeek + direction);
+}
+
 export function WeeklyProgressSection({
   goalData,
   refreshKey = 0,
@@ -292,6 +358,7 @@ export function WeeklyProgressSection({
   const template = getLoggingFlowTemplate(goalData.id);
   const prayerFrame = useOptionalPrayerGoalFrameContext();
   const quranFrame = useOptionalQuranGoalFrameContext();
+  const fastingFrame = useOptionalFastingGoalFrameContext();
   const { user } = useAuth();
   const qiyamGender: "male" | "female" =
     user?.gender === "FEMALE" ? "female" : "male";
@@ -1317,28 +1384,72 @@ export function WeeklyProgressSection({
     );
   }
 
-  if (template === "white-days-fasts" && whiteDaysWeek) {
-    const whiteDaysTodayIndex = getWhiteDaysFastTodayIndexInWeek(
-      whiteDaysWeek.weekDays,
-    );
+  if (template === "white-days-fasts") {
+    const frame = fastingFrame?.frame;
+    if (fastingFrame) {
+      const frameLoading = isFastingFrameDashboardLoading(fastingFrame, frame);
 
-    return (
-      <WhiteDaysFastsWeeklyProgressDashboard
-        weekSummary={whiteDaysWeek}
-        selectedDayIndex={whiteDaysTodayIndex}
-        onDeleted={onDeleted}
-        onPrevWeek={
-          canNavigateWhiteDaysFastWeek(weekIndex, "prev")
-            ? handleWhiteDaysPrevWeek
-            : undefined
-        }
-        onNextWeek={
-          canNavigateWhiteDaysFastWeek(weekIndex, "next")
-            ? handleWhiteDaysNextWeek
-            : undefined
-        }
-      />
-    );
+      if (frame) {
+        const whiteDaysWeekFromFrame = mapWhiteDaysFrameWeekSummary(frame);
+        const canPrev =
+          frame.week.hasPrevious ??
+          getFastingFrameActiveWeek(fastingFrame, frame) > 1;
+        const canNext = canNavigateFastingFrameWeekNext(frame);
+
+        return (
+          <WhiteDaysFastsWeeklyProgressDashboard
+            weekSummary={whiteDaysWeekFromFrame}
+            selectedDayIndex={getFastingFrameTodayIndex(frame)}
+            onDeleted={onDeleted}
+            loading={frameLoading}
+            onPrevWeek={
+              canPrev
+                ? () => shiftFastingFrameWeek(fastingFrame, frame, -1)
+                : undefined
+            }
+            onNextWeek={
+              canNext
+                ? () => shiftFastingFrameWeek(fastingFrame, frame, 1)
+                : undefined
+            }
+          />
+        );
+      }
+
+      if (!fastingFrame.isError) {
+        return (
+          <WhiteDaysFastsWeeklyProgressDashboard
+            weekSummary={WHITE_DAYS_LOADING_WEEK_SUMMARY}
+            selectedDayIndex={0}
+            loading
+          />
+        );
+      }
+    }
+
+    if (whiteDaysWeek) {
+      const whiteDaysTodayIndex = getWhiteDaysFastTodayIndexInWeek(
+        whiteDaysWeek.weekDays,
+      );
+
+      return (
+        <WhiteDaysFastsWeeklyProgressDashboard
+          weekSummary={whiteDaysWeek}
+          selectedDayIndex={whiteDaysTodayIndex}
+          onDeleted={onDeleted}
+          onPrevWeek={
+            canNavigateWhiteDaysFastWeek(weekIndex, "prev")
+              ? handleWhiteDaysPrevWeek
+              : undefined
+          }
+          onNextWeek={
+            canNavigateWhiteDaysFastWeek(weekIndex, "next")
+              ? handleWhiteDaysNextWeek
+              : undefined
+          }
+        />
+      );
+    }
   }
 
   if (template === "prophet-dawood-fasts" && prophetDawoodWeek) {
