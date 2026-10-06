@@ -77,6 +77,9 @@ export const MonthlyGoalPlannerScreen = () => {
 
   const bottomSheetRef = useRef<BottomSheetModal>(null);
   const [selectedTab, setSelectedTab] = useState<Tab>("cycle");
+  const [restoreScrollOffset, setRestoreScrollOffset] = useState<number | null>(
+    null,
+  );
 
   useEffect(() => {
     void setPendingOnboardingRoute("/(private)/monthlygoalplanner");
@@ -93,6 +96,7 @@ export const MonthlyGoalPlannerScreen = () => {
   };
 
   const handleStepPress = useCallback((stepId: number) => {
+    setRestoreScrollOffset(null);
     setSelectedTab(STEP_TAB_MAP[stepId] ?? "cycle");
     bottomSheetRef.current?.present();
   }, []);
@@ -104,6 +108,9 @@ export const MonthlyGoalPlannerScreen = () => {
       const target = consumeGoalPlannerSheetReturn();
       if (!target) return;
       setSelectedTab(target.tab);
+      setRestoreScrollOffset(
+        typeof target.scrollOffset === "number" ? target.scrollOffset : null,
+      );
       requestAnimationFrame(() => {
         bottomSheetRef.current?.present();
       });
@@ -191,9 +198,9 @@ export const MonthlyGoalPlannerScreen = () => {
   ];
 
   const handleBeginNowPress = useCallback(() => {
-    //open the bottom sheet
+    setRestoreScrollOffset(null);
     bottomSheetRef.current?.present();
-  }, [bottomSheetRef]);
+  }, []);
 
   return (
     <View style={{ flex: 1 }}>
@@ -223,6 +230,8 @@ export const MonthlyGoalPlannerScreen = () => {
         ref={bottomSheetRef}
         onClose={handleSheetClose}
         initialTab={selectedTab}
+        restoreScrollOffset={restoreScrollOffset}
+        onRestoreScrollConsumed={() => setRestoreScrollOffset(null)}
       />
     </View>
   );

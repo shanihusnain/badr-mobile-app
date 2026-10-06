@@ -197,12 +197,15 @@ const TABS: { id: Tab; label: string; chip?: string }[] = [
 type Props = {
   onClose: () => void;
   initialTab?: Tab;
+  /** Scroll offset to restore after returning from goal description details. */
+  restoreScrollOffset?: number | null;
+  onRestoreScrollConsumed?: () => void;
 };
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
-  ({ onClose, initialTab }, ref) => {
+  ({ onClose, initialTab, restoreScrollOffset, onRestoreScrollConsumed }, ref) => {
     const { t } = useTranslation();
     const insets = useSafeAreaInsets();
     const { height: windowHeight } = useWindowDimensions();
@@ -343,9 +346,15 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
       router.replace("/(tabs)/(home)");
     }, [ref]);
 
+    const listScrollOffsetRef = useRef(0);
+    const pendingRestoreScrollRef = useRef<number | null>(null);
+
     const handleSeeMorePress = useCallback(
       (goal: string) => {
-        setGoalPlannerSheetReturn({ tab: activeTabRef.current });
+        setGoalPlannerSheetReturn({
+          tab: activeTabRef.current,
+          scrollOffset: listScrollOffsetRef.current,
+        });
         if (ref && typeof ref !== "function") {
           ref.current?.dismiss();
         }
@@ -402,6 +411,33 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
     );
 
     const scrollToGoalItemIdRef = useRef<(goalId: string) => void>(() => {});
+    const pendingAutoScrollTimersRef = useRef<
+      ReturnType<typeof setTimeout>[]
+    >([]);
+    /** User drag cancels in-flight programmatic scrolls until the next intentional auto-scroll. */
+    const autoScrollInterruptedByUserRef = useRef(false);
+
+    const clearPendingAutoScrollTimers = useCallback(() => {
+      pendingAutoScrollTimersRef.current.forEach(clearTimeout);
+      pendingAutoScrollTimersRef.current = [];
+    }, []);
+
+    const scheduleAutoScroll = useCallback(
+      (fn: () => void, delayMs: number) => {
+        const timer = setTimeout(() => {
+          pendingAutoScrollTimersRef.current =
+            pendingAutoScrollTimersRef.current.filter((t) => t !== timer);
+          if (autoScrollInterruptedByUserRef.current) return;
+          fn();
+        }, delayMs);
+        pendingAutoScrollTimersRef.current.push(timer);
+      },
+      [],
+    );
+
+    const beginProgrammaticAutoScroll = useCallback(() => {
+      autoScrollInterruptedByUserRef.current = false;
+    }, []);
 
     useEffect(() => {
       hydrateQuranSurahFrequencies();
@@ -429,7 +465,9 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         clearTimeout(postSaveUiTimerRef.current);
         postSaveUiTimerRef.current = null;
       }
-    }, [userId, goalCycleId]);
+      clearPendingAutoScrollTimers();
+      autoScrollInterruptedByUserRef.current = false;
+    }, [userId, goalCycleId, clearPendingAutoScrollTimers]);
 
     // Hydrate cycle dates from API as the source of truth when the user returns.
     // Overwrite any local “tomorrow” default once the backend cycle is known.
@@ -648,10 +686,14 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
       ) => {
         setExpandedGoalSelectionId((prev) => ({ ...prev, [category]: goalId }));
         if (goalId) {
-          setTimeout(() => scrollToGoalItemIdRef.current(goalId), 150);
+          beginProgrammaticAutoScroll();
+          scheduleAutoScroll(
+            () => scrollToGoalItemIdRef.current(goalId),
+            150,
+          );
         }
       },
-      [],
+      [beginProgrammaticAutoScroll, scheduleAutoScroll],
     );
 
     const markGoalConfiguredData = useCallback((goalId: string) => {
@@ -698,10 +740,11 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
           postSaveUiTimerRef.current = null;
           collapseGoalSelection(goalId);
           setPostSaveCollapseSignal((n) => n + 1);
+          beginProgrammaticAutoScroll();
           scrollToNextGoalAfterSaveRef.current(goalId);
         }, POST_SAVE_HOLD_MS);
       },
-      [collapseGoalSelection],
+      [beginProgrammaticAutoScroll, collapseGoalSelection],
     );
 
     const completeGoalSaveSuccess = useCallback(
@@ -1886,6 +1929,8 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
     tabDataRef.current = tabData;
 
     scrollToGoalItemIdRef.current = (goalId: string) => {
+      if (autoScrollInterruptedByUserRef.current) return;
+
       const goals = tabDataRef.current;
       const index = goals.findIndex((item) => {
         if (!item) return false;
@@ -1916,6 +1961,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
       };
 
       const runScroll = () => {
+        if (autoScrollInterruptedByUserRef.current) return;
         // When the keyboard is open, scroll further into tall goal cards
         // (e.g. Quran recitation surah inputs) so the field isn't covered.
         const keyboardPad = Math.round(
@@ -1941,8 +1987,8 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
       };
 
       runScroll();
-      setTimeout(runScroll, 350);
-      setTimeout(runScroll, 750);
+      scheduleAutoScroll(runScroll, 350);
+      scheduleAutoScroll(runScroll, 750);
     };
 
     const handleGoalInputFocus = useCallback((goalId: string) => {
@@ -1950,9 +1996,13 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
       // bring the focused input above the keyboard.
       setSheetScrollEnabled(true);
       focusedGoalIdForKeyboardRef.current = goalId;
+      beginProgrammaticAutoScroll();
       scrollToGoalItemIdRef.current(goalId);
-      setTimeout(() => scrollToGoalItemIdRef.current(goalId), 400);
-    }, []);
+      scheduleAutoScroll(
+        () => scrollToGoalItemIdRef.current(goalId),
+        400,
+      );
+    }, [beginProgrammaticAutoScroll, scheduleAutoScroll]);
 
     useEffect(() => {
       const showEvent =
@@ -1966,8 +2016,15 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         setSheetScrollEnabled(true);
         const goalId = focusedGoalIdForKeyboardRef.current;
         if (!goalId) return;
-        setTimeout(() => scrollToGoalItemIdRef.current(goalId), 50);
-        setTimeout(() => scrollToGoalItemIdRef.current(goalId), 320);
+        beginProgrammaticAutoScroll();
+        scheduleAutoScroll(
+          () => scrollToGoalItemIdRef.current(goalId),
+          50,
+        );
+        scheduleAutoScroll(
+          () => scrollToGoalItemIdRef.current(goalId),
+          320,
+        );
       });
       const hideSub = Keyboard.addListener(hideEvent, () => {
         keyboardHeightRef.current = 0;
@@ -1978,7 +2035,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         showSub.remove();
         hideSub.remove();
       };
-    }, []);
+    }, [beginProgrammaticAutoScroll, scheduleAutoScroll]);
 
     scrollToNextGoalAfterSaveRef.current = (savedGoalId: string) => {
       const tab = activeTabRef.current;
@@ -1992,9 +2049,18 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
       const next = goals[index + 1];
       if (!next?.id || next.isLoadingPlaceholder) return;
 
-      setTimeout(() => scrollToGoalItemIdRef.current(next.id), 450);
-      setTimeout(() => scrollToGoalItemIdRef.current(next.id), 950);
-      setTimeout(() => scrollToGoalItemIdRef.current(next.id), 1500);
+      scheduleAutoScroll(
+        () => scrollToGoalItemIdRef.current(next.id),
+        450,
+      );
+      scheduleAutoScroll(
+        () => scrollToGoalItemIdRef.current(next.id),
+        950,
+      );
+      scheduleAutoScroll(
+        () => scrollToGoalItemIdRef.current(next.id),
+        1500,
+      );
     };
 
     useEffect(() => {
@@ -2002,8 +2068,9 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         if (postSaveUiTimerRef.current) {
           clearTimeout(postSaveUiTimerRef.current);
         }
+        clearPendingAutoScrollTimers();
       };
-    }, []);
+    }, [clearPendingAutoScrollTimers]);
 
     const tabOrder = useMemo(
       () => localizedTabs.map((tab) => tab.id),
@@ -2109,11 +2176,23 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
       setActiveTab(nextTab);
     }, [activeTab, cycleStartDate, tabOrder, hasGoalInEveryCategory]);
 
-    // Always start each category tab at the top goal (NEXT / tab press).
+    // Capture restore offset from parent before the sheet re-presents.
+    useEffect(() => {
+      if (restoreScrollOffset == null || restoreScrollOffset < 0) return;
+      pendingRestoreScrollRef.current = restoreScrollOffset;
+    }, [restoreScrollOffset]);
+
+    // Always start each category tab at the top goal (NEXT / tab press),
+    // unless we are restoring a prior scroll position (e.g. back from Read more).
     useEffect(() => {
       if (postSaveUiTimerRef.current) {
         clearTimeout(postSaveUiTimerRef.current);
         postSaveUiTimerRef.current = null;
+      }
+      clearPendingAutoScrollTimers();
+      autoScrollInterruptedByUserRef.current = false;
+      if (pendingRestoreScrollRef.current != null) {
+        return;
       }
       const scrollTop = () => {
         listRef.current?.scrollToOffset({ offset: 0, animated: false });
@@ -2125,7 +2204,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
         cancelAnimationFrame(frame);
         clearTimeout(timer);
       };
-    }, [activeTab]);
+    }, [activeTab, clearPendingAutoScrollTimers]);
 
     const handleFooterPrimaryPress = useCallback(() => {
       if (activeTab !== "cycle" && !canPressFooterPrimary) {
@@ -2866,11 +2945,29 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
           enableDynamicSizing={false}
           enablePanDownToClose
           enableHandlePanningGesture
-          enableContentPanningGesture
+          // Only the handle/snap bar may drag the sheet; list scroll must not
+          // collapse or dismiss it when the user reaches the end of content.
+          enableContentPanningGesture={false}
           keyboardBehavior="interactive"
           keyboardBlurBehavior="restore"
           android_keyboardInputMode="adjustResize"
           onDismiss={onClose}
+          onChange={(index) => {
+            if (index < 0) return;
+            const offset = pendingRestoreScrollRef.current;
+            if (offset == null) return;
+            pendingRestoreScrollRef.current = null;
+            const restore = () => {
+              listRef.current?.scrollToOffset({
+                offset,
+                animated: false,
+              });
+            };
+            requestAnimationFrame(restore);
+            setTimeout(restore, 80);
+            setTimeout(restore, 200);
+            onRestoreScrollConsumed?.();
+          }}
           backdropComponent={renderBackdrop}
           backgroundStyle={styles.sheetBg}
           handleStyle={styles.handleContainer}
@@ -2965,6 +3062,18 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
             scrollEnabled={sheetScrollEnabled}
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="on-drag"
+            onScrollBeginDrag={() => {
+              autoScrollInterruptedByUserRef.current = true;
+              clearPendingAutoScrollTimers();
+            }}
+            onScrollEndDrag={(event) => {
+              listScrollOffsetRef.current =
+                event.nativeEvent.contentOffset.y;
+            }}
+            onMomentumScrollEnd={(event) => {
+              listScrollOffsetRef.current =
+                event.nativeEvent.contentOffset.y;
+            }}
             onScrollToIndexFailed={({ index, averageItemLength }) => {
               const fallbackOffset = Math.max(
                 0,

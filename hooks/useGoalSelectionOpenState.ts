@@ -10,19 +10,30 @@ export function useGoalSelectionOpenState(
 ) {
   const [isOpen, setIsOpen] = useState(openOnMount);
   const wasOpenRef = useRef(false);
+  const isOpenRef = useRef(isOpen);
+  isOpenRef.current = isOpen;
   const onOpenedRef = useRef(onOpened);
   onOpenedRef.current = onOpened;
+  // Ignore the value present on mount so a prior save's signal doesn't
+  // immediately close a freshly opened selector (toggle ON flicker).
+  const prevCollapseSignalRef = useRef(collapseSignal);
 
   useEffect(() => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     if (openOnMount) {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
       setIsOpen(true);
       return;
+    }
+    // Only animate when collapsing an open panel; avoid animating closed on mount.
+    if (isOpenRef.current) {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     }
     setIsOpen(false);
   }, [openOnMount]);
 
   useEffect(() => {
+    if (collapseSignal === prevCollapseSignalRef.current) return;
+    prevCollapseSignalRef.current = collapseSignal;
     if (!collapseSignal) return;
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setIsOpen(false);
