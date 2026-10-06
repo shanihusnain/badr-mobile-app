@@ -224,8 +224,10 @@ export default function QuranJuzLoggingFlow({
     if (!frame) {
       return {
         excludedJuz: [] as number[],
+        fullExcludedJuz: [] as number[],
         openPartialJuz: null as number | null,
         minStartAyat: 1,
+        openPartialMinAyatByJuz: {} as Record<number, number>,
       };
     }
     return getQuranFrameJuzRecitationResume(
@@ -256,12 +258,18 @@ export default function QuranJuzLoggingFlow({
 
   const minAyatStart = useMemo(() => {
     const localMin = getMinAyatStartForJuz(partialJuz);
+    const fromOpenPartialMap =
+      frameResume.openPartialMinAyatByJuz[partialJuz];
+    if (fromOpenPartialMap != null) {
+      return Math.max(localMin, fromOpenPartialMap);
+    }
     if (
       frameResume.openPartialJuz != null &&
       partialJuz === frameResume.openPartialJuz
     ) {
       return Math.max(localMin, frameResume.minStartAyat);
     }
+    // Fully logged juz — block ayat selection (same as Completion).
     if (frameResume.excludedJuz.includes(partialJuz)) {
       return (partialJuzVerseCount > 0 ? partialJuzVerseCount : 9999) + 1;
     }
@@ -293,17 +301,38 @@ export default function QuranJuzLoggingFlow({
   useEffect(() => {
     const clampToGoal = (value: number) =>
       Math.min(goalMaxJuz, Math.max(goalMinJuz, value));
-    const excluded = frameResume.excludedJuz;
+    const fullExcluded = frameResume.fullExcludedJuz;
+    const partialExcluded = frameResume.excludedJuz;
     setFullStartJuz((prev) =>
-      snapJuzOffExcluded(clampToGoal(prev), goalMinJuz, goalMaxJuz, excluded),
+      snapJuzOffExcluded(
+        clampToGoal(prev),
+        goalMinJuz,
+        goalMaxJuz,
+        fullExcluded,
+      ),
     );
     setFullEndJuz((prev) =>
-      snapJuzOffExcluded(clampToGoal(prev), goalMinJuz, goalMaxJuz, excluded),
+      snapJuzOffExcluded(
+        clampToGoal(prev),
+        goalMinJuz,
+        goalMaxJuz,
+        fullExcluded,
+      ),
     );
     setPartialJuz((prev) =>
-      snapJuzOffExcluded(clampToGoal(prev), goalMinJuz, goalMaxJuz, excluded),
+      snapJuzOffExcluded(
+        clampToGoal(prev),
+        goalMinJuz,
+        goalMaxJuz,
+        partialExcluded,
+      ),
     );
-  }, [frameResume.excludedJuz, goalMaxJuz, goalMinJuz]);
+  }, [
+    frameResume.excludedJuz,
+    frameResume.fullExcludedJuz,
+    goalMaxJuz,
+    goalMinJuz,
+  ]);
 
   useEffect(() => {
     setStepIndex((index) => Math.min(index, Math.max(steps.length - 1, 0)));
@@ -326,10 +355,26 @@ export default function QuranJuzLoggingFlow({
 
   useEffect(() => {
     if (committedLoggingType !== "both") return;
-    if (partialJuz < minPartialJuz) {
-      setPartialJuz(minPartialJuz);
+    if (
+      partialJuz < minPartialJuz ||
+      frameResume.excludedJuz.includes(partialJuz)
+    ) {
+      setPartialJuz(
+        snapJuzOffExcluded(
+          minPartialJuz,
+          minPartialJuz,
+          goalMaxJuz,
+          frameResume.excludedJuz,
+        ),
+      );
     }
-  }, [committedLoggingType, minPartialJuz, partialJuz]);
+  }, [
+    committedLoggingType,
+    frameResume.excludedJuz,
+    goalMaxJuz,
+    minPartialJuz,
+    partialJuz,
+  ]);
 
   const resetFlow = useCallback(() => {
     setFlowMode("collapsed");
@@ -379,7 +424,7 @@ export default function QuranJuzLoggingFlow({
               goalMinJuz,
               goalMaxJuz,
             ) &&
-            !frameResume.excludedJuz.some(
+            !frameResume.fullExcludedJuz.some(
               (juz) => juz >= fullStartJuz && juz <= fullEndJuz,
             )
           );
@@ -418,6 +463,7 @@ export default function QuranJuzLoggingFlow({
       committedLoggingType,
       endAyat,
       frameResume.excludedJuz,
+      frameResume.fullExcludedJuz,
       fullDuration.hours,
       fullDuration.minutes,
       fullEndJuz,
@@ -703,7 +749,7 @@ export default function QuranJuzLoggingFlow({
             styles={styles}
             minJuz={goalMinJuz}
             maxJuz={goalMaxJuz}
-            excludedJuz={frameResume.excludedJuz}
+            excludedJuz={frameResume.fullExcludedJuz}
           />
         );
       case "partialJuz":
@@ -714,6 +760,7 @@ export default function QuranJuzLoggingFlow({
                 value={partialJuz}
                 min={minPartialJuz}
                 max={goalMaxJuz}
+                // Fully logged only — open partals stay selectable to continue.
                 excluded={frameResume.excludedJuz}
                 onChange={setPartialJuz}
                 styles={styles}

@@ -20,6 +20,8 @@ import { globalStyles } from "@/src/globalstyles/globalstyles";
 import { TickIconWithCircle } from "@/assets/icons/TickIconWithCircle";
 import { WhiteTick } from "@/assets/icons";
 import { setPendingOnboardingRoute } from "@/src/storage/onboardingRouteStorage";
+import { useFocusEffect } from "expo-router";
+import { consumeGoalPlannerSheetReturn } from "./goalPlannerSheetReturn";
 
 type StepItem = {
   id: number;
@@ -96,6 +98,17 @@ export const MonthlyGoalPlannerScreen = () => {
   }, []);
 
   const handleSheetClose = useCallback(() => {}, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      const target = consumeGoalPlannerSheetReturn();
+      if (!target) return;
+      setSelectedTab(target.tab);
+      requestAnimationFrame(() => {
+        bottomSheetRef.current?.present();
+      });
+    }, []),
+  );
 
   const renderItem = useCallback(
     ({ item }: { item: StepItem }) => (
