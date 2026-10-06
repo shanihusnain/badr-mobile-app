@@ -7,7 +7,6 @@ import {
   View,
   ViewStyle,
 } from "react-native";
-import { Feather } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
@@ -48,40 +47,43 @@ export default function GoalSelectionSaveButton({
   const [showSaved, setShowSaved] = useState(false);
   const [pending, setPending] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const wasParentLoadingRef = useRef(false);
+  const safetyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const showSavedRef = useRef(false);
 
   useEffect(() => {
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
+      if (safetyTimerRef.current) clearTimeout(safetyTimerRef.current);
     };
   }, []);
 
-  // If parent-driven loading ends without markSaved, return to Save.
-  useEffect(() => {
-    if (isLoading) {
-      wasParentLoadingRef.current = true;
-      return;
+  const clearSafetyTimer = useCallback(() => {
+    if (safetyTimerRef.current) {
+      clearTimeout(safetyTimerRef.current);
+      safetyTimerRef.current = null;
     }
-    if (wasParentLoadingRef.current && pending && !showSaved) {
-      setPending(false);
-    }
-    wasParentLoadingRef.current = false;
-  }, [isLoading, pending, showSaved]);
+  }, []);
 
   const markSaved = useCallback(() => {
+    clearSafetyTimer();
+    showSavedRef.current = true;
     setPending(false);
     setShowSaved(true);
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => {
+      showSavedRef.current = false;
       setShowSaved(false);
       timerRef.current = null;
     }, SAVED_VISIBLE_MS);
-  }, []);
+  }, [clearSafetyTimer]);
 
   const markFailed = useCallback(() => {
+    clearSafetyTimer();
     setPending(false);
-  }, []);
+  }, [clearSafetyTimer]);
 
+  // Keep loading until markSaved/markFailed — do not drop pending when parent
+  // isPending clears (that often happens one tick before mutate onSuccess).
   const loading = Boolean(isLoading) || pending;
 
   if (showSaved) {
@@ -101,6 +103,12 @@ export default function GoalSelectionSaveButton({
       text={(text ?? t("prayerGoals.save", "Save")).toLocaleUpperCase()}
       onPress={() => {
         setPending(true);
+        clearSafetyTimer();
+        // Safety: if neither callback fires, recover to Save.
+        safetyTimerRef.current = setTimeout(() => {
+          safetyTimerRef.current = null;
+          if (!showSavedRef.current) setPending(false);
+        }, 15000);
         onPress(markSaved, markFailed);
       }}
       disabled={disabled || loading}

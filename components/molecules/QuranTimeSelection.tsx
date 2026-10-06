@@ -4,9 +4,9 @@ import {
   LayoutAnimation,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
-import { BottomSheetTextInput } from "@gorhom/bottom-sheet";
 import { GoalSelectionOpenCloseButton } from "./GoalSelectionOpenCloseButton";
 import { Divider } from "../atoms/Divider";
 import { TopSpace } from "../atoms/TopSpace";
@@ -106,7 +106,7 @@ export const QuranTimeSelection = ({
               <Text style={styles.header}>Enter up to {MAX_HOURS} hours.</Text>
               <TopSpace top={12} />
               <View style={styles.outerRow}>
-                <BottomSheetTextInput
+                <TextInput
                   value={inputValue}
                   onChangeText={handleHoursChange}
                   keyboardType="numeric"

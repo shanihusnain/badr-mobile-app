@@ -13,6 +13,7 @@ import { globalStyles } from "@/src/globalstyles/globalstyles";
 import { useGetQuranGoalByType } from "@/src/api/queries/useGetQuranGoalByType";
 import { useDeleteQuranGoalSingleMetric } from "@/src/api/mutations/useDeleteQuranGoalSingleMetric";
 import {
+  findApiGoalForMetric,
   getCompletionFromDetail,
   getJuzRangeFromDetail,
   getQuranGoalTypeForMetric,
@@ -20,9 +21,12 @@ import {
   getSelectedJuzIdsFromDetail,
   getSelectedSurahIdsFromDetail,
   getSurahSettingsFromDetail,
+  isQuranMetricValueConfigured,
   mergeHizbOptionsWithDetail,
   mergeJuzOptionsWithDetail,
   mergeSurahOptionsWithDetail,
+  metricValueFromApiGoal,
+  type QuranGoalApiItem,
   type QuranHizbOption,
   type QuranJuzOption,
   type QuranSurahOption,
@@ -37,13 +41,19 @@ export type QuranRecitationGoalSelectionProps = {
   variant?: "memorization" | "others";
   onSave?: (
     payload: {
-      metric: "surah" | "juz" | "completion" | "hizb";
+      metric?: MetricName;
+      /** Persist every configured metric in one bulk request. */
+      saveAll?: boolean;
     },
     onDone?: () => void,
     onFail?: () => void,
   ) => void;
   initialMetric?: "surah" | "juz" | "completion" | "hizb";
   allowedMetrics?: Array<"surah" | "juz" | "completion" | "hizb">;
+  /** Metrics already persisted on the backend for this card. */
+  initialSavedMetrics?: MetricName[];
+  /** Card-level API rows (may include `items`) used to restore selections on expand. */
+  apiGoals?: QuranGoalApiItem[];
   openOnMount?: boolean;
   collapseSignal?: number;
   /** From parent GET .../quran-goals `reference` (single fetch in GoalPlannerSheet). */
@@ -51,7 +61,7 @@ export type QuranRecitationGoalSelectionProps = {
   hizbReference?: QuranHizbOption[];
   juzReference?: QuranJuzOption[];
   isReferenceLoading?: boolean;
-  /** Disable parent bottom-sheet scroll while the nested metric list is scrolling. */
+  /** Disable parent list scroll while the nested metric list is scrolling. */
   onNestedScrollActiveChange?: (active: boolean) => void;
   isSaving?: boolean;
   /** Scroll parent list so metric inputs stay visible above the keyboard. */
@@ -65,6 +75,8 @@ export const QuranRecitationGoalSelection = ({
   onSave,
   initialMetric,
   allowedMetrics,
+  initialSavedMetrics,
+  apiGoals,
   openOnMount,
   collapseSignal = 0,
   surahReference = [],
@@ -90,10 +102,68 @@ export const QuranRecitationGoalSelection = ({
     initialMetric,
   );
   const [markCleanNonce, setMarkCleanNonce] = useState(0);
-  /** Metrics that have been successfully saved in this session (or pre-exist from API). */
+  /** Metrics that have been successfully saved (session or API with real items). */
   const [savedMetrics, setSavedMetrics] = useState<Set<MetricName>>(
-    () => new Set(initialMetric ? [initialMetric] : []),
+    () => new Set(initialSavedMetrics ?? []),
   );
+  /** Metrics with enough local selection to include in a bulk save. */
+  const [configuredMetrics, setConfiguredMetrics] = useState<Set<MetricName>>(
+    () => new Set(),
+  );
+  /**
+   * Keep last lifted metric values here so collapsing the panel (which unmounts
+   * MetricSelectionComponent) does not lose selections before the detail API
+   * refetch lands.
+   */
+  const [metricSnapshots, setMetricSnapshots] = useState<
+    Partial<Record<MetricName, any>>
+  >({});
+
+  useEffect(() => {
+    if (!initialSavedMetrics?.length) return;
+    setSavedMetrics((prev) => {
+      let changed = false;
+      const next = new Set(prev);
+      initialSavedMetrics.forEach((m) => {
+        if (!next.has(m)) {
+          next.add(m);
+          changed = true;
+        }
+      });
+      return changed ? next : prev;
+    });
+  }, [initialSavedMetrics]);
+
+  // Seed snapshots from list API so expanding a saved metric shows prior picks
+  // even before / without the per-type detail refetch.
+  useEffect(() => {
+    if (!apiGoals?.length) return;
+    const variantKey = variant === "memorization" ? "memorization" : "others";
+    setMetricSnapshots((prev) => {
+      let changed = false;
+      const next: Partial<Record<MetricName, any>> = { ...prev };
+      (["surah", "juz", "hizb", "completion"] as MetricName[]).forEach(
+        (metric) => {
+          if (
+            prev[metric] != null &&
+            isQuranMetricValueConfigured(metric, prev[metric])
+          ) {
+            return;
+          }
+          const goal = findApiGoalForMetric(apiGoals, variantKey, metric);
+          const snap = metricValueFromApiGoal(metric, goal as any);
+          if (
+            snap != null &&
+            isQuranMetricValueConfigured(metric, snap)
+          ) {
+            next[metric] = snap;
+            changed = true;
+          }
+        },
+      );
+      return changed ? next : prev;
+    });
+  }, [apiGoals, variant]);
 
   useEffect(() => {
     if (initialMetric) return;
@@ -103,6 +173,10 @@ export const QuranRecitationGoalSelection = ({
 
   const resolvedMetric = selectedMetric;
 
+  const supportsMultiMetricSave =
+    (variant === "memorization" || variant === "others") &&
+    (!allowedMetrics || allowedMetrics.length !== 1);
+
   const quranGoalType = useMemo(() => {
     if (!resolvedMetric) return null;
     return getQuranGoalTypeForMetric(
@@ -111,10 +185,22 @@ export const QuranRecitationGoalSelection = ({
     );
   }, [resolvedMetric, variant]);
 
+  const listGoalForActiveMetric = useMemo(() => {
+    if (!resolvedMetric) return null;
+    return findApiGoalForMetric(
+      apiGoals,
+      variant === "memorization" ? "memorization" : "others",
+      resolvedMetric,
+    );
+  }, [apiGoals, resolvedMetric, variant]);
+
   const { data: goalDetail, isLoading: loadingDetail } = useGetQuranGoalByType(
     quranGoalType,
     { enabled: isOpen && !!quranGoalType },
   );
+
+  // Detail endpoint wins; fall back to the list row for the active metric.
+  const effectiveDetail = goalDetail ?? (listGoalForActiveMetric as any) ?? null;
 
   const { mutateAsync: deleteGoalItem, isPending: isDeletingItem } =
     useDeleteQuranGoalSingleMetric();
@@ -134,6 +220,35 @@ export const QuranRecitationGoalSelection = ({
     [deleteGoalItem, quranGoalType],
   );
 
+  const handleMetricsChange = useCallback(
+    (payload: { metric: string; value: any }) => {
+      onMetricsChange?.(payload);
+      const metric = payload.metric as MetricName;
+      if (
+        metric !== "surah" &&
+        metric !== "juz" &&
+        metric !== "completion" &&
+        metric !== "hizb"
+      ) {
+        return;
+      }
+      setMetricSnapshots((prev) => {
+        if (prev[metric] === payload.value) return prev;
+        return { ...prev, [metric]: payload.value };
+      });
+      const configured = isQuranMetricValueConfigured(metric, payload.value);
+      setConfiguredMetrics((prev) => {
+        const has = prev.has(metric);
+        if (configured === has) return prev;
+        const next = new Set(prev);
+        if (configured) next.add(metric);
+        else next.delete(metric);
+        return next;
+      });
+    },
+    [onMetricsChange],
+  );
+
   const needsReference =
     isOpen &&
     (resolvedMetric === "surah" ||
@@ -141,15 +256,15 @@ export const QuranRecitationGoalSelection = ({
       resolvedMetric === "juz");
 
   const surahOptions = useMemo(
-    () => mergeSurahOptionsWithDetail(surahReference, goalDetail),
-    [surahReference, goalDetail],
+    () => mergeSurahOptionsWithDetail(surahReference, effectiveDetail),
+    [surahReference, effectiveDetail],
   );
   const hizbOptions = useMemo(
-    () => mergeHizbOptionsWithDetail(hizbReference, goalDetail),
-    [hizbReference, goalDetail],
+    () => mergeHizbOptionsWithDetail(hizbReference, effectiveDetail),
+    [hizbReference, effectiveDetail],
   );
   const juzOptions = useMemo(() => {
-    const merged = mergeJuzOptionsWithDetail(juzReference, goalDetail);
+    const merged = mergeJuzOptionsWithDetail(juzReference, effectiveDetail);
     const base: QuranJuzOption[] =
       merged.length > 0
         ? merged
@@ -176,31 +291,94 @@ export const QuranRecitationGoalSelection = ({
         return juz;
       }
     });
-  }, [juzReference, goalDetail]);
-  const initialSelectedSurahs = useMemo(
-    () => getSelectedSurahIdsFromDetail(goalDetail),
-    [goalDetail],
+  }, [juzReference, effectiveDetail]);
+  const apiSelectedSurahs = useMemo(
+    () => getSelectedSurahIdsFromDetail(effectiveDetail),
+    [effectiveDetail],
   );
-  const initialSurahSettings = useMemo(
-    () => getSurahSettingsFromDetail(goalDetail),
-    [goalDetail],
+  const apiSurahSettings = useMemo(
+    () => getSurahSettingsFromDetail(effectiveDetail),
+    [effectiveDetail],
   );
-  const initialJuzRange = useMemo(
-    () => getJuzRangeFromDetail(goalDetail),
-    [goalDetail],
+  const apiJuzRange = useMemo(
+    () => getJuzRangeFromDetail(effectiveDetail),
+    [effectiveDetail],
   );
-  const initialSelectedJuzs = useMemo(
-    () => getSelectedJuzIdsFromDetail(goalDetail),
-    [goalDetail],
+  const apiSelectedJuzs = useMemo(
+    () => getSelectedJuzIdsFromDetail(effectiveDetail),
+    [effectiveDetail],
   );
-  const initialSelectedHizbs = useMemo(
-    () => getSelectedHizbIdsFromDetail(goalDetail),
-    [goalDetail],
+  const apiSelectedHizbs = useMemo(
+    () => getSelectedHizbIdsFromDetail(effectiveDetail),
+    [effectiveDetail],
   );
-  const initialCompletion = useMemo(
-    () => getCompletionFromDetail(goalDetail),
-    [goalDetail],
+  const apiCompletion = useMemo(
+    () => getCompletionFromDetail(effectiveDetail),
+    [effectiveDetail],
   );
+
+  // Prefer API when present; otherwise restore from the last local snapshot.
+  const initialSelectedSurahs = useMemo(() => {
+    if (apiSelectedSurahs.length > 0) return apiSelectedSurahs;
+    const snap = metricSnapshots.surah?.selectedSurahs;
+    return Array.isArray(snap) ? snap.map(Number).filter((n) => n > 0) : [];
+  }, [apiSelectedSurahs, metricSnapshots.surah]);
+
+  const initialSurahSettings = useMemo(() => {
+    if (apiSurahSettings && Object.keys(apiSurahSettings).length > 0) {
+      return apiSurahSettings;
+    }
+    return metricSnapshots.surah?.surahSettings;
+  }, [apiSurahSettings, metricSnapshots.surah]);
+
+  const initialSelectedJuzs = useMemo(() => {
+    if (apiSelectedJuzs.length > 0) return apiSelectedJuzs;
+    const snap = metricSnapshots.juz?.selectedJuzs;
+    if (Array.isArray(snap) && snap.length > 0) {
+      return snap.map(Number).filter((n) => n > 0);
+    }
+    const start = Number(metricSnapshots.juz?.start ?? 0);
+    const end = Number(metricSnapshots.juz?.end ?? 0);
+    if (start > 0 && end > 0) {
+      return Array.from(
+        { length: Math.max(0, end - start + 1) },
+        (_, i) => start + i,
+      );
+    }
+    return [];
+  }, [apiSelectedJuzs, metricSnapshots.juz]);
+
+  const initialJuzRange = useMemo(() => {
+    if (apiJuzRange) return apiJuzRange;
+    const start = Number(metricSnapshots.juz?.start ?? 0);
+    const end = Number(metricSnapshots.juz?.end ?? 0);
+    if (start > 0 || end > 0) {
+      return {
+        start: start > 0 ? start : 1,
+        end: end > 0 ? end : start,
+      };
+    }
+    if (initialSelectedJuzs.length > 0) {
+      return {
+        start: Math.min(...initialSelectedJuzs),
+        end: Math.max(...initialSelectedJuzs),
+      };
+    }
+    return null;
+  }, [apiJuzRange, metricSnapshots.juz, initialSelectedJuzs]);
+
+  const initialSelectedHizbs = useMemo(() => {
+    if (apiSelectedHizbs.length > 0) return apiSelectedHizbs;
+    const snap = metricSnapshots.hizb?.selectedHizbs;
+    return Array.isArray(snap) ? snap.map(Number).filter((n) => n > 0) : [];
+  }, [apiSelectedHizbs, metricSnapshots.hizb]);
+
+  const initialCompletion = useMemo(() => {
+    if (apiCompletion > 0) return apiCompletion;
+    const snap = metricSnapshots.completion;
+    if (typeof snap === "number") return snap;
+    return Number(snap?.completion ?? 0) || 0;
+  }, [apiCompletion, metricSnapshots.completion]);
 
   interface IItem {
     id: number;
@@ -269,6 +447,10 @@ export const QuranRecitationGoalSelection = ({
     loadingDetail ||
     (needsReference && isReferenceLoading && surahReference.length === 0);
 
+  const canSave = supportsMultiMetricSave
+    ? configuredMetrics.size > 0
+    : !!resolvedMetric;
+
   return (
     <View
       style={[
@@ -300,7 +482,7 @@ export const QuranRecitationGoalSelection = ({
                   handleMetricPress={() => handlePressMetrix(item)}
                   selectedMetric={resolvedMetric}
                   isSaved={savedMetrics.has(item.name)}
-                  onMetricChange={onMetricsChange}
+                  onMetricChange={handleMetricsChange}
                   variant={variant}
                   surahOptions={isActiveMetric ? surahOptions : undefined}
                   hizbOptions={isActiveMetric ? hizbOptions : undefined}
@@ -342,25 +524,48 @@ export const QuranRecitationGoalSelection = ({
                 width: "100%",
               }}
               isLoading={isSaving}
-              disabled={isSaving || !resolvedMetric}
+              disabled={isSaving || !canSave}
               onPress={(markSaved, markFailed) => {
-                if (onSave && resolvedMetric) {
+                if (!onSave) {
+                  markFailed();
+                  return;
+                }
+                if (supportsMultiMetricSave) {
+                  const metricsJustSaved = Array.from(configuredMetrics);
                   onSave(
-                    { metric: resolvedMetric },
+                    { saveAll: true },
                     () => {
+                      // Show SAVED! before local state updates so both cards
+                      // match prayer/hours: loading → SAVED! → collapse.
+                      markSaved?.();
                       setSavedMetrics((prev) => {
                         const next = new Set(prev);
-                        next.add(resolvedMetric);
+                        metricsJustSaved.forEach((m) => next.add(m));
                         return next;
                       });
                       setMarkCleanNonce((n) => n + 1);
-                      markSaved?.();
                     },
                     markFailed,
                   );
                   return;
                 }
-                markFailed();
+                if (!resolvedMetric) {
+                  markFailed();
+                  return;
+                }
+                onSave(
+                  { metric: resolvedMetric },
+                  () => {
+                    markSaved?.();
+                    setSavedMetrics((prev) => {
+                      const next = new Set(prev);
+                      next.add(resolvedMetric);
+                      return next;
+                    });
+                    setMarkCleanNonce((n) => n + 1);
+                  },
+                  markFailed,
+                );
               }}
             />
           </View>

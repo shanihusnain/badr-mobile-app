@@ -21,5 +21,7 @@ export const useGetQuranGoalByType = (
     queryKey: ["quran-goal-detail", quranGoalType],
     queryFn: () => getQuranGoalByType(quranGoalType!),
     enabled,
+    // Always refresh when expanding a metric so saved items reappear.
+    refetchOnMount: "always",
   });
 };

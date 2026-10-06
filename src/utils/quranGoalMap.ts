@@ -137,6 +137,87 @@ export function getQuranGoalTypeForMetric(
   return RECITATION_METRIC_TO_TYPE[metric];
 }
 
+/** Backend quranGoalType → UI metric chip (surah / juz / hizb / completion). */
+export function metricFromQuranGoalType(
+  quranGoalType: string,
+): "surah" | "juz" | "completion" | "hizb" | null {
+  switch (quranGoalType) {
+    case "MEMORIZATION_SURAH":
+    case "RECITATION_SURAH":
+      return "surah";
+    case "MEMORIZATION_JUZ":
+    case "RECITATION_JUZ":
+      return "juz";
+    case "MEMORIZATION_HIZB":
+      return "hizb";
+    case "RECITATION_COMPLETION":
+      return "completion";
+    default:
+      return null;
+  }
+}
+
+/**
+ * API goal rows that actually have saved items/targets → metric chips with a tick.
+ * Active-but-empty rows (toggle ON, nothing saved yet) must stay as plus.
+ */
+export function savedMetricsFromApiGoals(
+  apiGoals:
+    | Array<{
+        quranGoalType: string;
+        isActive?: boolean;
+        targetValue?: number | string | null;
+        items?: unknown[] | null;
+      }>
+    | null
+    | undefined,
+): Array<"surah" | "juz" | "completion" | "hizb"> {
+  if (!Array.isArray(apiGoals)) return [];
+  const metrics: Array<"surah" | "juz" | "completion" | "hizb"> = [];
+  for (const goal of apiGoals) {
+    if (goal?.isActive === false) continue;
+    const hasItems = Array.isArray(goal.items) && goal.items.length > 0;
+    const target = Number(goal.targetValue ?? 0);
+    const hasTarget = Number.isFinite(target) && target > 0;
+    if (!hasItems && !hasTarget) continue;
+    const metric = metricFromQuranGoalType(goal.quranGoalType);
+    if (metric && !metrics.includes(metric)) metrics.push(metric);
+  }
+  return metrics;
+}
+
+/** Whether a lifted metric value is complete enough to include in a bulk save. */
+export function isQuranMetricValueConfigured(
+  metric: "surah" | "juz" | "completion" | "hizb",
+  value: unknown,
+): boolean {
+  if (value == null) return false;
+  if (metric === "surah") {
+    const selected = (value as { selectedSurahs?: number[] }).selectedSurahs;
+    return Array.isArray(selected) && selected.length > 0;
+  }
+  if (metric === "hizb") {
+    const selected = (value as { selectedHizbs?: number[] }).selectedHizbs;
+    return Array.isArray(selected) && selected.length > 0;
+  }
+  if (metric === "juz") {
+    const juz = value as {
+      selectedJuzs?: number[];
+      start?: number;
+      end?: number;
+    };
+    if (Array.isArray(juz.selectedJuzs) && juz.selectedJuzs.length > 0) {
+      return true;
+    }
+    return Number(juz.start) > 0 || Number(juz.end) > 0;
+  }
+  if (metric === "completion") {
+    if (typeof value === "number") return value > 0;
+    return Number((value as { completion?: number }).completion) > 0;
+  }
+  return false;
+}
+
 /** Exact detail payload from GET quran-goals/:quranGoalType */
 export type QuranGoalDetailItem = {
   itemType: "SURAH" | "JUZ" | "HIZB" | string;
@@ -659,12 +740,80 @@ export function getHoursFromDetail(
 
 /** Completion goals store the value in targetValue */
 export function getCompletionFromDetail(
-  detail: QuranGoalDetail | null | undefined,
+  detail:
+    | (Partial<QuranGoalDetail> & {
+        quranGoalType?: string;
+        completionTarget?: number | string;
+      })
+    | null
+    | undefined,
 ): number {
   if (!detail) return 0;
-  if (String(detail.trackingMetric).toUpperCase() !== "COMPLETION") return 0;
-  const n = Number(detail.targetValue ?? 0);
+  const tracking = String(detail.trackingMetric ?? "").toUpperCase();
+  const type = String(detail.quranGoalType ?? "").toUpperCase();
+  const looksLikeCompletion =
+    tracking === "COMPLETION" || type.includes("COMPLETION");
+  if (tracking && !looksLikeCompletion) return 0;
+  if (!tracking && !looksLikeCompletion) return 0;
+  const n = Number(detail.targetValue ?? detail.completionTarget ?? 0);
   return Number.isFinite(n) ? n : 0;
+}
+
+/** Build a local metric value snapshot from a list/detail API goal row. */
+export function metricValueFromApiGoal(
+  metric: "surah" | "juz" | "completion" | "hizb",
+  goal:
+    | (Partial<QuranGoalDetail> & {
+        quranGoalType?: string;
+        items?: QuranGoalDetailItem[] | null;
+        targetValue?: number | string | null;
+      })
+    | null
+    | undefined,
+): unknown | null {
+  if (!goal) return null;
+  if (metric === "surah") {
+    const selectedSurahs = getSelectedSurahIdsFromDetail(goal as QuranGoalDetail);
+    if (selectedSurahs.length === 0) return null;
+    return {
+      selectedSurahs,
+      surahSettings: getSurahSettingsFromDetail(goal as QuranGoalDetail),
+      surahNames: getSurahNamesFromDetail(goal as QuranGoalDetail),
+    };
+  }
+  if (metric === "hizb") {
+    const selectedHizbs = getSelectedHizbIdsFromDetail(goal as QuranGoalDetail);
+    if (selectedHizbs.length === 0) return null;
+    return { selectedHizbs };
+  }
+  if (metric === "juz") {
+    const selectedJuzs = getSelectedJuzIdsFromDetail(goal as QuranGoalDetail);
+    if (selectedJuzs.length === 0) return null;
+    return {
+      selectedJuzs,
+      start: Math.min(...selectedJuzs),
+      end: Math.max(...selectedJuzs),
+    };
+  }
+  if (metric === "completion") {
+    const completion = getCompletionFromDetail(goal);
+    return completion > 0 ? completion : null;
+  }
+  return null;
+}
+
+export function findApiGoalForMetric(
+  apiGoals: Array<{ quranGoalType: string }> | null | undefined,
+  variant: "memorization" | "others" | "recitation",
+  metric: "surah" | "juz" | "completion" | "hizb",
+) {
+  if (!Array.isArray(apiGoals)) return null;
+  const type = getQuranGoalTypeForMetric(
+    variant === "memorization" ? "memorization" : "others",
+    metric,
+  );
+  if (!type) return null;
+  return apiGoals.find((g) => g.quranGoalType === type) ?? null;
 }
 
 export function buildHoursQuranPayload(

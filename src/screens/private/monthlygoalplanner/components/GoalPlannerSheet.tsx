@@ -112,6 +112,7 @@ import { useUpsertSadaqahGoal } from "@/src/api/mutations/useUpsertSadaqahGoal";
 import { useBulkUpsertQuranGoals } from "@/src/api/mutations/useUpsertQuranGoal";
 import {
   buildBulkQuranGoalsForVariant,
+  savedMetricsFromApiGoals,
   buildHoursQuranPayload,
   getQuranTypesForUiId,
   hasConfiguredQuranGoal,
@@ -3492,12 +3493,25 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                           onMetricsChange={handleQuranMetricsChange}
                           variant="others"
                           isSaving={isSavingQuran}
-                          onSave={({ metric }, onDone, onFail) =>
+                          // Same multi-metric bulk save + tick UI as memorization.
+                          initialSavedMetrics={savedMetricsFromApiGoals(
+                            quran.apiGoals,
+                          )}
+                          apiGoals={quran.apiGoals}
+                          onSave={({ metric, saveAll }, onDone, onFail) =>
                             saveQuranMetricGoal(
                               "recitation",
-                              metric,
+                              // saveAll → surah + juz + completion in one bulk PUT
+                              saveAll ? undefined : metric,
                               () => {
-                                if (metric === "surah") {
+                                // markSaved / SAVED! first — same as memorization
+                                onDone?.();
+                                if (
+                                  saveAll ||
+                                  metric === "surah" ||
+                                  !!quranMetricsRef.current?.surah
+                                    ?.selectedSurahs?.length
+                                ) {
                                   setQuranMetrics((prev) => ({
                                     ...prev,
                                     "quran-recitation-by-surah":
@@ -3507,7 +3521,6 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                                       ),
                                   }));
                                 }
-                                onDone?.();
                               },
                               onFail,
                             )
@@ -3529,10 +3542,14 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                           onMetricsChange={handleQuranMetricsChange}
                           variant="memorization"
                           isSaving={isSavingQuran}
-                          onSave={({ metric }, onDone, onFail) =>
+                          initialSavedMetrics={savedMetricsFromApiGoals(
+                            quran.apiGoals,
+                          )}
+                          apiGoals={quran.apiGoals}
+                          onSave={({ metric, saveAll }, onDone, onFail) =>
                             saveQuranMetricGoal(
                               "memorization",
-                              metric,
+                              saveAll ? undefined : metric,
                               onDone,
                               onFail,
                             )

@@ -9,10 +9,10 @@ import {
   Pressable,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import { FlatList } from "react-native-gesture-handler";
-import { BottomSheetTextInput } from "@gorhom/bottom-sheet";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTranslation } from "react-i18next";
@@ -291,9 +291,23 @@ export const MetricSelectionComponent = ({
     setInputFocused(key, true);
   };
 
-  // Hydrate from backend detail once per goal-type load
+  // Hydrate from backend detail (or parent snapshot) once per goal-type load.
+  // Do not wait on loading when we already have selections to show — otherwise
+  // expanding a just-saved metric flashes empty until the detail refetch ends.
   useEffect(() => {
-    if (!isActiveMetric || isLoadingOptions) return;
+    if (!isActiveMetric) return;
+
+    const hasSeedSelections =
+      (initialSelectedSurahs?.length ?? 0) > 0 ||
+      (initialSelectedHizbs?.length ?? 0) > 0 ||
+      (initialSelectedJuzs?.length ?? 0) > 0 ||
+      (initialJuzRange != null &&
+        (initialJuzRange.start > 0 || initialJuzRange.end > 0)) ||
+      (initialCompletion != null && initialCompletion > 0) ||
+      (initialSurahSettings != null &&
+        Object.keys(initialSurahSettings).length > 0);
+
+    if (isLoadingOptions && !hasSeedSelections) return;
 
     const hydrateKey = [
       item.name,
@@ -324,7 +338,7 @@ export const MetricSelectionComponent = ({
       setJuzStart(initialJuzRange.start);
       setJuzEnd(initialJuzRange.end);
       setJuzEndText(String(initialJuzRange.end));
-    } else if (isRecitationJuz) {
+    } else if (isRecitationJuz && !hasSeedSelections) {
       resetRecitationJuzInputs();
     }
     if (initialSelectedJuzs?.length) {
@@ -1126,7 +1140,7 @@ export const MetricSelectionComponent = ({
 
                         <TopSpace top={8} />
                         <View style={styles.surahTimesInputRow}>
-                          <BottomSheetTextInput
+                          <TextInput
                             ref={(r) => {
                               metricInputRefs.current[`surah-${s.id}`] = r;
                             }}
@@ -1373,7 +1387,7 @@ export const MetricSelectionComponent = ({
                 {t("monthlyGoalPlanner.quranMetrics.fromJuz")}
               </Text>
               <View style={styles.juzRangeInputWrap}>
-                <BottomSheetTextInput
+                <TextInput
                   ref={(r) => {
                     metricInputRefs.current["juz-start"] = r;
                   }}
@@ -1426,7 +1440,7 @@ export const MetricSelectionComponent = ({
                 {t("monthlyGoalPlanner.quranMetrics.toJuz")}
               </Text>
               <View style={styles.juzRangeInputWrap}>
-                <BottomSheetTextInput
+                <TextInput
                   ref={(r) => {
                     metricInputRefs.current["juz-end"] = r;
                   }}
@@ -1551,7 +1565,7 @@ export const MetricSelectionComponent = ({
                 alignSelf: "center",
               }}
             >
-              <BottomSheetTextInput
+              <TextInput
                 ref={(r) => {
                   metricInputRefs.current.completion = r;
                 }}

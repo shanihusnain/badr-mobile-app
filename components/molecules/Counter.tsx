@@ -1,9 +1,14 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
 import { useEffect, useRef, useState } from "react";
-import { Platform, StyleSheet, Text, type TextInput } from "react-native";
+import {
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  type TextInput as TextInputType,
+} from "react-native";
 import { Pressable, View } from "react-native";
-import { BottomSheetTextInput } from "@gorhom/bottom-sheet";
 import { TopSpace } from "../atoms/TopSpace";
 
 export const Counter = ({
@@ -23,7 +28,7 @@ export const Counter = ({
   width?: string | number | any;
   onInputFocus?: () => void;
 }) => {
-  const inputRef = useRef<TextInput>(null);
+  const inputRef = useRef<TextInputType>(null);
   const [isFocused, setIsFocused] = useState(false);
   // Local draft while editing — empty string when focused on 0 so caret sits centered.
   const [draft, setDraft] = useState<string>(count.toString());
@@ -82,8 +87,8 @@ export const Counter = ({
         >
           <Text style={styles.btnText}>-</Text>
         </Pressable>
-        <BottomSheetTextInput
-          ref={inputRef as any}
+        <TextInput
+          ref={inputRef}
           value={draft}
           onChangeText={handleChangeText}
           keyboardType="numeric"
