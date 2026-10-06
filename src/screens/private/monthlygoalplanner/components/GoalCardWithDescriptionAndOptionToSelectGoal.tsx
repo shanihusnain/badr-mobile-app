@@ -99,7 +99,7 @@ export const GoalCardWithDescriptionAndOptionToSelectGoal = ({
       {!isLoading && (
         <Pressable onPress={handleSeeMorePRess}>
           <Text style={[styles.seeMoreText, isRtl && { textAlign: "right" }]}>
-            <Text style={{ color: Colors.light.white }}>... {}</Text>
+            <Text style={{ color: Colors.light.white }}>...</Text>
             {t("monthlyGoalPlanner.readMore")}
           </Text>
         </Pressable>

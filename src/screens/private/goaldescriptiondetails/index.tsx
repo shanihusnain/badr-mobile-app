@@ -813,7 +813,14 @@ const renderReadMoreContainers = (
     </GoalDescriptionContent>
   ));
 
-export const GoalDescriptionDetails = ({ goal }: { goal: string }) => {
+export const GoalDescriptionDetails = ({
+  goal,
+  onClose,
+}: {
+  goal: string;
+  /** Optional override for back; defaults to stack goBack. */
+  onClose?: () => void;
+}) => {
   const { t, i18n } = useTranslation();
   const isRtl = i18n.language === "ar";
   const navigation = useNavigation();
@@ -938,7 +945,13 @@ export const GoalDescriptionDetails = ({ goal }: { goal: string }) => {
       imageSource={getImageSource()}
       imageHeight={getImageHeight()}
       contentPosition={getImageContentPosition()}
-      onBackPress={() => navigation.goBack()}
+      onBackPress={() => {
+        if (onClose) {
+          onClose();
+          return;
+        }
+        navigation.goBack();
+      }}
     />
   );
 

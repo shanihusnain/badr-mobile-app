@@ -38,6 +38,13 @@ export default function PrivateLayout() {
           }}
         />
         <Stack.Screen
+          name="goalplanner"
+          options={{
+            headerShown: true,
+            header: () => <Header title={t("monthlyGoalPlanner.title")} />,
+          }}
+        />
+        <Stack.Screen
           name="goaldescriptiondetails/[goal]"
           options={{ headerShown: true, title: "" }}
         />

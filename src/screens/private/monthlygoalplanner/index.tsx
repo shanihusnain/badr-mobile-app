@@ -1,15 +1,12 @@
 import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { Colors } from "@/constants/theme";
-import { Ionicons } from "@expo/vector-icons";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect } from "react";
 import { FlatList, Pressable, Text, View } from "react-native";
 import type { GoalCardData } from "./components/GoalCard";
 import { GoalCardCarousel } from "./components/GoalCardCarousel";
 import { styles } from "./styles";
 import { useTranslation } from "react-i18next";
-import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import { GoalPlannerSheet } from "./components/GoalPlannerSheet";
 import type { Tab } from "./components/GoalPlannerSheet";
 import { GreenArrowFilledIcon } from "@/assets/icons/GreenArrowFilledIcon";
 import { MagnifierIcon } from "@/assets/icons/MagnifierIcon";
@@ -20,8 +17,7 @@ import { globalStyles } from "@/src/globalstyles/globalstyles";
 import { TickIconWithCircle } from "@/assets/icons/TickIconWithCircle";
 import { WhiteTick } from "@/assets/icons";
 import { setPendingOnboardingRoute } from "@/src/storage/onboardingRouteStorage";
-import { useFocusEffect } from "expo-router";
-import { consumeGoalPlannerSheetReturn } from "./goalPlannerSheetReturn";
+import { router } from "expo-router";
 
 type StepItem = {
   id: number;
@@ -48,7 +44,6 @@ const StepRow = ({
       )}
       <Text style={styles.stepTitle}>{item.title}</Text>
     </View>
-    {/* {item.status === "completed" ? ( */}
     <View
       style={{
         width: 12,
@@ -60,62 +55,40 @@ const StepRow = ({
         borderColor: Colors.light.white,
       }}
     >
-      {/* <TickWithCircleIcon /> */}
       <WhiteTick />
     </View>
-    {/* ) : (
-      <Ionicons name="chevron-forward" size={20} color={Colors.light.grey} />
-    )} */}
   </Pressable>
 );
 
 const keyExtractor = (item: StepItem) => String(item.id);
 const ItemSeparator = () => <TopSpace top={12} />;
 
+const STEP_TAB_MAP: Record<number, Tab> = {
+  1: "cycle",
+  2: "prayer",
+  3: "quran",
+  4: "fasting",
+  5: "sadaqah",
+  6: "review",
+};
+
+function openGoalPlanner(tab?: Tab) {
+  router.push({
+    pathname: "/(private)/goalplanner",
+    params: tab ? { tab } : {},
+  });
+}
+
 export const MonthlyGoalPlannerScreen = () => {
   const { t } = useTranslation();
-
-  const bottomSheetRef = useRef<BottomSheetModal>(null);
-  const [selectedTab, setSelectedTab] = useState<Tab>("cycle");
-  const [restoreScrollOffset, setRestoreScrollOffset] = useState<number | null>(
-    null,
-  );
 
   useEffect(() => {
     void setPendingOnboardingRoute("/(private)/monthlygoalplanner");
   }, []);
 
-  // Map each step id to its corresponding sheet tab
-  const STEP_TAB_MAP: Record<number, Tab> = {
-    1: "cycle",
-    2: "prayer",
-    3: "quran",
-    4: "fasting",
-    5: "sadaqah",
-    6: "review",
-  };
-
   const handleStepPress = useCallback((stepId: number) => {
-    setRestoreScrollOffset(null);
-    setSelectedTab(STEP_TAB_MAP[stepId] ?? "cycle");
-    bottomSheetRef.current?.present();
+    openGoalPlanner(STEP_TAB_MAP[stepId] ?? "cycle");
   }, []);
-
-  const handleSheetClose = useCallback(() => {}, []);
-
-  useFocusEffect(
-    useCallback(() => {
-      const target = consumeGoalPlannerSheetReturn();
-      if (!target) return;
-      setSelectedTab(target.tab);
-      setRestoreScrollOffset(
-        typeof target.scrollOffset === "number" ? target.scrollOffset : null,
-      );
-      requestAnimationFrame(() => {
-        bottomSheetRef.current?.present();
-      });
-    }, []),
-  );
 
   const renderItem = useCallback(
     ({ item }: { item: StepItem }) => (
@@ -198,8 +171,7 @@ export const MonthlyGoalPlannerScreen = () => {
   ];
 
   const handleBeginNowPress = useCallback(() => {
-    setRestoreScrollOffset(null);
-    bottomSheetRef.current?.present();
+    openGoalPlanner("cycle");
   }, []);
 
   return (
@@ -219,20 +191,10 @@ export const MonthlyGoalPlannerScreen = () => {
             </>
           }
         />
-        <Pressable
-          onPress={handleBeginNowPress}
-          style={styles.beginNowButton}
-        >
+        <Pressable onPress={handleBeginNowPress} style={styles.beginNowButton}>
           <Text style={globalStyles.greenCTA}>BEGIN NOW</Text>
         </Pressable>
       </BlackScreenWrapper>
-      <GoalPlannerSheet
-        ref={bottomSheetRef}
-        onClose={handleSheetClose}
-        initialTab={selectedTab}
-        restoreScrollOffset={restoreScrollOffset}
-        onRestoreScrollConsumed={() => setRestoreScrollOffset(null)}
-      />
     </View>
   );
 };

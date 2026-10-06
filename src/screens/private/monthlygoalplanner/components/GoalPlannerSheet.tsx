@@ -1,41 +1,29 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
-import {
-  BottomSheetBackdrop,
-  BottomSheetFlatList,
-  BottomSheetModal,
-  type BottomSheetFlatListMethods,
-} from "@gorhom/bottom-sheet";
 import { ScrollView as RNScrollView } from "react-native-gesture-handler";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
 import {
-  forwardRef,
   useCallback,
   useEffect,
   useMemo,
   useRef,
   useState,
-  type ReactNode,
 } from "react";
 import {
-  Modal,
+  FlatList,
+  type FlatList as FlatListType,
   Platform,
   Pressable,
   StyleSheet,
   Text,
-  useWindowDimensions,
   View,
   Keyboard,
 } from "react-native";
-import { FullWindowOverlay } from "react-native-screens";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import type { BottomSheetDefaultBackdropProps } from "@gorhom/bottom-sheet/lib/typescript/components/bottomSheetBackdrop/types";
 import { GoalCardWithDescriptionAndOptionToSelectGoal } from "./GoalCardWithDescriptionAndOptionToSelectGoal";
 import { CycleStartTab } from "./CycleStartTab";
 import { useTranslation } from "react-i18next";
 import { router } from "expo-router";
 import { clearPendingOnboardingRoute } from "@/src/storage/onboardingRouteStorage";
-import { setGoalPlannerSheetReturn } from "../goalPlannerSheetReturn";
 import {
   tahiyyatalwudhubottomsheetimage,
   missedpastprayerbottomsheetimage,
@@ -195,20 +183,14 @@ const TABS: { id: Tab; label: string; chip?: string }[] = [
 ];
 
 type Props = {
-  onClose: () => void;
   initialTab?: Tab;
-  /** Scroll offset to restore after returning from goal description details. */
-  restoreScrollOffset?: number | null;
-  onRestoreScrollConsumed?: () => void;
 };
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
-  ({ onClose, initialTab, restoreScrollOffset, onRestoreScrollConsumed }, ref) => {
+export const GoalPlannerSheet = ({ initialTab }: Props) => {
     const { t } = useTranslation();
     const insets = useSafeAreaInsets();
-    const { height: windowHeight } = useWindowDimensions();
     const { data: apiCurrencies } = useGetCurrencies();
     const sadaqahCurrencyOptions = useMemo(() => {
       if (apiCurrencies?.length) {
@@ -339,32 +321,16 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
 
     const confirmFinishAndSave = useCallback(() => {
       setFinishSaveModalVisible(false);
-      if (ref && typeof ref !== "function") {
-        ref.current?.dismiss();
-      }
       void clearPendingOnboardingRoute();
       router.replace("/(tabs)/(home)");
-    }, [ref]);
+    }, []);
 
-    const listScrollOffsetRef = useRef(0);
-    const pendingRestoreScrollRef = useRef<number | null>(null);
-
-    const handleSeeMorePress = useCallback(
-      (goal: string) => {
-        setGoalPlannerSheetReturn({
-          tab: activeTabRef.current,
-          scrollOffset: listScrollOffsetRef.current,
-        });
-        if (ref && typeof ref !== "function") {
-          ref.current?.dismiss();
-        }
-        router.push({
-          pathname: "/(private)/goaldescriptiondetails/[goal]",
-          params: { goal },
-        });
-      },
-      [ref],
-    );
+    const handleSeeMorePress = useCallback((goal: string) => {
+      router.push({
+        pathname: "/(private)/goaldescriptiondetails/[goal]",
+        params: { goal },
+      });
+    }, []);
 
     const { data: meUser } = useGetMe();
     const userId = meUser?.id ?? null;
@@ -387,7 +353,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
       });
     }
     const locallyToggledGoalIdsRef = useRef<Record<string, boolean>>({});
-    const listRef = useRef<BottomSheetFlatListMethods>(null);
+    const listRef = useRef<FlatListType<any>>(null);
     const goalItemHeightsRef = useRef<Record<string, number>>({});
     const postSaveUiTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
       null,
@@ -993,73 +959,18 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
       }
     }, [cycleStartDate]);
 
-    // When opening the sheet from a step, honor that tab only if the cycle is already committed.
+    // Honor deep-link / step tab when allowed; otherwise stay on cycle.
     useEffect(() => {
-      if (!initialTab) return;
+      if (!initialTab) {
+        setActiveTab("cycle");
+        return;
+      }
       if (initialTab === "cycle" || hasCommittedCycle) {
         setActiveTab(initialTab);
       } else {
         setActiveTab("cycle");
       }
-    }, [initialTab]);
-
-    const snapPoints = useMemo(
-      () => [
-        Math.round(windowHeight * 0.28),
-        Platform.OS === "ios"
-          ? Math.round(windowHeight * 0.87)
-          : Math.round(windowHeight * 0.9),
-        Math.round(windowHeight - insets.top + 24),
-      ],
-      [windowHeight, insets.top],
-    );
-
-    const containerComponent = useCallback(
-      ({ children }: { children?: ReactNode }) => {
-        const content = (
-          <GestureHandlerRootView style={styles.sheetOverlayRoot}>
-            {children}
-          </GestureHandlerRootView>
-        );
-
-        // iOS: FullWindowOverlay keeps the sheet above native stack UI.
-        // Keep this wrapper minimal — absoluteFill / negative bottom insets
-        // here have caused native layout thrash + JSI teardown crashes.
-        if (Platform.OS === "ios") {
-          return <FullWindowOverlay>{content}</FullWindowOverlay>;
-        }
-
-        return (
-          <Modal
-            visible
-            transparent
-            statusBarTranslucent
-            animationType="none"
-            presentationStyle="overFullScreen"
-          >
-            {content}
-          </Modal>
-        );
-      },
-      [],
-    );
-
-    const renderBackdrop = useCallback(
-      (props: BottomSheetDefaultBackdropProps) => (
-        <BottomSheetBackdrop
-          {...props}
-          disappearsOnIndex={-1}
-          appearsOnIndex={0}
-          pressBehavior="close"
-          opacity={1}
-          // Dim overlay (BlurView needs a native rebuild with ExpoBlur linked).
-          style={[props.style, styles.backdropHost]}
-        >
-          <View style={styles.backdropDim} />
-        </BottomSheetBackdrop>
-      ),
-      [],
-    );
+    }, [initialTab, hasCommittedCycle]);
 
     const fastingData = [
       {
@@ -2176,14 +2087,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
       setActiveTab(nextTab);
     }, [activeTab, cycleStartDate, tabOrder, hasGoalInEveryCategory]);
 
-    // Capture restore offset from parent before the sheet re-presents.
-    useEffect(() => {
-      if (restoreScrollOffset == null || restoreScrollOffset < 0) return;
-      pendingRestoreScrollRef.current = restoreScrollOffset;
-    }, [restoreScrollOffset]);
-
-    // Always start each category tab at the top goal (NEXT / tab press),
-    // unless we are restoring a prior scroll position (e.g. back from Read more).
+    // Always start each category tab at the top goal (NEXT / tab press).
     useEffect(() => {
       if (postSaveUiTimerRef.current) {
         clearTimeout(postSaveUiTimerRef.current);
@@ -2191,9 +2095,6 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
       }
       clearPendingAutoScrollTimers();
       autoScrollInterruptedByUserRef.current = false;
-      if (pendingRestoreScrollRef.current != null) {
-        return;
-      }
       const scrollTop = () => {
         listRef.current?.scrollToOffset({ offset: 0, animated: false });
       };
@@ -2933,47 +2834,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
 
     return (
       <>
-        <BottomSheetModal
-          ref={ref}
-          index={1}
-          snapPoints={snapPoints}
-          topInset={insets.top}
-          // Keep sheet flush to the screen bottom. Safe-area is handled via
-          // footer/content paddingBottom (insets.bottom), not bottomInset —
-          // bottomInset lifts the whole sheet and leaves a gap on iOS.
-          bottomInset={0}
-          enableDynamicSizing={false}
-          enablePanDownToClose
-          enableHandlePanningGesture
-          // Only the handle/snap bar may drag the sheet; list scroll must not
-          // collapse or dismiss it when the user reaches the end of content.
-          enableContentPanningGesture={false}
-          keyboardBehavior="interactive"
-          keyboardBlurBehavior="restore"
-          android_keyboardInputMode="adjustResize"
-          onDismiss={onClose}
-          onChange={(index) => {
-            if (index < 0) return;
-            const offset = pendingRestoreScrollRef.current;
-            if (offset == null) return;
-            pendingRestoreScrollRef.current = null;
-            const restore = () => {
-              listRef.current?.scrollToOffset({
-                offset,
-                animated: false,
-              });
-            };
-            requestAnimationFrame(restore);
-            setTimeout(restore, 80);
-            setTimeout(restore, 200);
-            onRestoreScrollConsumed?.();
-          }}
-          backdropComponent={renderBackdrop}
-          backgroundStyle={styles.sheetBg}
-          handleStyle={styles.handleContainer}
-          handleIndicatorStyle={styles.handle}
-          containerComponent={containerComponent}
-        >
+        <View style={styles.screen}>
           <RNScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -3038,10 +2899,11 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
           </RNScrollView>
 
           {/* ── Tab content ── */}
-          <BottomSheetFlatList
+          <FlatList
             key={activeTab}
             ref={listRef}
             data={tabData}
+            style={styles.list}
             extraData={{
               expandedGoalSelectionId,
               selectedGoals,
@@ -3065,14 +2927,6 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
             onScrollBeginDrag={() => {
               autoScrollInterruptedByUserRef.current = true;
               clearPendingAutoScrollTimers();
-            }}
-            onScrollEndDrag={(event) => {
-              listScrollOffsetRef.current =
-                event.nativeEvent.contentOffset.y;
-            }}
-            onMomentumScrollEnd={(event) => {
-              listScrollOffsetRef.current =
-                event.nativeEvent.contentOffset.y;
             }}
             onScrollToIndexFailed={({ index, averageItemLength }) => {
               const fallbackOffset = Math.max(
@@ -4201,7 +4055,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
               return null;
             }}
           />
-        </BottomSheetModal>
+        </View>
         <WarningModal
           visible={fastingGoalConflictModal.visible}
           title="SET GOAL?"
@@ -4272,10 +4126,10 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
           onBackdropPress={() => setSelectGoalModalVisible(false)}
           primaryButtonStyle={styles.modalPrimaryButton}
         />
+
       </>
     );
-  },
-);
+};
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 
@@ -4283,7 +4137,11 @@ const styles = StyleSheet.create({
   modalPrimaryButton: {
     alignSelf: "center",
   },
-  sheetOverlayRoot: {
+  screen: {
+    flex: 1,
+    backgroundColor: Colors.light.blackBackground,
+  },
+  list: {
     flex: 1,
   },
   container: {
@@ -4291,27 +4149,6 @@ const styles = StyleSheet.create({
     // height: 300,
     alignItems: "center",
     justifyContent: "center",
-  },
-  sheetBg: {
-    backgroundColor: Colors.light.blackBackground,
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-  },
-  backdropHost: {
-    backgroundColor: "transparent",
-  },
-  backdropDim: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: "rgba(8, 26, 47, 0.72)",
-  },
-  handleContainer: {
-    paddingTop: 14,
-    paddingBottom: 4,
-  },
-  handle: {
-    backgroundColor: Colors.light.white,
-    width: 100,
-    opacity: 0.5,
   },
   // ── Tab bar
   tabBar: {

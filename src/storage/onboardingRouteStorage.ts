@@ -6,7 +6,8 @@ const PENDING_ONBOARDING_ROUTE_KEY = "pending_onboarding_route";
 export type PendingOnboardingRoute =
   | "/(private)/greetingsscreen"
   | "/(private)/setpersonalizedgoals"
-  | "/(private)/monthlygoalplanner";
+  | "/(private)/monthlygoalplanner"
+  | "/(private)/goalplanner";
 
 export async function setPendingOnboardingRoute(
   href: PendingOnboardingRoute,
