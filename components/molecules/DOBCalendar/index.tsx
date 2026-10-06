@@ -373,7 +373,7 @@ export const DOBCalendar = ({
                 ? styles.monthDropdownList
                 : styles.yearDropdownList,
               {
-                top: dropdownAnchor.y + dropdownAnchor.height - 30,
+                top: dropdownAnchor.y + dropdownAnchor.height + 8,
                 left: dropdownAnchor.x,
                 width: dropdownAnchor.width,
               },
