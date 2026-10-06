@@ -30,26 +30,34 @@ export default function PrimaryButton({
   size = "default",
   ...props
 }: PrimaryButtonProps) {
+  const showLoading = Boolean(isLoading);
+  // Loading stays green; only non-loading disabled uses the grey treatment.
+  const showDisabled = Boolean(disabled) && !showLoading;
+
   return (
     <Pressable
       style={(state) => [
         styles.button,
         size === "compact" && styles.buttonCompact,
-        disabled && styles.buttonDisabled,
         typeof style === "function" ? style(state) : style,
-        state.pressed && !disabled && styles.buttonPressed,
+        showLoading && styles.buttonLoading,
+        showDisabled && styles.buttonDisabled,
+        state.pressed && !showDisabled && !showLoading && styles.buttonPressed,
       ]}
       onPress={onPress}
-      disabled={disabled}
+      disabled={disabled || showLoading}
       {...props}
     >
-      {isLoading ? (
-        <ActivityIndicator size="small" color={Colors.light.white} />
+      {showLoading ? (
+        <ActivityIndicator
+          size="small"
+          color={Colors.light.disabledButtonColor}
+        />
       ) : (
         <Text
           style={[
             styles.buttonText,
-            disabled && styles.buttonTextDisabled,
+            showDisabled && styles.buttonTextDisabled,
             textStyle,
           ]}
         >
@@ -74,6 +82,9 @@ const styles = StyleSheet.create({
   buttonCompact: {
     paddingVertical: 2,
     minHeight: 32,
+  },
+  buttonLoading: {
+    backgroundColor: Colors.light.green,
   },
   buttonPressed: {
     opacity: 0.8,

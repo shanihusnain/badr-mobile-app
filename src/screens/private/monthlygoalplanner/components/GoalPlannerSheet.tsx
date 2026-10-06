@@ -1077,6 +1077,19 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
       if (!isSavingPrayer) setSavingPrayerType(null);
     }, [isSavingPrayer]);
 
+    // Same for Quran — one bulk mutation isPending would otherwise light up every Save.
+    const [savingQuranGoalId, setSavingQuranGoalId] = useState<string | null>(
+      null,
+    );
+    useEffect(() => {
+      if (!isSavingQuran) setSavingQuranGoalId(null);
+    }, [isSavingQuran]);
+
+    const isQuranGoalSaving = useCallback(
+      (goalId: string) => isSavingQuran && savingQuranGoalId === goalId,
+      [isSavingQuran, savingQuranGoalId],
+    );
+
     const handlePrayerToggle = useCallback(
       (prayerId: string, prayerType: string, isSelected: boolean) => {
         if (isSelected && !canEnableGoalInCategory("prayer", prayerId)) {
@@ -1736,19 +1749,21 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
         hours: number,
         onDone?: () => void,
         onFail?: () => void,
+        uiGoalId?: string,
       ) => {
+        const goalId =
+          uiGoalId ??
+          (quranGoalType === "LISTENING"
+            ? "quran-listening"
+            : "quran-tajweed");
+        setSavingQuranGoalId(goalId);
         bulkUpsertQuranGoals(
           {
             goals: [buildHoursQuranPayload(quranGoalType, hours)],
           },
           {
             onSuccess: () => {
-              completeGoalSaveSuccess(
-                quranGoalType === "LISTENING"
-                  ? "quran-listening"
-                  : "quran-tajweed",
-                onDone,
-              );
+              completeGoalSaveSuccess(goalId, onDone);
             },
             onError: () => onFail?.(),
           },
@@ -1764,6 +1779,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
         onlyMetric?: "surah" | "juz" | "completion" | "hizb",
         onDone?: () => void,
         onFail?: () => void,
+        uiGoalId?: string,
       ) => {
         const goals = buildBulkQuranGoalsForVariant(
           variant,
@@ -1775,16 +1791,17 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
           onFail?.();
           return;
         }
+        const goalId =
+          uiGoalId ??
+          (variant === "recitation"
+            ? "quran-recitation"
+            : "quran-memorization");
+        setSavingQuranGoalId(goalId);
         bulkUpsertQuranGoals(
           { goals },
           {
             onSuccess: () => {
-              completeGoalSaveSuccess(
-                variant === "recitation"
-                  ? "quran-recitation"
-                  : "quran-memorization",
-                onDone,
-              );
+              completeGoalSaveSuccess(goalId, onDone);
             },
             onError: () => onFail?.(),
           },
@@ -2163,13 +2180,13 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
               title={t("monthlyGoalPlanner.selectNumHours")}
               descriptionKey="monthlyGoalPlanner.hoursQuranListening"
               quranGoalType="LISTENING"
-              isSaving={isSavingQuran}
+              isSaving={isQuranGoalSaving(key)}
               onSave={(hours: number, onDone, onFail) => {
                 setQuranMetrics((prev) => ({
                   ...prev,
                   listeningHours: hours,
                 }));
-                saveQuranHoursGoal("LISTENING", hours, onDone, onFail);
+                saveQuranHoursGoal("LISTENING", hours, onDone, onFail, key);
               }}
             />
           );
@@ -2182,13 +2199,13 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
               title={t("monthlyGoalPlanner.selectNumHours")}
               descriptionKey="monthlyGoalPlanner.hoursQuranTajweed"
               quranGoalType="TAJWEED"
-              isSaving={isSavingQuran}
+              isSaving={isQuranGoalSaving(key)}
               onSave={(hours: number, onDone, onFail) => {
                 setQuranMetrics((prev) => ({
                   ...prev,
                   tajweedHours: hours,
                 }));
-                saveQuranHoursGoal("TAJWEED", hours, onDone, onFail);
+                saveQuranHoursGoal("TAJWEED", hours, onDone, onFail, key);
               }}
             />
           );
@@ -2204,7 +2221,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
               allowedMetrics={["surah"]}
               onMetricsChange={handleQuranMetricsChange}
               variant="others"
-              isSaving={isSavingQuran}
+              isSaving={isQuranGoalSaving(key)}
               onSave={(_payload, onDone, onFail) => {
                 setQuranMetrics((prev) => {
                   const surah = prev?.surah ?? {};
@@ -2213,7 +2230,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                     [key]: buildSurahRecitationReviewSelectedGoals(surah, t),
                   };
                 });
-                saveQuranMetricGoal("recitation", "surah", onDone, onFail);
+                saveQuranMetricGoal("recitation", "surah", onDone, onFail, key);
               }}
             />
           );
@@ -2229,7 +2246,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
               allowedMetrics={["completion"]}
               onMetricsChange={handleQuranMetricsChange}
               variant="others"
-              isSaving={isSavingQuran}
+              isSaving={isQuranGoalSaving(key)}
               onSave={(_payload, onDone, onFail) => {
                 setQuranMetrics((prev) => ({
                   ...prev,
@@ -2241,7 +2258,13 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                     },
                   ],
                 }));
-                saveQuranMetricGoal("recitation", "completion", onDone, onFail);
+                saveQuranMetricGoal(
+                  "recitation",
+                  "completion",
+                  onDone,
+                  onFail,
+                  key,
+                );
               }}
             />
           );
@@ -2257,7 +2280,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
               allowedMetrics={["juz"]}
               onMetricsChange={handleQuranMetricsChange}
               variant="others"
-              isSaving={isSavingQuran}
+              isSaving={isQuranGoalSaving(key)}
               onSave={(_payload, onDone, onFail) => {
                 setQuranMetrics((prev) => {
                   const juz = prev?.juz ?? {};
@@ -2282,7 +2305,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                   }
                   return { ...prev, [key]: rows };
                 });
-                saveQuranMetricGoal("recitation", "juz", onDone, onFail);
+                saveQuranMetricGoal("recitation", "juz", onDone, onFail, key);
               }}
             />
           );
@@ -2298,7 +2321,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
               allowedMetrics={["juz"]}
               onMetricsChange={handleQuranMetricsChange}
               variant="memorization"
-              isSaving={isSavingQuran}
+              isSaving={isQuranGoalSaving(key)}
               onSave={(_payload, onDone, onFail) => {
                 setQuranMetrics((prev) => {
                   const juz = prev?.juz ?? {};
@@ -2349,7 +2372,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                   }
                   return { ...prev, [key]: rows };
                 });
-                saveQuranMetricGoal("memorization", "juz", onDone, onFail);
+                saveQuranMetricGoal("memorization", "juz", onDone, onFail, key);
               }}
             />
           );
@@ -2365,7 +2388,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
               allowedMetrics={["hizb"]}
               onMetricsChange={handleQuranMetricsChange}
               variant="memorization"
-              isSaving={isSavingQuran}
+              isSaving={isQuranGoalSaving(key)}
               onSave={(_payload, onDone, onFail) => {
                 setQuranMetrics((prev) => {
                   const hizb = prev?.hizb ?? {};
@@ -2398,7 +2421,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                     }),
                   };
                 });
-                saveQuranMetricGoal("memorization", "hizb", onDone, onFail);
+                saveQuranMetricGoal("memorization", "hizb", onDone, onFail, key);
               }}
             />
           );
@@ -2414,7 +2437,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
               allowedMetrics={["surah"]}
               onMetricsChange={handleQuranMetricsChange}
               variant="memorization"
-              isSaving={isSavingQuran}
+              isSaving={isQuranGoalSaving(key)}
               onSave={(_payload, onDone, onFail) => {
                 setQuranMetrics((prev) => {
                   const surah = prev?.surah ?? {};
@@ -2432,7 +2455,13 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                     })),
                   };
                 });
-                saveQuranMetricGoal("memorization", "surah", onDone, onFail);
+                saveQuranMetricGoal(
+                  "memorization",
+                  "surah",
+                  onDone,
+                  onFail,
+                  key,
+                );
               }}
             />
           );
@@ -2912,6 +2941,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
               isSavingPrayer,
               savingPrayerType,
               isSavingQuran,
+              savingQuranGoalId,
               isSavingSadaqah,
               keyboardHeight,
               postSaveCollapseSignal,
@@ -3437,7 +3467,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                           title={t("monthlyGoalPlanner.selectNumHours")}
                           descriptionKey="monthlyGoalPlanner.hoursQuranListening"
                           quranGoalType="LISTENING"
-                          isSaving={isSavingQuran}
+                          isSaving={isQuranGoalSaving(quran.id)}
                           onSave={(hours, onDone, onFail) => {
                             setQuranMetrics((prev) => ({
                               ...prev,
@@ -3448,6 +3478,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                               hours,
                               onDone,
                               onFail,
+                              quran.id,
                             );
                           }}
                         />
@@ -3464,7 +3495,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                           title={t("monthlyGoalPlanner.selectNumHours")}
                           descriptionKey="monthlyGoalPlanner.hoursQuranTajweed"
                           quranGoalType="TAJWEED"
-                          isSaving={isSavingQuran}
+                          isSaving={isQuranGoalSaving(quran.id)}
                           onSave={(hours, onDone, onFail) => {
                             setQuranMetrics((prev) => ({
                               ...prev,
@@ -3475,6 +3506,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                               hours,
                               onDone,
                               onFail,
+                              quran.id,
                             );
                           }}
                         />
@@ -3492,7 +3524,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                           title={t("monthlyGoalPlanner.selectTrackingMetric")}
                           onMetricsChange={handleQuranMetricsChange}
                           variant="others"
-                          isSaving={isSavingQuran}
+                          isSaving={isQuranGoalSaving(quran.id)}
                           // Same multi-metric bulk save + tick UI as memorization.
                           initialSavedMetrics={savedMetricsFromApiGoals(
                             quran.apiGoals,
@@ -3523,6 +3555,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                                 }
                               },
                               onFail,
+                              quran.id,
                             )
                           }
                         />
@@ -3541,7 +3574,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                           title={t("monthlyGoalPlanner.selectTrackingMetric")}
                           onMetricsChange={handleQuranMetricsChange}
                           variant="memorization"
-                          isSaving={isSavingQuran}
+                          isSaving={isQuranGoalSaving(quran.id)}
                           initialSavedMetrics={savedMetricsFromApiGoals(
                             quran.apiGoals,
                           )}
@@ -3552,6 +3585,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                               saveAll ? undefined : metric,
                               onDone,
                               onFail,
+                              quran.id,
                             )
                           }
                         />

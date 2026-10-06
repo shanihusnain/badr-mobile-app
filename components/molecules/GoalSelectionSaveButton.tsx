@@ -85,6 +85,7 @@ export default function GoalSelectionSaveButton({
   // Keep loading until markSaved/markFailed — do not drop pending when parent
   // isPending clears (that often happens one tick before mutate onSuccess).
   const loading = Boolean(isLoading) || pending;
+  const isDisabled = Boolean(disabled) && !loading;
 
   if (showSaved) {
     return (
@@ -111,7 +112,9 @@ export default function GoalSelectionSaveButton({
         }, 15000);
         onPress(markSaved, markFailed);
       }}
-      disabled={disabled || loading}
+      // Block presses while loading, but keep the green loading look
+      // (PrimaryButton skips grey disabled styles when isLoading).
+      disabled={isDisabled || loading}
       isLoading={loading}
       style={style}
       textStyle={textStyle}

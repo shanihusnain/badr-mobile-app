@@ -127,7 +127,7 @@ export const QuranTimeSelection = ({
 
               <GoalSelectionSaveButton
                 text="Save"
-                disabled={hoursCount <= 0 || isSaving}
+                disabled={hoursCount <= 0}
                 isLoading={isSaving}
                 onPress={(markSaved, markFailed) => {
                   const hours = Math.min(
