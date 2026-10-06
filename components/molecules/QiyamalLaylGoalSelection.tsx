@@ -27,6 +27,7 @@ export default function QiyamalLaylGoalSelection({
   initialValues,
   isSaving = false,
   openOnMount = false,
+  collapseSignal = 0,
   onInputFocus,
 }: {
   onSave?: (
@@ -46,11 +47,12 @@ export default function QiyamalLaylGoalSelection({
   };
   isSaving?: boolean;
   openOnMount?: boolean;
+  collapseSignal?: number;
   onInputFocus?: () => void;
 }) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
-  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount, onInputFocus);
+  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount, onInputFocus, collapseSignal);
   const [commitment, setCommitment] = useState<"every_night" | "flexible">(
     initialValues?.isFlexible ? "flexible" : "every_night",
   );
@@ -78,20 +80,13 @@ export default function QiyamalLaylGoalSelection({
   };
 
   const handleSave = (markSaved: () => void, markFailed?: () => void) => {
-    const handleSavedSuccess = () => {
-      markSaved();
-      setTimeout(() => {
-        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-        setIsOpen(false);
-      }, 2000);
-    };
     onSave?.(
       {
         commitment,
         twoRakahPrayers: sliderValue,
         witrPrayers: 28,
       },
-      handleSavedSuccess,
+      markSaved,
       markFailed,
     );
   };

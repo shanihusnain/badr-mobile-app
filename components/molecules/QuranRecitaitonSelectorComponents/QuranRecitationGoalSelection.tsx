@@ -45,6 +45,7 @@ export type QuranRecitationGoalSelectionProps = {
   initialMetric?: "surah" | "juz" | "completion" | "hizb";
   allowedMetrics?: Array<"surah" | "juz" | "completion" | "hizb">;
   openOnMount?: boolean;
+  collapseSignal?: number;
   /** From parent GET .../quran-goals `reference` (single fetch in GoalPlannerSheet). */
   surahReference?: QuranSurahOption[];
   hizbReference?: QuranHizbOption[];
@@ -65,6 +66,7 @@ export const QuranRecitationGoalSelection = ({
   initialMetric,
   allowedMetrics,
   openOnMount,
+  collapseSignal = 0,
   surahReference = [],
   hizbReference = [],
   juzReference = [],
@@ -77,6 +79,7 @@ export const QuranRecitationGoalSelection = ({
   const [isOpen, setIsOpen] = useGoalSelectionOpenState(
     openOnMount,
     onInputFocus,
+    collapseSignal,
   );
   const handleToggleDropdown = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -341,13 +344,6 @@ export const QuranRecitationGoalSelection = ({
               isLoading={isSaving}
               disabled={isSaving || !resolvedMetric}
               onPress={(markSaved, markFailed) => {
-                const handleSaved = () => {
-                  markSaved?.();
-                  setTimeout(() => {
-                    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-                    setIsOpen(false);
-                  }, 2000);
-                };
                 if (onSave && resolvedMetric) {
                   onSave(
                     { metric: resolvedMetric },
@@ -358,7 +354,7 @@ export const QuranRecitationGoalSelection = ({
                         return next;
                       });
                       setMarkCleanNonce((n) => n + 1);
-                      handleSaved();
+                      markSaved?.();
                     },
                     markFailed,
                   );

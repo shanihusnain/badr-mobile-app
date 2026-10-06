@@ -22,6 +22,7 @@ export const MissedZakats = ({
   isSaving,
   onSetAsDefaultCurrency,
   openOnMount = false,
+  collapseSignal = 0,
   onInputFocus,
 }: {
   control: any;
@@ -36,10 +37,11 @@ export const MissedZakats = ({
   isSaving?: boolean;
   onSetAsDefaultCurrency?: (currencyOptionValue: string) => void;
   openOnMount?: boolean;
+  collapseSignal?: number;
   onInputFocus?: () => void;
 }) => {
   const { t } = useTranslation();
-  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount, onInputFocus);
+  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount, onInputFocus, collapseSignal);
   const selectedCurrency = useWatch({ control, name });
   const hasCurrency = Boolean(String(selectedCurrency ?? "").trim());
   const toggleDropdown = () => {
@@ -82,14 +84,7 @@ export const MissedZakats = ({
               <GoalSelectionSaveButton
                 text={t("monthlyGoalPlanner.save")}
                 onPress={(markSaved, markFailed) => {
-                  const handleSaved = () => {
-                    markSaved?.();
-                    setTimeout(() => {
-                      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-                      setIsOpen(false);
-                    }, 2000);
-                  };
-                  onSave?.(handleSaved, markFailed);
+                  onSave?.(markSaved, markFailed);
                 }}
                 isLoading={isSaving}
                 disabled={isSaving || count < 1 || !hasCurrency}

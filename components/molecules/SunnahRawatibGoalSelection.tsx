@@ -74,6 +74,7 @@ export default function SunnahRawatibGoalSelection({
   initialValues,
   isSaving = false,
   openOnMount = false,
+  collapseSignal = 0,
   onInputFocus,
 }: {
   onSave?: (
@@ -104,6 +105,7 @@ export default function SunnahRawatibGoalSelection({
   };
   isSaving?: boolean;
   openOnMount?: boolean;
+  collapseSignal?: number;
   onInputFocus?: () => void;
 }) {
   const { t } = useTranslation();
@@ -133,7 +135,7 @@ export default function SunnahRawatibGoalSelection({
   const beforeAsarEnabled = useSharedValue(
     initialValues?.beforeAsrEnabled ?? true,
   );
-  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount, onInputFocus);
+  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount, onInputFocus, collapseSignal);
 
   useEffect(() => {
     if (!initialValues) return;
@@ -196,13 +198,6 @@ export default function SunnahRawatibGoalSelection({
   };
 
   const handleSave = (markSaved: () => void, markFailed?: () => void) => {
-    const handleSavedSuccess = () => {
-      markSaved();
-      setTimeout(() => {
-        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-        setIsOpen(false);
-      }, 2000);
-    };
     onSave?.(
       {
         beforeFajr: beforeFajar,
@@ -215,7 +210,7 @@ export default function SunnahRawatibGoalSelection({
         afterMaghrib: afterMaghrib,
         afterIsha: afterIsha,
       },
-      handleSavedSuccess,
+      markSaved,
       markFailed,
     );
   };

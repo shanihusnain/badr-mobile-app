@@ -24,18 +24,20 @@ export default function DuhaPrayerGoalSelection({
   initialValue = 1,
   isSaving = false,
   openOnMount = false,
+  collapseSignal = 0,
   onInputFocus,
 }: {
   onSave?: (value: number, onDone?: () => void, onFail?: () => void) => void;
   isSaving?: boolean;
   openOnMount?: boolean;
+  collapseSignal?: number;
   onInputFocus?: () => void;
   initialValue?: number;
 }) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
   const [sliderValue, setSliderValue] = useState(initialValue);
-  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount, onInputFocus);
+  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount, onInputFocus, collapseSignal);
 
   const toggleDropdown = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -71,16 +73,7 @@ export default function DuhaPrayerGoalSelection({
             <GoalSelectionSaveButton
               text={t("prayerGoals.save").toLocaleUpperCase()}
               onPress={(markSaved, markFailed) => {
-                const handleSaved = () => {
-                  markSaved?.();
-                  setTimeout(() => {
-                    LayoutAnimation.configureNext(
-                      LayoutAnimation.Presets.easeInEaseOut,
-                    );
-                    setIsOpen(false);
-                  }, 2000);
-                };
-                onSave?.(sliderValue, handleSaved, markFailed);
+                onSave?.(sliderValue, markSaved, markFailed);
               }}
               isLoading={isSaving}
               disabled={isSaving}

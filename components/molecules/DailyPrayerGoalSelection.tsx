@@ -55,6 +55,7 @@ type Props = {
   ) => void;
   isSaving?: boolean;
   openOnMount?: boolean;
+  collapseSignal?: number;
   onInputFocus?: () => void;
 };
 
@@ -64,6 +65,7 @@ export default function DailyPrayerGoalSelection({
   initialValues,
   isSaving = false,
   openOnMount = false,
+  collapseSignal = 0,
   onInputFocus,
 }: Props) {
   const { t } = useTranslation();
@@ -105,7 +107,7 @@ export default function DailyPrayerGoalSelection({
   const [isha, setIsha] = useState(
     () => initialValues?.isha ?? congregationalAdjustments.prayerDefaults.isha,
   );
-  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount, onInputFocus);
+  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount, onInputFocus, collapseSignal);
   const [isTrackingCongregation, setIsTrackingCongregation] = useState(
     Boolean(initialValues?.congregationalTracking),
   );
@@ -160,13 +162,6 @@ export default function DailyPrayerGoalSelection({
   ]);
 
   const handleSave = (markSaved: () => void, markFailed?: () => void) => {
-    const handleSaved = () => {
-      markSaved();
-      setTimeout(() => {
-        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-        setIsOpen(false);
-      }, 2000);
-    };
     onSave?.(
       fajr,
       dhuhr,
@@ -175,7 +170,7 @@ export default function DailyPrayerGoalSelection({
       isha,
       isTrackingCongregation ? jumuahCountInCycle : 0,
       isTrackingCongregation,
-      handleSaved,
+      markSaved,
       markFailed,
     );
   };

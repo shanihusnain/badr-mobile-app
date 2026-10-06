@@ -20,6 +20,7 @@ export const KafarahForBreakingFastsOrOAthSelector = ({
   onSave,
   isSaving,
   openOnMount = false,
+  collapseSignal = 0,
   onInputFocus,
 }: {
   mealCount: number;
@@ -33,10 +34,11 @@ export const KafarahForBreakingFastsOrOAthSelector = ({
   onSave?: (onDone?: () => void, onFail?: () => void) => void;
   isSaving?: boolean;
   openOnMount?: boolean;
+  collapseSignal?: number;
   onInputFocus?: () => void;
 }) => {
   const { t } = useTranslation();
-  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount, onInputFocus);
+  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount, onInputFocus, collapseSignal);
   const toggleDropdown = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setIsOpen(!isOpen);
@@ -89,14 +91,7 @@ export const KafarahForBreakingFastsOrOAthSelector = ({
               <GoalSelectionSaveButton
                 text={t("monthlyGoalPlanner.save")}
                 onPress={(markSaved, markFailed) => {
-                  const handleSaved = () => {
-                    markSaved?.();
-                    setTimeout(() => {
-                      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-                      setIsOpen(false);
-                    }, 2000);
-                  };
-                  onSave?.(handleSaved, markFailed);
+                  onSave?.(markSaved, markFailed);
                 }}
                 isLoading={isSaving}
                 disabled={isSaving || (mealCount < 1 && clothCount < 1)}

@@ -5,6 +5,8 @@ import { LayoutAnimation } from "react-native";
 export function useGoalSelectionOpenState(
   openOnMount = false,
   onOpened?: () => void,
+  /** Incremented by parent after save hold — forces collapse even if openOnMount was already false. */
+  collapseSignal = 0,
 ) {
   const [isOpen, setIsOpen] = useState(openOnMount);
   const wasOpenRef = useRef(false);
@@ -12,13 +14,19 @@ export function useGoalSelectionOpenState(
   onOpenedRef.current = onOpened;
 
   useEffect(() => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     if (openOnMount) {
-      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
       setIsOpen(true);
       return;
     }
     setIsOpen(false);
   }, [openOnMount]);
+
+  useEffect(() => {
+    if (!collapseSignal) return;
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setIsOpen(false);
+  }, [collapseSignal]);
 
   useEffect(() => {
     if (isOpen && !wasOpenRef.current) {

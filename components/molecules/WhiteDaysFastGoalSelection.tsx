@@ -24,15 +24,17 @@ export default function WhiteDaysFastGoalSelection({
   calendarWindow,
   onSave,
   openOnMount = false,
+  collapseSignal = 0,
 }: {
   calendarWindow?: FastingCalendarWindow | null;
   onSave?: (selectedDates: string[]) => void;
   openOnMount?: boolean;
+  collapseSignal?: number;
 }) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
   const { mutate: upsertFastingGoal, isPending } = useUpsertFastingGoals();
-  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount);
+  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount, undefined, collapseSignal);
   const [selectedDates, setSelectedDates] = useState<string[]>(
     () => calendarWindow?.whiteDaysPlannedDates ?? [],
   );
@@ -56,12 +58,8 @@ export default function WhiteDaysFastGoalSelection({
       },
       {
         onSuccess: () => {
-          onSave?.(selectedDates);
           markSaved();
-          setTimeout(() => {
-            LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-            setIsOpen(false);
-          }, 2000);
+          onSave?.(selectedDates);
         },
         onError: () => markFailed(),
       },

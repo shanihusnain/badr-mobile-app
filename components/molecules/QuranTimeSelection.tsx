@@ -28,6 +28,7 @@ export const QuranTimeSelection = ({
   quranGoalType,
   isSaving = false,
   openOnMount = false,
+  collapseSignal = 0,
   onInputFocus,
 }: {
   title: string;
@@ -37,14 +38,12 @@ export const QuranTimeSelection = ({
   quranGoalType?: "LISTENING" | "TAJWEED";
   isSaving?: boolean;
   openOnMount?: boolean;
+  collapseSignal?: number;
   /** Scroll parent list so this input stays visible above the keyboard. */
   onInputFocus?: () => void;
 }) => {
   const { t } = useTranslation();
-  const [isOpen, setIsOpen] = useGoalSelectionOpenState(
-    openOnMount,
-    onInputFocus,
-  );
+  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount, onInputFocus, collapseSignal);
   const [inputValue, setInputValue] = useState<string>("");
   const [hydrated, setHydrated] = useState(false);
 
@@ -140,17 +139,7 @@ export const QuranTimeSelection = ({
                     return;
                   }
 
-                  const handleSaved = () => {
-                    markSaved?.();
-                    setTimeout(() => {
-                      LayoutAnimation.configureNext(
-                        LayoutAnimation.Presets.easeInEaseOut,
-                      );
-                      setIsOpen(false);
-                    }, 2000);
-                  };
-
-                  onSave?.(hours, handleSaved, markFailed);
+                  onSave?.(hours, markSaved, markFailed);
                 }}
                 style={{ width: "100%" }}
               />
