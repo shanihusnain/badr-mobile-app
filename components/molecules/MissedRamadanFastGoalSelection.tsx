@@ -27,10 +27,12 @@ export default function MissedRamadanFastGoalSelection({
   calendarWindow,
   onSave,
   openOnMount = false,
+  collapseSignal = 0,
 }: {
   calendarWindow?: FastingCalendarWindow | null;
   onSave?: (selectedDates: string[]) => void;
   openOnMount?: boolean;
+  collapseSignal?: number;
 }) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
@@ -38,7 +40,7 @@ export default function MissedRamadanFastGoalSelection({
   const [selectedDates, setSelectedDates] = useState<string[]>(
     () => calendarWindow?.missedRamadanDates ?? [],
   );
-  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount);
+  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount, undefined, collapseSignal);
 
   const legendItems = useMemo(
     () =>
@@ -67,12 +69,8 @@ export default function MissedRamadanFastGoalSelection({
       },
       {
         onSuccess: () => {
-          onSave?.(selectedDates);
           markSaved();
-          setTimeout(() => {
-            LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-            setIsOpen(false);
-          }, 2000);
+          onSave?.(selectedDates);
         },
         onError: () => markFailed(),
       },

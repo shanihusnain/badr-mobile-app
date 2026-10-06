@@ -21,9 +21,11 @@ import { Divider } from "../atoms/Divider";
 
 export default function CongregationalPrayerGoalSelection({
   openOnMount = false,
+  collapseSignal = 0,
   onInputFocus,
 }: {
   openOnMount?: boolean;
+  collapseSignal?: number;
   onInputFocus?: () => void;
 } = {}) {
   const { t } = useTranslation();
@@ -34,7 +36,7 @@ export default function CongregationalPrayerGoalSelection({
   const [maghrib, setMaghrib] = useState(28);
   const [isha, setIsha] = useState(28);
   const [jumuah, setJumuah] = useState(4);
-  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount, onInputFocus);
+  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount, onInputFocus, collapseSignal);
 
   const toggleDropdown = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);

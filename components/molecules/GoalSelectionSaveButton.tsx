@@ -14,7 +14,7 @@ import { Colors } from "@/constants/theme";
 import PrimaryButton from "@/components/atoms/Primary-button";
 import { GreenTickWithCircleIcon } from "@/assets/icons";
 
-const SAVED_VISIBLE_MS = 3000;
+const SAVED_VISIBLE_MS = 2000;
 
 type Props = {
   /**

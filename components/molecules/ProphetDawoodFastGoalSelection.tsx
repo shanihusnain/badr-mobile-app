@@ -24,15 +24,17 @@ export default function ProphetDawoodFastGoalSelection({
   calendarWindow,
   onSave,
   openOnMount = false,
+  collapseSignal = 0,
 }: {
   calendarWindow?: FastingCalendarWindow | null;
   onSave?: (dawoodStartDay: 1 | 2) => void;
   openOnMount?: boolean;
+  collapseSignal?: number;
 }) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
   const { mutate: upsertFastingGoal, isPending } = useUpsertFastingGoals();
-  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount);
+  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount, undefined, collapseSignal);
   const [selectedStartDay, setSelectedStartDay] = useState<1 | 2>(1);
 
   const toggleDropdown = () => {
@@ -48,12 +50,8 @@ export default function ProphetDawoodFastGoalSelection({
       },
       {
         onSuccess: () => {
-          onSave?.(selectedStartDay);
           markSaved();
-          setTimeout(() => {
-            LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-            setIsOpen(false);
-          }, 2000);
+          onSave?.(selectedStartDay);
         },
         onError: () => markFailed(),
       },
