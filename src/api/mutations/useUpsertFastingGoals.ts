@@ -41,10 +41,16 @@ export const useUpsertFastingGoals = () => {
 
   return useMutation({
     mutationFn: upsertFastingGoals,
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["all-fasting-goals"] });
       queryClient.invalidateQueries({ queryKey: ["fasting-calendar-preview"] });
       queryClient.invalidateQueries({ queryKey: ["goal-cycle"] });
+      queryClient.invalidateQueries({
+        queryKey: [
+          "fasting-goal-frame",
+          resolveFastingType(variables.fastingType),
+        ],
+      });
       showToast("success", data?.message ?? "Fasting goal saved");
     },
     onError: (error) => {

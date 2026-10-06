@@ -8,7 +8,6 @@ import {
   ScrollView,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { CalendarGrid } from "@/components/molecules/CalendarGrid";
@@ -16,6 +15,10 @@ import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import { AchivementArrowIcon } from "@/assets/icons/AchivementArrowIcon";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
+import { useGetMenstruationPeriods } from "@/src/api/queries/useGetMenstruationPeriods";
+import { useGetFastingGoalFrame } from "@/src/api/queries/useGetFastingGoalFrame";
+import { expandMenstruationPeriodDates } from "@/src/utils/menstruationDates";
+import { PLANNED_FASTS } from "@/src/screens/private/home/plannedFasts";
 import {
   applyWhiteDaysAnalyticsView,
   formatWhiteDaysChartHoursLabel,
@@ -30,8 +33,10 @@ import {
   getWhiteDaysTimeSpentByPeriod,
   isWhiteDaysFastCompletedOnDate,
   isWhiteDaysFastMissedOnDate,
+  shiftWhiteDaysPastAchievementAnchor,
   type WhiteDaysAnalyticsView,
 } from "@/src/screens/private/goalprogressloggingscreen/whiteDaysFastsPastAchievementData";
+import { getTodayDateString } from "@/src/screens/private/goalprogressloggingscreen/whiteDaysFastsData";
 import { applyTimeSpentOnlyGreenChart } from "@/src/screens/private/goalprogressloggingscreen/quranRecitationPastAchievementData";
 import type { PastAchievementPeriod } from "@/src/screens/private/goalprogressloggingscreen/quranHoursPastAchievementData";
 import {
@@ -45,6 +50,10 @@ import { FontAwesome } from "@expo/vector-icons";
 import { InsightCard } from "../InsightCard";
 import { getGoalById } from "@/src/screens/private/home/components/goalsData";
 import { PastAchievementStudyMaterial } from "@/components/molecules/PastAchievementStudyMaterial";
+import {
+  NegativeProgressIcon,
+  PositiveProgressIcon,
+} from "@/assets/icons";
 
 type Props = {
   refreshKey?: number;
@@ -76,8 +85,8 @@ const ANALYTICS_VIEW_LABEL_KEYS: Record<WhiteDaysAnalyticsView, string> = {
 
 const PERIOD_DELTA_LABEL_KEYS: Record<PastAchievementPeriod, string> = {
   monthly: "progressLogging.previousMonth",
-  threeMonths: "progressLogging.previousThreeMonths",
-  sixMonths: "progressLogging.previousSixMonths",
+  threeMonths: "progressLogging.previousThreeMonthsShort",
+  sixMonths: "progressLogging.previousSixMonthsShort",
 };
 
 const WHITE_DAYS_BAR_COLORS: [string, string] = [
@@ -96,6 +105,7 @@ export function WhiteDaysFastsPastAchievements({
   const [period, setPeriod] = useState<PastAchievementPeriod>(initialPeriod);
   const [analyticsView, setAnalyticsView] =
     useState<WhiteDaysAnalyticsView>(initialAnalyticsView);
+  const [anchorDate, setAnchorDate] = useState(getTodayDateString);
   const [selectedBarIndex, setSelectedBarIndex] = useState<number | null>(null);
   const [selectedCalendarDate, setSelectedCalendarDate] = useState<string | null>(
     null,
@@ -103,14 +113,66 @@ export function WhiteDaysFastsPastAchievements({
   const [hintDismissed, setHintDismissed] = useState(false);
   const goalData = getGoalById("fasting-whiteDays");
   const studyMaterial = goalData?.studyMaterial ?? [];
+  const { data: menstruationPeriodsResponse } = useGetMenstruationPeriods(true);
+  const { data: fastingFrame } = useGetFastingGoalFrame("WHITE_DAYS");
   const periodSlice = useMemo(
-    () => getWhiteDaysFastsPastAchievementSlice(period),
-    [period, refreshKey],
+    () => getWhiteDaysFastsPastAchievementSlice(period, anchorDate),
+    [period, refreshKey, anchorDate],
+  );
+
+  const cycleStartDate = useMemo(() => {
+    const fromFrame = String(fastingFrame?.cycle?.startDate ?? "").slice(0, 10);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(fromFrame)) return fromFrame;
+    return String(PLANNED_FASTS.cycleStartDate).slice(0, 10);
+  }, [fastingFrame?.cycle?.startDate]);
+
+  const cycleEndDate = useMemo(() => {
+    const fromFrame = String(fastingFrame?.cycle?.endDate ?? "").slice(0, 10);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(fromFrame)) return fromFrame;
+    return String(PLANNED_FASTS.cycleEndDate).slice(0, 10);
+  }, [fastingFrame?.cycle?.endDate]);
+
+  const menstruationDates = useMemo(() => {
+    return expandMenstruationPeriodDates(
+      menstruationPeriodsResponse?.data?.periods,
+      { rangeStart: cycleStartDate, rangeEnd: cycleEndDate },
+    );
+  }, [
+    menstruationPeriodsResponse?.data?.periods,
+    cycleStartDate,
+    cycleEndDate,
+    refreshKey,
+  ]);
+
+  const inCycle = useCallback(
+    (date: string) => date >= cycleStartDate && date <= cycleEndDate,
+    [cycleEndDate, cycleStartDate],
+  );
+
+  const calendarCompletedDates = useMemo(
+    () => periodSlice.completedDates.filter(inCycle),
+    [inCycle, periodSlice.completedDates],
+  );
+
+  const calendarMissedDates = useMemo(
+    () =>
+      periodSlice.missedDates.filter(
+        (date) => inCycle(date) && !menstruationDates.includes(date),
+      ),
+    [inCycle, menstruationDates, periodSlice.missedDates],
+  );
+
+  const calendarUpcomingDates = useMemo(
+    () =>
+      periodSlice.upcomingDates.filter(
+        (date) => inCycle(date) && !menstruationDates.includes(date),
+      ),
+    [inCycle, menstruationDates, periodSlice.upcomingDates],
   );
 
   const baseAchievement = useMemo(
-    () => getWhiteDaysFastsPastAchievement(period),
-    [period, refreshKey],
+    () => getWhiteDaysFastsPastAchievement(period, anchorDate),
+    [period, refreshKey, anchorDate],
   );
 
   const timeSpentByPeriod = useMemo(
@@ -136,7 +198,12 @@ export function WhiteDaysFastsPastAchievements({
     setSelectedBarIndex(null);
     setSelectedCalendarDate(null);
     setHintDismissed(false);
-  }, [period, analyticsView, refreshKey]);
+  }, [period, analyticsView, refreshKey, anchorDate]);
+
+  const handlePeriodChange = useCallback((next: PastAchievementPeriod) => {
+    setPeriod(next);
+    setAnchorDate(getTodayDateString());
+  }, []);
 
   const handleBarPressCompact = useCallback((index: number | null) => {
     setHintDismissed(true);
@@ -176,6 +243,36 @@ export function WhiteDaysFastsPastAchievements({
     });
   }, [analyticsView, period, router]);
 
+  const showCalendar = isDetailed
+    ? period === "monthly"
+    : period === "monthly" && analyticsView === "completedVsIncomplete";
+
+  const todayMonthStart = useMemo(() => {
+    const today = getTodayDateString();
+    return `${today.slice(0, 8)}01`;
+  }, [refreshKey]);
+
+  const canNavigateBack = !showCalendar;
+  const canNavigateForward = useMemo(() => {
+    if (showCalendar) return false;
+    const next = shiftWhiteDaysPastAchievementAnchor(anchorDate, "next");
+    return next.slice(0, 7) <= todayMonthStart.slice(0, 7);
+  }, [anchorDate, showCalendar, todayMonthStart]);
+
+  const handleNavigateBack = useCallback(() => {
+    if (!canNavigateBack) return;
+    setAnchorDate((current) =>
+      shiftWhiteDaysPastAchievementAnchor(current, "prev"),
+    );
+  }, [canNavigateBack]);
+
+  const handleNavigateForward = useCallback(() => {
+    if (!canNavigateForward) return;
+    setAnchorDate((current) =>
+      shiftWhiteDaysPastAchievementAnchor(current, "next"),
+    );
+  }, [canNavigateForward]);
+
   const displayCompleted = selectedCalendarDate
     ? isWhiteDaysFastCompletedOnDate(selectedCalendarDate)
       ? 1
@@ -201,13 +298,43 @@ export function WhiteDaysFastsPastAchievements({
     selectedCalendarDate == null &&
     isPastAchievementBarEmpty(displayCompleted, displayIncomplete);
 
-  const showCalendar = isDetailed
-    ? period === "monthly"
-    : period === "monthly" && analyticsView === "completedVsIncomplete";
+  /** Same gate as Prayer/Quran: hide detail chevron until there is completed data. */
+  const showDetailedStatsChevron =
+    !isDetailed &&
+    ((baseAchievement.achievementPercent ?? 0) > 0 ||
+      (periodSlice.completedFasts ?? 0) > 0 ||
+      baseAchievement.chartData.some(
+        (item) => (item.completedHours ?? 0) > 0,
+      ));
+
   const showChart = !showCalendar;
   const showChartHint =
     showChart && !hintDismissed && selectedBarIndex === null;
-  const deltaIsPositive = baseAchievement.previousPeriodDeltaPercent >= 0;
+  const displayedDeltaPct = baseAchievement.previousPeriodDeltaPercent;
+  const showDeltaChip =
+    !showNoDataDash &&
+    displayedDeltaPct !== null &&
+    Math.abs(displayedDeltaPct) > 0;
+  const deltaIsPositive = (displayedDeltaPct ?? 0) > 0;
+
+  const cycleRangeLabel = useMemo(() => {
+    const start = new Date(`${cycleStartDate}T12:00:00`);
+    const end = new Date(`${cycleEndDate}T12:00:00`);
+    const startLabel = start.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    });
+    const endLabel = end.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    });
+    const year = String(end.getFullYear()).slice(-2);
+    return `${startLabel} — ${endLabel}, ${year}`;
+  }, [cycleEndDate, cycleStartDate]);
+
+  const dateRangeLabel = showCalendar
+    ? cycleRangeLabel
+    : baseAchievement.dateRangeLabel;
 
   const chartAchievement = useMemo(() => {
     if (!showChart) return null;
@@ -308,13 +435,11 @@ export function WhiteDaysFastsPastAchievements({
     <View style={[styles.section, isDetailed && styles.sectionDetailed]}>
       <View style={styles.card}>
         <View style={styles.cardHeader}>
-          <AchivementArrowIcon />
-          <Text
-            style={[styles.sectionTitle, isDetailed && styles.sectionTitleDetailed]}
-          >
+          <AchivementArrowIcon size={15} color={Colors.light.subtext} />
+          <Text style={styles.sectionTitle}>
             {t("progressLogging.pastGoalAchievements")}
           </Text>
-          {!isDetailed ? (
+          {showDetailedStatsChevron ? (
             <TouchableOpacity
               onPress={handleNavigateToDetailed}
               style={{ marginLeft: "auto", padding: 4 }}
@@ -328,137 +453,128 @@ export function WhiteDaysFastsPastAchievements({
           ) : null}
         </View>
 
-        <View style={styles.topRow}>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
           <View style={styles.achievementBlock}>
-            <Text
-              style={[
-                styles.achievementCaption,
-                isDetailed && styles.achievementCaptionDetailed,
-              ]}
-            >
-              {isDetailed
-                ? t("progressLogging.achievementsLabel").toUpperCase()
-                : t("progressLogging.achievementsLabel")}
+            <Text style={styles.achievementCaption}>
+              {analyticsView === "completedVsTime"
+                ? t("progressLogging.timeSpentLabel").toUpperCase()
+                : "ACHIEVEMENT"}
             </Text>
-            <Text
-              style={[
-                styles.achievementPercent,
-                isDetailed && styles.achievementPercentDetailed,
-              ]}
-            >
-              {showNoDataDash
-                ? PAST_ACHIEVEMENT_NO_DATA
-                : formatNumber(baseAchievement.achievementPercent)}
-              <Text
-                style={
-                  isDetailed
-                    ? styles.achievementPercentSymbolDetailed
-                    : styles.achievementPercentSymbol
-                }
-              >
-                %
+            <View style={styles.achievementPercentRow}>
+              <Text style={styles.achievementPercent}>
+                {showNoDataDash
+                  ? PAST_ACHIEVEMENT_NO_DATA
+                  : formatNumber(baseAchievement.achievementPercent)}
               </Text>
-            </Text>
-            <View
-              style={[
-                styles.deltaBadge,
-                isDetailed && !deltaIsPositive && styles.deltaBadgeNegative,
-              ]}
-            >
-              <Ionicons
-                name={deltaIsPositive ? "arrow-up" : "arrow-down"}
-                size={11}
-                color={
-                  deltaIsPositive ? Colors.light.green : Colors.light.subtext
-                }
-              />
-              <Text
-                style={[
-                  styles.deltaText,
-                  isDetailed && !deltaIsPositive && styles.deltaTextNegative,
-                  !isDetailed && {
-                    color: deltaIsPositive
-                      ? Colors.light.green
-                      : Colors.light.white,
-                  },
-                ]}
-              >
-                {deltaIsPositive ? "+" : ""}
-                {formatNumber(baseAchievement.previousPeriodDeltaPercent)}%{" "}
-                {t(
-                  isDetailed
-                    ? PERIOD_DELTA_LABEL_KEYS[period]
-                    : "progressLogging.previousMonth",
-                )}
-              </Text>
+              <Text style={styles.achievementPercentSymbol}>%</Text>
             </View>
+          </View>
+          <View style={styles.periodToggle}>
+            {PERIODS.map((item) => {
+              const isActive = period === item;
+              return (
+                <Pressable
+                  key={item}
+                  onPress={() => handlePeriodChange(item)}
+                  style={[
+                    styles.periodButton,
+                    isActive
+                      ? styles.periodButtonActive
+                      : styles.periodButtonInactive,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.periodButtonText,
+                      isActive && styles.periodButtonTextActive,
+                    ]}
+                  >
+                    {t(PERIOD_LABEL_KEYS[item])}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <View style={styles.deltaSlot}>
+            {showDeltaChip ? (
+              <View style={styles.deltaBadge}>
+                {deltaIsPositive ? (
+                  <PositiveProgressIcon />
+                ) : (
+                  <NegativeProgressIcon />
+                )}
+                <Text style={styles.deltaText} numberOfLines={1}>
+                  {`${formatNumber(Math.abs(displayedDeltaPct ?? 0))}% ${t(
+                    PERIOD_DELTA_LABEL_KEYS[period],
+                  )}`}
+                </Text>
+              </View>
+            ) : (
+              <View style={styles.deltaBadgePlaceholder} />
+            )}
           </View>
 
           <View style={styles.periodNavRow}>
-            <View style={styles.periodToggle}>
-              {PERIODS.map((item) => {
-                const isActive = period === item;
-                return (
-                  <Pressable
-                    key={item}
-                    onPress={() => setPeriod(item)}
-                    style={[
-                      styles.periodButton,
-                      isActive
-                        ? styles.periodButtonActive
-                        : styles.periodButtonInactive,
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.periodButtonText,
-                        isActive && styles.periodButtonTextActive,
-                      ]}
-                    >
-                      {t(PERIOD_LABEL_KEYS[item])}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-
             <View style={styles.dateNavRow}>
-              <TouchableOpacity activeOpacity={0.7} style={styles.navBtn}>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                style={styles.navBtn}
+                onPress={handleNavigateBack}
+                disabled={!canNavigateBack}
+              >
                 <Ionicons
                   name="chevron-back"
-                  size={isDetailed ? 24 : 14}
-                  color={Colors.light.dullWhite}
+                  size={24}
+                  color={
+                    canNavigateBack
+                      ? Colors.light.dullWhite
+                      : Colors.light.subtext
+                  }
                 />
               </TouchableOpacity>
-              <Text style={styles.dateRange} numberOfLines={1}>
-                {baseAchievement.dateRangeLabel}
+              <Text
+                style={styles.dateRange}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {dateRangeLabel}
               </Text>
-              <TouchableOpacity activeOpacity={0.7} style={styles.navBtn}>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                style={styles.navBtn}
+                onPress={handleNavigateForward}
+                disabled={!canNavigateForward}
+              >
                 <Ionicons
                   name="chevron-forward"
-                  size={isDetailed ? 24 : 14}
-                  color={Colors.light.dullWhite}
+                  size={24}
+                  color={
+                    canNavigateForward
+                      ? Colors.light.dullWhite
+                      : Colors.light.subtext
+                  }
                 />
               </TouchableOpacity>
             </View>
           </View>
         </View>
 
-        {isDetailed ? (
-          renderDetailedSummary()
-        ) : (
-          <Text style={styles.summaryText}>
-            {t("progressLogging.achievementSummaryWhiteDays", {
-              percent: formatNumber(baseAchievement.achievementPercent),
-              delta: formatNumber(
-                Math.abs(baseAchievement.previousPeriodDeltaPercent),
-              ),
-              direction: deltaIsPositive
-                ? t("progressLogging.periodComparisonIncrease")
-                : t("progressLogging.periodComparisonDecrease"),
-            })}
-          </Text>
-        )}
+        {isDetailed ? renderDetailedSummary() : null}
 
         <View style={styles.goalHeader}>
           <Text style={styles.goalLabel}>{t("progressLogging.goal")}</Text>
@@ -575,14 +691,23 @@ export function WhiteDaysFastsPastAchievements({
                   </Text>
                 </View>
               ) : null}
+              <View style={styles.legendItem}>
+                <View style={styles.legendDotMenstruation} />
+                <Text style={styles.legendText}>
+                  {t("progressLogging.whiteDaysLegendMenstruation")}
+                </Text>
+              </View>
             </View>
             <TopSpace top={12} />
             <CalendarGrid
               mode="white_days_achievement"
-              currentDate={periodSlice.calendarMonthDate}
-              completedFastDates={periodSlice.completedDates}
-              missedFastDates={periodSlice.missedDates}
-              incompletePlannedFastDates={periodSlice.upcomingDates}
+              currentDate={cycleStartDate}
+              windowStartDate={cycleStartDate}
+              windowEndDate={cycleEndDate}
+              completedFastDates={calendarCompletedDates}
+              missedFastDates={calendarMissedDates}
+              incompletePlannedFastDates={calendarUpcomingDates}
+              menstruationDates={menstruationDates}
               onDayPress={isDetailed ? handleCalendarDayPress : undefined}
               selectedDate={selectedCalendarDate ?? undefined}
               bgColor={Colors.light.greybuttonBackground}
@@ -666,102 +791,100 @@ const styles = StyleSheet.create({
   cardHeader: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    gap: 4,
   },
   sectionTitle: {
-    color: Colors.light.subtext,
-    fontSize: 11,
+    color: Colors.light.white,
+    fontSize: 16,
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
-    letterSpacing: 0.4,
+    letterSpacing: 0,
     textTransform: "uppercase",
     flexShrink: 1,
-  },
-  sectionTitleDetailed: {
-    color: Colors.light.white,
-    fontSize: 13,
-  },
-  topRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    marginLeft: 6,
   },
   achievementBlock: {
-    alignItems: "flex-start",
-    gap: 4,
+    gap: 6,
+    marginTop: 6,
+    marginBottom: -2,
   },
   achievementCaption: {
     color: Colors.light.subtext,
-    fontSize: 13,
-    fontFamily: fonts.primary.medium,
-    fontWeight: "500",
-  },
-  achievementCaptionDetailed: {
     fontSize: 11,
     fontFamily: fonts.primary.heavy,
     fontWeight: "800",
-    letterSpacing: 0.5,
-    textTransform: "uppercase",
+    marginTop: 10,
+  },
+  achievementPercentRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    marginBottom: 6,
   },
   achievementPercent: {
     color: Colors.light.white,
-    fontSize: 40,
-    fontFamily: fonts.primary.regular,
-    fontWeight: "400",
-    lineHeight: 44,
+    fontSize: 28,
+    fontFamily: fonts.primary.bold,
+    fontWeight: "700",
+    lineHeight: 28,
+    letterSpacing: 0,
+    textTransform: "uppercase",
   },
   achievementPercentSymbol: {
-    fontSize: 22,
-    lineHeight: 22,
-    transform: [{ translateY: -8 }],
-  },
-  achievementPercentDetailed: {
-    fontSize: 48,
-    lineHeight: 52,
-  },
-  achievementPercentSymbolDetailed: {
-    fontSize: 24,
-    lineHeight: 24,
-    transform: [{ translateY: -10 }],
+    color: Colors.light.white,
+    fontSize: 16,
+    fontFamily: fonts.primary.bold,
+    fontWeight: "700",
+    lineHeight: 16,
+    marginBottom: 1,
+    marginLeft: 2,
   },
   deltaBadge: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
     backgroundColor: Colors.light.calendarBg,
-    borderRadius: 6,
-    paddingHorizontal: 10,
+    borderRadius: 2,
+    paddingHorizontal: 2,
     paddingVertical: 4,
-    marginTop: 2,
+    height: 24,
+  },
+  deltaBadgePlaceholder: {
+    height: 24,
   },
   deltaText: {
-    color: Colors.light.green,
+    color: Colors.light.white,
     fontSize: 11,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
   },
-  deltaBadgeNegative: {
-    backgroundColor: Colors.light.calendarBg,
-  },
-  deltaTextNegative: {
-    color: Colors.light.subtext,
+  deltaSlot: {
+    minWidth: 0,
+    marginRight: 8,
+    justifyContent: "center",
+    height: 24,
   },
   periodNavRow: {
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 10,
+    width: 185,
+    height: 24,
+    justifyContent: "center",
+    alignItems: "stretch",
+    flexShrink: 0,
+    marginTop: -26,
   },
   periodToggle: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    padding: 3,
+    padding: 2,
     backgroundColor: Colors.light.blackBackground,
     borderRadius: 6,
+    maxWidth: "70%",
   },
   periodButton: {
+    flex: 1,
     borderRadius: 5,
-    paddingVertical: 6,
-    width: 46,
+    paddingHorizontal: 0,
+    paddingVertical: 8,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -773,40 +896,40 @@ const styles = StyleSheet.create({
   },
   periodButtonText: {
     color: Colors.light.grey,
-    fontSize: 12,
+    fontSize: 13,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
   },
   periodButtonTextActive: {
     color: Colors.light.green,
-    fontFamily: fonts.primary.semiBold,
-    fontWeight: "600",
   },
   dateNavRow: {
-    flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "flex-end",
-    gap: 2,
-    minWidth: 0,
+    width: "100%",
   },
   navBtn: {
-    padding: 2,
+    width: 24,
+    height: 24,
+    alignItems: "center",
+    justifyContent: "center",
   },
   dateRange: {
+    flex: 1,
+    minWidth: 0,
     color: Colors.light.white,
-    fontSize: 12,
+    fontSize: 13,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
     textAlign: "center",
-    flexShrink: 1,
   },
   summaryText: {
-    color: Colors.light.grey,
-    fontSize: 12,
-    fontFamily: fonts.primary.regular,
-    lineHeight: 17,
-    textAlign: "center",
+    color: Colors.light.white,
+    fontSize: 14,
+    fontFamily: fonts.primary.medium,
+    fontWeight: "500",
+    lineHeight: 20,
+    letterSpacing: 0,
   },
   summaryTextDetailed: {
     color: Colors.light.grey,
@@ -963,6 +1086,14 @@ const styles = StyleSheet.create({
     borderWidth: 1.2,
     borderColor: Colors.light.white,
     backgroundColor: "transparent",
+  },
+  legendDotMenstruation: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: Colors.light.red,
+    borderWidth: 1.2,
+    borderColor: Colors.light.white,
   },
   legendText: {
     color: Colors.light.subtext,

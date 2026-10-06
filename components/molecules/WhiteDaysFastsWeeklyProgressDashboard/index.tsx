@@ -9,12 +9,12 @@ import {
   type SinglePrayerDayProgress,
   type SinglePrayerDayRingRenderArgs,
 } from "@/components/molecules/SinglePrayerWeeklyProgressDashboard";
-import { deleteWhiteDaysFastLog } from "@/src/screens/private/goalprogressloggingscreen/whiteDaysFastsData";
 import type {
   WhiteDaysFastDayProgress,
   WhiteDaysFastWeekSummary,
 } from "@/src/screens/private/goalprogressloggingscreen/whiteDaysFastsWeeklyData";
 import { WhiteDaysFastDayRing } from "./WhiteDaysFastDayRing";
+import { useDeleteFastingLog } from "@/src/api/mutations/useDeleteFastingLog";
 
 export type WhiteDaysFastsWeeklyProgressDashboardProps = {
   weekSummary: WhiteDaysFastWeekSummary;
@@ -22,6 +22,8 @@ export type WhiteDaysFastsWeeklyProgressDashboardProps = {
   onDayPress?: (index: number) => void;
   onPrevWeek?: () => void;
   onNextWeek?: () => void;
+  /** Frame / week fetch in progress — skeleton like other prayer dashboards. */
+  loading?: boolean;
   /** Called after a completed log is deleted so the parent can refresh. */
   onDeleted?: () => void;
 };
@@ -38,9 +40,8 @@ function mapWhiteDaysDayToSinglePrayerDay(
     isLogged: isCompleted,
     isBestDay: false,
     isToday: day.isToday,
-    // Keep all White Days columns tappable; ring visuals come from renderDayRing.
-    isFuture: false,
     isMenstruation: day.isMenstruating,
+    isFuture: day.state === "planned",
     canDelete: day.canDelete,
   };
 }
@@ -51,9 +52,12 @@ export function WhiteDaysFastsWeeklyProgressDashboard({
   onDayPress,
   onPrevWeek,
   onNextWeek,
+  loading = false,
   onDeleted,
 }: WhiteDaysFastsWeeklyProgressDashboardProps) {
   const { t } = useTranslation();
+  const { mutate: deleteFastLog, isPending: isDeletingLog } =
+    useDeleteFastingLog();
 
   const mappedWeekDays = useMemo(
     () => weekSummary.weekDays.map(mapWhiteDaysDayToSinglePrayerDay),
@@ -68,6 +72,10 @@ export function WhiteDaysFastsWeeklyProgressDashboard({
     );
 
   const motivationalQuote = useMemo(() => {
+    if (loading) return "---";
+    if (weekSummary.motivationalQuote?.trim()) {
+      return weekSummary.motivationalQuote.trim();
+    }
     switch (weekSummary.motivationalQuoteKey) {
       case "allCompleted":
         return t("progressLogging.whiteDaysMotivationAllCompleted");
@@ -82,7 +90,9 @@ export function WhiteDaysFastsWeeklyProgressDashboard({
         });
     }
   }, [
+    loading,
     t,
+    weekSummary.motivationalQuote,
     weekSummary.motivationalQuoteKey,
     weekSummary.motivationalQuoteParams?.day,
   ]);
@@ -112,12 +122,16 @@ export function WhiteDaysFastsWeeklyProgressDashboard({
 
   const handleDeleteLog = useCallback(
     (date: string) => {
-      const deleted = deleteWhiteDaysFastLog(date);
-      if (deleted) {
-        onDeleted?.();
-      }
+      deleteFastLog(
+        { fastingType: "WHITE_DAYS", date },
+        {
+          onSuccess: () => {
+            onDeleted?.();
+          },
+        },
+      );
     },
-    [onDeleted],
+    [deleteFastLog, onDeleted],
   );
 
   return (
@@ -132,17 +146,19 @@ export function WhiteDaysFastsWeeklyProgressDashboard({
       onDayPress={onDayPress}
       onPrevWeek={onPrevWeek}
       onNextWeek={onNextWeek}
+      loading={loading}
       allowLogDeletion
       onDeleteLog={handleDeleteLog}
+      isDeletingLog={isDeletingLog}
       renderDayRing={renderDayRing}
       statsRow={
         <View style={styles.statsRow}>
           <FastingDashboardIcon size={28} color={Colors.light.seagreen} />
           <Text style={styles.statsText} numberOfLines={1}>
             <Text style={styles.statsCount}>
-              {weekSummary.completedFastsThisWeek}
+              {loading ? "---" : weekSummary.completedFastsThisWeek}
             </Text>
-            {totalFastsSuffix}
+            {loading ? "" : totalFastsSuffix}
           </Text>
         </View>
       }

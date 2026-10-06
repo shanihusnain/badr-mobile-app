@@ -23,10 +23,16 @@ export const useToggleFastingGoalByType = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: toggleFastingGoalByType,
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["all-fasting-goals"] });
       queryClient.invalidateQueries({ queryKey: ["fasting-calendar-preview"] });
       queryClient.invalidateQueries({ queryKey: ["goal-cycle"] });
+      queryClient.invalidateQueries({
+        queryKey: [
+          "fasting-goal-frame",
+          resolveFastingType(variables.fastingType),
+        ],
+      });
     },
     onError: (error: any) => {
       console.log(

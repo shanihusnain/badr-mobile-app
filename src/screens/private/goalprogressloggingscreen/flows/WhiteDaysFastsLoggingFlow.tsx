@@ -26,20 +26,19 @@ import { AddLoggingFlowIcon } from "@/assets/icons";
 import { isValidStartTime } from "../quranRecitationTarget";
 import {
   formatWhiteDaysFastDateLabel,
-  formatWhiteDaysFastTimeLabel,
   getTodayDateString,
-  getWhiteDaysFastCompletedCount,
-  getWhiteDaysFastDateNavigationOptions,
-  getWhiteDaysFastInsights,
-  isWhiteDaysFastDateInNavigationOptions,
   isWhiteDaysFastEndTimeAfterStartTime,
-  isWhiteDaysFastGoalCompleted,
-  submitWhiteDaysFastLog,
+  normalizeDateString,
 } from "../whiteDaysFastsData";
 import type { WhiteDaysFastsLogEntry } from "../types";
-import { WhiteDaysFastsInsightsModal } from "../components/WhiteDaysFastsInsightsModal";
 import { FlowCardCallender } from "@/assets/icons";
 import { TimeSpentIcon } from "@/assets/icons";
+import { useOptionalFastingGoalFrameContext } from "../fastingGoalFrameContext";
+import { useLogFastingGoal } from "@/src/api/mutations/useLogFastingGoal";
+import {
+  fastingFrameShowsInsights,
+  getFastingFrameAchievementLabel,
+} from "@/src/utils/fastingGoalFrameMap";
 
 type WhiteDaysFastsStepId = "selectPlannedFast" | "startTime" | "endTime";
 const STEPS: WhiteDaysFastsStepId[] = [
@@ -56,16 +55,32 @@ type Props = {
 
 type FlowMode = "collapsed" | "active";
 
+function formatTimeForApi(
+  hour: string,
+  minute: string,
+  period: "am" | "pm",
+): string {
+  const hourNum = parseInt(hour || "0", 10) || 0;
+  const minuteNum = parseInt(minute || "0", 10) || 0;
+  let hour24 = hourNum % 12;
+  if (period === "pm") hour24 += 12;
+  return `${String(Math.max(0, hour24)).padStart(2, "0")}:${String(
+    Math.max(0, minuteNum),
+  ).padStart(2, "0")}`;
+}
+
 export default function WhiteDaysFastsLoggingFlow({
   goalData,
   onLogComplete,
   onDropdownOpenChange,
 }: Props) {
   const { t } = useTranslation();
+  const fastingFrame = useOptionalFastingGoalFrameContext();
+  const frame = fastingFrame?.frame;
+  const { mutateAsync: logFast, isPending: isLogging } = useLogFastingGoal();
+
   const [flowMode, setFlowMode] = useState<FlowMode>("collapsed");
   const [stepIndex, setStepIndex] = useState(0);
-  const [refreshKey, setRefreshKey] = useState(0);
-  const [insightsVisible, setInsightsVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState("");
   const [startHour, setStartHour] = useState(
     () => getCurrentStartTimeParts().hour,
@@ -93,38 +108,34 @@ export default function WhiteDaysFastsLoggingFlow({
   const currentStep = STEPS[stepIndex];
   const isLastStep = stepIndex === STEPS.length - 1;
 
-  const navigationOptions = useMemo(
-    () => getWhiteDaysFastDateNavigationOptions(),
-    [refreshKey, flowMode],
-  );
-
-  const completedCount = getWhiteDaysFastCompletedCount();
-  const goalCompleted = isWhiteDaysFastGoalCompleted();
-  const insights = useMemo(
-    () => getWhiteDaysFastInsights(),
-    [refreshKey, goalCompleted, completedCount],
-  );
-
-  const summaryTitle = t("progressLogging.whiteDaysCardSubtitle");
+  const navigationOptions = useMemo(() => {
+    const dates = (frame?.items?.[0]?.loggableDates ?? [])
+      .map((date) => normalizeDateString(date))
+      .filter(Boolean)
+      .sort();
+    return dates.map((date) => ({ date }));
+  }, [frame?.items]);
 
   const badgeStatus = useMemo(() => {
-    if (completedCount === 0) {
+    if (!frame) {
       return {
         text: t("progressLogging.notStarted"),
         type: "not-started" as const,
       };
     }
-    if (goalCompleted) {
-      return {
-        text: t("progressLogging.fullyAchieved"),
-        type: "completed" as const,
-      };
-    }
-    return {
-      text: t("progressLogging.inProgress"),
-      type: "in-progress" as const,
-    };
-  }, [completedCount, goalCompleted, t, refreshKey]);
+    return getFastingFrameAchievementLabel(frame, t);
+  }, [frame, t]);
+
+  const summaryTitle =
+    frame?.items?.[0]?.title?.trim() ||
+    t("progressLogging.whiteDaysCardSubtitle");
+
+  const showInsights = frame ? fastingFrameShowsInsights(frame) : false;
+  const canLog =
+    Boolean(frame?.items?.[0]?.canLog) && navigationOptions.length > 0;
+  const goalCompleted =
+    (frame?.goal?.achievementPct ?? 0) >= 100 ||
+    String(frame?.goal?.status ?? "").toUpperCase() === "COMPLETED";
 
   useEffect(() => {
     onDropdownOpenChange?.(
@@ -217,43 +228,54 @@ export default function WhiteDaysFastsLoggingFlow({
   }, [applyCurrentTimeDefaults, onDropdownOpenChange]);
 
   const handleConfirm = useCallback(() => {
-    if (!selectedDate) return;
+    if (!selectedDate || isLogging) return;
 
-    const startTime = formatWhiteDaysFastTimeLabel(
-      startHour,
-      startMinute,
-      startPeriod,
-    );
-    const endTime = formatWhiteDaysFastTimeLabel(endHour, endMinute, endPeriod);
+    const startTime = formatTimeForApi(startHour, startMinute, startPeriod);
+    const endTime = formatTimeForApi(endHour, endMinute, endPeriod);
 
-    const result = submitWhiteDaysFastLog({
-      date: selectedDate,
-      startTime,
-      endTime,
-    });
+    const run = async () => {
+      try {
+        const result = await logFast({
+          fastingType: "WHITE_DAYS",
+          date: selectedDate,
+          startTime,
+          endTime,
+        });
+        await fastingFrame?.refetch();
 
-    if (!result) return;
+        const completedCount = result.goal?.completed ?? 0;
+        const target = result.goal?.target ?? frame?.goal?.target ?? 3;
+        const remainingCount = result.goal?.remaining ?? Math.max(0, target - completedCount);
 
-    onLogComplete?.({
-      type: "white-days-fasts",
-      goalId: goalData.id as "fasting-whiteDays",
-      date: result.date,
-      completed: result.completed,
-      startTime: result.startTime,
-      endTime: result.endTime,
-      goalTarget: result.goalTarget,
-      completedCount: result.completedCount,
-      remainingCount: result.remainingCount,
-      goalCompleted: result.goalCompleted,
-    });
+        onLogComplete?.({
+          type: "white-days-fasts",
+          goalId: goalData.id as "fasting-whiteDays",
+          date: result.date ?? selectedDate,
+          completed: true,
+          startTime: result.startTime ?? startTime,
+          endTime: result.endTime ?? endTime,
+          goalTarget: target,
+          completedCount,
+          remainingCount,
+          goalCompleted: (result.goal?.achievementPct ?? 0) >= 100,
+        });
 
-    setRefreshKey((current) => current + 1);
-    resetFlow();
+        resetFlow();
+      } catch {
+        // Toast handled in mutation onError.
+      }
+    };
+
+    void run();
   }, [
     endHour,
     endMinute,
     endPeriod,
+    fastingFrame,
+    frame?.goal?.target,
     goalData.id,
+    isLogging,
+    logFast,
     onLogComplete,
     resetFlow,
     selectedDate,
@@ -277,19 +299,17 @@ export default function WhiteDaysFastsLoggingFlow({
   }, [isLastStep]);
 
   const handleOpenFlow = useCallback(() => {
-    if (goalCompleted) return;
+    if (!canLog || goalCompleted) return;
     applyCurrentTimeDefaults();
     setStepIndex(0);
     setFlowMode("active");
-  }, [applyCurrentTimeDefaults, goalCompleted]);
+  }, [applyCurrentTimeDefaults, canLog, goalCompleted]);
 
   const getStepHeader = (step: WhiteDaysFastsStepId) => {
     const calendarIcon = (
       <FlowCardCallender size={18} color={Colors.light.white} />
     );
-    const timeIcon = (
-      <TimeSpentIcon size={19} color={Colors.light.white} />
-    );
+    const timeIcon = <TimeSpentIcon size={19} color={Colors.light.white} />;
 
     switch (step) {
       case "selectPlannedFast":
@@ -378,8 +398,9 @@ export default function WhiteDaysFastsLoggingFlow({
 
   const canConfirm =
     isLastStep &&
+    !isLogging &&
     Boolean(selectedDate) &&
-    isWhiteDaysFastDateInNavigationOptions(selectedDate) &&
+    navigationOptions.some((option) => option.date === selectedDate) &&
     isStartTimeValid &&
     isEndTimeValid &&
     isEndAfterStart;
@@ -389,9 +410,7 @@ export default function WhiteDaysFastsLoggingFlow({
 
   return (
     <>
-      {flowMode === "active" && (
-        <Pressable style={commonStyles.backdrop} />
-      )}
+      {flowMode === "active" && <Pressable style={commonStyles.backdrop} />}
       {flowMode === "active" && (
         <TouchableOpacity
           style={commonStyles.cancelButton}
@@ -419,106 +438,100 @@ export default function WhiteDaysFastsLoggingFlow({
           ]}
         >
           {flowMode === "collapsed" ? (
-          <View style={localStyles.summaryCard}>
-            <View style={localStyles.summaryBody}>
-              <View style={localStyles.whiteDaysIconCircle} />
-              <View style={localStyles.titleContainer}>
-                <View
-                  style={[
-                    localStyles.badge,
-                    badgeStatus.type === "completed"
-                      ? localStyles.badgeCompleted
-                      : badgeStatus.type === "not-started"
-                        ? localStyles.badgeNotStarted
-                        : localStyles.badgeInProgress,
-                  ]}
-                >
-                  <Text
+            <View style={localStyles.summaryCard}>
+              <View style={localStyles.summaryBody}>
+                <View style={localStyles.whiteDaysIconCircle} />
+                <View style={localStyles.titleContainer}>
+                  <View
                     style={[
-                      localStyles.badgeText,
+                      localStyles.badge,
                       badgeStatus.type === "completed"
-                        ? localStyles.badgeTextCompleted
+                        ? localStyles.badgeCompleted
                         : badgeStatus.type === "not-started"
-                          ? localStyles.badgeTextNotStarted
-                          : localStyles.badgeTextInProgress,
+                          ? localStyles.badgeNotStarted
+                          : localStyles.badgeInProgress,
                     ]}
                   >
-                    {badgeStatus.text}
+                    <Text
+                      style={[
+                        localStyles.badgeText,
+                        badgeStatus.type === "completed"
+                          ? localStyles.badgeTextCompleted
+                          : badgeStatus.type === "not-started"
+                            ? localStyles.badgeTextNotStarted
+                            : localStyles.badgeTextInProgress,
+                      ]}
+                    >
+                      {badgeStatus.text}
+                    </Text>
+                  </View>
+                  <Text style={localStyles.summaryTitle} numberOfLines={2}>
+                    {summaryTitle}
                   </Text>
                 </View>
-                <Text style={localStyles.summaryTitle} numberOfLines={2}>
-                  {summaryTitle}
-                </Text>
               </View>
-            </View>
 
-            <View style={localStyles.footerRow}>
-              {goalCompleted ? (
+              <View style={localStyles.footerRow}>
+                {showInsights ? (
+                  <TouchableOpacity
+                    style={localStyles.insightsBtn}
+                    onPress={() => fastingFrame?.openInsights?.()}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={localStyles.insightsText}>
+                      {t("progressLogging.viewInsights")}
+                    </Text>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={22}
+                      color={Colors.light.white}
+                    />
+                  </TouchableOpacity>
+                ) : null}
+              </View>
+
+              {canLog && !goalCompleted ? (
                 <TouchableOpacity
-                  style={localStyles.insightsBtn}
-                  onPress={() => setInsightsVisible(true)}
+                  style={localStyles.addButton}
+                  onPress={handleOpenFlow}
                   activeOpacity={0.8}
                 >
-                  <Text style={localStyles.insightsText}>
-                    {t("progressLogging.viewInsights")}
-                  </Text>
-                  <Ionicons
-                    name="chevron-forward"
-                    size={22}
-                    color={Colors.light.white}
-                  />
+                  <AddLoggingFlowIcon size={32} />
                 </TouchableOpacity>
               ) : null}
             </View>
-
-            {!goalCompleted ? (
-              <TouchableOpacity
-                style={localStyles.addButton}
-                onPress={handleOpenFlow}
-                activeOpacity={0.8}
-              >
-                <AddLoggingFlowIcon size={32} />
-              </TouchableOpacity>
-            ) : null}
-          </View>
-        ) : (
-          <View
-            style={[
-              commonStyles.flowCardLayer,
-              isDropdownOpen && commonStyles.flowCardLayerDropdownOpen,
-            ]}
-          >
-            <FlowCard
-              headerIcon={stepHeader.icon}
-              headerLabel={stepHeader.label}
-              onBack={handleBack}
-              onForward={handleForward}
-              onConfirm={handleConfirm}
-              canGoForward={!isLastStep && canProceed}
-                canGoBack={stepIndex > 0}
-              canConfirm={canConfirm}
-              styles={commonStyles}
+          ) : (
+            <View
               style={[
-                commonStyles.inPlaceFlowCard,
-                isDropdownOpen && commonStyles.flowCardDropdownOpen,
+                commonStyles.flowCardLayer,
+                isDropdownOpen && commonStyles.flowCardLayerDropdownOpen,
               ]}
-              contentStyle={
-                isDropdownOpen
-                  ? commonStyles.flowContentDropdownOpen
-                  : undefined
-              }
             >
-              {renderStepContent(currentStep)}
-            </FlowCard>
-          </View>
-        )}
+              <FlowCard
+                headerIcon={stepHeader.icon}
+                headerLabel={stepHeader.label}
+                onBack={handleBack}
+                onForward={handleForward}
+                onConfirm={handleConfirm}
+                canGoForward={!isLastStep && canProceed}
+                canGoBack={stepIndex > 0}
+                canConfirm={canConfirm}
+                styles={commonStyles}
+                style={[
+                  commonStyles.inPlaceFlowCard,
+                  isDropdownOpen && commonStyles.flowCardDropdownOpen,
+                ]}
+                contentStyle={
+                  isDropdownOpen
+                    ? commonStyles.flowContentDropdownOpen
+                    : undefined
+                }
+              >
+                {renderStepContent(currentStep)}
+              </FlowCard>
+            </View>
+          )}
         </View>
-
-        <WhiteDaysFastsInsightsModal
-          visible={insightsVisible}
-          insights={insights}
-          onClose={() => setInsightsVisible(false)}
-        />
       </View>
     </>
   );

@@ -56,6 +56,8 @@ export type WhiteDaysFastWeekSummary = {
     | "missed"
     | "allCompleted";
   motivationalQuoteParams?: { day?: number };
+  /** Prefer when frame API supplies `week.motivation.message`. */
+  motivationalQuote?: string;
 };
 
 export type WhiteDaysFastCycleSummary = {

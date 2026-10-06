@@ -106,6 +106,11 @@ export type CalendarGridProps = {
   incompletePlannedFastDates?: string[];
   /** Monday & Thursday achievement: outlined markers for missed selected fasts. */
   missedFastDates?: string[];
+  /**
+   * Menstruation overlay dates (e.g. White Days past-achievement calendar).
+   * White Days: white ring + red fill; other days: solid red.
+   */
+  menstruationDates?: string[];
   /** Planned Mon/Thu fast dates (planned_all / mon_thu modes). */
   monThuDates?: string[];
   /** Planned White Day fast dates (planned_all / white_days / mon_thu overlay). */
@@ -220,6 +225,7 @@ export const CalendarGrid = ({
   completedFastDates = [],
   incompletePlannedFastDates = [],
   missedFastDates = [],
+  menstruationDates = [],
   monThuDates = [],
   whiteDayDates = [],
   dawoodDates = [],
@@ -242,6 +248,7 @@ export const CalendarGrid = ({
   const completedFastSet = new Set(completedFastDates);
   const incompletePlannedFastSet = new Set(incompletePlannedFastDates);
   const missedFastSet = new Set(missedFastDates);
+  const menstruationSet = new Set(menstruationDates);
   const monThuSet = new Set(monThuDates);
   const whiteDaySet = new Set(whiteDayDates);
   const dawoodSet = new Set(dawoodDates);
@@ -268,8 +275,7 @@ export const CalendarGrid = ({
   const monthWeeks =
     mode === "dob"
       ? buildMonthWeeks(currentDate, { hideOutsideMonth: true })
-      : mode === "white_days_achievement" ||
-          mode === "dawood_achievement" ||
+      : mode === "dawood_achievement" ||
           mode === "monday_thursday_achievement"
         ? buildMonthWeeks(currentDate)
         : null;
@@ -663,14 +669,28 @@ export const CalendarGrid = ({
         break;
       }
 
-      // ── White Days past achievements ─────────────────────────────────────
+      // ── White Days past achievements (28-day cycle window) ───────────────
       case "white_days_achievement": {
-        const dayMoment = moment(ds, "YYYY-MM-DD");
         const isWhiteDay =
           hijriDay === 13 || hijriDay === 14 || hijriDay === 15;
 
-        if (!dayMoment.isSame(displayedMonth, "month")) {
-          cellOpacity = 0.25;
+        if (menstruationSet.has(ds)) {
+          if (isWhiteDay) {
+            // Planned White Day + menstruating: white ring + red fill
+            circleStyle = {
+              borderWidth: 1.2,
+              borderColor: Colors.light.white,
+            };
+            markerColor = Colors.light.red;
+            showCompletedDot = true;
+            textStyle = { color: Colors.light.white };
+          } else {
+            // Non–White Day + menstruating: solid red
+            markerColor = Colors.light.red;
+            showCompletedDot = true;
+            textStyle = { color: Colors.light.white };
+            cellOpacity = 0.95;
+          }
           break;
         }
 
@@ -832,13 +852,15 @@ export const CalendarGrid = ({
         disabled={!isTappable && !isAchievementTappable}
         style={[
           styles.dayPressable,
-          mode === "cycle_start" && styles.cycleStartDayPressable,
+          (mode === "cycle_start" || mode === "white_days_achievement") &&
+            styles.cycleStartDayPressable,
         ]}
       >
         <View
           style={[
             styles.dayCell,
-            mode === "cycle_start" && styles.cycleStartDayCell,
+            (mode === "cycle_start" || mode === "white_days_achievement") &&
+              styles.cycleStartDayCell,
             mode === "dob" && styles.dobDayCell,
             mode !== "cycle_start" ? cellBg : null,
             { opacity: cellOpacity },
@@ -921,11 +943,15 @@ export const CalendarGrid = ({
                   />
                 ) : null}
               </View>
-              {mode !== "white_days_achievement" ? (
-                <Text style={[styles.dayHijri, textStyle]}>
-                  {hijriDayLabel}
-                </Text>
-              ) : null}
+              <Text
+                style={
+                  mode === "white_days_achievement"
+                    ? styles.cycleStartDayHijri
+                    : [styles.dayHijri, textStyle]
+                }
+              >
+                {hijriDayLabel}
+              </Text>
             </View>
           )}
         </View>
@@ -933,7 +959,8 @@ export const CalendarGrid = ({
     );
   };
 
-  const isCycleStartMode = mode === "cycle_start";
+  const isCycleStartMode =
+    mode === "cycle_start" || mode === "white_days_achievement";
 
   return (
     <View

@@ -874,6 +874,7 @@
     "whiteDaysLegendCompletedFast": "صيام مكتمل",
     "whiteDaysLegendMissedFast": "صيام فائت",
     "whiteDaysLegendUpcomingFast": "صيام قادم",
+    "whiteDaysLegendMenstruation": "الحيض",
     "whiteDaysDetailedSummaryMonthly": "هذا الشهر، أكملت {{completed}} من {{total}} صيامات الأيام البيض — {{percent}}% تقدم، {{delta}}% {{direction}} عن الشهر الماضي.",
     "whiteDaysDetailedSummaryThreeMonths": "خلال آخر 3 أشهر، أكملت {{completed}} من {{total}} صيامات الأيام البيض — {{percent}}% تقدم، {{delta}}% {{direction}} عن الفترة السابقة.",
     "whiteDaysDetailedSummarySixMonths": "خلال آخر 6 أشهر، أكملت {{completed}} من {{total}} صيامات الأيام البيض — {{percent}}% تقدم، {{delta}}% {{direction}} عن الفترة السابقة.",
