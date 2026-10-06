@@ -35,6 +35,7 @@ import { CycleStartTab } from "./CycleStartTab";
 import { useTranslation } from "react-i18next";
 import { router } from "expo-router";
 import { clearPendingOnboardingRoute } from "@/src/storage/onboardingRouteStorage";
+import { setGoalPlannerSheetReturn } from "../goalPlannerSheetReturn";
 import {
   tahiyyatalwudhubottomsheetimage,
   missedpastprayerbottomsheetimage,
@@ -344,6 +345,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
 
     const handleSeeMorePress = useCallback(
       (goal: string) => {
+        setGoalPlannerSheetReturn({ tab: activeTabRef.current });
         if (ref && typeof ref !== "function") {
           ref.current?.dismiss();
         }
@@ -2092,6 +2094,20 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
       setActiveTab(nextTab);
     }, [activeTab, cycleStartDate, tabOrder, hasGoalInEveryCategory]);
 
+    // Always start each category tab at the top goal (NEXT / tab press).
+    useEffect(() => {
+      const scrollTop = () => {
+        listRef.current?.scrollToOffset({ offset: 0, animated: false });
+      };
+      scrollTop();
+      const frame = requestAnimationFrame(scrollTop);
+      const timer = setTimeout(scrollTop, 80);
+      return () => {
+        cancelAnimationFrame(frame);
+        clearTimeout(timer);
+      };
+    }, [activeTab]);
+
     const handleFooterPrimaryPress = useCallback(() => {
       if (activeTab !== "cycle" && !canPressFooterPrimary) {
         // Show modal asking user to select at least one goal
@@ -2879,6 +2895,7 @@ export const GoalPlannerSheet = forwardRef<BottomSheetModal, Props>(
 
           {/* ── Tab content ── */}
           <BottomSheetFlatList
+            key={activeTab}
             ref={listRef}
             data={tabData}
             keyExtractor={(item: any) => String(item.id)}

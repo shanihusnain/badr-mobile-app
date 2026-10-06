@@ -33,7 +33,7 @@ export const styles = StyleSheet.create({
     backgroundColor: Colors.light.greybuttonBackground,
     borderRadius: 4,
     paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingVertical: 7,
     flexDirection: "row",
     alignItems: "center",
   },

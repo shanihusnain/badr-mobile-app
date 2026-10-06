@@ -828,15 +828,23 @@ export function getQuranFrameCompletionResumeCursor(
 /**
  * RECITATION_JUZ — which juz are already fully logged / open partial across
  * weeks 1‥active (from `j5` / `j6-7` / `j8*` day captions).
+ *
+ * Same dual-exclusion model as Completion:
+ * - `excludedJuz` → Partial (fully logged only; open partals stay selectable)
+ * - `fullExcludedJuz` → Full (fully logged + open partals)
  */
 export function getQuranFrameJuzRecitationResume(
   frame: QuranGoalFrameData,
   cycleFrames?: ReadonlyArray<QuranGoalFrameData | null | undefined>,
 ): {
   excludedJuz: number[];
+  /** Fully logged + open partials — blocked on Full only. */
+  fullExcludedJuz: number[];
   openPartialJuz: number | null;
   /** First selectable ayah when continuing the open partial juz. */
   minStartAyat: number;
+  /** Per-juz locked start ayah for every open partial (resume). */
+  openPartialMinAyatByJuz: Record<number, number>;
 } {
   const sources = cycleFrames && cycleFrames.length > 0 ? cycleFrames : [frame];
   const { fullyLogged, openPartialJuz: openPartialList } =
@@ -853,10 +861,16 @@ export function getQuranFrameJuzRecitationResume(
   const minStartAyat =
     openPartialJuz != null ? openPartialMinAyatByJuz[openPartialJuz] ?? 1 : 1;
 
+  const fullExcludedJuz = [
+    ...new Set([...fullyLogged, ...openPartialList]),
+  ].sort((a, b) => a - b);
+
   return {
     excludedJuz: fullyLogged,
+    fullExcludedJuz,
     openPartialJuz,
     minStartAyat,
+    openPartialMinAyatByJuz,
   };
 }
 
