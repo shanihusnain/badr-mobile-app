@@ -48,6 +48,8 @@ function renderWithNumberStyle(
 function getStatIcon(icon: string | null | undefined, key: string) {
   const normalizedKey = String(key ?? "").toUpperCase();
   const normalizedIcon = String(icon ?? "").toUpperCase();
+
+  // Prefer key so WHITE_DAYS insights (STREAK / TIME_SPENT) always match design.
   if (
     normalizedKey.includes("TIME") ||
     normalizedIcon === "CLOCK" ||
@@ -55,11 +57,17 @@ function getStatIcon(icon: string | null | undefined, key: string) {
   ) {
     return <InsightGreenClockIcon size={17} />;
   }
+  if (
+    normalizedKey.includes("STREAK") ||
+    normalizedIcon === "STREAK" ||
+    normalizedIcon === "BOLT"
+  ) {
+    return <LighteningIcon />;
+  }
+
   switch (normalizedIcon) {
     case "CHECK":
       return <GoldenTickIcon size={22} />;
-    case "BOLT":
-      return <LighteningIcon />;
     case "STAR":
       return <BestdayStarIcon />;
     default:
@@ -70,9 +78,9 @@ function getStatIcon(icon: string | null | undefined, key: string) {
 function defaultStatLabel(key: string): string {
   switch (String(key).toUpperCase()) {
     case "LONGEST_STREAK":
-      return "Longest streak";
+      return "Longest Streak";
     case "TIME_SPENT":
-      return "Time spent";
+      return "Time Spent";
     default:
       return key.replaceAll("_", " ").toLowerCase();
   }
@@ -102,8 +110,12 @@ export const FastingGoalInformationSheet = forwardRef<BottomSheet, Props>(
       { enabled: !!fastingType },
     );
 
-    const achievementPct = data?.ring?.achievementPct ?? 0;
+    const achievementPct = Math.max(
+      0,
+      Math.min(100, Number(data?.ring?.achievementPct ?? 0) || 0),
+    );
     const targetLabel = data?.ring?.targetLabel?.trim() ?? "";
+    const stats = Array.isArray(data?.stats) ? data.stats : [];
 
     return (
       <BottomSheetWrapper
@@ -128,77 +140,70 @@ export const FastingGoalInformationSheet = forwardRef<BottomSheet, Props>(
             </Text>
           </View>
         ) : (
-          <View
-            style={{
-              backgroundColor: Colors.light.darkgrey,
-              alignSelf: "center",
-              marginTop: 75,
-              borderRadius: 16,
-              paddingVertical: 20,
-              paddingHorizontal: 14,
-            }}
-          >
-            <View style={styles.ringWrap}>
-              <TaperedCircleBorder
-                percentage={`${achievementPct}%`}
-                borderColor={Colors.light.dullWhiteOpacity}
-                size={160}
-                variant="illuminated"
-              >
-                <View style={styles.ringInner}>
-                  {targetLabel ? (
-                    <Text style={styles.ringGoalText}>{targetLabel}</Text>
-                  ) : null}
-                  <View style={styles.percentRow}>
-                    <Text style={styles.percentNumber}>{achievementPct}</Text>
-                    <Text style={styles.percentSymbol}>%</Text>
+          <View style={styles.sheetBody}>
+            <View style={styles.card}>
+              <View style={styles.ringWrap}>
+                <TaperedCircleBorder
+                  percentage={`${achievementPct}%`}
+                  borderColor={Colors.light.dullWhiteOpacity}
+                  size={160}
+                  variant="illuminated"
+                >
+                  <View style={styles.ringInner}>
+                    {targetLabel ? (
+                      <Text style={styles.ringGoalText}>{targetLabel}</Text>
+                    ) : null}
+                    <View style={styles.percentRow}>
+                      <Text style={styles.percentNumber}>{achievementPct}</Text>
+                      <Text style={styles.percentSymbol}>%</Text>
+                    </View>
                   </View>
-                </View>
-              </TaperedCircleBorder>
-            </View>
-            <TopSpace top={14} />
-            {data.greeting ? (
-              <Text style={styles.headline}>
-                {renderWithNumberStyle(data.greeting, styles.boldNumber)}
-              </Text>
-            ) : null}
-            {data.headline ? (
-              <Text style={styles.body}>
-                {renderWithNumberStyle(data.headline, styles.boldNumber)}
-              </Text>
-            ) : null}
-            {data.body ? (
-              <Text style={styles.closing}>
-                {renderWithNumberStyle(data.body, styles.boldNumber)}
-              </Text>
-            ) : null}
-
-            {Array.isArray(data.stats) && data.stats.length > 0 ? (
-              <View style={styles.statsList}>
-                {data.stats.map((stat) => {
-                  const label = String(
-                    stat.label?.trim() || defaultStatLabel(stat.key),
-                  ).trim();
-                  const labelWithColon = label.endsWith(":")
-                    ? label
-                    : `${label}:`;
-                  return (
-                    <StatRow
-                      key={stat.key || `${stat.label}-${stat.value}`}
-                      icon={getStatIcon(stat.icon, stat.key)}
-                    >
-                      {`${labelWithColon} `}
-                      <Text style={styles.statValue}>
-                        {renderWithNumberStyle(
-                          String(stat.value ?? ""),
-                          styles.statValueNumber,
-                        )}
-                      </Text>
-                    </StatRow>
-                  );
-                })}
+                </TaperedCircleBorder>
               </View>
-            ) : null}
+              <TopSpace top={14} />
+              {data.greeting ? (
+                <Text style={styles.headline}>
+                  {renderWithNumberStyle(data.greeting, styles.boldNumber)}
+                </Text>
+              ) : null}
+              {data.headline ? (
+                <Text style={styles.body}>
+                  {renderWithNumberStyle(data.headline, styles.boldNumber)}
+                </Text>
+              ) : null}
+              {data.body ? (
+                <Text style={styles.closing}>
+                  {renderWithNumberStyle(data.body, styles.boldNumber)}
+                </Text>
+              ) : null}
+
+              {stats.length > 0 ? (
+                <View style={styles.statsList}>
+                  {stats.map((stat) => {
+                    const label = String(
+                      stat.label?.trim() || defaultStatLabel(stat.key),
+                    ).trim();
+                    const labelWithColon = label.endsWith(":")
+                      ? label
+                      : `${label}:`;
+                    return (
+                      <StatRow
+                        key={stat.key || `${stat.label}-${stat.value}`}
+                        icon={getStatIcon(stat.icon, stat.key)}
+                      >
+                        {`${labelWithColon} `}
+                        <Text style={styles.statValue}>
+                          {renderWithNumberStyle(
+                            String(stat.value ?? ""),
+                            styles.statValueNumber,
+                          )}
+                        </Text>
+                      </StatRow>
+                    );
+                  })}
+                </View>
+              ) : null}
+            </View>
           </View>
         )}
       </BottomSheetWrapper>
@@ -218,6 +223,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: "center",
     opacity: 0.85,
+  },
+  sheetBody: {
+    width: "100%",
+    paddingHorizontal: 16,
+    paddingBottom: 24,
+    marginTop: 56,
+  },
+  card: {
+    backgroundColor: Colors.light.darkgrey,
+    alignSelf: "center",
+    width: "100%",
+    borderRadius: 16,
+    paddingVertical: 20,
+    paddingHorizontal: 14,
   },
   ringWrap: {
     alignItems: "center",

@@ -11,10 +11,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "@/constants/theme";
 import { GoalData } from "../../home/components/goalsData";
 import { FlowCard } from "../components/FlowCard";
-import {
-  StartTimeStep,
-  getCurrentStartTimeParts,
-} from "../components/TimePickerSteps";
+import { StartTimeStep } from "../components/TimePickerSteps";
 import { WhiteDaysFastDateStep } from "../components/WhiteDaysFastDateStep";
 
 import {
@@ -82,26 +79,15 @@ export default function WhiteDaysFastsLoggingFlow({
   const [flowMode, setFlowMode] = useState<FlowMode>("collapsed");
   const [stepIndex, setStepIndex] = useState(0);
   const [selectedDate, setSelectedDate] = useState("");
-  const [startHour, setStartHour] = useState(
-    () => getCurrentStartTimeParts().hour,
-  );
-  const [startMinute, setStartMinute] = useState(
-    () => getCurrentStartTimeParts().minute,
-  );
-  const [startPeriod, setStartPeriod] = useState<"am" | "pm">(
-    () => getCurrentStartTimeParts().period,
-  );
+  // Fast defaults (dawn → dusk). Equal start/end blocks confirm (end must be after start).
+  const [startHour, setStartHour] = useState("5");
+  const [startMinute, setStartMinute] = useState("00");
+  const [startPeriod, setStartPeriod] = useState<"am" | "pm">("am");
   const [isStartPeriodDropdownOpen, setIsStartPeriodDropdownOpen] =
     useState(false);
-  const [endHour, setEndHour] = useState(
-    () => getCurrentStartTimeParts().hour,
-  );
-  const [endMinute, setEndMinute] = useState(
-    () => getCurrentStartTimeParts().minute,
-  );
-  const [endPeriod, setEndPeriod] = useState<"am" | "pm">(
-    () => getCurrentStartTimeParts().period,
-  );
+  const [endHour, setEndHour] = useState("5");
+  const [endMinute, setEndMinute] = useState("30");
+  const [endPeriod, setEndPeriod] = useState<"am" | "pm">("pm");
   const [isEndPeriodDropdownOpen, setIsEndPeriodDropdownOpen] = useState(false);
 
   const today = getTodayDateString();
@@ -207,25 +193,84 @@ export default function WhiteDaysFastsLoggingFlow({
     endPeriod,
   );
 
-  const applyCurrentTimeDefaults = useCallback(() => {
-    const now = getCurrentStartTimeParts();
-    setStartHour(now.hour);
-    setStartMinute(now.minute);
-    setStartPeriod(now.period);
-    setEndHour(now.hour);
-    setEndMinute(now.minute);
-    setEndPeriod(now.period);
+  const applyFastTimeDefaults = useCallback(() => {
+    setStartHour("5");
+    setStartMinute("00");
+    setStartPeriod("am");
+    setEndHour("5");
+    setEndMinute("30");
+    setEndPeriod("pm");
   }, []);
+
+  /** Keep end strictly after start so the end-time confirm can enable. */
+  const ensureEndAfterStart = useCallback(() => {
+    if (
+      isWhiteDaysFastEndTimeAfterStartTime(
+        startHour,
+        startMinute,
+        startPeriod,
+        endHour,
+        endMinute,
+        endPeriod,
+      )
+    ) {
+      return;
+    }
+    // Prefer dusk default when it is still after the chosen start.
+    if (
+      isWhiteDaysFastEndTimeAfterStartTime(
+        startHour,
+        startMinute,
+        startPeriod,
+        "5",
+        "30",
+        "pm",
+      )
+    ) {
+      setEndHour("5");
+      setEndMinute("30");
+      setEndPeriod("pm");
+      return;
+    }
+    // Same clock time in the opposite period (+12h) — works when start is AM.
+    if (
+      startPeriod === "am" &&
+      isWhiteDaysFastEndTimeAfterStartTime(
+        startHour,
+        startMinute,
+        startPeriod,
+        startHour,
+        startMinute,
+        "pm",
+      )
+    ) {
+      setEndHour(startHour);
+      setEndMinute(startMinute);
+      setEndPeriod("pm");
+      return;
+    }
+    // Last resort: end of day.
+    setEndHour("11");
+    setEndMinute("59");
+    setEndPeriod("pm");
+  }, [
+    endHour,
+    endMinute,
+    endPeriod,
+    startHour,
+    startMinute,
+    startPeriod,
+  ]);
 
   const resetFlow = useCallback(() => {
     setFlowMode("collapsed");
     setStepIndex(0);
     setSelectedDate("");
-    applyCurrentTimeDefaults();
+    applyFastTimeDefaults();
     setIsStartPeriodDropdownOpen(false);
     setIsEndPeriodDropdownOpen(false);
     onDropdownOpenChange?.(false);
-  }, [applyCurrentTimeDefaults, onDropdownOpenChange]);
+  }, [applyFastTimeDefaults, onDropdownOpenChange]);
 
   const handleConfirm = useCallback(() => {
     if (!selectedDate || isLogging) return;
@@ -293,17 +338,19 @@ export default function WhiteDaysFastsLoggingFlow({
   }, [resetFlow, stepIndex]);
 
   const handleForward = useCallback(() => {
-    if (!isLastStep) {
-      setStepIndex((index) => index + 1);
+    if (isLastStep) return;
+    if (currentStep === "startTime") {
+      ensureEndAfterStart();
     }
-  }, [isLastStep]);
+    setStepIndex((index) => index + 1);
+  }, [currentStep, ensureEndAfterStart, isLastStep]);
 
   const handleOpenFlow = useCallback(() => {
     if (!canLog || goalCompleted) return;
-    applyCurrentTimeDefaults();
+    applyFastTimeDefaults();
     setStepIndex(0);
     setFlowMode("active");
-  }, [applyCurrentTimeDefaults, canLog, goalCompleted]);
+  }, [applyFastTimeDefaults, canLog, goalCompleted]);
 
   const getStepHeader = (step: WhiteDaysFastsStepId) => {
     const calendarIcon = (

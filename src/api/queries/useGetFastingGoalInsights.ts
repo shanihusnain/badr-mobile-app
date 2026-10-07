@@ -5,6 +5,7 @@ import { resolveFastingType } from "@/src/utils/fastingGoalMap";
 export type FastingGoalInsightsStatIcon =
   | "CHECK"
   | "BOLT"
+  | "STREAK"
   | "STAR"
   | "CHART"
   | "CLOCK"
@@ -43,6 +44,10 @@ const getFastingGoalInsights = async (
 ): Promise<FastingGoalInsightsData | null> => {
   const response = await api.get(
     `api/goal-cycles/current/fasting-goals/${fastingType}/insights`,
+  );
+  console.log(
+    "response of the insights api",
+    JSON.stringify(response.data, null, 2),
   );
   return response.data?.data ?? null;
 };
