@@ -93,6 +93,7 @@ import { QuranHoursInformationSheet } from "@/components/molecules/QuranHoursInf
 import { FastingGoalInformationSheet } from "@/components/molecules/FastingGoalInformationSheet";
 import { DeletePrayerGoalOptions } from "@/components/molecules/DeletePrayerLogOptions";
 import { resolveFastingTypeFromGoalId } from "@/src/utils/fastingGoalMap";
+import { getFastingFrameAchievementPct } from "@/src/utils/fastingGoalFrameMap";
 import { HeaderInfoIcon } from "@/assets/icons";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -228,13 +229,15 @@ function GoalProgressLoggingBody({
     isJuzRecitationFrameGoal ||
     isCompletionRecitationFrameGoal;
   const isWhiteDaysFrameGoal = isWhiteDaysFastsGoalId(goalId);
+  const isMissedRamadanFrameGoal = isMissedRamadanFastsGoalId(goalId);
+  const isFastingFrameGoal = isWhiteDaysFrameGoal || isMissedRamadanFrameGoal;
   const frameLoading =
     (isPrayerFrameRingGoal &&
       (prayerFrame?.isLoading ||
         (!prayerFrame?.frame && !prayerFrame?.isError))) ||
     (isQuranFrameGoal &&
       (quranFrame?.isLoading || (!quranFrame?.frame && !quranFrame?.isError))) ||
-    (isWhiteDaysFrameGoal &&
+    (isFastingFrameGoal &&
       (fastingFrame?.isLoading ||
         (!fastingFrame?.frame && !fastingFrame?.isError)));
   const liveGoalData = useMemo(
@@ -243,10 +246,13 @@ function GoalProgressLoggingBody({
   );
 
   const isMondayThursdayFasts = isMondayThursdayFastsGoalId(goalId);
+  const fastingFrameAchievementPct = isFastingFrameGoal
+    ? getFastingFrameAchievementPct(fastingFrame?.frame)
+    : null;
   const frameAchievementPct =
     prayerFrame?.frame?.goal.achievementPct ??
     quranFrame?.frame?.goal.achievementPct ??
-    fastingFrame?.frame?.goal?.achievementPct;
+    fastingFrameAchievementPct;
   const displayPercentage = isPrayerFrameRingGoal
     ? frameAchievementPct != null
       ? `${frameAchievementPct}%`
@@ -255,10 +261,8 @@ function GoalProgressLoggingBody({
       ? frameAchievementPct != null
         ? `${frameAchievementPct}%`
         : "0%"
-      : isWhiteDaysFrameGoal
-        ? frameAchievementPct != null
-          ? `${frameAchievementPct}%`
-          : "0%"
+      : isFastingFrameGoal
+        ? `${fastingFrameAchievementPct ?? 0}%`
         : isMondayThursdayFasts && weekViewPercent !== null
           ? `${weekViewPercent}%`
           : frameAchievementPct != null
@@ -336,10 +340,16 @@ function GoalProgressLoggingBody({
                 ),
               })
             : "---"
-          : isMissedRamadanFastsGoalId(goalId)
-            ? t("progressLogging.missedRamadanRingGoal", {
-                count: liveGoalData.target ?? cleanLabel,
-              })
+          : isMissedRamadanFrameGoal
+            ? fastingFrame?.frame
+              ? fastingFrame.frame.goal?.targetLabel?.trim() ||
+                t("progressLogging.missedRamadanRingGoal", {
+                  count:
+                    fastingFrame.frame.goal?.target ??
+                    liveGoalData.target ??
+                    cleanLabel,
+                })
+              : "---"
             : isMondayThursdayFastsGoalId(goalId)
               ? t("progressLogging.mondayThursdayRingGoal", {
                   count: liveGoalData.target ?? cleanLabel,
@@ -1001,7 +1011,7 @@ export const GoalProgressLoggingScreen = ({
     );
   }
 
-  if (isWhiteDaysFastsGoalId(goalId)) {
+  if (isWhiteDaysFastsGoalId(goalId) || isMissedRamadanFastsGoalId(goalId)) {
     return (
       <FastingGoalFrameProvider
         goalId={goalId}

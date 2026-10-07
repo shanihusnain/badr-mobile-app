@@ -32,9 +32,11 @@ import { FlowCardCallender } from "@/assets/icons";
 import { TimeSpentIcon } from "@/assets/icons";
 import { useOptionalFastingGoalFrameContext } from "../fastingGoalFrameContext";
 import { useLogFastingGoal } from "@/src/api/mutations/useLogFastingGoal";
+import { useGetFastingLoggableDates } from "@/src/api/queries/useGetFastingLoggableDates";
 import {
   fastingFrameShowsInsights,
   getFastingFrameAchievementLabel,
+  getFastingFrameAchievementPct,
 } from "@/src/utils/fastingGoalFrameMap";
 
 type WhiteDaysFastsStepId = "selectPlannedFast" | "startTime" | "endTime";
@@ -75,6 +77,8 @@ export default function WhiteDaysFastsLoggingFlow({
   const fastingFrame = useOptionalFastingGoalFrameContext();
   const frame = fastingFrame?.frame;
   const { mutateAsync: logFast, isPending: isLogging } = useLogFastingGoal();
+  const { data: loggableDatesData, refetch: refetchLoggableDates } =
+    useGetFastingLoggableDates("WHITE_DAYS");
 
   const [flowMode, setFlowMode] = useState<FlowMode>("collapsed");
   const [stepIndex, setStepIndex] = useState(0);
@@ -95,12 +99,12 @@ export default function WhiteDaysFastsLoggingFlow({
   const isLastStep = stepIndex === STEPS.length - 1;
 
   const navigationOptions = useMemo(() => {
-    const dates = (frame?.items?.[0]?.loggableDates ?? [])
+    const dates = (loggableDatesData?.dates ?? [])
       .map((date) => normalizeDateString(date))
       .filter(Boolean)
       .sort();
     return dates.map((date) => ({ date }));
-  }, [frame?.items]);
+  }, [loggableDatesData?.dates]);
 
   const badgeStatus = useMemo(() => {
     if (!frame) {
@@ -120,7 +124,7 @@ export default function WhiteDaysFastsLoggingFlow({
   const canLog =
     Boolean(frame?.items?.[0]?.canLog) && navigationOptions.length > 0;
   const goalCompleted =
-    (frame?.goal?.achievementPct ?? 0) >= 100 ||
+    getFastingFrameAchievementPct(frame) >= 100 ||
     String(frame?.goal?.status ?? "").toUpperCase() === "COMPLETED";
 
   useEffect(() => {
@@ -286,7 +290,10 @@ export default function WhiteDaysFastsLoggingFlow({
           startTime,
           endTime,
         });
-        await fastingFrame?.refetch();
+        await Promise.all([
+          fastingFrame?.refetch(),
+          refetchLoggableDates(),
+        ]);
 
         const completedCount = result.goal?.completed ?? 0;
         const target = result.goal?.target ?? frame?.goal?.target ?? 3;
@@ -322,6 +329,7 @@ export default function WhiteDaysFastsLoggingFlow({
     isLogging,
     logFast,
     onLogComplete,
+    refetchLoggableDates,
     resetFlow,
     selectedDate,
     startHour,

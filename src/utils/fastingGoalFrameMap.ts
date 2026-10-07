@@ -8,6 +8,11 @@ import type {
   WhiteDaysFastDayState,
   WhiteDaysFastWeekSummary,
 } from "@/src/screens/private/goalprogressloggingscreen/whiteDaysFastsWeeklyData";
+import type {
+  MissedRamadanFastDayProgress,
+  MissedRamadanFastDayState,
+  MissedRamadanFastWeekSummary,
+} from "@/src/screens/private/goalprogressloggingscreen/missedRamadanFastsWeeklyData";
 
 function normalizeDate(date: string | null | undefined): string {
   return String(date ?? "").slice(0, 10);
@@ -228,9 +233,45 @@ export function getFastingFrameMotivationalQuote(
   return frame.week.motivation?.message?.trim() ?? "";
 }
 
+/** Ring fill 0–100 from frame `goal.achievementPct`, with completed/target fallback. */
+export function getFastingFrameAchievementPct(
+  frame: FastingGoalFrameData | null | undefined,
+): number {
+  if (!frame?.goal) return 0;
+
+  const raw: unknown = frame.goal.achievementPct;
+  if (typeof raw === "number" && Number.isFinite(raw)) {
+    // Support both 0–100 and 0–1 API scales.
+    const pct = raw > 0 && raw <= 1 ? raw * 100 : raw;
+    return Math.min(100, Math.max(0, Math.round(pct)));
+  }
+  if (typeof raw === "string" && raw.trim() !== "") {
+    const n = Number.parseFloat(raw.replace("%", ""));
+    if (Number.isFinite(n)) {
+      const pct = n > 0 && n <= 1 ? n * 100 : n;
+      return Math.min(100, Math.max(0, Math.round(pct)));
+    }
+  }
+
+  const completed = frame.goal.completed;
+  const target = frame.goal.target;
+  if (
+    typeof completed === "number" &&
+    typeof target === "number" &&
+    target > 0
+  ) {
+    return Math.min(
+      100,
+      Math.max(0, Math.round((completed / target) * 100)),
+    );
+  }
+
+  return 0;
+}
+
 export function fastingFrameShowsInsights(frame: FastingGoalFrameData): boolean {
   if (frame.items?.[0]?.insightsAvailable) return true;
-  const pct = frame.goal?.achievementPct ?? 0;
+  const pct = getFastingFrameAchievementPct(frame);
   if (pct >= 100) return true;
   const status = String(frame.goal?.status ?? "")
     .trim()
@@ -273,7 +314,7 @@ export function getFastingFrameAchievementLabel(
     };
   }
 
-  const pct = frame.goal?.achievementPct ?? 0;
+  const pct = getFastingFrameAchievementPct(frame);
   if (pct >= 100) {
     return { text: t("progressLogging.fullyAchieved"), type: "completed" };
   }
@@ -286,6 +327,89 @@ export function getFastingFrameAchievementLabel(
   return {
     text: pillLabel || t("progressLogging.notStarted"),
     type: "not-started",
+  };
+}
+
+function resolveMissedRamadanDayState(
+  day: FastingGoalFrameDay,
+): MissedRamadanFastDayState {
+  const state = String(day.state ?? "")
+    .trim()
+    .toUpperCase();
+  const today = moment().format("YYYY-MM-DD");
+  const date = normalizeDate(day.date);
+  const isFuture = /^\d{4}-\d{2}-\d{2}$/.test(date) && date > today;
+
+  if (
+    state === "COMPLETED" ||
+    state === "LOGGED" ||
+    state === "ACHIEVED" ||
+    state === "DONE" ||
+    state === "COVERED_EARLY" ||
+    state === "MADE_UP"
+  ) {
+    return "completed";
+  }
+
+  if (state === "MISSED" || state === "SKIPPED") {
+    return "plannedSkipped";
+  }
+
+  if (day.isPlanned || isPlannedState(state)) {
+    if (isFuture || state === "UPCOMING" || state === "PLANNED") {
+      return "planned";
+    }
+    if (day.isToday || state === "DUE") {
+      return "planned";
+    }
+    return "plannedSkipped";
+  }
+
+  if (day.isToday) {
+    return day.canLog === false ? "todayDisabled" : "today";
+  }
+  if (isFuture) return "future";
+  return "pastNeutral";
+}
+
+export function mapMissedRamadanFrameDay(
+  day: FastingGoalFrameDay,
+): MissedRamadanFastDayProgress {
+  const state = resolveMissedRamadanDayState(day);
+  return {
+    day: day.dayLabel,
+    date: normalizeDate(day.date),
+    state,
+    isToday: Boolean(day.isToday),
+    canDelete: Boolean(day.canDelete) && state === "completed",
+  };
+}
+
+export function mapMissedRamadanFrameWeekSummary(
+  frame: FastingGoalFrameData,
+): MissedRamadanFastWeekSummary {
+  const weekDays = (frame.week?.days ?? []).map(mapMissedRamadanFrameDay);
+  const completedFastsThisWeek = weekDays.filter(
+    (day) => day.state === "completed",
+  ).length;
+  const upcomingPlannedThisWeek = weekDays.filter(
+    (day) => day.state === "planned",
+  ).length;
+  const motivationalQuote = getFastingFrameMotivationalQuote(frame);
+
+  return {
+    weekDays,
+    weekRangeLabel: getFastingFrameWeekRangeLabel(frame),
+    weekFraction: getFastingFrameWeekFraction(frame),
+    weekIndex: Math.max(0, (frame.week.weekNumber ?? 1) - 1),
+    completedFastsThisWeek,
+    streakDays: getFastingFrameWeekStreakDays(frame),
+    previousWeekCompletedCount: 0,
+    upcomingPlannedThisWeek,
+    motivationalQuote:
+      motivationalQuote ||
+      "Make up what you owe with sincerity — every fast counts.",
+    showPreviousWeekStat: false,
   };
 }
 
