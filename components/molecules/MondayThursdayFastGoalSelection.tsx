@@ -32,11 +32,13 @@ export default function MondayThursdayFastGoalSelection({
   calendarWindow,
   openOnMount = false,
   collapseSignal = 0,
+  initiallySaved = false,
 }: {
   onSave?: (selectedDates: string[]) => void;
   calendarWindow?: FastingCalendarWindow | null;
   openOnMount?: boolean;
   collapseSignal?: number;
+  initiallySaved?: boolean;
 }) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
@@ -137,6 +139,11 @@ export default function MondayThursdayFastGoalSelection({
               disabled={isPending || selectedMonThuDates.length === 0}
               style={styles.saveButton}
               textStyle={styles.saveButtonText}
+              initiallySaved={
+                initiallySaved ||
+                (calendarWindow?.monThuPlannedDates?.length ?? 0) > 0
+              }
+              valueKey={selectedMonThuDates.slice().sort().join(",")}
             />
           </View>
         </View>

@@ -29,6 +29,8 @@ interface CustomDatePickerProps {
   maximumDate?: Date;
   /** Minimum allowed age for DOB. Defaults to 13. */
   minimumAgeYears?: number;
+  /** True while month/year dropdown is open (for locking parent scroll on Android). */
+  onDropdownOpenChange?: (open: boolean) => void;
 }
 
 const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
@@ -43,6 +45,7 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
   minimumDate,
   maximumDate,
   minimumAgeYears = 13,
+  onDropdownOpenChange,
 }) => {
   const [show, setShow] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null | string>("");
@@ -88,7 +91,13 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
                 borderWidth: 1,
               },
             ]}
-            onPress={() => setShow(!show)}
+            onPress={() => {
+              setShow((prev) => {
+                const next = !prev;
+                if (!next) onDropdownOpenChange?.(false);
+                return next;
+              });
+            }}
             activeOpacity={0.8}
           >
             <Text
@@ -118,12 +127,17 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
               <DOBCalendar
                 value={value ? String(value) : undefined}
                 minimumAgeYears={minimumAgeYears}
+                onDropdownOpenChange={onDropdownOpenChange}
                 onSave={(data) => {
                   setSelectedDate(data);
                   onChange(data);
                   setShow(false);
+                  onDropdownOpenChange?.(false);
                 }}
-                onCancel={() => setShow(false)}
+                onCancel={() => {
+                  setShow(false);
+                  onDropdownOpenChange?.(false);
+                }}
               />
             </>
           )}

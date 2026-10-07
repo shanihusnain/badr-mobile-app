@@ -13,8 +13,6 @@ import { Colors } from "@/constants/theme";
 import PrimaryButton from "@/components/atoms/Primary-button";
 import { GreenTickWithCircleIcon } from "@/assets/icons";
 
-const SAVED_VISIBLE_MS = 2000;
-
 type Props = {
   /**
    * Call `markSaved()` only after the API succeeds.
@@ -27,13 +25,22 @@ type Props = {
   isLoading?: boolean;
   style?: StyleProp<ViewStyle>;
   textStyle?: StyleProp<TextStyle>;
+  /**
+   * When true, start in SAVED! (e.g. user reopened an already-configured goal).
+   */
+  initiallySaved?: boolean;
+  /**
+   * Fingerprint of the current form value. After a save (or when initially
+   * saved), any change vs the baseline switches back to the green Save button.
+   */
+  valueKey?: string | number | undefined;
 };
 
 /**
- * Goal-selection Save CTA phases:
- * 1) Save
- * 2) Loading until the API settles
- * 3) SAVED! only when `markSaved()` is called after success
+ * Goal-selection Save CTA:
+ * - Green Save while editing / dirty
+ * - Loading until the API settles
+ * - SAVED! after success, and again when reopening a saved goal — until valueKey changes
  */
 export default function GoalSelectionSaveButton({
   onPress,
@@ -42,20 +49,70 @@ export default function GoalSelectionSaveButton({
   isLoading = false,
   style,
   textStyle,
+  initiallySaved = false,
+  valueKey,
 }: Props) {
   const { t } = useTranslation();
-  const [showSaved, setShowSaved] = useState(false);
+  const [showSaved, setShowSaved] = useState(initiallySaved);
   const [pending, setPending] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const safetyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const showSavedRef = useRef(false);
+  const showSavedRef = useRef(initiallySaved);
+  const baselineKeyRef = useRef<string | number | undefined>(
+    initiallySaved ? valueKey : undefined,
+  );
+  const valueKeyRef = useRef(valueKey);
+  valueKeyRef.current = valueKey;
+  /**
+   * Short fixed window after initiallySaved so async form hydration can set the
+   * baseline once. Must NOT extend on each change — that kept TextInputs stuck
+   * on SAVED! while typing.
+   */
+  const hydrateGraceUntilRef = useRef(initiallySaved ? Date.now() + 600 : 0);
 
   useEffect(() => {
     return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
       if (safetyTimerRef.current) clearTimeout(safetyTimerRef.current);
     };
   }, []);
+
+  // Re-open already-saved goal → show SAVED! and lock baseline to current values.
+  useEffect(() => {
+    if (!initiallySaved) return;
+    showSavedRef.current = true;
+    setShowSaved(true);
+    // Only lock baseline when we already have a concrete value; otherwise wait
+    // for the first defined valueKey (API hydrate).
+    if (valueKeyRef.current !== undefined) {
+      baselineKeyRef.current = valueKeyRef.current;
+    } else {
+      baselineKeyRef.current = undefined;
+    }
+    hydrateGraceUntilRef.current = Date.now() + 600;
+  }, [initiallySaved]);
+
+  // Any edit after a saved baseline brings back the green Save button.
+  useEffect(() => {
+    if (valueKey === undefined) return;
+
+    if (baselineKeyRef.current === undefined) {
+      if (showSavedRef.current || initiallySaved) {
+        baselineKeyRef.current = valueKey;
+      }
+      return;
+    }
+
+    if (valueKey === baselineKeyRef.current) return;
+
+    // One-shot hydrate window (no extend) — absorb only until it expires.
+    if (Date.now() < hydrateGraceUntilRef.current && showSavedRef.current) {
+      baselineKeyRef.current = valueKey;
+      return;
+    }
+
+    if (!showSavedRef.current && !showSaved) return;
+    showSavedRef.current = false;
+    setShowSaved(false);
+  }, [valueKey, showSaved, initiallySaved]);
 
   const clearSafetyTimer = useCallback(() => {
     if (safetyTimerRef.current) {
@@ -67,14 +124,10 @@ export default function GoalSelectionSaveButton({
   const markSaved = useCallback(() => {
     clearSafetyTimer();
     showSavedRef.current = true;
+    baselineKeyRef.current = valueKeyRef.current;
+    hydrateGraceUntilRef.current = 0;
     setPending(false);
     setShowSaved(true);
-    if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => {
-      showSavedRef.current = false;
-      setShowSaved(false);
-      timerRef.current = null;
-    }, SAVED_VISIBLE_MS);
   }, [clearSafetyTimer]);
 
   const markFailed = useCallback(() => {

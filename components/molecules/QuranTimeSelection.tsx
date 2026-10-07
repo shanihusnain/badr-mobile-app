@@ -2,6 +2,7 @@ import { globalStyles } from "@/src/globalstyles/globalstyles";
 import {
   ActivityIndicator,
   LayoutAnimation,
+  Pressable,
   StyleSheet,
   Text,
   TextInput,
@@ -12,7 +13,7 @@ import { Divider } from "../atoms/Divider";
 import { TopSpace } from "../atoms/TopSpace";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useGoalSelectionOpenState } from "@/hooks/useGoalSelectionOpenState";
 import GoalSelectionSaveButton from "@/components/molecules/GoalSelectionSaveButton";
 import { useGetQuranGoalByType } from "@/src/api/queries/useGetQuranGoalByType";
@@ -30,6 +31,7 @@ export const QuranTimeSelection = ({
   openOnMount = false,
   collapseSignal = 0,
   onInputFocus,
+  initiallySaved = false,
 }: {
   title: string;
   /** i18n key with `_one` / `_other` plural forms (pass count via input). */
@@ -41,28 +43,49 @@ export const QuranTimeSelection = ({
   collapseSignal?: number;
   /** Scroll parent list so this input stays visible above the keyboard. */
   onInputFocus?: () => void;
+  initiallySaved?: boolean;
 }) => {
   const { t } = useTranslation();
+  const hoursInputRef = useRef<TextInput>(null);
   const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount, onInputFocus, collapseSignal);
   const [inputValue, setInputValue] = useState<string>("");
   const [hydrated, setHydrated] = useState(false);
+  const [isHoursFocused, setIsHoursFocused] = useState(false);
+  /** Locked once — do not re-derive from hoursCount or typing keeps flipping SAVED!. */
+  const [openedAsSaved, setOpenedAsSaved] = useState(initiallySaved);
+  const lockedSavedRef = useRef(initiallySaved);
 
   const { data: goalDetail, isLoading } = useGetQuranGoalByType(quranGoalType, {
     enabled: isOpen && !!quranGoalType,
   });
 
   useEffect(() => {
+    if (!initiallySaved || lockedSavedRef.current) return;
+    lockedSavedRef.current = true;
+    setOpenedAsSaved(true);
+  }, [initiallySaved]);
+
+  useEffect(() => {
     if (!isOpen || hydrated || !goalDetail) return;
     const hours = getHoursFromDetail(goalDetail);
     if (hours > 0) {
       setInputValue(String(Math.min(MAX_HOURS, Math.round(hours))));
+      if (!lockedSavedRef.current) {
+        lockedSavedRef.current = true;
+        setOpenedAsSaved(true);
+      }
     }
     setHydrated(true);
   }, [isOpen, goalDetail, hydrated]);
 
   useEffect(() => {
-    if (!isOpen) setHydrated(false);
-  }, [isOpen]);
+    if (!isOpen) {
+      setHydrated(false);
+      // Reset lock when collapsing so a fresh expand re-reads API state.
+      lockedSavedRef.current = initiallySaved;
+      setOpenedAsSaved(initiallySaved);
+    }
+  }, [isOpen, initiallySaved]);
 
   const handleHoursChange = (text: string) => {
     const digitsOnly = text.replace(/[^0-9]/g, "");
@@ -106,20 +129,34 @@ export const QuranTimeSelection = ({
               <Text style={styles.header}>Enter up to {MAX_HOURS} hours.</Text>
               <TopSpace top={12} />
               <View style={styles.outerRow}>
-                <TextInput
-                  value={inputValue}
-                  onChangeText={handleHoursChange}
-                  keyboardType="numeric"
-                  placeholder="0"
-                  placeholderTextColor={Colors.light.white}
-                  maxLength={3}
-                  textAlignVertical="center"
-                  onFocus={onInputFocus}
-                  style={[
-                    styles.hoursInput,
-                    inputValue.trim().length > 0 && styles.hoursInputFilled,
-                  ]}
-                />
+                <Pressable
+                  onPress={() => hoursInputRef.current?.focus()}
+                  hitSlop={8}
+                  style={styles.hoursInputPressable}
+                >
+                  <TextInput
+                    ref={hoursInputRef}
+                    value={inputValue}
+                    onChangeText={handleHoursChange}
+                    keyboardType="numeric"
+                    placeholder="0"
+                    placeholderTextColor={Colors.light.white}
+                    maxLength={3}
+                    textAlignVertical="center"
+                    selectTextOnFocus
+                    showSoftInputOnFocus
+                    onFocus={() => {
+                      setIsHoursFocused(true);
+                      onInputFocus?.();
+                    }}
+                    onBlur={() => setIsHoursFocused(false)}
+                    style={[
+                      styles.hoursInput,
+                      (inputValue.trim().length > 0 || isHoursFocused) &&
+                        styles.hoursInputFilled,
+                    ]}
+                  />
+                </Pressable>
 
                 <Text style={styles.descriptionText}>{descriptionText}</Text>
               </View>
@@ -129,6 +166,8 @@ export const QuranTimeSelection = ({
                 text="Save"
                 disabled={hoursCount <= 0}
                 isLoading={isSaving}
+                initiallySaved={openedAsSaved}
+                valueKey={hydrated ? inputValue : undefined}
                 onPress={(markSaved, markFailed) => {
                   const hours = Math.min(
                     MAX_HOURS,
@@ -160,8 +199,12 @@ const styles = StyleSheet.create({
     textAlign: "center",
     letterSpacing: 0.1,
   },
+  hoursInputPressable: {
+    borderRadius: 4,
+  },
   hoursInput: {
     width: 44,
+    minHeight: 32,
     paddingTop: 4,
     paddingRight: 6,
     paddingBottom: 4,

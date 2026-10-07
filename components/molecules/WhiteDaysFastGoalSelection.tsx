@@ -25,11 +25,13 @@ export default function WhiteDaysFastGoalSelection({
   onSave,
   openOnMount = false,
   collapseSignal = 0,
+  initiallySaved = false,
 }: {
   calendarWindow?: FastingCalendarWindow | null;
   onSave?: (selectedDates: string[]) => void;
   openOnMount?: boolean;
   collapseSignal?: number;
+  initiallySaved?: boolean;
 }) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
@@ -106,9 +108,8 @@ export default function WhiteDaysFastGoalSelection({
               style={styles.advisoryIcon}
             />
             <Text style={styles.advisoryText}>
-              The White Days are the 13th, 14th and 15th of each Islamic month.
-              Tap to select one, two, or all three. Dates already used by other
-              fasting goals are dimmed and cannot be selected.
+              If you don't fast on a selected White Day, you can still complete your goal by fasting on another White Day this month, as long as it isn’t selected for this or any other fasting goal.
+
             </Text>
           </View>
 
@@ -129,6 +130,11 @@ export default function WhiteDaysFastGoalSelection({
               disabled={isPending || selectedDates.length === 0}
               style={styles.saveButton}
               textStyle={styles.saveButtonText}
+              initiallySaved={
+                initiallySaved ||
+                (calendarWindow?.whiteDaysPlannedDates?.length ?? 0) > 0
+              }
+              valueKey={selectedDates.slice().sort().join(",")}
             />
           </View>
         </View>

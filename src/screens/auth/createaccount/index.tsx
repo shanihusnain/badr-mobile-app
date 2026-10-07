@@ -242,6 +242,7 @@ export default function CreateAccountScreen() {
     reset(defaultValues);
   }, [defaultValues, isSocialFlow, reset]);
 
+  const [lockDobDropdownScroll, setLockDobDropdownScroll] = useState(false);
   const [image, setImage] = useState<string | null>(
     socialUser?.avatarUrl ?? null,
   );
@@ -437,9 +438,10 @@ export default function CreateAccountScreen() {
         contentContainerStyle={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
         enableOnAndroid
-        enableAutomaticScroll
+        enableAutomaticScroll={!lockDobDropdownScroll}
         keyboardShouldPersistTaps="handled"
         nestedScrollEnabled
+        scrollEnabled={!lockDobDropdownScroll}
         extraScrollHeight={Platform.OS === "ios" ? 20 : 100}
         keyboardOpeningTime={0}
       >
@@ -530,6 +532,7 @@ export default function CreateAccountScreen() {
           control={control}
           name="dob"
           errors={errors.dob?.message ? [errors.dob.message] : []}
+          onDropdownOpenChange={setLockDobDropdownScroll}
         />
         <TopSpace top={16} />
 

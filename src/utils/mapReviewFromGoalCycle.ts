@@ -17,6 +17,7 @@ import { SADAQAH_TYPE_TO_UI_ID, formatReviewCurrencyAmount } from "@/src/utils/s
 import type {
   QuranHizbOption,
   QuranJuzOption,
+  QuranSurahOption,
 } from "@/src/utils/quranGoalMap";
 import { resolveQuranSurahFrequency } from "@/src/storage/quranSurahFrequencyStorage";
 
@@ -30,6 +31,7 @@ export type ReviewSelectedGoal = {
 export type ReviewQuranReference = {
   juz?: QuranJuzOption[];
   hizb?: QuranHizbOption[];
+  surah?: QuranSurahOption[];
 };
 
 export type ReviewFastingReference = {
@@ -75,14 +77,15 @@ export const PRAYER_TYPE_TO_REVIEW_TITLE: Record<string, string> = {
   QIYAM_AL_LAYL: "qiyal-al-lail-prayer",
 };
 
+/** Order matches planner metric lists (Surah → Juz → Completion / Surah → Hizb → Juz). */
 export const QURAN_TYPE_TO_REVIEW_TITLE: Record<string, string> = {
   LISTENING: "quran-listening",
   RECITATION_SURAH: "quran-recitation-by-surah",
-  RECITATION_COMPLETION: "quran-recitation-by-completion",
   RECITATION_JUZ: "quran-recitation-by-juz",
-  MEMORIZATION_JUZ: "quran-memorization-by-juz",
-  MEMORIZATION_HIZB: "quran-memorization-by-hizb",
+  RECITATION_COMPLETION: "quran-recitation-by-completion",
   MEMORIZATION_SURAH: "quran-memorization-by-surah",
+  MEMORIZATION_HIZB: "quran-memorization-by-hizb",
+  MEMORIZATION_JUZ: "quran-memorization-by-juz",
   TAJWEED: "quran-tajweed",
 };
 
@@ -166,6 +169,7 @@ const SUNNAH_REVIEW_SLOT_KEY: Record<string, string> = {
   "before-fajr": "monthlyGoalPlanner.reviewLabels.sunnahSlotBeforeFajr",
   "before-dhuhr": "monthlyGoalPlanner.reviewLabels.sunnahSlotBeforeDhuhr",
   "after-dhuhr": "monthlyGoalPlanner.reviewLabels.sunnahSlotAfterDhuhr",
+  "before-asr": "monthlyGoalPlanner.reviewLabels.sunnahSlotBeforeAsr",
   "after-maghrib": "monthlyGoalPlanner.reviewLabels.sunnahSlotAfterMaghrib",
   "after-isha": "monthlyGoalPlanner.reviewLabels.sunnahSlotAfterIsha",
 };
@@ -181,6 +185,8 @@ function getSunnahRawatibRakahCount(
       return 4;
     case "after-dhuhr":
       return cfg.afterDhuhrRakahOption === 1 ? 2 : 4;
+    case "before-asr":
+      return cfg.beforeAsrRakahOption === 1 ? 2 : 4;
     case "after-maghrib":
       return 2;
     case "after-isha":
@@ -272,18 +278,17 @@ function mapPrayerGoal(
       dhuhr = cfg.dhuhrTarget;
     }
 
+    // Same order as DailyPrayerGoalSelection: Jum'ah last when enabled.
     const rows: Array<[string, string, number]> = [
       ["fajr", t("prayerGoals.fajr"), fajr],
       ["dhuhr", t("prayerGoals.dhuhr"), dhuhr],
+      ["asr", t("prayerGoals.asr"), asr],
+      ["maghrib", t("prayerGoals.maghrib"), maghrib],
+      ["isha", t("prayerGoals.isha"), isha],
     ];
     if (trackCongregation && jumuah > 0) {
       rows.push(["jumuah", t("prayerGoals.jumuah"), jumuah]);
     }
-    rows.push(
-      ["asr", t("prayerGoals.asr"), asr],
-      ["maghrib", t("prayerGoals.maghrib"), maghrib],
-      ["isha", t("prayerGoals.isha"), isha],
-    );
 
     rows.forEach(([name, rowLabel, value], i) => {
       selectedGoals.push({
@@ -296,13 +301,19 @@ function mapPrayerGoal(
     totalValue = rows.reduce((sum, [, , v]) => sum + v, 0);
   } else if (goal.prayerType === "SUNNAH_RAWATIB" && goal.sunnahRawatibConfig) {
     const cfg = goal.sunnahRawatibConfig;
+    // Same order as SunnahRawatibGoalSelection (Before Asr between After Dhuhr / After Maghrib).
     const rows: Array<[string, number | undefined]> = [
       ["before-fajr", cfg.beforeFajrTarget],
       ["before-dhuhr", cfg.beforeDhuhrTarget],
       ["after-dhuhr", cfg.afterDhuhrTarget],
+    ];
+    if (cfg.beforeAsrEnabled !== false && (cfg.beforeAsrTarget ?? 0) > 0) {
+      rows.push(["before-asr", cfg.beforeAsrTarget]);
+    }
+    rows.push(
       ["after-maghrib", cfg.afterMaghribTarget],
       ["after-isha", cfg.afterIshaTarget],
-    ];
+    );
     rows.forEach(([name, value], i) => {
       selectedGoals.push({
         id: i + 1,
@@ -316,7 +327,13 @@ function mapPrayerGoal(
     // Header total only — same pattern as Quran listening / tajweed
     totalValue = goal.qiyamConfig.unitTarget ?? goal.targetCount ?? 0;
   } else if (goal.prayerType === "MISSED_PAST_PRAYERS") {
-    totalValue = goal.targetDays ?? goal.targetCount ?? 0;
+    // Slider stores days; each day = 5 prayers. Review shows prayer count.
+    totalValue =
+      typeof goal.targetCount === "number" && goal.targetCount > 0
+        ? goal.targetCount
+        : typeof goal.targetDays === "number"
+          ? goal.targetDays * 5
+          : 0;
   }
 
   return {
@@ -356,7 +373,7 @@ export function formatSurahRecitationReviewLabel(
   frequency: string | null | undefined,
   t: TFunction,
 ): string {
-  const surah = ensureSurahPrefix(surahName);
+  const surah = ensureSurahPrefix(stripEnglishParenthetical(surahName));
   const count = Number.isFinite(times) && times > 0 ? times : 1;
 
   if (isWeeklySurahFrequency(frequency)) {
@@ -543,10 +560,27 @@ function mapQuranGoal(
     }
 
     if (isSurahMemorization) {
+      const bareName = stripEnglishParenthetical(String(surahName));
+      const prefixed = ensureSurahPrefix(bareName);
+      const opt =
+        Number.isFinite(itemNumber) && itemNumber > 0
+          ? quranReference?.surah?.find((s) => s.id === itemNumber)
+          : undefined;
+      const verseCountFromRange =
+        item.verseStart != null &&
+        item.verseEnd != null &&
+        item.verseEnd >= item.verseStart
+          ? item.verseEnd - item.verseStart + 1
+          : null;
+      const verses =
+        opt?.verses ??
+        (verseCountFromRange != null
+          ? `(${verseCountFromRange} verses)`
+          : "");
       return {
         id: i + 1,
         name: `${item.itemType}-${item.itemNumber}`,
-        label: surahName,
+        label: verses ? `${prefixed} ${verses}` : prefixed,
         value: "",
       };
     }

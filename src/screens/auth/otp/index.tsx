@@ -35,9 +35,12 @@ export default function OtpScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<OtpScreenParams>();
   const fromsignup = getParam(params.fromsignup);
-  const email = getParam(params.email);
   const { t } = useTranslation();
   const { updateUser, user: authUser, isAuthenticated } = useAuth();
+  const email =
+    getParam(params.email)?.trim() ||
+    authUser?.email?.trim() ||
+    undefined;
   const { mutateAsync: verifyOtp, isPending } = useVerifyOtp();
 
   const {
@@ -50,24 +53,48 @@ export default function OtpScreen() {
   const [error, setError] = useState<string | null>(null);
 
   const inputRefs = useRef<(TextInput | null)[]>([]);
+  const isLeavingVerifyRef = useRef(false);
+  const navigation = useNavigation();
 
   const handleOtpChange = (value: string, index: number) => {
-    if (value.length > 1) value = value.slice(-1);
-
-    const newOtp = [...otp];
-    newOtp[index] = value;
-    setOtp(newOtp);
+    const digits = value.replace(/\D/g, "");
     setError(null);
 
-    if (value && index < 5) {
+    // SMS autofill / paste often dumps the full code into one box.
+    if (digits.length > 1) {
+      setOtp((prev) => {
+        const next = [...prev];
+        for (let i = 0; i < 6; i += 1) {
+          next[i] = digits[i] ?? "";
+        }
+        return next;
+      });
+      const focusIndex = Math.min(digits.length, 6) - 1;
+      inputRefs.current[Math.max(0, focusIndex)]?.focus();
+      return;
+    }
+
+    const digit = digits.slice(-1);
+    setOtp((prev) => {
+      const next = [...prev];
+      next[index] = digit;
+      return next;
+    });
+
+    if (digit && index < 5) {
       inputRefs.current[index + 1]?.focus();
     }
   };
 
   const handleKeyPress = (e: any, index: number) => {
-    if (e.nativeEvent.key === "Backspace" && !otp[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus();
-    }
+    if (e.nativeEvent.key !== "Backspace") return;
+    setOtp((prev) => {
+      if (prev[index]) return prev;
+      if (index > 0) {
+        inputRefs.current[index - 1]?.focus();
+      }
+      return prev;
+    });
   };
 
   const handleResend = () => {
@@ -113,11 +140,13 @@ export default function OtpScreen() {
 
     setError(null);
 
+    const code = otp.join("");
+
     try {
       if (fromsignup === "true") {
-        await verifyOtp({ otp: otp.join(""), email });
+        await verifyOtp({ otp: code, email });
       } else {
-        await forgotPasswordOtpValidation({ email, otp: otp.join("") });
+        await forgotPasswordOtpValidation({ email, otp: code });
       }
 
       if (fromsignup === "true") {
@@ -125,19 +154,18 @@ export default function OtpScreen() {
           await updateUser({ ...authUser, emailVerified: true });
         }
 
-        // Already signed in after register → enter private stack.
-        // Otherwise fall back to login (e.g. verify opened without session).
-        if (isAuthenticated) {
-          router.replace("/(private)/greetingsscreen");
-        } else {
-          router.replace("/(auth)/login");
-        }
+        // Skip beforeRemove → createaccount; go forward into private flow.
+        isLeavingVerifyRef.current = true;
+
+        // Prefer private entry when tokens exist (isAuthenticated can lag one frame).
+        router.replace("/(private)/greetingsscreen");
       } else {
+        isLeavingVerifyRef.current = true;
         router.push({
           pathname: "/(auth)/confirmpassword",
           params: {
-            email: email as string,
-            code: otp.join("") as string,
+            email,
+            code,
           },
         });
       }
@@ -145,9 +173,6 @@ export default function OtpScreen() {
       // Toast is handled in mutations
     }
   };
-
-  const navigation = useNavigation();
-  const isLeavingVerifyRef = useRef(false);
 
   const leaveVerifyEmail = () => {
     if (isLeavingVerifyRef.current) return;
@@ -216,7 +241,11 @@ export default function OtpScreen() {
                         onChangeText={(value) => handleOtpChange(value, index)}
                         onKeyPress={(e) => handleKeyPress(e, index)}
                         keyboardType="number-pad"
-                        maxLength={1}
+                        // Allow full-code paste/autofill into the focused box.
+                        maxLength={index === 0 ? 6 : 1}
+                        textContentType="oneTimeCode"
+                        autoComplete="sms-otp"
+                        importantForAutofill="yes"
                       />
                     ))}
                   </View>

@@ -86,10 +86,14 @@ export function isSadaqahGoalKey(goalKey: string): boolean {
   return !!SADAQAH_TYPE_TO_UI_ID[goalKey] || !!UI_ID_TO_SADAQAH_TYPE[goalKey];
 }
 
+const SADAQAH_TYPE_ORDER = Object.keys(SADAQAH_TYPE_TO_UI_ID);
+
 export function mapSadaqahGoalsFromApi(
   goals: SadaqahGoalApiItem[] | undefined | null,
 ): SadaqahGoalListItem[] {
   if (!Array.isArray(goals)) return [];
+
+  const rank = new Map(SADAQAH_TYPE_ORDER.map((type, index) => [type, index]));
 
   return goals
     .map((goal) => {
@@ -103,7 +107,12 @@ export function mapSadaqahGoalsFromApi(
         image: SADAQAH_TYPE_IMAGES[goal.sadaqahType],
       };
     })
-    .filter(Boolean) as SadaqahGoalListItem[];
+    .filter(Boolean)
+    .sort((a, b) => {
+      const aRank = rank.get(a!.sadaqahType) ?? Number.MAX_SAFE_INTEGER;
+      const bRank = rank.get(b!.sadaqahType) ?? Number.MAX_SAFE_INTEGER;
+      return aRank - bRank;
+    }) as SadaqahGoalListItem[];
 }
 
 /** True when the sadaqah goal has saved target data (not merely isActive). */

@@ -26,6 +26,7 @@ export default function TahiyatWuduGoalSelection({
   openOnMount = false,
   collapseSignal = 0,
   onInputFocus,
+  initiallySaved = false,
 }: {
   onSave?: (value: number, onDone?: () => void, onFail?: () => void) => void;
   initialValue?: number;
@@ -33,6 +34,7 @@ export default function TahiyatWuduGoalSelection({
   openOnMount?: boolean;
   collapseSignal?: number;
   onInputFocus?: () => void;
+  initiallySaved?: boolean;
 }) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
@@ -85,6 +87,8 @@ export default function TahiyatWuduGoalSelection({
               textStyle={styles.saveButtonText}
               isLoading={isSaving}
               disabled={isSaving}
+              initiallySaved={initiallySaved}
+              valueKey={sliderValue}
             />
           </View>
         </View>

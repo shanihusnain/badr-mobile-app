@@ -28,11 +28,13 @@ export default function MissedRamadanFastGoalSelection({
   onSave,
   openOnMount = false,
   collapseSignal = 0,
+  initiallySaved = false,
 }: {
   calendarWindow?: FastingCalendarWindow | null;
   onSave?: (selectedDates: string[]) => void;
   openOnMount?: boolean;
   collapseSignal?: number;
+  initiallySaved?: boolean;
 }) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
@@ -166,6 +168,11 @@ export default function MissedRamadanFastGoalSelection({
               disabled={isPending || selectedDates.length === 0}
               style={styles.saveButton}
               textStyle={styles.saveButtonText}
+              initiallySaved={
+                initiallySaved ||
+                (calendarWindow?.missedRamadanDates?.length ?? 0) > 0
+              }
+              valueKey={selectedDates.slice().sort().join(",")}
             />
           </View>
         </View>

@@ -26,6 +26,7 @@ export default function MissedPrayerGoalSelection({
   openOnMount = false,
   collapseSignal = 0,
   onInputFocus,
+  initiallySaved = false,
 }: {
   onSave?: (value: number, onDone?: () => void, onFail?: () => void) => void;
   isSaving?: boolean;
@@ -33,6 +34,7 @@ export default function MissedPrayerGoalSelection({
   collapseSignal?: number;
   onInputFocus?: () => void;
   initialValue?: number;
+  initiallySaved?: boolean;
 }) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
@@ -80,6 +82,8 @@ export default function MissedPrayerGoalSelection({
               disabled={isSaving}
               style={styles.saveButton}
               textStyle={styles.saveButtonText}
+              initiallySaved={initiallySaved}
+              valueKey={sliderValue}
             />
           </View>
         </View>

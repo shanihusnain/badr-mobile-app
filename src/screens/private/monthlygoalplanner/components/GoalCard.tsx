@@ -33,6 +33,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: Colors.light.greybuttonBackground,
     borderRadius: 8,
+    height: 180,
     paddingVertical: 15,
     paddingHorizontal: 12,
     flexDirection: "row",
@@ -40,6 +41,7 @@ const styles = StyleSheet.create({
   },
   iconContainer: {
     marginRight: 16,
+    marginTop: 5,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -58,7 +60,7 @@ const styles = StyleSheet.create({
     color: Colors.light.white,
     fontSize: 14,
     fontFamily: fonts.primary.regular,
-    lineHeight: 20,
+    lineHeight: 22,
     fontWeight: "400",
     letterSpacing: 0.1,
   },

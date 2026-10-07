@@ -20,6 +20,7 @@ export const FidyaSelector = ({
   openOnMount = false,
   collapseSignal = 0,
   onInputFocus,
+  initiallySaved = false,
 }: {
   count: number;
   setCount: (value: number) => void;
@@ -32,6 +33,7 @@ export const FidyaSelector = ({
   openOnMount?: boolean;
   collapseSignal?: number;
   onInputFocus?: () => void;
+  initiallySaved?: boolean;
 }) => {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount, onInputFocus, collapseSignal);
@@ -75,6 +77,8 @@ export const FidyaSelector = ({
                 }}
                 isLoading={isSaving}
                 disabled={isSaving || count < 1}
+                initiallySaved={initiallySaved}
+                valueKey={count}
               />
             </>
           ) : null}

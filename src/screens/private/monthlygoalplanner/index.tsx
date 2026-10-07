@@ -46,9 +46,9 @@ const StepRow = ({
     </View>
     <View
       style={{
-        width: 12,
-        height: 12,
-        borderRadius: 12,
+        width: 16,
+        height: 16,
+        borderRadius: 16,
         borderWidth: 1,
         alignItems: "center",
         justifyContent: "center",
@@ -61,7 +61,6 @@ const StepRow = ({
 );
 
 const keyExtractor = (item: StepItem) => String(item.id);
-const ItemSeparator = () => <TopSpace top={12} />;
 
 const STEP_TAB_MAP: Record<number, Tab> = {
   1: "cycle",
@@ -167,7 +166,12 @@ export const MonthlyGoalPlannerScreen = () => {
       category: t("monthlyGoalPlanner.step5Category"),
       status: "completed",
     },
-    { id: 6, title: t("monthlyGoalPlanner.step6Title"), status: "completed" },
+    {
+      id: 6,
+      title: t("monthlyGoalPlanner.step6Title"),
+      category: t("monthlyGoalPlanner.step6Category"),
+      status: "completed",
+    },
   ];
 
   const handleBeginNowPress = useCallback(() => {
@@ -175,26 +179,26 @@ export const MonthlyGoalPlannerScreen = () => {
   }, []);
 
   return (
-    <View style={{ flex: 1 }}>
-      <BlackScreenWrapper edges={["left", "right"]}>
+    <BlackScreenWrapper edges={["left", "right", "bottom"]}>
+      <View style={styles.screenBody}>
         <FlatList
           data={steps}
           keyExtractor={keyExtractor}
           renderItem={renderItem}
-          ItemSeparatorComponent={ItemSeparator}
           style={styles.stepsList}
           contentContainerStyle={styles.stepsContent}
+          scrollEnabled={false}
           ListHeaderComponent={
             <>
               <GoalCardCarousel data={goalCards} />
-              <TopSpace top={28} />
+              <TopSpace top={16} />
             </>
           }
         />
         <Pressable onPress={handleBeginNowPress} style={styles.beginNowButton}>
           <Text style={globalStyles.greenCTA}>BEGIN NOW</Text>
         </Pressable>
-      </BlackScreenWrapper>
-    </View>
+      </View>
+    </BlackScreenWrapper>
   );
 };

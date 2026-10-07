@@ -76,6 +76,7 @@ export default function SunnahRawatibGoalSelection({
   openOnMount = false,
   collapseSignal = 0,
   onInputFocus,
+  initiallySaved = false,
 }: {
   onSave?: (
     payload: {
@@ -107,6 +108,7 @@ export default function SunnahRawatibGoalSelection({
   openOnMount?: boolean;
   collapseSignal?: number;
   onInputFocus?: () => void;
+  initiallySaved?: boolean;
 }) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
@@ -393,6 +395,8 @@ export default function SunnahRawatibGoalSelection({
               textStyle={styles.saveButtonText}
               isLoading={isSaving}
               disabled={isSaving}
+              initiallySaved={initiallySaved}
+              valueKey={`${beforeFajar}-${beforeDuhr}-${afterDuhr}-${afterDuhrOption}-${beforeAsar}-${beforeAsarOption}-${isBeforeAsarEnabled}-${afterMaghrib}-${afterIsha}`}
             />
           </View>
         </View>

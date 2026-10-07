@@ -4,10 +4,16 @@ import { SwitchButton } from "@/components/atoms/SwitchButton";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { Colors } from "@/constants/theme";
 import { ImageBackground } from "expo-image";
-import { useState, useEffect } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useState, useEffect, useMemo } from "react";
+import { StyleSheet, Text, View, type LayoutChangeEvent } from "react-native";
 import { useSharedValue } from "react-native-reanimated";
 import { useTranslation } from "react-i18next";
+
+/** Figma shows ~4 lines with "... read more" inline on the last line. */
+const DESCRIPTION_MAX_LINES = 4;
+const ELLIPSIS = "... ";
+/** Approx. average glyph width for 14px primary font. */
+const AVG_CHAR_WIDTH = 7.2;
 
 export const GoalCardWithDescriptionAndOptionToSelectGoal = ({
   initialValue = false,
@@ -34,14 +40,48 @@ export const GoalCardWithDescriptionAndOptionToSelectGoal = ({
   const { t, i18n } = useTranslation();
   const isRtl = i18n.language === "ar";
   const isOn = useSharedValue(initialValue);
-  const [isDescExpanded, setIsDescExpanded] = useState(false);
-  const DESCRIPTION_MAX_LINES = 3;
+  const readMoreLabel = t("monthlyGoalPlanner.readMore");
+
+  const displayTitle = isLoading ? "" : title;
+  // Strip trailing ellipses from CMS/API copy so we never stack dots with "read more".
+  const displayDescription = useMemo(
+    () =>
+      isLoading
+        ? ""
+        : description.replace(/(?:\s*\.{2,}|…)+\s*$/u, "").trimEnd(),
+    [description, isLoading],
+  );
+
+  const [containerWidth, setContainerWidth] = useState(0);
 
   useEffect(() => {
     if (isOn.value !== initialValue) {
       isOn.value = initialValue;
     }
-  }, [initialValue]);
+  }, [initialValue, isOn]);
+
+  const truncatedBody = useMemo(() => {
+    if (!displayDescription) return "";
+
+    const width = containerWidth > 0 ? containerWidth : 300;
+    const charsPerLine = Math.max(18, Math.floor(width / AVG_CHAR_WIDTH));
+    const suffixBudget = ELLIPSIS.length + readMoreLabel.length;
+    const maxChars = Math.max(
+      24,
+      charsPerLine * DESCRIPTION_MAX_LINES - suffixBudget,
+    );
+
+    if (displayDescription.length <= maxChars) {
+      return displayDescription;
+    }
+
+    let slice = displayDescription.slice(0, maxChars).trimEnd();
+    const lastSpace = slice.lastIndexOf(" ");
+    if (lastSpace >= Math.floor(slice.length * 0.5)) {
+      slice = slice.slice(0, lastSpace).trimEnd();
+    }
+    return slice;
+  }, [containerWidth, displayDescription, readMoreLabel]);
 
   const handleSwitchPress = () => {
     if (isLoading) return;
@@ -57,8 +97,12 @@ export const GoalCardWithDescriptionAndOptionToSelectGoal = ({
     }, 50);
   };
 
-  const displayTitle = isLoading ? "" : title;
-  const displayDescription = isLoading ? "" : description;
+  const onBodyLayout = (event: LayoutChangeEvent) => {
+    const width = Math.round(event.nativeEvent.layout.width);
+    if (width > 0 && width !== containerWidth) {
+      setContainerWidth(width);
+    }
+  };
 
   return (
     <View style={styles.conatiner}>
@@ -89,30 +133,37 @@ export const GoalCardWithDescriptionAndOptionToSelectGoal = ({
         {displayTitle}
       </Text>
       <TopSpace top={8} />
-      <Text
-        numberOfLines={isDescExpanded ? undefined : DESCRIPTION_MAX_LINES}
-        style={[styles.description, isRtl && { textAlign: "right" }]}
-      >
-        {displayDescription}
-      </Text>
-      <TopSpace top={2} />
-      {!isLoading && (
-        <Pressable onPress={handleSeeMorePRess}>
-          <Text style={[styles.seeMoreText, isRtl && { textAlign: "right" }]}>
-            <Text style={{ color: Colors.light.white }}>...</Text>
-            {t("monthlyGoalPlanner.readMore")}
-          </Text>
-        </Pressable>
-      )}
+
+      <View style={styles.descriptionWrap} onLayout={onBodyLayout}>
+        <Text style={[styles.description, isRtl && { textAlign: "right" }]}>
+          {truncatedBody}
+          {!isLoading && displayDescription ? (
+            <Text onPress={handleSeeMorePRess}>
+              <Text style={styles.seeMoreEllipsis}>{ELLIPSIS}</Text>
+              <Text style={styles.seeMoreText}>{readMoreLabel}</Text>
+            </Text>
+          ) : null}
+        </Text>
+      </View>
     </View>
   );
 };
+
 const styles = StyleSheet.create({
   seeMoreText: {
     color: Colors.light.green,
     fontSize: 14,
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
+  },
+  seeMoreEllipsis: {
+    color: Colors.light.white,
+    fontSize: 14,
+    fontFamily: fonts.primary.regular,
+    fontWeight: "400",
+  },
+  descriptionWrap: {
+    width: "100%",
   },
   description: {
     color: Colors.light.white,
@@ -143,14 +194,10 @@ const styles = StyleSheet.create({
   conatiner: {
     borderRadius: 8,
     backgroundColor: Colors.light.greybuttonBackground,
-    // alignItems: "center",
     justifyContent: "center",
     padding: 16,
   },
   switch: {
-    // width: 40,
-    // height: 20,
-    // padding: 10,
     alignSelf: "flex-end",
   },
 });

@@ -22,6 +22,7 @@ export const KafarahForBreakingFastsOrOAthSelector = ({
   openOnMount = false,
   collapseSignal = 0,
   onInputFocus,
+  initiallySaved = false,
 }: {
   mealCount: number;
   setMealCount: (count: number) => void;
@@ -36,6 +37,7 @@ export const KafarahForBreakingFastsOrOAthSelector = ({
   openOnMount?: boolean;
   collapseSignal?: number;
   onInputFocus?: () => void;
+  initiallySaved?: boolean;
 }) => {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount, onInputFocus, collapseSignal);
@@ -95,6 +97,8 @@ export const KafarahForBreakingFastsOrOAthSelector = ({
                 }}
                 isLoading={isSaving}
                 disabled={isSaving || (mealCount < 1 && clothCount < 1)}
+                initiallySaved={initiallySaved}
+                valueKey={`${mealCount}-${clothCount}`}
               />
             </>
           ) : null}
