@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useGoalSelectionOpenState } from "@/hooks/useGoalSelectionOpenState";
 import {
   StyleSheet,
@@ -22,6 +22,7 @@ import {
   getJumuahCountForCycleStart,
   PRAYER_CYCLE_DAYS,
 } from "@/src/utils/prayerCycleUtils";
+import { useGetMe } from "@/src/api/queries/useGetMe";
 
 type PrayerSliderItem = {
   id: string;
@@ -57,6 +58,7 @@ type Props = {
   openOnMount?: boolean;
   collapseSignal?: number;
   onInputFocus?: () => void;
+  initiallySaved?: boolean;
 };
 
 export default function DailyPrayerGoalSelection({
@@ -67,9 +69,11 @@ export default function DailyPrayerGoalSelection({
   openOnMount = false,
   collapseSignal = 0,
   onInputFocus,
+  initiallySaved = false,
 }: Props) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
+  const { data: me } = useGetMe();
   const cycleDayCount = PRAYER_CYCLE_DAYS;
   const jumuahCountInCycle = useMemo(
     () => getJumuahCountForCycleStart(cycleStartDate),
@@ -80,7 +84,14 @@ export default function DailyPrayerGoalSelection({
     [cycleStartDate],
   );
 
-  const trackingInitiallyOn = Boolean(initialValues?.congregationalTracking);
+  const hasExplicitTracking =
+    typeof initialValues?.congregationalTracking === "boolean";
+  // Male → ON, female → OFF. Prefer saved value when the goal was already configured.
+  const trackingDefaultByGender = me?.gender?.toUpperCase() !== "FEMALE";
+  const trackingInitiallyOn = hasExplicitTracking
+    ? Boolean(initialValues?.congregationalTracking)
+    : trackingDefaultByGender;
+  const userToggledCongregationRef = useRef(false);
 
   const [fajr, setFajr] = useState(
     () => initialValues?.fajr ?? congregationalAdjustments.prayerDefaults.fajr,
@@ -109,11 +120,26 @@ export default function DailyPrayerGoalSelection({
   );
   const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount, onInputFocus, collapseSignal);
   const [isTrackingCongregation, setIsTrackingCongregation] = useState(
-    Boolean(initialValues?.congregationalTracking),
+    trackingInitiallyOn,
   );
-  const trackingCongregation = useSharedValue(
-    Boolean(initialValues?.congregationalTracking),
-  );
+  const trackingCongregation = useSharedValue(trackingInitiallyOn);
+
+  // Apply gender default once profile loads (if user hasn't toggled / no saved value).
+  useEffect(() => {
+    if (hasExplicitTracking || userToggledCongregationRef.current) return;
+    if (me?.gender == null) return;
+    const next = me.gender.toUpperCase() !== "FEMALE";
+    setIsTrackingCongregation(next);
+    trackingCongregation.value = next;
+    if (next) {
+      setDhuhr(congregationalAdjustments.dhuhrMax);
+    }
+  }, [
+    hasExplicitTracking,
+    me?.gender,
+    congregationalAdjustments.dhuhrMax,
+    trackingCongregation,
+  ]);
 
   const dhuhrMaxDays = isTrackingCongregation
     ? congregationalAdjustments.dhuhrMax
@@ -143,6 +169,7 @@ export default function DailyPrayerGoalSelection({
   };
 
   const handleToggleCongregation = useCallback(() => {
+    userToggledCongregationRef.current = true;
     const nextValue = !isTrackingCongregation;
     trackingCongregation.value = nextValue;
     setIsTrackingCongregation(nextValue);
@@ -320,6 +347,8 @@ export default function DailyPrayerGoalSelection({
               textStyle={styles.saveButtonText}
               isLoading={isSaving}
               disabled={isSaving}
+              initiallySaved={initiallySaved}
+              valueKey={`${fajr}-${dhuhr}-${asar}-${maghrib}-${isha}-${isTrackingCongregation ? jumuahCountInCycle : 0}-${isTrackingCongregation}`}
             />
           </View>
         </View>

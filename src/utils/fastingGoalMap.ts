@@ -86,10 +86,14 @@ export function isFastingGoalKey(goalKey: string): boolean {
   return !!FASTING_TYPE_TO_UI_ID[goalKey] || !!UI_ID_TO_FASTING_TYPE[goalKey];
 }
 
+const FASTING_TYPE_ORDER = Object.keys(FASTING_TYPE_TO_UI_ID);
+
 export function mapFastingGoalsFromApi(
   goals: FastingGoalApiItem[] | undefined | null,
 ): FastingGoalListItem[] {
   if (!Array.isArray(goals)) return [];
+
+  const rank = new Map(FASTING_TYPE_ORDER.map((type, index) => [type, index]));
 
   return goals
     .map((goal) => {
@@ -105,7 +109,12 @@ export function mapFastingGoalsFromApi(
         plannedDates: goal.plannedDates ?? [],
       };
     })
-    .filter(Boolean) as FastingGoalListItem[];
+    .filter(Boolean)
+    .sort((a, b) => {
+      const aRank = rank.get(a!.fastingType) ?? Number.MAX_SAFE_INTEGER;
+      const bRank = rank.get(b!.fastingType) ?? Number.MAX_SAFE_INTEGER;
+      return aRank - bRank;
+    }) as FastingGoalListItem[];
 }
 
 /** True when the fasting goal has saved plan/target data (not merely isActive). */

@@ -34,14 +34,25 @@ export default function PrivateLayout() {
           name="monthlygoalplanner"
           options={{
             headerShown: true,
-            header: () => <Header title={t("monthlyGoalPlanner.title")} />,
+            header: () => (
+              <Header
+                title={t("monthlyGoalPlanner.title")}
+                extraTopPadding={12}
+              />
+            ),
           }}
         />
         <Stack.Screen
           name="goalplanner"
           options={{
             headerShown: true,
-            header: () => <Header title={t("monthlyGoalPlanner.title")} />,
+            header: () => (
+              <Header
+                title={t("monthlyGoalPlanner.title")}
+                extraTopPadding={12}
+                extraBottomPadding={12}
+              />
+            ),
           }}
         />
         <Stack.Screen

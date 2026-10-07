@@ -326,10 +326,11 @@ export function mapSurahOptionsFromReference(
       row.verses,
     );
     const verses = verseCount != null ? `(${verseCount} verses)` : undefined;
+    // Transliteration only — verse count is shown separately (not English gloss).
     const label =
-      translit && english
-        ? `${translit} (${english})`
-        : translit ?? english ?? pickString(row.nameArabic) ?? `Surah ${id}`;
+      stripEnglishParenthetical(
+        translit ?? english ?? pickString(row.nameArabic) ?? `Surah ${id}`,
+      ) || `Surah ${id}`;
     options.push({
       id,
       surahName: label,

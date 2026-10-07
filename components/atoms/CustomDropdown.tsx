@@ -169,20 +169,11 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
         </TouchableOpacity>
 
         {isOpen && (
-          <View style={[styles.menu, menuStyle]}>
+          <View
+            style={[styles.menu, searchable && styles.searchableMenu, menuStyle]}
+          >
             {searchable ? (
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: 10,
-                  backgroundColor: Colors.light.greybuttonBackground,
-                  marginHorizontal: 12,
-                  height: 44,
-                  borderRadius: 6,
-                  paddingHorizontal: 12,
-                }}
-              >
+              <View style={styles.searchBar}>
                 <MagnifyingGlassIcon />
                 <TextInput
                   value={searchQuery}
@@ -334,14 +325,33 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     maxHeight: 300,
   },
+  searchableMenu: {
+    borderRadius: 2,
+    marginTop: 12,
+    paddingTop: 10,
+    paddingBottom: 6,
+  },
   menuScroll: {
     maxHeight: 250,
   },
-  searchInput: {
+  searchBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
     backgroundColor: Colors.light.greybuttonBackground,
+    marginHorizontal: 12,
+    marginBottom: 6,
+    height: 48,
+    borderRadius: 6,
+    paddingHorizontal: 14,
+  },
+  searchInput: {
+    flex: 1,
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
     fontSize: 13,
+    paddingVertical: 0,
+    backgroundColor: "transparent",
   },
   emptySearchText: {
     color: Colors.light.grey,

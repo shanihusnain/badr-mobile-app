@@ -66,6 +66,8 @@ export type QuranRecitationGoalSelectionProps = {
   isSaving?: boolean;
   /** Scroll parent list so metric inputs stay visible above the keyboard. */
   onInputFocus?: () => void;
+  /** When true (or when initialSavedMetrics is non-empty), start in SAVED!. */
+  initiallySaved?: boolean;
 };
 
 export const QuranRecitationGoalSelection = ({
@@ -86,6 +88,7 @@ export const QuranRecitationGoalSelection = ({
   onNestedScrollActiveChange,
   isSaving = false,
   onInputFocus,
+  initiallySaved = false,
 }: QuranRecitationGoalSelectionProps) => {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useGoalSelectionOpenState(
@@ -451,6 +454,10 @@ export const QuranRecitationGoalSelection = ({
     ? configuredMetrics.size > 0
     : !!resolvedMetric;
 
+  const showAsInitiallySaved =
+    initiallySaved || (initialSavedMetrics?.length ?? 0) > 0;
+  const saveValueKey = `${Array.from(savedMetrics).sort().join(",")}|${Array.from(configuredMetrics).sort().join(",")}|${JSON.stringify(metricSnapshots)}|${resolvedMetric ?? ""}|${markCleanNonce}`;
+
   return (
     <View
       style={[
@@ -525,6 +532,8 @@ export const QuranRecitationGoalSelection = ({
               }}
               isLoading={isSaving}
               disabled={isSaving || !canSave}
+              initiallySaved={showAsInitiallySaved}
+              valueKey={saveValueKey}
               onPress={(markSaved, markFailed) => {
                 if (!onSave) {
                   markFailed();

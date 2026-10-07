@@ -6,8 +6,6 @@ import {
   View,
   TouchableOpacity,
   LayoutAnimation,
-  type TextLayoutEventData,
-  type NativeSyntheticEvent,
 } from "react-native";
 import { Colors } from "../../constants/theme";
 import { fonts } from "../../assets/fonts";
@@ -19,6 +17,7 @@ import { globalStyles } from "@/src/globalstyles/globalstyles";
 import { GoalSelectionOpenCloseButton } from "./GoalSelectionOpenCloseButton";
 import { Divider } from "../atoms/Divider";
 import { useAuth } from "@/provider/useAuth";
+import { useGetMe } from "@/src/api/queries/useGetMe";
 import { TopSpace } from "../atoms/TopSpace";
 import { PRAYER_CYCLE_DAYS } from "@/src/utils/prayerCycleUtils";
 
@@ -29,6 +28,7 @@ export default function QiyamalLaylGoalSelection({
   openOnMount = false,
   collapseSignal = 0,
   onInputFocus,
+  initiallySaved = false,
 }: {
   onSave?: (
     value: {
@@ -49,6 +49,7 @@ export default function QiyamalLaylGoalSelection({
   openOnMount?: boolean;
   collapseSignal?: number;
   onInputFocus?: () => void;
+  initiallySaved?: boolean;
 }) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
@@ -59,20 +60,6 @@ export default function QiyamalLaylGoalSelection({
   const [sliderValue, setSliderValue] = useState(
     initialValues?.unitTarget ?? 1,
   );
-  const [summaryTextWidth, setSummaryTextWidth] = useState<number | null>(null);
-
-  const handleSummaryTextLayout = (
-    event: NativeSyntheticEvent<TextLayoutEventData>,
-  ) => {
-    const maxLineWidth = Math.max(
-      0,
-      ...event.nativeEvent.lines.map((line) => line.width),
-    );
-
-    if (maxLineWidth > 0) {
-      setSummaryTextWidth(maxLineWidth);
-    }
-  };
 
   const toggleDropdown = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -91,6 +78,16 @@ export default function QiyamalLaylGoalSelection({
     );
   };
   const { user } = useAuth();
+  const { data: me } = useGetMe();
+  const normalizeGender = (value?: string | null) =>
+    value?.toString().trim().toUpperCase();
+  const isFemaleUser = [
+    me?.gender,
+    user?.gender,
+    user?.user?.gender,
+    user?.data?.gender,
+  ].some((value) => normalizeGender(value) === "FEMALE");
+
   return (
     <View style={globalStyles.goalSelectionWrapper}>
       <GoalSelectionOpenCloseButton
@@ -103,15 +100,15 @@ export default function QiyamalLaylGoalSelection({
 
       {isOpen && (
         <View style={styles.expandedContent}>
-          {user?.gender !== "MALE" && (
+          {isFemaleUser && commitment === "every_night" ? (
             <>
               <Text style={styles.greyDescription}>
-                The target number of Witr prayers will automatically adjust if
-                menstruation is logged from the home screen.
+                The target number of Witr prayers will automatically adjust
+                if menstruation is logged from the home screen.
               </Text>
               <TopSpace top={10} />
             </>
-          )}
+          ) : null}
           {/* STEP 1 */}
           <View style={styles.stepBadge}>
             <Text style={styles.stepBadgeText}>{t("prayerGoals.step1")}</Text>
@@ -160,7 +157,7 @@ export default function QiyamalLaylGoalSelection({
           </Text>
           <View style={styles.sliderContainer}>
             <CustomSlider
-              maxDays={150}
+              maxDays={500}
               initialDays={sliderValue}
               onChange={(val) => setSliderValue(val)}
             />
@@ -169,44 +166,43 @@ export default function QiyamalLaylGoalSelection({
           {/* Result / Save area */}
           <View style={styles.resultContainer}>
             <View style={styles.summaryTextBlock}>
-              <Text
-                style={styles.valueText}
-                onTextLayout={handleSummaryTextLayout}
-              >
-                {formatNumber(sliderValue)}
-                <Text style={styles.whiteText}>
-                  {sliderValue === 1
-                    ? t("prayerGoals.rakahPrayer")
-                    : t("prayerGoals.rakahPrayers")}
-                </Text>
-                {commitment === "every_night" ? (
-                  <Text style={styles.whiteText}>
-                    {t("prayerGoals.and28WitrBefore")}
-                    <Text style={styles.greenCount}>
-                      {formatNumber(PRAYER_CYCLE_DAYS)}
-                    </Text>
-                    {t("prayerGoals.and28WitrAfter")}
-                  </Text>
-                ) : (
-                  <Text style={styles.whiteText}>
-                    {t("prayerGoals.plusWitrFlexible")}
-                  </Text>
-                )}
-              </Text>
               {commitment === "every_night" ? (
-                <Text
-                  style={[
-                    styles.witrDescription,
-                    summaryTextWidth != null && {
-                      width: summaryTextWidth,
-                      alignSelf: "center",
-                    },
-                  ]}
-                >
-                  {t("prayerGoals.witrDesc")}
-                </Text>
+                <>
+                  <Text style={styles.valueText}>
+                    {formatNumber(sliderValue)}
+                    <Text style={styles.whiteText}>
+                      {sliderValue === 1
+                        ? t("prayerGoals.rakahPrayer")
+                        : t("prayerGoals.rakahPrayers")}
+                    </Text>
+                    <Text style={styles.whiteText}>
+                      {t("prayerGoals.and28WitrBefore")}
+                      <Text style={styles.greenCount}>
+                        {formatNumber(PRAYER_CYCLE_DAYS)}
+                      </Text>
+                      {t("prayerGoals.and28WitrAfter")}
+                    </Text>
+                  </Text>
+                  <Text style={styles.witrDescription}>
+                    {t("prayerGoals.witrDescLine1")}
+                    {"\n"}
+                    {t("prayerGoals.witrDescLine2")}
+                  </Text>
+                </>
               ) : (
-                <View style={styles.summarySpacer} />
+                <Text style={styles.valueText}>
+                  {formatNumber(sliderValue)}
+                  <Text style={styles.whiteText}>
+                    {sliderValue === 1
+                      ? t("prayerGoals.rakahPrayer")
+                      : t("prayerGoals.rakahPrayers")}
+                    {t("prayerGoals.plusWitrFlexibleShort")}
+                  </Text>
+                  {"\n"}
+                  <Text style={styles.whiteText}>
+                    {t("prayerGoals.plusWitrFlexibleDesc")}
+                  </Text>
+                </Text>
               )}
             </View>
 
@@ -218,6 +214,8 @@ export default function QiyamalLaylGoalSelection({
                 textStyle={styles.saveButtonText}
                 isLoading={isSaving}
                 disabled={isSaving}
+                initiallySaved={initiallySaved}
+                valueKey={`${commitment}-${sliderValue}`}
               />
             </View>
           </View>
@@ -302,7 +300,7 @@ const styles = StyleSheet.create({
     color: Colors.light.dullDescriptionText,
     fontFamily: fonts.primary.regular,
     fontSize: 10,
-    // lineHeight: 15,
+    lineHeight: 14,
     fontWeight: "400",
   },
   resultContainer: {
@@ -312,17 +310,15 @@ const styles = StyleSheet.create({
   summaryTextBlock: {
     width: "100%",
     alignItems: "center",
-  },
-  summarySpacer: {
-    height: 30,
+    justifyContent: "flex-start",
+    marginBottom: 20,
   },
   valueText: {
     color: Colors.light.green,
     fontFamily: fonts.primary.medium,
     fontSize: 14,
     fontWeight: "500",
-    // lineHeight: 20,
-    marginBottom: 8,
+    lineHeight: 20,
     textAlign: "center",
   },
   greenCount: {
@@ -340,7 +336,8 @@ const styles = StyleSheet.create({
     fontSize: 10,
     lineHeight: 15,
     textAlign: "left",
-    marginBottom: 20,
+    alignSelf: "center",
+    marginTop: 8,
     fontWeight: "400",
   },
   buttonContainer: {

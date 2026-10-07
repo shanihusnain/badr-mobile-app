@@ -17,23 +17,26 @@ export const styles = StyleSheet.create({
     lineHeight: 20,
   },
   stepsList: {
-    marginTop: 24,
+    marginTop: 32,
     flexGrow: 0,
   },
   stepsContent: {
     paddingBottom: 8,
-    gap: 6,
+    gap: 12,
+  },
+  screenBody: {
+    flex: 1,
   },
   beginNowButton: {
     alignSelf: "center",
-    marginTop: 115,
+    marginTop: 52,
     marginBottom: 24,
   },
   stepRow: {
     backgroundColor: Colors.light.greybuttonBackground,
     borderRadius: 4,
     paddingHorizontal: 10,
-    paddingVertical: 7,
+    paddingVertical: 9,
     flexDirection: "row",
     alignItems: "center",
   },

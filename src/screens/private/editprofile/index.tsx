@@ -24,6 +24,7 @@ import { useCreateAccountProps } from "@/src/screens/auth/createaccount/useCreat
 export default function EditProfileScreen() {
   const router = useRouter();
   const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [lockDobDropdownScroll, setLockDobDropdownScroll] = useState(false);
 
   const { genders, countries } = useCreateAccountProps();
   const { control, watch } = useForm({
@@ -94,6 +95,8 @@ export default function EditProfileScreen() {
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
+          nestedScrollEnabled
+          scrollEnabled={!lockDobDropdownScroll}
         >
           <View style={styles.profileImageContainer}>
             <Image
@@ -170,6 +173,7 @@ export default function EditProfileScreen() {
               labelStyle={styles.label}
               containerStyle={styles.inputBox}
               textStyle={styles.inputText}
+              onDropdownOpenChange={setLockDobDropdownScroll}
             />
           </View>
 

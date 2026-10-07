@@ -20,8 +20,6 @@ import {
 import { useCallback, useEffect, useState } from "react";
 import { router, useNavigation } from "expo-router";
 import PrimaryButton from "@/components/atoms/Primary-button";
-import { FrameIndicator } from "./components/FrameIndicator";
-import { GoalProgressCard } from "./components/GoalProgressCard";
 import { TutorialVideoPlayer } from "./components/TutorialVideoPlayer";
 import { styles } from "./styles";
 import Header from "@/components/Header";
@@ -133,8 +131,7 @@ export const SetPersonalizedGoalsScreen = () => {
                 {t("setpersonalizedgoals.howItWorks")}
               </Text>
             </View>
-            <FrameIndicator total={2} active={activeFrame} />
-            {activeFrame === 1 && (
+            {/* {activeFrame === 1 && (
               <GoalProgressCard
                 currentDay={28}
                 totalDays={28}
@@ -142,7 +139,7 @@ export const SetPersonalizedGoalsScreen = () => {
                 overallProgress={100}
                 animate
               />
-            )}
+            )} */}
             <TopSpace top={20} />
             <Text style={styles.descriptionText}>
               {t("setpersonalizedgoals.setPersonalizedDescription")}

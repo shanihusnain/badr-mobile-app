@@ -17,7 +17,7 @@ const UNIT_BY_GOAL_TITLE: Record<string, string> = {
   "volunteering-services": "monthlyGoalPlanner.hours",
   "quran-listening": "monthlyGoalPlanner.hours",
   "quran-tajweed": "monthlyGoalPlanner.hours",
-  "quran-recitation-by-surah": "monthlyGoalPlanner.surah",
+  "quran-recitation-by-surah": "monthlyGoalPlanner.recitations",
   "quran-memorization-by-surah": "monthlyGoalPlanner.surah",
   "quran-recitation-by-juz": "monthlyGoalPlanner.juzUnit",
   "quran-memorization-by-juz": "monthlyGoalPlanner.juzUnit",

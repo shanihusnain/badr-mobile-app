@@ -24,6 +24,7 @@ export const MissedZakats = ({
   openOnMount = false,
   collapseSignal = 0,
   onInputFocus,
+  initiallySaved = false,
 }: {
   control: any;
   name: string;
@@ -39,6 +40,7 @@ export const MissedZakats = ({
   openOnMount?: boolean;
   collapseSignal?: number;
   onInputFocus?: () => void;
+  initiallySaved?: boolean;
 }) => {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount, onInputFocus, collapseSignal);
@@ -88,6 +90,8 @@ export const MissedZakats = ({
                 }}
                 isLoading={isSaving}
                 disabled={isSaving || count < 1 || !hasCurrency}
+                initiallySaved={initiallySaved}
+                valueKey={`${count}-${String(selectedCurrency ?? "")}`}
               />
             </>
           ) : null}

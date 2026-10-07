@@ -14,6 +14,10 @@ interface HeaderProps {
   fontSize?: number;
   textAlign?: TextStyle["textAlign"];
   lineHeight?: number;
+  /** Extra space below the safe-area inset (screen-specific tweaks). */
+  extraTopPadding?: number;
+  /** Extra space under the title row before screen content (screen-specific). */
+  extraBottomPadding?: number;
 }
 
 const SIDE_SLOT_WIDTH = 40;
@@ -27,6 +31,8 @@ const Header: React.FC<HeaderProps> = ({
   fontSize,
   textAlign,
   lineHeight,
+  extraTopPadding = 0,
+  extraBottomPadding = 0,
 }) => {
   const insets = useSafeAreaInsets();
   const showSideSlots = showBackBtn;
@@ -39,7 +45,8 @@ const Header: React.FC<HeaderProps> = ({
         alignItems: "center",
         justifyContent: "space-between",
         paddingHorizontal: 16,
-        paddingTop: insets.top + 10,
+        paddingTop: insets.top + 10 + extraTopPadding,
+        paddingBottom: extraBottomPadding,
         backgroundColor: backgroundColor ?? Colors.light.blackBackground,
       }}
     >

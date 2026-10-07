@@ -233,7 +233,9 @@ export function getFiveDailyInitial(goal: PrayerGoalApiItem | undefined) {
     maghrib: pickSavedNumber(asBucket(targets.maghrib).targetCount, 28),
     isha: pickSavedNumber(asBucket(targets.isha).targetCount, 28),
     jumuah: asBucket(targets.jumuah).targetCount ?? 0,
-    congregationalTracking: Boolean(goal?.congregationalTracking),
+    ...(typeof goal?.congregationalTracking === "boolean"
+      ? { congregationalTracking: goal.congregationalTracking }
+      : {}),
   };
 }
 
@@ -494,10 +496,14 @@ export function getQiyamInitial(goal: QiyamInitialSource | undefined) {
   };
 }
 
+const PRAYER_TYPE_ORDER = Object.keys(PRAYER_TYPE_TO_UI_ID);
+
 export function mapPrayerGoalsFromApi(
   goals: PrayerGoalApiItem[] | undefined | null,
 ): PrayerGoalListItem[] {
   if (!Array.isArray(goals)) return [];
+
+  const rank = new Map(PRAYER_TYPE_ORDER.map((type, index) => [type, index]));
 
   return goals
     .map((goal) => {
@@ -511,5 +517,10 @@ export function mapPrayerGoalsFromApi(
         image: PRAYER_TYPE_IMAGES[goal.prayerType],
       };
     })
-    .filter(Boolean) as PrayerGoalListItem[];
+    .filter(Boolean)
+    .sort((a, b) => {
+      const aRank = rank.get(a!.prayerType) ?? Number.MAX_SAFE_INTEGER;
+      const bRank = rank.get(b!.prayerType) ?? Number.MAX_SAFE_INTEGER;
+      return aRank - bRank;
+    }) as PrayerGoalListItem[];
 }
