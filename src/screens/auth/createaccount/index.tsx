@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Platform, View, Image, TouchableOpacity } from "react-native";
 import * as ImagePicker from "expo-image-picker";
@@ -28,6 +28,10 @@ import { useUpdateProfile } from "@/src/api/mutations/useUpdateProfile";
 import { useAuth } from "@/provider/useAuth";
 import { useUploadAvatar } from "@/src/api/mutations/useUploadAvatar";
 import { normalizeWeekendDays } from "@/src/utils/needsSocialProfileCompletion";
+
+type FormScrollView = KeyboardAwareScrollView & {
+  scrollToPosition: (x: number, y: number, animated?: boolean) => void;
+};
 
 type SocialUserParam = {
   id?: string;
@@ -242,7 +246,12 @@ export default function CreateAccountScreen() {
     reset(defaultValues);
   }, [defaultValues, isSocialFlow, reset]);
 
-  const [lockDobDropdownScroll, setLockDobDropdownScroll] = useState(false);
+  /** Locks KASV while DOB month/year menus are open (nested scroll). */
+  const [lockFormScroll, setLockFormScroll] = useState(false);
+  /** Country menu open — bump keyboard inset so the list stays visible. */
+  const [countryMenuOpen, setCountryMenuOpen] = useState(false);
+  const scrollRef = useRef<FormScrollView | null>(null);
+  const countryAnchorY = useRef(0);
   const [image, setImage] = useState<string | null>(
     socialUser?.avatarUrl ?? null,
   );
@@ -431,18 +440,40 @@ export default function CreateAccountScreen() {
 
   const isPending = isRegistering || isUpdatingProfile || isUploadingAvatar;
 
+  const handleCountryMenuOpenChange = useCallback((open: boolean) => {
+    setCountryMenuOpen(open);
+    if (!open) return;
+    // After the menu mounts, lift the country block above the keyboard.
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        const y = Math.max(0, countryAnchorY.current - 24);
+        scrollRef.current?.scrollToPosition(0, y, true);
+      }, 80);
+    });
+  }, []);
+
+  const countryExtraScroll = countryMenuOpen
+    ? Platform.OS === "ios"
+      ? 280
+      : 320
+    : Platform.OS === "ios"
+      ? 20
+      : 100;
+
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAwareScrollView
+        ref={scrollRef as React.RefObject<KeyboardAwareScrollView>}
         style={{ width: "100%" }}
         contentContainerStyle={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
         enableOnAndroid
-        enableAutomaticScroll={!lockDobDropdownScroll}
+        enableAutomaticScroll={!lockFormScroll}
+        enableResetScrollToCoords={false}
         keyboardShouldPersistTaps="handled"
         nestedScrollEnabled
-        scrollEnabled={!lockDobDropdownScroll}
-        extraScrollHeight={Platform.OS === "ios" ? 20 : 100}
+        scrollEnabled={!lockFormScroll}
+        extraScrollHeight={countryExtraScroll}
         keyboardOpeningTime={0}
       >
         <TouchableOpacity
@@ -532,24 +563,31 @@ export default function CreateAccountScreen() {
           control={control}
           name="dob"
           errors={errors.dob?.message ? [errors.dob.message] : []}
-          onDropdownOpenChange={setLockDobDropdownScroll}
+          onDropdownOpenChange={setLockFormScroll}
         />
         <TopSpace top={16} />
 
-        <CustomDropdown
-          label={t("createAccountScreen.countryLabel")}
-          labelStyle={fieldLabelStyle}
-          placeholder={t("createAccountScreen.countryPlaceholder")}
-          options={countries}
-          errors={errors.country?.message ? [errors.country.message] : []}
-          containerStyle={styles.countryContainer}
-          selectedTextStyle={styles.countryText}
-          control={control}
-          name="country"
-          searchable
-          searchPlaceholder={t("createAccountScreen.countrySearchPlaceholder")}
-          emptySearchText={t("createAccountScreen.countrySearchEmpty")}
-        />
+        <View
+          onLayout={(event) => {
+            countryAnchorY.current = event.nativeEvent.layout.y;
+          }}
+        >
+          <CustomDropdown
+            label={t("createAccountScreen.countryLabel")}
+            labelStyle={fieldLabelStyle}
+            placeholder={t("createAccountScreen.countryPlaceholder")}
+            options={countries}
+            errors={errors.country?.message ? [errors.country.message] : []}
+            containerStyle={styles.countryContainer}
+            selectedTextStyle={styles.countryText}
+            control={control}
+            name="country"
+            searchable
+            searchPlaceholder={t("createAccountScreen.countrySearchPlaceholder")}
+            emptySearchText={t("createAccountScreen.countrySearchEmpty")}
+            onDropdownOpenChange={handleCountryMenuOpenChange}
+          />
+        </View>
         <TopSpace top={16} />
 
         <CustomDropdown

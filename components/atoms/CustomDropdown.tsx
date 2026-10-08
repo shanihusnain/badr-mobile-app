@@ -1,9 +1,10 @@
 import { fonts } from "@/assets/fonts";
 import { DownArrowIcon, MagnifyingGlassIcon } from "@/assets/icons";
 import { Colors } from "@/constants/theme";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Controller } from "react-hook-form";
 import {
+  Keyboard,
   StyleSheet,
   Text,
   TextInput,
@@ -42,6 +43,8 @@ interface CustomDropdownProps {
   searchable?: boolean;
   searchPlaceholder?: string;
   emptySearchText?: string;
+  /** True while the menu is open (lock parent KeyboardAwareScrollView). */
+  onDropdownOpenChange?: (open: boolean) => void;
 }
 
 const CustomDropdown: React.FC<CustomDropdownProps> = ({
@@ -63,12 +66,15 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
   searchable = false,
   searchPlaceholder = "Search...",
   emptySearchText = "No results found",
+  onDropdownOpenChange,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedValue, setSelectedValue] = useState<
     string | number | undefined
   >(controlledValue);
+  const searchInputRef = useRef<TextInput>(null);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
 
   useEffect(() => {
     if (controlledValue !== undefined) {
@@ -77,8 +83,41 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
   }, [controlledValue]);
 
   useEffect(() => {
-    if (!isOpen) setSearchQuery("");
-  }, [isOpen]);
+    onDropdownOpenChange?.(isOpen);
+
+    if (!isOpen) {
+      setSearchQuery("");
+      searchInputRef.current?.blur();
+      return;
+    }
+
+    if (!searchable) return;
+
+    // Focus search so KeyboardAwareScrollView can lift this field.
+    const timer = setTimeout(() => searchInputRef.current?.focus(), 60);
+    return () => clearTimeout(timer);
+  }, [isOpen, onDropdownOpenChange, searchable]);
+
+  useEffect(() => {
+    if (!searchable) return;
+    const showSub = Keyboard.addListener("keyboardDidShow", (event) => {
+      setKeyboardHeight(event.endCoordinates.height);
+    });
+    const hideSub = Keyboard.addListener("keyboardDidHide", () => {
+      setKeyboardHeight(0);
+    });
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, [searchable]);
+
+  const setOpen = (next: boolean | ((prev: boolean) => boolean)) => {
+    setIsOpen((prev) => {
+      const resolved = typeof next === "function" ? next(prev) : next;
+      return resolved;
+    });
+  };
 
   const filteredOptions = useMemo(() => {
     if (!searchable || !searchQuery.trim()) return options;
@@ -98,9 +137,10 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
     onChange?: (value: any) => void,
   ) => {
     const handleSelect = (itemValue: any) => {
+      searchInputRef.current?.blur();
       if (onChange) onChange(itemValue);
       else setSelectedValue(itemValue);
-      setIsOpen(false);
+      setOpen(false);
       setSearchQuery("");
       if (onSelect) onSelect(itemValue);
     };
@@ -145,7 +185,7 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
                   borderWidth: isOpen ? 1 : 0,
                 },
           ]}
-          onPress={() => setIsOpen((prev) => !prev)}
+          onPress={() => setOpen((prev) => !prev)}
           activeOpacity={0.8}
         >
           <View style={styles.triggerContent}>
@@ -170,12 +210,21 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
 
         {isOpen && (
           <View
-            style={[styles.menu, searchable && styles.searchableMenu, menuStyle]}
+            style={[
+              styles.menu,
+              searchable && styles.searchableMenu,
+              searchable &&
+                keyboardHeight > 0 && {
+                  maxHeight: Math.max(160, 280 - Math.min(keyboardHeight * 0.35, 120)),
+                },
+              menuStyle,
+            ]}
           >
             {searchable ? (
               <View style={styles.searchBar}>
                 <MagnifyingGlassIcon />
                 <TextInput
+                  ref={searchInputRef}
                   value={searchQuery}
                   onChangeText={setSearchQuery}
                   placeholder={searchPlaceholder}
@@ -184,6 +233,7 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
                   autoCorrect={false}
                   autoCapitalize="none"
                   clearButtonMode="while-editing"
+                  blurOnSubmit
                 />
               </View>
             ) : null}
@@ -191,7 +241,16 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
               nestedScrollEnabled={true}
               keyboardShouldPersistTaps="handled"
               showsVerticalScrollIndicator={true}
-              style={styles.menuScroll}
+              style={[
+                styles.menuScroll,
+                searchable &&
+                  keyboardHeight > 0 && {
+                    maxHeight: Math.max(
+                      100,
+                      220 - Math.min(keyboardHeight * 0.35, 100),
+                    ),
+                  },
+              ]}
             >
               {filteredOptions.length === 0 ? (
                 <Text style={styles.emptySearchText}>{emptySearchText}</Text>

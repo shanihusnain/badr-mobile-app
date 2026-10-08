@@ -26,6 +26,7 @@ import Header from "@/components/Header";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import { setPendingOnboardingRoute } from "@/src/storage/onboardingRouteStorage";
+import { GoalProgressCard } from "./components/GoalProgressCard";
 
 export const SetPersonalizedGoalsScreen = () => {
   const { t, i18n } = useTranslation();
@@ -131,7 +132,7 @@ export const SetPersonalizedGoalsScreen = () => {
                 {t("setpersonalizedgoals.howItWorks")}
               </Text>
             </View>
-            {/* {activeFrame === 1 && (
+            {activeFrame === 1 && (
               <GoalProgressCard
                 currentDay={28}
                 totalDays={28}
@@ -139,7 +140,7 @@ export const SetPersonalizedGoalsScreen = () => {
                 overallProgress={100}
                 animate
               />
-            )} */}
+            )}
             <TopSpace top={20} />
             <Text style={styles.descriptionText}>
               {t("setpersonalizedgoals.setPersonalizedDescription")}
