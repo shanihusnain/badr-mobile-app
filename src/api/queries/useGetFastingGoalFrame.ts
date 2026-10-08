@@ -17,6 +17,8 @@ export type FastingGoalFrameDayState =
   | "MISSED"
   | "EXCUSED"
   | "MENSTRUATING"
+  | "COVERED_EARLY"
+  | "MADE_UP"
   | string;
 
 export type FastingGoalFrameDay = {
@@ -31,6 +33,10 @@ export type FastingGoalFrameDay = {
   startTime?: string | null;
   endTime?: string | null;
   durationMinutes?: number | null;
+  /** Missed Ramadan: planned date this kept day covers */
+  coversDate?: string | null;
+  /** Missed Ramadan: day the make-up/early fast was kept */
+  keptOn?: string | null;
 };
 
 export type FastingGoalFramePill = {
@@ -44,6 +50,10 @@ export type FastingGoalFrameItem = {
   canLog?: boolean;
   insightsAvailable?: boolean;
   loggableDates?: string[];
+  /** Missed Ramadan: future planned dates that can still be fasted early */
+  earlyLoggableDates?: string[];
+  /** Missed Ramadan: missed planned dates that can still be made up */
+  makeUpLoggableDates?: string[];
 };
 
 export type FastingGoalFrameGoal = {
@@ -57,6 +67,7 @@ export type FastingGoalFrameGoal = {
   remaining?: number | null;
   achievementPct?: number | null;
   status?: FastingGoalFrameStatus | null;
+  justCompleted?: boolean;
 };
 
 export type FastingGoalFrameStreak = {
@@ -123,6 +134,10 @@ export const getFastingGoalFrame = async (
     {
       params: week != null ? { week } : undefined,
     },
+  );
+  console.log(
+    "response of the fasting goal frame api",
+    JSON.stringify(response.data, null, 2),
   );
   return response.data?.data ?? null;
 };

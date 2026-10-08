@@ -36,7 +36,9 @@ export function getProgressGlow(percent: number) {
   if (percent >= 67) {
     return { glow: neonPaint(Colors.light.gold), radius: 8 };
   }
-  if (percent >= 34) {
+  // 1–66%: bluish silver. Pure white bloom disappears on dark/hero backgrounds
+  // (e.g. White Days at 33% = 1/3 completed).
+  if (percent > 0) {
     return { glow: neonPaint(FIGMA_RING_GLOW_BLUE), radius: 10 };
   }
   return { glow: neonPaint(Colors.light.white), radius: 8 };

@@ -8,7 +8,6 @@ import {
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Colors } from "@/constants/theme";
 import { FastingFlowCardRamadanCalender } from "@/assets/icons/FastingFlowCardRamadanCalender";
 import { FastingDashboardIcon } from "@/assets/icons/FastingDashboardIcon";
@@ -16,31 +15,48 @@ import { GoalData } from "../../home/components/goalsData";
 import { FlowCard } from "../components/FlowCard";
 import { FlowDropdownSelect } from "../components/FlowDropdownSelect";
 import { StartTimeStep } from "../components/TimePickerSteps";
-import { MissedRamadanFastsInsightsModal } from "../components/MissedRamadanFastsInsightsModal";
 import { styles as commonStyles } from "../components/DailyProgressLogging.styles";
 import { fonts } from "@/assets/fonts";
 import { isValidStartTime } from "../quranRecitationTarget";
 import {
   formatMissedRamadanFastDateLabel,
-  formatMissedRamadanFastTimeLabel,
-  getActualEarlyFastDateOptions,
-  getFuturePlannedFastOptions,
-  getMissedRamadanFastGoalTarget,
-  getMissedRamadanFastInsights,
-  getPendingPlannedFastOptions,
-  getSkippedFastOptions,
   getTodayDateString,
-  getAvailableMissedRamadanFastLogTypes,
-  hasMissedRamadanFastLoggingAvailable,
   isActualDateBeforePlannedDate,
   isMissedRamadanFastEndTimeAfterStartTime,
-  isMissedRamadanFastGoalCompleted,
-  isMissedRamadanFastPlannedDate,
-  submitMissedRamadanFastBranchLog,
   type MissedRamadanFastDateOption,
   type MissedRamadanFastLogType,
 } from "../missedRamadanFastsData";
 import type { MissedRamadanFastsLogEntry } from "../types";
+import { useOptionalFastingGoalFrameContext } from "../fastingGoalFrameContext";
+import { useGetFastingLoggableDates } from "@/src/api/queries/useGetFastingLoggableDates";
+import { useLogFastingGoal } from "@/src/api/mutations/useLogFastingGoal";
+import {
+  fastingFrameShowsInsights,
+  getFastingFrameAchievementLabel,
+  getFastingFrameAchievementPct,
+} from "@/src/utils/fastingGoalFrameMap";
+
+function toDateOptions(dates: string[]): MissedRamadanFastDateOption[] {
+  return [...dates]
+    .map((date) => String(date).slice(0, 10))
+    .filter(Boolean)
+    .sort()
+    .map((date) => ({ id: date, date }));
+}
+
+function formatTimeForApi(
+  hour: string,
+  minute: string,
+  period: "am" | "pm",
+): string {
+  const hourNum = Number.parseInt(hour || "0", 10) || 0;
+  const minuteNum = Number.parseInt(minute || "0", 10) || 0;
+  let hour24 = hourNum % 12;
+  if (period === "pm") hour24 += 12;
+  return `${String(Math.max(0, hour24)).padStart(2, "0")}:${String(
+    Math.max(0, minuteNum),
+  ).padStart(2, "0")}`;
+}
 
 type MissedRamadanFastsStepId =
   | "logType"
@@ -85,10 +101,27 @@ export default function MissedRamadanFastsLoggingFlow({
   onDropdownOpenChange,
 }: Props) {
   const { t } = useTranslation();
+  const fastingFrame = useOptionalFastingGoalFrameContext();
+  const frame = fastingFrame?.frame;
+  const frameItem = frame?.items?.[0];
+  const { mutateAsync: logFast, isPending: isLogging } = useLogFastingGoal();
+
+  /** Planned-side lists come from the frame; keep-on days still need loggable-dates. */
+  const frameLoggableDates = frameItem?.loggableDates;
+  const frameEarlyLoggableDates = frameItem?.earlyLoggableDates;
+  const frameMakeUpLoggableDates = frameItem?.makeUpLoggableDates;
+
+  const earlyKeepDays = useGetFastingLoggableDates("MISSED_RAMADAN", {
+    mode: "EARLIER_THAN_PLANNED",
+    enabled: (frameEarlyLoggableDates?.length ?? 0) > 0,
+  });
+  const makeUpKeepDays = useGetFastingLoggableDates("MISSED_RAMADAN", {
+    mode: "MAKE_UP",
+    enabled: (frameMakeUpLoggableDates?.length ?? 0) > 0,
+  });
+
   const [flowMode, setFlowMode] = useState<FlowMode>("collapsed");
   const [stepIndex, setStepIndex] = useState(0);
-  const [refreshKey, setRefreshKey] = useState(0);
-  const [insightsVisible, setInsightsVisible] = useState(false);
   const [logType, setLogType] = useState<MissedRamadanFastLogType | null>(null);
   const [selectedPlannedFastId, setSelectedPlannedFastId] = useState<
     string | null
@@ -150,18 +183,18 @@ export default function MissedRamadanFastsLoggingFlow({
   const today = getTodayDateString();
 
   const futurePlannedOptions = useMemo(
-    () => getFuturePlannedFastOptions(),
-    [refreshKey, flowMode],
+    () => toDateOptions(frameEarlyLoggableDates ?? []),
+    [frameEarlyLoggableDates],
   );
 
   const pendingPlannedOptions = useMemo(
-    () => getPendingPlannedFastOptions(),
-    [refreshKey, flowMode],
+    () => toDateOptions(frameLoggableDates ?? []),
+    [frameLoggableDates],
   );
 
   const skippedOptions = useMemo(
-    () => getSkippedFastOptions(),
-    [refreshKey, flowMode],
+    () => toDateOptions(makeUpKeepDays.data?.dates ?? []),
+    [makeUpKeepDays.data?.dates],
   );
 
   const selectedPlannedFast = useMemo(() => {
@@ -179,13 +212,12 @@ export default function MissedRamadanFastsLoggingFlow({
     selectedPlannedFastId,
   ]);
 
-  const actualDateOptions = useMemo(
-    () =>
-      selectedPlannedFast
-        ? getActualEarlyFastDateOptions(selectedPlannedFast.date)
-        : [],
-    [selectedPlannedFast, refreshKey, flowMode],
-  );
+  const actualDateOptions = useMemo(() => {
+    if (!selectedPlannedFast) return [];
+    return toDateOptions(earlyKeepDays.data?.dates ?? []).filter((option) =>
+      isActualDateBeforePlannedDate(option.date, selectedPlannedFast.date),
+    );
+  }, [earlyKeepDays.data?.dates, selectedPlannedFast]);
 
   const selectedActualDate = useMemo(
     () =>
@@ -201,37 +233,66 @@ export default function MissedRamadanFastsLoggingFlow({
     [selectedSkippedDateId, skippedOptions],
   );
 
-  const goalTarget = getMissedRamadanFastGoalTarget();
-  const goalCompleted = isMissedRamadanFastGoalCompleted();
-  const insights = useMemo(
-    () => getMissedRamadanFastInsights(),
-    [refreshKey, goalCompleted],
-  );
+  const goalTarget = frame?.goal?.target ?? goalData.target ?? 0;
+  const goalCompleted =
+    getFastingFrameAchievementPct(frame) >= 100 ||
+    String(frame?.goal?.status ?? "").toUpperCase() === "COMPLETED";
+  const showInsights = frame ? fastingFrameShowsInsights(frame) : false;
 
-  const summaryTitle = t("progressLogging.missedRamadanCardSubtitle", {
-    count: goalTarget,
-  });
+  const availableLogTypes = useMemo(() => {
+    const types: MissedRamadanFastLogType[] = [];
+    if (
+      (frameEarlyLoggableDates?.length ?? 0) > 0 &&
+      (earlyKeepDays.data?.dates?.length ?? 0) > 0
+    ) {
+      types.push("completed_early");
+    }
+    if (
+      (frameMakeUpLoggableDates?.length ?? 0) > 0 &&
+      skippedOptions.length > 0
+    ) {
+      types.push("made_up_skipped");
+    }
+    if (pendingPlannedOptions.length > 0) {
+      types.push("completed_planned");
+    }
+    return types;
+  }, [
+    earlyKeepDays.data?.dates?.length,
+    frameEarlyLoggableDates,
+    frameMakeUpLoggableDates,
+    pendingPlannedOptions.length,
+    skippedOptions.length,
+  ]);
+
+  const canLog =
+    Boolean(frameItem?.canLog) &&
+    availableLogTypes.length > 0 &&
+    !goalCompleted;
+
+  const summaryTitle =
+    frameItem?.title?.trim() ||
+    t("progressLogging.missedRamadanCardSubtitle", {
+      count: goalTarget,
+    });
 
   const badgeStatus = useMemo(() => {
-    if (goalCompleted) {
+    if (!frame) {
       return {
-        text: t("progressLogging.fullyAchieved"),
-        type: "completed" as const,
+        text: t("progressLogging.notStarted"),
+        type: "not-started" as const,
       };
     }
-    return {
-      text: t("progressLogging.inProgress"),
-      type: "in-progress" as const,
-    };
-  }, [goalCompleted, t, refreshKey]);
+    return getFastingFrameAchievementLabel(frame, t);
+  }, [frame, t]);
 
   const logTypeDropdownOptions = useMemo(
     () =>
-      getAvailableMissedRamadanFastLogTypes().map((value) => ({
+      availableLogTypes.map((value) => ({
         value,
         label: t(`progressLogging.missedRamadanLogType_${value}`),
       })),
-    [t, refreshKey, flowMode],
+    [availableLogTypes, t],
   );
 
   const toDropdownOptions = useCallback(
@@ -291,11 +352,11 @@ export default function MissedRamadanFastsLoggingFlow({
   }, []);
 
   useEffect(() => {
-    if (logType && !getAvailableMissedRamadanFastLogTypes().includes(logType)) {
+    if (logType && !availableLogTypes.includes(logType)) {
       setLogType(null);
       setStepIndex(0);
     }
-  }, [logType, refreshKey, flowMode]);
+  }, [availableLogTypes, logType]);
 
   useEffect(() => {
     if (flowMode !== "active" || !logType) return;
@@ -321,21 +382,18 @@ export default function MissedRamadanFastsLoggingFlow({
     if (
       currentStep === "selectActualDate" &&
       !selectedActualDateId &&
-      selectedPlannedFast
+      actualDateOptions[0]
     ) {
-      const options = getActualEarlyFastDateOptions(selectedPlannedFast.date);
-      if (options[0]) {
-        setSelectedActualDateId(options[0].id);
-      }
+      setSelectedActualDateId(actualDateOptions[0].id);
     }
   }, [
+    actualDateOptions,
     currentStep,
     flowMode,
     futurePlannedOptions,
     logType,
     pendingPlannedOptions,
     selectedActualDateId,
-    selectedPlannedFast,
     selectedPlannedFastId,
     selectedSkippedDateId,
     skippedOptions,
@@ -373,8 +431,14 @@ export default function MissedRamadanFastsLoggingFlow({
     );
   }, [actualDateOptions, selectedActualDateId]);
 
-  const handleConfirm = () => {
-    if (!logType || !isStartTimeValid || !isEndTimeValid || !isEndAfterStart) {
+  const handleConfirm = useCallback(() => {
+    if (
+      !logType ||
+      !isStartTimeValid ||
+      !isEndTimeValid ||
+      !isEndAfterStart ||
+      isLogging
+    ) {
       return;
     }
 
@@ -382,87 +446,125 @@ export default function MissedRamadanFastsLoggingFlow({
     const skippedDate = resolveSkippedDateSelection();
     const actualDate = resolveActualDateSelection();
 
-    const startTime = formatMissedRamadanFastTimeLabel(
-      startHour,
-      startMinute,
-      startPeriod,
-    );
-    const endTime = formatMissedRamadanFastTimeLabel(
-      endHour,
-      endMinute,
-      endPeriod,
-    );
+    const startTime = formatTimeForApi(startHour, startMinute, startPeriod);
+    const endTime = formatTimeForApi(endHour, endMinute, endPeriod);
 
-    let result = null;
+    const run = async () => {
+      try {
+        let result;
 
-    if (logType === "completed_early") {
-      if (!plannedFast || !actualDate) return;
-      if (!isActualDateBeforePlannedDate(actualDate.date, plannedFast.date)) {
-        return;
+        if (logType === "completed_early") {
+          if (!plannedFast || !actualDate) return;
+          if (
+            !isActualDateBeforePlannedDate(actualDate.date, plannedFast.date)
+          ) {
+            return;
+          }
+          result = await logFast({
+            fastingType: "MISSED_RAMADAN",
+            date: actualDate.date,
+            startTime,
+            endTime,
+            mode: "EARLIER_THAN_PLANNED",
+            plannedDate: plannedFast.date,
+          });
+        } else if (logType === "made_up_skipped") {
+          if (!skippedDate) return;
+          result = await logFast({
+            fastingType: "MISSED_RAMADAN",
+            date: skippedDate.date,
+            startTime,
+            endTime,
+            mode: "MAKE_UP",
+          });
+        } else if (logType === "completed_planned") {
+          if (!plannedFast) return;
+          result = await logFast({
+            fastingType: "MISSED_RAMADAN",
+            date: plannedFast.date,
+            startTime,
+            endTime,
+          });
+        } else {
+          return;
+        }
+
+        await Promise.all([
+          fastingFrame?.refetch(),
+          earlyKeepDays.refetch(),
+          makeUpKeepDays.refetch(),
+        ]);
+
+        const loggedDate = result.date ?? (
+          logType === "completed_early"
+            ? actualDate?.date
+            : logType === "made_up_skipped"
+              ? skippedDate?.date
+              : plannedFast?.date
+        ) ?? "";
+        const completedCount = Number(result.goal?.completed ?? 0);
+        const target = Number(result.goal?.target ?? goalTarget ?? 0);
+        const remainingCount =
+          result.goal?.remaining != null
+            ? Number(result.goal.remaining)
+            : Math.max(0, target - completedCount);
+
+        onLogComplete?.({
+          type: "missed-ramadan-fasts",
+          goalId: "fasting-ramadan",
+          logType,
+          date: loggedDate,
+          completed: true,
+          startTime: result.startTime ?? startTime,
+          endTime: result.endTime ?? endTime,
+          plannedFastDate:
+            logType === "completed_early" || logType === "completed_planned"
+              ? plannedFast?.date
+              : undefined,
+          actualCompletedDate:
+            logType === "completed_early" ? actualDate?.date : undefined,
+          completedDate:
+            logType === "made_up_skipped" ? skippedDate?.date : undefined,
+          plannedDate: result.plannedDate,
+          reconciledFromPlannedDate: result.plannedDate,
+          goalTarget: target,
+          completedCount,
+          remainingCount,
+          goalCompleted: Number(result.goal?.achievementPct ?? 0) >= 100,
+          wasPlanned: logType === "completed_planned",
+        });
+
+        resetFlow();
+      } catch {
+        // Toast handled in mutation onError.
       }
+    };
 
-      result = submitMissedRamadanFastBranchLog({
-        logType,
-        plannedFastDate: plannedFast.date,
-        actualCompletedDate: actualDate.date,
-        startTime,
-        endTime,
-      });
-    } else if (logType === "made_up_skipped") {
-      if (!skippedDate) return;
-
-      result = submitMissedRamadanFastBranchLog({
-        logType,
-        completedDate: skippedDate.date,
-        startTime,
-        endTime,
-      });
-    } else if (logType === "completed_planned") {
-      if (!plannedFast) return;
-
-      result = submitMissedRamadanFastBranchLog({
-        logType,
-        plannedFastDate: plannedFast.date,
-        startTime,
-        endTime,
-      });
-    }
-
-    if (!result) return;
-
-    setRefreshKey((current) => current + 1);
-
-    const loggedDate = result.date;
-
-    onLogComplete?.({
-      type: "missed-ramadan-fasts",
-      goalId: "fasting-ramadan",
-      logType,
-      date: loggedDate,
-      completed: result.completed,
-      startTime,
-      endTime,
-      plannedFastDate:
-        logType === "completed_early"
-          ? plannedFast?.date
-          : logType === "completed_planned"
-            ? plannedFast?.date
-            : undefined,
-      actualCompletedDate:
-        logType === "completed_early" ? actualDate?.date : undefined,
-      completedDate:
-        logType === "made_up_skipped" ? skippedDate?.date : undefined,
-      plannedDate: result.plannedDate,
-      reconciledFromPlannedDate: result.reconciledFromPlannedDate,
-      goalTarget,
-      completedCount: result.completedCount,
-      remainingCount: result.remainingCount,
-      goalCompleted: result.goalCompleted,
-      wasPlanned: isMissedRamadanFastPlannedDate(loggedDate),
-    });
-
-    resetFlow();
-  };
+    void run();
+  }, [
+    actualDateOptions,
+    earlyKeepDays,
+    endHour,
+    endMinute,
+    endPeriod,
+    fastingFrame,
+    goalTarget,
+    isEndAfterStart,
+    isEndTimeValid,
+    isLogging,
+    isStartTimeValid,
+    logFast,
+    logType,
+    makeUpKeepDays,
+    onLogComplete,
+    resolveActualDateSelection,
+    resolvePlannedFastSelection,
+    resolveSkippedDateSelection,
+    resetFlow,
+    startHour,
+    startMinute,
+    startPeriod,
+  ]);
 
   const handleBack = () => {
     if (stepIndex === 0) {
@@ -517,10 +619,7 @@ export default function MissedRamadanFastsLoggingFlow({
 
     if (currentStep === "selectPlannedFast" && selectedPlannedFast) {
       if (nextStep === "selectActualDate") {
-        const nextActualOptions = getActualEarlyFastDateOptions(
-          selectedPlannedFast.date,
-        );
-        setSelectedActualDateId(nextActualOptions[0]?.id ?? null);
+        setSelectedActualDateId(actualDateOptions[0]?.id ?? null);
       }
       setStepIndex((index) => index + 1);
       return;
@@ -542,14 +641,14 @@ export default function MissedRamadanFastsLoggingFlow({
   };
 
   const handleOpenFlow = useCallback(() => {
-    if (goalCompleted || !hasMissedRamadanFastLoggingAvailable()) return;
+    if (!canLog) return;
     setLogType(null);
     setSelectedPlannedFastId(null);
     setSelectedActualDateId(null);
     setSelectedSkippedDateId(null);
     setStepIndex(0);
     setFlowMode("active");
-  }, [goalCompleted]);
+  }, [canLog]);
 
   const getStepHeader = (step: MissedRamadanFastsStepId) => {
     const calendarIcon = (
@@ -747,6 +846,7 @@ export default function MissedRamadanFastsLoggingFlow({
 
   const canConfirm =
     isLastStep &&
+    !isLogging &&
     isStartTimeValid &&
     isEndTimeValid &&
     isEndAfterStart &&
@@ -800,7 +900,9 @@ export default function MissedRamadanFastsLoggingFlow({
                     localStyles.badge,
                     badgeStatus.type === "completed"
                       ? localStyles.badgeCompleted
-                      : localStyles.badgeInProgress,
+                      : badgeStatus.type === "not-started"
+                        ? localStyles.badgeNotStarted
+                        : localStyles.badgeInProgress,
                     { alignSelf: "flex-start", marginBottom: 4 },
                   ]}
                 >
@@ -809,7 +911,9 @@ export default function MissedRamadanFastsLoggingFlow({
                       localStyles.badgeText,
                       badgeStatus.type === "completed"
                         ? localStyles.badgeTextCompleted
-                        : localStyles.badgeTextInProgress,
+                        : badgeStatus.type === "not-started"
+                          ? localStyles.badgeTextNotStarted
+                          : localStyles.badgeTextInProgress,
                     ]}
                   >
                     {badgeStatus.text}
@@ -820,10 +924,10 @@ export default function MissedRamadanFastsLoggingFlow({
             </View>
 
             <View style={localStyles.footerRow}>
-              {goalCompleted ? (
+              {showInsights ? (
                 <TouchableOpacity
                   style={localStyles.insightsBtn}
-                  onPress={() => setInsightsVisible(true)}
+                  onPress={() => fastingFrame?.openInsights?.()}
                   activeOpacity={0.8}
                 >
                   <Text style={localStyles.insightsText}>
@@ -839,12 +943,11 @@ export default function MissedRamadanFastsLoggingFlow({
                 <View style={localStyles.spacer} />
               )}
 
-              {!goalCompleted ? (
+              {canLog ? (
                 <TouchableOpacity
                   style={localStyles.addButton}
                   onPress={handleOpenFlow}
                   activeOpacity={0.8}
-                  disabled={!hasMissedRamadanFastLoggingAvailable()}
                 >
                   <Ionicons name="add" size={22} color={Colors.light.white} />
                 </TouchableOpacity>
@@ -882,11 +985,6 @@ export default function MissedRamadanFastsLoggingFlow({
         )}
       </View>
 
-      <MissedRamadanFastsInsightsModal
-        visible={insightsVisible}
-        insights={insights}
-        onClose={() => setInsightsVisible(false)}
-      />
     </View>
   );
 }
@@ -906,6 +1004,9 @@ const localStyles = StyleSheet.create({
     borderRadius: 4,
     marginTop: -6,
   },
+  badgeNotStarted: {
+    backgroundColor: Colors.light.paginationInactiveDot,
+  },
   badgeInProgress: {
     backgroundColor: Colors.light.lightpurple,
   },
@@ -916,6 +1017,9 @@ const localStyles = StyleSheet.create({
     fontFamily: fonts.primary.semiBold,
     fontSize: 10,
     fontWeight: "600",
+  },
+  badgeTextNotStarted: {
+    color: Colors.light.notStartedTextColor,
   },
   badgeTextInProgress: {
     color: Colors.light.darkblue,

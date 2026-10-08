@@ -88,6 +88,7 @@ import {
   clampMissedRamadanFastWeekIndex,
   getMissedRamadanFastCycleSummary,
   getMissedRamadanFastTodayIndexInWeek,
+  type MissedRamadanFastWeekSummary,
 } from "../missedRamadanFastsWeeklyData";
 import {
   canNavigateMondayThursdayFastWeek,
@@ -114,6 +115,7 @@ import { useOptionalFastingGoalFrameContext } from "../fastingGoalFrameContext";
 import {
   canNavigateFastingFrameWeekNext,
   getFastingFrameTodayIndex,
+  mapMissedRamadanFrameWeekSummary,
   mapWhiteDaysFrameWeekSummary,
 } from "@/src/utils/fastingGoalFrameMap";
 import type { FastingGoalFrameData } from "@/src/api/queries/useGetFastingGoalFrame";
@@ -323,6 +325,19 @@ const WHITE_DAYS_LOADING_WEEK_SUMMARY: WhiteDaysFastWeekSummary = {
   monthlyStreak: 0,
   motivationalQuoteKey: "upcoming",
   motivationalQuote: "---",
+};
+
+const MISSED_RAMADAN_LOADING_WEEK_SUMMARY: MissedRamadanFastWeekSummary = {
+  weekDays: [],
+  weekRangeLabel: "---",
+  weekFraction: "---",
+  weekIndex: 0,
+  completedFastsThisWeek: 0,
+  streakDays: 0,
+  previousWeekCompletedCount: 0,
+  upcomingPlannedThisWeek: 0,
+  motivationalQuote: "---",
+  showPreviousWeekStat: false,
 };
 
 function getFastingFrameActiveWeek(
@@ -1338,27 +1353,73 @@ export function WeeklyProgressSection({
       />
     );
   }
-  if (template === "missed-ramadan-fasts" && missedRamadanWeek) {
-    const missedRamadanTodayIndex = getMissedRamadanFastTodayIndexInWeek(
-      missedRamadanWeek.weekDays,
-    );
+  if (template === "missed-ramadan-fasts") {
+    const frame = fastingFrame?.frame;
+    if (fastingFrame) {
+      const frameLoading = isFastingFrameDashboardLoading(fastingFrame, frame);
 
-    return (
-      <MissedRamadanFastsWeeklyProgressDashboard
-        weekSummary={missedRamadanWeek}
-        selectedDayIndex={missedRamadanTodayIndex}
-        onPrevWeek={
-          canNavigateMissedRamadanFastWeek(weekIndex, "prev")
-            ? handleMissedRamadanPrevWeek
-            : undefined
-        }
-        onNextWeek={
-          canNavigateMissedRamadanFastWeek(weekIndex, "next")
-            ? handleMissedRamadanNextWeek
-            : undefined
-        }
-      />
-    );
+      if (frame) {
+        const missedRamadanWeekFromFrame =
+          mapMissedRamadanFrameWeekSummary(frame);
+        const canPrev =
+          frame.week.hasPrevious ??
+          getFastingFrameActiveWeek(fastingFrame, frame) > 1;
+        const canNext = canNavigateFastingFrameWeekNext(frame);
+
+        return (
+          <MissedRamadanFastsWeeklyProgressDashboard
+            weekSummary={missedRamadanWeekFromFrame}
+            selectedDayIndex={getFastingFrameTodayIndex(frame)}
+            onDeleted={onDeleted}
+            loading={frameLoading}
+            onPrevWeek={
+              canPrev
+                ? () => shiftFastingFrameWeek(fastingFrame, frame, -1)
+                : undefined
+            }
+            onNextWeek={
+              canNext
+                ? () => shiftFastingFrameWeek(fastingFrame, frame, 1)
+                : undefined
+            }
+          />
+        );
+      }
+
+      if (!fastingFrame.isError) {
+        return (
+          <MissedRamadanFastsWeeklyProgressDashboard
+            weekSummary={MISSED_RAMADAN_LOADING_WEEK_SUMMARY}
+            selectedDayIndex={0}
+            loading
+          />
+        );
+      }
+    }
+
+    if (missedRamadanWeek) {
+      const missedRamadanTodayIndex = getMissedRamadanFastTodayIndexInWeek(
+        missedRamadanWeek.weekDays,
+      );
+
+      return (
+        <MissedRamadanFastsWeeklyProgressDashboard
+          weekSummary={missedRamadanWeek}
+          selectedDayIndex={missedRamadanTodayIndex}
+          onDeleted={onDeleted}
+          onPrevWeek={
+            canNavigateMissedRamadanFastWeek(weekIndex, "prev")
+              ? handleMissedRamadanPrevWeek
+              : undefined
+          }
+          onNextWeek={
+            canNavigateMissedRamadanFastWeek(weekIndex, "next")
+              ? handleMissedRamadanNextWeek
+              : undefined
+          }
+        />
+      );
+    }
   }
 
   if (template === "monday-thursday-fasts" && mondayThursdayWeek) {

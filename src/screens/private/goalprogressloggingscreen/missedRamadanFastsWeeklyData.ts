@@ -24,6 +24,8 @@ export type MissedRamadanFastDayProgress = {
   state: MissedRamadanFastDayState;
   isToday: boolean;
   isSelected?: boolean;
+  /** Frame API: kept-day logs can be undone via DELETE …/log?date= */
+  canDelete?: boolean;
 };
 
 export type MissedRamadanFastWeekSummary = {

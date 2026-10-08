@@ -17,9 +17,13 @@ export function invalidateFastingCaches(
     queryClient.invalidateQueries({
       queryKey: ["fasting-goal-insights", fastingType],
     });
+    queryClient.invalidateQueries({
+      queryKey: ["fasting-loggable-dates", fastingType],
+    });
   } else {
     queryClient.invalidateQueries({ queryKey: ["fasting-goal-frame"] });
     queryClient.invalidateQueries({ queryKey: ["fasting-goal-insights"] });
+    queryClient.invalidateQueries({ queryKey: ["fasting-loggable-dates"] });
   }
 
   queryClient.invalidateQueries({ queryKey: ["all-fasting-goals"] });

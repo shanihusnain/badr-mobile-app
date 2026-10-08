@@ -1,16 +1,17 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
+  Pressable,
   StyleSheet,
   useWindowDimensions,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTranslation } from "react-i18next";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
+import { BinIcon } from "@/assets/icons";
 import { FastingDashboardIcon } from "@/assets/icons/FastingDashboardIcon";
 import { DashBoardCalenderIcon } from "@/assets/icons/DashBoardCalenderIcon";
 import { FlashIcon } from "@/assets/icons/FlashIcon";
@@ -23,13 +24,18 @@ import {
   missedRamadanDayLabelStyles,
   shouldShowTodayLabelBackground,
 } from "./missedRamadanFastDayStyles";
-//import { DashBoardCalenderIcon } from "@/assets/icons/DashBoardCalenderIcon";
+import { useDeleteFastingLog } from "@/src/api/mutations/useDeleteFastingLog";
+
 export type MissedRamadanFastsWeeklyProgressDashboardProps = {
   weekSummary: MissedRamadanFastWeekSummary;
   selectedDayIndex?: number | null;
   onDayPress?: (index: number) => void;
   onPrevWeek?: () => void;
   onNextWeek?: () => void;
+  /** Frame / week fetch in progress */
+  loading?: boolean;
+  /** Called after a kept-day log is deleted so the parent can refresh. */
+  onDeleted?: () => void;
 };
 
 const CARD_HORIZONTAL_PADDING = 16;
@@ -52,9 +58,14 @@ export function MissedRamadanFastsWeeklyProgressDashboard({
   onDayPress,
   onPrevWeek,
   onNextWeek,
+  loading = false,
+  onDeleted,
 }: MissedRamadanFastsWeeklyProgressDashboardProps) {
   const { t, i18n } = useTranslation();
   const { width: screenWidth } = useWindowDimensions();
+  const { mutate: deleteFastLog, isPending: isDeletingLog } =
+    useDeleteFastingLog();
+  const [selectForDeletion, setSelectForDeletion] = useState("");
 
   const todayIndexInWeek = useMemo(
     () => getMissedRamadanFastTodayIndexInWeek(weekSummary.weekDays),
@@ -72,6 +83,10 @@ export function MissedRamadanFastsWeeklyProgressDashboard({
     setActiveDayIndex(resolvedSelectedIndex);
   }, [weekSummary.weekIndex, resolvedSelectedIndex]);
 
+  useEffect(() => {
+    setSelectForDeletion("");
+  }, [weekSummary.weekIndex, weekSummary.weekRangeLabel]);
+
   const availableWidth =
     screenWidth * WRAPPER_WIDTH_RATIO - CARD_HORIZONTAL_PADDING;
   const ringSize = Math.min(
@@ -79,10 +94,20 @@ export function MissedRamadanFastsWeeklyProgressDashboard({
     Math.floor((availableWidth / 7) * 0.62),
   );
 
-  const handleDayPress = (index: number) => () => {
-    setActiveDayIndex(index);
-    onDayPress?.(index);
-  };
+  const handleDeleteLog = useCallback(
+    (date: string) => {
+      deleteFastLog(
+        { fastingType: "MISSED_RAMADAN", date },
+        {
+          onSuccess: () => {
+            setSelectForDeletion("");
+            onDeleted?.();
+          },
+        },
+      );
+    },
+    [deleteFastLog, onDeleted],
+  );
 
   const currentDayIndex =
     selectedDayIndex !== undefined ? selectedDayIndex : activeDayIndex;
@@ -91,12 +116,10 @@ export function MissedRamadanFastsWeeklyProgressDashboard({
     <View style={styles.card}>
       <View style={styles.headerRow}>
         <View style={styles.headerLeft}>
-          <DashBoardCalenderIcon
-            size={20}
-            color={Colors.light.subtext}
-          />
+          <DashBoardCalenderIcon size={20} color={Colors.light.subtext} />
           <Text style={styles.weekFractionText} numberOfLines={1}>
-            {weekSummary.weekFraction} {t("homeScreen.weeklyProgress_weeks")}
+            {loading ? "---" : weekSummary.weekFraction}{" "}
+            {t("homeScreen.weeklyProgress_weeks")}
           </Text>
         </View>
 
@@ -105,6 +128,7 @@ export function MissedRamadanFastsWeeklyProgressDashboard({
             onPress={onPrevWeek}
             activeOpacity={0.7}
             style={styles.navBtn}
+            disabled={loading || !onPrevWeek}
           >
             <Ionicons
               name={i18n.language === "ar" ? "chevron-forward" : "chevron-back"}
@@ -113,12 +137,13 @@ export function MissedRamadanFastsWeeklyProgressDashboard({
             />
           </TouchableOpacity>
           <Text style={styles.weekRangeText} numberOfLines={1}>
-            {weekSummary.weekRangeLabel}
+            {loading ? "---" : weekSummary.weekRangeLabel}
           </Text>
           <TouchableOpacity
             onPress={onNextWeek}
             activeOpacity={0.7}
             style={styles.navBtn}
+            disabled={loading || !onNextWeek}
           >
             <Ionicons
               name={i18n.language === "ar" ? "chevron-back" : "chevron-forward"}
@@ -133,13 +158,35 @@ export function MissedRamadanFastsWeeklyProgressDashboard({
         {weekSummary.weekDays.map((day, index) => {
           const isSelected =
             currentDayIndex !== null && index === currentDayIndex;
+          const isMarkedForDeletion =
+            !!day.date && selectForDeletion === day.date;
+          const canDeleteDay =
+            day.canDelete !== false && day.state === "completed" && !!day.date;
 
           return (
             <TouchableOpacity
               key={`${day.day}-${day.date}`}
-              style={styles.dayColumn}
-              onPress={handleDayPress(index)}
-              activeOpacity={0.75}
+              style={[
+                styles.dayColumn,
+                isMarkedForDeletion && styles.dayColumnMarkedForDeletion,
+              ]}
+              onPress={() => {
+                if (loading) return;
+                if (selectForDeletion) {
+                  setSelectForDeletion("");
+                  return;
+                }
+                setActiveDayIndex(index);
+                onDayPress?.(index);
+              }}
+              onLongPress={() => {
+                if (loading || !canDeleteDay) return;
+                setSelectForDeletion((prev) =>
+                  prev === day.date ? "" : day.date,
+                );
+              }}
+              activeOpacity={loading ? 1 : 0.75}
+              disabled={loading}
             >
               <View style={styles.dayItemWrapper}>
                 <MissedRamadanFastDayRing size={ringSize} state={day.state} />
@@ -147,7 +194,7 @@ export function MissedRamadanFastsWeeklyProgressDashboard({
                   style={[
                     missedRamadanDayLabelStyles.dayLabelWrapper,
                     shouldShowTodayLabelBackground(day) &&
-                    missedRamadanDayLabelStyles.dayLabelTodayBackground,
+                      missedRamadanDayLabelStyles.dayLabelTodayBackground,
                   ]}
                 >
                   <Text
@@ -161,20 +208,29 @@ export function MissedRamadanFastsWeeklyProgressDashboard({
                   </Text>
                 </View>
               </View>
+              {isMarkedForDeletion ? (
+                <Pressable
+                  style={styles.deleteButton}
+                  disabled={isDeletingLog}
+                  onPress={() => {
+                    if (!day.date || isDeletingLog) return;
+                    handleDeleteLog(day.date);
+                  }}
+                >
+                  <BinIcon />
+                </Pressable>
+              ) : null}
             </TouchableOpacity>
           );
         })}
       </View>
       <View style={styles.statsRow}>
-        <FastingDashboardIcon
-          size={22}
-          color={Colors.light.seagreen}
-        />
+        <FastingDashboardIcon size={22} color={Colors.light.seagreen} />
         <Text style={styles.statsText} numberOfLines={1}>
           <Text style={styles.statsCount}>
-            {weekSummary.completedFastsThisWeek}
+            {loading ? "---" : weekSummary.completedFastsThisWeek}
           </Text>{" "}
-          {t("progressLogging.missedRamadanWeeklyTotalFasts")}
+          {loading ? "" : t("progressLogging.missedRamadanWeeklyTotalFasts")}
         </Text>
       </View>
 
@@ -182,13 +238,15 @@ export function MissedRamadanFastsWeeklyProgressDashboard({
         <View style={styles.streakBadge}>
           <FlashIcon size={13} color={Colors.light.ringRamadan} />
           <Text style={styles.streakText}>
-            {t("progressLogging.missedRamadanWeeklyStreak", {
-              count: weekSummary.streakDays,
-            })}
+            {loading
+              ? "---"
+              : t("progressLogging.missedRamadanWeeklyStreak", {
+                  count: weekSummary.streakDays,
+                })}
           </Text>
         </View>
 
-        {weekSummary.showPreviousWeekStat ? (
+        {!loading && weekSummary.showPreviousWeekStat ? (
           <View style={styles.streakBadge}>
             <Ionicons name="caret-down" size={13} color={Colors.light.grey} />
             <Text style={styles.previousWeekText}>
@@ -200,11 +258,10 @@ export function MissedRamadanFastsWeeklyProgressDashboard({
         ) : null}
 
         <View style={styles.quoteBlock}>
-          <ShootIcon
-            size={14}
-            Color={Colors.light.seagreen}
-          />
-          <Text style={styles.quoteText}>{weekSummary.motivationalQuote}</Text>
+          <ShootIcon size={14} Color={Colors.light.seagreen} />
+          <Text style={styles.quoteText}>
+            {loading ? "---" : weekSummary.motivationalQuote}
+          </Text>
         </View>
       </View>
     </View>
@@ -256,17 +313,39 @@ const styles = StyleSheet.create({
   daysRow: {
     flexDirection: "row",
     alignItems: "flex-start",
+    paddingBottom: 10,
   },
   dayColumn: {
     flex: 1,
     alignItems: "center",
     minWidth: 0,
+    borderWidth: 1,
+    borderColor: "transparent",
+    borderRadius: 6,
+    paddingBottom: 4,
+  },
+  dayColumnMarkedForDeletion: {
+    borderColor: Colors.light.red,
+    backgroundColor: Colors.light.dullRed,
+    zIndex: 99999,
   },
   dayItemWrapper: {
     alignItems: "center",
     paddingVertical: 2,
     paddingHorizontal: 1,
     minWidth: 0,
+  },
+  deleteButton: {
+    height: 20,
+    width: 24,
+    backgroundColor: Colors.light.red,
+    borderRadius: 5,
+    zIndex: 1000,
+    alignSelf: "center",
+    justifyContent: "center",
+    alignItems: "center",
+    position: "absolute",
+    bottom: -10,
   },
   statsRow: {
     flexDirection: "row",
