@@ -417,6 +417,8 @@
     "witrDescLine2": "كل ليلة من ليالي القيام المستهدفة.",
     "save": "حفظ",
     "missedPrayersTitle": "حدد إجمالي الأيام لحساب الصلوات المستهدفة لهذا الشهر",
+    "missedPrayersDaysLabel_one": " يوم",
+    "missedPrayersDaysLabel_other": " أيام",
     "missedPrayersSuffix_one": " صلاة فائتة سابقة",
     "missedPrayersSuffix_other": " صلوات فائتة سابقة",
     "dailyPrayersTitle": "التزم بأداء الصلوات الخمس المفروضة في وقتها هذا الشهر",

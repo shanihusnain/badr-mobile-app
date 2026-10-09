@@ -462,6 +462,8 @@
     "witrDescLine2": "for each of your target Qiyam nights.",
     "save": "Save",
     "missedPrayersTitle": "Set the total days to calculate target prayers for this month",
+    "missedPrayersDaysLabel_one": " day",
+    "missedPrayersDaysLabel_other": " days",
     "missedPrayersSuffix_one": " missed past prayer",
     "missedPrayersSuffix_other": " missed past prayers",
     "dailyPrayersTitle": "Commit to praying all five daily prayers on time this month",
