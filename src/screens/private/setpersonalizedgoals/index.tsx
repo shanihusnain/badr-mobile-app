@@ -103,9 +103,10 @@ export const SetPersonalizedGoalsScreen = () => {
 
   const handleSkipTutorial = useCallback(() => {
     // Open the full-screen goal planner with the cycle tab selected.
+
     router.push({
-      pathname: "/(private)/goalplanner",
-      params: { tab: "cycle" },
+      pathname: "/(private)/monthlygoalplanner",
+      // params: { tab: "cycle" },
     });
   }, []);
 
