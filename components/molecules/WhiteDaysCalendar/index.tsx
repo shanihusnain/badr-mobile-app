@@ -4,7 +4,7 @@
  */
 
 import { Colors } from "@/constants/theme";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import moment from "moment-hijri";
 import { fonts } from "@/assets/fonts";
@@ -128,31 +128,33 @@ export const WhiteDaysCalendar = ({
     ]);
   }, [overlayMissedDates, overlayMonThuDates, overlayDawoodDates]);
 
-  const seedSelectedDates = useMemo(() => {
+  const selectedDatesKey = useMemo(
+    () =>
+      (initialSelectedDates ?? calendarWindow?.whiteDaysPlannedDates ?? [])
+        .slice()
+        .sort()
+        .join(","),
+    [initialSelectedDates, calendarWindow?.whiteDaysPlannedDates],
+  );
+
+  const selectedDates = useMemo(() => {
     const seed =
       initialSelectedDates ??
       calendarWindow?.whiteDaysPlannedDates ??
       [];
-    // Drop any seed dates that are now occupied by another goal
-    return seed.filter((ds) => !occupiedByOtherGoals.has(ds));
-  }, [
-    initialSelectedDates,
-    calendarWindow?.whiteDaysPlannedDates,
-    occupiedByOtherGoals,
-  ]);
+    return new Set(seed.filter((ds) => !occupiedByOtherGoals.has(ds)));
+  }, [selectedDatesKey, occupiedByOtherGoals]);
 
-  const [selectedDates, setSelectedDates] = useState<Set<string>>(
-    () => new Set(seedSelectedDates),
-  );
+  const isControlled = Boolean(onDatesChange);
 
-  useEffect(() => {
-    setSelectedDates(new Set(seedSelectedDates));
-  }, [seedSelectedDates]);
-
-  useEffect(() => {
-    onDatesChange?.(Array.from(selectedDates));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDates]);
+  const updateSelectedDates = (next: Set<string>) => {
+    const arr = Array.from(next);
+    if (isControlled) {
+      onDatesChange?.(arr);
+      return;
+    }
+    onSave?.(arr);
+  };
 
   const legendItems = useMemo(
     () =>
@@ -163,6 +165,10 @@ export const WhiteDaysCalendar = ({
   );
 
   const selectedCount = selectedDates.size;
+  const selectedDatesArr = useMemo(
+    () => Array.from(selectedDates),
+    [selectedDatesKey, occupiedByOtherGoals],
+  );
 
   return (
     <View style={styles.wrapper}>
@@ -216,7 +222,7 @@ export const WhiteDaysCalendar = ({
         monThuDates={overlayMonThuDates}
         dawoodDates={overlayDawoodDates}
         conflictDates={collisionDates}
-        selectedDates={Array.from(selectedDates)}
+        selectedDates={selectedDatesArr}
         dimInactiveDays={dimInactiveDays}
         onDayPress={
           readOnly
@@ -226,12 +232,10 @@ export const WhiteDaysCalendar = ({
                 if (occupiedByOtherGoals.has(ds) && !selectedDates.has(ds)) {
                   return;
                 }
-                setSelectedDates((prev) => {
-                  const next = new Set(Array.from(prev));
-                  if (next.has(ds)) next.delete(ds);
-                  else next.add(ds);
-                  return next;
-                });
+                const next = new Set(selectedDates);
+                if (next.has(ds)) next.delete(ds);
+                else next.add(ds);
+                updateSelectedDates(next);
               }
         }
       />
@@ -254,7 +258,7 @@ export const WhiteDaysCalendar = ({
               styles.saveBtn,
               selectedCount === 0 && styles.saveBtnDisabled,
             ]}
-            onPress={() => onSave?.(Array.from(selectedDates))}
+            onPress={() => onSave?.(selectedDatesArr)}
             activeOpacity={0.8}
             disabled={selectedCount === 0}
           >

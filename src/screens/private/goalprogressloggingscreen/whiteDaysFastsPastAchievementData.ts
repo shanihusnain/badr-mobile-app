@@ -138,6 +138,11 @@ function countWhiteDaysInRange(start: string, end: string): number {
   return getWhiteDayDatesInRange(start, end).length;
 }
 
+/** Past white days in range that were not completed (inferred misses). */
+function countMissedInRange(start: string, end: string): number {
+  return getMissedDatesInRange(start, end, getTodayDateString()).length;
+}
+
 function countCompletedInRange(start: string, end: string): number {
   return getWhiteDayDatesInRange(start, end).filter((date) =>
     isWhiteDaysFastCompletedDate(date),
@@ -239,8 +244,13 @@ function buildMonthlyGregorianPeriods(
   for (let index = monthCount - 1; index >= 0; index -= 1) {
     const monthStart = shiftMonth(endMonthStart, -index);
     const monthEnd = getMonthEnd(monthStart);
-    const whiteDayCount = countWhiteDaysInRange(monthStart, monthEnd);
     const completed = countCompletedInRange(monthStart, monthEnd);
+    const timeSpentMinutes = sumTimeSpentMinutesInRange(monthStart, monthEnd);
+    // Only count misses in buckets that have real activity — empty months stay 0/0.
+    const incomplete =
+      completed > 0 || timeSpentMinutes > 0
+        ? countMissedInRange(monthStart, monthEnd)
+        : 0;
 
     periods.push({
       xLabel: `m${periods.length + 1}`,
@@ -248,8 +258,8 @@ function buildMonthlyGregorianPeriods(
       startDate: monthStart,
       endDate: monthEnd,
       completed,
-      incomplete: Math.max(0, whiteDayCount - completed),
-      timeSpentMinutes: sumTimeSpentMinutesInRange(monthStart, monthEnd),
+      incomplete,
+      timeSpentMinutes,
     });
   }
 
@@ -282,11 +292,30 @@ function buildPeriodSlice(
   const monthCount = getPeriodMonthCount(period);
   const targetFasts = countWhiteDaysInRange(periodStart, periodEnd);
   const completedFasts = countCompletedInRange(periodStart, periodEnd);
-  const incompleteFasts = Math.max(0, targetFasts - completedFasts);
-  const achievementPercent = Math.min(
-    100,
-    Math.round((completedFasts / Math.max(targetFasts, 1)) * 100),
-  );
+  const hasLoggedActivity =
+    completedFasts > 0 ||
+    chartPeriods.some((p) => p.completed > 0 || p.timeSpentMinutes > 0);
+
+  // No completed/time logs → clear chart stacks so UI shows empty graph (no
+  // fabricated incomplete bars from unlogged white-day targets).
+  const resolvedChartPeriods = hasLoggedActivity
+    ? chartPeriods
+    : chartPeriods.map((periodItem) => ({
+        ...periodItem,
+        completed: 0,
+        incomplete: 0,
+        timeSpentMinutes: 0,
+      }));
+
+  const incompleteFasts = hasLoggedActivity
+    ? countMissedInRange(periodStart, periodEnd)
+    : 0;
+  const achievementPercent = hasLoggedActivity
+    ? Math.min(
+        100,
+        Math.round((completedFasts / Math.max(targetFasts, 1)) * 100),
+      )
+    : 0;
 
   const previousPeriodStart = shiftMonth(periodStart, -monthCount);
   const previousPeriodEnd = addDays(periodStart, -1);
@@ -298,31 +327,50 @@ function buildPeriodSlice(
     previousPeriodStart,
     previousPeriodEnd,
   );
-  const previousPercent = Math.round(
-    (previousCompleted / Math.max(previousTarget, 1)) * 100,
-  );
+  const previousPercent =
+    previousCompleted > 0
+      ? Math.round((previousCompleted / Math.max(previousTarget, 1)) * 100)
+      : 0;
 
   const monthStart = getMonthStart(calendarAnchorDate);
   const monthEnd = getMonthEnd(calendarAnchorDate);
   const today = getTodayDateString();
 
   return {
-    chartPeriods,
-    targetFasts,
+    chartPeriods: resolvedChartPeriods,
+    targetFasts: hasLoggedActivity ? targetFasts : 0,
     completedFasts,
     incompleteFasts,
     achievementPercent,
-    previousPeriodDeltaPercent: achievementPercent - previousPercent,
+    previousPeriodDeltaPercent: hasLoggedActivity
+      ? achievementPercent - previousPercent
+      : 0,
     dateRangeLabel,
     periodStartDate: periodStart,
     periodEndDate: periodEnd,
-    pageCount: chartPeriods.length,
-    activePageIndex: resolveActivePageIndex(chartPeriods),
-    completedDates: getCompletedDatesInRange(monthStart, monthEnd),
-    missedDates: getMissedDatesInRange(monthStart, monthEnd, today),
-    upcomingDates: getUpcomingDatesInRange(monthStart, monthEnd, today),
+    pageCount: resolvedChartPeriods.length,
+    activePageIndex: resolveActivePageIndex(resolvedChartPeriods),
+    completedDates: hasLoggedActivity
+      ? getCompletedDatesInRange(monthStart, monthEnd)
+      : [],
+    missedDates: hasLoggedActivity
+      ? getMissedDatesInRange(monthStart, monthEnd, today)
+      : [],
+    upcomingDates: hasLoggedActivity
+      ? getUpcomingDatesInRange(monthStart, monthEnd, today)
+      : [],
     calendarMonthDate: monthStart,
   };
+}
+
+/** True when the period has at least one completed fast or time spent. */
+export function hasWhiteDaysPastAchievementLogs(
+  slice: WhiteDaysPeriodSlice,
+): boolean {
+  if (slice.completedFasts > 0) return true;
+  return slice.chartPeriods.some(
+    (period) => period.completed > 0 || period.timeSpentMinutes > 0,
+  );
 }
 
 function buildMonthlySlice(anchorDate: string): WhiteDaysPeriodSlice {

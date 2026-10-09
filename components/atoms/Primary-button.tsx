@@ -51,7 +51,7 @@ export default function PrimaryButton({
       {showLoading ? (
         <ActivityIndicator
           size="small"
-          color={Colors.light.disabledButtonColor}
+          color={Colors.light.blackBackground}
         />
       ) : (
         <Text

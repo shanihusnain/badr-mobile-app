@@ -9,7 +9,8 @@ export const ReviewGoalBtn = ({
   handleReviewItemPress,
 }: {
   reviewItem: { id: string; name: string; label: string };
-  reviewExpanded: string | null;
+  /** True when this category section is expanded. */
+  reviewExpanded: boolean;
   handleReviewItemPress: (item: {
     id: string;
     name: string;
@@ -24,9 +25,7 @@ export const ReviewGoalBtn = ({
       >
         <Text style={styles.reviewHeaderText}>{reviewItem.label}</Text>
         <Feather
-          name={
-            reviewExpanded === reviewItem?.name ? "chevron-up" : "chevron-down"
-          }
+          name={reviewExpanded ? "chevron-up" : "chevron-down"}
           size={24}
           color={Colors.light.white}
         />

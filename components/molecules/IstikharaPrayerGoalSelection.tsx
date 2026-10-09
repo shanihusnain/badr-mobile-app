@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React from "react";
 import { useGoalSelectionOpenState } from "@/hooks/useGoalSelectionOpenState";
+import { useDiscardUnsavedOnCollapse } from "@/hooks/useDiscardUnsavedOnCollapse";
 import { StyleSheet, Text, View, LayoutAnimation } from "react-native";
 
 import { Colors } from "../../constants/theme";
@@ -31,8 +32,9 @@ export default function IstikharaPrayerGoalSelection({
 }) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
-  const [sliderValue, setSliderValue] = useState(initialValue);
   const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount, onInputFocus, collapseSignal);
+  const [sliderValue, setSliderValue, commitSaved] =
+    useDiscardUnsavedOnCollapse(isOpen, initialValue);
 
   const toggleDropdown = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -67,7 +69,15 @@ export default function IstikharaPrayerGoalSelection({
             <GoalSelectionSaveButton
               text={t("prayerGoals.save").toLocaleUpperCase()}
               onPress={(markSaved, markFailed) => {
-                onSave?.(sliderValue, markSaved, markFailed);
+                const toSave = sliderValue;
+                onSave?.(
+                  toSave,
+                  () => {
+                    commitSaved(toSave);
+                    markSaved();
+                  },
+                  markFailed,
+                );
               }}
               isLoading={isSaving}
               disabled={isSaving}

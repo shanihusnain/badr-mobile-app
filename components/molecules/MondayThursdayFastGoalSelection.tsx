@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useMemo } from "react";
 import { useGoalSelectionOpenState } from "@/hooks/useGoalSelectionOpenState";
+import { useDiscardUnsavedOnCollapse } from "@/hooks/useDiscardUnsavedOnCollapse";
 import {
   StyleSheet,
   Text,
@@ -44,9 +45,13 @@ export default function MondayThursdayFastGoalSelection({
   const formatNumber = useLocaleNumber();
   const { mutate: upsertFastingGoal, isPending } = useUpsertFastingGoals();
   const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount, undefined, collapseSignal);
-  const [selectedMonThuDates, setSelectedMonThuDates] = useState<string[]>(() =>
-    initialMonThuDates(calendarWindow),
+  const seedDatesKey = initialMonThuDates(calendarWindow).slice().sort().join(",");
+  const seedDates = useMemo(
+    () => [...initialMonThuDates(calendarWindow)],
+    [seedDatesKey],
   );
+  const [selectedMonThuDates, setSelectedMonThuDates, commitSaved] =
+    useDiscardUnsavedOnCollapse(isOpen, seedDates);
   const monThuCount = selectedMonThuDates.length;
 
   const toggleDropdown = () => {
@@ -60,16 +65,18 @@ export default function MondayThursdayFastGoalSelection({
       markFailed();
       return;
     }
+    const toSave = [...selectedMonThuDates];
     upsertFastingGoal(
       {
         fastingType: "MONDAY_THURSDAY",
-        plannedDates: selectedMonThuDates,
-        targetCount: selectedMonThuDates.length,
+        plannedDates: toSave,
+        targetCount: toSave.length,
       },
       {
         onSuccess: () => {
+          commitSaved(toSave);
           markSaved();
-          onSave?.(selectedMonThuDates);
+          onSave?.(toSave);
         },
         onError: () => markFailed(),
       },
@@ -102,7 +109,7 @@ export default function MondayThursdayFastGoalSelection({
             <MonThuCalendar
               calendarWindow={calendarWindow}
               missedRamadanDates={calendarWindow?.missedRamadanDates}
-              initialSelectedDates={initialMonThuDates(calendarWindow)}
+              initialSelectedDates={selectedMonThuDates}
               onSave={setSelectedMonThuDates}
             />
           </View>
