@@ -81,7 +81,8 @@ export const QuranTimeSelection = ({
   useEffect(() => {
     if (!isOpen) {
       setHydrated(false);
-      // Reset lock when collapsing so a fresh expand re-reads API state.
+      // Discard unsaved typing — reopen hydrates from the last saved API value.
+      setInputValue("");
       lockedSavedRef.current = initiallySaved;
       setOpenedAsSaved(initiallySaved);
     }
@@ -178,7 +179,15 @@ export const QuranTimeSelection = ({
                     return;
                   }
 
-                  onSave?.(hours, markSaved, markFailed);
+                  onSave?.(
+                    hours,
+                    () => {
+                      lockedSavedRef.current = true;
+                      setOpenedAsSaved(true);
+                      markSaved();
+                    },
+                    markFailed,
+                  );
                 }}
                 style={{ width: "100%" }}
               />

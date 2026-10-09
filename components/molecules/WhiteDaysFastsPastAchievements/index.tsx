@@ -31,6 +31,7 @@ import {
   getWhiteDaysFastsPastAchievementSlice,
   getWhiteDaysGoalTrackedMonths,
   getWhiteDaysTimeSpentByPeriod,
+  hasWhiteDaysPastAchievementLogs,
   isWhiteDaysFastCompletedOnDate,
   isWhiteDaysFastMissedOnDate,
   shiftWhiteDaysPastAchievementAnchor,
@@ -80,7 +81,8 @@ const ANALYTICS_VIEWS: WhiteDaysAnalyticsView[] = [
 
 const ANALYTICS_VIEW_LABEL_KEYS: Record<WhiteDaysAnalyticsView, string> = {
   completedVsIncomplete: "progressLogging.analyticsCompletedVsIncomplete",
-  completedVsTime: "progressLogging.analyticsCompletedVsTime",
+  // Same wording as prayer/quran detailed graph: "Completed vs. Time Spent"
+  completedVsTime: "progressLogging.analyticsCompletedVsTimeSpent",
 };
 
 const PERIOD_DELTA_LABEL_KEYS: Record<PastAchievementPeriod, string> = {
@@ -104,7 +106,9 @@ export function WhiteDaysFastsPastAchievements({
   const formatNumber = useLocaleNumber();
   const [period, setPeriod] = useState<PastAchievementPeriod>(initialPeriod);
   const [analyticsView, setAnalyticsView] =
-    useState<WhiteDaysAnalyticsView>(initialAnalyticsView);
+    useState<WhiteDaysAnalyticsView>(
+      isDetailed ? initialAnalyticsView : "completedVsIncomplete",
+    );
   const [anchorDate, setAnchorDate] = useState(getTodayDateString);
   const [selectedBarIndex, setSelectedBarIndex] = useState<number | null>(null);
   const [selectedCalendarDate, setSelectedCalendarDate] = useState<string | null>(
@@ -191,8 +195,20 @@ export function WhiteDaysFastsPastAchievements({
     [timeSpentByPeriod],
   );
 
+  const hasLogs = useMemo(
+    () => hasWhiteDaysPastAchievementLogs(periodSlice),
+    [periodSlice],
+  );
+
   const goalTrackedMonths = getWhiteDaysGoalTrackedMonths(period);
   const totalFastsCompleted = getTotalWhiteDaysFastsCompleted(periodSlice);
+
+  // Compact never keeps a time-spent analytics selection.
+  useEffect(() => {
+    if (!isDetailed && analyticsView !== "completedVsIncomplete") {
+      setAnalyticsView("completedVsIncomplete");
+    }
+  }, [analyticsView, isDetailed]);
 
   useEffect(() => {
     setSelectedBarIndex(null);
@@ -243,15 +259,18 @@ export function WhiteDaysFastsPastAchievements({
     });
   }, [analyticsView, period, router]);
 
+  // Compact: monthly always uses calendar (no analytics tabs).
+  // Detailed: calendar only for monthly Completed vs Incomplete; Time Spent → chart.
   const showCalendar = isDetailed
-    ? period === "monthly"
-    : period === "monthly" && analyticsView === "completedVsIncomplete";
+    ? period === "monthly" && analyticsView === "completedVsIncomplete"
+    : period === "monthly";
 
   const todayMonthStart = useMemo(() => {
     const today = getTodayDateString();
     return `${today.slice(0, 8)}01`;
   }, [refreshKey]);
 
+  // Calendar is the current cycle window (not month-shift); chart views can navigate.
   const canNavigateBack = !showCalendar;
   const canNavigateForward = useMemo(() => {
     if (showCalendar) return false;
@@ -296,20 +315,19 @@ export function WhiteDaysFastsPastAchievements({
 
   const showNoDataDash =
     selectedCalendarDate == null &&
-    isPastAchievementBarEmpty(displayCompleted, displayIncomplete);
+    (!hasLogs ||
+      isPastAchievementBarEmpty(displayCompleted, displayIncomplete));
 
-  /** Same gate as Prayer/Quran: hide detail chevron until there is completed data. */
-  const showDetailedStatsChevron =
-    !isDetailed &&
-    ((baseAchievement.achievementPercent ?? 0) > 0 ||
-      (periodSlice.completedFasts ?? 0) > 0 ||
-      baseAchievement.chartData.some(
-        (item) => (item.completedHours ?? 0) > 0,
-      ));
+  /** Same gate as Prayer/Quran: hide detail chevron until there is logged data. */
+  const showDetailedStatsChevron = !isDetailed && hasLogs && !showNoDataDash;
 
   const showChart = !showCalendar;
   const showChartHint =
-    showChart && !hintDismissed && selectedBarIndex === null;
+    showChart &&
+    hasLogs &&
+    !showNoDataDash &&
+    !hintDismissed &&
+    selectedBarIndex === null;
   const displayedDeltaPct = baseAchievement.previousPeriodDeltaPercent;
   const showDeltaChip =
     !showNoDataDash &&
@@ -592,33 +610,36 @@ export function WhiteDaysFastsPastAchievements({
           </View>
         </View>
 
-        <View style={styles.analyticsToggle}>
-          {ANALYTICS_VIEWS.map((view) => {
-            const isActive = analyticsView === view;
-            return (
-              <Pressable
-                key={view}
-                onPress={() => setAnalyticsView(view)}
-                style={[
-                  styles.analyticsButton,
-                  isActive
-                    ? styles.analyticsButtonActive
-                    : styles.analyticsButtonInactive,
-                ]}
-              >
-                <Text
+        {/* Analytics tabs only on detailed screen — same as prior goal graphs. */}
+        {isDetailed ? (
+          <View style={styles.analyticsToggle}>
+            {ANALYTICS_VIEWS.map((view) => {
+              const isActive = analyticsView === view;
+              return (
+                <Pressable
+                  key={view}
+                  onPress={() => setAnalyticsView(view)}
                   style={[
-                    styles.analyticsButtonText,
-                    isActive && styles.analyticsButtonTextActive,
+                    styles.analyticsButton,
+                    isActive
+                      ? styles.analyticsButtonActive
+                      : styles.analyticsButtonInactive,
                   ]}
-                  numberOfLines={1}
                 >
-                  {t(ANALYTICS_VIEW_LABEL_KEYS[view])}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
+                  <Text
+                    style={[
+                      styles.analyticsButtonText,
+                      isActive && styles.analyticsButtonTextActive,
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {t(ANALYTICS_VIEW_LABEL_KEYS[view])}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        ) : null}
 
         <View style={styles.statsRow}>
           <View style={styles.statColumn}>
@@ -639,20 +660,20 @@ export function WhiteDaysFastsPastAchievements({
           </View>
           <View style={styles.statColumn}>
             <Text style={styles.statLabel}>
-              {analyticsView === "completedVsTime"
+              {isDetailed && analyticsView === "completedVsTime"
                 ? t("progressLogging.timeSpentLabel")
                 : t("progressLogging.incomplete")}
             </Text>
             <Text
               style={
-                analyticsView === "completedVsTime"
+                isDetailed && analyticsView === "completedVsTime"
                   ? styles.statValueTimeSpent
                   : styles.statValueIncomplete
               }
             >
               {showNoDataDash
                 ? PAST_ACHIEVEMENT_NO_DATA
-                : analyticsView === "completedVsTime"
+                : isDetailed && analyticsView === "completedVsTime"
                   ? formatWhiteDaysFastTimeSpentLabel(
                       selectedPeriodTimeSpentMinutes,
                     )
@@ -663,56 +684,62 @@ export function WhiteDaysFastsPastAchievements({
 
         {showCalendar ? (
           <>
-            <View style={styles.legendRow}>
-              <View style={styles.legendItem}>
-                <View style={styles.legendDotFilledWhite} />
-                <Text style={styles.legendText}>
-                  {t("progressLogging.whiteDaysLegendCompletedFast")}
-                </Text>
-              </View>
-              <View style={styles.legendItem}>
-                <View style={styles.legendWarningWrap}>
-                  <View style={styles.legendDotOutlinedWhite} />
-                  <FontAwesome
-                    name="warning"
-                    size={5}
-                    color={Colors.light.golden}
-                  />
-                </View>
-                <Text style={styles.legendText}>
-                  {t("progressLogging.whiteDaysLegendMissedFast")}
-                </Text>
-              </View>
-              {isDetailed ? (
+            {hasLogs ? (
+              <View style={styles.legendRow}>
                 <View style={styles.legendItem}>
-                  <View style={styles.legendDotOutlinedWhite} />
+                  <View style={styles.legendDotFilledWhite} />
                   <Text style={styles.legendText}>
-                    {t("progressLogging.whiteDaysLegendUpcomingFast")}
+                    {t("progressLogging.whiteDaysLegendCompletedFast")}
                   </Text>
                 </View>
-              ) : null}
-              <View style={styles.legendItem}>
-                <View style={styles.legendDotMenstruation} />
-                <Text style={styles.legendText}>
-                  {t("progressLogging.whiteDaysLegendMenstruation")}
-                </Text>
+                <View style={styles.legendItem}>
+                  <View style={styles.legendWarningWrap}>
+                    <View style={styles.legendDotOutlinedWhite} />
+                    <FontAwesome
+                      name="warning"
+                      size={5}
+                      color={Colors.light.golden}
+                    />
+                  </View>
+                  <Text style={styles.legendText}>
+                    {t("progressLogging.whiteDaysLegendMissedFast")}
+                  </Text>
+                </View>
+                {isDetailed ? (
+                  <View style={styles.legendItem}>
+                    <View style={styles.legendDotOutlinedWhite} />
+                    <Text style={styles.legendText}>
+                      {t("progressLogging.whiteDaysLegendUpcomingFast")}
+                    </Text>
+                  </View>
+                ) : null}
+                <View style={styles.legendItem}>
+                  <View style={styles.legendDotMenstruation} />
+                  <Text style={styles.legendText}>
+                    {t("progressLogging.whiteDaysLegendMenstruation")}
+                  </Text>
+                </View>
               </View>
-            </View>
+            ) : null}
             <TopSpace top={12} />
             <CalendarGrid
               mode="white_days_achievement"
               currentDate={cycleStartDate}
               windowStartDate={cycleStartDate}
               windowEndDate={cycleEndDate}
-              completedFastDates={calendarCompletedDates}
-              missedFastDates={calendarMissedDates}
-              incompletePlannedFastDates={calendarUpcomingDates}
-              menstruationDates={menstruationDates}
-              onDayPress={isDetailed ? handleCalendarDayPress : undefined}
-              selectedDate={selectedCalendarDate ?? undefined}
+              completedFastDates={hasLogs ? calendarCompletedDates : []}
+              missedFastDates={hasLogs ? calendarMissedDates : []}
+              incompletePlannedFastDates={hasLogs ? calendarUpcomingDates : []}
+              menstruationDates={hasLogs ? menstruationDates : []}
+              onDayPress={
+                isDetailed && hasLogs ? handleCalendarDayPress : undefined
+              }
+              selectedDate={
+                hasLogs ? (selectedCalendarDate ?? undefined) : undefined
+              }
               bgColor={Colors.light.greybuttonBackground}
             />
-            {isDetailed && selectedCalendarDate ? (
+            {isDetailed && hasLogs && selectedCalendarDate ? (
               <GraphBarSelectionFooter
                 visible={selectedCalendarDate !== null}
                 completed={displayCompleted}
@@ -724,16 +751,30 @@ export function WhiteDaysFastsPastAchievements({
           </>
         ) : (
           <View
-            onStartShouldSetResponder={() => true}
+            onStartShouldSetResponder={() => isDetailed}
             onMoveShouldSetResponder={() => false}
           >
             <QuranHoursPastAchievementChartBlock
-              chartData={chartAchievement?.chartData ?? achievement.chartData}
-              selectedBarIndex={selectedBarIndex}
-              onBarPress={
-                isDetailed ? handleBarPressDetailed : handleBarPressCompact
+              // No logs → empty chartData so X-axis labels are hidden (same as
+              // Quran Hours loading / empty backend payload).
+              chartData={
+                !hasLogs || showNoDataDash
+                  ? []
+                  : (chartAchievement?.chartData ?? achievement.chartData)
               }
-              chartKey={`white-days-${period}-${analyticsView}-${refreshKey}-${isDetailed ? "detailed" : "compact"}`}
+              selectedBarIndex={
+                isDetailed && hasLogs && !showNoDataDash
+                  ? selectedBarIndex
+                  : null
+              }
+              onBarPress={
+                !hasLogs || showNoDataDash
+                  ? () => {}
+                  : isDetailed
+                    ? handleBarPressDetailed
+                    : handleBarPressCompact
+              }
+              chartKey={`white-days-${period}-${analyticsView}-${refreshKey}-${isDetailed ? "detailed" : "compact"}-${hasLogs ? "ready" : "empty"}`}
               yMax={chartAchievement?.yMax ?? achievement.yMax}
               yTicks={chartAchievement?.yTicks ?? achievement.yTicks}
               showHint={showChartHint}
@@ -753,11 +794,11 @@ export function WhiteDaysFastsPastAchievements({
                   : WHITE_DAYS_BAR_COLORS
               }
               valueLabelColor={Colors.light.white}
-              showPagination={isDetailed}
+              showPagination={isDetailed && hasLogs && !showNoDataDash}
             />
             {isDetailed ? (
               <GraphBarSelectionFooter
-                visible={selectedBarIndex !== null}
+                visible={selectedBarIndex !== null && hasLogs && !showNoDataDash}
                 completed={displayCompleted}
                 incomplete={displayIncomplete}
                 goalTotal={selectedBarGoalTotal}

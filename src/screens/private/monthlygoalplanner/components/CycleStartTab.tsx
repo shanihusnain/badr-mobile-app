@@ -159,8 +159,13 @@ export const CycleStartTab = ({
       const endDate = moment(startDate, "YYYY-MM-DD")
         .add(27, "days")
         .format("YYYY-MM-DD");
-      onCommit?.(startDate, endDate);
-      await startEditCycle({ startDate });
+      try {
+        // Navigate only after the cycle init API succeeds.
+        await startEditCycle({ startDate });
+        onCommit?.(startDate, endDate);
+      } catch {
+        // Error toast is handled by the mutation.
+      }
     },
     [onCommit, startEditCycle],
   );

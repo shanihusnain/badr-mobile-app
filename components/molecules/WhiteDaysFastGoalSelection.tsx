@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useMemo } from "react";
 import { useGoalSelectionOpenState } from "@/hooks/useGoalSelectionOpenState";
+import { useDiscardUnsavedOnCollapse } from "@/hooks/useDiscardUnsavedOnCollapse";
 import {
   StyleSheet,
   Text,
@@ -37,9 +38,16 @@ export default function WhiteDaysFastGoalSelection({
   const formatNumber = useLocaleNumber();
   const { mutate: upsertFastingGoal, isPending } = useUpsertFastingGoals();
   const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount, undefined, collapseSignal);
-  const [selectedDates, setSelectedDates] = useState<string[]>(
-    () => calendarWindow?.whiteDaysPlannedDates ?? [],
+  const seedDatesKey = (calendarWindow?.whiteDaysPlannedDates ?? [])
+    .slice()
+    .sort()
+    .join(",");
+  const seedDates = useMemo(
+    () => [...(calendarWindow?.whiteDaysPlannedDates ?? [])],
+    [seedDatesKey],
   );
+  const [selectedDates, setSelectedDates, commitSaved] =
+    useDiscardUnsavedOnCollapse(isOpen, seedDates);
 
   const toggleDropdown = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -52,16 +60,18 @@ export default function WhiteDaysFastGoalSelection({
       markFailed();
       return;
     }
+    const toSave = [...selectedDates];
     upsertFastingGoal(
       {
         fastingType: "WHITE_DAYS",
-        plannedDates: selectedDates,
-        targetCount: selectedDates.length,
+        plannedDates: toSave,
+        targetCount: toSave.length,
       },
       {
         onSuccess: () => {
+          commitSaved(toSave);
           markSaved();
-          onSave?.(selectedDates);
+          onSave?.(toSave);
         },
         onError: () => markFailed(),
       },
@@ -95,7 +105,7 @@ export default function WhiteDaysFastGoalSelection({
               hideFooter
               calendarWindow={calendarWindow}
               missedRamadanDates={calendarWindow?.missedRamadanDates}
-              initialSelectedDates={calendarWindow?.whiteDaysPlannedDates}
+              initialSelectedDates={selectedDates}
               onDatesChange={setSelectedDates}
             />
           </View>

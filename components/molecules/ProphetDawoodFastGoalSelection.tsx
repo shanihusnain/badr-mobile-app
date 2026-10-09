@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React from "react";
 import { useGoalSelectionOpenState } from "@/hooks/useGoalSelectionOpenState";
+import { useDiscardUnsavedOnCollapse } from "@/hooks/useDiscardUnsavedOnCollapse";
 import {
   StyleSheet,
   Text,
@@ -39,9 +40,9 @@ export default function ProphetDawoodFastGoalSelection({
   const formatNumber = useLocaleNumber();
   const { mutate: upsertFastingGoal, isPending } = useUpsertFastingGoals();
   const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount, undefined, collapseSignal);
-  const [selectedStartDay, setSelectedStartDay] = useState<1 | 2>(
-    initialStartDay === 2 ? 2 : 1,
-  );
+  const seedStartDay: 1 | 2 = initialStartDay === 2 ? 2 : 1;
+  const [selectedStartDay, setSelectedStartDay, commitSaved] =
+    useDiscardUnsavedOnCollapse(isOpen, seedStartDay);
 
   const toggleDropdown = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -49,15 +50,17 @@ export default function ProphetDawoodFastGoalSelection({
   };
 
   const handleSave = (markSaved: () => void, markFailed: () => void) => {
+    const toSave = selectedStartDay;
     upsertFastingGoal(
       {
         fastingType: "PROPHET_DAWOOD",
-        dawoodStartDay: selectedStartDay,
+        dawoodStartDay: toSave,
       },
       {
         onSuccess: () => {
+          commitSaved(toSave);
           markSaved();
-          onSave?.(selectedStartDay);
+          onSave?.(toSave);
         },
         onError: () => markFailed(),
       },

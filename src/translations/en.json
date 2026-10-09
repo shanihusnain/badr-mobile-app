@@ -239,6 +239,10 @@
     "tabChipCategory3": "Category 3",
     "tabChipCategory4": "Category 4",
     "tabChipCategory5": "Step 5",
+    "tabChipStep1": "Step 1",
+    "tabChipStep2": "Step 2",
+    "tabChipStep3": "Step 3",
+    "tabChipStep4": "Step 4",
     "months": {
       "jan": "January",
       "feb": "February",
@@ -316,7 +320,7 @@
     "kafarahTargetTitle": "Select target number of meals or clothing items you aim to provide for people in need",
     "missedRamadanFastSuffix_one": " Missed Ramadan Fast",
     "missedRamadanFastSuffix_other": " Missed Ramadan Fasts",
-    "whiteDaysFastSuffix_one": " White Days Fast",
+    "whiteDaysFastSuffix_one": " White Day Fast",
     "whiteDaysFastSuffix_other": " White Days Fasts",
     "mondayThursdayFastSuffix_one": " Monday & Thursday Fast",
     "mondayThursdayFastSuffix_other": " Monday & Thursday Fasts",
@@ -461,6 +465,7 @@
     "missedPrayersSuffix_one": " missed past prayer",
     "missedPrayersSuffix_other": " missed past prayers",
     "dailyPrayersTitle": "Commit to praying all five daily prayers on time this month",
+    "prayerTotalsLockedNote": "Prayer totals are locked for this goal and will automatically adjust if menstruation is logged from the home screen.",
     "dailyPrayersSuffix_one": " prayer on time",
     "dailyPrayersSuffix_other": " prayers on time",
     "congregationTitle": "Commit to praying all daily prayers in congregation this month",
@@ -3150,7 +3155,7 @@
     "lilah-donations": {
       "title": "LILLAH DONATIONS",
 
-      "description": "Lillah, derived from the Arabic term 'for Allah', The Quran also emphasizes this in Surah Al-Insan (76:8):is a pure form of sadaqah driven by a sincere desire to please Allah, fostering devotion and selflessness among Muslims.",
+      "description": "Lillah, derived from the Arabic term 'for Allah', is a pure form of sadaqah driven by a sincere desire to please Allah, fostering devotion and selflessness among Muslims.",
       "heroTitle": "A Pure Act of Sadaqah for Allah's Sake",
       "navTitle": "LILLAH DONATIONS",
       "readMore": [

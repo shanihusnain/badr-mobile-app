@@ -1,5 +1,6 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import { useGoalSelectionOpenState } from "@/hooks/useGoalSelectionOpenState";
+import { useDiscardUnsavedOnCollapse } from "@/hooks/useDiscardUnsavedOnCollapse";
 import {
   StyleSheet,
   Text,
@@ -39,10 +40,17 @@ export default function MissedRamadanFastGoalSelection({
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
   const { mutate: upsertFastingGoal, isPending } = useUpsertFastingGoals();
-  const [selectedDates, setSelectedDates] = useState<string[]>(
-    () => calendarWindow?.missedRamadanDates ?? [],
-  );
   const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount, undefined, collapseSignal);
+  const seedDatesKey = (calendarWindow?.missedRamadanDates ?? [])
+    .slice()
+    .sort()
+    .join(",");
+  const seedDates = useMemo(
+    () => [...(calendarWindow?.missedRamadanDates ?? [])],
+    [seedDatesKey],
+  );
+  const [selectedDates, setSelectedDates, commitSaved] =
+    useDiscardUnsavedOnCollapse(isOpen, seedDates);
 
   const legendItems = useMemo(
     () =>
@@ -63,16 +71,18 @@ export default function MissedRamadanFastGoalSelection({
       markFailed();
       return;
     }
+    const toSave = [...selectedDates];
     upsertFastingGoal(
       {
         fastingType: "MISSED_RAMADAN",
-        plannedDates: selectedDates,
-        targetCount: selectedDates.length,
+        plannedDates: toSave,
+        targetCount: toSave.length,
       },
       {
         onSuccess: () => {
+          commitSaved(toSave);
           markSaved();
-          onSave?.(selectedDates);
+          onSave?.(toSave);
         },
         onError: () => markFailed(),
       },

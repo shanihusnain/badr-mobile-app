@@ -1,6 +1,6 @@
 import { LayoutAnimation, StyleSheet, Text, View } from "react-native";
 import { GoalSelectionOpenCloseButton } from "../GoalSelectionOpenCloseButton";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useGoalSelectionOpenState } from "@/hooks/useGoalSelectionOpenState";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
@@ -114,13 +114,13 @@ export const QuranRecitationGoalSelection = ({
     () => new Set(),
   );
   /**
-   * Keep last lifted metric values here so collapsing the panel (which unmounts
-   * MetricSelectionComponent) does not lose selections before the detail API
-   * refetch lands.
+   * Working metric values while the panel is open. On collapse without save,
+   * these revert to `savedSnapshotsRef` (last successful save / API seed).
    */
   const [metricSnapshots, setMetricSnapshots] = useState<
     Partial<Record<MetricName, any>>
   >({});
+  const savedSnapshotsRef = useRef<Partial<Record<MetricName, any>>>({});
 
   useEffect(() => {
     if (!initialSavedMetrics?.length) return;
@@ -160,6 +160,10 @@ export const QuranRecitationGoalSelection = ({
             isQuranMetricValueConfigured(metric, snap)
           ) {
             next[metric] = snap;
+            savedSnapshotsRef.current = {
+              ...savedSnapshotsRef.current,
+              [metric]: snap,
+            };
             changed = true;
           }
         },
@@ -167,6 +171,13 @@ export const QuranRecitationGoalSelection = ({
       return changed ? next : prev;
     });
   }, [apiGoals, variant]);
+
+  // Collapse without save → discard dirty metric edits.
+  useEffect(() => {
+    if (isOpen) return;
+    setMetricSnapshots({ ...savedSnapshotsRef.current });
+    setConfiguredMetrics(new Set());
+  }, [isOpen]);
 
   useEffect(() => {
     if (initialMetric) return;
@@ -547,6 +558,7 @@ export const QuranRecitationGoalSelection = ({
                       // Show SAVED! before local state updates so both cards
                       // match prayer/hours: loading → SAVED! → collapse.
                       markSaved?.();
+                      savedSnapshotsRef.current = { ...metricSnapshots };
                       setSavedMetrics((prev) => {
                         const next = new Set(prev);
                         metricsJustSaved.forEach((m) => next.add(m));
@@ -566,6 +578,7 @@ export const QuranRecitationGoalSelection = ({
                   { metric: resolvedMetric },
                   () => {
                     markSaved?.();
+                    savedSnapshotsRef.current = { ...metricSnapshots };
                     setSavedMetrics((prev) => {
                       const next = new Set(prev);
                       next.add(resolvedMetric);

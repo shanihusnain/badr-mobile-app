@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useMemo } from "react";
 import { useGoalSelectionOpenState } from "@/hooks/useGoalSelectionOpenState";
+import { useDiscardUnsavedOnCollapse } from "@/hooks/useDiscardUnsavedOnCollapse";
 import {
   StyleSheet,
   Text,
@@ -20,6 +21,11 @@ import { useAuth } from "@/provider/useAuth";
 import { useGetMe } from "@/src/api/queries/useGetMe";
 import { TopSpace } from "../atoms/TopSpace";
 import { PRAYER_CYCLE_DAYS } from "@/src/utils/prayerCycleUtils";
+
+type QiyamDraft = {
+  commitment: "every_night" | "flexible";
+  sliderValue: number;
+};
 
 export default function QiyamalLaylGoalSelection({
   onSave,
@@ -54,12 +60,19 @@ export default function QiyamalLaylGoalSelection({
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
   const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount, onInputFocus, collapseSignal);
-  const [commitment, setCommitment] = useState<"every_night" | "flexible">(
-    initialValues?.isFlexible ? "flexible" : "every_night",
+  const seed = useMemo<QiyamDraft>(
+    () => ({
+      commitment: initialValues?.isFlexible ? "flexible" : "every_night",
+      sliderValue: initialValues?.unitTarget ?? 1,
+    }),
+    [initialValues?.isFlexible, initialValues?.unitTarget],
   );
-  const [sliderValue, setSliderValue] = useState(
-    initialValues?.unitTarget ?? 1,
+  const [draft, setDraft, commitSaved] = useDiscardUnsavedOnCollapse(
+    isOpen,
+    seed,
   );
+  const commitment = draft.commitment;
+  const sliderValue = draft.sliderValue;
 
   const toggleDropdown = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -67,13 +80,17 @@ export default function QiyamalLaylGoalSelection({
   };
 
   const handleSave = (markSaved: () => void, markFailed?: () => void) => {
+    const toSave = draft;
     onSave?.(
       {
-        commitment,
-        twoRakahPrayers: sliderValue,
+        commitment: toSave.commitment,
+        twoRakahPrayers: toSave.sliderValue,
         witrPrayers: 28,
       },
-      markSaved,
+      () => {
+        commitSaved(toSave);
+        markSaved();
+      },
       markFailed,
     );
   };
@@ -119,7 +136,9 @@ export default function QiyamalLaylGoalSelection({
           <View style={styles.radioRow}>
             <TouchableOpacity
               style={styles.radioOption}
-              onPress={() => setCommitment("every_night")}
+              onPress={() =>
+                setDraft({ ...draft, commitment: "every_night" })
+              }
               activeOpacity={0.7}
             >
               <View style={styles.radioOuter}>
@@ -134,7 +153,7 @@ export default function QiyamalLaylGoalSelection({
 
             <TouchableOpacity
               style={styles.radioOption}
-              onPress={() => setCommitment("flexible")}
+              onPress={() => setDraft({ ...draft, commitment: "flexible" })}
               activeOpacity={0.7}
             >
               <View style={styles.radioOuter}>
@@ -159,7 +178,7 @@ export default function QiyamalLaylGoalSelection({
             <CustomSlider
               maxDays={500}
               initialDays={sliderValue}
-              onChange={(val) => setSliderValue(val)}
+              onChange={(val) => setDraft({ ...draft, sliderValue: val })}
             />
           </View>
 

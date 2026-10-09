@@ -218,6 +218,19 @@ export default function DailyPrayerGoalSelection({
         maxDays: dhuhrMaxDays,
         onChange: (val) => setDhuhr(Math.min(val, dhuhrMaxDays)),
       },
+    ];
+
+    if (isTrackingCongregation) {
+      items.push({
+        id: "jumuah",
+        title: t("prayerGoals.jumuah"),
+        value: jumuahCountInCycle,
+        maxDays: jumuahCountInCycle,
+        onChange: () => {},
+      });
+    }
+
+    items.push(
       {
         id: "asar",
         title: t("prayerGoals.asr"),
@@ -239,17 +252,7 @@ export default function DailyPrayerGoalSelection({
         maxDays: cycleDayCount,
         onChange: setIsha,
       },
-    ];
-
-    if (isTrackingCongregation) {
-      items.push({
-        id: "jumuah",
-        title: t("prayerGoals.jumuah"),
-        value: jumuahCountInCycle,
-        maxDays: jumuahCountInCycle,
-        onChange: () => {},
-      });
-    }
+    );
 
     return items;
   }, [
@@ -308,6 +311,11 @@ export default function DailyPrayerGoalSelection({
 
       {isOpen && (
         <View style={styles.expandedContent}>
+          {me?.gender?.toUpperCase() === "FEMALE" ? (
+            <Text style={styles.lockedTotalsNote}>
+              {t("prayerGoals.prayerTotalsLockedNote")}
+            </Text>
+          ) : null}
           <FlatList
             data={sliderData}
             renderItem={renderItem}
@@ -371,6 +379,14 @@ const styles = StyleSheet.create({
     width: "100%",
     paddingTop: 12,
     paddingBottom: 6,
+  },
+  lockedTotalsNote: {
+    fontSize: 10,
+    fontFamily: fonts.primary.regular,
+    fontWeight: "400",
+    color: Colors.light.white,
+    marginBottom: 20,
+    opacity: 0.6,
   },
   sliderGroup: {
     width: "100%",
