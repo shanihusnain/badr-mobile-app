@@ -5,7 +5,7 @@
  *   dob        — full month, tap to select a date
  *   ramadan    — 28-day window, orange ring on markedDates (missed fasts)
  *   dawood     — 28-day window, #439CB8 ring on every-other-day based on dawoodStartDay
- *   mon_thu    — 28-day window, #61C8A6 ring on Mon/Thu; orange ring on markedDates
+ *   mon_thu    — 28-day window, seagreen ring on Mon/Thu; orange ring on markedDates
  *   white_days    — 28-day window, white ring on Hijri 13/14/15; other days optionally dimmed
  *   planned_all      — 28-day window, all planned fast types at full opacity (dashboard)
  *   planned_progress — 28-day window, completed/missed/planned states per fast day
@@ -276,7 +276,8 @@ export const CalendarGrid = ({
     mode === "dob"
       ? buildMonthWeeks(currentDate, { hideOutsideMonth: true })
       : mode === "dawood_achievement" ||
-          mode === "monday_thursday_achievement"
+          mode === "monday_thursday_achievement" ||
+          mode === "missed_ramadan_achievement"
         ? buildMonthWeeks(currentDate)
         : null;
   const gridWeeks: (string | null)[][] | null =
@@ -598,6 +599,13 @@ export const CalendarGrid = ({
 
       // ── Missed Ramadan past achievements ───────────────────────────────
       case "missed_ramadan_achievement": {
+        const dayMoment = moment(ds, "YYYY-MM-DD");
+        if (!dayMoment.isSame(displayedMonth, "month")) {
+          cellOpacity = 0.25;
+          textStyle = { color: Colors.light.grey };
+          break;
+        }
+
         if (completedFastSet.has(ds)) {
           markerColor = Colors.light.ringRamadan;
           circleStyle = {
@@ -616,8 +624,9 @@ export const CalendarGrid = ({
         } else if (incompletePlannedFastSet.has(ds)) {
           circleStyle = {
             borderWidth: 1,
-            borderColor: Colors.light.subtext,
+            borderColor: Colors.light.ringRamadan,
             backgroundColor: "transparent",
+            opacity: 0.65,
           };
           textStyle = { color: Colors.light.white };
         }

@@ -1,28 +1,29 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
+  Pressable,
   StyleSheet,
   useWindowDimensions,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTranslation } from "react-i18next";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
+import { BinIcon, DashBoardCalenderIcon } from "@/assets/icons";
 import { FastingDashboardIcon } from "@/assets/icons/FastingDashboardIcon";
 import { FlashIcon } from "@/assets/icons/FlashIcon";
 import { ShootIcon } from "@/assets/icons/ShootIcon";
 import type { MondayThursdayFastWeekSummary } from "@/src/screens/private/goalprogressloggingscreen/mondayThursdayFastsWeeklyData";
 import { getMondayThursdayFastTodayIndexInWeek } from "@/src/screens/private/goalprogressloggingscreen/mondayThursdayFastsWeeklyData";
+import { useDeleteFastingLog } from "@/src/api/mutations/useDeleteFastingLog";
 import { MondayThursdayFastDayRing } from "./MondayThursdayFastDayRing";
 import {
   getDayLabelTextStyle,
   mondayThursdayDayLabelStyles,
   shouldShowTodayLabelBackground,
 } from "./mondayThursdayFastDayStyles";
-import { DashBoardCalenderIcon } from "@/assets/icons";
 
 export type MondayThursdayFastsWeeklyProgressDashboardProps = {
   weekSummary: MondayThursdayFastWeekSummary;
@@ -30,6 +31,8 @@ export type MondayThursdayFastsWeeklyProgressDashboardProps = {
   onDayPress?: (index: number) => void;
   onPrevWeek?: () => void;
   onNextWeek?: () => void;
+  loading?: boolean;
+  onDeleted?: () => void;
 };
 
 const CARD_HORIZONTAL_PADDING = 16;
@@ -52,9 +55,14 @@ export function MondayThursdayFastsWeeklyProgressDashboard({
   onDayPress,
   onPrevWeek,
   onNextWeek,
+  loading = false,
+  onDeleted,
 }: MondayThursdayFastsWeeklyProgressDashboardProps) {
   const { t, i18n } = useTranslation();
   const { width: screenWidth } = useWindowDimensions();
+  const { mutate: deleteFastLog, isPending: isDeletingLog } =
+    useDeleteFastingLog();
+  const [selectForDeletion, setSelectForDeletion] = useState("");
 
   const todayIndexInWeek = useMemo(
     () => getMondayThursdayFastTodayIndexInWeek(weekSummary.weekDays),
@@ -72,6 +80,10 @@ export function MondayThursdayFastsWeeklyProgressDashboard({
     setActiveDayIndex(resolvedSelectedIndex);
   }, [weekSummary.weekIndex, resolvedSelectedIndex]);
 
+  useEffect(() => {
+    setSelectForDeletion("");
+  }, [weekSummary.weekIndex, weekSummary.weekRangeLabel]);
+
   const availableWidth =
     screenWidth * WRAPPER_WIDTH_RATIO - CARD_HORIZONTAL_PADDING;
   const ringSize = Math.min(
@@ -79,10 +91,20 @@ export function MondayThursdayFastsWeeklyProgressDashboard({
     Math.floor((availableWidth / 7) * 0.62),
   );
 
-  const handleDayPress = (index: number) => () => {
-    setActiveDayIndex(index);
-    onDayPress?.(index);
-  };
+  const handleDeleteLog = useCallback(
+    (date: string) => {
+      deleteFastLog(
+        { fastingType: "MONDAY_THURSDAY", date },
+        {
+          onSuccess: () => {
+            setSelectForDeletion("");
+            onDeleted?.();
+          },
+        },
+      );
+    },
+    [deleteFastLog, onDeleted],
+  );
 
   const currentDayIndex =
     selectedDayIndex !== undefined ? selectedDayIndex : activeDayIndex;
@@ -163,23 +185,52 @@ export function MondayThursdayFastsWeeklyProgressDashboard({
         {weekSummary.weekDays.map((day, index) => {
           const isSelected =
             currentDayIndex !== null && index === currentDayIndex;
+          const isMarkedForDeletion =
+            !!day.date && selectForDeletion === day.date;
+          const canDeleteDay =
+            day.canDelete !== false &&
+            day.state === "completed" &&
+            !!day.date;
+          const showTodayChip = shouldShowTodayLabelBackground(day);
 
           return (
             <TouchableOpacity
               key={`${day.day}-${day.date}`}
-              style={styles.dayColumn}
-              onPress={handleDayPress(index)}
-              activeOpacity={0.75}
+              style={[
+                styles.dayColumn,
+                isMarkedForDeletion && styles.dayColumnMarkedForDeletion,
+              ]}
+              onPress={() => {
+                if (loading) return;
+                if (selectForDeletion) {
+                  setSelectForDeletion("");
+                  return;
+                }
+                setActiveDayIndex(index);
+                onDayPress?.(index);
+              }}
+              onLongPress={() => {
+                if (loading || !canDeleteDay) return;
+                setSelectForDeletion((prev) =>
+                  prev === day.date ? "" : day.date,
+                );
+              }}
+              activeOpacity={loading ? 1 : 0.75}
+              disabled={loading}
             >
-              <View style={styles.dayItemWrapper}>
-                <MondayThursdayFastDayRing size={ringSize} state={day.state} />
-                <View
-                  style={[
-                    mondayThursdayDayLabelStyles.dayLabelWrapper,
-                    shouldShowTodayLabelBackground(day) &&
-                    mondayThursdayDayLabelStyles.dayLabelTodayBackground,
-                  ]}
-                >
+              <View
+                style={[
+                  styles.dayItemWrapper,
+                  showTodayChip && styles.dayItemTodayChip,
+                ]}
+              >
+                <MondayThursdayFastDayRing
+                  size={ringSize}
+                  state={day.state}
+                  isMenstruating={day.isMenstruating}
+                  isPlanned={day.isSelected}
+                />
+                <View style={mondayThursdayDayLabelStyles.dayLabelWrapper}>
                   <Text
                     style={getDayLabelTextStyle(day, isSelected)}
                     numberOfLines={1}
@@ -191,6 +242,18 @@ export function MondayThursdayFastsWeeklyProgressDashboard({
                   </Text>
                 </View>
               </View>
+              {isMarkedForDeletion ? (
+                <Pressable
+                  style={styles.deleteButton}
+                  disabled={isDeletingLog}
+                  onPress={() => {
+                    if (!day.date || isDeletingLog) return;
+                    handleDeleteLog(day.date);
+                  }}
+                >
+                  <BinIcon />
+                </Pressable>
+              ) : null}
             </TouchableOpacity>
           );
         })}
@@ -211,7 +274,7 @@ export function MondayThursdayFastsWeeklyProgressDashboard({
 
       <View style={styles.footerRow}>
         <View style={styles.streakBadge}>
-          <FlashIcon size={13} color={Colors.light.green} />
+          <FlashIcon size={13} color={Colors.light.seagreen} />
           <Text style={styles.streakText}>
             {t("progressLogging.mondayThursdayWeeklyStreak", {
               count: weekSummary.streakWeeks,
@@ -225,7 +288,9 @@ export function MondayThursdayFastsWeeklyProgressDashboard({
               name={weekOverWeekImproved ? "caret-up" : "caret-down"}
               size={13}
               color={
-                weekOverWeekImproved ? Colors.light.green : Colors.light.grey
+                weekOverWeekImproved
+                  ? Colors.light.seagreen
+                  : Colors.light.grey
               }
             />
             <Text style={styles.previousWeekText}>
@@ -294,17 +359,47 @@ const styles = StyleSheet.create({
   daysRow: {
     flexDirection: "row",
     alignItems: "flex-start",
+    paddingBottom: 10,
   },
   dayColumn: {
     flex: 1,
     alignItems: "center",
     minWidth: 0,
+    borderWidth: 1,
+    borderColor: "transparent",
+    borderRadius: 6,
+    paddingBottom: 4,
+  },
+  dayColumnMarkedForDeletion: {
+    borderColor: Colors.light.red,
+    backgroundColor: Colors.light.dullRed,
+    zIndex: 99999,
   },
   dayItemWrapper: {
     alignItems: "center",
     paddingVertical: 2,
     paddingHorizontal: 1,
     minWidth: 0,
+  },
+  /** Figma today chip — wraps ring + day label (must contrast card bg) */
+  dayItemTodayChip: {
+    backgroundColor: Colors.light.dayProgressCardBg,
+    borderRadius: 6,
+    paddingHorizontal: 4,
+    paddingTop: 4,
+    paddingBottom: 2,
+  },
+  deleteButton: {
+    height: 20,
+    width: 24,
+    backgroundColor: Colors.light.red,
+    borderRadius: 5,
+    zIndex: 1000,
+    alignSelf: "center",
+    justifyContent: "center",
+    alignItems: "center",
+    position: "absolute",
+    bottom: -10,
   },
   statsRow: {
     flexDirection: "row",
@@ -340,7 +435,7 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   streakText: {
-    color: Colors.light.green,
+    color: Colors.light.seagreen,
     fontSize: 13,
     fontWeight: "500",
     fontFamily: fonts.primary.medium,

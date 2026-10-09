@@ -8,14 +8,29 @@ import {
   normalizeDateString,
 } from "./missedRamadanFastsData";
 
+/**
+ * Day ring states aligned to Missed Ramadan Fasts Figma (frame API week.days).
+ */
 export type MissedRamadanFastDayState =
+  /** Future unplanned — grey outline */
   | "future"
+  /** Today, not planned — grey outline + today chip */
   | "today"
+  /** Today booked for another goal (`bookedForOtherGoal`) — today chip */
   | "todayDisabled"
+  /** Past booked for another goal — grey outline (same ring as future) */
+  | "disabledPast"
+  /** Past, no activity — solid grey */
   | "pastNeutral"
+  /** Future planned — ringRamadan outline */
   | "planned"
+  /** Today planned (e.g. frame state DUE) — ringRamadan outline + today chip */
+  | "plannedToday"
+  /** Past planned skipped (MISSED) — grey outline + yellow warning */
   | "plannedSkipped"
+  /** Logged keep day — solid ringRamadan */
   | "completed"
+  /** After 100% — faded outline */
   | "goalAchieved";
 
 export type MissedRamadanFastDayProgress = {
@@ -24,6 +39,9 @@ export type MissedRamadanFastDayProgress = {
   state: MissedRamadanFastDayState;
   isToday: boolean;
   isSelected?: boolean;
+  /** Frame `isPlanned` — drives menstruating planned vs unplanned visuals */
+  isPlanned?: boolean;
+  isMenstruating?: boolean;
   /** Frame API: kept-day logs can be undone via DELETE …/log?date= */
   canDelete?: boolean;
 };
@@ -105,7 +123,7 @@ function resolveDayState(
     if (isMissedRamadanFastLoggingDisabledToday()) {
       return "todayDisabled";
     }
-    if (isPlanned) return "planned";
+    if (isPlanned) return "plannedToday";
     return "today";
   }
 
@@ -202,16 +220,22 @@ function buildWeekDays(
   return Array.from({ length: 7 }, (_, index) => {
     const date = addDays(weekStart, index);
     const normalizedDate = normalizeDateString(date);
+    const isPlanned = plannedDates.has(normalizedDate);
+    const state = resolveDayState(
+      normalizedDate,
+      normalizedToday,
+      plannedDates,
+      completedDates,
+    );
     return {
       day: getDayLabel(normalizedDate),
       date: normalizedDate,
-      state: resolveDayState(
-        normalizedDate,
-        normalizedToday,
-        plannedDates,
-        completedDates,
-      ),
+      state,
       isToday: normalizedDate === normalizedToday,
+      isPlanned,
+      isMenstruating: false,
+      canDelete:
+        state === "completed" && normalizedDate <= normalizedToday,
     };
   });
 }

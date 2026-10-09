@@ -1431,6 +1431,7 @@ export function WeeklyProgressSection({
       <MondayThursdayFastsWeeklyProgressDashboard
         weekSummary={mondayThursdayWeek}
         selectedDayIndex={mondayThursdayTodayIndex}
+        onDeleted={onDeleted}
         onPrevWeek={
           canNavigateMondayThursdayFastWeek(weekIndex, "prev")
             ? handleMondayThursdayPrevWeek

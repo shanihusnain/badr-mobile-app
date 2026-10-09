@@ -4,38 +4,66 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { Colors } from "@/constants/theme";
 import type { MissedRamadanFastDayState } from "@/src/screens/private/goalprogressloggingscreen/missedRamadanFastsWeeklyData";
 
-type RingVisual = {
-  variant: "outline" | "solid";
-  color: string;
-  opacity?: number;
-  showWarning?: boolean;
-};
+type RingVisual =
+  | { variant: "outline"; color: string; opacity?: number }
+  | { variant: "solid"; color: string; scale?: number; opacity?: number }
+  /** #9 — MISSED: grey outline + yellow warning inside */
+  | { variant: "skippedWarning" }
+  /** #10 / #11 — EXCUSED planned menstruating: solid red + grey outline */
+  | { variant: "menstruatingPlanned" }
+  /** #12 / #13 — unplanned menstruating: smaller solid red, no outline */
+  | { variant: "menstruatingUnplanned" };
 
-function getRingVisual(state: MissedRamadanFastDayState): RingVisual {
+/**
+ * Missed Ramadan Fasts day rings — Figma 7-day card (17 states).
+ */
+function getRingVisual(
+  state: MissedRamadanFastDayState,
+  isMenstruating: boolean,
+  isPlanned: boolean,
+): RingVisual {
+  if (isMenstruating && state !== "completed" && state !== "goalAchieved") {
+    return isPlanned
+      ? { variant: "menstruatingPlanned" }
+      : { variant: "menstruatingUnplanned" };
+  }
+
   switch (state) {
     case "future":
-      return { variant: "outline", color: Colors.light.calendarBg };
-    case "today":
-      return { variant: "outline", color: Colors.light.white };
-    case "todayDisabled":
-      return { variant: "outline", color: Colors.light.grey, opacity: 0.45 };
-    case "pastNeutral":
+    case "disabledPast":
+      // #1 / #4
       return { variant: "outline", color: Colors.light.graylightshade };
+    case "today":
+    case "todayDisabled":
+      // #2 / #3
+      return { variant: "outline", color: Colors.light.graylightshade };
+    case "pastNeutral":
+      // #14 (+ MADE_UP planned date)
+      return {
+        variant: "solid",
+        color: Colors.light.selectcategory,
+        scale: 0.88,
+      };
     case "planned":
+    case "plannedToday":
+      // #5 / #6
       return { variant: "outline", color: Colors.light.ringRamadan };
     case "plannedSkipped":
-      return {
-        variant: "outline",
-        color: Colors.light.ringRamadan,
-        showWarning: true,
-      };
+      // #9
+      return { variant: "skippedWarning" };
     case "completed":
-      return { variant: "solid", color: Colors.light.ringRamadan };
+      // #7 / #8
+      return {
+        variant: "solid",
+        color: Colors.light.ringRamadan,
+        scale: 0.88,
+      };
     case "goalAchieved":
+      // #15
       return {
         variant: "outline",
         color: Colors.light.calendarBg,
-        opacity: 0.55,
+        opacity: 0.35,
       };
     default:
       return { variant: "outline", color: Colors.light.dullWhiteOpacity };
@@ -45,25 +73,105 @@ function getRingVisual(state: MissedRamadanFastDayState): RingVisual {
 type Props = {
   size: number;
   state: MissedRamadanFastDayState;
+  isMenstruating?: boolean;
+  isPlanned?: boolean;
 };
 
-export function MissedRamadanFastDayRing({ size, state }: Props) {
-  const visual = getRingVisual(state);
+export function MissedRamadanFastDayRing({
+  size,
+  state,
+  isMenstruating = false,
+  isPlanned = false,
+}: Props) {
+  const visual = getRingVisual(state, isMenstruating, isPlanned);
   const borderWidth = 1.5;
+  const wrapperStyle = [
+    styles.wrapper,
+    { width: size + 4, height: size + 4 },
+  ];
 
-  if (visual.variant === "solid") {
+  if (visual.variant === "skippedWarning") {
+    // #9 — grey outline with yellow warning centered
     return (
-      <View
-        style={[
-          styles.wrapper,
-          { width: size + 4, height: size + 4, opacity: visual.opacity },
-        ]}
-      >
+      <View style={wrapperStyle}>
+        <View
+          style={[
+            styles.ring,
+            {
+              width: size,
+              height: size,
+              borderRadius: size / 2,
+              borderWidth,
+              borderColor: Colors.light.graylightshade,
+            },
+          ]}
+        >
+          <FontAwesome
+            name="warning"
+            size={Math.max(size * 0.48, 9)}
+            color={Colors.light.yellow}
+          />
+        </View>
+      </View>
+    );
+  }
+
+  if (visual.variant === "menstruatingPlanned") {
+    // #10 / #11 — solid red fill inside grey outline
+    const fillSize = size * 0.78;
+    return (
+      <View style={wrapperStyle}>
+        <View
+          style={[
+            styles.ring,
+            {
+              width: size,
+              height: size,
+              borderRadius: size / 2,
+              borderWidth,
+              borderColor: Colors.light.graylightshade,
+            },
+          ]}
+        >
+          <View
+            style={{
+              width: fillSize,
+              height: fillSize,
+              borderRadius: fillSize / 2,
+              backgroundColor: Colors.light.red,
+            }}
+          />
+        </View>
+      </View>
+    );
+  }
+
+  if (visual.variant === "menstruatingUnplanned") {
+    // #12 / #13 — smaller solid red disc, no outline
+    const fillSize = size * 0.58;
+    return (
+      <View style={wrapperStyle}>
         <View
           style={{
-            width: size,
-            height: size,
-            borderRadius: size / 2,
+            width: fillSize,
+            height: fillSize,
+            borderRadius: fillSize / 2,
+            backgroundColor: Colors.light.red,
+          }}
+        />
+      </View>
+    );
+  }
+
+  if (visual.variant === "solid") {
+    const fillSize = size * (visual.scale ?? 1);
+    return (
+      <View style={[wrapperStyle, { opacity: visual.opacity }]}>
+        <View
+          style={{
+            width: fillSize,
+            height: fillSize,
+            borderRadius: fillSize / 2,
             backgroundColor: visual.color,
           }}
         />
@@ -72,16 +180,7 @@ export function MissedRamadanFastDayRing({ size, state }: Props) {
   }
 
   return (
-    <View
-      style={[
-        styles.wrapper,
-        {
-          width: size + 4,
-          height: size + 4,
-          opacity: visual.opacity,
-        },
-      ]}
-    >
+    <View style={[wrapperStyle, { opacity: visual.opacity }]}>
       <View
         style={[
           styles.ring,
@@ -93,15 +192,7 @@ export function MissedRamadanFastDayRing({ size, state }: Props) {
             borderColor: visual.color,
           },
         ]}
-      >
-        {visual.showWarning ? (
-          <FontAwesome
-            name="warning"
-            size={Math.max(size * 0.42, 8)}
-            color={Colors.light.golden}
-          />
-        ) : null}
-      </View>
+      />
     </View>
   );
 }

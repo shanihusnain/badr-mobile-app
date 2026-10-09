@@ -6,10 +6,14 @@ import type {
   MissedRamadanFastDayState,
 } from "@/src/screens/private/goalprogressloggingscreen/missedRamadanFastsWeeklyData";
 
+/**
+ * Today chip — Figma #2/#3/#6/#7/#10/#12/#17 only.
+ * #16 delete-past has red border + trash but NO today chip.
+ */
 export function shouldShowTodayLabelBackground(
   day: MissedRamadanFastDayProgress,
 ): boolean {
-  return day.isToday;
+  return Boolean(day.isToday);
 }
 
 export function getDayLabelTextStyle(
@@ -18,8 +22,9 @@ export function getDayLabelTextStyle(
 ) {
   const { state, isToday } = day;
 
+  // Figma: all today variants use bold white label (incl. today disabled)
   if (isToday) {
-    if (state === "todayDisabled") {
+    if (state === "goalAchieved") {
       return missedRamadanDayLabelStyles.dayLabelTodayDisabled;
     }
     return missedRamadanDayLabelStyles.dayLabelToday;
@@ -32,8 +37,10 @@ export function getDayLabelTextStyle(
   switch (state as MissedRamadanFastDayState) {
     case "completed":
     case "planned":
+    case "plannedToday":
     case "plannedSkipped":
     case "future":
+    case "disabledPast":
       return missedRamadanDayLabelStyles.dayLabelMuted;
     case "pastNeutral":
     case "goalAchieved":
@@ -53,7 +60,7 @@ export const missedRamadanDayLabelStyles = StyleSheet.create({
     alignItems: "center",
   },
   dayLabelTodayBackground: {
-    backgroundColor: Colors.light.darkgrey,
+    backgroundColor: Colors.light.dayProgressCardBg,
   },
   dayLabel: {
     color: Colors.light.subtext,

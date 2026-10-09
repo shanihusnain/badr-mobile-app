@@ -330,70 +330,165 @@ export function getFastingFrameAchievementLabel(
   };
 }
 
+/**
+ * Missed Ramadan day UI — Figma 7-day card ↔ frame keys:
+ *
+ *  1 Future            NOT_PLANNED + !isPlanned + date > today
+ *  2 Today             NOT_PLANNED + isToday
+ *  3 Today Disabled    isToday + bookedForOtherGoal
+ *  4 Disabled past     !isToday + bookedForOtherGoal + date < today
+ *  5 Planned           UPCOMING + isPlanned
+ *  6 Today Planned     DUE + isToday + canLog
+ *  7 Fasted today      COMPLETED + isToday
+ *  8 Fasted past       COMPLETED + !isToday
+ *  9 Skipped           MISSED — yellow warning only
+ * 10 Today planned + menstruating   EXCUSED + isToday  (solid red + grey outline)
+ * 11 Planned menstruating past      EXCUSED + !isToday (solid red + grey outline)
+ * 12 Today unplanned + menstruating — smaller solid red (no backend flag yet)
+ * 13 Unplanned menstruating past    — smaller solid red (no backend flag yet)
+ * 14 Grey past         NOT_PLANNED past / MADE_UP / COVERED_EARLY on planned date
+ * 15 Blur              goal 100% + future day
+ * 16 Delete past       canDelete — red border + trash, no today chip
+ * 17 Delete today      canDelete — today chip + red border + trash
+ */
+function isCoveredElsewherePlannedDate(day: FastingGoalFrameDay): boolean {
+  const date = normalizeDate(day.date);
+  const keptOn = normalizeDate(day.keptOn);
+  if (!keptOn || !/^\d{4}-\d{2}-\d{2}$/.test(keptOn)) return false;
+  return keptOn !== date;
+}
+
 function resolveMissedRamadanDayState(
   day: FastingGoalFrameDay,
+  options?: { goalCompleted?: boolean },
 ): MissedRamadanFastDayState {
   const state = String(day.state ?? "")
     .trim()
     .toUpperCase();
   const today = moment().format("YYYY-MM-DD");
   const date = normalizeDate(day.date);
-  const isFuture = /^\d{4}-\d{2}-\d{2}$/.test(date) && date > today;
+  const hasDate = /^\d{4}-\d{2}-\d{2}$/.test(date);
+  const isFuture = hasDate && date > today;
+  const isPast = hasDate && date < today;
+  const bookedForOtherGoal = Boolean(day.bookedForOtherGoal);
 
+  // #3 / #4 — booked for another fasting goal
+  if (bookedForOtherGoal) {
+    if (day.isToday) return "todayDisabled";
+    if (isPast) return "disabledPast";
+  }
+
+  // Planned date made up / covered early elsewhere → grey (#14), never warning
+  if (
+    (state === "MADE_UP" || state === "COVERED_EARLY") &&
+    isCoveredElsewherePlannedDate(day)
+  ) {
+    return "pastNeutral";
+  }
+
+  // #7 / #8 — completed on the day the fast was actually kept
   if (
     state === "COMPLETED" ||
     state === "LOGGED" ||
     state === "ACHIEVED" ||
     state === "DONE" ||
-    state === "COVERED_EARLY" ||
-    state === "MADE_UP"
+    state === "COVERED_EARLY"
   ) {
     return "completed";
   }
 
+  // MADE_UP without keptOn — still not a skip warning
+  if (state === "MADE_UP") {
+    return "pastNeutral";
+  }
+
+  // #9 — skipped planned (not yet made up)
   if (state === "MISSED" || state === "SKIPPED") {
     return "plannedSkipped";
   }
 
-  if (day.isPlanned || isPlannedState(state)) {
-    if (isFuture || state === "UPCOMING" || state === "PLANNED") {
-      return "planned";
-    }
-    if (day.isToday || state === "DUE") {
-      return "planned";
-    }
+  // #10 / #11 — EXCUSED = planned + menstruating (ring via isMenstruating)
+  if (state === "EXCUSED" || state === "MENSTRUATING") {
+    return day.isToday ? "plannedToday" : "planned";
+  }
+
+  // #6 — today planned fast
+  if (state === "DUE" && day.isToday && day.canLog) {
+    return "plannedToday";
+  }
+  if (state === "DUE" && day.isToday) {
+    return "plannedToday";
+  }
+
+  // #5 — upcoming planned
+  if ((state === "UPCOMING" || state === "PLANNED") && day.isPlanned) {
+    return "planned";
+  }
+
+  // #15 — blur days after goal is fully achieved (no per-day field)
+  if (options?.goalCompleted && isFuture) {
+    return "goalAchieved";
+  }
+
+  // #1 / #2 / #14 — NOT_PLANNED
+  if (state === "NOT_PLANNED" || !day.isPlanned) {
+    if (day.isToday) return "today";
+    if (isFuture) return "future";
+    if (isPast) return "pastNeutral";
+  }
+
+  // Fallbacks for remaining planned-like signals
+  if (day.isPlanned) {
+    if (day.isToday) return "plannedToday";
+    if (isFuture) return "planned";
+    // Past planned without MISSED/COMPLETED — treat as skipped
     return "plannedSkipped";
   }
 
-  if (day.isToday) {
-    return day.canLog === false ? "todayDisabled" : "today";
-  }
+  if (day.isToday) return "today";
   if (isFuture) return "future";
   return "pastNeutral";
 }
 
 export function mapMissedRamadanFrameDay(
   day: FastingGoalFrameDay,
+  options?: { goalCompleted?: boolean },
 ): MissedRamadanFastDayProgress {
-  const state = resolveMissedRamadanDayState(day);
+  const rawState = String(day.state ?? "")
+    .trim()
+    .toUpperCase();
+  const state = resolveMissedRamadanDayState(day, options);
+  // EXCUSED = planned menstruating. Unplanned menstruating (#12/#13) has no flag yet.
+  const isExcusedMenstruating =
+    rawState === "EXCUSED" || rawState === "MENSTRUATING";
+
   return {
     day: day.dayLabel,
     date: normalizeDate(day.date),
     state,
     isToday: Boolean(day.isToday),
-    canDelete: Boolean(day.canDelete) && state === "completed",
+    isPlanned: Boolean(day.isPlanned) || isExcusedMenstruating,
+    isMenstruating: isExcusedMenstruating,
+    canDelete: Boolean(day.canDelete),
   };
 }
 
 export function mapMissedRamadanFrameWeekSummary(
   frame: FastingGoalFrameData,
 ): MissedRamadanFastWeekSummary {
-  const weekDays = (frame.week?.days ?? []).map(mapMissedRamadanFrameDay);
+  const goalCompleted =
+    getFastingFrameAchievementPct(frame) >= 100 ||
+    String(frame.goal?.status ?? "")
+      .trim()
+      .toUpperCase() === "COMPLETED";
+  const weekDays = (frame.week?.days ?? []).map((day) =>
+    mapMissedRamadanFrameDay(day, { goalCompleted }),
+  );
   const completedFastsThisWeek = weekDays.filter(
     (day) => day.state === "completed",
   ).length;
   const upcomingPlannedThisWeek = weekDays.filter(
-    (day) => day.state === "planned",
+    (day) => day.state === "planned" || day.state === "plannedToday",
   ).length;
   const motivationalQuote = getFastingFrameMotivationalQuote(frame);
 

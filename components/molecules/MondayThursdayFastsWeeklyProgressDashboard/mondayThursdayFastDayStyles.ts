@@ -6,6 +6,7 @@ import type {
   MondayThursdayFastDayState,
 } from "@/src/screens/private/goalprogressloggingscreen/mondayThursdayFastsWeeklyData";
 
+/** Today chip behind ring + label for every “today” variant in Figma. */
 export function shouldShowTodayLabelBackground(
   day: MondayThursdayFastDayProgress,
 ): boolean {
@@ -19,7 +20,7 @@ export function getDayLabelTextStyle(
   const { state, isToday } = day;
 
   if (isToday) {
-    if (state === "todayDisabled") {
+    if (state === "todayDisabled" || state === "goalAchieved") {
       return mondayThursdayDayLabelStyles.dayLabelTodayDisabled;
     }
     return mondayThursdayDayLabelStyles.dayLabelToday;
@@ -32,9 +33,11 @@ export function getDayLabelTextStyle(
   switch (state as MondayThursdayFastDayState) {
     case "completed":
     case "planned":
-      return mondayThursdayDayLabelStyles.dayLabelMuted;
+    case "plannedToday":
     case "missed":
-    case "inactive":
+      return mondayThursdayDayLabelStyles.dayLabelMuted;
+    case "future":
+    case "pastNeutral":
     case "goalAchieved":
       return mondayThursdayDayLabelStyles.dayLabelInactive;
     default:
@@ -52,7 +55,7 @@ export const mondayThursdayDayLabelStyles = StyleSheet.create({
     alignItems: "center",
   },
   dayLabelTodayBackground: {
-    backgroundColor: Colors.light.darkgrey,
+    backgroundColor: Colors.light.dayProgressCardBg,
   },
   dayLabel: {
     color: Colors.light.subtext,

@@ -270,7 +270,7 @@ export function getMondayThursdayFastRingSegments(
   const remaining = Math.max(0, total - completed);
 
   return [
-    { value: completed, color: Colors.light.green },
+    { value: completed, color: Colors.light.seagreen },
     { value: remaining, color: Colors.light.ringRamadan },
   ].filter((segment) => segment.value > 0);
 }

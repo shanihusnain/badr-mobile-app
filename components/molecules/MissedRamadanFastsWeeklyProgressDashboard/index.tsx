@@ -160,8 +160,11 @@ export function MissedRamadanFastsWeeklyProgressDashboard({
             currentDayIndex !== null && index === currentDayIndex;
           const isMarkedForDeletion =
             !!day.date && selectForDeletion === day.date;
-          const canDeleteDay =
-            day.canDelete !== false && day.state === "completed" && !!day.date;
+          // #16 / #17 — delete chrome from canDelete (completed kept days)
+          const canDeleteDay = Boolean(day.canDelete) && !!day.date;
+          // Today chip only when isToday (#2/#3/#6/#7/#10/#12/#17)
+          const showTodayChip = shouldShowTodayLabelBackground(day);
+          const isBlurred = day.state === "goalAchieved";
 
           return (
             <TouchableOpacity
@@ -169,6 +172,7 @@ export function MissedRamadanFastsWeeklyProgressDashboard({
               style={[
                 styles.dayColumn,
                 isMarkedForDeletion && styles.dayColumnMarkedForDeletion,
+                isBlurred && styles.dayColumnBlurred,
               ]}
               onPress={() => {
                 if (loading) return;
@@ -188,15 +192,25 @@ export function MissedRamadanFastsWeeklyProgressDashboard({
               activeOpacity={loading ? 1 : 0.75}
               disabled={loading}
             >
-              <View style={styles.dayItemWrapper}>
-                <MissedRamadanFastDayRing size={ringSize} state={day.state} />
-                <View
-                  style={[
-                    missedRamadanDayLabelStyles.dayLabelWrapper,
-                    shouldShowTodayLabelBackground(day) &&
-                      missedRamadanDayLabelStyles.dayLabelTodayBackground,
-                  ]}
-                >
+              <View
+                style={[
+                  styles.dayItemWrapper,
+                  showTodayChip && styles.dayItemTodayChip,
+                  // #16 / #17 — red border when marked for delete
+                  isMarkedForDeletion && styles.dayItemDeleteBorder,
+                  // #16 past delete: padding without today chip fill
+                  isMarkedForDeletion &&
+                    !showTodayChip &&
+                    styles.dayItemDeletePadding,
+                ]}
+              >
+                <MissedRamadanFastDayRing
+                  size={ringSize}
+                  state={day.state}
+                  isMenstruating={day.isMenstruating}
+                  isPlanned={Boolean(day.isPlanned)}
+                />
+                <View style={missedRamadanDayLabelStyles.dayLabelWrapper}>
                   <Text
                     style={getDayLabelTextStyle(day, isSelected)}
                     numberOfLines={1}
@@ -325,15 +339,36 @@ const styles = StyleSheet.create({
     paddingBottom: 4,
   },
   dayColumnMarkedForDeletion: {
-    borderColor: Colors.light.red,
-    backgroundColor: Colors.light.dullRed,
     zIndex: 99999,
+  },
+  dayColumnBlurred: {
+    opacity: 0.35,
   },
   dayItemWrapper: {
     alignItems: "center",
     paddingVertical: 2,
     paddingHorizontal: 1,
     minWidth: 0,
+  },
+  /** Figma today / delete chip — wraps ring + day label (must contrast card bg) */
+  dayItemTodayChip: {
+    backgroundColor: Colors.light.dayProgressCardBg,
+    borderRadius: 6,
+    paddingHorizontal: 4,
+    paddingTop: 4,
+    paddingBottom: 2,
+  },
+  /** #16 / #17 — thin red border when marked for delete */
+  dayItemDeleteBorder: {
+    borderWidth: 1,
+    borderColor: Colors.light.red,
+    borderRadius: 6,
+  },
+  /** #16 — padding when delete border has no today chip */
+  dayItemDeletePadding: {
+    paddingHorizontal: 4,
+    paddingTop: 4,
+    paddingBottom: 2,
   },
   deleteButton: {
     height: 20,

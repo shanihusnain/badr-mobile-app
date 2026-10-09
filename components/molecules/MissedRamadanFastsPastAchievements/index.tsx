@@ -6,15 +6,23 @@ import {
   TouchableOpacity,
   Pressable,
   ScrollView,
+  ActivityIndicator,
+  useWindowDimensions,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { CalendarGrid } from "@/components/molecules/CalendarGrid";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import { AchivementArrowIcon } from "@/assets/icons/AchivementArrowIcon";
+import {
+  InsightCardFlashIcon,
+  InsightCardGoalTrackedIcon,
+  InsightCardTickIcon,
+  InsightCardTimeSpentIcon,
+  InsightCardWeeklyAverageIcon,
+} from "@/assets/icons";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import {
   applyMissedRamadanAnalyticsView,
@@ -61,8 +69,16 @@ import { TopSpace } from "@/components/atoms/TopSpace";
 import { FontAwesome } from "@expo/vector-icons";
 import Feather from "@expo/vector-icons/Feather";
 import { InsightCard } from "../InsightCard";
+import type { InsightCardData } from "../PrayerPastAchievements/insightCardsData";
 import { getGoalById } from "@/src/screens/private/home/components/goalsData";
 import { PastAchievementStudyMaterial } from "@/components/molecules/PastAchievementStudyMaterial";
+import { useGetFastingGoalAchievements } from "@/src/api/queries/useGetFastingGoalAchievements";
+import {
+  createEmptyMissedRamadanAchievements,
+  mapFastingApiKeyInsightsToCards,
+  mapFastingGoalAchievementsToMissedRamadan,
+  shiftFastingAchievementsPeriodStart,
+} from "@/src/utils/fastingGoalAchievementsMap";
 
 type Props = {
   refreshKey?: number;
@@ -73,6 +89,30 @@ type Props = {
   | MissedRamadanAnalyticsView
   | ProphetDawoodAnalyticsView;
 };
+
+const FASTING_INSIGHT_ICON_SIZE = 14;
+
+function getMissedRamadanInsightIcon(card: InsightCardData) {
+  const title = card.title.toUpperCase();
+  const name = card.iconName;
+  if (name === "calendar-outline" || title.includes("GOAL TRACKED")) {
+    return <InsightCardGoalTrackedIcon size={FASTING_INSIGHT_ICON_SIZE} />;
+  }
+  if (name === "checkmark-circle-outline" || title.includes("COMPLETED")) {
+    return <InsightCardTickIcon size={FASTING_INSIGHT_ICON_SIZE} />;
+  }
+  if (name === "flash" || title.includes("STREAK")) {
+    return <InsightCardFlashIcon size={FASTING_INSIGHT_ICON_SIZE} />;
+  }
+  if (name === "scale-balance" || title.includes("AVERAGE")) {
+    return <InsightCardWeeklyAverageIcon size={FASTING_INSIGHT_ICON_SIZE} />;
+  }
+  if (name === "time-outline" || title.includes("TIME")) {
+    return <InsightCardTimeSpentIcon size={FASTING_INSIGHT_ICON_SIZE} />;
+  }
+  return undefined;
+}
+
 const PERIODS: PastAchievementPeriod[] = [
   "monthly",
   "threeMonths",
@@ -124,7 +164,17 @@ export function MissedRamadanFastsPastAchievements({
   const isDawood = variant === "prophetDawood";
   const router = useRouter();
   const { t } = useTranslation();
+  const { width } = useWindowDimensions();
   const formatNumber = useLocaleNumber();
+  const insightCardWidthStyle = useMemo(
+    () => ({
+      ...styles.insightCardFixed,
+      width: width * 0.42,
+      maxWidth: width * 0.42,
+      minWidth: width * 0.42,
+    }),
+    [width],
+  );
   const [period, setPeriod] = useState<PastAchievementPeriod>(initialPeriod);
   const [analyticsView, setAnalyticsView] =
     useState<MissedRamadanAnalyticsView>(initialAnalyticsView);
@@ -140,22 +190,61 @@ export function MissedRamadanFastsPastAchievements({
     string | null
   >(null);
   const [hintDismissed, setHintDismissed] = useState(false);
+  const [apiPeriodStart, setApiPeriodStart] = useState<string | null>(null);
   const goalData = getGoalById(isDawood ? "fasting-Dawwod" : "fasting-ramadan");
   const studyMaterial = goalData?.studyMaterial ?? [];
-  const periodSlice = useMemo(
-    () =>
-      isDawood
-        ? getProphetDawoodFastsPastAchievementSlice(period)
-        : getMissedRamadanFastsPastAchievementSlice(period),
-    [isDawood, period, refreshKey],
+
+  const usesAchievementsApi = !isDawood;
+  const {
+    data: achievementsApiData,
+    isLoading: isAchievementsLoading,
+    isFetching: isAchievementsFetching,
+  } = useGetFastingGoalAchievements("MISSED_RAMADAN", {
+    period,
+    periodStart: apiPeriodStart,
+    enabled: usesAchievementsApi,
+  });
+
+  const mappedApi = useMemo(() => {
+    if (!usesAchievementsApi || !achievementsApiData) return null;
+    return mapFastingGoalAchievementsToMissedRamadan(
+      achievementsApiData,
+      period,
+    );
+  }, [achievementsApiData, period, usesAchievementsApi]);
+
+  const emptyApiMapped = useMemo(
+    () => createEmptyMissedRamadanAchievements(period),
+    [period],
   );
-  const baseAchievement = useMemo(
-    () =>
-      isDawood
-        ? getProphetDawoodFastsPastAchievement(period)
-        : getMissedRamadanFastsPastAchievement(period),
-    [isDawood, period, refreshKey],
-  );
+
+  const periodSlice = useMemo(() => {
+    if (isDawood) return getProphetDawoodFastsPastAchievementSlice(period);
+    if (mappedApi) return mappedApi.slice;
+    if (usesAchievementsApi) return emptyApiMapped.slice;
+    return getMissedRamadanFastsPastAchievementSlice(period);
+  }, [
+    emptyApiMapped,
+    isDawood,
+    mappedApi,
+    period,
+    refreshKey,
+    usesAchievementsApi,
+  ]);
+
+  const baseAchievement = useMemo(() => {
+    if (isDawood) return getProphetDawoodFastsPastAchievement(period);
+    if (mappedApi) return mappedApi.achievement;
+    if (usesAchievementsApi) return emptyApiMapped.achievement;
+    return getMissedRamadanFastsPastAchievement(period);
+  }, [
+    emptyApiMapped,
+    isDawood,
+    mappedApi,
+    period,
+    refreshKey,
+    usesAchievementsApi,
+  ]);
 
   const timeSpentByPeriod = useMemo(
     () =>
@@ -200,13 +289,13 @@ export function MissedRamadanFastsPastAchievements({
     periodSlice,
   ]);
 
-  const totalTimeSpentMinutes = useMemo(
-    () =>
-      isDawood
-        ? getTotalProphetDawoodTimeSpentMinutes(timeSpentByPeriod)
-        : getTotalMissedRamadanTimeSpentMinutes(timeSpentByPeriod),
-    [isDawood, timeSpentByPeriod],
-  );
+  const totalTimeSpentMinutes = useMemo(() => {
+    if (isDawood) {
+      return getTotalProphetDawoodTimeSpentMinutes(timeSpentByPeriod);
+    }
+    if (mappedApi) return mappedApi.totalTimeSpentMinutes;
+    return getTotalMissedRamadanTimeSpentMinutes(timeSpentByPeriod);
+  }, [isDawood, mappedApi, timeSpentByPeriod]);
 
   const dawoodPeriodSlice = isDawood
     ? (periodSlice as ReturnType<
@@ -227,11 +316,58 @@ export function MissedRamadanFastsPastAchievements({
       >,
     );
 
+  const apiInsightCards = useMemo(() => {
+    if (!usesAchievementsApi) return [] as InsightCardData[];
+    return mapFastingApiKeyInsightsToCards(achievementsApiData, {
+      period,
+      noDataLabel: t("progressLogging.previousMonth"),
+      isLoading: isAchievementsLoading || isAchievementsFetching,
+    });
+  }, [
+    achievementsApiData,
+    isAchievementsFetching,
+    isAchievementsLoading,
+    period,
+    t,
+    usesAchievementsApi,
+  ]);
+
+  const canNavigateBack =
+    usesAchievementsApi && !!mappedApi?.canNavigateBack && !isAchievementsLoading;
+  const canNavigateForward =
+    usesAchievementsApi &&
+    !!mappedApi?.canNavigateForward &&
+    !isAchievementsLoading;
+
+  const handlePrevPeriod = useCallback(() => {
+    if (!canNavigateBack || !mappedApi) return;
+    const next = shiftFastingAchievementsPeriodStart(
+      mappedApi.periodStart,
+      mappedApi.periodEnd,
+      -1,
+    );
+    if (next) setApiPeriodStart(next);
+  }, [canNavigateBack, mappedApi]);
+
+  const handleNextPeriod = useCallback(() => {
+    if (!canNavigateForward || !mappedApi) return;
+    const next = shiftFastingAchievementsPeriodStart(
+      mappedApi.periodStart,
+      mappedApi.periodEnd,
+      1,
+    );
+    if (next) setApiPeriodStart(next);
+  }, [canNavigateForward, mappedApi]);
+
+  useEffect(() => {
+    setApiPeriodStart(null);
+  }, [period]);
+
   useEffect(() => {
     setSelectedBarIndex(null);
     setSelectedCalendarDate(null);
     setHintDismissed(false);
-  }, [period, analyticsView, dawoodAnalyticsView, refreshKey]);
+  }, [period, analyticsView, dawoodAnalyticsView, refreshKey, apiPeriodStart]);
 
   const handleBarPressCompact = useCallback((index: number | null) => {
     setHintDismissed(true);
@@ -271,14 +407,26 @@ export function MissedRamadanFastsPastAchievements({
     });
   }, [activeAnalyticsView, isDawood, period, router]);
 
+  const missedRamadanSliceForDates = !isDawood
+    ? (periodSlice as ReturnType<
+        typeof getMissedRamadanFastsPastAchievementSlice
+      >)
+    : null;
+
   const displayCompleted = selectedCalendarDate
     ? isDawood
       ? isProphetDawoodFastCompletedOnDate(selectedCalendarDate)
         ? 1
         : 0
-      : isMissedRamadanFastCompletedOnDate(selectedCalendarDate)
-        ? 1
-        : 0
+      : usesAchievementsApi
+        ? missedRamadanSliceForDates?.completedDates.includes(
+            selectedCalendarDate,
+          )
+          ? 1
+          : 0
+        : isMissedRamadanFastCompletedOnDate(selectedCalendarDate)
+          ? 1
+          : 0
     : selectedBarIndex !== null
       ? (periodSlice.chartPeriods[selectedBarIndex]?.completed ?? 0)
       : periodSlice.completedFasts;
@@ -288,21 +436,43 @@ export function MissedRamadanFastsPastAchievements({
         isProphetDawoodFastMissedOnDate(selectedCalendarDate, dawoodPeriodSlice)
         ? 1
         : 0
-      : isMissedRamadanFastSkippedOnDate(selectedCalendarDate)
-        ? 1
-        : 0
+      : usesAchievementsApi
+        ? missedRamadanSliceForDates?.skippedDates.includes(selectedCalendarDate) ||
+          missedRamadanSliceForDates?.incompletePlannedDates.includes(
+            selectedCalendarDate,
+          )
+          ? 1
+          : 0
+        : isMissedRamadanFastSkippedOnDate(selectedCalendarDate)
+          ? 1
+          : 0
     : selectedBarIndex !== null
       ? (periodSlice.chartPeriods[selectedBarIndex]?.incomplete ?? 0)
       : periodSlice.incompleteFasts;
 
+  const apiLockedOrEmpty =
+    usesAchievementsApi &&
+    (Boolean(mappedApi?.locked) ||
+      (!isAchievementsLoading &&
+        (mappedApi == null ||
+          (mappedApi.slice.completedFasts === 0 &&
+            mappedApi.slice.incompleteFasts === 0 &&
+            mappedApi.slice.chartPeriods.every(
+              (p) => p.completed === 0 && p.incomplete === 0,
+            )))));
+
   const showNoDataDash =
-    selectedCalendarDate == null &&
-    isPastAchievementBarEmpty(displayCompleted, displayIncomplete);
+    (usesAchievementsApi &&
+      (isAchievementsLoading || apiLockedOrEmpty)) ||
+    (selectedCalendarDate == null &&
+      isPastAchievementBarEmpty(displayCompleted, displayIncomplete));
 
   const selectedPeriodTimeSpentMinutes = selectedCalendarDate
     ? isDawood
       ? getProphetDawoodFastTimeSpentForDate(selectedCalendarDate)
-      : getMissedRamadanFastTimeSpentForDate(selectedCalendarDate)
+      : usesAchievementsApi
+        ? 0
+        : getMissedRamadanFastTimeSpentForDate(selectedCalendarDate)
     : selectedBarIndex !== null
       ? (timeSpentByPeriod[selectedBarIndex] ?? 0)
       : totalTimeSpentMinutes;
@@ -347,6 +517,41 @@ export function MissedRamadanFastsPastAchievements({
     : null;
 
   const renderFastingInsights = () => {
+    if (!isDawood && apiInsightCards.length > 0) {
+      return (
+        <View style={styles.insightsSection}>
+          <View style={styles.insightsHeader}>
+            <Text style={styles.insightsTitleLabel}>
+              {t("progressLogging.keyInsights")}
+            </Text>
+            <Text style={styles.insightsSubtitleLabel}>
+              {mappedApi?.keyInsightsHeader?.trim() ||
+                (period === "monthly"
+                  ? "VS. LAST MONTH"
+                  : period === "threeMonths"
+                    ? "VS. LAST 3 MONTHS"
+                    : "VS. LAST 6 MONTHS")}
+            </Text>
+          </View>
+          <ScrollView
+            horizontal
+            nestedScrollEnabled
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.insightsScrollContent}
+          >
+            {apiInsightCards.map((card, index) => (
+              <InsightCard
+                key={`${card.title}-${index}`}
+                {...card}
+                icon={getMissedRamadanInsightIcon(card)}
+                style={insightCardWidthStyle}
+              />
+            ))}
+          </ScrollView>
+        </View>
+      );
+    }
+
     if (isDetailed) {
       const totalCompletedTitle = isDawood
         ? t("progressLogging.dawoodInsightTotalCompleted")
@@ -354,6 +559,23 @@ export function MissedRamadanFastsPastAchievements({
       const totalCompletedSub = isDawood
         ? t("progressLogging.dawoodInsightFastsCompleted")
         : t("progressLogging.missedRamadanInsightFastsCompleted");
+
+      const detailedCards: InsightCardData[] = [
+        {
+          iconFamily: "Ionicons",
+          iconName: "calendar-outline",
+          title: t("progressLogging.recitationInsightGoalTracked"),
+          value: formatNumber(goalTrackedMonths),
+          subValue: t("progressLogging.recitationInsightMonths"),
+        },
+        {
+          iconFamily: "Ionicons",
+          iconName: "checkmark-circle-outline",
+          title: totalCompletedTitle,
+          value: formatNumber(totalFastsCompleted),
+          subValue: totalCompletedSub,
+        },
+      ];
 
       return (
         <View style={styles.insightsSection}>
@@ -371,23 +593,18 @@ export function MissedRamadanFastsPastAchievements({
           </View>
           <ScrollView
             horizontal
+            nestedScrollEnabled
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.insightsScrollContent}
           >
-            <InsightCard
-              iconName="calendar-outline"
-              title={t("progressLogging.recitationInsightGoalTracked")}
-              value={formatNumber(goalTrackedMonths)}
-              subValue={t("progressLogging.recitationInsightMonths")}
-              style={styles.insightCardFixed}
-            />
-            <InsightCard
-              iconName="checkmark-circle-outline"
-              title={totalCompletedTitle}
-              value={formatNumber(totalFastsCompleted)}
-              subValue={totalCompletedSub}
-              style={styles.insightCardFixed}
-            />
+            {detailedCards.map((card, index) => (
+              <InsightCard
+                key={`${card.title}-${index}`}
+                {...card}
+                icon={getMissedRamadanInsightIcon(card)}
+                style={insightCardWidthStyle}
+              />
+            ))}
           </ScrollView>
         </View>
       );
@@ -396,6 +613,23 @@ export function MissedRamadanFastsPastAchievements({
     if (!isDawood || !dawoodPeriodSlice || period === "monthly") {
       return null;
     }
+
+    const dawoodCards: InsightCardData[] = [
+      {
+        iconFamily: "Ionicons",
+        iconName: "calendar-outline",
+        title: t("progressLogging.dawoodInsightGoalTracked"),
+        value: formatNumber(dawoodPeriodSlice.trackedMonths),
+        subValue: t("progressLogging.dawoodInsightMonths"),
+      },
+      {
+        iconFamily: "Ionicons",
+        iconName: "sync-outline",
+        title: t("progressLogging.dawoodInsightCycles"),
+        value: formatNumber(dawoodPeriodSlice.cycleCount),
+        subValue: t("progressLogging.dawoodInsightCyclesUnit"),
+      },
+    ];
 
     return (
       <View style={styles.insightsSection}>
@@ -409,22 +643,21 @@ export function MissedRamadanFastsPastAchievements({
               : t("progressLogging.dawoodInsightsVsLast6Months")}
           </Text>
         </View>
-        <View style={styles.insightsCardsRow}>
-          <InsightCard
-            iconName="calendar-outline"
-            title={t("progressLogging.dawoodInsightGoalTracked")}
-            value={formatNumber(dawoodPeriodSlice.trackedMonths)}
-            subValue={t("progressLogging.dawoodInsightMonths")}
-            style={styles.insightCardFixed}
-          />
-          <InsightCard
-            iconName="sync-outline"
-            title={t("progressLogging.dawoodInsightCycles")}
-            value={formatNumber(dawoodPeriodSlice.cycleCount)}
-            subValue={t("progressLogging.dawoodInsightCyclesUnit")}
-            style={styles.insightCardFixed}
-          />
-        </View>
+        <ScrollView
+          horizontal
+          nestedScrollEnabled
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.insightsScrollContent}
+        >
+          {dawoodCards.map((card, index) => (
+            <InsightCard
+              key={`${card.title}-${index}`}
+              {...card}
+              icon={getMissedRamadanInsightIcon(card)}
+              style={insightCardWidthStyle}
+            />
+          ))}
+        </ScrollView>
       </View>
     );
   };
@@ -589,21 +822,41 @@ export function MissedRamadanFastsPastAchievements({
             </View>
 
             <View style={styles.dateNavRow}>
-              <TouchableOpacity activeOpacity={0.7} style={styles.navBtn}>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                style={styles.navBtn}
+                disabled={!canNavigateBack}
+                onPress={handlePrevPeriod}
+              >
                 <Ionicons
                   name="chevron-back"
                   size={isDetailed ? 24 : 14}
-                  color={Colors.light.dullWhite}
+                  color={
+                    canNavigateBack
+                      ? Colors.light.dullWhite
+                      : Colors.light.graylightshade
+                  }
                 />
               </TouchableOpacity>
               <Text style={styles.dateRange} numberOfLines={1}>
-                {baseAchievement.dateRangeLabel}
+                {usesAchievementsApi && isAchievementsLoading
+                  ? "---"
+                  : baseAchievement.dateRangeLabel || "---"}
               </Text>
-              <TouchableOpacity activeOpacity={0.7} style={styles.navBtn}>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                style={styles.navBtn}
+                disabled={!canNavigateForward}
+                onPress={handleNextPeriod}
+              >
                 <Ionicons
                   name="chevron-forward"
                   size={isDetailed ? 24 : 14}
-                  color={Colors.light.dullWhite}
+                  color={
+                    canNavigateForward
+                      ? Colors.light.dullWhite
+                      : Colors.light.graylightshade
+                  }
                 />
               </TouchableOpacity>
             </View>
@@ -630,6 +883,13 @@ export function MissedRamadanFastsPastAchievements({
             )}
           </Text>
         )}
+
+        {usesAchievementsApi &&
+        (isAchievementsLoading || isAchievementsFetching) ? (
+          <View style={{ alignItems: "center", paddingVertical: 8 }}>
+            <ActivityIndicator color={Colors.light.white} />
+          </View>
+        ) : null}
 
         <View style={styles.goalHeader}>
           <Text style={styles.goalLabel}>{t("progressLogging.goal")}</Text>
@@ -784,7 +1044,14 @@ export function MissedRamadanFastsPastAchievements({
                     </Text>
                   </View>
                   <View style={styles.legendItem}>
-                    <View style={styles.legendDotSkipped} />
+                    <View style={styles.legendWarningWrap}>
+                      <View style={styles.legendDotSkipped} />
+                      <FontAwesome
+                        name="warning"
+                        size={5}
+                        color={Colors.light.warning}
+                      />
+                    </View>
                     <Text style={styles.legendText}>
                       {t(
                         "progressLogging.missedRamadanLegendIncompletePlanned",
@@ -822,9 +1089,11 @@ export function MissedRamadanFastsPastAchievements({
             ) : (
               <CalendarGrid
                 mode="missed_ramadan_achievement"
-                currentDate={periodSlice.calendarMonthDate}
-                windowStartDate={periodSlice.periodStartDate}
-                windowEndDate={periodSlice.periodEndDate}
+                currentDate={
+                  periodSlice.calendarMonthDate ||
+                  periodSlice.periodStartDate ||
+                  new Date().toISOString().slice(0, 8) + "01"
+                }
                 completedFastDates={missedRamadanSlice?.completedDates ?? []}
                 missedFastDates={missedRamadanSlice?.skippedDates ?? []}
                 incompletePlannedFastDates={
@@ -1207,7 +1476,7 @@ const styles = StyleSheet.create({
   legendRow: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 16,
+    gap: 12,
     marginTop: 2,
     backgroundColor: Colors.light.calendarBg,
     padding: 12,
@@ -1218,6 +1487,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
+  },
+  legendWarningWrap: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    gap: 2,
   },
   legendDotFilled: {
     width: 10,
@@ -1246,8 +1520,9 @@ const styles = StyleSheet.create({
     height: 10,
     borderRadius: 5,
     borderWidth: 1.2,
-    borderColor: Colors.light.subtext,
+    borderColor: Colors.light.ringRamadan,
     backgroundColor: "transparent",
+    opacity: 0.65,
   },
   legendDotFilledDawood: {
     width: 10,
@@ -1330,16 +1605,15 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     textTransform: "uppercase",
   },
-  insightsCardsRow: {
+  insightsScrollContent: {
     flexDirection: "row",
     gap: 10,
-  },
-  insightsScrollContent: {
-    gap: 10,
-    paddingRight: 4,
+    paddingRight: 20,
   },
   insightCardFixed: {
-    width: 168,
+    flex: 0,
+    flexGrow: 0,
+    flexShrink: 0,
   },
   insightsTitle: {
     color: Colors.light.white,

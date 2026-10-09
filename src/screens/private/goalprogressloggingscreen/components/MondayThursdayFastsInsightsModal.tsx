@@ -58,12 +58,12 @@ export function MondayThursdayFastsInsightsModal({
                 <Ionicons
                   name="checkmark-circle"
                   size={28}
-                  color={Colors.light.green}
+                  color={Colors.light.seagreen}
                 />
               </View>
               <TaperedCircleBorder
                 percentage="100%"
-                progressColor={Colors.light.green}
+                progressColor={Colors.light.seagreen}
                 borderColor={Colors.light.dullWhiteOpacity}
                 size={160}
               >

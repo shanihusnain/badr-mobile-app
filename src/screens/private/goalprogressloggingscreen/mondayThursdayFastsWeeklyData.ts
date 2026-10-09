@@ -11,13 +11,27 @@ import {
   normalizeDateString,
 } from "./mondayThursdayFastsData";
 
+/**
+ * Day ring states aligned to Mon & Thu Fasts Figma (backend plan/log/menstruation).
+ */
 export type MondayThursdayFastDayState =
-  | "inactive"
+  /** Future unplanned — grey outline */
+  | "future"
+  /** Today, not a planned Mon/Thu — solid muted grey + today chip */
   | "today"
+  /** Today, logging disabled — dimmed solid grey + today chip */
   | "todayDisabled"
+  /** Past, no activity — solid grey (“Grey day”) */
+  | "pastNeutral"
+  /** Future/past planned Mon/Thu not yet due — seagreen outline */
   | "planned"
+  /** Today’s planned Mon/Thu not logged — seagreen outline + today chip */
+  | "plannedToday"
+  /** Logged completed fast — solid seagreen */
   | "completed"
+  /** User skipped planned fast — yellow warning */
   | "missed"
+  /** After 100% goal — faded outline */
   | "goalAchieved";
 
 export type MondayThursdayFastDayProgress = {
@@ -25,8 +39,30 @@ export type MondayThursdayFastDayProgress = {
   date: string;
   state: MondayThursdayFastDayState;
   isToday: boolean;
+  /** Planned Mon or Thu for this goal */
   isSelected: boolean;
+  isMenstruating: boolean;
+  /** Completed kept-day that can be undone */
+  canDelete: boolean;
 };
+
+/**
+ * Menstruating dates for the Mon & Thu dashboard.
+ * Replace / hydrate from backend when menstruation periods are integrated.
+ */
+let mondayThursdayMenstruatingDates: string[] = [];
+
+export function setMondayThursdayMenstruatingDates(dates: string[]): void {
+  mondayThursdayMenstruatingDates = dates.map(normalizeDateString);
+}
+
+export function getMondayThursdayMenstruatingDates(): string[] {
+  return [...mondayThursdayMenstruatingDates];
+}
+
+export function isMondayThursdayMenstruatingDate(date: string): boolean {
+  return mondayThursdayMenstruatingDates.includes(normalizeDateString(date));
+}
 
 export type MondayThursdayFastWeekSummary = {
   weekDays: MondayThursdayFastDayProgress[];
@@ -143,7 +179,7 @@ function resolveDayState(
 
   if (!isSelected) {
     if (normalizedDate > normalizedToday) {
-      return "inactive";
+      return "future";
     }
     if (normalizedDate === normalizedToday) {
       if (isMondayThursdayFastLoggingDisabledToday()) {
@@ -151,14 +187,18 @@ function resolveDayState(
       }
       return "today";
     }
-    return "inactive";
+    return "pastNeutral";
   }
 
+  // Planned date already covered by an early log elsewhere — treat as inactive past/future.
   if (isMondayThursdayFastCompletedEarlyOnSelectedDate(normalizedDate)) {
     if (normalizedDate > normalizedToday) {
       return "planned";
     }
-    return "inactive";
+    if (normalizedDate === normalizedToday) {
+      return "plannedToday";
+    }
+    return "pastNeutral";
   }
 
   const status = getMondayThursdayFastStatus(normalizedDate);
@@ -178,7 +218,7 @@ function resolveDayState(
     if (status === "missed") {
       return "missed";
     }
-    return "planned";
+    return "plannedToday";
   }
 
   if (status === "missed") {
@@ -299,17 +339,25 @@ function buildWeekDays(
     ),
   );
 
+  const normalizedToday = normalizeDateString(today);
+
   return Array.from({ length: 7 }, (_, index) => {
     const date = addDays(weekStart, index);
     const normalizedDate = normalizeDateString(date);
     const isSelected = selectedInWeek.has(normalizedDate);
+    const state = resolveDayState(normalizedDate, today, isSelected);
 
     return {
       day: getDayLabel(normalizedDate),
       date: normalizedDate,
-      state: resolveDayState(normalizedDate, today, isSelected),
-      isToday: normalizedDate === normalizeDateString(today),
+      state,
+      isToday: normalizedDate === normalizedToday,
       isSelected,
+      isMenstruating: isMondayThursdayMenstruatingDate(normalizedDate),
+      canDelete:
+        state === "completed" &&
+        isMondayThursdayFastLogCompletedOnDate(normalizedDate) &&
+        normalizedDate <= normalizedToday,
     };
   });
 }
