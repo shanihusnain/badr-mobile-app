@@ -84,6 +84,7 @@ import {
   hasConfiguredTargets,
   mapPrayerGoalsFromApi,
   PRAYER_TYPE_TO_UI_ID,
+  resolvePrayerUiId,
 } from "@/src/utils/prayerGoalMap";
 import { useTogglePrayerGoalByType } from "@/src/api/mutations/useTogglePrayerGoalByType";
 import { useUpsertPrayerGoal } from "@/src/api/mutations/useUpsertPrayerGoal";
@@ -120,16 +121,19 @@ import {
   hasConfiguredQuranGoal,
   mapQuranGoalsFromApi,
   QURAN_GOAL_LOADING_PLACEHOLDERS,
+  UI_ID_TO_QURAN_TYPE,
   type QuranGoalApiItem,
 } from "@/src/utils/quranGoalMap";
 import {
   FASTING_GOAL_LOADING_PLACEHOLDERS,
+  FASTING_TYPE_TO_UI_ID,
   hasConfiguredFastingGoal,
   mapFastingGoalsFromApi,
   resolveFastingType,
 } from "@/src/utils/fastingGoalMap";
 import {
   SADAQAH_GOAL_LOADING_PLACEHOLDERS,
+  SADAQAH_TYPE_TO_UI_ID,
   hasConfiguredSadaqahGoal,
   mapSadaqahGoalsFromApi,
   resolveSadaqahType,
@@ -189,6 +193,14 @@ const TABS: { id: Tab; label: string; chip?: string }[] = [
 const GOAL_SEQUENCE = ["prayer", "quran", "fasting", "sadaqah"] as const;
 type GoalSequenceTab = (typeof GOAL_SEQUENCE)[number];
 
+/** Stable UI ids per category — unlock must work even before goal lists hydrate. */
+const CATEGORY_UI_IDS: Record<GoalSequenceTab, readonly string[]> = {
+  prayer: Object.values(PRAYER_TYPE_TO_UI_ID),
+  quran: Object.keys(UI_ID_TO_QURAN_TYPE),
+  fasting: Object.values(FASTING_TYPE_TO_UI_ID),
+  sadaqah: Object.values(SADAQAH_TYPE_TO_UI_ID),
+};
+
 type Props = {
   initialTab?: Tab;
 };
@@ -216,6 +228,8 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
     const committedCycleThisSessionRef = useRef(false);
     /** Forces Category 1 after COMMIT until the tab actually lands on prayer (survives me refetch races). */
     const postCommitTargetTabRef = useRef<Tab | null>(null);
+    /** User explicitly opened the cycle tab after commit — don't auto-force Step 1. */
+    const userChoseCycleTabRef = useRef(false);
     const isCycleDateSelected = !!cycleStartDate;
     const [selectedGoals, setSelectedGoals] = useState<Record<string, boolean>>(
       {},
@@ -283,6 +297,17 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
     const [locallyConfiguredGoalIds, setLocallyConfiguredGoalIds] = useState<
       Record<string, boolean>
     >({});
+    /** Category unlocked for NEXT tab after ≥1 goal saved in that category. */
+    const [savedCategoryTabs, setSavedCategoryTabs] = useState<
+      Record<GoalSequenceTab, boolean>
+    >({
+      prayer: false,
+      quran: false,
+      fasting: false,
+      sadaqah: false,
+    });
+    const savedCategoryTabsRef = useRef(savedCategoryTabs);
+    savedCategoryTabsRef.current = savedCategoryTabs;
 
     const handleNestedMetricScrollActive = useCallback((active: boolean) => {
       setSheetScrollEnabled(!active);
@@ -366,6 +391,10 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
     }
     const locallyToggledGoalIdsRef = useRef<Record<string, boolean>>({});
     const listRef = useRef<FlatListType<any>>(null);
+    const tabBarScrollRef = useRef<RNScrollView>(null);
+    const tabLayoutsRef = useRef<Record<string, { x: number; width: number }>>(
+      {},
+    );
     const goalItemHeightsRef = useRef<Record<string, number>>({});
     const postSaveUiTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
       null,
@@ -383,18 +412,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
     const registerGoalItemLayout = useCallback(
       (goalId: string, height: number) => {
         if (!goalId || height <= 0) return;
-        const prev = goalItemHeightsRef.current[goalId] ?? 0;
         goalItemHeightsRef.current[goalId] = height;
-        // Re-scroll when a tall editor grows under an open keyboard
-        // (e.g. Completion expands below Surah / Juz / Khatma chips).
-        if (
-          height > prev + 24 &&
-          focusedGoalIdForKeyboardRef.current === goalId &&
-          keyboardHeightRef.current > 0
-        ) {
-          autoScrollInterruptedByUserRef.current = false;
-          setTimeout(() => scrollToGoalItemIdRef.current(goalId), 80);
-        }
       },
       [],
     );
@@ -439,9 +457,21 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
       const prevCycleId = prevGoalCycleIdRef.current;
       const userChanged = prevUserId !== userId;
       const cycleFirstAssigned = !prevCycleId && !!goalCycleId;
+      const sameUserCycleRefresh =
+        !userChanged && !!prevCycleId && !!goalCycleId && prevCycleId !== goalCycleId;
 
       // Transient `me` refetch can briefly clear userId — ignore while post-commit.
       if (userChanged && !userId && committedCycleThisSessionRef.current) {
+        return;
+      }
+
+      // Never wipe mid-commit: cycle id appearing / changing after COMMIT.
+      if (
+        committedCycleThisSessionRef.current &&
+        (!userChanged || !userId)
+      ) {
+        prevUserIdRef.current = userId ?? prevUserIdRef.current;
+        prevGoalCycleIdRef.current = goalCycleId ?? prevGoalCycleIdRef.current;
         return;
       }
 
@@ -455,14 +485,31 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
         return;
       }
 
+      // Same user, cycle id refreshed from API after edit — keep committed state.
+      if (sameUserCycleRefresh && hasCommittedCycle) {
+        return;
+      }
+
       if (userChanged) {
         committedCycleThisSessionRef.current = false;
         postCommitTargetTabRef.current = null;
+        userChoseCycleTabRef.current = false;
+      }
+
+      // Do not wipe session saves / tab unlocks after COMMIT this session.
+      if (committedCycleThisSessionRef.current) {
+        return;
       }
 
       locallyToggledGoalIdsRef.current = {};
       setSelectedGoals({});
       setLocallyConfiguredGoalIds({});
+      setSavedCategoryTabs({
+        prayer: false,
+        quran: false,
+        fasting: false,
+        sadaqah: false,
+      });
       setPendingUnconfiguredGoalId({
         prayer: null,
         quran: null,
@@ -482,7 +529,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
       }
       clearPendingAutoScrollTimers();
       autoScrollInterruptedByUserRef.current = false;
-    }, [userId, goalCycleId, clearPendingAutoScrollTimers]);
+    }, [userId, goalCycleId, hasCommittedCycle, clearPendingAutoScrollTimers]);
 
     // Hydrate cycle dates from API as the source of truth when the user returns.
     // Overwrite any local “tomorrow” default once the backend cycle is known.
@@ -716,6 +763,19 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
       setLocallyConfiguredGoalIds((prev) =>
         prev[goalId] ? prev : { ...prev, [goalId]: true },
       );
+      // Save implies the goal is ON — required for next-tab unlock checks.
+      setSelectedGoals((prev) =>
+        prev[goalId] === true ? prev : { ...prev, [goalId]: true },
+      );
+      // Unlock the next step tab as soon as any goal in this category is saved.
+      const category = (
+        Object.keys(CATEGORY_UI_IDS) as GoalSequenceTab[]
+      ).find((tab) => CATEGORY_UI_IDS[tab].includes(goalId));
+      if (category) {
+        setSavedCategoryTabs((prev) =>
+          prev[category] ? prev : { ...prev, [category]: true },
+        );
+      }
       setEditingGoal(null);
       setPendingUnconfiguredGoalId((prev) => {
         const next = { ...prev };
@@ -765,9 +825,29 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
     const completeGoalSaveSuccess = useCallback(
       (goalId: string, onDone?: () => void) => {
         onDone?.();
-        if (!goalId) return;
-        markGoalConfiguredData(goalId);
-        schedulePostSaveUi(goalId);
+        // Ensure cycle stays committed so Step 2+ unlock checks can pass.
+        setHasCommittedCycle(true);
+        committedCycleThisSessionRef.current = true;
+
+        const resolvedId = goalId ? resolvePrayerUiId(goalId) || goalId : goalId;
+        if (resolvedId) {
+          markGoalConfiguredData(resolvedId);
+          schedulePostSaveUi(resolvedId);
+        }
+
+        // Always unlock the *current* category tab after a successful save.
+        // (Goal-id mapping races previously left Step 2 locked while SAVED! showed.)
+        const tab = activeTabRef.current;
+        if (
+          tab === "prayer" ||
+          tab === "quran" ||
+          tab === "fasting" ||
+          tab === "sadaqah"
+        ) {
+          setSavedCategoryTabs((prev) =>
+            prev[tab] ? prev : { ...prev, [tab]: true },
+          );
+        }
       },
       [markGoalConfiguredData, schedulePostSaveUi],
     );
@@ -984,19 +1064,40 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
       [],
     );
 
+    const scrollTabBarToTab = useCallback((tabId: Tab) => {
+      const layout = tabLayoutsRef.current[tabId];
+      if (!layout || !tabBarScrollRef.current) return;
+      const screenW = Dimensions.get("window").width;
+      const targetX = Math.max(0, layout.x - Math.max(16, (screenW - layout.width) / 2));
+      tabBarScrollRef.current.scrollTo({ x: targetX, animated: true });
+    }, []);
+
     const handleCycleCommit = useCallback(
       (startDate: string, endDate: string) => {
         committedCycleThisSessionRef.current = true;
+        userChoseCycleTabRef.current = false;
         postCommitTargetTabRef.current = "prayer";
         setCycleStartDate(startDate);
         setCycleEndDate(endDate);
         setHasCommittedCycle(true);
         setActiveTab("prayer");
+        // Re-assert Step 1 after paint only while still targeting prayer
+        // (do not override if the user already moved to Step 2+).
+        const reassertPrayer = () => {
+          if (postCommitTargetTabRef.current !== "prayer") return;
+          if (userChoseCycleTabRef.current) return;
+          setActiveTab("prayer");
+          scrollTabBarToTab("prayer");
+        };
+        requestAnimationFrame(reassertPrayer);
+        setTimeout(reassertPrayer, 120);
         setTimeout(() => {
-          postCommitTargetTabRef.current = null;
-        }, 600);
+          if (postCommitTargetTabRef.current === "prayer") {
+            postCommitTargetTabRef.current = null;
+          }
+        }, 1200);
       },
-      [],
+      [scrollTabBarToTab],
     );
 
     const fastingData = [
@@ -1430,13 +1531,8 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
           },
           {
             onSuccess: () => {
-              persistSadaqahMetrics(goalKey, [
-                {
-                  id: 1,
-                  label: t("monthlyGoalPlanner.amount"),
-                  value: String(missedZakatAmount),
-                },
-              ]);
+              // Header amount only on Review — no "Amount" sub-row.
+              persistSadaqahMetrics(goalKey, []);
               completeGoalSaveSuccess("missed-zakat", onDone);
             },
             onError: () => onFail?.(),
@@ -1449,7 +1545,6 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
         requireSadaqahCurrencyCode,
         persistSadaqahMetrics,
         completeGoalSaveSuccess,
-        t,
       ],
     );
 
@@ -1738,8 +1833,12 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
         setSavingPrayerType(payload.prayerType);
         upsertPrayerGoal(payload, {
           onSuccess: () => {
-            const id = goalId ?? PRAYER_TYPE_TO_UI_ID[payload.prayerType];
-            completeGoalSaveSuccess(id ?? "", onDone);
+            const id =
+              goalId ??
+              resolvePrayerUiId(payload.prayerType) ??
+              PRAYER_TYPE_TO_UI_ID[payload.prayerType] ??
+              "";
+            completeGoalSaveSuccess(id, onDone);
           },
           onError: () => onFail?.(),
         });
@@ -1753,6 +1852,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
         targetCount: number,
         onDone?: () => void,
         onFail?: () => void,
+        uiGoalId?: string,
       ) => {
         persistPrayerGoal(
           {
@@ -1761,7 +1861,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
             targetCount,
             sliderValue: targetCount,
           },
-          undefined,
+          uiGoalId ?? resolvePrayerUiId(prayerType),
           onDone,
           onFail,
         );
@@ -1927,13 +2027,20 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
 
         let offset = baseOffset;
         if (kb > 0) {
-          // Tall cards (Quran Recitation + Completion) put inputs near the
-          // bottom. Scroll so that lower portion sits in the viewport above
-          // the keyboard — not just the card top + a small pad.
+          // Surah "times daily" sits just below the goal image header.
+          // Scroll ~280px into the card (above keyboard) but never deep into
+          // the Surah list (that scrolled the field off the top before).
           const windowH = Dimensions.get("window").height;
-          const chromeEstimate = 200; // nav header + step tabs
-          const visibleListH = Math.max(160, windowH - kb - chromeEstimate);
-          const targetInset = Math.max(0, itemHeight - visibleListH + 72);
+          const visibleListH = Math.max(
+            180,
+            windowH - kb - 190 /* header + tabs */,
+          );
+          const pastImageInset = 280;
+          const maxNeeded = Math.max(0, itemHeight - visibleListH + 48);
+          const targetInset = Math.min(
+            pastImageInset,
+            maxNeeded > pastImageInset ? pastImageInset : Math.max(maxNeeded, 160),
+          );
           offset = Math.max(0, baseOffset + targetInset);
           listRef.current?.scrollToOffset({ offset, animated: true });
           return;
@@ -1955,7 +2062,6 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
 
       runScroll();
       scheduleAutoScroll(runScroll, 350);
-      scheduleAutoScroll(runScroll, 750);
     };
 
     const handleGoalInputFocus = useCallback((goalId: string) => {
@@ -1967,12 +2073,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
       scrollToGoalItemIdRef.current(goalId);
       scheduleAutoScroll(
         () => scrollToGoalItemIdRef.current(goalId),
-        400,
-      );
-      // Layout often settles after Completion / Surah fields expand.
-      scheduleAutoScroll(
-        () => scrollToGoalItemIdRef.current(goalId),
-        700,
+        320,
       );
     }, [beginProgrammaticAutoScroll, scheduleAutoScroll]);
 
@@ -2092,6 +2193,10 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
     /** ≥1 goal toggled ON and saved (configured) in this category. */
     const categoryHasSavedGoalByTab = useCallback(
       (tab: GoalSequenceTab) => {
+        // Fast path: marked when Save succeeds (unlocks Step 2/3/4 reliably).
+        if (savedCategoryTabs[tab] || savedCategoryTabsRef.current[tab]) {
+          return true;
+        }
         const goals = categoryGoalLists[tab];
         const isConfigured = (goalId: string) => {
           switch (tab) {
@@ -2105,8 +2210,22 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
               return isSadaqahGoalConfigured(goalId);
           }
         };
+
+        if (
+          CATEGORY_UI_IDS[tab].some(
+            (goalId) =>
+              locallyConfiguredGoalIds[goalId] &&
+              selectedGoals[goalId] !== false,
+          )
+        ) {
+          return true;
+        }
+
         return goals.some((item) => {
           if (!item?.id || item.isLoadingPlaceholder) return false;
+          if (locallyConfiguredGoalIds[item.id]) {
+            return selectedGoals[item.id] !== false;
+          }
           const isOn =
             selectedGoals[item.id] !== undefined
               ? Boolean(selectedGoals[item.id])
@@ -2116,8 +2235,10 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
         });
       },
       [
+        savedCategoryTabs,
         categoryGoalLists,
         selectedGoals,
+        locallyConfiguredGoalIds,
         isPrayerGoalConfigured,
         isQuranGoalConfigured,
         isFastingGoalConfigured,
@@ -2150,7 +2271,9 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
       (tabId: Tab) => {
         if (tabId !== "cycle" && !hasCommittedCycle) return;
         if (!isTabUnlocked(tabId)) return;
+        // Leaving Step 1 ends the post-commit force window.
         postCommitTargetTabRef.current = null;
+        userChoseCycleTabRef.current = tabId === "cycle";
         setActiveTab(tabId);
       },
       [hasCommittedCycle, isTabUnlocked],
@@ -2176,6 +2299,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
       if (!initialTab) return;
       if (initialTab === "cycle") return;
       if (postCommitTargetTabRef.current) return;
+      if (committedCycleThisSessionRef.current) return;
       if (!hasCommittedCycle) {
         setActiveTab("cycle");
         return;
@@ -2188,12 +2312,38 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
       setActiveTab(firstLockedGoal ?? "cycle");
     }, [initialTab, hasCommittedCycle, isTabUnlocked]);
 
-    // Re-assert Category 1 after COMMIT until the force window ends (me refetch races).
+    // After COMMIT, only pull back to Step 1 if a race snapped us onto cycle.
+    // Never override Step 2+ (that blocked NEXT after saving a goal).
     useLayoutEffect(() => {
       if (postCommitTargetTabRef.current !== "prayer") return;
-      if (activeTab === "prayer") return;
+      if (userChoseCycleTabRef.current) return;
+      if (activeTab !== "cycle") return;
       setActiveTab("prayer");
-    }, [activeTab, hasCommittedCycle, goalCycleId, userId]);
+      scrollTabBarToTab("prayer");
+    }, [activeTab, hasCommittedCycle, goalCycleId, userId, scrollTabBarToTab]);
+
+    // If a first-time COMMIT left us on cycle (race), advance to Step 1 once unlocked.
+    useEffect(() => {
+      if (!hasCommittedCycle) return;
+      if (!committedCycleThisSessionRef.current) return;
+      if (userChoseCycleTabRef.current) return;
+      if (activeTab !== "cycle") return;
+      setActiveTab("prayer");
+      scrollTabBarToTab("prayer");
+    }, [hasCommittedCycle, activeTab, goalCycleId, scrollTabBarToTab]);
+
+    // me/cycle refetch must not clear commit unlock after a successful COMMIT.
+    useEffect(() => {
+      if (!committedCycleThisSessionRef.current) return;
+      if (hasCommittedCycle) return;
+      setHasCommittedCycle(true);
+    }, [hasCommittedCycle, goalCycleId, userId]);
+
+    // Keep the active step tab visible in the horizontal tab bar (esp. after COMMIT).
+    useEffect(() => {
+      const timer = setTimeout(() => scrollTabBarToTab(activeTab), 50);
+      return () => clearTimeout(timer);
+    }, [activeTab, scrollTabBarToTab]);
 
     /**
      * Review & Confirm / Finish & Save require ≥1 goal from each of
@@ -2230,14 +2380,20 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
       if (nextTab !== "cycle" && !cycleStartDate) return;
       // Don't enter Review until every category has ≥1 goal (tab is also locked)
       if (nextTab === "review" && !hasGoalInEveryCategory) return;
+      if (nextTab !== "cycle" && !isTabUnlocked(nextTab)) return;
+      // Stop post-commit Step 1 force so NEXT to Step 2+ can stick.
       postCommitTargetTabRef.current = null;
+      userChoseCycleTabRef.current = false;
       setActiveTab(nextTab);
+      scrollTabBarToTab(nextTab);
     }, [
       activeTab,
       cycleStartDate,
       hasCommittedCycle,
       tabOrder,
       hasGoalInEveryCategory,
+      isTabUnlocked,
+      scrollTabBarToTab,
     ]);
 
     // Always start each category tab at the top goal (NEXT / tab press).
@@ -3037,6 +3193,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
       <>
         <View style={styles.screen}>
           <RNScrollView
+            ref={tabBarScrollRef}
             horizontal
             showsHorizontalScrollIndicator={false}
             style={styles.tabBar}
@@ -3045,12 +3202,21 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
             {localizedTabs.map((tab) => {
               const isActive = activeTab === tab.id;
               const hasChip = !!tab.chip;
-              const isDisabled = !isTabUnlocked(tab.id);
+              // Never fade the active tab — after COMMIT, Step 1 must read as selected
+              // even if unlock state briefly lags behind.
+              const isDisabled = !isActive && !isTabUnlocked(tab.id);
               return (
                 <Pressable
                   key={tab.id}
                   onPress={() => handleTabPress(tab.id)}
                   disabled={isDisabled}
+                  onLayout={(event) => {
+                    const { x, width } = event.nativeEvent.layout;
+                    tabLayoutsRef.current[tab.id] = { x, width };
+                    if (tab.id === activeTab) {
+                      scrollTabBarToTab(tab.id);
+                    }
+                  }}
                   style={[
                     styles.tab,
                     !hasChip && isActive && styles.tabActive,
@@ -3139,12 +3305,9 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
             contentContainerStyle={[
               styles.content,
               {
-                // Extra room so tall goal editors can scroll the focused
-                // input fully above the keyboard (Completion / Surah times).
                 paddingBottom:
-                  40 +
-                  Math.max(0, keyboardHeight) +
-                  (keyboardHeight > 0 ? 120 : 0),
+                  48 +
+                  (keyboardHeight > 0 ? keyboardHeight + 24 : 0),
               },
             ]}
             showsVerticalScrollIndicator={false}
@@ -3299,6 +3462,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                               value,
                               onDone,
                               onFail,
+                              prayer.id,
                             )
                           }
                         />
@@ -3344,7 +3508,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                                   congregationalTracking: trackCongregation,
                                 },
                               },
-                              undefined,
+                              prayer.id,
                               onDone,
                               onFail,
                             );
@@ -4231,9 +4395,10 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                         ).filter((entry: any) =>
                           String(entry?.value ?? "").includes("/"),
                         );
-                        // Fidya / lillah / jariyah / volunteering: header only (ignore stale sub-rows)
+                        // Fidya / zakat / lillah / jariyah / volunteering: header only
                         const headerOnlySadaqah = new Set([
                           "fidya",
+                          "missed-zakat",
                           "lilah-donations",
                           "lillah-donations",
                           "volunteering-services",

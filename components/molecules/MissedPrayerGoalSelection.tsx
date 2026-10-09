@@ -63,9 +63,14 @@ export default function MissedPrayerGoalSelection({
           />
 
           <Text style={styles.valueText}>
-            {formatNumber(sliderValue)}
-            {" x "}
             {formatNumber(5)}
+            {" x "}
+            {formatNumber(sliderValue)}
+            <Text style={styles.whiteText}>
+              {t("prayerGoals.missedPrayersDaysLabel", {
+                count: sliderValue,
+              })}
+            </Text>
             {" = "}
             {formatNumber(sliderValue * 5)}
             <Text style={styles.whiteText}>
