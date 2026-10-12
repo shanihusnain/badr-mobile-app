@@ -103,9 +103,10 @@ export const SetPersonalizedGoalsScreen = () => {
 
   const handleSkipTutorial = useCallback(() => {
     // Open the full-screen goal planner with the cycle tab selected.
+
     router.push({
-      pathname: "/(private)/goalplanner",
-      params: { tab: "cycle" },
+      pathname: "/(private)/monthlygoalplanner",
+      // params: { tab: "cycle" },
     });
   }, []);
 
@@ -132,7 +133,7 @@ export const SetPersonalizedGoalsScreen = () => {
                 {t("setpersonalizedgoals.howItWorks")}
               </Text>
             </View>
-            {/* {activeFrame === 1 && (
+            {activeFrame === 1 && (
               <GoalProgressCard
                 currentDay={28}
                 totalDays={28}
@@ -140,7 +141,7 @@ export const SetPersonalizedGoalsScreen = () => {
                 overallProgress={100}
                 animate
               />
-            )} */}
+            )}
             <TopSpace top={20} />
             <Text style={styles.descriptionText}>
               {t("setpersonalizedgoals.setPersonalizedDescription")}

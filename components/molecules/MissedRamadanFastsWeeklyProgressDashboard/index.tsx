@@ -25,6 +25,7 @@ import {
   shouldShowTodayLabelBackground,
 } from "./missedRamadanFastDayStyles";
 import { useDeleteFastingLog } from "@/src/api/mutations/useDeleteFastingLog";
+import { PrayerWeeklyDashboardBody } from "@/components/molecules/PrayerWeeklyDashboardBody";
 
 export type MissedRamadanFastsWeeklyProgressDashboardProps = {
   weekSummary: MissedRamadanFastWeekSummary;
@@ -154,130 +155,136 @@ export function MissedRamadanFastsWeeklyProgressDashboard({
         </View>
       </View>
 
-      <View style={styles.daysRow}>
-        {weekSummary.weekDays.map((day, index) => {
-          const isSelected =
-            currentDayIndex !== null && index === currentDayIndex;
-          const isMarkedForDeletion =
-            !!day.date && selectForDeletion === day.date;
-          // #16 / #17 — delete chrome from canDelete (completed kept days)
-          const canDeleteDay = Boolean(day.canDelete) && !!day.date;
-          // Today chip only when isToday (#2/#3/#6/#7/#10/#12/#17)
-          const showTodayChip = shouldShowTodayLabelBackground(day);
-          const isBlurred = day.state === "goalAchieved";
+      <PrayerWeeklyDashboardBody loading={loading}>
+        {!loading ? (
+          <>
+            <View style={styles.daysRow}>
+              {weekSummary.weekDays.map((day, index) => {
+                const isSelected =
+                  currentDayIndex !== null && index === currentDayIndex;
+                const isMarkedForDeletion =
+                  !!day.date && selectForDeletion === day.date;
+                // #16 / #17 — delete chrome from canDelete (completed kept days)
+                const canDeleteDay = Boolean(day.canDelete) && !!day.date;
+                // Today chip only when isToday (#2/#3/#6/#7/#10/#12/#17)
+                const showTodayChip = shouldShowTodayLabelBackground(day);
+                const isBlurred = day.state === "goalAchieved";
 
-          return (
-            <TouchableOpacity
-              key={`${day.day}-${day.date}`}
-              style={[
-                styles.dayColumn,
-                isMarkedForDeletion && styles.dayColumnMarkedForDeletion,
-                isBlurred && styles.dayColumnBlurred,
-              ]}
-              onPress={() => {
-                if (loading) return;
-                if (selectForDeletion) {
-                  setSelectForDeletion("");
-                  return;
-                }
-                setActiveDayIndex(index);
-                onDayPress?.(index);
-              }}
-              onLongPress={() => {
-                if (loading || !canDeleteDay) return;
-                setSelectForDeletion((prev) =>
-                  prev === day.date ? "" : day.date,
-                );
-              }}
-              activeOpacity={loading ? 1 : 0.75}
-              disabled={loading}
-            >
-              <View
-                style={[
-                  styles.dayItemWrapper,
-                  showTodayChip && styles.dayItemTodayChip,
-                  // #16 / #17 — red border when marked for delete
-                  isMarkedForDeletion && styles.dayItemDeleteBorder,
-                  // #16 past delete: padding without today chip fill
-                  isMarkedForDeletion &&
-                    !showTodayChip &&
-                    styles.dayItemDeletePadding,
-                ]}
-              >
-                <MissedRamadanFastDayRing
-                  size={ringSize}
-                  state={day.state}
-                  isMenstruating={day.isMenstruating}
-                  isPlanned={Boolean(day.isPlanned)}
-                />
-                <View style={missedRamadanDayLabelStyles.dayLabelWrapper}>
-                  <Text
-                    style={getDayLabelTextStyle(day, isSelected)}
-                    numberOfLines={1}
+                return (
+                  <TouchableOpacity
+                    key={`${day.day}-${day.date}`}
+                    style={[
+                      styles.dayColumn,
+                      isMarkedForDeletion && styles.dayColumnMarkedForDeletion,
+                      isBlurred && styles.dayColumnBlurred,
+                    ]}
+                    onPress={() => {
+                      if (selectForDeletion) {
+                        setSelectForDeletion("");
+                        return;
+                      }
+                      setActiveDayIndex(index);
+                      onDayPress?.(index);
+                    }}
+                    onLongPress={() => {
+                      if (!canDeleteDay) return;
+                      setSelectForDeletion((prev) =>
+                        prev === day.date ? "" : day.date,
+                      );
+                    }}
+                    activeOpacity={0.75}
                   >
-                    {t(
-                      (DAY_TRANSLATION_KEYS[day.day] ??
-                        "homeScreen.weeklyProgress_daySun") as never,
-                    )}
+                    <View
+                      style={[
+                        styles.dayItemWrapper,
+                        showTodayChip && styles.dayItemTodayChip,
+                        // #16 / #17 — red border when marked for delete
+                        isMarkedForDeletion && styles.dayItemDeleteBorder,
+                        // #16 past delete: padding without today chip fill
+                        isMarkedForDeletion &&
+                          !showTodayChip &&
+                          styles.dayItemDeletePadding,
+                      ]}
+                    >
+                      <MissedRamadanFastDayRing
+                        size={ringSize}
+                        state={day.state}
+                        isMenstruating={day.isMenstruating}
+                        isPlanned={Boolean(day.isPlanned)}
+                      />
+                      <View style={missedRamadanDayLabelStyles.dayLabelWrapper}>
+                        <Text
+                          style={getDayLabelTextStyle(day, isSelected)}
+                          numberOfLines={1}
+                        >
+                          {t(
+                            (DAY_TRANSLATION_KEYS[day.day] ??
+                              "homeScreen.weeklyProgress_daySun") as never,
+                          )}
+                        </Text>
+                      </View>
+                    </View>
+                    {isMarkedForDeletion ? (
+                      <Pressable
+                        style={styles.deleteButton}
+                        disabled={isDeletingLog}
+                        onPress={() => {
+                          if (!day.date || isDeletingLog) return;
+                          handleDeleteLog(day.date);
+                        }}
+                      >
+                        <BinIcon />
+                      </Pressable>
+                    ) : null}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+            <View style={styles.statsRow}>
+              <FastingDashboardIcon size={22} color={Colors.light.seagreen} />
+              <Text style={styles.statsText} numberOfLines={1}>
+                <Text style={styles.statsCount}>
+                  {weekSummary.completedFastsThisWeek}
+                </Text>{" "}
+                {t("progressLogging.missedRamadanWeeklyTotalFasts")}
+              </Text>
+            </View>
+
+            <View style={styles.footerRow}>
+              <View style={styles.streakBadge}>
+                <FlashIcon size={13} color={Colors.light.ringRamadan} />
+                <Text style={styles.streakText}>
+                  {t("progressLogging.missedRamadanWeeklyStreak", {
+                    count: weekSummary.streakDays,
+                  })}
+                </Text>
+              </View>
+
+              {weekSummary.showPreviousWeekStat ? (
+                <View style={styles.streakBadge}>
+                  <Ionicons
+                    name="caret-down"
+                    size={13}
+                    color={Colors.light.grey}
+                  />
+                  <Text style={styles.previousWeekText}>
+                    {t("progressLogging.missedRamadanPreviousWeekCount", {
+                      count: weekSummary.previousWeekCompletedCount,
+                    })}
                   </Text>
                 </View>
-              </View>
-              {isMarkedForDeletion ? (
-                <Pressable
-                  style={styles.deleteButton}
-                  disabled={isDeletingLog}
-                  onPress={() => {
-                    if (!day.date || isDeletingLog) return;
-                    handleDeleteLog(day.date);
-                  }}
-                >
-                  <BinIcon />
-                </Pressable>
               ) : null}
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-      <View style={styles.statsRow}>
-        <FastingDashboardIcon size={22} color={Colors.light.seagreen} />
-        <Text style={styles.statsText} numberOfLines={1}>
-          <Text style={styles.statsCount}>
-            {loading ? "---" : weekSummary.completedFastsThisWeek}
-          </Text>{" "}
-          {loading ? "" : t("progressLogging.missedRamadanWeeklyTotalFasts")}
-        </Text>
-      </View>
 
-      <View style={styles.footerRow}>
-        <View style={styles.streakBadge}>
-          <FlashIcon size={13} color={Colors.light.ringRamadan} />
-          <Text style={styles.streakText}>
-            {loading
-              ? "---"
-              : t("progressLogging.missedRamadanWeeklyStreak", {
-                  count: weekSummary.streakDays,
-                })}
-          </Text>
-        </View>
-
-        {!loading && weekSummary.showPreviousWeekStat ? (
-          <View style={styles.streakBadge}>
-            <Ionicons name="caret-down" size={13} color={Colors.light.grey} />
-            <Text style={styles.previousWeekText}>
-              {t("progressLogging.missedRamadanPreviousWeekCount", {
-                count: weekSummary.previousWeekCompletedCount,
-              })}
-            </Text>
-          </View>
+              <View style={styles.quoteBlock}>
+                <ShootIcon size={14} Color={Colors.light.seagreen} />
+                <Text style={styles.quoteText}>
+                  {weekSummary.motivationalQuote}
+                </Text>
+              </View>
+            </View>
+          </>
         ) : null}
-
-        <View style={styles.quoteBlock}>
-          <ShootIcon size={14} Color={Colors.light.seagreen} />
-          <Text style={styles.quoteText}>
-            {loading ? "---" : weekSummary.motivationalQuote}
-          </Text>
-        </View>
-      </View>
+      </PrayerWeeklyDashboardBody>
     </View>
   );
 }

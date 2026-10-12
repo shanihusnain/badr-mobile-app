@@ -13,7 +13,7 @@ import {
   PRAYER_CYCLE_DAYS,
 } from "@/src/utils/prayerCycleUtils";
 import { FASTING_TYPE_TO_UI_ID } from "@/src/utils/fastingGoalMap";
-import { SADAQAH_TYPE_TO_UI_ID, formatReviewCurrencyAmount } from "@/src/utils/sadaqahGoalMap";
+import { SADAQAH_TYPE_TO_UI_ID } from "@/src/utils/sadaqahGoalMap";
 import type {
   QuranHizbOption,
   QuranJuzOption,
@@ -717,20 +717,12 @@ function mapSadaqahGoal(
   } else if (goal.sadaqahType === "VOLUNTEERING") {
     // Backend stores minutes — header chip only (no sub-row)
     totalValue = Math.max(0, Math.round((goal.targetAmount ?? 0) / 60));
-  } else if (goal.sadaqahType === "MISSED_ZAKAT") {
-    const currency = goal.currencyCode ?? "SAR";
-    selectedGoals.push({
-      id: 1,
-      name: "amount",
-      label: t("monthlyGoalPlanner.amount"),
-      value: formatReviewCurrencyAmount(currency, goal.targetAmount ?? 0),
-    });
-    totalValue = goal.targetAmount ?? 0;
   } else if (
+    goal.sadaqahType === "MISSED_ZAKAT" ||
     goal.sadaqahType === "LILLAH" ||
     goal.sadaqahType === "SADAQAH_JARIYAH"
   ) {
-    // Header amount only (no sub-row) — same pattern as Quran listening
+    // Header amount only (no "Amount" sub-row) — same as Lilah / Jariyah
     totalValue = goal.targetAmount ?? 0;
   } else if (goal.sadaqahType === "FIDYA") {
     // Header meals chip only (no sub-row)

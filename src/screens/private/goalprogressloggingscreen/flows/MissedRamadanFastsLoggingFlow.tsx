@@ -161,9 +161,9 @@ export default function MissedRamadanFastsLoggingFlow({
   useEffect(() => {
     onDropdownOpenChange?.(
       isLogTypeDropdownOpen ||
-      isDateDropdownOpen ||
-      isStartPeriodDropdownOpen ||
-      isEndPeriodDropdownOpen,
+        isDateDropdownOpen ||
+        isStartPeriodDropdownOpen ||
+        isEndPeriodDropdownOpen,
     );
   }, [
     isDateDropdownOpen,
@@ -237,8 +237,9 @@ export default function MissedRamadanFastsLoggingFlow({
   const goalCompleted =
     getFastingFrameAchievementPct(frame) >= 100 ||
     String(frame?.goal?.status ?? "").toUpperCase() === "COMPLETED";
-  const showInsights = frame ? fastingFrameShowsInsights(frame) : false;
 
+  const showInsights = frame ? fastingFrameShowsInsights(frame) : false;
+  console.log("showInsights", showInsights);
   const availableLogTypes = useMemo(() => {
     const types: MissedRamadanFastLogType[] = [];
     if (
@@ -265,10 +266,8 @@ export default function MissedRamadanFastsLoggingFlow({
     skippedOptions.length,
   ]);
 
-  const canLog =
-    Boolean(frameItem?.canLog) &&
-    availableLogTypes.length > 0 &&
-    !goalCompleted;
+  /** Frame `items[0].canLog` — backend already gates pct / loggable dates. */
+  const canLog = Boolean(frameItem?.canLog);
 
   const summaryTitle =
     frameItem?.title?.trim() ||
@@ -495,13 +494,14 @@ export default function MissedRamadanFastsLoggingFlow({
           makeUpKeepDays.refetch(),
         ]);
 
-        const loggedDate = result.date ?? (
-          logType === "completed_early"
+        const loggedDate =
+          result.date ??
+          (logType === "completed_early"
             ? actualDate?.date
             : logType === "made_up_skipped"
               ? skippedDate?.date
-              : plannedFast?.date
-        ) ?? "";
+              : plannedFast?.date) ??
+          "";
         const completedCount = Number(result.goal?.completed ?? 0);
         const target = Number(result.goal?.target ?? goalTarget ?? 0);
         const remainingCount =
@@ -658,10 +658,7 @@ export default function MissedRamadanFastsLoggingFlow({
       <Ionicons name="time-outline" size={15} color={Colors.light.white} />
     );
     const helpIcon = (
-      <FastingDashboardIcon
-        size={20}
-        color={Colors.light.white}
-      />
+      <FastingDashboardIcon size={20} color={Colors.light.white} />
     );
 
     switch (step) {
@@ -872,9 +869,7 @@ export default function MissedRamadanFastsLoggingFlow({
           isDropdownOpen && commonStyles.flowCardLayerDropdownOpen,
         ]}
       >
-        {flowMode === "active" && (
-          <Pressable style={commonStyles.backdrop} />
-        )}
+        {flowMode === "active" && <Pressable style={commonStyles.backdrop} />}
         {flowMode === "active" && (
           <TouchableOpacity
             style={commonStyles.cancelButton}
@@ -968,7 +963,7 @@ export default function MissedRamadanFastsLoggingFlow({
               onForward={handleForward}
               onConfirm={handleConfirm}
               canGoForward={!isLastStep && canProceed}
-                canGoBack={stepIndex > 0}
+              canGoBack={stepIndex > 0}
               canConfirm={canConfirm}
               styles={commonStyles}
               style={[
@@ -976,7 +971,9 @@ export default function MissedRamadanFastsLoggingFlow({
                 isDropdownOpen && commonStyles.flowCardDropdownOpen,
               ]}
               contentStyle={
-                isDropdownOpen ? commonStyles.flowContentDropdownOpen : undefined
+                isDropdownOpen
+                  ? commonStyles.flowContentDropdownOpen
+                  : undefined
               }
             >
               {renderStepContent(currentStep)}
@@ -984,7 +981,6 @@ export default function MissedRamadanFastsLoggingFlow({
           </View>
         )}
       </View>
-
     </View>
   );
 }

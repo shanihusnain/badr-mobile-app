@@ -47,6 +47,7 @@ const HEADER_ONLY_GOAL_TITLES = new Set([
   "quran-listening",
   "quran-tajweed",
   "fidya",
+  "missed-zakat",
   "lillah-donations",
   "lilah-donations",
   "volunteering-services",

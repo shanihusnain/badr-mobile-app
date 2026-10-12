@@ -155,10 +155,8 @@ export function getFastingFrameWeekFraction(
     const match = label.match(/(\d+\s*\/\s*\d+)/);
     if (match) return match[1].replace(/\s+/g, "");
   }
-  const weekNumber =
-    frame.week.weekNumber ?? frame.cycle.weekNumber ?? 1;
-  const totalWeeks =
-    frame.week.totalWeeks ?? frame.cycle.totalWeeks ?? 1;
+  const weekNumber = frame.week.weekNumber ?? frame.cycle.weekNumber ?? 1;
+  const totalWeeks = frame.week.totalWeeks ?? frame.cycle.totalWeeks ?? 1;
   return `${weekNumber}/${totalWeeks}`;
 }
 
@@ -179,10 +177,7 @@ export function getFastingFrameWeekRangeLabel(
   frame: FastingGoalFrameData,
 ): string {
   if (frame.week.rangeLabel?.trim()) return frame.week.rangeLabel.trim();
-  return formatFastingFrameWeekRange(
-    frame.week.weekStart,
-    frame.week.weekEnd,
-  );
+  return formatFastingFrameWeekRange(frame.week.weekStart, frame.week.weekEnd);
 }
 
 export function isFastingFrameWeekCurrentOrFuture(
@@ -260,16 +255,15 @@ export function getFastingFrameAchievementPct(
     typeof target === "number" &&
     target > 0
   ) {
-    return Math.min(
-      100,
-      Math.max(0, Math.round((completed / target) * 100)),
-    );
+    return Math.min(100, Math.max(0, Math.round((completed / target) * 100)));
   }
 
   return 0;
 }
 
-export function fastingFrameShowsInsights(frame: FastingGoalFrameData): boolean {
+export function fastingFrameShowsInsights(
+  frame: FastingGoalFrameData,
+): boolean {
   if (frame.items?.[0]?.insightsAvailable) return true;
   const pct = getFastingFrameAchievementPct(frame);
   if (pct >= 100) return true;
