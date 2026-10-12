@@ -26,7 +26,7 @@ export default function CongregationalPrayerGoalSelection({
 }: {
   openOnMount?: boolean;
   collapseSignal?: number;
-  onInputFocus?: () => void;
+  onInputFocus?: (layout?: { windowY: number; inputHeight: number }) => void;
 } = {}) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();

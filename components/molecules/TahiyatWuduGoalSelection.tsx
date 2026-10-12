@@ -31,7 +31,7 @@ export default function TahiyatWuduGoalSelection({
   isSaving?: boolean;
   openOnMount?: boolean;
   collapseSignal?: number;
-  onInputFocus?: () => void;
+  onInputFocus?: (layout?: { windowY: number; inputHeight: number }) => void;
   initiallySaved?: boolean;
 }) {
   const { t } = useTranslation();

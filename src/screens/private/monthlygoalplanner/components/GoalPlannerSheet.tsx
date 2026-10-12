@@ -982,23 +982,33 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
         category: "prayer" | "quran" | "fasting" | "sadaqah",
         goalId: string,
         isSelected: boolean,
-        isConfigured: boolean,
+        _isConfigured: boolean,
       ) => {
         setPendingUnconfiguredGoalId((prev) => {
           if (!isSelected) {
             if (prev[category] !== goalId) return prev;
             return { ...prev, [category]: null };
           }
-          // Backend-configured (or already saved) goals are not "pending".
-          if (isConfigured) {
-            if (prev[category] !== goalId) return prev;
-            return { ...prev, [category]: null };
-          }
+          // Always require an explicit Save after toggle ON — even if the API
+          // returns default targets (Sunnah was showing SAVED! with no Save CTA).
           if (prev[category] === goalId) return prev;
           return { ...prev, [category]: goalId };
         });
       },
       [],
+    );
+
+    /** SAVED! only after a real save — never right after toggle ON. */
+    const isInitiallySavedForUi = useCallback(
+      (
+        category: "prayer" | "quran" | "fasting" | "sadaqah",
+        goalId: string,
+        isConfigured: boolean,
+      ) => {
+        if (pendingUnconfiguredGoalId[category] === goalId) return false;
+        return isConfigured;
+      },
+      [pendingUnconfiguredGoalId],
     );
 
     const [editingGoal, setEditingGoal] = useState<string | null>("");
@@ -2489,7 +2499,11 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
               collapseSignal={postSaveCollapseSignal}
               onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
               initialValue={sourcePrayer?.targetCount ?? 1}
-              initiallySaved={isPrayerGoalConfigured("tahayyat-ul-wudhu")}
+              initiallySaved={isInitiallySavedForUi(
+                "prayer",
+                "tahayyat-ul-wudhu",
+                isPrayerGoalConfigured("tahayyat-ul-wudhu"),
+              )}
               onSave={(value, onDone, onFail) => {
                 saveSimplePrayerTarget(
                   "TAHIYYAT_AL_WUDHU",
@@ -2510,7 +2524,11 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
               descriptionKey="monthlyGoalPlanner.hoursQuranListening"
               quranGoalType="LISTENING"
               isSaving={isQuranGoalSaving(key)}
-              initiallySaved={isQuranGoalConfigured("quran-listening")}
+              initiallySaved={isInitiallySavedForUi(
+                "quran",
+                "quran-listening",
+                isQuranGoalConfigured("quran-listening"),
+              )}
               onSave={(hours: number, onDone, onFail) => {
                 setQuranMetrics((prev) => ({
                   ...prev,
@@ -2530,7 +2548,11 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
               descriptionKey="monthlyGoalPlanner.hoursQuranTajweed"
               quranGoalType="TAJWEED"
               isSaving={isQuranGoalSaving(key)}
-              initiallySaved={isQuranGoalConfigured("quran-tajweed")}
+              initiallySaved={isInitiallySavedForUi(
+                "quran",
+                "quran-tajweed",
+                isQuranGoalConfigured("quran-tajweed"),
+              )}
               onSave={(hours: number, onDone, onFail) => {
                 setQuranMetrics((prev) => ({
                   ...prev,
@@ -2998,7 +3020,11 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
               collapseSignal={postSaveCollapseSignal}
               onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
               cycleStartDate={cycleStartDate ?? undefined}
-              initiallySaved={isPrayerGoalConfigured("fiveDailyPrayers")}
+              initiallySaved={isInitiallySavedForUi(
+                "prayer",
+                "fiveDailyPrayers",
+                isPrayerGoalConfigured("fiveDailyPrayers"),
+              )}
               initialValues={
                 sourcePrayer?.fiveDailyConfig
                   ? {
@@ -3062,7 +3088,11 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
               openOnMount={false}
               collapseSignal={postSaveCollapseSignal}
               onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
-              initiallySaved={isPrayerGoalConfigured("sunnahRawatib")}
+              initiallySaved={isInitiallySavedForUi(
+                "prayer",
+                "sunnahRawatib",
+                isPrayerGoalConfigured("sunnahRawatib"),
+              )}
               initialValues={getSunnahInitial(sourcePrayer)}
               isSaving={isSavingPrayer}
               onSave={(payload, onDone, onFail) => {
@@ -3096,7 +3126,11 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
               collapseSignal={postSaveCollapseSignal}
               onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
               initialValue={sourcePrayer?.targetCount ?? 1}
-              initiallySaved={isPrayerGoalConfigured("thayyat-ul-masjid")}
+              initiallySaved={isInitiallySavedForUi(
+                "prayer",
+                "thayyat-ul-masjid",
+                isPrayerGoalConfigured("thayyat-ul-masjid"),
+              )}
               isSaving={isSavingPrayer}
               onSave={(value, onDone, onFail) => {
                 saveSimplePrayerTarget(
@@ -3123,7 +3157,11 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                     ? Math.max(1, Math.round(sourcePrayer.targetCount / 5))
                     : 3
               }
-              initiallySaved={isPrayerGoalConfigured("missedPastPrayers")}
+              initiallySaved={isInitiallySavedForUi(
+                "prayer",
+                "missedPastPrayers",
+                isPrayerGoalConfigured("missedPastPrayers"),
+              )}
               isSaving={isSavingPrayer}
               onSave={(value, onDone, onFail) => {
                 persistPrayerGoal(
@@ -3148,7 +3186,11 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
               collapseSignal={postSaveCollapseSignal}
               onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
               initialValue={sourcePrayer?.targetCount ?? 1}
-              initiallySaved={isPrayerGoalConfigured("duhaPrayer")}
+              initiallySaved={isInitiallySavedForUi(
+                "prayer",
+                "duhaPrayer",
+                isPrayerGoalConfigured("duhaPrayer"),
+              )}
               isSaving={isSavingPrayer}
               onSave={(value, onDone, onFail) => {
                 saveSimplePrayerTarget("DUHA", value, onDone, onFail);
@@ -3162,7 +3204,11 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
               collapseSignal={postSaveCollapseSignal}
               onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
               initialValue={sourcePrayer?.targetCount ?? 1}
-              initiallySaved={isPrayerGoalConfigured("tawbaPrayer")}
+              initiallySaved={isInitiallySavedForUi(
+                "prayer",
+                "tawbaPrayer",
+                isPrayerGoalConfigured("tawbaPrayer"),
+              )}
               isSaving={isSavingPrayer}
               onSave={(value, onDone, onFail) => {
                 saveSimplePrayerTarget("TAWBAH", value, onDone, onFail);
@@ -3176,7 +3222,11 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
               collapseSignal={postSaveCollapseSignal}
               onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
               initialValue={sourcePrayer?.targetCount ?? 1}
-              initiallySaved={isPrayerGoalConfigured("istikharah")}
+              initiallySaved={isInitiallySavedForUi(
+                "prayer",
+                "istikharah",
+                isPrayerGoalConfigured("istikharah"),
+              )}
               isSaving={isSavingPrayer}
               onSave={(value, onDone, onFail) => {
                 saveSimplePrayerTarget("ISTIKHARA", value, onDone, onFail);
@@ -3190,7 +3240,11 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
               collapseSignal={postSaveCollapseSignal}
               onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
               initialValue={sourcePrayer?.targetCount ?? 1}
-              initiallySaved={isPrayerGoalConfigured("shukrPrayer")}
+              initiallySaved={isInitiallySavedForUi(
+                "prayer",
+                "shukrPrayer",
+                isPrayerGoalConfigured("shukrPrayer"),
+              )}
               isSaving={isSavingPrayer}
               onSave={(value, onDone, onFail) => {
                 saveSimplePrayerTarget("SHUKR", value, onDone, onFail);
@@ -3204,7 +3258,11 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
               collapseSignal={postSaveCollapseSignal}
               onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
               initialValues={getQiyamInitial(sourcePrayer)}
-              initiallySaved={isPrayerGoalConfigured("qiyamalLail")}
+              initiallySaved={isInitiallySavedForUi(
+                "prayer",
+                "qiyamalLail",
+                isPrayerGoalConfigured("qiyamalLail"),
+              )}
               isSaving={isSavingPrayer}
               onSave={(payload, onDone, onFail) => {
                 persistPrayerGoal(
@@ -3496,7 +3554,11 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                           collapseSignal={postSaveCollapseSignal}
                           onInputFocus={(layout) => handleGoalInputFocus(prayer.id, layout)}
                           initialValue={getSimpleTargetCount(prayer, 1)}
-                          initiallySaved={isPrayerGoalConfigured(prayer.id)}
+                          initiallySaved={isInitiallySavedForUi(
+                            "prayer",
+                            prayer.id,
+                            isPrayerGoalConfigured(prayer.id),
+                          )}
                           isSaving={
                             isSavingPrayer &&
                             savingPrayerType === prayer.prayerType
@@ -3523,7 +3585,11 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                           onInputFocus={(layout) => handleGoalInputFocus(prayer.id, layout)}
                           cycleStartDate={cycleStartDate ?? undefined}
                           initialValues={getFiveDailyInitial(prayer)}
-                          initiallySaved={isPrayerGoalConfigured(prayer.id)}
+                          initiallySaved={isInitiallySavedForUi(
+                            "prayer",
+                            prayer.id,
+                            isPrayerGoalConfigured(prayer.id),
+                          )}
                           isSaving={
                             isSavingPrayer &&
                             savingPrayerType === prayer.prayerType
@@ -3570,7 +3636,11 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                           collapseSignal={postSaveCollapseSignal}
                           onInputFocus={(layout) => handleGoalInputFocus(prayer.id, layout)}
                           initialValues={getSunnahInitial(prayer)}
-                          initiallySaved={isPrayerGoalConfigured(prayer.id)}
+                          initiallySaved={isInitiallySavedForUi(
+                            "prayer",
+                            prayer.id,
+                            isPrayerGoalConfigured(prayer.id),
+                          )}
                           isSaving={
                             isSavingPrayer &&
                             savingPrayerType === prayer.prayerType
@@ -3611,7 +3681,11 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                           collapseSignal={postSaveCollapseSignal}
                           onInputFocus={(layout) => handleGoalInputFocus(prayer.id, layout)}
                           initialValue={getSimpleTargetCount(prayer, 1)}
-                          initiallySaved={isPrayerGoalConfigured(prayer.id)}
+                          initiallySaved={isInitiallySavedForUi(
+                            "prayer",
+                            prayer.id,
+                            isPrayerGoalConfigured(prayer.id),
+                          )}
                           isSaving={
                             isSavingPrayer &&
                             savingPrayerType === prayer.prayerType
@@ -3636,7 +3710,11 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                           collapseSignal={postSaveCollapseSignal}
                           onInputFocus={(layout) => handleGoalInputFocus(prayer.id, layout)}
                           initialValue={getMissedTargetDays(prayer, 1)}
-                          initiallySaved={isPrayerGoalConfigured(prayer.id)}
+                          initiallySaved={isInitiallySavedForUi(
+                            "prayer",
+                            prayer.id,
+                            isPrayerGoalConfigured(prayer.id),
+                          )}
                           isSaving={
                             isSavingPrayer &&
                             savingPrayerType === prayer.prayerType
@@ -3667,7 +3745,11 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                           collapseSignal={postSaveCollapseSignal}
                           onInputFocus={(layout) => handleGoalInputFocus(prayer.id, layout)}
                           initialValue={getSimpleTargetCount(prayer, 1)}
-                          initiallySaved={isPrayerGoalConfigured(prayer.id)}
+                          initiallySaved={isInitiallySavedForUi(
+                            "prayer",
+                            prayer.id,
+                            isPrayerGoalConfigured(prayer.id),
+                          )}
                           isSaving={
                             isSavingPrayer &&
                             savingPrayerType === prayer.prayerType
@@ -3692,7 +3774,11 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                           collapseSignal={postSaveCollapseSignal}
                           onInputFocus={(layout) => handleGoalInputFocus(prayer.id, layout)}
                           initialValue={getSimpleTargetCount(prayer, 1)}
-                          initiallySaved={isPrayerGoalConfigured(prayer.id)}
+                          initiallySaved={isInitiallySavedForUi(
+                            "prayer",
+                            prayer.id,
+                            isPrayerGoalConfigured(prayer.id),
+                          )}
                           isSaving={
                             isSavingPrayer &&
                             savingPrayerType === prayer.prayerType
@@ -3717,7 +3803,11 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                           collapseSignal={postSaveCollapseSignal}
                           onInputFocus={(layout) => handleGoalInputFocus(prayer.id, layout)}
                           initialValue={getSimpleTargetCount(prayer, 1)}
-                          initiallySaved={isPrayerGoalConfigured(prayer.id)}
+                          initiallySaved={isInitiallySavedForUi(
+                            "prayer",
+                            prayer.id,
+                            isPrayerGoalConfigured(prayer.id),
+                          )}
                           isSaving={
                             isSavingPrayer &&
                             savingPrayerType === prayer.prayerType
@@ -3742,7 +3832,11 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                           collapseSignal={postSaveCollapseSignal}
                           onInputFocus={(layout) => handleGoalInputFocus(prayer.id, layout)}
                           initialValue={getSimpleTargetCount(prayer, 1)}
-                          initiallySaved={isPrayerGoalConfigured(prayer.id)}
+                          initiallySaved={isInitiallySavedForUi(
+                            "prayer",
+                            prayer.id,
+                            isPrayerGoalConfigured(prayer.id),
+                          )}
                           isSaving={
                             isSavingPrayer &&
                             savingPrayerType === prayer.prayerType
@@ -3767,7 +3861,11 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                           collapseSignal={postSaveCollapseSignal}
                           onInputFocus={(layout) => handleGoalInputFocus(prayer.id, layout)}
                           initialValues={getQiyamInitial(prayer)}
-                          initiallySaved={isPrayerGoalConfigured(prayer.id)}
+                          initiallySaved={isInitiallySavedForUi(
+                            "prayer",
+                            prayer.id,
+                            isPrayerGoalConfigured(prayer.id),
+                          )}
                           isSaving={
                             isSavingPrayer &&
                             savingPrayerType === prayer.prayerType
@@ -3867,7 +3965,11 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                           descriptionKey="monthlyGoalPlanner.hoursQuranListening"
                           quranGoalType="LISTENING"
                           isSaving={isQuranGoalSaving(quran.id)}
-                          initiallySaved={isQuranGoalConfigured(quran.id)}
+                          initiallySaved={isInitiallySavedForUi(
+                            "quran",
+                            quran.id,
+                            isQuranGoalConfigured(quran.id),
+                          )}
                           onSave={(hours, onDone, onFail) => {
                             setQuranMetrics((prev) => ({
                               ...prev,
@@ -3896,7 +3998,11 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                           descriptionKey="monthlyGoalPlanner.hoursQuranTajweed"
                           quranGoalType="TAJWEED"
                           isSaving={isQuranGoalSaving(quran.id)}
-                          initiallySaved={isQuranGoalConfigured(quran.id)}
+                          initiallySaved={isInitiallySavedForUi(
+                            "quran",
+                            quran.id,
+                            isQuranGoalConfigured(quran.id),
+                          )}
                           onSave={(hours, onDone, onFail) => {
                             setQuranMetrics((prev) => ({
                               ...prev,
@@ -3926,7 +4032,11 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                           onMetricsChange={handleQuranMetricsChange}
                           variant="others"
                           isSaving={isQuranGoalSaving(quran.id)}
-                          initiallySaved={isQuranGoalConfigured(quran.id)}
+                          initiallySaved={isInitiallySavedForUi(
+                            "quran",
+                            quran.id,
+                            isQuranGoalConfigured(quran.id),
+                          )}
                           // Same multi-metric bulk save + tick UI as memorization.
                           initialSavedMetrics={savedMetricsFromApiGoals(
                             quran.apiGoals,
@@ -3977,7 +4087,11 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                           onMetricsChange={handleQuranMetricsChange}
                           variant="memorization"
                           isSaving={isQuranGoalSaving(quran.id)}
-                          initiallySaved={isQuranGoalConfigured(quran.id)}
+                          initiallySaved={isInitiallySavedForUi(
+                            "quran",
+                            quran.id,
+                            isQuranGoalConfigured(quran.id),
+                          )}
                           initialSavedMetrics={savedMetricsFromApiGoals(
                             quran.apiGoals,
                           )}
@@ -4088,7 +4202,11 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                           }
                           collapseSignal={postSaveCollapseSignal}
                           calendarWindow={fastingCalendarWindow}
-                          initiallySaved={isFastingGoalConfigured(fasting.id)}
+                          initiallySaved={isInitiallySavedForUi(
+                            "fasting",
+                            fasting.id,
+                            isFastingGoalConfigured(fasting.id),
+                          )}
                           onSave={(selectedDates: string[]) => {
                             setFastingMetrics((prev) => ({
                               ...prev,
@@ -4109,7 +4227,11 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                           }
                           collapseSignal={postSaveCollapseSignal}
                           calendarWindow={fastingCalendarWindow}
-                          initiallySaved={isFastingGoalConfigured(fasting.id)}
+                          initiallySaved={isInitiallySavedForUi(
+                            "fasting",
+                            fasting.id,
+                            isFastingGoalConfigured(fasting.id),
+                          )}
                           initialStartDay={
                             fasting.dawoodStartDay === 2 ? 2 : fasting.dawoodStartDay === 1 ? 1 : undefined
                           }
@@ -4128,7 +4250,11 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                           }
                           collapseSignal={postSaveCollapseSignal}
                           calendarWindow={fastingCalendarWindow}
-                          initiallySaved={isFastingGoalConfigured(fasting.id)}
+                          initiallySaved={isInitiallySavedForUi(
+                            "fasting",
+                            fasting.id,
+                            isFastingGoalConfigured(fasting.id),
+                          )}
                           onSave={(selectedDates: string[]) => {
                             setFastingMetrics((prev) => ({
                               ...prev,
@@ -4150,7 +4276,11 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                           }
                           collapseSignal={postSaveCollapseSignal}
                           calendarWindow={fastingCalendarWindow}
-                          initiallySaved={isFastingGoalConfigured(fasting.id)}
+                          initiallySaved={isInitiallySavedForUi(
+                            "fasting",
+                            fasting.id,
+                            isFastingGoalConfigured(fasting.id),
+                          )}
                           onSave={() => {
                             setFastingMetrics((prev) => {
                               const next = { ...prev };
@@ -4251,7 +4381,11 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                           }}
                           countTitle={t("monthlyGoalPlanner.amount")}
                           isSaving={isSavingSadaqah}
-                          initiallySaved={isSadaqahGoalConfigured(sadaqah.id)}
+                          initiallySaved={isInitiallySavedForUi(
+                            "sadaqah",
+                            sadaqah.id,
+                            isSadaqahGoalConfigured(sadaqah.id),
+                          )}
                           onSave={(done, fail) =>
                             saveMissedZakatGoal(sadaqah.id, done, fail)
                           }
@@ -4285,7 +4419,11 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                             setKafarahCloths((prev) => prev + 1);
                           }}
                           isSaving={isSavingSadaqah}
-                          initiallySaved={isSadaqahGoalConfigured(sadaqah.id)}
+                          initiallySaved={isInitiallySavedForUi(
+                            "sadaqah",
+                            sadaqah.id,
+                            isSadaqahGoalConfigured(sadaqah.id),
+                          )}
                           onSave={(done, fail) =>
                             saveKaffarahGoal(sadaqah.id, done, fail)
                           }
@@ -4310,7 +4448,11 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                           }}
                           title={t("monthlyGoalPlanner.fidyaMealsTitle")}
                           isSaving={isSavingSadaqah}
-                          initiallySaved={isSadaqahGoalConfigured(sadaqah.id)}
+                          initiallySaved={isInitiallySavedForUi(
+                            "sadaqah",
+                            sadaqah.id,
+                            isSadaqahGoalConfigured(sadaqah.id),
+                          )}
                           onSave={(done, fail) =>
                             saveFidyaGoal(sadaqah.id, done, fail)
                           }
@@ -4339,7 +4481,11 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                           }}
                           countTitle={t("monthlyGoalPlanner.amount")}
                           isSaving={isSavingSadaqah}
-                          initiallySaved={isSadaqahGoalConfigured(sadaqah.id)}
+                          initiallySaved={isInitiallySavedForUi(
+                            "sadaqah",
+                            sadaqah.id,
+                            isSadaqahGoalConfigured(sadaqah.id),
+                          )}
                           onSave={(done, fail) =>
                             saveLillahGoal(sadaqah.id, done, fail)
                           }
@@ -4372,7 +4518,11 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                             { count: volunteeringHours },
                           )}
                           isSaving={isSavingSadaqah}
-                          initiallySaved={isSadaqahGoalConfigured(sadaqah.id)}
+                          initiallySaved={isInitiallySavedForUi(
+                            "sadaqah",
+                            sadaqah.id,
+                            isSadaqahGoalConfigured(sadaqah.id),
+                          )}
                           onSave={(done, fail) =>
                             saveVolunteeringGoal(sadaqah.id, done, fail)
                           }
@@ -4392,7 +4542,11 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                           control={control}
                           name="sadaqahJariyah"
                           title={t("monthlyGoalPlanner.volunteeringMonthTitle")}
-                          initiallySaved={isSadaqahGoalConfigured(sadaqah.id)}
+                          initiallySaved={isInitiallySavedForUi(
+                            "sadaqah",
+                            sadaqah.id,
+                            isSadaqahGoalConfigured(sadaqah.id),
+                          )}
                           handleDecrease={() => {
                             setSadaqahJariyahAmount((prev) =>
                               Math.max(0, prev - 1),

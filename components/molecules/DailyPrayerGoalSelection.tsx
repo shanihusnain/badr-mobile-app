@@ -57,7 +57,7 @@ type Props = {
   isSaving?: boolean;
   openOnMount?: boolean;
   collapseSignal?: number;
-  onInputFocus?: () => void;
+  onInputFocus?: (layout?: { windowY: number; inputHeight: number }) => void;
   initiallySaved?: boolean;
 };
 
