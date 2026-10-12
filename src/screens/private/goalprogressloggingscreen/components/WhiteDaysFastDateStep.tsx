@@ -14,10 +14,11 @@ type Props = {
     dateRow: object;
     dateMainText: object;
   };
-  /** From loggable-dates `enabled`. Defaults true. */
+  /**
+   * From loggable-dates `enabled`.
+   * When false (booked or already logged), date is faded — no strikethrough.
+   */
   enabled?: boolean;
-  /** From loggable-dates `alreadyLoggedFastingGoal` — blue strikethrough. */
-  alreadyLogged?: boolean;
   /** From loggable-dates `description` — shown under date with warning icon. */
   description?: string | null;
 };
@@ -29,7 +30,6 @@ export function WhiteDaysFastDateStep({
   onShiftDate,
   styles,
   enabled = true,
-  alreadyLogged = false,
   description,
 }: Props) {
   const { i18n } = useTranslation();
@@ -53,18 +53,11 @@ export function WhiteDaysFastDateStep({
         </TouchableOpacity>
 
         <View style={localStyles.dateCenter}>
-          <View style={localStyles.dateLabelWrap}>
-            <Text
-              style={[
-                styles.dateMainText,
-                !enabled && !alreadyLogged && localStyles.dateDisabled,
-                alreadyLogged && localStyles.dateAlreadyLogged,
-              ]}
-            >
-              {dateLabel}
-            </Text>
-            {alreadyLogged ? <View style={localStyles.strikeThrough} /> : null}
-          </View>
+          <Text
+            style={[styles.dateMainText, !enabled && localStyles.dateDisabled]}
+          >
+            {dateLabel}
+          </Text>
         </View>
 
         <TouchableOpacity
@@ -110,26 +103,8 @@ const localStyles = StyleSheet.create({
     justifyContent: "center",
     minHeight: 32,
   },
-  dateLabelWrap: {
-    position: "relative",
-    alignItems: "center",
-    justifyContent: "center",
-  },
   dateDisabled: {
     opacity: 0.45,
-  },
-  dateAlreadyLogged: {
-    opacity: 0.9,
-  },
-  strikeThrough: {
-    position: "absolute",
-    left: -2,
-    right: -2,
-    height: 2,
-    borderRadius: 1,
-    backgroundColor: Colors.light.darkblue,
-    top: "50%",
-    marginTop: -1,
   },
   descriptionRow: {
     flexDirection: "row",

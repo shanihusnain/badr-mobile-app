@@ -36,6 +36,7 @@ import {
 } from "../prophetDawoodFastsData";
 import { getTodayDateString } from "../whiteDaysFastsData";
 import type { ProphetDawoodFastsLogEntry } from "../types";
+import { usePrefillFastingTimesFromApi } from "../hooks/usePrefillFastingTimesFromApi";
 
 type ProphetDawoodFastsStepId = "selectPlannedFast" | "startTime" | "endTime";
 const STEPS: ProphetDawoodFastsStepId[] = [
@@ -71,6 +72,20 @@ export default function ProphetDawoodFastsLoggingFlow({
   const [endMinute, setEndMinute] = useState("30");
   const [endPeriod, setEndPeriod] = useState<"am" | "pm">("pm");
   const [isEndPeriodDropdownOpen, setIsEndPeriodDropdownOpen] = useState(false);
+
+  usePrefillFastingTimesFromApi(
+    "PROPHET_DAWOOD",
+    selectedDate || null,
+    {
+      setStartHour,
+      setStartMinute,
+      setStartPeriod,
+      setEndHour,
+      setEndMinute,
+      setEndPeriod,
+    },
+    { enabled: flowMode === "active" && Boolean(selectedDate) },
+  );
 
   const today = getTodayDateString();
   const currentStep = STEPS[stepIndex];

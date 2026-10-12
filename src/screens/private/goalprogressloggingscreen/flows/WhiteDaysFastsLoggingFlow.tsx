@@ -33,6 +33,7 @@ import { TimeSpentIcon } from "@/assets/icons";
 import { useOptionalFastingGoalFrameContext } from "../fastingGoalFrameContext";
 import { useLogFastingGoal } from "@/src/api/mutations/useLogFastingGoal";
 import { useGetFastingLoggableDates } from "@/src/api/queries/useGetFastingLoggableDates";
+import { usePrefillFastingTimesFromApi } from "../hooks/usePrefillFastingTimesFromApi";
 import {
   fastingFrameShowsInsights,
   getFastingFrameAchievementLabel,
@@ -83,7 +84,7 @@ export default function WhiteDaysFastsLoggingFlow({
   const [flowMode, setFlowMode] = useState<FlowMode>("collapsed");
   const [stepIndex, setStepIndex] = useState(0);
   const [selectedDate, setSelectedDate] = useState("");
-  // Fast defaults (dawn → dusk). Equal start/end blocks confirm (end must be after start).
+  // Prefill from Fajr/Maghrib API when date is known; hardcoded until then.
   const [startHour, setStartHour] = useState("5");
   const [startMinute, setStartMinute] = useState("00");
   const [startPeriod, setStartPeriod] = useState<"am" | "pm">("am");
@@ -94,6 +95,20 @@ export default function WhiteDaysFastsLoggingFlow({
   const [endPeriod, setEndPeriod] = useState<"am" | "pm">("pm");
   const [isEndPeriodDropdownOpen, setIsEndPeriodDropdownOpen] = useState(false);
 
+  usePrefillFastingTimesFromApi(
+    "WHITE_DAYS",
+    selectedDate || null,
+    {
+      setStartHour,
+      setStartMinute,
+      setStartPeriod,
+      setEndHour,
+      setEndMinute,
+      setEndPeriod,
+    },
+    { enabled: flowMode === "active" && Boolean(selectedDate) },
+  );
+
   const today = getTodayDateString();
   const currentStep = STEPS[stepIndex];
   const isLastStep = stepIndex === STEPS.length - 1;
@@ -102,7 +117,6 @@ export default function WhiteDaysFastsLoggingFlow({
     return (loggableDatesData?.dates ?? []).map((entry) => ({
       date: normalizeDateString(entry.date),
       enabled: entry.enabled,
-      alreadyLogged: entry.alreadyLoggedFastingGoal,
       description: entry.description,
     }));
   }, [loggableDatesData?.dates]);
@@ -404,7 +418,6 @@ export default function WhiteDaysFastsLoggingFlow({
             onShiftDate={shiftDate}
             styles={commonStyles}
             enabled={selectedNavigationOption?.enabled !== false}
-            alreadyLogged={Boolean(selectedNavigationOption?.alreadyLogged)}
             description={selectedNavigationOption?.description ?? null}
           />
         );
