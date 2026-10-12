@@ -38,9 +38,6 @@ const CURRENCY_GOAL_TITLES = new Set([
   "sadaqah-jariyah",
 ]);
 
-/** Goals whose sub-rows show label only (no right-side value). */
-const SUBGOAL_VALUE_HIDDEN_TITLES = new Set(["quran-memorization-by-surah"]);
-
 /** Goals that show header chip/total only — no sub-goal rows on review. */
 const HEADER_ONLY_GOAL_TITLES = new Set([
   "qiyal-al-lail-prayer",
@@ -239,8 +236,7 @@ export default function ReviewGoalCard({ goal, handleEditPress }: Props) {
                 })()}
               </Text>
               {subGoal?.value != null &&
-                String(subGoal.value).trim() !== "" &&
-                !SUBGOAL_VALUE_HIDDEN_TITLES.has(key) && (
+                String(subGoal.value).trim() !== "" && (
                   <Text style={styles.subGoalValueText}>{subGoal?.value}</Text>
                 )}
             </View>
