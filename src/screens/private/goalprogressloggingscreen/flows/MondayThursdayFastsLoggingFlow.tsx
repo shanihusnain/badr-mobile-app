@@ -58,6 +58,7 @@ import {
   useGetFastingLoggableDates,
   type FastingLoggableDateEntry,
 } from "@/src/api/queries/useGetFastingLoggableDates";
+import { usePrefillFastingTimesFromApi } from "../hooks/usePrefillFastingTimesFromApi";
 import {
   getWizardAvailableDates,
   getWizardStepTitle,
@@ -335,6 +336,39 @@ export default function MondayThursdayFastsLoggingFlow({
     [selectedMissedDateId, missedOptions],
   );
 
+  /** Day the fast was kept — drives Fajr/Maghrib prefill. */
+  const fastTimesDate = useMemo(() => {
+    switch (logType) {
+      case "completed_early":
+        return selectedActualDate?.date ?? null;
+      case "made_up_skipped":
+        return selectedMissedDate?.date ?? null;
+      case "completed_planned":
+        return selectedPlannedFast?.date ?? null;
+      default:
+        return null;
+    }
+  }, [
+    logType,
+    selectedActualDate?.date,
+    selectedMissedDate?.date,
+    selectedPlannedFast?.date,
+  ]);
+
+  usePrefillFastingTimesFromApi(
+    "MONDAY_THURSDAY",
+    fastTimesDate,
+    {
+      setStartHour,
+      setStartMinute,
+      setStartPeriod,
+      setEndHour,
+      setEndMinute,
+      setEndPeriod,
+    },
+    { enabled: flowMode === "active" && Boolean(fastTimesDate) },
+  );
+
   const goalTarget = getMondayThursdayFastGoalTarget();
   const goalCompleted = isMondayThursdayFastGoalCompleted();
   const insights = useMemo(
@@ -453,7 +487,6 @@ export default function MondayThursdayFastsLoggingFlow({
         }
         styles={commonStyles}
         enabled={selectedOption?.enabled !== false}
-        alreadyLogged={Boolean(selectedOption?.alreadyLoggedFastingGoal)}
         description={selectedOption?.description ?? null}
       />
     );

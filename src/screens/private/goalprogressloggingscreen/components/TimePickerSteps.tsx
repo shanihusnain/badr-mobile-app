@@ -26,6 +26,25 @@ export function getCurrentStartTimeParts(): StartTimeParts {
   return startTimePartsFromDate(new Date());
 }
 
+/** Parse API `HH:mm` (24h) into the 12h picker parts. */
+export function parseHhMmToStartTimeParts(
+  hhmm: string | null | undefined,
+): StartTimeParts | null {
+  if (!hhmm) return null;
+  const match = String(hhmm).trim().match(/^(\d{1,2}):(\d{2})/);
+  if (!match) return null;
+  const hour24 = Math.min(23, Math.max(0, Number.parseInt(match[1], 10) || 0));
+  const minute = Math.min(59, Math.max(0, Number.parseInt(match[2], 10) || 0));
+  const period: "am" | "pm" = hour24 >= 12 ? "pm" : "am";
+  let hour12 = hour24 % 12;
+  if (hour12 === 0) hour12 = 12;
+  return {
+    hour: String(hour12),
+    minute: String(minute).padStart(2, "0"),
+    period,
+  };
+}
+
 interface StartTimeStepProps {
   startHour: string;
   setStartHour: (h: string) => void;

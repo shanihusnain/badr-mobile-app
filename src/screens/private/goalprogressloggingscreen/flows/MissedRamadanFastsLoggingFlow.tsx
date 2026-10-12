@@ -46,6 +46,7 @@ import {
   type FastingLogWizardOption,
 } from "@/src/api/queries/useGetFastingGoalLogWizard";
 import { useLogFastingGoal } from "@/src/api/mutations/useLogFastingGoal";
+import { usePrefillFastingTimesFromApi } from "../hooks/usePrefillFastingTimesFromApi";
 import {
   fastingFrameShowsInsights,
   getFastingFrameAchievementLabel,
@@ -309,6 +310,39 @@ export default function MissedRamadanFastsLoggingFlow({
       skippedOptions.find((option) => option.id === selectedSkippedDateId) ??
       null,
     [selectedSkippedDateId, skippedOptions],
+  );
+
+  /** Day the fast was kept — drives Fajr/Maghrib prefill. */
+  const fastTimesDate = useMemo(() => {
+    switch (logType) {
+      case "completed_early":
+        return selectedActualDate?.date ?? null;
+      case "made_up_skipped":
+        return selectedSkippedDate?.date ?? null;
+      case "completed_planned":
+        return selectedPlannedFast?.date ?? null;
+      default:
+        return null;
+    }
+  }, [
+    logType,
+    selectedActualDate?.date,
+    selectedPlannedFast?.date,
+    selectedSkippedDate?.date,
+  ]);
+
+  usePrefillFastingTimesFromApi(
+    "MISSED_RAMADAN",
+    fastTimesDate,
+    {
+      setStartHour,
+      setStartMinute,
+      setStartPeriod,
+      setEndHour,
+      setEndMinute,
+      setEndPeriod,
+    },
+    { enabled: flowMode === "active" && Boolean(fastTimesDate) },
   );
 
   const goalTarget = frame?.goal?.target ?? goalData.target ?? 0;
@@ -864,7 +898,6 @@ export default function MissedRamadanFastsLoggingFlow({
         }
         styles={commonStyles}
         enabled={selectedOption?.enabled !== false}
-        alreadyLogged={Boolean(selectedOption?.alreadyLoggedFastingGoal)}
         description={selectedOption?.description ?? null}
       />
     );
