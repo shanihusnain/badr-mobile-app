@@ -1,24 +1,15 @@
-import * as React from "react"
-import Svg, { Path } from "react-native-svg"
-import { Colors } from "@/constants/theme"
-import { Color } from "expo-router"
-
+import * as React from "react";
+import Svg, { Path } from "react-native-svg";
+import { Colors } from "@/constants/theme";
 
 export const HeartOnHandIcon = ({
-Color = Colors.light.subtext,
-size = 24,
-
-} : {
-Color?: string;
-size?: number;
+  Color = Colors.light.subtext,
+  size = 24,
+}: {
+  Color?: string;
+  size?: number;
 }) => (
-  <Svg
-  
-    width={size}
-    height={size}
-    fill="none"
-
-  >
+  <Svg width={size} height={size} fill="none">
     <Path
       fill={Color}
       fillRule="evenodd"
@@ -28,5 +19,4 @@ size?: number;
       clipRule="evenodd"
     />
   </Svg>
-)
-
+);

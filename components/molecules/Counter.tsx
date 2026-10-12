@@ -26,7 +26,7 @@ export const Counter = ({
   count: number;
   setCount: (value: number) => void;
   width?: string | number | any;
-  onInputFocus?: () => void;
+  onInputFocus?: (layout?: { windowY: number; inputHeight: number }) => void;
 }) => {
   const inputRef = useRef<TextInputType>(null);
   const [isFocused, setIsFocused] = useState(false);

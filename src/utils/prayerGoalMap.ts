@@ -258,22 +258,61 @@ function getSunnahConfig(
   return cfg;
 }
 
+/**
+ * Sunnah is "configured / saved" only when at least one prayer-slot target is
+ * a positive count. Booleans (e.g. beforeAsrEnabled) or rakah options alone —
+ * or an empty/zero sunnahConfig from a newly toggled goal — must NOT count as
+ * saved, or new users see SAVED! with no green Save button.
+ */
 function hasConfiguredSunnah(goal: SunnahInitialSource | undefined): boolean {
-  if (hasConfiguredTargets(goal)) return true;
+  if (!goal) return false;
   const cfg = getSunnahConfig(goal);
-  if (
-    cfg &&
-    Object.values(cfg).some((value) => value !== undefined && value !== null)
-  ) {
-    return true;
-  }
-  return (
-    goal?.afterDhuhrRakahOption != null ||
-    goal?.afterDhuhrPrayersPerDay != null ||
-    goal?.beforeAsrEnabled != null ||
-    goal?.beforeAsrRakahOption != null ||
-    goal?.beforeAsrPrayersPerDay != null
-  );
+  const targets = goal.targets;
+  const slotTargets = [
+    getSunnahSlotTarget(
+      cfg,
+      targets,
+      "beforeFajrTarget",
+      "beforeFajr",
+      "BEFORE_FAJR",
+    ),
+    getSunnahSlotTarget(
+      cfg,
+      targets,
+      "beforeDhuhrTarget",
+      "beforeDhuhr",
+      "BEFORE_DHUHR",
+    ),
+    getSunnahSlotTarget(
+      cfg,
+      targets,
+      "afterDhuhrTarget",
+      "afterDhuhr",
+      "AFTER_DHUHR",
+    ),
+    getSunnahSlotTarget(
+      cfg,
+      targets,
+      "beforeAsrTarget",
+      "beforeAsr",
+      "BEFORE_ASR",
+    ),
+    getSunnahSlotTarget(
+      cfg,
+      targets,
+      "afterMaghribTarget",
+      "afterMaghrib",
+      "AFTER_MAGHRIB",
+    ),
+    getSunnahSlotTarget(
+      cfg,
+      targets,
+      "afterIshaTarget",
+      "afterIsha",
+      "AFTER_ISHA",
+    ),
+  ];
+  return slotTargets.some((n) => typeof n === "number" && n > 0);
 }
 
 function getSunnahSlotTarget(

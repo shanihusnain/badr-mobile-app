@@ -243,6 +243,7 @@
     "tabChipStep2": "Step 2",
     "tabChipStep3": "Step 3",
     "tabChipStep4": "Step 4",
+    "tabChipStep5": "Step 5",
     "months": {
       "jan": "January",
       "feb": "February",
@@ -403,7 +404,7 @@
       "totalJuz_other": "(a total of {{count}} juz)",
       "enterUpToCompletions": "Enter up to 28 Completions.",
       "fullCompletions_one": "Full Completion of the Quran",
-      "fullCompletions_other": "Full Completions of the Quran",
+      "fullCompletions_other": "Full Completion(s) of the Quran",
       "deleteGoalTitle": "DELETE GOAL?",
       "deleteGoalMessage": "Are you sure you want to delete the goal? This will remove your goal permanently. This action cannot be undone.",
       "deleteMemorizationSurahTitle": "DELETE SURAH?",
@@ -2410,7 +2411,7 @@
       ]
     },
     "dawood-fasts": {
-      "title": "THE FAST OF PROPHET DAWOOD",
+      "title": "THE FAST OF PROPHET DAWOOD (AS)",
       "summaryDescription": "These fasts are observed by fasting every other day, reflecting Prophet Dawood's (PBUH) devotion and resilience, and serving as a model of piety...",
       "description": "The fast of Dawood (PBUH), observed everyother day, exemplifies devotion, patience, and resilience, serving as a timeless model of piety for Muslims.",
       "heroTitle": "A Testament to Devotion & Spiritual Resilience",

@@ -369,9 +369,10 @@ export const QuranRecitationGoalSelection = ({
     const start = Number(savedSnapshotsRef.current.juz?.start ?? 0);
     const end = Number(savedSnapshotsRef.current.juz?.end ?? 0);
     if (start > 0 || end > 0) {
+      // Do not coerce missing end → start (or the To Juz input mirrors From).
       return {
-        start: start > 0 ? start : 1,
-        end: end > 0 ? end : start,
+        start: start > 0 ? start : end > 0 ? 1 : 0,
+        end: end > 0 ? end : 0,
       };
     }
     if (initialSelectedJuzs.length > 0) {

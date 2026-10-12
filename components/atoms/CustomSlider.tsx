@@ -76,7 +76,8 @@ export default function CustomSlider({
   const thumbSize = baseThumbSize * scale;
   // Compact hugs the thumb/track so stacked rows match Figma (no tall empty hit-area).
   const sliderHeight = compact ? 28 : 50;
-  const badgeTop = compact ? -16 : -11;
+  // Keep chip + caret clearly above the thumb (same speech-bubble as non-compact).
+  const badgeTop = compact ? -24 : -11;
 
   // Horizontal inset — room for thumb/badge at min/max.
   // Paired with container width 112% so the visible track aligns with card content edges.
@@ -274,8 +275,8 @@ const styles = StyleSheet.create({
     width: "112%",
     alignSelf: "center",
     marginVertical: 0,
-    // Reserve space for the floating value badge above the track (Figma).
-    paddingTop: 18,
+    // Space for chip + caret above the thumb (must clear thumb so caret stays visible).
+    paddingTop: 28,
   },
 
   sliderWrapper: {
@@ -288,7 +289,8 @@ const styles = StyleSheet.create({
     position: "absolute",
     width: 32,
     alignItems: "center",
-    zIndex: 10,
+    // Above thumb so the caret is never covered.
+    zIndex: 20,
   },
 
   badge: {

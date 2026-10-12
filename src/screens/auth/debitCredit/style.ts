@@ -1,6 +1,5 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
-import { Color } from "expo-router";
 import { StyleSheet } from "react-native";
 import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 

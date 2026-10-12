@@ -904,7 +904,10 @@ export const MetricSelectionComponent = ({
             : displayJuzEnd && displayJuzEnd > 0
               ? 1
               : 0;
-        const end = displayJuzEnd && displayJuzEnd > 0 ? displayJuzEnd : start;
+        // Keep end unset while the user is still filling "from" only —
+        // matching end to start here caused the To field to auto-fill.
+        const end =
+          displayJuzEnd && displayJuzEnd > 0 ? displayJuzEnd : 0;
         payload = {
           metric: "juz",
           value: { start, end },
