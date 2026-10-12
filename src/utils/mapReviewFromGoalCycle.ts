@@ -366,28 +366,82 @@ function isWeeklySurahFrequency(frequency: string | null | undefined): boolean {
   return normalized === "weekly" || normalized === "week";
 }
 
-/** e.g. "Surah Al-Baqarah (2 times daily)" / "Surah Al-Imran (3 days per week)" */
+/** Same multipliers as Surah goal-setting formula (daily × 28 / weekly × 4). */
+export function surahRecitationMonthlyTotal(
+  times: number,
+  frequency: string | null | undefined,
+): number {
+  const count = Number.isFinite(times) && times > 0 ? times : 0;
+  const multiplier = isWeeklySurahFrequency(frequency) ? 4 : 28;
+  return count * multiplier;
+}
+
+/** Sum monthly recitations across selected surahs (live metric snapshot). */
+export function computeSurahRecitationReviewTotal(surah: {
+  selectedSurahs?: number[];
+  surahSettings?: Record<number, { frequency?: string; times?: number }>;
+}): number {
+  const selected = Array.isArray(surah.selectedSurahs)
+    ? surah.selectedSurahs
+    : [];
+  const settings = surah.surahSettings ?? {};
+  return selected.reduce((sum, id) => {
+    const times = Number(settings[id]?.times ?? 0) || 0;
+    const frequency = resolveQuranSurahFrequency({
+      surahId: id,
+      times,
+      itemFrequency: settings[id]?.frequency,
+    });
+    return sum + surahRecitationMonthlyTotal(times, frequency);
+  }, 0);
+}
+
+/** Right-side cadence chip, e.g. "(1 time daily)" / "(3 days per week)". */
+export function formatSurahRecitationReviewCadence(
+  times: number,
+  frequency: string | null | undefined,
+  t: TFunction,
+): string {
+  const count = Number.isFinite(times) && times > 0 ? times : 1;
+
+  if (isWeeklySurahFrequency(frequency)) {
+    return count === 1
+      ? t("progressLogging.recitationSurahCadenceWeeklyOnce")
+      : t("progressLogging.recitationSurahCadenceWeeklyTimes", { count });
+  }
+
+  return count === 1
+    ? t("progressLogging.recitationSurahCadenceDailyOnce")
+    : t("progressLogging.recitationSurahCadenceDailyTimes", { count });
+}
+
+/** Label + right-side value for review rows (name left, cadence right). */
+export function formatSurahRecitationReviewParts(
+  surahName: string,
+  times: number,
+  frequency: string | null | undefined,
+  t: TFunction,
+): { label: string; value: string } {
+  return {
+    label: ensureSurahPrefix(stripEnglishParenthetical(surahName)),
+    value: formatSurahRecitationReviewCadence(times, frequency, t),
+  };
+}
+
+/** @deprecated Prefer formatSurahRecitationReviewParts for split layout. */
 export function formatSurahRecitationReviewLabel(
   surahName: string,
   times: number,
   frequency: string | null | undefined,
   t: TFunction,
 ): string {
-  const surah = ensureSurahPrefix(stripEnglishParenthetical(surahName));
-  const count = Number.isFinite(times) && times > 0 ? times : 1;
-
-  if (isWeeklySurahFrequency(frequency)) {
-    return count === 1
-      ? t("progressLogging.recitationSurahMetaWeeklyOnce", { surah })
-      : t("progressLogging.recitationSurahMetaWeeklyTimes", {
-          surah,
-          count,
-        });
-  }
-
-  return count === 1
-    ? t("progressLogging.recitationSurahMetaDailyOnce", { surah })
-    : t("progressLogging.recitationSurahMetaDailyTimes", { surah, count });
+  const { label, value } = formatSurahRecitationReviewParts(
+    surahName,
+    times,
+    frequency,
+    t,
+  );
+  return value ? `${label} ${value}` : label;
 }
 
 /** Build review rows from live surah metric state (per-surah frequency). */
@@ -415,16 +469,17 @@ export function buildSurahRecitationReviewSelectedGoals(
       times,
       itemFrequency: settings[id]?.frequency,
     });
+    const parts = formatSurahRecitationReviewParts(
+      String(names[id] ?? `Surah ${id}`),
+      times,
+      frequency,
+      t,
+    );
     return {
       id: i + 1,
       name: `SURAH-${id}`,
-      label: formatSurahRecitationReviewLabel(
-        String(names[id] ?? `Surah ${id}`),
-        times,
-        frequency,
-        t,
-      ),
-      value: "",
+      label: parts.label,
+      value: parts.value,
     };
   });
 }
@@ -546,16 +601,17 @@ function mapQuranGoal(
         itemFrequency: item.frequency,
         goalFrequency: goal.frequency,
       });
+      const parts = formatSurahRecitationReviewParts(
+        surahName,
+        times,
+        frequency,
+        t,
+      );
       return {
         id: i + 1,
         name: `${item.itemType}-${item.itemNumber}`,
-        label: formatSurahRecitationReviewLabel(
-          surahName,
-          times,
-          frequency,
-          t,
-        ),
-        value: "",
+        label: parts.label,
+        value: parts.value,
       };
     }
 
@@ -577,11 +633,12 @@ function mapQuranGoal(
         (verseCountFromRange != null
           ? `(${verseCountFromRange} verses)`
           : "");
+      // Match Hizb/Juz: name on the left, verse count on the right.
       return {
         id: i + 1,
         name: `${item.itemType}-${item.itemNumber}`,
-        label: verses ? `${prefixed} ${verses}` : prefixed,
-        value: "",
+        label: prefixed,
+        value: verses,
       };
     }
 
@@ -616,12 +673,29 @@ function mapQuranGoal(
     typeof goal.targetValue === "number"
       ? goal.targetValue
       : Number(goal.targetValue);
+  const surahRecitationTotal = isSurahRecitation
+    ? items.reduce((sum, item) => {
+        const times = Math.max(
+          0,
+          Number(item.perPeriodCount ?? item.targetCount ?? 0) || 0,
+        );
+        const frequency = resolveQuranSurahFrequency({
+          surahId: Number(item.itemNumber),
+          times,
+          itemFrequency: item.frequency,
+          goalFrequency: goal.frequency,
+        });
+        return sum + surahRecitationMonthlyTotal(times, frequency);
+      }, 0)
+    : 0;
   const totalValue =
     isJuzRecitation && juzRange
       ? countJuzInRange(juzRange.from, juzRange.to)
-      : Number.isFinite(parsedTarget)
-        ? parsedTarget
-        : items.reduce((sum, item) => sum + (item.targetCount ?? 0), 0);
+      : isSurahRecitation && surahRecitationTotal > 0
+        ? surahRecitationTotal
+        : Number.isFinite(parsedTarget)
+          ? parsedTarget
+          : items.reduce((sum, item) => sum + (item.targetCount ?? 0), 0);
 
   // Hide unselected recitation/memorization metrics (e.g. "0 juz", "0 completions")
   // so Review & Confirm only lists goals the user actually configured.

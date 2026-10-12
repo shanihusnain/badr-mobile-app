@@ -101,6 +101,7 @@ import {
   formatFastingReviewRowsFromDates,
   buildJuzRecitationRangeReviewRow,
   buildSurahRecitationReviewSelectedGoals,
+  computeSurahRecitationReviewTotal,
   countJuzInRange,
   parseJuzRangeReviewName,
 } from "@/src/utils/mapReviewFromGoalCycle";
@@ -4612,6 +4613,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
 
                         // Recitation-by-surah: rebuild from live per-surah
                         // settings (itemFrequency + perPeriodCount per surah).
+                        let liveSurahRecitationTotal: number | null = null;
                         if (
                           goal.title === "quran-recitation-by-surah" &&
                           Array.isArray(quranMetrics?.surah?.selectedSurahs) &&
@@ -4622,11 +4624,24 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                               quranMetrics.surah,
                               t,
                             );
+                          liveSurahRecitationTotal =
+                            computeSurahRecitationReviewTotal(
+                              quranMetrics.surah,
+                            );
                         }
 
                         let goalWithSelected = mergedSelected.length
                           ? { ...goal, selectedGoals: mergedSelected }
                           : goal;
+                        if (
+                          liveSurahRecitationTotal != null &&
+                          liveSurahRecitationTotal > 0
+                        ) {
+                          goalWithSelected = {
+                            ...goalWithSelected,
+                            totalValue: liveSurahRecitationTotal,
+                          };
+                        }
                         if (
                           goal.title === "quran-recitation-by-juz" &&
                           localSelected.length > 0
