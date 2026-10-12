@@ -13,7 +13,7 @@ import { Divider } from "../atoms/Divider";
 import { TopSpace } from "../atoms/TopSpace";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useGoalSelectionOpenState } from "@/hooks/useGoalSelectionOpenState";
 import GoalSelectionSaveButton from "@/components/molecules/GoalSelectionSaveButton";
 import { useGetQuranGoalByType } from "@/src/api/queries/useGetQuranGoalByType";
@@ -42,12 +42,34 @@ export const QuranTimeSelection = ({
   openOnMount?: boolean;
   collapseSignal?: number;
   /** Scroll parent list so this input stays visible above the keyboard. */
-  onInputFocus?: () => void;
+  onInputFocus?: (layout?: { windowY: number; inputHeight: number }) => void;
   initiallySaved?: boolean;
 }) => {
   const { t } = useTranslation();
   const hoursInputRef = useRef<TextInput>(null);
-  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount, onInputFocus, collapseSignal);
+  const [isOpen, setIsOpen] = useGoalSelectionOpenState(
+    openOnMount,
+    onInputFocus,
+    collapseSignal,
+  );
+
+  const reportHoursInputLayout = useCallback(() => {
+    const node = hoursInputRef.current;
+    if (!node?.measureInWindow) {
+      onInputFocus?.();
+      return;
+    }
+    node.measureInWindow((_x, y, _w, h) => {
+      onInputFocus?.({ windowY: y, inputHeight: Math.max(h, 1) });
+    });
+  }, [onInputFocus]);
+
+  const notifyHoursFocused = useCallback(() => {
+    onInputFocus?.();
+    requestAnimationFrame(reportHoursInputLayout);
+    // After keyboard opens, re-measure so bottom cards (Tajweed) scroll enough.
+    setTimeout(reportHoursInputLayout, 280);
+  }, [onInputFocus, reportHoursInputLayout]);
   const [inputValue, setInputValue] = useState<string>("");
   const [hydrated, setHydrated] = useState(false);
   const [isHoursFocused, setIsHoursFocused] = useState(false);
@@ -148,7 +170,7 @@ export const QuranTimeSelection = ({
                     showSoftInputOnFocus
                     onFocus={() => {
                       setIsHoursFocused(true);
-                      onInputFocus?.();
+                      notifyHoursFocused();
                     }}
                     onBlur={() => setIsHoursFocused(false)}
                     style={[

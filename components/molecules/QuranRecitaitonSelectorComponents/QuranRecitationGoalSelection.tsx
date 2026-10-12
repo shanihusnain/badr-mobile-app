@@ -65,7 +65,7 @@ export type QuranRecitationGoalSelectionProps = {
   onNestedScrollActiveChange?: (active: boolean) => void;
   isSaving?: boolean;
   /** Scroll parent list so metric inputs stay visible above the keyboard. */
-  onInputFocus?: () => void;
+  onInputFocus?: (layout?: { windowY: number; inputHeight: number }) => void;
   /** When true (or when initialSavedMetrics is non-empty), start in SAVED!. */
   initiallySaved?: boolean;
 };

@@ -31,6 +31,14 @@ export type CurrencyDropdownOption = {
   code: string;
 };
 
+function isRestrictedCountry(country: ApiCountry, name: string): boolean {
+  const alpha2 = country.alpha2Code?.trim().toUpperCase();
+  const alpha3 = country.alpha3Code?.trim().toUpperCase();
+  if (alpha2 === "IL" || alpha3 === "ISR") return true;
+  // Hide Israel from country pickers (create account, edit profile, etc.).
+  return /\bisrael\b/i.test(name);
+}
+
 function mapCountries(payload: unknown): CountryDropdownOption[] {
   if (!Array.isArray(payload)) return [];
 
@@ -40,6 +48,7 @@ function mapCountries(payload: unknown): CountryDropdownOption[] {
       const country = item as ApiCountry;
       const name = typeof country.name === "string" ? country.name.trim() : "";
       if (!name) return null;
+      if (isRestrictedCountry(country, name)) return null;
 
       return {
         label: name,

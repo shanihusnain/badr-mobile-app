@@ -17,6 +17,8 @@ import { globalStyles } from "@/src/globalstyles/globalstyles";
 import { GoalSelectionOpenCloseButton } from "./GoalSelectionOpenCloseButton";
 import { Divider } from "../atoms/Divider";
 
+const PRAYERS_PER_DAY = 5;
+
 export default function MissedPrayerGoalSelection({
   onSave,
   initialValue = 1,
@@ -36,9 +38,18 @@ export default function MissedPrayerGoalSelection({
 }) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
-  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount, onInputFocus, collapseSignal);
+  const [isOpen, setIsOpen] = useGoalSelectionOpenState(
+    openOnMount,
+    onInputFocus,
+    collapseSignal,
+  );
   const [sliderValue, setSliderValue, commitSaved] =
     useDiscardUnsavedOnCollapse(isOpen, initialValue);
+
+  const totalPrayers = sliderValue * PRAYERS_PER_DAY;
+  const totalLabel = t("prayerGoals.missedPrayersSuffix", {
+    count: totalPrayers,
+  }).trim();
 
   const toggleDropdown = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -62,23 +73,30 @@ export default function MissedPrayerGoalSelection({
             onChange={(val) => setSliderValue(val)}
           />
 
-          <Text style={styles.valueText}>
-            {formatNumber(5)}
-            {" x "}
-            {formatNumber(sliderValue)}
-            <Text style={styles.whiteText}>
-              {t("prayerGoals.missedPrayersDaysLabel", {
-                count: sliderValue,
+          <View style={styles.resultBlock}>
+            <Text style={styles.totalText}>
+              {formatNumber(totalPrayers)}
+              <Text style={styles.totalSuffix}>
+                {t("prayerGoals.missedPrayersSuffix", { count: totalPrayers })}
+              </Text>
+            </Text>
+
+            <Text style={styles.parenText}>
+              ({formatNumber(totalPrayers)} {totalLabel})*
+            </Text>
+
+            <Text style={styles.formulaText}>
+              {t("prayerGoals.missedPrayersFormula", {
+                days: formatNumber(sliderValue),
+                dayLabel: t("prayerGoals.missedPrayersDayLabel", {
+                  count: sliderValue,
+                }),
+                prayersPerDay: formatNumber(PRAYERS_PER_DAY),
+                total: formatNumber(totalPrayers),
+                totalLabel,
               })}
             </Text>
-            {" = "}
-            {formatNumber(sliderValue * 5)}
-            <Text style={styles.whiteText}>
-              {t("prayerGoals.missedPrayersSuffix", {
-                count: sliderValue * 5,
-              })}
-            </Text>
-          </Text>
+          </View>
 
           <View style={styles.buttonContainer}>
             <GoalSelectionSaveButton
@@ -115,20 +133,51 @@ const styles = StyleSheet.create({
     width: "100%",
     paddingBottom: 6,
   },
-  valueText: {
+  resultBlock: {
+    alignItems: "center",
+    width: "100%",
+    marginTop: 0,
+    marginBottom: 20,
+  },
+  totalText: {
     color: Colors.light.green,
     fontFamily: fonts.primary.medium,
     fontSize: 14,
     fontWeight: "500",
-    marginBottom: 20,
+    lineHeight: 20,
     textAlign: "center",
+    letterSpacing: 0.1,
+    marginTop: -16,
+    marginBottom: 10,
   },
-  whiteText: {
+  totalSuffix: {
     color: Colors.light.white,
+    fontFamily: fonts.primary.medium,
+    fontSize: 14,
+    fontWeight: "500",
+  },
+  parenText: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.medium,
+    fontSize: 12,
+    fontWeight: "500",
+    lineHeight: 16,
+    textAlign: "center",
+    opacity: 0.6,
+    marginTop: -2,
+    marginBottom: 2,
+  },
+  formulaText: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.regular,
+    fontSize: 10,
+    fontWeight: "400",
+    lineHeight: 14,
+    textAlign: "center",
+    opacity: 0.7,
   },
   buttonContainer: {
     width: "100%",
-    marginTop: 6,
     alignItems: "center",
   },
   saveButton: {
