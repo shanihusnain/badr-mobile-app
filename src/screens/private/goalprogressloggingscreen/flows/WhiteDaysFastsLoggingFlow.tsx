@@ -99,11 +99,12 @@ export default function WhiteDaysFastsLoggingFlow({
   const isLastStep = stepIndex === STEPS.length - 1;
 
   const navigationOptions = useMemo(() => {
-    const dates = (loggableDatesData?.dates ?? [])
-      .map((date) => normalizeDateString(date))
-      .filter(Boolean)
-      .sort();
-    return dates.map((date) => ({ date }));
+    return (loggableDatesData?.dates ?? []).map((entry) => ({
+      date: normalizeDateString(entry.date),
+      enabled: entry.enabled,
+      alreadyLogged: entry.alreadyLoggedFastingGoal,
+      description: entry.description,
+    }));
   }, [loggableDatesData?.dates]);
 
   const badgeStatus = useMemo(() => {
@@ -146,15 +147,22 @@ export default function WhiteDaysFastsLoggingFlow({
 
   useEffect(() => {
     if (flowMode !== "active") return;
-    const defaultDate =
-      navigationOptions[navigationOptions.length - 1]?.date ?? "";
-    setSelectedDate(defaultDate);
+    const preferred =
+      [...navigationOptions].reverse().find((option) => option.enabled) ??
+      navigationOptions[navigationOptions.length - 1];
+    setSelectedDate(preferred?.date ?? "");
   }, [flowMode, navigationOptions]);
 
   const selectedOptionIndex = useMemo(
     () => navigationOptions.findIndex((option) => option.date === selectedDate),
     [navigationOptions, selectedDate],
   );
+
+  const selectedNavigationOption =
+    selectedOptionIndex >= 0
+      ? navigationOptions[selectedOptionIndex]
+      : null;
+  const isSelectedDateEnabled = selectedNavigationOption?.enabled !== false;
 
   const dateLabel = useMemo(() => {
     if (!selectedDate) return "";
@@ -395,6 +403,9 @@ export default function WhiteDaysFastsLoggingFlow({
             canGoNext={canGoNext}
             onShiftDate={shiftDate}
             styles={commonStyles}
+            enabled={selectedNavigationOption?.enabled !== false}
+            alreadyLogged={Boolean(selectedNavigationOption?.alreadyLogged)}
+            description={selectedNavigationOption?.description ?? null}
           />
         );
       case "startTime":
@@ -441,7 +452,7 @@ export default function WhiteDaysFastsLoggingFlow({
   const canProceed = (() => {
     switch (currentStep) {
       case "selectPlannedFast":
-        return Boolean(selectedDate);
+        return Boolean(selectedDate) && isSelectedDateEnabled;
       case "startTime":
         return isStartTimeValid;
       case "endTime":
@@ -455,10 +466,14 @@ export default function WhiteDaysFastsLoggingFlow({
     isLastStep &&
     !isLogging &&
     Boolean(selectedDate) &&
+    isSelectedDateEnabled &&
     navigationOptions.some((option) => option.date === selectedDate) &&
     isStartTimeValid &&
     isEndTimeValid &&
     isEndAfterStart;
+
+  const showConfirmButton =
+    currentStep !== "selectPlannedFast" || isSelectedDateEnabled;
 
   const stepHeader = getStepHeader(currentStep);
   const isDropdownOpen = isStartPeriodDropdownOpen || isEndPeriodDropdownOpen;
@@ -571,6 +586,7 @@ export default function WhiteDaysFastsLoggingFlow({
                 canGoForward={!isLastStep && canProceed}
                 canGoBack={stepIndex > 0}
                 canConfirm={canConfirm}
+                showConfirmButton={showConfirmButton}
                 styles={commonStyles}
                 style={[
                   commonStyles.inPlaceFlowCard,

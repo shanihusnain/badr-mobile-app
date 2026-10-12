@@ -35,6 +35,11 @@ export type MissedRamadanFastDateOption = {
   id: string;
   date: string;
   plannedDate?: string;
+  /** From loggable-dates; default true when omitted. */
+  enabled?: boolean;
+  isBookedForAnotherGoal?: boolean;
+  alreadyLoggedFastingGoal?: boolean;
+  description?: string;
 };
 
 export type MissedRamadanFastSubmitPayload =
@@ -74,10 +79,12 @@ export type MissedRamadanFastSubmitResult = {
 const DEFAULT_GOAL_TARGET = 5;
 
 export function normalizeDateString(date: string): string {
+  // API dates may arrive as non-strings; Hermes also lacks replaceAll.
+  let normalized = String(date ?? "");
+  if (!normalized) return "";
   const arabicIndic = "٠١٢٣٤٥٦٧٨٩";
-  let normalized = date;
   for (let index = 0; index < arabicIndic.length; index += 1) {
-    normalized = normalized.replaceAll(arabicIndic[index], String(index));
+    normalized = normalized.split(arabicIndic[index]).join(String(index));
   }
   return normalized;
 }

@@ -32,7 +32,11 @@ import {
 } from "../missedRamadanFastsData";
 import type { MissedRamadanFastsLogEntry } from "../types";
 import { useOptionalFastingGoalFrameContext } from "../fastingGoalFrameContext";
-import { useGetFastingLoggableDates } from "@/src/api/queries/useGetFastingLoggableDates";
+import {
+  getLoggableDateStrings,
+  useGetFastingLoggableDates,
+  type FastingLoggableDateEntry,
+} from "@/src/api/queries/useGetFastingLoggableDates";
 import {
   getWizardAvailableDates,
   getWizardStepTitle,
@@ -53,7 +57,28 @@ function toDateOptions(dates: string[]): MissedRamadanFastDateOption[] {
     .map((date) => String(date).slice(0, 10))
     .filter(Boolean)
     .sort()
-    .map((date) => ({ id: date, date }));
+    .map((date) => ({ id: date, date, enabled: true }));
+}
+
+function toDateOptionsFromEntries(
+  entries: FastingLoggableDateEntry[],
+): MissedRamadanFastDateOption[] {
+  return entries.map((entry) => ({
+    id: entry.date,
+    date: entry.date,
+    enabled: entry.enabled,
+    isBookedForAnotherGoal: entry.isBookedForAnotherGoal,
+    alreadyLoggedFastingGoal: entry.alreadyLoggedFastingGoal,
+    description: entry.description,
+  }));
+}
+
+function preferLoggableEntries(
+  entries: FastingLoggableDateEntry[] | undefined,
+  fallbackDates: string[],
+): MissedRamadanFastDateOption[] {
+  if (entries && entries.length > 0) return toDateOptionsFromEntries(entries);
+  return toDateOptions(fallbackDates);
 }
 
 function formatTimeForApi(
@@ -126,13 +151,14 @@ export default function MissedRamadanFastsLoggingFlow({
   const frameEarlyLoggableDates = frameItem?.earlyLoggableDates;
   const frameMakeUpLoggableDates = frameItem?.makeUpLoggableDates;
 
+  const plannedLoggableDays = useGetFastingLoggableDates("MISSED_RAMADAN", {
+    mode: "PLANNED_DATE",
+  });
   const earlyKeepDays = useGetFastingLoggableDates("MISSED_RAMADAN", {
     mode: "EARLIER_THAN_PLANNED",
-    enabled: (frameEarlyLoggableDates?.length ?? 0) > 0,
   });
   const makeUpKeepDays = useGetFastingLoggableDates("MISSED_RAMADAN", {
     mode: "MAKE_UP",
-    enabled: (frameMakeUpLoggableDates?.length ?? 0) > 0,
   });
 
   const [flowMode, setFlowMode] = useState<FlowMode>("collapsed");
@@ -201,13 +227,12 @@ export default function MissedRamadanFastsLoggingFlow({
         : wizardOptions.find((option) => option.mode === "EARLIER_THAN_PLANNED"),
       "plannedDate",
     );
-    if (fromWizard.length > 0) return toDateOptions(fromWizard);
-    return toDateOptions(frameEarlyLoggableDates ?? []);
-  }, [
-    frameEarlyLoggableDates,
-    selectedWizardOption,
-    wizardOptions,
-  ]);
+    // Planned-side list for "earlier than planned" still comes from wizard/frame.
+    // EARLIER_THAN_PLANNED loggable-dates feeds the actual-date step instead.
+    return toDateOptions(
+      fromWizard.length > 0 ? fromWizard : (frameEarlyLoggableDates ?? []),
+    );
+  }, [frameEarlyLoggableDates, selectedWizardOption, wizardOptions]);
 
   const pendingPlannedOptions = useMemo(() => {
     const plannedOption =
@@ -215,9 +240,16 @@ export default function MissedRamadanFastsLoggingFlow({
         ? selectedWizardOption
         : wizardOptions.find((option) => option.mode === "PLANNED_DATE");
     const fromWizard = getWizardAvailableDates(plannedOption, "date");
-    if (fromWizard.length > 0) return toDateOptions(fromWizard);
-    return toDateOptions(frameLoggableDates ?? []);
-  }, [frameLoggableDates, selectedWizardOption, wizardOptions]);
+    return preferLoggableEntries(
+      plannedLoggableDays.data?.dates,
+      fromWizard.length > 0 ? fromWizard : (frameLoggableDates ?? []),
+    );
+  }, [
+    frameLoggableDates,
+    plannedLoggableDays.data?.dates,
+    selectedWizardOption,
+    wizardOptions,
+  ]);
 
   const skippedOptions = useMemo(() => {
     const makeUpOption =
@@ -225,8 +257,10 @@ export default function MissedRamadanFastsLoggingFlow({
         ? selectedWizardOption
         : wizardOptions.find((option) => option.mode === "MAKE_UP");
     const fromWizard = getWizardAvailableDates(makeUpOption, "date");
-    if (fromWizard.length > 0) return toDateOptions(fromWizard);
-    return toDateOptions(makeUpKeepDays.data?.dates ?? []);
+    return preferLoggableEntries(
+      makeUpKeepDays.data?.dates,
+      fromWizard,
+    );
   }, [makeUpKeepDays.data?.dates, selectedWizardOption, wizardOptions]);
 
   const selectedPlannedFast = useMemo(() => {
@@ -252,10 +286,9 @@ export default function MissedRamadanFastsLoggingFlow({
         : wizardOptions.find((option) => option.mode === "EARLIER_THAN_PLANNED"),
       "date",
     );
-    const source =
-      fromWizard.length > 0 ? fromWizard : (earlyKeepDays.data?.dates ?? []);
-    return toDateOptions(source).filter((option) =>
-      isActualDateBeforePlannedDate(option.date, selectedPlannedFast.date),
+    return preferLoggableEntries(earlyKeepDays.data?.dates, fromWizard).filter(
+      (option) =>
+        isActualDateBeforePlannedDate(option.date, selectedPlannedFast.date),
     );
   }, [
     earlyKeepDays.data?.dates,
@@ -308,7 +341,7 @@ export default function MissedRamadanFastsLoggingFlow({
     const types: MissedRamadanFastLogType[] = [];
     if (
       (frameEarlyLoggableDates?.length ?? 0) > 0 &&
-      (earlyKeepDays.data?.dates?.length ?? 0) > 0
+      getLoggableDateStrings(earlyKeepDays.data).length > 0
     ) {
       types.push("completed_early");
     }
@@ -327,7 +360,7 @@ export default function MissedRamadanFastsLoggingFlow({
       disabled: false,
     }));
   }, [
-    earlyKeepDays.data?.dates?.length,
+    earlyKeepDays.data,
     frameEarlyLoggableDates,
     frameMakeUpLoggableDates,
     pendingPlannedOptions.length,
@@ -799,7 +832,7 @@ export default function MissedRamadanFastsLoggingFlow({
     [t, today],
   );
 
-  /** Figma Step 2: chevron date stepper, not a dropdown. */
+  /** Figma: chevron date stepper with enabled / booked / already-logged states. */
   const renderDateStep = (
     options: MissedRamadanFastDateOption[],
     selectedId: string | null,
@@ -830,9 +863,37 @@ export default function MissedRamadanFastsLoggingFlow({
           shiftDateOptionId(options, selectedId, direction, onSelect)
         }
         styles={commonStyles}
+        enabled={selectedOption?.enabled !== false}
+        alreadyLogged={Boolean(selectedOption?.alreadyLoggedFastingGoal)}
+        description={selectedOption?.description ?? null}
       />
     );
   };
+
+  const currentDateStepOption = useMemo((): MissedRamadanFastDateOption | null => {
+    switch (currentStep) {
+      case "selectPlannedFast":
+        return selectedPlannedFast;
+      case "selectActualDate":
+        return selectedActualDate;
+      case "selectSkippedDate":
+        return selectedSkippedDate;
+      default:
+        return null;
+    }
+  }, [
+    currentStep,
+    selectedActualDate,
+    selectedPlannedFast,
+    selectedSkippedDate,
+  ]);
+
+  const isCurrentDateStepEnabled =
+    !currentDateStepOption || currentDateStepOption.enabled !== false;
+  const isDateSelectionStep =
+    currentStep === "selectPlannedFast" ||
+    currentStep === "selectActualDate" ||
+    currentStep === "selectSkippedDate";
 
   const renderStepContent = (step: MissedRamadanFastsStepId) => {
     switch (step) {
@@ -916,10 +977,14 @@ export default function MissedRamadanFastsLoggingFlow({
       case "logType":
         return Boolean(logType);
       case "selectPlannedFast":
-        return Boolean(selectedPlannedFast);
+        return (
+          Boolean(selectedPlannedFast) &&
+          selectedPlannedFast?.enabled !== false
+        );
       case "selectActualDate":
         return (
           Boolean(selectedActualDate) &&
+          selectedActualDate?.enabled !== false &&
           Boolean(selectedPlannedFast) &&
           isActualDateBeforePlannedDate(
             selectedActualDate!.date,
@@ -927,7 +992,10 @@ export default function MissedRamadanFastsLoggingFlow({
           )
         );
       case "selectSkippedDate":
-        return Boolean(selectedSkippedDate);
+        return (
+          Boolean(selectedSkippedDate) &&
+          selectedSkippedDate?.enabled !== false
+        );
       case "startTime":
         return isStartTimeValid;
       case "endTime":
@@ -1087,6 +1155,9 @@ export default function MissedRamadanFastsLoggingFlow({
                 canGoForward={!isLastStep && canProceed}
                 canGoBack={stepIndex > 0}
                 canConfirm={canConfirm}
+                showConfirmButton={
+                  !isDateSelectionStep || isCurrentDateStepEnabled
+                }
                 styles={commonStyles}
                 style={[
                   commonStyles.inPlaceFlowCard,

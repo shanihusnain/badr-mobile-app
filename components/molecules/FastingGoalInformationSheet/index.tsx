@@ -82,7 +82,7 @@ function defaultStatLabel(key: string): string {
     case "TIME_SPENT":
       return "Time Spent";
     default:
-      return key.replaceAll("_", " ").toLowerCase();
+      return key.split("_").join(" ").toLowerCase();
   }
 }
 

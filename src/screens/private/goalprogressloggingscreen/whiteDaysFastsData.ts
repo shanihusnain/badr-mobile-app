@@ -34,10 +34,12 @@ export type WhiteDaysFastSubmitResult = {
 };
 
 export function normalizeDateString(date: string): string {
+  // API dates may arrive as non-strings; Hermes also lacks replaceAll.
+  let normalized = String(date ?? "");
+  if (!normalized) return "";
   const arabicIndic = "٠١٢٣٤٥٦٧٨٩";
-  let normalized = date;
   for (let index = 0; index < arabicIndic.length; index += 1) {
-    normalized = normalized.replaceAll(arabicIndic[index], String(index));
+    normalized = normalized.split(arabicIndic[index]).join(String(index));
   }
   return normalized;
 }

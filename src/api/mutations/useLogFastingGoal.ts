@@ -68,6 +68,7 @@ const logFastingGoal = async ({
   if (plannedDate) {
     body.plannedDate = plannedDate;
   }
+  console.log("body", body);
   const response = await api.post(
     `api/goal-cycles/current/fasting-goals/${fastingType}/log`,
     body,
@@ -84,11 +85,9 @@ export const useLogFastingGoal = () => {
       invalidateFastingCaches(queryClient, variables.fastingType);
       showToast("success", "Fast logged successfully");
     },
-    onError: (error) => {
-      showToast(
-        "error",
-        getApiErrorMessage(error, "Failed to log fast"),
-      );
+    onError: (error: any) => {
+      showToast("error", getApiErrorMessage(error, "Failed to log fast"));
+      console.log(JSON.stringify(error.response?.data, null, 2));
     },
   });
 };

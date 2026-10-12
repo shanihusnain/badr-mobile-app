@@ -9,10 +9,20 @@ export type FastingLoggableDatesMode =
   | "ANY_DATE"
   | string;
 
+/** One day from `…/fasting-goals/{type}/loggable-dates`. */
+export type FastingLoggableDateEntry = {
+  date: string;
+  enabled: boolean;
+  isBookedForAnotherGoal: boolean;
+  alreadyLoggedFastingGoal: boolean;
+  description: string;
+};
+
 export type FastingLoggableDatesData = {
   mode: FastingLoggableDatesMode;
-  dates: string[];
+  dates: FastingLoggableDateEntry[];
   plannedDates: string[];
+  unavailableDates: string[];
 };
 
 export const fastingLoggableDatesQueryKey = (
@@ -25,6 +35,77 @@ export const fastingLoggableDatesQueryKey = (
     mode ?? "PLANNED_DATE",
   ] as const;
 
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+function toDateString(value: unknown): string {
+  if (typeof value === "string") return value.slice(0, 10);
+  if (value == null) return "";
+  return String(value).slice(0, 10);
+}
+
+function parseLoggableDateEntry(value: unknown): FastingLoggableDateEntry | null {
+  if (typeof value === "string") {
+    const date = toDateString(value);
+    if (!date) return null;
+    return {
+      date,
+      enabled: true,
+      isBookedForAnotherGoal: false,
+      alreadyLoggedFastingGoal: false,
+      description: "",
+    };
+  }
+
+  const row = asRecord(value);
+  if (!row) return null;
+  const date = toDateString(row.date);
+  if (!date) return null;
+
+  return {
+    date,
+    enabled: row.enabled !== false,
+    isBookedForAnotherGoal: row.isBookedForAnotherGoal === true,
+    alreadyLoggedFastingGoal: row.alreadyLoggedFastingGoal === true,
+    description:
+      typeof row.description === "string" ? row.description.trim() : "",
+  };
+}
+
+function parseLoggableDateEntries(value: unknown): FastingLoggableDateEntry[] {
+  if (!Array.isArray(value)) return [];
+  const parsed = value
+    .map(parseLoggableDateEntry)
+    .filter((entry): entry is FastingLoggableDateEntry => entry != null);
+  // Stable chronological order for the chevron stepper.
+  return [...parsed].sort((a, b) => a.date.localeCompare(b.date));
+}
+
+function parseDateStringList(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return [
+    ...new Set(
+      value
+        .map((entry) => {
+          if (typeof entry === "string") return toDateString(entry);
+          const row = asRecord(entry);
+          return toDateString(row?.date);
+        })
+        .filter(Boolean),
+    ),
+  ].sort();
+}
+
+/** Date strings only (e.g. length checks / legacy callers). */
+export function getLoggableDateStrings(
+  data: FastingLoggableDatesData | null | undefined,
+): string[] {
+  return (data?.dates ?? []).map((entry) => entry.date);
+}
+
 export const getFastingLoggableDates = async (
   fastingType: string,
   mode?: FastingLoggableDatesMode,
@@ -32,8 +113,7 @@ export const getFastingLoggableDates = async (
   const response = await api.get(
     `api/goal-cycles/current/fasting-goals/${fastingType}/loggable-dates`,
     {
-      params:
-        mode && mode !== "PLANNED_DATE" ? { mode } : undefined,
+      params: mode && mode !== "PLANNED_DATE" ? { mode } : undefined,
     },
   );
   const data = response.data?.data;
@@ -41,8 +121,9 @@ export const getFastingLoggableDates = async (
 
   return {
     mode: data.mode ?? mode ?? "PLANNED_DATE",
-    dates: Array.isArray(data.dates) ? data.dates : [],
-    plannedDates: Array.isArray(data.plannedDates) ? data.plannedDates : [],
+    dates: parseLoggableDateEntries(data.dates),
+    plannedDates: parseDateStringList(data.plannedDates),
+    unavailableDates: parseDateStringList(data.unavailableDates),
   };
 };
 

@@ -55,6 +55,10 @@ import {
 } from "../mondayThursdayFastsData";
 import type { MondayThursdayFastsLogEntry } from "../types";
 import {
+  useGetFastingLoggableDates,
+  type FastingLoggableDateEntry,
+} from "@/src/api/queries/useGetFastingLoggableDates";
+import {
   getWizardAvailableDates,
   getWizardStepTitle,
   mapUiLogTypeToWizardMode,
@@ -107,7 +111,28 @@ const FALLBACK_MONDAY_THURSDAY_LOG_TYPE_OPTIONS: MondayThursdayFastLogType[] = [
 ];
 
 function toWizardDateOptions(dates: string[]): MondayThursdayFastDateOption[] {
-  return dates.map((date) => ({ id: date, date }));
+  return dates.map((date) => ({ id: date, date, enabled: true }));
+}
+
+function toDateOptionsFromEntries(
+  entries: FastingLoggableDateEntry[],
+): MondayThursdayFastDateOption[] {
+  return entries.map((entry) => ({
+    id: entry.date,
+    date: entry.date,
+    enabled: entry.enabled,
+    isBookedForAnotherGoal: entry.isBookedForAnotherGoal,
+    alreadyLoggedFastingGoal: entry.alreadyLoggedFastingGoal,
+    description: entry.description,
+  }));
+}
+
+function preferLoggableEntries(
+  entries: FastingLoggableDateEntry[] | undefined,
+  fallback: MondayThursdayFastDateOption[],
+): MondayThursdayFastDateOption[] {
+  if (entries && entries.length > 0) return toDateOptionsFromEntries(entries);
+  return fallback;
 }
 
 export default function MondayThursdayFastsLoggingFlow({
@@ -118,6 +143,15 @@ export default function MondayThursdayFastsLoggingFlow({
   const { t } = useTranslation();
   const logWizardQuery = useGetFastingGoalLogWizard("MONDAY_THURSDAY");
   const wizardOptions = logWizardQuery.data?.options ?? [];
+  const plannedLoggableDays = useGetFastingLoggableDates("MONDAY_THURSDAY", {
+    mode: "PLANNED_DATE",
+  });
+  const earlyKeepDays = useGetFastingLoggableDates("MONDAY_THURSDAY", {
+    mode: "EARLIER_THAN_PLANNED",
+  });
+  const makeUpKeepDays = useGetFastingLoggableDates("MONDAY_THURSDAY", {
+    mode: "MAKE_UP",
+  });
   const [flowMode, setFlowMode] = useState<FlowMode>("collapsed");
   const [stepIndex, setStepIndex] = useState(0);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -209,9 +243,18 @@ export default function MondayThursdayFastsLoggingFlow({
         ? selectedWizardOption
         : wizardOptions.find((option) => option.mode === "PLANNED_DATE");
     const fromWizard = getWizardAvailableDates(plannedOption, "date");
-    if (fromWizard.length > 0) return toWizardDateOptions(fromWizard);
-    return getMondayThursdayFastDateOptionsForLogType("completed_planned");
-  }, [refreshKey, flowMode, selectedWizardOption, wizardOptions]);
+    const fallback =
+      fromWizard.length > 0
+        ? toWizardDateOptions(fromWizard)
+        : getMondayThursdayFastDateOptionsForLogType("completed_planned");
+    return preferLoggableEntries(plannedLoggableDays.data?.dates, fallback);
+  }, [
+    plannedLoggableDays.data?.dates,
+    refreshKey,
+    flowMode,
+    selectedWizardOption,
+    wizardOptions,
+  ]);
 
   const plannedFastOptions = useMemo(() => {
     if (!logType || logType === "made_up_skipped") return [];
@@ -226,9 +269,18 @@ export default function MondayThursdayFastsLoggingFlow({
         ? selectedWizardOption
         : wizardOptions.find((option) => option.mode === "MAKE_UP");
     const fromWizard = getWizardAvailableDates(makeUpOption, "date");
-    if (fromWizard.length > 0) return toWizardDateOptions(fromWizard);
-    return getMissedMondayThursdayFastOptions();
-  }, [refreshKey, flowMode, selectedWizardOption, wizardOptions]);
+    const fallback =
+      fromWizard.length > 0
+        ? toWizardDateOptions(fromWizard)
+        : getMissedMondayThursdayFastOptions();
+    return preferLoggableEntries(makeUpKeepDays.data?.dates, fallback);
+  }, [
+    makeUpKeepDays.data?.dates,
+    refreshKey,
+    flowMode,
+    selectedWizardOption,
+    wizardOptions,
+  ]);
 
   const selectedPlannedFast = useMemo(() => {
     const options =
@@ -252,13 +304,16 @@ export default function MondayThursdayFastsLoggingFlow({
         ? selectedWizardOption
         : wizardOptions.find((option) => option.mode === "EARLIER_THAN_PLANNED");
     const fromWizard = getWizardAvailableDates(earlyOption, "date");
-    if (fromWizard.length > 0) {
-      return toWizardDateOptions(fromWizard).filter((option) =>
+    const fallback =
+      fromWizard.length > 0
+        ? toWizardDateOptions(fromWizard)
+        : getActualEarlyMondayThursdayFastDateOptions(selectedPlannedFast.date);
+    return preferLoggableEntries(earlyKeepDays.data?.dates, fallback).filter(
+      (option) =>
         isActualDateBeforePlannedDate(option.date, selectedPlannedFast.date),
-      );
-    }
-    return getActualEarlyMondayThursdayFastDateOptions(selectedPlannedFast.date);
+    );
   }, [
+    earlyKeepDays.data?.dates,
     selectedPlannedFast,
     refreshKey,
     flowMode,
@@ -397,9 +452,37 @@ export default function MondayThursdayFastsLoggingFlow({
           shiftOptionId(options, selectedId, direction, onSelect)
         }
         styles={commonStyles}
+        enabled={selectedOption?.enabled !== false}
+        alreadyLogged={Boolean(selectedOption?.alreadyLoggedFastingGoal)}
+        description={selectedOption?.description ?? null}
       />
     );
   };
+
+  const currentDateStepOption = useMemo((): MondayThursdayFastDateOption | null => {
+    switch (currentStep) {
+      case "selectPlannedFast":
+        return selectedPlannedFast;
+      case "selectActualDate":
+        return selectedActualDate;
+      case "selectMissedDate":
+        return selectedMissedDate;
+      default:
+        return null;
+    }
+  }, [
+    currentStep,
+    selectedActualDate,
+    selectedMissedDate,
+    selectedPlannedFast,
+  ]);
+
+  const isCurrentDateStepEnabled =
+    !currentDateStepOption || currentDateStepOption.enabled !== false;
+  const isDateSelectionStep =
+    currentStep === "selectPlannedFast" ||
+    currentStep === "selectActualDate" ||
+    currentStep === "selectMissedDate";
 
   const isStartTimeValid = isValidStartTime(
     startHour,
@@ -873,10 +956,14 @@ export default function MondayThursdayFastsLoggingFlow({
       case "logType":
         return Boolean(logType);
       case "selectPlannedFast":
-        return Boolean(selectedPlannedFast);
+        return (
+          Boolean(selectedPlannedFast) &&
+          selectedPlannedFast?.enabled !== false
+        );
       case "selectActualDate":
         return (
           Boolean(selectedActualDate) &&
+          selectedActualDate?.enabled !== false &&
           Boolean(selectedPlannedFast) &&
           isActualDateBeforePlannedDate(
             selectedActualDate!.date,
@@ -884,7 +971,10 @@ export default function MondayThursdayFastsLoggingFlow({
           )
         );
       case "selectMissedDate":
-        return Boolean(selectedMissedDate);
+        return (
+          Boolean(selectedMissedDate) &&
+          selectedMissedDate?.enabled !== false
+        );
       case "startTime":
         return isStartTimeValid;
       case "endTime":
@@ -1041,6 +1131,9 @@ export default function MondayThursdayFastsLoggingFlow({
                 canGoForward={!isLastStep && canProceed}
                 canGoBack={stepIndex > 0}
                 canConfirm={canConfirm}
+                showConfirmButton={
+                  !isDateSelectionStep || isCurrentDateStepEnabled
+                }
                 styles={commonStyles}
                 style={[
                   commonStyles.inPlaceFlowCard,
