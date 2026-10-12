@@ -331,28 +331,30 @@ export const QuranRecitationGoalSelection = ({
     [effectiveDetail],
   );
 
-  // Prefer API when present; otherwise restore from the last local snapshot.
+  // Backend / last successful save only — never live dirty `metricSnapshots`.
+  // Feeding dirty snaps into these made unsaved picks look "saved" and opened
+  // the delete dialog / delete API on deselect.
   const initialSelectedSurahs = useMemo(() => {
     if (apiSelectedSurahs.length > 0) return apiSelectedSurahs;
-    const snap = metricSnapshots.surah?.selectedSurahs;
+    const snap = savedSnapshotsRef.current.surah?.selectedSurahs;
     return Array.isArray(snap) ? snap.map(Number).filter((n) => n > 0) : [];
-  }, [apiSelectedSurahs, metricSnapshots.surah]);
+  }, [apiSelectedSurahs, markCleanNonce]);
 
   const initialSurahSettings = useMemo(() => {
     if (apiSurahSettings && Object.keys(apiSurahSettings).length > 0) {
       return apiSurahSettings;
     }
-    return metricSnapshots.surah?.surahSettings;
-  }, [apiSurahSettings, metricSnapshots.surah]);
+    return savedSnapshotsRef.current.surah?.surahSettings;
+  }, [apiSurahSettings, markCleanNonce]);
 
   const initialSelectedJuzs = useMemo(() => {
     if (apiSelectedJuzs.length > 0) return apiSelectedJuzs;
-    const snap = metricSnapshots.juz?.selectedJuzs;
+    const snap = savedSnapshotsRef.current.juz?.selectedJuzs;
     if (Array.isArray(snap) && snap.length > 0) {
       return snap.map(Number).filter((n) => n > 0);
     }
-    const start = Number(metricSnapshots.juz?.start ?? 0);
-    const end = Number(metricSnapshots.juz?.end ?? 0);
+    const start = Number(savedSnapshotsRef.current.juz?.start ?? 0);
+    const end = Number(savedSnapshotsRef.current.juz?.end ?? 0);
     if (start > 0 && end > 0) {
       return Array.from(
         { length: Math.max(0, end - start + 1) },
@@ -360,12 +362,12 @@ export const QuranRecitationGoalSelection = ({
       );
     }
     return [];
-  }, [apiSelectedJuzs, metricSnapshots.juz]);
+  }, [apiSelectedJuzs, markCleanNonce]);
 
   const initialJuzRange = useMemo(() => {
     if (apiJuzRange) return apiJuzRange;
-    const start = Number(metricSnapshots.juz?.start ?? 0);
-    const end = Number(metricSnapshots.juz?.end ?? 0);
+    const start = Number(savedSnapshotsRef.current.juz?.start ?? 0);
+    const end = Number(savedSnapshotsRef.current.juz?.end ?? 0);
     if (start > 0 || end > 0) {
       return {
         start: start > 0 ? start : 1,
@@ -379,20 +381,20 @@ export const QuranRecitationGoalSelection = ({
       };
     }
     return null;
-  }, [apiJuzRange, metricSnapshots.juz, initialSelectedJuzs]);
+  }, [apiJuzRange, initialSelectedJuzs, markCleanNonce]);
 
   const initialSelectedHizbs = useMemo(() => {
     if (apiSelectedHizbs.length > 0) return apiSelectedHizbs;
-    const snap = metricSnapshots.hizb?.selectedHizbs;
+    const snap = savedSnapshotsRef.current.hizb?.selectedHizbs;
     return Array.isArray(snap) ? snap.map(Number).filter((n) => n > 0) : [];
-  }, [apiSelectedHizbs, metricSnapshots.hizb]);
+  }, [apiSelectedHizbs, markCleanNonce]);
 
   const initialCompletion = useMemo(() => {
     if (apiCompletion > 0) return apiCompletion;
-    const snap = metricSnapshots.completion;
+    const snap = savedSnapshotsRef.current.completion;
     if (typeof snap === "number") return snap;
     return Number(snap?.completion ?? 0) || 0;
-  }, [apiCompletion, metricSnapshots.completion]);
+  }, [apiCompletion, markCleanNonce]);
 
   interface IItem {
     id: number;

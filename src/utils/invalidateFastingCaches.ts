@@ -23,11 +23,15 @@ export function invalidateFastingCaches(
     queryClient.invalidateQueries({
       queryKey: ["fasting-loggable-dates", fastingType],
     });
+    queryClient.invalidateQueries({
+      queryKey: ["fasting-goal-log-wizard", fastingType],
+    });
   } else {
     queryClient.invalidateQueries({ queryKey: ["fasting-goal-frame"] });
     queryClient.invalidateQueries({ queryKey: ["fasting-goal-insights"] });
     queryClient.invalidateQueries({ queryKey: ["fasting-goal-achievements"] });
     queryClient.invalidateQueries({ queryKey: ["fasting-loggable-dates"] });
+    queryClient.invalidateQueries({ queryKey: ["fasting-goal-log-wizard"] });
   }
 
   queryClient.invalidateQueries({ queryKey: ["all-fasting-goals"] });

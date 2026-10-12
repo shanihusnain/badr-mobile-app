@@ -1144,10 +1144,14 @@ export const MetricSelectionComponent = ({
                           <View style={styles.surahTrailingIconSlot}>
                             <Pressable
                               onPress={() => {
-                                openDeleteConfirm({
-                                  kind: "SURAH",
-                                  itemNumber: s.id,
-                                });
+                                if (isSurahSavedOnBackend(s.id)) {
+                                  openDeleteConfirm({
+                                    kind: "SURAH",
+                                    itemNumber: s.id,
+                                  });
+                                  return;
+                                }
+                                void deleteSurah(s.id);
                               }}
                               disabled={isDeletingItem}
                               style={{
@@ -1377,7 +1381,14 @@ export const MetricSelectionComponent = ({
               </Text>
               <Pressable
                 onPress={() => {
-                  openDeleteConfirm({ kind: "JUZ" });
+                  const savedIds = getSavedJuzIdsOnBackend().filter(
+                    (id) => !deletedSavedJuzIds.includes(id),
+                  );
+                  if (savedIds.length > 0) {
+                    openDeleteConfirm({ kind: "JUZ" });
+                    return;
+                  }
+                  void clearJuzSelection();
                 }}
                 disabled={isDeletingItem}
                 style={{ opacity: isDeletingItem ? 0.5 : 1 }}
@@ -1564,7 +1575,11 @@ export const MetricSelectionComponent = ({
               </Text>
               <Pressable
                 onPress={() => {
-                  openDeleteConfirm({ kind: "COMPLETION" });
+                  if ((initialCompletion ?? 0) > 0) {
+                    openDeleteConfirm({ kind: "COMPLETION" });
+                    return;
+                  }
+                  void clearCompletionSelection();
                 }}
                 disabled={isDeletingItem}
                 style={{ opacity: isDeletingItem ? 0.5 : 1 }}

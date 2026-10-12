@@ -26,6 +26,10 @@ type FlowCardProps = {
   canConfirm?: boolean;
   /** When false, hides the checkmark confirm button (e.g. mid-flow steps). */
   showConfirmButton?: boolean;
+  /** When false, hides back/forward/confirm row (e.g. open log-type menu). */
+  showFooter?: boolean;
+  /** Grow with content instead of fixed FLOW_CARD_HEIGHT. */
+  autoHeight?: boolean;
   styles: any;
   style?: StyleProp<ViewStyle>;
   contentStyle?: StyleProp<ViewStyle>;
@@ -43,6 +47,8 @@ export const FlowCard: React.FC<FlowCardProps> = ({
   canGoBack = true,
   canConfirm = true,
   showConfirmButton = true,
+  showFooter = true,
+  autoHeight = false,
   styles,
   style,
   contentStyle,
@@ -56,7 +62,9 @@ export const FlowCard: React.FC<FlowCardProps> = ({
     : FlowCardChevronForwardIcon;
 
   return (
-    <View style={[styles.flowCard, style]}>
+    <View
+      style={[autoHeight ? styles.flowCardAutoHeight : styles.flowCard, style]}
+    >
       <View style={[styles.flowHeader, headerStyle]}>
         <View style={styles.flowIconCircle}>{headerIcon}</View>
         <Text style={styles.flowHeaderText}>{headerLabel}</Text>
@@ -64,55 +72,64 @@ export const FlowCard: React.FC<FlowCardProps> = ({
 
       <View style={[styles.flowContent, contentStyle]}>{children}</View>
 
-      <View style={styles.flowFooter}>
-        <View style={styles.navGroup}>
-          <TouchableOpacity
-            style={[styles.navButton, !canGoBack && { opacity: 0.65 }]}
-            onPress={onBack}
-            disabled={!canGoBack}
-            activeOpacity={0.8}
-          >
-            <BackIcon
-              Size={8}
-              Color={canGoBack ? Colors.light.white : Colors.light.white + "E6"}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.navButton, !canGoForward && { opacity: 0.65 }]}
-            onPress={onForward}
-            disabled={!canGoForward}
-            activeOpacity={0.8}
-          >
-            <ForwardIcon
-              Size={8}
-              Color={
-                canGoForward ? Colors.light.white : Colors.light.white + "E6"
-              }
-            />
-          </TouchableOpacity>
-        </View>
+      {showFooter ? (
+        <View style={styles.flowFooter}>
+          <View style={styles.navGroup}>
+            <TouchableOpacity
+              style={[styles.navButton, !canGoBack && { opacity: 0.65 }]}
+              onPress={onBack}
+              disabled={!canGoBack}
+              activeOpacity={0.8}
+            >
+              <BackIcon
+                Size={8}
+                Color={
+                  canGoBack ? Colors.light.white : Colors.light.white + "E6"
+                }
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.navButton, !canGoForward && { opacity: 0.65 }]}
+              onPress={onForward}
+              disabled={!canGoForward}
+              activeOpacity={0.8}
+            >
+              <ForwardIcon
+                Size={8}
+                Color={
+                  canGoForward ? Colors.light.white : Colors.light.white + "E6"
+                }
+              />
+            </TouchableOpacity>
+          </View>
 
-        {showConfirmButton ? (
-          <TouchableOpacity
-            style={[
-              styles.confirmButton,
-              canConfirm && styles.confirmButtonActive,
-              !canConfirm && styles.navButtonDisabled,
-            ]}
-            onPress={onConfirm}
-            disabled={!canConfirm}
-            activeOpacity={0.8}
-          >
-            <Ionicons
-              name="checkmark"
-              size={17}
-              color={canConfirm ? Colors.light.white : Colors.light.white + "CC"}
+          {showConfirmButton ? (
+            <TouchableOpacity
+              style={[
+                styles.confirmButton,
+                canConfirm && styles.confirmButtonActive,
+                !canConfirm && styles.navButtonDisabled,
+              ]}
+              onPress={onConfirm}
+              disabled={!canConfirm}
+              activeOpacity={0.8}
+            >
+              <Ionicons
+                name="checkmark"
+                size={17}
+                color={
+                  canConfirm ? Colors.light.white : Colors.light.white + "CC"
+                }
+              />
+            </TouchableOpacity>
+          ) : (
+            <View
+              style={styles.confirmButtonPlaceholder}
+              pointerEvents="none"
             />
-          </TouchableOpacity>
-        ) : (
-          <View style={styles.confirmButtonPlaceholder} pointerEvents="none" />
-        )}
-      </View>
+          )}
+        </View>
+      ) : null}
     </View>
   );
 };

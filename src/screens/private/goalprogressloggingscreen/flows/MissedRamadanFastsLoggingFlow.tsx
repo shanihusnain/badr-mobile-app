@@ -10,10 +10,14 @@ import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "@/constants/theme";
 import { FastingFlowCardRamadanCalender } from "@/assets/icons/FastingFlowCardRamadanCalender";
-import { FastingDashboardIcon } from "@/assets/icons/FastingDashboardIcon";
+import { MissedRamadanFastsPlatesIcon } from "@/assets/icons/MissedRamadanFastsPlatesIcon";
 import { GoalData } from "../../home/components/goalsData";
 import { FlowCard } from "../components/FlowCard";
-import { FlowDropdownSelect } from "../components/FlowDropdownSelect";
+import {
+  FlowDropdownSelect,
+  type FlowDropdownOption,
+} from "../components/FlowDropdownSelect";
+import { WhiteDaysFastDateStep } from "../components/WhiteDaysFastDateStep";
 import { StartTimeStep } from "../components/TimePickerSteps";
 import { styles as commonStyles } from "../components/DailyProgressLogging.styles";
 import { fonts } from "@/assets/fonts";
@@ -29,6 +33,14 @@ import {
 import type { MissedRamadanFastsLogEntry } from "../types";
 import { useOptionalFastingGoalFrameContext } from "../fastingGoalFrameContext";
 import { useGetFastingLoggableDates } from "@/src/api/queries/useGetFastingLoggableDates";
+import {
+  getWizardAvailableDates,
+  getWizardStepTitle,
+  mapUiLogTypeToWizardMode,
+  mapWizardModeToUiLogType,
+  useGetFastingGoalLogWizard,
+  type FastingLogWizardOption,
+} from "@/src/api/queries/useGetFastingGoalLogWizard";
 import { useLogFastingGoal } from "@/src/api/mutations/useLogFastingGoal";
 import {
   fastingFrameShowsInsights,
@@ -106,6 +118,9 @@ export default function MissedRamadanFastsLoggingFlow({
   const frameItem = frame?.items?.[0];
   const { mutateAsync: logFast, isPending: isLogging } = useLogFastingGoal();
 
+  const logWizardQuery = useGetFastingGoalLogWizard("MISSED_RAMADAN");
+  const wizardOptions = logWizardQuery.data?.options ?? [];
+
   /** Planned-side lists come from the frame; keep-on days still need loggable-dates. */
   const frameLoggableDates = frameItem?.loggableDates;
   const frameEarlyLoggableDates = frameItem?.earlyLoggableDates;
@@ -123,6 +138,12 @@ export default function MissedRamadanFastsLoggingFlow({
   const [flowMode, setFlowMode] = useState<FlowMode>("collapsed");
   const [stepIndex, setStepIndex] = useState(0);
   const [logType, setLogType] = useState<MissedRamadanFastLogType | null>(null);
+
+  const selectedWizardOption = useMemo((): FastingLogWizardOption | null => {
+    if (!logType) return null;
+    const mode = mapUiLogTypeToWizardMode(logType);
+    return wizardOptions.find((option) => option.mode === mode) ?? null;
+  }, [logType, wizardOptions]);
   const [selectedPlannedFastId, setSelectedPlannedFastId] = useState<
     string | null
   >(null);
@@ -133,7 +154,6 @@ export default function MissedRamadanFastsLoggingFlow({
     string | null
   >(null);
   const [isLogTypeDropdownOpen, setIsLogTypeDropdownOpen] = useState(false);
-  const [isDateDropdownOpen, setIsDateDropdownOpen] = useState(false);
   const [startHour, setStartHour] = useState("5");
   const [startMinute, setStartMinute] = useState("00");
   const [startPeriod, setStartPeriod] = useState<"am" | "pm">("am");
@@ -150,23 +170,15 @@ export default function MissedRamadanFastsLoggingFlow({
 
   const handleLogTypeDropdownOpenChange = useCallback((open: boolean) => {
     setIsLogTypeDropdownOpen(open);
-    if (open) setIsDateDropdownOpen(false);
-  }, []);
-
-  const handleDateDropdownOpenChange = useCallback((open: boolean) => {
-    setIsDateDropdownOpen(open);
-    if (open) setIsLogTypeDropdownOpen(false);
   }, []);
 
   useEffect(() => {
     onDropdownOpenChange?.(
       isLogTypeDropdownOpen ||
-        isDateDropdownOpen ||
         isStartPeriodDropdownOpen ||
         isEndPeriodDropdownOpen,
     );
   }, [
-    isDateDropdownOpen,
     isEndPeriodDropdownOpen,
     isLogTypeDropdownOpen,
     isStartPeriodDropdownOpen,
@@ -182,20 +194,40 @@ export default function MissedRamadanFastsLoggingFlow({
 
   const today = getTodayDateString();
 
-  const futurePlannedOptions = useMemo(
-    () => toDateOptions(frameEarlyLoggableDates ?? []),
-    [frameEarlyLoggableDates],
-  );
+  const futurePlannedOptions = useMemo(() => {
+    const fromWizard = getWizardAvailableDates(
+      selectedWizardOption?.mode === "EARLIER_THAN_PLANNED"
+        ? selectedWizardOption
+        : wizardOptions.find((option) => option.mode === "EARLIER_THAN_PLANNED"),
+      "plannedDate",
+    );
+    if (fromWizard.length > 0) return toDateOptions(fromWizard);
+    return toDateOptions(frameEarlyLoggableDates ?? []);
+  }, [
+    frameEarlyLoggableDates,
+    selectedWizardOption,
+    wizardOptions,
+  ]);
 
-  const pendingPlannedOptions = useMemo(
-    () => toDateOptions(frameLoggableDates ?? []),
-    [frameLoggableDates],
-  );
+  const pendingPlannedOptions = useMemo(() => {
+    const plannedOption =
+      selectedWizardOption?.mode === "PLANNED_DATE"
+        ? selectedWizardOption
+        : wizardOptions.find((option) => option.mode === "PLANNED_DATE");
+    const fromWizard = getWizardAvailableDates(plannedOption, "date");
+    if (fromWizard.length > 0) return toDateOptions(fromWizard);
+    return toDateOptions(frameLoggableDates ?? []);
+  }, [frameLoggableDates, selectedWizardOption, wizardOptions]);
 
-  const skippedOptions = useMemo(
-    () => toDateOptions(makeUpKeepDays.data?.dates ?? []),
-    [makeUpKeepDays.data?.dates],
-  );
+  const skippedOptions = useMemo(() => {
+    const makeUpOption =
+      selectedWizardOption?.mode === "MAKE_UP"
+        ? selectedWizardOption
+        : wizardOptions.find((option) => option.mode === "MAKE_UP");
+    const fromWizard = getWizardAvailableDates(makeUpOption, "date");
+    if (fromWizard.length > 0) return toDateOptions(fromWizard);
+    return toDateOptions(makeUpKeepDays.data?.dates ?? []);
+  }, [makeUpKeepDays.data?.dates, selectedWizardOption, wizardOptions]);
 
   const selectedPlannedFast = useMemo(() => {
     const options =
@@ -214,10 +246,23 @@ export default function MissedRamadanFastsLoggingFlow({
 
   const actualDateOptions = useMemo(() => {
     if (!selectedPlannedFast) return [];
-    return toDateOptions(earlyKeepDays.data?.dates ?? []).filter((option) =>
+    const fromWizard = getWizardAvailableDates(
+      selectedWizardOption?.mode === "EARLIER_THAN_PLANNED"
+        ? selectedWizardOption
+        : wizardOptions.find((option) => option.mode === "EARLIER_THAN_PLANNED"),
+      "date",
+    );
+    const source =
+      fromWizard.length > 0 ? fromWizard : (earlyKeepDays.data?.dates ?? []);
+    return toDateOptions(source).filter((option) =>
       isActualDateBeforePlannedDate(option.date, selectedPlannedFast.date),
     );
-  }, [earlyKeepDays.data?.dates, selectedPlannedFast]);
+  }, [
+    earlyKeepDays.data?.dates,
+    selectedPlannedFast,
+    selectedWizardOption,
+    wizardOptions,
+  ]);
 
   const selectedActualDate = useMemo(
     () =>
@@ -239,8 +284,27 @@ export default function MissedRamadanFastsLoggingFlow({
     String(frame?.goal?.status ?? "").toUpperCase() === "COMPLETED";
 
   const showInsights = frame ? fastingFrameShowsInsights(frame) : false;
-  console.log("showInsights", showInsights);
-  const availableLogTypes = useMemo(() => {
+
+  const logTypeDropdownOptions = useMemo((): FlowDropdownOption<MissedRamadanFastLogType>[] => {
+    if (wizardOptions.length > 0) {
+      const mapped: FlowDropdownOption<MissedRamadanFastLogType>[] = [];
+      for (const option of wizardOptions) {
+        const value = mapWizardModeToUiLogType(option.mode);
+        if (!value) continue;
+        mapped.push({
+          value,
+          label: option.label,
+          hint: option.hint,
+          disabled: !option.enabled,
+        });
+      }
+      // Enabled modes first so the open menu starts with selectable options.
+      return mapped.sort(
+        (a, b) => Number(a.disabled) - Number(b.disabled),
+      );
+    }
+
+    // Fallback while wizard loads / if API omits options.
     const types: MissedRamadanFastLogType[] = [];
     if (
       (frameEarlyLoggableDates?.length ?? 0) > 0 &&
@@ -257,17 +321,34 @@ export default function MissedRamadanFastsLoggingFlow({
     if (pendingPlannedOptions.length > 0) {
       types.push("completed_planned");
     }
-    return types;
+    return types.map((value) => ({
+      value,
+      label: t(`progressLogging.missedRamadanLogType_${value}`),
+      disabled: false,
+    }));
   }, [
     earlyKeepDays.data?.dates?.length,
     frameEarlyLoggableDates,
     frameMakeUpLoggableDates,
     pendingPlannedOptions.length,
     skippedOptions.length,
+    t,
+    wizardOptions,
   ]);
 
-  /** Frame `items[0].canLog` — backend already gates pct / loggable dates. */
-  const canLog = Boolean(frameItem?.canLog);
+  const enabledLogTypes = useMemo(
+    () =>
+      logTypeDropdownOptions
+        .filter((option) => !option.disabled)
+        .map((option) => option.value),
+    [logTypeDropdownOptions],
+  );
+
+  /** Frame `canLog` or any wizard mode enabled. */
+  const canLog =
+    Boolean(frameItem?.canLog) ||
+    (wizardOptions.length > 0 &&
+      wizardOptions.some((option) => option.enabled));
 
   const summaryTitle =
     frameItem?.title?.trim() ||
@@ -284,27 +365,6 @@ export default function MissedRamadanFastsLoggingFlow({
     }
     return getFastingFrameAchievementLabel(frame, t);
   }, [frame, t]);
-
-  const logTypeDropdownOptions = useMemo(
-    () =>
-      availableLogTypes.map((value) => ({
-        value,
-        label: t(`progressLogging.missedRamadanLogType_${value}`),
-      })),
-    [availableLogTypes, t],
-  );
-
-  const toDropdownOptions = useCallback(
-    (options: MissedRamadanFastDateOption[]) =>
-      options.map((option) => ({
-        value: option.id,
-        label:
-          option.date === today
-            ? t("progressLogging.today")
-            : formatMissedRamadanFastDateLabel(option.date, today),
-      })),
-    [t, today],
-  );
 
   const isStartTimeValid = isValidStartTime(
     startHour,
@@ -335,7 +395,6 @@ export default function MissedRamadanFastsLoggingFlow({
     setEndMinute("30");
     setEndPeriod("pm");
     setIsLogTypeDropdownOpen(false);
-    setIsDateDropdownOpen(false);
     setIsStartPeriodDropdownOpen(false);
     setIsEndPeriodDropdownOpen(false);
     onDropdownOpenChange?.(false);
@@ -346,16 +405,15 @@ export default function MissedRamadanFastsLoggingFlow({
     setSelectedPlannedFastId(null);
     setSelectedActualDateId(null);
     setSelectedSkippedDateId(null);
-    setIsDateDropdownOpen(false);
     setStepIndex(0);
   }, []);
 
   useEffect(() => {
-    if (logType && !availableLogTypes.includes(logType)) {
+    if (logType && enabledLogTypes.length > 0 && !enabledLogTypes.includes(logType)) {
       setLogType(null);
       setStepIndex(0);
     }
-  }, [availableLogTypes, logType]);
+  }, [enabledLogTypes, logType]);
 
   useEffect(() => {
     if (flowMode !== "active" || !logType) return;
@@ -492,6 +550,7 @@ export default function MissedRamadanFastsLoggingFlow({
           fastingFrame?.refetch(),
           earlyKeepDays.refetch(),
           makeUpKeepDays.refetch(),
+          logWizardQuery.refetch(),
         ]);
 
         const loggedDate =
@@ -555,6 +614,7 @@ export default function MissedRamadanFastsLoggingFlow({
     isStartTimeValid,
     logFast,
     logType,
+    logWizardQuery,
     makeUpKeepDays,
     onLogComplete,
     resolveActualDateSelection,
@@ -571,7 +631,6 @@ export default function MissedRamadanFastsLoggingFlow({
       resetFlow();
       return;
     }
-    setIsDateDropdownOpen(false);
     setIsLogTypeDropdownOpen(false);
     setIsStartPeriodDropdownOpen(false);
     setIsEndPeriodDropdownOpen(false);
@@ -598,7 +657,6 @@ export default function MissedRamadanFastsLoggingFlow({
   const handleForward = () => {
     if (isLastStep) return;
 
-    setIsDateDropdownOpen(false);
     setIsLogTypeDropdownOpen(false);
     setIsStartPeriodDropdownOpen(false);
     setIsEndPeriodDropdownOpen(false);
@@ -642,13 +700,14 @@ export default function MissedRamadanFastsLoggingFlow({
 
   const handleOpenFlow = useCallback(() => {
     if (!canLog) return;
-    setLogType(null);
+    const firstEnabled = enabledLogTypes[0] ?? null;
+    setLogType(firstEnabled);
     setSelectedPlannedFastId(null);
     setSelectedActualDateId(null);
     setSelectedSkippedDateId(null);
     setStepIndex(0);
     setFlowMode("active");
-  }, [canLog]);
+  }, [canLog, enabledLogTypes]);
 
   const getStepHeader = (step: MissedRamadanFastsStepId) => {
     const calendarIcon = (
@@ -658,7 +717,7 @@ export default function MissedRamadanFastsLoggingFlow({
       <Ionicons name="time-outline" size={15} color={Colors.light.white} />
     );
     const helpIcon = (
-      <FastingDashboardIcon size={20} color={Colors.light.white} />
+      <MissedRamadanFastsPlatesIcon size={20} color={Colors.light.white} />
     );
 
     switch (step) {
@@ -667,38 +726,81 @@ export default function MissedRamadanFastsLoggingFlow({
           icon: helpIcon,
           label: t("progressLogging.missedRamadanWhatAreYouLogging"),
         };
-      case "selectPlannedFast":
+      case "selectPlannedFast": {
+        const wizardTitle =
+          logType === "completed_early"
+            ? getWizardStepTitle(selectedWizardOption, "plannedDate")
+            : getWizardStepTitle(selectedWizardOption, "date");
         return {
           icon: calendarIcon,
           label:
-            logType === "completed_early"
+            wizardTitle ??
+            (logType === "completed_early"
               ? t("progressLogging.missedRamadanSelectPlannedFastEarly")
-              : t("progressLogging.missedRamadanSelectPlannedFastCompleted"),
+              : t("progressLogging.missedRamadanSelectPlannedFastCompleted")),
         };
+      }
       case "selectActualDate":
         return {
           icon: calendarIcon,
-          label: t("progressLogging.missedRamadanWhichDayDidYouFast"),
+          label:
+            getWizardStepTitle(selectedWizardOption, "date") ??
+            t("progressLogging.missedRamadanWhichDayDidYouFast"),
         };
       case "selectSkippedDate":
         return {
           icon: calendarIcon,
-          label: t("progressLogging.missedRamadanMakeupSkippedDateLabel"),
+          label:
+            getWizardStepTitle(selectedWizardOption, "date") ??
+            t("progressLogging.missedRamadanMakeupSkippedDateLabel"),
         };
       case "startTime":
         return {
           icon: timeIcon,
-          label: t("progressLogging.missedRamadanEnterStartTime"),
+          label:
+            getWizardStepTitle(selectedWizardOption, "time") ??
+            t("progressLogging.missedRamadanEnterStartTime"),
         };
       case "endTime":
         return {
           icon: timeIcon,
-          label: t("progressLogging.missedRamadanEnterEndTime"),
+          label:
+            getWizardStepTitle(selectedWizardOption, "time") ??
+            t("progressLogging.missedRamadanEnterEndTime"),
         };
     }
   };
 
-  const renderDateDropdown = (
+  const shiftDateOptionId = useCallback(
+    (
+      options: MissedRamadanFastDateOption[],
+      selectedId: string | null,
+      direction: -1 | 1,
+      onSelect: (id: string) => void,
+    ) => {
+      if (options.length === 0) return;
+      const currentIndex = Math.max(
+        0,
+        options.findIndex((option) => option.id === selectedId),
+      );
+      const nextIndex = currentIndex + direction;
+      if (nextIndex < 0 || nextIndex >= options.length) return;
+      onSelect(options[nextIndex].id);
+    },
+    [],
+  );
+
+  const toDateLabel = useCallback(
+    (option: MissedRamadanFastDateOption | null | undefined) => {
+      if (!option) return "";
+      if (option.date === today) return t("progressLogging.today");
+      return formatMissedRamadanFastDateLabel(option.date, today);
+    },
+    [t, today],
+  );
+
+  /** Figma Step 2: chevron date stepper, not a dropdown. */
+  const renderDateStep = (
     options: MissedRamadanFastDateOption[],
     selectedId: string | null,
     onSelect: (id: string) => void,
@@ -713,15 +815,20 @@ export default function MissedRamadanFastsLoggingFlow({
       );
     }
 
+    const selectedIndex = options.findIndex(
+      (option) => option.id === selectedId,
+    );
+    const selectedOption =
+      (selectedIndex >= 0 ? options[selectedIndex] : options[0]) ?? null;
+
     return (
-      <FlowDropdownSelect
-        options={toDropdownOptions(options)}
-        selectedValue={selectedId}
-        onSelectValue={onSelect}
-        placeholder={t("progressLogging.missedRamadanSelectDate")}
-        isOpen={isDateDropdownOpen}
-        setIsOpen={setIsDateDropdownOpen}
-        onOpenChange={handleDateDropdownOpenChange}
+      <WhiteDaysFastDateStep
+        dateLabel={toDateLabel(selectedOption)}
+        canGoPrev={selectedIndex > 0}
+        canGoNext={selectedIndex >= 0 && selectedIndex < options.length - 1}
+        onShiftDate={(direction) =>
+          shiftDateOptionId(options, selectedId, direction, onSelect)
+        }
         styles={commonStyles}
       />
     );
@@ -740,10 +847,21 @@ export default function MissedRamadanFastsLoggingFlow({
             setIsOpen={setIsLogTypeDropdownOpen}
             onOpenChange={handleLogTypeDropdownOpenChange}
             styles={commonStyles}
+            hint={
+              selectedWizardOption?.hint ??
+              logTypeDropdownOptions.find((option) => option.value === logType)
+                ?.hint ??
+              null
+            }
+            menuPlacement="overlay"
+            menuStyle={commonStyles.fastingWizardLogTypeMenu}
+            labelNumberOfLines={1}
+            hintNumberOfLines={2}
+            compactMenu
           />
         );
       case "selectPlannedFast":
-        return renderDateDropdown(
+        return renderDateStep(
           logType === "completed_early"
             ? futurePlannedOptions
             : pendingPlannedOptions,
@@ -751,13 +869,13 @@ export default function MissedRamadanFastsLoggingFlow({
           setSelectedPlannedFastId,
         );
       case "selectActualDate":
-        return renderDateDropdown(
+        return renderDateStep(
           actualDateOptions,
           selectedActualDateId,
           setSelectedActualDateId,
         );
       case "selectSkippedDate":
-        return renderDateDropdown(
+        return renderDateStep(
           skippedOptions,
           selectedSkippedDateId,
           setSelectedSkippedDateId,
@@ -850,138 +968,145 @@ export default function MissedRamadanFastsLoggingFlow({
     isBranchDataValid;
 
   const stepHeader = getStepHeader(currentStep);
-  const isDropdownOpen = isLogTypeDropdownOpen || isDateDropdownOpen;
 
   return (
-    <View
-      style={[
-        commonStyles.section,
-        flowMode === "active" && commonStyles.activeSection,
-      ]}
-    >
-      <Text style={commonStyles.sectionTitle}>
-        {t("progressLogging.myProgress")}
-      </Text>
+    <>
+      {flowMode === "active" && <Pressable style={commonStyles.backdrop} />}
+      {flowMode === "active" && (
+        <TouchableOpacity
+          style={commonStyles.cancelButton}
+          onPress={resetFlow}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="close" size={20} color={Colors.light.white} />
+        </TouchableOpacity>
+      )}
 
       <View
         style={[
-          commonStyles.cardAnchor,
-          isDropdownOpen && commonStyles.flowCardLayerDropdownOpen,
+          commonStyles.section,
+          flowMode === "active" && commonStyles.activeSection,
         ]}
       >
-        {flowMode === "active" && <Pressable style={commonStyles.backdrop} />}
-        {flowMode === "active" && (
-          <TouchableOpacity
-            style={commonStyles.cancelButton}
-            onPress={resetFlow}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="close" size={20} color={Colors.light.white} />
-          </TouchableOpacity>
-        )}
+        <Text style={commonStyles.sectionTitle}>
+          {t("progressLogging.myProgress")}
+        </Text>
 
-        {flowMode === "collapsed" ? (
-          <View style={localStyles.summaryCard}>
-            <View style={localStyles.summaryBody}>
-              <View style={localStyles.summaryIconCircle}>
-                <FastingFlowCardRamadanCalender
-                  size={20}
-                  color={Colors.light.white}
-                />
-              </View>
-              <View style={localStyles.titleContainer}>
-                <View
-                  style={[
-                    localStyles.badge,
-                    badgeStatus.type === "completed"
-                      ? localStyles.badgeCompleted
-                      : badgeStatus.type === "not-started"
-                        ? localStyles.badgeNotStarted
-                        : localStyles.badgeInProgress,
-                    { alignSelf: "flex-start", marginBottom: 4 },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      localStyles.badgeText,
-                      badgeStatus.type === "completed"
-                        ? localStyles.badgeTextCompleted
-                        : badgeStatus.type === "not-started"
-                          ? localStyles.badgeTextNotStarted
-                          : localStyles.badgeTextInProgress,
-                    ]}
-                  >
-                    {badgeStatus.text}
-                  </Text>
-                </View>
-                <Text style={localStyles.summaryTitle}>{summaryTitle}</Text>
-              </View>
-            </View>
-
-            <View style={localStyles.footerRow}>
-              {showInsights ? (
-                <TouchableOpacity
-                  style={localStyles.insightsBtn}
-                  onPress={() => fastingFrame?.openInsights?.()}
-                  activeOpacity={0.8}
-                >
-                  <Text style={localStyles.insightsText}>
-                    {t("progressLogging.viewInsights")}
-                  </Text>
-                  <Ionicons
-                    name="chevron-forward"
-                    size={22}
+        <View
+          style={[
+            commonStyles.cardAnchor,
+            isLogTypeDropdownOpen && { zIndex: 220, elevation: 24 },
+          ]}
+        >
+          {flowMode === "collapsed" ? (
+            <View style={localStyles.summaryCard}>
+              <View style={localStyles.summaryBody}>
+                <View style={localStyles.summaryIconCircle}>
+                  <FastingFlowCardRamadanCalender
+                    size={20}
                     color={Colors.light.white}
                   />
-                </TouchableOpacity>
-              ) : (
-                <View style={localStyles.spacer} />
-              )}
+                </View>
+                <View style={localStyles.titleContainer}>
+                  <View
+                    style={[
+                      localStyles.badge,
+                      badgeStatus.type === "completed"
+                        ? localStyles.badgeCompleted
+                        : badgeStatus.type === "not-started"
+                          ? localStyles.badgeNotStarted
+                          : localStyles.badgeInProgress,
+                      { alignSelf: "flex-start", marginBottom: 4 },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        localStyles.badgeText,
+                        badgeStatus.type === "completed"
+                          ? localStyles.badgeTextCompleted
+                          : badgeStatus.type === "not-started"
+                            ? localStyles.badgeTextNotStarted
+                            : localStyles.badgeTextInProgress,
+                      ]}
+                    >
+                      {badgeStatus.text}
+                    </Text>
+                  </View>
+                  <Text style={localStyles.summaryTitle}>{summaryTitle}</Text>
+                </View>
+              </View>
 
-              {canLog ? (
-                <TouchableOpacity
-                  style={localStyles.addButton}
-                  onPress={handleOpenFlow}
-                  activeOpacity={0.8}
-                >
-                  <Ionicons name="add" size={22} color={Colors.light.white} />
-                </TouchableOpacity>
-              ) : null}
+              <View style={localStyles.footerRow}>
+                {showInsights ? (
+                  <TouchableOpacity
+                    style={localStyles.insightsBtn}
+                    onPress={() => fastingFrame?.openInsights?.()}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={localStyles.insightsText}>
+                      {t("progressLogging.viewInsights")}
+                    </Text>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={22}
+                      color={Colors.light.white}
+                    />
+                  </TouchableOpacity>
+                ) : (
+                  <View style={localStyles.spacer} />
+                )}
+
+                {canLog ? (
+                  <TouchableOpacity
+                    style={localStyles.addButton}
+                    onPress={handleOpenFlow}
+                    activeOpacity={0.8}
+                  >
+                    <Ionicons name="add" size={22} color={Colors.light.white} />
+                  </TouchableOpacity>
+                ) : null}
+              </View>
             </View>
-          </View>
-        ) : (
-          <View
-            style={[
-              commonStyles.flowCardLayer,
-              isDropdownOpen && commonStyles.flowCardLayerDropdownOpen,
-            ]}
-          >
-            <FlowCard
-              headerIcon={stepHeader.icon}
-              headerLabel={stepHeader.label}
-              onBack={handleBack}
-              onForward={handleForward}
-              onConfirm={handleConfirm}
-              canGoForward={!isLastStep && canProceed}
-              canGoBack={stepIndex > 0}
-              canConfirm={canConfirm}
-              styles={commonStyles}
+          ) : (
+            <View
               style={[
-                commonStyles.inPlaceFlowCard,
-                isDropdownOpen && commonStyles.flowCardDropdownOpen,
+                commonStyles.flowCardLayer,
+                isLogTypeDropdownOpen && {
+                  zIndex: 200,
+                  elevation: 20,
+                  overflow: "visible" as const,
+                },
               ]}
-              contentStyle={
-                isDropdownOpen
-                  ? commonStyles.flowContentDropdownOpen
-                  : undefined
-              }
             >
-              {renderStepContent(currentStep)}
-            </FlowCard>
-          </View>
-        )}
+              <FlowCard
+                headerIcon={stepHeader.icon}
+                headerLabel={stepHeader.label}
+                onBack={handleBack}
+                onForward={handleForward}
+                onConfirm={handleConfirm}
+                canGoForward={!isLastStep && canProceed}
+                canGoBack={stepIndex > 0}
+                canConfirm={canConfirm}
+                styles={commonStyles}
+                style={[
+                  commonStyles.inPlaceFlowCard,
+                  isLogTypeDropdownOpen && commonStyles.flowCardDropdownOpen,
+                ]}
+                contentStyle={[
+                  currentStep === "logType" && {
+                    justifyContent: "flex-start" as const,
+                  },
+                  isLogTypeDropdownOpen &&
+                    commonStyles.flowContentDropdownOpen,
+                ]}
+              >
+                {renderStepContent(currentStep)}
+              </FlowCard>
+            </View>
+          )}
+        </View>
       </View>
-    </View>
+    </>
   );
 }
 

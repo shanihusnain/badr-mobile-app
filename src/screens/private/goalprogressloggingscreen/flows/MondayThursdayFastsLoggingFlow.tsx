@@ -19,7 +19,10 @@ import {
 } from "@/assets/icons";
 import { GoalData } from "../../home/components/goalsData";
 import { FlowCard } from "../components/FlowCard";
-import { FlowDropdownSelect } from "../components/FlowDropdownSelect";
+import {
+  FlowDropdownSelect,
+  type FlowDropdownOption,
+} from "../components/FlowDropdownSelect";
 import {
   StartTimeStep,
   getCurrentStartTimeParts,
@@ -51,6 +54,14 @@ import {
   type MondayThursdayFastLogType,
 } from "../mondayThursdayFastsData";
 import type { MondayThursdayFastsLogEntry } from "../types";
+import {
+  getWizardAvailableDates,
+  getWizardStepTitle,
+  mapUiLogTypeToWizardMode,
+  mapWizardModeToUiLogType,
+  useGetFastingGoalLogWizard,
+  type FastingLogWizardOption,
+} from "@/src/api/queries/useGetFastingGoalLogWizard";
 
 type MondayThursdayFastsStepId =
   | "logType"
@@ -89,11 +100,15 @@ type Props = {
 
 type FlowMode = "collapsed" | "active";
 
-const MONDAY_THURSDAY_LOG_TYPE_OPTIONS: MondayThursdayFastLogType[] = [
+const FALLBACK_MONDAY_THURSDAY_LOG_TYPE_OPTIONS: MondayThursdayFastLogType[] = [
   "completed_early",
   "made_up_skipped",
   "completed_planned",
 ];
+
+function toWizardDateOptions(dates: string[]): MondayThursdayFastDateOption[] {
+  return dates.map((date) => ({ id: date, date }));
+}
 
 export default function MondayThursdayFastsLoggingFlow({
   goalData,
@@ -101,6 +116,8 @@ export default function MondayThursdayFastsLoggingFlow({
   onDropdownOpenChange,
 }: Props) {
   const { t } = useTranslation();
+  const logWizardQuery = useGetFastingGoalLogWizard("MONDAY_THURSDAY");
+  const wizardOptions = logWizardQuery.data?.options ?? [];
   const [flowMode, setFlowMode] = useState<FlowMode>("collapsed");
   const [stepIndex, setStepIndex] = useState(0);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -170,15 +187,31 @@ export default function MondayThursdayFastsLoggingFlow({
 
   const today = getTodayDateString();
 
-  const futurePlannedOptions = useMemo(
-    () => getMondayThursdayFastDateOptionsForLogType("completed_early"),
-    [refreshKey, flowMode],
-  );
+  const selectedWizardOption = useMemo((): FastingLogWizardOption | null => {
+    if (!logType) return null;
+    const mode = mapUiLogTypeToWizardMode(logType);
+    return wizardOptions.find((option) => option.mode === mode) ?? null;
+  }, [logType, wizardOptions]);
 
-  const pendingPlannedOptions = useMemo(
-    () => getMondayThursdayFastDateOptionsForLogType("completed_planned"),
-    [refreshKey, flowMode],
-  );
+  const futurePlannedOptions = useMemo(() => {
+    const earlyOption =
+      selectedWizardOption?.mode === "EARLIER_THAN_PLANNED"
+        ? selectedWizardOption
+        : wizardOptions.find((option) => option.mode === "EARLIER_THAN_PLANNED");
+    const fromWizard = getWizardAvailableDates(earlyOption, "plannedDate");
+    if (fromWizard.length > 0) return toWizardDateOptions(fromWizard);
+    return getMondayThursdayFastDateOptionsForLogType("completed_early");
+  }, [refreshKey, flowMode, selectedWizardOption, wizardOptions]);
+
+  const pendingPlannedOptions = useMemo(() => {
+    const plannedOption =
+      selectedWizardOption?.mode === "PLANNED_DATE"
+        ? selectedWizardOption
+        : wizardOptions.find((option) => option.mode === "PLANNED_DATE");
+    const fromWizard = getWizardAvailableDates(plannedOption, "date");
+    if (fromWizard.length > 0) return toWizardDateOptions(fromWizard);
+    return getMondayThursdayFastDateOptionsForLogType("completed_planned");
+  }, [refreshKey, flowMode, selectedWizardOption, wizardOptions]);
 
   const plannedFastOptions = useMemo(() => {
     if (!logType || logType === "made_up_skipped") return [];
@@ -187,10 +220,15 @@ export default function MondayThursdayFastsLoggingFlow({
       : pendingPlannedOptions;
   }, [futurePlannedOptions, logType, pendingPlannedOptions]);
 
-  const missedOptions = useMemo(
-    () => getMissedMondayThursdayFastOptions(),
-    [refreshKey, flowMode],
-  );
+  const missedOptions = useMemo(() => {
+    const makeUpOption =
+      selectedWizardOption?.mode === "MAKE_UP"
+        ? selectedWizardOption
+        : wizardOptions.find((option) => option.mode === "MAKE_UP");
+    const fromWizard = getWizardAvailableDates(makeUpOption, "date");
+    if (fromWizard.length > 0) return toWizardDateOptions(fromWizard);
+    return getMissedMondayThursdayFastOptions();
+  }, [refreshKey, flowMode, selectedWizardOption, wizardOptions]);
 
   const selectedPlannedFast = useMemo(() => {
     const options =
@@ -207,13 +245,26 @@ export default function MondayThursdayFastsLoggingFlow({
     selectedPlannedFastId,
   ]);
 
-  const actualDateOptions = useMemo(
-    () =>
-      selectedPlannedFast
-        ? getActualEarlyMondayThursdayFastDateOptions(selectedPlannedFast.date)
-        : [],
-    [selectedPlannedFast, refreshKey, flowMode],
-  );
+  const actualDateOptions = useMemo(() => {
+    if (!selectedPlannedFast) return [];
+    const earlyOption =
+      selectedWizardOption?.mode === "EARLIER_THAN_PLANNED"
+        ? selectedWizardOption
+        : wizardOptions.find((option) => option.mode === "EARLIER_THAN_PLANNED");
+    const fromWizard = getWizardAvailableDates(earlyOption, "date");
+    if (fromWizard.length > 0) {
+      return toWizardDateOptions(fromWizard).filter((option) =>
+        isActualDateBeforePlannedDate(option.date, selectedPlannedFast.date),
+      );
+    }
+    return getActualEarlyMondayThursdayFastDateOptions(selectedPlannedFast.date);
+  }, [
+    selectedPlannedFast,
+    refreshKey,
+    flowMode,
+    selectedWizardOption,
+    wizardOptions,
+  ]);
 
   const selectedActualDate = useMemo(
     () =>
@@ -253,13 +304,37 @@ export default function MondayThursdayFastsLoggingFlow({
     };
   }, [goalCompleted, t, refreshKey]);
 
-  const logTypeDropdownOptions = useMemo(
+  const logTypeDropdownOptions = useMemo((): FlowDropdownOption<MondayThursdayFastLogType>[] => {
+    if (wizardOptions.length > 0) {
+      const mapped: FlowDropdownOption<MondayThursdayFastLogType>[] = [];
+      for (const option of wizardOptions) {
+        const value = mapWizardModeToUiLogType(option.mode);
+        if (!value) continue;
+        mapped.push({
+          value,
+          label: option.label,
+          hint: option.hint,
+          disabled: !option.enabled,
+        });
+      }
+      return mapped.sort(
+        (a, b) => Number(a.disabled) - Number(b.disabled),
+      );
+    }
+
+    return FALLBACK_MONDAY_THURSDAY_LOG_TYPE_OPTIONS.map((value) => ({
+      value,
+      label: t(`progressLogging.mondayThursdayLogType_${value}`),
+      disabled: false,
+    }));
+  }, [t, wizardOptions]);
+
+  const enabledLogTypes = useMemo(
     () =>
-      MONDAY_THURSDAY_LOG_TYPE_OPTIONS.map((value) => ({
-        value,
-        label: t(`progressLogging.mondayThursdayLogType_${value}`),
-      })),
-    [t],
+      logTypeDropdownOptions
+        .filter((option) => !option.disabled)
+        .map((option) => option.value),
+    [logTypeDropdownOptions],
   );
 
   const toDateLabel = useCallback(
@@ -375,6 +450,17 @@ export default function MondayThursdayFastsLoggingFlow({
     },
     [],
   );
+
+  useEffect(() => {
+    if (
+      logType &&
+      enabledLogTypes.length > 0 &&
+      !enabledLogTypes.includes(logType)
+    ) {
+      setLogType(null);
+      setStepIndex(0);
+    }
+  }, [enabledLogTypes, logType]);
 
   useEffect(() => {
     if (flowMode !== "active" || !logType) return;
@@ -621,16 +707,21 @@ export default function MondayThursdayFastsLoggingFlow({
     }
   };
 
+  const canOpenLogging =
+    !goalCompleted &&
+    (enabledLogTypes.length > 0 || hasMondayThursdayFastLoggingAvailable());
+
   const handleOpenFlow = useCallback(() => {
-    if (goalCompleted || !hasMondayThursdayFastLoggingAvailable()) return;
+    if (!canOpenLogging) return;
     applyCurrentTimeDefaults();
-    setLogType(null);
+    const firstEnabled = enabledLogTypes[0] ?? null;
+    setLogType(firstEnabled);
     setSelectedPlannedFastId(null);
     setSelectedActualDateId(null);
     setSelectedMissedDateId(null);
     setStepIndex(0);
     setFlowMode("active");
-  }, [applyCurrentTimeDefaults, goalCompleted]);
+  }, [applyCurrentTimeDefaults, canOpenLogging, enabledLogTypes]);
 
   const getStepHeader = (step: MondayThursdayFastsStepId) => {
     const calendarIcon = (
@@ -638,7 +729,7 @@ export default function MondayThursdayFastsLoggingFlow({
     );
     const timeIcon = <TimeSpentIcon size={19} color={Colors.light.white} />;
     const helpIcon = (
-      <FastingDashboardIcon size={22} color={Colors.light.white} />
+      <FastingDashboardIcon size={20} color={Colors.light.white} />
     );
 
     switch (step) {
@@ -647,33 +738,47 @@ export default function MondayThursdayFastsLoggingFlow({
           icon: helpIcon,
           label: t("progressLogging.mondayThursdayWhatAreYouLogging"),
         };
-      case "selectPlannedFast":
+      case "selectPlannedFast": {
+        const wizardTitle =
+          logType === "completed_early"
+            ? getWizardStepTitle(selectedWizardOption, "plannedDate")
+            : getWizardStepTitle(selectedWizardOption, "date");
         return {
           icon: calendarIcon,
           label:
-            logType === "completed_early"
+            wizardTitle ??
+            (logType === "completed_early"
               ? t("progressLogging.mondayThursdaySelectPlannedFastEarly")
-              : t("progressLogging.mondayThursdaySelectPlannedFastCompleted"),
+              : t("progressLogging.mondayThursdaySelectPlannedFastCompleted")),
         };
+      }
       case "selectActualDate":
         return {
           icon: calendarIcon,
-          label: t("progressLogging.mondayThursdayWhichDayDidYouFast"),
+          label:
+            getWizardStepTitle(selectedWizardOption, "date") ??
+            t("progressLogging.mondayThursdayWhichDayDidYouFast"),
         };
       case "selectMissedDate":
         return {
           icon: calendarIcon,
-          label: t("progressLogging.mondayThursdayMakeupSkippedDateLabel"),
+          label:
+            getWizardStepTitle(selectedWizardOption, "date") ??
+            t("progressLogging.mondayThursdayMakeupSkippedDateLabel"),
         };
       case "startTime":
         return {
           icon: timeIcon,
-          label: t("progressLogging.mondayThursdayEnterStartTime"),
+          label:
+            getWizardStepTitle(selectedWizardOption, "time") ??
+            t("progressLogging.mondayThursdayEnterStartTime"),
         };
       case "endTime":
         return {
           icon: timeIcon,
-          label: t("progressLogging.mondayThursdayEnterEndTime"),
+          label:
+            getWizardStepTitle(selectedWizardOption, "time") ??
+            t("progressLogging.mondayThursdayEnterEndTime"),
         };
     }
   };
@@ -691,6 +796,17 @@ export default function MondayThursdayFastsLoggingFlow({
             setIsOpen={setIsLogTypeDropdownOpen}
             onOpenChange={handleLogTypeDropdownOpenChange}
             styles={commonStyles}
+            hint={
+              selectedWizardOption?.hint ??
+              logTypeDropdownOptions.find((option) => option.value === logType)
+                ?.hint ??
+              null
+            }
+            menuPlacement="overlay"
+            menuStyle={commonStyles.fastingWizardLogTypeMenu}
+            labelNumberOfLines={1}
+            hintNumberOfLines={2}
+            compactMenu
           />
         );
       case "selectPlannedFast":
@@ -808,16 +924,9 @@ export default function MondayThursdayFastsLoggingFlow({
     isBranchDataValid;
 
   const stepHeader = getStepHeader(currentStep);
-  const isDropdownOpen =
-    isLogTypeDropdownOpen ||
-    isStartPeriodDropdownOpen ||
-    isEndPeriodDropdownOpen;
-
   return (
     <>
-      {flowMode === "active" && (
-        <Pressable style={commonStyles.backdrop} />
-      )}
+      {flowMode === "active" && <Pressable style={commonStyles.backdrop} />}
       {flowMode === "active" && (
         <TouchableOpacity
           style={commonStyles.cancelButton}
@@ -841,7 +950,7 @@ export default function MondayThursdayFastsLoggingFlow({
         <View
           style={[
             commonStyles.cardAnchor,
-            isDropdownOpen && commonStyles.flowCardLayerDropdownOpen,
+            isLogTypeDropdownOpen && { zIndex: 220, elevation: 24 },
           ]}
         >
           {flowMode === "collapsed" ? (
@@ -902,12 +1011,11 @@ export default function MondayThursdayFastsLoggingFlow({
                 <TouchableOpacity
                   style={[
                     localStyles.addButton,
-                    !hasMondayThursdayFastLoggingAvailable() &&
-                      localStyles.addButtonDisabled,
+                    !canOpenLogging && localStyles.addButtonDisabled,
                   ]}
                   onPress={handleOpenFlow}
                   activeOpacity={0.8}
-                  disabled={!hasMondayThursdayFastLoggingAvailable()}
+                  disabled={!canOpenLogging}
                 >
                   <AddLoggingFlowIcon size={32} />
                 </TouchableOpacity>
@@ -917,7 +1025,11 @@ export default function MondayThursdayFastsLoggingFlow({
             <View
               style={[
                 commonStyles.flowCardLayer,
-                isDropdownOpen && commonStyles.flowCardLayerDropdownOpen,
+                isLogTypeDropdownOpen && {
+                  zIndex: 200,
+                  elevation: 20,
+                  overflow: "visible" as const,
+                },
               ]}
             >
               <FlowCard
@@ -932,13 +1044,15 @@ export default function MondayThursdayFastsLoggingFlow({
                 styles={commonStyles}
                 style={[
                   commonStyles.inPlaceFlowCard,
-                  isDropdownOpen && commonStyles.flowCardDropdownOpen,
+                  isLogTypeDropdownOpen && commonStyles.flowCardDropdownOpen,
                 ]}
-                contentStyle={
-                  isDropdownOpen
-                    ? commonStyles.flowContentDropdownOpen
-                    : undefined
-                }
+                contentStyle={[
+                  currentStep === "logType" && {
+                    justifyContent: "flex-start" as const,
+                  },
+                  isLogTypeDropdownOpen &&
+                    commonStyles.flowContentDropdownOpen,
+                ]}
               >
                 {renderStepContent(currentStep)}
               </FlowCard>

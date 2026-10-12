@@ -5,6 +5,8 @@ import { fonts } from "@/assets/fonts";
 const WINDOW = Dimensions.get("window");
 const OVERLAY_COVER_HEIGHT = WINDOW.height * 4;
 export const FLOW_CARD_HEIGHT = WINDOW.height * 0.175;
+/** Step 1 log-wizard card: header + selector + hint/menu + footer, contained. */
+export const LOG_WIZARD_STEP_CARD_HEIGHT = 220;
 
 export const styles = StyleSheet.create({
   backdrop: {
@@ -44,6 +46,13 @@ export const styles = StyleSheet.create({
     overflow: "visible",
     paddingLeft: 16,
   },
+  cardAnchorDropdownOpen: {
+    height: undefined,
+    minHeight: FLOW_CARD_HEIGHT,
+    overflow: "visible",
+    zIndex: 220,
+    elevation: 24,
+  },
   flowCardLayer: {
     position: "relative",
     zIndex: 101,
@@ -53,8 +62,10 @@ export const styles = StyleSheet.create({
   },
   flowCardLayerDropdownOpen: {
     zIndex: 200,
-    elevation: 10,
+    elevation: 20,
     overflow: "visible",
+    // Let absolute menus paint below the fixed card height.
+    height: undefined,
   },
   cancelButton: {
     position: "absolute",
@@ -172,6 +183,19 @@ export const styles = StyleSheet.create({
     overflow: "hidden",
     flexDirection: "column",
   },
+  /** Same as flowCard but grows with content (log-wizard Step 1 + hint). */
+  flowCardAutoHeight: {
+    backgroundColor: Colors.light.mildGreen,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: 6,
+    width: "100%",
+    alignSelf: "stretch",
+    minHeight: Math.max(FLOW_CARD_HEIGHT, 200),
+    overflow: "visible",
+    flexDirection: "column",
+  },
   inPlaceFlowCard: {
     width: "100%",
     marginLeft: 0,
@@ -180,7 +204,11 @@ export const styles = StyleSheet.create({
     paddingTop: 10,
   },
   flowCardDropdownOpen: {
+    // iOS clips absolute dropdowns when borderRadius + overflow:hidden;
+    // open state must drop bottom radius and allow overflow.
     overflow: "visible",
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
     zIndex: 200,
     elevation: 10,
   },
@@ -226,6 +254,15 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
     minHeight: 40,
     marginBottom: 4,
+    overflow: "visible",
+  },
+  /** Used with flowCardAutoHeight — size to children, don't flex-fill. */
+  flowContentAutoHeight: {
+    flex: 0,
+    justifyContent: "flex-start",
+    minHeight: 40,
+    marginBottom: 8,
+    marginTop: 4,
     overflow: "visible",
   },
   flowContentDropdownOpen: {
@@ -447,6 +484,15 @@ export const styles = StyleSheet.create({
   flowDropdownPlaceholder: {
     color: Colors.light.subtext,
   },
+  flowDropdownHint: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.regular,
+    fontWeight: "400",
+    fontSize: 10,
+    lineHeight: 13,
+    marginTop: 4,
+    opacity: 0.9,
+  },
   flowDropdownMenu: {
     position: "absolute",
     top: "100%",
@@ -458,12 +504,22 @@ export const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 6,
     zIndex: 999,
-    maxHeight: 200,
+    /** Fits all 3 log-wizard modes without clipping mid-row. */
+    maxHeight: 220,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+  },
+  /** In-flow menu for log-wizard Step 1 — never clipped by card overflow. */
+  flowDropdownMenuInline: {
+    marginTop: 4,
+    backgroundColor: Colors.light.blackBackground,
+    borderRadius: 4,
+    paddingVertical: 8,
+    paddingHorizontal: 6,
+    width: "100%",
   },
   flowDropdownOption: {
     flexDirection: "row",
@@ -472,6 +528,74 @@ export const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 4,
     width: "100%",
+  },
+  /** Full-width active fasting log wizard card frame. */
+  fastingWizardCardAnchor: {
+    width: "100%",
+    alignSelf: "stretch",
+    height: FLOW_CARD_HEIGHT,
+    position: "relative",
+    zIndex: 101,
+    elevation: 12,
+    overflow: "hidden",
+    paddingHorizontal: 16,
+  },
+  fastingWizardCardAnchorLogType: {
+    height: LOG_WIZARD_STEP_CARD_HEIGHT,
+  },
+  fastingWizardFlowCard: {
+    width: "100%",
+    marginLeft: 0,
+    height: FLOW_CARD_HEIGHT,
+    overflow: "hidden",
+    paddingTop: 10,
+  },
+  fastingWizardFlowCardLogType: {
+    height: LOG_WIZARD_STEP_CARD_HEIGHT,
+    overflow: "hidden",
+  },
+  /**
+   * Mode menu for fasting log-wizard Step 1.
+   * Overlays below the selector (card overflow visible) so all modes fit
+   * without growing the fixed FLOW_CARD_HEIGHT shell.
+   */
+  fastingWizardLogTypeMenu: {
+    maxHeight: 120,
+    paddingVertical: 4,
+    marginTop: 2,
+  },
+  fastingWizardLogTypeOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 4,
+    width: "100%",
+  },
+  fastingWizardSectionTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    marginBottom: 12,
+  },
+  fastingWizardSectionTitle: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.medium,
+    fontWeight: "500",
+    fontSize: 18,
+    lineHeight: 20,
+    marginBottom: 0,
+    marginLeft: 4,
+    flex: 1,
+  },
+  fastingWizardCancelButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.light.dullWhiteOpacity,
+    alignItems: "center",
+    justifyContent: "center",
   },
   periodSelector: {
     borderWidth: 1.5,
