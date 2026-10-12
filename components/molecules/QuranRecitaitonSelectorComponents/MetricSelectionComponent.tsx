@@ -112,7 +112,7 @@ export const MetricSelectionComponent = ({
   /** True when this metric has been successfully saved (persists after collapsing). */
   isSaved?: boolean;
   /** Scroll parent list so this input stays visible above the keyboard. */
-  onInputFocus?: () => void;
+  onInputFocus?: (layout?: { windowY: number; inputHeight: number }) => void;
 }) => {
   const { t } = useTranslation();
   const isMemorizationSurah =
@@ -279,9 +279,31 @@ export const MetricSelectionComponent = ({
   };
 
   /** Instantly clear a default "0" before React re-renders on focus. */
-  const metricInputRefs = useRef<
-    Record<string, { setNativeProps?: (p: object) => void } | null | undefined>
-  >({});
+  const metricInputRefs = useRef<Record<string, TextInput | null>>({});
+  /** One layout report now + one after keyboard settles — avoids scroll thrashing. */
+  const reportInputFocusLayout = useCallback(
+    (key: string) => {
+      const node = metricInputRefs.current[key];
+      if (!node?.measureInWindow) {
+        onInputFocus?.();
+        return;
+      }
+      node.measureInWindow((_x, y, _w, h) => {
+        onInputFocus?.({ windowY: y, inputHeight: Math.max(h, 1) });
+      });
+    },
+    [onInputFocus],
+  );
+  const notifyInputFocused = useCallback(
+    (key: string) => {
+      onNestedScrollActiveChange?.(false);
+      // Mark goal focused immediately so keyboard-show can scroll once.
+      onInputFocus?.();
+      requestAnimationFrame(() => reportInputFocusLayout(key));
+      setTimeout(() => reportInputFocusLayout(key), 280);
+    },
+    [onInputFocus, onNestedScrollActiveChange, reportInputFocusLayout],
+  );
   const clearZeroOnTouch = (key: string, isZero: boolean) => {
     if (!isZero) return;
     metricInputRefs.current[key]?.setNativeProps?.({
@@ -1170,24 +1192,21 @@ export const MetricSelectionComponent = ({
                             }
                             onFocus={() => {
                               setInputFocused(`surah-${s.id}`, true);
-                              // Parent sheet scroll is disabled while touching this
-                              // nested list — turn it back on, then scroll both lists.
-                              onNestedScrollActiveChange?.(false);
-                              onInputFocus?.();
-                              requestAnimationFrame(() => {
-                                try {
-                                  surahListRef.current?.scrollToIndex({
-                                    index: surahIndex,
-                                    animated: true,
-                                    viewPosition: 0.15,
-                                  });
-                                } catch {
-                                  surahListRef.current?.scrollToOffset({
-                                    offset: Math.max(0, surahIndex * 120),
-                                    animated: true,
-                                  });
-                                }
-                              });
+                              // Keep the row visible inside the nested surah list only;
+                              // parent FlatList is scrolled once via keyboard + layout.
+                              try {
+                                surahListRef.current?.scrollToIndex({
+                                  index: surahIndex,
+                                  animated: true,
+                                  viewPosition: 0.2,
+                                });
+                              } catch {
+                                surahListRef.current?.scrollToOffset({
+                                  offset: Math.max(0, surahIndex * 120),
+                                  animated: true,
+                                });
+                              }
+                              notifyInputFocused(`surah-${s.id}`);
                             }}
                             onBlur={() =>
                               setInputFocused(`surah-${s.id}`, false)
@@ -1405,8 +1424,7 @@ export const MetricSelectionComponent = ({
                   }
                   onFocus={() => {
                     setInputFocused("juz-start", true);
-                    onNestedScrollActiveChange?.(false);
-                    onInputFocus?.();
+                    notifyInputFocused("juz-start");
                   }}
                   onBlur={() => {
                     setInputFocused("juz-start", false);
@@ -1461,8 +1479,7 @@ export const MetricSelectionComponent = ({
                   onFocus={() => {
                     setInputFocused("juz-end", true);
                     if (juzEndText === "0") setJuzEndText("");
-                    onNestedScrollActiveChange?.(false);
-                    onInputFocus?.();
+                    notifyInputFocused("juz-end");
                   }}
                   onBlur={() => {
                     setInputFocused("juz-end", false);
@@ -1588,8 +1605,7 @@ export const MetricSelectionComponent = ({
                 }
                 onFocus={() => {
                   setInputFocused(`completion`, true);
-                  onNestedScrollActiveChange?.(false);
-                  onInputFocus?.();
+                  notifyInputFocused("completion");
                 }}
                 onBlur={() => setInputFocused(`completion`, false)}
                 textAlignVertical="center"

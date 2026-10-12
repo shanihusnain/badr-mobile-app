@@ -152,6 +152,8 @@ const POST_SAVE_HOLD_MS = 2000;
 /** Fallback row height until onLayout measures each goal card. */
 const GOAL_ITEM_ESTIMATED_HEIGHT = 380;
 const GOAL_LIST_ITEM_GAP = 20;
+/** Gap between focused input bottom and top of keyboard. */
+const KEYBOARD_INPUT_BOTTOM_PAD = 36;
 
 const SADAQAH_CURRENCY_FIELDS = [
   "missedZakat",
@@ -250,6 +252,11 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
     const [sheetScrollEnabled, setSheetScrollEnabled] = useState(true);
     const [keyboardHeight, setKeyboardHeight] = useState(0);
     const focusedGoalIdForKeyboardRef = useRef<string | null>(null);
+    const focusedInputLayoutRef = useRef<{
+      windowY: number;
+      inputHeight: number;
+    } | null>(null);
+    const listScrollOffsetRef = useRef(0);
     const keyboardHeightRef = useRef(0);
     /**
      * Goal toggled on in a category but not yet saved/configured.
@@ -1883,6 +1890,31 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
     const tabDataRef = useRef(tabData);
     tabDataRef.current = tabData;
 
+    /**
+     * Scroll only as far as needed so the focused input clears the keyboard.
+     * Adjusts the stored windowY after scrolling so retries never double-apply.
+     */
+    const scrollListToKeepInputVisible = (): boolean => {
+      const layout = focusedInputLayoutRef.current;
+      const kb = keyboardHeightRef.current;
+      if (!layout || kb <= 0 || !listRef.current) return false;
+
+      const windowH = Dimensions.get("window").height;
+      const safeBottom = windowH - kb - KEYBOARD_INPUT_BOTTOM_PAD;
+      const inputBottom = layout.windowY + layout.inputHeight;
+      if (inputBottom <= safeBottom) return true;
+
+      const delta = inputBottom - safeBottom;
+      const next = Math.max(0, listScrollOffsetRef.current + delta);
+      focusedInputLayoutRef.current = {
+        windowY: layout.windowY - delta,
+        inputHeight: layout.inputHeight,
+      };
+      listScrollOffsetRef.current = next;
+      listRef.current.scrollToOffset({ offset: next, animated: true });
+      return true;
+    };
+
     scrollToGoalItemIdRef.current = (goalId: string) => {
       if (autoScrollInterruptedByUserRef.current) return;
 
@@ -1917,28 +1949,28 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
 
       const runScroll = () => {
         if (autoScrollInterruptedByUserRef.current) return;
-        const baseOffset = computeOffset();
         const kb = Math.max(0, keyboardHeightRef.current);
-        const goalKey =
-          goals[index]?.id != null ? String(goals[index].id) : undefined;
-        const itemHeight =
-          (goalKey ? goalItemHeightsRef.current[goalKey] : undefined) ??
-          GOAL_ITEM_ESTIMATED_HEIGHT;
 
-        let offset = baseOffset;
+        // With keyboard open, only nudge for the focused input — never yank
+        // the whole tall Quran card (that hid Juz/Hizb and felt laggy).
         if (kb > 0) {
-          // Tall cards (Quran Recitation + Completion) put inputs near the
-          // bottom. Scroll so that lower portion sits in the viewport above
-          // the keyboard — not just the card top + a small pad.
-          const windowH = Dimensions.get("window").height;
-          const chromeEstimate = 200; // nav header + step tabs
-          const visibleListH = Math.max(160, windowH - kb - chromeEstimate);
-          const targetInset = Math.max(0, itemHeight - visibleListH + 72);
-          offset = Math.max(0, baseOffset + targetInset);
-          listRef.current?.scrollToOffset({ offset, animated: true });
+          if (scrollListToKeepInputVisible()) return;
+          try {
+            listRef.current?.scrollToIndex({
+              index,
+              animated: true,
+              viewPosition: 0.35,
+            });
+          } catch {
+            listRef.current?.scrollToOffset({
+              offset: Math.max(0, computeOffset()),
+              animated: true,
+            });
+          }
           return;
         }
 
+        const offset = computeOffset();
         try {
           listRef.current?.scrollToIndex({
             index,
@@ -1954,27 +1986,33 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
       };
 
       runScroll();
-      scheduleAutoScroll(runScroll, 350);
-      scheduleAutoScroll(runScroll, 750);
+      // One delayed pass is enough (layout / keyboard settle). Extra retries
+      // stacked and caused lag + overscroll that hid goals below.
+      if (keyboardHeightRef.current <= 0) {
+        scheduleAutoScroll(runScroll, 350);
+      }
     };
 
-    const handleGoalInputFocus = useCallback((goalId: string) => {
-      // Nested metric lists disable sheet scroll on touch; re-enable so we can
-      // bring the focused input above the keyboard.
-      setSheetScrollEnabled(true);
-      focusedGoalIdForKeyboardRef.current = goalId;
-      beginProgrammaticAutoScroll();
-      scrollToGoalItemIdRef.current(goalId);
-      scheduleAutoScroll(
-        () => scrollToGoalItemIdRef.current(goalId),
-        400,
-      );
-      // Layout often settles after Completion / Surah fields expand.
-      scheduleAutoScroll(
-        () => scrollToGoalItemIdRef.current(goalId),
-        700,
-      );
-    }, [beginProgrammaticAutoScroll, scheduleAutoScroll]);
+    const handleGoalInputFocus = useCallback(
+      (
+        goalId: string,
+        layout?: { windowY: number; inputHeight: number },
+      ) => {
+        // Nested metric lists disable sheet scroll on touch; re-enable so we can
+        // bring the focused input above the keyboard.
+        setSheetScrollEnabled(true);
+        focusedGoalIdForKeyboardRef.current = goalId;
+        if (layout) {
+          focusedInputLayoutRef.current = layout;
+        }
+        beginProgrammaticAutoScroll();
+        // Wait for keyboard height when possible; keyboard listener scrolls once.
+        if (keyboardHeightRef.current > 0) {
+          scrollToGoalItemIdRef.current(goalId);
+        }
+      },
+      [beginProgrammaticAutoScroll],
+    );
 
     useEffect(() => {
       const showEvent =
@@ -1989,9 +2027,11 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
         const goalId = focusedGoalIdForKeyboardRef.current;
         if (!goalId) return;
         beginProgrammaticAutoScroll();
+        // Scroll once keyboard height is known, then once more after layout
+        // re-measure (bottom goals like Tajweed need the second pass).
         scheduleAutoScroll(
           () => scrollToGoalItemIdRef.current(goalId),
-          50,
+          60,
         );
         scheduleAutoScroll(
           () => scrollToGoalItemIdRef.current(goalId),
@@ -2002,6 +2042,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
         keyboardHeightRef.current = 0;
         setKeyboardHeight(0);
         focusedGoalIdForKeyboardRef.current = null;
+        focusedInputLayoutRef.current = null;
       });
       return () => {
         showSub.remove();
@@ -2291,7 +2332,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
               isSaving={isSavingPrayer}
               openOnMount={false}
               collapseSignal={postSaveCollapseSignal}
-              onInputFocus={() => handleGoalInputFocus(key)}
+              onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
               initialValue={sourcePrayer?.targetCount ?? 1}
               initiallySaved={isPrayerGoalConfigured("tahayyat-ul-wudhu")}
               onSave={(value, onDone, onFail) => {
@@ -2309,7 +2350,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
             <QuranTimeSelection
               openOnMount={false}
               collapseSignal={postSaveCollapseSignal}
-              onInputFocus={() => handleGoalInputFocus(key)}
+              onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
               title={t("monthlyGoalPlanner.selectNumHours")}
               descriptionKey="monthlyGoalPlanner.hoursQuranListening"
               quranGoalType="LISTENING"
@@ -2329,7 +2370,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
             <QuranTimeSelection
               openOnMount={false}
               collapseSignal={postSaveCollapseSignal}
-              onInputFocus={() => handleGoalInputFocus(key)}
+              onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
               title={t("monthlyGoalPlanner.selectNumHours")}
               descriptionKey="monthlyGoalPlanner.hoursQuranTajweed"
               quranGoalType="TAJWEED"
@@ -2349,7 +2390,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
             <QuranRecitationGoalSelection
               openOnMount={false}
               collapseSignal={postSaveCollapseSignal}
-              onInputFocus={() => handleGoalInputFocus(key)}
+              onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
               {...quranReferenceProps}
               title={t("monthlyGoalPlanner.recitationBySurah")}
               initialMetric="surah"
@@ -2374,7 +2415,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
             <QuranRecitationGoalSelection
               openOnMount={false}
               collapseSignal={postSaveCollapseSignal}
-              onInputFocus={() => handleGoalInputFocus(key)}
+              onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
               {...quranReferenceProps}
               title={t("monthlyGoalPlanner.recitationByCompletion")}
               initialMetric="completion"
@@ -2408,7 +2449,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
             <QuranRecitationGoalSelection
               openOnMount={false}
               collapseSignal={postSaveCollapseSignal}
-              onInputFocus={() => handleGoalInputFocus(key)}
+              onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
               {...quranReferenceProps}
               title={t("monthlyGoalPlanner.recitationByJuz")}
               initialMetric="juz"
@@ -2449,7 +2490,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
             <QuranRecitationGoalSelection
               openOnMount={false}
               collapseSignal={postSaveCollapseSignal}
-              onInputFocus={() => handleGoalInputFocus(key)}
+              onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
               {...quranReferenceProps}
               title={t("monthlyGoalPlanner.memorizationByJuz")}
               initialMetric="juz"
@@ -2516,7 +2557,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
             <QuranRecitationGoalSelection
               openOnMount={false}
               collapseSignal={postSaveCollapseSignal}
-              onInputFocus={() => handleGoalInputFocus(key)}
+              onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
               {...quranReferenceProps}
               title={t("monthlyGoalPlanner.memorizationByHizb")}
               initialMetric="hizb"
@@ -2565,7 +2606,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
             <QuranRecitationGoalSelection
               openOnMount={false}
               collapseSignal={postSaveCollapseSignal}
-              onInputFocus={() => handleGoalInputFocus(key)}
+              onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
               {...quranReferenceProps}
               title={t("monthlyGoalPlanner.memorizationBySurah")}
               initialMetric="surah"
@@ -2672,7 +2713,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
             <MissedZakats
               openOnMount={false}
               collapseSignal={postSaveCollapseSignal}
-              onInputFocus={() => handleGoalInputFocus(key)}
+              onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
               count={missedZakatAmount}
               setCount={setMissedZakatAmount}
               control={control}
@@ -2695,7 +2736,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
             <KafarahForBreakingFastsOrOAthSelector
               openOnMount={false}
               collapseSignal={postSaveCollapseSignal}
-              onInputFocus={() => handleGoalInputFocus(key)}
+              onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
               mealCount={kafarahMeals}
               setMealCount={setKafarahMeals}
               clothCount={kafarahCloths}
@@ -2717,7 +2758,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
             <FidyaSelector
               openOnMount={false}
               collapseSignal={postSaveCollapseSignal}
-              onInputFocus={() => handleGoalInputFocus(key)}
+              onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
               count={fidyaMeals}
               setCount={setFidyaMeals}
               handleDecrease={() =>
@@ -2734,7 +2775,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
             <MissedZakats
               openOnMount={false}
               collapseSignal={postSaveCollapseSignal}
-              onInputFocus={() => handleGoalInputFocus(key)}
+              onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
               count={lillahAmount}
               setCount={setLillahAmount}
               control={control}
@@ -2755,7 +2796,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
             <FidyaSelector
               openOnMount={false}
               collapseSignal={postSaveCollapseSignal}
-              onInputFocus={() => handleGoalInputFocus(key)}
+              onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
               count={volunteeringHours}
               setCount={setVolunteeringHours}
               handleDecrease={() =>
@@ -2777,7 +2818,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
             <MissedZakats
               openOnMount={false}
               collapseSignal={postSaveCollapseSignal}
-              onInputFocus={() => handleGoalInputFocus(key)}
+              onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
               count={sadaqahJariyahAmount}
               setCount={setSadaqahJariyahAmount}
               control={control}
@@ -2800,7 +2841,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
             <DailyPrayerGoalSelection
               openOnMount={false}
               collapseSignal={postSaveCollapseSignal}
-              onInputFocus={() => handleGoalInputFocus(key)}
+              onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
               cycleStartDate={cycleStartDate ?? undefined}
               initiallySaved={isPrayerGoalConfigured("fiveDailyPrayers")}
               initialValues={
@@ -2865,7 +2906,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
             <SunnahRawatibGoalSelection
               openOnMount={false}
               collapseSignal={postSaveCollapseSignal}
-              onInputFocus={() => handleGoalInputFocus(key)}
+              onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
               initiallySaved={isPrayerGoalConfigured("sunnahRawatib")}
               initialValues={getSunnahInitial(sourcePrayer)}
               isSaving={isSavingPrayer}
@@ -2898,7 +2939,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
             <TahiyyatMasjidGoalSelection
               openOnMount={false}
               collapseSignal={postSaveCollapseSignal}
-              onInputFocus={() => handleGoalInputFocus(key)}
+              onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
               initialValue={sourcePrayer?.targetCount ?? 1}
               initiallySaved={isPrayerGoalConfigured("thayyat-ul-masjid")}
               isSaving={isSavingPrayer}
@@ -2917,7 +2958,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
             <MissedPrayerGoalSelection
               openOnMount={false}
               collapseSignal={postSaveCollapseSignal}
-              onInputFocus={() => handleGoalInputFocus(key)}
+              onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
               initialValue={
                 typeof sourcePrayer?.targetDays === "number" &&
                 sourcePrayer.targetDays > 0
@@ -2950,7 +2991,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
             <DuhaPrayerGoalSelection
               openOnMount={false}
               collapseSignal={postSaveCollapseSignal}
-              onInputFocus={() => handleGoalInputFocus(key)}
+              onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
               initialValue={sourcePrayer?.targetCount ?? 1}
               initiallySaved={isPrayerGoalConfigured("duhaPrayer")}
               isSaving={isSavingPrayer}
@@ -2964,7 +3005,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
             <TawbahPrayerGoalSelection
               openOnMount={false}
               collapseSignal={postSaveCollapseSignal}
-              onInputFocus={() => handleGoalInputFocus(key)}
+              onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
               initialValue={sourcePrayer?.targetCount ?? 1}
               initiallySaved={isPrayerGoalConfigured("tawbaPrayer")}
               isSaving={isSavingPrayer}
@@ -2978,7 +3019,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
             <IstikharaPrayerGoalSelection
               openOnMount={false}
               collapseSignal={postSaveCollapseSignal}
-              onInputFocus={() => handleGoalInputFocus(key)}
+              onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
               initialValue={sourcePrayer?.targetCount ?? 1}
               initiallySaved={isPrayerGoalConfigured("istikharah")}
               isSaving={isSavingPrayer}
@@ -2992,7 +3033,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
             <ShukarPrayerGoalSelection
               openOnMount={false}
               collapseSignal={postSaveCollapseSignal}
-              onInputFocus={() => handleGoalInputFocus(key)}
+              onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
               initialValue={sourcePrayer?.targetCount ?? 1}
               initiallySaved={isPrayerGoalConfigured("shukrPrayer")}
               isSaving={isSavingPrayer}
@@ -3006,7 +3047,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
             <QiyamalLaylGoalSelection
               openOnMount={false}
               collapseSignal={postSaveCollapseSignal}
-              onInputFocus={() => handleGoalInputFocus(key)}
+              onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
               initialValues={getQiyamInitial(sourcePrayer)}
               initiallySaved={isPrayerGoalConfigured("qiyamalLail")}
               isSaving={isSavingPrayer}
@@ -3144,13 +3185,17 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                 paddingBottom:
                   40 +
                   Math.max(0, keyboardHeight) +
-                  (keyboardHeight > 0 ? 120 : 0),
+                  (keyboardHeight > 0 ? 48 : 0),
               },
             ]}
             showsVerticalScrollIndicator={false}
             scrollEnabled={sheetScrollEnabled}
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="on-drag"
+            onScroll={(event) => {
+              listScrollOffsetRef.current = event.nativeEvent.contentOffset.y;
+            }}
+            scrollEventThrottle={16}
             onScrollBeginDrag={() => {
               autoScrollInterruptedByUserRef.current = true;
               clearPendingAutoScrollTimers();
@@ -3286,7 +3331,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                             expandedGoalSelectionId.prayer === prayer.id
                           }
                           collapseSignal={postSaveCollapseSignal}
-                          onInputFocus={() => handleGoalInputFocus(prayer.id)}
+                          onInputFocus={(layout) => handleGoalInputFocus(prayer.id, layout)}
                           initialValue={getSimpleTargetCount(prayer, 1)}
                           initiallySaved={isPrayerGoalConfigured(prayer.id)}
                           isSaving={
@@ -3311,7 +3356,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                             expandedGoalSelectionId.prayer === prayer.id
                           }
                           collapseSignal={postSaveCollapseSignal}
-                          onInputFocus={() => handleGoalInputFocus(prayer.id)}
+                          onInputFocus={(layout) => handleGoalInputFocus(prayer.id, layout)}
                           cycleStartDate={cycleStartDate ?? undefined}
                           initialValues={getFiveDailyInitial(prayer)}
                           initiallySaved={isPrayerGoalConfigured(prayer.id)}
@@ -3359,7 +3404,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                             expandedGoalSelectionId.prayer === prayer.id
                           }
                           collapseSignal={postSaveCollapseSignal}
-                          onInputFocus={() => handleGoalInputFocus(prayer.id)}
+                          onInputFocus={(layout) => handleGoalInputFocus(prayer.id, layout)}
                           initialValues={getSunnahInitial(prayer)}
                           initiallySaved={isPrayerGoalConfigured(prayer.id)}
                           isSaving={
@@ -3400,7 +3445,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                             expandedGoalSelectionId.prayer === prayer.id
                           }
                           collapseSignal={postSaveCollapseSignal}
-                          onInputFocus={() => handleGoalInputFocus(prayer.id)}
+                          onInputFocus={(layout) => handleGoalInputFocus(prayer.id, layout)}
                           initialValue={getSimpleTargetCount(prayer, 1)}
                           initiallySaved={isPrayerGoalConfigured(prayer.id)}
                           isSaving={
@@ -3425,7 +3470,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                             expandedGoalSelectionId.prayer === prayer.id
                           }
                           collapseSignal={postSaveCollapseSignal}
-                          onInputFocus={() => handleGoalInputFocus(prayer.id)}
+                          onInputFocus={(layout) => handleGoalInputFocus(prayer.id, layout)}
                           initialValue={getMissedTargetDays(prayer, 1)}
                           initiallySaved={isPrayerGoalConfigured(prayer.id)}
                           isSaving={
@@ -3456,7 +3501,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                             expandedGoalSelectionId.prayer === prayer.id
                           }
                           collapseSignal={postSaveCollapseSignal}
-                          onInputFocus={() => handleGoalInputFocus(prayer.id)}
+                          onInputFocus={(layout) => handleGoalInputFocus(prayer.id, layout)}
                           initialValue={getSimpleTargetCount(prayer, 1)}
                           initiallySaved={isPrayerGoalConfigured(prayer.id)}
                           isSaving={
@@ -3481,7 +3526,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                             expandedGoalSelectionId.prayer === prayer.id
                           }
                           collapseSignal={postSaveCollapseSignal}
-                          onInputFocus={() => handleGoalInputFocus(prayer.id)}
+                          onInputFocus={(layout) => handleGoalInputFocus(prayer.id, layout)}
                           initialValue={getSimpleTargetCount(prayer, 1)}
                           initiallySaved={isPrayerGoalConfigured(prayer.id)}
                           isSaving={
@@ -3506,7 +3551,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                             expandedGoalSelectionId.prayer === prayer.id
                           }
                           collapseSignal={postSaveCollapseSignal}
-                          onInputFocus={() => handleGoalInputFocus(prayer.id)}
+                          onInputFocus={(layout) => handleGoalInputFocus(prayer.id, layout)}
                           initialValue={getSimpleTargetCount(prayer, 1)}
                           initiallySaved={isPrayerGoalConfigured(prayer.id)}
                           isSaving={
@@ -3531,7 +3576,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                             expandedGoalSelectionId.prayer === prayer.id
                           }
                           collapseSignal={postSaveCollapseSignal}
-                          onInputFocus={() => handleGoalInputFocus(prayer.id)}
+                          onInputFocus={(layout) => handleGoalInputFocus(prayer.id, layout)}
                           initialValue={getSimpleTargetCount(prayer, 1)}
                           initiallySaved={isPrayerGoalConfigured(prayer.id)}
                           isSaving={
@@ -3556,7 +3601,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                             expandedGoalSelectionId.prayer === prayer.id
                           }
                           collapseSignal={postSaveCollapseSignal}
-                          onInputFocus={() => handleGoalInputFocus(prayer.id)}
+                          onInputFocus={(layout) => handleGoalInputFocus(prayer.id, layout)}
                           initialValues={getQiyamInitial(prayer)}
                           initiallySaved={isPrayerGoalConfigured(prayer.id)}
                           isSaving={
@@ -3653,7 +3698,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                             expandedGoalSelectionId.quran === quran.id
                           }
                           collapseSignal={postSaveCollapseSignal}
-                          onInputFocus={() => handleGoalInputFocus(quran.id)}
+                          onInputFocus={(layout) => handleGoalInputFocus(quran.id, layout)}
                           title={t("monthlyGoalPlanner.selectNumHours")}
                           descriptionKey="monthlyGoalPlanner.hoursQuranListening"
                           quranGoalType="LISTENING"
@@ -3682,7 +3727,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                             expandedGoalSelectionId.quran === quran.id
                           }
                           collapseSignal={postSaveCollapseSignal}
-                          onInputFocus={() => handleGoalInputFocus(quran.id)}
+                          onInputFocus={(layout) => handleGoalInputFocus(quran.id, layout)}
                           title={t("monthlyGoalPlanner.selectNumHours")}
                           descriptionKey="monthlyGoalPlanner.hoursQuranTajweed"
                           quranGoalType="TAJWEED"
@@ -3711,7 +3756,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                             expandedGoalSelectionId.quran === quran.id
                           }
                           collapseSignal={postSaveCollapseSignal}
-                          onInputFocus={() => handleGoalInputFocus(quran.id)}
+                          onInputFocus={(layout) => handleGoalInputFocus(quran.id, layout)}
                           {...quranReferenceProps}
                           title={t("monthlyGoalPlanner.selectTrackingMetric")}
                           onMetricsChange={handleQuranMetricsChange}
@@ -3762,7 +3807,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                             expandedGoalSelectionId.quran === quran.id
                           }
                           collapseSignal={postSaveCollapseSignal}
-                          onInputFocus={() => handleGoalInputFocus(quran.id)}
+                          onInputFocus={(layout) => handleGoalInputFocus(quran.id, layout)}
                           {...quranReferenceProps}
                           title={t("monthlyGoalPlanner.selectTrackingMetric")}
                           onMetricsChange={handleQuranMetricsChange}
@@ -4026,7 +4071,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                             expandedGoalSelectionId.sadaqah === sadaqah.id
                           }
                           collapseSignal={postSaveCollapseSignal}
-                          onInputFocus={() => handleGoalInputFocus(sadaqah.id)}
+                          onInputFocus={(layout) => handleGoalInputFocus(sadaqah.id, layout)}
                           count={missedZakatAmount}
                           setCount={setMissedZakatAmount}
                           control={control}
@@ -4058,7 +4103,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                             expandedGoalSelectionId.sadaqah === sadaqah.id
                           }
                           collapseSignal={postSaveCollapseSignal}
-                          onInputFocus={() => handleGoalInputFocus(sadaqah.id)}
+                          onInputFocus={(layout) => handleGoalInputFocus(sadaqah.id, layout)}
                           mealCount={kafarahMeals}
                           setMealCount={setKafarahMeals}
                           clothCount={kafarahCloths}
@@ -4090,7 +4135,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                             expandedGoalSelectionId.sadaqah === sadaqah.id
                           }
                           collapseSignal={postSaveCollapseSignal}
-                          onInputFocus={() => handleGoalInputFocus(sadaqah.id)}
+                          onInputFocus={(layout) => handleGoalInputFocus(sadaqah.id, layout)}
                           count={fidyaMeals}
                           setCount={setFidyaMeals}
                           handleDecrease={() => {
@@ -4116,7 +4161,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                             expandedGoalSelectionId.sadaqah === sadaqah.id
                           }
                           collapseSignal={postSaveCollapseSignal}
-                          onInputFocus={() => handleGoalInputFocus(sadaqah.id)}
+                          onInputFocus={(layout) => handleGoalInputFocus(sadaqah.id, layout)}
                           count={lillahAmount}
                           setCount={setLillahAmount}
                           control={control}
@@ -4146,7 +4191,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                             expandedGoalSelectionId.sadaqah === sadaqah.id
                           }
                           collapseSignal={postSaveCollapseSignal}
-                          onInputFocus={() => handleGoalInputFocus(sadaqah.id)}
+                          onInputFocus={(layout) => handleGoalInputFocus(sadaqah.id, layout)}
                           count={volunteeringHours}
                           setCount={setVolunteeringHours}
                           handleDecrease={() => {
@@ -4177,7 +4222,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                             expandedGoalSelectionId.sadaqah === sadaqah.id
                           }
                           collapseSignal={postSaveCollapseSignal}
-                          onInputFocus={() => handleGoalInputFocus(sadaqah.id)}
+                          onInputFocus={(layout) => handleGoalInputFocus(sadaqah.id, layout)}
                           count={sadaqahJariyahAmount}
                           setCount={setSadaqahJariyahAmount}
                           control={control}

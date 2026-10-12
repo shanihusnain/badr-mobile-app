@@ -281,14 +281,9 @@ export default function DailyPrayerGoalSelection({
           compact
           containerStyle={styles.slider}
         />
-        {item.id === "dhuhr" && isTrackingCongregation ? (
-          <Text style={styles.dhuhrNote}>
-            {t("prayerGoals.dhuhrFridayNote")}
-          </Text>
-        ) : null}
       </View>
     ),
-    [isTrackingCongregation, t],
+    [],
   );
 
   const totalPrayers =
@@ -408,14 +403,6 @@ const styles = StyleSheet.create({
     // matches the card content width after its internal paddingX inset.
     marginVertical: 0,
     marginTop: 0,
-    marginBottom: 0,
-  },
-  dhuhrNote: {
-    color: Colors.light.subtext,
-    fontFamily: fonts.primary.regular,
-    fontSize: 10,
-    fontWeight: "400",
-    lineHeight: 14,
     marginBottom: 0,
   },
   valueText: {
