@@ -219,7 +219,7 @@ export default function ProphetDawoodFastGoalSelection({
               disabled={isPending}
               style={styles.saveButton}
               textStyle={styles.saveButtonText}
-              initiallySaved={initiallySaved || initialStartDay != null}
+              initiallySaved={initiallySaved}
               valueKey={selectedStartDay}
             />
           </View>
