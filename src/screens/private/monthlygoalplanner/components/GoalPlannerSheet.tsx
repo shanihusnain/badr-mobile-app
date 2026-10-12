@@ -2062,21 +2062,9 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
         const kb = Math.max(0, keyboardHeightRef.current);
 
         // With keyboard open, only nudge for the focused input — never yank
-        // the whole tall Quran card (that hid Juz/Hizb and felt laggy).
+        // the whole goal card (that hid Kaffarah/Juz inputs under the keyboard).
         if (kb > 0) {
-          if (scrollListToKeepInputVisible()) return;
-          try {
-            listRef.current?.scrollToIndex({
-              index,
-              animated: true,
-              viewPosition: 0.35,
-            });
-          } catch {
-            listRef.current?.scrollToOffset({
-              offset: Math.max(0, computeOffset()),
-              animated: true,
-            });
-          }
+          scrollListToKeepInputVisible();
           return;
         }
 

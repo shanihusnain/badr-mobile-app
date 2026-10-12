@@ -1,6 +1,6 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Platform,
   StyleSheet,
@@ -29,6 +29,7 @@ export const Counter = ({
   onInputFocus?: (layout?: { windowY: number; inputHeight: number }) => void;
 }) => {
   const inputRef = useRef<TextInputType>(null);
+  const wrapperRef = useRef<View>(null);
   const [isFocused, setIsFocused] = useState(false);
   // Local draft while editing — empty string when focused on 0 so caret sits centered.
   const [draft, setDraft] = useState<string>(count.toString());
@@ -39,9 +40,24 @@ export const Counter = ({
     }
   }, [count, isFocused]);
 
+  const reportInputLayout = useCallback(() => {
+    const node = wrapperRef.current;
+    if (!node?.measureInWindow) {
+      onInputFocus?.();
+      return;
+    }
+    node.measureInWindow((_x, y, _w, h) => {
+      onInputFocus?.({ windowY: y, inputHeight: Math.max(h, 1) });
+    });
+  }, [onInputFocus]);
+
   const handleFocus = () => {
     setIsFocused(true);
+    // Mark focused immediately, then measure so the sheet can keep this
+    // counter above the keyboard (avoids scrolling the whole goal card away).
     onInputFocus?.();
+    requestAnimationFrame(reportInputLayout);
+    setTimeout(reportInputLayout, 280);
     if (count === 0) {
       setDraft("");
       // Remount-safe caret reset: empty + no placeholder keeps caret in the center.
@@ -78,7 +94,7 @@ export const Counter = ({
 
   return (
     <View style={{ alignItems: "center", width: width ?? "60%" }}>
-      <View style={styles.wrapper}>
+      <View ref={wrapperRef} style={styles.wrapper} collapsable={false}>
         <Pressable
           onPress={handleDecrease}
           disabled={count <= 0}
