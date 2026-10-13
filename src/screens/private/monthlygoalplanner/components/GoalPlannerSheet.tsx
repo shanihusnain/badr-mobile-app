@@ -10,6 +10,7 @@ import {
   useState,
 } from "react";
 import {
+  ActivityIndicator,
   Dimensions,
   FlatList,
   type FlatList as FlatListType,
@@ -210,3165 +211,3118 @@ type Props = {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export const GoalPlannerSheet = ({ initialTab }: Props) => {
-    const { t } = useTranslation();
-    const insets = useSafeAreaInsets();
-    const { data: apiCurrencies } = useGetCurrencies();
-    const sadaqahCurrencyOptions = useMemo(() => {
-      if (apiCurrencies?.length) {
-        return apiCurrencies.map((item) => ({
-          label: item.label,
-          value: item.value,
-        }));
-      }
-      return undefined;
-    }, [apiCurrencies]);
-    const [activeTab, setActiveTab] = useState<Tab>(initialTab ?? "cycle");
-    const [cycleStartDate, setCycleStartDate] = useState<string | null>(null);
-    const [cycleEndDate, setCycleEndDate] = useState<string | null>(null);
-    const [hasCommittedCycle, setHasCommittedCycle] = useState(false);
-    /** Stays true after COMMIT this sheet session so entry-tab effects can't yank back to cycle. */
-    const committedCycleThisSessionRef = useRef(false);
-    /** Forces Category 1 after COMMIT until the tab actually lands on prayer (survives me refetch races). */
-    const postCommitTargetTabRef = useRef<Tab | null>(null);
-    /** User explicitly opened the cycle tab after commit — don't auto-force Step 1. */
-    const userChoseCycleTabRef = useRef(false);
-    const isCycleDateSelected = !!cycleStartDate;
-    const [selectedGoals, setSelectedGoals] = useState<Record<string, boolean>>(
-      {},
-    );
+  const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
+  const { data: apiCurrencies } = useGetCurrencies();
+  const sadaqahCurrencyOptions = useMemo(() => {
+    if (apiCurrencies?.length) {
+      return apiCurrencies.map((item) => ({
+        label: item.label,
+        value: item.value,
+      }));
+    }
+    return undefined;
+  }, [apiCurrencies]);
+  const [activeTab, setActiveTab] = useState<Tab>(initialTab ?? "cycle");
+  const [cycleStartDate, setCycleStartDate] = useState<string | null>(null);
+  const [cycleEndDate, setCycleEndDate] = useState<string | null>(null);
+  const [hasCommittedCycle, setHasCommittedCycle] = useState(false);
+  /** Stays true after COMMIT this sheet session so entry-tab effects can't yank back to cycle. */
+  const committedCycleThisSessionRef = useRef(false);
+  /** Forces Category 1 after COMMIT until the tab actually lands on prayer (survives me refetch races). */
+  const postCommitTargetTabRef = useRef<Tab | null>(null);
+  /** User explicitly opened the cycle tab after commit — don't auto-force Step 1. */
+  const userChoseCycleTabRef = useRef(false);
+  const isCycleDateSelected = !!cycleStartDate;
+  const [selectedGoals, setSelectedGoals] = useState<Record<string, boolean>>(
+    {},
+  );
 
-    const [kafarahMeals, setKafarahMeals] = useState<number>(0);
-    const [kafarahCloths, setKafarahCloths] = useState<number>(0);
-    const [volunteeringHours, setVolunteeringHours] = useState<number>(0);
-    const [missedZakatAmount, setMissedZakatAmount] = useState<number>(0);
-    const [fidyaMeals, setFidyaMeals] = useState<number>(0);
-    const [lillahAmount, setLillahAmount] = useState<number>(0);
-    const [sadaqahJariyahAmount, setSadaqahJariyahAmount] = useState<number>(0);
-    // lifted Quran metrics collected from children
-    const [quranMetrics, setQuranMetrics] = useState<Record<string, any>>({});
-    const quranMetricsRef = useRef(quranMetrics);
-    quranMetricsRef.current = quranMetrics;
-    // lifted fasting metrics collected from children
-    const [fastingMetrics, setFastingMetrics] = useState<Record<string, any>>(
-      {},
-    );
-    const [fastingGoalConflictModal, setFastingGoalConflictModal] = useState<{
-      visible: boolean;
-      message: string;
-    }>({ visible: false, message: "" });
-    const [dawoodFastConfirmModalVisible, setDawoodFastConfirmModalVisible] =
-      useState(false);
-    const [unfinishedGoalModal, setUnfinishedGoalModal] = useState<{
-      visible: boolean;
-      goalName: string;
-    }>({ visible: false, goalName: "" });
-    const [finishSaveModalVisible, setFinishSaveModalVisible] = useState(false);
-    const [sheetScrollEnabled, setSheetScrollEnabled] = useState(true);
-    const [keyboardHeight, setKeyboardHeight] = useState(0);
-    const focusedGoalIdForKeyboardRef = useRef<string | null>(null);
-    const focusedInputLayoutRef = useRef<{
-      windowY: number;
-      inputHeight: number;
-    } | null>(null);
-    const listScrollOffsetRef = useRef(0);
-    const keyboardHeightRef = useRef(0);
-    /**
-     * Goal toggled on in a category but not yet saved/configured.
-     * Backend `isActive` goals that already have targets are NOT pending —
-     * multiple of those can stay on. Only one unfinished toggle per category.
-     */
-    const [pendingUnconfiguredGoalId, setPendingUnconfiguredGoalId] = useState<{
-      prayer: string | null;
-      quran: string | null;
-      fasting: string | null;
-      sadaqah: string | null;
-    }>({
-      prayer: null,
-      quran: null,
-      fasting: null,
-      sadaqah: null,
+  const [kafarahMeals, setKafarahMeals] = useState<number>(0);
+  const [kafarahCloths, setKafarahCloths] = useState<number>(0);
+  const [volunteeringHours, setVolunteeringHours] = useState<number>(0);
+  const [missedZakatAmount, setMissedZakatAmount] = useState<number>(0);
+  const [fidyaMeals, setFidyaMeals] = useState<number>(0);
+  const [lillahAmount, setLillahAmount] = useState<number>(0);
+  const [sadaqahJariyahAmount, setSadaqahJariyahAmount] = useState<number>(0);
+  // lifted Quran metrics collected from children
+  const [quranMetrics, setQuranMetrics] = useState<Record<string, any>>({});
+  const quranMetricsRef = useRef(quranMetrics);
+  quranMetricsRef.current = quranMetrics;
+  // lifted fasting metrics collected from children
+  const [fastingMetrics, setFastingMetrics] = useState<Record<string, any>>({});
+  const [fastingGoalConflictModal, setFastingGoalConflictModal] = useState<{
+    visible: boolean;
+    message: string;
+  }>({ visible: false, message: "" });
+  const [dawoodFastConfirmModalVisible, setDawoodFastConfirmModalVisible] =
+    useState(false);
+  const [unfinishedGoalModal, setUnfinishedGoalModal] = useState<{
+    visible: boolean;
+    goalName: string;
+  }>({ visible: false, goalName: "" });
+  const [finishSaveModalVisible, setFinishSaveModalVisible] = useState(false);
+  const [sheetScrollEnabled, setSheetScrollEnabled] = useState(true);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const focusedGoalIdForKeyboardRef = useRef<string | null>(null);
+  const focusedInputLayoutRef = useRef<{
+    windowY: number;
+    inputHeight: number;
+  } | null>(null);
+  const listScrollOffsetRef = useRef(0);
+  const keyboardHeightRef = useRef(0);
+  /**
+   * Goal toggled on in a category but not yet saved/configured.
+   * Backend `isActive` goals that already have targets are NOT pending —
+   * multiple of those can stay on. Only one unfinished toggle per category.
+   */
+  const [pendingUnconfiguredGoalId, setPendingUnconfiguredGoalId] = useState<{
+    prayer: string | null;
+    quran: string | null;
+    fasting: string | null;
+    sadaqah: string | null;
+  }>({
+    prayer: null,
+    quran: null,
+    fasting: null,
+    sadaqah: null,
+  });
+  /** Which goal's selection panel should be expanded (toggle ON opens; save closes). */
+  const [expandedGoalSelectionId, setExpandedGoalSelectionId] = useState<{
+    prayer: string | null;
+    quran: string | null;
+    fasting: string | null;
+    sadaqah: string | null;
+  }>({
+    prayer: null,
+    quran: null,
+    fasting: null,
+    sadaqah: null,
+  });
+  /** Goals saved in this session (covers the gap before API refetch). */
+  const [locallyConfiguredGoalIds, setLocallyConfiguredGoalIds] = useState<
+    Record<string, boolean>
+  >({});
+  /** Category unlocked for NEXT tab after ≥1 goal saved in that category. */
+  const [savedCategoryTabs, setSavedCategoryTabs] = useState<
+    Record<GoalSequenceTab, boolean>
+  >({
+    prayer: false,
+    quran: false,
+    fasting: false,
+    sadaqah: false,
+  });
+  const savedCategoryTabsRef = useRef(savedCategoryTabs);
+  savedCategoryTabsRef.current = savedCategoryTabs;
+
+  const handleNestedMetricScrollActive = useCallback((active: boolean) => {
+    setSheetScrollEnabled(!active);
+  }, []);
+
+  const handleQuranMetricsChange = useCallback(
+    (payload: { metric: string; value: any }) => {
+      setQuranMetrics((prev) => {
+        if (
+          JSON.stringify(prev[payload.metric]) === JSON.stringify(payload.value)
+        ) {
+          return prev;
+        }
+        if (
+          payload.metric === "surah" &&
+          payload.value?.surahSettings &&
+          typeof payload.value.surahSettings === "object"
+        ) {
+          rememberQuranSurahFrequencies(payload.value.surahSettings);
+        }
+        return {
+          ...prev,
+          [payload.metric]: payload.value,
+        };
+      });
+    },
+    [],
+  );
+
+  const closeFastingGoalConflictModal = useCallback(() => {
+    setFastingGoalConflictModal({ visible: false, message: "" });
+  }, []);
+
+  const closeDawoodFastConfirmModal = useCallback(() => {
+    setDawoodFastConfirmModalVisible(false);
+  }, []);
+
+  const closeUnfinishedGoalModal = useCallback(() => {
+    setUnfinishedGoalModal({ visible: false, goalName: "" });
+  }, []);
+
+  const closeFinishSaveModal = useCallback(() => {
+    setFinishSaveModalVisible(false);
+  }, []);
+
+  const confirmFinishAndSave = useCallback(() => {
+    setFinishSaveModalVisible(false);
+    void clearPendingOnboardingRoute();
+    router.replace("/(tabs)/(home)");
+  }, []);
+
+  const handleSeeMorePress = useCallback((goal: string) => {
+    router.push({
+      pathname: "/(private)/goaldescriptiondetails/[goal]",
+      params: { goal },
     });
-    /** Which goal's selection panel should be expanded (toggle ON opens; save closes). */
-    const [expandedGoalSelectionId, setExpandedGoalSelectionId] = useState<{
-      prayer: string | null;
-      quran: string | null;
-      fasting: string | null;
-      sadaqah: string | null;
-    }>({
-      prayer: null,
-      quran: null,
-      fasting: null,
-      sadaqah: null,
+  }, []);
+
+  const { data: meUser } = useGetMe();
+  const userId = meUser?.id ?? null;
+  const goalCycleId = meUser?.goalCycleId ?? null;
+  const prevUserIdRef = useRef(userId);
+  const prevGoalCycleIdRef = useRef(goalCycleId);
+  const {
+    data: goalCycleDetail,
+    isError: isGoalCycleError,
+    error: goalCycleError,
+    isLoading: isGoalCycleLoading,
+    isFetching: isGoalCycleFetching,
+    refetch: refetchGoalCycleDetail,
+  } = useGetGoalCycleById(goalCycleId);
+  if (__DEV__ && goalCycleId && (isGoalCycleError || isGoalCycleLoading)) {
+    console.log("[goal-cycle]", {
+      goalCycleId,
+      isGoalCycleLoading,
+      isGoalCycleError,
+      status: (goalCycleError as any)?.response?.status,
+      message:
+        (goalCycleError as any)?.response?.data?.message ??
+        (goalCycleError as Error | undefined)?.message,
     });
-    /** Goals saved in this session (covers the gap before API refetch). */
-    const [locallyConfiguredGoalIds, setLocallyConfiguredGoalIds] = useState<
-      Record<string, boolean>
-    >({});
-    /** Category unlocked for NEXT tab after ≥1 goal saved in that category. */
-    const [savedCategoryTabs, setSavedCategoryTabs] = useState<
-      Record<GoalSequenceTab, boolean>
-    >({
+  }
+  console.log(
+    "isGoalCycleLoadingisGoalCycleLoadingisGoalCycleLoading",
+    isGoalCycleLoading,
+  );
+  const locallyToggledGoalIdsRef = useRef<Record<string, boolean>>({});
+  const listRef = useRef<FlatListType<any>>(null);
+  const tabBarScrollRef = useRef<RNScrollView>(null);
+  const tabLayoutsRef = useRef<Record<string, { x: number; width: number }>>(
+    {},
+  );
+  const goalItemHeightsRef = useRef<Record<string, number>>({});
+  const postSaveUiTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scrollToNextGoalAfterSaveRef = useRef<(savedGoalId: string) => void>(
+    () => {},
+  );
+  const [postSaveCollapseSignal, setPostSaveCollapseSignal] = useState(0);
+  const enableGoalInActiveTabRef = useRef<(goal: any) => void>(() => {});
+  const activeTabRef = useRef(activeTab);
+  activeTabRef.current = activeTab;
+  const selectedGoalsRef = useRef(selectedGoals);
+  selectedGoalsRef.current = selectedGoals;
+
+  const registerGoalItemLayout = useCallback(
+    (goalId: string, height: number) => {
+      if (!goalId || height <= 0) return;
+      goalItemHeightsRef.current[goalId] = height;
+    },
+    [],
+  );
+
+  const scrollToGoalItemIdRef = useRef<(goalId: string) => void>(() => {});
+  const pendingAutoScrollTimersRef = useRef<ReturnType<typeof setTimeout>[]>(
+    [],
+  );
+  /** User drag cancels in-flight programmatic scrolls until the next intentional auto-scroll. */
+  const autoScrollInterruptedByUserRef = useRef(false);
+
+  const clearPendingAutoScrollTimers = useCallback(() => {
+    pendingAutoScrollTimersRef.current.forEach(clearTimeout);
+    pendingAutoScrollTimersRef.current = [];
+  }, []);
+
+  const scheduleAutoScroll = useCallback((fn: () => void, delayMs: number) => {
+    const timer = setTimeout(() => {
+      pendingAutoScrollTimersRef.current =
+        pendingAutoScrollTimersRef.current.filter((t) => t !== timer);
+      if (autoScrollInterruptedByUserRef.current) return;
+      fn();
+    }, delayMs);
+    pendingAutoScrollTimersRef.current.push(timer);
+  }, []);
+
+  const beginProgrammaticAutoScroll = useCallback(() => {
+    autoScrollInterruptedByUserRef.current = false;
+  }, []);
+
+  useEffect(() => {
+    hydrateQuranSurahFrequencies();
+  }, []);
+
+  // Drop previous-user toggle/config state when the account or cycle changes.
+  // After COMMIT, me/goalCycleId refresh must not wipe state or yank Category 1.
+  useEffect(() => {
+    const prevUserId = prevUserIdRef.current;
+    const prevCycleId = prevGoalCycleIdRef.current;
+    const userChanged = prevUserId !== userId;
+    const cycleFirstAssigned = !prevCycleId && !!goalCycleId;
+    const sameUserCycleRefresh =
+      !userChanged &&
+      !!prevCycleId &&
+      !!goalCycleId &&
+      prevCycleId !== goalCycleId;
+
+    // Transient `me` refetch can briefly clear userId — ignore while post-commit.
+    if (userChanged && !userId && committedCycleThisSessionRef.current) {
+      return;
+    }
+
+    // Never wipe mid-commit: cycle id appearing / changing after COMMIT.
+    if (committedCycleThisSessionRef.current && (!userChanged || !userId)) {
+      prevUserIdRef.current = userId ?? prevUserIdRef.current;
+      prevGoalCycleIdRef.current = goalCycleId ?? prevGoalCycleIdRef.current;
+      return;
+    }
+
+    prevUserIdRef.current = userId;
+    prevGoalCycleIdRef.current = goalCycleId;
+
+    if (
+      !userChanged &&
+      (committedCycleThisSessionRef.current || cycleFirstAssigned)
+    ) {
+      return;
+    }
+
+    // Same user, cycle id refreshed from API after edit — keep committed state.
+    if (sameUserCycleRefresh && hasCommittedCycle) {
+      return;
+    }
+
+    if (userChanged) {
+      committedCycleThisSessionRef.current = false;
+      postCommitTargetTabRef.current = null;
+      userChoseCycleTabRef.current = false;
+    }
+
+    // Do not wipe session saves / tab unlocks after COMMIT this session.
+    if (committedCycleThisSessionRef.current) {
+      return;
+    }
+
+    locallyToggledGoalIdsRef.current = {};
+    setSelectedGoals({});
+    setLocallyConfiguredGoalIds({});
+    setSavedCategoryTabs({
       prayer: false,
       quran: false,
       fasting: false,
       sadaqah: false,
     });
-    const savedCategoryTabsRef = useRef(savedCategoryTabs);
-    savedCategoryTabsRef.current = savedCategoryTabs;
-
-    const handleNestedMetricScrollActive = useCallback((active: boolean) => {
-      setSheetScrollEnabled(!active);
-    }, []);
-
-    const handleQuranMetricsChange = useCallback(
-      (payload: { metric: string; value: any }) => {
-        setQuranMetrics((prev) => {
-          if (
-            JSON.stringify(prev[payload.metric]) ===
-            JSON.stringify(payload.value)
-          ) {
-            return prev;
-          }
-          if (
-            payload.metric === "surah" &&
-            payload.value?.surahSettings &&
-            typeof payload.value.surahSettings === "object"
-          ) {
-            rememberQuranSurahFrequencies(payload.value.surahSettings);
-          }
-          return {
-            ...prev,
-            [payload.metric]: payload.value,
-          };
-        });
-      },
-      [],
-    );
-
-    const closeFastingGoalConflictModal = useCallback(() => {
-      setFastingGoalConflictModal({ visible: false, message: "" });
-    }, []);
-
-    const closeDawoodFastConfirmModal = useCallback(() => {
-      setDawoodFastConfirmModalVisible(false);
-    }, []);
-
-    const closeUnfinishedGoalModal = useCallback(() => {
-      setUnfinishedGoalModal({ visible: false, goalName: "" });
-    }, []);
-
-    const closeFinishSaveModal = useCallback(() => {
-      setFinishSaveModalVisible(false);
-    }, []);
-
-    const confirmFinishAndSave = useCallback(() => {
-      setFinishSaveModalVisible(false);
-      void clearPendingOnboardingRoute();
-      router.replace("/(tabs)/(home)");
-    }, []);
-
-    const handleSeeMorePress = useCallback((goal: string) => {
-      router.push({
-        pathname: "/(private)/goaldescriptiondetails/[goal]",
-        params: { goal },
-      });
-    }, []);
-
-    const { data: meUser } = useGetMe();
-    const userId = meUser?.id ?? null;
-    const goalCycleId = meUser?.goalCycleId ?? null;
-    const prevUserIdRef = useRef(userId);
-    const prevGoalCycleIdRef = useRef(goalCycleId);
-    const {
-      data: goalCycleDetail,
-      isError: isGoalCycleError,
-      error: goalCycleError,
-      isLoading: isGoalCycleLoading,
-    } = useGetGoalCycleById(goalCycleId);
-    if (__DEV__ && goalCycleId && (isGoalCycleError || isGoalCycleLoading)) {
-      console.log("[goal-cycle]", {
-        goalCycleId,
-        isGoalCycleLoading,
-        isGoalCycleError,
-        status: (goalCycleError as any)?.response?.status,
-        message:
-          (goalCycleError as any)?.response?.data?.message ??
-          (goalCycleError as Error | undefined)?.message,
-      });
+    setPendingUnconfiguredGoalId({
+      prayer: null,
+      quran: null,
+      fasting: null,
+      sadaqah: null,
+    });
+    setExpandedGoalSelectionId({
+      prayer: null,
+      quran: null,
+      fasting: null,
+      sadaqah: null,
+    });
+    setHasCommittedCycle(false);
+    if (postSaveUiTimerRef.current) {
+      clearTimeout(postSaveUiTimerRef.current);
+      postSaveUiTimerRef.current = null;
     }
-    const locallyToggledGoalIdsRef = useRef<Record<string, boolean>>({});
-    const listRef = useRef<FlatListType<any>>(null);
-    const tabBarScrollRef = useRef<RNScrollView>(null);
-    const tabLayoutsRef = useRef<Record<string, { x: number; width: number }>>(
-      {},
-    );
-    const goalItemHeightsRef = useRef<Record<string, number>>({});
-    const postSaveUiTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
-      null,
-    );
-    const scrollToNextGoalAfterSaveRef = useRef<(savedGoalId: string) => void>(
-      () => {},
-    );
-    const [postSaveCollapseSignal, setPostSaveCollapseSignal] = useState(0);
-    const enableGoalInActiveTabRef = useRef<(goal: any) => void>(() => {});
-    const activeTabRef = useRef(activeTab);
-    activeTabRef.current = activeTab;
-    const selectedGoalsRef = useRef(selectedGoals);
-    selectedGoalsRef.current = selectedGoals;
+    clearPendingAutoScrollTimers();
+    autoScrollInterruptedByUserRef.current = false;
+  }, [userId, goalCycleId, hasCommittedCycle, clearPendingAutoScrollTimers]);
 
-    const registerGoalItemLayout = useCallback(
-      (goalId: string, height: number) => {
-        if (!goalId || height <= 0) return;
-        goalItemHeightsRef.current[goalId] = height;
-      },
-      [],
-    );
+  // Hydrate cycle dates from API as the source of truth when the user returns.
+  // Overwrite any local “tomorrow” default once the backend cycle is known.
+  useEffect(() => {
+    if (!goalCycleDetail?.startDate) return;
+    setCycleStartDate(goalCycleDetail.startDate);
+    setCycleEndDate(goalCycleDetail.endDate ?? null);
+    setHasCommittedCycle(true);
+  }, [goalCycleDetail?.startDate, goalCycleDetail?.endDate]);
 
-    const scrollToGoalItemIdRef = useRef<(goalId: string) => void>(() => {});
-    const pendingAutoScrollTimersRef = useRef<
-      ReturnType<typeof setTimeout>[]
-    >([]);
-    /** User drag cancels in-flight programmatic scrolls until the next intentional auto-scroll. */
-    const autoScrollInterruptedByUserRef = useRef(false);
-
-    const clearPendingAutoScrollTimers = useCallback(() => {
-      pendingAutoScrollTimersRef.current.forEach(clearTimeout);
-      pendingAutoScrollTimersRef.current = [];
-    }, []);
-
-    const scheduleAutoScroll = useCallback(
-      (fn: () => void, delayMs: number) => {
-        const timer = setTimeout(() => {
-          pendingAutoScrollTimersRef.current =
-            pendingAutoScrollTimersRef.current.filter((t) => t !== timer);
-          if (autoScrollInterruptedByUserRef.current) return;
-          fn();
-        }, delayMs);
-        pendingAutoScrollTimersRef.current.push(timer);
-      },
-      [],
-    );
-
-    const beginProgrammaticAutoScroll = useCallback(() => {
-      autoScrollInterruptedByUserRef.current = false;
-    }, []);
-
-    useEffect(() => {
-      hydrateQuranSurahFrequencies();
-    }, []);
-
-    // Drop previous-user toggle/config state when the account or cycle changes.
-    // After COMMIT, me/goalCycleId refresh must not wipe state or yank Category 1.
-    useEffect(() => {
-      const prevUserId = prevUserIdRef.current;
-      const prevCycleId = prevGoalCycleIdRef.current;
-      const userChanged = prevUserId !== userId;
-      const cycleFirstAssigned = !prevCycleId && !!goalCycleId;
-      const sameUserCycleRefresh =
-        !userChanged && !!prevCycleId && !!goalCycleId && prevCycleId !== goalCycleId;
-
-      // Transient `me` refetch can briefly clear userId — ignore while post-commit.
-      if (userChanged && !userId && committedCycleThisSessionRef.current) {
-        return;
-      }
-
-      // Never wipe mid-commit: cycle id appearing / changing after COMMIT.
-      if (
-        committedCycleThisSessionRef.current &&
-        (!userChanged || !userId)
-      ) {
-        prevUserIdRef.current = userId ?? prevUserIdRef.current;
-        prevGoalCycleIdRef.current = goalCycleId ?? prevGoalCycleIdRef.current;
-        return;
-      }
-
-      prevUserIdRef.current = userId;
-      prevGoalCycleIdRef.current = goalCycleId;
-
-      if (
-        !userChanged &&
-        (committedCycleThisSessionRef.current || cycleFirstAssigned)
-      ) {
-        return;
-      }
-
-      // Same user, cycle id refreshed from API after edit — keep committed state.
-      if (sameUserCycleRefresh && hasCommittedCycle) {
-        return;
-      }
-
-      if (userChanged) {
-        committedCycleThisSessionRef.current = false;
-        postCommitTargetTabRef.current = null;
-        userChoseCycleTabRef.current = false;
-      }
-
-      // Do not wipe session saves / tab unlocks after COMMIT this session.
-      if (committedCycleThisSessionRef.current) {
-        return;
-      }
-
-      locallyToggledGoalIdsRef.current = {};
-      setSelectedGoals({});
-      setLocallyConfiguredGoalIds({});
-      setSavedCategoryTabs({
-        prayer: false,
-        quran: false,
-        fasting: false,
-        sadaqah: false,
-      });
-      setPendingUnconfiguredGoalId({
-        prayer: null,
-        quran: null,
-        fasting: null,
-        sadaqah: null,
-      });
-      setExpandedGoalSelectionId({
-        prayer: null,
-        quran: null,
-        fasting: null,
-        sadaqah: null,
-      });
-      setHasCommittedCycle(false);
-      if (postSaveUiTimerRef.current) {
-        clearTimeout(postSaveUiTimerRef.current);
-        postSaveUiTimerRef.current = null;
-      }
-      clearPendingAutoScrollTimers();
-      autoScrollInterruptedByUserRef.current = false;
-    }, [userId, goalCycleId, hasCommittedCycle, clearPendingAutoScrollTimers]);
-
-    // Hydrate cycle dates from API as the source of truth when the user returns.
-    // Overwrite any local “tomorrow” default once the backend cycle is known.
-    useEffect(() => {
-      if (!goalCycleDetail?.startDate) return;
-      setCycleStartDate(goalCycleDetail.startDate);
-      setCycleEndDate(goalCycleDetail.endDate ?? null);
-      setHasCommittedCycle(true);
-    }, [goalCycleDetail?.startDate, goalCycleDetail?.endDate]);
-
-    const { data: prayerGoalsFromApi, isLoading: loadingPrayerGoals } =
-      useGetAllPrayerGoals({
-        // Load after cycle commit so Review & Confirm can validate all categories
-        enabled: hasCommittedCycle,
-        userId,
-      });
-
-    const {
-      data: allQuranGoalsResponse,
-      isLoading: loadingQuranGoals,
-      isError: errorLoadingQuranGoals,
-      refetch: refetchQuranGoals,
-    } = useGetAllQuranGoals({
+  const { data: prayerGoalsFromApi, isLoading: loadingPrayerGoals } =
+    useGetAllPrayerGoals({
+      // Load after cycle commit so Review & Confirm can validate all categories
       enabled: hasCommittedCycle,
       userId,
     });
 
-    const { data: allFastingGoalsResponse, isLoading: loadingFastingGoals } =
-      useGetAllFastingGoals({
-        enabled: hasCommittedCycle,
-        userId,
-      });
+  const {
+    data: allQuranGoalsResponse,
+    isLoading: loadingQuranGoals,
+    isError: errorLoadingQuranGoals,
+    refetch: refetchQuranGoals,
+  } = useGetAllQuranGoals({
+    enabled: hasCommittedCycle,
+    userId,
+  });
 
-    const { data: allSadaqahGoalsResponse, isLoading: loadingSadaqahGoals } =
-      useGetAllSadaqahGoals({
-        enabled: hasCommittedCycle,
-        userId,
-      });
-
-    const { data: fastingCalendarPreview } = useGetFastingCalendarPreview({
+  const { data: allFastingGoalsResponse, isLoading: loadingFastingGoals } =
+    useGetAllFastingGoals({
       enabled: hasCommittedCycle,
+      userId,
     });
 
-    const fastingCalendarWindow = useMemo(
-      () => buildFastingCalendarWindow(fastingCalendarPreview),
-      [fastingCalendarPreview],
-    );
-
-    const prayerGoals = useMemo(
-      () => mapPrayerGoalsFromApi(prayerGoalsFromApi),
-      [prayerGoalsFromApi],
-    );
-
-    const quranGoals = useMemo(() => {
-      const data = allQuranGoalsResponse as
-        | { goals?: QuranGoalApiItem[] }
-        | QuranGoalApiItem[]
-        | null
-        | undefined;
-      if (!data) return mapQuranGoalsFromApi([]);
-      // Transition / bad cache: older clients stored the bare array or envelope
-      if (Array.isArray(data)) return mapQuranGoalsFromApi(data);
-      if (Array.isArray(data.goals)) return mapQuranGoalsFromApi(data.goals);
-      return mapQuranGoalsFromApi([]);
-    }, [allQuranGoalsResponse]);
-
-    const fastingGoals = useMemo(
-      () => mapFastingGoalsFromApi(allFastingGoalsResponse?.goals),
-      [allFastingGoalsResponse],
-    );
-
-    const sadaqahGoals = useMemo(
-      () => mapSadaqahGoalsFromApi(allSadaqahGoalsResponse?.goals),
-      [allSadaqahGoalsResponse],
-    );
-
-    const emptySurahReference = useMemo(() => [], []);
-    const emptyHizbReference = useMemo(() => [], []);
-    const emptyJuzReference = useMemo(() => [], []);
-
-    const quranReferenceProps = useMemo(
-      () => ({
-        surahReference:
-          allQuranGoalsResponse?.reference.surahs ?? emptySurahReference,
-        hizbReference:
-          allQuranGoalsResponse?.reference.hizb ?? emptyHizbReference,
-        juzReference: allQuranGoalsResponse?.reference.juz ?? emptyJuzReference,
-        isReferenceLoading: loadingQuranGoals,
-        onNestedScrollActiveChange: handleNestedMetricScrollActive,
-      }),
-      [
-        allQuranGoalsResponse,
-        loadingQuranGoals,
-        handleNestedMetricScrollActive,
-        emptySurahReference,
-        emptyHizbReference,
-        emptyJuzReference,
-      ],
-    );
-
-    // Seed toggle state from backend isActive (only for keys not yet toggled locally)
-    useEffect(() => {
-      if (!prayerGoals.length) return;
-      setSelectedGoals((prev) => {
-        const next = { ...prev };
-        let changed = false;
-        for (const goal of prayerGoals) {
-          if (next[goal.id] === undefined) {
-            next[goal.id] = goal.isSelected;
-            changed = true;
-          }
-        }
-        return changed ? next : prev;
-      });
-    }, [prayerGoals]);
-
-    useEffect(() => {
-      if (!quranGoals.length) return;
-      setSelectedGoals((prev) => {
-        const next = { ...prev };
-        let changed = false;
-        for (const goal of quranGoals) {
-          if (next[goal.id] === undefined) {
-            next[goal.id] = goal.isSelected;
-            changed = true;
-          }
-        }
-        return changed ? next : prev;
-      });
-    }, [quranGoals]);
-
-    useEffect(() => {
-      if (!fastingGoals.length) return;
-      setSelectedGoals((prev) => {
-        const next = { ...prev };
-        let changed = false;
-        for (const goal of fastingGoals) {
-          if (next[goal.id] === undefined) {
-            next[goal.id] = goal.isSelected;
-            changed = true;
-          }
-        }
-        return changed ? next : prev;
-      });
-    }, [fastingGoals]);
-
-    useEffect(() => {
-      if (!sadaqahGoals.length) return;
-      setSelectedGoals((prev) => {
-        const next = { ...prev };
-        let changed = false;
-        for (const goal of sadaqahGoals) {
-          if (next[goal.id] === undefined) {
-            next[goal.id] = goal.isSelected;
-            changed = true;
-          }
-        }
-        return changed ? next : prev;
-      });
-    }, [sadaqahGoals]);
-
-    // lifted sadaqah metrics collected from children
-    const [sadaqahMetrics, setSadaqahMetrics] = useState<Record<string, any>>(
-      {},
-    );
-    const { control, getValues, setValue, reset } = useForm({
-      defaultValues: {
-        missedZakat: "",
-        kafarahForBreakingFasts: "",
-        lillahDonation: "",
-        sadaqahJariyah: "",
-      },
-      mode: "onChange",
+  const { data: allSadaqahGoalsResponse, isLoading: loadingSadaqahGoals } =
+    useGetAllSadaqahGoals({
+      enabled: hasCommittedCycle,
+      userId,
     });
 
-    useEffect(() => {
-      reset({
-        missedZakat: "",
-        kafarahForBreakingFasts: "",
-        lillahDonation: "",
-        sadaqahJariyah: "",
-      });
-      setMissedZakatAmount(0);
-      setLillahAmount(0);
-      setSadaqahJariyahAmount(0);
-      setFidyaMeals(0);
-      setKafarahMeals(0);
-      setKafarahCloths(0);
-      setVolunteeringHours(0);
-    }, [userId, goalCycleId, reset]);
+  const { data: fastingCalendarPreview } = useGetFastingCalendarPreview({
+    enabled: hasCommittedCycle,
+  });
 
-    /** Review category headers that are open — all expanded by default on Review. */
-    const [reviewExpandedNames, setReviewExpandedNames] = useState<
-      Record<string, boolean>
-    >({});
-    const handleReviewItemPress = useCallback((itemOrName: any) => {
-      const name =
-        typeof itemOrName === "string" ? itemOrName : itemOrName?.name;
-      if (!name) return;
-      setReviewExpandedNames((prev) => ({
-        ...prev,
-        [name]: !prev[name],
-      }));
-    }, []);
-    const handleGoalToggle = useCallback(
-      (goalId: string, isSelected: boolean) => {
-        setSelectedGoals((prev) => ({ ...prev, [goalId]: isSelected }));
-      },
-      [],
-    );
+  const fastingCalendarWindow = useMemo(
+    () => buildFastingCalendarWindow(fastingCalendarPreview),
+    [fastingCalendarPreview],
+  );
 
-    const setExpandedSelectionForCategory = useCallback(
-      (
-        category: "prayer" | "quran" | "fasting" | "sadaqah",
-        goalId: string | null,
-      ) => {
-        setExpandedGoalSelectionId((prev) => ({ ...prev, [category]: goalId }));
-        if (goalId) {
-          beginProgrammaticAutoScroll();
-          scheduleAutoScroll(
-            () => scrollToGoalItemIdRef.current(goalId),
-            150,
-          );
+  const prayerGoals = useMemo(
+    () => mapPrayerGoalsFromApi(prayerGoalsFromApi),
+    [prayerGoalsFromApi],
+  );
+
+  const quranGoals = useMemo(() => {
+    const data = allQuranGoalsResponse as
+      | { goals?: QuranGoalApiItem[] }
+      | QuranGoalApiItem[]
+      | null
+      | undefined;
+    if (!data) return mapQuranGoalsFromApi([]);
+    // Transition / bad cache: older clients stored the bare array or envelope
+    if (Array.isArray(data)) return mapQuranGoalsFromApi(data);
+    if (Array.isArray(data.goals)) return mapQuranGoalsFromApi(data.goals);
+    return mapQuranGoalsFromApi([]);
+  }, [allQuranGoalsResponse]);
+
+  const fastingGoals = useMemo(
+    () => mapFastingGoalsFromApi(allFastingGoalsResponse?.goals),
+    [allFastingGoalsResponse],
+  );
+
+  const sadaqahGoals = useMemo(
+    () => mapSadaqahGoalsFromApi(allSadaqahGoalsResponse?.goals),
+    [allSadaqahGoalsResponse],
+  );
+
+  const emptySurahReference = useMemo(() => [], []);
+  const emptyHizbReference = useMemo(() => [], []);
+  const emptyJuzReference = useMemo(() => [], []);
+
+  const quranReferenceProps = useMemo(
+    () => ({
+      surahReference:
+        allQuranGoalsResponse?.reference.surahs ?? emptySurahReference,
+      hizbReference:
+        allQuranGoalsResponse?.reference.hizb ?? emptyHizbReference,
+      juzReference: allQuranGoalsResponse?.reference.juz ?? emptyJuzReference,
+      isReferenceLoading: loadingQuranGoals,
+      onNestedScrollActiveChange: handleNestedMetricScrollActive,
+    }),
+    [
+      allQuranGoalsResponse,
+      loadingQuranGoals,
+      handleNestedMetricScrollActive,
+      emptySurahReference,
+      emptyHizbReference,
+      emptyJuzReference,
+    ],
+  );
+
+  // Seed toggle state from backend isActive (only for keys not yet toggled locally)
+  useEffect(() => {
+    if (!prayerGoals.length) return;
+    setSelectedGoals((prev) => {
+      const next = { ...prev };
+      let changed = false;
+      for (const goal of prayerGoals) {
+        if (next[goal.id] === undefined) {
+          next[goal.id] = goal.isSelected;
+          changed = true;
         }
-      },
-      [beginProgrammaticAutoScroll, scheduleAutoScroll],
-    );
+      }
+      return changed ? next : prev;
+    });
+  }, [prayerGoals]);
 
-    const markGoalConfiguredData = useCallback((goalId: string) => {
+  useEffect(() => {
+    if (!quranGoals.length) return;
+    setSelectedGoals((prev) => {
+      const next = { ...prev };
+      let changed = false;
+      for (const goal of quranGoals) {
+        if (next[goal.id] === undefined) {
+          next[goal.id] = goal.isSelected;
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [quranGoals]);
+
+  useEffect(() => {
+    if (!fastingGoals.length) return;
+    setSelectedGoals((prev) => {
+      const next = { ...prev };
+      let changed = false;
+      for (const goal of fastingGoals) {
+        if (next[goal.id] === undefined) {
+          next[goal.id] = goal.isSelected;
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [fastingGoals]);
+
+  useEffect(() => {
+    if (!sadaqahGoals.length) return;
+    setSelectedGoals((prev) => {
+      const next = { ...prev };
+      let changed = false;
+      for (const goal of sadaqahGoals) {
+        if (next[goal.id] === undefined) {
+          next[goal.id] = goal.isSelected;
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [sadaqahGoals]);
+
+  // lifted sadaqah metrics collected from children
+  const [sadaqahMetrics, setSadaqahMetrics] = useState<Record<string, any>>({});
+  const { control, getValues, setValue, reset } = useForm({
+    defaultValues: {
+      missedZakat: "",
+      kafarahForBreakingFasts: "",
+      lillahDonation: "",
+      sadaqahJariyah: "",
+    },
+    mode: "onChange",
+  });
+
+  useEffect(() => {
+    reset({
+      missedZakat: "",
+      kafarahForBreakingFasts: "",
+      lillahDonation: "",
+      sadaqahJariyah: "",
+    });
+    setMissedZakatAmount(0);
+    setLillahAmount(0);
+    setSadaqahJariyahAmount(0);
+    setFidyaMeals(0);
+    setKafarahMeals(0);
+    setKafarahCloths(0);
+    setVolunteeringHours(0);
+  }, [userId, goalCycleId, reset]);
+
+  /** Review category headers that are open — all expanded by default on Review. */
+  const [reviewExpandedNames, setReviewExpandedNames] = useState<
+    Record<string, boolean>
+  >({});
+  const handleReviewItemPress = useCallback((itemOrName: any) => {
+    const name = typeof itemOrName === "string" ? itemOrName : itemOrName?.name;
+    if (!name) return;
+    setReviewExpandedNames((prev) => ({
+      ...prev,
+      [name]: !prev[name],
+    }));
+  }, []);
+  const handleGoalToggle = useCallback(
+    (goalId: string, isSelected: boolean) => {
+      setSelectedGoals((prev) => ({ ...prev, [goalId]: isSelected }));
+    },
+    [],
+  );
+
+  const setExpandedSelectionForCategory = useCallback(
+    (
+      category: "prayer" | "quran" | "fasting" | "sadaqah",
+      goalId: string | null,
+    ) => {
+      setExpandedGoalSelectionId((prev) => ({ ...prev, [category]: goalId }));
+      if (goalId) {
+        beginProgrammaticAutoScroll();
+        scheduleAutoScroll(() => scrollToGoalItemIdRef.current(goalId), 150);
+      }
+    },
+    [beginProgrammaticAutoScroll, scheduleAutoScroll],
+  );
+
+  const markGoalConfiguredData = useCallback((goalId: string) => {
+    if (!goalId) return;
+    setLocallyConfiguredGoalIds((prev) =>
+      prev[goalId] ? prev : { ...prev, [goalId]: true },
+    );
+    // Save implies the goal is ON — required for next-tab unlock checks.
+    setSelectedGoals((prev) =>
+      prev[goalId] === true ? prev : { ...prev, [goalId]: true },
+    );
+    // Unlock the next step tab as soon as any goal in this category is saved.
+    const category = (Object.keys(CATEGORY_UI_IDS) as GoalSequenceTab[]).find(
+      (tab) => CATEGORY_UI_IDS[tab].includes(goalId),
+    );
+    if (category) {
+      setSavedCategoryTabs((prev) =>
+        prev[category] ? prev : { ...prev, [category]: true },
+      );
+    }
+    setEditingGoal(null);
+    setPendingUnconfiguredGoalId((prev) => {
+      const next = { ...prev };
+      let changed = false;
+      (["prayer", "quran", "fasting", "sadaqah"] as const).forEach((key) => {
+        if (next[key] === goalId) {
+          next[key] = null;
+          changed = true;
+        }
+      });
+      return changed ? next : prev;
+    });
+  }, []);
+
+  const collapseGoalSelection = useCallback((goalId: string) => {
+    if (!goalId) return;
+    setExpandedGoalSelectionId((prev) => {
+      const next = { ...prev };
+      let changed = false;
+      (["prayer", "quran", "fasting", "sadaqah"] as const).forEach((key) => {
+        if (next[key] === goalId) {
+          next[key] = null;
+          changed = true;
+        }
+      });
+      return changed ? next : prev;
+    });
+  }, []);
+
+  const schedulePostSaveUi = useCallback(
+    (goalId: string) => {
       if (!goalId) return;
-      setLocallyConfiguredGoalIds((prev) =>
-        prev[goalId] ? prev : { ...prev, [goalId]: true },
-      );
-      // Save implies the goal is ON — required for next-tab unlock checks.
-      setSelectedGoals((prev) =>
-        prev[goalId] === true ? prev : { ...prev, [goalId]: true },
-      );
-      // Unlock the next step tab as soon as any goal in this category is saved.
-      const category = (
-        Object.keys(CATEGORY_UI_IDS) as GoalSequenceTab[]
-      ).find((tab) => CATEGORY_UI_IDS[tab].includes(goalId));
-      if (category) {
+      if (postSaveUiTimerRef.current) {
+        clearTimeout(postSaveUiTimerRef.current);
+      }
+      postSaveUiTimerRef.current = setTimeout(() => {
+        postSaveUiTimerRef.current = null;
+        collapseGoalSelection(goalId);
+        setPostSaveCollapseSignal((n) => n + 1);
+        beginProgrammaticAutoScroll();
+        scrollToNextGoalAfterSaveRef.current(goalId);
+      }, POST_SAVE_HOLD_MS);
+    },
+    [beginProgrammaticAutoScroll, collapseGoalSelection],
+  );
+
+  const completeGoalSaveSuccess = useCallback(
+    (goalId: string, onDone?: () => void) => {
+      onDone?.();
+      // Ensure cycle stays committed so Step 2+ unlock checks can pass.
+      setHasCommittedCycle(true);
+      committedCycleThisSessionRef.current = true;
+
+      const resolvedId = goalId ? resolvePrayerUiId(goalId) || goalId : goalId;
+      if (resolvedId) {
+        markGoalConfiguredData(resolvedId);
+        schedulePostSaveUi(resolvedId);
+      }
+
+      // Always unlock the *current* category tab after a successful save.
+      // (Goal-id mapping races previously left Step 2 locked while SAVED! showed.)
+      const tab = activeTabRef.current;
+      if (
+        tab === "prayer" ||
+        tab === "quran" ||
+        tab === "fasting" ||
+        tab === "sadaqah"
+      ) {
         setSavedCategoryTabs((prev) =>
-          prev[category] ? prev : { ...prev, [category]: true },
+          prev[tab] ? prev : { ...prev, [tab]: true },
         );
       }
-      setEditingGoal(null);
-      setPendingUnconfiguredGoalId((prev) => {
-        const next = { ...prev };
-        let changed = false;
-        (["prayer", "quran", "fasting", "sadaqah"] as const).forEach((key) => {
-          if (next[key] === goalId) {
-            next[key] = null;
-            changed = true;
-          }
-        });
-        return changed ? next : prev;
-      });
-    }, []);
+    },
+    [markGoalConfiguredData, schedulePostSaveUi],
+  );
 
-    const collapseGoalSelection = useCallback((goalId: string) => {
-      if (!goalId) return;
-      setExpandedGoalSelectionId((prev) => {
-        const next = { ...prev };
-        let changed = false;
-        (["prayer", "quran", "fasting", "sadaqah"] as const).forEach((key) => {
-          if (next[key] === goalId) {
-            next[key] = null;
-            changed = true;
-          }
-        });
-        return changed ? next : prev;
-      });
-    }, []);
+  const isPrayerGoalConfigured = useCallback(
+    (goalId: string) => {
+      if (locallyConfiguredGoalIds[goalId]) return true;
+      const goal = prayerGoals.find((item) => item.id === goalId);
+      if (goalId === "sunnahRawatib" || goal?.prayerType === "SUNNAH_RAWATIB") {
+        return getSunnahInitial(goal) != null;
+      }
+      return hasConfiguredTargets(goal);
+    },
+    [locallyConfiguredGoalIds, prayerGoals],
+  );
 
-    const schedulePostSaveUi = useCallback(
-      (goalId: string) => {
-        if (!goalId) return;
-        if (postSaveUiTimerRef.current) {
-          clearTimeout(postSaveUiTimerRef.current);
-        }
-        postSaveUiTimerRef.current = setTimeout(() => {
-          postSaveUiTimerRef.current = null;
-          collapseGoalSelection(goalId);
-          setPostSaveCollapseSignal((n) => n + 1);
-          beginProgrammaticAutoScroll();
-          scrollToNextGoalAfterSaveRef.current(goalId);
-        }, POST_SAVE_HOLD_MS);
-      },
-      [beginProgrammaticAutoScroll, collapseGoalSelection],
-    );
+  const isQuranGoalConfigured = useCallback(
+    (goalId: string) => {
+      if (locallyConfiguredGoalIds[goalId]) return true;
+      const goal = quranGoals.find((item) => item.id === goalId);
+      return hasConfiguredQuranGoal(goal);
+    },
+    [locallyConfiguredGoalIds, quranGoals],
+  );
 
-    const completeGoalSaveSuccess = useCallback(
-      (goalId: string, onDone?: () => void) => {
-        onDone?.();
-        // Ensure cycle stays committed so Step 2+ unlock checks can pass.
-        setHasCommittedCycle(true);
-        committedCycleThisSessionRef.current = true;
+  const isFastingGoalConfigured = useCallback(
+    (goalId: string) => {
+      if (locallyConfiguredGoalIds[goalId]) return true;
+      const goal = fastingGoals.find((item) => item.id === goalId);
+      return hasConfiguredFastingGoal(goal);
+    },
+    [locallyConfiguredGoalIds, fastingGoals],
+  );
 
-        const resolvedId = goalId ? resolvePrayerUiId(goalId) || goalId : goalId;
-        if (resolvedId) {
-          markGoalConfiguredData(resolvedId);
-          schedulePostSaveUi(resolvedId);
-        }
-
-        // Always unlock the *current* category tab after a successful save.
-        // (Goal-id mapping races previously left Step 2 locked while SAVED! showed.)
-        const tab = activeTabRef.current;
-        if (
-          tab === "prayer" ||
-          tab === "quran" ||
-          tab === "fasting" ||
-          tab === "sadaqah"
-        ) {
-          setSavedCategoryTabs((prev) =>
-            prev[tab] ? prev : { ...prev, [tab]: true },
-          );
-        }
-      },
-      [markGoalConfiguredData, schedulePostSaveUi],
-    );
-
-    const isPrayerGoalConfigured = useCallback(
-      (goalId: string) => {
-        if (locallyConfiguredGoalIds[goalId]) return true;
-        const goal = prayerGoals.find((item) => item.id === goalId);
-        if (
-          goalId === "sunnahRawatib" ||
-          goal?.prayerType === "SUNNAH_RAWATIB"
-        ) {
-          return getSunnahInitial(goal) != null;
-        }
-        return hasConfiguredTargets(goal);
-      },
-      [locallyConfiguredGoalIds, prayerGoals],
-    );
-
-    const isQuranGoalConfigured = useCallback(
-      (goalId: string) => {
-        if (locallyConfiguredGoalIds[goalId]) return true;
-        const goal = quranGoals.find((item) => item.id === goalId);
-        return hasConfiguredQuranGoal(goal);
-      },
-      [locallyConfiguredGoalIds, quranGoals],
-    );
-
-    const isFastingGoalConfigured = useCallback(
-      (goalId: string) => {
-        if (locallyConfiguredGoalIds[goalId]) return true;
-        const goal = fastingGoals.find((item) => item.id === goalId);
-        return hasConfiguredFastingGoal(goal);
-      },
-      [locallyConfiguredGoalIds, fastingGoals],
-    );
-
-    const isOtherFastingGoalActive = useCallback(() => {
-      return OTHER_FASTING_GOAL_IDS.some((goalId) => {
-        if (selectedGoals[goalId] !== undefined) {
-          return Boolean(selectedGoals[goalId]);
-        }
-        return Boolean(
-          fastingGoals.find((goal) => goal.id === goalId)?.isSelected,
-        );
-      });
-    }, [selectedGoals, fastingGoals]);
-
-    const isDawoodFastActive = useCallback(() => {
-      if (selectedGoals[DAWOOD_FAST_GOAL_ID] !== undefined) {
-        return Boolean(selectedGoals[DAWOOD_FAST_GOAL_ID]);
+  const isOtherFastingGoalActive = useCallback(() => {
+    return OTHER_FASTING_GOAL_IDS.some((goalId) => {
+      if (selectedGoals[goalId] !== undefined) {
+        return Boolean(selectedGoals[goalId]);
       }
       return Boolean(
-        fastingGoals.find((goal) => goal.id === DAWOOD_FAST_GOAL_ID)
-          ?.isSelected,
+        fastingGoals.find((goal) => goal.id === goalId)?.isSelected,
       );
-    }, [selectedGoals, fastingGoals]);
+    });
+  }, [selectedGoals, fastingGoals]);
 
-    const showDawoodFastingConflictModal = useCallback(() => {
-      setFastingGoalConflictModal({
-        visible: true,
-        message: t("monthlyGoalPlanner.dawoodFastConflictModalMessage"),
-      });
-    }, [t]);
+  const isDawoodFastActive = useCallback(() => {
+    if (selectedGoals[DAWOOD_FAST_GOAL_ID] !== undefined) {
+      return Boolean(selectedGoals[DAWOOD_FAST_GOAL_ID]);
+    }
+    return Boolean(
+      fastingGoals.find((goal) => goal.id === DAWOOD_FAST_GOAL_ID)?.isSelected,
+    );
+  }, [selectedGoals, fastingGoals]);
 
-    const isSadaqahGoalConfigured = useCallback(
-      (goalId: string) => {
-        if (locallyConfiguredGoalIds[goalId]) return true;
-        const resolvedId = resolveSadaqahUiId(goalId);
-        if (locallyConfiguredGoalIds[resolvedId]) return true;
-        const goal = sadaqahGoals.find(
-          (item) => item.id === goalId || item.id === resolvedId,
+  const showDawoodFastingConflictModal = useCallback(() => {
+    setFastingGoalConflictModal({
+      visible: true,
+      message: t("monthlyGoalPlanner.dawoodFastConflictModalMessage"),
+    });
+  }, [t]);
+
+  const isSadaqahGoalConfigured = useCallback(
+    (goalId: string) => {
+      if (locallyConfiguredGoalIds[goalId]) return true;
+      const resolvedId = resolveSadaqahUiId(goalId);
+      if (locallyConfiguredGoalIds[resolvedId]) return true;
+      const goal = sadaqahGoals.find(
+        (item) => item.id === goalId || item.id === resolvedId,
+      );
+      return hasConfiguredSadaqahGoal(goal);
+    },
+    [locallyConfiguredGoalIds, sadaqahGoals],
+  );
+
+  const getGoalDisplayName = useCallback(
+    (category: "prayer" | "quran" | "fasting" | "sadaqah", goalId: string) => {
+      if (category === "prayer") {
+        const goal = prayerGoals.find((item) => item.id === goalId);
+        return (
+          goal?.title ||
+          t(`goalsData.${goalId}.title`, { defaultValue: goalId })
         );
-        return hasConfiguredSadaqahGoal(goal);
-      },
-      [locallyConfiguredGoalIds, sadaqahGoals],
-    );
-
-    const getGoalDisplayName = useCallback(
-      (
-        category: "prayer" | "quran" | "fasting" | "sadaqah",
-        goalId: string,
-      ) => {
-        if (category === "prayer") {
-          const goal = prayerGoals.find((item) => item.id === goalId);
-          return (
-            goal?.title ||
-            t(`goalsData.${goalId}.title`, { defaultValue: goalId })
-          );
-        }
-        if (category === "quran") {
-          const goal = quranGoals.find((item) => item.id === goalId);
-          return (
-            goal?.title ||
-            t(`goalsData.${goalId}.title`, { defaultValue: goalId })
-          );
-        }
-        if (category === "fasting") {
-          return t(`goalsData.${goalId}.title`, { defaultValue: goalId });
-        }
+      }
+      if (category === "quran") {
+        const goal = quranGoals.find((item) => item.id === goalId);
+        return (
+          goal?.title ||
+          t(`goalsData.${goalId}.title`, { defaultValue: goalId })
+        );
+      }
+      if (category === "fasting") {
         return t(`goalsData.${goalId}.title`, { defaultValue: goalId });
+      }
+      return t(`goalsData.${goalId}.title`, { defaultValue: goalId });
+    },
+    [prayerGoals, quranGoals, t],
+  );
+
+  const canEnableGoalInCategory = useCallback(
+    (category: "prayer" | "quran" | "fasting" | "sadaqah", goalId: string) => {
+      const pendingId = pendingUnconfiguredGoalId[category];
+      if (!pendingId || pendingId === goalId) return true;
+
+      setUnfinishedGoalModal({
+        visible: true,
+        goalName: getGoalDisplayName(category, pendingId),
+      });
+      return false;
+    },
+    [pendingUnconfiguredGoalId, getGoalDisplayName],
+  );
+
+  const trackPendingOnToggle = useCallback(
+    (
+      category: "prayer" | "quran" | "fasting" | "sadaqah",
+      goalId: string,
+      isSelected: boolean,
+      _isConfigured: boolean,
+    ) => {
+      setPendingUnconfiguredGoalId((prev) => {
+        if (!isSelected) {
+          if (prev[category] !== goalId) return prev;
+          return { ...prev, [category]: null };
+        }
+        // Always require an explicit Save after toggle ON — even if the API
+        // returns default targets (Sunnah was showing SAVED! with no Save CTA).
+        if (prev[category] === goalId) return prev;
+        return { ...prev, [category]: goalId };
+      });
+    },
+    [],
+  );
+
+  /** SAVED! only after a real save — never right after toggle ON. */
+  const isInitiallySavedForUi = useCallback(
+    (
+      category: "prayer" | "quran" | "fasting" | "sadaqah",
+      goalId: string,
+      isConfigured: boolean,
+    ) => {
+      if (pendingUnconfiguredGoalId[category] === goalId) return false;
+      return isConfigured;
+    },
+    [pendingUnconfiguredGoalId],
+  );
+
+  const [editingGoal, setEditingGoal] = useState<string | null>("");
+  const localizedTabs = useMemo(
+    () => [
+      { id: "cycle" as Tab, label: t("monthlyGoalPlanner.tabCycle") },
+      {
+        id: "prayer" as Tab,
+        label: t("monthlyGoalPlanner.tabPrayer"),
+        chip: t("monthlyGoalPlanner.tabChipStep1"),
       },
-      [prayerGoals, quranGoals, t],
-    );
-
-    const canEnableGoalInCategory = useCallback(
-      (
-        category: "prayer" | "quran" | "fasting" | "sadaqah",
-        goalId: string,
-      ) => {
-        const pendingId = pendingUnconfiguredGoalId[category];
-        if (!pendingId || pendingId === goalId) return true;
-
-        setUnfinishedGoalModal({
-          visible: true,
-          goalName: getGoalDisplayName(category, pendingId),
-        });
-        return false;
+      {
+        id: "quran" as Tab,
+        label: t("monthlyGoalPlanner.tabQuran"),
+        chip: t("monthlyGoalPlanner.tabChipStep2"),
       },
-      [pendingUnconfiguredGoalId, getGoalDisplayName],
-    );
-
-    const trackPendingOnToggle = useCallback(
-      (
-        category: "prayer" | "quran" | "fasting" | "sadaqah",
-        goalId: string,
-        isSelected: boolean,
-        _isConfigured: boolean,
-      ) => {
-        setPendingUnconfiguredGoalId((prev) => {
-          if (!isSelected) {
-            if (prev[category] !== goalId) return prev;
-            return { ...prev, [category]: null };
-          }
-          // Always require an explicit Save after toggle ON — even if the API
-          // returns default targets (Sunnah was showing SAVED! with no Save CTA).
-          if (prev[category] === goalId) return prev;
-          return { ...prev, [category]: goalId };
-        });
+      {
+        id: "fasting" as Tab,
+        label: t("monthlyGoalPlanner.tabFasting"),
+        chip: t("monthlyGoalPlanner.tabChipStep3"),
       },
-      [],
-    );
-
-    /** SAVED! only after a real save — never right after toggle ON. */
-    const isInitiallySavedForUi = useCallback(
-      (
-        category: "prayer" | "quran" | "fasting" | "sadaqah",
-        goalId: string,
-        isConfigured: boolean,
-      ) => {
-        if (pendingUnconfiguredGoalId[category] === goalId) return false;
-        return isConfigured;
+      {
+        id: "sadaqah" as Tab,
+        label: t("monthlyGoalPlanner.tabSadaqah"),
+        chip: t("monthlyGoalPlanner.tabChipStep4"),
       },
-      [pendingUnconfiguredGoalId],
-    );
-
-    const [editingGoal, setEditingGoal] = useState<string | null>("");
-    const localizedTabs = useMemo(
-      () => [
-        { id: "cycle" as Tab, label: t("monthlyGoalPlanner.tabCycle") },
-        {
-          id: "prayer" as Tab,
-          label: t("monthlyGoalPlanner.tabPrayer"),
-          chip: t("monthlyGoalPlanner.tabChipStep1"),
-        },
-        {
-          id: "quran" as Tab,
-          label: t("monthlyGoalPlanner.tabQuran"),
-          chip: t("monthlyGoalPlanner.tabChipStep2"),
-        },
-        {
-          id: "fasting" as Tab,
-          label: t("monthlyGoalPlanner.tabFasting"),
-          chip: t("monthlyGoalPlanner.tabChipStep3"),
-        },
-        {
-          id: "sadaqah" as Tab,
-          label: t("monthlyGoalPlanner.tabSadaqah"),
-          chip: t("monthlyGoalPlanner.tabChipStep4"),
-        },
-        { id: "review" as Tab, label: t("monthlyGoalPlanner.tabReview") },
-      ],
-      [t],
-    );
-    const reviewBtnData = useMemo(
-      () =>
-        mapReviewFromGoalCycle(
-          goalCycleDetail,
-          t,
-          {
-            juz: allQuranGoalsResponse?.reference.juz,
-            hizb: allQuranGoalsResponse?.reference.hizb,
-            surah: allQuranGoalsResponse?.reference.surahs,
-          },
-          {
-            missedRamadanDates: fastingCalendarWindow?.missedRamadanDates,
-          },
-        ),
-      [
+      { id: "review" as Tab, label: t("monthlyGoalPlanner.tabReview") },
+    ],
+    [t],
+  );
+  const reviewBtnData = useMemo(
+    () =>
+      mapReviewFromGoalCycle(
         goalCycleDetail,
         t,
-        allQuranGoalsResponse?.reference.juz,
-        allQuranGoalsResponse?.reference.hizb,
-        allQuranGoalsResponse?.reference.surahs,
-        fastingCalendarWindow?.missedRamadanDates,
-      ],
+        {
+          juz: allQuranGoalsResponse?.reference.juz,
+          hizb: allQuranGoalsResponse?.reference.hizb,
+          surah: allQuranGoalsResponse?.reference.surahs,
+        },
+        {
+          missedRamadanDates: fastingCalendarWindow?.missedRamadanDates,
+        },
+      ),
+    [
+      goalCycleDetail,
+      t,
+      allQuranGoalsResponse?.reference.juz,
+      allQuranGoalsResponse?.reference.hizb,
+      allQuranGoalsResponse?.reference.surahs,
+      fastingCalendarWindow?.missedRamadanDates,
+    ],
+  );
+
+  // Review list is sourced from GET /goal-cycles/:id. Refetch on focus so the
+  // first visit is not stuck on a stale/empty cache while category saves used /current.
+  useEffect(() => {
+    if (activeTab !== "review") return;
+    if (!goalCycleId) return;
+    void refetchGoalCycleDetail();
+  }, [activeTab, goalCycleId, refetchGoalCycleDetail]);
+
+  // Entering Review & Confirm → expand every category section.
+  useEffect(() => {
+    if (activeTab !== "review") return;
+    const next: Record<string, boolean> = {};
+    for (const section of reviewBtnData) {
+      if (section?.name) next[section.name] = true;
+    }
+    setReviewExpandedNames(next);
+  }, [activeTab, reviewBtnData]);
+
+  /** Don't treat an empty Review list as final while cycle detail is still catching up. */
+  const isReviewWaitingForCycleDetail =
+    activeTab === "review" &&
+    (!goalCycleId ||
+      ((isGoalCycleLoading || isGoalCycleFetching) &&
+        reviewBtnData.length === 0));
+
+  const handleCycleDateSelect = useCallback(
+    (startDate: string, endDate: string) => {
+      setCycleStartDate(startDate);
+      setCycleEndDate(endDate);
+    },
+    [],
+  );
+
+  const scrollTabBarToTab = useCallback((tabId: Tab) => {
+    const layout = tabLayoutsRef.current[tabId];
+    if (!layout || !tabBarScrollRef.current) return;
+    const screenW = Dimensions.get("window").width;
+    const targetX = Math.max(
+      0,
+      layout.x - Math.max(16, (screenW - layout.width) / 2),
     );
+    tabBarScrollRef.current.scrollTo({ x: targetX, animated: true });
+  }, []);
 
-    // Entering Review & Confirm → expand every category section.
-    useEffect(() => {
-      if (activeTab !== "review") return;
-      const next: Record<string, boolean> = {};
-      for (const section of reviewBtnData) {
-        if (section?.name) next[section.name] = true;
-      }
-      setReviewExpandedNames(next);
-    }, [activeTab, reviewBtnData]);
-
-    const handleCycleDateSelect = useCallback(
-      (startDate: string, endDate: string) => {
-        setCycleStartDate(startDate);
-        setCycleEndDate(endDate);
-      },
-      [],
-    );
-
-    const scrollTabBarToTab = useCallback((tabId: Tab) => {
-      const layout = tabLayoutsRef.current[tabId];
-      if (!layout || !tabBarScrollRef.current) return;
-      const screenW = Dimensions.get("window").width;
-      const targetX = Math.max(0, layout.x - Math.max(16, (screenW - layout.width) / 2));
-      tabBarScrollRef.current.scrollTo({ x: targetX, animated: true });
-    }, []);
-
-    const handleCycleCommit = useCallback(
-      (startDate: string, endDate: string) => {
-        committedCycleThisSessionRef.current = true;
-        userChoseCycleTabRef.current = false;
-        postCommitTargetTabRef.current = "prayer";
-        setCycleStartDate(startDate);
-        setCycleEndDate(endDate);
-        setHasCommittedCycle(true);
+  const handleCycleCommit = useCallback(
+    (startDate: string, endDate: string) => {
+      committedCycleThisSessionRef.current = true;
+      userChoseCycleTabRef.current = false;
+      postCommitTargetTabRef.current = "prayer";
+      setCycleStartDate(startDate);
+      setCycleEndDate(endDate);
+      setHasCommittedCycle(true);
+      setActiveTab("prayer");
+      // Re-assert Step 1 after paint only while still targeting prayer
+      // (do not override if the user already moved to Step 2+).
+      const reassertPrayer = () => {
+        if (postCommitTargetTabRef.current !== "prayer") return;
+        if (userChoseCycleTabRef.current) return;
         setActiveTab("prayer");
-        // Re-assert Step 1 after paint only while still targeting prayer
-        // (do not override if the user already moved to Step 2+).
-        const reassertPrayer = () => {
-          if (postCommitTargetTabRef.current !== "prayer") return;
-          if (userChoseCycleTabRef.current) return;
-          setActiveTab("prayer");
-          scrollTabBarToTab("prayer");
-        };
-        requestAnimationFrame(reassertPrayer);
-        setTimeout(reassertPrayer, 120);
-        setTimeout(() => {
-          if (postCommitTargetTabRef.current === "prayer") {
-            postCommitTargetTabRef.current = null;
-          }
-        }, 1200);
-      },
-      [scrollTabBarToTab],
-    );
-
-    const fastingData = [
-      {
-        id: "missed-fasts",
-        title: "Missed Ramadan Fasts",
-        description:
-          "Fulfilling missed obligatory fasts is a duty that reflects devotion, demonstrates discipline, and upholds our commitment to Allah’s commands",
-        isSelected: false,
-        image: missedramadanfastsbottomsheetimage,
-      },
-      {
-        id: "dawood-fasts",
-        title: "The Fast of ProphetDawood",
-        description:
-          "These fasts are observed by fasting every other day, reflecting Prophet Dawood's (PBUH) devotion and resilience, and serving as a model of piety",
-        isSelected: false,
-        image: thefastsofprophetdawoodbottomsheetimage,
-      },
-      {
-        id: "monday-and-thursday-fasts",
-        title: "Monday & Thursday Fasts",
-        description:
-          "These fasts follow the Prophet's (PBUH) Sunnah, deepen devotion to Allah, promote well-being, and offer profound spiritual purification and self-discipline",
-        isSelected: false,
-        image: mondayandthursdayfastsbottomsheetimage,
-      },
-      {
-        id: "white-days-fasts",
-        title: "White Days Fasts",
-        description:
-          "Fasting on the 13th, 14th, and 15th of each Islamic month deepens connection with Allah, nurtures discipline, and inspires profound spiritual growth and self-reflection",
-        isSelected: false,
-        image: whitedaysfastsbottomsheetimage,
-      },
-    ];
-    const sadaqahData = [
-      {
-        id: "missed-zakat",
-        title: "Missed Zakat",
-        description:
-          "Fulfilling missed Zakat is a sacred obligation that purifies wealth, restores social equity, and reaffirms a believer’s responsibility to support society’s welfare",
-        isSelected: false,
-        image: missedzakatbottomsheetimage,
-      },
-      {
-        id: "kafarah-for-breaking-fasts",
-        title: "Kafarah for Breaking Fasts",
-        description:
-          "A form of sadaqah to atone for broken fasts or oaths, requiring feeding or clothing those in need as prescribed",
-        isSelected: false,
-        image: kaffarahbottomsheetimage,
-      },
-      {
-        id: "fidya",
-        title: "Fidya",
-        description:
-          "A form of sadaqah that allows those unable to fast due to illness or age to stay spiritually connected by feeding one person per missed fast day",
-        isSelected: false,
-        image: fidyabottomsheetimage,
-      },
-      {
-        id: "lilah-donations",
-        title: "Lilah Donations",
-        description:
-          "Lillah, derived from the Arabic term 'for Allah', is a pure form of sadaqah driven by a sincere desire to please Allah, fostering devotion and selflessness among Muslims",
-        isSelected: false,
-        image: lillahdonationbottomsheetimage,
-      },
-      {
-        id: "sadaqah-jariyah",
-        title: "Sadaqah Jariyah",
-        description:
-          "This form of Sadaqah is the most rewarding—it’s the gift that keeps giving, offering endless blessings and rewards in this life and the hereafter",
-        isSelected: false,
-        image: sadaqahjariyahbottomsheetimage,
-      },
-      {
-        id: "volunteering-services",
-        title: "Volunteering Services",
-        description:
-          "As Muslims, offering our time and skills without expecting any compensation is a noble act and a profound expression of faith, bringing us closer to Allah",
-        isSelected: false,
-        image: volunteeringservicesbottomsheetimage,
-      },
-    ];
-    const { mutate: togglePrayerGoalByType } = useTogglePrayerGoalByType();
-    const { mutateAsync: toggleQuranGoalByType } = useToggleQuranGoalByType();
-    const { mutate: toggleFastingGoalByType } = useToggleFastingGoalByType();
-    const { mutate: toggleSadaqahGoalByType } = useToggleSadaqahGoalByType();
-    const { mutate: upsertSadaqahGoal, isPending: isSavingSadaqah } =
-      useUpsertSadaqahGoal();
-    const { mutate: upsertPrayerGoal, isPending: isSavingPrayer } =
-      useUpsertPrayerGoal();
-    const { mutate: bulkUpsertQuranGoals, isPending: isSavingQuran } =
-      useBulkUpsertQuranGoals();
-
-    // React-query exposes a single `isSavingPrayer` boolean for the whole category.
-    // Track the specific prayerType being saved so only that goal shows loading.
-    const [savingPrayerType, setSavingPrayerType] = useState<string | null>(
-      null,
-    );
-    useEffect(() => {
-      if (!isSavingPrayer) setSavingPrayerType(null);
-    }, [isSavingPrayer]);
-
-    // Same for Quran — one bulk mutation isPending would otherwise light up every Save.
-    const [savingQuranGoalId, setSavingQuranGoalId] = useState<string | null>(
-      null,
-    );
-    useEffect(() => {
-      if (!isSavingQuran) setSavingQuranGoalId(null);
-    }, [isSavingQuran]);
-
-    const isQuranGoalSaving = useCallback(
-      (goalId: string) => isSavingQuran && savingQuranGoalId === goalId,
-      [isSavingQuran, savingQuranGoalId],
-    );
-
-    const handlePrayerToggle = useCallback(
-      (prayerId: string, prayerType: string, isSelected: boolean) => {
-        if (isSelected && !canEnableGoalInCategory("prayer", prayerId)) {
-          return;
+        scrollTabBarToTab("prayer");
+      };
+      requestAnimationFrame(reassertPrayer);
+      setTimeout(reassertPrayer, 120);
+      setTimeout(() => {
+        if (postCommitTargetTabRef.current === "prayer") {
+          postCommitTargetTabRef.current = null;
         }
-        handleGoalToggle(prayerId, isSelected);
-        if (isSelected) {
-          setExpandedSelectionForCategory("prayer", prayerId);
-        } else {
-          setExpandedGoalSelectionId((prev) =>
-            prev.prayer === prayerId ? { ...prev, prayer: null } : prev,
-          );
-        }
-        trackPendingOnToggle(
-          "prayer",
-          prayerId,
-          isSelected,
-          isPrayerGoalConfigured(prayerId),
+      }, 1200);
+    },
+    [scrollTabBarToTab],
+  );
+
+  const fastingData = [
+    {
+      id: "missed-fasts",
+      title: "Missed Ramadan Fasts",
+      description:
+        "Fulfilling missed obligatory fasts is a duty that reflects devotion, demonstrates discipline, and upholds our commitment to Allah’s commands",
+      isSelected: false,
+      image: missedramadanfastsbottomsheetimage,
+    },
+    {
+      id: "dawood-fasts",
+      title: "The Fast of ProphetDawood",
+      description:
+        "These fasts are observed by fasting every other day, reflecting Prophet Dawood's (PBUH) devotion and resilience, and serving as a model of piety",
+      isSelected: false,
+      image: thefastsofprophetdawoodbottomsheetimage,
+    },
+    {
+      id: "monday-and-thursday-fasts",
+      title: "Monday & Thursday Fasts",
+      description:
+        "These fasts follow the Prophet's (PBUH) Sunnah, deepen devotion to Allah, promote well-being, and offer profound spiritual purification and self-discipline",
+      isSelected: false,
+      image: mondayandthursdayfastsbottomsheetimage,
+    },
+    {
+      id: "white-days-fasts",
+      title: "White Days Fasts",
+      description:
+        "Fasting on the 13th, 14th, and 15th of each Islamic month deepens connection with Allah, nurtures discipline, and inspires profound spiritual growth and self-reflection",
+      isSelected: false,
+      image: whitedaysfastsbottomsheetimage,
+    },
+  ];
+  const sadaqahData = [
+    {
+      id: "missed-zakat",
+      title: "Missed Zakat",
+      description:
+        "Fulfilling missed Zakat is a sacred obligation that purifies wealth, restores social equity, and reaffirms a believer’s responsibility to support society’s welfare",
+      isSelected: false,
+      image: missedzakatbottomsheetimage,
+    },
+    {
+      id: "kafarah-for-breaking-fasts",
+      title: "Kafarah for Breaking Fasts",
+      description:
+        "A form of sadaqah to atone for broken fasts or oaths, requiring feeding or clothing those in need as prescribed",
+      isSelected: false,
+      image: kaffarahbottomsheetimage,
+    },
+    {
+      id: "fidya",
+      title: "Fidya",
+      description:
+        "A form of sadaqah that allows those unable to fast due to illness or age to stay spiritually connected by feeding one person per missed fast day",
+      isSelected: false,
+      image: fidyabottomsheetimage,
+    },
+    {
+      id: "lilah-donations",
+      title: "Lilah Donations",
+      description:
+        "Lillah, derived from the Arabic term 'for Allah', is a pure form of sadaqah driven by a sincere desire to please Allah, fostering devotion and selflessness among Muslims",
+      isSelected: false,
+      image: lillahdonationbottomsheetimage,
+    },
+    {
+      id: "sadaqah-jariyah",
+      title: "Sadaqah Jariyah",
+      description:
+        "This form of Sadaqah is the most rewarding—it’s the gift that keeps giving, offering endless blessings and rewards in this life and the hereafter",
+      isSelected: false,
+      image: sadaqahjariyahbottomsheetimage,
+    },
+    {
+      id: "volunteering-services",
+      title: "Volunteering Services",
+      description:
+        "As Muslims, offering our time and skills without expecting any compensation is a noble act and a profound expression of faith, bringing us closer to Allah",
+      isSelected: false,
+      image: volunteeringservicesbottomsheetimage,
+    },
+  ];
+  const { mutate: togglePrayerGoalByType } = useTogglePrayerGoalByType();
+  const { mutateAsync: toggleQuranGoalByType } = useToggleQuranGoalByType();
+  const { mutate: toggleFastingGoalByType } = useToggleFastingGoalByType();
+  const { mutate: toggleSadaqahGoalByType } = useToggleSadaqahGoalByType();
+  const { mutate: upsertSadaqahGoal, isPending: isSavingSadaqah } =
+    useUpsertSadaqahGoal();
+  const { mutate: upsertPrayerGoal, isPending: isSavingPrayer } =
+    useUpsertPrayerGoal();
+  const { mutate: bulkUpsertQuranGoals, isPending: isSavingQuran } =
+    useBulkUpsertQuranGoals();
+
+  // React-query exposes a single `isSavingPrayer` boolean for the whole category.
+  // Track the specific prayerType being saved so only that goal shows loading.
+  const [savingPrayerType, setSavingPrayerType] = useState<string | null>(null);
+  useEffect(() => {
+    if (!isSavingPrayer) setSavingPrayerType(null);
+  }, [isSavingPrayer]);
+
+  // Same for Quran — one bulk mutation isPending would otherwise light up every Save.
+  const [savingQuranGoalId, setSavingQuranGoalId] = useState<string | null>(
+    null,
+  );
+  useEffect(() => {
+    if (!isSavingQuran) setSavingQuranGoalId(null);
+  }, [isSavingQuran]);
+
+  const isQuranGoalSaving = useCallback(
+    (goalId: string) => isSavingQuran && savingQuranGoalId === goalId,
+    [isSavingQuran, savingQuranGoalId],
+  );
+
+  const handlePrayerToggle = useCallback(
+    (prayerId: string, prayerType: string, isSelected: boolean) => {
+      if (isSelected && !canEnableGoalInCategory("prayer", prayerId)) {
+        return;
+      }
+      handleGoalToggle(prayerId, isSelected);
+      if (isSelected) {
+        setExpandedSelectionForCategory("prayer", prayerId);
+      } else {
+        setExpandedGoalSelectionId((prev) =>
+          prev.prayer === prayerId ? { ...prev, prayer: null } : prev,
         );
-        togglePrayerGoalByType(
-          { prayerType, isActive: isSelected },
-          {
-            onError: () => {
-              handleGoalToggle(prayerId, !isSelected);
-              if (isSelected) {
-                setExpandedSelectionForCategory("prayer", null);
-              }
-              trackPendingOnToggle(
-                "prayer",
-                prayerId,
-                !isSelected,
-                isPrayerGoalConfigured(prayerId),
-              );
-            },
+      }
+      trackPendingOnToggle(
+        "prayer",
+        prayerId,
+        isSelected,
+        isPrayerGoalConfigured(prayerId),
+      );
+      togglePrayerGoalByType(
+        { prayerType, isActive: isSelected },
+        {
+          onError: () => {
+            handleGoalToggle(prayerId, !isSelected);
+            if (isSelected) {
+              setExpandedSelectionForCategory("prayer", null);
+            }
+            trackPendingOnToggle(
+              "prayer",
+              prayerId,
+              !isSelected,
+              isPrayerGoalConfigured(prayerId),
+            );
           },
-        );
-      },
-      [
-        canEnableGoalInCategory,
-        handleGoalToggle,
-        isPrayerGoalConfigured,
-        setExpandedSelectionForCategory,
-        togglePrayerGoalByType,
-        trackPendingOnToggle,
-      ],
-    );
+        },
+      );
+    },
+    [
+      canEnableGoalInCategory,
+      handleGoalToggle,
+      isPrayerGoalConfigured,
+      setExpandedSelectionForCategory,
+      togglePrayerGoalByType,
+      trackPendingOnToggle,
+    ],
+  );
 
-    const handleQuranToggle = useCallback(
-      async (
-        quranId: string,
-        apiGoals: { quranGoalType: string }[] | undefined,
-        isSelected: boolean,
-      ) => {
-        if (isSelected && !canEnableGoalInCategory("quran", quranId)) {
-          return;
-        }
-        handleGoalToggle(quranId, isSelected);
+  const handleQuranToggle = useCallback(
+    async (
+      quranId: string,
+      apiGoals: { quranGoalType: string }[] | undefined,
+      isSelected: boolean,
+    ) => {
+      if (isSelected && !canEnableGoalInCategory("quran", quranId)) {
+        return;
+      }
+      handleGoalToggle(quranId, isSelected);
+      if (isSelected) {
+        setExpandedSelectionForCategory("quran", quranId);
+      } else {
+        setExpandedGoalSelectionId((prev) =>
+          prev.quran === quranId ? { ...prev, quran: null } : prev,
+        );
+      }
+      trackPendingOnToggle(
+        "quran",
+        quranId,
+        isSelected,
+        isQuranGoalConfigured(quranId),
+      );
+
+      const fromApi =
+        apiGoals?.map((g) => g.quranGoalType).filter(Boolean) ?? [];
+      const types =
+        fromApi.length > 0 ? fromApi : getQuranTypesForUiId(quranId);
+
+      try {
+        await Promise.all(
+          types.map((quranGoalType) =>
+            toggleQuranGoalByType({
+              quranGoalType,
+              isActive: isSelected,
+            }),
+          ),
+        );
+      } catch {
+        handleGoalToggle(quranId, !isSelected);
         if (isSelected) {
-          setExpandedSelectionForCategory("quran", quranId);
-        } else {
-          setExpandedGoalSelectionId((prev) =>
-            prev.quran === quranId ? { ...prev, quran: null } : prev,
-          );
+          setExpandedSelectionForCategory("quran", null);
         }
         trackPendingOnToggle(
           "quran",
           quranId,
-          isSelected,
+          !isSelected,
           isQuranGoalConfigured(quranId),
         );
+      }
+    },
+    [
+      canEnableGoalInCategory,
+      handleGoalToggle,
+      isQuranGoalConfigured,
+      setExpandedSelectionForCategory,
+      toggleQuranGoalByType,
+      trackPendingOnToggle,
+    ],
+  );
 
-        const fromApi =
-          apiGoals?.map((g) => g.quranGoalType).filter(Boolean) ?? [];
-        const types =
-          fromApi.length > 0 ? fromApi : getQuranTypesForUiId(quranId);
-
-        try {
-          await Promise.all(
-            types.map((quranGoalType) =>
-              toggleQuranGoalByType({
-                quranGoalType,
-                isActive: isSelected,
-              }),
-            ),
-          );
-        } catch {
-          handleGoalToggle(quranId, !isSelected);
-          if (isSelected) {
-            setExpandedSelectionForCategory("quran", null);
-          }
-          trackPendingOnToggle(
-            "quran",
-            quranId,
-            !isSelected,
-            isQuranGoalConfigured(quranId),
-          );
-        }
-      },
-      [
-        canEnableGoalInCategory,
-        handleGoalToggle,
-        isQuranGoalConfigured,
-        setExpandedSelectionForCategory,
-        toggleQuranGoalByType,
-        trackPendingOnToggle,
-      ],
-    );
-
-    const handleFastingToggle = useCallback(
-      (
-        fastingId: string,
-        fastingType: string | undefined,
-        isSelected: boolean,
-      ) => {
-        if (isSelected && !canEnableGoalInCategory("fasting", fastingId)) {
+  const handleFastingToggle = useCallback(
+    (
+      fastingId: string,
+      fastingType: string | undefined,
+      isSelected: boolean,
+    ) => {
+      if (isSelected && !canEnableGoalInCategory("fasting", fastingId)) {
+        return;
+      }
+      // Block exclusive fasting conflicts before any optimistic UI (calendar).
+      if (isSelected) {
+        if (fastingId === DAWOOD_FAST_GOAL_ID && isOtherFastingGoalActive()) {
+          showDawoodFastingConflictModal();
           return;
         }
-        // Block exclusive fasting conflicts before any optimistic UI (calendar).
-        if (isSelected) {
-          if (
-            fastingId === DAWOOD_FAST_GOAL_ID &&
-            isOtherFastingGoalActive()
-          ) {
-            showDawoodFastingConflictModal();
-            return;
-          }
-          if (
-            (OTHER_FASTING_GOAL_IDS as readonly string[]).includes(fastingId) &&
-            isDawoodFastActive()
-          ) {
-            showDawoodFastingConflictModal();
-            return;
-          }
+        if (
+          (OTHER_FASTING_GOAL_IDS as readonly string[]).includes(fastingId) &&
+          isDawoodFastActive()
+        ) {
+          showDawoodFastingConflictModal();
+          return;
         }
-        const type = resolveFastingType(fastingType || fastingId);
-        handleGoalToggle(fastingId, isSelected);
-        if (isSelected) {
-          setExpandedSelectionForCategory("fasting", fastingId);
-        } else {
-          setExpandedGoalSelectionId((prev) =>
-            prev.fasting === fastingId ? { ...prev, fasting: null } : prev,
-          );
-        }
-        trackPendingOnToggle(
-          "fasting",
-          fastingId,
-          isSelected,
-          isFastingGoalConfigured(fastingId),
+      }
+      const type = resolveFastingType(fastingType || fastingId);
+      handleGoalToggle(fastingId, isSelected);
+      if (isSelected) {
+        setExpandedSelectionForCategory("fasting", fastingId);
+      } else {
+        setExpandedGoalSelectionId((prev) =>
+          prev.fasting === fastingId ? { ...prev, fasting: null } : prev,
         );
-        toggleFastingGoalByType(
-          { fastingType: type, isActive: isSelected },
-          {
-            onError: (error: any) => {
-              handleGoalToggle(fastingId, !isSelected);
-              if (isSelected) {
-                setExpandedSelectionForCategory("fasting", null);
-              }
-              trackPendingOnToggle(
-                "fasting",
-                fastingId,
-                !isSelected,
-                isFastingGoalConfigured(fastingId),
-              );
-              const message =
-                error?.response?.data?.message ??
-                t("monthlyGoalPlanner.dawoodFastConflictModalMessage");
-              setFastingGoalConflictModal({ visible: true, message });
-            },
-          },
-        );
-      },
-      [
-        canEnableGoalInCategory,
-        handleGoalToggle,
-        isDawoodFastActive,
-        isFastingGoalConfigured,
-        isOtherFastingGoalActive,
-        setExpandedSelectionForCategory,
-        showDawoodFastingConflictModal,
-        t,
-        toggleFastingGoalByType,
-        trackPendingOnToggle,
-      ],
-    );
-
-    const confirmDawoodFastGoal = useCallback(() => {
-      setDawoodFastConfirmModalVisible(false);
-      const dawoodGoal = fastingGoals.find(
-        (goal) => goal.id === DAWOOD_FAST_GOAL_ID,
+      }
+      trackPendingOnToggle(
+        "fasting",
+        fastingId,
+        isSelected,
+        isFastingGoalConfigured(fastingId),
       );
-      handleFastingToggle(DAWOOD_FAST_GOAL_ID, dawoodGoal?.fastingType, true);
-    }, [fastingGoals, handleFastingToggle]);
-
-    const handleSadaqahToggle = useCallback(
-      (
-        sadaqahId: string,
-        sadaqahType: string | undefined,
-        isSelected: boolean,
-      ) => {
-        if (isSelected && !canEnableGoalInCategory("sadaqah", sadaqahId)) {
-          return;
-        }
-        const type = resolveSadaqahType(sadaqahType || sadaqahId);
-        handleGoalToggle(sadaqahId, isSelected);
-        if (isSelected) {
-          setExpandedSelectionForCategory("sadaqah", sadaqahId);
-        } else {
-          setExpandedGoalSelectionId((prev) =>
-            prev.sadaqah === sadaqahId ? { ...prev, sadaqah: null } : prev,
-          );
-        }
-        trackPendingOnToggle(
-          "sadaqah",
-          sadaqahId,
-          isSelected,
-          isSadaqahGoalConfigured(sadaqahId),
-        );
-        toggleSadaqahGoalByType(
-          { sadaqahType: type, isActive: isSelected },
-          {
-            onError: () => {
-              handleGoalToggle(sadaqahId, !isSelected);
-              if (isSelected) {
-                setExpandedGoalSelectionId((prev) =>
-                  prev.sadaqah === sadaqahId
-                    ? { ...prev, sadaqah: null }
-                    : prev,
-                );
-              }
-              trackPendingOnToggle(
-                "sadaqah",
-                sadaqahId,
-                !isSelected,
-                isSadaqahGoalConfigured(sadaqahId),
-              );
-            },
-          },
-        );
-      },
-      [
-        canEnableGoalInCategory,
-        handleGoalToggle,
-        isSadaqahGoalConfigured,
-        setExpandedSelectionForCategory,
-        toggleSadaqahGoalByType,
-        trackPendingOnToggle,
-      ],
-    );
-
-    enableGoalInActiveTabRef.current = (goal: any) => {
-      if (!goal?.id) return;
-      const tab = activeTabRef.current;
-      if (tab === "prayer") {
-        handlePrayerToggle(goal.id, goal.prayerType, true);
-        return;
-      }
-      if (tab === "quran") {
-        void handleQuranToggle(goal.id, goal.apiGoals, true);
-        return;
-      }
-      if (tab === "fasting") {
-        handleFastingToggle(goal.id, goal.fastingType, true);
-        return;
-      }
-      if (tab === "sadaqah") {
-        handleSadaqahToggle(goal.id, goal.sadaqahType, true);
-      }
-    };
-
-    const persistSadaqahMetrics = useCallback(
-      (
-        goalKey: string,
-        rows: { id: number; label: string; value: string }[],
-      ) => {
-        setSadaqahMetrics((prev) => ({
-          ...prev,
-          [goalKey]: rows,
-        }));
-      },
-      [],
-    );
-
-    const requireSadaqahCurrencyCode = useCallback(
-      (field: (typeof SADAQAH_CURRENCY_FIELDS)[number]) => {
-        const code = extractCurrencyCode(getValues(field), "");
-        if (!code) {
-          showToast("error", t("monthlyGoalPlanner.selectCurrencyRequired"));
-          return null;
-        }
-        return code;
-      },
-      [getValues, t],
-    );
-
-    const saveMissedZakatGoal = useCallback(
-      (goalKey: string, onDone?: () => void, onFail?: () => void) => {
-        if (missedZakatAmount < 1) {
-          showToast("error", "Enter a missed zakat amount greater than 0");
-          onFail?.();
-          return;
-        }
-        const currencyCode = requireSadaqahCurrencyCode("missedZakat");
-        if (!currencyCode) {
-          onFail?.();
-          return;
-        }
-        upsertSadaqahGoal(
-          {
-            sadaqahType: "MISSED_ZAKAT",
-            targetAmount: missedZakatAmount,
-            currencyCode,
-          },
-          {
-            onSuccess: () => {
-              // Header amount only on Review — no "Amount" sub-row.
-              persistSadaqahMetrics(goalKey, []);
-              completeGoalSaveSuccess("missed-zakat", onDone);
-            },
-            onError: () => onFail?.(),
-          },
-        );
-      },
-      [
-        missedZakatAmount,
-        upsertSadaqahGoal,
-        requireSadaqahCurrencyCode,
-        persistSadaqahMetrics,
-        completeGoalSaveSuccess,
-      ],
-    );
-
-    const saveKaffarahGoal = useCallback(
-      (goalKey: string, onDone?: () => void, onFail?: () => void) => {
-        if (kafarahMeals < 1 && kafarahCloths < 1) {
-          showToast("error", "Enter meals or clothing items for kaffarah");
-          onFail?.();
-          return;
-        }
-        upsertSadaqahGoal(
-          {
-            sadaqahType: "KAFFARAH",
-            kaffarahMealsTarget: kafarahMeals,
-            kaffarahItemsTarget: kafarahCloths,
-          },
-          {
-            onSuccess: () => {
-              persistSadaqahMetrics(goalKey, [
-                {
-                  id: 1,
-                  label: t("monthlyGoalPlanner.meals", {
-                    count: kafarahMeals,
-                  }),
-                  value: String(kafarahMeals),
-                },
-                {
-                  id: 2,
-                  label: t("monthlyGoalPlanner.cloths", {
-                    count: kafarahCloths,
-                  }),
-                  value: String(kafarahCloths),
-                },
-              ]);
-              completeGoalSaveSuccess("kafarah-for-breaking-fasts", onDone);
-            },
-            onError: () => onFail?.(),
-          },
-        );
-      },
-      [
-        kafarahMeals,
-        kafarahCloths,
-        upsertSadaqahGoal,
-        persistSadaqahMetrics,
-        completeGoalSaveSuccess,
-        t,
-      ],
-    );
-
-    const saveFidyaGoal = useCallback(
-      (goalKey: string, onDone?: () => void, onFail?: () => void) => {
-        if (fidyaMeals < 1) {
-          showToast("error", "Enter a fidya meal count greater than 0");
-          onFail?.();
-          return;
-        }
-        upsertSadaqahGoal(
-          {
-            sadaqahType: "FIDYA",
-            targetAmount: fidyaMeals,
-            targetUnit: "MEALS",
-          },
-          {
-            onSuccess: () => {
-              persistSadaqahMetrics(goalKey, []);
-              completeGoalSaveSuccess("fidya", onDone);
-            },
-            onError: () => onFail?.(),
-          },
-        );
-      },
-      [
-        fidyaMeals,
-        upsertSadaqahGoal,
-        persistSadaqahMetrics,
-        completeGoalSaveSuccess,
-      ],
-    );
-
-    const saveLillahGoal = useCallback(
-      (goalKey: string, onDone?: () => void, onFail?: () => void) => {
-        if (lillahAmount < 1) {
-          showToast("error", "Enter a lillah amount greater than 0");
-          onFail?.();
-          return;
-        }
-        const currencyCode = requireSadaqahCurrencyCode("lillahDonation");
-        if (!currencyCode) {
-          onFail?.();
-          return;
-        }
-        upsertSadaqahGoal(
-          {
-            sadaqahType: "LILLAH",
-            targetAmount: lillahAmount,
-            currencyCode,
-          },
-          {
-            onSuccess: () => {
-              persistSadaqahMetrics(goalKey, []);
-              completeGoalSaveSuccess("lilah-donations", onDone);
-            },
-            onError: () => onFail?.(),
-          },
-        );
-      },
-      [
-        lillahAmount,
-        upsertSadaqahGoal,
-        requireSadaqahCurrencyCode,
-        persistSadaqahMetrics,
-        completeGoalSaveSuccess,
-      ],
-    );
-
-    const saveVolunteeringGoal = useCallback(
-      (goalKey: string, onDone?: () => void, onFail?: () => void) => {
-        if (volunteeringHours < 1) {
-          showToast("error", "Enter volunteering hours greater than 0");
-          onFail?.();
-          return;
-        }
-        upsertSadaqahGoal(
-          {
-            sadaqahType: "VOLUNTEERING",
-            // Backend stores volunteering target in minutes
-            targetAmount: volunteeringHours * 60,
-            causeCategory: "community_service",
-          },
-          {
-            onSuccess: () => {
-              persistSadaqahMetrics(goalKey, []);
-              completeGoalSaveSuccess("volunteering-services", onDone);
-            },
-            onError: () => onFail?.(),
-          },
-        );
-      },
-      [
-        volunteeringHours,
-        upsertSadaqahGoal,
-        persistSadaqahMetrics,
-        completeGoalSaveSuccess,
-      ],
-    );
-
-    const saveSadaqahJariyahGoal = useCallback(
-      (goalKey: string, onDone?: () => void, onFail?: () => void) => {
-        if (sadaqahJariyahAmount < 1) {
-          showToast("error", "Enter a sadaqah jariyah amount greater than 0");
-          onFail?.();
-          return;
-        }
-        const currencyCode = requireSadaqahCurrencyCode("sadaqahJariyah");
-        if (!currencyCode) {
-          onFail?.();
-          return;
-        }
-        upsertSadaqahGoal(
-          {
-            sadaqahType: "SADAQAH_JARIYAH",
-            targetAmount: sadaqahJariyahAmount,
-            currencyCode,
-            causeCategory: "general",
-          },
-          {
-            onSuccess: () => {
-              persistSadaqahMetrics(goalKey, []);
-              completeGoalSaveSuccess("sadaqah-jariyah", onDone);
-            },
-            onError: () => onFail?.(),
-          },
-        );
-      },
-      [
-        sadaqahJariyahAmount,
-        upsertSadaqahGoal,
-        requireSadaqahCurrencyCode,
-        persistSadaqahMetrics,
-        completeGoalSaveSuccess,
-      ],
-    );
-
-    // Seed sadaqah counters / currency from API when goals load (don't overwrite in-progress edits)
-    useEffect(() => {
-      const sourceGoals =
-        sadaqahGoals.length > 0
-          ? sadaqahGoals
-          : (goalCycleDetail?.sadaqahGoals ?? []);
-
-      const seedCurrencyIfEmpty = (
-        field: (typeof SADAQAH_CURRENCY_FIELDS)[number],
-        currencyCode?: string | null,
-      ) => {
-        if (!currencyCode) return;
-        const current = getValues(field);
-        if (current && String(current).trim().length > 0) return;
-        const option = currencyOptionFromCode(
-          currencyCode,
-          sadaqahCurrencyOptions,
-        );
-        if (!option) return;
-        setValue(field, option, {
-          shouldDirty: false,
-        });
-      };
-
-      for (const goal of sourceGoals) {
-        if (!hasConfiguredSadaqahGoal(goal)) continue;
-        const amount = goal.targetAmount ?? 0;
-        switch (goal.sadaqahType) {
-          case "MISSED_ZAKAT":
-            if (amount <= 0) break;
-            setMissedZakatAmount((prev) => (prev > 0 ? prev : amount));
-            seedCurrencyIfEmpty("missedZakat", goal.currencyCode);
-            break;
-          case "KAFFARAH":
-            setKafarahMeals((prev) =>
-              prev > 0 ? prev : Math.max(0, goal.kaffarahMealsTarget ?? 0),
-            );
-            setKafarahCloths((prev) =>
-              prev > 0 ? prev : Math.max(0, goal.kaffarahItemsTarget ?? 0),
-            );
-            // Backward-compatibility for older payload shape.
-            if (
-              (goal.kaffarahMealsTarget ?? 0) <= 0 &&
-              (goal.kaffarahItemsTarget ?? 0) <= 0 &&
-              amount > 0
-            ) {
-              if (goal.kaffarahSubtype === "CLOTHING_ITEMS") {
-                setKafarahCloths((prev) => (prev > 0 ? prev : amount));
-              } else {
-                setKafarahMeals((prev) => (prev > 0 ? prev : amount));
-              }
+      toggleFastingGoalByType(
+        { fastingType: type, isActive: isSelected },
+        {
+          onError: (error: any) => {
+            handleGoalToggle(fastingId, !isSelected);
+            if (isSelected) {
+              setExpandedSelectionForCategory("fasting", null);
             }
-            break;
-          case "FIDYA":
-            if (amount <= 0) break;
-            setFidyaMeals((prev) => (prev > 0 ? prev : amount));
-            break;
-          case "LILLAH":
-            if (amount <= 0) break;
-            setLillahAmount((prev) => (prev > 0 ? prev : amount));
-            seedCurrencyIfEmpty("lillahDonation", goal.currencyCode);
-            break;
-          case "VOLUNTEERING":
-            if (amount <= 0) break;
-            setVolunteeringHours((prev) =>
-              prev > 0 ? prev : Math.max(1, Math.round(amount / 60)),
+            trackPendingOnToggle(
+              "fasting",
+              fastingId,
+              !isSelected,
+              isFastingGoalConfigured(fastingId),
             );
-            break;
-          case "SADAQAH_JARIYAH":
-            if (amount <= 0) break;
-            setSadaqahJariyahAmount((prev) => (prev > 0 ? prev : amount));
-            seedCurrencyIfEmpty("sadaqahJariyah", goal.currencyCode);
-            break;
-        }
-      }
-    }, [
-      sadaqahGoals,
-      goalCycleDetail?.sadaqahGoals,
-      userId,
-      goalCycleId,
-      getValues,
-      setValue,
-      sadaqahCurrencyOptions,
-    ]);
+            const message =
+              error?.response?.data?.message ??
+              t("monthlyGoalPlanner.dawoodFastConflictModalMessage");
+            setFastingGoalConflictModal({ visible: true, message });
+          },
+        },
+      );
+    },
+    [
+      canEnableGoalInCategory,
+      handleGoalToggle,
+      isDawoodFastActive,
+      isFastingGoalConfigured,
+      isOtherFastingGoalActive,
+      setExpandedSelectionForCategory,
+      showDawoodFastingConflictModal,
+      t,
+      toggleFastingGoalByType,
+      trackPendingOnToggle,
+    ],
+  );
 
-    const applyDefaultSadaqahCurrency = useCallback(
-      (currencyOptionValue: string) => {
-        for (const field of SADAQAH_CURRENCY_FIELDS) {
-          setValue(field, currencyOptionValue, { shouldDirty: true });
-        }
-      },
-      [setValue],
+  const confirmDawoodFastGoal = useCallback(() => {
+    setDawoodFastConfirmModalVisible(false);
+    const dawoodGoal = fastingGoals.find(
+      (goal) => goal.id === DAWOOD_FAST_GOAL_ID,
     );
+    handleFastingToggle(DAWOOD_FAST_GOAL_ID, dawoodGoal?.fastingType, true);
+  }, [fastingGoals, handleFastingToggle]);
 
-    const persistPrayerGoal = useCallback(
-      (
-        payload: UpsertPrayerGoalPayload,
-        goalId?: string,
-        onDone?: () => void,
-        onFail?: () => void,
-      ) => {
-        setSavingPrayerType(payload.prayerType);
-        upsertPrayerGoal(payload, {
+  const handleSadaqahToggle = useCallback(
+    (
+      sadaqahId: string,
+      sadaqahType: string | undefined,
+      isSelected: boolean,
+    ) => {
+      if (isSelected && !canEnableGoalInCategory("sadaqah", sadaqahId)) {
+        return;
+      }
+      const type = resolveSadaqahType(sadaqahType || sadaqahId);
+      handleGoalToggle(sadaqahId, isSelected);
+      if (isSelected) {
+        setExpandedSelectionForCategory("sadaqah", sadaqahId);
+      } else {
+        setExpandedGoalSelectionId((prev) =>
+          prev.sadaqah === sadaqahId ? { ...prev, sadaqah: null } : prev,
+        );
+      }
+      trackPendingOnToggle(
+        "sadaqah",
+        sadaqahId,
+        isSelected,
+        isSadaqahGoalConfigured(sadaqahId),
+      );
+      toggleSadaqahGoalByType(
+        { sadaqahType: type, isActive: isSelected },
+        {
+          onError: () => {
+            handleGoalToggle(sadaqahId, !isSelected);
+            if (isSelected) {
+              setExpandedGoalSelectionId((prev) =>
+                prev.sadaqah === sadaqahId ? { ...prev, sadaqah: null } : prev,
+              );
+            }
+            trackPendingOnToggle(
+              "sadaqah",
+              sadaqahId,
+              !isSelected,
+              isSadaqahGoalConfigured(sadaqahId),
+            );
+          },
+        },
+      );
+    },
+    [
+      canEnableGoalInCategory,
+      handleGoalToggle,
+      isSadaqahGoalConfigured,
+      setExpandedSelectionForCategory,
+      toggleSadaqahGoalByType,
+      trackPendingOnToggle,
+    ],
+  );
+
+  enableGoalInActiveTabRef.current = (goal: any) => {
+    if (!goal?.id) return;
+    const tab = activeTabRef.current;
+    if (tab === "prayer") {
+      handlePrayerToggle(goal.id, goal.prayerType, true);
+      return;
+    }
+    if (tab === "quran") {
+      void handleQuranToggle(goal.id, goal.apiGoals, true);
+      return;
+    }
+    if (tab === "fasting") {
+      handleFastingToggle(goal.id, goal.fastingType, true);
+      return;
+    }
+    if (tab === "sadaqah") {
+      handleSadaqahToggle(goal.id, goal.sadaqahType, true);
+    }
+  };
+
+  const persistSadaqahMetrics = useCallback(
+    (goalKey: string, rows: { id: number; label: string; value: string }[]) => {
+      setSadaqahMetrics((prev) => ({
+        ...prev,
+        [goalKey]: rows,
+      }));
+    },
+    [],
+  );
+
+  const requireSadaqahCurrencyCode = useCallback(
+    (field: (typeof SADAQAH_CURRENCY_FIELDS)[number]) => {
+      const code = extractCurrencyCode(getValues(field), "");
+      if (!code) {
+        showToast("error", t("monthlyGoalPlanner.selectCurrencyRequired"));
+        return null;
+      }
+      return code;
+    },
+    [getValues, t],
+  );
+
+  const saveMissedZakatGoal = useCallback(
+    (goalKey: string, onDone?: () => void, onFail?: () => void) => {
+      if (missedZakatAmount < 1) {
+        showToast("error", "Enter a missed zakat amount greater than 0");
+        onFail?.();
+        return;
+      }
+      const currencyCode = requireSadaqahCurrencyCode("missedZakat");
+      if (!currencyCode) {
+        onFail?.();
+        return;
+      }
+      upsertSadaqahGoal(
+        {
+          sadaqahType: "MISSED_ZAKAT",
+          targetAmount: missedZakatAmount,
+          currencyCode,
+        },
+        {
           onSuccess: () => {
-            const id =
-              goalId ??
-              resolvePrayerUiId(payload.prayerType) ??
-              PRAYER_TYPE_TO_UI_ID[payload.prayerType] ??
-              "";
-            completeGoalSaveSuccess(id, onDone);
+            // Header amount only on Review — no "Amount" sub-row.
+            persistSadaqahMetrics(goalKey, []);
+            completeGoalSaveSuccess("missed-zakat", onDone);
           },
           onError: () => onFail?.(),
-        });
-      },
-      [upsertPrayerGoal, completeGoalSaveSuccess],
-    );
+        },
+      );
+    },
+    [
+      missedZakatAmount,
+      upsertSadaqahGoal,
+      requireSadaqahCurrencyCode,
+      persistSadaqahMetrics,
+      completeGoalSaveSuccess,
+    ],
+  );
 
-    const saveSimplePrayerTarget = useCallback(
-      (
-        prayerType: string,
-        targetCount: number,
-        onDone?: () => void,
-        onFail?: () => void,
-        uiGoalId?: string,
-      ) => {
-        persistPrayerGoal(
-          {
-            prayerType,
-            isActive: true,
-            targetCount,
-            sliderValue: targetCount,
-          },
-          uiGoalId ?? resolvePrayerUiId(prayerType),
-          onDone,
-          onFail,
-        );
-      },
-      [persistPrayerGoal],
-    );
-
-    const saveQuranHoursGoal = useCallback(
-      (
-        quranGoalType: "LISTENING" | "TAJWEED",
-        hours: number,
-        onDone?: () => void,
-        onFail?: () => void,
-        uiGoalId?: string,
-      ) => {
-        const goalId =
-          uiGoalId ??
-          (quranGoalType === "LISTENING"
-            ? "quran-listening"
-            : "quran-tajweed");
-        setSavingQuranGoalId(goalId);
-        bulkUpsertQuranGoals(
-          {
-            goals: [buildHoursQuranPayload(quranGoalType, hours)],
-          },
-          {
-            onSuccess: () => {
-              completeGoalSaveSuccess(goalId, onDone);
-            },
-            onError: () => onFail?.(),
-          },
-        );
-      },
-      [bulkUpsertQuranGoals, completeGoalSaveSuccess],
-    );
-
-    const saveQuranMetricGoal = useCallback(
-      (
-        variant: "recitation" | "memorization",
-        /** When set (review editors), only that metric is sent; otherwise all configured metrics. */
-        onlyMetric?: "surah" | "juz" | "completion" | "hizb",
-        onDone?: () => void,
-        onFail?: () => void,
-        uiGoalId?: string,
-      ) => {
-        const goals = buildBulkQuranGoalsForVariant(
-          variant,
-          quranMetricsRef.current,
-          onlyMetric,
-        );
-        if (goals.length === 0) {
-          showToast("error", "Please complete your goal selection");
-          onFail?.();
-          return;
-        }
-        const goalId =
-          uiGoalId ??
-          (variant === "recitation"
-            ? "quran-recitation"
-            : "quran-memorization");
-        setSavingQuranGoalId(goalId);
-        bulkUpsertQuranGoals(
-          { goals },
-          {
-            onSuccess: () => {
-              completeGoalSaveSuccess(goalId, onDone);
-            },
-            onError: () => onFail?.(),
-          },
-        );
-      },
-      [bulkUpsertQuranGoals, completeGoalSaveSuccess],
-    );
-    // Build a simple data array for the active tab. Use any[] to avoid complex typing across different data shapes
-    const tabData: any[] = useMemo(() => {
-      switch (activeTab) {
-        case "cycle":
-          return [];
-        case "prayer":
-          return loadingPrayerGoals
-            ? PRAYER_GOAL_LOADING_PLACEHOLDERS
-            : prayerGoals;
-        case "quran":
-          return loadingQuranGoals
-            ? QURAN_GOAL_LOADING_PLACEHOLDERS
-            : quranGoals;
-        case "fasting":
-          return loadingFastingGoals
-            ? FASTING_GOAL_LOADING_PLACEHOLDERS
-            : fastingGoals.length > 0
-              ? fastingGoals
-              : fastingData;
-        case "sadaqah":
-          return loadingSadaqahGoals
-            ? SADAQAH_GOAL_LOADING_PLACEHOLDERS
-            : sadaqahGoals.length > 0
-              ? sadaqahGoals
-              : sadaqahData;
-        case "review":
-          return reviewBtnData;
-        default:
-          return [];
+  const saveKaffarahGoal = useCallback(
+    (goalKey: string, onDone?: () => void, onFail?: () => void) => {
+      if (kafarahMeals < 1 && kafarahCloths < 1) {
+        showToast("error", "Enter meals or clothing items for kaffarah");
+        onFail?.();
+        return;
       }
-    }, [
-      activeTab,
-      loadingPrayerGoals,
-      loadingQuranGoals,
-      loadingFastingGoals,
-      loadingSadaqahGoals,
-      prayerGoals,
-      quranGoals,
-      fastingGoals,
-      fastingData,
-      sadaqahGoals,
-      sadaqahData,
-      reviewBtnData,
-    ]);
+      upsertSadaqahGoal(
+        {
+          sadaqahType: "KAFFARAH",
+          kaffarahMealsTarget: kafarahMeals,
+          kaffarahItemsTarget: kafarahCloths,
+        },
+        {
+          onSuccess: () => {
+            persistSadaqahMetrics(goalKey, [
+              {
+                id: 1,
+                label: t("monthlyGoalPlanner.meals", {
+                  count: kafarahMeals,
+                }),
+                value: String(kafarahMeals),
+              },
+              {
+                id: 2,
+                label: t("monthlyGoalPlanner.cloths", {
+                  count: kafarahCloths,
+                }),
+                value: String(kafarahCloths),
+              },
+            ]);
+            completeGoalSaveSuccess("kafarah-for-breaking-fasts", onDone);
+          },
+          onError: () => onFail?.(),
+        },
+      );
+    },
+    [
+      kafarahMeals,
+      kafarahCloths,
+      upsertSadaqahGoal,
+      persistSadaqahMetrics,
+      completeGoalSaveSuccess,
+      t,
+    ],
+  );
 
-    const tabDataRef = useRef(tabData);
-    tabDataRef.current = tabData;
+  const saveFidyaGoal = useCallback(
+    (goalKey: string, onDone?: () => void, onFail?: () => void) => {
+      if (fidyaMeals < 1) {
+        showToast("error", "Enter a fidya meal count greater than 0");
+        onFail?.();
+        return;
+      }
+      upsertSadaqahGoal(
+        {
+          sadaqahType: "FIDYA",
+          targetAmount: fidyaMeals,
+          targetUnit: "MEALS",
+        },
+        {
+          onSuccess: () => {
+            persistSadaqahMetrics(goalKey, []);
+            completeGoalSaveSuccess("fidya", onDone);
+          },
+          onError: () => onFail?.(),
+        },
+      );
+    },
+    [
+      fidyaMeals,
+      upsertSadaqahGoal,
+      persistSadaqahMetrics,
+      completeGoalSaveSuccess,
+    ],
+  );
 
-    /**
-     * Scroll only as far as needed so the focused input clears the keyboard.
-     * Adjusts the stored windowY after scrolling so retries never double-apply.
-     */
-    const scrollListToKeepInputVisible = (): boolean => {
-      const layout = focusedInputLayoutRef.current;
-      const kb = keyboardHeightRef.current;
-      if (!layout || kb <= 0 || !listRef.current) return false;
+  const saveLillahGoal = useCallback(
+    (goalKey: string, onDone?: () => void, onFail?: () => void) => {
+      if (lillahAmount < 1) {
+        showToast("error", "Enter a lillah amount greater than 0");
+        onFail?.();
+        return;
+      }
+      const currencyCode = requireSadaqahCurrencyCode("lillahDonation");
+      if (!currencyCode) {
+        onFail?.();
+        return;
+      }
+      upsertSadaqahGoal(
+        {
+          sadaqahType: "LILLAH",
+          targetAmount: lillahAmount,
+          currencyCode,
+        },
+        {
+          onSuccess: () => {
+            persistSadaqahMetrics(goalKey, []);
+            completeGoalSaveSuccess("lilah-donations", onDone);
+          },
+          onError: () => onFail?.(),
+        },
+      );
+    },
+    [
+      lillahAmount,
+      upsertSadaqahGoal,
+      requireSadaqahCurrencyCode,
+      persistSadaqahMetrics,
+      completeGoalSaveSuccess,
+    ],
+  );
 
-      const windowH = Dimensions.get("window").height;
-      const safeBottom = windowH - kb - KEYBOARD_INPUT_BOTTOM_PAD;
-      const inputBottom = layout.windowY + layout.inputHeight;
-      if (inputBottom <= safeBottom) return true;
+  const saveVolunteeringGoal = useCallback(
+    (goalKey: string, onDone?: () => void, onFail?: () => void) => {
+      if (volunteeringHours < 1) {
+        showToast("error", "Enter volunteering hours greater than 0");
+        onFail?.();
+        return;
+      }
+      upsertSadaqahGoal(
+        {
+          sadaqahType: "VOLUNTEERING",
+          // Backend stores volunteering target in minutes
+          targetAmount: volunteeringHours * 60,
+          causeCategory: "community_service",
+        },
+        {
+          onSuccess: () => {
+            persistSadaqahMetrics(goalKey, []);
+            completeGoalSaveSuccess("volunteering-services", onDone);
+          },
+          onError: () => onFail?.(),
+        },
+      );
+    },
+    [
+      volunteeringHours,
+      upsertSadaqahGoal,
+      persistSadaqahMetrics,
+      completeGoalSaveSuccess,
+    ],
+  );
 
-      const delta = inputBottom - safeBottom;
-      const next = Math.max(0, listScrollOffsetRef.current + delta);
-      focusedInputLayoutRef.current = {
-        windowY: layout.windowY - delta,
-        inputHeight: layout.inputHeight,
-      };
-      listScrollOffsetRef.current = next;
-      listRef.current.scrollToOffset({ offset: next, animated: true });
-      return true;
+  const saveSadaqahJariyahGoal = useCallback(
+    (goalKey: string, onDone?: () => void, onFail?: () => void) => {
+      if (sadaqahJariyahAmount < 1) {
+        showToast("error", "Enter a sadaqah jariyah amount greater than 0");
+        onFail?.();
+        return;
+      }
+      const currencyCode = requireSadaqahCurrencyCode("sadaqahJariyah");
+      if (!currencyCode) {
+        onFail?.();
+        return;
+      }
+      upsertSadaqahGoal(
+        {
+          sadaqahType: "SADAQAH_JARIYAH",
+          targetAmount: sadaqahJariyahAmount,
+          currencyCode,
+          causeCategory: "general",
+        },
+        {
+          onSuccess: () => {
+            persistSadaqahMetrics(goalKey, []);
+            completeGoalSaveSuccess("sadaqah-jariyah", onDone);
+          },
+          onError: () => onFail?.(),
+        },
+      );
+    },
+    [
+      sadaqahJariyahAmount,
+      upsertSadaqahGoal,
+      requireSadaqahCurrencyCode,
+      persistSadaqahMetrics,
+      completeGoalSaveSuccess,
+    ],
+  );
+
+  // Seed sadaqah counters / currency from API when goals load (don't overwrite in-progress edits)
+  useEffect(() => {
+    const sourceGoals =
+      sadaqahGoals.length > 0
+        ? sadaqahGoals
+        : (goalCycleDetail?.sadaqahGoals ?? []);
+
+    const seedCurrencyIfEmpty = (
+      field: (typeof SADAQAH_CURRENCY_FIELDS)[number],
+      currencyCode?: string | null,
+    ) => {
+      if (!currencyCode) return;
+      const current = getValues(field);
+      if (current && String(current).trim().length > 0) return;
+      const option = currencyOptionFromCode(
+        currencyCode,
+        sadaqahCurrencyOptions,
+      );
+      if (!option) return;
+      setValue(field, option, {
+        shouldDirty: false,
+      });
     };
 
-    scrollToGoalItemIdRef.current = (goalId: string) => {
-      if (autoScrollInterruptedByUserRef.current) return;
-
-      const goals = tabDataRef.current;
-      const index = goals.findIndex((item) => {
-        if (!item) return false;
-        if (item.id === goalId || String(item.id) === String(goalId)) {
-          return true;
-        }
-        // Review tab: list rows are sections; match the applied goal title.
-        if (Array.isArray(item.appliedGoals)) {
-          return item.appliedGoals.some(
-            (applied: { title?: string }) => applied?.title === goalId,
+    for (const goal of sourceGoals) {
+      if (!hasConfiguredSadaqahGoal(goal)) continue;
+      const amount = goal.targetAmount ?? 0;
+      switch (goal.sadaqahType) {
+        case "MISSED_ZAKAT":
+          if (amount <= 0) break;
+          setMissedZakatAmount((prev) => (prev > 0 ? prev : amount));
+          seedCurrencyIfEmpty("missedZakat", goal.currencyCode);
+          break;
+        case "KAFFARAH":
+          setKafarahMeals((prev) =>
+            prev > 0 ? prev : Math.max(0, goal.kaffarahMealsTarget ?? 0),
           );
-        }
-        return false;
-      });
-      if (index < 0 || !listRef.current) return;
-
-      const computeOffset = () => {
-        let offset = 12;
-        for (let i = 0; i < index; i++) {
-          const id = goals[i]?.id;
-          const heightKey = id != null ? String(id) : undefined;
-          offset +=
-            (heightKey ? goalItemHeightsRef.current[heightKey] : undefined) ??
-            GOAL_ITEM_ESTIMATED_HEIGHT;
-          offset += GOAL_LIST_ITEM_GAP;
-        }
-        return offset;
-      };
-
-      const runScroll = () => {
-        if (autoScrollInterruptedByUserRef.current) return;
-        const kb = Math.max(0, keyboardHeightRef.current);
-
-        // With keyboard open, only nudge for the focused input — never yank
-        // the whole goal card (that hid Kaffarah/Juz inputs under the keyboard).
-        if (kb > 0) {
-          scrollListToKeepInputVisible();
-          return;
-        }
-
-        const offset = computeOffset();
-        try {
-          listRef.current?.scrollToIndex({
-            index,
-            animated: true,
-            viewPosition: 0.08,
-          });
-        } catch {
-          listRef.current?.scrollToOffset({
-            offset,
-            animated: true,
-          });
-        }
-      };
-
-      runScroll();
-      // One delayed pass is enough (layout / keyboard settle). Extra retries
-      // stacked and caused lag + overscroll that hid goals below.
-      if (keyboardHeightRef.current <= 0) {
-        scheduleAutoScroll(runScroll, 350);
+          setKafarahCloths((prev) =>
+            prev > 0 ? prev : Math.max(0, goal.kaffarahItemsTarget ?? 0),
+          );
+          // Backward-compatibility for older payload shape.
+          if (
+            (goal.kaffarahMealsTarget ?? 0) <= 0 &&
+            (goal.kaffarahItemsTarget ?? 0) <= 0 &&
+            amount > 0
+          ) {
+            if (goal.kaffarahSubtype === "CLOTHING_ITEMS") {
+              setKafarahCloths((prev) => (prev > 0 ? prev : amount));
+            } else {
+              setKafarahMeals((prev) => (prev > 0 ? prev : amount));
+            }
+          }
+          break;
+        case "FIDYA":
+          if (amount <= 0) break;
+          setFidyaMeals((prev) => (prev > 0 ? prev : amount));
+          break;
+        case "LILLAH":
+          if (amount <= 0) break;
+          setLillahAmount((prev) => (prev > 0 ? prev : amount));
+          seedCurrencyIfEmpty("lillahDonation", goal.currencyCode);
+          break;
+        case "VOLUNTEERING":
+          if (amount <= 0) break;
+          setVolunteeringHours((prev) =>
+            prev > 0 ? prev : Math.max(1, Math.round(amount / 60)),
+          );
+          break;
+        case "SADAQAH_JARIYAH":
+          if (amount <= 0) break;
+          setSadaqahJariyahAmount((prev) => (prev > 0 ? prev : amount));
+          seedCurrencyIfEmpty("sadaqahJariyah", goal.currencyCode);
+          break;
       }
-    };
+    }
+  }, [
+    sadaqahGoals,
+    goalCycleDetail?.sadaqahGoals,
+    userId,
+    goalCycleId,
+    getValues,
+    setValue,
+    sadaqahCurrencyOptions,
+  ]);
 
-    const handleGoalInputFocus = useCallback(
-      (
-        goalId: string,
-        layout?: { windowY: number; inputHeight: number },
-      ) => {
-        // Nested metric lists disable sheet scroll on touch; re-enable so we can
-        // bring the focused input above the keyboard.
-        setSheetScrollEnabled(true);
-        focusedGoalIdForKeyboardRef.current = goalId;
-        if (layout) {
-          focusedInputLayoutRef.current = layout;
-        }
-        beginProgrammaticAutoScroll();
-        // Wait for keyboard height when possible; keyboard listener scrolls once.
-        if (keyboardHeightRef.current > 0) {
-          scrollToGoalItemIdRef.current(goalId);
-        }
-      },
-      [beginProgrammaticAutoScroll],
-    );
+  const applyDefaultSadaqahCurrency = useCallback(
+    (currencyOptionValue: string) => {
+      for (const field of SADAQAH_CURRENCY_FIELDS) {
+        setValue(field, currencyOptionValue, { shouldDirty: true });
+      }
+    },
+    [setValue],
+  );
 
-    useEffect(() => {
-      const showEvent =
-        Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
-      const hideEvent =
-        Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
-      const showSub = Keyboard.addListener(showEvent, (event) => {
-        const height = event.endCoordinates.height;
-        keyboardHeightRef.current = height;
-        setKeyboardHeight(height);
-        setSheetScrollEnabled(true);
-        const goalId = focusedGoalIdForKeyboardRef.current;
-        if (!goalId) return;
-        beginProgrammaticAutoScroll();
-        // Scroll once keyboard height is known, then once more after layout
-        // re-measure (bottom goals like Tajweed need the second pass).
-        scheduleAutoScroll(
-          () => scrollToGoalItemIdRef.current(goalId),
-          60,
-        );
-        scheduleAutoScroll(
-          () => scrollToGoalItemIdRef.current(goalId),
-          320,
-        );
+  const persistPrayerGoal = useCallback(
+    (
+      payload: UpsertPrayerGoalPayload,
+      goalId?: string,
+      onDone?: () => void,
+      onFail?: () => void,
+    ) => {
+      setSavingPrayerType(payload.prayerType);
+      upsertPrayerGoal(payload, {
+        onSuccess: () => {
+          const id =
+            goalId ??
+            resolvePrayerUiId(payload.prayerType) ??
+            PRAYER_TYPE_TO_UI_ID[payload.prayerType] ??
+            "";
+          completeGoalSaveSuccess(id, onDone);
+        },
+        onError: () => onFail?.(),
       });
-      const hideSub = Keyboard.addListener(hideEvent, () => {
-        keyboardHeightRef.current = 0;
-        setKeyboardHeight(0);
-        focusedGoalIdForKeyboardRef.current = null;
-        focusedInputLayoutRef.current = null;
-      });
-      return () => {
-        showSub.remove();
-        hideSub.remove();
-      };
-    }, [beginProgrammaticAutoScroll, scheduleAutoScroll]);
+    },
+    [upsertPrayerGoal, completeGoalSaveSuccess],
+  );
 
-    scrollToNextGoalAfterSaveRef.current = (savedGoalId: string) => {
-      const tab = activeTabRef.current;
-      if (tab === "cycle" || tab === "review") return;
-      if (activeTabRef.current !== tab) return;
-
-      const goals = tabDataRef.current;
-      const index = goals.findIndex((item) => item?.id === savedGoalId);
-      if (index < 0 || index >= goals.length - 1) return;
-
-      const next = goals[index + 1];
-      if (!next?.id || next.isLoadingPlaceholder) return;
-
-      scheduleAutoScroll(
-        () => scrollToGoalItemIdRef.current(next.id),
-        450,
+  const saveSimplePrayerTarget = useCallback(
+    (
+      prayerType: string,
+      targetCount: number,
+      onDone?: () => void,
+      onFail?: () => void,
+      uiGoalId?: string,
+    ) => {
+      persistPrayerGoal(
+        {
+          prayerType,
+          isActive: true,
+          targetCount,
+          sliderValue: targetCount,
+        },
+        uiGoalId ?? resolvePrayerUiId(prayerType),
+        onDone,
+        onFail,
       );
-      scheduleAutoScroll(
-        () => scrollToGoalItemIdRef.current(next.id),
-        950,
+    },
+    [persistPrayerGoal],
+  );
+
+  const saveQuranHoursGoal = useCallback(
+    (
+      quranGoalType: "LISTENING" | "TAJWEED",
+      hours: number,
+      onDone?: () => void,
+      onFail?: () => void,
+      uiGoalId?: string,
+    ) => {
+      const goalId =
+        uiGoalId ??
+        (quranGoalType === "LISTENING" ? "quran-listening" : "quran-tajweed");
+      setSavingQuranGoalId(goalId);
+      bulkUpsertQuranGoals(
+        {
+          goals: [buildHoursQuranPayload(quranGoalType, hours)],
+        },
+        {
+          onSuccess: () => {
+            completeGoalSaveSuccess(goalId, onDone);
+          },
+          onError: () => onFail?.(),
+        },
       );
-      scheduleAutoScroll(
-        () => scrollToGoalItemIdRef.current(next.id),
-        1500,
+    },
+    [bulkUpsertQuranGoals, completeGoalSaveSuccess],
+  );
+
+  const saveQuranMetricGoal = useCallback(
+    (
+      variant: "recitation" | "memorization",
+      /** When set (review editors), only that metric is sent; otherwise all configured metrics. */
+      onlyMetric?: "surah" | "juz" | "completion" | "hizb",
+      onDone?: () => void,
+      onFail?: () => void,
+      uiGoalId?: string,
+    ) => {
+      const goals = buildBulkQuranGoalsForVariant(
+        variant,
+        quranMetricsRef.current,
+        onlyMetric,
       );
+      if (goals.length === 0) {
+        showToast("error", "Please complete your goal selection");
+        onFail?.();
+        return;
+      }
+      const goalId =
+        uiGoalId ??
+        (variant === "recitation" ? "quran-recitation" : "quran-memorization");
+      setSavingQuranGoalId(goalId);
+      bulkUpsertQuranGoals(
+        { goals },
+        {
+          onSuccess: () => {
+            completeGoalSaveSuccess(goalId, onDone);
+          },
+          onError: () => onFail?.(),
+        },
+      );
+    },
+    [bulkUpsertQuranGoals, completeGoalSaveSuccess],
+  );
+  // Build a simple data array for the active tab. Use any[] to avoid complex typing across different data shapes
+  const tabData: any[] = useMemo(() => {
+    switch (activeTab) {
+      case "cycle":
+        return [];
+      case "prayer":
+        return loadingPrayerGoals
+          ? PRAYER_GOAL_LOADING_PLACEHOLDERS
+          : prayerGoals;
+      case "quran":
+        return loadingQuranGoals ? QURAN_GOAL_LOADING_PLACEHOLDERS : quranGoals;
+      case "fasting":
+        return loadingFastingGoals
+          ? FASTING_GOAL_LOADING_PLACEHOLDERS
+          : fastingGoals.length > 0
+            ? fastingGoals
+            : fastingData;
+      case "sadaqah":
+        return loadingSadaqahGoals
+          ? SADAQAH_GOAL_LOADING_PLACEHOLDERS
+          : sadaqahGoals.length > 0
+            ? sadaqahGoals
+            : sadaqahData;
+      case "review":
+        // Keep FlatList empty while refetching so ListEmptyComponent can show a spinner.
+        return isReviewWaitingForCycleDetail ? [] : reviewBtnData;
+      default:
+        return [];
+    }
+  }, [
+    activeTab,
+    loadingPrayerGoals,
+    loadingQuranGoals,
+    loadingFastingGoals,
+    loadingSadaqahGoals,
+    prayerGoals,
+    quranGoals,
+    fastingGoals,
+    fastingData,
+    sadaqahGoals,
+    sadaqahData,
+    reviewBtnData,
+    isReviewWaitingForCycleDetail,
+  ]);
+
+  const tabDataRef = useRef(tabData);
+  tabDataRef.current = tabData;
+
+  /**
+   * Scroll only as far as needed so the focused input clears the keyboard.
+   * Adjusts the stored windowY after scrolling so retries never double-apply.
+   */
+  const scrollListToKeepInputVisible = (): boolean => {
+    const layout = focusedInputLayoutRef.current;
+    const kb = keyboardHeightRef.current;
+    if (!layout || kb <= 0 || !listRef.current) return false;
+
+    const windowH = Dimensions.get("window").height;
+    const safeBottom = windowH - kb - KEYBOARD_INPUT_BOTTOM_PAD;
+    const inputBottom = layout.windowY + layout.inputHeight;
+    if (inputBottom <= safeBottom) return true;
+
+    const delta = inputBottom - safeBottom;
+    const next = Math.max(0, listScrollOffsetRef.current + delta);
+    focusedInputLayoutRef.current = {
+      windowY: layout.windowY - delta,
+      inputHeight: layout.inputHeight,
     };
+    listScrollOffsetRef.current = next;
+    listRef.current.scrollToOffset({ offset: next, animated: true });
+    return true;
+  };
 
-    useEffect(() => {
-      return () => {
-        if (postSaveUiTimerRef.current) {
-          clearTimeout(postSaveUiTimerRef.current);
-        }
-        clearPendingAutoScrollTimers();
-      };
-    }, [clearPendingAutoScrollTimers]);
+  scrollToGoalItemIdRef.current = (goalId: string) => {
+    if (autoScrollInterruptedByUserRef.current) return;
 
-    const tabOrder = useMemo(
-      () => localizedTabs.map((tab) => tab.id),
-      [localizedTabs],
-    );
-
-    const categoryGoalLists = useMemo(() => {
-      const prayerList =
-        prayerGoals.length > 0
-          ? prayerGoals
-          : ((goalCycleDetail?.prayerGoals as any[]) ?? []);
-      const quranList =
-        quranGoals.length > 0
-          ? quranGoals
-          : ((goalCycleDetail?.quranGoals as any[]) ?? []);
-      const fastingList =
-        fastingGoals.length > 0
-          ? fastingGoals
-          : fastingData.length > 0
-            ? fastingData
-            : ((goalCycleDetail?.fastingGoals as any[]) ?? []);
-      const sadaqahList =
-        sadaqahGoals.length > 0
-          ? sadaqahGoals
-          : sadaqahData.length > 0
-            ? sadaqahData
-            : ((goalCycleDetail?.sadaqahGoals as any[]) ?? []);
-      return {
-        prayer: prayerList,
-        quran: quranList,
-        fasting: fastingList,
-        sadaqah: sadaqahList,
-      };
-    }, [
-      prayerGoals,
-      quranGoals,
-      fastingGoals,
-      fastingData,
-      sadaqahGoals,
-      sadaqahData,
-      goalCycleDetail?.prayerGoals,
-      goalCycleDetail?.quranGoals,
-      goalCycleDetail?.fastingGoals,
-      goalCycleDetail?.sadaqahGoals,
-    ]);
-
-    /** ≥1 goal toggled ON and saved (configured) in this category. */
-    const categoryHasSavedGoalByTab = useCallback(
-      (tab: GoalSequenceTab) => {
-        // Fast path: marked when Save succeeds (unlocks Step 2/3/4 reliably).
-        if (savedCategoryTabs[tab] || savedCategoryTabsRef.current[tab]) {
-          return true;
-        }
-        const goals = categoryGoalLists[tab];
-        const isConfigured = (goalId: string) => {
-          switch (tab) {
-            case "prayer":
-              return isPrayerGoalConfigured(goalId);
-            case "quran":
-              return isQuranGoalConfigured(goalId);
-            case "fasting":
-              return isFastingGoalConfigured(goalId);
-            case "sadaqah":
-              return isSadaqahGoalConfigured(goalId);
-          }
-        };
-
-        if (
-          CATEGORY_UI_IDS[tab].some(
-            (goalId) =>
-              locallyConfiguredGoalIds[goalId] &&
-              selectedGoals[goalId] !== false,
-          )
-        ) {
-          return true;
-        }
-
-        return goals.some((item) => {
-          if (!item?.id || item.isLoadingPlaceholder) return false;
-          if (locallyConfiguredGoalIds[item.id]) {
-            return selectedGoals[item.id] !== false;
-          }
-          const isOn =
-            selectedGoals[item.id] !== undefined
-              ? Boolean(selectedGoals[item.id])
-              : Boolean(item.isSelected ?? item.isActive);
-          if (!isOn) return false;
-          return isConfigured(item.id);
-        });
-      },
-      [
-        savedCategoryTabs,
-        categoryGoalLists,
-        selectedGoals,
-        locallyConfiguredGoalIds,
-        isPrayerGoalConfigured,
-        isQuranGoalConfigured,
-        isFastingGoalConfigured,
-        isSadaqahGoalConfigured,
-      ],
-    );
-
-    /**
-     * Tabs unlock in order: cycle commit → Category 1 → 2 → 3 → 4 → Review.
-     * A later category stays disabled until every previous category has ≥1 saved goal.
-     */
-    const isTabUnlocked = useCallback(
-      (tabId: Tab) => {
-        if (tabId === "cycle") return true;
-        if (!hasCommittedCycle) return false;
-        if (tabId === "review") {
-          return GOAL_SEQUENCE.every((tab) => categoryHasSavedGoalByTab(tab));
-        }
-        const goalIndex = GOAL_SEQUENCE.indexOf(tabId as GoalSequenceTab);
-        if (goalIndex < 0) return false;
-        for (let i = 0; i < goalIndex; i++) {
-          if (!categoryHasSavedGoalByTab(GOAL_SEQUENCE[i])) return false;
-        }
+    const goals = tabDataRef.current;
+    const index = goals.findIndex((item) => {
+      if (!item) return false;
+      if (item.id === goalId || String(item.id) === String(goalId)) {
         return true;
-      },
-      [hasCommittedCycle, categoryHasSavedGoalByTab],
-    );
-
-    const handleTabPress = useCallback(
-      (tabId: Tab) => {
-        if (tabId !== "cycle" && !hasCommittedCycle) return;
-        if (!isTabUnlocked(tabId)) return;
-        // Leaving Step 1 ends the post-commit force window.
-        postCommitTargetTabRef.current = null;
-        userChoseCycleTabRef.current = tabId === "cycle";
-        setActiveTab(tabId);
-      },
-      [hasCommittedCycle, isTabUnlocked],
-    );
-
-    // Keep user on the cycle tab until they tap Commit (selecting a date alone must not advance).
-    useEffect(() => {
-      if (!cycleStartDate) {
-        if (
-          postCommitTargetTabRef.current ||
-          committedCycleThisSessionRef.current
-        ) {
-          return;
-        }
-        setActiveTab("cycle");
       }
-    }, [cycleStartDate]);
+      // Review tab: list rows are sections; match the applied goal title.
+      if (Array.isArray(item.appliedGoals)) {
+        return item.appliedGoals.some(
+          (applied: { title?: string }) => applied?.title === goalId,
+        );
+      }
+      return false;
+    });
+    if (index < 0 || !listRef.current) return;
 
-    // Honor deep-link / step tab when allowed; clamp to furthest unlocked tab.
-    // Begin Now opens with initialTab="cycle" — never re-assert that entry tab
-    // when hasCommittedCycle flips (that wiped COMMIT → Category 1 on first save).
-    useEffect(() => {
-      if (!initialTab) return;
-      if (initialTab === "cycle") return;
-      if (postCommitTargetTabRef.current) return;
-      if (committedCycleThisSessionRef.current) return;
-      if (!hasCommittedCycle) {
-        setActiveTab("cycle");
+    const computeOffset = () => {
+      let offset = 12;
+      for (let i = 0; i < index; i++) {
+        const id = goals[i]?.id;
+        const heightKey = id != null ? String(id) : undefined;
+        offset +=
+          (heightKey ? goalItemHeightsRef.current[heightKey] : undefined) ??
+          GOAL_ITEM_ESTIMATED_HEIGHT;
+        offset += GOAL_LIST_ITEM_GAP;
+      }
+      return offset;
+    };
+
+    const runScroll = () => {
+      if (autoScrollInterruptedByUserRef.current) return;
+      const kb = Math.max(0, keyboardHeightRef.current);
+
+      // With keyboard open, only nudge for the focused input — never yank
+      // the whole goal card (that hid Kaffarah/Juz inputs under the keyboard).
+      if (kb > 0) {
+        scrollListToKeepInputVisible();
         return;
       }
-      if (isTabUnlocked(initialTab)) {
-        setActiveTab(initialTab);
-        return;
+
+      const offset = computeOffset();
+      try {
+        listRef.current?.scrollToIndex({
+          index,
+          animated: true,
+          viewPosition: 0.08,
+        });
+      } catch {
+        listRef.current?.scrollToOffset({
+          offset,
+          animated: true,
+        });
       }
-      const firstLockedGoal = GOAL_SEQUENCE.find((tab) => !isTabUnlocked(tab));
-      setActiveTab(firstLockedGoal ?? "cycle");
-    }, [initialTab, hasCommittedCycle, isTabUnlocked]);
+    };
 
-    // After COMMIT, only pull back to Step 1 if a race snapped us onto cycle.
-    // Never override Step 2+ (that blocked NEXT after saving a goal).
-    useLayoutEffect(() => {
-      if (postCommitTargetTabRef.current !== "prayer") return;
-      if (userChoseCycleTabRef.current) return;
-      if (activeTab !== "cycle") return;
-      setActiveTab("prayer");
-      scrollTabBarToTab("prayer");
-    }, [activeTab, hasCommittedCycle, goalCycleId, userId, scrollTabBarToTab]);
+    runScroll();
+    // One delayed pass is enough (layout / keyboard settle). Extra retries
+    // stacked and caused lag + overscroll that hid goals below.
+    if (keyboardHeightRef.current <= 0) {
+      scheduleAutoScroll(runScroll, 350);
+    }
+  };
 
-    // If a first-time COMMIT left us on cycle (race), advance to Step 1 once unlocked.
-    useEffect(() => {
-      if (!hasCommittedCycle) return;
-      if (!committedCycleThisSessionRef.current) return;
-      if (userChoseCycleTabRef.current) return;
-      if (activeTab !== "cycle") return;
-      setActiveTab("prayer");
-      scrollTabBarToTab("prayer");
-    }, [hasCommittedCycle, activeTab, goalCycleId, scrollTabBarToTab]);
+  const handleGoalInputFocus = useCallback(
+    (goalId: string, layout?: { windowY: number; inputHeight: number }) => {
+      // Nested metric lists disable sheet scroll on touch; re-enable so we can
+      // bring the focused input above the keyboard.
+      setSheetScrollEnabled(true);
+      focusedGoalIdForKeyboardRef.current = goalId;
+      if (layout) {
+        focusedInputLayoutRef.current = layout;
+      }
+      beginProgrammaticAutoScroll();
+      // Wait for keyboard height when possible; keyboard listener scrolls once.
+      if (keyboardHeightRef.current > 0) {
+        scrollToGoalItemIdRef.current(goalId);
+      }
+    },
+    [beginProgrammaticAutoScroll],
+  );
 
-    // me/cycle refetch must not clear commit unlock after a successful COMMIT.
-    useEffect(() => {
-      if (!committedCycleThisSessionRef.current) return;
-      if (hasCommittedCycle) return;
-      setHasCommittedCycle(true);
-    }, [hasCommittedCycle, goalCycleId, userId]);
+  useEffect(() => {
+    const showEvent =
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvent =
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+    const showSub = Keyboard.addListener(showEvent, (event) => {
+      const height = event.endCoordinates.height;
+      keyboardHeightRef.current = height;
+      setKeyboardHeight(height);
+      setSheetScrollEnabled(true);
+      const goalId = focusedGoalIdForKeyboardRef.current;
+      if (!goalId) return;
+      beginProgrammaticAutoScroll();
+      // Scroll once keyboard height is known, then once more after layout
+      // re-measure (bottom goals like Tajweed need the second pass).
+      scheduleAutoScroll(() => scrollToGoalItemIdRef.current(goalId), 60);
+      scheduleAutoScroll(() => scrollToGoalItemIdRef.current(goalId), 320);
+    });
+    const hideSub = Keyboard.addListener(hideEvent, () => {
+      keyboardHeightRef.current = 0;
+      setKeyboardHeight(0);
+      focusedGoalIdForKeyboardRef.current = null;
+      focusedInputLayoutRef.current = null;
+    });
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, [beginProgrammaticAutoScroll, scheduleAutoScroll]);
 
-    // Keep the active step tab visible in the horizontal tab bar (esp. after COMMIT).
-    useEffect(() => {
-      const timer = setTimeout(() => scrollTabBarToTab(activeTab), 50);
-      return () => clearTimeout(timer);
-    }, [activeTab, scrollTabBarToTab]);
+  scrollToNextGoalAfterSaveRef.current = (savedGoalId: string) => {
+    const tab = activeTabRef.current;
+    if (tab === "cycle" || tab === "review") return;
+    if (activeTabRef.current !== tab) return;
 
-    /**
-     * Review & Confirm / Finish & Save require ≥1 goal from each of
-     * prayer, quran, fasting, and sadaqah.
-     */
-    const hasGoalInEveryCategory = useMemo(
-      () => GOAL_SEQUENCE.every((tab) => categoryHasSavedGoalByTab(tab)),
-      [categoryHasSavedGoalByTab],
-    );
+    const goals = tabDataRef.current;
+    const index = goals.findIndex((item) => item?.id === savedGoalId);
+    if (index < 0 || index >= goals.length - 1) return;
 
-    const canPressFooterPrimary = useMemo(() => {
-      if (activeTab === "review") return true;
-      if (activeTab === "cycle") return isCycleDateSelected;
+    const next = goals[index + 1];
+    if (!next?.id || next.isLoadingPlaceholder) return;
 
-      const goalTab = GOAL_SEQUENCE.find((tab) => tab === activeTab);
-      if (goalTab && !categoryHasSavedGoalByTab(goalTab)) return false;
+    scheduleAutoScroll(() => scrollToGoalItemIdRef.current(next.id), 450);
+    scheduleAutoScroll(() => scrollToGoalItemIdRef.current(next.id), 950);
+    scheduleAutoScroll(() => scrollToGoalItemIdRef.current(next.id), 1500);
+  };
 
-      // Sadaqah NEXT leads to Review — only when Review tab is unlocked
-      if (activeTab === "sadaqah") return hasGoalInEveryCategory;
-
-      return true;
-    }, [
-      activeTab,
-      isCycleDateSelected,
-      categoryHasSavedGoalByTab,
-      hasGoalInEveryCategory,
-    ]);
-
-    const goToNextTab = useCallback(() => {
-      const currentIndex = tabOrder.indexOf(activeTab);
-      if (currentIndex < 0 || currentIndex >= tabOrder.length - 1) return;
-      const nextTab = tabOrder[currentIndex + 1];
-      if (nextTab !== "cycle" && !hasCommittedCycle) return;
-      if (nextTab !== "cycle" && !cycleStartDate) return;
-      // Don't enter Review until every category has ≥1 goal (tab is also locked)
-      if (nextTab === "review" && !hasGoalInEveryCategory) return;
-      if (nextTab !== "cycle" && !isTabUnlocked(nextTab)) return;
-      // Stop post-commit Step 1 force so NEXT to Step 2+ can stick.
-      postCommitTargetTabRef.current = null;
-      userChoseCycleTabRef.current = false;
-      setActiveTab(nextTab);
-      scrollTabBarToTab(nextTab);
-    }, [
-      activeTab,
-      cycleStartDate,
-      hasCommittedCycle,
-      tabOrder,
-      hasGoalInEveryCategory,
-      isTabUnlocked,
-      scrollTabBarToTab,
-    ]);
-
-    // Always start each category tab at the top goal (NEXT / tab press).
-    useEffect(() => {
-      if (activeTab === "cycle") return;
+  useEffect(() => {
+    return () => {
       if (postSaveUiTimerRef.current) {
         clearTimeout(postSaveUiTimerRef.current);
-        postSaveUiTimerRef.current = null;
       }
       clearPendingAutoScrollTimers();
-      autoScrollInterruptedByUserRef.current = false;
-      const scrollTop = () => {
-        listRef.current?.scrollToOffset({ offset: 0, animated: false });
-      };
-      scrollTop();
-      const frame = requestAnimationFrame(scrollTop);
-      const timer = setTimeout(scrollTop, 80);
-      return () => {
-        cancelAnimationFrame(frame);
-        clearTimeout(timer);
-      };
-    }, [activeTab, clearPendingAutoScrollTimers]);
+    };
+  }, [clearPendingAutoScrollTimers]);
 
-    const handleFooterPrimaryPress = useCallback(() => {
-      if (!canPressFooterPrimary) return;
-      if (activeTab === "review") {
-        setFinishSaveModalVisible(true);
+  const tabOrder = useMemo(
+    () => localizedTabs.map((tab) => tab.id),
+    [localizedTabs],
+  );
+
+  const categoryGoalLists = useMemo(() => {
+    const prayerList =
+      prayerGoals.length > 0
+        ? prayerGoals
+        : ((goalCycleDetail?.prayerGoals as any[]) ?? []);
+    const quranList =
+      quranGoals.length > 0
+        ? quranGoals
+        : ((goalCycleDetail?.quranGoals as any[]) ?? []);
+    const fastingList =
+      fastingGoals.length > 0
+        ? fastingGoals
+        : fastingData.length > 0
+          ? fastingData
+          : ((goalCycleDetail?.fastingGoals as any[]) ?? []);
+    const sadaqahList =
+      sadaqahGoals.length > 0
+        ? sadaqahGoals
+        : sadaqahData.length > 0
+          ? sadaqahData
+          : ((goalCycleDetail?.sadaqahGoals as any[]) ?? []);
+    return {
+      prayer: prayerList,
+      quran: quranList,
+      fasting: fastingList,
+      sadaqah: sadaqahList,
+    };
+  }, [
+    prayerGoals,
+    quranGoals,
+    fastingGoals,
+    fastingData,
+    sadaqahGoals,
+    sadaqahData,
+    goalCycleDetail?.prayerGoals,
+    goalCycleDetail?.quranGoals,
+    goalCycleDetail?.fastingGoals,
+    goalCycleDetail?.sadaqahGoals,
+  ]);
+
+  /** ≥1 goal toggled ON and saved (configured) in this category. */
+  const categoryHasSavedGoalByTab = useCallback(
+    (tab: GoalSequenceTab) => {
+      // Fast path: marked when Save succeeds (unlocks Step 2/3/4 reliably).
+      if (savedCategoryTabs[tab] || savedCategoryTabsRef.current[tab]) {
+        return true;
+      }
+      const goals = categoryGoalLists[tab];
+      const isConfigured = (goalId: string) => {
+        switch (tab) {
+          case "prayer":
+            return isPrayerGoalConfigured(goalId);
+          case "quran":
+            return isQuranGoalConfigured(goalId);
+          case "fasting":
+            return isFastingGoalConfigured(goalId);
+          case "sadaqah":
+            return isSadaqahGoalConfigured(goalId);
+        }
+      };
+
+      if (
+        CATEGORY_UI_IDS[tab].some(
+          (goalId) =>
+            locallyConfiguredGoalIds[goalId] && selectedGoals[goalId] !== false,
+        )
+      ) {
+        return true;
+      }
+
+      return goals.some((item) => {
+        if (!item?.id || item.isLoadingPlaceholder) return false;
+        if (locallyConfiguredGoalIds[item.id]) {
+          return selectedGoals[item.id] !== false;
+        }
+        const isOn =
+          selectedGoals[item.id] !== undefined
+            ? Boolean(selectedGoals[item.id])
+            : Boolean(item.isSelected ?? item.isActive);
+        if (!isOn) return false;
+        return isConfigured(item.id);
+      });
+    },
+    [
+      savedCategoryTabs,
+      categoryGoalLists,
+      selectedGoals,
+      locallyConfiguredGoalIds,
+      isPrayerGoalConfigured,
+      isQuranGoalConfigured,
+      isFastingGoalConfigured,
+      isSadaqahGoalConfigured,
+    ],
+  );
+
+  /**
+   * Tabs unlock in order: cycle commit → Category 1 → 2 → 3 → 4 → Review.
+   * A later category stays disabled until every previous category has ≥1 saved goal.
+   */
+  const isTabUnlocked = useCallback(
+    (tabId: Tab) => {
+      if (tabId === "cycle") return true;
+      if (!hasCommittedCycle) return false;
+      if (tabId === "review") {
+        return GOAL_SEQUENCE.every((tab) => categoryHasSavedGoalByTab(tab));
+      }
+      const goalIndex = GOAL_SEQUENCE.indexOf(tabId as GoalSequenceTab);
+      if (goalIndex < 0) return false;
+      for (let i = 0; i < goalIndex; i++) {
+        if (!categoryHasSavedGoalByTab(GOAL_SEQUENCE[i])) return false;
+      }
+      return true;
+    },
+    [hasCommittedCycle, categoryHasSavedGoalByTab],
+  );
+
+  const handleTabPress = useCallback(
+    (tabId: Tab) => {
+      if (tabId !== "cycle" && !hasCommittedCycle) return;
+      if (!isTabUnlocked(tabId)) return;
+      // Leaving Step 1 ends the post-commit force window.
+      postCommitTargetTabRef.current = null;
+      userChoseCycleTabRef.current = tabId === "cycle";
+      setActiveTab(tabId);
+    },
+    [hasCommittedCycle, isTabUnlocked],
+  );
+
+  // Keep user on the cycle tab until they tap Commit (selecting a date alone must not advance).
+  useEffect(() => {
+    if (!cycleStartDate) {
+      if (
+        postCommitTargetTabRef.current ||
+        committedCycleThisSessionRef.current
+      ) {
         return;
       }
-      goToNextTab();
-    }, [activeTab, canPressFooterPrimary, goToNextTab]);
-    // Render the appropriate editor/selection component for a goal when it's being edited
-    const renderGoalEditor = (goal: any) => {
-      if (!goal) return null;
-      const key = goal.title;
-      const sourcePrayer = goal.sourcePrayer as
-        | {
-            targetCount?: number | null;
-            targetDays?: number | null;
-            congregationalTracking?: boolean;
-            fiveDailyConfig?: any;
-            sunnahRawatibConfig?: any;
-            qiyamConfig?: any;
-          }
-        | undefined;
-      console.log("the goal is ", goal);
-      switch (key) {
-        case "tahayyat-ul-wudhu":
-          return (
-            <TahiyatWuduGoalSelection
-              isSaving={isSavingPrayer}
-              openOnMount={false}
-              collapseSignal={postSaveCollapseSignal}
-              onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
-              initialValue={sourcePrayer?.targetCount ?? 1}
-              initiallySaved={isInitiallySavedForUi(
-                "prayer",
-                "tahayyat-ul-wudhu",
-                isPrayerGoalConfigured("tahayyat-ul-wudhu"),
-              )}
-              onSave={(value, onDone, onFail) => {
-                saveSimplePrayerTarget(
-                  "TAHIYYAT_AL_WUDHU",
-                  value,
-                  onDone,
-                  onFail,
-                );
-              }}
-            />
-          );
-        case "quran-listening":
-          return (
-            <QuranTimeSelection
-              openOnMount={false}
-              collapseSignal={postSaveCollapseSignal}
-              onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
-              title={t("monthlyGoalPlanner.selectNumHours")}
-              descriptionKey="monthlyGoalPlanner.hoursQuranListening"
-              quranGoalType="LISTENING"
-              isSaving={isQuranGoalSaving(key)}
-              initiallySaved={isInitiallySavedForUi(
-                "quran",
-                "quran-listening",
-                isQuranGoalConfigured("quran-listening"),
-              )}
-              onSave={(hours: number, onDone, onFail) => {
-                setQuranMetrics((prev) => ({
+      setActiveTab("cycle");
+    }
+  }, [cycleStartDate]);
+
+  // Honor deep-link / step tab when allowed; clamp to furthest unlocked tab.
+  // Begin Now opens with initialTab="cycle" — never re-assert that entry tab
+  // when hasCommittedCycle flips (that wiped COMMIT → Category 1 on first save).
+  useEffect(() => {
+    if (!initialTab) return;
+    if (initialTab === "cycle") return;
+    if (postCommitTargetTabRef.current) return;
+    if (committedCycleThisSessionRef.current) return;
+    if (!hasCommittedCycle) {
+      setActiveTab("cycle");
+      return;
+    }
+    if (isTabUnlocked(initialTab)) {
+      setActiveTab(initialTab);
+      return;
+    }
+    const firstLockedGoal = GOAL_SEQUENCE.find((tab) => !isTabUnlocked(tab));
+    setActiveTab(firstLockedGoal ?? "cycle");
+  }, [initialTab, hasCommittedCycle, isTabUnlocked]);
+
+  // After COMMIT, only pull back to Step 1 if a race snapped us onto cycle.
+  // Never override Step 2+ (that blocked NEXT after saving a goal).
+  useLayoutEffect(() => {
+    if (postCommitTargetTabRef.current !== "prayer") return;
+    if (userChoseCycleTabRef.current) return;
+    if (activeTab !== "cycle") return;
+    setActiveTab("prayer");
+    scrollTabBarToTab("prayer");
+  }, [activeTab, hasCommittedCycle, goalCycleId, userId, scrollTabBarToTab]);
+
+  // If a first-time COMMIT left us on cycle (race), advance to Step 1 once unlocked.
+  useEffect(() => {
+    if (!hasCommittedCycle) return;
+    if (!committedCycleThisSessionRef.current) return;
+    if (userChoseCycleTabRef.current) return;
+    if (activeTab !== "cycle") return;
+    setActiveTab("prayer");
+    scrollTabBarToTab("prayer");
+  }, [hasCommittedCycle, activeTab, goalCycleId, scrollTabBarToTab]);
+
+  // me/cycle refetch must not clear commit unlock after a successful COMMIT.
+  useEffect(() => {
+    if (!committedCycleThisSessionRef.current) return;
+    if (hasCommittedCycle) return;
+    setHasCommittedCycle(true);
+  }, [hasCommittedCycle, goalCycleId, userId]);
+
+  // Keep the active step tab visible in the horizontal tab bar (esp. after COMMIT).
+  useEffect(() => {
+    const timer = setTimeout(() => scrollTabBarToTab(activeTab), 50);
+    return () => clearTimeout(timer);
+  }, [activeTab, scrollTabBarToTab]);
+
+  /**
+   * Review & Confirm / Finish & Save require ≥1 goal from each of
+   * prayer, quran, fasting, and sadaqah.
+   */
+  const hasGoalInEveryCategory = useMemo(
+    () => GOAL_SEQUENCE.every((tab) => categoryHasSavedGoalByTab(tab)),
+    [categoryHasSavedGoalByTab],
+  );
+
+  const canPressFooterPrimary = useMemo(() => {
+    if (activeTab === "review") return true;
+    if (activeTab === "cycle") return isCycleDateSelected;
+
+    const goalTab = GOAL_SEQUENCE.find((tab) => tab === activeTab);
+    if (goalTab && !categoryHasSavedGoalByTab(goalTab)) return false;
+
+    // Sadaqah NEXT leads to Review — only when Review tab is unlocked
+    if (activeTab === "sadaqah") return hasGoalInEveryCategory;
+
+    return true;
+  }, [
+    activeTab,
+    isCycleDateSelected,
+    categoryHasSavedGoalByTab,
+    hasGoalInEveryCategory,
+  ]);
+
+  const goToNextTab = useCallback(() => {
+    const currentIndex = tabOrder.indexOf(activeTab);
+    if (currentIndex < 0 || currentIndex >= tabOrder.length - 1) return;
+    const nextTab = tabOrder[currentIndex + 1];
+    if (nextTab !== "cycle" && !hasCommittedCycle) return;
+    if (nextTab !== "cycle" && !cycleStartDate) return;
+    // Don't enter Review until every category has ≥1 goal (tab is also locked)
+    if (nextTab === "review" && !hasGoalInEveryCategory) return;
+    if (nextTab !== "cycle" && !isTabUnlocked(nextTab)) return;
+    // Stop post-commit Step 1 force so NEXT to Step 2+ can stick.
+    postCommitTargetTabRef.current = null;
+    userChoseCycleTabRef.current = false;
+    setActiveTab(nextTab);
+    scrollTabBarToTab(nextTab);
+  }, [
+    activeTab,
+    cycleStartDate,
+    hasCommittedCycle,
+    tabOrder,
+    hasGoalInEveryCategory,
+    isTabUnlocked,
+    scrollTabBarToTab,
+  ]);
+
+  // Always start each category tab at the top goal (NEXT / tab press).
+  useEffect(() => {
+    if (activeTab === "cycle") return;
+    if (postSaveUiTimerRef.current) {
+      clearTimeout(postSaveUiTimerRef.current);
+      postSaveUiTimerRef.current = null;
+    }
+    clearPendingAutoScrollTimers();
+    autoScrollInterruptedByUserRef.current = false;
+    const scrollTop = () => {
+      listRef.current?.scrollToOffset({ offset: 0, animated: false });
+    };
+    scrollTop();
+    const frame = requestAnimationFrame(scrollTop);
+    const timer = setTimeout(scrollTop, 80);
+    return () => {
+      cancelAnimationFrame(frame);
+      clearTimeout(timer);
+    };
+  }, [activeTab, clearPendingAutoScrollTimers]);
+
+  const handleFooterPrimaryPress = useCallback(() => {
+    if (!canPressFooterPrimary) return;
+    if (activeTab === "review") {
+      setFinishSaveModalVisible(true);
+      return;
+    }
+    goToNextTab();
+  }, [activeTab, canPressFooterPrimary, goToNextTab]);
+  // Render the appropriate editor/selection component for a goal when it's being edited
+  const renderGoalEditor = (goal: any) => {
+    if (!goal) return null;
+    const key = goal.title;
+    const sourcePrayer = goal.sourcePrayer as
+      | {
+          targetCount?: number | null;
+          targetDays?: number | null;
+          congregationalTracking?: boolean;
+          fiveDailyConfig?: any;
+          sunnahRawatibConfig?: any;
+          qiyamConfig?: any;
+        }
+      | undefined;
+    console.log("the goal is ", goal);
+    switch (key) {
+      case "tahayyat-ul-wudhu":
+        return (
+          <TahiyatWuduGoalSelection
+            isSaving={isSavingPrayer}
+            openOnMount={false}
+            collapseSignal={postSaveCollapseSignal}
+            onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
+            initialValue={sourcePrayer?.targetCount ?? 1}
+            initiallySaved={isInitiallySavedForUi(
+              "prayer",
+              "tahayyat-ul-wudhu",
+              isPrayerGoalConfigured("tahayyat-ul-wudhu"),
+            )}
+            onSave={(value, onDone, onFail) => {
+              saveSimplePrayerTarget(
+                "TAHIYYAT_AL_WUDHU",
+                value,
+                onDone,
+                onFail,
+              );
+            }}
+          />
+        );
+      case "quran-listening":
+        return (
+          <QuranTimeSelection
+            openOnMount={false}
+            collapseSignal={postSaveCollapseSignal}
+            onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
+            title={t("monthlyGoalPlanner.selectNumHours")}
+            descriptionKey="monthlyGoalPlanner.hoursQuranListening"
+            quranGoalType="LISTENING"
+            isSaving={isQuranGoalSaving(key)}
+            initiallySaved={isInitiallySavedForUi(
+              "quran",
+              "quran-listening",
+              isQuranGoalConfigured("quran-listening"),
+            )}
+            onSave={(hours: number, onDone, onFail) => {
+              setQuranMetrics((prev) => ({
+                ...prev,
+                listeningHours: hours,
+              }));
+              saveQuranHoursGoal("LISTENING", hours, onDone, onFail, key);
+            }}
+          />
+        );
+      case "quran-tajweed":
+        return (
+          <QuranTimeSelection
+            openOnMount={false}
+            collapseSignal={postSaveCollapseSignal}
+            onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
+            title={t("monthlyGoalPlanner.selectNumHours")}
+            descriptionKey="monthlyGoalPlanner.hoursQuranTajweed"
+            quranGoalType="TAJWEED"
+            isSaving={isQuranGoalSaving(key)}
+            initiallySaved={isInitiallySavedForUi(
+              "quran",
+              "quran-tajweed",
+              isQuranGoalConfigured("quran-tajweed"),
+            )}
+            onSave={(hours: number, onDone, onFail) => {
+              setQuranMetrics((prev) => ({
+                ...prev,
+                tajweedHours: hours,
+              }));
+              saveQuranHoursGoal("TAJWEED", hours, onDone, onFail, key);
+            }}
+          />
+        );
+      case "quran-recitation-by-surah":
+        return (
+          <QuranRecitationGoalSelection
+            openOnMount={false}
+            collapseSignal={postSaveCollapseSignal}
+            onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
+            {...quranReferenceProps}
+            title={t("monthlyGoalPlanner.recitationBySurah")}
+            initialMetric="surah"
+            allowedMetrics={["surah"]}
+            onMetricsChange={handleQuranMetricsChange}
+            variant="others"
+            isSaving={isQuranGoalSaving(key)}
+            onSave={(_payload, onDone, onFail) => {
+              setQuranMetrics((prev) => {
+                const surah = prev?.surah ?? {};
+                return {
                   ...prev,
-                  listeningHours: hours,
-                }));
-                saveQuranHoursGoal("LISTENING", hours, onDone, onFail, key);
-              }}
-            />
-          );
-        case "quran-tajweed":
-          return (
-            <QuranTimeSelection
-              openOnMount={false}
-              collapseSignal={postSaveCollapseSignal}
-              onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
-              title={t("monthlyGoalPlanner.selectNumHours")}
-              descriptionKey="monthlyGoalPlanner.hoursQuranTajweed"
-              quranGoalType="TAJWEED"
-              isSaving={isQuranGoalSaving(key)}
-              initiallySaved={isInitiallySavedForUi(
-                "quran",
-                "quran-tajweed",
-                isQuranGoalConfigured("quran-tajweed"),
-              )}
-              onSave={(hours: number, onDone, onFail) => {
-                setQuranMetrics((prev) => ({
-                  ...prev,
-                  tajweedHours: hours,
-                }));
-                saveQuranHoursGoal("TAJWEED", hours, onDone, onFail, key);
-              }}
-            />
-          );
-        case "quran-recitation-by-surah":
-          return (
-            <QuranRecitationGoalSelection
-              openOnMount={false}
-              collapseSignal={postSaveCollapseSignal}
-              onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
-              {...quranReferenceProps}
-              title={t("monthlyGoalPlanner.recitationBySurah")}
-              initialMetric="surah"
-              allowedMetrics={["surah"]}
-              onMetricsChange={handleQuranMetricsChange}
-              variant="others"
-              isSaving={isQuranGoalSaving(key)}
-              onSave={(_payload, onDone, onFail) => {
-                setQuranMetrics((prev) => {
-                  const surah = prev?.surah ?? {};
-                  return {
-                    ...prev,
-                    [key]: buildSurahRecitationReviewSelectedGoals(surah, t),
-                  };
-                });
-                saveQuranMetricGoal("recitation", "surah", onDone, onFail, key);
-              }}
-            />
-          );
-        case "quran-recitation-by-completion":
-          return (
-            <QuranRecitationGoalSelection
-              openOnMount={false}
-              collapseSignal={postSaveCollapseSignal}
-              onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
-              {...quranReferenceProps}
-              title={t("monthlyGoalPlanner.recitationByCompletion")}
-              initialMetric="completion"
-              allowedMetrics={["completion"]}
-              onMetricsChange={handleQuranMetricsChange}
-              variant="others"
-              isSaving={isQuranGoalSaving(key)}
-              onSave={(_payload, onDone, onFail) => {
-                setQuranMetrics((prev) => ({
-                  ...prev,
-                  [key]: [
-                    {
-                      id: 1,
-                      label: "Completion",
-                      value: String(prev?.completion ?? ""),
-                    },
-                  ],
-                }));
-                saveQuranMetricGoal(
-                  "recitation",
-                  "completion",
-                  onDone,
-                  onFail,
-                  key,
-                );
-              }}
-            />
-          );
-        case "quran-recitation-by-juz":
-          return (
-            <QuranRecitationGoalSelection
-              openOnMount={false}
-              collapseSignal={postSaveCollapseSignal}
-              onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
-              {...quranReferenceProps}
-              title={t("monthlyGoalPlanner.recitationByJuz")}
-              initialMetric="juz"
-              allowedMetrics={["juz"]}
-              onMetricsChange={handleQuranMetricsChange}
-              variant="others"
-              isSaving={isQuranGoalSaving(key)}
-              onSave={(_payload, onDone, onFail) => {
-                setQuranMetrics((prev) => {
-                  const juz = prev?.juz ?? {};
+                  [key]: buildSurahRecitationReviewSelectedGoals(surah, t),
+                };
+              });
+              saveQuranMetricGoal("recitation", "surah", onDone, onFail, key);
+            }}
+          />
+        );
+      case "quran-recitation-by-completion":
+        return (
+          <QuranRecitationGoalSelection
+            openOnMount={false}
+            collapseSignal={postSaveCollapseSignal}
+            onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
+            {...quranReferenceProps}
+            title={t("monthlyGoalPlanner.recitationByCompletion")}
+            initialMetric="completion"
+            allowedMetrics={["completion"]}
+            onMetricsChange={handleQuranMetricsChange}
+            variant="others"
+            isSaving={isQuranGoalSaving(key)}
+            onSave={(_payload, onDone, onFail) => {
+              setQuranMetrics((prev) => ({
+                ...prev,
+                [key]: [
+                  {
+                    id: 1,
+                    label: "Completion",
+                    value: String(prev?.completion ?? ""),
+                  },
+                ],
+              }));
+              saveQuranMetricGoal(
+                "recitation",
+                "completion",
+                onDone,
+                onFail,
+                key,
+              );
+            }}
+          />
+        );
+      case "quran-recitation-by-juz":
+        return (
+          <QuranRecitationGoalSelection
+            openOnMount={false}
+            collapseSignal={postSaveCollapseSignal}
+            onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
+            {...quranReferenceProps}
+            title={t("monthlyGoalPlanner.recitationByJuz")}
+            initialMetric="juz"
+            allowedMetrics={["juz"]}
+            onMetricsChange={handleQuranMetricsChange}
+            variant="others"
+            isSaving={isQuranGoalSaving(key)}
+            onSave={(_payload, onDone, onFail) => {
+              setQuranMetrics((prev) => {
+                const juz = prev?.juz ?? {};
+                let from = Number(juz.start ?? 0);
+                let to = Number(juz.end ?? 0);
+                if (from <= 0 && to > 0) from = 1;
+                if (to <= 0 && from > 0) to = from;
+                if (from > 0 && to > 0 && to < from) to = from;
+                const rows: {
+                  id: number;
+                  name: string;
+                  label: string;
+                  value: string;
+                }[] = [];
+                if (from > 0 && to > 0) {
+                  const rangeRow = buildJuzRecitationRangeReviewRow(
+                    from,
+                    to,
+                    t,
+                  );
+                  rows.push({ ...rangeRow, value: "" });
+                }
+                return { ...prev, [key]: rows };
+              });
+              saveQuranMetricGoal("recitation", "juz", onDone, onFail, key);
+            }}
+          />
+        );
+      case "quran-memorization-by-juz":
+        return (
+          <QuranRecitationGoalSelection
+            openOnMount={false}
+            collapseSignal={postSaveCollapseSignal}
+            onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
+            {...quranReferenceProps}
+            title={t("monthlyGoalPlanner.memorizationByJuz")}
+            initialMetric="juz"
+            allowedMetrics={["juz"]}
+            onMetricsChange={handleQuranMetricsChange}
+            variant="memorization"
+            isSaving={isQuranGoalSaving(key)}
+            onSave={(_payload, onDone, onFail) => {
+              setQuranMetrics((prev) => {
+                const juz = prev?.juz ?? {};
+                const selectedIds: number[] = Array.isArray(juz.selectedJuzs)
+                  ? juz.selectedJuzs
+                      .map(Number)
+                      .filter((n: number) => Number.isFinite(n) && n > 0)
+                  : [];
+                let rows: {
+                  id: number;
+                  name: string;
+                  label: string;
+                  value: string;
+                }[] = [];
+                const ref = {
+                  juz: allQuranGoalsResponse?.reference.juz,
+                  hizb: allQuranGoalsResponse?.reference.hizb,
+                };
+                if (selectedIds.length > 0) {
+                  rows = [...selectedIds]
+                    .sort((a, b) => a - b)
+                    .map((n, i) => {
+                      const row = resolveJuzOrHizbReviewRow("JUZ", n, t, ref);
+                      return {
+                        id: i + 1,
+                        name: `JUZ-${n}`,
+                        label: row.label,
+                        value: row.value,
+                      };
+                    });
+                } else {
                   let from = Number(juz.start ?? 0);
                   let to = Number(juz.end ?? 0);
                   if (from <= 0 && to > 0) from = 1;
                   if (to <= 0 && from > 0) to = from;
                   if (from > 0 && to > 0 && to < from) to = from;
-                  const rows: {
-                    id: number;
-                    name: string;
-                    label: string;
-                    value: string;
-                  }[] = [];
                   if (from > 0 && to > 0) {
-                    const rangeRow = buildJuzRecitationRangeReviewRow(
-                      from,
-                      to,
-                      t,
-                    );
-                    rows.push({ ...rangeRow, value: "" });
-                  }
-                  return { ...prev, [key]: rows };
-                });
-                saveQuranMetricGoal("recitation", "juz", onDone, onFail, key);
-              }}
-            />
-          );
-        case "quran-memorization-by-juz":
-          return (
-            <QuranRecitationGoalSelection
-              openOnMount={false}
-              collapseSignal={postSaveCollapseSignal}
-              onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
-              {...quranReferenceProps}
-              title={t("monthlyGoalPlanner.memorizationByJuz")}
-              initialMetric="juz"
-              allowedMetrics={["juz"]}
-              onMetricsChange={handleQuranMetricsChange}
-              variant="memorization"
-              isSaving={isQuranGoalSaving(key)}
-              onSave={(_payload, onDone, onFail) => {
-                setQuranMetrics((prev) => {
-                  const juz = prev?.juz ?? {};
-                  const selectedIds: number[] = Array.isArray(juz.selectedJuzs)
-                    ? juz.selectedJuzs
-                        .map(Number)
-                        .filter((n: number) => Number.isFinite(n) && n > 0)
-                    : [];
-                  let rows: {
-                    id: number;
-                    name: string;
-                    label: string;
-                    value: string;
-                  }[] = [];
-                  const ref = {
-                    juz: allQuranGoalsResponse?.reference.juz,
-                    hizb: allQuranGoalsResponse?.reference.hizb,
-                  };
-                  if (selectedIds.length > 0) {
-                    rows = [...selectedIds]
-                      .sort((a, b) => a - b)
-                      .map((n, i) => {
-                        const row = resolveJuzOrHizbReviewRow("JUZ", n, t, ref);
-                        return {
-                          id: i + 1,
-                          name: `JUZ-${n}`,
-                          label: row.label,
-                          value: row.value,
-                        };
-                      });
-                  } else {
-                    let from = Number(juz.start ?? 0);
-                    let to = Number(juz.end ?? 0);
-                    if (from <= 0 && to > 0) from = 1;
-                    if (to <= 0 && from > 0) to = from;
-                    if (from > 0 && to > 0 && to < from) to = from;
-                    if (from > 0 && to > 0) {
-                      for (let n = from; n <= to; n += 1) {
-                        const row = resolveJuzOrHizbReviewRow("JUZ", n, t, ref);
-                        rows.push({
-                          id: rows.length + 1,
-                          name: `JUZ-${n}`,
-                          label: row.label,
-                          value: row.value,
-                        });
-                      }
-                    }
-                  }
-                  return { ...prev, [key]: rows };
-                });
-                saveQuranMetricGoal("memorization", "juz", onDone, onFail, key);
-              }}
-            />
-          );
-        case "quran-memorization-by-hizb":
-          return (
-            <QuranRecitationGoalSelection
-              openOnMount={false}
-              collapseSignal={postSaveCollapseSignal}
-              onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
-              {...quranReferenceProps}
-              title={t("monthlyGoalPlanner.memorizationByHizb")}
-              initialMetric="hizb"
-              allowedMetrics={["hizb"]}
-              onMetricsChange={handleQuranMetricsChange}
-              variant="memorization"
-              isSaving={isQuranGoalSaving(key)}
-              onSave={(_payload, onDone, onFail) => {
-                setQuranMetrics((prev) => {
-                  const hizb = prev?.hizb ?? {};
-                  const selectedIds: number[] = Array.isArray(
-                    hizb.selectedHizbs,
-                  )
-                    ? hizb.selectedHizbs.map(Number)
-                    : hizb.selectedHizb != null
-                      ? [Number(hizb.selectedHizb)]
-                      : Array.isArray(hizb)
-                        ? hizb.map(Number)
-                        : [];
-                  const ids = selectedIds
-                    .filter((n) => Number.isFinite(n) && n > 0)
-                    .sort((a, b) => a - b);
-                  const ref = {
-                    juz: allQuranGoalsResponse?.reference.juz,
-                    hizb: allQuranGoalsResponse?.reference.hizb,
-                  };
-                  return {
-                    ...prev,
-                    [key]: ids.map((n, i) => {
-                      const row = resolveJuzOrHizbReviewRow("HIZB", n, t, ref);
-                      return {
-                        id: i + 1,
-                        name: `HIZB-${n}`,
+                    for (let n = from; n <= to; n += 1) {
+                      const row = resolveJuzOrHizbReviewRow("JUZ", n, t, ref);
+                      rows.push({
+                        id: rows.length + 1,
+                        name: `JUZ-${n}`,
                         label: row.label,
                         value: row.value,
-                      };
-                    }),
-                  };
-                });
-                saveQuranMetricGoal("memorization", "hizb", onDone, onFail, key);
-              }}
-            />
-          );
-        case "quran-memorization-by-surah":
-          return (
-            <QuranRecitationGoalSelection
-              openOnMount={false}
-              collapseSignal={postSaveCollapseSignal}
-              onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
-              {...quranReferenceProps}
-              title={t("monthlyGoalPlanner.memorizationBySurah")}
-              initialMetric="surah"
-              allowedMetrics={["surah"]}
-              onMetricsChange={handleQuranMetricsChange}
-              variant="memorization"
-              isSaving={isQuranGoalSaving(key)}
-              onSave={(_payload, onDone, onFail) => {
-                setQuranMetrics((prev) => {
-                  const surah = prev?.surah ?? {};
-                  const selected: number[] = Array.isArray(surah.selectedSurahs)
-                    ? surah.selectedSurahs
-                    : [];
-                  const names = surah.surahNames ?? {};
-                  const surahOpts =
-                    allQuranGoalsResponse?.reference.surahs ?? [];
-                  return {
-                    ...prev,
-                    [key]: selected.map((id, i) => {
-                      const rawName = String(names[id] ?? `Surah ${id}`);
-                      const bare = rawName
-                        .replace(/\s*\([^)]*\)/g, "")
-                        .replace(/\s{2,}/g, " ")
-                        .trim();
-                      const prefixed = /^surah\b/i.test(bare)
-                        ? bare
-                        : `Surah ${bare}`;
-                      const verses = surahOpts.find((s) => s.id === id)?.verses;
-                      return {
-                        id: i + 1,
-                        name: `SURAH-${id}`,
-                        label: verses ? `${prefixed} ${verses}` : prefixed,
-                        value: "",
-                      };
-                    }),
-                  };
-                });
-                saveQuranMetricGoal(
-                  "memorization",
-                  "surah",
-                  onDone,
-                  onFail,
-                  key,
-                );
-              }}
-            />
-          );
-        case "missed-fasts":
-          return (
-            <MissedRamadanFastGoalSelection
-              openOnMount={false}
-              collapseSignal={postSaveCollapseSignal}
-              calendarWindow={fastingCalendarWindow}
-              onSave={(selectedDates: string[]) => {
-                setFastingMetrics((prev) => ({
-                  ...prev,
-                  [goal.title]: formatFastingReviewRowsFromDates(selectedDates),
-                }));
-              }}
-            />
-          );
-        case "dawood-fasts":
-          return (
-            <ProphetDawoodFastGoalSelection
-              openOnMount={false}
-              collapseSignal={postSaveCollapseSignal}
-              calendarWindow={fastingCalendarWindow}
-              onSave={() => {}}
-            />
-          );
-        case "monday-and-thursday-fasts":
-          return (
-            <MondayThursdayFastGoalSelection
-              openOnMount={false}
-              collapseSignal={postSaveCollapseSignal}
-              calendarWindow={fastingCalendarWindow}
-              onSave={(selectedDates: string[]) => {
-                setFastingMetrics((prev) => ({
-                  ...prev,
-                  [goal.title]: formatFastingReviewRowsFromDates(selectedDates),
-                }));
-                setMondayThursdaySelectedGoalFasts(selectedDates);
-              }}
-            />
-          );
-        case "white-days-fasts":
-          return (
-            <WhiteDaysFastGoalSelection
-              openOnMount={false}
-              collapseSignal={postSaveCollapseSignal}
-              calendarWindow={fastingCalendarWindow}
-              onSave={() => {
-                setFastingMetrics((prev) => {
-                  const next = { ...prev };
-                  delete next[goal.title];
-                  return next;
-                });
-              }}
-            />
-          );
-        // ── Sadaqah editors
-        case "missed-zakat":
-          return (
-            <MissedZakats
-              openOnMount={false}
-              collapseSignal={postSaveCollapseSignal}
-              onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
-              count={missedZakatAmount}
-              setCount={setMissedZakatAmount}
-              control={control}
-              name="missedZakat"
-              title={t("monthlyGoalPlanner.volunteeringMonthTitle")}
-              handleDecrease={() =>
-                setMissedZakatAmount((prev) => Math.max(0, prev - 1))
-              }
-              handleIncrease={() => setMissedZakatAmount((prev) => prev + 1)}
-              countTitle={t("monthlyGoalPlanner.amount")}
-              isSaving={isSavingSadaqah}
-              onSave={(done, fail) =>
-                saveMissedZakatGoal(goal.title, done, fail)
-              }
-              onSetAsDefaultCurrency={applyDefaultSadaqahCurrency}
-            />
-          );
-        case "kafarah-for-breaking-fasts":
-          return (
-            <KafarahForBreakingFastsOrOAthSelector
-              openOnMount={false}
-              collapseSignal={postSaveCollapseSignal}
-              onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
-              mealCount={kafarahMeals}
-              setMealCount={setKafarahMeals}
-              clothCount={kafarahCloths}
-              setClothCount={setKafarahCloths}
-              handleMealDecrease={() =>
-                setKafarahMeals((prev) => Math.max(0, prev - 1))
-              }
-              handleMealIncrease={() => setKafarahMeals((prev) => prev + 1)}
-              handleClothDecrease={() =>
-                setKafarahCloths((prev) => Math.max(0, prev - 1))
-              }
-              handleClothIncrease={() => setKafarahCloths((prev) => prev + 1)}
-              isSaving={isSavingSadaqah}
-              onSave={(done, fail) => saveKaffarahGoal(goal.title, done, fail)}
-            />
-          );
-        case "fidya":
-          return (
-            <FidyaSelector
-              openOnMount={false}
-              collapseSignal={postSaveCollapseSignal}
-              onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
-              count={fidyaMeals}
-              setCount={setFidyaMeals}
-              handleDecrease={() =>
-                setFidyaMeals((prev) => Math.max(0, prev - 1))
-              }
-              handleIncrease={() => setFidyaMeals((prev) => prev + 1)}
-              title={t("monthlyGoalPlanner.fidyaMealsTitle")}
-              isSaving={isSavingSadaqah}
-              onSave={(done, fail) => saveFidyaGoal(goal.title, done, fail)}
-            />
-          );
-        case "lilah-donations":
-          return (
-            <MissedZakats
-              openOnMount={false}
-              collapseSignal={postSaveCollapseSignal}
-              onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
-              count={lillahAmount}
-              setCount={setLillahAmount}
-              control={control}
-              name="lillahDonation"
-              title={t("monthlyGoalPlanner.reviewLabels.lilahDonations")}
-              handleDecrease={() =>
-                setLillahAmount((prev) => Math.max(0, prev - 1))
-              }
-              handleIncrease={() => setLillahAmount((prev) => prev + 1)}
-              countTitle={t("monthlyGoalPlanner.amount")}
-              isSaving={isSavingSadaqah}
-              onSave={(done, fail) => saveLillahGoal(goal.title, done, fail)}
-              onSetAsDefaultCurrency={applyDefaultSadaqahCurrency}
-            />
-          );
-        case "volunteering-services":
-          return (
-            <FidyaSelector
-              openOnMount={false}
-              collapseSignal={postSaveCollapseSignal}
-              onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
-              count={volunteeringHours}
-              setCount={setVolunteeringHours}
-              handleDecrease={() =>
-                setVolunteeringHours((prev) => Math.max(0, prev - 1))
-              }
-              handleIncrease={() => setVolunteeringHours((prev) => prev + 1)}
-              title={t("monthlyGoalPlanner.volunteeringMonthTitle")}
-              countTitle={t("monthlyGoalPlanner.hours", {
-                count: volunteeringHours,
-              })}
-              isSaving={isSavingSadaqah}
-              onSave={(done, fail) =>
-                saveVolunteeringGoal(goal.title, done, fail)
-              }
-            />
-          );
-        case "sadaqah-jariyah":
-          return (
-            <MissedZakats
-              openOnMount={false}
-              collapseSignal={postSaveCollapseSignal}
-              onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
-              count={sadaqahJariyahAmount}
-              setCount={setSadaqahJariyahAmount}
-              control={control}
-              name="sadaqahJariyah"
-              title={t("monthlyGoalPlanner.volunteeringMonthTitle")}
-              handleDecrease={() =>
-                setSadaqahJariyahAmount((prev) => Math.max(0, prev - 1))
-              }
-              handleIncrease={() => setSadaqahJariyahAmount((prev) => prev + 1)}
-              countTitle={t("monthlyGoalPlanner.amount")}
-              isSaving={isSavingSadaqah}
-              onSave={(done, fail) =>
-                saveSadaqahJariyahGoal(goal.title, done, fail)
-              }
-              onSetAsDefaultCurrency={applyDefaultSadaqahCurrency}
-            />
-          );
-        case "five-daily-prayers":
-          return (
-            <DailyPrayerGoalSelection
-              openOnMount={false}
-              collapseSignal={postSaveCollapseSignal}
-              onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
-              cycleStartDate={cycleStartDate ?? undefined}
-              initiallySaved={isInitiallySavedForUi(
-                "prayer",
-                "fiveDailyPrayers",
-                isPrayerGoalConfigured("fiveDailyPrayers"),
-              )}
-              initialValues={
-                sourcePrayer?.fiveDailyConfig
-                  ? {
-                      fajr: sourcePrayer.fiveDailyConfig.fajrTarget ?? 28,
-                      dhuhr: sourcePrayer.fiveDailyConfig.dhuhrTarget ?? 28,
-                      asr: sourcePrayer.fiveDailyConfig.asrTarget ?? 28,
-                      maghrib: sourcePrayer.fiveDailyConfig.maghribTarget ?? 28,
-                      isha: sourcePrayer.fiveDailyConfig.ishaTarget ?? 28,
-                      jumuah: sourcePrayer.fiveDailyConfig.jumuahTarget ?? 0,
-                      ...(typeof (
-                        sourcePrayer.fiveDailyConfig.congregationalTracking ??
-                        sourcePrayer.congregationalTracking
-                      ) === "boolean"
-                        ? {
-                            congregationalTracking: Boolean(
-                              sourcePrayer.fiveDailyConfig
-                                .congregationalTracking ??
-                                sourcePrayer.congregationalTracking,
-                            ),
-                          }
-                        : {}),
+                      });
                     }
-                  : undefined
-              }
-              isSaving={isSavingPrayer}
-              onSave={(
-                fajr,
-                dhuhr,
-                asar,
-                maghrib,
-                isha,
-                jumuah,
-                trackCongregation,
+                  }
+                }
+                return { ...prev, [key]: rows };
+              });
+              saveQuranMetricGoal("memorization", "juz", onDone, onFail, key);
+            }}
+          />
+        );
+      case "quran-memorization-by-hizb":
+        return (
+          <QuranRecitationGoalSelection
+            openOnMount={false}
+            collapseSignal={postSaveCollapseSignal}
+            onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
+            {...quranReferenceProps}
+            title={t("monthlyGoalPlanner.memorizationByHizb")}
+            initialMetric="hizb"
+            allowedMetrics={["hizb"]}
+            onMetricsChange={handleQuranMetricsChange}
+            variant="memorization"
+            isSaving={isQuranGoalSaving(key)}
+            onSave={(_payload, onDone, onFail) => {
+              setQuranMetrics((prev) => {
+                const hizb = prev?.hizb ?? {};
+                const selectedIds: number[] = Array.isArray(hizb.selectedHizbs)
+                  ? hizb.selectedHizbs.map(Number)
+                  : hizb.selectedHizb != null
+                    ? [Number(hizb.selectedHizb)]
+                    : Array.isArray(hizb)
+                      ? hizb.map(Number)
+                      : [];
+                const ids = selectedIds
+                  .filter((n) => Number.isFinite(n) && n > 0)
+                  .sort((a, b) => a - b);
+                const ref = {
+                  juz: allQuranGoalsResponse?.reference.juz,
+                  hizb: allQuranGoalsResponse?.reference.hizb,
+                };
+                return {
+                  ...prev,
+                  [key]: ids.map((n, i) => {
+                    const row = resolveJuzOrHizbReviewRow("HIZB", n, t, ref);
+                    return {
+                      id: i + 1,
+                      name: `HIZB-${n}`,
+                      label: row.label,
+                      value: row.value,
+                    };
+                  }),
+                };
+              });
+              saveQuranMetricGoal("memorization", "hizb", onDone, onFail, key);
+            }}
+          />
+        );
+      case "quran-memorization-by-surah":
+        return (
+          <QuranRecitationGoalSelection
+            openOnMount={false}
+            collapseSignal={postSaveCollapseSignal}
+            onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
+            {...quranReferenceProps}
+            title={t("monthlyGoalPlanner.memorizationBySurah")}
+            initialMetric="surah"
+            allowedMetrics={["surah"]}
+            onMetricsChange={handleQuranMetricsChange}
+            variant="memorization"
+            isSaving={isQuranGoalSaving(key)}
+            onSave={(_payload, onDone, onFail) => {
+              setQuranMetrics((prev) => {
+                const surah = prev?.surah ?? {};
+                const selected: number[] = Array.isArray(surah.selectedSurahs)
+                  ? surah.selectedSurahs
+                  : [];
+                const names = surah.surahNames ?? {};
+                const surahOpts = allQuranGoalsResponse?.reference.surahs ?? [];
+                return {
+                  ...prev,
+                  [key]: selected.map((id, i) => {
+                    const rawName = String(names[id] ?? `Surah ${id}`);
+                    const bare = rawName
+                      .replace(/\s*\([^)]*\)/g, "")
+                      .replace(/\s{2,}/g, " ")
+                      .trim();
+                    const prefixed = /^surah\b/i.test(bare)
+                      ? bare
+                      : `Surah ${bare}`;
+                    const verses = surahOpts.find((s) => s.id === id)?.verses;
+                    return {
+                      id: i + 1,
+                      name: `SURAH-${id}`,
+                      label: verses ? `${prefixed} ${verses}` : prefixed,
+                      value: "",
+                    };
+                  }),
+                };
+              });
+              saveQuranMetricGoal("memorization", "surah", onDone, onFail, key);
+            }}
+          />
+        );
+      case "missed-fasts":
+        return (
+          <MissedRamadanFastGoalSelection
+            openOnMount={false}
+            collapseSignal={postSaveCollapseSignal}
+            calendarWindow={fastingCalendarWindow}
+            onSave={(selectedDates: string[]) => {
+              setFastingMetrics((prev) => ({
+                ...prev,
+                [goal.title]: formatFastingReviewRowsFromDates(selectedDates),
+              }));
+            }}
+          />
+        );
+      case "dawood-fasts":
+        return (
+          <ProphetDawoodFastGoalSelection
+            openOnMount={false}
+            collapseSignal={postSaveCollapseSignal}
+            calendarWindow={fastingCalendarWindow}
+            onSave={() => {}}
+          />
+        );
+      case "monday-and-thursday-fasts":
+        return (
+          <MondayThursdayFastGoalSelection
+            openOnMount={false}
+            collapseSignal={postSaveCollapseSignal}
+            calendarWindow={fastingCalendarWindow}
+            onSave={(selectedDates: string[]) => {
+              setFastingMetrics((prev) => ({
+                ...prev,
+                [goal.title]: formatFastingReviewRowsFromDates(selectedDates),
+              }));
+              setMondayThursdaySelectedGoalFasts(selectedDates);
+            }}
+          />
+        );
+      case "white-days-fasts":
+        return (
+          <WhiteDaysFastGoalSelection
+            openOnMount={false}
+            collapseSignal={postSaveCollapseSignal}
+            calendarWindow={fastingCalendarWindow}
+            onSave={() => {
+              setFastingMetrics((prev) => {
+                const next = { ...prev };
+                delete next[goal.title];
+                return next;
+              });
+            }}
+          />
+        );
+      // ── Sadaqah editors
+      case "missed-zakat":
+        return (
+          <MissedZakats
+            openOnMount={false}
+            collapseSignal={postSaveCollapseSignal}
+            onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
+            count={missedZakatAmount}
+            setCount={setMissedZakatAmount}
+            control={control}
+            name="missedZakat"
+            title={t("monthlyGoalPlanner.volunteeringMonthTitle")}
+            handleDecrease={() =>
+              setMissedZakatAmount((prev) => Math.max(0, prev - 1))
+            }
+            handleIncrease={() => setMissedZakatAmount((prev) => prev + 1)}
+            countTitle={t("monthlyGoalPlanner.amount")}
+            isSaving={isSavingSadaqah}
+            onSave={(done, fail) => saveMissedZakatGoal(goal.title, done, fail)}
+            onSetAsDefaultCurrency={applyDefaultSadaqahCurrency}
+          />
+        );
+      case "kafarah-for-breaking-fasts":
+        return (
+          <KafarahForBreakingFastsOrOAthSelector
+            openOnMount={false}
+            collapseSignal={postSaveCollapseSignal}
+            onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
+            mealCount={kafarahMeals}
+            setMealCount={setKafarahMeals}
+            clothCount={kafarahCloths}
+            setClothCount={setKafarahCloths}
+            handleMealDecrease={() =>
+              setKafarahMeals((prev) => Math.max(0, prev - 1))
+            }
+            handleMealIncrease={() => setKafarahMeals((prev) => prev + 1)}
+            handleClothDecrease={() =>
+              setKafarahCloths((prev) => Math.max(0, prev - 1))
+            }
+            handleClothIncrease={() => setKafarahCloths((prev) => prev + 1)}
+            isSaving={isSavingSadaqah}
+            onSave={(done, fail) => saveKaffarahGoal(goal.title, done, fail)}
+          />
+        );
+      case "fidya":
+        return (
+          <FidyaSelector
+            openOnMount={false}
+            collapseSignal={postSaveCollapseSignal}
+            onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
+            count={fidyaMeals}
+            setCount={setFidyaMeals}
+            handleDecrease={() =>
+              setFidyaMeals((prev) => Math.max(0, prev - 1))
+            }
+            handleIncrease={() => setFidyaMeals((prev) => prev + 1)}
+            title={t("monthlyGoalPlanner.fidyaMealsTitle")}
+            isSaving={isSavingSadaqah}
+            onSave={(done, fail) => saveFidyaGoal(goal.title, done, fail)}
+          />
+        );
+      case "lilah-donations":
+        return (
+          <MissedZakats
+            openOnMount={false}
+            collapseSignal={postSaveCollapseSignal}
+            onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
+            count={lillahAmount}
+            setCount={setLillahAmount}
+            control={control}
+            name="lillahDonation"
+            title={t("monthlyGoalPlanner.reviewLabels.lilahDonations")}
+            handleDecrease={() =>
+              setLillahAmount((prev) => Math.max(0, prev - 1))
+            }
+            handleIncrease={() => setLillahAmount((prev) => prev + 1)}
+            countTitle={t("monthlyGoalPlanner.amount")}
+            isSaving={isSavingSadaqah}
+            onSave={(done, fail) => saveLillahGoal(goal.title, done, fail)}
+            onSetAsDefaultCurrency={applyDefaultSadaqahCurrency}
+          />
+        );
+      case "volunteering-services":
+        return (
+          <FidyaSelector
+            openOnMount={false}
+            collapseSignal={postSaveCollapseSignal}
+            onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
+            count={volunteeringHours}
+            setCount={setVolunteeringHours}
+            handleDecrease={() =>
+              setVolunteeringHours((prev) => Math.max(0, prev - 1))
+            }
+            handleIncrease={() => setVolunteeringHours((prev) => prev + 1)}
+            title={t("monthlyGoalPlanner.volunteeringMonthTitle")}
+            countTitle={t("monthlyGoalPlanner.hours", {
+              count: volunteeringHours,
+            })}
+            isSaving={isSavingSadaqah}
+            onSave={(done, fail) =>
+              saveVolunteeringGoal(goal.title, done, fail)
+            }
+          />
+        );
+      case "sadaqah-jariyah":
+        return (
+          <MissedZakats
+            openOnMount={false}
+            collapseSignal={postSaveCollapseSignal}
+            onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
+            count={sadaqahJariyahAmount}
+            setCount={setSadaqahJariyahAmount}
+            control={control}
+            name="sadaqahJariyah"
+            title={t("monthlyGoalPlanner.volunteeringMonthTitle")}
+            handleDecrease={() =>
+              setSadaqahJariyahAmount((prev) => Math.max(0, prev - 1))
+            }
+            handleIncrease={() => setSadaqahJariyahAmount((prev) => prev + 1)}
+            countTitle={t("monthlyGoalPlanner.amount")}
+            isSaving={isSavingSadaqah}
+            onSave={(done, fail) =>
+              saveSadaqahJariyahGoal(goal.title, done, fail)
+            }
+            onSetAsDefaultCurrency={applyDefaultSadaqahCurrency}
+          />
+        );
+      case "five-daily-prayers":
+        return (
+          <DailyPrayerGoalSelection
+            openOnMount={false}
+            collapseSignal={postSaveCollapseSignal}
+            onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
+            cycleStartDate={cycleStartDate ?? undefined}
+            initiallySaved={isInitiallySavedForUi(
+              "prayer",
+              "fiveDailyPrayers",
+              isPrayerGoalConfigured("fiveDailyPrayers"),
+            )}
+            initialValues={
+              sourcePrayer?.fiveDailyConfig
+                ? {
+                    fajr: sourcePrayer.fiveDailyConfig.fajrTarget ?? 28,
+                    dhuhr: sourcePrayer.fiveDailyConfig.dhuhrTarget ?? 28,
+                    asr: sourcePrayer.fiveDailyConfig.asrTarget ?? 28,
+                    maghrib: sourcePrayer.fiveDailyConfig.maghribTarget ?? 28,
+                    isha: sourcePrayer.fiveDailyConfig.ishaTarget ?? 28,
+                    jumuah: sourcePrayer.fiveDailyConfig.jumuahTarget ?? 0,
+                    ...(typeof (
+                      sourcePrayer.fiveDailyConfig.congregationalTracking ??
+                      sourcePrayer.congregationalTracking
+                    ) === "boolean"
+                      ? {
+                          congregationalTracking: Boolean(
+                            sourcePrayer.fiveDailyConfig
+                              .congregationalTracking ??
+                            sourcePrayer.congregationalTracking,
+                          ),
+                        }
+                      : {}),
+                  }
+                : undefined
+            }
+            isSaving={isSavingPrayer}
+            onSave={(
+              fajr,
+              dhuhr,
+              asar,
+              maghrib,
+              isha,
+              jumuah,
+              trackCongregation,
+              onDone,
+              onFail,
+            ) => {
+              persistPrayerGoal(
+                {
+                  prayerType: "FIVE_DAILY_PRAYERS",
+                  isActive: true,
+                  fiveDailyConfig: {
+                    fajrTarget: fajr,
+                    dhuhrTarget: dhuhr,
+                    asrTarget: asar,
+                    maghribTarget: maghrib,
+                    ishaTarget: isha,
+                    jumuahTarget: jumuah,
+                    congregationalTracking: trackCongregation,
+                  },
+                },
+                undefined,
                 onDone,
                 onFail,
-              ) => {
-                persistPrayerGoal(
-                  {
-                    prayerType: "FIVE_DAILY_PRAYERS",
-                    isActive: true,
-                    fiveDailyConfig: {
-                      fajrTarget: fajr,
-                      dhuhrTarget: dhuhr,
-                      asrTarget: asar,
-                      maghribTarget: maghrib,
-                      ishaTarget: isha,
-                      jumuahTarget: jumuah,
-                      congregationalTracking: trackCongregation,
-                    },
+              );
+            }}
+          />
+        );
+      case "sunnah-rawatib":
+        return (
+          <SunnahRawatibGoalSelection
+            openOnMount={false}
+            collapseSignal={postSaveCollapseSignal}
+            onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
+            initiallySaved={isInitiallySavedForUi(
+              "prayer",
+              "sunnahRawatib",
+              isPrayerGoalConfigured("sunnahRawatib"),
+            )}
+            initialValues={getSunnahInitial(sourcePrayer)}
+            isSaving={isSavingPrayer}
+            onSave={(payload, onDone, onFail) => {
+              persistPrayerGoal(
+                {
+                  prayerType: "SUNNAH_RAWATIB",
+                  isActive: true,
+                  sunnahConfig: {
+                    beforeFajrTarget: payload.beforeFajr,
+                    beforeDhuhrTarget: payload.beforeDhuhr,
+                    afterDhuhrTarget: payload.afterDhuhr,
+                    afterDhuhrRakahOption: payload.afterDhuhrRakahOption,
+                    beforeAsrEnabled: payload.beforeAsrEnabled,
+                    beforeAsrTarget: payload.beforeAsr,
+                    beforeAsrRakahOption: payload.beforeAsrRakahOption,
+                    afterMaghribTarget: payload.afterMaghrib,
+                    afterIshaTarget: payload.afterIsha,
                   },
-                  undefined,
-                  onDone,
-                  onFail,
-                );
-              }}
-            />
-          );
-        case "sunnah-rawatib":
-          return (
-            <SunnahRawatibGoalSelection
-              openOnMount={false}
-              collapseSignal={postSaveCollapseSignal}
-              onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
-              initiallySaved={isInitiallySavedForUi(
-                "prayer",
-                "sunnahRawatib",
-                isPrayerGoalConfigured("sunnahRawatib"),
-              )}
-              initialValues={getSunnahInitial(sourcePrayer)}
-              isSaving={isSavingPrayer}
-              onSave={(payload, onDone, onFail) => {
-                persistPrayerGoal(
-                  {
-                    prayerType: "SUNNAH_RAWATIB",
-                    isActive: true,
-                    sunnahConfig: {
-                      beforeFajrTarget: payload.beforeFajr,
-                      beforeDhuhrTarget: payload.beforeDhuhr,
-                      afterDhuhrTarget: payload.afterDhuhr,
-                      afterDhuhrRakahOption: payload.afterDhuhrRakahOption,
-                      beforeAsrEnabled: payload.beforeAsrEnabled,
-                      beforeAsrTarget: payload.beforeAsr,
-                      beforeAsrRakahOption: payload.beforeAsrRakahOption,
-                      afterMaghribTarget: payload.afterMaghrib,
-                      afterIshaTarget: payload.afterIsha,
-                    },
+                },
+                undefined,
+                onDone,
+                onFail,
+              );
+            }}
+          />
+        );
+      case "tahayyat-ul-masjid":
+        return (
+          <TahiyyatMasjidGoalSelection
+            openOnMount={false}
+            collapseSignal={postSaveCollapseSignal}
+            onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
+            initialValue={sourcePrayer?.targetCount ?? 1}
+            initiallySaved={isInitiallySavedForUi(
+              "prayer",
+              "thayyat-ul-masjid",
+              isPrayerGoalConfigured("thayyat-ul-masjid"),
+            )}
+            isSaving={isSavingPrayer}
+            onSave={(value, onDone, onFail) => {
+              saveSimplePrayerTarget(
+                "TAHIYYAT_AL_MASJID",
+                value,
+                onDone,
+                onFail,
+              );
+            }}
+          />
+        );
+      case "missed-past-prayers":
+        return (
+          <MissedPrayerGoalSelection
+            openOnMount={false}
+            collapseSignal={postSaveCollapseSignal}
+            onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
+            initialValue={
+              typeof sourcePrayer?.targetDays === "number" &&
+              sourcePrayer.targetDays > 0
+                ? sourcePrayer.targetDays
+                : typeof sourcePrayer?.targetCount === "number" &&
+                    sourcePrayer.targetCount > 0
+                  ? Math.max(1, Math.round(sourcePrayer.targetCount / 5))
+                  : 3
+            }
+            initiallySaved={isInitiallySavedForUi(
+              "prayer",
+              "missedPastPrayers",
+              isPrayerGoalConfigured("missedPastPrayers"),
+            )}
+            isSaving={isSavingPrayer}
+            onSave={(value, onDone, onFail) => {
+              persistPrayerGoal(
+                {
+                  prayerType: "MISSED_PAST_PRAYERS",
+                  isActive: true,
+                  targetDays: value,
+                  targetCount: value * 5,
+                  sliderValue: value,
+                },
+                undefined,
+                onDone,
+                onFail,
+              );
+            }}
+          />
+        );
+      case "duha-prayer":
+        return (
+          <DuhaPrayerGoalSelection
+            openOnMount={false}
+            collapseSignal={postSaveCollapseSignal}
+            onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
+            initialValue={sourcePrayer?.targetCount ?? 1}
+            initiallySaved={isInitiallySavedForUi(
+              "prayer",
+              "duhaPrayer",
+              isPrayerGoalConfigured("duhaPrayer"),
+            )}
+            isSaving={isSavingPrayer}
+            onSave={(value, onDone, onFail) => {
+              saveSimplePrayerTarget("DUHA", value, onDone, onFail);
+            }}
+          />
+        );
+      case "tawba-prayer":
+        return (
+          <TawbahPrayerGoalSelection
+            openOnMount={false}
+            collapseSignal={postSaveCollapseSignal}
+            onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
+            initialValue={sourcePrayer?.targetCount ?? 1}
+            initiallySaved={isInitiallySavedForUi(
+              "prayer",
+              "tawbaPrayer",
+              isPrayerGoalConfigured("tawbaPrayer"),
+            )}
+            isSaving={isSavingPrayer}
+            onSave={(value, onDone, onFail) => {
+              saveSimplePrayerTarget("TAWBAH", value, onDone, onFail);
+            }}
+          />
+        );
+      case "istikhara-prayer":
+        return (
+          <IstikharaPrayerGoalSelection
+            openOnMount={false}
+            collapseSignal={postSaveCollapseSignal}
+            onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
+            initialValue={sourcePrayer?.targetCount ?? 1}
+            initiallySaved={isInitiallySavedForUi(
+              "prayer",
+              "istikharah",
+              isPrayerGoalConfigured("istikharah"),
+            )}
+            isSaving={isSavingPrayer}
+            onSave={(value, onDone, onFail) => {
+              saveSimplePrayerTarget("ISTIKHARA", value, onDone, onFail);
+            }}
+          />
+        );
+      case "shukr-prayer":
+        return (
+          <ShukarPrayerGoalSelection
+            openOnMount={false}
+            collapseSignal={postSaveCollapseSignal}
+            onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
+            initialValue={sourcePrayer?.targetCount ?? 1}
+            initiallySaved={isInitiallySavedForUi(
+              "prayer",
+              "shukrPrayer",
+              isPrayerGoalConfigured("shukrPrayer"),
+            )}
+            isSaving={isSavingPrayer}
+            onSave={(value, onDone, onFail) => {
+              saveSimplePrayerTarget("SHUKR", value, onDone, onFail);
+            }}
+          />
+        );
+      case "qiyal-al-lail-prayer":
+        return (
+          <QiyamalLaylGoalSelection
+            openOnMount={false}
+            collapseSignal={postSaveCollapseSignal}
+            onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
+            initialValues={getQiyamInitial(sourcePrayer)}
+            initiallySaved={isInitiallySavedForUi(
+              "prayer",
+              "qiyamalLail",
+              isPrayerGoalConfigured("qiyamalLail"),
+            )}
+            isSaving={isSavingPrayer}
+            onSave={(payload, onDone, onFail) => {
+              persistPrayerGoal(
+                {
+                  prayerType: "QIYAM_AL_LAYL",
+                  isActive: true,
+                  qiyamConfig: {
+                    isFlexible: payload.commitment === "flexible",
+                    unitTarget: payload.twoRakahPrayers,
+                    trackTahajjud: true,
                   },
-                  undefined,
-                  onDone,
-                  onFail,
-                );
-              }}
-            />
-          );
-        case "tahayyat-ul-masjid":
-          return (
-            <TahiyyatMasjidGoalSelection
-              openOnMount={false}
-              collapseSignal={postSaveCollapseSignal}
-              onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
-              initialValue={sourcePrayer?.targetCount ?? 1}
-              initiallySaved={isInitiallySavedForUi(
-                "prayer",
-                "thayyat-ul-masjid",
-                isPrayerGoalConfigured("thayyat-ul-masjid"),
-              )}
-              isSaving={isSavingPrayer}
-              onSave={(value, onDone, onFail) => {
-                saveSimplePrayerTarget(
-                  "TAHIYYAT_AL_MASJID",
-                  value,
-                  onDone,
-                  onFail,
-                );
-              }}
-            />
-          );
-        case "missed-past-prayers":
-          return (
-            <MissedPrayerGoalSelection
-              openOnMount={false}
-              collapseSignal={postSaveCollapseSignal}
-              onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
-              initialValue={
-                typeof sourcePrayer?.targetDays === "number" &&
-                sourcePrayer.targetDays > 0
-                  ? sourcePrayer.targetDays
-                  : typeof sourcePrayer?.targetCount === "number" &&
-                      sourcePrayer.targetCount > 0
-                    ? Math.max(1, Math.round(sourcePrayer.targetCount / 5))
-                    : 3
-              }
-              initiallySaved={isInitiallySavedForUi(
-                "prayer",
-                "missedPastPrayers",
-                isPrayerGoalConfigured("missedPastPrayers"),
-              )}
-              isSaving={isSavingPrayer}
-              onSave={(value, onDone, onFail) => {
-                persistPrayerGoal(
-                  {
-                    prayerType: "MISSED_PAST_PRAYERS",
-                    isActive: true,
-                    targetDays: value,
-                    targetCount: value * 5,
-                    sliderValue: value,
-                  },
-                  undefined,
-                  onDone,
-                  onFail,
-                );
-              }}
-            />
-          );
-        case "duha-prayer":
-          return (
-            <DuhaPrayerGoalSelection
-              openOnMount={false}
-              collapseSignal={postSaveCollapseSignal}
-              onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
-              initialValue={sourcePrayer?.targetCount ?? 1}
-              initiallySaved={isInitiallySavedForUi(
-                "prayer",
-                "duhaPrayer",
-                isPrayerGoalConfigured("duhaPrayer"),
-              )}
-              isSaving={isSavingPrayer}
-              onSave={(value, onDone, onFail) => {
-                saveSimplePrayerTarget("DUHA", value, onDone, onFail);
-              }}
-            />
-          );
-        case "tawba-prayer":
-          return (
-            <TawbahPrayerGoalSelection
-              openOnMount={false}
-              collapseSignal={postSaveCollapseSignal}
-              onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
-              initialValue={sourcePrayer?.targetCount ?? 1}
-              initiallySaved={isInitiallySavedForUi(
-                "prayer",
-                "tawbaPrayer",
-                isPrayerGoalConfigured("tawbaPrayer"),
-              )}
-              isSaving={isSavingPrayer}
-              onSave={(value, onDone, onFail) => {
-                saveSimplePrayerTarget("TAWBAH", value, onDone, onFail);
-              }}
-            />
-          );
-        case "istikhara-prayer":
-          return (
-            <IstikharaPrayerGoalSelection
-              openOnMount={false}
-              collapseSignal={postSaveCollapseSignal}
-              onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
-              initialValue={sourcePrayer?.targetCount ?? 1}
-              initiallySaved={isInitiallySavedForUi(
-                "prayer",
-                "istikharah",
-                isPrayerGoalConfigured("istikharah"),
-              )}
-              isSaving={isSavingPrayer}
-              onSave={(value, onDone, onFail) => {
-                saveSimplePrayerTarget("ISTIKHARA", value, onDone, onFail);
-              }}
-            />
-          );
-        case "shukr-prayer":
-          return (
-            <ShukarPrayerGoalSelection
-              openOnMount={false}
-              collapseSignal={postSaveCollapseSignal}
-              onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
-              initialValue={sourcePrayer?.targetCount ?? 1}
-              initiallySaved={isInitiallySavedForUi(
-                "prayer",
-                "shukrPrayer",
-                isPrayerGoalConfigured("shukrPrayer"),
-              )}
-              isSaving={isSavingPrayer}
-              onSave={(value, onDone, onFail) => {
-                saveSimplePrayerTarget("SHUKR", value, onDone, onFail);
-              }}
-            />
-          );
-        case "qiyal-al-lail-prayer":
-          return (
-            <QiyamalLaylGoalSelection
-              openOnMount={false}
-              collapseSignal={postSaveCollapseSignal}
-              onInputFocus={(layout) => handleGoalInputFocus(key, layout)}
-              initialValues={getQiyamInitial(sourcePrayer)}
-              initiallySaved={isInitiallySavedForUi(
-                "prayer",
-                "qiyamalLail",
-                isPrayerGoalConfigured("qiyamalLail"),
-              )}
-              isSaving={isSavingPrayer}
-              onSave={(payload, onDone, onFail) => {
-                persistPrayerGoal(
-                  {
-                    prayerType: "QIYAM_AL_LAYL",
-                    isActive: true,
-                    qiyamConfig: {
-                      isFlexible: payload.commitment === "flexible",
-                      unitTarget: payload.twoRakahPrayers,
-                      trackTahajjud: true,
-                    },
-                  },
-                  undefined,
-                  onDone,
-                  onFail,
-                );
-              }}
-            />
-          );
-        default:
-          return null;
-      }
-    };
+                },
+                undefined,
+                onDone,
+                onFail,
+              );
+            }}
+          />
+        );
+      default:
+        return null;
+    }
+  };
 
-    return (
-      <>
-        <View style={styles.screen}>
-          <RNScrollView
-            ref={tabBarScrollRef}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.tabBar}
-            contentContainerStyle={styles.tabBarContent}
-          >
-            {localizedTabs.map((tab) => {
-              const isActive = activeTab === tab.id;
-              const hasChip = !!tab.chip;
-              // Never fade the active tab — after COMMIT, Step 1 must read as selected
-              // even if unlock state briefly lags behind.
-              const isDisabled = !isActive && !isTabUnlocked(tab.id);
-              return (
-                <Pressable
-                  key={tab.id}
-                  onPress={() => handleTabPress(tab.id)}
-                  disabled={isDisabled}
-                  onLayout={(event) => {
-                    const { x, width } = event.nativeEvent.layout;
-                    tabLayoutsRef.current[tab.id] = { x, width };
-                    if (tab.id === activeTab) {
-                      scrollTabBarToTab(tab.id);
-                    }
-                  }}
-                  style={[
-                    styles.tab,
-                    !hasChip && isActive && styles.tabActive,
-                    isDisabled && styles.tabDisabled,
-                  ]}
-                >
-                  {hasChip ? (
-                    <>
-                      <View
-                        style={[
-                          styles.tabChip,
-                          isActive
-                            ? styles.tabChipActive
-                            : styles.tabChipInactive,
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.tabChipText,
-                            isActive && styles.tabChipTextActive,
-                          ]}
-                        >
-                          {tab.chip}
-                        </Text>
-                      </View>
+  return (
+    <>
+      <View style={styles.screen}>
+        <RNScrollView
+          ref={tabBarScrollRef}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.tabBar}
+          contentContainerStyle={styles.tabBarContent}
+        >
+          {localizedTabs.map((tab) => {
+            const isActive = activeTab === tab.id;
+            const hasChip = !!tab.chip;
+            // Never fade the active tab — after COMMIT, Step 1 must read as selected
+            // even if unlock state briefly lags behind.
+            const isDisabled = !isActive && !isTabUnlocked(tab.id);
+            return (
+              <Pressable
+                key={tab.id}
+                onPress={() => handleTabPress(tab.id)}
+                disabled={isDisabled}
+                onLayout={(event) => {
+                  const { x, width } = event.nativeEvent.layout;
+                  tabLayoutsRef.current[tab.id] = { x, width };
+                  if (tab.id === activeTab) {
+                    scrollTabBarToTab(tab.id);
+                  }
+                }}
+                style={[
+                  styles.tab,
+                  !hasChip && isActive && styles.tabActive,
+                  isDisabled && styles.tabDisabled,
+                ]}
+              >
+                {hasChip ? (
+                  <>
+                    <View
+                      style={[
+                        styles.tabChip,
+                        isActive
+                          ? styles.tabChipActive
+                          : styles.tabChipInactive,
+                      ]}
+                    >
                       <Text
                         style={[
-                          styles.tabText,
-                          isActive && styles.tabTextActive,
+                          styles.tabChipText,
+                          isActive && styles.tabChipTextActive,
                         ]}
                       >
-                        {tab.label}
+                        {tab.chip}
                       </Text>
-                    </>
-                  ) : (
+                    </View>
                     <Text
                       style={[styles.tabText, isActive && styles.tabTextActive]}
                     >
                       {tab.label}
                     </Text>
-                  )}
-                </Pressable>
-              );
-            })}
-          </RNScrollView>
+                  </>
+                ) : (
+                  <Text
+                    style={[styles.tabText, isActive && styles.tabTextActive]}
+                  >
+                    {tab.label}
+                  </Text>
+                )}
+              </Pressable>
+            );
+          })}
+        </RNScrollView>
 
-          {/* ── Tab content ── */}
-          {activeTab === "cycle" ? (
-            <RNScrollView
-              style={styles.list}
-              contentContainerStyle={[
-                styles.content,
-                { paddingBottom: 48 + Math.max(insets.bottom, 20) },
-              ]}
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
-            >
-              <CycleStartTab
-                selectedStartDate={cycleStartDate}
-                selectedEndDate={cycleEndDate}
-                backendStartDate={goalCycleDetail?.startDate ?? null}
-                onDateSelect={handleCycleDateSelect}
-                onCommit={handleCycleCommit}
-              />
-            </RNScrollView>
-          ) : (
+        {/* ── Tab content ── */}
+        {activeTab === "cycle" ? (
+          <RNScrollView
+            style={styles.list}
+            contentContainerStyle={[
+              styles.content,
+              { paddingBottom: 48 + Math.max(insets.bottom, 20) },
+            ]}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            <CycleStartTab
+              selectedStartDate={cycleStartDate}
+              selectedEndDate={cycleEndDate}
+              backendStartDate={goalCycleDetail?.startDate ?? null}
+              onDateSelect={handleCycleDateSelect}
+              onCommit={handleCycleCommit}
+            />
+          </RNScrollView>
+        ) : (
           <FlatList
             key={activeTab}
             ref={listRef}
@@ -3428,7 +3382,11 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
               }, 300);
             }}
             ListEmptyComponent={
-              activeTab === "quran" && !loadingQuranGoals ? (
+              isReviewWaitingForCycleDetail ? (
+                <View style={{ paddingVertical: 40, alignItems: "center" }}>
+                  <ActivityIndicator size="large" color={Colors.light.white} />
+                </View>
+              ) : activeTab === "quran" && !loadingQuranGoals ? (
                 <View style={{ paddingVertical: 24, alignItems: "center" }}>
                   <Text style={styles.tabText}>
                     {errorLoadingQuranGoals
@@ -3449,22 +3407,22 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
               ) : null
             }
             ListFooterComponent={() => (
-                <View
-                  style={[
-                    styles.footerContainer,
-                    { paddingBottom: Math.max(insets.bottom, 20) },
-                  ]}
-                >
-                  <PrimaryButton
-                    text={
-                      activeTab === "review"
-                        ? t("monthlyGoalPlanner.finishAndSaveGoals")
-                        : "NEXT"
-                    }
-                    disabled={!canPressFooterPrimary}
-                    onPress={handleFooterPrimaryPress}
-                  />
-                </View>
+              <View
+                style={[
+                  styles.footerContainer,
+                  { paddingBottom: Math.max(insets.bottom, 20) },
+                ]}
+              >
+                <PrimaryButton
+                  text={
+                    activeTab === "review"
+                      ? t("monthlyGoalPlanner.finishAndSaveGoals")
+                      : "NEXT"
+                  }
+                  disabled={!canPressFooterPrimary}
+                  onPress={handleFooterPrimaryPress}
+                />
+              </View>
             )}
             renderItem={({ item }: { item: any }) => {
               if (activeTab === "prayer") {
@@ -3540,7 +3498,9 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                             expandedGoalSelectionId.prayer === prayer.id
                           }
                           collapseSignal={postSaveCollapseSignal}
-                          onInputFocus={(layout) => handleGoalInputFocus(prayer.id, layout)}
+                          onInputFocus={(layout) =>
+                            handleGoalInputFocus(prayer.id, layout)
+                          }
                           initialValue={getSimpleTargetCount(prayer, 1)}
                           initiallySaved={isInitiallySavedForUi(
                             "prayer",
@@ -3570,7 +3530,9 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                             expandedGoalSelectionId.prayer === prayer.id
                           }
                           collapseSignal={postSaveCollapseSignal}
-                          onInputFocus={(layout) => handleGoalInputFocus(prayer.id, layout)}
+                          onInputFocus={(layout) =>
+                            handleGoalInputFocus(prayer.id, layout)
+                          }
                           cycleStartDate={cycleStartDate ?? undefined}
                           initialValues={getFiveDailyInitial(prayer)}
                           initiallySaved={isInitiallySavedForUi(
@@ -3622,7 +3584,9 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                             expandedGoalSelectionId.prayer === prayer.id
                           }
                           collapseSignal={postSaveCollapseSignal}
-                          onInputFocus={(layout) => handleGoalInputFocus(prayer.id, layout)}
+                          onInputFocus={(layout) =>
+                            handleGoalInputFocus(prayer.id, layout)
+                          }
                           initialValues={getSunnahInitial(prayer)}
                           initiallySaved={isInitiallySavedForUi(
                             "prayer",
@@ -3667,7 +3631,9 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                             expandedGoalSelectionId.prayer === prayer.id
                           }
                           collapseSignal={postSaveCollapseSignal}
-                          onInputFocus={(layout) => handleGoalInputFocus(prayer.id, layout)}
+                          onInputFocus={(layout) =>
+                            handleGoalInputFocus(prayer.id, layout)
+                          }
                           initialValue={getSimpleTargetCount(prayer, 1)}
                           initiallySaved={isInitiallySavedForUi(
                             "prayer",
@@ -3696,7 +3662,9 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                             expandedGoalSelectionId.prayer === prayer.id
                           }
                           collapseSignal={postSaveCollapseSignal}
-                          onInputFocus={(layout) => handleGoalInputFocus(prayer.id, layout)}
+                          onInputFocus={(layout) =>
+                            handleGoalInputFocus(prayer.id, layout)
+                          }
                           initialValue={getMissedTargetDays(prayer, 1)}
                           initiallySaved={isInitiallySavedForUi(
                             "prayer",
@@ -3731,7 +3699,9 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                             expandedGoalSelectionId.prayer === prayer.id
                           }
                           collapseSignal={postSaveCollapseSignal}
-                          onInputFocus={(layout) => handleGoalInputFocus(prayer.id, layout)}
+                          onInputFocus={(layout) =>
+                            handleGoalInputFocus(prayer.id, layout)
+                          }
                           initialValue={getSimpleTargetCount(prayer, 1)}
                           initiallySaved={isInitiallySavedForUi(
                             "prayer",
@@ -3760,7 +3730,9 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                             expandedGoalSelectionId.prayer === prayer.id
                           }
                           collapseSignal={postSaveCollapseSignal}
-                          onInputFocus={(layout) => handleGoalInputFocus(prayer.id, layout)}
+                          onInputFocus={(layout) =>
+                            handleGoalInputFocus(prayer.id, layout)
+                          }
                           initialValue={getSimpleTargetCount(prayer, 1)}
                           initiallySaved={isInitiallySavedForUi(
                             "prayer",
@@ -3789,7 +3761,9 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                             expandedGoalSelectionId.prayer === prayer.id
                           }
                           collapseSignal={postSaveCollapseSignal}
-                          onInputFocus={(layout) => handleGoalInputFocus(prayer.id, layout)}
+                          onInputFocus={(layout) =>
+                            handleGoalInputFocus(prayer.id, layout)
+                          }
                           initialValue={getSimpleTargetCount(prayer, 1)}
                           initiallySaved={isInitiallySavedForUi(
                             "prayer",
@@ -3818,7 +3792,9 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                             expandedGoalSelectionId.prayer === prayer.id
                           }
                           collapseSignal={postSaveCollapseSignal}
-                          onInputFocus={(layout) => handleGoalInputFocus(prayer.id, layout)}
+                          onInputFocus={(layout) =>
+                            handleGoalInputFocus(prayer.id, layout)
+                          }
                           initialValue={getSimpleTargetCount(prayer, 1)}
                           initiallySaved={isInitiallySavedForUi(
                             "prayer",
@@ -3847,7 +3823,9 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                             expandedGoalSelectionId.prayer === prayer.id
                           }
                           collapseSignal={postSaveCollapseSignal}
-                          onInputFocus={(layout) => handleGoalInputFocus(prayer.id, layout)}
+                          onInputFocus={(layout) =>
+                            handleGoalInputFocus(prayer.id, layout)
+                          }
                           initialValues={getQiyamInitial(prayer)}
                           initiallySaved={isInitiallySavedForUi(
                             "prayer",
@@ -3948,7 +3926,9 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                             expandedGoalSelectionId.quran === quran.id
                           }
                           collapseSignal={postSaveCollapseSignal}
-                          onInputFocus={(layout) => handleGoalInputFocus(quran.id, layout)}
+                          onInputFocus={(layout) =>
+                            handleGoalInputFocus(quran.id, layout)
+                          }
                           title={t("monthlyGoalPlanner.selectNumHours")}
                           descriptionKey="monthlyGoalPlanner.hoursQuranListening"
                           quranGoalType="LISTENING"
@@ -3981,7 +3961,9 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                             expandedGoalSelectionId.quran === quran.id
                           }
                           collapseSignal={postSaveCollapseSignal}
-                          onInputFocus={(layout) => handleGoalInputFocus(quran.id, layout)}
+                          onInputFocus={(layout) =>
+                            handleGoalInputFocus(quran.id, layout)
+                          }
                           title={t("monthlyGoalPlanner.selectNumHours")}
                           descriptionKey="monthlyGoalPlanner.hoursQuranTajweed"
                           quranGoalType="TAJWEED"
@@ -4014,7 +3996,9 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                             expandedGoalSelectionId.quran === quran.id
                           }
                           collapseSignal={postSaveCollapseSignal}
-                          onInputFocus={(layout) => handleGoalInputFocus(quran.id, layout)}
+                          onInputFocus={(layout) =>
+                            handleGoalInputFocus(quran.id, layout)
+                          }
                           {...quranReferenceProps}
                           title={t("monthlyGoalPlanner.selectTrackingMetric")}
                           onMetricsChange={handleQuranMetricsChange}
@@ -4069,7 +4053,9 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                             expandedGoalSelectionId.quran === quran.id
                           }
                           collapseSignal={postSaveCollapseSignal}
-                          onInputFocus={(layout) => handleGoalInputFocus(quran.id, layout)}
+                          onInputFocus={(layout) =>
+                            handleGoalInputFocus(quran.id, layout)
+                          }
                           {...quranReferenceProps}
                           title={t("monthlyGoalPlanner.selectTrackingMetric")}
                           onMetricsChange={handleQuranMetricsChange}
@@ -4171,9 +4157,9 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                           return false;
                         }
                         if (
-                          (OTHER_FASTING_GOAL_IDS as readonly string[]).includes(
-                            fasting.id,
-                          ) &&
+                          (
+                            OTHER_FASTING_GOAL_IDS as readonly string[]
+                          ).includes(fasting.id) &&
                           isDawoodFastActive()
                         ) {
                           showDawoodFastingConflictModal();
@@ -4221,7 +4207,11 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                             isFastingGoalConfigured(fasting.id),
                           )}
                           initialStartDay={
-                            fasting.dawoodStartDay === 2 ? 2 : fasting.dawoodStartDay === 1 ? 1 : undefined
+                            fasting.dawoodStartDay === 2
+                              ? 2
+                              : fasting.dawoodStartDay === 1
+                                ? 1
+                                : undefined
                           }
                           onSave={() => {
                             markGoalConfiguredData(fasting.id);
@@ -4353,7 +4343,9 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                             expandedGoalSelectionId.sadaqah === sadaqah.id
                           }
                           collapseSignal={postSaveCollapseSignal}
-                          onInputFocus={(layout) => handleGoalInputFocus(sadaqah.id, layout)}
+                          onInputFocus={(layout) =>
+                            handleGoalInputFocus(sadaqah.id, layout)
+                          }
                           count={missedZakatAmount}
                           setCount={setMissedZakatAmount}
                           control={control}
@@ -4389,7 +4381,9 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                             expandedGoalSelectionId.sadaqah === sadaqah.id
                           }
                           collapseSignal={postSaveCollapseSignal}
-                          onInputFocus={(layout) => handleGoalInputFocus(sadaqah.id, layout)}
+                          onInputFocus={(layout) =>
+                            handleGoalInputFocus(sadaqah.id, layout)
+                          }
                           mealCount={kafarahMeals}
                           setMealCount={setKafarahMeals}
                           clothCount={kafarahCloths}
@@ -4425,7 +4419,9 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                             expandedGoalSelectionId.sadaqah === sadaqah.id
                           }
                           collapseSignal={postSaveCollapseSignal}
-                          onInputFocus={(layout) => handleGoalInputFocus(sadaqah.id, layout)}
+                          onInputFocus={(layout) =>
+                            handleGoalInputFocus(sadaqah.id, layout)
+                          }
                           count={fidyaMeals}
                           setCount={setFidyaMeals}
                           handleDecrease={() => {
@@ -4455,7 +4451,9 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                             expandedGoalSelectionId.sadaqah === sadaqah.id
                           }
                           collapseSignal={postSaveCollapseSignal}
-                          onInputFocus={(layout) => handleGoalInputFocus(sadaqah.id, layout)}
+                          onInputFocus={(layout) =>
+                            handleGoalInputFocus(sadaqah.id, layout)
+                          }
                           count={lillahAmount}
                           setCount={setLillahAmount}
                           control={control}
@@ -4489,7 +4487,9 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                             expandedGoalSelectionId.sadaqah === sadaqah.id
                           }
                           collapseSignal={postSaveCollapseSignal}
-                          onInputFocus={(layout) => handleGoalInputFocus(sadaqah.id, layout)}
+                          onInputFocus={(layout) =>
+                            handleGoalInputFocus(sadaqah.id, layout)
+                          }
                           count={volunteeringHours}
                           setCount={setVolunteeringHours}
                           handleDecrease={() => {
@@ -4524,7 +4524,9 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                             expandedGoalSelectionId.sadaqah === sadaqah.id
                           }
                           collapseSignal={postSaveCollapseSignal}
-                          onInputFocus={(layout) => handleGoalInputFocus(sadaqah.id, layout)}
+                          onInputFocus={(layout) =>
+                            handleGoalInputFocus(sadaqah.id, layout)
+                          }
                           count={sadaqahJariyahAmount}
                           setCount={setSadaqahJariyahAmount}
                           control={control}
@@ -4672,68 +4674,68 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
               return null;
             }}
           />
-          )}
-        </View>
-        <WarningModal
-          visible={fastingGoalConflictModal.visible}
-          title="SET GOAL?"
-          message={fastingGoalConflictModal.message}
-          primaryButtonText="Ok"
-          secondaryButtonText={null}
-          primaryButtonVariant="green"
-          primaryButtonSize="modal"
-          onPrimaryPress={closeFastingGoalConflictModal}
-          onBackdropPress={closeFastingGoalConflictModal}
-          primaryButtonStyle={styles.modalPrimaryButton}
-        />
-        <WarningModal
-          visible={dawoodFastConfirmModalVisible}
-          title={t("monthlyGoalPlanner.dawoodFastConfirmModalTitle")}
-          message={t("monthlyGoalPlanner.dawoodFastConfirmModalMessage")}
-          primaryButtonText={t("monthlyGoalPlanner.dawoodFastConfirmContinue")}
-          secondaryButtonText={t("monthlyGoalPlanner.dawoodFastConfirmCancel")}
-          primaryButtonVariant="green"
-          primaryButtonSize="modal"
-          onPrimaryPress={confirmDawoodFastGoal}
-          onSecondaryPress={closeDawoodFastConfirmModal}
-          onBackdropPress={closeDawoodFastConfirmModal}
-          primaryButtonStyle={styles.modalPrimaryButton}
-          secondaryButtonTextStyle={{
-            color: Colors.light.subtext,
-          }}
-        />
-        <WarningModal
-          visible={unfinishedGoalModal.visible}
-          title={t("monthlyGoalPlanner.unfinishedGoalModalTitle")}
-          message={t("monthlyGoalPlanner.unfinishedGoalModalMessage", {
-            goalName: unfinishedGoalModal.goalName,
-          })}
-          primaryButtonText={t("monthlyGoalPlanner.unfinishedGoalModalOk")}
-          secondaryButtonText={null}
-          primaryButtonVariant="green"
-          primaryButtonSize="modal"
-          onPrimaryPress={closeUnfinishedGoalModal}
-          onBackdropPress={closeUnfinishedGoalModal}
-          primaryButtonStyle={styles.modalPrimaryButton}
-        />
-        <WarningModal
-          visible={finishSaveModalVisible}
-          title={t("monthlyGoalPlanner.finishAndSaveModalTitle")}
-          message={t("monthlyGoalPlanner.finishAndSaveModalMessage")}
-          primaryButtonText={t("monthlyGoalPlanner.finishAndSaveYes")}
-          secondaryButtonText={t("monthlyGoalPlanner.finishAndSaveCancel")}
-          primaryButtonVariant="green"
-          primaryButtonSize="modal"
-          onPrimaryPress={confirmFinishAndSave}
-          onSecondaryPress={closeFinishSaveModal}
-          onBackdropPress={closeFinishSaveModal}
-          primaryButtonStyle={styles.modalPrimaryButton}
-          secondaryButtonTextStyle={{
-            color: Colors.light.subtext,
-          }}
-        />
-      </>
-    );
+        )}
+      </View>
+      <WarningModal
+        visible={fastingGoalConflictModal.visible}
+        title="SET GOAL?"
+        message={fastingGoalConflictModal.message}
+        primaryButtonText="Ok"
+        secondaryButtonText={null}
+        primaryButtonVariant="green"
+        primaryButtonSize="modal"
+        onPrimaryPress={closeFastingGoalConflictModal}
+        onBackdropPress={closeFastingGoalConflictModal}
+        primaryButtonStyle={styles.modalPrimaryButton}
+      />
+      <WarningModal
+        visible={dawoodFastConfirmModalVisible}
+        title={t("monthlyGoalPlanner.dawoodFastConfirmModalTitle")}
+        message={t("monthlyGoalPlanner.dawoodFastConfirmModalMessage")}
+        primaryButtonText={t("monthlyGoalPlanner.dawoodFastConfirmContinue")}
+        secondaryButtonText={t("monthlyGoalPlanner.dawoodFastConfirmCancel")}
+        primaryButtonVariant="green"
+        primaryButtonSize="modal"
+        onPrimaryPress={confirmDawoodFastGoal}
+        onSecondaryPress={closeDawoodFastConfirmModal}
+        onBackdropPress={closeDawoodFastConfirmModal}
+        primaryButtonStyle={styles.modalPrimaryButton}
+        secondaryButtonTextStyle={{
+          color: Colors.light.subtext,
+        }}
+      />
+      <WarningModal
+        visible={unfinishedGoalModal.visible}
+        title={t("monthlyGoalPlanner.unfinishedGoalModalTitle")}
+        message={t("monthlyGoalPlanner.unfinishedGoalModalMessage", {
+          goalName: unfinishedGoalModal.goalName,
+        })}
+        primaryButtonText={t("monthlyGoalPlanner.unfinishedGoalModalOk")}
+        secondaryButtonText={null}
+        primaryButtonVariant="green"
+        primaryButtonSize="modal"
+        onPrimaryPress={closeUnfinishedGoalModal}
+        onBackdropPress={closeUnfinishedGoalModal}
+        primaryButtonStyle={styles.modalPrimaryButton}
+      />
+      <WarningModal
+        visible={finishSaveModalVisible}
+        title={t("monthlyGoalPlanner.finishAndSaveModalTitle")}
+        message={t("monthlyGoalPlanner.finishAndSaveModalMessage")}
+        primaryButtonText={t("monthlyGoalPlanner.finishAndSaveYes")}
+        secondaryButtonText={t("monthlyGoalPlanner.finishAndSaveCancel")}
+        primaryButtonVariant="green"
+        primaryButtonSize="modal"
+        onPrimaryPress={confirmFinishAndSave}
+        onSecondaryPress={closeFinishSaveModal}
+        onBackdropPress={closeFinishSaveModal}
+        primaryButtonStyle={styles.modalPrimaryButton}
+        secondaryButtonTextStyle={{
+          color: Colors.light.subtext,
+        }}
+      />
+    </>
+  );
 };
 
 // ── Styles ────────────────────────────────────────────────────────────────────
