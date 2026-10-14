@@ -16,6 +16,7 @@ import { useLocaleNumber } from "../../hooks/useLocaleNumber";
 import { globalStyles } from "@/src/globalstyles/globalstyles";
 import { GoalSelectionOpenCloseButton } from "./GoalSelectionOpenCloseButton";
 import { Divider } from "../atoms/Divider";
+import { ms } from "@/src/utils/responsive";
 
 const PRAYERS_PER_DAY = 5;
 
@@ -128,7 +129,7 @@ export default function MissedPrayerGoalSelection({
 
 const styles = StyleSheet.create({
   expandedContent: {
-    marginTop: 16,
+    marginTop: ms(16),
     alignItems: "center",
     width: "100%",
     paddingBottom: 6,
@@ -137,7 +138,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: "100%",
     marginTop: 0,
-    marginBottom: 20,
+    marginBottom: ms(25),
   },
   totalText: {
     color: Colors.light.green,
@@ -147,7 +148,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     textAlign: "center",
     letterSpacing: 0.1,
-    marginTop: -16,
+    marginTop: ms(-9),
     marginBottom: 10,
   },
   totalSuffix: {
@@ -178,6 +179,7 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     width: "100%",
+    marginTop: ms(2),
     alignItems: "center",
   },
   saveButton: {

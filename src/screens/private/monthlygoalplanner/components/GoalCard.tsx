@@ -1,7 +1,8 @@
 import { Colors } from "@/constants/theme";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, Platform } from "react-native";
 import { fonts } from "@/assets/fonts";
 import { TopSpace } from "@/components/atoms/TopSpace";
+import { ms } from "@/src/utils/responsive";
 
 export type GoalCardData = {
   id: string;
@@ -22,7 +23,7 @@ export const GoalCard = ({ item, cardWidth }: Props) => {
       {item.icon && <View style={styles.iconContainer}>{item.icon}</View>}
       <View style={styles.contentContainer}>
         <Text style={styles.title}>{item.title}</Text>
-        <TopSpace top={12} />
+        <TopSpace top={ms(12)} />
         <Text style={styles.description}>{item.description}</Text>
       </View>
     </View>
@@ -33,15 +34,15 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: Colors.light.greybuttonBackground,
     borderRadius: 8,
-    height: 180,
-    paddingVertical: 15,
-    paddingHorizontal: 12,
+    height: ms(185),
+    paddingVertical: ms(15),
+    paddingHorizontal: ms(12),
     flexDirection: "row",
     alignItems: "center",
   },
   iconContainer: {
-    marginRight: 16,
-    marginTop: 5,
+    marginRight: ms(16),
+    marginTop: ms(5),
     justifyContent: "center",
     alignItems: "center",
   },
@@ -60,7 +61,7 @@ const styles = StyleSheet.create({
     color: Colors.light.white,
     fontSize: 14,
     fontFamily: fonts.primary.regular,
-    lineHeight: 22,
+    lineHeight: 21,
     fontWeight: "400",
     letterSpacing: 0.1,
   },

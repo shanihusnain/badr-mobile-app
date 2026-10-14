@@ -5,10 +5,11 @@ import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import Carousel, { Pagination } from "react-native-reanimated-carousel";
 import { GoalCard, type GoalCardData } from "./GoalCard";
+import { ms } from "@/src/utils/responsive";
 
 const SCREEN_H_PADDING = 16;
 // Fallback height while we measure the actual `GoalCard` height for this screen width.
-const CARD_HEIGHT_FALLBACK = 180;
+const CARD_HEIGHT_FALLBACK = ms(180);
 const STACK_OFFSET_Y = 3;
 const PEEK_VISIBLE = 1;
 
@@ -99,7 +100,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     gap: 6,
-    marginTop: 5,
+    marginTop: ms(16),
   },
   dot: {
     backgroundColor: Colors.light.paginationInactiveDot,

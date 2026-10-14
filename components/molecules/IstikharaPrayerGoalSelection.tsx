@@ -12,6 +12,7 @@ import { useLocaleNumber } from "../../hooks/useLocaleNumber";
 import { globalStyles } from "@/src/globalstyles/globalstyles";
 import { GoalSelectionOpenCloseButton } from "./GoalSelectionOpenCloseButton";
 import { Divider } from "../atoms/Divider";
+import { ms } from "@/src/utils/responsive";
 
 export default function IstikharaPrayerGoalSelection({
   onSave,
@@ -95,7 +96,7 @@ export default function IstikharaPrayerGoalSelection({
 
 const styles = StyleSheet.create({
   expandedContent: {
-    marginTop: 16,
+    marginTop: ms(16),
     alignItems: "center",
     width: "100%",
     paddingBottom: 6,
@@ -105,7 +106,8 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.medium,
     fontSize: 14,
     fontWeight: "500",
-    marginBottom: 20,
+    marginTop: ms(-9),
+    marginBottom: ms(25),
     textAlign: "center",
   },
   whiteText: {
@@ -113,7 +115,7 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     width: "100%",
-    marginTop: 6,
+    marginTop: ms(2),
     alignItems: "center",
   },
   saveButton: {

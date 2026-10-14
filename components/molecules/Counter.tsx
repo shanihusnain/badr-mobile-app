@@ -53,11 +53,9 @@ export const Counter = ({
 
   const handleFocus = () => {
     setIsFocused(true);
-    // Mark focused immediately, then measure so the sheet can keep this
-    // counter above the keyboard (avoids scrolling the whole goal card away).
+    // Mark focused immediately, then measure once for parent keep-visible.
     onInputFocus?.();
     requestAnimationFrame(reportInputLayout);
-    setTimeout(reportInputLayout, 280);
     if (count === 0) {
       setDraft("");
       // Remount-safe caret reset: empty + no placeholder keeps caret in the center.

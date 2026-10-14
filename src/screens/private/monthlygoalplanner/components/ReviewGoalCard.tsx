@@ -17,7 +17,7 @@ const UNIT_BY_GOAL_TITLE: Record<string, string> = {
   "volunteering-services": "monthlyGoalPlanner.hours",
   "quran-listening": "monthlyGoalPlanner.hours",
   "quran-tajweed": "monthlyGoalPlanner.hours",
-  "quran-recitation-by-surah": "monthlyGoalPlanner.recitations",
+  "quran-recitation-by-surah": "monthlyGoalPlanner.surah",
   "quran-memorization-by-surah": "monthlyGoalPlanner.surah",
   "quran-recitation-by-juz": "monthlyGoalPlanner.juzUnit",
   "quran-memorization-by-juz": "monthlyGoalPlanner.juzUnit",
@@ -38,9 +38,9 @@ const CURRENCY_GOAL_TITLES = new Set([
   "sadaqah-jariyah",
 ]);
 
-/** Goals that show header chip/total only — no sub-goal rows on review. */
+/** Goals that show header chip/total only — no sub-goal rows on review.
+ *  Qiyam subsections are controlled by selectedGoals (trackTahajjud only). */
 const HEADER_ONLY_GOAL_TITLES = new Set([
-  "qiyal-al-lail-prayer",
   "quran-listening",
   "quran-tajweed",
   "fidya",
@@ -82,6 +82,7 @@ function renderLabelWithBoldParenCount(label: string) {
 export default function ReviewGoalCard({ goal, handleEditPress }: Props) {
   const { t } = useTranslation();
   const key = String(goal?.title ?? "");
+  const isQuranGoal = key.startsWith("quran-");
   const selected = HEADER_ONLY_GOAL_TITLES.has(key)
     ? []
     : (goal?.selectedGoals ?? []);
@@ -135,7 +136,6 @@ export default function ReviewGoalCard({ goal, handleEditPress }: Props) {
 
     return null;
   })();
-
   return (
     <View>
       <View style={styles.appliedGoalContainer}>
@@ -151,97 +151,114 @@ export default function ReviewGoalCard({ goal, handleEditPress }: Props) {
 
         {selected.length > 0 && <Divider />}
 
-        {selected.map((subGoal: any, subIdx: number) => 
-        (
-          <View
-            key={
-              subGoal?.id != null
-                ? String(subGoal.id)
-                : `${String(goal?.id)}-sub-${subIdx}`
-            }
-            style={styles.subGoalWrapper}
-          >
-            <View style={styles.subGoalRow}>
-              <Text style={styles.subGoalText}>
-                {(() => {
-                  const cleanLabel = String(subGoal?.label ?? "");
-                  if (cleanLabel.toLowerCase() === "monday")
-                    return t("monthlyGoalPlanner.reviewLabels.monday");
-                  if (cleanLabel.toLowerCase() === "tuesday")
-                    return t(
-                      "monthlyGoalPlanner.reviewLabels.tuesday",
-                      "Tuesday",
-                    );
-                  if (cleanLabel.toLowerCase() === "wednesday")
-                    return t(
-                      "monthlyGoalPlanner.reviewLabels.wednesday",
-                      "Wednesday",
-                    );
-                  if (cleanLabel.toLowerCase() === "thursday")
-                    return t("monthlyGoalPlanner.reviewLabels.thursday");
-                  if (cleanLabel.toLowerCase() === "friday")
-                    return t(
-                      "monthlyGoalPlanner.reviewLabels.friday",
-                      "Friday",
-                    );
-                  if (cleanLabel.toLowerCase() === "saturday")
-                    return t(
-                      "monthlyGoalPlanner.reviewLabels.saturday",
-                      "Saturday",
-                    );
-                  if (cleanLabel.toLowerCase() === "sunday")
-                    return t(
-                      "monthlyGoalPlanner.reviewLabels.sunday",
-                      "Sunday",
-                    );
-                  if (cleanLabel.toLowerCase() === "mon")
-                    return t("monthlyGoalPlanner.reviewLabels.mon");
-                  if (cleanLabel.toLowerCase() === "wed")
-                    return t("monthlyGoalPlanner.reviewLabels.wed");
-                  if (cleanLabel.toLowerCase() === "juz")
-                    return t("monthlyGoalPlanner.reviewLabels.juz");
-                  if (cleanLabel.toLowerCase() === "hizb")
-                    return t("monthlyGoalPlanner.reviewLabels.hizb");
-                  if (cleanLabel.toLowerCase() === "surah")
-                    return t("monthlyGoalPlanner.reviewLabels.surah");
-                  if (cleanLabel.toLowerCase() === "completion")
-                    return t("monthlyGoalPlanner.reviewLabels.completion");
-                  if (cleanLabel.toLowerCase() === "amount")
-                    return t("monthlyGoalPlanner.amount");
-                  if (cleanLabel.toLowerCase() === "meals")
-                    return t("monthlyGoalPlanner.meals", {
-                      count: Number(subGoal?.value) || 0,
-                    });
-                  if (cleanLabel.toLowerCase() === "cloths")
-                    return t("monthlyGoalPlanner.cloths", {
-                      count: Number(subGoal?.value) || 0,
-                    });
-                  if (cleanLabel.toLowerCase() === "hours")
-                    return t("monthlyGoalPlanner.hours", {
-                      count: Number(subGoal?.value) || 0,
-                    });
+        {selected.map((subGoal: any, subIdx: number) => {
+          const valueText =
+            subGoal?.value != null ? String(subGoal.value).trim() : "";
+          const labelText = String(subGoal?.label ?? "");
 
-                  if (
-                    key === "quran-recitation-by-juz" &&
-                    String(subGoal?.name ?? "").startsWith("JUZ-RANGE")
-                  ) {
-                    return renderLabelWithBoldNumbers(cleanLabel);
-                  }
+          const resolvePlainLabel = (cleanLabel: string) => {
+            if (cleanLabel.toLowerCase() === "monday")
+              return t("monthlyGoalPlanner.reviewLabels.monday");
+            if (cleanLabel.toLowerCase() === "tuesday")
+              return t("monthlyGoalPlanner.reviewLabels.tuesday", "Tuesday");
+            if (cleanLabel.toLowerCase() === "wednesday")
+              return t(
+                "monthlyGoalPlanner.reviewLabels.wednesday",
+                "Wednesday",
+              );
+            if (cleanLabel.toLowerCase() === "thursday")
+              return t("monthlyGoalPlanner.reviewLabels.thursday");
+            if (cleanLabel.toLowerCase() === "friday")
+              return t("monthlyGoalPlanner.reviewLabels.friday", "Friday");
+            if (cleanLabel.toLowerCase() === "saturday")
+              return t("monthlyGoalPlanner.reviewLabels.saturday", "Saturday");
+            if (cleanLabel.toLowerCase() === "sunday")
+              return t("monthlyGoalPlanner.reviewLabels.sunday", "Sunday");
+            if (cleanLabel.toLowerCase() === "mon")
+              return t("monthlyGoalPlanner.reviewLabels.mon");
+            if (cleanLabel.toLowerCase() === "wed")
+              return t("monthlyGoalPlanner.reviewLabels.wed");
+            if (cleanLabel.toLowerCase() === "juz")
+              return t("monthlyGoalPlanner.reviewLabels.juz");
+            if (cleanLabel.toLowerCase() === "hizb")
+              return t("monthlyGoalPlanner.reviewLabels.hizb");
+            if (cleanLabel.toLowerCase() === "surah")
+              return t("monthlyGoalPlanner.reviewLabels.surah");
+            if (cleanLabel.toLowerCase() === "completion")
+              return t("monthlyGoalPlanner.reviewLabels.completion");
+            if (cleanLabel.toLowerCase() === "amount")
+              return t("monthlyGoalPlanner.amount");
+            if (cleanLabel.toLowerCase() === "meals")
+              return t("monthlyGoalPlanner.meals", {
+                count: Number(subGoal?.value) || 0,
+              });
+            if (cleanLabel.toLowerCase() === "cloths")
+              return t("monthlyGoalPlanner.cloths", {
+                count: Number(subGoal?.value) || 0,
+              });
+            if (cleanLabel.toLowerCase() === "hours")
+              return t("monthlyGoalPlanner.hours", {
+                count: Number(subGoal?.value) || 0,
+              });
+            return cleanLabel;
+          };
 
-                  if (key.startsWith("quran-")) {
-                    return renderLabelWithBoldParenCount(cleanLabel);
-                  }
+          // Quran: name on first line, bracketed cadence/verses on the next.
+          if (isQuranGoal) {
+            const isJuzRange =
+              key === "quran-recitation-by-juz" &&
+              String(subGoal?.name ?? "").startsWith("JUZ-RANGE");
+            const bracketLine = valueText
+              ? valueText.startsWith("(")
+                ? valueText
+                : `(${valueText})`
+              : "";
 
-                  return cleanLabel;
-                })()}
-              </Text>
-              {subGoal?.value != null &&
-                String(subGoal.value).trim() !== "" && (
-                  <Text style={styles.subGoalValueText}>{subGoal?.value}</Text>
+            return (
+              <View
+                key={
+                  subGoal?.id != null
+                    ? String(subGoal.id)
+                    : `${String(goal?.id)}-sub-${subIdx}`
+                }
+                style={styles.subGoalWrapper}
+              >
+                <View style={[styles.subGoalRow, styles.subGoalRowQuran]}>
+                  <Text style={styles.subGoalText}>
+                    {isJuzRange
+                      ? renderLabelWithBoldNumbers(labelText)
+                      : resolvePlainLabel(labelText)}
+                  </Text>
+                  {bracketLine !== "" && (
+                    <Text style={styles.subGoalBracketText}>
+                      {renderLabelWithBoldParenCount(bracketLine)}
+                    </Text>
+                  )}
+                </View>
+              </View>
+            );
+          }
+
+          return (
+            <View
+              key={
+                subGoal?.id != null
+                  ? String(subGoal.id)
+                  : `${String(goal?.id)}-sub-${subIdx}`
+              }
+              style={styles.subGoalWrapper}
+            >
+              <View style={styles.subGoalRow}>
+                <Text style={styles.subGoalText}>
+                  {resolvePlainLabel(labelText)}
+                </Text>
+                {valueText !== "" && (
+                  <Text style={styles.subGoalValueText}>{valueText}</Text>
                 )}
+              </View>
             </View>
-          </View>
-        ))}
+          );
+        })}
       </View>
     </View>
   );
@@ -309,6 +326,11 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingVertical: 5,
   },
+  subGoalRowQuran: {
+    flexDirection: "column",
+    alignItems: "flex-start",
+    justifyContent: "flex-start",
+  },
   subGoalText: {
     color: Colors.light.white,
     fontSize: 12,
@@ -316,6 +338,14 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
     flexShrink: 1,
+    opacity: 0.9,
+  },
+  subGoalBracketText: {
+    color: Colors.light.white,
+    fontSize: 12,
+    marginTop: 2,
+    fontFamily: fonts.primary.medium,
+    fontWeight: "500",
     opacity: 0.9,
   },
   subGoalParenCount: {

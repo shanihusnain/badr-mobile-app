@@ -13,6 +13,11 @@ import type {
   MissedRamadanFastDayState,
   MissedRamadanFastWeekSummary,
 } from "@/src/screens/private/goalprogressloggingscreen/missedRamadanFastsWeeklyData";
+import type {
+  MondayThursdayFastDayProgress,
+  MondayThursdayFastDayState,
+  MondayThursdayFastWeekSummary,
+} from "@/src/screens/private/goalprogressloggingscreen/mondayThursdayFastsWeeklyData";
 
 function normalizeDate(date: string | null | undefined): string {
   return String(date ?? "").slice(0, 10);
@@ -499,6 +504,186 @@ export function mapMissedRamadanFrameWeekSummary(
       motivationalQuote ||
       "Make up what you owe with sincerity — every fast counts.",
     showPreviousWeekStat: false,
+  };
+}
+
+function resolveMondayThursdayDayState(
+  day: FastingGoalFrameDay,
+  options?: { goalCompleted?: boolean },
+): MondayThursdayFastDayState {
+  const state = String(day.state ?? "")
+    .trim()
+    .toUpperCase();
+  const today = moment().format("YYYY-MM-DD");
+  const date = normalizeDate(day.date);
+  const hasDate = /^\d{4}-\d{2}-\d{2}$/.test(date);
+  const isFuture = hasDate && date > today;
+  const isPast = hasDate && date < today;
+  const bookedForOtherGoal = Boolean(day.bookedForOtherGoal);
+
+  if (bookedForOtherGoal) {
+    if (day.isToday) return "todayDisabled";
+    if (isPast) return "disabledPast";
+    return "future";
+  }
+
+  if (
+    state === "COMPLETED" ||
+    state === "LOGGED" ||
+    state === "ACHIEVED" ||
+    state === "DONE" ||
+    state === "COVERED_EARLY" ||
+    state === "MADE_UP"
+  ) {
+    return "completed";
+  }
+
+  if (state === "MISSED" || state === "SKIPPED") {
+    return "missed";
+  }
+
+  if (state === "EXCUSED" || state === "MENSTRUATING") {
+    return day.isToday ? "plannedToday" : "planned";
+  }
+
+  if (state === "DUE" && day.isToday) {
+    return "plannedToday";
+  }
+
+  if ((state === "UPCOMING" || state === "PLANNED") && day.isPlanned) {
+    return day.isToday ? "plannedToday" : "planned";
+  }
+
+  if (options?.goalCompleted && isFuture) {
+    return "goalAchieved";
+  }
+
+  if (state === "NOT_PLANNED" || !day.isPlanned) {
+    if (day.isToday) return "today";
+    if (isFuture) return "future";
+    if (isPast) return "pastNeutral";
+  }
+
+  if (day.isPlanned) {
+    if (day.isToday) return "plannedToday";
+    if (isFuture) return "planned";
+    return "missed";
+  }
+
+  if (day.isToday) return "today";
+  if (isFuture) return "future";
+  return "pastNeutral";
+}
+
+export function mapMondayThursdayFrameDay(
+  day: FastingGoalFrameDay,
+  options?: { goalCompleted?: boolean },
+): MondayThursdayFastDayProgress {
+  const rawState = String(day.state ?? "")
+    .trim()
+    .toUpperCase();
+  const state = resolveMondayThursdayDayState(day, options);
+  const isExcusedMenstruating =
+    rawState === "EXCUSED" || rawState === "MENSTRUATING";
+
+  return {
+    day: day.dayLabel,
+    date: normalizeDate(day.date),
+    state,
+    isToday: Boolean(day.isToday),
+    isSelected: Boolean(day.isPlanned) || isExcusedMenstruating,
+    isMenstruating: isExcusedMenstruating,
+    canDelete: Boolean(day.canDelete),
+  };
+}
+
+function getFastingFrameWeekOverWeekDelta(
+  frame: FastingGoalFrameData,
+): { delta: number; previousWeekCompletedCount: number } {
+  const comparison = frame.week?.comparison;
+  if (comparison == null || typeof comparison !== "object") {
+    return { delta: 0, previousWeekCompletedCount: 0 };
+  }
+
+  const record = comparison as Record<string, unknown>;
+  const deltaRaw =
+    record.delta ??
+    record.weekOverWeekDelta ??
+    record.vsLastWeek ??
+    record.change;
+  const previousRaw =
+    record.previousWeekCompletedCount ??
+    record.previousCompleted ??
+    record.previousWeekTotal ??
+    record.lastWeekCompleted;
+
+  const delta =
+    typeof deltaRaw === "number" && Number.isFinite(deltaRaw)
+      ? Math.round(deltaRaw)
+      : 0;
+  const previousWeekCompletedCount =
+    typeof previousRaw === "number" && Number.isFinite(previousRaw)
+      ? Math.max(0, Math.round(previousRaw))
+      : 0;
+
+  return { delta, previousWeekCompletedCount };
+}
+
+export function mapMondayThursdayFrameWeekSummary(
+  frame: FastingGoalFrameData,
+): MondayThursdayFastWeekSummary {
+  const goalCompleted =
+    getFastingFrameAchievementPct(frame) >= 100 ||
+    String(frame.goal?.status ?? "")
+      .trim()
+      .toUpperCase() === "COMPLETED";
+  const weekDays = (frame.week?.days ?? []).map((day) =>
+    mapMondayThursdayFrameDay(day, { goalCompleted }),
+  );
+  const completedFromDays = weekDays.filter(
+    (day) => day.state === "completed",
+  ).length;
+  const completedFastsThisWeek =
+    getFastingFrameTotalFastsThisWeek(frame) || completedFromDays;
+  const missedFastsThisWeek = weekDays.filter(
+    (day) => day.state === "missed",
+  ).length;
+  const plannedFastsThisWeek = weekDays.filter((day) => day.isSelected).length;
+  const motivationalQuote = getFastingFrameMotivationalQuote(frame);
+  const achievementPct = getFastingFrameAchievementPct(frame);
+  const { delta: weekOverWeekDelta, previousWeekCompletedCount } =
+    getFastingFrameWeekOverWeekDelta(frame);
+
+  let motivationalQuoteKey: MondayThursdayFastWeekSummary["motivationalQuoteKey"] =
+    "planNext";
+  if (completedFastsThisWeek > 0 && missedFastsThisWeek === 0) {
+    motivationalQuoteKey = "tabarakAllah";
+  } else if (completedFastsThisWeek > 0) {
+    motivationalQuoteKey = "buildingMomentum";
+  } else if (achievementPct > 0) {
+    motivationalQuoteKey = "stayConsistent";
+  }
+
+  return {
+    weekDays,
+    weekRangeLabel: getFastingFrameWeekRangeLabel(frame),
+    weekFraction: getFastingFrameWeekFraction(frame),
+    weekIndex: Math.max(0, (frame.week.weekNumber ?? 1) - 1),
+    completedFastsThisWeek,
+    missedFastsThisWeek,
+    plannedFastsThisWeek,
+    streakWeeks: getFastingFrameWeekStreakDays(frame),
+    previousWeekCompletedCount,
+    weekOverWeekDelta,
+    cumulativeCompletionPercent: achievementPct,
+    motivationalQuoteKey,
+    motivationalQuoteParams: {
+      count: completedFastsThisWeek,
+      percent: achievementPct,
+      week: frame.week.weekNumber ?? 1,
+    },
+    showPreviousWeekStat: weekOverWeekDelta !== 0,
+    motivationalQuote: motivationalQuote || undefined,
   };
 }
 

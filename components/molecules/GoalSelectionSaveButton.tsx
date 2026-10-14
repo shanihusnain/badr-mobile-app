@@ -94,8 +94,15 @@ export default function GoalSelectionSaveButton({
   useEffect(() => {
     if (valueKey === undefined) return;
 
+    const isDirtyKey =
+      typeof valueKey === "string" && valueKey.startsWith("dirty|");
+    const isCleanKey =
+      typeof valueKey === "string" && valueKey.startsWith("clean|");
+
     if (baselineKeyRef.current === undefined) {
       if (showSavedRef.current || initiallySaved) {
+        // Still hydrating (false dirty) — keep SAVED! until a clean baseline.
+        if (isDirtyKey) return;
         baselineKeyRef.current = valueKey;
       }
       return;
@@ -103,8 +110,12 @@ export default function GoalSelectionSaveButton({
 
     if (valueKey === baselineKeyRef.current) return;
 
-    // One-shot hydrate window (no extend) — absorb only until it expires.
-    if (Date.now() < hydrateGraceUntilRef.current && showSavedRef.current) {
+    // Absorb clean hydrate key churn while SAVED!; never absorb real dirty edits.
+    if (
+      (Date.now() < hydrateGraceUntilRef.current || isCleanKey) &&
+      showSavedRef.current &&
+      !isDirtyKey
+    ) {
       baselineKeyRef.current = valueKey;
       return;
     }

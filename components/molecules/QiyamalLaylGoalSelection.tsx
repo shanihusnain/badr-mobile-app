@@ -85,7 +85,9 @@ export default function QiyamalLaylGoalSelection({
       {
         commitment: toSave.commitment,
         twoRakahPrayers: toSave.sliderValue,
-        witrPrayers: 28,
+        // Every-night includes locked cycle Witr; flexible does not.
+        witrPrayers:
+          toSave.commitment === "every_night" ? PRAYER_CYCLE_DAYS : 0,
       },
       () => {
         commitSaved(toSave);

@@ -6,11 +6,14 @@ import type {
   MondayThursdayFastDayState,
 } from "@/src/screens/private/goalprogressloggingscreen/mondayThursdayFastsWeeklyData";
 
-/** Today chip behind ring + label for every “today” variant in Figma. */
+/**
+ * Today chip — Figma #2/#3/#6/#7/#10/#12/#17.
+ * #16 delete-past has red border + trash but NO today chip fill.
+ */
 export function shouldShowTodayLabelBackground(
   day: MondayThursdayFastDayProgress,
 ): boolean {
-  return day.isToday;
+  return Boolean(day.isToday);
 }
 
 export function getDayLabelTextStyle(
@@ -19,6 +22,7 @@ export function getDayLabelTextStyle(
 ) {
   const { state, isToday } = day;
 
+  // #7 logged today — bold white on today chip
   if (isToday) {
     if (state === "todayDisabled" || state === "goalAchieved") {
       return mondayThursdayDayLabelStyles.dayLabelTodayDisabled;
@@ -26,17 +30,22 @@ export function getDayLabelTextStyle(
     return mondayThursdayDayLabelStyles.dayLabelToday;
   }
 
+  // #8 logged past — muted grey (never treat as “active white”)
+  if (state === "completed") {
+    return mondayThursdayDayLabelStyles.dayLabelMuted;
+  }
+
   if (isSelected) {
     return mondayThursdayDayLabelStyles.dayLabelActive;
   }
 
   switch (state as MondayThursdayFastDayState) {
-    case "completed":
     case "planned":
     case "plannedToday":
     case "missed":
-      return mondayThursdayDayLabelStyles.dayLabelMuted;
     case "future":
+      return mondayThursdayDayLabelStyles.dayLabelMuted;
+    case "disabledPast":
     case "pastNeutral":
     case "goalAchieved":
       return mondayThursdayDayLabelStyles.dayLabelInactive;

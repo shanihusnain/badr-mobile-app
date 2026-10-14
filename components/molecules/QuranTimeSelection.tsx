@@ -47,9 +47,10 @@ export const QuranTimeSelection = ({
 }) => {
   const { t } = useTranslation();
   const hoursInputRef = useRef<TextInput>(null);
+  // Panel open must not trigger keyboard keep-visible — only hours TextInput focus.
   const [isOpen, setIsOpen] = useGoalSelectionOpenState(
     openOnMount,
-    onInputFocus,
+    undefined,
     collapseSignal,
   );
 
@@ -67,8 +68,7 @@ export const QuranTimeSelection = ({
   const notifyHoursFocused = useCallback(() => {
     onInputFocus?.();
     requestAnimationFrame(reportHoursInputLayout);
-    // After keyboard opens, re-measure so bottom cards (Tajweed) scroll enough.
-    setTimeout(reportHoursInputLayout, 280);
+    // No late remeasure — parent keep-visible scrolls once with keyboard height.
   }, [onInputFocus, reportHoursInputLayout]);
   const [inputValue, setInputValue] = useState<string>("");
   const [hydrated, setHydrated] = useState(false);
@@ -159,18 +159,39 @@ export const QuranTimeSelection = ({
                 >
                   <TextInput
                     ref={hoursInputRef}
-                    value={inputValue}
+                    value={
+                      isHoursFocused && hoursCount === 0 ? "" : inputValue
+                    }
                     onChangeText={handleHoursChange}
                     keyboardType="numeric"
-                    placeholder="0"
+                    placeholder={isHoursFocused ? "" : "0"}
                     placeholderTextColor={Colors.light.white}
                     maxLength={3}
                     textAlignVertical="center"
-                    selectTextOnFocus
+                    selectTextOnFocus={hoursCount > 0}
                     showSoftInputOnFocus
                     onFocus={() => {
                       setIsHoursFocused(true);
                       notifyHoursFocused();
+                      if (hoursCount === 0) {
+                        setInputValue("");
+                        hoursInputRef.current?.setNativeProps?.({
+                          text: "",
+                          placeholder: "",
+                        });
+                        requestAnimationFrame(() => {
+                          hoursInputRef.current?.setNativeProps?.({
+                            selection: { start: 0, end: 0 },
+                          });
+                        });
+                        return;
+                      }
+                      const len = String(hoursCount).length;
+                      requestAnimationFrame(() => {
+                        hoursInputRef.current?.setNativeProps?.({
+                          selection: { start: 0, end: len },
+                        });
+                      });
                     }}
                     onBlur={() => setIsHoursFocused(false)}
                     style={[
