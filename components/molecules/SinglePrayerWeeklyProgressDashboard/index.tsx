@@ -62,6 +62,7 @@ export function SinglePrayerWeeklyProgressDashboard({
   comparisonVariant = "prayers",
   greenActivityCaptions = false,
   activityCaptionsMatchDayLabel = false,
+  compactWeekOneQuote = false,
 }: SinglePrayerWeeklyProgressDashboardProps) {
   const { width: screenWidth } = useWindowDimensions();
   const prayerFrame = useOptionalPrayerGoalFrameContext();
@@ -364,6 +365,7 @@ export function SinglePrayerWeeklyProgressDashboard({
                 motivationalQuote,
                 defaultMotivationalQuote,
                 comparisonVariant,
+                compactWeekOneQuote,
               }}
             />
           </>

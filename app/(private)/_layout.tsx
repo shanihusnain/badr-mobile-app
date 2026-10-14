@@ -487,9 +487,17 @@ export default function PrivateLayout() {
             title: "GOAL PROGRESS",
             headerBackTitle: "Back",
             header: ({ route, navigation }) => {
-              const goalData = getGoalById((route?.params as any)?.goalId);
-
-              const title = goalData?.title?.toUpperCase() ?? "";
+              const goalId = (route?.params as any)?.goalId as
+                | string
+                | undefined;
+              const goalData =
+                goalId != null
+                  ? getGoalById(goalId as Parameters<typeof getGoalById>[0])
+                  : null;
+              const title =
+                goalId === "fasting-whiteDays"
+                  ? "THE WHITE DAYS"
+                  : (goalData?.title?.toUpperCase() ?? "");
               return (
                 <HeaderWithCrossTitleDynamicIcon
                   title={title}

@@ -204,11 +204,11 @@ export const styles = StyleSheet.create({
     paddingTop: 10,
   },
   flowCardDropdownOpen: {
-    // iOS clips absolute dropdowns when borderRadius + overflow:hidden;
-    // open state must drop bottom radius and allow overflow.
+    // Keep bottom corners rounded; overflow visible so the menu isn't clipped.
     overflow: "visible",
-    borderBottomLeftRadius: 0,
-    borderBottomRightRadius: 0,
+    borderRadius: 8,
+    borderBottomLeftRadius: 8,
+    borderBottomRightRadius: 8,
     zIndex: 200,
     elevation: 10,
   },
@@ -320,7 +320,7 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 16,
+    gap: 20,
   },
   dateMainText: {
     color: Colors.light.white,
@@ -460,6 +460,8 @@ export const styles = StyleSheet.create({
   flowDropdownWrapper: {
     position: "relative",
     width: "100%",
+    // Extra space under the step header ("What are you logging?").
+    marginTop: 10,
   },
   flowDropdownSelector: {
     borderWidth: 1.5,
@@ -478,8 +480,11 @@ export const styles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
-    fontSize: 13,
+    fontSize: 14,
+    lineHeight: 18,
     flex: 1,
+    flexShrink: 1,
+    minWidth: 0,
   },
   flowDropdownPlaceholder: {
     color: Colors.light.subtext,
@@ -491,7 +496,7 @@ export const styles = StyleSheet.create({
     fontSize: 10,
     lineHeight: 13,
     marginTop: 4,
-    opacity: 0.9,
+    opacity: 0.8,
   },
   flowDropdownMenu: {
     position: "absolute",
@@ -560,15 +565,18 @@ export const styles = StyleSheet.create({
    * without growing the fixed FLOW_CARD_HEIGHT shell.
    */
   fastingWizardLogTypeMenu: {
-    maxHeight: 120,
-    paddingVertical: 4,
+    maxHeight: 110,
+    paddingVertical: 3,
     marginTop: 2,
+    borderRadius: 8,
+    borderBottomLeftRadius: 8,
+    borderBottomRightRadius: 8,
   },
   fastingWizardLogTypeOption: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    paddingVertical: 6,
+    paddingVertical: 4.5,
     paddingHorizontal: 4,
     width: "100%",
   },
@@ -642,7 +650,7 @@ export const styles = StyleSheet.create({
     height: 12,
     borderRadius: 6,
     borderWidth: 1.5,
-    borderColor: Colors.light.white,
+    borderColor: Colors.light.grey,
     alignItems: "center",
     justifyContent: "center",
   },

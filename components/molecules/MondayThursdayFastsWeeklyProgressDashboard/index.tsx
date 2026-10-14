@@ -408,6 +408,8 @@ const styles = StyleSheet.create({
     gap: 6,
     flexWrap: "nowrap",
     marginTop: 6,
+    // Slight left of center — not flush with the streak row.
+    transform: [{ translateX: -12 }],
   },
   statsText: {
     color: Colors.light.white,

@@ -294,7 +294,7 @@ export default function ProphetDawoodFastsLoggingFlow({
       <FlowCardCallender size={18} color={Colors.light.white} />
     );
     const timeIcon = (
-      <TimeSpentIcon size={19} color={Colors.light.white} />
+      <TimeSpentIcon size={18} color={Colors.light.white} />
     );
 
     switch (step) {

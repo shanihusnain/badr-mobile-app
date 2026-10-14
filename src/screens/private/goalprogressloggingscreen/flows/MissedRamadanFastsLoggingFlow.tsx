@@ -10,7 +10,12 @@ import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "@/constants/theme";
 import { FastingFlowCardRamadanCalender } from "@/assets/icons/FastingFlowCardRamadanCalender";
-import { MissedRamadanFastsPlatesIcon } from "@/assets/icons/MissedRamadanFastsPlatesIcon";
+import { MissedRamadanFastsGreenCardIcon } from "@/assets/icons/MissedRamadanFastsGreenCardIcon";
+import {
+  AddLoggingFlowIcon,
+  FlowCardCallender,
+  TimeSpentIcon,
+} from "@/assets/icons";
 import { GoalData } from "../../home/components/goalsData";
 import { FlowCard } from "../components/FlowCard";
 import {
@@ -19,7 +24,10 @@ import {
 } from "../components/FlowDropdownSelect";
 import { WhiteDaysFastDateStep } from "../components/WhiteDaysFastDateStep";
 import { StartTimeStep } from "../components/TimePickerSteps";
-import { styles as commonStyles } from "../components/DailyProgressLogging.styles";
+import {
+  FLOW_CARD_HEIGHT,
+  styles as commonStyles,
+} from "../components/DailyProgressLogging.styles";
 import { fonts } from "@/assets/fonts";
 import { isValidStartTime } from "../quranRecitationTarget";
 import {
@@ -138,7 +146,7 @@ export default function MissedRamadanFastsLoggingFlow({
   onLogComplete,
   onDropdownOpenChange,
 }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const fastingFrame = useOptionalFastingGoalFrameContext();
   const frame = fastingFrame?.frame;
   const frameItem = frame?.items?.[0];
@@ -361,7 +369,9 @@ export default function MissedRamadanFastsLoggingFlow({
         mapped.push({
           value,
           label: option.label,
-          hint: option.hint,
+          hint:
+            option.hint?.trim() ||
+            t(`progressLogging.missedRamadanLogTypeHint_${value}`),
           disabled: !option.enabled,
         });
       }
@@ -391,6 +401,7 @@ export default function MissedRamadanFastsLoggingFlow({
     return types.map((value) => ({
       value,
       label: t(`progressLogging.missedRamadanLogType_${value}`),
+      hint: t(`progressLogging.missedRamadanLogTypeHint_${value}`),
       disabled: false,
     }));
   }, [
@@ -767,8 +778,11 @@ export default function MissedRamadanFastsLoggingFlow({
 
   const handleOpenFlow = useCallback(() => {
     if (!canLog) return;
-    const firstEnabled = enabledLogTypes[0] ?? null;
-    setLogType(firstEnabled);
+    // Prefer "completed a planned fast" as the default selected option.
+    const defaultLogType = enabledLogTypes.includes("completed_planned")
+      ? "completed_planned"
+      : (enabledLogTypes[0] ?? null);
+    setLogType(defaultLogType);
     setSelectedPlannedFastId(null);
     setSelectedActualDateId(null);
     setSelectedSkippedDateId(null);
@@ -778,13 +792,11 @@ export default function MissedRamadanFastsLoggingFlow({
 
   const getStepHeader = (step: MissedRamadanFastsStepId) => {
     const calendarIcon = (
-      <Ionicons name="calendar-outline" size={15} color={Colors.light.white} />
+      <FlowCardCallender size={18} color={Colors.light.white} />
     );
-    const timeIcon = (
-      <Ionicons name="time-outline" size={15} color={Colors.light.white} />
-    );
+    const timeIcon = <TimeSpentIcon size={19} color={Colors.light.white} />;
     const helpIcon = (
-      <MissedRamadanFastsPlatesIcon size={20} color={Colors.light.white} />
+      <MissedRamadanFastsGreenCardIcon size={18} color={Colors.light.white} />
     );
 
     switch (step) {
@@ -952,6 +964,7 @@ export default function MissedRamadanFastsLoggingFlow({
             labelNumberOfLines={1}
             hintNumberOfLines={2}
             compactMenu
+            hideSelectedInMenu
           />
         );
       case "selectPlannedFast":
@@ -975,7 +988,8 @@ export default function MissedRamadanFastsLoggingFlow({
           setSelectedSkippedDateId,
         );
       case "startTime":
-        return (
+        return renderTimeStep(
+          t("progressLogging.missedRamadanStartTimeLabel"),
           <StartTimeStep
             startHour={startHour}
             setStartHour={setStartHour}
@@ -986,10 +1000,15 @@ export default function MissedRamadanFastsLoggingFlow({
             isPeriodDropdownOpen={isStartPeriodDropdownOpen}
             setIsPeriodDropdownOpen={setIsStartPeriodDropdownOpen}
             styles={commonStyles}
-          />
+          />,
+          {
+            canGoPrev: stepIndex > 0,
+            canGoNext: isStartTimeValid,
+          },
         );
       case "endTime":
-        return (
+        return renderTimeStep(
+          t("progressLogging.missedRamadanEndTimeLabel"),
           <StartTimeStep
             startHour={endHour}
             setStartHour={setEndHour}
@@ -1000,10 +1019,56 @@ export default function MissedRamadanFastsLoggingFlow({
             isPeriodDropdownOpen={isEndPeriodDropdownOpen}
             setIsPeriodDropdownOpen={setIsEndPeriodDropdownOpen}
             styles={commonStyles}
-          />
+          />,
+          {
+            canGoPrev: true,
+            canGoNext: false,
+          },
         );
     }
   };
+
+  /** Figma Step 3: label + large side chevrons around the time picker. */
+  const renderTimeStep = (
+    sectionLabel: string,
+    picker: React.ReactNode,
+    nav: { canGoPrev: boolean; canGoNext: boolean },
+  ) => (
+    <View style={localStyles.timeStepWrap}>
+      <Text style={localStyles.timeSectionLabel}>{sectionLabel}</Text>
+      <View style={commonStyles.dateRow}>
+        <TouchableOpacity
+          onPress={handleBack}
+          disabled={!nav.canGoPrev}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+        >
+          <Ionicons
+            name={i18n.language === "ar" ? "chevron-forward" : "chevron-back"}
+            size={32}
+            color={
+              nav.canGoPrev ? Colors.light.white : Colors.light.dullWhiteOpacity
+            }
+          />
+        </TouchableOpacity>
+
+        <View style={localStyles.timePickerCenter}>{picker}</View>
+
+        <TouchableOpacity
+          onPress={handleForward}
+          disabled={!nav.canGoNext}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+        >
+          <Ionicons
+            name={i18n.language === "ar" ? "chevron-back" : "chevron-forward"}
+            size={32}
+            color={
+              nav.canGoNext ? Colors.light.white : Colors.light.dullWhiteOpacity
+            }
+          />
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
 
   const canProceed = (() => {
     switch (currentStep) {
@@ -1069,6 +1134,9 @@ export default function MissedRamadanFastsLoggingFlow({
     isBranchDataValid;
 
   const stepHeader = getStepHeader(currentStep);
+  const isPeriodDropdownOpen =
+    isStartPeriodDropdownOpen || isEndPeriodDropdownOpen;
+  const isAnyDropdownOpen = isLogTypeDropdownOpen || isPeriodDropdownOpen;
 
   return (
     <>
@@ -1096,7 +1164,11 @@ export default function MissedRamadanFastsLoggingFlow({
         <View
           style={[
             commonStyles.cardAnchor,
-            isLogTypeDropdownOpen && { zIndex: 220, elevation: 24 },
+            isAnyDropdownOpen && {
+              zIndex: 220,
+              elevation: 24,
+              overflow: "visible" as const,
+            },
           ]}
         >
           {flowMode === "collapsed" ? (
@@ -1104,7 +1176,7 @@ export default function MissedRamadanFastsLoggingFlow({
               <View style={localStyles.summaryBody}>
                 <View style={localStyles.summaryIconCircle}>
                   <FastingFlowCardRamadanCalender
-                    size={20}
+                    size={18}
                     color={Colors.light.white}
                   />
                 </View>
@@ -1117,7 +1189,6 @@ export default function MissedRamadanFastsLoggingFlow({
                         : badgeStatus.type === "not-started"
                           ? localStyles.badgeNotStarted
                           : localStyles.badgeInProgress,
-                      { alignSelf: "flex-start", marginBottom: 4 },
                     ]}
                   >
                     <Text
@@ -1133,7 +1204,9 @@ export default function MissedRamadanFastsLoggingFlow({
                       {badgeStatus.text}
                     </Text>
                   </View>
-                  <Text style={localStyles.summaryTitle}>{summaryTitle}</Text>
+                  <Text style={localStyles.summaryTitle} numberOfLines={2}>
+                    {summaryTitle}
+                  </Text>
                 </View>
               </View>
 
@@ -1153,26 +1226,24 @@ export default function MissedRamadanFastsLoggingFlow({
                       color={Colors.light.white}
                     />
                   </TouchableOpacity>
-                ) : (
-                  <View style={localStyles.spacer} />
-                )}
-
-                {canLog ? (
-                  <TouchableOpacity
-                    style={localStyles.addButton}
-                    onPress={handleOpenFlow}
-                    activeOpacity={0.8}
-                  >
-                    <Ionicons name="add" size={22} color={Colors.light.white} />
-                  </TouchableOpacity>
                 ) : null}
               </View>
+
+              {canLog ? (
+                <TouchableOpacity
+                  style={localStyles.addButton}
+                  onPress={handleOpenFlow}
+                  activeOpacity={0.8}
+                >
+                  <AddLoggingFlowIcon size={32} />
+                </TouchableOpacity>
+              ) : null}
             </View>
           ) : (
             <View
               style={[
                 commonStyles.flowCardLayer,
-                isLogTypeDropdownOpen && {
+                isAnyDropdownOpen && {
                   zIndex: 200,
                   elevation: 20,
                   overflow: "visible" as const,
@@ -1185,23 +1256,29 @@ export default function MissedRamadanFastsLoggingFlow({
                 onBack={handleBack}
                 onForward={handleForward}
                 onConfirm={handleConfirm}
-                canGoForward={!isLastStep && canProceed}
+                canGoForward={
+                  !isLastStep &&
+                  canProceed &&
+                  currentStep !== "startTime"
+                }
                 canGoBack={stepIndex > 0}
                 canConfirm={canConfirm}
                 showConfirmButton={
-                  !isDateSelectionStep || isCurrentDateStepEnabled
+                  currentStep === "startTime" || currentStep === "endTime"
+                }
+                headerSingleLine={
+                  currentStep === "startTime" || currentStep === "endTime"
                 }
                 styles={commonStyles}
                 style={[
                   commonStyles.inPlaceFlowCard,
-                  isLogTypeDropdownOpen && commonStyles.flowCardDropdownOpen,
+                  isAnyDropdownOpen && commonStyles.flowCardDropdownOpen,
                 ]}
                 contentStyle={[
                   currentStep === "logType" && {
                     justifyContent: "flex-start" as const,
                   },
-                  isLogTypeDropdownOpen &&
-                    commonStyles.flowContentDropdownOpen,
+                  isAnyDropdownOpen && commonStyles.flowContentDropdownOpen,
                 ]}
               >
                 {renderStepContent(currentStep)}
@@ -1217,17 +1294,20 @@ export default function MissedRamadanFastsLoggingFlow({
 const localStyles = StyleSheet.create({
   summaryCard: {
     backgroundColor: Colors.light.green,
-    borderRadius: 14,
+    borderRadius: 8,
     padding: 16,
     gap: 12,
-    height: 145,
+    height: FLOW_CARD_HEIGHT,
+    width: "100%",
     justifyContent: "space-between",
+    position: "relative",
   },
   badge: {
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
-    marginTop: -6,
+    marginTop: 3,
+    alignSelf: "flex-start",
   },
   badgeNotStarted: {
     backgroundColor: Colors.light.paginationInactiveDot,
@@ -1239,9 +1319,10 @@ const localStyles = StyleSheet.create({
     backgroundColor: Colors.light.lightgreenbadgecolor,
   },
   badgeText: {
-    fontFamily: fonts.primary.semiBold,
-    fontSize: 10,
-    fontWeight: "600",
+    fontFamily: fonts.primary.medium,
+    fontSize: 12,
+    fontWeight: "500",
+    lineHeight: 12.5,
   },
   badgeTextNotStarted: {
     color: Colors.light.notStartedTextColor,
@@ -1255,20 +1336,21 @@ const localStyles = StyleSheet.create({
   summaryBody: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    gap: 6,
   },
   summaryIconCircle: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: Colors.light.blackBackground,
+    backgroundColor: Colors.light.selectcategory,
     alignItems: "center",
     justifyContent: "center",
+    marginTop: 33,
   },
   titleContainer: {
     flex: 1,
     flexDirection: "column",
-    gap: 2,
+    gap: 9,
   },
   summaryTitle: {
     color: Colors.light.white,
@@ -1276,10 +1358,10 @@ const localStyles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     lineHeight: 18,
+    letterSpacing: 0,
   },
   footerRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "flex-end",
     marginTop: 4,
   },
@@ -1288,7 +1370,6 @@ const localStyles = StyleSheet.create({
     alignItems: "center",
     gap: 4,
     paddingBottom: 4,
-    transform: [{ translateY: -4 }],
   },
   insightsText: {
     color: Colors.light.white,
@@ -1297,16 +1378,32 @@ const localStyles = StyleSheet.create({
     fontWeight: "700",
   },
   addButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    borderWidth: 1.5,
-    borderColor: Colors.light.white,
+    position: "absolute",
+    right: 16,
+    bottom: 15,
     alignItems: "center",
     justifyContent: "center",
-    transform: [{ translateY: -4 }],
   },
-  spacer: {
-    flex: 1,
+  timeStepWrap: {
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
+    gap: 6,
+  },
+  timeSectionLabel: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.regular,
+    fontWeight: "400",
+    fontSize: 10,
+    lineHeight: 10,
+    textAlign: "center",
+    opacity: 0.95,
+  },
+  timePickerCenter: {
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 1,
+    minWidth: 0,
+    transform: [{ translateX: 4 }],
   },
 });

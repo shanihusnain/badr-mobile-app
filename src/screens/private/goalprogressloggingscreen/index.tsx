@@ -143,7 +143,7 @@ function getLoggingBackgroundSource(
     case "missed-ramadan-fasts":
       return require("@/assets/images/missedramadanfastsbackgroundimage.png");
     case "white-days-fasts":
-      return require("@/assets/images/whitedaysfastsbackgroundimage.jpg");
+      return require("@/assets/images/whitedaysimage.png");
     case "monday-thursday-fasts":
       return require("@/assets/images/mondays&thursdaysfastsbackgroundimage.jpg");
     case "prophet-dawood-fasts":
@@ -716,6 +716,10 @@ export const GoalProgressLoggingScreen = ({
   const dawoodHeaderSecondTitle =
     goalId === "fasting-Dawwod" ? "DAWOOD (AS)" : undefined;
 
+  const whiteDaysHeaderTitle = isWhiteDaysFastsGoalId(goalId)
+    ? "THE WHITE DAYS"
+    : null;
+
   const memorisationTitleOptions = isMemorisationGoal
     ? [
         {
@@ -889,8 +893,10 @@ export const GoalProgressLoggingScreen = ({
                       ? recitationHeaderTitle
                       : dawoodHeaderTitle
                         ? dawoodHeaderTitle
-                        : (goalData.title?.toUpperCase() ??
-                          goalData.label.toUpperCase())
+                        : whiteDaysHeaderTitle
+                          ? whiteDaysHeaderTitle
+                          : (goalData.title?.toUpperCase() ??
+                            goalData.label.toUpperCase())
                 }
                 secondTitle={
                   memorisationHeaderSecondTitle ??

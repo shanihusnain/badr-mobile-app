@@ -51,12 +51,13 @@ export type WhiteDaysFastWeekSummary = {
   completedFastsThisWeek: number;
   monthlyStreak: number;
   motivationalQuoteKey:
+    | "approaching"
     | "upcoming"
     | "completed"
     | "missed"
     | "allCompleted";
-  motivationalQuoteParams?: { day?: number };
-  /** Prefer when frame API supplies `week.motivation.message`. */
+  motivationalQuoteParams?: { day?: number; count?: number };
+  /** Optional API message; UI prefers local 3-line copy when key is set. */
   motivationalQuote?: string;
 };
 
@@ -221,7 +222,7 @@ function computeMonthlyStreak(today: string): number {
   return streak;
 }
 
-function buildMotivationalQuoteMeta(today: string): Pick<
+export function buildWhiteDaysMotivationalQuoteMeta(today: string): Pick<
   WhiteDaysFastWeekSummary,
   "motivationalQuoteKey" | "motivationalQuoteParams"
 > {
@@ -267,6 +268,17 @@ function buildMotivationalQuoteMeta(today: string): Pick<
     );
   });
   if (nextUpcoming) {
+    const normalizedNext = normalizeDateString(nextUpcoming);
+    const daysUntil = moment(normalizedNext, "YYYY-MM-DD").diff(
+      moment(normalizedToday, "YYYY-MM-DD"),
+      "days",
+    );
+    if (daysUntil > 0) {
+      return {
+        motivationalQuoteKey: "approaching",
+        motivationalQuoteParams: { count: daysUntil },
+      };
+    }
     return {
       motivationalQuoteKey: "upcoming",
       motivationalQuoteParams: { day: getWhiteDayNumber(nextUpcoming) },
@@ -337,7 +349,7 @@ function buildWeekSummary(
     weekIndex,
     completedFastsThisWeek: countCompletedWhiteDaysInWeek(weekStart, weekEnd),
     monthlyStreak: computeMonthlyStreak(today),
-    ...buildMotivationalQuoteMeta(today),
+    ...buildWhiteDaysMotivationalQuoteMeta(today),
   };
 }
 

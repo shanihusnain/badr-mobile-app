@@ -75,10 +75,11 @@ export function WhiteDaysFastDateStep({
         </TouchableOpacity>
       </View>
 
+      {/* Absolute so the date stays vertically centered when subtext appears. */}
       {showDescription ? (
         <View style={localStyles.descriptionRow}>
           <Ionicons
-            name="warning"
+            name="warning-outline"
             size={12}
             color={Colors.light.white}
             style={localStyles.descriptionIcon}
@@ -96,36 +97,41 @@ const localStyles = StyleSheet.create({
   wrap: {
     width: "100%",
     alignItems: "center",
+    position: "relative",
   },
   dateCenter: {
-    flex: 1,
     alignItems: "center",
     justifyContent: "center",
     minHeight: 32,
+    flexShrink: 1,
   },
   dateDisabled: {
     opacity: 0.45,
   },
   descriptionRow: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: "100%",
+    marginTop: 0,
     flexDirection: "row",
     alignItems: "flex-start",
-    justifyContent: "center",
+    justifyContent: "flex-start",
     gap: 4,
-    marginTop: 6,
-    paddingHorizontal: 8,
-    maxWidth: "100%",
+    paddingHorizontal: 4,
   },
   descriptionIcon: {
-    marginTop: 1,
+    marginTop: 2.5,
   },
   descriptionText: {
+    flex: 1,
     flexShrink: 1,
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
     fontSize: 10,
     lineHeight: 13,
-    textAlign: "center",
-    opacity: 0.95,
+    textAlign: "left",
+    opacity: 0.80,
   },
 });
