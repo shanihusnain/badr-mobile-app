@@ -3,6 +3,7 @@ import { TopSpace } from "@/components/atoms/TopSpace";
 import { Colors } from "@/constants/theme";
 import { useCallback, useEffect } from "react";
 import { FlatList, Pressable, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { GoalCardData } from "./components/GoalCard";
 import { GoalCardCarousel } from "./components/GoalCardCarousel";
 import { styles } from "./styles";
@@ -18,6 +19,7 @@ import { TickIconWithCircle } from "@/assets/icons/TickIconWithCircle";
 import { WhiteTick } from "@/assets/icons";
 import { setPendingOnboardingRoute } from "@/src/storage/onboardingRouteStorage";
 import { router } from "expo-router";
+import { ms } from "@/src/utils/responsive";
 
 type StepItem = {
   id: number;
@@ -80,6 +82,7 @@ function openGoalPlanner(tab?: Tab) {
 
 export const MonthlyGoalPlannerScreen = () => {
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     void setPendingOnboardingRoute("/(private)/monthlygoalplanner");
@@ -179,8 +182,13 @@ export const MonthlyGoalPlannerScreen = () => {
   }, []);
 
   return (
-    <BlackScreenWrapper edges={["left", "right", "bottom"]}>
-      <View style={styles.screenBody}>
+    <BlackScreenWrapper edges={["left", "right"]}>
+      <View
+        style={[
+          styles.screenBody,
+          { paddingBottom: Math.max(insets.bottom, ms(24)) },
+        ]}
+      >
         <FlatList
           data={steps}
           keyExtractor={keyExtractor}
@@ -191,7 +199,7 @@ export const MonthlyGoalPlannerScreen = () => {
           ListHeaderComponent={
             <>
               <GoalCardCarousel data={goalCards} />
-              <TopSpace top={16} />
+              <TopSpace top={ms(16)} />
             </>
           }
         />

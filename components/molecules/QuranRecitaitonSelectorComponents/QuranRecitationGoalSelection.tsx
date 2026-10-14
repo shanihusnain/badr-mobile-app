@@ -12,6 +12,7 @@ import { useTranslation } from "react-i18next";
 import { globalStyles } from "@/src/globalstyles/globalstyles";
 import { useGetQuranGoalByType } from "@/src/api/queries/useGetQuranGoalByType";
 import { useDeleteQuranGoalSingleMetric } from "@/src/api/mutations/useDeleteQuranGoalSingleMetric";
+import { useBulkUpsertQuranGoals } from "@/src/api/mutations/useUpsertQuranGoal";
 import {
   findApiGoalForMetric,
   getCompletionFromDetail,
@@ -26,6 +27,7 @@ import {
   mergeJuzOptionsWithDetail,
   mergeSurahOptionsWithDetail,
   metricValueFromApiGoal,
+  quranMetricSnapshotCompareKey,
   type QuranGoalApiItem,
   type QuranHizbOption,
   type QuranJuzOption,
@@ -91,9 +93,11 @@ export const QuranRecitationGoalSelection = ({
   initiallySaved = false,
 }: QuranRecitationGoalSelectionProps) => {
   const { t } = useTranslation();
+  // Do not pass onInputFocus as onOpened — panel open must not trigger
+  // keyboard keep-visible (only MetricSelection TextInput focus should).
   const [isOpen, setIsOpen] = useGoalSelectionOpenState(
     openOnMount,
-    onInputFocus,
+    undefined,
     collapseSignal,
   );
   const handleToggleDropdown = () => {
@@ -120,20 +124,39 @@ export const QuranRecitationGoalSelection = ({
   const [metricSnapshots, setMetricSnapshots] = useState<
     Partial<Record<MetricName, any>>
   >({});
+  const metricSnapshotsRef = useRef(metricSnapshots);
+  metricSnapshotsRef.current = metricSnapshots;
   const savedSnapshotsRef = useRef<Partial<Record<MetricName, any>>>({});
 
+  // Reconcile ticks from API list, but never resurrect a metric we cleared
+  // locally (empty savedSnapshotsRef) while the list refetch is still stale.
   useEffect(() => {
-    if (!initialSavedMetrics?.length) return;
+    const apiList = initialSavedMetrics ?? [];
     setSavedMetrics((prev) => {
-      let changed = false;
-      const next = new Set(prev);
-      initialSavedMetrics.forEach((m) => {
-        if (!next.has(m)) {
+      const next = new Set<MetricName>();
+      apiList.forEach((m) => {
+        if (
+          Object.prototype.hasOwnProperty.call(savedSnapshotsRef.current, m) &&
+          !isQuranMetricValueConfigured(m, savedSnapshotsRef.current[m])
+        ) {
+          return;
+        }
+        next.add(m);
+      });
+      // Keep optimistic ticks from a save that has not landed in apiGoals yet.
+      prev.forEach((m) => {
+        if (next.has(m)) return;
+        if (
+          Object.prototype.hasOwnProperty.call(savedSnapshotsRef.current, m) &&
+          isQuranMetricValueConfigured(m, savedSnapshotsRef.current[m])
+        ) {
           next.add(m);
-          changed = true;
         }
       });
-      return changed ? next : prev;
+      if (next.size === prev.size && [...next].every((m) => prev.has(m))) {
+        return prev;
+      }
+      return next;
     });
   }, [initialSavedMetrics]);
 
@@ -151,6 +174,24 @@ export const QuranRecitationGoalSelection = ({
             prev[metric] != null &&
             isQuranMetricValueConfigured(metric, prev[metric])
           ) {
+            return;
+          }
+          // After a delete emptied this metric, savedSnapshotsRef holds that
+          // empty value — do not resurrect items from a stale apiGoals refetch.
+          if (
+            Object.prototype.hasOwnProperty.call(
+              savedSnapshotsRef.current,
+              metric,
+            ) &&
+            !isQuranMetricValueConfigured(
+              metric,
+              savedSnapshotsRef.current[metric],
+            )
+          ) {
+            if (prev[metric] !== savedSnapshotsRef.current[metric]) {
+              next[metric] = savedSnapshotsRef.current[metric];
+              changed = true;
+            }
             return;
           }
           const goal = findApiGoalForMetric(apiGoals, variantKey, metric);
@@ -218,20 +259,129 @@ export const QuranRecitationGoalSelection = ({
 
   const { mutateAsync: deleteGoalItem, isPending: isDeletingItem } =
     useDeleteQuranGoalSingleMetric();
+  const { mutateAsync: bulkUpsertQuranGoals, isPending: isClearingCompletion } =
+    useBulkUpsertQuranGoals();
 
   const handleDeleteSavedItem = useCallback(
     async (args: {
       itemType: "SURAH" | "JUZ" | "HIZB" | "COMPLETION";
       itemNumber: number;
+      nextMetricValue?: any;
     }) => {
       if (!quranGoalType) return;
-      await deleteGoalItem({
-        quranGoalType,
-        itemType: args.itemType,
-        itemNumber: args.itemNumber,
+
+      // Completion is a goal-level completionTarget — not a SURAH/JUZ/HIZB item.
+      // DELETE ?itemType=COMPLETION returns 400 Invalid itemType.
+      if (args.itemType === "COMPLETION") {
+        await bulkUpsertQuranGoals({
+          goals: [
+            {
+              quranGoalType,
+              isActive: true,
+              frequency: "MONTHLY",
+              completionTarget: 0,
+              items: [],
+            },
+          ],
+        });
+      } else {
+        await deleteGoalItem({
+          quranGoalType,
+          itemType: args.itemType,
+          itemNumber: args.itemNumber,
+        });
+      }
+
+      const metric: MetricName =
+        args.itemType === "SURAH"
+          ? "surah"
+          : args.itemType === "JUZ"
+            ? "juz"
+            : args.itemType === "HIZB"
+              ? "hizb"
+              : "completion";
+
+      const prevSnap =
+        savedSnapshotsRef.current[metric] ??
+        metricSnapshotsRef.current[metric];
+      let nextValue = args.nextMetricValue;
+      if (nextValue === undefined) {
+        if (metric === "surah") {
+          const selectedSurahs = (prevSnap?.selectedSurahs ?? [])
+            .map(Number)
+            .filter((n: number) => n > 0 && n !== args.itemNumber);
+          const surahSettings = { ...(prevSnap?.surahSettings ?? {}) };
+          delete surahSettings[args.itemNumber];
+          const surahNames = { ...(prevSnap?.surahNames ?? {}) };
+          delete surahNames[args.itemNumber];
+          nextValue = { selectedSurahs, surahSettings, surahNames };
+        } else if (metric === "hizb") {
+          nextValue = {
+            selectedHizbs: (prevSnap?.selectedHizbs ?? [])
+              .map(Number)
+              .filter((n: number) => n > 0 && n !== args.itemNumber),
+          };
+        } else if (metric === "juz") {
+          let start = Number(prevSnap?.start ?? 0);
+          let end = Number(prevSnap?.end ?? 0);
+          let selectedJuzs: number[] = Array.isArray(prevSnap?.selectedJuzs)
+            ? prevSnap.selectedJuzs.map(Number).filter((n: number) => n > 0)
+            : [];
+          if (selectedJuzs.length === 0 && start > 0 && end > 0) {
+            selectedJuzs = Array.from(
+              { length: Math.max(0, end - start + 1) },
+              (_, i) => start + i,
+            );
+          }
+          selectedJuzs = selectedJuzs.filter((n) => n !== args.itemNumber);
+          if (selectedJuzs.length > 0) {
+            start = Math.min(...selectedJuzs);
+            end = Math.max(...selectedJuzs);
+          } else {
+            start = 0;
+            end = 0;
+          }
+          nextValue = { selectedJuzs, start, end };
+        } else {
+          nextValue = 0;
+        }
+      } else if (metric === "surah" && prevSnap?.surahNames) {
+        // Preserve names map; drop the deleted id.
+        const surahNames = { ...prevSnap.surahNames };
+        delete surahNames[args.itemNumber];
+        nextValue = { ...nextValue, surahNames };
+      }
+
+      // Persist delete into "saved" snapshots so collapse does not resurrect.
+      savedSnapshotsRef.current = {
+        ...savedSnapshotsRef.current,
+        [metric]: nextValue,
+      };
+      setMetricSnapshots((prev) => ({ ...prev, [metric]: nextValue }));
+
+      const stillConfigured = isQuranMetricValueConfigured(metric, nextValue);
+      setConfiguredMetrics((prev) => {
+        const has = prev.has(metric);
+        if (stillConfigured === has) return prev;
+        const next = new Set(prev);
+        if (stillConfigured) next.add(metric);
+        else next.delete(metric);
+        return next;
       });
+      if (!stillConfigured) {
+        setSavedMetrics((prev) => {
+          if (!prev.has(metric)) return prev;
+          const next = new Set(prev);
+          next.delete(metric);
+          return next;
+        });
+      }
+
+      onMetricsChange?.({ metric, value: nextValue });
+      // Refresh initialSelected* memos that read savedSnapshotsRef.
+      setMarkCleanNonce((n) => n + 1);
     },
-    [deleteGoalItem, quranGoalType],
+    [bulkUpsertQuranGoals, deleteGoalItem, onMetricsChange, quranGoalType],
   );
 
   const handleMetricsChange = useCallback(
@@ -331,50 +481,77 @@ export const QuranRecitationGoalSelection = ({
     [effectiveDetail],
   );
 
-  // Backend / last successful save only — never live dirty `metricSnapshots`.
-  // Feeding dirty snaps into these made unsaved picks look "saved" and opened
-  // the delete dialog / delete API on deselect.
+  // Prefer savedSnapshotsRef (last save + deletes) over API detail so a stale
+  // refetch cannot resurrect removed items after collapse/reopen.
+  // Never feed live dirty `metricSnapshots` here (that made unsaved picks look saved).
   const initialSelectedSurahs = useMemo(() => {
-    if (apiSelectedSurahs.length > 0) return apiSelectedSurahs;
-    const snap = savedSnapshotsRef.current.surah?.selectedSurahs;
-    return Array.isArray(snap) ? snap.map(Number).filter((n) => n > 0) : [];
+    if (
+      Object.prototype.hasOwnProperty.call(savedSnapshotsRef.current, "surah")
+    ) {
+      const snap = savedSnapshotsRef.current.surah?.selectedSurahs;
+      return Array.isArray(snap)
+        ? snap.map(Number).filter((n) => n > 0)
+        : [];
+    }
+    return apiSelectedSurahs;
   }, [apiSelectedSurahs, markCleanNonce]);
 
   const initialSurahSettings = useMemo(() => {
+    if (
+      Object.prototype.hasOwnProperty.call(savedSnapshotsRef.current, "surah")
+    ) {
+      return savedSnapshotsRef.current.surah?.surahSettings;
+    }
     if (apiSurahSettings && Object.keys(apiSurahSettings).length > 0) {
       return apiSurahSettings;
     }
-    return savedSnapshotsRef.current.surah?.surahSettings;
+    return undefined;
   }, [apiSurahSettings, markCleanNonce]);
 
   const initialSelectedJuzs = useMemo(() => {
+    if (
+      Object.prototype.hasOwnProperty.call(savedSnapshotsRef.current, "juz")
+    ) {
+      const snap = savedSnapshotsRef.current.juz?.selectedJuzs;
+      if (Array.isArray(snap) && snap.length > 0) {
+        return snap.map(Number).filter((n) => n > 0);
+      }
+      const start = Number(savedSnapshotsRef.current.juz?.start ?? 0);
+      const end = Number(savedSnapshotsRef.current.juz?.end ?? 0);
+      if (start > 0 && end > 0) {
+        return Array.from(
+          { length: Math.max(0, end - start + 1) },
+          (_, i) => start + i,
+        );
+      }
+      return [];
+    }
     if (apiSelectedJuzs.length > 0) return apiSelectedJuzs;
-    const snap = savedSnapshotsRef.current.juz?.selectedJuzs;
-    if (Array.isArray(snap) && snap.length > 0) {
-      return snap.map(Number).filter((n) => n > 0);
-    }
-    const start = Number(savedSnapshotsRef.current.juz?.start ?? 0);
-    const end = Number(savedSnapshotsRef.current.juz?.end ?? 0);
-    if (start > 0 && end > 0) {
-      return Array.from(
-        { length: Math.max(0, end - start + 1) },
-        (_, i) => start + i,
-      );
-    }
     return [];
   }, [apiSelectedJuzs, markCleanNonce]);
 
   const initialJuzRange = useMemo(() => {
-    if (apiJuzRange) return apiJuzRange;
-    const start = Number(savedSnapshotsRef.current.juz?.start ?? 0);
-    const end = Number(savedSnapshotsRef.current.juz?.end ?? 0);
-    if (start > 0 || end > 0) {
-      // Do not coerce missing end → start (or the To Juz input mirrors From).
-      return {
-        start: start > 0 ? start : end > 0 ? 1 : 0,
-        end: end > 0 ? end : 0,
-      };
+    if (
+      Object.prototype.hasOwnProperty.call(savedSnapshotsRef.current, "juz")
+    ) {
+      const start = Number(savedSnapshotsRef.current.juz?.start ?? 0);
+      const end = Number(savedSnapshotsRef.current.juz?.end ?? 0);
+      if (start > 0 || end > 0) {
+        // Do not coerce missing end → start (or the To Juz input mirrors From).
+        return {
+          start: start > 0 ? start : end > 0 ? 1 : 0,
+          end: end > 0 ? end : 0,
+        };
+      }
+      if (initialSelectedJuzs.length > 0) {
+        return {
+          start: Math.min(...initialSelectedJuzs),
+          end: Math.max(...initialSelectedJuzs),
+        };
+      }
+      return { start: 0, end: 0 };
     }
+    if (apiJuzRange) return apiJuzRange;
     if (initialSelectedJuzs.length > 0) {
       return {
         start: Math.min(...initialSelectedJuzs),
@@ -385,16 +562,30 @@ export const QuranRecitationGoalSelection = ({
   }, [apiJuzRange, initialSelectedJuzs, markCleanNonce]);
 
   const initialSelectedHizbs = useMemo(() => {
-    if (apiSelectedHizbs.length > 0) return apiSelectedHizbs;
-    const snap = savedSnapshotsRef.current.hizb?.selectedHizbs;
-    return Array.isArray(snap) ? snap.map(Number).filter((n) => n > 0) : [];
+    if (
+      Object.prototype.hasOwnProperty.call(savedSnapshotsRef.current, "hizb")
+    ) {
+      const snap = savedSnapshotsRef.current.hizb?.selectedHizbs;
+      return Array.isArray(snap)
+        ? snap.map(Number).filter((n) => n > 0)
+        : [];
+    }
+    return apiSelectedHizbs;
   }, [apiSelectedHizbs, markCleanNonce]);
 
   const initialCompletion = useMemo(() => {
+    if (
+      Object.prototype.hasOwnProperty.call(
+        savedSnapshotsRef.current,
+        "completion",
+      )
+    ) {
+      const snap = savedSnapshotsRef.current.completion;
+      if (typeof snap === "number") return snap;
+      return Number(snap?.completion ?? 0) || 0;
+    }
     if (apiCompletion > 0) return apiCompletion;
-    const snap = savedSnapshotsRef.current.completion;
-    if (typeof snap === "number") return snap;
-    return Number(snap?.completion ?? 0) || 0;
+    return 0;
   }, [apiCompletion, markCleanNonce]);
 
   interface IItem {
@@ -468,9 +659,105 @@ export const QuranRecitationGoalSelection = ({
     ? configuredMetrics.size > 0
     : !!resolvedMetric;
 
-  const showAsInitiallySaved =
-    initiallySaved || (initialSavedMetrics?.length ?? 0) > 0;
-  const saveValueKey = `${Array.from(savedMetrics).sort().join(",")}|${Array.from(configuredMetrics).sort().join(",")}|${JSON.stringify(metricSnapshots)}|${resolvedMetric ?? ""}|${markCleanNonce}`;
+  // SAVED! when parent says so OR at least one metric was submitted (ticks).
+  // Edits on another metric flip back to Save via saveValueKey dirty tracking.
+  const showAsInitiallySaved = initiallySaved || savedMetrics.size > 0;
+
+  /**
+   * Delay dirty-tracking until API/detail hydrate finishes. Including
+   * metricSnapshots in valueKey before that flipped SAVED! → Save on
+   * recitation-by-surah (async surah list / settings).
+   */
+  const [saveBaselineReady, setSaveBaselineReady] = useState(
+    () => !initiallySaved && (initialSavedMetrics?.length ?? 0) === 0,
+  );
+
+  useEffect(() => {
+    if (saveBaselineReady) return;
+    if (!isOpen) return;
+
+    const active =
+      resolvedMetric ?? initialMetric ?? allowedMetrics?.[0] ?? undefined;
+    const hasLive =
+      !!active &&
+      isQuranMetricValueConfigured(active, metricSnapshots[active]);
+    const stillLoading =
+      loadingDetail ||
+      (needsReference && isReferenceLoading && surahReference.length === 0);
+
+    if (!hasLive && stillLoading) return;
+
+    // Wait until every already-saved metric has a seeded snapshot so reopen
+    // does not lock an empty baseline and then look falsely dirty.
+    const savedList = Array.from(savedMetrics);
+    if (savedList.length > 0) {
+      const allSeeded = savedList.every((m) =>
+        isQuranMetricValueConfigured(m, savedSnapshotsRef.current[m]),
+      );
+      if (!allSeeded) return;
+    }
+
+    // Fill missing live keys from saved — never overwrite a saved metric with
+    // a sparse/empty live snapshot during baseline lock.
+    const nextSaved = { ...savedSnapshotsRef.current };
+    (["surah", "juz", "hizb", "completion"] as MetricName[]).forEach((m) => {
+      const live = metricSnapshots[m];
+      if (live == null) return;
+      if (
+        Object.prototype.hasOwnProperty.call(nextSaved, m) &&
+        isQuranMetricValueConfigured(m, nextSaved[m])
+      ) {
+        return;
+      }
+      nextSaved[m] = live;
+    });
+    savedSnapshotsRef.current = nextSaved;
+
+    if (hasLive && active) {
+      setSavedMetrics((prev) => {
+        if (prev.has(active)) return prev;
+        const next = new Set(prev);
+        next.add(active);
+        return next;
+      });
+    }
+    setSaveBaselineReady(true);
+  }, [
+    saveBaselineReady,
+    isOpen,
+    resolvedMetric,
+    initialMetric,
+    allowedMetrics,
+    metricSnapshots,
+    loadingDetail,
+    needsReference,
+    isReferenceLoading,
+    surahReference.length,
+    savedMetrics,
+  ]);
+
+  // Stable when clean; only changes when live snapshots diverge from saved.
+  // Compare via normalized keys — child vs API shapes differ for the same picks.
+  const saveValueKey = useMemo(() => {
+    if (!saveBaselineReady) return undefined;
+    const metrics: MetricName[] = ["surah", "juz", "hizb", "completion"];
+    const dirty: string[] = [];
+    for (const m of metrics) {
+      const live = quranMetricSnapshotCompareKey(m, metricSnapshots[m]);
+      const saved = quranMetricSnapshotCompareKey(
+        m,
+        savedSnapshotsRef.current[m],
+      );
+      // Missing live while saved exists = not hydrated yet, not a user edit.
+      if (!live && saved) continue;
+      if (live !== saved) {
+        dirty.push(`${m}:${live}`);
+      }
+    }
+    return dirty.length === 0
+      ? `clean|${Array.from(savedMetrics).sort().join(",")}|${markCleanNonce}`
+      : `dirty|${dirty.join("|")}|${markCleanNonce}`;
+  }, [saveBaselineReady, metricSnapshots, savedMetrics, markCleanNonce]);
 
   return (
     <View
@@ -528,7 +815,9 @@ export const QuranRecitationGoalSelection = ({
                   onDeleteSavedItem={
                     isActiveMetric ? handleDeleteSavedItem : undefined
                   }
-                  isDeletingItem={isActiveMetric && isDeletingItem}
+                  isDeletingItem={
+                    isActiveMetric && (isDeletingItem || isClearingCompletion)
+                  }
                   markCleanNonce={isActiveMetric ? markCleanNonce : 0}
                   onNestedScrollActiveChange={
                     isActiveMetric ? onNestedScrollActiveChange : undefined

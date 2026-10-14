@@ -101,6 +101,8 @@ export const MetricSelectionComponent = ({
   onDeleteSavedItem?: (args: {
     itemType: "SURAH" | "JUZ" | "HIZB" | "COMPLETION";
     itemNumber: number;
+    /** Resulting metric value after this delete (keeps parent snapshots in sync). */
+    nextMetricValue?: any;
   }) => Promise<void>;
   isDeletingItem?: boolean;
   onDirtyChange?: (dirty: boolean) => void;
@@ -280,7 +282,7 @@ export const MetricSelectionComponent = ({
 
   /** Instantly clear a default "0" before React re-renders on focus. */
   const metricInputRefs = useRef<Record<string, TextInput | null>>({});
-  /** One layout report now + one after keyboard settles — avoids scroll thrashing. */
+  /** Report layout once for parent keep-visible — no late remeasure (avoids overscroll). */
   const reportInputFocusLayout = useCallback(
     (key: string) => {
       const node = metricInputRefs.current[key];
@@ -297,20 +299,32 @@ export const MetricSelectionComponent = ({
   const notifyInputFocused = useCallback(
     (key: string) => {
       onNestedScrollActiveChange?.(false);
-      // Mark goal focused immediately so keyboard-show can scroll once.
+      // Mark goal focused immediately so keyboard-show can arm a single scroll.
       onInputFocus?.();
       requestAnimationFrame(() => reportInputFocusLayout(key));
-      setTimeout(() => reportInputFocusLayout(key), 280);
     },
     [onInputFocus, onNestedScrollActiveChange, reportInputFocusLayout],
   );
-  const clearZeroOnTouch = (key: string, isZero: boolean) => {
+  /** Empty / zero display → clear so "0" is gone on focus. */
+  const clearZeroOnFocus = useCallback((key: string, isZero: boolean) => {
     if (!isZero) return;
     metricInputRefs.current[key]?.setNativeProps?.({
       text: "",
       placeholder: "",
     });
     setInputFocused(key, true);
+  }, []);
+  /** Non-zero digits → select all so typing/backspace replaces the value. */
+  const selectAllOnFocus = useCallback((key: string, textLength: number) => {
+    if (textLength <= 0) return;
+    requestAnimationFrame(() => {
+      metricInputRefs.current[key]?.setNativeProps?.({
+        selection: { start: 0, end: textLength },
+      });
+    });
+  }, []);
+  const clearZeroOnTouch = (key: string, isZero: boolean) => {
+    clearZeroOnFocus(key, isZero);
   };
 
   // Hydrate from backend detail (or parent snapshot) once per goal-type load.
@@ -564,17 +578,21 @@ export const MetricSelectionComponent = ({
   };
 
   const deleteHizb = async (id: number) => {
+    const nextHizbs = selectedHizbs.filter((x) => x !== id);
     const wasSaved = isHizbSavedOnBackend(id);
     if (wasSaved && onDeleteSavedItem) {
       try {
-        await onDeleteSavedItem({ itemType: "HIZB", itemNumber: id });
+        await onDeleteSavedItem({
+          itemType: "HIZB",
+          itemNumber: id,
+          nextMetricValue: { selectedHizbs: nextHizbs },
+        });
       } catch {
         return;
       }
       setDeletedSavedHizbIds((prev) => [...prev, id]);
     }
 
-    const nextHizbs = selectedHizbs.filter((x) => x !== id);
     setSelectedHizbs(nextHizbs);
 
     cleanBaselineRef.current = buildDirtySnapshot(
@@ -590,19 +608,29 @@ export const MetricSelectionComponent = ({
   };
 
   const deleteJuz = async (id: number) => {
+    const nextJuzs = selectedJuzs.filter((x) => x !== id);
+    const nextStart = nextJuzs.length > 0 ? Math.min(...nextJuzs) : 0;
+    const nextEnd = nextJuzs.length > 0 ? Math.max(...nextJuzs) : 0;
     const wasSaved =
       getSavedJuzIdsOnBackend().includes(id) &&
       !deletedSavedJuzIds.includes(id);
     if (wasSaved && onDeleteSavedItem) {
       try {
-        await onDeleteSavedItem({ itemType: "JUZ", itemNumber: id });
+        await onDeleteSavedItem({
+          itemType: "JUZ",
+          itemNumber: id,
+          nextMetricValue: {
+            selectedJuzs: nextJuzs,
+            start: nextStart,
+            end: nextEnd,
+          },
+        });
       } catch {
         return;
       }
       setDeletedSavedJuzIds((prev) => [...prev, id]);
     }
 
-    const nextJuzs = selectedJuzs.filter((x) => x !== id);
     setSelectedJuzs(nextJuzs);
 
     cleanBaselineRef.current = buildDirtySnapshot(
@@ -618,19 +646,25 @@ export const MetricSelectionComponent = ({
   };
 
   const deleteSurah = async (id: number) => {
+    const nextSurahs = selectedSurahs.filter((x) => x !== id);
+    const nextSettings = { ...surahSettings };
+    delete nextSettings[id];
     const wasSaved = isSurahSavedOnBackend(id);
     if (wasSaved && onDeleteSavedItem) {
       try {
-        await onDeleteSavedItem({ itemType: "SURAH", itemNumber: id });
+        await onDeleteSavedItem({
+          itemType: "SURAH",
+          itemNumber: id,
+          nextMetricValue: {
+            selectedSurahs: nextSurahs,
+            surahSettings: nextSettings,
+          },
+        });
       } catch {
         return;
       }
       setDeletedSavedSurahIds((prev) => [...prev, id]);
     }
-
-    const nextSurahs = selectedSurahs.filter((x) => x !== id);
-    const nextSettings = { ...surahSettings };
-    delete nextSettings[id];
 
     setSelectedSurahs(nextSurahs);
     setSurahSettings(nextSettings);
@@ -662,8 +696,18 @@ export const MetricSelectionComponent = ({
           })();
       if (onDeleteSavedItem && saved.length > 0) {
         try {
-          for (const n of saved) {
-            await onDeleteSavedItem({ itemType: "JUZ", itemNumber: n });
+          for (let i = 0; i < saved.length; i += 1) {
+            const n = saved[i];
+            const remaining = saved.slice(i + 1);
+            await onDeleteSavedItem({
+              itemType: "JUZ",
+              itemNumber: n,
+              nextMetricValue: {
+                selectedJuzs: remaining,
+                start: remaining.length > 0 ? Math.min(...remaining) : 0,
+                end: remaining.length > 0 ? Math.max(...remaining) : 0,
+              },
+            });
           }
         } catch {
           return;
@@ -676,8 +720,22 @@ export const MetricSelectionComponent = ({
     const savedEnd = initialJuzRange?.end ?? savedStart;
     if (onDeleteSavedItem && savedStart > 0 && savedEnd > 0) {
       try {
-        for (let n = savedStart; n <= savedEnd; n += 1) {
-          await onDeleteSavedItem({ itemType: "JUZ", itemNumber: n });
+        const rangeIds = Array.from(
+          { length: Math.max(0, savedEnd - savedStart + 1) },
+          (_, i) => savedStart + i,
+        );
+        for (let i = 0; i < rangeIds.length; i += 1) {
+          const n = rangeIds[i];
+          const remaining = rangeIds.slice(i + 1);
+          await onDeleteSavedItem({
+            itemType: "JUZ",
+            itemNumber: n,
+            nextMetricValue: {
+              selectedJuzs: remaining,
+              start: remaining.length > 0 ? Math.min(...remaining) : 0,
+              end: remaining.length > 0 ? Math.max(...remaining) : 0,
+            },
+          });
         }
       } catch {
         return;
@@ -694,6 +752,7 @@ export const MetricSelectionComponent = ({
         await onDeleteSavedItem({
           itemType: "COMPLETION",
           itemNumber: initialCompletion || quranCompletion || 1,
+          nextMetricValue: 0,
         });
       } catch {
         return;
@@ -1191,6 +1250,7 @@ export const MetricSelectionComponent = ({
                               updateSurahSetting(s.id, { times: clamped });
                             }}
                             keyboardType="numeric"
+                            selectTextOnFocus={timesValue > 0}
                             onTouchStart={() =>
                               clearZeroOnTouch(
                                 `surah-${s.id}`,
@@ -1198,22 +1258,30 @@ export const MetricSelectionComponent = ({
                               )
                             }
                             onFocus={() => {
-                              setInputFocused(`surah-${s.id}`, true);
-                              // Keep the row visible inside the nested surah list only;
-                              // parent FlatList is scrolled once via keyboard + layout.
-                              try {
-                                surahListRef.current?.scrollToIndex({
-                                  index: surahIndex,
-                                  animated: true,
-                                  viewPosition: 0.2,
-                                });
-                              } catch {
-                                surahListRef.current?.scrollToOffset({
-                                  offset: Math.max(0, surahIndex * 120),
-                                  animated: true,
-                                });
+                              const key = `surah-${s.id}`;
+                              const isZero = !(timesValue > 0);
+                              setInputFocused(key, true);
+                              clearZeroOnFocus(key, isZero);
+                              if (!isZero) {
+                                selectAllOnFocus(key, String(timesValue).length);
                               }
-                              notifyInputFocused(`surah-${s.id}`);
+                              // Parent FlatList clears the keyboard. Defer nested
+                              // scroll so it does not stack with keep-visible.
+                              notifyInputFocused(key);
+                              setTimeout(() => {
+                                try {
+                                  surahListRef.current?.scrollToIndex({
+                                    index: surahIndex,
+                                    animated: true,
+                                    viewPosition: 0.35,
+                                  });
+                                } catch {
+                                  surahListRef.current?.scrollToOffset({
+                                    offset: Math.max(0, surahIndex * 120),
+                                    animated: true,
+                                  });
+                                }
+                              }, 360);
                             }}
                             onBlur={() =>
                               setInputFocused(`surah-${s.id}`, false)
@@ -1432,12 +1500,17 @@ export const MetricSelectionComponent = ({
                   onChangeText={handleJuzStartChange}
                   keyboardType="numeric"
                   maxLength={2}
-                  selectTextOnFocus
+                  selectTextOnFocus={juzStart > 0}
                   onTouchStart={() =>
                     clearZeroOnTouch("juz-start", juzStart === 0)
                   }
                   onFocus={() => {
+                    const isZero = juzStart === 0;
                     setInputFocused("juz-start", true);
+                    clearZeroOnFocus("juz-start", isZero);
+                    if (!isZero) {
+                      selectAllOnFocus("juz-start", String(juzStart).length);
+                    }
                     notifyInputFocused("juz-start");
                   }}
                   onBlur={() => {
@@ -1486,13 +1559,21 @@ export const MetricSelectionComponent = ({
                   onChangeText={handleJuzEndChange}
                   keyboardType="numeric"
                   maxLength={2}
-                  selectTextOnFocus
+                  selectTextOnFocus={
+                    !!juzEndText && juzEndText !== "0" && juzEnd > 0
+                  }
                   onTouchStart={() =>
                     clearZeroOnTouch("juz-end", juzEndText === "0" || !juzEndText)
                   }
                   onFocus={() => {
+                    const isZero = juzEndText === "0" || !juzEndText;
                     setInputFocused("juz-end", true);
-                    if (juzEndText === "0") setJuzEndText("");
+                    if (isZero) {
+                      setJuzEndText("");
+                      clearZeroOnFocus("juz-end", true);
+                    } else {
+                      selectAllOnFocus("juz-end", juzEndText.length);
+                    }
                     notifyInputFocused("juz-end");
                   }}
                   onBlur={() => {
@@ -1618,11 +1699,20 @@ export const MetricSelectionComponent = ({
                   setQuranCompletion(clamped);
                 }}
                 keyboardType="numeric"
+                selectTextOnFocus={quranCompletion > 0}
                 onTouchStart={() =>
                   clearZeroOnTouch("completion", !(quranCompletion > 0))
                 }
                 onFocus={() => {
-                  setInputFocused(`completion`, true);
+                  const isZero = !(quranCompletion > 0);
+                  setInputFocused("completion", true);
+                  clearZeroOnFocus("completion", isZero);
+                  if (!isZero) {
+                    selectAllOnFocus(
+                      "completion",
+                      String(quranCompletion).length,
+                    );
+                  }
                   notifyInputFocused("completion");
                 }}
                 onBlur={() => setInputFocused(`completion`, false)}

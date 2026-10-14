@@ -43,7 +43,8 @@ export type ReviewAppliedGoal = {
   id: number | string;
   title: string;
   label: string;
-  totalValue: number;
+  /** Numeric total, or a display string (e.g. Qiyam flexible "60*"). */
+  totalValue: number | string;
   selectedGoals?: ReviewSelectedGoal[];
   /** Backend enums for save handlers */
   prayerType?: string;
@@ -238,7 +239,7 @@ function mapPrayerGoal(
   const labelKey = PRAYER_REVIEW_LABEL_KEY[goal.prayerType];
   const label = labelKey ? t(labelKey) : goal.prayerType;
   const selectedGoals: ReviewSelectedGoal[] = [];
-  let totalValue = goal.targetCount ?? 0;
+  let totalValue: number | string = goal.targetCount ?? 0;
 
   if (goal.prayerType === "FIVE_DAILY_PRAYERS") {
     // Locked cycle targets: 28 × 5 = 140. Jum'ah row only when congregation
@@ -324,8 +325,34 @@ function mapPrayerGoal(
     });
     totalValue = rows.reduce((sum, [, v]) => sum + (v ?? 0), 0);
   } else if (goal.prayerType === "QIYAM_AL_LAYL" && goal.qiyamConfig) {
-    // Header total only — same pattern as Quran listening / tajweed
-    totalValue = goal.qiyamConfig.unitTarget ?? goal.targetCount ?? 0;
+    // trackTahajjud true → total = unitTarget+28, Witr row = 28.
+    // trackTahajjud false → total = "unitTarget*", Witr row = "TBD*".
+    const unitTarget = Number(
+      goal.qiyamConfig.unitTarget ?? goal.targetCount ?? 0,
+    );
+    const trackTahajjud =
+      goal.qiyamConfig.trackTahajjud === true ||
+      (goal as { trackTahajjud?: boolean }).trackTahajjud === true;
+    const witrValue = trackTahajjud
+      ? PRAYER_CYCLE_DAYS
+      : t("monthlyGoalPlanner.reviewLabels.qiyamWitrTbd");
+    selectedGoals.push(
+      {
+        id: 1,
+        name: "two-rakah",
+        label: t("monthlyGoalPlanner.reviewLabels.qiyamTwoRakahPrayers"),
+        value: unitTarget,
+      },
+      {
+        id: 2,
+        name: "witr",
+        label: t("monthlyGoalPlanner.reviewLabels.qiyamWitrEachNight"),
+        value: witrValue,
+      },
+    );
+    totalValue = trackTahajjud
+      ? unitTarget + PRAYER_CYCLE_DAYS
+      : `${unitTarget}*`;
   } else if (goal.prayerType === "MISSED_PAST_PRAYERS") {
     // Slider stores days; each day = 5 prayers. Review shows prayer count.
     totalValue =
@@ -673,26 +700,13 @@ function mapQuranGoal(
     typeof goal.targetValue === "number"
       ? goal.targetValue
       : Number(goal.targetValue);
-  const surahRecitationTotal = isSurahRecitation
-    ? items.reduce((sum, item) => {
-        const times = Math.max(
-          0,
-          Number(item.perPeriodCount ?? item.targetCount ?? 0) || 0,
-        );
-        const frequency = resolveQuranSurahFrequency({
-          surahId: Number(item.itemNumber),
-          times,
-          itemFrequency: item.frequency,
-          goalFrequency: goal.frequency,
-        });
-        return sum + surahRecitationMonthlyTotal(times, frequency);
-      }, 0)
-    : 0;
+  // Figma chip for recitation-by-surah is "N surahs" (selected count), not
+  // monthly recitation total.
   const totalValue =
     isJuzRecitation && juzRange
       ? countJuzInRange(juzRange.from, juzRange.to)
-      : isSurahRecitation && surahRecitationTotal > 0
-        ? surahRecitationTotal
+      : isSurahRecitation
+        ? items.length
         : Number.isFinite(parsedTarget)
           ? parsedTarget
           : items.reduce((sum, item) => sum + (item.targetCount ?? 0), 0);
@@ -839,7 +853,7 @@ export function mapReviewFromGoalCycle(
     sections.push({
       id: 1,
       name: "prayerGoals",
-      label: t("monthlyGoalPlanner.tabPrayer"),
+      label: t("monthlyGoalPlanner.reviewSectionPrayer"),
       appliedGoals: prayerGoals,
     });
   }
@@ -855,7 +869,7 @@ export function mapReviewFromGoalCycle(
     sections.push({
       id: 2,
       name: "quranGoals",
-      label: t("monthlyGoalPlanner.tabQuran"),
+      label: t("monthlyGoalPlanner.reviewSectionQuran"),
       appliedGoals: quranGoals,
     });
   }
@@ -871,7 +885,7 @@ export function mapReviewFromGoalCycle(
     sections.push({
       id: 3,
       name: "fastingGoals",
-      label: t("monthlyGoalPlanner.tabFasting"),
+      label: t("monthlyGoalPlanner.reviewSectionFasting"),
       appliedGoals: fastingGoals,
     });
   }
@@ -887,7 +901,7 @@ export function mapReviewFromGoalCycle(
     sections.push({
       id: 4,
       name: "sadaqahGoals",
-      label: t("monthlyGoalPlanner.tabSadaqah"),
+      label: t("monthlyGoalPlanner.reviewSectionSadaqah"),
       appliedGoals: sadaqahGoals,
     });
   }

@@ -27,7 +27,13 @@ const deleteFastingGoalByType = async ({
   } catch (error: unknown) {
     const status = (error as { response?: { status?: number } })?.response
       ?.status;
-    if (allowNotFound && status === 404) {
+    const message = String(
+      (error as { response?: { data?: { message?: string } } })?.response?.data
+        ?.message ?? "",
+    );
+    // Nest "Cannot DELETE /path" means the route is missing — not "already gone".
+    const isMissingRoute = /cannot delete/i.test(message);
+    if (allowNotFound && status === 404 && !isMissingRoute) {
       return { success: true, statusCode: 404 };
     }
     throw error;

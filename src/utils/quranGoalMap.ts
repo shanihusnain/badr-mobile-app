@@ -218,6 +218,76 @@ export function isQuranMetricValueConfigured(
   return false;
 }
 
+/**
+ * Stable compare key for Save dirty-tracking.
+ * Child editors and API seeds use different shapes for the same selection
+ * (e.g. juz `{ start, end }` vs `{ selectedJuzs, start, end }`; surah may
+ * add display-only `surahNames`). Without normalizing, expanding a saved
+ * metric falsely flips SAVED! → Save.
+ */
+export function quranMetricSnapshotCompareKey(
+  metric: "surah" | "juz" | "completion" | "hizb",
+  value: unknown,
+): string {
+  if (value == null) return "";
+  if (metric === "completion") {
+    if (typeof value === "number") return String(value || 0);
+    return String(Number((value as { completion?: number }).completion) || 0);
+  }
+  if (metric === "hizb") {
+    const ids = Array.isArray((value as { selectedHizbs?: number[] }).selectedHizbs)
+      ? [...((value as { selectedHizbs: number[] }).selectedHizbs)]
+          .map(Number)
+          .filter((n) => n > 0)
+          .sort((a, b) => a - b)
+      : [];
+    return ids.join(",");
+  }
+  if (metric === "juz") {
+    const v = value as {
+      selectedJuzs?: number[];
+      start?: number;
+      end?: number;
+    };
+    if (Array.isArray(v.selectedJuzs) && v.selectedJuzs.length > 0) {
+      return [...v.selectedJuzs]
+        .map(Number)
+        .filter((n) => n > 0)
+        .sort((a, b) => a - b)
+        .join(",");
+    }
+    const start = Number(v.start ?? 0);
+    const end = Number(v.end ?? 0);
+    if (start > 0 && end >= start) {
+      return Array.from({ length: end - start + 1 }, (_, i) => start + i).join(
+        ",",
+      );
+    }
+    if (start > 0 || end > 0) return `${start}-${end}`;
+    return "";
+  }
+  if (metric === "surah") {
+    const v = value as {
+      selectedSurahs?: number[];
+      surahSettings?: Record<string | number, unknown>;
+    };
+    const ids = Array.isArray(v.selectedSurahs)
+      ? [...v.selectedSurahs]
+          .map(Number)
+          .filter((n) => n > 0)
+          .sort((a, b) => a - b)
+      : [];
+    const raw = v.surahSettings ?? {};
+    const settings: Record<number, unknown> = {};
+    for (const id of ids) {
+      if (raw[id] != null) settings[id] = raw[id];
+      else if (raw[String(id)] != null) settings[id] = raw[String(id)];
+    }
+    return JSON.stringify({ selectedSurahs: ids, surahSettings: settings });
+  }
+  return JSON.stringify(value);
+}
+
 /** Exact detail payload from GET quran-goals/:quranGoalType */
 export type QuranGoalDetailItem = {
   itemType: "SURAH" | "JUZ" | "HIZB" | string;
@@ -992,6 +1062,39 @@ export function buildBulkQuranGoalsForVariant(
   return goals;
 }
 
+const MULTI_METRIC_KEYS: Record<
+  "recitation" | "memorization",
+  Array<"surah" | "juz" | "completion" | "hizb">
+> = {
+  recitation: ["surah", "juz", "completion"],
+  memorization: ["surah", "juz", "hizb"],
+};
+
+/**
+ * True when every metric for the multi-metric card is present either in the
+ * current local bulk build or already persisted on the API for this card.
+ */
+export function hasAllMultiMetricQuranGoals(
+  variant: "recitation" | "memorization",
+  localMetrics: Record<string, any>,
+  persistedMetrics: Array<"surah" | "juz" | "completion" | "hizb"> | null | undefined,
+): boolean {
+  const required = MULTI_METRIC_KEYS[variant];
+  const localConfigured = new Set<"surah" | "juz" | "completion" | "hizb">();
+  for (const metric of required) {
+    if (buildQuranMetricUpsertPayload(variant, metric, localMetrics)) {
+      localConfigured.add(metric);
+    }
+  }
+  const union = new Set<"surah" | "juz" | "completion" | "hizb">([
+    ...localConfigured,
+    ...(persistedMetrics ?? []).filter((m): m is (typeof required)[number] =>
+      required.includes(m),
+    ),
+  ]);
+  return required.every((m) => union.has(m));
+}
+
 /** Stable display order for Quran cards */
 const QURAN_UI_ORDER = [
   "quran-listening",
@@ -1012,8 +1115,9 @@ export type QuranGoalApiItem = {
   quranGoalType: string;
   isActive: boolean;
   trackingMetric?: string;
-  targetValue?: number;
-  completedValue?: number;
+  /** Backend may return number or numeric string */
+  targetValue?: number | string;
+  completedValue?: number | string;
   frequency?: string;
   items?: QuranGoalDetailItem[];
   title?: string;
@@ -1073,7 +1177,8 @@ export function hasConfiguredQuranGoal(
 ): boolean {
   if (!item?.apiGoals?.length) return false;
   return item.apiGoals.some((goal) => {
-    if (typeof goal.targetValue === "number" && goal.targetValue > 0) {
+    const target = Number(goal.targetValue ?? 0);
+    if (Number.isFinite(target) && target > 0) {
       return true;
     }
     if (Array.isArray(goal.items) && goal.items.length > 0) {

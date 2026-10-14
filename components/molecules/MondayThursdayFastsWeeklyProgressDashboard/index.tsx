@@ -18,6 +18,7 @@ import { ShootIcon } from "@/assets/icons/ShootIcon";
 import type { MondayThursdayFastWeekSummary } from "@/src/screens/private/goalprogressloggingscreen/mondayThursdayFastsWeeklyData";
 import { getMondayThursdayFastTodayIndexInWeek } from "@/src/screens/private/goalprogressloggingscreen/mondayThursdayFastsWeeklyData";
 import { useDeleteFastingLog } from "@/src/api/mutations/useDeleteFastingLog";
+import { PrayerWeeklyDashboardBody } from "@/components/molecules/PrayerWeeklyDashboardBody";
 import { MondayThursdayFastDayRing } from "./MondayThursdayFastDayRing";
 import {
   getDayLabelTextStyle,
@@ -113,6 +114,9 @@ export function MondayThursdayFastsWeeklyProgressDashboard({
   const weekOverWeekImproved = weekSummary.weekOverWeekDelta > 0;
 
   const motivationalQuote = useMemo(() => {
+    if (weekSummary.motivationalQuote?.trim()) {
+      return weekSummary.motivationalQuote.trim();
+    }
     switch (weekSummary.motivationalQuoteKey) {
       case "weekOneProgress":
         return t("progressLogging.mondayThursdayWeekOneMotivation", {
@@ -135,6 +139,7 @@ export function MondayThursdayFastsWeeklyProgressDashboard({
     }
   }, [
     t,
+    weekSummary.motivationalQuote,
     weekSummary.motivationalQuoteKey,
     weekSummary.motivationalQuoteParams,
   ]);
@@ -148,7 +153,8 @@ export function MondayThursdayFastsWeeklyProgressDashboard({
             color={Colors.light.subtext}
           />
           <Text style={styles.weekFractionText} numberOfLines={1}>
-            {weekSummary.weekFraction} {t("homeScreen.weeklyProgress_weeks")}
+            {loading ? "---" : weekSummary.weekFraction}{" "}
+            {t("homeScreen.weeklyProgress_weeks")}
           </Text>
         </View>
 
@@ -157,6 +163,7 @@ export function MondayThursdayFastsWeeklyProgressDashboard({
             onPress={onPrevWeek}
             activeOpacity={0.7}
             style={styles.navBtn}
+            disabled={loading || !onPrevWeek}
           >
             <Ionicons
               name={i18n.language === "ar" ? "chevron-forward" : "chevron-back"}
@@ -165,12 +172,13 @@ export function MondayThursdayFastsWeeklyProgressDashboard({
             />
           </TouchableOpacity>
           <Text style={styles.weekRangeText} numberOfLines={1}>
-            {weekSummary.weekRangeLabel}
+            {loading ? "---" : weekSummary.weekRangeLabel}
           </Text>
           <TouchableOpacity
             onPress={onNextWeek}
             activeOpacity={0.7}
             style={styles.navBtn}
+            disabled={loading || !onNextWeek}
           >
             <Ionicons
               name={i18n.language === "ar" ? "chevron-back" : "chevron-forward"}
@@ -181,134 +189,141 @@ export function MondayThursdayFastsWeeklyProgressDashboard({
         </View>
       </View>
 
-      <View style={styles.daysRow}>
-        {weekSummary.weekDays.map((day, index) => {
-          const isSelected =
-            currentDayIndex !== null && index === currentDayIndex;
-          const isMarkedForDeletion =
-            !!day.date && selectForDeletion === day.date;
-          const canDeleteDay =
-            day.canDelete !== false &&
-            day.state === "completed" &&
-            !!day.date;
-          const showTodayChip = shouldShowTodayLabelBackground(day);
+      <PrayerWeeklyDashboardBody loading={loading}>
+        {!loading ? (
+          <>
+            <View style={styles.daysRow}>
+              {weekSummary.weekDays.map((day, index) => {
+                const isSelected =
+                  currentDayIndex !== null && index === currentDayIndex;
+                const isMarkedForDeletion =
+                  !!day.date && selectForDeletion === day.date;
+                const canDeleteDay =
+                  Boolean(day.canDelete) &&
+                  day.state === "completed" &&
+                  !!day.date;
+                const showTodayChip = shouldShowTodayLabelBackground(day);
+                const isBlurred = day.state === "goalAchieved";
 
-          return (
-            <TouchableOpacity
-              key={`${day.day}-${day.date}`}
-              style={[
-                styles.dayColumn,
-                isMarkedForDeletion && styles.dayColumnMarkedForDeletion,
-              ]}
-              onPress={() => {
-                if (loading) return;
-                if (selectForDeletion) {
-                  setSelectForDeletion("");
-                  return;
-                }
-                setActiveDayIndex(index);
-                onDayPress?.(index);
-              }}
-              onLongPress={() => {
-                if (loading || !canDeleteDay) return;
-                setSelectForDeletion((prev) =>
-                  prev === day.date ? "" : day.date,
-                );
-              }}
-              activeOpacity={loading ? 1 : 0.75}
-              disabled={loading}
-            >
-              <View
-                style={[
-                  styles.dayItemWrapper,
-                  showTodayChip && styles.dayItemTodayChip,
-                ]}
-              >
-                <MondayThursdayFastDayRing
-                  size={ringSize}
-                  state={day.state}
-                  isMenstruating={day.isMenstruating}
-                  isPlanned={day.isSelected}
-                />
-                <View style={mondayThursdayDayLabelStyles.dayLabelWrapper}>
-                  <Text
-                    style={getDayLabelTextStyle(day, isSelected)}
-                    numberOfLines={1}
+                return (
+                  <TouchableOpacity
+                    key={`${day.day}-${day.date}`}
+                    style={[
+                      styles.dayColumn,
+                      isMarkedForDeletion && styles.dayColumnMarkedForDeletion,
+                      isBlurred && styles.dayColumnBlurred,
+                    ]}
+                    onPress={() => {
+                      if (selectForDeletion) {
+                        setSelectForDeletion("");
+                        return;
+                      }
+                      setActiveDayIndex(index);
+                      onDayPress?.(index);
+                    }}
+                    onLongPress={() => {
+                      if (!canDeleteDay) return;
+                      setSelectForDeletion((prev) =>
+                        prev === day.date ? "" : day.date,
+                      );
+                    }}
+                    activeOpacity={0.75}
                   >
-                    {t(
-                      (DAY_TRANSLATION_KEYS[day.day] ??
-                        "homeScreen.weeklyProgress_daySun") as never,
-                    )}
+                    <View
+                      style={[
+                        styles.dayItemWrapper,
+                        showTodayChip && styles.dayItemTodayChip,
+                        // #16 / #17 — red border when marked for delete
+                        isMarkedForDeletion && styles.dayItemDeleteBorder,
+                        // #16 past delete: padding without today chip fill
+                        isMarkedForDeletion &&
+                          !showTodayChip &&
+                          styles.dayItemDeletePadding,
+                      ]}
+                    >
+                      <MondayThursdayFastDayRing
+                        size={ringSize}
+                        state={day.state}
+                        isMenstruating={day.isMenstruating}
+                        isPlanned={day.isSelected}
+                        isToday={day.isToday}
+                      />
+                      <View style={mondayThursdayDayLabelStyles.dayLabelWrapper}>
+                        <Text
+                          style={getDayLabelTextStyle(day, isSelected)}
+                          numberOfLines={1}
+                        >
+                          {t(
+                            (DAY_TRANSLATION_KEYS[day.day] ??
+                              "homeScreen.weeklyProgress_daySun") as never,
+                          )}
+                        </Text>
+                      </View>
+                    </View>
+                    {isMarkedForDeletion ? (
+                      <Pressable
+                        style={styles.deleteButton}
+                        disabled={isDeletingLog}
+                        onPress={() => {
+                          if (!day.date || isDeletingLog) return;
+                          handleDeleteLog(day.date);
+                        }}
+                      >
+                        <BinIcon />
+                      </Pressable>
+                    ) : null}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            <View style={styles.statsRow}>
+              <FastingDashboardIcon size={22} color={Colors.light.seagreen} />
+              <Text style={styles.statsText} numberOfLines={1}>
+                <Text style={styles.statsCount}>
+                  {weekSummary.completedFastsThisWeek}
+                </Text>
+                {t("progressLogging.mondayThursdayWeeklyTotalFasts")}
+              </Text>
+            </View>
+
+            <View style={styles.footerRow}>
+              <View style={styles.streakBadge}>
+                <FlashIcon size={13} color={Colors.light.seagreen} />
+                <Text style={styles.streakText}>
+                  {t("progressLogging.mondayThursdayWeeklyStreak", {
+                    count: weekSummary.streakWeeks,
+                  })}
+                </Text>
+              </View>
+
+              {weekSummary.showPreviousWeekStat && weekOverWeekMagnitude > 0 ? (
+                <View style={styles.streakBadge}>
+                  <Ionicons
+                    name={weekOverWeekImproved ? "caret-up" : "caret-down"}
+                    size={13}
+                    color={
+                      weekOverWeekImproved
+                        ? Colors.light.seagreen
+                        : Colors.light.grey
+                    }
+                  />
+                  <Text style={styles.previousWeekText}>
+                    {t("progressLogging.mondayThursdayWeekOverWeekDelta", {
+                      count: weekOverWeekMagnitude,
+                    })}
                   </Text>
                 </View>
-              </View>
-              {isMarkedForDeletion ? (
-                <Pressable
-                  style={styles.deleteButton}
-                  disabled={isDeletingLog}
-                  onPress={() => {
-                    if (!day.date || isDeletingLog) return;
-                    handleDeleteLog(day.date);
-                  }}
-                >
-                  <BinIcon />
-                </Pressable>
               ) : null}
-            </TouchableOpacity>
-          );
-        })}
-      </View>
 
-      <View style={styles.statsRow}>
-        <FastingDashboardIcon
-          size={22}
-          color={Colors.light.seagreen}
-        />
-        <Text style={styles.statsText} numberOfLines={1}>
-          <Text style={styles.statsCount}>
-            {weekSummary.completedFastsThisWeek}
-          </Text>
-          {t("progressLogging.mondayThursdayWeeklyTotalFasts")}
-        </Text>
-      </View>
-
-      <View style={styles.footerRow}>
-        <View style={styles.streakBadge}>
-          <FlashIcon size={13} color={Colors.light.seagreen} />
-          <Text style={styles.streakText}>
-            {t("progressLogging.mondayThursdayWeeklyStreak", {
-              count: weekSummary.streakWeeks,
-            })}
-          </Text>
-        </View>
-
-        {weekSummary.showPreviousWeekStat && weekOverWeekMagnitude > 0 ? (
-          <View style={styles.streakBadge}>
-            <Ionicons
-              name={weekOverWeekImproved ? "caret-up" : "caret-down"}
-              size={13}
-              color={
-                weekOverWeekImproved
-                  ? Colors.light.seagreen
-                  : Colors.light.grey
-              }
-            />
-            <Text style={styles.previousWeekText}>
-              {t("progressLogging.mondayThursdayWeekOverWeekDelta", {
-                count: weekOverWeekMagnitude,
-              })}
-            </Text>
-          </View>
+              <View style={styles.quoteBlock}>
+                <ShootIcon size={14} Color={Colors.light.seagreen} />
+                <Text style={styles.quoteText}>{motivationalQuote}</Text>
+              </View>
+            </View>
+          </>
         ) : null}
-
-        <View style={styles.quoteBlock}>
-          <ShootIcon
-            size={14}
-            Color={Colors.light.seagreen}
-          />
-          <Text style={styles.quoteText}>{motivationalQuote}</Text>
-        </View>
-      </View>
+      </PrayerWeeklyDashboardBody>
     </View>
   );
 }
@@ -371,9 +386,10 @@ const styles = StyleSheet.create({
     paddingBottom: 4,
   },
   dayColumnMarkedForDeletion: {
-    borderColor: Colors.light.red,
-    backgroundColor: Colors.light.dullRed,
     zIndex: 99999,
+  },
+  dayColumnBlurred: {
+    opacity: 0.35,
   },
   dayItemWrapper: {
     alignItems: "center",
@@ -381,10 +397,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 1,
     minWidth: 0,
   },
-  /** Figma today chip — wraps ring + day label (must contrast card bg) */
+  /** Figma today / delete chip — wraps ring + day label (must contrast card bg) */
   dayItemTodayChip: {
     backgroundColor: Colors.light.dayProgressCardBg,
     borderRadius: 6,
+    paddingHorizontal: 4,
+    paddingTop: 4,
+    paddingBottom: 2,
+  },
+  /** #16 / #17 — thin red border when marked for delete */
+  dayItemDeleteBorder: {
+    borderWidth: 1,
+    borderColor: Colors.light.red,
+    borderRadius: 6,
+  },
+  /** #16 — padding when delete border has no today chip */
+  dayItemDeletePadding: {
     paddingHorizontal: 4,
     paddingTop: 4,
     paddingBottom: 2,

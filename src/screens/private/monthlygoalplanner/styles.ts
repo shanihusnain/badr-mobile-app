@@ -1,5 +1,6 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
+import { ms } from "@/src/utils/responsive";
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
@@ -17,33 +18,33 @@ export const styles = StyleSheet.create({
     lineHeight: 20,
   },
   stepsList: {
-    marginTop: 32,
+    marginTop: ms(32),
     flexGrow: 0,
   },
   stepsContent: {
-    paddingBottom: 8,
-    gap: 12,
+    paddingBottom: ms(8),
+    gap: ms(10),
   },
   screenBody: {
     flex: 1,
   },
   beginNowButton: {
     alignSelf: "center",
-    marginTop: 52,
-    marginBottom: 24,
+    marginTop: ms(52),
+    marginBottom: 0,
   },
   stepRow: {
     backgroundColor: Colors.light.greybuttonBackground,
     borderRadius: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 9,
+    paddingHorizontal: ms(10),
+    paddingVertical: ms(9),
     flexDirection: "row",
     alignItems: "center",
   },
   stepRowLeft: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: ms(8),
     flex: 1,
   },
   categoryBadge: {

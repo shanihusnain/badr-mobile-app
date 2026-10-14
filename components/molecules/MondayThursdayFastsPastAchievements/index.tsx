@@ -6,30 +6,35 @@ import {
   TouchableOpacity,
   Pressable,
   ScrollView,
+  ActivityIndicator,
+  useWindowDimensions,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { CalendarGrid } from "@/components/molecules/CalendarGrid";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import { AchivementArrowIcon } from "@/assets/icons/AchivementArrowIcon";
+import {
+  InsightCardFlashIcon,
+  InsightCardGoalTrackedIcon,
+  InsightCardTickIcon,
+  InsightCardTimeSpentIcon,
+  InsightCardWeeklyAverageIcon,
+} from "@/assets/icons";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import {
+  applyMondayThursdayAnalyticsView,
   formatMondayThursdayChartHoursLabel,
   formatMondayThursdayFastCountLabel,
   formatMondayThursdayFastTimeLabel,
-  getMondayThursdayFastsPastAchievement,
-  getMondayThursdayFastsPastAchievementSlice,
-  getMondayThursdayFastTimeSpentForDate,
   getMondayThursdayGoalTrackedMonths,
   getMondayThursdayTimeSpentByPeriod,
   getTotalMondayThursdayFastsCompleted,
   getTotalMondayThursdayTimeSpentMinutes,
-  isMondayThursdayFastCompletedOnDate,
-  isMondayThursdayFastMissedOnDate,
   type MondayThursdayAnalyticsView,
+  type MondayThursdayPeriodSlice,
 } from "@/src/screens/private/goalprogressloggingscreen/mondayThursdayFastsPastAchievementData";
 import { applyTimeSpentOnlyGreenChart } from "@/src/screens/private/goalprogressloggingscreen/quranRecitationPastAchievementData";
 import type { PastAchievementPeriod } from "@/src/screens/private/goalprogressloggingscreen/quranHoursPastAchievementData";
@@ -42,8 +47,61 @@ import { GraphBarSelectionFooter } from "../QuranHoursPastAchievements/GraphBarS
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { FontAwesome } from "@expo/vector-icons";
 import { InsightCard } from "../InsightCard";
+import type { InsightCardData } from "../PrayerPastAchievements/insightCardsData";
 import { getGoalById } from "@/src/screens/private/home/components/goalsData";
 import { PastAchievementStudyMaterial } from "@/components/molecules/PastAchievementStudyMaterial";
+import { useGetFastingGoalAchievements } from "@/src/api/queries/useGetFastingGoalAchievements";
+import {
+  createEmptyMissedRamadanAchievements,
+  mapFastingApiKeyInsightsToCards,
+  mapFastingGoalAchievementsToMissedRamadan,
+  shiftFastingAchievementsPeriodStart,
+} from "@/src/utils/fastingGoalAchievementsMap";
+
+const FASTING_INSIGHT_ICON_SIZE = 14;
+
+function getMondayThursdayInsightIcon(card: InsightCardData) {
+  const title = card.title.toUpperCase();
+  const name = card.iconName;
+  if (name === "calendar-outline" || title.includes("GOAL TRACKED")) {
+    return <InsightCardGoalTrackedIcon size={FASTING_INSIGHT_ICON_SIZE} />;
+  }
+  if (name === "checkmark-circle-outline" || title.includes("COMPLETED")) {
+    return <InsightCardTickIcon size={FASTING_INSIGHT_ICON_SIZE} />;
+  }
+  if (name === "flash" || title.includes("STREAK")) {
+    return <InsightCardFlashIcon size={FASTING_INSIGHT_ICON_SIZE} />;
+  }
+  if (name === "scale-balance" || title.includes("AVERAGE")) {
+    return <InsightCardWeeklyAverageIcon size={FASTING_INSIGHT_ICON_SIZE} />;
+  }
+  if (name === "time-outline" || title.includes("TIME")) {
+    return <InsightCardTimeSpentIcon size={FASTING_INSIGHT_ICON_SIZE} />;
+  }
+  return undefined;
+}
+
+function toMondayThursdaySliceFromApi(
+  slice: ReturnType<typeof mapFastingGoalAchievementsToMissedRamadan>["slice"],
+): MondayThursdayPeriodSlice {
+  return {
+    chartPeriods: slice.chartPeriods,
+    targetFasts: slice.targetFasts,
+    completedFasts: slice.completedFasts,
+    incompleteFasts: slice.incompleteFasts,
+    achievementPercent: slice.achievementPercent,
+    previousPeriodDeltaPercent: slice.previousPeriodDeltaPercent,
+    dateRangeLabel: slice.dateRangeLabel,
+    periodStartDate: slice.periodStartDate,
+    periodEndDate: slice.periodEndDate,
+    pageCount: slice.pageCount,
+    activePageIndex: slice.activePageIndex,
+    completedDates: slice.completedDates,
+    missedDates: slice.skippedDates,
+    upcomingDates: slice.upcomingDates,
+    calendarMonthDate: slice.calendarMonthDate,
+  };
+}
 
 type Props = {
   refreshKey?: number;
@@ -92,7 +150,17 @@ export function MondayThursdayFastsPastAchievements({
 }: Props) {
   const router = useRouter();
   const { t } = useTranslation();
+  const { width } = useWindowDimensions();
   const formatNumber = useLocaleNumber();
+  const insightCardWidthStyle = useMemo(
+    () => ({
+      ...styles.insightCardFixed,
+      width: width * 0.42,
+      maxWidth: width * 0.42,
+      minWidth: width * 0.42,
+    }),
+    [width],
+  );
   const [period, setPeriod] = useState<PastAchievementPeriod>(initialPeriod);
   const [analyticsView, setAnalyticsView] =
     useState<MondayThursdayAnalyticsView>(initialAnalyticsView);
@@ -101,17 +169,50 @@ export function MondayThursdayFastsPastAchievements({
     null,
   );
   const [hintDismissed, setHintDismissed] = useState(false);
+  const [apiPeriodStart, setApiPeriodStart] = useState<string | null>(null);
   const goalData = getGoalById("fasting-mondayThursday");
   const studyMaterial = goalData?.studyMaterial ?? [];
 
-  const periodSlice = useMemo(
-    () => getMondayThursdayFastsPastAchievementSlice(period),
-    [period, refreshKey],
+  const {
+    data: achievementsApiData,
+    isLoading: isAchievementsLoading,
+    isFetching: isAchievementsFetching,
+  } = useGetFastingGoalAchievements("MONDAY_THURSDAY", {
+    period,
+    periodStart: apiPeriodStart,
+  });
+
+  const mappedApi = useMemo(() => {
+    if (!achievementsApiData) return null;
+    return mapFastingGoalAchievementsToMissedRamadan(
+      achievementsApiData,
+      period,
+    );
+  }, [achievementsApiData, period]);
+
+  const emptyApiMapped = useMemo(
+    () => createEmptyMissedRamadanAchievements(period),
+    [period],
   );
 
-  const baseAchievement = useMemo(
-    () => getMondayThursdayFastsPastAchievement(period),
-    [period, refreshKey],
+  const periodSlice = useMemo(() => {
+    if (mappedApi) return toMondayThursdaySliceFromApi(mappedApi.slice);
+    return toMondayThursdaySliceFromApi(emptyApiMapped.slice);
+  }, [emptyApiMapped, mappedApi, refreshKey]);
+
+  const baseAchievement = useMemo(() => {
+    if (mappedApi) return mappedApi.achievement;
+    return emptyApiMapped.achievement;
+  }, [emptyApiMapped, mappedApi, refreshKey]);
+
+  const achievement = useMemo(
+    () =>
+      applyMondayThursdayAnalyticsView(
+        baseAchievement,
+        periodSlice,
+        analyticsView,
+      ),
+    [analyticsView, baseAchievement, periodSlice],
   );
 
   const timeSpentByPeriod = useMemo(
@@ -119,19 +220,64 @@ export function MondayThursdayFastsPastAchievements({
     [periodSlice],
   );
 
-  const totalTimeSpentMinutes = useMemo(
-    () => getTotalMondayThursdayTimeSpentMinutes(timeSpentByPeriod),
-    [timeSpentByPeriod],
-  );
+  const totalTimeSpentMinutes = useMemo(() => {
+    if (mappedApi) return mappedApi.totalTimeSpentMinutes;
+    return getTotalMondayThursdayTimeSpentMinutes(timeSpentByPeriod);
+  }, [mappedApi, timeSpentByPeriod]);
 
   const goalTrackedMonths = getMondayThursdayGoalTrackedMonths(period);
   const totalFastsCompleted = getTotalMondayThursdayFastsCompleted(periodSlice);
+
+  const apiInsightCards = useMemo(
+    () =>
+      mapFastingApiKeyInsightsToCards(achievementsApiData, {
+        period,
+        noDataLabel: t("progressLogging.previousMonth"),
+        isLoading: isAchievementsLoading || isAchievementsFetching,
+      }),
+    [
+      achievementsApiData,
+      isAchievementsFetching,
+      isAchievementsLoading,
+      period,
+      t,
+    ],
+  );
+
+  const canNavigateBack =
+    Boolean(mappedApi?.canNavigateBack) && !isAchievementsLoading;
+  const canNavigateForward =
+    Boolean(mappedApi?.canNavigateForward) && !isAchievementsLoading;
+
+  const handlePrevPeriod = useCallback(() => {
+    if (!canNavigateBack || !mappedApi) return;
+    const next = shiftFastingAchievementsPeriodStart(
+      mappedApi.periodStart,
+      mappedApi.periodEnd,
+      -1,
+    );
+    if (next) setApiPeriodStart(next);
+  }, [canNavigateBack, mappedApi]);
+
+  const handleNextPeriod = useCallback(() => {
+    if (!canNavigateForward || !mappedApi) return;
+    const next = shiftFastingAchievementsPeriodStart(
+      mappedApi.periodStart,
+      mappedApi.periodEnd,
+      1,
+    );
+    if (next) setApiPeriodStart(next);
+  }, [canNavigateForward, mappedApi]);
+
+  useEffect(() => {
+    setApiPeriodStart(null);
+  }, [period]);
 
   useEffect(() => {
     setSelectedBarIndex(null);
     setSelectedCalendarDate(null);
     setHintDismissed(false);
-  }, [period, analyticsView, refreshKey]);
+  }, [period, analyticsView, refreshKey, apiPeriodStart]);
 
   const handleBarPressCompact = useCallback((index: number | null) => {
     setHintDismissed(true);
@@ -172,29 +318,41 @@ export function MondayThursdayFastsPastAchievements({
   }, [analyticsView, period, router]);
 
   const displayCompleted = selectedCalendarDate
-    ? isMondayThursdayFastCompletedOnDate(selectedCalendarDate)
+    ? periodSlice.completedDates.includes(selectedCalendarDate)
       ? 1
       : 0
     : selectedBarIndex !== null
       ? (periodSlice.chartPeriods[selectedBarIndex]?.completed ?? 0)
       : periodSlice.completedFasts;
   const displayIncomplete = selectedCalendarDate
-    ? isMondayThursdayFastMissedOnDate(selectedCalendarDate, periodSlice)
+    ? periodSlice.missedDates.includes(selectedCalendarDate)
       ? 1
       : 0
     : selectedBarIndex !== null
       ? (periodSlice.chartPeriods[selectedBarIndex]?.incomplete ?? 0)
       : periodSlice.incompleteFasts;
 
+  const apiLockedOrEmpty =
+    Boolean(mappedApi?.locked) ||
+    (!isAchievementsLoading &&
+      (mappedApi == null ||
+        (mappedApi.slice.completedFasts === 0 &&
+          mappedApi.slice.incompleteFasts === 0 &&
+          mappedApi.slice.chartPeriods.every(
+            (p) => p.completed === 0 && p.incomplete === 0,
+          ))));
+
+  const showNoDataDash =
+    isAchievementsLoading ||
+    apiLockedOrEmpty ||
+    (selectedCalendarDate == null &&
+      isPastAchievementBarEmpty(displayCompleted, displayIncomplete));
+
   const selectedPeriodTimeSpentMinutes = selectedCalendarDate
-    ? getMondayThursdayFastTimeSpentForDate(selectedCalendarDate)
+    ? 0
     : selectedBarIndex !== null
       ? (timeSpentByPeriod[selectedBarIndex] ?? 0)
       : totalTimeSpentMinutes;
-
-  const showNoDataDash =
-    selectedCalendarDate == null &&
-    isPastAchievementBarEmpty(displayCompleted, displayIncomplete);
 
   const showCalendar = isDetailed
     ? period === "monthly"
@@ -202,19 +360,19 @@ export function MondayThursdayFastsPastAchievements({
   const showChart = !showCalendar;
   const showChartHint =
     showChart && !hintDismissed && selectedBarIndex === null;
-  const deltaIsPositive = baseAchievement.previousPeriodDeltaPercent >= 0;
+  const deltaIsPositive = achievement.previousPeriodDeltaPercent >= 0;
 
   const chartAchievement = useMemo(() => {
     if (!showChart) return null;
     if (analyticsView === "completedVsTime") {
-      return applyTimeSpentOnlyGreenChart(baseAchievement, timeSpentByPeriod);
+      return applyTimeSpentOnlyGreenChart(achievement, timeSpentByPeriod);
     }
-    return baseAchievement;
-  }, [analyticsView, baseAchievement, showChart, timeSpentByPeriod]);
+    return achievement;
+  }, [analyticsView, achievement, showChart, timeSpentByPeriod]);
 
   const selectedBarGoalTotal = useMemo(() => {
     if (selectedBarIndex === null) return 0;
-    const selectedBar = baseAchievement.chartData[selectedBarIndex];
+    const selectedBar = achievement.chartData[selectedBarIndex];
     if (!selectedBar) return periodSlice.targetFasts;
     return Math.max(
       selectedBar.stackTotalHours,
@@ -222,7 +380,7 @@ export function MondayThursdayFastsPastAchievements({
       1,
     );
   }, [
-    baseAchievement.chartData,
+    achievement.chartData,
     displayCompleted,
     displayIncomplete,
     periodSlice.targetFasts,
@@ -260,7 +418,59 @@ export function MondayThursdayFastsPastAchievements({
   };
 
   const renderFastingInsights = () => {
+    if (apiInsightCards.length > 0) {
+      return (
+        <View style={styles.insightsSection}>
+          <View style={styles.insightsHeader}>
+            <Text style={styles.insightsTitleLabel}>
+              {t("progressLogging.keyInsights")}
+            </Text>
+            <Text style={styles.insightsSubtitleLabel}>
+              {mappedApi?.keyInsightsHeader?.trim() ||
+                (period === "monthly"
+                  ? "VS. LAST MONTH"
+                  : period === "threeMonths"
+                    ? "VS. LAST 3 MONTHS"
+                    : "VS. LAST 6 MONTHS")}
+            </Text>
+          </View>
+          <ScrollView
+            horizontal
+            nestedScrollEnabled
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.insightsScrollContent}
+          >
+            {apiInsightCards.map((card, index) => (
+              <InsightCard
+                key={`${card.title}-${index}`}
+                {...card}
+                icon={getMondayThursdayInsightIcon(card)}
+                style={insightCardWidthStyle}
+              />
+            ))}
+          </ScrollView>
+        </View>
+      );
+    }
+
     if (!isDetailed) return null;
+
+    const detailedCards: InsightCardData[] = [
+      {
+        iconFamily: "Ionicons",
+        iconName: "calendar-outline",
+        title: t("progressLogging.recitationInsightGoalTracked"),
+        value: formatNumber(goalTrackedMonths),
+        subValue: t("progressLogging.recitationInsightMonths"),
+      },
+      {
+        iconFamily: "Ionicons",
+        iconName: "checkmark-circle-outline",
+        title: t("progressLogging.mondayThursdayInsightTotalCompleted"),
+        value: formatNumber(totalFastsCompleted),
+        subValue: t("progressLogging.mondayThursdayInsightFastsCompleted"),
+      },
+    ];
 
     return (
       <View style={styles.insightsSection}>
@@ -278,23 +488,18 @@ export function MondayThursdayFastsPastAchievements({
         </View>
         <ScrollView
           horizontal
+          nestedScrollEnabled
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.insightsScrollContent}
         >
-          <InsightCard
-            iconName="calendar-outline"
-            title={t("progressLogging.recitationInsightGoalTracked")}
-            value={formatNumber(goalTrackedMonths)}
-            subValue={t("progressLogging.recitationInsightMonths")}
-            style={styles.insightCardFixed}
-          />
-          <InsightCard
-            iconName="checkmark-circle-outline"
-            title={t("progressLogging.mondayThursdayInsightTotalCompleted")}
-            value={formatNumber(totalFastsCompleted)}
-            subValue={t("progressLogging.mondayThursdayInsightFastsCompleted")}
-            style={styles.insightCardFixed}
-          />
+          {detailedCards.map((card, index) => (
+            <InsightCard
+              key={`${card.title}-${index}`}
+              {...card}
+              icon={getMondayThursdayInsightIcon(card)}
+              style={insightCardWidthStyle}
+            />
+          ))}
         </ScrollView>
       </View>
     );
@@ -419,21 +624,41 @@ export function MondayThursdayFastsPastAchievements({
             </View>
 
             <View style={styles.dateNavRow}>
-              <TouchableOpacity activeOpacity={0.7} style={styles.navBtn}>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                style={styles.navBtn}
+                disabled={!canNavigateBack}
+                onPress={handlePrevPeriod}
+              >
                 <Ionicons
                   name="chevron-back"
                   size={isDetailed ? 24 : 14}
-                  color={Colors.light.dullWhite}
+                  color={
+                    canNavigateBack
+                      ? Colors.light.dullWhite
+                      : Colors.light.graylightshade
+                  }
                 />
               </TouchableOpacity>
               <Text style={styles.dateRange} numberOfLines={1}>
-                {baseAchievement.dateRangeLabel}
+                {isAchievementsLoading
+                  ? "---"
+                  : baseAchievement.dateRangeLabel || "---"}
               </Text>
-              <TouchableOpacity activeOpacity={0.7} style={styles.navBtn}>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                style={styles.navBtn}
+                disabled={!canNavigateForward}
+                onPress={handleNextPeriod}
+              >
                 <Ionicons
                   name="chevron-forward"
                   size={isDetailed ? 24 : 14}
-                  color={Colors.light.dullWhite}
+                  color={
+                    canNavigateForward
+                      ? Colors.light.dullWhite
+                      : Colors.light.graylightshade
+                  }
                 />
               </TouchableOpacity>
             </View>
@@ -455,6 +680,12 @@ export function MondayThursdayFastsPastAchievements({
             })}
           </Text>
         )}
+
+        {isAchievementsLoading || isAchievementsFetching ? (
+          <View style={{ alignItems: "center", paddingVertical: 8 }}>
+            <ActivityIndicator color={Colors.light.white} />
+          </View>
+        ) : null}
 
         <View style={styles.goalHeader}>
           <Text style={styles.goalLabel}>{t("progressLogging.goal")}</Text>
@@ -593,23 +824,23 @@ export function MondayThursdayFastsPastAchievements({
             onMoveShouldSetResponder={() => false}
           >
             <QuranHoursPastAchievementChartBlock
-              chartData={chartAchievement?.chartData ?? baseAchievement.chartData}
+              chartData={chartAchievement?.chartData ?? achievement.chartData}
               selectedBarIndex={selectedBarIndex}
               onBarPress={
                 isDetailed ? handleBarPressDetailed : handleBarPressCompact
               }
-              chartKey={`monday-thursday-${period}-${analyticsView}-${refreshKey}-${isDetailed ? "detailed" : "compact"}`}
-              yMax={chartAchievement?.yMax ?? baseAchievement.yMax}
-              yTicks={chartAchievement?.yTicks ?? baseAchievement.yTicks}
+              chartKey={`monday-thursday-${period}-${analyticsView}-${apiPeriodStart ?? "current"}-${refreshKey}-${isDetailed ? "detailed" : "compact"}`}
+              yMax={chartAchievement?.yMax ?? achievement.yMax}
+              yTicks={chartAchievement?.yTicks ?? achievement.yTicks}
               showHint={showChartHint}
               onDismissHint={() => setHintDismissed(true)}
               hintText={t("progressLogging.chartTapHint")}
               hintActionText={t("progressLogging.okGotIt")}
-              pageCount={chartAchievement?.pageCount ?? baseAchievement.pageCount}
+              pageCount={chartAchievement?.pageCount ?? achievement.pageCount}
               activePageIndex={
                 selectedBarIndex ??
                 chartAchievement?.activePageIndex ??
-                baseAchievement.activePageIndex
+                achievement.activePageIndex
               }
               formatBarValue={chartFormatBarValue}
               barColors={

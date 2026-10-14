@@ -230,7 +230,11 @@ function GoalProgressLoggingBody({
     isCompletionRecitationFrameGoal;
   const isWhiteDaysFrameGoal = isWhiteDaysFastsGoalId(goalId);
   const isMissedRamadanFrameGoal = isMissedRamadanFastsGoalId(goalId);
-  const isFastingFrameGoal = isWhiteDaysFrameGoal || isMissedRamadanFrameGoal;
+  const isMondayThursdayFrameGoal = isMondayThursdayFastsGoalId(goalId);
+  const isFastingFrameGoal =
+    isWhiteDaysFrameGoal ||
+    isMissedRamadanFrameGoal ||
+    isMondayThursdayFrameGoal;
   const frameLoading =
     (isPrayerFrameRingGoal &&
       (prayerFrame?.isLoading ||
@@ -263,17 +267,26 @@ function GoalProgressLoggingBody({
         : "0%"
       : isFastingFrameGoal
         ? `${fastingFrameAchievementPct ?? 0}%`
-        : isMondayThursdayFasts && weekViewPercent !== null
-          ? `${weekViewPercent}%`
-          : frameAchievementPct != null
-            ? `${frameAchievementPct}%`
-            : liveGoalData.percentage;
+        : frameAchievementPct != null
+          ? `${frameAchievementPct}%`
+          : liveGoalData.percentage;
   const mondayThursdayCompletedCount = useMemo(() => {
     if (!isMondayThursdayFasts) return 0;
-    const total = getMondayThursdayFastGoalTarget();
+    const fromFrame = fastingFrame?.frame?.goal?.completed;
+    if (typeof fromFrame === "number" && Number.isFinite(fromFrame)) {
+      return Math.max(0, Math.round(fromFrame));
+    }
+    const total =
+      fastingFrame?.frame?.goal?.target ?? getMondayThursdayFastGoalTarget();
     const percent = parsePercent(displayPercentage);
     return Math.min(total, Math.round((percent / 100) * total));
-  }, [isMondayThursdayFasts, displayPercentage, weeklyRefreshKey]);
+  }, [
+    isMondayThursdayFasts,
+    displayPercentage,
+    fastingFrame?.frame?.goal?.completed,
+    fastingFrame?.frame?.goal?.target,
+    weeklyRefreshKey,
+  ]);
   const mondayThursdayRingSegments = useMemo(() => {
     if (!isMondayThursdayFasts) return undefined;
     return getMondayThursdayFastRingSegments(mondayThursdayCompletedCount);
@@ -350,10 +363,16 @@ function GoalProgressLoggingBody({
                     cleanLabel,
                 })
               : "---"
-            : isMondayThursdayFastsGoalId(goalId)
-              ? t("progressLogging.mondayThursdayRingGoal", {
-                  count: liveGoalData.target ?? cleanLabel,
-                })
+            : isMondayThursdayFrameGoal
+              ? fastingFrame?.frame
+                ? fastingFrame.frame.goal?.targetLabel?.trim() ||
+                  t("progressLogging.mondayThursdayRingGoal", {
+                    count:
+                      fastingFrame.frame.goal?.target ??
+                      liveGoalData.target ??
+                      cleanLabel,
+                  })
+                : "---"
               : isWhiteDaysFrameGoal
                 ? fastingFrame?.frame
                   ? fastingFrame.frame.goal?.targetLabel?.trim() ||
@@ -1017,7 +1036,11 @@ export const GoalProgressLoggingScreen = ({
     );
   }
 
-  if (isWhiteDaysFastsGoalId(goalId) || isMissedRamadanFastsGoalId(goalId)) {
+  if (
+    isWhiteDaysFastsGoalId(goalId) ||
+    isMissedRamadanFastsGoalId(goalId) ||
+    isMondayThursdayFastsGoalId(goalId)
+  ) {
     return (
       <FastingGoalFrameProvider
         goalId={goalId}

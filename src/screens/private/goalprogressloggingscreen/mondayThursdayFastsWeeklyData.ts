@@ -15,23 +15,25 @@ import {
  * Day ring states aligned to Mon & Thu Fasts Figma (backend plan/log/menstruation).
  */
 export type MondayThursdayFastDayState =
-  /** Future unplanned — grey outline */
+  /** #1 Future unplanned — grey outline */
   | "future"
-  /** Today, not a planned Mon/Thu — solid muted grey + today chip */
+  /** #2 Today, not a planned Mon/Thu — grey outline + today chip */
   | "today"
-  /** Today, logging disabled — dimmed solid grey + today chip */
+  /** #3 Today, logging disabled — dimmed grey outline + today chip */
   | "todayDisabled"
-  /** Past, no activity — solid grey (“Grey day”) */
+  /** #4 Past disabled (booked / unavailable) — faint grey outline */
+  | "disabledPast"
+  /** #14 Past, no activity — small solid grey (“Grey day”) */
   | "pastNeutral"
-  /** Future/past planned Mon/Thu not yet due — seagreen outline */
+  /** #5 Future planned Mon/Thu — seagreen outline */
   | "planned"
-  /** Today’s planned Mon/Thu not logged — seagreen outline + today chip */
+  /** #6 Today’s planned Mon/Thu not logged — seagreen outline + today chip */
   | "plannedToday"
-  /** Logged completed fast — solid seagreen */
+  /** #7 / #8 Logged completed fast — solid seagreen + check */
   | "completed"
-  /** User skipped planned fast — yellow warning */
+  /** #9 User skipped planned fast — yellow warning in outline */
   | "missed"
-  /** After 100% goal — faded outline */
+  /** #15 After 100% goal — faded / blur outline */
   | "goalAchieved";
 
 export type MondayThursdayFastDayProgress = {
@@ -83,6 +85,8 @@ export type MondayThursdayFastWeekSummary = {
     | "stayConsistent"
     | "planNext";
   motivationalQuoteParams?: Record<string, number>;
+  /** When set (frame API), overrides key-based copy. */
+  motivationalQuote?: string;
   showPreviousWeekStat: boolean;
 };
 

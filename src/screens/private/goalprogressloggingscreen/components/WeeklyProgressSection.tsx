@@ -95,6 +95,7 @@ import {
   clampMondayThursdayFastWeekIndex,
   getMondayThursdayFastCycleSummary,
   getMondayThursdayFastTodayIndexInWeek,
+  type MondayThursdayFastWeekSummary,
 } from "../mondayThursdayFastsWeeklyData";
 import {
   canNavigateWhiteDaysFastWeek,
@@ -116,6 +117,7 @@ import {
   canNavigateFastingFrameWeekNext,
   getFastingFrameTodayIndex,
   mapMissedRamadanFrameWeekSummary,
+  mapMondayThursdayFrameWeekSummary,
   mapWhiteDaysFrameWeekSummary,
 } from "@/src/utils/fastingGoalFrameMap";
 import type { FastingGoalFrameData } from "@/src/api/queries/useGetFastingGoalFrame";
@@ -336,6 +338,23 @@ const MISSED_RAMADAN_LOADING_WEEK_SUMMARY: MissedRamadanFastWeekSummary = {
   streakDays: 0,
   previousWeekCompletedCount: 0,
   upcomingPlannedThisWeek: 0,
+  motivationalQuote: "---",
+  showPreviousWeekStat: false,
+};
+
+const MONDAY_THURSDAY_LOADING_WEEK_SUMMARY: MondayThursdayFastWeekSummary = {
+  weekDays: [],
+  weekRangeLabel: "---",
+  weekFraction: "---",
+  weekIndex: 0,
+  completedFastsThisWeek: 0,
+  missedFastsThisWeek: 0,
+  plannedFastsThisWeek: 0,
+  streakWeeks: 0,
+  previousWeekCompletedCount: 0,
+  weekOverWeekDelta: 0,
+  cumulativeCompletionPercent: 0,
+  motivationalQuoteKey: "planNext",
   motivationalQuote: "---",
   showPreviousWeekStat: false,
 };
@@ -1422,28 +1441,73 @@ export function WeeklyProgressSection({
     }
   }
 
-  if (template === "monday-thursday-fasts" && mondayThursdayWeek) {
-    const mondayThursdayTodayIndex = getMondayThursdayFastTodayIndexInWeek(
-      mondayThursdayWeek.weekDays,
-    );
+  if (template === "monday-thursday-fasts") {
+    const frame = fastingFrame?.frame;
+    if (fastingFrame) {
+      const frameLoading = isFastingFrameDashboardLoading(fastingFrame, frame);
 
-    return (
-      <MondayThursdayFastsWeeklyProgressDashboard
-        weekSummary={mondayThursdayWeek}
-        selectedDayIndex={mondayThursdayTodayIndex}
-        onDeleted={onDeleted}
-        onPrevWeek={
-          canNavigateMondayThursdayFastWeek(weekIndex, "prev")
-            ? handleMondayThursdayPrevWeek
-            : undefined
-        }
-        onNextWeek={
-          canNavigateMondayThursdayFastWeek(weekIndex, "next")
-            ? handleMondayThursdayNextWeek
-            : undefined
-        }
-      />
-    );
+      if (frame) {
+        const mondayThursdayWeekFromFrame =
+          mapMondayThursdayFrameWeekSummary(frame);
+        const canPrev =
+          frame.week.hasPrevious ??
+          getFastingFrameActiveWeek(fastingFrame, frame) > 1;
+        const canNext = canNavigateFastingFrameWeekNext(frame);
+
+        return (
+          <MondayThursdayFastsWeeklyProgressDashboard
+            weekSummary={mondayThursdayWeekFromFrame}
+            selectedDayIndex={getFastingFrameTodayIndex(frame)}
+            onDeleted={onDeleted}
+            loading={frameLoading}
+            onPrevWeek={
+              canPrev
+                ? () => shiftFastingFrameWeek(fastingFrame, frame, -1)
+                : undefined
+            }
+            onNextWeek={
+              canNext
+                ? () => shiftFastingFrameWeek(fastingFrame, frame, 1)
+                : undefined
+            }
+          />
+        );
+      }
+
+      if (!fastingFrame.isError) {
+        return (
+          <MondayThursdayFastsWeeklyProgressDashboard
+            weekSummary={MONDAY_THURSDAY_LOADING_WEEK_SUMMARY}
+            selectedDayIndex={0}
+            loading
+          />
+        );
+      }
+    }
+
+    if (mondayThursdayWeek) {
+      const mondayThursdayTodayIndex = getMondayThursdayFastTodayIndexInWeek(
+        mondayThursdayWeek.weekDays,
+      );
+
+      return (
+        <MondayThursdayFastsWeeklyProgressDashboard
+          weekSummary={mondayThursdayWeek}
+          selectedDayIndex={mondayThursdayTodayIndex}
+          onDeleted={onDeleted}
+          onPrevWeek={
+            canNavigateMondayThursdayFastWeek(weekIndex, "prev")
+              ? handleMondayThursdayPrevWeek
+              : undefined
+          }
+          onNextWeek={
+            canNavigateMondayThursdayFastWeek(weekIndex, "next")
+              ? handleMondayThursdayNextWeek
+              : undefined
+          }
+        />
+      );
+    }
   }
 
   if (template === "white-days-fasts") {

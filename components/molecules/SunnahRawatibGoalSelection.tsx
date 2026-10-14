@@ -132,10 +132,10 @@ export default function SunnahRawatibGoalSelection({
     initialValues?.beforeAsrRakahOption === 1 ? "one" : "two",
   );
   const [isBeforeAsarEnabled, setIsBeforeAsarEnabled] = useState(
-    initialValues?.beforeAsrEnabled ?? true,
+    initialValues?.beforeAsrEnabled ?? false,
   );
   const beforeAsarEnabled = useSharedValue(
-    initialValues?.beforeAsrEnabled ?? true,
+    initialValues?.beforeAsrEnabled ?? false,
   );
   const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount, onInputFocus, collapseSignal);
 
@@ -153,7 +153,7 @@ export default function SunnahRawatibGoalSelection({
     setBeforeAsarOption(
       initialValues.beforeAsrRakahOption === 1 ? "one" : "two",
     );
-    const asrEnabled = initialValues.beforeAsrEnabled ?? true;
+    const asrEnabled = initialValues.beforeAsrEnabled ?? false;
     setIsBeforeAsarEnabled(asrEnabled);
     beforeAsarEnabled.value = asrEnabled;
   }, [
