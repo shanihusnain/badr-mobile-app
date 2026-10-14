@@ -146,7 +146,7 @@ export const FastingGoalInformationSheet = forwardRef<BottomSheet, Props>(
                 <TaperedCircleBorder
                   percentage={`${achievementPct}%`}
                   borderColor={Colors.light.dullWhiteOpacity}
-                  size={160}
+                  size={102}
                   variant="illuminated"
                 >
                   <View style={styles.ringInner}>
@@ -160,7 +160,7 @@ export const FastingGoalInformationSheet = forwardRef<BottomSheet, Props>(
                   </View>
                 </TaperedCircleBorder>
               </View>
-              <TopSpace top={14} />
+              <TopSpace top={32} />
               {data.greeting ? (
                 <Text style={styles.headline}>
                   {renderWithNumberStyle(data.greeting, styles.boldNumber)}
@@ -226,7 +226,8 @@ const styles = StyleSheet.create({
   },
   sheetBody: {
     width: "100%",
-    paddingHorizontal: 16,
+    // BottomSheetWrapper already pads horizontally — keep card nearly full-width.
+    paddingHorizontal: 0,
     paddingBottom: 24,
     marginTop: 56,
   },
@@ -236,26 +237,26 @@ const styles = StyleSheet.create({
     width: "100%",
     borderRadius: 16,
     paddingVertical: 20,
-    paddingHorizontal: 14,
+    paddingHorizontal: 18,
   },
   ringWrap: {
     alignItems: "center",
     justifyContent: "center",
-    paddingTop: 40,
-    paddingBottom: 30,
+    paddingTop: 20,
+    paddingBottom: 26,
     position: "relative",
   },
   ringInner: {
     alignItems: "center",
     justifyContent: "center",
-    gap: 6,
+    gap: 4,
     width: "100%",
     height: "100%",
   },
   ringGoalText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: "500",
     textAlign: "center",
   },
@@ -267,13 +268,13 @@ const styles = StyleSheet.create({
   percentNumber: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: "400",
   },
   percentSymbol: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: 12,
+    fontSize: 11,
     marginLeft: 2,
   },
   headline: {
@@ -282,8 +283,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700",
     textAlign: "left",
-    lineHeight: 22,
-    marginBottom: 6,
+    lineHeight: 24,
+    marginBottom: 2,
   },
   boldNumber: {
     fontFamily: fonts.primary.bold,
@@ -295,8 +296,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "400",
     textAlign: "left",
-    lineHeight: 20,
-    marginBottom: 15,
+    lineHeight: 22,
+    marginBottom: 12,
   },
   closing: {
     color: Colors.light.white,
@@ -304,13 +305,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "400",
     textAlign: "left",
-    lineHeight: 20,
-    marginBottom: 15,
+    lineHeight: 22,
+    marginBottom: 20,
   },
   statsList: {
-    marginTop: 8,
-    gap: 12,
+    marginTop: 4,
+    gap: 14,
     width: "100%",
+    paddingLeft: 18,
   },
   statRow: {
     flexDirection: "row",

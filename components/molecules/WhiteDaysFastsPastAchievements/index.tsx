@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Pressable,
   ScrollView,
+  useWindowDimensions,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
@@ -14,17 +15,27 @@ import { CalendarGrid } from "@/components/molecules/CalendarGrid";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import { AchivementArrowIcon } from "@/assets/icons/AchivementArrowIcon";
+import {
+  InsightCardFlashIcon,
+  InsightCardGoalTrackedIcon,
+  InsightCardTickIcon,
+  InsightCardTimeSpentIcon,
+  InsightCardWeeklyAverageIcon,
+  NegativeProgressIcon,
+  PositiveProgressIcon,
+} from "@/assets/icons";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import { useGetMenstruationPeriods } from "@/src/api/queries/useGetMenstruationPeriods";
 import { useGetFastingGoalFrame } from "@/src/api/queries/useGetFastingGoalFrame";
+import { useGetFastingGoalAchievements } from "@/src/api/queries/useGetFastingGoalAchievements";
 import { expandMenstruationPeriodDates } from "@/src/utils/menstruationDates";
+import { mapFastingApiKeyInsightsToCards } from "@/src/utils/fastingGoalAchievementsMap";
 import { PLANNED_FASTS } from "@/src/screens/private/home/plannedFasts";
 import {
   applyWhiteDaysAnalyticsView,
   formatWhiteDaysChartHoursLabel,
   formatWhiteDaysFastCountLabel,
   formatWhiteDaysFastTimeSpentLabel,
-  getTotalWhiteDaysFastsCompleted,
   getTotalWhiteDaysTimeSpentMinutes,
   getWhiteDaysFastTimeSpentForDate,
   getWhiteDaysFastsPastAchievement,
@@ -49,12 +60,123 @@ import { GraphBarSelectionFooter } from "../QuranHoursPastAchievements/GraphBarS
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { FontAwesome } from "@expo/vector-icons";
 import { InsightCard } from "../InsightCard";
+import type { InsightCardData } from "../PrayerPastAchievements/insightCardsData";
 import { getGoalById } from "@/src/screens/private/home/components/goalsData";
 import { PastAchievementStudyMaterial } from "@/components/molecules/PastAchievementStudyMaterial";
-import {
-  NegativeProgressIcon,
-  PositiveProgressIcon,
-} from "@/assets/icons";
+
+const WHITE_DAYS_INSIGHT_ICON_SIZE = 14;
+
+function getWhiteDaysInsightIcon(card: InsightCardData) {
+  const title = card.title.toUpperCase();
+  const name = card.iconName;
+  if (name === "calendar-outline" || title.includes("GOAL TRACKED")) {
+    return <InsightCardGoalTrackedIcon size={WHITE_DAYS_INSIGHT_ICON_SIZE} />;
+  }
+  if (name === "checkmark-circle-outline" || title.includes("COMPLETED")) {
+    return <InsightCardTickIcon size={WHITE_DAYS_INSIGHT_ICON_SIZE} />;
+  }
+  if (name === "flash" || title.includes("STREAK")) {
+    return <InsightCardFlashIcon size={WHITE_DAYS_INSIGHT_ICON_SIZE} />;
+  }
+  if (name === "scale-balance" || title.includes("AVERAGE")) {
+    return <InsightCardWeeklyAverageIcon size={WHITE_DAYS_INSIGHT_ICON_SIZE} />;
+  }
+  if (name === "time-outline" || title.includes("TIME")) {
+    return <InsightCardTimeSpentIcon size={WHITE_DAYS_INSIGHT_ICON_SIZE} />;
+  }
+  return undefined;
+}
+
+function buildWhiteDaysLocalInsightCards(options: {
+  period: PastAchievementPeriod;
+  hasData: boolean;
+  goalTrackedMonths: number;
+  longestStreakDays: number;
+  monthlyAverageFasts: number;
+  timeSpentLabel: string;
+  noDataLabel: string;
+}): InsightCardData[] {
+  const {
+    period,
+    hasData,
+    goalTrackedMonths,
+    longestStreakDays,
+    monthlyAverageFasts,
+    timeSpentLabel,
+    noDataLabel,
+  } = options;
+
+  const noDataCard = (
+    title: string,
+    iconName: string,
+    iconFamily: InsightCardData["iconFamily"] = "Ionicons",
+  ): InsightCardData => ({
+    iconFamily,
+    iconName,
+    title,
+    value: "--",
+    noData: true,
+    footerText: noDataLabel,
+    footerNeutral: true,
+  });
+
+  if (!hasData) {
+    const cards: InsightCardData[] = [
+      noDataCard("LONGEST STREAK", "flash"),
+      noDataCard("MONTHLY AVERAGE", "scale-balance", "MaterialCommunityIcons"),
+      noDataCard("TIME SPENT", "time-outline"),
+    ];
+    if (period !== "monthly") {
+      cards.unshift(noDataCard("GOAL TRACKED", "calendar-outline"));
+    }
+    return cards;
+  }
+
+  const streakCard: InsightCardData = {
+    iconFamily: "Ionicons",
+    iconName: "flash",
+    title: "LONGEST STREAK",
+    value: String(longestStreakDays),
+    subValue: "days",
+    trendValue: `${longestStreakDays} days`,
+    trendDirection: "up",
+  };
+  const timeCard: InsightCardData = {
+    iconFamily: "Ionicons",
+    iconName: "time-outline",
+    title: "TIME SPENT",
+    value: timeSpentLabel,
+    trendValue: timeSpentLabel,
+    trendDirection: "up",
+  };
+
+  if (period === "monthly") {
+    return [streakCard, timeCard];
+  }
+
+  return [
+    {
+      iconFamily: "Ionicons",
+      iconName: "calendar-outline",
+      title: "GOAL TRACKED",
+      value: String(goalTrackedMonths),
+      subValue: "months",
+      footerText: `• ${goalTrackedMonths} months`,
+      footerNeutral: true,
+    },
+    streakCard,
+    {
+      iconFamily: "MaterialCommunityIcons",
+      iconName: "scale-balance",
+      title: "MONTHLY AVERAGE",
+      value: String(monthlyAverageFasts),
+      subValue: "fasts",
+      trendValue: `${monthlyAverageFasts} fasts`,
+      trendDirection: "up",
+    },
+    timeCard,
+  ];
+}
 
 type Props = {
   refreshKey?: number;
@@ -103,7 +225,17 @@ export function WhiteDaysFastsPastAchievements({
 }: Props) {
   const router = useRouter();
   const { t } = useTranslation();
+  const { width } = useWindowDimensions();
   const formatNumber = useLocaleNumber();
+  const insightCardWidthStyle = useMemo(
+    () => ({
+      ...styles.insightCardFixed,
+      width: width * 0.42,
+      maxWidth: width * 0.42,
+      minWidth: width * 0.42,
+    }),
+    [width],
+  );
   const [period, setPeriod] = useState<PastAchievementPeriod>(initialPeriod);
   const [analyticsView, setAnalyticsView] =
     useState<WhiteDaysAnalyticsView>(
@@ -119,6 +251,14 @@ export function WhiteDaysFastsPastAchievements({
   const studyMaterial = goalData?.studyMaterial ?? [];
   const { data: menstruationPeriodsResponse } = useGetMenstruationPeriods(true);
   const { data: fastingFrame } = useGetFastingGoalFrame("WHITE_DAYS");
+  const {
+    data: achievementsApiData,
+    isLoading: isAchievementsLoading,
+    isFetching: isAchievementsFetching,
+  } = useGetFastingGoalAchievements("WHITE_DAYS", {
+    period,
+    enabled: true,
+  });
   const periodSlice = useMemo(
     () => getWhiteDaysFastsPastAchievementSlice(period, anchorDate),
     [period, refreshKey, anchorDate],
@@ -201,14 +341,46 @@ export function WhiteDaysFastsPastAchievements({
   );
 
   const goalTrackedMonths = getWhiteDaysGoalTrackedMonths(period);
-  const totalFastsCompleted = getTotalWhiteDaysFastsCompleted(periodSlice);
 
-  // Compact never keeps a time-spent analytics selection.
-  useEffect(() => {
-    if (!isDetailed && analyticsView !== "completedVsIncomplete") {
-      setAnalyticsView("completedVsIncomplete");
+  const apiInsightCards = useMemo(() => {
+    return mapFastingApiKeyInsightsToCards(achievementsApiData, {
+      period,
+      noDataLabel: t("progressLogging.insightNoData"),
+      isLoading: isAchievementsLoading || isAchievementsFetching,
+    });
+  }, [
+    achievementsApiData,
+    isAchievementsFetching,
+    isAchievementsLoading,
+    period,
+    t,
+  ]);
+
+  const longestStreakDays = useMemo(() => {
+    const dates = [...periodSlice.completedDates].sort();
+    if (dates.length === 0) return 0;
+    let best = 1;
+    let current = 1;
+    for (let i = 1; i < dates.length; i += 1) {
+      const prev = new Date(`${dates[i - 1]}T12:00:00`);
+      const next = new Date(`${dates[i]}T12:00:00`);
+      const diffDays = Math.round(
+        (next.getTime() - prev.getTime()) / (24 * 60 * 60 * 1000),
+      );
+      if (diffDays === 1) {
+        current += 1;
+        best = Math.max(best, current);
+      } else {
+        current = 1;
+      }
     }
-  }, [analyticsView, isDetailed]);
+    return best;
+  }, [periodSlice.completedDates]);
+
+  const monthlyAverageFasts = useMemo(() => {
+    const months = Math.max(goalTrackedMonths, 1);
+    return Math.round(periodSlice.completedFasts / months);
+  }, [goalTrackedMonths, periodSlice.completedFasts]);
 
   useEffect(() => {
     setSelectedBarIndex(null);
@@ -259,11 +431,9 @@ export function WhiteDaysFastsPastAchievements({
     });
   }, [analyticsView, period, router]);
 
-  // Compact: monthly always uses calendar (no analytics tabs).
-  // Detailed: calendar only for monthly Completed vs Incomplete; Time Spent → chart.
-  const showCalendar = isDetailed
-    ? period === "monthly" && analyticsView === "completedVsIncomplete"
-    : period === "monthly";
+  // Calendar for monthly Completed vs Incomplete; Time Spent / other periods → chart.
+  const showCalendar =
+    period === "monthly" && analyticsView === "completedVsIncomplete";
 
   const todayMonthStart = useMemo(() => {
     const today = getTodayDateString();
@@ -328,12 +498,11 @@ export function WhiteDaysFastsPastAchievements({
     !showNoDataDash &&
     !hintDismissed &&
     selectedBarIndex === null;
-  const displayedDeltaPct = baseAchievement.previousPeriodDeltaPercent;
-  const showDeltaChip =
-    !showNoDataDash &&
-    displayedDeltaPct !== null &&
-    Math.abs(displayedDeltaPct) > 0;
-  const deltaIsPositive = (displayedDeltaPct ?? 0) > 0;
+  /** Always show chip (incl. no-data / 0%): keeps arrow + “0% previous month” visible. */
+  const displayedDeltaPct = showNoDataDash
+    ? 0
+    : (baseAchievement.previousPeriodDeltaPercent ?? 0);
+  const deltaIsPositive = displayedDeltaPct >= 0;
 
   const cycleRangeLabel = useMemo(() => {
     const start = new Date(`${cycleStartDate}T12:00:00`);
@@ -410,7 +579,31 @@ export function WhiteDaysFastsPastAchievements({
   };
 
   const renderFastingInsights = () => {
-    if (!isDetailed) return null;
+    const vsLabel =
+      period === "monthly"
+        ? "VS. LAST MONTH"
+        : period === "threeMonths"
+          ? "VS. LAST 3 MONTHS"
+          : "VS. LAST 6 MONTHS";
+
+    const cards: InsightCardData[] =
+      apiInsightCards.length > 0
+        ? apiInsightCards
+        : isDetailed || showNoDataDash
+          ? buildWhiteDaysLocalInsightCards({
+              period,
+              hasData: hasLogs && !showNoDataDash,
+              goalTrackedMonths,
+              longestStreakDays,
+              monthlyAverageFasts,
+              timeSpentLabel: formatWhiteDaysFastTimeSpentLabel(
+                totalTimeSpentMinutes,
+              ),
+              noDataLabel: t("progressLogging.insightNoData"),
+            })
+          : [];
+
+    if (cards.length === 0) return null;
 
     return (
       <View style={styles.insightsSection}>
@@ -419,32 +612,23 @@ export function WhiteDaysFastsPastAchievements({
             {t("progressLogging.keyInsights")}
           </Text>
           <Text style={styles.insightsSubtitleLabel}>
-            {period === "monthly"
-              ? "VS. LAST MONTH"
-              : period === "threeMonths"
-                ? "VS. LAST 3 MONTHS"
-                : "VS. LAST 6 MONTHS"}
+            {achievementsApiData?.keyInsightsHeader?.trim() || vsLabel}
           </Text>
         </View>
         <ScrollView
           horizontal
+          nestedScrollEnabled
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.insightsScrollContent}
         >
-          <InsightCard
-            iconName="calendar-outline"
-            title={t("progressLogging.recitationInsightGoalTracked")}
-            value={formatNumber(goalTrackedMonths)}
-            subValue={t("progressLogging.recitationInsightMonths")}
-            style={styles.insightCardFixed}
-          />
-          <InsightCard
-            iconName="checkmark-circle-outline"
-            title={t("progressLogging.whiteDaysInsightTotalCompleted")}
-            value={formatNumber(totalFastsCompleted)}
-            subValue={t("progressLogging.whiteDaysInsightFastsCompleted")}
-            style={styles.insightCardFixed}
-          />
+          {cards.map((card, index) => (
+            <InsightCard
+              key={`${card.title}-${index}`}
+              {...card}
+              icon={getWhiteDaysInsightIcon(card)}
+              style={insightCardWidthStyle}
+            />
+          ))}
         </ScrollView>
       </View>
     );
@@ -529,22 +713,18 @@ export function WhiteDaysFastsPastAchievements({
           }}
         >
           <View style={styles.deltaSlot}>
-            {showDeltaChip ? (
-              <View style={styles.deltaBadge}>
-                {deltaIsPositive ? (
-                  <PositiveProgressIcon />
-                ) : (
-                  <NegativeProgressIcon />
-                )}
-                <Text style={styles.deltaText} numberOfLines={1}>
-                  {`${formatNumber(Math.abs(displayedDeltaPct ?? 0))}% ${t(
-                    PERIOD_DELTA_LABEL_KEYS[period],
-                  )}`}
-                </Text>
-              </View>
-            ) : (
-              <View style={styles.deltaBadgePlaceholder} />
-            )}
+            <View style={styles.deltaBadge}>
+              {deltaIsPositive ? (
+                <PositiveProgressIcon />
+              ) : (
+                <NegativeProgressIcon />
+              )}
+              <Text style={styles.deltaText} numberOfLines={1}>
+                {`${formatNumber(Math.abs(displayedDeltaPct))}% ${t(
+                  PERIOD_DELTA_LABEL_KEYS[period],
+                )}`}
+              </Text>
+            </View>
           </View>
 
           <View style={styles.periodNavRow}>
@@ -610,36 +790,37 @@ export function WhiteDaysFastsPastAchievements({
           </View>
         </View>
 
-        {/* Analytics tabs only on detailed screen — same as prior goal graphs. */}
-        {isDetailed ? (
-          <View style={styles.analyticsToggle}>
-            {ANALYTICS_VIEWS.map((view) => {
-              const isActive = analyticsView === view;
-              return (
-                <Pressable
-                  key={view}
-                  onPress={() => setAnalyticsView(view)}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.analyticsToggle}
+        >
+          {ANALYTICS_VIEWS.map((view) => {
+            const isActive = analyticsView === view;
+            return (
+              <Pressable
+                key={view}
+                onPress={() => setAnalyticsView(view)}
+                style={[
+                  styles.analyticsButton,
+                  isActive
+                    ? styles.analyticsButtonActive
+                    : styles.analyticsButtonInactive,
+                ]}
+              >
+                <Text
                   style={[
-                    styles.analyticsButton,
-                    isActive
-                      ? styles.analyticsButtonActive
-                      : styles.analyticsButtonInactive,
+                    styles.analyticsButtonText,
+                    isActive && styles.analyticsButtonTextActive,
                   ]}
+                  numberOfLines={1}
                 >
-                  <Text
-                    style={[
-                      styles.analyticsButtonText,
-                      isActive && styles.analyticsButtonTextActive,
-                    ]}
-                    numberOfLines={1}
-                  >
-                    {t(ANALYTICS_VIEW_LABEL_KEYS[view])}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        ) : null}
+                  {t(ANALYTICS_VIEW_LABEL_KEYS[view])}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
 
         <View style={styles.statsRow}>
           <View style={styles.statColumn}>
@@ -660,20 +841,20 @@ export function WhiteDaysFastsPastAchievements({
           </View>
           <View style={styles.statColumn}>
             <Text style={styles.statLabel}>
-              {isDetailed && analyticsView === "completedVsTime"
+              {analyticsView === "completedVsTime"
                 ? t("progressLogging.timeSpentLabel")
                 : t("progressLogging.incomplete")}
             </Text>
             <Text
               style={
-                isDetailed && analyticsView === "completedVsTime"
+                analyticsView === "completedVsTime"
                   ? styles.statValueTimeSpent
                   : styles.statValueIncomplete
               }
             >
               {showNoDataDash
                 ? PAST_ACHIEVEMENT_NO_DATA
-                : isDetailed && analyticsView === "completedVsTime"
+                : analyticsView === "completedVsTime"
                   ? formatWhiteDaysFastTimeSpentLabel(
                       selectedPeriodTimeSpentMinutes,
                     )
@@ -684,44 +865,46 @@ export function WhiteDaysFastsPastAchievements({
 
         {showCalendar ? (
           <>
-            {hasLogs ? (
-              <View style={styles.legendRow}>
-                <View style={styles.legendItem}>
-                  <View style={styles.legendDotFilledWhite} />
-                  <Text style={styles.legendText}>
-                    {t("progressLogging.whiteDaysLegendCompletedFast")}
-                  </Text>
+            <View style={styles.legendRow}>
+              <View style={styles.legendItem}>
+                <View style={styles.legendDotFilledWhite}>
+                  <View style={styles.legendDotFilledWhiteInner} />
                 </View>
-                <View style={styles.legendItem}>
-                  <View style={styles.legendWarningWrap}>
-                    <View style={styles.legendDotOutlinedWhite} />
-                    <FontAwesome
-                      name="warning"
-                      size={5}
-                      color={Colors.light.golden}
-                    />
-                  </View>
-                  <Text style={styles.legendText}>
-                    {t("progressLogging.whiteDaysLegendMissedFast")}
-                  </Text>
+                <Text style={styles.legendText}>
+                  {t("progressLogging.whiteDaysLegendCompletedFast")}
+                </Text>
+              </View>
+              <View style={styles.legendItem}>
+                <View style={styles.legendWarningWrap}>
+                  <View style={styles.legendDotOutlinedWhite} />
+                  <FontAwesome
+                    name="warning"
+                    size={5}
+                    color={Colors.light.golden}
+                  />
                 </View>
-                {isDetailed ? (
+                <Text style={styles.legendText}>
+                  {t("progressLogging.whiteDaysLegendMissedFast")}
+                </Text>
+              </View>
+              {isDetailed ? (
+                <>
                   <View style={styles.legendItem}>
                     <View style={styles.legendDotOutlinedWhite} />
                     <Text style={styles.legendText}>
                       {t("progressLogging.whiteDaysLegendUpcomingFast")}
                     </Text>
                   </View>
-                ) : null}
-                <View style={styles.legendItem}>
-                  <View style={styles.legendDotMenstruation} />
-                  <Text style={styles.legendText}>
-                    {t("progressLogging.whiteDaysLegendMenstruation")}
-                  </Text>
-                </View>
-              </View>
-            ) : null}
-            <TopSpace top={12} />
+                  <View style={styles.legendItem}>
+                    <View style={styles.legendDotMenstruation} />
+                    <Text style={styles.legendText}>
+                      {t("progressLogging.whiteDaysLegendMenstruation")}
+                    </Text>
+                  </View>
+                </>
+              ) : null}
+            </View>
+            <TopSpace top={2} />
             <CalendarGrid
               mode="white_days_achievement"
               currentDate={cycleStartDate}
@@ -1024,17 +1207,19 @@ const styles = StyleSheet.create({
   analyticsToggle: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 3,
+    padding: 4,
     backgroundColor: Colors.light.greybuttonBackground,
-    borderRadius: 6,
-    gap: 4,
+    borderRadius: 8,
+    gap: 5,
+    flexGrow: 1,
   },
   analyticsButton: {
-    flex: 1,
-    borderRadius: 5,
-    paddingHorizontal: 8,
-    paddingVertical: 6,
+    borderRadius: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
     alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
   },
   analyticsButtonActive: {
     backgroundColor: Colors.light.green,
@@ -1044,7 +1229,7 @@ const styles = StyleSheet.create({
   },
   analyticsButtonText: {
     color: Colors.light.grey,
-    fontSize: 10,
+    fontSize: 12,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
     textAlign: "center",
@@ -1096,7 +1281,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 12,
-    marginTop: 2,
+    marginTop: 26,
     backgroundColor: Colors.light.calendarBg,
     padding: 12,
     borderRadius: 6,
@@ -1116,9 +1301,17 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: Colors.light.white,
     borderWidth: 1.2,
-    borderColor: "#000000",
+    borderColor: Colors.light.white,
+    backgroundColor: "transparent",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  legendDotFilledWhiteInner: {
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    backgroundColor: Colors.light.white,
   },
   legendDotOutlinedWhite: {
     width: 10,
@@ -1146,14 +1339,16 @@ const styles = StyleSheet.create({
   },
   insightsSection: {
     marginTop: 16,
-    gap: 12,
   },
   insightsHeader: {
-    gap: 2,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 12,
   },
   insightsTitleLabel: {
     color: Colors.light.white,
-    fontSize: 16,
+    fontSize: 11,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
     letterSpacing: 0.5,
@@ -1162,17 +1357,20 @@ const styles = StyleSheet.create({
   insightsSubtitleLabel: {
     color: Colors.light.subtext,
     fontSize: 10,
-    fontFamily: fonts.primary.medium,
-    fontWeight: "500",
-    letterSpacing: 0.4,
+    fontFamily: fonts.primary.semiBold,
+    fontWeight: "600",
+    letterSpacing: 0.5,
     textTransform: "uppercase",
   },
   insightsScrollContent: {
+    flexDirection: "row",
     gap: 10,
-    paddingRight: 4,
+    paddingRight: 20,
   },
   insightCardFixed: {
-    width: 160,
+    flex: 0,
+    flexGrow: 0,
+    flexShrink: 0,
   },
   insightsTitle: {
     color: Colors.light.white,

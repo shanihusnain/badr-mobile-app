@@ -34,6 +34,8 @@ type FlowCardProps = {
   style?: StyleProp<ViewStyle>;
   contentStyle?: StyleProp<ViewStyle>;
   headerStyle?: StyleProp<ViewStyle>;
+  /** Keep header label on one line (shrink if needed). */
+  headerSingleLine?: boolean;
 };
 
 export const FlowCard: React.FC<FlowCardProps> = ({
@@ -53,6 +55,7 @@ export const FlowCard: React.FC<FlowCardProps> = ({
   style,
   contentStyle,
   headerStyle,
+  headerSingleLine = false,
 }) => {
   const { i18n } = useTranslation();
   const isRtl = i18n.language === "ar";
@@ -67,14 +70,30 @@ export const FlowCard: React.FC<FlowCardProps> = ({
     >
       <View style={[styles.flowHeader, headerStyle]}>
         <View style={styles.flowIconCircle}>{headerIcon}</View>
-        <Text style={styles.flowHeaderText}>{headerLabel}</Text>
+        <Text
+          style={styles.flowHeaderText}
+          {...(headerSingleLine
+            ? {
+                numberOfLines: 1 as const,
+                adjustsFontSizeToFit: true,
+                minimumFontScale: 0.85,
+              }
+            : null)}
+        >
+          {headerLabel}
+        </Text>
       </View>
 
       <View style={[styles.flowContent, contentStyle]}>{children}</View>
 
       {showFooter ? (
         <View style={styles.flowFooter}>
-          <View style={styles.navGroup}>
+          <View
+            style={[
+              styles.navGroup,
+              !showConfirmButton && styles.navGroupNoConfirm,
+            ]}
+          >
             <TouchableOpacity
               style={[styles.navButton, !canGoBack && { opacity: 0.65 }]}
               onPress={onBack}
@@ -122,12 +141,7 @@ export const FlowCard: React.FC<FlowCardProps> = ({
                 }
               />
             </TouchableOpacity>
-          ) : (
-            <View
-              style={styles.confirmButtonPlaceholder}
-              pointerEvents="none"
-            />
-          )}
+          ) : null}
         </View>
       ) : null}
     </View>

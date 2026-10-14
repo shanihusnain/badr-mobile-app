@@ -131,9 +131,11 @@ export default function WhiteDaysFastsLoggingFlow({
     return getFastingFrameAchievementLabel(frame, t);
   }, [frame, t]);
 
-  const summaryTitle =
-    frame?.items?.[0]?.title?.trim() ||
-    t("progressLogging.whiteDaysCardSubtitle");
+  const summaryCount = Math.max(1, Number(frame?.goal?.target ?? 3) || 3);
+  // Force two lines (e.g. "3 White Day" / "fasts") — API titles are single-line.
+  const summaryTitle = t("progressLogging.whiteDaysCardSubtitle", {
+    count: summaryCount,
+  });
 
   const showInsights = frame ? fastingFrameShowsInsights(frame) : false;
   const canLog =
@@ -384,9 +386,9 @@ export default function WhiteDaysFastsLoggingFlow({
 
   const getStepHeader = (step: WhiteDaysFastsStepId) => {
     const calendarIcon = (
-      <FlowCardCallender size={18} color={Colors.light.white} />
+      <FlowCardCallender size={22} color={Colors.light.white} />
     );
-    const timeIcon = <TimeSpentIcon size={19} color={Colors.light.white} />;
+    const timeIcon = <TimeSpentIcon size={22} color={Colors.light.white} />;
 
     switch (step) {
       case "selectPlannedFast":

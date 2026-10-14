@@ -78,7 +78,13 @@ export type SinglePrayerWeeklyProgressDashboardProps = {
     | "quranRecitations"
     | "quranJuz"
     | "quranMemorizations"
-    | "hours";
+    | "hours"
+    | "fasts";
+  /**
+   * Week-1 only: wrap the motivational quote to ~3 lines and nudge it
+   * slightly away from the streak (no card size change).
+   */
+  compactWeekOneQuote?: boolean;
 };
 
 export const LOADING_WEEK: SinglePrayerDayProgress[] = [

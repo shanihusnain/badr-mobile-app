@@ -7,6 +7,8 @@ import type { MissedRamadanFastDayState } from "@/src/screens/private/goalprogre
 type RingVisual =
   | { variant: "outline"; color: string; opacity?: number }
   | { variant: "solid"; color: string; scale?: number; opacity?: number }
+  /** Logged planned fast — solid ringRamadan fill inside light grey outline */
+  | { variant: "completedWithOutline"; color: string }
   /** #9 — MISSED: grey outline + yellow warning inside */
   | { variant: "skippedWarning" }
   /** #10 / #11 — EXCUSED planned menstruating: solid red + grey outline */
@@ -52,11 +54,10 @@ function getRingVisual(
       // #9
       return { variant: "skippedWarning" };
     case "completed":
-      // #7 / #8
+      // Logged planned fast — tan fill + light grey ring outline (Figma)
       return {
-        variant: "solid",
+        variant: "completedWithOutline",
         color: Colors.light.ringRamadan,
-        scale: 0.88,
       };
     case "goalAchieved":
       // #15
@@ -159,6 +160,35 @@ export function MissedRamadanFastDayRing({
             backgroundColor: Colors.light.red,
           }}
         />
+      </View>
+    );
+  }
+
+  if (visual.variant === "completedWithOutline") {
+    const fillSize = Math.max(size - borderWidth * 2 - 2, size * 0.62);
+    return (
+      <View style={wrapperStyle}>
+        <View
+          style={[
+            styles.ring,
+            {
+              width: size,
+              height: size,
+              borderRadius: size / 2,
+              borderWidth,
+              borderColor: visual.color,
+            },
+          ]}
+        >
+          <View
+            style={{
+              width: fillSize,
+              height: fillSize,
+              borderRadius: fillSize / 2,
+              backgroundColor: visual.color,
+            }}
+          />
+        </View>
       </View>
     );
   }

@@ -13,7 +13,8 @@ export type PrayerWeeklyProgressFooterComparisonVariant =
   | "quranRecitations"
   | "quranJuz"
   | "quranMemorizations"
-  | "hours";
+  | "hours"
+  | "fasts";
 
 export type PrayerWeeklyProgressFooterProps = {
   loading?: boolean;
@@ -28,6 +29,11 @@ export type PrayerWeeklyProgressFooterProps = {
   comparisonVariant?: PrayerWeeklyProgressFooterComparisonVariant;
   /** Green streak label (five-daily); default is white/medium. */
   streakVariant?: "green" | "default";
+  /**
+   * Week-1 only: narrow the inline quote so it wraps to ~3 lines and sits
+   * a little further from the streak (card height already reserved for 3 lines).
+   */
+  compactWeekOneQuote?: boolean;
 };
 
 /** Space between the stats row ("prayers this week") and the footer content below. */
@@ -57,6 +63,7 @@ export function PrayerWeeklyProgressFooter({
   defaultMotivationalQuote = "",
   comparisonVariant = "prayers",
   streakVariant = "default",
+  compactWeekOneQuote = false,
 }: PrayerWeeklyProgressFooterProps) {
   const { t } = useTranslation();
   // Week 1: no comparison → streak + quote side by side.
@@ -84,10 +91,17 @@ export function PrayerWeeklyProgressFooter({
               ? "homeScreen.weeklyProgress_recitationsVsLastWeek"
               : comparisonVariant === "hours"
                 ? "homeScreen.weeklyProgress_hoursVsLastWeek"
-                : "homeScreen.weeklyProgress_prayersVsLastWeek";
+                : comparisonVariant === "fasts"
+                  ? "homeScreen.weeklyProgress_fastsVsLastWeek"
+                  : "homeScreen.weeklyProgress_prayersVsLastWeek";
 
   const streakLabel = (
-    <View style={styles.streakBadge}>
+    <View
+      style={[
+        styles.streakBadge,
+        compactWeekOneQuote && styles.streakBadgeCompact,
+      ]}
+    >
       <LighteningIcon />
       <Text
         style={[
@@ -105,11 +119,26 @@ export function PrayerWeeklyProgressFooter({
   if (isWeekOneLayout) {
     return (
       <View style={styles.footerSectionWeekOne}>
-        <View style={styles.footerRowWeekOne}>
+        <View
+          style={[
+            styles.footerRowWeekOne,
+            compactWeekOneQuote && styles.footerRowWeekOneCompact,
+          ]}
+        >
           {streakLabel}
-          <View style={styles.quoteBlockInline}>
+          <View
+            style={[
+              styles.quoteBlockInline,
+              compactWeekOneQuote && styles.quoteBlockInlineCompact,
+            ]}
+          >
             <AimIcon />
-            <View style={styles.quoteTextWrapInline}>
+            <View
+              style={[
+                styles.quoteTextWrapInline,
+                compactWeekOneQuote && styles.quoteTextWrapInlineCompact,
+              ]}
+            >
               <Text
                 style={styles.quoteText}
                 numberOfLines={WEEK_ONE_QUOTE_LINE_COUNT}
@@ -177,6 +206,10 @@ const styles = StyleSheet.create({
     minWidth: 0,
     paddingHorizontal: 4,
   },
+  footerRowWeekOneCompact: {
+    // Extra space between streak and quote (shifts quote a little right).
+    gap: 28,
+  },
   footerRowLaterWeeks: {
     flexDirection: "row",
     alignItems: "center",
@@ -193,6 +226,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 4,
     flexShrink: 0,
+  },
+  streakBadgeCompact: {
+    // Nudge streak a little right (White Days week-1).
+    marginLeft: 10,
   },
   streakText: {
     color: Colors.light.white,
@@ -239,11 +276,23 @@ const styles = StyleSheet.create({
     gap: 6,
     minWidth: 0,
   },
+  quoteBlockInlineCompact: {
+    // Nudge the 3-line quote block a little further right.
+    marginLeft: 6,
+    paddingRight: 2,
+  },
   quoteTextWrapInline: {
     flex: 1,
     minWidth: 0,
     minHeight: WEEK_ONE_QUOTE_BLOCK_MIN_HEIGHT,
     justifyContent: "flex-start",
+  },
+  quoteTextWrapInlineCompact: {
+    // Copy uses explicit \\n breaks for 3 lines — keep flex so nothing ellipsizes.
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 0,
+    minWidth: 0,
   },
   quoteBlockFull: {
     flexDirection: "row",

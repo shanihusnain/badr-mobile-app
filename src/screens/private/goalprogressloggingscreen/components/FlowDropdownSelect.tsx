@@ -35,9 +35,15 @@ type Props<T extends string> = {
   hintNumberOfLines?: number;
   /** Tighter option rows for fixed-height log-wizard cards. */
   compactMenu?: boolean;
+  /**
+   * When true, the open menu omits the currently selected value so the
+   * closed selector shows the default and the menu lists the alternatives.
+   */
+  hideSelectedInMenu?: boolean;
 };
 
-const FLOW_DROPDOWN_RADIO_COLOR = Colors.light.green;
+const FLOW_DROPDOWN_RADIO_INNER = Colors.light.green;
+const FLOW_DROPDOWN_RADIO_OUTER = Colors.light.grey;
 const DISABLED_OPTION_COLOR = Colors.light.grey;
 
 export function FlowDropdownSelect<T extends string>({
@@ -55,6 +61,7 @@ export function FlowDropdownSelect<T extends string>({
   labelNumberOfLines = 1,
   hintNumberOfLines = 2,
   compactMenu = false,
+  hideSelectedInMenu = false,
 }: Props<T>) {
   const selectedOption = options.find(
     (option) => option.value === selectedValue,
@@ -63,6 +70,10 @@ export function FlowDropdownSelect<T extends string>({
   const displayHint =
     hint !== undefined ? hint : (selectedOption?.hint ?? null);
   const isInline = menuPlacement === "inline";
+  const menuOptions =
+    hideSelectedInMenu && selectedValue
+      ? options.filter((option) => option.value !== selectedValue)
+      : options;
 
   const updateOpen = useCallback(
     (open: boolean) => {
@@ -78,7 +89,7 @@ export function FlowDropdownSelect<T extends string>({
       styles.dropdownOption)
     : (styles.flowDropdownOption ?? styles.dropdownOption);
 
-  const optionsList = options.map((option) => {
+  const optionsList = menuOptions.map((option) => {
     const isSelected = selectedValue === option.value;
     const isDisabled = option.disabled === true;
     return (
@@ -99,9 +110,7 @@ export function FlowDropdownSelect<T extends string>({
             {
               borderColor: isDisabled
                 ? DISABLED_OPTION_COLOR
-                : isSelected
-                  ? FLOW_DROPDOWN_RADIO_COLOR
-                  : Colors.light.white,
+                : FLOW_DROPDOWN_RADIO_OUTER,
             },
           ]}
         >
@@ -109,7 +118,7 @@ export function FlowDropdownSelect<T extends string>({
             <View
               style={[
                 styles.dropdownRadioInner,
-                { backgroundColor: FLOW_DROPDOWN_RADIO_COLOR },
+                { backgroundColor: FLOW_DROPDOWN_RADIO_INNER },
               ]}
             />
           ) : null}
@@ -153,6 +162,12 @@ export function FlowDropdownSelect<T extends string>({
               !selectedOption && styles.flowDropdownPlaceholder,
             ]}
             numberOfLines={labelNumberOfLines}
+            {...(labelNumberOfLines === 1
+              ? {
+                  adjustsFontSizeToFit: true as const,
+                  minimumFontScale: 0.85,
+                }
+              : null)}
           >
             {displayLabel}
           </Text>

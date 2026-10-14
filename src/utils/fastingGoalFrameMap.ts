@@ -3,10 +3,11 @@ import type {
   FastingGoalFrameData,
   FastingGoalFrameDay,
 } from "@/src/api/queries/useGetFastingGoalFrame";
-import type {
-  WhiteDaysFastDayProgress,
-  WhiteDaysFastDayState,
-  WhiteDaysFastWeekSummary,
+import {
+  buildWhiteDaysMotivationalQuoteMeta,
+  type WhiteDaysFastDayProgress,
+  type WhiteDaysFastDayState,
+  type WhiteDaysFastWeekSummary,
 } from "@/src/screens/private/goalprogressloggingscreen/whiteDaysFastsWeeklyData";
 import type {
   MissedRamadanFastDayProgress,
@@ -491,19 +492,31 @@ export function mapMissedRamadanFrameWeekSummary(
   ).length;
   const motivationalQuote = getFastingFrameMotivationalQuote(frame);
 
+  const weekIndex = Math.max(0, (frame.week.weekNumber ?? 1) - 1);
+  const comparison = frame.week.comparison as
+    | { delta?: number; previousWeekCompleted?: number }
+    | null
+    | undefined;
+  const previousWeekCompletedCount =
+    typeof comparison?.previousWeekCompleted === "number"
+      ? Math.max(0, comparison.previousWeekCompleted)
+      : typeof comparison?.delta === "number"
+        ? Math.max(0, completedFastsThisWeek - comparison.delta)
+        : 0;
+
   return {
     weekDays,
     weekRangeLabel: getFastingFrameWeekRangeLabel(frame),
     weekFraction: getFastingFrameWeekFraction(frame),
-    weekIndex: Math.max(0, (frame.week.weekNumber ?? 1) - 1),
+    weekIndex,
     completedFastsThisWeek,
     streakDays: getFastingFrameWeekStreakDays(frame),
-    previousWeekCompletedCount: 0,
+    previousWeekCompletedCount,
     upcomingPlannedThisWeek,
     motivationalQuote:
       motivationalQuote ||
       "Make up what you owe with sincerity — every fast counts.",
-    showPreviousWeekStat: false,
+    showPreviousWeekStat: weekIndex > 0,
   };
 }
 
@@ -693,21 +706,9 @@ export function mapWhiteDaysFrameWeekSummary(
   const weekDays = mapWhiteDaysFrameWeekDays(frame);
   const completedFastsThisWeek = getFastingFrameTotalFastsThisWeek(frame);
   const motivationalQuote = getFastingFrameMotivationalQuote(frame);
-
-  let motivationalQuoteKey: WhiteDaysFastWeekSummary["motivationalQuoteKey"] =
-    "upcoming";
-  if (weekDays.some((day) => day.state === "missed")) {
-    motivationalQuoteKey = "missed";
-  } else if (
-    weekDays.filter((day) => day.isWhiteDay).length > 0 &&
-    weekDays
-      .filter((day) => day.isWhiteDay)
-      .every((day) => day.state === "completed")
-  ) {
-    motivationalQuoteKey = "allCompleted";
-  } else if (completedFastsThisWeek > 0) {
-    motivationalQuoteKey = "completed";
-  }
+  const todayDate =
+    weekDays.find((day) => day.isToday)?.date ?? moment().format("YYYY-MM-DD");
+  const quoteMeta = buildWhiteDaysMotivationalQuoteMeta(todayDate);
 
   return {
     weekDays,
@@ -716,7 +717,7 @@ export function mapWhiteDaysFrameWeekSummary(
     weekIndex: Math.max(0, (frame.week.weekNumber ?? 1) - 1),
     completedFastsThisWeek,
     monthlyStreak: getFastingFrameWeekStreakDays(frame),
-    motivationalQuoteKey,
+    ...quoteMeta,
     motivationalQuote: motivationalQuote || undefined,
   };
 }

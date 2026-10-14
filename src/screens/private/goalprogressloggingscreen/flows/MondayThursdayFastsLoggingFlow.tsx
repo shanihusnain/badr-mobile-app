@@ -889,9 +889,12 @@ export default function MondayThursdayFastsLoggingFlow({
   };
 
   const handleOpenFlow = useCallback(() => {
-    if (!canLog) return;
-    const firstEnabled = enabledLogTypes[0] ?? null;
-    setLogType(firstEnabled);
+    if (!canOpenLogging) return;
+    applyCurrentTimeDefaults();
+    const defaultLogType = enabledLogTypes.includes("completed_planned")
+      ? "completed_planned"
+      : (enabledLogTypes[0] ?? null);
+    setLogType(defaultLogType);
     setSelectedPlannedFastId(null);
     setSelectedActualDateId(null);
     setSelectedMissedDateId(null);
@@ -983,6 +986,7 @@ export default function MondayThursdayFastsLoggingFlow({
             labelNumberOfLines={1}
             hintNumberOfLines={2}
             compactMenu
+            hideSelectedInMenu
           />
         );
       case "selectPlannedFast":
@@ -1227,9 +1231,7 @@ export default function MondayThursdayFastsLoggingFlow({
                 canGoForward={!isLastStep && canProceed}
                 canGoBack={stepIndex > 0}
                 canConfirm={canConfirm}
-                showConfirmButton={
-                  !isDateSelectionStep || isCurrentDateStepEnabled
-                }
+                showConfirmButton={isLastStep}
                 styles={commonStyles}
                 style={[
                   commonStyles.inPlaceFlowCard,

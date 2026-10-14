@@ -46,6 +46,43 @@ function mapWhiteDaysDayToSinglePrayerDay(
   };
 }
 
+/** Display-only: keep API wording, insert breaks so week-1 footer shows 3 lines. */
+function formatMotivationalQuoteForThreeLines(quote: string): string {
+  const trimmed = quote.trim();
+  if (!trimmed || trimmed.includes("\n")) return trimmed;
+
+  const semiIndex = trimmed.indexOf(";");
+  if (semiIndex >= 0) {
+    const line1 = trimmed.slice(0, semiIndex + 1).trim();
+    const rest = trimmed.slice(semiIndex + 1).trim();
+    if (!rest) return line1;
+
+    const andIndex = rest.lastIndexOf(" and ");
+    if (andIndex > 0) {
+      return `${line1}\n${rest.slice(0, andIndex).trim()}\n${rest.slice(andIndex).trim()}`;
+    }
+
+    const mid = Math.ceil(rest.length / 2);
+    let splitAt = rest.lastIndexOf(" ", mid);
+    if (splitAt <= 0) splitAt = rest.indexOf(" ", mid);
+    if (splitAt > 0) {
+      return `${line1}\n${rest.slice(0, splitAt).trim()}\n${rest.slice(splitAt).trim()}`;
+    }
+    return `${line1}\n${rest}`;
+  }
+
+  const words = trimmed.split(/\s+/);
+  if (words.length < 3) return trimmed;
+  const third = Math.ceil(words.length / 3);
+  return [
+    words.slice(0, third).join(" "),
+    words.slice(third, third * 2).join(" "),
+    words.slice(third * 2).join(" "),
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
 export function WhiteDaysFastsWeeklyProgressDashboard({
   weekSummary,
   selectedDayIndex,
@@ -73,9 +110,13 @@ export function WhiteDaysFastsWeeklyProgressDashboard({
 
   const motivationalQuote = useMemo(() => {
     if (loading) return "---";
-    if (weekSummary.motivationalQuote?.trim()) {
-      return weekSummary.motivationalQuote.trim();
+
+    // Keep API week.motivation.message as-is; only insert display line breaks.
+    const fromApi = weekSummary.motivationalQuote?.trim();
+    if (fromApi) {
+      return formatMotivationalQuoteForThreeLines(fromApi);
     }
+
     switch (weekSummary.motivationalQuoteKey) {
       case "allCompleted":
         return t("progressLogging.whiteDaysMotivationAllCompleted");
@@ -83,6 +124,10 @@ export function WhiteDaysFastsWeeklyProgressDashboard({
         return t("progressLogging.whiteDaysMotivationMissed");
       case "completed":
         return t("progressLogging.whiteDaysMotivationCompleted");
+      case "approaching":
+        return t("progressLogging.whiteDaysMotivationApproaching", {
+          count: weekSummary.motivationalQuoteParams?.count ?? 1,
+        });
       case "upcoming":
       default:
         return t("progressLogging.whiteDaysMotivationUpcoming", {
@@ -94,6 +139,7 @@ export function WhiteDaysFastsWeeklyProgressDashboard({
     t,
     weekSummary.motivationalQuote,
     weekSummary.motivationalQuoteKey,
+    weekSummary.motivationalQuoteParams?.count,
     weekSummary.motivationalQuoteParams?.day,
   ]);
 
@@ -151,6 +197,7 @@ export function WhiteDaysFastsWeeklyProgressDashboard({
       onDeleteLog={handleDeleteLog}
       isDeletingLog={isDeletingLog}
       renderDayRing={renderDayRing}
+      compactWeekOneQuote
       statsRow={
         <View style={styles.statsRow}>
           <FastingDashboardIcon size={28} color={Colors.light.seagreen} />
@@ -173,7 +220,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 8,
     flexWrap: "nowrap",
-    paddingLeft: 7,
+    // Slight left of center — not flush with the streak row.
+    transform: [{ translateX: -12 }],
   },
   statsText: {
     color: Colors.light.white,
