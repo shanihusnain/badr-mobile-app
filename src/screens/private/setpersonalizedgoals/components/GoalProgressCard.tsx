@@ -21,6 +21,7 @@ import {
   heightPercentageToDP,
   widthPercentageToDP,
 } from "react-native-responsive-screen";
+import { ms } from "@/src/utils/responsive";
 
 interface GoalProgressCardProps {
   currentDay: number;
@@ -216,7 +217,7 @@ export const GoalProgressCard = ({
       {/* ── Image ── */}
       <View
         style={{
-          height: heightPercentageToDP(35),
+          height: ms(300),
           width: "100%",
           alignItems: "center",
           justifyContent: "center",
@@ -251,7 +252,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: Colors.light.darkgrey,
     padding: 16,
-    marginTop: 16,
+    // marginTop: 16,
   },
   currentDayText: {
     color: Colors.light.white,

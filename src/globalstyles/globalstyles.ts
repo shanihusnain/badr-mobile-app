@@ -27,7 +27,7 @@ export const globalStyles = StyleSheet.create({
   },
   greenCTA: {
     fontWeight: "500",
-    fontFamily: fonts.primary.medium,
+    fontFamily: fonts.primary.semiBold,
     fontSize: 18,
     color: Colors.light.green,
     lineHeight: 22,

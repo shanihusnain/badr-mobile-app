@@ -89,12 +89,26 @@ export type PrayerTargetBucket = {
   witrTarget?: number;
 };
 
+export type FiveDailyConfig = {
+  fajrTarget?: number;
+  dhuhrTarget?: number;
+  asrTarget?: number;
+  maghribTarget?: number;
+  ishaTarget?: number;
+  jumuahTarget?: number;
+  congregationalTracking?: boolean;
+};
+
 export type PrayerGoalApiItem = {
   prayerType: string;
   isActive: boolean;
   title?: string;
   description?: string;
   summaryDescription?: string;
+  /** Flat counts used by some list/cycle payloads (not nested under targets). */
+  targetCount?: number | null;
+  targetDays?: number | null;
+  completedCount?: number | null;
   targets?: Record<string, PrayerTargetBucket | number | boolean> & {
     completedCount?: number;
     targetCount?: number;
@@ -112,12 +126,18 @@ export type PrayerGoalApiItem = {
   beforeAsrPrayersPerDay?: number;
   isFlexible?: boolean;
   trackTahajjud?: boolean;
+  fiveDailyConfig?: FiveDailyConfig | null;
   sunnahRawatibConfig?: SunnahRawatibConfig | null;
   sunnahConfig?: SunnahRawatibConfig | null;
   qiyamConfig?: {
     isFlexible?: boolean;
     unitTarget?: number;
     trackTahajjud?: boolean;
+    targets?: {
+      unitTarget?: number;
+      witrTarget?: number;
+      targetPerNight?: number;
+    };
   };
 };
 
@@ -345,7 +365,7 @@ function resolveAfterDhuhrRakahOption(
   if (typeof afterDhuhrTarget === "number" && afterDhuhrTarget > 0) {
     return afterDhuhrTarget <= 28 ? 1 : 2;
   }
-  return 2;
+  return 1;
 }
 
 function resolveBeforeAsrSelection(
@@ -510,6 +530,45 @@ function isUnsavedQiyamDefaults(goal: QiyamInitialSource | undefined): boolean {
     return false;
   }
   return true;
+}
+
+function hasConfiguredFiveDaily(
+  goal: PrayerGoalApiItem | undefined,
+): boolean {
+  const cfg = goal?.fiveDailyConfig;
+  if (!cfg || typeof cfg !== "object") return false;
+  return [
+    cfg.fajrTarget,
+    cfg.dhuhrTarget,
+    cfg.asrTarget,
+    cfg.maghribTarget,
+    cfg.ishaTarget,
+    cfg.jumuahTarget,
+  ].some((n) => typeof n === "number" && n > 0);
+}
+
+/**
+ * True when a prayer goal has real saved configuration — covers list/detail
+ * `targets`, cycle flat counts, fiveDailyConfig, sunnah config, and qiyam.
+ * Used for tab unlock after leave/remount (session flags are gone).
+ */
+export function hasConfiguredPrayerGoal(
+  goal: PrayerGoalApiItem | undefined | null,
+): boolean {
+  if (!goal) return false;
+  if (hasConfiguredTargets(goal)) return true;
+  if (typeof goal.targetCount === "number" && goal.targetCount > 0) {
+    return true;
+  }
+  if (typeof goal.targetDays === "number" && goal.targetDays > 0) {
+    return true;
+  }
+  if (hasConfiguredFiveDaily(goal)) return true;
+  if (hasConfiguredSunnah(goal)) return true;
+  if (goal.qiyamConfig != null && !isUnsavedQiyamDefaults(goal)) {
+    return true;
+  }
+  return false;
 }
 
 export function getQiyamInitial(goal: QiyamInitialSource | undefined) {

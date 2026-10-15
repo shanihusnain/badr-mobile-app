@@ -1,5 +1,6 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
+import { ms } from "@/src/utils/responsive";
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
@@ -8,9 +9,10 @@ export const styles = StyleSheet.create({
     fontWeight: "400",
     fontSize: 14,
     fontFamily: fonts.primary.regular,
-    lineHeight: 20,
+    lineHeight: ms(20),
     letterSpacing: 0.1,
     textAlign: "justify",
+    opacity: 0.9,
   },
   languageRow: {
     flexDirection: "row",

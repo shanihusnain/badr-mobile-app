@@ -43,9 +43,11 @@ export const MissedZakats = ({
   initiallySaved?: boolean;
 }) => {
   const { t } = useTranslation();
+  // Do not pass onInputFocus as onOpened — panel open must not trigger
+  // keyboard keep-visible (only Counter TextInput focus should).
   const [isOpen, setIsOpen] = useGoalSelectionOpenState(
     openOnMount,
-    onInputFocus,
+    undefined,
     collapseSignal,
   );
   const selectedCurrency = useWatch({ control, name });
@@ -103,6 +105,7 @@ export const MissedZakats = ({
             control={control}
             name={name}
             onSetAsDefaultCurrency={onSetAsDefaultCurrency}
+            onInputFocus={onInputFocus}
           />
 
           <TopSpace top={16} />

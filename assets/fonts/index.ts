@@ -1,4 +1,10 @@
-﻿export const fontAssets = {
+﻿/**
+ * Primary UI face: SF Pro Text (matches Figma brand type).
+ * For Figma “Forced small caps”, do not rely on these OTFs’ OpenType features —
+ * use `getFigmaForcedSmallCapsTextStyle()` from `@/src/utils/figmaTypography`
+ * (system SF Pro + fontVariant on iOS).
+ */
+export const fontAssets = {
 "sfBold":require("./SF-Pro-Text-Bold.otf"),
 "sfBoldItalic":require("./SF-Pro-Text-BoldItalic.otf"),
 "sfHeavy":require("./SF-Pro-Text-Heavy.otf"),
