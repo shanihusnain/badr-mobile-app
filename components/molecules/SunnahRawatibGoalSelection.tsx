@@ -137,7 +137,11 @@ export default function SunnahRawatibGoalSelection({
   const beforeAsarEnabled = useSharedValue(
     initialValues?.beforeAsrEnabled ?? false,
   );
-  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount, onInputFocus, collapseSignal);
+  const [isOpen, setIsOpen] = useGoalSelectionOpenState(
+    openOnMount,
+    onInputFocus,
+    collapseSignal,
+  );
 
   useEffect(() => {
     if (!initialValues) return;
