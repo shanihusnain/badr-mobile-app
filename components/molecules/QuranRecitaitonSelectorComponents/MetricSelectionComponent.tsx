@@ -965,8 +965,7 @@ export const MetricSelectionComponent = ({
               : 0;
         // Keep end unset while the user is still filling "from" only —
         // matching end to start here caused the To field to auto-fill.
-        const end =
-          displayJuzEnd && displayJuzEnd > 0 ? displayJuzEnd : 0;
+        const end = displayJuzEnd && displayJuzEnd > 0 ? displayJuzEnd : 0;
         payload = {
           metric: "juz",
           value: { start, end },
@@ -1232,11 +1231,7 @@ export const MetricSelectionComponent = ({
                             ref={(r) => {
                               metricInputRefs.current[`surah-${s.id}`] = r;
                             }}
-                            value={
-                              timesValue > 0
-                                ? String(timesValue)
-                                : ""
-                            }
+                            value={timesValue > 0 ? String(timesValue) : ""}
                             onChangeText={(v) => {
                               const digits = v.replace(/[^0-9]/g, "");
                               if (digits === "") {
@@ -1263,7 +1258,10 @@ export const MetricSelectionComponent = ({
                               setInputFocused(key, true);
                               clearZeroOnFocus(key, isZero);
                               if (!isZero) {
-                                selectAllOnFocus(key, String(timesValue).length);
+                                selectAllOnFocus(
+                                  key,
+                                  String(timesValue).length,
+                                );
                               }
                               // Parent FlatList clears the keyboard. Defer nested
                               // scroll so it does not stack with keep-visible.
@@ -1563,7 +1561,10 @@ export const MetricSelectionComponent = ({
                     !!juzEndText && juzEndText !== "0" && juzEnd > 0
                   }
                   onTouchStart={() =>
-                    clearZeroOnTouch("juz-end", juzEndText === "0" || !juzEndText)
+                    clearZeroOnTouch(
+                      "juz-end",
+                      juzEndText === "0" || !juzEndText,
+                    )
                   }
                   onFocus={() => {
                     const isZero = juzEndText === "0" || !juzEndText;
@@ -1947,6 +1948,7 @@ const styles = StyleSheet.create({
   metricOptionsList: {
     height: METRIC_LIST_HEIGHT,
     width: "100%",
+    paddingBottom: 20,
   },
   metricOptionsListInner: {
     height: METRIC_LIST_HEIGHT,
