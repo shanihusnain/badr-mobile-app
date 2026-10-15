@@ -47,6 +47,9 @@ export const useDeleteFastingGoalByType = () => {
     mutationFn: deleteFastingGoalByType,
     onSuccess: (_data, variables) => {
       invalidateFastingCaches(queryClient, variables.fastingType);
+      queryClient.removeQueries({
+        queryKey: ["fasting-detail", resolveFastingType(variables.fastingType)],
+      });
       if (!variables.suppressSuccessToast) {
         showToast("success", "Fasting goal removed");
       }

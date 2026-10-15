@@ -120,6 +120,7 @@ export function hasConfiguredSadaqahGoal(
   goal: SadaqahGoalApiItem | undefined | null,
 ): boolean {
   if (!goal) return false;
+  if (goal.isActive === false) return false;
   if ((goal.targetAmount ?? 0) > 0) return true;
   if ((goal.kaffarahMealsTarget ?? 0) > 0) return true;
   if ((goal.kaffarahItemsTarget ?? 0) > 0) return true;

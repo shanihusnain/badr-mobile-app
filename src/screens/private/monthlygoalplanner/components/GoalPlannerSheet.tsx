@@ -9,6 +9,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   ActivityIndicator,
   Dimensions,
@@ -85,6 +86,7 @@ import {
   hasConfiguredPrayerGoal,
   mapPrayerGoalsFromApi,
   PRAYER_TYPE_TO_UI_ID,
+  resolvePrayerType,
   resolvePrayerUiId,
 } from "@/src/utils/prayerGoalMap";
 import { useTogglePrayerGoalByType } from "@/src/api/mutations/useTogglePrayerGoalByType";
@@ -258,6 +260,7 @@ type Props = {
 
 export const GoalPlannerSheet = ({ initialTab }: Props) => {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const insets = useSafeAreaInsets();
   const { data: apiCurrencies } = useGetCurrencies();
   const sadaqahCurrencyOptions = useMemo(() => {
@@ -1340,6 +1343,12 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
       category: "prayer" | "quran" | "fasting" | "sadaqah",
       goalId: string,
       isConfigured: boolean,
+      extras?: {
+        prayerType?: string;
+        quranTypes?: string[];
+        fastingType?: string;
+        sadaqahType?: string;
+      },
     ) => {
       handleGoalToggle(goalId, false);
       setExpandedGoalSelectionId((prev) =>
@@ -1352,19 +1361,38 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
         delete next[goalId];
         return next;
       });
-      if (category === "quran") {
+      if (category === "prayer") {
+        const prayerType =
+          extras?.prayerType ?? resolvePrayerType(goalId);
+        queryClient.removeQueries({ queryKey: ["prayer-detail", prayerType] });
+      } else if (category === "quran") {
         setQuranMetrics((prev) => {
-          if (!(goalId in prev)) return prev;
           const next = { ...prev };
           delete next[goalId];
+          if (goalId === "quran-listening") delete next.listeningHours;
+          if (goalId === "quran-tajweed") delete next.tajweedHours;
           return next;
         });
+        const types =
+          extras?.quranTypes?.length
+            ? extras.quranTypes
+            : getQuranTypesForUiId(goalId);
+        for (const quranGoalType of types) {
+          queryClient.removeQueries({
+            queryKey: ["quran-goal-detail", quranGoalType],
+          });
+        }
       } else if (category === "fasting") {
         setFastingMetrics((prev) => {
           if (!(goalId in prev)) return prev;
           const next = { ...prev };
           delete next[goalId];
           return next;
+        });
+        const fastingType =
+          extras?.fastingType ?? resolveFastingType(goalId);
+        queryClient.removeQueries({
+          queryKey: ["fasting-detail", fastingType],
         });
       } else if (category === "sadaqah") {
         setSadaqahMetrics((prev) => {
@@ -1373,10 +1401,32 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
           delete next[goalId];
           return next;
         });
+        if (goalId === "missed-zakat") {
+          setMissedZakatAmount(0);
+          setValue("missedZakat", "");
+        } else if (goalId === "kafarah-for-breaking-fasts") {
+          setKafarahMeals(0);
+          setKafarahCloths(0);
+        } else if (goalId === "fidya") {
+          setFidyaMeals(0);
+        } else if (goalId === "lilah-donations") {
+          setLillahAmount(0);
+          setValue("lillahDonation", "");
+        } else if (goalId === "volunteering-services") {
+          setVolunteeringHours(0);
+        } else if (goalId === "sadaqah-jariyah") {
+          setSadaqahJariyahAmount(0);
+          setValue("sadaqahJariyah", "");
+        }
+        const sadaqahType =
+          extras?.sadaqahType ?? resolveSadaqahType(goalId);
+        queryClient.removeQueries({
+          queryKey: ["sadaqah-detail", sadaqahType],
+        });
       }
       setEditingGoal((prev) => (prev ? null : prev));
     },
-    [handleGoalToggle, trackPendingOnToggle],
+    [handleGoalToggle, queryClient, setValue, trackPendingOnToggle],
   );
 
   const closeDeleteGoalModal = useCallback(() => {
@@ -1420,6 +1470,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
             "prayer",
             pending.goalId,
             isPrayerGoalConfigured(pending.goalId),
+            { prayerType: pending.prayerType },
           );
         } else if (pending.category === "quran") {
           const types = pending.quranTypes ?? [];
@@ -1435,6 +1486,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
             "quran",
             pending.goalId,
             isQuranGoalConfigured(pending.goalId),
+            { quranTypes: types },
           );
         } else if (pending.category === "fasting" && pending.fastingType) {
           await deleteFastingGoalByType({
@@ -1445,6 +1497,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
             "fasting",
             pending.goalId,
             isFastingGoalConfigured(pending.goalId),
+            { fastingType: pending.fastingType },
           );
         } else if (pending.category === "sadaqah" && pending.sadaqahType) {
           await deleteSadaqahGoalByType({
@@ -1455,6 +1508,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
             "sadaqah",
             pending.goalId,
             isSadaqahGoalConfigured(pending.goalId),
+            { sadaqahType: pending.sadaqahType },
           );
         }
         return true;
@@ -2664,6 +2718,16 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
       isTabUnlocked,
     ],
   );
+
+  // Tab switch remounts list content at offset 0 — clear stale scroll/keyboard
+  // state so keep-visible does not jump using the previous tab's Y.
+  useEffect(() => {
+    listScrollOffsetRef.current = 0;
+    focusedInputLayoutRef.current = null;
+    focusedGoalIdForKeyboardRef.current = null;
+    keyboardKeepVisibleDoneRef.current = false;
+    clearPendingAutoScrollTimers();
+  }, [activeTab, clearPendingAutoScrollTimers]);
 
   // Keep user on the cycle tab until they tap Commit (selecting a date alone must not advance).
   useEffect(() => {

@@ -556,6 +556,8 @@ export function hasConfiguredPrayerGoal(
   goal: PrayerGoalApiItem | undefined | null,
 ): boolean {
   if (!goal) return false;
+  // Toggle-off deactivates but may leave targets in the payload — treat as unset.
+  if (goal.isActive === false) return false;
   if (hasConfiguredTargets(goal)) return true;
   if (typeof goal.targetCount === "number" && goal.targetCount > 0) {
     return true;

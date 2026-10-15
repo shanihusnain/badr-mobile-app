@@ -27,6 +27,9 @@ export const useDeletePrayerGoalByType = () => {
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["all-prayer-goals"] });
       queryClient.invalidateQueries({ queryKey: ["goal-cycle"] });
+      queryClient.removeQueries({
+        queryKey: ["prayer-detail", variables.prayerType],
+      });
       if (!variables.suppressSuccessToast) {
         showToast("success", "Prayer goal removed");
       }

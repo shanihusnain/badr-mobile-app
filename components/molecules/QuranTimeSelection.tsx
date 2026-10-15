@@ -2,6 +2,7 @@ import { globalStyles } from "@/src/globalstyles/globalstyles";
 import {
   ActivityIndicator,
   LayoutAnimation,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -47,6 +48,18 @@ export const QuranTimeSelection = ({
 }) => {
   const { t } = useTranslation();
   const hoursInputRef = useRef<TextInput>(null);
+  /**
+   * Select-all when focus starts on a non-zero value (intentional tap).
+   * Suppress only for a short Android blur→focus bounce right after typing
+   * (sheet keep-visible scroll), so the digit just typed is not re-selected.
+   */
+  const allowSelectAllRef = useRef(false);
+  const typedThisFocusRef = useRef(false);
+  const lastBlurAtRef = useRef(0);
+  const blurClearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const selectAllTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+  /** Ignore native caret updates while we apply programmatic select-all. */
+  const ignoreSelectionChangeRef = useRef(false);
   // Panel open must not trigger keyboard keep-visible — only hours TextInput focus.
   const [isOpen, setIsOpen] = useGoalSelectionOpenState(
     openOnMount,
@@ -70,9 +83,59 @@ export const QuranTimeSelection = ({
     requestAnimationFrame(reportHoursInputLayout);
     // No late remeasure — parent keep-visible scrolls once with keyboard height.
   }, [onInputFocus, reportHoursInputLayout]);
+
+  const clearSelectAllTimers = useCallback(() => {
+    selectAllTimersRef.current.forEach(clearTimeout);
+    selectAllTimersRef.current = [];
+    ignoreSelectionChangeRef.current = false;
+  }, []);
+
+  const applySelectAll = useCallback((len: number) => {
+    if (!allowSelectAllRef.current || len <= 0) return;
+    ignoreSelectionChangeRef.current = true;
+    setSelection({ start: 0, end: len });
+    // Android often emits a caret onSelectionChange right after focus/scroll;
+    // hold ignore long enough that it cannot collapse select-all.
+    if (Platform.OS === "android") {
+      selectAllTimersRef.current.push(
+        setTimeout(() => {
+          ignoreSelectionChangeRef.current = false;
+        }, 80),
+      );
+    } else {
+      requestAnimationFrame(() => {
+        ignoreSelectionChangeRef.current = false;
+      });
+    }
+  }, []);
+
+  const scheduleSelectAll = useCallback(
+    (len: number) => {
+      allowSelectAllRef.current = true;
+      clearSelectAllTimers();
+      // Defer until after controlled value commits (iOS / Counter).
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => applySelectAll(len));
+      });
+      // Android keep-visible scroll blurs/refocuses and wipes early selection —
+      // re-apply after the bounce settles.
+      if (Platform.OS === "android") {
+        selectAllTimersRef.current.push(
+          setTimeout(() => applySelectAll(len), 50),
+          setTimeout(() => applySelectAll(len), 160),
+        );
+      }
+    },
+    [applySelectAll, clearSelectAllTimers],
+  );
+
   const [inputValue, setInputValue] = useState<string>("");
   const [hydrated, setHydrated] = useState(false);
   const [isHoursFocused, setIsHoursFocused] = useState(false);
+  /** Controlled selection — setNativeProps is unreliable with value= (same as Counter). */
+  const [selection, setSelection] = useState<
+    { start: number; end: number } | undefined
+  >(undefined);
   /** Locked once — do not re-derive from hoursCount or typing keeps flipping SAVED!. */
   const [openedAsSaved, setOpenedAsSaved] = useState(initiallySaved);
   const lockedSavedRef = useRef(initiallySaved);
@@ -89,6 +152,12 @@ export const QuranTimeSelection = ({
 
   useEffect(() => {
     if (!isOpen || hydrated || !goalDetail) return;
+    // Toggle-off leaves detail cached with old hours — never hydrate inactive goals.
+    if (goalDetail.isActive === false) {
+      setInputValue("");
+      setHydrated(true);
+      return;
+    }
     const hours = getHoursFromDetail(goalDetail);
     if (hours > 0) {
       setInputValue(String(Math.min(MAX_HOURS, Math.round(hours))));
@@ -105,12 +174,24 @@ export const QuranTimeSelection = ({
       setHydrated(false);
       // Discard unsaved typing — reopen hydrates from the last saved API value.
       setInputValue("");
+      setSelection(undefined);
       lockedSavedRef.current = initiallySaved;
       setOpenedAsSaved(initiallySaved);
+      allowSelectAllRef.current = false;
+      typedThisFocusRef.current = false;
+      clearSelectAllTimers();
+      if (blurClearTimerRef.current) {
+        clearTimeout(blurClearTimerRef.current);
+        blurClearTimerRef.current = null;
+      }
     }
-  }, [isOpen, initiallySaved]);
+  }, [isOpen, initiallySaved, clearSelectAllTimers]);
 
   const handleHoursChange = (text: string) => {
+    // User is typing — never re-select on a later accidental re-focus.
+    typedThisFocusRef.current = true;
+    allowSelectAllRef.current = false;
+    clearSelectAllTimers();
     const digitsOnly = text.replace(/[^0-9]/g, "");
     if (digitsOnly === "") {
       setInputValue("");
@@ -168,32 +249,58 @@ export const QuranTimeSelection = ({
                     placeholderTextColor={Colors.light.white}
                     maxLength={3}
                     textAlignVertical="center"
-                    selectTextOnFocus={hoursCount > 0}
+                    // Avoid Android re-selecting when hoursCount flips 0→1 mid-focus.
+                    selectTextOnFocus={false}
                     showSoftInputOnFocus
+                    selection={selection}
+                    onSelectionChange={(e) => {
+                      if (ignoreSelectionChangeRef.current) return;
+                      setSelection(e.nativeEvent.selection);
+                    }}
                     onFocus={() => {
+                      if (blurClearTimerRef.current) {
+                        clearTimeout(blurClearTimerRef.current);
+                        blurClearTimerRef.current = null;
+                      }
                       setIsHoursFocused(true);
                       notifyHoursFocused();
-                      if (hoursCount === 0) {
-                        setInputValue("");
-                        hoursInputRef.current?.setNativeProps?.({
-                          text: "",
-                          placeholder: "",
-                        });
-                        requestAnimationFrame(() => {
-                          hoursInputRef.current?.setNativeProps?.({
-                            selection: { start: 0, end: 0 },
-                          });
-                        });
+                      const msSinceBlur = Date.now() - lastBlurAtRef.current;
+                      // Brief Android bounce after typing + sheet scroll — keep caret.
+                      const isScrollBounce =
+                        typedThisFocusRef.current && msSinceBlur < 200;
+                      if (isScrollBounce) {
+                        allowSelectAllRef.current = false;
+                        clearSelectAllTimers();
                         return;
                       }
-                      const len = String(hoursCount).length;
-                      requestAnimationFrame(() => {
-                        hoursInputRef.current?.setNativeProps?.({
-                          selection: { start: 0, end: len },
-                        });
-                      });
+                      // Intentional tap (or fresh focus) — allow select-all again.
+                      typedThisFocusRef.current = false;
+                      const existing =
+                        parseInt(inputValue || "0", 10) || 0;
+                      if (existing === 0) {
+                        allowSelectAllRef.current = false;
+                        clearSelectAllTimers();
+                        setInputValue("");
+                        setSelection({ start: 0, end: 0 });
+                        return;
+                      }
+                      scheduleSelectAll(String(existing).length);
                     }}
-                    onBlur={() => setIsHoursFocused(false)}
+                    onBlur={() => {
+                      setIsHoursFocused(false);
+                      setSelection(undefined);
+                      lastBlurAtRef.current = Date.now();
+                      // Keep intentional select-all timers alive across Android
+                      // keep-visible blur→focus; only cancel after the user typed.
+                      if (typedThisFocusRef.current) {
+                        allowSelectAllRef.current = false;
+                        clearSelectAllTimers();
+                      }
+                      blurClearTimerRef.current = setTimeout(() => {
+                        typedThisFocusRef.current = false;
+                        blurClearTimerRef.current = null;
+                      }, 150);
+                    }}
                     style={[
                       styles.hoursInput,
                       (inputValue.trim().length > 0 || isHoursFocused) &&
