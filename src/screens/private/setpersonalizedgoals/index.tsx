@@ -29,7 +29,7 @@ import { fonts } from "@/assets/fonts";
 import { setPendingOnboardingRoute } from "@/src/storage/onboardingRouteStorage";
 import { GoalProgressCard } from "./components/GoalProgressCard";
 import { useGetMe } from "@/src/api/queries/useGetMe";
-import { ms } from "@/src/utils/responsive";
+import { fs, ms } from "@/src/utils/responsive";
 
 export const SetPersonalizedGoalsScreen = () => {
   const { t, i18n } = useTranslation();
@@ -43,7 +43,7 @@ export const SetPersonalizedGoalsScreen = () => {
     const emailLocal = meUser?.email?.split("@")[0]?.trim();
     return emailLocal || "";
   }, [meUser?.email, meUser?.username]);
-
+  console.log("🟢 displayName", displayName);
   const [activeFrame, setActiveFrame] = useState(1);
 
   useEffect(() => {
@@ -100,9 +100,9 @@ export const SetPersonalizedGoalsScreen = () => {
               name: displayName,
             })}
             showBackBtn={false}
-            fontSize={18}
+            fontSize={fs(18)}
             textAlign="left"
-            lineHeight={22}
+            lineHeight={fs(22)}
             forceSmallCaps
             extraTopPadding={Platform.OS === "ios" ? 10 : 0}
           />

@@ -1,5 +1,6 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
+import { fs } from "@/src/utils/responsive";
 import { Text, View } from "react-native";
 
 interface FrameIndicatorProps {
@@ -21,7 +22,7 @@ export const FrameIndicator = ({ total, active }: FrameIndicatorProps) => {
         style={{
           fontFamily: fonts.primary.bold,
           color: Colors.light.white,
-          fontSize: 12,
+          fontSize: fs(12),
         }}
       >
         {active}
@@ -30,7 +31,7 @@ export const FrameIndicator = ({ total, active }: FrameIndicatorProps) => {
         style={{
           fontFamily: fonts.primary.medium,
           color: Colors.light.icon,
-          fontSize: 10,
+          fontSize: fs(10),
         }}
       >
         /{total}

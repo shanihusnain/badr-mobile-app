@@ -17,7 +17,7 @@ import { ImageSource } from "expo-image";
 import { useTranslation } from "react-i18next";
 import { useCallback, useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { ms } from "@/src/utils/responsive";
+import { fs, ms } from "@/src/utils/responsive";
 
 interface GoalProgressCardProps {
   currentDay: number;
@@ -45,7 +45,7 @@ function easeOutCubic(t: number) {
   return 1 - Math.pow(1 - t, 3);
 }
 
-const PERCENT_FONT_SIZE = 18;
+const PERCENT_FONT_SIZE = fs(18);
 /** Extra canvas padding so the glyph blur is never clipped into a box. */
 const GLOW_PAD = 22;
 
@@ -263,7 +263,7 @@ const styles = StyleSheet.create({
   currentDayText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 16,
+    fontSize: fs(16),
     textAlign: "center",
     fontWeight: "600",
     letterSpacing: 0.5,
@@ -271,7 +271,7 @@ const styles = StyleSheet.create({
   daysLeftText: {
     fontWeight: "400",
     fontFamily: fonts.primary.regular,
-    fontSize: 16,
+    fontSize: fs(16),
     color: Colors.light.white,
     opacity: 0.8,
     letterSpacing: 0.5,
@@ -293,7 +293,7 @@ const styles = StyleSheet.create({
   statLabel: {
     fontWeight: "500",
     fontFamily: fonts.primary.medium,
-    fontSize: 14,
+    fontSize: fs(14),
     color: Colors.light.white,
     letterSpacing: 0.5,
     marginBottom: 4,
@@ -301,7 +301,7 @@ const styles = StyleSheet.create({
   statValue: {
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
-    fontSize: 18,
+    fontSize: fs(18),
     color: Colors.light.white,
   },
   percentCanvas: {
