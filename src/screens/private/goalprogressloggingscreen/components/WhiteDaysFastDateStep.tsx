@@ -46,9 +46,8 @@ export function WhiteDaysFastDateStep({
           <Ionicons
             name={i18n.language === "ar" ? "chevron-forward" : "chevron-back"}
             size={32}
-            color={
-              canGoPrev ? Colors.light.white : Colors.light.dullWhiteOpacity
-            }
+            color={Colors.light.white}
+            style={!canGoPrev ? localStyles.chevronDisabled : undefined}
           />
         </TouchableOpacity>
 
@@ -68,9 +67,8 @@ export function WhiteDaysFastDateStep({
           <Ionicons
             name={i18n.language === "ar" ? "chevron-back" : "chevron-forward"}
             size={32}
-            color={
-              canGoNext ? Colors.light.white : Colors.light.dullWhiteOpacity
-            }
+            color={Colors.light.white}
+            style={!canGoNext ? localStyles.chevronDisabled : undefined}
           />
         </TouchableOpacity>
       </View>
@@ -108,12 +106,18 @@ const localStyles = StyleSheet.create({
   dateDisabled: {
     opacity: 0.45,
   },
+  // Slightly slimmer than active — not as faint as dullWhiteOpacity (10%).
+  chevronDisabled: {
+    opacity: 0.35,
+    transform: [{ scaleX: 0.82 }],
+  },
+
   descriptionRow: {
     position: "absolute",
     left: 0,
     right: 0,
     top: "100%",
-    marginTop: 0,
+    marginTop: -4,
     flexDirection: "row",
     alignItems: "flex-start",
     justifyContent: "flex-start",

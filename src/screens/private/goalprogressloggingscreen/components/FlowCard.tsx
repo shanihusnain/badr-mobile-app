@@ -88,12 +88,7 @@ export const FlowCard: React.FC<FlowCardProps> = ({
 
       {showFooter ? (
         <View style={styles.flowFooter}>
-          <View
-            style={[
-              styles.navGroup,
-              !showConfirmButton && styles.navGroupNoConfirm,
-            ]}
-          >
+          <View style={styles.navGroup}>
             <TouchableOpacity
               style={[styles.navButton, !canGoBack && { opacity: 0.65 }]}
               onPress={onBack}
@@ -141,7 +136,11 @@ export const FlowCard: React.FC<FlowCardProps> = ({
                 }
               />
             </TouchableOpacity>
-          ) : null}
+          ) : (
+            // Keep footer height/alignment identical to time steps (confirm has
+            // translateY + larger hit area), so nav chevrons don't jump.
+            <View style={styles.confirmButtonPlaceholder} />
+          )}
         </View>
       ) : null}
     </View>
