@@ -4,8 +4,12 @@ import { getApiErrorMessage, showToast } from "@/src/config/toastConfig";
 
 export type DeleteQuranGoalMetricArgs = {
   quranGoalType: string;
-  itemType: string;
-  itemNumber: string | number;
+  /**
+   * Item-level delete (SURAH / JUZ / HIZB only — backend QuranItemType).
+   * Omit both for whole-goal delete (e.g. RECITATION_COMPLETION has no items).
+   */
+  itemType?: string;
+  itemNumber?: string | number;
 };
 
 const deleteSingleQuranGoalMetric = async ({
@@ -13,14 +17,21 @@ const deleteSingleQuranGoalMetric = async ({
   itemType,
   itemNumber,
 }: DeleteQuranGoalMetricArgs) => {
+  const hasItem =
+    itemType != null &&
+    String(itemType).length > 0 &&
+    itemNumber != null &&
+    itemNumber !== "";
   const response = await api.delete(
     `api/goal-cycles/current/quran-goals/${quranGoalType}`,
-    {
-      params: {
-        itemType,
-        itemNumber,
-      },
-    },
+    hasItem
+      ? {
+          params: {
+            itemType,
+            itemNumber,
+          },
+        }
+      : undefined,
   );
   return response.data;
 };

@@ -31,6 +31,9 @@ export const useDeleteSadaqahGoalByType = () => {
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["all-sadaqah-goals"] });
       queryClient.invalidateQueries({ queryKey: ["goal-cycle"] });
+      queryClient.removeQueries({
+        queryKey: ["sadaqah-detail", resolveSadaqahType(variables.sadaqahType)],
+      });
       if (!variables.suppressSuccessToast) {
         showToast("success", "Sadaqah goal removed");
       }

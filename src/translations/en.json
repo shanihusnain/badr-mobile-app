@@ -1,6 +1,6 @@
 {
   "setpersonalizedgoals": {
-    "Setyourperosnalizedgoals": "YOU'RE ALL SET, LAYLA! LET'S PERSONALIZE YOUR GOALS.",
+    "Setyourperosnalizedgoals": "You're all set, {{name}}! Let's\npersonalize your goals.",
     "howItWorks": "HOW DOES IT WORK?",
     "daysLeft": "days left",
     "days": "Day",

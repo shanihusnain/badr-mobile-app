@@ -804,6 +804,7 @@ export function getHoursFromDetail(
   detail: QuranGoalDetail | null | undefined,
 ): number {
   if (!detail) return 0;
+  if (detail.isActive === false) return 0;
   if (String(detail.trackingMetric).toUpperCase() !== "HOURS") return 0;
   const n = Number(detail.targetValue ?? 0);
   return Number.isFinite(n) ? n : 0;
@@ -1177,6 +1178,7 @@ export function hasConfiguredQuranGoal(
 ): boolean {
   if (!item?.apiGoals?.length) return false;
   return item.apiGoals.some((goal) => {
+    if (goal.isActive === false) return false;
     const target = Number(goal.targetValue ?? 0);
     if (Number.isFinite(target) && target > 0) {
       return true;

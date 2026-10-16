@@ -119,14 +119,14 @@ export default function SunnahRawatibGoalSelection({
     initialValues?.beforeDhuhr ?? 56,
   );
   const { user } = useAuth();
-  const [afterDuhr, setAfterDuhr] = useState(initialValues?.afterDhuhr ?? 56);
+  const [afterDuhr, setAfterDuhr] = useState(initialValues?.afterDhuhr ?? 28);
   const [beforeAsar, setBeforeAsar] = useState(initialValues?.beforeAsr ?? 56);
   const [afterMaghrib, setAfterMaghrib] = useState(
     initialValues?.afterMaghrib ?? 28,
   );
   const [afterIsha, setAfterIsha] = useState(initialValues?.afterIsha ?? 28);
   const [afterDuhrOption, setAfterDuhrOption] = useState<"one" | "two">(
-    initialValues?.afterDhuhrRakahOption === 1 ? "one" : "two",
+    initialValues?.afterDhuhrRakahOption === 2 ? "two" : "one",
   );
   const [beforeAsarOption, setBeforeAsarOption] = useState<"one" | "two">(
     initialValues?.beforeAsrRakahOption === 1 ? "one" : "two",
@@ -137,18 +137,22 @@ export default function SunnahRawatibGoalSelection({
   const beforeAsarEnabled = useSharedValue(
     initialValues?.beforeAsrEnabled ?? false,
   );
-  const [isOpen, setIsOpen] = useGoalSelectionOpenState(openOnMount, onInputFocus, collapseSignal);
+  const [isOpen, setIsOpen] = useGoalSelectionOpenState(
+    openOnMount,
+    onInputFocus,
+    collapseSignal,
+  );
 
   useEffect(() => {
     if (!initialValues) return;
     setBeforeFajar(initialValues.beforeFajr ?? 28);
     setBeforeDuhr(initialValues.beforeDhuhr ?? 56);
-    setAfterDuhr(initialValues.afterDhuhr ?? 56);
+    setAfterDuhr(initialValues.afterDhuhr ?? 28);
     setBeforeAsar(initialValues.beforeAsr ?? 56);
     setAfterMaghrib(initialValues.afterMaghrib ?? 28);
     setAfterIsha(initialValues.afterIsha ?? 28);
     setAfterDuhrOption(
-      initialValues.afterDhuhrRakahOption === 1 ? "one" : "two",
+      initialValues.afterDhuhrRakahOption === 2 ? "two" : "one",
     );
     setBeforeAsarOption(
       initialValues.beforeAsrRakahOption === 1 ? "one" : "two",

@@ -16,8 +16,9 @@ import {
   Alert,
   Pressable,
   ScrollView,
+  Platform,
 } from "react-native";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { router, useNavigation } from "expo-router";
 import PrimaryButton from "@/components/atoms/Primary-button";
 import { TutorialVideoPlayer } from "./components/TutorialVideoPlayer";
@@ -27,11 +28,21 @@ import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import { setPendingOnboardingRoute } from "@/src/storage/onboardingRouteStorage";
 import { GoalProgressCard } from "./components/GoalProgressCard";
+import { useGetMe } from "@/src/api/queries/useGetMe";
+import { ms } from "@/src/utils/responsive";
 
 export const SetPersonalizedGoalsScreen = () => {
   const { t, i18n } = useTranslation();
   const navigation = useNavigation();
   const currentLanguage = i18n.language as SupportedLanguage;
+  const { data: meUser } = useGetMe();
+
+  const displayName = useMemo(() => {
+    const fromUsername = meUser?.username?.trim();
+    if (fromUsername) return fromUsername;
+    const emailLocal = meUser?.email?.split("@")[0]?.trim();
+    return emailLocal || "";
+  }, [meUser?.email, meUser?.username]);
 
   const [activeFrame, setActiveFrame] = useState(1);
 
@@ -85,16 +96,20 @@ export const SetPersonalizedGoalsScreen = () => {
         headerShown: true,
         header: () => (
           <Header
-            title={t("setpersonalizedgoals.Setyourperosnalizedgoals")}
+            title={t("setpersonalizedgoals.Setyourperosnalizedgoals", {
+              name: displayName,
+            })}
             showBackBtn={false}
             fontSize={18}
             textAlign="left"
-            lineHeight={24}
+            lineHeight={22}
+            forceSmallCaps
+            extraTopPadding={Platform.OS === "ios" ? 10 : 0}
           />
         ),
       });
     }
-  }, [activeFrame, navigation, t]);
+  }, [activeFrame, displayName, navigation, t]);
 
   const onWatchTutorialPress = useCallback(() => {
     console.log("👁️ Watch tutorial pressed");
@@ -124,7 +139,7 @@ export const SetPersonalizedGoalsScreen = () => {
               style={[
                 globalStyles.rowCenter,
                 {
-                  marginTop: 14,
+                  marginTop: ms(22),
                 },
               ]}
             >
@@ -133,23 +148,26 @@ export const SetPersonalizedGoalsScreen = () => {
                 {t("setpersonalizedgoals.howItWorks")}
               </Text>
             </View>
-            {/* {activeFrame === 1 && (
-              <GoalProgressCard
-                currentDay={28}
-                totalDays={28}
-                lastActiveDays={28}
-                overallProgress={100}
-                animate
-              />
-            )} */}
-            <TopSpace top={20} />
+            {activeFrame === 1 && (
+              <>
+                <TopSpace top={ms(30)} />
+                <GoalProgressCard
+                  currentDay={28}
+                  totalDays={28}
+                  lastActiveDays={28}
+                  overallProgress={100}
+                  animate
+                />
+              </>
+            )}
+            <TopSpace top={ms(26)} />
             <Text style={styles.descriptionText}>
               {t("setpersonalizedgoals.setPersonalizedDescription")}
             </Text>
             <View
               style={{
                 alignSelf: "center",
-                marginTop: 40,
+                marginTop: ms(36),
               }}
             >
               <Pressable

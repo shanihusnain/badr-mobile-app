@@ -29,7 +29,8 @@ export const useDeleteQuranGoalByType = () => {
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["all-quran-goals"] });
       queryClient.invalidateQueries({ queryKey: ["goal-cycle"] });
-      queryClient.invalidateQueries({
+      // Drop cached detail so reopen cannot hydrate old hours/items after toggle-off.
+      queryClient.removeQueries({
         queryKey: ["quran-goal-detail", variables.quranGoalType],
       });
       if (!variables.suppressSuccessToast) {

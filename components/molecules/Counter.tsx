@@ -33,6 +33,10 @@ export const Counter = ({
   const [isFocused, setIsFocused] = useState(false);
   // Local draft while editing — empty string when focused on 0 so caret sits centered.
   const [draft, setDraft] = useState<string>(count.toString());
+  /** Controlled selection — setNativeProps is unreliable on iOS with value=. */
+  const [selection, setSelection] = useState<
+    { start: number; end: number } | undefined
+  >(undefined);
 
   useEffect(() => {
     if (!isFocused) {
@@ -58,26 +62,22 @@ export const Counter = ({
     requestAnimationFrame(reportInputLayout);
     if (count === 0) {
       setDraft("");
-      // Remount-safe caret reset: empty + no placeholder keeps caret in the center.
-      requestAnimationFrame(() => {
-        inputRef.current?.setNativeProps?.({
-          selection: { start: 0, end: 0 },
-        });
-      });
+      setSelection({ start: 0, end: 0 });
       return;
     }
-    setDraft(count.toString());
-    // Select all so typing replaces the current number.
+    const text = String(count);
+    setDraft(text);
+    // Defer select-all until after controlled value commits (iOS).
     requestAnimationFrame(() => {
-      const len = String(count).length;
-      inputRef.current?.setNativeProps?.({
-        selection: { start: 0, end: len },
+      requestAnimationFrame(() => {
+        setSelection({ start: 0, end: text.length });
       });
     });
   };
 
   const handleBlur = () => {
     setIsFocused(false);
+    setSelection(undefined);
     const digitsOnly = draft.replace(/[^0-9]/g, "");
     const next = digitsOnly === "" ? 0 : parseInt(digitsOnly, 10) || 0;
     setCount(next);
@@ -111,6 +111,10 @@ export const Counter = ({
           // No placeholder: Android draws the caret after placeholder text,
           // which looks like the cursor is stuck at the end of "0".
           placeholder=""
+          selection={selection}
+          onSelectionChange={(e) => {
+            setSelection(e.nativeEvent.selection);
+          }}
           onFocus={handleFocus}
           onBlur={handleBlur}
         />

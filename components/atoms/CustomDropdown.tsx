@@ -1,10 +1,11 @@
 import { fonts } from "@/assets/fonts";
 import { DownArrowIcon, MagnifyingGlassIcon } from "@/assets/icons";
 import { Colors } from "@/constants/theme";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Controller } from "react-hook-form";
 import {
   Keyboard,
+  Platform,
   StyleSheet,
   Text,
   TextInput,
@@ -45,6 +46,10 @@ interface CustomDropdownProps {
   emptySearchText?: string;
   /** True while the menu is open (lock parent KeyboardAwareScrollView). */
   onDropdownOpenChange?: (open: boolean) => void;
+  /** Scroll parent so the search field stays above the keyboard. */
+  onInputFocus?: (layout?: { windowY: number; inputHeight: number }) => void;
+  /** Transform the closed-trigger label (e.g. hide currency symbol). */
+  formatSelectedLabel?: (label: string) => string;
 }
 
 const CustomDropdown: React.FC<CustomDropdownProps> = ({
@@ -67,6 +72,8 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
   searchPlaceholder = "Search...",
   emptySearchText = "No results found",
   onDropdownOpenChange,
+  onInputFocus,
+  formatSelectedLabel,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -74,13 +81,30 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
     string | number | undefined
   >(controlledValue);
   const searchInputRef = useRef<TextInput>(null);
+  const searchBarRef = useRef<View>(null);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const onInputFocusRef = useRef(onInputFocus);
+  onInputFocusRef.current = onInputFocus;
 
   useEffect(() => {
     if (controlledValue !== undefined) {
       setSelectedValue(controlledValue);
     }
   }, [controlledValue]);
+
+  const reportSearchFocusLayout = useCallback(() => {
+    onInputFocusRef.current?.();
+    const node = searchBarRef.current;
+    if (!node?.measureInWindow) return;
+    requestAnimationFrame(() => {
+      node.measureInWindow((_x, y, _w, h) => {
+        onInputFocusRef.current?.({
+          windowY: y,
+          inputHeight: Math.max(h, 1),
+        });
+      });
+    });
+  }, []);
 
   useEffect(() => {
     onDropdownOpenChange?.(isOpen);
@@ -93,24 +117,34 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
 
     if (!searchable) return;
 
-    // Focus search so KeyboardAwareScrollView can lift this field.
-    const timer = setTimeout(() => searchInputRef.current?.focus(), 60);
+    // Focus search and notify parent so the sheet can keep it above the keyboard.
+    const timer = setTimeout(() => {
+      searchInputRef.current?.focus();
+      reportSearchFocusLayout();
+    }, 60);
     return () => clearTimeout(timer);
-  }, [isOpen, onDropdownOpenChange, searchable]);
+  }, [isOpen, onDropdownOpenChange, searchable, reportSearchFocusLayout]);
 
   useEffect(() => {
     if (!searchable) return;
-    const showSub = Keyboard.addListener("keyboardDidShow", (event) => {
+    const showEvent =
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvent =
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+    const showSub = Keyboard.addListener(showEvent, (event) => {
       setKeyboardHeight(event.endCoordinates.height);
+      if (isOpen) {
+        reportSearchFocusLayout();
+      }
     });
-    const hideSub = Keyboard.addListener("keyboardDidHide", () => {
+    const hideSub = Keyboard.addListener(hideEvent, () => {
       setKeyboardHeight(0);
     });
     return () => {
       showSub.remove();
       hideSub.remove();
     };
-  }, [searchable]);
+  }, [searchable, isOpen, reportSearchFocusLayout]);
 
   const setOpen = (next: boolean | ((prev: boolean) => boolean)) => {
     setIsOpen((prev) => {
@@ -161,10 +195,12 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
 
     const getDisplayLabel = (): string => {
       if (!hasValue) return placeholder;
-      if (!selectedOption) return String(currentValue);
-      return typeof selectedOption === "string"
-        ? selectedOption
-        : selectedOption.label;
+      const raw = !selectedOption
+        ? String(currentValue)
+        : typeof selectedOption === "string"
+          ? selectedOption
+          : selectedOption.label;
+      return formatSelectedLabel ? formatSelectedLabel(raw) : raw;
     };
 
     return (
@@ -197,6 +233,8 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
               </View>
             ) : null}
             <Text
+              numberOfLines={1}
+              ellipsizeMode="tail"
               style={[
                 styles.triggerText,
                 hasValue ? selectedTextStyle : styles.placeholderText,
@@ -215,13 +253,16 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
               searchable && styles.searchableMenu,
               searchable &&
                 keyboardHeight > 0 && {
-                  maxHeight: Math.max(160, 280 - Math.min(keyboardHeight * 0.35, 120)),
+                  maxHeight: Math.max(
+                    140,
+                    260 - Math.min(keyboardHeight * 0.45, 140),
+                  ),
                 },
               menuStyle,
             ]}
           >
             {searchable ? (
-              <View style={styles.searchBar}>
+              <View ref={searchBarRef} style={styles.searchBar} collapsable={false}>
                 <MagnifyingGlassIcon />
                 <TextInput
                   ref={searchInputRef}
@@ -234,20 +275,23 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
                   autoCapitalize="none"
                   clearButtonMode="while-editing"
                   blurOnSubmit
+                  onFocus={reportSearchFocusLayout}
                 />
               </View>
             ) : null}
             <ScrollView
               nestedScrollEnabled={true}
               keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="none"
               showsVerticalScrollIndicator={true}
               style={[
                 styles.menuScroll,
                 searchable &&
                   keyboardHeight > 0 && {
+                    // Leave room for search bar + keyboard on short iPhones.
                     maxHeight: Math.max(
-                      100,
-                      220 - Math.min(keyboardHeight * 0.35, 100),
+                      88,
+                      200 - Math.min(keyboardHeight * 0.45, 140),
                     ),
                   },
               ]}
@@ -345,8 +389,10 @@ const styles = StyleSheet.create({
   triggerContent: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
     flex: 1,
     gap: 8,
+    height: "100%",
   },
   triggerIconWrapper: {
     alignItems: "center",
@@ -357,11 +403,34 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.semiBold,
     fontSize: 12,
     flex: 1,
+    // iOS + emoji flags sit high/low without an explicit line box.
+    ...Platform.select({
+      ios: {
+        lineHeight: 18,
+        paddingTop: 1,
+      },
+      android: {
+        textAlignVertical: "center" as const,
+        includeFontPadding: false,
+      },
+      default: {},
+    }),
   },
   placeholderText: {
     color: Colors.light.icon,
     fontFamily: fonts.primary.semiBold,
     fontSize: 12,
+    ...Platform.select({
+      ios: {
+        lineHeight: 18,
+        paddingTop: 1,
+      },
+      android: {
+        textAlignVertical: "center" as const,
+        includeFontPadding: false,
+      },
+      default: {},
+    }),
   },
   optionIcon: {
     fontSize: 14,
@@ -410,7 +479,18 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.medium,
     fontSize: 13,
     paddingVertical: 0,
+    margin: 0,
     backgroundColor: "transparent",
+    ...Platform.select({
+      ios: {
+        lineHeight: 18,
+      },
+      android: {
+        textAlignVertical: "center" as const,
+        includeFontPadding: false,
+      },
+      default: {},
+    }),
   },
   emptySearchText: {
     color: Colors.light.grey,

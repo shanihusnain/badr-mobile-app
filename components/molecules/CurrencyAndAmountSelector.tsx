@@ -1,5 +1,5 @@
 import { Colors } from "@/constants/theme";
-import { StyleSheet, View } from "react-native";
+import { Platform, StyleSheet, View } from "react-native";
 import { useMemo, useState } from "react";
 import CustomDropdown from "../atoms/CustomDropdown";
 import WarningModal from "../atoms/WarningModal";
@@ -7,6 +7,7 @@ import { fonts } from "@/assets/fonts";
 import { setDefaultSadaqahCurrency } from "@/src/storage/sadaqahCurrencyStorage";
 import { useTranslation } from "react-i18next";
 import { useGetCurrencies } from "@/src/api/queries/useGetCountries";
+import { ms } from "@/src/utils/responsive";
 
 /** Offline / API-failure fallback — keep previous sadaqah shortlist. */
 export const SADAQAH_CURRENCY_OPTIONS = [
@@ -59,6 +60,11 @@ export const SADAQAH_CURRENCY_OPTIONS = [
   },
 ] as const;
 
+/** Figma closed trigger: flag + code + name — no trailing "(symbol)". */
+export function formatSelectedCurrencyLabel(label: string): string {
+  return label.replace(/\s*\([^)]*\)\s*$/u, "").trim();
+}
+
 /** Map ISO code (e.g. "SAR") to the dropdown option value string. */
 export function currencyOptionFromCode(
   code: string | null | undefined,
@@ -81,11 +87,13 @@ export const CurrencyAndAmountSelector = ({
   control,
   name,
   onSetAsDefaultCurrency,
+  onInputFocus,
 }: {
   control: any;
   name: string;
   /** Called when user confirms using this currency as default for all sadaqah goals. */
   onSetAsDefaultCurrency?: (currencyOptionValue: string) => void;
+  onInputFocus?: (layout?: { windowY: number; inputHeight: number }) => void;
 }) => {
   const { t } = useTranslation();
   const { data: apiCurrencies } = useGetCurrencies();
@@ -144,6 +152,8 @@ export const CurrencyAndAmountSelector = ({
           searchable
           searchPlaceholder={t("monthlyGoalPlanner.currencySearchPlaceholder")}
           emptySearchText={t("monthlyGoalPlanner.currencySearchEmpty")}
+          onInputFocus={onInputFocus}
+          formatSelectedLabel={formatSelectedCurrencyLabel}
         />
       </View>
 
@@ -180,15 +190,15 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     fontFamily: fonts.primary.medium,
   },
-  /** Figma: height 32, padding 0 8 — scoped to sadaqah currency only */
+  /** Figma: Fixed height 32, padding 0 8 — selected is single-line, no symbol. */
   triggerStyle: {
-    height: 36,
-    paddingHorizontal: 8,
+    height: ms(32),
+    paddingHorizontal: ms(8),
     marginTop: 0,
     justifyContent: "space-between",
     alignItems: "center",
     alignSelf: "center",
-    paddingRight: 12,
+    paddingRight: ms(12),
     width: "96%",
     borderRadius: 4,
   },

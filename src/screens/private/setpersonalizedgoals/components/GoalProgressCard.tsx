@@ -17,10 +17,7 @@ import { ImageSource } from "expo-image";
 import { useTranslation } from "react-i18next";
 import { useCallback, useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import {
-  heightPercentageToDP,
-  widthPercentageToDP,
-} from "react-native-responsive-screen";
+import { ms } from "@/src/utils/responsive";
 
 interface GoalProgressCardProps {
   currentDay: number;
@@ -39,6 +36,10 @@ interface GoalProgressCardProps {
 }
 
 const DEFAULT_ANIMATION_MS = 18000;
+
+/** Card stays ms(420); moon fills space above the stats so bottom padding is kept. */
+const CARD_HEIGHT = 420;
+const CARD_PADDING = 16;
 
 function easeOutCubic(t: number) {
   return 1 - Math.pow(1 - t, 3);
@@ -200,6 +201,7 @@ export const GoalProgressCard = ({
   ]);
 
   const daysLeftDisplay = animate ? animatedDaysLeft : staticDaysLeft;
+  const [moonSide, setMoonSide] = useState(ms(320));
 
   return (
     <View style={styles.card}>
@@ -211,21 +213,23 @@ export const GoalProgressCard = ({
         </Text>
       </Text>
 
-      <TopSpace top={20} />
+      <TopSpace top={4} />
 
-      {/* ── Image ── */}
+      {/* Moon grows into the middle only — stats + card bottom padding stay intact. */}
       <View
-        style={{
-          height: heightPercentageToDP(35),
-          width: "100%",
-          alignItems: "center",
-          justifyContent: "center",
+        style={styles.moonArea}
+        onLayout={(e) => {
+          const { width, height } = e.nativeEvent.layout;
+          const side = Math.floor(Math.min(width, height));
+          if (side > 0) setMoonSide(side);
         }}
       >
-        <MoonProgress
-          progressPercent={moonProgress}
-          onReady={animate ? handleMoonReady : undefined}
-        />
+        <View style={{ width: moonSide, height: moonSide }}>
+          <MoonProgress
+            progressPercent={moonProgress}
+            onReady={animate ? handleMoonReady : undefined}
+          />
+        </View>
       </View>
 
       {/* ── Stats row ── */}
@@ -250,8 +254,11 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: 12,
     backgroundColor: Colors.light.darkgrey,
-    padding: 16,
-    marginTop: 16,
+    height: ms(CARD_HEIGHT),
+    paddingTop: CARD_PADDING,
+    paddingHorizontal: CARD_PADDING,
+    // Keep Day / Overall Progress clear of the card edge.
+    paddingBottom: CARD_PADDING,
   },
   currentDayText: {
     color: Colors.light.white,
@@ -269,9 +276,12 @@ const styles = StyleSheet.create({
     opacity: 0.8,
     letterSpacing: 0.5,
   },
-  image: {
-    width: widthPercentageToDP(90),
-    height: heightPercentageToDP(30),
+  moonArea: {
+    flex: 1,
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "flex-start",
+    overflow: "hidden",
   },
   statsRow: {
     justifyContent: "space-between",

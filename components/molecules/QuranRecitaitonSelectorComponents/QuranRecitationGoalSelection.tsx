@@ -12,7 +12,6 @@ import { useTranslation } from "react-i18next";
 import { globalStyles } from "@/src/globalstyles/globalstyles";
 import { useGetQuranGoalByType } from "@/src/api/queries/useGetQuranGoalByType";
 import { useDeleteQuranGoalSingleMetric } from "@/src/api/mutations/useDeleteQuranGoalSingleMetric";
-import { useBulkUpsertQuranGoals } from "@/src/api/mutations/useUpsertQuranGoal";
 import {
   findApiGoalForMetric,
   getCompletionFromDetail,
@@ -259,8 +258,6 @@ export const QuranRecitationGoalSelection = ({
 
   const { mutateAsync: deleteGoalItem, isPending: isDeletingItem } =
     useDeleteQuranGoalSingleMetric();
-  const { mutateAsync: bulkUpsertQuranGoals, isPending: isClearingCompletion } =
-    useBulkUpsertQuranGoals();
 
   const handleDeleteSavedItem = useCallback(
     async (args: {
@@ -270,20 +267,11 @@ export const QuranRecitationGoalSelection = ({
     }) => {
       if (!quranGoalType) return;
 
-      // Completion is a goal-level completionTarget — not a SURAH/JUZ/HIZB item.
-      // DELETE ?itemType=COMPLETION returns 400 Invalid itemType.
+      // Juz/Surah/Hizb: DELETE .../:type?itemType=&itemNumber=
+      // Completion: no QuranItemType.COMPLETION — DELETE whole goal
+      //   DELETE .../quran-goals/RECITATION_COMPLETION
       if (args.itemType === "COMPLETION") {
-        await bulkUpsertQuranGoals({
-          goals: [
-            {
-              quranGoalType,
-              isActive: true,
-              frequency: "MONTHLY",
-              completionTarget: 0,
-              items: [],
-            },
-          ],
-        });
+        await deleteGoalItem({ quranGoalType });
       } else {
         await deleteGoalItem({
           quranGoalType,
@@ -381,7 +369,7 @@ export const QuranRecitationGoalSelection = ({
       // Refresh initialSelected* memos that read savedSnapshotsRef.
       setMarkCleanNonce((n) => n + 1);
     },
-    [bulkUpsertQuranGoals, deleteGoalItem, onMetricsChange, quranGoalType],
+    [deleteGoalItem, onMetricsChange, quranGoalType],
   );
 
   const handleMetricsChange = useCallback(
@@ -815,9 +803,7 @@ export const QuranRecitationGoalSelection = ({
                   onDeleteSavedItem={
                     isActiveMetric ? handleDeleteSavedItem : undefined
                   }
-                  isDeletingItem={
-                    isActiveMetric && (isDeletingItem || isClearingCompletion)
-                  }
+                  isDeletingItem={isActiveMetric && isDeletingItem}
                   markCleanNonce={isActiveMetric ? markCleanNonce : 0}
                   onNestedScrollActiveChange={
                     isActiveMetric ? onNestedScrollActiveChange : undefined

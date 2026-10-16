@@ -1,9 +1,13 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Text, TextStyle, View } from "react-native";
 import { fonts } from "../assets/fonts";
 import { Colors } from "../constants/theme";
 import BackButton from "./atoms/Backbutton";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  getFigmaForcedSmallCapsTextStyle,
+  prepareFigmaForcedSmallCapsText,
+} from "@/src/utils/figmaTypography";
 
 interface HeaderProps {
   title: string;
@@ -14,6 +18,11 @@ interface HeaderProps {
   fontSize?: number;
   textAlign?: TextStyle["textAlign"];
   lineHeight?: number;
+  /**
+   * Figma “Forced small caps” — uniform short small-cap height for every letter
+   * via `getFigmaForcedSmallCapsTextStyle` + lowercased display text.
+   */
+  forceSmallCaps?: boolean;
   /** Extra space below the safe-area inset (screen-specific tweaks). */
   extraTopPadding?: number;
   /** Extra space under the title row before screen content (screen-specific). */
@@ -31,11 +40,45 @@ const Header: React.FC<HeaderProps> = ({
   fontSize,
   textAlign,
   lineHeight,
+  forceSmallCaps = false,
   extraTopPadding = 0,
   extraBottomPadding = 0,
 }) => {
   const insets = useSafeAreaInsets();
   const showSideSlots = showBackBtn;
+  const resolvedFontSize = fontSize ?? 14;
+  const resolvedLineHeight = lineHeight ?? 18;
+
+  const displayTitle = useMemo(
+    () => (forceSmallCaps ? prepareFigmaForcedSmallCapsText(title) : title),
+    [forceSmallCaps, title],
+  );
+
+  const titleStyle: TextStyle = forceSmallCaps
+    ? {
+        flex: 1,
+        // Don't compress the line — flex-shrink made glyphs feel stretched vs Figma.
+        flexShrink: 0,
+        marginHorizontal: showSideSlots ? 8 : 0,
+        ...getFigmaForcedSmallCapsTextStyle({
+          fontSize: resolvedFontSize,
+          lineHeight: resolvedLineHeight,
+          color: Colors.light.white,
+          textAlign: textAlign ?? "center",
+        }),
+      }
+    : {
+        flex: 1,
+        flexShrink: 1,
+        marginHorizontal: showSideSlots ? 8 : 0,
+        color: Colors.light.white,
+        fontFamily: fonts.primary.semiBold,
+        fontWeight: "600",
+        fontSize: resolvedFontSize,
+        textAlign: textAlign ?? "center",
+        lineHeight: resolvedLineHeight,
+        letterSpacing: 0,
+      };
 
   return (
     <View
@@ -61,21 +104,11 @@ const Header: React.FC<HeaderProps> = ({
       {title ? (
         <Text
           numberOfLines={2}
-          adjustsFontSizeToFit
+          adjustsFontSizeToFit={!forceSmallCaps}
           minimumFontScale={0.75}
-          style={{
-            flex: 1,
-            flexShrink: 1,
-            marginHorizontal: showSideSlots ? 8 : 0,
-            color: Colors.light.white,
-            fontFamily: fonts.primary.semiBold,
-            fontWeight: "600",
-            fontSize: fontSize ?? 14,
-            textAlign: textAlign ?? "center",
-            lineHeight: lineHeight ?? 18,
-          }}
+          style={titleStyle}
         >
-          {title}
+          {displayTitle}
         </Text>
       ) : (
         <View style={{ flex: 1 }} />

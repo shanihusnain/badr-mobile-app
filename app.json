@@ -19,6 +19,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.zielglobal.badr",
+      "buildNumber": "10",
       "infoPlist": {
         "CFBundleLocalizations": ["en", "ar", "en", "ar"],
         "ITSAppUsesNonExemptEncryption": false
@@ -82,7 +83,15 @@
       ],
       "expo-video",
       "expo-secure-store",
-      "expo-updates"
+      "expo-updates",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "enableSceneSupport": true
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
