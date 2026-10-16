@@ -1,21 +1,21 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
-import { ms } from "@/src/utils/responsive";
+import { fs, ms } from "@/src/utils/responsive";
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
   heading: {
     color: Colors.light.white,
     fontWeight: "600",
-    fontSize: 16,
+    fontSize: fs(16),
     fontFamily: fonts.primary.semiBold,
   },
   subheading: {
     color: Colors.light.white,
     fontWeight: "400",
-    fontSize: 14,
+    fontSize: fs(14),
     fontFamily: fonts.primary.regular,
-    lineHeight: 20,
+    lineHeight: fs(20),
   },
   stepsList: {
     marginTop: ms(32),
@@ -55,7 +55,7 @@ export const styles = StyleSheet.create({
   },
   categoryText: {
     color: Colors.light.dullWhite,
-    fontSize: 12,
+    fontSize: fs(12),
     fontWeight: "400",
     fontFamily: fonts.primary.regular,
   },
@@ -63,13 +63,13 @@ export const styles = StyleSheet.create({
     color: Colors.light.dullWhite,
     fontWeight: "500",
     fontFamily: fonts.primary.medium,
-    fontSize: 14,
+    fontSize: fs(14),
     letterSpacing: 0.1,
   },
   stepsHeading: {
     color: Colors.light.white,
-    fontSize: 14,
+    fontSize: fs(14),
     fontFamily: fonts.primary.regular,
-    lineHeight: 20,
+    lineHeight: fs(20),
   },
 });

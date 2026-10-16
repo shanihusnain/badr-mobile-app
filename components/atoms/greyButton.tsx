@@ -1,5 +1,6 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
+import { fs } from "@/src/utils/responsive";
 import React from "react";
 import { Pressable, PressableProps, StyleSheet, Text } from "react-native";
 
@@ -50,7 +51,7 @@ const styles = StyleSheet.create({
     color: Colors.light.inputBackground,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
-    fontSize: 14,
-    lineHeight: 18,
+    fontSize: fs(14),
+    lineHeight: fs(18),
   },
 });

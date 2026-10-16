@@ -10,6 +10,7 @@ import { Feather } from "@expo/vector-icons";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import type { JournalAnswerValue } from "../types";
+import { fs } from "@/src/utils/responsive";
 
 type JournalQuestionRowProps = {
   questionId: string;
@@ -106,8 +107,8 @@ const styles = StyleSheet.create({
     minWidth: 0,
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: fs(14),
+    lineHeight: fs(20),
   },
   actions: {
     flexDirection: "row",

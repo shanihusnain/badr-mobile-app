@@ -9,6 +9,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { useEffect } from "react";
+import { fs } from "@/src/utils/responsive";
 
 type LeaderboardToggleRowProps = {
   label: string;
@@ -87,7 +88,7 @@ const styles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
-    fontSize: 13,
+    fontSize: fs(13),
     textTransform: "uppercase",
   },
   switchHitArea: {

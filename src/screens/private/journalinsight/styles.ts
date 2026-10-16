@@ -1,6 +1,7 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
 import { StyleSheet } from "react-native";
+import { fs } from "@/src/utils/responsive";
 
 export const journalInsightStyles = StyleSheet.create({
   scrollContent: {
@@ -24,35 +25,35 @@ export const journalInsightStyles = StyleSheet.create({
     gap: 2,
   },
   summaryBehaviorCount: {
-    fontSize: 10,
+    fontSize: fs(10),
     fontWeight: "500",
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
     textAlign: "center",
   },
   summaryPercent: {
-    fontSize: 28,
+    fontSize: fs(28),
     fontWeight: "700",
     color: Colors.light.white,
     fontFamily: fonts.primary.bold,
-    lineHeight: 32,
+    lineHeight: fs(32),
   },
   summaryHeader: {
-    fontSize: 16,
+    fontSize: fs(16),
     fontWeight: "600",
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
     textAlign: "center",
-    lineHeight: 24,
+    lineHeight: fs(24),
     marginBottom: 8,
   },
   summaryDescription: {
-    fontSize: 14,
+    fontSize: fs(14),
     fontWeight: "400",
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
     textAlign: "center",
-    lineHeight: 21,
+    lineHeight: fs(21),
     opacity: 0.85,
   },
   behaviorCard: {
@@ -68,18 +69,18 @@ export const journalInsightStyles = StyleSheet.create({
     marginTop: 6,
   },
   behaviorName: {
-    fontSize: 14,
+    fontSize: fs(14),
     fontWeight: "600",
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    lineHeight: 21,
+    lineHeight: fs(21),
   },
   behaviorDescription: {
-    fontSize: 13,
+    fontSize: fs(13),
     fontWeight: "400",
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    lineHeight: 20,
+    lineHeight: fs(20),
     opacity: 0.85,
     marginTop: 6,
   },
@@ -117,13 +118,13 @@ export const journalInsightStyles = StyleSheet.create({
     backgroundColor: "transparent",
   },
   weekDayLabel: {
-    fontSize: 10,
+    fontSize: fs(10),
     fontWeight: "500",
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
   },
   weekDayDate: {
-    fontSize: 10,
+    fontSize: fs(10),
     fontWeight: "400",
     color: Colors.light.grey,
     fontFamily: fonts.primary.regular,
@@ -134,7 +135,7 @@ export const journalInsightStyles = StyleSheet.create({
     justifyContent: "center",
   },
   periodCountText: {
-    fontSize: 10,
+    fontSize: fs(10),
     fontWeight: "600",
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,

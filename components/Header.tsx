@@ -8,6 +8,7 @@ import {
   getFigmaForcedSmallCapsTextStyle,
   prepareFigmaForcedSmallCapsText,
 } from "@/src/utils/figmaTypography";
+import { fs } from "@/src/utils/responsive";
 
 interface HeaderProps {
   title: string;
@@ -46,8 +47,8 @@ const Header: React.FC<HeaderProps> = ({
 }) => {
   const insets = useSafeAreaInsets();
   const showSideSlots = showBackBtn;
-  const resolvedFontSize = fontSize ?? 14;
-  const resolvedLineHeight = lineHeight ?? 18;
+  const resolvedFontSize = fontSize ?? fs(14);
+  const resolvedLineHeight = lineHeight ?? fs(18);
 
   const displayTitle = useMemo(
     () => (forceSmallCaps ? prepareFigmaForcedSmallCapsText(title) : title),

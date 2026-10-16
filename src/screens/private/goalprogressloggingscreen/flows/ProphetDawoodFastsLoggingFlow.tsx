@@ -37,6 +37,7 @@ import {
 import { getTodayDateString } from "../whiteDaysFastsData";
 import type { ProphetDawoodFastsLogEntry } from "../types";
 import { usePrefillFastingTimesFromApi } from "../hooks/usePrefillFastingTimesFromApi";
+import { fs } from "@/src/utils/responsive";
 
 type ProphetDawoodFastsStepId = "selectPlannedFast" | "startTime" | "endTime";
 const STEPS: ProphetDawoodFastsStepId[] = [
@@ -533,9 +534,9 @@ const localStyles = StyleSheet.create({
   },
   badgeText: {
     fontFamily: fonts.primary.medium,
-    fontSize: 12,
+    fontSize: fs(12),
     fontWeight: "500",
-    lineHeight: 12.5,
+    lineHeight: fs(12.5),
   },
   badgeTextNotStarted: {
     color: Colors.light.notStartedTextColor,
@@ -568,9 +569,9 @@ const localStyles = StyleSheet.create({
   summaryTitle: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 14,
+    fontSize: fs(14),
     fontWeight: "600",
-    lineHeight: 18,
+    lineHeight: fs(18),
     letterSpacing: 0,
   },
   footerRow: {

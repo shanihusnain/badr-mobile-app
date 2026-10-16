@@ -1,6 +1,7 @@
 import { fonts } from "@/assets/fonts";
 import { CreateAccountCalenderIcon } from "@/assets/icons";
 import { Colors } from "@/constants/theme";
+import { fs } from "@/src/utils/responsive";
 import React, { useState } from "react";
 import { Controller } from "react-hook-form";
 import {
@@ -157,7 +158,7 @@ const styles = StyleSheet.create({
   label: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 12,
+    fontSize: fs(12),
     marginTop: hp(2),
     alignSelf: "flex-start",
   },
@@ -175,11 +176,11 @@ const styles = StyleSheet.create({
   text: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 12,
+    fontSize: fs(12),
     flex: 1,
   },
   calendarIcon: {
-    fontSize: 16,
+    fontSize: fs(16),
   },
   webWrapper: {
     width: "100%",
@@ -187,7 +188,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: "red",
-    fontSize: 12,
+    fontSize: fs(12),
   },
 });
 

@@ -1,6 +1,7 @@
 import { StyleSheet } from "react-native";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
+import { fs } from "@/src/utils/responsive";
 
 export const journalAppSettingStyles = StyleSheet.create({
     safeArea: {
@@ -35,7 +36,7 @@ export const journalAppSettingStyles = StyleSheet.create({
     headerTitle: {
         color: Colors.light.white,
         fontFamily: fonts.primary.semiBold,
-        fontSize: 14,
+        fontSize: fs(14),
         letterSpacing: 1,
         textTransform: "uppercase",
     },
@@ -53,15 +54,15 @@ export const journalAppSettingStyles = StyleSheet.create({
     sectionTitle: {
         color: Colors.light.white,
         fontFamily: fonts.primary.semiBold,
-        fontSize: 13,
+        fontSize: fs(13),
         letterSpacing: 0.5,
         textTransform: "uppercase",
     },
     descriptionText: {
         color: Colors.light.dullWhite,
         fontFamily: fonts.primary.regular,
-        fontSize: 14,
-        lineHeight: 20,
+        fontSize: fs(14),
+        lineHeight: fs(20),
         marginBottom: 24,
     },
     boldText: {
@@ -81,7 +82,7 @@ export const journalAppSettingStyles = StyleSheet.create({
     customizeText: {
         color: Colors.light.white,
         fontFamily: fonts.primary.semiBold,
-        fontSize: 12,
+        fontSize: fs(12),
         letterSpacing: 0.5,
         textTransform: "uppercase",
     },

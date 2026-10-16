@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, TextInput, StyleSheet } from "react-native";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
+import { fs } from "@/src/utils/responsive";
 
 interface CounterStepProps {
   label: string;
@@ -62,7 +63,7 @@ const styles = StyleSheet.create({
   input: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 14,
+    fontSize: fs(14),
     padding: 0,
     textAlign: "center",
     width: "100%",
@@ -70,7 +71,7 @@ const styles = StyleSheet.create({
   unitText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: 14,
+    fontSize: fs(14),
     fontWeight: "400",
     letterSpacing: 0.1,
   },

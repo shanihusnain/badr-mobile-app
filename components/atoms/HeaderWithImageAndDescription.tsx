@@ -8,6 +8,7 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { StyleSheet, Text, View } from "react-native";
 import Header from "../Header";
+import { fs } from "@/src/utils/responsive";
 
 type Props = {
   /** Small title shown in the top nav bar (e.g. "TAHIYYAT AL-WUDHU") */
@@ -77,17 +78,17 @@ const styles = StyleSheet.create({
   },
   heroTitle: {
     color: Colors.light.white,
-    fontSize: 18,
+    fontSize: fs(18),
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
-    lineHeight: 22,
+    lineHeight: fs(22),
     marginBottom: 14,
   },
   description: {
     color: "rgba(255, 255, 255, 0.7)",
-    fontSize: 14,
+    fontSize: fs(14),
     fontFamily: fonts.primary.medium,
-    lineHeight: 20,
+    lineHeight: fs(20),
     fontWeight: "500",
     letterSpacing: 0.1,
   },

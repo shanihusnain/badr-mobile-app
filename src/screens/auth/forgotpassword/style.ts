@@ -1,5 +1,6 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
+import { fs } from "@/src/utils/responsive";
 import { StyleSheet } from "react-native";
 import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 
@@ -50,8 +51,8 @@ export const styles = StyleSheet.create({
   messageText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: fs(14),
+    lineHeight: fs(20),
     textAlign: "left",
     letterSpacing: 0.1,
   },
@@ -65,8 +66,8 @@ export const styles = StyleSheet.create({
   emailInput: {
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: fs(14),
+    lineHeight: fs(20),
     letterSpacing: 0.1,
   },
 

@@ -1,6 +1,7 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
 import { StyleSheet } from "react-native";
+import { fs } from "@/src/utils/responsive";
 
 export const behaviorDetailStyles = StyleSheet.create({
   screen: {
@@ -40,10 +41,10 @@ export const behaviorDetailStyles = StyleSheet.create({
   },
   heroTitle: {
     color: Colors.light.white,
-    fontSize: 18,
+    fontSize: fs(18),
     fontWeight: "500",
     fontFamily: fonts.primary.semiBold,
-    lineHeight: 22,
+    lineHeight: fs(22),
   },
   heroRingContainer: {
     position: "absolute",
@@ -55,17 +56,17 @@ export const behaviorDetailStyles = StyleSheet.create({
   },
   heroRingCount: {
     color: Colors.light.white,
-    fontSize: 34,
+    fontSize: fs(34),
     fontWeight: "400",
     fontFamily: fonts.primary.regular,
-    lineHeight: 38,
+    lineHeight: fs(38),
   },
   summaryText: {
-    fontSize: 14,
+    fontSize: fs(14),
     fontWeight: "400",
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    lineHeight: 21,
+    lineHeight: fs(21),
     opacity: 0.9,
     marginTop: 20,
   },
@@ -103,13 +104,13 @@ export const behaviorDetailStyles = StyleSheet.create({
     backgroundColor: "transparent",
   },
   weekDayLabel: {
-    fontSize: 10,
+    fontSize: fs(10),
     fontWeight: "500",
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
   },
   weekDayDate: {
-    fontSize: 10,
+    fontSize: fs(10),
     fontWeight: "400",
     color: Colors.light.grey,
     fontFamily: fonts.primary.regular,
@@ -128,7 +129,7 @@ export const behaviorDetailStyles = StyleSheet.create({
     paddingBottom: 2,
   },
   chartYAxisLabel: {
-    fontSize: 10,
+    fontSize: fs(10),
     fontWeight: "400",
     color: Colors.light.grey,
     fontFamily: fonts.primary.regular,
@@ -174,12 +175,12 @@ export const behaviorDetailStyles = StyleSheet.create({
     alignItems: "center",
   },
   chartXAxisLabel: {
-    fontSize: 10,
+    fontSize: fs(10),
     fontWeight: "400",
     color: Colors.light.grey,
     fontFamily: fonts.primary.regular,
     textAlign: "center",
-    lineHeight: 13,
+    lineHeight: fs(13),
   },
   streakCard: {
     backgroundColor: Colors.light.darkgrey,
@@ -200,13 +201,13 @@ export const behaviorDetailStyles = StyleSheet.create({
     justifyContent: "center",
   },
   streakCount: {
-    fontSize: 16,
+    fontSize: fs(16),
     fontWeight: "700",
     color: Colors.light.white,
     fontFamily: fonts.primary.bold,
   },
   streakLabel: {
-    fontSize: 10,
+    fontSize: fs(10),
     fontWeight: "600",
     color: Colors.light.subtext,
     fontFamily: fonts.primary.semiBold,
@@ -215,7 +216,7 @@ export const behaviorDetailStyles = StyleSheet.create({
     textAlign: "center",
   },
   streakDate: {
-    fontSize: 11,
+    fontSize: fs(11),
     fontWeight: "500",
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
@@ -228,19 +229,19 @@ export const behaviorDetailStyles = StyleSheet.create({
     marginTop: 16,
   },
   sectionTitle: {
-    fontSize: 14,
+    fontSize: fs(14),
     fontWeight: "600",
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    lineHeight: 21,
+    lineHeight: fs(21),
     marginBottom: 10,
   },
   sectionBody: {
-    fontSize: 14,
+    fontSize: fs(14),
     fontWeight: "400",
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    lineHeight: 21,
+    lineHeight: fs(21),
     opacity: 0.9,
   },
   quoteBlock: {
@@ -254,20 +255,20 @@ export const behaviorDetailStyles = StyleSheet.create({
     gap: 4,
   },
   quoteText: {
-    fontSize: 13,
+    fontSize: fs(13),
     fontWeight: "400",
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    lineHeight: 20,
+    lineHeight: fs(20),
     fontStyle: "italic",
     opacity: 0.9,
   },
   quoteSource: {
-    fontSize: 12,
+    fontSize: fs(12),
     fontWeight: "500",
     color: Colors.light.subtext,
     fontFamily: fonts.primary.medium,
-    lineHeight: 18,
+    lineHeight: fs(18),
   },
   recommendationList: {
     marginTop: 12,
@@ -280,25 +281,25 @@ export const behaviorDetailStyles = StyleSheet.create({
   },
   recommendationBullet: {
     color: Colors.light.white,
-    fontSize: 10,
-    lineHeight: 20,
+    fontSize: fs(10),
+    lineHeight: fs(20),
     marginTop: 1,
   },
   recommendationText: {
     flex: 1,
-    fontSize: 14,
+    fontSize: fs(14),
     fontWeight: "400",
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    lineHeight: 21,
+    lineHeight: fs(21),
     opacity: 0.9,
   },
   closingText: {
-    fontSize: 14,
+    fontSize: fs(14),
     fontWeight: "400",
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    lineHeight: 21,
+    lineHeight: fs(21),
     opacity: 0.9,
     marginTop: 14,
   },

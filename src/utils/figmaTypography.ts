@@ -1,5 +1,6 @@
 import { Platform, type TextStyle } from "react-native";
 import { fonts } from "@/assets/fonts";
+import { fs } from "@/src/utils/responsive";
 
 /**
  * Figma “Forced small caps” for SF Pro Text.
@@ -42,8 +43,8 @@ export function getFigmaForcedSmallCapsTextStyle(
   options: FigmaForcedSmallCapsOptions = {},
 ): TextStyle {
   const {
-    fontSize = 18,
-    lineHeight = 22,
+    fontSize = fs(18),
+    lineHeight = fs(22),
     letterSpacing = 0.4,
     color,
     textAlign,

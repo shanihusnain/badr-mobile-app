@@ -1,6 +1,7 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
 import { StyleSheet } from "react-native";
+import { fs } from "@/src/utils/responsive";
 
 /**
  * Shared vertical rhythm for EVERY logging goal screen
@@ -34,7 +35,7 @@ export const styles = StyleSheet.create({
   },
   emptyStateText: {
     color: Colors.light.subtext,
-    fontSize: 14,
+    fontSize: fs(14),
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
   },
@@ -97,7 +98,7 @@ export const styles = StyleSheet.create({
   loadingDashText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: 16,
+    fontSize: fs(16),
     fontWeight: "400",
     opacity: 0.4,
   },
@@ -116,7 +117,7 @@ export const styles = StyleSheet.create({
   circleGoalText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
-    fontSize: 12,
+    fontSize: fs(12),
     opacity: 0.95,
     letterSpacing: -0.2,
     marginBottom: 0,
@@ -132,18 +133,18 @@ export const styles = StyleSheet.create({
   circlePercentNumber: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: 28,
+    fontSize: fs(30),
     fontWeight: "700",
-    lineHeight: 32,
+    lineHeight: fs(34),
   },
   circlePercentSymbol: {
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
-    fontSize: 11,
+    fontSize: fs(12),
     fontWeight: "500",
     marginLeft: 1,
     marginBottom: 3,
-    lineHeight: 15,
+    lineHeight: fs(16),
   },
   weeklyDashboardWrapper: {
     width: "92%",

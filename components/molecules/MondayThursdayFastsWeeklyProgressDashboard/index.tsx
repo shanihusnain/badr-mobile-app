@@ -5,16 +5,11 @@ import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import { FastingDashboardIcon } from "@/assets/icons/FastingDashboardIcon";
 import {
-  SinglePrayerWeeklyProgressDashboard,
-  type SinglePrayerDayProgress,
-  type SinglePrayerDayRingRenderArgs,
-} from "@/components/molecules/SinglePrayerWeeklyProgressDashboard";
-import type {
-  MondayThursdayFastDayProgress,
-  MondayThursdayFastWeekSummary,
-} from "@/src/screens/private/goalprogressloggingscreen/mondayThursdayFastsWeeklyData";
-import { MondayThursdayFastDayRing } from "./MondayThursdayFastDayRing";
-import { useDeleteFastingLog } from "@/src/api/mutations/useDeleteFastingLog";
+  getDayLabelTextStyle,
+  mondayThursdayDayLabelStyles,
+  shouldShowTodayLabelBackground,
+} from "./mondayThursdayFastDayStyles";
+import { fs } from "@/src/utils/responsive";
 
 export type MondayThursdayFastsWeeklyProgressDashboardProps = {
   weekSummary: MondayThursdayFastWeekSummary;
@@ -195,6 +190,106 @@ export function MondayThursdayFastsWeeklyProgressDashboard({
 }
 
 const styles = StyleSheet.create({
+  card: {
+    borderRadius: 14,
+    backgroundColor: Colors.light.greybuttonBackground,
+    paddingHorizontal: 8,
+    paddingVertical: 20,
+    gap: 16,
+  },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
+  },
+  headerLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    flexShrink: 2,
+  },
+
+  weekFractionText: {
+    color: Colors.light.white,
+    fontSize: fs(13),
+    fontWeight: "600",
+    fontFamily: fonts.primary.semiBold,
+  },
+  headerNav: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 2,
+    flexShrink: 0,
+  },
+  navBtn: {
+    padding: 2,
+  },
+  weekRangeText: {
+    color: Colors.light.white,
+    fontSize: fs(14),
+    fontWeight: "500",
+    fontFamily: fonts.primary.medium,
+    textAlign: "center",
+  },
+  daysRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    paddingBottom: 10,
+  },
+  dayColumn: {
+    flex: 1,
+    alignItems: "center",
+    minWidth: 0,
+    borderWidth: 1,
+    borderColor: "transparent",
+    borderRadius: 6,
+    paddingBottom: 4,
+  },
+  dayColumnMarkedForDeletion: {
+    zIndex: 99999,
+  },
+  dayColumnBlurred: {
+    opacity: 0.35,
+  },
+  dayItemWrapper: {
+    alignItems: "center",
+    paddingVertical: 2,
+    paddingHorizontal: 1,
+    minWidth: 0,
+  },
+  /** Figma today / delete chip — wraps ring + day label (must contrast card bg) */
+  dayItemTodayChip: {
+    backgroundColor: Colors.light.dayProgressCardBg,
+    borderRadius: 6,
+    paddingHorizontal: 4,
+    paddingTop: 4,
+    paddingBottom: 2,
+  },
+  /** #16 / #17 — thin red border when marked for delete */
+  dayItemDeleteBorder: {
+    borderWidth: 1,
+    borderColor: Colors.light.red,
+    borderRadius: 6,
+  },
+  /** #16 — padding when delete border has no today chip */
+  dayItemDeletePadding: {
+    paddingHorizontal: 4,
+    paddingTop: 4,
+    paddingBottom: 2,
+  },
+  deleteButton: {
+    height: 20,
+    width: 24,
+    backgroundColor: Colors.light.red,
+    borderRadius: 5,
+    zIndex: 1000,
+    alignSelf: "center",
+    justifyContent: "center",
+    alignItems: "center",
+    position: "absolute",
+    bottom: -10,
+  },
   statsRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -205,7 +300,7 @@ const styles = StyleSheet.create({
   },
   statsText: {
     color: Colors.light.white,
-    fontSize: 13,
+    fontSize: fs(14),
     fontFamily: fonts.primary.medium,
     flexShrink: 1,
     fontWeight: "500",
@@ -213,9 +308,47 @@ const styles = StyleSheet.create({
   },
   statsCount: {
     color: Colors.light.white,
-    fontWeight: "600",
-    fontSize: 20,
+    fontWeight: "700",
+    fontSize: fs(22),
     fontFamily: fonts.primary.bold,
-    letterSpacing: 0.1,
+  },
+  footerRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 12,
+    flexWrap: "wrap",
+  },
+  streakBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    flexShrink: 0,
+  },
+  streakText: {
+    color: Colors.light.seagreen,
+    fontSize: fs(13),
+    fontWeight: "500",
+    fontFamily: fonts.primary.medium,
+  },
+  previousWeekText: {
+    color: Colors.light.white,
+    fontSize: fs(13),
+    fontWeight: "500",
+    fontFamily: fonts.primary.medium,
+  },
+  quoteBlock: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 4,
+    minWidth: 120,
+  },
+  quoteText: {
+    flex: 1,
+    color: Colors.light.subtext,
+    fontSize: fs(13),
+    lineHeight: fs(16),
+    fontFamily: fonts.primary.regular,
+    fontWeight: "400",
   },
 });

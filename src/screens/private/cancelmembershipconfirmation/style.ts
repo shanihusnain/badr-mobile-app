@@ -1,6 +1,7 @@
 import { StyleSheet } from "react-native";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
+import { fs } from "@/src/utils/responsive";
 
 export const cancelConfirmationStyles = StyleSheet.create({
   safeArea: {
@@ -16,10 +17,10 @@ export const cancelConfirmationStyles = StyleSheet.create({
   title: {
     color: Colors.light.white,
     fontFamily: fonts.primary.bold,
-    fontSize: 16,
+    fontSize: fs(16),
     textAlign: "center",
     textTransform: "uppercase",
-    lineHeight: 24,
+    lineHeight: fs(24),
     marginBottom: 60,
     letterSpacing: 0.5,
   },
@@ -35,17 +36,17 @@ export const cancelConfirmationStyles = StyleSheet.create({
   description: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: 14,
+    fontSize: fs(14),
     textAlign: "center",
-    lineHeight: 22,
+    lineHeight: fs(22),
     marginBottom: 32,
   },
   subDescription: {
     color: Colors.light.dullWhite,
     fontFamily: fonts.primary.regular,
-    fontSize: 13,
+    fontSize: fs(13),
     textAlign: "center",
-    lineHeight: 20,
+    lineHeight: fs(20),
   },
   boldText: {
     fontFamily: fonts.primary.bold,

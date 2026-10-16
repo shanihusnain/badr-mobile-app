@@ -2,6 +2,7 @@ import { StyleSheet } from "react-native";
 import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
+import { fs } from "@/src/utils/responsive";
 
 export default function createStyles() {
   return StyleSheet.create({
@@ -59,7 +60,7 @@ export default function createStyles() {
     userNameLabel: {
       color: Colors.light.grey,
       fontFamily: fonts.primary.regular,
-      fontSize: 14,
+      fontSize: fs(14),
       marginTop: hp(2),
       alignSelf: "flex-start",
       marginRight: 14,
@@ -79,13 +80,13 @@ export default function createStyles() {
     nameText: {
       color: Colors.light.green,
       fontFamily: fonts.primary.regular,
-      fontSize: 14,
+      fontSize: fs(14),
     },
 
     passwordLabel: {
       color: Colors.light.grey,
       fontFamily: fonts.primary.semiBold,
-      fontSize: 12,
+      fontSize: fs(12),
       marginTop: hp(2),
       alignSelf: "flex-start",
       //marginLeft: 16,
@@ -111,18 +112,18 @@ export default function createStyles() {
     passwordText: {
       color: Colors.light.white,
       fontFamily: fonts.primary.semiBold,
-      fontSize: 12,
+      fontSize: fs(12),
     },
 
     eyeIcon: {
-      fontSize: 16,
+      fontSize: fs(16),
       color: Colors.light.white,
     },
 
     confirmpasswordLabel: {
       color: Colors.light.white,
       fontFamily: fonts.primary.semiBold,
-      fontSize: 12,
+      fontSize: fs(12),
       marginTop: hp(2),
       alignSelf: "flex-start",
       //marginLeft: 16,
@@ -141,13 +142,13 @@ export default function createStyles() {
     confirmpasswordText: {
       color: Colors.light.white,
       fontFamily: fonts.primary.semiBold,
-      fontSize: 12,
+      fontSize: fs(12),
     },
 
     emailaddressLabel: {
       color: Colors.light.white,
       fontFamily: fonts.primary.semiBold,
-      fontSize: 12,
+      fontSize: fs(12),
       marginTop: hp(2),
       alignSelf: "flex-start",
       //marginLeft: 16,
@@ -166,13 +167,13 @@ export default function createStyles() {
     emailaddressText: {
       color: Colors.light.white,
       fontFamily: fonts.primary.semiBold,
-      fontSize: 12,
+      fontSize: fs(12),
     },
 
     genderLabel: {
       color: Colors.light.white,
       fontFamily: fonts.primary.semiBold,
-      fontSize: 12,
+      fontSize: fs(12),
       marginTop: hp(2),
       alignSelf: "flex-start",
       //marginLeft: 16,
@@ -191,7 +192,7 @@ export default function createStyles() {
     genderText: {
       color: Colors.light.white,
       fontFamily: fonts.primary.semiBold,
-      fontSize: 12,
+      fontSize: fs(12),
     },
 
     dropdown: {
@@ -212,7 +213,7 @@ export default function createStyles() {
     dropdownText: {
       color: Colors.light.white,
       fontFamily: fonts.primary.semiBold,
-      fontSize: 12,
+      fontSize: fs(12),
       marginLeft: 10,
     },
 
@@ -236,7 +237,7 @@ export default function createStyles() {
     doblabel: {
       color: Colors.light.white,
       fontFamily: fonts.primary.semiBold,
-      fontSize: 12,
+      fontSize: fs(12),
       marginTop: hp(2),
       alignSelf: "flex-start",
       //marginLeft: 16,
@@ -255,13 +256,13 @@ export default function createStyles() {
     dobText: {
       color: Colors.light.white,
       fontFamily: fonts.primary.semiBold,
-      fontSize: 12,
+      fontSize: fs(12),
     },
 
     countrylabel: {
       color: Colors.light.white,
       fontFamily: fonts.primary.semiBold,
-      fontSize: 12,
+      fontSize: fs(12),
       marginTop: hp(2),
       alignSelf: "flex-start",
       marginRight: 14,
@@ -273,13 +274,13 @@ export default function createStyles() {
     countryText: {
       color: Colors.light.white,
       fontFamily: fonts.primary.semiBold,
-      fontSize: 12,
+      fontSize: fs(12),
     },
 
     dateviewLabel: {
       color: Colors.light.white,
       fontFamily: fonts.primary.semiBold,
-      fontSize: 12,
+      fontSize: fs(12),
       marginTop: hp(2),
       alignSelf: "flex-start",
       marginRight: 14,
@@ -291,13 +292,13 @@ export default function createStyles() {
     dateviewText: {
       color: Colors.light.white,
       fontFamily: fonts.primary.semiBold,
-      fontSize: 12,
+      fontSize: fs(12),
       fontWeight: "500",
     },
 
     validationText: {
       fontFamily: fonts.primary.semiBold,
-      fontSize: 11,
+      fontSize: fs(11),
       marginVertical: 4,
       fontWeight: "500",
     },
@@ -305,7 +306,7 @@ export default function createStyles() {
     weeklabel: {
       color: Colors.light.white,
       fontFamily: fonts.primary.semiBold,
-      fontSize: 12,
+      fontSize: fs(12),
       marginTop: hp(2),
       alignSelf: "flex-start",
       marginRight: 14,
@@ -317,7 +318,7 @@ export default function createStyles() {
     weekText: {
       color: Colors.light.white,
       fontFamily: fonts.primary.semiBold,
-      fontSize: 12,
+      fontSize: fs(12),
     },
     btnWrapper: {
       width: "92%",

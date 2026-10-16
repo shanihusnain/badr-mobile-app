@@ -1,5 +1,6 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
+import { fs } from "@/src/utils/responsive";
 import React from "react";
 import {
   Pressable,
@@ -100,13 +101,13 @@ const styles = StyleSheet.create({
     color: Colors.light.background,
     fontFamily: fonts.primary.regular,
     fontWeight: "500",
-    fontSize: 14,
-    lineHeight: 18,
+    fontSize: fs(14),
+    lineHeight: fs(18),
     letterSpacing: 0,
   },
   buttonTextModal: {
-    fontSize: 13,
-    lineHeight: 16,
+    fontSize: fs(13),
+    lineHeight: fs(16),
   },
   buttonWhite: {
     borderColor: Colors.light.background,

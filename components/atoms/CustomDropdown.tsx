@@ -1,6 +1,7 @@
 import { fonts } from "@/assets/fonts";
 import { DownArrowIcon, MagnifyingGlassIcon } from "@/assets/icons";
 import { Colors } from "@/constants/theme";
+import { fs } from "@/src/utils/responsive";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Controller } from "react-hook-form";
 import {
@@ -367,7 +368,7 @@ const styles = StyleSheet.create({
   label: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 12,
+    fontSize: fs(12),
     marginTop: 0,
     alignSelf: "flex-start",
   },
@@ -401,12 +402,12 @@ const styles = StyleSheet.create({
   triggerText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 12,
+    fontSize: fs(12),
     flex: 1,
     // iOS + emoji flags sit high/low without an explicit line box.
     ...Platform.select({
       ios: {
-        lineHeight: 18,
+        lineHeight: fs(18),
         paddingTop: 1,
       },
       android: {
@@ -419,10 +420,10 @@ const styles = StyleSheet.create({
   placeholderText: {
     color: Colors.light.icon,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 12,
+    fontSize: fs(12),
     ...Platform.select({
       ios: {
-        lineHeight: 18,
+        lineHeight: fs(18),
         paddingTop: 1,
       },
       android: {
@@ -433,7 +434,7 @@ const styles = StyleSheet.create({
     }),
   },
   optionIcon: {
-    fontSize: 14,
+    fontSize: fs(14),
     marginRight: 6,
   },
   iconWrapper: {
@@ -444,7 +445,7 @@ const styles = StyleSheet.create({
   },
   icon: {
     color: Colors.light.white,
-    fontSize: 14,
+    fontSize: fs(14),
   },
   menu: {
     backgroundColor: Colors.light.calendarBg,
@@ -477,13 +478,13 @@ const styles = StyleSheet.create({
     flex: 1,
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
-    fontSize: 13,
+    fontSize: fs(13),
     paddingVertical: 0,
     margin: 0,
     backgroundColor: "transparent",
     ...Platform.select({
       ios: {
-        lineHeight: 18,
+        lineHeight: fs(18),
       },
       android: {
         textAlignVertical: "center" as const,
@@ -495,7 +496,7 @@ const styles = StyleSheet.create({
   emptySearchText: {
     color: Colors.light.grey,
     fontFamily: fonts.primary.regular,
-    fontSize: 13,
+    fontSize: fs(13),
     textAlign: "center",
     paddingVertical: 16,
     paddingHorizontal: 12,
@@ -509,7 +510,7 @@ const styles = StyleSheet.create({
   optionText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: 13,
+    fontSize: fs(13),
     marginLeft: 10,
   },
   radioOuter: {
@@ -530,7 +531,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: "red",
-    fontSize: 12,
+    fontSize: fs(12),
   },
 });
 

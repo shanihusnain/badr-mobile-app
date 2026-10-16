@@ -1,6 +1,7 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
 import { StyleSheet } from "react-native";
+import { fs } from "@/src/utils/responsive";
 
 export const planStyles = StyleSheet.create({
   tabBarRow: {
@@ -29,7 +30,7 @@ export const planStyles = StyleSheet.create({
   },
   tabLabel: {
     fontWeight: "500",
-    fontSize: 18,
+    fontSize: fs(18),
     fontFamily: fonts.primary.medium,
     color: Colors.light.grey,
   },
@@ -53,7 +54,7 @@ export const planStyles = StyleSheet.create({
   },
   goalsTitle: {
     fontWeight: "500",
-    fontSize: 18,
+    fontSize: fs(18),
     fontFamily: fonts.primary.medium,
     color: Colors.light.white,
   },
@@ -85,7 +86,7 @@ export const planStyles = StyleSheet.create({
     flex: 1,
     flexShrink: 1,
     fontWeight: "500",
-    fontSize: 14,
+    fontSize: fs(14),
     fontFamily: fonts.primary.medium,
     color: Colors.light.white,
   },
@@ -97,7 +98,7 @@ export const planStyles = StyleSheet.create({
   },
   viewProposedPlanText: {
     fontWeight: "500",
-    fontSize: 14,
+    fontSize: fs(14),
     fontFamily: fonts.primary.medium,
     color: Colors.light.green,
   },
@@ -109,7 +110,7 @@ export const planStyles = StyleSheet.create({
   sectionHeaderTitle: {
     color: Colors.light.white,
     fontWeight: "500",
-    fontSize: 16,
+    fontSize: fs(16),
     fontFamily: fonts.primary.medium,
     textTransform: "uppercase",
   },
@@ -143,13 +144,13 @@ export const planStyles = StyleSheet.create({
   },
   proposedPlanDescription: {
     fontWeight: "500",
-    fontSize: 14,
+    fontSize: fs(14),
     fontFamily: fonts.primary.medium,
     color: Colors.light.white,
-    lineHeight: 20,
+    lineHeight: fs(20),
   },
   proposedPlanDescriptionDigit: {
-    fontSize: 14,
+    fontSize: fs(14),
     fontFamily: fonts.primary.bold,
     fontWeight: "700",
     color: Colors.light.white,
@@ -162,7 +163,7 @@ export const planStyles = StyleSheet.create({
   },
   proposedPlanActionText: {
     fontWeight: "500",
-    fontSize: 14,
+    fontSize: fs(14),
     fontFamily: fonts.primary.medium,
     color: Colors.light.green,
   },
@@ -193,16 +194,16 @@ export const planStyles = StyleSheet.create({
   recordCardDuration: {
     color: Colors.light.grey,
     fontWeight: "600",
-    fontSize: 10,
+    fontSize: fs(10),
     fontFamily: fonts.primary.medium,
     textTransform: "uppercase",
-    lineHeight: 12,
+    lineHeight: fs(12),
   },
   recordCardValue: {
     fontWeight: "600",
-    fontSize: 14,
+    fontSize: fs(14),
     fontFamily: fonts.primary.medium,
-    lineHeight: 18,
+    lineHeight: fs(18),
     color: Colors.light.white,
   },
   journalBanner: {
@@ -212,7 +213,7 @@ export const planStyles = StyleSheet.create({
   },
   journalBannerDismiss: {
     fontWeight: "500",
-    fontSize: 14,
+    fontSize: fs(14),
     fontFamily: fonts.primary.medium,
     color: Colors.light.white,
     position: "absolute",
@@ -221,7 +222,7 @@ export const planStyles = StyleSheet.create({
   },
   journalBannerText: {
     fontWeight: "500",
-    fontSize: 14,
+    fontSize: fs(14),
     fontFamily: fonts.primary.medium,
     color: Colors.light.white,
   },
@@ -251,17 +252,17 @@ export const planStyles = StyleSheet.create({
   },
   achievementPercent: {
     color: Colors.light.white,
-    fontSize: 40,
+    fontSize: fs(40),
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
-    lineHeight: 44,
+    lineHeight: fs(44),
   },
   achievementPercentSymbol: {
-    fontSize: 22,
+    fontSize: fs(22),
   },
   achievementCaption: {
     color: Colors.light.subtext,
-    fontSize: 13,
+    fontSize: fs(13),
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
   },
@@ -282,7 +283,7 @@ export const planStyles = StyleSheet.create({
   },
   deltaText: {
     color: Colors.light.green,
-    fontSize: 11,
+    fontSize: fs(11),
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
   },
@@ -320,7 +321,7 @@ export const planStyles = StyleSheet.create({
   },
   periodButtonText: {
     color: Colors.light.grey,
-    fontSize: 11,
+    fontSize: fs(11),
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
     textAlign: "center",
@@ -348,7 +349,7 @@ export const planStyles = StyleSheet.create({
   },
   dateRange: {
     color: Colors.light.white,
-    fontSize: 16,
+    fontSize: fs(16),
     fontFamily: fonts.primary.semiBold,
     fontWeight: "500",
     textAlign: "center",
@@ -377,7 +378,7 @@ export const planStyles = StyleSheet.create({
   },
   journalHabitName: {
     fontWeight: "500",
-    fontSize: 14,
+    fontSize: fs(14),
     fontFamily: fonts.primary.medium,
     color: Colors.light.white,
     flex: 1,
@@ -389,7 +390,7 @@ export const planStyles = StyleSheet.create({
   },
   journalHabitPercentText: {
     fontWeight: "500",
-    fontSize: 14,
+    fontSize: fs(14),
     fontFamily: fonts.primary.medium,
     color: Colors.light.white,
   },
@@ -405,7 +406,7 @@ export const planStyles = StyleSheet.create({
   },
   journalCustomizeTitle: {
     fontWeight: "600",
-    fontSize: 18,
+    fontSize: fs(18),
     fontFamily: fonts.primary.semiBold,
     color: Colors.light.white,
   },
@@ -421,16 +422,16 @@ export const planStyles = StyleSheet.create({
     minWidth: 0,
   },
   journalCustomizeHabitTitle: {
-    fontSize: 16,
+    fontSize: fs(16),
     fontWeight: "bold",
     color: Colors.light.white,
   },
   journalCustomizeHabitDescription: {
-    fontSize: 14,
+    fontSize: fs(14),
     color: Colors.light.white,
     fontWeight: "400",
     fontFamily: fonts.primary.regular,
-    lineHeight: 20,
+    lineHeight: fs(20),
   },
   journalCustomizeHabitIconWrap: {
     flexShrink: 0,
@@ -446,18 +447,18 @@ export const planStyles = StyleSheet.create({
     alignItems: "center",
   },
   journalCustomizeSheetTitle: {
-    fontSize: 20,
+    fontSize: fs(20),
     fontWeight: "bold",
     color: Colors.light.white,
     textAlign: "center",
   },
   journalCustomizeSheetDescription: {
-    fontSize: 14,
+    fontSize: fs(14),
     color: Colors.light.white,
     fontWeight: "500",
     fontFamily: fonts.primary.mediumItalic,
     opacity: 0.8,
-    lineHeight: 20,
+    lineHeight: fs(20),
   },
   journalCustomizeSheetListContent: {
     paddingHorizontal: 20,

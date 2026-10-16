@@ -1,15 +1,15 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
-import { ms } from "@/src/utils/responsive";
+import { fs } from "@/src/utils/responsive";
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
   descriptionText: {
     color: Colors.light.white,
     fontWeight: "400",
-    fontSize: 14,
+    fontSize: fs(14),
     fontFamily: fonts.primary.regular,
-    lineHeight: ms(20),
+    lineHeight: fs(20),
     letterSpacing: 0.1,
     textAlign: "justify",
     opacity: 0.9,
@@ -31,7 +31,7 @@ export const styles = StyleSheet.create({
   },
   langText: {
     color: Colors.light.icon,
-    fontSize: 14,
+    fontSize: fs(14),
     fontFamily: fonts.primary.medium,
   },
   langTextActive: {
@@ -42,18 +42,18 @@ export const styles = StyleSheet.create({
     marginLeft: 10,
     marginTop: -4,
     fontWeight: "500",
-    fontSize: 14,
+    fontSize: fs(14),
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
     letterSpacing: 0.4,
   },
   setPersonalizedGoalText: {
     color: Colors.light.white,
-    fontSize: 18,
+    fontSize: fs(18),
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
     flexWrap: "wrap",
-    lineHeight: 22,
+    lineHeight: fs(22),
   },
   introVideoScreen: {
     flex: 1,

@@ -5,6 +5,7 @@ import {
 } from "react-native-responsive-screen";
 import { fonts } from "../../../../assets/fonts";
 import { Colors } from "../../../../constants/theme";
+import { fs } from "@/src/utils/responsive";
 
 const CARD_WIDTH = Dimensions.get("window").width - 32;
 const FASTING_LEGEND_TEXT_WIDTH = (Dimensions.get("window").width - 120) / 2;
@@ -58,7 +59,7 @@ export const styles = StyleSheet.create({
 
   streakText: {
     color: Colors.light.white,
-    fontSize: 16,
+    fontSize: fs(16),
     fontFamily: fonts.primary.bold,
   },
 
@@ -86,13 +87,13 @@ export const styles = StyleSheet.create({
     color: Colors.light.dullWhite,
     fontFamily: fonts.primary.bold,
     fontWeight: "600",
-    fontSize: 13,
+    fontSize: fs(13),
   },
 
   // Badr Text (Center)
   badrText: {
     color: Colors.light.grey,
-    fontSize: 24,
+    fontSize: fs(24),
     fontFamily: fonts.primary.semiBold,
     textAlign: "center",
     marginBottom: hp(3),
@@ -167,7 +168,7 @@ export const styles = StyleSheet.create({
 
   upcomingText: {
     color: Colors.light.white,
-    fontSize: 12,
+    fontSize: fs(12),
     fontFamily: fonts.primary.regular,
     marginBottom: hp(1),
     fontWeight: "400",
@@ -175,14 +176,14 @@ export const styles = StyleSheet.create({
 
   prayerNameText: {
     color: Colors.light.white,
-    fontSize: 20,
+    fontSize: fs(20),
     fontFamily: fonts.primary.bold,
     marginBottom: hp(0.8),
   },
 
   timeText: {
     color: Colors.light.white,
-    fontSize: 12,
+    fontSize: fs(12),
     fontFamily: fonts.primary.regular,
   },
 
@@ -195,10 +196,10 @@ export const styles = StyleSheet.create({
 
   dateText: {
     color: Colors.light.white,
-    fontSize: 12,
+    fontSize: fs(12),
     fontFamily: fonts.primary.regular,
     textAlign: "right",
-    lineHeight: 18,
+    lineHeight: fs(18),
   },
 
   // Collapsed sticky category header (parallax)
@@ -226,7 +227,7 @@ export const styles = StyleSheet.create({
   },
   collapsedLabel: {
     color: Colors.light.white,
-    fontSize: 10,
+    fontSize: fs(10),
     fontFamily: fonts.primary.semiBold,
     marginLeft: 10,
     fontWeight: "600",
@@ -261,7 +262,7 @@ export const styles = StyleSheet.create({
 
   percentageText: {
     color: Colors.light.white,
-    fontSize: 16,
+    fontSize: fs(16),
     fontFamily: fonts.primary.bold,
   },
 
@@ -275,7 +276,7 @@ export const styles = StyleSheet.create({
 
   categoryLabel: {
     color: Colors.light.white,
-    fontSize: 11,
+    fontSize: fs(11),
     fontFamily: fonts.primary.semiBold,
     textAlign: "center",
   },
@@ -306,11 +307,11 @@ export const styles = StyleSheet.create({
   // Container Title
   containerTitle: {
     color: Colors.light.white,
-    fontSize: 16,
+    fontSize: fs(16),
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
     marginBottom: hp(1.2),
-    lineHeight: 20,
+    lineHeight: fs(20),
   },
 
   // Content Wrapper
@@ -322,20 +323,20 @@ export const styles = StyleSheet.create({
   // Container Content (Regular Text)
   containerContent: {
     color: Colors.light.white,
-    fontSize: 14,
+    fontSize: fs(14),
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
-    lineHeight: 19,
+    lineHeight: fs(19),
     letterSpacing: 0,
   },
 
   // Highlighted Text (Medium Weight)
   highlightedText: {
     color: Colors.light.white,
-    fontSize: 14,
+    fontSize: fs(14),
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
-    lineHeight: 19,
+    lineHeight: fs(19),
     letterSpacing: 0,
   },
   // Days Left Container
@@ -358,7 +359,7 @@ export const styles = StyleSheet.create({
   // Days Number Bold (First 28)
   daysNumberBold: {
     color: Colors.light.white,
-    fontSize: 16,
+    fontSize: fs(16),
     fontFamily: fonts.primary.bold,
     fontWeight: "600",
     marginRight: 2,
@@ -367,7 +368,7 @@ export const styles = StyleSheet.create({
   // Days Number Regular (/28 days left)
   daysNumberRegular: {
     color: Colors.light.white,
-    fontSize: 16,
+    fontSize: fs(16),
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
   },
@@ -403,7 +404,7 @@ export const styles = StyleSheet.create({
   // Bottom Label
   bottomLabel: {
     color: Colors.light.grey,
-    fontSize: 12,
+    fontSize: fs(12),
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
     marginBottom: hp(0.5),
@@ -412,7 +413,7 @@ export const styles = StyleSheet.create({
   // Bottom Value
   bottomValue: {
     color: Colors.light.grey,
-    fontSize: 18,
+    fontSize: fs(18),
     fontFamily: fonts.primary.bold,
     fontWeight: "600",
   },
@@ -445,8 +446,8 @@ export const styles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
-    fontSize: 18,
-    lineHeight: 20,
+    fontSize: fs(18),
+    lineHeight: fs(20),
     letterSpacing: 0,
     textTransform: "uppercase",
     marginBottom: 6,
@@ -457,8 +458,8 @@ export const styles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: fs(14),
+    lineHeight: fs(20),
     letterSpacing: -0.1,
     flexShrink: 1,
   },
@@ -469,8 +470,8 @@ export const styles = StyleSheet.create({
     fontFamily: fonts.primary.mediumItalic,
     fontWeight: "500",
     fontStyle: "italic",
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: fs(14),
+    lineHeight: fs(20),
     letterSpacing: -0.1,
   },
 
@@ -529,7 +530,7 @@ export const styles = StyleSheet.create({
   menstruationText: {
     fontFamily: fonts.primary.bold || "SF Pro Text",
     fontWeight: "700",
-    fontSize: 13,
+    fontSize: fs(13),
     color: Colors.light.green,
     letterSpacing: 0.5,
   },
@@ -548,16 +549,16 @@ export const styles = StyleSheet.create({
   journalTitle: {
     fontFamily: fonts.primary.semiBold || "SF Pro Text",
     fontWeight: "600",
-    fontSize: 16,
-    lineHeight: 20,
+    fontSize: fs(16),
+    lineHeight: fs(20),
     letterSpacing: 0,
     color: Colors.light.white,
   },
   journalDescription: {
     fontFamily: fonts.primary.regular || "SF Pro Text",
     fontWeight: "400",
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: fs(13),
+    lineHeight: fs(18),
     letterSpacing: 0.1,
     color: Colors.light.white,
   },
@@ -570,8 +571,8 @@ export const styles = StyleSheet.create({
   getStartedText: {
     fontFamily: fonts.primary.semiBold || "SF Pro Text",
     fontWeight: "600",
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: fs(13),
+    lineHeight: fs(18),
     letterSpacing: 0,
     color: Colors.light.green,
     textTransform: "uppercase",
@@ -589,8 +590,8 @@ export const styles = StyleSheet.create({
   dashboardText: {
     fontFamily: fonts.primary.medium || "SF Pro Text",
     fontWeight: "500",
-    fontSize: 18,
-    lineHeight: 20,
+    fontSize: fs(18),
+    lineHeight: fs(20),
     letterSpacing: 0,
     color: Colors.light.white,
   },
@@ -606,8 +607,8 @@ export const styles = StyleSheet.create({
   customizeText: {
     fontFamily: fonts.primary.semiBold || "SF Pro Text",
     fontWeight: "600",
-    fontSize: 14,
-    lineHeight: 14,
+    fontSize: fs(14),
+    lineHeight: fs(14),
     letterSpacing: 0,
     color: Colors.light.green,
     textAlign: "right",
@@ -651,8 +652,8 @@ export const styles = StyleSheet.create({
   categoryFilterText: {
     fontFamily: fonts.primary.medium || "SF Pro Text",
     fontWeight: "500",
-    fontSize: 14,
-    lineHeight: 18,
+    fontSize: fs(14),
+    lineHeight: fs(18),
     letterSpacing: 0,
     color: Colors.light.white,
     textAlign: "center",
@@ -681,8 +682,8 @@ export const styles = StyleSheet.create({
   tahiyyatTitle: {
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
-    fontSize: 15,
-    lineHeight: 18,
+    fontSize: fs(15),
+    lineHeight: fs(18),
     letterSpacing: 0,
     color: Colors.light.white,
     fontVariant: ["small-caps"],
@@ -691,8 +692,8 @@ export const styles = StyleSheet.create({
   tahiyyatSubtitle: {
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
-    fontSize: 14,
-    lineHeight: 14,
+    fontSize: fs(14),
+    lineHeight: fs(14),
     letterSpacing: 0,
   },
   tahiyyatNumber: {
@@ -711,8 +712,8 @@ export const styles = StyleSheet.create({
   circleMainText: {
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
-    fontSize: 12,
-    lineHeight: 12,
+    fontSize: fs(12),
+    lineHeight: fs(12),
     letterSpacing: 0,
     color: Colors.light.white,
     textAlign: "center",
@@ -720,8 +721,8 @@ export const styles = StyleSheet.create({
   circlePercentText: {
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
-    fontSize: 7,
-    lineHeight: 7,
+    fontSize: fs(7),
+    lineHeight: fs(7),
     letterSpacing: 0,
     color: Colors.light.white,
   },
@@ -735,7 +736,7 @@ export const styles = StyleSheet.create({
   todayGoalsProgressTitle: {
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
-    fontSize: 14,
+    fontSize: fs(14),
     color: Colors.light.white,
   },
   dayProgressCard: {
@@ -781,7 +782,7 @@ export const styles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
-    fontSize: 14,
+    fontSize: fs(14),
   },
   fastingInfoBannerClose: {
     flexShrink: 0,
@@ -806,7 +807,7 @@ export const styles = StyleSheet.create({
   fastingGoalTotalLabel: {
     color: Colors.light.grey,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 14,
+    fontSize: fs(14),
     fontWeight: "600",
     flex: 1,
   },
@@ -817,7 +818,7 @@ export const styles = StyleSheet.create({
   },
   fastingGoalTotalValue: {
     fontWeight: "600",
-    fontSize: 22,
+    fontSize: fs(22),
     fontFamily: fonts.primary.semiBold,
     color: Colors.light.white,
   },
@@ -835,7 +836,7 @@ export const styles = StyleSheet.create({
   fastingGoalTotalBadgeText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: 9,
+    fontSize: fs(9),
     fontWeight: "400",
   },
   fastingGoalTotalBadgeTextCompleted: {
@@ -844,14 +845,14 @@ export const styles = StyleSheet.create({
   fastingCycleDatesContainer: {},
   fastingCycleGregorianDate: {
     fontWeight: "500",
-    fontSize: 14,
+    fontSize: fs(14),
     fontFamily: fonts.primary.medium,
     color: Colors.light.white,
     textAlign: "center",
   },
   fastingCycleIslamicDate: {
     fontWeight: "400",
-    fontSize: 12,
+    fontSize: fs(12),
     fontFamily: fonts.primary.regular,
     color: Colors.light.grey,
     textAlign: "center",
@@ -909,8 +910,8 @@ export const styles = StyleSheet.create({
   },
   fastingLegendText: {
     fontWeight: "500",
-    fontSize: 10,
-    lineHeight: 14,
+    fontSize: fs(10),
+    lineHeight: fs(14),
     fontFamily: fonts.primary.medium,
     color: Colors.light.grey,
   },
@@ -946,7 +947,7 @@ export const styles = StyleSheet.create({
     gap: 6,
   },
   fastingCategoryLegendLabel: {
-    fontSize: 9,
+    fontSize: fs(9),
     fontWeight: "400",
     fontFamily: fonts.primary.regular,
     letterSpacing: 0.1,
@@ -967,7 +968,7 @@ export const styles = StyleSheet.create({
   },
   dayProgressTimeBadge: {
     fontFamily: fonts.primary.semiBold,
-    fontSize: 15,
+    fontSize: fs(15),
     color: Colors.light.white,
     backgroundColor: Colors.light.green,
     borderRadius: 6,
@@ -977,7 +978,7 @@ export const styles = StyleSheet.create({
   dayProgressGoalTitle: {
     flex: 1,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 15,
+    fontSize: fs(15),
     color: Colors.light.white,
     fontWeight: "600",
   },
@@ -993,7 +994,7 @@ export const styles = StyleSheet.create({
   dayProgressDescription: {
     flex: 1,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 15,
+    fontSize: fs(15),
     color: Colors.light.white,
     fontWeight: "600",
   },
@@ -1014,7 +1015,7 @@ export const styles = StyleSheet.create({
   dayProgressMutedTime: {
     color: Colors.light.grey,
     fontFamily: fonts.primary.medium,
-    fontSize: 11,
+    fontSize: fs(11),
     fontWeight: "500",
   },
   dayProgressTimeline: {
@@ -1043,8 +1044,8 @@ export const styles = StyleSheet.create({
   showMoreText: {
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
-    fontSize: 14,
-    lineHeight: 14,
+    fontSize: fs(14),
+    lineHeight: fs(14),
     letterSpacing: 0,
     color: Colors.light.white,
     textTransform: "uppercase",
@@ -1081,10 +1082,10 @@ export const styles = StyleSheet.create({
     alignItems: "center",
   },
   goldenFabPlus: {
-    fontSize: 38,
+    fontSize: fs(38),
     fontWeight: "300",
     color: Colors.light.white,
-    lineHeight: 30,
+    lineHeight: fs(30),
   },
   backdrop: {
     ...StyleSheet.absoluteFill,
@@ -1109,7 +1110,7 @@ export const styles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
-    fontSize: 14,
+    fontSize: fs(14),
     textTransform: "uppercase",
     letterSpacing: 0.5,
     textAlign: "right",
@@ -1148,7 +1149,7 @@ export const styles = StyleSheet.create({
   },
   timeSpentTitle: {
     color: Colors.light.white,
-    fontSize: 16,
+    fontSize: fs(16),
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
   },
@@ -1159,7 +1160,7 @@ export const styles = StyleSheet.create({
   },
   timeSpentPercentText: {
     fontFamily: fonts.primary.semiBold,
-    fontSize: 16,
+    fontSize: fs(16),
     fontWeight: "600",
     color: Colors.light.white,
   },
@@ -1184,7 +1185,7 @@ export const styles = StyleSheet.create({
   },
   timeSpentPeriodButtonText: {
     fontFamily: fonts.primary.medium,
-    fontSize: 14,
+    fontSize: fs(14),
     fontWeight: "500",
   },
   timeSpentPeriodButtonTextSelected: {
@@ -1218,7 +1219,7 @@ export const styles = StyleSheet.create({
   timeSpentNavLabel: {
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
-    fontSize: 14,
+    fontSize: fs(14),
   },
   timeSpentTotalBlock: {
     alignSelf: "flex-end",
@@ -1226,14 +1227,14 @@ export const styles = StyleSheet.create({
   timeSpentTotalCaption: {
     color: Colors.light.grey,
     fontFamily: fonts.primary.medium,
-    fontSize: 14,
+    fontSize: fs(14),
     fontWeight: "500",
     marginTop: 2,
   },
   timeSpentTotalValue: {
     color: Colors.light.green,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 24,
+    fontSize: fs(24),
     fontWeight: "600",
   },
   timeSpentChartSection: {
@@ -1257,15 +1258,15 @@ export const styles = StyleSheet.create({
   timeSpentChartHintText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
-    fontSize: 11,
+    fontSize: fs(11),
     fontWeight: "500",
-    lineHeight: 15,
+    lineHeight: fs(15),
     textAlign: "center",
   },
   timeSpentChartHintAction: {
     color: Colors.light.green,
     fontFamily: fonts.primary.medium,
-    fontSize: 11,
+    fontSize: fs(11),
     fontWeight: "500",
     textAlign: "center",
   },
@@ -1313,19 +1314,19 @@ export const styles = StyleSheet.create({
   timeSpentXAxisDayLabel: {
     color: Colors.light.grey,
     fontFamily: fonts.primary.medium,
-    fontSize: 11,
+    fontSize: fs(11),
   },
   timeSpentXAxisDateLabelWeek: {
     color: Colors.light.grey,
     fontFamily: fonts.primary.medium,
-    fontSize: 11,
+    fontSize: fs(11),
     marginTop: 2,
     textAlign: "center",
   },
   timeSpentXAxisDateLabelMonth: {
     color: Colors.light.grey,
     fontFamily: fonts.primary.medium,
-    fontSize: 10,
+    fontSize: fs(10),
     textAlign: "center",
   },
   timeSpentXAxisDayLabelSelected: {
@@ -1352,8 +1353,8 @@ export const styles = StyleSheet.create({
     flex: 1,
     color: Colors.light.grey,
     fontFamily: fonts.primary.regular,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: fs(12),
+    lineHeight: fs(16),
   },
   timeSpentCategoryList: {
     gap: 16,
@@ -1366,7 +1367,7 @@ export const styles = StyleSheet.create({
   timeSpentCategoryLabel: {
     color: Colors.light.white,
     fontFamily: fonts.primary.bold,
-    fontSize: 14,
+    fontSize: fs(14),
     fontWeight: "700",
   },
   timeSpentCategoryTimeBadge: {
@@ -1380,7 +1381,7 @@ export const styles = StyleSheet.create({
   timeSpentCategoryTimeBadgeText: {
     color: Colors.light.green,
     fontWeight: "500",
-    fontSize: 13,
+    fontSize: fs(13),
     fontFamily: fonts.primary.medium,
   },
   timeSpentCategoryProgressTrack: {
@@ -1414,9 +1415,9 @@ export const styles = StyleSheet.create({
   timeSpentDetailSummaryText: {
     color: Colors.light.grey,
     fontFamily: fonts.primary.medium,
-    fontSize: 12,
+    fontSize: fs(12),
     fontWeight: "500",
-    lineHeight: 18,
+    lineHeight: fs(18),
   },
   timeSpentDetailTabsScroll: {
     flexGrow: 0,

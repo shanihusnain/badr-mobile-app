@@ -5,6 +5,7 @@ import type {
   MissedRamadanFastDayProgress,
   MissedRamadanFastDayState,
 } from "@/src/screens/private/goalprogressloggingscreen/missedRamadanFastsWeeklyData";
+import { fs } from "@/src/utils/responsive";
 
 /**
  * Today chip — Figma #2/#3/#6/#7/#10/#12/#17 only.
@@ -64,42 +65,42 @@ export const missedRamadanDayLabelStyles = StyleSheet.create({
   },
   dayLabel: {
     color: Colors.light.subtext,
-    fontSize: 10,
+    fontSize: fs(10),
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
     textAlign: "center",
   },
   dayLabelToday: {
     color: Colors.light.white,
-    fontSize: 10,
+    fontSize: fs(10),
     fontWeight: "700",
     fontFamily: fonts.primary.bold,
     textAlign: "center",
   },
   dayLabelTodayDisabled: {
     color: Colors.light.grey,
-    fontSize: 10,
+    fontSize: fs(10),
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
     textAlign: "center",
   },
   dayLabelActive: {
     color: Colors.light.white,
-    fontSize: 10,
+    fontSize: fs(10),
     fontWeight: "700",
     fontFamily: fonts.primary.bold,
     textAlign: "center",
   },
   dayLabelMuted: {
     color: Colors.light.subtext,
-    fontSize: 10,
+    fontSize: fs(10),
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
     textAlign: "center",
   },
   dayLabelInactive: {
     color: Colors.light.graylightshade,
-    fontSize: 10,
+    fontSize: fs(10),
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
     textAlign: "center",

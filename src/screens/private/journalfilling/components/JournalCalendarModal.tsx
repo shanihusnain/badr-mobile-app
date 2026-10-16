@@ -16,6 +16,7 @@ import { getMonthName, parseDateKey } from "../journalFillingDateUtils";
 import { FastingLegendItem } from "@/src/screens/private/home/components/FastingLegendItem";
 import type { FastingLegendEntry } from "@/src/screens/private/home/fastingLegend";
 import { TopSpace } from "@/components/atoms/TopSpace";
+import { fs } from "@/src/utils/responsive";
 
 type JournalCalendarModalProps = {
   visible: boolean;
@@ -189,7 +190,7 @@ function JournalCalendarModalComponent({
             <Text
               style={{
                 fontFamily: fonts.primary.semiBold,
-                fontSize: 12,
+                fontSize: fs(12),
                 color: Colors.light.green,
               }}
             >
@@ -240,7 +241,7 @@ const styles = StyleSheet.create({
   monthLabel: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 13,
+    fontSize: fs(13),
     letterSpacing: 0.4,
   },
   legendContainer: {
@@ -268,7 +269,7 @@ const styles = StyleSheet.create({
   },
   dayNumber: {
     fontFamily: fonts.primary.semiBold,
-    fontSize: 12,
+    fontSize: fs(12),
     color: Colors.light.white,
   },
   dayNumberSelected: {
@@ -291,7 +292,7 @@ const styles = StyleSheet.create({
   closeBtnText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 12,
+    fontSize: fs(12),
   },
 });
 

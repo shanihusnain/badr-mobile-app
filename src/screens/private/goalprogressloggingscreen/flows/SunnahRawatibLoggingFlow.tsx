@@ -70,6 +70,7 @@ import {
 } from "@/src/api/mutations/useLogSunnahRawatibGoal";
 import { getApiErrorMessage } from "@/src/config/toastConfig";
 import { AddLoggingFlowIcon } from "@/assets/icons";
+import { fs } from "@/src/utils/responsive";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -1069,9 +1070,9 @@ const localStyles = StyleSheet.create({
   },
   badgeText: {
     fontFamily: fonts.primary.medium,
-    fontSize: 12,
+    fontSize: fs(12),
     fontWeight: "500",
-    lineHeight: 12.5,
+    lineHeight: fs(12.5),
   },
   badgeTextInProgress: {
     color: Colors.light.darkblue,
@@ -1103,9 +1104,9 @@ const localStyles = StyleSheet.create({
   summaryTitle: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 14,
+    fontSize: fs(14),
     fontWeight: "600",
-    lineHeight: 18,
+    lineHeight: fs(18),
     letterSpacing: 0,
   },
   summaryTitleBlock: {
@@ -1114,17 +1115,17 @@ const localStyles = StyleSheet.create({
   summaryTotalLine: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: 12,
+    fontSize: fs(12),
     fontWeight: "400",
-    lineHeight: 14,
+    lineHeight: fs(14),
     marginTop: 4,
   },
   summaryTotalCount: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 12,
+    fontSize: fs(12),
     fontWeight: "600",
-    lineHeight: 14,
+    lineHeight: fs(14),
   },
   footerRow: {
     flexDirection: "row",
@@ -1140,7 +1141,7 @@ const localStyles = StyleSheet.create({
   insightsText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.bold,
-    fontSize: 16,
+    fontSize: fs(16),
     fontWeight: "700",
   },
   spacer: {

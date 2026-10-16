@@ -56,6 +56,7 @@ import {
   WhiteClockIcon,
   WhiteTimerIcon,
 } from "@/assets/icons";
+import { fs } from "@/src/utils/responsive";
 
 type MissedPrayersStepId = "date" | "prayers-qty" | "start-time" | "time-spent";
 const STEPS: MissedPrayersStepId[] = [
@@ -651,9 +652,9 @@ const localStyles = StyleSheet.create({
   },
   badgeText: {
     fontFamily: fonts.primary.medium,
-    fontSize: 12,
+    fontSize: fs(12),
     fontWeight: "500",
-    lineHeight: 12.5,
+    lineHeight: fs(12.5),
   },
   badgeTextInProgress: {
     color: Colors.light.darkblue,
@@ -681,9 +682,9 @@ const localStyles = StyleSheet.create({
   summaryTitle: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 14,
+    fontSize: fs(14),
     fontWeight: "600",
-    lineHeight: 18,
+    lineHeight: fs(18),
     letterSpacing: 0,
     flex: 1,
   },
@@ -697,16 +698,16 @@ const localStyles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
-    fontSize: 12,
-    lineHeight: 14,
+    fontSize: fs(12),
+    lineHeight: fs(14),
     letterSpacing: 0,
   },
   subtitleBold: {
     color: Colors.light.white,
     fontFamily: fonts.primary.bold,
     fontWeight: "700",
-    fontSize: 12,
-    lineHeight: 14,
+    fontSize: fs(12),
+    lineHeight: fs(14),
   },
   footerRow: {
     flexDirection: "row",
@@ -722,7 +723,7 @@ const localStyles = StyleSheet.create({
   insightsText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.bold,
-    fontSize: 16,
+    fontSize: fs(16),
     fontWeight: "700",
   },
   addButton: {

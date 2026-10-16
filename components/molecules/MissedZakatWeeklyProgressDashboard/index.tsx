@@ -14,6 +14,7 @@ import { DashBoardCalenderIcon } from "@/assets/icons/DashBoardCalenderIcon";
 import { DashBoardHandHeartIcon } from "@/assets/icons/DashBoardHandHeartIcon";
 import { FlashIcon, ShootIcon } from "@/assets/icons";
 import { StarSparkleIcon } from "@/assets/icons/StarSparkleIcon";
+import { fs } from "@/src/utils/responsive";
 
 export type MissedZakatDayProgress = {
   day: string;
@@ -265,7 +266,7 @@ const styles = StyleSheet.create({
   },
   weekFractionText: {
     color: Colors.light.white,
-    fontSize: 13,
+    fontSize: fs(13),
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
   },
@@ -280,7 +281,7 @@ const styles = StyleSheet.create({
   },
   weekRangeText: {
     color: Colors.light.white,
-    fontSize: 14,
+    fontSize: fs(14),
     fontWeight: "500",
     fontFamily: fonts.primary.medium,
     textAlign: "center",
@@ -306,7 +307,7 @@ const styles = StyleSheet.create({
   },
   bestDayLabel: {
     color: Colors.light.green,
-    fontSize: 9,
+    fontSize: fs(9),
     fontWeight: "700",
     fontFamily: fonts.primary.bold,
     textAlign: "center",
@@ -345,7 +346,7 @@ const styles = StyleSheet.create({
   },
   dayLabel: {
     color: Colors.light.subtext,
-    fontSize: 10,
+    fontSize: fs(10),
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
     marginTop: 4,
@@ -358,7 +359,7 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   durationText: {
-    fontSize: 11,
+    fontSize: fs(11),
     fontWeight: "700",
     fontFamily: fonts.primary.bold,
     textAlign: "center",
@@ -378,7 +379,7 @@ const styles = StyleSheet.create({
   },
   statsText: {
     color: Colors.light.white,
-    fontSize: 14,
+    fontSize: fs(14),
     fontFamily: fonts.primary.medium,
     flexShrink: 1,
     fontWeight: "500",
@@ -386,7 +387,7 @@ const styles = StyleSheet.create({
   statsCount: {
     color: Colors.light.white,
     fontWeight: "700",
-    fontSize: 22,
+    fontSize: fs(22),
     fontFamily: fonts.primary.bold,
   },
   footerRow: {
@@ -402,7 +403,7 @@ const styles = StyleSheet.create({
   },
   streakText: {
     color: Colors.light.white,
-    fontSize: 13,
+    fontSize: fs(13),
     fontWeight: "500",
     fontFamily: fonts.primary.medium,
   },
@@ -415,8 +416,8 @@ const styles = StyleSheet.create({
   quoteText: {
     flex: 1,
     color: Colors.light.white,
-    fontSize: 13,
-    lineHeight: 16,
+    fontSize: fs(13),
+    lineHeight: fs(16),
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
   },

@@ -1,6 +1,7 @@
 import { StyleSheet } from "react-native";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
+import { fs } from "@/src/utils/responsive";
 
 export const giftCurrentMemberStyles = StyleSheet.create({
   safeArea: {
@@ -24,7 +25,7 @@ export const giftCurrentMemberStyles = StyleSheet.create({
   title: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 18,
+    fontSize: fs(18),
     textTransform: "uppercase",
     marginBottom: 8,
     textAlign: "center",
@@ -32,8 +33,8 @@ export const giftCurrentMemberStyles = StyleSheet.create({
   subtitle: {
     color: Colors.light.dullWhite,
     fontFamily: fonts.primary.regular,
-    fontSize: 12,
-    lineHeight: 18,
+    fontSize: fs(12),
+    lineHeight: fs(18),
     textAlign: "center",
     paddingHorizontal: 16,
   },
@@ -67,13 +68,13 @@ export const giftCurrentMemberStyles = StyleSheet.create({
   optionDuration: {
     color: Colors.light.green,
     fontFamily: fonts.primary.medium,
-    fontSize: 12,
+    fontSize: fs(12),
     marginBottom: 4,
   },
   optionPrice: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 12,
+    fontSize: fs(12),
   },
   buttonContainer: {
     marginTop: "auto",
@@ -106,7 +107,7 @@ export const giftCurrentMemberStyles = StyleSheet.create({
   step2Title: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 16,
+    fontSize: fs(16),
     textTransform: "uppercase",
     marginBottom: 8,
     textAlign: "center",
@@ -114,8 +115,8 @@ export const giftCurrentMemberStyles = StyleSheet.create({
   step2Subtitle: {
     color: Colors.light.dullWhite,
     fontFamily: fonts.primary.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: fs(14),
+    lineHeight: fs(20),
     textAlign: "center",
     marginBottom: 32,
     paddingHorizontal: 16,
@@ -148,14 +149,14 @@ export const giftCurrentMemberStyles = StyleSheet.create({
   radioText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: fs(13),
+    lineHeight: fs(18),
     flex: 1,
   },
   inputLabel: {
     color: Colors.light.subtext,
     fontFamily: fonts.primary.medium,
-    fontSize: 12,
+    fontSize: fs(12),
     marginTop: 16,
     marginBottom: 8,
   },
@@ -166,7 +167,7 @@ export const giftCurrentMemberStyles = StyleSheet.create({
     paddingVertical: 14,
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
-    fontSize: 14,
+    fontSize: fs(14),
   },
   multilineInputContainer: {
     backgroundColor: Colors.light.calendarBg,
@@ -179,7 +180,7 @@ export const giftCurrentMemberStyles = StyleSheet.create({
     minHeight: 120,
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
-    fontSize: 14,
+    fontSize: fs(14),
     textAlignVertical: "top",
     paddingTop: 10,
     paddingBottom: 20,

@@ -2,6 +2,7 @@ import { StyleSheet } from "react-native";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import { FLOW_CARD_HEIGHT } from "./DailyProgressLogging.styles";
+import { fs } from "@/src/utils/responsive";
 
 export const CARD_WIDTH_RATIO = 0.8;
 /** Matches `cardAnchor` width used by Tahiyat Ul Wudhu / prayer flow cards. */
@@ -26,8 +27,8 @@ export const surahGoalStyles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: fs(13),
+    lineHeight: fs(18),
   },
   // Matches TahiyatUlWudhuLoggingFlow `summaryCard`
   card: {
@@ -88,15 +89,15 @@ export const surahGoalStyles = StyleSheet.create({
     color: Colors.light.darkblue,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
-    fontSize: 12,
-    lineHeight: 12.5,
+    fontSize: fs(12),
+    lineHeight: fs(12.5),
   },
   statusChipTextAchieved: {
     color: Colors.light.green,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
-    fontSize: 12,
-    lineHeight: 12.5,
+    fontSize: fs(12),
+    lineHeight: fs(12.5),
   },
   textLines: {
     gap: 2,
@@ -112,30 +113,30 @@ export const surahGoalStyles = StyleSheet.create({
   surahName: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 14,
+    fontSize: fs(14),
     fontWeight: "600",
-    lineHeight: 18,
+    lineHeight: fs(18),
     letterSpacing: 0,
   },
   metaText: {
     color: Colors.light.white,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: fs(13),
+    lineHeight: fs(18),
   },
   metaRegular: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: fs(13),
+    lineHeight: fs(18),
     opacity: 0.95,
   },
   metaBold: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: fs(13),
+    lineHeight: fs(18),
   },
   // Matches Tahiyat `addButton`
   addButton: {
@@ -168,7 +169,7 @@ export const surahGoalStyles = StyleSheet.create({
   insightsText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.bold,
-    fontSize: 16,
+    fontSize: fs(16),
     fontWeight: "700",
   },
   addButtonDisabled: {
@@ -219,7 +220,7 @@ export const weeklySurahProgressStyles = StyleSheet.create({
   },
   dayLabel: {
     color: Colors.light.subtext,
-    fontSize: 11,
+    fontSize: fs(11),
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
     marginTop: 3,

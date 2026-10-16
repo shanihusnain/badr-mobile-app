@@ -1,6 +1,7 @@
 import React from "react";
 import { Pressable, StyleSheet, Text } from "react-native";
 import { Colors } from "../../constants/theme";
+import { fs } from "@/src/utils/responsive";
 
 interface GreenTextButtonProps {
   title: string;
@@ -21,7 +22,7 @@ export const GreenTextButton: React.FC<GreenTextButtonProps> = ({
 const styles = StyleSheet.create({
   text: {
     color: Colors.light.greentextbutton,
-    fontSize: 16,
+    fontSize: fs(16),
     textAlign: "center",
     fontWeight: "600",
   },

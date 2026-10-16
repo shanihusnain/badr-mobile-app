@@ -8,6 +8,7 @@ import { fonts } from "@/assets/fonts";
 import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { fs } from "@/src/utils/responsive";
 export const HeaderWithInfoIcon = ({ title }: { title: string }) => {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -49,7 +50,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
-    fontSize: 16,
+    fontSize: fs(16),
     color: Colors.light.white,
     textAlign: "center",
   },

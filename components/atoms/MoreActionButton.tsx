@@ -4,6 +4,7 @@ import { Colors } from "@/constants/theme";
 import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { fonts } from "@/assets/fonts";
+import { fs } from "@/src/utils/responsive";
 
 type FeatherIconName = keyof typeof Feather.glyphMap;
 
@@ -181,7 +182,7 @@ export const styles = StyleSheet.create({
   title: {
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
-    fontSize: 14,
+    fontSize: fs(14),
     textTransform: "uppercase",
   },
   titleSheet: {
@@ -194,7 +195,7 @@ export const styles = StyleSheet.create({
   description: {
     color: Colors.light.subtext,
     fontFamily: fonts.primary.medium,
-    fontSize: 12,
+    fontSize: fs(12),
     marginTop: 4,
   },
   descriptionHighlighted: {

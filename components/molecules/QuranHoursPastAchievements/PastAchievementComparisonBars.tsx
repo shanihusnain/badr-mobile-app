@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
+import { fs } from "@/src/utils/responsive";
 
 export type ComparisonBarItem = {
   label: string;
@@ -72,7 +73,7 @@ const styles = StyleSheet.create({
   },
   barText: {
     color: Colors.light.white,
-    fontSize: 13,
+    fontSize: fs(13),
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
   },

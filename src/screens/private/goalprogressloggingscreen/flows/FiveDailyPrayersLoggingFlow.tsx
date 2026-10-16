@@ -65,6 +65,7 @@ import { FiveDailyPrayerIDetailedIbadhasIcon } from "@/assets/icons/FiveDailyPra
 import { useLogFiveDailyPrayersGoal } from "@/src/api/mutations/useLogFiveDailyPrayersGoal";
 import type { FiveDailyPrayerSlot } from "@/src/api/mutations/useLogFiveDailyPrayersGoal";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { fs } from "@/src/utils/responsive";
 
 const STEPS_WITH_CONGREGATION: LogStepId[] = [
   "date",
@@ -776,9 +777,7 @@ export default function FiveDailyPrayersLoggingFlow({
 
   return (
     <>
-      {flowMode === "active" && (
-        <Pressable style={commonStyles.backdrop} />
-      )}
+      {flowMode === "active" && <Pressable style={commonStyles.backdrop} />}
       {flowMode === "active" && (
         <TouchableOpacity
           style={commonStyles.cancelButton}
@@ -966,9 +965,9 @@ const localStyles = StyleSheet.create({
   },
   badgeText: {
     fontFamily: fonts.primary.medium,
-    fontSize: 12,
+    fontSize: fs(12),
     fontWeight: "500",
-    lineHeight: 12.5,
+    lineHeight: fs(12.5),
   },
   badgeTextInProgress: {
     color: Colors.light.darkblue,
@@ -1003,9 +1002,9 @@ const localStyles = StyleSheet.create({
   summaryTitle: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 14,
+    fontSize: fs(14),
     fontWeight: "600",
-    lineHeight: 18,
+    lineHeight: fs(18),
     letterSpacing: 0,
   },
   summaryTitleBlock: {
@@ -1014,16 +1013,16 @@ const localStyles = StyleSheet.create({
   summaryTotalLine: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: 12,
+    fontSize: fs(12),
     fontWeight: "400",
-    lineHeight: 14,
+    lineHeight: fs(14),
   },
   summaryTotalCount: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 12,
+    fontSize: fs(12),
     fontWeight: "600",
-    lineHeight: 14,
+    lineHeight: fs(14),
   },
   loadingPlaceholderText: {
     opacity: 0.35,
@@ -1042,7 +1041,7 @@ const localStyles = StyleSheet.create({
   insightsText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.bold,
-    fontSize: 16,
+    fontSize: fs(16),
     fontWeight: "700",
   },
   addButton: {

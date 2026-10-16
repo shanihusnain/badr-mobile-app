@@ -30,6 +30,7 @@ import { fonts } from "@/assets/fonts";
 import { FontAwesome } from "@expo/vector-icons";
 import Feather from "@expo/vector-icons/Feather";
 import { useTypedTranslation } from "@/i18next/useTypedTranslation";
+import { fs } from "@/src/utils/responsive";
 
 const RING_SIZE = 24;
 const COMPLETED_DOT_SIZE = 20;
@@ -1099,7 +1100,7 @@ const styles = StyleSheet.create({
   weekdayLabel: {
     flex: 1,
     textAlign: "center",
-    fontSize: 12,
+    fontSize: fs(12),
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
     marginBottom: 8,
@@ -1181,11 +1182,11 @@ const styles = StyleSheet.create({
     zIndex: 4,
   },
   dayGregorian: {
-    fontSize: 12,
+    fontSize: fs(12),
     fontWeight: "500",
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
-    lineHeight: 14,
+    lineHeight: fs(14),
     textAlign: "center",
   },
   dayGregorianAboveDot: {
@@ -1193,10 +1194,10 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   dayHijri: {
-    fontSize: 10,
+    fontSize: fs(10),
     color: Colors.light.grey,
     marginTop: 0,
-    lineHeight: 12,
+    lineHeight: fs(12),
     fontWeight: "400",
     fontFamily: fonts.primary.regular,
     textAlign: "center",
@@ -1213,7 +1214,7 @@ const styles = StyleSheet.create({
   cycleStartWeekdayLabel: {
     color: Colors.light.white,
     marginBottom: 8,
-    fontSize: 12,
+    fontSize: fs(12),
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
   },
@@ -1242,8 +1243,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.calendarTodayBg,
   },
   cycleStartDayGregorian: {
-    fontSize: 12,
-    lineHeight: 20,
+    fontSize: fs(12),
+    lineHeight: fs(20),
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
     color: Colors.light.white,
@@ -1254,9 +1255,9 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   cycleStartDayHijri: {
-    fontSize: 10,
+    fontSize: fs(10),
     marginTop: 8,
-    lineHeight: 14,
+    lineHeight: fs(14),
     color: Colors.light.grey,
     fontFamily: fonts.primary.regular,
     fontWeight: "400",

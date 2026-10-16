@@ -12,6 +12,7 @@ import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
 import PrimaryButton from "@/components/atoms/Primary-button";
 import { GreenTickWithCircleIcon } from "@/assets/icons";
+import { fs } from "@/src/utils/responsive";
 
 type Props = {
   /**
@@ -203,7 +204,7 @@ const styles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
-    fontSize: 16,
+    fontSize: fs(16),
     letterSpacing: 0.1,
     textTransform: "uppercase",
   },

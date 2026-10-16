@@ -14,6 +14,7 @@ import { FullWindowOverlay } from "react-native-screens";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import SecondaryButton from "./Secondary-button";
+import { fs } from "@/src/utils/responsive";
 
 type WarningModalProps = {
   visible: boolean;
@@ -147,11 +148,11 @@ const styles = StyleSheet.create({
   title: {
     color: Colors.light.white,
     fontFamily: fonts.primary.bold,
-    fontSize: 16,
+    fontSize: fs(16),
     textAlign: "center",
     marginBottom: 12,
     textTransform: "uppercase",
-    lineHeight: 22,
+    lineHeight: fs(22),
   },
   titleOnly: {
     marginBottom: 24,
@@ -162,9 +163,9 @@ const styles = StyleSheet.create({
   message: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: 14,
+    fontSize: fs(14),
     textAlign: "center",
-    lineHeight: 22,
+    lineHeight: fs(22),
   },
   buttonContainer: {
     gap: 12,
@@ -179,6 +180,6 @@ const styles = StyleSheet.create({
   secondaryButtonText: {
     color: Colors.light.subtext,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 12,
+    fontSize: fs(12),
   },
 });

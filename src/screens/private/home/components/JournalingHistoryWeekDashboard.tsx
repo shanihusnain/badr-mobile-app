@@ -7,6 +7,7 @@ import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import type { JournalingDayProgress } from "../journalingHistory";
 import { TopSpace } from "@/components/atoms/TopSpace";
+import { fs } from "@/src/utils/responsive";
 
 export type JournalingHistoryWeekDashboardProps = {
   weekDays: JournalingDayProgress[];
@@ -140,7 +141,7 @@ const styles = StyleSheet.create({
   },
   titleText: {
     color: Colors.light.white,
-    fontSize: 16,
+    fontSize: fs(16),
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
     textTransform: "uppercase",
@@ -185,8 +186,8 @@ const styles = StyleSheet.create({
   },
   dayLabel: {
     color: Colors.light.grey,
-    fontSize: 11,
-    lineHeight: 13,
+    fontSize: fs(11),
+    lineHeight: fs(13),
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
     textAlign: "center",
@@ -208,7 +209,7 @@ const styles = StyleSheet.create({
   },
   insightsText: {
     color: Colors.light.green,
-    fontSize: 13,
+    fontSize: fs(13),
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
     textTransform: "uppercase",

@@ -11,6 +11,7 @@ import {
   SunIcon,
   SunriseIcon,
 } from "@/assets/icons";
+import { fs } from "@/src/utils/responsive";
 
 export type SunnahPrayerId =
   | "before_fajr"
@@ -148,7 +149,7 @@ const SunnahPrayerItem = React.memo(
           <Text
             style={{
               color: Colors.light.subtext,
-              fontSize: 8,
+              fontSize: fs(8),
               marginTop: 2,
               textAlign: "center",
             }}
@@ -326,8 +327,8 @@ const localStyles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
-    fontSize: 8,
-    lineHeight: 9,
+    fontSize: fs(8),
+    lineHeight: fs(9),
     textAlign: "center",
     width: "100%",
     letterSpacing: -0.6,

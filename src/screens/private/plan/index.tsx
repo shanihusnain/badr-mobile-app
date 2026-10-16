@@ -8,6 +8,7 @@ import { usePlanProps } from "./usePlanProps";
 import BottomSheet from "@gorhom/bottom-sheet";
 import { useCallback, useRef } from "react";
 import { Text } from "react-native";
+import { fs } from "@/src/utils/responsive";
 
 export default function PlanScreen() {
   const {
@@ -69,7 +70,7 @@ export default function PlanScreen() {
       /> */}
       <Text
         style={{
-          fontSize: 20,
+          fontSize: fs(20),
           fontWeight: "bold",
           textAlign: "center",
           marginTop: 100,

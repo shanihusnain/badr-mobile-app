@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, TextInput, StyleSheet } from "react-native";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
+import { fs } from "@/src/utils/responsive";
 
 interface PrayerQuantityInputStepProps {
   quantity: string;
@@ -69,6 +70,6 @@ const localStyles = StyleSheet.create({
     marginRight: 0,
     fontFamily: fonts.primary.regular,
     opacity: 0.8,
-    fontSize: 14,
+    fontSize: fs(14),
   },
 });

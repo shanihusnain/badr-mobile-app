@@ -4,6 +4,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "@/constants/theme";
 import { useTranslation } from "react-i18next";
 import { fonts } from "@/assets/fonts";
+import { fs } from "@/src/utils/responsive";
 
 type Props = {
   dateLabel: string;
@@ -129,8 +130,8 @@ const localStyles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
-    fontSize: 10,
-    lineHeight: 13,
+    fontSize: fs(10),
+    lineHeight: fs(13),
     textAlign: "left",
     opacity: 0.80,
   },

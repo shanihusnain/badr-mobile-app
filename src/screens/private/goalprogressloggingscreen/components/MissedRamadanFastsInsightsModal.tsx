@@ -15,6 +15,7 @@ import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import type { MissedRamadanFastInsights } from "../missedRamadanFastsData";
+import { fs } from "@/src/utils/responsive";
 
 type Props = {
   visible: boolean;
@@ -147,7 +148,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     color: Colors.light.white,
     fontFamily: fonts.primary.bold,
-    fontSize: 14,
+    fontSize: fs(14),
     fontWeight: "700",
     letterSpacing: 0.6,
   },
@@ -174,7 +175,7 @@ const styles = StyleSheet.create({
   ringGoal: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: 13,
+    fontSize: fs(13),
     opacity: 0.9,
     textAlign: "center",
   },
@@ -185,29 +186,29 @@ const styles = StyleSheet.create({
   ringPercent: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: 30,
+    fontSize: fs(30),
   },
   ringPercentSymbol: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: 16,
+    fontSize: fs(16),
     marginLeft: 2,
   },
   congratsTitle: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 18,
+    fontSize: fs(18),
     fontWeight: "600",
     textAlign: "center",
-    lineHeight: 24,
+    lineHeight: fs(24),
     paddingHorizontal: 8,
   },
   congratsBody: {
     color: Colors.light.grey,
     fontFamily: fonts.primary.regular,
-    fontSize: 14,
+    fontSize: fs(14),
     textAlign: "center",
-    lineHeight: 20,
+    lineHeight: fs(20),
     paddingHorizontal: 12,
   },
   statsCard: {
@@ -227,13 +228,13 @@ const styles = StyleSheet.create({
   statLabel: {
     color: Colors.light.grey,
     fontFamily: fonts.primary.medium,
-    fontSize: 13,
+    fontSize: fs(13),
     flex: 1,
   },
   statValue: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 14,
+    fontSize: fs(14),
     fontWeight: "600",
   },
   statDivider: {

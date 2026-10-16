@@ -26,6 +26,7 @@ import { FlowCardShirtIcon } from "@/assets/icons/FlowCardShirtIcon";
 import type { ProgressLogEntry } from "../types";
 import { FlowCardClockIcon } from "@/assets/icons/FlowCardClockIcon";
 import { TimeSpentIcon } from "@/assets/icons/TimeSpentIcon";
+import { fs } from "@/src/utils/responsive";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -133,7 +134,7 @@ const reasonStyles = StyleSheet.create({
   optionLabel: {
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
-    fontSize: 13,
+    fontSize: fs(13),
     fontWeight: "500",
   },
 });
@@ -511,7 +512,7 @@ const localStyles = StyleSheet.create({
   },
   badgeText: {
     fontFamily: fonts.primary.semiBold,
-    fontSize: 10,
+    fontSize: fs(10),
     fontWeight: "600",
   },
   badgeTextInProgress: {
@@ -523,7 +524,7 @@ const localStyles = StyleSheet.create({
   summaryTitle: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 15,
+    fontSize: fs(15),
   },
   footerRow: {
     flexDirection: "row",
@@ -540,7 +541,7 @@ const localStyles = StyleSheet.create({
   insightsText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 13,
+    fontSize: fs(13),
     fontWeight: "700",
     letterSpacing: 0.5,
   },

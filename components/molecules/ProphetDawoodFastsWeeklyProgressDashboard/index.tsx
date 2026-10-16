@@ -6,16 +6,11 @@ import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import { FastingDashboardIcon } from "@/assets/icons/FastingDashboardIcon";
 import {
-  SinglePrayerWeeklyProgressDashboard,
-  type SinglePrayerDayProgress,
-  type SinglePrayerDayRingRenderArgs,
-} from "@/components/molecules/SinglePrayerWeeklyProgressDashboard";
-import type {
-  ProphetDawoodFastDayProgress,
-  ProphetDawoodFastWeekSummary,
-} from "@/src/screens/private/goalprogressloggingscreen/prophetDawoodFastsWeeklyData";
-import { ProphetDawoodFastDayRing } from "./ProphetDawoodFastDayRing";
-import { useDeleteFastingLog } from "@/src/api/mutations/useDeleteFastingLog";
+  getDayLabelTextStyle,
+  shouldShowTodayBackground,
+  prophetDawoodFastDayLabelStyles,
+} from "./prophetDawoodFastDayStyles";
+import { fs } from "@/src/utils/responsive";
 
 export type ProphetDawoodFastsWeeklyProgressDashboardProps = {
   weekSummary: ProphetDawoodFastWeekSummary;
@@ -172,6 +167,83 @@ export function ProphetDawoodFastsWeeklyProgressDashboard({
 }
 
 const styles = StyleSheet.create({
+  card: {
+    borderRadius: 14,
+    backgroundColor: Colors.light.greybuttonBackground,
+    paddingHorizontal: 8,
+    paddingVertical: 20,
+    gap: 16,
+    overflow: "visible",
+  },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
+  },
+  headerLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    flexShrink: 1,
+  },
+  weekFractionText: {
+    color: Colors.light.white,
+    fontSize: fs(13),
+    fontWeight: "600",
+    fontFamily: fonts.primary.semiBold,
+  },
+  headerNav: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 2,
+    flexShrink: 0,
+  },
+  navBtn: {
+    padding: 2,
+  },
+  weekRangeText: {
+    color: Colors.light.white,
+    fontSize: fs(14),
+    fontWeight: "500",
+    fontFamily: fonts.primary.medium,
+    textAlign: "center",
+  },
+  daysRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    overflow: "visible",
+  },
+  dayColumn: {
+    flex: 1,
+    alignItems: "center",
+    minWidth: 0,
+    overflow: "visible",
+  },
+  dayColumnMarkedForDeletion: {
+    zIndex: 20,
+  },
+  dayItemWrapper: {
+    alignItems: "center",
+    paddingVertical: 2,
+    paddingHorizontal: 1,
+    paddingBottom: 12,
+    minWidth: 0,
+    position: "relative",
+    overflow: "visible",
+  },
+  dayItemDeleting: {
+    borderWidth: 1,
+    borderColor: Colors.light.red,
+    borderRadius: 6,
+    backgroundColor: Colors.light.dullRed,
+    paddingHorizontal: 2,
+    paddingTop: 4,
+    paddingBottom: 14,
+  },
+  dayItemBlurred: {
+    opacity: 0.4,
+  },
   ringSlot: {
     position: "relative",
     alignItems: "center",
@@ -202,7 +274,7 @@ const styles = StyleSheet.create({
   },
   statsText: {
     color: Colors.light.white,
-    fontSize: 13,
+    fontSize: fs(14),
     fontFamily: fonts.primary.medium,
     flexShrink: 1,
     fontWeight: "500",
@@ -210,9 +282,41 @@ const styles = StyleSheet.create({
   },
   statsCount: {
     color: Colors.light.white,
-    fontWeight: "600",
-    fontSize: 20,
+    fontWeight: "700",
+    fontSize: fs(22),
     fontFamily: fonts.primary.bold,
-    letterSpacing: 0.1,
+  },
+  footerRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 12,
+    flexWrap: "wrap",
+  },
+  streakBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    flexShrink: 0,
+  },
+  streakText: {
+    color: Colors.light.green,
+    fontSize: fs(13),
+    fontWeight: "500",
+    fontFamily: fonts.primary.medium,
+  },
+  quoteBlock: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 4,
+    minWidth: 120,
+  },
+  quoteText: {
+    flex: 1,
+    color: Colors.light.subtext,
+    fontSize: fs(13),
+    lineHeight: fs(16),
+    fontFamily: fonts.primary.regular,
+    fontWeight: "400",
   },
 });

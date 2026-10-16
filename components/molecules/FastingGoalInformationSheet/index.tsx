@@ -22,6 +22,7 @@ import {
   LighteningIcon,
   WeighBalanceIcon,
 } from "@/assets/icons";
+import { fs } from "@/src/utils/responsive";
 
 type Props = {
   fastingType: string;
@@ -220,7 +221,7 @@ const styles = StyleSheet.create({
   errorText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: 14,
+    fontSize: fs(14),
     textAlign: "center",
     opacity: 0.85,
   },
@@ -260,7 +261,7 @@ const styles = StyleSheet.create({
   ringGoalText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
-    fontSize: 12,
+    fontSize: fs(12),
     fontWeight: "500",
     textAlign: "center",
   },
@@ -272,22 +273,22 @@ const styles = StyleSheet.create({
   percentNumber: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: 28,
+    fontSize: fs(28),
     fontWeight: "400",
   },
   percentSymbol: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: 11,
+    fontSize: fs(11),
     marginLeft: 2,
   },
   headline: {
     color: Colors.light.white,
     fontFamily: fonts.primary.bold,
-    fontSize: 16,
+    fontSize: fs(16),
     fontWeight: "700",
     textAlign: "left",
-    lineHeight: 24,
+    lineHeight: fs(24),
     marginBottom: 2,
   },
   boldNumber: {
@@ -297,19 +298,19 @@ const styles = StyleSheet.create({
   body: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: 14,
+    fontSize: fs(14),
     fontWeight: "400",
     textAlign: "left",
-    lineHeight: 22,
+    lineHeight: fs(22),
     marginBottom: 12,
   },
   closing: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: 14,
+    fontSize: fs(14),
     fontWeight: "400",
     textAlign: "left",
-    lineHeight: 22,
+    lineHeight: fs(22),
     marginBottom: 20,
   },
   statsList: {
@@ -331,7 +332,7 @@ const styles = StyleSheet.create({
     flex: 1,
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: 14,
+    fontSize: fs(14),
   },
   statValue: {
     fontFamily: fonts.primary.semiBold,

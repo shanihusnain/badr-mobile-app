@@ -2,6 +2,7 @@ import React, { memo, useEffect, useRef } from "react";
 import { Animated, StyleSheet, Text } from "react-native";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
+import { fs } from "@/src/utils/responsive";
 
 type JournalSuccessToastProps = {
   visible: boolean;
@@ -60,7 +61,7 @@ const styles = StyleSheet.create({
   text: {
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
-    fontSize: 14,
+    fontSize: fs(14),
     textAlign: "center",
   },
 });

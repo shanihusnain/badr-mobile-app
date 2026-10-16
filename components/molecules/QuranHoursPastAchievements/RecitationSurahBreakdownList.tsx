@@ -8,6 +8,7 @@ import type {
   RecitationAnalyticsView,
   RecitationSurahBreakdownRow,
 } from "@/src/screens/private/goalprogressloggingscreen/quranRecitationPastAchievementData";
+import { fs } from "@/src/utils/responsive";
 
 type RecitationSurahBreakdownListProps = {
   rows: RecitationSurahBreakdownRow[];
@@ -60,7 +61,7 @@ export function RecitationSurahBreakdownList({
                     style={[
                       styles.surahName,
                       {
-                        fontSize: 10,
+                        fontSize: fs(10),
                       },
                     ]}
                   >
@@ -173,13 +174,13 @@ const styles = StyleSheet.create({
   },
   surahName: {
     color: Colors.light.white,
-    fontSize: 14,
+    fontSize: fs(14),
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
   },
   frequencySubtext: {
     color: Colors.light.subtext,
-    fontSize: 11,
+    fontSize: fs(11),
     fontFamily: fonts.primary.regular,
   },
   statsBlock: {
@@ -188,19 +189,19 @@ const styles = StyleSheet.create({
   },
   recitationCount: {
     color: Colors.light.white,
-    fontSize: 12,
+    fontSize: fs(12),
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
   },
   recitationCountCompleted: {
     color: Colors.light.green,
-    fontSize: 12,
+    fontSize: fs(12),
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
   },
   streakText: {
     color: Colors.light.white,
-    fontSize: 10,
+    fontSize: fs(10),
     fontFamily: fonts.primary.regular,
   },
   completedBadge: {
@@ -211,7 +212,7 @@ const styles = StyleSheet.create({
   },
   completedBadgeText: {
     color: Colors.light.green,
-    fontSize: 11,
+    fontSize: fs(11),
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
   },

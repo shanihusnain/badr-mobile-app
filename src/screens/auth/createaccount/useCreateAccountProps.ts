@@ -6,6 +6,7 @@ import { QatarFlagIcon } from "@/assets/icons/QatarFlagIcon";
 import { UnitedKingdomFlagIcon } from "@/assets/icons/UnitedKingdomFlagIcon";
 import { UnitedStatesFlagIcon } from "@/assets/icons/UnitedStatesFlagIcon";
 import { useGetCountries } from "@/src/api/queries/useGetCountries";
+import { fs } from "@/src/utils/responsive";
 
 const FALLBACK_COUNTRIES = [
   {
@@ -52,7 +53,7 @@ export const useCreateAccountProps = () => {
       label: country.label,
       value: country.value,
       icon: country.flag
-        ? React.createElement(Text, { style: { fontSize: 18 } }, country.flag)
+        ? React.createElement(Text, { style: { fontSize: fs(18) } }, country.flag)
         : undefined,
     }));
   }, [apiCountries]);
