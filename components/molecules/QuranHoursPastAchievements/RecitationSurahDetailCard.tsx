@@ -9,7 +9,7 @@ import type {
   RecitationAnalyticsView,
   RecitationSurahBreakdownRow,
 } from "@/src/screens/private/goalprogressloggingscreen/quranRecitationPastAchievementData";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 type RecitationSurahDetailCardProps = {
   row: RecitationSurahBreakdownRow;
@@ -152,13 +152,13 @@ const styles = StyleSheet.create({
   surahMetaTitle: {
     flex: 1,
     color: Colors.light.white,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
   },
   surahMetaFrequency: {
     color: Colors.light.white,
-    fontSize: fs(10),
+    fontSize: rfs(10),
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
   },
@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
   },
   activeBadgeText: {
     color: Colors.light.green,
-    fontSize: fs(10),
+    fontSize: rfs(10),
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
     letterSpacing: 0.4,
@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
   },
   recitationCountCompleted: {
     color: Colors.light.green,
-    fontSize: fs(12),
+    fontSize: rfs(12),
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
   },
@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
   },
   recitationCount: {
     color: Colors.light.white,
-    fontSize: fs(12),
+    fontSize: rfs(12),
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
   },
@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
   },
   streakText: {
     color: Colors.light.white,
-    fontSize: fs(10),
+    fontSize: rfs(10),
     fontFamily: fonts.primary.regular,
   },
 });

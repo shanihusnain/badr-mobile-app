@@ -10,7 +10,7 @@ import {
   snapJuzOffExcluded,
   stepJuzSkippingExcluded,
 } from "../quranRecitationCompletionTarget";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 type Props = {
   value: number;
@@ -147,8 +147,8 @@ const localStyles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
-    fontSize: fs(13),
-    lineHeight: fs(16),
+    fontSize: rfs(13),
+    lineHeight: rfs(16),
     textAlign: "center",
     minWidth: 20,
   },

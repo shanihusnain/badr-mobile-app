@@ -2,7 +2,7 @@ import React, { memo } from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 type JournalNotesInputProps = {
   value: string;
@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
   title: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     marginBottom: 10,
   },
   input: {
@@ -50,8 +50,8 @@ const styles = StyleSheet.create({
     opacity: 0.6,
     color: Colors.light.blackBackground,
     fontFamily: fonts.primary.regular,
-    fontSize: fs(14),
-    lineHeight: fs(20),
+    fontSize: rfs(14),
+    lineHeight: rfs(20),
     paddingHorizontal: 14,
     paddingVertical: 12,
   },

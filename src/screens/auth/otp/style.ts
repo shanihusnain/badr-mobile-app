@@ -1,6 +1,6 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 import { StyleSheet } from "react-native";
 import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 
@@ -46,10 +46,10 @@ export const styles = StyleSheet.create({
 
   otpInfoText: {
     color: Colors.light.white,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     fontWeight: "400",
     fontFamily: fonts.primary.regular,
-    lineHeight: fs(20),
+    lineHeight: rfs(20),
     opacity: 0.9,
     letterSpacing: 0.1,
     textAlign: "left",
@@ -73,7 +73,7 @@ export const styles = StyleSheet.create({
     borderRadius: 7,
     backgroundColor: Colors.light.greybuttonBackground,
     textAlign: "center",
-    fontSize: fs(18),
+    fontSize: rfs(18),
     color: Colors.light.white,
     padding: 0,
     includeFontPadding: false,
@@ -92,24 +92,24 @@ export const styles = StyleSheet.create({
   resendText: {
     color: Colors.light.white,
     fontWeight: "400",
-    fontSize: fs(14),
+    fontSize: rfs(14),
     fontFamily: fonts.primary.regular,
-    lineHeight: fs(20),
+    lineHeight: rfs(20),
     marginLeft: 5,
   },
 
   resendTimer: {
     color: Colors.light.white,
-    fontSize: fs(16),
+    fontSize: rfs(16),
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
-    lineHeight: fs(22),
+    lineHeight: rfs(22),
     alignSelf: "center",
   },
 
   resendAction: {
     color: Colors.light.green,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     fontFamily: fonts.primary.semiBold,
   },
 
@@ -126,7 +126,7 @@ export const styles = StyleSheet.create({
   errorText: {
     color: Colors.light.red,
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(12),
+    fontSize: rfs(12),
     marginTop: hp(0.5),
     alignSelf: "flex-start",
   },

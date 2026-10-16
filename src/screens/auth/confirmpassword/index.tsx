@@ -21,7 +21,7 @@ import { useValidations } from "@/src/validations/useValidations";
 import { useTranslation } from "react-i18next";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { router, useLocalSearchParams } from "expo-router";
 import { useResetPassword } from "@/src/api/mutations/useResetPassword";
@@ -161,8 +161,8 @@ export default function ConfirmPasswordScreen() {
                             color: Colors.light.white,
                             fontFamily: fonts.primary.medium,
                             fontWeight: "500",
-                            fontSize: fs(16),
-                            lineHeight: fs(20),
+                            fontSize: rfs(16),
+                            lineHeight: rfs(20),
                           }}
                         >
                           PASSWORD UPDATED!

@@ -14,7 +14,7 @@ import {
   VolunteeringCategoryDef,
   VOLUNTEERING_CATEGORIES,
 } from "../volunteeringCategories";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 type Props = {
   selectedCategory: VolunteeringCategoryId;
@@ -138,14 +138,14 @@ const styles = StyleSheet.create({
     flex: 1,
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(13),
+    fontSize: rfs(13),
     fontWeight: "600",
   },
   description: {
     color: Colors.light.dullWhite,
     fontFamily: fonts.primary.regular,
-    fontSize: fs(11),
-    lineHeight: fs(15),
+    fontSize: rfs(11),
+    lineHeight: rfs(15),
     paddingHorizontal: 4,
   },
   radioList: {
@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
   radioLabel: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(13),
+    fontSize: rfs(13),
     flex: 1,
   },
 });

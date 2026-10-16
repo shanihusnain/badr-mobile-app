@@ -13,7 +13,7 @@ import { FilledChevronIconForQuranGoal } from "@/assets/icons/FilledChevronIconF
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import { useTranslation } from "react-i18next";
 import { formatJuzVerseLabel } from "../quranJuzVerseMap";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 type Props = {
   juz: number;
@@ -758,7 +758,7 @@ const localStyles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
-    fontSize: fs(9),
+    fontSize: rfs(9),
     lineHeight: LABEL_LINE_HEIGHT,
     textAlign: "center",
     includeFontPadding: false,
@@ -830,8 +830,8 @@ const localStyles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
-    fontSize: fs(10),
-    lineHeight: fs(12),
+    fontSize: rfs(10),
+    lineHeight: rfs(12),
     textAlign: "left",
     opacity: 0.95,
     // Gap below the visible thumb — pull summary slightly closer to the track.

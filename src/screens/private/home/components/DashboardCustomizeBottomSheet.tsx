@@ -26,7 +26,7 @@ import PrimaryButton from "@/components/atoms/Primary-button";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import i18next from "i18next";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 export type { DashboardCategory };
 
@@ -499,7 +499,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     color: Colors.light.white,
-    fontSize: fs(16),
+    fontSize: rfs(16),
     fontWeight: "600",
   },
   headerSpacer: {},
@@ -567,12 +567,12 @@ const styles = StyleSheet.create({
   },
   listItemTitle: {
     color: Colors.light.white,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     fontWeight: "600",
   },
   listItemDescription: {
     color: Colors.light.white,
-    fontSize: fs(12),
+    fontSize: rfs(12),
     opacity: 0.7,
     marginTop: 4,
   },
@@ -589,7 +589,7 @@ const styles = StyleSheet.create({
   },
   addSectionLabel: {
     color: Colors.light.graylightshade,
-    fontSize: fs(12),
+    fontSize: rfs(12),
     fontWeight: "500",
     fontFamily: fonts.primary.medium,
   },

@@ -15,7 +15,7 @@ import { TopSpace } from "@/components/atoms/TopSpace";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { TimeSpentDetailOverview } from "./TimeSpentDetailOverview";
 import SecondaryButton from "@/components/atoms/Secondary-button";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 type Props = {
   onClose: () => void;
@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     color: Colors.light.white,
-    fontSize: fs(16),
+    fontSize: rfs(16),
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
     letterSpacing: 0.5,

@@ -5,7 +5,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "@/constants/theme";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import type { JuzMemorisationGoal } from "../quranMemorisationJuzGoals";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 type Props = {
   goals: JuzMemorisationGoal[];
@@ -51,18 +51,18 @@ export function MemorisationJuzSelectionStep({
             }}
           >
             <View style={{ flex: 1, gap: 4 }}>
-              <Text style={{ color: Colors.light.white, fontSize: fs(15) }} numberOfLines={2}>
+              <Text style={{ color: Colors.light.white, fontSize: rfs(15) }} numberOfLines={2}>
                 {t("progressLogging.memorisationJuzCardTitle", {
                   juz: goal.juzName,
                   range: goal.rangeLabel,
                 })}
               </Text>
-              <Text style={{ color: Colors.light.grey, fontSize: fs(12) }}>
+              <Text style={{ color: Colors.light.grey, fontSize: rfs(12) }}>
                 {t("progressLogging.memorisationJuzTotalVerses", {
                   count: formatNumber(goal.totalAyahs),
                 })}
               </Text>
-              <Text style={{ color: Colors.light.grey, fontSize: fs(12) }}>
+              <Text style={{ color: Colors.light.grey, fontSize: rfs(12) }}>
                 {t("progressLogging.memorisationProgressLabel", {
                   memorized: formatNumber(goal.memorizedAyahs),
                   total: formatNumber(goal.totalAyahs),

@@ -6,7 +6,7 @@ import { Colors } from "@/constants/theme";
 import { stripEnglishParenthetical } from "@/src/utils/quranGoalMap";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import type { SurahMemorisationGoal } from "../quranMemorisationSurahGoals";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 type Props = {
   goals: SurahMemorisationGoal[];
@@ -52,12 +52,12 @@ export function MemorisationSurahSelectionStep({
             }}
           >
             <View style={{ flex: 1, gap: 4 }}>
-              <Text style={{ color: Colors.light.white, fontSize: fs(15) }}>
+              <Text style={{ color: Colors.light.white, fontSize: rfs(15) }}>
                 {t("progressLogging.surahNameLabel", {
                   name: stripEnglishParenthetical(goal.surahName),
                 })}
               </Text>
-              <Text style={{ color: Colors.light.grey, fontSize: fs(12) }}>
+              <Text style={{ color: Colors.light.grey, fontSize: rfs(12) }}>
                 {t("progressLogging.memorisationProgressLabel", {
                   memorized: formatNumber(goal.memorizedAyahs),
                   total: formatNumber(goal.totalAyahs),

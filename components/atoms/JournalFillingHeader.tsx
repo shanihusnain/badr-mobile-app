@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
 import BackButton from "./Backbutton";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 type JournalFillingHeaderProps = {
   title?: string;
@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     color: Colors.light.white,
     textAlign: "center",
     textTransform: "uppercase",

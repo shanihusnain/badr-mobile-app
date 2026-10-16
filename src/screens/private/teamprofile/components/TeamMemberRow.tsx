@@ -4,7 +4,7 @@ import { Image } from "expo-image";
 import type { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import type { TeamMember } from "../mockData";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 type TeamMemberRowProps = {
   member: TeamMember;
@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
   adminBadgeText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(8),
+    fontSize: rfs(8),
     fontWeight: "600",
   },
   meta: {
@@ -75,12 +75,12 @@ const styles = StyleSheet.create({
   name: {
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
-    fontSize: fs(14),
+    fontSize: rfs(14),
   },
   handle: {
     color: Colors.light.subtext,
     fontFamily: fonts.primary.regular,
-    fontSize: fs(12),
+    fontSize: rfs(12),
     marginTop: 2,
   },
 });

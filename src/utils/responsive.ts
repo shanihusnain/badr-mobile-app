@@ -17,8 +17,10 @@ export function ms(size: number, factor = 0.35): number {
 /**
  * Font scale — same formula as `ms`, slightly stronger so type tracks large
  * screens better without matching linear width growth.
+ *
+ * Named `rfs` (not `fs`) to avoid Metro/Hermes clashes with Node's `fs` module.
  */
-export function fs(size: number, factor = 0.5): number {
+export function rfs(size: number, factor = 0.5): number {
   return ms(size, factor);
 }
 
@@ -31,9 +33,9 @@ export const space = {
 } as const;
 
 export const type = {
-  xs: fs(12),
-  sm: fs(14),
-  md: fs(16),
-  lg: fs(18),
-  xl: fs(22),
+  xs: rfs(12),
+  sm: rfs(14),
+  md: rfs(16),
+  lg: rfs(18),
+  xl: rfs(22),
 } as const;

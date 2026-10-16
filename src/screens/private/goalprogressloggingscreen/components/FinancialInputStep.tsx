@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, TextInput, StyleSheet } from "react-native";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 interface FinancialInputStepProps {
   amount: string;
@@ -58,13 +58,13 @@ const localStyles = StyleSheet.create({
   currencySymbol: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(16),
+    fontSize: rfs(16),
     marginRight: 4,
   },
   input: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(16),
+    fontSize: rfs(16),
     padding: 0,
     flex: 1,
   },

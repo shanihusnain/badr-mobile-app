@@ -1,7 +1,7 @@
 import { StyleSheet } from "react-native";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 export const badarMembershipStyles = StyleSheet.create({
     safeArea: {
@@ -33,7 +33,7 @@ export const badarMembershipStyles = StyleSheet.create({
     headerTitle: {
         color: Colors.light.white,
         fontFamily: fonts.primary.semiBold,
-        fontSize: fs(14),
+        fontSize: rfs(14),
         textTransform: "uppercase",
         fontWeight: "600",
     },
@@ -44,14 +44,14 @@ export const badarMembershipStyles = StyleSheet.create({
     sectionTitle: {
         color: Colors.light.white,
         fontFamily: fonts.primary.medium,
-        fontSize: fs(24),
+        fontSize: rfs(24),
         textAlign: "center",
         marginBottom: 8,
     },
     sectionSubtitle: {
         color: Colors.light.dullWhite,
         fontFamily: fonts.primary.regular,
-        fontSize: fs(14),
+        fontSize: rfs(14),
         textAlign: "center",
         marginBottom: 16,
 
@@ -65,7 +65,7 @@ export const badarMembershipStyles = StyleSheet.create({
     cardTitle: {
         color: Colors.light.white,
         fontFamily: fonts.primary.semiBold,
-        fontSize: fs(16),
+        fontSize: rfs(16),
         textAlign: "center",
         marginBottom: 8,
         fontWeight: "600",
@@ -73,7 +73,7 @@ export const badarMembershipStyles = StyleSheet.create({
     cardSubtitle: {
         color: Colors.light.dullWhite,
         fontFamily: fonts.primary.regular,
-        fontSize: fs(14),
+        fontSize: rfs(14),
         textAlign: "center",
         marginBottom: 16,
     },
@@ -94,23 +94,23 @@ export const badarMembershipStyles = StyleSheet.create({
     planName: {
         color: Colors.light.white,
         fontFamily: fonts.primary.semiBold,
-        fontSize: fs(14),
+        fontSize: rfs(14),
     },
     planNameInactive: {
         color: Colors.light.subtext,
         fontFamily: fonts.primary.regular,
-        fontSize: fs(14),
+        fontSize: rfs(14),
         marginLeft: 28, // match padding of checkIcon + margin
     },
     planPrice: {
         color: Colors.light.white,
         fontFamily: fonts.primary.regular,
-        fontSize: fs(12),
+        fontSize: rfs(12),
     },
     planPriceInactive: {
         color: Colors.light.subtext,
         fontFamily: fonts.primary.regular,
-        fontSize: fs(12),
+        fontSize: rfs(12),
     },
     buttonContainer: {
         marginTop: 16,
@@ -136,12 +136,12 @@ export const badarMembershipStyles = StyleSheet.create({
     actionTitle: {
         color: Colors.light.white,
         fontFamily: fonts.primary.semiBold,
-        fontSize: fs(14),
+        fontSize: rfs(14),
         marginBottom: 4,
     },
     actionSubtitle: {
         color: Colors.light.subtext,
         fontFamily: fonts.primary.regular,
-        fontSize: fs(13),
+        fontSize: rfs(13),
     },
 });

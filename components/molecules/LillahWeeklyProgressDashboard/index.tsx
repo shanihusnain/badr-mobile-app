@@ -20,7 +20,7 @@ import { FlowCardFoodReliefIcon } from "@/assets/icons/FlowCardFoodReleifIcon";
 import { DashBoardHandHeartIcon } from "@/assets/icons/DashBoardHandHeartIcon";
 import { FlashIcon } from "@/assets/icons/FlashIcon";
 import { LillahCategoryId, getLillahCategory } from "@/src/screens/private/goalprogressloggingscreen/lillahCategories";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 export type LillahDayProgress = {
   day: string;
@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
   },
   weekFractionText: {
     color: Colors.light.white,
-    fontSize: fs(13),
+    fontSize: rfs(13),
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
   },
@@ -280,7 +280,7 @@ const styles = StyleSheet.create({
   navBtn: { padding: 2 },
   weekRangeText: {
     color: Colors.light.white,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     fontWeight: "500",
     fontFamily: fonts.primary.medium,
     textAlign: "center",
@@ -306,7 +306,7 @@ const styles = StyleSheet.create({
   },
   bestDayLabel: {
     color: Colors.light.green,
-    fontSize: fs(9),
+    fontSize: rfs(9),
     fontWeight: "700",
     fontFamily: fonts.primary.bold,
     textAlign: "center",
@@ -339,7 +339,7 @@ const styles = StyleSheet.create({
   },
   dayLabel: {
     color: Colors.light.subtext,
-    fontSize: fs(10),
+    fontSize: rfs(10),
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
     marginTop: 4,
@@ -352,7 +352,7 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   durationText: {
-    fontSize: fs(11),
+    fontSize: rfs(11),
     fontWeight: "700",
     fontFamily: fonts.primary.bold,
     textAlign: "center",
@@ -367,7 +367,7 @@ const styles = StyleSheet.create({
   },
   statsText: {
     color: Colors.light.white,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     fontFamily: fonts.primary.medium,
     flexShrink: 1,
     fontWeight: "500",
@@ -375,7 +375,7 @@ const styles = StyleSheet.create({
   statsCount: {
     color: Colors.light.white,
     fontWeight: "700",
-    fontSize: fs(22),
+    fontSize: rfs(22),
     fontFamily: fonts.primary.bold,
   },
   footerRow: {
@@ -391,7 +391,7 @@ const styles = StyleSheet.create({
   },
   streakText: {
     color: Colors.light.white,
-    fontSize: fs(13),
+    fontSize: rfs(13),
     fontWeight: "500",
     fontFamily: fonts.primary.medium,
   },
@@ -404,8 +404,8 @@ const styles = StyleSheet.create({
   quoteText: {
     flex: 1,
     color: Colors.light.white,
-    fontSize: fs(13),
-    lineHeight: fs(16),
+    fontSize: rfs(13),
+    lineHeight: rfs(16),
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
   },

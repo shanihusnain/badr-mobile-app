@@ -4,7 +4,7 @@ import { Feather } from "@expo/vector-icons";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import { getMonthShortUpper, getWeekdayShort, parseDateKey } from "../journalFillingDateUtils";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 type JournalDateTextRowProps = {
   selectedDateKey: string;
@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
   dateText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(12),
+    fontSize: rfs(12),
     textTransform: "uppercase",
     letterSpacing: 0.6,
   },

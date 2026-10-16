@@ -21,7 +21,7 @@ import {
 } from "../leaderboardMockData";
 import { createTeamStyles as sharedStyles } from "../styles";
 import { LeaderboardToggleRow } from "./LeaderboardToggleRow";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 const HEADER_HEIGHT = 100;
 
@@ -195,7 +195,7 @@ const styles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
-    fontSize: fs(14),
+    fontSize: rfs(14),
     textTransform: "uppercase",
     marginBottom: 6,
   },
@@ -208,8 +208,8 @@ const styles = StyleSheet.create({
     flex: 1,
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: fs(12),
-    lineHeight: fs(17),
+    fontSize: rfs(12),
+    lineHeight: rfs(17),
     opacity: 0.85,
   },
   categoryRow: {
@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
   categoryChipText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
-    fontSize: fs(13),
+    fontSize: rfs(13),
     fontWeight: "500",
   },
   categoryChipTextActive: {

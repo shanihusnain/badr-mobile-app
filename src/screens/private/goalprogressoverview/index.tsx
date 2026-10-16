@@ -25,7 +25,7 @@ import {
   getProgressMessageTier,
   GoalCategorySlug,
 } from "./goalCategoryOverview";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 type TextPart = { text: string; bold: boolean };
 
@@ -226,12 +226,12 @@ const styles = StyleSheet.create({
   emptyStateText: {
     color: Colors.light.subtext,
     fontFamily: fonts.primary.regular,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     textAlign: "center",
   },
   goalsCountText: {
     fontWeight: "400",
-    fontSize: fs(14),
+    fontSize: rfs(14),
     fontFamily: fonts.primary.regular,
     color: Colors.light.white,
     textAlign: "center",
@@ -239,24 +239,24 @@ const styles = StyleSheet.create({
   headline: {
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     color: Colors.light.white,
   },
   description: {
     fontWeight: "400",
     fontFamily: fonts.primary.regular,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     color: Colors.light.white,
     opacity: 0.9,
-    lineHeight: fs(20),
+    lineHeight: rfs(20),
   },
   boldDigits: {
     fontWeight: "700",
     fontFamily: fonts.primary.bold,
     opacity: 1,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     color: Colors.light.white,
-    lineHeight: fs(20),
+    lineHeight: rfs(20),
   },
   percentTextContainer: {
     flexDirection: "row",
@@ -265,20 +265,20 @@ const styles = StyleSheet.create({
   },
   percentText: {
     fontWeight: "400",
-    fontSize: fs(60),
+    fontSize: rfs(60),
     fontFamily: fonts.primary.regular,
     color: Colors.light.white,
   },
   percentSymbol: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: fs(30),
+    fontSize: rfs(30),
     fontWeight: "400",
   },
   sectionTitle: {
     fontWeight: "500",
     fontFamily: fonts.primary.medium,
-    fontSize: fs(18),
+    fontSize: rfs(18),
     color: Colors.light.white,
   },
   goalsList: {

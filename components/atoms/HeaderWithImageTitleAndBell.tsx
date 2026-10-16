@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import BackButton from "./Backbutton";
 import { router } from "expo-router";
 import { BellIcon } from "@/assets/icons";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 export const HeaderWithImageTitleAndBell = ({
   title,
@@ -65,7 +65,7 @@ export const HeaderWithImageTitleAndBell = ({
           style={{
             color: Colors.light.white,
             fontFamily: fonts.primary.semiBold,
-            fontSize: fs(14),
+            fontSize: rfs(14),
             textTransform: "uppercase",
             fontWeight: "400",
           }}

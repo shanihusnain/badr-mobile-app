@@ -29,7 +29,7 @@ import {
   TickIconWithGreenBg,
 } from "@/assets/icons";
 import WarningModal from "@/components/atoms/WarningModal";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 const EMPTY_SURAHS: QuranSurahOption[] = [];
 const EMPTY_HIZBS: QuranHizbOption[] = [];
@@ -1120,10 +1120,10 @@ export const MetricSelectionComponent = ({
                           <Text
                             style={{
                               color: Colors.light.white,
-                              fontSize: fs(14),
+                              fontSize: rfs(14),
                               fontFamily: fonts.primary.regular,
                               letterSpacing: 0.1,
-                              lineHeight: fs(20),
+                              lineHeight: rfs(20),
                             }}
                           >
                             {s.surahTitle}
@@ -1400,10 +1400,10 @@ export const MetricSelectionComponent = ({
                         <Text
                           style={{
                             color: Colors.light.white,
-                            fontSize: fs(14),
+                            fontSize: rfs(14),
                             fontFamily: fonts.primary.regular,
                             letterSpacing: 0.1,
-                            lineHeight: fs(20),
+                            lineHeight: rfs(20),
                           }}
                         >
                           {juz.juzName}
@@ -1441,9 +1441,9 @@ export const MetricSelectionComponent = ({
                   color: Colors.light.white,
                   fontFamily: fonts.primary.regular,
                   fontWeight: "400",
-                  fontSize: fs(12),
+                  fontSize: rfs(12),
                   opacity: 0.7,
-                  lineHeight: fs(20),
+                  lineHeight: rfs(20),
                   letterSpacing: 0.1,
                 }}
               >
@@ -1479,7 +1479,7 @@ export const MetricSelectionComponent = ({
               <Text
                 style={{
                   fontWeight: "400",
-                  fontSize: fs(14),
+                  fontSize: rfs(14),
                   fontFamily: fonts.primary.regular,
                   color: Colors.light.white,
                 }}
@@ -1536,7 +1536,7 @@ export const MetricSelectionComponent = ({
               <Text
                 style={{
                   fontWeight: "400",
-                  fontSize: fs(14),
+                  fontSize: rfs(14),
                   fontFamily: fonts.primary.regular,
                   color: Colors.light.white,
                 }}
@@ -1610,7 +1610,7 @@ export const MetricSelectionComponent = ({
                 alignSelf: "center",
                 opacity: 0.8,
                 fontFamily: fonts.primary.regular,
-                fontSize: fs(12),
+                fontSize: rfs(12),
               }}
             >
               {(() => {
@@ -1651,9 +1651,9 @@ export const MetricSelectionComponent = ({
                   color: Colors.light.white,
                   fontFamily: fonts.primary.regular,
                   fontWeight: "400",
-                  fontSize: fs(12),
+                  fontSize: rfs(12),
                   opacity: 0.7,
-                  lineHeight: fs(20),
+                  lineHeight: rfs(20),
                   letterSpacing: 0.1,
                 }}
               >
@@ -1729,11 +1729,11 @@ export const MetricSelectionComponent = ({
               <Text
                 style={{
                   fontWeight: "400",
-                  fontSize: fs(14),
+                  fontSize: rfs(14),
                   fontFamily: fonts.primary.regular,
                   color: Colors.light.white,
                   letterSpacing: 0.1,
-                  lineHeight: fs(20),
+                  lineHeight: rfs(20),
                 }}
               >
                 {t("monthlyGoalPlanner.quranMetrics.fullCompletions", {
@@ -1799,10 +1799,10 @@ export const MetricSelectionComponent = ({
                         <Text
                           style={{
                             color: Colors.light.white,
-                            fontSize: fs(14),
+                            fontSize: rfs(14),
                             fontFamily: fonts.primary.regular,
                             fontWeight: "400",
-                            lineHeight: fs(20),
+                            lineHeight: rfs(20),
                             letterSpacing: 0.1,
                           }}
                         >
@@ -1846,11 +1846,11 @@ export const MetricSelectionComponent = ({
             <Text
               style={{
                 color: Colors.light.white,
-                fontSize: fs(14),
+                fontSize: rfs(14),
                 fontWeight: "400",
                 fontFamily: fonts.primary.regular,
                 textAlign: "center",
-                lineHeight: fs(20),
+                lineHeight: rfs(20),
               }}
             >
               {pendingDelete?.kind === "SURAH" && isMemorizationSurah
@@ -1935,9 +1935,9 @@ const styles = StyleSheet.create({
   metrixName: {
     fontWeight: "500",
     fontFamily: fonts.primary.medium,
-    fontSize: fs(16),
+    fontSize: rfs(16),
     color: Colors.light.white,
-    lineHeight: fs(22),
+    lineHeight: rfs(22),
   },
   metrixWrapper: {
     flexDirection: "row",
@@ -2001,7 +2001,7 @@ const styles = StyleSheet.create({
     color: Colors.light.white,
     opacity: 0.6,
     textAlign: "center",
-    fontSize: fs(12),
+    fontSize: rfs(12),
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
   },
@@ -2013,7 +2013,7 @@ const styles = StyleSheet.create({
   },
   surahTimesFrequencyLabel: {
     color: Colors.light.white,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     fontWeight: "400",
     fontFamily: fonts.primary.regular,
     opacity: 0.9,
@@ -2023,26 +2023,26 @@ const styles = StyleSheet.create({
   },
   surahFormulaPrimary: {
     color: Colors.light.white,
-    fontSize: fs(12),
+    fontSize: rfs(12),
     fontWeight: "500",
     fontFamily: fonts.primary.medium,
     opacity: 0.6,
     textAlign: "center",
-    lineHeight: fs(16),
+    lineHeight: rfs(16),
   },
   surahFormulaSecondary: {
     color: Colors.light.white,
-    fontSize: fs(10),
+    fontSize: rfs(10),
     fontWeight: "400",
     fontFamily: fonts.primary.regular,
     opacity: 0.7,
     textAlign: "center",
-    lineHeight: fs(14),
+    lineHeight: rfs(14),
   },
   surahVerseCount: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(13),
+    fontSize: rfs(13),
     fontWeight: "500",
     marginTop: 2,
   },
@@ -2067,7 +2067,7 @@ const styles = StyleSheet.create({
   radioLabel: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     opacity: 0.8,
     flexShrink: 0,
   },
@@ -2085,8 +2085,8 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
     borderRadius: 4,
     color: Colors.light.white,
-    fontSize: fs(16),
-    lineHeight: fs(20),
+    fontSize: rfs(16),
+    lineHeight: rfs(20),
     fontWeight: "500",
     fontFamily: fonts.primary.medium,
     includeFontPadding: false,
@@ -2113,8 +2113,8 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
     borderRadius: 4,
     color: Colors.light.white,
-    fontSize: fs(16),
-    lineHeight: fs(20),
+    fontSize: rfs(16),
+    lineHeight: rfs(20),
     fontWeight: "500",
     fontFamily: fonts.primary.medium,
     includeFontPadding: false,
@@ -2135,7 +2135,7 @@ const styles = StyleSheet.create({
     color: Colors.light.white,
     opacity: 0.7,
     fontFamily: fonts.primary.regular,
-    fontSize: fs(12),
+    fontSize: rfs(12),
     textAlign: "center",
     paddingVertical: 8,
   },

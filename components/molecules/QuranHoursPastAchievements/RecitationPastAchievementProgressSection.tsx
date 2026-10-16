@@ -6,7 +6,7 @@ import { fonts } from "@/assets/fonts";
 import { INCOMPLETE_BAR_COLOR } from "./pastAchievementStyles";
 import type { RecitationAnalyticsView } from "@/src/screens/private/goalprogressloggingscreen/quranRecitationPastAchievementData";
 import type { JuzAnalyticsView } from "@/src/screens/private/goalprogressloggingscreen/quranRecitationJuzPastAchievementData";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 type ProgressAnalyticsView = RecitationAnalyticsView | JuzAnalyticsView;
 
@@ -179,14 +179,14 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.calendarBg,
   },
   chipLabel: {
-    fontSize: fs(11),
+    fontSize: rfs(11),
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
     letterSpacing: 0.3,
     textTransform: "uppercase",
   },
   chipValue: {
-    fontSize: fs(22),
+    fontSize: rfs(22),
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
     color: Colors.light.green,
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
   },
   chipValueStreak: {
     color: Colors.light.white,
-    fontSize: fs(12),
+    fontSize: rfs(12),
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
   },

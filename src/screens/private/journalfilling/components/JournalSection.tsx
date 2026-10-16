@@ -5,7 +5,7 @@ import { fonts } from "@/assets/fonts";
 import type { JournalFillingQuestion } from "../journalFillingQuestions";
 import { JournalQuestionRow } from "./JournalQuestionRow";
 import type { JournalAnswerValue } from "../types";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 type JournalSectionProps = {
   title: string;
@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
   title: {
     color: Colors.light.graylightshade,
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     marginBottom: 8,
   },
   divider: {

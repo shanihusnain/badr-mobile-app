@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import { TaperedCircleBorder } from "@/components/atoms/TaperedCircleBorder";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 type Props = {
   title: string;
@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
-    fontSize: fs(11),
+    fontSize: rfs(11),
   },
   textWrapper: {
     justifyContent: "center",
@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
-    fontSize: fs(15),
+    fontSize: rfs(15),
     textTransform: "uppercase",
     marginBottom: 2,
   },
@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
     color: Colors.light.white,
     opacity: 0.9,
     fontFamily: fonts.primary.regular,
-    fontSize: fs(14),
+    fontSize: rfs(14),
   },
   rightSection: {
     justifyContent: "center",
@@ -145,13 +145,13 @@ const styles = StyleSheet.create({
   percentText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
-    fontSize: fs(13),
+    fontSize: rfs(13),
     fontWeight: "500",
   },
   percentSymbol: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: fs(8),
+    fontSize: rfs(8),
     marginLeft: 0.8,
   },
 });

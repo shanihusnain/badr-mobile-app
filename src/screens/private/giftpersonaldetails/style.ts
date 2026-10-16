@@ -1,7 +1,7 @@
 import { StyleSheet } from "react-native";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 export const giftPersonalDetailsStyles = StyleSheet.create({
   safeArea: {
@@ -35,7 +35,7 @@ export const giftPersonalDetailsStyles = StyleSheet.create({
   title: {
     color: Colors.light.white,
     fontFamily: fonts.primary.bold,
-    fontSize: fs(18),
+    fontSize: rfs(18),
     textAlign: "center",
     textTransform: "uppercase",
     letterSpacing: 1,
@@ -44,9 +44,9 @@ export const giftPersonalDetailsStyles = StyleSheet.create({
   subtitle: {
     color: Colors.light.dullWhite,
     fontFamily: fonts.primary.regular,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     textAlign: "center",
-    lineHeight: fs(20),
+    lineHeight: rfs(20),
     marginBottom: 30,
     paddingHorizontal: 20,
   },
@@ -81,8 +81,8 @@ export const giftPersonalDetailsStyles = StyleSheet.create({
     flex: 1,
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: fs(14),
-    lineHeight: fs(20),
+    fontSize: rfs(14),
+    lineHeight: rfs(20),
   },
   recipientBlock: {
     marginBottom: 30,
@@ -90,7 +90,7 @@ export const giftPersonalDetailsStyles = StyleSheet.create({
   recipientBlockTitle: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(16),
+    fontSize: rfs(16),
     marginBottom: 16,
   },
   inputGroup: {
@@ -99,7 +99,7 @@ export const giftPersonalDetailsStyles = StyleSheet.create({
   inputLabel: {
     color: Colors.light.dullWhite,
     fontFamily: fonts.primary.regular,
-    fontSize: fs(12),
+    fontSize: rfs(12),
     marginBottom: 8,
   },
   input: {
@@ -109,7 +109,7 @@ export const giftPersonalDetailsStyles = StyleSheet.create({
     paddingHorizontal: 16,
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: fs(14),
+    fontSize: rfs(14),
   },
   textArea: {
     height: 100,
@@ -120,7 +120,7 @@ export const giftPersonalDetailsStyles = StyleSheet.create({
     paddingBottom: 12,
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     textAlignVertical: "top",
   },
   bottomSection: {

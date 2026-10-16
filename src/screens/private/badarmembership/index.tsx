@@ -13,7 +13,7 @@ import {
   ReferFriendTabIcon,
   RedeemGiftIcon,
 } from "@/assets/icons";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 type ActionItem = {
   id: string;
@@ -127,9 +127,9 @@ export default function BadarMembershipScreen() {
             style={{
               color: Colors.light.dullWhite,
               fontFamily: fonts.primary.regular,
-              fontSize: fs(14),
+              fontSize: rfs(14),
               textAlign: "center",
-              lineHeight: fs(22),
+              lineHeight: rfs(22),
             }}
           >
             Your membership will remain active until{" "}

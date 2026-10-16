@@ -1,7 +1,7 @@
 import { StyleSheet } from "react-native";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 export const paymentStyles = StyleSheet.create({
     safeArea: {
@@ -35,13 +35,13 @@ export const paymentStyles = StyleSheet.create({
     title: {
         color: Colors.light.white,
         fontFamily: fonts.primary.semiBold,
-        fontSize: fs(16),
+        fontSize: rfs(16),
         textTransform: "uppercase",
     },
     orderDetailsTitle: {
         color: Colors.light.white,
         fontFamily: fonts.primary.medium,
-        fontSize: fs(18),
+        fontSize: rfs(18),
         marginBottom: 16,
     },
     promoCodeRow: {
@@ -50,7 +50,7 @@ export const paymentStyles = StyleSheet.create({
     promoCodeText: {
         color: Colors.light.green,
         fontFamily: fonts.primary.medium,
-        fontSize: fs(14),
+        fontSize: rfs(14),
         textDecorationLine: "underline",
     },
     promoCodeInputContainer: {
@@ -66,7 +66,7 @@ export const paymentStyles = StyleSheet.create({
         flex: 1,
         color: Colors.light.white,
         fontFamily: fonts.primary.regular,
-        fontSize: fs(14),
+        fontSize: rfs(14),
     },
     promoApplyBtn: {
         backgroundColor: Colors.light.grey,
@@ -80,7 +80,7 @@ export const paymentStyles = StyleSheet.create({
     promoApplyBtnText: {
         color: Colors.light.white,
         fontFamily: fonts.primary.bold,
-        fontSize: fs(12),
+        fontSize: rfs(12),
     },
     rowItem: {
         flexDirection: "row",
@@ -91,12 +91,12 @@ export const paymentStyles = StyleSheet.create({
     rowTextLight: {
         color: Colors.light.dullWhite,
         fontFamily: fonts.primary.regular,
-        fontSize: fs(14),
+        fontSize: rfs(14),
     },
     rowTextBold: {
         color: Colors.light.white,
         fontFamily: fonts.primary.semiBold,
-        fontSize: fs(14),
+        fontSize: rfs(14),
     },
     divider: {
         height: 1,
@@ -113,7 +113,7 @@ export const paymentStyles = StyleSheet.create({
     sectionTitle: {
         color: Colors.light.subtext,
         fontFamily: fonts.primary.medium,
-        fontSize: fs(12),
+        fontSize: rfs(12),
     },
     scanCardContainer: {
         flexDirection: "row",
@@ -122,7 +122,7 @@ export const paymentStyles = StyleSheet.create({
     scanCardText: {
         color: Colors.light.green,
         fontFamily: fonts.primary.medium,
-        fontSize: fs(12),
+        fontSize: rfs(12),
         marginLeft: 4,
     },
     cardInputContainer: {
@@ -145,7 +145,7 @@ export const paymentStyles = StyleSheet.create({
         flex: 1,
         color: Colors.light.white,
         fontFamily: fonts.primary.medium,
-        fontSize: fs(14),
+        fontSize: rfs(14),
         paddingVertical: 14,
     },
     cardIconsRow: {
@@ -162,7 +162,7 @@ export const paymentStyles = StyleSheet.create({
         justifyContent: "center",
     },
     cardIconText: {
-        fontSize: fs(6),
+        fontSize: rfs(6),
         fontWeight: "bold",
         color: Colors.light.blackBackground,
     },
@@ -179,7 +179,7 @@ export const paymentStyles = StyleSheet.create({
     inputLabel: {
         color: Colors.light.subtext,
         fontFamily: fonts.primary.medium,
-        fontSize: fs(12),
+        fontSize: rfs(12),
         marginTop: 20,
         marginBottom: 8,
     },
@@ -190,7 +190,7 @@ export const paymentStyles = StyleSheet.create({
         paddingVertical: 14,
         color: Colors.light.white,
         fontFamily: fonts.primary.medium,
-        fontSize: fs(14),
+        fontSize: rfs(14),
     },
     dropdownBox: {
         backgroundColor: Colors.light.calendarBg,
@@ -208,7 +208,7 @@ export const paymentStyles = StyleSheet.create({
     dropdownText: {
         color: Colors.light.white,
         fontFamily: fonts.primary.medium,
-        fontSize: fs(14),
+        fontSize: rfs(14),
         marginLeft: 8,
     },
     checkboxRow: {
@@ -234,7 +234,7 @@ export const paymentStyles = StyleSheet.create({
     checkboxText: {
         color: Colors.light.dullWhite,
         fontFamily: fonts.primary.regular,
-        fontSize: fs(12),
+        fontSize: rfs(12),
         flex: 1,
     },
     bottomSection: {
@@ -244,10 +244,10 @@ export const paymentStyles = StyleSheet.create({
     termsText: {
         color: Colors.light.white,
         fontFamily: fonts.primary.regular,
-        fontSize: fs(12),
+        fontSize: rfs(12),
         textAlign: "center",
         marginBottom: 16,
-        lineHeight: fs(18),
+        lineHeight: rfs(18),
     },
     termsTextUnderline: {
         textDecorationLine: "underline",
@@ -262,7 +262,7 @@ export const paymentStyles = StyleSheet.create({
     changeText: {
         color: Colors.light.white,
         fontFamily: fonts.primary.medium,
-        fontSize: fs(12),
+        fontSize: rfs(12),
         marginRight: 4,
     },
     savedCardBox: {
@@ -288,12 +288,12 @@ export const paymentStyles = StyleSheet.create({
     savedCardIconText: {
         color: "#1A1F71",
         fontFamily: fonts.primary.semiBold,
-        fontSize: fs(10),
+        fontSize: rfs(10),
     },
     savedCardNumber: {
         color: Colors.light.white,
         fontFamily: fonts.primary.medium,
-        fontSize: fs(14),
+        fontSize: rfs(14),
     },
     cardBrandsRow: {
         flexDirection: "row",
@@ -319,19 +319,19 @@ export const paymentStyles = StyleSheet.create({
     brandIconText: {
         color: Colors.light.white,
         fontFamily: fonts.primary.semiBold,
-        fontSize: fs(8),
+        fontSize: rfs(8),
     },
     // ── Bottom Sheet: Select Payment Method ──
     sheetTitle: {
         color: Colors.light.white,
         fontFamily: fonts.primary.semiBold,
-        fontSize: fs(18),
+        fontSize: rfs(18),
         marginBottom: 24,
     },
     sheetSectionLabel: {
         color: Colors.light.subtext,
         fontFamily: fonts.primary.medium,
-        fontSize: fs(12),
+        fontSize: rfs(12),
         marginBottom: 8,
     },
     sheetCardRow: {
@@ -351,7 +351,7 @@ export const paymentStyles = StyleSheet.create({
     sheetCardText: {
         color: Colors.light.white,
         fontFamily: fonts.primary.medium,
-        fontSize: fs(14),
+        fontSize: rfs(14),
         marginLeft: 12,
     },
     newCardIconBox: {
@@ -383,7 +383,7 @@ export const paymentStyles = StyleSheet.create({
     newCardSheetTitle: {
         color: Colors.light.white,
         fontFamily: fonts.primary.semiBold,
-        fontSize: fs(18),
+        fontSize: rfs(18),
         flex: 1,
         textAlign: "center",
         marginRight: 48, // offset for the back button

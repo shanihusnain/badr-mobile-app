@@ -1,7 +1,7 @@
 import { StyleSheet } from "react-native";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 export const INCOMPLETE_BAR_COLOR = Colors.light.goldenBright;
 
@@ -38,15 +38,15 @@ export const pastAchievementStyles = StyleSheet.create({
   chartHintText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
-    fontSize: fs(11),
+    fontSize: rfs(11),
     fontWeight: "500",
-    lineHeight: fs(15),
+    lineHeight: rfs(15),
     textAlign: "center",
   },
   chartHintAction: {
     color: Colors.light.green,
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(11),
+    fontSize: rfs(11),
     fontWeight: "600",
     textAlign: "center",
   },
@@ -90,8 +90,8 @@ export const pastAchievementStyles = StyleSheet.create({
   xAxisDateLabel: {
     color: Colors.light.grey,
     fontFamily: fonts.primary.medium,
-    fontSize: fs(9),
-    lineHeight: fs(11),
+    fontSize: rfs(9),
+    lineHeight: rfs(11),
     textAlign: "center",
   },
   xAxisDateLabelSelected: {
@@ -102,7 +102,7 @@ export const pastAchievementStyles = StyleSheet.create({
     position: "absolute",
     color: Colors.light.green,
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(11),
+    fontSize: rfs(11),
     fontWeight: "600",
     textAlign: "center",
     width: 52,

@@ -1,6 +1,6 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 import { StyleSheet } from "react-native";
 import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 
@@ -22,12 +22,12 @@ export const styles = StyleSheet.create({
   },
   title: {
     color: Colors.light.white,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
     textAlign: "center",
     flex: 1,
-    lineHeight: fs(18),
+    lineHeight: rfs(18),
   },
   placeholder: {
     width: 40, // Same width as back button for balance
@@ -46,7 +46,7 @@ export const styles = StyleSheet.create({
   },
   cardNumberLabel: {
     color: Colors.light.grey,
-    fontSize: fs(12),
+    fontSize: rfs(12),
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
     marginBottom: hp(0.5),
@@ -60,7 +60,7 @@ export const styles = StyleSheet.create({
   cardNumberInput: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(14),
+    fontSize: rfs(14),
   },
   cardDetailsRow: {
     flexDirection: "row",
@@ -74,7 +74,7 @@ export const styles = StyleSheet.create({
   },
   cardDetailLabel: {
     color: Colors.light.grey,
-    fontSize: fs(12),
+    fontSize: rfs(12),
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
     marginBottom: hp(0.5),
@@ -88,7 +88,7 @@ export const styles = StyleSheet.create({
   cardDetailInput: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(14),
+    fontSize: rfs(14),
   },
   userNameWrapper: {
     paddingHorizontal: 20,
@@ -96,7 +96,7 @@ export const styles = StyleSheet.create({
   },
   userNameLabel: {
     color: Colors.light.grey,
-    fontSize: fs(12),
+    fontSize: rfs(12),
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
     marginBottom: hp(0.5),
@@ -110,7 +110,7 @@ export const styles = StyleSheet.create({
   userNameInput: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(14),
+    fontSize: rfs(14),
   },
   checkboxWrapper: {
     flexDirection: "row",
@@ -128,7 +128,7 @@ export const styles = StyleSheet.create({
   },
   checkboxLabel: {
     color: Colors.light.grey,
-    fontSize: fs(12),
+    fontSize: rfs(12),
     fontFamily: fonts.primary.semiBold,
     fontWeight: "400",
   },
@@ -155,7 +155,7 @@ export const styles = StyleSheet.create({
     color: Colors.light.green,
     textAlign: "center",
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(14),
+    fontSize: rfs(14),
   },
   planButton: {
     flex: 1,

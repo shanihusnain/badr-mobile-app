@@ -20,7 +20,7 @@ import {
   type TeamMember,
 } from "../mockData";
 import type { TeamChatMessage } from "../rankMockData";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 const MUTED = "#8E98A8";
 
@@ -215,7 +215,7 @@ const styles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
-    fontSize: fs(18),
+    fontSize: rfs(18),
   },
   emptyState: {
     flex: 1,
@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
-    fontSize: fs(13),
+    fontSize: rfs(13),
     textAlign: "center",
     textTransform: "uppercase",
     letterSpacing: 0.3,
@@ -281,21 +281,21 @@ const styles = StyleSheet.create({
   sender: {
     color: Colors.light.dullWhite,
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(11),
+    fontSize: rfs(11),
     marginBottom: 4,
     textTransform: "uppercase",
   },
   messageText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: fs(14),
-    lineHeight: fs(20),
+    fontSize: rfs(14),
+    lineHeight: rfs(20),
   },
   time: {
     marginTop: 6,
     color: "rgba(255,255,255,0.7)",
     fontFamily: fonts.primary.regular,
-    fontSize: fs(10),
+    fontSize: rfs(10),
     alignSelf: "flex-end",
   },
   composerWrap: {
@@ -325,7 +325,7 @@ const styles = StyleSheet.create({
     maxHeight: 100,
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: fs(13),
+    fontSize: rfs(13),
     paddingHorizontal: 12,
     paddingVertical: 8,
     textTransform: "none",
@@ -359,14 +359,14 @@ const styles = StyleSheet.create({
   disabledTitle: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     marginBottom: 8,
   },
   disabledBody: {
     color: MUTED,
     fontFamily: fonts.primary.regular,
-    fontSize: fs(13),
+    fontSize: rfs(13),
     textAlign: "center",
-    lineHeight: fs(20),
+    lineHeight: rfs(20),
   },
 });

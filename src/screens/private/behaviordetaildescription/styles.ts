@@ -1,7 +1,7 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
 import { StyleSheet } from "react-native";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 export const behaviorDetailStyles = StyleSheet.create({
   screen: {
@@ -41,10 +41,10 @@ export const behaviorDetailStyles = StyleSheet.create({
   },
   heroTitle: {
     color: Colors.light.white,
-    fontSize: fs(18),
+    fontSize: rfs(18),
     fontWeight: "500",
     fontFamily: fonts.primary.semiBold,
-    lineHeight: fs(22),
+    lineHeight: rfs(22),
   },
   heroRingContainer: {
     position: "absolute",
@@ -56,17 +56,17 @@ export const behaviorDetailStyles = StyleSheet.create({
   },
   heroRingCount: {
     color: Colors.light.white,
-    fontSize: fs(34),
+    fontSize: rfs(34),
     fontWeight: "400",
     fontFamily: fonts.primary.regular,
-    lineHeight: fs(38),
+    lineHeight: rfs(38),
   },
   summaryText: {
-    fontSize: fs(14),
+    fontSize: rfs(14),
     fontWeight: "400",
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    lineHeight: fs(21),
+    lineHeight: rfs(21),
     opacity: 0.9,
     marginTop: 20,
   },
@@ -104,13 +104,13 @@ export const behaviorDetailStyles = StyleSheet.create({
     backgroundColor: "transparent",
   },
   weekDayLabel: {
-    fontSize: fs(10),
+    fontSize: rfs(10),
     fontWeight: "500",
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
   },
   weekDayDate: {
-    fontSize: fs(10),
+    fontSize: rfs(10),
     fontWeight: "400",
     color: Colors.light.grey,
     fontFamily: fonts.primary.regular,
@@ -129,7 +129,7 @@ export const behaviorDetailStyles = StyleSheet.create({
     paddingBottom: 2,
   },
   chartYAxisLabel: {
-    fontSize: fs(10),
+    fontSize: rfs(10),
     fontWeight: "400",
     color: Colors.light.grey,
     fontFamily: fonts.primary.regular,
@@ -175,12 +175,12 @@ export const behaviorDetailStyles = StyleSheet.create({
     alignItems: "center",
   },
   chartXAxisLabel: {
-    fontSize: fs(10),
+    fontSize: rfs(10),
     fontWeight: "400",
     color: Colors.light.grey,
     fontFamily: fonts.primary.regular,
     textAlign: "center",
-    lineHeight: fs(13),
+    lineHeight: rfs(13),
   },
   streakCard: {
     backgroundColor: Colors.light.darkgrey,
@@ -201,13 +201,13 @@ export const behaviorDetailStyles = StyleSheet.create({
     justifyContent: "center",
   },
   streakCount: {
-    fontSize: fs(16),
+    fontSize: rfs(16),
     fontWeight: "700",
     color: Colors.light.white,
     fontFamily: fonts.primary.bold,
   },
   streakLabel: {
-    fontSize: fs(10),
+    fontSize: rfs(10),
     fontWeight: "600",
     color: Colors.light.subtext,
     fontFamily: fonts.primary.semiBold,
@@ -216,7 +216,7 @@ export const behaviorDetailStyles = StyleSheet.create({
     textAlign: "center",
   },
   streakDate: {
-    fontSize: fs(11),
+    fontSize: rfs(11),
     fontWeight: "500",
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
@@ -229,19 +229,19 @@ export const behaviorDetailStyles = StyleSheet.create({
     marginTop: 16,
   },
   sectionTitle: {
-    fontSize: fs(14),
+    fontSize: rfs(14),
     fontWeight: "600",
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    lineHeight: fs(21),
+    lineHeight: rfs(21),
     marginBottom: 10,
   },
   sectionBody: {
-    fontSize: fs(14),
+    fontSize: rfs(14),
     fontWeight: "400",
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    lineHeight: fs(21),
+    lineHeight: rfs(21),
     opacity: 0.9,
   },
   quoteBlock: {
@@ -255,20 +255,20 @@ export const behaviorDetailStyles = StyleSheet.create({
     gap: 4,
   },
   quoteText: {
-    fontSize: fs(13),
+    fontSize: rfs(13),
     fontWeight: "400",
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    lineHeight: fs(20),
+    lineHeight: rfs(20),
     fontStyle: "italic",
     opacity: 0.9,
   },
   quoteSource: {
-    fontSize: fs(12),
+    fontSize: rfs(12),
     fontWeight: "500",
     color: Colors.light.subtext,
     fontFamily: fonts.primary.medium,
-    lineHeight: fs(18),
+    lineHeight: rfs(18),
   },
   recommendationList: {
     marginTop: 12,
@@ -281,25 +281,25 @@ export const behaviorDetailStyles = StyleSheet.create({
   },
   recommendationBullet: {
     color: Colors.light.white,
-    fontSize: fs(10),
-    lineHeight: fs(20),
+    fontSize: rfs(10),
+    lineHeight: rfs(20),
     marginTop: 1,
   },
   recommendationText: {
     flex: 1,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     fontWeight: "400",
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    lineHeight: fs(21),
+    lineHeight: rfs(21),
     opacity: 0.9,
   },
   closingText: {
-    fontSize: fs(14),
+    fontSize: rfs(14),
     fontWeight: "400",
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    lineHeight: fs(21),
+    lineHeight: rfs(21),
     opacity: 0.9,
     marginTop: 14,
   },

@@ -14,7 +14,7 @@ import { TaperedCircleBorder } from "@/components/atoms/TaperedCircleBorder";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import type { WhiteDaysFastInsights } from "../whiteDaysFastsData";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 type Props = {
   visible: boolean;
@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     color: Colors.light.white,
     fontFamily: fonts.primary.bold,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     fontWeight: "700",
     letterSpacing: 0.6,
   },
@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
   ringGoal: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: fs(13),
+    fontSize: rfs(13),
     opacity: 0.9,
     textAlign: "center",
   },
@@ -160,29 +160,29 @@ const styles = StyleSheet.create({
   ringPercent: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: fs(30),
+    fontSize: rfs(30),
   },
   ringPercentSymbol: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: fs(16),
+    fontSize: rfs(16),
     marginLeft: 2,
   },
   congratsTitle: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(18),
+    fontSize: rfs(18),
     fontWeight: "600",
     textAlign: "center",
-    lineHeight: fs(24),
+    lineHeight: rfs(24),
     paddingHorizontal: 8,
   },
   congratsBody: {
     color: Colors.light.grey,
     fontFamily: fonts.primary.regular,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     textAlign: "center",
-    lineHeight: fs(20),
+    lineHeight: rfs(20),
     paddingHorizontal: 12,
   },
 });

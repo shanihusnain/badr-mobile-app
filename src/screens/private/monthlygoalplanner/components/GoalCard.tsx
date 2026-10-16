@@ -2,7 +2,7 @@ import { Colors } from "@/constants/theme";
 import { View, Text, StyleSheet, Platform } from "react-native";
 import { fonts } from "@/assets/fonts";
 import { TopSpace } from "@/components/atoms/TopSpace";
-import { fs, ms } from "@/src/utils/responsive";
+import { rfs, ms } from "@/src/utils/responsive";
 
 export type GoalCardData = {
   id: string;
@@ -52,16 +52,16 @@ const styles = StyleSheet.create({
   },
   title: {
     color: Colors.light.white,
-    fontSize: fs(18),
+    fontSize: rfs(18),
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
-    lineHeight: fs(22),
+    lineHeight: rfs(22),
   },
   description: {
     color: Colors.light.white,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     fontFamily: fonts.primary.regular,
-    lineHeight: fs(21),
+    lineHeight: rfs(21),
     fontWeight: "400",
     letterSpacing: 0.1,
   },

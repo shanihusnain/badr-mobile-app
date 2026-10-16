@@ -21,7 +21,7 @@ import {
   WRAPPER_WIDTH_RATIO,
   type SinglePrayerWeeklyProgressDashboardProps,
 } from "./types";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { PrayerWeeklyDashboardBody } from "@/components/molecules/PrayerWeeklyDashboardBody";
@@ -460,7 +460,7 @@ const styles = StyleSheet.create({
   },
   bestDayLabel: {
     color: Colors.light.green,
-    fontSize: fs(10.5),
+    fontSize: rfs(10.5),
     fontWeight: "700",
     fontFamily: fonts.primary.bold,
     textAlign: "center",
@@ -470,7 +470,7 @@ const styles = StyleSheet.create({
   },
   dayLabel: {
     color: Colors.light.subtext,
-    fontSize: fs(11),
+    fontSize: rfs(11),
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
     marginTop: 3,
@@ -485,11 +485,11 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   durationText: {
-    fontSize: fs(11),
+    fontSize: rfs(11),
     fontWeight: "700",
     fontFamily: fonts.primary.bold,
     textAlign: "center",
-    lineHeight: fs(13),
+    lineHeight: rfs(13),
   },
   statsRow: {
     flexDirection: "row",
@@ -501,7 +501,7 @@ const styles = StyleSheet.create({
   },
   statsText: {
     color: Colors.light.white,
-    fontSize: fs(13),
+    fontSize: rfs(13),
     fontFamily: fonts.primary.medium,
     flexShrink: 1,
     fontWeight: "500",
@@ -510,7 +510,7 @@ const styles = StyleSheet.create({
   statsCount: {
     color: Colors.light.white,
     fontWeight: "600",
-    fontSize: fs(20),
+    fontSize: rfs(20),
     fontFamily: fonts.primary.bold,
     letterSpacing: 0.1,
   },

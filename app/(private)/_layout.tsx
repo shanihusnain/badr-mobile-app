@@ -9,7 +9,7 @@ import { HeaderWithCrossTitleDynamicIcon } from "@/components/atoms/HeaderWithCr
 import { ProtectedRoute } from "@/provider/ProtectedRoute";
 import { CrossHeader } from "@/components/atoms/CrossHeader";
 import { JournalFillingHeader } from "@/components/atoms/JournalFillingHeader";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 export default function PrivateLayout() {
   const { t } = useTranslation();
@@ -21,7 +21,7 @@ export default function PrivateLayout() {
           headerTintColor: Colors.light.white,
           headerTitleStyle: {
             fontFamily: fonts.primary.semiBold,
-            fontSize: fs(16),
+            fontSize: rfs(16),
             color: Colors.light.white,
           },
           headerShadowVisible: false,

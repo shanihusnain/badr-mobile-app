@@ -60,7 +60,7 @@ import {
   getFastingFrameAchievementLabel,
   getFastingFrameAchievementPct,
 } from "@/src/utils/fastingGoalFrameMap";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 function toDateOptions(dates: string[]): MissedRamadanFastDateOption[] {
   return [...dates]
@@ -1321,9 +1321,9 @@ const localStyles = StyleSheet.create({
   },
   badgeText: {
     fontFamily: fonts.primary.medium,
-    fontSize: fs(12),
+    fontSize: rfs(12),
     fontWeight: "500",
-    lineHeight: fs(12.5),
+    lineHeight: rfs(12.5),
   },
   badgeTextNotStarted: {
     color: Colors.light.notStartedTextColor,
@@ -1356,9 +1356,9 @@ const localStyles = StyleSheet.create({
   summaryTitle: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     fontWeight: "600",
-    lineHeight: fs(18),
+    lineHeight: rfs(18),
     letterSpacing: 0,
   },
   footerRow: {
@@ -1375,7 +1375,7 @@ const localStyles = StyleSheet.create({
   insightsText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.bold,
-    fontSize: fs(16),
+    fontSize: rfs(16),
     fontWeight: "700",
   },
   addButton: {
@@ -1395,8 +1395,8 @@ const localStyles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
-    fontSize: fs(10),
-    lineHeight: fs(10),
+    fontSize: rfs(10),
+    lineHeight: rfs(10),
     textAlign: "center",
     opacity: 0.95,
   },

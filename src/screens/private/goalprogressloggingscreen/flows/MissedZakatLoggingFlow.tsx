@@ -25,7 +25,7 @@ import { FlowCardCallender } from "@/assets/icons";
 import { FlowCardWalletIcon } from "@/assets/icons/FlowCardWalletIcon";
 import { FlowCardClockIcon } from "@/assets/icons/FlowCardClockIcon";
 import { TimeSpentIcon } from "@/assets/icons";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 type MissedZakatStepId = "date" | "financial-amount" | "start-time" | "time-spent";
 const STEPS: MissedZakatStepId[] = ["date", "financial-amount", "start-time", "time-spent"];
@@ -296,7 +296,7 @@ const localStyles = StyleSheet.create({
   },
   badgeText: {
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(12),
+    fontSize: rfs(12),
     letterSpacing: 0.5,
   },
   badgeTextInProgress: {
@@ -308,7 +308,7 @@ const localStyles = StyleSheet.create({
   summaryTitle: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(15),
+    fontSize: rfs(15),
   },
   footerRow: {
     flexDirection: "row",
@@ -324,7 +324,7 @@ const localStyles = StyleSheet.create({
   insightsText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.bold,
-    fontSize: fs(11),
+    fontSize: rfs(11),
     letterSpacing: 0.5,
   },
   addButton: {

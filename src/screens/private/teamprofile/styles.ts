@@ -1,7 +1,7 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
 import { StyleSheet } from "react-native";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 export const teamProfileStyles = StyleSheet.create({
   screen: {
@@ -47,7 +47,7 @@ export const teamProfileStyles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
-    fontSize: fs(12),
+    fontSize: rfs(12),
     textTransform: "uppercase",
   },
   tabTextRank: {
@@ -102,7 +102,7 @@ export const teamProfileStyles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
-    fontSize: fs(18),
+    fontSize: rfs(18),
   },
   content: {
     paddingHorizontal: 16,
@@ -112,7 +112,7 @@ export const teamProfileStyles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
-    fontSize: fs(12),
+    fontSize: rfs(12),
     textTransform: "uppercase",
     marginBottom: 10,
   },
@@ -135,14 +135,14 @@ export const teamProfileStyles = StyleSheet.create({
     color: Colors.light.green,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
-    fontSize: fs(13),
+    fontSize: rfs(13),
     textTransform: "uppercase",
   },
   descriptionText: {
     color: Colors.light.dullWhite,
     fontFamily: fonts.primary.regular,
-    fontSize: fs(13),
-    lineHeight: fs(20),
+    fontSize: rfs(13),
+    lineHeight: rfs(20),
   },
   addMembersRow: {
     flexDirection: "row",
@@ -163,7 +163,7 @@ export const teamProfileStyles = StyleSheet.create({
     color: Colors.light.green,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
-    fontSize: fs(13),
+    fontSize: rfs(13),
     textTransform: "uppercase",
   },
   sheetContent: {
@@ -178,15 +178,15 @@ export const teamProfileStyles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
-    fontSize: fs(14),
+    fontSize: rfs(14),
     textTransform: "uppercase",
     marginBottom: 8,
   },
   inviteDescription: {
     color: Colors.light.subtext,
     fontFamily: fonts.primary.regular,
-    fontSize: fs(13),
-    lineHeight: fs(18),
+    fontSize: rfs(13),
+    lineHeight: rfs(18),
     marginBottom: 14,
   },
   codeRow: {
@@ -207,7 +207,7 @@ export const teamProfileStyles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
-    fontSize: fs(14),
+    fontSize: rfs(14),
     letterSpacing: 1,
   },
   copyButton: {
@@ -225,7 +225,7 @@ export const teamProfileStyles = StyleSheet.create({
     color: Colors.light.green,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
-    fontSize: fs(12),
+    fontSize: rfs(12),
     textTransform: "uppercase",
   },
   inviteDivider: {

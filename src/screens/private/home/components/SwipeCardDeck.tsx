@@ -16,7 +16,7 @@ import Animated, {
   Extrapolation,
 } from "react-native-reanimated";
 import { ContainerCard, type ContainerCardData } from "./ContainerCard";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 const SCREEN_H_PADDING = 16;
 const CARD_HEIGHT = 160;
@@ -235,15 +235,15 @@ const styles = StyleSheet.create({
   },
   remainingBadgeTick: {
     color: Colors.light.white,
-    fontSize: fs(12),
+    fontSize: rfs(12),
     fontFamily: fonts.primary.semiBold,
-    lineHeight: fs(14),
+    lineHeight: rfs(14),
   },
   remainingBadgeText: {
     color: Colors.light.white,
-    fontSize: fs(13),
+    fontSize: rfs(13),
     fontFamily: fonts.primary.semiBold,
-    lineHeight: fs(16),
+    lineHeight: rfs(16),
   },
   dotRow: {
     flexDirection: "row",
@@ -279,7 +279,7 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     color: Colors.light.white,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     fontFamily: fonts.primary.semiBold,
     marginTop: 6,
   },

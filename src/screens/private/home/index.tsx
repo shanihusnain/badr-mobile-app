@@ -36,7 +36,7 @@ import { DailyProgressBottomSheet } from "./components/DailyProgressBottomSheet"
 import BottomSheet from "@gorhom/bottom-sheet";
 import { DaysTrackerContainer } from "@/components/molecules/DaysTrackerContainer";
 import { NamazGoalBottomSheet } from "@/components/molecules/NamazGoalBottomSheet";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 import { BottomSheetWrapper } from "@/components/molecules/BottomSheetWrapper";
 
@@ -566,7 +566,7 @@ export default function HomeScreen() {
               </View> */}
               <Text
                 style={{
-                  fontSize: fs(20),
+                  fontSize: rfs(20),
                   fontWeight: "bold",
                   textAlign: "center",
                   marginTop: 100,

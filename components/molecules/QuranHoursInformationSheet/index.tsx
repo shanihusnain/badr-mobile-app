@@ -25,7 +25,7 @@ import {
   LighteningIcon,
   WeighBalanceIcon,
 } from "@/assets/icons";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 type Props = {
   quranGoalType: string;
@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
   errorText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     textAlign: "center",
     opacity: 0.85,
   },
@@ -240,7 +240,7 @@ const styles = StyleSheet.create({
   ringGoalText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     fontWeight: "500",
   },
   percentRow: {
@@ -251,22 +251,22 @@ const styles = StyleSheet.create({
   percentNumber: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: fs(32),
+    fontSize: rfs(32),
     fontWeight: "400",
   },
   percentSymbol: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: fs(12),
+    fontSize: rfs(12),
     marginLeft: 2,
   },
   headline: {
     color: Colors.light.white,
     fontFamily: fonts.primary.bold,
-    fontSize: fs(16),
+    fontSize: rfs(16),
     fontWeight: "700",
     textAlign: "left",
-    lineHeight: fs(22),
+    lineHeight: rfs(22),
     marginBottom: 6,
   },
   boldNumber: {
@@ -276,19 +276,19 @@ const styles = StyleSheet.create({
   body: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     fontWeight: "400",
     textAlign: "left",
-    lineHeight: fs(20),
+    lineHeight: rfs(20),
     marginBottom: 15,
   },
   closing: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     fontWeight: "400",
     textAlign: "left",
-    lineHeight: fs(20),
+    lineHeight: rfs(20),
     marginBottom: 20,
   },
   statsList: {
@@ -310,14 +310,14 @@ const styles = StyleSheet.create({
     flex: 1,
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     fontWeight: "500",
-    lineHeight: fs(20),
+    lineHeight: rfs(20),
   },
   statValue: {
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
-    fontSize: fs(14),
+    fontSize: rfs(14),
     color: Colors.light.white,
   },
   statValueNumber: {

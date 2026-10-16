@@ -1,6 +1,6 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 import { StyleSheet } from "react-native";
 import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 
@@ -31,11 +31,11 @@ export const styles = StyleSheet.create({
   title: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     fontWeight: "600",
     textAlign: "center",
     flex: 1,
-    lineHeight: fs(18),
+    lineHeight: rfs(18),
   },
 
   placeholder: {
@@ -82,9 +82,9 @@ export const styles = StyleSheet.create({
 
   forgotPasswordText: {
     color: Colors.light.white,
-    fontSize: fs(12),
+    fontSize: rfs(12),
     fontFamily: fonts.primary.regular,
-    lineHeight: fs(14),
+    lineHeight: rfs(14),
     marginRight: 8,
   },
 
@@ -122,7 +122,7 @@ export const styles = StyleSheet.create({
 
   orloginText: {
     color: Colors.light.white,
-    fontSize: fs(12),
+    fontSize: rfs(12),
     fontFamily: fonts.primary.regular,
     marginHorizontal: 10,
   },

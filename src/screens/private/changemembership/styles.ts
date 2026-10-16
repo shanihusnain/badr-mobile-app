@@ -1,7 +1,7 @@
 import { StyleSheet } from "react-native";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 export const changeMembershipStyles = StyleSheet.create({
     safeArea: {
@@ -35,7 +35,7 @@ export const changeMembershipStyles = StyleSheet.create({
     headerTitle: {
         color: Colors.light.white,
         fontFamily: fonts.primary.bold,
-        fontSize: fs(14),
+        fontSize: rfs(14),
         letterSpacing: 1,
     },
     content: {
@@ -46,14 +46,14 @@ export const changeMembershipStyles = StyleSheet.create({
     screenTitle: {
         color: Colors.light.white,
         fontFamily: fonts.primary.medium,
-        fontSize: fs(24),
+        fontSize: rfs(24),
         textAlign: "center",
         marginBottom: 12,
     },
     subtitle: {
         color: Colors.light.subtext,
         fontFamily: fonts.primary.regular,
-        fontSize: fs(14),
+        fontSize: rfs(14),
         textAlign: "center",
         marginBottom: 32,
     },
@@ -95,17 +95,17 @@ export const changeMembershipStyles = StyleSheet.create({
     planName: {
         color: Colors.light.green,
         fontFamily: fonts.primary.semiBold,
-        fontSize: fs(15),
+        fontSize: rfs(15),
     },
     planNameInactive: {
         color: Colors.light.green,
         fontFamily: fonts.primary.semiBold,
-        fontSize: fs(15),
+        fontSize: rfs(15),
     },
     planSavings: {
         color: Colors.light.subtext,
         fontFamily: fonts.primary.regular,
-        fontSize: fs(12),
+        fontSize: rfs(12),
     },
     planRight: {
         alignItems: "flex-end",
@@ -114,12 +114,12 @@ export const changeMembershipStyles = StyleSheet.create({
     planPrice: {
         color: Colors.light.white,
         fontFamily: fonts.primary.bold,
-        fontSize: fs(15),
+        fontSize: rfs(15),
     },
     planPriceSub: {
         color: Colors.light.subtext,
         fontFamily: fonts.primary.regular,
-        fontSize: fs(12),
+        fontSize: rfs(12),
     },
     bottomContainer: {
         //paddingHorizontal: 24,
@@ -134,7 +134,7 @@ export const changeMembershipStyles = StyleSheet.create({
     cancelButtonText: {
         color: Colors.light.white,
         fontFamily: fonts.primary.semiBold,
-        fontSize: fs(14),
+        fontSize: rfs(14),
         letterSpacing: 1,
     },
 });

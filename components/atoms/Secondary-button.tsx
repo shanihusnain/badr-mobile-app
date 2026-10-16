@@ -1,6 +1,6 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 import React from "react";
 import {
   Pressable,
@@ -101,13 +101,13 @@ const styles = StyleSheet.create({
     color: Colors.light.background,
     fontFamily: fonts.primary.regular,
     fontWeight: "500",
-    fontSize: fs(14),
-    lineHeight: fs(18),
+    fontSize: rfs(14),
+    lineHeight: rfs(18),
     letterSpacing: 0,
   },
   buttonTextModal: {
-    fontSize: fs(13),
-    lineHeight: fs(16),
+    fontSize: rfs(13),
+    lineHeight: rfs(16),
   },
   buttonWhite: {
     borderColor: Colors.light.background,

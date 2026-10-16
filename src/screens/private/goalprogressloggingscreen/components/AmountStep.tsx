@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, TextInput, StyleSheet } from "react-native";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 type Props = {
   amount: string;
@@ -56,12 +56,12 @@ const styles = StyleSheet.create({
   currencySymbol: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(16),
+    fontSize: rfs(16),
   },
   input: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(16),
+    fontSize: rfs(16),
     minWidth: 40,
     textAlign: "center",
     padding: 0,

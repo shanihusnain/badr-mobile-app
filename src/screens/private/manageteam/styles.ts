@@ -1,7 +1,7 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
 import { StyleSheet } from "react-native";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 export const manageTeamStyles = StyleSheet.create({
   screen: {
@@ -44,7 +44,7 @@ export const manageTeamStyles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
-    fontSize: fs(13),
+    fontSize: rfs(13),
     textTransform: "uppercase",
   },
   identityRow: {
@@ -100,7 +100,7 @@ export const manageTeamStyles = StyleSheet.create({
   nameLabel: {
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
-    fontSize: fs(10),
+    fontSize: rfs(10),
     textTransform: "uppercase",
     marginBottom: 4,
   },
@@ -108,7 +108,7 @@ export const manageTeamStyles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
-    fontSize: fs(15),
+    fontSize: rfs(15),
     padding: 0,
   },
   body: {
@@ -118,7 +118,7 @@ export const manageTeamStyles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
-    fontSize: fs(12),
+    fontSize: rfs(12),
     textTransform: "uppercase",
     marginBottom: 10,
   },
@@ -128,8 +128,8 @@ export const manageTeamStyles = StyleSheet.create({
     backgroundColor: Colors.light.greybuttonBackground,
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: fs(13),
-    lineHeight: fs(20),
+    fontSize: rfs(13),
+    lineHeight: rfs(20),
     paddingHorizontal: 14,
     paddingVertical: 12,
     textAlignVertical: "top",
@@ -144,7 +144,7 @@ export const manageTeamStyles = StyleSheet.create({
     marginTop: 6,
     color: Colors.light.subtext,
     fontFamily: fonts.primary.regular,
-    fontSize: fs(11),
+    fontSize: rfs(11),
   },
   charCountError: {
     color: Colors.light.red,
@@ -177,7 +177,7 @@ export const manageTeamStyles = StyleSheet.create({
     color: Colors.light.green,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
-    fontSize: fs(14),
+    fontSize: rfs(14),
   },
   saveCancelText: {
     color: Colors.light.white,
@@ -196,7 +196,7 @@ export const manageTeamStyles = StyleSheet.create({
     flex: 1,
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     paddingVertical: 8,
   },
   crownButton: {
@@ -222,7 +222,7 @@ export const manageTeamStyles = StyleSheet.create({
   confirmTitle: {
     color: Colors.light.white,
     fontFamily: fonts.primary.bold,
-    fontSize: fs(15),
+    fontSize: rfs(15),
     textAlign: "center",
     textTransform: "uppercase",
     marginBottom: 10,
@@ -230,9 +230,9 @@ export const manageTeamStyles = StyleSheet.create({
   confirmMessage: {
     color: Colors.light.dullWhite,
     fontFamily: fonts.primary.regular,
-    fontSize: fs(13),
+    fontSize: rfs(13),
     textAlign: "center",
-    lineHeight: fs(20),
+    lineHeight: rfs(20),
     marginBottom: 18,
   },
   confirmTextButton: {
@@ -242,6 +242,6 @@ export const manageTeamStyles = StyleSheet.create({
   confirmTextButtonLabel: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(13),
+    fontSize: rfs(13),
   },
 });

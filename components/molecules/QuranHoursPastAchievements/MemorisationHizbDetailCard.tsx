@@ -7,7 +7,7 @@ import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import { InsightCardFlashIcon } from "@/assets/icons";
 import type { MemorisationAnalyticsView } from "@/src/screens/private/goalprogressloggingscreen/quranMemorisationSurahPastAchievementData";
 import type { MemorisationHizbProgressRailRow } from "@/src/screens/private/goalprogressloggingscreen/quranMemorisationHizbPastAchievementSliceData";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 type MemorisationHizbDetailCardProps = {
   row: MemorisationHizbProgressRailRow;
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
   metaTitle: {
     flex: 1,
     color: Colors.light.white,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
   },
@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
   },
   completedBadgeText: {
     color: Colors.light.white,
-    fontSize: fs(10),
+    fontSize: rfs(10),
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
     letterSpacing: 0.4,
@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
   },
   incompleteBadgeText: {
     color: Colors.light.warning,
-    fontSize: fs(10),
+    fontSize: rfs(10),
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
     letterSpacing: 0.4,
@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
   },
   timeBadgeText: {
     color: Colors.light.green,
-    fontSize: fs(10),
+    fontSize: rfs(10),
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
   },
@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
   },
   verseCount: {
     color: Colors.light.white,
-    fontSize: fs(12),
+    fontSize: rfs(12),
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
     flexShrink: 1,
@@ -201,7 +201,7 @@ const styles = StyleSheet.create({
   },
   streakText: {
     color: Colors.light.white,
-    fontSize: fs(10),
+    fontSize: rfs(10),
     fontFamily: fonts.primary.regular,
   },
 });

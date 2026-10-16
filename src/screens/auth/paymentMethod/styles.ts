@@ -1,6 +1,6 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 import { StyleSheet } from "react-native";
 import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 
@@ -24,7 +24,7 @@ export const styles = StyleSheet.create({
   },
   text: {
     color: Colors.light.white,
-    fontSize: fs(18),
+    fontSize: rfs(18),
     textAlign: "left",
     fontFamily: fonts.primary.bold,
     fontWeight: "600",
@@ -32,7 +32,7 @@ export const styles = StyleSheet.create({
   },
   subtitletext: {
     color: Colors.light.subtext,
-    fontSize: fs(16),
+    fontSize: rfs(16),
     textAlign: "left",
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
@@ -41,7 +41,7 @@ export const styles = StyleSheet.create({
 
   undertext: {
     color: Colors.light.grey,
-    fontSize: fs(12),
+    fontSize: rfs(12),
     textAlign: "left",
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
@@ -89,7 +89,7 @@ export const styles = StyleSheet.create({
 
   underbuttontext: {
     color: Colors.light.white,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     textAlign: "left",
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
@@ -120,7 +120,7 @@ export const styles = StyleSheet.create({
   cardText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(14),
+    fontSize: rfs(14),
   },
 
   sliderWrapper: {
@@ -145,14 +145,14 @@ export const styles = StyleSheet.create({
   slideTitle: {
     color: Colors.light.green,
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(20),
+    fontSize: rfs(20),
     marginBottom: hp(2),
   },
 
   slideSubtitle: {
     color: Colors.light.white,
     fontFamily: fonts.primary.bold,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     marginBottom: hp(2),
     marginTop: hp(-1),
   },
@@ -160,7 +160,7 @@ export const styles = StyleSheet.create({
   slidePrice: {
     color: Colors.light.grey,
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(12),
+    fontSize: rfs(12),
     marginBottom: hp(2),
     marginTop: hp(-2),
   },
@@ -168,7 +168,7 @@ export const styles = StyleSheet.create({
   slideDescription: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     marginBottom: hp(3),
     marginTop: hp(0),
   },
@@ -176,7 +176,7 @@ export const styles = StyleSheet.create({
   slideDescription1: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     marginBottom: hp(2),
     marginTop: hp(-2),
   },
@@ -184,21 +184,21 @@ export const styles = StyleSheet.create({
   slideFullDescription: {
     color: Colors.light.grey,
     fontFamily: fonts.primary.regular,
-    fontSize: fs(12),
+    fontSize: rfs(12),
     marginTop: hp(2),
-    lineHeight: fs(18),
+    lineHeight: rfs(18),
   },
 
   descriptionBullet: {
     color: Colors.light.green,
-    fontSize: fs(24),
-    lineHeight: fs(20),
+    fontSize: rfs(24),
+    lineHeight: rfs(20),
   },
 
   secondarySubtitle: {
     color: Colors.light.green,
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(18),
+    fontSize: rfs(18),
   },
 
   slideButton: {
@@ -212,10 +212,10 @@ export const styles = StyleSheet.create({
   },
 
   slideButtonText: {
-    fontSize: fs(14),
+    fontSize: rfs(14),
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
-    lineHeight: fs(18),
+    lineHeight: rfs(18),
   },
 
   paginationContainer: {

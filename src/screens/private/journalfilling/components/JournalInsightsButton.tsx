@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { BulbIcon } from "@/assets/icons/BulbIcon";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 type JournalInsightsButtonProps = {
   onPress: () => void;
@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
   label: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(10),
+    fontSize: rfs(10),
     fontWeight: "500",
   },
 });
@@ -77,8 +77,8 @@ const titleRowStyles = StyleSheet.create({
     flex: 1,
     color: Colors.light.white,
     fontFamily: fonts.primary.bold,
-    fontSize: fs(18),
-    lineHeight: fs(25),
+    fontSize: rfs(18),
+    lineHeight: rfs(25),
     fontWeight: "700",
   },
   insightsSlot: {

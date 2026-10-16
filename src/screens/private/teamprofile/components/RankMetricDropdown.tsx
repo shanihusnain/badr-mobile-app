@@ -2,7 +2,7 @@ import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RANK_METRICS } from "../rankMockData";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 type RankMetricDropdownProps = {
   selectedMetricId: string;
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
     flex: 1,
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
-    fontSize: fs(12),
+    fontSize: rfs(12),
     textTransform: "uppercase",
   },
 });

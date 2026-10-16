@@ -13,7 +13,7 @@ import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 import { Controller } from "react-hook-form";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 import { useTranslation } from "react-i18next";
 import {
   ConfirmPasswordEyeIcon,
@@ -186,13 +186,13 @@ const styles = StyleSheet.create({
     color: "#4CAF50",
     // Green color for success
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(11),
+    fontSize: rfs(11),
     marginTop: hp(1),
   },
   errorMsg: {
     color: Colors.light.red,
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(11),
+    fontSize: rfs(11),
     marginTop: hp(1),
     alignSelf: "flex-start",
   },
@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
     flex: 1,
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(12),
+    fontSize: rfs(12),
     padding: 0,
     margin: 0,
     includeFontPadding: false,
@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
   label: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(12),
+    fontSize: rfs(12),
     marginTop: 0,
     alignSelf: "flex-start",
     marginRight: 14,

@@ -12,7 +12,7 @@ import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import type { JournalDateCapsule } from "../types";
 import { CheckIcon } from "@/assets/icons";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 const CAPSULE_WIDTH = 52;
 const CAPSULE_GAP = 8;
@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
   weekday: {
     color: Colors.light.grey,
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(11),
+    fontSize: rfs(11),
     textTransform: "uppercase",
   },
   weekdaySelected: {
@@ -176,8 +176,8 @@ const styles = StyleSheet.create({
   day: {
     color: Colors.light.dullWhite,
     fontFamily: fonts.primary.bold,
-    fontSize: fs(16),
-    lineHeight: fs(20),
+    fontSize: rfs(16),
+    lineHeight: rfs(20),
   },
   daySelected: {
     color: Colors.light.white,

@@ -4,7 +4,7 @@ import { Feather } from "@expo/vector-icons";
 import SecondaryButton from "@/components/atoms/Secondary-button";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 type DiscardJournalDialogProps = {
   visible: boolean;
@@ -110,18 +110,18 @@ const styles = StyleSheet.create({
   title: {
     color: Colors.light.white,
     fontFamily: fonts.primary.bold,
-    fontSize: fs(16),
+    fontSize: rfs(16),
     textAlign: "center",
     marginBottom: 12,
     textTransform: "uppercase",
-    lineHeight: fs(22),
+    lineHeight: rfs(22),
   },
   body: {
     color: Colors.light.dullWhite,
     fontFamily: fonts.primary.regular,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     textAlign: "center",
-    lineHeight: fs(22),
+    lineHeight: rfs(22),
     marginBottom: 20,
   },
   checkboxRow: {
@@ -147,8 +147,8 @@ const styles = StyleSheet.create({
     flex: 1,
     color: Colors.light.dullWhite,
     fontFamily: fonts.primary.regular,
-    fontSize: fs(13),
-    lineHeight: fs(18),
+    fontSize: rfs(13),
+    lineHeight: rfs(18),
   },
   buttonContainer: {
     gap: 12,
@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
   secondaryButtonText: {
     color: Colors.light.subtext,
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(12),
+    fontSize: rfs(12),
   },
 });
 

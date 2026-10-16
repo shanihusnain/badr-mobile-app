@@ -6,7 +6,7 @@ import { fonts } from "@/assets/fonts";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import type { JuzAnalyticsView } from "@/src/screens/private/goalprogressloggingscreen/quranRecitationJuzPastAchievementData";
 import type { JuzProgressRailRow } from "@/src/screens/private/goalprogressloggingscreen/quranRecitationJuzPastAchievementData";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 type RecitationJuzDetailCardProps = {
   row: JuzProgressRailRow;
@@ -112,13 +112,13 @@ const styles = StyleSheet.create({
   metaTitle: {
     flex: 1,
     color: Colors.light.white,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
   },
   metaRange: {
     color: Colors.light.subtext,
-    fontSize: fs(12),
+    fontSize: rfs(12),
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
   },
@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   activeBadgeText: {
-    fontSize: fs(10),
+    fontSize: rfs(10),
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
     letterSpacing: 0.4,
@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
   },
   verseCount: {
     color: Colors.light.white,
-    fontSize: fs(12),
+    fontSize: rfs(12),
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
   },

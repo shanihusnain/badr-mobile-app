@@ -10,7 +10,7 @@ import {
 import { Feather } from "@expo/vector-icons";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 /** Some goal titles embed `\n` for multi-line cards; headers always stay one line. */
 const toSingleLine = (value: string) => value.replace(/\s*\n\s*/g, " ").trim();
@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
   titleText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     textAlign: "center",
     width: "100%",
   },
@@ -274,7 +274,7 @@ const styles = StyleSheet.create({
   },
   inlineChevron: {
     color: Colors.light.white,
-    fontSize: fs(10),
+    fontSize: rfs(10),
     fontFamily: fonts.primary.semiBold,
   },
   secondTitleRow: {
@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
   secondTitleText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     //textTransform: "uppercase",
   },
   secondTitleChevron: {
@@ -343,7 +343,7 @@ const styles = StyleSheet.create({
     flex: 1,
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(13),
+    fontSize: rfs(13),
     fontWeight: "600",
     letterSpacing: 0.2,
     textTransform: "uppercase",

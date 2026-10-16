@@ -5,7 +5,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 export type ContainerCardData = {
   id: number;
@@ -60,11 +60,11 @@ const styles = StyleSheet.create({
   },
   title: {
     color: Colors.light.white,
-    fontSize: fs(16),
+    fontSize: rfs(16),
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
     marginBottom: hp(1.2),
-    lineHeight: fs(20),
+    lineHeight: rfs(20),
   },
   contentWrapper: {
     flexDirection: "row",
@@ -72,18 +72,18 @@ const styles = StyleSheet.create({
   },
   content: {
     color: "rgba(255,255,255,0.75)",
-    fontSize: fs(14),
+    fontSize: rfs(14),
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
-    lineHeight: fs(20),
+    lineHeight: rfs(20),
     letterSpacing: 0,
   },
   highlightedText: {
     color: Colors.light.white,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     fontFamily: fonts.primary.bold,
     fontWeight: "700",
-    lineHeight: fs(20),
+    lineHeight: rfs(20),
     letterSpacing: 0,
   },
 });

@@ -12,7 +12,7 @@ import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import { getRecitationGoalSummarySegments } from "@/src/screens/private/goalprogressloggingscreen/quranRecitationPastAchievementData";
 import { SurahProgressStrip } from "./SurahProgressStrip";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 type GraphBarSelectionFooterProps = {
   visible: boolean;
@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
   },
   closeButtonText: {
     color: Colors.light.white,
-    fontSize: fs(12),
+    fontSize: rfs(12),
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
     letterSpacing: 0.8,

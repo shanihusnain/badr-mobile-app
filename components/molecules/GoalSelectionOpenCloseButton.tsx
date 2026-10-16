@@ -1,6 +1,6 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 import { Feather } from "@expo/vector-icons";
 import { Pressable, StyleSheet, Text } from "react-native";
 
@@ -45,9 +45,9 @@ const styles = StyleSheet.create({
     flex: 1,
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     fontWeight: "500",
-    lineHeight: fs(20),
+    lineHeight: rfs(20),
     letterSpacing: 0.1,
   },
   icon: {

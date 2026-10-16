@@ -9,7 +9,7 @@ import {
   mondayThursdayDayLabelStyles,
   shouldShowTodayLabelBackground,
 } from "./mondayThursdayFastDayStyles";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 export type MondayThursdayFastsWeeklyProgressDashboardProps = {
   weekSummary: MondayThursdayFastWeekSummary;
@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
 
   weekFractionText: {
     color: Colors.light.white,
-    fontSize: fs(13),
+    fontSize: rfs(13),
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
   },
@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
   },
   weekRangeText: {
     color: Colors.light.white,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     fontWeight: "500",
     fontFamily: fonts.primary.medium,
     textAlign: "center",
@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
   },
   statsText: {
     color: Colors.light.white,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     fontFamily: fonts.primary.medium,
     flexShrink: 1,
     fontWeight: "500",
@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
   statsCount: {
     color: Colors.light.white,
     fontWeight: "700",
-    fontSize: fs(22),
+    fontSize: rfs(22),
     fontFamily: fonts.primary.bold,
   },
   footerRow: {
@@ -326,13 +326,13 @@ const styles = StyleSheet.create({
   },
   streakText: {
     color: Colors.light.seagreen,
-    fontSize: fs(13),
+    fontSize: rfs(13),
     fontWeight: "500",
     fontFamily: fonts.primary.medium,
   },
   previousWeekText: {
     color: Colors.light.white,
-    fontSize: fs(13),
+    fontSize: rfs(13),
     fontWeight: "500",
     fontFamily: fonts.primary.medium,
   },
@@ -346,8 +346,8 @@ const styles = StyleSheet.create({
   quoteText: {
     flex: 1,
     color: Colors.light.subtext,
-    fontSize: fs(13),
-    lineHeight: fs(16),
+    fontSize: rfs(13),
+    lineHeight: rfs(16),
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
   },

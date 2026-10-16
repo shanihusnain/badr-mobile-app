@@ -24,7 +24,7 @@ import { FlowCardCallender } from "@/assets/icons/FlowCardCallender";
 import type { ProgressLogEntry } from "../types";
 import { FlowCardFoodReliefIcon, TimeSpentIcon } from "@/assets/icons";
 import { FlowCardClockIcon } from "@/assets/icons/FlowCardClockIcon";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -342,7 +342,7 @@ const localStyles = StyleSheet.create({
   },
   badgeText: {
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(10),
+    fontSize: rfs(10),
     fontWeight: "600",
   },
   badgeTextInProgress: {
@@ -354,7 +354,7 @@ const localStyles = StyleSheet.create({
   summaryTitle: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(16),
+    fontSize: rfs(16),
   },
   footerRow: {
     flexDirection: "row",
@@ -371,7 +371,7 @@ const localStyles = StyleSheet.create({
   insightsText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(13),
+    fontSize: rfs(13),
     fontWeight: "700",
     letterSpacing: 0.5,
   },

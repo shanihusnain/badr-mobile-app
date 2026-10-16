@@ -10,7 +10,7 @@ import {
 } from "expo-video";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 import {
   Dimensions,
   Platform,
@@ -199,8 +199,8 @@ const styles = StyleSheet.create({
   durationText: {
     color: Colors.light.grey,
     fontFamily: fonts.primary.regular,
-    fontSize: fs(10),
-    lineHeight: fs(18),
+    fontSize: rfs(10),
+    lineHeight: rfs(18),
     letterSpacing: 0.4,
     textTransform: "uppercase",
     fontWeight: "400",
@@ -208,8 +208,8 @@ const styles = StyleSheet.create({
   skipText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
-    fontSize: fs(14),
-    lineHeight: fs(18),
+    fontSize: rfs(14),
+    lineHeight: rfs(18),
     letterSpacing: 0.4,
     textTransform: "uppercase",
     textDecorationLine: "underline",

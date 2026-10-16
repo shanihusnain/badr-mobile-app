@@ -1,7 +1,7 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
 import { StyleSheet } from "react-native";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 export const createTeamStyles = StyleSheet.create({
   screen: {
@@ -39,8 +39,8 @@ export const createTeamStyles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
-    fontSize: fs(28),
-    lineHeight: fs(34),
+    fontSize: rfs(28),
+    lineHeight: rfs(34),
     textAlign: "center",
     letterSpacing: 0.5,
     paddingVertical: 8,
@@ -103,7 +103,7 @@ export const createTeamStyles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
-    fontSize: fs(13),
+    fontSize: rfs(13),
     textAlign: "center",
     textTransform: "uppercase",
     letterSpacing: 0.4,
@@ -123,7 +123,7 @@ export const createTeamStyles = StyleSheet.create({
   orText: {
     color: Colors.light.subtext,
     fontFamily: fonts.primary.regular,
-    fontSize: fs(13),
+    fontSize: rfs(13),
   },
   bannerFooter: {
     paddingBottom: 8,

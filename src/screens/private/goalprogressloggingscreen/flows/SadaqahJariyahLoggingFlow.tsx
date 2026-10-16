@@ -12,7 +12,7 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import moment from "moment";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 import { FlowCard } from "../components/FlowCard";
 import { DateStep } from "../components/DateStep";
@@ -391,7 +391,7 @@ const localStyles = StyleSheet.create({
   },
   badgeText: {
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(10),
+    fontSize: rfs(10),
     fontWeight: "600",
   },
   badgeTextInProgress: {
@@ -403,7 +403,7 @@ const localStyles = StyleSheet.create({
   summaryTitle: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(14),
+    fontSize: rfs(14),
   },
   footerRow: {
     flexDirection: "row",
@@ -420,7 +420,7 @@ const localStyles = StyleSheet.create({
   insightsText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(13),
+    fontSize: rfs(13),
     fontWeight: "700",
     letterSpacing: 0.5,
   },

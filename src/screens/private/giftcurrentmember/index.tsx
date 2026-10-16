@@ -15,7 +15,7 @@ import { useValidations } from "@/src/validations/useValidations";
 import { fonts } from "@/assets/fonts";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { moonimage } from "@/assets/images";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 type Plan = "1_month" | "3_months" | "6_months" | null;
 type DeliveryMethod = "recipient" | "me";
@@ -173,7 +173,7 @@ export default function GiftCurrentMemberScreen() {
                       inputStyle={{
                         color: Colors.light.white,
                         fontFamily: fonts.primary.medium,
-                        fontSize: fs(14),
+                        fontSize: rfs(14),
                         textAlignVertical: "top",
                       }}
                       multiline

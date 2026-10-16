@@ -65,7 +65,7 @@ import { FiveDailyPrayerIDetailedIbadhasIcon } from "@/assets/icons/FiveDailyPra
 import { useLogFiveDailyPrayersGoal } from "@/src/api/mutations/useLogFiveDailyPrayersGoal";
 import type { FiveDailyPrayerSlot } from "@/src/api/mutations/useLogFiveDailyPrayersGoal";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 const STEPS_WITH_CONGREGATION: LogStepId[] = [
   "date",
@@ -965,9 +965,9 @@ const localStyles = StyleSheet.create({
   },
   badgeText: {
     fontFamily: fonts.primary.medium,
-    fontSize: fs(12),
+    fontSize: rfs(12),
     fontWeight: "500",
-    lineHeight: fs(12.5),
+    lineHeight: rfs(12.5),
   },
   badgeTextInProgress: {
     color: Colors.light.darkblue,
@@ -1002,9 +1002,9 @@ const localStyles = StyleSheet.create({
   summaryTitle: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     fontWeight: "600",
-    lineHeight: fs(18),
+    lineHeight: rfs(18),
     letterSpacing: 0,
   },
   summaryTitleBlock: {
@@ -1013,16 +1013,16 @@ const localStyles = StyleSheet.create({
   summaryTotalLine: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: fs(12),
+    fontSize: rfs(12),
     fontWeight: "400",
-    lineHeight: fs(14),
+    lineHeight: rfs(14),
   },
   summaryTotalCount: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(12),
+    fontSize: rfs(12),
     fontWeight: "600",
-    lineHeight: fs(14),
+    lineHeight: rfs(14),
   },
   loadingPlaceholderText: {
     opacity: 0.35,
@@ -1041,7 +1041,7 @@ const localStyles = StyleSheet.create({
   insightsText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.bold,
-    fontSize: fs(16),
+    fontSize: rfs(16),
     fontWeight: "700",
   },
   addButton: {

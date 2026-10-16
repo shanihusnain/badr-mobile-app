@@ -1,7 +1,7 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
 import { StyleSheet } from "react-native";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 export const globalStyles = StyleSheet.create({
   rowCenter: {
     flexDirection: "row",
@@ -21,16 +21,16 @@ export const globalStyles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
-    fontSize: fs(18),
+    fontSize: rfs(18),
     textAlign: "left",
-    lineHeight: fs(24),
+    lineHeight: rfs(24),
     letterSpacing: 0.4,
   },
   greenCTA: {
     fontWeight: "500",
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(18),
+    fontSize: rfs(18),
     color: Colors.light.green,
-    lineHeight: fs(22),
+    lineHeight: rfs(22),
   },
 });

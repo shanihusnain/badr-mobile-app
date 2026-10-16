@@ -8,7 +8,7 @@ import { useState, useEffect, useMemo } from "react";
 import { StyleSheet, Text, View, type LayoutChangeEvent } from "react-native";
 import { useSharedValue } from "react-native-reanimated";
 import { useTranslation } from "react-i18next";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 /** Figma shows ~4 lines with "... read more" inline on the last line. */
 const DESCRIPTION_MAX_LINES = 4;
@@ -153,13 +153,13 @@ export const GoalCardWithDescriptionAndOptionToSelectGoal = ({
 const styles = StyleSheet.create({
   seeMoreText: {
     color: Colors.light.green,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
   },
   seeMoreEllipsis: {
     color: Colors.light.white,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
   },
@@ -170,16 +170,16 @@ const styles = StyleSheet.create({
     color: Colors.light.white,
     fontWeight: "400",
     fontFamily: fonts.primary.regular,
-    fontSize: fs(14),
-    lineHeight: fs(21),
+    fontSize: rfs(14),
+    lineHeight: rfs(21),
     letterSpacing: 0.02,
   },
   title: {
     color: Colors.light.white,
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(16),
-    lineHeight: fs(20),
+    fontSize: rfs(16),
+    lineHeight: rfs(20),
     textTransform: "capitalize",
   },
   backgroundImage: {

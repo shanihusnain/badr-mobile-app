@@ -32,7 +32,7 @@ import {
   type UiIbadahCategory,
 } from "@/src/utils/goalCycleCategoryMap";
 import { LoadingComponent } from "@/components/atoms/LoadingComponent";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 type ViewType = "main" | "categories" | "detail";
 
@@ -439,7 +439,7 @@ const styles = StyleSheet.create({
   },
   sheetTitle: {
     color: Colors.light.white,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
     textAlign: "center",
@@ -469,8 +469,8 @@ const styles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
-    fontSize: fs(15),
-    lineHeight: fs(18),
+    fontSize: rfs(15),
+    lineHeight: rfs(18),
     marginLeft: 14,
   },
   listContainer: { paddingBottom: 20 },

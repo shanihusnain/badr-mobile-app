@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import { DashBoardCalenderIcon } from "@/assets/icons";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 type PrayerWeeklyProgressHeaderProps = {
   weekFraction: string;
@@ -103,10 +103,10 @@ const styles = StyleSheet.create({
   },
   weekFractionText: {
     color: Colors.light.white,
-    fontSize: fs(16),
+    fontSize: rfs(16),
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
-    lineHeight: fs(19),
+    lineHeight: rfs(19),
   },
   headerNav: {
     flexDirection: "row",
@@ -129,10 +129,10 @@ const styles = StyleSheet.create({
   },
   weekRangeText: {
     color: Colors.light.white,
-    fontSize: fs(16),
+    fontSize: rfs(16),
     fontWeight: "500",
     fontFamily: fonts.primary.medium,
     textAlign: "center",
-    lineHeight: fs(20),
+    lineHeight: rfs(20),
   },
 });

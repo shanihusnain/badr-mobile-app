@@ -2,7 +2,7 @@ import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
 import { Feather } from "@expo/vector-icons";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 export const ReviewGoalBtn = ({
   reviewItem,
@@ -46,12 +46,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   reviewHeaderText: {
-    fontSize: fs(16),
+    fontSize: rfs(16),
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
     flex: 1,
     letterSpacing: 0.1,
-    lineHeight: fs(20),
+    lineHeight: rfs(20),
   },
 });

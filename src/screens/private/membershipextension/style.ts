@@ -1,7 +1,7 @@
 import { StyleSheet } from "react-native";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 export const membershipExtensionStyles = StyleSheet.create({
   safeArea: {
@@ -28,16 +28,16 @@ export const membershipExtensionStyles = StyleSheet.create({
   headerTitle: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(16),
+    fontSize: rfs(16),
     textTransform: "uppercase",
     letterSpacing: 1,
   },
   subtitle: {
     color: Colors.light.dullWhite,
     fontFamily: fonts.primary.regular,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     textAlign: "center",
-    lineHeight: fs(22),
+    lineHeight: rfs(22),
     marginBottom: 32,
     paddingHorizontal: 10,
   },
@@ -81,13 +81,13 @@ export const membershipExtensionStyles = StyleSheet.create({
   planDuration: {
     color: Colors.light.green,
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(16),
+    fontSize: rfs(16),
     marginBottom: 2,
   },
   planSave: {
     color: Colors.light.dullWhite,
     fontFamily: fonts.primary.regular,
-    fontSize: fs(12),
+    fontSize: rfs(12),
   },
   planPriceBlock: {
     alignItems: "flex-end",
@@ -95,13 +95,13 @@ export const membershipExtensionStyles = StyleSheet.create({
   planPrice: {
     color: Colors.light.white,
     fontFamily: fonts.primary.bold,
-    fontSize: fs(16),
+    fontSize: rfs(16),
     marginBottom: 2,
   },
   planPerMonth: {
     color: Colors.light.dullWhite,
     fontFamily: fonts.primary.regular,
-    fontSize: fs(12),
+    fontSize: rfs(12),
   },
   popularBadge: {
     position: "absolute",
@@ -118,7 +118,7 @@ export const membershipExtensionStyles = StyleSheet.create({
   popularBadgeText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.bold,
-    fontSize: fs(7.5),
+    fontSize: rfs(7.5),
     letterSpacing: 0.5,
   },
   bottomSection: {
@@ -128,9 +128,9 @@ export const membershipExtensionStyles = StyleSheet.create({
   disclaimer: {
     color: Colors.light.dullWhite,
     fontFamily: fonts.primary.regular,
-    fontSize: fs(12),
+    fontSize: rfs(12),
     textAlign: "center",
     marginTop: 12,
-    lineHeight: fs(18),
+    lineHeight: rfs(18),
   },
 });

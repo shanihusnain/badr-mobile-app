@@ -1,7 +1,7 @@
 import { StyleSheet } from "react-native";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 export const redeemGiftStyles = StyleSheet.create({
   container: {
@@ -29,7 +29,7 @@ export const redeemGiftStyles = StyleSheet.create({
   title: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(16),
+    fontSize: rfs(16),
     textTransform: "uppercase",
     letterSpacing: 1,
     marginBottom: 16,
@@ -38,7 +38,7 @@ export const redeemGiftStyles = StyleSheet.create({
   subtitle: {
     color: Colors.light.dullWhite,
     fontFamily: fonts.primary.regular,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     textAlign: "center",
     marginBottom: 40,
   },
@@ -49,7 +49,7 @@ export const redeemGiftStyles = StyleSheet.create({
   inputLabel: {
     color: Colors.light.subtext,
     fontFamily: fonts.primary.medium,
-    fontSize: fs(12),
+    fontSize: rfs(12),
     marginBottom: 8,
   },
   inputBox: {
@@ -59,17 +59,17 @@ export const redeemGiftStyles = StyleSheet.create({
     paddingHorizontal: 16,
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: fs(14),
+    fontSize: rfs(14),
   },
   customInputStyle: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: fs(14),
+    fontSize: rfs(14),
   },
   customLabelStyle: {
     color: Colors.light.subtext,
     fontFamily: fonts.primary.medium,
-    fontSize: fs(12),
+    fontSize: rfs(12),
     marginBottom: 8,
   },
   inactiveButton: {
@@ -92,7 +92,7 @@ export const redeemGiftStyles = StyleSheet.create({
   applyButtonText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.bold,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     letterSpacing: 0.5,
   },
 });

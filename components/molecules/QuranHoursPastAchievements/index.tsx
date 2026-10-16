@@ -53,7 +53,7 @@ import {
   type MappedQuranHoursAchievements,
 } from "@/src/utils/quranHoursGoalAchievementsMap";
 import { shiftPrayerAchievementsPeriodStart } from "@/src/utils/prayerGoalAchievementsMap";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 type Props = {
   goalId: QuranHoursGoalId;
@@ -758,7 +758,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     color: Colors.light.subtext,
-    fontSize: fs(11),
+    fontSize: rfs(11),
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
     letterSpacing: 0.4,
@@ -767,11 +767,11 @@ const styles = StyleSheet.create({
   },
   sectionTitleDetailed: {
     color: Colors.light.white,
-    fontSize: fs(13),
+    fontSize: rfs(13),
   },
   sectionTitleTajweed: {
     color: Colors.light.white,
-    fontSize: fs(16),
+    fontSize: rfs(16),
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
     letterSpacing: 0,
@@ -796,7 +796,7 @@ const styles = StyleSheet.create({
   },
   achievementCaptionTajweed: {
     color: Colors.light.subtext,
-    fontSize: fs(11),
+    fontSize: rfs(11),
     fontFamily: fonts.primary.heavy,
     fontWeight: "800",
     marginTop: 10,
@@ -808,19 +808,19 @@ const styles = StyleSheet.create({
   },
   achievementPercentTajweed: {
     color: Colors.light.white,
-    fontSize: fs(28),
+    fontSize: rfs(28),
     fontFamily: fonts.primary.bold,
     fontWeight: "700",
-    lineHeight: fs(28),
+    lineHeight: rfs(28),
     letterSpacing: 0,
     textTransform: "uppercase",
   },
   achievementPercentSymbolTajweed: {
     color: Colors.light.white,
-    fontSize: fs(16),
+    fontSize: rfs(16),
     fontFamily: fonts.primary.bold,
     fontWeight: "700",
-    lineHeight: fs(16),
+    lineHeight: rfs(16),
     marginBottom: 1,
     marginLeft: 2,
   },
@@ -845,7 +845,7 @@ const styles = StyleSheet.create({
   },
   deltaTextTajweed: {
     color: Colors.light.white,
-    fontSize: fs(11),
+    fontSize: rfs(11),
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
   },
@@ -868,7 +868,7 @@ const styles = StyleSheet.create({
   },
   periodButtonTextTajweed: {
     color: Colors.light.grey,
-    fontSize: fs(13),
+    fontSize: rfs(13),
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
   },
@@ -895,7 +895,7 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
     color: Colors.light.white,
-    fontSize: fs(13),
+    fontSize: rfs(13),
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
     textAlign: "center",
@@ -913,11 +913,11 @@ const styles = StyleSheet.create({
   },
   goalLabelTajweed: {
     color: Colors.light.subtext,
-    fontSize: fs(14),
+    fontSize: rfs(14),
     fontFamily: fonts.primary.bold,
     fontWeight: "600",
     textTransform: "uppercase",
-    lineHeight: fs(20),
+    lineHeight: rfs(20),
   },
   goalValueRowTajweed: {
     flexDirection: "row",
@@ -933,7 +933,7 @@ const styles = StyleSheet.create({
   },
   goalPillTextTajweed: {
     color: Colors.light.white,
-    fontSize: fs(10),
+    fontSize: rfs(10),
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
   },
@@ -941,7 +941,7 @@ const styles = StyleSheet.create({
     color: Colors.light.white,
     fontWeight: "600",
     fontFamily: fonts.primary.bold,
-    fontSize: fs(22),
+    fontSize: rfs(22),
   },
   achievementBlock: {
     alignItems: "flex-start",
@@ -949,37 +949,37 @@ const styles = StyleSheet.create({
   },
   achievementCaption: {
     color: Colors.light.subtext,
-    fontSize: fs(13),
+    fontSize: rfs(13),
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
   },
   achievementCaptionDetailed: {
-    fontSize: fs(11),
+    fontSize: rfs(11),
     fontFamily: fonts.primary.heavy,
     fontWeight: "800",
   },
   achievementPercent: {
     color: Colors.light.white,
-    fontSize: fs(40),
+    fontSize: rfs(40),
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
-    lineHeight: fs(44),
+    lineHeight: rfs(44),
   },
   achievementPercentDetailed: {
-    fontSize: fs(28),
+    fontSize: rfs(28),
     fontFamily: fonts.primary.bold,
     fontWeight: "700",
-    lineHeight: fs(28),
+    lineHeight: rfs(28),
     textTransform: "uppercase",
   },
   achievementPercentSymbol: {
-    fontSize: fs(22),
-    lineHeight: fs(22),
+    fontSize: rfs(22),
+    lineHeight: rfs(22),
     transform: [{ translateY: -8 }],
   },
   achievementPercentSymbolDetailed: {
-    fontSize: fs(16),
-    lineHeight: fs(16),
+    fontSize: rfs(16),
+    lineHeight: rfs(16),
     transform: [{ translateY: -6 }],
   },
   deltaBadge: {
@@ -997,7 +997,7 @@ const styles = StyleSheet.create({
   },
   deltaText: {
     color: Colors.light.green,
-    fontSize: fs(11),
+    fontSize: rfs(11),
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
   },
@@ -1032,7 +1032,7 @@ const styles = StyleSheet.create({
   },
   periodButtonText: {
     color: Colors.light.grey,
-    fontSize: fs(12),
+    fontSize: rfs(12),
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
   },
@@ -1054,7 +1054,7 @@ const styles = StyleSheet.create({
   },
   dateRange: {
     color: Colors.light.white,
-    fontSize: fs(12),
+    fontSize: rfs(12),
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
     textAlign: "center",
@@ -1062,16 +1062,16 @@ const styles = StyleSheet.create({
   },
   summaryText: {
     color: Colors.light.grey,
-    fontSize: fs(12),
+    fontSize: rfs(12),
     fontFamily: fonts.primary.regular,
-    lineHeight: fs(17),
+    lineHeight: rfs(17),
     textAlign: "center",
   },
   summaryTextDetailed: {
     color: Colors.light.grey,
-    fontSize: fs(12),
+    fontSize: rfs(12),
     fontFamily: fonts.primary.regular,
-    lineHeight: fs(17),
+    lineHeight: rfs(17),
     textAlign: "center",
   },
   goalHeader: {
@@ -1086,7 +1086,7 @@ const styles = StyleSheet.create({
   },
   goalLabel: {
     color: Colors.light.subtext,
-    fontSize: fs(11),
+    fontSize: rfs(11),
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
     letterSpacing: 0.5,
@@ -1110,7 +1110,7 @@ const styles = StyleSheet.create({
   },
   goalPillText: {
     color: Colors.light.white,
-    fontSize: fs(12),
+    fontSize: rfs(12),
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
     opacity: 0.8,
@@ -1119,7 +1119,7 @@ const styles = StyleSheet.create({
     color: Colors.light.white,
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
-    fontSize: fs(22),
+    fontSize: rfs(22),
   },
   statsRow: {
     flexDirection: "row",
@@ -1133,7 +1133,7 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     color: Colors.light.subtext,
-    fontSize: fs(10),
+    fontSize: rfs(10),
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
     letterSpacing: 0.4,
@@ -1141,19 +1141,19 @@ const styles = StyleSheet.create({
   },
   statValueCompleted: {
     color: Colors.light.green,
-    fontSize: fs(22),
+    fontSize: rfs(22),
     fontFamily: fonts.primary.semiBold,
     fontWeight: "700",
   },
   statValueIncomplete: {
     color: Colors.light.yellow,
-    fontSize: fs(22),
+    fontSize: rfs(22),
     fontFamily: fonts.primary.semiBold,
     fontWeight: "700",
   },
   insightsTitle: {
     color: Colors.light.white,
-    fontSize: fs(16),
+    fontSize: rfs(16),
     fontFamily: fonts.primary.semiBold,
     fontWeight: "500",
     letterSpacing: 0.5,
@@ -1170,7 +1170,7 @@ const styles = StyleSheet.create({
   },
   insightsTitleLabel: {
     color: Colors.light.white,
-    fontSize: fs(11),
+    fontSize: rfs(11),
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
     letterSpacing: 0.5,
@@ -1178,7 +1178,7 @@ const styles = StyleSheet.create({
   },
   insightsSubtitleLabel: {
     color: Colors.light.subtext,
-    fontSize: fs(10),
+    fontSize: rfs(10),
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
     letterSpacing: 0.5,

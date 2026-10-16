@@ -21,7 +21,7 @@ import {
 import { useDeletePrayerLog } from "@/src/api/mutations/useDeletePrayerLog";
 import { useOptionalPrayerGoalFrameContext } from "@/src/screens/private/goalprogressloggingscreen/prayerGoalFrameContext";
 import { PrayerWeeklyDashboardBody } from "@/components/molecules/PrayerWeeklyDashboardBody";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 export type SunnahRawatibDayProgress = {
   day: string;
@@ -319,7 +319,7 @@ const styles = StyleSheet.create({
   },
   dayLabel: {
     color: Colors.light.subtext,
-    fontSize: fs(11),
+    fontSize: rfs(11),
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
     marginTop: 0,
@@ -333,7 +333,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   durationText: {
-    fontSize: fs(11),
+    fontSize: rfs(11),
     fontWeight: "700",
     fontFamily: fonts.primary.bold,
     textAlign: "center",
@@ -348,7 +348,7 @@ const styles = StyleSheet.create({
   },
   statsText: {
     color: Colors.light.white,
-    fontSize: fs(13),
+    fontSize: rfs(13),
     fontFamily: fonts.primary.medium,
     flexShrink: 1,
     fontWeight: "500",
@@ -357,7 +357,7 @@ const styles = StyleSheet.create({
   statsCount: {
     color: Colors.light.white,
     fontWeight: "600",
-    fontSize: fs(20),
+    fontSize: rfs(20),
     fontFamily: fonts.primary.bold,
     letterSpacing: 0.1,
   },

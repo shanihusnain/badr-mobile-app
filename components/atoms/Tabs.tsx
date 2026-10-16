@@ -2,7 +2,7 @@ import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
 import { StyleSheet, Text } from "react-native";
 import { Pressable } from "react-native-gesture-handler";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 
 export const Tabs = ({
   label,
@@ -68,8 +68,8 @@ const styles = StyleSheet.create({
   categoryFilterText: {
     fontFamily: fonts.primary.medium || "SF Pro Text",
     fontWeight: "500",
-    fontSize: fs(14),
-    lineHeight: fs(18),
+    fontSize: rfs(14),
+    lineHeight: rfs(18),
     letterSpacing: 0,
     color: Colors.light.white,
     textAlign: "center",

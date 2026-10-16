@@ -29,7 +29,7 @@ import { fonts } from "@/assets/fonts";
 import { setPendingOnboardingRoute } from "@/src/storage/onboardingRouteStorage";
 import { GoalProgressCard } from "./components/GoalProgressCard";
 import { useGetMe } from "@/src/api/queries/useGetMe";
-import { fs, ms } from "@/src/utils/responsive";
+import { rfs, ms } from "@/src/utils/responsive";
 
 export const SetPersonalizedGoalsScreen = () => {
   const { t, i18n } = useTranslation();
@@ -100,9 +100,9 @@ export const SetPersonalizedGoalsScreen = () => {
               name: displayName,
             })}
             showBackBtn={false}
-            fontSize={fs(18)}
+            fontSize={rfs(18)}
             textAlign="left"
-            lineHeight={fs(22)}
+            lineHeight={rfs(22)}
             forceSmallCaps
             extraTopPadding={Platform.OS === "ios" ? 10 : 0}
           />

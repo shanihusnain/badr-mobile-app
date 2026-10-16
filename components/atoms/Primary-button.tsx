@@ -1,6 +1,6 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
-import { fs } from "@/src/utils/responsive";
+import { rfs } from "@/src/utils/responsive";
 import React from "react";
 import {
   Pressable,
@@ -95,8 +95,8 @@ const styles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
-    fontSize: fs(14),
-    lineHeight: fs(25),
+    fontSize: rfs(14),
+    lineHeight: rfs(25),
 
     letterSpacing: 0,
   },
