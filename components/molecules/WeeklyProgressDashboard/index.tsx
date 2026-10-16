@@ -318,7 +318,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.greybuttonBackground,
     paddingHorizontal: 8,
     paddingVertical: 16,
-    gap: 24,
+    gap: 4,
     width: "100%",
     alignSelf: "stretch",
   },
@@ -326,6 +326,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-start",
     overflow: "visible",
+    paddingTop: 17,
   },
   dayColumn: {
     flex: 1,

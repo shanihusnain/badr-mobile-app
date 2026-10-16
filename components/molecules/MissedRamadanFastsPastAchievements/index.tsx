@@ -463,11 +463,30 @@ export function MissedRamadanFastsPastAchievements({
               (p) => p.completed === 0 && p.incomplete === 0,
             )))));
 
+  /** Same as White Days: only treat period as having logs when there is real activity. */
+  const hasLogs = useMemo(() => {
+    if (usesAchievementsApi) {
+      return !isAchievementsLoading && !apiLockedOrEmpty;
+    }
+    if (periodSlice.completedFasts > 0) return true;
+    return periodSlice.chartPeriods.some(
+      (p) =>
+        p.completed > 0 ||
+        (typeof p.timeSpentMinutes === "number" && p.timeSpentMinutes > 0),
+    );
+  }, [
+    apiLockedOrEmpty,
+    isAchievementsLoading,
+    periodSlice.chartPeriods,
+    periodSlice.completedFasts,
+    usesAchievementsApi,
+  ]);
+
   const showNoDataDash =
-    (usesAchievementsApi &&
-      (isAchievementsLoading || apiLockedOrEmpty)) ||
+    (usesAchievementsApi && isAchievementsLoading) ||
     (selectedCalendarDate == null &&
-      isPastAchievementBarEmpty(displayCompleted, displayIncomplete));
+      (!hasLogs ||
+        isPastAchievementBarEmpty(displayCompleted, displayIncomplete)));
 
   const selectedPeriodTimeSpentMinutes = selectedCalendarDate
     ? isDawood
@@ -483,8 +502,14 @@ export function MissedRamadanFastsPastAchievements({
     ? period === "monthly"
     : period === "monthly" && activeAnalyticsView === "completedVsIncomplete";
   const showChart = !showCalendar;
+  /** Hide detail chevron / chart hint until there is logged data (match White Days). */
+  const showDetailedStatsChevron = !isDetailed && hasLogs && !showNoDataDash;
   const showChartHint =
-    showChart && !hintDismissed && selectedBarIndex === null;
+    showChart &&
+    hasLogs &&
+    !showNoDataDash &&
+    !hintDismissed &&
+    selectedBarIndex === null;
   /** Always show chip (incl. no-data): 0% + up arrow so layout matches White Days. */
   const displayedDeltaPct = showNoDataDash
     ? 0
@@ -710,7 +735,7 @@ export function MissedRamadanFastsPastAchievements({
     <View style={[styles.section, isDetailed && styles.sectionDetailed]}>
       <View style={styles.card}>
         <View style={styles.cardHeader}>
-          <AchivementArrowIcon />
+          <AchivementArrowIcon size={15} color={Colors.light.subtext} />
           <Text
             style={[
               styles.sectionTitle,
@@ -719,7 +744,7 @@ export function MissedRamadanFastsPastAchievements({
           >
             {t("progressLogging.pastGoalAchievements")}
           </Text>
-          {!isDetailed ? (
+          {showDetailedStatsChevron ? (
             <TouchableOpacity
               onPress={handleNavigateToDetailed}
               style={{ marginLeft: "auto", padding: 4 }}
@@ -747,7 +772,9 @@ export function MissedRamadanFastsPastAchievements({
                 isDetailed && styles.achievementCaptionDetailed,
               ]}
             >
-              {t("progressLogging.achievementsLabel").toUpperCase()}
+              {activeAnalyticsView === "completedVsTime"
+                ? t("progressLogging.timeSpentLabel").toUpperCase()
+                : t("progressLogging.achievementsLabel").toUpperCase()}
             </Text>
             <View style={styles.achievementPercentRow}>
               <Text
@@ -867,24 +894,7 @@ export function MissedRamadanFastsPastAchievements({
           </View>
         </View>
 
-        {isDetailed ? (
-          renderDetailedSummary()
-        ) : (
-          <Text style={styles.summaryText}>
-            {t(
-              isDawood
-                ? "progressLogging.achievementSummaryDawood"
-                : "progressLogging.achievementSummaryMissedRamadan",
-              {
-                percent: formatNumber(baseAchievement.achievementPercent),
-                delta: formatNumber(Math.abs(displayedDeltaPct)),
-                direction: deltaIsPositive
-                  ? t("progressLogging.periodComparisonIncrease")
-                  : t("progressLogging.periodComparisonDecrease"),
-              },
-            )}
-          </Text>
-        )}
+        {isDetailed ? renderDetailedSummary() : null}
 
         {usesAchievementsApi &&
         (isAchievementsLoading || isAchievementsFetching) ? (
@@ -1082,16 +1092,24 @@ export function MissedRamadanFastsPastAchievements({
               <CalendarGrid
                 mode="dawood_achievement"
                 currentDate={dawoodPeriodSlice.calendarMonthDate}
-                completedFastDates={dawoodPeriodSlice.completedDates}
-                missedFastDates={dawoodPeriodSlice.missedDates}
-                incompletePlannedFastDates={dawoodPeriodSlice.upcomingDates}
+                completedFastDates={
+                  hasLogs ? dawoodPeriodSlice.completedDates : []
+                }
+                missedFastDates={hasLogs ? dawoodPeriodSlice.missedDates : []}
+                incompletePlannedFastDates={
+                  hasLogs ? dawoodPeriodSlice.upcomingDates : []
+                }
                 cycleRestartDate={
-                  dawoodPeriodSlice.hasCycleReset
+                  hasLogs && dawoodPeriodSlice.hasCycleReset
                     ? dawoodPeriodSlice.cycleRestartDate
                     : null
                 }
-                onDayPress={isDetailed ? handleCalendarDayPress : undefined}
-                selectedDate={selectedCalendarDate ?? undefined}
+                onDayPress={
+                  isDetailed && hasLogs ? handleCalendarDayPress : undefined
+                }
+                selectedDate={
+                  hasLogs ? (selectedCalendarDate ?? undefined) : undefined
+                }
                 bgColor={Colors.light.greybuttonBackground}
               />
             ) : (
@@ -1102,17 +1120,25 @@ export function MissedRamadanFastsPastAchievements({
                   periodSlice.periodStartDate ||
                   new Date().toISOString().slice(0, 8) + "01"
                 }
-                completedFastDates={missedRamadanSlice?.completedDates ?? []}
-                missedFastDates={missedRamadanSlice?.skippedDates ?? []}
-                incompletePlannedFastDates={
-                  missedRamadanSlice?.upcomingDates ?? []
+                completedFastDates={
+                  hasLogs ? (missedRamadanSlice?.completedDates ?? []) : []
                 }
-                onDayPress={isDetailed ? handleCalendarDayPress : undefined}
-                selectedDate={selectedCalendarDate ?? undefined}
+                missedFastDates={
+                  hasLogs ? (missedRamadanSlice?.skippedDates ?? []) : []
+                }
+                incompletePlannedFastDates={
+                  hasLogs ? (missedRamadanSlice?.upcomingDates ?? []) : []
+                }
+                onDayPress={
+                  isDetailed && hasLogs ? handleCalendarDayPress : undefined
+                }
+                selectedDate={
+                  hasLogs ? (selectedCalendarDate ?? undefined) : undefined
+                }
                 bgColor={Colors.light.greybuttonBackground}
               />
             )}
-            {isDetailed && selectedCalendarDate ? (
+            {isDetailed && hasLogs && selectedCalendarDate ? (
               <GraphBarSelectionFooter
                 visible={selectedCalendarDate !== null}
                 completed={displayCompleted}
@@ -1143,12 +1169,24 @@ export function MissedRamadanFastsPastAchievements({
             onMoveShouldSetResponder={() => false}
           >
             <QuranHoursPastAchievementChartBlock
-              chartData={chartAchievement?.chartData ?? achievement.chartData}
-              selectedBarIndex={selectedBarIndex}
-              onBarPress={
-                isDetailed ? handleBarPressDetailed : handleBarPressCompact
+              chartData={
+                !hasLogs || showNoDataDash
+                  ? []
+                  : (chartAchievement?.chartData ?? achievement.chartData)
               }
-              chartKey={`${isDawood ? "prophet-dawood" : "missed-ramadan"}-${period}-${activeAnalyticsView}-${refreshKey}-${isDetailed ? "detailed" : "compact"}`}
+              selectedBarIndex={
+                isDetailed && hasLogs && !showNoDataDash
+                  ? selectedBarIndex
+                  : null
+              }
+              onBarPress={
+                !hasLogs || showNoDataDash
+                  ? () => {}
+                  : isDetailed
+                    ? handleBarPressDetailed
+                    : handleBarPressCompact
+              }
+              chartKey={`${isDawood ? "prophet-dawood" : "missed-ramadan"}-${period}-${activeAnalyticsView}-${refreshKey}-${isDetailed ? "detailed" : "compact"}-${hasLogs ? "ready" : "empty"}`}
               yMax={chartAchievement?.yMax ?? achievement.yMax}
               yTicks={chartAchievement?.yTicks ?? achievement.yTicks}
               showHint={showChartHint}
@@ -1172,11 +1210,13 @@ export function MissedRamadanFastsPastAchievements({
                     : RAMADAN_BAR_COLORS
               }
               valueLabelColor={Colors.light.white}
-              showPagination={isDetailed}
+              showPagination={isDetailed && hasLogs && !showNoDataDash}
             />
             {isDetailed ? (
               <GraphBarSelectionFooter
-                visible={selectedBarIndex !== null}
+                visible={
+                  selectedBarIndex !== null && hasLogs && !showNoDataDash
+                }
                 completed={displayCompleted}
                 incomplete={displayIncomplete}
                 goalTotal={selectedBarGoalTotal}
@@ -1216,17 +1256,18 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   sectionTitle: {
-    color: Colors.light.subtext,
-    fontSize: 11,
+    color: Colors.light.white,
+    fontSize: 16,
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
-    letterSpacing: 0.4,
+    letterSpacing: 0,
     textTransform: "uppercase",
     flexShrink: 1,
+    marginLeft: 6,
   },
   sectionTitleDetailed: {
     color: Colors.light.white,
-    fontSize: 13,
+    fontSize: 16,
   },
   achievementBlock: {
     gap: 6,

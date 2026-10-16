@@ -265,6 +265,8 @@ const styles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
     fontSize: 14,
+    lineHeight: 18,
+    fontWeight: "600",
     textAlign: "center",
     width: "100%",
   },

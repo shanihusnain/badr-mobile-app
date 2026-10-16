@@ -9,7 +9,7 @@ import {
 import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "@/constants/theme";
-import { FastingFlowCardRamadanCalender } from "@/assets/icons/FastingFlowCardRamadanCalender";
+import { MissedRamadanGreenCardIcon } from "@/assets/icons/MissedRamadanGreenCardIcon";
 import { MissedRamadanFastsGreenCardIcon } from "@/assets/icons/MissedRamadanFastsGreenCardIcon";
 import {
   AddLoggingFlowIcon,
@@ -1175,8 +1175,8 @@ export default function MissedRamadanFastsLoggingFlow({
             <View style={localStyles.summaryCard}>
               <View style={localStyles.summaryBody}>
                 <View style={localStyles.summaryIconCircle}>
-                  <FastingFlowCardRamadanCalender
-                    size={18}
+                  <MissedRamadanGreenCardIcon
+                    size={21}
                     color={Colors.light.white}
                   />
                 </View>

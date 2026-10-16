@@ -889,8 +889,7 @@ export default function MondayThursdayFastsLoggingFlow({
   };
 
   const handleOpenFlow = useCallback(() => {
-    if (!canOpenLogging) return;
-    applyCurrentTimeDefaults();
+    if (!canLog) return;
     const defaultLogType = enabledLogTypes.includes("completed_planned")
       ? "completed_planned"
       : (enabledLogTypes[0] ?? null);
