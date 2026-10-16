@@ -144,6 +144,29 @@ function preferLoggableEntries(
   return toDateOptions(fallbackDates);
 }
 
+/** Prefer today, else nearest enabled date — matches weekly dashboard "current" day. */
+function pickDefaultDateOption(
+  options: MondayThursdayFastDateOption[],
+  today: string,
+): MondayThursdayFastDateOption | null {
+  if (options.length === 0) return null;
+
+  const todayOption = options.find((option) => option.date === today);
+  if (todayOption) return todayOption;
+
+  const todayMs = new Date(`${today}T12:00:00`).getTime();
+  const distance = (option: MondayThursdayFastDateOption) =>
+    Math.abs(new Date(`${option.date}T12:00:00`).getTime() - todayMs);
+
+  const enabled = options.filter((option) => option.enabled !== false);
+  const pool = enabled.length > 0 ? enabled : options;
+  return (
+    [...pool].sort(
+      (a, b) => distance(a) - distance(b) || a.date.localeCompare(b.date),
+    )[0] ?? null
+  );
+}
+
 export default function MondayThursdayFastsLoggingFlow({
   goalData,
   onLogComplete,
@@ -636,18 +659,25 @@ export default function MondayThursdayFastsLoggingFlow({
         logType === "completed_early"
           ? futurePlannedOptions
           : pendingPlannedOptions;
-      if (
-        !selectedPlannedFastId ||
-        !options.some((option) => option.id === selectedPlannedFastId)
-      ) {
-        setSelectedPlannedFastId(options[0]?.id ?? null);
+      const preferred = pickDefaultDateOption(options, today);
+      if (preferred) {
+        setSelectedPlannedFastId(preferred.id);
       }
       return;
     }
 
     if (currentStep === "selectMissedDate" && !selectedMissedDateId) {
-      if (missedOptions[0]) {
-        setSelectedMissedDateId(missedOptions[0].id);
+      const preferred = pickDefaultDateOption(missedOptions, today);
+      if (preferred) {
+        setSelectedMissedDateId(preferred.id);
+      }
+      return;
+    }
+
+    if (currentStep === "selectActualDate" && !selectedActualDateId) {
+      const preferred = pickDefaultDateOption(actualDateOptions, today);
+      if (preferred) {
+        setSelectedActualDateId(preferred.id);
       }
     }
   }, [
@@ -661,6 +691,7 @@ export default function MondayThursdayFastsLoggingFlow({
     selectedPlannedFastId,
     selectedMissedDateId,
     missedOptions,
+    today,
   ]);
 
   const resolvePlannedFastSelection = useCallback(() => {
@@ -882,20 +913,24 @@ export default function MondayThursdayFastsLoggingFlow({
 
     if (currentStep === "logType" && logType) {
       const nextOptions = getDateOptionsForStep(nextStep);
-      if (nextStep === "selectActualDate") {
-        setSelectedActualDateId(nextOptions[0]?.id ?? null);
-      } else if (nextStep === "selectPlannedFast") {
-        setSelectedPlannedFastId(nextOptions[0]?.id ?? null);
+      if (nextStep === "selectPlannedFast") {
+        setSelectedPlannedFastId(
+          pickDefaultDateOption(nextOptions, today)?.id ?? null,
+        );
       } else if (nextStep === "selectMissedDate") {
-        setSelectedMissedDateId(nextOptions[0]?.id ?? null);
+        setSelectedMissedDateId(
+          pickDefaultDateOption(nextOptions, today)?.id ?? null,
+        );
       }
       setStepIndex((index) => index + 1);
       return;
     }
 
-    if (currentStep === "selectActualDate" && selectedActualDate) {
-      if (nextStep === "selectPlannedFast") {
-        setSelectedPlannedFastId(futurePlannedOptions[0]?.id ?? null);
+    if (currentStep === "selectPlannedFast" && selectedPlannedFast) {
+      if (nextStep === "selectActualDate") {
+        setSelectedActualDateId(
+          pickDefaultDateOption(actualDateOptions, today)?.id ?? null,
+        );
       }
       setStepIndex((index) => index + 1);
       return;
@@ -1384,9 +1419,15 @@ const localStyles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     width: "100%",
-    gap: 6,
+    position: "relative",
   },
+  // Absolute so the time row centers like the date step (label doesn't push it down).
   timeSectionLabel: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: "100%",
+    marginBottom: 2,
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",

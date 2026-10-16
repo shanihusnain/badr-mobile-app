@@ -227,6 +227,9 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 2,
+    // Keep header height stable across 1-line vs 2-line titles so step
+    // content (date vs time) stays vertically aligned.
+    minHeight: 36,
   },
   /** Slightly more header→content air on the ayat-range step (Figma). */
   flowHeaderAyahRange: {
@@ -464,12 +467,12 @@ export const styles = StyleSheet.create({
     marginTop: 10,
   },
   flowDropdownSelector: {
-    borderWidth: 1.5,
-    borderColor: Colors.light.dullWhiteOpacity,
-    borderRadius: 6,
-    minHeight: 32,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.35)",
+    borderRadius: 4,
+    minHeight: 24,
     paddingHorizontal: 10,
-    paddingVertical: 6,
+    paddingVertical: 3,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -495,7 +498,7 @@ export const styles = StyleSheet.create({
     fontWeight: "400",
     fontSize: 10,
     lineHeight: 13,
-    marginTop: 4,
+    marginTop: 1,
     opacity: 0.8,
   },
   flowDropdownMenu: {
