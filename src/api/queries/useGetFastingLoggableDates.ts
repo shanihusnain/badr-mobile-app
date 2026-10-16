@@ -110,10 +110,21 @@ export const getFastingLoggableDates = async (
   fastingType: string,
   mode?: FastingLoggableDatesMode,
 ): Promise<FastingLoggableDatesData | null> => {
+  const resolvedMode = mode ?? "PLANNED_DATE";
+  const queryParams =
+    resolvedMode !== "PLANNED_DATE" ? { mode: resolvedMode } : undefined;
+  // TEMP: verify loggable-dates URL in Metro when DevTools Network is disabled (#954).
+  // Remove after debugging.
+  console.log(
+    "[loggable-dates]",
+    `api/goal-cycles/current/fasting-goals/${fastingType}/loggable-dates` +
+      (queryParams?.mode ? `?mode=${queryParams.mode}` : ""),
+  );
+
   const response = await api.get(
     `api/goal-cycles/current/fasting-goals/${fastingType}/loggable-dates`,
     {
-      params: mode && mode !== "PLANNED_DATE" ? { mode } : undefined,
+      params: queryParams,
     },
   );
   const data = response.data?.data;

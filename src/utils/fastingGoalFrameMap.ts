@@ -19,6 +19,11 @@ import type {
   MondayThursdayFastDayState,
   MondayThursdayFastWeekSummary,
 } from "@/src/screens/private/goalprogressloggingscreen/mondayThursdayFastsWeeklyData";
+import type {
+  ProphetDawoodFastDayProgress,
+  ProphetDawoodFastDayState,
+  ProphetDawoodFastWeekSummary,
+} from "@/src/screens/private/goalprogressloggingscreen/prophetDawoodFastsWeeklyData";
 
 function normalizeDate(date: string | null | undefined): string {
   return String(date ?? "").slice(0, 10);
@@ -719,5 +724,146 @@ export function mapWhiteDaysFrameWeekSummary(
     monthlyStreak: getFastingFrameWeekStreakDays(frame),
     ...quoteMeta,
     motivationalQuote: motivationalQuote || undefined,
+  };
+}
+
+function resolveProphetDawoodDayState(
+  day: FastingGoalFrameDay,
+  options?: { goalCompleted?: boolean },
+): ProphetDawoodFastDayState {
+  const state = String(day.state ?? "")
+    .trim()
+    .toUpperCase();
+  const today = moment().format("YYYY-MM-DD");
+  const date = normalizeDate(day.date);
+  const hasDate = /^\d{4}-\d{2}-\d{2}$/.test(date);
+  const isFuture = hasDate && date > today;
+  const isPast = hasDate && date < today;
+  const bookedForOtherGoal = Boolean(day.bookedForOtherGoal);
+
+  if (bookedForOtherGoal) {
+    if (day.isToday) return "todayDisabled";
+    if (isPast) return "pastNeutral";
+    return "future";
+  }
+
+  if (
+    state === "COMPLETED" ||
+    state === "LOGGED" ||
+    state === "ACHIEVED" ||
+    state === "DONE" ||
+    state === "COVERED_EARLY" ||
+    state === "MADE_UP"
+  ) {
+    return "completed";
+  }
+
+  if (state === "MISSED" || state === "SKIPPED") {
+    return "missed";
+  }
+
+  if (state === "EXCUSED" || state === "MENSTRUATING") {
+    return day.isToday ? "plannedToday" : "planned";
+  }
+
+  if (state === "DUE" && day.isToday) {
+    return "plannedToday";
+  }
+
+  if ((state === "UPCOMING" || state === "PLANNED") && day.isPlanned) {
+    return day.isToday ? "plannedToday" : "planned";
+  }
+
+  if (options?.goalCompleted && isFuture) {
+    return "goalAchieved";
+  }
+
+  if (state === "NOT_PLANNED" || !day.isPlanned) {
+    if (day.isToday) return "today";
+    if (isFuture) return "future";
+    if (isPast) return "pastNeutral";
+  }
+
+  if (day.isPlanned) {
+    if (day.isToday) return "plannedToday";
+    if (isFuture) return "planned";
+    return "missed";
+  }
+
+  if (day.isToday) return "today";
+  if (isFuture) return "future";
+  return "pastNeutral";
+}
+
+export function mapProphetDawoodFrameDay(
+  day: FastingGoalFrameDay,
+  options?: { goalCompleted?: boolean },
+): ProphetDawoodFastDayProgress {
+  const rawState = String(day.state ?? "")
+    .trim()
+    .toUpperCase();
+  const state = resolveProphetDawoodDayState(day, options);
+  const isExcusedMenstruating =
+    rawState === "EXCUSED" || rawState === "MENSTRUATING";
+  const isTargetDay =
+    Boolean(day.isPlanned) ||
+    state === "planned" ||
+    state === "plannedToday" ||
+    state === "completed" ||
+    state === "missed";
+
+  return {
+    day: day.dayLabel,
+    date: normalizeDate(day.date),
+    state,
+    isToday: Boolean(day.isToday),
+    isTargetDay,
+    isMenstruating: isExcusedMenstruating,
+    showCycleRestartIcon: Boolean(day.isRunStart),
+    canDelete: Boolean(day.canDelete),
+  };
+}
+
+export function mapProphetDawoodFrameWeekSummary(
+  frame: FastingGoalFrameData,
+): ProphetDawoodFastWeekSummary {
+  const goalCompleted =
+    getFastingFrameAchievementPct(frame) >= 100 ||
+    String(frame.goal?.status ?? "")
+      .trim()
+      .toUpperCase() === "COMPLETED";
+  const weekDays = (frame.week?.days ?? []).map((day) =>
+    mapProphetDawoodFrameDay(day, { goalCompleted }),
+  );
+  const completedFromDays = weekDays.filter(
+    (day) => day.state === "completed",
+  ).length;
+  const completedFastsThisWeek =
+    getFastingFrameTotalFastsThisWeek(frame) || completedFromDays;
+  const hasMissedDawoodFast = weekDays.some((day) => day.state === "missed");
+  const streakDays = getFastingFrameWeekStreakDays(frame);
+  const completedToday = weekDays.some(
+    (day) => day.isToday && day.state === "completed",
+  );
+
+  let motivationalQuoteKey: ProphetDawoodFastWeekSummary["motivationalQuoteKey"] =
+    "inProgress";
+  if (hasMissedDawoodFast) {
+    motivationalQuoteKey = "missed";
+  } else if (completedToday) {
+    motivationalQuoteKey = "completedToday";
+  } else if (streakDays >= 2) {
+    motivationalQuoteKey = "streakGrowing";
+  }
+
+  return {
+    weekDays,
+    weekRangeLabel: getFastingFrameWeekRangeLabel(frame),
+    weekFraction: getFastingFrameWeekFraction(frame),
+    weekIndex: Math.max(0, (frame.week.weekNumber ?? 1) - 1),
+    completedFastsThisWeek,
+    streakDays,
+    hasMissedDawoodFast,
+    motivationalQuoteKey,
   };
 }

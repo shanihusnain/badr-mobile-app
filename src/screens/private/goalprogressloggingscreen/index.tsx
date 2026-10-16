@@ -57,6 +57,7 @@ import {
   useOptionalFastingGoalFrameContext,
 } from "./fastingGoalFrameContext";
 import { isWhiteDaysFastsGoalId } from "./whiteDaysFastsTarget";
+import { isProphetDawoodFastsGoalId } from "./prophetDawoodFastsTarget";
 import {
   formatPrayerGoalFlowCardLabel,
   getPrayerFrameRingGoalCountLabel,
@@ -232,10 +233,12 @@ function GoalProgressLoggingBody({
   const isWhiteDaysFrameGoal = isWhiteDaysFastsGoalId(goalId);
   const isMissedRamadanFrameGoal = isMissedRamadanFastsGoalId(goalId);
   const isMondayThursdayFrameGoal = isMondayThursdayFastsGoalId(goalId);
+  const isProphetDawoodFrameGoal = isProphetDawoodFastsGoalId(goalId);
   const isFastingFrameGoal =
     isWhiteDaysFrameGoal ||
     isMissedRamadanFrameGoal ||
-    isMondayThursdayFrameGoal;
+    isMondayThursdayFrameGoal ||
+    isProphetDawoodFrameGoal;
   const frameLoading =
     (isPrayerFrameRingGoal &&
       (prayerFrame?.isLoading ||
@@ -384,7 +387,19 @@ function GoalProgressLoggingBody({
                         cleanLabel,
                     })
                   : "---"
-                : t("homeScreen.weeklyProgress_goalLabel", { label: cleanLabel });
+                : isProphetDawoodFrameGoal
+                  ? fastingFrame?.frame
+                    ? fastingFrame.frame.goal?.targetLabel?.trim() ||
+                      t("progressLogging.dawoodRingGoal", {
+                        count:
+                          fastingFrame.frame.goal?.target ??
+                          liveGoalData.target ??
+                          cleanLabel,
+                      })
+                    : "---"
+                  : t("homeScreen.weeklyProgress_goalLabel", {
+                      label: cleanLabel,
+                    });
 
   const ringGoalLineCount =
     isSurahRecitationFrameGoal || isCompletionRecitationFrameGoal ? 2 : 1;
@@ -1073,7 +1088,8 @@ export const GoalProgressLoggingScreen = ({
   if (
     isWhiteDaysFastsGoalId(goalId) ||
     isMissedRamadanFastsGoalId(goalId) ||
-    isMondayThursdayFastsGoalId(goalId)
+    isMondayThursdayFastsGoalId(goalId) ||
+    isProphetDawoodFastsGoalId(goalId)
   ) {
     return (
       <FastingGoalFrameProvider

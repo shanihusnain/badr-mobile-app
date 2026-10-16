@@ -140,10 +140,12 @@ function getStepsForLogType(
 ): MissedRamadanFastsStepId[] {
   switch (logType) {
     case "completed_early":
+      // Actual keep-day (`dates`) first so the chevron shows the full loggable
+      // range; planned slot (`plannedDates`) comes next.
       return [
         "logType",
-        "selectPlannedFast",
         "selectActualDate",
+        "selectPlannedFast",
         "startTime",
         "endTime",
       ];
@@ -252,19 +254,27 @@ export default function MissedRamadanFastsLoggingFlow({
 
   const today = getTodayDateString();
 
-  const futurePlannedOptions = useMemo(() => {
+  const allFuturePlannedOptions = useMemo(() => {
+    const fromApi = earlyKeepDays.data?.plannedDates ?? [];
+    if (fromApi.length > 0) {
+      return toDateOptions(fromApi);
+    }
     const fromWizard = getWizardAvailableDates(
       selectedWizardOption?.mode === "EARLIER_THAN_PLANNED"
         ? selectedWizardOption
         : wizardOptions.find((option) => option.mode === "EARLIER_THAN_PLANNED"),
       "plannedDate",
     );
-    // Planned-side list for "earlier than planned" still comes from wizard/frame.
-    // EARLIER_THAN_PLANNED loggable-dates feeds the actual-date step instead.
+    // Prefer EARLIER_THAN_PLANNED loggable-dates.plannedDates; else wizard/frame.
     return toDateOptions(
       fromWizard.length > 0 ? fromWizard : (frameEarlyLoggableDates ?? []),
     );
-  }, [frameEarlyLoggableDates, selectedWizardOption, wizardOptions]);
+  }, [
+    earlyKeepDays.data?.plannedDates,
+    frameEarlyLoggableDates,
+    selectedWizardOption,
+    wizardOptions,
+  ]);
 
   const pendingPlannedOptions = useMemo(() => {
     const plannedOption =
@@ -295,6 +305,45 @@ export default function MissedRamadanFastsLoggingFlow({
     );
   }, [makeUpKeepDays.data?.dates, selectedWizardOption, wizardOptions]);
 
+  const actualDateOptions = useMemo(() => {
+    const fromWizard = getWizardAvailableDates(
+      selectedWizardOption?.mode === "EARLIER_THAN_PLANNED"
+        ? selectedWizardOption
+        : wizardOptions.find((option) => option.mode === "EARLIER_THAN_PLANNED"),
+      "date",
+    );
+    const options = preferLoggableEntries(
+      earlyKeepDays.data?.dates,
+      fromWizard,
+    );
+    // Only keep days that can complete at least one planned slot early.
+    if (allFuturePlannedOptions.length === 0) return options;
+    return options.filter((option) =>
+      allFuturePlannedOptions.some((planned) =>
+        isActualDateBeforePlannedDate(option.date, planned.date),
+      ),
+    );
+  }, [
+    allFuturePlannedOptions,
+    earlyKeepDays.data?.dates,
+    selectedWizardOption,
+    wizardOptions,
+  ]);
+
+  const selectedActualDate = useMemo(
+    () =>
+      actualDateOptions.find((option) => option.id === selectedActualDateId) ??
+      null,
+    [actualDateOptions, selectedActualDateId],
+  );
+
+  const futurePlannedOptions = useMemo(() => {
+    if (!selectedActualDate) return allFuturePlannedOptions;
+    return allFuturePlannedOptions.filter((planned) =>
+      isActualDateBeforePlannedDate(selectedActualDate.date, planned.date),
+    );
+  }, [allFuturePlannedOptions, selectedActualDate]);
+
   const selectedPlannedFast = useMemo(() => {
     const options =
       logType === "completed_early"
@@ -309,32 +358,6 @@ export default function MissedRamadanFastsLoggingFlow({
     pendingPlannedOptions,
     selectedPlannedFastId,
   ]);
-
-  const actualDateOptions = useMemo(() => {
-    if (!selectedPlannedFast) return [];
-    const fromWizard = getWizardAvailableDates(
-      selectedWizardOption?.mode === "EARLIER_THAN_PLANNED"
-        ? selectedWizardOption
-        : wizardOptions.find((option) => option.mode === "EARLIER_THAN_PLANNED"),
-      "date",
-    );
-    return preferLoggableEntries(earlyKeepDays.data?.dates, fromWizard).filter(
-      (option) =>
-        isActualDateBeforePlannedDate(option.date, selectedPlannedFast.date),
-    );
-  }, [
-    earlyKeepDays.data?.dates,
-    selectedPlannedFast,
-    selectedWizardOption,
-    wizardOptions,
-  ]);
-
-  const selectedActualDate = useMemo(
-    () =>
-      actualDateOptions.find((option) => option.id === selectedActualDateId) ??
-      null,
-    [actualDateOptions, selectedActualDateId],
-  );
 
   const selectedSkippedDate = useMemo(
     () =>
@@ -519,7 +542,16 @@ export default function MissedRamadanFastsLoggingFlow({
   useEffect(() => {
     if (flowMode !== "active" || !logType) return;
 
-    if (currentStep === "selectPlannedFast" && !selectedPlannedFastId) {
+    if (
+      currentStep === "selectActualDate" &&
+      (!selectedActualDateId ||
+        !actualDateOptions.some((option) => option.id === selectedActualDateId))
+    ) {
+      setSelectedActualDateId(actualDateOptions[0]?.id ?? null);
+      return;
+    }
+
+    if (currentStep === "selectPlannedFast") {
       const options =
         logType === "completed_early"
           ? futurePlannedOptions
@@ -792,7 +824,7 @@ export default function MissedRamadanFastsLoggingFlow({
       return;
     }
 
-    if (currentStep === "selectActualDate" && selectedActualDate) {
+    if (currentStep === "selectPlannedFast" && selectedPlannedFast) {
       setStepIndex((index) => index + 1);
       return;
     }
@@ -1106,17 +1138,19 @@ export default function MissedRamadanFastsLoggingFlow({
       case "selectPlannedFast":
         return (
           Boolean(selectedPlannedFast) &&
-          selectedPlannedFast?.enabled !== false
+          selectedPlannedFast?.enabled !== false &&
+          (logType !== "completed_early" ||
+            (Boolean(selectedActualDate) &&
+              isActualDateBeforePlannedDate(
+                selectedActualDate!.date,
+                selectedPlannedFast!.date,
+              )))
         );
       case "selectActualDate":
+        // Planned fast is chosen on the next step for earlier-than-planned.
         return (
           Boolean(selectedActualDate) &&
-          selectedActualDate?.enabled !== false &&
-          Boolean(selectedPlannedFast) &&
-          isActualDateBeforePlannedDate(
-            selectedActualDate!.date,
-            selectedPlannedFast!.date,
-          )
+          selectedActualDate?.enabled !== false
         );
       case "selectSkippedDate":
         return (

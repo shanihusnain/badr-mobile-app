@@ -969,6 +969,7 @@
     "whiteDaysDetailedSummarySixMonths": "Over the last 6 months, you completed {{completed}} of {{total}} White Days fasts — {{percent}}% progress, {{delta}}% {{direction}} than the previous period.",
     "whiteDaysInsightTotalCompleted": "TOTAL FASTS COMPLETED",
     "whiteDaysInsightFastsCompleted": "fasts completed",
+    "dawoodRingGoal": "Goal: {{count}} fasts",
     "dawoodCardSubtitle": "14 Prophet Dawood Fasts",
     "dawoodSelectPlannedFast": "Select the planned fast you completed",
     "dawoodEnterStartTime": "Enter start time",

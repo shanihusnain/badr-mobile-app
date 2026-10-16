@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Pressable,
   ScrollView,
+  ActivityIndicator,
   useWindowDimensions,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -29,7 +30,12 @@ import { useGetMenstruationPeriods } from "@/src/api/queries/useGetMenstruationP
 import { useGetFastingGoalFrame } from "@/src/api/queries/useGetFastingGoalFrame";
 import { useGetFastingGoalAchievements } from "@/src/api/queries/useGetFastingGoalAchievements";
 import { expandMenstruationPeriodDates } from "@/src/utils/menstruationDates";
-import { mapFastingApiKeyInsightsToCards } from "@/src/utils/fastingGoalAchievementsMap";
+import {
+  createEmptyMissedRamadanAchievements,
+  mapFastingApiKeyInsightsToCards,
+  mapFastingGoalAchievementsToMissedRamadan,
+  shiftFastingAchievementsPeriodStart,
+} from "@/src/utils/fastingGoalAchievementsMap";
 import { PLANNED_FASTS } from "@/src/screens/private/home/plannedFasts";
 import {
   applyWhiteDaysAnalyticsView,
@@ -37,18 +43,33 @@ import {
   formatWhiteDaysFastCountLabel,
   formatWhiteDaysFastTimeSpentLabel,
   getTotalWhiteDaysTimeSpentMinutes,
-  getWhiteDaysFastTimeSpentForDate,
-  getWhiteDaysFastsPastAchievement,
-  getWhiteDaysFastsPastAchievementSlice,
   getWhiteDaysGoalTrackedMonths,
   getWhiteDaysTimeSpentByPeriod,
-  hasWhiteDaysPastAchievementLogs,
-  isWhiteDaysFastCompletedOnDate,
-  isWhiteDaysFastMissedOnDate,
-  shiftWhiteDaysPastAchievementAnchor,
   type WhiteDaysAnalyticsView,
+  type WhiteDaysPeriodSlice,
 } from "@/src/screens/private/goalprogressloggingscreen/whiteDaysFastsPastAchievementData";
-import { getTodayDateString } from "@/src/screens/private/goalprogressloggingscreen/whiteDaysFastsData";
+
+function toWhiteDaysSliceFromApi(
+  slice: ReturnType<typeof mapFastingGoalAchievementsToMissedRamadan>["slice"],
+): WhiteDaysPeriodSlice {
+  return {
+    chartPeriods: slice.chartPeriods,
+    targetFasts: slice.targetFasts,
+    completedFasts: slice.completedFasts,
+    incompleteFasts: slice.incompleteFasts,
+    achievementPercent: slice.achievementPercent,
+    previousPeriodDeltaPercent: slice.previousPeriodDeltaPercent,
+    dateRangeLabel: slice.dateRangeLabel,
+    periodStartDate: slice.periodStartDate,
+    periodEndDate: slice.periodEndDate,
+    pageCount: slice.pageCount,
+    activePageIndex: slice.activePageIndex,
+    completedDates: slice.completedDates,
+    missedDates: slice.skippedDates,
+    upcomingDates: slice.upcomingDates,
+    calendarMonthDate: slice.calendarMonthDate,
+  };
+}
 import { applyTimeSpentOnlyGreenChart } from "@/src/screens/private/goalprogressloggingscreen/quranRecitationPastAchievementData";
 import type { PastAchievementPeriod } from "@/src/screens/private/goalprogressloggingscreen/quranHoursPastAchievementData";
 import {
@@ -241,7 +262,7 @@ export function WhiteDaysFastsPastAchievements({
     useState<WhiteDaysAnalyticsView>(
       isDetailed ? initialAnalyticsView : "completedVsIncomplete",
     );
-  const [anchorDate, setAnchorDate] = useState(getTodayDateString);
+  const [apiPeriodStart, setApiPeriodStart] = useState<string | null>(null);
   const [selectedBarIndex, setSelectedBarIndex] = useState<number | null>(null);
   const [selectedCalendarDate, setSelectedCalendarDate] = useState<string | null>(
     null,
@@ -257,12 +278,26 @@ export function WhiteDaysFastsPastAchievements({
     isFetching: isAchievementsFetching,
   } = useGetFastingGoalAchievements("WHITE_DAYS", {
     period,
-    enabled: true,
+    periodStart: apiPeriodStart,
   });
-  const periodSlice = useMemo(
-    () => getWhiteDaysFastsPastAchievementSlice(period, anchorDate),
-    [period, refreshKey, anchorDate],
+
+  const mappedApi = useMemo(() => {
+    if (!achievementsApiData) return null;
+    return mapFastingGoalAchievementsToMissedRamadan(
+      achievementsApiData,
+      period,
+    );
+  }, [achievementsApiData, period]);
+
+  const emptyApiMapped = useMemo(
+    () => createEmptyMissedRamadanAchievements(period),
+    [period],
   );
+
+  const periodSlice = useMemo(() => {
+    if (mappedApi) return toWhiteDaysSliceFromApi(mappedApi.slice);
+    return toWhiteDaysSliceFromApi(emptyApiMapped.slice);
+  }, [emptyApiMapped, mappedApi, refreshKey]);
 
   const cycleStartDate = useMemo(() => {
     const fromFrame = String(fastingFrame?.cycle?.startDate ?? "").slice(0, 10);
@@ -314,10 +349,10 @@ export function WhiteDaysFastsPastAchievements({
     [inCycle, menstruationDates, periodSlice.upcomingDates],
   );
 
-  const baseAchievement = useMemo(
-    () => getWhiteDaysFastsPastAchievement(period, anchorDate),
-    [period, refreshKey, anchorDate],
-  );
+  const baseAchievement = useMemo(() => {
+    if (mappedApi) return mappedApi.achievement;
+    return emptyApiMapped.achievement;
+  }, [emptyApiMapped, mappedApi, refreshKey]);
 
   const timeSpentByPeriod = useMemo(
     () => getWhiteDaysTimeSpentByPeriod(periodSlice),
@@ -330,14 +365,24 @@ export function WhiteDaysFastsPastAchievements({
     [analyticsView, baseAchievement, periodSlice],
   );
 
-  const totalTimeSpentMinutes = useMemo(
-    () => getTotalWhiteDaysTimeSpentMinutes(timeSpentByPeriod),
-    [timeSpentByPeriod],
-  );
+  const totalTimeSpentMinutes = useMemo(() => {
+    if (mappedApi) return mappedApi.totalTimeSpentMinutes;
+    return getTotalWhiteDaysTimeSpentMinutes(timeSpentByPeriod);
+  }, [mappedApi, timeSpentByPeriod]);
+
+  const apiLockedOrEmpty =
+    Boolean(mappedApi?.locked) ||
+    (!isAchievementsLoading &&
+      (mappedApi == null ||
+        (mappedApi.slice.completedFasts === 0 &&
+          mappedApi.slice.incompleteFasts === 0 &&
+          mappedApi.slice.chartPeriods.every(
+            (p) => p.completed === 0 && p.incomplete === 0,
+          ))));
 
   const hasLogs = useMemo(
-    () => hasWhiteDaysPastAchievementLogs(periodSlice),
-    [periodSlice],
+    () => !isAchievementsLoading && !apiLockedOrEmpty,
+    [apiLockedOrEmpty, isAchievementsLoading],
   );
 
   const goalTrackedMonths = getWhiteDaysGoalTrackedMonths(period);
@@ -383,14 +428,17 @@ export function WhiteDaysFastsPastAchievements({
   }, [goalTrackedMonths, periodSlice.completedFasts]);
 
   useEffect(() => {
+    setApiPeriodStart(null);
+  }, [period]);
+
+  useEffect(() => {
     setSelectedBarIndex(null);
     setSelectedCalendarDate(null);
     setHintDismissed(false);
-  }, [period, analyticsView, refreshKey, anchorDate]);
+  }, [period, analyticsView, refreshKey, apiPeriodStart]);
 
   const handlePeriodChange = useCallback((next: PastAchievementPeriod) => {
     setPeriod(next);
-    setAnchorDate(getTodayDateString());
   }, []);
 
   const handleBarPressCompact = useCallback((index: number | null) => {
@@ -435,42 +483,44 @@ export function WhiteDaysFastsPastAchievements({
   const showCalendar =
     period === "monthly" && analyticsView === "completedVsIncomplete";
 
-  const todayMonthStart = useMemo(() => {
-    const today = getTodayDateString();
-    return `${today.slice(0, 8)}01`;
-  }, [refreshKey]);
-
-  // Calendar is the current cycle window (not month-shift); chart views can navigate.
-  const canNavigateBack = !showCalendar;
-  const canNavigateForward = useMemo(() => {
-    if (showCalendar) return false;
-    const next = shiftWhiteDaysPastAchievementAnchor(anchorDate, "next");
-    return next.slice(0, 7) <= todayMonthStart.slice(0, 7);
-  }, [anchorDate, showCalendar, todayMonthStart]);
+  const canNavigateBack =
+    !showCalendar &&
+    Boolean(mappedApi?.canNavigateBack) &&
+    !isAchievementsLoading;
+  const canNavigateForward =
+    !showCalendar &&
+    Boolean(mappedApi?.canNavigateForward) &&
+    !isAchievementsLoading;
 
   const handleNavigateBack = useCallback(() => {
-    if (!canNavigateBack) return;
-    setAnchorDate((current) =>
-      shiftWhiteDaysPastAchievementAnchor(current, "prev"),
+    if (!canNavigateBack || !mappedApi) return;
+    const next = shiftFastingAchievementsPeriodStart(
+      mappedApi.periodStart,
+      mappedApi.periodEnd,
+      -1,
     );
-  }, [canNavigateBack]);
+    if (next) setApiPeriodStart(next);
+  }, [canNavigateBack, mappedApi]);
 
   const handleNavigateForward = useCallback(() => {
-    if (!canNavigateForward) return;
-    setAnchorDate((current) =>
-      shiftWhiteDaysPastAchievementAnchor(current, "next"),
+    if (!canNavigateForward || !mappedApi) return;
+    const next = shiftFastingAchievementsPeriodStart(
+      mappedApi.periodStart,
+      mappedApi.periodEnd,
+      1,
     );
-  }, [canNavigateForward]);
+    if (next) setApiPeriodStart(next);
+  }, [canNavigateForward, mappedApi]);
 
   const displayCompleted = selectedCalendarDate
-    ? isWhiteDaysFastCompletedOnDate(selectedCalendarDate)
+    ? periodSlice.completedDates.includes(selectedCalendarDate)
       ? 1
       : 0
     : selectedBarIndex !== null
       ? (periodSlice.chartPeriods[selectedBarIndex]?.completed ?? 0)
       : periodSlice.completedFasts;
   const displayIncomplete = selectedCalendarDate
-    ? isWhiteDaysFastMissedOnDate(selectedCalendarDate, periodSlice)
+    ? periodSlice.missedDates.includes(selectedCalendarDate)
       ? 1
       : 0
     : selectedBarIndex !== null
@@ -478,15 +528,16 @@ export function WhiteDaysFastsPastAchievements({
       : periodSlice.incompleteFasts;
 
   const selectedPeriodTimeSpentMinutes = selectedCalendarDate
-    ? getWhiteDaysFastTimeSpentForDate(selectedCalendarDate)
+    ? 0
     : selectedBarIndex !== null
       ? (timeSpentByPeriod[selectedBarIndex] ?? 0)
       : totalTimeSpentMinutes;
 
   const showNoDataDash =
-    selectedCalendarDate == null &&
-    (!hasLogs ||
-      isPastAchievementBarEmpty(displayCompleted, displayIncomplete));
+    isAchievementsLoading ||
+    (selectedCalendarDate == null &&
+      (!hasLogs ||
+        isPastAchievementBarEmpty(displayCompleted, displayIncomplete)));
 
   /** Same gate as Prayer/Quran: hide detail chevron until there is logged data. */
   const showDetailedStatsChevron = !isDetailed && hasLogs && !showNoDataDash;
@@ -750,7 +801,7 @@ export function WhiteDaysFastsPastAchievements({
                 numberOfLines={1}
                 ellipsizeMode="tail"
               >
-                {dateRangeLabel}
+                {isAchievementsLoading ? "---" : dateRangeLabel || "---"}
               </Text>
               <TouchableOpacity
                 activeOpacity={0.7}
@@ -773,6 +824,12 @@ export function WhiteDaysFastsPastAchievements({
         </View>
 
         {isDetailed ? renderDetailedSummary() : null}
+
+        {isAchievementsLoading || isAchievementsFetching ? (
+          <View style={{ alignItems: "center", paddingVertical: 8 }}>
+            <ActivityIndicator color={Colors.light.white} />
+          </View>
+        ) : null}
 
         <View style={styles.goalHeader}>
           <Text style={styles.goalLabel}>{t("progressLogging.goal")}</Text>

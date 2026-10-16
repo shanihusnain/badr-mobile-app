@@ -922,6 +922,7 @@
     "whiteDaysDetailedSummarySixMonths": "خلال آخر 6 أشهر، أكملت {{completed}} من {{total}} صيامات الأيام البيض — {{percent}}% تقدم، {{delta}}% {{direction}} عن الفترة السابقة.",
     "whiteDaysInsightTotalCompleted": "إجمالي الصيامات المكتملة",
     "whiteDaysInsightFastsCompleted": "صيامات مكتملة",
+    "dawoodRingGoal": "الهدف: {{count}} صيامات",
     "dawoodCardSubtitle": "14 صيامات داود عليه السلام",
     "dawoodSelectPlannedFast": "اختر الصيام المخطط الذي أكملته",
     "dawoodEnterStartTime": "أدخل وقت البدء",
