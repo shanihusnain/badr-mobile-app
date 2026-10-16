@@ -215,8 +215,12 @@ export function buildEmptyPastAchievementPeriodScaffold(
 }
 
 /** Two-line x-axis labels for 6M bars, e.g. "Jun 14—" / "Jul 11" or "Nov 1—" / "28". */
-export function formatSixMonthChartBarDateLabel(weekLabel: string): string {
-  const raw = weekLabel.trim().replace(/\r\n/g, "\n");
+export function formatSixMonthChartBarDateLabel(
+  weekLabel: string | null | undefined,
+): string {
+  const raw = String(weekLabel ?? "")
+    .trim()
+    .replace(/\r\n/g, "\n");
   if (!raw || raw.includes("\n")) return raw;
 
   const parts = raw.split(/\s*[—–−-]\s*/).filter(Boolean);
@@ -238,12 +242,13 @@ export function shiftPrayerAchievementsPeriodStart(
 }
 
 function weekDateLabel(
-  weekLabel: string,
+  weekLabel: string | null | undefined,
   period: string,
 ): string {
+  const label = weekLabel ?? "";
   return period === "6M" || period === "sixMonths"
-    ? formatSixMonthChartBarDateLabel(weekLabel)
-    : weekLabel;
+    ? formatSixMonthChartBarDateLabel(label)
+    : label;
 }
 
 function resolveUiPeriod(
