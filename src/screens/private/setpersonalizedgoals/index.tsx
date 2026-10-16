@@ -149,6 +149,18 @@ export const SetPersonalizedGoalsScreen = () => {
               </Text>
             </View>
             {/* npxe */}
+            {activeFrame === 1 && (
+              <>
+                <TopSpace top={ms(30)} />
+                <GoalProgressCard
+                  currentDay={28}
+                  totalDays={28}
+                  lastActiveDays={28}
+                  overallProgress={100}
+                  animate
+                />
+              </>
+            )}
             <TopSpace top={ms(26)} />
             <Text style={styles.descriptionText}>
               {t("setpersonalizedgoals.setPersonalizedDescription")}
