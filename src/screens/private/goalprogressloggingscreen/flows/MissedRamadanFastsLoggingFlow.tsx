@@ -542,12 +542,15 @@ export default function MissedRamadanFastsLoggingFlow({
   useEffect(() => {
     if (flowMode !== "active" || !logType) return;
 
-    if (
-      currentStep === "selectActualDate" &&
-      (!selectedActualDateId ||
-        !actualDateOptions.some((option) => option.id === selectedActualDateId))
-    ) {
-      setSelectedActualDateId(actualDateOptions[0]?.id ?? null);
+    if (currentStep === "selectActualDate") {
+      const selectionValid =
+        Boolean(selectedActualDateId) &&
+        actualDateOptions.some((option) => option.id === selectedActualDateId);
+      if (!selectionValid) {
+        setSelectedActualDateId(
+          pickDefaultDateOption(actualDateOptions, today)?.id ?? null,
+        );
+      }
       return;
     }
 
@@ -556,25 +559,26 @@ export default function MissedRamadanFastsLoggingFlow({
         logType === "completed_early"
           ? futurePlannedOptions
           : pendingPlannedOptions;
-      const preferred = pickDefaultDateOption(options, today);
-      if (preferred) {
-        setSelectedPlannedFastId(preferred.id);
+      const selectionValid =
+        Boolean(selectedPlannedFastId) &&
+        options.some((option) => option.id === selectedPlannedFastId);
+      // Only default when empty/invalid — do not reset on every arrow press.
+      if (!selectionValid) {
+        setSelectedPlannedFastId(
+          pickDefaultDateOption(options, today)?.id ?? null,
+        );
       }
       return;
     }
 
-    if (currentStep === "selectSkippedDate" && !selectedSkippedDateId) {
-      const preferred = pickDefaultDateOption(skippedOptions, today);
-      if (preferred) {
-        setSelectedSkippedDateId(preferred.id);
-      }
-      return;
-    }
-
-    if (currentStep === "selectActualDate" && !selectedActualDateId) {
-      const preferred = pickDefaultDateOption(actualDateOptions, today);
-      if (preferred) {
-        setSelectedActualDateId(preferred.id);
+    if (currentStep === "selectSkippedDate") {
+      const selectionValid =
+        Boolean(selectedSkippedDateId) &&
+        skippedOptions.some((option) => option.id === selectedSkippedDateId);
+      if (!selectionValid) {
+        setSelectedSkippedDateId(
+          pickDefaultDateOption(skippedOptions, today)?.id ?? null,
+        );
       }
     }
   }, [

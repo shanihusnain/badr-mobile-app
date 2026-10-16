@@ -163,11 +163,16 @@ export default function ProphetDawoodFastsLoggingFlow({
 
   useEffect(() => {
     if (flowMode !== "active") return;
+    const selectionValid =
+      Boolean(selectedDate) &&
+      navigationOptions.some((option) => option.date === selectedDate);
+    // Only default when empty/invalid — do not reset on every arrow press.
+    if (selectionValid) return;
     const preferred =
       [...navigationOptions].reverse().find((option) => option.enabled) ??
       navigationOptions[navigationOptions.length - 1];
     setSelectedDate(preferred?.date ?? "");
-  }, [flowMode, navigationOptions]);
+  }, [flowMode, navigationOptions, selectedDate]);
 
   const selectedOptionIndex = useMemo(
     () => navigationOptions.findIndex((option) => option.date === selectedDate),
