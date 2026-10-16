@@ -24,19 +24,23 @@ import {
 import { fonts } from "@/assets/fonts";
 import { isValidStartTime } from "../quranRecitationTarget";
 import {
-  canLogProphetDawoodFastOnDate,
   formatProphetDawoodFastDateLabel,
-  formatProphetDawoodFastTimeLabel,
-  getCurrentLoggableProphetDawoodFast,
-  getProphetDawoodFastCompletedCount,
-  getProphetDawoodFastDateNavigationOptions,
   isProphetDawoodFastEndTimeAfterStartTime,
-  isProphetDawoodFastGoalCompleted,
-  submitProphetDawoodFastLog,
 } from "../prophetDawoodFastsData";
-import { getTodayDateString } from "../whiteDaysFastsData";
+import {
+  getTodayDateString,
+  normalizeDateString,
+} from "../whiteDaysFastsData";
 import type { ProphetDawoodFastsLogEntry } from "../types";
 import { usePrefillFastingTimesFromApi } from "../hooks/usePrefillFastingTimesFromApi";
+import { useOptionalFastingGoalFrameContext } from "../fastingGoalFrameContext";
+import { useLogFastingGoal } from "@/src/api/mutations/useLogFastingGoal";
+import { useGetFastingLoggableDates } from "@/src/api/queries/useGetFastingLoggableDates";
+import {
+  fastingFrameShowsInsights,
+  getFastingFrameAchievementLabel,
+  getFastingFrameAchievementPct,
+} from "@/src/utils/fastingGoalFrameMap";
 
 type ProphetDawoodFastsStepId = "selectPlannedFast" | "startTime" | "endTime";
 const STEPS: ProphetDawoodFastsStepId[] = [
@@ -53,15 +57,34 @@ type Props = {
 
 type FlowMode = "collapsed" | "active";
 
+function formatTimeForApi(
+  hour: string,
+  minute: string,
+  period: "am" | "pm",
+): string {
+  const hourNum = parseInt(hour || "0", 10) || 0;
+  const minuteNum = parseInt(minute || "0", 10) || 0;
+  let hour24 = hourNum % 12;
+  if (period === "pm") hour24 += 12;
+  return `${String(Math.max(0, hour24)).padStart(2, "0")}:${String(
+    Math.max(0, minuteNum),
+  ).padStart(2, "0")}`;
+}
+
 export default function ProphetDawoodFastsLoggingFlow({
   goalData,
   onLogComplete,
   onDropdownOpenChange,
 }: Props) {
   const { t } = useTranslation();
+  const fastingFrame = useOptionalFastingGoalFrameContext();
+  const frame = fastingFrame?.frame;
+  const { mutateAsync: logFast, isPending: isLogging } = useLogFastingGoal();
+  const { data: loggableDatesData, refetch: refetchLoggableDates } =
+    useGetFastingLoggableDates("PROPHET_DAWOOD");
+
   const [flowMode, setFlowMode] = useState<FlowMode>("collapsed");
   const [stepIndex, setStepIndex] = useState(0);
-  const [refreshKey, setRefreshKey] = useState(0);
   const [selectedDate, setSelectedDate] = useState("");
   const [startHour, setStartHour] = useState("5");
   const [startMinute, setStartMinute] = useState("00");
@@ -91,33 +114,35 @@ export default function ProphetDawoodFastsLoggingFlow({
   const currentStep = STEPS[stepIndex];
   const isLastStep = stepIndex === STEPS.length - 1;
 
-  const navigationOptions = useMemo(
-    () => getProphetDawoodFastDateNavigationOptions(),
-    [refreshKey, flowMode],
-  );
-
-  const completedCount = getProphetDawoodFastCompletedCount();
-  const goalCompleted = isProphetDawoodFastGoalCompleted();
-  const summaryTitle = t("progressLogging.dawoodCardSubtitle");
+  const navigationOptions = useMemo(() => {
+    return (loggableDatesData?.dates ?? []).map((entry) => ({
+      date: normalizeDateString(entry.date),
+      enabled: entry.enabled,
+      description: entry.description,
+    }));
+  }, [loggableDatesData?.dates]);
 
   const badgeStatus = useMemo(() => {
-    if (completedCount === 0) {
+    if (!frame) {
       return {
         text: t("progressLogging.notStarted"),
         type: "not-started" as const,
       };
     }
-    if (goalCompleted) {
-      return {
-        text: t("progressLogging.fullyAchieved"),
-        type: "completed" as const,
-      };
-    }
-    return {
-      text: t("progressLogging.inProgress"),
-      type: "in-progress" as const,
-    };
-  }, [completedCount, goalCompleted, t, refreshKey]);
+    return getFastingFrameAchievementLabel(frame, t);
+  }, [frame, t]);
+
+  const summaryCount = Math.max(1, Number(frame?.goal?.target ?? 14) || 14);
+  const summaryTitle = t("progressLogging.dawoodCardSubtitle", {
+    count: summaryCount,
+  });
+
+  const showInsights = frame ? fastingFrameShowsInsights(frame) : false;
+  const canLog =
+    Boolean(frame?.items?.[0]?.canLog) && navigationOptions.length > 0;
+  const goalCompleted =
+    getFastingFrameAchievementPct(frame) >= 100 ||
+    String(frame?.goal?.status ?? "").toUpperCase() === "COMPLETED";
 
   useEffect(() => {
     onDropdownOpenChange?.(
@@ -138,22 +163,22 @@ export default function ProphetDawoodFastsLoggingFlow({
 
   useEffect(() => {
     if (flowMode !== "active") return;
-
-    const defaultDate =
-      getCurrentLoggableProphetDawoodFast() ??
-      navigationOptions.find((option) =>
-        canLogProphetDawoodFastOnDate(option.date),
-      )?.date ??
-      navigationOptions[0]?.date ??
-      "";
-
-    setSelectedDate(defaultDate);
+    const preferred =
+      [...navigationOptions].reverse().find((option) => option.enabled) ??
+      navigationOptions[navigationOptions.length - 1];
+    setSelectedDate(preferred?.date ?? "");
   }, [flowMode, navigationOptions]);
 
   const selectedOptionIndex = useMemo(
     () => navigationOptions.findIndex((option) => option.date === selectedDate),
     [navigationOptions, selectedDate],
   );
+
+  const selectedNavigationOption =
+    selectedOptionIndex >= 0
+      ? navigationOptions[selectedOptionIndex]
+      : null;
+  const isSelectedDateEnabled = selectedNavigationOption?.enabled !== false;
 
   const dateLabel = useMemo(() => {
     if (!selectedDate) return "";
@@ -169,12 +194,8 @@ export default function ProphetDawoodFastsLoggingFlow({
       const currentIndex =
         selectedOptionIndex >= 0
           ? selectedOptionIndex
-          : navigationOptions.findIndex(
-            (option) => option.date === getCurrentLoggableProphetDawoodFast(),
-          );
-      const resolvedIndex =
-        currentIndex >= 0 ? currentIndex : navigationOptions.length - 1;
-      const nextIndex = resolvedIndex + direction;
+          : navigationOptions.length - 1;
+      const nextIndex = currentIndex + direction;
       if (nextIndex < 0 || nextIndex >= navigationOptions.length) return;
       setSelectedDate(navigationOptions[nextIndex].date);
     },
@@ -201,67 +222,139 @@ export default function ProphetDawoodFastsLoggingFlow({
     endPeriod,
   );
 
-  const resetFlow = useCallback(() => {
-    setFlowMode("collapsed");
-    setStepIndex(0);
-    setSelectedDate("");
+  const applyFastTimeDefaults = useCallback(() => {
     setStartHour("5");
     setStartMinute("00");
     setStartPeriod("am");
     setEndHour("5");
     setEndMinute("30");
     setEndPeriod("pm");
-    setIsStartPeriodDropdownOpen(false);
-    setIsEndPeriodDropdownOpen(false);
-    onDropdownOpenChange?.(false);
-  }, [onDropdownOpenChange]);
+  }, []);
 
-  const handleConfirm = useCallback(() => {
-    if (!selectedDate) return;
-
-    const startTime = formatProphetDawoodFastTimeLabel(
-      startHour,
-      startMinute,
-      startPeriod,
-    );
-    const endTime = formatProphetDawoodFastTimeLabel(
-      endHour,
-      endMinute,
-      endPeriod,
-    );
-
-    const result = submitProphetDawoodFastLog({
-      plannedDate: selectedDate,
-      startTime,
-      endTime,
-    });
-
-    if (!result) return;
-
-    onLogComplete?.({
-      type: "prophet-dawood-fasts",
-      goalType: "prophet_dawood",
-      goalId: goalData.id as "fasting-Dawwod",
-      plannedDate: result.plannedDate,
-      date: result.plannedDate,
-      startTime: result.startTime,
-      endTime: result.endTime,
-      cycleDay: result.cycleDay,
-      completed: result.completed,
-      goalTarget: result.goalTarget,
-      completedCount: result.completedCount,
-      remainingCount: result.remainingCount,
-      goalCompleted: result.goalCompleted,
-    });
-
-    setRefreshKey((current) => current + 1);
-    resetFlow();
+  const ensureEndAfterStart = useCallback(() => {
+    if (
+      isProphetDawoodFastEndTimeAfterStartTime(
+        startHour,
+        startMinute,
+        startPeriod,
+        endHour,
+        endMinute,
+        endPeriod,
+      )
+    ) {
+      return;
+    }
+    if (
+      isProphetDawoodFastEndTimeAfterStartTime(
+        startHour,
+        startMinute,
+        startPeriod,
+        "5",
+        "30",
+        "pm",
+      )
+    ) {
+      setEndHour("5");
+      setEndMinute("30");
+      setEndPeriod("pm");
+      return;
+    }
+    if (
+      startPeriod === "am" &&
+      isProphetDawoodFastEndTimeAfterStartTime(
+        startHour,
+        startMinute,
+        startPeriod,
+        startHour,
+        startMinute,
+        "pm",
+      )
+    ) {
+      setEndHour(startHour);
+      setEndMinute(startMinute);
+      setEndPeriod("pm");
+      return;
+    }
+    setEndHour("11");
+    setEndMinute("59");
+    setEndPeriod("pm");
   }, [
     endHour,
     endMinute,
     endPeriod,
+    startHour,
+    startMinute,
+    startPeriod,
+  ]);
+
+  const resetFlow = useCallback(() => {
+    setFlowMode("collapsed");
+    setStepIndex(0);
+    setSelectedDate("");
+    applyFastTimeDefaults();
+    setIsStartPeriodDropdownOpen(false);
+    setIsEndPeriodDropdownOpen(false);
+    onDropdownOpenChange?.(false);
+  }, [applyFastTimeDefaults, onDropdownOpenChange]);
+
+  const handleConfirm = useCallback(() => {
+    if (!selectedDate || isLogging) return;
+
+    const startTime = formatTimeForApi(startHour, startMinute, startPeriod);
+    const endTime = formatTimeForApi(endHour, endMinute, endPeriod);
+
+    const run = async () => {
+      try {
+        const result = await logFast({
+          fastingType: "PROPHET_DAWOOD",
+          date: selectedDate,
+          startTime,
+          endTime,
+        });
+        await Promise.all([
+          fastingFrame?.refetch(),
+          refetchLoggableDates(),
+        ]);
+
+        const completedCount = result.goal?.completed ?? 0;
+        const target = result.goal?.target ?? frame?.goal?.target ?? 14;
+        const remainingCount =
+          result.goal?.remaining ?? Math.max(0, target - completedCount);
+
+        onLogComplete?.({
+          type: "prophet-dawood-fasts",
+          goalType: "prophet_dawood",
+          goalId: goalData.id as "fasting-Dawwod",
+          plannedDate: result.date ?? selectedDate,
+          date: result.date ?? selectedDate,
+          startTime: result.startTime ?? startTime,
+          endTime: result.endTime ?? endTime,
+          cycleDay: 0,
+          completed: true,
+          goalTarget: target,
+          completedCount,
+          remainingCount,
+          goalCompleted: (result.goal?.achievementPct ?? 0) >= 100,
+        });
+
+        resetFlow();
+      } catch {
+        // Toast handled in mutation onError.
+      }
+    };
+
+    void run();
+  }, [
+    endHour,
+    endMinute,
+    endPeriod,
+    fastingFrame,
+    frame?.goal?.target,
     goalData.id,
+    isLogging,
+    logFast,
     onLogComplete,
+    refetchLoggableDates,
     resetFlow,
     selectedDate,
     startHour,
@@ -278,24 +371,25 @@ export default function ProphetDawoodFastsLoggingFlow({
   }, [resetFlow, stepIndex]);
 
   const handleForward = useCallback(() => {
-    if (!isLastStep) {
-      setStepIndex((index) => index + 1);
+    if (isLastStep) return;
+    if (currentStep === "startTime") {
+      ensureEndAfterStart();
     }
-  }, [isLastStep]);
+    setStepIndex((index) => index + 1);
+  }, [currentStep, ensureEndAfterStart, isLastStep]);
 
   const handleOpenFlow = useCallback(() => {
-    if (goalCompleted) return;
+    if (!canLog || goalCompleted) return;
+    applyFastTimeDefaults();
     setStepIndex(0);
     setFlowMode("active");
-  }, [goalCompleted]);
+  }, [applyFastTimeDefaults, canLog, goalCompleted]);
 
   const getStepHeader = (step: ProphetDawoodFastsStepId) => {
     const calendarIcon = (
       <FlowCardCallender size={18} color={Colors.light.white} />
     );
-    const timeIcon = (
-      <TimeSpentIcon size={18} color={Colors.light.white} />
-    );
+    const timeIcon = <TimeSpentIcon size={18} color={Colors.light.white} />;
 
     switch (step) {
       case "selectPlannedFast":
@@ -326,6 +420,8 @@ export default function ProphetDawoodFastsLoggingFlow({
             canGoNext={canGoNext}
             onShiftDate={shiftDate}
             styles={commonStyles}
+            enabled={selectedNavigationOption?.enabled !== false}
+            description={selectedNavigationOption?.description ?? null}
           />
         );
       case "startTime":
@@ -362,9 +458,7 @@ export default function ProphetDawoodFastsLoggingFlow({
   const canProceed = (() => {
     switch (currentStep) {
       case "selectPlannedFast":
-        return (
-          Boolean(selectedDate) && canLogProphetDawoodFastOnDate(selectedDate)
-        );
+        return Boolean(selectedDate) && isSelectedDateEnabled;
       case "startTime":
         return isStartTimeValid;
       case "endTime":
@@ -376,20 +470,23 @@ export default function ProphetDawoodFastsLoggingFlow({
 
   const canConfirm =
     isLastStep &&
+    !isLogging &&
     Boolean(selectedDate) &&
-    canLogProphetDawoodFastOnDate(selectedDate) &&
+    isSelectedDateEnabled &&
+    navigationOptions.some((option) => option.date === selectedDate) &&
     isStartTimeValid &&
     isEndTimeValid &&
     isEndAfterStart;
+
+  const showConfirmButton =
+    currentStep !== "selectPlannedFast" || isSelectedDateEnabled;
 
   const stepHeader = getStepHeader(currentStep);
   const isDropdownOpen = isStartPeriodDropdownOpen || isEndPeriodDropdownOpen;
 
   return (
     <>
-      {flowMode === "active" && (
-        <Pressable style={commonStyles.backdrop} />
-      )}
+      {flowMode === "active" && <Pressable style={commonStyles.backdrop} />}
       {flowMode === "active" && (
         <TouchableOpacity
           style={commonStyles.cancelButton}
@@ -455,9 +552,26 @@ export default function ProphetDawoodFastsLoggingFlow({
                 </View>
               </View>
 
-              <View style={localStyles.footerRow} />
+              <View style={localStyles.footerRow}>
+                {showInsights ? (
+                  <TouchableOpacity
+                    style={localStyles.insightsBtn}
+                    onPress={() => fastingFrame?.openInsights?.()}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={localStyles.insightsText}>
+                      {t("progressLogging.viewInsights")}
+                    </Text>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={22}
+                      color={Colors.light.white}
+                    />
+                  </TouchableOpacity>
+                ) : null}
+              </View>
 
-              {!goalCompleted ? (
+              {canLog && !goalCompleted ? (
                 <TouchableOpacity
                   style={localStyles.addButton}
                   onPress={handleOpenFlow}
@@ -483,6 +597,7 @@ export default function ProphetDawoodFastsLoggingFlow({
                 canGoForward={!isLastStep && canProceed}
                 canGoBack={stepIndex > 0}
                 canConfirm={canConfirm}
+                showConfirmButton={showConfirmButton}
                 styles={commonStyles}
                 style={[
                   commonStyles.inPlaceFlowCard,
@@ -577,6 +692,18 @@ const localStyles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-end",
     marginTop: 4,
+  },
+  insightsBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingBottom: 4,
+  },
+  insightsText: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.bold,
+    fontSize: 16,
+    fontWeight: "700",
   },
   addButton: {
     position: "absolute",

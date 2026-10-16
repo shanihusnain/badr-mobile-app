@@ -109,6 +109,7 @@ import {
   clampProphetDawoodFastWeekIndex,
   getProphetDawoodFastCycleSummary,
   getProphetDawoodFastTodayIndexInWeek,
+  type ProphetDawoodFastWeekSummary,
 } from "../prophetDawoodFastsWeeklyData";
 import { useOptionalPrayerGoalFrameContext } from "../prayerGoalFrameContext";
 import { useOptionalQuranGoalFrameContext } from "../quranGoalFrameContext";
@@ -118,6 +119,7 @@ import {
   getFastingFrameTodayIndex,
   mapMissedRamadanFrameWeekSummary,
   mapMondayThursdayFrameWeekSummary,
+  mapProphetDawoodFrameWeekSummary,
   mapWhiteDaysFrameWeekSummary,
 } from "@/src/utils/fastingGoalFrameMap";
 import type { FastingGoalFrameData } from "@/src/api/queries/useGetFastingGoalFrame";
@@ -340,6 +342,17 @@ const MISSED_RAMADAN_LOADING_WEEK_SUMMARY: MissedRamadanFastWeekSummary = {
   upcomingPlannedThisWeek: 0,
   motivationalQuote: "---",
   showPreviousWeekStat: false,
+};
+
+const PROPHET_DAWOOD_LOADING_WEEK_SUMMARY: ProphetDawoodFastWeekSummary = {
+  weekDays: [],
+  weekRangeLabel: "---",
+  weekFraction: "---",
+  weekIndex: 0,
+  completedFastsThisWeek: 0,
+  streakDays: 0,
+  hasMissedDawoodFast: false,
+  motivationalQuoteKey: "inProgress",
 };
 
 const MONDAY_THURSDAY_LOADING_WEEK_SUMMARY: MondayThursdayFastWeekSummary = {
@@ -1578,28 +1591,73 @@ export function WeeklyProgressSection({
     }
   }
 
-  if (template === "prophet-dawood-fasts" && prophetDawoodWeek) {
-    const prophetDawoodTodayIndex = getProphetDawoodFastTodayIndexInWeek(
-      prophetDawoodWeek.weekDays,
-    );
+  if (template === "prophet-dawood-fasts") {
+    const frame = fastingFrame?.frame;
+    if (fastingFrame) {
+      const frameLoading = isFastingFrameDashboardLoading(fastingFrame, frame);
 
-    return (
-      <ProphetDawoodFastsWeeklyProgressDashboard
-        weekSummary={prophetDawoodWeek}
-        selectedDayIndex={prophetDawoodTodayIndex}
-        onDeleted={onDeleted}
-        onPrevWeek={
-          canNavigateProphetDawoodFastWeek(weekIndex, "prev")
-            ? handleProphetDawoodPrevWeek
-            : undefined
-        }
-        onNextWeek={
-          canNavigateProphetDawoodFastWeek(weekIndex, "next")
-            ? handleProphetDawoodNextWeek
-            : undefined
-        }
-      />
-    );
+      if (frame) {
+        const prophetDawoodWeekFromFrame =
+          mapProphetDawoodFrameWeekSummary(frame);
+        const canPrev =
+          frame.week.hasPrevious ??
+          getFastingFrameActiveWeek(fastingFrame, frame) > 1;
+        const canNext = canNavigateFastingFrameWeekNext(frame);
+
+        return (
+          <ProphetDawoodFastsWeeklyProgressDashboard
+            weekSummary={prophetDawoodWeekFromFrame}
+            selectedDayIndex={getFastingFrameTodayIndex(frame)}
+            onDeleted={onDeleted}
+            loading={frameLoading}
+            onPrevWeek={
+              canPrev
+                ? () => shiftFastingFrameWeek(fastingFrame, frame, -1)
+                : undefined
+            }
+            onNextWeek={
+              canNext
+                ? () => shiftFastingFrameWeek(fastingFrame, frame, 1)
+                : undefined
+            }
+          />
+        );
+      }
+
+      if (!fastingFrame.isError) {
+        return (
+          <ProphetDawoodFastsWeeklyProgressDashboard
+            weekSummary={PROPHET_DAWOOD_LOADING_WEEK_SUMMARY}
+            selectedDayIndex={0}
+            loading
+          />
+        );
+      }
+    }
+
+    if (prophetDawoodWeek) {
+      const prophetDawoodTodayIndex = getProphetDawoodFastTodayIndexInWeek(
+        prophetDawoodWeek.weekDays,
+      );
+
+      return (
+        <ProphetDawoodFastsWeeklyProgressDashboard
+          weekSummary={prophetDawoodWeek}
+          selectedDayIndex={prophetDawoodTodayIndex}
+          onDeleted={onDeleted}
+          onPrevWeek={
+            canNavigateProphetDawoodFastWeek(weekIndex, "prev")
+              ? handleProphetDawoodPrevWeek
+              : undefined
+          }
+          onNextWeek={
+            canNavigateProphetDawoodFastWeek(weekIndex, "next")
+              ? handleProphetDawoodNextWeek
+              : undefined
+          }
+        />
+      );
+    }
   }
 
   if (template === "tahiyat-ul-wudhu") {
