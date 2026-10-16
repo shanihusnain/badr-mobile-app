@@ -13,11 +13,10 @@ size = 20,
   size?: number;
 }) => (
   <Svg
-   
     width={size}
     height={size}
+    viewBox="0 0 19 19"
     fill="none"
-
   >
     <Path
       fill={color}

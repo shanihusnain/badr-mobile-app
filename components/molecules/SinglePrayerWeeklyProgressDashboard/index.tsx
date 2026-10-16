@@ -44,6 +44,7 @@ export function SinglePrayerWeeklyProgressDashboard({
   weekFraction = "1/4",
   totalPrayersThisWeek = 0,
   streakDays = 0,
+  streakLabelText = null,
   vsLastWeek = null,
   vsLastWeekDisplay = null,
   motivationalQuote = "",
@@ -362,6 +363,7 @@ export function SinglePrayerWeeklyProgressDashboard({
               footerProps={{
                 loading: false,
                 streakDays,
+                streakLabelText,
                 motivationalQuote,
                 defaultMotivationalQuote,
                 comparisonVariant,
@@ -391,7 +393,7 @@ const styles = StyleSheet.create({
     overflow: "visible",
     // Always reserve space for the delete bin so long-press doesn't push stats down.
     paddingBottom: 1,
-    paddingTop: 8,
+    paddingTop: 24 ,
   },
   dayColumn: {
     flex: 1,

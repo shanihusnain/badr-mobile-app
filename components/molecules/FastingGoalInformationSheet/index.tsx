@@ -236,8 +236,12 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     width: "100%",
     borderRadius: 16,
-    paddingVertical: 20,
+    paddingTop: 20,
     paddingHorizontal: 18,
+    // Extra bottom padding lengthens the grey card without shifting content.
+    paddingBottom: 72,
+    minHeight: 520,
+    justifyContent: "flex-start",
   },
   ringWrap: {
     alignItems: "center",

@@ -32,6 +32,8 @@ export type SinglePrayerWeeklyProgressDashboardProps = {
   weekFraction?: string;
   totalPrayersThisWeek?: number;
   streakDays?: number;
+  /** When set, replaces the default "{{count}}-day streak" copy (e.g. week streaks). */
+  streakLabelText?: string | null;
   /**
    * Prayer delta vs the previous week.
    * `null` / omitted on week 1 (no comparison slot). Present from week 2 onward.
