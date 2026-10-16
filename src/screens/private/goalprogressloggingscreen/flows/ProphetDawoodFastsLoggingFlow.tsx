@@ -420,9 +420,9 @@ export default function ProphetDawoodFastsLoggingFlow({
           {flowMode === "collapsed" ? (
             <View style={localStyles.summaryCard}>
               <View style={localStyles.summaryBody}>
-                <View style={localStyles.dawoodIconCircle}>
+                <View style={localStyles.summaryIconCircle}>
                   <FastingFlowCardProphetDawoodCalender
-                    size={25}
+                    size={21}
                     color={Colors.light.white}
                   />
                 </View>
@@ -450,9 +450,13 @@ export default function ProphetDawoodFastsLoggingFlow({
                       {badgeStatus.text}
                     </Text>
                   </View>
-                  <Text style={localStyles.summaryTitle}>{summaryTitle}</Text>
+                  <Text style={localStyles.summaryTitle} numberOfLines={2}>
+                    {summaryTitle}
+                  </Text>
                 </View>
               </View>
+
+              <View style={localStyles.footerRow} />
 
               {!goalCompleted ? (
                 <TouchableOpacity
@@ -548,7 +552,7 @@ const localStyles = StyleSheet.create({
     alignItems: "center",
     gap: 6,
   },
-  dawoodIconCircle: {
+  summaryIconCircle: {
     width: 36,
     height: 36,
     borderRadius: 18,
@@ -569,6 +573,11 @@ const localStyles = StyleSheet.create({
     fontWeight: "600",
     lineHeight: fs(18),
     letterSpacing: 0,
+  },
+  footerRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    marginTop: 4,
   },
   addButton: {
     position: "absolute",

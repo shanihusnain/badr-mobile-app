@@ -19,6 +19,8 @@ export type PrayerWeeklyProgressFooterComparisonVariant =
 export type PrayerWeeklyProgressFooterProps = {
   loading?: boolean;
   streakDays?: number;
+  /** When set, replaces the default "{{count}}-day streak" copy (e.g. week streaks). */
+  streakLabelText?: string | null;
   /** `null` / omitted on week 1 — quote sits beside streak. Weeks 2–4 show vs-last-week. */
   vsLastWeek?: number | null;
   /** When set, shown instead of the numeric magnitude (e.g. Quran "2h 0m"). */
@@ -57,6 +59,7 @@ const LATER_WEEK_QUOTE_BLOCK_MIN_HEIGHT =
 export function PrayerWeeklyProgressFooter({
   loading = false,
   streakDays = 0,
+  streakLabelText = null,
   vsLastWeek = null,
   vsLastWeekDisplay = null,
   motivationalQuote = "",
@@ -111,7 +114,9 @@ export function PrayerWeeklyProgressFooter({
       >
         {loading
           ? "---"
-          : t("homeScreen.weeklyProgress_dayStreak", { count: streakDays })}
+          : streakLabelText?.trim()
+            ? streakLabelText.trim()
+            : t("homeScreen.weeklyProgress_dayStreak", { count: streakDays })}
       </Text>
     </View>
   );

@@ -37,8 +37,8 @@ function getRingVisual(
       return { variant: "outline", color: Colors.light.graylightshade };
     case "today":
     case "todayDisabled":
-      // #2 / #3
-      return { variant: "outline", color: Colors.light.graylightshade };
+      // #2 / #3 — ringRamadan at 67% opacity
+      return { variant: "outline", color: "rgba(183, 151, 126, 0.67)" };
     case "pastNeutral":
       // #14 (+ MADE_UP planned date)
       return {
@@ -103,7 +103,8 @@ export function MissedRamadanFastDayRing({
               height: size,
               borderRadius: size / 2,
               borderWidth,
-              borderColor: Colors.light.graylightshade,
+              // #9 skipped — same ringRamadan as planned days (Fri/Sat/Sun)
+              borderColor: Colors.light.ringRamadan,
             },
           ]}
         >

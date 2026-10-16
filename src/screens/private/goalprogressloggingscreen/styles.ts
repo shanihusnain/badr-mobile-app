@@ -3,6 +3,21 @@ import { Colors } from "@/constants/theme";
 import { StyleSheet } from "react-native";
 import { fs } from "@/src/utils/responsive";
 
+/**
+ * Shared vertical rhythm for EVERY logging goal screen
+ * (10 prayer + Quran + fasting + sadaqah) — tuned on Missed Ramadan.
+ */
+export const LOGGING_SCREEN_SPACING = {
+  /** Gap under the progress ring, above My Progress.
+   * Nudges My Progress + green card + 7-day dashboard down; hero grows with it
+   * because height is measured to Past Achievements. */
+  afterRing: 28,
+  /** Gap under My Progress, above the 7-day dashboard. */
+  afterMyProgress: 24,
+  /** Gap under the dashboard, above Past Goal Achievements. */
+  afterDashboard: 4,
+} as const;
+
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -73,7 +88,7 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 16,
-    paddingTop: 45,
+    paddingTop: 40,
     paddingBottom: 4,
     position: "relative",
   },
@@ -135,7 +150,7 @@ export const styles = StyleSheet.create({
     width: "92%",
     alignSelf: "center",
     paddingTop: 4,
-    paddingBottom: 16,
+    paddingBottom: 8,
     // Keep below logging-flow overlays, but avoid Android elevation —
     // elevated siblings steal vertical pans on some OEMs (e.g. MIUI).
     zIndex: 1,
@@ -144,7 +159,7 @@ export const styles = StyleSheet.create({
   pastAchievementsWrapper: {
     width: "92%",
     alignSelf: "center",
-    paddingTop: 12,
+    paddingTop: 28,
     paddingBottom: 16,
     zIndex: 0,
     elevation: 0,

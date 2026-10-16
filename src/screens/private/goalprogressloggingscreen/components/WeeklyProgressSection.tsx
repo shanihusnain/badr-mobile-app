@@ -1587,6 +1587,7 @@ export function WeeklyProgressSection({
       <ProphetDawoodFastsWeeklyProgressDashboard
         weekSummary={prophetDawoodWeek}
         selectedDayIndex={prophetDawoodTodayIndex}
+        onDeleted={onDeleted}
         onPrevWeek={
           canNavigateProphetDawoodFastWeek(weekIndex, "prev")
             ? handleProphetDawoodPrevWeek

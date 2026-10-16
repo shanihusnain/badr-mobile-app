@@ -13,13 +13,14 @@ import {
   type ImageSourcePropType,
   Platform,
 } from "react-native";
+import { Image as ExpoImage } from "expo-image";
 import {
   TaperedCircleBorder,
   parsePercent,
 } from "@/components/atoms/TaperedCircleBorder";
 import { Colors } from "@/constants/theme";
 import { getResolvedGoalById, GoalId } from "../home/components/goalsData";
-import { styles } from "./styles";
+import { LOGGING_SCREEN_SPACING, styles } from "./styles";
 import { router, useNavigation } from "expo-router";
 import { HeaderWithCrossTitleDynamicIcon } from "@/components/atoms/HeaderWithCrossTitleDynamicIcon";
 import { useTranslation } from "react-i18next";
@@ -398,11 +399,22 @@ function GoalProgressLoggingBody({
           pointerEvents="none"
           collapsable={false}
         >
-          <Image
-            source={backgroundSource}
-            style={styles.heroBackgroundImage}
-            resizeMode="cover"
-          />
+          {isMissedRamadanFrameGoal || isMondayThursdayFrameGoal ? (
+            // Anchor crop to the top of the asset so sky / architecture sits above
+            // the pillar corner (Figma), instead of centering which pins mid-crop.
+            <ExpoImage
+              source={backgroundSource}
+              style={styles.heroBackgroundImage}
+              contentFit="cover"
+              contentPosition="top"
+            />
+          ) : (
+            <Image
+              source={backgroundSource}
+              style={styles.heroBackgroundImage}
+              resizeMode="cover"
+            />
+          )}
           {needsHeroDarkScrim ? (
             <View style={styles.heroBackgroundScrim} pointerEvents="none" />
           ) : null}
@@ -445,7 +457,7 @@ function GoalProgressLoggingBody({
             </View>
           </TaperedCircleBorder>
         </View>
-        <TopSpace top={20} />
+        <TopSpace top={LOGGING_SCREEN_SPACING.afterRing} />
         <LoggingFlowSlot
           goalData={liveGoalData}
           onDropdownOpenChange={onDropdownOpenChange}
@@ -455,18 +467,8 @@ function GoalProgressLoggingBody({
         />
       </View>
 
-      <TopSpace top={2} />
-      <View
-        style={styles.weeklyDashboardWrapper}
-        onLayout={
-          hasHeroBackground
-            ? (event) => {
-                const { y, height } = event.nativeEvent.layout;
-                setHeroBottom(y + height);
-              }
-            : undefined
-        }
-      >
+      <TopSpace top={LOGGING_SCREEN_SPACING.afterMyProgress} />
+      <View style={styles.weeklyDashboardWrapper}>
         <WeeklyProgressSection
           goalData={liveGoalData}
           refreshKey={weeklyRefreshKey}
@@ -476,8 +478,20 @@ function GoalProgressLoggingBody({
           }
         />
       </View>
+      <TopSpace top={LOGGING_SCREEN_SPACING.afterDashboard} />
 
-      <View style={styles.pastAchievementsWrapper}>
+      <View
+        style={styles.pastAchievementsWrapper}
+        onLayout={
+          hasHeroBackground
+            ? (event) => {
+                // End hero at the top of Past Achievements so the image
+                // does not sit behind that section.
+                setHeroBottom(event.nativeEvent.layout.y);
+              }
+            : undefined
+        }
+      >
         <PastAchievementsSection
           goalData={liveGoalData}
           refreshKey={weeklyRefreshKey}
@@ -644,14 +658,30 @@ export const GoalProgressLoggingScreen = ({
   const supportsDeletePrayerOptions =
     prayerType === "FIVE_DAILY_PRAYERS" || prayerType === "SUNNAH_RAWATIB";
 
+  // Pre-mount insights sheet closed on screen entry so the first View Insights
+  // tap expands a ready sheet (lazy mount+expand opened at a tiny height).
+  useLayoutEffect(() => {
+    if (prayerType || quranInsightsType || fastingInsightsType) {
+      setInsightsSheetMounted(true);
+    }
+  }, [prayerType, quranInsightsType, fastingInsightsType]);
+
+  const expandInsightsSheet = useCallback(() => {
+    infoSheetRef.current?.expand();
+    // Re-expand after layout settles — first snap after cold mount can stick short.
+    return setTimeout(() => {
+      infoSheetRef.current?.expand();
+    }, 150);
+  }, []);
+
   const openInsightsSheet = useCallback(() => {
     if (insightsSheetMounted) {
-      infoSheetRef.current?.expand();
+      expandInsightsSheet();
       return;
     }
     pendingInsightsOpenRef.current = true;
     setInsightsSheetMounted(true);
-  }, [insightsSheetMounted]);
+  }, [expandInsightsSheet, insightsSheetMounted]);
 
   const goalDescriptionParam =
     resolveGoalDescriptionParamFromLoggingGoalId(goalId);
@@ -667,11 +697,15 @@ export const GoalProgressLoggingScreen = ({
   useLayoutEffect(() => {
     if (!insightsSheetMounted || !pendingInsightsOpenRef.current) return;
     pendingInsightsOpenRef.current = false;
-    const frame = requestAnimationFrame(() => {
-      infoSheetRef.current?.expand();
-    });
-    return () => cancelAnimationFrame(frame);
-  }, [insightsSheetMounted]);
+    let retryTimer: ReturnType<typeof setTimeout> | undefined;
+    const timer = setTimeout(() => {
+      retryTimer = expandInsightsSheet();
+    }, 100);
+    return () => {
+      clearTimeout(timer);
+      if (retryTimer) clearTimeout(retryTimer);
+    };
+  }, [expandInsightsSheet, insightsSheetMounted]);
 
   useLayoutEffect(() => {
     if (!deletePrayerSheetMounted || !pendingDeleteSheetOpenRef.current)
