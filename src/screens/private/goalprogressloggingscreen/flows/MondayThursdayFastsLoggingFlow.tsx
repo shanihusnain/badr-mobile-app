@@ -61,6 +61,7 @@ import {
   useGetFastingGoalLogWizard,
   type FastingLogWizardOption,
 } from "@/src/api/queries/useGetFastingGoalLogWizard";
+import { fs } from "@/src/utils/responsive";
 
 type MondayThursdayFastsStepId =
   | "logType"
@@ -1284,9 +1285,9 @@ const localStyles = StyleSheet.create({
   },
   badgeText: {
     fontFamily: fonts.primary.medium,
-    fontSize: 12,
+    fontSize: fs(12),
     fontWeight: "500",
-    lineHeight: 12.5,
+    lineHeight: fs(12.5),
   },
   badgeTextNotStarted: {
     color: Colors.light.notStartedTextColor,
@@ -1322,9 +1323,9 @@ const localStyles = StyleSheet.create({
   summaryTitle: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 14,
+    fontSize: fs(14),
     fontWeight: "600",
-    lineHeight: 18,
+    lineHeight: fs(18),
     letterSpacing: 0,
   },
   footerRow: {
@@ -1341,7 +1342,7 @@ const localStyles = StyleSheet.create({
   insightsText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.bold,
-    fontSize: 16,
+    fontSize: fs(16),
     fontWeight: "700",
   },
   addButton: {
@@ -1361,8 +1362,8 @@ const localStyles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
-    fontSize: 10,
-    lineHeight: 13,
+    fontSize: fs(10),
+    lineHeight: fs(13),
     textAlign: "center",
     opacity: 0.95,
   },

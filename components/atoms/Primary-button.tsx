@@ -1,5 +1,6 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
+import { fs } from "@/src/utils/responsive";
 import React from "react";
 import {
   Pressable,
@@ -49,10 +50,7 @@ export default function PrimaryButton({
       {...props}
     >
       {showLoading ? (
-        <ActivityIndicator
-          size="small"
-          color={Colors.light.blackBackground}
-        />
+        <ActivityIndicator size="small" color={Colors.light.blackBackground} />
       ) : (
         <Text
           style={[
@@ -97,8 +95,9 @@ const styles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
-    fontSize: 14,
-    lineHeight: 25,
+    fontSize: fs(14),
+    lineHeight: fs(25),
+
     letterSpacing: 0,
   },
   buttonTextDisabled: {

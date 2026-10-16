@@ -8,6 +8,7 @@ import {
   MIN_JUZ,
   snapJuzOffExcluded,
 } from "../quranRecitationCompletionTarget";
+import { fs } from "@/src/utils/responsive";
 
 type Props = {
   startJuz: number;
@@ -81,7 +82,7 @@ export function JuzRangeStep({
           <Text
             style={{
               color: Colors.light.white,
-              fontSize: 10.5,
+              fontSize: fs(10.5),
               fontWeight: "500",
               opacity: 0.6,
               textAlign: "center",
@@ -94,7 +95,7 @@ export function JuzRangeStep({
           <Text
             style={{
               color: Colors.light.white,
-              fontSize: 14,
+              fontSize: fs(14),
               fontWeight: "600",
             }}
           >

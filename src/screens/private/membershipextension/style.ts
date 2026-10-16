@@ -1,6 +1,7 @@
 import { StyleSheet } from "react-native";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
+import { fs } from "@/src/utils/responsive";
 
 export const membershipExtensionStyles = StyleSheet.create({
   safeArea: {
@@ -27,16 +28,16 @@ export const membershipExtensionStyles = StyleSheet.create({
   headerTitle: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 16,
+    fontSize: fs(16),
     textTransform: "uppercase",
     letterSpacing: 1,
   },
   subtitle: {
     color: Colors.light.dullWhite,
     fontFamily: fonts.primary.regular,
-    fontSize: 14,
+    fontSize: fs(14),
     textAlign: "center",
-    lineHeight: 22,
+    lineHeight: fs(22),
     marginBottom: 32,
     paddingHorizontal: 10,
   },
@@ -80,13 +81,13 @@ export const membershipExtensionStyles = StyleSheet.create({
   planDuration: {
     color: Colors.light.green,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 16,
+    fontSize: fs(16),
     marginBottom: 2,
   },
   planSave: {
     color: Colors.light.dullWhite,
     fontFamily: fonts.primary.regular,
-    fontSize: 12,
+    fontSize: fs(12),
   },
   planPriceBlock: {
     alignItems: "flex-end",
@@ -94,13 +95,13 @@ export const membershipExtensionStyles = StyleSheet.create({
   planPrice: {
     color: Colors.light.white,
     fontFamily: fonts.primary.bold,
-    fontSize: 16,
+    fontSize: fs(16),
     marginBottom: 2,
   },
   planPerMonth: {
     color: Colors.light.dullWhite,
     fontFamily: fonts.primary.regular,
-    fontSize: 12,
+    fontSize: fs(12),
   },
   popularBadge: {
     position: "absolute",
@@ -117,7 +118,7 @@ export const membershipExtensionStyles = StyleSheet.create({
   popularBadgeText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.bold,
-    fontSize: 7.5,
+    fontSize: fs(7.5),
     letterSpacing: 0.5,
   },
   bottomSection: {
@@ -127,9 +128,9 @@ export const membershipExtensionStyles = StyleSheet.create({
   disclaimer: {
     color: Colors.light.dullWhite,
     fontFamily: fonts.primary.regular,
-    fontSize: 12,
+    fontSize: fs(12),
     textAlign: "center",
     marginTop: 12,
-    lineHeight: 18,
+    lineHeight: fs(18),
   },
 });

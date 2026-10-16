@@ -1,6 +1,7 @@
 import { StyleSheet } from "react-native";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
+import { fs } from "@/src/utils/responsive";
 
 export const changeMembershipStyles = StyleSheet.create({
     safeArea: {
@@ -34,7 +35,7 @@ export const changeMembershipStyles = StyleSheet.create({
     headerTitle: {
         color: Colors.light.white,
         fontFamily: fonts.primary.bold,
-        fontSize: 14,
+        fontSize: fs(14),
         letterSpacing: 1,
     },
     content: {
@@ -45,14 +46,14 @@ export const changeMembershipStyles = StyleSheet.create({
     screenTitle: {
         color: Colors.light.white,
         fontFamily: fonts.primary.medium,
-        fontSize: 24,
+        fontSize: fs(24),
         textAlign: "center",
         marginBottom: 12,
     },
     subtitle: {
         color: Colors.light.subtext,
         fontFamily: fonts.primary.regular,
-        fontSize: 14,
+        fontSize: fs(14),
         textAlign: "center",
         marginBottom: 32,
     },
@@ -94,17 +95,17 @@ export const changeMembershipStyles = StyleSheet.create({
     planName: {
         color: Colors.light.green,
         fontFamily: fonts.primary.semiBold,
-        fontSize: 15,
+        fontSize: fs(15),
     },
     planNameInactive: {
         color: Colors.light.green,
         fontFamily: fonts.primary.semiBold,
-        fontSize: 15,
+        fontSize: fs(15),
     },
     planSavings: {
         color: Colors.light.subtext,
         fontFamily: fonts.primary.regular,
-        fontSize: 12,
+        fontSize: fs(12),
     },
     planRight: {
         alignItems: "flex-end",
@@ -113,12 +114,12 @@ export const changeMembershipStyles = StyleSheet.create({
     planPrice: {
         color: Colors.light.white,
         fontFamily: fonts.primary.bold,
-        fontSize: 15,
+        fontSize: fs(15),
     },
     planPriceSub: {
         color: Colors.light.subtext,
         fontFamily: fonts.primary.regular,
-        fontSize: 12,
+        fontSize: fs(12),
     },
     bottomContainer: {
         //paddingHorizontal: 24,
@@ -133,7 +134,7 @@ export const changeMembershipStyles = StyleSheet.create({
     cancelButtonText: {
         color: Colors.light.white,
         fontFamily: fonts.primary.semiBold,
-        fontSize: 14,
+        fontSize: fs(14),
         letterSpacing: 1,
     },
 });

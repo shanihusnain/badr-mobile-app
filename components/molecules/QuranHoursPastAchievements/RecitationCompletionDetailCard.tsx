@@ -6,6 +6,7 @@ import { fonts } from "@/assets/fonts";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import type { CompletionAnalyticsView } from "@/src/screens/private/goalprogressloggingscreen/quranRecitationCompletionPastAchievementData";
 import type { CompletionProgressRailRow } from "@/src/screens/private/goalprogressloggingscreen/quranRecitationCompletionPastAchievementData";
+import { fs } from "@/src/utils/responsive";
 
 type RecitationCompletionDetailCardProps = {
   row: CompletionProgressRailRow;
@@ -107,13 +108,13 @@ const styles = StyleSheet.create({
   metaTitle: {
     flex: 1,
     color: Colors.light.white,
-    fontSize: 14,
+    fontSize: fs(14),
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
   },
   metaRange: {
     color: Colors.light.subtext,
-    fontSize: 12,
+    fontSize: fs(12),
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
   },
@@ -124,7 +125,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   activeBadgeText: {
-    fontSize: 10,
+    fontSize: fs(10),
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
     letterSpacing: 0.4,
@@ -157,7 +158,7 @@ const styles = StyleSheet.create({
   },
   verseCount: {
     color: Colors.light.white,
-    fontSize: 12,
+    fontSize: fs(12),
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
   },

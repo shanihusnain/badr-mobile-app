@@ -20,6 +20,7 @@ import {
   LillahCategoryDef,
   LILLAH_CATEGORIES,
 } from "../lillahCategories";
+import { fs } from "@/src/utils/responsive";
 
 type Props = {
   selectedCategory: LillahCategoryId;
@@ -145,14 +146,14 @@ const styles = StyleSheet.create({
     flex: 1,
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 13,
+    fontSize: fs(13),
     fontWeight: "600",
   },
   description: {
     color: Colors.light.dullWhite,
     fontFamily: fonts.primary.regular,
-    fontSize: 11,
-    lineHeight: 15,
+    fontSize: fs(11),
+    lineHeight: fs(15),
     paddingHorizontal: 4,
   },
   radioList: {
@@ -196,7 +197,7 @@ const styles = StyleSheet.create({
     flex: 1,
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
-    fontSize: 13,
+    fontSize: fs(13),
     fontWeight: "500",
   },
 });

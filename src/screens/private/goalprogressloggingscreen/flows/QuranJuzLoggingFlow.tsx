@@ -75,6 +75,7 @@ import {
 } from "../quranRecitationJuzTarget";
 import { snapJuzOffExcluded } from "../quranRecitationCompletionTarget";
 import type { QuranJuzLogEntry } from "../types";
+import { fs } from "@/src/utils/responsive";
 
 function splitDurationMinutes(total: number, parts: number): number[] {
   if (parts <= 0) return [];
@@ -773,8 +774,8 @@ export default function QuranJuzLoggingFlow({
               style={{
                 width: "100%",
                 color: Colors.light.white,
-                fontSize: 9.5,
-                lineHeight: 14,
+                fontSize: fs(9.5),
+                lineHeight: fs(14),
                 // Always reserve 2-line height so the stepper doesn't shift
                 // when the range label fits on one line (e.g. j11 vs j10).
                 minHeight: 28,

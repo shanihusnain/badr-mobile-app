@@ -10,6 +10,7 @@ import {
   FlowCardMaghrebIcon,
   FlowCardIshaIcon,
 } from "@/assets/icons";
+import { fs } from "@/src/utils/responsive";
 
 const PRAYER_ICONS: Record<
   PrayerName,
@@ -178,10 +179,10 @@ const localStyles = StyleSheet.create({
   prayerLabel: {
     width: "100%",
     height: 10,
-    lineHeight: 12,
+    lineHeight: fs(12),
     textAlign: "center",
     fontFamily: fonts.primary.semiBold,
-    fontSize: 8,
+    fontSize: fs(8),
     fontWeight: "600",
     includeFontPadding: false,
     textAlignVertical: "center",
@@ -211,9 +212,9 @@ const localStyles = StyleSheet.create({
   },
   qtyLabel: {
     height: 12,
-    lineHeight: 12,
+    lineHeight: fs(12),
     fontFamily: fonts.primary.semiBold,
-    fontSize: 9,
+    fontSize: fs(9),
     fontWeight: "600",
     includeFontPadding: false,
     marginTop: 3,

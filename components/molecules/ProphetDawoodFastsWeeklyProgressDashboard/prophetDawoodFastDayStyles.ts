@@ -5,6 +5,7 @@ import type {
   ProphetDawoodFastDayProgress,
   ProphetDawoodFastDayState,
 } from "@/src/screens/private/goalprogressloggingscreen/prophetDawoodFastsWeeklyData";
+import { fs } from "@/src/utils/responsive";
 
 export function shouldShowTodayBackground(
   day: ProphetDawoodFastDayProgress,
@@ -65,42 +66,42 @@ export const prophetDawoodFastDayLabelStyles = StyleSheet.create({
   },
   dayLabelToday: {
     color: Colors.light.white,
-    fontSize: 10,
+    fontSize: fs(10),
     fontWeight: "700",
     fontFamily: fonts.primary.bold,
     textAlign: "center",
   },
   dayLabelActive: {
     color: Colors.light.white,
-    fontSize: 10,
+    fontSize: fs(10),
     fontWeight: "700",
     fontFamily: fonts.primary.bold,
     textAlign: "center",
   },
   dayLabelMuted: {
     color: Colors.light.subtext,
-    fontSize: 10,
+    fontSize: fs(10),
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
     textAlign: "center",
   },
   dayLabelInactive: {
     color: Colors.light.graylightshade,
-    fontSize: 10,
+    fontSize: fs(10),
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
     textAlign: "center",
   },
   dayLabelPastNeutral: {
     color: Colors.light.calendarBg,
-    fontSize: 10,
+    fontSize: fs(10),
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
     textAlign: "center",
   },
   dayLabelBlurred: {
     color: Colors.light.graylightshade,
-    fontSize: 10,
+    fontSize: fs(10),
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
     textAlign: "center",

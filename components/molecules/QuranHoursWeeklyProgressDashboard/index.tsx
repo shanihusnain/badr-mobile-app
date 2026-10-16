@@ -14,6 +14,7 @@ import {
   formatWeeklyHoursTotal,
 } from "@/src/screens/private/goalprogressloggingscreen/quranHoursWeeklyData";
 import { useDeleteQuranHoursLog } from "@/src/api/mutations/useDeleteQuranHoursLog";
+import { fs } from "@/src/utils/responsive";
 
 export type QuranHoursWeeklyProgressDashboardProps = {
   weekDays: QuranHoursDayProgress[];
@@ -162,7 +163,7 @@ const styles = StyleSheet.create({
   },
   statsText: {
     color: Colors.light.white,
-    fontSize: 13,
+    fontSize: fs(13),
     fontFamily: fonts.primary.medium,
     flexShrink: 1,
     fontWeight: "500",
@@ -171,7 +172,7 @@ const styles = StyleSheet.create({
   statsCount: {
     color: Colors.light.white,
     fontWeight: "600",
-    fontSize: 20,
+    fontSize: fs(20),
     fontFamily: fonts.primary.bold,
     letterSpacing: 0.1,
   },

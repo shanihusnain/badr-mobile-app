@@ -19,6 +19,7 @@ import { useDeletePrayerLog } from "@/src/api/mutations/useDeletePrayerLog";
 import { useOptionalPrayerGoalFrameContext } from "@/src/screens/private/goalprogressloggingscreen/prayerGoalFrameContext";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { PrayerWeeklyDashboardBody } from "@/components/molecules/PrayerWeeklyDashboardBody";
+import { fs } from "@/src/utils/responsive";
 
 // Layout spacing matches SinglePrayerWeeklyProgressDashboard.
 // Arc rings need a larger size than the solid 24px single-prayer circles.
@@ -373,7 +374,7 @@ const styles = StyleSheet.create({
   },
   dayLabel: {
     color: Colors.light.subtext,
-    fontSize: 10,
+    fontSize: fs(10),
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
     marginTop: 4,
@@ -395,7 +396,7 @@ const styles = StyleSheet.create({
   },
   statsText: {
     color: Colors.light.white,
-    fontSize: 13,
+    fontSize: fs(13),
     fontFamily: fonts.primary.medium,
     flexShrink: 1,
     fontWeight: "500",
@@ -404,7 +405,7 @@ const styles = StyleSheet.create({
   statsCount: {
     color: Colors.light.white,
     fontWeight: "700",
-    fontSize: 20,
+    fontSize: fs(20),
     fontFamily: fonts.primary.bold,
   },
 });

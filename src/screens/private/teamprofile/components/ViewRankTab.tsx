@@ -8,6 +8,7 @@ import {
   type RankLeaderboardEntry,
   type RankPeriod,
 } from "../rankMockData";
+import { fs } from "@/src/utils/responsive";
 
 type ViewRankTabProps = {
   metricLabel: string;
@@ -115,7 +116,7 @@ const styles = StyleSheet.create({
     color: MUTED,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
-    fontSize: 11,
+    fontSize: fs(11),
     textTransform: "uppercase",
   },
   periodChipTextSelected: {
@@ -140,18 +141,18 @@ const styles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
-    fontSize: 12,
+    fontSize: fs(12),
     textTransform: "uppercase",
   },
   statsTotal: {
     color: Colors.light.green,
     fontFamily: fonts.primary.medium,
-    fontSize: 13,
+    fontSize: fs(13),
   },
   statsMeta: {
     color: MUTED,
     fontFamily: fonts.primary.regular,
-    fontSize: 12,
+    fontSize: fs(12),
   },
   list: {
     gap: 4,
@@ -178,18 +179,18 @@ const styles = StyleSheet.create({
   name: {
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
-    fontSize: 14,
+    fontSize: fs(14),
   },
   score: {
     color: Colors.light.green,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
-    fontSize: 14,
+    fontSize: fs(14),
   },
   handle: {
     color: MUTED,
     fontFamily: fonts.primary.regular,
-    fontSize: 12,
+    fontSize: fs(12),
     marginTop: 2,
   },
 });

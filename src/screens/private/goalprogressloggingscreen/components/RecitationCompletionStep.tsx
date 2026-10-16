@@ -10,6 +10,7 @@ import {
   type QuranRecitationDayType,
   type RecitationSegmentVisualState,
 } from "@/src/screens/private/goalprogressloggingscreen/quranRecitationWeeklyData";
+import { fs } from "@/src/utils/responsive";
 
 type Props = {
   /** Period target (daily quantity or weekly quota), 1–5. */
@@ -195,7 +196,7 @@ const styles = StyleSheet.create({
   },
   fraction: {
     color: Colors.light.white,
-    fontSize: 10,
+    fontSize: fs(10),
     fontFamily: fonts.primary.bold,
     fontWeight: "700",
   },

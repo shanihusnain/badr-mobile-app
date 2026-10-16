@@ -60,6 +60,7 @@ import { QiyamFemaleUserIcon } from "@/assets/icons/QiyamFemaleUser";
 import { QiyamMaleUserIcon } from "@/assets/icons/QiyamMaleUser";
 import { QiyamWhenDidYouPrayIcon } from "@/assets/icons/QiyamWhenDidYouPrayIcon";
 import type { ProgressLogEntry } from "../types";
+import { fs } from "@/src/utils/responsive";
 
 type QiyamLoggedTime = "after-isha" | "before-fajr";
 
@@ -209,9 +210,9 @@ const timingStepStyles = StyleSheet.create({
   selectorLabel: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 14,
+    fontSize: fs(14),
     fontWeight: "500",
-    lineHeight: 18,
+    lineHeight: fs(18),
     letterSpacing: -0.3,
   },
   dropdownMenu: {
@@ -229,15 +230,15 @@ const timingStepStyles = StyleSheet.create({
     flex: 1,
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
-    fontSize: 12,
+    fontSize: fs(12),
     fontWeight: "500",
-    lineHeight: 16,
+    lineHeight: fs(16),
     letterSpacing: -0.3,
   },
   description: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: 10,
+    fontSize: fs(10),
     opacity: 0.8,
     textAlign: "left",
     alignSelf: "stretch",
@@ -1037,9 +1038,9 @@ const localStyles = StyleSheet.create({
   },
   badgeText: {
     fontFamily: fonts.primary.medium,
-    fontSize: 12,
+    fontSize: fs(12),
     fontWeight: "500",
-    lineHeight: 12.5,
+    lineHeight: fs(12.5),
   },
   badgeTextInProgress: {
     color: Colors.light.darkblue,
@@ -1068,9 +1069,9 @@ const localStyles = StyleSheet.create({
   summaryTitle: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 14,
+    fontSize: fs(14),
     fontWeight: "600",
-    lineHeight: 18,
+    lineHeight: fs(18),
     letterSpacing: 0,
   },
   footerRow: {
@@ -1087,7 +1088,7 @@ const localStyles = StyleSheet.create({
   insightsText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.bold,
-    fontSize: 16,
+    fontSize: fs(16),
     fontWeight: "700",
   },
   addButton: {

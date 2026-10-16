@@ -20,6 +20,7 @@ import {
   type TeamMember,
 } from "../mockData";
 import type { TeamChatMessage } from "../rankMockData";
+import { fs } from "@/src/utils/responsive";
 
 const MUTED = "#8E98A8";
 
@@ -214,7 +215,7 @@ const styles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
-    fontSize: 18,
+    fontSize: fs(18),
   },
   emptyState: {
     flex: 1,
@@ -233,7 +234,7 @@ const styles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
-    fontSize: 13,
+    fontSize: fs(13),
     textAlign: "center",
     textTransform: "uppercase",
     letterSpacing: 0.3,
@@ -280,21 +281,21 @@ const styles = StyleSheet.create({
   sender: {
     color: Colors.light.dullWhite,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 11,
+    fontSize: fs(11),
     marginBottom: 4,
     textTransform: "uppercase",
   },
   messageText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: fs(14),
+    lineHeight: fs(20),
   },
   time: {
     marginTop: 6,
     color: "rgba(255,255,255,0.7)",
     fontFamily: fonts.primary.regular,
-    fontSize: 10,
+    fontSize: fs(10),
     alignSelf: "flex-end",
   },
   composerWrap: {
@@ -324,7 +325,7 @@ const styles = StyleSheet.create({
     maxHeight: 100,
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: 13,
+    fontSize: fs(13),
     paddingHorizontal: 12,
     paddingVertical: 8,
     textTransform: "none",
@@ -358,14 +359,14 @@ const styles = StyleSheet.create({
   disabledTitle: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 14,
+    fontSize: fs(14),
     marginBottom: 8,
   },
   disabledBody: {
     color: MUTED,
     fontFamily: fonts.primary.regular,
-    fontSize: 13,
+    fontSize: fs(13),
     textAlign: "center",
-    lineHeight: 20,
+    lineHeight: fs(20),
   },
 });

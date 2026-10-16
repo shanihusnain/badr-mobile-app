@@ -58,6 +58,7 @@ import {
 } from "../quranRecitationCompletionTarget";
 import type { QuranCompletionLogEntry } from "../types";
 import { getCurrentCompletionNumber } from "../quranRecitationCompletionData";
+import { fs } from "@/src/utils/responsive";
 
 type FlowMode = "collapsed" | "active";
 
@@ -641,8 +642,8 @@ export default function QuranCompletionLoggingFlow({
               style={{
                 width: "100%",
                 color: Colors.light.white,
-                fontSize: 9.5,
-                lineHeight: 14,
+                fontSize: fs(9.5),
+                lineHeight: fs(14),
                 minHeight: 28,
                 fontFamily: fonts.primary.medium,
                 fontWeight: "500",

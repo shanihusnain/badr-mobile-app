@@ -72,6 +72,7 @@ import ProphetDawoodFastGoalSelection from "@/components/molecules/ProphetDawood
 import WhiteDaysFastGoalSelection from "@/components/molecules/WhiteDaysFastGoalSelection";
 import MondayThursdayFastGoalSelection from "@/components/molecules/MondayThursdayFastGoalSelection";
 import { setMondayThursdaySelectedGoalFasts } from "@/src/screens/private/goalprogressloggingscreen/mondayThursdayFastsData";
+import { fs } from "@/src/utils/responsive";
 
 import { ReviewGoalBtn } from "./ReviewGoalBtn";
 import ReviewGoalCard from "./ReviewGoalCard";
@@ -5326,10 +5327,10 @@ const styles = StyleSheet.create({
   },
   tabText: {
     color: Colors.light.dullWhite,
-    fontSize: 14,
+    fontSize: fs(14),
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
-    lineHeight: 18,
+    lineHeight: fs(18),
     letterSpacing: 0.1,
     includeFontPadding: false,
     textAlign: "center",
@@ -5354,10 +5355,10 @@ const styles = StyleSheet.create({
   },
   tabChipText: {
     color: Colors.light.dullWhite,
-    fontSize: 12,
+    fontSize: fs(12),
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
-    lineHeight: 16,
+    lineHeight: fs(16),
     includeFontPadding: false,
     textAlign: "center",
     textAlignVertical: "center",
@@ -5410,14 +5411,14 @@ const styles = StyleSheet.create({
   },
   rangeLabel: {
     color: Colors.light.white,
-    fontSize: 14,
+    fontSize: fs(14),
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
     textAlign: "center",
   },
   hijriLabel: {
     color: Colors.light.grey,
-    fontSize: 11,
+    fontSize: fs(11),
     fontFamily: fonts.primary.regular,
     textAlign: "center",
     marginTop: 2,
@@ -5427,7 +5428,7 @@ const styles = StyleSheet.create({
   },
   monthLabel: {
     color: Colors.light.white,
-    fontSize: 16,
+    fontSize: fs(16),
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
   },
@@ -5440,10 +5441,10 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   cycleDescription: {
-    fontSize: 13,
+    fontSize: fs(13),
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    lineHeight: 20,
+    lineHeight: fs(20),
   },
   cycleFooter: {
     backgroundColor: Colors.light.calendarBg,
@@ -5455,9 +5456,9 @@ const styles = StyleSheet.create({
   },
   cycleInfoText: {
     color: Colors.light.dullWhite,
-    fontSize: 14,
+    fontSize: fs(14),
     fontFamily: fonts.primary.regular,
-    lineHeight: 22,
+    lineHeight: fs(22),
     flex: 1,
   },
   cycleHighlight: {

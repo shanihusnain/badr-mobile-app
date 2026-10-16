@@ -2,6 +2,7 @@ import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
 import { StyleSheet, Text } from "react-native";
 import { useTranslation } from "react-i18next";
+import { fs } from "@/src/utils/responsive";
 
 export const GoalPlannerSummary = () => {
   const { t } = useTranslation();
@@ -28,9 +29,9 @@ const styles = StyleSheet.create({
   container: {
     color: Colors.light.white,
     fontWeight: "400",
-    fontSize: 16,
+    fontSize: fs(16),
     fontFamily: fonts.primary.regular,
-    lineHeight: 20,
+    lineHeight: fs(20),
     marginTop: 24,
     width: "80%",
     textAlign: "center",
@@ -39,6 +40,6 @@ const styles = StyleSheet.create({
   bold: {
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
-    fontSize: 16,
+    fontSize: fs(16),
   },
 });

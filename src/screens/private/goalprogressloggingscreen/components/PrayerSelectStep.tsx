@@ -11,6 +11,7 @@ import {
   SunIcon,
   SunriseIcon,
 } from "@/assets/icons";
+import { fs } from "@/src/utils/responsive";
 
 const PRAYER_ICON_COMPONENTS: Record<
   PrayerName,
@@ -143,7 +144,7 @@ const PrayerItem = React.memo(
           <Text
             style={{
               color: Colors.light.subtext,
-              fontSize: 8,
+              fontSize: fs(8),
               marginTop: 2,
               textAlign: "center",
             }}

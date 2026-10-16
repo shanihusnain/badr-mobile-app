@@ -1,7 +1,7 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
+import { fs } from "@/src/utils/responsive";
 import { Platform, StyleSheet } from "react-native";
-import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 
 export const styles = StyleSheet.create({
   background: {
@@ -44,12 +44,12 @@ export const styles = StyleSheet.create({
   heroText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.heavy,
-    fontSize: 32,
+    fontSize: fs(32),
     fontWeight: "bold",
     letterSpacing: Platform.OS === "ios" ? 1 : 1.5,
     textAlign: "left",
     flex: 1,
-    lineHeight: 45,
+    lineHeight: fs(45),
     zIndex: 1,
   },
 });

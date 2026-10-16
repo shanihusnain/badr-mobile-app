@@ -14,7 +14,12 @@ import { GoalData } from "../../home/components/goalsData";
 import { DateStep } from "../components/DateStep";
 import { formatProgressLoggingDateLabel } from "../progressLoggingConfig";
 import { PrayerQuantityInputStep } from "../components/PrayerQuantityInputStep";
-import { StartTimeStep, DurationStep, getCurrentStartTimeParts, isDurationEntered } from "../components/TimePickerSteps";
+import {
+  StartTimeStep,
+  DurationStep,
+  getCurrentStartTimeParts,
+  isDurationEntered,
+} from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
 import {
   styles as commonStyles,
@@ -40,6 +45,7 @@ import {
   WhitePrayerMatIcon,
   WhiteTimerIcon,
 } from "@/assets/icons";
+import { fs } from "@/src/utils/responsive";
 
 type DuhaPrayerStepId =
   | "date"
@@ -225,15 +231,15 @@ export default function DuhaPrayerLoggingFlow({
         await logDuha(payload);
         await prayerFrame?.refetch();
 
-    onLogComplete?.({
-      type: "duha-prayer",
-      goalId: goalData.id,
-      date: selectedDate,
-      prayersCount,
+        onLogComplete?.({
+          type: "duha-prayer",
+          goalId: goalData.id,
+          date: selectedDate,
+          prayersCount,
           startTime: payload.startTime,
           durationMinutes: payload.durationMinutes,
-    } as any);
-    resetFlow();
+        } as any);
+        resetFlow();
       } catch {
         // onError handler already shows toast.
       }
@@ -339,18 +345,16 @@ export default function DuhaPrayerLoggingFlow({
 
   return (
     <>
-        {flowMode === "active" && (
-          <Pressable style={commonStyles.backdrop} />
-        )}
-        {flowMode === "active" && (
+      {flowMode === "active" && <Pressable style={commonStyles.backdrop} />}
+      {flowMode === "active" && (
         <TouchableOpacity
           style={commonStyles.cancelButton}
           onPress={resetFlow}
           activeOpacity={0.8}
         >
-            <Ionicons name="close" size={20} color={Colors.light.white} />
-          </TouchableOpacity>
-        )}
+          <Ionicons name="close" size={20} color={Colors.light.white} />
+        </TouchableOpacity>
+      )}
 
       <View style={commonStyles.section}>
         <Text style={commonStyles.sectionTitle}>
@@ -358,91 +362,91 @@ export default function DuhaPrayerLoggingFlow({
         </Text>
 
         <View style={commonStyles.cardAnchor}>
-        {flowMode === "collapsed" ? (
-          <View style={localStyles.summaryCard}>
-            <View style={localStyles.summaryBody}>
-              <View style={localStyles.summaryIconCircle}>
-                <FlowCardDuhaPrayerIcon
-                  color={Colors.light.white}
-                  size={25}
-                />
-              </View>
-              <View style={{ flex: 1, gap: 9 }}>
-                <View
-                  style={[
-                    localStyles.badge,
-                    badgeStatus.type === "completed"
-                      ? localStyles.badgeCompleted
-                      : badgeStatus.type === "not-started"
-                        ? localStyles.badgeNotStarted
-                        : localStyles.badgeInProgress,
-                    { alignSelf: "flex-start" },
-                  ]}
-                >
-                  <Text
+          {flowMode === "collapsed" ? (
+            <View style={localStyles.summaryCard}>
+              <View style={localStyles.summaryBody}>
+                <View style={localStyles.summaryIconCircle}>
+                  <FlowCardDuhaPrayerIcon
+                    color={Colors.light.white}
+                    size={25}
+                  />
+                </View>
+                <View style={{ flex: 1, gap: 9 }}>
+                  <View
                     style={[
-                      localStyles.badgeText,
+                      localStyles.badge,
                       badgeStatus.type === "completed"
-                        ? localStyles.badgeTextCompleted
+                        ? localStyles.badgeCompleted
                         : badgeStatus.type === "not-started"
-                          ? localStyles.badgeTextNotStarted
-                          : localStyles.badgeTextInProgress,
+                          ? localStyles.badgeNotStarted
+                          : localStyles.badgeInProgress,
+                      { alignSelf: "flex-start" },
                     ]}
                   >
-                    {badgeStatus.text}
+                    <Text
+                      style={[
+                        localStyles.badgeText,
+                        badgeStatus.type === "completed"
+                          ? localStyles.badgeTextCompleted
+                          : badgeStatus.type === "not-started"
+                            ? localStyles.badgeTextNotStarted
+                            : localStyles.badgeTextInProgress,
+                      ]}
+                    >
+                      {badgeStatus.text}
+                    </Text>
+                  </View>
+                  <Text
+                    style={[
+                      localStyles.summaryTitle,
+                      { flex: undefined },
+                      frameLoading && localStyles.loadingPlaceholderText,
+                    ]}
+                    numberOfLines={2}
+                  >
+                    {goalLabel}
                   </Text>
                 </View>
-                <Text
-                  style={[
-                    localStyles.summaryTitle,
-                    { flex: undefined },
-                    frameLoading && localStyles.loadingPlaceholderText,
-                  ]}
-                  numberOfLines={2}
-                >
-                  {goalLabel}
-                </Text>
               </View>
-            </View>
 
-            <View style={localStyles.footerRow}>
-              {showInsights ? (
-                <TouchableOpacity
-                  style={localStyles.insightsBtn}
-                  onPress={prayerFrame?.openInsights}
-                  activeOpacity={0.8}
-                >
-                  <Text style={localStyles.insightsText}>VIEW INSIGHTS</Text>
-                  <Ionicons
-                    name="chevron-forward"
-                    size={22}
-                    color={Colors.light.white}
-                  />
-                </TouchableOpacity>
-              ) : null}
-            </View>
+              <View style={localStyles.footerRow}>
+                {showInsights ? (
+                  <TouchableOpacity
+                    style={localStyles.insightsBtn}
+                    onPress={prayerFrame?.openInsights}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={localStyles.insightsText}>VIEW INSIGHTS</Text>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={22}
+                      color={Colors.light.white}
+                    />
+                  </TouchableOpacity>
+                ) : null}
+              </View>
 
-            <TouchableOpacity
-              style={[
-                localStyles.addButton,
-                (frameLoading || isFullyAchieved) &&
-                  localStyles.addButtonDisabled,
-              ]}
-              onPress={handleOpenFlow}
-              activeOpacity={0.8}
-              disabled={frameLoading || isFullyAchieved}
-            >
-              <AddLoggingFlowIcon size={32} />
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <View style={commonStyles.flowCardLayer}>
-            <FlowCard
-              headerIcon={stepHeader.icon}
-              headerLabel={stepHeader.label}
-              onBack={handleBack}
-              onForward={handleForward}
-              onConfirm={handleConfirm}
+              <TouchableOpacity
+                style={[
+                  localStyles.addButton,
+                  (frameLoading || isFullyAchieved) &&
+                    localStyles.addButtonDisabled,
+                ]}
+                onPress={handleOpenFlow}
+                activeOpacity={0.8}
+                disabled={frameLoading || isFullyAchieved}
+              >
+                <AddLoggingFlowIcon size={32} />
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={commonStyles.flowCardLayer}>
+              <FlowCard
+                headerIcon={stepHeader.icon}
+                headerLabel={stepHeader.label}
+                onBack={handleBack}
+                onForward={handleForward}
+                onConfirm={handleConfirm}
                 canGoForward={
                   !dayDetailLoadingState &&
                   !isLastStep &&
@@ -456,15 +460,15 @@ export default function DuhaPrayerLoggingFlow({
                   quantityValue >= 1 &&
                   isDurationEntered(durationHours, durationMinutes)
                 }
-              styles={commonStyles}
-              style={commonStyles.inPlaceFlowCard}
-            >
-              {renderStepContent(currentStep)}
-            </FlowCard>
-          </View>
-        )}
+                styles={commonStyles}
+                style={commonStyles.inPlaceFlowCard}
+              >
+                {renderStepContent(currentStep)}
+              </FlowCard>
+            </View>
+          )}
+        </View>
       </View>
-    </View>
     </>
   );
 }
@@ -497,9 +501,9 @@ const localStyles = StyleSheet.create({
   },
   badgeText: {
     fontFamily: fonts.primary.medium,
-    fontSize: 12,
+    fontSize: fs(12),
     fontWeight: "500",
-    lineHeight: 12.5,
+    lineHeight: fs(12.5),
   },
   badgeTextInProgress: {
     color: Colors.light.darkblue,
@@ -527,9 +531,9 @@ const localStyles = StyleSheet.create({
   summaryTitle: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 14,
+    fontSize: fs(14),
     fontWeight: "600",
-    lineHeight: 18,
+    lineHeight: fs(18),
     letterSpacing: 0,
     flex: 1,
   },
@@ -550,7 +554,7 @@ const localStyles = StyleSheet.create({
   insightsText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.bold,
-    fontSize: 16,
+    fontSize: fs(16),
     fontWeight: "700",
   },
   addButton: {

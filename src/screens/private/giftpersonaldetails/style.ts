@@ -1,6 +1,7 @@
 import { StyleSheet } from "react-native";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
+import { fs } from "@/src/utils/responsive";
 
 export const giftPersonalDetailsStyles = StyleSheet.create({
   safeArea: {
@@ -34,7 +35,7 @@ export const giftPersonalDetailsStyles = StyleSheet.create({
   title: {
     color: Colors.light.white,
     fontFamily: fonts.primary.bold,
-    fontSize: 18,
+    fontSize: fs(18),
     textAlign: "center",
     textTransform: "uppercase",
     letterSpacing: 1,
@@ -43,9 +44,9 @@ export const giftPersonalDetailsStyles = StyleSheet.create({
   subtitle: {
     color: Colors.light.dullWhite,
     fontFamily: fonts.primary.regular,
-    fontSize: 14,
+    fontSize: fs(14),
     textAlign: "center",
-    lineHeight: 20,
+    lineHeight: fs(20),
     marginBottom: 30,
     paddingHorizontal: 20,
   },
@@ -80,8 +81,8 @@ export const giftPersonalDetailsStyles = StyleSheet.create({
     flex: 1,
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: fs(14),
+    lineHeight: fs(20),
   },
   recipientBlock: {
     marginBottom: 30,
@@ -89,7 +90,7 @@ export const giftPersonalDetailsStyles = StyleSheet.create({
   recipientBlockTitle: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 16,
+    fontSize: fs(16),
     marginBottom: 16,
   },
   inputGroup: {
@@ -98,7 +99,7 @@ export const giftPersonalDetailsStyles = StyleSheet.create({
   inputLabel: {
     color: Colors.light.dullWhite,
     fontFamily: fonts.primary.regular,
-    fontSize: 12,
+    fontSize: fs(12),
     marginBottom: 8,
   },
   input: {
@@ -108,7 +109,7 @@ export const giftPersonalDetailsStyles = StyleSheet.create({
     paddingHorizontal: 16,
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: 14,
+    fontSize: fs(14),
   },
   textArea: {
     height: 100,
@@ -119,7 +120,7 @@ export const giftPersonalDetailsStyles = StyleSheet.create({
     paddingBottom: 12,
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: 14,
+    fontSize: fs(14),
     textAlignVertical: "top",
   },
   bottomSection: {

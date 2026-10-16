@@ -5,6 +5,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import { fs } from "@/src/utils/responsive";
 
 const createStyles = () =>
   StyleSheet.create({
@@ -25,8 +26,8 @@ const createStyles = () =>
     streakNumber: {
       fontFamily: fonts.primary.bold,
       fontWeight: "600",
-      fontSize: 60,
-      lineHeight: 60,
+      fontSize: fs(60),
+      lineHeight: fs(60),
       letterSpacing: 0,
       textAlign: "center",
       textTransform: "uppercase",
@@ -36,7 +37,7 @@ const createStyles = () =>
     streakSublabel: {
       fontFamily: fonts.primary.medium,
       fontWeight: "500",
-      fontSize: 14,
+      fontSize: fs(14),
       color: Colors.light.white,
       letterSpacing: 0.5,
       textAlign: "center",
@@ -60,7 +61,7 @@ const createStyles = () =>
     statsValue: {
       fontFamily: fonts.primary.medium,
       fontWeight: "500",
-      fontSize: 15,
+      fontSize: fs(15),
       color: Colors.light.white,
       marginBottom: 6,
       textAlign: "center",
@@ -68,7 +69,7 @@ const createStyles = () =>
     statsValueLight: {
       fontFamily: fonts.primary.light,
       fontWeight: "300",
-      fontSize: 15,
+      fontSize: fs(15),
       color: Colors.light.white,
       marginBottom: 6,
       textAlign: "center",
@@ -76,7 +77,7 @@ const createStyles = () =>
     statsLabel: {
       fontFamily: fonts.primary.regular,
       fontWeight: "400",
-      fontSize: 12,
+      fontSize: fs(12),
       color: Colors.light.grey,
       textAlign: "center",
     },
@@ -97,8 +98,8 @@ const createStyles = () =>
     thisWeekHeader: {
       fontFamily: fonts.primary.medium,
       fontWeight: "500",
-      fontSize: 14,
-      lineHeight: 14, // 100% line-height
+      fontSize: fs(14),
+      lineHeight: fs(14), // 100% line-height
       letterSpacing: 0,
       fontVariant: ["small-caps"],
       color: Colors.light.white,
@@ -113,8 +114,8 @@ const createStyles = () =>
     dayText: {
       fontFamily: fonts.primary.semiBold,
       fontWeight: "600",
-      fontSize: 11,
-      lineHeight: 14,
+      fontSize: fs(11),
+      lineHeight: fs(14),
       letterSpacing: 0,
       fontVariant: ["small-caps"],
       color: Colors.light.grey || "#8e8e93",
@@ -180,7 +181,7 @@ const createStyles = () =>
     },
     milestoneCircleText: {
       fontFamily: fonts.primary.bold,
-      fontSize: 24,
+      fontSize: fs(24),
       color: Colors.light.white,
       position: "absolute",
       bottom: -18,
@@ -194,7 +195,7 @@ const createStyles = () =>
     milestoneDays: {
       fontFamily: "SF Pro Text",
       fontWeight: "500",
-      fontSize: 14,
+      fontSize: fs(14),
       color: Colors.light.white,
       marginBottom: 8,
     },
@@ -215,8 +216,8 @@ const createStyles = () =>
     milestoneSubtext: {
       fontFamily: "SF Pro Text",
       fontWeight: "400",
-      fontSize: 11,
-      lineHeight: 12,
+      fontSize: fs(11),
+      lineHeight: fs(12),
       letterSpacing: 0,
       color: Colors.light.grey,
       textAlign: "center",
@@ -235,8 +236,8 @@ const createStyles = () =>
     consistencyHeader: {
       fontFamily: fonts.primary.semiBold,
       fontWeight: "600",
-      fontSize: 15,
-      lineHeight: 20,
+      fontSize: fs(15),
+      lineHeight: fs(20),
       letterSpacing: 0,
       color: Colors.light.white,
       marginBottom: 6,
@@ -244,8 +245,8 @@ const createStyles = () =>
     consistencyBody: {
       fontFamily: fonts.primary.regular,
       fontWeight: "400",
-      fontSize: 14,
-      lineHeight: 18,
+      fontSize: fs(14),
+      lineHeight: fs(18),
       letterSpacing: 0.1,
       color: Colors.light.grey,
       textAlignVertical: "bottom", // vertical-align: bottom
@@ -253,8 +254,8 @@ const createStyles = () =>
     badrText: {
       fontFamily: fonts.primary.bold,
       fontWeight: "600",
-      fontSize: 14,
-      lineHeight: 18,
+      fontSize: fs(14),
+      lineHeight: fs(18),
       letterSpacing: 0.1,
       color: Colors.light.grey,
       textAlignVertical: "bottom",

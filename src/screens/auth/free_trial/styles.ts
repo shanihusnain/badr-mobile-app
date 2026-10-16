@@ -1,7 +1,7 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
+import { fs } from "@/src/utils/responsive";
 import { StyleSheet } from "react-native";
-import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 
 export const styles = StyleSheet.create({
   container: {
@@ -24,7 +24,7 @@ export const styles = StyleSheet.create({
   },
 
   titleText: {
-    fontSize: hp(2.2),
+    fontSize: fs(18),
     fontWeight: "500",
     color: Colors.light.white,
     textAlign: "left",
@@ -35,7 +35,7 @@ export const styles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
-    fontSize: hp(1.8),
+    fontSize: fs(14),
     letterSpacing: 0.1,
     textAlign: "left",
     opacity: 1,
@@ -53,8 +53,8 @@ export const styles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: fs(14),
+    lineHeight: fs(20),
     letterSpacing: 0.1,
     textAlign: "left",
     opacity: 1,
@@ -68,8 +68,8 @@ export const styles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
-    fontSize: hp(1.71),
-    lineHeight: 20,
+    fontSize: fs(14),
+    lineHeight: fs(20),
     letterSpacing: 0.1,
     textAlign: "left",
     opacity: 1,

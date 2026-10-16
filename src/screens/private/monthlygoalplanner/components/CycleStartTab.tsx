@@ -12,6 +12,7 @@ import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { localizeNumber } from "@/src/utils/localizeNumbers";
 import { useStartEditCycleMutation } from "@/src/api/mutations/useStartEditCycle";
+import { fs } from "@/src/utils/responsive";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -380,12 +381,12 @@ export const CycleStartTab = ({
 
 const styles = StyleSheet.create({
   description: {
-    fontSize: 14,
+    fontSize: fs(14),
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
     letterSpacing: 0,
-    lineHeight: 20,
+    lineHeight: fs(20),
   },
   topBar: {
     backgroundColor: Colors.light.calendarBg,
@@ -408,7 +409,7 @@ const styles = StyleSheet.create({
   },
   rangeLabel: {
     color: Colors.light.white,
-    fontSize: 14,
+    fontSize: fs(14),
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
     textAlign: "center",
@@ -416,7 +417,7 @@ const styles = StyleSheet.create({
   },
   hijriLabel: {
     color: Colors.light.grey,
-    fontSize: 12,
+    fontSize: fs(12),
     fontFamily: fonts.primary.medium,
     textAlign: "center",
     marginTop: 8,
@@ -427,9 +428,9 @@ const styles = StyleSheet.create({
   },
   infoText: {
     color: Colors.light.white,
-    fontSize: 12,
+    fontSize: fs(12),
     fontFamily: fonts.primary.regular,
-    lineHeight: 20,
+    lineHeight: fs(20),
     fontWeight: "400",
     letterSpacing: 0,
     textAlign: "center",

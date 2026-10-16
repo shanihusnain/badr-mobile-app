@@ -5,6 +5,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "@/constants/theme";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import type { HizbMemorisationGoal } from "../quranMemorisationHizbGoals";
+import { fs } from "@/src/utils/responsive";
 
 type Props = {
   goals: HizbMemorisationGoal[];
@@ -50,13 +51,13 @@ export function MemorisationHizbSelectionStep({
             }}
           >
             <View style={{ flex: 1, gap: 4 }}>
-              <Text style={{ color: Colors.light.white, fontSize: 15 }}>
+              <Text style={{ color: Colors.light.white, fontSize: fs(15) }}>
                 {goal.hizbName}
               </Text>
-              <Text style={{ color: Colors.light.grey, fontSize: 12 }}>
+              <Text style={{ color: Colors.light.grey, fontSize: fs(12) }}>
                 {goal.rangeLabel}
               </Text>
-              <Text style={{ color: Colors.light.grey, fontSize: 12 }}>
+              <Text style={{ color: Colors.light.grey, fontSize: fs(12) }}>
                 {t("progressLogging.memorisationProgressLabel", {
                   memorized: formatNumber(goal.memorizedAyahs),
                   total: formatNumber(goal.totalAyahs),

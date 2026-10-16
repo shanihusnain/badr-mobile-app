@@ -19,6 +19,7 @@ import { HeadPhoneQuranListeningIcon } from "@/assets/icons/HeadPhoneQuranListen
 import { QuranImageIcon } from "@/assets/icons/QuranImageIcon";
 import { QuranMemorizationIcon } from "@/assets/icons/QuranMemorizationIcon";
 import { ManQuranTajweedIcon } from "@/assets/icons/ManQuranTajweedIcon";
+import { fs } from "@/src/utils/responsive";
 
 type Props = {
   title: string;
@@ -188,7 +189,7 @@ const styles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
-    fontSize: 11,
+    fontSize: fs(11),
   },
   textWrapper: {
     flex: 1,
@@ -199,11 +200,11 @@ const styles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
-    fontSize: 15,
+    fontSize: fs(15),
     textTransform: "uppercase",
     marginBottom: 2,
     flexShrink: 1,
-    lineHeight: 20,
+    lineHeight: fs(20),
   },
   subtitle: {
     flexDirection: "row",
@@ -213,12 +214,12 @@ const styles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
-    fontSize: 14,
+    fontSize: fs(14),
   },
   regularText: {
     color: Colors.light.subtext,
     fontFamily: fonts.primary.regular,
-    fontSize: 14,
+    fontSize: fs(14),
     fontWeight: "500",
   },
   rightSection: {
@@ -239,13 +240,13 @@ const styles = StyleSheet.create({
   percentText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
-    fontSize: 13,
+    fontSize: fs(13),
     fontWeight: "500",
   },
   percentSymbol: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: 8,
+    fontSize: fs(8),
     marginLeft: 0.5,
   },
 });

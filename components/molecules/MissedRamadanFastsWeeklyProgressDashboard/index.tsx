@@ -15,6 +15,7 @@ import type {
 } from "@/src/screens/private/goalprogressloggingscreen/missedRamadanFastsWeeklyData";
 import { MissedRamadanFastDayRing } from "./MissedRamadanFastDayRing";
 import { useDeleteFastingLog } from "@/src/api/mutations/useDeleteFastingLog";
+import { fs } from "@/src/utils/responsive";
 
 export type MissedRamadanFastsWeeklyProgressDashboardProps = {
   weekSummary: MissedRamadanFastWeekSummary;
@@ -159,7 +160,7 @@ const styles = StyleSheet.create({
   },
   statsText: {
     color: Colors.light.white,
-    fontSize: 13,
+    fontSize: fs(13),
     fontFamily: fonts.primary.medium,
     flexShrink: 1,
     fontWeight: "500",
@@ -168,7 +169,7 @@ const styles = StyleSheet.create({
   statsCount: {
     color: Colors.light.white,
     fontWeight: "600",
-    fontSize: 20,
+    fontSize: fs(20),
     fontFamily: fonts.primary.bold,
     letterSpacing: 0.1,
   },

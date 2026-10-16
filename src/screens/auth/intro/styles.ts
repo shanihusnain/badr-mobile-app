@@ -1,5 +1,6 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
+import { fs } from "@/src/utils/responsive";
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
@@ -27,8 +28,8 @@ export const styles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
-    fontSize: 20,
-    lineHeight: 30,
+    fontSize: fs(20),
+    lineHeight: fs(30),
     letterSpacing: 0,
     textAlign: "center",
     opacity: 1,
@@ -41,8 +42,8 @@ export const styles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: fs(14),
+    lineHeight: fs(20),
     letterSpacing: 0,
     textAlign: "center",
     opacity: 1,

@@ -23,6 +23,7 @@ import {
   shouldShowTodayBackground,
   prophetDawoodFastDayLabelStyles,
 } from "./prophetDawoodFastDayStyles";
+import { fs } from "@/src/utils/responsive";
 
 export type ProphetDawoodFastsWeeklyProgressDashboardProps = {
   weekSummary: ProphetDawoodFastWeekSummary;
@@ -304,7 +305,7 @@ const styles = StyleSheet.create({
   },
   weekFractionText: {
     color: Colors.light.white,
-    fontSize: 13,
+    fontSize: fs(13),
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
   },
@@ -319,7 +320,7 @@ const styles = StyleSheet.create({
   },
   weekRangeText: {
     color: Colors.light.white,
-    fontSize: 14,
+    fontSize: fs(14),
     fontWeight: "500",
     fontFamily: fonts.primary.medium,
     textAlign: "center",
@@ -403,7 +404,7 @@ const styles = StyleSheet.create({
   },
   statsText: {
     color: Colors.light.white,
-    fontSize: 14,
+    fontSize: fs(14),
     fontFamily: fonts.primary.medium,
     flexShrink: 1,
     fontWeight: "500",
@@ -411,7 +412,7 @@ const styles = StyleSheet.create({
   statsCount: {
     color: Colors.light.white,
     fontWeight: "700",
-    fontSize: 22,
+    fontSize: fs(22),
     fontFamily: fonts.primary.bold,
   },
   footerRow: {
@@ -428,7 +429,7 @@ const styles = StyleSheet.create({
   },
   streakText: {
     color: Colors.light.green,
-    fontSize: 13,
+    fontSize: fs(13),
     fontWeight: "500",
     fontFamily: fonts.primary.medium,
   },
@@ -442,8 +443,8 @@ const styles = StyleSheet.create({
   quoteText: {
     flex: 1,
     color: Colors.light.subtext,
-    fontSize: 13,
-    lineHeight: 16,
+    fontSize: fs(13),
+    lineHeight: fs(16),
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
   },

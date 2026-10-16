@@ -5,6 +5,7 @@ import { Feather } from "@expo/vector-icons";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { formatReviewCurrencyAmount } from "@/src/utils/sadaqahGoalMap";
+import { fs } from "@/src/utils/responsive";
 
 type Props = {
   goal: any;
@@ -285,18 +286,18 @@ const styles = StyleSheet.create({
   },
   appliedGoalTitleText: {
     color: Colors.light.white,
-    fontSize: 14,
+    fontSize: fs(14),
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
     flexShrink: 1,
   },
   appliedGoalValueText: {
     color: Colors.light.green,
-    fontSize: 14,
+    fontSize: fs(14),
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
     letterSpacing: 0.1,
-    lineHeight: 20,
+    lineHeight: fs(20),
   },
   chipRow: {
     flexDirection: "row",
@@ -314,7 +315,7 @@ const styles = StyleSheet.create({
     color: Colors.light.green,
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
-    fontSize: 10,
+    fontSize: fs(10),
     letterSpacing: 0.1,
   },
   subGoalWrapper: {
@@ -333,7 +334,7 @@ const styles = StyleSheet.create({
   },
   subGoalText: {
     color: Colors.light.white,
-    fontSize: 12,
+    fontSize: fs(12),
     marginTop: 8,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
@@ -342,7 +343,7 @@ const styles = StyleSheet.create({
   },
   subGoalBracketText: {
     color: Colors.light.white,
-    fontSize: 12,
+    fontSize: fs(12),
     marginTop: 2,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
@@ -354,7 +355,7 @@ const styles = StyleSheet.create({
   },
   subGoalValueText: {
     color: Colors.light.white,
-    fontSize: 12,
+    fontSize: fs(12),
     marginTop: 8,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",

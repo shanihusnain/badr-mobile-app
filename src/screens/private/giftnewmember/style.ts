@@ -1,6 +1,7 @@
 import { StyleSheet } from "react-native";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
+import { fs } from "@/src/utils/responsive";
 
 export const giftNewMemberStyles = StyleSheet.create({
     safeArea: {
@@ -21,7 +22,7 @@ export const giftNewMemberStyles = StyleSheet.create({
     title: {
         color: Colors.light.white,
         fontFamily: fonts.primary.medium,
-        fontSize: 24,
+        fontSize: fs(24),
         textTransform: "uppercase",
         marginBottom: 14,
         //letterSpacing: 1,
@@ -29,16 +30,16 @@ export const giftNewMemberStyles = StyleSheet.create({
     subtitle: {
         color: Colors.light.dullWhite,
         fontFamily: fonts.primary.medium,
-        fontSize: 14,
+        fontSize: fs(14),
         textAlign: "center",
         marginBottom: 20,
     },
     description: {
         color: Colors.light.dullWhite,
         fontFamily: fonts.primary.regular,
-        fontSize: 14,
+        fontSize: fs(14),
         textAlign: "center",
-        lineHeight: 22,
+        lineHeight: fs(22),
         marginBottom: 10,
     },
     imagePlaceholder: {

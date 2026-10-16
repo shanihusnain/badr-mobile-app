@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
+import { fs } from "@/src/utils/responsive";
 
 type ListeningPastAchievementMetricsSectionProps = {
   completedMinutes: number;
@@ -73,7 +74,7 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
   },
   chipLabel: {
-    fontSize: 11,
+    fontSize: fs(11),
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
     letterSpacing: 0.3,
@@ -81,7 +82,7 @@ const styles = StyleSheet.create({
     color: Colors.light.grey,
   },
   chipValue: {
-    fontSize: 22,
+    fontSize: fs(22),
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
   },
