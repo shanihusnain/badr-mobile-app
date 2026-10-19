@@ -79,13 +79,13 @@ export default function MissedZakatLoggingFlow({
   const [flowMode, setFlowMode] = useState<FlowMode>("collapsed");
   const [stepIndex, setStepIndex] = useState(0);
   const [selectedDate, setSelectedDate] = useState(toDateString(new Date()));
-  const [amount, setAmount] = useState("20");
-  const [startHour, setStartHour] = useState("06");
-  const [startMinute, setStartMinute] = useState("15");
+  const [amount, setAmount] = useState("0");
+  const [startHour, setStartHour] = useState("00");
+  const [startMinute, setStartMinute] = useState("00");
   const [startPeriod, setStartPeriod] = useState<"am" | "pm">("am");
   const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
   const [durationHours, setDurationHours] = useState("0");
-  const [durationMinutes, setDurationMinutes] = useState("10");
+  const [durationMinutes, setDurationMinutes] = useState("00");
 
   const badgeStatus = useMemo(() => {
     if (!frame) {
