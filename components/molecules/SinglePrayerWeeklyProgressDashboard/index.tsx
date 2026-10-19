@@ -64,6 +64,7 @@ export function SinglePrayerWeeklyProgressDashboard({
   greenActivityCaptions = false,
   activityCaptionsMatchDayLabel = false,
   compactWeekOneQuote = false,
+  showTodayChip = true,
 }: SinglePrayerWeeklyProgressDashboardProps) {
   const { width: screenWidth } = useWindowDimensions();
   const prayerFrame = useOptionalPrayerGoalFrameContext();
@@ -220,14 +221,19 @@ export function SinglePrayerWeeklyProgressDashboard({
                     <View
                       style={[
                         styles.dayItemWrapper,
-                        isSelected &&
+                        showTodayChip &&
+                          isSelected &&
                           !isMarkedForDeletion &&
                           styles.dayItemSelected,
-                        shrinkTodayBesideBestDay &&
+                        showTodayChip &&
+                          shrinkTodayBesideBestDay &&
                           styles.dayItemSelectedBesideBestDay,
-                        shrinkTodayBesideBestDay && {
-                          alignSelf: bestDayOnLeft ? "flex-end" : "flex-start",
-                        },
+                        showTodayChip &&
+                          shrinkTodayBesideBestDay && {
+                            alignSelf: bestDayOnLeft
+                              ? "flex-end"
+                              : "flex-start",
+                          },
                         isBestDayVisible && styles.dayItemBestDay,
                         showWrapperDeletion && styles.deletingBestDay,
                       ]}

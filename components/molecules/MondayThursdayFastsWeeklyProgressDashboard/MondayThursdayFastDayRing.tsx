@@ -7,6 +7,12 @@ import type { MondayThursdayFastDayState } from "@/src/screens/private/goalprogr
 type RingVisual =
   | { variant: "outline"; color: string; opacity?: number }
   | { variant: "solid"; color: string; scale?: number; opacity?: number }
+  | {
+      variant: "outlineWithFill";
+      borderColor: string;
+      fillColor: string;
+      fillScale: number;
+    }
   | { variant: "completed" }
   | { variant: "skippedWarning" }
   | { variant: "menstruatingPlanned" }
@@ -23,9 +29,6 @@ function getRingVisual(
   isToday: boolean,
 ): RingVisual {
   if (isMenstruating && state !== "completed" && state !== "goalAchieved") {
-    // #10/#11 planned menstruating: full solid red
-    // #12 today unplanned menstruating: also full solid red (on today chip)
-    // #13 past unplanned menstruating: smaller solid red
     if (isPlanned || isToday) {
       return { variant: "menstruatingPlanned" };
     }
@@ -34,44 +37,41 @@ function getRingVisual(
 
   switch (state) {
     case "future":
-      // #1
-      return { variant: "outline", color: Colors.light.graylightshade };
+      // #1 — calendarBg outline
+      return { variant: "outline", color: Colors.light.calendarBg };
     case "today":
-      // #2
-      return { variant: "outline", color: Colors.light.graylightshade };
     case "todayDisabled":
-      // #3
+      // #2 / #3 — dark fill inside light grey ring
       return {
-        variant: "outline",
-        color: Colors.light.graylightshade,
-        opacity: 0.55,
+        variant: "outlineWithFill",
+        borderColor: Colors.light.grey,
+        fillColor: Colors.light.darkgrey,
+        fillScale: 0.72,
       };
     case "disabledPast":
-      // #4
+      // #4 — ringRamadan (#B7977E) at 60% opacity
       return {
         variant: "outline",
-        color: Colors.light.graylightshade,
-        opacity: 0.35,
+        color: Colors.light.ringRamadan,
+        opacity: 0.6,
       };
     case "pastNeutral":
-      // #14 — grey day (small solid)
+      // #14 — solid grey only (Figma grey day / no activity — no border)
       return {
         variant: "solid",
         color: Colors.light.selectcategory,
-        scale: 0.88,
+        scale: 0.92,
       };
     case "planned":
     case "plannedToday":
-      // #5 / #6
+      // #5 / #6 — empty seagreen ring (fills only after user logs → completed)
       return { variant: "outline", color: Colors.light.seagreen };
     case "completed":
-      // #7 / #8
+      // #7 / #8 — seagreen ring + solid mid fill
       return { variant: "completed" };
     case "missed":
-      // #9
       return { variant: "skippedWarning" };
     case "goalAchieved":
-      // #15
       return {
         variant: "outline",
         color: Colors.light.calendarBg,
@@ -102,9 +102,8 @@ export function MondayThursdayFastDayRing({
   const wrapperStyle = [styles.wrapper, { width: size + 4, height: size + 4 }];
 
   if (visual.variant === "skippedWarning") {
-    // #9 — yellow outline with warning centered
     return (
-      <View style={[wrapperStyle, {}]}>
+      <View style={wrapperStyle}>
         <View
           style={[
             styles.ring,
@@ -128,7 +127,6 @@ export function MondayThursdayFastDayRing({
   }
 
   if (visual.variant === "menstruatingPlanned") {
-    // #10 / #11 — solid red disc
     const fillSize = size * 0.88;
     return (
       <View
@@ -137,6 +135,7 @@ export function MondayThursdayFastDayRing({
           {
             borderWidth: 1,
             borderColor: Colors.light.seagreen,
+            borderRadius: (size + 4) / 2,
           },
         ]}
       >
@@ -153,7 +152,6 @@ export function MondayThursdayFastDayRing({
   }
 
   if (visual.variant === "menstruatingUnplanned") {
-    // #12 / #13 — smaller solid red disc
     const fillSize = size * 0.58;
     return (
       <View style={wrapperStyle}>
@@ -169,10 +167,19 @@ export function MondayThursdayFastDayRing({
     );
   }
 
-  if (visual.variant === "completed") {
-    // #7 logged today / #8 logged past — solid seagreen disc inside matching ring
-    // (same icon for both; today chip + white label vs muted label are handled outside)
-    const fillSize = size * 0.62;
+  if (visual.variant === "completed" || visual.variant === "outlineWithFill") {
+    // Nested fill inside bordered ring — RN centers in the padding box.
+    const borderColor =
+      visual.variant === "completed"
+        ? Colors.light.seagreen
+        : visual.borderColor;
+    const fillColor =
+      visual.variant === "completed" ? Colors.light.seagreen : visual.fillColor;
+    const innerSize = size - borderWidth * 2;
+    const fillScale =
+      visual.variant === "completed" ? 0.85 : visual.fillScale;
+    const fillSize = Math.max(innerSize * fillScale, 1);
+
     return (
       <View style={wrapperStyle}>
         <View
@@ -183,7 +190,7 @@ export function MondayThursdayFastDayRing({
               height: size,
               borderRadius: size / 2,
               borderWidth,
-              borderColor: Colors.light.seagreen,
+              borderColor,
             },
           ]}
         >
@@ -192,7 +199,7 @@ export function MondayThursdayFastDayRing({
               width: fillSize,
               height: fillSize,
               borderRadius: fillSize / 2,
-              backgroundColor: Colors.light.seagreen,
+              backgroundColor: fillColor,
             }}
           />
         </View>

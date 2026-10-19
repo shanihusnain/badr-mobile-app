@@ -7,7 +7,7 @@ import type { MissedRamadanFastDayState } from "@/src/screens/private/goalprogre
 type RingVisual =
   | { variant: "outline"; color: string; opacity?: number }
   | { variant: "solid"; color: string; scale?: number; opacity?: number }
-  /** Logged planned fast — solid ringRamadan fill inside light grey outline */
+  /** Logged planned fast — solid ringRamadan fill inside matching outline */
   | { variant: "completedWithOutline"; color: string }
   /** #9 — MISSED: grey outline + yellow warning inside */
   | { variant: "skippedWarning" }
@@ -32,29 +32,36 @@ function getRingVisual(
 
   switch (state) {
     case "future":
+      // #1 — grey empty ring when no fast planned
+      return { variant: "outline", color: Colors.light.grey };
     case "disabledPast":
-      // #1 / #4
-      return { variant: "outline", color: Colors.light.graylightshade };
+      // #4 — solid ringRamadan (#B7977E) at light opacity (booked for another goal)
+      return {
+        variant: "solid",
+        color: Colors.light.ringRamadan,
+        scale: 0.92,
+        opacity: 0.4,
+      };
     case "today":
     case "todayDisabled":
       // #2 / #3 — ringRamadan at 67% opacity
       return { variant: "outline", color: "rgba(183, 151, 126, 0.67)" };
     case "pastNeutral":
-      // #14 (+ MADE_UP planned date)
+      // #14 — solid grey only (no activity)
       return {
         variant: "solid",
         color: Colors.light.selectcategory,
-        scale: 0.88,
+        scale: 0.92,
       };
     case "planned":
     case "plannedToday":
-      // #5 / #6
+      // #5 / #6 — empty ringRamadan (#B7977E) outline
       return { variant: "outline", color: Colors.light.ringRamadan };
     case "plannedSkipped":
       // #9
       return { variant: "skippedWarning" };
     case "completed":
-      // Logged planned fast — tan fill + light grey ring outline (Figma)
+      // Logged planned fast — tan fill + matching ring outline
       return {
         variant: "completedWithOutline",
         color: Colors.light.ringRamadan,
@@ -166,7 +173,8 @@ export function MissedRamadanFastDayRing({
   }
 
   if (visual.variant === "completedWithOutline") {
-    const fillSize = Math.max(size - borderWidth * 2 - 2, size * 0.62);
+    const innerSize = size - borderWidth * 2;
+    const fillSize = Math.max(innerSize * 0.85, 1);
     return (
       <View style={wrapperStyle}>
         <View
