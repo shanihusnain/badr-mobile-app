@@ -8,11 +8,17 @@ type RingVisual =
   | { variant: "outline"; color: string; opacity?: number }
   | { variant: "solid"; color: string; scale?: number; opacity?: number }
   | {
-      variant: "outlineWithFill";
-      borderColor: string;
-      fillColor: string;
-      fillScale: number;
-    }
+    variant: "outlineWithFill";
+    borderColor: string;
+    fillColor: string;
+    fillScale: number;
+  }
+  /** Solid disc + border on the same view (today / today-disabled). */
+  | {
+    variant: "solidWithBorder";
+    fillColor: string;
+    borderColor: string;
+  }
   | { variant: "completed" }
   | { variant: "skippedWarning" }
   | { variant: "menstruatingPlanned" }
@@ -41,12 +47,12 @@ function getRingVisual(
       return { variant: "outline", color: Colors.light.calendarBg };
     case "today":
     case "todayDisabled":
-      // #2 / #3 — dark fill inside light grey ring
+      // #2 / #3 — same look: solid dark disc + thin light border (Figma Today /
+      // Today Disable Day). Fill matches dashboard card behind the today chip.
       return {
-        variant: "outlineWithFill",
-        borderColor: Colors.light.grey,
-        fillColor: Colors.light.darkgrey,
-        fillScale: 0.72,
+        variant: "solidWithBorder",
+        fillColor: Colors.light.greybuttonBackground,
+        borderColor: "rgba(255, 255, 255, 0.32)",
       };
     case "disabledPast":
       // #4 — ringRamadan (#B7977E) at 60% opacity
@@ -118,7 +124,7 @@ export function MondayThursdayFastDayRing({
         >
           <FontAwesome
             name="warning"
-            size={Math.max(size * 0.4, 9)}
+            size={Math.max(size * 0.5, 10)}
             color={Colors.light.yellow}
           />
         </View>
@@ -161,6 +167,24 @@ export function MondayThursdayFastDayRing({
             height: fillSize,
             borderRadius: fillSize / 2,
             backgroundColor: Colors.light.red,
+          }}
+        />
+      </View>
+    );
+  }
+
+  if (visual.variant === "solidWithBorder") {
+    // One view — fill + border; matches Figma today / today-disabled.
+    return (
+      <View style={wrapperStyle}>
+        <View
+          style={{
+            width: size,
+            height: size,
+            borderRadius: size / 2,
+            backgroundColor: visual.fillColor,
+            borderWidth,
+            borderColor: visual.borderColor,
           }}
         />
       </View>

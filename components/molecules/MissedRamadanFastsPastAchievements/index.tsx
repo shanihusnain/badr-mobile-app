@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   Pressable,
   ScrollView,
-  ActivityIndicator,
   useWindowDimensions,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -493,11 +492,15 @@ export function MissedRamadanFastsPastAchievements({
     !showNoDataDash &&
     !hintDismissed &&
     selectedBarIndex === null;
-  /** Always show chip (incl. no-data): 0% + up arrow so layout matches White Days. */
+  // Match Prayer/Quran: hide delta when no data or 0% (no “0% previous month”).
   const displayedDeltaPct = showNoDataDash
-    ? 0
-    : (baseAchievement.previousPeriodDeltaPercent ?? 0);
-  const deltaIsPositive = displayedDeltaPct >= 0;
+    ? null
+    : (baseAchievement.previousPeriodDeltaPercent ?? null);
+  const showDeltaChip =
+    !showNoDataDash &&
+    displayedDeltaPct !== null &&
+    Math.abs(displayedDeltaPct) > 0;
+  const deltaIsPositive = (displayedDeltaPct ?? 0) > 0;
 
   const chartAchievement = useMemo(() => {
     if (!showChart) return null;
@@ -816,18 +819,22 @@ export function MissedRamadanFastsPastAchievements({
           }}
         >
           <View style={styles.deltaSlot}>
-            <View style={styles.deltaBadge}>
-              {deltaIsPositive ? (
-                <PositiveProgressIcon />
-              ) : (
-                <NegativeProgressIcon />
-              )}
-              <Text style={styles.deltaText} numberOfLines={1}>
-                {`${formatNumber(Math.abs(displayedDeltaPct))}% ${t(
-                  PERIOD_DELTA_LABEL_KEYS[period],
-                )}`}
-              </Text>
-            </View>
+            {showDeltaChip ? (
+              <View style={styles.deltaBadge}>
+                {deltaIsPositive ? (
+                  <PositiveProgressIcon />
+                ) : (
+                  <NegativeProgressIcon />
+                )}
+                <Text style={styles.deltaText} numberOfLines={1}>
+                  {`${formatNumber(Math.abs(displayedDeltaPct ?? 0))}% ${t(
+                    PERIOD_DELTA_LABEL_KEYS[period],
+                  )}`}
+                </Text>
+              </View>
+            ) : (
+              <View style={styles.deltaBadgePlaceholder} />
+            )}
           </View>
 
           <View style={styles.periodNavRow}>
@@ -879,12 +886,6 @@ export function MissedRamadanFastsPastAchievements({
 
         {isDetailed ? renderDetailedSummary() : null}
 
-        {isAchievementsLoading || isAchievementsFetching ? (
-          <View style={{ alignItems: "center", paddingVertical: 8 }}>
-            <ActivityIndicator color={Colors.light.white} />
-          </View>
-        ) : null}
-
         <View style={styles.goalHeader}>
           <Text style={styles.goalLabel}>{t("progressLogging.goal")}</Text>
           <View style={styles.goalValueRow}>
@@ -903,7 +904,9 @@ export function MissedRamadanFastsPastAchievements({
 
         <ScrollView
           horizontal
+          nestedScrollEnabled
           showsHorizontalScrollIndicator={false}
+          style={styles.analyticsToggleScroll}
           contentContainerStyle={styles.analyticsToggle}
         >
           {(isDawood ? DAWOOD_ANALYTICS_VIEWS : ANALYTICS_VIEWS).map((view) => {
@@ -1311,6 +1314,9 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     height: 24,
   },
+  deltaBadgePlaceholder: {
+    height: 24,
+  },
   deltaText: {
     color: Colors.light.white,
     fontSize: 11,
@@ -1439,19 +1445,19 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.semiBold,
     fontSize: 22,
   },
+  analyticsToggleScroll: {
+    marginHorizontal: -14,
+  },
   analyticsToggle: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 4,
-    backgroundColor: Colors.light.greybuttonBackground,
-    borderRadius: 8,
-    gap: 5,
-    flexGrow: 1,
+    gap: 8,
+    paddingHorizontal: 14,
   },
   analyticsButton: {
     borderRadius: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 9,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
     alignItems: "center",
     justifyContent: "center",
     flexShrink: 0,
@@ -1463,8 +1469,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.blackBackground,
   },
   analyticsButtonText: {
-    color: Colors.light.grey,
-    fontSize: 12,
+    color: Colors.light.dullWhite,
+    fontSize: 14,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
     textAlign: "center",

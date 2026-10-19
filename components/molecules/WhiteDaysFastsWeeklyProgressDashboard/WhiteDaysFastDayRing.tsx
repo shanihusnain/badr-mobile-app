@@ -30,7 +30,7 @@ type RingVisual =
       scale?: number;
     }
   | {
-      /** Today, not a White Day — filled muted grey */
+      /** Today, not a White Day — bordered ring with dark dashboard fill */
       variant: "todayDisabled";
     };
 
@@ -51,7 +51,7 @@ function getRingVisual(
     case "todayDisabled":
       return { variant: "todayDisabled" };
     case "inactive":
-      return { variant: "outline", color: Colors.light.graylightshade };
+      return { variant: "outline", color: Colors.light.bordercolortodayselectedring };
     case "planned":
     case "plannedToday":
       return { variant: "outline", color: Colors.light.white };
@@ -69,7 +69,7 @@ function getRingVisual(
         showWarning: true,
       };
     default:
-      return { variant: "outline", color: Colors.light.graylightshade };
+      return { variant: "outline", color: Colors.light.bordercolortodayselectedring };
   }
 }
 
@@ -93,17 +93,20 @@ export function WhiteDaysFastDayRing({
   const wrapperStyle = [styles.wrapper, { width: size + 4, height: size + 4 }];
 
   if (visual.variant === "todayDisabled") {
-    const fillSize = size * 0.88;
     return (
       <View style={wrapperStyle}>
         <View
-          style={{
-            width: fillSize,
-            height: fillSize,
-            borderRadius: fillSize / 2,
-            backgroundColor: Colors.light.selectcategory,
-            opacity: 0.85,
-          }}
+          style={[
+            styles.ring,
+            {
+              width: size,
+              height: size,
+              borderRadius: size / 2,
+              borderWidth,
+              borderColor: Colors.light.bordercolortodayselectedring,
+              backgroundColor: Colors.light.greybuttonBackground,
+            },
+          ]}
         />
       </View>
     );

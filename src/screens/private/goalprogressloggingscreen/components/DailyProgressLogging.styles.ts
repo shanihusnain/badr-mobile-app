@@ -462,9 +462,13 @@ export const styles = StyleSheet.create({
   },
   flowDropdownWrapper: {
     position: "relative",
-    width: "100%",
     // Extra space under the step header ("What are you logging?").
     marginTop: 10,
+    // Full-bleed into flowCard padding, then pad left only so the
+    // selector keeps its left inset but reaches the green card right edge.
+    marginHorizontal: -11,
+    paddingLeft: 11,
+    alignSelf: "stretch",
   },
   flowDropdownSelector: {
     borderWidth: 1,
@@ -509,7 +513,7 @@ export const styles = StyleSheet.create({
     backgroundColor: Colors.light.blackBackground,
     borderRadius: 4,
     marginTop: 4,
-    paddingVertical: 8,
+    paddingVertical: 10,
     paddingHorizontal: 6,
     zIndex: 999,
     /** Fits all 3 log-wizard modes without clipping mid-row. */

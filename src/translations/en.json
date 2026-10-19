@@ -928,7 +928,7 @@
     "mondayThursdayInsightsBody": "Masha'Allah for completing your Monday & Thursday fasts with sincerity. May Allah accept your worship and grant you continued steadfastness.",
     "achievementSummaryMondayThursday": "Last period, you achieved {{percent}}% of your Monday & Thursday fast goal — {{delta}}% {{direction}} than the previous period.",
     "mondayThursdayLegendCompletedFast": "Completed Fast",
-    "mondayThursdayLegendMissedFast": "Missed Fast",
+    "mondayThursdayLegendMissedFast": "Incomplete Missed Fast",
     "mondayThursdayLegendUpcomingFast": "Upcoming Fast",
     "mondayThursdayDetailedSummaryMonthly": "This month, you completed {{completed}} of {{total}} Monday & Thursday fasts — {{percent}}% progress, {{delta}}% {{direction}} than last month.",
     "mondayThursdayDetailedSummaryThreeMonths": "Over the last 3 months, you completed {{completed}} of {{total}} Monday & Thursday fasts — {{percent}}% progress, {{delta}}% {{direction}} than the previous period.",
