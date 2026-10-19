@@ -32,6 +32,7 @@ import {
   type UiIbadahCategory,
 } from "@/src/utils/goalCycleCategoryMap";
 import { LoadingComponent } from "@/components/atoms/LoadingComponent";
+import { MissedZakatIcon } from "@/assets/icons";
 
 type ViewType = "main" | "categories" | "detail";
 
@@ -81,7 +82,7 @@ function getCategoryCardIcon(category: UiIbadahCategory) {
         <IbadhasFastingProgressCardsIcon color={Colors.light.white} size={20} />
       );
     case "SADAQAH":
-      return <DashBoardHandHeartIcon color={Colors.light.white} size={18} />;
+      return <MissedZakatIcon />;
     case "PRAYER":
     default:
       return (

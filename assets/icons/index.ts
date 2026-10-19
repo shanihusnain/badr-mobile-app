@@ -155,6 +155,7 @@ import { MaghrebFardPrayerIcon } from "./MaghrebFardParyerIcon";
 import { IshaFardPrayerIcon } from "./IshaFardPrayerIcon";
 import { MissedPastPrayerCalenderIcon } from "./MissedPastPrayerCalenderIcon";
 import { MagnifyingGlassIcon } from "./MagnifyingGlassICon";
+import { MissedZakatIcon } from "./MissedZakatIcon";
 //N
 import { NotificationIcon } from "./NotificationIcon";
 import { NegativeProgressIcon } from "./NegativeProgressIcon";
@@ -511,4 +512,5 @@ export {
   WitrUpIcon,
   MagnifyingGlassIcon,
   DawoodCycleRefresh,
+  MissedZakatIcon,
 };

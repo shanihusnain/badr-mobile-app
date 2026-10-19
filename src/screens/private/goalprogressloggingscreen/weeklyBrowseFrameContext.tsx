@@ -20,20 +20,27 @@ import {
   useGetFastingGoalFrame,
   type FastingGoalFrameData,
 } from "@/src/api/queries/useGetFastingGoalFrame";
+import {
+  useGetSadaqahGoalFrame,
+  type SadaqahGoalFrameData,
+} from "@/src/api/queries/useGetSadaqahGoalFrame";
 import { resolvePrayerTypeFromGoalId } from "@/src/utils/prayerGoalMap";
 import { resolveQuranTypeFromGoalId } from "@/src/utils/quranGoalMap";
 import { resolveFastingTypeFromGoalId } from "@/src/utils/fastingGoalMap";
+import { resolveSadaqahTypeFromGoalId } from "@/src/utils/sadaqahGoalMap";
 import type { GoalId } from "../home/components/goalsData";
 import { useOptionalPrayerGoalFrameContext } from "./prayerGoalFrameContext";
 import { useOptionalQuranGoalFrameContext } from "./quranGoalFrameContext";
 import { useOptionalFastingGoalFrameContext } from "./fastingGoalFrameContext";
+import { useOptionalSadaqahGoalFrameContext } from "./sadaqahGoalFrameContext";
 
-export type WeeklyBrowseKind = "prayer" | "quran" | "fasting" | null;
+export type WeeklyBrowseKind = "prayer" | "quran" | "fasting" | "sadaqah" | null;
 
 export type WeeklyBrowseFrame =
   | PrayerGoalFrameData
   | QuranGoalFrameData
-  | FastingGoalFrameData;
+  | FastingGoalFrameData
+  | SadaqahGoalFrameData;
 
 type WeeklyBrowseDispatchValue = {
   setWeekNumber: (weekNumber: number) => void;
@@ -88,6 +95,7 @@ function resolveBrowseKind(goalId: GoalId): WeeklyBrowseKind {
   if (resolvePrayerTypeFromGoalId(goalId)) return "prayer";
   if (resolveQuranTypeFromGoalId(goalId)) return "quran";
   if (resolveFastingTypeFromGoalId(goalId)) return "fasting";
+  if (resolveSadaqahTypeFromGoalId(goalId)) return "sadaqah";
   return null;
 }
 
@@ -96,6 +104,7 @@ function hydrateWeekFromScreenFrame(
   prayerFrame: ReturnType<typeof useOptionalPrayerGoalFrameContext>,
   quranFrame: ReturnType<typeof useOptionalQuranGoalFrameContext>,
   fastingFrame: ReturnType<typeof useOptionalFastingGoalFrameContext>,
+  sadaqahFrame: ReturnType<typeof useOptionalSadaqahGoalFrameContext>,
 ): number | null {
   if (kind === "prayer") {
     const n =
@@ -112,6 +121,14 @@ function hydrateWeekFromScreenFrame(
       fastingFrame?.weekNumber ??
       fastingFrame?.frame?.week?.weekNumber ??
       fastingFrame?.frame?.cycle?.weekNumber ??
+      null;
+    return typeof n === "number" && n > 0 ? n : null;
+  }
+  if (kind === "sadaqah") {
+    const n =
+      sadaqahFrame?.weekNumber ??
+      sadaqahFrame?.frame?.week?.weekNumber ??
+      sadaqahFrame?.frame?.cycle?.weekNumber ??
       null;
     return typeof n === "number" && n > 0 ? n : null;
   }
@@ -135,10 +152,12 @@ export function WeeklyBrowseStateProvider({
   const prayerType = resolvePrayerTypeFromGoalId(goalId);
   const quranGoalType = resolveQuranTypeFromGoalId(goalId);
   const fastingType = resolveFastingTypeFromGoalId(goalId);
+  const sadaqahType = resolveSadaqahTypeFromGoalId(goalId);
 
   const screenPrayer = useOptionalPrayerGoalFrameContext();
   const screenQuran = useOptionalQuranGoalFrameContext();
   const screenFasting = useOptionalFastingGoalFrameContext();
+  const screenSadaqah = useOptionalSadaqahGoalFrameContext();
   const setterRef = useContext(WeeklyBrowseSetterRefContext);
 
   const [weekNumber, setWeekNumberState] = React.useState<number | null>(null);
@@ -155,11 +174,12 @@ export function WeeklyBrowseStateProvider({
       screenPrayer,
       screenQuran,
       screenFasting,
+      screenSadaqah,
     );
     if (hydrated != null) {
       setWeekNumberState(hydrated);
     }
-  }, [kind, weekNumber, screenPrayer, screenQuran, screenFasting]);
+  }, [kind, weekNumber, screenPrayer, screenQuran, screenFasting, screenSadaqah]);
 
   useEffect(() => {
     if (!setterRef) return;
@@ -188,6 +208,11 @@ export function WeeklyBrowseStateProvider({
     weekNumber: weekNumber ?? undefined,
   });
 
+  const sadaqahQuery = useGetSadaqahGoalFrame(sadaqahType, {
+    enabled: browseEnabled && kind === "sadaqah",
+    weekNumber: weekNumber ?? undefined,
+  });
+
   const activeQuery =
     kind === "prayer"
       ? prayerQuery
@@ -195,7 +220,9 @@ export function WeeklyBrowseStateProvider({
         ? quranQuery
         : kind === "fasting"
           ? fastingQuery
-          : null;
+          : kind === "sadaqah"
+            ? sadaqahQuery
+            : null;
 
   useEffect(() => {
     if (refreshKey > 0) {

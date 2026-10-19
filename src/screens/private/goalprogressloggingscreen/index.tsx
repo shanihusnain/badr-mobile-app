@@ -57,6 +57,10 @@ import {
   useOptionalFastingGoalFrameContext,
 } from "./fastingGoalFrameContext";
 import {
+  SadaqahGoalFrameProvider,
+  useOptionalSadaqahGoalFrameContext,
+} from "./sadaqahGoalFrameContext";
+import {
   WeeklyBrowseDispatchProvider,
   WeeklyBrowseStateProvider,
 } from "./weeklyBrowseFrameContext";
@@ -100,6 +104,7 @@ import { FastingGoalInformationSheet } from "@/components/molecules/FastingGoalI
 import { DeletePrayerGoalOptions } from "@/components/molecules/DeletePrayerLogOptions";
 import { resolveFastingTypeFromGoalId } from "@/src/utils/fastingGoalMap";
 import { getFastingFrameAchievementPct } from "@/src/utils/fastingGoalFrameMap";
+import { getSadaqahFrameAchievementPct } from "@/src/utils/sadaqahGoalFrameMap";
 import { HeaderInfoIcon } from "@/assets/icons";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -200,6 +205,7 @@ function GoalProgressLoggingBody({
   const prayerFrame = useOptionalPrayerGoalFrameContext();
   const quranFrame = useOptionalQuranGoalFrameContext();
   const fastingFrame = useOptionalFastingGoalFrameContext();
+  const sadaqahFrame = useOptionalSadaqahGoalFrameContext();
   const isQiyamTemplate = template === "qiyam-al-layl";
   const isPrayerFrameRingGoal =
     template === "tahiyat-ul-wudhu" ||
@@ -243,6 +249,8 @@ function GoalProgressLoggingBody({
     isMissedRamadanFrameGoal ||
     isMondayThursdayFrameGoal ||
     isProphetDawoodFrameGoal;
+  const isMissedZakatFrameGoal = goalId === "sadaqah-zakat";
+  const isSadaqahFrameGoal = isMissedZakatFrameGoal;
   const frameLoading =
     (isPrayerFrameRingGoal &&
       (prayerFrame?.isLoading ||
@@ -251,7 +259,10 @@ function GoalProgressLoggingBody({
       (quranFrame?.isLoading || (!quranFrame?.frame && !quranFrame?.isError))) ||
     (isFastingFrameGoal &&
       (fastingFrame?.isLoading ||
-        (!fastingFrame?.frame && !fastingFrame?.isError)));
+        (!fastingFrame?.frame && !fastingFrame?.isError))) ||
+    (isSadaqahFrameGoal &&
+      (sadaqahFrame?.isLoading ||
+        (!sadaqahFrame?.frame && !sadaqahFrame?.isError)));
   const liveGoalData = useMemo(
     () => getResolvedGoalById(goalId) ?? goalData,
     [goalData, goalId, weeklyRefreshKey],
@@ -261,10 +272,14 @@ function GoalProgressLoggingBody({
   const fastingFrameAchievementPct = isFastingFrameGoal
     ? getFastingFrameAchievementPct(fastingFrame?.frame)
     : null;
+  const sadaqahFrameAchievementPct = isSadaqahFrameGoal
+    ? getSadaqahFrameAchievementPct(sadaqahFrame?.frame)
+    : null;
   const frameAchievementPct =
     prayerFrame?.frame?.goal.achievementPct ??
     quranFrame?.frame?.goal.achievementPct ??
-    fastingFrameAchievementPct;
+    fastingFrameAchievementPct ??
+    sadaqahFrameAchievementPct;
   const displayPercentage = isPrayerFrameRingGoal
     ? frameAchievementPct != null
       ? `${frameAchievementPct}%`
@@ -275,9 +290,11 @@ function GoalProgressLoggingBody({
         : "0%"
       : isFastingFrameGoal
         ? `${fastingFrameAchievementPct ?? 0}%`
-        : frameAchievementPct != null
-          ? `${frameAchievementPct}%`
-          : liveGoalData.percentage;
+        : isSadaqahFrameGoal
+          ? `${sadaqahFrameAchievementPct ?? 0}%`
+          : frameAchievementPct != null
+            ? `${frameAchievementPct}%`
+            : liveGoalData.percentage;
   const mondayThursdayCompletedCount = useMemo(() => {
     if (!isMondayThursdayFasts) return 0;
     const fromFrame = fastingFrame?.frame?.goal?.completed;
@@ -401,9 +418,16 @@ function GoalProgressLoggingBody({
                           cleanLabel,
                       })
                     : "---"
-                  : t("homeScreen.weeklyProgress_goalLabel", {
-                      label: cleanLabel,
-                    });
+                  : isMissedZakatFrameGoal
+                    ? sadaqahFrame?.frame
+                      ? sadaqahFrame.frame.goal?.targetLabel?.trim() ||
+                        t("homeScreen.weeklyProgress_goalLabel", {
+                          label: cleanLabel,
+                        })
+                      : "---"
+                    : t("homeScreen.weeklyProgress_goalLabel", {
+                        label: cleanLabel,
+                      });
 
   const ringGoalLineCount =
     isSurahRecitationFrameGoal || isCompletionRecitationFrameGoal ? 2 : 1;
@@ -583,6 +607,27 @@ function GoalProgressLoggingFastingLoadingGate({
   const isGoalDataLoading =
     fastingFrame != null &&
     (fastingFrame.isLoading || (!fastingFrame.frame && !fastingFrame.isError));
+
+  if (isGoalDataLoading) {
+    return (
+      <View style={[styles.container, styles.loadingContainer]}>
+        <LoadingComponent size="large" />
+      </View>
+    );
+  }
+
+  return <>{children}</>;
+}
+
+function GoalProgressLoggingSadaqahLoadingGate({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const sadaqahFrame = useOptionalSadaqahGoalFrameContext();
+  const isGoalDataLoading =
+    sadaqahFrame != null &&
+    (sadaqahFrame.isLoading || (!sadaqahFrame.frame && !sadaqahFrame.isError));
 
   if (isGoalDataLoading) {
     return (
@@ -1123,6 +1168,20 @@ export const GoalProgressLoggingScreen = ({
           {screenShell}
         </GoalProgressLoggingFastingLoadingGate>
       </FastingGoalFrameProvider>
+    );
+  }
+
+  if (goalId === "sadaqah-zakat") {
+    return (
+      <SadaqahGoalFrameProvider
+        goalId={goalId}
+        refreshKey={weeklyRefreshKey}
+        onOpenInsights={openInsightsSheet}
+      >
+        <GoalProgressLoggingSadaqahLoadingGate>
+          {screenShell}
+        </GoalProgressLoggingSadaqahLoadingGate>
+      </SadaqahGoalFrameProvider>
     );
   }
 

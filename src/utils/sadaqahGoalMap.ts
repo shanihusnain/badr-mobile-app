@@ -72,9 +72,31 @@ export type SadaqahGoalListItem = SadaqahGoalApiItem & {
   image?: ImageSourcePropType;
 };
 
+/** Logging screen GoalId → backend sadaqahType */
+export const GOAL_ID_TO_SADAQAH_TYPE: Record<string, string> = {
+  "sadaqah-zakat": "MISSED_ZAKAT",
+  "sadaqah-kafarah": "KAFFARAH",
+  "sadaqah-fidya": "FIDYA",
+  "sadaqah-Lillah": "LILLAH",
+  "sadaqah-jariyah": "SADAQAH_JARIYAH",
+  "sadaqah-volunteering": "VOLUNTEERING",
+};
+
 export function resolveSadaqahType(goalKey: string): string {
   if (SADAQAH_TYPE_TO_UI_ID[goalKey]) return goalKey;
   return UI_ID_TO_SADAQAH_TYPE[goalKey] ?? goalKey;
+}
+
+/** Logging GoalId (e.g. sadaqah-zakat) → backend enum (MISSED_ZAKAT). */
+export function resolveSadaqahTypeFromGoalId(
+  goalId: string | null | undefined,
+): string | null {
+  if (!goalId) return null;
+  return (
+    GOAL_ID_TO_SADAQAH_TYPE[goalId] ??
+    UI_ID_TO_SADAQAH_TYPE[goalId] ??
+    (SADAQAH_TYPE_TO_UI_ID[goalId] ? goalId : null)
+  );
 }
 
 export function resolveSadaqahUiId(goalKey: string): string {

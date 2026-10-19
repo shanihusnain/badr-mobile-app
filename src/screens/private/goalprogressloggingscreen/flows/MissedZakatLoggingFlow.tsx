@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   Pressable,
   Text,
@@ -8,7 +8,6 @@ import {
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import moment from "moment-hijri";
 import { Colors } from "@/constants/theme";
 import { GoalData } from "../../home/components/goalsData";
@@ -21,13 +20,29 @@ import { styles as commonStyles } from "../components/DailyProgressLogging.style
 import { fonts } from "@/assets/fonts";
 import { FlowCardZakatIcon } from "@/assets/icons/FlowCardZakatIcon";
 import type { ProgressLogEntry } from "../types";
-import { FlowCardCallender } from "@/assets/icons";
+import { FlowCardCallender, TimeSpentIcon } from "@/assets/icons";
 import { FlowCardWalletIcon } from "@/assets/icons/FlowCardWalletIcon";
 import { FlowCardClockIcon } from "@/assets/icons/FlowCardClockIcon";
-import { TimeSpentIcon } from "@/assets/icons";
+import { useOptionalSadaqahGoalFrameContext } from "../sadaqahGoalFrameContext";
+import { useLogSadaqahGoal } from "@/src/api/mutations/useLogSadaqahGoal";
+import {
+  getSadaqahFrameAchievementLabel,
+  getSadaqahFrameAchievementPct,
+  getSadaqahFrameFlowCardTitle,
+  sadaqahFrameShowsInsights,
+} from "@/src/utils/sadaqahGoalFrameMap";
 
-type MissedZakatStepId = "date" | "financial-amount" | "start-time" | "time-spent";
-const STEPS: MissedZakatStepId[] = ["date", "financial-amount", "start-time", "time-spent"];
+type MissedZakatStepId =
+  | "date"
+  | "financial-amount"
+  | "start-time"
+  | "time-spent";
+const STEPS: MissedZakatStepId[] = [
+  "date",
+  "financial-amount",
+  "start-time",
+  "time-spent",
+];
 
 type Props = {
   goalData: GoalData;
@@ -38,38 +53,59 @@ type FlowMode = "collapsed" | "active";
 
 const toDateString = (date: Date) => moment(date).format("YYYY-MM-DD");
 
+function formatStartTimeForApi(
+  hour: string,
+  minute: string,
+  period: "am" | "pm",
+): string {
+  const hourNum = parseInt(hour || "0", 10) || 0;
+  const minuteNum = parseInt(minute || "0", 10) || 0;
+  let hour24 = hourNum % 12;
+  if (period === "pm") hour24 += 12;
+  return `${String(Math.max(0, hour24)).padStart(2, "0")}:${String(
+    Math.max(0, minuteNum),
+  ).padStart(2, "0")}`;
+}
+
 export default function MissedZakatLoggingFlow({
   goalData,
   onLogComplete,
 }: Props) {
   const { t } = useTranslation();
+  const sadaqahFrame = useOptionalSadaqahGoalFrameContext();
+  const frame = sadaqahFrame?.frame;
+  const { mutateAsync: logSadaqah, isPending: isLogging } = useLogSadaqahGoal();
 
   const [flowMode, setFlowMode] = useState<FlowMode>("collapsed");
   const [stepIndex, setStepIndex] = useState(0);
-
   const [selectedDate, setSelectedDate] = useState(toDateString(new Date()));
   const [amount, setAmount] = useState("20");
-
   const [startHour, setStartHour] = useState("06");
   const [startMinute, setStartMinute] = useState("15");
   const [startPeriod, setStartPeriod] = useState<"am" | "pm">("am");
   const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
-
   const [durationHours, setDurationHours] = useState("0");
   const [durationMinutes, setDurationMinutes] = useState("10");
 
-  const MOCK_PERCENTAGE = 0;
-  const mockTitle = `$100 Toward Missed Zakat`;
-  const [hasLogged, setHasLogged] = useState(false);
+  const badgeStatus = useMemo(() => {
+    if (!frame) {
+      return {
+        text: t("progressLogging.notStarted"),
+        type: "not-started" as const,
+      };
+    }
+    return getSadaqahFrameAchievementLabel(frame, t);
+  }, [frame, t]);
 
-  const getBadgeStatus = () => {
-    if (!hasLogged) return { text: "In Progress", type: "in-progress" };
-    if (MOCK_PERCENTAGE >= 100) return { text: "100% Achieved!", type: "completed" };
-    return { text: `${MOCK_PERCENTAGE}% Achieved`, type: "completed" };
-  };
-
-  const badgeStatus = getBadgeStatus();
-  const isCompleted = hasLogged;
+  const summaryTitle = frame
+    ? getSadaqahFrameFlowCardTitle(frame)
+    : "$100 Toward Missed Zakat";
+  const achievementPct = getSadaqahFrameAchievementPct(frame);
+  const showInsights = frame ? sadaqahFrameShowsInsights(frame) : false;
+  const canLog = frame ? Boolean(frame.items?.[0]?.canLog ?? true) : true;
+  const goalCompleted =
+    achievementPct >= 100 ||
+    String(frame?.goal?.status ?? "").toUpperCase() === "COMPLETED";
 
   const todayString = toDateString(new Date());
   const currentStep = STEPS[stepIndex];
@@ -102,22 +138,68 @@ export default function MissedZakatLoggingFlow({
     setIsPeriodDropdownOpen(false);
   }, []);
 
-  const handleConfirm = () => {
-    setHasLogged(true);
-    onLogComplete?.({
-      type: "missed-zakat" as any,
-      goalId: goalData.id,
-      date: selectedDate,
-      amount,
-      startTime: `${startHour}:${startMinute} ${startPeriod}`,
-      durationHours,
-      durationMinutes,
-    } as any);
-    resetFlow();
-  };
+  const handleConfirm = useCallback(() => {
+    if (!selectedDate || isLogging) return;
+    const numericAmount = Number.parseFloat(amount) || 0;
+    if (numericAmount <= 0) return;
+
+    const hours = parseInt(durationHours || "0", 10) || 0;
+    const minutes = parseInt(durationMinutes || "0", 10) || 0;
+    const durationTotalMinutes = hours * 60 + minutes;
+    if (durationTotalMinutes < 1) return;
+
+    const startTime = formatStartTimeForApi(
+      startHour,
+      startMinute,
+      startPeriod,
+    );
+
+    const run = async () => {
+      try {
+        const result = await logSadaqah({
+          sadaqahType: "MISSED_ZAKAT",
+          logDate: selectedDate,
+          amount: numericAmount,
+          startTime,
+          durationMinutes: durationTotalMinutes,
+        });
+        await sadaqahFrame?.refetch();
+        onLogComplete?.({
+          type: "missed-zakat" as any,
+          goalId: goalData.id,
+          date: result.logDate ?? result.date ?? selectedDate,
+          amount: String(result.amount ?? numericAmount),
+          startTime: result.startTime ?? startTime,
+          durationMinutes: result.durationMinutes ?? durationTotalMinutes,
+        } as any);
+        resetFlow();
+      } catch {
+        // Toast handled in mutation onError
+      }
+    };
+
+    void run();
+  }, [
+    amount,
+    durationHours,
+    durationMinutes,
+    goalData.id,
+    isLogging,
+    logSadaqah,
+    onLogComplete,
+    resetFlow,
+    sadaqahFrame,
+    selectedDate,
+    startHour,
+    startMinute,
+    startPeriod,
+  ]);
 
   const handleBack = () => {
-    if (stepIndex === 0) { resetFlow(); return; }
+    if (stepIndex === 0) {
+      resetFlow();
+      return;
+    }
     setStepIndex((i) => i - 1);
   };
 
@@ -126,19 +208,32 @@ export default function MissedZakatLoggingFlow({
   };
 
   const handleOpenFlow = useCallback(() => {
+    if (!canLog || goalCompleted) return;
     setFlowMode("active");
-  }, []);
+  }, [canLog, goalCompleted]);
 
   const getStepHeader = (step: MissedZakatStepId) => {
     switch (step) {
       case "date":
-        return { icon: <FlowCardCallender size={20} color={Colors.light.white} />, label: "Which day are you logging for?" };
+        return {
+          icon: <FlowCardCallender size={20} color={Colors.light.white} />,
+          label: "Which day are you logging for?",
+        };
       case "financial-amount":
-        return { icon: <FlowCardWalletIcon size={20} color={Colors.light.white} />, label: "How much did you fulfill?" };
+        return {
+          icon: <FlowCardWalletIcon size={20} color={Colors.light.white} />,
+          label: "How much did you fulfill?",
+        };
       case "start-time":
-        return { icon: <FlowCardClockIcon size={20} color={Colors.light.white} />, label: "Enter start time." };
+        return {
+          icon: <FlowCardClockIcon size={20} color={Colors.light.white} />,
+          label: "Enter start time.",
+        };
       case "time-spent":
-        return { icon: <TimeSpentIcon size={20} color={Colors.light.white} />, label: "Enter time spent." };
+        return {
+          icon: <TimeSpentIcon size={20} color={Colors.light.white} />,
+          label: "Enter time spent.",
+        };
     }
   };
 
@@ -190,17 +285,29 @@ export default function MissedZakatLoggingFlow({
   };
 
   const stepHeader = getStepHeader(currentStep);
+  const durationTotalMinutes =
+    (parseInt(durationHours || "0", 10) || 0) * 60 +
+    (parseInt(durationMinutes || "0", 10) || 0);
+  const canConfirm =
+    isLastStep &&
+    !isLogging &&
+    (Number.parseFloat(amount) || 0) > 0 &&
+    durationTotalMinutes >= 1;
 
   return (
     <View style={commonStyles.section}>
-      <Text style={commonStyles.sectionTitle}>{t("progressLogging.myProgress")}</Text>
+      <Text style={commonStyles.sectionTitle}>
+        {t("progressLogging.myProgress")}
+      </Text>
 
       <View style={commonStyles.cardAnchor}>
+        {flowMode === "active" && <Pressable style={commonStyles.backdrop} />}
         {flowMode === "active" && (
-          <Pressable style={commonStyles.backdrop} />
-        )}
-        {flowMode === "active" && (
-          <TouchableOpacity style={commonStyles.cancelButton} onPress={resetFlow} activeOpacity={0.8}>
+          <TouchableOpacity
+            style={commonStyles.cancelButton}
+            onPress={resetFlow}
+            activeOpacity={0.8}
+          >
             <Ionicons name="close" size={20} color={Colors.light.white} />
           </TouchableOpacity>
         )}
@@ -212,28 +319,58 @@ export default function MissedZakatLoggingFlow({
                 <FlowCardZakatIcon size={20} color={Colors.light.white} />
               </View>
               <View style={{ flex: 1, gap: 4 }}>
-                <View style={[localStyles.badge, badgeStatus.type === "completed" ? localStyles.badgeCompleted : localStyles.badgeInProgress, { alignSelf: "flex-start" }]}>
-                  <Text style={[localStyles.badgeText, badgeStatus.type === "completed" ? localStyles.badgeTextCompleted : localStyles.badgeTextInProgress]}>
+                <View
+                  style={[
+                    localStyles.badge,
+                    badgeStatus.type === "completed"
+                      ? localStyles.badgeCompleted
+                      : localStyles.badgeInProgress,
+                    { alignSelf: "flex-start" },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      localStyles.badgeText,
+                      badgeStatus.type === "completed"
+                        ? localStyles.badgeTextCompleted
+                        : localStyles.badgeTextInProgress,
+                    ]}
+                  >
                     {badgeStatus.text}
                   </Text>
                 </View>
                 <Text style={[localStyles.summaryTitle, { flex: undefined }]}>
-                  {mockTitle}
+                  {summaryTitle}
                 </Text>
               </View>
             </View>
 
             <View style={localStyles.footerRow}>
-              {isCompleted ? (
-                <TouchableOpacity style={localStyles.insightsBtn}>
+              {showInsights ? (
+                <TouchableOpacity
+                  style={localStyles.insightsBtn}
+                  onPress={sadaqahFrame?.openInsights}
+                >
                   <Text style={localStyles.insightsText}>VIEW INSIGHTS</Text>
-                  <Ionicons name="chevron-forward" size={22} color={Colors.light.white} />
+                  <Ionicons
+                    name="chevron-forward"
+                    size={22}
+                    color={Colors.light.white}
+                  />
                 </TouchableOpacity>
-              ) : <View style={localStyles.spacer} />}
+              ) : (
+                <View style={localStyles.spacer} />
+              )}
 
-              <TouchableOpacity style={localStyles.addButton} onPress={handleOpenFlow} activeOpacity={0.8}>
-                <Ionicons name="add" size={22} color={Colors.light.white} />
-              </TouchableOpacity>
+              {canLog && !goalCompleted ? (
+                <TouchableOpacity
+                  style={localStyles.addButton}
+                  onPress={handleOpenFlow}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="add" size={22} color={Colors.light.white} />
+                </TouchableOpacity>
+              ) : null}
             </View>
           </View>
         ) : (
@@ -245,7 +382,9 @@ export default function MissedZakatLoggingFlow({
               onForward={handleForward}
               onConfirm={handleConfirm}
               canGoForward={!isLastStep}
-                canGoBack={stepIndex > 0}
+              canGoBack={stepIndex > 0}
+              canConfirm={canConfirm}
+              showConfirmButton={isLastStep}
               styles={commonStyles}
               style={commonStyles.inPlaceFlowCard}
             >

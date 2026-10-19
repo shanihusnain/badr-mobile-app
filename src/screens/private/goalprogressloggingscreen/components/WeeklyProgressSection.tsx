@@ -114,6 +114,7 @@ import {
 import { useOptionalPrayerGoalFrameContext } from "../prayerGoalFrameContext";
 import { useOptionalQuranGoalFrameContext } from "../quranGoalFrameContext";
 import { useOptionalFastingGoalFrameContext } from "../fastingGoalFrameContext";
+import { useOptionalSadaqahGoalFrameContext } from "../sadaqahGoalFrameContext";
 import {
   useOptionalWeeklyBrowseState,
   useWeeklyBrowseDispatch,
@@ -126,7 +127,13 @@ import {
   mapProphetDawoodFrameWeekSummary,
   mapWhiteDaysFrameWeekSummary,
 } from "@/src/utils/fastingGoalFrameMap";
+import {
+  canNavigateSadaqahFrameWeekNext,
+  mapMissedZakatFrameWeekSummary,
+  MISSED_ZAKAT_LOADING_WEEK_SUMMARY,
+} from "@/src/utils/sadaqahGoalFrameMap";
 import type { FastingGoalFrameData } from "@/src/api/queries/useGetFastingGoalFrame";
+import type { SadaqahGoalFrameData } from "@/src/api/queries/useGetSadaqahGoalFrame";
 import {
   formatPrayerFrameWeekRange,
   getPrayerFrameTodayIndex,
@@ -408,6 +415,53 @@ function shiftFastingFrameWeek(
   fastingFrame.setWeekNumber(activeWeek + direction);
 }
 
+function isSadaqahFrameDashboardLoading(
+  sadaqahFrame: BrowseableFrameSource,
+  frame: unknown,
+) {
+  if (!sadaqahFrame) return true;
+  if (sadaqahFrame.isLoading) return true;
+  if (!frame && !sadaqahFrame.isError) return true;
+
+  const frameData = frame as SadaqahGoalFrameData | null | undefined;
+  const requestedWeek = sadaqahFrame.weekNumber;
+  const displayedWeek = frameData?.week?.weekNumber;
+
+  if (
+    requestedWeek != null &&
+    displayedWeek != null &&
+    requestedWeek !== displayedWeek &&
+    (sadaqahFrame.isFetching || sadaqahFrame.isPlaceholderData)
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+function getSadaqahFrameActiveWeek(
+  sadaqahFrame: BrowseableFrameSource,
+  frame: SadaqahGoalFrameData,
+) {
+  return (
+    sadaqahFrame?.weekNumber ??
+    frame.week.weekNumber ??
+    frame.cycle.weekNumber ??
+    1
+  );
+}
+
+function shiftSadaqahFrameWeek(
+  sadaqahFrame: BrowseableFrameSource,
+  frame: SadaqahGoalFrameData,
+  direction: -1 | 1,
+) {
+  if (!sadaqahFrame) return;
+  if (direction > 0 && !canNavigateSadaqahFrameWeekNext(frame)) return;
+  const activeWeek = getSadaqahFrameActiveWeek(sadaqahFrame, frame);
+  sadaqahFrame.setWeekNumber(activeWeek + direction);
+}
+
 export function WeeklyProgressSection({
   goalData,
   refreshKey = 0,
@@ -419,6 +473,7 @@ export function WeeklyProgressSection({
   const screenPrayerFrame = useOptionalPrayerGoalFrameContext();
   const screenQuranFrame = useOptionalQuranGoalFrameContext();
   const screenFastingFrame = useOptionalFastingGoalFrameContext();
+  const screenSadaqahFrame = useOptionalSadaqahGoalFrameContext();
   const browse = useOptionalWeeklyBrowseState();
   const browseDispatch = useWeeklyBrowseDispatch();
   const setBrowseWeekNumber =
@@ -508,6 +563,33 @@ export function WeeklyProgressSection({
       setWeekNumber: setBrowseWeekNumber,
     };
   }, [screenFastingFrame, browse, setBrowseWeekNumber]);
+
+  const sadaqahFrame = useMemo(() => {
+    if (!screenSadaqahFrame) return null;
+    const browseActive = browse?.kind === "sadaqah";
+    return {
+      ...screenSadaqahFrame,
+      frame: browseActive
+        ? ((browse.frame as SadaqahGoalFrameData | null | undefined) ??
+          screenSadaqahFrame.frame)
+        : screenSadaqahFrame.frame,
+      weekNumber: browseActive
+        ? (browse.weekNumber ?? screenSadaqahFrame.weekNumber)
+        : screenSadaqahFrame.weekNumber,
+      isLoading: browseActive
+        ? browse.isLoading ||
+          (browse.weekNumber == null && screenSadaqahFrame.isLoading)
+        : screenSadaqahFrame.isLoading,
+      isFetching: browseActive
+        ? browse.isFetching
+        : screenSadaqahFrame.isFetching,
+      isPlaceholderData: browseActive
+        ? browse.isPlaceholderData
+        : screenSadaqahFrame.isPlaceholderData,
+      isError: browseActive ? browse.isError : screenSadaqahFrame.isError,
+      setWeekNumber: setBrowseWeekNumber,
+    };
+  }, [screenSadaqahFrame, browse, setBrowseWeekNumber]);
 
   const { user } = useAuth();
   const qiyamGender: "male" | "female" =
@@ -2347,6 +2429,62 @@ export function WeeklyProgressSection({
   }
 
   if (template === "missed-zakat") {
+    const frame = sadaqahFrame?.frame;
+    if (sadaqahFrame) {
+      const frameLoading = isSadaqahFrameDashboardLoading(sadaqahFrame, frame);
+
+      if (frame) {
+        const zakatWeekFromFrame = mapMissedZakatFrameWeekSummary(frame);
+        const canPrev =
+          frame.week.hasPrevious ??
+          getSadaqahFrameActiveWeek(sadaqahFrame, frame) > 1;
+        const canNext = canNavigateSadaqahFrameWeekNext(frame);
+
+        return (
+          <MissedZakatWeeklyProgressDashboard
+            weekDays={zakatWeekFromFrame.weekDays}
+            weekRangeLabel={zakatWeekFromFrame.weekRangeLabel}
+            weekFraction={zakatWeekFromFrame.weekFraction}
+            totalSpentThisWeek={zakatWeekFromFrame.totalSpentThisWeek}
+            streakDays={zakatWeekFromFrame.streakDays}
+            remainingAmount={zakatWeekFromFrame.remainingAmount}
+            selectedDayIndex={zakatWeekFromFrame.selectedDayIndex}
+            loading={frameLoading}
+            onDeleted={onDeleted}
+            allowLogDeletion
+            sadaqahType="MISSED_ZAKAT"
+            onPrevWeek={
+              canPrev
+                ? () => shiftSadaqahFrameWeek(sadaqahFrame, frame, -1)
+                : undefined
+            }
+            onNextWeek={
+              canNext
+                ? () => shiftSadaqahFrameWeek(sadaqahFrame, frame, 1)
+                : undefined
+            }
+          />
+        );
+      }
+
+      if (!sadaqahFrame.isError) {
+        const loadingSummary = MISSED_ZAKAT_LOADING_WEEK_SUMMARY;
+        return (
+          <MissedZakatWeeklyProgressDashboard
+            weekDays={loadingSummary.weekDays}
+            weekRangeLabel={loadingSummary.weekRangeLabel}
+            weekFraction={loadingSummary.weekFraction}
+            totalSpentThisWeek={loadingSummary.totalSpentThisWeek}
+            streakDays={loadingSummary.streakDays}
+            remainingAmount={loadingSummary.remainingAmount}
+            selectedDayIndex={loadingSummary.selectedDayIndex}
+            loading
+          />
+        );
+      }
+    }
+
+    // Error / no provider: mock fallback
     const ZAKAT_WEEKS = [
       {
         weekRangeLabel: "Nov 29 — Dec 5",
@@ -2436,8 +2574,7 @@ export function WeeklyProgressSection({
       },
     ];
 
-    const [zakatWeekIndex, setZakatWeekIndex] = useState(0);
-    const zakatWeek = ZAKAT_WEEKS[zakatWeekIndex];
+    const zakatWeek = ZAKAT_WEEKS[0];
 
     return (
       <MissedZakatWeeklyProgressDashboard
@@ -2448,10 +2585,6 @@ export function WeeklyProgressSection({
         streakDays={zakatWeek.streakDays}
         remainingAmount={zakatWeek.remainingAmount}
         selectedDayIndex={zakatWeek.selectedDayIndex}
-        onPrevWeek={() => setZakatWeekIndex((i) => Math.max(0, i - 1))}
-        onNextWeek={() =>
-          setZakatWeekIndex((i) => Math.min(ZAKAT_WEEKS.length - 1, i + 1))
-        }
       />
     );
   }
