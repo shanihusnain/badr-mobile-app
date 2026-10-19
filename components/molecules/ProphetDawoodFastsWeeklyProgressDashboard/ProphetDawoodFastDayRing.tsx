@@ -5,7 +5,7 @@ import { Colors } from "@/constants/theme";
 import type { ProphetDawoodFastDayState } from "@/src/screens/private/goalprogressloggingscreen/prophetDawoodFastsWeeklyData";
 
 type RingVisual = {
-  variant: "outline" | "solid" | "menstruating";
+  variant: "outline" | "solid" | "menstruating" | "completedWithOutline";
   borderColor: string;
   backgroundColor: string;
   opacity?: number;
@@ -54,8 +54,9 @@ function getRingVisual(
         backgroundColor: "transparent",
       };
     case "completed":
+      // Logged planned fast — ringDawood outline + nested solid fill
       return {
-        variant: "solid",
+        variant: "completedWithOutline",
         borderColor: Colors.light.ringDawood,
         backgroundColor: Colors.light.ringDawood,
       };
@@ -118,6 +119,36 @@ export function ProphetDawoodFastDayRing({
             borderColor: visual.borderColor,
           }}
         />
+      </View>
+    );
+  }
+
+  if (visual.variant === "completedWithOutline") {
+    const innerSize = size - borderWidth * 2;
+    const fillSize = Math.max(innerSize * 0.85, 1);
+    return (
+      <View style={wrapperStyle}>
+        <View
+          style={[
+            styles.ring,
+            {
+              width: size,
+              height: size,
+              borderRadius: size / 2,
+              borderWidth,
+              borderColor: visual.borderColor,
+            },
+          ]}
+        >
+          <View
+            style={{
+              width: fillSize,
+              height: fillSize,
+              borderRadius: fillSize / 2,
+              backgroundColor: visual.backgroundColor,
+            }}
+          />
+        </View>
       </View>
     );
   }

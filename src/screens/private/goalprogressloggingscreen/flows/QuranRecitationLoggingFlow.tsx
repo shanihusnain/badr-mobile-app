@@ -22,6 +22,7 @@ import {
 import { useLogQuranRecitationSurahGoal } from "@/src/api/mutations/useLogQuranRecitationSurahGoal";
 import { getQuranRecitationFlowDefinition } from "../loggingFlowRegistry";
 import { useOptionalQuranGoalFrameContext } from "../quranGoalFrameContext";
+import { useWeeklyBrowseDispatch } from "../weeklyBrowseFrameContext";
 import { getQuranFrameWeekNumberForDate } from "@/src/utils/quranGoalFrameMap";
 import type { QuranRecitationDayType } from "../quranRecitationWeeklyData";
 import {
@@ -69,6 +70,7 @@ export default function QuranRecitationLoggingFlow({
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
   const quranFrame = useOptionalQuranGoalFrameContext();
+  const browseDispatch = useWeeklyBrowseDispatch();
   const { mutateAsync: logRecitationSurah, isPending: isLogging } =
     useLogQuranRecitationSurahGoal();
   const flowDefinition = useMemo(
@@ -141,10 +143,9 @@ export default function QuranRecitationLoggingFlow({
   }, [quranFrame?.frame, selectedDate]);
 
   useEffect(() => {
-    if (selectedDateWeekNumber == null || !quranFrame) return;
-    if (quranFrame.weekNumber === selectedDateWeekNumber) return;
-    quranFrame.setWeekNumber(selectedDateWeekNumber);
-  }, [quranFrame, selectedDateWeekNumber]);
+    if (selectedDateWeekNumber == null || !browseDispatch) return;
+    browseDispatch.setWeekNumber(selectedDateWeekNumber);
+  }, [browseDispatch, selectedDateWeekNumber]);
 
   const alreadyLoggedForSelectedDate = useMemo(() => {
     const week = quranFrame?.frame?.week;

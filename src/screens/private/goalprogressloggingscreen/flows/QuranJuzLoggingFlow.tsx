@@ -45,6 +45,7 @@ import {
   type JuzCompletionType,
 } from "../quranRecitationJuzData";
 import { useOptionalQuranGoalFrameContext } from "../quranGoalFrameContext";
+import { useWeeklyBrowseDispatch } from "../weeklyBrowseFrameContext";
 import {
   getQuranFrameCycleEnd,
   getQuranFrameCycleStart,
@@ -112,6 +113,7 @@ export default function QuranJuzLoggingFlow({
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
   const quranFrame = useOptionalQuranGoalFrameContext();
+  const browseDispatch = useWeeklyBrowseDispatch();
   const { data: juzGoalDetail } = useGetQuranGoalByType("RECITATION_JUZ");
   const { mutateAsync: logRecitationJuz, isPending: isLogging } =
     useLogQuranRecitationJuzGoal();
@@ -201,10 +203,9 @@ export default function QuranJuzLoggingFlow({
   }, [quranFrame?.frame, selectedDate]);
 
   useEffect(() => {
-    if (selectedDateWeekNumber == null || !quranFrame) return;
-    if (quranFrame.weekNumber === selectedDateWeekNumber) return;
-    quranFrame.setWeekNumber(selectedDateWeekNumber);
-  }, [quranFrame, selectedDateWeekNumber]);
+    if (selectedDateWeekNumber == null || !browseDispatch) return;
+    browseDispatch.setWeekNumber(selectedDateWeekNumber);
+  }, [browseDispatch, selectedDateWeekNumber]);
   const { minSelectableDate, maxSelectableDate } =
     getQuranLoggingSelectableDateBounds(cycleStart, cycleEnd, todayString);
 

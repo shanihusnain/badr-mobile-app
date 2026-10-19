@@ -23,7 +23,12 @@ type QuranGoalFrameContextValue = {
   isPlaceholderData: boolean;
   isError: boolean;
   refetch: () => void;
+  /** Current cycle week from the latest current-frame response. */
   weekNumber: number | null;
+  /**
+   * @deprecated Week browsing is owned by WeeklyBrowseFrameProvider.
+   * Kept as a no-op so existing call sites do not change the screen frame.
+   */
   setWeekNumber: (weekNumber: number) => void;
   /** Active surah/juz/hizb for multi-item frames (e.g. MEMORIZATION_SURAH). */
   itemNumber: number | null;
@@ -90,11 +95,10 @@ export function QuranGoalFrameProvider({
   const needsCycleWeekPrefetch =
     isCompletionGoal || isMemorisationGoal || isRecitationJuzGoal;
   const [weekNumber, setWeekNumberState] = React.useState<number | null>(null);
-  const [hasUserSelectedWeek, setHasUserSelectedWeek] = React.useState(false);
   const [itemNumber, setItemNumberState] = React.useState<number | null>(
     () => initialItemNumber ?? null,
   );
-  /** Sticky "today" week so viewing past weeks doesn't shrink cycle prefetch. */
+  /** Sticky "today" week so cycle prefetch covers 1‥active. */
   const [cycleActiveWeek, setCycleActiveWeek] = React.useState<number | null>(
     null,
   );
@@ -109,7 +113,6 @@ export function QuranGoalFrameProvider({
 
   React.useEffect(() => {
     setWeekNumberState(null);
-    setHasUserSelectedWeek(false);
     setItemNumberState(initialItemNumber ?? null);
     setCycleActiveWeek(null);
   }, [goalId, initialItemNumber]);
@@ -135,10 +138,10 @@ export function QuranGoalFrameProvider({
     !!quranGoalType &&
     (!requiresItemNumber || itemNumber != null || canFetchFrameWithoutItem);
 
+  // Always fetch the current cycle frame — week browsing uses WeeklyBrowseFrameProvider.
   const { data, isLoading, isFetching, isPlaceholderData, isError, refetch } =
     useGetQuranGoalFrame(quranGoalType, {
       enabled: frameEnabled,
-      weekNumber: hasUserSelectedWeek ? (weekNumber ?? undefined) : undefined,
       itemNumber: itemNumber ?? undefined,
     });
 
@@ -149,10 +152,9 @@ export function QuranGoalFrameProvider({
   }, [refreshKey, refetch]);
 
   useEffect(() => {
-    if (weekNumber != null) return;
     if (!data?.week?.weekNumber) return;
     setWeekNumberState(data.week.weekNumber);
-  }, [data, weekNumber]);
+  }, [data]);
 
   useEffect(() => {
     const active = resolveCycleActiveWeek(data);
@@ -214,9 +216,8 @@ export function QuranGoalFrameProvider({
   const memorisationCycleFrames =
     isMemorisationGoal || isRecitationJuzGoal ? cycleFrames : [];
 
-  const setWeekNumber = React.useCallback((nextWeek: number) => {
-    setHasUserSelectedWeek(true);
-    setWeekNumberState(nextWeek);
+  const setWeekNumber = React.useCallback((_nextWeek: number) => {
+    // No-op: browse week is handled by WeeklyBrowseFrameProvider.
   }, []);
 
   const setItemNumber = React.useCallback((nextItem: number) => {

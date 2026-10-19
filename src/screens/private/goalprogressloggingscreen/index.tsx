@@ -56,6 +56,10 @@ import {
   FastingGoalFrameProvider,
   useOptionalFastingGoalFrameContext,
 } from "./fastingGoalFrameContext";
+import {
+  WeeklyBrowseDispatchProvider,
+  WeeklyBrowseStateProvider,
+} from "./weeklyBrowseFrameContext";
 import { isWhiteDaysFastsGoalId } from "./whiteDaysFastsTarget";
 import { isProphetDawoodFastsGoalId } from "./prophetDawoodFastsTarget";
 import {
@@ -436,63 +440,75 @@ function GoalProgressLoggingBody({
         </View>
       ) : null}
 
-      <View style={styles.scrollForeground} collapsable={false}>
-        <View style={styles.goalInfoContainer}>
-          <TaperedCircleBorder
-            percentage={displayPercentage}
-            borderColor={Colors.light.unfilledTaperred}
-            size={110}
-            variant="illuminated"
-          >
-            <View style={styles.largeCircleInner}>
-              <Text
-                style={[
-                  styles.circleGoalText,
-                  frameLoading && styles.loadingPlaceholderText,
-                ]}
-                numberOfLines={ringGoalLineCount}
-                adjustsFontSizeToFit
-                minimumFontScale={0.75}
-              >
-                {frameLoading ? "---" : ringGoalLabel}
-              </Text>
-              <View style={styles.circlePercentRow}>
+      {/*
+        Shared browse dispatch for flows that jump the dashboard week.
+        Browse state (week-scoped fetch) wraps only the weekly dashboard so
+        hero / logging / past achievements do not re-render on week arrows.
+      */}
+      <WeeklyBrowseDispatchProvider>
+        <View style={styles.scrollForeground} collapsable={false}>
+          <View style={styles.goalInfoContainer}>
+            <TaperedCircleBorder
+              percentage={displayPercentage}
+              borderColor={Colors.light.unfilledTaperred}
+              size={110}
+              variant="illuminated"
+            >
+              <View style={styles.largeCircleInner}>
                 <Text
                   style={[
-                    styles.circlePercentNumber,
+                    styles.circleGoalText,
                     frameLoading && styles.loadingPlaceholderText,
                   ]}
+                  numberOfLines={ringGoalLineCount}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.75}
                 >
-                  {percentageNum}
+                  {frameLoading ? "---" : ringGoalLabel}
                 </Text>
-                {!frameLoading ? (
-                  <Text style={styles.circlePercentSymbol}>%</Text>
-                ) : null}
+                <View style={styles.circlePercentRow}>
+                  <Text
+                    style={[
+                      styles.circlePercentNumber,
+                      frameLoading && styles.loadingPlaceholderText,
+                    ]}
+                  >
+                    {percentageNum}
+                  </Text>
+                  {!frameLoading ? (
+                    <Text style={styles.circlePercentSymbol}>%</Text>
+                  ) : null}
+                </View>
               </View>
-            </View>
-          </TaperedCircleBorder>
+            </TaperedCircleBorder>
+          </View>
+          <TopSpace top={LOGGING_SCREEN_SPACING.afterRing} />
+          <LoggingFlowSlot
+            goalData={liveGoalData}
+            onDropdownOpenChange={onDropdownOpenChange}
+            onLogComplete={() => {
+              setWeeklyRefreshKey((current) => current + 1);
+            }}
+          />
         </View>
-        <TopSpace top={LOGGING_SCREEN_SPACING.afterRing} />
-        <LoggingFlowSlot
-          goalData={liveGoalData}
-          onDropdownOpenChange={onDropdownOpenChange}
-          onLogComplete={() => {
-            setWeeklyRefreshKey((current) => current + 1);
-          }}
-        />
-      </View>
 
-      <TopSpace top={LOGGING_SCREEN_SPACING.afterMyProgress} />
-      <View style={styles.weeklyDashboardWrapper}>
-        <WeeklyProgressSection
-          goalData={liveGoalData}
-          refreshKey={weeklyRefreshKey}
-          onDeleted={() => setWeeklyRefreshKey((current) => current + 1)}
-          onWeekProgressPercentChange={
-            isMondayThursdayFasts ? setWeekViewPercent : undefined
-          }
-        />
-      </View>
+        <TopSpace top={LOGGING_SCREEN_SPACING.afterMyProgress} />
+        <View style={styles.weeklyDashboardWrapper}>
+          <WeeklyBrowseStateProvider
+            goalId={goalId}
+            refreshKey={weeklyRefreshKey}
+          >
+            <WeeklyProgressSection
+              goalData={liveGoalData}
+              refreshKey={weeklyRefreshKey}
+              onDeleted={() => setWeeklyRefreshKey((current) => current + 1)}
+              onWeekProgressPercentChange={
+                isMondayThursdayFasts ? setWeekViewPercent : undefined
+              }
+            />
+          </WeeklyBrowseStateProvider>
+        </View>
+      </WeeklyBrowseDispatchProvider>
       <TopSpace top={LOGGING_SCREEN_SPACING.afterDashboard} />
 
       <View

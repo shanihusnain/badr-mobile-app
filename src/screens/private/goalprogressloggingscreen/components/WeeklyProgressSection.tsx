@@ -115,6 +115,10 @@ import { useOptionalPrayerGoalFrameContext } from "../prayerGoalFrameContext";
 import { useOptionalQuranGoalFrameContext } from "../quranGoalFrameContext";
 import { useOptionalFastingGoalFrameContext } from "../fastingGoalFrameContext";
 import {
+  useOptionalWeeklyBrowseState,
+  useWeeklyBrowseDispatch,
+} from "../weeklyBrowseFrameContext";
+import {
   canNavigateFastingFrameWeekNext,
   getFastingFrameTodayIndex,
   mapMissedRamadanFrameWeekSummary,
@@ -167,8 +171,17 @@ type Props = {
   onDeleted?: () => void;
 };
 
+type BrowseableFrameSource = {
+  weekNumber: number | null;
+  isLoading: boolean;
+  isFetching: boolean;
+  isPlaceholderData: boolean;
+  isError: boolean;
+  setWeekNumber: (weekNumber: number) => void;
+} | null;
+
 function isPrayerFrameDashboardLoading(
-  prayerFrame: ReturnType<typeof useOptionalPrayerGoalFrameContext>,
+  prayerFrame: BrowseableFrameSource,
   frame: unknown,
 ) {
   if (!prayerFrame) return true;
@@ -193,14 +206,14 @@ function isPrayerFrameDashboardLoading(
 }
 
 function getPrayerFrameActiveWeek(
-  prayerFrame: ReturnType<typeof useOptionalPrayerGoalFrameContext>,
+  prayerFrame: BrowseableFrameSource,
   frame: PrayerGoalFrameData,
 ) {
   return prayerFrame?.weekNumber ?? frame.cycle.weekNumber;
 }
 
 function shiftPrayerFrameWeek(
-  prayerFrame: ReturnType<typeof useOptionalPrayerGoalFrameContext>,
+  prayerFrame: BrowseableFrameSource,
   frame: PrayerGoalFrameData,
   direction: -1 | 1,
 ) {
@@ -211,7 +224,7 @@ function shiftPrayerFrameWeek(
 }
 
 function isQuranFrameDashboardLoading(
-  quranFrame: ReturnType<typeof useOptionalQuranGoalFrameContext>,
+  quranFrame: (BrowseableFrameSource & { itemNumber?: number | null }) | null,
   frame: unknown,
 ) {
   if (!quranFrame) return true;
@@ -248,14 +261,14 @@ function isQuranFrameDashboardLoading(
 }
 
 function getQuranFrameActiveWeek(
-  quranFrame: ReturnType<typeof useOptionalQuranGoalFrameContext>,
+  quranFrame: BrowseableFrameSource,
   frame: QuranGoalFrameData,
 ) {
   return quranFrame?.weekNumber ?? frame.week.weekNumber;
 }
 
 function shiftQuranFrameWeek(
-  quranFrame: ReturnType<typeof useOptionalQuranGoalFrameContext>,
+  quranFrame: BrowseableFrameSource,
   frame: QuranGoalFrameData,
   direction: -1 | 1,
 ) {
@@ -297,7 +310,7 @@ function getPrayerFrameMotivationalQuote(frame: PrayerGoalFrameData) {
 }
 
 function isFastingFrameDashboardLoading(
-  fastingFrame: ReturnType<typeof useOptionalFastingGoalFrameContext>,
+  fastingFrame: BrowseableFrameSource,
   frame: unknown,
 ) {
   if (!fastingFrame) return true;
@@ -373,7 +386,7 @@ const MONDAY_THURSDAY_LOADING_WEEK_SUMMARY: MondayThursdayFastWeekSummary = {
 };
 
 function getFastingFrameActiveWeek(
-  fastingFrame: ReturnType<typeof useOptionalFastingGoalFrameContext>,
+  fastingFrame: BrowseableFrameSource,
   frame: FastingGoalFrameData,
 ) {
   return (
@@ -385,7 +398,7 @@ function getFastingFrameActiveWeek(
 }
 
 function shiftFastingFrameWeek(
-  fastingFrame: ReturnType<typeof useOptionalFastingGoalFrameContext>,
+  fastingFrame: BrowseableFrameSource,
   frame: FastingGoalFrameData,
   direction: -1 | 1,
 ) {
@@ -403,9 +416,99 @@ export function WeeklyProgressSection({
 }: Props) {
   const { t } = useTranslation();
   const template = getLoggingFlowTemplate(goalData.id);
-  const prayerFrame = useOptionalPrayerGoalFrameContext();
-  const quranFrame = useOptionalQuranGoalFrameContext();
-  const fastingFrame = useOptionalFastingGoalFrameContext();
+  const screenPrayerFrame = useOptionalPrayerGoalFrameContext();
+  const screenQuranFrame = useOptionalQuranGoalFrameContext();
+  const screenFastingFrame = useOptionalFastingGoalFrameContext();
+  const browse = useOptionalWeeklyBrowseState();
+  const browseDispatch = useWeeklyBrowseDispatch();
+  const setBrowseWeekNumber =
+    browseDispatch?.setWeekNumber ??
+    ((_week: number) => {
+      /* no-op when browse provider is absent */
+    });
+
+  // Dashboard reads week-scoped browse frame; screen frame is current-cycle fallback.
+  const prayerFrame = useMemo(() => {
+    if (!screenPrayerFrame) return null;
+    const browseActive = browse?.kind === "prayer";
+    return {
+      ...screenPrayerFrame,
+      frame: browseActive
+        ? ((browse.frame as PrayerGoalFrameData | null | undefined) ??
+          screenPrayerFrame.frame)
+        : screenPrayerFrame.frame,
+      weekNumber: browseActive
+        ? (browse.weekNumber ?? screenPrayerFrame.weekNumber)
+        : screenPrayerFrame.weekNumber,
+      isLoading: browseActive
+        ? browse.isLoading ||
+          (browse.weekNumber == null && screenPrayerFrame.isLoading)
+        : screenPrayerFrame.isLoading,
+      isFetching: browseActive
+        ? browse.isFetching
+        : screenPrayerFrame.isFetching,
+      isPlaceholderData: browseActive
+        ? browse.isPlaceholderData
+        : screenPrayerFrame.isPlaceholderData,
+      isError: browseActive ? browse.isError : screenPrayerFrame.isError,
+      setWeekNumber: setBrowseWeekNumber,
+    };
+  }, [screenPrayerFrame, browse, setBrowseWeekNumber]);
+
+  const quranFrame = useMemo(() => {
+    if (!screenQuranFrame) return null;
+    const browseActive = browse?.kind === "quran";
+    return {
+      ...screenQuranFrame,
+      frame: browseActive
+        ? ((browse.frame as QuranGoalFrameData | null | undefined) ??
+          screenQuranFrame.frame)
+        : screenQuranFrame.frame,
+      weekNumber: browseActive
+        ? (browse.weekNumber ?? screenQuranFrame.weekNumber)
+        : screenQuranFrame.weekNumber,
+      isLoading: browseActive
+        ? browse.isLoading ||
+          (browse.weekNumber == null && screenQuranFrame.isLoading)
+        : screenQuranFrame.isLoading,
+      isFetching: browseActive
+        ? browse.isFetching
+        : screenQuranFrame.isFetching,
+      isPlaceholderData: browseActive
+        ? browse.isPlaceholderData
+        : screenQuranFrame.isPlaceholderData,
+      isError: browseActive ? browse.isError : screenQuranFrame.isError,
+      setWeekNumber: setBrowseWeekNumber,
+    };
+  }, [screenQuranFrame, browse, setBrowseWeekNumber]);
+
+  const fastingFrame = useMemo(() => {
+    if (!screenFastingFrame) return null;
+    const browseActive = browse?.kind === "fasting";
+    return {
+      ...screenFastingFrame,
+      frame: browseActive
+        ? ((browse.frame as FastingGoalFrameData | null | undefined) ??
+          screenFastingFrame.frame)
+        : screenFastingFrame.frame,
+      weekNumber: browseActive
+        ? (browse.weekNumber ?? screenFastingFrame.weekNumber)
+        : screenFastingFrame.weekNumber,
+      isLoading: browseActive
+        ? browse.isLoading ||
+          (browse.weekNumber == null && screenFastingFrame.isLoading)
+        : screenFastingFrame.isLoading,
+      isFetching: browseActive
+        ? browse.isFetching
+        : screenFastingFrame.isFetching,
+      isPlaceholderData: browseActive
+        ? browse.isPlaceholderData
+        : screenFastingFrame.isPlaceholderData,
+      isError: browseActive ? browse.isError : screenFastingFrame.isError,
+      setWeekNumber: setBrowseWeekNumber,
+    };
+  }, [screenFastingFrame, browse, setBrowseWeekNumber]);
+
   const { user } = useAuth();
   const qiyamGender: "male" | "female" =
     user?.gender === "FEMALE" ? "female" : "male";

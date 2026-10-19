@@ -16,6 +16,7 @@ import type {
 } from "@/src/screens/private/goalprogressloggingscreen/prophetDawoodFastsWeeklyData";
 import { ProphetDawoodFastDayRing } from "./ProphetDawoodFastDayRing";
 import { useDeleteFastingLog } from "@/src/api/mutations/useDeleteFastingLog";
+import { DawoodCycleRefresh } from "@/assets/icons";
 
 export type ProphetDawoodFastsWeeklyProgressDashboardProps = {
   weekSummary: ProphetDawoodFastWeekSummary;
@@ -110,11 +111,7 @@ export function ProphetDawoodFastsWeeklyProgressDashboard({
           {dawoodDay.showCycleRestartIcon && !dawoodDay.isMenstruating ? (
             <View style={styles.cycleRestartIcon}>
               <View style={styles.cycleRestartBadge}>
-                <Feather
-                  name="refresh-ccw"
-                  size={8}
-                  color={Colors.light.white}
-                />
+                <DawoodCycleRefresh />
               </View>
             </View>
           ) : null}
@@ -179,18 +176,15 @@ const styles = StyleSheet.create({
   },
   cycleRestartIcon: {
     position: "absolute",
-    right: -4,
-    bottom: -2,
+    right: -8,
+    bottom: -5,
   },
   cycleRestartBadge: {
     width: 14,
     height: 14,
     borderRadius: 7,
-    backgroundColor: Colors.light.ringDawood,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 1,
-    borderColor: Colors.light.white,
   },
   statsRow: {
     flexDirection: "row",

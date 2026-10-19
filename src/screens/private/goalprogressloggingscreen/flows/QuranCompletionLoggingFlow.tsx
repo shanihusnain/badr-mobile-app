@@ -31,6 +31,7 @@ import {
   getJuzVerseMetadata,
 } from "../quranJuzVerseMap";
 import { useOptionalQuranGoalFrameContext } from "../quranGoalFrameContext";
+import { useWeeklyBrowseDispatch } from "../weeklyBrowseFrameContext";
 import {
   getQuranFrameCompletionProgress,
   getQuranFrameCompletionResumeCursor,
@@ -95,6 +96,7 @@ export default function QuranCompletionLoggingFlow({
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
   const quranFrame = useOptionalQuranGoalFrameContext();
+  const browseDispatch = useWeeklyBrowseDispatch();
   const { mutateAsync: logRecitationCompletion, isPending: isLogging } =
     useLogQuranRecitationCompletionGoal();
 
@@ -189,10 +191,9 @@ export default function QuranCompletionLoggingFlow({
   }, [quranFrame?.frame, selectedDate]);
 
   useEffect(() => {
-    if (selectedDateWeekNumber == null || !quranFrame) return;
-    if (quranFrame.weekNumber === selectedDateWeekNumber) return;
-    quranFrame.setWeekNumber(selectedDateWeekNumber);
-  }, [quranFrame, selectedDateWeekNumber]);
+    if (selectedDateWeekNumber == null || !browseDispatch) return;
+    browseDispatch.setWeekNumber(selectedDateWeekNumber);
+  }, [browseDispatch, selectedDateWeekNumber]);
 
   const steps = useMemo(
     () => buildCompletionSteps(committedCompletionType),

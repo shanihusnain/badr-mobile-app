@@ -15,13 +15,18 @@ import type { GoalId } from "../home/components/goalsData";
 type PrayerGoalFrameContextValue = {
   frame: PrayerGoalFrameData | null | undefined;
   isLoading: boolean;
-  /** True while refetching another week (placeholder data may still be visible). */
+  /** True while refetching (placeholder data may still be visible). */
   isFetching: boolean;
-  /** True when displayed frame data is placeholder from the previous week query. */
+  /** True when displayed frame data is placeholder from a previous query. */
   isPlaceholderData: boolean;
   isError: boolean;
   refetch: () => void;
+  /** Current cycle week from the latest current-frame response. */
   weekNumber: number | null;
+  /**
+   * @deprecated Week browsing is owned by WeeklyBrowseFrameProvider.
+   * Kept as a no-op so existing call sites do not change the screen frame.
+   */
   setWeekNumber: (weekNumber: number) => void;
   openInsights?: () => void;
   /**
@@ -49,18 +54,15 @@ export function PrayerGoalFrameProvider({
 }) {
   const prayerType = resolvePrayerTypeFromGoalId(goalId);
   const [weekNumber, setWeekNumberState] = React.useState<number | null>(null);
-  /** Only send `week` after the user taps prev/next — not after hydrating from the first response. */
-  const [hasUserSelectedWeek, setHasUserSelectedWeek] = React.useState(false);
 
   React.useEffect(() => {
     setWeekNumberState(null);
-    setHasUserSelectedWeek(false);
   }, [goalId]);
 
+  // Always fetch the current cycle frame — week browsing uses WeeklyBrowseFrameProvider.
   const { data, isLoading, isFetching, isPlaceholderData, isError, refetch } =
     useGetPrayerGoalFrame(prayerType, {
       enabled: !!prayerType,
-      weekNumber: hasUserSelectedWeek ? (weekNumber ?? undefined) : undefined,
     });
 
   useEffect(() => {
@@ -70,14 +72,12 @@ export function PrayerGoalFrameProvider({
   }, [refreshKey, refetch]);
 
   useEffect(() => {
-    if (weekNumber != null) return;
     if (!data?.cycle?.weekNumber) return;
     setWeekNumberState(data.cycle.weekNumber);
-  }, [data, weekNumber]);
+  }, [data]);
 
-  const setWeekNumber = React.useCallback((nextWeek: number) => {
-    setHasUserSelectedWeek(true);
-    setWeekNumberState(nextWeek);
+  const setWeekNumber = React.useCallback((_nextWeek: number) => {
+    // No-op: browse week is handled by WeeklyBrowseFrameProvider.
   }, []);
 
   const value = useMemo(
