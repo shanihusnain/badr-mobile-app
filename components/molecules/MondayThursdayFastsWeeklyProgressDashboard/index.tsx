@@ -177,6 +177,7 @@ export function MondayThursdayFastsWeeklyProgressDashboard({
       isDeletingLog={isDeletingLog}
       renderDayRing={renderDayRing}
       comparisonVariant="fasts"
+      showTodayChip
       statsRow={
         <View style={styles.statsRow}>
           <FastingDashboardIcon size={28} color={Colors.light.seagreen} />

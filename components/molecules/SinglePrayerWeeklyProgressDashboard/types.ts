@@ -87,6 +87,12 @@ export type SinglePrayerWeeklyProgressDashboardProps = {
    * slightly away from the streak (no card size change).
    */
   compactWeekOneQuote?: boolean;
+  /**
+   * When false, today’s grey rectangular chip behind the day is hidden
+   * (e.g. Mon/Thu fasting — Figma uses the ring’s own round border only).
+   * Default true.
+   */
+  showTodayChip?: boolean;
 };
 
 export const LOADING_WEEK: SinglePrayerDayProgress[] = [
