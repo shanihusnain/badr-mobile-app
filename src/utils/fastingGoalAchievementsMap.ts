@@ -13,7 +13,10 @@ import type {
   QuranHoursPastAchievement,
   QuranPastChartItem,
 } from "@/src/screens/private/goalprogressloggingscreen/quranHoursPastAchievementData";
-import { formatPrayerAchievementsDateRange } from "@/src/utils/prayerGoalAchievementsMap";
+import {
+  buildEmptyPastAchievementPeriodScaffold,
+  formatPrayerAchievementsDateRange,
+} from "@/src/utils/prayerGoalAchievementsMap";
 
 function toFiniteNumber(value: unknown): number | null {
   if (typeof value === "number" && Number.isFinite(value)) return value;
@@ -178,13 +181,13 @@ export type MappedMissedRamadanAchievements = {
 export function createEmptyMissedRamadanAchievements(
   period: PastAchievementPeriod,
 ): MappedMissedRamadanAchievements {
-  const bucketCount =
-    period === "monthly" ? 4 : period === "threeMonths" ? 3 : 6;
+  const scaffold = buildEmptyPastAchievementPeriodScaffold(period);
+  const bucketCount = scaffold.chartData.length;
   const monthStart = getCurrentMonthStart();
   const monthEnd = getMonthEndFromStart(monthStart);
-  const chartPeriods = Array.from({ length: bucketCount }, (_, index) => ({
-    xLabel: period === "monthly" ? `W${index + 1}` : `M${index + 1}`,
-    dateLabel: "",
+  const chartPeriods = scaffold.chartData.map((item, index) => ({
+    xLabel: item.xLabel || (period === "monthly" ? `W${index + 1}` : `M${index + 1}`),
+    dateLabel: item.dateLabel,
     startDate: period === "monthly" ? monthStart : "",
     endDate: period === "monthly" ? monthEnd : "",
     completed: 0,
@@ -206,13 +209,10 @@ export function createEmptyMissedRamadanAchievements(
     incompleteFasts: 0,
     achievementPercent: 0,
     previousPeriodDeltaPercent: 0,
-    dateRangeLabel:
-      period === "monthly"
-        ? formatPrayerAchievementsDateRange(monthStart, monthEnd)
-        : "",
+    dateRangeLabel: scaffold.dateRangeLabel,
     periodStartDate: period === "monthly" ? monthStart : "",
     periodEndDate: period === "monthly" ? monthEnd : "",
-    pageCount: chartPeriods.length,
+    pageCount: Math.max(bucketCount, 1),
     activePageIndex: 0,
     completedDates: [],
     incompletePlannedDates: [],
@@ -223,7 +223,7 @@ export function createEmptyMissedRamadanAchievements(
   return {
     slice,
     achievement: {
-      dateRangeLabel: "",
+      dateRangeLabel: scaffold.dateRangeLabel,
       achievementPercent: 0,
       previousPeriodDeltaPercent: 0,
       goalHours: 0,

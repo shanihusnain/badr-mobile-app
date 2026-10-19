@@ -881,7 +881,7 @@
     "mondayThursdayInsightsBody": "ما شاء الله على إتمام صيامات الاثنين والخميس بإخلاص. تقبل الله عبادتك ووفقك للثبات.",
     "achievementSummaryMondayThursday": "في الفترة الماضية، حققت {{percent}}% من هدف صيام الاثنين والخميس — {{delta}}% {{direction}} من الفترة السابقة.",
     "mondayThursdayLegendCompletedFast": "صيام مكتمل",
-    "mondayThursdayLegendMissedFast": "صيام فائت",
+    "mondayThursdayLegendMissedFast": "صيام ناقص فائت",
     "mondayThursdayLegendUpcomingFast": "صيام قادم",
     "mondayThursdayDetailedSummaryMonthly": "هذا الشهر، أكملت {{completed}} من {{total}} صيامات الاثنين والخميس — {{percent}}% تقدم، {{delta}}% {{direction}} عن الشهر الماضي.",
     "mondayThursdayDetailedSummaryThreeMonths": "خلال آخر 3 أشهر، أكملت {{completed}} من {{total}} صيامات الاثنين والخميس — {{percent}}% تقدم، {{delta}}% {{direction}} عن الفترة السابقة.",

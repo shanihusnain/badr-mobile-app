@@ -7,6 +7,12 @@ import type { MissedRamadanFastDayState } from "@/src/screens/private/goalprogre
 type RingVisual =
   | { variant: "outline"; color: string; opacity?: number }
   | { variant: "solid"; color: string; scale?: number; opacity?: number }
+  /** Solid disc + border on the same view (booked for another goal). */
+  | {
+      variant: "solidWithBorder";
+      fillColor: string;
+      borderColor: string;
+    }
   /** Logged planned fast — solid ringRamadan fill inside matching outline */
   | { variant: "completedWithOutline"; color: string }
   /** #9 — MISSED: grey outline + yellow warning inside */
@@ -35,16 +41,15 @@ function getRingVisual(
       // #1 — grey empty ring when no fast planned
       return { variant: "outline", color: Colors.light.grey };
     case "disabledPast":
-      // #4 — solid ringRamadan (#B7977E) at light opacity (booked for another goal)
+    case "todayDisabled":
+      // #3 / #4 — same outer size as outline rings; fill = dashboard bg
       return {
-        variant: "solid",
-        color: Colors.light.ringRamadan,
-        scale: 0.92,
-        opacity: 0.4,
+        variant: "solidWithBorder",
+        fillColor: Colors.light.greybuttonBackground,
+        borderColor: "rgba(183, 151, 126, 0.3)",
       };
     case "today":
-    case "todayDisabled":
-      // #2 / #3 — ringRamadan at 67% opacity
+      // #2 — ringRamadan at 67% opacity
       return { variant: "outline", color: "rgba(183, 151, 126, 0.67)" };
     case "pastNeutral":
       // #14 — solid grey only (no activity)
@@ -166,6 +171,24 @@ export function MissedRamadanFastDayRing({
             height: fillSize,
             borderRadius: fillSize / 2,
             backgroundColor: Colors.light.red,
+          }}
+        />
+      </View>
+    );
+  }
+
+  if (visual.variant === "solidWithBorder") {
+    // One view — fill + border; outer diameter matches outline rings.
+    return (
+      <View style={wrapperStyle}>
+        <View
+          style={{
+            width: size,
+            height: size,
+            borderRadius: size / 2,
+            backgroundColor: visual.fillColor,
+            borderWidth,
+            borderColor: visual.borderColor,
           }}
         />
       </View>

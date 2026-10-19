@@ -1759,11 +1759,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
   },
   analyticsButton: {
-    // flex: 1,
     borderRadius: 6,
     paddingHorizontal: 8,
     paddingVertical: 6,
     alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
   },
   analyticsButtonActive: {
     backgroundColor: Colors.light.green,
