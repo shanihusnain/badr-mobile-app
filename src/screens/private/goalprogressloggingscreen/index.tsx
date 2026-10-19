@@ -645,7 +645,7 @@ export const GoalProgressLoggingScreen = ({
 
   const goalData = goalId ? getResolvedGoalById(goalId) : null;
   const [weeklyRefreshKey, setWeeklyRefreshKey] = useState(0);
-  const [screenScrollEnabled, setScreenScrollEnabled] = useState(true);
+  const scrollViewRef = useRef<ScrollView>(null);
   const navigation = useNavigation();
   const infoSheetRef = useRef<BottomSheet>(null);
   const deletePrayerSheetRef = useRef<BottomSheet>(null);
@@ -708,6 +708,11 @@ export const GoalProgressLoggingScreen = ({
       params: { goal: goalDescriptionParam },
     });
   }, [goalDescriptionParam]);
+
+  /** Lock page scroll while a flow dropdown is open — no React state (avoids full-tree re-render). */
+  const handleDropdownOpenChange = useCallback((open: boolean) => {
+    scrollViewRef.current?.setNativeProps({ scrollEnabled: !open });
+  }, []);
 
   useLayoutEffect(() => {
     if (!insightsSheetMounted || !pendingInsightsOpenRef.current) return;
@@ -929,6 +934,7 @@ export const GoalProgressLoggingScreen = ({
   const screenShell = (
     <View style={styles.container}>
       <ScrollView
+        ref={scrollViewRef}
         style={[
           styles.scrollView,
           shouldUseBackground && styles.transparentBackground,
@@ -939,7 +945,7 @@ export const GoalProgressLoggingScreen = ({
         ]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
-        scrollEnabled={screenScrollEnabled}
+        scrollEnabled
         nestedScrollEnabled
         bounces={false}
         removeClippedSubviews={false}
@@ -1004,7 +1010,7 @@ export const GoalProgressLoggingScreen = ({
           <GoalProgressLoggingContent
             goalData={goalData}
             goalId={goalId}
-            onDropdownOpenChange={(open) => setScreenScrollEnabled(!open)}
+            onDropdownOpenChange={handleDropdownOpenChange}
             weeklyRefreshKey={weeklyRefreshKey}
             setWeeklyRefreshKey={setWeeklyRefreshKey}
             backgroundSource={backgroundSource}
