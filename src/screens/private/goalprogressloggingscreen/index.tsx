@@ -101,8 +101,10 @@ import {
 import { InformationSheet } from "@/components/molecules/informationsheet";
 import { QuranHoursInformationSheet } from "@/components/molecules/QuranHoursInformationSheet";
 import { FastingGoalInformationSheet } from "@/components/molecules/FastingGoalInformationSheet";
+import { SadaqahGoalInformationSheet } from "@/components/molecules/SadaqahGoalInformationSheet";
 import { DeletePrayerGoalOptions } from "@/components/molecules/DeletePrayerLogOptions";
 import { resolveFastingTypeFromGoalId } from "@/src/utils/fastingGoalMap";
+import { resolveSadaqahTypeFromGoalId } from "@/src/utils/sadaqahGoalMap";
 import { getFastingFrameAchievementPct } from "@/src/utils/fastingGoalFrameMap";
 import { getSadaqahFrameAchievementPct } from "@/src/utils/sadaqahGoalFrameMap";
 import { HeaderInfoIcon } from "@/assets/icons";
@@ -727,6 +729,7 @@ export const GoalProgressLoggingScreen = ({
   const prayerType = resolvePrayerTypeFromGoalId(goalId);
   const quranInsightsType = resolveQuranTypeFromGoalId(goalId);
   const fastingInsightsType = resolveFastingTypeFromGoalId(goalId);
+  const sadaqahInsightsType = resolveSadaqahTypeFromGoalId(goalId);
   const template = getLoggingFlowTemplate(goalId);
   const backgroundSource = getLoggingBackgroundSource(goalId, template);
   const shouldUseBackground = backgroundSource != null;
@@ -737,10 +740,20 @@ export const GoalProgressLoggingScreen = ({
   // Pre-mount insights sheet closed on screen entry so the first View Insights
   // tap expands a ready sheet (lazy mount+expand opened at a tiny height).
   useLayoutEffect(() => {
-    if (prayerType || quranInsightsType || fastingInsightsType) {
+    if (
+      prayerType ||
+      quranInsightsType ||
+      fastingInsightsType ||
+      sadaqahInsightsType
+    ) {
       setInsightsSheetMounted(true);
     }
-  }, [prayerType, quranInsightsType, fastingInsightsType]);
+  }, [
+    prayerType,
+    quranInsightsType,
+    fastingInsightsType,
+    sadaqahInsightsType,
+  ]);
 
   const expandInsightsSheet = useCallback(() => {
     infoSheetRef.current?.expand();
@@ -1099,6 +1112,17 @@ export const GoalProgressLoggingScreen = ({
         <FastingGoalInformationSheet
           ref={infoSheetRef}
           fastingType={fastingInsightsType}
+          onClose={closeInsightsSheet}
+        />
+      ) : null}
+      {insightsSheetMounted &&
+      sadaqahInsightsType &&
+      !prayerType &&
+      !quranInsightsType &&
+      !fastingInsightsType ? (
+        <SadaqahGoalInformationSheet
+          ref={infoSheetRef}
+          sadaqahType={sadaqahInsightsType}
           onClose={closeInsightsSheet}
         />
       ) : null}

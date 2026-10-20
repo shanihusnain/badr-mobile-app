@@ -14,7 +14,11 @@ import { GoalData } from "../../home/components/goalsData";
 import { DateStep } from "../components/DateStep";
 import { formatProgressLoggingDateLabel } from "../progressLoggingConfig";
 import { FinancialInputStep } from "../components/FinancialInputStep";
-import { StartTimeStep, DurationStep } from "../components/TimePickerSteps";
+import {
+  StartTimeStep,
+  DurationStep,
+  getCurrentStartTimeParts,
+} from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
 import { styles as commonStyles } from "../components/DailyProgressLogging.styles";
 import { fonts } from "@/assets/fonts";
@@ -80,9 +84,15 @@ export default function MissedZakatLoggingFlow({
   const [stepIndex, setStepIndex] = useState(0);
   const [selectedDate, setSelectedDate] = useState(toDateString(new Date()));
   const [amount, setAmount] = useState("0");
-  const [startHour, setStartHour] = useState("00");
-  const [startMinute, setStartMinute] = useState("00");
-  const [startPeriod, setStartPeriod] = useState<"am" | "pm">("am");
+  const [startHour, setStartHour] = useState(
+    () => getCurrentStartTimeParts().hour,
+  );
+  const [startMinute, setStartMinute] = useState(
+    () => getCurrentStartTimeParts().minute,
+  );
+  const [startPeriod, setStartPeriod] = useState<"am" | "pm">(
+    () => getCurrentStartTimeParts().period,
+  );
   const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
   const [durationHours, setDurationHours] = useState("0");
   const [durationMinutes, setDurationMinutes] = useState("00");
@@ -100,6 +110,9 @@ export default function MissedZakatLoggingFlow({
   const summaryTitle = frame
     ? getSadaqahFrameFlowCardTitle(frame)
     : "$100 Toward Missed Zakat";
+  const currencyCode = (frame?.goal?.currencyCode || "USD")
+    .trim()
+    .toUpperCase();
   const achievementPct = getSadaqahFrameAchievementPct(frame);
   const showInsights = frame ? sadaqahFrameShowsInsights(frame) : false;
   const canLog = frame ? Boolean(frame.items?.[0]?.canLog ?? true) : true;
@@ -126,13 +139,14 @@ export default function MissedZakatLoggingFlow({
   };
 
   const resetFlow = useCallback(() => {
+    const now = getCurrentStartTimeParts();
     setFlowMode("collapsed");
     setStepIndex(0);
     setSelectedDate(toDateString(new Date()));
-    setAmount("20");
-    setStartHour("06");
-    setStartMinute("15");
-    setStartPeriod("am");
+    setAmount("0");
+    setStartHour(now.hour);
+    setStartMinute(now.minute);
+    setStartPeriod(now.period);
     setDurationHours("0");
     setDurationMinutes("10");
     setIsPeriodDropdownOpen(false);
@@ -254,6 +268,7 @@ export default function MissedZakatLoggingFlow({
           <FinancialInputStep
             amount={amount}
             setAmount={setAmount}
+            currencySymbol={currencyCode}
             styles={commonStyles}
           />
         );

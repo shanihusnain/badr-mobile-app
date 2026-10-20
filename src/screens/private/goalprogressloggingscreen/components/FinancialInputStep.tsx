@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, TextInput, StyleSheet } from "react-native";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
@@ -7,27 +7,66 @@ interface FinancialInputStepProps {
   amount: string;
   setAmount: (val: string) => void;
   styles: any;
+  /** Prefixed currency code from the goal frame (`USD`, `SAR`, …). */
+  currencySymbol?: string;
 }
 
 export function FinancialInputStep({
   amount,
   setAmount,
-  styles: commonStyles,
+  styles: _commonStyles,
+  currencySymbol = "USD",
 }: FinancialInputStepProps) {
+  const [selection, setSelection] = useState<
+    { start: number; end: number } | undefined
+  >(undefined);
+
+  const handleFocus = () => {
+    // Same as goal-setting Counter: clear leading 0 so typing replaces it.
+    if (amount === "0" || amount === "") {
+      setAmount("");
+      setSelection({ start: 0, end: 0 });
+      return;
+    }
+    const text = String(amount);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setSelection({ start: 0, end: text.length });
+      });
+    });
+  };
+
+  const handleBlur = () => {
+    setSelection(undefined);
+    const digitsOnly = amount.replace(/[^0-9]/g, "");
+    setAmount(digitsOnly === "" ? "0" : digitsOnly);
+  };
+
+  const handleChangeText = (text: string) => {
+    setAmount(text.replace(/[^0-9]/g, ""));
+  };
+
   return (
     <View style={localStyles.container}>
       <View style={localStyles.inputWrapper}>
-        <Text style={localStyles.currencySymbol}>$</Text>
+        <Text style={localStyles.currencySymbol}>{currencySymbol}</Text>
         <TextInput
           style={localStyles.input}
           value={amount}
-          onChangeText={setAmount}
+          onChangeText={handleChangeText}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          selection={selection}
+          onSelectionChange={(e) => {
+            setSelection(e.nativeEvent.selection);
+          }}
           keyboardType="numeric"
           maxLength={6}
           cursorColor={Colors.light.white}
           selectionColor="rgba(255,255,255,0.3)"
-          placeholder="0"
-          placeholderTextColor="rgba(255,255,255,0.5)"
+          // No placeholder: Android draws the caret after placeholder text
+          // (same as Counter in goal setting).
+          placeholder=""
         />
       </View>
     </View>
@@ -47,7 +86,7 @@ const localStyles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.light.white,
     borderRadius: 6,
-    width: 80,
+    minWidth: 80,
     height: 36,
     alignItems: "center",
     justifyContent: "center",

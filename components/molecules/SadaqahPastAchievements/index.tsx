@@ -33,6 +33,13 @@ import {
 } from "@/src/utils/pastAchievementNoData";
 import { InsightCard } from "../InsightCard";
 import { SADAQAH_INSIGHT_CARDS } from "./insightCardsData";
+import { useGetSadaqahGoalAchievements } from "@/src/api/queries/useGetSadaqahGoalAchievements";
+import { resolveSadaqahTypeFromGoalId } from "@/src/utils/sadaqahGoalMap";
+import {
+  mapSadaqahApiKeyInsightsToCards,
+  mapSadaqahGoalAchievementsToUi,
+  shiftSadaqahAchievementsPeriodStart,
+} from "@/src/utils/sadaqahGoalAchievementsMap";
 
 type Props = {
   goalId: GoalId;
@@ -117,8 +124,9 @@ export function SadaqahPastAchievements({ goalId, isDetailed = false }: Props) {
   const { t } = useTranslation();
   const formatNumber = useLocaleNumber();
   const router = useRouter();
-const [selectedTab, setSelectedTab] = useState<string>("All");
+  const [selectedTab, setSelectedTab] = useState<string>("All");
   const [period, setPeriod] = useState<PastAchievementPeriod>("monthly");
+  const [apiPeriodStart, setApiPeriodStart] = useState<string | null>(null);
 
   const isVolunteering = goalId === "sadaqah-volunteering";
   const isFidya = goalId === "sadaqah-fidya";
@@ -126,6 +134,9 @@ const [selectedTab, setSelectedTab] = useState<string>("All");
   const isZakat = goalId === "sadaqah-zakat";
   // For Fidya and Kaffarah: values are plain counts (meals / items), not dollars
   const isCountGoal = isFidya || isKaffarah;
+  const sadaqahType = resolveSadaqahTypeFromGoalId(goalId);
+  /** Missed Zakat past achievements + key insights are API-backed. */
+  const useAchievementsApi = isZakat && !!sadaqahType;
 
   const [analyticsView, setAnalyticsView] = useState<SadaqahAnalyticsView>(
     "completedVsIncomplete"
@@ -143,16 +154,47 @@ const [selectedTab, setSelectedTab] = useState<string>("All");
     setSelectedTab("All");
   }, [goalId]);
 
+  useEffect(() => {
+    setApiPeriodStart(null);
+  }, [period, goalId]);
+
+  const {
+    data: achievementsApiData,
+    isLoading: isAchievementsLoading,
+    isFetching: isAchievementsFetching,
+    isError: isAchievementsError,
+  } = useGetSadaqahGoalAchievements(sadaqahType, {
+    period,
+    periodStart: apiPeriodStart,
+    enabled: useAchievementsApi,
+  });
+
+  const mappedApi = useMemo(() => {
+    if (!useAchievementsApi || !achievementsApiData) return null;
+    return mapSadaqahGoalAchievementsToUi(achievementsApiData, period);
+  }, [achievementsApiData, period, useAchievementsApi]);
+
+  const currencyCode = mappedApi?.currencyCode ?? null;
+
   const studyMaterial = useMemo(() => getGoalById(goalId)?.studyMaterial ?? [], [goalId]);
-const baseAchievementRaw = useMemo(
-    () => getSadaqahPastAchievement(goalId, period, isVolunteering, isKaffarah ? kaffarahSubType : undefined),
-    [goalId, period, isVolunteering, isKaffarah, kaffarahSubType]
+  const mockAchievementRaw = useMemo(
+    () =>
+      getSadaqahPastAchievement(
+        goalId,
+        period,
+        isVolunteering,
+        isKaffarah ? kaffarahSubType : undefined,
+      ),
+    [goalId, period, isVolunteering, isKaffarah, kaffarahSubType],
   );
+
+  const baseAchievementRaw = mappedApi?.achievement ?? mockAchievementRaw;
 
   const baseAchievement = useMemo(() => {
     let data = { ...baseAchievementRaw };
 
-    if (selectedTab !== "All") {
+    // Category tabs are mock-only until the achievements API supports filters.
+    if (!useAchievementsApi && selectedTab !== "All") {
       const multiplier = 0.35 + (selectedTab.length % 5) * 0.1;
       data = {
         ...data,
@@ -175,7 +217,7 @@ const baseAchievementRaw = useMemo(
       };
     }
     return data;
-  }, [baseAchievementRaw, selectedTab]);
+  }, [baseAchievementRaw, selectedTab, useAchievementsApi]);
 
   const achievement = useMemo(
     () => applySadaqahAnalyticsView(baseAchievement, analyticsView, isVolunteering),
@@ -185,12 +227,43 @@ const baseAchievementRaw = useMemo(
   useEffect(() => {
     setSelectedBarIndex(null);
     setHintDismissed(false);
-  }, [period, goalId, analyticsView]);
+  }, [period, goalId, analyticsView, apiPeriodStart]);
 
   const handleBarPress = useCallback((index: number | null) => {
     setHintDismissed(true);
     setSelectedBarIndex((prev) => (prev === index ? null : index));
   }, []);
+
+  const canNavigateBack =
+    useAchievementsApi &&
+    Boolean(mappedApi?.canNavigateBack) &&
+    !isAchievementsLoading &&
+    !isAchievementsFetching;
+  const canNavigateForward =
+    useAchievementsApi &&
+    Boolean(mappedApi?.canNavigateForward) &&
+    !isAchievementsLoading &&
+    !isAchievementsFetching;
+
+  const handleNavigateBack = useCallback(() => {
+    if (!canNavigateBack || !mappedApi) return;
+    const next = shiftSadaqahAchievementsPeriodStart(
+      mappedApi.periodStart,
+      mappedApi.periodEnd,
+      -1,
+    );
+    if (next) setApiPeriodStart(next);
+  }, [canNavigateBack, mappedApi]);
+
+  const handleNavigateForward = useCallback(() => {
+    if (!canNavigateForward || !mappedApi) return;
+    const next = shiftSadaqahAchievementsPeriodStart(
+      mappedApi.periodStart,
+      mappedApi.periodEnd,
+      1,
+    );
+    if (next) setApiPeriodStart(next);
+  }, [canNavigateForward, mappedApi]);
 
   const selectedBaseWeek =
     selectedBarIndex !== null
@@ -204,26 +277,54 @@ const baseAchievementRaw = useMemo(
   const displayTimeSpentMinutes =
     selectedBaseWeek?.timeSpentMinutes ?? baseAchievement.totalTimeSpentMinutes;
 
-  const showNoDataDash = isPastAchievementBarEmpty(
-    displayBaseCompleted,
-    displayBaseIncomplete,
-  );
+  const showNoDataDash =
+    (useAchievementsApi &&
+      (isAchievementsLoading ||
+        Boolean(mappedApi?.locked) ||
+        (isAchievementsError && !mappedApi))) ||
+    isPastAchievementBarEmpty(displayBaseCompleted, displayBaseIncomplete);
+
+  const apiInsightCards = useMemo(() => {
+    if (!useAchievementsApi) return [];
+    return mapSadaqahApiKeyInsightsToCards(achievementsApiData, {
+      period,
+      noDataLabel: t("progressLogging.insightNoData"),
+      isLoading: isAchievementsLoading || isAchievementsFetching,
+    });
+  }, [
+    achievementsApiData,
+    isAchievementsFetching,
+    isAchievementsLoading,
+    period,
+    t,
+    useAchievementsApi,
+  ]);
 
   const renderInsights = () => {
-    const cards = SADAQAH_INSIGHT_CARDS[goalId]?.[period as "monthly" | "threeMonths" | "sixMonths"];
-    if (!cards || !isDetailed) return null;
+    if (!isDetailed) return null;
+
+    const cards = useAchievementsApi
+      ? apiInsightCards
+      : SADAQAH_INSIGHT_CARDS[goalId]?.[
+          period as "monthly" | "threeMonths" | "sixMonths"
+        ];
+    if (!cards || cards.length === 0) return null;
+
+    const vsLabel =
+      mappedApi?.keyInsightsHeader?.trim() ||
+      (period === "monthly"
+        ? "VS. LAST MONTH"
+        : period === "threeMonths"
+          ? "VS. LAST 3 MONTHS"
+          : "VS. LAST 6 MONTHS");
 
     return (
       <View style={styles.insightsSection}>
         <View style={styles.insightsHeader}>
-          <Text style={styles.insightsTitleLabel}>KEY INSIGHTS</Text>
-          <Text style={styles.insightsSubtitleLabel}>
-            {period === "monthly"
-              ? "VS. LAST MONTH"
-              : period === "threeMonths"
-                ? "VS. LAST 3 MONTHS"
-                : "VS. LAST 6 MONTHS"}
+          <Text style={styles.insightsTitleLabel}>
+            {t("progressLogging.keyInsights")}
           </Text>
+          <Text style={styles.insightsSubtitleLabel}>{vsLabel}</Text>
         </View>
         <ScrollView
           horizontal
@@ -237,6 +338,14 @@ const baseAchievementRaw = useMemo(
       </View>
     );
   };
+
+  const formatAmount = useCallback(
+    (amount: number) =>
+      isCountGoal
+        ? `${Math.round(amount)}`
+        : formatSadaqahAmountLabel(amount, isVolunteering, currencyCode),
+    [currencyCode, isCountGoal, isVolunteering],
+  );
 
   const showChartHint = !hintDismissed && selectedBarIndex === null;
   const deltaIsPositive = baseAchievement.previousPeriodDeltaPercent > 0;
@@ -347,9 +456,7 @@ const baseAchievementRaw = useMemo(
         <Text style={styles.statValueIncomplete}>
           {showNoDataDash
             ? PAST_ACHIEVEMENT_NO_DATA
-            : isCountGoal
-              ? `${Math.round(displayBaseIncomplete)}`
-              : formatSadaqahAmountLabel(displayBaseIncomplete, isVolunteering)}
+            : formatAmount(displayBaseIncomplete)}
         </Text>
       </View>
     );
@@ -456,14 +563,40 @@ const baseAchievementRaw = useMemo(
             </View>
 
             <View style={styles.dateNavRow}>
-              <TouchableOpacity activeOpacity={0.7} style={styles.navBtn}>
-                <Ionicons name="chevron-back" size={20} color={Colors.light.white} />
+              <TouchableOpacity
+                activeOpacity={0.7}
+                style={styles.navBtn}
+                onPress={handleNavigateBack}
+                disabled={!canNavigateBack}
+              >
+                <Ionicons
+                  name="chevron-back"
+                  size={20}
+                  color={
+                    canNavigateBack
+                      ? Colors.light.white
+                      : Colors.light.dullWhite
+                  }
+                />
               </TouchableOpacity>
               <Text style={styles.dateRange} numberOfLines={1}>
                 {achievement.dateRangeLabel}
               </Text>
-              <TouchableOpacity activeOpacity={0.7} style={styles.navBtn}>
-                <Ionicons name="chevron-forward" size={20} color={Colors.light.white} />
+              <TouchableOpacity
+                activeOpacity={0.7}
+                style={styles.navBtn}
+                onPress={handleNavigateForward}
+                disabled={!canNavigateForward}
+              >
+                <Ionicons
+                  name="chevron-forward"
+                  size={20}
+                  color={
+                    canNavigateForward
+                      ? Colors.light.white
+                      : Colors.light.dullWhite
+                  }
+                />
               </TouchableOpacity>
             </View>
           </View>
@@ -513,9 +646,7 @@ const baseAchievementRaw = useMemo(
                 ? PAST_ACHIEVEMENT_NO_DATA
                 : isVolunteering
                   ? `${baseAchievement.goalAmount} hours`
-                  : isCountGoal
-                    ? `${baseAchievement.goalAmount}`
-                    : formatSadaqahAmountLabel(baseAchievement.goalAmount, false)}
+                  : formatAmount(baseAchievement.goalAmount)}
             </Text>
             {(isFidya || isKaffarah) && (
               <View style={styles.goalUnitPill}>
@@ -638,9 +769,7 @@ const baseAchievementRaw = useMemo(
             <Text style={styles.statValueCompleted}>
               {showNoDataDash
                 ? PAST_ACHIEVEMENT_NO_DATA
-                : isCountGoal
-                  ? `${Math.round(displayBaseCompleted)}`
-                  : formatSadaqahAmountLabel(displayBaseCompleted, isVolunteering)}
+                : formatAmount(displayBaseCompleted)}
             </Text>
           </View>
           {renderSecondStat()}
@@ -672,7 +801,7 @@ const baseAchievementRaw = useMemo(
             formatBarValue={(val) =>
               isTimeSpentView
                 ? formatTotalTime(val / 60)
-                : formatSadaqahAmountLabel(val, isVolunteering)
+                : formatAmount(val)
             }
             isPrayerGoal={true}
             showPagination={isDetailed}

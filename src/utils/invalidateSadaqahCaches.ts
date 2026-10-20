@@ -15,10 +15,18 @@ export function invalidateSadaqahCaches(
       queryKey: ["sadaqah-goal-frame", sadaqahType],
     });
     queryClient.invalidateQueries({
+      queryKey: ["sadaqah-goal-insights", sadaqahType],
+    });
+    queryClient.invalidateQueries({
+      queryKey: ["sadaqah-goal-achievements", sadaqahType],
+    });
+    queryClient.invalidateQueries({
       queryKey: ["sadaqah-detail", sadaqahType],
     });
   } else {
     queryClient.invalidateQueries({ queryKey: ["sadaqah-goal-frame"] });
+    queryClient.invalidateQueries({ queryKey: ["sadaqah-goal-insights"] });
+    queryClient.invalidateQueries({ queryKey: ["sadaqah-goal-achievements"] });
     queryClient.invalidateQueries({ queryKey: ["sadaqah-detail"] });
   }
 

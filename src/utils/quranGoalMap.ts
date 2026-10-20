@@ -278,10 +278,22 @@ export function quranMetricSnapshotCompareKey(
           .sort((a, b) => a - b)
       : [];
     const raw = v.surahSettings ?? {};
-    const settings: Record<number, unknown> = {};
+    // Normalize cadence so list-seed vs detail / child emits compare equal.
+    const settings: Record<
+      number,
+      { frequency: "daily" | "weekly"; times: number }
+    > = {};
     for (const id of ids) {
-      if (raw[id] != null) settings[id] = raw[id];
-      else if (raw[String(id)] != null) settings[id] = raw[String(id)];
+      const entry = (raw[id] ?? raw[String(id)]) as
+        | { frequency?: string; times?: number | string }
+        | null
+        | undefined;
+      if (entry == null || typeof entry !== "object") continue;
+      const freq = String(entry.frequency ?? "daily").toLowerCase();
+      settings[id] = {
+        frequency: freq === "weekly" || freq === "week" ? "weekly" : "daily",
+        times: Number(entry.times ?? 0) || 0,
+      };
     }
     return JSON.stringify({ selectedSurahs: ids, surahSettings: settings });
   }

@@ -44,6 +44,8 @@ export type MissedZakatWeeklyProgressDashboardProps = {
   onDeleted?: () => void;
   allowLogDeletion?: boolean;
   sadaqahType?: string;
+  /** ISO currency code from the goal frame (`USD`, `SAR`, …). */
+  currencyCode?: string;
 };
 
 const CARD_HORIZONTAL_PADDING = 16;
@@ -123,10 +125,15 @@ export function MissedZakatWeeklyProgressDashboard({
   onDeleted,
   allowLogDeletion = true,
   sadaqahType = "MISSED_ZAKAT",
+  currencyCode = "USD",
 }: MissedZakatWeeklyProgressDashboardProps) {
   const { width: screenWidth } = useWindowDimensions();
   const { mutate: deleteSadaqahLog, isPending: isDeletingLog } =
     useDeleteSadaqahLog();
+  const currency = String(currencyCode || "USD")
+    .trim()
+    .toUpperCase();
+  const formatAmount = (value: number) => `${currency} ${value}`;
 
   const availableWidth =
     screenWidth * WRAPPER_WIDTH_RATIO - CARD_HORIZONTAL_PADDING;
@@ -264,7 +271,7 @@ export function MissedZakatWeeklyProgressDashboard({
                       ]}
                       numberOfLines={1}
                     >
-                      {hasLog ? `$${day.amountLogged}` : ""}
+                      {hasLog ? formatAmount(day.amountLogged) : ""}
                     </Text>
                   </View>
 
@@ -289,7 +296,9 @@ export function MissedZakatWeeklyProgressDashboard({
         <View style={styles.statsRow}>
           <DashBoardHandHeartIcon size={24} color={Colors.light.lightblue} />
           <Text style={styles.statsText} numberOfLines={1}>
-            <Text style={styles.statsCount}>${totalSpentThisWeek}</Text>
+            <Text style={styles.statsCount}>
+              {formatAmount(totalSpentThisWeek)}
+            </Text>
             {" spent in total this week"}
           </Text>
         </View>
@@ -305,7 +314,7 @@ export function MissedZakatWeeklyProgressDashboard({
             <Text style={styles.quoteText}>
               Zakat is the right of the poor and the command of Allah—
               <Text style={{ fontFamily: fonts.primary.bold }}>
-                ${remainingAmount}
+                {formatAmount(remainingAmount)}
               </Text>{" "}
               remaining!
             </Text>

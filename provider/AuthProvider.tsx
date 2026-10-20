@@ -8,7 +8,10 @@ import {
   setRefreshToken,
 } from "@/src/storage/tokenStorage";
 import { store } from "@/src/store/store";
-import { clearPendingOnboardingRoute } from "@/src/storage/onboardingRouteStorage";
+import {
+  clearGoalOnboardingFinished,
+  clearPendingOnboardingRoute,
+} from "@/src/storage/onboardingRouteStorage";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useQueryClient } from "@tanstack/react-query";
 import React, { createContext, ReactNode, useEffect, useState } from "react";
@@ -110,6 +113,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     await clearAuthTokens();
     await AsyncStorage.removeItem(USER_DATA_KEY);
     await clearPendingOnboardingRoute();
+    await clearGoalOnboardingFinished();
     queryClient.clear();
     setIsAuthenticated(false);
     setUser(null);

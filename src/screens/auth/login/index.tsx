@@ -28,6 +28,7 @@ import { ImageBackground } from "expo-image";
 import { BadrTreeImage } from "@/assets/images";
 import { LetterIcon, PasswordLockIcon } from "@/assets/icons";
 import { SocialAuthSection } from "./components/SocialAuthSection";
+import { resolvePostAuthHref } from "@/src/utils/resolvePostAuthHref";
 // Social login disabled (Expo Go / unmatched native routes).
 // import { SocialAuthSection } from "./components/SocialAuthSection";
 
@@ -75,22 +76,15 @@ export default function LoginScreen() {
 
       await signIn(accessToken, refreshToken, user);
 
-      if (user?.emailVerified === false) {
-        router.replace({
-          pathname: "/(auth)/verifyemail/[fromsignup]",
-          params: {
-            fromsignup: "true",
-            email: user.email ?? data.email.trim(),
-          },
-        });
-        return;
-      }
-
-      if (result?.data?.hasActiveGoalCycle === true) {
-        router.replace("/(tabs)/(home)");
-      } else {
-        router.replace("/(private)/greetingsscreen");
-      }
+      // Tabs only when /me.hasSelectedAllGoals; otherwise resume onboarding.
+      // Do not use hasActiveGoalCycle alone (cycle commit ≠ Review Finish).
+      const href = await resolvePostAuthHref({
+        user: {
+          email: user?.email ?? data.email.trim(),
+          emailVerified: user?.emailVerified,
+        },
+      });
+      router.replace(href);
     } catch {
       // Toast is handled in useLogin
     }

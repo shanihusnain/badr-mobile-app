@@ -123,9 +123,17 @@ export function applySadaqahAnalyticsView(
   return achievement;
 }
 
-export function formatSadaqahAmountLabel(amount: number, isVolunteering: boolean): string {
+export function formatSadaqahAmountLabel(
+  amount: number,
+  isVolunteering: boolean,
+  currencyCode?: string | null,
+): string {
   if (isVolunteering) {
     return formatTotalTime(amount);
+  }
+  const code = String(currencyCode || "").trim().toUpperCase();
+  if (code) {
+    return `${code} ${Math.round(amount)}`;
   }
   return `$${Math.round(amount)}`;
 }

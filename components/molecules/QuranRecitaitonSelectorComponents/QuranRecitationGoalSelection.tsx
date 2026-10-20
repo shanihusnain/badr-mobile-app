@@ -724,18 +724,171 @@ export const QuranRecitationGoalSelection = ({
     savedMetrics,
   ]);
 
+  /**
+   * Recitation surah cadence lands with the per-type detail fetch. A list-seed
+   * baseline then looks dirty when the child re-emits settings — memorization
+   * omits settings so it stays SAVED!. Until detail has hydrated a saved
+   * metric once this open, compare surah by ids only; then adopt the live
+   * snapshot as the saved baseline.
+   */
+  const hydratedBaselineMetricsRef = useRef<Set<MetricName>>(new Set());
+  const prevLoadingDetailRef = useRef(loadingDetail);
+  const [detailHydrateNonce, setDetailHydrateNonce] = useState(0);
+
+  useEffect(() => {
+    if (!isOpen) {
+      hydratedBaselineMetricsRef.current = new Set();
+      prevLoadingDetailRef.current = false;
+    }
+  }, [isOpen]);
+
+  const adoptDetailHydrateBaseline = useCallback(
+    (metric: MetricName, live: any) => {
+      if (hydratedBaselineMetricsRef.current.has(metric)) return;
+      if (!isQuranMetricValueConfigured(metric, live)) return;
+
+      if (metric === "surah" && variant !== "memorization") {
+        const ids: number[] = Array.isArray(live?.selectedSurahs)
+          ? live.selectedSurahs.map(Number).filter((n: number) => n > 0)
+          : [];
+        const settings = live?.surahSettings ?? {};
+        const allHaveSettings = ids.every(
+          (id) => settings[id] != null || settings[String(id)] != null,
+        );
+        if (ids.length > 0 && !allHaveSettings) return;
+
+        // Selection changed during hydrate = real edit — flip to full compare
+        // without overwriting the saved baseline.
+        const savedIds = Array.isArray(
+          savedSnapshotsRef.current.surah?.selectedSurahs,
+        )
+          ? [...savedSnapshotsRef.current.surah.selectedSurahs]
+              .map(Number)
+              .filter((n) => n > 0)
+              .sort((a, b) => a - b)
+              .join(",")
+          : "";
+        const liveIds = [...ids].sort((a, b) => a - b).join(",");
+        if (savedIds && liveIds && savedIds !== liveIds) {
+          hydratedBaselineMetricsRef.current.add(metric);
+          setDetailHydrateNonce((n) => n + 1);
+          setMarkCleanNonce((n) => n + 1);
+          return;
+        }
+      }
+
+      hydratedBaselineMetricsRef.current.add(metric);
+      const liveKey = quranMetricSnapshotCompareKey(metric, live);
+      const savedKey = quranMetricSnapshotCompareKey(
+        metric,
+        savedSnapshotsRef.current[metric],
+      );
+      if (liveKey !== savedKey) {
+        savedSnapshotsRef.current = {
+          ...savedSnapshotsRef.current,
+          [metric]: live,
+        };
+      }
+      setDetailHydrateNonce((n) => n + 1);
+      setMarkCleanNonce((n) => n + 1);
+    },
+    [variant],
+  );
+
+  useEffect(() => {
+    const wasLoading = prevLoadingDetailRef.current;
+    prevLoadingDetailRef.current = loadingDetail;
+    if (!saveBaselineReady || !isOpen) return;
+    if (!showAsInitiallySaved) return;
+    if (!wasLoading || loadingDetail) return;
+    if (!resolvedMetric || !savedMetrics.has(resolvedMetric)) return;
+    adoptDetailHydrateBaseline(
+      resolvedMetric,
+      metricSnapshotsRef.current[resolvedMetric],
+    );
+  }, [
+    saveBaselineReady,
+    isOpen,
+    showAsInitiallySaved,
+    resolvedMetric,
+    loadingDetail,
+    savedMetrics,
+    adoptDetailHydrateBaseline,
+  ]);
+
+  // After detail arrives, child may emit settings one tick later — catch up.
+  // Require goalDetail (not list fallback) so we don't lock on sparse list seed.
+  useEffect(() => {
+    if (!saveBaselineReady || !isOpen) return;
+    if (!showAsInitiallySaved || !resolvedMetric) return;
+    if (!savedMetrics.has(resolvedMetric)) return;
+    if (loadingDetail || !goalDetail) return;
+    adoptDetailHydrateBaseline(resolvedMetric, metricSnapshots[resolvedMetric]);
+  }, [
+    saveBaselineReady,
+    isOpen,
+    showAsInitiallySaved,
+    resolvedMetric,
+    loadingDetail,
+    goalDetail,
+    metricSnapshots,
+    savedMetrics,
+    adoptDetailHydrateBaseline,
+  ]);
+
   // Stable when clean; only changes when live snapshots diverge from saved.
   // Compare via normalized keys — child vs API shapes differ for the same picks.
   const saveValueKey = useMemo(() => {
     if (!saveBaselineReady) return undefined;
+
+    // While a saved metric's detail is loading / settings not adopted, keep
+    // SAVED! — same as memorization, which never hits cadence hydrate churn.
+    const savedMetricHydrating =
+      showAsInitiallySaved &&
+      !!resolvedMetric &&
+      savedMetrics.has(resolvedMetric) &&
+      (loadingDetail ||
+        (variant !== "memorization" &&
+          resolvedMetric === "surah" &&
+          !hydratedBaselineMetricsRef.current.has("surah")));
+
+    if (savedMetricHydrating) {
+      return `clean|hydrating|${Array.from(savedMetrics).sort().join(",")}|${markCleanNonce}|${detailHydrateNonce}`;
+    }
+
+    const surahIdsKey = (value: any): string => {
+      if (!Array.isArray(value?.selectedSurahs)) return "";
+      return [...value.selectedSurahs]
+        .map(Number)
+        .filter((n) => n > 0)
+        .sort((a, b) => a - b)
+        .join(",");
+    };
+
     const metrics: MetricName[] = ["surah", "juz", "hizb", "completion"];
     const dirty: string[] = [];
     for (const m of metrics) {
-      const live = quranMetricSnapshotCompareKey(m, metricSnapshots[m]);
-      const saved = quranMetricSnapshotCompareKey(
-        m,
-        savedSnapshotsRef.current[m],
-      );
+      // Recitation surah: until detail hydrate adopts settings, compare ids
+      // only (cadence list≠detail≠child). After hydrate, full key so edits
+      // to times/frequency flip Save — same end state as memorization.
+      const surahIdsOnly =
+        m === "surah" &&
+        variant !== "memorization" &&
+        (savedMetrics.has("surah") || showAsInitiallySaved) &&
+        !hydratedBaselineMetricsRef.current.has("surah");
+
+      let live: string;
+      let saved: string;
+      if (surahIdsOnly) {
+        live = surahIdsKey(metricSnapshots.surah);
+        saved = surahIdsKey(savedSnapshotsRef.current.surah);
+      } else {
+        live = quranMetricSnapshotCompareKey(m, metricSnapshots[m]);
+        saved = quranMetricSnapshotCompareKey(
+          m,
+          savedSnapshotsRef.current[m],
+        );
+      }
       // Missing live while saved exists = not hydrated yet, not a user edit.
       if (!live && saved) continue;
       if (live !== saved) {
@@ -745,7 +898,17 @@ export const QuranRecitationGoalSelection = ({
     return dirty.length === 0
       ? `clean|${Array.from(savedMetrics).sort().join(",")}|${markCleanNonce}`
       : `dirty|${dirty.join("|")}|${markCleanNonce}`;
-  }, [saveBaselineReady, metricSnapshots, savedMetrics, markCleanNonce]);
+  }, [
+    saveBaselineReady,
+    metricSnapshots,
+    savedMetrics,
+    markCleanNonce,
+    detailHydrateNonce,
+    variant,
+    showAsInitiallySaved,
+    resolvedMetric,
+    loadingDetail,
+  ]);
 
   return (
     <View

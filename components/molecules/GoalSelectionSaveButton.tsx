@@ -91,6 +91,8 @@ export default function GoalSelectionSaveButton({
   }, [initiallySaved]);
 
   // Any edit after a saved baseline brings back the green Save button.
+  // Clean keys restore SAVED! when reopening an already-saved goal (hydrate
+  // can briefly emit dirty before snapshots settle — without this, Save sticks).
   useEffect(() => {
     if (valueKey === undefined) return;
 
@@ -104,15 +106,28 @@ export default function GoalSelectionSaveButton({
         // Still hydrating (false dirty) — keep SAVED! until a clean baseline.
         if (isDirtyKey) return;
         baselineKeyRef.current = valueKey;
+        if (isCleanKey && !showSavedRef.current) {
+          showSavedRef.current = true;
+          setShowSaved(true);
+        }
       }
       return;
     }
 
     if (valueKey === baselineKeyRef.current) return;
 
-    // Absorb clean hydrate key churn while SAVED!; never absorb real dirty edits.
+    // Absorb clean hydrate key churn; restore SAVED! if a false dirty flipped us.
+    if (isCleanKey && (showSavedRef.current || initiallySaved)) {
+      baselineKeyRef.current = valueKey;
+      if (!showSavedRef.current) {
+        showSavedRef.current = true;
+        setShowSaved(true);
+      }
+      return;
+    }
+
     if (
-      (Date.now() < hydrateGraceUntilRef.current || isCleanKey) &&
+      Date.now() < hydrateGraceUntilRef.current &&
       showSavedRef.current &&
       !isDirtyKey
     ) {

@@ -2453,6 +2453,7 @@ export function WeeklyProgressSection({
             onDeleted={onDeleted}
             allowLogDeletion
             sadaqahType="MISSED_ZAKAT"
+            currencyCode={frame.goal?.currencyCode ?? "USD"}
             onPrevWeek={
               canPrev
                 ? () => shiftSadaqahFrameWeek(sadaqahFrame, frame, -1)

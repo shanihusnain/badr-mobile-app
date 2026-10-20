@@ -35,7 +35,10 @@ import {
 export type { Tab };
 import { useTranslation } from "react-i18next";
 import { router } from "expo-router";
-import { clearPendingOnboardingRoute } from "@/src/storage/onboardingRouteStorage";
+import {
+  clearPendingOnboardingRoute,
+  setGoalOnboardingFinished,
+} from "@/src/storage/onboardingRouteStorage";
 import {
   tahiyyatalwudhubottomsheetimage,
   missedpastprayerbottomsheetimage,
@@ -444,9 +447,13 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
 
   const confirmFinishAndSave = useCallback(() => {
     setFinishSaveModalVisible(false);
-    void clearPendingOnboardingRoute();
-    router.replace("/(tabs)/(home)");
-  }, []);
+    void (async () => {
+      await setGoalOnboardingFinished();
+      await clearPendingOnboardingRoute();
+      await queryClient.invalidateQueries({ queryKey: ["me"] });
+      router.replace("/(tabs)/(home)");
+    })();
+  }, [queryClient, router]);
 
   const handleSeeMorePress = useCallback((goal: string) => {
     router.push({
@@ -4377,8 +4384,9 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                     "recitation",
                     // saveAll → surah + juz + completion in one bulk PUT
                     saveAll ? undefined : metric,
+                    // Same markSaved / SAVED! path as memorization; review rows
+                    // refresh after onDone so the CTA is not remounted mid-flip.
                     () => {
-                      // markSaved / SAVED! first — same as memorization
                       onDone?.();
                       if (
                         saveAll ||

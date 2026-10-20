@@ -192,13 +192,22 @@ const PREFIX_CURRENCY_SYMBOLS = new Set([
   "RM",
 ]);
 
+/** Symbol for a currency code (`USD` → `$`). Falls back to the code itself. */
+export function getSadaqahCurrencySymbol(
+  currencyCode: string | null | undefined,
+  fallbackCode = "SAR",
+): string {
+  const code = (currencyCode || fallbackCode).trim().toUpperCase();
+  return CURRENCY_SYMBOL_BY_CODE[code] ?? code;
+}
+
 /** Review UI: "$1,000" / "£1,000" / "ر.س 1,000" */
 export function formatReviewCurrencyAmount(
   currencyCode: string | null | undefined,
   amount: number | null | undefined,
 ): string {
   const code = (currencyCode || "SAR").trim().toUpperCase();
-  const symbol = CURRENCY_SYMBOL_BY_CODE[code] ?? code;
+  const symbol = getSadaqahCurrencySymbol(code);
   const numeric = Number(amount) || 0;
   const formatted = Math.round(numeric).toLocaleString("en-US");
 
