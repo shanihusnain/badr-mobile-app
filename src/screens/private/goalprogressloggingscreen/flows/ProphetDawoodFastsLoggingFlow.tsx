@@ -76,7 +76,7 @@ export default function ProphetDawoodFastsLoggingFlow({
   onLogComplete,
   onDropdownOpenChange,
 }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const fastingFrame = useOptionalFastingGoalFrameContext();
   const frame = fastingFrame?.frame;
   const { mutateAsync: logFast, isPending: isLogging } = useLogFastingGoal();
@@ -415,6 +415,51 @@ export default function ProphetDawoodFastsLoggingFlow({
     }
   };
 
+  const toggleTimeStep = useCallback(() => {
+    if (currentStep === "startTime") {
+      ensureEndAfterStart();
+      setStepIndex(STEPS.indexOf("endTime"));
+    } else if (currentStep === "endTime") {
+      setStepIndex(STEPS.indexOf("startTime"));
+    }
+  }, [currentStep, ensureEndAfterStart]);
+
+  const renderTimeStep = (
+    sectionLabel: string,
+    picker: React.ReactNode,
+  ) => (
+    <View style={localStyles.timeStepWrap}>
+      <Text style={localStyles.timeSectionLabel}>{sectionLabel}</Text>
+      <View style={commonStyles.dateRow}>
+        <TouchableOpacity
+          onPress={toggleTimeStep}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          activeOpacity={0.7}
+        >
+          <Ionicons
+            name={i18n.language === "ar" ? "chevron-forward" : "chevron-back"}
+            size={32}
+            color={Colors.light.white}
+          />
+        </TouchableOpacity>
+
+        <View style={localStyles.timePickerCenter}>{picker}</View>
+
+        <TouchableOpacity
+          onPress={toggleTimeStep}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          activeOpacity={0.7}
+        >
+          <Ionicons
+            name={i18n.language === "ar" ? "chevron-back" : "chevron-forward"}
+            size={32}
+            color={Colors.light.white}
+          />
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
   const renderStepContent = (step: ProphetDawoodFastsStepId) => {
     switch (step) {
       case "selectPlannedFast":
@@ -430,7 +475,8 @@ export default function ProphetDawoodFastsLoggingFlow({
           />
         );
       case "startTime":
-        return (
+        return renderTimeStep(
+          t("progressLogging.dawoodStartTimeLabel", "Start Time"),
           <StartTimeStep
             startHour={startHour}
             setStartHour={setStartHour}
@@ -441,10 +487,11 @@ export default function ProphetDawoodFastsLoggingFlow({
             isPeriodDropdownOpen={isStartPeriodDropdownOpen}
             setIsPeriodDropdownOpen={setIsStartPeriodDropdownOpen}
             styles={commonStyles}
-          />
+          />,
         );
       case "endTime":
-        return (
+        return renderTimeStep(
+          t("progressLogging.dawoodEndTimeLabel", "End Time"),
           <StartTimeStep
             startHour={endHour}
             setStartHour={setEndHour}
@@ -455,7 +502,7 @@ export default function ProphetDawoodFastsLoggingFlow({
             isPeriodDropdownOpen={isEndPeriodDropdownOpen}
             setIsPeriodDropdownOpen={setIsEndPeriodDropdownOpen}
             styles={commonStyles}
-          />
+          />,
         );
     }
   };
@@ -716,5 +763,32 @@ const localStyles = StyleSheet.create({
     bottom: 15,
     alignItems: "center",
     justifyContent: "center",
+  },
+  timeStepWrap: {
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
+    position: "relative",
+  },
+  timeSectionLabel: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: "100%",
+    marginBottom: 2,
+    color: Colors.light.white,
+    fontFamily: fonts.primary.regular,
+    fontWeight: "400",
+    fontSize: 10,
+    lineHeight: 10,
+    textAlign: "center",
+    opacity: 0.95,
+  },
+  timePickerCenter: {
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 1,
+    minWidth: 0,
+    transform: [{ translateX: 4 }],
   },
 });

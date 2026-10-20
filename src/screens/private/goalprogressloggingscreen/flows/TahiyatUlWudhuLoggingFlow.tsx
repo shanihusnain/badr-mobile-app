@@ -23,6 +23,7 @@ import { fonts } from "@/assets/fonts";
 import type { ProgressLogEntry } from "../types";
 import { useOptionalPrayerGoalFrameContext } from "../prayerGoalFrameContext";
 import {
+  formatPrayerGoalFlowCardLabel,
   getPrayerFrameAchievementLabel,
   prayerFrameShowsInsights,
 } from "@/src/utils/prayerGoalFrameMap";
@@ -30,7 +31,6 @@ import { useLogTahiyatAlWudhuGoal } from "@/src/api/mutations/useLogTahiyatAlWud
 import {
   AddLoggingFlowIcon,
   CalendarFlippingIcon,
-  PlusAddIcon,
   WhiteClockIcon,
   WhitePrayerMatIcon,
   WhiteTimerIcon,
@@ -95,7 +95,7 @@ export default function TahiyatUlWudhuLoggingFlow({
     ? toDateString(new Date(frame.cycle.cycleEnd))
     : undefined;
 
-  const goalLabel = frame?.goal.label ?? "";
+  const goalLabel = formatPrayerGoalFlowCardLabel(frame?.goal.label ?? "");
 
   const badgeStatus = useMemo(() => {
     if (!frame) {
@@ -104,10 +104,6 @@ export default function TahiyatUlWudhuLoggingFlow({
         type: "in-progress" as const,
       };
     }
-    console.log(
-      "get prayer frame achievement label",
-      getPrayerFrameAchievementLabel(frame, t),
-    );
     return getPrayerFrameAchievementLabel(frame, t);
   }, [frame, t]);
 
@@ -353,10 +349,9 @@ export default function TahiyatUlWudhuLoggingFlow({
                       localStyles.badge,
                       badgeStatus.type === "completed"
                         ? localStyles.badgeCompleted
-                        : localStyles.badgeInProgress,
-                      badgeStatus.type === "not-started"
-                        ? localStyles.badgeNotStarted
-                        : localStyles.badgeInProgress,
+                        : badgeStatus.type === "not-started"
+                          ? localStyles.badgeNotStarted
+                          : localStyles.badgeInProgress,
                       { alignSelf: "flex-start" },
                     ]}
                   >
@@ -365,10 +360,9 @@ export default function TahiyatUlWudhuLoggingFlow({
                         localStyles.badgeText,
                         badgeStatus.type === "completed"
                           ? localStyles.badgeTextCompleted
-                          : localStyles.badgeTextInProgress,
-                        badgeStatus.type === "not-started"
-                          ? localStyles.badgeTextNotStarted
-                          : localStyles.badgeTextInProgress,
+                          : badgeStatus.type === "not-started"
+                            ? localStyles.badgeTextNotStarted
+                            : localStyles.badgeTextInProgress,
                       ]}
                     >
                       {badgeStatus.text}
@@ -394,22 +388,20 @@ export default function TahiyatUlWudhuLoggingFlow({
                       color={Colors.light.white}
                     />
                   </TouchableOpacity>
-                ) : (
-                  <View style={localStyles.spacer} />
-                )}
-
-                <TouchableOpacity
-                  style={[
-                    localStyles.addButton,
-                    isFullyAchieved && localStyles.addButtonDisabled,
-                  ]}
-                  onPress={handleOpenFlow}
-                  activeOpacity={0.8}
-                  disabled={isFullyAchieved}
-                >
-                  <AddLoggingFlowIcon />
-                </TouchableOpacity>
+                ) : null}
               </View>
+
+              <TouchableOpacity
+                style={[
+                  localStyles.addButton,
+                  isFullyAchieved && localStyles.addButtonDisabled,
+                ]}
+                onPress={handleOpenFlow}
+                activeOpacity={0.8}
+                disabled={isFullyAchieved}
+              >
+                <AddLoggingFlowIcon size={32} />
+              </TouchableOpacity>
             </View>
           ) : (
             <View style={commonStyles.flowCardLayer}>
@@ -444,17 +436,17 @@ const localStyles = StyleSheet.create({
     height: FLOW_CARD_HEIGHT,
     width: "100%",
     justifyContent: "space-between",
+    position: "relative",
   },
   badge: {
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
+    marginTop: 3,
   },
-  // "In Progress" chip — light purple bg, dark blue text
   badgeInProgress: {
     backgroundColor: Colors.light.lightpurple,
   },
-  // "X% Achieved" / "100% Achieved!" chip — light green bg, green text
   badgeCompleted: {
     backgroundColor: Colors.light.lightgreenbadgecolor,
   },
@@ -462,9 +454,10 @@ const localStyles = StyleSheet.create({
     backgroundColor: Colors.light.paginationInactiveDot,
   },
   badgeText: {
-    fontFamily: fonts.primary.semiBold,
-    fontSize: 10,
-    fontWeight: "600",
+    fontFamily: fonts.primary.medium,
+    fontSize: 12,
+    fontWeight: "500",
+    lineHeight: 12.5,
   },
   badgeTextInProgress: {
     color: Colors.light.darkblue,
@@ -478,7 +471,7 @@ const localStyles = StyleSheet.create({
   summaryBody: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    gap: 6,
   },
   summaryIconCircle: {
     width: 36,
@@ -487,7 +480,7 @@ const localStyles = StyleSheet.create({
     backgroundColor: Colors.light.selectcategory,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 22,
+    marginTop: 33,
   },
   summaryTitle: {
     color: Colors.light.white,
@@ -500,7 +493,6 @@ const localStyles = StyleSheet.create({
   },
   footerRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "flex-end",
     marginTop: 4,
   },
@@ -517,23 +509,13 @@ const localStyles = StyleSheet.create({
     fontWeight: "700",
   },
   addButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    // borderWidth: 1.5,
-    //borderColor: Colors.light.red,
+    position: "absolute",
+    right: 16,
+    bottom: 15,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 10,
   },
   addButtonDisabled: {
     opacity: 0.35,
-  },
-  badgeRow: {
-    flexDirection: "row",
-    marginLeft: 14,
-  },
-  spacer: {
-    flex: 1,
   },
 });

@@ -158,7 +158,7 @@ export const SetPersonalizedGoalsScreen = () => {
                 {t("setpersonalizedgoals.howItWorks")}
               </Text>
             </View>
-            {/* npxe */}
+            
             {activeFrame === 1 && (
               <>
                 <TopSpace top={ms(30)} />
