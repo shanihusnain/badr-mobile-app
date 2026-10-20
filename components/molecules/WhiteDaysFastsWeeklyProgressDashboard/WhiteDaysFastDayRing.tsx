@@ -219,7 +219,7 @@ export function WhiteDaysFastDayRing({
         {visual.showWarning ? (
           <FontAwesome
             name="warning"
-            size={Math.max(size * 0.42, 8)}
+            size={Math.max(size * 0.5, 9)}
             color={Colors.light.yellow}
           />
         ) : null}

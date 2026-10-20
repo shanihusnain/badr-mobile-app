@@ -124,7 +124,7 @@ export function MondayThursdayFastDayRing({
         >
           <FontAwesome
             name="warning"
-            size={Math.max(size * 0.5, 10)}
+            size={Math.max(size * 0.5, 9)}
             color={Colors.light.yellow}
           />
         </View>

@@ -998,44 +998,57 @@ export function MissedRamadanFastsPastAchievements({
           <>
             <View style={styles.legendRow}>
               {isDawood ? (
-                <>
-                  <View style={styles.legendItem}>
-                    <Feather
-                      name="refresh-ccw"
-                      size={12}
-                      color={Colors.light.ringDawood}
-                    />
-                    <Text style={styles.legendText}>
-                      {t("progressLogging.dawoodLegendNewCycleStart")}
-                    </Text>
-                  </View>
-                  <View style={styles.legendItem}>
-                    <View style={styles.legendDotFilledDawood} />
-                    <Text style={styles.legendText}>
-                      {t("progressLogging.dawoodLegendCompletedFast")}
-                    </Text>
-                  </View>
-                  <View style={styles.legendItem}>
-                    <View style={styles.legendIncompleteDawood}>
-                      <FontAwesome
-                        name="warning"
-                        size={5}
-                        color={Colors.light.warning}
-                      />
-                    </View>
-                    <Text style={styles.legendText}>
-                      {t("progressLogging.dawoodLegendIncompletePlannedFast")}
-                    </Text>
-                  </View>
-                  {isDetailed ? (
+                <View style={styles.legendDawoodWrap}>
+                  <View style={styles.legendDawoodTopRow}>
                     <View style={styles.legendItem}>
-                      <View style={styles.legendDotUpcomingDawood} />
+                      <Feather
+                        name="refresh-ccw"
+                        size={12}
+                        color={Colors.light.ringDawood}
+                      />
                       <Text style={styles.legendText}>
-                        {t("progressLogging.dawoodLegendUpcomingFast")}
+                        {t("progressLogging.dawoodLegendNewCycleStart")}
                       </Text>
                     </View>
+                    <View style={styles.legendItem}>
+                      <View style={styles.legendDotFilledDawoodOuter}>
+                        <View style={styles.legendDotFilledDawoodInner} />
+                      </View>
+                      <Text style={styles.legendText}>
+                        {t("progressLogging.dawoodLegendCompletedFast")}
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={styles.legendDawoodBottomRow}>
+                    <View style={styles.legendItem}>
+                      <View style={styles.legendIncompleteDawoodWrap}>
+                        <View style={styles.legendDotOutlinedDawood} />
+                        <View style={styles.legendDawoodWarningBadge}>
+                          <FontAwesome
+                            name="warning"
+                            size={7}
+                            color={Colors.light.golden}
+                          />
+                        </View>
+                      </View>
+                      <Text style={styles.legendText}>
+                        {t(
+                          "progressLogging.dawoodLegendIncompletePlannedFast",
+                        )}
+                      </Text>
+                    </View>
+                  </View>
+                  {isDetailed ? (
+                    <View style={styles.legendDawoodBottomRow}>
+                      <View style={styles.legendItem}>
+                        <View style={styles.legendDotUpcomingDawood} />
+                        <Text style={styles.legendText}>
+                          {t("progressLogging.dawoodLegendUpcomingFast")}
+                        </Text>
+                      </View>
+                    </View>
                   ) : null}
-                </>
+                </View>
               ) : (
                 <>
                   <View style={styles.legendItem}>
@@ -1585,36 +1598,64 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
     opacity: 0.65,
   },
-  legendDotFilledDawood: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+  legendDawoodWrap: {
+    width: "100%",
+    gap: 10,
+  },
+  legendDawoodTopRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: "100%",
+  },
+  legendDawoodBottomRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
+  },
+  legendDotFilledDawoodOuter: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    borderWidth: 1.5,
+    borderColor: Colors.light.ringDawood,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  legendDotFilledDawoodInner: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
     backgroundColor: Colors.light.ringDawood,
   },
   legendDotOutlinedDawood: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    borderWidth: 1.2,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    borderWidth: 1.5,
     borderColor: Colors.light.ringDawood,
     backgroundColor: "transparent",
   },
-  legendIncompleteDawood: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    borderWidth: 1.2,
-    borderColor: Colors.light.warning,
-    backgroundColor: "transparent",
+  legendIncompleteDawoodWrap: {
+    width: 18,
+    height: 18,
     alignItems: "center",
     justifyContent: "center",
-    overflow: "hidden",
+    overflow: "visible",
+  },
+  legendDawoodWarningBadge: {
+    position: "absolute",
+    right: -4,
+    bottom: 1,
+    alignItems: "center",
+    justifyContent: "center",
   },
   legendDotUpcomingDawood: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    borderWidth: 1.2,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    borderWidth: 1.5,
     borderColor: Colors.light.ringDawood,
     backgroundColor: "transparent",
     opacity: 0.65,

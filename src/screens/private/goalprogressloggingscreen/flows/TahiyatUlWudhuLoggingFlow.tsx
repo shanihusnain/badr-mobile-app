@@ -12,9 +12,8 @@ import moment from "moment-hijri";
 import { Colors } from "@/constants/theme";
 import { GoalData } from "../../home/components/goalsData";
 import { DateStep } from "../components/DateStep";
-import { formatProgressLoggingDateLabel } from "../progressLoggingConfig";
 import { OptionSelectStep } from "../components/OptionSelectStep";
-import { StartTimeStep, DurationStep, getCurrentStartTimeParts, isDurationEntered } from "../components/TimePickerSteps";
+import { StartTimeStep, DurationStep, getCurrentStartTimeParts } from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
 import {
   styles as commonStyles,
@@ -24,14 +23,10 @@ import { fonts } from "@/assets/fonts";
 import type { ProgressLogEntry } from "../types";
 import { useOptionalPrayerGoalFrameContext } from "../prayerGoalFrameContext";
 import {
-  formatPrayerGoalFlowCardLabel,
   getPrayerFrameAchievementLabel,
   prayerFrameShowsInsights,
 } from "@/src/utils/prayerGoalFrameMap";
 import { useLogTahiyatAlWudhuGoal } from "@/src/api/mutations/useLogTahiyatAlWudhuGoal";
-import { resolvePrayerTypeFromGoalId } from "@/src/utils/prayerGoalMap";
-import { useSinglePrayerDayDetailPrefill } from "../hooks/useSinglePrayerDayDetailPrefill";
-import type { SinglePrayerDayDetailPrefill } from "@/src/utils/prayerDayDetailPrefill";
 import {
   AddLoggingFlowIcon,
   CalendarFlippingIcon,
@@ -92,33 +87,6 @@ export default function TahiyatUlWudhuLoggingFlow({
 
   const prayerFrame = useOptionalPrayerGoalFrameContext();
   const frame = prayerFrame?.frame;
-  const prayerType =
-    resolvePrayerTypeFromGoalId(goalData.id) ?? "TAHIYYAT_AL_WUDHU";
-
-  const applyDayDetailPrefill = useCallback(
-    (prefill: SinglePrayerDayDetailPrefill) => {
-      setPrayedRightAfter(
-        prefill.prayedAfterWudhu == null
-          ? "Yes"
-          : prefill.prayedAfterWudhu
-            ? "Yes"
-            : "No",
-      );
-      setStartHour(prefill.startHour);
-      setStartMinute(prefill.startMinute);
-      setStartPeriod(prefill.startPeriod);
-      setDurationHours(prefill.durationHours);
-      setDurationMinutes(prefill.durationMinutes);
-    },
-    [],
-  );
-
-  const { dayDetailLoadingState } = useSinglePrayerDayDetailPrefill({
-    prayerType,
-    selectedDate,
-    enabled: flowMode === "active",
-    onPrefill: applyDayDetailPrefill,
-  });
 
   const cycleStartHijri = frame?.cycle?.cycleStart
     ? toDateString(new Date(frame.cycle.cycleStart))
@@ -127,7 +95,7 @@ export default function TahiyatUlWudhuLoggingFlow({
     ? toDateString(new Date(frame.cycle.cycleEnd))
     : undefined;
 
-  const goalLabel = formatPrayerGoalFlowCardLabel(frame?.goal.label ?? "");
+  const goalLabel = frame?.goal.label ?? "";
 
   const badgeStatus = useMemo(() => {
     if (!frame) {
@@ -185,11 +153,10 @@ export default function TahiyatUlWudhuLoggingFlow({
   const currentStep = STEPS[stepIndex];
   const isLastStep = stepIndex === STEPS.length - 1;
 
-  const dateLabel = formatProgressLoggingDateLabel(
-    selectedDate,
-    todayString,
-    t("progressLogging.today"),
-  );
+  const dateLabel =
+    selectedDate === todayString
+      ? t("progressLogging.today")
+      : moment(selectedDate, "YYYY-MM-DD").format("MMM DD");
 
   const shiftDate = (direction: -1 | 1) => {
     const next = moment(selectedDate, "YYYY-MM-DD")
@@ -218,7 +185,7 @@ export default function TahiyatUlWudhuLoggingFlow({
   }, []);
 
   const handleConfirm = () => {
-    if (isLogging || dayDetailLoadingState) return;
+    if (isLogging) return;
 
     const run = async () => {
       const payload = {
@@ -264,7 +231,6 @@ export default function TahiyatUlWudhuLoggingFlow({
   };
 
   const handleForward = () => {
-    if (dayDetailLoadingState) return;
     if (!isLastStep) setStepIndex((index) => index + 1);
   };
 
@@ -310,8 +276,6 @@ export default function TahiyatUlWudhuLoggingFlow({
             dateLabel={dateLabel}
             selectedDate={selectedDate}
             todayString={todayString}
-            minSelectableDate={cycleStartHijri}
-            maxSelectableDate={maxSelectableDate}
             onShiftDate={shiftDate}
             styles={commonStyles}
           />
@@ -359,7 +323,7 @@ export default function TahiyatUlWudhuLoggingFlow({
   return (
     <>
       {flowMode === "active" && (
-        <Pressable style={commonStyles.backdrop} />
+        <Pressable style={commonStyles.backdrop} onPress={resetFlow} />
       )}
       {flowMode === "active" && (
         <TouchableOpacity
@@ -389,9 +353,10 @@ export default function TahiyatUlWudhuLoggingFlow({
                       localStyles.badge,
                       badgeStatus.type === "completed"
                         ? localStyles.badgeCompleted
-                        : badgeStatus.type === "not-started"
-                          ? localStyles.badgeNotStarted
-                          : localStyles.badgeInProgress,
+                        : localStyles.badgeInProgress,
+                      badgeStatus.type === "not-started"
+                        ? localStyles.badgeNotStarted
+                        : localStyles.badgeInProgress,
                       { alignSelf: "flex-start" },
                     ]}
                   >
@@ -400,9 +365,10 @@ export default function TahiyatUlWudhuLoggingFlow({
                         localStyles.badgeText,
                         badgeStatus.type === "completed"
                           ? localStyles.badgeTextCompleted
-                          : badgeStatus.type === "not-started"
-                            ? localStyles.badgeTextNotStarted
-                            : localStyles.badgeTextInProgress,
+                          : localStyles.badgeTextInProgress,
+                        badgeStatus.type === "not-started"
+                          ? localStyles.badgeTextNotStarted
+                          : localStyles.badgeTextInProgress,
                       ]}
                     >
                       {badgeStatus.text}
@@ -428,20 +394,22 @@ export default function TahiyatUlWudhuLoggingFlow({
                       color={Colors.light.white}
                     />
                   </TouchableOpacity>
-                ) : null}
-              </View>
+                ) : (
+                  <View style={localStyles.spacer} />
+                )}
 
-              <TouchableOpacity
-                style={[
-                  localStyles.addButton,
-                  isFullyAchieved && localStyles.addButtonDisabled,
-                ]}
-                onPress={handleOpenFlow}
-                activeOpacity={0.8}
-                disabled={isFullyAchieved}
-              >
-                <AddLoggingFlowIcon size={32} />
-              </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    localStyles.addButton,
+                    isFullyAchieved && localStyles.addButtonDisabled,
+                  ]}
+                  onPress={handleOpenFlow}
+                  activeOpacity={0.8}
+                  disabled={isFullyAchieved}
+                >
+                  <AddLoggingFlowIcon />
+                </TouchableOpacity>
+              </View>
             </View>
           ) : (
             <View style={commonStyles.flowCardLayer}>
@@ -451,14 +419,9 @@ export default function TahiyatUlWudhuLoggingFlow({
                 onBack={handleBack}
                 onForward={handleForward}
                 onConfirm={handleConfirm}
-                canGoForward={!dayDetailLoadingState && !isLastStep}
+                canGoForward={!isLastStep}
                 canGoBack={stepIndex > 0}
-                canConfirm={
-                  isLastStep &&
-                  !dayDetailLoadingState &&
-                  !isLogging &&
-                  isDurationEntered(durationHours, durationMinutes)
-                }
+                canConfirm={isLastStep && !isLogging}
                 styles={commonStyles}
                 style={commonStyles.inPlaceFlowCard}
               >
@@ -481,13 +444,11 @@ const localStyles = StyleSheet.create({
     height: FLOW_CARD_HEIGHT,
     width: "100%",
     justifyContent: "space-between",
-    position: "relative",
   },
   badge: {
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
-    marginTop: 3,
   },
   // "In Progress" chip — light purple bg, dark blue text
   badgeInProgress: {
@@ -501,11 +462,9 @@ const localStyles = StyleSheet.create({
     backgroundColor: Colors.light.paginationInactiveDot,
   },
   badgeText: {
-    fontFamily: fonts.primary.medium,
-    fontSize: 12,
-    fontWeight: "500",
-    lineHeight: 12.5,
-    
+    fontFamily: fonts.primary.semiBold,
+    fontSize: 10,
+    fontWeight: "600",
   },
   badgeTextInProgress: {
     color: Colors.light.darkblue,
@@ -519,7 +478,7 @@ const localStyles = StyleSheet.create({
   summaryBody: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    gap: 12,
   },
   summaryIconCircle: {
     width: 36,
@@ -528,7 +487,7 @@ const localStyles = StyleSheet.create({
     backgroundColor: Colors.light.selectcategory,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 33,
+    marginTop: 22,
   },
   summaryTitle: {
     color: Colors.light.white,
@@ -541,6 +500,7 @@ const localStyles = StyleSheet.create({
   },
   footerRow: {
     flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "flex-end",
     marginTop: 4,
   },
@@ -557,11 +517,14 @@ const localStyles = StyleSheet.create({
     fontWeight: "700",
   },
   addButton: {
-    position: "absolute",
-    right: 16,
-    bottom: 15,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    // borderWidth: 1.5,
+    //borderColor: Colors.light.red,
     alignItems: "center",
     justifyContent: "center",
+    marginBottom: 10,
   },
   addButtonDisabled: {
     opacity: 0.35,

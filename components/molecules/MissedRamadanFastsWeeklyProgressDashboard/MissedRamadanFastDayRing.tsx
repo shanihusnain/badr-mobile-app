@@ -122,7 +122,7 @@ export function MissedRamadanFastDayRing({
         >
           <FontAwesome
             name="warning"
-            size={Math.max(size * 0.48, 9)}
+            size={Math.max(size * 0.5, 9)}
             color={Colors.light.yellow}
           />
         </View>

@@ -12,8 +12,8 @@ export const InBoxArrow = ({
     <Svg
         width={size}
         height={size}
-        viewBox={`0 0 ${size} ${size}`}
-        fill="none"
+    // viewBox={`0 0 ${size} ${size}`}
+    // fill="none"
     >
         <Path
             fill={color}
