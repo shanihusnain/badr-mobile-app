@@ -29,20 +29,30 @@ import { fonts } from "@/assets/fonts";
 import { setPendingOnboardingRoute } from "@/src/storage/onboardingRouteStorage";
 import { GoalProgressCard } from "./components/GoalProgressCard";
 import { useGetMe } from "@/src/api/queries/useGetMe";
+import { useAuth } from "@/provider/useAuth";
 import { ms } from "@/src/utils/responsive";
 
 export const SetPersonalizedGoalsScreen = () => {
   const { t, i18n } = useTranslation();
   const navigation = useNavigation();
   const currentLanguage = i18n.language as SupportedLanguage;
+  // Prefer auth cache (instant, same as greetings); /me only as fallback.
+  const { user: authUser } = useAuth();
   const { data: meUser } = useGetMe();
 
   const displayName = useMemo(() => {
-    const fromUsername = meUser?.username?.trim();
+    const fromUsername =
+      authUser?.username?.trim() || meUser?.username?.trim();
     if (fromUsername) return fromUsername;
-    const emailLocal = meUser?.email?.split("@")[0]?.trim();
-    return emailLocal || "";
-  }, [meUser?.email, meUser?.username]);
+    const email =
+      authUser?.email?.trim() || meUser?.email?.trim() || "";
+    return email.split("@")[0]?.trim() || "";
+  }, [
+    authUser?.email,
+    authUser?.username,
+    meUser?.email,
+    meUser?.username,
+  ]);
 
   const [activeFrame, setActiveFrame] = useState(1);
 

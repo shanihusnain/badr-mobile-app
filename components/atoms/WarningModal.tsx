@@ -29,9 +29,11 @@ type WarningModalProps = {
   primaryButtonStyle?: StyleProp<ViewStyle>;
   primaryButtonTextStyle?: StyleProp<TextStyle>;
   secondaryButtonTextStyle?: StyleProp<TextStyle>;
-  primaryButtonVariant?: "white" | "green";
+  primaryButtonVariant?: "white" | "green" | "red";
   /** Defaults to compact so modal bordered CTAs stay shorter than app-wide SecondaryButtons. */
   primaryButtonSize?: "default" | "compact" | "modal";
+  /** Show a spinner on the bordered primary CTA (e.g. delete in progress). */
+  primaryButtonLoading?: boolean;
 };
 
 export default function WarningModal({
@@ -48,8 +50,10 @@ export default function WarningModal({
   secondaryButtonTextStyle,
   primaryButtonVariant = "green",
   primaryButtonSize = "compact",
+  primaryButtonLoading = false,
 }: WarningModalProps) {
   const handleBackdropPress = () => {
+    if (primaryButtonLoading) return;
     if (onBackdropPress) onBackdropPress();
     else onPrimaryPress();
   };
@@ -86,14 +90,20 @@ export default function WarningModal({
             size={primaryButtonSize}
             style={primaryButtonStyle}
             textStyle={primaryButtonTextStyle}
+            isLoading={primaryButtonLoading}
           />
           {showSecondaryButton ? (
             <Pressable
               style={styles.secondaryButton}
               onPress={onSecondaryPress}
+              disabled={primaryButtonLoading}
             >
               <Text
-                style={[styles.secondaryButtonText, secondaryButtonTextStyle]}
+                style={[
+                  styles.secondaryButtonText,
+                  secondaryButtonTextStyle,
+                  primaryButtonLoading && styles.secondaryButtonTextDisabled,
+                ]}
               >
                 {secondaryButtonText}
               </Text>
@@ -164,7 +174,8 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.regular,
     fontSize: 14,
     textAlign: "center",
-    lineHeight: 22,
+    lineHeight: 20,
+    fontWeight: "400",
   },
   buttonContainer: {
     gap: 12,
@@ -180,5 +191,8 @@ const styles = StyleSheet.create({
     color: Colors.light.subtext,
     fontFamily: fonts.primary.semiBold,
     fontSize: 12,
+  },
+  secondaryButtonTextDisabled: {
+    opacity: 0.45,
   },
 });

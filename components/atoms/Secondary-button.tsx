@@ -16,7 +16,7 @@ interface SecondaryButtonProps extends PressableProps {
   text: string;
   onPress: () => void;
   textStyle?: StyleProp<TextStyle>;
-  variant?: "white" | "green";
+  variant?: "white" | "green" | "red";
   isLoading?: boolean;
   /** Compact height for WarningModal / goal-planner actions (smaller than default bordered CTAs). */
   size?: "default" | "compact" | "modal";
@@ -28,35 +28,43 @@ export default function SecondaryButton({
   style,
   textStyle,
   variant = "white",
-  isLoading,
+  isLoading = false,
   size = "default",
+  disabled,
   ...props
 }: SecondaryButtonProps) {
+  const spinnerColor =
+    variant === "red"
+      ? Colors.light.red
+      : variant === "green"
+        ? Colors.light.green
+        : Colors.light.white;
+
   return (
     <Pressable
       style={(state) => [
         styles.button,
         size === "compact" && styles.buttonCompact,
         size === "modal" && styles.buttonModal,
-        variant === "white" ? styles.buttonWhite : styles.buttonGreen,
+        variant === "white" && styles.buttonWhite,
+        variant === "green" && styles.buttonGreen,
+        variant === "red" && styles.buttonRed,
         typeof style === "function" ? style(state) : style,
-        state.pressed && styles.buttonPressed,
+        state.pressed && !isLoading && styles.buttonPressed,
       ]}
       onPress={onPress}
+      disabled={disabled || isLoading}
       {...props}
     >
       {isLoading ? (
-        <ActivityIndicator
-          size="small"
-          color={variant === "white" ? Colors.light.white : Colors.light.green}
-        />
+        <ActivityIndicator size="small" color={spinnerColor} />
       ) : (
         <Text
           style={[
             styles.buttonText,
-            variant === "white"
-              ? styles.buttonWhiteText
-              : styles.buttonGreenText,
+            variant === "white" && styles.buttonWhiteText,
+            variant === "green" && styles.buttonGreenText,
+            variant === "red" && styles.buttonRedText,
             size === "modal" && styles.buttonTextModal,
             textStyle,
           ]}
@@ -114,10 +122,16 @@ const styles = StyleSheet.create({
   buttonGreen: {
     borderColor: Colors.light.green,
   },
+  buttonRed: {
+    borderColor: Colors.light.red,
+  },
   buttonWhiteText: {
     color: Colors.light.background,
   },
   buttonGreenText: {
     color: Colors.light.green,
+  },
+  buttonRedText: {
+    color: Colors.light.red,
   },
 });

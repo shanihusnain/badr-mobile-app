@@ -165,6 +165,7 @@ import { currencyOptionFromCode } from "@/components/molecules/CurrencyAndAmount
 import { useGetCurrencies } from "@/src/api/queries/useGetCountries";
 import { buildFastingCalendarWindow } from "@/src/utils/fastingCalendarPreview";
 import { showToast } from "@/src/config/toastConfig";
+import { getDefaultSadaqahCurrency } from "@/src/storage/sadaqahCurrencyStorage";
 
 const OTHER_FASTING_GOAL_IDS = [
   "missed-fasts",
@@ -187,6 +188,15 @@ const SADAQAH_CURRENCY_FIELDS = [
   "lillahDonation",
   "sadaqahJariyah",
 ] as const;
+
+/** Planner goal id → RHF currency field (amount goals only). */
+const SADAQAH_GOAL_CURRENCY_FIELD: Partial<
+  Record<(typeof SADAQAH_CURRENCY_FIELDS)[number] | string, (typeof SADAQAH_CURRENCY_FIELDS)[number]>
+> = {
+  "missed-zakat": "missedZakat",
+  "lilah-donations": "lillahDonation",
+  "sadaqah-jariyah": "sadaqahJariyah",
+};
 
 const PRAYER_GOAL_LOADING_PLACEHOLDERS = Object.keys(PRAYER_TYPE_TO_UI_ID).map(
   (_, index) => ({
@@ -1079,27 +1089,48 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
   );
 
   const getGoalDisplayName = useCallback(
-    (_category: "prayer" | "quran" | "fasting" | "sadaqah", goalId: string) => {
+    (category: "prayer" | "quran" | "fasting" | "sadaqah", goalId: string) => {
       const reviewKey = GOAL_ID_TO_REVIEW_LABEL_KEY[goalId];
-      if (reviewKey) {
-        return t(`monthlyGoalPlanner.reviewLabels.${reviewKey}`);
+      let name = reviewKey
+        ? t(`monthlyGoalPlanner.reviewLabels.${reviewKey}`)
+        : "";
+
+      if (!name) {
+        // Fallback: avoid ALL CAPS goalsData titles in modal copy.
+        const raw = t(`goalsData.${goalId}.title`, { defaultValue: goalId });
+        const letters = raw.replace(/[^a-zA-Z]/g, "");
+        const upperRatio = letters
+          ? [...letters].filter((c) => c === c.toUpperCase()).length /
+            letters.length
+          : 0;
+        name =
+          upperRatio < 0.6
+            ? raw
+            : raw
+                .toLowerCase()
+                .split(/([\s\-]+)/)
+                .map((part) => {
+                  if (!part || /^[\s\-]+$/.test(part)) return part;
+                  return part.charAt(0).toUpperCase() + part.slice(1);
+                })
+                .join("");
       }
-      // Fallback: avoid ALL CAPS goalsData titles in modal copy.
-      const raw = t(`goalsData.${goalId}.title`, { defaultValue: goalId });
-      const letters = raw.replace(/[^a-zA-Z]/g, "");
-      const upperRatio = letters
-        ? [...letters].filter((c) => c === c.toUpperCase()).length /
-          letters.length
-        : 0;
-      if (upperRatio < 0.6) return raw;
-      return raw
-        .toLowerCase()
-        .split(/([\s\-]+)/)
-        .map((part) => {
-          if (!part || /^[\s\-]+$/.test(part)) return part;
-          return part.charAt(0).toUpperCase() + part.slice(1);
-        })
-        .join("");
+
+      // Unfinished-goal copy must say "Prayer" for every prayer goal.
+      if (category === "prayer") {
+        const hasPrayerWord =
+          /\bprayers?\b/i.test(name) ||
+          name.includes("صلاة") ||
+          name.includes("صلوات");
+        if (!hasPrayerWord) {
+          return t("monthlyGoalPlanner.unfinishedGoalNameWithPrayer", {
+            name,
+            defaultValue: `${name} Prayer`,
+          });
+        }
+      }
+
+      return name;
     },
     [t],
   );
@@ -1415,6 +1446,34 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
     [isSavingQuran, savingQuranGoalId],
   );
 
+  /**
+   * After delete, amounts reset to 0 but currency must stay as the user's
+   * saved default for all sadaqah goals (not wiped to empty).
+   */
+  const restoreDefaultSadaqahCurrencyField = useCallback(
+    async (field: (typeof SADAQAH_CURRENCY_FIELDS)[number]) => {
+      try {
+        const stored = await getDefaultSadaqahCurrency();
+        if (stored?.trim()) {
+          setValue(field, stored, { shouldDirty: false });
+          return;
+        }
+      } catch {
+        // fall through
+      }
+      // No persisted default — reuse another sadaqah field's currency if any.
+      for (const other of SADAQAH_CURRENCY_FIELDS) {
+        if (other === field) continue;
+        const value = getValues(other);
+        if (value && String(value).trim()) {
+          setValue(field, value, { shouldDirty: false });
+          return;
+        }
+      }
+    },
+    [getValues, setValue],
+  );
+
   const clearLocalGoalAfterDelete = useCallback(
     (
       category: "prayer" | "quran" | "fasting" | "sadaqah",
@@ -1477,7 +1536,6 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
         });
         if (goalId === "missed-zakat") {
           setMissedZakatAmount(0);
-          setValue("missedZakat", "");
         } else if (goalId === "kafarah-for-breaking-fasts") {
           setKafarahMeals(0);
           setKafarahCloths(0);
@@ -1485,12 +1543,14 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
           setFidyaMeals(0);
         } else if (goalId === "lilah-donations") {
           setLillahAmount(0);
-          setValue("lillahDonation", "");
         } else if (goalId === "volunteering-services") {
           setVolunteeringHours(0);
         } else if (goalId === "sadaqah-jariyah") {
           setSadaqahJariyahAmount(0);
-          setValue("sadaqahJariyah", "");
+        }
+        const currencyField = SADAQAH_GOAL_CURRENCY_FIELD[goalId];
+        if (currencyField) {
+          void restoreDefaultSadaqahCurrencyField(currencyField);
         }
         const sadaqahType = extras?.sadaqahType ?? resolveSadaqahType(goalId);
         queryClient.removeQueries({
@@ -1499,7 +1559,12 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
       }
       setEditingGoal((prev) => (prev ? null : prev));
     },
-    [handleGoalToggle, queryClient, setValue, trackPendingOnToggle],
+    [
+      handleGoalToggle,
+      queryClient,
+      restoreDefaultSadaqahCurrencyField,
+      trackPendingOnToggle,
+    ],
   );
 
   const closeDeleteGoalModal = useCallback(() => {
@@ -2077,16 +2142,23 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
   );
 
   const saveVolunteeringGoal = useCallback(
-    (goalKey: string, onDone?: () => void, onFail?: () => void) => {
-      if (volunteeringHours < 1) {
+    (
+      goalKey: string,
+      hours: number,
+      onDone?: () => void,
+      onFail?: () => void,
+    ) => {
+      if (!(hours > 0)) {
         showToast("error", "Enter volunteering hours greater than 0");
         onFail?.();
         return;
       }
+      setVolunteeringHours(hours);
+      volunteeringHoursRef.current = hours;
       upsertSadaqahGoal(
         {
           sadaqahType: "VOLUNTEERING",
-          targetAmount: volunteeringHours,
+          targetAmount: hours,
           targetUnit: "HOURS",
           causeCategory: "community_service",
         },
@@ -2099,12 +2171,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
         },
       );
     },
-    [
-      volunteeringHours,
-      upsertSadaqahGoal,
-      persistSadaqahMetrics,
-      completeGoalSaveSuccess,
-    ],
+    [upsertSadaqahGoal, persistSadaqahMetrics, completeGoalSaveSuccess],
   );
 
   const saveSadaqahJariyahGoal = useCallback(
@@ -3479,8 +3546,8 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
             title={t("monthlyGoalPlanner.fidyaMealsTitle")}
             isSaving={isSavingSadaqah}
             initiallySaved={true}
-            onSave={(done, fail) =>
-              saveFidyaGoal(goal.title, fidyaMeals, done, fail)
+            onSave={(meals, done, fail) =>
+              saveFidyaGoal(goal.title, meals, done, fail)
             }
           />
         );
@@ -3526,8 +3593,8 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
             })}
             isSaving={isSavingSadaqah}
             initiallySaved={true}
-            onSave={(done, fail) =>
-              saveVolunteeringGoal(goal.title, done, fail)
+            onSave={(hours, done, fail) =>
+              saveVolunteeringGoal(goal.title, hours, done, fail)
             }
           />
         );
@@ -4825,8 +4892,8 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                   sadaqah.id,
                   isSadaqahGoalConfigured(sadaqah.id),
                 )}
-                onSave={(done, fail) =>
-                  saveVolunteeringGoal(sadaqah.id, done, fail)
+                onSave={(hours, done, fail) =>
+                  saveVolunteeringGoal(sadaqah.id, hours, done, fail)
                 }
               />
             </View>
@@ -5220,17 +5287,10 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
         message={t("monthlyGoalPlanner.quranMetrics.deleteGoalMessage")}
         primaryButtonText={t("monthlyGoalPlanner.quranMetrics.delete")}
         secondaryButtonText={t("monthlyGoalPlanner.quranMetrics.cancel")}
-        primaryButtonVariant="white"
+        primaryButtonVariant="red"
         primaryButtonSize="modal"
-        primaryButtonStyle={{
-          alignSelf: "center",
-          borderColor: Colors.light.red,
-        }}
-        primaryButtonTextStyle={{
-          color: Colors.light.red,
-          fontWeight: "400",
-          fontFamily: fonts.primary.regular,
-        }}
+        primaryButtonLoading={isDeletingGoal}
+        primaryButtonStyle={styles.modalPrimaryButton}
         secondaryButtonTextStyle={{
           color: Colors.light.green,
         }}

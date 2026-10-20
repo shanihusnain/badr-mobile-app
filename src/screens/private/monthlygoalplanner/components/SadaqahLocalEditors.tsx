@@ -119,7 +119,7 @@ export const SadaqahFidyaLocalEditor = memo(function SadaqahFidyaLocalEditor({
       title={title}
       isSaving={isSaving}
       initiallySaved={initiallySaved}
-      onSave={(done, fail) => onSave(count, done, fail)}
+      onSave={(value, done, fail) => onSave(value, done, fail)}
     />
   );
 });

@@ -28,7 +28,12 @@ export const FidyaSelector = ({
   handleIncrease: () => void;
   title: string;
   countTitle?: string;
-  onSave?: (onDone?: () => void, onFail?: () => void) => void;
+  /** Receives the live draft count so Save is not blocked by stale parent state. */
+  onSave?: (
+    count: number,
+    onDone?: () => void,
+    onFail?: () => void,
+  ) => void;
   isSaving?: boolean;
   openOnMount?: boolean;
   collapseSignal?: number;
@@ -91,10 +96,15 @@ export const FidyaSelector = ({
               <GoalSelectionSaveButton
                 text={t("monthlyGoalPlanner.save")}
                 onPress={(markSaved, markFailed) => {
-                  onSave?.(() => {
-                    commitSaved(draftCount);
-                    markSaved();
-                  }, markFailed);
+                  const toSave = draftCount;
+                  onSave?.(
+                    toSave,
+                    () => {
+                      commitSaved(toSave);
+                      markSaved();
+                    },
+                    markFailed,
+                  );
                 }}
                 isLoading={isSaving}
                 disabled={isSaving || draftCount < 1}

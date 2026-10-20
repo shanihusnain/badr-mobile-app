@@ -208,8 +208,9 @@ export const MetricSelectionComponent = ({
     }
 
     toggleSurah(id);
-    if (!isChecked && !isMemorizationSurah) {
-      ensureSetting(id);
+    // Select or unselect → same first-open defaults (daily + times 0).
+    if (!isMemorizationSurah) {
+      resetSurahSettingToDefault(id);
     }
   };
 
@@ -541,6 +542,14 @@ export const MetricSelectionComponent = ({
       if (prev[id]) return prev;
       return { ...prev, [id]: { frequency: "daily", times: 0 } };
     });
+  };
+
+  /** Same defaults as first open: daily + times 0 (visible "0" placeholder). */
+  const resetSurahSettingToDefault = (id: number) => {
+    setSurahSettings((prev) => ({
+      ...prev,
+      [id]: { frequency: "daily", times: 0 },
+    }));
   };
 
   const updateSurahSetting = (
@@ -1231,7 +1240,15 @@ export const MetricSelectionComponent = ({
                             ref={(r) => {
                               metricInputRefs.current[`surah-${s.id}`] = r;
                             }}
-                            value={timesValue > 0 ? String(timesValue) : ""}
+                            // Unfocused: always show "0" when empty (first-open look).
+                            // Focused: clear to "" so typing isn't stuck behind a 0.
+                            value={
+                              focusedInputs[`surah-${s.id}`]
+                                ? timesValue > 0
+                                  ? String(timesValue)
+                                  : ""
+                                : String(timesValue || 0)
+                            }
                             onChangeText={(v) => {
                               const digits = v.replace(/[^0-9]/g, "");
                               if (digits === "") {
@@ -1289,9 +1306,7 @@ export const MetricSelectionComponent = ({
                               styles.timesInput,
                               timesValue > 0 && styles.timesInputFilled,
                             ]}
-                            placeholder={
-                              focusedInputs[`surah-${s.id}`] ? "" : "0"
-                            }
+                            placeholder=""
                             placeholderTextColor={Colors.light.white}
                           />
                           <Text style={styles.surahTimesFrequencyLabel}>
