@@ -41,6 +41,10 @@ import {
   shiftPrayerAchievementsPeriodStart,
 } from "@/src/utils/prayerGoalAchievementsMap";
 import { resolvePrayerTypeFromGoalId } from "@/src/utils/prayerGoalMap";
+import {
+  PAST_ACHIEVEMENT_NO_DATA,
+  isPastAchievementBarEmpty,
+} from "@/src/utils/pastAchievementNoData";
 import { NegativeProgressIcon, PositiveProgressIcon, AchivementArrowIcon } from "@/assets/icons";
 
 type Props = {
@@ -352,7 +356,6 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
       periodStart: periodStartParam,
       enabled: isTahiyyat && !!prayerType,
     });
-  console.log("achievementsApiData", achievementsApiData);
   const showPlaceholders =
     isTahiyyat && (!achievementsApiData || isAchievementsLoading);
 
@@ -508,18 +511,50 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
     achievement ??
     applyPrayerAnalyticsView(EMPTY_PRAYER_ACHIEVEMENT, analyticsView);
 
+  /** Same gate as fasting: hide detail chevron / dashes when period has no activity. */
+  const hasLogs = useMemo(() => {
+    if (showPlaceholders || !baseAchievement) return false;
+    if (
+      !isPastAchievementBarEmpty(
+        baseAchievement.completedPrayers,
+        baseAchievement.incompletePrayers,
+      )
+    ) {
+      return true;
+    }
+    return baseAchievement.chartData.some(
+      (item) =>
+        !isPastAchievementBarEmpty(
+          item.completedPrayers ?? 0,
+          item.incompletePrayers ?? 0,
+        ),
+    );
+  }, [baseAchievement, showPlaceholders]);
+
+  const showNoDataDash =
+    showPlaceholders ||
+    !hasLogs ||
+    isPastAchievementBarEmpty(displayBaseCompleted, displayBaseIncomplete);
+
+  const showDetailedStatsChevron = !isDetailed && hasLogs && !showNoDataDash;
+
   const barDeltaPct = selectedBaseWeek?.completedDeltaPct as
     | number
     | null
     | undefined;
-  const displayedDeltaPct =
-    selectedBarIndex !== null && selectedBaseWeek
+  const displayedDeltaPct = showNoDataDash
+    ? null
+    : selectedBarIndex !== null && selectedBaseWeek
       ? barDeltaPct === undefined
         ? resolvedBaseAchievement.previousPeriodDeltaPercent
         : barDeltaPct
       : resolvedBaseAchievement.previousPeriodDeltaPercent;
-  const showDeltaChip = !showPlaceholders && displayedDeltaPct !== null;
-  const deltaIsZero = displayedDeltaPct === 0;
+  // Match fasting: hide delta when no data or 0% (no “0% previous month”).
+  const showDeltaChip =
+    !showPlaceholders &&
+    !showNoDataDash &&
+    displayedDeltaPct !== null &&
+    Math.abs(displayedDeltaPct) > 0;
   const deltaIsPositive = (displayedDeltaPct ?? 0) > 0;
   const deltaPeriodLabel = t(
     selectedBarIndex !== null && period === "monthly"
@@ -584,7 +619,7 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
           <Text style={styles.sectionTitle}>
             {t("progressLogging.pastGoalAchievements")}
           </Text>
-          {!isDetailed && (
+          {showDetailedStatsChevron ? (
             <TouchableOpacity
               onPress={() =>
                 router.push({
@@ -600,7 +635,7 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
                 color={Colors.light.white}
               />
             </TouchableOpacity>
-          )}
+          ) : null}
         </View>
 
         <View style={styles.topRow}>
@@ -611,6 +646,8 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
             <Text style={styles.achievementPercent}>
               {showPlaceholders ? (
                 LOADING_DASH
+              ) : showNoDataDash ? (
+                PAST_ACHIEVEMENT_NO_DATA
               ) : (
                 <>
                   {formatNumber(resolvedAchievement.achievementPercent)}
@@ -618,31 +655,23 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
                 </>
               )}
             </Text>
-            {showDeltaChip &&
-              (deltaIsZero ? (
-                <View style={[styles.deltaBadge, styles.deltaBadgeNeutral]}>
-                  <View style={styles.deltaDot} />
-                  <Text style={[styles.deltaText, styles.deltaTextNegative]}>
-                    {`${formatNumber(0)}% ${deltaPeriodLabel}`}
-                  </Text>
-                </View>
-              ) : (
-                <View style={styles.deltaBadge}>
-                  {deltaIsPositive ? (
-                    <PositiveProgressIcon />
-                  ) : (
-                    <NegativeProgressIcon />
-                  )}
-                  <Text
-                    style={[
-                      styles.deltaText,
-                      !deltaIsPositive && styles.deltaTextNegative,
-                    ]}
-                  >
-                    {`${formatNumber(Math.abs(displayedDeltaPct ?? 0))}% ${deltaPeriodLabel}`}
-                  </Text>
-                </View>
-              ))}
+            {showDeltaChip ? (
+              <View style={styles.deltaBadge}>
+                {deltaIsPositive ? (
+                  <PositiveProgressIcon />
+                ) : (
+                  <NegativeProgressIcon />
+                )}
+                <Text
+                  style={[
+                    styles.deltaText,
+                    !deltaIsPositive && styles.deltaTextNegative,
+                  ]}
+                >
+                  {`${formatNumber(Math.abs(displayedDeltaPct ?? 0))}% ${deltaPeriodLabel}`}
+                </Text>
+              </View>
+            ) : null}
           </View>
 
           <View style={styles.periodNavRow}>
@@ -824,7 +853,9 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
             <Text style={styles.goalPillValue}>
               {showPlaceholders
                 ? LOADING_DASH
-                : formatNumber(resolvedBaseAchievement.goalPrayers)}{" "}
+                : showNoDataDash
+                  ? PAST_ACHIEVEMENT_NO_DATA
+                  : formatNumber(resolvedBaseAchievement.goalPrayers)}{" "}
             </Text>
             <View style={styles.goalPill}>
               <Text style={styles.goalPillText}>prayers</Text>
@@ -943,7 +974,9 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
             >
               {showPlaceholders
                 ? LOADING_DASH
-                : formatPrayerCountLabel(displayBaseCompleted)}
+                : showNoDataDash
+                  ? PAST_ACHIEVEMENT_NO_DATA
+                  : formatPrayerCountLabel(displayBaseCompleted)}
             </Text>
           </View>
           <View style={styles.statColumn}>
@@ -968,9 +1001,11 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
             >
               {showPlaceholders
                 ? LOADING_DASH
-                : analyticsView === "completedVsTimeSpent"
-                  ? formatPrayerTimeSpentLabel(displayTimeSpent)
-                  : formatPrayerCountLabel(displayBaseIncomplete)}
+                : showNoDataDash
+                  ? PAST_ACHIEVEMENT_NO_DATA
+                  : analyticsView === "completedVsTimeSpent"
+                    ? formatPrayerTimeSpentLabel(displayTimeSpent)
+                    : formatPrayerCountLabel(displayBaseIncomplete)}
             </Text>
           </View>
         </View>
@@ -980,17 +1015,30 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
           onMoveShouldSetResponder={() => false}
         >
           <QuranHoursPastAchievementChartBlock
-            chartData={showPlaceholders ? [] : resolvedAchievement.chartData}
+            chartData={
+              showPlaceholders || showNoDataDash
+                ? []
+                : resolvedAchievement.chartData
+            }
             selectedBarIndex={
-              isDetailed && !showPlaceholders ? selectedBarIndex : null
+              isDetailed && !showPlaceholders && !showNoDataDash
+                ? selectedBarIndex
+                : null
             }
             onBarPress={
-              isDetailed && !showPlaceholders ? handleBarPress : () => { }
+              isDetailed && !showPlaceholders && !showNoDataDash
+                ? handleBarPress
+                : () => {}
             }
-            chartKey={`${goalId}-${period}-${analyticsView}-${selectedPrayerTab}-${showPlaceholders ? "loading" : "ready"}`}
+            chartKey={`${goalId}-${period}-${analyticsView}-${selectedPrayerTab}-${showPlaceholders ? "loading" : showNoDataDash ? "empty" : "ready"}`}
             yMax={resolvedAchievement.yMax}
             yTicks={resolvedAchievement.yTicks}
-            showHint={isDetailed && !showPlaceholders ? showChartHint : false}
+            showHint={
+              isDetailed &&
+              !showPlaceholders &&
+              !showNoDataDash &&
+              showChartHint
+            }
             onDismissHint={() => {
               setHintDismissed(true);
               if (resolvedAchievement.chartData.length > 0) {
@@ -1005,7 +1053,9 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
             }
             formatBarValue={formatPrayerCountLabel}
             isPrayerGoal={true}
-            showPagination={isDetailed && !showPlaceholders}
+            showPagination={
+              isDetailed && !showPlaceholders && !showNoDataDash
+            }
             showBarLine={goalId === "prayer-qiyam"}
           />
         </View>

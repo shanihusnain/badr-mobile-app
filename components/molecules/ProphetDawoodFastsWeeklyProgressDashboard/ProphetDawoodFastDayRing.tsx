@@ -40,12 +40,11 @@ function getRingVisual(
         backgroundColor: "transparent",
       };
     case "todayDisabled":
-      // Today booked / disabled — #B7977E @ 35% opacity outline
+      // Today booked / disabled — dim #B7977E stroke (rgba keeps it muted)
       return {
         variant: "outline",
-        borderColor: Colors.light.ringRamadan,
+        borderColor: "rgba(128, 111, 98, 0.25)",
         backgroundColor: "transparent",
-        opacity: 0.30,
       };
     case "disabledPast":
       // Past booked for another goal — solid grey disc

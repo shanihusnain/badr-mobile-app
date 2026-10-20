@@ -373,9 +373,9 @@ export const DOBCalendar = ({
             </TouchableOpacity>
             {openDropdown === "month"
               ? renderDropdownPanel(monthItems, {
-                  scrollable: false,
-                  kind: "month",
-                })
+                scrollable: false,
+                kind: "month",
+              })
               : null}
           </View>
 
@@ -406,9 +406,9 @@ export const DOBCalendar = ({
             </TouchableOpacity>
             {openDropdown === "year"
               ? renderDropdownPanel(yearItems, {
-                  scrollable: true,
-                  kind: "year",
-                })
+                scrollable: true,
+                kind: "year",
+              })
               : null}
           </View>
         </View>
@@ -533,7 +533,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "flex-start",
     backgroundColor: Colors.light.greybuttonBackground,
-    height: 32,
+    height: 28,
     paddingLeft: 10,
     paddingRight: 22,
     borderRadius: 6,
