@@ -11,7 +11,6 @@ import {
 } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
-  ActivityIndicator,
   Dimensions,
   FlatList,
   type FlatList as FlatListType,
@@ -23,6 +22,7 @@ import {
   Keyboard,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { LoadingComponent } from "@/components/atoms/LoadingComponent";
 import { GoalCardWithDescriptionAndOptionToSelectGoal } from "./GoalCardWithDescriptionAndOptionToSelectGoal";
 import { CycleStartTab } from "./CycleStartTab";
 import { GoalPlannerTabList, type Tab } from "./GoalPlannerTabList";
@@ -286,6 +286,8 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
   const userChoseCycleTabRef = useRef(false);
   /** User picked a tab / NEXT — stop re-asserting deep-link initialTab after refresh. */
   const userSelectedTabRef = useRef(false);
+  /** Deep-link / step tab held until me+cycle (+ category lists) finish bootstrapping. */
+  const pendingInitialTabRef = useRef<Tab | null>(initialTab ?? null);
   const isCycleDateSelected = !!cycleStartDate;
   const [selectedGoals, setSelectedGoals] = useState<Record<string, boolean>>(
     {},
@@ -453,7 +455,11 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
     });
   }, []);
 
-  const { data: meUser } = useGetMe();
+  const {
+    data: meUser,
+    isLoading: isMeLoading,
+    isFetched: isMeFetched,
+  } = useGetMe();
   const userId = meUser?.id ?? null;
   const goalCycleId = meUser?.goalCycleId ?? null;
   const prevUserIdRef = useRef(userId);
@@ -477,10 +483,6 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
         (goalCycleError as Error | undefined)?.message,
     });
   }
-  console.log(
-    "isGoalCycleLoadingisGoalCycleLoadingisGoalCycleLoading",
-    isGoalCycleLoading,
-  );
   const locallyToggledGoalIdsRef = useRef<Record<string, boolean>>({});
   const listRef = useRef<FlatListType<any>>(null);
   const tabBarScrollRef = useRef<RNScrollView>(null);
@@ -667,6 +669,50 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
     enabled: hasCommittedCycle,
   });
 
+  /**
+   * Hold sheet content until me/cycle (and deep-link category lists) settle so
+   * tabs don't flash locked/empty and deep-link intent isn't applied mid-fetch.
+   */
+  const isPlannerBootstrapping = useMemo(() => {
+    const waitingOnMe = !isMeFetched && isMeLoading && meUser == null;
+    if (waitingOnMe) return true;
+
+    const waitingOnCycle =
+      !!goalCycleId &&
+      !goalCycleDetail?.startDate &&
+      !isGoalCycleError &&
+      (isGoalCycleLoading || isGoalCycleFetching);
+    if (waitingOnCycle) return true;
+
+    const pendingTab = pendingInitialTabRef.current ?? initialTab ?? "cycle";
+    if (pendingTab === "cycle") return false;
+
+    // Non-cycle deep link: wait for category lists so unlock order is stable.
+    if (!hasCommittedCycle) return false;
+
+    return (
+      loadingPrayerGoals ||
+      loadingQuranGoals ||
+      loadingFastingGoals ||
+      loadingSadaqahGoals
+    );
+  }, [
+    isMeFetched,
+    isMeLoading,
+    meUser,
+    goalCycleId,
+    goalCycleDetail?.startDate,
+    isGoalCycleError,
+    isGoalCycleLoading,
+    isGoalCycleFetching,
+    initialTab,
+    hasCommittedCycle,
+    loadingPrayerGoals,
+    loadingQuranGoals,
+    loadingFastingGoals,
+    loadingSadaqahGoals,
+  ]);
+
   const fastingCalendarWindow = useMemo(
     () => buildFastingCalendarWindow(fastingCalendarPreview),
     [fastingCalendarPreview],
@@ -820,10 +866,11 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
   const handleReviewItemPress = useCallback((itemOrName: any) => {
     const name = typeof itemOrName === "string" ? itemOrName : itemOrName?.name;
     if (!name) return;
-    setReviewExpandedNames((prev) => ({
-      ...prev,
-      [name]: !prev[name],
-    }));
+    setReviewExpandedNames((prev) => {
+      // Missing key defaults to expanded (same as Review entry effect).
+      const currentlyExpanded = name in prev ? Boolean(prev[name]) : true;
+      return { ...prev, [name]: !currentlyExpanded };
+    });
   }, []);
   const handleGoalToggle = useCallback(
     (goalId: string, isSelected: boolean) => {
@@ -1868,7 +1915,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
       onDone?: () => void,
       onFail?: () => void,
     ) => {
-      if (amount < 1) {
+      if (!(amount > 0)) {
         showToast("error", "Enter a missed zakat amount greater than 0");
         onFail?.();
         return;
@@ -1981,10 +2028,14 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
     },
     [upsertSadaqahGoal, persistSadaqahMetrics, completeGoalSaveSuccess],
   );
-  console.log("lillahAmount", lillahAmount);
   const saveLillahGoal = useCallback(
-    (goalKey: string, onDone?: () => void, onFail?: () => void) => {
-      if (lillahAmount < 1) {
+    (
+      goalKey: string,
+      amount: number,
+      onDone?: () => void,
+      onFail?: () => void,
+    ) => {
+      if (!(amount > 0)) {
         showToast("error", "Enter a lillah amount greater than 0");
         onFail?.();
         return;
@@ -1994,10 +2045,11 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
         onFail?.();
         return;
       }
+      setLillahAmount(amount);
       upsertSadaqahGoal(
         {
           sadaqahType: "LILLAH",
-          targetAmount: lillahAmount,
+          targetAmount: amount,
           currencyCode,
         },
         {
@@ -2010,7 +2062,6 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
       );
     },
     [
-      lillahAmount,
       upsertSadaqahGoal,
       requireSadaqahCurrencyCode,
       persistSadaqahMetrics,
@@ -2028,8 +2079,8 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
       upsertSadaqahGoal(
         {
           sadaqahType: "VOLUNTEERING",
-          // Backend stores volunteering target in minutes
-          targetAmount: volunteeringHours * 60,
+          targetAmount: volunteeringHours,
+          targetUnit: "HOURS",
           causeCategory: "community_service",
         },
         {
@@ -2050,8 +2101,13 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
   );
 
   const saveSadaqahJariyahGoal = useCallback(
-    (goalKey: string, onDone?: () => void, onFail?: () => void) => {
-      if (sadaqahJariyahAmount < 1) {
+    (
+      goalKey: string,
+      amount: number,
+      onDone?: () => void,
+      onFail?: () => void,
+    ) => {
+      if (!(amount > 0)) {
         showToast("error", "Enter a sadaqah jariyah amount greater than 0");
         onFail?.();
         return;
@@ -2061,10 +2117,11 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
         onFail?.();
         return;
       }
+      setSadaqahJariyahAmount(amount);
       upsertSadaqahGoal(
         {
           sadaqahType: "SADAQAH_JARIYAH",
-          targetAmount: sadaqahJariyahAmount,
+          targetAmount: amount,
           currencyCode,
           causeCategory: "general",
         },
@@ -2078,7 +2135,6 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
       );
     },
     [
-      sadaqahJariyahAmount,
       upsertSadaqahGoal,
       requireSadaqahCurrencyCode,
       persistSadaqahMetrics,
@@ -2150,9 +2206,15 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
           break;
         case "VOLUNTEERING":
           if (amount <= 0) break;
-          setVolunteeringHours((prev) =>
-            prev > 0 ? prev : Math.max(1, Math.round(amount / 60)),
-          );
+          // API stores hours (`targetUnit: "HOURS"`). Legacy minutes → hours.
+          {
+            const unit = (goal.targetUnit ?? "HOURS").toUpperCase();
+            const hours =
+              unit === "MINUTES"
+                ? Math.max(1, Math.round(amount / 60))
+                : Math.max(1, Math.round(amount));
+            setVolunteeringHours((prev) => (prev > 0 ? prev : hours));
+          }
           break;
         case "SADAQAH_JARIYAH":
           if (amount <= 0) break;
@@ -2307,31 +2369,36 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
       case "cycle":
         return [];
       case "prayer":
-        return loadingPrayerGoals
+        return loadingPrayerGoals || isPlannerBootstrapping
           ? PRAYER_GOAL_LOADING_PLACEHOLDERS
           : prayerGoals;
       case "quran":
-        return loadingQuranGoals ? QURAN_GOAL_LOADING_PLACEHOLDERS : quranGoals;
+        return loadingQuranGoals || isPlannerBootstrapping
+          ? QURAN_GOAL_LOADING_PLACEHOLDERS
+          : quranGoals;
       case "fasting":
-        return loadingFastingGoals
+        return loadingFastingGoals || isPlannerBootstrapping
           ? FASTING_GOAL_LOADING_PLACEHOLDERS
           : fastingGoals.length > 0
             ? fastingGoals
             : fastingData;
       case "sadaqah":
-        return loadingSadaqahGoals
+        return loadingSadaqahGoals || isPlannerBootstrapping
           ? SADAQAH_GOAL_LOADING_PLACEHOLDERS
           : sadaqahGoals.length > 0
             ? sadaqahGoals
             : sadaqahData;
       case "review":
         // Keep FlatList empty while refetching so ListEmptyComponent can show a spinner.
-        return isReviewWaitingForCycleDetail ? [] : reviewBtnData;
+        return isReviewWaitingForCycleDetail || isPlannerBootstrapping
+          ? []
+          : reviewBtnData;
       default:
         return [];
     }
   }, [
     activeTab,
+    isPlannerBootstrapping,
     loadingPrayerGoals,
     loadingQuranGoals,
     loadingFastingGoals,
@@ -2755,6 +2822,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
 
   // Keep user on the cycle tab until they tap Commit (selecting a date alone must not advance).
   useEffect(() => {
+    if (isPlannerBootstrapping) return;
     if (!cycleStartDate) {
       if (
         postCommitTargetTabRef.current ||
@@ -2764,24 +2832,34 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
       }
       setActiveTab("cycle");
     }
-  }, [cycleStartDate]);
+  }, [cycleStartDate, isPlannerBootstrapping]);
 
   // Honor deep-link / step tab when allowed; clamp to furthest unlocked tab.
   // Begin Now opens with initialTab="cycle" — never re-assert that entry tab
   // when hasCommittedCycle flips (that wiped COMMIT → Category 1 on first save).
   // After refresh, isTabUnlocked churn must not yank the user off a tab they tapped.
+  // While bootstrapping, hold pendingInitialTabRef — do not snap mid-fetch.
   useEffect(() => {
     if (!initialTab) return;
-    if (initialTab === "cycle") return;
+    if (initialTab === "cycle") {
+      pendingInitialTabRef.current = null;
+      return;
+    }
     if (userSelectedTabRef.current) return;
     if (postCommitTargetTabRef.current) return;
     if (committedCycleThisSessionRef.current) return;
+    if (isPlannerBootstrapping) return;
+
+    const targetTab = pendingInitialTabRef.current ?? initialTab;
+
     if (!hasCommittedCycle) {
       setActiveTab("cycle");
+      pendingInitialTabRef.current = null;
       return;
     }
-    if (isTabUnlocked(initialTab)) {
-      setActiveTab(initialTab);
+    if (isTabUnlocked(targetTab)) {
+      setActiveTab(targetTab);
+      pendingInitialTabRef.current = null;
       return;
     }
     // Furthest unlocked goal tab (not the first locked one).
@@ -2791,7 +2869,8 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
       furthestUnlocked = tab;
     }
     setActiveTab(furthestUnlocked);
-  }, [initialTab, hasCommittedCycle, isTabUnlocked]);
+    pendingInitialTabRef.current = null;
+  }, [initialTab, hasCommittedCycle, isTabUnlocked, isPlannerBootstrapping]);
 
   // After COMMIT, only pull back to Step 1 if a race snapped us onto cycle.
   // Never override Step 2+ (that blocked NEXT after saving a goal).
@@ -3341,8 +3420,8 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
             countTitle={t("monthlyGoalPlanner.amount")}
             isSaving={isSavingSadaqah}
             initiallySaved={true}
-            onSave={(done, fail) =>
-              saveMissedZakatGoal(goal.title, missedZakatAmount, done, fail)
+            onSave={(amount, done, fail) =>
+              saveMissedZakatGoal(goal.title, amount, done, fail)
             }
             onSetAsDefaultCurrency={applyDefaultSadaqahCurrency}
           />
@@ -3416,7 +3495,9 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
             countTitle={t("monthlyGoalPlanner.amount")}
             isSaving={isSavingSadaqah}
             initiallySaved={true}
-            onSave={(done, fail) => saveLillahGoal(goal.title, done, fail)}
+            onSave={(amount, done, fail) =>
+              saveLillahGoal(goal.title, amount, done, fail)
+            }
             onSetAsDefaultCurrency={applyDefaultSadaqahCurrency}
           />
         );
@@ -3461,8 +3542,8 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
             countTitle={t("monthlyGoalPlanner.amount")}
             isSaving={isSavingSadaqah}
             initiallySaved={true}
-            onSave={(done, fail) =>
-              saveSadaqahJariyahGoal(goal.title, done, fail)
+            onSave={(amount, done, fail) =>
+              saveSadaqahJariyahGoal(goal.title, amount, done, fail)
             }
             onSetAsDefaultCurrency={applyDefaultSadaqahCurrency}
           />
@@ -4616,6 +4697,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                 name="missedZakat"
                 title={t("monthlyGoalPlanner.volunteeringMonthTitle")}
                 countTitle={t("monthlyGoalPlanner.amount")}
+                initialCount={missedZakatAmount}
                 isSaving={isSavingSadaqah}
                 initiallySaved={isInitiallySavedForUi(
                   "sadaqah",
@@ -4638,6 +4720,8 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                 onInputFocus={(layout) =>
                   handleGoalInputFocus(sadaqah.id, layout)
                 }
+                initialMealCount={kafarahMeals}
+                initialClothCount={kafarahCloths}
                 isSaving={isSavingSadaqah}
                 initiallySaved={isInitiallySavedForUi(
                   "sadaqah",
@@ -4659,6 +4743,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                   handleGoalInputFocus(sadaqah.id, layout)
                 }
                 title={t("monthlyGoalPlanner.fidyaMealsTitle")}
+                initialCount={fidyaMeals}
                 isSaving={isSavingSadaqah}
                 initiallySaved={isInitiallySavedForUi(
                   "sadaqah",
@@ -4698,7 +4783,9 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                   sadaqah.id,
                   isSadaqahGoalConfigured(sadaqah.id),
                 )}
-                onSave={(done, fail) => saveLillahGoal(sadaqah.id, done, fail)}
+                onSave={(amount, done, fail) =>
+                  saveLillahGoal(sadaqah.id, amount, done, fail)
+                }
                 onSetAsDefaultCurrency={applyDefaultSadaqahCurrency}
               />
             </View>
@@ -4762,8 +4849,8 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
                 }}
                 countTitle={t("monthlyGoalPlanner.amount")}
                 isSaving={isSavingSadaqah}
-                onSave={(done, fail) =>
-                  saveSadaqahJariyahGoal(sadaqah.id, done, fail)
+                onSave={(amount, done, fail) =>
+                  saveSadaqahJariyahGoal(sadaqah.id, amount, done, fail)
                 }
                 onSetAsDefaultCurrency={applyDefaultSadaqahCurrency}
               />
@@ -4778,11 +4865,21 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
         <View style={styles.reviewSection}>
           <ReviewGoalBtn
             reviewItem={reviewItem}
-            reviewExpanded={Boolean(reviewExpandedNames[reviewItem?.name])}
+            reviewExpanded={
+              reviewItem?.name
+                ? reviewItem.name in reviewExpandedNames
+                  ? Boolean(reviewExpandedNames[reviewItem.name])
+                  : true
+                : false
+            }
             handleReviewItemPress={() => handleReviewItemPress(reviewItem)}
           />
 
-          {reviewExpandedNames[reviewItem?.name] &&
+          {(reviewItem?.name
+            ? reviewItem.name in reviewExpandedNames
+              ? Boolean(reviewExpandedNames[reviewItem.name])
+              : true
+            : false) &&
             reviewItem?.appliedGoals?.map((goal: any) => {
               const isEditing = editingGoal === goal.title;
               // Prefer local session metrics after an in-sheet save;
@@ -4971,7 +5068,11 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
         </RNScrollView>
 
         {/* ── Tab content ── */}
-        {activeTab === "cycle" ? (
+        {isPlannerBootstrapping ? (
+          <View style={[styles.list, styles.bootstrapLoader]}>
+            <LoadingComponent size="medium" />
+          </View>
+        ) : activeTab === "cycle" ? (
           <RNScrollView
             style={styles.list}
             contentContainerStyle={[
@@ -5003,6 +5104,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
             savingQuranGoalId={savingQuranGoalId}
             isSavingSadaqah={isSavingSadaqah}
             postSaveCollapseSignal={postSaveCollapseSignal}
+            reviewExpandedNames={reviewExpandedNames}
             sheetScrollEnabled={sheetScrollEnabled}
             isReviewWaitingForCycleDetail={isReviewWaitingForCycleDetail}
             loadingQuranGoals={loadingQuranGoals}
@@ -5150,6 +5252,10 @@ const styles = StyleSheet.create({
   },
   list: {
     flex: 1,
+  },
+  bootstrapLoader: {
+    alignItems: "center",
+    justifyContent: "center",
   },
   container: {
     flex: 1,

@@ -40,7 +40,7 @@ export function normalizeMeResponse(axiosData: unknown): MeUser | null {
   return payload as unknown as MeUser;
 }
 
-const getMe = async (): Promise<MeUser | null> => {
+export const getMe = async (): Promise<MeUser | null> => {
   const response = await api.get("api/users/me");
   return normalizeMeResponse(response.data);
 };

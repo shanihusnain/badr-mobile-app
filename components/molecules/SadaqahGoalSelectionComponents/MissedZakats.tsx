@@ -34,7 +34,15 @@ export const MissedZakats = ({
   setCount: (count: number) => void;
   handleDecrease: () => void;
   handleIncrease: () => void;
-  onSave?: (onDone?: () => void, onFail?: () => void) => void;
+  /**
+   * Receives the draft amount at Save press so parent validation does not
+   * read a stale counter after typing (parent state can lag one frame).
+   */
+  onSave?: (
+    amount: number,
+    onDone?: () => void,
+    onFail?: () => void,
+  ) => void;
   isSaving?: boolean;
   onSetAsDefaultCurrency?: (currencyOptionValue: string) => void;
   openOnMount?: boolean;
@@ -124,14 +132,19 @@ export const MissedZakats = ({
                 text={t("monthlyGoalPlanner.save")}
                 onPress={(markSaved, markFailed) => {
                   const toSave = draftCount;
-                  onSave?.(() => {
-                    savedCurrencyRef.current = selectedCurrency;
-                    commitSaved(toSave);
-                    markSaved();
-                  }, markFailed);
+                  setCount(toSave);
+                  onSave?.(
+                    toSave,
+                    () => {
+                      savedCurrencyRef.current = selectedCurrency;
+                      commitSaved(toSave);
+                      markSaved();
+                    },
+                    markFailed,
+                  );
                 }}
                 isLoading={isSaving}
-                disabled={isSaving || draftCount < 1 || !hasCurrency}
+                disabled={isSaving || !(draftCount > 0) || !hasCurrency}
                 initiallySaved={initiallySaved}
                 valueKey={`${draftCount}-${String(selectedCurrency ?? "")}`}
               />

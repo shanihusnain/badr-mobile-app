@@ -803,8 +803,13 @@ function mapSadaqahGoal(
       },
     );
   } else if (goal.sadaqahType === "VOLUNTEERING") {
-    // Backend stores minutes — header chip only (no sub-row)
-    totalValue = Math.max(0, Math.round((goal.targetAmount ?? 0) / 60));
+    // API stores hours (`targetUnit: "HOURS"`). Legacy minutes → hours.
+    const amount = goal.targetAmount ?? 0;
+    const unit = (goal.targetUnit ?? "HOURS").toUpperCase();
+    totalValue = Math.max(
+      0,
+      Math.round(unit === "MINUTES" ? amount / 60 : amount),
+    );
   } else if (
     goal.sadaqahType === "MISSED_ZAKAT" ||
     goal.sadaqahType === "LILLAH" ||

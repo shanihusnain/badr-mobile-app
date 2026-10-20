@@ -4,6 +4,7 @@ import { Colors } from "@/constants/theme";
 import { useCallback, useEffect } from "react";
 import { FlatList, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useQueryClient } from "@tanstack/react-query";
 import type { GoalCardData } from "./components/GoalCard";
 import { GoalCardCarousel } from "./components/GoalCardCarousel";
 import { styles } from "./styles";
@@ -20,6 +21,8 @@ import { WhiteTick } from "@/assets/icons";
 import { setPendingOnboardingRoute } from "@/src/storage/onboardingRouteStorage";
 import { router } from "expo-router";
 import { ms } from "@/src/utils/responsive";
+import { getMe, useGetMe } from "@/src/api/queries/useGetMe";
+import { getGoalCycleById } from "@/src/api/queries/useGetGoalCycleById";
 
 type StepItem = {
   id: number;
@@ -83,10 +86,29 @@ function openGoalPlanner(tab?: Tab) {
 export const MonthlyGoalPlannerScreen = () => {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const queryClient = useQueryClient();
+  const { data: meUser } = useGetMe();
 
   useEffect(() => {
     void setPendingOnboardingRoute("/(private)/monthlygoalplanner");
   }, []);
+
+  // Warm me + goal-cycle so GoalPlannerSheet opens with less bootstrap flash.
+  useEffect(() => {
+    void queryClient.prefetchQuery({
+      queryKey: ["me"],
+      queryFn: getMe,
+    });
+  }, [queryClient]);
+
+  useEffect(() => {
+    const goalCycleId = meUser?.goalCycleId;
+    if (!goalCycleId) return;
+    void queryClient.prefetchQuery({
+      queryKey: ["goal-cycle", goalCycleId],
+      queryFn: () => getGoalCycleById(goalCycleId),
+    });
+  }, [meUser?.goalCycleId, queryClient]);
 
   const handleStepPress = useCallback((stepId: number) => {
     openGoalPlanner(STEP_TAB_MAP[stepId] ?? "cycle");

@@ -131,7 +131,7 @@ export function normalizeGoalCycleResponse(
   return payload as unknown as GoalCycleDetail;
 }
 
-const getGoalCycleById = async (
+export const getGoalCycleById = async (
   goalCycleId: string,
 ): Promise<GoalCycleDetail | null> => {
   const response = await api.get(`api/goal-cycles/${goalCycleId}`);

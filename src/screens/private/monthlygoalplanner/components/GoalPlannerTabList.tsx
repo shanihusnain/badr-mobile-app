@@ -59,6 +59,8 @@ type Props = {
   savingQuranGoalId: string | null;
   isSavingSadaqah: boolean;
   postSaveCollapseSignal: number;
+  /** Review category accordion open state — must invalidate list memo/extraData. */
+  reviewExpandedNames: Record<string, boolean>;
   sheetScrollEnabled: boolean;
   isReviewWaitingForCycleDetail: boolean;
   loadingQuranGoals: boolean;
@@ -93,6 +95,7 @@ function propsEqual(prev: Props, next: Props) {
     prev.savingQuranGoalId === next.savingQuranGoalId &&
     prev.isSavingSadaqah === next.isSavingSadaqah &&
     prev.postSaveCollapseSignal === next.postSaveCollapseSignal &&
+    prev.reviewExpandedNames === next.reviewExpandedNames &&
     prev.sheetScrollEnabled === next.sheetScrollEnabled &&
     prev.isReviewWaitingForCycleDetail === next.isReviewWaitingForCycleDetail &&
     prev.loadingQuranGoals === next.loadingQuranGoals &&
@@ -121,6 +124,7 @@ export const GoalPlannerTabList = memo(function GoalPlannerTabList({
   savingQuranGoalId,
   isSavingSadaqah,
   postSaveCollapseSignal,
+  reviewExpandedNames,
   sheetScrollEnabled,
   isReviewWaitingForCycleDetail,
   loadingQuranGoals,
@@ -148,6 +152,7 @@ export const GoalPlannerTabList = memo(function GoalPlannerTabList({
       savingQuranGoalId,
       isSavingSadaqah,
       postSaveCollapseSignal,
+      reviewExpandedNames,
     }),
     [
       activeTab,
@@ -160,6 +165,7 @@ export const GoalPlannerTabList = memo(function GoalPlannerTabList({
       savingQuranGoalId,
       isSavingSadaqah,
       postSaveCollapseSignal,
+      reviewExpandedNames,
     ],
   );
 
