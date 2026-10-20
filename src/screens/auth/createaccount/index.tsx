@@ -147,10 +147,21 @@ export default function CreateAccountScreen() {
   const router = useRouter();
   const { updateUser, user: authUser, signIn } = useAuth();
 
+  // Social completion is keyed by route params (Google/Facebook always pass
+  // `user`). Do NOT treat a post-register auth user as social — email signup
+  // calls signIn before navigating to verify-email, which used to flip this
+  // screen into social mode and crash the re-render.
+  const paramSocialUser = useMemo(
+    () => parseSocialUser(params.user),
+    [params.user],
+  );
+  const isSocialFlow = !!paramSocialUser?.id;
+
   // Prefer auth user (arrays intact after signIn) over route params, which can
   // drop nested weekendDays when Expo Router serializes the query string.
   const socialUser = useMemo(() => {
-    const fromParams = parseSocialUser(params.user);
+    if (!isSocialFlow || !paramSocialUser?.id) return null;
+
     const paramCalendarView = firstParam(params.calendarView) || null;
     const paramWeekendDays = firstParam(params.weekendDays) || null;
 
@@ -160,15 +171,9 @@ export default function CreateAccountScreen() {
         : null;
 
     const base =
-      fromParams?.id && fromAuth?.id && fromParams.id === fromAuth.id
-        ? { ...fromParams, ...fromAuth }
-        : fromParams?.id
-          ? fromParams
-          : fromAuth?.id
-            ? fromAuth
-            : null;
-
-    if (!base?.id) return null;
+      fromAuth?.id && fromAuth.id === paramSocialUser.id
+        ? { ...paramSocialUser, ...fromAuth }
+        : paramSocialUser;
 
     return {
       ...base,
@@ -187,9 +192,13 @@ export default function CreateAccountScreen() {
         normalizeWeekendDays(base.weekendDays) ??
         null,
     };
-  }, [authUser, params.calendarView, params.user, params.weekendDays]);
-
-  const isSocialFlow = !!socialUser?.id;
+  }, [
+    authUser,
+    isSocialFlow,
+    paramSocialUser,
+    params.calendarView,
+    params.weekendDays,
+  ]);
 
   const { createAccountSchema, socialCompleteProfileSchema } = useValidations();
   const { t } = useTranslation();

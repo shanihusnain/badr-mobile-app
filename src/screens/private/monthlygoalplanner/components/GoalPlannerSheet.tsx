@@ -868,7 +868,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
     if (!name) return;
     setReviewExpandedNames((prev) => {
       // Missing key defaults to expanded (same as Review entry effect).
-      const currentlyExpanded = name in prev ? Boolean(prev[name]) : true;
+      const currentlyExpanded = prev?.[name] ?? true;
       return { ...prev, [name]: !currentlyExpanded };
     });
   }, []);
@@ -4867,18 +4867,14 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
             reviewItem={reviewItem}
             reviewExpanded={
               reviewItem?.name
-                ? reviewItem.name in reviewExpandedNames
-                  ? Boolean(reviewExpandedNames[reviewItem.name])
-                  : true
+                ? (reviewExpandedNames?.[reviewItem.name] ?? true)
                 : false
             }
             handleReviewItemPress={() => handleReviewItemPress(reviewItem)}
           />
 
           {(reviewItem?.name
-            ? reviewItem.name in reviewExpandedNames
-              ? Boolean(reviewExpandedNames[reviewItem.name])
-              : true
+            ? (reviewExpandedNames?.[reviewItem.name] ?? true)
             : false) &&
             reviewItem?.appliedGoals?.map((goal: any) => {
               const isEditing = editingGoal === goal.title;
