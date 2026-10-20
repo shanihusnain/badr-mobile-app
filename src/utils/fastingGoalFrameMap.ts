@@ -741,9 +741,10 @@ function resolveProphetDawoodDayState(
   const isPast = hasDate && date < today;
   const bookedForOtherGoal = Boolean(day.bookedForOtherGoal);
 
+  // Past booked for another goal → solid grey; today booked → todayDisabled.
   if (bookedForOtherGoal) {
     if (day.isToday) return "todayDisabled";
-    if (isPast) return "pastNeutral";
+    if (isPast) return "disabledPast";
     return "future";
   }
 

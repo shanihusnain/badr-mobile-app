@@ -37,8 +37,9 @@ export function getDayLabelTextStyle(
     case "plannedToday":
     case "missed":
       return prophetDawoodFastDayLabelStyles.dayLabelMuted;
-    case "pastNeutral":
+    case "disabledPast":
       return prophetDawoodFastDayLabelStyles.dayLabelPastNeutral;
+    case "pastNeutral":
     case "future":
     case "today":
     case "todayDisabled":

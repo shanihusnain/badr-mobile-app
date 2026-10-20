@@ -17,9 +17,11 @@ export type ProphetDawoodFastDayState =
   | "future"
   /** Today, not a planned fast (incl. today-disable) — grey outline + today chip */
   | "today"
-  /** Today, not a planned fast (semantic alias; same visuals as `today`) */
+  /** Today booked for another goal — ringRamadan outline at 35% opacity */
   | "todayDisabled"
-  /** Past non-fast / no activity — solid muted grey */
+  /** Past booked for another goal — solid muted grey */
+  | "disabledPast"
+  /** Past non-fast / no activity — ringRamadan outline at 40% opacity */
   | "pastNeutral"
   /** Planned Dawood fast (future) — blue outline */
   | "planned"

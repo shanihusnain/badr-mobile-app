@@ -34,17 +34,33 @@ function getRingVisual(
         backgroundColor: "transparent",
       };
     case "today":
-    case "todayDisabled":
       return {
         variant: "outline",
         borderColor: Colors.light.grey,
         backgroundColor: "transparent",
       };
-    case "pastNeutral":
+    case "todayDisabled":
+      // Today booked / disabled — #B7977E @ 35% opacity outline
+      return {
+        variant: "outline",
+        borderColor: Colors.light.ringRamadan,
+        backgroundColor: "transparent",
+        opacity: 0.30,
+      };
+    case "disabledPast":
+      // Past booked for another goal — solid grey disc
       return {
         variant: "solid",
-        borderColor: "rgba(255, 255, 255, 0.18)",
-        backgroundColor: "rgba(255, 255, 255, 0.18)",
+        borderColor: Colors.light.selectcategory,
+        backgroundColor: Colors.light.selectcategory,
+      };
+    case "pastNeutral":
+      // Past, no goal selected — #B7977E @ 40% opacity outline
+      return {
+        variant: "outline",
+        borderColor: Colors.light.ringRamadan,
+        backgroundColor: "transparent",
+        opacity: 0.35,
       };
     case "planned":
     case "plannedToday":
@@ -115,8 +131,6 @@ export function ProphetDawoodFastDayRing({
             height: size,
             borderRadius: size / 2,
             backgroundColor: visual.backgroundColor,
-            borderWidth,
-            borderColor: visual.borderColor,
           }}
         />
       </View>
@@ -201,7 +215,7 @@ export function ProphetDawoodFastDayRing({
         {visual.showWarning ? (
           <FontAwesome
             name="warning"
-            size={Math.max(size * 0.42, 8)}
+            size={Math.max(size * 0.5, 9)}
             color={Colors.light.yellow}
           />
         ) : null}
