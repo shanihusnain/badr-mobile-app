@@ -1063,7 +1063,7 @@ const localStyles = StyleSheet.create({
     backgroundColor: Colors.light.selectcategory,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 33,
+    marginTop: 22,
   },
   summaryTitle: {
     color: Colors.light.white,

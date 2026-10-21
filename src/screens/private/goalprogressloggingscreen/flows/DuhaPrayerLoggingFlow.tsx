@@ -367,7 +367,7 @@ export default function DuhaPrayerLoggingFlow({
                   size={25}
                 />
               </View>
-              <View style={{ flex: 1, gap: 9 }}>
+              <View style={localStyles.summaryTextBlock}>
                 <View
                   style={[
                     localStyles.badge,
@@ -395,7 +395,6 @@ export default function DuhaPrayerLoggingFlow({
                 <Text
                   style={[
                     localStyles.summaryTitle,
-                    { flex: undefined },
                     frameLoading && localStyles.loadingPlaceholderText,
                   ]}
                   numberOfLines={2}
@@ -512,8 +511,12 @@ const localStyles = StyleSheet.create({
   },
   summaryBody: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     gap: 6,
+  },
+  summaryTextBlock: {
+    flex: 1,
+    gap: 9,
   },
   summaryIconCircle: {
     width: 36,
@@ -522,7 +525,7 @@ const localStyles = StyleSheet.create({
     backgroundColor: Colors.light.selectcategory,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 33,
+    marginTop: 22,
   },
   summaryTitle: {
     color: Colors.light.white,
@@ -531,7 +534,6 @@ const localStyles = StyleSheet.create({
     fontWeight: "600",
     lineHeight: 18,
     letterSpacing: 0,
-    flex: 1,
   },
   loadingPlaceholderText: {
     opacity: 0.35,

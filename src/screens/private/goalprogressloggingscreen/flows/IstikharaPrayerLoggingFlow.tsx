@@ -527,10 +527,10 @@ const localStyles = StyleSheet.create({
     backgroundColor: Colors.light.selectcategory,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 33,
+    marginTop: 22,
   },
   summaryIconGraphic: {
-    transform: [{ translateX: 0.5 }, { translateY: 1.5 }],
+    transform: [{ translateX: 0.5 }, { translateY: 0 }],
   },
   summaryTitle: {
     color: Colors.light.white,
