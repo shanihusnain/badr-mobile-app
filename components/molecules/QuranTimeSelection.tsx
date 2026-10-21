@@ -58,8 +58,11 @@ export const QuranTimeSelection = ({
   const lastBlurAtRef = useRef(0);
   const blurClearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const selectAllTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
-  /** Ignore native caret updates while we apply programmatic select-all. */
+  /** Ignore native caret updates while we apply programmatic select-all / end caret. */
   const ignoreSelectionChangeRef = useRef(false);
+  /** First key after select-all: append (native would replace); backspace clears. */
+  const appendOnNextInputRef = useRef(false);
+  const prevValueOnFocusRef = useRef("");
   // Panel open must not trigger keyboard keep-visible — only hours TextInput focus.
   const [isOpen, setIsOpen] = useGoalSelectionOpenState(
     openOnMount,
@@ -87,7 +90,6 @@ export const QuranTimeSelection = ({
   const clearSelectAllTimers = useCallback(() => {
     selectAllTimersRef.current.forEach(clearTimeout);
     selectAllTimersRef.current = [];
-    ignoreSelectionChangeRef.current = false;
   }, []);
 
   const applySelectAll = useCallback((len: number) => {
@@ -128,6 +130,21 @@ export const QuranTimeSelection = ({
     },
     [applySelectAll, clearSelectAllTimers],
   );
+
+  /** After append, pin caret at end — native often leaves it at prev.length. */
+  const placeCaretAtEnd = useCallback((len: number) => {
+    ignoreSelectionChangeRef.current = true;
+    setSelection({ start: len, end: len });
+    requestAnimationFrame(() => {
+      setSelection({ start: len, end: len });
+      hoursInputRef.current?.setNativeProps?.({
+        selection: { start: len, end: len },
+      });
+      requestAnimationFrame(() => {
+        ignoreSelectionChangeRef.current = false;
+      });
+    });
+  }, []);
 
   const [inputValue, setInputValue] = useState<string>("");
   const [hydrated, setHydrated] = useState(false);
@@ -192,7 +209,31 @@ export const QuranTimeSelection = ({
     typedThisFocusRef.current = true;
     allowSelectAllRef.current = false;
     clearSelectAllTimers();
-    const digitsOnly = text.replace(/[^0-9]/g, "");
+
+    let digitsOnly = text.replace(/[^0-9]/g, "");
+    let dropHighlight = false;
+
+    if (appendOnNextInputRef.current) {
+      appendOnNextInputRef.current = false;
+      dropHighlight = true;
+      const prev = prevValueOnFocusRef.current.replace(/[^0-9]/g, "");
+
+      if (digitsOnly === "") {
+        setInputValue("");
+        setSelection({ start: 0, end: 0 });
+        return;
+      }
+
+      if (
+        prev.length > 0 &&
+        !digitsOnly.startsWith(prev) &&
+        digitsOnly !== prev
+      ) {
+        digitsOnly = prev + digitsOnly;
+      }
+      prevValueOnFocusRef.current = digitsOnly;
+    }
+
     if (digitsOnly === "") {
       setInputValue("");
       return;
@@ -202,7 +243,11 @@ export const QuranTimeSelection = ({
       setInputValue("");
       return;
     }
-    setInputValue(String(Math.min(MAX_HOURS, parsed)));
+    const next = String(Math.min(MAX_HOURS, parsed));
+    setInputValue(next);
+    if (dropHighlight) {
+      placeCaretAtEnd(next.length);
+    }
   };
 
   const toggleDropdown = () => {
@@ -279,12 +324,17 @@ export const QuranTimeSelection = ({
                         parseInt(inputValue || "0", 10) || 0;
                       if (existing === 0) {
                         allowSelectAllRef.current = false;
+                        appendOnNextInputRef.current = false;
+                        prevValueOnFocusRef.current = "";
                         clearSelectAllTimers();
                         setInputValue("");
                         setSelection({ start: 0, end: 0 });
                         return;
                       }
-                      scheduleSelectAll(String(existing).length);
+                      const existingText = String(existing);
+                      prevValueOnFocusRef.current = existingText;
+                      appendOnNextInputRef.current = true;
+                      scheduleSelectAll(existingText.length);
                     }}
                     onBlur={() => {
                       setIsHoursFocused(false);
@@ -294,12 +344,15 @@ export const QuranTimeSelection = ({
                       // keep-visible blur→focus; only cancel after the user typed.
                       if (typedThisFocusRef.current) {
                         allowSelectAllRef.current = false;
+                        appendOnNextInputRef.current = false;
                         clearSelectAllTimers();
                       }
                       blurClearTimerRef.current = setTimeout(() => {
                         typedThisFocusRef.current = false;
+                        // Real blur (onFocus cancels this timer on bounce re-focus).
+                        appendOnNextInputRef.current = false;
                         blurClearTimerRef.current = null;
-                      }, 150);
+                      }, 350);
                     }}
                     style={[
                       styles.hoursInput,

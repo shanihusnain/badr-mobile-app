@@ -1,7 +1,13 @@
 import moment from "moment-hijri";
 import { GoalId } from "../home/components/goalsData";
 
-export type LogStepId = "date" | "prayerSelect" | "timing" | "congregation" | "startTime" | "duration";
+export type LogStepId =
+  | "date"
+  | "prayerSelect"
+  | "timing"
+  | "congregation"
+  | "startTime"
+  | "duration";
 
 export type PrayerName = "fajr" | "dhuhr" | "asr" | "maghrib" | "isha";
 
@@ -16,9 +22,23 @@ export interface ProgressLogConfig {
   steps: LogStepId[];
 }
 
-const DEFAULT_STEPS: LogStepId[] = ["date", "prayerSelect", "timing", "congregation", "startTime", "duration"];
+const DEFAULT_STEPS: LogStepId[] = [
+  "date",
+  "prayerSelect",
+  "timing",
+  "congregation",
+  "startTime",
+  "duration",
+];
 
-const FIVE_DAILY_STEPS: LogStepId[] = ["date", "prayerSelect", "timing", "congregation", "startTime", "duration"];
+const FIVE_DAILY_STEPS: LogStepId[] = [
+  "date",
+  "prayerSelect",
+  "timing",
+  "congregation",
+  "startTime",
+  "duration",
+];
 
 export const PROGRESS_LOG_CONFIG: Partial<Record<GoalId, ProgressLogConfig>> = {
   "prayer-fiveDailyPrayers": {

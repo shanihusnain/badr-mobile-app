@@ -1,6 +1,6 @@
 import { Colors } from "@/constants/theme";
 import React from "react";
-import { Pressable, StyleSheet } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet } from "react-native";
 import Animated, {
   interpolate,
   interpolateColor,
@@ -23,6 +23,7 @@ interface SwitchProps {
   trackColors?: { on: string; off: string };
   thumbColors?: { on: string; off: string };
   size?: SwitchSize;
+  isLoading?: boolean;
 }
 
 const SWITCH_DIMENSIONS: Record<
@@ -49,6 +50,7 @@ export const SwitchButton = ({
     off: Colors.light.white,
   },
   size = "default",
+  isLoading = false,
 }: SwitchProps) => {
   const { i18n } = useTranslation();
   const isRtl = i18n.language === "ar";
@@ -88,7 +90,7 @@ export const SwitchButton = ({
   });
 
   return (
-    <Pressable onPress={onPress}>
+    <Pressable onPress={isLoading ? undefined : onPress}>
       <Animated.View
         style={[
           styles.track,
@@ -113,6 +115,9 @@ export const SwitchButton = ({
             thumbAnimatedStyle,
           ]}
         />
+        {isLoading && (
+          <ActivityIndicator size="small" color={Colors.light.white} />
+        )}
       </Animated.View>
     </Pressable>
   );

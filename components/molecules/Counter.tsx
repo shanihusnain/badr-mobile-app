@@ -38,11 +38,82 @@ export const Counter = ({
     { start: number; end: number } | undefined
   >(undefined);
 
+  /** First key after select-all: append (native would replace); backspace clears. */
+  const appendOnNextInputRef = useRef(false);
+  const prevValueOnFocusRef = useRef("");
+  const ignoreSelectionChangeRef = useRef(false);
+  const allowSelectAllRef = useRef(false);
+  const selectAllTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+
   useEffect(() => {
     if (!isFocused) {
       setDraft(count.toString());
     }
   }, [count, isFocused]);
+
+  useEffect(() => {
+    return () => {
+      selectAllTimersRef.current.forEach(clearTimeout);
+      selectAllTimersRef.current = [];
+    };
+  }, []);
+
+  const clearSelectAllTimers = useCallback(() => {
+    selectAllTimersRef.current.forEach(clearTimeout);
+    selectAllTimersRef.current = [];
+  }, []);
+
+  const applySelectAll = useCallback((len: number) => {
+    if (!allowSelectAllRef.current || len <= 0) return;
+    ignoreSelectionChangeRef.current = true;
+    setSelection({ start: 0, end: len });
+    // Android often emits a caret onSelectionChange right after focus/scroll;
+    // hold ignore long enough that it cannot collapse select-all.
+    if (Platform.OS === "android") {
+      selectAllTimersRef.current.push(
+        setTimeout(() => {
+          ignoreSelectionChangeRef.current = false;
+        }, 80),
+      );
+    } else {
+      requestAnimationFrame(() => {
+        ignoreSelectionChangeRef.current = false;
+      });
+    }
+  }, []);
+
+  const scheduleSelectAll = useCallback(
+    (len: number) => {
+      allowSelectAllRef.current = true;
+      clearSelectAllTimers();
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => applySelectAll(len));
+      });
+      // Android keep-visible scroll can wipe early selection — re-apply.
+      if (Platform.OS === "android") {
+        selectAllTimersRef.current.push(
+          setTimeout(() => applySelectAll(len), 50),
+          setTimeout(() => applySelectAll(len), 160),
+        );
+      }
+    },
+    [applySelectAll, clearSelectAllTimers],
+  );
+
+  /** After append, pin caret at end — native onSelectionChange often leaves it at prev.length. */
+  const placeCaretAtEnd = useCallback((len: number) => {
+    ignoreSelectionChangeRef.current = true;
+    setSelection({ start: len, end: len });
+    requestAnimationFrame(() => {
+      setSelection({ start: len, end: len });
+      inputRef.current?.setNativeProps?.({
+        selection: { start: len, end: len },
+      });
+      requestAnimationFrame(() => {
+        ignoreSelectionChangeRef.current = false;
+      });
+    });
+  }, []);
 
   const reportInputLayout = useCallback(() => {
     const node = wrapperRef.current;
@@ -61,22 +132,27 @@ export const Counter = ({
     onInputFocus?.();
     requestAnimationFrame(reportInputLayout);
     if (count === 0) {
+      appendOnNextInputRef.current = false;
+      prevValueOnFocusRef.current = "";
+      allowSelectAllRef.current = false;
+      clearSelectAllTimers();
       setDraft("");
       setSelection({ start: 0, end: 0 });
       return;
     }
     const text = String(count);
     setDraft(text);
-    // Defer select-all until after controlled value commits (iOS).
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        setSelection({ start: 0, end: text.length });
-      });
-    });
+    prevValueOnFocusRef.current = text;
+    appendOnNextInputRef.current = true;
+    scheduleSelectAll(text.length);
   };
 
   const handleBlur = () => {
     setIsFocused(false);
+    appendOnNextInputRef.current = false;
+    allowSelectAllRef.current = false;
+    clearSelectAllTimers();
+    ignoreSelectionChangeRef.current = false;
     setSelection(undefined);
     const digitsOnly = draft.replace(/[^0-9]/g, "");
     const next = digitsOnly === "" ? 0 : parseInt(digitsOnly, 10) || 0;
@@ -85,9 +161,42 @@ export const Counter = ({
   };
 
   const handleChangeText = (text: string) => {
-    const digitsOnly = text.replace(/[^0-9]/g, "");
+    allowSelectAllRef.current = false;
+    clearSelectAllTimers();
+
+    let digitsOnly = text.replace(/[^0-9]/g, "");
+    let dropHighlight = false;
+
+    if (appendOnNextInputRef.current) {
+      appendOnNextInputRef.current = false;
+      dropHighlight = true;
+      const prev = prevValueOnFocusRef.current.replace(/[^0-9]/g, "");
+
+      if (digitsOnly === "") {
+        // Backspace cleared the selection.
+        setDraft("");
+        setCount(0);
+        setSelection({ start: 0, end: 0 });
+        return;
+      }
+
+      // Native select-all replaces with the typed digit(s) — force append instead.
+      if (
+        prev.length > 0 &&
+        !digitsOnly.startsWith(prev) &&
+        digitsOnly !== prev
+      ) {
+        digitsOnly = prev + digitsOnly;
+      }
+      // Baseline for any further guard; caret must sit after the new length.
+      prevValueOnFocusRef.current = digitsOnly;
+    }
+
     setDraft(digitsOnly);
     setCount(digitsOnly === "" ? 0 : parseInt(digitsOnly, 10) || 0);
+    if (dropHighlight) {
+      placeCaretAtEnd(digitsOnly.length);
+    }
   };
 
   return (
@@ -113,6 +222,7 @@ export const Counter = ({
           placeholder=""
           selection={selection}
           onSelectionChange={(e) => {
+            if (ignoreSelectionChangeRef.current) return;
             setSelection(e.nativeEvent.selection);
           }}
           onFocus={handleFocus}

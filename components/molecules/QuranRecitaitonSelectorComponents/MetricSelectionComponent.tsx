@@ -283,6 +283,13 @@ export const MetricSelectionComponent = ({
 
   /** Instantly clear a default "0" before React re-renders on focus. */
   const metricInputRefs = useRef<Record<string, TextInput | null>>({});
+  /** First key after select-all: append (native would replace); backspace clears. */
+  const appendOnNextInputRef = useRef<Record<string, boolean>>({});
+  const prevValueOnFocusRef = useRef<Record<string, string>>({});
+  /** Keep-visible scroll blurs briefly — delay clearing append so the first key still appends. */
+  const appendBlurClearTimersRef = useRef<
+    Record<string, ReturnType<typeof setTimeout>>
+  >({});
   /** Report layout once for parent keep-visible — no late remeasure (avoids overscroll). */
   const reportInputFocusLayout = useCallback(
     (key: string) => {
@@ -306,24 +313,112 @@ export const MetricSelectionComponent = ({
     },
     [onInputFocus, onNestedScrollActiveChange, reportInputFocusLayout],
   );
+  const cancelAppendBlurClear = useCallback((key: string) => {
+    const timer = appendBlurClearTimersRef.current[key];
+    if (timer) {
+      clearTimeout(timer);
+      delete appendBlurClearTimersRef.current[key];
+    }
+  }, []);
   /** Empty / zero display → clear so "0" is gone on focus. */
   const clearZeroOnFocus = useCallback((key: string, isZero: boolean) => {
     if (!isZero) return;
+    cancelAppendBlurClear(key);
+    appendOnNextInputRef.current[key] = false;
+    prevValueOnFocusRef.current[key] = "";
     metricInputRefs.current[key]?.setNativeProps?.({
       text: "",
       placeholder: "",
     });
     setInputFocused(key, true);
-  }, []);
-  /** Non-zero digits → select all so typing/backspace replaces the value. */
-  const selectAllOnFocus = useCallback((key: string, textLength: number) => {
-    if (textLength <= 0) return;
-    requestAnimationFrame(() => {
-      metricInputRefs.current[key]?.setNativeProps?.({
-        selection: { start: 0, end: textLength },
+  }, [cancelAppendBlurClear]);
+  /**
+   * Non-zero digits → select all so backspace clears; typing appends then drops
+   * selection (see resolveAppendDigits).
+   */
+  const selectAllOnFocus = useCallback(
+    (key: string, text: string) => {
+      const textLength = text.length;
+      if (textLength <= 0) return;
+      cancelAppendBlurClear(key);
+      appendOnNextInputRef.current[key] = true;
+      prevValueOnFocusRef.current[key] = text;
+      requestAnimationFrame(() => {
+        metricInputRefs.current[key]?.setNativeProps?.({
+          selection: { start: 0, end: textLength },
+        });
+        // Android keep-visible / selectTextOnFocus can drop selection — re-apply.
+        setTimeout(() => {
+          if (!appendOnNextInputRef.current[key]) return;
+          metricInputRefs.current[key]?.setNativeProps?.({
+            selection: { start: 0, end: textLength },
+          });
+        }, 80);
       });
+    },
+    [cancelAppendBlurClear],
+  );
+  /** Pin caret at end after append so the next digit continues at the end. */
+  const placeCaretAtEnd = useCallback((key: string, len: number) => {
+    const apply = () => {
+      metricInputRefs.current[key]?.setNativeProps?.({
+        selection: { start: len, end: len },
+      });
+    };
+    requestAnimationFrame(() => {
+      apply();
+      requestAnimationFrame(apply);
+      setTimeout(apply, 50);
     });
   }, []);
+  /**
+   * While select-all is active, native replace → force append; backspace → "".
+   * Clears the append flag and drops selection after the first change.
+   */
+  const resolveAppendDigits = useCallback(
+    (key: string, text: string) => {
+      const digitsOnly = text.replace(/[^0-9]/g, "");
+      const prev = (prevValueOnFocusRef.current[key] ?? "").replace(
+        /[^0-9]/g,
+        "",
+      );
+      const pending = !!appendOnNextInputRef.current[key];
+
+      if (!pending) {
+        return digitsOnly;
+      }
+
+      appendOnNextInputRef.current[key] = false;
+      let next = digitsOnly;
+      if (digitsOnly === "") {
+        next = "";
+      } else if (
+        prev.length > 0 &&
+        !digitsOnly.startsWith(prev) &&
+        digitsOnly !== prev
+      ) {
+        next = prev + digitsOnly;
+      }
+      prevValueOnFocusRef.current[key] = next;
+      placeCaretAtEnd(key, next.length);
+      return next;
+    },
+    [placeCaretAtEnd],
+  );
+  /**
+   * Delay clearing the append flag — parent keep-visible scroll often blurs
+   * then refocuses before the user types.
+   */
+  const scheduleAppendFlagClearOnBlur = useCallback(
+    (key: string) => {
+      cancelAppendBlurClear(key);
+      appendBlurClearTimersRef.current[key] = setTimeout(() => {
+        appendOnNextInputRef.current[key] = false;
+        delete appendBlurClearTimersRef.current[key];
+      }, 350);
+    },
+    [cancelAppendBlurClear],
+  );
   const clearZeroOnTouch = (key: string, isZero: boolean) => {
     clearZeroOnFocus(key, isZero);
   };
@@ -869,7 +964,12 @@ export const MetricSelectionComponent = ({
   };
 
   const handleJuzStartChange = (v: string) => {
-    const digits = normalizeJuzDigitDraft(v);
+    const appended = resolveAppendDigits("juz-start", v);
+    // Keep full append result for clamp (avoid slice(0,2) dropping the new digit).
+    const digits =
+      appended.length > 2
+        ? appended.replace(/^0+/, "") || "0"
+        : normalizeJuzDigitDraft(appended);
     if (digits === "" || digits === "0") {
       setJuzStart(0);
       return;
@@ -885,7 +985,11 @@ export const MetricSelectionComponent = ({
   };
 
   const handleJuzEndChange = (v: string) => {
-    const digits = normalizeJuzDigitDraft(v);
+    const appended = resolveAppendDigits("juz-end", v);
+    const digits =
+      appended.length > 2
+        ? appended.replace(/^0+/, "") || "0"
+        : normalizeJuzDigitDraft(appended);
     if (digits === "") {
       setJuzEndText("");
       setJuzEnd(0);
@@ -1250,7 +1354,8 @@ export const MetricSelectionComponent = ({
                                 : String(timesValue || 0)
                             }
                             onChangeText={(v) => {
-                              const digits = v.replace(/[^0-9]/g, "");
+                              const key = `surah-${s.id}`;
+                              const digits = resolveAppendDigits(key, v);
                               if (digits === "") {
                                 updateSurahSetting(s.id, { times: 0 });
                                 return;
@@ -1262,7 +1367,8 @@ export const MetricSelectionComponent = ({
                               updateSurahSetting(s.id, { times: clamped });
                             }}
                             keyboardType="numeric"
-                            selectTextOnFocus={timesValue > 0}
+                            // Use selectAllOnFocus + append guard (native selectTextOnFocus races).
+                            selectTextOnFocus={false}
                             onTouchStart={() =>
                               clearZeroOnTouch(
                                 `surah-${s.id}`,
@@ -1275,10 +1381,7 @@ export const MetricSelectionComponent = ({
                               setInputFocused(key, true);
                               clearZeroOnFocus(key, isZero);
                               if (!isZero) {
-                                selectAllOnFocus(
-                                  key,
-                                  String(timesValue).length,
-                                );
+                                selectAllOnFocus(key, String(timesValue));
                               }
                               // Parent FlatList clears the keyboard. Defer nested
                               // scroll so it does not stack with keep-visible.
@@ -1298,9 +1401,10 @@ export const MetricSelectionComponent = ({
                                 }
                               }, 360);
                             }}
-                            onBlur={() =>
-                              setInputFocused(`surah-${s.id}`, false)
-                            }
+                            onBlur={() => {
+                              scheduleAppendFlagClearOnBlur(`surah-${s.id}`);
+                              setInputFocused(`surah-${s.id}`, false);
+                            }}
                             textAlignVertical="center"
                             style={[
                               styles.timesInput,
@@ -1513,7 +1617,7 @@ export const MetricSelectionComponent = ({
                   onChangeText={handleJuzStartChange}
                   keyboardType="numeric"
                   maxLength={2}
-                  selectTextOnFocus={juzStart > 0}
+                  selectTextOnFocus={false}
                   onTouchStart={() =>
                     clearZeroOnTouch("juz-start", juzStart === 0)
                   }
@@ -1522,11 +1626,12 @@ export const MetricSelectionComponent = ({
                     setInputFocused("juz-start", true);
                     clearZeroOnFocus("juz-start", isZero);
                     if (!isZero) {
-                      selectAllOnFocus("juz-start", String(juzStart).length);
+                      selectAllOnFocus("juz-start", String(juzStart));
                     }
                     notifyInputFocused("juz-start");
                   }}
                   onBlur={() => {
+                    scheduleAppendFlagClearOnBlur("juz-start");
                     setInputFocused("juz-start", false);
                     enforceJuzStart(String(juzStart));
                   }}
@@ -1572,9 +1677,7 @@ export const MetricSelectionComponent = ({
                   onChangeText={handleJuzEndChange}
                   keyboardType="numeric"
                   maxLength={2}
-                  selectTextOnFocus={
-                    !!juzEndText && juzEndText !== "0" && juzEnd > 0
-                  }
+                  selectTextOnFocus={false}
                   onTouchStart={() =>
                     clearZeroOnTouch(
                       "juz-end",
@@ -1588,11 +1691,12 @@ export const MetricSelectionComponent = ({
                       setJuzEndText("");
                       clearZeroOnFocus("juz-end", true);
                     } else {
-                      selectAllOnFocus("juz-end", juzEndText.length);
+                      selectAllOnFocus("juz-end", juzEndText);
                     }
                     notifyInputFocused("juz-end");
                   }}
                   onBlur={() => {
+                    scheduleAppendFlagClearOnBlur("juz-end");
                     setInputFocused("juz-end", false);
                     enforceJuzEnd();
                   }}
@@ -1703,7 +1807,7 @@ export const MetricSelectionComponent = ({
                 }}
                 value={quranCompletion > 0 ? String(quranCompletion) : ""}
                 onChangeText={(v) => {
-                  const digits = v.replace(/[^0-9]/g, "");
+                  const digits = resolveAppendDigits("completion", v);
                   if (digits === "") {
                     setQuranCompletion(0);
                     return;
@@ -1715,7 +1819,7 @@ export const MetricSelectionComponent = ({
                   setQuranCompletion(clamped);
                 }}
                 keyboardType="numeric"
-                selectTextOnFocus={quranCompletion > 0}
+                selectTextOnFocus={false}
                 onTouchStart={() =>
                   clearZeroOnTouch("completion", !(quranCompletion > 0))
                 }
@@ -1724,14 +1828,14 @@ export const MetricSelectionComponent = ({
                   setInputFocused("completion", true);
                   clearZeroOnFocus("completion", isZero);
                   if (!isZero) {
-                    selectAllOnFocus(
-                      "completion",
-                      String(quranCompletion).length,
-                    );
+                    selectAllOnFocus("completion", String(quranCompletion));
                   }
                   notifyInputFocused("completion");
                 }}
-                onBlur={() => setInputFocused(`completion`, false)}
+                onBlur={() => {
+                  scheduleAppendFlagClearOnBlur("completion");
+                  setInputFocused("completion", false);
+                }}
                 textAlignVertical="center"
                 style={[
                   styles.timesInput,
