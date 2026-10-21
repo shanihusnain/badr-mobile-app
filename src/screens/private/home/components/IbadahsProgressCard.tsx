@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import { TaperedCircleBorder } from "@/components/atoms/TaperedCircleBorder";
+import { prepareFigmaForcedSmallCapsText } from "@/src/utils/figmaTypography";
 
 type Props = {
   title: string;
@@ -29,7 +30,10 @@ export const IbadahsProgressCard = ({
   loading = false,
 }: Props) => {
   const percentNum = percentage.replace("%", "");
-
+  const displayTitle = useMemo(
+    () => (loading ? "---" : prepareFigmaForcedSmallCapsText(title)),
+    [loading, title],
+  );
   return (
     <TouchableOpacity
       style={[
@@ -50,7 +54,7 @@ export const IbadahsProgressCard = ({
           {loading ? <Text style={styles.iconPlaceholder}>---</Text> : icon}
         </View>
         <View style={styles.textWrapper}>
-          <Text style={styles.title}>{title}</Text>
+          <Text style={styles.title}>{displayTitle}</Text>
           <Text style={styles.subtitle}>{loading ? "---" : subtitle}</Text>
         </View>
       </View>

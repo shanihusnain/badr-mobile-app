@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -19,6 +19,7 @@ import { HeadPhoneQuranListeningIcon } from "@/assets/icons/HeadPhoneQuranListen
 import { QuranImageIcon } from "@/assets/icons/QuranImageIcon";
 import { QuranMemorizationIcon } from "@/assets/icons/QuranMemorizationIcon";
 import { ManQuranTajweedIcon } from "@/assets/icons/ManQuranTajweedIcon";
+import { prepareFigmaForcedSmallCapsText } from "@/src/utils/figmaTypography";
 
 type Props = {
   title: string;
@@ -93,8 +94,11 @@ export const DetailedIbadahsProgressCard = ({
   loading = false,
 }: Props) => {
   const percentNum = percentage.replace("%", "");
-  const displayTitle = loading ? "---" : title.toUpperCase();
-
+  // const displayTitle = : title.toUpperCase();
+  const displayTitle = useMemo(
+    () => (loading ? "---" : prepareFigmaForcedSmallCapsText(title)),
+    [loading, title],
+  );
   return (
     <TouchableOpacity
       style={[
