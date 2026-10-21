@@ -487,7 +487,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     alignItems: "center",
     width: "100%",
-    marginTop: 2,
+    marginTop: 6,
   },
   durationText: {
     fontSize: 11,

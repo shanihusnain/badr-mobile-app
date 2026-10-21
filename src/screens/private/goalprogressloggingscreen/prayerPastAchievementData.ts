@@ -7,6 +7,11 @@ export type PastAchievementPeriod = "monthly" | "threeMonths" | "sixMonths";
 export type PrayerAnalyticsView = "completedVsIncomplete" | "completedVsTimeSpent" | "inMosqueVsOutOfMosque" | "completedByCategory";
 
 export type PrayerPastChartItem = QuranPastChartItem & {
+  /** Prayer counts on the bar (mirror of completedHours for prayer goals). */
+  completedPrayers?: number;
+  incompletePrayers?: number;
+  timeSpentMinutes?: number;
+  stackTotalPrayers?: number;
   completedDeltaPct?: number | null;
   /** Per-bucket copy from achievements API (five-daily). */
   bucketSummaryText?: string | null;
@@ -50,12 +55,11 @@ function buildPeriodBar(
     incompleteHours: incompletePrayers,
     hours: completedPrayers, // The value displayed on the bar
     stackTotalHours: stackTotalPrayers,
-    // Store original prayer counts + time spent on the item for the view toggle
     completedPrayers,
     incompletePrayers,
     timeSpentMinutes,
     stackTotalPrayers,
-  } as any; // Using any because we injected extra fields not in QuranPastChartItem
+  };
 }
 
 function buildPeriodChart(
@@ -123,6 +127,7 @@ export function formatPrayerTimeSpentLabel(totalMinutes: number): string {
 
 const MONTHLY_CHART = buildPeriodChart(
   [
+    // 28-day cycle → four 7-day weeks
     { xLabel: "w1", dateLabel: "Nov 1–7", completed: 6, timeSpent: 30 },
     { xLabel: "w2", dateLabel: "Nov 8–14", completed: 4, timeSpent: 20 },
     { xLabel: "w3", dateLabel: "Nov 15–21", completed: 6, timeSpent: 30 },
