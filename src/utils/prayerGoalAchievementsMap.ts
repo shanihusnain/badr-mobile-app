@@ -89,41 +89,93 @@ export function formatPrayerAchievementsDateRange(
   return `${start.format("MMM D, YY")} — ${end.format("MMM D, YY")}`;
 }
 
+/** Fixed prayer / fasting goal cycle length (not Gregorian calendar months). */
+const PAST_ACHIEVEMENT_CYCLE_DAYS = 28;
+const PAST_ACHIEVEMENT_WEEK_DAYS = 7;
+
+function resolvePastAchievementPeriodAnchor(
+  period: "monthly" | "threeMonths" | "sixMonths",
+  periodStart?: string | null,
+): moment.Moment {
+  if (periodStart != null && periodStart !== "") {
+    const parsed = moment(String(periodStart), "YYYY-MM-DD", true);
+    if (parsed.isValid()) return parsed.startOf("day");
+  }
+
+  const today = moment().startOf("day");
+  if (period === "monthly") {
+    return today.clone().subtract(PAST_ACHIEVEMENT_CYCLE_DAYS - 1, "days");
+  }
+  if (period === "threeMonths") {
+    return today.clone().subtract(PAST_ACHIEVEMENT_CYCLE_DAYS * 3 - 1, "days");
+  }
+  return today.clone().subtract(PAST_ACHIEVEMENT_CYCLE_DAYS * 6 - 1, "days");
+}
+
+function formatCycleWeekAxisLabel(
+  weekStart: moment.Moment,
+  weekEnd: moment.Moment,
+): string {
+  if (
+    weekStart.month() === weekEnd.month() &&
+    weekStart.year() === weekEnd.year()
+  ) {
+    return `${weekStart.format("MMM D")}–${weekEnd.format("D")}`;
+  }
+  return `${weekStart.format("MMM D")}–${weekEnd.format("MMM D")}`;
+}
+
+function formatCycleMonthAxisLabel(
+  cycleStart: moment.Moment,
+  cycleEnd: moment.Moment,
+  multiline: boolean,
+): string {
+  const sameMonth =
+    cycleStart.month() === cycleEnd.month() &&
+    cycleStart.year() === cycleEnd.year();
+  if (multiline) {
+    if (sameMonth) {
+      return `${cycleStart.format("MMM D")}—\n${cycleEnd.format("D")}`;
+    }
+    return `${cycleStart.format("MMM D")}—\n${cycleEnd.format("MMM D")}`;
+  }
+  if (sameMonth) {
+    return `${cycleStart.format("MMM D")}—${cycleEnd.format("D")}`;
+  }
+  return `${cycleStart.format("MMM D")}—${cycleEnd.format("MMM D")}`;
+}
+
 /**
  * Client-side date range + empty x-axis slots for M / 3M / 6M when the API
  * has not returned period dates or chart buckets yet.
+ * Uses fixed 28-day cycles (4×7-day weeks for monthly).
  */
 export function buildPastAchievementSlotDateLabel(
   period: "monthly" | "threeMonths" | "sixMonths",
   index: number,
   periodStart?: string | null,
 ): string {
-  let anchor =
-    periodStart != null && periodStart !== ""
-      ? moment(String(periodStart), "YYYY-MM-DD", true)
-      : null;
-
-  if (!anchor?.isValid()) {
-    if (period === "monthly") {
-      anchor = moment().startOf("month");
-    } else if (period === "threeMonths") {
-      anchor = moment().subtract(2, "months").startOf("month");
-    } else {
-      anchor = moment().subtract(5, "months").startOf("month");
-    }
-  }
+  const anchor = resolvePastAchievementPeriodAnchor(period, periodStart);
 
   if (period === "monthly") {
-    const weekStart = anchor.clone().add(index, "weeks");
-    const weekEnd = moment.min(
-      weekStart.clone().add(6, "days"),
-      anchor.clone().endOf("month"),
-    );
-    return `${weekStart.format("MMM D")}–${weekEnd.format("D")}`;
+    const weekStart = anchor
+      .clone()
+      .add(index * PAST_ACHIEVEMENT_WEEK_DAYS, "days");
+    const weekEnd = weekStart.clone().add(PAST_ACHIEVEMENT_WEEK_DAYS - 1, "days");
+    return formatCycleWeekAxisLabel(weekStart, weekEnd);
   }
 
-  // 3M / 6M — month abbreviation only (Jul, Aug, …).
-  return anchor.clone().add(index, "months").format("MMM");
+  const cycleStart = anchor
+    .clone()
+    .add(index * PAST_ACHIEVEMENT_CYCLE_DAYS, "days");
+  const cycleEnd = cycleStart
+    .clone()
+    .add(PAST_ACHIEVEMENT_CYCLE_DAYS - 1, "days");
+  return formatCycleMonthAxisLabel(
+    cycleStart,
+    cycleEnd,
+    period === "sixMonths",
+  );
 }
 
 export function buildEmptyPastAchievementPeriodScaffold(
@@ -141,64 +193,23 @@ export function buildEmptyPastAchievementPeriodScaffold(
     incompleteMinutes: number;
   }>;
 } {
-  const today = moment();
-
-  if (period === "monthly") {
-    const start = today.clone().startOf("month");
-    const end = today.clone().endOf("month");
-    const dateRangeLabel = formatPrayerAchievementsDateRange(
-      start.format("YYYY-MM-DD"),
-      end.format("YYYY-MM-DD"),
+  const start = resolvePastAchievementPeriodAnchor(period, null);
+  const bucketCount =
+    period === "monthly" ? 4 : period === "threeMonths" ? 3 : 6;
+  const end = start
+    .clone()
+    .add(
+      period === "monthly"
+        ? PAST_ACHIEVEMENT_CYCLE_DAYS - 1
+        : PAST_ACHIEVEMENT_CYCLE_DAYS * bucketCount - 1,
+      "days",
     );
-    const chartData = [0, 1, 2, 3].map((index) => ({
-      xLabel: `w${index + 1}`,
-      dateLabel: buildPastAchievementSlotDateLabel(
-        period,
-        index,
-        start.format("YYYY-MM-DD"),
-      ),
-      completedHours: 0,
-      incompleteHours: 0,
-      hours: 0,
-      stackTotalHours: 0,
-      completedMinutes: 0,
-      incompleteMinutes: 0,
-    }));
-    return { dateRangeLabel, chartData };
-  }
-
-  if (period === "threeMonths") {
-    const end = today.clone().endOf("month");
-    const start = today.clone().subtract(2, "months").startOf("month");
-    const dateRangeLabel = formatPrayerAchievementsDateRange(
-      start.format("YYYY-MM-DD"),
-      end.format("YYYY-MM-DD"),
-    );
-    const chartData = [0, 1, 2].map((index) => ({
-      xLabel: `m${index + 1}`,
-      dateLabel: buildPastAchievementSlotDateLabel(
-        period,
-        index,
-        start.format("YYYY-MM-DD"),
-      ),
-      completedHours: 0,
-      incompleteHours: 0,
-      hours: 0,
-      stackTotalHours: 0,
-      completedMinutes: 0,
-      incompleteMinutes: 0,
-    }));
-    return { dateRangeLabel, chartData };
-  }
-
-  const end = today.clone().endOf("month");
-  const start = today.clone().subtract(5, "months").startOf("month");
   const dateRangeLabel = formatPrayerAchievementsDateRange(
     start.format("YYYY-MM-DD"),
     end.format("YYYY-MM-DD"),
   );
-  const chartData = [0, 1, 2, 3, 4, 5].map((index) => ({
-    xLabel: `m${index + 1}`,
+  const chartData = Array.from({ length: bucketCount }, (_, index) => ({
+    xLabel: period === "monthly" ? `w${index + 1}` : `m${index + 1}`,
     dateLabel: buildPastAchievementSlotDateLabel(
       period,
       index,

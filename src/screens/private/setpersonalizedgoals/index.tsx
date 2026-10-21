@@ -159,7 +159,7 @@ export const SetPersonalizedGoalsScreen = () => {
               </Text>
             </View>
             
-            {activeFrame === 1 && (
+            {/* {activeFrame === 1 && (
               <>
                 <TopSpace top={ms(30)} />
                 <GoalProgressCard
@@ -170,7 +170,7 @@ export const SetPersonalizedGoalsScreen = () => {
                   animate
                 />
               </>
-            )}
+            )} */}
             <TopSpace top={ms(26)} />
             <Text style={styles.descriptionText}>
               {t("setpersonalizedgoals.setPersonalizedDescription")}

@@ -37,6 +37,7 @@ import {
   type PrayerGoalAchievementsData,
 } from "@/src/api/queries/useGetPrayerGoalAchievements";
 import {
+  createEmptyPrayerPastAchievement,
   mapPrayerGoalAchievementsToUi,
   shiftPrayerAchievementsPeriodStart,
 } from "@/src/utils/prayerGoalAchievementsMap";
@@ -45,7 +46,7 @@ import {
   PAST_ACHIEVEMENT_NO_DATA,
   isPastAchievementBarEmpty,
 } from "@/src/utils/pastAchievementNoData";
-import { NegativeProgressIcon, PositiveProgressIcon, AchivementArrowIcon } from "@/assets/icons";
+import { AchivementArrowIcon } from "@/assets/icons";
 
 type Props = {
   goalId: GoalId;
@@ -346,18 +347,19 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
   const [hintDismissed, setHintDismissed] = useState(false);
   const goalData = getGoalById(goalId);
   const cleanGoalLabel = goalData?.title || "";
-  const isTahiyyat =
-    goalId === "prayer-tahiyyat" || goalId === "prayer-tahiyyatMasjid";
   const prayerType = resolvePrayerTypeFromGoalId(goalId);
+  /** All prayer goals with a backend type use achievements API (same as fasting). */
+  const usesAchievementsApi = !!prayerType;
 
   const { data: achievementsApiData, isLoading: isAchievementsLoading } =
     useGetPrayerGoalAchievements(prayerType, {
       period,
       periodStart: periodStartParam,
-      enabled: isTahiyyat && !!prayerType,
+      enabled: usesAchievementsApi,
     });
   const showPlaceholders =
-    isTahiyyat && (!achievementsApiData || isAchievementsLoading);
+    usesAchievementsApi &&
+    (isAchievementsLoading || !achievementsApiData);
 
   useEffect(() => {
     if (
@@ -374,17 +376,21 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
   }, [period, goalId]);
 
   const baseAchievementRaw = useMemo((): PrayerPastAchievement | null => {
-    if (isTahiyyat) {
-      if (!achievementsApiData) return null;
+    if (usesAchievementsApi) {
+      if (!achievementsApiData) {
+        return createEmptyPrayerPastAchievement(period);
+      }
       return mapPrayerGoalAchievementsToUi(achievementsApiData);
     }
     return getPrayerPastAchievement(goalId, period);
-  }, [isTahiyyat, achievementsApiData, goalId, period]);
+  }, [usesAchievementsApi, achievementsApiData, goalId, period]);
 
   const baseAchievement = useMemo(() => {
     if (!baseAchievementRaw) return null;
-    let data = { ...baseAchievementRaw };
+    // API drives real per-slot stats; skip mock tab multipliers.
+    if (usesAchievementsApi) return baseAchievementRaw;
 
+    let data = { ...baseAchievementRaw };
     const isMissed = goalId === "prayer-missed";
     const isSunnah = goalId === "prayer-sunnah";
     const isQiyam = goalId === "prayer-qiyam";
@@ -401,8 +407,8 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
         "After Dhuhr": 0.15,
         "Before Asr": 0.15,
         "After Maghrib": 0.1,
-        "After Isha": 0.35, // bumped up slightly for Qiyam visual variance
-        Tahajjud: 0.65, // major portion of Qiyam
+        "After Isha": 0.35,
+        Tahajjud: 0.65,
       };
       const multiplier = multipliers[selectedPrayerTab] || 0.4;
 
@@ -417,25 +423,35 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
         totalTimeSpentMinutes: Math.round(
           data.totalTimeSpentMinutes * multiplier,
         ),
-        chartData: data.chartData.map((item: any, idx: number) => {
-          // deterministic variation so the graph shape physically changes
+        chartData: data.chartData.map((item, idx) => {
           const variation =
             0.5 + ((idx * 7 + selectedPrayerTab.length * 3) % 10) / 10;
           const barMultiplier = multiplier * variation;
 
           return {
             ...item,
-            completedPrayers: Math.round(item.completedPrayers * barMultiplier),
-            incompletePrayers: Math.round(
-              item.incompletePrayers * barMultiplier,
+            completedPrayers: Math.round(
+              (item.completedPrayers ?? item.completedHours ?? 0) *
+                barMultiplier,
             ),
-            timeSpentMinutes: Math.round(item.timeSpentMinutes * barMultiplier),
+            incompletePrayers: Math.round(
+              (item.incompletePrayers ?? item.incompleteHours ?? 0) *
+                barMultiplier,
+            ),
+            timeSpentMinutes: Math.round(
+              (item.timeSpentMinutes ?? 0) * barMultiplier,
+            ),
           };
         }),
       };
     }
     return data;
-  }, [baseAchievementRaw, goalId, selectedPrayerTab]);
+  }, [
+    baseAchievementRaw,
+    goalId,
+    selectedPrayerTab,
+    usesAchievementsApi,
+  ]);
 
   const achievement = useMemo(
     () =>
@@ -461,43 +477,48 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
   }, []);
 
   const handleNavigateBack = useCallback(() => {
-    if (!isTahiyyat || !achievementsApiData?.canNavigateBack) return;
+    if (!usesAchievementsApi || !achievementsApiData?.canNavigateBack) return;
     const nextStart = shiftPrayerAchievementsPeriodStart(
       achievementsApiData.periodStart,
       achievementsApiData.periodEnd,
       -1,
     );
     setPeriodStartParam(nextStart);
-  }, [isTahiyyat, achievementsApiData]);
+  }, [usesAchievementsApi, achievementsApiData]);
 
   const handleNavigateForward = useCallback(() => {
-    if (!isTahiyyat || !achievementsApiData?.canNavigateForward) return;
+    if (!usesAchievementsApi || !achievementsApiData?.canNavigateForward)
+      return;
     const nextStart = shiftPrayerAchievementsPeriodStart(
       achievementsApiData.periodStart,
       achievementsApiData.periodEnd,
       1,
     );
     setPeriodStartParam(nextStart);
-  }, [isTahiyyat, achievementsApiData]);
+  }, [usesAchievementsApi, achievementsApiData]);
 
-  const canNavigateBack = isTahiyyat
-    ? !showPlaceholders && !!achievementsApiData?.canNavigateBack
-    : true;
-  const canNavigateForward = isTahiyyat
-    ? !showPlaceholders && !!achievementsApiData?.canNavigateForward
-    : true;
+  const canNavigateBack =
+    usesAchievementsApi &&
+    !showPlaceholders &&
+    !!achievementsApiData?.canNavigateBack;
+  const canNavigateForward =
+    usesAchievementsApi &&
+    !showPlaceholders &&
+    !!achievementsApiData?.canNavigateForward;
 
   const selectedBaseWeek =
     !showPlaceholders && selectedBarIndex !== null && baseAchievement
-      ? (baseAchievement.chartData[selectedBarIndex] as any)
+      ? baseAchievement.chartData[selectedBarIndex]
       : null;
 
   const displayBaseCompleted =
     selectedBaseWeek?.completedPrayers ??
+    selectedBaseWeek?.completedHours ??
     baseAchievement?.completedPrayers ??
     0;
   const displayBaseIncomplete =
     selectedBaseWeek?.incompletePrayers ??
+    selectedBaseWeek?.incompleteHours ??
     baseAchievement?.incompletePrayers ??
     0;
 
@@ -525,8 +546,8 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
     return baseAchievement.chartData.some(
       (item) =>
         !isPastAchievementBarEmpty(
-          item.completedPrayers ?? 0,
-          item.incompletePrayers ?? 0,
+          item.completedPrayers ?? item.completedHours ?? 0,
+          item.incompletePrayers ?? item.incompleteHours ?? 0,
         ),
     );
   }, [baseAchievement, showPlaceholders]);
@@ -537,6 +558,12 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
     isPastAchievementBarEmpty(displayBaseCompleted, displayBaseIncomplete);
 
   const showDetailedStatsChevron = !isDetailed && hasLogs && !showNoDataDash;
+
+  /** Empty 28-day-cycle x-axis slots when loading / no activity (match fasting gate). */
+  const emptyCycleChartData = useMemo(
+    () => createEmptyPrayerPastAchievement(period).chartData,
+    [period],
+  );
 
   const barDeltaPct = selectedBaseWeek?.completedDeltaPct as
     | number
@@ -562,23 +589,23 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
       : PERIOD_DELTA_LABEL_KEYS[period],
   );
 
-  if (!isTahiyyat && (!baseAchievement || !achievement)) {
+  if (!usesAchievementsApi && (!baseAchievement || !achievement)) {
     return null;
   }
 
   const renderInsights = () => {
-    if (!isDetailed && !isTahiyyat) return null;
+    if (!isDetailed && !usesAchievementsApi) return null;
 
-    const cards = isTahiyyat
+    const cards = usesAchievementsApi
       ? mapApiKeyInsightsToCards(
-        achievementsApiData,
-        period,
-        t,
-        showPlaceholders,
-      )
+          achievementsApiData,
+          period,
+          t,
+          showPlaceholders,
+        )
       : PRAYER_INSIGHT_CARDS[goalId]?.[
-      period as "monthly" | "threeMonths" | "sixMonths"
-      ];
+          period as "monthly" | "threeMonths" | "sixMonths"
+        ];
 
     if (!cards || cards.length === 0) return null;
 
@@ -615,7 +642,7 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
     <View style={styles.section}>
       <View style={styles.card}>
         <View style={styles.cardHeader}>
-          <AchivementArrowIcon size={15} color={Colors.light.subtext} />
+          <AchivementArrowIcon />
           <Text style={styles.sectionTitle}>
             {t("progressLogging.pastGoalAchievements")}
           </Text>
@@ -638,70 +665,74 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
           ) : null}
         </View>
 
-        <View style={styles.topRow}>
+        {/* Match fasting: row1 = % + M/3M/6M, row2 = delta + date cycle */}
+        <View style={styles.achievementPeriodRow}>
           <View style={styles.achievementBlock}>
             <Text style={styles.achievementCaption}>
-              {t("progressLogging.achievementsLabel").toUpperCase()}
+              {analyticsView === "completedVsTimeSpent"
+                ? t("progressLogging.timeSpentLabel").toUpperCase()
+                : t("progressLogging.achievementsLabel").toUpperCase()}
             </Text>
-            <Text style={styles.achievementPercent}>
-              {showPlaceholders ? (
-                LOADING_DASH
-              ) : showNoDataDash ? (
-                PAST_ACHIEVEMENT_NO_DATA
-              ) : (
-                <>
-                  {formatNumber(resolvedAchievement.achievementPercent)}
-                  <Text style={styles.achievementPercentSymbol}>%</Text>
-                </>
-              )}
-            </Text>
-            {showDeltaChip ? (
-              <View style={styles.deltaBadge}>
-                {deltaIsPositive ? (
-                  <PositiveProgressIcon />
-                ) : (
-                  <NegativeProgressIcon />
-                )}
-                <Text
+            <View style={styles.achievementPercentRow}>
+              <Text style={styles.achievementPercent}>
+                {showPlaceholders
+                  ? LOADING_DASH
+                  : showNoDataDash
+                    ? PAST_ACHIEVEMENT_NO_DATA
+                    : formatNumber(resolvedAchievement.achievementPercent)}
+              </Text>
+              <Text style={styles.achievementPercentSymbol}>%</Text>
+            </View>
+          </View>
+          <View style={styles.periodToggle}>
+            {PERIODS.map((item) => {
+              const isActive = period === item;
+              return (
+                <Pressable
+                  key={item}
+                  onPress={() => handlePeriodChange(item)}
                   style={[
-                    styles.deltaText,
-                    !deltaIsPositive && styles.deltaTextNegative,
+                    styles.periodButton,
+                    isActive
+                      ? styles.periodButtonActive
+                      : styles.periodButtonInactive,
                   ]}
                 >
+                  <Text
+                    style={[
+                      styles.periodButtonText,
+                      isActive && styles.periodButtonTextActive,
+                    ]}
+                  >
+                    {t(PERIOD_LABEL_KEYS[item])}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+
+        <View style={styles.deltaDateRow}>
+          <View style={styles.deltaSlot}>
+            {showDeltaChip ? (
+              <View style={styles.deltaBadge}>
+                <Ionicons
+                  name={deltaIsPositive ? "arrow-up" : "arrow-down"}
+                  size={11}
+                  color={
+                    deltaIsPositive ? Colors.light.green : Colors.light.subtext
+                  }
+                />
+                <Text style={styles.deltaText} numberOfLines={1}>
                   {`${formatNumber(Math.abs(displayedDeltaPct ?? 0))}% ${deltaPeriodLabel}`}
                 </Text>
               </View>
-            ) : null}
+            ) : (
+              <View style={styles.deltaBadgePlaceholder} />
+            )}
           </View>
 
           <View style={styles.periodNavRow}>
-            <View style={styles.periodToggle}>
-              {PERIODS.map((item) => {
-                const isActive = period === item;
-                return (
-                  <Pressable
-                    key={item}
-                    onPress={() => handlePeriodChange(item)}
-                    style={[
-                      styles.periodButton,
-                      isActive
-                        ? styles.periodButtonActive
-                        : styles.periodButtonInactive,
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.periodButtonText,
-                        isActive && styles.periodButtonTextActive,
-                      ]}
-                    >
-                      {t(PERIOD_LABEL_KEYS[item])}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-
             <View style={styles.dateNavRow}>
               <TouchableOpacity
                 activeOpacity={0.7}
@@ -719,10 +750,14 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
                   }
                 />
               </TouchableOpacity>
-              <Text style={styles.dateRange} numberOfLines={1}>
+              <Text
+                style={styles.dateRange}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
                 {showPlaceholders
                   ? LOADING_DASH
-                  : resolvedAchievement.dateRangeLabel}
+                  : resolvedAchievement.dateRangeLabel || LOADING_DASH}
               </Text>
               <TouchableOpacity
                 activeOpacity={0.7}
@@ -865,7 +900,9 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
 
         <ScrollView
           horizontal
+          nestedScrollEnabled
           showsHorizontalScrollIndicator={false}
+          style={styles.analyticsToggleScroll}
           contentContainerStyle={styles.analyticsToggle}
         >
           {ANALYTICS_VIEWS.filter((v) => {
@@ -1017,7 +1054,7 @@ export function PrayerPastAchievements({ goalId, isDetailed = false }: Props) {
           <QuranHoursPastAchievementChartBlock
             chartData={
               showPlaceholders || showNoDataDash
-                ? []
+                ? emptyCycleChartData
                 : resolvedAchievement.chartData
             }
             selectedBarIndex={
@@ -1081,33 +1118,42 @@ const styles = StyleSheet.create({
   cardHeader: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
+    gap: 6,
   },
   sectionTitle: {
-    color: Colors.light.white,
-    fontSize: 16,
+    color: Colors.light.subtext,
+    fontSize: 11,
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
-    letterSpacing: 0,
+    letterSpacing: 0.4,
     textTransform: "uppercase",
     flexShrink: 1,
-    marginLeft: 6,
   },
-  topRow: {
+  achievementPeriodRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  deltaDateRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
   achievementBlock: {
     alignItems: "flex-start",
-    gap: 4,
   },
   achievementCaption: {
     color: Colors.light.subtext,
     fontSize: 11,
     fontFamily: fonts.primary.heavy,
     fontWeight: "800",
-    //textTransform: "uppercase",
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+  },
+  achievementPercentRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    marginBottom: 6,
   },
   achievementPercent: {
     color: Colors.light.white,
@@ -1119,7 +1165,13 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
   },
   achievementPercentSymbol: {
+    color: Colors.light.white,
     fontSize: 16,
+    fontFamily: fonts.primary.bold,
+    fontWeight: "700",
+    lineHeight: 16,
+    marginBottom: 1,
+    marginLeft: 2,
   },
   deltaBadge: {
     flexDirection: "row",
@@ -1127,18 +1179,12 @@ const styles = StyleSheet.create({
     gap: 4,
     backgroundColor: Colors.light.calendarBg,
     borderRadius: 2,
-    paddingHorizontal: 10,
+    paddingHorizontal: 2,
     paddingVertical: 4,
-    marginTop: 2,
+    height: 24,
   },
-  deltaBadgeNeutral: {
-    backgroundColor: Colors.light.calendarBg,
-  },
-  deltaDot: {
-    width: 5,
-    height: 5,
-    borderRadius: 2.5,
-    backgroundColor: Colors.light.subtext,
+  deltaBadgePlaceholder: {
+    height: 24,
   },
   deltaText: {
     color: Colors.light.white,
@@ -1146,27 +1192,36 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
   },
-  deltaTextNegative: {
-    color: Colors.light.subtext,
+  deltaSlot: {
+    minWidth: 0,
+    marginRight: 8,
+    justifyContent: "center",
+    height: 24,
   },
   periodNavRow: {
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 10,
+    width: 185,
+    height: 24,
+    justifyContent: "center",
+    alignItems: "stretch",
+    flexShrink: 0,
+    marginTop: -26,
   },
   periodToggle: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
     padding: 2,
     backgroundColor: Colors.light.blackBackground,
-    borderRadius: 7,
-    flexShrink: 0,
+    borderRadius: 6,
+    maxWidth: "70%",
   },
   periodButton: {
+    flex: 1,
     borderRadius: 5,
-    paddingHorizontal: 18,
+    paddingHorizontal: 0,
     paddingVertical: 8,
     alignItems: "center",
+    justifyContent: "center",
   },
   periodButtonActive: {
     backgroundColor: Colors.light.greybuttonBackground,
@@ -1176,7 +1231,7 @@ const styles = StyleSheet.create({
   },
   periodButtonText: {
     color: Colors.light.grey,
-    fontSize: 13,
+    fontSize: 12,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
   },
@@ -1186,23 +1241,24 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   dateNavRow: {
-    flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "flex-end",
-    gap: 2,
-    minWidth: 0,
+    width: "100%",
   },
   navBtn: {
-    padding: 2,
+    width: 24,
+    height: 24,
+    alignItems: "center",
+    justifyContent: "center",
   },
   dateRange: {
+    flex: 1,
+    minWidth: 0,
     color: Colors.light.white,
     fontSize: 13,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
     textAlign: "center",
-    flexShrink: 1,
   },
   summaryText: {
     color: Colors.light.grey,
@@ -1280,7 +1336,7 @@ const styles = StyleSheet.create({
   goalPill: {
     backgroundColor: Colors.light.calendarBg,
     borderRadius: 8,
-    paddingHorizontal: 6,
+    paddingHorizontal: 4,
     paddingVertical: 5,
   },
   goalPillText: {
@@ -1296,17 +1352,22 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.semiBold,
     fontSize: 22,
   },
+  analyticsToggleScroll: {
+    marginHorizontal: -14,
+  },
   analyticsToggle: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
+    paddingHorizontal: 14,
   },
   analyticsButton: {
-    // flex: 1,
     borderRadius: 6,
     paddingHorizontal: 8,
     paddingVertical: 6,
     alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
   },
   analyticsButtonActive: {
     backgroundColor: Colors.light.green,
@@ -1315,7 +1376,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.blackBackground,
   },
   analyticsButtonText: {
-    color: Colors.light.grey,
+    color: Colors.light.dullWhite,
     fontSize: 14,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
