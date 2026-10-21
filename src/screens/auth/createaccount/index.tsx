@@ -1,6 +1,12 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useForm } from "react-hook-form";
 import { Platform, View, Image, TouchableOpacity } from "react-native";
 import * as ImagePicker from "expo-image-picker";
@@ -234,7 +240,7 @@ export default function CreateAccountScreen() {
     onPasswordToggle,
     onConfirmPasswordToggle,
   } = useCreateAccountProps();
-
+  console.log("countries", countries);
   const {
     control,
     handleSubmit,
@@ -405,7 +411,9 @@ export default function CreateAccountScreen() {
         const { accessToken, refreshToken, user } = authData;
 
         if (!accessToken) {
-          throw new Error("Registration succeeded but no access token was returned");
+          throw new Error(
+            "Registration succeeded but no access token was returned",
+          );
         }
 
         // Required for authenticated avatar upload; private stack only after OTP.
@@ -592,7 +600,9 @@ export default function CreateAccountScreen() {
             control={control}
             name="country"
             searchable
-            searchPlaceholder={t("createAccountScreen.countrySearchPlaceholder")}
+            searchPlaceholder={t(
+              "createAccountScreen.countrySearchPlaceholder",
+            )}
             emptySearchText={t("createAccountScreen.countrySearchEmpty")}
             onDropdownOpenChange={handleCountryMenuOpenChange}
           />

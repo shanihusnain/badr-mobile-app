@@ -41,18 +41,11 @@ export const SetPersonalizedGoalsScreen = () => {
   const { data: meUser } = useGetMe();
 
   const displayName = useMemo(() => {
-    const fromUsername =
-      authUser?.username?.trim() || meUser?.username?.trim();
+    const fromUsername = authUser?.username?.trim() || meUser?.username?.trim();
     if (fromUsername) return fromUsername;
-    const email =
-      authUser?.email?.trim() || meUser?.email?.trim() || "";
+    const email = authUser?.email?.trim() || meUser?.email?.trim() || "";
     return email.split("@")[0]?.trim() || "";
-  }, [
-    authUser?.email,
-    authUser?.username,
-    meUser?.email,
-    meUser?.username,
-  ]);
+  }, [authUser?.email, authUser?.username, meUser?.email, meUser?.username]);
 
   const [activeFrame, setActiveFrame] = useState(1);
 
@@ -158,8 +151,8 @@ export const SetPersonalizedGoalsScreen = () => {
                 {t("setpersonalizedgoals.howItWorks")}
               </Text>
             </View>
-            
-            {/* {activeFrame === 1 && (
+
+            {activeFrame === 1 && (
               <>
                 <TopSpace top={ms(30)} />
                 <GoalProgressCard
@@ -170,7 +163,7 @@ export const SetPersonalizedGoalsScreen = () => {
                   animate
                 />
               </>
-            )} */}
+            )}
             <TopSpace top={ms(26)} />
             <Text style={styles.descriptionText}>
               {t("setpersonalizedgoals.setPersonalizedDescription")}
