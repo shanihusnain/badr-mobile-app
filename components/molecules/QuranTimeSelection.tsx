@@ -63,6 +63,8 @@ export const QuranTimeSelection = ({
   /** First key after select-all: append (native would replace); backspace clears. */
   const appendOnNextInputRef = useRef(false);
   const prevValueOnFocusRef = useRef("");
+  /** Bumped on blur to cancel delayed placeCaretAtEnd (avoids clipped digits e.g. 280). */
+  const caretTokenRef = useRef(0);
   // Panel open must not trigger keyboard keep-visible — only hours TextInput focus.
   const [isOpen, setIsOpen] = useGoalSelectionOpenState(
     openOnMount,
@@ -133,14 +135,17 @@ export const QuranTimeSelection = ({
 
   /** After append, pin caret at end — native often leaves it at prev.length. */
   const placeCaretAtEnd = useCallback((len: number) => {
+    const token = ++caretTokenRef.current;
     ignoreSelectionChangeRef.current = true;
     setSelection({ start: len, end: len });
     requestAnimationFrame(() => {
+      if (token !== caretTokenRef.current) return;
       setSelection({ start: len, end: len });
       hoursInputRef.current?.setNativeProps?.({
         selection: { start: len, end: len },
       });
       requestAnimationFrame(() => {
+        if (token !== caretTokenRef.current) return;
         ignoreSelectionChangeRef.current = false;
       });
     });
@@ -297,9 +302,11 @@ export const QuranTimeSelection = ({
                     // Avoid Android re-selecting when hoursCount flips 0→1 mid-focus.
                     selectTextOnFocus={false}
                     showSoftInputOnFocus
-                    selection={selection}
+                    // Only while focused — end caret scrolls the box and hides a digit on blur.
+                    selection={isHoursFocused ? selection : undefined}
                     onSelectionChange={(e) => {
-                      if (ignoreSelectionChangeRef.current) return;
+                      if (!isHoursFocused || ignoreSelectionChangeRef.current)
+                        return;
                       setSelection(e.nativeEvent.selection);
                     }}
                     onFocus={() => {
@@ -338,6 +345,8 @@ export const QuranTimeSelection = ({
                     }}
                     onBlur={() => {
                       setIsHoursFocused(false);
+                      caretTokenRef.current += 1;
+                      ignoreSelectionChangeRef.current = false;
                       setSelection(undefined);
                       lastBlurAtRef.current = Date.now();
                       // Keep intentional select-all timers alive across Android
@@ -415,12 +424,13 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   hoursInput: {
-    width: 44,
+    // Room for 3 digits (e.g. 280) without horizontal clip when unfocused.
+    width: 52,
     minHeight: 32,
     paddingTop: 4,
-    paddingRight: 6,
+    paddingRight: 4,
     paddingBottom: 4,
-    paddingLeft: 6,
+    paddingLeft: 4,
     justifyContent: "center",
     alignItems: "center",
     textAlign: "center",

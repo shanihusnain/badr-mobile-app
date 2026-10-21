@@ -156,13 +156,18 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
   const filteredOptions = useMemo(() => {
     if (!searchable || !searchQuery.trim()) return options;
     const query = searchQuery.trim().toLowerCase();
+    /** Prefix match on the full string or any word — "un" → United, not Brunei. */
+    const matchesQuery = (text: string) => {
+      const normalized = text.toLowerCase();
+      if (normalized.startsWith(query)) return true;
+      return normalized
+        .split(/[\s\-/,()]+/)
+        .some((word) => word.length > 0 && word.startsWith(query));
+    };
     return options.filter((item) => {
       const label = typeof item === "string" ? item : item.label;
       const value = typeof item === "string" ? item : String(item.value);
-      return (
-        label.toLowerCase().includes(query) ||
-        value.toLowerCase().includes(query)
-      );
+      return matchesQuery(label) || matchesQuery(value);
     });
   }, [options, searchQuery, searchable]);
 

@@ -1,13 +1,16 @@
 import { Redirect, usePathname, useSegments, type Href } from "expo-router";
 import { ActivityIndicator, View } from "react-native";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useAuth } from "./useAuth";
 import { resolvePostAuthHref } from "@/src/utils/resolvePostAuthHref";
+import { isGoalOnboardingFinished } from "@/src/storage/onboardingRouteStorage";
 
 type ProtectedRouteProps = {
   children: React.ReactNode;
 };
+
+type TabsAccess = "unknown" | "allowed" | "blocked";
 
 function pathMatchesHref(pathname: string, href: Href): boolean {
   const target =
@@ -31,9 +34,12 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const onTabs = segments[0] === "(tabs)";
   const [gateHref, setGateHref] = useState<Href | null>(null);
   const [gateReady, setGateReady] = useState(false);
+  /** Once tabs are allowed this session, skip remount + /me on return from private. */
+  const tabsAccessRef = useRef<TabsAccess>("unknown");
 
   useEffect(() => {
     if (isLoading || !isAuthenticated) {
+      tabsAccessRef.current = "unknown";
       setGateReady(false);
       setGateHref(null);
       return;
@@ -44,23 +50,42 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
       return;
     }
 
-    // Only gate the tabs shell — private onboarding screens stay put.
+    // Only gate the tabs shell — private onboarding / logging screens stay put.
     if (!onTabs) {
       setGateHref(null);
       setGateReady(true);
       return;
     }
 
+    // Already cleared for tabs this session — keep children mounted (ibadah sheet).
+    if (tabsAccessRef.current === "allowed") {
+      setGateHref(null);
+      setGateReady(true);
+      return;
+    }
+
     let cancelled = false;
-    setGateReady(false);
 
     void (async () => {
+      // Fast local bypass: same outcome as resolvePostAuthHref without /me or spinner.
+      const finishedLocally = await isGoalOnboardingFinished();
+      if (cancelled) return;
+      if (finishedLocally) {
+        tabsAccessRef.current = "allowed";
+        setGateHref(null);
+        setGateReady(true);
+        return;
+      }
+
+      // Need network / pending-route check — show spinner only for this path.
+      setGateReady(false);
       const href = await resolvePostAuthHref({ user });
       if (cancelled) return;
 
       const allowedTabs =
         typeof href === "string" && href.startsWith("/(tabs)");
 
+      tabsAccessRef.current = allowedTabs ? "allowed" : "blocked";
       setGateHref(allowedTabs ? null : href);
       setGateReady(true);
     })();
@@ -74,7 +99,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     user?.emailVerified,
     user?.email,
     onTabs,
-    pathname,
+    // pathname intentionally omitted — in-tabs / return-from-private must not re-gate.
   ]);
 
   if (

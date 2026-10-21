@@ -41,18 +41,11 @@ export const SetPersonalizedGoalsScreen = () => {
   const { data: meUser } = useGetMe();
 
   const displayName = useMemo(() => {
-    const fromUsername =
-      authUser?.username?.trim() || meUser?.username?.trim();
+    const fromUsername = authUser?.username?.trim() || meUser?.username?.trim();
     if (fromUsername) return fromUsername;
-    const email =
-      authUser?.email?.trim() || meUser?.email?.trim() || "";
+    const email = authUser?.email?.trim() || meUser?.email?.trim() || "";
     return email.split("@")[0]?.trim() || "";
-  }, [
-    authUser?.email,
-    authUser?.username,
-    meUser?.email,
-    meUser?.username,
-  ]);
+  }, [authUser?.email, authUser?.username, meUser?.email, meUser?.username]);
 
   const [activeFrame, setActiveFrame] = useState(1);
 

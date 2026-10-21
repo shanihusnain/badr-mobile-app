@@ -358,9 +358,17 @@ export const MetricSelectionComponent = ({
     },
     [cancelAppendBlurClear],
   );
+  /** Cancel delayed end-caret so blur doesn't leave the field scrolled/clipped. */
+  const caretTokenRef = useRef<Record<string, number>>({});
+  const cancelCaretPlacement = useCallback((key: string) => {
+    caretTokenRef.current[key] = (caretTokenRef.current[key] ?? 0) + 1;
+  }, []);
   /** Pin caret at end after append so the next digit continues at the end. */
   const placeCaretAtEnd = useCallback((key: string, len: number) => {
+    const token = (caretTokenRef.current[key] =
+      (caretTokenRef.current[key] ?? 0) + 1);
     const apply = () => {
+      if (caretTokenRef.current[key] !== token) return;
       metricInputRefs.current[key]?.setNativeProps?.({
         selection: { start: len, end: len },
       });
@@ -371,6 +379,16 @@ export const MetricSelectionComponent = ({
       setTimeout(apply, 50);
     });
   }, []);
+  /** On blur: cancel pending end-caret and reset scroll so digits aren't clipped. */
+  const resetSelectionOnBlur = useCallback(
+    (key: string) => {
+      cancelCaretPlacement(key);
+      metricInputRefs.current[key]?.setNativeProps?.({
+        selection: { start: 0, end: 0 },
+      });
+    },
+    [cancelCaretPlacement],
+  );
   /**
    * While select-all is active, native replace → force append; backspace → "".
    * Clears the append flag and drops selection after the first change.
@@ -1402,8 +1420,10 @@ export const MetricSelectionComponent = ({
                               }, 360);
                             }}
                             onBlur={() => {
-                              scheduleAppendFlagClearOnBlur(`surah-${s.id}`);
-                              setInputFocused(`surah-${s.id}`, false);
+                              const key = `surah-${s.id}`;
+                              resetSelectionOnBlur(key);
+                              scheduleAppendFlagClearOnBlur(key);
+                              setInputFocused(key, false);
                             }}
                             textAlignVertical="center"
                             style={[
@@ -1631,6 +1651,7 @@ export const MetricSelectionComponent = ({
                     notifyInputFocused("juz-start");
                   }}
                   onBlur={() => {
+                    resetSelectionOnBlur("juz-start");
                     scheduleAppendFlagClearOnBlur("juz-start");
                     setInputFocused("juz-start", false);
                     enforceJuzStart(String(juzStart));
@@ -1696,6 +1717,7 @@ export const MetricSelectionComponent = ({
                     notifyInputFocused("juz-end");
                   }}
                   onBlur={() => {
+                    resetSelectionOnBlur("juz-end");
                     scheduleAppendFlagClearOnBlur("juz-end");
                     setInputFocused("juz-end", false);
                     enforceJuzEnd();
@@ -1833,6 +1855,7 @@ export const MetricSelectionComponent = ({
                   notifyInputFocused("completion");
                 }}
                 onBlur={() => {
+                  resetSelectionOnBlur("completion");
                   scheduleAppendFlagClearOnBlur("completion");
                   setInputFocused("completion", false);
                 }}
@@ -2190,7 +2213,8 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   timesInput: {
-    width: 40,
+    // Room for multi-digit values without clip when unfocused.
+    width: 48,
     height: 36,
     paddingHorizontal: 0,
     paddingVertical: 0,

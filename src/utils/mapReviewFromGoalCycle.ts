@@ -423,7 +423,7 @@ export function computeSurahRecitationReviewTotal(surah: {
   }, 0);
 }
 
-/** Right-side cadence chip, e.g. "(1 time daily)" / "(3 days per week)". */
+/** Right-side cadence chip for Review/Confirm, e.g. "(1 time daily)" / "(3 times weekly)". */
 export function formatSurahRecitationReviewCadence(
   times: number,
   frequency: string | null | undefined,

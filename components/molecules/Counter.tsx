@@ -44,6 +44,8 @@ export const Counter = ({
   const ignoreSelectionChangeRef = useRef(false);
   const allowSelectAllRef = useRef(false);
   const selectAllTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+  /** Bumped on blur to cancel delayed placeCaretAtEnd (avoids clipped digits). */
+  const caretTokenRef = useRef(0);
 
   useEffect(() => {
     if (!isFocused) {
@@ -102,14 +104,17 @@ export const Counter = ({
 
   /** After append, pin caret at end — native onSelectionChange often leaves it at prev.length. */
   const placeCaretAtEnd = useCallback((len: number) => {
+    const token = ++caretTokenRef.current;
     ignoreSelectionChangeRef.current = true;
     setSelection({ start: len, end: len });
     requestAnimationFrame(() => {
+      if (token !== caretTokenRef.current) return;
       setSelection({ start: len, end: len });
       inputRef.current?.setNativeProps?.({
         selection: { start: len, end: len },
       });
       requestAnimationFrame(() => {
+        if (token !== caretTokenRef.current) return;
         ignoreSelectionChangeRef.current = false;
       });
     });
@@ -152,6 +157,8 @@ export const Counter = ({
     appendOnNextInputRef.current = false;
     allowSelectAllRef.current = false;
     clearSelectAllTimers();
+    // Cancel pending end-caret; controlled selection while blurred scrolls/clips digits.
+    caretTokenRef.current += 1;
     ignoreSelectionChangeRef.current = false;
     setSelection(undefined);
     const digitsOnly = draft.replace(/[^0-9]/g, "");
@@ -220,9 +227,10 @@ export const Counter = ({
           // No placeholder: Android draws the caret after placeholder text,
           // which looks like the cursor is stuck at the end of "0".
           placeholder=""
-          selection={selection}
+          // Only while focused — end selection scrolls narrow fields and hides a digit on blur.
+          selection={isFocused ? selection : undefined}
           onSelectionChange={(e) => {
-            if (ignoreSelectionChangeRef.current) return;
+            if (!isFocused || ignoreSelectionChangeRef.current) return;
             setSelection(e.nativeEvent.selection);
           }}
           onFocus={handleFocus}
@@ -246,7 +254,8 @@ const styles = StyleSheet.create({
     fontWeight: "400",
   },
   input: {
-    width: 48,
+    // Wider so 3+ digit counts stay fully visible when unfocused.
+    width: 56,
     height: "100%",
     textAlign: "center",
     ...Platform.select({
