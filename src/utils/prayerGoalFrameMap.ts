@@ -588,7 +588,7 @@ export function mapSunnahFrameWeekDays(
     const menstruationByPrayer = mapSunnahMenstruationFromDay(day, goal);
 
     return {
-      day: day.dayLabel,
+    day: day.dayLabel,
       date: day.date,
       isToday: Boolean(day.isToday),
       isFuture,
@@ -654,17 +654,17 @@ export function getPrayerFrameAchievementLabel(
   const completed = frame.goal.completedCount ?? 0;
 
   if (status === "COMPLETED" || pct >= 100) {
-    return {
-      text: t("progressLogging.fullyAchieved"),
-      type: "completed",
-    };
-  }
+        return {
+          text: t("progressLogging.fullyAchieved"),
+          type: "completed",
+        };
+      }
 
   if (completed > 0 || pct > 0) {
-    return {
-      text: t("progressLogging.inProgress"),
-      type: "in-progress",
-    };
+      return {
+        text: t("progressLogging.inProgress"),
+        type: "in-progress",
+      };
   }
 
   return {
