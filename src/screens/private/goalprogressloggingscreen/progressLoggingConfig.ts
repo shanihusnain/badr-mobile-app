@@ -122,22 +122,23 @@ export const PRAYER_OPTIONS: PrayerName[] = [
   "isha",
 ];
 
-/** Date step label — always includes the calendar date (prayer style). */
+/** Date step label — today/tomorrow are text-only; other days keep calendar form. */
 export function formatProgressLoggingDateLabel(
   selectedDate: string,
   todayString: string,
   todayLabel: string,
   tomorrowLabel?: string,
 ): string {
-  const datePart = moment(selectedDate, "YYYY-MM-DD").format("MMM D");
-  if (selectedDate === todayString) return `${todayLabel}, ${datePart}`;
-  const tomorrowString = moment(todayString, "YYYY-MM-DD")
+  const selected = String(selectedDate ?? "").slice(0, 10);
+  const today = String(todayString ?? "").slice(0, 10);
+  if (selected === today) return todayLabel;
+  const tomorrowString = moment(today, "YYYY-MM-DD")
     .add(1, "day")
     .format("YYYY-MM-DD");
-  if (selectedDate === tomorrowString && tomorrowLabel) {
-    return `${tomorrowLabel}, ${datePart}`;
+  if (selected === tomorrowString && tomorrowLabel) {
+    return tomorrowLabel;
   }
-  return moment(selectedDate, "YYYY-MM-DD").format("ddd, MMM D");
+  return moment(selected, "YYYY-MM-DD").format("ddd, MMM D");
 }
 
 /**

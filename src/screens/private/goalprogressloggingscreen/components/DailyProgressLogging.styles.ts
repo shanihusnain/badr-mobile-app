@@ -322,8 +322,28 @@ export const styles = StyleSheet.create({
   dateRow: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
+    width: "100%",
+  },
+  /** Fixed-width chevron slots so arrows don't shift with label length. */
+  dateChevronHit: {
+    width: 32,
+    alignItems: "center",
     justifyContent: "center",
-    gap: 20,
+    flexShrink: 0,
+  },
+  dateChevronHitStart: {
+    transform: [{ translateX: 2 }],
+  },
+  dateChevronHitEnd: {
+    transform: [{ translateX: -2 }],
+  },
+  dateLabelCenter: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    minWidth: 0,
+    paddingHorizontal: 6,
   },
   dateMainText: {
     color: Colors.light.white,

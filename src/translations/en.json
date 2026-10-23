@@ -879,7 +879,7 @@
     "missedRamadanLogTypeHint_completed_planned": "(A fast you scheduled for a specific date and completed as planned.)",
     "missedRamadanSelectPlannedFastEarly": "Select the planned fast you completed early",
     "missedRamadanWhichDayDidYouFast": "Which day did you fast?",
-    "missedRamadanSelectPlannedFastCompleted": "Select the planned fast you completed",
+    "missedRamadanSelectPlannedFastCompleted": "Which day are you logging for?",
     "missedRamadanMakeupSkippedDateLabel": "When did you complete your make-up fast?",
     "missedRamadanMakeupDateLabel": "When did you complete your make-up fast?",
     "missedRamadanEnterStartTime": "Enter start and end time.",

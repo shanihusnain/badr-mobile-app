@@ -33,12 +33,14 @@ export function WhiteDaysFastDateStep({
   description,
 }: Props) {
   const { i18n } = useTranslation();
-  const showDescription = Boolean(description?.trim()) && !enabled;
+  const descriptionText = description?.replace(/\s+/g, " ").trim() ?? "";
+  const showDescription = Boolean(descriptionText) && !enabled;
 
   return (
     <View style={localStyles.wrap}>
-      <View style={styles.dateRow}>
+      <View style={[styles.dateRow, localStyles.dateRow]}>
         <TouchableOpacity
+          style={[localStyles.chevronHit, localStyles.chevronHitStart]}
           onPress={() => onShiftDate(-1)}
           disabled={!canGoPrev}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
@@ -54,12 +56,14 @@ export function WhiteDaysFastDateStep({
         <View style={localStyles.dateCenter}>
           <Text
             style={[styles.dateMainText, !enabled && localStyles.dateDisabled]}
+            numberOfLines={1}
           >
             {dateLabel}
           </Text>
         </View>
 
         <TouchableOpacity
+          style={[localStyles.chevronHit, localStyles.chevronHitEnd]}
           onPress={() => onShiftDate(1)}
           disabled={!canGoNext}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
@@ -73,18 +77,25 @@ export function WhiteDaysFastDateStep({
         </TouchableOpacity>
       </View>
 
-      {/* Absolute so the date stays vertically centered when subtext appears. */}
+      {/* Absolute under the date row so enabled/disabled dates share the same height. */}
       {showDescription ? (
-        <View style={localStyles.descriptionRow}>
-          <Ionicons
-            name="warning-outline"
-            size={12}
-            color={Colors.light.white}
-            style={localStyles.descriptionIcon}
-          />
-          <Text style={localStyles.descriptionText} numberOfLines={2}>
-            {description}
-          </Text>
+        <View style={localStyles.descriptionRow} pointerEvents="none">
+          <View style={localStyles.descriptionInner}>
+            <Ionicons
+              name="warning-outline"
+              size={12}
+              color={Colors.light.white}
+              style={localStyles.descriptionIcon}
+            />
+            <Text
+              style={localStyles.descriptionText}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.7}
+            >
+              {descriptionText}
+            </Text>
+          </View>
         </View>
       ) : null}
     </View>
@@ -97,11 +108,29 @@ const localStyles = StyleSheet.create({
     alignItems: "center",
     position: "relative",
   },
-  dateCenter: {
+  dateRow: {
+    width: "100%",
+    justifyContent: "space-between",
+  },
+  chevronHit: {
+    width: 32,
     alignItems: "center",
     justifyContent: "center",
-    minHeight: 32,
-    flexShrink: 1,
+    flexShrink: 0,
+  },
+  // Nudge 2px toward the date label.
+  chevronHitStart: {
+    transform: [{ translateX: 2 }],
+  },
+  chevronHitEnd: {
+    transform: [{ translateX: -2 }],
+  },
+  dateCenter: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    minWidth: 0,
+    paddingHorizontal: 6,
   },
   dateDisabled: {
     opacity: 0.45,
@@ -111,31 +140,32 @@ const localStyles = StyleSheet.create({
     opacity: 0.35,
     transform: [{ scaleX: 0.82 }],
   },
-
   descriptionRow: {
     position: "absolute",
-    left: 0,
-    right: 0,
     top: "100%",
-    marginTop: -4,
+    left: 8,
+    right: 8,
+    alignItems: "center",
+  },
+  descriptionInner: {
+    maxWidth: "100%",
     flexDirection: "row",
-    alignItems: "flex-start",
-    justifyContent: "flex-start",
+    alignItems: "center",
+    justifyContent: "center",
     gap: 4,
-    paddingHorizontal: 4,
   },
   descriptionIcon: {
-    marginTop: 2.5,
+    flexShrink: 0,
   },
   descriptionText: {
-    flex: 1,
     flexShrink: 1,
+    minWidth: 0,
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
     fontSize: 10,
     lineHeight: 13,
-    textAlign: "left",
-    opacity: 0.80,
+    textAlign: "center",
+    opacity: 0.8,
   },
 });

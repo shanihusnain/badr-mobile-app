@@ -492,9 +492,6 @@ export default function WhiteDaysFastsLoggingFlow({
     isEndTimeValid &&
     isEndAfterStart;
 
-  const showConfirmButton =
-    currentStep !== "selectPlannedFast" || isSelectedDateEnabled;
-
   const stepHeader = getStepHeader(currentStep);
   const isDropdownOpen = isStartPeriodDropdownOpen || isEndPeriodDropdownOpen;
 
@@ -606,7 +603,7 @@ export default function WhiteDaysFastsLoggingFlow({
                 canGoForward={!isLastStep && canProceed}
                 canGoBack={stepIndex > 0}
                 canConfirm={canConfirm}
-                showConfirmButton={showConfirmButton}
+                showConfirmButton
                 styles={commonStyles}
                 style={[
                   commonStyles.inPlaceFlowCard,

@@ -272,10 +272,16 @@ export function getFastingFrameAchievementPct(
   return 0;
 }
 
+/**
+ * Show VIEW INSIGHTS when:
+ * 1) the goal ring is at 100% (goal completed), or
+ * 2) today is on/after the last day of the cycle.
+ * Ignore `items[].insightsAvailable` — API may set it before those conditions
+ * (same as quranFrameShowsInsights).
+ */
 export function fastingFrameShowsInsights(
   frame: FastingGoalFrameData,
 ): boolean {
-  if (frame.items?.[0]?.insightsAvailable) return true;
   const pct = getFastingFrameAchievementPct(frame);
   if (pct >= 100) return true;
   const status = String(frame.goal?.status ?? "")
