@@ -148,8 +148,7 @@ export default function MissedRamadanFastsLoggingFlow({
   );
 
   const selectedDateOption = useMemo(
-    () =>
-      dateOptions.find((option) => option.id === selectedDateId) ?? null,
+    () => dateOptions.find((option) => option.id === selectedDateId) ?? null,
     [dateOptions, selectedDateId],
   );
 
@@ -165,8 +164,7 @@ export default function MissedRamadanFastsLoggingFlow({
       setEndPeriod,
     },
     {
-      enabled:
-        flowMode === "active" && Boolean(selectedDateOption?.date),
+      enabled: flowMode === "active" && Boolean(selectedDateOption?.date),
     },
   );
 
@@ -176,8 +174,7 @@ export default function MissedRamadanFastsLoggingFlow({
     String(frame?.goal?.status ?? "").toUpperCase() === "COMPLETED";
 
   const showInsights = frame ? fastingFrameShowsInsights(frame) : false;
-  const canLog =
-    Boolean(frameItem?.canLog) && dateOptions.length > 0;
+  const canLog = Boolean(frameItem?.canLog) && dateOptions.length > 0;
 
   const summaryTitle =
     frameItem?.title?.trim() ||
@@ -293,14 +290,7 @@ export default function MissedRamadanFastsLoggingFlow({
     setEndHour("11");
     setEndMinute("59");
     setEndPeriod("pm");
-  }, [
-    endHour,
-    endMinute,
-    endPeriod,
-    startHour,
-    startMinute,
-    startPeriod,
-  ]);
+  }, [endHour, endMinute, endPeriod, startHour, startMinute, startPeriod]);
 
   const resetFlow = useCallback(() => {
     setFlowMode("collapsed");
@@ -336,10 +326,7 @@ export default function MissedRamadanFastsLoggingFlow({
           endTime,
         });
 
-        await Promise.all([
-          fastingFrame?.refetch(),
-          refetchLoggableDates(),
-        ]);
+        await Promise.all([fastingFrame?.refetch(), refetchLoggableDates()]);
 
         const loggedDate = result.date ?? selectedDateOption.date;
         const completedCount = Number(result.goal?.completed ?? 0);
@@ -464,8 +451,11 @@ export default function MissedRamadanFastsLoggingFlow({
   const toDateLabel = useCallback(
     (option: MissedRamadanFastDateOption | null | undefined) => {
       if (!option) return "";
-      if (option.date === today) return t("progressLogging.today");
-      return formatMissedRamadanFastDateLabel(option.date, today);
+      const date = String(option.date ?? "").slice(0, 10);
+      if (date === today) return t("progressLogging.today");
+      const raw = formatMissedRamadanFastDateLabel(date, today);
+      if (raw === "Today") return t("progressLogging.today");
+      return raw;
     },
     [t, today],
   );
@@ -526,9 +516,8 @@ export default function MissedRamadanFastsLoggingFlow({
           (option) => option.id === selectedDateId,
         );
         const selectedOption =
-          (selectedIndex >= 0
-            ? dateOptions[selectedIndex]
-            : dateOptions[0]) ?? null;
+          (selectedIndex >= 0 ? dateOptions[selectedIndex] : dateOptions[0]) ??
+          null;
 
         return (
           <WhiteDaysFastDateStep
@@ -736,9 +725,7 @@ export default function MissedRamadanFastsLoggingFlow({
                 }
                 canGoBack={stepIndex > 0}
                 canConfirm={canConfirm}
-                showConfirmButton={
-                  currentStep === "startTime" || currentStep === "endTime"
-                }
+                showConfirmButton
                 headerSingleLine={
                   currentStep === "startTime" || currentStep === "endTime"
                 }
@@ -878,9 +865,9 @@ const localStyles = StyleSheet.create({
     opacity: 0.95,
   },
   timePickerCenter: {
+    flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    flexShrink: 1,
     minWidth: 0,
     transform: [{ translateX: 4 }],
   },

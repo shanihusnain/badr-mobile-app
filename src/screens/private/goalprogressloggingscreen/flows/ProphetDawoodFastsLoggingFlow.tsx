@@ -530,9 +530,6 @@ export default function ProphetDawoodFastsLoggingFlow({
     isEndTimeValid &&
     isEndAfterStart;
 
-  const showConfirmButton =
-    currentStep !== "selectPlannedFast" || isSelectedDateEnabled;
-
   const stepHeader = getStepHeader(currentStep);
   const isDropdownOpen = isStartPeriodDropdownOpen || isEndPeriodDropdownOpen;
 
@@ -649,7 +646,7 @@ export default function ProphetDawoodFastsLoggingFlow({
                 canGoForward={!isLastStep && canProceed}
                 canGoBack={stepIndex > 0}
                 canConfirm={canConfirm}
-                showConfirmButton={showConfirmButton}
+                showConfirmButton
                 styles={commonStyles}
                 style={[
                   commonStyles.inPlaceFlowCard,
@@ -785,9 +782,9 @@ const localStyles = StyleSheet.create({
     opacity: 0.95,
   },
   timePickerCenter: {
+    flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    flexShrink: 1,
     minWidth: 0,
     transform: [{ translateX: 4 }],
   },

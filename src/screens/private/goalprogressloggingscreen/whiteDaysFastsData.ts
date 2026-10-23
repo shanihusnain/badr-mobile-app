@@ -266,8 +266,8 @@ export function formatWhiteDaysFastDateLabel(
   date: string,
   today = getTodayDateString(),
 ): string {
-  const normalized = normalizeDateString(date);
-  if (normalized === today) return "Today";
+  const normalized = normalizeDateString(date).slice(0, 10);
+  if (normalized === normalizeDateString(today).slice(0, 10)) return "Today";
 
   return moment(normalized, "YYYY-MM-DD").format("ddd, MMM D");
 }

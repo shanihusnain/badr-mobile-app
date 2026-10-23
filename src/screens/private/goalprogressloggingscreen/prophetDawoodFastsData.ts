@@ -213,10 +213,11 @@ export function formatProphetDawoodFastDateLabel(
   date: string,
   today = getTodayDateString(),
 ): string {
-  const normalized = normalizeDateString(date);
-  if (normalized === today) return "Today";
+  const normalized = normalizeDateString(date).slice(0, 10);
+  const todayNormalized = normalizeDateString(today).slice(0, 10);
+  if (normalized === todayNormalized) return "Today";
 
-  const yesterday = addDays(today, -1);
+  const yesterday = addDays(todayNormalized, -1);
   if (normalized === yesterday) return "Yesterday";
 
   return moment(normalized, "YYYY-MM-DD").format("ddd, MMM D");
