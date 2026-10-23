@@ -19,7 +19,10 @@ import { HeadPhoneQuranListeningIcon } from "@/assets/icons/HeadPhoneQuranListen
 import { QuranImageIcon } from "@/assets/icons/QuranImageIcon";
 import { QuranMemorizationIcon } from "@/assets/icons/QuranMemorizationIcon";
 import { ManQuranTajweedIcon } from "@/assets/icons/ManQuranTajweedIcon";
-import { prepareFigmaForcedSmallCapsText } from "@/src/utils/figmaTypography";
+import {
+  getFigmaForcedSmallCapsTextStyle,
+  prepareFigmaForcedSmallCapsText,
+} from "@/src/utils/figmaTypography";
 
 type Props = {
   title: string;
@@ -94,10 +97,23 @@ export const DetailedIbadahsProgressCard = ({
   loading = false,
 }: Props) => {
   const percentNum = percentage.replace("%", "");
-  // const displayTitle = : title.toUpperCase();
   const displayTitle = useMemo(
     () => (loading ? "---" : prepareFigmaForcedSmallCapsText(title)),
     [loading, title],
+  );
+  const titleStyle = useMemo(
+    () => [
+      styles.title,
+      // Prior style: base fontSize 15 + lineHeight 20; callers may override
+      // fontSize via titleFontSize (14 / 14.5) while lineHeight stays 20.
+      getFigmaForcedSmallCapsTextStyle({
+        fontSize: titleFontSize,
+        lineHeight: 20,
+        letterSpacing: 0,
+        color: Colors.light.white,
+      }),
+    ],
+    [titleFontSize],
   );
   return (
     <TouchableOpacity
@@ -119,9 +135,7 @@ export const DetailedIbadahsProgressCard = ({
           {loading ? <Text style={styles.iconPlaceholder}>---</Text> : icon}
         </View>
         <View style={styles.textWrapper}>
-          <Text style={[styles.title, { fontSize: titleFontSize }]}>
-            {displayTitle}
-          </Text>
+          <Text style={titleStyle}>{displayTitle}</Text>
           <Text style={styles.subtitle}>
             {loading ? (
               <Text style={styles.boldText}>---</Text>
@@ -200,14 +214,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   title: {
-    color: Colors.light.white,
-    fontFamily: fonts.primary.semiBold,
-    fontWeight: "600",
-    fontSize: 15,
-    textTransform: "uppercase",
     marginBottom: 2,
     flexShrink: 1,
-    lineHeight: 20,
   },
   subtitle: {
     flexDirection: "row",

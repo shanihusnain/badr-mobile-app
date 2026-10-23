@@ -1,18 +1,26 @@
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
+  Pressable,
   StyleSheet,
   useWindowDimensions,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import { FlowCardFoodReliefIcon } from "@/assets/icons/FlowCardFoodReleifIcon";
 import { FlowCardShirtIcon } from "@/assets/icons/FlowCardShirtIcon";
-import { DashBoardCalenderIcon, DashBoardHandHeartIcon, FlashIcon, ShootIcon } from "@/assets/icons";
+import {
+  BinIcon,
+  DashBoardCalenderIcon,
+  DashBoardHandHeartIcon,
+  FlashIcon,
+  ShootIcon,
+} from "@/assets/icons";
+import { PrayerWeeklyDashboardBody } from "@/components/molecules/PrayerWeeklyDashboardBody";
+import { useDeleteSadaqahLog } from "@/src/api/mutations/useDeleteSadaqahLog";
 
 /**
  * Kaffarah category type:
@@ -24,6 +32,8 @@ export type KaffarahCategory = "clothes" | "meals" | null;
 
 export type KaffarahDayProgress = {
   day: string;
+  /** YYYY-MM-DD — required for delete API. */
+  date?: string;
   category: KaffarahCategory;
   /** Number of meals/clothes given on this day */
   count: number;
@@ -37,6 +47,7 @@ export type KaffarahDayProgress = {
    * Rendered at 0.3 opacity.
    */
   isBlurDay?: boolean;
+  canDelete?: boolean;
 };
 
 export type KaffarahWeeklyProgressDashboardProps = {
@@ -51,6 +62,12 @@ export type KaffarahWeeklyProgressDashboardProps = {
   onDayPress?: (index: number) => void;
   onPrevWeek?: () => void;
   onNextWeek?: () => void;
+  /** Frame / week-fetch loading — match Missed Zakat placeholders. */
+  loading?: boolean;
+  /** Bump parent refresh after a successful delete. */
+  onDeleted?: () => void;
+  allowLogDeletion?: boolean;
+  sadaqahType?: string;
 };
 
 const CARD_HORIZONTAL_PADDING = 16;
@@ -134,120 +151,208 @@ export function KaffarahWeeklyProgressDashboard({
   onDayPress,
   onPrevWeek,
   onNextWeek,
+  loading = false,
+  onDeleted,
+  allowLogDeletion = true,
+  sadaqahType = "KAFFARAH",
 }: KaffarahWeeklyProgressDashboardProps) {
   const { width: screenWidth } = useWindowDimensions();
+  const { mutate: deleteSadaqahLog, isPending: isDeletingLog } =
+    useDeleteSadaqahLog();
 
   const availableWidth =
     screenWidth * WRAPPER_WIDTH_RATIO - CARD_HORIZONTAL_PADDING;
   const ringSize = Math.min(
     RING_SIZE_MAX,
-    Math.floor((availableWidth / 7) * 0.62)
+    Math.floor((availableWidth / 7) * 0.62),
   );
 
   const [activeDayIndex, setActiveDayIndex] = useState(selectedDayIndex);
+  const [selectForDeletion, setSelectForDeletion] = useState("");
 
-  const handleDayPress = (index: number) => () => {
-    setActiveDayIndex(index);
-    onDayPress?.(index);
-  };
+  useEffect(() => {
+    setActiveDayIndex(selectedDayIndex);
+    setSelectForDeletion("");
+  }, [selectedDayIndex, weekRangeLabel, weekFraction]);
+
+  const handleDeleteLog = useCallback(
+    (logDate: string) => {
+      deleteSadaqahLog(
+        { sadaqahType, logDate },
+        {
+          onSuccess: () => {
+            setSelectForDeletion("");
+            onDeleted?.();
+          },
+        },
+      );
+    },
+    [deleteSadaqahLog, onDeleted, sadaqahType],
+  );
 
   return (
     <View style={styles.card}>
-      {/* Header */}
       <View style={styles.headerRow}>
         <View style={styles.headerLeft}>
-          <DashBoardCalenderIcon
-            
-            size={20}
-            color={Colors.light.subtext}
-          />
+          <DashBoardCalenderIcon size={20} color={Colors.light.subtext} />
           <Text style={styles.weekFractionText} numberOfLines={1}>
-            {weekFraction} WEEKS
+            {loading ? "---" : `${weekFraction} WEEKS`}
           </Text>
         </View>
 
         <View style={styles.headerNav}>
-          <TouchableOpacity onPress={onPrevWeek} activeOpacity={0.7} style={styles.navBtn}>
-            <Ionicons name="chevron-back" size={14} color={Colors.light.dullWhite} />
+          <TouchableOpacity
+            onPress={onPrevWeek}
+            activeOpacity={onPrevWeek && !loading ? 0.7 : 1}
+            style={styles.navBtn}
+            disabled={loading || !onPrevWeek}
+          >
+            <Ionicons
+              name="chevron-back"
+              size={14}
+              color={Colors.light.dullWhite}
+            />
           </TouchableOpacity>
           <Text style={styles.weekRangeText} numberOfLines={1}>
-            {weekRangeLabel}
+            {loading ? "---" : weekRangeLabel}
           </Text>
-          <TouchableOpacity onPress={onNextWeek} activeOpacity={0.7} style={styles.navBtn}>
-            <Ionicons name="chevron-forward" size={14} color={Colors.light.dullWhite} />
+          <TouchableOpacity
+            onPress={onNextWeek}
+            activeOpacity={onNextWeek && !loading ? 0.7 : 1}
+            style={styles.navBtn}
+            disabled={loading || !onNextWeek}
+          >
+            <Ionicons
+              name="chevron-forward"
+              size={14}
+              color={Colors.light.dullWhite}
+            />
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* Days Row */}
-      <View style={styles.daysRow}>
-        {weekDays.map((day, index) => {
-          const isSelected = index === activeDayIndex;
-          const hasLog = day.count > 0 && day.category !== null;
+      <PrayerWeeklyDashboardBody loading={loading}>
+        <View style={styles.daysRow}>
+          {weekDays.map((day, index) => {
+            const isSelected = index === activeDayIndex;
+            const hasLog = day.count > 0 && day.category !== null;
+            const isMarkedForDeletion =
+              !!day.date && selectForDeletion === day.date;
 
-          return (
-            <TouchableOpacity
-              key={`${day.day}-${index}`}
-              style={styles.dayColumn}
-              onPress={handleDayPress(index)}
-              activeOpacity={0.75}
-            >
-              <View style={[styles.dayItemWrapper, isSelected && styles.dayItemSelected]}>
-                <KaffarahDayRing size={ringSize} day={day} isSelected={isSelected} />
-
-                <Text
-                  style={[day.isBestDay ? styles.bestDayLabel : styles.dayLabel]}
-                  numberOfLines={1}
+            return (
+              <TouchableOpacity
+                key={`${day.day}-${day.date ?? index}`}
+                style={[
+                  styles.dayColumn,
+                  isMarkedForDeletion && styles.dayColumnMarkedForDeletion,
+                ]}
+                onLongPress={() => {
+                  if (!allowLogDeletion || loading || day.isFuture || !day.date)
+                    return;
+                  if (day.canDelete === false) return;
+                  if (!hasLog) return;
+                  setSelectForDeletion((prev) =>
+                    prev === day.date ? "" : (day.date ?? ""),
+                  );
+                }}
+                onPress={() => {
+                  if (loading || day.isFuture) return;
+                  if (selectForDeletion) {
+                    setSelectForDeletion("");
+                    return;
+                  }
+                  setActiveDayIndex(index);
+                  onDayPress?.(index);
+                }}
+                activeOpacity={loading || day.isFuture ? 1 : 0.75}
+                disabled={loading || day.isFuture}
+              >
+                <View
+                  style={[
+                    styles.dayItemWrapper,
+                    isSelected &&
+                      !isMarkedForDeletion &&
+                      styles.dayItemSelected,
+                    isMarkedForDeletion && styles.deletingDay,
+                  ]}
                 >
-                  {day.isBestDay ? "BEST DAY!" : day.day}
-                </Text>
+                  <KaffarahDayRing
+                    size={ringSize}
+                    day={day}
+                    isSelected={isSelected && !isMarkedForDeletion}
+                  />
 
-                <View style={styles.durationSlot}>
                   <Text
                     style={[
-                      day.isBestDay ? styles.durationTextBest : styles.durationTextNormal,
-                      styles.durationText,
+                      day.isBestDay ? styles.bestDayLabel : styles.dayLabel,
                     ]}
                     numberOfLines={1}
                   >
-                    {hasLog ? `${day.count}` : ""}
+                    {loading ? "---" : day.isBestDay ? "BEST DAY!" : day.day}
                   </Text>
+
+                  <View style={styles.durationSlot}>
+                    <Text
+                      style={[
+                        day.isBestDay
+                          ? styles.durationTextBest
+                          : styles.durationTextNormal,
+                        styles.durationText,
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {loading ? "" : hasLog ? `${day.count}` : ""}
+                    </Text>
+                  </View>
+
+                  {isMarkedForDeletion ? (
+                    <Pressable
+                      style={styles.deleteButton}
+                      disabled={isDeletingLog}
+                      onPress={() => {
+                        if (!day.date || isDeletingLog) return;
+                        handleDeleteLog(day.date);
+                      }}
+                    >
+                      <BinIcon />
+                    </Pressable>
+                  ) : null}
                 </View>
-              </View>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-
-      {/* Stats Row */}
-      <View style={styles.statsRow}>
-        <DashBoardHandHeartIcon
-      
-          size={24}
-          color={Colors.light.lightblue}
-        />
-        <Text style={styles.statsText} numberOfLines={1}>
-          <Text style={styles.statsCount}>{totalThisWeek}</Text>
-          {" total meals/clothes this week"}
-        </Text>
-      </View>
-
-      {/* Footer Row */}
-      <View style={styles.footerRow}>
-        <View style={styles.streakBadge}>
-          <FlashIcon  size={13} color={Colors.light.yellow} />
-          <Text style={styles.streakText}>{streakDays}-day streak</Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
 
-        <View style={styles.quoteBlock}>
-          <ShootIcon
-            
-            size={14}
-            Color={Colors.light.seagreen}
-          />
-          <Text style={styles.quoteText}>{motivationalQuote}</Text>
+        <View style={styles.statsRow}>
+          <DashBoardHandHeartIcon size={24} color={Colors.light.lightblue} />
+          <Text style={styles.statsText} numberOfLines={1}>
+            {loading ? (
+              "---"
+            ) : (
+              <>
+                <Text style={styles.statsCount}>{totalThisWeek}</Text>
+                {" total meals/clothes this week"}
+              </>
+            )}
+          </Text>
         </View>
-      </View>
+
+        <View style={styles.footerRow}>
+          <View style={styles.streakBadge}>
+            <FlashIcon size={13} color={Colors.light.yellow} />
+            <Text style={styles.streakText}>
+              {loading ? "---" : `${streakDays}-day streak`}
+            </Text>
+          </View>
+
+          <View style={styles.quoteBlock}>
+            <ShootIcon size={14} Color={Colors.light.seagreen} />
+            <Text style={styles.quoteText}>
+              {loading ? "---" : motivationalQuote}
+            </Text>
+          </View>
+        </View>
+      </PrayerWeeklyDashboardBody>
     </View>
   );
 }
@@ -298,11 +403,15 @@ const styles = StyleSheet.create({
   daysRow: {
     flexDirection: "row",
     alignItems: "flex-start",
+    width: "100%",
   },
   dayColumn: {
     flex: 1,
     alignItems: "center",
     minWidth: 0,
+  },
+  dayColumnMarkedForDeletion: {
+    zIndex: 99999,
   },
   dayItemWrapper: {
     alignItems: "center",
@@ -313,6 +422,24 @@ const styles = StyleSheet.create({
   },
   dayItemSelected: {
     backgroundColor: Colors.light.divider,
+  },
+  deletingDay: {
+    borderColor: Colors.light.red,
+    borderWidth: 1,
+    borderRadius: 6,
+    backgroundColor: Colors.light.dullRed,
+  },
+  deleteButton: {
+    height: 20,
+    width: 24,
+    backgroundColor: Colors.light.red,
+    borderRadius: 5,
+    zIndex: 1000,
+    alignSelf: "center",
+    justifyContent: "center",
+    alignItems: "center",
+    position: "absolute",
+    bottom: -10,
   },
   bestDayLabel: {
     color: Colors.light.green,

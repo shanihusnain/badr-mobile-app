@@ -3,7 +3,10 @@ import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import { TaperedCircleBorder } from "@/components/atoms/TaperedCircleBorder";
-import { prepareFigmaForcedSmallCapsText } from "@/src/utils/figmaTypography";
+import {
+  getFigmaForcedSmallCapsTextStyle,
+  prepareFigmaForcedSmallCapsText,
+} from "@/src/utils/figmaTypography";
 
 type Props = {
   title: string;
@@ -119,12 +122,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   title: {
-    color: Colors.light.white,
-    fontFamily: fonts.primary.semiBold,
-    fontWeight: "600",
-    fontSize: 15,
-    textTransform: "uppercase",
     marginBottom: 2,
+    // Prior style: fontSize 15 only (no lineHeight).
+    ...getFigmaForcedSmallCapsTextStyle({
+      fontSize: 15,
+      letterSpacing: 0,
+      color: Colors.light.white,
+    }),
   },
   subtitle: {
     color: Colors.light.white,

@@ -82,6 +82,33 @@ export const GOAL_ID_TO_SADAQAH_TYPE: Record<string, string> = {
   "sadaqah-volunteering": "VOLUNTEERING",
 };
 
+/** Money-amount logging goals that use the sadaqah frame + currencyCode. */
+export const MONEY_SADAQAH_FRAME_GOAL_IDS = new Set([
+  "sadaqah-zakat",
+  "sadaqah-Lillah",
+  "sadaqah-jariyah",
+]);
+
+/** All sadaqah goals that mount `SadaqahGoalFrameProvider` on the logging screen. */
+export const SADAQAH_FRAME_GOAL_IDS = new Set([
+  ...MONEY_SADAQAH_FRAME_GOAL_IDS,
+  "sadaqah-kafarah",
+  "sadaqah-fidya",
+  "sadaqah-volunteering",
+]);
+
+export function isMoneySadaqahFrameGoalId(
+  goalId: string | null | undefined,
+): boolean {
+  return !!goalId && MONEY_SADAQAH_FRAME_GOAL_IDS.has(goalId);
+}
+
+export function isSadaqahFrameGoalId(
+  goalId: string | null | undefined,
+): boolean {
+  return !!goalId && SADAQAH_FRAME_GOAL_IDS.has(goalId);
+}
+
 export function resolveSadaqahType(goalKey: string): string {
   if (SADAQAH_TYPE_TO_UI_ID[goalKey]) return goalKey;
   return UI_ID_TO_SADAQAH_TYPE[goalKey] ?? goalKey;

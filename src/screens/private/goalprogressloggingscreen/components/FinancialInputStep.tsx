@@ -49,7 +49,7 @@ export function FinancialInputStep({
   return (
     <View style={localStyles.container}>
       <View style={localStyles.inputWrapper}>
-        <Text style={localStyles.currencySymbol}>{currencySymbol}</Text>
+        <Text style={localStyles.currencySymbol}>{currencySymbol} </Text>
         <TextInput
           style={localStyles.input}
           value={amount}

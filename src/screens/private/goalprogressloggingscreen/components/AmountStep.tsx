@@ -6,10 +6,15 @@ import { fonts } from "@/assets/fonts";
 type Props = {
   amount: string;
   setAmount: (value: string) => void;
+  /** Backend ISO currency code from the goal frame (`AED`, `USD`, …). */
   currencySymbol?: string;
 };
 
-export function AmountStep({ amount, setAmount, currencySymbol = "$" }: Props) {
+export function AmountStep({
+  amount,
+  setAmount,
+  currencySymbol = "USD",
+}: Props) {
   const handleChange = (text: string) => {
     // Only allow numbers
     const formatted = text.replace(/[^0-9]/g, "");

@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -8,128 +8,125 @@ import {
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import moment from "moment";
+import moment from "moment-hijri";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
-
+import { GoalData } from "../../home/components/goalsData";
 import { FlowCard } from "../components/FlowCard";
 import { DateStep } from "../components/DateStep";
 import { formatProgressLoggingDateLabel } from "../progressLoggingConfig";
 import { SadaqahJariyahCategoryStep } from "../components/SadaqahJariyahCategoryStep";
-import { AmountStep } from "../components/AmountStep";
-import { StartTimeStep, DurationStep } from "../components/TimePickerSteps";
+import { FinancialInputStep } from "../components/FinancialInputStep";
+import {
+  StartTimeStep,
+  DurationStep,
+  getCurrentStartTimeParts,
+} from "../components/TimePickerSteps";
 import { styles as commonStyles } from "../components/DailyProgressLogging.styles";
 import { ThreeHeartIcon } from "@/assets/icons/ThreeHeartIcon";
 import { FlowCardCallender } from "@/assets/icons/FlowCardCallender";
 import type { ProgressLogEntry } from "../types";
-import { getResolvedGoalById } from "../../home/components/goalsData";
 import { SadaqahJariyahCategoryId } from "../sadaqahJariyahCategories";
 import { ClockIcon, WalletIcon } from "@/assets/icons";
 import { TimeSpentIcon } from "@/assets/icons/TimeSpentIcon";
+import { useOptionalSadaqahGoalFrameContext } from "../sadaqahGoalFrameContext";
+import { useLogSadaqahGoal } from "@/src/api/mutations/useLogSadaqahGoal";
+import {
+  getSadaqahFrameAchievementLabel,
+  getSadaqahFrameAchievementPct,
+  getSadaqahFrameCurrencyCode,
+  getSadaqahFrameFlowCardTitle,
+  sadaqahFrameShowsInsights,
+  sadaqahUiCategoryToCauseCategory,
+} from "@/src/utils/sadaqahGoalFrameMap";
 
-type FlowMode = "collapsed" | "active";
+type JariyahStepId =
+  | "date"
+  | "category"
+  | "amount"
+  | "start-time"
+  | "time-spent";
 
-type Props = {
-  goalData: NonNullable<ReturnType<typeof getResolvedGoalById>>;
-  onLogComplete?: (entry: ProgressLogEntry) => void;
-};
-
-const STEPS = [
+const STEPS: JariyahStepId[] = [
   "date",
   "category",
   "amount",
   "start-time",
   "time-spent",
-] as const;
-type StepType = (typeof STEPS)[number];
+];
 
-const getStepHeader = (step: StepType) => {
-  switch (step) {
-    case "date":
-      return {
-        label: "Which day are you logging for?",
-        icon: <FlowCardCallender size={24} color={Colors.light.white} />,
-      };
-    case "category":
-      return {
-        label: "Select your sadaqah jariyah.",
-        icon: <ThreeHeartIcon size={24} color={Colors.light.white} />,
-      };
-    case "amount":
-      return {
-        label: "How much did you spend?",
-        icon: <WalletIcon size={24} color={Colors.light.white} />,
-      };
-    case "start-time":
-      return {
-        label: "Enter start time.",
-        icon: (
-          <ClockIcon size={20} color={Colors.light.white}
-          />
-        ),
-      };
-    case "time-spent":
-      return {
-        label: "Enter time spent.",
-        icon: <TimeSpentIcon size={20} color={Colors.light.white} />,
-      };
-  }
+type FlowMode = "collapsed" | "active";
+
+type Props = {
+  goalData: GoalData;
+  onLogComplete?: (entry: ProgressLogEntry) => void;
 };
 
 const toDateString = (date: Date) => moment(date).format("YYYY-MM-DD");
 
-// ─────────────────────────────────────────────────────────────────────────────
+function formatStartTimeForApi(
+  hour: string,
+  minute: string,
+  period: "am" | "pm",
+): string {
+  const hourNum = parseInt(hour || "0", 10) || 0;
+  const minuteNum = parseInt(minute || "0", 10) || 0;
+  let hour24 = hourNum % 12;
+  if (period === "pm") hour24 += 12;
+  return `${String(Math.max(0, hour24)).padStart(2, "0")}:${String(
+    Math.max(0, minuteNum),
+  ).padStart(2, "0")}`;
+}
+
 export default function SadaqahJariyahLoggingFlow({
   goalData,
   onLogComplete,
 }: Props) {
   const { t } = useTranslation();
+  const sadaqahFrame = useOptionalSadaqahGoalFrameContext();
+  const frame = sadaqahFrame?.frame;
+  const { mutateAsync: logSadaqah, isPending: isLogging } = useLogSadaqahGoal();
 
   const [flowMode, setFlowMode] = useState<FlowMode>("collapsed");
   const [stepIndex, setStepIndex] = useState(0);
-
   const [selectedDate, setSelectedDate] = useState(toDateString(new Date()));
   const [selectedCategory, setSelectedCategory] =
     useState<SadaqahJariyahCategoryId>("honoring-parents");
-  const [amount, setAmount] = useState("20");
-
-  const [startHour, setStartHour] = useState("06");
-  const [startMinute, setStartMinute] = useState("15");
-  const [startPeriod, setStartPeriod] = useState<"am" | "pm">("am");
+  const [amount, setAmount] = useState("0");
+  const [startHour, setStartHour] = useState(
+    () => getCurrentStartTimeParts().hour,
+  );
+  const [startMinute, setStartMinute] = useState(
+    () => getCurrentStartTimeParts().minute,
+  );
+  const [startPeriod, setStartPeriod] = useState<"am" | "pm">(
+    () => getCurrentStartTimeParts().period,
+  );
   const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
-
   const [durationHours, setDurationHours] = useState("0");
   const [durationMinutes, setDurationMinutes] = useState("10");
 
-  const [hasLogged, setHasLogged] = useState(false);
-  const [totalAmountLogged, setTotalAmountLogged] = useState(0);
-
-  // ── Derived goal state from backend data ──────────────────────────────────
-  const goalTarget = goalData?.target ? Number(goalData.target) : 1000;
-  const goalLabel = goalData?.label ?? "$1000 Toward Sadaqah Jariyah";
-  const goalPercentage = goalData?.percentage
-    ? parseFloat(goalData.percentage)
-    : 0;
-  const isGoalCompleted = goalPercentage >= 100;
-
-  const mockTitle = `$${goalTarget} on Sadaqah\nJariyah`;
-
-  const getBadgeStatus = () => {
-    if (!hasLogged && goalPercentage === 0)
-      return { text: "In Progress", type: "in-progress" };
-    if (isGoalCompleted)
-      return { text: "100% Achieved!", type: "completed" };
-    if (goalPercentage > 0)
+  const badgeStatus = useMemo(() => {
+    if (!frame) {
       return {
-        text: `${Math.round(goalPercentage)}% Achieved`,
-        type: "completed",
+        text: t("progressLogging.notStarted"),
+        type: "not-started" as const,
       };
-    return { text: "In Progress", type: "in-progress" };
-  };
+    }
+    return getSadaqahFrameAchievementLabel(frame, t);
+  }, [frame, t]);
 
-  const badgeStatus = getBadgeStatus();
-  const isCompleted = isGoalCompleted || hasLogged;
+  const currencyCode = getSadaqahFrameCurrencyCode(frame);
+  const goalTarget = goalData?.target ? Number(goalData.target) : 1000;
+  const summaryTitle = frame
+    ? getSadaqahFrameFlowCardTitle(frame)
+    : `${currencyCode} ${goalTarget.toLocaleString("en-US")} Toward Sadaqah Jariyah`;
+  const achievementPct = getSadaqahFrameAchievementPct(frame);
+  const showInsights = frame ? sadaqahFrameShowsInsights(frame) : false;
+  const canLog = frame ? Boolean(frame.items?.[0]?.canLog ?? true) : true;
+  const goalCompleted =
+    achievementPct >= 100 ||
+    String(frame?.goal?.status ?? "").toUpperCase() === "COMPLETED";
 
   const todayString = toDateString(new Date());
   const currentStep = STEPS[stepIndex];
@@ -150,61 +147,138 @@ export default function SadaqahJariyahLoggingFlow({
   };
 
   const resetFlow = useCallback(() => {
+    const now = getCurrentStartTimeParts();
     setFlowMode("collapsed");
     setStepIndex(0);
     setSelectedDate(toDateString(new Date()));
     setSelectedCategory("honoring-parents");
-    setAmount("20");
-    setStartHour("06");
-    setStartMinute("15");
-    setStartPeriod("am");
+    setAmount("0");
+    setStartHour(now.hour);
+    setStartMinute(now.minute);
+    setStartPeriod(now.period);
     setDurationHours("0");
     setDurationMinutes("10");
     setIsPeriodDropdownOpen(false);
   }, []);
 
-  const handleOpenFlow = () => {
-    setFlowMode("active");
-  };
+  const handleConfirm = useCallback(() => {
+    if (!selectedDate || isLogging) return;
+    const numericAmount = Number.parseFloat(amount) || 0;
+    if (numericAmount <= 0) return;
+
+    const hours = parseInt(durationHours || "0", 10) || 0;
+    const minutes = parseInt(durationMinutes || "0", 10) || 0;
+    const durationTotalMinutes = hours * 60 + minutes;
+    if (durationTotalMinutes < 1) return;
+
+    const startTime = formatStartTimeForApi(
+      startHour,
+      startMinute,
+      startPeriod,
+    );
+    const causeCategory = sadaqahUiCategoryToCauseCategory(selectedCategory);
+
+    const run = async () => {
+      try {
+        const result = await logSadaqah({
+          sadaqahType: "SADAQAH_JARIYAH",
+          logDate: selectedDate,
+          amount: numericAmount,
+          startTime,
+          durationMinutes: durationTotalMinutes,
+          causeCategory,
+        });
+        await sadaqahFrame?.refetch();
+        onLogComplete?.({
+          type: "sadaqah-jariyah" as any,
+          goalId: goalData.id,
+          date: result.logDate ?? result.date ?? selectedDate,
+          amount: String(result.amount ?? numericAmount),
+          startTime: result.startTime ?? startTime,
+          durationMinutes: result.durationMinutes ?? durationTotalMinutes,
+          sadaqahJariyahCategory: selectedCategory,
+        } as any);
+        resetFlow();
+      } catch {
+        // Toast handled in mutation onError
+      }
+    };
+
+    void run();
+  }, [
+    amount,
+    durationHours,
+    durationMinutes,
+    goalData.id,
+    isLogging,
+    logSadaqah,
+    onLogComplete,
+    resetFlow,
+    sadaqahFrame,
+    selectedCategory,
+    selectedDate,
+    startHour,
+    startMinute,
+    startPeriod,
+  ]);
 
   const handleBack = () => {
-    if (stepIndex > 0) setStepIndex(stepIndex - 1);
+    if (stepIndex === 0) {
+      resetFlow();
+      return;
+    }
+    setStepIndex((i) => i - 1);
   };
 
   const handleForward = () => {
-    if (!isLastStep) setStepIndex(stepIndex + 1);
+    if (!isLastStep) setStepIndex((i) => i + 1);
   };
 
-  const handleConfirm = () => {
-    const numericAmount = parseInt(amount, 10) || 0;
-    setTotalAmountLogged((prev) => prev + numericAmount);
-    setHasLogged(true);
-    setFlowMode("collapsed");
-    setStepIndex(0);
+  const handleOpenFlow = useCallback(() => {
+    if (!canLog || goalCompleted) return;
+    setFlowMode("active");
+  }, [canLog, goalCompleted]);
 
-    const durationMins =
-      parseInt(durationHours || "0", 10) * 60 +
-      parseInt(durationMinutes || "0", 10);
-
-    onLogComplete?.({
-      date: selectedDate,
-      count: numericAmount,
-      durationMinutes: durationMins,
-      timeOfDay: `${startHour}:${startMinute} ${startPeriod}`,
-      sadaqahJariyahCategory: selectedCategory,
-    } as any);
+  const getStepHeader = (step: JariyahStepId) => {
+    switch (step) {
+      case "date":
+        return {
+          label: "Which day are you logging for?",
+          icon: <FlowCardCallender size={24} color={Colors.light.white} />,
+        };
+      case "category":
+        return {
+          label: "Select your sadaqah jariyah.",
+          icon: <ThreeHeartIcon size={24} color={Colors.light.white} />,
+        };
+      case "amount":
+        return {
+          label: "How much did you spend?",
+          icon: <WalletIcon size={24} color={Colors.light.white} />,
+        };
+      case "start-time":
+        return {
+          label: "Enter start time.",
+          icon: <ClockIcon size={20} color={Colors.light.white} />,
+        };
+      case "time-spent":
+        return {
+          label: "Enter time spent.",
+          icon: <TimeSpentIcon size={20} color={Colors.light.white} />,
+        };
+    }
   };
 
-  const renderStepContent = (step: StepType) => {
+  const renderStepContent = (step: JariyahStepId) => {
     switch (step) {
       case "date":
         return (
           <DateStep
+            dateLabel={dateLabel}
             selectedDate={selectedDate}
             todayString={todayString}
             onShiftDate={shiftDate}
             styles={commonStyles}
-            dateLabel={dateLabel}
           />
         );
       case "category":
@@ -216,10 +290,11 @@ export default function SadaqahJariyahLoggingFlow({
         );
       case "amount":
         return (
-          <AmountStep
+          <FinancialInputStep
             amount={amount}
             setAmount={setAmount}
-            currencySymbol="$"
+            currencySymbol={currencyCode}
+            styles={commonStyles}
           />
         );
       case "start-time":
@@ -250,6 +325,14 @@ export default function SadaqahJariyahLoggingFlow({
   };
 
   const stepHeader = getStepHeader(currentStep);
+  const durationTotalMinutes =
+    (parseInt(durationHours || "0", 10) || 0) * 60 +
+    (parseInt(durationMinutes || "0", 10) || 0);
+  const canConfirm =
+    isLastStep &&
+    !isLogging &&
+    (Number.parseFloat(amount) || 0) > 0 &&
+    durationTotalMinutes >= 1;
 
   return (
     <View style={commonStyles.section}>
@@ -258,9 +341,7 @@ export default function SadaqahJariyahLoggingFlow({
       </Text>
 
       <View style={commonStyles.cardAnchor}>
-        {flowMode === "active" && (
-          <Pressable style={commonStyles.backdrop} />
-        )}
+        {flowMode === "active" && <Pressable style={commonStyles.backdrop} />}
         {flowMode === "active" && (
           <TouchableOpacity
             style={commonStyles.cancelButton}
@@ -274,13 +355,11 @@ export default function SadaqahJariyahLoggingFlow({
         {flowMode === "collapsed" ? (
           <View style={localStyles.summaryCard}>
             <View style={localStyles.summaryBody}>
-              {/* Icon: tree / charity icon */}
               <View style={localStyles.summaryIconCircle}>
                 <ThreeHeartIcon size={24} color={Colors.light.white} />
               </View>
 
               <View style={{ flex: 1, gap: 4 }}>
-                {/* Badge */}
                 <View
                   style={[
                     localStyles.badge,
@@ -302,15 +381,16 @@ export default function SadaqahJariyahLoggingFlow({
                   </Text>
                 </View>
 
-                {/* Title */}
-                <Text style={localStyles.summaryTitle}>{mockTitle}</Text>
+                <Text style={localStyles.summaryTitle}>{summaryTitle}</Text>
               </View>
             </View>
 
-            {/* Footer */}
             <View style={localStyles.footerRow}>
-              {isCompleted ? (
-                <TouchableOpacity style={localStyles.insightsBtn}>
+              {showInsights ? (
+                <TouchableOpacity
+                  style={localStyles.insightsBtn}
+                  onPress={sadaqahFrame?.openInsights}
+                >
                   <Text style={localStyles.insightsText}>VIEW INSIGHTS</Text>
                   <Ionicons
                     name="chevron-forward"
@@ -322,13 +402,15 @@ export default function SadaqahJariyahLoggingFlow({
                 <View style={localStyles.spacer} />
               )}
 
-              <TouchableOpacity
-                style={localStyles.addButton}
-                onPress={handleOpenFlow}
-                activeOpacity={0.8}
-              >
-                <Ionicons name="add" size={22} color={Colors.light.white} />
-              </TouchableOpacity>
+              {canLog && !goalCompleted ? (
+                <TouchableOpacity
+                  style={localStyles.addButton}
+                  onPress={handleOpenFlow}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="add" size={22} color={Colors.light.white} />
+                </TouchableOpacity>
+              ) : null}
             </View>
           </View>
         ) : (
@@ -340,7 +422,9 @@ export default function SadaqahJariyahLoggingFlow({
               onForward={handleForward}
               onConfirm={handleConfirm}
               canGoForward={!isLastStep}
-                canGoBack={stepIndex > 0}
+              canGoBack={stepIndex > 0}
+              canConfirm={canConfirm}
+              showConfirmButton={isLastStep}
               styles={commonStyles}
               style={commonStyles.inPlaceFlowCard}
             >

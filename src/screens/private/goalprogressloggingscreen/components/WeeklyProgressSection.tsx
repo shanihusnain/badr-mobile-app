@@ -129,8 +129,18 @@ import {
 } from "@/src/utils/fastingGoalFrameMap";
 import {
   canNavigateSadaqahFrameWeekNext,
+  FIDYA_LOADING_WEEK_SUMMARY,
+  KAFFARAH_LOADING_WEEK_SUMMARY,
+  LILLAH_LOADING_WEEK_SUMMARY,
+  mapFidyaFrameWeekSummary,
+  mapKaffarahFrameWeekSummary,
+  mapLillahFrameWeekSummary,
   mapMissedZakatFrameWeekSummary,
+  mapSadaqahJariyahFrameWeekSummary,
+  mapVolunteeringFrameWeekSummary,
   MISSED_ZAKAT_LOADING_WEEK_SUMMARY,
+  SADAQAH_JARIYAH_LOADING_WEEK_SUMMARY,
+  VOLUNTEERING_LOADING_WEEK_SUMMARY,
 } from "@/src/utils/sadaqahGoalFrameMap";
 import type { FastingGoalFrameData } from "@/src/api/queries/useGetFastingGoalFrame";
 import type { SadaqahGoalFrameData } from "@/src/api/queries/useGetSadaqahGoalFrame";
@@ -576,8 +586,11 @@ export function WeeklyProgressSection({
       weekNumber: browseActive
         ? (browse.weekNumber ?? screenSadaqahFrame.weekNumber)
         : screenSadaqahFrame.weekNumber,
+      // Keep dashboard in loading until browse week is hydrated + fetched,
+      // otherwise cached screen frame paints instantly with no spinner.
       isLoading: browseActive
         ? browse.isLoading ||
+          browse.weekNumber == null ||
           (browse.weekNumber == null && screenSadaqahFrame.isLoading)
         : screenSadaqahFrame.isLoading,
       isFetching: browseActive
@@ -2591,551 +2604,374 @@ export function WeeklyProgressSection({
   }
 
   if (template === "kaffarah-fasts-oaths") {
-    const KAFFARAH_WEEKS = [
-      {
-        weekRangeLabel: "Nov 29 — Dec 5",
-        weekFraction: "1/4",
-        totalThisWeek: 5,
-        streakDays: 1,
-        selectedDayIndex: 6,
-        days: [
-          {
-            day: "Sun",
-            category: "clothes" as const,
-            count: 2,
-            isToday: false,
-          },
-          { day: "Mon", category: null, count: 0 },
-          { day: "Tue", category: null, count: 0 },
-          { day: "Wed", category: "meals" as const, count: 2, isToday: false },
-          { day: "Thu", category: null, count: 0 },
-          { day: "Fri", category: "meals" as const, count: 1, isToday: false },
-          { day: "Sat", category: null, count: 0, isFuture: true },
-        ],
-      },
-      {
-        weekRangeLabel: "Dec 6 — 12",
-        weekFraction: "2/4",
-        totalThisWeek: 8,
-        streakDays: 3,
-        selectedDayIndex: 3,
-        days: [
-          {
-            day: "Sun",
-            category: "clothes" as const,
-            count: 3,
-            isBestDay: true,
-          },
-          { day: "Mon", category: "meals" as const, count: 2 },
-          { day: "Tue", category: "meals" as const, count: 1 },
-          { day: "Wed", category: "clothes" as const, count: 2, isToday: true },
-          { day: "Thu", category: null, count: 0, isFuture: true },
-          { day: "Fri", category: null, count: 0, isFuture: true },
-          { day: "Sat", category: null, count: 0, isFuture: true },
-        ],
-      },
-      {
-        weekRangeLabel: "Dec 13 — 19",
-        weekFraction: "3/4",
-        totalThisWeek: 0,
-        streakDays: 0,
-        selectedDayIndex: 0,
-        days: [
-          { day: "Sun", category: null, count: 0 },
-          { day: "Mon", category: null, count: 0 },
-          { day: "Tue", category: null, count: 0 },
-          { day: "Wed", category: null, count: 0 },
-          { day: "Thu", category: null, count: 0, isFuture: true },
-          { day: "Fri", category: null, count: 0, isFuture: true },
-          { day: "Sat", category: null, count: 0, isFuture: true },
-        ],
-      },
-      {
-        weekRangeLabel: "Dec 20 — 26",
-        weekFraction: "4/4",
-        totalThisWeek: 10,
-        streakDays: 5,
-        selectedDayIndex: 4,
-        days: [
-          { day: "Sun", category: "meals" as const, count: 3, isBestDay: true },
-          { day: "Mon", category: "clothes" as const, count: 2 },
-          { day: "Tue", category: "meals" as const, count: 2 },
-          { day: "Wed", category: "clothes" as const, count: 1 },
-          { day: "Thu", category: "meals" as const, count: 2, isBlurDay: true },
-          { day: "Fri", category: null, count: 0, isBlurDay: true },
-          { day: "Sat", category: null, count: 0, isBlurDay: true },
-        ],
-      },
-    ];
+    const frame = sadaqahFrame?.frame;
+    if (sadaqahFrame) {
+      const frameLoading = isSadaqahFrameDashboardLoading(sadaqahFrame, frame);
 
-    const [kaffarahWeekIndex, setKaffarahWeekIndex] = useState(0);
-    const kaffarahWeek = KAFFARAH_WEEKS[kaffarahWeekIndex];
+      if (frame) {
+        const kaffarahWeekFromFrame = mapKaffarahFrameWeekSummary(frame);
+        const canPrev =
+          frame.week.hasPrevious ??
+          getSadaqahFrameActiveWeek(sadaqahFrame, frame) > 1;
+        const canNext = canNavigateSadaqahFrameWeekNext(frame);
 
+        return (
+          <KaffarahWeeklyProgressDashboard
+            weekDays={kaffarahWeekFromFrame.weekDays}
+            weekRangeLabel={kaffarahWeekFromFrame.weekRangeLabel}
+            weekFraction={kaffarahWeekFromFrame.weekFraction}
+            totalThisWeek={kaffarahWeekFromFrame.totalThisWeek}
+            streakDays={kaffarahWeekFromFrame.streakDays}
+            selectedDayIndex={kaffarahWeekFromFrame.selectedDayIndex}
+            loading={frameLoading}
+            onDeleted={onDeleted}
+            allowLogDeletion
+            sadaqahType="KAFFARAH"
+            motivationalQuote={
+              kaffarahWeekFromFrame.motivationalQuote ||
+              "Kaffarah is a reminder of Allah's mercy—keep it up and stay inspired!"
+            }
+            onPrevWeek={
+              canPrev && !frameLoading
+                ? () => shiftSadaqahFrameWeek(sadaqahFrame, frame, -1)
+                : undefined
+            }
+            onNextWeek={
+              canNext && !frameLoading
+                ? () => shiftSadaqahFrameWeek(sadaqahFrame, frame, 1)
+                : undefined
+            }
+          />
+        );
+      }
+
+      if (!sadaqahFrame.isError) {
+        const loadingSummary = KAFFARAH_LOADING_WEEK_SUMMARY;
+        return (
+          <KaffarahWeeklyProgressDashboard
+            weekDays={loadingSummary.weekDays}
+            weekRangeLabel={loadingSummary.weekRangeLabel}
+            weekFraction={loadingSummary.weekFraction}
+            totalThisWeek={loadingSummary.totalThisWeek}
+            streakDays={loadingSummary.streakDays}
+            selectedDayIndex={loadingSummary.selectedDayIndex}
+            motivationalQuote="---"
+            loading
+          />
+        );
+      }
+    }
+
+    // No provider yet: keep loading shell (error path still uses empty shell).
+    const loadingSummary = KAFFARAH_LOADING_WEEK_SUMMARY;
     return (
       <KaffarahWeeklyProgressDashboard
-        weekDays={kaffarahWeek.days}
-        weekRangeLabel={kaffarahWeek.weekRangeLabel}
-        weekFraction={kaffarahWeek.weekFraction}
-        totalThisWeek={kaffarahWeek.totalThisWeek}
-        streakDays={kaffarahWeek.streakDays}
-        selectedDayIndex={kaffarahWeek.selectedDayIndex}
-        motivationalQuote="Kaffarah is a reminder of Allah's mercy—keep it up and stay inspired!"
-        onPrevWeek={() => setKaffarahWeekIndex((i) => Math.max(0, i - 1))}
-        onNextWeek={() =>
-          setKaffarahWeekIndex((i) =>
-            Math.min(KAFFARAH_WEEKS.length - 1, i + 1),
-          )
-        }
+        weekDays={loadingSummary.weekDays}
+        weekRangeLabel={loadingSummary.weekRangeLabel}
+        weekFraction={loadingSummary.weekFraction}
+        totalThisWeek={loadingSummary.totalThisWeek}
+        streakDays={loadingSummary.streakDays}
+        selectedDayIndex={loadingSummary.selectedDayIndex}
+        motivationalQuote="---"
+        loading={!sadaqahFrame}
       />
     );
   }
 
   if (template === "fidya") {
-    const FIDYA_WEEKS = [
-      {
-        weekRangeLabel: "Nov 29 — Dec 5",
-        weekFraction: "1/4",
-        totalThisWeek: 3,
-        streakDays: 1,
-        selectedDayIndex: 6,
-        days: [
-          { day: "Sun", count: 1, isToday: false },
-          { day: "Mon", count: 0 },
-          { day: "Tue", count: 0 },
-          { day: "Wed", count: 1, isToday: false },
-          { day: "Thu", count: 0 },
-          { day: "Fri", count: 1, isBestDay: true },
-          { day: "Sat", count: 0, isFuture: true },
-        ],
-      },
-      {
-        weekRangeLabel: "Dec 6 — 12",
-        weekFraction: "2/4",
-        totalThisWeek: 5,
-        streakDays: 3,
-        selectedDayIndex: 3,
-        days: [
-          { day: "Sun", count: 2, isBestDay: true },
-          { day: "Mon", count: 1 },
-          { day: "Tue", count: 1 },
-          { day: "Wed", count: 1, isToday: true },
-          { day: "Thu", count: 0, isFuture: true },
-          { day: "Fri", count: 0, isFuture: true },
-          { day: "Sat", count: 0, isFuture: true },
-        ],
-      },
-      {
-        weekRangeLabel: "Dec 13 — 19",
-        weekFraction: "3/4",
-        totalThisWeek: 0,
-        streakDays: 0,
-        selectedDayIndex: 0,
-        days: [
-          { day: "Sun", count: 0 },
-          { day: "Mon", count: 0 },
-          { day: "Tue", count: 0 },
-          { day: "Wed", count: 0 },
-          { day: "Thu", count: 0, isFuture: true },
-          { day: "Fri", count: 0, isFuture: true },
-          { day: "Sat", count: 0, isFuture: true },
-        ],
-      },
-      {
-        weekRangeLabel: "Dec 20 — 26",
-        weekFraction: "4/4",
-        totalThisWeek: 10,
-        streakDays: 5,
-        selectedDayIndex: 4,
-        days: [
-          { day: "Sun", count: 3, isBestDay: true },
-          { day: "Mon", count: 2 },
-          { day: "Tue", count: 2 },
-          { day: "Wed", count: 1 },
-          { day: "Thu", count: 2, isBlurDay: true },
-          { day: "Fri", count: 0, isBlurDay: true },
-          { day: "Sat", count: 0, isBlurDay: true },
-        ],
-      },
-    ];
+    const frame = sadaqahFrame?.frame;
+    if (sadaqahFrame) {
+      const frameLoading = isSadaqahFrameDashboardLoading(sadaqahFrame, frame);
 
-    const [fidyaWeekIndex, setFidyaWeekIndex] = useState(0);
-    const fidyaWeek = FIDYA_WEEKS[fidyaWeekIndex];
+      if (frame) {
+        const fidyaWeekFromFrame = mapFidyaFrameWeekSummary(frame);
+        const canPrev =
+          frame.week.hasPrevious ??
+          getSadaqahFrameActiveWeek(sadaqahFrame, frame) > 1;
+        const canNext = canNavigateSadaqahFrameWeekNext(frame);
 
+        return (
+          <FidyaWeeklyProgressDashboard
+            weekDays={fidyaWeekFromFrame.weekDays}
+            weekRangeLabel={fidyaWeekFromFrame.weekRangeLabel}
+            weekFraction={fidyaWeekFromFrame.weekFraction}
+            totalThisWeek={fidyaWeekFromFrame.totalThisWeek}
+            streakDays={fidyaWeekFromFrame.streakDays}
+            selectedDayIndex={fidyaWeekFromFrame.selectedDayIndex}
+            loading={frameLoading}
+            onDeleted={onDeleted}
+            allowLogDeletion
+            sadaqahType="FIDYA"
+            motivationalQuote={
+              fidyaWeekFromFrame.motivationalQuote ||
+              "Remember, Fidya is a chance to give back and invite barakah into your life."
+            }
+            onPrevWeek={
+              canPrev && !frameLoading
+                ? () => shiftSadaqahFrameWeek(sadaqahFrame, frame, -1)
+                : undefined
+            }
+            onNextWeek={
+              canNext && !frameLoading
+                ? () => shiftSadaqahFrameWeek(sadaqahFrame, frame, 1)
+                : undefined
+            }
+          />
+        );
+      }
+
+      if (!sadaqahFrame.isError) {
+        const loadingSummary = FIDYA_LOADING_WEEK_SUMMARY;
+        return (
+          <FidyaWeeklyProgressDashboard
+            weekDays={loadingSummary.weekDays}
+            weekRangeLabel={loadingSummary.weekRangeLabel}
+            weekFraction={loadingSummary.weekFraction}
+            totalThisWeek={loadingSummary.totalThisWeek}
+            streakDays={loadingSummary.streakDays}
+            selectedDayIndex={loadingSummary.selectedDayIndex}
+            motivationalQuote="---"
+            loading
+          />
+        );
+      }
+    }
+
+    const loadingSummary = FIDYA_LOADING_WEEK_SUMMARY;
     return (
       <FidyaWeeklyProgressDashboard
-        weekDays={fidyaWeek.days}
-        weekRangeLabel={fidyaWeek.weekRangeLabel}
-        weekFraction={fidyaWeek.weekFraction}
-        totalThisWeek={fidyaWeek.totalThisWeek}
-        streakDays={fidyaWeek.streakDays}
-        selectedDayIndex={fidyaWeek.selectedDayIndex}
-        onPrevWeek={() => setFidyaWeekIndex((i) => Math.max(0, i - 1))}
-        onNextWeek={() =>
-          setFidyaWeekIndex((i) => Math.min(FIDYA_WEEKS.length - 1, i + 1))
-        }
+        weekDays={loadingSummary.weekDays}
+        weekRangeLabel={loadingSummary.weekRangeLabel}
+        weekFraction={loadingSummary.weekFraction}
+        totalThisWeek={loadingSummary.totalThisWeek}
+        streakDays={loadingSummary.streakDays}
+        selectedDayIndex={loadingSummary.selectedDayIndex}
+        motivationalQuote="---"
+        loading={!sadaqahFrame}
       />
     );
   }
 
   if (template === "lillah") {
-    const LILLAH_WEEKS = [
-      {
-        weekRangeLabel: "Nov 29 — Dec 5",
-        weekFraction: "1/4",
-        totalThisWeek: 350,
-        streakDays: 1,
-        selectedDayIndex: 6,
-        days: [
-          { day: "Sun", category: "household-essentials" as const, amount: 50 },
-          { day: "Mon", category: null, amount: 0 },
-          {
-            day: "Tue",
-            category: "food-relief" as const,
-            amount: 140,
-            isBestDay: true,
-          },
-          { day: "Wed", category: "qurbani" as const, amount: 100 },
-          { day: "Thu", category: null, amount: 0 },
-          { day: "Fri", category: "food-relief" as const, amount: 60 },
-          { day: "Sat", category: null, amount: 0, isFuture: true },
-        ],
-      },
-      {
-        weekRangeLabel: "Dec 6 — 12",
-        weekFraction: "2/4",
-        totalThisWeek: 120,
-        streakDays: 3,
-        selectedDayIndex: 3,
-        days: [
-          {
-            day: "Sun",
-            category: "qard-hassan" as const,
-            amount: 60,
-            isBestDay: true,
-          },
-          { day: "Mon", category: "debt-assistance" as const, amount: 20 },
-          { day: "Tue", category: "food-relief" as const, amount: 20 },
-          {
-            day: "Wed",
-            category: "household-essentials" as const,
-            amount: 20,
-            isToday: true,
-          },
-          { day: "Thu", category: null, amount: 0, isFuture: true },
-          { day: "Fri", category: null, amount: 0, isFuture: true },
-          { day: "Sat", category: null, amount: 0, isFuture: true },
-        ],
-      },
-      {
-        weekRangeLabel: "Dec 13 — 19",
-        weekFraction: "3/4",
-        totalThisWeek: 0,
-        streakDays: 0,
-        selectedDayIndex: 0,
-        days: [
-          { day: "Sun", category: null, amount: 0 },
-          { day: "Mon", category: null, amount: 0 },
-          { day: "Tue", category: null, amount: 0 },
-          { day: "Wed", category: null, amount: 0 },
-          { day: "Thu", category: null, amount: 0, isFuture: true },
-          { day: "Fri", category: null, amount: 0, isFuture: true },
-          { day: "Sat", category: null, amount: 0, isFuture: true },
-        ],
-      },
-      {
-        weekRangeLabel: "Dec 20 — 26",
-        weekFraction: "4/4",
-        totalThisWeek: 100,
-        streakDays: 5,
-        selectedDayIndex: 4,
-        days: [
-          {
-            day: "Sun",
-            category: "qurbani" as const,
-            amount: 40,
-            isBestDay: true,
-          },
-          { day: "Mon", category: "household-essentials" as const, amount: 20 },
-          { day: "Tue", category: "food-relief" as const, amount: 20 },
-          { day: "Wed", category: "qard-hassan" as const, amount: 20 },
-          {
-            day: "Thu",
-            category: "debt-assistance" as const,
-            amount: 0,
-            isBlurDay: true,
-          },
-          { day: "Fri", category: null, amount: 0, isBlurDay: true },
-          { day: "Sat", category: null, amount: 0, isBlurDay: true },
-        ],
-      },
-    ];
+    const frame = sadaqahFrame?.frame;
+    if (sadaqahFrame) {
+      const frameLoading = isSadaqahFrameDashboardLoading(sadaqahFrame, frame);
 
-    const [lillahWeekIndex, setLillahWeekIndex] = useState(0);
-    const lillahWeek = LILLAH_WEEKS[lillahWeekIndex];
+      if (frame) {
+        const lillahWeekFromFrame = mapLillahFrameWeekSummary(frame);
+        const canPrev =
+          frame.week.hasPrevious ??
+          getSadaqahFrameActiveWeek(sadaqahFrame, frame) > 1;
+        const canNext = canNavigateSadaqahFrameWeekNext(frame);
 
+        return (
+          <LillahWeeklyProgressDashboard
+            weekDays={lillahWeekFromFrame.weekDays}
+            weekRangeLabel={lillahWeekFromFrame.weekRangeLabel}
+            weekFraction={lillahWeekFromFrame.weekFraction}
+            totalThisWeek={lillahWeekFromFrame.totalThisWeek}
+            streakDays={lillahWeekFromFrame.streakDays}
+            selectedDayIndex={lillahWeekFromFrame.selectedDayIndex}
+            loading={frameLoading}
+            onDeleted={onDeleted}
+            allowLogDeletion
+            sadaqahType="LILLAH"
+            currencyCode={frame.goal?.currencyCode ?? "USD"}
+            motivationalQuote={
+              lillahWeekFromFrame.motivationalQuote ||
+              "Lillah is a chance to give freely for Allah's sake—keep going and invite barakah into your life."
+            }
+            onPrevWeek={
+              canPrev && !frameLoading
+                ? () => shiftSadaqahFrameWeek(sadaqahFrame, frame, -1)
+                : undefined
+            }
+            onNextWeek={
+              canNext && !frameLoading
+                ? () => shiftSadaqahFrameWeek(sadaqahFrame, frame, 1)
+                : undefined
+            }
+          />
+        );
+      }
+
+      if (!sadaqahFrame.isError) {
+        const loadingSummary = LILLAH_LOADING_WEEK_SUMMARY;
+        return (
+          <LillahWeeklyProgressDashboard
+            weekDays={loadingSummary.weekDays}
+            weekRangeLabel={loadingSummary.weekRangeLabel}
+            weekFraction={loadingSummary.weekFraction}
+            totalThisWeek={loadingSummary.totalThisWeek}
+            streakDays={loadingSummary.streakDays}
+            selectedDayIndex={loadingSummary.selectedDayIndex}
+            motivationalQuote="---"
+            loading
+          />
+        );
+      }
+    }
+
+    const loadingSummary = LILLAH_LOADING_WEEK_SUMMARY;
     return (
       <LillahWeeklyProgressDashboard
-        weekDays={lillahWeek.days}
-        weekRangeLabel={lillahWeek.weekRangeLabel}
-        weekFraction={lillahWeek.weekFraction}
-        totalThisWeek={lillahWeek.totalThisWeek}
-        streakDays={lillahWeek.streakDays}
-        selectedDayIndex={lillahWeek.selectedDayIndex}
-        onPrevWeek={() => setLillahWeekIndex((i) => Math.max(0, i - 1))}
-        onNextWeek={() =>
-          setLillahWeekIndex((i) => Math.min(LILLAH_WEEKS.length - 1, i + 1))
-        }
+        weekDays={loadingSummary.weekDays}
+        weekRangeLabel={loadingSummary.weekRangeLabel}
+        weekFraction={loadingSummary.weekFraction}
+        totalThisWeek={loadingSummary.totalThisWeek}
+        streakDays={loadingSummary.streakDays}
+        selectedDayIndex={loadingSummary.selectedDayIndex}
+        motivationalQuote="---"
+        loading={!sadaqahFrame}
       />
     );
   }
 
   if (template === "sadaqah-jariyah") {
-    const SADAQAH_JARIYAH_WEEKS = [
-      {
-        weekRangeLabel: "Nov 29 — Dec 5",
-        weekFraction: "1/4",
-        totalThisWeek: 350,
-        streakDays: 1,
-        selectedDayIndex: 6,
-        days: [
-          { day: "Sun", category: "honoring-parents" as const, amount: 50 },
-          { day: "Mon", category: null, amount: 0 },
-          {
-            day: "Tue",
-            category: "sponsoring-orphans" as const,
-            amount: 140,
-            isBestDay: true,
-          },
-          { day: "Wed", category: "building-wells" as const, amount: 100 },
-          { day: "Thu", category: null, amount: 0 },
-          { day: "Fri", category: "sponsoring-orphans" as const, amount: 60 },
-          { day: "Sat", category: null, amount: 0, isFuture: true },
-        ],
-      },
-      {
-        weekRangeLabel: "Dec 6 — 12",
-        weekFraction: "2/4",
-        totalThisWeek: 120,
-        streakDays: 3,
-        selectedDayIndex: 3,
-        days: [
-          {
-            day: "Sun",
-            category: "teaching-quran" as const,
-            amount: 60,
-            isBestDay: true,
-          },
-          { day: "Mon", category: "planting-trees" as const, amount: 20 },
-          { day: "Tue", category: "providing-clothing" as const, amount: 20 },
-          {
-            day: "Wed",
-            category: "honoring-parents" as const,
-            amount: 20,
-            isToday: true,
-          },
-          { day: "Thu", category: null, amount: 0, isFuture: true },
-          { day: "Fri", category: null, amount: 0, isFuture: true },
-          { day: "Sat", category: null, amount: 0, isFuture: true },
-        ],
-      },
-      {
-        weekRangeLabel: "Dec 13 — 19",
-        weekFraction: "3/4",
-        totalThisWeek: 0,
-        streakDays: 0,
-        selectedDayIndex: 0,
-        days: [
-          { day: "Sun", category: null, amount: 0 },
-          { day: "Mon", category: null, amount: 0 },
-          { day: "Tue", category: null, amount: 0 },
-          { day: "Wed", category: null, amount: 0 },
-          { day: "Thu", category: null, amount: 0, isFuture: true },
-          { day: "Fri", category: null, amount: 0, isFuture: true },
-          { day: "Sat", category: null, amount: 0, isFuture: true },
-        ],
-      },
-      {
-        weekRangeLabel: "Dec 20 — 26",
-        weekFraction: "4/4",
-        totalThisWeek: 100,
-        streakDays: 5,
-        selectedDayIndex: 4,
-        days: [
-          {
-            day: "Sun",
-            category: "building-wells" as const,
-            amount: 40,
-            isBestDay: true,
-          },
-          { day: "Mon", category: "honoring-parents" as const, amount: 20 },
-          { day: "Tue", category: "sponsoring-orphans" as const, amount: 20 },
-          { day: "Wed", category: "teaching-quran" as const, amount: 20 },
-          {
-            day: "Thu",
-            category: "planting-trees" as const,
-            amount: 0,
-            isBlurDay: true,
-          },
-          { day: "Fri", category: null, amount: 0, isBlurDay: true },
-          { day: "Sat", category: null, amount: 0, isBlurDay: true },
-        ],
-      },
-    ];
+    const frame = sadaqahFrame?.frame;
+    if (sadaqahFrame) {
+      const frameLoading = isSadaqahFrameDashboardLoading(sadaqahFrame, frame);
 
-    const [sadaqahJariyahWeekIndex, setSadaqahJariyahWeekIndex] = useState(0);
-    const sjWeek = SADAQAH_JARIYAH_WEEKS[sadaqahJariyahWeekIndex];
+      if (frame) {
+        const jariyahWeekFromFrame = mapSadaqahJariyahFrameWeekSummary(frame);
+        const canPrev =
+          frame.week.hasPrevious ??
+          getSadaqahFrameActiveWeek(sadaqahFrame, frame) > 1;
+        const canNext = canNavigateSadaqahFrameWeekNext(frame);
 
+        return (
+          <SadaqahJariyahWeeklyProgressDashboard
+            weekDays={jariyahWeekFromFrame.weekDays}
+            weekRangeLabel={jariyahWeekFromFrame.weekRangeLabel}
+            weekFraction={jariyahWeekFromFrame.weekFraction}
+            totalThisWeek={jariyahWeekFromFrame.totalThisWeek}
+            streakDays={jariyahWeekFromFrame.streakDays}
+            selectedDayIndex={jariyahWeekFromFrame.selectedDayIndex}
+            loading={frameLoading}
+            onDeleted={onDeleted}
+            allowLogDeletion
+            sadaqahType="SADAQAH_JARIYAH"
+            currencyCode={frame.goal?.currencyCode ?? "USD"}
+            motivationalQuote={
+              jariyahWeekFromFrame.motivationalQuote ||
+              "Sadaqah Jariyah keeps giving long after today—stay consistent and earn continuous reward."
+            }
+            onPrevWeek={
+              canPrev && !frameLoading
+                ? () => shiftSadaqahFrameWeek(sadaqahFrame, frame, -1)
+                : undefined
+            }
+            onNextWeek={
+              canNext && !frameLoading
+                ? () => shiftSadaqahFrameWeek(sadaqahFrame, frame, 1)
+                : undefined
+            }
+          />
+        );
+      }
+
+      if (!sadaqahFrame.isError) {
+        const loadingSummary = SADAQAH_JARIYAH_LOADING_WEEK_SUMMARY;
+        return (
+          <SadaqahJariyahWeeklyProgressDashboard
+            weekDays={loadingSummary.weekDays}
+            weekRangeLabel={loadingSummary.weekRangeLabel}
+            weekFraction={loadingSummary.weekFraction}
+            totalThisWeek={loadingSummary.totalThisWeek}
+            streakDays={loadingSummary.streakDays}
+            selectedDayIndex={loadingSummary.selectedDayIndex}
+            motivationalQuote="---"
+            loading
+          />
+        );
+      }
+    }
+
+    const loadingSummary = SADAQAH_JARIYAH_LOADING_WEEK_SUMMARY;
     return (
       <SadaqahJariyahWeeklyProgressDashboard
-        weekDays={sjWeek.days}
-        weekRangeLabel={sjWeek.weekRangeLabel}
-        weekFraction={sjWeek.weekFraction}
-        totalThisWeek={sjWeek.totalThisWeek}
-        streakDays={sjWeek.streakDays}
-        selectedDayIndex={sjWeek.selectedDayIndex}
-        onPrevWeek={() => setSadaqahJariyahWeekIndex((i) => Math.max(0, i - 1))}
-        onNextWeek={() =>
-          setSadaqahJariyahWeekIndex((i) =>
-            Math.min(SADAQAH_JARIYAH_WEEKS.length - 1, i + 1),
-          )
-        }
+        weekDays={loadingSummary.weekDays}
+        weekRangeLabel={loadingSummary.weekRangeLabel}
+        weekFraction={loadingSummary.weekFraction}
+        totalThisWeek={loadingSummary.totalThisWeek}
+        streakDays={loadingSummary.streakDays}
+        selectedDayIndex={loadingSummary.selectedDayIndex}
+        motivationalQuote="---"
+        loading={!sadaqahFrame}
       />
     );
   }
 
   if (template === "sadaqah-volunteering") {
-    const VOLUNTEERING_WEEKS = [
-      {
-        weekRangeLabel: "Nov 29 — Dec 5",
-        weekFraction: "1/4",
-        totalMinutesThisWeek: 150, // 2h 30m
-        streakDays: 0,
-        selectedDayIndex: 6,
-        days: [
-          {
-            day: "Sun",
-            category: "distributing-food" as const,
-            minutesLogged: 60,
-            isBestDay: true,
-          },
-          { day: "Mon", category: null, minutesLogged: 0 },
-          {
-            day: "Tue",
-            category: "shaping-futures" as const,
-            minutesLogged: 60,
-          },
-          {
-            day: "Wed",
-            category: "offering-compassion" as const,
-            minutesLogged: 30,
-          },
-          { day: "Thu", category: null, minutesLogged: 0 },
-          { day: "Fri", category: null, minutesLogged: 0 },
-          { day: "Sat", category: null, minutesLogged: 0, isFuture: true },
-        ],
-      },
-      {
-        weekRangeLabel: "Dec 6 — 12",
-        weekFraction: "2/4",
-        totalMinutesThisWeek: 60,
-        streakDays: 1,
-        selectedDayIndex: 3,
-        days: [
-          {
-            day: "Sun",
-            category: "distributing-food" as const,
-            minutesLogged: 30,
-            isBestDay: true,
-          },
-          {
-            day: "Mon",
-            category: "shaping-futures" as const,
-            minutesLogged: 15,
-          },
-          {
-            day: "Tue",
-            category: "offering-compassion" as const,
-            minutesLogged: 15,
-          },
-          { day: "Wed", category: null, minutesLogged: 0, isToday: true },
-          { day: "Thu", category: null, minutesLogged: 0, isFuture: true },
-          { day: "Fri", category: null, minutesLogged: 0, isFuture: true },
-          { day: "Sat", category: null, minutesLogged: 0, isFuture: true },
-        ],
-      },
-      {
-        weekRangeLabel: "Dec 13 — 19",
-        weekFraction: "3/4",
-        totalMinutesThisWeek: 0,
-        streakDays: 0,
-        selectedDayIndex: 0,
-        days: [
-          { day: "Sun", category: null, minutesLogged: 0 },
-          { day: "Mon", category: null, minutesLogged: 0 },
-          { day: "Tue", category: null, minutesLogged: 0 },
-          { day: "Wed", category: null, minutesLogged: 0 },
-          { day: "Thu", category: null, minutesLogged: 0, isFuture: true },
-          { day: "Fri", category: null, minutesLogged: 0, isFuture: true },
-          { day: "Sat", category: null, minutesLogged: 0, isFuture: true },
-        ],
-      },
-      {
-        weekRangeLabel: "Dec 20 — 26",
-        weekFraction: "4/4",
-        totalMinutesThisWeek: 210, // 3h 30m
-        streakDays: 5,
-        selectedDayIndex: 4,
-        days: [
-          {
-            day: "Sun",
-            category: "shaping-futures" as const,
-            minutesLogged: 60,
-            isBestDay: true,
-          },
-          {
-            day: "Mon",
-            category: "distributing-food" as const,
-            minutesLogged: 45,
-          },
-          {
-            day: "Tue",
-            category: "offering-compassion" as const,
-            minutesLogged: 45,
-          },
-          {
-            day: "Wed",
-            category: "shaping-futures" as const,
-            minutesLogged: 30,
-          },
-          {
-            day: "Thu",
-            category: "distributing-food" as const,
-            minutesLogged: 30,
-            isBlurDay: true,
-          },
-          { day: "Fri", category: null, minutesLogged: 0, isBlurDay: true },
-          { day: "Sat", category: null, minutesLogged: 0, isBlurDay: true },
-        ],
-      },
-    ];
+    const frame = sadaqahFrame?.frame;
+    if (sadaqahFrame) {
+      const frameLoading = isSadaqahFrameDashboardLoading(sadaqahFrame, frame);
 
-    const [volunteeringWeekIndex, setVolunteeringWeekIndex] = useState(0);
-    const volWeek = VOLUNTEERING_WEEKS[volunteeringWeekIndex];
+      if (frame) {
+        const volunteeringWeekFromFrame = mapVolunteeringFrameWeekSummary(frame);
+        const canPrev =
+          frame.week.hasPrevious ??
+          getSadaqahFrameActiveWeek(sadaqahFrame, frame) > 1;
+        const canNext = canNavigateSadaqahFrameWeekNext(frame);
 
+        return (
+          <VolunteeringWeeklyProgressDashboard
+            weekDays={volunteeringWeekFromFrame.weekDays}
+            weekRangeLabel={volunteeringWeekFromFrame.weekRangeLabel}
+            weekFraction={volunteeringWeekFromFrame.weekFraction}
+            totalMinutesThisWeek={volunteeringWeekFromFrame.totalMinutesThisWeek}
+            streakDays={volunteeringWeekFromFrame.streakDays}
+            selectedDayIndex={volunteeringWeekFromFrame.selectedDayIndex}
+            loading={frameLoading}
+            onDeleted={onDeleted}
+            allowLogDeletion
+            sadaqahType="VOLUNTEERING"
+            motivationalQuote={
+              volunteeringWeekFromFrame.motivationalQuote ||
+              "Every hour you give in service is worship—keep showing up for others."
+            }
+            onPrevWeek={
+              canPrev && !frameLoading
+                ? () => shiftSadaqahFrameWeek(sadaqahFrame, frame, -1)
+                : undefined
+            }
+            onNextWeek={
+              canNext && !frameLoading
+                ? () => shiftSadaqahFrameWeek(sadaqahFrame, frame, 1)
+                : undefined
+            }
+          />
+        );
+      }
+
+      if (!sadaqahFrame.isError) {
+        const loadingSummary = VOLUNTEERING_LOADING_WEEK_SUMMARY;
+        return (
+          <VolunteeringWeeklyProgressDashboard
+            weekDays={loadingSummary.weekDays}
+            weekRangeLabel={loadingSummary.weekRangeLabel}
+            weekFraction={loadingSummary.weekFraction}
+            totalMinutesThisWeek={loadingSummary.totalMinutesThisWeek}
+            streakDays={loadingSummary.streakDays}
+            selectedDayIndex={loadingSummary.selectedDayIndex}
+            motivationalQuote="---"
+            loading
+          />
+        );
+      }
+    }
+
+    const loadingSummary = VOLUNTEERING_LOADING_WEEK_SUMMARY;
     return (
       <VolunteeringWeeklyProgressDashboard
-        weekDays={volWeek.days}
-        weekRangeLabel={volWeek.weekRangeLabel}
-        weekFraction={volWeek.weekFraction}
-        totalMinutesThisWeek={volWeek.totalMinutesThisWeek}
-        streakDays={volWeek.streakDays}
-        selectedDayIndex={volWeek.selectedDayIndex}
-        onPrevWeek={() => setVolunteeringWeekIndex((i) => Math.max(0, i - 1))}
-        onNextWeek={() =>
-          setVolunteeringWeekIndex((i) =>
-            Math.min(VOLUNTEERING_WEEKS.length - 1, i + 1),
-          )
-        }
+        weekDays={loadingSummary.weekDays}
+        weekRangeLabel={loadingSummary.weekRangeLabel}
+        weekFraction={loadingSummary.weekFraction}
+        totalMinutesThisWeek={loadingSummary.totalMinutesThisWeek}
+        streakDays={loadingSummary.streakDays}
+        selectedDayIndex={loadingSummary.selectedDayIndex}
+        motivationalQuote="---"
+        loading={!sadaqahFrame}
       />
     );
   }

@@ -2,6 +2,7 @@ import React, {
   useMemo,
   useState,
   useLayoutEffect,
+  useEffect,
   useRef,
   useCallback,
 } from "react";
@@ -104,7 +105,10 @@ import { FastingGoalInformationSheet } from "@/components/molecules/FastingGoalI
 import { SadaqahGoalInformationSheet } from "@/components/molecules/SadaqahGoalInformationSheet";
 import { DeletePrayerGoalOptions } from "@/components/molecules/DeletePrayerLogOptions";
 import { resolveFastingTypeFromGoalId } from "@/src/utils/fastingGoalMap";
-import { resolveSadaqahTypeFromGoalId } from "@/src/utils/sadaqahGoalMap";
+import {
+  isSadaqahFrameGoalId,
+  resolveSadaqahTypeFromGoalId,
+} from "@/src/utils/sadaqahGoalMap";
 import { getFastingFrameAchievementPct } from "@/src/utils/fastingGoalFrameMap";
 import { getSadaqahFrameAchievementPct } from "@/src/utils/sadaqahGoalFrameMap";
 import { HeaderInfoIcon } from "@/assets/icons";
@@ -252,7 +256,7 @@ function GoalProgressLoggingBody({
     isMondayThursdayFrameGoal ||
     isProphetDawoodFrameGoal;
   const isMissedZakatFrameGoal = goalId === "sadaqah-zakat";
-  const isSadaqahFrameGoal = isMissedZakatFrameGoal;
+  const isSadaqahFrameGoal = isSadaqahFrameGoalId(goalId);
   const frameLoading =
     (isPrayerFrameRingGoal &&
       (prayerFrame?.isLoading ||
@@ -420,9 +424,10 @@ function GoalProgressLoggingBody({
                           cleanLabel,
                       })
                     : "---"
-                  : isMissedZakatFrameGoal
+                  : isSadaqahFrameGoal
                     ? sadaqahFrame?.frame
                       ? sadaqahFrame.frame.goal?.targetLabel?.trim() ||
+                        sadaqahFrame.frame.goal?.targetDisplay?.trim() ||
                         t("homeScreen.weeklyProgress_goalLabel", {
                           label: cleanLabel,
                         })
@@ -623,13 +628,57 @@ function GoalProgressLoggingFastingLoadingGate({
 
 function GoalProgressLoggingSadaqahLoadingGate({
   children,
+  goalId,
 }: {
   children: React.ReactNode;
+  goalId: GoalId;
 }) {
   const sadaqahFrame = useOptionalSadaqahGoalFrameContext();
+  /**
+   * Wait for the first settled fetch for this goal — not only `isLoading`.
+   * With React Query cache, `isLoading` is false while a stale frame refetches,
+   * which skipped the full-screen loader on Kaffarah / other sadaqah goals.
+   */
+  const [hasSettledForGoal, setHasSettledForGoal] = useState(false);
+
+  useEffect(() => {
+    setHasSettledForGoal(false);
+  }, [goalId]);
+
+  useEffect(() => {
+    if (!sadaqahFrame) return;
+    if (sadaqahFrame.isError) {
+      setHasSettledForGoal(true);
+      return;
+    }
+    // Settle after the in-flight request finishes (cached or network),
+    // even when the API returns a null frame.
+    if (!sadaqahFrame.isLoading && !sadaqahFrame.isFetching) {
+      setHasSettledForGoal(true);
+    }
+  }, [
+    sadaqahFrame,
+    sadaqahFrame?.isLoading,
+    sadaqahFrame?.isFetching,
+    sadaqahFrame?.isError,
+  ]);
+
+  const expectedType = resolveSadaqahTypeFromGoalId(goalId);
+  const frameType = String(sadaqahFrame?.frame?.sadaqahType ?? "")
+    .trim()
+    .toUpperCase();
+  const frameTypeMismatch =
+    !!expectedType && !!frameType && frameType !== expectedType;
+
   const isGoalDataLoading =
     sadaqahFrame != null &&
-    (sadaqahFrame.isLoading || (!sadaqahFrame.frame && !sadaqahFrame.isError));
+    (!hasSettledForGoal ||
+      sadaqahFrame.isLoading ||
+      sadaqahFrame.isPlaceholderData ||
+      frameTypeMismatch ||
+      (!sadaqahFrame.frame &&
+        !sadaqahFrame.isError &&
+        (sadaqahFrame.isLoading || sadaqahFrame.isFetching)));
 
   if (isGoalDataLoading) {
     return (
@@ -1195,14 +1244,14 @@ export const GoalProgressLoggingScreen = ({
     );
   }
 
-  if (goalId === "sadaqah-zakat") {
+  if (isSadaqahFrameGoalId(goalId)) {
     return (
       <SadaqahGoalFrameProvider
         goalId={goalId}
         refreshKey={weeklyRefreshKey}
         onOpenInsights={openInsightsSheet}
       >
-        <GoalProgressLoggingSadaqahLoadingGate>
+        <GoalProgressLoggingSadaqahLoadingGate goalId={goalId}>
           {screenShell}
         </GoalProgressLoggingSadaqahLoadingGate>
       </SadaqahGoalFrameProvider>

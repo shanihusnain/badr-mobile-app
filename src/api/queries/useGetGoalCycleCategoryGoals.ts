@@ -8,6 +8,11 @@ export type GoalCycleCategoryGoal = {
   target: number;
   completedPct: number;
   unit: string;
+  currencyCode?: string | null;
+  kaffarah?: {
+    meals?: { target: number; completed: number };
+    clothing?: { target: number; completed: number };
+  } | null;
 };
 
 export type GoalCycleCategoryGoalsData = {
@@ -25,10 +30,6 @@ const getGoalCycleCategoryGoals = async (
 
     const data = response.data?.data;
 
-    console.log(
-      "data of the goal cycle category goals api",
-      JSON.stringify(data, null, 2),
-    );
     return {
       category: typeof data?.category === "string" ? data.category : category,
       goals: Array.isArray(data?.goals) ? data.goals : [],

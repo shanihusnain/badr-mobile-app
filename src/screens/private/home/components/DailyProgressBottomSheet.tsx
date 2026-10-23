@@ -21,18 +21,24 @@ import {
   DetailedIbadahsProgressCard,
   getDetailedIbadahIcon,
 } from "./DetailedIbadahsProgressCards";
-import type { GoalId } from "./goalsData";
+import { getGoalById, type GoalId } from "./goalsData";
 import { useTypedTranslation } from "@/i18next/useTypedTranslation";
 import { useGetGoalCycleCategories } from "@/src/api/queries/useGetGoalCycleCategories";
 import { useGetGoalCycleCategoryGoals } from "@/src/api/queries/useGetGoalCycleCategoryGoals";
 import {
   goalTypeToGoalId,
   formatDailyProgressGoalTitle,
+  formatDailyProgressGoalSubtitle,
+  getSadaqahGoalsDataKey,
   toUiIbadahCategory,
   type UiIbadahCategory,
 } from "@/src/utils/goalCycleCategoryMap";
 import { LoadingComponent } from "@/components/atoms/LoadingComponent";
 import { MissedZakatIcon } from "@/assets/icons";
+import {
+  getFigmaForcedSmallCapsTextStyle,
+  prepareFigmaForcedSmallCapsText,
+} from "@/src/utils/figmaTypography";
 
 type ViewType = "main" | "categories" | "detail";
 
@@ -184,10 +190,10 @@ export const DailyProgressBottomSheet = ({
       return Array.from({ length: selectedCategoryTotalGoals }, (_, index) => ({
         goalId: `loading-${index}` as GoalId,
         title: "---",
-        completed: 0,
-        target: 0,
-        unit: "",
+        subtitleCount: "---",
+        subtitleLabel: "",
         percentage: "0%",
+        titleFontSize: undefined as number | undefined,
         loading: true,
       }));
     }
@@ -198,28 +204,38 @@ export const DailyProgressBottomSheet = ({
       const goalId = goalTypeToGoalId(categorySlug, goal.goalType);
       const target = goal.target ?? 0;
       if (!goalId || target <= 0) return [];
+
+      // Prefer Figma goalsData keys (e.g. kafarah-for-breaking-fasts) over
+      // short API displayName ("Kaffarah").
+      const sadaqahKey = getSadaqahGoalsDataKey(goal.goalType);
+      const goalsDataTitle = sadaqahKey
+        ? i18n.t(`goalsData.${sadaqahKey}.title`, { defaultValue: "" })
+        : "";
+      const title =
+        (typeof goalsDataTitle === "string" && goalsDataTitle.trim()) ||
+        formatDailyProgressGoalTitle(goalId, goal.displayName);
+      const { subtitleCount, subtitleLabel } =
+        formatDailyProgressGoalSubtitle(goal);
+
       return [
         {
           goalId,
-          title: formatDailyProgressGoalTitle(goalId, goal.displayName),
-          completed: goal.completed ?? 0,
-          target: goal.target ?? 0,
-          unit: goal.unit ?? "",
+          title,
+          subtitleCount,
+          subtitleLabel,
           percentage: `${Math.round(goal.completedPct ?? 0)}%`,
+          titleFontSize: getGoalById(goalId)?.titleFontSize,
           loading: false,
         },
       ];
     });
   }, [
     categoryGoals?.goals,
+    i18n,
     isCategoryGoalsLoading,
     selectedCategory,
     selectedCategoryTotalGoals,
   ]);
-  console.log(
-    "detailGoalsdetailGoalsdetailGoals",
-    JSON.stringify(detailGoals, null, 2),
-  );
   const selectedUiCategory = selectedCategory
     ? toUiIbadahCategory(selectedCategory)
     : null;
@@ -316,7 +332,9 @@ export const DailyProgressBottomSheet = ({
                 <Ionicons name="grid" size={18} color={Colors.light.white} />
               </View>
               <Text style={styles.mainCardTitle}>
-                {t("homeScreen.selectCategory")}
+                {prepareFigmaForcedSmallCapsText(
+                  t("homeScreen.selectCategory"),
+                )}
               </Text>
             </View>
             <Ionicons
@@ -372,8 +390,9 @@ export const DailyProgressBottomSheet = ({
               <DetailedIbadahsProgressCard
                 key={goal.goalId}
                 title={goal.title}
-                subtitleCount={String(goal.completed)}
-                subtitleLabel={`/${goal.target} ${goal.unit}`.trim()}
+                subtitleCount={goal.subtitleCount}
+                subtitleLabel={goal.subtitleLabel}
+                titleFontSize={goal.titleFontSize}
                 icon={
                   goal.loading
                     ? getCategoryGoalIcon(
@@ -466,12 +485,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   mainCardTitle: {
-    color: Colors.light.white,
-    fontFamily: fonts.primary.semiBold,
-    fontWeight: "600",
-    fontSize: 15,
-    lineHeight: 18,
     marginLeft: 14,
+    // Prior style: fontSize 15 / lineHeight 18.
+    ...getFigmaForcedSmallCapsTextStyle({
+      fontSize: 15,
+      lineHeight: 18,
+      letterSpacing: 0,
+      color: Colors.light.white,
+    }),
   },
   listContainer: { paddingBottom: 20 },
   loadingContainer: {

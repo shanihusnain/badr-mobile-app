@@ -8,7 +8,44 @@ import type {
   SadaqahPastChartItem,
 } from "@/src/screens/private/goalprogressloggingscreen/sadaqahPastAchievementData";
 import type { PastAchievementPeriod } from "@/src/screens/private/goalprogressloggingscreen/quranHoursPastAchievementData";
-import { formatPrayerAchievementsDateRange } from "@/src/utils/prayerGoalAchievementsMap";
+import {
+  buildEmptyPastAchievementPeriodScaffold,
+  formatPrayerAchievementsDateRange,
+} from "@/src/utils/prayerGoalAchievementsMap";
+
+/** Empty x-axis shell while achievements load (same gate as prayer). */
+export function createEmptySadaqahPastAchievement(
+  period: PastAchievementPeriod = "monthly",
+): SadaqahPastAchievement {
+  const scaffold = buildEmptyPastAchievementPeriodScaffold(period);
+  const chartData: SadaqahPastChartItem[] = scaffold.chartData.map((item) => ({
+    ...item,
+    completedAmount: 0,
+    incompleteAmount: 0,
+    stackTotalAmount: 0,
+    completedHours: 0,
+    incompleteHours: 0,
+    hours: 0,
+    stackTotalHours: 0,
+    timeSpentMinutes: 0,
+  })) as SadaqahPastChartItem[];
+
+  return {
+    dateRangeLabel: scaffold.dateRangeLabel,
+    achievementPercent: 0,
+    previousPeriodDeltaPercent: 0,
+    chartData,
+    goalAmount: 0,
+    periodGoalAmount: 0,
+    completedAmount: 0,
+    incompleteAmount: 0,
+    totalTimeSpentMinutes: 0,
+    yMax: 1,
+    yTicks: [0, 1],
+    pageCount: Math.max(1, chartData.length),
+    activePageIndex: 0,
+  };
+}
 
 function toFiniteNumber(value: unknown): number | null {
   if (typeof value === "number" && Number.isFinite(value)) return value;
@@ -111,12 +148,11 @@ export function mapSadaqahGoalAchievementsToUi(
     ? data.chart!.buckets!
     : [];
   const buckets = rawBuckets.filter(bucketHasNumericData);
+  // Locked / all-null shell buckets must not become dummy bars.
   const chartData =
-    buckets.length > 0
-      ? mapBucketsToChartData(buckets)
-      : rawBuckets.length > 0
-        ? mapBucketsToChartData(rawBuckets)
-        : [];
+    locked || buckets.length === 0
+      ? []
+      : mapBucketsToChartData(buckets);
 
   const completedFromTotals = toFiniteNumber(data.totals?.completed);
   const incompleteFromTotals = toFiniteNumber(data.totals?.incomplete);
@@ -248,6 +284,17 @@ const SADAQAH_INSIGHT_META: Record<
   },
 };
 
+/** Skeleton keys while achievements (and keyInsights) are still loading. */
+const DEFAULT_SADAQAH_INSIGHT_KEYS = [
+  "GOAL_TRACKED",
+  "COMPLETED_IN",
+  "LONGEST_STREAK",
+  "BEST_DAY",
+  "WEEKLY_AVERAGE",
+  "MONTHLY_AVERAGE",
+  "TIME_SPENT",
+] as const;
+
 function isInsightNoDataValue(value: unknown): boolean {
   if (value == null) return true;
   const raw = String(value).trim();
@@ -264,6 +311,31 @@ function formatInsightDuration(totalMinutes: number): string {
   return `${minutes}m`;
 }
 
+function buildSadaqahInsightPlaceholderCards(
+  period: PastAchievementPeriod,
+  noDataLabel: string,
+): InsightCardData[] {
+  const keys =
+    period === "monthly"
+      ? DEFAULT_SADAQAH_INSIGHT_KEYS.filter(
+          (key) => key !== "GOAL_TRACKED" && key !== "MONTHLY_AVERAGE",
+        )
+      : DEFAULT_SADAQAH_INSIGHT_KEYS.filter((key) => key !== "WEEKLY_AVERAGE");
+
+  return keys.map((key) => {
+    const meta = SADAQAH_INSIGHT_META[key];
+    return {
+      iconFamily: meta.iconFamily,
+      iconName: meta.iconName,
+      title: meta.fallbackTitle,
+      value: "--",
+      noData: true,
+      footerText: noDataLabel,
+      footerNeutral: true,
+    } satisfies InsightCardData;
+  });
+}
+
 export function mapSadaqahApiKeyInsightsToCards(
   data: SadaqahGoalAchievementsData | null | undefined,
   options: {
@@ -277,7 +349,10 @@ export function mapSadaqahApiKeyInsightsToCards(
   const forceNoData = Boolean(data?.locked) || isLoading;
 
   if (!Array.isArray(insights) || insights.length === 0) {
-    return [];
+    // Match Quran hours: keep insight row visible with -- placeholders while loading.
+    return isLoading
+      ? buildSadaqahInsightPlaceholderCards(period, noDataLabel)
+      : [];
   }
 
   return insights

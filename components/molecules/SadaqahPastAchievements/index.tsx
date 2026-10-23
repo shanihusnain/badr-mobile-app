@@ -36,6 +36,7 @@ import { SADAQAH_INSIGHT_CARDS } from "./insightCardsData";
 import { useGetSadaqahGoalAchievements } from "@/src/api/queries/useGetSadaqahGoalAchievements";
 import { resolveSadaqahTypeFromGoalId } from "@/src/utils/sadaqahGoalMap";
 import {
+  createEmptySadaqahPastAchievement,
   mapSadaqahApiKeyInsightsToCards,
   mapSadaqahGoalAchievementsToUi,
   shiftSadaqahAchievementsPeriodStart,
@@ -132,19 +133,28 @@ export function SadaqahPastAchievements({ goalId, isDetailed = false }: Props) {
   const isFidya = goalId === "sadaqah-fidya";
   const isKaffarah = goalId === "sadaqah-kafarah";
   const isZakat = goalId === "sadaqah-zakat";
+  const isLillah = goalId === "sadaqah-Lillah";
+  const isJariyah = goalId === "sadaqah-jariyah";
   // For Fidya and Kaffarah: values are plain counts (meals / items), not dollars
   const isCountGoal = isFidya || isKaffarah;
   const sadaqahType = resolveSadaqahTypeFromGoalId(goalId);
-  /** Missed Zakat past achievements + key insights are API-backed. */
-  const useAchievementsApi = isZakat && !!sadaqahType;
+  /** Missed Zakat + Kaffarah + Fidya + Lillah + Jariyah + Volunteering past achievements + key insights are API-backed. */
+  const useAchievementsApi =
+    (isZakat ||
+      isKaffarah ||
+      isFidya ||
+      isLillah ||
+      isJariyah ||
+      isVolunteering) &&
+    !!sadaqahType;
 
   const [analyticsView, setAnalyticsView] = useState<SadaqahAnalyticsView>(
     "completedVsIncomplete"
   );
   const [selectedBarIndex, setSelectedBarIndex] = useState<number | null>(null);
   const [hintDismissed, setHintDismissed] = useState(false);
-  // Kaffarah sub-type filter: All / Meals / Clothing Items
-  const [kaffarahSubType, setKaffarahSubType] = useState<string>("All");
+  /** KAFFARAH API filter code: ALL | MEALS | CLOTHING_ITEMS */
+  const [kaffarahFilter, setKaffarahFilter] = useState("ALL");
   const goalData = getGoalById(goalId);
   const cleanGoalLabel = goalData?.title || "";
 
@@ -152,10 +162,12 @@ export function SadaqahPastAchievements({ goalId, isDetailed = false }: Props) {
 
   useEffect(() => {
     setSelectedTab("All");
+    setKaffarahFilter("ALL");
   }, [goalId]);
 
   useEffect(() => {
     setApiPeriodStart(null);
+    setKaffarahFilter("ALL");
   }, [period, goalId]);
 
   const {
@@ -166,8 +178,16 @@ export function SadaqahPastAchievements({ goalId, isDetailed = false }: Props) {
   } = useGetSadaqahGoalAchievements(sadaqahType, {
     period,
     periodStart: apiPeriodStart,
+    filter: isKaffarah ? kaffarahFilter : undefined,
     enabled: useAchievementsApi,
   });
+
+  /** Match prayer: never show mock/previous bars while the API is loading. */
+  const showPlaceholders =
+    useAchievementsApi &&
+    (isAchievementsLoading ||
+      isAchievementsFetching ||
+      (!achievementsApiData && !isAchievementsError));
 
   const mappedApi = useMemo(() => {
     if (!useAchievementsApi || !achievementsApiData) return null;
@@ -175,20 +195,79 @@ export function SadaqahPastAchievements({ goalId, isDetailed = false }: Props) {
   }, [achievementsApiData, period, useAchievementsApi]);
 
   const currencyCode = mappedApi?.currencyCode ?? null;
+  const emptyAchievement = useMemo(
+    () => createEmptySadaqahPastAchievement(period),
+    [period],
+  );
+
+  const kaffarahFilters = useMemo(() => {
+    const fromApi = achievementsApiData?.filters;
+    if (Array.isArray(fromApi) && fromApi.length > 0) {
+      return fromApi.map((item) => ({
+        code: String(item.code ?? "")
+          .trim()
+          .toUpperCase(),
+        label: String(item.label ?? item.code ?? "").trim() || "All",
+      }));
+    }
+    return [
+      { code: "ALL", label: "All" },
+      { code: "MEALS", label: "Meals" },
+      { code: "CLOTHING_ITEMS", label: "Clothing Items" },
+    ];
+  }, [achievementsApiData?.filters]);
+
+  const analyticsTabs = useMemo(() => {
+    const fromApi = achievementsApiData?.tabs;
+    if (Array.isArray(fromApi) && fromApi.length > 0) {
+      return fromApi
+        .map((tab) => {
+          const key = String(tab.key ?? "")
+            .trim()
+            .toUpperCase();
+          const view: SadaqahAnalyticsView = key.includes("TIME")
+            ? "completedVsTimeSpent"
+            : "completedVsIncomplete";
+          return {
+            view,
+            label: String(tab.label ?? "").trim() || tab.key,
+          };
+        })
+        .filter(
+          (tab, index, list) =>
+            list.findIndex((item) => item.view === tab.view) === index,
+        );
+    }
+    return [
+      { view: "completedVsIncomplete" as const, label: "Completed vs. Incomplete" },
+      { view: "completedVsTimeSpent" as const, label: "Completed vs. Time Spent" },
+    ];
+  }, [achievementsApiData?.tabs]);
 
   const studyMaterial = useMemo(() => getGoalById(goalId)?.studyMaterial ?? [], [goalId]);
+  const mockKaffarahSubType =
+    kaffarahFilter === "MEALS"
+      ? "Meals"
+      : kaffarahFilter === "CLOTHING_ITEMS"
+        ? "Clothing Items"
+        : "All";
   const mockAchievementRaw = useMemo(
     () =>
       getSadaqahPastAchievement(
         goalId,
         period,
         isVolunteering,
-        isKaffarah ? kaffarahSubType : undefined,
+        isKaffarah ? mockKaffarahSubType : undefined,
       ),
-    [goalId, period, isVolunteering, isKaffarah, kaffarahSubType],
+    [goalId, period, isVolunteering, isKaffarah, mockKaffarahSubType],
   );
 
-  const baseAchievementRaw = mappedApi?.achievement ?? mockAchievementRaw;
+  // API goals: empty shell while loading — never fall back to mock dummy bars.
+  const baseAchievementRaw = useAchievementsApi
+    ? showPlaceholders
+      ? emptyAchievement
+      : (mappedApi?.achievement ?? emptyAchievement)
+    : mockAchievementRaw;
 
   const baseAchievement = useMemo(() => {
     let data = { ...baseAchievementRaw };
@@ -227,7 +306,7 @@ export function SadaqahPastAchievements({ goalId, isDetailed = false }: Props) {
   useEffect(() => {
     setSelectedBarIndex(null);
     setHintDismissed(false);
-  }, [period, goalId, analyticsView, apiPeriodStart]);
+  }, [period, goalId, analyticsView, apiPeriodStart, kaffarahFilter]);
 
   const handleBarPress = useCallback((index: number | null) => {
     setHintDismissed(true);
@@ -278,9 +357,9 @@ export function SadaqahPastAchievements({ goalId, isDetailed = false }: Props) {
     selectedBaseWeek?.timeSpentMinutes ?? baseAchievement.totalTimeSpentMinutes;
 
   const showNoDataDash =
+    showPlaceholders ||
     (useAchievementsApi &&
-      (isAchievementsLoading ||
-        Boolean(mappedApi?.locked) ||
+      (Boolean(mappedApi?.locked) ||
         (isAchievementsError && !mappedApi))) ||
     isPastAchievementBarEmpty(displayBaseCompleted, displayBaseIncomplete);
 
@@ -289,19 +368,20 @@ export function SadaqahPastAchievements({ goalId, isDetailed = false }: Props) {
     return mapSadaqahApiKeyInsightsToCards(achievementsApiData, {
       period,
       noDataLabel: t("progressLogging.insightNoData"),
-      isLoading: isAchievementsLoading || isAchievementsFetching,
+      isLoading: showPlaceholders,
     });
   }, [
     achievementsApiData,
-    isAchievementsFetching,
-    isAchievementsLoading,
     period,
+    showPlaceholders,
     t,
     useAchievementsApi,
   ]);
 
   const renderInsights = () => {
-    if (!isDetailed) return null;
+    // Match prayer: show API key-insights on the compact logging screen too
+    // (Zakat / Kaffarah / Fidya), not only on detailed statistics.
+    if (!isDetailed && !useAchievementsApi) return null;
 
     const cards = useAchievementsApi
       ? apiInsightCards
@@ -371,7 +451,7 @@ export function SadaqahPastAchievements({ goalId, isDetailed = false }: Props) {
 
   // Summary sentence
   const renderSummaryText = () => {
-    if (!isDetailed) return null;
+    if (!isDetailed || showPlaceholders || showNoDataDash) return null;
 
     if (analyticsView === "completedByCategory") {
       return (
@@ -389,10 +469,13 @@ export function SadaqahPastAchievements({ goalId, isDetailed = false }: Props) {
       );
     }
 
-    // Kaffarah-specific summary (mentions sub-type)
+    // Kaffarah-specific summary (mentions API filter)
     const kaffarahSubLabel =
-      kaffarahSubType === "Meals" ? "meal " :
-        kaffarahSubType === "Clothing Items" ? "clothing " : "";
+      kaffarahFilter === "MEALS"
+        ? "meal "
+        : kaffarahFilter === "CLOTHING_ITEMS"
+          ? "clothing "
+          : "";
 
     if (isTimeSpentView) {
       const timeStr = formatTotalTime(baseAchievement.totalTimeSpentMinutes / 60);
@@ -401,7 +484,7 @@ export function SadaqahPastAchievements({ goalId, isDetailed = false }: Props) {
         : `— ${deltaAbs}% ${deltaIsPositive ? "more" : "less"} time than the previous ${periodLabel}.`;
 
       let kaffarahGoalText = <Text style={styles.summaryBold}>{kaffarahSubLabel}Kaffarah goal</Text>;
-      if (isKaffarah && kaffarahSubType === "Meals") {
+      if (isKaffarah && kaffarahFilter === "MEALS") {
         kaffarahGoalText = <Text style={styles.summaryBold}>meal kaffarah goal not on your goal of donating meals as kaffarah</Text>;
       }
 
@@ -462,11 +545,13 @@ export function SadaqahPastAchievements({ goalId, isDetailed = false }: Props) {
     );
   };
 
-  // Kaffarah GOAL row unit
+  // Kaffarah GOAL row unit (from selected API filter)
   const kaffarahGoalUnit =
-    kaffarahSubType === "Meals" ? "meals" :
-      kaffarahSubType === "Clothing Items" ? "clothing items" :
-        "meals / clothing items";
+    kaffarahFilter === "MEALS"
+      ? "meals"
+      : kaffarahFilter === "CLOTHING_ITEMS"
+        ? "clothing items"
+        : "meals / clothing items";
 
   return (
     <>
@@ -504,35 +589,38 @@ export function SadaqahPastAchievements({ goalId, isDetailed = false }: Props) {
                 : formatNumber(topMetricValue)}
               <Text style={styles.achievementPercentSymbol}>%</Text>
             </Text>
-            {deltaIsZero ? (
-              // Neutral dot badge for 0%
-              <View style={[styles.deltaBadge, styles.deltaBadgeNeutral]}>
-                <Text style={styles.deltaText}>
-                  ● 0% previous month
-                </Text>
-              </View>
-            ) : (
-              <View
-                style={[
-                  styles.deltaBadge,
-                  !deltaIsPositive && styles.deltaBadgeNegative,
-                ]}
-              >
-                <Ionicons
-                  name={deltaIsPositive ? "arrow-up" : "arrow-down"}
-                  size={10}
-                  color={deltaIsPositive ? Colors.light.green : Colors.light.subtext}
-                />
-                <Text
+            {!showPlaceholders && !showNoDataDash ? (
+              deltaIsZero ? (
+                <View style={[styles.deltaBadge, styles.deltaBadgeNeutral]}>
+                  <Text style={styles.deltaText}>● 0% previous month</Text>
+                </View>
+              ) : (
+                <View
                   style={[
-                    styles.deltaText,
-                    !deltaIsPositive && styles.deltaTextNegative,
+                    styles.deltaBadge,
+                    !deltaIsPositive && styles.deltaBadgeNegative,
                   ]}
                 >
-                  {deltaAbs}% previous month
-                </Text>
-              </View>
-            )}
+                  <Ionicons
+                    name={deltaIsPositive ? "arrow-up" : "arrow-down"}
+                    size={10}
+                    color={
+                      deltaIsPositive
+                        ? Colors.light.green
+                        : Colors.light.subtext
+                    }
+                  />
+                  <Text
+                    style={[
+                      styles.deltaText,
+                      !deltaIsPositive && styles.deltaTextNegative,
+                    ]}
+                  >
+                    {deltaAbs}% previous month
+                  </Text>
+                </View>
+              )
+            ) : null}
           </View>
 
           {/* Right: period toggle + date nav */}
@@ -580,7 +668,9 @@ export function SadaqahPastAchievements({ goalId, isDetailed = false }: Props) {
                 />
               </TouchableOpacity>
               <Text style={styles.dateRange} numberOfLines={1}>
-                {achievement.dateRangeLabel}
+                {showPlaceholders
+                  ? PAST_ACHIEVEMENT_NO_DATA
+                  : achievement.dateRangeLabel}
               </Text>
               <TouchableOpacity
                 activeOpacity={0.7}
@@ -605,15 +695,15 @@ export function SadaqahPastAchievements({ goalId, isDetailed = false }: Props) {
         {/* ── Summary sentence ── */}
         {renderSummaryText()}
 
-        {/* ── Kaffarah Sub-Type Tabs ── */}
+        {/* ── Kaffarah filters from API (ALL / MEALS / CLOTHING_ITEMS) ── */}
         {isKaffarah && (
           <View style={{ marginBottom: 12, flexDirection: "row", gap: 10 }}>
-            {["All", "Meals", "Clothing Items"].map((tab) => {
-              const isActive = kaffarahSubType === tab;
+            {kaffarahFilters.map((tab) => {
+              const isActive = kaffarahFilter === tab.code;
               return (
                 <TouchableOpacity
-                  key={tab}
-                  onPress={() => setKaffarahSubType(tab)}
+                  key={tab.code}
+                  onPress={() => setKaffarahFilter(tab.code)}
                   style={[
                     styles.categoryTab,
                     isActive ? styles.categoryTabActive : styles.categoryTabInactive,
@@ -629,7 +719,7 @@ export function SadaqahPastAchievements({ goalId, isDetailed = false }: Props) {
                       { textAlign: "center", fontSize: 12 }
                     ]}
                   >
-                    {tab}
+                    {tab.label}
                   </Text>
                 </TouchableOpacity>
               );
@@ -658,30 +748,36 @@ export function SadaqahPastAchievements({ goalId, isDetailed = false }: Props) {
           </View>
         </View>
 
-        {/* ── Analytics view toggle ── */}
+        {/* ── Analytics view toggle (API `tabs` when present) ── */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.analyticsToggle}
         >
-          <Pressable
-            onPress={() => setAnalyticsView("completedVsIncomplete")}
-            style={[
-              styles.analyticsButton,
-              analyticsView === "completedVsIncomplete"
-                ? styles.analyticsButtonActive
-                : styles.analyticsButtonInactive,
-            ]}
-          >
-            <Text
-              style={[
-                styles.analyticsButtonText,
-                analyticsView === "completedVsIncomplete" && styles.analyticsButtonTextActive,
-              ]}
-            >
-              Completed vs. Incomplete
-            </Text>
-          </Pressable>
+          {analyticsTabs.map((tab) => {
+            const isActive = analyticsView === tab.view;
+            return (
+              <Pressable
+                key={tab.view}
+                onPress={() => setAnalyticsView(tab.view)}
+                style={[
+                  styles.analyticsButton,
+                  isActive
+                    ? styles.analyticsButtonActive
+                    : styles.analyticsButtonInactive,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.analyticsButtonText,
+                    isActive && styles.analyticsButtonTextActive,
+                  ]}
+                >
+                  {tab.label}
+                </Text>
+              </Pressable>
+            );
+          })}
 
           {/* "Completed by Category" — hidden for Fidya, Kaffarah, and Zakat */}
           {!isFidya && !isKaffarah && !isZakat && (
@@ -707,25 +803,6 @@ export function SadaqahPastAchievements({ goalId, isDetailed = false }: Props) {
               </Text>
             </Pressable>
           )}
-
-          <Pressable
-            onPress={() => setAnalyticsView("completedVsTimeSpent")}
-            style={[
-              styles.analyticsButton,
-              analyticsView === "completedVsTimeSpent"
-                ? styles.analyticsButtonActive
-                : styles.analyticsButtonInactive,
-            ]}
-          >
-            <Text
-              style={[
-                styles.analyticsButtonText,
-                analyticsView === "completedVsTimeSpent" && styles.analyticsButtonTextActive,
-              ]}
-            >
-              Completed vs. Time Spent
-            </Text>
-          </Pressable>
         </ScrollView>
 
         {/* ── Category tabs (only when Completed by Category) ── */}
@@ -781,13 +858,38 @@ export function SadaqahPastAchievements({ goalId, isDetailed = false }: Props) {
           onMoveShouldSetResponder={() => false}
         >
           <QuranHoursPastAchievementChartBlock
-            chartData={achievement.chartData}
-            selectedBarIndex={isDetailed ? selectedBarIndex : null}
-            onBarPress={isDetailed ? handleBarPress : () => { }}
-            chartKey={`${goalId}-${period}-${analyticsView}-${selectedTab}`}
-            yMax={achievement.yMax}
-            yTicks={achievement.yTicks}
-            showHint={isDetailed ? showChartHint : false}
+            chartData={
+              showPlaceholders || showNoDataDash
+                ? emptyAchievement.chartData
+                : achievement.chartData
+            }
+            selectedBarIndex={
+              isDetailed && !showPlaceholders && !showNoDataDash
+                ? selectedBarIndex
+                : null
+            }
+            onBarPress={
+              isDetailed && !showPlaceholders && !showNoDataDash
+                ? handleBarPress
+                : () => {}
+            }
+            chartKey={`${goalId}-${period}-${analyticsView}-${selectedTab}-${kaffarahFilter}-${showPlaceholders ? "loading" : showNoDataDash ? "empty" : "ready"}`}
+            yMax={
+              showPlaceholders || showNoDataDash
+                ? emptyAchievement.yMax
+                : achievement.yMax
+            }
+            yTicks={
+              showPlaceholders || showNoDataDash
+                ? emptyAchievement.yTicks
+                : achievement.yTicks
+            }
+            showHint={
+              isDetailed &&
+              !showPlaceholders &&
+              !showNoDataDash &&
+              showChartHint
+            }
             onDismissHint={() => {
               setHintDismissed(true);
               if (achievement.chartData.length > 0) {
@@ -796,15 +898,23 @@ export function SadaqahPastAchievements({ goalId, isDetailed = false }: Props) {
             }}
             hintText={t("progressLogging.chartTapHint")}
             hintActionText={t("progressLogging.okGotIt")}
-            pageCount={achievement.pageCount}
-            activePageIndex={selectedBarIndex ?? achievement.activePageIndex}
+            pageCount={
+              showPlaceholders || showNoDataDash
+                ? emptyAchievement.pageCount
+                : achievement.pageCount
+            }
+            activePageIndex={
+              selectedBarIndex ?? achievement.activePageIndex
+            }
             formatBarValue={(val) =>
               isTimeSpentView
                 ? formatTotalTime(val / 60)
                 : formatAmount(val)
             }
             isPrayerGoal={true}
-            showPagination={isDetailed}
+            showPagination={
+              isDetailed && !showPlaceholders && !showNoDataDash
+            }
             showBarLine={false}
           />
         </View>

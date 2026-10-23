@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, TextInput, StyleSheet } from "react-native";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
@@ -11,28 +11,67 @@ interface CounterStepProps {
 }
 
 /**
- * An input step used in the Kaffarah flow for logging number of meals given or clothes provided.
- * Matches the design of a rounded border input next to the unit label.
+ * Meal / clothing count input (Kaffarah, Fidya).
+ * Same focus/blur rules as FinancialInputStep: clear leading 0 on focus,
+ * restore "0" on blur / after log when empty.
  */
 export function CounterStep({
-  label,
+  label: _label,
   unit,
   value,
   onChangeText,
 }: CounterStepProps) {
+  const [selection, setSelection] = useState<
+    { start: number; end: number } | undefined
+  >(undefined);
+
+  const handleFocus = () => {
+    // Same as FinancialInputStep / goal-setting Counter: clear leading 0
+    // so typing starts fresh (no leftover 0 in the field).
+    if (value === "0" || value === "") {
+      onChangeText("");
+      setSelection({ start: 0, end: 0 });
+      return;
+    }
+    const text = String(value);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setSelection({ start: 0, end: text.length });
+      });
+    });
+  };
+
+  const handleBlur = () => {
+    setSelection(undefined);
+    const digitsOnly = value.replace(/[^0-9]/g, "");
+    onChangeText(digitsOnly === "" ? "0" : digitsOnly);
+  };
+
+  const handleChangeText = (text: string) => {
+    onChangeText(text.replace(/[^0-9]/g, ""));
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.inputWrapper}>
         <TextInput
           style={styles.input}
           value={value}
-          onChangeText={onChangeText}
+          onChangeText={handleChangeText}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          selection={selection}
+          onSelectionChange={(e) => {
+            setSelection(e.nativeEvent.selection);
+          }}
           keyboardType="numeric"
           maxLength={4}
           cursorColor={Colors.light.white}
           selectionColor="rgba(255,255,255,0.3)"
-          placeholder="0"
-          placeholderTextColor="rgba(255,255,255,0.5)"
+          // No placeholder: Android draws the caret after placeholder text
+          // (same as FinancialInputStep).
+          placeholder=""
+          selectTextOnFocus={false}
         />
       </View>
       <Text style={styles.unitText}>{unit}</Text>

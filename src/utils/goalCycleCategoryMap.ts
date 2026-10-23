@@ -1,5 +1,7 @@
 import type { GoalId } from "@/src/screens/private/home/components/goalsData";
 import { GOAL_ID_TO_PRAYER_TYPE } from "@/src/utils/prayerGoalMap";
+import { SADAQAH_TYPE_TO_UI_ID } from "@/src/utils/sadaqahGoalMap";
+import type { GoalCycleCategoryGoal } from "@/src/api/queries/useGetGoalCycleCategoryGoals";
 
 export type UiIbadahCategory = "PRAYER" | "QURAN" | "FASTING" | "SADAQAH";
 
@@ -98,6 +100,27 @@ const QURAN_DAILY_PROGRESS_TITLES: Partial<Record<GoalId, string>> = {
   "quran-memorisationByHizb": "Quran Memorization\n(by Hizb)",
 };
 
+/**
+ * Figma `goalsData.*` keys for sadaqah (missed-zakat, lilah-donations, …).
+ * Prefer these over the short API `displayName` (e.g. "Kaffarah").
+ */
+export function getSadaqahGoalsDataKey(goalType: string): string | null {
+  return SADAQAH_TYPE_TO_UI_ID[goalType.toUpperCase()] ?? null;
+}
+
+/**
+ * Fallback English titles matching `goalsData.<key>.title` / Figma when i18n
+ * is unavailable. Forced-small-caps prep will lowercase these.
+ */
+const SADAQAH_DAILY_PROGRESS_TITLES: Partial<Record<GoalId, string>> = {
+  "sadaqah-zakat": "Missed Zakat",
+  "sadaqah-kafarah": "Kaffarah for Breaking Fasts or Oaths",
+  "sadaqah-fidya": "Fidya",
+  "sadaqah-Lillah": "Lillah Donations",
+  "sadaqah-jariyah": "Sadaqah Jariyah",
+  "sadaqah-volunteering": "Volunteering Services",
+};
+
 export function formatDailyProgressGoalTitle(
   goalId: GoalId,
   displayName: string,
@@ -105,5 +128,85 @@ export function formatDailyProgressGoalTitle(
   if (goalId === "prayer-tahiyyatMasjid") {
     return displayName.replace(/\s+Prayer$/i, "");
   }
-  return QURAN_DAILY_PROGRESS_TITLES[goalId] ?? displayName;
+  return (
+    QURAN_DAILY_PROGRESS_TITLES[goalId] ??
+    SADAQAH_DAILY_PROGRESS_TITLES[goalId] ??
+    displayName
+  );
+}
+
+function formatHoursAmount(value: number): string {
+  const rounded = Math.round(value * 10) / 10;
+  return Number.isInteger(rounded) ? String(rounded) : String(rounded);
+}
+
+/** Backend ISO code + amount, e.g. "AED 200" / "AED 1,000". */
+function formatCurrencyWithBackendCode(
+  currencyCode: string,
+  amount: number,
+): string {
+  const code = currencyCode.trim().toUpperCase();
+  const formatted = Math.round(amount || 0).toLocaleString("en-US");
+  return `${code} ${formatted}`;
+}
+
+/**
+ * Detail-card progress line matching Figma:
+ * currency → backend code + amount ("AED 200" + "/AED 1,000")
+ * kaffarah → "15" + "/60 items"
+ * fidya → "42" + "/60 meals"
+ * volunteering (API minutes) → "1.5" + "/4 hours"
+ */
+export function formatDailyProgressGoalSubtitle(goal: GoalCycleCategoryGoal): {
+  subtitleCount: string;
+  subtitleLabel: string;
+} {
+  const completed = goal.completed ?? 0;
+  const target = goal.target ?? 0;
+  const unit = (goal.unit ?? "").trim().toLowerCase();
+  const goalType = (goal.goalType ?? "").toUpperCase();
+  const currencyCode = String(goal.currencyCode ?? "").trim();
+
+  if (unit === "currency" || currencyCode) {
+    if (currencyCode) {
+      return {
+        subtitleCount: formatCurrencyWithBackendCode(currencyCode, completed),
+        subtitleLabel: `/${formatCurrencyWithBackendCode(currencyCode, target)}`,
+      };
+    }
+    // Currency unit but no code from API — show plain amounts.
+    return {
+      subtitleCount: Math.round(completed).toLocaleString("en-US"),
+      subtitleLabel: `/${Math.round(target).toLocaleString("en-US")}`,
+    };
+  }
+
+  if (goalType === "VOLUNTEERING" || unit === "minutes" || unit === "hours") {
+    const completedHours = unit === "minutes" ? completed / 60 : completed;
+    const targetHours = unit === "minutes" ? target / 60 : target;
+    return {
+      subtitleCount: formatHoursAmount(completedHours),
+      subtitleLabel: `/${formatHoursAmount(targetHours)} hours`,
+    };
+  }
+
+  if (goalType === "KAFFARAH" || unit.includes("clothing")) {
+    return {
+      subtitleCount: String(completed),
+      subtitleLabel: `/${target} items`,
+    };
+  }
+
+  if (goalType === "FIDYA" || unit === "meals") {
+    return {
+      subtitleCount: String(completed),
+      subtitleLabel: `/${target} meals`,
+    };
+  }
+
+  const unitLabel = goal.unit?.trim() ? ` ${goal.unit.trim()}` : "";
+  return {
+    subtitleCount: String(completed),
+    subtitleLabel: `/${target}${unitLabel}`,
+  };
 }

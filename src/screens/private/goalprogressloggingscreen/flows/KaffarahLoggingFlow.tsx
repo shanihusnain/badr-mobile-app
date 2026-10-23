@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   Pressable,
   Text,
@@ -8,14 +8,17 @@ import {
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import moment from "moment-hijri";
 import { Colors } from "@/constants/theme";
 import { GoalData } from "../../home/components/goalsData";
 import { DateStep } from "../components/DateStep";
 import { formatProgressLoggingDateLabel } from "../progressLoggingConfig";
 import { CounterStep } from "../components/CounterStep";
-import { StartTimeStep, DurationStep } from "../components/TimePickerSteps";
+import {
+  StartTimeStep,
+  DurationStep,
+  getCurrentStartTimeParts,
+} from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
 import { styles as commonStyles } from "../components/DailyProgressLogging.styles";
 import { fonts } from "@/assets/fonts";
@@ -26,6 +29,14 @@ import { FlowCardShirtIcon } from "@/assets/icons/FlowCardShirtIcon";
 import type { ProgressLogEntry } from "../types";
 import { FlowCardClockIcon } from "@/assets/icons/FlowCardClockIcon";
 import { TimeSpentIcon } from "@/assets/icons/TimeSpentIcon";
+import { useOptionalSadaqahGoalFrameContext } from "../sadaqahGoalFrameContext";
+import { useLogSadaqahGoal } from "@/src/api/mutations/useLogSadaqahGoal";
+import {
+  getKaffarahFrameFlowCardTitle,
+  getSadaqahFrameAchievementLabel,
+  getSadaqahFrameAchievementPct,
+  sadaqahFrameShowsInsights,
+} from "@/src/utils/sadaqahGoalFrameMap";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -48,6 +59,36 @@ type Props = {
 type FlowMode = "collapsed" | "active";
 
 const toDateString = (date: Date) => moment(date).format("YYYY-MM-DD");
+
+function formatStartTimeForApi(
+  hour: string,
+  minute: string,
+  period: "am" | "pm",
+): string {
+  const hourNum = parseInt(hour || "0", 10) || 0;
+  const minuteNum = parseInt(minute || "0", 10) || 0;
+  let hour24 = hourNum % 12;
+  if (period === "pm") hour24 += 12;
+  return `${String(Math.max(0, hour24)).padStart(2, "0")}:${String(
+    Math.max(0, minuteNum),
+  ).padStart(2, "0")}`;
+}
+
+function mapKaffarahReasonToApi(
+  reason: KaffarahReason,
+): "BROKEN_FAST" | "BROKEN_OATH" {
+  return reason === "broken-oath" ? "BROKEN_OATH" : "BROKEN_FAST";
+}
+
+function mapKaffarahSubtypeToApi(
+  reason: KaffarahReason,
+  sadaqahType: SadaqahType,
+): "MEALS" | "CLOTHING_ITEMS" {
+  if (reason === "broken-oath" && sadaqahType === "clothes") {
+    return "CLOTHING_ITEMS";
+  }
+  return "MEALS";
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Reason Radio Step
@@ -72,9 +113,7 @@ function ReasonStep({
             reason === "broken-fast" && reasonStyles.radioSelected,
           ]}
         >
-          {reason === "broken-fast" && (
-            <View style={reasonStyles.radioDot} />
-          )}
+          {reason === "broken-fast" && <View style={reasonStyles.radioDot} />}
         </View>
         <Text style={reasonStyles.optionLabel}>Broken fast</Text>
       </TouchableOpacity>
@@ -90,9 +129,7 @@ function ReasonStep({
             reason === "broken-oath" && reasonStyles.radioSelected,
           ]}
         >
-          {reason === "broken-oath" && (
-            <View style={reasonStyles.radioDot} />
-          )}
+          {reason === "broken-oath" && <View style={reasonStyles.radioDot} />}
         </View>
         <Text style={reasonStyles.optionLabel}>Broken oath</Text>
       </TouchableOpacity>
@@ -185,8 +222,14 @@ function SadaqahTypeStep({
 // ─────────────────────────────────────────────────────────────────────────────
 // Main Flow
 // ─────────────────────────────────────────────────────────────────────────────
-export default function KaffarahLoggingFlow({ goalData, onLogComplete }: Props) {
+export default function KaffarahLoggingFlow({
+  goalData,
+  onLogComplete,
+}: Props) {
   const { t } = useTranslation();
+  const sadaqahFrame = useOptionalSadaqahGoalFrameContext();
+  const frame = sadaqahFrame?.frame;
+  const { mutateAsync: logSadaqah, isPending: isLogging } = useLogSadaqahGoal();
 
   const [flowMode, setFlowMode] = useState<FlowMode>("collapsed");
   const [stepIndex, setStepIndex] = useState(0);
@@ -194,29 +237,41 @@ export default function KaffarahLoggingFlow({ goalData, onLogComplete }: Props) 
   const [selectedDate, setSelectedDate] = useState(toDateString(new Date()));
   const [reason, setReason] = useState<KaffarahReason>("broken-fast");
   const [sadaqahType, setSadaqahType] = useState<SadaqahType>("meals");
-  const [count, setCount] = useState("10");
+  const [count, setCount] = useState("0");
 
-  const [startHour, setStartHour] = useState("06");
-  const [startMinute, setStartMinute] = useState("15");
-  const [startPeriod, setStartPeriod] = useState<"am" | "pm">("am");
+  const [startHour, setStartHour] = useState(
+    () => getCurrentStartTimeParts().hour,
+  );
+  const [startMinute, setStartMinute] = useState(
+    () => getCurrentStartTimeParts().minute,
+  );
+  const [startPeriod, setStartPeriod] = useState<"am" | "pm">(
+    () => getCurrentStartTimeParts().period,
+  );
   const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
 
   const [durationHours, setDurationHours] = useState("0");
   const [durationMinutes, setDurationMinutes] = useState("10");
 
-  const [hasLogged, setHasLogged] = useState(false);
+  const badgeStatus = useMemo(() => {
+    if (!frame) {
+      return {
+        text: t("progressLogging.notStarted"),
+        type: "not-started" as const,
+      };
+    }
+    return getSadaqahFrameAchievementLabel(frame, t);
+  }, [frame, t]);
 
-  const MOCK_PERCENTAGE = 0;
-  const mockTitle = "40 Meals & 20 Pieces of Clothing for Those in Need";
-
-  const getBadgeStatus = () => {
-    if (!hasLogged) return { text: "In Progress", type: "in-progress" };
-    if (MOCK_PERCENTAGE >= 100) return { text: "100% Achieved!", type: "completed" };
-    return { text: `${MOCK_PERCENTAGE}% Achieved`, type: "completed" };
-  };
-
-  const badgeStatus = getBadgeStatus();
-  const isCompleted = hasLogged;
+  const summaryTitle = frame
+    ? getKaffarahFrameFlowCardTitle(frame)
+    : "Kaffarah for Breaking Fasts or Oaths";
+  const achievementPct = getSadaqahFrameAchievementPct(frame);
+  const showInsights = frame ? sadaqahFrameShowsInsights(frame) : false;
+  const canLog = frame ? Boolean(frame.items?.[0]?.canLog ?? true) : true;
+  const goalCompleted =
+    achievementPct >= 100 ||
+    String(frame?.goal?.status ?? "").toUpperCase() === "COMPLETED";
 
   const currentSteps: KaffarahStepId[] = [
     "date",
@@ -246,37 +301,88 @@ export default function KaffarahLoggingFlow({ goalData, onLogComplete }: Props) 
   };
 
   const resetFlow = useCallback(() => {
+    const now = getCurrentStartTimeParts();
     setFlowMode("collapsed");
     setStepIndex(0);
     setSelectedDate(toDateString(new Date()));
     setReason("broken-fast");
     setSadaqahType("meals");
-    setCount("10");
-    setStartHour("06");
-    setStartMinute("15");
-    setStartPeriod("am");
+    setCount("0");
+    setStartHour(now.hour);
+    setStartMinute(now.minute);
+    setStartPeriod(now.period);
     setDurationHours("0");
     setDurationMinutes("10");
     setIsPeriodDropdownOpen(false);
   }, []);
 
-  const handleConfirm = () => {
-    setHasLogged(true);
-    onLogComplete?.({
-      type: "kaffarah-fasts-oaths" as any,
-      goalId: goalData.id,
-      date: selectedDate,
-      reason,
-      count,
-      startTime: `${startHour}:${startMinute} ${startPeriod}`,
-      durationHours,
-      durationMinutes,
-    } as any);
-    resetFlow();
-  };
+  const handleConfirm = useCallback(() => {
+    if (!selectedDate || isLogging) return;
+    const numericCount = Number.parseInt(count || "0", 10) || 0;
+    if (numericCount <= 0) return;
+
+    const hours = parseInt(durationHours || "0", 10) || 0;
+    const minutes = parseInt(durationMinutes || "0", 10) || 0;
+    const durationTotalMinutes = hours * 60 + minutes;
+    if (durationTotalMinutes < 1) return;
+
+    const startTime = formatStartTimeForApi(
+      startHour,
+      startMinute,
+      startPeriod,
+    );
+
+    const run = async () => {
+      try {
+        const result = await logSadaqah({
+          sadaqahType: "KAFFARAH",
+          logDate: selectedDate,
+          amount: numericCount,
+          startTime,
+          durationMinutes: durationTotalMinutes,
+          kaffarahReason: mapKaffarahReasonToApi(reason),
+          kaffarahSubtype: mapKaffarahSubtypeToApi(reason, sadaqahType),
+        });
+        await sadaqahFrame?.refetch();
+        onLogComplete?.({
+          type: "kaffarah-fasts-oaths" as any,
+          goalId: goalData.id,
+          date: result.logDate ?? result.date ?? selectedDate,
+          reason,
+          count: String(result.amount ?? numericCount),
+          startTime: result.startTime ?? startTime,
+          durationMinutes: result.durationMinutes ?? durationTotalMinutes,
+        } as any);
+        resetFlow();
+      } catch {
+        // Toast handled in mutation onError
+      }
+    };
+
+    void run();
+  }, [
+    count,
+    durationHours,
+    durationMinutes,
+    goalData.id,
+    isLogging,
+    logSadaqah,
+    onLogComplete,
+    reason,
+    resetFlow,
+    sadaqahFrame,
+    sadaqahType,
+    selectedDate,
+    startHour,
+    startMinute,
+    startPeriod,
+  ]);
 
   const handleBack = () => {
-    if (stepIndex === 0) { resetFlow(); return; }
+    if (stepIndex === 0) {
+      resetFlow();
+      return;
+    }
     setStepIndex((i) => i - 1);
   };
 
@@ -285,8 +391,9 @@ export default function KaffarahLoggingFlow({ goalData, onLogComplete }: Props) 
   };
 
   const handleOpenFlow = useCallback(() => {
+    if (!canLog || goalCompleted) return;
     setFlowMode("active");
-  }, []);
+  }, [canLog, goalCompleted]);
 
   const getStepHeader = (step: KaffarahStepId) => {
     switch (step) {
@@ -306,14 +413,17 @@ export default function KaffarahLoggingFlow({ goalData, onLogComplete }: Props) 
           label: "Select the type of sadaqah.",
         };
       case "count":
-        const isClothesHeader = reason === "broken-oath" && sadaqahType === "clothes";
+        const isClothesHeader =
+          reason === "broken-oath" && sadaqahType === "clothes";
         return {
           icon: isClothesHeader ? (
             <FlowCardShirtIcon size={20} color={Colors.light.white} />
           ) : (
             <FlowCardFoodReliefIcon size={20} color={Colors.light.white} />
           ),
-          label: isClothesHeader ? "How many pieces of clothing were given?" : "How many meals were given?",
+          label: isClothesHeader
+            ? "How many pieces of clothing were given?"
+            : "How many meals were given?",
         };
       case "start-time":
         return {
@@ -345,7 +455,8 @@ export default function KaffarahLoggingFlow({ goalData, onLogComplete }: Props) 
       case "sadaqah-type":
         return <SadaqahTypeStep type={sadaqahType} setType={setSadaqahType} />;
       case "count":
-        const isClothesContent = reason === "broken-oath" && sadaqahType === "clothes";
+        const isClothesContent =
+          reason === "broken-oath" && sadaqahType === "clothes";
         return (
           <CounterStep
             label={isClothesContent ? "Pieces of clothing" : "Meals given"}
@@ -382,17 +493,29 @@ export default function KaffarahLoggingFlow({ goalData, onLogComplete }: Props) 
   };
 
   const stepHeader = getStepHeader(currentStep);
+  const durationTotalMinutes =
+    (parseInt(durationHours || "0", 10) || 0) * 60 +
+    (parseInt(durationMinutes || "0", 10) || 0);
+  const canConfirm =
+    isLastStep &&
+    !isLogging &&
+    (Number.parseInt(count || "0", 10) || 0) > 0 &&
+    durationTotalMinutes >= 1;
 
   return (
     <View style={commonStyles.section}>
-      <Text style={commonStyles.sectionTitle}>{t("progressLogging.myProgress")}</Text>
+      <Text style={commonStyles.sectionTitle}>
+        {t("progressLogging.myProgress")}
+      </Text>
 
       <View style={commonStyles.cardAnchor}>
+        {flowMode === "active" && <Pressable style={commonStyles.backdrop} />}
         {flowMode === "active" && (
-          <Pressable style={commonStyles.backdrop} />
-        )}
-        {flowMode === "active" && (
-          <TouchableOpacity style={commonStyles.cancelButton} onPress={resetFlow} activeOpacity={0.8}>
+          <TouchableOpacity
+            style={commonStyles.cancelButton}
+            onPress={resetFlow}
+            activeOpacity={0.8}
+          >
             <Ionicons name="close" size={20} color={Colors.light.white} />
           </TouchableOpacity>
         )}
@@ -425,28 +548,37 @@ export default function KaffarahLoggingFlow({ goalData, onLogComplete }: Props) 
                   </Text>
                 </View>
                 <Text style={[localStyles.summaryTitle, { flex: undefined }]}>
-                  {mockTitle}
+                  {summaryTitle}
                 </Text>
               </View>
             </View>
 
             <View style={localStyles.footerRow}>
-              {isCompleted ? (
-                <TouchableOpacity style={localStyles.insightsBtn}>
+              {showInsights ? (
+                <TouchableOpacity
+                  style={localStyles.insightsBtn}
+                  onPress={sadaqahFrame?.openInsights}
+                >
                   <Text style={localStyles.insightsText}>VIEW INSIGHTS</Text>
-                  <Ionicons name="chevron-forward" size={22} color={Colors.light.white} />
+                  <Ionicons
+                    name="chevron-forward"
+                    size={22}
+                    color={Colors.light.white}
+                  />
                 </TouchableOpacity>
               ) : (
                 <View style={localStyles.spacer} />
               )}
 
-              <TouchableOpacity
-                style={localStyles.addButton}
-                onPress={handleOpenFlow}
-                activeOpacity={0.8}
-              >
-                <Ionicons name="add" size={22} color={Colors.light.white} />
-              </TouchableOpacity>
+              {canLog && !goalCompleted ? (
+                <TouchableOpacity
+                  style={localStyles.addButton}
+                  onPress={handleOpenFlow}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="add" size={22} color={Colors.light.white} />
+                </TouchableOpacity>
+              ) : null}
             </View>
           </View>
         ) : (
@@ -458,7 +590,9 @@ export default function KaffarahLoggingFlow({ goalData, onLogComplete }: Props) 
               onForward={handleForward}
               onConfirm={handleConfirm}
               canGoForward={!isLastStep}
-                canGoBack={stepIndex > 0}
+              canGoBack={stepIndex > 0}
+              canConfirm={canConfirm}
+              showConfirmButton={isLastStep}
               styles={commonStyles}
               style={commonStyles.inPlaceFlowCard}
             >
@@ -471,9 +605,6 @@ export default function KaffarahLoggingFlow({ goalData, onLogComplete }: Props) 
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Local Styles
-// ─────────────────────────────────────────────────────────────────────────────
 const localStyles = StyleSheet.create({
   summaryCard: {
     backgroundColor: Colors.light.green,

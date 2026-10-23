@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   Pressable,
   Text,
@@ -8,14 +8,17 @@ import {
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import moment from "moment-hijri";
 import { Colors } from "@/constants/theme";
 import { GoalData } from "../../home/components/goalsData";
 import { DateStep } from "../components/DateStep";
 import { formatProgressLoggingDateLabel } from "../progressLoggingConfig";
 import { CounterStep } from "../components/CounterStep";
-import { StartTimeStep, DurationStep } from "../components/TimePickerSteps";
+import {
+  StartTimeStep,
+  DurationStep,
+  getCurrentStartTimeParts,
+} from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
 import { styles as commonStyles } from "../components/DailyProgressLogging.styles";
 import { fonts } from "@/assets/fonts";
@@ -24,22 +27,18 @@ import { FlowCardCallender } from "@/assets/icons/FlowCardCallender";
 import type { ProgressLogEntry } from "../types";
 import { FlowCardFoodReliefIcon, TimeSpentIcon } from "@/assets/icons";
 import { FlowCardClockIcon } from "@/assets/icons/FlowCardClockIcon";
+import { useOptionalSadaqahGoalFrameContext } from "../sadaqahGoalFrameContext";
+import { useLogSadaqahGoal } from "@/src/api/mutations/useLogSadaqahGoal";
+import {
+  getFidyaFrameFlowCardTitle,
+  getSadaqahFrameAchievementLabel,
+  getSadaqahFrameAchievementPct,
+  sadaqahFrameShowsInsights,
+} from "@/src/utils/sadaqahGoalFrameMap";
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────────────────────────────────────
-type FidyaStepId =
-  | "date"
-  | "count"
-  | "start-time"
-  | "time-spent";
+type FidyaStepId = "date" | "count" | "start-time" | "time-spent";
 
-const STEPS: FidyaStepId[] = [
-  "date",
-  "count",
-  "start-time",
-  "time-spent",
-];
+const STEPS: FidyaStepId[] = ["date", "count", "start-time", "time-spent"];
 
 type Props = {
   goalData: GoalData;
@@ -50,39 +49,65 @@ type FlowMode = "collapsed" | "active";
 
 const toDateString = (date: Date) => moment(date).format("YYYY-MM-DD");
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Main Flow
-// ─────────────────────────────────────────────────────────────────────────────
+function formatStartTimeForApi(
+  hour: string,
+  minute: string,
+  period: "am" | "pm",
+): string {
+  const hourNum = parseInt(hour || "0", 10) || 0;
+  const minuteNum = parseInt(minute || "0", 10) || 0;
+  let hour24 = hourNum % 12;
+  if (period === "pm") hour24 += 12;
+  return `${String(Math.max(0, hour24)).padStart(2, "0")}:${String(
+    Math.max(0, minuteNum),
+  ).padStart(2, "0")}`;
+}
+
 export default function FidyaLoggingFlow({ goalData, onLogComplete }: Props) {
   const { t } = useTranslation();
+  const sadaqahFrame = useOptionalSadaqahGoalFrameContext();
+  const frame = sadaqahFrame?.frame;
+  const { mutateAsync: logSadaqah, isPending: isLogging } = useLogSadaqahGoal();
 
   const [flowMode, setFlowMode] = useState<FlowMode>("collapsed");
   const [stepIndex, setStepIndex] = useState(0);
 
   const [selectedDate, setSelectedDate] = useState(toDateString(new Date()));
-  const [count, setCount] = useState("1");
+  const [count, setCount] = useState("0");
 
-  const [startHour, setStartHour] = useState("06");
-  const [startMinute, setStartMinute] = useState("15");
-  const [startPeriod, setStartPeriod] = useState<"am" | "pm">("am");
+  const [startHour, setStartHour] = useState(
+    () => getCurrentStartTimeParts().hour,
+  );
+  const [startMinute, setStartMinute] = useState(
+    () => getCurrentStartTimeParts().minute,
+  );
+  const [startPeriod, setStartPeriod] = useState<"am" | "pm">(
+    () => getCurrentStartTimeParts().period,
+  );
   const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
 
   const [durationHours, setDurationHours] = useState("0");
   const [durationMinutes, setDurationMinutes] = useState("10");
 
-  const [hasLogged, setHasLogged] = useState(false);
+  const badgeStatus = useMemo(() => {
+    if (!frame) {
+      return {
+        text: t("progressLogging.notStarted"),
+        type: "not-started" as const,
+      };
+    }
+    return getSadaqahFrameAchievementLabel(frame, t);
+  }, [frame, t]);
 
-  const MOCK_PERCENTAGE = 0;
-  const mockTitle = "10 Meals for Those in Need";
-
-  const getBadgeStatus = () => {
-    if (!hasLogged) return { text: "In Progress", type: "in-progress" };
-    if (MOCK_PERCENTAGE >= 100) return { text: "100% Achieved!", type: "completed" };
-    return { text: `${MOCK_PERCENTAGE}% Achieved`, type: "completed" };
-  };
-
-  const badgeStatus = getBadgeStatus();
-  const isCompleted = hasLogged;
+  const summaryTitle = frame
+    ? getFidyaFrameFlowCardTitle(frame)
+    : "Fidya for Missed Fasts";
+  const achievementPct = getSadaqahFrameAchievementPct(frame);
+  const showInsights = frame ? sadaqahFrameShowsInsights(frame) : false;
+  const canLog = frame ? Boolean(frame.items?.[0]?.canLog ?? true) : true;
+  const goalCompleted =
+    achievementPct >= 100 ||
+    String(frame?.goal?.status ?? "").toUpperCase() === "COMPLETED";
 
   const todayString = toDateString(new Date());
   const currentStep = STEPS[stepIndex];
@@ -103,34 +128,81 @@ export default function FidyaLoggingFlow({ goalData, onLogComplete }: Props) {
   };
 
   const resetFlow = useCallback(() => {
+    const now = getCurrentStartTimeParts();
     setFlowMode("collapsed");
     setStepIndex(0);
     setSelectedDate(toDateString(new Date()));
-    setCount("1");
-    setStartHour("06");
-    setStartMinute("15");
-    setStartPeriod("am");
+    setCount("0");
+    setStartHour(now.hour);
+    setStartMinute(now.minute);
+    setStartPeriod(now.period);
     setDurationHours("0");
     setDurationMinutes("10");
     setIsPeriodDropdownOpen(false);
   }, []);
 
-  const handleConfirm = () => {
-    setHasLogged(true);
-    onLogComplete?.({
-      type: "fidya" as any,
-      goalId: goalData.id,
-      date: selectedDate,
-      count,
-      startTime: `${startHour}:${startMinute} ${startPeriod}`,
-      durationHours,
-      durationMinutes,
-    } as any);
-    resetFlow();
-  };
+  const handleConfirm = useCallback(() => {
+    if (!selectedDate || isLogging) return;
+    const numericCount = Number.parseInt(count || "0", 10) || 0;
+    if (numericCount <= 0) return;
+
+    const hours = parseInt(durationHours || "0", 10) || 0;
+    const minutes = parseInt(durationMinutes || "0", 10) || 0;
+    const durationTotalMinutes = hours * 60 + minutes;
+    if (durationTotalMinutes < 1) return;
+
+    const startTime = formatStartTimeForApi(
+      startHour,
+      startMinute,
+      startPeriod,
+    );
+
+    const run = async () => {
+      try {
+        const result = await logSadaqah({
+          sadaqahType: "FIDYA",
+          logDate: selectedDate,
+          amount: numericCount,
+          startTime,
+          durationMinutes: durationTotalMinutes,
+        });
+        await sadaqahFrame?.refetch();
+        onLogComplete?.({
+          type: "fidya" as any,
+          goalId: goalData.id,
+          date: result.logDate ?? result.date ?? selectedDate,
+          count: String(result.amount ?? numericCount),
+          startTime: result.startTime ?? startTime,
+          durationMinutes: result.durationMinutes ?? durationTotalMinutes,
+        } as any);
+        resetFlow();
+      } catch {
+        // Toast handled in mutation onError
+      }
+    };
+
+    void run();
+  }, [
+    count,
+    durationHours,
+    durationMinutes,
+    goalData.id,
+    isLogging,
+    logSadaqah,
+    onLogComplete,
+    resetFlow,
+    sadaqahFrame,
+    selectedDate,
+    startHour,
+    startMinute,
+    startPeriod,
+  ]);
 
   const handleBack = () => {
-    if (stepIndex === 0) { resetFlow(); return; }
+    if (stepIndex === 0) {
+      resetFlow();
+      return;
+    }
     setStepIndex((i) => i - 1);
   };
 
@@ -139,8 +211,9 @@ export default function FidyaLoggingFlow({ goalData, onLogComplete }: Props) {
   };
 
   const handleOpenFlow = useCallback(() => {
+    if (!canLog || goalCompleted) return;
     setFlowMode("active");
-  }, []);
+  }, [canLog, goalCompleted]);
 
   const getStepHeader = (step: FidyaStepId) => {
     switch (step) {
@@ -167,9 +240,6 @@ export default function FidyaLoggingFlow({ goalData, onLogComplete }: Props) {
     }
   };
 
-  const canProceed = true;
-  const canConfirm = true;
-
   const renderStepContent = (step: FidyaStepId) => {
     switch (step) {
       case "date":
@@ -185,8 +255,8 @@ export default function FidyaLoggingFlow({ goalData, onLogComplete }: Props) {
       case "count":
         return (
           <CounterStep
-            label={"Meals given"}
-            unit={"meal(s)"}
+            label="Meals given"
+            unit="meal(s)"
             value={count}
             onChangeText={setCount}
           />
@@ -219,17 +289,29 @@ export default function FidyaLoggingFlow({ goalData, onLogComplete }: Props) {
   };
 
   const stepHeader = getStepHeader(currentStep);
+  const durationTotalMinutes =
+    (parseInt(durationHours || "0", 10) || 0) * 60 +
+    (parseInt(durationMinutes || "0", 10) || 0);
+  const canConfirm =
+    isLastStep &&
+    !isLogging &&
+    (Number.parseInt(count || "0", 10) || 0) > 0 &&
+    durationTotalMinutes >= 1;
 
   return (
     <View style={commonStyles.section}>
-      <Text style={commonStyles.sectionTitle}>{t("progressLogging.myProgress")}</Text>
+      <Text style={commonStyles.sectionTitle}>
+        {t("progressLogging.myProgress")}
+      </Text>
 
       <View style={commonStyles.cardAnchor}>
+        {flowMode === "active" && <Pressable style={commonStyles.backdrop} />}
         {flowMode === "active" && (
-          <Pressable style={commonStyles.backdrop} />
-        )}
-        {flowMode === "active" && (
-          <TouchableOpacity style={commonStyles.cancelButton} onPress={resetFlow} activeOpacity={0.8}>
+          <TouchableOpacity
+            style={commonStyles.cancelButton}
+            onPress={resetFlow}
+            activeOpacity={0.8}
+          >
             <Ionicons name="close" size={20} color={Colors.light.white} />
           </TouchableOpacity>
         )}
@@ -262,24 +344,37 @@ export default function FidyaLoggingFlow({ goalData, onLogComplete }: Props) {
                   </Text>
                 </View>
                 <Text style={[localStyles.summaryTitle, { flex: undefined }]}>
-                  {mockTitle}
+                  {summaryTitle}
                 </Text>
               </View>
             </View>
 
             <View style={localStyles.footerRow}>
-              {isCompleted ? (
-                <TouchableOpacity style={localStyles.insightsBtn}>
+              {showInsights ? (
+                <TouchableOpacity
+                  style={localStyles.insightsBtn}
+                  onPress={sadaqahFrame?.openInsights}
+                >
                   <Text style={localStyles.insightsText}>VIEW INSIGHTS</Text>
-                  <Ionicons name="chevron-forward" size={22} color={Colors.light.white} />
+                  <Ionicons
+                    name="chevron-forward"
+                    size={22}
+                    color={Colors.light.white}
+                  />
                 </TouchableOpacity>
               ) : (
                 <View style={localStyles.spacer} />
               )}
 
-              <TouchableOpacity style={localStyles.addButton} onPress={handleOpenFlow} activeOpacity={0.8}>
-                <Ionicons name="add" size={22} color={Colors.light.white} />
-              </TouchableOpacity>
+              {canLog && !goalCompleted ? (
+                <TouchableOpacity
+                  style={localStyles.addButton}
+                  onPress={handleOpenFlow}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="add" size={22} color={Colors.light.white} />
+                </TouchableOpacity>
+              ) : null}
             </View>
           </View>
         ) : (
@@ -290,9 +385,10 @@ export default function FidyaLoggingFlow({ goalData, onLogComplete }: Props) {
               onBack={handleBack}
               onForward={handleForward}
               onConfirm={handleConfirm}
-              canGoForward={!isLastStep && canProceed}
-                canGoBack={stepIndex > 0}
+              canGoForward={!isLastStep}
+              canGoBack={stepIndex > 0}
               canConfirm={canConfirm}
+              showConfirmButton={isLastStep}
               styles={commonStyles}
               style={commonStyles.inPlaceFlowCard}
             >

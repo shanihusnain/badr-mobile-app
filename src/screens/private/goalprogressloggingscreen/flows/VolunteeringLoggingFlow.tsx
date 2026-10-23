@@ -1,96 +1,122 @@
-import React, { useState, useCallback } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Pressable } from "react-native";
+import React, { useCallback, useMemo, useState } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Pressable,
+} from "react-native";
 import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { FlowCardCallender } from "@/assets/icons/FlowCardCallender";
 import { ThreeHeartIcon } from "@/assets/icons/ThreeHeartIcon";
-import moment from "moment";
+import moment from "moment-hijri";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
-
+import { GoalData } from "../../home/components/goalsData";
 import { FlowCard } from "../components/FlowCard";
 import { DateStep } from "../components/DateStep";
 import { formatProgressLoggingDateLabel } from "../progressLoggingConfig";
 import { VolunteeringCategoryStep } from "../components/VolunteeringCategoryStep";
-import { StartTimeStep, DurationStep } from "../components/TimePickerSteps";
+import {
+  StartTimeStep,
+  DurationStep,
+  getCurrentStartTimeParts,
+} from "../components/TimePickerSteps";
 import { styles as commonStyles } from "../components/DailyProgressLogging.styles";
 import type { ProgressLogEntry } from "../types";
-type FlowMode = "collapsed" | "active";
-import { getResolvedGoalById } from "../../home/components/goalsData";
 import { VolunteeringCategoryId } from "../volunteeringCategories";
 import { Volunteeringservicesheart } from "@/assets/icons";
+import { useOptionalSadaqahGoalFrameContext } from "../sadaqahGoalFrameContext";
+import { useLogSadaqahGoal } from "@/src/api/mutations/useLogSadaqahGoal";
+import {
+  getSadaqahFrameAchievementLabel,
+  getSadaqahFrameAchievementPct,
+  getVolunteeringFrameFlowCardTitle,
+  sadaqahFrameShowsInsights,
+  sadaqahUiCategoryToCauseCategory,
+} from "@/src/utils/sadaqahGoalFrameMap";
+
+type VolunteeringStepId = "date" | "category" | "start-time" | "time-spent";
+
+const STEPS: VolunteeringStepId[] = [
+  "date",
+  "category",
+  "start-time",
+  "time-spent",
+];
+
+type FlowMode = "collapsed" | "active";
 
 type Props = {
-  goalData: NonNullable<ReturnType<typeof getResolvedGoalById>>;
+  goalData: GoalData;
   onLogComplete?: (entry: ProgressLogEntry) => void;
-};
-
-const STEPS = ["date", "category", "start-time", "time-spent"] as const;
-type StepType = (typeof STEPS)[number];
-
-const getStepHeader = (step: StepType) => {
-  switch (step) {
-    case "date":
-      return {
-        label: "Which day are you logging for?",
-        icon: <FlowCardCallender size={14} color={Colors.light.white} />,
-      };
-    case "category":
-      return {
-        label: "Select how you volunteered.",
-        icon: <Volunteeringservicesheart size={20} colors={Colors.light.white} />,
-      };
-    case "start-time":
-      return {
-        label: "Enter start time.",
-        icon: <Ionicons name="time-outline" size={16} color={Colors.light.green} />,
-      };
-    case "time-spent":
-      return {
-        label: "Enter time spent.",
-        icon: <MaterialCommunityIcons name="history" size={16} color={Colors.light.green} />,
-      };
-  }
 };
 
 const toDateString = (date: Date) => moment(date).format("YYYY-MM-DD");
 
-// ─────────────────────────────────────────────────────────────────────────────
-export default function VolunteeringLoggingFlow({ goalData, onLogComplete }: Props) {
+function formatStartTimeForApi(
+  hour: string,
+  minute: string,
+  period: "am" | "pm",
+): string {
+  const hourNum = parseInt(hour || "0", 10) || 0;
+  const minuteNum = parseInt(minute || "0", 10) || 0;
+  let hour24 = hourNum % 12;
+  if (period === "pm") hour24 += 12;
+  return `${String(Math.max(0, hour24)).padStart(2, "0")}:${String(
+    Math.max(0, minuteNum),
+  ).padStart(2, "0")}`;
+}
+
+export default function VolunteeringLoggingFlow({
+  goalData,
+  onLogComplete,
+}: Props) {
   const { t } = useTranslation();
+  const sadaqahFrame = useOptionalSadaqahGoalFrameContext();
+  const frame = sadaqahFrame?.frame;
+  const { mutateAsync: logSadaqah, isPending: isLogging } = useLogSadaqahGoal();
 
   const [flowMode, setFlowMode] = useState<FlowMode>("collapsed");
   const [stepIndex, setStepIndex] = useState(0);
-
   const [selectedDate, setSelectedDate] = useState(toDateString(new Date()));
-  const [selectedCategory, setSelectedCategory] = useState<VolunteeringCategoryId>("distributing-food");
-
-  const [startHour, setStartHour] = useState("06");
-  const [startMinute, setStartMinute] = useState("15");
-  const [startPeriod, setStartPeriod] = useState<"am" | "pm">("am");
+  const [selectedCategory, setSelectedCategory] =
+    useState<VolunteeringCategoryId>("distributing-food");
+  const [startHour, setStartHour] = useState(
+    () => getCurrentStartTimeParts().hour,
+  );
+  const [startMinute, setStartMinute] = useState(
+    () => getCurrentStartTimeParts().minute,
+  );
+  const [startPeriod, setStartPeriod] = useState<"am" | "pm">(
+    () => getCurrentStartTimeParts().period,
+  );
   const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
-
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
-
   const [durationHours, setDurationHours] = useState("0");
   const [durationMinutes, setDurationMinutes] = useState("30");
 
-  const [hasLogged, setHasLogged] = useState(false);
+  const badgeStatus = useMemo(() => {
+    if (!frame) {
+      return {
+        text: t("progressLogging.notStarted"),
+        type: "not-started" as const,
+      };
+    }
+    return getSadaqahFrameAchievementLabel(frame, t);
+  }, [frame, t]);
 
-  const goalTarget = goalData?.target ?? "4";
-  const MOCK_PERCENTAGE = goalData?.percentage ? parseFloat(goalData.percentage) : 50;
-
-  const mockTitle = `${goalTarget} Hours of\nVolunteering`;
-
-  const getBadgeStatus = () => {
-    if (!hasLogged) return { text: "In Progress", type: "in-progress" };
-    if (MOCK_PERCENTAGE >= 100) return { text: "100% Achieved!", type: "completed" };
-    return { text: `${MOCK_PERCENTAGE}% Achieved`, type: "completed" };
-  };
-
-  const badgeStatus = getBadgeStatus();
-  const isCompleted = hasLogged;
+  const summaryTitle = frame
+    ? getVolunteeringFrameFlowCardTitle(frame)
+    : `${goalData?.target ?? "4"} Hours of\nVolunteering`;
+  const achievementPct = getSadaqahFrameAchievementPct(frame);
+  const showInsights = frame ? sadaqahFrameShowsInsights(frame) : false;
+  const canLog = frame ? Boolean(frame.items?.[0]?.canLog ?? true) : true;
+  const goalCompleted =
+    achievementPct >= 100 ||
+    String(frame?.goal?.status ?? "").toUpperCase() === "COMPLETED";
 
   const todayString = toDateString(new Date());
   const currentStep = STEPS[stepIndex];
@@ -111,58 +137,149 @@ export default function VolunteeringLoggingFlow({ goalData, onLogComplete }: Pro
   };
 
   const resetFlow = useCallback(() => {
+    const now = getCurrentStartTimeParts();
     setFlowMode("collapsed");
     setStepIndex(0);
     setSelectedDate(toDateString(new Date()));
     setSelectedCategory("distributing-food");
-    setStartHour("06");
-    setStartMinute("15");
-    setStartPeriod("am");
+    setStartHour(now.hour);
+    setStartMinute(now.minute);
+    setStartPeriod(now.period);
     setDurationHours("0");
     setDurationMinutes("30");
     setIsPeriodDropdownOpen(false);
     setIsCategoryDropdownOpen(false);
   }, []);
 
-  const handleOpenFlow = () => {
-    setFlowMode("active");
-  };
+  const handleConfirm = useCallback(() => {
+    if (!selectedDate || isLogging) return;
+
+    const hours = parseInt(durationHours || "0", 10) || 0;
+    const minutes = parseInt(durationMinutes || "0", 10) || 0;
+    const durationTotalMinutes = hours * 60 + minutes;
+    const amountHours =
+      Math.round((durationTotalMinutes / 60) * 100) / 100;
+    if (amountHours <= 0) return;
+
+    const startTime = formatStartTimeForApi(
+      startHour,
+      startMinute,
+      startPeriod,
+    );
+    const causeCategory = sadaqahUiCategoryToCauseCategory(selectedCategory);
+
+    const run = async () => {
+      try {
+        const result = await logSadaqah({
+          sadaqahType: "VOLUNTEERING",
+          logDate: selectedDate,
+          amount: amountHours,
+          startTime,
+          durationMinutes: durationTotalMinutes,
+          causeCategory,
+        });
+        await sadaqahFrame?.refetch();
+        onLogComplete?.({
+          type: "volunteering" as any,
+          goalId: goalData.id,
+          date: result.logDate ?? result.date ?? selectedDate,
+          amount: String(result.amount ?? amountHours),
+          startTime: result.startTime ?? startTime,
+          durationMinutes: result.durationMinutes ?? durationTotalMinutes,
+          volunteeringCategory: selectedCategory,
+        } as any);
+        resetFlow();
+      } catch {
+        // Toast handled in mutation onError
+      }
+    };
+
+    void run();
+  }, [
+    durationHours,
+    durationMinutes,
+    goalData.id,
+    isLogging,
+    logSadaqah,
+    onLogComplete,
+    resetFlow,
+    sadaqahFrame,
+    selectedCategory,
+    selectedDate,
+    startHour,
+    startMinute,
+    startPeriod,
+  ]);
 
   const handleBack = () => {
-    if (stepIndex > 0) setStepIndex(stepIndex - 1);
+    if (stepIndex === 0) {
+      resetFlow();
+      return;
+    }
+    setStepIndex((i) => i - 1);
   };
 
   const handleForward = () => {
-    if (!isLastStep) setStepIndex(stepIndex + 1);
+    if (!isLastStep) setStepIndex((i) => i + 1);
   };
 
-  const handleConfirm = () => {
-    setHasLogged(true);
-    setFlowMode("collapsed");
-    setStepIndex(0);
+  const handleOpenFlow = useCallback(() => {
+    if (!canLog || goalCompleted) return;
+    setFlowMode("active");
+  }, [canLog, goalCompleted]);
 
-    const durationMins =
-      parseInt(durationHours || "0", 10) * 60 + parseInt(durationMinutes || "0", 10);
-
-    onLogComplete?.({
-      date: selectedDate,
-      count: 1,
-      durationMinutes: durationMins,
-      timeOfDay: `${startHour}:${startMinute} ${startPeriod}`,
-      volunteeringCategory: selectedCategory,
-    } as any);
+  const getStepHeader = (step: VolunteeringStepId) => {
+    switch (step) {
+      case "date":
+        return {
+          label: "Which day are you logging for?",
+          icon: <FlowCardCallender size={14} color={Colors.light.white} />,
+        };
+      case "category":
+        return {
+          label: "Select how you volunteered.",
+          icon: (
+            <Volunteeringservicesheart
+              size={20}
+              colors={Colors.light.white}
+            />
+          ),
+        };
+      case "start-time":
+        return {
+          label: "Enter start time.",
+          icon: (
+            <Ionicons
+              name="time-outline"
+              size={16}
+              color={Colors.light.green}
+            />
+          ),
+        };
+      case "time-spent":
+        return {
+          label: "Enter time spent.",
+          icon: (
+            <MaterialCommunityIcons
+              name="history"
+              size={16}
+              color={Colors.light.green}
+            />
+          ),
+        };
+    }
   };
 
-  const renderStepContent = (step: StepType) => {
+  const renderStepContent = (step: VolunteeringStepId) => {
     switch (step) {
       case "date":
         return (
           <DateStep
+            dateLabel={dateLabel}
             selectedDate={selectedDate}
             todayString={todayString}
             onShiftDate={shiftDate}
             styles={commonStyles}
-            dateLabel={dateLabel}
           />
         );
       case "category":
@@ -202,17 +319,26 @@ export default function VolunteeringLoggingFlow({ goalData, onLogComplete }: Pro
   };
 
   const stepHeader = getStepHeader(currentStep);
+  const durationTotalMinutes =
+    (parseInt(durationHours || "0", 10) || 0) * 60 +
+    (parseInt(durationMinutes || "0", 10) || 0);
+  const amountHours = Math.round((durationTotalMinutes / 60) * 100) / 100;
+  const canConfirm = isLastStep && !isLogging && amountHours > 0;
 
   return (
     <View style={commonStyles.section}>
-      <Text style={commonStyles.sectionTitle}>{t("progressLogging.myProgress")}</Text>
+      <Text style={commonStyles.sectionTitle}>
+        {t("progressLogging.myProgress")}
+      </Text>
 
       <View style={commonStyles.cardAnchor}>
+        {flowMode === "active" && <Pressable style={commonStyles.backdrop} />}
         {flowMode === "active" && (
-          <Pressable style={commonStyles.backdrop} />
-        )}
-        {flowMode === "active" && (
-          <TouchableOpacity style={commonStyles.cancelButton} onPress={resetFlow} activeOpacity={0.8}>
+          <TouchableOpacity
+            style={commonStyles.cancelButton}
+            onPress={resetFlow}
+            activeOpacity={0.8}
+          >
             <Ionicons name="close" size={20} color={Colors.light.white} />
           </TouchableOpacity>
         )}
@@ -244,25 +370,36 @@ export default function VolunteeringLoggingFlow({ goalData, onLogComplete }: Pro
                     {badgeStatus.text}
                   </Text>
                 </View>
-                <Text style={[localStyles.summaryTitle]}>
-                  {mockTitle}
-                </Text>
+                <Text style={[localStyles.summaryTitle]}>{summaryTitle}</Text>
               </View>
             </View>
 
             <View style={localStyles.footerRow}>
-              {isCompleted ? (
-                <TouchableOpacity style={localStyles.insightsBtn}>
+              {showInsights ? (
+                <TouchableOpacity
+                  style={localStyles.insightsBtn}
+                  onPress={sadaqahFrame?.openInsights}
+                >
                   <Text style={localStyles.insightsText}>VIEW INSIGHTS</Text>
-                  <Ionicons name="chevron-forward" size={22} color={Colors.light.white} />
+                  <Ionicons
+                    name="chevron-forward"
+                    size={22}
+                    color={Colors.light.white}
+                  />
                 </TouchableOpacity>
               ) : (
                 <View style={localStyles.spacer} />
               )}
 
-              <TouchableOpacity style={localStyles.addButton} onPress={handleOpenFlow} activeOpacity={0.8}>
-                <Ionicons name="add" size={22} color={Colors.light.white} />
-              </TouchableOpacity>
+              {canLog && !goalCompleted ? (
+                <TouchableOpacity
+                  style={localStyles.addButton}
+                  onPress={handleOpenFlow}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="add" size={22} color={Colors.light.white} />
+                </TouchableOpacity>
+              ) : null}
             </View>
           </View>
         ) : (
@@ -274,11 +411,15 @@ export default function VolunteeringLoggingFlow({ goalData, onLogComplete }: Pro
               onForward={handleForward}
               onConfirm={handleConfirm}
               canGoForward={!isLastStep}
-                canGoBack={stepIndex > 0}
+              canGoBack={stepIndex > 0}
+              canConfirm={canConfirm}
+              showConfirmButton={isLastStep}
               styles={commonStyles}
               style={[
                 commonStyles.inPlaceFlowCard,
-                currentStep === "category" && isCategoryDropdownOpen ? { height: 210 } : {},
+                currentStep === "category" && isCategoryDropdownOpen
+                  ? { height: 210 }
+                  : {},
               ]}
             >
               {renderStepContent(currentStep)}

@@ -51,9 +51,11 @@ export function SadaqahGoalFrameProvider({
   }, [goalId]);
 
   // Always fetch the current cycle frame — week browsing uses WeeklyBrowseFrameProvider.
+  // No keepPrevious: switching Kaffarah ↔ Zakat must not paint the other goal's frame.
   const { data, isLoading, isFetching, isPlaceholderData, isError, refetch } =
     useGetSadaqahGoalFrame(sadaqahType, {
       enabled: !!sadaqahType,
+      keepPrevious: false,
     });
 
   useEffect(() => {

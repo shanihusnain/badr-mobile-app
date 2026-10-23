@@ -41,14 +41,25 @@ export type SadaqahAchievementsKeyInsight = {
   label?: string | null;
   value?: string | number | null;
   unit?: string | null;
+  deltaLabel?: string | null;
   previousLabel?: string | null;
   direction?: "UP" | "DOWN" | "NEUTRAL" | string | null;
   sentiment?: string | null;
 };
 
+export type SadaqahAchievementsFilter = {
+  code: string;
+  label: string;
+};
+
+export type SadaqahAchievementsTab = {
+  key: string;
+  label: string;
+};
+
 /**
- * GET api/goal-cycles/current/sadaqah-goals/:sadaqahType/achievements?period=M|3M|6M
- * Shape mirrors fasting achievements (chart buckets + keyInsights array).
+ * GET api/goal-cycles/current/sadaqah-goals/:sadaqahType/achievements
+ * ?period=M|3M|6M&periodStart=&filter=ALL|MEALS|CLOTHING_ITEMS
  */
 export type SadaqahGoalAchievementsData = {
   sadaqahType?: string;
@@ -61,6 +72,12 @@ export type SadaqahGoalAchievementsData = {
   hasNext?: boolean | null;
   canNavigateBack?: boolean | null;
   canNavigateForward?: boolean | null;
+  tabs?: SadaqahAchievementsTab[] | null;
+  /** Active filter code from API (`ALL`, `MEALS`, `CLOTHING_ITEMS`). */
+  filter?: string | null;
+  filters?: SadaqahAchievementsFilter[] | null;
+  isCategoryView?: boolean | null;
+  tapHint?: string | null;
   achievementPct?: number | null;
   delta?: SadaqahAchievementsDelta;
   narrative?: string | null;
@@ -68,14 +85,18 @@ export type SadaqahGoalAchievementsData = {
   goal?: {
     label?: string | null;
     value?: number | null;
+    display?: string | null;
     unit?: string | null;
   } | null;
   totals?: {
     completed?: number | null;
+    completedDisplay?: string | null;
     incomplete?: number | null;
+    incompleteDisplay?: string | null;
   } | null;
   timeSpent?: {
     pct?: number | null;
+    pctDisplay?: string | null;
     delta?: number | null;
     totalMinutes?: number | null;
     totalDisplay?: string | null;
@@ -93,6 +114,7 @@ const getSadaqahGoalAchievements = async (
   sadaqahType: string,
   period: SadaqahAchievementsPeriodCode,
   periodStart?: string | null,
+  filter?: string | null,
 ): Promise<SadaqahGoalAchievementsData | null> => {
   const response = await api.get(
     `api/goal-cycles/current/sadaqah-goals/${sadaqahType}/achievements`,
@@ -100,6 +122,7 @@ const getSadaqahGoalAchievements = async (
       params: {
         period,
         ...(periodStart ? { periodStart } : {}),
+        ...(filter && filter !== "ALL" ? { filter } : {}),
       },
     },
   );
@@ -111,6 +134,8 @@ export const useGetSadaqahGoalAchievements = (
   options: {
     period: PastAchievementPeriod;
     periodStart?: string | null;
+    /** KAFFARAH: ALL | MEALS | CLOTHING_ITEMS */
+    filter?: string | null;
     enabled?: boolean;
   },
 ) => {
@@ -119,6 +144,7 @@ export const useGetSadaqahGoalAchievements = (
     : "";
   const periodCode = PAST_ACHIEVEMENT_PERIOD_TO_API[options.period];
   const periodStart = options.periodStart ?? null;
+  const filter = options.filter?.trim().toUpperCase() || null;
   const enabled = !!sadaqahType && (options.enabled ?? true);
 
   return useQuery({
@@ -127,9 +153,10 @@ export const useGetSadaqahGoalAchievements = (
       sadaqahType,
       periodCode,
       periodStart ?? "latest",
+      filter ?? "ALL",
     ],
     queryFn: () =>
-      getSadaqahGoalAchievements(sadaqahType, periodCode, periodStart),
+      getSadaqahGoalAchievements(sadaqahType, periodCode, periodStart, filter),
     enabled,
     staleTime: 0,
     refetchOnMount: "always",

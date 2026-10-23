@@ -19,6 +19,20 @@ export type SadaqahGoalFrameDayState =
   | "SKIPPED"
   | string;
 
+export type SadaqahGoalFrameDayLog = {
+  logId?: string | null;
+  amount?: number | null;
+  amountDisplay?: string | null;
+  category?: string | null;
+  categoryLabel?: string | null;
+  kaffarahSubtype?: string | null;
+  kaffarahSubtypeLabel?: string | null;
+  kaffarahReason?: string | null;
+  durationMinutes?: number | null;
+  startTime?: string | null;
+  icon?: string | null;
+};
+
 export type SadaqahGoalFrameDay = {
   date: string;
   dayLabel: string;
@@ -27,11 +41,17 @@ export type SadaqahGoalFrameDay = {
   state: SadaqahGoalFrameDayState;
   canLog?: boolean;
   canDelete?: boolean;
-  /** Amount logged on this day (currency units). */
+  /** Amount logged on this day (currency units / meal-clothing count). */
   amount?: number | null;
   amountLogged?: number | null;
+  amountDisplay?: string | null;
   completedAmount?: number | null;
   isBestDay?: boolean;
+  isBlurred?: boolean;
+  icon?: string | null;
+  categories?: string[] | null;
+  minutes?: number | null;
+  logs?: SadaqahGoalFrameDayLog[] | null;
 };
 
 export type SadaqahGoalFramePill = {
@@ -49,17 +69,28 @@ export type SadaqahGoalFrameItem = {
 export type SadaqahGoalFrameGoal = {
   sadaqahGoalId?: string | null;
   isActive?: boolean;
+  measure?: string | null;
+  unit?: string | null;
   target?: number | null;
   targetAmount?: number | null;
   targetLabel?: string | null;
+  /** Prefixed amount from API, e.g. "AED 200". */
+  targetDisplay?: string | null;
   completed?: number | null;
   completedAmount?: number | null;
+  completedDisplay?: string | null;
   remaining?: number | null;
   remainingAmount?: number | null;
+  remainingDisplay?: string | null;
   achievementPct?: number | null;
   currencyCode?: string | null;
   status?: SadaqahGoalFrameStatus | null;
   justCompleted?: boolean;
+  /** KAFFARAH nested progress (meals + clothing). */
+  kaffarah?: {
+    meals?: { target?: number | null; completed?: number | null } | null;
+    clothing?: { target?: number | null; completed?: number | null } | null;
+  } | null;
 };
 
 export type SadaqahGoalFrameStreak = {
@@ -83,9 +114,13 @@ export type SadaqahGoalFrameWeek = {
   hasPrevious?: boolean;
   hasNext?: boolean;
   days: SadaqahGoalFrameDay[];
+  total?: number | null;
+  totalDisplay?: string | null;
+  totalLabel?: string | null;
   totalSpent?: number | null;
   totalAmount?: number | null;
-  streak?: SadaqahGoalFrameStreak | null;
+  streak?: number | SadaqahGoalFrameStreak | null;
+  streakLabel?: string | null;
   comparison?: unknown;
   motivation?: SadaqahGoalFrameMotivation | null;
 };
@@ -132,12 +167,18 @@ export const getSadaqahGoalFrame = async (
 
 export const useGetSadaqahGoalFrame = (
   sadaqahTypeInput: string | null | undefined,
-  options?: { enabled?: boolean; weekNumber?: number },
+  options?: {
+    enabled?: boolean;
+    weekNumber?: number;
+    /** Keep prior week/type data while the key changes (week browse). */
+    keepPrevious?: boolean;
+  },
 ) => {
   const sadaqahType = sadaqahTypeInput
     ? resolveSadaqahType(sadaqahTypeInput)
     : "";
   const enabled = !!sadaqahType && (options?.enabled ?? true);
+  const keepPrevious = options?.keepPrevious ?? true;
 
   return useQuery({
     queryKey: sadaqahGoalFrameQueryKey(
@@ -146,6 +187,6 @@ export const useGetSadaqahGoalFrame = (
     ),
     queryFn: () => getSadaqahGoalFrame(sadaqahType, options?.weekNumber),
     enabled,
-    placeholderData: keepPreviousData,
+    placeholderData: keepPrevious ? keepPreviousData : undefined,
   });
 };

@@ -4,7 +4,17 @@ import type {
   SadaqahGoalFrameDay,
 } from "@/src/api/queries/useGetSadaqahGoalFrame";
 import type { MissedZakatDayProgress } from "@/components/molecules/MissedZakatWeeklyProgressDashboard";
-import { formatReviewCurrencyAmount } from "@/src/utils/sadaqahGoalMap";
+import type { KaffarahDayProgress } from "@/components/molecules/KaffarahWeeklyProgressDashboard";
+import type { FidyaDayProgress } from "@/components/molecules/FidyaWeeklyProgressDashboard";
+import type { LillahDayProgress } from "@/components/molecules/LillahWeeklyProgressDashboard";
+import type { SadaqahJariyahDayProgress } from "@/components/molecules/SadaqahJariyahWeeklyProgressDashboard";
+import type { VolunteeringDayProgress } from "@/components/molecules/VolunteeringWeeklyProgressDashboard";
+import type { LillahCategoryId } from "@/src/screens/private/goalprogressloggingscreen/lillahCategories";
+import { LILLAH_CATEGORIES } from "@/src/screens/private/goalprogressloggingscreen/lillahCategories";
+import type { SadaqahJariyahCategoryId } from "@/src/screens/private/goalprogressloggingscreen/sadaqahJariyahCategories";
+import { SADAQAH_JARIYAH_CATEGORIES } from "@/src/screens/private/goalprogressloggingscreen/sadaqahJariyahCategories";
+import type { VolunteeringCategoryId } from "@/src/screens/private/goalprogressloggingscreen/volunteeringCategories";
+import { VOLUNTEERING_CATEGORIES } from "@/src/screens/private/goalprogressloggingscreen/volunteeringCategories";
 
 function normalizeDate(date: string | null | undefined): string {
   return String(date ?? "").slice(0, 10);
@@ -96,9 +106,15 @@ export function canNavigateSadaqahFrameWeekNext(
 export function getSadaqahFrameWeekStreakDays(
   frame: SadaqahGoalFrameData,
 ): number {
-  const count = frame.week.streak?.count;
-  if (typeof count === "number" && Number.isFinite(count)) {
-    return Math.max(0, count);
+  const streak = frame.week.streak;
+  if (typeof streak === "number" && Number.isFinite(streak)) {
+    return Math.max(0, streak);
+  }
+  if (streak && typeof streak === "object") {
+    const count = streak.count;
+    if (typeof count === "number" && Number.isFinite(count)) {
+      return Math.max(0, count);
+    }
   }
   return 0;
 }
@@ -202,19 +218,55 @@ export function getSadaqahFrameAchievementLabel(
   };
 }
 
+/** Backend ISO code from the frame (`AED`, `USD`, …). */
+export function getSadaqahFrameCurrencyCode(
+  frame: SadaqahGoalFrameData | null | undefined,
+  fallback = "USD",
+): string {
+  const code = String(frame?.goal?.currencyCode ?? "")
+    .trim()
+    .toUpperCase();
+  return code || fallback;
+}
+
+/** e.g. "AED 200" — same shape as frame `*Display` fields. */
+export function formatSadaqahFrameCurrencyAmount(
+  frame: SadaqahGoalFrameData | null | undefined,
+  amount: number,
+): string {
+  const code = getSadaqahFrameCurrencyCode(frame);
+  return `${code} ${Math.round(amount || 0).toLocaleString("en-US")}`;
+}
+
+function titleCaseFrameName(title: string | null | undefined): string {
+  const raw = String(title ?? "").trim();
+  if (!raw) return "Sadaqah";
+  return raw
+    .toLowerCase()
+    .split(/\s+/)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
 export function getSadaqahFrameFlowCardTitle(
   frame: SadaqahGoalFrameData,
 ): string {
   const fromItem = frame.items?.[0]?.title?.trim();
   if (fromItem) return fromItem;
+
+  const targetDisplay = frame.goal?.targetDisplay?.trim();
+  if (targetDisplay) {
+    return `${targetDisplay} Toward ${titleCaseFrameName(frame.title)}`;
+  }
+
   const targetLabel = frame.goal?.targetLabel?.trim();
   if (targetLabel) return targetLabel;
+
   const target = frame.goal?.targetAmount ?? frame.goal?.target ?? null;
-  const currency = frame.goal?.currencyCode ?? "USD";
   if (typeof target === "number" && target > 0) {
-    return `${formatReviewCurrencyAmount(currency, target)} Toward Missed Zakat`;
+    return `${formatSadaqahFrameCurrencyAmount(frame, target)} Toward ${titleCaseFrameName(frame.title)}`;
   }
-  return frame.title?.trim() || "Missed Zakat";
+  return frame.title?.trim() || "Sadaqah";
 }
 
 export function getSadaqahFrameRemainingAmount(
@@ -237,11 +289,154 @@ export function getSadaqahFrameRemainingAmount(
 export function getSadaqahFrameTotalSpentThisWeek(
   frame: SadaqahGoalFrameData,
 ): number {
-  const fromWeek = frame.week.totalSpent ?? frame.week.totalAmount;
+  const fromWeek =
+    frame.week.totalSpent ?? frame.week.totalAmount ?? frame.week.total;
   if (typeof fromWeek === "number" && Number.isFinite(fromWeek)) {
     return Math.max(0, fromWeek);
   }
   return (frame.week.days ?? []).reduce((sum, day) => sum + dayAmount(day), 0);
+}
+
+function resolveKaffarahDayCategory(
+  day: SadaqahGoalFrameDay,
+): "clothes" | "meals" | null {
+  const log = day.logs?.[0];
+  const hints = [
+    log?.kaffarahSubtype,
+    log?.kaffarahSubtypeLabel,
+    log?.category,
+    log?.icon,
+    day.icon,
+    ...(day.categories ?? []),
+  ]
+    .map((v) => String(v ?? "").trim().toUpperCase())
+    .filter(Boolean);
+
+  for (const hint of hints) {
+    if (
+      hint.includes("CLOTH") ||
+      hint === "ITEMS" ||
+      hint === "CLOTHING_ITEMS" ||
+      hint === "CLOTHING"
+    ) {
+      return "clothes";
+    }
+    if (hint.includes("MEAL") || hint === "MEALS" || hint === "FOOD") {
+      return "meals";
+    }
+  }
+
+  return dayAmount(day) > 0 ? "meals" : null;
+}
+
+export function mapKaffarahFrameDay(
+  day: SadaqahGoalFrameDay,
+  options?: { bestAmount?: number },
+): KaffarahDayProgress {
+  const count = dayAmount(day);
+  const state = String(day.state ?? "")
+    .trim()
+    .toUpperCase();
+  const isFuture =
+    state === "FUTURE" || resolveIsFutureDay(day);
+  const category = isFuture ? null : resolveKaffarahDayCategory(day);
+  const isLogged = count > 0 || isLoggedState(state);
+  const isBestDay =
+    Boolean(day.isBestDay) ||
+    (isLogged &&
+      !isFuture &&
+      typeof options?.bestAmount === "number" &&
+      options.bestAmount > 0 &&
+      count === options.bestAmount);
+
+  return {
+    day:
+      day.dayLabel ||
+      moment(normalizeDate(day.date), "YYYY-MM-DD").format("ddd"),
+    date: normalizeDate(day.date),
+    category,
+    count,
+    isToday: Boolean(day.isToday),
+    isFuture,
+    isBestDay,
+    isBlurDay: Boolean(day.isBlurred),
+    // Match Missed Zakat: explicit false blocks delete; omit/true + logged allows it.
+    canDelete: day.canDelete !== false && isLogged && !isFuture,
+  };
+}
+
+export function mapKaffarahFrameWeekDays(
+  frame: SadaqahGoalFrameData,
+): KaffarahDayProgress[] {
+  const days = frame.week?.days ?? [];
+  const amounts = days.map(dayAmount);
+  const bestAmount = amounts.reduce((max, n) => Math.max(max, n), 0);
+  return days.map((day) => mapKaffarahFrameDay(day, { bestAmount }));
+}
+
+export type KaffarahFrameWeekSummary = {
+  weekDays: KaffarahDayProgress[];
+  weekRangeLabel: string;
+  weekFraction: string;
+  totalThisWeek: number;
+  streakDays: number;
+  selectedDayIndex: number;
+  motivationalQuote?: string;
+};
+
+export function mapKaffarahFrameWeekSummary(
+  frame: SadaqahGoalFrameData,
+): KaffarahFrameWeekSummary {
+  return {
+    weekDays: mapKaffarahFrameWeekDays(frame),
+    weekRangeLabel: getSadaqahFrameWeekRangeLabel(frame),
+    weekFraction: getSadaqahFrameWeekFraction(frame),
+    totalThisWeek: getSadaqahFrameTotalSpentThisWeek(frame),
+    streakDays: getSadaqahFrameWeekStreakDays(frame),
+    selectedDayIndex: getSadaqahFrameTodayIndex(frame),
+    motivationalQuote: frame.week.motivation?.message?.trim() || undefined,
+  };
+}
+
+export const KAFFARAH_LOADING_WEEK_SUMMARY: KaffarahFrameWeekSummary = {
+  weekDays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => ({
+    day,
+    category: null,
+    count: 0,
+  })),
+  weekRangeLabel: "---",
+  weekFraction: "---",
+  totalThisWeek: 0,
+  streakDays: 0,
+  selectedDayIndex: 0,
+};
+
+/** Prefer frame item title; else build from kaffarah meals/clothing targets. */
+export function getKaffarahFrameFlowCardTitle(
+  frame: SadaqahGoalFrameData,
+): string {
+  const fromItem = frame.items?.[0]?.title?.trim();
+  if (fromItem) return fromItem;
+
+  const targetLabel = frame.goal?.targetLabel?.trim();
+  if (targetLabel) return targetLabel;
+
+  const meals = frame.goal?.kaffarah?.meals?.target ?? 0;
+  const clothing = frame.goal?.kaffarah?.clothing?.target ?? 0;
+  const parts: string[] = [];
+  if (typeof meals === "number" && meals > 0) {
+    parts.push(`${meals} Meal${meals === 1 ? "" : "s"}`);
+  }
+  if (typeof clothing === "number" && clothing > 0) {
+    parts.push(
+      `${clothing} Piece${clothing === 1 ? "" : "s"} of Clothing`,
+    );
+  }
+  if (parts.length > 0) {
+    return `${parts.join(" & ")} for Those in Need`;
+  }
+
+  return getSadaqahFrameFlowCardTitle(frame);
 }
 
 export function mapMissedZakatFrameDay(
@@ -322,3 +517,463 @@ export const MISSED_ZAKAT_LOADING_WEEK_SUMMARY: MissedZakatFrameWeekSummary = {
   remainingAmount: 0,
   selectedDayIndex: 0,
 };
+
+export function mapFidyaFrameDay(
+  day: SadaqahGoalFrameDay,
+  options?: { bestAmount?: number },
+): FidyaDayProgress {
+  const count = dayAmount(day);
+  const state = String(day.state ?? "")
+    .trim()
+    .toUpperCase();
+  const isFuture = state === "FUTURE" || resolveIsFutureDay(day);
+  const isLogged = count > 0 || isLoggedState(state);
+  const isBestDay =
+    Boolean(day.isBestDay) ||
+    (isLogged &&
+      !isFuture &&
+      typeof options?.bestAmount === "number" &&
+      options.bestAmount > 0 &&
+      count === options.bestAmount);
+
+  return {
+    day:
+      day.dayLabel ||
+      moment(normalizeDate(day.date), "YYYY-MM-DD").format("ddd"),
+    date: normalizeDate(day.date),
+    count,
+    isToday: Boolean(day.isToday),
+    isFuture,
+    isBestDay,
+    isBlurDay: Boolean(day.isBlurred),
+    canDelete: day.canDelete !== false && isLogged && !isFuture,
+  };
+}
+
+export function mapFidyaFrameWeekDays(
+  frame: SadaqahGoalFrameData,
+): FidyaDayProgress[] {
+  const days = frame.week?.days ?? [];
+  const amounts = days.map(dayAmount);
+  const bestAmount = amounts.reduce((max, n) => Math.max(max, n), 0);
+  return days.map((day) => mapFidyaFrameDay(day, { bestAmount }));
+}
+
+export type FidyaFrameWeekSummary = {
+  weekDays: FidyaDayProgress[];
+  weekRangeLabel: string;
+  weekFraction: string;
+  totalThisWeek: number;
+  streakDays: number;
+  selectedDayIndex: number;
+  motivationalQuote?: string;
+};
+
+export function mapFidyaFrameWeekSummary(
+  frame: SadaqahGoalFrameData,
+): FidyaFrameWeekSummary {
+  return {
+    weekDays: mapFidyaFrameWeekDays(frame),
+    weekRangeLabel: getSadaqahFrameWeekRangeLabel(frame),
+    weekFraction: getSadaqahFrameWeekFraction(frame),
+    totalThisWeek: getSadaqahFrameTotalSpentThisWeek(frame),
+    streakDays: getSadaqahFrameWeekStreakDays(frame),
+    selectedDayIndex: getSadaqahFrameTodayIndex(frame),
+    motivationalQuote: frame.week?.motivation?.message?.trim() || undefined,
+  };
+}
+
+export const FIDYA_LOADING_WEEK_SUMMARY: FidyaFrameWeekSummary = {
+  weekDays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => ({
+    day,
+    count: 0,
+  })),
+  weekRangeLabel: "---",
+  weekFraction: "---",
+  totalThisWeek: 0,
+  streakDays: 0,
+  selectedDayIndex: 0,
+};
+
+/** Prefer frame item title; else "{N} Meals for Those in Need". */
+export function getFidyaFrameFlowCardTitle(frame: SadaqahGoalFrameData): string {
+  const fromItem = frame.items?.[0]?.title?.trim();
+  if (fromItem) return fromItem;
+
+  const targetLabel = frame.goal?.targetLabel?.trim();
+  if (targetLabel) return targetLabel;
+
+  const targetDisplay = frame.goal?.targetDisplay?.trim();
+  if (targetDisplay) return targetDisplay;
+
+  const meals = frame.goal?.targetAmount ?? frame.goal?.target ?? null;
+  if (typeof meals === "number" && meals > 0) {
+    return `${meals} Meal${meals === 1 ? "" : "s"} for Those in Need`;
+  }
+
+  return frame.title?.trim() || "Fidya for Missed Fasts";
+}
+
+/** UI kebab id (`food-relief`) → backend causeCategory (`FOOD_RELIEF`). */
+export function sadaqahUiCategoryToCauseCategory(uiId: string): string {
+  return String(uiId ?? "")
+    .trim()
+    .toUpperCase()
+    .replace(/-/g, "_");
+}
+
+function normalizeCategoryHint(raw: string | null | undefined): string {
+  return String(raw ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/_/g, "-")
+    .replace(/\s+/g, "-");
+}
+
+function dayCategoryHints(day: SadaqahGoalFrameDay): string[] {
+  const log = day.logs?.[0];
+  return [
+    log?.category,
+    log?.categoryLabel,
+    log?.icon,
+    day.icon,
+    ...(day.categories ?? []),
+  ]
+    .map((v) => normalizeCategoryHint(String(v ?? "")))
+    .filter(Boolean);
+}
+
+function resolveLillahCategory(
+  day: SadaqahGoalFrameDay,
+): LillahCategoryId | null {
+  const ids = new Set(LILLAH_CATEGORIES.map((c) => c.id));
+  for (const hint of dayCategoryHints(day)) {
+    if (ids.has(hint as LillahCategoryId)) return hint as LillahCategoryId;
+    for (const cat of LILLAH_CATEGORIES) {
+      if (hint.includes(cat.id) || cat.id.includes(hint)) return cat.id;
+      if (normalizeCategoryHint(cat.label) === hint) return cat.id;
+    }
+  }
+  return dayAmount(day) > 0 ? "food-relief" : null;
+}
+
+function resolveJariyahCategory(
+  day: SadaqahGoalFrameDay,
+): SadaqahJariyahCategoryId | null {
+  const ids = new Set(SADAQAH_JARIYAH_CATEGORIES.map((c) => c.id));
+  for (const hint of dayCategoryHints(day)) {
+    if (ids.has(hint as SadaqahJariyahCategoryId)) {
+      return hint as SadaqahJariyahCategoryId;
+    }
+    for (const cat of SADAQAH_JARIYAH_CATEGORIES) {
+      if (hint.includes(cat.id) || cat.id.includes(hint)) return cat.id;
+      if (normalizeCategoryHint(cat.label) === hint) return cat.id;
+    }
+  }
+  return dayAmount(day) > 0 ? "honoring-parents" : null;
+}
+
+function resolveVolunteeringCategory(
+  day: SadaqahGoalFrameDay,
+): VolunteeringCategoryId | null {
+  const ids = new Set(VOLUNTEERING_CATEGORIES.map((c) => c.id));
+  for (const hint of dayCategoryHints(day)) {
+    if (ids.has(hint as VolunteeringCategoryId)) {
+      return hint as VolunteeringCategoryId;
+    }
+    for (const cat of VOLUNTEERING_CATEGORIES) {
+      if (hint.includes(cat.id) || cat.id.includes(hint)) return cat.id;
+      if (normalizeCategoryHint(cat.label) === hint) return cat.id;
+    }
+  }
+  const minutes = dayMinutes(day);
+  return minutes > 0 ? "distributing-food" : null;
+}
+
+function dayMinutes(day: SadaqahGoalFrameDay): number {
+  if (typeof day.minutes === "number" && Number.isFinite(day.minutes)) {
+    return Math.max(0, Math.round(day.minutes));
+  }
+  const logMinutes = day.logs?.[0]?.durationMinutes;
+  if (typeof logMinutes === "number" && Number.isFinite(logMinutes)) {
+    return Math.max(0, Math.round(logMinutes));
+  }
+  // Some payloads store hours in `amount` for volunteering.
+  const amount = dayAmount(day);
+  if (amount > 0 && amount < 24) {
+    return Math.round(amount * 60);
+  }
+  return Math.max(0, Math.round(amount));
+}
+
+export function mapLillahFrameDay(
+  day: SadaqahGoalFrameDay,
+  options?: { bestAmount?: number },
+): LillahDayProgress {
+  const amount = dayAmount(day);
+  const state = String(day.state ?? "")
+    .trim()
+    .toUpperCase();
+  const isFuture = state === "FUTURE" || resolveIsFutureDay(day);
+  const category = isFuture ? null : resolveLillahCategory(day);
+  const isLogged = amount > 0 || isLoggedState(state);
+  const isBestDay =
+    Boolean(day.isBestDay) ||
+    (isLogged &&
+      !isFuture &&
+      typeof options?.bestAmount === "number" &&
+      options.bestAmount > 0 &&
+      amount === options.bestAmount);
+
+  return {
+    day:
+      day.dayLabel ||
+      moment(normalizeDate(day.date), "YYYY-MM-DD").format("ddd"),
+    date: normalizeDate(day.date),
+    category,
+    amount,
+    isToday: Boolean(day.isToday),
+    isFuture,
+    isBestDay,
+    isBlurDay: Boolean(day.isBlurred),
+    canDelete: day.canDelete !== false && isLogged && !isFuture,
+  };
+}
+
+export function mapLillahFrameWeekDays(
+  frame: SadaqahGoalFrameData,
+): LillahDayProgress[] {
+  const days = frame.week?.days ?? [];
+  const amounts = days.map(dayAmount);
+  const bestAmount = amounts.reduce((max, n) => Math.max(max, n), 0);
+  return days.map((day) => mapLillahFrameDay(day, { bestAmount }));
+}
+
+export type LillahFrameWeekSummary = {
+  weekDays: LillahDayProgress[];
+  weekRangeLabel: string;
+  weekFraction: string;
+  totalThisWeek: number;
+  streakDays: number;
+  selectedDayIndex: number;
+  motivationalQuote?: string;
+};
+
+export function mapLillahFrameWeekSummary(
+  frame: SadaqahGoalFrameData,
+): LillahFrameWeekSummary {
+  return {
+    weekDays: mapLillahFrameWeekDays(frame),
+    weekRangeLabel: getSadaqahFrameWeekRangeLabel(frame),
+    weekFraction: getSadaqahFrameWeekFraction(frame),
+    totalThisWeek: getSadaqahFrameTotalSpentThisWeek(frame),
+    streakDays: getSadaqahFrameWeekStreakDays(frame),
+    selectedDayIndex: getSadaqahFrameTodayIndex(frame),
+    motivationalQuote: frame.week?.motivation?.message?.trim() || undefined,
+  };
+}
+
+export const LILLAH_LOADING_WEEK_SUMMARY: LillahFrameWeekSummary = {
+  weekDays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => ({
+    day,
+    category: null,
+    amount: 0,
+  })),
+  weekRangeLabel: "---",
+  weekFraction: "---",
+  totalThisWeek: 0,
+  streakDays: 0,
+  selectedDayIndex: 0,
+};
+
+export function mapSadaqahJariyahFrameDay(
+  day: SadaqahGoalFrameDay,
+  options?: { bestAmount?: number },
+): SadaqahJariyahDayProgress {
+  const amount = dayAmount(day);
+  const state = String(day.state ?? "")
+    .trim()
+    .toUpperCase();
+  const isFuture = state === "FUTURE" || resolveIsFutureDay(day);
+  const category = isFuture ? null : resolveJariyahCategory(day);
+  const isLogged = amount > 0 || isLoggedState(state);
+  const isBestDay =
+    Boolean(day.isBestDay) ||
+    (isLogged &&
+      !isFuture &&
+      typeof options?.bestAmount === "number" &&
+      options.bestAmount > 0 &&
+      amount === options.bestAmount);
+
+  return {
+    day:
+      day.dayLabel ||
+      moment(normalizeDate(day.date), "YYYY-MM-DD").format("ddd"),
+    date: normalizeDate(day.date),
+    category,
+    amount,
+    isToday: Boolean(day.isToday),
+    isFuture,
+    isBestDay,
+    isBlurDay: Boolean(day.isBlurred),
+    canDelete: day.canDelete !== false && isLogged && !isFuture,
+  };
+}
+
+export function mapSadaqahJariyahFrameWeekDays(
+  frame: SadaqahGoalFrameData,
+): SadaqahJariyahDayProgress[] {
+  const days = frame.week?.days ?? [];
+  const amounts = days.map(dayAmount);
+  const bestAmount = amounts.reduce((max, n) => Math.max(max, n), 0);
+  return days.map((day) => mapSadaqahJariyahFrameDay(day, { bestAmount }));
+}
+
+export type SadaqahJariyahFrameWeekSummary = {
+  weekDays: SadaqahJariyahDayProgress[];
+  weekRangeLabel: string;
+  weekFraction: string;
+  totalThisWeek: number;
+  streakDays: number;
+  selectedDayIndex: number;
+  motivationalQuote?: string;
+};
+
+export function mapSadaqahJariyahFrameWeekSummary(
+  frame: SadaqahGoalFrameData,
+): SadaqahJariyahFrameWeekSummary {
+  return {
+    weekDays: mapSadaqahJariyahFrameWeekDays(frame),
+    weekRangeLabel: getSadaqahFrameWeekRangeLabel(frame),
+    weekFraction: getSadaqahFrameWeekFraction(frame),
+    totalThisWeek: getSadaqahFrameTotalSpentThisWeek(frame),
+    streakDays: getSadaqahFrameWeekStreakDays(frame),
+    selectedDayIndex: getSadaqahFrameTodayIndex(frame),
+    motivationalQuote: frame.week?.motivation?.message?.trim() || undefined,
+  };
+}
+
+export const SADAQAH_JARIYAH_LOADING_WEEK_SUMMARY: SadaqahJariyahFrameWeekSummary =
+  {
+    weekDays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => ({
+      day,
+      category: null,
+      amount: 0,
+    })),
+    weekRangeLabel: "---",
+    weekFraction: "---",
+    totalThisWeek: 0,
+    streakDays: 0,
+    selectedDayIndex: 0,
+  };
+
+export function mapVolunteeringFrameDay(
+  day: SadaqahGoalFrameDay,
+  options?: { bestMinutes?: number },
+): VolunteeringDayProgress {
+  const minutesLogged = dayMinutes(day);
+  const state = String(day.state ?? "")
+    .trim()
+    .toUpperCase();
+  const isFuture = state === "FUTURE" || resolveIsFutureDay(day);
+  const category = isFuture ? null : resolveVolunteeringCategory(day);
+  const isLogged = minutesLogged > 0 || isLoggedState(state);
+  const isBestDay =
+    Boolean(day.isBestDay) ||
+    (isLogged &&
+      !isFuture &&
+      typeof options?.bestMinutes === "number" &&
+      options.bestMinutes > 0 &&
+      minutesLogged === options.bestMinutes);
+
+  return {
+    day:
+      day.dayLabel ||
+      moment(normalizeDate(day.date), "YYYY-MM-DD").format("ddd"),
+    date: normalizeDate(day.date),
+    category,
+    minutesLogged,
+    isToday: Boolean(day.isToday),
+    isFuture,
+    isBestDay,
+    isBlurDay: Boolean(day.isBlurred),
+    canDelete: day.canDelete !== false && isLogged && !isFuture,
+  };
+}
+
+export function mapVolunteeringFrameWeekDays(
+  frame: SadaqahGoalFrameData,
+): VolunteeringDayProgress[] {
+  const days = frame.week?.days ?? [];
+  const minutes = days.map(dayMinutes);
+  const bestMinutes = minutes.reduce((max, n) => Math.max(max, n), 0);
+  return days.map((day) => mapVolunteeringFrameDay(day, { bestMinutes }));
+}
+
+export type VolunteeringFrameWeekSummary = {
+  weekDays: VolunteeringDayProgress[];
+  weekRangeLabel: string;
+  weekFraction: string;
+  totalMinutesThisWeek: number;
+  streakDays: number;
+  selectedDayIndex: number;
+  motivationalQuote?: string;
+};
+
+export function mapVolunteeringFrameWeekSummary(
+  frame: SadaqahGoalFrameData,
+): VolunteeringFrameWeekSummary {
+  const weekDays = mapVolunteeringFrameWeekDays(frame);
+  const fromWeekTotal =
+    typeof frame.week?.total === "number" && Number.isFinite(frame.week.total)
+      ? Math.round(frame.week.total)
+      : null;
+  // Prefer summing day minutes; week.total may already be hours for volunteering.
+  const summed = weekDays.reduce((sum, d) => sum + d.minutesLogged, 0);
+  const totalMinutesThisWeek =
+    summed > 0
+      ? summed
+      : fromWeekTotal != null && fromWeekTotal < 48
+        ? Math.round(fromWeekTotal * 60)
+        : (fromWeekTotal ?? 0);
+
+  return {
+    weekDays,
+    weekRangeLabel: getSadaqahFrameWeekRangeLabel(frame),
+    weekFraction: getSadaqahFrameWeekFraction(frame),
+    totalMinutesThisWeek,
+    streakDays: getSadaqahFrameWeekStreakDays(frame),
+    selectedDayIndex: getSadaqahFrameTodayIndex(frame),
+    motivationalQuote: frame.week?.motivation?.message?.trim() || undefined,
+  };
+}
+
+export const VOLUNTEERING_LOADING_WEEK_SUMMARY: VolunteeringFrameWeekSummary = {
+  weekDays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => ({
+    day,
+    category: null,
+    minutesLogged: 0,
+  })),
+  weekRangeLabel: "---",
+  weekFraction: "---",
+  totalMinutesThisWeek: 0,
+  streakDays: 0,
+  selectedDayIndex: 0,
+};
+
+export function getVolunteeringFrameFlowCardTitle(
+  frame: SadaqahGoalFrameData,
+): string {
+  const fromItem = frame.items?.[0]?.title?.trim();
+  if (fromItem) return fromItem;
+
+  const targetLabel = frame.goal?.targetLabel?.trim();
+  if (targetLabel) return targetLabel;
+
+  const hours = frame.goal?.targetAmount ?? frame.goal?.target ?? null;
+  if (typeof hours === "number" && hours > 0) {
+    return `${hours} Hour${hours === 1 ? "" : "s"} of\nVolunteering`;
+  }
+
+  return frame.title?.trim() || "Volunteering Services";
+}

@@ -18,6 +18,8 @@ import { fonts } from "@/assets/fonts";
  * Android: same variant when possible; uppercase bundled SF Pro as fallback.
  *
  * Spec (set-personalized-goals header): 18 / 600 / line 22.
+ * Defaults: fontSize 18, letterSpacing 0.4. lineHeight is only applied when
+ * passed — so existing call sites keep their prior vertical metrics.
  * Default tracking `0.4` opens system small-caps to match Figma’s airier feel
  * (RN SF small-caps at 0 reads tighter / more “stretched” than the design).
  * Family: SF Pro Text per design specs.
@@ -43,17 +45,20 @@ export function getFigmaForcedSmallCapsTextStyle(
 ): TextStyle {
   const {
     fontSize = 18,
-    lineHeight = 22,
+    lineHeight,
     letterSpacing = 0.4,
     color,
     textAlign,
   } = options;
 
+  // Only apply lineHeight when the caller passes it — otherwise callers that
+  // previously had no lineHeight (e.g. card titles) would inherit a 22 default
+  // and optically change size.
   const base: TextStyle = {
     fontSize,
-    lineHeight,
     letterSpacing,
     fontWeight: "600",
+    ...(lineHeight != null ? { lineHeight } : null),
     ...(color != null ? { color } : null),
     ...(textAlign != null ? { textAlign } : null),
   };

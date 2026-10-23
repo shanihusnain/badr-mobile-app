@@ -32,6 +32,7 @@ import { useLogSadaqahGoal } from "@/src/api/mutations/useLogSadaqahGoal";
 import {
   getSadaqahFrameAchievementLabel,
   getSadaqahFrameAchievementPct,
+  getSadaqahFrameCurrencyCode,
   getSadaqahFrameFlowCardTitle,
   sadaqahFrameShowsInsights,
 } from "@/src/utils/sadaqahGoalFrameMap";
@@ -107,12 +108,10 @@ export default function MissedZakatLoggingFlow({
     return getSadaqahFrameAchievementLabel(frame, t);
   }, [frame, t]);
 
+  const currencyCode = getSadaqahFrameCurrencyCode(frame);
   const summaryTitle = frame
     ? getSadaqahFrameFlowCardTitle(frame)
-    : "$100 Toward Missed Zakat";
-  const currencyCode = (frame?.goal?.currencyCode || "USD")
-    .trim()
-    .toUpperCase();
+    : `${currencyCode} Toward Missed Zakat`;
   const achievementPct = getSadaqahFrameAchievementPct(frame);
   const showInsights = frame ? sadaqahFrameShowsInsights(frame) : false;
   const canLog = frame ? Boolean(frame.items?.[0]?.canLog ?? true) : true;
