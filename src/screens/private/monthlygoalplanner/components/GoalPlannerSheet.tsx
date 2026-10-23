@@ -1877,10 +1877,23 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
 
   const confirmDawoodFastGoal = useCallback(() => {
     setDawoodFastConfirmModalVisible(false);
-    const dawoodGoal = fastingGoals.find(
-      (goal) => goal.id === DAWOOD_FAST_GOAL_ID,
-    );
-    handleFastingToggle(DAWOOD_FAST_GOAL_ID, dawoodGoal?.fastingType, true);
+    // Defer enabling until after the iOS FullWindowOverlay modal unmounts.
+    // Mounting ProphetDawoodFastGoalSelection (with LayoutAnimation) in the same
+    // React Native commit as that subtree removal aborts Reanimated's
+    // LayoutAnimationsProxy (SIGABRT in startAnimationsRecursively).
+    // InteractionManager was removed from RN — double rAF waits for that paint.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const dawoodGoal = fastingGoals.find(
+          (goal) => goal.id === DAWOOD_FAST_GOAL_ID,
+        );
+        handleFastingToggle(
+          DAWOOD_FAST_GOAL_ID,
+          dawoodGoal?.fastingType,
+          true,
+        );
+      });
+    });
   }, [fastingGoals, handleFastingToggle]);
 
   const handleSadaqahToggle = useCallback(

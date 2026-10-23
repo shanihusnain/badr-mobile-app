@@ -20,7 +20,12 @@ export function useGoalSelectionOpenState(
 
   useEffect(() => {
     if (openOnMount) {
-      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      // Already open from initial state (e.g. mounted with openOnMount) — skip
+      // LayoutAnimation so we don't race Reanimated layout proxies while a
+      // parent overlay (Dawood confirm modal) is still unmounting.
+      if (!isOpenRef.current) {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      }
       setIsOpen(true);
       return;
     }
