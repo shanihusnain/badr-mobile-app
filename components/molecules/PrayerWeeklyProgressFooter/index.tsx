@@ -206,10 +206,10 @@ const styles = StyleSheet.create({
   footerRowWeekOne: {
     flexDirection: "row",
     alignItems: "flex-start",
-    gap: 12,
+    gap: 25,
     width: "100%",
     minWidth: 0,
-    paddingHorizontal: 4,
+    paddingHorizontal: 9.5,
   },
   footerRowWeekOneCompact: {
     // Extra space between streak and quote (shifts quote a little right).
