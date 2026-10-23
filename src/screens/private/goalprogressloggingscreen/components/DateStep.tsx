@@ -43,6 +43,7 @@ export const DateStep: React.FC<DateStepProps> = ({
   return (
     <View style={styles.dateRow}>
       <TouchableOpacity
+        style={[styles.dateChevronHit, styles.dateChevronHitStart]}
         onPress={handleShiftPrev}
         disabled={!canGoPrev}
         hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
@@ -53,8 +54,13 @@ export const DateStep: React.FC<DateStepProps> = ({
           color={canGoPrev ? Colors.light.white : "rgba(255, 255, 255, 0.55)"}
         />
       </TouchableOpacity>
-      <Text style={styles.dateMainText}>{dateLabel}</Text>
+      <View style={styles.dateLabelCenter}>
+        <Text style={styles.dateMainText} numberOfLines={1}>
+          {dateLabel}
+        </Text>
+      </View>
       <TouchableOpacity
+        style={[styles.dateChevronHit, styles.dateChevronHitEnd]}
         onPress={handleShiftNext}
         disabled={!canGoNext}
         hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
