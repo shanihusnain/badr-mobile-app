@@ -129,6 +129,10 @@ export function formatProgressLoggingDateLabel(
   todayLabel: string,
   tomorrowLabel?: string,
 ): string {
+  // Today: label only (no date). Other days: "Thu, Oct 22".
+  if (selectedDate === todayString) return todayLabel;
+  const datePart = moment(selectedDate, "YYYY-MM-DD").format("MMM D");
+  const tomorrowString = moment(todayString, "YYYY-MM-DD")
   const selected = String(selectedDate ?? "").slice(0, 10);
   const today = String(todayString ?? "").slice(0, 10);
   if (selected === today) return todayLabel;

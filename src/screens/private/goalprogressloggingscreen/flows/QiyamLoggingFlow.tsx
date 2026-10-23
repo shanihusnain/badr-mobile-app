@@ -578,9 +578,6 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
   const canGoForward = !dayDetailLoadingState && !isLastStep;
   const dateLabel = useMemo(() => {
     const datePart = moment(selectedDate, "YYYY-MM-DD").format("MMM D");
-    if (selectedDate === todayString) {
-      return `${t("progressLogging.today")}, ${datePart}`;
-    }
     const yesterdayString = moment(todayString, "YYYY-MM-DD")
       .subtract(1, "day")
       .format("YYYY-MM-DD");
