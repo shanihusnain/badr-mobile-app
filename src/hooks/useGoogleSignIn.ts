@@ -7,9 +7,10 @@ import {
 } from "@/src/utils/needsSocialProfileCompletion";
 import { useRouter } from "expo-router";
 import { useCallback, useState } from "react";
+import { Platform } from "react-native";
 
 const webClientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? "";
-const iosClientId = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID;
+const iosClientId = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ?? "";
 
 let isConfigured = false;
 
@@ -19,9 +20,11 @@ const getGoogleSignIn = () =>
 const configureGoogleSignIn = () => {
   if (isConfigured || !webClientId) return;
 
+  // iOS requires iosClientId (or GoogleService-Info.plist). Without it,
+  // native configure() rejects with code "configure".
   getGoogleSignIn().GoogleSignin.configure({
     webClientId,
-    ...(iosClientId ? { iosClientId } : {}),
+    ...(Platform.OS === "ios" && iosClientId ? { iosClientId } : {}),
   });
   isConfigured = true;
 };
@@ -41,6 +44,14 @@ export const useGoogleSignIn = () => {
       return;
     }
 
+    if (Platform.OS === "ios" && !iosClientId) {
+      showToast(
+        "error",
+        "Google iOS client ID is not configured (EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID)",
+      );
+      return;
+    }
+
     const {
       GoogleSignin,
       isErrorWithCode,
@@ -53,9 +64,11 @@ export const useGoogleSignIn = () => {
     try {
       setIsPrompting(true);
 
-      await GoogleSignin.hasPlayServices({
-        showPlayServicesUpdateDialog: true,
-      });
+      if (Platform.OS === "android") {
+        await GoogleSignin.hasPlayServices({
+          showPlayServicesUpdateDialog: true,
+        });
+      }
 
       const response = await GoogleSignin.signIn();
 
@@ -122,8 +135,20 @@ export const useGoogleSignIn = () => {
         }
       }
 
-      console.error("[Google Login]", JSON.stringify(error, null, 2));
-      showToast("error", "Unable to complete Google sign-in");
+      const message =
+        error && typeof error === "object" && "message" in error
+          ? String((error as { message?: string }).message ?? "")
+          : "";
+      console.error(
+        "[Google Login]",
+        message || JSON.stringify(error, null, 2),
+      );
+      showToast(
+        "error",
+        message.includes("URL schemes")
+          ? "Google Sign-In URL scheme missing — rebuild the iOS app"
+          : "Unable to complete Google sign-in",
+      );
     } finally {
       setIsPrompting(false);
     }
@@ -131,7 +156,8 @@ export const useGoogleSignIn = () => {
 
   return {
     signInWithGoogle,
-    isReady: !!webClientId,
+    isReady:
+      !!webClientId && (Platform.OS !== "ios" || !!iosClientId),
     isLoading: isPrompting || isExchanging,
   };
 };

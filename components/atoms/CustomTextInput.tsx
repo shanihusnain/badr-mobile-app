@@ -14,10 +14,7 @@ import { Controller } from "react-hook-form";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import { useTranslation } from "react-i18next";
-import {
-  ConfirmPasswordEyeIcon,
-  PasswordEyeIcon,
-} from "@/assets/icons";
+import { ConfirmPasswordEyeIcon, PasswordEyeIcon } from "@/assets/icons";
 interface CustomTextInputProps {
   label?: string;
   placeholder: string;
@@ -138,7 +135,10 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
             autoCapitalize={secureTextEntry ? "none" : autoCapitalize}
             autoCorrect={false}
             spellCheck={false}
-            textContentType={secureTextEntry || showEye ? "password" : undefined}
+            cursorColor={Colors.light.green}
+            textContentType={
+              secureTextEntry || showEye ? "password" : undefined
+            }
             autoComplete={secureTextEntry || showEye ? "password" : undefined}
             maxLength={maxLength}
             editable={editable}
