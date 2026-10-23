@@ -387,7 +387,7 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: 14,
     backgroundColor: Colors.light.greybuttonBackground,
-    paddingHorizontal: 8,
+    paddingHorizontal: 4,
     paddingVertical: 16,
     // Keep day→stats gap tight; daysRow paddingBottom reserves delete bin space.
     gap: 4,
@@ -399,7 +399,7 @@ const styles = StyleSheet.create({
     overflow: "visible",
     // Always reserve space for the delete bin so long-press doesn't push stats down.
     paddingBottom: 1,
-    paddingTop: 24 ,
+    paddingTop: 24,
   },
   dayColumn: {
     flex: 1,
@@ -475,7 +475,7 @@ const styles = StyleSheet.create({
   },
   dayLabel: {
     color: Colors.light.subtext,
-    fontSize: 11,
+    fontSize: 11.5,
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
     marginTop: 3,
@@ -502,7 +502,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 8,
     flexWrap: "nowrap",
-    paddingLeft: 7,
   },
   statsText: {
     color: Colors.light.white,

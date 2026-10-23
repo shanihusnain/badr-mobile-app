@@ -197,6 +197,7 @@ const styles = StyleSheet.create({
   footerSectionWeekOne: {
     width: "100%",
     paddingTop: PRAYER_WEEKLY_STATS_FOOTER_GAP,
+    alignSelf: "center",
   },
   footerSectionLaterWeeks: {
     width: "100%",
@@ -223,8 +224,7 @@ const styles = StyleSheet.create({
     gap: 10,
     width: "100%",
     minWidth: 0,
-    paddingLeft: 21,
-    paddingRight: 4,
+    alignSelf: "center",
   },
   streakBadge: {
     flexDirection: "row",

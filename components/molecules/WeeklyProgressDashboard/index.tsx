@@ -184,9 +184,7 @@ export const WeeklyProgressDashboard: React.FC<
                 const isFuture = isFutureDayProgress(day);
                 const canDelete = dayAllowsDelete(day);
                 const isMarkedForDeletion =
-                  canDelete &&
-                  !!day.date &&
-                  selectForDeletion === day.date;
+                  canDelete && !!day.date && selectForDeletion === day.date;
                 const ringDay: DayProgress = { ...day, isFuture };
 
                 return (
@@ -198,7 +196,8 @@ export const WeeklyProgressDashboard: React.FC<
                       isMarkedForDeletion && styles.dayColumnMarkedForDeletion,
                     ]}
                     onLongPress={() => {
-                      if (loading || isFuture || !day.date || !canDelete) return;
+                      if (loading || isFuture || !day.date || !canDelete)
+                        return;
                       setSelectForDeletion((prev) =>
                         prev === day.date ? "" : (day.date ?? ""),
                       );
