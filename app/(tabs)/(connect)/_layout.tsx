@@ -3,6 +3,10 @@ import { HeaderWithImageTitleAndBell } from "@/components/atoms/HeaderWithImageT
 import { Colors } from "@/constants/theme";
 import { Stack } from "expo-router";
 
+export const unstable_settings = {
+  anchor: "index",
+};
+
 export default function ConnectLayout() {
   return (
     <Stack
@@ -10,7 +14,6 @@ export default function ConnectLayout() {
         headerStyle: { backgroundColor: Colors.light.blackBackground },
         headerShadowVisible: false,
       }}
-      initialRouteName="index"
     >
       <Stack.Screen
         name="index"

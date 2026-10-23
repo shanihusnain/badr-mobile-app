@@ -6,6 +6,7 @@
     "jsx": "react-native",
     "strict": true,
     "resolveJsonModule": true,
+    "customConditions": ["react-native", "react-native-legacy-deep-imports"],
     "paths": {
       "@/*": [
         "./*"

@@ -12,7 +12,7 @@ export default function CancelMembershipConfirmationScreen() {
 
   const handleBackToHome = () => {
     // Navigate to the main home screen of the app
-    router.replace("/(tabs)");
+    router.replace("/(tabs)/(home)");
   };
 
   return (

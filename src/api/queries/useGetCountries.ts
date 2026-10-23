@@ -42,22 +42,21 @@ function isRestrictedCountry(country: ApiCountry, name: string): boolean {
 function mapCountries(payload: unknown): CountryDropdownOption[] {
   if (!Array.isArray(payload)) return [];
 
-  const mapped = payload
-    .map((item) => {
-      if (!item || typeof item !== "object") return null;
-      const country = item as ApiCountry;
-      const name = typeof country.name === "string" ? country.name.trim() : "";
-      if (!name) return null;
-      if (isRestrictedCountry(country, name)) return null;
+  const mapped: CountryDropdownOption[] = [];
+  for (const item of payload) {
+    if (!item || typeof item !== "object") continue;
+    const country = item as ApiCountry;
+    const name = typeof country.name === "string" ? country.name.trim() : "";
+    if (!name) continue;
+    if (isRestrictedCountry(country, name)) continue;
 
-      return {
-        label: name,
-        value: name,
-        flag: typeof country.flag === "string" ? country.flag : undefined,
-        currencies: Array.isArray(country.currencies) ? country.currencies : [],
-      } satisfies CountryDropdownOption;
-    })
-    .filter((item): item is CountryDropdownOption => item != null);
+    mapped.push({
+      label: name,
+      value: name,
+      flag: typeof country.flag === "string" ? country.flag : undefined,
+      currencies: Array.isArray(country.currencies) ? country.currencies : [],
+    });
+  }
 
   return mapped.sort((a, b) => a.label.localeCompare(b.label));
 }

@@ -207,8 +207,8 @@ export function QuranHoursPastAchievements({
       false;
     if (!canBack) return;
     const nextStart = shiftPrayerAchievementsPeriodStart(
-      achievementsApiData.periodStart,
-      achievementsApiData.periodEnd,
+      achievementsApiData.periodStart ?? "",
+      achievementsApiData.periodEnd ?? "",
       -1,
     );
     setPeriodStartParam(nextStart);
@@ -222,8 +222,8 @@ export function QuranHoursPastAchievements({
       false;
     if (!canForward) return;
     const nextStart = shiftPrayerAchievementsPeriodStart(
-      achievementsApiData.periodStart,
-      achievementsApiData.periodEnd,
+      achievementsApiData.periodStart ?? "",
+      achievementsApiData.periodEnd ?? "",
       1,
     );
     setPeriodStartParam(nextStart);

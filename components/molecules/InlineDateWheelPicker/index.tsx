@@ -1,6 +1,7 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
 import moment from "moment";
+// @ts-expect-error moment locale ships without type declarations
 import "moment/locale/ar";
 moment.locale("en");
 import React, { useCallback, useEffect, useMemo, useRef } from "react";

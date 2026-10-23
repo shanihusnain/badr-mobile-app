@@ -1023,13 +1023,16 @@ export const GoalProgressLoggingScreen = ({
 
   useLayoutEffect(() => {
     if (!fromDailyProgress || !dailyProgressCategory) return;
-    const unsubscribe = navigation.addListener("beforeRemove", () => {
+    // SDK 58: `beforeRemove` removed — observe completed removal instead.
+    const unsubscribe = navigation.addListener("removed", () => {
       setDailyProgressSheetReturn({
         view: "detail",
         category: dailyProgressCategory,
       });
     });
-    return unsubscribe;
+    return () => {
+      queueMicrotask(unsubscribe);
+    };
   }, [navigation, fromDailyProgress, dailyProgressCategory]);
 
   if (!goalId) {

@@ -20,7 +20,7 @@ import Toast from "react-native-toast-message";
 import { toastConfig } from "@/src/config/toastConfig";
 
 export const unstable_settings = {
-  initialRouteName: "index",
+  anchor: "index",
 };
 
 const AppTheme = {

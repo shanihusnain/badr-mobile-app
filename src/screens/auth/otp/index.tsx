@@ -14,7 +14,12 @@ import {
 } from "react-native";
 import { ImageBackground } from "expo-image";
 
-import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
+import {
+  useLocalSearchParams,
+  useNavigation,
+  usePreventRemove,
+  useRouter,
+} from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { styles } from "./style";
 import { useTranslation } from "react-i18next";
@@ -54,7 +59,29 @@ export default function OtpScreen() {
 
   const inputRefs = useRef<(TextInput | null)[]>([]);
   const isLeavingVerifyRef = useRef(false);
+  const disableBackPreventionRef = useRef<() => void>(() => {});
+  const [blockBackNav, setBlockBackNav] = useState(true);
   const navigation = useNavigation();
+
+  const allowLeaveAndNavigate = (navigate: () => void) => {
+    if (isLeavingVerifyRef.current) return;
+    isLeavingVerifyRef.current = true;
+    setBlockBackNav(false);
+    disableBackPreventionRef.current();
+    navigate();
+  };
+
+  // Hardware / gesture back: same destinations as header (createaccount / forgotpassword).
+  disableBackPreventionRef.current = usePreventRemove(blockBackNav, () => {
+    if (isLeavingVerifyRef.current) return;
+    allowLeaveAndNavigate(() => {
+      if (fromsignup === "true") {
+        router.replace("/(auth)/createaccount");
+        return;
+      }
+      router.replace("/(auth)/forgotpassword");
+    });
+  });
 
   const handleOtpChange = (value: string, index: number) => {
     const digits = value.replace(/\D/g, "");
@@ -154,19 +181,19 @@ export default function OtpScreen() {
           await updateUser({ ...authUser, emailVerified: true });
         }
 
-        // Skip beforeRemove → createaccount; go forward into private flow.
-        isLeavingVerifyRef.current = true;
-
-        // Prefer private entry when tokens exist (isAuthenticated can lag one frame).
-        router.replace("/(private)/greetingsscreen");
+        // Skip blocked back → createaccount; go forward into private flow.
+        allowLeaveAndNavigate(() => {
+          router.replace("/(private)/greetingsscreen");
+        });
       } else {
-        isLeavingVerifyRef.current = true;
-        router.push({
-          pathname: "/(auth)/confirmpassword",
-          params: {
-            email,
-            code,
-          },
+        allowLeaveAndNavigate(() => {
+          router.push({
+            pathname: "/(auth)/confirmpassword",
+            params: {
+              email,
+              code,
+            },
+          });
         });
       }
     } catch {
@@ -175,13 +202,13 @@ export default function OtpScreen() {
   };
 
   const leaveVerifyEmail = () => {
-    if (isLeavingVerifyRef.current) return;
-    isLeavingVerifyRef.current = true;
-    if (fromsignup === "true") {
-      router.replace("/(auth)/createaccount");
-      return;
-    }
-    router.replace("/(auth)/forgotpassword");
+    allowLeaveAndNavigate(() => {
+      if (fromsignup === "true") {
+        router.replace("/(auth)/createaccount");
+        return;
+      }
+      router.replace("/(auth)/forgotpassword");
+    });
   };
 
   useEffect(() => {
@@ -192,17 +219,6 @@ export default function OtpScreen() {
           : t("otpScreen.forgotPasswordTitle"),
     });
   }, [navigation, fromsignup, t]);
-
-  // Hardware / gesture back: same destinations as header (createaccount / forgotpassword).
-  useEffect(() => {
-    const unsubscribe = navigation.addListener("beforeRemove", (event) => {
-      if (isLeavingVerifyRef.current) return;
-      event.preventDefault();
-      leaveVerifyEmail();
-    });
-
-    return unsubscribe;
-  }, [navigation, fromsignup]);
 
   return (
     <View style={styles.container}>

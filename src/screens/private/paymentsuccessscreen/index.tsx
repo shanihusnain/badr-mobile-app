@@ -12,7 +12,7 @@ export default function PaymentSuccessScreen() {
 
   const handleBackToHome = () => {
     // Navigate back to the home tab. Adjust the path if needed.
-    router.replace("/(tabs)");
+    router.replace("/(tabs)/(home)");
   };
 
   return (

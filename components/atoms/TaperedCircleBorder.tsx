@@ -244,11 +244,13 @@ function useScaledPath(d: string | undefined, scale: number, translate = 0) {
     if (!d) return null;
     const path = Skia.Path.MakeFromSVGString(d);
     if (!path) return null;
-    path.transform(Skia.Matrix().scale(scale, scale));
+    const builder = Skia.PathBuilder.MakeFromPath(path).transform(
+      Skia.Matrix().scale(scale, scale),
+    );
     if (translate) {
-      path.offset(translate, translate);
+      builder.offset(translate, translate);
     }
-    return path;
+    return builder.build();
   }, [d, scale, translate]);
 }
 

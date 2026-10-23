@@ -237,12 +237,13 @@ function BarConnectorLine({
   // No line when every point is empty (no nights / no completed data).
   if (!points.some((point) => point.value > 0)) return null;
 
-  // Build a path connecting all points
-  const linePath = Skia.Path.Make();
+  // Build a path connecting all points (Skia 2.14+: mutable ops via PathBuilder)
+  const lineBuilder = Skia.PathBuilder.Make();
   points.forEach(({ x, y }, i) => {
-    if (i === 0) linePath.moveTo(x, y);
-    else linePath.lineTo(x, y);
+    if (i === 0) lineBuilder.moveTo(x, y);
+    else lineBuilder.lineTo(x, y);
   });
+  const linePath = lineBuilder.build();
 
   return (
     <Canvas

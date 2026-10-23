@@ -8,10 +8,14 @@ import BottomSheet from "@gorhom/bottom-sheet";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
-import { router, useLocalSearchParams, useNavigation } from "expo-router";
+import {
+  router,
+  useLocalSearchParams,
+  useNavigation,
+  usePreventRemove,
+} from "expo-router";
 import {
   useCallback,
-  useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -70,7 +74,8 @@ export const ManageTeam = () => {
   const [transferModalVisible, setTransferModalVisible] = useState(false);
   const [leaveModalVisible, setLeaveModalVisible] = useState(false);
   const [saveChangesVisible, setSaveChangesVisible] = useState(false);
-  const allowLeaveRef = useRef(false);
+  const [allowLeave, setAllowLeave] = useState(false);
+  const disableLeavePreventionRef = useRef<() => void>(() => {});
 
   const memberSheetRef = useRef<BottomSheet>(null);
 
@@ -84,8 +89,9 @@ export const ManageTeam = () => {
   );
 
   const leaveScreen = useCallback(() => {
-    allowLeaveRef.current = true;
+    setAllowLeave(true);
     setSaveChangesVisible(false);
+    disableLeavePreventionRef.current();
     if (navigation.canGoBack()) {
       navigation.goBack();
       return;
@@ -124,16 +130,12 @@ export const ManageTeam = () => {
     });
   }, [handleBackPress, navigation]);
 
-  useEffect(() => {
-    const unsubscribe = navigation.addListener("beforeRemove", (event) => {
-      if (allowLeaveRef.current || !isDescriptionDirty) {
-        return;
-      }
-      event.preventDefault();
+  disableLeavePreventionRef.current = usePreventRemove(
+    isDescriptionDirty && !allowLeave,
+    () => {
       setSaveChangesVisible(true);
-    });
-    return unsubscribe;
-  }, [isDescriptionDirty, navigation]);
+    },
+  );
 
   const pickImage = useCallback(async (target: "banner" | "logo") => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -190,7 +192,8 @@ export const ManageTeam = () => {
 
   const handleLeaveTeam = useCallback(() => {
     setLeaveModalVisible(false);
-    allowLeaveRef.current = true;
+    setAllowLeave(true);
+    disableLeavePreventionRef.current();
     router.replace("/(tabs)/(connect)");
   }, []);
 

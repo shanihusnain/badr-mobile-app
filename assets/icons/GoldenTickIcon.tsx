@@ -31,9 +31,10 @@ export const GoldenTickIcon = ({ size = 22 }: { size?: number }) => {
   const tickPath = useMemo(() => {
     const path = Skia.Path.MakeFromSVGString(TICK_PATH);
     if (!path) return null;
-    path.transform(Skia.Matrix().scale(scale, scale));
-    path.transform(Skia.Matrix().translate(padPx, padPx));
-    return path;
+    return Skia.PathBuilder.MakeFromPath(path)
+      .transform(Skia.Matrix().scale(scale, scale))
+      .transform(Skia.Matrix().translate(padPx, padPx))
+      .build();
   }, [padPx, scale]);
 
   if (!tickPath) return null;

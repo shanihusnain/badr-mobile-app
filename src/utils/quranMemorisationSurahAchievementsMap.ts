@@ -301,8 +301,8 @@ export function mapMemorisationSurahAchievementsToUi(
     incompleteMinutes: remainingAyahs,
     canNavigateBack: data.canNavigateBack ?? data.hasPrevious ?? false,
     canNavigateForward: data.canNavigateForward ?? data.hasNext ?? false,
-    periodStart: data.periodStart,
-    periodEnd: data.periodEnd,
+    periodStart: data.periodStart ?? "",
+    periodEnd: data.periodEnd ?? "",
   };
 
   const surahRecords =
