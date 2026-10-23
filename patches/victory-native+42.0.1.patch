@@ -1,0 +1,311 @@
+diff --git a/node_modules/victory-native/src/cartesian/components/BarGraphLabels.tsx b/node_modules/victory-native/src/cartesian/components/BarGraphLabels.tsx
+index 68cf841..0c86710 100644
+--- a/node_modules/victory-native/src/cartesian/components/BarGraphLabels.tsx
++++ b/node_modules/victory-native/src/cartesian/components/BarGraphLabels.tsx
+@@ -1,5 +1,5 @@
+ import React from "react";
+-import { Text, vec, type Color, type SkFont } from "@shopify/react-native-skia";
++import { Text, type Color, type SkFont } from "@shopify/react-native-skia";
+ import { getFontGlyphWidth } from "../../utils/getFontGlyphWidth";
+ import type { ChartBounds, MaybeNumber, PointsArray } from "../../types";
+ import { useCartesianChartContext } from "../contexts/CartesianChartContext";
+@@ -49,7 +49,7 @@ export const BarGraphLabels = ({
+       baselineX: xScale(0),
+     });
+     const labelOrigin = labelRotate
+-      ? vec(labelPosition.x + labelWidth / 2, labelPosition.y - fontSize / 2)
++      ? { x: labelPosition.x + labelWidth / 2, y: labelPosition.y - fontSize / 2 }
+       : undefined;
+     const labelTransform = labelRotate
+       ? [{ rotate: (Math.PI / 180) * labelRotate }]
+diff --git a/node_modules/victory-native/src/cartesian/components/CartesianAxis.tsx b/node_modules/victory-native/src/cartesian/components/CartesianAxis.tsx
+index 4609324..544ef81 100644
+--- a/node_modules/victory-native/src/cartesian/components/CartesianAxis.tsx
++++ b/node_modules/victory-native/src/cartesian/components/CartesianAxis.tsx
+@@ -1,12 +1,5 @@
+ import React, { useMemo } from "react";
+-import {
+-  Line,
+-  Path,
+-  Skia,
+-  Text,
+-  vec,
+-  type Color,
+-} from "@shopify/react-native-skia";
++import { Line, Path, Skia, Text, type Color } from "@shopify/react-native-skia";
+ import { StyleSheet } from "react-native";
+ import { getTextLayout } from "../../utils/textLayout";
+ import type {
+@@ -153,8 +146,8 @@ export const CartesianAxis = <
+       <React.Fragment key={`y-tick-${tick}`}>
+         {gridYLineWidth > 0 ? (
+           <Line
+-            p1={vec(xScale(x1), yScale(tick))}
+-            p2={vec(xScale(x2), yScale(tick))}
++            p1={{ x: xScale(x1), y: yScale(tick) }}
++            p2={{ x: xScale(x2), y: yScale(tick) }}
+             color={gridYLineColor}
+             strokeWidth={gridYLineWidth}
+           />
+@@ -213,8 +206,8 @@ export const CartesianAxis = <
+       <React.Fragment key={`x-tick-${tick}`}>
+         {gridXLineWidth > 0 ? (
+           <Line
+-            p1={vec(xScale(tick), yScale(y2))}
+-            p2={vec(xScale(tick), yScale(y1))}
++            p1={{ x: xScale(tick), y: yScale(y2) }}
++            p2={{ x: xScale(tick), y: yScale(y1) }}
+             color={gridXLineColor}
+             strokeWidth={gridXLineWidth}
+           />
+diff --git a/node_modules/victory-native/src/cartesian/components/CategoryYAxis.tsx b/node_modules/victory-native/src/cartesian/components/CategoryYAxis.tsx
+index 65af98a..51008a0 100644
+--- a/node_modules/victory-native/src/cartesian/components/CategoryYAxis.tsx
++++ b/node_modules/victory-native/src/cartesian/components/CategoryYAxis.tsx
+@@ -1,12 +1,5 @@
+ import React from "react";
+-import {
+-  Group,
+-  Line,
+-  Text,
+-  vec,
+-  type Color,
+-  type SkFont,
+-} from "@shopify/react-native-skia";
++import { Group, Line, Text, type Color, type SkFont } from "@shopify/react-native-skia";
+ import { boundsToClip } from "../../utils/boundsToClip";
+ import type {
+   AxisLabelPosition,
+@@ -156,8 +149,8 @@ export const CategoryYAxis = <
+         {lineWidth > 0 ? (
+           <Group clip={boundsToClip(chartBounds)}>
+             <Line
+-              p1={vec(xScale(x1), tickPosition)}
+-              p2={vec(xScale(x2), tickPosition)}
++              p1={{ x: xScale(x1), y: tickPosition }}
++              p2={{ x: xScale(x2), y: tickPosition }}
+               color={lineColor}
+               strokeWidth={lineWidth}
+             >
+diff --git a/node_modules/victory-native/src/cartesian/components/Frame.tsx b/node_modules/victory-native/src/cartesian/components/Frame.tsx
+index 280fe1a..34eba31 100644
+--- a/node_modules/victory-native/src/cartesian/components/Frame.tsx
++++ b/node_modules/victory-native/src/cartesian/components/Frame.tsx
+@@ -1,6 +1,6 @@
+ import React from "react";
+ import { StyleSheet } from "react-native";
+-import { Group, Line, Path, Skia, vec } from "@shopify/react-native-skia";
++import { Group, Line, Path, Skia } from "@shopify/react-native-skia";
+ import type { FrameProps } from "../../types";
+ export { FrameDefaults } from "../utils/axisDefaults";
+ 
+@@ -40,8 +40,8 @@ export const Frame = ({
+         lines.push(
+           <Line
+             key="frame-top"
+-            p1={vec(xScale(x1), yScale(y1))}
+-            p2={vec(xScale(x2), yScale(y1))}
++            p1={{ x: xScale(x1), y: yScale(y1) }}
++            p2={{ x: xScale(x2), y: yScale(y1) }}
+             strokeWidth={lineWidth.top}
+           />,
+         );
+@@ -50,8 +50,8 @@ export const Frame = ({
+         lines.push(
+           <Line
+             key="frame-right"
+-            p1={vec(xScale(x2), yScale(y1))}
+-            p2={vec(xScale(x2), yScale(y2))}
++            p1={{ x: xScale(x2), y: yScale(y1) }}
++            p2={{ x: xScale(x2), y: yScale(y2) }}
+             strokeWidth={lineWidth.right}
+           />,
+         );
+@@ -60,8 +60,8 @@ export const Frame = ({
+         lines.push(
+           <Line
+             key="frame-bottom"
+-            p1={vec(xScale(x2), yScale(y2))}
+-            p2={vec(xScale(x1), yScale(y2))}
++            p1={{ x: xScale(x2), y: yScale(y2) }}
++            p2={{ x: xScale(x1), y: yScale(y2) }}
+             strokeWidth={lineWidth.bottom}
+           />,
+         );
+@@ -70,8 +70,8 @@ export const Frame = ({
+         lines.push(
+           <Line
+             key="frame-left"
+-            p1={vec(xScale(x1), yScale(y2))}
+-            p2={vec(xScale(x1), yScale(y1))}
++            p1={{ x: xScale(x1), y: yScale(y2) }}
++            p2={{ x: xScale(x1), y: yScale(y1) }}
+             strokeWidth={lineWidth.left}
+           />,
+         );
+diff --git a/node_modules/victory-native/src/cartesian/components/XAxis.tsx b/node_modules/victory-native/src/cartesian/components/XAxis.tsx
+index 0bca65c..ba8304c 100644
+--- a/node_modules/victory-native/src/cartesian/components/XAxis.tsx
++++ b/node_modules/victory-native/src/cartesian/components/XAxis.tsx
+@@ -1,12 +1,6 @@
+ import React from "react";
+ import { StyleSheet } from "react-native";
+-import {
+-  Group,
+-  Line,
+-  Text,
+-  vec,
+-  type SkPoint,
+-} from "@shopify/react-native-skia";
++import { Group, Line, Text, type SkPoint } from "@shopify/react-native-skia";
+ import { getOffsetFromAngle } from "../../utils/getOffsetFromAngle";
+ import { boundsToClip } from "../../utils/boundsToClip";
+ import { DEFAULT_TICK_COUNT } from "../../utils/tickHelpers";
+@@ -134,8 +128,8 @@ export const XAxis = <
+       : null;
+ 
+   const xAxisNodes = xTickLabels.map(({ tick, tickPosition, labelLayout }) => {
+-    const p1 = vec(tickPosition, yScale(y2));
+-    const p2 = vec(tickPosition, yScale(y1));
++    const p1 = { x: tickPosition, y: yScale(y2) };
++    const p2 = { x: tickPosition, y: yScale(y1) };
+ 
+     const labelWidth = labelLayout.width;
+     const { canRenderLabel, labelX, labelCenterX } = getXAxisLabelPosition({
+@@ -188,25 +182,25 @@ export const XAxis = <
+ 
+       if (axisSide === "bottom" && labelPosition === "outset") {
+         // bottom, outset
+-        origin = vec(labelCenterX, labelY);
++        origin = { x: labelCenterX, y: labelY };
+         rotateOffset = Math.abs(
+           (labelWidth / 2) * getOffsetFromAngle(labelRotate),
+         );
+       } else if (axisSide === "bottom" && labelPosition === "inset") {
+         // bottom, inset
+-        origin = vec(labelCenterX, labelY);
++        origin = { x: labelCenterX, y: labelY };
+         rotateOffset = -Math.abs(
+           (labelWidth / 2) * getOffsetFromAngle(labelRotate),
+         );
+       } else if (axisSide === "top" && labelPosition === "inset") {
+         // top, inset
+-        origin = vec(labelCenterX, labelY - fontSize / 4);
++        origin = { x: labelCenterX, y: labelY - fontSize / 4 };
+         rotateOffset = Math.abs(
+           (labelWidth / 2) * getOffsetFromAngle(labelRotate),
+         );
+       } else {
+         // top, outset
+-        origin = vec(labelCenterX, labelY - fontSize / 4);
++        origin = { x: labelCenterX, y: labelY - fontSize / 4 };
+         rotateOffset = -Math.abs(
+           (labelWidth / 2) * getOffsetFromAngle(labelRotate),
+         );
+@@ -214,10 +208,10 @@ export const XAxis = <
+ 
+       return { origin, rotateOffset };
+     })();
+-    const customOrigin = vec(
+-      labelX + labelLayout.width / 2,
+-      labelTopY + labelLayout.height / 2,
+-    );
++    const customOrigin = {
++      x: labelX + labelLayout.width / 2,
++      y: labelTopY + labelLayout.height / 2,
++    };
+     const canRenderCustomLabel =
+       labelWidth > 0 && labelLayout.height > 0 && canRenderLabel;
+ 
+diff --git a/node_modules/victory-native/src/cartesian/components/YAxis.tsx b/node_modules/victory-native/src/cartesian/components/YAxis.tsx
+index 8b4e8d2..fa6eb55 100644
+--- a/node_modules/victory-native/src/cartesian/components/YAxis.tsx
++++ b/node_modules/victory-native/src/cartesian/components/YAxis.tsx
+@@ -1,5 +1,5 @@
+ import React from "react";
+-import { Group, Line, Text, vec } from "@shopify/react-native-skia";
++import { Group, Line, Text } from "@shopify/react-native-skia";
+ import { boundsToClip } from "../../utils/boundsToClip";
+ import type {
+   InputDatum,
+@@ -129,8 +129,8 @@ export const YAxis = <
+         {lineWidth > 0 ? (
+           <Group clip={boundsToClip(chartBounds)}>
+             <Line
+-              p1={vec(xScale(x1), yScale(tick))}
+-              p2={vec(xScale(x2), yScale(tick))}
++              p1={{ x: xScale(x1), y: yScale(tick) }}
++              p2={{ x: xScale(x2), y: yScale(tick) }}
+               color={lineColor}
+               strokeWidth={lineWidth}
+             >
+diff --git a/node_modules/victory-native/src/utils/textLayout.ts b/node_modules/victory-native/src/utils/textLayout.ts
+index ccb2155..63b6076 100644
+--- a/node_modules/victory-native/src/utils/textLayout.ts
++++ b/node_modules/victory-native/src/utils/textLayout.ts
+@@ -15,21 +15,48 @@ export type TextLayoutDimensions = Pick<
+ 
+ export const getTextLines = (text: string) => text.split(/\r\n|\r|\n/);
+ 
++function measureLineWidth(line: string, font: SkFont): number {
++  try {
++    if (typeof font.measureText === "function") {
++      return font.measureText(line).width;
++    }
++  } catch {
++    // fall through
++  }
++  try {
++    if (typeof font.getGlyphIDs === "function") {
++      const glyphIDs = font.getGlyphIDs(line);
++      const widths =
++        typeof font.getGlyphWidths === "function"
++          ? font.getGlyphWidths(glyphIDs)
++          : [];
++      return widths.reduce((sum, value) => sum + value, 0);
++    }
++  } catch {
++    // fall through
++  }
++  try {
++    const getTextWidth = (font as { getTextWidth?: (t: string) => number }).getTextWidth;
++    if (typeof getTextWidth === "function") {
++      return getTextWidth(line);
++    }
++  } catch {
++    // fall through
++  }
++  return 0;
++}
++
+ export const getTextLayout = (
+   text: string,
+   font?: SkFont | null,
+ ): TextLayout => {
+   const lines = getTextLines(text);
+-  const fontSize = font?.getSize() ?? 0;
++  const fontSize =
++    font && typeof font.getSize === "function" ? font.getSize() : 0;
+   const lineHeight = fontSize;
+   const width = Math.max(
+     0,
+-    ...lines.map((line) => {
+-      if (!font) return 0;
+-      const glyphIDs = font.getGlyphIDs(line);
+-      const widths = font.getGlyphWidths?.(glyphIDs) ?? [];
+-      return widths.reduce((sum, value) => sum + value, 0);
+-    }),
++    ...lines.map((line) => (font ? measureLineWidth(line, font) : 0)),
+   );
+ 
+   return {
+@@ -45,7 +72,8 @@ export const getMaxTextLayout = (
+   labels: string[],
+   font?: SkFont | null,
+ ): TextLayoutDimensions => {
+-  const fontSize = font?.getSize() ?? 0;
++  const fontSize =
++    font && typeof font.getSize === "function" ? font.getSize() : 0;
+   const lineHeight = fontSize;
+ 
+   return labels.reduce<TextLayoutDimensions>(

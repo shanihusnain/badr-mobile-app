@@ -273,6 +273,7 @@ export function TimeSpentChartBlock({
           data={chartData}
           xKey="xLabel"
           yKeys={["hours"]}
+          orientation="vertical"
           domain={{ y: [0, yMax] }}
           padding={{ left: 0, right: 18, top: 18, bottom: 4 }}
           domainPadding={{ left: 60, right: 50, top: 8 }}

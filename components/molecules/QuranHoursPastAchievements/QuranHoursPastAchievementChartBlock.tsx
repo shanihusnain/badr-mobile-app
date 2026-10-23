@@ -502,6 +502,7 @@ export function QuranHoursPastAchievementChartBlock({
               data={plotChartData}
               xKey="xLabel"
               yKeys={["completedHours", "incompleteHours"]}
+              orientation="vertical"
               domain={{ y: [0, yMax] }}
               padding={{ left: 0, right: 10, top: 22, bottom: 4 }}
               domainPadding={{ left: 48, right: 28, top: 10 }}
