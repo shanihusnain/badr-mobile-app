@@ -43,6 +43,11 @@ interface TaperedCircleBorderProps {
   variant?: "default" | "golden" | "illuminated";
   /** When set with `illuminated`, bloom tint stays this color (e.g. loading = golden). */
   glowColorOverride?: string;
+  /**
+   * When false, 100% illuminated rings stay a closed circle (no tick at the join).
+   * Default true preserves goal progress rings.
+   */
+  showCompleteCheckIcon?: boolean;
   style?: ViewStyle;
 }
 
@@ -547,6 +552,7 @@ export const TaperedCircleBorder: React.FC<TaperedCircleBorderProps> = ({
   children,
   variant = "default",
   glowColorOverride,
+  showCompleteCheckIcon = true,
   style,
 }) => {
   const isGolden = variant === "golden";
@@ -594,7 +600,10 @@ export const TaperedCircleBorder: React.FC<TaperedCircleBorderProps> = ({
     useSegments && segments ? buildSegmentArcs(segments, segmentTotal) : [];
   // Check + top gap: 100% illuminated rings only. Never at 99% or below.
   const showCompleteCheck =
-    isIlluminated && !compactIlluminated && percent === 100;
+    showCompleteCheckIcon &&
+    isIlluminated &&
+    !compactIlluminated &&
+    percent === 100;
   const checkSize = Math.max(28, Math.round(size * (34 / 174)));
   const visualTickPx = checkSize * TICK_PATH_INSET;
   // Arc gap slightly smaller than the glyph so both ends tuck into the icon.

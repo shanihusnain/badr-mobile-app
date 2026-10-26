@@ -39,6 +39,7 @@ export const LoadingComponent = ({
         size={ringSize}
         variant="illuminated"
         glowColorOverride={Colors.light.golden}
+        showCompleteCheckIcon={false}
       >
         {/* <Text
           style={{

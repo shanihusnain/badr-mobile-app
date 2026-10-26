@@ -160,7 +160,7 @@ export const SetPersonalizedGoalsScreen = () => {
                   totalDays={28}
                   lastActiveDays={28}
                   overallProgress={100}
-                  animate
+                  animated
                 />
               </>
             )} */}

@@ -322,8 +322,13 @@ export const styles = StyleSheet.create({
   dateRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "center",
     width: "100%",
+    gap: 8,
+  },
+  /** Today: slightly more space than day+date so short label doesn't feel cramped. */
+  dateRowCompact: {
+    gap: 14,
   },
   /** Fixed-width chevron slots so arrows don't shift with label length. */
   dateChevronHit: {
@@ -332,18 +337,16 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
     flexShrink: 0,
   },
-  dateChevronHitStart: {
-    transform: [{ translateX: 2 }],
-  },
-  dateChevronHitEnd: {
-    transform: [{ translateX: -2 }],
-  },
   dateLabelCenter: {
-    flex: 1,
+    flexGrow: 0,
+    flexShrink: 1,
     alignItems: "center",
     justifyContent: "center",
     minWidth: 0,
-    paddingHorizontal: 6,
+    paddingHorizontal: 2,
+  },
+  dateLabelCenterCompact: {
+    paddingHorizontal: 0,
   },
   dateMainText: {
     color: Colors.light.white,
