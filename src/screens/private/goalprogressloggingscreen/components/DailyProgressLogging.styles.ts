@@ -215,7 +215,7 @@ export const styles = StyleSheet.create({
   flowContentAyahRange: {
     justifyContent: "flex-start",
     // Figma: clear gap under "Select completed verses." before chips.
-    paddingTop: 10,
+    paddingTop: 7,
     paddingBottom: 0,
     marginBottom: 0,
     // Cancel flowCard paddingHorizontal so the range slider (and start chip)
