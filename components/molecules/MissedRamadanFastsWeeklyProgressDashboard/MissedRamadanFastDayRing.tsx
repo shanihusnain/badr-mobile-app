@@ -49,8 +49,12 @@ function getRingVisual(
         borderColor: "rgba(183, 151, 126, 0.3)",
       };
     case "today":
-      // #2 — ringRamadan at 67% opacity
-      return { variant: "outline", color: "rgba(183, 151, 126, 0.67)" };
+      // #2 — empty today: dashboard inner fill (same as prayer Dashboard)
+      return {
+        variant: "solidWithBorder",
+        fillColor: Colors.light.greybuttonBackground,
+        borderColor: "rgba(183, 151, 126, 0.67)",
+      };
     case "pastNeutral":
       // #14 — solid grey only (no activity)
       return {
