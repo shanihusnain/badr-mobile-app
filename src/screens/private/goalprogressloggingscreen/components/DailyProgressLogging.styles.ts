@@ -4,7 +4,7 @@ import { fonts } from "@/assets/fonts";
 
 const WINDOW = Dimensions.get("window");
 const OVERLAY_COVER_HEIGHT = WINDOW.height * 4;
-export const FLOW_CARD_HEIGHT = WINDOW.height * 0.175;
+export const FLOW_CARD_HEIGHT = WINDOW.height * 0.18;
 /** Step 1 log-wizard card: header + selector + hint/menu + footer, contained. */
 export const LOG_WIZARD_STEP_CARD_HEIGHT = 220;
 
@@ -174,7 +174,7 @@ export const styles = StyleSheet.create({
   flowCard: {
     backgroundColor: Colors.light.mildGreen,
     borderRadius: 8,
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     paddingTop: 8,
     paddingBottom: 6,
     width: "100%",
@@ -227,29 +227,32 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 2,
-    // Keep header height stable across 1-line vs 2-line titles so step
+    // Keep header height stable for up to 2 lines (14/18) so step
     // content (date vs time) stays vertically aligned.
     minHeight: 36,
+    flexWrap: "wrap",
+    width: "100%",
   },
   /** Slightly more header→content air on the ayat-range step (Figma). */
   flowHeaderAyahRange: {
     marginBottom: 6,
   },
   flowIconCircle: {
-    width: 36,
-    height: 36,
+    width: 35,
+    height: 35,
     borderRadius: 18,
     backgroundColor: Colors.light.selectcategory,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 10,
+    marginRight: 8,
   },
   flowHeaderText: {
     flex: 1,
+    flexShrink: 1,
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
-    fontSize: 14,
+    fontSize: 13.5,
     lineHeight: 18,
   },
   flowContent: {
@@ -308,7 +311,7 @@ export const styles = StyleSheet.create({
     backgroundColor: Colors.light.white + "29",
     alignItems: "center",
     justifyContent: "center",
-    transform: [{ translateY: -6 }],
+    transform: [{ translateY: -5 }],
   },
   confirmButtonActive: {
     borderColor: Colors.light.white,

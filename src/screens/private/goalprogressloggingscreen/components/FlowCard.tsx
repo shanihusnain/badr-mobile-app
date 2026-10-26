@@ -72,13 +72,9 @@ export const FlowCard: React.FC<FlowCardProps> = ({
         <View style={styles.flowIconCircle}>{headerIcon}</View>
         <Text
           style={styles.flowHeaderText}
-          {...(headerSingleLine
-            ? {
-                numberOfLines: 1 as const,
-                adjustsFontSizeToFit: true,
-                minimumFontScale: 0.85,
-              }
-            : null)}
+          numberOfLines={headerSingleLine ? 1 : 2}
+          // adjustsFontSizeToFit
+          // minimumFontScale={headerSingleLine ? 0.85 : 0.8}
         >
           {headerLabel}
         </Text>

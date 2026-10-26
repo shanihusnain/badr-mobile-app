@@ -832,9 +832,9 @@ const localStyles = StyleSheet.create({
     fontSize: 9.5,
     lineHeight: 9.5,
     textAlign: "left",
-    opacity: 0.80,
+    opacity: 0.8,
     // Gap below the visible thumb — pull summary slightly closer to the track.
-    marginTop: 2.2,
+    marginTop: 6,
     // Align with the track start (TRACK_HORIZONTAL_INSET).
     paddingHorizontal: TRACK_HORIZONTAL_INSET,
     zIndex: 0,
