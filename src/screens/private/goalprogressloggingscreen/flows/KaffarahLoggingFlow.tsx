@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Pressable,
   Text,
@@ -20,15 +20,21 @@ import {
   getCurrentStartTimeParts,
 } from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
-import { styles as commonStyles } from "../components/DailyProgressLogging.styles";
+import {
+  styles as commonStyles,
+  FLOW_CARD_HEIGHT,
+} from "../components/DailyProgressLogging.styles";
 import { fonts } from "@/assets/fonts";
-import { FlowCardCallender } from "@/assets/icons/FlowCardCallender";
-import { FlowCardHandHeartIcon } from "@/assets/icons/FlowCardHandHeartIcon";
-import { FlowCardFoodReliefIcon } from "@/assets/icons/FlowCardFoodReleifIcon";
-import { FlowCardShirtIcon } from "@/assets/icons/FlowCardShirtIcon";
+import {
+  AddLoggingFlowIcon,
+  CalendarFlippingIcon,
+  FlowCardFoodReliefIcon,
+  FlowCardHandHeartIcon,
+  FlowCardShirtIcon,
+  WhiteClockIcon,
+  WhiteTimerIcon,
+} from "@/assets/icons";
 import type { ProgressLogEntry } from "../types";
-import { FlowCardClockIcon } from "@/assets/icons/FlowCardClockIcon";
-import { TimeSpentIcon } from "@/assets/icons/TimeSpentIcon";
 import { useOptionalSadaqahGoalFrameContext } from "../sadaqahGoalFrameContext";
 import { useLogSadaqahGoal } from "@/src/api/mutations/useLogSadaqahGoal";
 import {
@@ -38,9 +44,6 @@ import {
   sadaqahFrameShowsInsights,
 } from "@/src/utils/sadaqahGoalFrameMap";
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────────────────────────────────────
 type KaffarahReason = "broken-fast" | "broken-oath";
 type SadaqahType = "meals" | "clothes";
 type KaffarahStepId =
@@ -90,9 +93,18 @@ function mapKaffarahSubtypeToApi(
   return "MEALS";
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Reason Radio Step
-// ─────────────────────────────────────────────────────────────────────────────
+function buildKaffarahSteps(reason: KaffarahReason): KaffarahStepId[] {
+  // Broken fast → meals only. Broken oath → type (meals | clothing) then count.
+  return [
+    "date",
+    "reason",
+    ...(reason === "broken-oath" ? (["sadaqah-type"] as KaffarahStepId[]) : []),
+    "count",
+    "start-time",
+    "time-spent",
+  ];
+}
+
 function ReasonStep({
   reason,
   setReason,
@@ -100,6 +112,7 @@ function ReasonStep({
   reason: KaffarahReason;
   setReason: (r: KaffarahReason) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <View style={reasonStyles.container}>
       <TouchableOpacity
@@ -115,7 +128,9 @@ function ReasonStep({
         >
           {reason === "broken-fast" && <View style={reasonStyles.radioDot} />}
         </View>
-        <Text style={reasonStyles.optionLabel}>Broken fast</Text>
+        <Text style={reasonStyles.optionLabel}>
+          {t("progressLogging.kaffarahBrokenFast")}
+        </Text>
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -131,7 +146,58 @@ function ReasonStep({
         >
           {reason === "broken-oath" && <View style={reasonStyles.radioDot} />}
         </View>
-        <Text style={reasonStyles.optionLabel}>Broken oath</Text>
+        <Text style={reasonStyles.optionLabel}>
+          {t("progressLogging.kaffarahBrokenOath")}
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+function SadaqahTypeStep({
+  type,
+  setType,
+}: {
+  type: SadaqahType;
+  setType: (t: SadaqahType) => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <View style={reasonStyles.container}>
+      <TouchableOpacity
+        style={reasonStyles.option}
+        onPress={() => setType("meals")}
+        activeOpacity={0.7}
+      >
+        <View
+          style={[
+            reasonStyles.radio,
+            type === "meals" && reasonStyles.radioSelected,
+          ]}
+        >
+          {type === "meals" && <View style={reasonStyles.radioDot} />}
+        </View>
+        <Text style={reasonStyles.optionLabel}>
+          {t("progressLogging.kaffarahMeals")}
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={reasonStyles.option}
+        onPress={() => setType("clothes")}
+        activeOpacity={0.7}
+      >
+        <View
+          style={[
+            reasonStyles.radio,
+            type === "clothes" && reasonStyles.radioSelected,
+          ]}
+        >
+          {type === "clothes" && <View style={reasonStyles.radioDot} />}
+        </View>
+        <Text style={reasonStyles.optionLabel}>
+          {t("progressLogging.kaffarahClothingItems")}
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -143,6 +209,7 @@ const reasonStyles = StyleSheet.create({
     gap: 20,
     marginTop: 8,
     justifyContent: "center",
+    flexWrap: "wrap",
   },
   option: {
     flexDirection: "row",
@@ -175,53 +242,6 @@ const reasonStyles = StyleSheet.create({
   },
 });
 
-function SadaqahTypeStep({
-  type,
-  setType,
-}: {
-  type: SadaqahType;
-  setType: (t: SadaqahType) => void;
-}) {
-  return (
-    <View style={reasonStyles.container}>
-      <TouchableOpacity
-        style={reasonStyles.option}
-        onPress={() => setType("meals")}
-        activeOpacity={0.7}
-      >
-        <View
-          style={[
-            reasonStyles.radio,
-            type === "meals" && reasonStyles.radioSelected,
-          ]}
-        >
-          {type === "meals" && <View style={reasonStyles.radioDot} />}
-        </View>
-        <Text style={reasonStyles.optionLabel}>Meals</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={reasonStyles.option}
-        onPress={() => setType("clothes")}
-        activeOpacity={0.7}
-      >
-        <View
-          style={[
-            reasonStyles.radio,
-            type === "clothes" && reasonStyles.radioSelected,
-          ]}
-        >
-          {type === "clothes" && <View style={reasonStyles.radioDot} />}
-        </View>
-        <Text style={reasonStyles.optionLabel}>Clothing items</Text>
-      </TouchableOpacity>
-    </View>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Main Flow
-// ─────────────────────────────────────────────────────────────────────────────
 export default function KaffarahLoggingFlow({
   goalData,
   onLogComplete,
@@ -273,18 +293,26 @@ export default function KaffarahLoggingFlow({
     achievementPct >= 100 ||
     String(frame?.goal?.status ?? "").toUpperCase() === "COMPLETED";
 
-  const currentSteps: KaffarahStepId[] = [
-    "date",
-    "reason",
-    ...(reason === "broken-oath" ? ["sadaqah-type" as KaffarahStepId] : []),
-    "count",
-    "start-time",
-    "time-spent",
-  ];
+  const currentSteps = useMemo(() => buildKaffarahSteps(reason), [reason]);
+
+  useEffect(() => {
+    setStepIndex((index) =>
+      Math.min(index, Math.max(currentSteps.length - 1, 0)),
+    );
+  }, [currentSteps.length]);
+
+  // Switching to broken-fast drops the type step — reset type to meals.
+  useEffect(() => {
+    if (reason === "broken-fast") {
+      setSadaqahType("meals");
+    }
+  }, [reason]);
 
   const todayString = toDateString(new Date());
-  const currentStep = currentSteps[stepIndex];
+  const currentStep = currentSteps[stepIndex] ?? "date";
   const isLastStep = stepIndex === currentSteps.length - 1;
+  const isClothesCount =
+    reason === "broken-oath" && sadaqahType === "clothes";
 
   const dateLabel = formatProgressLoggingDateLabel(
     selectedDate,
@@ -383,11 +411,36 @@ export default function KaffarahLoggingFlow({
       resetFlow();
       return;
     }
+    setIsPeriodDropdownOpen(false);
     setStepIndex((i) => i - 1);
   };
 
+  const isStepValid = (step: KaffarahStepId) => {
+    switch (step) {
+      case "date":
+      case "reason":
+      case "sadaqah-type":
+      case "start-time":
+        return true;
+      case "count":
+        return (Number.parseInt(count || "0", 10) || 0) > 0;
+      case "time-spent": {
+        const hours = parseInt(durationHours || "0", 10) || 0;
+        const minutes = parseInt(durationMinutes || "0", 10) || 0;
+        return hours * 60 + minutes >= 1;
+      }
+      default:
+        return true;
+    }
+  };
+
+  const canGoForward =
+    !isLogging && !isLastStep && isStepValid(currentStep);
+
   const handleForward = () => {
-    if (!isLastStep) setStepIndex((i) => i + 1);
+    if (!canGoForward) return;
+    setIsPeriodDropdownOpen(false);
+    setStepIndex((i) => i + 1);
   };
 
   const handleOpenFlow = useCallback(() => {
@@ -399,41 +452,39 @@ export default function KaffarahLoggingFlow({
     switch (step) {
       case "date":
         return {
-          icon: <FlowCardCallender size={16} color={Colors.light.white} />,
-          label: "Which day are you logging for?",
+          icon: <CalendarFlippingIcon size={24} />,
+          label: t("progressLogging.whichDay"),
         };
       case "reason":
         return {
           icon: <FlowCardHandHeartIcon size={19} color={Colors.light.white} />,
-          label: "Select the reason for kaffarah.",
+          label: t("progressLogging.kaffarahSelectReason"),
         };
       case "sadaqah-type":
         return {
-          icon: <FlowCardFoodReliefIcon size={18} color={Colors.light.white} />,
-          label: "Select the type of sadaqah.",
+          icon: <FlowCardHandHeartIcon size={19} color={Colors.light.white} />,
+          label: t("progressLogging.kaffarahSelectSadaqahType"),
         };
       case "count":
-        const isClothesHeader =
-          reason === "broken-oath" && sadaqahType === "clothes";
         return {
-          icon: isClothesHeader ? (
+          icon: isClothesCount ? (
             <FlowCardShirtIcon size={20} color={Colors.light.white} />
           ) : (
             <FlowCardFoodReliefIcon size={20} color={Colors.light.white} />
           ),
-          label: isClothesHeader
-            ? "How many pieces of clothing were given?"
-            : "How many meals were given?",
+          label: isClothesCount
+            ? t("progressLogging.kaffarahHowManyClothes")
+            : t("progressLogging.kaffarahHowManyMeals"),
         };
       case "start-time":
         return {
-          icon: <FlowCardClockIcon size={20} color={Colors.light.white} />,
-          label: "Enter start time.",
+          icon: <WhiteClockIcon size={26} />,
+          label: t("progressLogging.enterStartTime"),
         };
       case "time-spent":
         return {
-          icon: <TimeSpentIcon size={20} color={Colors.light.white} />,
-          label: "Enter time spent.",
+          icon: <WhiteTimerIcon size={24} />,
+          label: t("progressLogging.enterTimeSpent"),
         };
     }
   };
@@ -453,14 +504,22 @@ export default function KaffarahLoggingFlow({
       case "reason":
         return <ReasonStep reason={reason} setReason={setReason} />;
       case "sadaqah-type":
-        return <SadaqahTypeStep type={sadaqahType} setType={setSadaqahType} />;
+        return (
+          <SadaqahTypeStep type={sadaqahType} setType={setSadaqahType} />
+        );
       case "count":
-        const isClothesContent =
-          reason === "broken-oath" && sadaqahType === "clothes";
         return (
           <CounterStep
-            label={isClothesContent ? "Pieces of clothing" : "Meals given"}
-            unit={isClothesContent ? "piece(s)" : "meal(s)"}
+            label={
+              isClothesCount
+                ? t("progressLogging.kaffarahClothesLabel")
+                : t("progressLogging.kaffarahMealsLabel")
+            }
+            unit={
+              isClothesCount
+                ? t("progressLogging.kaffarahPiecesUnit")
+                : t("progressLogging.kaffarahMealsUnit")
+            }
             value={count}
             onChangeText={setCount}
           />
@@ -503,72 +562,80 @@ export default function KaffarahLoggingFlow({
     durationTotalMinutes >= 1;
 
   return (
-    <View style={commonStyles.section}>
-      <Text style={commonStyles.sectionTitle}>
-        {t("progressLogging.myProgress")}
-      </Text>
+    <>
+      {flowMode === "active" && <Pressable style={commonStyles.backdrop} />}
+      {flowMode === "active" && (
+        <TouchableOpacity
+          style={commonStyles.cancelButton}
+          onPress={resetFlow}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="close" size={20} color={Colors.light.white} />
+        </TouchableOpacity>
+      )}
 
-      <View style={commonStyles.cardAnchor}>
-        {flowMode === "active" && <Pressable style={commonStyles.backdrop} />}
-        {flowMode === "active" && (
-          <TouchableOpacity
-            style={commonStyles.cancelButton}
-            onPress={resetFlow}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="close" size={20} color={Colors.light.white} />
-          </TouchableOpacity>
-        )}
+      <View style={commonStyles.section}>
+        <Text style={commonStyles.sectionTitle}>
+          {t("progressLogging.myProgress")}
+        </Text>
 
-        {flowMode === "collapsed" ? (
-          <View style={localStyles.summaryCard}>
-            <View style={localStyles.summaryBody}>
-              <View style={localStyles.summaryIconCircle}>
-                <FlowCardHandHeartIcon size={22} color={Colors.light.white} />
-              </View>
-              <View style={{ flex: 1, gap: 4 }}>
-                <View
-                  style={[
-                    localStyles.badge,
-                    badgeStatus.type === "completed"
-                      ? localStyles.badgeCompleted
-                      : localStyles.badgeInProgress,
-                    { alignSelf: "flex-start" },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      localStyles.badgeText,
-                      badgeStatus.type === "completed"
-                        ? localStyles.badgeTextCompleted
-                        : localStyles.badgeTextInProgress,
-                    ]}
-                  >
-                    {badgeStatus.text}
-                  </Text>
-                </View>
-                <Text style={[localStyles.summaryTitle, { flex: undefined }]}>
-                  {summaryTitle}
-                </Text>
-              </View>
-            </View>
-
-            <View style={localStyles.footerRow}>
-              {showInsights ? (
-                <TouchableOpacity
-                  style={localStyles.insightsBtn}
-                  onPress={sadaqahFrame?.openInsights}
-                >
-                  <Text style={localStyles.insightsText}>VIEW INSIGHTS</Text>
-                  <Ionicons
-                    name="chevron-forward"
-                    size={22}
+        <View style={commonStyles.cardAnchor}>
+          {flowMode === "collapsed" ? (
+            <View style={localStyles.summaryCard}>
+              <View style={localStyles.summaryBody}>
+                <View style={localStyles.summaryIconCircle}>
+                  <FlowCardHandHeartIcon
+                    size={18}
                     color={Colors.light.white}
                   />
-                </TouchableOpacity>
-              ) : (
-                <View style={localStyles.spacer} />
-              )}
+                </View>
+                <View style={localStyles.summaryTextBlock}>
+                  <View
+                    style={[
+                      localStyles.badge,
+                      badgeStatus.type === "completed"
+                        ? localStyles.badgeCompleted
+                        : badgeStatus.type === "not-started"
+                          ? localStyles.badgeNotStarted
+                          : localStyles.badgeInProgress,
+                      { alignSelf: "flex-start" },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        localStyles.badgeText,
+                        badgeStatus.type === "completed"
+                          ? localStyles.badgeTextCompleted
+                          : badgeStatus.type === "not-started"
+                            ? localStyles.badgeTextNotStarted
+                            : localStyles.badgeTextInProgress,
+                      ]}
+                    >
+                      {badgeStatus.text}
+                    </Text>
+                  </View>
+                  <Text style={localStyles.summaryTitle} numberOfLines={2}>
+                    {summaryTitle}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={localStyles.footerRow}>
+                {showInsights ? (
+                  <TouchableOpacity
+                    style={localStyles.insightsBtn}
+                    onPress={sadaqahFrame?.openInsights}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={localStyles.insightsText}>VIEW INSIGHTS</Text>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={22}
+                      color={Colors.light.white}
+                    />
+                  </TouchableOpacity>
+                ) : null}
+              </View>
 
               {canLog && !goalCompleted ? (
                 <TouchableOpacity
@@ -576,63 +643,60 @@ export default function KaffarahLoggingFlow({
                   onPress={handleOpenFlow}
                   activeOpacity={0.8}
                 >
-                  <Ionicons name="add" size={22} color={Colors.light.white} />
+                  <AddLoggingFlowIcon size={32} />
                 </TouchableOpacity>
               ) : null}
             </View>
-          </View>
-        ) : (
-          <View style={commonStyles.flowCardLayer}>
-            <FlowCard
-              headerIcon={stepHeader.icon}
-              headerLabel={stepHeader.label}
-              onBack={handleBack}
-              onForward={handleForward}
-              onConfirm={handleConfirm}
-              canGoForward={!isLastStep}
-              canGoBack={stepIndex > 0}
-              canConfirm={canConfirm}
-              showConfirmButton={isLastStep}
-              styles={commonStyles}
-              style={commonStyles.inPlaceFlowCard}
+          ) : (
+            <View
+              style={[
+                commonStyles.flowCardLayer,
+                isPeriodDropdownOpen &&
+                  commonStyles.flowCardLayerDropdownOpen,
+              ]}
             >
-              {renderStepContent(currentStep)}
-            </FlowCard>
-          </View>
-        )}
+              <FlowCard
+                headerIcon={stepHeader.icon}
+                headerLabel={stepHeader.label}
+                onBack={handleBack}
+                onForward={handleForward}
+                onConfirm={handleConfirm}
+                canGoForward={canGoForward}
+                canGoBack={stepIndex > 0}
+                canConfirm={canConfirm}
+                showConfirmButton={isLastStep}
+                styles={commonStyles}
+                style={[
+                  commonStyles.inPlaceFlowCard,
+                  isPeriodDropdownOpen && commonStyles.flowCardDropdownOpen,
+                ]}
+              >
+                {renderStepContent(currentStep)}
+              </FlowCard>
+            </View>
+          )}
+        </View>
       </View>
-    </View>
+    </>
   );
 }
 
 const localStyles = StyleSheet.create({
   summaryCard: {
     backgroundColor: Colors.light.green,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    position: "relative",
-    overflow: "hidden",
-    height: 145,
-  },
-  summaryBody: {
-    flexDirection: "row",
+    borderRadius: 8,
+    padding: 16,
     gap: 12,
-    alignItems: "center",
-  },
-  summaryIconCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: Colors.light.darkgrey,
-    alignItems: "center",
-    justifyContent: "center",
+    height: FLOW_CARD_HEIGHT,
+    width: "100%",
+    justifyContent: "space-between",
+    position: "relative",
   },
   badge: {
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
-    marginTop: -6,
+    marginTop: 3,
   },
   badgeInProgress: {
     backgroundColor: Colors.light.lightpurple,
@@ -640,10 +704,14 @@ const localStyles = StyleSheet.create({
   badgeCompleted: {
     backgroundColor: Colors.light.lightgreenbadgecolor,
   },
+  badgeNotStarted: {
+    backgroundColor: Colors.light.paginationInactiveDot,
+  },
   badgeText: {
-    fontFamily: fonts.primary.semiBold,
-    fontSize: 10,
-    fontWeight: "600",
+    fontFamily: fonts.primary.medium,
+    fontSize: 12,
+    fontWeight: "500",
+    lineHeight: 12.5,
   },
   badgeTextInProgress: {
     color: Colors.light.darkblue,
@@ -651,39 +719,57 @@ const localStyles = StyleSheet.create({
   badgeTextCompleted: {
     color: Colors.light.green,
   },
+  badgeTextNotStarted: {
+    color: Colors.light.notStartedTextColor,
+  },
+  summaryBody: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 6,
+  },
+  summaryTextBlock: {
+    flex: 1,
+    gap: 9,
+  },
+  summaryIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.light.selectcategory,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 22,
+  },
   summaryTitle: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 15,
+    fontSize: 14,
+    fontWeight: "600",
+    lineHeight: 18,
+    letterSpacing: 0,
   },
   footerRow: {
     flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginTop: "auto",
-    paddingTop: 8,
+    alignItems: "flex-end",
+    marginTop: 4,
   },
   insightsBtn: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 2,
+    gap: 4,
+    paddingBottom: 4,
   },
   insightsText: {
     color: Colors.light.white,
-    fontFamily: fonts.primary.semiBold,
-    fontSize: 13,
+    fontFamily: fonts.primary.bold,
+    fontSize: 16,
     fontWeight: "700",
-    letterSpacing: 0.5,
   },
-  spacer: { flex: 1 },
   addButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    borderWidth: 1.5,
-    borderColor: Colors.light.white,
+    position: "absolute",
+    right: 16,
+    bottom: 15,
     alignItems: "center",
     justifyContent: "center",
-    marginLeft: "auto",
   },
 });

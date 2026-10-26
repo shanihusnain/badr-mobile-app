@@ -34,17 +34,18 @@ function getRingVisual(
         backgroundColor: "transparent",
       };
     case "today":
+      // Empty today — same inner fill as Dashboard / prayer rings.
       return {
         variant: "outline",
-        borderColor: Colors.light.grey,
-        backgroundColor: "transparent",
+        borderColor: "rgba(255, 255, 255, 0.32)",
+        backgroundColor: Colors.light.greybuttonBackground,
       };
     case "todayDisabled":
-      // Today booked / disabled — dim #B7977E stroke (rgba keeps it muted)
+      // Today booked / disabled — dim stroke, dashboard inner fill.
       return {
         variant: "outline",
         borderColor: "rgba(128, 111, 98, 0.25)",
-        backgroundColor: "transparent",
+        backgroundColor: Colors.light.greybuttonBackground,
       };
     case "disabledPast":
       // Past booked for another goal — solid grey disc
