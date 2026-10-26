@@ -31,8 +31,8 @@ export default function PlanScreen() {
 
   const bottomSheetRef = useRef<BottomSheet>(null);
 
-  const handleCustomizePress = useCallback((addedHabitIds: number[]) => {
-    console.log("Added journal habits:", addedHabitIds);
+  const handleCustomizePress = useCallback((selectedBehaviorIds: string[]) => {
+    console.log("Selected journal behaviors:", selectedBehaviorIds);
     bottomSheetRef.current?.close();
   }, []);
 

@@ -3,20 +3,22 @@ import PrimaryButton from "@/components/atoms/Primary-button";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { BottomSheetWrapper } from "@/components/molecules/BottomSheetWrapper";
 import { Colors } from "@/constants/theme";
+import {
+  toJournalBehaviorCategoryParam,
+  useGetJournalBehaviors,
+  type JournalBehavior,
+} from "@/src/api/queries/useGetJournalBehavior";
 import BottomSheet, {
   BottomSheetFlatList,
   BottomSheetFooter,
 } from "@gorhom/bottom-sheet";
 import type { BottomSheetFooterProps } from "@gorhom/bottom-sheet/lib/typescript/components/bottomSheetFooter/types";
-import { forwardRef, useCallback, useMemo, useState } from "react";
+import { forwardRef, useCallback, useEffect, useMemo, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import {
-  getJournalHabitsForCategory,
-  type JournalHabitOptionWithStatus,
-} from "../planJournalCustomizeMockData";
 import { planStyles as styles } from "../styles";
 import { PlanTabBar } from "./PlanTabBar";
+import { useToggleTheBehvaior } from "@/src/api/mutations/useToggleTheBehvaior";
 
 const CUSTOMIZE_DESCRIPTION =
   'Inspired by the Hadith of the Prophet (PBUH),"The most beloved of you to Allah are the best of you in character," this feature allows you to select behaviors and practices to track daily, fostering growth in your character.';
@@ -26,11 +28,15 @@ type PlanTab = {
   title: string;
 };
 
+type JournalHabitRow = JournalBehavior & {
+  isAdded: boolean;
+};
+
 type JournalCustomizeBottomSheetProps = {
   journalTabs: PlanTab[];
   selectedJournalTab: number;
   onSelectJournalTab: (tabId: number) => void;
-  onCustomizePress?: (addedHabitIds: number[]) => void;
+  onCustomizePress?: (selectedBehaviorIds: string[]) => void;
   onClose?: () => void;
   onChange?: (index: number) => void;
 };
@@ -50,27 +56,49 @@ export const JournalCustomizeBottomSheet = forwardRef<
   ref,
 ) {
   const safeAreaInsets = useSafeAreaInsets();
-  const [addedHabitIds, setAddedHabitIds] = useState<number[]>([]);
+  const [selectionOverrides, setSelectionOverrides] = useState<
+    Record<string, boolean>
+  >({});
 
   const selectedJournalTabTitle =
     journalTabs.find((tab) => tab.id === selectedJournalTab)?.title ?? "All";
 
-  const journalHabits = useMemo(
-    () => getJournalHabitsForCategory(selectedJournalTabTitle, addedHabitIds),
-    [selectedJournalTabTitle, addedHabitIds],
+  const categoryParam = toJournalBehaviorCategoryParam(selectedJournalTabTitle);
+  const { data: journalBehaviors } = useGetJournalBehaviors(categoryParam);
+
+  useEffect(() => {
+    setSelectionOverrides({});
+  }, [categoryParam]);
+
+  const journalHabits = useMemo<JournalHabitRow[]>(() => {
+    const behaviors = journalBehaviors?.behaviors ?? [];
+
+    return behaviors.map((behavior) => ({
+      ...behavior,
+      isAdded: selectionOverrides[behavior.behaviorId] ?? behavior.isSelected,
+    }));
+  }, [journalBehaviors?.behaviors, selectionOverrides]);
+
+  const { mutate: toggleJournalingBehavior } = useToggleTheBehvaior();
+
+  const handleToggleHabit = useCallback(
+    (behaviorId: string, isAdded: boolean) => {
+      const isSelected = !isAdded;
+      setSelectionOverrides((previous) => ({
+        ...previous,
+        [behaviorId]: isSelected,
+      }));
+      toggleJournalingBehavior({ behaviorId, isSelected });
+    },
+    [toggleJournalingBehavior],
   );
 
-  const handleToggleHabit = useCallback((habitId: number, isAdded: boolean) => {
-    setAddedHabitIds((previousIds) =>
-      isAdded
-        ? previousIds.filter((id) => id !== habitId)
-        : [...previousIds, habitId],
-    );
-  }, []);
-
   const handleCustomizePress = useCallback(() => {
-    onCustomizePress?.(addedHabitIds);
-  }, [addedHabitIds, onCustomizePress]);
+    const selectedBehaviorIds = journalHabits
+      .filter((habit) => habit.isAdded)
+      .map((habit) => habit.behaviorId);
+    onCustomizePress?.(selectedBehaviorIds);
+  }, [journalHabits, onCustomizePress]);
 
   const renderFooter = useCallback(
     (props: BottomSheetFooterProps) => (
@@ -84,7 +112,7 @@ export const JournalCustomizeBottomSheet = forwardRef<
   );
 
   const renderHabitItem = useCallback(
-    ({ item }: { item: JournalHabitOptionWithStatus }) => (
+    ({ item }: { item: JournalHabitRow }) => (
       <View style={styles.journalCustomizeHabitRow}>
         <View style={styles.journalCustomizeHabitTextBlock}>
           <Text style={styles.journalCustomizeHabitTitle}>{item.title}</Text>
@@ -94,7 +122,7 @@ export const JournalCustomizeBottomSheet = forwardRef<
         </View>
         <Pressable
           style={styles.journalCustomizeHabitIconWrap}
-          onPress={() => handleToggleHabit(item.id, item.isAdded)}
+          onPress={() => handleToggleHabit(item.behaviorId, item.isAdded)}
         >
           {item.isAdded ? (
             <View style={styles.journalCustomizeHabitCheckWrap}>
@@ -135,22 +163,24 @@ export const JournalCustomizeBottomSheet = forwardRef<
   return (
     <BottomSheetWrapper
       ref={ref}
-      snapPoints={["80%", "92%"]}
+      snapPoints={["100%"]}
       bgColor={Colors.light.darkgrey}
       onClose={onClose}
       onChange={onChange}
       scrollable={false}
-      footerComponent={renderFooter}
     >
       <BottomSheetFlatList
         data={journalHabits}
-        keyExtractor={(item) => String(item.id)}
+        keyExtractor={(item) => item.behaviorId}
         renderItem={renderHabitItem}
         ListHeaderComponent={listHeader}
         contentContainerStyle={styles.journalCustomizeSheetListContent}
         showsVerticalScrollIndicator={false}
         enableFooterMarginAdjustment
       />
+      <View style={styles.journalCustomizeSheetFooter}>
+        <PrimaryButton text="CUSTOMIZE" onPress={handleCustomizePress} />
+      </View>
     </BottomSheetWrapper>
   );
 });

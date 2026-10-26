@@ -1,6 +1,6 @@
-import * as React from "react"
-import Svg, { Path } from "react-native-svg"
-import { Colors } from "@/constants/theme"
+import * as React from "react";
+import Svg, { Path } from "react-native-svg";
+import { Colors } from "@/constants/theme";
 export const InsightCardArrowReverseIcon = ({
   color = Colors.light.subtext,
   size = 24,
@@ -15,4 +15,3 @@ export const InsightCardArrowReverseIcon = ({
     />
   </Svg>
 );
-

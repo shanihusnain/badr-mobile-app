@@ -80,6 +80,7 @@ import { InsightGreenClockIcon } from "./InsightGreenClockIcon";
 //J
 import { JournalBookIcon } from "./JournalBookIcon";
 import { JummaIcon } from "./JummaIcon";
+import { JournalBulbIcon } from "./JournalBulbIcon";
 //B
 
 //C
@@ -513,4 +514,5 @@ export {
   MagnifyingGlassIcon,
   DawoodCycleRefresh,
   MissedZakatIcon,
+  JournalBulbIcon,
 };
