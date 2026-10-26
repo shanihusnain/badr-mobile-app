@@ -177,15 +177,11 @@ export function mapSadaqahGoalAchievementsToUi(
 
   const periodStart = normalizeDate(data.periodStart) || null;
   const periodEnd = normalizeDate(data.periodEnd) || null;
+  // Prefer concrete 28-day cycle dates (same as prayer graphs) — never "This month".
   const dateRangeLabel =
-    data.periodLabel?.trim() ||
     (periodStart && periodEnd
       ? formatPrayerAchievementsDateRange(periodStart, periodEnd)
-      : period === "monthly"
-        ? "This month"
-        : period === "threeMonths"
-          ? "Last 3 months"
-          : "Last 6 months");
+      : "") || buildEmptyPastAchievementPeriodScaffold(period).dateRangeLabel;
 
   const totalTimeSpentMinutes = Math.max(
     0,
