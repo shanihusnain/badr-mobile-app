@@ -20,13 +20,20 @@ import {
   getCurrentStartTimeParts,
 } from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
-import { styles as commonStyles } from "../components/DailyProgressLogging.styles";
+import {
+  styles as commonStyles,
+  FLOW_CARD_HEIGHT,
+} from "../components/DailyProgressLogging.styles";
 import { fonts } from "@/assets/fonts";
 import { FlowCardZakatIcon } from "@/assets/icons/FlowCardZakatIcon";
 import type { ProgressLogEntry } from "../types";
-import { FlowCardCallender, TimeSpentIcon } from "@/assets/icons";
+import {
+  AddLoggingFlowIcon,
+  CalendarFlippingIcon,
+  WhiteClockIcon,
+  WhiteTimerIcon,
+} from "@/assets/icons";
 import { FlowCardWalletIcon } from "@/assets/icons/FlowCardWalletIcon";
-import { FlowCardClockIcon } from "@/assets/icons/FlowCardClockIcon";
 import { useOptionalSadaqahGoalFrameContext } from "../sadaqahGoalFrameContext";
 import { useLogSadaqahGoal } from "@/src/api/mutations/useLogSadaqahGoal";
 import {
@@ -229,22 +236,22 @@ export default function MissedZakatLoggingFlow({
     switch (step) {
       case "date":
         return {
-          icon: <FlowCardCallender size={20} color={Colors.light.white} />,
+          icon: <CalendarFlippingIcon size={24} />,
           label: "Which day are you logging for?",
         };
       case "financial-amount":
         return {
-          icon: <FlowCardWalletIcon size={20} color={Colors.light.white} />,
+          icon: <FlowCardWalletIcon size={24} color={Colors.light.white} />,
           label: "How much did you fulfill?",
         };
       case "start-time":
         return {
-          icon: <FlowCardClockIcon size={20} color={Colors.light.white} />,
+          icon: <WhiteClockIcon size={26} />,
           label: "Enter start time.",
         };
       case "time-spent":
         return {
-          icon: <TimeSpentIcon size={20} color={Colors.light.white} />,
+          icon: <WhiteTimerIcon size={26} />,
           label: "Enter time spent.",
         };
     }
@@ -309,72 +316,79 @@ export default function MissedZakatLoggingFlow({
     durationTotalMinutes >= 1;
 
   return (
-    <View style={commonStyles.section}>
-      <Text style={commonStyles.sectionTitle}>
-        {t("progressLogging.myProgress")}
-      </Text>
+    <>
+      {flowMode === "active" && (
+        <Pressable style={commonStyles.backdrop} />
+      )}
+      {flowMode === "active" && (
+        <TouchableOpacity
+          style={commonStyles.cancelButton}
+          onPress={resetFlow}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="close" size={20} color={Colors.light.white} />
+        </TouchableOpacity>
+      )}
 
-      <View style={commonStyles.cardAnchor}>
-        {flowMode === "active" && <Pressable style={commonStyles.backdrop} />}
-        {flowMode === "active" && (
-          <TouchableOpacity
-            style={commonStyles.cancelButton}
-            onPress={resetFlow}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="close" size={20} color={Colors.light.white} />
-          </TouchableOpacity>
-        )}
+      <View style={commonStyles.section}>
+        <Text style={commonStyles.sectionTitle}>
+          {t("progressLogging.myProgress")}
+        </Text>
 
-        {flowMode === "collapsed" ? (
-          <View style={localStyles.summaryCard}>
-            <View style={localStyles.summaryBody}>
-              <View style={localStyles.summaryIconCircle}>
-                <FlowCardZakatIcon size={20} color={Colors.light.white} />
-              </View>
-              <View style={{ flex: 1, gap: 4 }}>
-                <View
-                  style={[
-                    localStyles.badge,
-                    badgeStatus.type === "completed"
-                      ? localStyles.badgeCompleted
-                      : localStyles.badgeInProgress,
-                    { alignSelf: "flex-start" },
-                  ]}
-                >
-                  <Text
+        <View style={commonStyles.cardAnchor}>
+          {flowMode === "collapsed" ? (
+            <View style={localStyles.summaryCard}>
+              <View style={localStyles.summaryBody}>
+                <View style={localStyles.summaryIconCircle}>
+                  <FlowCardZakatIcon size={22} color={Colors.light.white} />
+                </View>
+                <View style={localStyles.summaryTextBlock}>
+                  <View
                     style={[
-                      localStyles.badgeText,
+                      localStyles.badge,
                       badgeStatus.type === "completed"
-                        ? localStyles.badgeTextCompleted
-                        : localStyles.badgeTextInProgress,
+                        ? localStyles.badgeCompleted
+                        : badgeStatus.type === "not-started"
+                          ? localStyles.badgeNotStarted
+                          : localStyles.badgeInProgress,
+                      { alignSelf: "flex-start" },
                     ]}
                   >
-                    {badgeStatus.text}
+                    <Text
+                      style={[
+                        localStyles.badgeText,
+                        badgeStatus.type === "completed"
+                          ? localStyles.badgeTextCompleted
+                          : badgeStatus.type === "not-started"
+                            ? localStyles.badgeTextNotStarted
+                            : localStyles.badgeTextInProgress,
+                      ]}
+                    >
+                      {badgeStatus.text}
+                    </Text>
+                  </View>
+                  <Text style={localStyles.summaryTitle} numberOfLines={2}>
+                    {summaryTitle}
                   </Text>
                 </View>
-                <Text style={[localStyles.summaryTitle, { flex: undefined }]}>
-                  {summaryTitle}
-                </Text>
               </View>
-            </View>
 
-            <View style={localStyles.footerRow}>
-              {showInsights ? (
-                <TouchableOpacity
-                  style={localStyles.insightsBtn}
-                  onPress={sadaqahFrame?.openInsights}
-                >
-                  <Text style={localStyles.insightsText}>VIEW INSIGHTS</Text>
-                  <Ionicons
-                    name="chevron-forward"
-                    size={22}
-                    color={Colors.light.white}
-                  />
-                </TouchableOpacity>
-              ) : (
-                <View style={localStyles.spacer} />
-              )}
+              <View style={localStyles.footerRow}>
+                {showInsights ? (
+                  <TouchableOpacity
+                    style={localStyles.insightsBtn}
+                    onPress={sadaqahFrame?.openInsights}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={localStyles.insightsText}>VIEW INSIGHTS</Text>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={22}
+                      color={Colors.light.white}
+                    />
+                  </TouchableOpacity>
+                ) : null}
+              </View>
 
               {canLog && !goalCompleted ? (
                 <TouchableOpacity
@@ -382,113 +396,124 @@ export default function MissedZakatLoggingFlow({
                   onPress={handleOpenFlow}
                   activeOpacity={0.8}
                 >
-                  <Ionicons name="add" size={22} color={Colors.light.white} />
+                  <AddLoggingFlowIcon size={32} />
                 </TouchableOpacity>
               ) : null}
             </View>
-          </View>
-        ) : (
-          <View style={commonStyles.flowCardLayer}>
-            <FlowCard
-              headerIcon={stepHeader.icon}
-              headerLabel={stepHeader.label}
-              onBack={handleBack}
-              onForward={handleForward}
-              onConfirm={handleConfirm}
-              canGoForward={!isLastStep}
-              canGoBack={stepIndex > 0}
-              canConfirm={canConfirm}
-              showConfirmButton={isLastStep}
-              styles={commonStyles}
-              style={commonStyles.inPlaceFlowCard}
-            >
-              {renderStepContent(currentStep)}
-            </FlowCard>
-          </View>
-        )}
+          ) : (
+            <View style={commonStyles.flowCardLayer}>
+              <FlowCard
+                headerIcon={stepHeader.icon}
+                headerLabel={stepHeader.label}
+                onBack={handleBack}
+                onForward={handleForward}
+                onConfirm={handleConfirm}
+                canGoForward={!isLastStep}
+                canGoBack={stepIndex > 0}
+                canConfirm={canConfirm}
+                showConfirmButton={isLastStep}
+                styles={commonStyles}
+                style={commonStyles.inPlaceFlowCard}
+              >
+                {renderStepContent(currentStep)}
+              </FlowCard>
+            </View>
+          )}
+        </View>
       </View>
-    </View>
+    </>
   );
 }
 
 const localStyles = StyleSheet.create({
   summaryCard: {
     backgroundColor: Colors.light.green,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    position: "relative",
-    overflow: "hidden",
-    height: 145,
-  },
-  summaryBody: {
-    flexDirection: "row",
+    borderRadius: 8,
+    padding: 16,
     gap: 12,
-    alignItems: "center",
-  },
-  summaryIconCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    alignItems: "center",
-    justifyContent: "center",
+    height: FLOW_CARD_HEIGHT,
+    width: "100%",
+    justifyContent: "space-between",
+    position: "relative",
   },
   badge: {
-    borderRadius: 4,
     paddingHorizontal: 8,
     paddingVertical: 4,
-    marginTop: -6,
+    borderRadius: 4,
+    marginTop: 3,
   },
   badgeInProgress: {
-    backgroundColor: "rgba(255,255,255,0.7)",
+    backgroundColor: Colors.light.lightpurple,
   },
   badgeCompleted: {
-    backgroundColor: "rgba(255,255,255,0.7)",
+    backgroundColor: Colors.light.lightgreenbadgecolor,
+  },
+  badgeNotStarted: {
+    backgroundColor: Colors.light.paginationInactiveDot,
   },
   badgeText: {
-    fontFamily: fonts.primary.semiBold,
+    fontFamily: fonts.primary.medium,
     fontSize: 12,
-    letterSpacing: 0.5,
+    fontWeight: "500",
+    lineHeight: 12.5,
   },
   badgeTextInProgress: {
-    color: Colors.light.lightblue,
+    color: Colors.light.darkblue,
   },
   badgeTextCompleted: {
     color: Colors.light.green,
   },
+  badgeTextNotStarted: {
+    color: Colors.light.notStartedTextColor,
+  },
+  summaryBody: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 6,
+  },
+  summaryTextBlock: {
+    flex: 1,
+    gap: 9,
+  },
+  summaryIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.light.selectcategory,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 22,
+  },
   summaryTitle: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 15,
+    fontSize: 14,
+    fontWeight: "600",
+    lineHeight: 18,
+    letterSpacing: 0,
   },
   footerRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "flex-end",
-    marginTop: 16,
+    marginTop: 4,
   },
   insightsBtn: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 2,
+    gap: 4,
+    paddingBottom: 4,
   },
   insightsText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.bold,
-    fontSize: 11,
-    letterSpacing: 0.5,
+    fontSize: 16,
+    fontWeight: "700",
   },
   addButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: Colors.light.white,
+    position: "absolute",
+    right: 16,
+    bottom: 15,
     alignItems: "center",
     justifyContent: "center",
-  },
-  spacer: {
-    flex: 1,
   },
 });

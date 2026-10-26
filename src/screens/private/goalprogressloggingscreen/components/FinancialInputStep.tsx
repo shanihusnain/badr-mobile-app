@@ -86,8 +86,8 @@ const localStyles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.light.white,
     borderRadius: 6,
-    minWidth: 80,
-    height: 36,
+    minWidth: 75,
+    height: 24,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "transparent",
@@ -95,8 +95,9 @@ const localStyles = StyleSheet.create({
   },
   currencySymbol: {
     color: Colors.light.white,
-    fontFamily: fonts.primary.semiBold,
-    fontSize: 16,
+    fontFamily: fonts.primary.medium,
+    fontSize: 14,
+    lineHeight: 18,
     marginRight: 4,
   },
   input: {

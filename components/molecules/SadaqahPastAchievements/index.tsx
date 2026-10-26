@@ -356,12 +356,34 @@ export function SadaqahPastAchievements({ goalId, isDetailed = false }: Props) {
   const displayTimeSpentMinutes =
     selectedBaseWeek?.timeSpentMinutes ?? baseAchievement.totalTimeSpentMinutes;
 
+  const hasLogs = useMemo(() => {
+    if (showPlaceholders || !baseAchievement) return false;
+    if (
+      !isPastAchievementBarEmpty(
+        baseAchievement.completedAmount,
+        baseAchievement.incompleteAmount,
+      )
+    ) {
+      return true;
+    }
+    return (baseAchievement.chartData ?? []).some(
+      (item: any) =>
+        !isPastAchievementBarEmpty(
+          item.completedAmount ?? 0,
+          item.incompleteAmount ?? 0,
+        ),
+    );
+  }, [baseAchievement, showPlaceholders]);
+
   const showNoDataDash =
     showPlaceholders ||
+    !hasLogs ||
     (useAchievementsApi &&
       (Boolean(mappedApi?.locked) ||
         (isAchievementsError && !mappedApi))) ||
     isPastAchievementBarEmpty(displayBaseCompleted, displayBaseIncomplete);
+
+  const showDetailedStatsChevron = !isDetailed && hasLogs && !showNoDataDash;
 
   const apiInsightCards = useMemo(() => {
     if (!useAchievementsApi) return [];
@@ -563,7 +585,7 @@ export function SadaqahPastAchievements({ goalId, isDetailed = false }: Props) {
           <Text style={styles.sectionTitle}>
             {t("progressLogging.pastGoalAchievements")}
           </Text>
-          {!isDetailed && (
+          {showDetailedStatsChevron ? (
             <TouchableOpacity
               onPress={() =>
                 router.push({
@@ -575,20 +597,53 @@ export function SadaqahPastAchievements({ goalId, isDetailed = false }: Props) {
             >
               <Ionicons name="chevron-forward" size={20} color={Colors.light.white} />
             </TouchableOpacity>
-          )}
+          ) : null}
         </View>
 
-        {/* ── Top: metric + period toggles ── */}
-        <View style={styles.topRow}>
-          {/* Left: label + big % + delta badge */}
+        {/* ── Top: metric + period toggles (match prayer past achievements) ── */}
+        <View style={styles.achievementPeriodRow}>
           <View style={styles.achievementBlock}>
             <Text style={styles.achievementCaption}>{topMetricLabel}</Text>
-            <Text style={styles.achievementPercent}>
-              {showNoDataDash
-                ? PAST_ACHIEVEMENT_NO_DATA
-                : formatNumber(topMetricValue)}
+            <View style={styles.achievementPercentRow}>
+              <Text style={styles.achievementPercent}>
+                {showNoDataDash
+                  ? PAST_ACHIEVEMENT_NO_DATA
+                  : formatNumber(topMetricValue)}
+              </Text>
               <Text style={styles.achievementPercentSymbol}>%</Text>
-            </Text>
+            </View>
+          </View>
+
+          <View style={styles.periodToggle}>
+            {PERIODS.map((item) => {
+              const isActive = period === item;
+              return (
+                <Pressable
+                  key={item}
+                  onPress={() => setPeriod(item)}
+                  style={[
+                    styles.periodButton,
+                    isActive
+                      ? styles.periodButtonActive
+                      : styles.periodButtonInactive,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.periodButtonText,
+                      isActive && styles.periodButtonTextActive,
+                    ]}
+                  >
+                    {t(PERIOD_LABEL_KEYS[item])}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+
+        <View style={styles.deltaDateRow}>
+          <View style={styles.deltaSlot}>
             {!showPlaceholders && !showNoDataDash ? (
               deltaIsZero ? (
                 <View style={[styles.deltaBadge, styles.deltaBadgeNeutral]}>
@@ -603,7 +658,7 @@ export function SadaqahPastAchievements({ goalId, isDetailed = false }: Props) {
                 >
                   <Ionicons
                     name={deltaIsPositive ? "arrow-up" : "arrow-down"}
-                    size={10}
+                    size={11}
                     color={
                       deltaIsPositive
                         ? Colors.light.green
@@ -615,41 +670,18 @@ export function SadaqahPastAchievements({ goalId, isDetailed = false }: Props) {
                       styles.deltaText,
                       !deltaIsPositive && styles.deltaTextNegative,
                     ]}
+                    numberOfLines={1}
                   >
                     {deltaAbs}% previous month
                   </Text>
                 </View>
               )
-            ) : null}
+            ) : (
+              <View style={styles.deltaBadgePlaceholder} />
+            )}
           </View>
 
-          {/* Right: period toggle + date nav */}
-          <View style={{ alignItems: "flex-end", gap: 8 }}>
-            <View style={styles.periodToggle}>
-              {PERIODS.map((item) => {
-                const isActive = period === item;
-                return (
-                  <Pressable
-                    key={item}
-                    onPress={() => setPeriod(item)}
-                    style={[
-                      styles.periodButton,
-                      isActive ? styles.periodButtonActive : styles.periodButtonInactive,
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.periodButtonText,
-                        isActive && styles.periodButtonTextActive,
-                      ]}
-                    >
-                      {t(PERIOD_LABEL_KEYS[item])}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-
+          <View style={styles.periodNavRow}>
             <View style={styles.dateNavRow}>
               <TouchableOpacity
                 activeOpacity={0.7}
@@ -659,15 +691,19 @@ export function SadaqahPastAchievements({ goalId, isDetailed = false }: Props) {
               >
                 <Ionicons
                   name="chevron-back"
-                  size={20}
+                  size={24}
                   color={
                     canNavigateBack
-                      ? Colors.light.white
-                      : Colors.light.dullWhite
+                      ? Colors.light.dullWhite
+                      : Colors.light.subtext
                   }
                 />
               </TouchableOpacity>
-              <Text style={styles.dateRange} numberOfLines={1}>
+              <Text
+                style={styles.dateRange}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
                 {showPlaceholders
                   ? PAST_ACHIEVEMENT_NO_DATA
                   : achievement.dateRangeLabel}
@@ -680,11 +716,11 @@ export function SadaqahPastAchievements({ goalId, isDetailed = false }: Props) {
               >
                 <Ionicons
                   name="chevron-forward"
-                  size={20}
+                  size={24}
                   color={
                     canNavigateForward
-                      ? Colors.light.white
-                      : Colors.light.dullWhite
+                      ? Colors.light.dullWhite
+                      : Colors.light.subtext
                   }
                 />
               </TouchableOpacity>
@@ -752,6 +788,8 @@ export function SadaqahPastAchievements({ goalId, isDetailed = false }: Props) {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
+          nestedScrollEnabled
+          style={styles.analyticsToggleScroll}
           contentContainerStyle={styles.analyticsToggle}
         >
           {analyticsTabs.map((tab) => {
@@ -953,20 +991,31 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     flexShrink: 1,
   },
-  topRow: {
+  achievementPeriodRow: {
     flexDirection: "row",
-    alignItems: "flex-start",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  deltaDateRow: {
+    flexDirection: "row",
+    alignItems: "center",
     justifyContent: "space-between",
   },
   achievementBlock: {
     alignItems: "flex-start",
-    gap: 4,
   },
   achievementCaption: {
     color: Colors.light.subtext,
     fontSize: 11,
     fontFamily: fonts.primary.heavy,
     fontWeight: "800",
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+  },
+  achievementPercentRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    marginBottom: 6,
   },
   achievementPercent: {
     color: Colors.light.white,
@@ -975,18 +1024,26 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     lineHeight: 28,
     letterSpacing: 0,
+    textTransform: "uppercase",
   },
   achievementPercentSymbol: {
+    color: Colors.light.white,
     fontSize: 16,
+    fontFamily: fonts.primary.bold,
+    fontWeight: "700",
+    lineHeight: 16,
+    marginBottom: 1,
+    marginLeft: 2,
   },
   deltaBadge: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    backgroundColor: Colors.light.lightgreen,
-    borderRadius: 6,
-    paddingHorizontal: 8,
+    backgroundColor: Colors.light.calendarBg,
+    borderRadius: 2,
+    paddingHorizontal: 2,
     paddingVertical: 4,
+    height: 24,
   },
   deltaBadgeNegative: {
     backgroundColor: Colors.light.calendarBg,
@@ -994,8 +1051,11 @@ const styles = StyleSheet.create({
   deltaBadgeNeutral: {
     backgroundColor: Colors.light.calendarBg,
   },
+  deltaBadgePlaceholder: {
+    height: 24,
+  },
   deltaText: {
-    color: Colors.light.green,
+    color: Colors.light.white,
     fontSize: 11,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
@@ -1003,18 +1063,36 @@ const styles = StyleSheet.create({
   deltaTextNegative: {
     color: Colors.light.subtext,
   },
+  deltaSlot: {
+    minWidth: 0,
+    marginRight: 8,
+    justifyContent: "center",
+    height: 24,
+  },
+  periodNavRow: {
+    width: 185,
+    height: 24,
+    justifyContent: "center",
+    alignItems: "stretch",
+    flexShrink: 0,
+    marginTop: -26,
+  },
   periodToggle: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    padding: 3,
+    padding: 2,
     backgroundColor: Colors.light.blackBackground,
     borderRadius: 6,
+    maxWidth: "70%",
   },
   periodButton: {
+    flex: 1,
     borderRadius: 5,
-    paddingHorizontal: 14,
-    paddingVertical: 7,
+    paddingHorizontal: 0,
+    paddingVertical: 8,
     alignItems: "center",
+    justifyContent: "center",
   },
   periodButtonActive: {
     backgroundColor: Colors.light.greybuttonBackground,
@@ -1036,12 +1114,17 @@ const styles = StyleSheet.create({
   dateNavRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 2,
+    width: "100%",
   },
   navBtn: {
-    padding: 2,
+    width: 24,
+    height: 24,
+    alignItems: "center",
+    justifyContent: "center",
   },
   dateRange: {
+    flex: 1,
+    minWidth: 0,
     color: Colors.light.white,
     fontSize: 13,
     fontFamily: fonts.primary.medium,
@@ -1103,17 +1186,23 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
   },
-  // Analytics toggle
+  // Analytics toggle — bleed to card edges like prayer past achievements
+  analyticsToggleScroll: {
+    marginHorizontal: -14,
+  },
   analyticsToggle: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
+    paddingHorizontal: 14,
   },
   analyticsButton: {
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 7,
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
     alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
   },
   analyticsButtonActive: {
     backgroundColor: Colors.light.green,
@@ -1122,7 +1211,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.blackBackground,
   },
   analyticsButtonText: {
-    color: Colors.light.grey,
+    color: Colors.light.dullWhite,
     fontSize: 13,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",

@@ -913,7 +913,7 @@ export default function QuranJuzLoggingFlow({
                   })}
                 </Text>
                 <Text style={surahGoalStyles.metaRegular}>
-                  {`(total `}
+                  {`(`}
                   <Text style={surahGoalStyles.metaBold}>
                     {formatNumber(config.targetJuzCount)}
                   </Text>

@@ -857,21 +857,23 @@ export function QuranCompletionPastAchievements({
 
         {renderAchievementHeader()}
 
-        {isDetailed ? (
-          renderDetailedSummary()
-        ) : (
-          <Text style={styles.summaryText}>
-            {t(GOAL_SUMMARY_KEY, {
-              percent: formatNumber(baseAchievement.achievementPercent),
-              delta: formatNumber(
-                Math.abs(baseAchievement.previousPeriodDeltaPercent),
-              ),
-              direction: deltaIsPositive
-                ? t("progressLogging.periodComparisonIncrease")
-                : t("progressLogging.periodComparisonDecrease"),
-            })}
-          </Text>
-        )}
+        {!showNoDataDash ? (
+          isDetailed ? (
+            renderDetailedSummary()
+          ) : (
+            <Text style={styles.summaryText}>
+              {t(GOAL_SUMMARY_KEY, {
+                percent: formatNumber(baseAchievement.achievementPercent),
+                delta: formatNumber(
+                  Math.abs(baseAchievement.previousPeriodDeltaPercent),
+                ),
+                direction: deltaIsPositive
+                  ? t("progressLogging.periodComparisonIncrease")
+                  : t("progressLogging.periodComparisonDecrease"),
+              })}
+            </Text>
+          )
+        ) : null}
 
         {renderGoalHeader()}
         {renderAnalyticsToggle()}

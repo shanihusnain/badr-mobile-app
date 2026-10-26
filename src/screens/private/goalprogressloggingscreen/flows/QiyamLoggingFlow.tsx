@@ -238,6 +238,8 @@ const timingStepStyles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
     fontSize: 10,
+    lineHeight: 10,
+    fontWeight: "400",
     opacity: 0.8,
     textAlign: "left",
     alignSelf: "stretch",
