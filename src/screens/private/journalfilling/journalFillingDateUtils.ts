@@ -85,3 +85,29 @@ export function buildDateRange(center: Date, before = 14, after = 14): Date[] {
   }
   return dates;
 }
+
+/** Inclusive date keys from startDateKey through endDateKey (YYYY-MM-DD). */
+export function buildDateKeysBetween(
+  startDateKey: string,
+  endDateKey: string,
+): string[] {
+  const start = parseDateKey(startDateKey);
+  const end = parseDateKey(endDateKey);
+  if (start > end) return [];
+
+  const keys: string[] = [];
+  for (let day = start; day <= end; day = addDays(day, 1)) {
+    keys.push(toDateKey(day));
+  }
+  return keys;
+}
+
+export function clampDateKeyToRange(
+  dateKey: string,
+  startDateKey: string,
+  endDateKey: string,
+): string {
+  if (dateKey < startDateKey) return startDateKey;
+  if (dateKey > endDateKey) return endDateKey;
+  return dateKey;
+}

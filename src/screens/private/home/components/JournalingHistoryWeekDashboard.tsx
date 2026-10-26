@@ -7,6 +7,7 @@ import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import type { JournalingDayProgress } from "../journalingHistory";
 import { TopSpace } from "@/components/atoms/TopSpace";
+import { BulbIcon, JournalBulbIcon } from "@/assets/icons";
 
 export type JournalingHistoryWeekDashboardProps = {
   weekDays: JournalingDayProgress[];
@@ -112,11 +113,7 @@ export function JournalingHistoryWeekDashboard({
         activeOpacity={onBehaviorInsightsPress ? 0.8 : 1}
         disabled={!onBehaviorInsightsPress}
       >
-        <MaterialCommunityIcons
-          name="lightbulb-on-outline"
-          size={18}
-          color={Colors.light.green}
-        />
+        <JournalBulbIcon />
         <Text style={styles.insightsText}>
           {t("homeScreen.journalBehaviorInsights")}
         </Text>

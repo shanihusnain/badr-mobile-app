@@ -1,9 +1,19 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
+import { useQueryClient } from "@tanstack/react-query";
 import {
-  buildDateRange,
-  getMonthDateKeys,
+  getJournalDay,
+  journalDayQueryKey,
+  type JournalDayData,
+} from "@/src/api/queries/useGetJournalDay";
+import { useUpdateJournalDay } from "@/src/api/mutations/useUpdateJournalDay";
+import { useGetMe } from "@/src/api/queries/useGetMe";
+import { useGetGoalCycleById } from "@/src/api/queries/useGetGoalCycleById";
+import {
+  addDays,
+  buildDateKeysBetween,
+  clampDateKeyToRange,
   getMonthStartDateKey,
   getMonthName,
   getWeekdayShort,
@@ -13,61 +23,25 @@ import {
   toDateKey,
 } from "./journalFillingDateUtils";
 import {
-  createJournal,
   getDismissDialogHidden,
-  getJournalByDate,
-  getJournalCompletionByDates,
   setDismissDialogHidden,
-  updateJournal,
 } from "./journalFillingRepository";
+import type { JournalFillingSection } from "./journalFillingQuestions";
 import {
-  fetchJournalFillingSections,
-  getAllJournalQuestionIds,
-  type JournalFillingSection,
-} from "./journalFillingQuestions";
+  draftToJournalDayEntries,
+  mapJournalDayToDraft,
+  mapJournalDayToSections,
+} from "./journalDayMappers";
 import type {
   JournalAnswerValue,
   JournalDateCapsule,
   JournalDraftState,
-  JournalEntry,
 } from "./types";
 
 type UseJournalFillingPropsOptions = {
   initialDateKey?: string;
   userName?: string;
 };
-
-function buildEmptyAnswers(): Record<string, JournalAnswerValue> {
-  const answers: Record<string, JournalAnswerValue> = {};
-  getAllJournalQuestionIds().forEach((id) => {
-    answers[id] = null;
-  });
-  return answers;
-}
-
-function entryToDraft(entry: JournalEntry | null): JournalDraftState {
-  const answers = buildEmptyAnswers();
-
-  entry?.answers.forEach((item) => {
-    answers[item.questionId] = item.answer;
-  });
-
-  return {
-    answers,
-    notes: entry?.notes ?? "",
-  };
-}
-
-function draftToAnswersArray(
-  answers: Record<string, JournalAnswerValue>,
-): { questionId: string; answer: JournalAnswerValue }[] {
-  return Object.entries(answers)
-    .filter(([, answer]) => answer !== null)
-    .map(([questionId, answer]) => ({
-      questionId,
-      answer,
-    }));
-}
 
 function areDraftsEqual(
   left: JournalDraftState,
@@ -89,16 +63,29 @@ function areDraftsEqual(
   return true;
 }
 
+function emptyDraft(): JournalDraftState {
+  return { answers: {}, notes: "" };
+}
+
 export function useJournalFillingProps({
   initialDateKey,
   userName = "Mariam",
 }: UseJournalFillingPropsOptions = {}) {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  const { mutateAsync: updateJournalDay } = useUpdateJournalDay();
   const today = useMemo(() => startOfDay(new Date()), []);
+  const todayKey = toDateKey(today);
+
+  const { data: meUser } = useGetMe();
+  const goalCycleId = meUser?.goalCycleId ?? null;
+  const { data: goalCycle } = useGetGoalCycleById(goalCycleId);
+  const cycleStartDateKey = goalCycle?.startDate ?? null;
+  const cycleEndDateKey = goalCycle?.endDate ?? null;
 
   const [sections, setSections] = useState<JournalFillingSection[]>([]);
   const [selectedDateKey, setSelectedDateKey] = useState(
-    initialDateKey ?? toDateKey(today),
+    initialDateKey ?? todayKey,
   );
   const [calendarVisible, setCalendarVisible] = useState(false);
   const [calendarMonthDateKey, setCalendarMonthDateKey] = useState(() =>
@@ -108,15 +95,9 @@ export function useJournalFillingProps({
     Record<string, boolean>
   >({});
   const [isLoadingCalendar, setIsLoadingCalendar] = useState(false);
-  const [draft, setDraft] = useState<JournalDraftState>({
-    answers: buildEmptyAnswers(),
-    notes: "",
-  });
-  const [savedDraft, setSavedDraft] = useState<JournalDraftState>({
-    answers: buildEmptyAnswers(),
-    notes: "",
-  });
-  const [existingEntry, setExistingEntry] = useState<JournalEntry | null>(null);
+  const [draft, setDraft] = useState<JournalDraftState>(emptyDraft);
+  const [savedDraft, setSavedDraft] = useState<JournalDraftState>(emptyDraft);
+  const [hasSavedEntry, setHasSavedEntry] = useState(false);
   const [completionMap, setCompletionMap] = useState<Record<string, boolean>>(
     {},
   );
@@ -132,22 +113,53 @@ export function useJournalFillingProps({
     useState(false);
   const [showSuccessToast, setShowSuccessToast] = useState(false);
 
-  const dateCapsules = useMemo<JournalDateCapsule[]>(() => {
-    const centerDate = parseDateKey(selectedDateKey);
-    const range = buildDateRange(centerDate, 14, 14);
+  const applyDayData = useCallback((dateKey: string, data: JournalDayData) => {
+    const nextDraft = mapJournalDayToDraft(data);
+    setSections(mapJournalDayToSections(data));
+    setDraft(nextDraft);
+    setSavedDraft(nextDraft);
+    setHasSavedEntry(Boolean(data.lastSavedAt) || data.answeredCount > 0);
+    setCompletionMap((previous) => ({
+      ...previous,
+      [dateKey]: data.isComplete,
+    }));
+    setCalendarCompletionMap((previous) => ({
+      ...previous,
+      [dateKey]: data.isComplete,
+    }));
+  }, []);
 
-    return range.map((date) => {
-      const dateKey = toDateKey(date);
+  useEffect(() => {
+    if (!cycleStartDateKey || !cycleEndDateKey) return;
+    setSelectedDateKey((current) =>
+      clampDateKeyToRange(current, cycleStartDateKey, cycleEndDateKey),
+    );
+  }, [cycleStartDateKey, cycleEndDateKey]);
+
+  const dateCapsules = useMemo<JournalDateCapsule[]>(() => {
+    const dateKeys =
+      cycleStartDateKey && cycleEndDateKey
+        ? buildDateKeysBetween(cycleStartDateKey, cycleEndDateKey)
+        : [selectedDateKey];
+
+    return dateKeys.map((dateKey) => {
+      const date = parseDateKey(dateKey);
       return {
         date: dateKey,
         weekdayLabel: getWeekdayShort(date),
         dayOfMonth: date.getDate(),
         isSelected: dateKey === selectedDateKey,
-        isToday: dateKey === toDateKey(today),
+        isToday: dateKey === todayKey,
         isCompleted: Boolean(completionMap[dateKey]),
       };
     });
-  }, [completionMap, selectedDateKey, today]);
+  }, [
+    completionMap,
+    cycleEndDateKey,
+    cycleStartDateKey,
+    selectedDateKey,
+    todayKey,
+  ]);
 
   const screenTitle = useMemo(() => {
     const selectedDate = parseDateKey(selectedDateKey);
@@ -168,51 +180,39 @@ export function useJournalFillingProps({
     [draft, savedDraft],
   );
 
-  const refreshCompletion = useCallback(async (centerDateKey: string) => {
-    const centerDate = parseDateKey(centerDateKey);
-    const range = buildDateRange(centerDate, 14, 14);
-    const dateKeys = range.map(toDateKey);
-    const completion = await getJournalCompletionByDates(dateKeys);
-    setCompletionMap(completion);
+  const loadCalendarCompletion = useCallback((_monthAnyDateKey: string) => {
+    // No range completion API yet — dots come from days already loaded/saved.
+    setIsLoadingCalendar(false);
   }, []);
-
-  const loadCalendarCompletion = useCallback(
-    async (monthAnyDateKey: string) => {
-      const monthKeys = getMonthDateKeys(monthAnyDateKey);
-      setIsLoadingCalendar(true);
-      const completion = await getJournalCompletionByDates(monthKeys);
-      setCalendarCompletionMap(completion);
-      setIsLoadingCalendar(false);
-    },
-    [],
-  );
 
   const loadEntryForDate = useCallback(
     async (dateKey: string) => {
       setIsLoadingEntry(true);
-      const entry = await getJournalByDate(dateKey);
-      const nextDraft = entryToDraft(entry);
-      setExistingEntry(entry);
-      setDraft(nextDraft);
-      setSavedDraft(nextDraft);
-      await refreshCompletion(dateKey);
-      setIsLoadingEntry(false);
+      try {
+        const data = await queryClient.fetchQuery({
+          queryKey: journalDayQueryKey(dateKey),
+          queryFn: () => getJournalDay(dateKey),
+        });
+        applyDayData(dateKey, data);
+      } catch (error) {
+        console.error("Error loading journal day:", error);
+        setSections([]);
+        setDraft(emptyDraft());
+        setSavedDraft(emptyDraft());
+        setHasSavedEntry(false);
+      } finally {
+        setIsLoadingEntry(false);
+      }
     },
-    [refreshCompletion],
+    [applyDayData, queryClient],
   );
 
   useEffect(() => {
     let mounted = true;
 
     const bootstrap = async () => {
-      const [nextSections, dismissHidden] = await Promise.all([
-        fetchJournalFillingSections(),
-        getDismissDialogHidden(),
-      ]);
-
+      const dismissHidden = await getDismissDialogHidden();
       if (!mounted) return;
-
-      setSections(nextSections);
       setHideDiscardDialogPreference(dismissHidden);
     };
 
@@ -235,7 +235,7 @@ export function useJournalFillingProps({
     const monthStartKey = getMonthStartDateKey(selectedDateKey);
     setCalendarMonthDateKey(monthStartKey);
     setCalendarVisible(true);
-    void loadCalendarCompletion(monthStartKey);
+    loadCalendarCompletion(monthStartKey);
   }, [loadCalendarCompletion, selectedDateKey]);
 
   const closeCalendar = useCallback(() => {
@@ -248,26 +248,46 @@ export function useJournalFillingProps({
       const next = new Date(d.getFullYear(), d.getMonth() + deltaMonths, 1);
       const nextMonthKey = toDateKey(next);
       setCalendarMonthDateKey(nextMonthKey);
-      void loadCalendarCompletion(nextMonthKey);
+      loadCalendarCompletion(nextMonthKey);
     },
     [calendarMonthDateKey, loadCalendarCompletion],
   );
 
   const handleSelectDate = useCallback(
     (dateKey: string) => {
-      if (dateKey === selectedDateKey) return;
+      const nextDateKey =
+        cycleStartDateKey && cycleEndDateKey
+          ? clampDateKeyToRange(dateKey, cycleStartDateKey, cycleEndDateKey)
+          : dateKey;
+
+      if (nextDateKey === selectedDateKey) return;
 
       if (hasChanges && !hideDiscardDialogPreference) {
-        setPendingDateKey(dateKey);
+        setPendingDateKey(nextDateKey);
         setPendingNavigationAction("date");
         setShowDiscardDialog(true);
         return;
       }
 
-      void applyDateChange(dateKey);
+      void applyDateChange(nextDateKey);
     },
-    [applyDateChange, hasChanges, hideDiscardDialogPreference, selectedDateKey],
+    [
+      applyDateChange,
+      cycleEndDateKey,
+      cycleStartDateKey,
+      hasChanges,
+      hideDiscardDialogPreference,
+      selectedDateKey,
+    ],
   );
+
+  const handlePreviousDay = useCallback(() => {
+    handleSelectDate(toDateKey(addDays(parseDateKey(selectedDateKey), -1)));
+  }, [handleSelectDate, selectedDateKey]);
+
+  const handleNextDay = useCallback(() => {
+    handleSelectDate(toDateKey(addDays(parseDateKey(selectedDateKey), 1)));
+  }, [handleSelectDate, selectedDateKey]);
 
   const handleCalendarDayPress = useCallback(
     (dateKey: string) => {
@@ -338,40 +358,42 @@ export function useJournalFillingProps({
 
     setIsSaving(true);
 
-    const payload = {
-      date: selectedDateKey,
-      notes: draft.notes.trim(),
-      answers: draftToAnswersArray(draft.answers),
-    };
-
     try {
-      const savedEntry = existingEntry
-        ? await updateJournal({
-            ...payload,
-            updatedAt: existingEntry.updatedAt,
-          })
-        : await createJournal(payload);
+      const data = await updateJournalDay({
+        date: selectedDateKey,
+        entries: draftToJournalDayEntries(draft.answers),
+        note: draft.notes.trim(),
+      });
 
-      const nextDraft = entryToDraft(savedEntry);
-      setExistingEntry(savedEntry);
-      setDraft(nextDraft);
-      setSavedDraft(nextDraft);
-      await refreshCompletion(selectedDateKey);
+      if (data) {
+        applyDayData(selectedDateKey, data);
+      } else {
+        const nextDraft: JournalDraftState = {
+          answers: { ...draft.answers },
+          notes: draft.notes.trim(),
+        };
+        setDraft(nextDraft);
+        setSavedDraft(nextDraft);
+        setHasSavedEntry(true);
+      }
+
       setShowSuccessToast(true);
 
       setTimeout(() => {
         router.back();
       }, 900);
+    } catch (error) {
+      console.error("Error saving journal day:", error);
     } finally {
       setIsSaving(false);
     }
   }, [
+    applyDayData,
     draft,
-    existingEntry,
     hasChanges,
     isSaving,
-    refreshCompletion,
     selectedDateKey,
+    updateJournalDay,
   ]);
 
   const handleBack = useCallback(() => {
@@ -406,11 +428,13 @@ export function useJournalFillingProps({
     closeCalendar,
     shiftCalendarMonth,
     handleCalendarDayPress,
-    showEdit: Boolean(existingEntry),
+    showEdit: hasSavedEntry,
     showDiscardDialog,
     dontShowDiscardAgain,
     showSuccessToast,
     handleSelectDate,
+    handlePreviousDay,
+    handleNextDay,
     handleAnswerChange,
     handleNotesChange,
     handleSave,

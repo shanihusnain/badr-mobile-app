@@ -23,7 +23,6 @@ import { JournalFillingTopGradient } from "./components/JournalFillingTopGradien
 import { JournalCalendarModal } from "./components/JournalCalendarModal";
 import { journalFillingStyles as styles } from "./styles";
 import { useJournalFillingProps } from "./useJournalFillingProps";
-import { addDays, parseDateKey, toDateKey } from "./journalFillingDateUtils";
 
 export function JournalFillingScreen() {
   const navigation = useNavigation();
@@ -46,6 +45,8 @@ export function JournalFillingScreen() {
     dontShowDiscardAgain,
     showSuccessToast,
     handleSelectDate,
+    handlePreviousDay,
+    handleNextDay,
     handleAnswerChange,
     handleNotesChange,
     handleSave,
@@ -100,14 +101,8 @@ export function JournalFillingScreen() {
           <JournalDateTextRow
             selectedDateKey={selectedDateKey}
             onPressDate={openCalendar}
-            onPressPrevDay={() => {
-              const d = parseDateKey(selectedDateKey);
-              handleSelectDate(toDateKey(addDays(d, -1)));
-            }}
-            onPressNextDay={() => {
-              const d = parseDateKey(selectedDateKey);
-              handleSelectDate(toDateKey(addDays(d, 1)));
-            }}
+            onPressPrevDay={handlePreviousDay}
+            onPressNextDay={handleNextDay}
           />
           <JournalDateSelector
             dates={dateCapsules}
