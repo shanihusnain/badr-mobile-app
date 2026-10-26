@@ -41,10 +41,10 @@ export const planStyles = StyleSheet.create({
     flexShrink: 0,
   },
   goalTabContent: {
-    paddingBottom: 24,
+    // paddingBottom: 24,
   },
   journalTabContent: {
-    paddingBottom: 24,
+    // paddingBottom: 24,
   },
   goalsHeaderRow: {
     flexDirection: "row",

@@ -182,7 +182,7 @@ export function SurahRecitationGoalCard({
                         )}
                       </Text>
                       <Text style={surahGoalStyles.metaRegular}>
-                        {`(total `}
+                        {`(`}
                         <Text style={surahGoalStyles.metaBold}>
                           {cycleTotalLabel}
                         </Text>

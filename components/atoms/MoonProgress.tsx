@@ -1,6 +1,5 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect } from "react";
 import { StyleSheet, View } from "react-native";
-import { Fit, RiveView, useRive, useRiveFile } from "@rive-app/react-native";
 
 type Props = {
   /** 0–100; fractional values keep the moon fill smooth. */
@@ -9,99 +8,41 @@ type Props = {
   onReady?: () => void;
 };
 
-const MOON_RIV = require("../../assets/animations/moon.riv");
+type MoonComponent = React.ComponentType<Props>;
 
-function clampPercent(value: number) {
-  return Math.min(100, Math.max(0, value));
+/**
+ * Rive needs native NitroModules (dev/production builds only).
+ * Loading it with a static import crashes Expo Go and can leave this module
+ * undefined for Fast Refresh consumers (e.g. GoalTabContent).
+ */
+let RiveMoon: MoonComponent | null = null;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const mod = require("./MoonProgressRive");
+  RiveMoon = mod.MoonProgressRive ?? mod.default ?? null;
+} catch (error) {
+  console.warn(
+    "[MoonProgress] Rive/NitroModules unavailable; using empty fallback.",
+    error,
+  );
 }
 
-const MoonProgress = ({ progressPercent, onReady }: Props) => {
-  const { riveFile, error } = useRiveFile(MOON_RIV);
-  const { riveViewRef, setHybridRef } = useRive();
-  const readyNotifiedRef = useRef(false);
-  const onReadyRef = useRef(onReady);
-  onReadyRef.current = onReady;
-
-  const targetRef = useRef(clampPercent(progressPercent));
-  const appliedRef = useRef<number | null>(null);
-  const frameRef = useRef(0);
-  const startedRef = useRef(false);
-
-  // Sync during render so the RAF loop sees the latest value immediately
-  // (no wait for useEffect after paint).
-  targetRef.current = clampPercent(progressPercent);
-
-  const notifyReady = () => {
-    if (readyNotifiedRef.current) return;
-    readyNotifiedRef.current = true;
-    onReadyRef.current?.();
-  };
-
+function FallbackMoon({ onReady }: Props) {
   useEffect(() => {
-    if (!riveViewRef) return;
+    onReady?.();
+  }, [onReady]);
 
-    if (!startedRef.current) {
-      startedRef.current = true;
-      riveViewRef.playIfNeeded();
-      const seed = clampPercent(progressPercent);
-      targetRef.current = seed;
-      appliedRef.current = seed;
-      riveViewRef.setNumberInputValue("Number 1", seed);
-      notifyReady();
-    }
+  return <View style={styles.fallback} />;
+}
 
-    const tick = () => {
-      const target = targetRef.current;
-      // Push every frame so Rive gets continuous fractional updates,
-      // not only when React re-renders / useEffect fires.
-      if (appliedRef.current !== target) {
-        appliedRef.current = target;
-        riveViewRef.setNumberInputValue("Number 1", target);
-      }
-      frameRef.current = requestAnimationFrame(tick);
-    };
-
-    frameRef.current = requestAnimationFrame(tick);
-    return () => {
-      cancelAnimationFrame(frameRef.current);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [riveViewRef]);
-
-  useEffect(() => {
-    if (!error) return;
-    console.error("[MoonProgress] Failed to load moon.riv:", error);
-    // Don't block parent animations if the moon asset fails.
-    notifyReady();
-  }, [error]);
-
-  if (!riveFile) {
-    return <View style={styles.fallback} />;
+export function MoonProgress(props: Props) {
+  if (RiveMoon) {
+    return <RiveMoon {...props} />;
   }
-
-  return (
-    <View style={styles.container}>
-      <RiveView
-        hybridRef={setHybridRef}
-        file={riveFile}
-        stateMachineName="State Machine 1"
-        autoPlay
-        fit={Fit.Contain}
-        style={styles.rive}
-      />
-    </View>
-  );
-};
+  return <FallbackMoon {...props} />;
+}
 
 const styles = StyleSheet.create({
-  container: {
-    width: "100%",
-    height: "100%",
-  },
-  rive: {
-    width: "100%",
-    height: "100%",
-  },
   fallback: {
     width: "100%",
     height: "100%",

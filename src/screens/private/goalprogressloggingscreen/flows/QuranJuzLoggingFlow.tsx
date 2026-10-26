@@ -12,7 +12,11 @@ import {
   formatProgressLoggingDateLabel,
   getQuranLoggingSelectableDateBounds,
 } from "../progressLoggingConfig";
-import { DurationStep, StartTimeStep, getCurrentStartTimeParts } from "../components/TimePickerSteps";
+import {
+  DurationStep,
+  StartTimeStep,
+  getCurrentStartTimeParts,
+} from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
 import { JuzLoggingTypeStep } from "../components/JuzLoggingTypeStep";
 import { JuzRangeStep } from "../components/JuzRangeStep";
@@ -259,8 +263,7 @@ export default function QuranJuzLoggingFlow({
 
   const minAyatStart = useMemo(() => {
     const localMin = getMinAyatStartForJuz(partialJuz);
-    const fromOpenPartialMap =
-      frameResume.openPartialMinAyatByJuz[partialJuz];
+    const fromOpenPartialMap = frameResume.openPartialMinAyatByJuz[partialJuz];
     if (fromOpenPartialMap != null) {
       return Math.max(localMin, fromOpenPartialMap);
     }
@@ -348,9 +351,7 @@ export default function QuranJuzLoggingFlow({
     setStartAyat(nextStart);
     // After prior progress, park end at max so the back chevron slides left.
     setEndAyat(
-      minAyatStart > 1
-        ? maxAyat
-        : Math.min(Math.max(nextStart, 1), maxAyat),
+      minAyatStart > 1 ? maxAyat : Math.min(Math.max(nextStart, 1), maxAyat),
     );
   }, [partialJuz, minAyatStart, partialJuzVerseCount]);
 
@@ -485,8 +486,7 @@ export default function QuranJuzLoggingFlow({
     ],
   );
 
-  const canGoForward =
-    !isLastStep && isStepValid(currentStep) && !isLogging;
+  const canGoForward = !isLastStep && isStepValid(currentStep) && !isLogging;
   const canConfirm =
     !isLogging && isLastStep && steps.every((step) => isStepValid(step));
 
@@ -573,12 +573,9 @@ export default function QuranJuzLoggingFlow({
               startJuz: clampJuz(fullStartJuz),
               endJuz: clampJuz(fullEndJuz),
             },
-      partialJuz:
-        committedLoggingType === "full" ? null : clampJuz(partialJuz),
+      partialJuz: committedLoggingType === "full" ? null : clampJuz(partialJuz),
       ayatRange:
-        committedLoggingType === "full"
-          ? null
-          : { startAyat, endAyat },
+        committedLoggingType === "full" ? null : { startAyat, endAyat },
       fullTimeSpentMinutes:
         committedLoggingType === "partial" ? null : fullMinutes,
       partialTimeSpentMinutes:
@@ -860,12 +857,8 @@ export default function QuranJuzLoggingFlow({
         canConfirm={canConfirm}
         styles={styles}
         style={styles.inPlaceFlowCard}
-        contentStyle={
-          isAyahRangeStep ? styles.flowContentAyahRange : undefined
-        }
-        headerStyle={
-          isAyahRangeStep ? styles.flowHeaderAyahRange : undefined
-        }
+        contentStyle={isAyahRangeStep ? styles.flowContentAyahRange : undefined}
+        headerStyle={isAyahRangeStep ? styles.flowHeaderAyahRange : undefined}
       >
         {renderStepContent(currentStep)}
       </FlowCard>
@@ -913,7 +906,7 @@ export default function QuranJuzLoggingFlow({
                   })}
                 </Text>
                 <Text style={surahGoalStyles.metaRegular}>
-                  {`(total `}
+                  {`(`}
                   <Text style={surahGoalStyles.metaBold}>
                     {formatNumber(config.targetJuzCount)}
                   </Text>

@@ -172,7 +172,7 @@ export function HizbMemorisationGoalCard({
                   </Text>
                   {showTotalAyahs ? (
                     <Text style={surahGoalStyles.metaRegular}>
-                      {`(total `}
+                      {`(`}
                       <Text style={surahGoalStyles.metaBold}>
                         {totalAyahsLabel}
                       </Text>

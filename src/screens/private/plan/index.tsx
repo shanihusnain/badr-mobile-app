@@ -37,8 +37,8 @@ export default function PlanScreen() {
   }, []);
 
   return (
-    <BlackScreenWrapper edges={["top"]}>
-      {/* <PlanTabBar
+    <BlackScreenWrapper edges={[]}>
+      <PlanTabBar
         tabs={tabs}
         selectedTab={selectedTab}
         onSelectTab={setSelectedTab}
@@ -66,8 +66,8 @@ export default function PlanScreen() {
         selectedJournalTab={selectedJournalTab}
         onSelectJournalTab={setSelectedJournalTab}
         onCustomizePress={handleCustomizePress}
-      /> */}
-      <Text
+      />
+      {/* <Text
         style={{
           fontSize: 20,
           fontWeight: "bold",
@@ -77,7 +77,7 @@ export default function PlanScreen() {
         }}
       >
         Coming soon...
-      </Text>
+      </Text> */}
     </BlackScreenWrapper>
   );
 }

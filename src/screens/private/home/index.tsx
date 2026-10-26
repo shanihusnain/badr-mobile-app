@@ -16,6 +16,7 @@ import {
   Animated,
   type LayoutChangeEvent,
   ImageBackground,
+  Pressable,
 } from "react-native";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
@@ -75,10 +76,19 @@ import { JournalingHistoryWeekDashboard } from "./components/JournalingHistoryWe
 import { JournalingHistoryWeekDays } from "./journalingHistory";
 import { useAuth } from "@/provider/useAuth";
 import { Image } from "expo-image";
+import { useGetGoalCycleCategories } from "@/src/api/queries/useGetGoalCycleCategories";
+import {
+  toUiIbadahCategory,
+  UI_CATEGORY_TO_API,
+  type UiIbadahCategory,
+} from "@/src/utils/goalCycleCategoryMap";
+import { prepareFigmaForcedSmallCapsText } from "@/src/utils/figmaTypography";
 type TextPart = { text: string; highlighted: boolean };
 
 type CategoryItem = {
   title: string;
+  /** API slug for DailyProgressBottomSheet (prayer | quran | fasting | sadaqah). */
+  apiCategory: string;
   percentage: string;
   progressColor: string;
 };
@@ -92,17 +102,30 @@ type InspirationCard = {
 
 const SCREEN_CARD_WIDTH = Dimensions.get("window").width - 32;
 
-const GOAL_CATEGORIES: CategoryItem[] = [
-  { title: "PRAYERS", percentage: "0", progressColor: Colors.light.ringPrayer },
-  { title: "QURAN", percentage: "40", progressColor: Colors.light.ringQuran },
+/** Home ring order + colors; percentages come from categories API. */
+const HOME_CATEGORY_META: {
+  uiCategory: UiIbadahCategory;
+  title: string;
+  progressColor: string;
+}[] = [
   {
+    uiCategory: "PRAYER",
+    title: "PRAYERS",
+    progressColor: Colors.light.ringPrayer,
+  },
+  {
+    uiCategory: "QURAN",
+    title: "QURAN",
+    progressColor: Colors.light.ringQuran,
+  },
+  {
+    uiCategory: "FASTING",
     title: "FASTING",
-    percentage: "65",
     progressColor: Colors.light.ringFasting,
   },
   {
+    uiCategory: "SADAQAH",
     title: "SADAQAH",
-    percentage: "85",
     progressColor: Colors.light.ringSadaqah,
   },
 ];
@@ -228,6 +251,28 @@ export default function HomeScreen() {
   const { user } = useAuth();
   console.log("user in redux", user);
 
+  const { data: categorySummaries = [] } = useGetGoalCycleCategories();
+
+  const goalCategories = useMemo((): CategoryItem[] => {
+    const pctByUi = new Map<UiIbadahCategory, number>();
+    for (const item of categorySummaries) {
+      const ui = toUiIbadahCategory(String(item.category ?? ""));
+      if (!ui) continue;
+      const raw = item.completedPct;
+      const pct =
+        typeof raw === "number" && Number.isFinite(raw)
+          ? Math.min(100, Math.max(0, Math.round(raw)))
+          : 0;
+      pctByUi.set(ui, pct);
+    }
+    return HOME_CATEGORY_META.map(({ uiCategory, title, progressColor }) => ({
+      title,
+      apiCategory: UI_CATEGORY_TO_API[uiCategory],
+      progressColor,
+      percentage: String(pctByUi.get(uiCategory) ?? 0),
+    }));
+  }, [categorySummaries]);
+
   const normalizeGender = (value?: string | null) =>
     value?.toString().trim().toUpperCase();
 
@@ -239,6 +284,13 @@ export default function HomeScreen() {
 
   const handleAddDailyProgress = useCallback(() => {
     goldenBottomSheetRef.current?.expand();
+  }, []);
+
+  const handleCategoryRingPress = useCallback((apiCategory: string) => {
+    setDailyProgressResume({ view: "detail", category: apiCategory });
+    requestAnimationFrame(() => {
+      goldenBottomSheetRef.current?.expand();
+    });
   }, []);
 
   const handleDailyProgressResumeConsumed = useCallback(() => {
@@ -338,7 +390,7 @@ export default function HomeScreen() {
     [],
   );
 
-  const quranCategory = GOAL_CATEGORIES.find((c) => c.title === "QURAN");
+  const quranCategory = goalCategories.find((c) => c.title === "QURAN");
 
   const visibleDashboardSubGoals = useMemo(() => {
     const goals = DASHBOARD_SUB_GOALS.map((goal) =>
@@ -423,7 +475,7 @@ export default function HomeScreen() {
   return (
     <BlackScreenWrapper edges={["top"]}>
       {/* Sticky collapsed category bar (fades in as big rings scroll away) */}
-      {/* {!isAnyBottomSheetOpen ? (
+      {!isAnyBottomSheetOpen ? (
         <Animated.View
           pointerEvents="box-none"
           style={[
@@ -436,7 +488,7 @@ export default function HomeScreen() {
           ]}
         >
           <View style={styles.collapsedRow}>
-            {GOAL_CATEGORIES.map((category) => (
+            {goalCategories.map((category) => (
               <TouchableOpacity
                 key={`sticky-${category.title}`}
                 style={styles.collapsedItem}
@@ -444,20 +496,22 @@ export default function HomeScreen() {
               >
                 <TaperedCircleBorder
                   percentage={category.percentage}
-                  progressColor={category.progressColor}
-                  borderColor={Colors.light.calendarBg}
-                  size={16}
+                  borderColor={Colors.light.ringTrackEmpty}
+                  size={30}
+                  variant="illuminated"
                 >
                   <View />
                 </TaperedCircleBorder>
                 <Text style={styles.collapsedLabel}>
-                  {t(getCategoryTranslationKey(category.title))}
+                  {prepareFigmaForcedSmallCapsText(
+                    t(getCategoryTranslationKey(category.title)),
+                  )}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
         </Animated.View>
-      ) : null} */}
+      ) : null}
 
       <Animated.ScrollView
         style={{ width: "100%" }}
@@ -536,12 +590,12 @@ export default function HomeScreen() {
         {/* Upcoming prayer card */}
         {isPrayerCardVisible && (
           <View style={styles.prayerCardWrapper}>
-            <TouchableOpacity
+            {/* <TouchableOpacity
               style={styles.closeButton}
               onPress={() => setIsPrayerCardVisible(false)}
             >
               <AntDesign name="close" size={20} color={Colors.light.white} />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
             <ImageBackground
               source={require("@/assets/images/NamazTimeMoreTabBackGroundImage.png")}
               style={styles.prayerCardContainer}
@@ -630,28 +684,43 @@ export default function HomeScreen() {
             { opacity: categorySectionOpacity },
           ]}
         >
-          {/* {GOAL_CATEGORIES.map((category) => (
-            <View key={category.title} style={styles.categoryItemWrapper}>
+          {/* {goalCategories.map((category) => (
+            <Pressable
+              key={category.title}
+              style={styles.categoryItemWrapper}
+              onPress={() => handleCategoryRingPress(category.apiCategory)}
+              accessibilityRole="button"
+              accessibilityLabel={t(getCategoryTranslationKey(category.title))}
+            >
               <TaperedCircleBorder
                 percentage={category.percentage}
-                borderColor={Colors.light.calendarBg}
-                progressColor={category.progressColor}
-                size={50}
+                borderColor={Colors.light.ringTrackEmpty}
+                size={60 * (SCREEN_CARD_WIDTH / 320)}
+                variant="illuminated"
               />
-              <TopSpace top={16} />
+              <TopSpace top={7} />
               <View style={styles.categoryLabelWrapper}>
-                <Text style={styles.categoryLabel}>
-                  {t(getCategoryTranslationKey(category.title))}
-                </Text>
-                <MaterialIcons
-                  name={
-                    i18n.language === "ar" ? "chevron-left" : "chevron-right"
-                  }
-                  size={16}
-                  color={Colors.light.white}
-                />
+                <View style={styles.categoryLabelInner}>
+                  <View style={styles.categoryLabelChevronSlot} />
+                  <Text style={styles.categoryLabel}>
+                    {prepareFigmaForcedSmallCapsText(
+                      t(getCategoryTranslationKey(category.title)),
+                    )}
+                  </Text>
+                  <View style={styles.categoryLabelChevronSlot}>
+                    <MaterialIcons
+                      name={
+                        i18n.language === "ar"
+                          ? "chevron-left"
+                          : "chevron-right"
+                      }
+                      size={16}
+                      color={Colors.light.white}
+                    />
+                  </View>
+                </View>
               </View>
-            </View>
+            </Pressable>
           ))} */}
         </Animated.View>
 
@@ -894,8 +963,8 @@ export default function HomeScreen() {
         {/* {visibleDashboardSubGoals.map((goal) => (
           <DashboardSubGoalRow key={goal.id} goal={goal} />
         ))} */}
-        {/* 
-        <TouchableOpacity style={styles.showMoreButton}>
+
+        {/* <TouchableOpacity style={styles.showMoreButton}>
           <Text style={styles.showMoreText}>{t("homeScreen.showMore")}</Text>
           <Entypo name="chevron-down" size={24} color="white" />
         </TouchableOpacity>
@@ -906,7 +975,7 @@ export default function HomeScreen() {
         /> */}
       </Animated.ScrollView>
 
-      {/* <NamazGoalBottomSheet
+      <NamazGoalBottomSheet
         ref={namazBottomSheetRef}
         onClose={() => {}}
         onChange={(index) => handleBottomSheetChange("namaz", index)}
@@ -925,7 +994,7 @@ export default function HomeScreen() {
         }}
         onChange={(index) => handleBottomSheetChange("dashboard", index)}
       />
-*/}
+
       <BottomSheetWrapper
         ref={goldenBottomSheetRef}
         snapPoints={["50%", "92%"]}

@@ -44,9 +44,7 @@ export function JuzRecitationGoalCard({
   const frameTitle = frameItem?.title?.trim() || frame?.title?.trim() || "";
 
   const parsedRange = useMemo(() => {
-    const match = frameTitle.match(
-      /^From\s+Juz\s+(\d+)\s+to\s+Juz\s+(\d+)/i,
-    );
+    const match = frameTitle.match(/^From\s+Juz\s+(\d+)\s+to\s+Juz\s+(\d+)/i);
     if (!match) return null;
     return {
       start: Number(match[1]),
@@ -54,21 +52,16 @@ export function JuzRecitationGoalCard({
     };
   }, [frameTitle]);
 
-  const rangeTitle =
-    frameTitle ||
-    t("progressLogging.juzCardTitleFallback");
+  const rangeTitle = frameTitle || t("progressLogging.juzCardTitleFallback");
 
-  const totalFromTitle = frameTitle.match(
-    /\(\s*total\s+(\d+)\s+juz\s*\)/i,
-  );
+  const totalFromTitle = frameTitle.match(/\(\s*total\s+(\d+)\s+juz\s*\)/i);
   // Prefer title / range count. Frame `target` is often ayahs (e.g. 4362), not juz.
   const totalFromRange =
     parsedRange && parsedRange.end >= parsedRange.start
       ? parsedRange.end - parsedRange.start + 1
       : 0;
   const totalFromTarget = (() => {
-    const raw =
-      Number(frameItem?.target) || Number(frame?.goal?.target) || 0;
+    const raw = Number(frameItem?.target) || Number(frame?.goal?.target) || 0;
     return raw >= 1 && raw <= 30 ? raw : 0;
   })();
   const totalJuz =
@@ -164,12 +157,14 @@ export function JuzRecitationGoalCard({
                     </>
                   ) : (
                     <Text style={surahGoalStyles.surahName} numberOfLines={2}>
-                      {rangeTitle.replace(/\s*\(\s*total\b[^)]*\)\s*$/i, "").trim()}
+                      {rangeTitle
+                        .replace(/\s*\(\s*total\b[^)]*\)\s*$/i, "")
+                        .trim()}
                     </Text>
                   )}
                   {totalLabel ? (
                     <Text style={surahGoalStyles.metaRegular}>
-                      {`(total `}
+                      {`(`}
                       <Text style={surahGoalStyles.metaBold}>{totalLabel}</Text>
                       {` ${t("progressLogging.unitJuzSingular")})`}
                     </Text>

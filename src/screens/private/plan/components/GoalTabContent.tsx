@@ -1,5 +1,5 @@
 import { RecordIcon } from "@/assets/icons";
-import MoonProgress from "@/components/atoms/MoonProgress";
+import { MoonProgress } from "@/components/atoms/MoonProgress";
 import SecondaryButton from "@/components/atoms/Secondary-button";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import {

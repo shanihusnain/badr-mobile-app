@@ -8,7 +8,7 @@ import {
 } from "react-native-responsive-screen";
 import { useTranslation } from "react-i18next";
 import { localizeNumber } from "@/src/utils/localizeNumbers";
-import MoonProgress from "@/components/atoms/MoonProgress";
+import { MoonProgress } from "@/components/atoms/MoonProgress";
 
 interface DaysTrackerContainerProps {
   isBottomSheetView?: boolean;

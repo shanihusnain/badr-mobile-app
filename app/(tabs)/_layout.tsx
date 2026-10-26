@@ -26,6 +26,7 @@ export default function TabLayout() {
             borderTopWidth: 0,
             elevation: 0,
             shadowOpacity: 0,
+            height: 70,
           },
           tabBarItemStyle: {
             paddingTop: 2,

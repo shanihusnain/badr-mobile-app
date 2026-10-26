@@ -12,7 +12,6 @@ import moment from "moment-hijri";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import {
-
   CalendarFlippingIcon,
   WhiteClockIcon,
   WhitePrayerMatIcon,
@@ -896,9 +895,7 @@ export default function SunnahRawatibLoggingFlow({
 
   return (
     <>
-      {flowMode === "active" && (
-        <Pressable style={commonStyles.backdrop} />
-      )}
+      {flowMode === "active" && <Pressable style={commonStyles.backdrop} />}
       {flowMode === "active" && (
         <TouchableOpacity
           style={commonStyles.cancelButton}
@@ -954,7 +951,10 @@ export default function SunnahRawatibLoggingFlow({
                       {goalLabelParts.title}
                     </Text>
                     {goalLabelParts.totalSuffix ? (
-                      <Text style={localStyles.summaryTotalLine} numberOfLines={1}>
+                      <Text
+                        style={localStyles.summaryTotalLine}
+                        numberOfLines={1}
+                      >
                         {goalLabelParts.totalSuffix
                           .split(/(\d+)/)
                           .map((part, index) =>
@@ -1015,7 +1015,8 @@ export default function SunnahRawatibLoggingFlow({
                 canGoForward={
                   !isLastStep &&
                   !(
-                    currentStep === "select-prayer" && !canProceedFromPrayerSelect
+                    currentStep === "select-prayer" &&
+                    !canProceedFromPrayerSelect
                   )
                 }
                 canGoBack={stepIndex > 0}

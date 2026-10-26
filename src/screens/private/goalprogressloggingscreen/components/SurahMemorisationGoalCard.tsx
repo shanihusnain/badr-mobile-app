@@ -5,7 +5,10 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "@/constants/theme";
 import { AddLoggingFlowIcon, QuranMemorizationIcon } from "@/assets/icons";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
-import { quranFrameCycleEnded, quranFrameShowsInsights } from "@/src/utils/quranGoalFrameMap";
+import {
+  quranFrameCycleEnded,
+  quranFrameShowsInsights,
+} from "@/src/utils/quranGoalFrameMap";
 import { GoalData } from "../../home/components/goalsData";
 import QuranMemorisationLoggingFlow from "../flows/QuranMemorisationLoggingFlow";
 import { useOptionalQuranGoalFrameContext } from "../quranGoalFrameContext";
@@ -137,7 +140,7 @@ export function SurahMemorisationGoalCard({
                   </Text>
                   {showTotalAyahs ? (
                     <Text style={surahGoalStyles.metaRegular}>
-                      {`(total `}
+                      {`(`}
                       <Text style={surahGoalStyles.metaBold}>
                         {totalAyahsLabel}
                       </Text>

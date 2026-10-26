@@ -5,6 +5,7 @@ import {
 } from "react-native-responsive-screen";
 import { fonts } from "../../../../assets/fonts";
 import { Colors } from "../../../../constants/theme";
+import { getFigmaForcedSmallCapsTextStyle } from "@/src/utils/figmaTypography";
 
 const CARD_WIDTH = Dimensions.get("window").width - 32;
 const FASTING_LEGEND_TEXT_WIDTH = (Dimensions.get("window").width - 120) / 2;
@@ -225,11 +226,12 @@ export const styles = StyleSheet.create({
     gap: 6,
   },
   collapsedLabel: {
-    color: Colors.light.white,
-    fontSize: 10,
-    fontFamily: fonts.primary.semiBold,
-    marginLeft: 10,
-    fontWeight: "600",
+    ...getFigmaForcedSmallCapsTextStyle({
+      fontSize: 12,
+      letterSpacing: 0.4,
+      color: Colors.light.white,
+      textAlign: "center",
+    }),
   },
 
   // Categories Section
@@ -244,6 +246,7 @@ export const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     overflow: "visible",
+    justifyContent: "center",
   },
 
   // Category Circle
@@ -265,19 +268,36 @@ export const styles = StyleSheet.create({
     fontFamily: fonts.primary.bold,
   },
 
-  // Category Label with Arrow
+  // Category Label with Arrow — row is centered under the ring; equal-width
+  // spacer balances the chevron so the text sits on the circle’s axis.
   categoryLabelWrapper: {
+    width: "100%",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 4,
+  },
+
+  categoryLabelInner: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 2,
+  },
+
+  categoryLabelChevronSlot: {
+    width: 16,
+    height: 16,
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   categoryLabel: {
-    color: Colors.light.white,
-    fontSize: 11,
-    fontFamily: fonts.primary.semiBold,
-    textAlign: "center",
+    ...getFigmaForcedSmallCapsTextStyle({
+      fontSize: 14,
+      letterSpacing: 0.4,
+      color: Colors.light.white,
+      textAlign: "center",
+    }),
   },
 
   // Containers Section

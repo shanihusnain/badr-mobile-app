@@ -1,5 +1,5 @@
 import { fonts } from "@/assets/fonts";
-import MoonProgress from "@/components/atoms/MoonProgress";
+import { MoonProgress } from "@/components/atoms/MoonProgress";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { Colors } from "@/constants/theme";
 import {
