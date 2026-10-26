@@ -534,7 +534,10 @@ export function MissedRamadanFastsPastAchievements({
     : null;
 
   const renderFastingInsights = () => {
-    if (!isDawood && apiInsightCards.length > 0) {
+    // Same integration as MondayThursday / Missed Ramadan:
+    // GET .../fasting-goals/:type/achievements → keyInsights via mapFastingApiKeyInsightsToCards.
+    // Dawood uses PROPHET_DAWOOD on that same endpoint.
+    if (apiInsightCards.length > 0) {
       return (
         <View style={styles.insightsSection}>
           <View style={styles.insightsHeader}>
@@ -569,82 +572,30 @@ export function MissedRamadanFastsPastAchievements({
       );
     }
 
-    if (isDetailed) {
-      const totalCompletedTitle = isDawood
-        ? t("progressLogging.dawoodInsightTotalCompleted")
-        : t("progressLogging.missedRamadanInsightTotalCompleted");
-      const totalCompletedSub = isDawood
-        ? t("progressLogging.dawoodInsightFastsCompleted")
-        : t("progressLogging.missedRamadanInsightFastsCompleted");
+    // Compact past-achievements: API only (matches Mon–Thu / Missed Ramadan).
+    if (!isDetailed) return null;
 
-      const detailedCards: InsightCardData[] = [
-        {
-          iconFamily: "Ionicons",
-          iconName: "calendar-outline",
-          title: t("progressLogging.recitationInsightGoalTracked"),
-          value: formatNumber(goalTrackedMonths),
-          subValue: t("progressLogging.recitationInsightMonths"),
-        },
-        {
-          iconFamily: "Ionicons",
-          iconName: "checkmark-circle-outline",
-          title: totalCompletedTitle,
-          value: formatNumber(totalFastsCompleted),
-          subValue: totalCompletedSub,
-        },
-      ];
+    const totalCompletedTitle = isDawood
+      ? t("progressLogging.dawoodInsightTotalCompleted")
+      : t("progressLogging.missedRamadanInsightTotalCompleted");
+    const totalCompletedSub = isDawood
+      ? t("progressLogging.dawoodInsightFastsCompleted")
+      : t("progressLogging.missedRamadanInsightFastsCompleted");
 
-      return (
-        <View style={styles.insightsSection}>
-          <View style={styles.insightsHeader}>
-            <Text style={styles.insightsTitleLabel}>
-              {t("progressLogging.keyInsights")}
-            </Text>
-            <Text style={styles.insightsSubtitleLabel}>
-              {period === "monthly"
-                ? "VS. LAST MONTH"
-                : period === "threeMonths"
-                  ? "VS. LAST 3 MONTHS"
-                  : "VS. LAST 6 MONTHS"}
-            </Text>
-          </View>
-          <ScrollView
-            horizontal
-            nestedScrollEnabled
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.insightsScrollContent}
-          >
-            {detailedCards.map((card, index) => (
-              <InsightCard
-                key={`${card.title}-${index}`}
-                {...card}
-                icon={getMissedRamadanInsightIcon(card)}
-                style={insightCardWidthStyle}
-              />
-            ))}
-          </ScrollView>
-        </View>
-      );
-    }
-
-    if (!isDawood || !dawoodPeriodSlice || period === "monthly") {
-      return null;
-    }
-
-    const dawoodCards: InsightCardData[] = [
+    const detailedCards: InsightCardData[] = [
       {
         iconFamily: "Ionicons",
         iconName: "calendar-outline",
-        title: t("progressLogging.dawoodInsightGoalTracked"),
-        value: formatNumber(dawoodPeriodSlice.trackedMonths),
-        subValue: t("progressLogging.dawoodInsightMonths"),
+        title: t("progressLogging.recitationInsightGoalTracked"),
+        value: formatNumber(goalTrackedMonths),
+        subValue: t("progressLogging.recitationInsightMonths"),
       },
       {
         iconFamily: "Ionicons",
-        iconName: "sync-outline",
-        title: t("progressLogging.dawoodInsightCycles"),
-        value: formatNumber(dawoodPeriodSlice.cycleCount),
-        subValue: t("progressLogging.dawoodInsightCyclesUnit"),
+        iconName: "checkmark-circle-outline",
+        title: totalCompletedTitle,
+        value: formatNumber(totalFastsCompleted),
+        subValue: totalCompletedSub,
       },
     ];
 
@@ -655,9 +606,11 @@ export function MissedRamadanFastsPastAchievements({
             {t("progressLogging.keyInsights")}
           </Text>
           <Text style={styles.insightsSubtitleLabel}>
-            {period === "threeMonths"
-              ? t("progressLogging.dawoodInsightsVsLast3Months")
-              : t("progressLogging.dawoodInsightsVsLast6Months")}
+            {period === "monthly"
+              ? "VS. LAST MONTH"
+              : period === "threeMonths"
+                ? "VS. LAST 3 MONTHS"
+                : "VS. LAST 6 MONTHS"}
           </Text>
         </View>
         <ScrollView
@@ -666,7 +619,7 @@ export function MissedRamadanFastsPastAchievements({
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.insightsScrollContent}
         >
-          {dawoodCards.map((card, index) => (
+          {detailedCards.map((card, index) => (
             <InsightCard
               key={`${card.title}-${index}`}
               {...card}
