@@ -576,21 +576,15 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
   const currentStep = flowSteps[stepIndex] ?? flowSteps[0];
   const isLastStep = stepIndex === flowSteps.length - 1;
   const canGoForward = !dayDetailLoadingState && !isLastStep;
-  const dateLabel = useMemo(() => {
-    const datePart = moment(selectedDate, "YYYY-MM-DD").format("MMM D");
-    const yesterdayString = moment(todayString, "YYYY-MM-DD")
-      .subtract(1, "day")
-      .format("YYYY-MM-DD");
-    if (selectedDate === yesterdayString) {
-      return `${t("progressLogging.yesterday")}, ${datePart}`;
-    }
-    return formatProgressLoggingDateLabel(
-      selectedDate,
-      todayString,
-      t("progressLogging.today"),
-      t("progressLogging.tomorrow"),
-    );
-  }, [selectedDate, todayString, t]);
+  const dateLabel = useMemo(
+    () =>
+      formatProgressLoggingDateLabel(
+        selectedDate,
+        todayString,
+        t("progressLogging.today"),
+      ),
+    [selectedDate, todayString, t],
+  );
 
   const formatStartTimeForApi = () => {
     const hourNum = parseInt(startHour || "0", 10) || 0;

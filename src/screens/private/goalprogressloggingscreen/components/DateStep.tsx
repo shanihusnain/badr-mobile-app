@@ -29,6 +29,8 @@ export const DateStep: React.FC<DateStepProps> = ({
   const maxDate = maxSelectableDate ?? todayString;
   const canGoPrev = !minSelectableDate || selectedDate > minSelectableDate;
   const canGoNext = selectedDate < maxDate;
+  const isTodayLabel = selectedDate === todayString;
+  const disabledChevronColor = "rgba(255, 255, 255, 0.35)";
 
   const handleShiftPrev = React.useCallback(() => {
     if (!canGoPrev) return;
@@ -41,9 +43,9 @@ export const DateStep: React.FC<DateStepProps> = ({
   }, [canGoNext, onShiftDate]);
 
   return (
-    <View style={styles.dateRow}>
+    <View style={[styles.dateRow, isTodayLabel && styles.dateRowCompact]}>
       <TouchableOpacity
-        style={[styles.dateChevronHit, styles.dateChevronHitStart]}
+        style={[styles.dateChevronHit, !canGoPrev && { opacity: 0.55 }]}
         onPress={handleShiftPrev}
         disabled={!canGoPrev}
         hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
@@ -51,16 +53,21 @@ export const DateStep: React.FC<DateStepProps> = ({
         <Ionicons
           name={i18n.language === "ar" ? "chevron-forward" : "chevron-back"}
           size={32}
-          color={canGoPrev ? Colors.light.white : "rgba(255, 255, 255, 0.55)"}
+          color={canGoPrev ? Colors.light.white : disabledChevronColor}
         />
       </TouchableOpacity>
-      <View style={styles.dateLabelCenter}>
+      <View
+        style={[
+          styles.dateLabelCenter,
+          isTodayLabel && styles.dateLabelCenterCompact,
+        ]}
+      >
         <Text style={styles.dateMainText} numberOfLines={1}>
           {dateLabel}
         </Text>
       </View>
       <TouchableOpacity
-        style={[styles.dateChevronHit, styles.dateChevronHitEnd]}
+        style={[styles.dateChevronHit, !canGoNext && { opacity: 0.55 }]}
         onPress={handleShiftNext}
         disabled={!canGoNext}
         hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
@@ -68,7 +75,7 @@ export const DateStep: React.FC<DateStepProps> = ({
         <Ionicons
           name={i18n.language === "ar" ? "chevron-back" : "chevron-forward"}
           size={32}
-          color={canGoNext ? Colors.light.white : "rgba(255, 255, 255, 0.55)"}
+          color={canGoNext ? Colors.light.white : disabledChevronColor}
         />
       </TouchableOpacity>
     </View>
