@@ -74,7 +74,7 @@ export default function WhiteDaysFastsLoggingFlow({
   onLogComplete,
   onDropdownOpenChange,
 }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const fastingFrame = useOptionalFastingGoalFrameContext();
   const frame = fastingFrame?.frame;
   const { mutateAsync: logFast, isPending: isLogging } = useLogFastingGoal();
@@ -393,7 +393,7 @@ export default function WhiteDaysFastsLoggingFlow({
     const calendarIcon = (
       <FlowCardCallender size={22} color={Colors.light.white} />
     );
-    const timeIcon = <TimeSpentIcon size={22} color={Colors.light.white} />;
+    const timeIcon = <TimeSpentIcon size={20} color={Colors.light.white} />;
 
     switch (step) {
       case "selectPlannedFast":
@@ -414,6 +414,56 @@ export default function WhiteDaysFastsLoggingFlow({
     }
   };
 
+  const toggleTimeStep = useCallback(() => {
+    if (currentStep === "startTime") {
+      ensureEndAfterStart();
+      setStepIndex(STEPS.indexOf("endTime"));
+    } else if (currentStep === "endTime") {
+      setStepIndex(STEPS.indexOf("startTime"));
+    }
+  }, [currentStep, ensureEndAfterStart]);
+
+  const renderTimeStep = (
+    sectionLabel: string,
+    picker: React.ReactNode,
+    nav: { canGoPrev: boolean; canGoNext: boolean },
+  ) => (
+    <View style={localStyles.timeStepWrap}>
+      <Text style={localStyles.timeSectionLabel}>{sectionLabel}</Text>
+      <View style={commonStyles.dateRow}>
+        <TouchableOpacity
+          onPress={toggleTimeStep}
+          disabled={!nav.canGoPrev}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          activeOpacity={0.7}
+        >
+          <Ionicons
+            name={i18n.language === "ar" ? "chevron-forward" : "chevron-back"}
+            size={32}
+            color={Colors.light.white}
+            style={!nav.canGoPrev ? localStyles.chevronDisabled : undefined}
+          />
+        </TouchableOpacity>
+
+        <View style={localStyles.timePickerCenter}>{picker}</View>
+
+        <TouchableOpacity
+          onPress={toggleTimeStep}
+          disabled={!nav.canGoNext}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          activeOpacity={0.7}
+        >
+          <Ionicons
+            name={i18n.language === "ar" ? "chevron-back" : "chevron-forward"}
+            size={32}
+            color={Colors.light.white}
+            style={!nav.canGoNext ? localStyles.chevronDisabled : undefined}
+          />
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
   const renderStepContent = (step: WhiteDaysFastsStepId) => {
     switch (step) {
       case "selectPlannedFast":
@@ -429,42 +479,36 @@ export default function WhiteDaysFastsLoggingFlow({
           />
         );
       case "startTime":
-        return (
-          <View style={localStyles.timeStepWrap}>
-            <Text style={localStyles.timeSectionLabel}>
-              {t("progressLogging.whiteDaysStartTimeLabel")}
-            </Text>
-            <StartTimeStep
-              startHour={startHour}
-              setStartHour={setStartHour}
-              startMinute={startMinute}
-              setStartMinute={setStartMinute}
-              startPeriod={startPeriod}
-              setStartPeriod={setStartPeriod}
-              isPeriodDropdownOpen={isStartPeriodDropdownOpen}
-              setIsPeriodDropdownOpen={setIsStartPeriodDropdownOpen}
-              styles={commonStyles}
-            />
-          </View>
+        return renderTimeStep(
+          t("progressLogging.whiteDaysStartTimeLabel"),
+          <StartTimeStep
+            startHour={startHour}
+            setStartHour={setStartHour}
+            startMinute={startMinute}
+            setStartMinute={setStartMinute}
+            startPeriod={startPeriod}
+            setStartPeriod={setStartPeriod}
+            isPeriodDropdownOpen={isStartPeriodDropdownOpen}
+            setIsPeriodDropdownOpen={setIsStartPeriodDropdownOpen}
+            styles={commonStyles}
+          />,
+          { canGoPrev: false, canGoNext: true },
         );
       case "endTime":
-        return (
-          <View style={localStyles.timeStepWrap}>
-            <Text style={localStyles.timeSectionLabel}>
-              {t("progressLogging.whiteDaysEndTimeLabel")}
-            </Text>
-            <StartTimeStep
-              startHour={endHour}
-              setStartHour={setEndHour}
-              startMinute={endMinute}
-              setStartMinute={setEndMinute}
-              startPeriod={endPeriod}
-              setStartPeriod={setEndPeriod}
-              isPeriodDropdownOpen={isEndPeriodDropdownOpen}
-              setIsPeriodDropdownOpen={setIsEndPeriodDropdownOpen}
-              styles={commonStyles}
-            />
-          </View>
+        return renderTimeStep(
+          t("progressLogging.whiteDaysEndTimeLabel"),
+          <StartTimeStep
+            startHour={endHour}
+            setStartHour={setEndHour}
+            startMinute={endMinute}
+            setStartMinute={setEndMinute}
+            startPeriod={endPeriod}
+            setStartPeriod={setEndPeriod}
+            isPeriodDropdownOpen={isEndPeriodDropdownOpen}
+            setIsPeriodDropdownOpen={setIsEndPeriodDropdownOpen}
+            styles={commonStyles}
+          />,
+          { canGoPrev: true, canGoNext: false },
         );
     }
   };
@@ -600,10 +644,15 @@ export default function WhiteDaysFastsLoggingFlow({
                 onBack={handleBack}
                 onForward={handleForward}
                 onConfirm={handleConfirm}
-                canGoForward={!isLastStep && canProceed}
+                canGoForward={
+                  !isLastStep && canProceed && currentStep !== "startTime"
+                }
                 canGoBack={stepIndex > 0}
                 canConfirm={canConfirm}
                 showConfirmButton
+                headerSingleLine={
+                  currentStep === "startTime" || currentStep === "endTime"
+                }
                 styles={commonStyles}
                 style={[
                   commonStyles.inPlaceFlowCard,
@@ -722,9 +771,14 @@ const localStyles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     width: "100%",
-    gap: 6,
+    position: "relative",
   },
   timeSectionLabel: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: "100%",
+    marginBottom: 2,
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
@@ -732,5 +786,16 @@ const localStyles = StyleSheet.create({
     lineHeight: 10,
     textAlign: "center",
     opacity: 0.95,
+  },
+  timePickerCenter: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    minWidth: 0,
+    transform: [{ translateX: 4 }],
+  },
+  chevronDisabled: {
+    opacity: 0.35,
+    transform: [{ scaleX: 0.82 }],
   },
 });

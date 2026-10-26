@@ -801,7 +801,7 @@
     "startAyat": "Start Ayat",
     "endAyat": "End Ayat",
     "ayatRangeSummary": "Ayat {{start}}–{{end}} of {{max}}",
-    "totalVersesCompleted": "Total verses completed: {{completed}}/{{total}} ({{percent}}%)",
+    "totalVersesCompleted": "Verses completed: {{completed}}/{{total}} ({{percent}}%)",
     "completionsThisWeek": "completions this week",
     "quranCompletionWeekQuote": "Each completed juz brings you closer to finishing the Quran—one khatmah at a time.",
     "achievementSummaryRecitationCompletion": "Last period, you achieved {{percent}}% of your completion goal — {{delta}}% {{direction}} than the previous period.",

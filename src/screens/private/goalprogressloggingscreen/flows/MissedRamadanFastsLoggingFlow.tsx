@@ -548,7 +548,7 @@ export default function MissedRamadanFastsLoggingFlow({
             styles={commonStyles}
           />,
           {
-            canGoPrev: stepIndex > 0,
+            canGoPrev: false,
             canGoNext: isStartTimeValid,
           },
         );

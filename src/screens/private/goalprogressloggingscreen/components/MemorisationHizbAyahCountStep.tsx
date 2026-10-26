@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from "react";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import { QuranAyatRangeSlider } from "./QuranAyatRangeSlider";
+import { formatHizbVerseLabel } from "../quranJuzVerseMap";
 import {
   formatApiVerseLabel,
   parseItemVerseSpan,
@@ -30,10 +31,12 @@ type Props = {
 
 /**
  * Hizb memorisation ayah step.
- * Totals and handle labels come from API target + title range only.
+ * Totals from API target. Chip format stays `Surah:ayah` (API span at the
+ * ends; hizb geography for mid-span positions — same pattern as Juz).
  * Footer (shared slider): overall progress = end handle / total verses.
  */
 export function MemorisationHizbAyahCountStep({
+  hizbId,
   totalAyahs,
   title,
   subtitle,
@@ -68,8 +71,11 @@ export function MemorisationHizbAyahCountStep({
     [totalAyahs, verseSpan.total],
   );
   const formatVerseLabel = useCallback(
-    (ayah: number) => formatApiVerseLabel(verseSpan, ayah, formatNumber),
-    [formatNumber, verseSpan],
+    (ayah: number) =>
+      formatApiVerseLabel(verseSpan, ayah, formatNumber, (pos) =>
+        formatHizbVerseLabel(hizbId, pos),
+      ),
+    [formatNumber, hizbId, verseSpan],
   );
 
   return (

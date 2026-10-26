@@ -1,5 +1,4 @@
 import { isValidStartTime, isValidTimeSpent } from "./quranRecitationTarget";
-import { getJuzVerseCountFromMap } from "./quranJuzVerseMap";
 
 export type CompletionType = "full" | "partial" | "both";
 
@@ -96,8 +95,6 @@ export type CompletionResumeCursor = {
   openPartialMinAyatByJuz: Record<number, number>;
 };
 
-const RESUME_EPS = 1e-6;
-
 export function parseJuzNumbersFromCompletionLabel(
   juzLabel: string | null | undefined,
 ): { full: number[]; partialJuz: number[] } {
@@ -170,7 +167,8 @@ function firstAvailableJuz(
 }
 
 export function getCompletionResumeCursor(
-  completedJuzTotal: number,
+  /** @deprecated Aggregate count no longer drives exclusions (labels + local logs do). */
+  _completedJuzTotal: number,
   options?: {
     fullyLoggedJuz?: number[];
     openPartialJuz?: number | null;
@@ -247,15 +245,26 @@ export function getCompletionResumeCursor(
   // Prefer explicit logged-juz set from the frame (supports non-sequential logs).
   if (fullyLogged.length > 0 || openPartialList.length > 0) {
     const nextFull = firstAvailableJuz(fullExcludedSet);
+    const nextPartial = firstAvailableJuz(excludedSet);
+    // Never wipe exclusions when every juz is logged/partial — keep them
+    // blocked (match Recitation by Juz). emptyCursor() would re-offer them.
     if (nextFull > MAX_JUZ) {
-      return emptyCursor();
+      return {
+        minFullStartJuz: MAX_JUZ + 1,
+        minPartialJuz: Math.min(MAX_JUZ + 1, nextPartial),
+        minStartAyat: openPartialJuz != null ? openPartialMinAyat : 1,
+        excludedJuz: fullyLogged,
+        fullExcludedJuz,
+        openPartialJuz,
+        openPartialMinAyatByJuz,
+      };
     }
 
     if (openPartialJuz != null) {
       return {
         minFullStartJuz: nextFull,
         // Allow Partial to reach every non-fully-logged juz (incl. open partals).
-        minPartialJuz: firstAvailableJuz(excludedSet),
+        minPartialJuz: nextPartial,
         minStartAyat: openPartialMinAyat,
         excludedJuz: fullyLogged,
         fullExcludedJuz,
@@ -275,62 +284,11 @@ export function getCompletionResumeCursor(
     };
   }
 
-  // Sequential fallback from aggregate completed juz count.
-  const raw = Math.max(0, Number(completedJuzTotal) || 0);
-  let within = raw % 30;
-  if (within > 30 - RESUME_EPS) within = 0;
-
-  if (within < RESUME_EPS) {
-    return emptyCursor();
-  }
-
-  const fullDone = Math.floor(within + RESUME_EPS / 10);
-  const fraction = within - fullDone;
-  const sequentialExcluded = Array.from({ length: fullDone }, (_, i) => i + 1);
-
-  if (fraction < RESUME_EPS) {
-    const next = Math.min(MAX_JUZ, fullDone + 1);
-    return {
-      minFullStartJuz: next,
-      minPartialJuz: next,
-      minStartAyat: 1,
-      excludedJuz: sequentialExcluded,
-      fullExcludedJuz: sequentialExcluded,
-      openPartialJuz: null,
-      openPartialMinAyatByJuz: {},
-    };
-  }
-
-  const currentJuz = Math.min(MAX_JUZ, fullDone + 1);
-  const verseCount = Math.max(1, getJuzVerseCountFromMap(currentJuz));
-  const ayahsDone = Math.min(
-    verseCount,
-    Math.max(0, Math.floor(fraction * verseCount + RESUME_EPS)),
-  );
-
-  if (ayahsDone >= verseCount) {
-    const next = Math.min(MAX_JUZ, currentJuz + 1);
-    const excluded = [...sequentialExcluded, currentJuz];
-    return {
-      minFullStartJuz: next,
-      minPartialJuz: next,
-      minStartAyat: 1,
-      excludedJuz: excluded,
-      fullExcludedJuz: excluded,
-      openPartialJuz: null,
-      openPartialMinAyatByJuz: {},
-    };
-  }
-
-  return {
-    minFullStartJuz: Math.min(MAX_JUZ + 1, currentJuz + 1),
-    minPartialJuz: currentJuz,
-    minStartAyat: ayahsDone + 1,
-    excludedJuz: sequentialExcluded,
-    fullExcludedJuz: [...sequentialExcluded, currentJuz],
-    openPartialJuz: currentJuz,
-    openPartialMinAyatByJuz: { [currentJuz]: ayahsDone + 1 },
-  };
+  // No explicit juz captions — do NOT invent sequential exclusions from the
+  // aggregate count (that wrongly hides j1…n and still offers a juz the user
+  // already logged non-sequentially, e.g. j2–j3). Match Recitation by Juz:
+  // empty exclusions; session-local logs + frame captions own the block list.
+  return emptyCursor();
 }
 
 /** Next selectable juz above/below `from`, skipping excluded. */

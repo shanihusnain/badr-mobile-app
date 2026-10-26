@@ -572,7 +572,7 @@ export default function MondayThursdayFastsLoggingFlow({
             styles={commonStyles}
           />,
           {
-            canGoPrev: stepIndex > 0,
+            canGoPrev: false,
             canGoNext: isStartTimeValid,
           },
         );

@@ -754,7 +754,7 @@
     "startAyat": "آية البداية",
     "endAyat": "آية النهاية",
     "ayatRangeSummary": "الآيات {{start}}–{{end}} من {{max}}",
-    "totalVersesCompleted": "إجمالي الآيات المكتملة: {{completed}}/{{total}} ({{percent}}%)",
+    "totalVersesCompleted": "الآيات المكتملة: {{completed}}/{{total}} ({{percent}}%)",
     "completionsThisWeek": "ختمات هذا الأسبوع",
     "quranCompletionWeekQuote": "كل جزء مكتمل يقربك من ختم القرآن—ختمة تلو الأخرى.",
     "achievementSummaryRecitationCompletion": "في الفترة الماضية، حققت {{percent}}% من هدف الختم — {{delta}}% {{direction}} من الفترة السابقة.",

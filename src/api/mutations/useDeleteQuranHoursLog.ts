@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "..";
 import { getApiErrorMessage, showToast } from "@/src/config/toastConfig";
 import { resolveQuranType } from "@/src/utils/quranGoalMap";
+import { clearCompletionLogs } from "@/src/screens/private/goalprogressloggingscreen/quranRecitationCompletionData";
 
 /**
  * Goal types that support DELETE .../log/items (day + catalog item).
@@ -81,6 +82,9 @@ export const useDeleteQuranHoursLog = () => {
     mutationFn: deleteQuranHoursLog,
     onSuccess: (_data, variables) => {
       const type = resolveQuranType(variables.quranGoalType);
+      if (type === "RECITATION_COMPLETION") {
+        clearCompletionLogs();
+      }
       queryClient.invalidateQueries({
         queryKey: ["quran-goal-frame", type],
       });
