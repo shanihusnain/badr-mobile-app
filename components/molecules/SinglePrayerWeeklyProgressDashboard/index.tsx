@@ -400,6 +400,7 @@ const styles = StyleSheet.create({
     // Always reserve space for the delete bin so long-press doesn't push stats down.
     paddingBottom: 1,
     paddingTop: 24,
+    paddingHorizontal: 4,
   },
   dayColumn: {
     flex: 1,
