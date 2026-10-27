@@ -19,6 +19,9 @@ import { HeadPhoneQuranListeningIcon } from "@/assets/icons/HeadPhoneQuranListen
 import { QuranImageIcon } from "@/assets/icons/QuranImageIcon";
 import { QuranMemorizationIcon } from "@/assets/icons/QuranMemorizationIcon";
 import { ManQuranTajweedIcon } from "@/assets/icons/ManQuranTajweedIcon";
+import { MissedRamadanGreenCardIcon } from "@/assets/icons/MissedRamadanGreenCardIcon";
+import { FastingFlowCardMondayFasts } from "@/assets/icons/FastingFlowCardMondayFasts";
+import { FastingFlowCardProphetDawoodCalender } from "@/assets/icons/FastingFlowCardProphetDawoodCalender";
 import {
   getFigmaForcedSmallCapsTextStyle,
   prepareFigmaForcedSmallCapsText,
@@ -78,6 +81,25 @@ export function getDetailedIbadahIcon(
       return <QuranMemorizationIcon color={color} size={size} />;
     case "quran-Tajweed":
       return <ManQuranTajweedIcon color={color} size={size} />;
+    case "fasting-ramadan":
+      return <MissedRamadanGreenCardIcon color={color} size={size} />;
+    case "fasting-mondayThursday":
+      return <FastingFlowCardMondayFasts color={color} size={size} />;
+    case "fasting-Dawwod":
+      return <FastingFlowCardProphetDawoodCalender color={color} size={size} />;
+    case "fasting-whiteDays": {
+      const diameter = Math.round(size * 0.85);
+      return (
+        <View
+          style={{
+            width: diameter,
+            height: diameter,
+            borderRadius: diameter / 2,
+            backgroundColor: color,
+          }}
+        />
+      );
+    }
     default:
       return <FontAwesome6 name="person-praying" size={size} color={color} />;
   }
