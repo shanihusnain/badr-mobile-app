@@ -42,6 +42,9 @@ export type KaffarahWeeklyProgressDashboardProps = {
   weekFraction?: string;
   totalThisWeek?: number;
   streakDays?: number;
+  /** `null` on week 1 / no comparison. */
+  vsLastWeek?: number | null;
+  vsLastWeekDisplay?: string | null;
   motivationalQuote?: string;
   selectedDayIndex?: number;
   onDayPress?: (index: number) => void;
@@ -93,6 +96,8 @@ export function KaffarahWeeklyProgressDashboard({
   weekFraction = "1/4",
   totalThisWeek = 5,
   streakDays = 1,
+  vsLastWeek = null,
+  vsLastWeekDisplay = null,
   motivationalQuote = "Kaffarah is a reminder of Allah's mercy—keep it up and stay inspired!",
   selectedDayIndex = 6,
   onDayPress,
@@ -154,7 +159,9 @@ export function KaffarahWeeklyProgressDashboard({
       weekRangeLabel={weekRangeLabel}
       weekFraction={weekFraction}
       streakDays={streakDays}
-      vsLastWeek={null}
+      vsLastWeek={vsLastWeek}
+      vsLastWeekDisplay={vsLastWeekDisplay}
+      comparisonVariant="hours"
       motivationalQuote={loading ? "---" : motivationalQuote}
       selectedDayIndex={selectedDayIndex}
       onDayPress={onDayPress}

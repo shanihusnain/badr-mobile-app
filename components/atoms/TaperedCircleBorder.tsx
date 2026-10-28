@@ -48,6 +48,23 @@ interface TaperedCircleBorderProps {
    * Default true preserves goal progress rings.
    */
   showCompleteCheckIcon?: boolean;
+  /** Replaces GoldenTickIcon at 100% (e.g. streak bolt / thumbs badges). */
+  completeIcon?: React.ReactNode;
+  /**
+   * When true with `completeIcon`, show the badge on compact rings (size < 80)
+   * where the default tick is normally suppressed.
+   */
+  allowCompactCompleteIcon?: boolean;
+  /**
+   * Always-visible 12 o'clock badge (streak bolt / thumbs). Receives the
+   * same glow color as the illuminated ring. Overlays the arc start — does
+   * not open a tick gap (track + taper stay continuous under the badge).
+   */
+  ringBadge?: (ctx: {
+    size: number;
+    glowColor: string;
+    percent: number;
+  }) => React.ReactNode;
   style?: ViewStyle;
 }
 
@@ -338,6 +355,7 @@ function IlluminatedProgressGlow({
   openAtTop = false,
   topGapDeg = 0,
   blurScale = 1,
+  coreWidthScale = 1,
   glowColorOverride,
 }: {
   sweep: number;
@@ -348,6 +366,8 @@ function IlluminatedProgressGlow({
   openAtTop?: boolean;
   topGapDeg?: number;
   blurScale?: number;
+  /** Thickens the illuminated ribbon (useful for short streak arcs). */
+  coreWidthScale?: number;
   glowColorOverride?: string;
 }) {
   const gapDeg = openAtTop ? Math.max(8, topGapDeg) : 0;
@@ -362,30 +382,21 @@ function IlluminatedProgressGlow({
   const progressGlow = getProgressGlow(percent);
   const glow = glowColorOverride ?? progressGlow.glow;
   const radius = progressGlow.radius;
+  const coreWidth = ILLUMINATED_CORE_WIDTH * coreWidthScale;
   const glowD =
     isClosedRing || arcSweep <= 0
       ? undefined
-      : taperedRibbonPath(
-          arcSweep,
-          ILLUMINATED_CORE_WIDTH * 3.4,
-          startDeg,
-          openAtTop,
-        );
+      : taperedRibbonPath(arcSweep, coreWidth * 3.4, startDeg, openAtTop);
   const coreD =
     isClosedRing || arcSweep <= 0
       ? undefined
-      : taperedRibbonPath(
-          arcSweep,
-          ILLUMINATED_CORE_WIDTH,
-          startDeg,
-          openAtTop,
-        );
+      : taperedRibbonPath(arcSweep, coreWidth, startDeg, openAtTop);
   const glowPath = useScaledPath(glowD, scale, origin);
   const corePath = useScaledPath(coreD, scale, origin);
   const cx = CX * scale + origin;
   const cy = CY * scale + origin;
   const r = RADIUS * scale;
-  const stroke = ILLUMINATED_CORE_WIDTH * scale;
+  const stroke = coreWidth * scale;
   const glowStroke = stroke * 3.4;
   const blur = (mul: number) => radius * mul * blurScale;
 
@@ -553,6 +564,9 @@ export const TaperedCircleBorder: React.FC<TaperedCircleBorderProps> = ({
   variant = "default",
   glowColorOverride,
   showCompleteCheckIcon = true,
+  completeIcon,
+  allowCompactCompleteIcon = false,
+  ringBadge,
   style,
 }) => {
   const isGolden = variant === "golden";
@@ -598,36 +612,37 @@ export const TaperedCircleBorder: React.FC<TaperedCircleBorderProps> = ({
   const arcD = arcPath(RADIUS, 0, sweep);
   const segmentArcs =
     useSegments && segments ? buildSegmentArcs(segments, segmentTotal) : [];
+  const showRingBadge = typeof ringBadge === "function";
   // Check + top gap: 100% illuminated rings only. Never at 99% or below.
+  const allowCompactBadge = allowCompactCompleteIcon && completeIcon != null;
   const showCompleteCheck =
+    !showRingBadge &&
     showCompleteCheckIcon &&
     isIlluminated &&
-    !compactIlluminated &&
+    (!compactIlluminated || allowCompactBadge) &&
     percent === 100;
-  const checkSize = Math.max(28, Math.round(size * (34 / 174)));
+  // Streak badges overlay 12 o'clock — keep full track + continuous taper.
+  const openAtTop = showCompleteCheck;
+  // Keep badge small enough that short (1/7) tapers remain visible past it.
+  const checkSize = showRingBadge
+    ? Math.max(16, Math.round(size * 0.22))
+    : Math.max(28, Math.round(size * (34 / 174)));
   const visualTickPx = checkSize * TICK_PATH_INSET;
   // Arc gap slightly smaller than the glyph so both ends tuck into the icon.
   const checkGapDeg = ((visualTickPx * 1.2) / (2 * Math.PI * radiusPx)) * 360;
   const checkTop = size / 2 - radiusPx - checkSize / 2;
+  const badgeGlowColor = glowColor ?? Colors.light.white;
+  const showTrack = !isGolden && !useSegments && !showCompleteCheck;
 
   return (
     <View style={[styles.wrapper, { width: size, height: size }, style]}>
       {isGolden && <GoldenNativeGlow size={size} />}
 
-      {showCompleteCheck ? (
-        <View
-          style={[styles.completeCheck, { top: checkTop }]}
-          pointerEvents="none"
-        >
-          <GoldenTickIcon size={checkSize} />
-        </View>
-      ) : null}
-
       <Svg
         width={trackSize}
         height={trackSize}
         viewBox="0 0 80 80"
-        style={[styles.svg, { top: trackOffset, left: trackOffset }]}
+        style={[styles.svg, { top: trackOffset, left: trackOffset, zIndex: 0 }]}
       >
         {useSvgGlowFilter ? (
           <Defs>
@@ -637,13 +652,19 @@ export const TaperedCircleBorder: React.FC<TaperedCircleBorderProps> = ({
           </Defs>
         ) : null}
 
-        {!isGolden && !useSegments && !showCompleteCheck ? (
+        {showTrack ? (
           <Circle
             cx={CX}
             cy={CY}
             r={RADIUS}
             stroke={borderColor}
-            strokeWidth={isIlluminated ? ILLUMINATED_TRACK_WIDTH : TRACK_WIDTH}
+            strokeWidth={
+              isIlluminated
+                ? showRingBadge
+                  ? 1.25
+                  : ILLUMINATED_TRACK_WIDTH
+                : TRACK_WIDTH
+            }
             fill="none"
           />
         ) : null}
@@ -708,11 +729,34 @@ export const TaperedCircleBorder: React.FC<TaperedCircleBorderProps> = ({
           canvasSize={svgSize}
           canvasOffset={svgOffset}
           contentSize={compactIlluminated ? size : svgSize}
-          openAtTop={showCompleteCheck}
+          openAtTop={openAtTop}
           topGapDeg={checkGapDeg}
-          blurScale={compactIlluminated ? 0.5 : 1}
-          glowColorOverride={glowColorOverride}
+          blurScale={
+            showRingBadge ? 0.9 : compactIlluminated ? 0.5 : 1
+          }
+          coreWidthScale={showRingBadge ? 2.2 : 1}
+          glowColorOverride={glowColorOverride ?? badgeGlowColor}
         />
+      ) : null}
+
+      {showRingBadge ? (
+        <View
+          style={[styles.completeCheck, { top: checkTop }]}
+          pointerEvents="none"
+        >
+          {ringBadge({
+            size: checkSize,
+            glowColor: badgeGlowColor,
+            percent,
+          })}
+        </View>
+      ) : showCompleteCheck ? (
+        <View
+          style={[styles.completeCheck, { top: checkTop }]}
+          pointerEvents="none"
+        >
+          {completeIcon ?? <GoldenTickIcon size={checkSize} />}
+        </View>
       ) : null}
 
       <View

@@ -28,6 +28,7 @@ import { fonts } from "@/assets/fonts";
 import {
   AddLoggingFlowIcon,
   CalendarFlippingIcon,
+  DashBoardMealsIcon,
   FlowCardFoodReliefIcon,
   WhiteClockIcon,
   WhiteTimerIcon,
@@ -352,8 +353,8 @@ export default function FidyaLoggingFlow({ goalData, onLogComplete }: Props) {
             <View style={localStyles.summaryCard}>
               <View style={localStyles.summaryBody}>
                 <View style={localStyles.summaryIconCircle}>
-                  <FlowCardFoodReliefIcon
-                    size={19}
+                  <DashBoardMealsIcon
+                    size={20}
                     color={Colors.light.white}
                   />
                 </View>

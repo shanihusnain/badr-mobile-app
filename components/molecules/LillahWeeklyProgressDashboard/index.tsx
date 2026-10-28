@@ -8,6 +8,16 @@ import {
   type SinglePrayerDayProgress,
   type SinglePrayerDayRingRenderArgs,
 } from "@/components/molecules/SinglePrayerWeeklyProgressDashboard";
+import { DashBoardCalenderIcon } from "@/assets/icons/DashBoardCalenderIcon";
+import { GoatIcon } from "@/assets/icons/GoatIcon";
+import { HouseWithHeartIcon } from "@/assets/icons/HouseWithHeartIcon";
+import { DebtAssistanceIcon } from "@/assets/icons/DebtAssistanceIcon";
+import { FlowCardQardHassanIcon } from "@/assets/icons/FlowCardQardHassanIcon";
+import { FlowCardFoodReliefIcon } from "@/assets/icons/FlowCardFoodReleifIcon";
+import { BinIcon } from "@/assets/icons";
+import { getLillahCategory } from "@/src/screens/private/goalprogressloggingscreen/lillahCategories";
+import { PrayerWeeklyDashboardBody } from "@/components/molecules/PrayerWeeklyDashboardBody";
+import { PrayerWeeklyProgressFooter } from "@/components/molecules/PrayerWeeklyProgressFooter";
 import { useDeleteSadaqahLog } from "@/src/api/mutations/useDeleteSadaqahLog";
 import type { LillahCategoryId } from "@/src/screens/private/goalprogressloggingscreen/lillahCategories";
 import { LillahDayRing } from "./LillahDayRing";
@@ -35,6 +45,9 @@ export type LillahWeeklyProgressDashboardProps = {
   weekFraction?: string;
   totalThisWeek?: number;
   streakDays?: number;
+  /** `null` on week 1 / no comparison. */
+  vsLastWeek?: number | null;
+  vsLastWeekDisplay?: string | null;
   motivationalQuote?: string;
   selectedDayIndex?: number;
   onDayPress?: (index: number) => void;
@@ -73,9 +86,7 @@ function mapLillahDayToSinglePrayerDay(
 ): SinglePrayerDayProgress {
   const hasLog = day.amount > 0 && day.category !== null;
   const dateKey = normalizeDayDate(day.date);
-  const isToday = dateKey
-    ? dateKey === getLocalTodayString()
-    : !!day.isToday;
+  const isToday = dateKey ? dateKey === getLocalTodayString() : !!day.isToday;
 
   return {
     day: day.day,
@@ -99,6 +110,8 @@ export function LillahWeeklyProgressDashboard({
   weekFraction = "1/4",
   totalThisWeek = 350,
   streakDays = 1,
+  vsLastWeek = null,
+  vsLastWeekDisplay = null,
   motivationalQuote = "Share your blessings with the needy today, seeking only Allah's pleasure.",
   selectedDayIndex = 6,
   onDayPress,
@@ -118,8 +131,7 @@ export function LillahWeeklyProgressDashboard({
     .toUpperCase();
 
   const mappedWeekDays = useMemo(
-    () =>
-      weekDays.map((day) => mapLillahDayToSinglePrayerDay(day, currency)),
+    () => weekDays.map((day) => mapLillahDayToSinglePrayerDay(day, currency)),
     [weekDays, currency],
   );
 
@@ -141,8 +153,7 @@ export function LillahWeeklyProgressDashboard({
       const lillahDay = weekDays[args.index];
       if (!lillahDay) return null;
 
-      const hasLog =
-        lillahDay.amount > 0 && lillahDay.category !== null;
+      const hasLog = lillahDay.amount > 0 && lillahDay.category !== null;
 
       return (
         <LillahDayRing
@@ -184,15 +195,32 @@ export function LillahWeeklyProgressDashboard({
       showTodayChip
       greenActivityCaptions
       statsRow={
-        <View style={styles.statsRow}>
-          <DashBoardHandHeartIcon size={24} color={Colors.light.lightblue} />
-          <Text style={styles.statsText} numberOfLines={1}>
-            <Text style={styles.statsCount}>
-              {loading ? "---" : totalLabel}
+        <>
+          <View style={styles.statsRow}>
+            <DashBoardHandHeartIcon size={24} color={Colors.light.lightblue} />
+            <Text style={styles.statsText} numberOfLines={1}>
+              {loading ? (
+                "---"
+              ) : (
+                <>
+                  <Text style={styles.statsCount}>
+                    {formatDayAmount(totalThisWeek, currencyCode)}
+                  </Text>
+                  {" spent in total this week"}
+                </>
+              )}
             </Text>
-            {loading ? "" : " spent in total this week"}
-          </Text>
-        </View>
+          </View>
+
+          <PrayerWeeklyProgressFooter
+            loading={loading}
+            streakDays={streakDays}
+            vsLastWeek={vsLastWeek}
+            vsLastWeekDisplay={vsLastWeekDisplay}
+            motivationalQuote={motivationalQuote}
+            comparisonVariant="hours"
+          />
+        </>
       }
     />
   );
