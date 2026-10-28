@@ -22,6 +22,7 @@ export type JournalConsistencySectionProps = {
   periodLabelFormatter?: (period: PlanJournalPeriod) => string;
   deltaLabelFormatter?: (period: PlanJournalPeriod) => string;
   useAbsoluteDelta?: boolean;
+  isLoading?: boolean;
 };
 
 export function JournalConsistencySection({
@@ -37,13 +38,16 @@ export function JournalConsistencySection({
   periodLabelFormatter,
   deltaLabelFormatter,
   useAbsoluteDelta = false,
+  isLoading = false,
 }: JournalConsistencySectionProps) {
-  const deltaValue = useAbsoluteDelta
-    ? Math.abs(activeSnapshot.previousPeriodDeltaPercent)
-    : activeSnapshot.previousPeriodDeltaPercent;
-  const formattedDeltaPrefix =
-    useAbsoluteDelta && !deltaIsPositive ? "" : deltaIsPositive ? "+" : "";
-  const deltaSuffix = deltaLabelFormatter?.(period) ?? period.deltaLabel;
+  const showPlaceholders =
+    isLoading || activeSnapshot.consistencyPercent == null;
+
+  const badgeText =
+    typeof activeSnapshot.consistencyBadge === "string"
+      ? activeSnapshot.consistencyBadge.trim()
+      : "";
+  const showBadge = !showPlaceholders && badgeText.length > 0;
 
   return (
     <View style={styles.topRow}>
@@ -58,31 +62,22 @@ export function JournalConsistencySection({
           </Pressable>
         </View>
         <Text style={styles.achievementPercent}>
-          {activeSnapshot.consistencyPercent}
-          <Text style={styles.achievementPercentSymbol}>%</Text>
+          {showPlaceholders ? (
+            "---"
+          ) : (
+            <>
+              {activeSnapshot.consistencyPercent}
+              <Text style={styles.achievementPercentSymbol}>%</Text>
+            </>
+          )}
         </Text>
-        <View
-          style={[
-            styles.deltaBadge,
-            !deltaIsPositive && styles.deltaBadgeNegative,
-          ]}
-        >
-          <Ionicons
-            name={deltaIsPositive ? "arrow-up" : "arrow-down"}
-            size={11}
-            color={deltaIsPositive ? Colors.light.green : Colors.light.subtext}
-          />
-          <Text
-            style={[
-              styles.deltaText,
-              !deltaIsPositive && styles.deltaTextNegative,
-            ]}
-            numberOfLines={1}
-          >
-            {formattedDeltaPrefix}
-            {deltaValue}% {deltaSuffix}
-          </Text>
-        </View>
+        {showBadge ? (
+          <View style={styles.deltaBadge}>
+            <Text style={styles.deltaText} numberOfLines={1}>
+              {badgeText}
+            </Text>
+          </View>
+        ) : null}
       </View>
 
       <View style={styles.periodNavRow}>
@@ -140,7 +135,7 @@ export function JournalConsistencySection({
             adjustsFontSizeToFit
             minimumFontScale={0.8}
           >
-            {activeSnapshot.dateRangeLabel}
+            {isLoading ? "---" : activeSnapshot.dateRangeLabel}
           </Text>
           <TouchableOpacity
             activeOpacity={0.7}

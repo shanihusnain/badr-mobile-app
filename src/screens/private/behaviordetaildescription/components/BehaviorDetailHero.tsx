@@ -29,7 +29,11 @@ export function BehaviorDetailHero({
       style={[styles.heroSticky, styles.heroImage, { height }]}
     >
       <LinearGradient
-        colors={["rgba(8, 26, 47, 0.72)", "rgba(8, 26, 47, 0.2)", "transparent"]}
+        colors={[
+          "rgba(8, 26, 47, 0.72)",
+          "rgba(8, 26, 47, 0.2)",
+          "transparent",
+        ]}
         locations={[0, 0.45, 1]}
         style={StyleSheet.absoluteFill}
         pointerEvents="none"
@@ -46,7 +50,7 @@ export function BehaviorDetailHero({
         pointerEvents="none"
       />
 
-      {showHeroRing && periodCount != null ? (
+      {/* {showHeroRing && periodCount != null ? (
         <View style={styles.heroRingContainer}>
           <TaperedCircleBorder
             size={HERO_RING_SIZE}
@@ -57,7 +61,7 @@ export function BehaviorDetailHero({
             <Text style={styles.heroRingCount}>{periodCount}</Text>
           </TaperedCircleBorder>
         </View>
-      ) : null}
+      ) : null} */}
 
       <View style={styles.heroTextContainer}>
         <Text style={styles.heroTitle}>{title}</Text>

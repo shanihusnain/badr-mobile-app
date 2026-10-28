@@ -19,7 +19,7 @@ export type JournalInsightWeekDay = {
 };
 
 export type JournalInsightBehavior = {
-  id: number;
+  id: number | string;
   name: string;
   description: string;
   weekDays?: JournalInsightWeekDay[];
@@ -35,8 +35,9 @@ export type JournalInsightSummary = {
 
 export type JournalInsightSnapshot = {
   dateRangeLabel: string;
-  consistencyPercent: number;
-  previousPeriodDeltaPercent: number;
+  consistencyPercent: number | null;
+  previousPeriodDeltaPercent: number | null;
+  consistencyBadge?: string | null;
   summary: JournalInsightSummary;
   behaviors: JournalInsightBehavior[];
   studyMaterial: StudyMaterialItem[];

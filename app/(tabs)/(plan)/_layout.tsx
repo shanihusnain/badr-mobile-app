@@ -4,7 +4,13 @@ import { getPlanJournalHabitTitleById } from "@/src/screens/private/plan/planJou
 import { Stack } from "expo-router";
 
 function getRouteIdParam(params: object | undefined): string | undefined {
-  const { id } = (params ?? {}) as { id?: string | string[] };
+  const { id, title } = (params ?? {}) as {
+    id?: string | string[];
+    title?: string | string[];
+  };
+
+  const titleParam = Array.isArray(title) ? title[0] : title;
+  if (titleParam) return titleParam;
 
   return Array.isArray(id) ? id[0] : id;
 }

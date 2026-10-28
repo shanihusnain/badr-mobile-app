@@ -11,7 +11,7 @@ export const journalInsightStyles = StyleSheet.create({
     borderRadius: 8,
     paddingVertical: 24,
     paddingHorizontal: 16,
-    alignItems: "center",
+    paddingTop: 40,
   },
   summaryRingWrap: {
     alignItems: "center",
@@ -21,7 +21,7 @@ export const journalInsightStyles = StyleSheet.create({
   summaryRingContent: {
     alignItems: "center",
     justifyContent: "center",
-    gap: 2,
+    gap: 6,
   },
   summaryBehaviorCount: {
     fontSize: 10,
@@ -42,16 +42,17 @@ export const journalInsightStyles = StyleSheet.create({
     fontWeight: "600",
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    textAlign: "center",
+    textAlign: "left",
     lineHeight: 24,
     marginBottom: 8,
+    marginTop: 20,
   },
   summaryDescription: {
     fontSize: 14,
     fontWeight: "400",
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    textAlign: "center",
+    textAlign: "left",
     lineHeight: 21,
     opacity: 0.85,
   },
