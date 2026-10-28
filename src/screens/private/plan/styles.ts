@@ -382,16 +382,30 @@ export const planStyles = StyleSheet.create({
     color: Colors.light.white,
     flex: 1,
   },
+  journalHabitRingWrap: {
+    width: 50,
+    height: 50,
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "visible",
+  },
   journalHabitPercentRow: {
     flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
+    alignItems: "baseline",
+    justifyContent: "center",
   },
   journalHabitPercentText: {
     fontWeight: "500",
-    fontSize: 14,
+    fontSize: 12,
     fontFamily: fonts.primary.medium,
     color: Colors.light.white,
+  },
+  journalHabitPercentSymbol: {
+    fontWeight: "400",
+    fontSize: 8,
+    fontFamily: fonts.primary.regular,
+    color: Colors.light.white,
+    marginLeft: 0.8,
   },
   journalCustomizeCard: {
     borderRadius: 8,

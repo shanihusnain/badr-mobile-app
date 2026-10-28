@@ -20,6 +20,8 @@ export type BehaviorDetailWeekDay = {
 export type BehaviorDetailStreak = {
   count: number;
   dateLabel: string;
+  /** API streak tier (e.g. SILVER, GOLD). Drives ring glow. */
+  tier?: string | null;
   progressPercent?: number;
 };
 
@@ -30,7 +32,7 @@ export type BehaviorDetailChartBar = {
 
 export type BehaviorDetailQuote = {
   text: string;
-  source: string;
+  source?: string;
 };
 
 export type BehaviorDetailRecommendation = {

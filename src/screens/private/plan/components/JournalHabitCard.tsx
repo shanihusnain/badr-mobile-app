@@ -13,47 +13,70 @@ import { planStyles as styles } from "../styles";
 type JournalHabitCardProps = {
   habit: PlanJournalHabit;
   onPress: () => void;
+  isLoading?: boolean;
 };
 
-function getHabitIcon(id: number) {
-  switch (id) {
-    case 1:
+function getHabitIcon(id: number | string) {
+  const key = String(id).toUpperCase();
+
+  switch (key) {
+    case "1":
+    case "RELIGIOUS_HABITS":
       return <CresentAndStarIcon color={Colors.light.white} />;
-    case 2:
+    case "2":
+    case "PERSONAL_GROWTH":
       return <PersonalGrowthIcon color={Colors.light.white} />;
-    case 3:
+    case "3":
+    case "SOCIAL_RESPONSIBILITY":
       return <SocialResponsibilityIcon color={Colors.light.white} />;
+    case "4":
+    case "FAMILY_BONDS":
+    case "HOME_BOND":
     default:
       return <HomeBondIcon color={Colors.light.white} />;
   }
 }
 
-function getProgressColor(percent: number) {
-  if (percent <= 33) return Colors.light.white;
-  if (percent <= 66) return Colors.light.yellow;
-  return Colors.light.green;
-}
-
-export function JournalHabitCard({ habit, onPress }: JournalHabitCardProps) {
-  const percentLabel = habit.percent.toString() || "0";
+export function JournalHabitCard({
+  habit,
+  onPress,
+  isLoading = false,
+}: JournalHabitCardProps) {
+  const showPlaceholder = isLoading || habit.percent == null;
+  const percentNum = showPlaceholder ? "---" : String(habit.percent);
 
   return (
-    <Pressable style={styles.journalHabitCard} onPress={onPress}>
+    <Pressable
+      style={styles.journalHabitCard}
+      onPress={onPress}
+      disabled={isLoading}
+    >
       <View style={styles.journalHabitRow}>
         <View style={styles.journalHabitIconWrap}>
           {getHabitIcon(habit.id)}
         </View>
         <Text style={styles.journalHabitName}>{habit.name}</Text>
-        <TaperedCircleBorder
-          size={20}
-          percentage={percentLabel}
-          progressColor={getProgressColor(habit.percent)}
-          borderColor={Colors.light.calendarBg}
-        >
-          <View style={styles.journalHabitPercentRow}>
-            <Text style={styles.journalHabitPercentText}>{percentLabel}%</Text>
-          </View>
-        </TaperedCircleBorder>
+        <View style={styles.journalHabitRingWrap}>
+          <TaperedCircleBorder
+            percentage={showPlaceholder ? "0%" : `${habit.percent}%`}
+            borderColor={Colors.light.ringTrackEmpty}
+            size={50}
+            variant="illuminated"
+          >
+            <View style={styles.journalHabitPercentRow}>
+              {showPlaceholder ? (
+                <Text style={styles.journalHabitPercentText}>---</Text>
+              ) : (
+                <>
+                  <Text style={styles.journalHabitPercentText}>
+                    {percentNum}
+                  </Text>
+                  <Text style={styles.journalHabitPercentSymbol}>%</Text>
+                </>
+              )}
+            </View>
+          </TaperedCircleBorder>
+        </View>
       </View>
     </Pressable>
   );

@@ -30,7 +30,8 @@ export function useJournalConsistencySection<
     return periodSnapshots[safeIndex] ?? periodSnapshots[0];
   }, [periodSnapshots, periodIndex]);
 
-  const deltaIsPositive = activeSnapshot.previousPeriodDeltaPercent >= 0;
+  const deltaIsPositive =
+    (activeSnapshot.previousPeriodDeltaPercent ?? 0) >= 0;
   const canGoToPreviousPeriod = periodIndex < periodSnapshots.length - 1;
   const canGoToNextPeriod = periodIndex > 0;
 
