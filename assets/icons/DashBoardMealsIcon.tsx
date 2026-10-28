@@ -11,11 +11,10 @@ export const DashBoardMealsIcon = ({
     size?: number;
 }) => (
   <Svg
-  
     width={size}
     height={size}
+    viewBox="0 0 15 18"
     fill="none"
-
   >
     <Path
       fill={color}
