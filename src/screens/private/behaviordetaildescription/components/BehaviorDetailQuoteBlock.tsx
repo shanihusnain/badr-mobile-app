@@ -14,7 +14,9 @@ export function BehaviorDetailQuoteBlock({ quote }: BehaviorDetailQuoteBlockProp
       <JournalBookIcon color={Colors.light.green} size={18} />
       <View style={styles.quoteTextWrap}>
         <Text style={styles.quoteText}>{quote.text}</Text>
-        <Text style={styles.quoteSource}>{quote.source}</Text>
+        {quote.source ? (
+          <Text style={styles.quoteSource}>{quote.source}</Text>
+        ) : null}
       </View>
     </View>
   );

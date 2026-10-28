@@ -1,43 +1,106 @@
-import { useJournalConsistencySection } from "@/hooks/useJournalConsistencySection";
-import { useCallback, useMemo } from "react";
-import type { PlanJournalPeriodId } from "../plan/planJournalConsistencyMockData";
+import { useGetJournalBehaviorDetils } from "@/src/api/queries/useGetJournalBehaviorDetils";
 import {
-  getBehaviorDetailContent,
-  getBehaviorDetailPeriodView,
-  getBehaviorDetailSnapshots,
-} from "./behaviorDetailMockData";
+  PLAN_JOURNAL_PERIODS,
+  type PlanJournalPeriod,
+} from "@/src/screens/private/plan/planJournalConsistencyMockData";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { mapBehaviorDetailToView } from "./mapBehaviorDetailToView";
 
-export function useBehaviorDetailDescriptionProps(behaviorName: string) {
-  const resolveSnapshots = useCallback(
-    (periodId: PlanJournalPeriodId) =>
-      getBehaviorDetailSnapshots(behaviorName, periodId),
-    [behaviorName],
+function todayDateKey() {
+  return new Date().toISOString().split("T")[0];
+}
+
+function resolvePeriod(periodLabel?: string): PlanJournalPeriod {
+  return (
+    PLAN_JOURNAL_PERIODS.find((item) => item.label === periodLabel) ??
+    PLAN_JOURNAL_PERIODS[0]
+  );
+}
+
+type UseBehaviorDetailDescriptionPropsOptions = {
+  behaviorId: string;
+  initialPeriodLabel?: string;
+  initialEndDate?: string;
+  fallbackTitle?: string;
+};
+
+export function useBehaviorDetailDescriptionProps({
+  behaviorId,
+  initialPeriodLabel,
+  initialEndDate,
+  fallbackTitle,
+}: UseBehaviorDetailDescriptionPropsOptions) {
+  const periods = PLAN_JOURNAL_PERIODS;
+  const [period, setPeriod] = useState<PlanJournalPeriod>(() =>
+    resolvePeriod(initialPeriodLabel),
+  );
+  const [endDate, setEndDate] = useState(
+    () => initialEndDate?.trim() || todayDateKey(),
   );
 
-  const consistency = useJournalConsistencySection(
-    resolveSnapshots,
-    behaviorName,
-  );
-  const content = getBehaviorDetailContent(behaviorName);
-  const activePeriodView = useMemo(
+  useEffect(() => {
+    if (initialPeriodLabel) {
+      setPeriod(resolvePeriod(initialPeriodLabel));
+    }
+  }, [initialPeriodLabel]);
+
+  useEffect(() => {
+    if (initialEndDate?.trim()) {
+      setEndDate(initialEndDate.trim());
+    }
+  }, [initialEndDate]);
+
+  const {
+    data: behaviorDetails,
+    isFetching,
+    isLoading,
+  } = useGetJournalBehaviorDetils(behaviorId, period.label, endDate);
+
+  const mapped = useMemo(
     () =>
-      getBehaviorDetailPeriodView(
-        behaviorName,
-        consistency.period.id,
-        consistency.periodIndex,
-        consistency.activeSnapshot,
-      ),
-    [
-      behaviorName,
-      consistency.period.id,
-      consistency.periodIndex,
-      consistency.activeSnapshot,
-    ],
+      mapBehaviorDetailToView(behaviorDetails, {
+        isLoading: isFetching || isLoading || !behaviorDetails,
+        fallbackTitle,
+      }),
+    [behaviorDetails, fallbackTitle, isFetching, isLoading],
   );
+
+  const canGoToPreviousPeriod = Boolean(
+    behaviorDetails?.navigation?.previousEndDate,
+  );
+  const canGoToNextPeriod = Boolean(behaviorDetails?.navigation?.nextEndDate);
+
+  const handleSelectPeriod = useCallback((nextPeriod: PlanJournalPeriod) => {
+    setPeriod(nextPeriod);
+    setEndDate(todayDateKey());
+  }, []);
+
+  const handlePreviousPeriodRange = useCallback(() => {
+    const previousEndDate = behaviorDetails?.navigation?.previousEndDate;
+    if (!previousEndDate) return;
+    setEndDate(previousEndDate);
+  }, [behaviorDetails?.navigation?.previousEndDate]);
+
+  const handleNextPeriodRange = useCallback(() => {
+    const nextEndDate = behaviorDetails?.navigation?.nextEndDate;
+    if (!nextEndDate) return;
+    setEndDate(nextEndDate);
+  }, [behaviorDetails?.navigation?.nextEndDate]);
 
   return {
-    ...consistency,
-    content,
-    activePeriodView,
+    periods,
+    period,
+    setPeriod: handleSelectPeriod,
+    activeSnapshot: mapped.snapshot,
+    deltaIsPositive: (mapped.snapshot.previousPeriodDeltaPercent ?? 0) >= 0,
+    canGoToPreviousPeriod,
+    canGoToNextPeriod,
+    handlePreviousPeriodRange,
+    handleNextPeriodRange,
+    content: mapped.content,
+    activePeriodView: mapped.periodView,
+    title: mapped.title,
+    isLoading: isFetching || isLoading,
+    endDate,
   };
 }

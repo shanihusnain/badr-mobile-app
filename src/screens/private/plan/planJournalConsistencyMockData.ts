@@ -7,34 +7,44 @@ export type PlanJournalPeriod = {
 };
 
 export type PlanJournalHabit = {
-  id: number;
+  /** Category key from API (e.g. RELIGIOUS_HABITS) or legacy numeric id. */
+  id: number | string;
   name: string;
-  percent: number;
+  /** Null while insights are loading. */
+  percent: number | null;
 };
 
-export const PLAN_JOURNAL_HABIT_TITLES: Record<number, string> = {
-  1: "Religious Habits",
-  2: "Personal Growth",
-  3: "Social Responsibility",
-  4: "Home Bond",
+export const PLAN_JOURNAL_HABIT_TITLES: Record<string, string> = {
+  "1": "Religious Habits",
+  "2": "Personal Growth",
+  "3": "Social Responsibility",
+  "4": "Home Bond",
+  RELIGIOUS_HABITS: "Religious Habits",
+  PERSONAL_GROWTH: "Personal Growth",
+  SOCIAL_RESPONSIBILITY: "Social Responsibility",
+  FAMILY_BONDS: "Family Bonds",
+  HOME_BOND: "Home Bond",
 };
 
 export function getPlanJournalHabitTitleById(
   id: number | string | undefined,
 ): string {
-  const habitId = typeof id === "string" ? Number(id) : id;
-
-  if (!habitId || Number.isNaN(habitId)) {
+  if (id == null || id === "") {
     return "Journal Insight";
   }
 
-  return PLAN_JOURNAL_HABIT_TITLES[habitId] ?? "Journal Insight";
+  const key = String(id);
+  return PLAN_JOURNAL_HABIT_TITLES[key] ?? PLAN_JOURNAL_HABIT_TITLES[key.toUpperCase()] ?? "Journal Insight";
 }
 
 export type PlanJournalConsistencySnapshot = {
   dateRangeLabel: string;
-  consistencyPercent: number;
-  previousPeriodDeltaPercent: number;
+  /** Null while insights are loading. */
+  consistencyPercent: number | null;
+  /** Null while insights are loading. */
+  previousPeriodDeltaPercent: number | null;
+  /** API `consistency.badge` — shown in the delta chip when present. */
+  consistencyBadge?: string | null;
   journalingHabits?: PlanJournalHabit[];
 };
 

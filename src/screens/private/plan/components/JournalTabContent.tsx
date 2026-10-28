@@ -18,6 +18,7 @@ const JOURNAL_NOTIFICATIONS_DESCRIPTION =
   "Choose from over 100 behaviors to track daily, fostering growth in your character and helping you become your best self.";
 
 type JournalTabContentProps = {
+  bannerText?: string;
   activeSnapshot: PlanJournalConsistencySnapshot;
   periods: PlanJournalPeriod[];
   period: PlanJournalPeriod;
@@ -28,9 +29,12 @@ type JournalTabContentProps = {
   onPreviousPeriodRange: () => void;
   onNextPeriodRange: () => void;
   onGetStartedPress: () => void;
+  isLoadingHabits?: boolean;
+  insightsEndDate: string;
 };
 
 export function JournalTabContent({
+  bannerText,
   activeSnapshot,
   periods,
   period,
@@ -41,6 +45,8 @@ export function JournalTabContent({
   onPreviousPeriodRange,
   onNextPeriodRange,
   onGetStartedPress,
+  isLoadingHabits = false,
+  insightsEndDate,
 }: JournalTabContentProps) {
   return (
     <ScrollView
@@ -50,7 +56,9 @@ export function JournalTabContent({
     >
       <View style={styles.journalBanner}>
         <Text style={styles.journalBannerDismiss}>X</Text>
-        <Text style={styles.journalBannerText}>{JOURNAL_BANNER_TEXT}</Text>
+        <Text style={styles.journalBannerText}>
+          {bannerText || JOURNAL_BANNER_TEXT}
+        </Text>
       </View>
       <TopSpace top={20} />
       <JournalConsistencySection
@@ -63,14 +71,24 @@ export function JournalTabContent({
         onSelectPeriod={onSelectPeriod}
         onPreviousPeriodRange={onPreviousPeriodRange}
         onNextPeriodRange={onNextPeriodRange}
+        isLoading={isLoadingHabits}
       />
       <TopSpace top={20} />
       {activeSnapshot.journalingHabits?.map((habit) => (
         <JournalHabitCard
           key={habit.id}
           habit={habit}
+          isLoading={isLoadingHabits}
           onPress={() => {
-            router.push(`/(tabs)/(plan)/journalinsight/${habit.id}`);
+            router.push({
+              pathname: "/(tabs)/(plan)/journalinsight/[id]",
+              params: {
+                id: String(habit.id),
+                period: period.label,
+                endDate: insightsEndDate,
+                title: habit.name,
+              },
+            });
           }}
         />
       ))}

@@ -2,14 +2,24 @@ import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { JournalConsistencySection } from "@/components/molecules/JournalConsistencySection";
 import { PastAchievementStudyMaterial } from "@/components/molecules/PastAchievementStudyMaterial";
+import { router } from "expo-router";
 import { ScrollView } from "react-native";
 import { JournalInsightBehaviorCard } from "./components/JournalInsightBehaviorCard";
 import { JournalInsightSummaryCard } from "./components/JournalInsightSummaryCard";
-import { useJournalInsightProps } from "./useJournalInsightProps";
 import { journalInsightStyles as styles } from "./styles";
-import { router } from "expo-router";
+import { useJournalInsightProps } from "./useJournalInsightProps";
 
-export const JornalInsight = ({ id }: { id: string }) => {
+type JornalInsightProps = {
+  id: string;
+  periodLabel?: string;
+  endDate?: string;
+};
+
+export const JornalInsight = ({
+  id,
+  periodLabel,
+  endDate: initialEndDate,
+}: JornalInsightProps) => {
   const {
     periods,
     period,
@@ -20,16 +30,21 @@ export const JornalInsight = ({ id }: { id: string }) => {
     canGoToNextPeriod,
     handlePreviousPeriodRange,
     handleNextPeriodRange,
-  } = useJournalInsightProps(id);
+    isLoading,
+    endDate,
+  } = useJournalInsightProps({
+    habitCategory: id,
+    initialPeriodLabel: periodLabel,
+    initialEndDate,
+  });
 
   return (
-    <BlackScreenWrapper edges={["top"]}>
+    <BlackScreenWrapper edges={[]}>
       <ScrollView
         style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        <TopSpace top={20} />
         <JournalConsistencySection
           activeSnapshot={activeSnapshot}
           periods={periods}
@@ -40,25 +55,35 @@ export const JornalInsight = ({ id }: { id: string }) => {
           onSelectPeriod={setPeriod}
           onPreviousPeriodRange={handlePreviousPeriodRange}
           onNextPeriodRange={handleNextPeriodRange}
+          isLoading={isLoading}
         />
         <TopSpace top={20} />
-        <JournalInsightSummaryCard snapshot={activeSnapshot} />
+        <JournalInsightSummaryCard
+          snapshot={activeSnapshot}
+          isLoading={isLoading}
+        />
         <TopSpace top={16} />
         {activeSnapshot.behaviors.map((behavior) => (
           <JournalInsightBehaviorCard
-            key={`${period.id}-${behavior.id}`}
+            key={`${period.id}-${behavior.id}-${behavior.name}`}
             behavior={behavior}
             periodId={period.id}
+            periodLabel={period.label}
+            endDate={endDate}
           />
         ))}
-        <TopSpace top={10} />
-        <PastAchievementStudyMaterial
-          items={activeSnapshot.studyMaterial}
-          title="LEARN MORE"
-          onSeeAllPress={() => {
-            router.push("/(tabs)/(connect)/learnmorescreen");
-          }}
-        />
+        {activeSnapshot.studyMaterial.length > 0 ? (
+          <>
+            <TopSpace top={10} />
+            <PastAchievementStudyMaterial
+              items={activeSnapshot.studyMaterial}
+              title="LEARN MORE"
+              onSeeAllPress={() => {
+                router.push("/(tabs)/(connect)/learnmorescreen");
+              }}
+            />
+          </>
+        ) : null}
       </ScrollView>
     </BlackScreenWrapper>
   );

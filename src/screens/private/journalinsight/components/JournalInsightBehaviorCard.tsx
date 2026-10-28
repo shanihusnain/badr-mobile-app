@@ -1,17 +1,18 @@
 import { TaperedCircleBorder } from "@/components/atoms/TaperedCircleBorder";
 import { Colors } from "@/constants/theme";
 import type { PlanJournalPeriodId } from "@/src/screens/private/plan/planJournalConsistencyMockData";
+import { router } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 import type { JournalInsightBehavior } from "../journalInsightMockData";
-import { getJournalInsightProgressColor } from "../journalInsightProgress";
 import { journalInsightStyles as styles } from "../styles";
-import { router } from "expo-router";
 
-const PERIOD_RING_SIZE = 24;
+const PERIOD_RING_SIZE = 40;
 
 type JournalInsightBehaviorCardProps = {
   behavior: JournalInsightBehavior;
   periodId: PlanJournalPeriodId;
+  periodLabel: string;
+  endDate: string;
 };
 
 function getDayCircleStyle(
@@ -32,22 +33,32 @@ function getDayCircleStyle(
 export function JournalInsightBehaviorCard({
   behavior,
   periodId,
+  periodLabel,
+  endDate,
 }: JournalInsightBehaviorCardProps) {
   const isWeekly = periodId === 1;
+  const showWeekDays = isWeekly && !!behavior.weekDays?.length;
   const periodPercent = behavior.periodPercent ?? 0;
+  const periodCount = behavior.periodCount ?? 0;
 
-  if (isWeekly && behavior.weekDays) {
+  const openBehaviorDetails = () => {
+    router.push({
+      pathname: "/(private)/behaviordescriptiondetails/[id]",
+      params: {
+        id: String(behavior.id),
+        period: periodLabel,
+        endDate,
+      },
+    });
+  };
+
+  if (showWeekDays) {
     return (
-      <Pressable
-        style={styles.behaviorCard}
-        onPress={() =>
-          router.push(`/behaviordescriptiondetails/${behavior.name}`)
-        }
-      >
+      <Pressable style={styles.behaviorCard} onPress={openBehaviorDetails}>
         <Text style={styles.behaviorName}>{behavior.name}</Text>
         <Text style={styles.behaviorDescription}>{behavior.description}</Text>
         <View style={styles.weekDaysRow}>
-          {behavior.weekDays.map((day) => (
+          {behavior.weekDays!.map((day) => (
             <View key={`${day.label}-${day.date}`} style={styles.weekDayItem}>
               <View style={[styles.dayCircle, getDayCircleStyle(day.status)]} />
               <Text style={styles.weekDayLabel}>{day.label}</Text>
@@ -60,7 +71,7 @@ export function JournalInsightBehaviorCard({
   }
 
   return (
-    <View style={styles.behaviorCard}>
+    <Pressable style={styles.behaviorCard} onPress={openBehaviorDetails}>
       <Text style={styles.behaviorName}>{behavior.name}</Text>
       <View style={styles.behaviorRow}>
         <Text
@@ -79,16 +90,14 @@ export function JournalInsightBehaviorCard({
         <View style={styles.periodRingWrap}>
           <TaperedCircleBorder
             size={PERIOD_RING_SIZE}
-            percentage={String(periodPercent)}
-            progressColor={getJournalInsightProgressColor(periodPercent)}
-            borderColor={Colors.light.calendarBg}
+            percentage={`${periodPercent}%`}
+            borderColor={Colors.light.ringTrackEmpty}
+            variant="illuminated"
           >
-            <Text style={styles.periodCountText}>
-              {behavior.periodCount ?? 0}
-            </Text>
+            <Text style={styles.periodCountText}>{periodCount}</Text>
           </TaperedCircleBorder>
         </View>
       </View>
-    </View>
+    </Pressable>
   );
 }

@@ -24,8 +24,12 @@ const SCREEN_HEADER_HEIGHT = 100;
 
 export const BehaviorDetailDescription = ({
   behavior,
+  periodLabel,
+  endDate: initialEndDate,
 }: {
   behavior: string;
+  periodLabel?: string;
+  endDate?: string;
 }) => {
   const navigation = useNavigation();
   const {
@@ -40,10 +44,21 @@ export const BehaviorDetailDescription = ({
     handleNextPeriodRange,
     content,
     activePeriodView,
-  } = useBehaviorDetailDescriptionProps(behavior);
+    title,
+    isLoading,
+  } = useBehaviorDetailDescriptionProps({
+    behaviorId: behavior,
+    initialPeriodLabel: periodLabel,
+    initialEndDate,
+  });
 
   const isWeekly = period.id === 1;
   const showChart = !isWeekly && !!activePeriodView.chartBars?.length;
+  const showImpact =
+    Boolean(content.impactTitle) && content.impactBlocks.length > 0;
+  const showRecommendations =
+    Boolean(content.recommendationsTitle) &&
+    content.recommendationBlocks.length > 0;
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -60,7 +75,7 @@ export const BehaviorDetailDescription = ({
           contentContainerStyle={styles.scrollContent}
         >
           <BehaviorDetailHero
-            title={behavior}
+            title={title}
             imageSource={content.heroImage}
             height={SCREEN_HEADER_HEIGHT + HERO_IMAGE_HEIGHT}
             periodCount={activePeriodView.periodCount}
@@ -86,6 +101,7 @@ export const BehaviorDetailDescription = ({
                 BEHAVIOR_DETAIL_DELTA_LABELS[item.id]
               }
               useAbsoluteDelta
+              isLoading={isLoading}
             />
 
             <Text style={styles.summaryText}>
@@ -108,19 +124,19 @@ export const BehaviorDetailDescription = ({
               longestStreak={activePeriodView.longestStreak}
             />
 
-            <BehaviorDetailImpactCard
-              title={content.impactTitle}
-              body={content.impactBody}
-              quote={content.impactQuote}
-            />
+            {showImpact ? (
+              <BehaviorDetailImpactCard
+                title={content.impactTitle}
+                blocks={content.impactBlocks}
+              />
+            ) : null}
 
-            <BehaviorDetailRecommendationsCard
-              title={content.recommendationsTitle}
-              intro={content.recommendationsIntro}
-              recommendations={content.recommendations}
-              quote={content.recommendationsQuote}
-              closing={content.recommendationsClosing}
-            />
+            {showRecommendations ? (
+              <BehaviorDetailRecommendationsCard
+                title={content.recommendationsTitle}
+                blocks={content.recommendationBlocks}
+              />
+            ) : null}
           </View>
         </ScrollView>
       </View>

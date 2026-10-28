@@ -8,6 +8,20 @@ import {
   type SinglePrayerDayProgress,
   type SinglePrayerDayRingRenderArgs,
 } from "@/components/molecules/SinglePrayerWeeklyProgressDashboard";
+import { DashBoardCalenderIcon } from "@/assets/icons/DashBoardCalenderIcon";
+import { GoatIcon } from "@/assets/icons/GoatIcon";
+import { HouseWithHeartIcon } from "@/assets/icons/HouseWithHeartIcon";
+import { DebtAssistanceIcon } from "@/assets/icons/DebtAssistanceIcon";
+import { FlowCardQardHassanIcon } from "@/assets/icons/FlowCardQardHassanIcon";
+import { FlowCardFoodReliefIcon } from "@/assets/icons/FlowCardFoodReleifIcon";
+import { DashBoardHandHeartIcon } from "@/assets/icons/DashBoardHandHeartIcon";
+import { BinIcon } from "@/assets/icons";
+import {
+  LillahCategoryId,
+  getLillahCategory,
+} from "@/src/screens/private/goalprogressloggingscreen/lillahCategories";
+import { PrayerWeeklyDashboardBody } from "@/components/molecules/PrayerWeeklyDashboardBody";
+import { PrayerWeeklyProgressFooter } from "@/components/molecules/PrayerWeeklyProgressFooter";
 import { useDeleteSadaqahLog } from "@/src/api/mutations/useDeleteSadaqahLog";
 import type { LillahCategoryId } from "@/src/screens/private/goalprogressloggingscreen/lillahCategories";
 import { LillahDayRing } from "./LillahDayRing";
@@ -35,6 +49,9 @@ export type LillahWeeklyProgressDashboardProps = {
   weekFraction?: string;
   totalThisWeek?: number;
   streakDays?: number;
+  /** `null` on week 1 / no comparison. */
+  vsLastWeek?: number | null;
+  vsLastWeekDisplay?: string | null;
   motivationalQuote?: string;
   selectedDayIndex?: number;
   onDayPress?: (index: number) => void;
@@ -99,6 +116,8 @@ export function LillahWeeklyProgressDashboard({
   weekFraction = "1/4",
   totalThisWeek = 350,
   streakDays = 1,
+  vsLastWeek = null,
+  vsLastWeekDisplay = null,
   motivationalQuote = "Share your blessings with the needy today, seeking only Allah's pleasure.",
   selectedDayIndex = 6,
   onDayPress,
@@ -187,14 +206,29 @@ export function LillahWeeklyProgressDashboard({
         <View style={styles.statsRow}>
           <DashBoardHandHeartIcon size={24} color={Colors.light.lightblue} />
           <Text style={styles.statsText} numberOfLines={1}>
-            <Text style={styles.statsCount}>
-              {loading ? "---" : totalLabel}
-            </Text>
-            {loading ? "" : " spent in total this week"}
+            {loading ? (
+              "---"
+            ) : (
+              <>
+                <Text style={styles.statsCount}>
+                  {formatAmount(totalThisWeek)}
+                </Text>
+                {" spent in total this week"}
+              </>
+            )}
           </Text>
         </View>
-      }
-    />
+
+        <PrayerWeeklyProgressFooter
+          loading={loading}
+          streakDays={streakDays}
+          vsLastWeek={vsLastWeek}
+          vsLastWeekDisplay={vsLastWeekDisplay}
+          motivationalQuote={motivationalQuote}
+          comparisonVariant="hours"
+        />
+      </PrayerWeeklyDashboardBody>
+    </View>
   );
 }
 
