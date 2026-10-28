@@ -60,7 +60,7 @@ export function useBehaviorDetailDescriptionProps({
     () =>
       mapBehaviorDetailToView(behaviorDetails, {
         isLoading: isFetching || isLoading || !behaviorDetails,
-        fallbackTitle,
+        title: behaviorDetails?.title || fallbackTitle,
       }),
     [behaviorDetails, fallbackTitle, isFetching, isLoading],
   );

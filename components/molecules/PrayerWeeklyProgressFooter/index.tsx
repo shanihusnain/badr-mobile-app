@@ -76,6 +76,8 @@ export function PrayerWeeklyProgressFooter({
   const vsLastWeekImproved = (vsLastWeek ?? 0) > 0;
   const comparisonCountLabel =
     vsLastWeekDisplay?.trim() || String(vsLastWeekMagnitude);
+  // Standalone API copy like "Same meals as last week" — do not append "vs. last week".
+  const omitComparisonSuffix = /^same\b/i.test(comparisonCountLabel);
 
   const resolvedQuote = loading
     ? "---"
@@ -170,10 +172,12 @@ export function PrayerWeeklyProgressFooter({
                 vsLastWeekImproved ? Colors.light.green : Colors.light.grey
               }
             />
-          ) : null}
+          ) : (
+            <View style={styles.comparisonNeutralDot} />
+          )}
           <Text style={styles.comparisonText}>
             <Text style={styles.comparisonCount}>{comparisonCountLabel}</Text>
-            {` ${t(comparisonSuffixKey)}`}
+            {omitComparisonSuffix ? null : ` ${t(comparisonSuffixKey)}`}
           </Text>
         </View>
       </View>
@@ -256,6 +260,13 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     minWidth: 0,
     marginLeft: 12,
+  },
+  /** Flat / same-as-last-week indicator (replaces caret-up / caret-down). */
+  comparisonNeutralDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Colors.light.grey,
   },
   comparisonText: {
     color: Colors.light.white,

@@ -46,6 +46,11 @@ export type BehaviorDetailStreakInfo = {
 export type BehaviorDetailApiData = {
   behaviorId: string;
   title: string;
+  image?: {
+    key: string;
+    url: string;
+    blurhash?: string | null;
+  } | null;
   category: string;
   categoryTitle: string;
   isTracked: boolean;

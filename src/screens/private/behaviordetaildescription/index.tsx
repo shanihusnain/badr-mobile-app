@@ -77,6 +77,7 @@ export const BehaviorDetailDescription = ({
           <BehaviorDetailHero
             title={title}
             imageSource={content.heroImage}
+            blurhash={content.heroBlurhash}
             height={SCREEN_HEADER_HEIGHT + HERO_IMAGE_HEIGHT}
             periodCount={activePeriodView.periodCount}
             showHeroRing={!isWeekly}

@@ -12,8 +12,13 @@ import type {
   BehaviorDetailWeekDay,
 } from "./behaviorDetailMockData";
 
+/** Dark navy placeholder while remote hero images decode (matches screen bg). */
+export const BEHAVIOR_DETAIL_HERO_BLURHASH = "L02rs+j[fQj[j[fQfQfQfQfQfQfQ";
+
 export type BehaviorDetailMappedContent = {
   heroImage: ImageSourcePropType;
+  /** BlurHash shown by expo-image until the remote hero finishes loading. */
+  heroBlurhash: string | null;
   impactTitle: string;
   impactBlocks: BehaviorDetailContentBlock[];
   recommendationsTitle: string;
@@ -46,7 +51,9 @@ function mapDayStatus(
   }
 }
 
-function mapStreak(streak: BehaviorDetailApiData["streaks"]["current"]): BehaviorDetailStreak {
+function mapStreak(
+  streak: BehaviorDetailApiData["streaks"]["current"],
+): BehaviorDetailStreak {
   const count = streak?.count ?? 0;
   return {
     count,
@@ -92,12 +99,30 @@ function loadingPeriodView(): BehaviorDetailPeriodView {
   };
 }
 
+function resolveHeroImage(
+  data: BehaviorDetailApiData,
+): ImageSourcePropType {
+  const url = data.image?.url?.trim();
+  if (url) return { uri: url };
+  return BeforeJournalCustomization;
+}
+
+function resolveHeroBlurhash(
+  data: BehaviorDetailApiData | undefined,
+): string | null {
+  const url = data?.image?.url?.trim();
+  if (!url) return null;
+  const fromApi = data?.image?.blurhash?.trim();
+  if (fromApi) return fromApi;
+  return BEHAVIOR_DETAIL_HERO_BLURHASH;
+}
+
 export function mapBehaviorDetailToView(
   data: BehaviorDetailApiData | undefined,
-  options?: { isLoading?: boolean; fallbackTitle?: string },
+  options?: { isLoading?: boolean; title?: string },
 ): BehaviorDetailMappedView {
   const isLoading = options?.isLoading ?? !data;
-  const fallbackTitle = options?.fallbackTitle ?? "Behavior";
+  const fallbackTitle = options?.title?.trim() || "Behavior";
 
   if (isLoading || !data) {
     return {
@@ -106,6 +131,7 @@ export function mapBehaviorDetailToView(
       periodView: loadingPeriodView(),
       content: {
         heroImage: BeforeJournalCustomization,
+        heroBlurhash: null,
         impactTitle: "---",
         impactBlocks: [],
         recommendationsTitle: "---",
@@ -133,21 +159,22 @@ export function mapBehaviorDetailToView(
     chartYMax: chartBars
       ? resolveChartYMax(data.period, chartValues)
       : undefined,
-    currentStreak: mapStreak(data.streaks.current),
-    longestStreak: mapStreak(data.streaks.longest),
+    currentStreak: mapStreak(data.streaks?.current),
+    longestStreak: mapStreak(data.streaks?.longest),
   };
 
   return {
-    title: data.title || fallbackTitle,
+    title: data.title?.trim() || fallbackTitle,
     snapshot: {
-      dateRangeLabel: data.window.label,
-      consistencyPercent: data.consistency.pct,
+      dateRangeLabel: data.window?.label ?? "---",
+      consistencyPercent: data.consistency?.pct ?? null,
       previousPeriodDeltaPercent: null,
-      consistencyBadge: data.consistency.badge,
+      consistencyBadge: data.consistency?.badge ?? null,
     },
     periodView,
     content: {
-      heroImage: BeforeJournalCustomization,
+      heroImage: resolveHeroImage(data),
+      heroBlurhash: resolveHeroBlurhash(data),
       impactTitle: data.impact?.title ?? "Impact",
       impactBlocks: data.impact?.blocks ?? [],
       recommendationsTitle: data.recommendations?.title ?? "Recommendations",

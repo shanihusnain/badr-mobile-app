@@ -131,9 +131,15 @@ function getSadaqahFrameComparison(
   return comparison;
 }
 
+/** API label is a full "Same … as last week" sentence — footer must not append "vs. last week". */
+export function isSadaqahSameAsLastWeekLabel(label: string | null | undefined): boolean {
+  return /^same\b/i.test(label?.trim() ?? "");
+}
+
 /**
  * Signed week-over-week delta for the weekly footer caret.
  * `null` = week 1 / no comparison. DOWN → negative, UP → positive.
+ * NEUTRAL / zero delta → `0` (weeks 2–4 layout, no caret).
  */
 export function getSadaqahFrameVsLastWeekDelta(
   frame: SadaqahGoalFrameData,
@@ -151,9 +157,18 @@ export function getSadaqahFrameVsLastWeekDelta(
 
   if (deltaRaw != null) {
     const magnitude = Math.abs(deltaRaw);
+    if (
+      magnitude === 0 ||
+      direction === "FLAT" ||
+      direction === "NEUTRAL" ||
+      direction === "SAME" ||
+      direction === "UNCHANGED" ||
+      direction === "EQUAL"
+    ) {
+      return 0;
+    }
     if (direction === "DOWN") return -magnitude;
     if (direction === "UP") return magnitude;
-    if (direction === "FLAT" || magnitude === 0) return 0;
     return deltaRaw;
   }
 
@@ -170,12 +185,14 @@ export function getSadaqahFrameVsLastWeekDelta(
     return current - previous;
   }
 
+  // Comparison object present (e.g. same-as-last-week label) → keep later-week layout.
   return 0;
 }
 
 /**
- * Prefer API label magnitude (e.g. "AED 144") for the comparison badge.
- * Footer appends the shared "vs. last week" suffix.
+ * Prefer API label for the comparison badge.
+ * "Same …" labels are returned as-is (footer skips the "vs. last week" suffix).
+ * Other labels strip a trailing "vs. last week" so the footer can append it once.
  */
 export function getSadaqahFrameVsLastWeekDisplay(
   frame: SadaqahGoalFrameData,
@@ -185,6 +202,7 @@ export function getSadaqahFrameVsLastWeekDisplay(
 
   const label = comparison.label?.trim();
   if (label) {
+    if (isSadaqahSameAsLastWeekLabel(label)) return label;
     const stripped = label
       .replace(/\s+vs\.?\s+last\s+week\s*$/i, "")
       .trim();
