@@ -22,12 +22,6 @@ import { ManQuranTajweedIcon } from "@/assets/icons/ManQuranTajweedIcon";
 import { MissedRamadanGreenCardIcon } from "@/assets/icons/MissedRamadanGreenCardIcon";
 import { FastingFlowCardMondayFasts } from "@/assets/icons/FastingFlowCardMondayFasts";
 import { FastingFlowCardProphetDawoodCalender } from "@/assets/icons/FastingFlowCardProphetDawoodCalender";
-import { MissedZakatFlowCardIcon } from "@/assets/icons/MissedZakatFlowCardIcon";
-import { FlowCardFoodReliefIcon } from "@/assets/icons/FlowCardFoodReleifIcon";
-import { FlowCardHandHeartIcon } from "@/assets/icons/FlowCardHandHeartIcon";
-import { AllahNameIcon } from "@/assets/icons/AllahNameIcon";
-import { ThreeHeartIcon } from "@/assets/icons/ThreeHeartIcon";
-import { VolunteeringServicesFlowCardIcon } from "@/assets/icons/VolunteeringServicesFlowCardIcon";
 import {
   getFigmaForcedSmallCapsTextStyle,
   prepareFigmaForcedSmallCapsText,
@@ -106,18 +100,6 @@ export function getDetailedIbadahIcon(
         />
       );
     }
-    case "sadaqah-zakat":
-      return <MissedZakatFlowCardIcon color={color} size={size} />;
-    case "sadaqah-fidya":
-      return <FlowCardFoodReliefIcon color={color} size={size} />;
-    case "sadaqah-kafarah":
-      return <FlowCardHandHeartIcon color={color} size={size} />;
-    case "sadaqah-Lillah":
-      return <AllahNameIcon color={color} size={size} />;
-    case "sadaqah-jariyah":
-      return <ThreeHeartIcon color={color} size={size} />;
-    case "sadaqah-volunteering":
-      return <VolunteeringServicesFlowCardIcon color={color} size={size} />;
     default:
       return <FontAwesome6 name="person-praying" size={size} color={color} />;
   }

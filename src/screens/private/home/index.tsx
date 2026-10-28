@@ -917,11 +917,11 @@ export default function HomeScreen() {
             */}
           </>
         )}
-        <JournalingHistoryWeekDashboard
+        {/* <JournalingHistoryWeekDashboard
           weekDays={JournalingHistoryWeekDays}
           onDayPress={handleJournalDayPress}
           onBehaviorInsightsPress={handleJournalBehaviorInsightsPress}
-        />
+        /> */}
         {/* My Dashboard */}
         {/* <View style={styles.dashboardSection}>
           <Text style={styles.dashboardText}>

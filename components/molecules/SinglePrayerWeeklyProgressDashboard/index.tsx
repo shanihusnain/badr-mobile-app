@@ -315,9 +315,7 @@ export function SinglePrayerWeeklyProgressDashboard({
                                         ? Colors.light.white
                                         : Colors.light.subtext
                                       : greenActivityCaptions && hasLog
-                                        ? isSelected
-                                          ? Colors.light.white
-                                          : Colors.light.dashboardAmountMuted
+                                        ? Colors.light.white
                                         : isSelected
                                           ? Colors.light.white
                                           : Colors.light.grey,

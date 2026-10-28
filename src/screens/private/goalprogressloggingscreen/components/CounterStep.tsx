@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { View, Text, TextInput, StyleSheet } from "react-native";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
@@ -10,15 +10,10 @@ interface CounterStepProps {
   onChangeText: (val: string) => void;
 }
 
-function digitsOnly(text: string): string {
-  return text.replace(/[^0-9]/g, "");
-}
-
 /**
  * Meal / clothing count input (Kaffarah, Fidya).
- * Uses a local draft while focused so parent re-renders / focus clears
- * cannot race the native TextInput (common simulator bug: 1st digit ok,
- * 2nd digit dropped).
+ * Same focus/blur rules as FinancialInputStep: clear leading 0 on focus,
+ * restore "0" on blur / after log when empty.
  */
 export function CounterStep({
   label: _label,
@@ -26,37 +21,34 @@ export function CounterStep({
   value,
   onChangeText,
 }: CounterStepProps) {
-  const [focused, setFocused] = useState(false);
-  const [draft, setDraft] = useState(value);
-
-  useEffect(() => {
-    if (!focused) {
-      setDraft(value);
-    }
-  }, [value, focused]);
+  const [selection, setSelection] = useState<
+    { start: number; end: number } | undefined
+  >(undefined);
 
   const handleFocus = () => {
-    setFocused(true);
-    // Clear leading 0 so typing starts fresh (caret centered in empty field).
+    // Same as FinancialInputStep / goal-setting Counter: clear leading 0
+    // so typing starts fresh (no leftover 0 in the field).
     if (value === "0" || value === "") {
-      setDraft("");
       onChangeText("");
+      setSelection({ start: 0, end: 0 });
       return;
     }
-    setDraft(String(value));
+    const text = String(value);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setSelection({ start: 0, end: text.length });
+      });
+    });
   };
 
   const handleBlur = () => {
-    setFocused(false);
-    const next = digitsOnly(draft) === "" ? "0" : digitsOnly(draft);
-    setDraft(next);
-    onChangeText(next);
+    setSelection(undefined);
+    const digitsOnly = value.replace(/[^0-9]/g, "");
+    onChangeText(digitsOnly === "" ? "0" : digitsOnly);
   };
 
   const handleChangeText = (text: string) => {
-    const next = digitsOnly(text);
-    setDraft(next);
-    onChangeText(next);
+    onChangeText(text.replace(/[^0-9]/g, ""));
   };
 
   return (
@@ -64,20 +56,22 @@ export function CounterStep({
       <View style={styles.inputWrapper}>
         <TextInput
           style={styles.input}
-          value={focused ? draft : value}
+          value={value}
           onChangeText={handleChangeText}
           onFocus={handleFocus}
           onBlur={handleBlur}
-          keyboardType="number-pad"
+          selection={selection}
+          onSelectionChange={(e) => {
+            setSelection(e.nativeEvent.selection);
+          }}
+          keyboardType="numeric"
           maxLength={4}
           cursorColor={Colors.light.white}
           selectionColor="rgba(255,255,255,0.3)"
-          // No placeholder: Android draws the caret after placeholder text.
+          // No placeholder: Android draws the caret after placeholder text
+          // (same as FinancialInputStep).
           placeholder=""
-          // Prefer native select-all for non-empty values; avoid controlled
-          // `selection` which races keystrokes on the iOS simulator.
-          selectTextOnFocus={value !== "0" && value !== ""}
-          underlineColorAndroid="transparent"
+          selectTextOnFocus={false}
         />
       </View>
       <Text style={styles.unitText}>{unit}</Text>
@@ -98,22 +92,20 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(255, 255, 255, 0.8)",
     borderRadius: 6,
-    minWidth: 48,
-    height: 28,
+    minWidth: 36,
+    height: 24,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "transparent",
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
   },
   input: {
     color: "rgba(255, 255, 255, 0.8)",
     fontFamily: fonts.primary.semiBold,
     fontSize: 14,
     padding: 0,
-    margin: 0,
     textAlign: "center",
-    minWidth: 28,
-    width: "100%",
+    minWidth: 20,
   },
   unitText: {
     color: "rgba(255, 255, 255, 0.8)",

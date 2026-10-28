@@ -27,9 +27,6 @@ export type MissedZakatWeeklyProgressDashboardProps = {
   weekFraction?: string;
   totalSpentThisWeek?: number;
   streakDays?: number;
-  /** `null` on week 1 / no comparison. */
-  vsLastWeek?: number | null;
-  vsLastWeekDisplay?: string | null;
   remainingAmount?: number;
   selectedDayIndex?: number;
   onDayPress?: (index: number) => void;
@@ -84,8 +81,6 @@ export function MissedZakatWeeklyProgressDashboard({
   weekFraction = "1/4",
   totalSpentThisWeek = 30,
   streakDays = 0,
-  vsLastWeek = null,
-  vsLastWeekDisplay = null,
   remainingAmount = 70,
   selectedDayIndex = 3,
   onDayPress,
@@ -133,9 +128,7 @@ export function MissedZakatWeeklyProgressDashboard({
       weekRangeLabel={weekRangeLabel}
       weekFraction={weekFraction}
       streakDays={streakDays}
-      vsLastWeek={vsLastWeek}
-      vsLastWeekDisplay={vsLastWeekDisplay}
-      comparisonVariant="hours"
+      vsLastWeek={null}
       motivationalQuote={motivationalQuote}
       selectedDayIndex={selectedDayIndex}
       onDayPress={onDayPress}
