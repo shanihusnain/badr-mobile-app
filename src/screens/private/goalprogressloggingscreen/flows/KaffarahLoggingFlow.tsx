@@ -209,7 +209,7 @@ const reasonStyles = StyleSheet.create({
     flexWrap: "nowrap",
     alignItems: "center",
     justifyContent: "center",
-    gap: 16,
+    gap: 18,
     marginTop: 8,
     width: "100%",
   },
@@ -242,8 +242,9 @@ const reasonStyles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
     fontSize: 13,
-    lineHeight: 19,
+    lineHeight:19,
     fontWeight: "500",
+    flexShrink: 1,
   },
 });
 
@@ -316,7 +317,8 @@ export default function KaffarahLoggingFlow({
   const todayString = toDateString(new Date());
   const currentStep = currentSteps[stepIndex] ?? "date";
   const isLastStep = stepIndex === currentSteps.length - 1;
-  const isClothesCount = reason === "broken-oath" && sadaqahType === "clothes";
+  const isClothesCount =
+    reason === "broken-oath" && sadaqahType === "clothes";
 
   const dateLabel = formatProgressLoggingDateLabel(
     selectedDate,
@@ -438,7 +440,8 @@ export default function KaffarahLoggingFlow({
     }
   };
 
-  const canGoForward = !isLogging && !isLastStep && isStepValid(currentStep);
+  const canGoForward =
+    !isLogging && !isLastStep && isStepValid(currentStep);
 
   const handleForward = () => {
     if (!canGoForward) return;
@@ -507,7 +510,9 @@ export default function KaffarahLoggingFlow({
       case "reason":
         return <ReasonStep reason={reason} setReason={setReason} />;
       case "sadaqah-type":
-        return <SadaqahTypeStep type={sadaqahType} setType={setSadaqahType} />;
+        return (
+          <SadaqahTypeStep type={sadaqahType} setType={setSadaqahType} />
+        );
       case "count":
         return (
           <CounterStep
@@ -585,7 +590,10 @@ export default function KaffarahLoggingFlow({
             <View style={localStyles.summaryCard}>
               <View style={localStyles.summaryBody}>
                 <View style={localStyles.summaryIconCircle}>
-                  <FlowCardHandHeartIcon size={19} color={Colors.light.white} />
+                  <FlowCardHandHeartIcon
+                    size={19}
+                    color={Colors.light.white}
+                  />
                 </View>
                 <View style={localStyles.summaryTextBlock}>
                   <View
@@ -650,7 +658,8 @@ export default function KaffarahLoggingFlow({
             <View
               style={[
                 commonStyles.flowCardLayer,
-                isPeriodDropdownOpen && commonStyles.flowCardLayerDropdownOpen,
+                isPeriodDropdownOpen &&
+                  commonStyles.flowCardLayerDropdownOpen,
               ]}
             >
               <FlowCard

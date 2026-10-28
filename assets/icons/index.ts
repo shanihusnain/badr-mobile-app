@@ -96,7 +96,6 @@ import { CrossBox } from "./CrossBox";
 import { ChangePasswordIcon } from "./ChangePasswordIcon";
 import { CalendarFlippingIcon } from "./CalendarFlippingIcon";
 import { CongregationalMosqueIcon } from "./CongregationalMosqueIcon";
-import { CurrentStreakBorder } from "./CurrentStreakBorder";
 //D
 import { DocumentLockIcon } from "./DocumentLockIcon";
 import { DebtAssistanceIcon } from "./DebtAssistanceIcon";
@@ -145,7 +144,6 @@ import { LillahDonationGiverIcon } from "./LillahDonationGiverIcon";
 import { LillahDonationRecipientIcon } from "./LillahDonationRecipientIcon";
 import { LetterIcon } from "./LetterIcon";
 import { LighteningIcon } from "./LighteningIcon";
-import { LongestStreakBorder } from "./LongestStreakBorder";
 //M
 import { MoonIcon } from "./MoonIcon";
 import { MenstruatingIcon } from "./MenstruatingIcon";
@@ -233,8 +231,6 @@ import { TimePieceIcon } from "./TimePieceIcon";
 // import { TickIconWithCircle } from "./TickIconWithCircle";
 //U
 
-//V
-import { VolunteeringServicesFlowCardIcon } from "./VolunteeringServicesFlowCardIcon";
 import { VolunteeringServicesCharityEventIcon } from "./VolunteeringServicesCharityEventIcon";
 import { HandWithWorldIcon } from "./HandWithWorldIcon";
 import { Volunteeringservicesheart } from "./Volunteeringservicesheart";
@@ -289,7 +285,6 @@ import { CheckBoxTickIcon } from "./CheckBoxTickIcon";
 import { WhiteClockIcon } from "./WhiteClockIcon";
 
 export {
-  VolunteeringServicesFlowCardIcon,
   AimIcon,
   AchivementArrowIcon,
   CreateAccountCalenderIcon,
@@ -520,6 +515,4 @@ export {
   DawoodCycleRefresh,
   MissedZakatIcon,
   JournalBulbIcon,
-  CurrentStreakBorder,
-  LongestStreakBorder,
 };

@@ -1009,7 +1009,6 @@ const styles = StyleSheet.create({
   },
   achievementBlock: {
     alignItems: "flex-start",
-    marginTop: 11,
   },
   achievementCaption: {
     color: Colors.light.subtext,
