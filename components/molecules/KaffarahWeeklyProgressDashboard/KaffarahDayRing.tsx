@@ -1,8 +1,9 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { Colors } from "@/constants/theme";
-import { FlowCardFoodReliefIcon } from "@/assets/icons/FlowCardFoodReleifIcon";
-import { FlowCardShirtIcon } from "@/assets/icons/FlowCardShirtIcon";
+import { KaffarahDashboardClothesIcon } from "@/assets/icons/KaffarahDashboardClothesIcon";
+import { KaffarahMealIcon } from "@/assets/icons/KaffarahMealIcon";
+
 export type KaffarahRingCategory = "clothes" | "meals" | null;
 
 type Props = {
@@ -20,9 +21,9 @@ type Props = {
 const BEST_DAY_SIZE_BOOST = 6;
 
 /**
- * Kaffarah 7-day rings — Figma states:
- * future outline · meals/clothes green fill (yellow icon on best day) ·
- * grey empty past · blur after 100%.
+ * Kaffarah 7-day rings:
+ * - logged: green circle + solid white icon + circle border
+ * - best day: green circle + solid yellow icon + circle border
  */
 export function KaffarahDayRing({
   size,
@@ -36,8 +37,10 @@ export function KaffarahDayRing({
 }: Props) {
   const showBestBoost = isBestDay && hasLog && !isFuture && !showEmptyOutline;
   const circleSize = showBestBoost ? size + BEST_DAY_SIZE_BOOST : size;
-  const iconSize = circleSize * (category === "clothes" ? 0.75 : 0.7);
-  const iconColor = isBestDay ? Colors.light.yellow : Colors.light.white;
+  const iconSize = circleSize * (category === "clothes" ? 0.84 : 0.8);
+  const iconColor = isBestDay
+    ? Colors.light.qiyamIconGold
+    : Colors.light.white;
 
   const innerSizeStyle = {
     width: circleSize,
@@ -69,19 +72,19 @@ export function KaffarahDayRing({
             innerSizeStyle,
             styles.ringInner,
             styles.ringInnerLogged,
+            // Border only when today grey chip is behind the ring.
             isToday && styles.ringInnerLoggedToday,
           ]}
         >
           {category === "clothes" ? (
-            <FlowCardShirtIcon size={iconSize} color={iconColor} />
+            <KaffarahDashboardClothesIcon size={iconSize} color={iconColor} />
           ) : (
-            <FlowCardFoodReliefIcon size={iconSize} color={iconColor} />
+            <KaffarahMealIcon size={iconSize} color={iconColor} />
           )}
         </View>
       );
     }
 
-    // Empty today — dashboard fill + border (same as SinglePrayer).
     if (isToday) {
       return (
         <View

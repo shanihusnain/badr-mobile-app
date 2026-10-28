@@ -96,7 +96,7 @@ export default function VolunteeringLoggingFlow({
   const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
   const [durationHours, setDurationHours] = useState("0");
-  const [durationMinutes, setDurationMinutes] = useState("30");
+  const [durationMinutes, setDurationMinutes] = useState("0");
 
   const badgeStatus = useMemo(() => {
     if (!frame) {
@@ -146,7 +146,7 @@ export default function VolunteeringLoggingFlow({
     setStartMinute(now.minute);
     setStartPeriod(now.period);
     setDurationHours("0");
-    setDurationMinutes("30");
+    setDurationMinutes("0");
     setIsPeriodDropdownOpen(false);
     setIsCategoryDropdownOpen(false);
   }, []);

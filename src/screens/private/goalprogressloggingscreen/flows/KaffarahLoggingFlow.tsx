@@ -128,7 +128,7 @@ function ReasonStep({
         >
           {reason === "broken-fast" && <View style={reasonStyles.radioDot} />}
         </View>
-        <Text style={reasonStyles.optionLabel}>
+        <Text style={reasonStyles.optionLabel} numberOfLines={1}>
           {t("progressLogging.kaffarahBrokenFast")}
         </Text>
       </TouchableOpacity>
@@ -146,7 +146,7 @@ function ReasonStep({
         >
           {reason === "broken-oath" && <View style={reasonStyles.radioDot} />}
         </View>
-        <Text style={reasonStyles.optionLabel}>
+        <Text style={reasonStyles.optionLabel} numberOfLines={1}>
           {t("progressLogging.kaffarahBrokenOath")}
         </Text>
       </TouchableOpacity>
@@ -177,7 +177,7 @@ function SadaqahTypeStep({
         >
           {type === "meals" && <View style={reasonStyles.radioDot} />}
         </View>
-        <Text style={reasonStyles.optionLabel}>
+        <Text style={reasonStyles.optionLabel} numberOfLines={1}>
           {t("progressLogging.kaffarahMeals")}
         </Text>
       </TouchableOpacity>
@@ -195,7 +195,7 @@ function SadaqahTypeStep({
         >
           {type === "clothes" && <View style={reasonStyles.radioDot} />}
         </View>
-        <Text style={reasonStyles.optionLabel}>
+        <Text style={reasonStyles.optionLabel} numberOfLines={1}>
           {t("progressLogging.kaffarahClothingItems")}
         </Text>
       </TouchableOpacity>
@@ -206,24 +206,28 @@ function SadaqahTypeStep({
 const reasonStyles = StyleSheet.create({
   container: {
     flexDirection: "row",
-    gap: 20,
-    marginTop: 8,
+    flexWrap: "nowrap",
+    alignItems: "center",
     justifyContent: "center",
-    flexWrap: "wrap",
+    gap: 18,
+    marginTop: 8,
+    width: "100%",
   },
   option: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
+    flexShrink: 1,
   },
   radio: {
     width: 18,
     height: 18,
     borderRadius: 9,
-    borderWidth: 2,
+    borderWidth: 1.5,
     borderColor: "rgba(255,255,255,0.6)",
     alignItems: "center",
     justifyContent: "center",
+    flexShrink: 0,
   },
   radioSelected: {
     borderColor: Colors.light.white,
@@ -238,7 +242,9 @@ const reasonStyles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
     fontSize: 13,
+    lineHeight:19,
     fontWeight: "500",
+    flexShrink: 1,
   },
 });
 
@@ -271,7 +277,7 @@ export default function KaffarahLoggingFlow({
   const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
 
   const [durationHours, setDurationHours] = useState("0");
-  const [durationMinutes, setDurationMinutes] = useState("10");
+  const [durationMinutes, setDurationMinutes] = useState("0");
 
   const badgeStatus = useMemo(() => {
     if (!frame) {
@@ -340,7 +346,7 @@ export default function KaffarahLoggingFlow({
     setStartMinute(now.minute);
     setStartPeriod(now.period);
     setDurationHours("0");
-    setDurationMinutes("10");
+    setDurationMinutes("0");
     setIsPeriodDropdownOpen(false);
   }, []);
 
@@ -468,9 +474,9 @@ export default function KaffarahLoggingFlow({
       case "count":
         return {
           icon: isClothesCount ? (
-            <FlowCardShirtIcon size={20} color={Colors.light.white} />
+            <FlowCardShirtIcon size={19} color={Colors.light.white} />
           ) : (
-            <FlowCardFoodReliefIcon size={20} color={Colors.light.white} />
+            <FlowCardFoodReliefIcon size={19} color={Colors.light.white} />
           ),
           label: isClothesCount
             ? t("progressLogging.kaffarahHowManyClothes")
@@ -585,7 +591,7 @@ export default function KaffarahLoggingFlow({
               <View style={localStyles.summaryBody}>
                 <View style={localStyles.summaryIconCircle}>
                   <FlowCardHandHeartIcon
-                    size={18}
+                    size={19}
                     color={Colors.light.white}
                   />
                 </View>
@@ -614,7 +620,8 @@ export default function KaffarahLoggingFlow({
                       {badgeStatus.text}
                     </Text>
                   </View>
-                  <Text style={localStyles.summaryTitle} numberOfLines={2}>
+                  {/* Figma: full meals/clothing title — no 2-line ellipsis. */}
+                  <Text style={localStyles.summaryTitle} numberOfLines={3}>
                     {summaryTitle}
                   </Text>
                 </View>
@@ -738,7 +745,8 @@ const localStyles = StyleSheet.create({
     backgroundColor: Colors.light.selectcategory,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 22,
+    // Align with title (below badge) — same offset as prayer summary cards.
+    marginTop: 33,
   },
   summaryTitle: {
     color: Colors.light.white,

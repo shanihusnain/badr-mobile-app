@@ -733,7 +733,7 @@ export function SadaqahPastAchievements({ goalId, isDetailed = false }: Props) {
 
         {/* ── Kaffarah filters from API (ALL / MEALS / CLOTHING_ITEMS) ── */}
         {isKaffarah && (
-          <View style={{ marginBottom: 12, flexDirection: "row", gap: 10 }}>
+          <View style={{ marginBottom: 12, flexDirection: "row", gap: 8 }}>
             {kaffarahFilters.map((tab) => {
               const isActive = kaffarahFilter === tab.code;
               return (
@@ -742,17 +742,23 @@ export function SadaqahPastAchievements({ goalId, isDetailed = false }: Props) {
                   onPress={() => setKaffarahFilter(tab.code)}
                   style={[
                     styles.categoryTab,
-                    isActive ? styles.categoryTabActive : styles.categoryTabInactive,
-                    { flexGrow: 1, paddingVertical: 6, paddingHorizontal: 4 }
+                    isActive
+                      ? styles.categoryTabActive
+                      : styles.categoryTabInactive,
+                    {
+                      paddingVertical: 8,
+                      paddingHorizontal: 31,
+                    },
                   ]}
                 >
                   <Text
                     numberOfLines={1}
-                    adjustsFontSizeToFit
                     style={[
                       styles.categoryTabText,
-                      isActive ? styles.categoryTabTextActive : styles.categoryTabTextInactive,
-                      { textAlign: "center", fontSize: 12 }
+                      isActive
+                        ? styles.categoryTabTextActive
+                        : styles.categoryTabTextInactive,
+                      { textAlign: "center", fontSize: 14 },
                     ]}
                   >
                     {tab.label}
@@ -1157,10 +1163,9 @@ const styles = StyleSheet.create({
   },
   goalLabel: {
     color: Colors.light.subtext,
-    fontSize: 12,
-    fontFamily: fonts.primary.semiBold,
+    fontSize: 14,
+    fontFamily: fonts.primary.bold,
     fontWeight: "600",
-    letterSpacing: 0.8,
     textTransform: "uppercase",
   },
   goalValue: {
@@ -1181,10 +1186,10 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   goalUnitPillText: {
-    color: Colors.light.subtext,
-    fontSize: 12,
+    color: Colors.light.white,
+    fontSize: 11,
     fontFamily: fonts.primary.medium,
-    fontWeight: "500",
+    fontWeight: "400",
   },
   // Analytics toggle — bleed to card edges like prayer past achievements
   analyticsToggleScroll: {
@@ -1243,7 +1248,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.blackBackground,
   },
   categoryTabText: {
-    fontSize: 12,
+    fontSize: 14,
+    lineHeight: 18,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
   },
@@ -1311,8 +1317,9 @@ const styles = StyleSheet.create({
     gap: 10,
     paddingRight: 20,
   },
+  /** Match PrayerPastAchievements insight card width. */
   insightCardFixed: {
-    width: 140,
+    width: 176,
     flex: 0,
     minWidth: "auto",
   },
