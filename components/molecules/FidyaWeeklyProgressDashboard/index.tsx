@@ -30,6 +30,9 @@ export type FidyaWeeklyProgressDashboardProps = {
   weekFraction?: string;
   totalThisWeek?: number;
   streakDays?: number;
+  /** `null` on week 1 / no comparison. */
+  vsLastWeek?: number | null;
+  vsLastWeekDisplay?: string | null;
   motivationalQuote?: string;
   selectedDayIndex?: number;
   onDayPress?: (index: number) => void;
@@ -81,6 +84,8 @@ export function FidyaWeeklyProgressDashboard({
   weekFraction = "1/4",
   totalThisWeek = 3,
   streakDays = 1,
+  vsLastWeek = null,
+  vsLastWeekDisplay = null,
   motivationalQuote = "Remember, Fidya is a chance to give back and invite barakah into your life.",
   selectedDayIndex = 6,
   onDayPress,
@@ -118,7 +123,9 @@ export function FidyaWeeklyProgressDashboard({
       weekRangeLabel={weekRangeLabel}
       weekFraction={weekFraction}
       streakDays={streakDays}
-      vsLastWeek={null}
+      vsLastWeek={vsLastWeek}
+      vsLastWeekDisplay={vsLastWeekDisplay}
+      comparisonVariant="hours"
       motivationalQuote={loading ? "---" : motivationalQuote}
       selectedDayIndex={selectedDayIndex}
       onDayPress={onDayPress}

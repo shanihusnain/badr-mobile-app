@@ -119,6 +119,85 @@ export function getSadaqahFrameWeekStreakDays(
   return 0;
 }
 
+type SadaqahFrameComparison = NonNullable<
+  NonNullable<SadaqahGoalFrameData["week"]>["comparison"]
+>;
+
+function getSadaqahFrameComparison(
+  frame: SadaqahGoalFrameData,
+): SadaqahFrameComparison | null {
+  const comparison = frame.week?.comparison;
+  if (comparison == null || typeof comparison !== "object") return null;
+  return comparison;
+}
+
+/**
+ * Signed week-over-week delta for the weekly footer caret.
+ * `null` = week 1 / no comparison. DOWN → negative, UP → positive.
+ */
+export function getSadaqahFrameVsLastWeekDelta(
+  frame: SadaqahGoalFrameData,
+): number | null {
+  const comparison = getSadaqahFrameComparison(frame);
+  if (!comparison) return null;
+
+  const direction = String(comparison.direction ?? "")
+    .trim()
+    .toUpperCase();
+  const deltaRaw =
+    typeof comparison.delta === "number" && Number.isFinite(comparison.delta)
+      ? comparison.delta
+      : null;
+
+  if (deltaRaw != null) {
+    const magnitude = Math.abs(deltaRaw);
+    if (direction === "DOWN") return -magnitude;
+    if (direction === "UP") return magnitude;
+    if (direction === "FLAT" || magnitude === 0) return 0;
+    return deltaRaw;
+  }
+
+  const current =
+    typeof comparison.current === "number" && Number.isFinite(comparison.current)
+      ? comparison.current
+      : null;
+  const previous =
+    typeof comparison.previous === "number" &&
+    Number.isFinite(comparison.previous)
+      ? comparison.previous
+      : null;
+  if (current != null && previous != null) {
+    return current - previous;
+  }
+
+  return 0;
+}
+
+/**
+ * Prefer API label magnitude (e.g. "AED 144") for the comparison badge.
+ * Footer appends the shared "vs. last week" suffix.
+ */
+export function getSadaqahFrameVsLastWeekDisplay(
+  frame: SadaqahGoalFrameData,
+): string | null {
+  const comparison = getSadaqahFrameComparison(frame);
+  if (!comparison) return null;
+
+  const label = comparison.label?.trim();
+  if (label) {
+    const stripped = label
+      .replace(/\s+vs\.?\s+last\s+week\s*$/i, "")
+      .trim();
+    if (stripped) return stripped;
+  }
+
+  if (typeof comparison.delta === "number" && Number.isFinite(comparison.delta)) {
+    return String(Math.abs(comparison.delta));
+  }
+
+  return null;
+}
+
 /** Ring fill 0–100 from frame `goal.achievementPct`, with completed/target fallback. */
 export function getSadaqahFrameAchievementPct(
   frame: SadaqahGoalFrameData | null | undefined,
@@ -382,6 +461,8 @@ export type KaffarahFrameWeekSummary = {
   streakDays: number;
   selectedDayIndex: number;
   motivationalQuote?: string;
+  vsLastWeek: number | null;
+  vsLastWeekDisplay: string | null;
 };
 
 export function mapKaffarahFrameWeekSummary(
@@ -395,6 +476,8 @@ export function mapKaffarahFrameWeekSummary(
     streakDays: getSadaqahFrameWeekStreakDays(frame),
     selectedDayIndex: getSadaqahFrameTodayIndex(frame),
     motivationalQuote: frame.week.motivation?.message?.trim() || undefined,
+    vsLastWeek: getSadaqahFrameVsLastWeekDelta(frame),
+    vsLastWeekDisplay: getSadaqahFrameVsLastWeekDisplay(frame),
   };
 }
 
@@ -409,6 +492,8 @@ export const KAFFARAH_LOADING_WEEK_SUMMARY: KaffarahFrameWeekSummary = {
   totalThisWeek: 0,
   streakDays: 0,
   selectedDayIndex: 0,
+  vsLastWeek: null,
+  vsLastWeekDisplay: null,
 };
 
 /** Prefer frame item title; else build from kaffarah meals/clothing targets. */
@@ -488,6 +573,8 @@ export type MissedZakatFrameWeekSummary = {
   streakDays: number;
   remainingAmount: number;
   selectedDayIndex: number;
+  vsLastWeek: number | null;
+  vsLastWeekDisplay: string | null;
 };
 
 export function mapMissedZakatFrameWeekSummary(
@@ -501,6 +588,8 @@ export function mapMissedZakatFrameWeekSummary(
     streakDays: getSadaqahFrameWeekStreakDays(frame),
     remainingAmount: getSadaqahFrameRemainingAmount(frame),
     selectedDayIndex: getSadaqahFrameTodayIndex(frame),
+    vsLastWeek: getSadaqahFrameVsLastWeekDelta(frame),
+    vsLastWeekDisplay: getSadaqahFrameVsLastWeekDisplay(frame),
   };
 }
 
@@ -516,6 +605,8 @@ export const MISSED_ZAKAT_LOADING_WEEK_SUMMARY: MissedZakatFrameWeekSummary = {
   streakDays: 0,
   remainingAmount: 0,
   selectedDayIndex: 0,
+  vsLastWeek: null,
+  vsLastWeekDisplay: null,
 };
 
 export function mapFidyaFrameDay(
@@ -567,6 +658,8 @@ export type FidyaFrameWeekSummary = {
   streakDays: number;
   selectedDayIndex: number;
   motivationalQuote?: string;
+  vsLastWeek: number | null;
+  vsLastWeekDisplay: string | null;
 };
 
 export function mapFidyaFrameWeekSummary(
@@ -580,6 +673,8 @@ export function mapFidyaFrameWeekSummary(
     streakDays: getSadaqahFrameWeekStreakDays(frame),
     selectedDayIndex: getSadaqahFrameTodayIndex(frame),
     motivationalQuote: frame.week?.motivation?.message?.trim() || undefined,
+    vsLastWeek: getSadaqahFrameVsLastWeekDelta(frame),
+    vsLastWeekDisplay: getSadaqahFrameVsLastWeekDisplay(frame),
   };
 }
 
@@ -593,6 +688,8 @@ export const FIDYA_LOADING_WEEK_SUMMARY: FidyaFrameWeekSummary = {
   totalThisWeek: 0,
   streakDays: 0,
   selectedDayIndex: 0,
+  vsLastWeek: null,
+  vsLastWeekDisplay: null,
 };
 
 /** Prefer frame item title; else "{N} Meals for Those in Need". */
@@ -757,6 +854,8 @@ export type LillahFrameWeekSummary = {
   streakDays: number;
   selectedDayIndex: number;
   motivationalQuote?: string;
+  vsLastWeek: number | null;
+  vsLastWeekDisplay: string | null;
 };
 
 export function mapLillahFrameWeekSummary(
@@ -770,6 +869,8 @@ export function mapLillahFrameWeekSummary(
     streakDays: getSadaqahFrameWeekStreakDays(frame),
     selectedDayIndex: getSadaqahFrameTodayIndex(frame),
     motivationalQuote: frame.week?.motivation?.message?.trim() || undefined,
+    vsLastWeek: getSadaqahFrameVsLastWeekDelta(frame),
+    vsLastWeekDisplay: getSadaqahFrameVsLastWeekDisplay(frame),
   };
 }
 
@@ -784,6 +885,8 @@ export const LILLAH_LOADING_WEEK_SUMMARY: LillahFrameWeekSummary = {
   totalThisWeek: 0,
   streakDays: 0,
   selectedDayIndex: 0,
+  vsLastWeek: null,
+  vsLastWeekDisplay: null,
 };
 
 export function mapSadaqahJariyahFrameDay(
@@ -837,6 +940,8 @@ export type SadaqahJariyahFrameWeekSummary = {
   streakDays: number;
   selectedDayIndex: number;
   motivationalQuote?: string;
+  vsLastWeek: number | null;
+  vsLastWeekDisplay: string | null;
 };
 
 export function mapSadaqahJariyahFrameWeekSummary(
@@ -850,6 +955,8 @@ export function mapSadaqahJariyahFrameWeekSummary(
     streakDays: getSadaqahFrameWeekStreakDays(frame),
     selectedDayIndex: getSadaqahFrameTodayIndex(frame),
     motivationalQuote: frame.week?.motivation?.message?.trim() || undefined,
+    vsLastWeek: getSadaqahFrameVsLastWeekDelta(frame),
+    vsLastWeekDisplay: getSadaqahFrameVsLastWeekDisplay(frame),
   };
 }
 
@@ -865,6 +972,8 @@ export const SADAQAH_JARIYAH_LOADING_WEEK_SUMMARY: SadaqahJariyahFrameWeekSummar
     totalThisWeek: 0,
     streakDays: 0,
     selectedDayIndex: 0,
+    vsLastWeek: null,
+    vsLastWeekDisplay: null,
   };
 
 export function mapVolunteeringFrameDay(
@@ -918,6 +1027,8 @@ export type VolunteeringFrameWeekSummary = {
   streakDays: number;
   selectedDayIndex: number;
   motivationalQuote?: string;
+  vsLastWeek: number | null;
+  vsLastWeekDisplay: string | null;
 };
 
 export function mapVolunteeringFrameWeekSummary(
@@ -945,6 +1056,8 @@ export function mapVolunteeringFrameWeekSummary(
     streakDays: getSadaqahFrameWeekStreakDays(frame),
     selectedDayIndex: getSadaqahFrameTodayIndex(frame),
     motivationalQuote: frame.week?.motivation?.message?.trim() || undefined,
+    vsLastWeek: getSadaqahFrameVsLastWeekDelta(frame),
+    vsLastWeekDisplay: getSadaqahFrameVsLastWeekDisplay(frame),
   };
 }
 
@@ -959,6 +1072,8 @@ export const VOLUNTEERING_LOADING_WEEK_SUMMARY: VolunteeringFrameWeekSummary = {
   totalMinutesThisWeek: 0,
   streakDays: 0,
   selectedDayIndex: 0,
+  vsLastWeek: null,
+  vsLastWeekDisplay: null,
 };
 
 export function getVolunteeringFrameFlowCardTitle(

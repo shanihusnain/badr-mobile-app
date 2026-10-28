@@ -17,6 +17,7 @@ import {
 } from "@/src/screens/private/goalprogressloggingscreen/volunteeringCategories";
 import { BinIcon } from "@/assets/icons";
 import { PrayerWeeklyDashboardBody } from "@/components/molecules/PrayerWeeklyDashboardBody";
+import { PrayerWeeklyProgressFooter } from "@/components/molecules/PrayerWeeklyProgressFooter";
 import { useDeleteSadaqahLog } from "@/src/api/mutations/useDeleteSadaqahLog";
 
 export type VolunteeringDayProgress = {
@@ -39,6 +40,9 @@ export type VolunteeringWeeklyProgressDashboardProps = {
   weekFraction?: string;
   totalMinutesThisWeek?: number;
   streakDays?: number;
+  /** `null` on week 1 / no comparison. */
+  vsLastWeek?: number | null;
+  vsLastWeekDisplay?: string | null;
   motivationalQuote?: string;
   selectedDayIndex?: number;
   onDayPress?: (index: number) => void;
@@ -144,6 +148,8 @@ export function VolunteeringWeeklyProgressDashboard({
   weekFraction = "1/4",
   totalMinutesThisWeek = 150,
   streakDays = 0,
+  vsLastWeek = null,
+  vsLastWeekDisplay = null,
   motivationalQuote = "When you help others, you help yourself grow spiritually—stay inspired!",
   selectedDayIndex = 6,
   onDayPress,
@@ -346,24 +352,14 @@ export function VolunteeringWeeklyProgressDashboard({
           </Text>
         </View>
 
-        <View style={styles.footerRow}>
-          <View style={styles.streakBadge}>
-            <Ionicons name="flash" size={13} color={Colors.light.yellow} />
-            <Text style={styles.streakText}>
-              {loading ? "---" : `${streakDays}-day streak`}
-            </Text>
-          </View>
-          <View style={styles.quoteBlock}>
-            <MaterialCommunityIcons
-              name="target"
-              size={14}
-              color={Colors.light.seagreen}
-            />
-            <Text style={styles.quoteText}>
-              {loading ? "---" : motivationalQuote}
-            </Text>
-          </View>
-        </View>
+        <PrayerWeeklyProgressFooter
+          loading={loading}
+          streakDays={streakDays}
+          vsLastWeek={vsLastWeek}
+          vsLastWeekDisplay={vsLastWeekDisplay}
+          motivationalQuote={motivationalQuote}
+          comparisonVariant="hours"
+        />
       </PrayerWeeklyDashboardBody>
     </View>
   );

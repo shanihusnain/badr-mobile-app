@@ -15,9 +15,9 @@ import {
   SadaqahJariyahCategoryId,
   getSadaqahJariyahCategory,
 } from "@/src/screens/private/goalprogressloggingscreen/sadaqahJariyahCategories";
-import { ShootIcon } from "@/assets/icons/ShootIcon";
-import { BinIcon, FlashIcon, CalendarIcon } from "@/assets/icons";
+import { BinIcon, CalendarIcon } from "@/assets/icons";
 import { PrayerWeeklyDashboardBody } from "@/components/molecules/PrayerWeeklyDashboardBody";
+import { PrayerWeeklyProgressFooter } from "@/components/molecules/PrayerWeeklyProgressFooter";
 import { useDeleteSadaqahLog } from "@/src/api/mutations/useDeleteSadaqahLog";
 
 export type SadaqahJariyahDayProgress = {
@@ -40,6 +40,9 @@ export type SadaqahJariyahWeeklyProgressDashboardProps = {
   weekFraction?: string;
   totalThisWeek?: number;
   streakDays?: number;
+  /** `null` on week 1 / no comparison. */
+  vsLastWeek?: number | null;
+  vsLastWeekDisplay?: string | null;
   motivationalQuote?: string;
   selectedDayIndex?: number;
   onDayPress?: (index: number) => void;
@@ -133,6 +136,8 @@ export function SadaqahJariyahWeeklyProgressDashboard({
   weekFraction = "1/4",
   totalThisWeek = 420,
   streakDays = 7,
+  vsLastWeek = null,
+  vsLastWeekDisplay = null,
   motivationalQuote = "Masha'Allah, supporting Quran learning illuminates hearts—keep it up!",
   selectedDayIndex = 6,
   onDayPress,
@@ -332,22 +337,14 @@ export function SadaqahJariyahWeeklyProgressDashboard({
           </Text>
         </View>
 
-        <View style={styles.footerRow}>
-          <View style={styles.streakBadge}>
-            <View style={styles.streakIconWrapper}>
-              <FlashIcon size={12} color={Colors.light.yellow} />
-            </View>
-            <Text style={styles.streakText}>
-              {loading ? "---" : `${streakDays}-day streak`}
-            </Text>
-          </View>
-          <View style={styles.quoteBlock}>
-            <ShootIcon size={14} Color={Colors.light.seagreen} />
-            <Text style={styles.quoteText}>
-              {loading ? "---" : motivationalQuote}
-            </Text>
-          </View>
-        </View>
+        <PrayerWeeklyProgressFooter
+          loading={loading}
+          streakDays={streakDays}
+          vsLastWeek={vsLastWeek}
+          vsLastWeekDisplay={vsLastWeekDisplay}
+          motivationalQuote={motivationalQuote}
+          comparisonVariant="hours"
+        />
       </PrayerWeeklyDashboardBody>
     </View>
   );

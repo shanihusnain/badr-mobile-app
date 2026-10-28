@@ -2460,6 +2460,8 @@ export function WeeklyProgressSection({
             weekFraction={zakatWeekFromFrame.weekFraction}
             totalSpentThisWeek={zakatWeekFromFrame.totalSpentThisWeek}
             streakDays={zakatWeekFromFrame.streakDays}
+            vsLastWeek={zakatWeekFromFrame.vsLastWeek}
+            vsLastWeekDisplay={zakatWeekFromFrame.vsLastWeekDisplay}
             remainingAmount={zakatWeekFromFrame.remainingAmount}
             selectedDayIndex={zakatWeekFromFrame.selectedDayIndex}
             loading={frameLoading}
@@ -2622,6 +2624,8 @@ export function WeeklyProgressSection({
             weekFraction={kaffarahWeekFromFrame.weekFraction}
             totalThisWeek={kaffarahWeekFromFrame.totalThisWeek}
             streakDays={kaffarahWeekFromFrame.streakDays}
+            vsLastWeek={kaffarahWeekFromFrame.vsLastWeek}
+            vsLastWeekDisplay={kaffarahWeekFromFrame.vsLastWeekDisplay}
             selectedDayIndex={kaffarahWeekFromFrame.selectedDayIndex}
             loading={frameLoading}
             onDeleted={onDeleted}
@@ -2697,6 +2701,8 @@ export function WeeklyProgressSection({
             weekFraction={fidyaWeekFromFrame.weekFraction}
             totalThisWeek={fidyaWeekFromFrame.totalThisWeek}
             streakDays={fidyaWeekFromFrame.streakDays}
+            vsLastWeek={fidyaWeekFromFrame.vsLastWeek}
+            vsLastWeekDisplay={fidyaWeekFromFrame.vsLastWeekDisplay}
             selectedDayIndex={fidyaWeekFromFrame.selectedDayIndex}
             loading={frameLoading}
             onDeleted={onDeleted}
@@ -2771,6 +2777,8 @@ export function WeeklyProgressSection({
             weekFraction={lillahWeekFromFrame.weekFraction}
             totalThisWeek={lillahWeekFromFrame.totalThisWeek}
             streakDays={lillahWeekFromFrame.streakDays}
+            vsLastWeek={lillahWeekFromFrame.vsLastWeek}
+            vsLastWeekDisplay={lillahWeekFromFrame.vsLastWeekDisplay}
             selectedDayIndex={lillahWeekFromFrame.selectedDayIndex}
             loading={frameLoading}
             onDeleted={onDeleted}
@@ -2846,6 +2854,8 @@ export function WeeklyProgressSection({
             weekFraction={jariyahWeekFromFrame.weekFraction}
             totalThisWeek={jariyahWeekFromFrame.totalThisWeek}
             streakDays={jariyahWeekFromFrame.streakDays}
+            vsLastWeek={jariyahWeekFromFrame.vsLastWeek}
+            vsLastWeekDisplay={jariyahWeekFromFrame.vsLastWeekDisplay}
             selectedDayIndex={jariyahWeekFromFrame.selectedDayIndex}
             loading={frameLoading}
             onDeleted={onDeleted}
@@ -2921,6 +2931,8 @@ export function WeeklyProgressSection({
             weekFraction={volunteeringWeekFromFrame.weekFraction}
             totalMinutesThisWeek={volunteeringWeekFromFrame.totalMinutesThisWeek}
             streakDays={volunteeringWeekFromFrame.streakDays}
+            vsLastWeek={volunteeringWeekFromFrame.vsLastWeek}
+            vsLastWeekDisplay={volunteeringWeekFromFrame.vsLastWeekDisplay}
             selectedDayIndex={volunteeringWeekFromFrame.selectedDayIndex}
             loading={frameLoading}
             onDeleted={onDeleted}

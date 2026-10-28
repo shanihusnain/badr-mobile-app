@@ -121,7 +121,17 @@ export type SadaqahGoalFrameWeek = {
   totalAmount?: number | null;
   streak?: number | SadaqahGoalFrameStreak | null;
   streakLabel?: string | null;
-  comparison?: unknown;
+  /**
+   * Present on weeks after week 1. Example:
+   * `{ current: 28, previous: 172, delta: 144, direction: "DOWN", label: "AED 144 vs. last week" }`
+   */
+  comparison?: {
+    current?: number | null;
+    previous?: number | null;
+    delta?: number | null;
+    direction?: "UP" | "DOWN" | "FLAT" | string | null;
+    label?: string | null;
+  } | null;
   motivation?: SadaqahGoalFrameMotivation | null;
 };
 
