@@ -233,6 +233,8 @@ import { TimePieceIcon } from "./TimePieceIcon";
 // import { TickIconWithCircle } from "./TickIconWithCircle";
 //U
 
+//V
+import { VolunteeringServicesFlowCardIcon } from "./VolunteeringServicesFlowCardIcon";
 import { VolunteeringServicesCharityEventIcon } from "./VolunteeringServicesCharityEventIcon";
 import { HandWithWorldIcon } from "./HandWithWorldIcon";
 import { Volunteeringservicesheart } from "./Volunteeringservicesheart";
@@ -287,6 +289,7 @@ import { CheckBoxTickIcon } from "./CheckBoxTickIcon";
 import { WhiteClockIcon } from "./WhiteClockIcon";
 
 export {
+  VolunteeringServicesFlowCardIcon,
   AimIcon,
   AchivementArrowIcon,
   CreateAccountCalenderIcon,
