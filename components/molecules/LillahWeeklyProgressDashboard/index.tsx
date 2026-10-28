@@ -1,32 +1,16 @@
-import React, { useCallback, useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Pressable,
-  StyleSheet,
-  useWindowDimensions,
-} from "react-native";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import React, { useCallback, useMemo } from "react";
+import { StyleSheet, Text, View } from "react-native";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
-import { DashBoardCalenderIcon } from "@/assets/icons/DashBoardCalenderIcon";
-import { ShootIcon } from "@/assets/icons/ShootIcon";
-import { GoatIcon } from "@/assets/icons/GoatIcon";
-import { HouseWithHeartIcon } from "@/assets/icons/HouseWithHeartIcon";
-import { DebtAssistanceIcon } from "@/assets/icons/DebtAssistanceIcon";
-import { FlowCardQardHassanIcon } from "@/assets/icons/FlowCardQardHassanIcon";
-import { FlowCardFoodReliefIcon } from "@/assets/icons/FlowCardFoodReleifIcon";
 import { DashBoardHandHeartIcon } from "@/assets/icons/DashBoardHandHeartIcon";
-import { FlashIcon } from "@/assets/icons/FlashIcon";
-import { BinIcon } from "@/assets/icons";
 import {
-  LillahCategoryId,
-  getLillahCategory,
-} from "@/src/screens/private/goalprogressloggingscreen/lillahCategories";
-import { PrayerWeeklyDashboardBody } from "@/components/molecules/PrayerWeeklyDashboardBody";
+  SinglePrayerWeeklyProgressDashboard,
+  type SinglePrayerDayProgress,
+  type SinglePrayerDayRingRenderArgs,
+} from "@/components/molecules/SinglePrayerWeeklyProgressDashboard";
 import { useDeleteSadaqahLog } from "@/src/api/mutations/useDeleteSadaqahLog";
+import type { LillahCategoryId } from "@/src/screens/private/goalprogressloggingscreen/lillahCategories";
+import { LillahDayRing } from "./LillahDayRing";
 
 export type LillahDayProgress = {
   day: string;
@@ -38,6 +22,9 @@ export type LillahDayProgress = {
   isBestDay?: boolean;
   isToday?: boolean;
   isFuture?: boolean;
+  /**
+   * Blur day: days after the user achieves 100% of their goal.
+   */
   isBlurDay?: boolean;
   canDelete?: boolean;
 };
@@ -53,9 +40,7 @@ export type LillahWeeklyProgressDashboardProps = {
   onDayPress?: (index: number) => void;
   onPrevWeek?: () => void;
   onNextWeek?: () => void;
-  /** Frame / week-fetch loading — match Missed Zakat placeholders. */
   loading?: boolean;
-  /** Bump parent refresh after a successful delete. */
   onDeleted?: () => void;
   allowLogDeletion?: boolean;
   sadaqahType?: string;
@@ -63,95 +48,51 @@ export type LillahWeeklyProgressDashboardProps = {
   currencyCode?: string;
 };
 
-const CARD_HORIZONTAL_PADDING = 16;
-const WRAPPER_WIDTH_RATIO = 0.92;
-const RING_SIZE_MAX = 34;
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Day Ring
-// ─────────────────────────────────────────────────────────────────────────────
-type DayRingProps = {
-  size: number;
-  day: LillahDayProgress;
-  isSelected: boolean;
-};
-
-function LillahDayRing({ size, day, isSelected }: DayRingProps) {
-  const hasLog = day.amount > 0 && day.category !== null;
-
-  const innerSizeStyle = {
-    width: size,
-    height: size,
-    borderRadius: size / 2,
-  };
-
-  const renderInner = () => {
-    if (day.isFuture) {
-      return <View style={[innerSizeStyle, styles.ringInner, styles.ringInnerFuture]} />;
-    }
-
-    if (hasLog) {
-      const catDef = getLillahCategory(day.category!);
-      const iconColor = day.isBestDay ? Colors.light.yellow : Colors.light.white;
-      const iconSize = size * 0.7;
-
-      const renderCategoryIcon = () => {
-        switch (day.category) {
-          case "qurbani":
-            return <GoatIcon size={iconSize} color={iconColor} />;
-          case "household-essentials":
-            return <HouseWithHeartIcon size={iconSize} color={iconColor} />;
-          case "debt-assistance":
-            return <DebtAssistanceIcon size={iconSize} color={iconColor} />;
-          case "qard-hassan":
-            return <FlowCardQardHassanIcon size={iconSize} color={iconColor} />;
-          case "food-relief":
-            return <FlowCardFoodReliefIcon size={iconSize} color={iconColor} />;
-          default:
-            return (
-              <MaterialCommunityIcons
-                name={catDef.icon as any}
-                size={iconSize}
-                color={iconColor}
-              />
-            );
-        }
-      };
-
-      return (
-        <View
-          style={[
-            innerSizeStyle,
-            styles.ringInner,
-            styles.ringInnerLogged,
-            !day.isToday && !day.isBestDay && styles.ringInnerLoggedPast,
-          ]}
-        >
-          {renderCategoryIcon()}
-        </View>
-      );
-    }
-
-    return <View style={[innerSizeStyle, styles.ringInner, styles.ringInnerEmpty]} />;
-  };
-
-  return (
-    <View
-      style={[
-        styles.ringOuter,
-        { width: size + 10, height: size + 16, borderRadius: 8 },
-        isSelected && styles.ringOuterSelected,
-        day.isBlurDay && styles.ringOuterBlur,
-      ]}
-    >
-      {renderInner()}
-    </View>
-  );
+function getLocalTodayString(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Main Dashboard
-// ─────────────────────────────────────────────────────────────────────────────
+function normalizeDayDate(value?: string): string | null {
+  if (!value) return null;
+  const slice = value.slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(slice) ? slice : null;
+}
+
+function formatDayAmount(value: number, currencyCode: string): string {
+  const currency = String(currencyCode || "USD")
+    .trim()
+    .toUpperCase();
+  if (currency === "USD") return `$${value}`;
+  return `${currency} ${value}`;
+}
+
+function mapLillahDayToSinglePrayerDay(
+  day: LillahDayProgress,
+  currencyCode: string,
+): SinglePrayerDayProgress {
+  const hasLog = day.amount > 0 && day.category !== null;
+  const dateKey = normalizeDayDate(day.date);
+  const isToday = dateKey
+    ? dateKey === getLocalTodayString()
+    : !!day.isToday;
+
+  return {
+    day: day.day,
+    date: dateKey ?? day.date,
+    prayersLogged: hasLog ? Math.max(1, day.amount) : 0,
+    isLogged: hasLog,
+    isBestDay: !!day.isBestDay && hasLog,
+    isToday,
+    // Blur / post-completion days stay non-interactive like future days.
+    isFuture: isToday ? false : !!day.isFuture || !!day.isBlurDay,
+    canDelete: day.canDelete,
+    durationLabel: hasLog
+      ? formatDayAmount(day.amount, currencyCode)
+      : undefined,
+  };
+}
+
 export function LillahWeeklyProgressDashboard({
   weekDays,
   weekRangeLabel = "Nov 29 — Dec 5",
@@ -169,400 +110,116 @@ export function LillahWeeklyProgressDashboard({
   sadaqahType = "LILLAH",
   currencyCode = "USD",
 }: LillahWeeklyProgressDashboardProps) {
-  const { width: screenWidth } = useWindowDimensions();
-  const { mutate: deleteSadaqahLog, isPending: isDeletingLog } =
+  const { mutateAsync: deleteSadaqahLog, isPending: isDeletingLog } =
     useDeleteSadaqahLog();
+
   const currency = String(currencyCode || "USD")
     .trim()
     .toUpperCase();
-  const formatAmount = (value: number) => `${currency} ${value}`;
 
-  const availableWidth =
-    screenWidth * WRAPPER_WIDTH_RATIO - CARD_HORIZONTAL_PADDING;
-  const ringSize = Math.min(
-    RING_SIZE_MAX,
-    Math.floor((availableWidth / 7) * 0.62),
+  const mappedWeekDays = useMemo(
+    () =>
+      weekDays.map((day) => mapLillahDayToSinglePrayerDay(day, currency)),
+    [weekDays, currency],
   );
 
-  const [activeDayIndex, setActiveDayIndex] = useState(selectedDayIndex);
-  const [selectForDeletion, setSelectForDeletion] = useState("");
-
-  useEffect(() => {
-    setActiveDayIndex(selectedDayIndex);
-    setSelectForDeletion("");
-  }, [selectedDayIndex, weekRangeLabel, weekFraction]);
+  const isGoalCompleted = useMemo(
+    () => weekDays.some((day) => day.isBlurDay),
+    [weekDays],
+  );
 
   const handleDeleteLog = useCallback(
-    (logDate: string) => {
-      deleteSadaqahLog(
-        { sadaqahType, logDate },
-        {
-          onSuccess: () => {
-            setSelectForDeletion("");
-            onDeleted?.();
-          },
-        },
-      );
+    async (date: string) => {
+      await deleteSadaqahLog({ sadaqahType, logDate: date });
+      onDeleted?.();
     },
     [deleteSadaqahLog, onDeleted, sadaqahType],
   );
 
+  const renderDayRing = useCallback(
+    (args: SinglePrayerDayRingRenderArgs) => {
+      const lillahDay = weekDays[args.index];
+      if (!lillahDay) return null;
+
+      const hasLog =
+        lillahDay.amount > 0 && lillahDay.category !== null;
+
+      return (
+        <LillahDayRing
+          size={args.size}
+          category={lillahDay.category}
+          hasLog={hasLog}
+          isBestDay={Boolean(lillahDay.isBestDay && hasLog)}
+          isToday={Boolean(lillahDay.isToday)}
+          isFuture={Boolean(lillahDay.isFuture)}
+          isBlurDay={Boolean(lillahDay.isBlurDay)}
+          showEmptyOutline={args.showEmptyOutline}
+        />
+      );
+    },
+    [weekDays],
+  );
+
+  const totalLabel =
+    currency === "USD" ? `$${totalThisWeek}` : `${currency} ${totalThisWeek}`;
+
   return (
-    <View style={styles.card}>
-      <View style={styles.headerRow}>
-        <View style={styles.headerLeft}>
-          <DashBoardCalenderIcon size={20} color={Colors.light.subtext} />
-          <Text style={styles.weekFractionText} numberOfLines={1}>
-            {loading ? "---" : `${weekFraction} WEEKS`}
-          </Text>
-        </View>
-
-        <View style={styles.headerNav}>
-          <TouchableOpacity
-            onPress={onPrevWeek}
-            activeOpacity={onPrevWeek && !loading ? 0.7 : 1}
-            style={styles.navBtn}
-            disabled={loading || !onPrevWeek}
-          >
-            <Ionicons
-              name="chevron-back"
-              size={14}
-              color={Colors.light.dullWhite}
-            />
-          </TouchableOpacity>
-          <Text style={styles.weekRangeText} numberOfLines={1}>
-            {loading ? "---" : weekRangeLabel}
-          </Text>
-          <TouchableOpacity
-            onPress={onNextWeek}
-            activeOpacity={onNextWeek && !loading ? 0.7 : 1}
-            style={styles.navBtn}
-            disabled={loading || !onNextWeek}
-          >
-            <Ionicons
-              name="chevron-forward"
-              size={14}
-              color={Colors.light.dullWhite}
-            />
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      <PrayerWeeklyDashboardBody loading={loading}>
-        <View style={styles.daysRow}>
-          {weekDays.map((day, index) => {
-            const isSelected = index === activeDayIndex;
-            const hasLog = day.amount > 0 && day.category !== null;
-            const isMarkedForDeletion =
-              !!day.date && selectForDeletion === day.date;
-
-            return (
-              <TouchableOpacity
-                key={`${day.day}-${day.date ?? index}`}
-                style={[
-                  styles.dayColumn,
-                  isMarkedForDeletion && styles.dayColumnMarkedForDeletion,
-                ]}
-                onLongPress={() => {
-                  if (!allowLogDeletion || loading || day.isFuture || !day.date)
-                    return;
-                  if (day.canDelete === false) return;
-                  if (!hasLog) return;
-                  setSelectForDeletion((prev) =>
-                    prev === day.date ? "" : (day.date ?? ""),
-                  );
-                }}
-                onPress={() => {
-                  if (loading || day.isFuture) return;
-                  if (selectForDeletion) {
-                    setSelectForDeletion("");
-                    return;
-                  }
-                  setActiveDayIndex(index);
-                  onDayPress?.(index);
-                }}
-                activeOpacity={loading || day.isFuture ? 1 : 0.75}
-                disabled={loading || day.isFuture}
-              >
-                <View
-                  style={[
-                    styles.dayItemWrapper,
-                    isSelected &&
-                      !isMarkedForDeletion &&
-                      styles.dayItemSelected,
-                    isMarkedForDeletion && styles.deletingDay,
-                  ]}
-                >
-                  <LillahDayRing
-                    size={ringSize}
-                    day={day}
-                    isSelected={isSelected && !isMarkedForDeletion}
-                  />
-
-                  <Text
-                    style={[
-                      day.isBestDay ? styles.bestDayLabel : styles.dayLabel,
-                    ]}
-                    numberOfLines={1}
-                  >
-                    {loading ? "---" : day.isBestDay ? "BEST DAY!" : day.day}
-                  </Text>
-
-                  <View style={styles.durationSlot}>
-                    <Text
-                      style={[
-                        day.isBestDay
-                          ? styles.durationTextBest
-                          : styles.durationTextNormal,
-                        styles.durationText,
-                      ]}
-                      numberOfLines={1}
-                    >
-                      {loading ? "" : hasLog ? formatAmount(day.amount) : ""}
-                    </Text>
-                  </View>
-
-                  {isMarkedForDeletion ? (
-                    <Pressable
-                      style={styles.deleteButton}
-                      disabled={isDeletingLog}
-                      onPress={() => {
-                        if (!day.date || isDeletingLog) return;
-                        handleDeleteLog(day.date);
-                      }}
-                    >
-                      <BinIcon />
-                    </Pressable>
-                  ) : null}
-                </View>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-
+    <SinglePrayerWeeklyProgressDashboard
+      weekDays={mappedWeekDays}
+      weekRangeLabel={weekRangeLabel}
+      weekFraction={weekFraction}
+      streakDays={streakDays}
+      vsLastWeek={null}
+      motivationalQuote={loading ? "---" : motivationalQuote}
+      selectedDayIndex={selectedDayIndex}
+      onDayPress={onDayPress}
+      onPrevWeek={onPrevWeek}
+      onNextWeek={onNextWeek}
+      loading={loading}
+      isGoalCompleted={isGoalCompleted}
+      allowLogDeletion={allowLogDeletion}
+      onDeleteLog={allowLogDeletion ? handleDeleteLog : undefined}
+      isDeletingLog={isDeletingLog}
+      renderDayRing={renderDayRing}
+      showTodayChip
+      greenActivityCaptions
+      statsRow={
         <View style={styles.statsRow}>
           <DashBoardHandHeartIcon size={24} color={Colors.light.lightblue} />
           <Text style={styles.statsText} numberOfLines={1}>
-            {loading ? (
-              "---"
-            ) : (
-              <>
-                <Text style={styles.statsCount}>
-                  {formatAmount(totalThisWeek)}
-                </Text>
-                {" spent in total this week"}
-              </>
-            )}
+            <Text style={styles.statsCount}>
+              {loading ? "---" : totalLabel}
+            </Text>
+            {loading ? "" : " spent in total this week"}
           </Text>
         </View>
-
-        <View style={styles.footerRow}>
-          <View style={styles.streakBadge}>
-            <FlashIcon size={13} color={Colors.light.yellow} />
-            <Text style={styles.streakText}>
-              {loading ? "---" : `${streakDays}-day streak`}
-            </Text>
-          </View>
-          <View style={styles.quoteBlock}>
-            <ShootIcon size={14} Color={Colors.light.seagreen} />
-            <Text style={styles.quoteText}>
-              {loading ? "---" : motivationalQuote}
-            </Text>
-          </View>
-        </View>
-      </PrayerWeeklyDashboardBody>
-    </View>
+      }
+    />
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Styles
-// ─────────────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  card: {
-    borderRadius: 14,
-    backgroundColor: Colors.light.greybuttonBackground,
-    paddingHorizontal: 8,
-    paddingVertical: 20,
-    gap: 16,
-  },
-  headerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 8,
-  },
-  headerLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    flexShrink: 1,
-  },
-  weekFractionText: {
-    color: Colors.light.white,
-    fontSize: 13,
-    fontWeight: "600",
-    fontFamily: fonts.primary.semiBold,
-  },
-  headerNav: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 2,
-    flexShrink: 0,
-  },
-  navBtn: { padding: 2 },
-  weekRangeText: {
-    color: Colors.light.white,
-    fontSize: 14,
-    fontWeight: "500",
-    fontFamily: fonts.primary.medium,
-    textAlign: "center",
-  },
-  daysRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    width: "100%",
-  },
-  dayColumn: {
-    flex: 1,
-    alignItems: "center",
-    minWidth: 0,
-  },
-  dayColumnMarkedForDeletion: {
-    zIndex: 99999,
-  },
-  dayItemWrapper: {
-    alignItems: "center",
-    paddingVertical: 4,
-    paddingHorizontal: 2,
-    borderRadius: 8,
-    width: "100%",
-  },
-  dayItemSelected: {
-    backgroundColor: Colors.light.divider,
-  },
-  deletingDay: {
-    borderColor: Colors.light.red,
-    borderWidth: 1,
-    borderRadius: 6,
-    backgroundColor: Colors.light.dullRed,
-  },
-  deleteButton: {
-    height: 20,
-    width: 24,
-    backgroundColor: Colors.light.red,
-    borderRadius: 5,
-    zIndex: 1000,
-    alignSelf: "center",
-    justifyContent: "center",
-    alignItems: "center",
-    position: "absolute",
-    bottom: -10,
-  },
-  bestDayLabel: {
-    color: Colors.light.green,
-    fontSize: 9,
-    fontWeight: "700",
-    fontFamily: fonts.primary.bold,
-    textAlign: "center",
-    marginTop: 4,
-  },
-  ringOuter: {
-    alignItems: "center",
-    justifyContent: "center",
-    borderColor: "transparent",
-  },
-  ringOuterSelected: {},
-  ringOuterBlur: { opacity: 0.3 },
-  ringInner: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  ringInnerLogged: {
-    backgroundColor: Colors.light.green,
-  },
-  ringInnerLoggedPast: {
-    opacity: 0.85,
-  },
-  ringInnerFuture: {
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.3)",
-    backgroundColor: "transparent",
-  },
-  ringInnerEmpty: {
-    backgroundColor: "rgba(255,255,255,0.15)",
-  },
-  dayLabel: {
-    color: Colors.light.subtext,
-    fontSize: 10,
-    fontWeight: "600",
-    fontFamily: fonts.primary.semiBold,
-    marginTop: 4,
-    textAlign: "center",
-  },
-  durationSlot: {
-    height: 14,
-    justifyContent: "center",
-    alignItems: "center",
-    width: "100%",
-  },
-  durationText: {
-    fontSize: 11,
-    fontWeight: "700",
-    fontFamily: fonts.primary.bold,
-    textAlign: "center",
-  },
-  durationTextBest: { color: Colors.light.green },
-  durationTextNormal: { color: Colors.light.grey },
   statsRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 6,
+    gap: 8,
     flexWrap: "nowrap",
+    paddingLeft: 7,
   },
   statsText: {
     color: Colors.light.white,
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: fonts.primary.medium,
     flexShrink: 1,
     fontWeight: "500",
+    letterSpacing: 0.1,
   },
   statsCount: {
     color: Colors.light.white,
-    fontWeight: "700",
-    fontSize: 22,
+    fontWeight: "600",
+    fontSize: 20,
     fontFamily: fonts.primary.bold,
-  },
-  footerRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 12,
-  },
-  streakBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 2,
-    flexShrink: 0,
-  },
-  streakText: {
-    color: Colors.light.white,
-    fontSize: 13,
-    fontWeight: "500",
-    fontFamily: fonts.primary.medium,
-  },
-  quoteBlock: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 4,
-    flex: 1,
-  },
-  quoteText: {
-    flex: 1,
-    color: Colors.light.white,
-    fontSize: 13,
-    lineHeight: 16,
-    fontFamily: fonts.primary.regular,
-    fontWeight: "400",
+    letterSpacing: 0.1,
   },
 });

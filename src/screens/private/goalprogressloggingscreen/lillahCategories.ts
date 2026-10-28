@@ -25,7 +25,7 @@ export const LILLAH_CATEGORIES: LillahCategoryDef[] = [
   },
   {
     id: "qurbani",
-    label: "Qurbani for the Poor",
+    label: "Animal Sacrifice",
     icon: "food-drumstick",
     description:
       "Sacrificial meat provided to the poor, offering nourishment and a sense of care.",

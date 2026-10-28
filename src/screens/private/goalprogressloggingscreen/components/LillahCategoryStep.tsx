@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  ScrollView,
 } from "react-native";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -24,38 +23,64 @@ import {
 type Props = {
   selectedCategory: LillahCategoryId;
   onSelectCategory: (id: LillahCategoryId) => void;
+  isOpen: boolean;
+  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-export function LillahCategoryStep({ selectedCategory, onSelectCategory }: Props) {
-  const [isOpen, setIsOpen] = useState(false);
+function CategoryIcon({
+  id,
+  size = 20,
+}: {
+  id: LillahCategoryId;
+  size?: number;
+}) {
+  if (id === "qurbani") {
+    return <GoatIcon size={size} color={Colors.light.white} />;
+  }
+  if (id === "household-essentials") {
+    return <HouseWithHeartIcon size={size} color={Colors.light.white} />;
+  }
+  if (id === "debt-assistance") {
+    return <DebtAssistanceIcon size={size} color={Colors.light.white} />;
+  }
+  if (id === "qard-hassan") {
+    return <FlowCardQardHassanIcon size={size} color={Colors.light.white} />;
+  }
+  if (id === "food-relief") {
+    return <FlowCardFoodReliefIcon size={size} color={Colors.light.white} />;
+  }
+  return (
+    <MaterialCommunityIcons
+      name="help-circle-outline"
+      size={size}
+      color={Colors.light.white}
+    />
+  );
+}
+
+export function LillahCategoryStep({
+  selectedCategory,
+  onSelectCategory,
+  isOpen,
+  setIsOpen,
+}: Props) {
+  const [tempSelectedCategory, setTempSelectedCategory] =
+    useState<LillahCategoryId | null>(null);
 
   const selected = LILLAH_CATEGORIES.find((c) => c.id === selectedCategory)!;
+  const menuOptions = LILLAH_CATEGORIES.filter(
+    (c) => c.id !== selectedCategory,
+  );
 
   return (
     <View style={styles.container}>
-      {/* Dropdown Trigger */}
+      {/* Trigger stays fixed; subtext + menu overlay below so layout never jumps. */}
       <TouchableOpacity
         style={styles.dropdown}
         onPress={() => setIsOpen((v) => !v)}
         activeOpacity={0.85}
       >
-        {selected.id === "qurbani" ? (
-          <GoatIcon size={20} color={Colors.light.white} />
-        ) : selected.id === "household-essentials" ? (
-          <HouseWithHeartIcon size={20} color={Colors.light.white} />
-        ) : selected.id === "debt-assistance" ? (
-          <DebtAssistanceIcon size={20} color={Colors.light.white} />
-        ) : selected.id === "qard-hassan" ? (
-          <FlowCardQardHassanIcon size={20} color={Colors.light.white} />
-        ) : selected.id === "food-relief" ? (
-          <FlowCardFoodReliefIcon size={20} color={Colors.light.white} />
-        ) : (
-          <MaterialCommunityIcons
-            name={selected.icon as any}
-            size={20}
-            color={Colors.light.white}
-          />
-        )}
+        <CategoryIcon id={selected.id} size={18} />
         <Text style={styles.dropdownLabel} numberOfLines={1}>
           {selected.label}
         </Text>
@@ -66,55 +91,39 @@ export function LillahCategoryStep({ selectedCategory, onSelectCategory }: Props
         />
       </TouchableOpacity>
 
-      {/* Description (when closed) */}
-      {!isOpen && (
+      {!isOpen ? (
         <Text style={styles.description} numberOfLines={3}>
           ({selected.description})
         </Text>
-      )}
-
-      {/* Radio List (when open) */}
-      {isOpen && (
+      ) : (
         <View style={styles.radioList}>
-          {LILLAH_CATEGORIES.map((cat: LillahCategoryDef) => {
-            const isChecked = cat.id === selectedCategory;
+          {menuOptions.map((cat: LillahCategoryDef) => {
+            const isChecked = cat.id === tempSelectedCategory;
             return (
               <TouchableOpacity
                 key={cat.id}
                 style={styles.radioRow}
                 onPress={() => {
-                  onSelectCategory(cat.id);
-                  setIsOpen(false);
+                  setTempSelectedCategory(cat.id);
+                  setTimeout(() => {
+                    onSelectCategory(cat.id);
+                    setIsOpen(false);
+                    setTempSelectedCategory(null);
+                  }, 150);
                 }}
                 activeOpacity={0.8}
               >
-                {/* Radio circle */}
-                <View style={[styles.radioCircle, isChecked && styles.radioCircleChecked]}>
-                  {isChecked && <View style={styles.radioDot} />}
+                <View
+                  style={[
+                    styles.radioCircle,
+                    isChecked && styles.radioCircleChecked,
+                  ]}
+                >
+                  {isChecked ? <View style={styles.radioDot} /> : null}
                 </View>
-
-                {/* Icon */}
                 <View style={styles.catIconCirclePlain}>
-                  {cat.id === "qurbani" ? (
-                    <GoatIcon size={20} color={Colors.light.white} />
-                  ) : cat.id === "household-essentials" ? (
-                    <HouseWithHeartIcon size={20} color={Colors.light.white} />
-                  ) : cat.id === "debt-assistance" ? (
-                    <DebtAssistanceIcon size={20} color={Colors.light.white} />
-                  ) : cat.id === "qard-hassan" ? (
-                    <FlowCardQardHassanIcon size={20} color={Colors.light.white} />
-                  ) : cat.id === "food-relief" ? (
-                    <FlowCardFoodReliefIcon size={20} color={Colors.light.white} />
-                  ) : (
-                    <MaterialCommunityIcons
-                      name={cat.icon as any}
-                      size={20}
-                      color={Colors.light.white}
-                    />
-                  )}
+                  <CategoryIcon id={cat.id} size={18} />
                 </View>
-
-                {/* Label */}
                 <Text style={styles.radioLabel} numberOfLines={1}>
                   {cat.label}
                 </Text>
@@ -130,16 +139,22 @@ export function LillahCategoryStep({ selectedCategory, onSelectCategory }: Props
 const styles = StyleSheet.create({
   container: {
     width: "100%",
-    gap: 8,
+    marginTop: 16,
+    position: "relative",
+    zIndex: 20,
+    // Height = trigger only so open/close never shifts the Food Relief box.
+    alignSelf: "stretch",
   },
   dropdown: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    backgroundColor: "rgba(255,255,255,0.12)",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    backgroundColor: "transparent",
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.5)",
   },
   dropdownLabel: {
     flex: 1,
@@ -149,17 +164,32 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   description: {
-    color: Colors.light.dullWhite,
+    position: "absolute",
+    top: "100%",
+    left: 0,
+    right: 0,
+    marginTop: 4,
+    color: "rgba(255, 255, 255, 0.8)",
     fontFamily: fonts.primary.regular,
     fontSize: 11,
     lineHeight: 15,
     paddingHorizontal: 4,
   },
   radioList: {
+    position: "absolute",
+    top: "100%",
+    left: 0,
+    right: 0,
+    marginTop: 4,
     backgroundColor: Colors.light.blackBackground,
     borderRadius: 8,
-    paddingVertical: 4,
-    gap: 2,
+    paddingVertical: 6,
+    zIndex: 999,
+    elevation: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
   },
   radioRow: {
     flexDirection: "row",
@@ -173,7 +203,7 @@ const styles = StyleSheet.create({
     height: 16,
     borderRadius: 8,
     borderWidth: 1.5,
-    borderColor: Colors.light.subtext,
+    borderColor: Colors.light.grey,
     alignItems: "center",
     justifyContent: "center",
   },

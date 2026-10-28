@@ -108,6 +108,7 @@ export default function LillahLoggingFlow({ goalData, onLogComplete }: Props) {
     () => getCurrentStartTimeParts().period,
   );
   const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
+  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
   const [durationHours, setDurationHours] = useState("0");
   const [durationMinutes, setDurationMinutes] = useState("0");
 
@@ -163,6 +164,7 @@ export default function LillahLoggingFlow({ goalData, onLogComplete }: Props) {
     setDurationHours("0");
     setDurationMinutes("0");
     setIsPeriodDropdownOpen(false);
+    setIsCategoryDropdownOpen(false);
   }, []);
 
   const handleConfirm = useCallback(() => {
@@ -232,6 +234,7 @@ export default function LillahLoggingFlow({ goalData, onLogComplete }: Props) {
       return;
     }
     setIsPeriodDropdownOpen(false);
+    setIsCategoryDropdownOpen(false);
     setStepIndex((i) => i - 1);
   };
 
@@ -259,6 +262,7 @@ export default function LillahLoggingFlow({ goalData, onLogComplete }: Props) {
   const handleForward = () => {
     if (!canGoForward) return;
     setIsPeriodDropdownOpen(false);
+    setIsCategoryDropdownOpen(false);
     setStepIndex((i) => i + 1);
   };
 
@@ -314,6 +318,8 @@ export default function LillahLoggingFlow({ goalData, onLogComplete }: Props) {
           <LillahCategoryStep
             selectedCategory={selectedCategory}
             onSelectCategory={setSelectedCategory}
+            isOpen={isCategoryDropdownOpen}
+            setIsOpen={setIsCategoryDropdownOpen}
           />
         );
       case "amount":
@@ -449,7 +455,7 @@ export default function LillahLoggingFlow({ goalData, onLogComplete }: Props) {
             <View
               style={[
                 commonStyles.flowCardLayer,
-                isPeriodDropdownOpen &&
+                (isPeriodDropdownOpen || isCategoryDropdownOpen) &&
                   commonStyles.flowCardLayerDropdownOpen,
               ]}
             >
@@ -466,8 +472,20 @@ export default function LillahLoggingFlow({ goalData, onLogComplete }: Props) {
                 styles={commonStyles}
                 style={[
                   commonStyles.inPlaceFlowCard,
-                  isPeriodDropdownOpen && commonStyles.flowCardDropdownOpen,
+                  (isPeriodDropdownOpen || isCategoryDropdownOpen) &&
+                    commonStyles.flowCardDropdownOpen,
                 ]}
+                contentStyle={
+                  currentStep === "category"
+                    ? {
+                        justifyContent: "flex-start",
+                        overflow: "visible",
+                        zIndex: 30,
+                      }
+                    : isPeriodDropdownOpen
+                      ? commonStyles.flowContentDropdownOpen
+                      : undefined
+                }
               >
                 {renderStepContent(currentStep)}
               </FlowCard>
