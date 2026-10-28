@@ -248,6 +248,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     fontSize: 20,
     fontFamily: fonts.primary.bold,
-    letterSpacing: 0.1,
+    letterSpacing: 0.12,
   },
 });
