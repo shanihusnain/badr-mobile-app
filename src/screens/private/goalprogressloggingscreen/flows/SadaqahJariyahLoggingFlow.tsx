@@ -104,7 +104,7 @@ export default function SadaqahJariyahLoggingFlow({
   );
   const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
   const [durationHours, setDurationHours] = useState("0");
-  const [durationMinutes, setDurationMinutes] = useState("10");
+  const [durationMinutes, setDurationMinutes] = useState("0");
 
   const badgeStatus = useMemo(() => {
     if (!frame) {
@@ -157,7 +157,7 @@ export default function SadaqahJariyahLoggingFlow({
     setStartMinute(now.minute);
     setStartPeriod(now.period);
     setDurationHours("0");
-    setDurationMinutes("10");
+    setDurationMinutes("0");
     setIsPeriodDropdownOpen(false);
   }, []);
 

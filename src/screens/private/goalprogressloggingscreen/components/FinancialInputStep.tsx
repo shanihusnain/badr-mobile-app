@@ -84,7 +84,7 @@ const localStyles = StyleSheet.create({
   inputWrapper: {
     flexDirection: "row",
     borderWidth: 1,
-    borderColor: Colors.light.white,
+    borderColor: "rgba(255, 255, 255, 0.4)",
     borderRadius: 6,
     minWidth: 75,
     height: 24,
@@ -94,7 +94,7 @@ const localStyles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   currencySymbol: {
-    color: Colors.light.white,
+    color: "rgba(255, 255, 255, 0.8)",
     fontFamily: fonts.primary.medium,
     fontSize: 14,
     lineHeight: 18,

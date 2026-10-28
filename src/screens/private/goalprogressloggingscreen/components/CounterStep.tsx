@@ -84,13 +84,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 8,
+    gap: 4,
     width: "100%",
     marginTop: 8,
   },
   inputWrapper: {
     borderWidth: 1,
-    borderColor: Colors.light.white,
+    borderColor: "rgba(255, 255, 255, 0.8)",
     borderRadius: 6,
     minWidth: 36,
     height: 24,
@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   input: {
-    color: Colors.light.white,
+    color: "rgba(255, 255, 255, 0.8)",
     fontFamily: fonts.primary.semiBold,
     fontSize: 14,
     padding: 0,
@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
     minWidth: 20,
   },
   unitText: {
-    color: Colors.light.white,
+    color: "rgba(255, 255, 255, 0.8)",
     fontFamily: fonts.primary.regular,
     fontSize: 14,
     fontWeight: "400",

@@ -25,7 +25,6 @@ import {
   FLOW_CARD_HEIGHT,
 } from "../components/DailyProgressLogging.styles";
 import { fonts } from "@/assets/fonts";
-import { FlowCardZakatIcon } from "@/assets/icons/FlowCardZakatIcon";
 import type { ProgressLogEntry } from "../types";
 import {
   AddLoggingFlowIcon,
@@ -34,6 +33,7 @@ import {
   WhiteTimerIcon,
 } from "@/assets/icons";
 import { FlowCardWalletIcon } from "@/assets/icons/FlowCardWalletIcon";
+import { MissedZakatFlowCardIcon } from "@/assets/icons/MissedZakatFlowCardIcon";
 import { useOptionalSadaqahGoalFrameContext } from "../sadaqahGoalFrameContext";
 import { useLogSadaqahGoal } from "@/src/api/mutations/useLogSadaqahGoal";
 import {
@@ -103,7 +103,7 @@ export default function MissedZakatLoggingFlow({
   );
   const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
   const [durationHours, setDurationHours] = useState("0");
-  const [durationMinutes, setDurationMinutes] = useState("00");
+  const [durationMinutes, setDurationMinutes] = useState("0");
 
   const badgeStatus = useMemo(() => {
     if (!frame) {
@@ -154,7 +154,7 @@ export default function MissedZakatLoggingFlow({
     setStartMinute(now.minute);
     setStartPeriod(now.period);
     setDurationHours("0");
-    setDurationMinutes("10");
+    setDurationMinutes("0");
     setIsPeriodDropdownOpen(false);
   }, []);
 
@@ -241,7 +241,7 @@ export default function MissedZakatLoggingFlow({
         };
       case "financial-amount":
         return {
-          icon: <FlowCardWalletIcon size={24} color={Colors.light.white} />,
+          icon: <FlowCardWalletIcon size={21} color={Colors.light.white} />,
           label: "How much did you fulfill?",
         };
       case "start-time":
@@ -340,7 +340,7 @@ export default function MissedZakatLoggingFlow({
             <View style={localStyles.summaryCard}>
               <View style={localStyles.summaryBody}>
                 <View style={localStyles.summaryIconCircle}>
-                  <FlowCardZakatIcon size={22} color={Colors.light.white} />
+                  <MissedZakatFlowCardIcon size={22} color={Colors.light.white} />
                 </View>
                 <View style={localStyles.summaryTextBlock}>
                   <View
@@ -482,7 +482,8 @@ const localStyles = StyleSheet.create({
     backgroundColor: Colors.light.selectcategory,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 22,
+    // Align with title (below badge) — same offset as prayer summary cards.
+    marginTop: 33,
   },
   summaryTitle: {
     color: Colors.light.white,

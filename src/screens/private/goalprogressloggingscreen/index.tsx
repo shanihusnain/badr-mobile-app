@@ -916,6 +916,12 @@ export const GoalProgressLoggingScreen = ({
     ? "THE WHITE DAYS"
     : null;
 
+  /** Two-line header (Figma) — avoid single-line shrink of the long title. */
+  const kaffarahHeaderTitle =
+    goalId === "sadaqah-kafarah" ? "KAFFARAH FOR BREAKING" : null;
+  const kaffarahHeaderSecondTitle =
+    goalId === "sadaqah-kafarah" ? "FASTS OR OATHS" : undefined;
+
   const memorisationTitleOptions = isMemorisationGoal
     ? [
         {
@@ -1095,13 +1101,16 @@ export const GoalProgressLoggingScreen = ({
                         ? dawoodHeaderTitle
                         : whiteDaysHeaderTitle
                           ? whiteDaysHeaderTitle
-                          : (goalData.title?.toUpperCase() ??
-                            goalData.label.toUpperCase())
+                          : kaffarahHeaderTitle
+                            ? kaffarahHeaderTitle
+                            : (goalData.title?.toUpperCase() ??
+                              goalData.label.toUpperCase())
                 }
                 secondTitle={
                   memorisationHeaderSecondTitle ??
                   recitationHeaderSecondTitle ??
-                  dawoodHeaderSecondTitle
+                  dawoodHeaderSecondTitle ??
+                  kaffarahHeaderSecondTitle
                 }
                 titleDropdownOptions={
                   memorisationTitleOptions ?? recitationTitleOptions

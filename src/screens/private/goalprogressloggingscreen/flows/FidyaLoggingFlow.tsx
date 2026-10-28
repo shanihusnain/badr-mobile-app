@@ -20,13 +20,19 @@ import {
   getCurrentStartTimeParts,
 } from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
-import { styles as commonStyles } from "../components/DailyProgressLogging.styles";
+import {
+  styles as commonStyles,
+  FLOW_CARD_HEIGHT,
+} from "../components/DailyProgressLogging.styles";
 import { fonts } from "@/assets/fonts";
-import { DashBoardMealsIcon } from "@/assets/icons/DashBoardMealsIcon";
-import { FlowCardCallender } from "@/assets/icons/FlowCardCallender";
+import {
+  AddLoggingFlowIcon,
+  CalendarFlippingIcon,
+  FlowCardFoodReliefIcon,
+  WhiteClockIcon,
+  WhiteTimerIcon,
+} from "@/assets/icons";
 import type { ProgressLogEntry } from "../types";
-import { FlowCardFoodReliefIcon, TimeSpentIcon } from "@/assets/icons";
-import { FlowCardClockIcon } from "@/assets/icons/FlowCardClockIcon";
 import { useOptionalSadaqahGoalFrameContext } from "../sadaqahGoalFrameContext";
 import { useLogSadaqahGoal } from "@/src/api/mutations/useLogSadaqahGoal";
 import {
@@ -87,7 +93,7 @@ export default function FidyaLoggingFlow({ goalData, onLogComplete }: Props) {
   const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
 
   const [durationHours, setDurationHours] = useState("0");
-  const [durationMinutes, setDurationMinutes] = useState("10");
+  const [durationMinutes, setDurationMinutes] = useState("0");
 
   const badgeStatus = useMemo(() => {
     if (!frame) {
@@ -110,7 +116,7 @@ export default function FidyaLoggingFlow({ goalData, onLogComplete }: Props) {
     String(frame?.goal?.status ?? "").toUpperCase() === "COMPLETED";
 
   const todayString = toDateString(new Date());
-  const currentStep = STEPS[stepIndex];
+  const currentStep = STEPS[stepIndex] ?? "date";
   const isLastStep = stepIndex === STEPS.length - 1;
 
   const dateLabel = formatProgressLoggingDateLabel(
@@ -137,7 +143,7 @@ export default function FidyaLoggingFlow({ goalData, onLogComplete }: Props) {
     setStartMinute(now.minute);
     setStartPeriod(now.period);
     setDurationHours("0");
-    setDurationMinutes("10");
+    setDurationMinutes("0");
     setIsPeriodDropdownOpen(false);
   }, []);
 
@@ -203,11 +209,34 @@ export default function FidyaLoggingFlow({ goalData, onLogComplete }: Props) {
       resetFlow();
       return;
     }
+    setIsPeriodDropdownOpen(false);
     setStepIndex((i) => i - 1);
   };
 
+  const isStepValid = (step: FidyaStepId) => {
+    switch (step) {
+      case "date":
+      case "start-time":
+        return true;
+      case "count":
+        return (Number.parseInt(count || "0", 10) || 0) > 0;
+      case "time-spent": {
+        const hours = parseInt(durationHours || "0", 10) || 0;
+        const minutes = parseInt(durationMinutes || "0", 10) || 0;
+        return hours * 60 + minutes >= 1;
+      }
+      default:
+        return true;
+    }
+  };
+
+  const canGoForward =
+    !isLogging && !isLastStep && isStepValid(currentStep);
+
   const handleForward = () => {
-    if (!isLastStep) setStepIndex((i) => i + 1);
+    if (!canGoForward) return;
+    setIsPeriodDropdownOpen(false);
+    setStepIndex((i) => i + 1);
   };
 
   const handleOpenFlow = useCallback(() => {
@@ -219,23 +248,25 @@ export default function FidyaLoggingFlow({ goalData, onLogComplete }: Props) {
     switch (step) {
       case "date":
         return {
-          icon: <FlowCardCallender size={18} color={Colors.light.white} />,
-          label: "Which day are you logging for?",
+          icon: <CalendarFlippingIcon size={24} />,
+          label: t("progressLogging.whichDay"),
         };
       case "count":
         return {
-          icon: <FlowCardFoodReliefIcon size={18} color={Colors.light.white} />,
-          label: "How many meals were given?",
+          icon: (
+            <FlowCardFoodReliefIcon size={19} color={Colors.light.white} />
+          ),
+          label: t("progressLogging.kaffarahHowManyMeals"),
         };
       case "start-time":
         return {
-          icon: <FlowCardClockIcon size={20} color={Colors.light.white} />,
-          label: "Enter start time.",
+          icon: <WhiteClockIcon size={26} />,
+          label: t("progressLogging.enterStartTime"),
         };
       case "time-spent":
         return {
-          icon: <TimeSpentIcon size={20} color={Colors.light.white} />,
-          label: "Enter time spent.",
+          icon: <WhiteTimerIcon size={24} />,
+          label: t("progressLogging.enterTimeSpent"),
         };
     }
   };
@@ -255,8 +286,8 @@ export default function FidyaLoggingFlow({ goalData, onLogComplete }: Props) {
       case "count":
         return (
           <CounterStep
-            label="Meals given"
-            unit="meal(s)"
+            label={t("progressLogging.kaffarahMealsLabel")}
+            unit={t("progressLogging.kaffarahMealsUnit")}
             value={count}
             onChangeText={setCount}
           />
@@ -299,72 +330,80 @@ export default function FidyaLoggingFlow({ goalData, onLogComplete }: Props) {
     durationTotalMinutes >= 1;
 
   return (
-    <View style={commonStyles.section}>
-      <Text style={commonStyles.sectionTitle}>
-        {t("progressLogging.myProgress")}
-      </Text>
+    <>
+      {flowMode === "active" && <Pressable style={commonStyles.backdrop} />}
+      {flowMode === "active" && (
+        <TouchableOpacity
+          style={commonStyles.cancelButton}
+          onPress={resetFlow}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="close" size={20} color={Colors.light.white} />
+        </TouchableOpacity>
+      )}
 
-      <View style={commonStyles.cardAnchor}>
-        {flowMode === "active" && <Pressable style={commonStyles.backdrop} />}
-        {flowMode === "active" && (
-          <TouchableOpacity
-            style={commonStyles.cancelButton}
-            onPress={resetFlow}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="close" size={20} color={Colors.light.white} />
-          </TouchableOpacity>
-        )}
+      <View style={commonStyles.section}>
+        <Text style={commonStyles.sectionTitle}>
+          {t("progressLogging.myProgress")}
+        </Text>
 
-        {flowMode === "collapsed" ? (
-          <View style={localStyles.summaryCard}>
-            <View style={localStyles.summaryBody}>
-              <View style={localStyles.summaryIconCircle}>
-                <DashBoardMealsIcon size={18} color={Colors.light.white} />
-              </View>
-              <View style={{ flex: 1, gap: 4 }}>
-                <View
-                  style={[
-                    localStyles.badge,
-                    badgeStatus.type === "completed"
-                      ? localStyles.badgeCompleted
-                      : localStyles.badgeInProgress,
-                    { alignSelf: "flex-start" },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      localStyles.badgeText,
-                      badgeStatus.type === "completed"
-                        ? localStyles.badgeTextCompleted
-                        : localStyles.badgeTextInProgress,
-                    ]}
-                  >
-                    {badgeStatus.text}
-                  </Text>
-                </View>
-                <Text style={[localStyles.summaryTitle, { flex: undefined }]}>
-                  {summaryTitle}
-                </Text>
-              </View>
-            </View>
-
-            <View style={localStyles.footerRow}>
-              {showInsights ? (
-                <TouchableOpacity
-                  style={localStyles.insightsBtn}
-                  onPress={sadaqahFrame?.openInsights}
-                >
-                  <Text style={localStyles.insightsText}>VIEW INSIGHTS</Text>
-                  <Ionicons
-                    name="chevron-forward"
-                    size={22}
+        <View style={commonStyles.cardAnchor}>
+          {flowMode === "collapsed" ? (
+            <View style={localStyles.summaryCard}>
+              <View style={localStyles.summaryBody}>
+                <View style={localStyles.summaryIconCircle}>
+                  <FlowCardFoodReliefIcon
+                    size={19}
                     color={Colors.light.white}
                   />
-                </TouchableOpacity>
-              ) : (
-                <View style={localStyles.spacer} />
-              )}
+                </View>
+                <View style={localStyles.summaryTextBlock}>
+                  <View
+                    style={[
+                      localStyles.badge,
+                      badgeStatus.type === "completed"
+                        ? localStyles.badgeCompleted
+                        : badgeStatus.type === "not-started"
+                          ? localStyles.badgeNotStarted
+                          : localStyles.badgeInProgress,
+                      { alignSelf: "flex-start" },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        localStyles.badgeText,
+                        badgeStatus.type === "completed"
+                          ? localStyles.badgeTextCompleted
+                          : badgeStatus.type === "not-started"
+                            ? localStyles.badgeTextNotStarted
+                            : localStyles.badgeTextInProgress,
+                      ]}
+                    >
+                      {badgeStatus.text}
+                    </Text>
+                  </View>
+                  <Text style={localStyles.summaryTitle} numberOfLines={3}>
+                    {summaryTitle}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={localStyles.footerRow}>
+                {showInsights ? (
+                  <TouchableOpacity
+                    style={localStyles.insightsBtn}
+                    onPress={sadaqahFrame?.openInsights}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={localStyles.insightsText}>VIEW INSIGHTS</Text>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={22}
+                      color={Colors.light.white}
+                    />
+                  </TouchableOpacity>
+                ) : null}
+              </View>
 
               {canLog && !goalCompleted ? (
                 <TouchableOpacity
@@ -372,62 +411,60 @@ export default function FidyaLoggingFlow({ goalData, onLogComplete }: Props) {
                   onPress={handleOpenFlow}
                   activeOpacity={0.8}
                 >
-                  <Ionicons name="add" size={22} color={Colors.light.white} />
+                  <AddLoggingFlowIcon size={32} />
                 </TouchableOpacity>
               ) : null}
             </View>
-          </View>
-        ) : (
-          <View style={commonStyles.flowCardLayer}>
-            <FlowCard
-              headerIcon={stepHeader.icon}
-              headerLabel={stepHeader.label}
-              onBack={handleBack}
-              onForward={handleForward}
-              onConfirm={handleConfirm}
-              canGoForward={!isLastStep}
-              canGoBack={stepIndex > 0}
-              canConfirm={canConfirm}
-              showConfirmButton={isLastStep}
-              styles={commonStyles}
-              style={commonStyles.inPlaceFlowCard}
+          ) : (
+            <View
+              style={[
+                commonStyles.flowCardLayer,
+                isPeriodDropdownOpen &&
+                  commonStyles.flowCardLayerDropdownOpen,
+              ]}
             >
-              {renderStepContent(currentStep)}
-            </FlowCard>
-          </View>
-        )}
+              <FlowCard
+                headerIcon={stepHeader.icon}
+                headerLabel={stepHeader.label}
+                onBack={handleBack}
+                onForward={handleForward}
+                onConfirm={handleConfirm}
+                canGoForward={canGoForward}
+                canGoBack={stepIndex > 0}
+                canConfirm={canConfirm}
+                showConfirmButton={isLastStep}
+                styles={commonStyles}
+                style={[
+                  commonStyles.inPlaceFlowCard,
+                  isPeriodDropdownOpen && commonStyles.flowCardDropdownOpen,
+                ]}
+              >
+                {renderStepContent(currentStep)}
+              </FlowCard>
+            </View>
+          )}
+        </View>
       </View>
-    </View>
+    </>
   );
 }
 
 const localStyles = StyleSheet.create({
   summaryCard: {
     backgroundColor: Colors.light.green,
-    borderRadius: 14,
+    borderRadius: 8,
     padding: 16,
     gap: 12,
-    height: 145,
+    height: FLOW_CARD_HEIGHT,
+    width: "100%",
     justifyContent: "space-between",
-  },
-  summaryBody: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  summaryIconCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: Colors.light.darkgrey,
-    alignItems: "center",
-    justifyContent: "center",
+    position: "relative",
   },
   badge: {
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
-    marginTop: -6,
+    marginTop: 3,
   },
   badgeInProgress: {
     backgroundColor: Colors.light.lightpurple,
@@ -435,10 +472,14 @@ const localStyles = StyleSheet.create({
   badgeCompleted: {
     backgroundColor: Colors.light.lightgreenbadgecolor,
   },
+  badgeNotStarted: {
+    backgroundColor: Colors.light.paginationInactiveDot,
+  },
   badgeText: {
-    fontFamily: fonts.primary.semiBold,
-    fontSize: 10,
-    fontWeight: "600",
+    fontFamily: fonts.primary.medium,
+    fontSize: 12,
+    fontWeight: "500",
+    lineHeight: 12.5,
   },
   badgeTextInProgress: {
     color: Colors.light.darkblue,
@@ -446,41 +487,58 @@ const localStyles = StyleSheet.create({
   badgeTextCompleted: {
     color: Colors.light.green,
   },
+  badgeTextNotStarted: {
+    color: Colors.light.notStartedTextColor,
+  },
+  summaryBody: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 6,
+  },
+  summaryTextBlock: {
+    flex: 1,
+    gap: 9,
+  },
+  summaryIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.light.selectcategory,
+    alignItems: "center",
+    justifyContent: "center",
+    // Align with title (below badge) — same offset as prayer summary cards.
+    marginTop: 33,
+  },
   summaryTitle: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 16,
+    fontSize: 14,
+    fontWeight: "600",
+    lineHeight: 18,
+    letterSpacing: 0,
   },
   footerRow: {
     flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginTop: "auto" as any,
-    paddingTop: 8,
+    alignItems: "flex-end",
+    marginTop: 4,
   },
   insightsBtn: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 2,
+    gap: 4,
+    paddingBottom: 4,
   },
   insightsText: {
     color: Colors.light.white,
-    fontFamily: fonts.primary.semiBold,
-    fontSize: 13,
+    fontFamily: fonts.primary.bold,
+    fontSize: 16,
     fontWeight: "700",
-    letterSpacing: 0.5,
   },
   addButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    borderWidth: 1.5,
-    borderColor: Colors.light.white,
+    position: "absolute",
+    right: 16,
+    bottom: 15,
     alignItems: "center",
     justifyContent: "center",
-    marginLeft: "auto" as any,
-  },
-  spacer: {
-    flex: 1,
   },
 });
