@@ -65,7 +65,7 @@ export function JournalTabContent({
           {bannerText || JOURNAL_BANNER_TEXT}
         </Text>
       </View>
-      <TopSpace top={20} />
+      <TopSpace top={34} />
       <JournalConsistencySection
         activeSnapshot={activeSnapshot}
         periods={periods}

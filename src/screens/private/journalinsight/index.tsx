@@ -45,6 +45,7 @@ export const JornalInsight = ({
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
+        <TopSpace top={32} />
         <JournalConsistencySection
           activeSnapshot={activeSnapshot}
           periods={periods}

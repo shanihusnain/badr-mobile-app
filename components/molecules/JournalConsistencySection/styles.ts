@@ -80,14 +80,17 @@ export const journalConsistencySectionStyles = StyleSheet.create({
   periodToggle: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 3,
-    backgroundColor: Colors.light.blackBackground,
+    padding: 0,
+    backgroundColor: Colors.light.timeLineChip,
     borderRadius: 6,
+    borderWidth: 1,
+    borderColor: "#000000",
+    overflow: "hidden",
     width: "100%",
   },
   periodButton: {
     flex: 1,
-    borderRadius: 5,
+    borderRadius: 0,
     paddingHorizontal: 2,
     paddingVertical: 9,
     alignItems: "center",
@@ -97,8 +100,23 @@ export const journalConsistencySectionStyles = StyleSheet.create({
   periodButtonActive: {
     backgroundColor: Colors.light.greybuttonBackground,
   },
+  periodButtonActiveFirst: {
+    borderTopLeftRadius: 5,
+    borderBottomLeftRadius: 5,
+    borderTopRightRadius: 4,
+    borderBottomRightRadius: 4,
+  },
+  periodButtonActiveLast: {
+    borderTopLeftRadius: 4,
+    borderBottomLeftRadius: 4,
+    borderTopRightRadius: 5,
+    borderBottomRightRadius: 5,
+  },
+  periodButtonActiveMiddle: {
+    borderRadius: 4,
+  },
   periodButtonInactive: {
-    backgroundColor: Colors.light.blackBackground,
+    backgroundColor: Colors.light.timeLineChip,
   },
   periodButtonText: {
     color: Colors.light.grey,

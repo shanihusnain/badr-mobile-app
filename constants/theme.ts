@@ -89,6 +89,7 @@ export const Colors = {
     inactiveTaperedBorder: "#374556",
     dullRed: "rgba(255, 64, 70, 0.1)",
     unfilledTaperred: "#374666",
+    timeLineChip:"#07172A"
   },
   dark: {
     text: "#11181C",
