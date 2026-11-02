@@ -35,7 +35,14 @@ export function JournalInsightSummaryCard({
                 : `${snapshot.summary.behaviorCount} Behaviors`}
             </Text>
             <Text style={styles.summaryPercent}>
-              {showPlaceholder ? "---" : `${percentLabel}%`}
+              {showPlaceholder ? (
+                "---"
+              ) : (
+                <>
+                  {percentLabel}
+                  <Text style={styles.summaryPercentSymbol}>%</Text>
+                </>
+              )}
             </Text>
           </View>
         </TaperedCircleBorder>

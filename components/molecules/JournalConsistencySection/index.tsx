@@ -82,8 +82,10 @@ export function JournalConsistencySection({
 
       <View style={styles.periodNavRow}>
         <View style={styles.periodToggle}>
-          {periods.map((item) => {
+          {periods.map((item, index) => {
             const isActive = period.id === item.id;
+            const isFirst = index === 0;
+            const isLast = index === periods.length - 1;
 
             return (
               <Pressable
@@ -94,6 +96,12 @@ export function JournalConsistencySection({
                   isActive
                     ? styles.periodButtonActive
                     : styles.periodButtonInactive,
+                  isActive &&
+                    (isFirst
+                      ? styles.periodButtonActiveFirst
+                      : isLast
+                        ? styles.periodButtonActiveLast
+                        : styles.periodButtonActiveMiddle),
                 ]}
               >
                 <Text

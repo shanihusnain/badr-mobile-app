@@ -49,10 +49,11 @@ export const HelpConsistency = () => {
           ))}
         </View>
         <TopSpace top={50} />
-        <Text style={styles.header}>Count Total Habits</Text>
+        <Text style={styles.sectionHeading}>Count Total Habits</Text>
         <TopSpace top={8} />
         <Text style={styles.description}>
-          We count the total number of habits you have completed in a day.
+          We start by counting the number of habits you are tracking in each
+          category.
         </Text>
         <TopSpace top={10} />
         <Image
@@ -61,7 +62,7 @@ export const HelpConsistency = () => {
           style={styles.timelineImage}
         />
         <TopSpace top={50} />
-        <Text style={styles.header}>Calculate Total Opportunities</Text>
+        <Text style={styles.sectionHeading}>Calculate Total Opportunities</Text>
         <TopSpace top={8} />
         <Text style={styles.description}>
           We multiply the total behaviors by the number of days in the selected
@@ -69,11 +70,11 @@ export const HelpConsistency = () => {
         </Text>
         <TopSpace top={50} />
         <View style={styles.checkboxContainer}>
-          <CheckBox />
           <CrossBox />
+          <CheckBox />
         </View>
         <TopSpace top={50} />
-        <Text style={styles.header}>Count Completed Habits</Text>
+        <Text style={styles.sectionHeading}>Count Completed Habits</Text>
         <TopSpace top={8} />
         <Text style={styles.description}>
           We check how many times you marked your habits as completed during the
@@ -84,7 +85,7 @@ export const HelpConsistency = () => {
           <PercentageIcon />
         </View>
         <TopSpace top={50} />
-        <Text style={styles.header}>Calculate Consistency</Text>
+        <Text style={styles.sectionHeading}>Calculate Consistency</Text>
         <TopSpace top={8} />
         <Text style={styles.description}>
           We divide completed behaviors by total opportunities, then multiply by
@@ -106,7 +107,16 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    lineHeight: 27,
+    lineHeight: 22,
+  },
+  sectionHeading: {
+    fontSize: 16,
+    fontWeight: "600",
+    fontStyle: "normal",
+    color: Colors.light.white,
+    fontFamily: fonts.primary.semiBold,
+    lineHeight: 20,
+    letterSpacing: 0,
   },
   iconsRow: {
     flexDirection: "row",
@@ -123,7 +133,8 @@ const styles = StyleSheet.create({
     fontWeight: "400",
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    lineHeight: 21,
+    lineHeight: 20,
+    letterSpacing: 0.1,
   },
   timelineImage: {
     width: "50%",
