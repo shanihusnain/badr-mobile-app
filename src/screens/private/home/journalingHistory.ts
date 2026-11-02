@@ -4,6 +4,10 @@ export type JournalingDayProgress = {
   date: string;
   loggedJournal: boolean;
   isToday?: boolean;
+  /** From dashboard `journalCard.week[].isFuture` — block navigation. */
+  isFuture?: boolean;
+  /** Prefer API dayNumber when present over parsing `date`. */
+  dayNumber?: number;
 };
 
 export const JournalingHistoryWeekDays: JournalingDayProgress[] = [

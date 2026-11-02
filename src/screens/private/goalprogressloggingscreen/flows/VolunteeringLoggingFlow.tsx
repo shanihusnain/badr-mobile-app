@@ -164,8 +164,7 @@ export default function VolunteeringLoggingFlow({
     const hours = parseInt(durationHours || "0", 10) || 0;
     const minutes = parseInt(durationMinutes || "0", 10) || 0;
     const durationTotalMinutes = hours * 60 + minutes;
-    const amountHours = Math.round((durationTotalMinutes / 60) * 100) / 100;
-    if (amountHours <= 0) return;
+    if (durationTotalMinutes <= 0) return;
 
     const startTime = formatStartTimeForApi(
       startHour,
@@ -173,13 +172,15 @@ export default function VolunteeringLoggingFlow({
       startPeriod,
     );
     const causeCategory = sadaqahUiCategoryToCauseCategory(selectedCategory);
+    // Client-only display hours; VOLUNTEERING API omits `amount`.
+    const displayHours =
+      Math.round((durationTotalMinutes / 60) * 100) / 100;
 
     const run = async () => {
       try {
         const result = await logSadaqah({
           sadaqahType: "VOLUNTEERING",
           logDate: selectedDate,
-          amount: amountHours,
           startTime,
           durationMinutes: durationTotalMinutes,
           causeCategory,
@@ -189,7 +190,7 @@ export default function VolunteeringLoggingFlow({
           type: "volunteering" as any,
           goalId: goalData.id,
           date: result.logDate ?? result.date ?? selectedDate,
-          amount: String(result.amount ?? amountHours),
+          amount: String(result.amount ?? displayHours),
           startTime: result.startTime ?? startTime,
           durationMinutes: result.durationMinutes ?? durationTotalMinutes,
           volunteeringCategory: selectedCategory,
@@ -340,8 +341,7 @@ export default function VolunteeringLoggingFlow({
   const durationTotalMinutes =
     (parseInt(durationHours || "0", 10) || 0) * 60 +
     (parseInt(durationMinutes || "0", 10) || 0);
-  const amountHours = Math.round((durationTotalMinutes / 60) * 100) / 100;
-  const canConfirm = isLastStep && !isLogging && amountHours > 0;
+  const canConfirm = isLastStep && !isLogging && durationTotalMinutes > 0;
   const isDropdownOpen = isPeriodDropdownOpen || isCategoryDropdownOpen;
 
   return (

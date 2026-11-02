@@ -11,8 +11,11 @@ export type LogSadaqahGoalPayload = {
   sadaqahType: string;
   /** YYYY-MM-DD */
   logDate: string;
-  /** Amount fulfilled (currency units, meals, clothing pieces, hours, …). */
-  amount: number;
+  /**
+   * Amount fulfilled (currency units, meals, clothing pieces, …).
+   * Omit for VOLUNTEERING — progress uses `durationMinutes` only.
+   */
+  amount?: number;
   /** HH:mm (24h) */
   startTime: string;
   durationMinutes: number;
@@ -48,9 +51,9 @@ export type LogSadaqahGoalResult = {
 
 /**
  * POST api/goal-cycles/current/sadaqah-goals/:sadaqahType/logs
- * Body: { logDate, amount, startTime, durationMinutes }
+ * Body: { logDate, startTime, durationMinutes, amount?, causeCategory? }
  * FIDYA / KAFFARAH meals: `amount` is a meal (or clothing) count.
- * VOLUNTEERING: `amount` is hours (durationMinutes / 60).
+ * VOLUNTEERING: omit `amount`; progress uses `durationMinutes` only.
  * KAFFARAH also sends kaffarahSubtype + kaffarahReason when provided.
  * LILLAH / JARIYAH / VOLUNTEERING may send causeCategory.
  */
@@ -67,10 +70,10 @@ const logSadaqahGoal = async ({
   const sadaqahType = resolveSadaqahType(rawType);
   const body: Record<string, unknown> = {
     logDate,
-    amount,
     startTime,
     durationMinutes,
   };
+  if (typeof amount === "number") body.amount = amount;
   if (kaffarahSubtype) body.kaffarahSubtype = kaffarahSubtype;
   if (kaffarahReason) body.kaffarahReason = kaffarahReason;
   if (causeCategory) body.causeCategory = causeCategory;

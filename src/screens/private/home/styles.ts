@@ -747,10 +747,11 @@ export const styles = StyleSheet.create({
   },
   // Today's Goals Progress
   todayGoalsProgressSection: {
-    backgroundColor: Colors.light.darkgrey,
+    backgroundColor: Colors.light.greybuttonBackground,
     borderRadius: 10,
     paddingHorizontal: 13,
     paddingVertical: 20,
+    marginBottom: 20,
   },
   todayGoalsProgressTitle: {
     fontFamily: fonts.primary.semiBold,

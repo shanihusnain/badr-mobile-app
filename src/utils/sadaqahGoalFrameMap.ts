@@ -729,12 +729,20 @@ export function getFidyaFrameFlowCardTitle(frame: SadaqahGoalFrameData): string 
   return frame.title?.trim() || "Fidya for Missed Fasts";
 }
 
+/** UI ids whose SCREAMING_SNAKE form does not match the backend enum. */
+const CAUSE_CATEGORY_ALIASES: Record<string, string> = {
+  qurbani: "ANIMAL_SACRIFICE",
+};
+
 /** UI kebab id (`food-relief`) → backend causeCategory (`FOOD_RELIEF`). */
 export function sadaqahUiCategoryToCauseCategory(uiId: string): string {
-  return String(uiId ?? "")
+  const normalized = String(uiId ?? "")
     .trim()
-    .toUpperCase()
-    .replace(/-/g, "_");
+    .toLowerCase();
+  if (CAUSE_CATEGORY_ALIASES[normalized]) {
+    return CAUSE_CATEGORY_ALIASES[normalized];
+  }
+  return normalized.toUpperCase().replace(/-/g, "_");
 }
 
 function normalizeCategoryHint(raw: string | null | undefined): string {

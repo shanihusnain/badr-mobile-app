@@ -30,6 +30,10 @@ type SwipeCardDeckProps = {
     text: string,
     highlightedTexts: string[],
   ) => Array<{ text: string; highlighted: boolean }>;
+  /** Fires once the top card finishes its dismiss animation. */
+  onCardSwiped?: (swipedIndex: number) => void;
+  /** Fires when the last card has been fully swiped away. */
+  onAllCardsSwiped?: () => void;
 };
 
 type DeckSwipeCardProps = {
@@ -137,11 +141,23 @@ const DeckSwipeCard = ({
 export const SwipeCardDeck = ({
   data,
   renderTextWithHighlight,
+  onCardSwiped,
+  onAllCardsSwiped,
 }: SwipeCardDeckProps) => {
   const { width: windowWidth } = useWindowDimensions();
   const cardWidth = windowWidth - SCREEN_H_PADDING * 2;
   const [activeIndex, setActiveIndex] = useState(0);
   const [isDismissed, setIsDismissed] = useState(false);
+
+  const handleCardSwiped = useCallback(() => {
+    const swipedIndex = activeIndex;
+    const next = Math.min(activeIndex + 1, data.length);
+    setActiveIndex(next);
+    onCardSwiped?.(swipedIndex);
+    if (next >= data.length) {
+      onAllCardsSwiped?.();
+    }
+  }, [activeIndex, data.length, onAllCardsSwiped, onCardSwiped]);
 
   if (isDismissed) {
     return null;
@@ -150,10 +166,6 @@ export const SwipeCardDeck = ({
   const remainingCards = data.slice(activeIndex);
   const deckHeight =
     CARD_HEIGHT + STACK_OFFSET_Y * Math.min(remainingCards.length - 1, 2);
-
-  const handleCardSwiped = useCallback(() => {
-    setActiveIndex((prev) => Math.min(prev + 1, data.length));
-  }, [data.length]);
 
   return (
     <View>

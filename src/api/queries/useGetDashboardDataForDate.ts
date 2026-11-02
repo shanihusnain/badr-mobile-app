@@ -56,6 +56,23 @@ export type HomeDailyContentItem = {
   text: string;
 };
 
+export type HomeJournalWeekDay = {
+  date: string;
+  dayLabel: string;
+  dayNumber: number;
+  logged: boolean;
+  isSelected: boolean;
+  isFuture: boolean;
+};
+
+export type HomeJournalCard = {
+  title: string;
+  journalDate: string;
+  filledToday: boolean;
+  button: string;
+  week: HomeJournalWeekDay[];
+};
+
 export type HomeDashboardData = {
   date: string;
   header: HomeDashboardHeader;
@@ -64,6 +81,7 @@ export type HomeDashboardData = {
   greetingCard?: HomeGreetingCard | null;
   moonCard?: HomeMoonCard | null;
   dailyContent?: HomeDailyContentItem[] | null;
+  journalCard?: HomeJournalCard | null;
   /** Remaining payload keys left for later wiring steps. */
   [key: string]: unknown;
 };

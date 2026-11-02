@@ -77,7 +77,10 @@ import { TimeSpentBottomSheet } from "./components/TimeSpentBottomSheet";
 import { useTypedTranslation } from "@/i18next/useTypedTranslation";
 import { HomeFabSpeedDial } from "./components/HomeFabSpeedDial";
 import { JournalingHistoryWeekDashboard } from "./components/JournalingHistoryWeekDashboard";
-import { JournalingHistoryWeekDays } from "./journalingHistory";
+import {
+  JournalingHistoryWeekDays,
+  type JournalingDayProgress,
+} from "./journalingHistory";
 import { useAuth } from "@/provider/useAuth";
 import { Image } from "expo-image";
 import {
@@ -104,7 +107,9 @@ import {
   useGetDashboardDataForDate,
   type HomeDailyContentItem,
   type HomeDashboardCategory,
+  type HomeJournalCard,
 } from "@/src/api/queries/useGetDashboardDataForDate";
+import { useSwipeGreetingCardHomeScreen } from "@/src/api/mutations/useSwipeGreetingCardHomeScreen";
 
 type TextPart = { text: string; highlighted: boolean };
 
@@ -171,6 +176,33 @@ function mapDailyContentToInspirationCards(
       };
     })
     .filter((card): card is InspirationCard => card != null);
+}
+
+function mapJournalCardWeek(
+  journalCard: HomeJournalCard | null | undefined,
+): JournalingDayProgress[] {
+  const week = journalCard?.week;
+  if (!Array.isArray(week) || week.length === 0) return [];
+
+  return week.map((day, index) => {
+    const date = typeof day?.date === "string" ? day.date.trim() : "";
+    const dayLabel =
+      typeof day?.dayLabel === "string" ? day.dayLabel.trim() : "";
+    const dayNumber =
+      typeof day?.dayNumber === "number" && Number.isFinite(day.dayNumber)
+        ? Math.round(day.dayNumber)
+        : undefined;
+
+    return {
+      id: date || String(index + 1),
+      day: dayLabel,
+      date,
+      loggedJournal: Boolean(day?.logged),
+      isToday: Boolean(day?.isSelected),
+      isFuture: Boolean(day?.isFuture),
+      dayNumber,
+    };
+  });
 }
 
 const SCREEN_CARD_WIDTH = Dimensions.get("window").width - 32;
@@ -557,20 +589,31 @@ export default function HomeScreen() {
     () => mapMyDayEntries(myDayDetails?.entries),
     [myDayDetails?.entries],
   );
+  const journalCard = dashboardData?.journalCard ?? null;
+  const journalingWeekDays = useMemo(() => {
+    const fromApi = mapJournalCardWeek(journalCard);
+    return fromApi.length > 0 ? fromApi : JournalingHistoryWeekDays;
+  }, [journalCard]);
+  const journalCardTitle = journalCard?.title?.trim() || undefined;
+  const { mutate: swipeGreetingCard } = useSwipeGreetingCardHomeScreen();
+
+  const handleGreetingCardsFullySwiped = useCallback(() => {
+    swipeGreetingCard("GREETING");
+  }, [swipeGreetingCard]);
+
   const handleJournalDayPress = useCallback(
     (index: number) => {
-      const day = JournalingHistoryWeekDays[index];
-      if (!day?.date) return;
+      const day = journalingWeekDays[index];
+      if (!day?.date || day.isFuture) return;
       router.push({
         pathname: "/(private)/journalfilling",
         params: { date: day.date },
       });
     },
-    [router],
+    [journalingWeekDays, router],
   );
 
   const handleJournalBehaviorInsightsPress = useCallback(() => {
-    console.log("handleJournalBehaviorInsightsPress");
     router.push("/(tabs)/(plan)");
   }, [router]);
 
@@ -1034,6 +1077,7 @@ export default function HomeScreen() {
           <SwipeCardDeck
             data={translatedWelcomeCards}
             renderTextWithHighlight={buildTextParts}
+            onAllCardsSwiped={handleGreetingCardsFullySwiped}
           />
         </View>
 
@@ -1188,6 +1232,7 @@ export default function HomeScreen() {
                 />
               ))}
             </ScrollView>
+
             <TopSpace top={16} />
 
             <View style={styles.todayGoalsProgressSection}>
@@ -1247,7 +1292,8 @@ export default function HomeScreen() {
           </>
         ) : null}
         <JournalingHistoryWeekDashboard
-          weekDays={JournalingHistoryWeekDays}
+          weekDays={journalingWeekDays}
+          title={journalCardTitle}
           onDayPress={handleJournalDayPress}
           onBehaviorInsightsPress={handleJournalBehaviorInsightsPress}
         />

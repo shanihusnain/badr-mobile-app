@@ -11,6 +11,8 @@ import { BulbIcon, JournalBulbIcon } from "@/assets/icons";
 
 export type JournalingHistoryWeekDashboardProps = {
   weekDays: JournalingDayProgress[];
+  /** Dashboard `journalCard.title` — falls back to i18n when omitted. */
+  title?: string;
   onDayPress?: (index: number) => void;
   onPressHeader?: () => void;
   onBehaviorInsightsPress?: () => void;
@@ -52,11 +54,14 @@ function JournalingDayRing({ logged }: JournalingDayRingProps) {
 
 export function JournalingHistoryWeekDashboard({
   weekDays,
+  title,
   onDayPress,
   onPressHeader,
   onBehaviorInsightsPress,
 }: JournalingHistoryWeekDashboardProps) {
   const { t } = useTranslation();
+  const headerTitle =
+    title?.trim() || t("homeScreen.journalWeeklyTitle");
 
   return (
     <View style={styles.card}>
@@ -66,9 +71,7 @@ export function JournalingHistoryWeekDashboard({
         activeOpacity={onPressHeader ? 0.7 : 1}
         disabled={!onPressHeader}
       >
-        <Text style={styles.titleText}>
-          {t("homeScreen.journalWeeklyTitle")}
-        </Text>
+        <Text style={styles.titleText}>{headerTitle}</Text>
         <AntDesign name="right" size={14} color={Colors.light.white} />
       </TouchableOpacity>
 
@@ -78,17 +81,22 @@ export function JournalingHistoryWeekDashboard({
             (DAY_TRANSLATION_KEYS[day.day] ??
               "homeScreen.weeklyProgress_daySun") as never,
           );
-          const dateNumber = getDayOfMonth(day.date);
+          const dateNumber =
+            typeof day.dayNumber === "number" &&
+            Number.isFinite(day.dayNumber)
+              ? day.dayNumber
+              : getDayOfMonth(day.date);
           const labelText =
             dateNumber > 0 ? `${dayLabel} ${dateNumber}` : dayLabel;
+          const canPress = Boolean(onDayPress) && !day.isFuture;
 
           return (
             <TouchableOpacity
               key={day.id}
-              style={styles.dayColumn}
+              style={[styles.dayColumn, day.isFuture && styles.dayColumnFuture]}
               onPress={() => onDayPress?.(index)}
-              activeOpacity={onDayPress ? 0.75 : 1}
-              disabled={!onDayPress}
+              activeOpacity={canPress ? 0.75 : 1}
+              disabled={!canPress}
             >
               <View style={styles.dayItem}>
                 {day.isToday ? (
@@ -151,6 +159,9 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     minWidth: 0,
+  },
+  dayColumnFuture: {
+    opacity: 0.45,
   },
   dayItem: {
     alignItems: "center",
