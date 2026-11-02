@@ -465,7 +465,7 @@ export const styles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
-    fontSize: 18,
+    fontSize: 16,
     lineHeight: 20,
     letterSpacing: 0,
     textTransform: "uppercase",

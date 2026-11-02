@@ -13,6 +13,7 @@ import { GoalDetailsCard } from "./PrayersGoalDetailsCard";
 import { useTranslation } from "react-i18next";
 import { router } from "expo-router";
 import { getCategoryProgressOverview } from "@/src/screens/private/goalprogressoverview/goalCategoryOverview";
+import type { HomeMoonCard } from "@/src/api/queries/useGetDashboardDataForDate";
 
 const GOAL_CATEGORIES = [
   { slug: "prayer", titleKey: "homeScreen.prayers" },
@@ -24,10 +25,13 @@ const GOAL_CATEGORIES = [
 type Props = {
   onClose: () => void;
   onChange?: (index: number) => void;
+  moonCard?: HomeMoonCard | null;
+  /** When false, skip mounting Rive moon (avoids fighting the home-screen instance). */
+  isOpen?: boolean;
 };
 
 export const NamazGoalBottomSheet = forwardRef<BottomSheet, Props>(
-  ({ onClose, onChange }, ref) => {
+  ({ onClose, onChange, moonCard = null, isOpen = false }, ref) => {
     const { t, i18n } = useTranslation();
     const snapPoints = useMemo(() => ["50%", "92%"], []);
 
@@ -85,7 +89,14 @@ export const NamazGoalBottomSheet = forwardRef<BottomSheet, Props>(
           </View>
 
           {/* 1. Upper Container: Days Tracker Container in Bottom Sheet Mode */}
-          <DaysTrackerContainer isBottomSheetView={true} />
+          {isOpen ? (
+            <DaysTrackerContainer
+              isBottomSheetView={true}
+              moonCard={moonCard}
+            />
+          ) : (
+            <View style={{ height: 280 }} />
+          )}
 
           {/* 2. Secondary Containers: Custom Goal Details Cards */}
           {GOAL_CATEGORIES.map(({ slug, titleKey }) => {

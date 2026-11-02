@@ -7,6 +7,8 @@ type Props = {
   progressPercent: number;
   /** Fires once when the Rive view is ready (or if loading fails). */
   onReady?: () => void;
+  /** Optional absolute size — preferred over % inside Animated.ScrollView. */
+  size?: number;
 };
 
 const MOON_RIV = require("../../assets/animations/moon.riv");
@@ -19,7 +21,15 @@ function clampPercent(value: number) {
  * Rive-backed moon. Only load via `require` from MoonProgress so Expo Go /
  * broken NitroModules does not take down screens that import MoonProgress.
  */
-export function MoonProgressRive({ progressPercent, onReady }: Props) {
+export function MoonProgressRive({
+  progressPercent,
+  onReady,
+  size,
+}: Props) {
+  const boxStyle =
+    typeof size === "number" && size > 0
+      ? { width: size, height: size }
+      : styles.container;
   const { riveFile, error } = useRiveFile(MOON_RIV);
   const { riveViewRef, setHybridRef } = useRive();
   const readyNotifiedRef = useRef(false);
@@ -80,18 +90,22 @@ export function MoonProgressRive({ progressPercent, onReady }: Props) {
   }, [error]);
 
   if (!riveFile) {
-    return <View style={styles.fallback} />;
+    return <View style={[styles.fallback, boxStyle]} />;
   }
 
   return (
-    <View style={styles.container}>
+    <View style={boxStyle} collapsable={false}>
       <RiveView
         hybridRef={setHybridRef}
         file={riveFile}
         stateMachineName="State Machine 1"
         autoPlay
         fit={Fit.Contain}
-        style={styles.rive}
+        style={
+          typeof size === "number" && size > 0
+            ? { width: size, height: size }
+            : styles.rive
+        }
       />
     </View>
   );

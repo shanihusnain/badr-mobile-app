@@ -30,7 +30,9 @@ import { UpComingDuhrIcon } from "@/assets/icons/UpComingDuhrIcon";
 import { UpComingAsrIcon } from "@/assets/icons/UpComingAsrIcon";
 import { UpComingMaghrebIcon } from "@/assets/icons/UpComingMaghrebIcon";
 import { UpComingIshaIcon } from "@/assets/icons/UpComingIshaIcon";
+import { SunriseIcon } from "@/assets/icons/SunriseIcon";
 import { BadarNameLogo } from "@/assets/icons/BadarNameLogo";
+import type { HomePrayerTimelineItem } from "@/src/api/queries/useGetDashboardDataForDate";
 import { TaperedCircleBorder } from "@/components/atoms/TaperedCircleBorder";
 import { SwipeCardDeck } from "./components/SwipeCardDeck";
 import { DailyProgressBottomSheet } from "./components/DailyProgressBottomSheet";
@@ -53,16 +55,18 @@ import {
   DASHBOARD_SUB_GOALS,
   getVisibleDashboardSubGoals,
 } from "./dashboardSubGoals";
-// import { TodayGoalProgressCard } from "./components/TodayGoalProgressCard";
+import { TodayGoalProgressCard } from "./components/TodayGoalProgressCard";
 import { consumeDailyProgressSheetReturn } from "./dailyProgressSheetReturn";
-// import { SwipeToDeleteRow } from "./components/SwipeToDeleteRow";
-// import {
-//   TODAY_GOALS_PROGRESS,
-//   canExpandTodayGoalProgress,
-//   getDisplayedTodayGoalProgress,
-//   getVisibleTodayGoalProgress,
-//   type TodayGoalProgressEntry,
-// } from "./todayGoalsProgress";
+import { SwipeToDeleteRow } from "./components/SwipeToDeleteRow";
+import {
+  canExpandTodayGoalProgress,
+  getDisplayedTodayGoalProgress,
+} from "./todayGoalsProgress";
+import {
+  getVisibleMyDayEntries,
+  mapMyDayEntries,
+  resolveMyDayFilters,
+} from "./mapMyDayDetails";
 import { fonts } from "@/assets/fonts";
 import {
   FastingOverviewCalendarSection,
@@ -76,13 +80,32 @@ import { JournalingHistoryWeekDashboard } from "./components/JournalingHistoryWe
 import { JournalingHistoryWeekDays } from "./journalingHistory";
 import { useAuth } from "@/provider/useAuth";
 import { Image } from "expo-image";
-import { useGetGoalCycleCategories } from "@/src/api/queries/useGetGoalCycleCategories";
 import {
-  toUiIbadahCategory,
   UI_CATEGORY_TO_API,
   type UiIbadahCategory,
 } from "@/src/utils/goalCycleCategoryMap";
 import { prepareFigmaForcedSmallCapsText } from "@/src/utils/figmaTypography";
+import { useGetMyDayDetails } from "@/src/api/queries/useGetMyDayDetails";
+import { useHandleToggleShowMyday } from "@/src/api/mutations/useHandleToggleShowMyday";
+import { useDeleteMyDayEntry } from "@/src/api/mutations/useDeleteMyDayEntry";
+import { useGetMe } from "@/src/api/queries/useGetMe";
+import { useGetGoalCycleById } from "@/src/api/queries/useGetGoalCycleById";
+import {
+  addDays,
+  clampDateKeyToRange,
+  getMonthShortUpper,
+  isYesterday,
+  parseDateKey,
+  startOfDay,
+  toDateKey,
+} from "@/src/screens/private/journalfilling/journalFillingDateUtils";
+import WarningModal from "@/components/atoms/WarningModal";
+import {
+  useGetDashboardDataForDate,
+  type HomeDailyContentItem,
+  type HomeDashboardCategory,
+} from "@/src/api/queries/useGetDashboardDataForDate";
+
 type TextPart = { text: string; highlighted: boolean };
 
 type CategoryItem = {
@@ -91,7 +114,21 @@ type CategoryItem = {
   apiCategory: string;
   percentage: string;
   progressColor: string;
+  tier: string;
 };
+
+function resolveHomeUiCategory(category: string): UiIbadahCategory | null {
+  const key = category.trim().toUpperCase();
+  if (
+    key === "PRAYER" ||
+    key === "QURAN" ||
+    key === "FASTING" ||
+    key === "SADAQAH"
+  ) {
+    return key;
+  }
+  return null;
+}
 
 type InspirationCard = {
   id: number;
@@ -100,9 +137,45 @@ type InspirationCard = {
   reference: string;
 };
 
+/** Split trailing `(Reference)` from API `dailyContent[].text`. */
+function splitDailyContentText(text: string): {
+  quote: string;
+  reference: string;
+} {
+  const trimmed = text.trim();
+  const match = trimmed.match(/^(.*?)(\s*)(\([^()]+\))\s*$/);
+  if (!match) {
+    return { quote: trimmed, reference: "" };
+  }
+  return {
+    quote: match[1].trim(),
+    reference: match[3].trim(),
+  };
+}
+
+function mapDailyContentToInspirationCards(
+  items: HomeDailyContentItem[] | null | undefined,
+): InspirationCard[] {
+  if (!Array.isArray(items) || items.length === 0) return [];
+  return items
+    .map((item, index) => {
+      const title = item?.title?.trim() ?? "";
+      const rawText = item?.text?.trim() ?? "";
+      if (!title && !rawText) return null;
+      const { quote, reference } = splitDailyContentText(rawText);
+      return {
+        id: index + 1,
+        title,
+        quote,
+        reference,
+      };
+    })
+    .filter((card): card is InspirationCard => card != null);
+}
+
 const SCREEN_CARD_WIDTH = Dimensions.get("window").width - 32;
 
-/** Home ring order + colors; percentages come from categories API. */
+/** Home ring order + colors; percentages come from dashboard categories. */
 const HOME_CATEGORY_META: {
   uiCategory: UiIbadahCategory;
   title: string;
@@ -130,6 +203,27 @@ const HOME_CATEGORY_META: {
   },
 ];
 
+function mapDashboardCategoryToItem(
+  item: HomeDashboardCategory,
+): CategoryItem | null {
+  const ui = resolveHomeUiCategory(String(item.category ?? ""));
+  if (!ui) return null;
+  const meta = HOME_CATEGORY_META.find((entry) => entry.uiCategory === ui);
+  const rawPct = item.completedPct;
+  const pct =
+    typeof rawPct === "number" && Number.isFinite(rawPct)
+      ? Math.min(100, Math.max(0, Math.round(rawPct)))
+      : 0;
+  const tier = String(item.tier ?? "NONE").toUpperCase();
+  return {
+    title: item.label?.trim() || meta?.title || ui,
+    apiCategory: UI_CATEGORY_TO_API[ui],
+    progressColor: meta?.progressColor ?? Colors.light.ringPrayer,
+    percentage: String(pct),
+    tier,
+  };
+}
+
 const WELCOME_CARDS = [
   {
     id: 1,
@@ -144,28 +238,6 @@ const WELCOME_CARDS = [
     content:
       "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
     highlightedTexts: [],
-  },
-];
-
-const INSPIRATION_CARDS: InspirationCard[] = [
-  {
-    id: 1,
-    title: "Daily Light from the Quran",
-    quote: '"Indeed, it is We who guide whom We will to our ways."',
-    reference: "(Surah Al-Ankabut, 29:69)",
-  },
-  {
-    id: 2,
-    title: "Hadith of the Day",
-    quote: '"The best of you are those who learn the Quran and teach it."',
-    reference: "(Sahih Al-Bukhari)",
-  },
-  {
-    id: 3,
-    title: "Reflection & Gratitude",
-    quote:
-      '"And if you should count the favors of Allah, you could not enumerate them."',
-    reference: "(Surah Ibrahim, 14:34)",
   },
 ];
 
@@ -209,10 +281,15 @@ function getCategoryTranslationKey(title: string): any {
 function getFilterTabTranslationKey(tab: string): any {
   const keyMap: Record<string, string> = {
     All: "homeScreen.filterAll",
+    ALL: "homeScreen.filterAll",
     Prayer: "homeScreen.filterPrayer",
+    PRAYER: "homeScreen.filterPrayer",
     Quran: "homeScreen.filterQuran",
+    QURAN: "homeScreen.filterQuran",
     Fasting: "homeScreen.filterFasting",
+    FASTING: "homeScreen.filterFasting",
     Sadaqah: "homeScreen.filterSadaqah",
+    SADAQAH: "homeScreen.filterSadaqah",
     "Time Spent": "homeScreen.filterTimeSpent",
   };
   return keyMap[tab] || tab;
@@ -228,20 +305,24 @@ export default function HomeScreen() {
   const timeSpentSheetRef = useRef<BottomSheet>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const [isPrayerCardVisible, setIsPrayerCardVisible] = useState(false);
+  const [isPrayerCardVisible, setIsPrayerCardVisible] = useState(true);
   const [activeInspirationIndex, setActiveInspirationIndex] = useState(0);
   const [selectedDashboardCategory, setSelectedDashboardCategory] =
     useState("All");
-  const [selectedDayTab, setSelectedDayTab] = useState("All");
-  // const [todayGoalsProgress, setTodayGoalsProgress] =
-  //   useState<TodayGoalProgressEntry[]>(TODAY_GOALS_PROGRESS);
-  // const [isTodayProgressExpanded, setIsTodayProgressExpanded] = useState(false);
-  // const [openTodayProgressRowId, setOpenTodayProgressRowId] = useState<
-  //   string | null
-  // >(null);
+  const [selectedDayTab, setSelectedDayTab] = useState("ALL");
+  const [isTodayProgressExpanded, setIsTodayProgressExpanded] = useState(false);
+  const [openTodayProgressRowId, setOpenTodayProgressRowId] = useState<
+    string | null
+  >(null);
   const [scrollCollapseThreshold, setScrollCollapseThreshold] = useState(260);
-  const [showDailyProgress, setShowDailyProgress] = useState(false);
+  const [hideMyDayConfirmVisible, setHideMyDayConfirmVisible] = useState(false);
+  const [deleteMyDayConfirmVisible, setDeleteMyDayConfirmVisible] =
+    useState(false);
+  const [pendingDeleteEntryId, setPendingDeleteEntryId] = useState<
+    string | null
+  >(null);
   const [isAnyBottomSheetOpen, setIsAnyBottomSheetOpen] = useState(false);
+  const [isNamazSheetOpen, setIsNamazSheetOpen] = useState(false);
   const [dailyProgressResume, setDailyProgressResume] = useState<{
     view: "detail";
     category: string;
@@ -250,28 +331,6 @@ export default function HomeScreen() {
   const scrollY = useRef(new Animated.Value(0)).current;
   const { user } = useAuth();
   console.log("user in redux", user);
-
-  const { data: categorySummaries = [] } = useGetGoalCycleCategories();
-
-  const goalCategories = useMemo((): CategoryItem[] => {
-    const pctByUi = new Map<UiIbadahCategory, number>();
-    for (const item of categorySummaries) {
-      const ui = toUiIbadahCategory(String(item.category ?? ""));
-      if (!ui) continue;
-      const raw = item.completedPct;
-      const pct =
-        typeof raw === "number" && Number.isFinite(raw)
-          ? Math.min(100, Math.max(0, Math.round(raw)))
-          : 0;
-      pctByUi.set(ui, pct);
-    }
-    return HOME_CATEGORY_META.map(({ uiCategory, title, progressColor }) => ({
-      title,
-      apiCategory: UI_CATEGORY_TO_API[uiCategory],
-      progressColor,
-      percentage: String(pctByUi.get(uiCategory) ?? 0),
-    }));
-  }, [categorySummaries]);
 
   const normalizeGender = (value?: string | null) =>
     value?.toString().trim().toUpperCase();
@@ -313,6 +372,191 @@ export default function HomeScreen() {
     router.push("/(private)/journalfilling");
   }, [router]);
 
+  const todayDateKey = useMemo(() => toDateKey(startOfDay(new Date())), []);
+  const { data: meUser } = useGetMe();
+  const goalCycleId = meUser?.goalCycleId ?? null;
+  const { data: goalCycle } = useGetGoalCycleById(goalCycleId);
+  const cycleStartDateKey = goalCycle?.startDate?.slice(0, 10) ?? null;
+  /** My Day can look back to cycle start, but never past today. */
+  const myDayMinDateKey = cycleStartDateKey ?? todayDateKey;
+  const myDayMaxDateKey = todayDateKey;
+
+  const [selectedMyDayDate, setSelectedMyDayDate] = useState(todayDateKey);
+
+  useEffect(() => {
+    setSelectedMyDayDate((current) =>
+      clampDateKeyToRange(current, myDayMinDateKey, myDayMaxDateKey),
+    );
+  }, [myDayMinDateKey, myDayMaxDateKey]);
+
+  const canGoToPreviousMyDay = selectedMyDayDate > myDayMinDateKey;
+  const canGoToNextMyDay = selectedMyDayDate < myDayMaxDateKey;
+
+  const handlePreviousMyDay = useCallback(() => {
+    if (!canGoToPreviousMyDay) return;
+    setSelectedMyDayDate((current) =>
+      clampDateKeyToRange(
+        toDateKey(addDays(parseDateKey(current), -1)),
+        myDayMinDateKey,
+        myDayMaxDateKey,
+      ),
+    );
+  }, [canGoToPreviousMyDay, myDayMinDateKey, myDayMaxDateKey]);
+
+  const handleNextMyDay = useCallback(() => {
+    if (!canGoToNextMyDay) return;
+    setSelectedMyDayDate((current) =>
+      clampDateKeyToRange(
+        toDateKey(addDays(parseDateKey(current), 1)),
+        myDayMinDateKey,
+        myDayMaxDateKey,
+      ),
+    );
+  }, [canGoToNextMyDay, myDayMinDateKey, myDayMaxDateKey]);
+
+  const handleResetMyDayToToday = useCallback(() => {
+    setSelectedMyDayDate(todayDateKey);
+  }, [todayDateKey]);
+
+  const myDayDateLabel = useMemo(() => {
+    if (selectedMyDayDate === todayDateKey) {
+      return t("homeScreen.today");
+    }
+    const selectedDate = parseDateKey(selectedMyDayDate);
+    if (isYesterday(selectedDate, parseDateKey(todayDateKey))) {
+      return "YESTERDAY";
+    }
+    return `${selectedDate.getDate()} ${getMonthShortUpper(selectedDate)}`;
+  }, [selectedMyDayDate, t, todayDateKey]);
+
+  const { data: dashboardData } = useGetDashboardDataForDate(selectedMyDayDate);
+  const dashboardHeader = dashboardData?.header;
+  const headerDateLabel =
+    typeof dashboardHeader?.dateLabel === "string"
+      ? dashboardHeader.dateLabel.trim()
+      : "";
+  const headerIsToday =
+    typeof dashboardHeader?.isToday === "boolean"
+      ? dashboardHeader.isToday
+      : selectedMyDayDate === todayDateKey;
+  const headerStreak =
+    typeof dashboardHeader?.streak === "number" &&
+    Number.isFinite(dashboardHeader.streak)
+      ? Math.max(0, Math.round(dashboardHeader.streak))
+      : 0;
+  const headerAvatarName =
+    typeof dashboardHeader?.avatarName === "string"
+      ? dashboardHeader.avatarName.trim()
+      : "";
+  const avatarInitial = (headerAvatarName || user?.username || "?")
+    .charAt(0)
+    .toUpperCase();
+
+  const prayerTimesCard = dashboardData?.prayerTimesCard ?? null;
+  const goalCategories = useMemo((): CategoryItem[] => {
+    const fromApi = Array.isArray(dashboardData?.categories)
+      ? dashboardData.categories
+      : [];
+    if (fromApi.length > 0) {
+      return fromApi
+        .map(mapDashboardCategoryToItem)
+        .filter((item): item is CategoryItem => item != null);
+    }
+    // Fallback while dashboard is loading.
+    return HOME_CATEGORY_META.map(
+      ({ uiCategory, title, progressColor }): CategoryItem => ({
+        title,
+        apiCategory: UI_CATEGORY_TO_API[uiCategory],
+        progressColor,
+        percentage: "0",
+        tier: "NONE",
+      }),
+    );
+  }, [dashboardData?.categories]);
+
+  const prayerTimeline = useMemo(
+    () =>
+      Array.isArray(prayerTimesCard?.timeline) ? prayerTimesCard.timeline : [],
+    [prayerTimesCard],
+  );
+  const upcomingPrayerKey = (
+    prayerTimesCard?.upcoming?.key ?? ""
+  ).toUpperCase();
+
+  useEffect(() => {
+    // Re-show the prayer card when the selected home date changes.
+    setIsPrayerCardVisible(true);
+  }, [selectedMyDayDate]);
+
+  const renderPrayerTimelineIcon = useCallback(
+    (item: HomePrayerTimelineItem, index: number) => {
+      const key = (item.key ?? "").toUpperCase();
+      const isUpcoming = key === upcomingPrayerKey;
+      const color = isUpcoming ? Colors.light.green : Colors.light.white;
+      const size = 16;
+      let icon: React.ReactNode = null;
+      switch (key) {
+        case "FAJR":
+          icon = <UpComingFajrIcon color={color} size={size} />;
+          break;
+        case "SUNRISE":
+          icon = <SunriseIcon color={color} size={size} />;
+          break;
+        case "DHUHR":
+        case "DUHR":
+          icon = <UpComingDuhrIcon color={color} size={size} />;
+          break;
+        case "ASR":
+          icon = <UpComingAsrIcon color={color} size={size} />;
+          break;
+        case "MAGHRIB":
+        case "MAGHREB":
+          icon = <UpComingMaghrebIcon color={color} size={size} />;
+          break;
+        case "ISHA":
+          icon = <UpComingIshaIcon color={color} size={size} />;
+          break;
+        default:
+          return null;
+      }
+
+      return (
+        <React.Fragment key={`${key}-${index}`}>
+          {index > 0 ? <View style={styles.prayerTimelineDash} /> : null}
+          <View
+            style={[
+              styles.prayerTimelineIcon,
+              isUpcoming && { borderColor: Colors.light.green },
+            ]}
+          >
+            {icon}
+          </View>
+        </React.Fragment>
+      );
+    },
+    [upcomingPrayerKey],
+  );
+
+  const { data: myDayDetails } = useGetMyDayDetails(
+    selectedMyDayDate,
+    selectedDayTab.toUpperCase(),
+    0,
+    100,
+  );
+  const { mutate: toggleMyDayVisibility, isPending: isTogglingMyDay } =
+    useHandleToggleShowMyday();
+  const { mutate: deleteMyDayEntry, isPending: isDeletingMyDayEntry } =
+    useDeleteMyDayEntry();
+
+  const isMyDayVisible = !myDayDetails?.hidden;
+  const myDayFilters = useMemo(
+    () => resolveMyDayFilters(myDayDetails?.filters),
+    [myDayDetails?.filters],
+  );
+  const myDayEntries = useMemo(
+    () => mapMyDayEntries(myDayDetails?.entries),
+    [myDayDetails?.entries],
+  );
   const handleJournalDayPress = useCallback(
     (index: number) => {
       const day = JournalingHistoryWeekDays[index];
@@ -330,32 +574,61 @@ export default function HomeScreen() {
     router.push("/(tabs)/(plan)");
   }, [router]);
 
-  // Create translated welcome cards
-  const translatedWelcomeCards = useMemo(
+  // Greeting / welcome cards — prefer dashboard greetingCard when present.
+  // Keep the same highlight phrases so ContainerCard bold/white styling still applies.
+  const welcomeHighlightTexts = useMemo(
     () => [
+      t("homeScreen.welcomeHighlightCycle"),
+      t("homeScreen.welcomeHighlightTomorrow"),
+      t("homeScreen.welcomeHighlightFajr"),
+    ],
+    [t],
+  );
+
+  const translatedWelcomeCards = useMemo(() => {
+    const greeting = dashboardData?.greetingCard;
+    const title =
+      typeof greeting?.title === "string" ? greeting.title.trim() : "";
+    const description =
+      typeof greeting?.description === "string"
+        ? greeting.description.trim()
+        : "";
+
+    if (title || description) {
+      return [
+        {
+          id: 1,
+          title: title || t("homeScreen.welcomeTitle").replace("{{name}}", ""),
+          content: description,
+          highlightedTexts: welcomeHighlightTexts,
+        },
+      ];
+    }
+
+    return [
       {
         id: 1,
         title: t("homeScreen.welcomeTitle").replace("{{name}}", "Layla"),
         content: t("homeScreen.welcomeContent"),
-        highlightedTexts: [
-          t("homeScreen.welcomeHighlightCycle"),
-          t("homeScreen.welcomeHighlightTomorrow"),
-          t("homeScreen.welcomeHighlightFajr"),
-        ],
+        highlightedTexts: welcomeHighlightTexts,
       },
       {
         id: 2,
         title: t("homeScreen.trackProgressTitle"),
         content: t("homeScreen.trackProgressContent"),
-        highlightedTexts: [],
+        highlightedTexts: [] as string[],
       },
-    ],
-    [t],
-  );
+    ];
+  }, [dashboardData?.greetingCard, t, welcomeHighlightTexts]);
 
-  // Create translated inspiration cards
-  const translatedInspirationCards = useMemo(
-    () => [
+  // Inspiration carousel — prefer dashboard `dailyContent`, else i18n fallbacks.
+  const translatedInspirationCards = useMemo(() => {
+    const fromApi = mapDailyContentToInspirationCards(
+      dashboardData?.dailyContent,
+    );
+    if (fromApi.length > 0) return fromApi;
+
+    return [
       {
         id: 1,
         title: t("homeScreen.dailyLightTitle"),
@@ -374,9 +647,8 @@ export default function HomeScreen() {
         quote: t("homeScreen.reflectionQuote"),
         reference: t("homeScreen.reflectionRef"),
       },
-    ],
-    [t],
-  );
+    ];
+  }, [dashboardData?.dailyContent, t]);
 
   const handleBottomSheetChange = useCallback(
     (sheetId: string, index: number) => {
@@ -386,6 +658,9 @@ export default function HomeScreen() {
         openBottomSheetsRef.current.add(sheetId);
       }
       setIsAnyBottomSheetOpen(openBottomSheetsRef.current.size > 0);
+      if (sheetId === "namaz") {
+        setIsNamazSheetOpen(index >= 0);
+      }
     },
     [],
   );
@@ -406,41 +681,74 @@ export default function HomeScreen() {
     return getVisibleDashboardSubGoals(goals, selectedDashboardCategory);
   }, [selectedDashboardCategory, quranCategory]);
 
-  // const visibleTodayGoalsProgress = useMemo(
-  //   () => getVisibleTodayGoalProgress(todayGoalsProgress, selectedDayTab),
-  //   [todayGoalsProgress, selectedDayTab],
-  // );
+  const visibleTodayGoalsProgress = useMemo(
+    () => getVisibleMyDayEntries(myDayEntries, selectedDayTab),
+    [myDayEntries, selectedDayTab],
+  );
 
-  // const displayedTodayGoalsProgress = useMemo(
-  //   () =>
-  //     getDisplayedTodayGoalProgress(
-  //       visibleTodayGoalsProgress,
-  //       isTodayProgressExpanded,
-  //     ),
-  //   [visibleTodayGoalsProgress, isTodayProgressExpanded],
-  // );
+  const displayedTodayGoalsProgress = useMemo(
+    () =>
+      getDisplayedTodayGoalProgress(
+        visibleTodayGoalsProgress,
+        isTodayProgressExpanded,
+      ),
+    [visibleTodayGoalsProgress, isTodayProgressExpanded],
+  );
+
+  const showTodayProgressToggle = canExpandTodayGoalProgress(
+    visibleTodayGoalsProgress,
+  );
+
   const handleShowHideTodayProgress = useCallback(() => {
-    setShowDailyProgress((show) => !show);
-  }, [setShowDailyProgress, showDailyProgress]);
-  // const showTodayProgressToggle = canExpandTodayGoalProgress(
-  //   visibleTodayGoalsProgress,
-  // );
+    if (isTogglingMyDay) return;
+    if (isMyDayVisible) {
+      setHideMyDayConfirmVisible(true);
+      return;
+    }
+    toggleMyDayVisibility(false); // show section → hidden: false
+  }, [isMyDayVisible, isTogglingMyDay, toggleMyDayVisibility]);
 
-  // useEffect(() => {
-  //   setIsTodayProgressExpanded(false);
-  //   setOpenTodayProgressRowId(null);
-  // }, [selectedDayTab]);
+  const handleConfirmHideMyDay = useCallback(() => {
+    toggleMyDayVisibility(true, {
+      // hide section → hidden: true
+      onSettled: () => setHideMyDayConfirmVisible(false),
+    });
+  }, [toggleMyDayVisibility]);
 
-  // const handleTodayProgressSwipeOpen = useCallback((rowId: string | null) => {
-  //   setOpenTodayProgressRowId(rowId);
-  // }, []);
+  useEffect(() => {
+    setIsTodayProgressExpanded(false);
+    setOpenTodayProgressRowId(null);
+  }, [selectedDayTab, selectedMyDayDate]);
 
-  // const handleTodayProgressDelete = useCallback((entryId: string) => {
-  //   setTodayGoalsProgress((entries) =>
-  //     entries.filter((entry) => entry.id !== entryId),
-  //   );
-  //   setOpenTodayProgressRowId(null);
-  // }, []);
+  const handleTodayProgressSwipeOpen = useCallback((rowId: string | null) => {
+    setOpenTodayProgressRowId(rowId);
+  }, []);
+
+  const handleTodayProgressDelete = useCallback((entryId: string) => {
+    setPendingDeleteEntryId(entryId);
+    setDeleteMyDayConfirmVisible(true);
+    setOpenTodayProgressRowId(null);
+  }, []);
+
+  const handleConfirmDeleteMyDayEntry = useCallback(() => {
+    if (!pendingDeleteEntryId) {
+      setDeleteMyDayConfirmVisible(false);
+      return;
+    }
+    const entry = myDayEntries.find((item) => item.id === pendingDeleteEntryId);
+    const action = entry?.deleteAction;
+    if (!action?.path) {
+      setDeleteMyDayConfirmVisible(false);
+      setPendingDeleteEntryId(null);
+      return;
+    }
+    deleteMyDayEntry(action, {
+      onSettled: () => {
+        setDeleteMyDayConfirmVisible(false);
+        setPendingDeleteEntryId(null);
+      },
+    });
+  }, [deleteMyDayEntry, myDayEntries, pendingDeleteEntryId]);
 
   const stickyHeaderOpacity = scrollY.interpolate({
     inputRange: [scrollCollapseThreshold - 50, scrollCollapseThreshold],
@@ -490,9 +798,10 @@ export default function HomeScreen() {
           <View style={styles.collapsedRow}>
             {goalCategories.map((category) => (
               <TouchableOpacity
-                key={`sticky-${category.title}`}
+                key={`sticky-${category.apiCategory}`}
                 style={styles.collapsedItem}
                 activeOpacity={0.7}
+                onPress={() => handleCategoryRingPress(category.apiCategory)}
               >
                 <TaperedCircleBorder
                   percentage={category.percentage}
@@ -513,28 +822,34 @@ export default function HomeScreen() {
         </Animated.View>
       ) : null}
 
-      <Animated.ScrollView
+      {/* Plain ScrollView (not Animated.ScrollView): Rive moon never paints
+          inside Animated.ScrollView on this screen, even with useNativeDriver:false. */}
+      <ScrollView
         style={{ width: "100%" }}
         contentContainerStyle={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}
-        onScroll={Animated.event(
-          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-          { useNativeDriver: true },
-        )}
+        removeClippedSubviews={false}
+        onScroll={(e) => {
+          scrollY.setValue(e.nativeEvent.contentOffset.y);
+        }}
       >
         {/* Avatar + Streak row */}
         <View style={styles.topSection}>
-          {/* <View style={styles.avatarContainer}>
-            <Image
-              source={{ uri: user?.avatarUrl }}
-              style={{ width: 40, height: 40, borderRadius: 20 }}
-              contentFit="cover"
-            />
-          </View> */}
+          <View style={styles.avatarContainer}>
+            {user?.avatarUrl ? (
+              <Image
+                source={{ uri: user.avatarUrl }}
+                style={{ width: 40, height: 40, borderRadius: 20 }}
+                contentFit="cover"
+              />
+            ) : (
+              <Text style={styles.streakText}>{avatarInitial}</Text>
+            )}
+          </View>
 
           {/* Today Button */}
-          {/* <View
+          <View
             style={{
               position: "absolute",
               left: 0,
@@ -546,135 +861,124 @@ export default function HomeScreen() {
             }}
             pointerEvents="box-none"
           >
-            <TouchableOpacity activeOpacity={0.7} onPress={() => {}}>
-              <View style={styles.todayButtonContainer}>
+            <View style={styles.todayButtonContainer}>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={handlePreviousMyDay}
+                disabled={!canGoToPreviousMyDay}
+                hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel="Previous day"
+              >
                 <Entypo
                   name={
                     i18n.language === "ar" ? "chevron-right" : "chevron-left"
                   }
                   size={18}
-                  color={Colors.light.white}
+                  color={
+                    canGoToPreviousMyDay
+                      ? Colors.light.white
+                      : Colors.light.grey
+                  }
                 />
+              </TouchableOpacity>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={handleResetMyDayToToday}
+                disabled={headerIsToday}
+              >
                 <View style={styles.todayButtonTextContainer}>
                   <Text style={styles.todayButtonText}>
-                    {t("homeScreen.today")}
+                    {headerDateLabel || myDayDateLabel}
                   </Text>
                 </View>
+              </TouchableOpacity>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={handleNextMyDay}
+                disabled={!canGoToNextMyDay}
+                hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel="Next day"
+              >
                 <Entypo
                   name={
                     i18n.language === "ar" ? "chevron-left" : "chevron-right"
                   }
                   size={18}
-                  color={Colors.light.white}
+                  color={
+                    canGoToNextMyDay ? Colors.light.white : Colors.light.grey
+                  }
                 />
-              </View>
-            </TouchableOpacity>
-          </View> */}
+              </TouchableOpacity>
+            </View>
+          </View>
 
-          {/* <TouchableOpacity
+          <TouchableOpacity
             activeOpacity={0.7}
             onPress={() => router.push("/streakcounter")}
           >
             <View style={styles.streakBox}>
               <FlashIcon size={12} />
-              <Text style={styles.streakText}>0</Text>
+              <Text style={styles.streakText}>{headerStreak}</Text>
             </View>
-          </TouchableOpacity> */}
+          </TouchableOpacity>
         </View>
 
         {/* Badr Logo */}
-        {/* <View style={styles.badrLogoContainer}>
+        <View style={styles.badrLogoContainer}>
           <BadarNameLogo size={32} />
-        </View> */}
+        </View>
 
         {/* Upcoming prayer card */}
-        {isPrayerCardVisible && (
+        {isPrayerCardVisible && prayerTimesCard ? (
           <View style={styles.prayerCardWrapper}>
-            {/* <TouchableOpacity
+            <TouchableOpacity
               style={styles.closeButton}
               onPress={() => setIsPrayerCardVisible(false)}
             >
               <AntDesign name="close" size={20} color={Colors.light.white} />
-            </TouchableOpacity> */}
+            </TouchableOpacity>
             <ImageBackground
               source={require("@/assets/images/NamazTimeMoreTabBackGroundImage.png")}
               style={styles.prayerCardContainer}
               imageStyle={{ borderRadius: 16 }}
             >
-              {/* <View style={styles.prayerCardTopRow}>
+              <View style={styles.prayerCardTopRow}>
                 <View style={styles.prayerDetailsLeft}>
                   <Text style={styles.upcomingText}>
-                    {t("homeScreen.upcoming")}
+                    {prayerTimesCard.upcomingLabel?.trim() ||
+                      t("homeScreen.upcoming")}
                   </Text>
                   <Text style={styles.prayerNameText}>
-                    {t("homeScreen.asrPrayer")}
+                    {prayerTimesCard.upcoming?.name?.trim() || "—"}
                   </Text>
-                  <Text style={styles.timeText}>{t("homeScreen.asrTime")}</Text>
+                  <Text style={styles.timeText}>
+                    {prayerTimesCard.upcoming?.time?.trim() || "—"}
+                  </Text>
                 </View>
                 <View style={styles.dateRight}>
-                  <Text style={styles.dateText}>
-                    {t("homeScreen.juneDate")}
-                  </Text>
+                  {prayerTimesCard.hijriDate ? (
+                    <Text style={styles.dateText}>
+                      {prayerTimesCard.hijriDate}
+                    </Text>
+                  ) : null}
+                  {prayerTimesCard.gregorianDate ? (
+                    <Text style={styles.dateText}>
+                      {prayerTimesCard.gregorianDate}
+                    </Text>
+                  ) : null}
                 </View>
-              </View> */}
-              <Text
-                style={{
-                  fontSize: 20,
-                  fontWeight: "bold",
-                  textAlign: "center",
-                  marginTop: 100,
-                  color: "white",
-                }}
-              >
-                Coming soon...
-              </Text>
-              {/* Timeline */}
-              {/* {(() => {
-                const currentPrayer = "fajr"; // Placeholder logic for now
-                const getIconColor = (prayerName: string) =>
-                  currentPrayer === prayerName
-                    ? Colors.light.green
-                    : Colors.light.white;
+              </View>
 
-                return (
-                  <View style={styles.prayerTimelineRow}>
-                    <View style={styles.prayerTimelineIcon}>
-                      <UpComingFajrIcon
-                        color={getIconColor("fajr")}
-                        size={16}
-                      />
-                    </View>
-                    <View style={styles.prayerTimelineDash} />
-                    <View style={styles.prayerTimelineIcon}>
-                      <UpComingDuhrIcon
-                        color={getIconColor("duhr")}
-                        size={16}
-                      />
-                    </View>
-                    <View style={styles.prayerTimelineDash} />
-                    <View style={styles.prayerTimelineIcon}>
-                      <UpComingAsrIcon color={getIconColor("asr")} size={16} />
-                    </View>
-                    <View style={styles.prayerTimelineDash} />
-                    <View style={styles.prayerTimelineIcon}>
-                      <UpComingMaghrebIcon
-                        color={getIconColor("maghreb")}
-                        size={16}
-                      />
-                    </View>
-                    <View style={styles.prayerTimelineDash} />
-                    <View style={styles.prayerTimelineIcon}>
-                      <UpComingIshaIcon
-                        color={getIconColor("isha")}
-                        size={16}
-                      />
-                    </View>
-                  </View>
-                );
-              })()} */}
+              {prayerTimeline.length > 0 ? (
+                <View style={styles.prayerTimelineRow}>
+                  {prayerTimeline.map(renderPrayerTimelineIcon)}
+                </View>
+              ) : null}
             </ImageBackground>
           </View>
-        )}
+        ) : null}
 
         {/* Goal category rings */}
         <Animated.View
@@ -684,9 +988,9 @@ export default function HomeScreen() {
             { opacity: categorySectionOpacity },
           ]}
         >
-          {/* {goalCategories.map((category) => (
+          {goalCategories.map((category) => (
             <Pressable
-              key={category.title}
+              key={category.apiCategory}
               style={styles.categoryItemWrapper}
               onPress={() => handleCategoryRingPress(category.apiCategory)}
               accessibilityRole="button"
@@ -704,7 +1008,8 @@ export default function HomeScreen() {
                   <View style={styles.categoryLabelChevronSlot} />
                   <Text style={styles.categoryLabel}>
                     {prepareFigmaForcedSmallCapsText(
-                      t(getCategoryTranslationKey(category.title)),
+                      category.title ||
+                        t(getCategoryTranslationKey(category.title)),
                     )}
                   </Text>
                   <View style={styles.categoryLabelChevronSlot}>
@@ -721,32 +1026,37 @@ export default function HomeScreen() {
                 </View>
               </View>
             </Pressable>
-          ))} */}
+          ))}
         </Animated.View>
 
         {/* Welcome / info card deck */}
-        {/* <View style={styles.containersSection}>
+        <View style={styles.containersSection}>
           <SwipeCardDeck
             data={translatedWelcomeCards}
             renderTextWithHighlight={buildTextParts}
           />
-        </View> */}
+        </View>
 
-        {/* Days tracker */}
-        {/* <TouchableOpacity
-          activeOpacity={0.85}
-          onPress={() => namazBottomSheetRef.current?.expand()}
+        {/* Plain View only around Rive — press targets live inside DaysTracker
+            on the text rows, never wrapping the moon itself. */}
+        <Pressable
           style={{
             width: SCREEN_CARD_WIDTH,
             alignSelf: "center",
             marginTop: 16,
           }}
+          collapsable={false}
+          onPress={() => setIsNamazSheetOpen(true)}
         >
-          <DaysTrackerContainer isBottomSheetView={false} />
-        </TouchableOpacity> */}
+          <DaysTrackerContainer
+            isBottomSheetView={false}
+            moonCard={dashboardData?.moonCard ?? null}
+            onPress={() => namazBottomSheetRef.current?.expand()}
+          />
+        </Pressable>
 
         {/* Inspiration cards */}
-        {/* <View style={styles.inspirationSection}>
+        <View style={styles.inspirationSection}>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -758,7 +1068,9 @@ export default function HomeScreen() {
           >
             {translatedInspirationCards.map((card) => (
               <View key={card.id} style={styles.inspirationCard}>
-                <Text style={styles.inspirationTitle}>{card.title}</Text>
+                <Text style={styles.inspirationTitle}>
+                  {prepareFigmaForcedSmallCapsText(card.title)}
+                </Text>
                 <Text style={styles.inspirationQuote}>
                   {card.quote}{" "}
                   <Text style={styles.inspirationReference}>
@@ -779,7 +1091,7 @@ export default function HomeScreen() {
               />
             ))}
           </View>
-        </View> */}
+        </View>
 
         {/* Log menstruation */}
         <TouchableOpacity
@@ -808,7 +1120,7 @@ export default function HomeScreen() {
         </TouchableOpacity>
 
         {/* Customize journal */}
-        {/* <View style={styles.journalContainer}>
+        <View style={styles.journalContainer}>
           <Text style={styles.journalTitle}>
             {t("homeScreen.customizeJournalTitle")}
           </Text>
@@ -825,20 +1137,25 @@ export default function HomeScreen() {
               color={Colors.light.green}
             />
           </TouchableOpacity>
-        </View> */}
+        </View>
         {/* My Day */}
 
-        {/* <View style={[styles.dashboardSection]}>
-          <Text style={styles.dashboardText}>{t("homeScreen.myDay")}</Text>
+        <View style={[styles.dashboardSection]}>
+          <Text style={styles.dashboardText}>
+            {myDayDetails?.title?.trim() || t("homeScreen.myDay")}
+          </Text>
           <TouchableOpacity
             activeOpacity={0.7}
             style={[styles.customizeContainer, { gap: 8 }]}
             onPress={handleShowHideTodayProgress}
+            disabled={isTogglingMyDay}
           >
             <Text style={styles.customizeText}>
-              {showDailyProgress ? t("homeScreen.hide") : t("homeScreen.show")}
+              {isMyDayVisible
+                ? myDayDetails?.toggleLabel?.trim() || t("homeScreen.hide")
+                : t("homeScreen.show")}
             </Text>
-            {showDailyProgress ? (
+            {isMyDayVisible ? (
               <AntDesign
                 name="eye-invisible"
                 size={16}
@@ -848,10 +1165,10 @@ export default function HomeScreen() {
               <AntDesign name="eye" size={16} color={Colors.light.green} />
             )}
           </TouchableOpacity>
-        </View> */}
-        {showDailyProgress && (
+        </View>
+        {isMyDayVisible ? (
           <>
-            {/* <ScrollView
+            <ScrollView
               horizontal
               style={styles.categoryFilterScroll}
               contentContainerStyle={styles.categoryFilterContent}
@@ -859,36 +1176,47 @@ export default function HomeScreen() {
               nestedScrollEnabled
               scrollEventThrottle={16}
             >
-              {DASHBOARD_FILTER_TABS.map((label) => (
+              {myDayFilters.map((filter) => (
                 <Tabs
-                  key={label}
-                  label={t(getFilterTabTranslationKey(label))}
-                  onPress={() => setSelectedDayTab(label)}
-                  selectedTab={t(getFilterTabTranslationKey(selectedDayTab))}
+                  key={filter.key}
+                  label={filter.label}
+                  onPress={() => setSelectedDayTab(filter.key)}
+                  selectedTab={
+                    myDayFilters.find((item) => item.key === selectedDayTab)
+                      ?.label ?? selectedDayTab
+                  }
                 />
               ))}
-            </ScrollView> */}
+            </ScrollView>
             <TopSpace top={16} />
 
-            {/* Goal progress cards on home screen
             <View style={styles.todayGoalsProgressSection}>
               <Text style={styles.todayGoalsProgressTitle}>
-                {t("homeScreen.todayGoalsProgress")}
+                {myDayDetails?.sectionTitle?.trim() ||
+                  t("homeScreen.todayGoalsProgress")}
               </Text>
               <TopSpace top={24} />
-              {displayedTodayGoalsProgress.map((entry) => (
-                <SwipeToDeleteRow
-                  key={entry.id}
-                  rowId={entry.id}
-                  onDelete={handleTodayProgressDelete}
-                  onSwipeOpen={handleTodayProgressSwipeOpen}
-                  openRowId={openTodayProgressRowId}
-                  wrapperStyle={styles.todayProgressSwipeWrapper}
-                  contentStyle={styles.todayProgressSwipeContent}
-                >
-                  <TodayGoalProgressCard entry={entry} />
-                </SwipeToDeleteRow>
-              ))}
+              {displayedTodayGoalsProgress.length === 0 ? (
+                myDayDetails?.emptyText ? (
+                  <Text style={styles.todayGoalsProgressTitle}>
+                    {myDayDetails.emptyText}
+                  </Text>
+                ) : null
+              ) : (
+                displayedTodayGoalsProgress.map((entry) => (
+                  <SwipeToDeleteRow
+                    key={entry.id}
+                    rowId={entry.id}
+                    onDelete={handleTodayProgressDelete}
+                    onSwipeOpen={handleTodayProgressSwipeOpen}
+                    openRowId={openTodayProgressRowId}
+                    wrapperStyle={styles.todayProgressSwipeWrapper}
+                    contentStyle={styles.todayProgressSwipeContent}
+                  >
+                    <TodayGoalProgressCard entry={entry} />
+                  </SwipeToDeleteRow>
+                ))
+              )}
               {showTodayProgressToggle ? (
                 <>
                   <TopSpace top={10} />
@@ -900,8 +1228,10 @@ export default function HomeScreen() {
                   >
                     <Text style={styles.showMoreText}>
                       {isTodayProgressExpanded
-                        ? t("homeScreen.showLess")
-                        : t("homeScreen.showMore")}
+                        ? myDayDetails?.showLessLabel?.trim() ||
+                          t("homeScreen.showLess")
+                        : myDayDetails?.showMoreLabel?.trim() ||
+                          t("homeScreen.showMore")}
                     </Text>
                     <Entypo
                       name={
@@ -914,16 +1244,15 @@ export default function HomeScreen() {
                 </>
               ) : null}
             </View>
-            */}
           </>
-        )}
+        ) : null}
         <JournalingHistoryWeekDashboard
           weekDays={JournalingHistoryWeekDays}
           onDayPress={handleJournalDayPress}
           onBehaviorInsightsPress={handleJournalBehaviorInsightsPress}
         />
         {/* My Dashboard */}
-        {/* <View style={styles.dashboardSection}>
+        <View style={styles.dashboardSection}>
           <Text style={styles.dashboardText}>
             {t("homeScreen.myDashboard")}
           </Text>
@@ -937,10 +1266,10 @@ export default function HomeScreen() {
             </Text>
             <CustomizeBadgeSettingIcon size={16} color={Colors.light.green} />
           </TouchableOpacity>
-        </View> */}
+        </View>
 
         {/* Dashboard category filter */}
-        {/* <ScrollView
+        <ScrollView
           horizontal
           style={styles.categoryFilterScroll}
           contentContainerStyle={styles.categoryFilterContent}
@@ -958,13 +1287,13 @@ export default function HomeScreen() {
               )}
             />
           ))}
-        </ScrollView> */}
+        </ScrollView>
 
-        {/* {visibleDashboardSubGoals.map((goal) => (
+        {visibleDashboardSubGoals.map((goal) => (
           <DashboardSubGoalRow key={goal.id} goal={goal} />
-        ))} */}
+        ))}
 
-        {/* <TouchableOpacity style={styles.showMoreButton}>
+        <TouchableOpacity style={styles.showMoreButton}>
           <Text style={styles.showMoreText}>{t("homeScreen.showMore")}</Text>
           <Entypo name="chevron-down" size={24} color="white" />
         </TouchableOpacity>
@@ -972,13 +1301,15 @@ export default function HomeScreen() {
         <TopSpace top={16} />
         <TimeSpentOverview
           onExpandPress={() => timeSpentSheetRef.current?.expand()}
-        /> */}
-      </Animated.ScrollView>
+        />
+      </ScrollView>
 
       <NamazGoalBottomSheet
         ref={namazBottomSheetRef}
         onClose={() => {}}
         onChange={(index) => handleBottomSheetChange("namaz", index)}
+        moonCard={dashboardData?.moonCard ?? null}
+        isOpen={isNamazSheetOpen}
       />
       <TimeSpentBottomSheet
         ref={timeSpentSheetRef}
@@ -1017,6 +1348,57 @@ export default function HomeScreen() {
           onCompleteJournal={handleCompleteJournal}
         />
       ) : null}
+
+      <WarningModal
+        visible={hideMyDayConfirmVisible}
+        title={
+          myDayDetails?.hidePopup?.title?.trim() ||
+          "HIDE YOUR DAILY GOAL ENTRIES?"
+        }
+        message={
+          myDayDetails?.hidePopup?.description?.trim() ||
+          "Your data stays saved, but you won't see the daily breakdown."
+        }
+        primaryButtonText={
+          myDayDetails?.hidePopup?.confirm?.trim() || "YES, HIDE"
+        }
+        secondaryButtonText={
+          myDayDetails?.hidePopup?.cancel?.trim() || "CANCEL"
+        }
+        primaryButtonVariant="green"
+        primaryButtonLoading={isTogglingMyDay}
+        onPrimaryPress={handleConfirmHideMyDay}
+        onSecondaryPress={() => setHideMyDayConfirmVisible(false)}
+        onBackdropPress={() => setHideMyDayConfirmVisible(false)}
+      />
+
+      <WarningModal
+        visible={deleteMyDayConfirmVisible}
+        title={
+          myDayDetails?.deletePopup?.title?.trim() || "DELETE GOAL PROGRESS?"
+        }
+        message={
+          myDayDetails?.deletePopup?.description?.trim() ||
+          "This will permanently remove your progress entry. This can't be undone."
+        }
+        primaryButtonText={
+          myDayDetails?.deletePopup?.confirm?.trim() || "YES, DELETE"
+        }
+        secondaryButtonText={
+          myDayDetails?.deletePopup?.cancel?.trim() || "CANCEL"
+        }
+        primaryButtonVariant="red"
+        primaryButtonLoading={isDeletingMyDayEntry}
+        onPrimaryPress={handleConfirmDeleteMyDayEntry}
+        onSecondaryPress={() => {
+          setDeleteMyDayConfirmVisible(false);
+          setPendingDeleteEntryId(null);
+        }}
+        onBackdropPress={() => {
+          setDeleteMyDayConfirmVisible(false);
+          setPendingDeleteEntryId(null);
+        }}
+      />
     </BlackScreenWrapper>
   );
 }

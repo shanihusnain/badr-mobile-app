@@ -1,3 +1,4 @@
+import type { MyDayDeleteAction } from "@/src/api/queries/useGetMyDayDetails";
 import type { DashboardFilterTab } from "./dashboardSubGoals";
 
 /** Optional time fields mirror what the user may enter when logging progress. */
@@ -11,12 +12,16 @@ export type TodayGoalProgressDuration = {
 export type TodayGoalProgressEntry = {
   id: string;
   category: Exclude<DashboardFilterTab, "All">;
+  /** API filter key, e.g. PRAYER / QURAN. */
+  apiCategory?: string;
   goalTitle: string;
   description: string;
   /** Optional single timestamp for when progress was logged. */
   loggedAt?: string;
   /** Optional session window; any field may be omitted independently. */
   duration?: TodayGoalProgressDuration;
+  /** Server-provided delete action for swipe-to-delete. */
+  deleteAction?: MyDayDeleteAction | null;
 };
 
 /** How many progress cards to show before "Show More". */

@@ -1,0 +1,23 @@
+diff --git a/node_modules/@rive-app/react-native/nitrogen/generated/ios/c++/views/HybridRiveViewComponent.mm b/node_modules/@rive-app/react-native/nitrogen/generated/ios/c++/views/HybridRiveViewComponent.mm
+index 1111111..2222222 100644
+--- a/node_modules/@rive-app/react-native/nitrogen/generated/ios/c++/views/HybridRiveViewComponent.mm
++++ b/node_modules/@rive-app/react-native/nitrogen/generated/ios/c++/views/HybridRiveViewComponent.mm
+@@ -43,6 +43,9 @@
+ 
+ - (instancetype) init {
+   if (self = [super init]) {
++    // RN 0.87+: subclasses must seed _props with concrete defaults (not ViewProps),
++    // or updateProps: asserts in debug. Missing in Rive 0.4.21; present in 0.5+.
++    _props = HybridRiveViewShadowNode::defaultSharedProps();
+     std::shared_ptr<HybridRiveViewSpec> hybridView = RNRive::RNRiveAutolinking::createRiveView();
+     _hybridView = std::dynamic_pointer_cast<HybridRiveViewSpecSwift>(hybridView);
+     [self updateView];
+@@ -140,6 +143,8 @@
+ 
+ - (void)prepareForRecycle {
+   [super prepareForRecycle];
++  // Super resets _props to plain ViewProps; restore concrete type for next reuse.
++  _props = HybridRiveViewShadowNode::defaultSharedProps();
+   RNRive::HybridRiveViewSpec_cxx& swiftPart = _hybridView->getSwiftPart();
+   swiftPart.maybePrepareForRecycle();
+ }

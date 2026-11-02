@@ -6,14 +6,16 @@ type Props = {
   progressPercent: number;
   /** Fires once when the Rive view is ready (or if loading fails). */
   onReady?: () => void;
+  /** Optional absolute size — preferred over % inside Animated.ScrollView. */
+  size?: number;
 };
 
 type MoonComponent = React.ComponentType<Props>;
 
 /**
- * Rive needs native NitroModules (dev/production builds only).
- * Loading it with a static import crashes Expo Go and can leave this module
- * undefined for Fast Refresh consumers (e.g. GoalTabContent).
+ * Soft-load Rive so a broken Nitro install does not crash the whole screen.
+ * After upgrading nitro to 0.36.5+ (RN 0.87+ JSI fix), this should resolve
+ * to the real moon on a rebuilt native app.
  */
 let RiveMoon: MoonComponent | null = null;
 try {
@@ -27,12 +29,17 @@ try {
   );
 }
 
-function FallbackMoon({ onReady }: Props) {
+function FallbackMoon({ onReady, size }: Props) {
   useEffect(() => {
     onReady?.();
   }, [onReady]);
 
-  return <View style={styles.fallback} />;
+  const box =
+    typeof size === "number" && size > 0
+      ? { width: size, height: size, borderRadius: size / 2 }
+      : styles.fallback;
+
+  return <View style={[styles.fallback, box]} />;
 }
 
 export function MoonProgress(props: Props) {

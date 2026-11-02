@@ -1,18 +1,9 @@
 import { fonts } from "@/assets/fonts";
+import { GlowingProgressPercent } from "@/components/atoms/GlowingProgressPercent";
 import { MoonProgress } from "@/components/atoms/MoonProgress";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { Colors } from "@/constants/theme";
-import {
-  getProgressGlow,
-  PROGRESS_GLOW_LAYERS,
-} from "@/src/utils/progressGlow";
 import { globalStyles } from "@/src/globalstyles/globalstyles";
-import {
-  BlurMask,
-  Canvas,
-  Text as SkiaText,
-  useFont,
-} from "@shopify/react-native-skia";
 import { ImageSource } from "expo-image";
 import { useTranslation } from "react-i18next";
 import { useCallback, useEffect, useState } from "react";
@@ -43,66 +34,6 @@ const CARD_PADDING = 16;
 
 function easeOutCubic(t: number) {
   return 1 - Math.pow(1 - t, 3);
-}
-
-const PERCENT_FONT_SIZE = 18;
-/** Extra canvas padding so the glyph blur is never clipped into a box. */
-const GLOW_PAD = 22;
-
-function GlowingProgressPercent({ percent }: { percent: number }) {
-  const font = useFont(
-    require("@/assets/fonts/SF-Pro-Text-Semibold.otf"),
-    PERCENT_FONT_SIZE,
-  );
-  const label = `${percent}%`;
-  const { glow, radius } = getProgressGlow(percent);
-
-  if (!font) {
-    return <Text style={styles.statValue}>{label}</Text>;
-  }
-
-  // Keep canvas size and glyph x locked to "100%" so 0% → 100% never shifts.
-  const maxBounds = font.measureText("100%");
-  const bounds = font.measureText(label);
-  const metrics = font.getMetrics();
-  const width = Math.ceil(maxBounds.width + GLOW_PAD * 2);
-  const height = Math.ceil(-metrics.ascent + metrics.descent + GLOW_PAD * 2);
-  const x = GLOW_PAD + (maxBounds.width - bounds.width) / 2 - bounds.x;
-  const y = GLOW_PAD - metrics.ascent;
-
-  return (
-    <Canvas
-      opaque={false}
-      style={[
-        styles.percentCanvas,
-        {
-          width,
-          height,
-        },
-      ]}
-    >
-      {PROGRESS_GLOW_LAYERS.map((layer) => (
-        <SkiaText
-          key={`glow-${layer.blurMul}`}
-          text={label}
-          x={x}
-          y={y}
-          font={font}
-          color={glow}
-          opacity={layer.opacity}
-        >
-          <BlurMask blur={radius * layer.blurMul} style="solid" />
-        </SkiaText>
-      ))}
-      <SkiaText
-        text={label}
-        x={x}
-        y={y}
-        font={font}
-        color={Colors.light.white}
-      />
-    </Canvas>
-  );
 }
 
 export const GoalProgressCard = ({
@@ -303,9 +234,5 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.semiBold,
     fontSize: 18,
     color: Colors.light.white,
-  },
-  percentCanvas: {
-    marginVertical: -GLOW_PAD + 2,
-    marginHorizontal: -GLOW_PAD / 3,
   },
 });
