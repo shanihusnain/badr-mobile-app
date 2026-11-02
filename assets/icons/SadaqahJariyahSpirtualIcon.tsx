@@ -6,6 +6,7 @@ export const SadaqahJariyahSpirtualIcon = ({ color = Colors.light.white, size = 
     <Svg
         width={size}
         height={size}
+        viewBox="0 0 30 30"
         fill="none"
     >
         <Path

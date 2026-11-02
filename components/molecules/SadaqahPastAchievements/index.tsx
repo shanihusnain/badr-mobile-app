@@ -71,7 +71,14 @@ const VOLUNTEERING_TABS = [
   "Distributing Food",
   "Shaping Futures",
   "Offering Compassion",
-  "Building Shelters",
+];
+
+/** Past-achievement graph filter chips (design + API `filter` codes). */
+const VOLUNTEERING_FILTER_CHIPS: { code: string; label: string }[] = [
+  { code: "ALL", label: "All" },
+  { code: "DISTRIBUTING_FOOD", label: "Distributing Food" },
+  { code: "SHAPING_FUTURES", label: "Shaping Futures" },
+  { code: "OFFERING_COMPASSION", label: "Offering Compassion" },
 ];
 const SADAQAH_JARIYAH_TABS = [
   "All",
@@ -155,6 +162,8 @@ export function SadaqahPastAchievements({ goalId, isDetailed = false }: Props) {
   const [hintDismissed, setHintDismissed] = useState(false);
   /** KAFFARAH API filter code: ALL | MEALS | CLOTHING_ITEMS */
   const [kaffarahFilter, setKaffarahFilter] = useState("ALL");
+  /** VOLUNTEERING API filter code: ALL | DISTRIBUTING_FOOD | … */
+  const [volunteeringFilter, setVolunteeringFilter] = useState("ALL");
   const goalData = getGoalById(goalId);
   const cleanGoalLabel = goalData?.title || "";
 
@@ -163,12 +172,20 @@ export function SadaqahPastAchievements({ goalId, isDetailed = false }: Props) {
   useEffect(() => {
     setSelectedTab("All");
     setKaffarahFilter("ALL");
+    setVolunteeringFilter("ALL");
   }, [goalId]);
 
   useEffect(() => {
     setApiPeriodStart(null);
     setKaffarahFilter("ALL");
+    setVolunteeringFilter("ALL");
   }, [period, goalId]);
+
+  const achievementsFilter = isKaffarah
+    ? kaffarahFilter
+    : isVolunteering
+      ? volunteeringFilter
+      : undefined;
 
   const {
     data: achievementsApiData,
@@ -178,7 +195,7 @@ export function SadaqahPastAchievements({ goalId, isDetailed = false }: Props) {
   } = useGetSadaqahGoalAchievements(sadaqahType, {
     period,
     periodStart: apiPeriodStart,
-    filter: isKaffarah ? kaffarahFilter : undefined,
+    filter: achievementsFilter,
     enabled: useAchievementsApi,
   });
 
@@ -216,6 +233,23 @@ export function SadaqahPastAchievements({ goalId, isDetailed = false }: Props) {
       { code: "CLOTHING_ITEMS", label: "Clothing Items" },
     ];
   }, [achievementsApiData?.filters]);
+
+  const volunteeringFilters = useMemo(() => {
+    const fromApi = achievementsApiData?.filters;
+    if (
+      isVolunteering &&
+      Array.isArray(fromApi) &&
+      fromApi.length > 0
+    ) {
+      return fromApi.map((item) => ({
+        code: String(item.code ?? "")
+          .trim()
+          .toUpperCase(),
+        label: String(item.label ?? item.code ?? "").trim() || "All",
+      }));
+    }
+    return VOLUNTEERING_FILTER_CHIPS;
+  }, [achievementsApiData?.filters, isVolunteering]);
 
   const analyticsTabs = useMemo(() => {
     const fromApi = achievementsApiData?.tabs;
@@ -769,8 +803,54 @@ export function SadaqahPastAchievements({ goalId, isDetailed = false }: Props) {
           </View>
         )}
 
+        {/* ── Volunteering category chips (All / Distributing Food / …) ── */}
+        {isVolunteering && (
+          <View style={[styles.categoryTabsWrapper, { marginBottom: 6 }]}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.categoryTabsContainer}
+            >
+              {volunteeringFilters.map((tab) => {
+                const isActive = volunteeringFilter === tab.code;
+                return (
+                  <TouchableOpacity
+                    key={tab.code}
+                    onPress={() => setVolunteeringFilter(tab.code)}
+                    style={[
+                      styles.categoryTab,
+                      isActive
+                        ? styles.categoryTabActive
+                        : styles.categoryTabInactive,
+                      { paddingVertical: 4, paddingHorizontal: 12 },
+                    ]}
+                  >
+                    <Text
+                      numberOfLines={1}
+                      style={[
+                        styles.categoryTabText,
+                        isActive
+                          ? styles.categoryTabTextActive
+                          : styles.categoryTabTextInactive,
+                      ]}
+                    >
+                      {tab.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        )}
+
         {/* ── GOAL row – full-width dark box ── */}
-        <View style={styles.goalHeader}>
+        <View
+          style={[
+            styles.goalHeader,
+            // Pull GOAL closer to volunteering category chips.
+            isVolunteering && { marginTop: -3 },
+          ]}
+        >
           <Text style={styles.goalLabel}>{t("progressLogging.goal")}</Text>
           <View style={styles.goalValueRow}>
             <Text style={styles.goalValue}>
@@ -1260,7 +1340,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.semiBold,
   },
   categoryTabTextInactive: {
-    color: Colors.light.grey,
+    color: Colors.light.white,
   },
   // Stats row
   statsRow: {

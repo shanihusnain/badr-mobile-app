@@ -9,11 +9,10 @@ export const SadaqahJariyahMosqueIcon = ({
     color?: string;
 }) => (
     <Svg
-
         width={size}
         height={size}
+        viewBox="0 0 30 30"
         fill="none"
-
     >
         <Path
             fill={color}

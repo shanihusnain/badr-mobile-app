@@ -49,17 +49,6 @@ export const HeaderWithImageTitleAndBell = ({
             />
           </Pressable>
         )}
-        <View
-          style={{
-            height: 4,
-            width: 4,
-            backgroundColor: Colors.light.red,
-            borderRadius: 2,
-            position: "absolute",
-            top: 0,
-            right: 0,
-          }}
-        />
         <Text
           style={{
             color: Colors.light.white,
@@ -71,8 +60,12 @@ export const HeaderWithImageTitleAndBell = ({
         >
           {title ? title.toUpperCase() : "Plan"}
         </Text>
-        <Pressable onPress={() => router.push("/notifications")}>
+        <Pressable
+          onPress={() => router.push("/notifications")}
+          style={styles.bellWrap}
+        >
           <BellIcon width={23} height={26} color={Colors.light.white} />
+          <View style={styles.bellBadge} />
         </Pressable>
       </View>
     </View>
@@ -82,5 +75,21 @@ const styles = StyleSheet.create({
   headerLeft: {
     width: 40,
     alignItems: "flex-start",
+  },
+  bellWrap: {
+    position: "relative",
+    width: 23,
+    height: 26,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  bellBadge: {
+    position: "absolute",
+    top: 1,
+    right: 1,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: Colors.light.red,
   },
 });

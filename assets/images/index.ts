@@ -12,6 +12,7 @@ import sadaqahjariyahimagebackground from "./sadaqahjariyahimagebackground.png";
 import Volunteeringservicesimagebackground from "./volunteeringservicesimagebackground.png";
 import lillahdonationsbackgroundimage from "./lillahdonationsbackgroundimage.png";
 import JournalGetStartedImage from "./journalgetstartedcard.png";
+import JournalCardImage from "./journalcard.png";
 import tahiyyatalwudhubottomsheetimage from "./tahiyyatalwudhubottomsheetimage.png";
 import missedpastprayerbottomsheetimage from "./missedpastprayerbottomsheetimage.png";
 import tahiyyatalmasjidbottomsheetimage from "./tahiyyatalmasjidbottomsheetimage.png";
@@ -66,6 +67,7 @@ export {
   createTeamImage,
   createTeamThreeAndFourImage,
   JournalGetStartedImage,
+  JournalCardImage,
   tahiyyatalwudhubottomsheetimage,
   missedpastprayerbottomsheetimage,
   tahiyyatalmasjidbottomsheetimage,

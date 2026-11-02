@@ -66,7 +66,8 @@ export function LillahDayRing({
 }: Props) {
   const showBestBoost = isBestDay && hasLog && !isFuture && !showEmptyOutline;
   const circleSize = showBestBoost ? size + BEST_DAY_SIZE_BOOST : size;
-  const iconSize = circleSize * 0.72;
+  // Slightly larger glyphs; ring diameter unchanged.
+  const iconSize = Math.round(circleSize * 0.72);
   const iconColor = isBestDay
     ? Colors.light.qiyamIconGold
     : Colors.light.white;
@@ -104,11 +105,13 @@ export function LillahDayRing({
             isToday && styles.ringInnerLoggedToday,
           ]}
         >
-          <CategoryIcon
-            category={category}
-            size={iconSize}
-            color={iconColor}
-          />
+          <View style={styles.iconSlot}>
+            <CategoryIcon
+              category={category}
+              size={iconSize}
+              color={iconColor}
+            />
+          </View>
         </View>
       );
     }
@@ -159,7 +162,13 @@ const styles = StyleSheet.create({
   ringInner: {
     alignItems: "center",
     justifyContent: "center",
-    overflow: "visible",
+    overflow: "hidden",
+  },
+  iconSlot: {
+    width: "100%",
+    height: "100%",
+    alignItems: "center",
+    justifyContent: "center",
   },
   ringInnerLogged: {
     backgroundColor: Colors.light.green,

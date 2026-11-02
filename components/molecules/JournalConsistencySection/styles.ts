@@ -29,19 +29,23 @@ export const journalConsistencySectionStyles = StyleSheet.create({
   },
   achievementPercent: {
     color: Colors.light.white,
-    fontSize: 40,
-    fontFamily: fonts.primary.regular,
-    fontWeight: "400",
-    lineHeight: 44,
+    fontSize: 28,
+    fontFamily: fonts.primary.bold,
+    fontWeight: "700",
+    lineHeight: 28,
   },
   achievementPercentSymbol: {
-    fontSize: 22,
+    fontSize: 16,
+    fontFamily: fonts.primary.bold,
+    fontWeight: "700",
+    lineHeight: 16,
+
   },
   achievementCaption: {
     color: Colors.light.subtext,
-    fontSize: 13,
-    fontFamily: fonts.primary.medium,
-    fontWeight: "500",
+    fontSize: 11,
+    fontFamily: fonts.primary.heavy,
+    fontWeight: "800",
   },
   deltaBadge: {
     flexDirection: "row",
@@ -85,7 +89,7 @@ export const journalConsistencySectionStyles = StyleSheet.create({
     flex: 1,
     borderRadius: 5,
     paddingHorizontal: 2,
-    paddingVertical: 6,
+    paddingVertical: 9,
     alignItems: "center",
     justifyContent: "center",
     minWidth: 0,
@@ -98,7 +102,7 @@ export const journalConsistencySectionStyles = StyleSheet.create({
   },
   periodButtonText: {
     color: Colors.light.grey,
-    fontSize: 11,
+    fontSize: 13,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
     textAlign: "center",
@@ -127,7 +131,7 @@ export const journalConsistencySectionStyles = StyleSheet.create({
   dateRange: {
     color: Colors.light.white,
     fontSize: 16,
-    fontFamily: fonts.primary.semiBold,
+    fontFamily: fonts.primary.medium,
     fontWeight: "500",
     textAlign: "center",
     flex: 1,

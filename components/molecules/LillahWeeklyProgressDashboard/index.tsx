@@ -8,16 +8,6 @@ import {
   type SinglePrayerDayProgress,
   type SinglePrayerDayRingRenderArgs,
 } from "@/components/molecules/SinglePrayerWeeklyProgressDashboard";
-import { DashBoardCalenderIcon } from "@/assets/icons/DashBoardCalenderIcon";
-import { GoatIcon } from "@/assets/icons/GoatIcon";
-import { HouseWithHeartIcon } from "@/assets/icons/HouseWithHeartIcon";
-import { DebtAssistanceIcon } from "@/assets/icons/DebtAssistanceIcon";
-import { FlowCardQardHassanIcon } from "@/assets/icons/FlowCardQardHassanIcon";
-import { FlowCardFoodReliefIcon } from "@/assets/icons/FlowCardFoodReleifIcon";
-import { BinIcon } from "@/assets/icons";
-import { getLillahCategory } from "@/src/screens/private/goalprogressloggingscreen/lillahCategories";
-import { PrayerWeeklyDashboardBody } from "@/components/molecules/PrayerWeeklyDashboardBody";
-import { PrayerWeeklyProgressFooter } from "@/components/molecules/PrayerWeeklyProgressFooter";
 import { useDeleteSadaqahLog } from "@/src/api/mutations/useDeleteSadaqahLog";
 import type { LillahCategoryId } from "@/src/screens/private/goalprogressloggingscreen/lillahCategories";
 import { LillahDayRing } from "./LillahDayRing";
@@ -53,7 +43,9 @@ export type LillahWeeklyProgressDashboardProps = {
   onDayPress?: (index: number) => void;
   onPrevWeek?: () => void;
   onNextWeek?: () => void;
+  /** Frame / week-fetch loading — match Missed Zakat placeholders. */
   loading?: boolean;
+  /** Bump parent refresh after a successful delete. */
   onDeleted?: () => void;
   allowLogDeletion?: boolean;
   sadaqahType?: string;
@@ -161,7 +153,7 @@ export function LillahWeeklyProgressDashboard({
           category={lillahDay.category}
           hasLog={hasLog}
           isBestDay={Boolean(lillahDay.isBestDay && hasLog)}
-          isToday={Boolean(lillahDay.isToday)}
+          isToday={Boolean(args.day.isToday)}
           isFuture={Boolean(lillahDay.isFuture)}
           isBlurDay={Boolean(lillahDay.isBlurDay)}
           showEmptyOutline={args.showEmptyOutline}
@@ -171,16 +163,15 @@ export function LillahWeeklyProgressDashboard({
     [weekDays],
   );
 
-  const totalLabel =
-    currency === "USD" ? `$${totalThisWeek}` : `${currency} ${totalThisWeek}`;
-
   return (
     <SinglePrayerWeeklyProgressDashboard
       weekDays={mappedWeekDays}
       weekRangeLabel={weekRangeLabel}
       weekFraction={weekFraction}
       streakDays={streakDays}
-      vsLastWeek={null}
+      vsLastWeek={vsLastWeek}
+      vsLastWeekDisplay={vsLastWeekDisplay}
+      comparisonVariant="hours"
       motivationalQuote={loading ? "---" : motivationalQuote}
       selectedDayIndex={selectedDayIndex}
       onDayPress={onDayPress}
@@ -195,32 +186,21 @@ export function LillahWeeklyProgressDashboard({
       showTodayChip
       greenActivityCaptions
       statsRow={
-        <>
-          <View style={styles.statsRow}>
-            <DashBoardHandHeartIcon size={24} color={Colors.light.lightblue} />
-            <Text style={styles.statsText} numberOfLines={1}>
-              {loading ? (
-                "---"
-              ) : (
-                <>
-                  <Text style={styles.statsCount}>
-                    {formatDayAmount(totalThisWeek, currencyCode)}
-                  </Text>
-                  {" spent in total this week"}
-                </>
-              )}
-            </Text>
-          </View>
-
-          <PrayerWeeklyProgressFooter
-            loading={loading}
-            streakDays={streakDays}
-            vsLastWeek={vsLastWeek}
-            vsLastWeekDisplay={vsLastWeekDisplay}
-            motivationalQuote={motivationalQuote}
-            comparisonVariant="hours"
-          />
-        </>
+        <View style={styles.statsRow}>
+          <DashBoardHandHeartIcon size={24} color={Colors.light.lightblue} />
+          <Text style={styles.statsText} numberOfLines={1}>
+            {loading ? (
+              "---"
+            ) : (
+              <>
+                <Text style={styles.statsCount}>
+                  {formatDayAmount(totalThisWeek, currency)}
+                </Text>
+                {" spent in total this week"}
+              </>
+            )}
+          </Text>
+        </View>
       }
     />
   );

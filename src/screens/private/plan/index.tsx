@@ -108,12 +108,13 @@ export default function PlanScreen() {
 
   return (
     <BlackScreenWrapper edges={[]}>
+      <TopSpace top={20} />
       <PlanTabBar
         tabs={tabs}
         selectedTab={selectedTab}
         onSelectTab={setSelectedTab}
       />
-      <TopSpace top={16} />
+      <TopSpace top={26} />
       {selectedTab === 1 ? (
         <GoalTabContent studyMaterial={studyMaterial} />
       ) : (

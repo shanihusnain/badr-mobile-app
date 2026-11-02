@@ -9,7 +9,7 @@ import {
 import { Colors } from "@/constants/theme";
 import { Feather } from "@expo/vector-icons";
 import { Pressable, ScrollView, Text, View } from "react-native";
-import { PlanNotificationsCard } from "./PlanNotificationsCard";
+import { ManageNotificationsCard } from "./ManageNotificationsCard";
 import { PlanSectionHeader } from "./PlanSectionHeader";
 import { planStyles as styles } from "../styles";
 import { router } from "expo-router";
@@ -50,28 +50,32 @@ export function GoalTabContent({ studyMaterial }: GoalTabContentProps) {
           onPress={() => {}}
           style={styles.goalPlanButton}
           variant="green"
+          size="compact"
         />
       </View>
-      <TopSpace top={20} />
+      <TopSpace top={29} />
       <View style={styles.goalProgressCard}>
         <View style={styles.goalProgressRow}>
           <View style={styles.moonProgressWrap}>
             <MoonProgress progressPercent={66} />
           </View>
-          <Text style={styles.goalProgressText}>{GOAL_PROGRESS_TEXT}</Text>
+          <View style={styles.goalProgressTextBlock}>
+            <Text style={styles.goalProgressText}>{GOAL_PROGRESS_TEXT}</Text>
+            <TopSpace top={12} />
+            <Pressable style={styles.viewProposedPlanRow}>
+              <Text style={styles.viewProposedPlanText}>VIEW PROPOSED PLAN</Text>
+              <Feather
+                name="chevron-right"
+                size={20}
+                color={Colors.light.green}
+              />
+            </Pressable>
+          </View>
         </View>
-        <TopSpace top={16} />
-        <Pressable style={styles.viewProposedPlanRow}>
-          <Text style={styles.viewProposedPlanText}>VIEW PROPOSED PLAN</Text>
-          <Feather name="chevron-right" size={24} color={Colors.light.green} />
-        </Pressable>
       </View>
       <TopSpace top={20} />
-      <PlanNotificationsCard
-        description={GOAL_PROGRESS_TEXT}
-        callToActionText="MANAGE NOTIFICATIONS"
-      />
-      <TopSpace top={20} />
+      <ManageNotificationsCard />
+      <TopSpace top={36} />
       <PlanSectionHeader title="ACHIEVEMENT REPORTS" actionLabel="VIEW ALL" />
       <TopSpace top={12} />
       <ScrollView
@@ -96,7 +100,8 @@ export function GoalTabContent({ studyMaterial }: GoalTabContentProps) {
       </ScrollView>
       <PastAchievementStudyMaterial
         items={studyMaterial}
-        title="Study Material"
+        title="LEARN MORE"
+        seeAllLabel="VIEW ALL"
         showSeeAll={true}
         onSeeAllPress={() => router.push("/(tabs)/(connect)/learnmorescreen")}
       />
