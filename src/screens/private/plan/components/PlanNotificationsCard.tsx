@@ -1,21 +1,23 @@
-import { FilterIcon } from "@/assets/icons";
+import { FilterIcon } from "../../../../../assets/icons/FilterIcon";
+import JournalGetStartedImage from "../../../../../assets/images/journalgetstartedcard.png";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { Colors } from "@/constants/theme";
 import { Feather } from "@expo/vector-icons";
 import { ImageBackground } from "expo-image";
 import { Pressable, Text, View } from "react-native";
 import { planStyles as styles } from "../styles";
-import { JournalGetStartedImage } from "@/assets/images";
 import { router } from "expo-router";
 
 const DEFAULT_DESCRIPTION =
   "You're on day 18 of your 28-day cycle, with a 66% achievement score. If you'd like, tap to explore a proposed plan to help complete your remaining goals.";
 
 type PlanNotificationsCardProps = {
+  title?: string;
   description?: string;
   iconSize?: number;
   showAction?: boolean;
   callToActionText?: string;
+  onActionPress?: () => void;
 };
 
 function renderDescriptionWithHighlightedDigits(description: string) {
@@ -36,10 +38,12 @@ function renderDescriptionWithHighlightedDigits(description: string) {
 }
 
 export function PlanNotificationsCard({
+  title,
   description = DEFAULT_DESCRIPTION,
   iconSize = 35,
   showAction = true,
   callToActionText = "MANAGE NOTIFICATIONS",
+  onActionPress,
 }: PlanNotificationsCardProps) {
   return (
     <ImageBackground
@@ -52,6 +56,7 @@ export function PlanNotificationsCard({
       <View style={styles.proposedPlanContent}>
         <FilterIcon size={iconSize} color={Colors.light.white} />
         <View style={styles.proposedPlanTextBlock}>
+          {title ? <Text style={styles.proposedPlanTitle}>{title}</Text> : null}
           <Text style={styles.proposedPlanDescription}>
             {renderDescriptionWithHighlightedDigits(description)}
           </Text>
@@ -61,6 +66,10 @@ export function PlanNotificationsCard({
               <Pressable
                 style={styles.proposedPlanAction}
                 onPress={() => {
+                  if (onActionPress) {
+                    onActionPress();
+                    return;
+                  }
                   router.push("/notifications");
                 }}
               >

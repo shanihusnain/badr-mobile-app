@@ -37,7 +37,7 @@ export function KaffarahDayRing({
 }: Props) {
   const showBestBoost = isBestDay && hasLog && !isFuture && !showEmptyOutline;
   const circleSize = showBestBoost ? size + BEST_DAY_SIZE_BOOST : size;
-  const iconSize = circleSize * (category === "clothes" ? 0.84 : 0.8);
+  const iconSize = circleSize * (category === "clothes" ? 0.72 : 0.68);
   const iconColor = isBestDay
     ? Colors.light.qiyamIconGold
     : Colors.light.white;

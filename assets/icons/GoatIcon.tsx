@@ -15,11 +15,10 @@ export const GoatIcon = ({
  size?: number;
 }) => (
   <Svg
-  
     width={size}
     height={size}
+    viewBox="0 0 18 18"
     fill="none"
-
   >
     <Path
       fill={color}

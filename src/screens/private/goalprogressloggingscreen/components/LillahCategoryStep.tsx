@@ -4,6 +4,7 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
+  ScrollView,
 } from "react-native";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -26,6 +27,11 @@ type Props = {
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 };
+
+/** Visible rows in the open menu (design: two at a time, scroll for the rest). */
+const VISIBLE_MENU_ROWS = 2;
+const MENU_ROW_HEIGHT = 25;
+const MENU_LIST_VERTICAL_PADDING = 7;
 
 function CategoryIcon({
   id,
@@ -68,6 +74,8 @@ export function LillahCategoryStep({
     useState<LillahCategoryId | null>(null);
 
   const selected = LILLAH_CATEGORIES.find((c) => c.id === selectedCategory)!;
+  // All other Lillah options (Food Relief, Animal Sacrifice, Household,
+  // Debt Assistance, Qard Hassan) minus the one already on the trigger.
   const menuOptions = LILLAH_CATEGORIES.filter(
     (c) => c.id !== selectedCategory,
   );
@@ -97,39 +105,48 @@ export function LillahCategoryStep({
         </Text>
       ) : (
         <View style={styles.radioList}>
-          {menuOptions.map((cat: LillahCategoryDef) => {
-            const isChecked = cat.id === tempSelectedCategory;
-            return (
-              <TouchableOpacity
-                key={cat.id}
-                style={styles.radioRow}
-                onPress={() => {
-                  setTempSelectedCategory(cat.id);
-                  setTimeout(() => {
-                    onSelectCategory(cat.id);
-                    setIsOpen(false);
-                    setTempSelectedCategory(null);
-                  }, 150);
-                }}
-                activeOpacity={0.8}
-              >
-                <View
-                  style={[
-                    styles.radioCircle,
-                    isChecked && styles.radioCircleChecked,
-                  ]}
+          <ScrollView
+            style={styles.radioScroll}
+            contentContainerStyle={styles.radioScrollContent}
+            showsVerticalScrollIndicator
+            nestedScrollEnabled
+            bounces={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            {menuOptions.map((cat: LillahCategoryDef) => {
+              const isChecked = cat.id === tempSelectedCategory;
+              return (
+                <TouchableOpacity
+                  key={cat.id}
+                  style={styles.radioRow}
+                  onPress={() => {
+                    setTempSelectedCategory(cat.id);
+                    setTimeout(() => {
+                      onSelectCategory(cat.id);
+                      setIsOpen(false);
+                      setTempSelectedCategory(null);
+                    }, 150);
+                  }}
+                  activeOpacity={0.8}
                 >
-                  {isChecked ? <View style={styles.radioDot} /> : null}
-                </View>
-                <View style={styles.catIconCirclePlain}>
-                  <CategoryIcon id={cat.id} size={18} />
-                </View>
-                <Text style={styles.radioLabel} numberOfLines={1}>
-                  {cat.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
+                  <View
+                    style={[
+                      styles.radioCircle,
+                      isChecked && styles.radioCircleChecked,
+                    ]}
+                  >
+                    {isChecked ? <View style={styles.radioDot} /> : null}
+                  </View>
+                  <View style={styles.catIconCirclePlain}>
+                    <CategoryIcon id={cat.id} size={18} />
+                  </View>
+                  <Text style={styles.radioLabel} numberOfLines={1}>
+                    {cat.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
         </View>
       )}
     </View>
@@ -171,9 +188,12 @@ const styles = StyleSheet.create({
     marginTop: 4,
     color: "rgba(255, 255, 255, 0.8)",
     fontFamily: fonts.primary.regular,
-    fontSize: 11,
-    lineHeight: 15,
-    paddingHorizontal: 4,
+    fontSize: 10,
+    lineHeight: 12,
+    fontWeight: "400",
+    textAlign: "left",
+    // Flush with dropdown left edge (same as trigger).
+    paddingHorizontal: 0,
   },
   radioList: {
     position: "absolute",
@@ -190,13 +210,22 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
+    // Exactly two rows visible; remaining categories scroll inside.
+    maxHeight: MENU_ROW_HEIGHT * VISIBLE_MENU_ROWS + MENU_LIST_VERTICAL_PADDING,
+    overflow: "hidden",
+  },
+  radioScroll: {
+    maxHeight: MENU_ROW_HEIGHT * VISIBLE_MENU_ROWS,
+  },
+  radioScrollContent: {
+    paddingBottom: 2,
   },
   radioRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
+    gap: 5,
+    height: MENU_ROW_HEIGHT,
     paddingHorizontal: 12,
-    paddingVertical: 8,
   },
   radioCircle: {
     width: 16,

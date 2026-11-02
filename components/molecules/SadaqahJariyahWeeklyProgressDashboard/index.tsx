@@ -1,24 +1,16 @@
-import React, { useCallback, useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Pressable,
-  StyleSheet,
-  useWindowDimensions,
-} from "react-native";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import React, { useCallback, useMemo } from "react";
+import { StyleSheet, Text, View } from "react-native";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
+import { DashBoardHandHeartIcon } from "@/assets/icons/DashBoardHandHeartIcon";
 import {
-  SadaqahJariyahCategoryId,
-  getSadaqahJariyahCategory,
-} from "@/src/screens/private/goalprogressloggingscreen/sadaqahJariyahCategories";
-import { BinIcon, CalendarIcon } from "@/assets/icons";
-import { PrayerWeeklyDashboardBody } from "@/components/molecules/PrayerWeeklyDashboardBody";
-import { PrayerWeeklyProgressFooter } from "@/components/molecules/PrayerWeeklyProgressFooter";
+  SinglePrayerWeeklyProgressDashboard,
+  type SinglePrayerDayProgress,
+  type SinglePrayerDayRingRenderArgs,
+} from "@/components/molecules/SinglePrayerWeeklyProgressDashboard";
 import { useDeleteSadaqahLog } from "@/src/api/mutations/useDeleteSadaqahLog";
+import type { SadaqahJariyahCategoryId } from "@/src/screens/private/goalprogressloggingscreen/sadaqahJariyahCategories";
+import { SadaqahJariyahDayRing } from "./SadaqahJariyahDayRing";
 
 export type SadaqahJariyahDayProgress = {
   day: string;
@@ -30,6 +22,9 @@ export type SadaqahJariyahDayProgress = {
   isBestDay?: boolean;
   isToday?: boolean;
   isFuture?: boolean;
+  /**
+   * Blur day: days after the user achieves 100% of their goal.
+   */
   isBlurDay?: boolean;
   canDelete?: boolean;
 };
@@ -58,78 +53,49 @@ export type SadaqahJariyahWeeklyProgressDashboardProps = {
   currencyCode?: string;
 };
 
-const CARD_HORIZONTAL_PADDING = 16;
-const WRAPPER_WIDTH_RATIO = 0.92;
-const RING_SIZE_MAX = 34;
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Day Ring
-// ─────────────────────────────────────────────────────────────────────────────
-type DayRingProps = {
-  size: number;
-  day: SadaqahJariyahDayProgress;
-  isSelected: boolean;
-};
-
-function SadaqahJariyahDayRing({ size, day, isSelected }: DayRingProps) {
-  const hasLog = day.amount > 0 && day.category !== null;
-
-  const innerSizeStyle = {
-    width: size,
-    height: size,
-    borderRadius: size / 2,
-  };
-
-  const renderInner = () => {
-    if (day.isFuture) {
-      return (
-        <View style={[innerSizeStyle, styles.ringInner, styles.ringInnerFuture]} />
-      );
-    }
-
-    if (hasLog) {
-      const catDef = getSadaqahJariyahCategory(day.category!);
-      const iconColor = day.isBestDay ? Colors.light.yellow : Colors.light.white;
-      return (
-        <View
-          style={[
-            innerSizeStyle,
-            styles.ringInner,
-            styles.ringInnerLogged,
-            !day.isToday && !day.isBestDay && styles.ringInnerLoggedPast,
-          ]}
-        >
-          <MaterialCommunityIcons
-            name={catDef.icon as any}
-            size={size * 0.5}
-            color={iconColor}
-          />
-        </View>
-      );
-    }
-
-    return (
-      <View style={[innerSizeStyle, styles.ringInner, styles.ringInnerEmpty]} />
-    );
-  };
-
-  return (
-    <View
-      style={[
-        styles.ringOuter,
-        { width: size + 10, height: size + 16, borderRadius: 8 },
-        isSelected && styles.ringOuterSelected,
-        day.isBlurDay && styles.ringOuterBlur,
-      ]}
-    >
-      {renderInner()}
-    </View>
-  );
+function getLocalTodayString(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Main Dashboard
-// ─────────────────────────────────────────────────────────────────────────────
+function normalizeDayDate(value?: string): string | null {
+  if (!value) return null;
+  const slice = value.slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(slice) ? slice : null;
+}
+
+function formatDayAmount(value: number, currencyCode: string): string {
+  const currency = String(currencyCode || "USD")
+    .trim()
+    .toUpperCase();
+  if (currency === "USD") return `$${value}`;
+  return `${currency} ${value}`;
+}
+
+function mapJariyahDayToSinglePrayerDay(
+  day: SadaqahJariyahDayProgress,
+  currencyCode: string,
+): SinglePrayerDayProgress {
+  const hasLog = day.amount > 0 && day.category !== null;
+  const dateKey = normalizeDayDate(day.date);
+  const isToday = dateKey ? dateKey === getLocalTodayString() : !!day.isToday;
+
+  return {
+    day: day.day,
+    date: dateKey ?? day.date,
+    prayersLogged: hasLog ? Math.max(1, day.amount) : 0,
+    isLogged: hasLog,
+    isBestDay: !!day.isBestDay && hasLog,
+    isToday,
+    // Blur / post-completion days stay non-interactive like future days.
+    isFuture: isToday ? false : !!day.isFuture || !!day.isBlurDay,
+    canDelete: day.canDelete,
+    durationLabel: hasLog
+      ? formatDayAmount(day.amount, currencyCode)
+      : undefined,
+  };
+}
+
 export function SadaqahJariyahWeeklyProgressDashboard({
   weekDays,
   weekRangeLabel = "Nov 29 — Dec 5",
@@ -149,398 +115,119 @@ export function SadaqahJariyahWeeklyProgressDashboard({
   sadaqahType = "SADAQAH_JARIYAH",
   currencyCode = "USD",
 }: SadaqahJariyahWeeklyProgressDashboardProps) {
-  const { width: screenWidth } = useWindowDimensions();
-  const { mutate: deleteSadaqahLog, isPending: isDeletingLog } =
+  const { mutateAsync: deleteSadaqahLog, isPending: isDeletingLog } =
     useDeleteSadaqahLog();
+
   const currency = String(currencyCode || "USD")
     .trim()
     .toUpperCase();
-  const formatAmount = (value: number) => `${currency} ${value}`;
 
-  const availableWidth =
-    screenWidth * WRAPPER_WIDTH_RATIO - CARD_HORIZONTAL_PADDING;
-  const ringSize = Math.min(
-    RING_SIZE_MAX,
-    Math.floor((availableWidth / 7) * 0.62),
+  const mappedWeekDays = useMemo(
+    () => weekDays.map((day) => mapJariyahDayToSinglePrayerDay(day, currency)),
+    [weekDays, currency],
   );
 
-  const [activeDayIndex, setActiveDayIndex] = useState(selectedDayIndex);
-  const [selectForDeletion, setSelectForDeletion] = useState("");
-
-  useEffect(() => {
-    setActiveDayIndex(selectedDayIndex);
-    setSelectForDeletion("");
-  }, [selectedDayIndex, weekRangeLabel, weekFraction]);
+  const isGoalCompleted = useMemo(
+    () => weekDays.some((day) => day.isBlurDay),
+    [weekDays],
+  );
 
   const handleDeleteLog = useCallback(
-    (logDate: string) => {
-      deleteSadaqahLog(
-        { sadaqahType, logDate },
-        {
-          onSuccess: () => {
-            setSelectForDeletion("");
-            onDeleted?.();
-          },
-        },
-      );
+    async (date: string) => {
+      await deleteSadaqahLog({ sadaqahType, logDate: date });
+      onDeleted?.();
     },
     [deleteSadaqahLog, onDeleted, sadaqahType],
   );
 
+  const renderDayRing = useCallback(
+    (args: SinglePrayerDayRingRenderArgs) => {
+      const jariyahDay = weekDays[args.index];
+      if (!jariyahDay) return null;
+
+      const hasLog = jariyahDay.amount > 0 && jariyahDay.category !== null;
+
+      return (
+        <SadaqahJariyahDayRing
+          size={args.size}
+          category={jariyahDay.category}
+          hasLog={hasLog}
+          isBestDay={Boolean(jariyahDay.isBestDay && hasLog)}
+          isToday={Boolean(args.day.isToday)}
+          isFuture={Boolean(jariyahDay.isFuture)}
+          isBlurDay={Boolean(jariyahDay.isBlurDay)}
+          showEmptyOutline={args.showEmptyOutline}
+        />
+      );
+    },
+    [weekDays],
+  );
+
   return (
-    <View style={styles.card}>
-      <View style={styles.headerRow}>
-        <View style={styles.headerLeft}>
-          <CalendarIcon size={24} color={Colors.light.subtext} />
-          <Text style={styles.weekFractionText} numberOfLines={1}>
-            {loading ? "---" : `${weekFraction} WEEKS`}
-          </Text>
-        </View>
-        <View style={styles.headerNav}>
-          <TouchableOpacity
-            onPress={onPrevWeek}
-            activeOpacity={onPrevWeek && !loading ? 0.7 : 1}
-            style={styles.navBtn}
-            disabled={loading || !onPrevWeek}
-          >
-            <Ionicons
-              name="chevron-back"
-              size={14}
-              color={Colors.light.dullWhite}
-            />
-          </TouchableOpacity>
-          <Text style={styles.weekRangeText} numberOfLines={1}>
-            {loading ? "---" : weekRangeLabel}
-          </Text>
-          <TouchableOpacity
-            onPress={onNextWeek}
-            activeOpacity={onNextWeek && !loading ? 0.7 : 1}
-            style={styles.navBtn}
-            disabled={loading || !onNextWeek}
-          >
-            <Ionicons
-              name="chevron-forward"
-              size={14}
-              color={Colors.light.dullWhite}
-            />
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      <PrayerWeeklyDashboardBody loading={loading}>
-        <View style={styles.daysRow}>
-          {weekDays.map((day, index) => {
-            const isSelected = index === activeDayIndex;
-            const hasLog = day.amount > 0 && day.category !== null;
-            const isMarkedForDeletion =
-              !!day.date && selectForDeletion === day.date;
-
-            return (
-              <TouchableOpacity
-                key={`${day.day}-${day.date ?? index}`}
-                style={[
-                  styles.dayColumn,
-                  isMarkedForDeletion && styles.dayColumnMarkedForDeletion,
-                ]}
-                onLongPress={() => {
-                  if (!allowLogDeletion || loading || day.isFuture || !day.date)
-                    return;
-                  if (day.canDelete === false) return;
-                  if (!hasLog) return;
-                  setSelectForDeletion((prev) =>
-                    prev === day.date ? "" : (day.date ?? ""),
-                  );
-                }}
-                onPress={() => {
-                  if (loading || day.isFuture) return;
-                  if (selectForDeletion) {
-                    setSelectForDeletion("");
-                    return;
-                  }
-                  setActiveDayIndex(index);
-                  onDayPress?.(index);
-                }}
-                activeOpacity={loading || day.isFuture ? 1 : 0.75}
-                disabled={loading || day.isFuture}
-              >
-                <View
-                  style={[
-                    styles.dayItemWrapper,
-                    isSelected &&
-                      !isMarkedForDeletion &&
-                      styles.dayItemSelected,
-                    isMarkedForDeletion && styles.deletingDay,
-                  ]}
-                >
-                  <SadaqahJariyahDayRing
-                    size={ringSize}
-                    day={day}
-                    isSelected={isSelected && !isMarkedForDeletion}
-                  />
-                  <Text
-                    style={[
-                      day.isBestDay ? styles.bestDayLabel : styles.dayLabel,
-                    ]}
-                    numberOfLines={1}
-                  >
-                    {loading ? "---" : day.isBestDay ? "BEST DAY!" : day.day}
-                  </Text>
-                  <View style={styles.durationSlot}>
-                    <Text
-                      style={[
-                        day.isBestDay
-                          ? styles.durationTextBest
-                          : styles.durationTextNormal,
-                        styles.durationText,
-                      ]}
-                      numberOfLines={1}
-                    >
-                      {loading ? "" : hasLog ? formatAmount(day.amount) : ""}
-                    </Text>
-                  </View>
-
-                  {isMarkedForDeletion ? (
-                    <Pressable
-                      style={styles.deleteButton}
-                      disabled={isDeletingLog}
-                      onPress={() => {
-                        if (!day.date || isDeletingLog) return;
-                        handleDeleteLog(day.date);
-                      }}
-                    >
-                      <BinIcon />
-                    </Pressable>
-                  ) : null}
-                </View>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-
+    <SinglePrayerWeeklyProgressDashboard
+      weekDays={mappedWeekDays}
+      weekRangeLabel={weekRangeLabel}
+      weekFraction={weekFraction}
+      streakDays={streakDays}
+      vsLastWeek={vsLastWeek}
+      vsLastWeekDisplay={vsLastWeekDisplay}
+      comparisonVariant="hours"
+      motivationalQuote={loading ? "---" : motivationalQuote}
+      selectedDayIndex={selectedDayIndex}
+      onDayPress={onDayPress}
+      onPrevWeek={onPrevWeek}
+      onNextWeek={onNextWeek}
+      loading={loading}
+      isGoalCompleted={isGoalCompleted}
+      allowLogDeletion={allowLogDeletion}
+      onDeleteLog={allowLogDeletion ? handleDeleteLog : undefined}
+      isDeletingLog={isDeletingLog}
+      renderDayRing={renderDayRing}
+      showTodayChip
+      greenActivityCaptions
+      statsRow={
         <View style={styles.statsRow}>
-          <MaterialCommunityIcons
-            name="hand-coin-outline"
-            size={24}
-            color={Colors.light.lightblue}
-          />
+          <DashBoardHandHeartIcon size={24} color={Colors.light.lightblue} />
           <Text style={styles.statsText} numberOfLines={1}>
             {loading ? (
               "---"
             ) : (
               <>
                 <Text style={styles.statsCount}>
-                  {formatAmount(totalThisWeek)}
+                  {formatDayAmount(totalThisWeek, currency)}
                 </Text>
                 {" spent in total this week"}
               </>
             )}
           </Text>
         </View>
-
-        <PrayerWeeklyProgressFooter
-          loading={loading}
-          streakDays={streakDays}
-          vsLastWeek={vsLastWeek}
-          vsLastWeekDisplay={vsLastWeekDisplay}
-          motivationalQuote={motivationalQuote}
-          comparisonVariant="hours"
-        />
-      </PrayerWeeklyDashboardBody>
-    </View>
+      }
+    />
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Styles
-// ─────────────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  card: {
-    borderRadius: 14,
-    backgroundColor: Colors.light.greybuttonBackground,
-    paddingHorizontal: 8,
-    paddingVertical: 20,
-    gap: 16,
-  },
-  headerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 8,
-  },
-  headerLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    flexShrink: 1,
-  },
-  weekFractionText: {
-    color: Colors.light.white,
-    fontSize: 13,
-    fontWeight: "600",
-    fontFamily: fonts.primary.semiBold,
-  },
-  headerNav: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 2,
-    flexShrink: 0,
-  },
-  navBtn: { padding: 2 },
-  weekRangeText: {
-    color: Colors.light.white,
-    fontSize: 14,
-    fontWeight: "500",
-    fontFamily: fonts.primary.medium,
-    textAlign: "center",
-  },
-  daysRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    width: "100%",
-  },
-  dayColumn: {
-    flex: 1,
-    alignItems: "center",
-    minWidth: 0,
-  },
-  dayColumnMarkedForDeletion: {
-    zIndex: 99999,
-  },
-  dayItemWrapper: {
-    alignItems: "center",
-    paddingVertical: 4,
-    paddingHorizontal: 2,
-    borderRadius: 8,
-    width: "100%",
-  },
-  dayItemSelected: {
-    backgroundColor: Colors.light.divider,
-  },
-  deletingDay: {
-    borderColor: Colors.light.red,
-    borderWidth: 1,
-    borderRadius: 6,
-    backgroundColor: Colors.light.dullRed,
-  },
-  deleteButton: {
-    height: 20,
-    width: 24,
-    backgroundColor: Colors.light.red,
-    borderRadius: 5,
-    zIndex: 1000,
-    alignSelf: "center",
-    justifyContent: "center",
-    alignItems: "center",
-    position: "absolute",
-    bottom: -10,
-  },
-  bestDayLabel: {
-    color: Colors.light.green,
-    fontSize: 9,
-    fontWeight: "700",
-    fontFamily: fonts.primary.bold,
-    textAlign: "center",
-    marginTop: 4,
-  },
-  ringOuter: {
-    alignItems: "center",
-    justifyContent: "center",
-    borderColor: "transparent",
-  },
-  ringOuterSelected: {},
-  ringOuterBlur: { opacity: 0.3 },
-  ringInner: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  ringInnerLogged: {
-    backgroundColor: Colors.light.green,
-  },
-  ringInnerLoggedPast: {
-    opacity: 0.85,
-  },
-  ringInnerFuture: {
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.3)",
-    backgroundColor: "transparent",
-  },
-  ringInnerEmpty: {
-    backgroundColor: "rgba(255,255,255,0.15)",
-  },
-  dayLabel: {
-    color: Colors.light.subtext,
-    fontSize: 10,
-    fontWeight: "600",
-    fontFamily: fonts.primary.semiBold,
-    marginTop: 4,
-    textAlign: "center",
-  },
-  durationSlot: {
-    height: 14,
-    justifyContent: "center",
-    alignItems: "center",
-    width: "100%",
-  },
-  durationText: {
-    fontSize: 11,
-    fontWeight: "700",
-    fontFamily: fonts.primary.bold,
-    textAlign: "center",
-  },
-  durationTextBest: { color: Colors.light.green },
-  durationTextNormal: { color: Colors.light.grey },
   statsRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 6,
+    gap: 8,
     flexWrap: "nowrap",
+    paddingLeft: 7,
   },
   statsText: {
     color: Colors.light.white,
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: fonts.primary.medium,
     flexShrink: 1,
     fontWeight: "500",
+    letterSpacing: 0.1,
   },
   statsCount: {
     color: Colors.light.white,
-    fontWeight: "700",
-    fontSize: 22,
+    fontWeight: "600",
+    fontSize: 20,
     fontFamily: fonts.primary.bold,
-  },
-  footerRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 12,
-  },
-  streakBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    flexShrink: 0,
-  },
-  streakIconWrapper: {
-    marginLeft: 4,
-  },
-  streakText: {
-    color: Colors.light.white,
-    fontSize: 13,
-    fontWeight: "500",
-    fontFamily: fonts.primary.medium,
-  },
-  quoteBlock: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 4,
-    flex: 1,
-  },
-  quoteText: {
-    flex: 1,
-    color: Colors.light.white,
-    fontSize: 13,
-    lineHeight: 16,
-    fontFamily: fonts.primary.regular,
-    fontWeight: "400",
+    letterSpacing: 0.12,
   },
 });

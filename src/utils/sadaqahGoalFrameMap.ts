@@ -1094,19 +1094,36 @@ export const VOLUNTEERING_LOADING_WEEK_SUMMARY: VolunteeringFrameWeekSummary = {
   vsLastWeekDisplay: null,
 };
 
+/** Design: "10 Hours of" / "Volunteering" on two lines. */
+function formatVolunteeringFlowCardTitle(raw: string): string {
+  const text = raw.replace(/\s*\n\s*/g, " ").replace(/\s+/g, " ").trim();
+  if (!text) return text;
+  // "10 Hours of Volunteering" → "10 Hours of\nVolunteering"
+  if (/\s+of\s+Volunteering$/i.test(text)) {
+    return text.replace(/\s+of\s+Volunteering$/i, " of\nVolunteering");
+  }
+  // "10 Hours Volunteering"
+  if (/\s+Volunteering$/i.test(text) && !/^Volunteering$/i.test(text)) {
+    return text.replace(/\s+Volunteering$/i, "\nVolunteering");
+  }
+  return text;
+}
+
 export function getVolunteeringFrameFlowCardTitle(
   frame: SadaqahGoalFrameData,
 ): string {
   const fromItem = frame.items?.[0]?.title?.trim();
-  if (fromItem) return fromItem;
+  if (fromItem) return formatVolunteeringFlowCardTitle(fromItem);
 
   const targetLabel = frame.goal?.targetLabel?.trim();
-  if (targetLabel) return targetLabel;
+  if (targetLabel) return formatVolunteeringFlowCardTitle(targetLabel);
 
   const hours = frame.goal?.targetAmount ?? frame.goal?.target ?? null;
   if (typeof hours === "number" && hours > 0) {
     return `${hours} Hour${hours === 1 ? "" : "s"} of\nVolunteering`;
   }
 
-  return frame.title?.trim() || "Volunteering Services";
+  return formatVolunteeringFlowCardTitle(
+    frame.title?.trim() || "Volunteering Services",
+  );
 }

@@ -719,7 +719,7 @@ export const GOALS_DATA: Record<GoalId, GoalData> = {
   "sadaqah-Lillah": {
     id: "sadaqah-Lillah",
     category: "SADAQAH",
-    title: "Lillah Donation",
+    title: "Lillah Donations",
     count: "$50",
     label: "/$100",
     percentage: "50%",

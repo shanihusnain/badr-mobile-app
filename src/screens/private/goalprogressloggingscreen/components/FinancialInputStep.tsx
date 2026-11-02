@@ -77,9 +77,11 @@ const localStyles = StyleSheet.create({
   container: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "flex-start",
     gap: 8,
     marginTop: 10,
+    // Match flowIconCircle (35) + marginRight (8) so the box aligns with the header text.
+    marginLeft: 43,
   },
   inputWrapper: {
     flexDirection: "row",

@@ -3,11 +3,10 @@ import Svg, { G, Path, Defs, ClipPath } from "react-native-svg"
 import { Colors } from "@/constants/theme"
 export const SadaqahJariyahCloathIcon = ({ color = Colors.light.white, size = 30 }: { color?: string; size?: number }) => (
     <Svg
-
         width={size}
         height={size}
+        viewBox="0 0 30 30"
         fill="none"
-
     >
         <G clipPath="url(#a)">
             <Path

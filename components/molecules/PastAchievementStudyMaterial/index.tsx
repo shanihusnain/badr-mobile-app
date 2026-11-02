@@ -27,6 +27,7 @@ export type PastAchievementStudyMaterialProps = {
   showSeeAll?: boolean;
   onSeeAllPress?: () => void;
   title?: string;
+  seeAllLabel?: string;
 };
 
 const STUDY_CARD_WIDTH_RATIO = 0.42;
@@ -71,6 +72,7 @@ export function PastAchievementStudyMaterial({
   showSeeAll = true,
   onSeeAllPress,
   title,
+  seeAllLabel = "See All",
 }: PastAchievementStudyMaterialProps) {
   const { t } = useTranslation();
   const { width: screenWidth } = useWindowDimensions();
@@ -95,7 +97,7 @@ export function PastAchievementStudyMaterial({
             activeOpacity={onSeeAllPress ? 0.7 : 1}
             disabled={!onSeeAllPress}
           >
-            <Text style={styles.title}>See All</Text>
+            <Text style={styles.title}>{seeAllLabel}</Text>
             <MaterialCommunityIcons
               name="chevron-right"
               size={16}

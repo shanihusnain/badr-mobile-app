@@ -4,11 +4,13 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
+  ScrollView,
 } from "react-native";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
+import { FlowCardFoodReliefIcon } from "@/assets/icons/FlowCardFoodReleifIcon";
 import {
   VolunteeringCategoryId,
   VolunteeringCategoryDef,
@@ -22,31 +24,56 @@ type Props = {
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
+/** Visible rows in the open menu (same as Lillah: two at a time, scroll for rest). */
+const VISIBLE_MENU_ROWS = 2;
+const MENU_ROW_HEIGHT = 25;
+const MENU_LIST_VERTICAL_PADDING = 7;
+
+function CategoryIcon({
+  id,
+  size = 18,
+}: {
+  id: VolunteeringCategoryId;
+  size?: number;
+}) {
+  if (id === "distributing-food") {
+    return <FlowCardFoodReliefIcon size={size} color={Colors.light.white} />;
+  }
+  const def = VOLUNTEERING_CATEGORIES.find((c) => c.id === id);
+  return (
+    <MaterialCommunityIcons
+      name={(def?.icon as any) ?? "help-circle-outline"}
+      size={size}
+      color={Colors.light.white}
+    />
+  );
+}
+
 export function VolunteeringCategoryStep({
   selectedCategory,
   onSelectCategory,
   isOpen,
   setIsOpen,
 }: Props) {
-  const [tempSelectedCategory, setTempSelectedCategory] = useState<VolunteeringCategoryId | null>(null);
+  const [tempSelectedCategory, setTempSelectedCategory] =
+    useState<VolunteeringCategoryId | null>(null);
 
   const selected = VOLUNTEERING_CATEGORIES.find(
     (c) => c.id === selectedCategory,
   )!;
+  const menuOptions = VOLUNTEERING_CATEGORIES.filter(
+    (c) => c.id !== selectedCategory,
+  );
 
   return (
     <View style={styles.container}>
-      {/* Dropdown Trigger */}
+      {/* Trigger stays fixed; subtext + menu overlay below so layout never jumps. */}
       <TouchableOpacity
         style={styles.dropdown}
         onPress={() => setIsOpen((v) => !v)}
         activeOpacity={0.85}
       >
-        <MaterialCommunityIcons
-          name={selected.icon as any}
-          size={18}
-          color={Colors.light.white}
-        />
+        <CategoryIcon id={selected.id} size={18} />
         <Text style={styles.dropdownLabel} numberOfLines={1}>
           {selected.label}
         </Text>
@@ -57,18 +84,21 @@ export function VolunteeringCategoryStep({
         />
       </TouchableOpacity>
 
-      {/* Description (when closed) */}
-      {!isOpen && (
+      {!isOpen ? (
         <Text style={styles.description} numberOfLines={3}>
           ({selected.description})
         </Text>
-      )}
-
-      {/* Radio List (when open) */}
-      {isOpen && (
+      ) : (
         <View style={styles.radioList}>
-          {VOLUNTEERING_CATEGORIES.filter((c) => c.id !== selectedCategory).map(
-            (cat: VolunteeringCategoryDef) => {
+          <ScrollView
+            style={styles.radioScroll}
+            contentContainerStyle={styles.radioScrollContent}
+            showsVerticalScrollIndicator
+            nestedScrollEnabled
+            bounces={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            {menuOptions.map((cat: VolunteeringCategoryDef) => {
               const isChecked = cat.id === tempSelectedCategory;
               return (
                 <TouchableOpacity
@@ -84,32 +114,24 @@ export function VolunteeringCategoryStep({
                   }}
                   activeOpacity={0.8}
                 >
-                  {/* Radio circle */}
                   <View
                     style={[
                       styles.radioCircle,
                       isChecked && styles.radioCircleChecked,
                     ]}
                   >
-                    {isChecked && <View style={styles.radioDot} />}
+                    {isChecked ? <View style={styles.radioDot} /> : null}
                   </View>
-
-                  {/* Icon */}
-                  <View style={styles.catIconCircle}>
-                    <MaterialCommunityIcons
-                      name={cat.icon as any}
-                      size={14}
-                      color={Colors.light.white}
-                    />
+                  <View style={styles.catIconCirclePlain}>
+                    <CategoryIcon id={cat.id} size={14} />
                   </View>
-
-                  {/* Label */}
                   <Text style={styles.radioLabel} numberOfLines={1}>
                     {cat.label}
                   </Text>
                 </TouchableOpacity>
               );
             })}
+          </ScrollView>
         </View>
       )}
     </View>
@@ -119,19 +141,21 @@ export function VolunteeringCategoryStep({
 const styles = StyleSheet.create({
   container: {
     width: "100%",
-    gap: 4,
-    marginTop: 12,
+    marginTop: 14,
+    position: "relative",
+    zIndex: 20,
+    alignSelf: "stretch",
   },
   dropdown: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
     backgroundColor: "transparent",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.5)",
+    borderColor: "rgba(255, 255, 255, 0.5)",
   },
   dropdownLabel: {
     flex: 1,
@@ -141,29 +165,54 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   description: {
-    color: Colors.light.dullWhite,
+    position: "absolute",
+    top: "100%",
+    left: 0,
+    right: 0,
+    marginTop: 4,
+    color: "rgba(255, 255, 255, 0.8)",
     fontFamily: fonts.primary.regular,
-    fontSize: 11,
-    lineHeight: 15,
-    paddingHorizontal: 4,
+    fontSize: 10,
+    lineHeight: 14,
+    fontWeight: "400",
+    textAlign: "left",
+    paddingHorizontal: 0,
   },
   radioList: {
+    position: "absolute",
+    top: "100%",
+    left: 0,
+    right: 0,
+    marginTop: 2,
     backgroundColor: Colors.light.blackBackground,
     borderRadius: 8,
-    paddingVertical: 4,
-    marginTop: -3,
+    paddingVertical: 3.5,
+    zIndex: 999,
+    elevation: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    maxHeight: MENU_ROW_HEIGHT * VISIBLE_MENU_ROWS + MENU_LIST_VERTICAL_PADDING,
+    overflow: "hidden",
+  },
+  radioScroll: {
+    maxHeight: MENU_ROW_HEIGHT * VISIBLE_MENU_ROWS,
+  },
+  radioScrollContent: {
+    paddingBottom: 0,
   },
   radioRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    gap: 10,
+    gap: 8,
+    height: MENU_ROW_HEIGHT,
+    paddingHorizontal: 10,
   },
   radioCircle: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
     borderWidth: 1.5,
     borderColor: Colors.light.grey,
     alignItems: "center",
@@ -173,23 +222,22 @@ const styles = StyleSheet.create({
     borderColor: Colors.light.green,
   },
   radioDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
     backgroundColor: Colors.light.green,
   },
-  catIconCircle: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: "rgba(255,255,255,0.15)",
+  catIconCirclePlain: {
+    width: 20,
+    height: 20,
     alignItems: "center",
     justifyContent: "center",
   },
   radioLabel: {
-    color: Colors.light.white,
-    fontFamily: fonts.primary.semiBold,
-    fontSize: 13,
     flex: 1,
+    color: Colors.light.white,
+    fontFamily: fonts.primary.medium,
+    fontSize: 12,
+    fontWeight: "500",
   },
 });

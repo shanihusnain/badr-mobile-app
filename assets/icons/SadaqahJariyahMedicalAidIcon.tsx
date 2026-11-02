@@ -4,11 +4,10 @@ import { Colors } from "@/constants/theme"
 export const SadaqahJariyahMedicalAidIcon = ({ size = 30, color = Colors.light.white }:
     { size?: number, color?: string }) => (
     <Svg
-
         width={size}
         height={size}
+        viewBox="0 0 30 30"
         fill="none"
-
     >
         <Path
             fill={color}
