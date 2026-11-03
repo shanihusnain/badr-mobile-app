@@ -17,6 +17,12 @@ export type TimeSpentChartItem = {
   dayLabel: string;
   dateLabel: string;
   hours: number;
+  minutes?: number;
+  valueLabel?: string;
+  isCurrent?: boolean;
+  description?: string;
+  startDate?: string;
+  endDate?: string;
 };
 
 export type CategoryRowData = {
@@ -161,7 +167,9 @@ export function buildWeeklyChartData(
         ? FIGMA_WEEK_HOURS[index]
         : MONTHLY_HOUR_SAMPLES[index % MONTHLY_HOUR_SAMPLES.length];
 
-    const translatedDayLabel = i18next.t(`homeScreen.timeSpent_day_${dayLabel.toLowerCase()}`) || dayLabel;
+    const translatedDayLabel =
+      i18next.t(`homeScreen.timeSpent_day_${dayLabel.toLowerCase()}`) ||
+      dayLabel;
 
     return {
       xLabel: translatedDayLabel,
@@ -171,7 +179,172 @@ export function buildWeeklyChartData(
     };
   });
 }
+export interface BackendChartItem {
+  startDate: string;
+  endDate: string;
+  label: string;
+  dayLabel: string;
+  minutes: number;
+  valueLabel: string;
+  isCurrent: boolean;
+  description: string;
+}
 
+export interface BackendRowItem {
+  key: string;
+  label: string;
+  percent: number;
+  minutes: number;
+  valueLabel: string;
+}
+
+export interface BackendNavigation {
+  previousEndDate: string | null;
+  nextEndDate: string | null;
+}
+
+export interface BackendBadge {
+  label: string;
+  direction: "UP" | "DOWN" | string;
+}
+
+export interface HomeScreenTimeSpentData {
+  title: string;
+  introText: string;
+  introDismissed: boolean;
+  periods: { key: string; label: string }[];
+  filters: { key: string; label: string }[];
+  timeSpentLabel: string;
+  note: string;
+  tooltip: {
+    text: string;
+    button: string;
+  };
+  closeLabel: string;
+  period: "W" | "M" | string;
+  filter: string;
+  rangeLabel: string;
+  shortRangeLabel: string;
+  startDate: string;
+  endDate: string;
+  navigation: BackendNavigation;
+  percent: number;
+  percentLabel: string;
+  badge: BackendBadge;
+  totalMinutes: number;
+  totalLabel: string;
+  description: string;
+  bars: BackendChartItem[];
+  rows: BackendRowItem[];
+}
+
+const DAY_KEY_MAP: Record<string, string> = {
+  sun: "homeScreen.timeSpent_day_sun",
+  mon: "homeScreen.timeSpent_day_mon",
+  tue: "homeScreen.timeSpent_day_tue",
+  wed: "homeScreen.timeSpent_day_wed",
+  thu: "homeScreen.timeSpent_day_thu",
+  fri: "homeScreen.timeSpent_day_fri",
+  sat: "homeScreen.timeSpent_day_sat",
+};
+
+export function getTranslatedDayLabel(label: string): string {
+  const lower = (label || "").trim().toLowerCase();
+  const key = DAY_KEY_MAP[lower];
+  if (key) {
+    const translated = i18next.t(key);
+    if (translated && translated !== key) {
+      return translated;
+    }
+  }
+  return label;
+}
+
+export function transformBackendChartData(
+  backendData: BackendChartItem[],
+  period: TimeSpentPeriod = "week",
+): TimeSpentChartItem[] {
+  return backendData.map((item, index) => {
+    const translatedDayLabel = getTranslatedDayLabel(item.label);
+
+    if (period === "month") {
+      const dateLabel = item.dayLabel || item.label || "";
+      return {
+        xLabel: item.startDate || item.label || `bar-${index}`,
+        dayLabel: "",
+        dateLabel,
+        hours: (item.minutes ?? 0) / 60,
+        minutes: item.minutes,
+        valueLabel: item.valueLabel,
+        isCurrent: item.isCurrent,
+        description: item.description,
+        startDate: item.startDate,
+        endDate: item.endDate,
+      };
+    }
+
+    return {
+      xLabel: translatedDayLabel || item.label || `bar-${index}`,
+      dayLabel: translatedDayLabel,
+      dateLabel: item.dayLabel,
+      hours: (item.minutes ?? 0) / 60,
+      minutes: item.minutes,
+      valueLabel: item.valueLabel,
+      isCurrent: item.isCurrent,
+      description: item.description,
+      startDate: item.startDate,
+      endDate: item.endDate,
+    };
+  });
+}
+
+export function transformBackendRows(
+  rows: BackendRowItem[],
+  displayHours?: number | null,
+): CategoryRowData[] {
+  if (!rows || rows.length === 0) return [];
+
+  if (displayHours !== undefined && displayHours !== null && displayHours <= 0) {
+    return rows.map((row) => {
+      const cleanLabel = (row.label || row.key || "")
+        .replace(/\s*\(\d+%\)$/, "")
+        .trim();
+      return {
+        label: cleanLabel,
+        percent: 0,
+        timeLabel: formatHoursToTimeLabel(0),
+        progressPercent: 0,
+      };
+    });
+  }
+
+  if (displayHours !== undefined && displayHours !== null) {
+    return rows.map((row) => {
+      const cleanLabel = (row.label || row.key || "")
+        .replace(/\s*\(\d+%\)$/, "")
+        .trim();
+      const categoryHours = displayHours * ((row.percent ?? 0) / 100);
+      return {
+        label: cleanLabel,
+        percent: row.percent ?? 0,
+        timeLabel: formatHoursToTimeLabel(categoryHours),
+        progressPercent: row.percent ?? 0,
+      };
+    });
+  }
+
+  return rows.map((row) => {
+    const cleanLabel = (row.label || row.key || "")
+      .replace(/\s*\(\d+%\)$/, "")
+      .trim();
+    return {
+      label: cleanLabel,
+      percent: row.percent ?? 0,
+      timeLabel: formatHoursToTimeLabel((row.minutes ?? 0) / 60),
+      progressPercent: row.percent ?? 0,
+    };
+  });
+}
 export function buildCycleWeeklyChartData(
   cycleOffset: number,
   tab: TimeSpentTab = "All",
@@ -254,9 +427,7 @@ function buildBreakdownFromWeights(
   return categories.map((category, index) => {
     const share = weights[index] / weightSum;
     const hours = totalHours * share;
-    const progressPercent = useStaticPercents
-      ? category.weight
-      : share * 100;
+    const progressPercent = useStaticPercents ? category.weight : share * 100;
 
     return {
       label: category.label,
@@ -278,12 +449,21 @@ export function buildCategoryBreakdown(
   const categories = TAB_SUBCATEGORIES[tab];
 
   if (selectedBarIndex !== null) {
-    const weights = getSubcategoryWeights(tab, selectedBarIndex, selectedPeriod);
+    const weights = getSubcategoryWeights(
+      tab,
+      selectedBarIndex,
+      selectedPeriod,
+    );
     return buildBreakdownFromWeights(categories, weights, totalHours, false);
   }
 
   const weights = categories.map((category) => category.weight);
-  return buildBreakdownFromWeights(categories, weights, totalHours, tab === "All");
+  return buildBreakdownFromWeights(
+    categories,
+    weights,
+    totalHours,
+    tab === "All",
+  );
 }
 
 export function getSummaryText(

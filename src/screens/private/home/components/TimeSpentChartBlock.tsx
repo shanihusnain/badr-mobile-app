@@ -71,7 +71,7 @@ function XAxisLabels({
 
         return (
           <View
-            key={`${item.xLabel}-${item.dateLabel}`}
+            key={`${item.xLabel}-${item.dateLabel}-${index}`}
             style={[
               styles.timeSpentXAxisLabelPosition,
               getXAxisLabelPositionStyle(x, labelWidth),
@@ -184,7 +184,9 @@ function ChartBars({
     <>
       {points.map((point, index) => {
         const opacity = getBarOpacity(index, selectedBarIndex);
-        const showLabel = showAllLabels || selectedBarIndex === index;
+        const isSelected = selectedBarIndex === index;
+        const hasHours = (point.yValue ?? 0) > 0;
+        const showLabel = isSelected || (showAllLabels && hasHours);
 
         return (
           <Bar
@@ -244,7 +246,6 @@ export function TimeSpentChartBlock({
     require("@/assets/fonts/SF-Pro-Text-Regular.otf"),
     10,
   );
-
   const formatBarLabel = (hours: number) =>
     selectedPeriod === "week"
       ? formatHoursToTimeLabel(hours)
@@ -297,7 +298,6 @@ export function TimeSpentChartBlock({
         >
           {({ points, chartBounds }) => {
             syncBarLabelPositions(points.hours.map((point) => point.x ?? 0));
-
             return (
               <ChartBars
                 points={points.hours}

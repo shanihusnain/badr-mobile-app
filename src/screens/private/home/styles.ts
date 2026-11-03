@@ -32,7 +32,32 @@ export const styles = StyleSheet.create({
     marginBottom: hp(3),
     paddingHorizontal: wp(2),
   },
-
+  deltaBadgePlaceholder: {
+    height: 24,
+  },
+  deltaText: {
+    color: Colors.light.white,
+    fontSize: 11,
+    fontFamily: fonts.primary.medium,
+    fontWeight: "500",
+  },
+  deltaSlot: {
+    minWidth: 0,
+    marginRight: 8,
+    justifyContent: "center",
+    height: 24,
+  },
+  deltaBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: Colors.light.calendarBg,
+    borderRadius: 2,
+    paddingHorizontal: 3,
+    paddingVertical: 4,
+    height: 24,
+    marginTop: 24,
+  },
   // Avatar Container (Circular, No Edit Button)
   avatarContainer: {
     width: 40,
@@ -1376,6 +1401,7 @@ export const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 16,
   },
+
   timeSpentCategoryList: {
     gap: 16,
   },

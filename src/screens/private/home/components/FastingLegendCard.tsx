@@ -4,15 +4,18 @@ import { TouchableOpacity, View } from "react-native";
 import { styles } from "../styles";
 import { FastingPlannedLegend } from "./FastingPlannedLegend";
 import { FastingProgressLegend } from "./FastingProgressLegend";
+import type { FastingLegendEntry } from "../fastingLegend";
 
 type FastingLegendCardProps = {
   onClose?: () => void;
   variant?: "planned" | "progress";
+  legendEntries?: FastingLegendEntry[];
 };
 
 export function FastingLegendCard({
   onClose,
   variant = "progress",
+  legendEntries,
 }: FastingLegendCardProps) {
   return (
     <View style={styles.fastingLegendCard}>
@@ -26,9 +29,9 @@ export function FastingLegendCard({
       </TouchableOpacity>
       <View style={styles.fastingLegendCardContent}>
         {variant === "planned" ? (
-          <FastingPlannedLegend />
+          <FastingPlannedLegend entries={legendEntries} />
         ) : (
-          <FastingProgressLegend />
+          <FastingProgressLegend entries={legendEntries} />
         )}
       </View>
     </View>

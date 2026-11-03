@@ -19,10 +19,11 @@ import SecondaryButton from "@/components/atoms/Secondary-button";
 type Props = {
   onClose: () => void;
   onChange?: (index: number) => void;
+  selectedDate?: string;
 };
 
 export const TimeSpentBottomSheet = forwardRef<BottomSheet, Props>(
-  function TimeSpentBottomSheet({ onClose, onChange }, ref) {
+  function TimeSpentBottomSheet({ onClose, onChange, selectedDate }, ref) {
     const safeAreaInsets = useSafeAreaInsets();
     const { t } = useTypedTranslation();
 
@@ -53,7 +54,7 @@ export const TimeSpentBottomSheet = forwardRef<BottomSheet, Props>(
           <View style={styles.headerSpacer} />
         </View>
         <TopSpace top={8} />
-        <TimeSpentDetailOverview />
+        <TimeSpentDetailOverview selectedDate={selectedDate} />
         <View style={styles.footer}>
           <SecondaryButton
             text={t("homeScreen.closeBtn")}

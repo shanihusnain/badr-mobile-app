@@ -5,18 +5,25 @@ import { styles } from "../styles";
 type FastingGoalTotalCardProps = {
   label: string;
   count: number;
+  unit?: string;
   variant?: "default" | "completed";
 };
 
 export function FastingGoalTotalCard({
   label,
   count,
+  unit,
   variant = "default",
 }: FastingGoalTotalCardProps) {
   const { t } = useTypedTranslation();
   const isCompleted = variant === "completed";
-  
-  const translatedLabel = label === "COMPLETED" ? t("homeScreen.fastingCalendar_completed") : label;
+
+  const normalizedLabel = label.trim().toUpperCase();
+  const translatedLabel =
+    normalizedLabel === "COMPLETED"
+      ? t("homeScreen.fastingCalendar_completed")
+      : label.trim() || t("homeScreen.fastingGoalTotal");
+  const unitLabel = unit?.trim() || t("homeScreen.fastingCalendar_fasts");
 
   return (
     <View
@@ -47,7 +54,7 @@ export function FastingGoalTotalCard({
               isCompleted && styles.fastingGoalTotalBadgeTextCompleted,
             ]}
           >
-            {t("homeScreen.fastingCalendar_fasts")}
+            {unitLabel}
           </Text>
         </View>
       </View>

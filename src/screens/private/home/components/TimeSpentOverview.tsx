@@ -1,6 +1,6 @@
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { Colors } from "@/constants/theme";
-import { AntDesign, Entypo } from "@expo/vector-icons";
+import { AntDesign, Entypo, Ionicons } from "@expo/vector-icons";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { useTypedTranslation } from "@/i18next/useTypedTranslation";
@@ -10,34 +10,59 @@ import {
   buildWeeklyChartData,
   formatTotalTime,
   getPeriodRangeLabel,
+  transformBackendChartData,
+  transformBackendRows,
 } from "../timeSpentData";
 import { styles } from "../styles";
 import { TimeSpentCategoryRow } from "./TimeSpentCategoryRow";
 import { TimeSpentChartBlock } from "./TimeSpentChartBlock";
 import { TimeSpentMoreTabDashboardIcon } from "@/assets/icons/TimeSpentMoreTabDashboardIcon";
+import { useGetHomeScreenTimeSpent } from "@/src/api/queries/useGetHomeScreenTimeSpent";
+import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 
 type Props = {
   onExpandPress?: () => void;
+  selectedDate: string;
+  showChartHint: boolean;
 };
 
-export function TimeSpentOverview({ onExpandPress }: Props) {
+export function TimeSpentOverview({
+  onExpandPress,
+  selectedDate,
+  showChartHint,
+}: Props) {
   const { t, i18n } = useTypedTranslation();
   const [selectedPeriod, setSelectedPeriod] = useState<"week" | "month">(
     "week",
   );
+  const [currentEndDate, setCurrentEndDate] = useState<string>(selectedDate);
   const [weekOffset, setWeekOffset] = useState(0);
   const [cycleOffset, setCycleOffset] = useState(0);
   const [selectedBarIndex, setSelectedBarIndex] = useState<number | null>(null);
   const [hintDismissed, setHintDismissed] = useState(false);
+  const formatNumber = useLocaleNumber();
 
-  const showChartHint = !hintDismissed && selectedBarIndex === null;
+  useEffect(() => {
+    setCurrentEndDate(selectedDate);
+  }, [selectedDate]);
+
+  const { data: timeSpentData } = useGetHomeScreenTimeSpent({
+    period: selectedPeriod === "week" ? "W" : "M",
+    category: "ALL",
+    endDate: currentEndDate || selectedDate,
+  });
+
+  const showDeltaChip = Boolean(timeSpentData?.badge?.label);
+  const deltaIsPositive = timeSpentData?.badge?.direction === "UP";
 
   const chartData = useMemo(
     () =>
-      selectedPeriod === "week"
-        ? buildWeeklyChartData(weekOffset, "All")
-        : buildCycleWeeklyChartData(cycleOffset, "All"),
-    [selectedPeriod, weekOffset, cycleOffset],
+      timeSpentData?.bars && timeSpentData.bars.length > 0
+        ? transformBackendChartData(timeSpentData.bars, selectedPeriod)
+        : selectedPeriod === "week"
+          ? buildWeeklyChartData(weekOffset, "All")
+          : buildCycleWeeklyChartData(cycleOffset, "All"),
+    [timeSpentData?.bars, selectedPeriod, weekOffset, cycleOffset],
   );
 
   const handleBarPress = useCallback((index: number) => {
@@ -47,11 +72,14 @@ export function TimeSpentOverview({ onExpandPress }: Props) {
   useEffect(() => {
     setSelectedBarIndex(null);
     setHintDismissed(false);
-  }, [selectedPeriod, weekOffset, cycleOffset]);
+  }, [selectedPeriod, currentEndDate, weekOffset, cycleOffset]);
 
   const totalHours = useMemo(
-    () => chartData.reduce((sum, item) => sum + item.hours, 0),
-    [chartData],
+    () =>
+      timeSpentData?.totalMinutes != null
+        ? timeSpentData.totalMinutes / 60
+        : chartData.reduce((sum, item) => sum + item.hours, 0),
+    [timeSpentData?.totalMinutes, chartData],
   );
 
   const displayHours =
@@ -59,49 +87,61 @@ export function TimeSpentOverview({ onExpandPress }: Props) {
       ? (chartData[selectedBarIndex]?.hours ?? 0)
       : totalHours;
 
-  const categoryRows = useMemo(
-    () =>
-      buildCategoryBreakdown(
-        "All",
-        displayHours,
-        selectedBarIndex,
-        selectedPeriod,
-      ),
-    [displayHours, selectedBarIndex, selectedPeriod],
-  );
+  const categoryRows = useMemo(() => {
+    if (timeSpentData?.rows && timeSpentData.rows.length > 0) {
+      return transformBackendRows(
+        timeSpentData.rows,
+        selectedBarIndex !== null ? displayHours : null,
+      );
+    }
+    return buildCategoryBreakdown(
+      "All",
+      displayHours,
+      selectedBarIndex,
+      selectedPeriod,
+    );
+  }, [timeSpentData?.rows, displayHours, selectedBarIndex, selectedPeriod]);
 
   const periodRangeLabel = useMemo(
     () => getPeriodRangeLabel(selectedPeriod, weekOffset, cycleOffset),
     [selectedPeriod, weekOffset, cycleOffset],
   );
 
-  const yMax =
-    selectedPeriod === "week"
-      ? 15
-      : Math.max(
-          15,
-          Math.ceil(Math.max(...chartData.map((item) => item.hours), 0)),
-        );
+  const maxBarHours = Math.max(...chartData.map((item) => item.hours), 0);
+  const yMax = Math.max(15, Math.ceil(maxBarHours / 5) * 5);
+  const yTicks = [0, Math.round(yMax / 3), Math.round((yMax * 2) / 3), yMax];
 
-  const yTicks =
-    selectedPeriod === "week"
-      ? [0, 5, 10, 15]
-      : Array.from({ length: 4 }, (_, index) => Math.round((yMax / 3) * index));
+  const canGoPrevious = Boolean(
+    timeSpentData?.navigation?.previousEndDate != null,
+  );
+  const canGoNext = Boolean(timeSpentData?.navigation?.nextEndDate != null);
 
   const onPreviousPeriod = () => {
-    if (selectedPeriod === "week") {
+    if (timeSpentData?.navigation?.previousEndDate) {
+      setCurrentEndDate(timeSpentData.navigation.previousEndDate);
+      setSelectedBarIndex(null);
+    } else if (selectedPeriod === "week") {
       setWeekOffset((current) => current - 1);
-      return;
+    } else {
+      setCycleOffset((current) => current - 1);
     }
-    setCycleOffset((current) => current - 1);
   };
 
   const onNextPeriod = () => {
-    if (selectedPeriod === "week") {
+    if (timeSpentData?.navigation?.nextEndDate) {
+      setCurrentEndDate(timeSpentData.navigation.nextEndDate);
+      setSelectedBarIndex(null);
+    } else if (selectedPeriod === "week") {
       setWeekOffset((current) => current + 1);
-      return;
+    } else {
+      setCycleOffset((current) => current + 1);
     }
-    setCycleOffset((current) => current + 1);
+  };
+
+  const handlePeriodChange = (period: "week" | "month") => {
+    setSelectedPeriod(period);
+    setCurrentEndDate(selectedDate);
+    setSelectedBarIndex(null);
   };
 
   return (
@@ -116,12 +156,42 @@ export function TimeSpentOverview({ onExpandPress }: Props) {
           disabled={!onExpandPress}
           hitSlop={8}
         >
-          <Entypo name={i18n.language === "ar" ? "chevron-left" : "chevron-right"} size={24} color={Colors.light.white} />
+          <Entypo
+            name={i18n.language === "ar" ? "chevron-left" : "chevron-right"}
+            size={24}
+            color={Colors.light.white}
+          />
         </Pressable>
       </View>
       <TopSpace top={16} />
       <View style={styles.timeSpentPercentRow}>
-        <Text style={styles.timeSpentPercentText}>30%</Text>
+        <View>
+          <Text style={styles.timeSpentPercentText}>
+            {timeSpentData?.percentLabel}
+          </Text>
+
+          <View style={styles.deltaSlot}>
+            {showDeltaChip ? (
+              <View style={styles.deltaBadge}>
+                <AntDesign
+                  name={deltaIsPositive ? "caret-up" : "caret-down"}
+                  size={14}
+                  color={
+                    deltaIsPositive
+                      ? Colors.light.green
+                      : Colors.light.graylightshade
+                  }
+                />
+                <Text style={styles.deltaText} numberOfLines={1}>
+                  {timeSpentData?.badge.label}
+                </Text>
+              </View>
+            ) : (
+              <View style={styles.deltaBadgePlaceholder} />
+            )}
+          </View>
+        </View>
+
         <View style={styles.timeSpentPeriodToggle}>
           {(["week", "month"] as const).map((period) => {
             const isSelected = selectedPeriod === period;
@@ -129,7 +199,7 @@ export function TimeSpentOverview({ onExpandPress }: Props) {
             return (
               <Pressable
                 key={period}
-                onPress={() => setSelectedPeriod(period)}
+                onPress={() => handlePeriodChange(period)}
                 style={[
                   styles.timeSpentPeriodButton,
                   isSelected
@@ -145,7 +215,9 @@ export function TimeSpentOverview({ onExpandPress }: Props) {
                       : styles.timeSpentPeriodButtonTextUnselected,
                   ]}
                 >
-                  {period === "week" ? t("homeScreen.timeSpent_toggle_W") : t("homeScreen.timeSpent_toggle_M")}
+                  {period === "week"
+                    ? t("homeScreen.timeSpent_toggle_W")
+                    : t("homeScreen.timeSpent_toggle_M")}
                 </Text>
               </Pressable>
             );
@@ -157,13 +229,12 @@ export function TimeSpentOverview({ onExpandPress }: Props) {
           <View style={styles.timeSpentChartHint}>
             <View style={styles.timeSpentChartHintBubble}>
               <Text style={styles.timeSpentChartHintText}>
-                {t("homeScreen.tapBarHint")}
+                {timeSpentData?.tooltip?.text ?? t("homeScreen.tapBarHint")}
               </Text>
-              <Pressable
-                onPress={() => setHintDismissed(true)}
-                hitSlop={8}
-              >
-                <Text style={styles.timeSpentChartHintAction}>{t("homeScreen.okGotIt")}</Text>
+              <Pressable onPress={() => setHintDismissed(true)} hitSlop={8}>
+                <Text style={styles.timeSpentChartHintAction}>
+                  {timeSpentData?.tooltip?.button ?? t("homeScreen.okGotIt")}
+                </Text>
               </Pressable>
             </View>
             <View style={styles.timeSpentChartHintPointerRow}>
@@ -178,18 +249,42 @@ export function TimeSpentOverview({ onExpandPress }: Props) {
           ]}
         >
           <View style={styles.timeSpentNavRow}>
-            <Pressable onPress={onPreviousPeriod} hitSlop={8}>
-              <Entypo name={i18n.language === "ar" ? "chevron-right" : "chevron-left"} size={18} color={Colors.light.white} />
+            <Pressable
+              onPress={onPreviousPeriod}
+              disabled={!canGoPrevious}
+              hitSlop={8}
+              style={{ opacity: canGoPrevious ? 1 : 0.3 }}
+            >
+              <Entypo
+                name={i18n.language === "ar" ? "chevron-right" : "chevron-left"}
+                size={18}
+                color={Colors.light.white}
+              />
             </Pressable>
-            <Text style={styles.timeSpentNavLabel}>{periodRangeLabel}</Text>
-            <Pressable onPress={onNextPeriod} hitSlop={8}>
-              <Entypo name={i18n.language === "ar" ? "chevron-left" : "chevron-right"} size={18} color={Colors.light.white} />
+            <Text style={styles.timeSpentNavLabel}>
+              {timeSpentData?.rangeLabel ?? periodRangeLabel}
+            </Text>
+            <Pressable
+              onPress={onNextPeriod}
+              disabled={!canGoNext}
+              hitSlop={8}
+              style={{ opacity: canGoNext ? 1 : 0.3 }}
+            >
+              <Entypo
+                name={i18n.language === "ar" ? "chevron-left" : "chevron-right"}
+                size={18}
+                color={Colors.light.white}
+              />
             </Pressable>
           </View>
           <View style={styles.timeSpentTotalBlock}>
-            <Text style={styles.timeSpentTotalCaption}>{t("homeScreen.timeSpentTitle")}</Text>
+            <Text style={styles.timeSpentTotalCaption}>
+              {t("homeScreen.timeSpentTitle")}
+            </Text>
             <Text style={styles.timeSpentTotalValue}>
-              {formatTotalTime(displayHours)}
+              {selectedBarIndex !== null
+                ? formatTotalTime(displayHours)
+                : (timeSpentData?.totalLabel ?? formatTotalTime(totalHours))}
             </Text>
           </View>
         </View>
@@ -200,7 +295,7 @@ export function TimeSpentOverview({ onExpandPress }: Props) {
         selectedPeriod={selectedPeriod}
         selectedBarIndex={selectedBarIndex}
         onBarPress={handleBarPress}
-        chartKey={`dashboard-${selectedPeriod}-${weekOffset}-${cycleOffset}`}
+        chartKey={`dashboard-${selectedPeriod}-${currentEndDate}-${selectedBarIndex}`}
         yMax={yMax}
         yTicks={yTicks}
       />
@@ -213,7 +308,7 @@ export function TimeSpentOverview({ onExpandPress }: Props) {
           style={styles.timeSpentDisclaimerIcon}
         />
         <Text style={styles.timeSpentDisclaimerText}>
-          {t("homeScreen.timeSpentDisclaimer")}
+          {timeSpentData?.note ?? t("homeScreen.timeSpentDisclaimer")}
         </Text>
       </View>
       <TopSpace top={24} />

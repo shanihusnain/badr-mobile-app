@@ -17,7 +17,7 @@ const cycleStart = moment().subtract(14, "days");
 const cycleStartDate = cycleStart.format("YYYY-MM-DD");
 const today = moment().format("YYYY-MM-DD");
 
-export type FastingCategory = "ramadan" | "mon_thu" | "white_days";
+export type FastingCategory = "ramadan" | "mon_thu" | "white_days" | "dawood";
 
 export type PlannedFastState = "completed" | "missed" | "planned";
 
@@ -32,6 +32,7 @@ const CATEGORY_COLORS: Record<FastingCategory, string> = {
   ramadan: Colors.light.ringRamadan,
   mon_thu: Colors.light.ringMonThu,
   white_days: Colors.light.white,
+  dawood: Colors.light.ringDawood,
 };
 
 function getFastState(date: string, completedDates: string[]): PlannedFastState {
@@ -135,7 +136,8 @@ const STATE_PRIORITY: Record<PlannedFastState, number> = {
 };
 
 const CATEGORY_PRIORITY: Record<FastingCategory, number> = {
-  ramadan: 3,
+  ramadan: 4,
+  dawood: 3,
   mon_thu: 2,
   white_days: 1,
 };

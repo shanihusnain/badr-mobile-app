@@ -6,6 +6,16 @@ import { styles } from "../styles";
 
 function getCategoryTranslationKey(label: string): string {
   const keyMap: Record<string, string> = {
+    All: "homeScreen.filterAll",
+    ALL: "homeScreen.filterAll",
+    Prayer: "homeScreen.filterPrayer",
+    PRAYER: "homeScreen.filterPrayer",
+    Quran: "homeScreen.filterQuran",
+    QURAN: "homeScreen.filterQuran",
+    Fasting: "homeScreen.filterFasting",
+    FASTING: "homeScreen.filterFasting",
+    Sadaqah: "homeScreen.filterSadaqah",
+    SADAQAH: "homeScreen.filterSadaqah",
     "Quran Listening": "homeScreen.timeSpentCategory_quran-listening",
     "Quran Recitation": "homeScreen.timeSpentCategory_quran-recitation",
     "Quran Memorization": "homeScreen.timeSpentCategory_quran-memorization",
@@ -46,8 +56,12 @@ export function TimeSpentCategoryRow({
 }: Props) {
   const { t } = useTypedTranslation();
   const clampedPercent = Math.min(100, Math.max(0, progressPercent));
-  
-  const translatedLabel = t(getCategoryTranslationKey(label) as any);
+
+  const cleanLabel = (label || "").replace(/\s*\(\d+%\)$/, "").trim();
+  const translationKey = getCategoryTranslationKey(cleanLabel);
+  const translatedLabel = translationKey.startsWith("homeScreen.")
+    ? t(translationKey as any)
+    : cleanLabel;
 
   return (
     <View>

@@ -20,7 +20,6 @@ const createStyles = () =>
       justifyContent: "center",
       alignItems: "center",
       marginVertical: hp(3),
-      marginTop: hp(0),
     },
     streakNumber: {
       fontFamily: fonts.primary.bold,

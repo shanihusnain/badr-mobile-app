@@ -22,6 +22,7 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Entypo from "@expo/vector-icons/Entypo";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import { Colors } from "@/constants/theme";
 import { FlashIcon } from "@/assets/icons/FlashIcon";
 import { CustomizeBadgeSettingIcon } from "@/assets/icons/CustomizeBadgeSettingIcon";
@@ -49,12 +50,18 @@ import { TopSpace } from "@/components/atoms/TopSpace";
 import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
 import { styles } from "./styles";
 import { Tabs } from "@/components/atoms/Tabs";
-import { DashboardSubGoalRow } from "./components/DashboardSubGoalRow";
 import {
-  DASHBOARD_FILTER_TABS,
-  DASHBOARD_SUB_GOALS,
-  getVisibleDashboardSubGoals,
-} from "./dashboardSubGoals";
+  DetailedIbadahsProgressCard,
+  getDetailedIbadahIcon,
+} from "./components/DetailedIbadahsProgressCards";
+import {
+  HOME_DASHBOARD_CATEGORY_COLOR,
+  mapHomeDashboardGoalRows,
+  resolveGoalVisibleCount,
+  resolveHomeDashboardTabs,
+  normalizeHomeDashboardTabKey,
+} from "./mapHomeDashboard";
+import { useGetHomeDashboard } from "@/src/api/queries/useGetHomeDashboard";
 import { TodayGoalProgressCard } from "./components/TodayGoalProgressCard";
 import { consumeDailyProgressSheetReturn } from "./dailyProgressSheetReturn";
 import { SwipeToDeleteRow } from "./components/SwipeToDeleteRow";
@@ -68,10 +75,7 @@ import {
   resolveMyDayFilters,
 } from "./mapMyDayDetails";
 import { fonts } from "@/assets/fonts";
-import {
-  FastingOverviewCalendarSection,
-  HOME_FASTING_TRACK_TABS,
-} from "./components/FastingOverviewCalendarSection";
+import { FastingOverviewCalendarSection } from "./components/FastingOverviewCalendarSection";
 import { TimeSpentOverview } from "./components/TimeSpentOverview";
 import { TimeSpentBottomSheet } from "./components/TimeSpentBottomSheet";
 import { useTypedTranslation } from "@/i18next/useTypedTranslation";
@@ -213,27 +217,27 @@ const HOME_CATEGORY_META: {
   title: string;
   progressColor: string;
 }[] = [
-  {
-    uiCategory: "PRAYER",
-    title: "PRAYERS",
-    progressColor: Colors.light.ringPrayer,
-  },
-  {
-    uiCategory: "QURAN",
-    title: "QURAN",
-    progressColor: Colors.light.ringQuran,
-  },
-  {
-    uiCategory: "FASTING",
-    title: "FASTING",
-    progressColor: Colors.light.ringFasting,
-  },
-  {
-    uiCategory: "SADAQAH",
-    title: "SADAQAH",
-    progressColor: Colors.light.ringSadaqah,
-  },
-];
+    {
+      uiCategory: "PRAYER",
+      title: "PRAYERS",
+      progressColor: Colors.light.ringPrayer,
+    },
+    {
+      uiCategory: "QURAN",
+      title: "QURAN",
+      progressColor: Colors.light.ringQuran,
+    },
+    {
+      uiCategory: "FASTING",
+      title: "FASTING",
+      progressColor: Colors.light.ringFasting,
+    },
+    {
+      uiCategory: "SADAQAH",
+      title: "SADAQAH",
+      progressColor: Colors.light.ringSadaqah,
+    },
+  ];
 
 function mapDashboardCategoryToItem(
   item: HomeDashboardCategory,
@@ -339,8 +343,8 @@ export default function HomeScreen() {
 
   const [isPrayerCardVisible, setIsPrayerCardVisible] = useState(true);
   const [activeInspirationIndex, setActiveInspirationIndex] = useState(0);
-  const [selectedDashboardCategory, setSelectedDashboardCategory] =
-    useState("All");
+  const [selectedDashboardTab, setSelectedDashboardTab] = useState("ALL");
+  const [isDashboardExpanded, setIsDashboardExpanded] = useState(false);
   const [selectedDayTab, setSelectedDayTab] = useState("ALL");
   const [isTodayProgressExpanded, setIsTodayProgressExpanded] = useState(false);
   const [openTodayProgressRowId, setOpenTodayProgressRowId] = useState<
@@ -405,6 +409,8 @@ export default function HomeScreen() {
   }, [router]);
 
   const todayDateKey = useMemo(() => toDateKey(startOfDay(new Date())), []);
+
+  console.log("today date key is", todayDateKey);
   const { data: meUser } = useGetMe();
   const goalCycleId = meUser?.goalCycleId ?? null;
   const { data: goalCycle } = useGetGoalCycleById(goalCycleId);
@@ -473,7 +479,7 @@ export default function HomeScreen() {
       : selectedMyDayDate === todayDateKey;
   const headerStreak =
     typeof dashboardHeader?.streak === "number" &&
-    Number.isFinite(dashboardHeader.streak)
+      Number.isFinite(dashboardHeader.streak)
       ? Math.max(0, Math.round(dashboardHeader.streak))
       : 0;
   const headerAvatarName =
@@ -708,21 +714,33 @@ export default function HomeScreen() {
     [],
   );
 
-  const quranCategory = goalCategories.find((c) => c.title === "QURAN");
-
+  const { data: homeDashboard } = useGetHomeDashboard(selectedDashboardTab);
+  const dashboardTabs = useMemo(
+    () => resolveHomeDashboardTabs(homeDashboard?.tabs),
+    [homeDashboard?.tabs],
+  );
+  const dashboardGoalRows = useMemo(
+    () => mapHomeDashboardGoalRows(homeDashboard?.widgets),
+    [homeDashboard?.widgets],
+  );
+  const dashboardVisibleCount = useMemo(
+    () => resolveGoalVisibleCount(homeDashboard),
+    [homeDashboard],
+  );
   const visibleDashboardSubGoals = useMemo(() => {
-    const goals = DASHBOARD_SUB_GOALS.map((goal) =>
-      goal.id === "quran-recitation"
-        ? {
-            ...goal,
-            percentage: quranCategory?.percentage ?? goal.percentage,
-            progressColor: quranCategory?.progressColor ?? goal.progressColor,
-          }
-        : goal,
+    if (isDashboardExpanded) return dashboardGoalRows;
+    return dashboardGoalRows.slice(0, dashboardVisibleCount);
+  }, [dashboardGoalRows, dashboardVisibleCount, isDashboardExpanded]);
+  const canExpandDashboard = dashboardGoalRows.length > dashboardVisibleCount;
+  const selectedDashboardTabLabel = useMemo(() => {
+    const match = dashboardTabs.find(
+      (tab) => normalizeHomeDashboardTabKey(tab.key) === selectedDashboardTab,
     );
-
-    return getVisibleDashboardSubGoals(goals, selectedDashboardCategory);
-  }, [selectedDashboardCategory, quranCategory]);
+    const labelKey = getFilterTabTranslationKey(selectedDashboardTab);
+    const translated = t(labelKey);
+    if (translated !== labelKey) return translated;
+    return match?.label?.trim() || selectedDashboardTab;
+  }, [dashboardTabs, selectedDashboardTab, t]);
 
   const visibleTodayGoalsProgress = useMemo(
     () => getVisibleMyDayEntries(myDayEntries, selectedDayTab),
@@ -959,7 +977,12 @@ export default function HomeScreen() {
 
           <TouchableOpacity
             activeOpacity={0.7}
-            onPress={() => router.push("/streakcounter")}
+            onPress={() =>
+              router.push({
+                pathname: "/(private)/streakcounter/[date]",
+                params: { date: selectedMyDayDate },
+              })
+            }
           >
             <View style={styles.streakBox}>
               <FlashIcon size={12} />
@@ -1052,7 +1075,7 @@ export default function HomeScreen() {
                   <Text style={styles.categoryLabel}>
                     {prepareFigmaForcedSmallCapsText(
                       category.title ||
-                        t(getCategoryTranslationKey(category.title)),
+                      t(getCategoryTranslationKey(category.title)),
                     )}
                   </Text>
                   <View style={styles.categoryLabelChevronSlot}>
@@ -1274,9 +1297,9 @@ export default function HomeScreen() {
                     <Text style={styles.showMoreText}>
                       {isTodayProgressExpanded
                         ? myDayDetails?.showLessLabel?.trim() ||
-                          t("homeScreen.showLess")
+                        t("homeScreen.showLess")
                         : myDayDetails?.showMoreLabel?.trim() ||
-                          t("homeScreen.showMore")}
+                        t("homeScreen.showMore")}
                     </Text>
                     <Entypo
                       name={
@@ -1300,7 +1323,7 @@ export default function HomeScreen() {
         {/* My Dashboard */}
         <View style={styles.dashboardSection}>
           <Text style={styles.dashboardText}>
-            {t("homeScreen.myDashboard")}
+            {homeDashboard?.title?.trim() || t("homeScreen.myDashboard")}
           </Text>
           <TouchableOpacity
             activeOpacity={0.7}
@@ -1308,7 +1331,8 @@ export default function HomeScreen() {
             onPress={() => dashboardSheetRef.current?.expand()}
           >
             <Text style={styles.customizeText}>
-              {t("homeScreen.customize")}
+              {homeDashboard?.customizeLabel?.trim() ||
+                t("homeScreen.customize")}
             </Text>
             <CustomizeBadgeSettingIcon size={16} color={Colors.light.green} />
           </TouchableOpacity>
@@ -1323,42 +1347,94 @@ export default function HomeScreen() {
           nestedScrollEnabled
           scrollEventThrottle={16}
         >
-          {DASHBOARD_FILTER_TABS.map((label) => (
-            <Tabs
-              key={label}
-              label={t(getFilterTabTranslationKey(label))}
-              onPress={() => setSelectedDashboardCategory(label)}
-              selectedTab={t(
-                getFilterTabTranslationKey(selectedDashboardCategory),
-              )}
-            />
-          ))}
+          {dashboardTabs.map((tab) => {
+            const tabKey = normalizeHomeDashboardTabKey(tab.key);
+            const labelKey = getFilterTabTranslationKey(tabKey);
+            const translated = t(labelKey);
+            const label =
+              translated === labelKey
+                ? tab.label?.trim() || tabKey
+                : translated;
+            return (
+              <Tabs
+                key={tabKey}
+                label={label}
+                onPress={() => {
+                  setSelectedDashboardTab(tabKey);
+                  setIsDashboardExpanded(false);
+                }}
+                selectedTab={selectedDashboardTabLabel}
+              />
+            );
+          })}
         </ScrollView>
 
-        {visibleDashboardSubGoals.map((goal) => (
-          <DashboardSubGoalRow key={goal.id} goal={goal} />
-        ))}
+        {visibleDashboardSubGoals.map((goal) => {
+          const iconColor = Colors.light.white;
+          const icon = goal.goalId ? (
+            getDetailedIbadahIcon(goal.goalId, iconColor)
+          ) : (
+            <FontAwesome6
+              name="person-praying"
+              size={19}
+              color={
+                HOME_DASHBOARD_CATEGORY_COLOR[goal.uiCategory] ??
+                Colors.light.ringPrayer
+              }
+            />
+          );
+          return (
+            <DetailedIbadahsProgressCard
+              key={goal.id}
+              title={goal.title}
+              subtitleCount={goal.subtitleCount}
+              subtitleLabel={goal.subtitleLabel}
+              icon={icon}
+              iconBgColor={Colors.light.calendarBg}
+              percentage={goal.percentage}
+              progressColor={goal.progressColor}
+            />
+          );
+        })}
 
-        <TouchableOpacity style={styles.showMoreButton}>
-          <Text style={styles.showMoreText}>{t("homeScreen.showMore")}</Text>
-          <Entypo name="chevron-down" size={24} color="white" />
-        </TouchableOpacity>
-        <FastingOverviewCalendarSection trackTabs={HOME_FASTING_TRACK_TABS} />
+        {canExpandDashboard ? (
+          <TouchableOpacity
+            style={styles.showMoreButton}
+            activeOpacity={0.8}
+            onPress={() => setIsDashboardExpanded((prev) => !prev)}
+          >
+            <Text style={styles.showMoreText}>
+              {isDashboardExpanded
+                ? t("homeScreen.showLess")
+                : homeDashboard?.showMoreLabel?.trim() ||
+                t("homeScreen.showMore")}
+            </Text>
+            <Entypo
+              name={isDashboardExpanded ? "chevron-up" : "chevron-down"}
+              size={24}
+              color="white"
+            />
+          </TouchableOpacity>
+        ) : null}
+        <FastingOverviewCalendarSection date={todayDateKey} />
         <TopSpace top={16} />
         <TimeSpentOverview
           onExpandPress={() => timeSpentSheetRef.current?.expand()}
+          selectedDate={todayDateKey}
+          showChartHint={false}
         />
       </ScrollView>
 
       <NamazGoalBottomSheet
         ref={namazBottomSheetRef}
-        onClose={() => {}}
+        onClose={() => { }}
         onChange={(index) => handleBottomSheetChange("namaz", index)}
         moonCard={dashboardData?.moonCard ?? null}
         isOpen={isNamazSheetOpen}
       />
       <TimeSpentBottomSheet
         ref={timeSpentSheetRef}
+        selectedDate={todayDateKey}
         onClose={() => {
           timeSpentSheetRef.current?.close();
         }}

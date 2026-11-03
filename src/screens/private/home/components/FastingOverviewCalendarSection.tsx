@@ -1,25 +1,37 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useTypedTranslation } from "@/i18next/useTypedTranslation";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Tabs } from "@/components/atoms/Tabs";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { Colors } from "@/constants/theme";
+import { useGetHomeFastingCalendar } from "@/src/api/queries/useGetHomeFastingCalendar";
 import {
-  FASTING_CALENDAR_FILTER_TABS,
-  type FastingCalendarFilterTab,
-} from "../fastingCalendar";
-import { PLANNED_FASTS } from "../plannedFasts";
+  toDateKey,
+  startOfDay,
+} from "@/src/screens/private/journalfilling/journalFillingDateUtils";
+import {
+  mapHomeFastingDaysToMarkers,
+  normalizeFastingTabKey,
+  normalizeFastingViewKey,
+  resolveHomeFastingCalendarLabels,
+  resolveHomeFastingTabs,
+  resolveHomeFastingViews,
+  resolveHomeFastingWindow,
+  viewKeyToTrackVariant,
+} from "../mapHomeFastingCalendar";
 import { styles } from "../styles";
 import { FastingCalendarTrack } from "./FastingCalendarTrack";
 import { FastingGoalTotalCard } from "./FastingGoalTotalCard";
 import { FastingCalenderDashboardIcon } from "@/assets/icons/FastingCalenderDashboardIcon";
+import { resolveFastingLegendEntries } from "../fastingLegend";
 
 export type FastingTrackTab = {
   label: string;
   variant: "planned" | "progress";
 };
 
+/** @deprecated Prefer API `views`; kept for overview screen callers. */
 export const HOME_FASTING_TRACK_TABS: FastingTrackTab[] = [
   { label: "Planned", variant: "planned" },
   { label: "Planned vs. Progress", variant: "progress" },
@@ -30,53 +42,105 @@ export const OVERVIEW_FASTING_TRACK_TABS: FastingTrackTab[] = [
   { label: "Progress", variant: "progress" },
 ];
 
-function getFastingTrackTabTranslationKey(label: string): any {
-  if (label === "Planned") return "homeScreen.fastingTabPlanned";
-  if (label === "Planned vs. Progress" || label === "Progress") return "homeScreen.fastingTabProgress";
-  return label;
-}
-
-function getFastingFilterTranslationKey(label: string): any {
-  const map: Record<string, string> = {
-    "All": "homeScreen.fastingFilter_All",
-    "Missed Ramadan Fasts": "homeScreen.fastingFilter_MissedRamadanFasts",
-    "Monday & Thursday Fasts": "homeScreen.fastingFilter_MondayThursdayFasts",
-    "Dawood Fasts": "homeScreen.fastingFilter_DawoodFasts",
-    "White Days Fasts": "homeScreen.fastingFilter_WhiteDaysFasts",
-  };
-  return map[label] ?? label;
-}
-
 type Props = {
-  trackTabs: FastingTrackTab[];
+  /** @deprecated API supplies views; ignored when fetching home fasting calendar. */
+  trackTabs?: FastingTrackTab[];
   title?: string;
   showInfoBanner?: boolean;
+  /** YYYY-MM-DD — defaults to today. */
+  date?: string;
 };
 
 export function FastingOverviewCalendarSection({
-  trackTabs,
   title,
   showInfoBanner = true,
+  date,
 }: Props) {
   const { t } = useTypedTranslation();
-  const resolvedTitle = title ?? t("homeScreen.yourFastingCalendar");
-  const [filterTab, setFilterTab] =
-    useState<FastingCalendarFilterTab>("All");
-  const [selectedTrackLabel, setSelectedTrackLabel] = useState(
-    trackTabs[0]?.label ?? "Planned",
+  const todayKey = useMemo(() => toDateKey(startOfDay(new Date())), []);
+  const queryDate = date?.trim() || todayKey;
+  const allTabs = [
+    { key: "ALL", label: "ALL" },
+    { key: "MISSED_RAMADAN", label: "MISSED RAMADAN FASTS" },
+    { key: "MONDAY_THURSDAY", label: "MONDAY AND THURSDAY FASTS" },
+    { key: "WHITE_DAYS", label: "WHITE DAYS FASTS" },
+    { key: "PROPHET_DAWOOD", label: "DAWOOD FASTS" },
+  ];
+  const [selectedTab, setSelectedTab] = useState(allTabs.at(0));
+
+  const [selectedView, setSelectedView] = useState<"PLANNED" | "PROGRESS">(
+    "PROGRESS",
   );
+  console.log("selectedTab", selectedTab);
   const [showLegendCard, setShowLegendCard] = useState(true);
   const [showInfoBannerVisible, setShowInfoBannerVisible] =
     useState(showInfoBanner);
 
-  const selectedTrack =
-    trackTabs.find((tab) => tab.label === selectedTrackLabel) ?? trackTabs[0];
+  const { data: fastingCalendar } = useGetHomeFastingCalendar(
+    selectedTab?.key ?? "ALL",
+    selectedView,
+    queryDate,
+  );
+  console.log("fasting calendar data coming from back end", fastingCalendar);
+  const tabs = useMemo(
+    () => resolveHomeFastingTabs(fastingCalendar?.tabs),
+    [fastingCalendar?.tabs],
+  );
+  const views = useMemo(
+    () => resolveHomeFastingViews(fastingCalendar?.views),
+    [fastingCalendar?.views],
+  );
+  const labels = useMemo(
+    () => resolveHomeFastingCalendarLabels(fastingCalendar),
+    [fastingCalendar],
+  );
+  const window = useMemo(
+    () => resolveHomeFastingWindow(fastingCalendar?.days),
+    [fastingCalendar?.days],
+  );
+  const markers = useMemo(
+    () =>
+      mapHomeFastingDaysToMarkers(
+        fastingCalendar?.days,
+        selectedTab?.key ?? "ALL",
+      ),
+    [fastingCalendar?.days, selectedTab],
+  );
+  const legendEntries = useMemo(
+    () => resolveFastingLegendEntries(fastingCalendar?.days, selectedTab?.key),
+    [fastingCalendar?.days, selectedTab?.key],
+  );
+
+  const resolvedTitle = title ?? labels.title;
+  const trackVariant = viewKeyToTrackVariant(selectedView);
+  const selectedTabLabel =
+    tabs.find((tab) => tab.key === selectedTab?.key)?.label ??
+    selectedTab?.label;
+  const selectedViewLabel =
+    views.find((view) => view.key === selectedView)?.label ?? selectedView;
 
   useEffect(() => {
-    setShowLegendCard(true);
-  }, [selectedTrackLabel]);
+    if (fastingCalendar?.introDismissed) {
+      setShowInfoBannerVisible(false);
+    }
+  }, [fastingCalendar?.introDismissed]);
 
-  if (!selectedTrack) return null;
+  useEffect(() => {
+    setShowLegendCard(!(fastingCalendar?.legendDismissed ?? false));
+  }, [selectedView, fastingCalendar?.legendDismissed]);
+
+  useEffect(() => {
+    if (!tabs.some((tab) => tab.key === selectedTab?.key) && tabs[0]) {
+      // console.log("useEffect ran again");
+      // setSelectedTab(tabs[0]);
+    }
+  }, [tabs, selectedTab]);
+
+  useEffect(() => {
+    if (!views.some((view) => view.key === selectedView) && views[0]) {
+      setSelectedView(normalizeFastingViewKey(views[0].key));
+    }
+  }, [views, selectedView]);
 
   return (
     <View style={styles.fastingCalendarSection}>
@@ -88,7 +152,7 @@ export function FastingOverviewCalendarSection({
       {showInfoBannerVisible ? (
         <View style={styles.fastingInfoBanner}>
           <Text style={styles.fastingInfoBannerText}>
-            {t("homeScreen.fastingInfoBanner")}
+            {labels.description || t("homeScreen.fastingInfoBanner")}
           </Text>
           <TouchableOpacity
             style={styles.fastingInfoBannerClose}
@@ -108,18 +172,22 @@ export function FastingOverviewCalendarSection({
         nestedScrollEnabled
         scrollEventThrottle={16}
       >
-        {FASTING_CALENDAR_FILTER_TABS.map((label) => (
+        {allTabs.map((tab) => (
           <Tabs
-            key={label}
-            label={t(getFastingFilterTranslationKey(label))}
-            onPress={() => setFilterTab(label)}
-            selectedTab={t(getFastingFilterTranslationKey(filterTab))}
+            key={tab.key}
+            label={tab.label}
+            onPress={() => setSelectedTab(tab)}
+            selectedTab={selectedTab?.label ?? "ALL"}
             bgColor={Colors.light.blackBackground}
           />
         ))}
       </ScrollView>
       <TopSpace top={16} />
-      <FastingGoalTotalCard label={t("homeScreen.fastingGoalTotal")} count={PLANNED_FASTS.goalTotal} />
+      <FastingGoalTotalCard
+        label={labels.goalLabel}
+        count={labels.goalValue}
+        unit={labels.goalUnit}
+      />
       <TopSpace top={16} />
       <ScrollView
         horizontal
@@ -129,21 +197,31 @@ export function FastingOverviewCalendarSection({
         nestedScrollEnabled
         scrollEventThrottle={16}
       >
-        {trackTabs.map(({ label }) => (
+        {views.map((view) => (
           <Tabs
-            key={label}
-            label={t(getFastingTrackTabTranslationKey(label))}
-            onPress={() => setSelectedTrackLabel(label)}
-            selectedTab={t(getFastingTrackTabTranslationKey(selectedTrackLabel))}
+            key={view.key}
+            label={view.label}
+            onPress={() => setSelectedView(normalizeFastingViewKey(view.key))}
+            selectedTab={selectedViewLabel}
             bgColor={Colors.light.blackBackground}
           />
         ))}
       </ScrollView>
       <FastingCalendarTrack
-        variant={selectedTrack.variant}
-        filterTab={filterTab}
+        variant={trackVariant}
         showLegendCard={showLegendCard}
         onCloseLegendCard={() => setShowLegendCard(false)}
+        markers={markers}
+        legendEntries={legendEntries}
+        windowStartDate={window?.startDate}
+        windowEndDate={window?.endDate}
+        rangeLabel={labels.rangeLabel}
+        hijriRangeLabel={labels.hijriRangeLabel}
+        completedLabel={labels.completedLabel}
+        completedCount={labels.completedValue}
+        completedUnit={labels.completedUnit}
+        footnote={labels.footnote}
+        hasCalendar={Boolean(window)}
       />
     </View>
   );

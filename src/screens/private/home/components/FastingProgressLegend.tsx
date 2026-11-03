@@ -1,12 +1,19 @@
 import { View } from "react-native";
-import { FASTING_LEGEND_ENTRIES } from "../fastingLegend";
+import {
+  FASTING_LEGEND_ENTRIES,
+  type FastingLegendEntry,
+} from "../fastingLegend";
 import { styles } from "../styles";
 import { FastingLegendItem } from "./FastingLegendItem";
+
+type Props = {
+  entries?: FastingLegendEntry[];
+};
 
 function ProgressLegendRow({
   entry,
 }: {
-  entry: (typeof FASTING_LEGEND_ENTRIES)[number];
+  entry: FastingLegendEntry;
 }) {
   return (
     <View style={styles.fastingProgressLegendRow}>
@@ -16,10 +23,14 @@ function ProgressLegendRow({
   );
 }
 
-export function FastingProgressLegend() {
+export function FastingProgressLegend({
+  entries = FASTING_LEGEND_ENTRIES,
+}: Props) {
+  if (entries.length === 0) return null;
+
   return (
     <View style={styles.fastingLegendLayout}>
-      {FASTING_LEGEND_ENTRIES.map((entry) => (
+      {entries.map((entry) => (
         <ProgressLegendRow key={entry.id} entry={entry} />
       ))}
     </View>

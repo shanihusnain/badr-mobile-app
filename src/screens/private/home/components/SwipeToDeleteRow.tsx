@@ -1,5 +1,4 @@
 import { Colors } from "@/constants/theme";
-import Ionicons from "@expo/vector-icons/Ionicons";
 import { useCallback, useEffect } from "react";
 import {
   LayoutChangeEvent,
@@ -16,11 +15,9 @@ import Animated, {
   Extrapolation,
   interpolate,
   runOnJS,
-  runOnUI,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
-  withTiming,
 } from "react-native-reanimated";
 import Feather from "@expo/vector-icons/Feather";
 
@@ -52,8 +49,6 @@ export function SwipeToDeleteRow({
   const startX = useSharedValue(0);
   const itemWidth = useSharedValue(0);
   const itemHeight = useSharedValue(0);
-  const itemOpacity = useSharedValue(1);
-  const isDeleting = useSharedValue(false);
 
   const notifySwipeOpen = useCallback(
     (id: string | null) => {
@@ -62,49 +57,29 @@ export function SwipeToDeleteRow({
     [onSwipeOpen],
   );
 
-  const removeItem = useCallback(() => {
+  const requestDeleteConfirmation = useCallback(() => {
+    translateX.value = withSpring(0, SPRING_CONFIG);
+    runOnJS(notifySwipeOpen)(null);
     onDelete(rowId);
-  }, [onDelete, rowId]);
+  }, [notifySwipeOpen, onDelete, rowId, translateX]);
 
   const handleLayout = (event: LayoutChangeEvent) => {
     itemWidth.value = event.nativeEvent.layout.width;
     itemHeight.value = event.nativeEvent.layout.height;
   };
 
-  const animateDelete = () => {
-    "worklet";
-    isDeleting.value = true;
-    translateX.value = withTiming(-itemWidth.value, { duration: 220 });
-    itemOpacity.value = withTiming(0, { duration: 220 });
-    itemHeight.value = withTiming(0, { duration: 200 }, (finished) => {
-      if (finished) {
-        runOnJS(removeItem)();
-      }
-    });
-  };
-
   const panGesture = Gesture.Pan()
     .activeOffsetX([-12, 12])
     .failOffsetY([-12, 12])
     .onBegin(() => {
-      if (isDeleting.value) {
-        return;
-      }
       startX.value = translateX.value;
       runOnJS(notifySwipeOpen)(rowId);
     })
     .onChange((event) => {
-      if (isDeleting.value) {
-        return;
-      }
       const next = startX.value + event.translationX;
       translateX.value = Math.min(0, Math.max(next, -itemWidth.value));
     })
     .onFinalize(() => {
-      if (isDeleting.value) {
-        return;
-      }
-
       const currentX = translateX.value;
       const deleteTrigger = -itemWidth.value * 0.45;
 
@@ -119,12 +94,10 @@ export function SwipeToDeleteRow({
         return;
       }
 
-      animateDelete();
+      runOnJS(requestDeleteConfirmation)();
     });
 
   const containerStyle = useAnimatedStyle(() => ({
-    height: isDeleting.value ? itemHeight.value : undefined,
-    opacity: itemOpacity.value,
     overflow: "hidden",
   }));
 
@@ -155,7 +128,8 @@ export function SwipeToDeleteRow({
     if (openRowId !== rowId) {
       return;
     }
-    runOnUI(animateDelete)();
+
+    requestDeleteConfirmation();
   };
 
   useEffect(() => {

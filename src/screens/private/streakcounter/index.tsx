@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, ScrollView } from "react-native";
+import { View, Text, ScrollView, useWindowDimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import AntDesign from "@expo/vector-icons/AntDesign";
@@ -10,17 +10,36 @@ import { localizeNumber } from "@/src/utils/localizeNumbers";
 import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
 import { FlashIcon } from "@/assets/icons/FlashIcon";
 import Svg, { Defs, RadialGradient, Rect, Stop } from "react-native-svg";
-
-export default function StreakCounter() {
+import { useGetDayStreakDetails } from "@/src/api/queries/useGetDayStreakDetails";
+import { BadarNameLogo } from "@/assets/icons";
+import { TaperedCircleBorder } from "@/components/atoms/TaperedCircleBorder";
+import { Colors } from "@/constants/theme";
+export default function StreakCounter({ date }: { date?: string }) {
   const { t, i18n } = useTranslation();
   const lng = i18n.language;
   const styles = createStyles();
   const router = useRouter();
 
+  const { data: streakData, isLoading } = useGetDayStreakDetails(
+    date ?? new Date().toISOString().split("T")[0],
+  );
+
+  console.log(
+    "the streak data we are getting in the streak counter screen is",
+    streakData?.data,
+  );
+
+  const { height } = useWindowDimensions()
+  if (isLoading) {
+    return <TaperedCircleBorder completeIcon={null} progressColor={Colors.light.gold}
+    />
+  }
+
+
   return (
-    <BlackScreenWrapper>
+    <BlackScreenWrapper edges={["bottom"]}>
       <ScrollView
-        contentContainerStyle={{ flexGrow: 1, paddingTop: 16 }}
+        contentContainerStyle={{ flexGrow: 1, paddingTop: height * 0.04 }}
         showsVerticalScrollIndicator={false}
       >
         {/* 2. Main Center Hero Section */}
@@ -29,7 +48,15 @@ export default function StreakCounter() {
             <View style={{ position: "absolute" }}>
               <Svg height="300" width="300" viewBox="0 0 300 300">
                 <Defs>
-                  <RadialGradient id="glow" cx="50%" cy="50%" rx="50%" ry="50%" fx="50%" fy="50%">
+                  <RadialGradient
+                    id="glow"
+                    cx="50%"
+                    cy="50%"
+                    rx="50%"
+                    ry="50%"
+                    fx="50%"
+                    fy="50%"
+                  >
                     <Stop offset="0%" stopColor="#FFAA00" stopOpacity="0.35" />
                     <Stop offset="100%" stopColor="#FFAA00" stopOpacity="0" />
                   </RadialGradient>
@@ -39,8 +66,8 @@ export default function StreakCounter() {
             </View>
             <FlashIcon size={120} />
           </View>
-          <Text style={styles.streakNumber}>{localizeNumber("205", lng)}</Text>
-          <Text style={styles.streakSublabel}>{t("streakCounter.title")}</Text>
+          <Text style={styles.streakNumber}>{localizeNumber(streakData?.data?.max?.value, lng)}</Text>
+          <Text style={styles.streakSublabel}>{streakData?.data?.dayStreakLabel}</Text>
         </View>
 
         {/* 3. Horizontal Stats Grid */}
@@ -48,10 +75,11 @@ export default function StreakCounter() {
           {/* Column 1 */}
           <View style={styles.statsColumn}>
             <Text style={styles.statsValueLight}>
-              {t("streakCounter.startedDate")}
+              {streakData?.data?.started?.value}
             </Text>
             <Text style={styles.statsLabel}>
-              {t("streakCounter.streakStarted")}
+              {streakData?.data?.started?.label}
+
             </Text>
           </View>
 
@@ -61,9 +89,9 @@ export default function StreakCounter() {
           {/* Column 2 */}
           <View style={styles.statsColumn}>
             <Text style={styles.statsValue}>
-              {t("streakCounter.topPercentage")}
+              {streakData?.data?.top?.value}
             </Text>
-            <Text style={styles.statsLabel}>{t("streakCounter.badr")}</Text>
+            <BadarNameLogo size={14} />
           </View>
 
           {/* Vertical Divider */}
@@ -71,9 +99,9 @@ export default function StreakCounter() {
 
           {/* Column 3 */}
           <View style={styles.statsColumn}>
-            <Text style={styles.statsValue}>{localizeNumber("391", lng)}</Text>
+            <Text style={styles.statsValue}>{localizeNumber(streakData?.data?.max?.value, lng)}</Text>
             <Text style={styles.statsLabel}>
-              {t("streakCounter.maxStreak")}
+              {streakData?.data?.max?.label}
             </Text>
           </View>
         </View>
@@ -81,17 +109,16 @@ export default function StreakCounter() {
         {/* 4. This Week Tracker Container */}
         <View style={styles.thisWeekContainer}>
           <Text style={styles.thisWeekHeader}>
-            {t("streakCounter.thisWeek")}
+            {streakData?.data?.thisWeek?.label}
           </Text>
-          <View style={styles.daysRow}>
+          {/* <View style={styles.daysRow}>
             {(
-              t("streakCounter.weekDays", { returnObjects: true }) as string[]
-            ).map((day, index) => {
-              const isCompleted = index < 3;
+              streakData?.data?.thisWeek?.days && streakData?.data?.thisWeek?.days
+            )?.map((day, index) => {
               return (
-                <View key={day} style={styles.dayColumn}>
-                  <Text style={styles.dayText}>{day}</Text>
-                  {isCompleted ? (
+                <View key={day?.label} style={styles.dayColumn}>
+                  <Text style={styles.dayText}>{day?.label}</Text>
+                  {day?.active ? (
                     <FlashIcon size={18} />
                   ) : (
                     <View style={styles.dayCircle} />
@@ -99,7 +126,7 @@ export default function StreakCounter() {
                 </View>
               );
             })}
-          </View>
+          </View> */}
         </View>
 
         {/* 5. Milestone Tracker Container */}
@@ -107,14 +134,33 @@ export default function StreakCounter() {
           {/* Left Circle */}
           <View style={styles.milestoneLeftCircle}>
             <View style={styles.glowWrapper}>
-              <Svg height="80" width="80" viewBox="0 0 80 80" style={{ position: "absolute" }}>
+              <Svg
+                height="80"
+                width="80"
+                viewBox="0 0 80 80"
+                style={{ position: "absolute" }}
+              >
                 <Defs>
-                  <RadialGradient id="glowSmall" cx="50%" cy="50%" rx="50%" ry="50%" fx="50%" fy="50%">
+                  <RadialGradient
+                    id="glowSmall"
+                    cx="50%"
+                    cy="50%"
+                    rx="50%"
+                    ry="50%"
+                    fx="50%"
+                    fy="50%"
+                  >
                     <Stop offset="0%" stopColor="#FFAA00" stopOpacity="0.4" />
                     <Stop offset="100%" stopColor="#FFAA00" stopOpacity="0" />
                   </RadialGradient>
                 </Defs>
-                <Rect x="0" y="0" width="80" height="80" fill="url(#glowSmall)" />
+                <Rect
+                  x="0"
+                  y="0"
+                  width="80"
+                  height="80"
+                  fill="url(#glowSmall)"
+                />
               </Svg>
             </View>
             <FlashIcon size={34} />
@@ -149,12 +195,16 @@ export default function StreakCounter() {
         {/* 6. Consistency Container */}
         <View style={styles.consistencyContainer}>
           <Text style={styles.consistencyHeader}>
-            {t("streakCounter.consistencyHeader")}
+            {
+              streakData?.data?.card?.title
+            }
           </Text>
           <Text style={styles.consistencyBody}>
-            Your daily commitment to logging on{" "}
-            <Text style={styles.badrText}>Badr</Text>
-            {" "}is more than a routine—it's a step toward spiritual growth, bringing you closer to your goals, strengthening worship, and deepening your connection with Allah.
+            {/* Your daily commitment to logging on{" "} */}
+            {/* <Text style={styles.badrText}></Text>  */}
+            {
+              streakData?.data?.card?.description
+            }
           </Text>
         </View>
       </ScrollView>

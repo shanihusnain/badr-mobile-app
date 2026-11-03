@@ -23,12 +23,16 @@ export function FastingLegendItem({
       "MISSED RAMADAN": "homeScreen.fastingLegend_missedRamadan",
       "MONDAYS & THURSDAYS": "homeScreen.fastingLegend_monThu",
       "WHITE DAYS": "homeScreen.fastingLegend_whiteDays",
+      "PROPHET DAWOOD (AS)": "homeScreen.fastingLegend_dawood",
+      "DAWOOD FASTS": "homeScreen.fastingLegend_dawood",
       "PLANNED MISSED RAMADAN FAST": "homeScreen.fastingLegend_plannedMissedRamadan",
       "COMPLETED MISSED RAMADAN FAST": "homeScreen.fastingLegend_completedMissedRamadan",
       "PLANNED MON & THU FAST": "homeScreen.fastingLegend_plannedMonThu",
       "COMPLETED MON & THU FAST": "homeScreen.fastingLegend_completedMonThu",
       "PLANNED WHITE DAYS": "homeScreen.fastingLegend_plannedWhiteDays",
       "COMPLETED WHITE DAYS": "homeScreen.fastingLegend_completedWhiteDays",
+      "PLANNED DAWOOD FAST": "homeScreen.fastingLegend_plannedDawood",
+      "COMPLETED DAWOOD FAST": "homeScreen.fastingLegend_completedDawood",
     };
     return map[label] || label;
   }

@@ -61,12 +61,12 @@ type DashboardItem = DashboardItemSource & {
 };
 
 const CATEGORY_TABS = [
-  "All",
-  "Prayer",
-  "Quran",
-  "Fasting",
-  "Sadaqah",
-  "Time Spent",
+  { key: "ALL", label: "All" },
+  { key: "PRAYER", label: "Prayer" },
+  { key: "QURAN", label: "Quran" },
+  { key: "FASTING", label: "Fasting" },
+  { key: "SADAQAH", label: "Sadaqah" },
+  { key: "TIME_SPENT", label: "Time Spent" },
 ] as const;
 
 const prayersData: DashboardItemSource[] = [
@@ -229,7 +229,7 @@ function CategoryTabsScroll({
   keyPrefix,
 }: CategoryTabsScrollProps) {
   const { t } = useTypedTranslation();
-  
+
   function getFilterTabTranslationKey(tab: string): any {
     const keyMap: Record<string, string> = {
       "All": "homeScreen.filterAll",
@@ -253,11 +253,11 @@ function CategoryTabsScroll({
       directionalLockEnabled
       keyboardShouldPersistTaps="handled"
     >
-      {CATEGORY_TABS.map((label) => (
+      {CATEGORY_TABS.map((tab) => (
         <Tabs
-          key={`${keyPrefix}-${label}`}
-          label={t(getFilterTabTranslationKey(label))}
-          onPress={() => onSelectTab(label)}
+          key={`${keyPrefix}-${tab.key}`}
+          label={t(getFilterTabTranslationKey(tab.label))}
+          onPress={() => onSelectTab(tab.label)}
           selectedTab={t(getFilterTabTranslationKey(selectedTab))}
         />
       ))}
@@ -271,6 +271,7 @@ export const DashboardCustomizeBottomSheet = forwardRef<BottomSheet, Props>(
     const { t } = useTypedTranslation();
     const [selectedDashboardCategory, setSelectedDashboardCategory] =
       useState<string>("All");
+    console.log("selected dashboard categpory", selectedDashboardCategory)
     const [selectedAddCategory, setSelectedAddCategory] =
       useState<string>("All");
     const [dashboardItems, setDashboardItems] = useState<DashboardItem[]>(
@@ -412,7 +413,7 @@ export const DashboardCustomizeBottomSheet = forwardRef<BottomSheet, Props>(
           {addToDashboardItems.map((item) => {
             const itemKey = getDashboardItemKey(item);
             const isSelected = selectedAddItemKey === itemKey;
-            
+
             const keyBase = item.title.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
             const titleKey = `homeScreen.dashboardItem_${keyBase}_title` as any;
             const translatedTitle = t(titleKey) === titleKey ? item.title : t(titleKey);

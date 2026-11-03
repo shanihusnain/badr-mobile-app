@@ -60,7 +60,7 @@ export default function PrivateLayout() {
           options={{ headerShown: true, title: "" }}
         />
         <Stack.Screen
-          name="streakcounter"
+          name="streakcounter/[date]"
           options={{
             headerShown: true,
             header: () => (
