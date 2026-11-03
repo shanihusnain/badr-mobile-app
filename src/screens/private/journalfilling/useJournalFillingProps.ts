@@ -428,7 +428,7 @@ export function useJournalFillingProps({
     closeCalendar,
     shiftCalendarMonth,
     handleCalendarDayPress,
-    showEdit: hasSavedEntry,
+    showEdit: true,
     showDiscardDialog,
     dontShowDiscardAgain,
     showSuccessToast,

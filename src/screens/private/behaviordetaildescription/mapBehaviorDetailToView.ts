@@ -117,6 +117,15 @@ function resolveHeroBlurhash(
   return BEHAVIOR_DETAIL_HERO_BLURHASH;
 }
 
+function resolveBlocks(container: any): BehaviorDetailContentBlock[] {
+  if (!container) return [];
+  if (Array.isArray(container)) return container;
+  if (Array.isArray(container.blocks)) return container.blocks;
+  if (Array.isArray(container.items)) return container.items;
+  if (Array.isArray(container.recommendations)) return container.recommendations;
+  return [];
+}
+
 export function mapBehaviorDetailToView(
   data: BehaviorDetailApiData | undefined,
   options?: { isLoading?: boolean; title?: string },
@@ -176,9 +185,15 @@ export function mapBehaviorDetailToView(
       heroImage: resolveHeroImage(data),
       heroBlurhash: resolveHeroBlurhash(data),
       impactTitle: data.impact?.title ?? "Impact",
-      impactBlocks: data.impact?.blocks ?? [],
-      recommendationsTitle: data.recommendations?.title ?? "Recommendations",
-      recommendationBlocks: data.recommendations?.blocks ?? [],
+      impactBlocks: resolveBlocks(data.impact),
+      recommendationsTitle:
+        data.recommendations?.title ??
+        (typeof data.recommendations === "object" &&
+        !Array.isArray(data.recommendations)
+          ? (data.recommendations as any)?.heading
+          : null) ??
+        "Recommendations",
+      recommendationBlocks: resolveBlocks(data.recommendations),
     },
   };
 }

@@ -58,13 +58,27 @@ export function JournalInsightBehaviorCard({
         <Text style={styles.behaviorName}>{behavior.name}</Text>
         <Text style={styles.behaviorDescription}>{behavior.description}</Text>
         <View style={styles.weekDaysRow}>
-          {behavior.weekDays!.map((day) => (
-            <View key={`${day.label}-${day.date}`} style={styles.weekDayItem}>
-              <View style={[styles.dayCircle, getDayCircleStyle(day.status)]} />
-              <Text style={styles.weekDayLabel}>{day.label}</Text>
-              <Text style={styles.weekDayDate}>{day.date}</Text>
-            </View>
-          ))}
+          {behavior.weekDays!.map((day) => {
+            const hasActivity = day.status !== "empty";
+            return (
+              <View
+                key={`${day.label}-${day.date}`}
+                style={styles.weekDayItem}
+              >
+                <View
+                  style={[styles.dayCircle, getDayCircleStyle(day.status)]}
+                />
+                <Text
+                  style={[
+                    styles.weekDayLabelRow,
+                    hasActivity && styles.weekDayLabelDull,
+                  ]}
+                >
+                  {day.label} {day.date}
+                </Text>
+              </View>
+            );
+          })}
         </View>
       </Pressable>
     );

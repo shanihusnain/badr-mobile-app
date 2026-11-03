@@ -45,7 +45,7 @@ export const planStyles = StyleSheet.create({
     // paddingBottom: 24,
   },
   journalTabContent: {
-    // paddingBottom: 24,
+    paddingBottom: 18,
   },
   goalsHeaderRow: {
     flexDirection: "row",
@@ -134,11 +134,13 @@ export const planStyles = StyleSheet.create({
   },
   proposedPlanCard: {
     width: 380,
-    height: 165,
+    height: 185,
     borderRadius: 8,
     overflow: "hidden",
     paddingVertical: 12,
     paddingHorizontal: 12,
+    borderWidth: 1.5,
+    borderColor: "rgba(255,255,255,0.28)",
   },
   proposedPlanCardImage: {
     borderRadius: 8,
@@ -171,7 +173,8 @@ export const planStyles = StyleSheet.create({
     fontFamily: fonts.primary.regular,
     color: Colors.light.white,
     lineHeight: 20,
-    letterSpacing: 0.1,
+    letterSpacing: 0,
+    maxWidth: "87%",
   },
   proposedPlanDescriptionDigit: {
     fontSize: 14,
@@ -471,6 +474,7 @@ export const planStyles = StyleSheet.create({
     fontFamily: fonts.primary.medium,
     color: Colors.light.white,
     flex: 1,
+    textTransform: "uppercase",
   },
   journalHabitRingWrap: {
     width: 56,
@@ -511,6 +515,7 @@ export const planStyles = StyleSheet.create({
   journalCustomizeTitle: {
     fontWeight: "600",
     fontSize: 18,
+    lineHeight: 22,
     fontFamily: fonts.primary.semiBold,
     color: Colors.light.white,
   },
@@ -563,17 +568,25 @@ export const planStyles = StyleSheet.create({
     fontSize: 14,
     color: Colors.light.white,
     fontWeight: "500",
+    fontFamily: fonts.primary.medium,
+    opacity: 0.9,
+    lineHeight: 20,
+  },
+  journalCustomizeSheetDescriptionItalic: {
+    fontSize: 14,
+    color: Colors.light.white,
+    fontWeight: "500",
     fontFamily: fonts.primary.mediumItalic,
     opacity: 0.9,
     lineHeight: 20,
   },
   journalCustomizeSheetListContent: {
     paddingHorizontal: 20,
-    paddingBottom: 24,
+    paddingBottom: 54,
   },
   journalCustomizeSheetFooter: {
     paddingHorizontal: 20,
-    paddingTop: 12,
+    paddingTop: 2,
     paddingBottom: 16,
     backgroundColor: Colors.light.darkgrey,
   },

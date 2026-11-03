@@ -25,17 +25,17 @@ export function JournalCustomizeCard({
         contentFit="cover"
       />
       <TopSpace top={30} />
-      <Text style={styles.journalCustomizeTitle}>Customize Your Journal</Text>
+      <Text style={styles.journalCustomizeTitle}>CUSTOMIZE YOUR JOURNAL</Text>
       <TopSpace top={12} />
       <View style={styles.proposedPlanContent}>
         <FilterIcon size={35} color={Colors.light.white} />
         <View style={styles.proposedPlanTextBlock}>
           <Text style={styles.proposedPlanDescription}>
-            {CUSTOMIZE_DESCRIPTION}
+            {CUSTOMIZE_DESCRIPTION.toUpperCase()}
           </Text>
         </View>
       </View>
-      <TopSpace top={30} />
+      <TopSpace top={18} />
       <PrimaryButton text="Get Started" onPress={onGetStartedPress ?? (() => {})} />
     </View>
   );

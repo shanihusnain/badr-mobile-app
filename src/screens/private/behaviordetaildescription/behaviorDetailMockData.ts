@@ -460,8 +460,8 @@ export function getBehaviorDetailSnapshots(
 
 export const BEHAVIOR_DETAIL_PERIOD_LABELS: Record<PlanJournalPeriodId, string> =
   {
-    1: "1W",
-    2: "1M",
+    1: "W",
+    2: "M",
     3: "3M",
     4: "6M",
   };

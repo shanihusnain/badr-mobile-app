@@ -75,23 +75,23 @@ export const journalInsightStyles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
-    marginTop: 6,
+    marginTop: 12,
   },
   behaviorName: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: "600",
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    lineHeight: 21,
+    lineHeight: 20,
   },
   behaviorDescription: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: "400",
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
     lineHeight: 20,
-    opacity: 0.85,
-    marginTop: 6,
+    letterSpacing: 0.1,
+    marginTop: 12,
   },
   weekDaysRow: {
     flexDirection: "row",
@@ -125,6 +125,17 @@ export const journalInsightStyles = StyleSheet.create({
   },
   dayCircleEmpty: {
     backgroundColor: "transparent",
+  },
+  weekDayLabelRow: {
+    fontSize: 10,
+    fontWeight: "500",
+    color: Colors.light.grey,
+    fontFamily: fonts.primary.medium,
+    textAlign: "center",
+  },
+  weekDayLabelDull: {
+    color: Colors.light.dashboardAmountMuted,
+    //opacity: 0.55,
   },
   weekDayLabel: {
     fontSize: 10,

@@ -1,12 +1,7 @@
 import React, { useCallback, useLayoutEffect } from "react";
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  View,
-} from "react-native";
-import { useLocalSearchParams, useNavigation } from "expo-router";
+import { ActivityIndicator, View } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { useHeaderHeight } from "expo-router/react-navigation";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Colors } from "@/constants/theme";
@@ -129,42 +124,38 @@ export function JournalFillingScreen() {
         onSelectDate={handleCalendarDayPress}
       />
 
-      <KeyboardAvoidingView
-        style={styles.body}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={insets.top + 72}
-      >
-        {isLoadingEntry ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator color={Colors.light.green} size="large" />
-          </View>
-        ) : (
-          <>
-            <ScrollView
-              style={styles.body}
-              contentContainerStyle={styles.scrollContent}
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
-            >
-              {sections.map(renderSection)}
+      {isLoadingEntry ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator color={Colors.light.green} size="large" />
+        </View>
+      ) : (
+        <>
+          <KeyboardAwareScrollView
+            style={styles.body}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            enableAutomaticScroll
+            extraScrollHeight={140}
+          >
+            {sections.map(renderSection)}
 
-              <JournalNotesInput
-                value={draft.notes}
-                onChangeText={handleNotesChange}
-                placeholder={notesPlaceholder}
-              />
-            </ScrollView>
-
-            <JournalSaveButton
-              label={saveLabel}
-              disabled={!hasChanges}
-              loading={isSaving}
-              bottomInset={insets.bottom}
-              onPress={handleSave}
+            <JournalNotesInput
+              value={draft.notes}
+              onChangeText={handleNotesChange}
+              placeholder={notesPlaceholder}
             />
-          </>
-        )}
-      </KeyboardAvoidingView>
+          </KeyboardAwareScrollView>
+
+          <JournalSaveButton
+            label={saveLabel}
+            disabled={!hasChanges}
+            loading={isSaving}
+            bottomInset={insets.bottom}
+            onPress={handleSave}
+          />
+        </>
+      )}
 
       <DiscardJournalDialog
         visible={showDiscardDialog}
