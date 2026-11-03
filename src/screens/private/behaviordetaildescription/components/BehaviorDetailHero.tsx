@@ -40,8 +40,8 @@ export function BehaviorDetailHero({
     >
       <LinearGradient
         colors={[
-          "rgba(8, 26, 47, 0.72)",
-          "rgba(8, 26, 47, 0.2)",
+          "rgba(8, 26, 47, 0.25)",
+          "rgba(8, 26, 47, 0.01)",
           "transparent",
         ]}
         locations={[0, 0.45, 1]}
@@ -51,8 +51,8 @@ export function BehaviorDetailHero({
       <LinearGradient
         colors={[
           "transparent",
-          "rgba(8, 26, 47, 0.35)",
-          "rgba(8, 26, 47, 0.82)",
+          "rgba(8, 26, 47, 0.02)",
+          "rgba(8, 26, 47, 0.28)",
           Colors.light.blackBackground,
         ]}
         locations={[0, 0.35, 0.72, 1]}

@@ -105,7 +105,7 @@ export const behaviorDetailStyles = StyleSheet.create({
   weekDayLabel: {
     fontSize: 10,
     fontWeight: "500",
-    color: Colors.light.white,
+    color: "#A0A0A0",
     fontFamily: fonts.primary.medium,
   },
   weekDayDate: {
@@ -235,11 +235,11 @@ export const behaviorDetailStyles = StyleSheet.create({
     marginTop: 16,
   },
   sectionTitle: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: "600",
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    lineHeight: 21,
+    lineHeight: 20,
     marginBottom: 10,
   },
   sectionBody: {
@@ -247,7 +247,8 @@ export const behaviorDetailStyles = StyleSheet.create({
     fontWeight: "400",
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    lineHeight: 21,
+    lineHeight: 20,
+    letterSpacing: 0.1,
     opacity: 0.9,
   },
   blocksList: {
@@ -255,11 +256,38 @@ export const behaviorDetailStyles = StyleSheet.create({
   },
   blockHeading: {
     fontSize: 14,
-    fontWeight: "600",
+    fontWeight: "400",
     color: Colors.light.white,
-    fontFamily: fonts.primary.semiBold,
-    lineHeight: 21,
+    fontFamily: fonts.primary.regular,
+    lineHeight: 20,
+    letterSpacing: 0.1,
     marginTop: 4,
+    opacity: 0.9,
+  },
+  blockHeadingRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 8,
+    marginTop: 4,
+  },
+  blockHeadingBullet: {
+    fontSize: 14,
+    color: Colors.light.white,
+    lineHeight: 20,
+    opacity: 0.9,
+  },
+  blockHeadingText: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: "400",
+    color: Colors.light.white,
+    fontFamily: fonts.primary.regular,
+    lineHeight: 20,
+    letterSpacing: 0.1,
+    opacity: 0.9,
+  },
+  compoundBlock: {
+    gap: 8,
   },
   quoteBlock: {
     flexDirection: "row",
@@ -272,13 +300,21 @@ export const behaviorDetailStyles = StyleSheet.create({
     gap: 4,
   },
   quoteText: {
-    fontSize: 13,
-    fontWeight: "400",
+    fontSize: 14,
     color: Colors.light.white,
-    fontFamily: fonts.primary.regular,
     lineHeight: 20,
-    fontStyle: "italic",
+    letterSpacing: 0.1,
     opacity: 0.9,
+  },
+  quoteTextHadith: {
+    fontWeight: "400",
+    fontStyle: "italic",
+    fontFamily: fonts.primary.regularItalic,
+  },
+  quoteTextQuran: {
+    fontWeight: "600",
+    fontStyle: "normal",
+    fontFamily: fonts.primary.semiBold,
   },
   quoteSource: {
     fontSize: 12,
@@ -301,6 +337,7 @@ export const behaviorDetailStyles = StyleSheet.create({
     fontSize: 10,
     lineHeight: 20,
     marginTop: 1,
+    opacity: 0.9,
   },
   recommendationText: {
     flex: 1,

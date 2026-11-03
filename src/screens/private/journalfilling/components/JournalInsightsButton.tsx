@@ -19,7 +19,7 @@ function JournalInsightsButtonComponent({
       accessibilityLabel="Insights"
       hitSlop={4}
     >
-      <BulbIcon size={16} color={Colors.light.white} />
+      <BulbIcon size={19} color={Colors.light.white} />
       <Text style={styles.label}>INSIGHTS</Text>
     </Pressable>
   );

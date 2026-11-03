@@ -5,7 +5,7 @@ import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
-import BackButton from "./Backbutton";
+import { SvgComponent as JournalPencilIcon } from "@/assets/icons/JournalPencilIcon";
 
 type JournalFillingHeaderProps = {
   title?: string;
@@ -35,7 +35,15 @@ function JournalFillingHeaderComponent({
       ]}
     >
       <View style={styles.headerLeft}>
-        <BackButton onPress={onBackPress ?? (() => router.back())} />
+        <Pressable
+          style={styles.backButtonContainer}
+          onPress={onBackPress ?? (() => router.back())}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
+          hitSlop={8}
+        >
+          <Feather name="x" size={16} color={Colors.light.blackBackground} />
+        </Pressable>
       </View>
       <Text style={styles.headerTitle}>{title}</Text>
       <View style={styles.headerRight}>
@@ -47,7 +55,7 @@ function JournalFillingHeaderComponent({
             accessibilityLabel="Edit journal"
             hitSlop={8}
           >
-            <Feather name="edit-2" size={18} color={Colors.light.white} />
+            <JournalPencilIcon size={18} color={Colors.light.white} />
           </Pressable>
         ) : (
           <View style={styles.editPlaceholder} />
@@ -82,17 +90,25 @@ const styles = StyleSheet.create({
     width: 40,
     alignItems: "flex-end",
   },
+  backButtonContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   editButton: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: Colors.light.buttonBackground,
+    width: 32,
+    height: 32,
+    borderRadius: 0,
+    backgroundColor: "transparent",
     alignItems: "center",
     justifyContent: "center",
   },
   editPlaceholder: {
-    width: 30,
-    height: 30,
+    width: 32,
+    height: 32,
   },
 });
 

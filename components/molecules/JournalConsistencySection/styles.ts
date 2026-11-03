@@ -33,6 +33,7 @@ export const journalConsistencySectionStyles = StyleSheet.create({
     fontFamily: fonts.primary.bold,
     fontWeight: "700",
     lineHeight: 28,
+    marginTop: 4,
   },
   achievementPercentSymbol: {
     fontSize: 16,

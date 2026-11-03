@@ -26,7 +26,6 @@ export function BehaviorDetailWeekDays({ weekDays }: BehaviorDetailWeekDaysProps
         <View key={`${day.label}-${day.date}`} style={styles.weekDayItem}>
           <View style={[styles.dayCircle, getDayCircleStyle(day.status)]} />
           <Text style={styles.weekDayLabel}>{day.label}</Text>
-          <Text style={styles.weekDayDate}>{day.date}</Text>
         </View>
       ))}
     </View>

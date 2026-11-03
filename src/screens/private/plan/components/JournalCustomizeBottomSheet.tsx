@@ -146,7 +146,11 @@ export const JournalCustomizeBottomSheet = forwardRef<
         </Text>
         <TopSpace top={16} />
         <Text style={styles.journalCustomizeSheetDescription}>
-          {CUSTOMIZE_DESCRIPTION}
+          Inspired by the Hadith of the Prophet (PBUH),
+          <Text style={styles.journalCustomizeSheetDescriptionItalic}>
+            {`"The most beloved of you to Allah are the best of you in character,"`}
+          </Text>
+          {" this feature allows you to select behaviors and practices to track daily, fostering growth in your character."}
         </Text>
         <PlanTabBar
           tabs={journalTabs}
