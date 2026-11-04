@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -14,7 +14,10 @@ import { fonts } from "@/assets/fonts";
 import { GoalData } from "../../home/components/goalsData";
 import { FlowCard } from "../components/FlowCard";
 import { DateStep } from "../components/DateStep";
-import { formatProgressLoggingDateLabel } from "../progressLoggingConfig";
+import {
+  formatProgressLoggingDateLabel,
+  getQuranLoggingSelectableDateBounds,
+} from "../progressLoggingConfig";
 import { VolunteeringCategoryStep } from "../components/VolunteeringCategoryStep";
 import {
   StartTimeStep,
@@ -126,6 +129,20 @@ export default function VolunteeringLoggingFlow({
     String(frame?.goal?.status ?? "").toUpperCase() === "COMPLETED";
 
   const todayString = toDateString(new Date());
+  const cycleStart = frame?.cycle?.startDate?.slice(0, 10) || undefined;
+  const cycleEnd = frame?.cycle?.endDate?.slice(0, 10) || undefined;
+  const { minSelectableDate, maxSelectableDate } =
+    getQuranLoggingSelectableDateBounds(cycleStart, cycleEnd, todayString);
+
+  useEffect(() => {
+    setSelectedDate((prev) => {
+      if (minSelectableDate && prev < minSelectableDate)
+        return minSelectableDate;
+      if (prev > maxSelectableDate) return maxSelectableDate;
+      return prev;
+    });
+  }, [minSelectableDate, maxSelectableDate]);
+
   const currentStep = STEPS[stepIndex] ?? "date";
   const isLastStep = stepIndex === STEPS.length - 1;
 
@@ -139,7 +156,9 @@ export default function VolunteeringLoggingFlow({
     const next = moment(selectedDate, "YYYY-MM-DD")
       .add(direction, "days")
       .format("YYYY-MM-DD");
-    if (direction === 1 && next > todayString) return;
+    if (minSelectableDate && direction === -1 && next < minSelectableDate)
+      return;
+    if (direction === 1 && next > maxSelectableDate) return;
     setSelectedDate(next);
   };
 
@@ -147,7 +166,7 @@ export default function VolunteeringLoggingFlow({
     const now = getCurrentStartTimeParts();
     setFlowMode("collapsed");
     setStepIndex(0);
-    setSelectedDate(toDateString(new Date()));
+    setSelectedDate(maxSelectableDate);
     setSelectedCategory("distributing-food");
     setStartHour(now.hour);
     setStartMinute(now.minute);
@@ -156,7 +175,7 @@ export default function VolunteeringLoggingFlow({
     setDurationMinutes("0");
     setIsPeriodDropdownOpen(false);
     setIsCategoryDropdownOpen(false);
-  }, []);
+  }, [maxSelectableDate]);
 
   const handleConfirm = useCallback(() => {
     if (!selectedDate || isLogging) return;
@@ -297,6 +316,8 @@ export default function VolunteeringLoggingFlow({
             dateLabel={dateLabel}
             selectedDate={selectedDate}
             todayString={todayString}
+            minSelectableDate={minSelectableDate}
+            maxSelectableDate={maxSelectableDate}
             onShiftDate={shiftDate}
             styles={commonStyles}
           />

@@ -44,6 +44,10 @@ export type MissedRamadanFastDayProgress = {
   isMenstruating?: boolean;
   /** Frame API: kept-day logs can be undone via DELETE …/log?date= */
   canDelete?: boolean;
+  /** Other fasting goal holding this date (`MONDAY_THURSDAY`, …). */
+  bookedFor?: string | null;
+  /** Status of that other goal’s booking (`PLANNED`, `MISSED`, …). */
+  bookedStatus?: string | null;
 };
 
 export type MissedRamadanFastWeekSummary = {

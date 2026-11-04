@@ -41,6 +41,10 @@ export type WhiteDaysFastDayProgress = {
   isMenstruating: boolean;
   /** Completed White Day log that can show delete chrome (today or past). */
   canDelete: boolean;
+  /** Other fasting goal holding this date (`MONDAY_THURSDAY`, …). */
+  bookedFor?: string | null;
+  /** Status of that other goal’s booking (`PLANNED`, `MISSED`, …). */
+  bookedStatus?: string | null;
 };
 
 export type WhiteDaysFastWeekSummary = {

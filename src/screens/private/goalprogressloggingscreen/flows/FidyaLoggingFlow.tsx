@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Pressable,
   Text,
@@ -12,7 +12,10 @@ import moment from "moment-hijri";
 import { Colors } from "@/constants/theme";
 import { GoalData } from "../../home/components/goalsData";
 import { DateStep } from "../components/DateStep";
-import { formatProgressLoggingDateLabel } from "../progressLoggingConfig";
+import {
+  formatProgressLoggingDateLabel,
+  getQuranLoggingSelectableDateBounds,
+} from "../progressLoggingConfig";
 import { CounterStep } from "../components/CounterStep";
 import {
   StartTimeStep,
@@ -117,6 +120,20 @@ export default function FidyaLoggingFlow({ goalData, onLogComplete }: Props) {
     String(frame?.goal?.status ?? "").toUpperCase() === "COMPLETED";
 
   const todayString = toDateString(new Date());
+  const cycleStart = frame?.cycle?.startDate?.slice(0, 10) || undefined;
+  const cycleEnd = frame?.cycle?.endDate?.slice(0, 10) || undefined;
+  const { minSelectableDate, maxSelectableDate } =
+    getQuranLoggingSelectableDateBounds(cycleStart, cycleEnd, todayString);
+
+  useEffect(() => {
+    setSelectedDate((prev) => {
+      if (minSelectableDate && prev < minSelectableDate)
+        return minSelectableDate;
+      if (prev > maxSelectableDate) return maxSelectableDate;
+      return prev;
+    });
+  }, [minSelectableDate, maxSelectableDate]);
+
   const currentStep = STEPS[stepIndex] ?? "date";
   const isLastStep = stepIndex === STEPS.length - 1;
 
@@ -130,7 +147,9 @@ export default function FidyaLoggingFlow({ goalData, onLogComplete }: Props) {
     const next = moment(selectedDate, "YYYY-MM-DD")
       .add(direction, "days")
       .format("YYYY-MM-DD");
-    if (direction === 1 && next > todayString) return;
+    if (minSelectableDate && direction === -1 && next < minSelectableDate)
+      return;
+    if (direction === 1 && next > maxSelectableDate) return;
     setSelectedDate(next);
   };
 
@@ -138,7 +157,7 @@ export default function FidyaLoggingFlow({ goalData, onLogComplete }: Props) {
     const now = getCurrentStartTimeParts();
     setFlowMode("collapsed");
     setStepIndex(0);
-    setSelectedDate(toDateString(new Date()));
+    setSelectedDate(maxSelectableDate);
     setCount("0");
     setStartHour(now.hour);
     setStartMinute(now.minute);
@@ -146,7 +165,7 @@ export default function FidyaLoggingFlow({ goalData, onLogComplete }: Props) {
     setDurationHours("0");
     setDurationMinutes("0");
     setIsPeriodDropdownOpen(false);
-  }, []);
+  }, [maxSelectableDate]);
 
   const handleConfirm = useCallback(() => {
     if (!selectedDate || isLogging) return;
@@ -280,6 +299,8 @@ export default function FidyaLoggingFlow({ goalData, onLogComplete }: Props) {
             dateLabel={dateLabel}
             selectedDate={selectedDate}
             todayString={todayString}
+            minSelectableDate={minSelectableDate}
+            maxSelectableDate={maxSelectableDate}
             onShiftDate={shiftDate}
             styles={commonStyles}
           />

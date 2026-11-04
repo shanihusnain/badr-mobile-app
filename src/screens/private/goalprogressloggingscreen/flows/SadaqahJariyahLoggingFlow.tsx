@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -14,7 +14,10 @@ import { fonts } from "@/assets/fonts";
 import { GoalData } from "../../home/components/goalsData";
 import { FlowCard } from "../components/FlowCard";
 import { DateStep } from "../components/DateStep";
-import { formatProgressLoggingDateLabel } from "../progressLoggingConfig";
+import {
+  formatProgressLoggingDateLabel,
+  getQuranLoggingSelectableDateBounds,
+} from "../progressLoggingConfig";
 import { SadaqahJariyahCategoryStep } from "../components/SadaqahJariyahCategoryStep";
 import { FinancialInputStep } from "../components/FinancialInputStep";
 import {
@@ -126,6 +129,12 @@ export default function SadaqahJariyahLoggingFlow({
 
   const currencyCode = getSadaqahFrameCurrencyCode(frame);
   const goalTarget = goalData?.target ? Number(goalData.target) : 1000;
+  const targetAmount =
+    (typeof frame?.goal?.targetAmount === "number"
+      ? frame.goal.targetAmount
+      : null) ??
+    (typeof frame?.goal?.target === "number" ? frame.goal.target : null) ??
+    goalTarget;
   const summaryTitle = frame
     ? getSadaqahFrameFlowCardTitle(frame)
     : `${currencyCode} ${goalTarget.toLocaleString("en-US")} Toward Sadaqah Jariyah`;
@@ -137,6 +146,20 @@ export default function SadaqahJariyahLoggingFlow({
     String(frame?.goal?.status ?? "").toUpperCase() === "COMPLETED";
 
   const todayString = toDateString(new Date());
+  const cycleStart = frame?.cycle?.startDate?.slice(0, 10) || undefined;
+  const cycleEnd = frame?.cycle?.endDate?.slice(0, 10) || undefined;
+  const { minSelectableDate, maxSelectableDate } =
+    getQuranLoggingSelectableDateBounds(cycleStart, cycleEnd, todayString);
+
+  useEffect(() => {
+    setSelectedDate((prev) => {
+      if (minSelectableDate && prev < minSelectableDate)
+        return minSelectableDate;
+      if (prev > maxSelectableDate) return maxSelectableDate;
+      return prev;
+    });
+  }, [minSelectableDate, maxSelectableDate]);
+
   const currentStep = STEPS[stepIndex] ?? "date";
   const isLastStep = stepIndex === STEPS.length - 1;
 
@@ -150,7 +173,9 @@ export default function SadaqahJariyahLoggingFlow({
     const next = moment(selectedDate, "YYYY-MM-DD")
       .add(direction, "days")
       .format("YYYY-MM-DD");
-    if (direction === 1 && next > todayString) return;
+    if (minSelectableDate && direction === -1 && next < minSelectableDate)
+      return;
+    if (direction === 1 && next > maxSelectableDate) return;
     setSelectedDate(next);
   };
 
@@ -158,7 +183,7 @@ export default function SadaqahJariyahLoggingFlow({
     const now = getCurrentStartTimeParts();
     setFlowMode("collapsed");
     setStepIndex(0);
-    setSelectedDate(toDateString(new Date()));
+    setSelectedDate(maxSelectableDate);
     setSelectedCategory("honoring-parents");
     setAmount("0");
     setStartHour(now.hour);
@@ -168,7 +193,7 @@ export default function SadaqahJariyahLoggingFlow({
     setDurationMinutes("0");
     setIsPeriodDropdownOpen(false);
     setIsCategoryDropdownOpen(false);
-  }, []);
+  }, [maxSelectableDate]);
 
   const handleConfirm = useCallback(() => {
     if (!selectedDate || isLogging) return;
@@ -312,6 +337,8 @@ export default function SadaqahJariyahLoggingFlow({
             dateLabel={dateLabel}
             selectedDate={selectedDate}
             todayString={todayString}
+            minSelectableDate={minSelectableDate}
+            maxSelectableDate={maxSelectableDate}
             onShiftDate={shiftDate}
             styles={commonStyles}
           />
@@ -331,6 +358,7 @@ export default function SadaqahJariyahLoggingFlow({
             amount={amount}
             setAmount={setAmount}
             currencySymbol={currencyCode}
+            targetAmount={targetAmount}
             styles={commonStyles}
           />
         );

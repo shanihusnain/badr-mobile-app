@@ -12,7 +12,10 @@ import moment from "moment-hijri";
 import { Colors } from "@/constants/theme";
 import { GoalData } from "../../home/components/goalsData";
 import { DateStep } from "../components/DateStep";
-import { formatProgressLoggingDateLabel } from "../progressLoggingConfig";
+import {
+  formatProgressLoggingDateLabel,
+  getQuranLoggingSelectableDateBounds,
+} from "../progressLoggingConfig";
 import { CounterStep } from "../components/CounterStep";
 import {
   StartTimeStep,
@@ -314,6 +317,20 @@ export default function KaffarahLoggingFlow({
   }, [reason]);
 
   const todayString = toDateString(new Date());
+  const cycleStart = frame?.cycle?.startDate?.slice(0, 10) || undefined;
+  const cycleEnd = frame?.cycle?.endDate?.slice(0, 10) || undefined;
+  const { minSelectableDate, maxSelectableDate } =
+    getQuranLoggingSelectableDateBounds(cycleStart, cycleEnd, todayString);
+
+  useEffect(() => {
+    setSelectedDate((prev) => {
+      if (minSelectableDate && prev < minSelectableDate)
+        return minSelectableDate;
+      if (prev > maxSelectableDate) return maxSelectableDate;
+      return prev;
+    });
+  }, [minSelectableDate, maxSelectableDate]);
+
   const currentStep = currentSteps[stepIndex] ?? "date";
   const isLastStep = stepIndex === currentSteps.length - 1;
   const isClothesCount = reason === "broken-oath" && sadaqahType === "clothes";
@@ -328,7 +345,9 @@ export default function KaffarahLoggingFlow({
     const next = moment(selectedDate, "YYYY-MM-DD")
       .add(direction, "days")
       .format("YYYY-MM-DD");
-    if (direction === 1 && next > todayString) return;
+    if (minSelectableDate && direction === -1 && next < minSelectableDate)
+      return;
+    if (direction === 1 && next > maxSelectableDate) return;
     setSelectedDate(next);
   };
 
@@ -336,7 +355,7 @@ export default function KaffarahLoggingFlow({
     const now = getCurrentStartTimeParts();
     setFlowMode("collapsed");
     setStepIndex(0);
-    setSelectedDate(toDateString(new Date()));
+    setSelectedDate(maxSelectableDate);
     setReason("broken-fast");
     setSadaqahType("meals");
     setCount("0");
@@ -346,7 +365,7 @@ export default function KaffarahLoggingFlow({
     setDurationHours("0");
     setDurationMinutes("0");
     setIsPeriodDropdownOpen(false);
-  }, []);
+  }, [maxSelectableDate]);
 
   const handleConfirm = useCallback(() => {
     if (!selectedDate || isLogging) return;
@@ -500,6 +519,8 @@ export default function KaffarahLoggingFlow({
             dateLabel={dateLabel}
             selectedDate={selectedDate}
             todayString={todayString}
+            minSelectableDate={minSelectableDate}
+            maxSelectableDate={maxSelectableDate}
             onShiftDate={shiftDate}
             styles={commonStyles}
           />

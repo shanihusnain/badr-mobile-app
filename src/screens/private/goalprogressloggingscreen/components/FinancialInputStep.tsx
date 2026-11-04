@@ -1,7 +1,24 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { View, Text, TextInput, StyleSheet } from "react-native";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
+
+/** ~px per digit at fontSize 16 semiBold. */
+const DIGIT_WIDTH = 10;
+const MIN_DIGITS = 1;
+const MAX_DIGITS = 8;
+
+function digitCountFromTarget(targetAmount?: number): number {
+  if (
+    targetAmount == null ||
+    !Number.isFinite(targetAmount) ||
+    targetAmount === 0
+  ) {
+    return MIN_DIGITS;
+  }
+  const digits = String(Math.floor(Math.abs(targetAmount))).length;
+  return Math.min(MAX_DIGITS, Math.max(MIN_DIGITS, digits));
+}
 
 interface FinancialInputStepProps {
   amount: string;
@@ -9,6 +26,8 @@ interface FinancialInputStepProps {
   styles: any;
   /** Prefixed currency code from the goal frame (`USD`, `SAR`, …). */
   currencySymbol?: string;
+  /** Goal target — input width / maxLength follow its digit count. */
+  targetAmount?: number;
 }
 
 export function FinancialInputStep({
@@ -16,10 +35,17 @@ export function FinancialInputStep({
   setAmount,
   styles: _commonStyles,
   currencySymbol = "USD",
+  targetAmount,
 }: FinancialInputStepProps) {
   const [selection, setSelection] = useState<
     { start: number; end: number } | undefined
   >(undefined);
+
+  const digitCount = useMemo(
+    () => digitCountFromTarget(targetAmount),
+    [targetAmount],
+  );
+  const inputWidth = digitCount * DIGIT_WIDTH;
 
   const handleFocus = () => {
     // Same as goal-setting Counter: clear leading 0 so typing replaces it.
@@ -51,7 +77,7 @@ export function FinancialInputStep({
       <View style={localStyles.inputWrapper}>
         <Text style={localStyles.currencySymbol}>{currencySymbol} </Text>
         <TextInput
-          style={localStyles.input}
+          style={[localStyles.input, { width: inputWidth }]}
           value={amount}
           onChangeText={handleChangeText}
           onFocus={handleFocus}
@@ -61,7 +87,7 @@ export function FinancialInputStep({
             setSelection(e.nativeEvent.selection);
           }}
           keyboardType="numeric"
-          maxLength={6}
+          maxLength={digitCount}
           cursorColor={Colors.light.white}
           selectionColor="rgba(255,255,255,0.3)"
           // No placeholder: Android draws the caret after placeholder text
@@ -88,7 +114,6 @@ const localStyles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(255, 255, 255, 0.4)",
     borderRadius: 6,
-    minWidth: 75,
     height: 24,
     alignItems: "center",
     justifyContent: "center",
@@ -107,6 +132,5 @@ const localStyles = StyleSheet.create({
     fontFamily: fonts.primary.semiBold,
     fontSize: 16,
     padding: 0,
-    flex: 1,
   },
 });

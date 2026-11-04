@@ -14,6 +14,7 @@ import type {
   MissedRamadanFastWeekSummary,
 } from "@/src/screens/private/goalprogressloggingscreen/missedRamadanFastsWeeklyData";
 import { MissedRamadanFastDayRing } from "./MissedRamadanFastDayRing";
+import { BookedOtherGoalDayRing } from "@/components/molecules/BookedOtherGoalDayRing";
 import { useDeleteFastingLog } from "@/src/api/mutations/useDeleteFastingLog";
 
 export type MissedRamadanFastsWeeklyProgressDashboardProps = {
@@ -84,6 +85,16 @@ export function MissedRamadanFastsWeeklyProgressDashboard({
     (args: SinglePrayerDayRingRenderArgs) => {
       const missedDay = weekSummary.weekDays[args.index];
       if (!missedDay) return null;
+
+      if (missedDay.bookedFor) {
+        return (
+          <BookedOtherGoalDayRing
+            size={args.size}
+            bookedFor={missedDay.bookedFor}
+            status={missedDay.bookedStatus}
+          />
+        );
+      }
 
       return (
         <MissedRamadanFastDayRing

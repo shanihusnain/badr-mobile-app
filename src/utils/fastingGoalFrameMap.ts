@@ -29,6 +29,26 @@ function normalizeDate(date: string | null | undefined): string {
   return String(date ?? "").slice(0, 10);
 }
 
+/** Other-goal booking fields for weekly day rings. */
+function getBookedOtherGoalFields(day: FastingGoalFrameDay): {
+  bookedFor: string | null;
+  bookedStatus: string | null;
+} {
+  if (!day.bookedForOtherGoal) {
+    return { bookedFor: null, bookedStatus: null };
+  }
+  const bookedFor = String(day.bookedFor ?? "")
+    .trim()
+    .toUpperCase();
+  const bookedStatus = String(day.status ?? "")
+    .trim()
+    .toUpperCase();
+  return {
+    bookedFor: bookedFor || null,
+    bookedStatus: bookedStatus || null,
+  };
+}
+
 function getDayOfMonth(date: string): number {
   const parsed = moment(normalizeDate(date), "YYYY-MM-DD");
   return parsed.isValid() ? parsed.date() : 0;
@@ -134,6 +154,8 @@ export function mapWhiteDaysFrameDay(
     state === "planned" ||
     state === "plannedToday";
 
+  const booked = getBookedOtherGoalFields(day);
+
   return {
     day: day.dayLabel,
     dayOfMonth: getDayOfMonth(day.date),
@@ -143,6 +165,8 @@ export function mapWhiteDaysFrameDay(
     isWhiteDay,
     isMenstruating: isMenstruatingDay(day),
     canDelete: Boolean(day.canDelete) && state === "completed",
+    bookedFor: booked.bookedFor,
+    bookedStatus: booked.bookedStatus,
   };
 }
 
@@ -473,6 +497,8 @@ export function mapMissedRamadanFrameDay(
   const isExcusedMenstruating =
     rawState === "EXCUSED" || rawState === "MENSTRUATING";
 
+  const booked = getBookedOtherGoalFields(day);
+
   return {
     day: day.dayLabel,
     date: normalizeDate(day.date),
@@ -481,6 +507,8 @@ export function mapMissedRamadanFrameDay(
     isPlanned: Boolean(day.isPlanned) || isExcusedMenstruating,
     isMenstruating: isExcusedMenstruating,
     canDelete: Boolean(day.canDelete),
+    bookedFor: booked.bookedFor,
+    bookedStatus: booked.bookedStatus,
   };
 }
 
@@ -610,6 +638,8 @@ export function mapMondayThursdayFrameDay(
   const isExcusedMenstruating =
     rawState === "EXCUSED" || rawState === "MENSTRUATING";
 
+  const booked = getBookedOtherGoalFields(day);
+
   return {
     day: day.dayLabel,
     date: normalizeDate(day.date),
@@ -618,6 +648,8 @@ export function mapMondayThursdayFrameDay(
     isSelected: Boolean(day.isPlanned) || isExcusedMenstruating,
     isMenstruating: isExcusedMenstruating,
     canDelete: Boolean(day.canDelete),
+    bookedFor: booked.bookedFor,
+    bookedStatus: booked.bookedStatus,
   };
 }
 
@@ -819,6 +851,8 @@ export function mapProphetDawoodFrameDay(
     state === "completed" ||
     state === "missed";
 
+  const booked = getBookedOtherGoalFields(day);
+
   return {
     day: day.dayLabel,
     date: normalizeDate(day.date),
@@ -828,6 +862,8 @@ export function mapProphetDawoodFrameDay(
     isMenstruating: isExcusedMenstruating,
     showCycleRestartIcon: Boolean(day.isRunStart),
     canDelete: Boolean(day.canDelete),
+    bookedFor: booked.bookedFor,
+    bookedStatus: booked.bookedStatus,
   };
 }
 

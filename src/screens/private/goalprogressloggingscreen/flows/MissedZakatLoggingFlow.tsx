@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Pressable,
   Text,
@@ -12,7 +12,10 @@ import moment from "moment-hijri";
 import { Colors } from "@/constants/theme";
 import { GoalData } from "../../home/components/goalsData";
 import { DateStep } from "../components/DateStep";
-import { formatProgressLoggingDateLabel } from "../progressLoggingConfig";
+import {
+  formatProgressLoggingDateLabel,
+  getQuranLoggingSelectableDateBounds,
+} from "../progressLoggingConfig";
 import { FinancialInputStep } from "../components/FinancialInputStep";
 import {
   StartTimeStep,
@@ -116,6 +119,13 @@ export default function MissedZakatLoggingFlow({
   }, [frame, t]);
 
   const currencyCode = getSadaqahFrameCurrencyCode(frame);
+  const goalTarget = goalData?.target ? Number(goalData.target) : 0;
+  const targetAmount =
+    (typeof frame?.goal?.targetAmount === "number"
+      ? frame.goal.targetAmount
+      : null) ??
+    (typeof frame?.goal?.target === "number" ? frame.goal.target : null) ??
+    goalTarget;
   const summaryTitle = frame
     ? getSadaqahFrameFlowCardTitle(frame)
     : `${currencyCode} Toward Missed Zakat`;
@@ -127,6 +137,20 @@ export default function MissedZakatLoggingFlow({
     String(frame?.goal?.status ?? "").toUpperCase() === "COMPLETED";
 
   const todayString = toDateString(new Date());
+  const cycleStart = frame?.cycle?.startDate?.slice(0, 10) || undefined;
+  const cycleEnd = frame?.cycle?.endDate?.slice(0, 10) || undefined;
+  const { minSelectableDate, maxSelectableDate } =
+    getQuranLoggingSelectableDateBounds(cycleStart, cycleEnd, todayString);
+
+  useEffect(() => {
+    setSelectedDate((prev) => {
+      if (minSelectableDate && prev < minSelectableDate)
+        return minSelectableDate;
+      if (prev > maxSelectableDate) return maxSelectableDate;
+      return prev;
+    });
+  }, [minSelectableDate, maxSelectableDate]);
+
   const currentStep = STEPS[stepIndex];
   const isLastStep = stepIndex === STEPS.length - 1;
 
@@ -140,7 +164,9 @@ export default function MissedZakatLoggingFlow({
     const next = moment(selectedDate, "YYYY-MM-DD")
       .add(direction, "days")
       .format("YYYY-MM-DD");
-    if (direction === 1 && next > todayString) return;
+    if (minSelectableDate && direction === -1 && next < minSelectableDate)
+      return;
+    if (direction === 1 && next > maxSelectableDate) return;
     setSelectedDate(next);
   };
 
@@ -148,7 +174,7 @@ export default function MissedZakatLoggingFlow({
     const now = getCurrentStartTimeParts();
     setFlowMode("collapsed");
     setStepIndex(0);
-    setSelectedDate(toDateString(new Date()));
+    setSelectedDate(maxSelectableDate);
     setAmount("0");
     setStartHour(now.hour);
     setStartMinute(now.minute);
@@ -156,7 +182,7 @@ export default function MissedZakatLoggingFlow({
     setDurationHours("0");
     setDurationMinutes("0");
     setIsPeriodDropdownOpen(false);
-  }, []);
+  }, [maxSelectableDate]);
 
   const handleConfirm = useCallback(() => {
     if (!selectedDate || isLogging) return;
@@ -265,6 +291,8 @@ export default function MissedZakatLoggingFlow({
             dateLabel={dateLabel}
             selectedDate={selectedDate}
             todayString={todayString}
+            minSelectableDate={minSelectableDate}
+            maxSelectableDate={maxSelectableDate}
             onShiftDate={shiftDate}
             styles={commonStyles}
           />
@@ -275,6 +303,7 @@ export default function MissedZakatLoggingFlow({
             amount={amount}
             setAmount={setAmount}
             currencySymbol={currencyCode}
+            targetAmount={targetAmount}
             styles={commonStyles}
           />
         );

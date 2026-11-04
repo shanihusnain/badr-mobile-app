@@ -14,6 +14,7 @@ import type {
   MondayThursdayFastWeekSummary,
 } from "@/src/screens/private/goalprogressloggingscreen/mondayThursdayFastsWeeklyData";
 import { MondayThursdayFastDayRing } from "./MondayThursdayFastDayRing";
+import { BookedOtherGoalDayRing } from "@/components/molecules/BookedOtherGoalDayRing";
 import { useDeleteFastingLog } from "@/src/api/mutations/useDeleteFastingLog";
 
 export type MondayThursdayFastsWeeklyProgressDashboardProps = {
@@ -130,6 +131,16 @@ export function MondayThursdayFastsWeeklyProgressDashboard({
     (args: SinglePrayerDayRingRenderArgs) => {
       const mondayThursdayDay = weekSummary.weekDays[args.index];
       if (!mondayThursdayDay) return null;
+
+      if (mondayThursdayDay.bookedFor) {
+        return (
+          <BookedOtherGoalDayRing
+            size={args.size}
+            bookedFor={mondayThursdayDay.bookedFor}
+            status={mondayThursdayDay.bookedStatus}
+          />
+        );
+      }
 
       return (
         <MondayThursdayFastDayRing

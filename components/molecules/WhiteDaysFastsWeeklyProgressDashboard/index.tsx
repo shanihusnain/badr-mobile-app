@@ -14,6 +14,7 @@ import type {
   WhiteDaysFastWeekSummary,
 } from "@/src/screens/private/goalprogressloggingscreen/whiteDaysFastsWeeklyData";
 import { WhiteDaysFastDayRing } from "./WhiteDaysFastDayRing";
+import { BookedOtherGoalDayRing } from "@/components/molecules/BookedOtherGoalDayRing";
 import { useDeleteFastingLog } from "@/src/api/mutations/useDeleteFastingLog";
 
 export type WhiteDaysFastsWeeklyProgressDashboardProps = {
@@ -152,6 +153,16 @@ export function WhiteDaysFastsWeeklyProgressDashboard({
     (args: SinglePrayerDayRingRenderArgs) => {
       const whiteDay = weekSummary.weekDays[args.index];
       if (!whiteDay) return null;
+
+      if (whiteDay.bookedFor) {
+        return (
+          <BookedOtherGoalDayRing
+            size={args.size}
+            bookedFor={whiteDay.bookedFor}
+            status={whiteDay.bookedStatus}
+          />
+        );
+      }
 
       return (
         <WhiteDaysFastDayRing

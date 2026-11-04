@@ -146,9 +146,10 @@ export function formatProgressLoggingDateLabel(
 }
 
 /**
- * Selectable date window for Quran logging flows.
+ * Selectable date window for logging flows (Quran, Sadaqah, etc.).
  * - Cycle starts in the future (e.g. tomorrow): only that day — label "Tomorrow", today blocked.
  * - Cycle already running: from cycle start through today (past days show "Sun, Sep 21").
+ * - If cycle has ended: through cycle end (not past today when cycle is still open).
  */
 export function getQuranLoggingSelectableDateBounds(
   cycleStart: string | undefined | null,

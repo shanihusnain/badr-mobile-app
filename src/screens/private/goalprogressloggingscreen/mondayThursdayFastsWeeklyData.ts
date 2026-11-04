@@ -46,6 +46,10 @@ export type MondayThursdayFastDayProgress = {
   isMenstruating: boolean;
   /** Completed kept-day that can be undone */
   canDelete: boolean;
+  /** Other fasting goal holding this date (`WHITE_DAYS`, …). */
+  bookedFor?: string | null;
+  /** Status of that other goal’s booking (`PLANNED`, `MISSED`, …). */
+  bookedStatus?: string | null;
 };
 
 /**

@@ -13,6 +13,11 @@ const createStyles = () =>
       backgroundColor: Colors.light.blackBackground,
       paddingHorizontal: 16,
     },
+    loadingContainer: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+    },
     // Header Row
 
     // Hero Section
@@ -206,7 +211,6 @@ const createStyles = () =>
       overflow: "hidden",
     },
     progressLineFill: {
-      width: "50%",
       height: "100%",
       backgroundColor: Colors.light.green,
       borderRadius: 12,
@@ -219,6 +223,7 @@ const createStyles = () =>
       letterSpacing: 0,
       color: Colors.light.grey,
       textAlign: "center",
+      width: "70%",
     },
     // Consistency Container (Same size: width: 343, height: 110 or flexible based on padding, but user asked for "same size container" - let's make it 343 width and well-padded, or height 110 with scroll/exact sizing. Let's make it highly premium)
     consistencyContainer: {

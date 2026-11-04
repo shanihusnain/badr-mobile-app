@@ -31,9 +31,20 @@ export type FastingGoalFrameDay = {
   canDelete: boolean;
   /**
    * Day is booked by another fasting goal (Mon/Thu, White Days, etc.).
-   * Drives Today Disabled / Disabled Day (past) in Missed Ramadan Figma.
+   * Drives Today Disabled / Disabled Day (past) when `bookedFor` is absent.
    */
   bookedForOtherGoal?: boolean;
+  /**
+   * Which other fasting goal holds this date
+   * (`MONDAY_THURSDAY` | `WHITE_DAYS` | `PROPHET_DAWOOD` | `MISSED_RAMADAN`).
+   */
+  bookedFor?: string | null;
+  /**
+   * Status of the booking on that other goal
+   * (`PLANNED` | `MISSED` | `COMPLETED` | …). Own-goal state stays in `state`.
+   */
+  status?: string | null;
+  description?: string | null;
   isRunStart?: boolean;
   startTime?: string | null;
   endTime?: string | null;

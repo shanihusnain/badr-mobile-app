@@ -15,6 +15,7 @@ import type {
   ProphetDawoodFastWeekSummary,
 } from "@/src/screens/private/goalprogressloggingscreen/prophetDawoodFastsWeeklyData";
 import { ProphetDawoodFastDayRing } from "./ProphetDawoodFastDayRing";
+import { BookedOtherGoalDayRing } from "@/components/molecules/BookedOtherGoalDayRing";
 import { useDeleteFastingLog } from "@/src/api/mutations/useDeleteFastingLog";
 import { DawoodCycleRefresh } from "@/assets/icons";
 
@@ -101,14 +102,26 @@ export function ProphetDawoodFastsWeeklyProgressDashboard({
       const dawoodDay = weekSummary.weekDays[args.index];
       if (!dawoodDay) return null;
 
+      const ring = dawoodDay.bookedFor ? (
+        <BookedOtherGoalDayRing
+          size={args.size}
+          bookedFor={dawoodDay.bookedFor}
+          status={dawoodDay.bookedStatus}
+        />
+      ) : (
+        <ProphetDawoodFastDayRing
+          size={args.size}
+          state={dawoodDay.state}
+          isMenstruating={Boolean(dawoodDay.isMenstruating)}
+        />
+      );
+
       return (
         <View style={styles.ringSlot}>
-          <ProphetDawoodFastDayRing
-            size={args.size}
-            state={dawoodDay.state}
-            isMenstruating={Boolean(dawoodDay.isMenstruating)}
-          />
-          {dawoodDay.showCycleRestartIcon && !dawoodDay.isMenstruating ? (
+          {ring}
+          {dawoodDay.showCycleRestartIcon &&
+          !dawoodDay.isMenstruating &&
+          !dawoodDay.bookedFor ? (
             <View style={styles.cycleRestartIcon}>
               <View style={styles.cycleRestartBadge}>
                 <DawoodCycleRefresh />
