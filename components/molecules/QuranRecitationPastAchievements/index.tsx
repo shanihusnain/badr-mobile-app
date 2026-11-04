@@ -177,7 +177,7 @@ export function QuranRecitationPastAchievements({
     maxWidth: width * 0.42,
     minWidth: width * 0.42,
   };
-  const surahContext = useOptionalRecitationSurahContext();
+const surahContext = useOptionalRecitationSurahContext();
   const [period, setPeriod] = useState<PastAchievementPeriod>(initialPeriod);
   const [analyticsView, setAnalyticsView] =
     useState<RecitationAnalyticsView>(initialAnalyticsView);
@@ -1283,7 +1283,7 @@ return (
             {renderDetailedSummary()}
             {renderSurahFilterTabs()}
           </>
-        ) : null}
+                ) : null}
 
         {renderGoalHeader()}
         {renderAnalyticsToggle()}
