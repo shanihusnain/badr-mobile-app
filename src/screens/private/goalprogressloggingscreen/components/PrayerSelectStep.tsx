@@ -31,7 +31,7 @@ interface PrayerSelectStepProps {
   t: (key: string) => string;
   styles: any;
   /**
-   * When provided, already-logged prayers show a tick + green icon.
+   * When provided, already-logged prayers show a tick + green icon + white tab.
    * Logged prayers stay tappable so details can be edited.
    * Selection is only blocked for unlogged `lockedPrayers`
    * (`canLog === false`, excluding menstruation / auto-qadha slots).
@@ -83,9 +83,9 @@ const PrayerItem = React.memo(
     }, [isLocked, isSelected, onSelectPrayer, prayer]);
 
     const isDisabled = isLocked;
-    // Only an explicit selection (or logged tick) should stand out. Locked and
-    // unlocked idle slots share the same look so Fajr is never “pre-selected”.
-    const showSelectedBox = isSelected;
+    // Logged prayers keep the white tab + green icon when the user returns
+    // (same look as the currently selected prayer). Idle slots stay muted.
+    const showSelectedBox = isSelected || isLogged;
     const iconColor =
       isSelected || isLogged ? categoryColor : Colors.light.white;
     const showTick = tickOnlyWhenLogged ? isLogged : isSelected;

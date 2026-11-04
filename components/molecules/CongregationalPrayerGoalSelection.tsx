@@ -101,6 +101,16 @@ export default function CongregationalPrayerGoalSelection({
             />
           </View>
 
+          {/* Jumu'ah Prayer — right after Dhuhr */}
+          <View style={styles.sliderGroup}>
+            <Text style={styles.sliderHeading}>{t("prayerGoals.jumuah")}</Text>
+            <CustomSlider
+              maxDays={4}
+              initialDays={jumuah}
+              onChange={(val) => setJumuah(val)}
+            />
+          </View>
+
           {/* Asar */}
           <View style={styles.sliderGroup}>
             <Text style={styles.sliderHeading}>{t("prayerGoals.asr")}</Text>
@@ -128,16 +138,6 @@ export default function CongregationalPrayerGoalSelection({
               maxDays={28}
               initialDays={isha}
               onChange={(val) => setIsha(val)}
-            />
-          </View>
-
-          {/* Jumu'ah Prayer */}
-          <View style={styles.sliderGroup}>
-            <Text style={styles.sliderHeading}>{t("prayerGoals.jumuah")}</Text>
-            <CustomSlider
-              maxDays={4}
-              initialDays={jumuah}
-              onChange={(val) => setJumuah(val)}
             />
           </View>
 

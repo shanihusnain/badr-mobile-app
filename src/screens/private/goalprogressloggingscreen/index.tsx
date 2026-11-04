@@ -259,7 +259,7 @@ function GoalProgressLoggingBody({
   const isSadaqahFrameGoal = isSadaqahFrameGoalId(goalId);
   const frameLoading =
     (isPrayerFrameRingGoal &&
-      (prayerFrame?.isLoading ||
+    (prayerFrame?.isLoading ||
         (!prayerFrame?.frame && !prayerFrame?.isError))) ||
     (isQuranFrameGoal &&
       (quranFrame?.isLoading || (!quranFrame?.frame && !quranFrame?.isError))) ||
@@ -298,9 +298,9 @@ function GoalProgressLoggingBody({
         ? `${fastingFrameAchievementPct ?? 0}%`
         : isSadaqahFrameGoal
           ? `${sadaqahFrameAchievementPct ?? 0}%`
-          : frameAchievementPct != null
-            ? `${frameAchievementPct}%`
-            : liveGoalData.percentage;
+      : frameAchievementPct != null
+        ? `${frameAchievementPct}%`
+        : liveGoalData.percentage;
   const mondayThursdayCompletedCount = useMemo(() => {
     if (!isMondayThursdayFasts) return 0;
     const fromFrame = fastingFrame?.frame?.goal?.completed;
@@ -478,67 +478,67 @@ function GoalProgressLoggingBody({
       */}
       <WeeklyBrowseDispatchProvider>
         <View style={styles.scrollForeground} collapsable={false}>
-          <View style={styles.goalInfoContainer}>
-            <TaperedCircleBorder
-              percentage={displayPercentage}
+      <View style={styles.goalInfoContainer}>
+        <TaperedCircleBorder
+          percentage={displayPercentage}
               borderColor={Colors.light.unfilledTaperred}
               size={110}
-              variant="illuminated"
-            >
-              <View style={styles.largeCircleInner}>
-                <Text
-                  style={[
-                    styles.circleGoalText,
-                    frameLoading && styles.loadingPlaceholderText,
-                  ]}
+          variant="illuminated"
+        >
+          <View style={styles.largeCircleInner}>
+            <Text
+              style={[
+                styles.circleGoalText,
+                frameLoading && styles.loadingPlaceholderText,
+              ]}
                   numberOfLines={ringGoalLineCount}
                   adjustsFontSizeToFit
                   minimumFontScale={0.75}
-                >
-                  {frameLoading ? "---" : ringGoalLabel}
-                </Text>
-                <View style={styles.circlePercentRow}>
-                  <Text
-                    style={[
-                      styles.circlePercentNumber,
-                      frameLoading && styles.loadingPlaceholderText,
-                    ]}
-                  >
-                    {percentageNum}
-                  </Text>
+            >
+              {frameLoading ? "---" : ringGoalLabel}
+            </Text>
+            <View style={styles.circlePercentRow}>
+              <Text
+                style={[
+                  styles.circlePercentNumber,
+                  frameLoading && styles.loadingPlaceholderText,
+                ]}
+              >
+                {percentageNum}
+              </Text>
                   {!frameLoading ? (
                     <Text style={styles.circlePercentSymbol}>%</Text>
                   ) : null}
-                </View>
-              </View>
-            </TaperedCircleBorder>
+            </View>
           </View>
+        </TaperedCircleBorder>
+      </View>
           <TopSpace top={LOGGING_SCREEN_SPACING.afterRing} />
-          <LoggingFlowSlot
-            goalData={liveGoalData}
-            onDropdownOpenChange={onDropdownOpenChange}
-            onLogComplete={() => {
-              setWeeklyRefreshKey((current) => current + 1);
-            }}
-          />
+      <LoggingFlowSlot
+        goalData={liveGoalData}
+        onDropdownOpenChange={onDropdownOpenChange}
+        onLogComplete={() => {
+          setWeeklyRefreshKey((current) => current + 1);
+        }}
+      />
         </View>
 
         <TopSpace top={LOGGING_SCREEN_SPACING.afterMyProgress} />
-        <View style={styles.weeklyDashboardWrapper}>
+      <View style={styles.weeklyDashboardWrapper}>
           <WeeklyBrowseStateProvider
             goalId={goalId}
             refreshKey={weeklyRefreshKey}
           >
-            <WeeklyProgressSection
-              goalData={liveGoalData}
-              refreshKey={weeklyRefreshKey}
+        <WeeklyProgressSection
+          goalData={liveGoalData}
+          refreshKey={weeklyRefreshKey}
               onDeleted={() => setWeeklyRefreshKey((current) => current + 1)}
-              onWeekProgressPercentChange={
-                isMondayThursdayFasts ? setWeekViewPercent : undefined
-              }
-            />
+          onWeekProgressPercentChange={
+            isMondayThursdayFasts ? setWeekViewPercent : undefined
+          }
+        />
           </WeeklyBrowseStateProvider>
-        </View>
+      </View>
       </WeeklyBrowseDispatchProvider>
       <TopSpace top={LOGGING_SCREEN_SPACING.afterDashboard} />
 
@@ -871,8 +871,8 @@ export const GoalProgressLoggingScreen = ({
         requestAnimationFrame(() => {
           deletePrayerSheetRef.current?.expand();
         });
-        return;
-      }
+      return;
+    }
       pendingDeleteSheetOpenRef.current = true;
       setDeletePrayerSheetMounted(true);
     },
@@ -1024,7 +1024,7 @@ export const GoalProgressLoggingScreen = ({
   };
 
   useLayoutEffect(() => {
-    navigation.setOptions({ headerShown: false });
+      navigation.setOptions({ headerShown: false });
   }, [navigation]);
 
   useLayoutEffect(() => {
@@ -1142,14 +1142,14 @@ export const GoalProgressLoggingScreen = ({
               />
             </View>
           ) : null}
-          <GoalProgressLoggingContent
-            goalData={goalData}
-            goalId={goalId}
+        <GoalProgressLoggingContent
+          goalData={goalData}
+          goalId={goalId}
             onDropdownOpenChange={handleDropdownOpenChange}
             weeklyRefreshKey={weeklyRefreshKey}
             setWeeklyRefreshKey={setWeeklyRefreshKey}
             backgroundSource={backgroundSource}
-          />
+        />
         </View>
       </ScrollView>
       {insightsSheetMounted && prayerType ? (

@@ -279,17 +279,19 @@ function mapPrayerGoal(
       dhuhr = cfg.dhuhrTarget;
     }
 
-    // Same order as DailyPrayerGoalSelection: Jum'ah last when enabled.
+    // Same order as DailyPrayerGoalSelection: Jum'ah right after Dhuhr when enabled.
     const rows: Array<[string, string, number]> = [
       ["fajr", t("prayerGoals.fajr"), fajr],
       ["dhuhr", t("prayerGoals.dhuhr"), dhuhr],
-      ["asr", t("prayerGoals.asr"), asr],
-      ["maghrib", t("prayerGoals.maghrib"), maghrib],
-      ["isha", t("prayerGoals.isha"), isha],
     ];
     if (trackCongregation && jumuah > 0) {
       rows.push(["jumuah", t("prayerGoals.jumuah"), jumuah]);
     }
+    rows.push(
+      ["asr", t("prayerGoals.asr"), asr],
+      ["maghrib", t("prayerGoals.maghrib"), maghrib],
+      ["isha", t("prayerGoals.isha"), isha],
+    );
 
     rows.forEach(([name, rowLabel, value], i) => {
       selectedGoals.push({
