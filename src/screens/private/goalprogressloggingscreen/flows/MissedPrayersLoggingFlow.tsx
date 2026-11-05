@@ -202,7 +202,9 @@ export default function MissedPrayersLoggingFlow({
   const isCompleted = (frame?.goal.achievementPct ?? 0) >= 100;
   const showInsights = frame ? prayerFrameShowsInsights(frame) : false;
 
-  const rawGoalLabel = formatPrayerGoalFlowCardLabel(frame?.goal.label ?? "---");
+  const rawGoalLabel = formatPrayerGoalFlowCardLabel(
+    frame?.goal.label ?? "---",
+  );
   const totalPrayersRequired = frame?.goal.targetCount;
   const goalLabel =
     rawGoalLabel.replace(/\s*\(total\s+\d+\s+prayers?\)\s*/i, "").trim() ||
@@ -481,9 +483,7 @@ export default function MissedPrayersLoggingFlow({
 
   return (
     <>
-      {flowMode === "active" && (
-        <Pressable style={commonStyles.backdrop} />
-      )}
+      {flowMode === "active" && <Pressable style={commonStyles.backdrop} />}
       {flowMode === "active" && (
         <TouchableOpacity
           style={commonStyles.cancelButton}
@@ -550,7 +550,7 @@ export default function MissedPrayersLoggingFlow({
                     >
                       {totalPrayersRequired != null ? (
                         <>
-                          (total{" "}
+                          (
                           <Text style={localStyles.subtitleBold}>
                             {totalPrayersRequired}
                           </Text>{" "}

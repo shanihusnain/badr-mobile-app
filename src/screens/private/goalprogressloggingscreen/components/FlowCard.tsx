@@ -57,6 +57,7 @@ export const FlowCard: React.FC<FlowCardProps> = ({
   headerStyle,
   headerSingleLine = false,
 }) => {
+  console.log("headerLabel headerLabel headerLabel headerLabel", headerLabel);
   const { i18n } = useTranslation();
   const isRtl = i18n.language === "ar";
   const BackIcon = isRtl ? FlowCardChevronForwardIcon : FlowCardChevronBackIcon;
