@@ -29,10 +29,7 @@ type RingVisual =
       variant: "menstruatingUnplanned";
       scale?: number;
     }
-  | {
-      /** Today, not a White Day — bordered ring with dark dashboard fill */
-      variant: "todayDisabled";
-    };
+
 
 function getRingVisual(
   state: WhiteDaysFastDayState,
@@ -49,9 +46,13 @@ function getRingVisual(
 
   switch (state) {
     case "todayDisabled":
-      return { variant: "todayDisabled" };
     case "inactive":
-      return { variant: "outline", color: Colors.light.bordercolortodayselectedring };
+      // Disabled for this goal (booked elsewhere) or non–White Day — solid grey
+      return {
+        variant: "solid",
+        color: Colors.light.selectcategory,
+        scale: 0.92,
+      };
     case "planned":
     case "plannedToday":
       return { variant: "outline", color: Colors.light.white };
@@ -69,7 +70,11 @@ function getRingVisual(
         showWarning: true,
       };
     default:
-      return { variant: "outline", color: Colors.light.bordercolortodayselectedring };
+      return {
+        variant: "solid",
+        color: Colors.light.selectcategory,
+        scale: 0.92,
+      };
   }
 }
 
@@ -91,26 +96,6 @@ export function WhiteDaysFastDayRing({
   const visual = getRingVisual(state, isMenstruating, isWhiteDay, isToday);
   const borderWidth = 1.5;
   const wrapperStyle = [styles.wrapper, { width: size + 4, height: size + 4 }];
-
-  if (visual.variant === "todayDisabled") {
-    return (
-      <View style={wrapperStyle}>
-        <View
-          style={[
-            styles.ring,
-            {
-              width: size,
-              height: size,
-              borderRadius: size / 2,
-              borderWidth,
-              borderColor: Colors.light.bordercolortodayselectedring,
-              backgroundColor: Colors.light.greybuttonBackground,
-            },
-          ]}
-        />
-      </View>
-    );
-  }
 
   if (visual.variant === "solid") {
     const fillSize = size * (visual.scale ?? 1);

@@ -3,6 +3,7 @@ import { createTeamImage } from "@/assets/images";
 import CustomTextInput from "@/components/atoms/CustomTextInput";
 import PrimaryButton from "@/components/atoms/Primary-button";
 import { Colors } from "@/constants/theme";
+import { useJoinTeamWithCode } from "@/src/api/mutations/useJoinTeamWithCode";
 import { ImageBackground } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
@@ -23,12 +24,18 @@ export const EnterInviteCodeScreen = () => {
   const [inviteCode, setInviteCode] = useState("");
 
   const canSubmit = inviteCode.trim().length > 0;
+  const { mutate: joinTeamWithCode, isPending } = useJoinTeamWithCode();
 
   const handleSubmit = () => {
-    if (!canSubmit) return;
-    router.push({
-      pathname: "/jointeam",
-      params: { inviteCode: inviteCode.trim().toUpperCase() },
+    if (!canSubmit || isPending) return;
+    const code = inviteCode.trim().toUpperCase();
+    joinTeamWithCode(code, {
+      onSuccess: () => {
+        router.push({
+          pathname: "/jointeam",
+          params: { inviteCode: code },
+        });
+      },
     });
   };
 
@@ -84,8 +91,9 @@ export const EnterInviteCodeScreen = () => {
             <PrimaryButton
               text="SUBMIT CODE"
               onPress={handleSubmit}
-              disabled={!canSubmit}
-              style={!canSubmit ? styles.submitDisabled : undefined}
+              disabled={!canSubmit || isPending}
+              isLoading={isPending}
+              style={!canSubmit && !isPending ? styles.submitDisabled : undefined}
             />
           </View>
         </View>

@@ -15,7 +15,6 @@ import type {
   ProphetDawoodFastWeekSummary,
 } from "@/src/screens/private/goalprogressloggingscreen/prophetDawoodFastsWeeklyData";
 import { ProphetDawoodFastDayRing } from "./ProphetDawoodFastDayRing";
-import { BookedOtherGoalDayRing } from "@/components/molecules/BookedOtherGoalDayRing";
 import { useDeleteFastingLog } from "@/src/api/mutations/useDeleteFastingLog";
 import { DawoodCycleRefresh } from "@/assets/icons";
 
@@ -102,13 +101,9 @@ export function ProphetDawoodFastsWeeklyProgressDashboard({
       const dawoodDay = weekSummary.weekDays[args.index];
       if (!dawoodDay) return null;
 
-      const ring = dawoodDay.bookedFor ? (
-        <BookedOtherGoalDayRing
-          size={args.size}
-          bookedFor={dawoodDay.bookedFor}
-          status={dawoodDay.bookedStatus}
-        />
-      ) : (
+      // Booked-for-other-goal days use disabledPast/todayDisabled → solid grey
+      // (never the other goal’s accent / logged / skipped colors).
+      const ring = (
         <ProphetDawoodFastDayRing
           size={args.size}
           state={dawoodDay.state}

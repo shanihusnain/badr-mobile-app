@@ -9,11 +9,35 @@ export type ConnectHomeReferral = {
   monthsEarned: number;
 };
 
-/**
- * Team card shape is not fully specified by backend yet.
- * Empty `teams: []` means the user has no teams.
- */
-export type ConnectHomeTeam = Record<string, unknown>;
+export type ConnectHomeMediaAsset = {
+  key: string;
+  url: string;
+};
+
+export type ConnectHomeTeamMetric = {
+  metric: string;
+  label: string;
+  category: string;
+  categoryLabel: string;
+};
+
+export type ConnectHomeTeamRank = {
+  position: number;
+  ordinal: string;
+  of: number;
+  metric: ConnectHomeTeamMetric;
+  period: "DAILY" | "WEEKLY" | "MONTHLY" | string;
+  chipLabel: string;
+};
+
+/** Team card from GET api/connect/home — empty `teams: []` means no teams. */
+export type ConnectHomeTeam = {
+  id: string;
+  name: string;
+  logo: ConnectHomeMediaAsset;
+  isAdmin: boolean;
+  rank: ConnectHomeTeamRank;
+};
 
 /**
  * Learn-more item shape is not fully specified by backend yet.
@@ -40,5 +64,7 @@ export const useConnectHomeData = () => {
   return useQuery({
     queryKey: CONNECT_HOME_QUERY_KEY,
     queryFn: getHomeData,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 };

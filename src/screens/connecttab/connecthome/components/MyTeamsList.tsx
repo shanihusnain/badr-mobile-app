@@ -3,10 +3,7 @@ import { Colors } from "@/constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import {
-  MY_TEAMS_INITIAL_VISIBLE,
-  type MyTeam,
-} from "../myTeamsMockData";
+import { MY_TEAMS_INITIAL_VISIBLE, type MyTeam } from "../myTeamsMockData";
 import { MyTeamCard } from "./MyTeamCard";
 
 type MyTeamsListProps = {
@@ -23,7 +20,7 @@ export function MyTeamsList({
 }: MyTeamsListProps) {
   const [showAll, setShowAll] = useState(false);
   const initialVisible = Math.max(1, visibleTeamCount);
-
+  console.log("teams", teams);
   const visibleTeams = useMemo(() => {
     if (showAll || teams.length <= initialVisible) {
       return teams;
@@ -39,11 +36,7 @@ export function MyTeamsList({
     <View>
       <Text style={styles.subtitle}>MY TEAMS</Text>
       {visibleTeams.map((team) => (
-        <MyTeamCard
-          key={team.id}
-          team={team}
-          onPress={onTeamPress}
-        />
+        <MyTeamCard key={team.id} team={team} onPress={onTeamPress} />
       ))}
       {canShowMore ? (
         <Pressable
@@ -51,11 +44,7 @@ export function MyTeamsList({
           onPress={() => setShowAll(true)}
         >
           <Text style={styles.showMoreText}>SHOW MORE</Text>
-          <Ionicons
-            name="chevron-down"
-            size={16}
-            color={Colors.light.white}
-          />
+          <Ionicons name="chevron-down" size={16} color={Colors.light.white} />
         </Pressable>
       ) : null}
     </View>
