@@ -44,6 +44,21 @@ function isLoggedState(state: string): boolean {
   );
 }
 
+/**
+ * At most one best day per week.
+ * Prefer the backend `isBestDay` flag; if none, fall back to the first
+ * day that matches the week's max amount (avoids marking every tied day).
+ */
+function resolveSingleBestDayIndex(days: SadaqahGoalFrameDay[]): number {
+  const fromBackend = days.findIndex((d) => Boolean(d.isBestDay));
+  if (fromBackend >= 0) return fromBackend;
+
+  const amounts = days.map(dayAmount);
+  const bestAmount = amounts.reduce((max, n) => Math.max(max, n), 0);
+  if (bestAmount <= 0) return -1;
+  return amounts.findIndex((n) => n === bestAmount);
+}
+
 export function formatSadaqahFrameWeekRange(
   weekStart: string,
   weekEnd: string,
@@ -831,7 +846,7 @@ function dayMinutes(day: SadaqahGoalFrameDay): number {
 
 export function mapLillahFrameDay(
   day: SadaqahGoalFrameDay,
-  options?: { bestAmount?: number },
+  options?: { isBestDay?: boolean },
 ): LillahDayProgress {
   const amount = dayAmount(day);
   const state = String(day.state ?? "")
@@ -841,12 +856,9 @@ export function mapLillahFrameDay(
   const category = isFuture ? null : resolveLillahCategory(day);
   const isLogged = amount > 0 || isLoggedState(state);
   const isBestDay =
-    Boolean(day.isBestDay) ||
-    (isLogged &&
-      !isFuture &&
-      typeof options?.bestAmount === "number" &&
-      options.bestAmount > 0 &&
-      amount === options.bestAmount);
+    options?.isBestDay !== undefined
+      ? options.isBestDay
+      : Boolean(day.isBestDay);
 
   return {
     day:
@@ -867,9 +879,10 @@ export function mapLillahFrameWeekDays(
   frame: SadaqahGoalFrameData,
 ): LillahDayProgress[] {
   const days = frame.week?.days ?? [];
-  const amounts = days.map(dayAmount);
-  const bestAmount = amounts.reduce((max, n) => Math.max(max, n), 0);
-  return days.map((day) => mapLillahFrameDay(day, { bestAmount }));
+  const bestIndex = resolveSingleBestDayIndex(days);
+  return days.map((day, index) =>
+    mapLillahFrameDay(day, { isBestDay: index === bestIndex && bestIndex >= 0 }),
+  );
 }
 
 export type LillahFrameWeekSummary = {
@@ -917,7 +930,7 @@ export const LILLAH_LOADING_WEEK_SUMMARY: LillahFrameWeekSummary = {
 
 export function mapSadaqahJariyahFrameDay(
   day: SadaqahGoalFrameDay,
-  options?: { bestAmount?: number },
+  options?: { isBestDay?: boolean },
 ): SadaqahJariyahDayProgress {
   const amount = dayAmount(day);
   const state = String(day.state ?? "")
@@ -927,12 +940,9 @@ export function mapSadaqahJariyahFrameDay(
   const category = isFuture ? null : resolveJariyahCategory(day);
   const isLogged = amount > 0 || isLoggedState(state);
   const isBestDay =
-    Boolean(day.isBestDay) ||
-    (isLogged &&
-      !isFuture &&
-      typeof options?.bestAmount === "number" &&
-      options.bestAmount > 0 &&
-      amount === options.bestAmount);
+    options?.isBestDay !== undefined
+      ? options.isBestDay
+      : Boolean(day.isBestDay);
 
   return {
     day:
@@ -953,9 +963,12 @@ export function mapSadaqahJariyahFrameWeekDays(
   frame: SadaqahGoalFrameData,
 ): SadaqahJariyahDayProgress[] {
   const days = frame.week?.days ?? [];
-  const amounts = days.map(dayAmount);
-  const bestAmount = amounts.reduce((max, n) => Math.max(max, n), 0);
-  return days.map((day) => mapSadaqahJariyahFrameDay(day, { bestAmount }));
+  const bestIndex = resolveSingleBestDayIndex(days);
+  return days.map((day, index) =>
+    mapSadaqahJariyahFrameDay(day, {
+      isBestDay: index === bestIndex && bestIndex >= 0,
+    }),
+  );
 }
 
 export type SadaqahJariyahFrameWeekSummary = {

@@ -257,5 +257,10 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.medium,
     fontSize: 13,
     fontWeight: "500",
+    lineHeight: 16,
+    includeFontPadding: false,
+    textAlignVertical: "center",
+    // Optical center with category icons (esp. Debt Assistance spark + note).
+    marginTop: 1,
   },
 });

@@ -258,13 +258,16 @@ export default function SunnahRawatibLoggingFlow({
   const goalLabelParts = useMemo(() => {
     const rawLabel = formatPrayerGoalFlowCardLabel(frame?.goal.label ?? "");
     const targetCount = frame?.goal.targetCount;
-    const match = rawLabel.match(/^(.*?)\s*(\(total\s+\d+\s+prayers?\))\s*$/i);
+    const match = rawLabel.match(
+      /^(.*?)\s*\((?:total\s+)?(\d+)\s+(prayers?)\)\s*$/i,
+    );
 
     const totalSuffix =
-      match?.[2] ??
-      (targetCount != null
-        ? `(total ${targetCount} ${targetCount === 1 ? "prayer" : "prayers"})`
-        : null);
+      match != null
+        ? `(${match[2]} ${match[3]})`
+        : targetCount != null
+          ? `(${targetCount} ${targetCount === 1 ? "prayer" : "prayers"})`
+          : null;
 
     return {
       title: t("progressLogging.sunnahRawatibPrayers"),

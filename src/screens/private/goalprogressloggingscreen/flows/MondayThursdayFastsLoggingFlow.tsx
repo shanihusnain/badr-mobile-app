@@ -441,7 +441,7 @@ export default function MondayThursdayFastsLoggingFlow({
       case "selectDate":
         return {
           icon: calendarIcon,
-          label: t("progressLogging.mondayThursdaySelectPlannedFastCompleted"),
+          label: t("progressLogging.whichDay"),
         };
       case "startTime":
         return {

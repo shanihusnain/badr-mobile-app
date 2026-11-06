@@ -550,11 +550,16 @@ export default function MissedPrayersLoggingFlow({
                     >
                       {totalPrayersRequired != null ? (
                         <>
-                          (
+                          <Text style={localStyles.summarySubtitle}>
+                            (total{" "}
+                          </Text>
                           <Text style={localStyles.subtitleBold}>
                             {totalPrayersRequired}
-                          </Text>{" "}
-                          prayers)
+                          </Text>
+                          <Text style={localStyles.summarySubtitle}>
+                            {" "}
+                            Prayers)
+                          </Text>
                         </>
                       ) : (
                         "---"

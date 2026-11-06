@@ -117,7 +117,7 @@ const QiyamTimingStep = ({
   return (
     <View style={timingStepStyles.container}>
       <View
-        style={[commonStyles.flowDropdownWrapper, isOpen && { zIndex: 30 }]}
+        style={[timingStepStyles.dropdownWrapper, isOpen && { zIndex: 30 }]}
       >
         <TouchableOpacity
           style={[commonStyles.flowDropdownSelector, timingStepStyles.selector]}
@@ -189,7 +189,14 @@ const timingStepStyles = StyleSheet.create({
   container: {
     width: "100%",
     gap: 2,
-    paddingTop: 8,
+    paddingTop: 0,
+    marginTop: 6,
+  },
+  /** Same width for selector + open menu (no asymmetric shared wrapper insets). */
+  dropdownWrapper: {
+    width: "100%",
+    position: "relative",
+    alignSelf: "stretch",
   },
   selector: {
     minHeight: 26,
@@ -215,6 +222,9 @@ const timingStepStyles = StyleSheet.create({
     letterSpacing: -0.3,
   },
   dropdownMenu: {
+    left: 0,
+    right: 0,
+    width: "100%",
     marginTop: 2,
     paddingVertical: 4,
     paddingHorizontal: 4,
@@ -289,6 +299,18 @@ function buildQiyamFlowSteps(
 
 function mapQiyamSessionType(loggedTime: QiyamLoggedTime): QiyamSessionType {
   return loggedTime === "before-fajr" ? "TAHAJJUD" : "AFTER_ISHA";
+}
+
+/**
+ * Before Fajr (Tahajjud) → AM only; After Isha → PM only.
+ * When Tahajjud is not tracked, session is always After Isha → PM only.
+ */
+function getQiyamAllowedPeriods(
+  loggedTime: QiyamLoggedTime,
+  trackTahajjud: boolean,
+): ReadonlyArray<"am" | "pm"> {
+  if (!trackTahajjud) return ["pm"];
+  return loggedTime === "before-fajr" ? ["am"] : ["pm"];
 }
 
 /** API 400 when startTime / night window is invalid for Qiyam logging. */
@@ -420,6 +442,18 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
     dayDetail?.trackTahajjud ??
     trackTahajjud ??
     true;
+
+  const allowedStartPeriods = useMemo(
+    () => getQiyamAllowedPeriods(loggedTime, trackTahajjudForFlow),
+    [loggedTime, trackTahajjudForFlow],
+  );
+
+  useEffect(() => {
+    if (!allowedStartPeriods.includes(startPeriod)) {
+      setStartPeriod(allowedStartPeriods[0] ?? "am");
+      setIsPeriodDropdownOpen(false);
+    }
+  }, [allowedStartPeriods, startPeriod]);
 
   const prayersCountValue = parsePrayersCount(prayersCount);
   const isZeroPrayersFlow = prayersCountValue === 0;
@@ -814,6 +848,7 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
             setIsPeriodDropdownOpen={setIsPeriodDropdownOpen}
             styles={commonStyles}
             hasError={startTimeInvalid}
+            allowedPeriods={allowedStartPeriods}
           />
         );
       case "time-spent":
@@ -1103,6 +1138,7 @@ const localStyles = StyleSheet.create({
   whenPrayFlowContent: {
     justifyContent: "flex-start",
     paddingTop: 0,
+    marginTop: 3,
     marginBottom: 0,
     paddingBottom: 0,
   },
