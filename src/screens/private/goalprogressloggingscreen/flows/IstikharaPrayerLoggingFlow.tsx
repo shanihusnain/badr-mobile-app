@@ -13,7 +13,6 @@ import { Colors } from "@/constants/theme";
 import { GoalData } from "../../home/components/goalsData";
 import { DateStep } from "../components/DateStep";
 import { formatProgressLoggingDateLabel } from "../progressLoggingConfig";
-import { PrayerQuantityInputStep } from "../components/PrayerQuantityInputStep";
 import { StartTimeStep, DurationStep, getCurrentStartTimeParts, isDurationEntered } from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
 import {
@@ -36,22 +35,14 @@ import {
   AddLoggingFlowIcon,
   CalendarFlippingIcon,
   WhiteClockIcon,
-  WhitePrayerMatIcon,
   WhiteTimerIcon,
 } from "@/assets/icons";
 import { IstikharaPrayerDetailedIcon } from "@/assets/icons/IstikharaPrayerDetailedIcon";
 
-type IstikharaPrayerStepId =
-  | "date"
-  | "prayers-quantity"
-  | "start-time"
-  | "time-spent";
-const STEPS: IstikharaPrayerStepId[] = [
-  "date",
-  "prayers-quantity",
-  "start-time",
-  "time-spent",
-];
+type IstikharaPrayerStepId = "date" | "start-time" | "time-spent";
+const STEPS: IstikharaPrayerStepId[] = ["date", "start-time", "time-spent"];
+/** Istikhara logs one 2-rak'ah prayer per entry (quantity step removed). */
+const ISTIKHARA_PRAYER_COUNT = 1;
 
 type Props = {
   goalData: GoalData;
@@ -76,7 +67,6 @@ export default function IstikharaPrayerLoggingFlow({
   const [flowMode, setFlowMode] = useState<FlowMode>("collapsed");
   const [stepIndex, setStepIndex] = useState(0);
   const [selectedDate, setSelectedDate] = useState(toDateString(new Date()));
-  const [prayersCount, setPrayersCount] = useState("1");
   const [startHour, setStartHour] = useState(
     () => getCurrentStartTimeParts().hour,
   );
@@ -98,7 +88,6 @@ export default function IstikharaPrayerLoggingFlow({
 
   const applyDayDetailPrefill = useCallback(
     (prefill: SinglePrayerDayDetailPrefill) => {
-      setPrayersCount(prefill.count);
       setStartHour(prefill.startHour);
       setStartMinute(prefill.startMinute);
       setStartPeriod(prefill.startPeriod);
@@ -136,7 +125,6 @@ export default function IstikharaPrayerLoggingFlow({
 
   const showInsights = frame ? prayerFrameShowsInsights(frame) : false;
   const isFullyAchieved = (frame?.goal.achievementPct ?? 0) >= 100;
-  const quantityValue = parseInt(prayersCount || "0", 10) || 0;
 
   const todayString = toDateString(new Date());
   const maxSelectableDate = cycleEndHijri
@@ -201,7 +189,6 @@ export default function IstikharaPrayerLoggingFlow({
     setFlowMode("collapsed");
     setStepIndex(0);
     setSelectedDate(toDateString(new Date()));
-    setPrayersCount("1");
     setStartHour(now.hour);
     setStartMinute(now.minute);
     setStartPeriod(now.period);
@@ -211,12 +198,12 @@ export default function IstikharaPrayerLoggingFlow({
   }, []);
 
   const handleConfirm = () => {
-    if (isLogging || dayDetailLoadingState || quantityValue < 1) return;
+    if (isLogging || dayDetailLoadingState) return;
 
     const run = async () => {
       const payload = {
         date: selectedDate,
-        count: quantityValue,
+        count: ISTIKHARA_PRAYER_COUNT,
         startTime: formatStartTimeForApi(),
         durationMinutes: buildDurationMinutesForApi(),
       };
@@ -229,7 +216,7 @@ export default function IstikharaPrayerLoggingFlow({
           type: "istikhara-prayer",
           goalId: goalData.id,
           date: selectedDate,
-          prayersCount,
+          prayersCount: String(ISTIKHARA_PRAYER_COUNT),
           startTime: payload.startTime,
           durationMinutes: payload.durationMinutes,
         } as any);
@@ -252,7 +239,6 @@ export default function IstikharaPrayerLoggingFlow({
 
   const handleForward = () => {
     if (dayDetailLoadingState) return;
-    if (currentStep === "prayers-quantity" && quantityValue < 1) return;
     if (!isLastStep) setStepIndex((index) => index + 1);
   };
 
@@ -267,11 +253,6 @@ export default function IstikharaPrayerLoggingFlow({
         return {
           icon: <CalendarFlippingIcon size={24} />,
           label: "Which day are you logging for?",
-        };
-      case "prayers-quantity":
-        return {
-          icon: <WhitePrayerMatIcon size={26} />,
-          label: "How many 2-rak'ah prayers did you pray?",
         };
       case "start-time":
         return {
@@ -297,14 +278,6 @@ export default function IstikharaPrayerLoggingFlow({
             minSelectableDate={cycleStartHijri}
             maxSelectableDate={maxSelectableDate}
             onShiftDate={shiftDate}
-            styles={commonStyles}
-          />
-        );
-      case "prayers-quantity":
-        return (
-          <PrayerQuantityInputStep
-            quantity={prayersCount}
-            setQuantity={setPrayersCount}
             styles={commonStyles}
           />
         );
@@ -444,17 +417,12 @@ export default function IstikharaPrayerLoggingFlow({
                 onBack={handleBack}
                 onForward={handleForward}
                 onConfirm={handleConfirm}
-                canGoForward={
-                  !dayDetailLoadingState &&
-                  !isLastStep &&
-                  !(currentStep === "prayers-quantity" && quantityValue < 1)
-                }
+                canGoForward={!dayDetailLoadingState && !isLastStep}
                 canGoBack={stepIndex > 0}
                 canConfirm={
                   isLastStep &&
                   !dayDetailLoadingState &&
                   !isLogging &&
-                  quantityValue >= 1 &&
                   isDurationEntered(durationHours, durationMinutes)
                 }
                 styles={commonStyles}

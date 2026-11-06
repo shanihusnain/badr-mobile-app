@@ -385,13 +385,18 @@ export default function FiveDailyPrayersLoggingFlow({
 
   const goalLabel = formatPrayerGoalFlowCardLabel(frame?.goal.label ?? "---");
   const goalLabelParts = useMemo(() => {
-    const match = goalLabel.match(/^(.*?)\s*(\(total\s+\d+\s+prayers?\))\s*$/i);
+    const match = goalLabel.match(
+      /^(.*?)\s*\(total\s+(\d+)\s+prayers?\)\s*$/i,
+    );
     if (!match) {
-      return { title: goalLabel, totalSuffix: null as string | null };
+      return {
+        title: goalLabel,
+        totalCount: null as string | null,
+      };
     }
     return {
       title: match[1].trim(),
-      totalSuffix: match[2],
+      totalCount: match[2],
     };
   }, [goalLabel]);
 
@@ -840,7 +845,7 @@ export default function FiveDailyPrayersLoggingFlow({
                     >
                       {goalLabelParts.title}
                     </Text>
-                    {goalLabelParts.totalSuffix ? (
+                    {goalLabelParts.totalCount ? (
                       <Text
                         style={[
                           localStyles.summaryTotalLine,
@@ -848,20 +853,16 @@ export default function FiveDailyPrayersLoggingFlow({
                         ]}
                         numberOfLines={1}
                       >
-                        {goalLabelParts.totalSuffix
-                          .split(/(\d+)/)
-                          .map((part, index) =>
-                            /^\d+$/.test(part) ? (
-                              <Text
-                                key={`${part}-${index}`}
-                                style={localStyles.summaryTotalCount}
-                              >
-                                {part}
-                              </Text>
-                            ) : (
-                              part
-                            ),
-                          )}
+                        <Text style={localStyles.summaryTotalPlain}>
+                          (total{" "}
+                        </Text>
+                        <Text style={localStyles.summaryTotalCount}>
+                          {goalLabelParts.totalCount}
+                        </Text>
+                        <Text style={localStyles.summaryTotalPlain}>
+                          {" "}
+                          Prayers)
+                        </Text>
                       </Text>
                     ) : null}
                   </View>
@@ -1018,11 +1019,19 @@ const localStyles = StyleSheet.create({
     fontWeight: "400",
     lineHeight: 14,
   },
+  /** Explicit plain weight so nested count bold doesn't leak onto "Prayers". */
+  summaryTotalPlain: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.regular,
+    fontSize: 12,
+    fontWeight: "400" as const,
+    lineHeight: 14,
+  },
   summaryTotalCount: {
     color: Colors.light.white,
-    fontFamily: fonts.primary.semiBold,
+    fontFamily: fonts.primary.bold,
     fontSize: 12,
-    fontWeight: "600",
+    fontWeight: "700" as const,
     lineHeight: 14,
   },
   loadingPlaceholderText: {

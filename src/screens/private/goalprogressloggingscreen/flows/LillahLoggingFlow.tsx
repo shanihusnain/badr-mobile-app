@@ -420,7 +420,7 @@ export default function LillahLoggingFlow({ goalData, onLogComplete }: Props) {
             <View style={localStyles.summaryCard}>
               <View style={localStyles.summaryBody}>
                 <View style={localStyles.summaryIconCircle}>
-                  <AllahNameIcon size={20} color={Colors.light.white} />
+                  <AllahNameIcon size={24} color={Colors.light.white} />
                 </View>
                 <View style={localStyles.summaryTextBlock}>
                   <View

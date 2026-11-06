@@ -80,7 +80,8 @@ export function getDetailedIbadahIcon(
     case "quran-recitationBySurah-weekly":
     case "quran-recitationByCompletion":
     case "quran-recitationByJuz":
-      return <QuranImageIcon color={color} size={size} />;
+      // Slightly larger book glyph only — circle (iconWrapper) stays 32.
+      return <QuranImageIcon color={color} size={Math.round(size * 1.30)} />;
     case "quran-memorisationBySurah":
     case "quran-memorisationByHizb":
     case "quran-memorisationByJuz":

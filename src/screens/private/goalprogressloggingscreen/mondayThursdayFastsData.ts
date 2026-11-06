@@ -388,7 +388,7 @@ function formatOptionDate(date: string, today: string): string {
     return "Today";
   }
   return moment(normalizeDateString(date).slice(0, 10), "YYYY-MM-DD").format(
-    "ddd MMM D",
+    "ddd, MMM D",
   );
 }
 

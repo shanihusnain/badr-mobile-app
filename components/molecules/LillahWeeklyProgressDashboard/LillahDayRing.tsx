@@ -1,11 +1,15 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { Colors } from "@/constants/theme";
-import { GoatIcon } from "@/assets/icons/GoatIcon";
-import { HouseWithHeartIcon } from "@/assets/icons/HouseWithHeartIcon";
-import { DebtAssistanceIcon } from "@/assets/icons/DebtAssistanceIcon";
-import { FlowCardQardHassanIcon } from "@/assets/icons/FlowCardQardHassanIcon";
-import { KaffarahMealIcon } from "@/assets/icons/KaffarahMealIcon";
+import { SadaqahGoatSimpleIcon } from "@/assets/icons/SadaqahGoatSimpleIcon";
+import { SadaqahFoodSimpleIcon } from "@/assets/icons/SadaqahFoodSimpleIcon";
+import { SadaqahDebtAssistanceSimpleIcon } from "@/assets/icons/SadaqahDebtAssistanceSimpleIcon";
+import { SadaqahQardHassanSimpleIcon } from "@/assets/icons/SadaqahQardHassanSimpleIcon";
+import { SadaqahHouseHoldSimpleIcon } from "@/assets/icons/SadaqahHouseHoldSimpleIcon";
+import { SadaqahGoatBestDayIcon } from "@/assets/icons/SadaqahGoatBestDayIcon";
+import { SadaqahFoodReliefBestDayIcon } from "@/assets/icons/SadaqahFoodReliefBestDayIcon";
+import { SadaqahDebtBestDayIcon } from "@/assets/icons/SadaqahDebtBestDayIcon";
+import { SadaqahQardHassanBestDayIcon } from "@/assets/icons/SadaqahQardHassanBestDayIcon";
 import type { LillahCategoryId } from "@/src/screens/private/goalprogressloggingscreen/lillahCategories";
 
 export type LillahRingCategory = LillahCategoryId | null;
@@ -28,23 +32,41 @@ function CategoryIcon({
   category,
   size,
   color,
+  isBestDay,
 }: {
   category: LillahCategoryId;
   size: number;
   color: string;
+  isBestDay: boolean;
 }) {
+  if (isBestDay) {
+    switch (category) {
+      case "qurbani":
+        return <SadaqahGoatBestDayIcon size={size} color={color} />;
+      case "food-relief":
+        return <SadaqahFoodReliefBestDayIcon size={size} color={color} />;
+      case "debt-assistance":
+        return <SadaqahDebtBestDayIcon size={size} color={color} />;
+      case "qard-hassan":
+        return <SadaqahQardHassanBestDayIcon size={size} color={color} />;
+      case "household-essentials":
+      default:
+        return <SadaqahHouseHoldSimpleIcon size={size} color={color} />;
+    }
+  }
+
   switch (category) {
     case "qurbani":
-      return <GoatIcon size={size} color={color} />;
+      return <SadaqahGoatSimpleIcon size={size} color={color} />;
     case "household-essentials":
-      return <HouseWithHeartIcon size={size} color={color} />;
+      return <SadaqahHouseHoldSimpleIcon size={size} color={color} />;
     case "debt-assistance":
-      return <DebtAssistanceIcon size={size} color={color} />;
+      return <SadaqahDebtAssistanceSimpleIcon size={size} color={color} />;
     case "qard-hassan":
-      return <FlowCardQardHassanIcon size={size} color={color} />;
+      return <SadaqahQardHassanSimpleIcon size={size} color={color} />;
     case "food-relief":
     default:
-      return <KaffarahMealIcon size={size} color={color} />;
+      return <SadaqahFoodSimpleIcon size={size} color={color} />;
   }
 }
 
@@ -110,6 +132,7 @@ export function LillahDayRing({
               category={category}
               size={iconSize}
               color={iconColor}
+              isBestDay={showBestBoost}
             />
           </View>
         </View>

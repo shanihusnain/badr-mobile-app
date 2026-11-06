@@ -6,6 +6,7 @@ import {
   StyleSheet,
   useWindowDimensions,
   Pressable,
+  ActivityIndicator,
 } from "react-native";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
@@ -121,30 +122,10 @@ export function SinglePrayerWeeklyProgressDashboard({
                   !!day.isBestDay && !isInactiveOutline && !loading;
                 // Best-day label is clipped/scaled to the column; deletion chrome
                 // stays on the inner wrapper for best day, column for other days.
-                // Today beside BEST DAY: keep delete chrome on the shrunk wrapper
-                // (same 84% width as the selected chip) so it doesn't overlap.
-                const isNeighborBestDayVisible = (
-                  neighbor: (typeof displayWeekDays)[number] | undefined,
-                ) =>
-                  !!neighbor?.isBestDay &&
-                  !loading &&
-                  !neighbor.isFuture &&
-                  !neighbor.isMenstruation;
-                const bestDayOnLeft = isNeighborBestDayVisible(
-                  displayWeekDays[index - 1],
-                );
-                const bestDayOnRight = isNeighborBestDayVisible(
-                  displayWeekDays[index + 1],
-                );
-                const shrinkTodayBesideBestDay =
-                  isSelected && (bestDayOnLeft || bestDayOnRight);
                 const showColumnDeletion =
-                  isMarkedForDeletion &&
-                  !isBestDayVisible &&
-                  !shrinkTodayBesideBestDay;
+                  isMarkedForDeletion && !isBestDayVisible;
                 const showWrapperDeletion =
-                  isMarkedForDeletion &&
-                  (isBestDayVisible || shrinkTodayBesideBestDay);
+                  isMarkedForDeletion && isBestDayVisible;
 
                 const deleteButton = isMarkedForDeletion ? (
                   <Pressable
@@ -162,7 +143,7 @@ export function SinglePrayerWeeklyProgressDashboard({
                             await Promise.resolve(onDeleteLog(day.date!));
                             setSelectForDeletion("");
                           } catch {
-                            // Mutation onError already shows toast.
+                            // Keep delete chrome open on failure so user can retry.
                           }
                         })();
                         return;
@@ -180,7 +161,15 @@ export function SinglePrayerWeeklyProgressDashboard({
                       );
                     }}
                   >
-                    <BinIcon />
+                    {isDeletingLog ? (
+                      <ActivityIndicator
+                        size="small"
+                        color={Colors.light.white}
+                        style={styles.deleteLoading}
+                      />
+                    ) : (
+                      <BinIcon />
+                    )}
                   </Pressable>
                 ) : null;
 
@@ -225,15 +214,6 @@ export function SinglePrayerWeeklyProgressDashboard({
                           isSelected &&
                           !isMarkedForDeletion &&
                           styles.dayItemSelected,
-                        showTodayChip &&
-                          shrinkTodayBesideBestDay &&
-                          styles.dayItemSelectedBesideBestDay,
-                        showTodayChip &&
-                          shrinkTodayBesideBestDay && {
-                            alignSelf: bestDayOnLeft
-                              ? "flex-end"
-                              : "flex-start",
-                          },
                         isBestDayVisible && styles.dayItemBestDay,
                         showWrapperDeletion && styles.deletingBestDay,
                       ]}
@@ -432,6 +412,9 @@ const styles = StyleSheet.create({
     // Sit in the reserved daysRow padding — never extend layout further.
     bottom: -10,
   },
+  deleteLoading: {
+    transform: [{ scale: 0.65 }],
+  },
   dayItemWrapper: {
     alignItems: "center",
     justifyContent: "flex-start",
@@ -447,11 +430,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.dayProgressCardBg,
     borderRadius: 6,
   },
-  /** Today only, and only when BEST DAY is an immediate neighbor (incl. delete chrome). */
-  dayItemSelectedBesideBestDay: {
-    width: "84%",
-  },
-
   dayItemBestDay: {
     width: "118%",
     paddingTop: 3,
@@ -468,20 +446,20 @@ const styles = StyleSheet.create({
   },
   bestDayLabel: {
     color: Colors.light.green,
-    fontSize: 10.5,
+    fontSize: 11,
     fontWeight: "700",
     fontFamily: fonts.primary.bold,
     textAlign: "center",
-    marginTop: 7.7,
+    marginTop: 5.5,
     letterSpacing: -0.3,
     width: "100%",
   },
   dayLabel: {
     color: Colors.light.subtext,
-    fontSize: 11.5,
+    fontSize: 10.5,
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
-    marginTop: 3,
+    marginTop: 2,
     textAlign: "center",
   },
   durationSlot: {
