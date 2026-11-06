@@ -42,11 +42,12 @@ function getRingVisual(
       return { variant: "outline", color: Colors.light.grey };
     case "disabledPast":
     case "todayDisabled":
-      // #3 / #4 — same outer size as outline rings; fill = dashboard bg
+    case "pastNeutral":
+      // Disabled for this goal (booked elsewhere) or past NOT_PLANNED — solid grey
       return {
-        variant: "solidWithBorder",
-        fillColor: Colors.light.greybuttonBackground,
-        borderColor: "rgba(183, 151, 126, 0.3)",
+        variant: "solid",
+        color: Colors.light.selectcategory,
+        scale: 0.92,
       };
     case "today":
       // #2 — empty today: dashboard inner fill (same as prayer Dashboard)
@@ -54,13 +55,6 @@ function getRingVisual(
         variant: "solidWithBorder",
         fillColor: Colors.light.greybuttonBackground,
         borderColor: "rgba(183, 151, 126, 0.67)",
-      };
-    case "pastNeutral":
-      // #14 — solid grey only (no activity)
-      return {
-        variant: "solid",
-        color: Colors.light.selectcategory,
-        scale: 0.92,
       };
     case "planned":
     case "plannedToday":

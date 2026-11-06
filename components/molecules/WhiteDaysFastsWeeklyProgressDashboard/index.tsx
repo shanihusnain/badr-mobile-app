@@ -14,7 +14,6 @@ import type {
   WhiteDaysFastWeekSummary,
 } from "@/src/screens/private/goalprogressloggingscreen/whiteDaysFastsWeeklyData";
 import { WhiteDaysFastDayRing } from "./WhiteDaysFastDayRing";
-import { BookedOtherGoalDayRing } from "@/components/molecules/BookedOtherGoalDayRing";
 import { useDeleteFastingLog } from "@/src/api/mutations/useDeleteFastingLog";
 
 export type WhiteDaysFastsWeeklyProgressDashboardProps = {
@@ -154,22 +153,20 @@ export function WhiteDaysFastsWeeklyProgressDashboard({
       const whiteDay = weekSummary.weekDays[args.index];
       if (!whiteDay) return null;
 
-      if (whiteDay.bookedFor) {
-        return (
-          <BookedOtherGoalDayRing
-            size={args.size}
-            bookedFor={whiteDay.bookedFor}
-            status={whiteDay.bookedStatus}
-          />
-        );
-      }
+      // Booked-for-other-goal → force inactive/todayDisabled solid grey
+      // (never the other goal’s accent / logged / skipped colors).
+      const state = whiteDay.bookedFor
+        ? whiteDay.isToday
+          ? "todayDisabled"
+          : "inactive"
+        : whiteDay.state;
 
       return (
         <WhiteDaysFastDayRing
           size={args.size}
-          state={whiteDay.state}
-          isMenstruating={whiteDay.isMenstruating}
-          isWhiteDay={whiteDay.isWhiteDay}
+          state={state}
+          isMenstruating={whiteDay.bookedFor ? false : whiteDay.isMenstruating}
+          isWhiteDay={whiteDay.bookedFor ? false : whiteDay.isWhiteDay}
           isToday={whiteDay.isToday}
         />
       );

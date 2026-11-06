@@ -41,26 +41,13 @@ function getRingVisual(
         backgroundColor: Colors.light.greybuttonBackground,
       };
     case "todayDisabled":
-      // Today booked / disabled — dim stroke, dashboard inner fill.
-      return {
-        variant: "outline",
-        borderColor: "rgba(128, 111, 98, 0.25)",
-        backgroundColor: Colors.light.greybuttonBackground,
-      };
     case "disabledPast":
-      // Past booked for another goal — solid grey disc
+    case "pastNeutral":
+      // Disabled for this goal (booked elsewhere) or past NOT_PLANNED — solid grey
       return {
         variant: "solid",
         borderColor: Colors.light.selectcategory,
         backgroundColor: Colors.light.selectcategory,
-      };
-    case "pastNeutral":
-      // Past, no goal selected — #B7977E @ 40% opacity outline
-      return {
-        variant: "outline",
-        borderColor: Colors.light.ringRamadan,
-        backgroundColor: "transparent",
-        opacity: 0.35,
       };
     case "planned":
     case "plannedToday":

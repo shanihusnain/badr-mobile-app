@@ -14,7 +14,6 @@ import type {
   MissedRamadanFastWeekSummary,
 } from "@/src/screens/private/goalprogressloggingscreen/missedRamadanFastsWeeklyData";
 import { MissedRamadanFastDayRing } from "./MissedRamadanFastDayRing";
-import { BookedOtherGoalDayRing } from "@/components/molecules/BookedOtherGoalDayRing";
 import { useDeleteFastingLog } from "@/src/api/mutations/useDeleteFastingLog";
 
 export type MissedRamadanFastsWeeklyProgressDashboardProps = {
@@ -86,16 +85,8 @@ export function MissedRamadanFastsWeeklyProgressDashboard({
       const missedDay = weekSummary.weekDays[args.index];
       if (!missedDay) return null;
 
-      if (missedDay.bookedFor) {
-        return (
-          <BookedOtherGoalDayRing
-            size={args.size}
-            bookedFor={missedDay.bookedFor}
-            status={missedDay.bookedStatus}
-          />
-        );
-      }
-
+      // Booked-for-other-goal days use disabledPast/todayDisabled → solid grey
+      // (never the other goal’s accent / logged / skipped colors).
       return (
         <MissedRamadanFastDayRing
           size={args.size}

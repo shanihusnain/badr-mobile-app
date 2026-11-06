@@ -46,23 +46,16 @@ function getRingVisual(
       // #1 — calendarBg outline
       return { variant: "outline", color: Colors.light.calendarBg };
     case "today":
-    case "todayDisabled":
-      // #2 / #3 — same look: solid dark disc + thin light border (Figma Today /
-      // Today Disable Day). Fill matches dashboard card behind the today chip.
+      // #2 — solid dark disc + thin light border. Fill matches dashboard card.
       return {
         variant: "solidWithBorder",
         fillColor: Colors.light.greybuttonBackground,
         borderColor: "rgba(255, 255, 255, 0.32)",
       };
+    case "todayDisabled":
     case "disabledPast":
-      // #4 — ringRamadan (#B7977E) at 60% opacity
-      return {
-        variant: "outline",
-        color: Colors.light.ringRamadan,
-        opacity: 0.6,
-      };
     case "pastNeutral":
-      // #14 — solid grey only (Figma grey day / no activity — no border)
+      // Disabled for this goal (booked elsewhere) or past NOT_PLANNED — solid grey
       return {
         variant: "solid",
         color: Colors.light.selectcategory,

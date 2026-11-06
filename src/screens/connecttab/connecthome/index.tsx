@@ -65,41 +65,38 @@ function asNumber(value: unknown): number | undefined {
     : undefined;
 }
 
-/** Defensive map until backend documents a populated team object. */
+function mapApiPeriodToDisplayPeriod(
+  period: string | undefined,
+): DisplayRankPeriod {
+  if (period === "WEEKLY" || period === "week") return "week";
+  if (period === "MONTHLY" || period === "month") return "month";
+  return "today";
+}
+
 function mapConnectHomeTeams(teams: ConnectHomeTeam[] | undefined): MyTeam[] {
   if (!Array.isArray(teams) || teams.length === 0) return [];
 
-  return teams.flatMap((raw) => {
-    const id =
-      asString(raw.id) ??
-      (typeof raw.id === "number" ? String(raw.id) : undefined);
-    const name = asString(raw.name);
+  return teams.flatMap((team) => {
+    const id = asString(team.id);
+    const name = asString(team.name);
     if (!id || !name) return [];
 
-    const selectedMetricId = asString(raw.selectedMetricId) ?? "qiyam";
-    const periodRaw = asString(raw.selectedPeriod);
-    const selectedPeriod: DisplayRankPeriod =
-      periodRaw === "week" || periodRaw === "month" || periodRaw === "today"
-        ? periodRaw
-        : "today";
+    const selectedMetricId =
+      asString(team.rank?.metric?.metric) ?? "PRAYER_QIYAM";
+    const selectedPeriod = mapApiPeriodToDisplayPeriod(team.rank?.period);
 
     return [
       {
         id,
         name,
-        avatarUri:
-          asString(raw.avatarUri) ??
-          asString(raw.avatarUrl) ??
-          asString(raw.logoUri) ??
-          asString(raw.logoUrl) ??
-          "",
+        avatarUri: asString(team.logo?.url) ?? "",
         selectedMetricId,
         selectedPeriod,
         displayRankLabel:
-          asString(raw.displayRankLabel) ??
+          asString(team.rank?.chipLabel) ??
           buildDisplayRankLabel(selectedMetricId, selectedPeriod),
-        rankPosition: asNumber(raw.rankPosition) ?? 0,
-        rankTotal: asNumber(raw.rankTotal) ?? 0,
+        rankPosition: asNumber(team.rank?.position) ?? 0,
+        rankTotal: asNumber(team.rank?.of) ?? 0,
       } satisfies MyTeam,
     ];
   });
