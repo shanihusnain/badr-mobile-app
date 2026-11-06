@@ -264,7 +264,6 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     gap: wp(2),
-    marginTop: hp(2),
   },
 
   categoryItemWrapper: {
@@ -327,7 +326,7 @@ export const styles = StyleSheet.create({
 
   // Containers Section
   containersSection: {
-    marginTop: hp(3),
+    // marginTop: hp(3),
     marginBottom: hp(2),
     alignItems: "center",
     justifyContent: "center",

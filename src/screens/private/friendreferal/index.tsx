@@ -1,6 +1,6 @@
 import React, { useLayoutEffect } from "react";
 import { View, Text, Share, Alert } from "react-native";
-import { useNavigation } from "expo-router";
+import { useLocalSearchParams, useNavigation } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "@/constants/theme";
 import PrimaryButton from "@/components/atoms/Primary-button";
@@ -8,10 +8,27 @@ import { HeaderWithCrossTitleDynamicIcon } from "@/components/atoms/HeaderWithCr
 import { friendReferralStyles as styles } from "./style";
 import { ReferFriendIcon } from "@/assets/icons";
 import { ImageBackground } from "expo-image";
-import referafriendbackgroundimage from "@/assets/images/referafriendbackgroungimage.png"; // <-- Change this to your background image
+import referafriendbackgroundimage from "@/assets/images/referafriendbackgroungimage.png";
+import { useConnectHomeData } from "@/src/api/queries/useConnectHomeData";
 
 export default function FriendReferralScreen() {
   const navigation = useNavigation();
+  const params = useLocalSearchParams<{
+    code?: string;
+    shareText?: string;
+  }>();
+  const { data: connectHomeData } = useConnectHomeData();
+
+  const referralCode =
+    (typeof params.code === "string" && params.code) ||
+    connectHomeData?.referral?.code ||
+    "";
+  const shareText =
+    (typeof params.shareText === "string" && params.shareText) ||
+    connectHomeData?.referral?.shareText ||
+    (referralCode
+      ? `Get one month of free membership when you join Badr using my code: ${referralCode}.`
+      : "");
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -31,19 +48,13 @@ export default function FriendReferralScreen() {
   }, [navigation]);
 
   const handleShare = async () => {
+    if (!shareText) {
+      Alert.alert("Referral unavailable", "Please try again in a moment.");
+      return;
+    }
+
     try {
-      const result = await Share.share({
-        message: "Get one month of free membership when you join using my code: [CODE]. [App Store Link]",
-      });
-      if (result.action === Share.sharedAction) {
-        if (result.activityType) {
-          // shared with activity type of result.activityType
-        } else {
-          // shared
-        }
-      } else if (result.action === Share.dismissedAction) {
-        // dismissed
-      }
+      await Share.share({ message: shareText });
     } catch (error: any) {
       Alert.alert(error.message);
     }

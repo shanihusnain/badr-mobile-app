@@ -2,77 +2,89 @@ import { fonts } from "@/assets/fonts";
 import { createTeamThreeAndFourImage } from "@/assets/images";
 import PrimaryButton from "@/components/atoms/Primary-button";
 import { Colors } from "@/constants/theme";
+import type { ConnectTeamMetricCategory } from "@/src/api/queries/useGetConnectTeamOptions";
 import { Ionicons } from "@expo/vector-icons";
 import { ImageBackground } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import { useCallback, useMemo, useState } from "react";
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import {
-  DEFAULT_SELECTED_LEADERBOARDS,
-  LEADERBOARD_CATEGORIES,
-  MAX_LEADERBOARDS_PER_CATEGORY,
-  type LeaderboardCategoryId,
-} from "../leaderboardMockData";
 import { createTeamStyles as sharedStyles } from "../styles";
 import { LeaderboardToggleRow } from "./LeaderboardToggleRow";
 
 const HEADER_HEIGHT = 100;
 
 type ChooseLeaderboardStepProps = {
-  onNext: (selectedByCategory: Record<LeaderboardCategoryId, string[]>) => void;
+  categories: ConnectTeamMetricCategory[];
+  maxMetricsPerCategory: number;
+  isSubmitting?: boolean;
+  onNext: (selectedByCategory: Record<string, string[]>) => void;
 };
 
-export function ChooseLeaderboardStep({ onNext }: ChooseLeaderboardStepProps) {
+export function ChooseLeaderboardStep({
+  categories,
+  maxMetricsPerCategory,
+  isSubmitting = false,
+  onNext,
+}: ChooseLeaderboardStepProps) {
   const insets = useSafeAreaInsets();
-  const [activeCategory, setActiveCategory] =
-    useState<LeaderboardCategoryId>("prayer");
+  const firstCategoryId = categories[0]?.category ?? "";
+
+  const [activeCategory, setActiveCategory] = useState(firstCategoryId);
   const [selectedByCategory, setSelectedByCategory] = useState<
-    Record<LeaderboardCategoryId, string[]>
-  >(() => ({
-    prayer: [...DEFAULT_SELECTED_LEADERBOARDS.prayer],
-    quran: [...DEFAULT_SELECTED_LEADERBOARDS.quran],
-    fasting: [...DEFAULT_SELECTED_LEADERBOARDS.fasting],
-    sadaqah: [...DEFAULT_SELECTED_LEADERBOARDS.sadaqah],
-  }));
+    Record<string, string[]>
+  >({});
+
+  useEffect(() => {
+    if (!categories.length) return;
+
+    setActiveCategory((current) =>
+      categories.some((category) => category.category === current)
+        ? current
+        : categories[0].category,
+    );
+
+    setSelectedByCategory((current) => {
+      const next: Record<string, string[]> = {};
+      for (const category of categories) {
+        next[category.category] = current[category.category] ?? [];
+      }
+      return next;
+    });
+  }, [categories]);
 
   const activeCategoryData = useMemo(
     () =>
-      LEADERBOARD_CATEGORIES.find((category) => category.id === activeCategory),
-    [activeCategory],
+      categories.find((category) => category.category === activeCategory),
+    [activeCategory, categories],
   );
 
   const selectedIds = selectedByCategory[activeCategory] ?? [];
 
   const handleToggle = useCallback(
-    (optionId: string) => {
+    (metricId: string) => {
       setSelectedByCategory((current) => {
         const existing = current[activeCategory] ?? [];
-        const isSelected = existing.includes(optionId);
+        const isSelected = existing.includes(metricId);
 
         if (isSelected) {
           return {
             ...current,
-            [activeCategory]: existing.filter((id) => id !== optionId),
+            [activeCategory]: existing.filter((id) => id !== metricId),
           };
         }
 
-        if (existing.length >= MAX_LEADERBOARDS_PER_CATEGORY) {
+        if (existing.length >= maxMetricsPerCategory) {
           return current;
         }
 
         return {
           ...current,
-          [activeCategory]: [...existing, optionId],
+          [activeCategory]: [...existing, metricId],
         };
       });
     },
-    [activeCategory],
+    [activeCategory, maxMetricsPerCategory],
   );
 
   return (
@@ -110,8 +122,8 @@ export function ChooseLeaderboardStep({ onNext }: ChooseLeaderboardStepProps) {
           </Text>
           <View style={styles.introSubRow}>
             <Text style={styles.introSubtitle}>
-              Choose up to {MAX_LEADERBOARDS_PER_CATEGORY} per category. These
-              settings cannot be changed later.
+              Choose up to {maxMetricsPerCategory} per category. These settings
+              cannot be changed later.
             </Text>
             <Pressable
               onPress={() => console.log("Leaderboard help")}
@@ -127,13 +139,13 @@ export function ChooseLeaderboardStep({ onNext }: ChooseLeaderboardStepProps) {
         </View>
 
         <View style={styles.categoryRow}>
-          {LEADERBOARD_CATEGORIES.map((category) => {
-            const isActive = category.id === activeCategory;
+          {categories.map((category) => {
+            const isActive = category.category === activeCategory;
 
             return (
               <Pressable
-                key={category.id}
-                onPress={() => setActiveCategory(category.id)}
+                key={category.category}
+                onPress={() => setActiveCategory(category.category)}
                 style={[
                   styles.categoryChip,
                   isActive
@@ -155,19 +167,21 @@ export function ChooseLeaderboardStep({ onNext }: ChooseLeaderboardStepProps) {
         </View>
 
         <View style={styles.optionsList}>
-          {activeCategoryData?.options.map((option) => (
+          {activeCategoryData?.metrics.map((metric) => (
             <LeaderboardToggleRow
-              key={option.id}
-              label={option.label}
-              enabled={selectedIds.includes(option.id)}
-              canEnable={selectedIds.length < MAX_LEADERBOARDS_PER_CATEGORY}
-              onToggle={() => handleToggle(option.id)}
+              key={metric.metric}
+              label={metric.label.toUpperCase()}
+              enabled={selectedIds.includes(metric.metric)}
+              canEnable={selectedIds.length < maxMetricsPerCategory}
+              onToggle={() => handleToggle(metric.metric)}
             />
           ))}
         </View>
 
         <PrimaryButton
           text="CREATE TEAM"
+          isLoading={isSubmitting}
+          disabled={isSubmitting}
           onPress={() => onNext(selectedByCategory)}
         />
       </View>

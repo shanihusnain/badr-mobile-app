@@ -13,7 +13,8 @@ import { localizeNumber } from "@/src/utils/localizeNumbers";
 interface GoalDetailsCardProps {
   title: string;
   percentage: string;
-  progressColor: string;
+  /** Unused for illuminated glow — kept optional for callers that still pass a brand color. */
+  progressColor?: string;
   goalsCount?: string;
   notStarted?: string;
   inProgress?: string;
@@ -24,7 +25,6 @@ interface GoalDetailsCardProps {
 export const GoalDetailsCard: React.FC<GoalDetailsCardProps> = ({
   title,
   percentage,
-  progressColor,
   goalsCount,
   notStarted = "11",
   inProgress = "0",
@@ -66,8 +66,8 @@ export const GoalDetailsCard: React.FC<GoalDetailsCardProps> = ({
         <TaperedCircleBorder
           size={220}
           percentage={percentage}
-          progressColor={progressColor}
-          borderColor={Colors.light.calendarBg}
+          borderColor={Colors.light.ringTrackEmpty}
+          variant="illuminated"
         >
           <View style={styles.stackedTextContainer}>
             <Text style={styles.topText}>{displayGoalsCount}</Text>

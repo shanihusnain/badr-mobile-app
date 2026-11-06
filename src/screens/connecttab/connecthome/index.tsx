@@ -14,10 +14,15 @@ import {
   type StudyMaterialItem,
 } from "@/components/molecules/PastAchievementStudyMaterial";
 import { Colors } from "@/constants/theme";
+import {
+  useConnectHomeData,
+  type ConnectHomeLearnMoreItem,
+  type ConnectHomeTeam,
+} from "@/src/api/queries/useConnectHomeData";
 import BottomSheet from "@gorhom/bottom-sheet";
 import { router } from "expo-router";
 import type { ReactNode } from "react";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   FlatList,
   Pressable,
@@ -29,7 +34,7 @@ import {
 import { EditDisplayRankSheet } from "./components/EditDisplayRankSheet";
 import { MyTeamsList } from "./components/MyTeamsList";
 import {
-  MOCK_MY_TEAMS,
+  buildDisplayRankLabel,
   type DisplayRankPeriod,
   type MyTeam,
 } from "./myTeamsMockData";
@@ -50,36 +55,111 @@ type ConnectHomeSection = {
   showMyTeams?: boolean;
 };
 
-const STUDY_MATERIAL: StudyMaterialItem[] = [
-  {
-    id: 1,
-    thumbnail:
-      "https://images.unsplash.com/photo-1564769662533-4f00a87b9756?w=400",
-    type: "video",
-    description: "Building meaningful connections through shared faith",
-  },
-  {
-    id: 2,
-    thumbnail:
-      "https://images.unsplash.com/photo-1585036156171-3841649478f8?w=400",
-    type: "podcast",
-    description: "How community accountability strengthens consistency",
-  },
-  {
-    id: 3,
-    thumbnail:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400",
-    type: "article",
-    description: "Tips for inviting friends and growing together",
-  },
-];
+function asString(value: unknown): string | undefined {
+  return typeof value === "string" && value.trim() ? value.trim() : undefined;
+}
+
+function asNumber(value: unknown): number | undefined {
+  return typeof value === "number" && Number.isFinite(value)
+    ? value
+    : undefined;
+}
+
+/** Defensive map until backend documents a populated team object. */
+function mapConnectHomeTeams(teams: ConnectHomeTeam[] | undefined): MyTeam[] {
+  if (!Array.isArray(teams) || teams.length === 0) return [];
+
+  return teams.flatMap((raw) => {
+    const id =
+      asString(raw.id) ??
+      (typeof raw.id === "number" ? String(raw.id) : undefined);
+    const name = asString(raw.name);
+    if (!id || !name) return [];
+
+    const selectedMetricId = asString(raw.selectedMetricId) ?? "qiyam";
+    const periodRaw = asString(raw.selectedPeriod);
+    const selectedPeriod: DisplayRankPeriod =
+      periodRaw === "week" || periodRaw === "month" || periodRaw === "today"
+        ? periodRaw
+        : "today";
+
+    return [
+      {
+        id,
+        name,
+        avatarUri:
+          asString(raw.avatarUri) ??
+          asString(raw.avatarUrl) ??
+          asString(raw.logoUri) ??
+          asString(raw.logoUrl) ??
+          "",
+        selectedMetricId,
+        selectedPeriod,
+        displayRankLabel:
+          asString(raw.displayRankLabel) ??
+          buildDisplayRankLabel(selectedMetricId, selectedPeriod),
+        rankPosition: asNumber(raw.rankPosition) ?? 0,
+        rankTotal: asNumber(raw.rankTotal) ?? 0,
+      } satisfies MyTeam,
+    ];
+  });
+}
+
+function mapLearnMoreItems(
+  items: ConnectHomeLearnMoreItem[] | undefined,
+): StudyMaterialItem[] {
+  if (!Array.isArray(items) || items.length === 0) return [];
+
+  return items.flatMap((raw, index) => {
+    const thumbnail = asString(raw.thumbnail);
+    const description = asString(raw.description);
+    if (!thumbnail || !description) return [];
+
+    const typeRaw = asString(raw.type)?.toLowerCase();
+    const type: StudyMaterialItem["type"] =
+      typeRaw === "video" || typeRaw === "podcast" || typeRaw === "article"
+        ? typeRaw
+        : "article";
+
+    const idNum = asNumber(raw.id);
+    const id =
+      idNum ??
+      (typeof raw.id === "string" ? Number.parseInt(raw.id, 10) : index + 1);
+
+    return [
+      {
+        id: Number.isFinite(id) ? id : index + 1,
+        thumbnail,
+        type,
+        description,
+      } satisfies StudyMaterialItem,
+    ];
+  });
+}
 
 export const ConnectHome = () => {
   const teamsMenuSheetRef = useRef<BottomSheet>(null);
   const editRankSheetRef = useRef<BottomSheet>(null);
-  const [myTeams, setMyTeams] = useState<MyTeam[]>(MOCK_MY_TEAMS);
+  const { data: connectHomeData } = useConnectHomeData();
+
+  const apiTeams = useMemo(
+    () => mapConnectHomeTeams(connectHomeData?.teams),
+    [connectHomeData?.teams],
+  );
+  const [myTeams, setMyTeams] = useState<MyTeam[]>([]);
   const [selectedTeam, setSelectedTeam] = useState<MyTeam | null>(null);
+
+  useEffect(() => {
+    setMyTeams(apiTeams);
+  }, [apiTeams]);
+
   const hasJoinedTeams = myTeams.length > 0;
+  const visibleTeamCount = connectHomeData?.visibleTeamCount ?? 4;
+  const referral = connectHomeData?.referral;
+  const learnMoreItems = useMemo(
+    () => mapLearnMoreItems(connectHomeData?.learnMore),
+    [connectHomeData?.learnMore],
+  );
 
   const closeTeamsMenu = useCallback(() => {
     teamsMenuSheetRef.current?.close();
@@ -129,10 +209,18 @@ export const ConnectHome = () => {
         button: [
           {
             title: "REFER A FRIEND",
-            description: "Get one month credit for each friend you refer",
+            description:
+              referral?.shareText ??
+              "Get one month credit for each friend you refer",
             icon: <ReferUserIcon size={34} />,
             onPress: () => {
-              router.push("/friendreferal");
+              router.push({
+                pathname: "/friendreferal",
+                params: {
+                  code: referral?.code ?? "",
+                  shareText: referral?.shareText ?? "",
+                },
+              });
             },
           },
         ],
@@ -167,7 +255,7 @@ export const ConnectHome = () => {
             ],
       },
     ],
-    [hasJoinedTeams],
+    [hasJoinedTeams, referral?.code, referral?.shareText],
   );
 
   const renderItem = useCallback<ListRenderItem<ConnectHomeSection>>(
@@ -192,7 +280,11 @@ export const ConnectHome = () => {
         </View>
 
         {item.showMyTeams ? (
-          <MyTeamsList teams={myTeams} onTeamPress={handleTeamPress} />
+          <MyTeamsList
+            teams={myTeams}
+            visibleTeamCount={visibleTeamCount}
+            onTeamPress={handleTeamPress}
+          />
         ) : (
           item.button?.map((button) => (
             <MoreActionButton
@@ -206,24 +298,24 @@ export const ConnectHome = () => {
         )}
       </View>
     ),
-    [handleTeamPress, myTeams],
+    [handleTeamPress, myTeams, visibleTeamCount],
   );
 
-  const ListFooter = useCallback(
-    () => (
+  const ListFooter = useCallback(() => {
+    if (learnMoreItems.length === 0) return null;
+    return (
       <PastAchievementStudyMaterial
-        items={STUDY_MATERIAL}
+        items={learnMoreItems}
         title="LEARN MORE"
         showSeeAll
         onSeeAllPress={() => router.push("/(tabs)/(connect)/learnmorescreen")}
       />
-    ),
-    [],
-  );
+    );
+  }, [learnMoreItems]);
 
   return (
     <BlackScreenWrapper edges={["top"]}>
-      {/* <FlatList
+      <FlatList
         data={sections}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
@@ -266,18 +358,7 @@ export const ConnectHome = () => {
         team={selectedTeam}
         onClose={closeEditRankSheet}
         onApply={handleApplyDisplayRank}
-      /> */}
-      <Text
-        style={{
-          fontSize: 20,
-          fontWeight: "bold",
-          textAlign: "center",
-          marginTop: 100,
-          color: "white",
-        }}
-      >
-        Coming soon...
-      </Text>
+      />
     </BlackScreenWrapper>
   );
 };

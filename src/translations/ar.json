@@ -3544,6 +3544,7 @@
     "timeSpentMonthSummary": "لقد خصصت {{time}} لأهدافك هذا الشهر — ٢٠٪ من الشهر و٣٠.٣٥٪ (١٨ ساعة) أكثر من الشهر الماضي.",
     "customizeDashboard": "تخصيص لوحة التحكم",
     "addToDashboard": "إضافة إلى لوحة التحكم",
+    "addToDashboardEmpty": "جميع أهداف دورتك موجودة على لوحة التحكم",
     "closeBtn": "إغلاق",
     "subGoal_tahiyyat-wudhu": "تحية الوضوء",
     "subGoal_sunnah-rawatib": "السنن الرواتب",

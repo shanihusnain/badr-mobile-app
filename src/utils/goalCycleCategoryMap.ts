@@ -19,7 +19,9 @@ export const UI_CATEGORY_TO_API: Record<UiIbadahCategory, string> = {
   SADAQAH: "sadaqah",
 };
 
-export function toUiIbadahCategory(apiCategory: string): UiIbadahCategory | null {
+export function toUiIbadahCategory(
+  apiCategory: string,
+): UiIbadahCategory | null {
   const mapped = API_CATEGORY_TO_UI[apiCategory.toLowerCase()];
   return mapped ?? null;
 }
@@ -114,7 +116,7 @@ export function getSadaqahGoalsDataKey(goalType: string): string | null {
  */
 const SADAQAH_DAILY_PROGRESS_TITLES: Partial<Record<GoalId, string>> = {
   "sadaqah-zakat": "Missed Zakat",
-  "sadaqah-kafarah": "Kaffarah for Breaking Fasts or Oaths",
+  "sadaqah-kafarah": "Kaffarah for Fasts & Oaths",
   "sadaqah-fidya": "Fidya",
   "sadaqah-Lillah": "Lillah Donations",
   "sadaqah-jariyah": "Sadaqah Jariyah",

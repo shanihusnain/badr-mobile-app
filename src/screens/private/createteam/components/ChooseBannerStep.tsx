@@ -1,14 +1,15 @@
-import { DEFAULT_TEAM_BANNERS } from "../teamBannerMockData";
+import type { TeamBanner } from "../teamBannerMockData";
 import { ChooseCircularImageStep } from "./ChooseCircularImageStep";
 
 type ChooseBannerStepProps = {
-  onNext: (bannerUri: string) => void;
+  items: TeamBanner[];
+  onNext: (bannerUri: string, bannerKey?: string) => void;
 };
 
-export function ChooseBannerStep({ onNext }: ChooseBannerStepProps) {
+export function ChooseBannerStep({ items, onNext }: ChooseBannerStepProps) {
   return (
     <ChooseCircularImageStep
-      initialItems={DEFAULT_TEAM_BANNERS}
+      initialItems={items}
       swipeHintText="SWIPE TO SELECT A BANNER"
       onNext={onNext}
     />

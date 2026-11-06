@@ -1,15 +1,18 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "..";
 
-const swipeGreetingCard = async (cardType: string) => {
-  try {
-    const response = await api.put(`api/home/dismissed-cards`, {
-      cardType,
-    });
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+export type HomeDismissedCard =
+  | "PRAYER_TIMES"
+  | "GREETING"
+  | "FASTING_CALENDAR_INTRO"
+  | "FASTING_CALENDAR_LEGEND"
+  | "TIME_SPENT_INTRO";
+
+const swipeGreetingCard = async (card: HomeDismissedCard | string) => {
+  const response = await api.put(`api/home/dismissed-cards`, {
+    card,
+  });
+  return response.data;
 };
 
 export const useSwipeGreetingCardHomeScreen = () => {

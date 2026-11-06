@@ -293,7 +293,7 @@ export default function KaffarahLoggingFlow({
 
   const summaryTitle = frame
     ? getKaffarahFrameFlowCardTitle(frame)
-    : "Kaffarah for Breaking Fasts or Oaths";
+    : "Kaffarah for Fasts & Oaths";
   const achievementPct = getSadaqahFrameAchievementPct(frame);
   const showInsights = frame ? sadaqahFrameShowsInsights(frame) : false;
   const canLog = frame ? Boolean(frame.items?.[0]?.canLog ?? true) : true;

@@ -21,7 +21,8 @@ function getCategoryTranslationKey(label: string): string {
     "Quran Memorization": "homeScreen.timeSpentCategory_quran-memorization",
     "Quran Tajweed": "homeScreen.timeSpentCategory_quran-tajweed",
     "Missed Ramadan Fasts": "homeScreen.timeSpentCategory_missed-ramadan-fasts",
-    "The Fast of Prophet Dawud (AS)": "homeScreen.timeSpentCategory_the-fast-of-prophet-dawud-as",
+    "The Fast of Prophet Dawud (AS)":
+      "homeScreen.timeSpentCategory_the-fast-of-prophet-dawud-as",
     "Mondays & Thursdays": "homeScreen.timeSpentCategory_mondays-thursdays",
     "The White Days": "homeScreen.timeSpentCategory_the-white-days",
     "Sunnah Rawatib": "homeScreen.timeSpentCategory_sunnah-rawatib",
@@ -29,19 +30,23 @@ function getCategoryTranslationKey(label: string): string {
     "Missed Fard Prayers": "homeScreen.timeSpentCategory_missed-fard-prayers",
     "The 5 Daily Prayers": "homeScreen.timeSpentCategory_the-5-daily-prayers",
     "Prayer of Wudhu": "homeScreen.timeSpentCategory_prayer-of-wudhu",
-    "Congregational Prayer in Mosque": "homeScreen.timeSpentCategory_congregational-prayer-in-mosque",
+    "Congregational Prayer in Mosque":
+      "homeScreen.timeSpentCategory_congregational-prayer-in-mosque",
     "Duha Prayer": "homeScreen.timeSpentCategory_duha-prayer",
     "Tasbih Prayer": "homeScreen.timeSpentCategory_tasbih-prayer",
     "Ishraq Prayer": "homeScreen.timeSpentCategory_ishraq-prayer",
     "Shukr Prayer": "homeScreen.timeSpentCategory_shukr-prayer",
-    "Volunteering Services": "homeScreen.timeSpentCategory_volunteering-services",
+    "Volunteering Services":
+      "homeScreen.timeSpentCategory_volunteering-services",
     "Missed Zakat": "homeScreen.timeSpentCategory_missed-zakat",
-    "Fidya": "homeScreen.timeSpentCategory_fidya",
+    Fidya: "homeScreen.timeSpentCategory_fidya",
     "Iftaar Donations": "homeScreen.timeSpentCategory_iftaar-donations",
     "Sadaqah for Parents": "homeScreen.timeSpentCategory_sadaqah-for-parents",
     "Donating to Mosques": "homeScreen.timeSpentCategory_donating-to-mosques",
-    "Donating to Water Well Projects": "homeScreen.timeSpentCategory_donating-to-water-well-projects",
-    "Kaffarah for Breaking Fasts or Oaths": "homeScreen.timeSpentCategory_kaffarah-for-breaking-fasts-or-oaths",
+    "Donating to Water Well Projects":
+      "homeScreen.timeSpentCategory_donating-to-water-well-projects",
+    "Kaffarah for Fasts & Oaths":
+      "homeScreen.timeSpentCategory_kaffarah-for-fasts-oaths",
   };
   return keyMap[label] || label;
 }

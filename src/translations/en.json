@@ -2913,11 +2913,11 @@
       ]
     },
     "kafarah-for-breaking-fasts": {
-      "title": "KAFFARAH FOR BREAKING FASTS OR OATHS",
+      "title": "KAFFARAH FOR FASTS & OATHS",
       "summaryDescription": "A form of sadaqah to atone for broken fasts or oaths, requiring feeding or clothing those in need as prescribed...",
       "description": "Kaffarah for breaking fasts or oaths is a sadaqah to atone for breaking them without a valid reason, requiring feeding 10 people per broken oath and 60 people per broken fast.",
       "heroTitle": "A Path to Atonement & Community Care",
-      "navTitle": "KAFFARAH FOR BREAKING FASTS OR OATHS",
+      "navTitle": "KAFFARAH FOR FASTS & OATHS",
       "readMore": [
         {
           "items": [
@@ -3660,6 +3660,7 @@
     "timeSpentMonthSummary": "You dedicated {{time}} on your goals this month — it's 20% of the month and 30.35% (18h) more than the month before.",
     "customizeDashboard": "CUSTOMIZE DASHBOARD",
     "addToDashboard": "ADD TO DASHBOARD",
+    "addToDashboardEmpty": "All your cycle goals are on the dashboard",
     "closeBtn": "CLOSE",
     "subGoal_tahiyyat-wudhu": "TAHIYYAT AL-WUDHU",
     "subGoal_sunnah-rawatib": "SUNNAH RAWATIB",
@@ -3766,7 +3767,7 @@
     "timeSpentCategory_sadaqah-for-parents": "Sadaqah for Parents",
     "timeSpentCategory_donating-to-mosques": "Donating to Mosques",
     "timeSpentCategory_donating-to-water-well-projects": "Donating to Water Well Projects",
-    "timeSpentCategory_kaffarah-for-breaking-fasts-or-oaths": "Kaffarah for Breaking Fasts or Oaths",
+    "timeSpentCategory_kaffarah-for-fasts-oaths": "Kaffarah for Fasts & Oaths",
     "menstruationLog_logMenstruation": "LOG MENSTRUATION",
     "menstruationLog_today": "Today",
     "menstruationLog_ongoing": "Ongoing",

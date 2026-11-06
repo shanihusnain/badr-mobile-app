@@ -1,15 +1,16 @@
 import { createTeamThreeAndFourImage } from "@/assets/images";
-import { DEFAULT_TEAM_LOGOS } from "../teamLogoMockData";
+import type { TeamLogo } from "../teamLogoMockData";
 import { ChooseCircularImageStep } from "./ChooseCircularImageStep";
 
 type ChooseLogoStepProps = {
-  onNext: (logoUri: string) => void;
+  items: TeamLogo[];
+  onNext: (logoUri: string, logoKey?: string) => void;
 };
 
-export function ChooseLogoStep({ onNext }: ChooseLogoStepProps) {
+export function ChooseLogoStep({ items, onNext }: ChooseLogoStepProps) {
   return (
     <ChooseCircularImageStep
-      initialItems={DEFAULT_TEAM_LOGOS}
+      initialItems={items}
       swipeHintText="SWIPE TO SELECT A LOGO"
       headerImage={createTeamThreeAndFourImage}
       onNext={onNext}

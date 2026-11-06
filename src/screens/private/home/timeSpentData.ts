@@ -98,7 +98,7 @@ const TAB_SUBCATEGORIES: Record<TimeSpentTab, SubCategoryDef[]> = {
     { label: "Sadaqah for Parents", weight: 10 },
     { label: "Donating to Mosques", weight: 12 },
     { label: "Donating to Water Well Projects", weight: 9 },
-    { label: "Kaffarah for Breaking Fasts or Oaths", weight: 9 },
+    { label: "Kaffarah for Fasts & Oaths", weight: 9 },
   ],
 };
 
@@ -304,7 +304,11 @@ export function transformBackendRows(
 ): CategoryRowData[] {
   if (!rows || rows.length === 0) return [];
 
-  if (displayHours !== undefined && displayHours !== null && displayHours <= 0) {
+  if (
+    displayHours !== undefined &&
+    displayHours !== null &&
+    displayHours <= 0
+  ) {
     return rows.map((row) => {
       const cleanLabel = (row.label || row.key || "")
         .replace(/\s*\(\d+%\)$/, "")

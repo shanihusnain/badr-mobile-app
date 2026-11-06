@@ -21,18 +21,35 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { Tabs } from "@/components/atoms/Tabs";
 import { SwipeToDeleteRow } from "./SwipeToDeleteRow";
 import { fonts } from "@/assets/fonts";
-import { Entypo, MaterialIcons } from "@expo/vector-icons";
+import { Entypo } from "@expo/vector-icons";
 import PrimaryButton from "@/components/atoms/Primary-button";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { TopSpace } from "@/components/atoms/TopSpace";
-import i18next from "i18next";
+import {
+  DashboardCategoryType,
+  useGetDashboardCustomisationData,
+  type DashboardApiTab,
+  type DashboardCustomizeWidget,
+} from "@/src/api/queries/useGetDataForDashboardCustomisation";
+import { useAddHomeDashboardWidget } from "@/src/api/mutations/useAddHomeDashboardWidget";
+import { useRemoveHomeDashboardWidget } from "@/src/api/mutations/useRemoveHomeDashboardWidget";
+import {
+  DASHBOARD_CUSTOMIZE_FALLBACK_TABS,
+  getDashboardWidgetCatalogEntry,
+  isCustomizableDashboardWidgetKey,
+} from "../dashboardWidgetCatalog";
 
-export type { DashboardCategory };
+export type DashboardCategory =
+  | "Prayer"
+  | "Quran"
+  | "Fasting"
+  | "Sadaqah"
+  | "Time Spent";
 
 export type DashboardCustomizeSettings = {
   items: Array<{
-    category: DashboardCategory;
-    id: number;
+    key: string;
+    category: string | null;
     title: string;
   }>;
 };
@@ -43,204 +60,78 @@ type Props = {
   onChange?: (index: number) => void;
 };
 
-type DashboardCategory =
-  | "Prayer"
-  | "Quran"
-  | "Fasting"
-  | "Sadaqah"
-  | "Time Spent";
-
-type DashboardItemSource = {
-  id: number;
-  title: string;
-  description: string;
+type ActiveDashboardItem = {
+  key: string;
+  name: string;
+  category: string | null;
 };
 
-type DashboardItem = DashboardItemSource & {
-  category: DashboardCategory;
-};
-
-const CATEGORY_TABS = [
-  { key: "ALL", label: "All" },
-  { key: "PRAYER", label: "Prayer" },
-  { key: "QURAN", label: "Quran" },
-  { key: "FASTING", label: "Fasting" },
-  { key: "SADAQAH", label: "Sadaqah" },
-  { key: "TIME_SPENT", label: "Time Spent" },
-] as const;
-
-const prayersData: DashboardItemSource[] = [
-  {
-    id: 1,
-    title: "Tahiyyat Al Wudhu",
-    description: "Tahiyyat Al Wudhu description",
-  },
-  {
-    id: 2,
-    title: "The 5 Daily Prayers",
-    description: "The 5 Daily Prayers description",
-  },
-  { id: 3, title: "Sunnah Rawatib", description: "Sunnah Rawatib description" },
-  {
-    id: 4,
-    title: "Thayyat Ul Masjid",
-    description: "Thayyat Ul Masjid description",
-  },
-  {
-    id: 5,
-    title: "Missed Past Prayers",
-    description: "Missed Past Prayers description",
-  },
-  { id: 6, title: "Duha Prayer", description: "Duha Prayer description" },
-  { id: 7, title: "Tawbah Prayer", description: "Tawbah Prayer description" },
-  {
-    id: 8,
-    title: "Istikharah Prayer",
-    description: "Istikharah Prayer description",
-  },
-  { id: 9, title: "Shukr Prayer", description: "Shukr Prayer description" },
-  { id: 10, title: "Qiyam al Lail", description: "Qiyam al Lail description" },
-];
-
-const quranData: DashboardItemSource[] = [
-  {
-    id: 1,
-    title: "Quran Listening",
-    description: "Quran Listening description",
-  },
-  {
-    id: 2,
-    title: "Quran Recitation",
-    description: "Quran Recitation description",
-  },
-  {
-    id: 3,
-    title: "Quran Memorization",
-    description: "Quran Memorization description",
-  },
-  { id: 4, title: "Quran Tajweed", description: "Quran Tajweed description" },
-];
-
-const fastingData: DashboardItemSource[] = [
-  {
-    id: 1,
-    title: "Missed Ramadan Fasts",
-    description: "Missed Ramadan Fasts description",
-  },
-  {
-    id: 2,
-    title: "Prophet Dawood Fast (every other day)",
-    description: "Prophet Dawood Fast (every other day) description",
-  },
-  {
-    id: 3,
-    title: "Monday & Thursday Fasts",
-    description: "Monday & Thursday Fasts description",
-  },
-  {
-    id: 4,
-    title: "White Days Fasts",
-    description: "White Days Fasts description",
-  },
-];
-
-const sadaqahData: DashboardItemSource[] = [
-  { id: 1, title: "Missed Zakat", description: "Missed Zakat description" },
-  {
-    id: 2,
-    title: "Kafarah for Breaking Fasts",
-    description: "Kafarah for Breaking Fasts description",
-  },
-  { id: 3, title: "Fidya", description: "Fidya description" },
-  {
-    id: 4,
-    title: "Lilah Donations",
-    description: "Lilah Donations description",
-  },
-  {
-    id: 5,
-    title: "Sadaqah for Parents",
-    description: "Sadaqah for Parents description",
-  },
-  {
-    id: 6,
-    title: "Volunteering Services",
-    description: "Volunteering Services description",
-  },
-];
-
-const timeSpentData: DashboardItemSource[] = [];
-
-const CATEGORY_DATA: Record<DashboardCategory, DashboardItemSource[]> = {
-  Prayer: prayersData,
-  Quran: quranData,
-  Fasting: fastingData,
-  Sadaqah: sadaqahData,
-  "Time Spent": timeSpentData,
-};
-function buildCategoryItems(
-  category: DashboardCategory,
-  data: DashboardItemSource[],
-): DashboardItem[] {
-  return data.map((item) => ({ ...item, category }));
-}
-
-/** Pool built only from category source arrays — no extra items allowed */
-const ADD_TO_DASHBOARD_DATA: DashboardItem[] = (
-  Object.entries(CATEGORY_DATA) as [DashboardCategory, DashboardItemSource[]][]
-).flatMap(([category, data]) => buildCategoryItems(category, data));
-
-const INITIAL_DASHBOARD_ITEMS: DashboardItem[] = [
-  buildCategoryItems("Prayer", prayersData.slice(0, 5)),
-  buildCategoryItems("Quran", quranData.slice(0, 1)),
-  buildCategoryItems("Sadaqah", sadaqahData.slice(5, 6)),
-].flat();
-
-function filterByCategory(
-  items: DashboardItem[],
-  selectedCategory: string,
-): DashboardItem[] {
-  if (selectedCategory === "All") {
-    return items;
+function normalizeApiTab(tab: string | null | undefined): DashboardApiTab {
+  const key = String(tab ?? "ALL")
+    .trim()
+    .toUpperCase();
+  if (
+    key === DashboardCategoryType.PRAYER ||
+    key === DashboardCategoryType.QURAN ||
+    key === DashboardCategoryType.FASTING ||
+    key === DashboardCategoryType.SADAQAH ||
+    key === DashboardCategoryType.TIME_SPENT
+  ) {
+    return key;
   }
-  return items.filter((item) => item.category === selectedCategory);
+  return DashboardCategoryType.ALL;
 }
 
-/** Per-category ids repeat (e.g. id 1 in Prayer and Quran) — key by category + title */
-function getDashboardItemKey(
-  item: Pick<DashboardItem, "category" | "title">,
-): string {
-  return `${item.category}::${item.title}`;
+/** My Dashboard / Add filter tabs — exclude TIME_SPENT (not interactive customize). */
+function isCustomizeFilterTab(tab: DashboardApiTab | string): boolean {
+  const key = normalizeApiTab(tab);
+  return (
+    key === DashboardCategoryType.ALL ||
+    key === DashboardCategoryType.PRAYER ||
+    key === DashboardCategoryType.QURAN ||
+    key === DashboardCategoryType.FASTING ||
+    key === DashboardCategoryType.SADAQAH
+  );
 }
 
-function isSameDashboardItem(a: DashboardItem, b: DashboardItem): boolean {
-  return getDashboardItemKey(a) === getDashboardItemKey(b);
+function mapActiveWidget(widget: DashboardCustomizeWidget): ActiveDashboardItem | null {
+  const key = String(widget.key ?? "")
+    .trim()
+    .toUpperCase();
+  if (!key || !isCustomizableDashboardWidgetKey(key)) return null;
+  const catalog = getDashboardWidgetCatalogEntry(key);
+  return {
+    key,
+    name: String(widget.name ?? "").trim() || catalog?.name || key,
+    category: widget.category ?? catalog?.category ?? null,
+  };
+}
+
+function getFilterTabTranslationKey(tabKey: string): string {
+  const keyMap: Record<string, string> = {
+    ALL: "homeScreen.filterAll",
+    PRAYER: "homeScreen.filterPrayer",
+    QURAN: "homeScreen.filterQuran",
+    FASTING: "homeScreen.filterFasting",
+    SADAQAH: "homeScreen.filterSadaqah",
+  };
+  return keyMap[tabKey] || tabKey;
 }
 
 type CategoryTabsScrollProps = {
-  selectedTab: string;
-  onSelectTab: (label: string) => void;
+  tabs: { key: string; label: string }[];
+  selectedTab: DashboardApiTab;
+  onSelectTab: (key: DashboardApiTab) => void;
   keyPrefix: string;
 };
 
 function CategoryTabsScroll({
+  tabs,
   selectedTab,
   onSelectTab,
   keyPrefix,
 }: CategoryTabsScrollProps) {
   const { t } = useTypedTranslation();
-
-  function getFilterTabTranslationKey(tab: string): any {
-    const keyMap: Record<string, string> = {
-      "All": "homeScreen.filterAll",
-      "Prayer": "homeScreen.filterPrayer",
-      "Quran": "homeScreen.filterQuran",
-      "Fasting": "homeScreen.filterFasting",
-      "Sadaqah": "homeScreen.filterSadaqah",
-      "Time Spent": "homeScreen.filterTimeSpent",
-    };
-    return keyMap[tab] || tab;
-  }
 
   return (
     <ScrollView
@@ -253,14 +144,27 @@ function CategoryTabsScroll({
       directionalLockEnabled
       keyboardShouldPersistTaps="handled"
     >
-      {CATEGORY_TABS.map((tab) => (
-        <Tabs
-          key={`${keyPrefix}-${tab.key}`}
-          label={t(getFilterTabTranslationKey(tab.label))}
-          onPress={() => onSelectTab(tab.label)}
-          selectedTab={t(getFilterTabTranslationKey(selectedTab))}
-        />
-      ))}
+      {tabs.map((tab) => {
+        const tabKey = normalizeApiTab(tab.key);
+        const labelKey = getFilterTabTranslationKey(tabKey);
+        const translated = t(labelKey as any);
+        const label =
+          translated === labelKey ? tab.label?.trim() || tabKey : translated;
+        const selectedLabelKey = getFilterTabTranslationKey(selectedTab);
+        const selectedTranslated = t(selectedLabelKey as any);
+        const selectedLabel =
+          selectedTranslated === selectedLabelKey
+            ? selectedTab
+            : selectedTranslated;
+        return (
+          <Tabs
+            key={`${keyPrefix}-${tabKey}`}
+            label={label}
+            onPress={() => onSelectTab(tabKey)}
+            selectedTab={selectedLabel}
+          />
+        );
+      })}
     </ScrollView>
   );
 }
@@ -269,109 +173,271 @@ export const DashboardCustomizeBottomSheet = forwardRef<BottomSheet, Props>(
   function DashboardCustomizeBottomSheet({ onClose, onSave, onChange }, ref) {
     const safeAreaInsets = useSafeAreaInsets();
     const { t } = useTypedTranslation();
-    const [selectedDashboardCategory, setSelectedDashboardCategory] =
-      useState<string>("All");
-    console.log("selected dashboard categpory", selectedDashboardCategory)
-    const [selectedAddCategory, setSelectedAddCategory] =
-      useState<string>("All");
-    const [dashboardItems, setDashboardItems] = useState<DashboardItem[]>(
-      INITIAL_DASHBOARD_ITEMS,
+    const [selectedDashboardTab, setSelectedDashboardTab] =
+      useState<DashboardApiTab>(DashboardCategoryType.ALL);
+    const [selectedAddTab, setSelectedAddTab] = useState<DashboardApiTab>(
+      DashboardCategoryType.ALL,
     );
     const [openRowId, setOpenRowId] = useState<string | null>(null);
-    const [selectedAddItemKey, setSelectedAddItemKey] = useState<string | null>(
-      null,
-    );
+    const [pendingKeys, setPendingKeys] = useState<Set<string>>(new Set());
     const listRef = useRef<BottomSheetFlatListMethods>(null);
 
-    const filteredDashboardItems = useMemo(
-      () => filterByCategory(dashboardItems, selectedDashboardCategory),
-      [dashboardItems, selectedDashboardCategory],
+    const { data: customizeData, isFetching } =
+      useGetDashboardCustomisationData(selectedDashboardTab);
+    // Full add pool (tab-filtered GET would under-count other categories).
+    const { data: allCustomizeData } = useGetDashboardCustomisationData(
+      DashboardCategoryType.ALL,
     );
 
-    const addToDashboardItems = useMemo(() => {
-      const available = ADD_TO_DASHBOARD_DATA.filter(
-        (poolItem) =>
-          !dashboardItems.some((activeItem) =>
-            isSameDashboardItem(activeItem, poolItem),
-          ),
+    const { mutate: addWidget, isPending: isAdding } =
+      useAddHomeDashboardWidget();
+    const { mutate: removeWidget, isPending: isRemoving } =
+      useRemoveHomeDashboardWidget();
+
+    const tabs = useMemo(() => {
+      const sourceTabs =
+        customizeData?.tabs ??
+        allCustomizeData?.tabs ??
+        DASHBOARD_CUSTOMIZE_FALLBACK_TABS;
+      if (Array.isArray(sourceTabs) && sourceTabs.length > 0) {
+        return sourceTabs
+          .map((tab) => ({
+            key: normalizeApiTab(tab.key),
+            label:
+              String(tab.label ?? tab.key ?? "").trim() || String(tab.key),
+          }))
+          .filter((tab) => isCustomizeFilterTab(tab.key));
+      }
+      return DASHBOARD_CUSTOMIZE_FALLBACK_TABS;
+    }, [allCustomizeData?.tabs, customizeData?.tabs]);
+
+    const activeItems = useMemo(() => {
+      const widgets = customizeData?.myDashboard ?? [];
+      return widgets
+        .map(mapActiveWidget)
+        .filter((item): item is ActiveDashboardItem => item != null);
+    }, [customizeData?.myDashboard]);
+
+    /** Backend-provided add pool across all categories (before Add-tab filter). */
+    const remainingAddableItems = useMemo(() => {
+      const widgets = allCustomizeData?.addToMyDashboard ?? [];
+      return widgets
+        .map(mapActiveWidget)
+        .filter((item): item is ActiveDashboardItem => item != null);
+    }, [allCustomizeData?.addToMyDashboard]);
+
+    const addTabs = useMemo(() => {
+      if (remainingAddableItems.length === 0) return [];
+
+      const categoriesWithItems = new Set(
+        remainingAddableItems
+          .map((entry) =>
+            String(entry.category ?? "")
+              .trim()
+              .toUpperCase(),
+          )
+          .filter(Boolean),
       );
-      return filterByCategory(available, selectedAddCategory);
-    }, [dashboardItems, selectedAddCategory]);
+      const labelByKey = new Map(
+        tabs.map((tab) => [normalizeApiTab(tab.key), tab.label] as const),
+      );
+
+      const categoryTabs = (
+        [
+          DashboardCategoryType.PRAYER,
+          DashboardCategoryType.QURAN,
+          DashboardCategoryType.FASTING,
+          DashboardCategoryType.SADAQAH,
+        ] as const
+      )
+        .filter((key) => categoriesWithItems.has(key))
+        .map((key) => ({
+          key,
+          label:
+            labelByKey.get(key) ??
+            DASHBOARD_CUSTOMIZE_FALLBACK_TABS.find((tab) => tab.key === key)
+              ?.label ??
+            key,
+        }));
+
+      return [
+        {
+          key: DashboardCategoryType.ALL,
+          label:
+            labelByKey.get(DashboardCategoryType.ALL) ??
+            DASHBOARD_CUSTOMIZE_FALLBACK_TABS[0]?.label ??
+            "All",
+        },
+        ...categoryTabs,
+      ];
+    }, [remainingAddableItems, tabs]);
+
+    const addPoolItems = useMemo(() => {
+      const tab = String(selectedAddTab ?? "ALL")
+        .trim()
+        .toUpperCase();
+      return remainingAddableItems.filter((entry) => {
+        if (tab === DashboardCategoryType.ALL) return true;
+        return (
+          String(entry.category ?? "")
+            .trim()
+            .toUpperCase() === tab
+        );
+      });
+    }, [remainingAddableItems, selectedAddTab]);
+
+    useEffect(() => {
+      if (addTabs.length === 0) {
+        if (selectedAddTab !== DashboardCategoryType.ALL) {
+          setSelectedAddTab(DashboardCategoryType.ALL);
+        }
+        return;
+      }
+      const stillValid = addTabs.some(
+        (tab) => normalizeApiTab(tab.key) === selectedAddTab,
+      );
+      if (!stillValid) {
+        setSelectedAddTab(normalizeApiTab(addTabs[0]?.key));
+      }
+    }, [addTabs, selectedAddTab]);
 
     useEffect(() => {
       const frame = requestAnimationFrame(() => {
         listRef.current?.scrollToEnd({ animated: true });
       });
       return () => cancelAnimationFrame(frame);
-    }, [selectedAddCategory, addToDashboardItems.length]);
+    }, [selectedAddTab, addPoolItems.length]);
 
-    const handleDelete = useCallback((rowId: string) => {
-      setDashboardItems((prev) =>
-        prev.filter((item) => getDashboardItemKey(item) !== rowId),
-      );
-      setOpenRowId(null);
+    const markPending = useCallback((key: string, pending: boolean) => {
+      setPendingKeys((prev) => {
+        const next = new Set(prev);
+        if (pending) next.add(key);
+        else next.delete(key);
+        return next;
+      });
     }, []);
 
-    const handleToggleAddItem = useCallback((item: DashboardItem) => {
-      const key = getDashboardItemKey(item);
-      setSelectedAddItemKey((current) => (current === key ? null : key));
-    }, []);
+    const handleDelete = useCallback(
+      (rowId: string) => {
+        if (pendingKeys.has(rowId) || isRemoving) return;
+        markPending(rowId, true);
+        removeWidget(
+          { key: rowId, tab: selectedDashboardTab },
+          {
+            onSettled: () => {
+              markPending(rowId, false);
+              setOpenRowId(null);
+            },
+          },
+        );
+      },
+      [
+        isRemoving,
+        markPending,
+        pendingKeys,
+        removeWidget,
+        selectedDashboardTab,
+      ],
+    );
+
+    const handleAddItem = useCallback(
+      (entry: ActiveDashboardItem) => {
+        if (pendingKeys.has(entry.key) || isAdding) return;
+        markPending(entry.key, true);
+        addWidget(
+          { key: entry.key, tab: selectedAddTab },
+          {
+            onSettled: () => {
+              markPending(entry.key, false);
+            },
+          },
+        );
+      },
+      [addWidget, isAdding, markPending, pendingKeys, selectedAddTab],
+    );
+
+    const sheetTitle =
+      customizeData?.title?.trim() ||
+      allCustomizeData?.title?.trim() ||
+      t("homeScreen.customizeDashboard");
+    const addSectionTitle =
+      customizeData?.addSectionTitle?.trim() ||
+      allCustomizeData?.addSectionTitle?.trim() ||
+      t("homeScreen.addToDashboard");
+    const saveLabel =
+      customizeData?.saveLabel?.trim() ||
+      allCustomizeData?.saveLabel?.trim() ||
+      "Save";
 
     const handleSwipeOpen = useCallback((rowId: string | null) => {
       setOpenRowId(rowId);
     }, []);
 
     const handleSave = useCallback(() => {
-      const settings: DashboardCustomizeSettings = {
-        items: dashboardItems.map((item) => ({
+      onSave?.({
+        items: activeItems.map((item) => ({
+          key: item.key,
           category: item.category,
-          id: item.id,
-          title: item.title,
+          title: item.name,
         })),
-      };
-      console.log(settings);
-      onSave?.(settings);
+      });
       onClose();
-    }, [dashboardItems, onClose, onSave]);
+    }, [activeItems, onClose, onSave]);
 
     const renderFooter = useCallback(
       (props: BottomSheetFooterProps) => (
         <BottomSheetFooter {...props} bottomInset={safeAreaInsets.bottom}>
           <View style={styles.saveFooter}>
             <PrimaryButton
-              text="Save"
+              text={saveLabel}
               onPress={handleSave}
-              disabled={dashboardItems.length === 0}
+              disabled={activeItems.length === 0 && !isFetching}
             />
           </View>
         </BottomSheetFooter>
       ),
-      [dashboardItems.length, handleSave, safeAreaInsets.bottom],
+      [
+        activeItems.length,
+        handleSave,
+        isFetching,
+        safeAreaInsets.bottom,
+        saveLabel,
+      ],
     );
 
     const renderDashboardItem = useCallback(
-      ({ item }: { item: DashboardItem }) => {
-        const rowId = getDashboardItemKey(item);
-        const keyBase = item.title.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+      ({ item }: { item: ActiveDashboardItem }) => {
+        const keyBase = item.name
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/-+/g, "-")
+          .replace(/^-|-$/g, "");
         const titleKey = `homeScreen.dashboardItem_${keyBase}_title` as any;
-        const translatedTitle = t(titleKey) === titleKey ? item.title : t(titleKey);
+        const translatedTitle =
+          t(titleKey) === titleKey ? item.name : t(titleKey);
+        const isPending = pendingKeys.has(item.key);
 
         return (
           <View style={styles.rowWrapper}>
             <SwipeToDeleteRow
-              rowId={rowId}
+              rowId={item.key}
               onDelete={handleDelete}
               onSwipeOpen={handleSwipeOpen}
               openRowId={openRowId}
             >
-              <View style={styles.swipeListItemContent}>
+              <View
+                style={[
+                  styles.swipeListItemContent,
+                  isPending && styles.rowPending,
+                ]}
+              >
                 <Text style={styles.listItemTitle}>{translatedTitle}</Text>
               </View>
             </SwipeToDeleteRow>
           </View>
         );
       },
-      [handleDelete, handleSwipeOpen, openRowId],
+      [handleDelete, handleSwipeOpen, openRowId, pendingKeys, t],
     );
 
     const ListHeaderComponent = useCallback(
@@ -381,86 +447,92 @@ export const DashboardCustomizeBottomSheet = forwardRef<BottomSheet, Props>(
             <Pressable style={styles.closeButton} onPress={onClose}>
               <Ionicons name="close" size={24} color={Colors.light.white} />
             </Pressable>
-            <Text style={styles.headerTitle}>{t("homeScreen.customizeDashboard")}</Text>
+            <Text style={styles.headerTitle}>{sheetTitle}</Text>
             <View style={styles.headerSpacer} />
           </View>
           <TopSpace top={16} />
           <CategoryTabsScroll
             keyPrefix="dashboard"
-            selectedTab={selectedDashboardCategory}
-            onSelectTab={setSelectedDashboardCategory}
+            tabs={tabs}
+            selectedTab={selectedDashboardTab}
+            onSelectTab={setSelectedDashboardTab}
           />
           <TopSpace top={16} />
         </>
       ),
-      [onClose, selectedDashboardCategory],
+      [onClose, selectedDashboardTab, sheetTitle, tabs],
     );
 
     const ListFooterComponent = useCallback(
       () => (
         <View style={styles.addSection}>
           <View style={styles.addSectionDividerRow}>
-            <Text style={styles.addSectionLabel}>{t("homeScreen.addToDashboard")}</Text>
+            <Text style={styles.addSectionLabel}>{addSectionTitle}</Text>
             <View style={styles.addSectionDividerLine} />
           </View>
           <TopSpace top={16} />
-          <CategoryTabsScroll
-            keyPrefix="add"
-            selectedTab={selectedAddCategory}
-            onSelectTab={setSelectedAddCategory}
-          />
-          <TopSpace top={16} />
-          {addToDashboardItems.map((item) => {
-            const itemKey = getDashboardItemKey(item);
-            const isSelected = selectedAddItemKey === itemKey;
+          {addTabs.length > 0 ? (
+            <>
+              <CategoryTabsScroll
+                keyPrefix="add"
+                tabs={addTabs}
+                selectedTab={selectedAddTab}
+                onSelectTab={setSelectedAddTab}
+              />
+              <TopSpace top={16} />
+            </>
+          ) : null}
+          {addPoolItems.length === 0 ? (
+            <Text style={styles.addEmptyText}>
+              {t("homeScreen.addToDashboardEmpty" as any)}
+            </Text>
+          ) : (
+            addPoolItems.map((item) => {
+              const isPending = pendingKeys.has(item.key);
+              const keyBase = item.name
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, "-")
+                .replace(/-+/g, "-")
+                .replace(/^-|-$/g, "");
+              const titleKey =
+                `homeScreen.dashboardItem_${keyBase}_title` as any;
+              const translatedTitle =
+                t(titleKey) === titleKey ? item.name : t(titleKey);
 
-            const keyBase = item.title.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
-            const titleKey = `homeScreen.dashboardItem_${keyBase}_title` as any;
-            const translatedTitle = t(titleKey) === titleKey ? item.title : t(titleKey);
-
-            return (
-              <View key={itemKey} style={styles.rowWrapper}>
-                <Pressable
-                  style={[
-                    styles.listItem,
-                    styles.addListItem,
-                    isSelected && styles.addListItemSelected,
-                  ]}
-                  onPress={() => handleToggleAddItem(item)}
-                >
-                  <Text style={styles.listItemTitle}>{translatedTitle}</Text>
-                  <View
-                    style={
-                      isSelected
-                        ? styles.addedInDashboard
-                        : styles.addActionCircle
-                    }
+              return (
+                <View key={item.key} style={styles.rowWrapper}>
+                  <Pressable
+                    style={[
+                      styles.listItem,
+                      styles.addListItem,
+                      isPending && styles.rowPending,
+                    ]}
+                    disabled={isPending}
+                    onPress={() => handleAddItem(item)}
                   >
-                    {isSelected ? (
-                      <MaterialIcons
-                        name="done"
-                        size={24}
-                        color={Colors.light.white}
-                      />
-                    ) : (
+                    <Text style={styles.listItemTitle}>{translatedTitle}</Text>
+                    <View style={styles.addActionCircle}>
                       <Entypo
                         name="plus"
                         size={24}
                         color={Colors.light.white}
                       />
-                    )}
-                  </View>
-                </Pressable>
-              </View>
-            );
-          })}
+                    </View>
+                  </Pressable>
+                </View>
+              );
+            })
+          )}
         </View>
       ),
       [
-        addToDashboardItems,
-        selectedAddCategory,
-        selectedAddItemKey,
-        handleToggleAddItem,
+        addPoolItems,
+        addSectionTitle,
+        addTabs,
+        handleAddItem,
+        pendingKeys,
+        selectedAddTab,
+        t,
       ],
     );
 
@@ -476,8 +548,8 @@ export const DashboardCustomizeBottomSheet = forwardRef<BottomSheet, Props>(
       >
         <BottomSheetFlatList
           ref={listRef}
-          data={filteredDashboardItems}
-          keyExtractor={(item) => getDashboardItemKey(item)}
+          data={activeItems}
+          keyExtractor={(item) => item.key}
           renderItem={renderDashboardItem}
           ListHeaderComponent={ListHeaderComponent}
           ListFooterComponent={ListFooterComponent}
@@ -532,12 +604,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 12,
     paddingBottom: 16,
-
     backgroundColor: Colors.light.blackBackground,
   },
   rowWrapper: {
     marginBottom: 12,
     paddingHorizontal: 20,
+  },
+  rowPending: {
+    opacity: 0.55,
   },
   listItem: {
     backgroundColor: Colors.light.greybuttonBackground,
@@ -555,7 +629,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.greybuttonBackground,
     paddingVertical: 20,
   },
-  addListItemSelected: {},
   addActionCircle: {
     alignItems: "center",
     justifyContent: "center",
@@ -569,12 +642,6 @@ const styles = StyleSheet.create({
     color: Colors.light.white,
     fontSize: 14,
     fontWeight: "600",
-  },
-  listItemDescription: {
-    color: Colors.light.white,
-    fontSize: 12,
-    opacity: 0.7,
-    marginTop: 4,
   },
   addSection: {
     marginTop: 16,
@@ -598,12 +665,12 @@ const styles = StyleSheet.create({
     height: 1,
     flex: 1,
   },
-  addedInDashboard: {
-    alignItems: "center",
-    justifyContent: "center",
-    width: 30,
-    height: 30,
-    backgroundColor: Colors.light.green,
-    borderRadius: 30,
+  addEmptyText: {
+    color: Colors.light.graylightshade,
+    fontSize: 13,
+    fontFamily: fonts.primary.regular,
+    textAlign: "center",
+    paddingHorizontal: 24,
+    paddingVertical: 8,
   },
 });

@@ -20,6 +20,9 @@ interface DaysTrackerContainerProps {
   animationDurationMs?: number;
   /** Opens details — attached to text rows only so Rive is never wrapped. */
   onPress?: () => void;
+  /** Sheet copy from `/home/moon` — overrides default i18n when provided. */
+  committedTitle?: string | null;
+  message?: string | null;
 }
 
 const TOTAL_DAYS_FALLBACK = 28;
@@ -53,6 +56,8 @@ export const DaysTrackerContainer: React.FC<DaysTrackerContainerProps> = ({
   moonCard = null,
   animationDurationMs = DEFAULT_ANIMATION_MS,
   onPress,
+  committedTitle = null,
+  message = null,
 }) => {
   const { t, i18n } = useTranslation();
   const lng = i18n.language;
@@ -207,10 +212,13 @@ export const DaysTrackerContainer: React.FC<DaysTrackerContainerProps> = ({
       {isBottomSheetView && (
         <View style={styles.additionalTextSection}>
           <Text style={styles.textBlock1}>
-            {t("daysTracker.committedGoals", { count: localizedTotalFallback })}
+            {committedTitle?.trim() ||
+              t("daysTracker.committedGoals", {
+                count: localizedTotalFallback,
+              })}
           </Text>
           <Text style={styles.textBlock2}>
-            {t("daysTracker.welcomeJourney")}
+            {message?.trim() || t("daysTracker.welcomeJourney")}
           </Text>
         </View>
       )}

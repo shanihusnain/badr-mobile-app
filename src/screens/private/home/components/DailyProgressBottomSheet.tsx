@@ -198,6 +198,9 @@ export const DailyProgressBottomSheet = ({
       }));
     }
 
+
+
+    
     const goals = categoryGoals?.goals ?? [];
     const categorySlug = selectedCategory ?? "";
     return goals.flatMap((goal) => {

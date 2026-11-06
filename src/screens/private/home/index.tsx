@@ -217,27 +217,27 @@ const HOME_CATEGORY_META: {
   title: string;
   progressColor: string;
 }[] = [
-    {
-      uiCategory: "PRAYER",
-      title: "PRAYERS",
-      progressColor: Colors.light.ringPrayer,
-    },
-    {
-      uiCategory: "QURAN",
-      title: "QURAN",
-      progressColor: Colors.light.ringQuran,
-    },
-    {
-      uiCategory: "FASTING",
-      title: "FASTING",
-      progressColor: Colors.light.ringFasting,
-    },
-    {
-      uiCategory: "SADAQAH",
-      title: "SADAQAH",
-      progressColor: Colors.light.ringSadaqah,
-    },
-  ];
+  {
+    uiCategory: "PRAYER",
+    title: "PRAYERS",
+    progressColor: Colors.light.ringPrayer,
+  },
+  {
+    uiCategory: "QURAN",
+    title: "QURAN",
+    progressColor: Colors.light.ringQuran,
+  },
+  {
+    uiCategory: "FASTING",
+    title: "FASTING",
+    progressColor: Colors.light.ringFasting,
+  },
+  {
+    uiCategory: "SADAQAH",
+    title: "SADAQAH",
+    progressColor: Colors.light.ringSadaqah,
+  },
+];
 
 function mapDashboardCategoryToItem(
   item: HomeDashboardCategory,
@@ -259,23 +259,6 @@ function mapDashboardCategoryToItem(
     tier,
   };
 }
-
-const WELCOME_CARDS = [
-  {
-    id: 1,
-    title: "Welcome to Badr, Layla!",
-    content:
-      "Your 28-day goal cycle is set to begin tomorrow at Fajr. Get ready to track your prayer, Quran, fasting, and sadaqah goals. May Allah (SWT) make it easy and rewarding for you!",
-    highlightedTexts: ["28-day goal cycle", "tomorrow", "Fajr"],
-  },
-  {
-    id: 2,
-    title: "Track Your Progress",
-    content:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
-    highlightedTexts: [],
-  },
-];
 
 function buildTextParts(text: string, highlightedTexts: string[]): TextPart[] {
   const parts: TextPart[] = [];
@@ -479,7 +462,7 @@ export default function HomeScreen() {
       : selectedMyDayDate === todayDateKey;
   const headerStreak =
     typeof dashboardHeader?.streak === "number" &&
-      Number.isFinite(dashboardHeader.streak)
+    Number.isFinite(dashboardHeader.streak)
       ? Math.max(0, Math.round(dashboardHeader.streak))
       : 0;
   const headerAvatarName =
@@ -623,7 +606,7 @@ export default function HomeScreen() {
     router.push("/(tabs)/(plan)");
   }, [router]);
 
-  // Greeting / welcome cards — prefer dashboard greetingCard when present.
+  // Greeting / welcome cards — backend-only; hide entirely when greetingCard is null.
   // Keep the same highlight phrases so ContainerCard bold/white styling still applies.
   const welcomeHighlightTexts = useMemo(
     () => [
@@ -636,39 +619,26 @@ export default function HomeScreen() {
 
   const translatedWelcomeCards = useMemo(() => {
     const greeting = dashboardData?.greetingCard;
+    if (!greeting) return [];
+
     const title =
-      typeof greeting?.title === "string" ? greeting.title.trim() : "";
+      typeof greeting.title === "string" ? greeting.title.trim() : "";
     const description =
-      typeof greeting?.description === "string"
+      typeof greeting.description === "string"
         ? greeting.description.trim()
         : "";
 
-    if (title || description) {
-      return [
-        {
-          id: 1,
-          title: title || t("homeScreen.welcomeTitle").replace("{{name}}", ""),
-          content: description,
-          highlightedTexts: welcomeHighlightTexts,
-        },
-      ];
-    }
+    if (!title && !description) return [];
 
     return [
       {
         id: 1,
-        title: t("homeScreen.welcomeTitle").replace("{{name}}", "Layla"),
-        content: t("homeScreen.welcomeContent"),
+        title,
+        content: description,
         highlightedTexts: welcomeHighlightTexts,
       },
-      {
-        id: 2,
-        title: t("homeScreen.trackProgressTitle"),
-        content: t("homeScreen.trackProgressContent"),
-        highlightedTexts: [] as string[],
-      },
     ];
-  }, [dashboardData?.greetingCard, t, welcomeHighlightTexts]);
+  }, [dashboardData?.greetingCard, welcomeHighlightTexts]);
 
   // Inspiration carousel — prefer dashboard `dailyContent`, else i18n fallbacks.
   const translatedInspirationCards = useMemo(() => {
@@ -713,6 +683,11 @@ export default function HomeScreen() {
     },
     [],
   );
+
+  const openNamazSheet = useCallback(() => {
+    setIsNamazSheetOpen(true);
+    namazBottomSheetRef.current?.expand();
+  }, []);
 
   const { data: homeDashboard } = useGetHomeDashboard(selectedDashboardTab);
   const dashboardTabs = useMemo(
@@ -866,7 +841,7 @@ export default function HomeScreen() {
               >
                 <TaperedCircleBorder
                   percentage={category.percentage}
-                  borderColor={Colors.light.ringTrackEmpty}
+                  borderColor={Colors.light.grey}
                   size={30}
                   variant="illuminated"
                 >
@@ -1064,7 +1039,7 @@ export default function HomeScreen() {
             >
               <TaperedCircleBorder
                 percentage={category.percentage}
-                borderColor={Colors.light.ringTrackEmpty}
+                borderColor={Colors.light.grey}
                 size={60 * (SCREEN_CARD_WIDTH / 320)}
                 variant="illuminated"
               />
@@ -1075,7 +1050,7 @@ export default function HomeScreen() {
                   <Text style={styles.categoryLabel}>
                     {prepareFigmaForcedSmallCapsText(
                       category.title ||
-                      t(getCategoryTranslationKey(category.title)),
+                        t(getCategoryTranslationKey(category.title)),
                     )}
                   </Text>
                   <View style={styles.categoryLabelChevronSlot}>
@@ -1095,14 +1070,16 @@ export default function HomeScreen() {
           ))}
         </Animated.View>
 
-        {/* Welcome / info card deck */}
-        <View style={styles.containersSection}>
-          <SwipeCardDeck
-            data={translatedWelcomeCards}
-            renderTextWithHighlight={buildTextParts}
-            onAllCardsSwiped={handleGreetingCardsFullySwiped}
-          />
-        </View>
+        {/* Welcome / info card deck — only when home API sends greetingCard */}
+        {translatedWelcomeCards.length > 0 ? (
+          <View style={styles.containersSection}>
+            <SwipeCardDeck
+              data={translatedWelcomeCards}
+              renderTextWithHighlight={buildTextParts}
+              onAllCardsSwiped={handleGreetingCardsFullySwiped}
+            />
+          </View>
+        ) : null}
 
         {/* Plain View only around Rive — press targets live inside DaysTracker
             on the text rows, never wrapping the moon itself. */}
@@ -1113,12 +1090,12 @@ export default function HomeScreen() {
             marginTop: 16,
           }}
           collapsable={false}
-          onPress={() => setIsNamazSheetOpen(true)}
+          onPress={openNamazSheet}
         >
           <DaysTrackerContainer
             isBottomSheetView={false}
             moonCard={dashboardData?.moonCard ?? null}
-            onPress={() => namazBottomSheetRef.current?.expand()}
+            onPress={openNamazSheet}
           />
         </Pressable>
 
@@ -1297,9 +1274,9 @@ export default function HomeScreen() {
                     <Text style={styles.showMoreText}>
                       {isTodayProgressExpanded
                         ? myDayDetails?.showLessLabel?.trim() ||
-                        t("homeScreen.showLess")
+                          t("homeScreen.showLess")
                         : myDayDetails?.showMoreLabel?.trim() ||
-                        t("homeScreen.showMore")}
+                          t("homeScreen.showMore")}
                     </Text>
                     <Entypo
                       name={
@@ -1407,7 +1384,7 @@ export default function HomeScreen() {
               {isDashboardExpanded
                 ? t("homeScreen.showLess")
                 : homeDashboard?.showMoreLabel?.trim() ||
-                t("homeScreen.showMore")}
+                  t("homeScreen.showMore")}
             </Text>
             <Entypo
               name={isDashboardExpanded ? "chevron-up" : "chevron-down"}
@@ -1427,9 +1404,9 @@ export default function HomeScreen() {
 
       <NamazGoalBottomSheet
         ref={namazBottomSheetRef}
-        onClose={() => { }}
+        onClose={() => setIsNamazSheetOpen(false)}
         onChange={(index) => handleBottomSheetChange("namaz", index)}
-        moonCard={dashboardData?.moonCard ?? null}
+        date={selectedMyDayDate}
         isOpen={isNamazSheetOpen}
       />
       <TimeSpentBottomSheet

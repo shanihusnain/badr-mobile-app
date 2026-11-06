@@ -5,7 +5,7 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Image, ImageBackground } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import * as ImagePicker from "expo-image-picker";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   ImageSourcePropType,
   StyleSheet,
@@ -24,7 +24,7 @@ const CIRCLE_SIZE = 200;
 type ChooseCircularImageStepProps = {
   initialItems: TeamBanner[];
   swipeHintText: string;
-  onNext: (uri: string) => void;
+  onNext: (uri: string, key?: string) => void;
   /** Optional hero image behind the transparent header (steps 03/04). */
   headerImage?: ImageSourcePropType;
 };
@@ -39,6 +39,11 @@ export function ChooseCircularImageStep({
   const { width: windowWidth } = useWindowDimensions();
   const [items, setItems] = useState<TeamBanner[]>(initialItems);
   const [activeIndex, setActiveIndex] = useState(0);
+
+  useEffect(() => {
+    setItems(initialItems);
+    setActiveIndex(0);
+  }, [initialItems]);
 
   const selectedItem = items[activeIndex] ?? items[0];
   const carouselHeight = CIRCLE_SIZE + 8;
@@ -211,7 +216,14 @@ export function ChooseCircularImageStep({
         </View>
 
         <View style={styles.bannerFooter}>
-          <PrimaryButton text="NEXT" onPress={() => onNext(selectedItem.uri)} />
+          <PrimaryButton
+            text="NEXT"
+            disabled={!selectedItem?.uri}
+            onPress={() => {
+              if (!selectedItem?.uri) return;
+              onNext(selectedItem.uri, selectedItem.id);
+            }}
+          />
         </View>
       </View>
     </View>
