@@ -14,6 +14,7 @@ import {
 } from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
 import { MemorisationJuzAyahCountStep } from "../components/MemorisationJuzAyahCountStep";
+import { getDefaultEndAyat } from "../components/QuranAyatRangeSlider";
 import { MemorisationJuzSelectionStep } from "../components/MemorisationJuzSelectionStep";
 import { styles } from "../components/DailyProgressLogging.styles";
 import { QuranIconForSlider } from "@/assets/icons/QuranIconForSlider";
@@ -166,7 +167,7 @@ export default function QuranMemorisationJuzLoggingFlow({
   const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
   const [startAyah, setStartAyah] = useState(minStartAyah);
   const [endAyah, setEndAyah] = useState(() =>
-    Math.max(minStartAyah, totalAyahs || minStartAyah),
+    getDefaultEndAyat(minStartAyah, totalAyahs || minStartAyah),
   );
   const [durationHours, setDurationHours] = useState("0");
   const [durationMinutes, setDurationMinutes] = useState("0");
@@ -192,7 +193,9 @@ export default function QuranMemorisationJuzLoggingFlow({
   useEffect(() => {
     const nextStartAyah = getNextJuzMemorisationAyah(juzId, memorizedAyahs);
     setStartAyah(nextStartAyah);
-    setEndAyah(Math.max(nextStartAyah, totalAyahs || nextStartAyah));
+    setEndAyah(
+      getDefaultEndAyat(nextStartAyah, totalAyahs || nextStartAyah),
+    );
   }, [juzId, memorizedAyahs, totalAyahs]);
 
   const resetFlow = useCallback(() => {
@@ -203,7 +206,10 @@ export default function QuranMemorisationJuzLoggingFlow({
       preselectedJuzId !== "all" ? preselectedJuzId : selectedJuzId,
       memorizedAyahs,
     );
-    const nextEndAyah = Math.max(nextStartAyah, totalAyahs || nextStartAyah);
+    const nextEndAyah = getDefaultEndAyat(
+      nextStartAyah,
+      totalAyahs || nextStartAyah,
+    );
     setStartAyah(nextStartAyah);
     setEndAyah(nextEndAyah);
     const now = getCurrentStartTimeParts();

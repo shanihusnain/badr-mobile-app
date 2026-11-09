@@ -135,7 +135,7 @@ export function QuranHoursWeeklyProgressDashboard({
       allowLogDeletion={allowLogDeletion}
       onDeleteLog={allowLogDeletion ? handleDeleteLog : undefined}
       isDeletingLog={isDeletingLog}
-      comparisonVariant="hours"
+      comparisonVariant="quranHours"
       statsRow={
         <View style={styles.statsRow}>
           {statsIconNode ?? <QuranBlueIcon size={22} />}

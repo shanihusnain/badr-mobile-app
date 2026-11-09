@@ -39,7 +39,7 @@ export const showToast = (type: "success" | "error", message: string) => {
     type,
     text1: message,
     position: "top",
-    visibilityTime: 3000,
+    visibilityTime: 5000,
     autoHide: true,
     topOffset: Platform.OS === "ios" ? 60 : 40,
     keyboardOffset: Platform.OS === "ios" ? 40 : 0,
@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
   },
   toastText: {
     color: Colors.light.red,
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: fonts.primary.medium,
     textAlign: "center",
     flexWrap: "wrap",

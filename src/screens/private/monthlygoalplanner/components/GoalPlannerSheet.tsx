@@ -351,6 +351,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
     goalName: string;
   }>({ visible: false, goalName: "" });
     const [finishSaveModalVisible, setFinishSaveModalVisible] = useState(false);
+  const [isFinishingAndSaving, setIsFinishingAndSaving] = useState(false);
   const [pendingDeleteGoal, setPendingDeleteGoal] =
     useState<PendingDeleteGoal | null>(null);
   const [isDeletingGoal, setIsDeletingGoal] = useState(false);
@@ -452,18 +453,25 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
     }, []);
 
     const closeFinishSaveModal = useCallback(() => {
+      if (isFinishingAndSaving) return;
       setFinishSaveModalVisible(false);
-    }, []);
+    }, [isFinishingAndSaving]);
 
     const confirmFinishAndSave = useCallback(() => {
+      if (isFinishingAndSaving) return;
+      setIsFinishingAndSaving(true);
       setFinishSaveModalVisible(false);
-    void (async () => {
-      await setGoalOnboardingFinished();
-      await clearPendingOnboardingRoute();
-      await queryClient.invalidateQueries({ queryKey: ["me"] });
-      router.replace("/(tabs)/(home)");
-    })();
-  }, [queryClient, router]);
+      void (async () => {
+        try {
+          await setGoalOnboardingFinished();
+          await clearPendingOnboardingRoute();
+          await queryClient.invalidateQueries({ queryKey: ["me"] });
+          router.replace("/(tabs)/(home)");
+        } catch {
+          setIsFinishingAndSaving(false);
+        }
+      })();
+    }, [isFinishingAndSaving, queryClient, router]);
 
   const handleSeeMorePress = useCallback((goal: string) => {
     router.push({
@@ -3071,13 +3079,13 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
   }, [activeTab, clearPendingAutoScrollTimers]);
 
     const handleFooterPrimaryPress = useCallback(() => {
-    if (!canPressFooterPrimary) return;
+    if (!canPressFooterPrimary || isFinishingAndSaving) return;
       if (activeTab === "review") {
         setFinishSaveModalVisible(true);
         return;
       }
       goToNextTab();
-  }, [activeTab, canPressFooterPrimary, goToNextTab]);
+  }, [activeTab, canPressFooterPrimary, goToNextTab, isFinishingAndSaving]);
     // Render the appropriate editor/selection component for a goal when it's being edited
     const renderGoalEditor = (goal: any) => {
       if (!goal) return null;
@@ -5194,6 +5202,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
             loadingQuranGoals={loadingQuranGoals}
             errorLoadingQuranGoals={!!errorLoadingQuranGoals}
             canPressFooterPrimary={canPressFooterPrimary}
+            isFooterLoading={isFinishingAndSaving}
             footerBottomPad={Math.max(insets.bottom, 20)}
             finishLabel={
               activeTab === "review"
@@ -5286,6 +5295,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
           secondaryButtonText={t("monthlyGoalPlanner.finishAndSaveCancel")}
           primaryButtonVariant="green"
         primaryButtonSize="modal"
+          primaryButtonLoading={isFinishingAndSaving}
           onPrimaryPress={confirmFinishAndSave}
           onSecondaryPress={closeFinishSaveModal}
           onBackdropPress={closeFinishSaveModal}

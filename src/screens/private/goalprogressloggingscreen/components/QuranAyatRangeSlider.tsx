@@ -51,9 +51,24 @@ const THUMB_HIT_RADIUS = THUMB_HIT_SIZE / 2;
 const MIN_THUMB_CENTER_GAP = THUMB_SIZE + 4;
 /**
  * Inset the track from the card edges so the slider line is shorter than
- * the full-bleed chip row (chips can still touch the green border).
+ * the chip row. Chips keep their own edge inset so they never kiss the border.
  */
 const TRACK_HORIZONTAL_INSET = 20;
+/** Keep ayah chips off the green card edges. */
+const CHIP_EDGE_INSET = 8;
+
+/**
+ * First log (start at ayah 1): default end to 2.
+ * Continue (start > 1): park end at the track max so the user slides back.
+ */
+export function getDefaultEndAyat(startAyat: number, maxAyat: number): number {
+  const max = Math.max(1, Math.round(maxAyat) || 1);
+  const start = Math.min(Math.max(1, Math.round(startAyat) || 1), max);
+  if (start <= 1) {
+    return Math.min(start + 1, max);
+  }
+  return max;
+}
 const TRACK_HEIGHT = 6;
 /** Figma: white vertical tick at ayah 1 / track start. */
 const START_BAR_WIDTH = 2;
@@ -106,12 +121,15 @@ function getLabelLeft(
   containerWidth: number,
   labelWidth: number,
 ): number {
-  if (labelWidth <= 0 || containerWidth <= 0) return 0;
+  if (labelWidth <= 0 || containerWidth <= 0) return CHIP_EDGE_INSET;
   const handleCenter = TRACK_HORIZONTAL_INSET + handleX;
-  // Prefer centering on the thumb; clamp so the chip stays on-track.
+  // Prefer centering on the thumb; clamp with edge padding off the card border.
   return Math.max(
-    0,
-    Math.min(handleCenter - labelWidth / 2, containerWidth - labelWidth),
+    CHIP_EDGE_INSET,
+    Math.min(
+      handleCenter - labelWidth / 2,
+      containerWidth - labelWidth - CHIP_EDGE_INSET,
+    ),
   );
 }
 
@@ -169,7 +187,10 @@ function separateLabelLefts(
   }
 
   const clamp = (left: number, width: number) =>
-    Math.max(0, Math.min(left, containerWidth - width));
+    Math.max(
+      CHIP_EDGE_INSET,
+      Math.min(left, containerWidth - width - CHIP_EDGE_INSET),
+    );
 
   // Keep the thumb center under the chip so the caret can still point at it.
   const caretClamp = (left: number, width: number, thumbCenter: number) => {
@@ -199,9 +220,9 @@ function separateLabelLefts(
 
   // One side hit its caret/edge limit — push the remainder to the other side.
   let remaining = nextStart + startWidth + labelGap - nextEnd;
-  const startFloor = caretClamp(0, startWidth, startThumbCenter);
+  const startFloor = caretClamp(CHIP_EDGE_INSET, startWidth, startThumbCenter);
   const endCeil = caretClamp(
-    containerWidth - endWidth,
+    containerWidth - endWidth - CHIP_EDGE_INSET,
     endWidth,
     endThumbCenter,
   );
@@ -222,12 +243,15 @@ function separateLabelLefts(
     return { startLabelLeft: nextStart, endLabelLeft: nextEnd };
   }
 
-  // Not enough caret-safe room — allow edge pin (caret may sit at chip edge).
+  // Not enough caret-safe room — pin within edge insets (caret may sit at chip edge).
   nextStart = clamp(nextStart - remaining, startWidth);
   nextEnd = clamp(nextStart + startWidth + labelGap, endWidth);
-  if (nextEnd + endWidth > containerWidth) {
-    nextEnd = containerWidth - endWidth;
-    nextStart = Math.max(0, nextEnd - labelGap - startWidth);
+  if (nextEnd + endWidth > containerWidth - CHIP_EDGE_INSET) {
+    nextEnd = containerWidth - endWidth - CHIP_EDGE_INSET;
+    nextStart = Math.max(
+      CHIP_EDGE_INSET,
+      nextEnd - labelGap - startWidth,
+    );
   }
   return { startLabelLeft: nextStart, endLabelLeft: nextEnd };
 }

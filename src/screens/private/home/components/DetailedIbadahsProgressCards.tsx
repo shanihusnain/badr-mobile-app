@@ -186,7 +186,7 @@ export const DetailedIbadahsProgressCard = ({
                 <Text style={styles.regularText}>{subtitleLabel}</Text>
               </>
             )}
-          </Text>
+          </Text>-
         </View>
       </View>
 

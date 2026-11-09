@@ -83,7 +83,7 @@ export const useLogFastingGoal = () => {
     mutationFn: logFastingGoal,
     onSuccess: (_data, variables) => {
       invalidateFastingCaches(queryClient, variables.fastingType);
-      showToast("success", "Fast logged successfully");
+      showToast("success", "Fasting logged successfully");
     },
     onError: (error: any) => {
       showToast("error", getApiErrorMessage(error, "Failed to log fast"));

@@ -443,46 +443,73 @@ const SUNNAH_UI_TO_API_SLOT: Record<SunnahPrayerId, string> = {
   after_isha: "AFTER_ISHA",
 };
 
-function readSunnahSlotUnits(
+type SunnahSlotFrameRead = {
+  /** User-logged prayer units when known (0 = none). */
+  userUnits: number | undefined;
+  /** System marked this window as missed/qadha. */
+  isAutoQadha: boolean;
+  isMenstruation: boolean;
+};
+
+function readSunnahSlotFrameState(
   slots: PrayerGoalFrameDay["slots"],
   prayerId: SunnahPrayerId,
-): number | undefined {
-  if (!slots) return undefined;
+): SunnahSlotFrameRead {
+  if (!slots) {
+    return { userUnits: undefined, isAutoQadha: false, isMenstruation: false };
+  }
   const apiKey = SUNNAH_UI_TO_API_SLOT[prayerId];
   const raw = (slots as Record<string, unknown>)[apiKey];
   if (typeof raw === "number" && Number.isFinite(raw)) {
-    return Math.max(0, raw);
+    return {
+      userUnits: Math.max(0, raw),
+      isAutoQadha: false,
+      isMenstruation: false,
+    };
   }
   if (raw && typeof raw === "object") {
     const slot = raw as {
       logged?: boolean;
       count?: number;
       completed?: number;
+      wasQadha?: boolean;
+      isAutoQadha?: boolean;
       isMenstruationSlot?: boolean;
     };
-    // Menstruation windows are not "logged" prayer units.
-    if (slot.isMenstruationSlot) return undefined;
+    if (slot.isMenstruationSlot) {
+      return {
+        userUnits: undefined,
+        isAutoQadha: false,
+        isMenstruation: true,
+      };
+    }
+    let userUnits: number | undefined;
     if (typeof slot.count === "number" && Number.isFinite(slot.count)) {
-      return Math.max(0, slot.count);
+      userUnits = Math.max(0, slot.count);
+    } else if (
+      typeof slot.completed === "number" &&
+      Number.isFinite(slot.completed)
+    ) {
+      userUnits = Math.max(0, slot.completed);
+    } else if (slot.logged === true) {
+      userUnits = 1;
+    } else if (slot.logged === false) {
+      userUnits = 0;
     }
-    if (typeof slot.completed === "number" && Number.isFinite(slot.completed)) {
-      return Math.max(0, slot.completed);
-    }
-    if (slot.logged === true) return 1;
-    if (slot.logged === false) return 0;
+    return {
+      userUnits,
+      isAutoQadha: Boolean(slot.wasQadha || slot.isAutoQadha),
+      isMenstruation: false,
+    };
   }
-  return undefined;
+  return { userUnits: undefined, isAutoQadha: false, isMenstruation: false };
 }
 
 function readSunnahIsMenstruationSlot(
   slots: PrayerGoalFrameDay["slots"],
   prayerId: SunnahPrayerId,
 ): boolean {
-  if (!slots) return false;
-  const apiKey = SUNNAH_UI_TO_API_SLOT[prayerId];
-  const raw = (slots as Record<string, unknown>)[apiKey];
-  if (!raw || typeof raw !== "object") return false;
-  return Boolean((raw as { isMenstruationSlot?: boolean }).isMenstruationSlot);
+  return readSunnahSlotFrameState(slots, prayerId).isMenstruation;
 }
 
 function readSunnahAutoQadhaUnits(
@@ -500,10 +527,13 @@ function readSunnahAutoQadhaUnits(
 
 /**
  * Map frame day `slots` + `autoQadhaSlots` → ring `logged` units (1 unit = one 2-rak'ah prayer).
- * - Future: empty → dim arcs (menstruation handled separately)
+ * - Future days: empty → dim arcs (menstruation handled separately)
  * - Menstruation day: no qadha fill (red arcs come from menstruationByPrayer)
- * - Today: logged slots green; autoQadha slots yellow; remaining → bright white
- * - Past: logged slots green; autoQadha / unlogged slots → yellow (qadha)
+ * - Today: logged → green; auto-qadha (window passed) → yellow; not-yet-due → bright white
+ * - Past: logged → green; auto-qadha / unlogged → yellow (qadha)
+ *
+ * Important: `logged: false` / `count: 0` alone is NOT qadha on today —
+ * future windows (e.g. Maghrib/Isha while it is still Asr) stay upcoming.
  */
 function mapSunnahLoggedFromDay(
   day: PrayerGoalFrameDay,
@@ -517,25 +547,30 @@ function mapSunnahLoggedFromDay(
   const logged: Partial<Record<SunnahPrayerId, number>> = {};
 
   for (const prayer of goal) {
-    if (readSunnahIsMenstruationSlot(day.slots, prayer.id)) {
+    const slotState = readSunnahSlotFrameState(day.slots, prayer.id);
+    if (slotState.isMenstruation) {
       continue;
     }
 
-    const slotUnits = readSunnahSlotUnits(day.slots, prayer.id);
     const autoQadhaUnits = readSunnahAutoQadhaUnits(
       day.autoQadhaSlots,
       prayer.id,
     );
+    const isAutoQadha =
+      slotState.isAutoQadha ||
+      (autoQadhaUnits !== undefined && autoQadhaUnits > 0);
+    const userUnits = slotState.userUnits;
 
-    if (slotUnits !== undefined) {
-      logged[prayer.id] = Math.min(prayer.weight, slotUnits);
-    } else if (autoQadhaUnits !== undefined && autoQadhaUnits > 0) {
-      // Backend auto-marked this window as qadha (missed).
+    if (userUnits !== undefined && userUnits > 0) {
+      logged[prayer.id] = Math.min(prayer.weight, userUnits);
+    } else if (isAutoQadha) {
+      // Window already passed / system miss — yellow qadha.
       logged[prayer.id] = 0;
     } else if (!day.isToday) {
       // Past day — unlogged slots use qadha color (including no-activity days).
       logged[prayer.id] = 0;
     }
+    // Today + not logged + not auto-qadha → leave undefined (upcoming bright arc).
   }
 
   return logged;

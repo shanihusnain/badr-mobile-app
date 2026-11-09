@@ -16,7 +16,10 @@ import { FlowCard } from "../components/FlowCard";
 import { CompletionTypeStep } from "../components/CompletionTypeStep";
 import { JuzRangeStep } from "../components/JuzRangeStep";
 import { JuzStepper } from "../components/JuzStepper";
-import { QuranAyatRangeSlider } from "../components/QuranAyatRangeSlider";
+import {
+  getDefaultEndAyat,
+  QuranAyatRangeSlider,
+} from "../components/QuranAyatRangeSlider";
 import { styles } from "../components/DailyProgressLogging.styles";
 import {
   CalendarFlippingIcon,
@@ -240,7 +243,9 @@ export default function QuranCompletionLoggingFlow({
   const [fullEndJuz, setFullEndJuz] = useState(resumeCursor.minFullStartJuz);
   const [partialJuz, setPartialJuz] = useState(resumeCursor.minPartialJuz);
   const [startAyat, setStartAyat] = useState(resumeCursor.minStartAyat);
-  const [endAyat, setEndAyat] = useState(resumeCursor.minStartAyat);
+  const [endAyat, setEndAyat] = useState(() =>
+    getDefaultEndAyat(resumeCursor.minStartAyat, resumeCursor.minStartAyat + 1),
+  );
   const [fullDuration, setFullDuration] = useState<CompletionDurationValue>(
     createDefaultDuration(),
   );
@@ -333,11 +338,7 @@ export default function QuranCompletionLoggingFlow({
         : Math.max(minAyatStart, 1);
     const nextStart = Math.min(Math.max(minAyatStart, 1), maxAyat);
     setStartAyat(nextStart);
-    setEndAyat(
-      minAyatStart > 1
-        ? maxAyat
-        : Math.min(Math.max(nextStart, 1), maxAyat),
-    );
+    setEndAyat(getDefaultEndAyat(nextStart, maxAyat));
   }, [partialJuz, minAyatStart, partialJuzVerseCount]);
 
   useEffect(() => {
@@ -386,10 +387,15 @@ export default function QuranCompletionLoggingFlow({
     setFullEndJuz(nextFull);
     setPartialJuz(nextPartial);
     setStartAyat(resumeCursor.minStartAyat);
-    setEndAyat(resumeCursor.minStartAyat);
+    setEndAyat(
+      getDefaultEndAyat(
+        resumeCursor.minStartAyat,
+        partialJuzVerseCount || resumeCursor.minStartAyat,
+      ),
+    );
     setFullDuration(createDefaultDuration());
     setPartialDuration(createDefaultDuration());
-  }, [resumeCursor, setFlowMode]);
+  }, [partialJuzVerseCount, resumeCursor, setFlowMode]);
 
   const currentStep = steps[stepIndex];
   const isLastStep = stepIndex === steps.length - 1;
