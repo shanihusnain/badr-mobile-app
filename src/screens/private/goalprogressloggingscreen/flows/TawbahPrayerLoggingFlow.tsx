@@ -1,11 +1,5 @@
 import React, { useCallback, useMemo, useState } from "react";
-import {
-  Pressable,
-  Text,
-  TouchableOpacity,
-  View,
-  StyleSheet,
-} from "react-native";
+import { Text, TouchableOpacity, View, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import moment from "moment-hijri";
@@ -40,6 +34,7 @@ import {
   WhiteTimerIcon,
 } from "@/assets/icons";
 import { TawbahPrayerDetailedIbadhasIcon } from "@/assets/icons/TawbahPrayerDetailedIbadhasIcon";
+import { LoggingBackdrop } from "../components/LoggingBackdrop";
 
 type TawbahPrayerStepId =
   | "date"
@@ -340,7 +335,7 @@ export default function TawbahPrayerLoggingFlow({
   return (
     <>
       {flowMode === "active" && (
-        <Pressable style={commonStyles.backdrop} />
+        <LoggingBackdrop />
       )}
       {flowMode === "active" && (
         <TouchableOpacity
@@ -364,7 +359,7 @@ export default function TawbahPrayerLoggingFlow({
                 <View style={localStyles.summaryIconCircle}>
                   <TawbahPrayerDetailedIbadhasIcon
                     color={Colors.light.white}
-                    size={25}
+                    size={20}
                   />
                 </View>
                 <View style={localStyles.summaryTextBlock}>

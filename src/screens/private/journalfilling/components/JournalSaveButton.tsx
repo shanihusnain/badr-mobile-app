@@ -29,7 +29,10 @@ function JournalSaveButtonComponent({
         text={label}
         onPress={onPress}
         disabled={disabled || loading}
-        style={disabled || loading ? styles.buttonDisabled : undefined}
+        style={[
+          styles.button,
+          (disabled || loading) && styles.buttonDisabled,
+        ]}
       />
     </View>
   );
@@ -38,11 +41,14 @@ function JournalSaveButtonComponent({
 const styles = StyleSheet.create({
   container: {
     paddingTop: 12,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: Colors.light.divider,
     backgroundColor: Colors.light.blackBackground,
     marginHorizontal: -16,
     paddingHorizontal: 16,
+    alignItems: "center",
+  },
+  button: {
+    width: "82%",
+    alignSelf: "center",
   },
   buttonDisabled: {
     opacity: 0.45,

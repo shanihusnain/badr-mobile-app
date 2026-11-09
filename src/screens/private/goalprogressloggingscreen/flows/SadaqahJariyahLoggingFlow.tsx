@@ -1,11 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  Pressable,
-} from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import moment from "moment-hijri";
@@ -49,6 +43,7 @@ import {
   sadaqahFrameShowsInsights,
   sadaqahUiCategoryToCauseCategory,
 } from "@/src/utils/sadaqahGoalFrameMap";
+import { LoggingBackdrop } from "../components/LoggingBackdrop";
 
 type JariyahStepId =
   | "date"
@@ -402,7 +397,7 @@ export default function SadaqahJariyahLoggingFlow({
 
   return (
     <>
-      {flowMode === "active" && <Pressable style={commonStyles.backdrop} />}
+      {flowMode === "active" && <LoggingBackdrop />}
       {flowMode === "active" && (
         <TouchableOpacity
           style={commonStyles.cancelButton}

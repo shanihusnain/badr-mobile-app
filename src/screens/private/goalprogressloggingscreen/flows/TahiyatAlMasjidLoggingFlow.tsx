@@ -1,11 +1,5 @@
 import React, { useCallback, useMemo, useState } from "react";
-import {
-  Pressable,
-  Text,
-  TouchableOpacity,
-  View,
-  StyleSheet,
-} from "react-native";
+import { Text, TouchableOpacity, View, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import moment from "moment-hijri";
@@ -40,6 +34,7 @@ import {
   WhitePrayerMatIcon,
   WhiteTimerIcon,
 } from "@/assets/icons";
+import { LoggingBackdrop } from "../components/LoggingBackdrop";
 
 type TahiyatAlMasjidStepId =
   | "date"
@@ -349,7 +344,7 @@ export default function TahiyatAlMasjidLoggingFlow({
   return (
     <>
       {flowMode === "active" && (
-        <Pressable style={commonStyles.backdrop} />
+        <LoggingBackdrop />
       )}
       {flowMode === "active" && (
         <TouchableOpacity
@@ -371,7 +366,7 @@ export default function TahiyatAlMasjidLoggingFlow({
             <View style={localStyles.summaryCard}>
               <View style={localStyles.summaryBody}>
                 <View style={localStyles.summaryIconCircle}>
-                  <FlowCardMosqueIcon size={21} />
+                  <FlowCardMosqueIcon size={20} />
                 </View>
                 <View style={{ flex: 1, gap: 9 }}>
                   <View

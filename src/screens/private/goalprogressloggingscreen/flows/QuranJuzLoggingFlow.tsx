@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Pressable, Text, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import moment from "moment-hijri";
@@ -80,6 +80,7 @@ import {
 } from "../quranRecitationJuzTarget";
 import { snapJuzOffExcluded } from "../quranRecitationCompletionTarget";
 import type { QuranJuzLogEntry } from "../types";
+import { LoggingBackdrop } from "../components/LoggingBackdrop";
 
 function splitDurationMinutes(total: number, parts: number): number[] {
   if (parts <= 0) return [];
@@ -871,7 +872,7 @@ export default function QuranJuzLoggingFlow({
 
   const flowLayer = (
     <>
-      {showOverlay && <Pressable style={styles.backdrop} />}
+      {showOverlay && <LoggingBackdrop />}
       {showOverlay && (
         <TouchableOpacity
           style={styles.cancelButton}

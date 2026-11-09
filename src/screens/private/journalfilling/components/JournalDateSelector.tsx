@@ -167,7 +167,6 @@ const styles = StyleSheet.create({
     color: Colors.light.grey,
     fontFamily: fonts.primary.semiBold,
     fontSize: 11,
-    textTransform: "uppercase",
   },
   weekdaySelected: {
     color: Colors.light.white,

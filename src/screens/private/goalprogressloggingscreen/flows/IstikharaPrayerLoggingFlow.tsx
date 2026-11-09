@@ -1,11 +1,5 @@
 import React, { useCallback, useMemo, useState } from "react";
-import {
-  Pressable,
-  Text,
-  TouchableOpacity,
-  View,
-  StyleSheet,
-} from "react-native";
+import { Text, TouchableOpacity, View, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import moment from "moment-hijri";
@@ -38,6 +32,7 @@ import {
   WhiteTimerIcon,
 } from "@/assets/icons";
 import { IstikharaPrayerDetailedIcon } from "@/assets/icons/IstikharaPrayerDetailedIcon";
+import { LoggingBackdrop } from "../components/LoggingBackdrop";
 
 type IstikharaPrayerStepId = "date" | "start-time" | "time-spent";
 const STEPS: IstikharaPrayerStepId[] = ["date", "start-time", "time-spent"];
@@ -313,7 +308,7 @@ export default function IstikharaPrayerLoggingFlow({
   return (
     <>
       {flowMode === "active" && (
-        <Pressable style={commonStyles.backdrop} />
+        <LoggingBackdrop />
       )}
       {flowMode === "active" && (
         <TouchableOpacity
@@ -338,7 +333,7 @@ export default function IstikharaPrayerLoggingFlow({
                   <View style={localStyles.summaryIconGraphic}>
                     <IstikharaPrayerDetailedIcon
                       color={Colors.light.white}
-                      size={26}
+                      size={20}
                     />
                   </View>
                 </View>

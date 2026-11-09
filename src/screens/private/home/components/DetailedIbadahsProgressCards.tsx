@@ -170,7 +170,7 @@ export const DetailedIbadahsProgressCard = ({
         <View
           style={[
             styles.iconWrapper,
-            { backgroundColor: iconBgColor || Colors.light.calendarBg },
+            { backgroundColor: iconBgColor || Colors.light.ibadahIconCircleBg },
           ]}
         >
           {loading ? <Text style={styles.iconPlaceholder}>---</Text> : icon}
@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: Colors.light.greybuttonBackground,
+    backgroundColor: Colors.light.ibadahProgressCardBg,
     borderRadius: 12,
     borderWidth: 1,
     paddingHorizontal: 16,

@@ -449,7 +449,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
 
   const closeUnfinishedGoalModal = useCallback(() => {
     setUnfinishedGoalModal({ visible: false, goalName: "" });
-  }, []);
+    }, []);
 
     const closeFinishSaveModal = useCallback(() => {
       setFinishSaveModalVisible(false);
@@ -1409,7 +1409,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
         "As Muslims, offering our time and skills without expecting any compensation is a noble act and a profound expression of faith, bringing us closer to Allah",
       isSelected: false,
       image: volunteeringservicesbottomsheetimage,
-    },
+      },
     ];
     const { mutate: togglePrayerGoalByType } = useTogglePrayerGoalByType();
     const { mutateAsync: toggleQuranGoalByType } = useToggleQuranGoalByType();
@@ -1991,7 +1991,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
       return code;
     },
     [getValues, t],
-  );
+    );
 
     const saveMissedZakatGoal = useCallback(
     (
@@ -2350,7 +2350,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
       });
     },
     [upsertPrayerGoal, completeGoalSaveSuccess],
-  );
+    );
 
     const saveSimplePrayerTarget = useCallback(
     (
@@ -3002,7 +3002,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
   const hasGoalInEveryCategory = useMemo(
     () => GOAL_SEQUENCE.every((tab) => categoryHasSavedGoalByTab(tab)),
     [categoryHasSavedGoalByTab],
-  );
+    );
 
     const canPressFooterPrimary = useMemo(() => {
       if (activeTab === "review") return true;
@@ -5312,7 +5312,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
         }}
         onSecondaryPress={closeDeleteGoalModal}
         onBackdropPress={closeDeleteGoalModal}
-      />
+        />
       </>
     );
 };

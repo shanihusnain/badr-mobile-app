@@ -10,7 +10,7 @@ export const usePlanProps = () => {
   const tabs = [
     {
       id: 1,
-      title: "Goal",
+      title: "Goals",
     },
     {
       id: 2,

@@ -1,7 +1,8 @@
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { Colors } from "@/constants/theme";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { ScrollView, Text, View } from "react-native";
+import { useState } from "react";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import type {
   PlanJournalConsistencySnapshot,
   PlanJournalPeriod,
@@ -51,21 +52,38 @@ export function JournalTabContent({
   isLoadingHabits = false,
   insightsEndDate,
 }: JournalTabContentProps) {
+  const [isBannerVisible, setIsBannerVisible] = useState(true);
+
   return (
     <ScrollView
       showsVerticalScrollIndicator={false}
       nestedScrollEnabled
       contentContainerStyle={styles.journalTabContent}
     >
-      <View style={styles.journalBanner}>
-        <View style={styles.journalBannerDismiss}>
-          <Ionicons name="close" size={22} color={Colors.light.white} />
-        </View>
-        <Text style={styles.journalBannerText}>
-          {bannerText || JOURNAL_BANNER_TEXT}
-        </Text>
-      </View>
-      <TopSpace top={34} />
+      {isBannerVisible ? (
+        <>
+          <View style={styles.journalBanner}>
+            <Pressable
+              style={styles.journalBannerDismiss}
+              onPress={() => setIsBannerVisible(false)}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="Dismiss journal insights banner"
+            >
+              <Ionicons name="close" size={22} color={Colors.light.white} />
+            </Pressable>
+            <Text
+              style={styles.journalBannerText}
+              adjustsFontSizeToFit
+              numberOfLines={5}
+              minimumFontScale={0.85}
+            >
+              {bannerText || JOURNAL_BANNER_TEXT}
+            </Text>
+          </View>
+          <TopSpace top={34} />
+        </>
+      ) : null}
       <JournalConsistencySection
         activeSnapshot={activeSnapshot}
         periods={periods}

@@ -26,6 +26,10 @@ import { router, useNavigation } from "expo-router";
 import { HeaderWithCrossTitleDynamicIcon } from "@/components/atoms/HeaderWithCrossTitleDynamicIcon";
 import { useTranslation } from "react-i18next";
 import { LoggingFlowSlot } from "./components/LoggingFlowSlot";
+import {
+  LoggingOverlayProvider,
+  useLoggingOverlay,
+} from "./loggingOverlayContext";
 import { getLoggingFlowTemplate } from "./loggingFlowRegistry";
 import type { LoggingFlowTemplate } from "./types";
 import { WeeklyProgressSection } from "./components/WeeklyProgressSection";
@@ -691,6 +695,19 @@ function GoalProgressLoggingSadaqahLoadingGate({
   return <>{children}</>;
 }
 
+function LoggingAwareHeader(
+  props: React.ComponentProps<typeof HeaderWithCrossTitleDynamicIcon>,
+) {
+  const isLoggingOverlayActive =
+    useLoggingOverlay()?.isLoggingOverlayActive ?? false;
+  return (
+    <HeaderWithCrossTitleDynamicIcon
+      {...props}
+      forloggingFlow={isLoggingOverlayActive}
+    />
+  );
+}
+
 function GoalProgressLoggingContent({
   goalData,
   goalId,
@@ -1091,7 +1108,7 @@ export const GoalProgressLoggingScreen = ({
               ]}
               pointerEvents="box-none"
             >
-              <HeaderWithCrossTitleDynamicIcon
+              <LoggingAwareHeader
                 title={
                   memorisationHeaderTitle
                     ? memorisationHeaderTitle
@@ -1200,18 +1217,20 @@ export const GoalProgressLoggingScreen = ({
 
   if (isPrayerGoal) {
     return (
-      <PrayerGoalFrameProvider
-        goalId={goalId}
-        refreshKey={weeklyRefreshKey}
-        onOpenInsights={openInsightsSheet}
-        onOpenDeletePrayerLogOptions={
-          supportsDeletePrayerOptions ? openDeletePrayerLogOptions : undefined
-        }
-      >
-        <GoalProgressLoggingPrayerLoadingGate>
-          {screenShell}
-        </GoalProgressLoggingPrayerLoadingGate>
-      </PrayerGoalFrameProvider>
+      <LoggingOverlayProvider>
+        <PrayerGoalFrameProvider
+          goalId={goalId}
+          refreshKey={weeklyRefreshKey}
+          onOpenInsights={openInsightsSheet}
+          onOpenDeletePrayerLogOptions={
+            supportsDeletePrayerOptions ? openDeletePrayerLogOptions : undefined
+          }
+        >
+          <GoalProgressLoggingPrayerLoadingGate>
+            {screenShell}
+          </GoalProgressLoggingPrayerLoadingGate>
+        </PrayerGoalFrameProvider>
+      </LoggingOverlayProvider>
     );
   }
 
@@ -1225,15 +1244,17 @@ export const GoalProgressLoggingScreen = ({
     isCompletionGoalId(goalId)
   ) {
     return (
-      <QuranGoalFrameProvider
-        goalId={goalId}
-        refreshKey={weeklyRefreshKey}
-        onOpenInsights={openInsightsSheet}
-      >
-        <GoalProgressLoggingQuranHoursLoadingGate>
-          {screenShell}
-        </GoalProgressLoggingQuranHoursLoadingGate>
-      </QuranGoalFrameProvider>
+      <LoggingOverlayProvider>
+        <QuranGoalFrameProvider
+          goalId={goalId}
+          refreshKey={weeklyRefreshKey}
+          onOpenInsights={openInsightsSheet}
+        >
+          <GoalProgressLoggingQuranHoursLoadingGate>
+            {screenShell}
+          </GoalProgressLoggingQuranHoursLoadingGate>
+        </QuranGoalFrameProvider>
+      </LoggingOverlayProvider>
     );
   }
 
@@ -1244,31 +1265,35 @@ export const GoalProgressLoggingScreen = ({
     isProphetDawoodFastsGoalId(goalId)
   ) {
     return (
-      <FastingGoalFrameProvider
-        goalId={goalId}
-        refreshKey={weeklyRefreshKey}
-        onOpenInsights={openInsightsSheet}
-      >
-        <GoalProgressLoggingFastingLoadingGate>
-          {screenShell}
-        </GoalProgressLoggingFastingLoadingGate>
-      </FastingGoalFrameProvider>
+      <LoggingOverlayProvider>
+        <FastingGoalFrameProvider
+          goalId={goalId}
+          refreshKey={weeklyRefreshKey}
+          onOpenInsights={openInsightsSheet}
+        >
+          <GoalProgressLoggingFastingLoadingGate>
+            {screenShell}
+          </GoalProgressLoggingFastingLoadingGate>
+        </FastingGoalFrameProvider>
+      </LoggingOverlayProvider>
     );
   }
 
   if (isSadaqahFrameGoalId(goalId)) {
     return (
-      <SadaqahGoalFrameProvider
-        goalId={goalId}
-        refreshKey={weeklyRefreshKey}
-        onOpenInsights={openInsightsSheet}
-      >
-        <GoalProgressLoggingSadaqahLoadingGate goalId={goalId}>
-          {screenShell}
-        </GoalProgressLoggingSadaqahLoadingGate>
-      </SadaqahGoalFrameProvider>
+      <LoggingOverlayProvider>
+        <SadaqahGoalFrameProvider
+          goalId={goalId}
+          refreshKey={weeklyRefreshKey}
+          onOpenInsights={openInsightsSheet}
+        >
+          <GoalProgressLoggingSadaqahLoadingGate goalId={goalId}>
+            {screenShell}
+          </GoalProgressLoggingSadaqahLoadingGate>
+        </SadaqahGoalFrameProvider>
+      </LoggingOverlayProvider>
     );
   }
 
-  return screenShell;
+  return <LoggingOverlayProvider>{screenShell}</LoggingOverlayProvider>;
 };

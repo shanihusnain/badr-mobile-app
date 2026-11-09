@@ -14,7 +14,7 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { IbadhasPrayerProgressCardsIcon } from "@/assets/icons/IbadhasPrayerProgressCardsIcon";
 import { IbadhasQuranProgressCardsIcon } from "@/assets/icons/IbadhasQuranProgressCardsIcon";
 import { IbadhasFastingProgressCardsIcon } from "@/assets/icons/IbadhasFastingProgressCardsIcon";
-import { DashBoardHandHeartIcon } from "@/assets/icons/DashBoardHandHeartIcon";
+import { FlowCardHandHeartIcon } from "@/assets/icons/FlowCardHandHeartIcon";
 import { useRouter } from "expo-router";
 import { IbadahsProgressCard } from "./IbadahsProgressCard";
 import {
@@ -34,7 +34,6 @@ import {
   type UiIbadahCategory,
 } from "@/src/utils/goalCycleCategoryMap";
 import { LoadingComponent } from "@/components/atoms/LoadingComponent";
-import { MissedZakatIcon } from "@/assets/icons";
 import {
   getFigmaForcedSmallCapsTextStyle,
   prepareFigmaForcedSmallCapsText,
@@ -88,7 +87,9 @@ function getCategoryCardIcon(category: UiIbadahCategory) {
         <IbadhasFastingProgressCardsIcon color={Colors.light.white} size={20} />
       );
     case "SADAQAH":
-      return <MissedZakatIcon />;
+      return (
+        <FlowCardHandHeartIcon color={Colors.light.white} size={20} />
+      );
     case "PRAYER":
     default:
       return (
@@ -147,7 +148,7 @@ export const DailyProgressBottomSheet = ({
         title: titleMap[uiCategory],
         subtitle: "---",
         icon: getCategoryCardIcon(uiCategory),
-        iconBgColor: Colors.light.calendarBg,
+        iconBgColor: Colors.light.ibadahIconCircleBg,
         percentage: "0%",
         progressColor: CATEGORY_ICON_COLOR[uiCategory],
         loading: true,
@@ -167,7 +168,7 @@ export const DailyProgressBottomSheet = ({
           title: titleMap[uiCategory],
           subtitle: `${total} ${total === 1 ? "goal" : "goals"}`,
           icon: getCategoryCardIcon(uiCategory),
-          iconBgColor: Colors.light.calendarBg,
+          iconBgColor: Colors.light.ibadahIconCircleBg,
           percentage: `${Math.round(item.completedPct ?? 0)}%`,
           progressColor: CATEGORY_ICON_COLOR[uiCategory],
           loading: false,
@@ -412,7 +413,7 @@ export const DailyProgressBottomSheet = ({
                           CATEGORY_ICON_COLOR[selectedUiCategory],
                         )
                 }
-                iconBgColor={Colors.light.calendarBg}
+                iconBgColor={Colors.light.ibadahIconCircleBg}
                 percentage={goal.percentage}
                 progressColor={CATEGORY_ICON_COLOR[selectedUiCategory]}
                 isSelected={selectedDetailCard === goal.goalId}

@@ -1,11 +1,5 @@
 import React, { useCallback, useMemo, useState } from "react";
-import {
-  Pressable,
-  Text,
-  TouchableOpacity,
-  View,
-  StyleSheet,
-} from "react-native";
+import { Text, TouchableOpacity, View, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import moment from "moment-hijri";
@@ -40,6 +34,7 @@ import {
   WhitePrayerMatIcon,
   WhiteTimerIcon,
 } from "@/assets/icons";
+import { LoggingBackdrop } from "../components/LoggingBackdrop";
 
 type DuhaPrayerStepId =
   | "date"
@@ -340,8 +335,8 @@ export default function DuhaPrayerLoggingFlow({
   return (
     <>
         {flowMode === "active" && (
-          <Pressable style={commonStyles.backdrop} />
-        )}
+        <LoggingBackdrop />
+      )}
         {flowMode === "active" && (
         <TouchableOpacity
           style={commonStyles.cancelButton}
@@ -364,7 +359,7 @@ export default function DuhaPrayerLoggingFlow({
               <View style={localStyles.summaryIconCircle}>
                 <FlowCardDuhaPrayerIcon
                   color={Colors.light.white}
-                  size={25}
+                  size={20}
                 />
               </View>
               <View style={localStyles.summaryTextBlock}>

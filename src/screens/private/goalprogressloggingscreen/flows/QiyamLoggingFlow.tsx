@@ -1,11 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  Pressable,
-  Text,
-  TouchableOpacity,
-  View,
-  StyleSheet,
-} from "react-native";
+import { Text, TouchableOpacity, View, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
@@ -27,7 +21,6 @@ import { useGetMe } from "@/src/api/queries/useGetMe";
 import { getQiyamInitial } from "@/src/utils/prayerGoalMap";
 import { useOptionalPrayerGoalFrameContext } from "../prayerGoalFrameContext";
 import {
-  formatPrayerGoalFlowCardLabel,
   getPrayerFrameAchievementLabel,
   prayerFrameShowsInsights,
 } from "@/src/utils/prayerGoalFrameMap";
@@ -60,6 +53,7 @@ import { QiyamFemaleUserIcon } from "@/assets/icons/QiyamFemaleUser";
 import { QiyamMaleUserIcon } from "@/assets/icons/QiyamMaleUser";
 import { QiyamWhenDidYouPrayIcon } from "@/assets/icons/QiyamWhenDidYouPrayIcon";
 import type { ProgressLogEntry } from "../types";
+import { LoggingBackdrop } from "../components/LoggingBackdrop";
 
 type QiyamLoggedTime = "after-isha" | "before-fajr";
 
@@ -487,8 +481,20 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
     ? toCalendarDate(frame.cycle.cycleEnd)
     : undefined;
 
-  const goalLabel = formatPrayerGoalFlowCardLabel(frame?.goal.label ?? "---");
-  const summaryTitle = goalLabel !== "---" ? goalLabel : mockTitleFallback();
+  // Qiyam only: ensure "2-Rak'ah" appears before Prayers (API may omit it).
+  function withTwoRakahLabel(label: string): string {
+    const trimmed = label.trim();
+    if (!trimmed) return trimmed;
+    if (/\b2[\s-]*[Rr]ak['’]?ahs?\b/i.test(trimmed)) return trimmed;
+    return trimmed
+      .replace(/\bPrayers\b/i, "2-Rak'ah Prayers")
+      .replace(/\bPrayer\b/i, "2-Rak'ah Prayer");
+  }
+
+  const rawGoalLabel = (frame?.goal.label ?? "").trim();
+  const summaryTitle = rawGoalLabel
+    ? withTwoRakahLabel(rawGoalLabel)
+    : mockTitleFallback();
 
   function mockTitleFallback() {
     const unitTarget = qiyamGoalConfig.unitTarget;
@@ -902,7 +908,7 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
   return (
     <>
       {flowMode === "active" && (
-        <Pressable style={commonStyles.backdrop} />
+        <LoggingBackdrop />
       )}
       {flowMode === "active" && (
         <TouchableOpacity
@@ -929,7 +935,7 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
             <View style={localStyles.summaryCard}>
               <View style={localStyles.summaryBody}>
                 <View style={localStyles.summaryIconCircle}>
-                  <QiyamMainFlowCardIcon size={28} color={Colors.light.white} />
+                  <QiyamMainFlowCardIcon size={20} color={Colors.light.white} />
                 </View>
                 <View style={localStyles.summaryTextBlock}>
                   <View

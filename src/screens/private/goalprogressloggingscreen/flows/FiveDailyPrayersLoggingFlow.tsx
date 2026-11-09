@@ -1,11 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  Pressable,
-  Text,
-  TouchableOpacity,
-  View,
-  StyleSheet,
-} from "react-native";
+import { Text, TouchableOpacity, View, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
@@ -65,6 +59,7 @@ import { FiveDailyPrayerIDetailedIbadhasIcon } from "@/assets/icons/FiveDailyPra
 import { useLogFiveDailyPrayersGoal } from "@/src/api/mutations/useLogFiveDailyPrayersGoal";
 import type { FiveDailyPrayerSlot } from "@/src/api/mutations/useLogFiveDailyPrayersGoal";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { LoggingBackdrop } from "../components/LoggingBackdrop";
 
 const STEPS_WITH_CONGREGATION: LogStepId[] = [
   "date",
@@ -782,7 +777,7 @@ export default function FiveDailyPrayersLoggingFlow({
   return (
     <>
       {flowMode === "active" && (
-        <Pressable style={commonStyles.backdrop} />
+        <LoggingBackdrop />
       )}
       {flowMode === "active" && (
         <TouchableOpacity
@@ -806,7 +801,7 @@ export default function FiveDailyPrayersLoggingFlow({
                   <View style={localStyles.summaryIconGraphic}>
                     <FiveDailyPrayerIDetailedIbadhasIcon
                       color={Colors.light.white}
-                      size={26}
+                      size={20}
                     />
                   </View>
                 </View>

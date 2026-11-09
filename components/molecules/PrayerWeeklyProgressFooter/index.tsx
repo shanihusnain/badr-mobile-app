@@ -79,10 +79,25 @@ export function PrayerWeeklyProgressFooter({
   const isWeekOneLayout = loading || vsLastWeek == null;
   const vsLastWeekMagnitude = Math.abs(vsLastWeek ?? 0);
   const vsLastWeekImproved = (vsLastWeek ?? 0) > 0;
-  const comparisonCountLabel =
-    vsLastWeekDisplay?.trim() || String(vsLastWeekMagnitude);
+  // Equal weeks: five-daily → same on-time copy; other prayer goals → same prayers copy.
+  const isSameOnTimeAsLastWeek =
+    comparisonVariant === "onTime" &&
+    !vsLastWeekDisplay?.trim() &&
+    vsLastWeekMagnitude === 0;
+  const isSamePrayersAsLastWeek =
+    comparisonVariant === "prayers" &&
+    !vsLastWeekDisplay?.trim() &&
+    vsLastWeekMagnitude === 0;
+  const comparisonCountLabel = isSameOnTimeAsLastWeek
+    ? t("homeScreen.weeklyProgress_sameAsLastWeek")
+    : isSamePrayersAsLastWeek
+      ? t("homeScreen.weeklyProgress_samePrayersAsLastWeek")
+      : vsLastWeekDisplay?.trim() || String(vsLastWeekMagnitude);
   // Standalone API copy like "Same meals as last week" — do not append "vs. last week".
-  const omitComparisonSuffix = /^same\b/i.test(comparisonCountLabel);
+  const omitComparisonSuffix =
+    isSameOnTimeAsLastWeek ||
+    isSamePrayersAsLastWeek ||
+    /^same\b/i.test(comparisonCountLabel);
 
   const resolvedQuote = loading
     ? "---"
@@ -176,8 +191,14 @@ export function PrayerWeeklyProgressFooter({
             <View style={styles.comparisonNeutralDot} />
           )}
           <Text style={styles.comparisonText}>
-            <Text style={styles.comparisonCount}>{comparisonCountLabel}</Text>
-            {omitComparisonSuffix ? null : ` ${t(comparisonSuffixKey)}`}
+            {omitComparisonSuffix ? (
+              comparisonCountLabel
+            ) : (
+              <>
+                <Text style={styles.comparisonCount}>{comparisonCountLabel}</Text>
+                {` ${t(comparisonSuffixKey)}`}
+              </>
+            )}
           </Text>
         </View>
       </View>

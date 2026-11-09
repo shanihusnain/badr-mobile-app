@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Pressable, Text, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
@@ -51,6 +51,7 @@ import {
 } from "@/src/utils/quranGoalFrameMap";
 import { isValidStartTime, isValidTimeSpent } from "../quranRecitationTarget";
 import type { QuranMemorisationLogEntry } from "../types";
+import { LoggingBackdrop } from "../components/LoggingBackdrop";
 
 type FlowMode = "collapsed" | "active";
 
@@ -553,7 +554,7 @@ export default function QuranMemorisationLoggingFlow({
       style={[styles.section, flowMode === "active" && styles.activeSection]}
     >
       <View style={styles.cardAnchor}>
-        {showOverlay && <Pressable style={styles.backdrop} />}
+        {showOverlay && <LoggingBackdrop />}
         {showOverlay && (
           <TouchableOpacity
             style={styles.cancelButton}

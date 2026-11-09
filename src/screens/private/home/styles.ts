@@ -72,9 +72,9 @@ export const styles = StyleSheet.create({
 
   // Streak Counter Box
   streakBox: {
-    width: 65,
-    height: 40,
-    borderRadius: 12,
+    width: 67,
+    height: 36,
+    borderRadius: 6,
     backgroundColor: Colors.light.greybuttonBackground,
     justifyContent: "center",
     alignItems: "center",
@@ -275,10 +275,10 @@ export const styles = StyleSheet.create({
 
   // Category Circle
   categoryCircle: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    backgroundColor: Colors.light.blackBackground,
+    width: 73,
+    height: 73,
+    borderRadius: 36.5,
+    backgroundColor: Colors.light.greybuttonBackground,
     borderWidth: 2,
     borderColor: Colors.light.calendarBg,
     justifyContent: "center",
@@ -288,8 +288,9 @@ export const styles = StyleSheet.create({
 
   percentageText: {
     color: Colors.light.white,
-    fontSize: 16,
-    fontFamily: fonts.primary.bold,
+    fontSize: 18,
+    fontFamily: fonts.primary.semiBold,
+    fontWeight: "600",
   },
 
   // Category Label with Arrow — row is centered under the ring; equal-width

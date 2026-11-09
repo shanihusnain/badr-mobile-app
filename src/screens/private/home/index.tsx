@@ -992,7 +992,7 @@ export default function HomeScreen() {
               <AntDesign name="close" size={20} color={Colors.light.white} />
             </TouchableOpacity>
             <ImageBackground
-              source={require("@/assets/images/NamazTimeMoreTabBackGroundImage.png")}
+              source={require("@/assets/images/homescreennamazbackgroundimage.png")}
               style={styles.prayerCardContainer}
               imageStyle={{ borderRadius: 16 }}
             >
@@ -1394,7 +1394,7 @@ export default function HomeScreen() {
               subtitleCount={goal.subtitleCount}
               subtitleLabel={goal.subtitleLabel}
               icon={icon}
-              iconBgColor={Colors.light.calendarBg}
+              iconBgColor={Colors.light.ibadahIconCircleBg}
               percentage={goal.percentage}
               progressColor={goal.progressColor}
             />

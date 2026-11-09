@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react";
-import { Pressable, Text, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "@/constants/theme";
@@ -7,6 +7,7 @@ import { GoalData } from "../../home/components/goalsData";
 import type { QuranCompletionLogEntry } from "../types";
 import { styles } from "./DailyProgressLogging.styles";
 import { CompletionRecitationGoalCard } from "./CompletionRecitationGoalCard";
+import { LoggingBackdrop } from "./LoggingBackdrop";
 
 type Props = {
   goalData: GoalData;
@@ -30,7 +31,7 @@ export function CompletionRecitationLoggingSection({
 
   return (
     <>
-      {isFlowActive ? <Pressable style={styles.backdrop} /> : null}
+      {isFlowActive ? <LoggingBackdrop /> : null}
       {isFlowActive ? (
         <TouchableOpacity
           style={styles.cancelButton}

@@ -1,11 +1,5 @@
 import React, { useCallback, useMemo, useState } from "react";
-import {
-  Pressable,
-  Text,
-  TouchableOpacity,
-  View,
-  StyleSheet,
-} from "react-native";
+import { Text, TouchableOpacity, View, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import moment from "moment-hijri";
@@ -36,6 +30,7 @@ import {
   WhitePrayerMatIcon,
   WhiteTimerIcon,
 } from "@/assets/icons";
+import { LoggingBackdrop } from "../components/LoggingBackdrop";
 
 type TahiyatUlWudhuStepId =
   | "date"
@@ -323,7 +318,7 @@ export default function TahiyatUlWudhuLoggingFlow({
   return (
     <>
       {flowMode === "active" && (
-        <Pressable style={commonStyles.backdrop} />
+        <LoggingBackdrop />
       )}
       {flowMode === "active" && (
         <TouchableOpacity
@@ -345,7 +340,7 @@ export default function TahiyatUlWudhuLoggingFlow({
             <View style={localStyles.summaryCard}>
               <View style={localStyles.summaryBody}>
                 <View style={localStyles.summaryIconCircle}>
-                  <Ionicons name="water" size={25} color={Colors.light.white} />
+                  <Ionicons name="water" size={20} color={Colors.light.white} />
                 </View>
                 <View style={{ flex: 1, gap: 9 }}>
                   <View
