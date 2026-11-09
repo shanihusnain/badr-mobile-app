@@ -1051,10 +1051,11 @@ export default function HomeScreen() {
               <TaperedCircleBorder
                 percentage={category.percentage}
                 borderColor={Colors.light.grey}
-                size={60 * (SCREEN_CARD_WIDTH / 320)}
+                size={66 * (SCREEN_CARD_WIDTH / 320)}
+                percentageFontSize={17}
                 variant="illuminated"
               />
-              <TopSpace top={7} />
+              <TopSpace top={3} />
               <View style={styles.categoryLabelWrapper}>
                 <View style={styles.categoryLabelInner}>
                   <View style={styles.categoryLabelChevronSlot} />

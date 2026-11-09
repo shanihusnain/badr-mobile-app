@@ -333,7 +333,7 @@ export default function IstikharaPrayerLoggingFlow({
                   <View style={localStyles.summaryIconGraphic}>
                     <IstikharaPrayerDetailedIcon
                       color={Colors.light.white}
-                      size={20}
+                      size={22}
                     />
                   </View>
                 </View>
@@ -484,16 +484,17 @@ const localStyles = StyleSheet.create({
     gap: 9,
   },
   summaryIconCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     backgroundColor: Colors.light.selectcategory,
     alignItems: "center",
     justifyContent: "center",
     marginTop: 22,
   },
+  /** Dua-hands artwork sits high in its viewBox — nudge down for optical center. */
   summaryIconGraphic: {
-    transform: [{ translateX: 0.5 }, { translateY: 0 }],
+    transform: [{ translateY: 2.5 }],
   },
   summaryTitle: {
     color: Colors.light.white,

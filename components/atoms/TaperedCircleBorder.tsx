@@ -65,6 +65,8 @@ interface TaperedCircleBorderProps {
     glowColor: string;
     percent: number;
   }) => React.ReactNode;
+  /** Overrides default center % label size (when no `children`). */
+  percentageFontSize?: number;
   style?: ViewStyle;
 }
 
@@ -567,6 +569,7 @@ export const TaperedCircleBorder: React.FC<TaperedCircleBorderProps> = ({
   completeIcon,
   allowCompactCompleteIcon = false,
   ringBadge,
+  percentageFontSize,
   style,
 }) => {
   const isGolden = variant === "golden";
@@ -766,7 +769,14 @@ export const TaperedCircleBorder: React.FC<TaperedCircleBorderProps> = ({
         {children ? (
           children
         ) : (
-          <Text style={styles.percentageText}>{percent}%</Text>
+          <Text
+            style={[
+              styles.percentageText,
+              percentageFontSize != null && { fontSize: percentageFontSize },
+            ]}
+          >
+            {percent}%
+          </Text>
         )}
       </View>
     </View>

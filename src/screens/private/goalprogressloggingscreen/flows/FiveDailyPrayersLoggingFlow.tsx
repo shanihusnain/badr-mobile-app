@@ -798,12 +798,10 @@ export default function FiveDailyPrayersLoggingFlow({
             <View style={localStyles.summaryCard}>
               <View style={localStyles.summaryBody}>
                 <View style={localStyles.summaryIconCircle}>
-                  <View style={localStyles.summaryIconGraphic}>
-                    <FiveDailyPrayerIDetailedIbadhasIcon
-                      color={Colors.light.white}
-                      size={20}
-                    />
-                  </View>
+                  <FiveDailyPrayerIDetailedIbadhasIcon
+                    color={Colors.light.white}
+                    size={22}
+                  />
                 </View>
                 <View style={localStyles.summaryTextBlock}>
                   <View
@@ -985,16 +983,13 @@ const localStyles = StyleSheet.create({
     gap: 9,
   },
   summaryIconCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     backgroundColor: Colors.light.selectcategory,
     alignItems: "center",
     justifyContent: "center",
     marginTop: 33,
-  },
-  summaryIconGraphic: {
-    transform: [{ translateX: 0.5 }, { translateY: 1.5 }],
   },
   summaryTitle: {
     color: Colors.light.white,

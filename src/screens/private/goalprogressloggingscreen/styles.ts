@@ -74,6 +74,18 @@ export const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
   },
+  /**
+   * Istikhara dome: lift the asset so the center “Allah” medallion sits in the
+   * open hero above the green logging card (not cropped behind it).
+   */
+  heroBackgroundImageIstikhara: {
+    width: "100%",
+    height: "145%",
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: "-28%",
+  },
   heroBackgroundScrim: {
     ...StyleSheet.absoluteFill,
     backgroundColor: "rgba(0, 0, 0, 0.55)",

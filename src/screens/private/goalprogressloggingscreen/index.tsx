@@ -92,8 +92,8 @@ import {
   tahiyyatmasjiddetailimage,
   missedprayerdetailimage,
   duhaprayerdetailimage,
-  tawbahprayerdetailimage,
-  istikharaprayerdetailimage,
+  tawbahprayerbackgroundimagenew,
+  istikharaprayerbackgroundimagenew,
   shukarprayerdetailimage,
   qiyamallaylflowbackgroundimage,
   sunnahrawatibdetailimage,
@@ -138,9 +138,9 @@ function getLoggingBackgroundSource(
     case "duha-prayer":
       return duhaprayerdetailimage;
     case "tawbah-prayer":
-      return tawbahprayerdetailimage;
+      return tawbahprayerbackgroundimagenew;
     case "istikhara-prayer":
-      return istikharaprayerdetailimage;
+      return istikharaprayerbackgroundimagenew;
     case "shukr-prayer":
       return shukarprayerdetailimage;
     case "qiyam-al-layl":
@@ -461,6 +461,13 @@ function GoalProgressLoggingBody({
               style={styles.heroBackgroundImage}
               contentFit="cover"
               contentPosition="top"
+            />
+          ) : template === "istikhara-prayer" ? (
+            // Lift the dome so the center “Allah” circle stays above the green card.
+            <Image
+              source={backgroundSource}
+              style={styles.heroBackgroundImageIstikhara}
+              resizeMode="cover"
             />
           ) : (
             <Image
