@@ -15,6 +15,7 @@ import {
 import { DurationStep, StartTimeStep, getCurrentStartTimeParts } from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
 import { MemorisationAyahCountStep } from "../components/MemorisationAyahCountStep";
+import { getDefaultEndAyat } from "../components/QuranAyatRangeSlider";
 import { MemorisationSurahSelectionStep } from "../components/MemorisationSurahSelectionStep";
 import { styles } from "../components/DailyProgressLogging.styles";
 import { QuranIconForSlider } from "@/assets/icons/QuranIconForSlider";
@@ -168,7 +169,7 @@ export default function QuranMemorisationLoggingFlow({
   const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
   const [startAyah, setStartAyah] = useState(minStartAyah);
   const [endAyah, setEndAyah] = useState(() =>
-    Math.max(minStartAyah, totalAyahs || minStartAyah),
+    getDefaultEndAyat(minStartAyah, totalAyahs || minStartAyah),
   );
   const [durationHours, setDurationHours] = useState("0");
   const [durationMinutes, setDurationMinutes] = useState("0");
@@ -210,7 +211,10 @@ export default function QuranMemorisationLoggingFlow({
 
   useEffect(() => {
     const nextStartAyah = getNextMemorisationAyah(surahId, memorizedAyahs);
-    const nextEndAyah = Math.max(nextStartAyah, totalAyahs || nextStartAyah);
+    const nextEndAyah = getDefaultEndAyat(
+      nextStartAyah,
+      totalAyahs || nextStartAyah,
+    );
     setStartAyah(nextStartAyah);
     setEndAyah(nextEndAyah);
   }, [memorizedAyahs, surahId, totalAyahs]);
@@ -237,7 +241,10 @@ export default function QuranMemorisationLoggingFlow({
       preselectedSurahId !== "all" ? preselectedSurahId : selectedSurahId,
       memorizedAyahs,
     );
-    const nextEndAyah = Math.max(nextStartAyah, totalAyahs || nextStartAyah);
+    const nextEndAyah = getDefaultEndAyat(
+      nextStartAyah,
+      totalAyahs || nextStartAyah,
+    );
     setStartAyah(nextStartAyah);
     setEndAyah(nextEndAyah);
     setDurationHours("0");

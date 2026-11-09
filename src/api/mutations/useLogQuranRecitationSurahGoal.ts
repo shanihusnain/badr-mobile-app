@@ -54,7 +54,7 @@ export const useLogQuranRecitationSurahGoal = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: logQuranRecitationSurah,
-    onSuccess: (data) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["quran-goal-frame"] });
       queryClient.invalidateQueries({ queryKey: ["quran-goal-detail"] });
       queryClient.invalidateQueries({ queryKey: ["quran-goal-achievements"] });
@@ -64,10 +64,7 @@ export const useLogQuranRecitationSurahGoal = () => {
       queryClient.invalidateQueries({
         queryKey: ["goal-cycle-category-goals"],
       });
-      showToast(
-        "success",
-        data?.message ?? data?.data?.message ?? "Recitation logged successfully",
-      );
+      showToast("success", "Quran logged successfully");
     },
     onError: (error) => {
       showToast(

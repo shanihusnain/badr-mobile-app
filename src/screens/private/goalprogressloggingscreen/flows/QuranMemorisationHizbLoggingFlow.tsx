@@ -15,6 +15,7 @@ import {
 import { DurationStep, StartTimeStep, getCurrentStartTimeParts } from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
 import { MemorisationHizbAyahCountStep } from "../components/MemorisationHizbAyahCountStep";
+import { getDefaultEndAyat } from "../components/QuranAyatRangeSlider";
 import { MemorisationHizbSelectionStep } from "../components/MemorisationHizbSelectionStep";
 import { styles } from "../components/DailyProgressLogging.styles";
 import { QuranIconForSlider } from "@/assets/icons/QuranIconForSlider";
@@ -179,7 +180,7 @@ export default function QuranMemorisationHizbLoggingFlow({
   const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
   const [startAyah, setStartAyah] = useState(minStartAyah);
   const [endAyah, setEndAyah] = useState(() =>
-    Math.max(minStartAyah, totalAyahs || minStartAyah),
+    getDefaultEndAyat(minStartAyah, totalAyahs || minStartAyah),
   );
   const [durationHours, setDurationHours] = useState("0");
   const [durationMinutes, setDurationMinutes] = useState("0");
@@ -222,7 +223,9 @@ export default function QuranMemorisationHizbLoggingFlow({
   useEffect(() => {
     const nextStartAyah = getNextHizbMemorisationAyah(hizbId, memorizedAyahs);
     setStartAyah(nextStartAyah);
-    setEndAyah(Math.max(nextStartAyah, totalAyahs || nextStartAyah));
+    setEndAyah(
+      getDefaultEndAyat(nextStartAyah, totalAyahs || nextStartAyah),
+    );
   }, [hizbId, memorizedAyahs, totalAyahs]);
 
   const resetFlow = useCallback(() => {
@@ -248,7 +251,9 @@ export default function QuranMemorisationHizbLoggingFlow({
       memorizedAyahs,
     );
     setStartAyah(nextStartAyah);
-    setEndAyah(Math.max(nextStartAyah, totalAyahs || nextStartAyah));
+    setEndAyah(
+      getDefaultEndAyat(nextStartAyah, totalAyahs || nextStartAyah),
+    );
     setDurationHours("0");
     setDurationMinutes("0");
     if (preselectedHizbId !== "all") {

@@ -66,6 +66,8 @@ type Props = {
   loadingQuranGoals: boolean;
   errorLoadingQuranGoals: boolean;
   canPressFooterPrimary: boolean;
+  /** Finish-and-save (review) or other footer primary in-flight. */
+  isFooterLoading?: boolean;
   footerBottomPad: number;
   finishLabel: string;
   ctxRef: MutableRefObject<GoalPlannerListCtx>;
@@ -101,6 +103,7 @@ function propsEqual(prev: Props, next: Props) {
     prev.loadingQuranGoals === next.loadingQuranGoals &&
     prev.errorLoadingQuranGoals === next.errorLoadingQuranGoals &&
     prev.canPressFooterPrimary === next.canPressFooterPrimary &&
+    prev.isFooterLoading === next.isFooterLoading &&
     prev.footerBottomPad === next.footerBottomPad &&
     prev.finishLabel === next.finishLabel
   );
@@ -130,6 +133,7 @@ export const GoalPlannerTabList = memo(function GoalPlannerTabList({
   loadingQuranGoals,
   errorLoadingQuranGoals,
   canPressFooterPrimary,
+  isFooterLoading = false,
   footerBottomPad,
   finishLabel,
   ctxRef,
@@ -186,7 +190,8 @@ export const GoalPlannerTabList = memo(function GoalPlannerTabList({
         >
           <PrimaryButton
             text={finishLabel}
-            disabled={!canPressFooterPrimary}
+            disabled={!canPressFooterPrimary || isFooterLoading}
+            isLoading={isFooterLoading}
             onPress={onFooterPress}
           />
         </View>
@@ -196,6 +201,7 @@ export const GoalPlannerTabList = memo(function GoalPlannerTabList({
       canPressFooterPrimary,
       finishLabel,
       footerBottomPad,
+      isFooterLoading,
       onFooterPress,
       styles.footerContainer,
     ],

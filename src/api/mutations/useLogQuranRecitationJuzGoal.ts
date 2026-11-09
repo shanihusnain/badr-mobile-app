@@ -88,20 +88,9 @@ export const useLogQuranRecitationJuzGoal = () => {
       Array.isArray(input)
         ? logQuranRecitationJuzBatch(input)
         : logQuranRecitationJuz(input),
-    onSuccess: (data) => {
+    onSuccess: () => {
       invalidate();
-      const payload = data as {
-        message?: string;
-        data?: { message?: string };
-      };
-      const message =
-        (typeof payload?.message === "string" && payload.message.trim()) ||
-        (typeof payload?.data?.message === "string" &&
-          payload.data.message.trim()) ||
-        "";
-      if (message) {
-        showToast("success", message);
-      }
+      showToast("success", "Quran logged successfully");
     },
     onError: (error) => {
       // Prefer backend `message` only — no frontend copy.

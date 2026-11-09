@@ -21,7 +21,10 @@ import { FlowCard } from "../components/FlowCard";
 import { JuzLoggingTypeStep } from "../components/JuzLoggingTypeStep";
 import { JuzRangeStep } from "../components/JuzRangeStep";
 import { JuzStepper } from "../components/JuzStepper";
-import { QuranAyatRangeSlider } from "../components/QuranAyatRangeSlider";
+import {
+  getDefaultEndAyat,
+  QuranAyatRangeSlider,
+} from "../components/QuranAyatRangeSlider";
 import { styles } from "../components/DailyProgressLogging.styles";
 import { surahGoalStyles } from "../components/SurahRecitationGoals.styles";
 import {
@@ -185,7 +188,7 @@ export default function QuranJuzLoggingFlow({
   const [fullEndJuz, setFullEndJuz] = useState(goalMinJuz);
   const [partialJuz, setPartialJuz] = useState(goalMinJuz);
   const [startAyat, setStartAyat] = useState(1);
-  const [endAyat, setEndAyat] = useState(1);
+  const [endAyat, setEndAyat] = useState(2);
   const [fullDuration, setFullDuration] = useState<CompletionDurationValue>(
     createDefaultDuration(),
   );
@@ -350,10 +353,8 @@ export default function QuranJuzLoggingFlow({
         : Math.max(minAyatStart, 1);
     const nextStart = Math.min(Math.max(minAyatStart, 1), maxAyat);
     setStartAyat(nextStart);
-    // After prior progress, park end at max so the back chevron slides left.
-    setEndAyat(
-      minAyatStart > 1 ? maxAyat : Math.min(Math.max(nextStart, 1), maxAyat),
-    );
+    // First log: 1→2. After prior progress, park end at max so user slides left.
+    setEndAyat(getDefaultEndAyat(nextStart, maxAyat));
   }, [partialJuz, minAyatStart, partialJuzVerseCount]);
 
   useEffect(() => {
@@ -403,7 +404,7 @@ export default function QuranJuzLoggingFlow({
     setFullEndJuz(goalMinJuz);
     setPartialJuz(goalMinJuz);
     setStartAyat(1);
-    setEndAyat(1);
+    setEndAyat(2);
     setFullDuration(createDefaultDuration());
     setPartialDuration(createDefaultDuration());
   }, [goalMinJuz, quranFrame?.frame, setFlowMode]);

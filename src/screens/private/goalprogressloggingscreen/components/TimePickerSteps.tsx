@@ -102,8 +102,7 @@ export const StartTimeStep: React.FC<StartTimeStepProps> = ({
           onBlur={() => setIsHourFocused(false)}
           keyboardType="number-pad"
           maxLength={2}
-          placeholder="06"
-          placeholderTextColor={Colors.light.subtext}
+          placeholder=""
         />
 
         <Text style={styles.timeSeparator}>:</Text>
@@ -126,8 +125,7 @@ export const StartTimeStep: React.FC<StartTimeStepProps> = ({
           onBlur={() => setIsMinuteFocused(false)}
           keyboardType="number-pad"
           maxLength={2}
-          placeholder="15"
-          placeholderTextColor={Colors.light.subtext}
+          placeholder=""
         />
 
         {/* Period Dropdown Selector */}

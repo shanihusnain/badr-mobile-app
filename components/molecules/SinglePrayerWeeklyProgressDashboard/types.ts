@@ -80,6 +80,7 @@ export type SinglePrayerWeeklyProgressDashboardProps = {
     | "quranRecitations"
     | "quranJuz"
     | "quranMemorizations"
+    | "quranHours"
     | "hours"
     | "fasts";
   /**

@@ -182,9 +182,10 @@ const QiyamTimingStep = ({
 const timingStepStyles = StyleSheet.create({
   container: {
     width: "100%",
-    gap: 2,
+    gap: 6,
     paddingTop: 0,
-    marginTop: 6,
+    // Clear the "When did you pray?" header before the timing chip + description.
+    marginTop: 14,
   },
   /** Same width for selector + open menu (no asymmetric shared wrapper insets). */
   dropdownWrapper: {

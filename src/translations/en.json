@@ -3814,6 +3814,8 @@
     "weeklyProgress_recitationsVsLastWeek": "recitations vs. last week",
     "weeklyProgress_hoursVsLastWeek": "vs. last week",
     "weeklyProgress_fastsVsLastWeek": "fasts vs. last week",
+    "weeklyProgress_fastsMatchLastWeek": "Fasts match last week",
+    "weeklyProgress_quranSameAsLastWeek": "Same as last week",
     "weeklyProgress_sunnahTotalThisWeek": " total Sunnah prayers this week",
     "weeklyProgress_sunnahTotalThisWeek_one": " total Sunnah prayer this week",
     "weeklyProgress_samePrayersAsLastWeek": "Same prayers as last week",

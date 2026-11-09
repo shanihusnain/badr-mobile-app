@@ -13,6 +13,7 @@ export type PrayerWeeklyProgressFooterComparisonVariant =
   | "quranRecitations"
   | "quranJuz"
   | "quranMemorizations"
+  | "quranHours"
   | "hours"
   | "fasts";
 
@@ -79,7 +80,8 @@ export function PrayerWeeklyProgressFooter({
   const isWeekOneLayout = loading || vsLastWeek == null;
   const vsLastWeekMagnitude = Math.abs(vsLastWeek ?? 0);
   const vsLastWeekImproved = (vsLastWeek ?? 0) > 0;
-  // Equal weeks: five-daily → same on-time copy; other prayer goals → same prayers copy.
+  // Equal weeks: five-daily → same on-time; other prayers → same prayers;
+  // fasting → match copy; Quran goals → "Same as last week".
   const isSameOnTimeAsLastWeek =
     comparisonVariant === "onTime" &&
     !vsLastWeekDisplay?.trim() &&
@@ -88,15 +90,32 @@ export function PrayerWeeklyProgressFooter({
     comparisonVariant === "prayers" &&
     !vsLastWeekDisplay?.trim() &&
     vsLastWeekMagnitude === 0;
+  const isFastsMatchLastWeek =
+    comparisonVariant === "fasts" &&
+    !vsLastWeekDisplay?.trim() &&
+    vsLastWeekMagnitude === 0;
+  const isQuranSameAsLastWeek =
+    (comparisonVariant === "quranHours" ||
+      comparisonVariant === "quranRecitations" ||
+      comparisonVariant === "quranJuz" ||
+      comparisonVariant === "quranMemorizations" ||
+      comparisonVariant === "recitations") &&
+    vsLastWeekMagnitude === 0;
   const comparisonCountLabel = isSameOnTimeAsLastWeek
     ? t("homeScreen.weeklyProgress_sameAsLastWeek")
     : isSamePrayersAsLastWeek
       ? t("homeScreen.weeklyProgress_samePrayersAsLastWeek")
-      : vsLastWeekDisplay?.trim() || String(vsLastWeekMagnitude);
+      : isFastsMatchLastWeek
+        ? t("homeScreen.weeklyProgress_fastsMatchLastWeek")
+        : isQuranSameAsLastWeek
+          ? t("homeScreen.weeklyProgress_quranSameAsLastWeek")
+          : vsLastWeekDisplay?.trim() || String(vsLastWeekMagnitude);
   // Standalone API copy like "Same meals as last week" — do not append "vs. last week".
   const omitComparisonSuffix =
     isSameOnTimeAsLastWeek ||
     isSamePrayersAsLastWeek ||
+    isFastsMatchLastWeek ||
+    isQuranSameAsLastWeek ||
     /^same\b/i.test(comparisonCountLabel);
 
   const resolvedQuote = loading
@@ -114,7 +133,8 @@ export function PrayerWeeklyProgressFooter({
             ? "homeScreen.weeklyProgress_quranMemorizationsVsLastWeek"
             : comparisonVariant === "recitations"
               ? "homeScreen.weeklyProgress_recitationsVsLastWeek"
-              : comparisonVariant === "hours"
+              : comparisonVariant === "hours" ||
+                  comparisonVariant === "quranHours"
                 ? "homeScreen.weeklyProgress_hoursVsLastWeek"
                 : comparisonVariant === "fasts"
                   ? "homeScreen.weeklyProgress_fastsVsLastWeek"
