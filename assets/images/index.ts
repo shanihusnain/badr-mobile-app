@@ -44,7 +44,9 @@ import qiyamallayldetailimage from "./qiyamallayldetailimage.png";
 import qiyamallaylflowbackgroundimage from "./qiyamallaylflowbackgroundimage.jpg";
 import duhaprayerdetailimage from "./duhaprayerdetailimage.png";
 import istikharaprayerdetailimage from "./istikharaprayerdetailimage.png";
+import istikharaprayerbackgroundimagenew from "./istikharaprayerbackgroundimagenew.jpg";
 import tawbahprayerdetailimage from "./tawbahprayerdetailimage.png";
+import tawbahprayerbackgroundimagenew from "./tawbahprayerbackgroundimagenew.jpeg";
 import tahiyyatwudhudetailimage from "./tahiyyatwudhudetailimage.png";
 import tahiyyatmasjiddetailimage from "./tahiyyatmasjiddetailimage.png";
 import sunnahrawatibdetailimage from "./sunnahrawatibdetailimage.png";
@@ -83,7 +85,9 @@ export {
   qiyamallaylflowbackgroundimage,
   duhaprayerdetailimage,
   istikharaprayerdetailimage,
+  istikharaprayerbackgroundimagenew,
   tawbahprayerdetailimage,
+  tawbahprayerbackgroundimagenew,
   tahiyyatwudhudetailimage,
   tahiyyatmasjiddetailimage,
   sunnahrawatibdetailimage,

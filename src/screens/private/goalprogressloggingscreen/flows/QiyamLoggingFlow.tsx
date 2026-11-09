@@ -1027,7 +1027,7 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
             <View style={localStyles.summaryCard}>
               <View style={localStyles.summaryBody}>
                 <View style={localStyles.summaryIconCircle}>
-                  <QiyamMainFlowCardIcon size={20} color={Colors.light.white} />
+                  <QiyamMainFlowCardIcon size={22} color={Colors.light.white} />
                 </View>
                 <View style={localStyles.summaryTextBlock}>
                   <View
@@ -1183,9 +1183,9 @@ const localStyles = StyleSheet.create({
     gap: 9,
   },
   summaryIconCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     backgroundColor: Colors.light.selectcategory,
     alignItems: "center",
     justifyContent: "center",

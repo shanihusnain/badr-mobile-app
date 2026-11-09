@@ -916,7 +916,7 @@ export default function SunnahRawatibLoggingFlow({
                 <View style={localStyles.summaryIconCircle}>
                   <SunnahRawatibDetailedIbadhasIcon
                     color={Colors.light.white}
-                    size={20}
+                    size={22}
                   />
                 </View>
                 <View style={localStyles.summaryTextBlock}>
@@ -1083,13 +1083,13 @@ const localStyles = StyleSheet.create({
   },
   summaryBody: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     gap: 6,
   },
   summaryIconCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     backgroundColor: Colors.light.selectcategory,
     alignItems: "center",
     justifyContent: "center",
