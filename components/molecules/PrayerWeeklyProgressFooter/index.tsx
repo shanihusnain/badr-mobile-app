@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import { AimIcon, LighteningIcon } from "@/assets/icons";
+import { width } from "@/src/screens/private/more/style";
 
 export type PrayerWeeklyProgressFooterComparisonVariant =
   | "onTime"
@@ -93,11 +94,14 @@ export function PrayerWeeklyProgressFooter({
     : isSamePrayersAsLastWeek
       ? t("homeScreen.weeklyProgress_samePrayersAsLastWeek")
       : vsLastWeekDisplay?.trim() || String(vsLastWeekMagnitude);
-  // Standalone API copy like "Same meals as last week" — do not append "vs. last week".
+  // Standalone API copy ("Same meals…", "Fasts match last week") — no "vs. last week" suffix.
   const omitComparisonSuffix =
     isSameOnTimeAsLastWeek ||
     isSamePrayersAsLastWeek ||
-    /^same\b/i.test(comparisonCountLabel);
+    /^same\b/i.test(comparisonCountLabel) ||
+    /\bmatch(?:es)?\s+last\s+week\b/i.test(comparisonCountLabel) ||
+    (Boolean(vsLastWeekDisplay?.trim()) &&
+      /\blast\s+week\b/i.test(comparisonCountLabel));
 
   const resolvedQuote = loading
     ? "---"
@@ -144,6 +148,7 @@ export function PrayerWeeklyProgressFooter({
         <View
           style={[
             styles.footerRowWeekOne,
+            !compactWeekOneQuote && styles.footerRowWeekOneFullWidth,
             compactWeekOneQuote && styles.footerRowWeekOneCompact,
           ]}
         >
@@ -195,7 +200,9 @@ export function PrayerWeeklyProgressFooter({
               comparisonCountLabel
             ) : (
               <>
-                <Text style={styles.comparisonCount}>{comparisonCountLabel}</Text>
+                <Text style={styles.comparisonCount}>
+                  {comparisonCountLabel}
+                </Text>
                 {` ${t(comparisonSuffixKey)}`}
               </>
             )}
@@ -237,8 +244,12 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     justifyContent: "center",
     gap: 20,
-    width: "100%",
     minWidth: 0,
+  },
+  /** Full-width week-one row for prayers / non–White Days fasting goals. */
+  footerRowWeekOneFullWidth: {
+    width: "100%",
+    // flex: 1,
   },
   footerRowWeekOneCompact: {
     gap: 28,

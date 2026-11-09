@@ -61,6 +61,10 @@ export type MissedRamadanFastWeekSummary = {
   upcomingPlannedThisWeek: number;
   motivationalQuote: string;
   showPreviousWeekStat: boolean;
+  /** Frame `comparison` signed delta; `null` = week 1 / no comparison. */
+  vsLastWeek: number | null;
+  /** Frame `comparison.label` for the footer badge. */
+  vsLastWeekDisplay: string | null;
 };
 
 export type MissedRamadanFastCycleSummary = {
@@ -295,6 +299,11 @@ function buildWeekSummary(
       previousWeekCompletedCount,
     ),
     showPreviousWeekStat: weekIndex > 0,
+    vsLastWeek:
+      weekIndex > 0
+        ? completedFastsThisWeek - previousWeekCompletedCount
+        : null,
+    vsLastWeekDisplay: null,
   };
 }
 

@@ -77,6 +77,9 @@ export function ProphetDawoodFastsWeeklyProgressDashboard({
 
   const motivationalQuote = useMemo(() => {
     if (loading) return "---";
+    if (weekSummary.motivationalQuote?.trim()) {
+      return weekSummary.motivationalQuote.trim();
+    }
 
     switch (weekSummary.motivationalQuoteKey) {
       case "completedToday":
@@ -89,7 +92,12 @@ export function ProphetDawoodFastsWeeklyProgressDashboard({
       default:
         return t("progressLogging.dawoodMotivationInProgress");
     }
-  }, [loading, t, weekSummary.motivationalQuoteKey]);
+  }, [
+    loading,
+    t,
+    weekSummary.motivationalQuote,
+    weekSummary.motivationalQuoteKey,
+  ]);
 
   const totalFastsSuffix =
     weekSummary.completedFastsThisWeek === 1
@@ -149,7 +157,8 @@ export function ProphetDawoodFastsWeeklyProgressDashboard({
       weekRangeLabel={weekSummary.weekRangeLabel}
       weekFraction={weekSummary.weekFraction}
       streakDays={weekSummary.streakDays}
-      vsLastWeek={null}
+      vsLastWeek={weekSummary.vsLastWeek}
+      vsLastWeekDisplay={weekSummary.vsLastWeekDisplay}
       motivationalQuote={motivationalQuote}
       selectedDayIndex={defaultSelectedIndex}
       onDayPress={onDayPress}

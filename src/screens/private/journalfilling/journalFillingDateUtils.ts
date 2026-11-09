@@ -111,3 +111,51 @@ export function clampDateKeyToRange(
   if (dateKey > endDateKey) return endDateKey;
   return dateKey;
 }
+
+/** Monday-aligned weeks for a cycle window (matches fasting CalendarGrid). */
+export function buildCycleWeeks(
+  windowStartKey: string,
+  windowEndKey: string,
+): (string | null)[][] {
+  const windowStart = startOfDay(parseDateKey(windowStartKey));
+  const windowEnd = startOfDay(parseDateKey(windowEndKey));
+  const weeks: (string | null)[][] = [];
+
+  // Monday = 1 … Sunday = 0 → days back to Monday
+  const startDow = windowStart.getDay();
+  const daysFromMonday = startDow === 0 ? 6 : startDow - 1;
+  let cursor = addDays(windowStart, -daysFromMonday);
+
+  const endDow = windowEnd.getDay();
+  const daysToSunday = endDow === 0 ? 0 : 7 - endDow;
+  const gridEnd = addDays(windowEnd, daysToSunday);
+
+  while (cursor <= gridEnd) {
+    const week: (string | null)[] = [];
+    for (let i = 0; i < 7; i += 1) {
+      const key = toDateKey(cursor);
+      if (cursor < windowStart || cursor > windowEnd) {
+        week.push(null);
+      } else {
+        week.push(key);
+      }
+      cursor = addDays(cursor, 1);
+    }
+    weeks.push(week);
+  }
+
+  return weeks;
+}
+
+/** Header label like fasting: "Dec 4 - Dec 31, 2023" (uppercased by caller if needed). */
+export function getJournalDateRangeLabel(
+  startDateKey: string,
+  endDateKey: string,
+): string {
+  const start = parseDateKey(startDateKey);
+  const end = parseDateKey(endDateKey);
+  const startLabel = `${MONTH_SHORT[start.getMonth()]} ${start.getDate()}`;
+  const endLabel = `${MONTH_SHORT[end.getMonth()]} ${end.getDate()}`;
+  const year = String(start.getFullYear()).slice(-2);
+  return `${startLabel} – ${endLabel}, ${year}`;
+}

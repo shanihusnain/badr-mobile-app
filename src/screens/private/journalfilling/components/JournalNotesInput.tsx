@@ -7,12 +7,14 @@ type JournalNotesInputProps = {
   value: string;
   onChangeText: (text: string) => void;
   placeholder: string;
+  editable?: boolean;
 };
 
 function JournalNotesInputComponent({
   value,
   onChangeText,
   placeholder,
+  editable = true,
 }: JournalNotesInputProps) {
   return (
     <View style={styles.container}>
@@ -25,6 +27,7 @@ function JournalNotesInputComponent({
         placeholderTextColor="rgba(0, 0, 0, 0.6)"
         selectionColor="rgba(0, 0, 0, 0.7)"
         multiline
+        editable={editable}
         textAlign="left"
         textAlignVertical="top"
         accessibilityLabel="Journal notes"

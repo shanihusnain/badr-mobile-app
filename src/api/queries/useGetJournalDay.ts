@@ -3,12 +3,18 @@ import { api } from "..";
 
 export type JournalDayBehaviorStatus = "COMPLETED" | "INCOMPLETE" | null;
 
+export type JournalDayBehaviorImage = {
+  key: string;
+  url: string;
+};
+
 export type JournalDayBehavior = {
   behaviorId: string;
   title: string;
   description: string;
   displayOrder: number;
   status: JournalDayBehaviorStatus;
+  image?: JournalDayBehaviorImage | null;
 };
 
 export type JournalDayCategory = {
@@ -17,13 +23,25 @@ export type JournalDayCategory = {
   behaviors: JournalDayBehavior[];
 };
 
+/** Entry in `data.days` — drives date scroller + calendar availability. */
+export type JournalDayDayItem = {
+  date: string;
+  isYesterday: boolean;
+  answeredCount: number;
+  isComplete: boolean;
+};
+
 export type JournalDayData = {
   date: string;
+  isYesterday?: boolean;
+  canLog?: boolean;
+  startDate?: string | null;
+  days?: JournalDayDayItem[];
   totalBehaviors: number;
   answeredCount: number;
   completedCount: number;
   isComplete: boolean;
-  note: string;
+  note: string | null;
   lastSavedAt: string | null;
   categories: JournalDayCategory[];
 };
