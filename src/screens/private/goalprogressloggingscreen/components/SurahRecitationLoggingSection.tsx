@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react";
-import { Pressable, Text, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "@/constants/theme";
@@ -8,6 +8,7 @@ import type { QuranRecitationLogEntry } from "../types";
 import { styles } from "./DailyProgressLogging.styles";
 import { SurahRecitationGoalsList } from "./SurahRecitationGoalsList";
 import { useOptionalRecitationSurahContext } from "../recitationSurahContext";
+import { LoggingBackdrop } from "./LoggingBackdrop";
 
 type Props = {
   goalData: GoalData;
@@ -42,7 +43,7 @@ export function SurahRecitationLoggingSection({
 
   return (
     <>
-      {activeFlowGoalId ? <Pressable style={styles.backdrop} /> : null}
+      {activeFlowGoalId ? <LoggingBackdrop /> : null}
       {activeFlowGoalId ? (
         <TouchableOpacity
           style={styles.cancelButton}

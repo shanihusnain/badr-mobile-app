@@ -1,11 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  Pressable,
-  Text,
-  TouchableOpacity,
-  View,
-  StyleSheet,
-} from "react-native";
+import { Text, TouchableOpacity, View, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "@/constants/theme";
@@ -46,6 +40,7 @@ import {
   getFastingFrameAchievementLabel,
   getFastingFrameAchievementPct,
 } from "@/src/utils/fastingGoalFrameMap";
+import { LoggingBackdrop } from "../components/LoggingBackdrop";
 
 function toDateOptionsFromEntries(
   entries: FastingLoggableDateEntry[],
@@ -628,7 +623,7 @@ export default function MondayThursdayFastsLoggingFlow({
 
   return (
     <>
-      {flowMode === "active" && <Pressable style={commonStyles.backdrop} />}
+      {flowMode === "active" && <LoggingBackdrop />}
       {flowMode === "active" && (
         <TouchableOpacity
           style={commonStyles.cancelButton}

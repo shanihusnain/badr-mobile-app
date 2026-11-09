@@ -16,6 +16,7 @@ type JournalQuestionRowProps = {
   text: string;
   answer: JournalAnswerValue;
   onAnswerChange: (questionId: string, answer: JournalAnswerValue) => void;
+  showBottomBorder?: boolean;
 };
 
 function JournalQuestionRowComponent({
@@ -23,8 +24,8 @@ function JournalQuestionRowComponent({
   text,
   answer,
   onAnswerChange,
+  showBottomBorder = true,
 }: JournalQuestionRowProps) {
-  console.log("question id", questionId);
   const handleNoPress = useCallback(() => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     onAnswerChange(questionId, answer === false ? null : false);
@@ -36,7 +37,7 @@ function JournalQuestionRowComponent({
   }, [answer, onAnswerChange, questionId]);
 
   return (
-    <View style={styles.row}>
+    <View style={[styles.row, !showBottomBorder && styles.rowNoBorder]}>
       <Text style={styles.question}>{text}</Text>
       <View style={styles.actions}>
         <AnswerButton
@@ -100,6 +101,9 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderBottomWidth: 1,
     borderBottomColor: Colors.light.divider,
+  },
+  rowNoBorder: {
+    borderBottomWidth: 0,
   },
   question: {
     flex: 1,

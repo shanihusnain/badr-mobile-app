@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from "react";
-import { Text, TouchableOpacity, View, Pressable } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -23,6 +23,7 @@ import { OptionSelectStep } from "./OptionSelectStep";
 import { StartTimeStep, DurationStep } from "./TimePickerSteps";
 import { FlowCard } from "./FlowCard";
 import { styles } from "./DailyProgressLogging.styles";
+import { LoggingBackdrop } from "./LoggingBackdrop";
 
 export type ProgressLogEntry = {
   date: string;
@@ -378,7 +379,7 @@ export default function DailyProgressLogging({
           </View>
         ) : (
           <>
-            <Pressable style={styles.backdrop} />
+            <LoggingBackdrop />
 
             <TouchableOpacity
               style={styles.cancelButton}

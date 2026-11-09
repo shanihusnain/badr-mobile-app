@@ -1,11 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  Pressable,
-  Text,
-  TouchableOpacity,
-  View,
-  StyleSheet,
-} from "react-native";
+import { Text, TouchableOpacity, View, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import moment from "moment-hijri";
@@ -46,6 +40,7 @@ import {
   getQuranFrameTargetHours,
   quranFrameShowsInsights,
 } from "@/src/utils/quranGoalFrameMap";
+import { LoggingBackdrop } from "../components/LoggingBackdrop";
 
 type QuranHoursStepId = "date" | "startTime" | "duration";
 
@@ -315,10 +310,7 @@ export default function QuranHoursLoggingFlow({
   return (
     <>
       {flowMode === "active" && (
-        <Pressable
-          style={commonStyles.backdrop}
-          disabled={isLogging}
-        />
+        <LoggingBackdrop />
       )}
       {flowMode === "active" && (
         <TouchableOpacity

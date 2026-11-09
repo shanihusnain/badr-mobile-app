@@ -107,7 +107,7 @@ export const GOALS_DATA: Record<GoalId, GoalData> = {
   "prayer-tawbah": {
     id: "prayer-tawbah",
     category: "PRAYER",
-    title: "AL-Tawbah Prayer",
+    title: "AL-Tawbah",
     count: "4",
     label: "/10 prayers",
     percentage: "40%",

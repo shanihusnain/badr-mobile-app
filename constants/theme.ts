@@ -58,6 +58,10 @@ export const Colors = {
     dullestWhite: "rgba(255, 255, 255, 0.1)",
     progressBarEmpty: "#374556",
     selectcategory: "#425060",
+    /** Circle behind icons on Ibadah / Detailed Ibadah progress cards */
+    ibadahIconCircleBg: "#425060",
+    /** Card background for Ibadah / Detailed Ibadah progress cards */
+    ibadahProgressCardBg: "#213144",
     lightpurple: "#CBD3FF",
     darkblue: "#3448FF",
     lightblue: "#00B0E8",
@@ -143,6 +147,10 @@ export const Colors = {
     dullestWhite: "rgba(255, 255, 255, 0.1)",
     progressBarEmpty: "#374556",
     selectcategory: "#425060",
+    /** Circle behind icons on Ibadah / Detailed Ibadah progress cards */
+    ibadahIconCircleBg: "#425060",
+    /** Card background for Ibadah / Detailed Ibadah progress cards */
+    ibadahProgressCardBg: "#213144",
     lightpurple: "#CBD3FF",
     darkblue: "#3448FF",
     lightblue: "#00B0E8",

@@ -73,20 +73,22 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "center",
+    gap: 4,
     paddingTop: 8,
     paddingBottom: 6,
   },
   arrowBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
   },
   centerBtn: {
-    flex: 1,
     alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 2,
   },
   dateText: {
     color: Colors.light.white,

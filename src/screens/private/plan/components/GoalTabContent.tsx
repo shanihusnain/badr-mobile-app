@@ -14,9 +14,6 @@ import { PlanSectionHeader } from "./PlanSectionHeader";
 import { planStyles as styles } from "../styles";
 import { router } from "expo-router";
 
-const GOAL_PROGRESS_TEXT =
-  "You're on day 18 of your 28-day cycle, with a 66% achievement score. If you'd like, tap to explore a proposed plan to help complete your remaining goals.";
-
 const RECORD_DATA = [
   {
     id: 1,
@@ -53,14 +50,21 @@ export function GoalTabContent({ studyMaterial }: GoalTabContentProps) {
           size="compact"
         />
       </View>
-      <TopSpace top={29} />
+      <TopSpace top={20} />
       <View style={styles.goalProgressCard}>
         <View style={styles.goalProgressRow}>
           <View style={styles.moonProgressWrap}>
             <MoonProgress progressPercent={66} />
           </View>
           <View style={styles.goalProgressTextBlock}>
-            <Text style={styles.goalProgressText}>{GOAL_PROGRESS_TEXT}</Text>
+            <Text style={styles.goalProgressText}>
+              You're on day{" "}
+              <Text style={styles.goalProgressTextBold}>18</Text> of your{" "}
+              <Text style={styles.goalProgressTextBold}>28-day cycle</Text>,
+              with a <Text style={styles.goalProgressTextBold}>66%</Text>{" "}
+              achievement score. If you'd like, tap to explore a proposed plan
+              to help complete your remaining goals.
+            </Text>
             <TopSpace top={12} />
             <Pressable style={styles.viewProposedPlanRow}>
               <Text style={styles.viewProposedPlanText}>VIEW PROPOSED PLAN</Text>

@@ -1,6 +1,6 @@
 import React, { memo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { BulbIcon } from "@/assets/icons/BulbIcon";
+import { InsightBulbIcon } from "@/assets/icons/InsightBulbIcon";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 
@@ -19,7 +19,7 @@ function JournalInsightsButtonComponent({
       accessibilityLabel="Insights"
       hitSlop={4}
     >
-      <BulbIcon size={19} color={Colors.light.white} />
+      <InsightBulbIcon size={16} color={Colors.light.white} />
       <Text style={styles.label}>INSIGHTS</Text>
     </Pressable>
   );
@@ -70,7 +70,6 @@ const titleRowStyles = StyleSheet.create({
     justifyContent: "space-between",
     gap: 12,
     marginBottom: 0,
-    paddingHorizontal: 16,
   },
   title: {
     flex: 1,
@@ -79,6 +78,7 @@ const titleRowStyles = StyleSheet.create({
     fontSize: 18,
     lineHeight: 25,
     fontWeight: "700",
+    textAlign: "left",
   },
   insightsSlot: {
     paddingTop: 4,

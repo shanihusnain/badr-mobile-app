@@ -169,8 +169,11 @@ export const HeaderWithCrossTitleDynamicIcon = ({
           justifyContent: "center",
           alignItems: "center",
           zIndex: 10,
+          opacity: forloggingFlow ? 0.35 : 1,
         }}
         onPress={() => (onBackPress ? onBackPress() : navigation.goBack())}
+        disabled={forloggingFlow}
+        pointerEvents={forloggingFlow ? "none" : "auto"}
       >
         <Feather name={iconName} size={24} color={Colors.light.white} />
       </Pressable>
@@ -190,9 +193,12 @@ export const HeaderWithCrossTitleDynamicIcon = ({
             justifyContent: "center",
             alignItems: "center",
             zIndex: 10,
+            opacity: forloggingFlow ? 0.35 : 1,
           }}
           onPress={onRightPress}
           hitSlop={8}
+          disabled={forloggingFlow}
+          pointerEvents={forloggingFlow ? "none" : "auto"}
         >
           {rightIcon ?? (
             <Feather

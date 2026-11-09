@@ -1,11 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  Pressable,
-  Text,
-  TouchableOpacity,
-  View,
-  StyleSheet,
-} from "react-native";
+import { Text, TouchableOpacity, View, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import moment from "moment-hijri";
@@ -46,6 +40,7 @@ import {
   getSadaqahFrameFlowCardTitle,
   sadaqahFrameShowsInsights,
 } from "@/src/utils/sadaqahGoalFrameMap";
+import { LoggingBackdrop } from "../components/LoggingBackdrop";
 
 type MissedZakatStepId =
   | "date"
@@ -347,7 +342,7 @@ export default function MissedZakatLoggingFlow({
   return (
     <>
       {flowMode === "active" && (
-        <Pressable style={commonStyles.backdrop} />
+        <LoggingBackdrop />
       )}
       {flowMode === "active" && (
         <TouchableOpacity

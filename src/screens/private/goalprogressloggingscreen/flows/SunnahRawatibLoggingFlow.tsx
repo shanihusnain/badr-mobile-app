@@ -1,11 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import moment from "moment-hijri";
@@ -69,6 +63,7 @@ import {
 } from "@/src/api/mutations/useLogSunnahRawatibGoal";
 import { getApiErrorMessage } from "@/src/config/toastConfig";
 import { AddLoggingFlowIcon } from "@/assets/icons";
+import { LoggingBackdrop } from "../components/LoggingBackdrop";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -898,7 +893,7 @@ export default function SunnahRawatibLoggingFlow({
 
   return (
     <>
-      {flowMode === "active" && <Pressable style={commonStyles.backdrop} />}
+      {flowMode === "active" && <LoggingBackdrop />}
       {flowMode === "active" && (
         <TouchableOpacity
           style={commonStyles.cancelButton}
@@ -921,7 +916,7 @@ export default function SunnahRawatibLoggingFlow({
                 <View style={localStyles.summaryIconCircle}>
                   <SunnahRawatibDetailedIbadhasIcon
                     color={Colors.light.white}
-                    size={25}
+                    size={20}
                   />
                 </View>
                 <View style={localStyles.summaryTextBlock}>

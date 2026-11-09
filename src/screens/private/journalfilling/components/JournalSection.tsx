@@ -21,48 +21,49 @@ function JournalSectionComponent({
 }: JournalSectionProps) {
   return (
     <View style={styles.container}>
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          gap: 8,
-        }}
-      >
+      <View style={styles.titleRow}>
         <Text style={styles.title}>{title}</Text>
-
-        <View
-          style={{
-            height: 1,
-            backgroundColor: Colors.light.divider,
-            flex: 1,
-          }}
-        />
+        <View style={styles.titleLine} />
       </View>
-      {questions.map((question) => (
-        <JournalQuestionRow
-          key={question.id}
-          questionId={question.id}
-          text={question.text}
-          answer={answers[question.id] ?? null}
-          onAnswerChange={onAnswerChange}
-        />
-      ))}
+      {questions.map((question, index) => {
+        const isLastQuestion = index === questions.length - 1;
+        // No full divider above the next heading, and none above Notes.
+        const showBottomBorder = !isLastQuestion;
+
+        return (
+          <JournalQuestionRow
+            key={question.id}
+            questionId={question.id}
+            text={question.text}
+            answer={answers[question.id] ?? null}
+            onAnswerChange={onAnswerChange}
+            showBottomBorder={showBottomBorder}
+          />
+        );
+      })}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {},
+  container: {
+    marginTop: 12,
+  },
+  titleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 8,
+  },
   title: {
     color: Colors.light.graylightshade,
     fontFamily: fonts.primary.semiBold,
     fontSize: 14,
-    marginBottom: 8,
   },
-  divider: {
+  titleLine: {
+    flex: 1,
     height: StyleSheet.hairlineWidth,
     backgroundColor: Colors.light.divider,
-    marginBottom: 4,
   },
 });
 

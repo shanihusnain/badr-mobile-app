@@ -76,6 +76,8 @@ export const planStyles = StyleSheet.create({
     paddingHorizontal: 8,
     borderRadius: 8,
     backgroundColor: Colors.light.darkgrey,
+    borderWidth: 1.5,
+    borderColor: "rgba(255,255,255,0.28)",
   },
   goalProgressRow: {
     flexDirection: "row",
@@ -97,6 +99,14 @@ export const planStyles = StyleSheet.create({
     lineHeight: 20,
     letterSpacing: 0.1,
     fontFamily: fonts.primary.medium,
+    color: Colors.light.white,
+  },
+  goalProgressTextBold: {
+    fontWeight: "700",
+    fontSize: 14,
+    lineHeight: 20,
+    letterSpacing: 0.1,
+    fontFamily: fonts.primary.bold,
     color: Colors.light.white,
   },
   viewProposedPlanRow: {
@@ -311,6 +321,8 @@ export const planStyles = StyleSheet.create({
     letterSpacing: 0.1,
     color: Colors.light.white,
     paddingRight: 28,
+    width: "100%",
+    flexShrink: 1,
   },
   topRow: {
     flexDirection: "row",
@@ -589,5 +601,10 @@ export const planStyles = StyleSheet.create({
     paddingTop: 2,
     paddingBottom: 16,
     backgroundColor: Colors.light.darkgrey,
+    alignItems: "center",
+  },
+  journalCustomizeSheetButton: {
+    width: "72%",
+    alignSelf: "center",
   },
 });

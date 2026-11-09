@@ -1,11 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  Pressable,
-  Text,
-  TouchableOpacity,
-  View,
-  StyleSheet,
-} from "react-native";
+import { Text, TouchableOpacity, View, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import moment from "moment-hijri";
@@ -56,6 +50,7 @@ import {
   WhiteClockIcon,
   WhiteTimerIcon,
 } from "@/assets/icons";
+import { LoggingBackdrop } from "../components/LoggingBackdrop";
 
 type MissedPrayersStepId = "date" | "prayers-qty" | "start-time" | "time-spent";
 const STEPS: MissedPrayersStepId[] = [
@@ -483,7 +478,7 @@ export default function MissedPrayersLoggingFlow({
 
   return (
     <>
-      {flowMode === "active" && <Pressable style={commonStyles.backdrop} />}
+      {flowMode === "active" && <LoggingBackdrop />}
       {flowMode === "active" && (
         <TouchableOpacity
           style={commonStyles.cancelButton}
@@ -504,7 +499,7 @@ export default function MissedPrayersLoggingFlow({
             <View style={localStyles.summaryCard}>
               <View style={localStyles.summaryBody}>
                 <View style={localStyles.summaryIconCircle}>
-                  <MissedPastPrayerCalenderIcon size={25} />
+                  <MissedPastPrayerCalenderIcon size={20} />
                 </View>
                 <View style={{ flex: 1, gap: 9 }}>
                   <View
@@ -550,9 +545,7 @@ export default function MissedPrayersLoggingFlow({
                     >
                       {totalPrayersRequired != null ? (
                         <>
-                          <Text style={localStyles.summarySubtitle}>
-                            (total{" "}
-                          </Text>
+                          <Text style={localStyles.summarySubtitle}>(</Text>
                           <Text style={localStyles.subtitleBold}>
                             {totalPrayersRequired}
                           </Text>

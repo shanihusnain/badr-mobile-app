@@ -114,7 +114,7 @@ export default function PlanScreen() {
         selectedTab={selectedTab}
         onSelectTab={setSelectedTab}
       />
-      <TopSpace top={26} />
+      <TopSpace top={20} />
       {selectedTab === 1 ? (
         <GoalTabContent studyMaterial={studyMaterial} />
       ) : (

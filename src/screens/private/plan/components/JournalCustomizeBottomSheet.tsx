@@ -104,7 +104,11 @@ export const JournalCustomizeBottomSheet = forwardRef<
     (props: BottomSheetFooterProps) => (
       <BottomSheetFooter {...props} bottomInset={safeAreaInsets.bottom}>
         <View style={styles.journalCustomizeSheetFooter}>
-          <PrimaryButton text="CUSTOMIZE" onPress={handleCustomizePress} />
+          <PrimaryButton
+            text="CUSTOMIZE"
+            onPress={handleCustomizePress}
+            style={styles.journalCustomizeSheetButton}
+          />
         </View>
       </BottomSheetFooter>
     ),
@@ -183,7 +187,11 @@ export const JournalCustomizeBottomSheet = forwardRef<
         enableFooterMarginAdjustment
       />
       <View style={styles.journalCustomizeSheetFooter}>
-        <PrimaryButton text="CUSTOMIZE" onPress={handleCustomizePress} />
+        <PrimaryButton
+          text="CUSTOMIZE"
+          onPress={handleCustomizePress}
+          style={styles.journalCustomizeSheetButton}
+        />
       </View>
     </BottomSheetWrapper>
   );

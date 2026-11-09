@@ -2617,8 +2617,8 @@ export function WeeklyProgressSection({
           getSadaqahFrameActiveWeek(sadaqahFrame, frame) > 1;
         const canNext = canNavigateSadaqahFrameWeekNext(frame);
 
-        return (
-          <KaffarahWeeklyProgressDashboard
+    return (
+      <KaffarahWeeklyProgressDashboard
             weekDays={kaffarahWeekFromFrame.weekDays}
             weekRangeLabel={kaffarahWeekFromFrame.weekRangeLabel}
             weekFraction={kaffarahWeekFromFrame.weekFraction}
@@ -2694,8 +2694,8 @@ export function WeeklyProgressSection({
           getSadaqahFrameActiveWeek(sadaqahFrame, frame) > 1;
         const canNext = canNavigateSadaqahFrameWeekNext(frame);
 
-        return (
-          <FidyaWeeklyProgressDashboard
+    return (
+      <FidyaWeeklyProgressDashboard
             weekDays={fidyaWeekFromFrame.weekDays}
             weekRangeLabel={fidyaWeekFromFrame.weekRangeLabel}
             weekFraction={fidyaWeekFromFrame.weekFraction}
@@ -2770,8 +2770,8 @@ export function WeeklyProgressSection({
           getSadaqahFrameActiveWeek(sadaqahFrame, frame) > 1;
         const canNext = canNavigateSadaqahFrameWeekNext(frame);
 
-        return (
-          <LillahWeeklyProgressDashboard
+    return (
+      <LillahWeeklyProgressDashboard
             weekDays={lillahWeekFromFrame.weekDays}
             weekRangeLabel={lillahWeekFromFrame.weekRangeLabel}
             weekFraction={lillahWeekFromFrame.weekFraction}
@@ -2847,8 +2847,8 @@ export function WeeklyProgressSection({
           getSadaqahFrameActiveWeek(sadaqahFrame, frame) > 1;
         const canNext = canNavigateSadaqahFrameWeekNext(frame);
 
-        return (
-          <SadaqahJariyahWeeklyProgressDashboard
+    return (
+      <SadaqahJariyahWeeklyProgressDashboard
             weekDays={jariyahWeekFromFrame.weekDays}
             weekRangeLabel={jariyahWeekFromFrame.weekRangeLabel}
             weekFraction={jariyahWeekFromFrame.weekFraction}
@@ -2924,8 +2924,8 @@ export function WeeklyProgressSection({
           getSadaqahFrameActiveWeek(sadaqahFrame, frame) > 1;
         const canNext = canNavigateSadaqahFrameWeekNext(frame);
 
-        return (
-          <VolunteeringWeeklyProgressDashboard
+    return (
+      <VolunteeringWeeklyProgressDashboard
             weekDays={volunteeringWeekFromFrame.weekDays}
             weekRangeLabel={volunteeringWeekFromFrame.weekRangeLabel}
             weekFraction={volunteeringWeekFromFrame.weekFraction}
