@@ -46,6 +46,7 @@ const styles = StyleSheet.create({
   containerWeekOne: {
     marginTop: 1,
   },
+  // Pull later weeks up so overall card height matches week 1’s reserved quote block.
   containerLaterWeek: {
     marginTop: 1 + PRAYER_WEEKLY_LATER_WEEK_MARGIN_TOP_ADJUSTMENT,
   },

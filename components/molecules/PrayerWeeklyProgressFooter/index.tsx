@@ -32,8 +32,8 @@ export type PrayerWeeklyProgressFooterProps = {
   /** Green streak label (five-daily); default is white/medium. */
   streakVariant?: "green" | "default";
   /**
-   * Week-1 only: narrow the inline quote so it wraps to ~3 lines and sits
-   * a little further from the streak (card height already reserved for 3 lines).
+   * Week-1 only: narrow the inline quote so it wraps cleanly beside the streak
+   * without ellipsis (up to 3 lines).
    */
   compactWeekOneQuote?: boolean;
 };
@@ -42,12 +42,15 @@ export type PrayerWeeklyProgressFooterProps = {
 export const PRAYER_WEEKLY_STATS_FOOTER_GAP = 8;
 
 /**
- * Pull weeks 2–4 stats+footer block up so card height matches week 1
- * (extra comparison row vs inline 3-line quote on week 1).
+ * Pull weeks 2–4 stats+footer block up so card height stays close to week 1
+ * (comparison row + quote vs inline streak+quote).
  */
 export const PRAYER_WEEKLY_LATER_WEEK_MARGIN_TOP_ADJUSTMENT = -6.8;
 
-/** Fixed quote block height — keeps week 1 / 2–4 dashboard cards the same size. */
+/**
+ * Quote line metrics — week 1 reserves 3 lines (no ellipsis); later weeks 2.
+ * Fixed min heights keep overall card height stable across weeks.
+ */
 const QUOTE_LINE_HEIGHT = 16;
 const WEEK_ONE_QUOTE_LINE_COUNT = 3;
 const LATER_WEEK_QUOTE_LINE_COUNT = 2;
@@ -55,6 +58,8 @@ const WEEK_ONE_QUOTE_BLOCK_MIN_HEIGHT =
   QUOTE_LINE_HEIGHT * WEEK_ONE_QUOTE_LINE_COUNT;
 const LATER_WEEK_QUOTE_BLOCK_MIN_HEIGHT =
   QUOTE_LINE_HEIGHT * LATER_WEEK_QUOTE_LINE_COUNT;
+/** Cap so long quotes wrap; short quotes stay text-sized. Side gaps stay equal via centering. */
+const WEEK_ONE_QUOTE_MAX_WIDTH = 220;
 
 export function PrayerWeeklyProgressFooter({
   loading = false,
@@ -101,12 +106,7 @@ export function PrayerWeeklyProgressFooter({
                   : "homeScreen.weeklyProgress_prayersVsLastWeek";
 
   const streakLabel = (
-    <View
-      style={[
-        styles.streakBadge,
-        compactWeekOneQuote && styles.streakBadgeCompact,
-      ]}
-    >
+    <View style={styles.streakBadge}>
       <LighteningIcon />
       <Text
         style={[
@@ -201,6 +201,9 @@ const styles = StyleSheet.create({
   footerSectionWeekOne: {
     width: "100%",
     paddingTop: PRAYER_WEEKLY_STATS_FOOTER_GAP,
+    // Full-width track; row content centered → equal left/right empty space.
+    alignItems: "center",
+    // paddingHorizontal: 20,
     alignSelf: "center",
   },
   footerSectionLaterWeeks: {
@@ -211,13 +214,12 @@ const styles = StyleSheet.create({
   footerRowWeekOne: {
     flexDirection: "row",
     alignItems: "flex-start",
-    gap: 25,
+    justifyContent: "center",
+    gap: 20,
     width: "100%",
     minWidth: 0,
-    paddingHorizontal: 9.5,
   },
   footerRowWeekOneCompact: {
-    // Extra space between streak and quote (shifts quote a little right).
     gap: 28,
   },
   footerRowLaterWeeks: {
@@ -235,10 +237,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 4,
     flexShrink: 0,
-  },
-  streakBadgeCompact: {
-    // Nudge streak a little right (White Days week-1).
-    marginLeft: 10,
   },
   streakText: {
     color: Colors.light.white,
@@ -286,29 +284,27 @@ const styles = StyleSheet.create({
     letterSpacing: 0.1,
   },
   quoteBlockInline: {
-    flex: 1,
     flexDirection: "row",
     alignItems: "flex-start",
     gap: 6,
+    flexShrink: 1,
     minWidth: 0,
+    maxWidth: WEEK_ONE_QUOTE_MAX_WIDTH,
   },
   quoteBlockInlineCompact: {
-    // Nudge the 3-line quote block a little further right.
-    marginLeft: 6,
-    paddingRight: 2,
+    maxWidth: WEEK_ONE_QUOTE_MAX_WIDTH - 20,
   },
   quoteTextWrapInline: {
-    flex: 1,
+    flexShrink: 1,
     minWidth: 0,
+    // Reserve 3-line height so week-1 card height stays stable.
     minHeight: WEEK_ONE_QUOTE_BLOCK_MIN_HEIGHT,
     justifyContent: "flex-start",
   },
   quoteTextWrapInlineCompact: {
-    // Copy uses explicit \\n breaks for 3 lines — keep flex so nothing ellipsizes.
-    flexGrow: 1,
     flexShrink: 1,
-    flexBasis: 0,
     minWidth: 0,
+    minHeight: WEEK_ONE_QUOTE_BLOCK_MIN_HEIGHT,
   },
   quoteBlockFull: {
     flexDirection: "row",

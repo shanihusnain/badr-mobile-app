@@ -13,6 +13,8 @@ export type JournalingHistoryWeekDashboardProps = {
   weekDays: JournalingDayProgress[];
   /** Dashboard `journalCard.title` — falls back to i18n when omitted. */
   title?: string;
+  /** Dashboard `journalCard.button` — falls back to insights i18n when omitted. */
+  buttonLabel?: string;
   onDayPress?: (index: number) => void;
   onPressHeader?: () => void;
   onBehaviorInsightsPress?: () => void;
@@ -55,6 +57,7 @@ function JournalingDayRing({ logged }: JournalingDayRingProps) {
 export function JournalingHistoryWeekDashboard({
   weekDays,
   title,
+  buttonLabel,
   onDayPress,
   onPressHeader,
   onBehaviorInsightsPress,
@@ -62,6 +65,8 @@ export function JournalingHistoryWeekDashboard({
   const { t } = useTranslation();
   const headerTitle =
     title?.trim() || t("homeScreen.journalWeeklyTitle");
+  const ctaLabel =
+    buttonLabel?.trim() || t("homeScreen.journalBehaviorInsights");
 
   return (
     <View style={styles.card}>
@@ -122,9 +127,7 @@ export function JournalingHistoryWeekDashboard({
         disabled={!onBehaviorInsightsPress}
       >
         <JournalBulbIcon />
-        <Text style={styles.insightsText}>
-          {t("homeScreen.journalBehaviorInsights")}
-        </Text>
+        <Text style={styles.insightsText}>{ctaLabel}</Text>
       </TouchableOpacity>
     </View>
   );

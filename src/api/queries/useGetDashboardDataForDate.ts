@@ -62,7 +62,8 @@ export type HomeJournalWeekDay = {
   dayNumber: number;
   logged: boolean;
   isSelected: boolean;
-  isFuture: boolean;
+  /** Optional — API may omit for past/current days. */
+  isFuture?: boolean;
 };
 
 export type HomeJournalCard = {
@@ -71,6 +72,14 @@ export type HomeJournalCard = {
   filledToday: boolean;
   button: string;
   week: HomeJournalWeekDay[];
+};
+
+/** Prompts user to set up journal behaviors — hide home block when null. */
+export type HomeCustomizeJournalCard = {
+  title?: string | null;
+  description?: string | null;
+  subtitle?: string | null;
+  button?: string | null;
 };
 
 export type HomeDashboardData = {
@@ -82,6 +91,7 @@ export type HomeDashboardData = {
   moonCard?: HomeMoonCard | null;
   dailyContent?: HomeDailyContentItem[] | null;
   journalCard?: HomeJournalCard | null;
+  customizeJournalCard?: HomeCustomizeJournalCard | null;
   /** Remaining payload keys left for later wiring steps. */
   [key: string]: unknown;
 };

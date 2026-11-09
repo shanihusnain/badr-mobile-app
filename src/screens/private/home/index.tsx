@@ -81,10 +81,7 @@ import { TimeSpentBottomSheet } from "./components/TimeSpentBottomSheet";
 import { useTypedTranslation } from "@/i18next/useTypedTranslation";
 import { HomeFabSpeedDial } from "./components/HomeFabSpeedDial";
 import { JournalingHistoryWeekDashboard } from "./components/JournalingHistoryWeekDashboard";
-import {
-  JournalingHistoryWeekDays,
-  type JournalingDayProgress,
-} from "./journalingHistory";
+import { type JournalingDayProgress } from "./journalingHistory";
 import { useAuth } from "@/provider/useAuth";
 import { Image } from "expo-image";
 import {
@@ -579,11 +576,13 @@ export default function HomeScreen() {
     [myDayDetails?.entries],
   );
   const journalCard = dashboardData?.journalCard ?? null;
-  const journalingWeekDays = useMemo(() => {
-    const fromApi = mapJournalCardWeek(journalCard);
-    return fromApi.length > 0 ? fromApi : JournalingHistoryWeekDays;
-  }, [journalCard]);
+  const customizeJournalCard = dashboardData?.customizeJournalCard ?? null;
+  const journalingWeekDays = useMemo(
+    () => mapJournalCardWeek(journalCard),
+    [journalCard],
+  );
   const journalCardTitle = journalCard?.title?.trim() || undefined;
+  const journalCardButton = journalCard?.button?.trim() || undefined;
   const { mutate: swipeGreetingCard } = useSwipeGreetingCardHomeScreen();
 
   const handleGreetingCardsFullySwiped = useCallback(() => {
@@ -602,8 +601,20 @@ export default function HomeScreen() {
     [journalingWeekDays, router],
   );
 
-  const handleJournalBehaviorInsightsPress = useCallback(() => {
-    router.push("/(tabs)/(plan)");
+  const handleJournalCardButtonPress = useCallback(() => {
+    const date = journalCard?.journalDate?.trim();
+    if (!date) {
+      router.push("/(private)/journalfilling");
+      return;
+    }
+    router.push({
+      pathname: "/(private)/journalfilling",
+      params: { date },
+    });
+  }, [journalCard?.journalDate, router]);
+
+  const handleCustomizeJournalPress = useCallback(() => {
+    router.push("/(private)/journalappsetting");
   }, [router]);
 
   // Greeting / welcome cards — backend-only; hide entirely when greetingCard is null.
@@ -1163,25 +1174,37 @@ export default function HomeScreen() {
           </View>
         </TouchableOpacity>
 
-        {/* Customize journal */}
-        <View style={styles.journalContainer}>
-          <Text style={styles.journalTitle}>
-            {t("homeScreen.customizeJournalTitle")}
-          </Text>
-          <Text style={styles.journalDescription}>
-            {t("homeScreen.customizeJournalDesc")}
-          </Text>
-          <TouchableOpacity style={styles.getStartedButton}>
-            <Text style={styles.getStartedText}>
-              {t("homeScreen.getStarted")}
+        {/* Customize journal — only when home API sends customizeJournalCard */}
+        {customizeJournalCard != null ? (
+          <View style={styles.journalContainer}>
+            <Text style={styles.journalTitle}>
+              {customizeJournalCard.title?.trim() ||
+                t("homeScreen.customizeJournalTitle")}
             </Text>
-            <Entypo
-              name={i18n.language === "ar" ? "chevron-left" : "chevron-right"}
-              size={24}
-              color={Colors.light.green}
-            />
-          </TouchableOpacity>
-        </View>
+            <Text style={styles.journalDescription}>
+              {customizeJournalCard.description?.trim() ||
+                customizeJournalCard.subtitle?.trim() ||
+                t("homeScreen.customizeJournalDesc")}
+            </Text>
+            <TouchableOpacity
+              style={styles.getStartedButton}
+              onPress={handleCustomizeJournalPress}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.getStartedText}>
+                {customizeJournalCard.button?.trim() ||
+                  t("homeScreen.getStarted")}
+              </Text>
+              <Entypo
+                name={
+                  i18n.language === "ar" ? "chevron-left" : "chevron-right"
+                }
+                size={24}
+                color={Colors.light.green}
+              />
+            </TouchableOpacity>
+          </View>
+        ) : null}
         {/* My Day */}
 
         <View style={[styles.dashboardSection]}>
@@ -1291,12 +1314,16 @@ export default function HomeScreen() {
             </View>
           </>
         ) : null}
-        <JournalingHistoryWeekDashboard
-          weekDays={journalingWeekDays}
-          title={journalCardTitle}
-          onDayPress={handleJournalDayPress}
-          onBehaviorInsightsPress={handleJournalBehaviorInsightsPress}
-        />
+        {/* Journal week card — only when home API sends journalCard */}
+        {journalCard != null ? (
+          <JournalingHistoryWeekDashboard
+            weekDays={journalingWeekDays}
+            title={journalCardTitle}
+            buttonLabel={journalCardButton}
+            onDayPress={handleJournalDayPress}
+            onBehaviorInsightsPress={handleJournalCardButtonPress}
+          />
+        ) : null}
         {/* My Dashboard */}
         <View style={styles.dashboardSection}>
           <Text style={styles.dashboardText}>
